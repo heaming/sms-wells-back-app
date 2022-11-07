@@ -12,7 +12,7 @@ import io.swagger.annotations.Api;
 
 
 @RequestMapping(value = CommConst.REST_URL_V1 + "/products")
-@Api(tags = "[OZZ] Sample Test")
+@Api(tags = "[OZZ] Sample Test TESTTEST")
 @RestController
 public class Test2Controller {
 
