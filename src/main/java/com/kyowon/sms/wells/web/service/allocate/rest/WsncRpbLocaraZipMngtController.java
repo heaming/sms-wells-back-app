@@ -1,17 +1,3 @@
-/*
- ****************************************************************************************************
- * 프로그램 개요
- ****************************************************************************************************
- 1. 모듈 : SNC (배정관리)
- 2. 프로그램 ID : W-SV-U-0036M01 AS 책임지역 우편번호 관리
- 3. 작성자 : gs.piit130
- 4. 작성일 : 2022.11.17
- ****************************************************************************************************
- * 프로그램 설명
- ****************************************************************************************************
- - 책임지역 우편번호 관리 (http://localhost:3000/#/service/wwsnc-responsibility-local-area-zip-mgt)
- ****************************************************************************************************
- */
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import java.util.List;
@@ -34,6 +20,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ *
+ * <pre>
+ * W-SV-U-0036M01 책임지역 우편번호 관리
+ * </pre>
+ *
+ * @author gs.piit130 김혜원
+ * @since 2022.11.17
+ */
 @RestController
 @RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/rpb-locara-zip-mngt")
 @Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")
@@ -42,6 +37,12 @@ public class WsncRpbLocaraZipMngtController {
 
     private final WsncRpbLocaraZipMngtService rpbLocaraZipMngtService;
 
+    /**
+     * 책임지역 우편번호 관리 - 조회 (페이징)
+     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
+     * @param pageInfo
+     * @return 조회결과
+     */
     @ApiOperation(value = "책임지역 우편번호 조회", notes = "조회조건에 일치하는 책임지역 우편번호 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
@@ -60,6 +61,11 @@ public class WsncRpbLocaraZipMngtController {
         return this.rpbLocaraZipMngtService.getRpbLocaraZipMngtPages(dto, pageInfo);
     }
 
+    /**
+     * 책임지역 우편번호 관리 - 엑셀 다운로드
+     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
+     * @return 조회결과
+     */
     @ApiOperation(value = "책임지역 우편번호 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 책임지역 우편번호 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
