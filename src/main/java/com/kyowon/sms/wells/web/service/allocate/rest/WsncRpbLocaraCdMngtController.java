@@ -4,7 +4,6 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,15 +48,6 @@ public class WsncRpbLocaraCdMngtController {
         PageInfo pageInfo
     ) {
         return service.getAfterServiceCodeMngtPages(dto, pageInfo);
-    }
-
-    @PostMapping("/createRpbLocaraCdMngt")
-    public void createRpbLocaraCdMngt(
-        WsncRpbLocaraCdMngtDto.SearchRes dto, @Valid
-        PageInfo pageInfo
-
-    ) {
-        log.debug("저장버튼클릭");
     }
 
 }

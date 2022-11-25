@@ -2,6 +2,14 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * W-SV-U-0035M01 책임지역 지역코드 관리
+ * </pre>
+ *
+ * @author gs.piit129 천영화
+ * @since 2022.11.22
+ */
 public class WsncRpbLocaraCdMngtDto {
 
     @ApiModel(value = "WsncRpbLocaraCdMngtDto-SearchReq")
@@ -38,4 +46,5 @@ public class WsncRpbLocaraCdMngtDto {
         String dtaDlYn, /* 데이터삭제여부 */
         String applyDate
     ) {}
+
 }
