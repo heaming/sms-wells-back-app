@@ -4,9 +4,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.sds.sflex.system.config.response.SaveResponse;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraZipMngtService;
@@ -80,6 +79,18 @@ public class WsncRpbLocaraZipMngtController {
         WsncRpbLocaraZipMngtDto.SearchReq dto
     ) {
         return this.rpbLocaraZipMngtService.getRpbLocaraZipsForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "책임지역 우편번호 저장", notes = "책임지역 우편번호를 저장한다.")
+    @PostMapping
+    public SaveResponse createRpbLocaraZipMngt(
+        @Valid
+        @RequestBody
+        List<WsncRpbLocaraZipMngtDto.CreateReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.rpbLocaraZipMngtService.createRpbLocaraZipMngt(dtos))
+            .build();
     }
 
 }

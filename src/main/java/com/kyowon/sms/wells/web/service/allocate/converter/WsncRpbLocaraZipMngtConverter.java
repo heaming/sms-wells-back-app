@@ -21,4 +21,6 @@ public interface WsncRpbLocaraZipMngtConverter {
 
     List<WsncRpbLocaraZipMngtDto.SearchRes> mapCreateResToListDvo(List<WsncRpbLocaraZipMngtDvo> dvo);
 
+    WsncRpbLocaraZipMngtDvo mapCreateReqToRpbLocaraZipDvo(WsncRpbLocaraZipMngtDto.CreateReq dto);
+
 }

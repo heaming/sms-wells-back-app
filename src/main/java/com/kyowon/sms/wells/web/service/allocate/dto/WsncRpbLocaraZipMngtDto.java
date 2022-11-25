@@ -1,6 +1,9 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  *
@@ -41,8 +44,32 @@ public class WsncRpbLocaraZipMngtDto {
         String vstDowVal, /* 방문요일값 */
         String apyStrtdt, /* 적용시작일자 */
         String apyEnddt, /* 적용종료일자 */
+        String emdSn, /* 읍면동일련번호 */
+        String fr2pLgldCd, /* 앞2자리법정동코드 */
+        String kynorLocaraYn, /* 경북지역여부 */
+        String ildYn, /* 섬여부 */
+        String pdlvNo, /* 출고지번호 */
         String dtaDlYn, /* 데이터삭제여부 */
         String applyDate
+    ) {}
+
+    @ApiModel("WsncRpbLocaraZipMngtDto-CreateReq")
+    @Builder
+    public record CreateReq(
+        @NotBlank
+        String newAdrZip, /* 신주소우편번호 */
+        @NotBlank
+        String emdSn, /* 읍면동일련번호 */
+        String fr2pLgldCd, /* 앞2자리법정동코드 */
+        String ctpvNm, /* 시도명 */
+        String ctctyNm, /* 시군구명 */
+        String lawcEmdNm, /* 법정읍면동명 */
+        String amtdNm, /* 행정동명 */
+        @NotBlank
+        String kynorLocaraYn, /* 경북지역여부 */
+        String ildYn, /* 섬여부 */
+        String pdlvNo, /* 출고지번호 */
+        String dtaDlYn /* 데이터삭제여부 */
     ) {}
 
 }
