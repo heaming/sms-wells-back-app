@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2022.11.22
  */
 @RestController
-@RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/rpb-locara-cd-mngt")
+@RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-codes")
 @Api(tags = "[WSNC] AS 책임지역 지역코드 관리 REST API")
 @RequiredArgsConstructor
 @Validated
@@ -42,7 +42,7 @@ public class WsncRpbLocaraCdMngtController {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    @GetMapping("/getRpbLocaraCdMngtPages")
+    @GetMapping("/paging")
     public PagingResult<WsncRpbLocaraCdMngtDto.SearchRes> getRpbLocaraCdMngtPages(
         WsncRpbLocaraCdMngtDto.SearchReq dto, @Valid
         PageInfo pageInfo
