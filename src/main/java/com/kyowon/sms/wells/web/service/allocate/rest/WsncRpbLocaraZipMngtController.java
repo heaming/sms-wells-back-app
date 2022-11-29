@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
  * @since 2022.11.17
  */
 @RestController
-@RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/rpb-locara-zip-mngt")
+@RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-zipnos")
 @Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")
 @RequiredArgsConstructor
 public class WsncRpbLocaraZipMngtController {
@@ -81,6 +81,12 @@ public class WsncRpbLocaraZipMngtController {
         return this.rpbLocaraZipMngtService.getRpbLocaraZipsForExcelDownload(dto);
     }
 
+    /**
+     * 책임지역 우편번호 관리 - 저장
+     * @param dtos
+     * @return
+     * @throws Exception
+     */
     @ApiOperation(value = "책임지역 우편번호 저장", notes = "책임지역 우편번호를 저장한다.")
     @PostMapping
     public SaveResponse createRpbLocaraZipMngt(
