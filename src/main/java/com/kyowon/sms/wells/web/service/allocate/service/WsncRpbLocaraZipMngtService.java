@@ -2,20 +2,20 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
-import lombok.extern.slf4j.Slf4j;
+import javax.validation.Valid;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraZipMngtConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraZipMngtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <pre>
@@ -37,7 +37,7 @@ public class WsncRpbLocaraZipMngtService {
     /**
      * 책임지역 우편번호 관리 - 조회 (페이징)
      *
-     * @param dto      : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
+     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
      * @param pageInfo
      * @return
      */
@@ -45,7 +45,7 @@ public class WsncRpbLocaraZipMngtService {
         WsncRpbLocaraZipMngtDto.SearchReq dto, PageInfo pageInfo
     ) {
         return new PagingResult<>(
-            this.converter.mapCreateResToListDvo(this.mapper.selectRpbLocaraZips(dto, pageInfo)), pageInfo
+            this.converter.mapDvoListToSearchResDtoList(this.mapper.selectRpbLocaraZips(dto, pageInfo)), pageInfo
         );
     }
 
@@ -58,7 +58,16 @@ public class WsncRpbLocaraZipMngtService {
     public List<WsncRpbLocaraZipMngtDto.SearchRes> getRpbLocaraZipsForExcelDownload(
         WsncRpbLocaraZipMngtDto.SearchReq dto
     ) {
-        return this.converter.mapCreateResToListDvo(this.mapper.selectRpbLocaraZips(dto));
+        return this.converter.mapDvoListToSearchResDtoList(this.mapper.selectRpbLocaraZips(dto));
+    }
+
+    /**
+     * 책임지역 법정동 행정동 리스트 조회
+     *
+     * @return
+     */
+    public List<WsncRpbLocaraZipMngtDto.LgldAmtd> getRpbLocaraLgldAmtds() {
+        return this.converter.mapDvoListToLgldAmtdDtoList(this.mapper.selectRpbLocaraLgldAmtds());
     }
 
     /**
@@ -80,4 +89,5 @@ public class WsncRpbLocaraZipMngtService {
 
         return processCount;
     }
+
 }

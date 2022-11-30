@@ -19,7 +19,9 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
 @Mapper(componentModel = "spring")
 public interface WsncRpbLocaraZipMngtConverter {
 
-    List<WsncRpbLocaraZipMngtDto.SearchRes> mapCreateResToListDvo(List<WsncRpbLocaraZipMngtDvo> dvo);
+    List<WsncRpbLocaraZipMngtDto.SearchRes> mapDvoListToSearchResDtoList(List<WsncRpbLocaraZipMngtDvo> dvo);
+
+    List<WsncRpbLocaraZipMngtDto.LgldAmtd> mapDvoListToLgldAmtdDtoList(List<WsncRpbLocaraZipMngtDvo> dvo);
 
     WsncRpbLocaraZipMngtDvo mapCreateReqToRpbLocaraZipDvo(WsncRpbLocaraZipMngtDto.CreateReq dto);
 

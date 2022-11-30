@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto;
@@ -12,6 +11,7 @@ import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraZipMngtSer
 import com.kyowon.sms.wells.web.service.zcommon.constants.ServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -79,6 +79,16 @@ public class WsncRpbLocaraZipMngtController {
         WsncRpbLocaraZipMngtDto.SearchReq dto
     ) {
         return this.rpbLocaraZipMngtService.getRpbLocaraZipsForExcelDownload(dto);
+    }
+
+    /**
+     * 책임지역 법정동 행정동 리스트 조회
+     * @return 조회결과
+     */
+    @ApiOperation(value = "책임지역 법정동 행정동 리스트 조회", notes = "책임지역 법정동 행정동 리스트 조회한다.")
+    @GetMapping("/lgldAmtds")
+    public List<WsncRpbLocaraZipMngtDto.LgldAmtd> getRpbLocaraLgldAmtds() {
+        return this.rpbLocaraZipMngtService.getRpbLocaraLgldAmtds();
     }
 
     /**
