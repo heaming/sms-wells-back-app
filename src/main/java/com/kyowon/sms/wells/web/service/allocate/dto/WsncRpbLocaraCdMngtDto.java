@@ -42,9 +42,7 @@ public class WsncRpbLocaraCdMngtDto {
         String prtnrKnm, /* 파트너한글명 */
         String vstDowVal, /* 방문요일값 */
         String apyStrtdt, /* 적용시작일자 */
-        String apyEnddt, /* 적용종료일자 */
-        String dtaDlYn, /* 데이터삭제여부 */
-        String applyDate
+        String apyEnddt /* 적용종료일자 */
     ) {}
 
 }
