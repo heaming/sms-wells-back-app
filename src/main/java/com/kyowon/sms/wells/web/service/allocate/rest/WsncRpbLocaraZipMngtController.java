@@ -4,11 +4,15 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.LgldAmtd;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraZipMngtService;
-import com.kyowon.sms.wells.web.service.zcommon.constants.ServiceConst;
+import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -19,22 +23,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-/**
- *
- * <pre>
- * W-SV-U-0036M01 책임지역 우편번호 관리
- * </pre>
- *
- * @author gs.piit130 김혜원
- * @since 2022.11.17
- */
 @RestController
-@RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-zipnos")
+@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-zipnos")
 @Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")
 @RequiredArgsConstructor
+@Validated
 public class WsncRpbLocaraZipMngtController {
 
-    private final WsncRpbLocaraZipMngtService rpbLocaraZipMngtService;
+    private final WsncRpbLocaraZipMngtService service;
 
     /**
      * 책임지역 우편번호 관리 - 조회 (페이징)
@@ -52,12 +48,12 @@ public class WsncRpbLocaraZipMngtController {
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101", required = true)
     })
     @GetMapping("/paging")
-    public PagingResult<WsncRpbLocaraZipMngtDto.SearchRes> getRpbLocaraZipMngtPages(
-        WsncRpbLocaraZipMngtDto.SearchReq dto,
+    public PagingResult<SearchRes> getZipNoPages(
+        SearchReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return this.rpbLocaraZipMngtService.getRpbLocaraZipMngtPages(dto, pageInfo);
+        return this.service.getZipNoPages(dto, pageInfo);
     }
 
     /**
@@ -75,10 +71,10 @@ public class WsncRpbLocaraZipMngtController {
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101", required = true)
     })
     @GetMapping("/excel-download")
-    public List<WsncRpbLocaraZipMngtDto.SearchRes> getRpbLocaraZipMngtExcelDownload(
-        WsncRpbLocaraZipMngtDto.SearchReq dto
+    public List<SearchRes> getZipNosForExcelDownload(
+        SearchReq dto
     ) {
-        return this.rpbLocaraZipMngtService.getRpbLocaraZipsForExcelDownload(dto);
+        return this.service.getZipNosForExcelDownload(dto);
     }
 
     /**
@@ -86,9 +82,9 @@ public class WsncRpbLocaraZipMngtController {
      * @return 조회결과
      */
     @ApiOperation(value = "책임지역 법정동 행정동 리스트 조회", notes = "책임지역 법정동 행정동 리스트 조회한다.")
-    @GetMapping("/lgldAmtds")
-    public List<WsncRpbLocaraZipMngtDto.LgldAmtd> getRpbLocaraLgldAmtds() {
-        return this.rpbLocaraZipMngtService.getRpbLocaraLgldAmtds();
+    @GetMapping("/districts")
+    public List<LgldAmtd> getDistricts() {
+        return this.service.getDistricts();
     }
 
     /**
@@ -99,13 +95,13 @@ public class WsncRpbLocaraZipMngtController {
      */
     @ApiOperation(value = "책임지역 우편번호 저장", notes = "책임지역 우편번호를 저장한다.")
     @PostMapping
-    public SaveResponse createRpbLocaraZipMngt(
+    public SaveResponse createZip(
         @Valid
         @RequestBody
-        List<WsncRpbLocaraZipMngtDto.CreateReq> dtos
+        List<CreateReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(this.rpbLocaraZipMngtService.createRpbLocaraZipMngt(dtos))
+            .processCount(this.service.createZip(dtos))
             .build();
     }
 

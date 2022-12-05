@@ -30,8 +30,6 @@ public class WsncRpbLocaraZipMngtDvo {
     String ichrPrtnrNo; // 담당파트너번호
     String prtnrKnm; // 파트너한글명
     String vstDowVal; // 방문요일값
-    String apyStrtdt; // 적용시작일자
-    String apyEnddt; // 적용종료일자
     String emdSn; // 읍면동일련번호
     String fr2pLgldCd; // 앞2자리법정동코드
     String kynorLocaraYn; // 경북지역여부

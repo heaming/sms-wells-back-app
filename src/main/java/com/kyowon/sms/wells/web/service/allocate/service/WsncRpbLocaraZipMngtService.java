@@ -2,13 +2,14 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraZipMngtConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.LgldAmtd;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraZipMngtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -41,12 +42,8 @@ public class WsncRpbLocaraZipMngtService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<WsncRpbLocaraZipMngtDto.SearchRes> getRpbLocaraZipMngtPages(
-        WsncRpbLocaraZipMngtDto.SearchReq dto, PageInfo pageInfo
-    ) {
-        return new PagingResult<>(
-            this.converter.mapDvoListToSearchResDtoList(this.mapper.selectRpbLocaraZips(dto, pageInfo)), pageInfo
-        );
+    public PagingResult<SearchRes> getZipNoPages(SearchReq dto, PageInfo pageInfo) {
+        return this.mapper.selectZipNos(dto, pageInfo);
     }
 
     /**
@@ -55,10 +52,8 @@ public class WsncRpbLocaraZipMngtService {
      * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
      * @return
      */
-    public List<WsncRpbLocaraZipMngtDto.SearchRes> getRpbLocaraZipsForExcelDownload(
-        WsncRpbLocaraZipMngtDto.SearchReq dto
-    ) {
-        return this.converter.mapDvoListToSearchResDtoList(this.mapper.selectRpbLocaraZips(dto));
+    public List<SearchRes> getZipNosForExcelDownload(SearchReq dto) {
+        return this.mapper.selectZipNos(dto);
     }
 
     /**
@@ -66,8 +61,8 @@ public class WsncRpbLocaraZipMngtService {
      *
      * @return
      */
-    public List<WsncRpbLocaraZipMngtDto.LgldAmtd> getRpbLocaraLgldAmtds() {
-        return this.converter.mapDvoListToLgldAmtdDtoList(this.mapper.selectRpbLocaraLgldAmtds());
+    public List<LgldAmtd> getDistricts() {
+        return this.mapper.selectDistricts();
     }
 
     /**
@@ -78,13 +73,12 @@ public class WsncRpbLocaraZipMngtService {
      * @throws Exception
      */
     @Transactional
-    public int createRpbLocaraZipMngt(@Valid
-    List<WsncRpbLocaraZipMngtDto.CreateReq> dtos) throws Exception {
+    public int createZip(List<CreateReq> dtos) throws Exception {
         int processCount = 0;
 
-        for (WsncRpbLocaraZipMngtDto.CreateReq dto : dtos) {
-            WsncRpbLocaraZipMngtDvo rpbLocaraZip = this.converter.mapCreateReqToRpbLocaraZipDvo(dto);
-            processCount += this.mapper.insertRpbLocaraZip(rpbLocaraZip);
+        for (CreateReq dto : dtos) {
+            WsncRpbLocaraZipMngtDvo rpbLocaraZip = this.converter.mapCreateReqToWsncRpbLocaraZipMngtDvo(dto);
+            processCount += this.mapper.insertZipNo(rpbLocaraZip);
         }
 
         return processCount;
