@@ -1,9 +1,13 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SearchRes;
+
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraCdMngtConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraCdMngtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -34,11 +38,16 @@ public class WsncRpbLocaraCdMngtService {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    public PagingResult<WsncRpbLocaraCdMngtDto.SearchRes> getAfterServiceCodeMngtPages(
-        WsncRpbLocaraCdMngtDto.SearchReq dto, PageInfo pageInfo
+    public PagingResult<SearchRes> getAfterServiceCodeMngtPages(
+        SearchReq dto, PageInfo pageInfo
     ) {
         return new PagingResult<>(
-            converter.mapCreateResToListDvo(mapper.getRpbLocaraCdMngtPages(dto, pageInfo)), pageInfo
+            converter.mapAllSearchResToWsncRpbLocaraCdMngtListDvo(mapper.getRpbLocaraCdMngtPages(dto, pageInfo)),
+            pageInfo
         );
+    }
+
+    public List<SearchRes> getAfterServiceCodeMngtExcelDownload(SearchReq dto) {
+        return converter.mapAllSearchResToWsncRpbLocaraCdMngtListDvo(mapper.getRpbLocaraCdMngtPages(dto));
     }
 }

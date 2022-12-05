@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SearchReq;
+
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraCdMngtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 
@@ -20,6 +21,10 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 public interface WsncRpbLocaraCdMngtMapper {
 
     List<WsncRpbLocaraCdMngtDvo> getRpbLocaraCdMngtPages(
-        WsncRpbLocaraCdMngtDto.SearchReq dto, PageInfo pageInfo
+        SearchReq dto, PageInfo pageInfo
+    );
+
+    List<WsncRpbLocaraCdMngtDvo> getRpbLocaraCdMngtPages(
+        SearchReq dto
     );
 }

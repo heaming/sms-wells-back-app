@@ -1,5 +1,10 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SearchRes;
+
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -7,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraCdMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.ServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -17,14 +21,6 @@ import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * <pre>
- * W-SV-U-0035M01 책임지역 지역코드 관리
- * </pre>
- *
- * @author gs.piit129 천영화
- * @since 2022.11.22
- */
 @RestController
 @RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-codes")
 @Api(tags = "[WSNC] AS 책임지역 지역코드 관리 REST API")
@@ -43,11 +39,16 @@ public class WsncRpbLocaraCdMngtController {
      * @return 조회결과
      */
     @GetMapping("/paging")
-    public PagingResult<WsncRpbLocaraCdMngtDto.SearchRes> getRpbLocaraCdMngtPages(
-        WsncRpbLocaraCdMngtDto.SearchReq dto, @Valid
+    public PagingResult<SearchRes> getRpbLocaraCdMngtPages(
+        SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
         return service.getAfterServiceCodeMngtPages(dto, pageInfo);
+    }
+
+    @GetMapping("/excel-download")
+    public List<SearchRes> getAfterServiceCodeMngtExcelDownload(SearchReq dto) {
+        return service.getAfterServiceCodeMngtExcelDownload(dto);
     }
 
 }
