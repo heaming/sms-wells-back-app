@@ -31,15 +31,8 @@ public class WsncRpbLocaraCdMngtController {
 
     private final WsncRpbLocaraCdMngtService service;
 
-    /**
-     * 책임지역 지역코드 관리
-     * @param dto : { zipForm : 우편번호 From, zipTo : 우편번호 To, fr2pLgldCd : 법정동코드 앞 2자리, ctpvNm : 시도명, ctctyNm : 시군구명,
-     *           ogId :서비스센터 ID, wrkGrpCd : 작업그룹코드, applyDate : 적용일자, locaraCdFrom : 지역코드 From, locaraCdTo : 지역코드 To }
-     * @param pageInfo : 페이징정보
-     * @return 조회결과
-     */
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getRpbLocaraCdMngtPages(
+    public PagingResult<SearchRes> getResponsibleAreaCodePages(
         SearchReq dto, @Valid
         PageInfo pageInfo
     ) {

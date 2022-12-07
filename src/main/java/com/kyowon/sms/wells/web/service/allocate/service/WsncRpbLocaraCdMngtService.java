@@ -41,10 +41,10 @@ public class WsncRpbLocaraCdMngtService {
     public PagingResult<SearchRes> getAfterServiceCodeMngtPages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.getRpbLocaraCdMngtPages(dto, pageInfo);
+        return mapper.selectRpbLocaraCdMngtPages(dto, pageInfo);
     }
 
     public List<SearchRes> getAfterServiceCodeMngtExcelDownload(SearchReq dto) {
-        return mapper.getRpbLocaraCdMngtPages(dto);
+        return mapper.selectRpbLocaraCdMngtPages(dto);
     }
 }
