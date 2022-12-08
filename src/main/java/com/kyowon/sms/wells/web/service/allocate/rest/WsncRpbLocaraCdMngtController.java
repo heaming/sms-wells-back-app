@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraCdMngtService;
-import com.kyowon.sms.wells.web.service.zcommon.constants.ServiceConst;
+import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(ServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-codes")
+@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-codes")
 @Api(tags = "[WSNC] AS 책임지역 지역코드 관리 REST API")
 @RequiredArgsConstructor
 @Validated
