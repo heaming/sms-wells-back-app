@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-codes")
-@Api(tags = "[WSNC] AS 책임지역 지역코드 관리 REST API")
+@Api(tags = "[WSNC] 책임지역 지역코드 관리 REST API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
