@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndWorkNoticeMapper">
+    <select id="selectWorkNotices" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndWorkNoticeDto$SearchRes">
+        SELECT T1.MNGT_YM
+             , T1.NTC_ID
+             , T1.NTC_SN
+             , T1.PD_GRP_CD
+             , T1.PD_CD
+             , T2.PD_NM
+             , T1.IST_WK_YN
+             , T1.AS_WK_YN
+             , T1.BFSVC_WK_YN
+             , T1.MNGR_DV_CD
+             , T1.NTCCN_TIT_NM
+             , T1.NTCCN_CN
+             , T1.VL_STRTDT
+             , T1.VL_ENDDT
+             , T1.FST_RGST_DTM
+             , T1.FST_RGST_USR_ID
+             , T1.FST_RGST_USR_ID AS FST_RGST_USR_NM
+          FROM
+             ( SELECT *
+                 FROM
+                    ( SELECT MNGT_YM
+                           , NTC_ID
+                           , NTC_SN
+                           , PD_GRP_CD
+                           , PD_CD
+                           , IST_WK_YN
+                           , AS_WK_YN
+                           , BFSVC_WK_YN
+                           , MNGR_DV_CD
+                           , NTCCN_TIT_NM
+                           , NTCCN_CN
+                           , VL_STRTDT
+                           , VL_ENDDT
+                           , FST_RGST_DTM
+                           , FST_RGST_USR_ID
+                           , RANK() OVER (PARTITION BY MNGT_YM, NTC_ID ORDER BY NTC_SN DESC) AS RNK
+                        FROM TB_SVPD_EGER_WK_NTC_IZ
+                       WHERE 1=1
+                    <if test='@MybatisUtils@isNotEmpty(stRgstDt) and @MybatisUtils@isNotEmpty(edRgstDt)'>
+                         AND SUBSTR(FST_RGST_DTM, 0, 8) BETWEEN #{stRgstDt} || '000000' AND #{edRgstDt} || '235959'
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(ntccnTitNm)'>
+                         AND NTCCN_TIT_NM LIKE '%' || #{ntccnTitNm} || '%'
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(mngrDvCd)'>
+                         AND MNGR_DV_CD = #{mngrDvCd}
+                    </if>
+                         AND DTA_DL_YN <![CDATA[<>]]> 'Y'
+                    )
+                WHERE RNK = 1
+             ) T1
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T2
+            ON T2.PD_CD = T1.PD_CD
+         ORDER BY T1.FST_RGST_DTM DESC
+    </select>
+
+    <select id="selectWorkNoticeDetail" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndWorkNoticeDto$FindRes">
+        SELECT MNGT_YM
+             , NTC_ID
+             , NTC_SN
+             , PD_GRP_CD
+             , PD_CD
+             , IST_WK_YN
+             , AS_WK_YN
+             , BFSVC_WK_YN
+             , MNGR_DV_CD
+             , NTCCN_TIT_NM
+             , NTCCN_CN
+             , VL_STRTDT
+             , VL_ENDDT
+          FROM TB_SVPD_EGER_WK_NTC_IZ
+         WHERE 1=1
+           AND MNGT_YM = #{mngtYm}
+           AND NTC_ID = #{ntcId}
+           AND NTC_SN = #{ntcSn}
+           AND DTA_DL_YN <![CDATA[<>]]> 'Y'
+    </select>
+
+    <select id="selectProductsByProductGroup" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndWorkNoticeDto$SearchProductRes">
+        SELECT '0000000001' AS PD_CD
+             , '테스트 제품1' AS PD_NM
+             , #{pdGrpCd} AS PD_GRP_CD
+          FROM dual
+         UNION ALL
+        SELECT '0000000002' AS PD_CD
+             , '테스트 제품2' AS PD_NM
+             , #{pdGrpCd} AS PD_GRP_CD
+          FROM dual
+         UNION ALL
+        SELECT '0000000003' AS PD_CD
+             , '테스트 제품3' AS PD_NM
+             , #{pdGrpCd} AS PD_GRP_CD
+          FROM dual
+         UNION ALL
+        SELECT '0000000004' AS PD_CD
+             , '테스트 제품4' AS PD_NM
+             , #{pdGrpCd} AS PD_GRP_CD
+          FROM dual
+    </select>
+
+    <insert id="insertWorkNotice">
+        INSERT INTO TB_SVPD_EGER_WK_NTC_IZ (
+            MNGT_YM
+          , NTC_ID
+          , NTC_SN
+          , PD_GRP_CD
+          , PD_CD
+          , IST_WK_YN
+          , AS_WK_YN
+          , BFSVC_WK_YN
+          , MNGR_DV_CD
+          , NTCCN_TIT_NM
+          , NTCCN_CN
+          , VL_STRTDT
+          , VL_ENDDT
+          , DTA_DL_YN
+          <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+            TO_CHAR(SYSDATE, 'YYYYMM')
+          , (SELECT CASE WHEN (SELECT COUNT(1) FROM TB_SVPD_EGER_WK_NTC_IZ WHERE MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')) > 0
+                         THEN (SELECT LPAD(MAX(NTC_ID)+1, 4, '0') FROM TB_SVPD_EGER_WK_NTC_IZ WHERE MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM') GROUP BY MNGT_YM)
+                         ELSE '0001'
+                    END AS NTC_ID
+               FROM DUAL)
+          , 1
+          , #{pdGrpCd}
+          , #{pdCd}
+          , NVL(#{istWkYn}, '0')
+          , NVL(#{asWkYn}, '0')
+          , NVL(#{bfsvcWkYn}, '0')
+          , #{mngrDvCd}
+          , #{ntccnTitNm}
+          , #{ntccnCn}
+          , #{vlStrtdt}
+          , #{vlEnddt}
+          , 'N'
+          <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <insert id="updateWorkNotice">
+        INSERT INTO TB_SVPD_EGER_WK_NTC_IZ (
+            MNGT_YM
+          , NTC_ID
+          , NTC_SN
+          , PD_GRP_CD
+          , PD_CD
+          , IST_WK_YN
+          , AS_WK_YN
+          , BFSVC_WK_YN
+          , MNGR_DV_CD
+          , NTCCN_TIT_NM
+          , NTCCN_CN
+          , VL_STRTDT
+          , VL_ENDDT
+          , DTA_DL_YN
+          , FST_RGST_DTM
+          , FST_RGST_USR_ID
+          , FST_RGST_PRG_ID
+          , FST_RGST_DEPT_ID
+          , FNL_MDFC_DTM
+          , FNL_MDFC_USR_ID
+          , FNL_MDFC_PRG_ID
+          , FNL_MDFC_DEPT_ID
+        )
+        SELECT MNGT_YM
+             , NTC_ID
+             , NTC_SN + 1
+             , #{pdGrpCd}
+             , #{pdCd}
+             , #{istWkYn}
+             , #{asWkYn}
+             , #{bfsvcWkYn}
+             , #{mngrDvCd}
+             , #{ntccnTitNm}
+             , #{ntccnCn}
+             , #{vlStrtdt}
+             , #{vlEnddt}
+             , 'N'
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{session.userId}
+             , #{session.pageId}
+             , #{session.departmentId}
+          FROM TB_SVPD_EGER_WK_NTC_IZ
+         WHERE MNGT_YM = #{mngtYm}
+           AND NTC_ID = #{ntcId}
+           AND NTC_SN = #{ntcSn}
+    </insert>
+</mapper>
