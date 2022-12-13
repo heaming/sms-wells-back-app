@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.service.allocate.converter;
 
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipNoDvo;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
 
 /**
  *
@@ -17,6 +17,6 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
 @Mapper(componentModel = "spring")
 public interface WsncRpbLocaraZipMngtConverter {
 
-    WsncRpbLocaraZipMngtDvo mapCreateReqToWsncRpbLocaraZipMngtDvo(WsncRpbLocaraZipMngtDto.CreateReq dto);
+    WsncRpbLocaraZipNoDvo mapCreateReqToWsncRpbLocaraZipNoDvo(WsncRpbLocaraZipMngtDto.CreateReq dto);
 
 }

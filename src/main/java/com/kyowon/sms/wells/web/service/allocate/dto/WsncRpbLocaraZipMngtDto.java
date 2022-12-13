@@ -53,9 +53,9 @@ public class WsncRpbLocaraZipMngtDto {
         String applyDate
     ) {}
 
-    @ApiModel(value = "WsncRpbLocaraZipMngtDto-LgldAmtd")
-    public record LgldAmtd(
-        String newAdrZip, // 신주소우편번호
+    @ApiModel(value = "WsncRpbLocaraZipMngtDto-District")
+    public record District(
+        String fr2pLgldCd, // 앞2자리법정동코드
         String ctpvNm, // 시도명
         String ctctyNm, // 시군구명
         String lawcEmdNm, // 법정읍면동명

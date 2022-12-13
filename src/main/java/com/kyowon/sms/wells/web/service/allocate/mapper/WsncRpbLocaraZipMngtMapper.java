@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.LgldAmtd;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.District;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipNoDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -42,13 +42,13 @@ public interface WsncRpbLocaraZipMngtMapper {
      * 책임지역 법정동 행정동 리스트 조회
      * @return
      */
-    List<LgldAmtd> selectDistricts();
+    List<District> selectDistricts();
 
     /**
      * 책임지역 우편번호 관리 - 저장
      * @param rpbLocaraZip : { newAdrZip: 신주소우편번호, emdSn: 읍면동일련번호, fr2pLgldCd: 앞2자리법정동코드, lawcEmdNm: 법정읍면동명, amtdNm: 행정동명, kynorLocaraYn: 경북지역여부, dtaDlYn: 데이터삭제여부, ctpvNm: 시도명, ctctyNm: 시군구명, ildYn: 섬여부, pdlvNo: 출고지번호 }
      * @return
      */
-    int insertZipNo(WsncRpbLocaraZipMngtDvo rpbLocaraZip);
+    int insertZipNo(WsncRpbLocaraZipNoDvo rpbLocaraZip);
 
 }

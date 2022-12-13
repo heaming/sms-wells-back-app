@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.LgldAmtd;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.District;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraZipMngtService;
@@ -32,12 +32,6 @@ public class WsncRpbLocaraZipMngtController {
 
     private final WsncRpbLocaraZipMngtService service;
 
-    /**
-     * 책임지역 우편번호 관리 - 조회 (페이징)
-     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
-     * @param pageInfo
-     * @return 조회결과
-     */
     @ApiOperation(value = "책임지역 우편번호 조회", notes = "조회조건에 일치하는 책임지역 우편번호 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
@@ -56,11 +50,6 @@ public class WsncRpbLocaraZipMngtController {
         return this.service.getZipNoPages(dto, pageInfo);
     }
 
-    /**
-     * 책임지역 우편번호 관리 - 엑셀 다운로드
-     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
-     * @return 조회결과
-     */
     @ApiOperation(value = "책임지역 우편번호 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 책임지역 우편번호 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
@@ -77,22 +66,12 @@ public class WsncRpbLocaraZipMngtController {
         return this.service.getZipNosForExcelDownload(dto);
     }
 
-    /**
-     * 책임지역 법정동 행정동 리스트 조회
-     * @return 조회결과
-     */
     @ApiOperation(value = "책임지역 법정동 행정동 리스트 조회", notes = "책임지역 법정동 행정동 리스트 조회한다.")
     @GetMapping("/districts")
-    public List<LgldAmtd> getDistricts() {
+    public List<District> getDistricts() {
         return this.service.getDistricts();
     }
 
-    /**
-     * 책임지역 우편번호 관리 - 저장
-     * @param dtos
-     * @return
-     * @throws Exception
-     */
     @ApiOperation(value = "책임지역 우편번호 저장", notes = "책임지역 우편번호를 저장한다.")
     @PostMapping
     public SaveResponse createZip(
