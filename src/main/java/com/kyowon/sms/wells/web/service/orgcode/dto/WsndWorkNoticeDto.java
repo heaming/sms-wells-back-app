@@ -1,5 +1,9 @@
 package com.kyowon.sms.wells.web.service.orgcode.dto;
 
+import javax.validation.constraints.NotBlank;
+
+import com.sds.sflex.system.config.validation.validator.ValidDate;
+
 import io.swagger.annotations.ApiModel;
 
 public class WsndWorkNoticeDto {
@@ -26,33 +30,44 @@ public class WsndWorkNoticeDto {
     // 작업공지 Create Request Dto
     @ApiModel(value = "WsndWorkNoticeDto-CreateReq")
     public record CreateReq(
+        @NotBlank
         String pdGrpCd,
         String pdCd,
         String istWkYn,
         String asWkYn,
         String bfsvcWkYn,
+        @NotBlank
         String mngrDvCd,
         String ntccnTitNm,
         String ntccnCn,
+        @ValidDate
         String vlStrtdt,
+        @ValidDate
         String vlEnddt
     ) {}
 
     // 작업공지 Edit Request Dto
     @ApiModel(value = "WsndWorkNoticeDto-EditReq")
     public record EditReq(
+        @NotBlank
         String mngtYm,
+        @NotBlank
         String ntcId,
+        @NotBlank
         String ntcSn,
+        @NotBlank
         String pdGrpCd,
         String pdCd,
         String istWkYn,
         String asWkYn,
         String bfsvcWkYn,
+        @NotBlank
         String mngrDvCd,
         String ntccnTitNm,
         String ntccnCn,
+        @ValidDate
         String vlStrtdt,
+        @ValidDate
         String vlEnddt
     ) {}
 

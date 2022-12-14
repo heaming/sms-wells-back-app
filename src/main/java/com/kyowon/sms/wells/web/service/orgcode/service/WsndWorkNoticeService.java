@@ -19,38 +19,38 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WsndWorkNoticeService {
-    private final WsndWorkNoticeConverter wsndWorkNoticeConverter;
-    private final WsndWorkNoticeMapper wsndWorkNoticeMapper;
+    private final WsndWorkNoticeConverter converter;
+    private final WsndWorkNoticeMapper mapper;
 
     public PagingResult<SearchRes> getWorkNoticePages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return wsndWorkNoticeMapper.selectWorkNotices(dto, pageInfo);
+        return mapper.selectWorkNotices(dto, pageInfo);
     }
 
     public List<SearchRes> getWorkNotices(SearchReq dto) {
-        return wsndWorkNoticeMapper.selectWorkNotices(dto);
+        return mapper.selectWorkNotices(dto);
     }
 
     public FindRes getWorkNoticeDetail(FindReq dto) {
-        return wsndWorkNoticeMapper.selectWorkNoticeDetail(dto).orElseThrow(
+        return mapper.selectWorkNoticeDetail(dto).orElseThrow(
             () -> new BizException("MSG_ALT_NO_DATA")
         );
     }
 
     public List<SearchProductRes> getProductsByProductGroup(String pdGrpCd) {
-        return wsndWorkNoticeMapper.selectProductsByProductGroup(pdGrpCd);
+        return mapper.selectProductsByProductGroup(pdGrpCd);
     }
 
     @Transactional
     public int createWorkNotice(CreateReq dto) {
-        WsndWorkNoticeDvo dvo = wsndWorkNoticeConverter.mapCreateReqToWorkNoticeDvo(dto);
-        return wsndWorkNoticeMapper.insertWorkNotice(dvo);
+        WsndWorkNoticeDvo dvo = converter.mapCreateReqToWorkNoticeDvo(dto);
+        return mapper.insertWorkNotice(dvo);
     }
 
     @Transactional
     public int editWorkNotice(EditReq dto) {
-        WsndWorkNoticeDvo dvo = wsndWorkNoticeConverter.mapEditReqToWorkNoticeDvo(dto);
-        return wsndWorkNoticeMapper.updateWorkNotice(dvo);
+        WsndWorkNoticeDvo dvo = converter.mapEditReqToWorkNoticeDvo(dto);
+        return mapper.updateWorkNotice(dvo);
     }
 }

@@ -5,8 +5,8 @@ import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndWorkNoticeDto.*;
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.orgcode.service.WsndWorkNoticeService;
@@ -22,11 +22,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @Api(tags = "[WSND] 작업 공지사항")
+@Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/work-notices")
 public class WsndWorkNoticeController {
-    private final WsndWorkNoticeService wsndWorkNoticeService;
+    private final WsndWorkNoticeService service;
 
     @ApiOperation(value = "작업 공지사항 조회", notes = "조회조건에 따른 작업 공지사항 조회")
     @ApiImplicitParams(value = {
@@ -37,7 +38,7 @@ public class WsndWorkNoticeController {
     })
     @GetMapping
     public List<SearchRes> getWorkNotices(SearchReq dto) {
-        return wsndWorkNoticeService.getWorkNotices(dto);
+        return service.getWorkNotices(dto);
     }
 
     @ApiOperation(value = "작업 공지사항 조회(Paging)", notes = "조회조건에 따른 작업 공지사항 페이징 조회")
@@ -53,7 +54,7 @@ public class WsndWorkNoticeController {
         @Valid
         PageInfo pageInfo
     ) {
-        return wsndWorkNoticeService.getWorkNoticePages(dto, pageInfo);
+        return service.getWorkNoticePages(dto, pageInfo);
     }
 
     @ApiOperation(value = "작업 공지사항 상세 조회", notes = "조회조건에 따른 작업 공지사항 상세 조회")
@@ -64,7 +65,7 @@ public class WsndWorkNoticeController {
     })
     @GetMapping("/detail")
     public FindRes getWorkNoticeDetail(FindReq dto) {
-        return wsndWorkNoticeService.getWorkNoticeDetail(dto);
+        return service.getWorkNoticeDetail(dto);
     }
 
     @ApiOperation(value = "상품코드 조회", notes = "상품그룹코드에 따른 상품코드 조회")
@@ -76,7 +77,7 @@ public class WsndWorkNoticeController {
         @PathVariable
         String pdGrpCd
     ) {
-        return wsndWorkNoticeService.getProductsByProductGroup(pdGrpCd);
+        return service.getProductsByProductGroup(pdGrpCd);
     }
 
     @ApiOperation(value = "작업 공지사항 등록", notes = "입력정보에 따른 작업 공지사항 등록")
@@ -84,11 +85,10 @@ public class WsndWorkNoticeController {
     public SaveResponse createWorkNotice(
         @RequestBody
         @Valid
-        @NotEmpty
         CreateReq dto
     ) {
         return SaveResponse.builder()
-            .processCount(wsndWorkNoticeService.createWorkNotice(dto))
+            .processCount(service.createWorkNotice(dto))
             .build();
     }
 
@@ -97,11 +97,10 @@ public class WsndWorkNoticeController {
     public SaveResponse editWorkNotice(
         @RequestBody
         @Valid
-        @NotEmpty
         EditReq dto
     ) {
         return SaveResponse.builder()
-            .processCount(wsndWorkNoticeService.editWorkNotice(dto))
+            .processCount(service.editWorkNotice(dto))
             .build();
     }
 }
