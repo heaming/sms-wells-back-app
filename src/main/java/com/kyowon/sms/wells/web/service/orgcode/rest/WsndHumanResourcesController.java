@@ -1,0 +1,71 @@
+package com.kyowon.sms.wells.web.service.orgcode.rest;
+
+import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto.*;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndHumanResourcesService;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+
+@Api(tags = "[WSND] 인사기본정보")
+@Validated
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/human-resources")
+public class WsndHumanResourcesController {
+    private final WsndHumanResourcesService service;
+
+    @ApiOperation(value = "인사기본정보 조회", notes = "조회조건에 따른 작업 인사기본정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "mngrDvCd", value = "담당구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "deptCd", value = "총국", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cnrCd", value = "소속센터", paramType = "query", required = false),
+        @ApiImplicitParam(name = "searchText", value = "성명/사번", paramType = "query", required = false),
+    })
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getHumanResourcesPages(
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getHumanResourcesPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "매니저 총국코드 조회", notes = "매니저 총국코드 조회")
+    @GetMapping("/manager-departments")
+    public List<SearchDepartmentRes> getManagerDepartmentCodes() {
+        return service.getManagerDepartmentCodes();
+    }
+
+    @ApiOperation(value = "매니저 센터코드 조회", notes = "총국코드에 따른 매니저 센터코드 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "deptCd", value = "총국코드", paramType = "path", required = true),
+    })
+    @GetMapping("/manager-centers/{deptCd}")
+    public List<SearchCenterRes> getManagerCenterCodes(
+        @PathVariable
+        String deptCd
+    ) {
+        return service.getManagerCenterCodes(deptCd);
+    }
+
+    @ApiOperation(value = "엔지니어 센터코드 조회", notes = "엔지니어 센터코드 조회")
+    @GetMapping("/engineer-centers")
+    public List<SearchCenterRes> getEngineerCenterCodes() {
+        return service.getEngineerCenterCodes();
+    }
+}
