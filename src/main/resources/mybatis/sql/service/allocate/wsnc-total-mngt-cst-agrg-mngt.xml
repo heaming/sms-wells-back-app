@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+****************************************************************************************************
+* 프로그램 개요
+****************************************************************************************************
+1. 모듈 : SNC (배정관리)
+2. 프로그램 ID : 총 관리고객 집계
+3. 작성자 : gs.piit129
+4. 작성일 : 2022.11.22
+****************************************************************************************************
+* 프로그램 설명
+****************************************************************************************************
+- 책임지역 지역코드 관리 (http://localhost:3000/#/service/total-customers)
+ ****************************************************************************************************
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncTotalMngtCstAgrgMapper">
+
+    <select id="selectTotalMngtCstAgrgs" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTotalMngtCstAgrgDvo">
+    SELECT YYYY||'년' AS YYYY    -- 년
+         , TYP                -- 구분
+         , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID ='TNT_WELLS' AND CD_ID='PRD_MNGT_TP_CD' AND CD_VLD_VAL = TYP) AS TYP_NM
+         , SUM(DECODE(MM, '01', 1)) AS ACOL1     -- 1
+         , SUM(DECODE(MM, '02', 1)) AS ACOL2     -- 2
+         , SUM(DECODE(MM, '03', 1)) AS ACOL3     -- 3
+         , SUM(DECODE(MM, '04', 1)) AS ACOL4     -- 4
+         , SUM(DECODE(MM, '05', 1)) AS ACOL5     -- 5
+         , SUM(DECODE(MM, '06', 1)) AS ACOL6     -- 6
+         , SUM(DECODE(MM, '07', 1)) AS ACOL7     -- 7
+         , SUM(DECODE(MM, '08', 1)) AS ACOL8     -- 8
+         , SUM(DECODE(MM, '09', 1)) AS ACOL9     -- 9
+         , SUM(DECODE(MM, '10', 1)) AS ACOL10    -- 10
+         , SUM(DECODE(MM, '11', 1)) AS ACOL11    -- 11
+         , SUM(DECODE(MM, '12', 1)) AS ACOL12    -- 12
+         , COUNT(*) AS TCNT
+      FROM (
+            SELECT FILT_SELL_TP_CD AS TYP
+                 , SUBSTR(MNGT_YM, 0, 4) AS YYYY
+                 , SUBSTR(MNGT_YM, 5,2) MM
+                 , PD_CD, SUBSTR(PD_CD, 0, 5) AS PD_CD_5
+                 , SUBSTR(PD_CD, 6) AS PD_CD_6
+                 , MNGT_YM
+            FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
+            WHERE 1=1
+              <if test="@MybatisUtils@isNotEmpty(year)">
+              AND MNGT_YM LIKE #{year} || '%'
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
+              AND PD_GD_CD = #{pdGdCd}
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(pdCd)">
+              AND PD_CD = #{pdCd}
+              </if>
+      )
+    GROUP BY YYYY, TYP
+    ORDER BY TYP
+    </select>
+
+</mapper>
