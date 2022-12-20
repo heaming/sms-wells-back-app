@@ -14,7 +14,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsncRpbLocaraZipMngtDvo {
+public class WsncRpbLocaraZipNoDvo {
 
     String newAdrZip; // 신주소우편번호
     String mgtCnt; // 지역별 서비스 계정 수

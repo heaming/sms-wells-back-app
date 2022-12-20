@@ -7,10 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraZipMngtConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.LgldAmtd;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.District;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipMngtDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipNoDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraZipMngtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -61,7 +61,7 @@ public class WsncRpbLocaraZipMngtService {
      *
      * @return
      */
-    public List<LgldAmtd> getDistricts() {
+    public List<District> getDistricts() {
         return this.mapper.selectDistricts();
     }
 
@@ -77,7 +77,7 @@ public class WsncRpbLocaraZipMngtService {
         int processCount = 0;
 
         for (CreateReq dto : dtos) {
-            WsncRpbLocaraZipMngtDvo rpbLocaraZip = this.converter.mapCreateReqToWsncRpbLocaraZipMngtDvo(dto);
+            WsncRpbLocaraZipNoDvo rpbLocaraZip = this.converter.mapCreateReqToWsncRpbLocaraZipNoDvo(dto);
             processCount += this.mapper.insertZipNo(rpbLocaraZip);
         }
 
