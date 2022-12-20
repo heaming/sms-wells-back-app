@@ -5,6 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.EditReq;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/region-level-zipnos")
 @Api(tags = "[WSND] 급지 우편번호 관리 REST API")
 @RequiredArgsConstructor
+@Validated
 public class WsndRegionLevelZipMngtController {
 
     private final WsndRegionLevelZipMngtService service;

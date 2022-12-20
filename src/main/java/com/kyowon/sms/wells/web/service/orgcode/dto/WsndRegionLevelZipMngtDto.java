@@ -92,7 +92,9 @@ public class WsndRegionLevelZipMngtDto {
 
     @ApiModel(value = "WsndRegionLevelZipMngtDto-EditReq")
     public record EditReq(
-        String zip, // 우편번호
+        @NotBlank
+        String newAdrZip, // 우편번호
+        @NotBlank
         String pdlvNo // 출고지번호
     ) {}
 

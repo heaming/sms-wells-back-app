@@ -2,13 +2,12 @@ package com.kyowon.sms.wells.web.service.orgcode.service;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchExcelRes;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelZipMngtConverter;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.EditReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchExcelRes;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelZipNoDvo;
@@ -37,7 +36,7 @@ public class WsndRegionLevelZipMngtService {
     /**
      * 급지 우편번호 관리 - 조회 (페이징)
      *
-     * @param dto      : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, ogId:서비스센터 }
+     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, ogId:서비스센터 }
      * @param pageInfo
      * @return
      */
@@ -50,7 +49,7 @@ public class WsndRegionLevelZipMngtService {
     /**
      * 급지 우편번호 관리 - 엑셀 다운로드
      *
-     * @param dto      : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, ogId:서비스센터 }
+     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, ogId:서비스센터 }
      * @return
      */
     public List<SearchExcelRes> getZipNosForExcelDownload(SearchReq dto) {
