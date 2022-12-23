@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.service.common.rest;
 
 import com.kyowon.sms.wells.web.service.common.dto.WsnyAfterServiceCodeDto;
 import com.kyowon.sms.wells.web.service.common.service.WsnyAfterServiceCodeService;
-import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import io.swagger.annotations.Api;

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraCdMngtService;
-import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
