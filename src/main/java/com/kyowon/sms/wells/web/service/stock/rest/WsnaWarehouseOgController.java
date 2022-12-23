@@ -40,6 +40,21 @@ public class WsnaWarehouseOgController {
         return this.service.getWarehouseOgs(dto);
     }
 
+    @ApiOperation(value = "창고조직 관리 목록 엑셀 다운로드", notes = "조회조건에 일치하는 창고조직 관리 데이터를 엑셀다운로드 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
+        @ApiImplicitParam(name = "wareDv", value = "창고구분", paramType = "query", example = "2"),
+        @ApiImplicitParam(name = "codeUseYn", value = "사용여부", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "wareLocaraCd", value = "창고지역코드", paramType = "query", example = ""),
+    })
+    @GetMapping("excel-download")
+    public List<SearchRes> getWarehouseOgsExcelDownload(
+        SearchReq dto
+    ) {
+        return this.service.getWarehouseOgsExcelDownload(dto);
+
+    }
+
     @ApiOperation(value = "창고조직이월 조회", notes = "기준년월에 일치하는 창고조직 관리 데이터를 카운트한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),

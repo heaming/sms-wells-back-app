@@ -24,8 +24,7 @@ public class WsnaWarehouseOgDto {
         String codeUseYn, /*사용여부*/
         String wareLocaraCd, /*창고지역코드*/
         String wareMngtPrtnrNo, /*창고관리파트너번호*/
-        String wareDvCd, /*창고구분*/
-        String epNo //사번
+        String wareDvCd /*창고구분*/
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOgDto-")

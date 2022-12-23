@@ -56,4 +56,14 @@ public class WsnaWarehouseOgService {
         processCount += this.mapper.insertWareCarried(dto);
         return processCount;
     }
+
+    /**
+     * 창고조직관리 - 엑셀 다운로드
+     *
+     * @param dto : { baseYm : 기준년월, wareDv : 창고구분, codeUseYn : 사용여부, wareLocaraCd : 창고지역코드}
+     * @return 조회결과
+     */
+    public List<SearchRes> getWarehouseOgsExcelDownload(SearchReq dto) {
+        return this.mapper.selectWarehouseOgs(dto);
+    }
 }
