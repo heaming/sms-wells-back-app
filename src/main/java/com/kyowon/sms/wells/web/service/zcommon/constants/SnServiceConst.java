@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.zcommon.constants;
+package com.kyowon.sms.wells.web.service.zcommon.constants;
 
 import com.sds.sflex.system.config.constant.CommConst;
 

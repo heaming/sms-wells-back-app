@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.Dis
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraZipMngtService;
-import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
