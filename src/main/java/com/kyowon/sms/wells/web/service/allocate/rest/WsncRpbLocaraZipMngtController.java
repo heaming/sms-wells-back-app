@@ -24,7 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-zipnos")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/responsible-area-zipnos")
 @Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")
 @RequiredArgsConstructor
 @Validated
