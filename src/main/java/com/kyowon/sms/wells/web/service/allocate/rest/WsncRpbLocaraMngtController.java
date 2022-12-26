@@ -24,11 +24,11 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/responsible-area-zipnos")
-@Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/responsibility-local-areas")
+@Api(tags = "[WSNC] 책임지역 관리 REST API")
 @RequiredArgsConstructor
 @Validated
-public class WsncRpbLocaraZipMngtController {
+public class WsncRpbLocaraMngtController {
 
     private final WsncRpbLocaraZipMngtService service;
 
@@ -41,7 +41,7 @@ public class WsncRpbLocaraZipMngtController {
         @ApiImplicitParam(name = "wkGrpCd", value = "작업그룹코드", paramType = "query", example = "10", required = true),
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101", required = true)
     })
-    @GetMapping("/paging")
+    @GetMapping("/zip-nos/paging")
     public PagingResult<SearchRes> getZipNoPages(
         SearchReq dto,
         @Valid
@@ -59,7 +59,7 @@ public class WsncRpbLocaraZipMngtController {
         @ApiImplicitParam(name = "wkGrpCd", value = "작업그룹코드", paramType = "query", example = "10", required = true),
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101", required = true)
     })
-    @GetMapping("/excel-download")
+    @GetMapping("/zip-nos/excel-download")
     public List<SearchRes> getZipNosForExcelDownload(
         SearchReq dto
     ) {
@@ -73,8 +73,8 @@ public class WsncRpbLocaraZipMngtController {
     }
 
     @ApiOperation(value = "책임지역 우편번호 저장", notes = "책임지역 우편번호를 저장한다.")
-    @PostMapping
-    public SaveResponse createZip(
+    @PostMapping("/zip-nos")
+    public SaveResponse createZipNo(
         @Valid
         @RequestBody
         List<CreateReq> dtos
