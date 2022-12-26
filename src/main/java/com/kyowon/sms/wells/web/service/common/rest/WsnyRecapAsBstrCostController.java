@@ -22,7 +22,7 @@ import java.text.ParseException;
 import java.util.List;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/recap-as-bstr-cost")
+@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/recap-as-bstr-costs")
 @Api(tags = "[WSNY] 유상 AS 출장비 관리 REST API")
 @RequiredArgsConstructor
 @Validated
@@ -36,11 +36,11 @@ public class WsnyRecapAsBstrCostController {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "4103000000"),
     })
     @GetMapping("/paging")
-    public PagingResult<WsnyRecapAsBstrCostDto.SearchRes> selectRecapAsBstrCostPages(
+    public PagingResult<WsnyRecapAsBstrCostDto.SearchRes> getRecapAsBstrCostPages(
         WsnyRecapAsBstrCostDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.selectRecapAsBstrCostPages(dto, pageInfo);
+        return service.getRecapAsBstrCostPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "유상 AS 출장비 관리 저장")

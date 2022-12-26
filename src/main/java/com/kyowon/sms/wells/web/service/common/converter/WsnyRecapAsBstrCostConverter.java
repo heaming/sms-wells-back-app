@@ -10,7 +10,7 @@ import java.util.List;
 public interface WsnyRecapAsBstrCostConverter {
 
 
-    List<WsnyRecapAsBstrCostDto.SearchRes> mapAllRecapAsBstrCostDvoToSearchRes(List<WsnyRecapAsBstrCostDvo> dvoList);
+    List<WsnyRecapAsBstrCostDto.SearchRes> mapAllRecapAsBstrCostDvoToSearchRes(List<WsnyRecapAsBstrCostDvo> dvos);
 
     WsnyRecapAsBstrCostDvo mapAllRecapAsBstrCostSaveReqToDvo(WsnyRecapAsBstrCostDto.SaveReq saveReq);
 

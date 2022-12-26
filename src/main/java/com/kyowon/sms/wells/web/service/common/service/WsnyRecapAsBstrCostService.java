@@ -40,7 +40,7 @@ public class WsnyRecapAsBstrCostService {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    public PagingResult<WsnyRecapAsBstrCostDto.SearchRes> selectRecapAsBstrCostPages(
+    public PagingResult<WsnyRecapAsBstrCostDto.SearchRes> getRecapAsBstrCostPages(
         WsnyRecapAsBstrCostDto.SearchReq searchReq, PageInfo pageInfo
     ) {
         return new PagingResult<>(
