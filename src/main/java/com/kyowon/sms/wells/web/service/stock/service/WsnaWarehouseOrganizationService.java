@@ -1,32 +1,31 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaWarehouseOgConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOgDto.CountReq;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOgDvo;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaWarehouseOrganizationConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CountReq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOgDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOgDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaWarehouseOgMapper;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaWarehouseOrganizationMapper;
 
 import java.util.List;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOgDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
 
 /**
  * <pre>
  * Class Description
  * </pre>
  *
- * @author gs.piit58 송태성
+ * @author songTaeSung
  * @since 2022.12.08
  */
 @Service
 @RequiredArgsConstructor
-public class WsnaWarehouseOgService {
+public class WsnaWarehouseOrganizationService {
 
-    private final WsnaWarehouseOgMapper mapper;
-    private final WsnaWarehouseOgConverter converter;
+    private final WsnaWarehouseOrganizationMapper mapper;
+    private final WsnaWarehouseOrganizationConverter converter;
 
     /**
      * 창고조직관리 - 조회

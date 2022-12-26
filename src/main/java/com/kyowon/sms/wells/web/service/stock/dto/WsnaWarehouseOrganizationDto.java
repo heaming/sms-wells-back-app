@@ -11,13 +11,13 @@ import javax.validation.constraints.NotBlank;
  * W-SV-U-0175P01 창고조직 등록
  * </pre>
  *
- * @author gs.piit58 송태성
+ * @author songTaeSung
  * @since 2022.12.08
  */
 
-public class WsnaWarehouseOgDto {
+public class WsnaWarehouseOrganizationDto {
 
-    @ApiModel(value = "WsnaWarehouseOgDto-")
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String baseYm, /*기준년월*/
@@ -27,14 +27,14 @@ public class WsnaWarehouseOgDto {
         String wareDvCd /*창고구분*/
     ) {}
 
-    @ApiModel(value = "WsnaWarehouseOgDto-")
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-CountReq")
     public record CountReq(
         @NotBlank
         String baseYm //기준년월
 
     ) {}
 
-    @ApiModel(value = "WsnaWarehouseOgDto-SearchRes")
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchRes")
     public record SearchRes(
         String apyYm, /* 적용년월 */
         String wareNo, /* 창고번호 */
@@ -64,7 +64,7 @@ public class WsnaWarehouseOgDto {
         //        String rmkCn /* 비고내용 */
     ) {}
 
-    @ApiModel(value = "WsnaWarehouseOgDto-CreateReq")
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-CreateReq")
     @Builder
     public record CreateReq(
         @NotBlank

@@ -6,7 +6,7 @@ package com.kyowon.sms.wells.web.service.stock.dvo;
  * W-SV-U-0175P01 창고조직 등록
  * </pre>
  *
- * @author gs.piit58 송태성
+ * @author songTaeSung
  * @since 2022.12.08
  */
 import lombok.Getter;
@@ -14,7 +14,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaWarehouseOgDvo {
+public class WsnaWarehouseOrganizationDvo {
     private String apyYm; /* 적용년월 */
     private String wareNo; /* 창고번호 */
     private String wareDvCd; /* 창고구분코드 */

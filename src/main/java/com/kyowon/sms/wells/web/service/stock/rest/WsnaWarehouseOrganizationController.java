@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
-import com.kyowon.sms.wells.web.service.stock.service.WsnaWarehouseOgService;
+import com.kyowon.sms.wells.web.service.stock.service.WsnaWarehouseOrganizationService;
 import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
@@ -11,21 +11,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.validation.annotation.Validated;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOgDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
 
 import javax.validation.Valid;
 import java.util.List;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOgDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
 
 @RestController
 @RequestMapping(value = SnServiceConst.REST_URL_WELLS_SERVICE + "/warehouse-og")
 @Api(tags = "[WSNA] 창고조직관리 REST API")
 @RequiredArgsConstructor
 @Validated
-public class WsnaWarehouseOgController {
+public class WsnaWarehouseOrganizationController {
 
-    private final WsnaWarehouseOgService service;
+    private final WsnaWarehouseOrganizationService service;
 
     @ApiOperation(value = "창고조직 관리", notes = "조회조건에 일치하는 창고조직 관리 데이터를 조회한다.")
     @ApiImplicitParams(value = {
