@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyRecapAsBstrCostMapper">
+
+    <!--유상 AS 출장비 관리 조회(페이징)-->
+    <select id="selectRecapAsBstrCostPages" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyRecapAsBstrCostDvo">
+    SELECT PD_CD
+         , IZ_SN
+         , BSTR_CS_AMT
+         , VL_STRT_DTM
+         , VL_END_DTM
+         , RMK_CN
+         , '' AS FLAG
+      FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+     WHERE DTA_DL_YN = 'N'
+       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+       AND PD_CD = #{pdCd}
+       </if>
+    </select>
+
+    <!--삭제-->
+    <delete id="deleteRecapAsBstrCost">
+    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ SET
+           DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+     WHERE PD_CD = #{pdCd}
+       AND IZ_SN = #{izSn}
+    </delete>
+
+    <!--변경 대상 조회-->
+    <select id="selectTarget" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyRecapAsBstrCostDvo">
+    SELECT PREV_IZ_SN
+         , NEXT_IZ_SN
+         , PD_CD
+         , IZ_SN
+         , VL_STRT_DTM
+         , VL_END_DTM
+      FROM
+         (
+           SELECT LAG(IZ_SN) OVER (ORDER BY IZ_SN) AS PREV_IZ_SN
+                , LEAD(IZ_SN) OVER (ORDER BY IZ_SN) AS NEXT_IZ_SN
+                , PD_CD
+                , IZ_SN
+                , VL_STRT_DTM
+                , VL_END_DTM
+             FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+            WHERE PD_CD = #{pdCd}
+              AND DTA_DL_YN = 'N'
+            ORDER BY IZ_SN
+         )
+     WHERE IZ_SN = #{izSn}
+    </select>
+
+    <!--다음 적용일자 조정-->
+    <update id="updateNextIsZnStrtDtm">
+    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+       SET VL_STRT_DTM = #{vlStrtDtm}
+           <include refid="COMMON.updateSystemField"/>
+     WHERE PD_CD = #{pdCd}
+       AND IZ_SN = #{izSn}
+       AND DTA_DL_YN = 'N'
+    </update>
+
+    <!--이전 적용일자 조정-->
+    <update id="updatePrevIsZnEndDtm">
+    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+       SET VL_END_DTM = #{vlEndDtm}
+           <include refid="COMMON.updateSystemField"/>
+     WHERE PD_CD = #{pdCd}
+       AND IZ_SN = #{izSn}
+       AND DTA_DL_YN = 'N'
+    </update>
+
+    <!--현재 출장비용, 적용일자 조정-->
+    <update id="updateRecapAsBstrCost">
+    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+       SET BSTR_CS_AMT = #{bstrCsAmt}
+         , VL_STRT_DTM = #{vlStrtDtm}
+         , VL_END_DTM = #{vlEndDtm}
+         , RMK_CN = #{rmkCn}
+           <include refid="COMMON.updateSystemField"/>
+     WHERE PD_CD = #{pdCd}
+       AND IZ_SN = #{izSn}
+       AND DTA_DL_YN = 'N'
+    </update>
+
+    <!-- 신규 등록 후 이전 적용일자를 조정하기 위해서 max izSn을 별도로 조회 -->
+    <select id="selectMaxIzSn" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyRecapAsBstrCostDvo">
+    SELECT NVL(MAX(IZ_SN),0) + 1 AS IZ_SN
+      FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+     WHERE PD_CD = #{pdCd}
+    </select>
+
+    <!-- 신규 출장비 등록 -->
+    <insert id="insertRecapAsBstrCost">
+    INSERT INTO TB_SVPD_RCAS_BSTR_COST_BASE_IZ (
+           PD_CD
+         , IZ_SN
+         , BSTR_CS_AMT
+         , VL_STRT_DTM
+         , VL_END_DTM
+         , RMK_CN
+         , DTA_DL_YN
+         <include refid="COMMON.insertSystemField"/>
+    ) VALUES (
+           #{pdCd}
+         , #{izSn}
+         , #{bstrCsAmt}
+         , #{vlStrtDtm}
+         , #{vlEndDtm}
+         , #{rmkCn}
+         , 'N'
+         <include refid="COMMON.insertSystemFieldValue" />
+    )
+    </insert>
+</mapper>
