@@ -17,12 +17,12 @@ import java.util.List;
 @Mapper
 public interface WsncTotalMngtCstAgrgMapper {
 
-	/**
-	 * 총 관리고객 집계
-	 *
-	 * @param dto : 조회파라메터
-	 * @return 조회결과
-	 */
-	 List<WsncTotalMngtCstAgrgDvo> selectTotalMngtCstAgrgs(WsncTotalMngtCstAgrgDto.SearchReq dto);
+    /**
+     * 총 관리고객 집계
+     *
+     * @param dto : 조회파라메터
+     * @return 조회결과
+     */
+    List<WsncTotalMngtCstAgrgDvo> selectTotalMngtCstAgrgs(WsncTotalMngtCstAgrgDto.SearchReq dto);
 
 }
