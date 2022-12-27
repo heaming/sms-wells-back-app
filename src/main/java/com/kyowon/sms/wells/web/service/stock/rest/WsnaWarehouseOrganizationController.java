@@ -19,7 +19,7 @@ import java.util.List;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
 
 @RestController
-@RequestMapping(value = SnServiceConst.REST_URL_WELLS_SERVICE + "/warehouse-og")
+@RequestMapping(value = SnServiceConst.REST_URL_WELLS_SERVICE + "/warehouse-organizations")
 @Api(tags = "[WSNA] 창고조직관리 REST API")
 @RequiredArgsConstructor
 @Validated
@@ -64,20 +64,13 @@ public class WsnaWarehouseOrganizationController {
         return this.service.getWareCarriedCounter(dto);
     }
 
-    /**
-     * 창고조직 관리 이월
-     * @param dto
-     * @return
-     */
+    @ApiOperation(value = "창고조직이월 저장", notes = "기준년월에 일치하는 창고조직 관리 데이터를 저장한다.")
     @PostMapping
     public SaveResponse createWareCarried(
         @Valid
         @RequestBody
         CreateReq dto
     ) {
-        System.out.println(
-            "dto.baseYm()dto.baseYm()dto.baseYm()dto.baseYm()dto.baseYm()dto.baseYm()dto.baseYm()" + dto.baseYm()
-        );
         return SaveResponse.builder()
             .processCount(this.service.createWareCarried(dto))
             .build();

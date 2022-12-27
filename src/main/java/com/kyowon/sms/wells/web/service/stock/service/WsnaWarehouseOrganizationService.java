@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaWarehouseOrganizationConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CountReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
@@ -52,7 +53,9 @@ public class WsnaWarehouseOrganizationService {
 
         int processCount = 0;
 
-        processCount += this.mapper.insertWareCarried(dto);
+        WsnaWarehouseOrganizationDvo warehouse = this.converter.mapCreateReqToWsnaWarehouseOgDvo(dto);
+
+        processCount += this.mapper.insertWareCarried(warehouse);
         return processCount;
     }
 
