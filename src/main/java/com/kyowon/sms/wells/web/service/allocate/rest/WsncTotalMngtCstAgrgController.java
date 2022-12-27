@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTotalMngtCstAgrgDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncTotalMngtCstAgrgService;
-import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
