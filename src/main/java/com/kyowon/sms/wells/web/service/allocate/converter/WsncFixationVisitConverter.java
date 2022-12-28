@@ -6,5 +6,5 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface WsncFixationVisitConverter {
-    WsncFixationVisitDvo mapFixationVisitReqToFixationVisitDvo(WsncFixationVisitDto.SaveFixationVisitRegReq dto);
+    WsncFixationVisitDvo mapFixationVisitReqToFixationVisitDvo(WsncFixationVisitDto.SaveRegReq dto) throws Exception;
 }

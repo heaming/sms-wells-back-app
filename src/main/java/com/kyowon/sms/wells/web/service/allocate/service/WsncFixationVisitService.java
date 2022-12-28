@@ -20,21 +20,20 @@ public class WsncFixationVisitService {
 
     private final WsncFixationVisitConverter wsncFixationVisitConverter;
 
-    public PagingResult<WsncFixationVisitDto.SearchFixationVisitRes> getFixationVisits(
-        WsncFixationVisitDto.SearchFixationVisitReq dto, PageInfo pageInfo
+    public PagingResult<WsncFixationVisitDto.SearchRes> getFixationVisits(
+        WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     ) {
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
 
-    public WsncFixationVisitDto.SearchFixationVisitRegRes getFixationVisit(
-        WsncFixationVisitDto.SearchFixationVisitRegReq dto
+    public WsncFixationVisitDto.SearchRegRes getFixationVisit(
+        WsncFixationVisitDto.SearchRegReq dto
     ) {
         return wwsncFixationVisitMgntMapper.selectFixationVisit(dto);
     }
 
     @Transactional
-    public int saveFixationVisit(WsncFixationVisitDto.SaveFixationVisitRegReq dto) throws Exception {
-        int processCnt = 0;
+    public int saveFixationVisit(WsncFixationVisitDto.SaveRegReq dto) throws Exception {
         WsncFixationVisitDvo dvo = wsncFixationVisitConverter.mapFixationVisitReqToFixationVisitDvo(dto);
 
         //update (USE_YN = 'N' setting)

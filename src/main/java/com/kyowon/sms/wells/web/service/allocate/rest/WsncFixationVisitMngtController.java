@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncFixationVisitDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncFixationVisitService;
@@ -34,8 +33,8 @@ public class WsncFixationVisitMngtController {
         @ApiImplicitParam(name = "fxnPrtnrNo", value = "방문담당자", paramType = "query", required = false),
     })
     @GetMapping("/paging")
-    public PagingResult<WsncFixationVisitDto.SearchFixationVisitRes> getFixationVisits(
-        WsncFixationVisitDto.SearchFixationVisitReq dto, @Valid
+    public PagingResult<WsncFixationVisitDto.SearchRes> getFixationVisits(
+        WsncFixationVisitDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
         return wsncFixationVisitMgntService.getFixationVisits(dto, pageInfo);
@@ -47,17 +46,17 @@ public class WsncFixationVisitMngtController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = false),
     })
     @GetMapping
-    public WsncFixationVisitDto.SearchFixationVisitRegRes getFixationVisit(
-        WsncFixationVisitDto.SearchFixationVisitRegReq dto
+    public WsncFixationVisitDto.SearchRegRes getFixationVisit(
+        WsncFixationVisitDto.SearchRegReq dto
     ) {
         //        return wsncFixationVisitMgntService.getFixationVisit(dto);
-        WsncFixationVisitDto.SearchFixationVisitRegRes tempRes = wsncFixationVisitMgntService.getFixationVisit(dto);
+        WsncFixationVisitDto.SearchRegRes tempRes = wsncFixationVisitMgntService.getFixationVisit(dto);
 
         //TODO : Test를 위한 Garbage Data setting(추후 삭제)
         log.info("cntrNo ::: " + dto.cntrNo());
         if ("test".equals(dto.cntrNo())) {
             log.info("Test Data setting");
-            tempRes = new WsncFixationVisitDto.SearchFixationVisitRegRes(
+            tempRes = new WsncFixationVisitDto.SearchRegRes(
                 "test1", //String cntrNo,
                 "1", //String cntrSn,
                 "1", //String chSn,
@@ -97,8 +96,7 @@ public class WsncFixationVisitMngtController {
     public SaveResponse saveFixationVisit(
         @Valid
         @RequestBody
-        @NotEmpty
-        WsncFixationVisitDto.SaveFixationVisitRegReq dto
+        WsncFixationVisitDto.SaveRegReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(wsncFixationVisitMgntService.saveFixationVisit(dto))

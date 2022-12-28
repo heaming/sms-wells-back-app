@@ -2,27 +2,34 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotBlank;
+
 public class WsncFixationVisitDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
 
-    @ApiModel(value = "WsncFixationVisitMgntDto-SearchFixationVisitReq")
-    public record SearchFixationVisitReq(
+    @ApiModel(value = "WsncFixationVisitDto-SearchReq")
+    public record SearchReq(
         String fxnPrtnrDvCd,
         String sellTpCd,
         String fxnPrtnrNo
     ) {}
 
-    @ApiModel(value = "WsncFixationVisitMgntDto-SearchFixationVisitRegReq")
-    public record SearchFixationVisitRegReq(
+    @ApiModel(value = "WsncFixationVisitDto-SearchRegReq")
+    public record SearchRegReq(
+        @NotBlank
         String cntrNo,
+
+        @NotBlank
         String cntrSn
     ) {}
 
-    @ApiModel(value = "WsncFixationVisitMgntDto-SaveFixationVisitRegReq")
-    public record SaveFixationVisitRegReq(
+    @ApiModel(value = "WsncFixationVisitDto-SaveRegReq")
+    public record SaveRegReq(
+        @NotBlank
         String cntrNo, /* 계약번호 */
+        @NotBlank
         String cntrSn, /* 계약일련번호 */
         String chSn, /* 변경일련번호 */
         String cstKnm, /* 계약정보-고객명 */
@@ -54,8 +61,8 @@ public class WsncFixationVisitDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel(value = "WsncFixationVisitMgntDto-SearchFixationVisitRes")
-    public record SearchFixationVisitRes(
+    @ApiModel(value = "WsncFixationVisitDto-SearchRes")
+    public record SearchRes(
         String cntrNo, /* 신주소우편번호 */
         String cntrSn, /* 시도명 */
         String chSn, /* 시군구명 */
@@ -76,8 +83,8 @@ public class WsncFixationVisitDto {
         String fnlMdfcUsrId /* 사용여부 */
     ) {}
 
-    @ApiModel(value = "WsncFixationVisitMgntDto-SearchFixationVisitRegRes")
-    public record SearchFixationVisitRegRes(
+    @ApiModel(value = "WsncFixationVisitDto-SearchRegRes")
+    public record SearchRegRes(
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String chSn, /* 변경일련번호 */

@@ -9,12 +9,12 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsncFixationVisitMapper {
-    PagingResult<WsncFixationVisitDto.SearchFixationVisitRes> selectFixationVisits(
-        WsncFixationVisitDto.SearchFixationVisitReq dto, PageInfo pageInfo
+    PagingResult<WsncFixationVisitDto.SearchRes> selectFixationVisits(
+        WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     );
 
-    WsncFixationVisitDto.SearchFixationVisitRegRes selectFixationVisit(
-        WsncFixationVisitDto.SearchFixationVisitRegReq dto
+    WsncFixationVisitDto.SearchRegRes selectFixationVisit(
+        WsncFixationVisitDto.SearchRegReq dto
     );
 
     int updateFixationVisit(WsncFixationVisitDvo dvo);
