@@ -5,19 +5,27 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncWellsAsInterfaceCustInfoDvo {
+public class WsncWellsAsInterfaceRecInfoDvo {
     String cntrNo;
-    String cstKnm;
-    String cntrDt;
-    String pdCd;
-    String pdNm;
+    String inChnlDvCd;
+    String svBizHclsfCd;
+    String rcpdt;
+    String asIstOjNo;
+    String svBizDclsfCd;
+    String svBizDclsfNm;
+    String cnslMoCn;
+    String wkPrgsStatCd;
+    String wkAcpteStatCd;
+    String vstCnfmdt;
+    String vstCnfmHh;
+    String vstDuedt;
+    String vstExpHh;
     String cralLocaraTno;
     String mexnoEncr;
     String cralIdvTno;
     String locaraTno;
     String exnoEncr;
     String idvTno;
-    String lgsysCd;
     String oldAdrZip;
     String ltnAdr;
     String ltnDtlAdr;
@@ -26,11 +34,4 @@ public class WsncWellsAsInterfaceCustInfoDvo {
     String rdadr;
     String addRefer;
     String addGb;
-    String addr;
-    String hpno;
-    String telno;
-    String rcgvpKnm;
-    String bryyMmdd;
-    String sexDvCd;
-    String cntrCstNo;
 }

@@ -1,9 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
-import lombok.Builder;
-
-import javax.validation.constraints.NotBlank;
 
 public class WsncWellsAsInterfaceDto {
 
@@ -19,22 +16,70 @@ public class WsncWellsAsInterfaceDto {
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustInfoRes")
     public record SearchCustInfoRes(
-        String bryyMmdd,
-        String cntrCstNo,
         String cntrNo,
-        String cralIdvTno,
-        String cralLocaraTno,
         String cstKnm,
-        String exnoEncr,
-        String idvTno,
-        String locaraTno,
-        String mexnoEncr,
+        String cntrDt,
         String pdCd,
         String pdNm,
-        String rcgvpKnm,
-        String sexDvCd,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String lgsysCd,
+        String oldAdrZip,
+        String ltnAdr,
+        String ltnDtlAdr,
+        String newAdrZip,
+        String rnadr,
+        String rdadr,
+        String addRefer,
+        String addGb,
+        String addr,
         String hpno,
-        String newAdrZip
+        String telno,
+        String rcgvpKnm,
+        String bryyMmdd,
+        String sexDvCd,
+        String cntrCstNo
     ) {}
 
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchRecInfoReq")
+    public record SearchRecInfoReq(
+        String cntrNo,
+        String svBizDclsfCd
+    ) {}
+
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchRecInfoRes")
+    public record SearchRecInfoRes(
+        String cntrNo,
+        String inChnlDvCd,
+        String svBizHclsfCd,
+        String rcpdt,
+        String asIstOjNo,
+        String svBizDclsfCd,
+        String svBizDclsfNm,
+        String cnslMoCn,
+        String wkPrgsStatCd,
+        String wkAcpteStatCd,
+        String vstCnfmdt,
+        String vstCnfmHh,
+        String vstDuedt,
+        String vstExpHh,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String oldAdrZip,
+        String ltnAdr,
+        String ltnDtlAdr,
+        String newAdrZip,
+        String rnadr,
+        String rdadr,
+        String addRefer,
+        String addGb
+    ) {}
 }
