@@ -56,8 +56,7 @@ public class WsncWellsAsInterfaceController {
         EaiWrapper<SearchCustInfoReq> reqWrapper
     ) {
         EaiWrapper<List<WsncWellsAsInterfaceDto.SearchCustInfoRes>> resWrapper = reqWrapper.newResInstance();
-        List<WsncWellsAsInterfaceDto.SearchCustInfoRes> res = service.getCustomerInformations(reqWrapper.getBody());
-        resWrapper.setBody(res);
+        resWrapper.setBody(service.getCustomerInformations(reqWrapper.getBody()));
         return resWrapper;
     }
 
@@ -80,8 +79,7 @@ public class WsncWellsAsInterfaceController {
         EaiWrapper<SearchRecInfoReq> reqWrapper
     ) {
         EaiWrapper<List<WsncWellsAsInterfaceDto.SearchRecInfoRes>> resWrapper = reqWrapper.newResInstance();
-        List<WsncWellsAsInterfaceDto.SearchRecInfoRes> res = service.getReceiptInformations(reqWrapper.getBody());
-        resWrapper.setBody(res);
+        resWrapper.setBody(service.getReceiptInformations(reqWrapper.getBody()));
         return resWrapper;
     }
 
