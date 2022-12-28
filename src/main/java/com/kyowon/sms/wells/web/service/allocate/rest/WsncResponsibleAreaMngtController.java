@@ -24,11 +24,11 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/responsibility-local-areas")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/responsible-areas")
 @Api(tags = "[WSNC] 책임지역 관리 REST API")
 @RequiredArgsConstructor
 @Validated
-public class WsncRpbLocaraMngtController {
+public class WsncResponsibleAreaMngtController {
 
     private final WsncRpbLocaraZipMngtService service;
 
