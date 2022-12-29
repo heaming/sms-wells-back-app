@@ -1,17 +1,18 @@
-package com.kyowon.sms.wells.web.service.allocate.rest;
+package com.kyowon.sms.wells.web.service.orgcode.rest;
 
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.District;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraZipMngtService;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.EditReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchExcelRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelZipMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -24,24 +25,24 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/responsible-area-zipnos")
-@Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/region-levels")
+@Api(tags = "[WSND] 급지 관리 REST API")
 @RequiredArgsConstructor
 @Validated
-public class WsncRpbLocaraZipMngtController {
+public class WsndRegionLevelMngtController {
 
-    private final WsncRpbLocaraZipMngtService service;
+    private final WsndRegionLevelZipMngtService service;
 
-    @ApiOperation(value = "책임지역 우편번호 조회", notes = "조회조건에 일치하는 책임지역 우편번호 정보를 조회한다.")
+    @ApiOperation(value = "급지 우편번호 조회", notes = "조회조건에 일치하는 우편번호별 법정동, 행정동, 행정동 주민센터 등의 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
         @ApiImplicitParam(name = "zipTo", value = "우편번호To", paramType = "query", example = "022"),
         @ApiImplicitParam(name = "ctpvNm", value = "시도명", paramType = "query", example = "서울특별시"),
         @ApiImplicitParam(name = "ctctyNm", value = "시군구명", paramType = "query", example = "도봉구"),
         @ApiImplicitParam(name = "wkGrpCd", value = "작업그룹코드", paramType = "query", example = "10", required = true),
-        @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101", required = true)
+        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query", example = "011"),
     })
-    @GetMapping("/paging")
+    @GetMapping("/zip-nos/paging")
     public PagingResult<SearchRes> getZipNoPages(
         SearchReq dto,
         @Valid
@@ -50,37 +51,30 @@ public class WsncRpbLocaraZipMngtController {
         return this.service.getZipNoPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "책임지역 우편번호 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 책임지역 우편번호 목록을 조회한다.")
+    @ApiOperation(value = "급지 우편번호 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 급지 우편번호 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
         @ApiImplicitParam(name = "zipTo", value = "우편번호To", paramType = "query", example = "022"),
         @ApiImplicitParam(name = "ctpvNm", value = "시도명", paramType = "query", example = "서울특별시"),
         @ApiImplicitParam(name = "ctctyNm", value = "시군구명", paramType = "query", example = "도봉구"),
         @ApiImplicitParam(name = "wkGrpCd", value = "작업그룹코드", paramType = "query", example = "10", required = true),
-        @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101", required = true)
+        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query", example = "011"),
     })
-    @GetMapping("/excel-download")
-    public List<SearchRes> getZipNosForExcelDownload(
-        SearchReq dto
-    ) {
+    @GetMapping("/zip-nos/excel-download")
+    public List<SearchExcelRes> getZipNosForExcelDownload(SearchReq dto) {
         return this.service.getZipNosForExcelDownload(dto);
     }
 
-    @ApiOperation(value = "책임지역 법정동 행정동 리스트 조회", notes = "책임지역 법정동 행정동 리스트 조회한다.")
-    @GetMapping("/districts")
-    public List<District> getDistricts() {
-        return this.service.getDistricts();
-    }
-
-    @ApiOperation(value = "책임지역 우편번호 저장", notes = "책임지역 우편번호를 저장한다.")
-    @PostMapping
-    public SaveResponse createZip(
+    @ApiOperation(value = "급지 우편번호 저장", notes = "우편번호의 출고지 정보를 저장한다.")
+    @PutMapping("/zip-nos")
+    public SaveResponse editZipNo(
         @Valid
         @RequestBody
-        List<CreateReq> dtos
+        @NotEmpty
+        List<EditReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(this.service.createZip(dtos))
+            .processCount(this.service.saveZipNo(dtos))
             .build();
     }
 
