@@ -22,13 +22,13 @@ public class WsnfMonthManagementCstController {
 
     @ApiOperation(value = "월관리 고객 생성 - 생성", notes = "월관리 고객 생성")
     @PostMapping
-    public SaveResponse saveMonthManagementCst(
+    public SaveResponse createMonthManagementCst(
         @Valid
         @RequestBody
         WsnfMonthManagementCstDto.CreateReq dto
     ) throws Exception {
         log.info(
-            "[WsnfMonthManagementCstController.saveMonthManagementCst] WsnfMonthManagementCstJob-Create batch Job execute."
+            "[WsnfMonthManagementCstController.createMonthManagementCst] WsnfMonthManagementCstJob-Create batch Job execute."
                 + dto.managementYm() + " / " + dto.createTarget()
         );
 
@@ -44,7 +44,7 @@ public class WsnfMonthManagementCstController {
     public SaveResponse deleteMonthManagementCst(
         @Valid
         @RequestBody
-        WsnfMonthManagementCstDto.DeleteReq dto
+        WsnfMonthManagementCstDto.RemoveReq dto
     ) throws Exception {
         log.info(
             "[WsnfMonthManagementCstController.deleteMonthManagementCst] WsnfMonthManagementCstJob-Delete batch Job execute."

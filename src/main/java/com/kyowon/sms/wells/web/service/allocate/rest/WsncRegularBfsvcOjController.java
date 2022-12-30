@@ -22,13 +22,13 @@ import javax.validation.Valid;
 public class WsncRegularBfsvcOjController {
     @ApiOperation(value = "정기 B/S 대상 선정 - 생성", notes = "정기 B/S 대상 선정")
     @PostMapping
-    public SaveResponse saveRegularBfsvcOj(
+    public SaveResponse createRegularBfsvcOj(
         @Valid
         @RequestBody
         WsncRegularBfsvcOjDto.CreateReq dto
     ) throws Exception {
         log.info(
-            "[WsncRegularBfsvcOjController.saveRegularBfsvcOj] WsncRegularBfsvcOjJob-Create batch Job execute."
+            "[WsncRegularBfsvcOjController.createRegularBfsvcOj] WsncRegularBfsvcOjJob-Create batch Job execute."
                 + dto.allocateYm() + " / " + dto.createTarget()
         );
 

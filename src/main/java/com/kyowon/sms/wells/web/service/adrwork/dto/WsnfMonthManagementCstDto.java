@@ -16,8 +16,8 @@ public class WsnfMonthManagementCstDto {
         String createTarget
     ) {}
 
-    @ApiModel(value = "WsnfMonthManagementCstDto-DeleteReq")
-    public record DeleteReq(
+    @ApiModel(value = "WsnfMonthManagementCstDto-RemoveReq")
+    public record RemoveReq(
         @NotBlank
         String managementYm,
         @NotBlank
