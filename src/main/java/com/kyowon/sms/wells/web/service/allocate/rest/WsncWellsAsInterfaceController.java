@@ -23,7 +23,7 @@ import java.util.List;
 
 @InterfaceController
 //@RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/wells-as-interfaces")
+@RequestMapping(SnServiceConst.INTERFACE_URL_V1 + "/wells-as-interfaces")
 @Api(tags = "[WSNC] Wells 인터페이스 RESET API")
 @RequiredArgsConstructor
 @Validated

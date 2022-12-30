@@ -2,11 +2,15 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotNull;
+
 public class WsncWellsAsInterfaceDto {
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustInfoReq")
     public record SearchCustInfoReq(
+        @NotNull
         String cntrNo,
+        @NotNull
         int cntrSn,
         String cstKnm,
         String hpno,
@@ -47,6 +51,7 @@ public class WsncWellsAsInterfaceDto {
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchRecInfoReq")
     public record SearchRecInfoReq(
+        @NotNull
         String cntrNo,
         String svBizDclsfCd
     ) {}
