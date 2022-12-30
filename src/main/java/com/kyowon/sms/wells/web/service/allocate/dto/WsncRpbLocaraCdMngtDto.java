@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * <pre>
  * W-SV-U-0035M01 책임지역 지역코드 관리
@@ -28,6 +30,7 @@ public class WsncRpbLocaraCdMngtDto {
 
     @ApiModel(value = "WsncRpbLocaraCdMngtDto-SearchRes")
     public record SearchRes(
+        String fr2pLgldCd, /* 법정동코드 앞2자리 */
         String newAdrZip, /* 신주소우편번호 */
         String mgtCnt, /* 지역별 서비스 계정 수 */
         String wrkCnt, /* 월별 수임 건수 (조회월 이전 3개월 평균) */
@@ -42,7 +45,23 @@ public class WsncRpbLocaraCdMngtDto {
         String prtnrKnm, /* 파트너한글명 */
         String vstDowVal, /* 방문요일값 */
         String apyStrtdt, /* 적용시작일자 */
-        String apyEnddt /* 적용종료일자 */
+        String apyEnddt, /* 적용종료일자 */
+        String fnlMdfcDtm /* 최종수정일시 */
     ) {}
 
+    @ApiModel(value = "WsncRpbLocaraCdMngtDto-SaveReq")
+    public record SaveReq(
+        @NotBlank
+        String chLocaraCd, /* 변경 책임지역코드 */
+        String fr2pLgldCd, /* 법정동코드 앞2자리 */
+        String ctpvNm, /* 시도명 */
+        String ctctyNm, /* 시군구명 */
+        String lawcEmdNm, /* 법정읍면동명 */
+        String amtdNm, /* 행정동명 */
+        @NotBlank
+        String apyStrtdt, /* 적용시작일자 */
+        @NotBlank
+        String apyEnddt /* 적용종료일자 */
+
+    ) {}
 }

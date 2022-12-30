@@ -1,13 +1,14 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SearchReq;
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SearchRes;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.*;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraCdMngtConverter;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraCdDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraCdMngtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -38,13 +39,30 @@ public class WsncRpbLocaraCdMngtService {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    public PagingResult<SearchRes> getAfterServiceCodeMngtPages(
+    public PagingResult<SearchRes> getLocalAreaCodePages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectRpbLocaraCdMngtPages(dto, pageInfo);
+        return mapper.selectLocalAreaCodePages(dto, pageInfo);
     }
 
-    public List<SearchRes> getAfterServiceCodeMngtExcelDownload(SearchReq dto) {
-        return mapper.selectRpbLocaraCdMngtPages(dto);
+    public List<SearchRes> getLocalAreaCodePagesExcelDownload(SearchReq dto) {
+        return mapper.selectLocalAreaCodePages(dto);
     }
+
+    @Transactional
+    public int createLocalAreaCode(List<SaveReq> dtos) {
+        int processCount = 0;
+        for (SaveReq dto : dtos) {
+            WsncRpbLocaraCdDvo dvo = converter.mapSaveReqToWsncRpbLocaraCdDvo(dto);
+
+            int result = mapper.saveResponsibleAreaCode(dvo);
+            int psicCount = mapper.selectCountResponsibleAreaCodePsic(dvo);
+            if (psicCount == 0) {
+                mapper.saveResponsibleAreaCodePsic(dvo);
+            }
+            processCount += result;
+        }
+        return processCount;
+    }
+
 }
