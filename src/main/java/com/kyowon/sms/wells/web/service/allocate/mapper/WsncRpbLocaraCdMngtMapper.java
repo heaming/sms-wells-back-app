@@ -26,11 +26,11 @@ public interface WsncRpbLocaraCdMngtMapper {
         WsncRpbLocaraCdDvo dvo
     );
 
-    int saveResponsibleAreaCode(
+    int insertResponsibleAreaCode(
         WsncRpbLocaraCdDvo dvo
     );
 
-    int saveResponsibleAreaCodePsic(
+    int insertResponsibleAreaCodePsic(
         WsncRpbLocaraCdDvo dvo
     );
 }

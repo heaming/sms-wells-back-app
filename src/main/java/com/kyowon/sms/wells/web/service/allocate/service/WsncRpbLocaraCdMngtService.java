@@ -67,10 +67,10 @@ public class WsncRpbLocaraCdMngtService {
         for (SaveReq dto : dtos) {
             WsncRpbLocaraCdDvo dvo = converter.mapSaveReqToWsncRpbLocaraCdDvo(dto);
 
-            int result = mapper.saveResponsibleAreaCode(dvo);
+            int result = mapper.insertResponsibleAreaCode(dvo);
             int psicCount = mapper.selectCountResponsibleAreaCodePsic(dvo);
             if (psicCount == 0) {
-                mapper.saveResponsibleAreaCodePsic(dvo);
+                mapper.insertResponsibleAreaCodePsic(dvo);
             }
             processCount += result;
         }
