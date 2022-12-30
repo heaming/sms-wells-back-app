@@ -7,7 +7,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface WsncAfterServiceAssignPsConverter {
-    List<WsncAfterServiceAssignPsDto.SearchRes> mapAllListDvoToListRes(List<WsncAfterServiceAssignPsDvo> dvos);
+    List<WsncAfterServiceAssignPsDto.SearchRes> mapAllDvoToRes(List<WsncAfterServiceAssignPsDvo> dvos);
 
     WsncAfterServiceAssignPsDto.SearchRes mapDvoToLRes(WsncAfterServiceAssignPsDvo dvo);
 }

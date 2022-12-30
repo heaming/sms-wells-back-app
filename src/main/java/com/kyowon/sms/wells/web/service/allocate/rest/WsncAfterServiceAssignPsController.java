@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAfterServiceAssignPsDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncAfterServiceAssignPsDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncAfterServiceAssignPsDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncAfterServiceAssignPsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import io.swagger.annotations.Api;
@@ -31,8 +32,8 @@ public class WsncAfterServiceAssignPsController {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query"),
     })
     @GetMapping("/product-service-states")
-    public List<WsncAfterServiceAssignPsDto.SearchRes> getProductServiceStates(
-        WsncAfterServiceAssignPsDto.SearchReq req
+    public List<SearchRes> getProductServiceStates(
+        SearchReq req
     ) {
         return service.getProductServiceStates(req);
     }

@@ -34,7 +34,7 @@ public class WsncAfterServiceAssignPsService {
     public List<WsncAfterServiceAssignPsDto.SearchRes> getProductServiceStates(
         WsncAfterServiceAssignPsDto.SearchReq req
     ) {
-        return converter.mapAllListDvoToListRes(mapper.selectProductServiceStates(req));
+        return converter.mapAllDvoToRes(mapper.selectProductServiceStates(req));
     }
 
 }
