@@ -3,14 +3,17 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.CreateReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.District;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraCdMngtService;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbLocaraZipMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -31,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class WsncResponsibleAreaMngtController {
 
     private final WsncRpbLocaraZipMngtService service;
+    private final WsncRpbLocaraCdMngtService codeService;
 
     @ApiOperation(value = "책임지역 우편번호 조회", notes = "조회조건에 일치하는 책임지역 우편번호 정보를 조회한다.")
     @ApiImplicitParams(value = {
@@ -84,4 +88,30 @@ public class WsncResponsibleAreaMngtController {
             .build();
     }
 
+    @GetMapping("/area-code/paging")
+    public PagingResult<WsncRpbLocaraCdMngtDto.SearchRes> getLocalAreaCodePages(
+        WsncRpbLocaraCdMngtDto.SearchReq dto, @Valid
+        PageInfo pageInfo
+    ) {
+        return codeService.getLocalAreaCodePages(dto, pageInfo);
+    }
+
+    @GetMapping("/area-code/excel-download")
+    public List<WsncRpbLocaraCdMngtDto.SearchRes> getLocalAreaCodePagesExcelDownload(
+        WsncRpbLocaraCdMngtDto.SearchReq dto
+    ) {
+        return codeService.getLocalAreaCodePagesExcelDownload(dto);
+    }
+
+    @PostMapping("/area-codes")
+    public SaveResponse createLocalAreaCode(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<WsncRpbLocaraCdMngtDto.SaveReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(codeService.createLocalAreaCode(dtos))
+            .build();
+    }
 }
