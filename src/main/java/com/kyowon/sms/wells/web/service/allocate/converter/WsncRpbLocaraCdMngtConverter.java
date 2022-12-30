@@ -16,5 +16,5 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraCdDvo;
 @Mapper(componentModel = "spring")
 public interface WsncRpbLocaraCdMngtConverter {
 
-    WsncRpbLocaraCdDvo mapSaveReqToWsncRpbLocaraCdDvo(SaveReq dtos);
+    WsncRpbLocaraCdDvo mapSaveReqToWsncRpbLocaraCdDvo(SaveReq dto);
 }
