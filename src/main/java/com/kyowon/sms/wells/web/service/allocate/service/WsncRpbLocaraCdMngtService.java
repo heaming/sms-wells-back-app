@@ -50,7 +50,7 @@ public class WsncRpbLocaraCdMngtService {
     }
 
     @Transactional
-    public int createLocalAreaCode(List<SaveReq> dtos) {
+    public int createLocalAreaCodes(List<SaveReq> dtos) {
         int processCount = 0;
         for (SaveReq dto : dtos) {
             WsncRpbLocaraCdDvo dvo = converter.mapSaveReqToWsncRpbLocaraCdDvo(dto);

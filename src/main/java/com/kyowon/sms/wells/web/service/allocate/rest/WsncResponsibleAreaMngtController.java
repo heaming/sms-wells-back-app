@@ -88,7 +88,7 @@ public class WsncResponsibleAreaMngtController {
             .build();
     }
 
-    @GetMapping("/area-code/paging")
+    @GetMapping("/area-codes/paging")
     public PagingResult<WsncRpbLocaraCdMngtDto.SearchRes> getLocalAreaCodePages(
         WsncRpbLocaraCdMngtDto.SearchReq dto, @Valid
         PageInfo pageInfo
@@ -96,7 +96,7 @@ public class WsncResponsibleAreaMngtController {
         return codeService.getLocalAreaCodePages(dto, pageInfo);
     }
 
-    @GetMapping("/area-code/excel-download")
+    @GetMapping("/area-codes/excel-download")
     public List<WsncRpbLocaraCdMngtDto.SearchRes> getLocalAreaCodePagesExcelDownload(
         WsncRpbLocaraCdMngtDto.SearchReq dto
     ) {
@@ -104,14 +104,14 @@ public class WsncResponsibleAreaMngtController {
     }
 
     @PostMapping("/area-codes")
-    public SaveResponse createLocalAreaCode(
+    public SaveResponse createLocalAreaCodes(
         @Valid
         @RequestBody
         @NotEmpty
         List<WsncRpbLocaraCdMngtDto.SaveReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(codeService.createLocalAreaCode(dtos))
+            .processCount(codeService.createLocalAreaCodes(dtos))
             .build();
     }
 }
