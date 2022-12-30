@@ -88,6 +88,7 @@ public class WsncResponsibleAreaMngtController {
             .build();
     }
 
+    @ApiOperation(value = "책임지역 지역코드 조회", notes = "조회조건에 일치하는 책임지역 지역코드 정보를 조회한다.")
     @GetMapping("/area-codes/paging")
     public PagingResult<WsncRpbLocaraCdMngtDto.SearchRes> getLocalAreaCodePages(
         WsncRpbLocaraCdMngtDto.SearchReq dto, @Valid
@@ -96,6 +97,7 @@ public class WsncResponsibleAreaMngtController {
         return codeService.getLocalAreaCodePages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "책임지역 지역코드 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 책임지역 지역코드 목록을 조회한다.")
     @GetMapping("/area-codes/excel-download")
     public List<WsncRpbLocaraCdMngtDto.SearchRes> getLocalAreaCodePagesExcelDownload(
         WsncRpbLocaraCdMngtDto.SearchReq dto
@@ -103,6 +105,7 @@ public class WsncResponsibleAreaMngtController {
         return codeService.getLocalAreaCodePagesExcelDownload(dto);
     }
 
+    @ApiOperation(value = "책임지역 지역코드 저장", notes = "책임지역 지역코드를 저장한다.")
     @PostMapping("/area-codes")
     public SaveResponse createLocalAreaCodes(
         @Valid
