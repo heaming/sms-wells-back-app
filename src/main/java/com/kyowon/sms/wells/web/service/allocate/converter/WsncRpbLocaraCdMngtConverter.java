@@ -2,6 +2,9 @@ package com.kyowon.sms.wells.web.service.allocate.converter;
 
 import org.mapstruct.Mapper;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraCdDvo;
+
 /**
  * <pre>
  * W-SV-U-0035M01 책임지역 지역코드 관리
@@ -13,5 +16,5 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface WsncRpbLocaraCdMngtConverter {
 
-    //List<SearchRes> mapAllSearchResToWsncRpbLocaraCdMngtListDvo(List<WsncRpbLocaraCdMngtDvo> dvoList);
+    WsncRpbLocaraCdDvo mapSaveReqToWsncRpbLocaraCdDvo(SaveReq dto);
 }
