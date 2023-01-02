@@ -8,6 +8,7 @@ import lombok.Setter;
 public class WsncAfterServiceAssignPsDvo {
     String wkExcnDt;
     String svBizHclsfCd;
+    String svBizHclsfNm;
     int acol1;
     int acol2;
     int acol3;
