@@ -3,8 +3,6 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * <pre>
@@ -14,8 +12,6 @@ import lombok.Setter;
  * @author hyewon.kim
  * @since 2022.12.22
  */
-@Setter
-@Getter
 public class WsncRpbLocaraPsicMngtDto {
 
     @ApiModel(value = "WsncRpbLocaraPsicMngtDto-SearchReq")
@@ -76,23 +72,35 @@ public class WsncRpbLocaraPsicMngtDto {
 
     @ApiModel(value = "WsncRpbLocaraPsicMngtDto-CreateReq")
     public record CreateReq(
+        @NotBlank
         String wkGrpCd, // 작업그룹코드
+        @NotBlank
         String rpbLocaraCd, // 책임지역코드
         Integer izSn, // 내역일련번호
+        @NotBlank
         String ichrPrtnrNo, // 담당파트너번호
         String pprnIchrPrtnrNo1, // 예비담당파트너번호1
         String pprnIchrPrtnrNo2, // 예비담당파트너번호2
         String pprnIchrPrtnrNo3, // 예비담당파트너번호3
         String pprnIchrPrtnrNo4, // 예비담당파트너번호4
         String pprnIchrPrtnrNo5, // 예비담당파트너번호5
+        @NotBlank
         String vstDowVal, // 방문요일값
+        @NotBlank
         Long mmtAvLdtm, // 이동평균소요시간
+        @NotBlank
         String rstrCndtUseYn, // 제약조건사용여부
+        @NotBlank
         String udsnUseYn, // 미지정사용여부
+        @NotBlank
         String locaraCenStruAdr, // 지역중심건물주소
+        @NotBlank
         String w1W3SatWrkYn, // 1주3주토요일근무여부
+        @NotBlank
         String rpbLocaraGrpCd, // 책임지역그룹코드
+        @NotBlank
         String apyStrtdt, // 적용시작일자
+        @NotBlank
         String apyEnddt // 적용종료일자
     ) {}
 }
