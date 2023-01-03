@@ -28,5 +28,6 @@ public class WsndPlaceOfDeliveryDvo {
     private String ildYn; // 섬구분
     private String fstRgstDtm; // 최초등록일시
     private String fstRgstUsrId; // 최초등록사용자ID
-
+    private String apyStrtdtOrigin; // 적용시작일자(수정 전)
+    private String dataDlYn; // 데이터삭제여부
 }
