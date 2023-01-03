@@ -102,12 +102,16 @@ public class WsndRegionLevelMngtController {
     @DeleteMapping("/place-of-deliverys")
     public SaveResponse removePlaceOfDeliverys(
         @Valid
-        @RequestBody
+        @RequestParam
         @NotEmpty
-        List<WsndRegionLevelPdlvMngtDto.DeleteReq> dtos
+        List<String> pdlvNos,
+        @Valid
+        @RequestParam
+        @NotEmpty
+        List<String> pdlvDvCds
     ) {
         return SaveResponse.builder()
-            .processCount(placeService.removePlaceOfDeliverys(dtos))
+            .processCount(placeService.removePlaceOfDeliverys(pdlvNos, pdlvDvCds))
             .build();
     }
 

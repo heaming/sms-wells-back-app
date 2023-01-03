@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.orgcode.converter;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.DeleteReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo;
 
@@ -16,8 +15,6 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo;
  */
 @Mapper(componentModel = "spring")
 public interface WsndRegionLevelPdlvMngtConverter {
-
-    WsndPlaceOfDeliveryDvo mapDeleteReqToWsndPlaceOfDeliveryDvo(DeleteReq dto);
 
     WsndPlaceOfDeliveryDvo mapSaveReqToWsndPlaceOfDeliveryDvo(SaveReq dto);
 }

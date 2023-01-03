@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo;
@@ -22,13 +21,13 @@ public interface WsndRegionLevelPdlvMngtMapper {
         SearchReq dto
     );
 
-    int deletePlaceOfDelivery(WsndPlaceOfDeliveryDvo dvo);
+    int deletePlaceOfDelivery(String pdlvNo, String pdlvDvCd);
 
     int insertPlaceOfDelivery(WsndPlaceOfDeliveryDvo dvo);
 
     int insertPlaceOfDeliveryHistory(WsndPlaceOfDeliveryDvo dvo);
 
-    SearchRes selectPlaceOfDeliveryByPdlvNo(SaveReq dto);
+    WsndPlaceOfDeliveryDvo selectPlaceOfDeliveryByPk(String pdlvNo);
 
     int updatePlaceOfDelivery(WsndPlaceOfDeliveryDvo dvo);
 

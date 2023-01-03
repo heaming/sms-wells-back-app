@@ -40,7 +40,7 @@ public class WsndRegionLevelPdlvMngtDto {
 
     @ApiModel(value = "WsndRegionLevelPdlvMngtDto-FindRes")
     public record FindRes(
-        String pdlvNO, /* 출고지번호 */
+        String pdlvNo, /* 출고지번호 */
         String apyStrtdt, /* 적용시작일 */
         String dataDlYn /* 데이터삭제여부 */
     ) {}
@@ -63,14 +63,4 @@ public class WsndRegionLevelPdlvMngtDto {
         String cnrOgId /* 서비스센터ID */
     ) {}
 
-    @Builder
-    @ApiModel(value = "WsndRegionLevelPdlvMngtDto-DeleteReq")
-    public record DeleteReq(
-        @NotBlank
-        String rowState, /* 상태 */
-        @NotBlank
-        String pdlvNo, /* 출고지번호 */
-        String pdlvDvCd /* 출고지구분코드 */
-
-    ) {}
 }

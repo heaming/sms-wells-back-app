@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelPdlvMngtConverter;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.DeleteReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchRes;
@@ -63,15 +62,16 @@ public class WsndRegionLevelPdlvMngtService {
     /**
      * 급지 출고지 관리 - 삭제
      *
-     * @param dtos : [{ pdlvDvCd : 출고지구분코드 , pdlvNo : 출고지번호 }]
+     * @param pdlvNos : List<String>
+     * @param pdlvDvCds : List<Stirng>
      */
     @Transactional
-    public int removePlaceOfDeliverys(List<DeleteReq> dtos) {
+    public int removePlaceOfDeliverys(List<String> pdlvNos, List<String> pdlvDvCds) {
         int processCount = 0;
-        for (DeleteReq dto : dtos) {
-            WsndPlaceOfDeliveryDvo dvo = converter.mapDeleteReqToWsndPlaceOfDeliveryDvo(dto);
+        for (int i = 0; i < pdlvNos.size(); i++) {
 
-            int result = mapper.deletePlaceOfDelivery(dvo);
+            int result = mapper.deletePlaceOfDelivery(pdlvNos.get(i), pdlvDvCds.get(i));
+
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
             processCount += result;
@@ -95,16 +95,16 @@ public class WsndRegionLevelPdlvMngtService {
 
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
-                    SearchRes res = mapper.selectPlaceOfDeliveryByPdlvNo(dto);
-                    if (res.pdlvNo() == null) {
+                    WsndPlaceOfDeliveryDvo res = mapper.selectPlaceOfDeliveryByPk(dto.pdlvNo());
+                    if (res == null) {
                         result += mapper.insertPlaceOfDelivery(dvo);
                         mapper.insertPlaceOfDeliveryHistory(dvo);
-                    } else if (res.dataDlYn() == "Y") {
+                    } else if (res.getDataDlYn().equals("Y")) {
                         result += mapper.updatePlaceOfDeliveryHistory(dvo);
                         mapper.updatePlaceOfDelivery(dvo);
                         mapper.insertPlaceOfDeliveryHistory(dvo);
-                    } else if (res.dataDlYn() == "N") {
-                        BizAssert.isTrue(res.dataDlYn() == "N", "MSG_ALT_DUP_PDLV_DV");
+                    } else if (res.getDataDlYn().equals("N")) {
+                        BizAssert.isTrue(res.getDataDlYn().equals("N"), "MSG_ALT_DUP_PDLV_DV");
                         return processCount;
                     }
                 }
