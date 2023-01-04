@@ -8,11 +8,13 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.EditReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchExcelRes;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelAwMngtService;
 import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelPdlvMngtService;
 import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelZipMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -33,8 +35,11 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class WsndRegionLevelMngtController {
 
-    private final WsndRegionLevelZipMngtService service;
+    private final WsndRegionLevelZipMngtService zipService;
+
     private final WsndRegionLevelPdlvMngtService placeService;
+
+    private final WsndRegionLevelAwMngtService allowanceService;
 
     @ApiOperation(value = "급지 우편번호 조회", notes = "조회조건에 일치하는 우편번호별 법정동, 행정동, 행정동 주민센터 등의 정보를 조회한다.")
     @ApiImplicitParams(value = {
@@ -51,7 +56,7 @@ public class WsndRegionLevelMngtController {
         @Valid
         PageInfo pageInfo
     ) {
-        return this.service.getZipNoPages(dto, pageInfo);
+        return zipService.getZipNoPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "급지 우편번호 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 급지 우편번호 목록을 조회한다.")
@@ -65,7 +70,7 @@ public class WsndRegionLevelMngtController {
     })
     @GetMapping("/zip-nos/excel-download")
     public List<SearchExcelRes> getZipNosForExcelDownload(SearchReq dto) {
-        return this.service.getZipNosForExcelDownload(dto);
+        return zipService.getZipNosForExcelDownload(dto);
     }
 
     @ApiOperation(value = "급지 우편번호 저장", notes = "우편번호의 출고지 정보를 저장한다.")
@@ -77,7 +82,7 @@ public class WsndRegionLevelMngtController {
         List<EditReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(this.service.saveZipNo(dtos))
+            .processCount(zipService.saveZipNo(dtos))
             .build();
     }
 
@@ -127,4 +132,35 @@ public class WsndRegionLevelMngtController {
             .processCount(placeService.savePlaceOfDeliverys(dtos))
             .build();
     }
+
+    @ApiOperation(value = "급지 수당 기본정보 조회", notes = "급지 수당 관리에 필요한 기본 정보를 조회한다.")
+    @GetMapping("/allowances/bases")
+    public WsndRegionLevelAwMngtDto.BaseInfo getAllowanceBases() {
+        return allowanceService.getBaseInfo();
+    }
+
+    @ApiOperation(value = "급지 수당 조회", notes = "급지 정보에 일치하는 엔지니어 수당 정보를 조회한다.")
+    @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", example = "20221214", required = true)
+    @GetMapping("/allowances")
+    public WsndRegionLevelAwMngtDto.SearchRes getAllowances(
+        @NotEmpty
+        @RequestParam
+        String applyDate
+    ) {
+        return allowanceService.getAllowances(applyDate);
+    }
+
+    @ApiOperation(value = "급지 수당 저장", notes = "급지 정보에 일치하는 엔지니어 수당 정보를 저장한다.")
+    @PostMapping("/allowances")
+    public SaveResponse saveAllowances(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<WsndRegionLevelAwMngtDto.SaveReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(allowanceService.saveAllowances(dtos))
+            .build();
+    }
+
 }

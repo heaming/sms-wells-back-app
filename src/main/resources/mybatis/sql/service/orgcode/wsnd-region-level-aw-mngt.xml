@@ -1,0 +1,117 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAwMngtMapper">
+
+    <select id="selectBaseInfo" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto$BaseInfo">
+        SELECT '142' AS MOVEMENT_MAN_HOUR
+             , '30' AS MOVEMENT_FIELD_WEIGHT
+             , '60' AS MOVEMENT_AVERAGE_SPEED
+             , '142' AS BIZ_MAN_HOUR
+             , '20' AS BIZ_FIELD_WEIGHT
+             , 30 AS BIZ_FIELD_AIRLIFT
+          FROM DUAL
+    </select>
+
+    <select id="selectMovementAllowances" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto$Allowance">
+        SELECT CH_AW_AMT        /* 변경수당금액 */
+        	 , APY_STRTDT      /* 유효시작일시 */
+             , APY_ENDDT       /* 유효종료일시 */
+             , RGLVL_GD_CD      /* 급지등급코드 */
+             , RGLVL_AW_AMT     /* 급지수당금액 */
+             , TRIM(BIZ_RGLVL_CD) BIZ_RGLVL_CD /* 업무급지코드 */
+             , RGLVL_DV_CD      /* 급지구분코드 */
+             , NVL(MMT_LDTM, 0) MMT_LDTM /* 이동소요시간 */
+             , FST_RGST_DTM     /* 최초등록일시 */
+             , FST_RGST_USR_ID  /* 최초등록사용자ID */
+             , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE PRTNR_NO = FST_RGST_USR_ID) AS RGST_NM
+             , IZ_SN            /* 내역일련번호 */
+             , NVL(MMT_DSTN, 0) MMT_DSTN /* 이동거리 */
+          FROM TB_SVPD_RGLVL_AW_BASE_IZ M1 /* 급지수당기준내역 */
+         WHERE 1 = 1
+           AND #{applyDate} BETWEEN APY_STRTDT AND APY_ENDDT
+           AND M1.IZ_SN = (
+                           SELECT MAX(V1.IZ_SN)
+                             FROM TB_SVPD_RGLVL_AW_BASE_IZ V1
+                            WHERE V1.BIZ_RGLVL_CD = M1.BIZ_RGLVL_CD
+                              AND V1.RGLVL_DV_CD = '1'
+                              AND #{applyDate} BETWEEN V1.APY_STRTDT AND V1.APY_ENDDT
+                           )
+           AND M1.RGLVL_DV_CD = '1' /* 1: 이동급지, 2: 업무급지 */
+         ORDER BY TO_NUMBER(M1.RGLVL_GD_CD), TO_NUMBER(M1.MMT_LDTM), TO_NUMBER(M1.RGLVL_AW_AMT) DESC
+    </select>
+
+    <select id="selectBizAllowances" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto$Allowance">
+        SELECT CH_AW_AMT        /* 변경수당금액 */
+        	 , APY_STRTDT      /* 유효시작일시 */
+             , APY_ENDDT       /* 유효종료일시 */
+             , RGLVL_GD_CD      /* 급지등급코드 */
+             , RGLVL_AW_AMT     /* 급지수당금액 */
+             , TRIM(BIZ_RGLVL_CD) BIZ_RGLVL_CD /* 업무급지코드 */
+             , RGLVL_DV_CD      /* 급지구분코드 */
+             , NVL(MMT_LDTM, 0) MMT_LDTM /* 이동소요시간 */
+             , FST_RGST_DTM     /* 최초등록일시 */
+             , FST_RGST_USR_ID  /* 최초등록사용자ID */
+             , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE PRTNR_NO = FST_RGST_USR_ID) AS RGST_NM
+             , IZ_SN            /* 내역일련번호 */
+             , NVL(MMT_DSTN, 0) MMT_DSTN /* 이동거리 */
+          FROM TB_SVPD_RGLVL_AW_BASE_IZ M1 /* 급지수당기준내역 */
+         WHERE 1 = 1
+           AND #{applyDate} BETWEEN APY_STRTDT AND APY_ENDDT
+           AND M1.IZ_SN = (
+                           SELECT MAX(V1.IZ_SN)
+                             FROM TB_SVPD_RGLVL_AW_BASE_IZ V1
+                            WHERE V1.BIZ_RGLVL_CD = M1.BIZ_RGLVL_CD
+                              AND V1.RGLVL_DV_CD = '2'
+                              AND #{applyDate} BETWEEN V1.APY_STRTDT AND V1.APY_ENDDT
+                           )
+           AND M1.RGLVL_DV_CD = '2' /* 1: 이동급지, 2: 업무급지 */
+         ORDER BY TO_NUMBER(M1.RGLVL_GD_CD), TO_NUMBER(M1.MMT_LDTM), TO_NUMBER(M1.RGLVL_AW_AMT) ASC
+    </select>
+
+    <update id="updateAllowance">
+        UPDATE TB_SVPD_RGLVL_AW_BASE_IZ /* 급지수당기준내역 */
+           SET APY_ENDDT = TO_CHAR(TO_DATE(#{apyStrtdt}, 'YYYYMMDD') - 1, 'YYYYMMDD')
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND RGLVL_DV_CD = #{rglvlDvCd}
+           AND TRIM(BIZ_RGLVL_CD) = #{bizRglvlCd}
+           AND IZ_SN = (
+                        SELECT MAX(V1.IZ_SN)
+                          FROM TB_SVPD_RGLVL_AW_BASE_IZ V1
+                         WHERE V1.RGLVL_DV_CD = #{rglvlDvCd}
+                           AND TRIM(V1.BIZ_RGLVL_CD) = #{bizRglvlCd}
+                       )
+    </update>
+
+    <insert id="insertAllowance">
+        INSERT INTO TB_SVPD_RGLVL_AW_BASE_IZ (  /* 급지수당기준내역 */
+               RGLVL_DV_CD      /* 급지구분코드 */
+             , BIZ_RGLVL_CD     /* 업무급지코드 */
+             , IZ_SN            /* 내역일련번호 */
+             , APY_STRTDT       /* 유효시작일시 */
+             , APY_ENDDT        /* 유효종료일시 */
+             , MMT_LDTM         /* 이동소요시간 */
+             , MMT_DSTN         /* 이동거리 */
+             , RGLVL_GD_CD      /* 급지등급코드 */
+             , RGLVL_AW_AMT     /* 급지수당금액 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES (
+               #{rglvlDvCd}
+             , #{bizRglvlCd}
+             , (SELECT MAX(V1.IZ_SN) + 1
+                 FROM TB_SVPD_RGLVL_AW_BASE_IZ V1
+                WHERE V1.RGLVL_DV_CD = #{rglvlDvCd}
+                  AND TRIM(V1.BIZ_RGLVL_CD) = #{bizRglvlCd})
+             , #{apyStrtdt}
+             , '99991231'
+             , ${mmtLdtm}
+             , ${mmtDstn}
+             , #{rglvlGdCd}
+             , ${rglvlAwAmt}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+
+</mapper>
