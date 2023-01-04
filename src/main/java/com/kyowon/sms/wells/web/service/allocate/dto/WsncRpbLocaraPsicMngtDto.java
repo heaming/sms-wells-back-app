@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.sds.sflex.common.utils.StringUtil;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -84,23 +86,23 @@ public class WsncRpbLocaraPsicMngtDto {
         String pprnIchrPrtnrNo3, // 예비담당파트너번호3
         String pprnIchrPrtnrNo4, // 예비담당파트너번호4
         String pprnIchrPrtnrNo5, // 예비담당파트너번호5
-        @NotBlank
         String vstDowVal, // 방문요일값
-        @NotBlank
         Long mmtAvLdtm, // 이동평균소요시간
-        @NotBlank
         String rstrCndtUseYn, // 제약조건사용여부
-        @NotBlank
         String udsnUseYn, // 미지정사용여부
-        @NotBlank
         String locaraCenStruAdr, // 지역중심건물주소
-        @NotBlank
-        String w1W3SatWrkYn, // 1주3주토요일근무여부
-        @NotBlank
+        String w1W3SatWrkYn, // 1주3주토요일근무여부 0
         String rpbLocaraGrpCd, // 책임지역그룹코드
         @NotBlank
         String apyStrtdt, // 적용시작일자
         @NotBlank
         String apyEnddt // 적용종료일자
-    ) {}
+    ) {
+        public CreateReq {
+            rstrCndtUseYn = StringUtil.nvl(rstrCndtUseYn, "N");
+            udsnUseYn = StringUtil.nvl(udsnUseYn, "N");
+            w1W3SatWrkYn = StringUtil.nvl(w1W3SatWrkYn, "N");
+        }
+    }
+
 }
