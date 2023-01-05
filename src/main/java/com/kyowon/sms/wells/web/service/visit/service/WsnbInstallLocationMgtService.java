@@ -6,13 +6,12 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.visit.converter.WsnbIstLctDtlMngtConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto.FindReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbIstLctDtlDvo;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbIstLctDtlMngtMapper;
+import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallLocationMgtConverter;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo;
+import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallLocationMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -30,10 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbIstLctDtlMngtService {
+public class WsnbInstallLocationMgtService {
 
-    private final WsnbIstLctDtlMngtMapper mapper;
-    private final WsnbIstLctDtlMngtConverter converter;
+    private final WsnbInstallLocationMgtMapper mapper;
+    private final WsnbInstallLocationMgtConverter converter;
 
     /**
      * 설치 위치 상세 관리 - 조회(페이징)
@@ -43,10 +42,10 @@ public class WsnbIstLctDtlMngtService {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    public PagingResult<SearchRes> getIstLocationDetailPages(
+    public PagingResult<SearchRes> getInstallLocationPages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectIstLocationDetailPages(dto, pageInfo);
+        return mapper.selectInstallLocationPages(dto, pageInfo);
     }
 
     /**
@@ -56,20 +55,20 @@ public class WsnbIstLctDtlMngtService {
      *            cstNm : 고객명, cstNo : 고객번호 }
      * @return 조회결과
      */
-    public List<SearchRes> getIstLocationDetailExcelDownload(SearchReq dto) {
-        return mapper.selectIstLocationDetailPages(dto);
+    public List<SearchRes> getInstallLocationPagesExcelDownload(SearchReq dto) {
+        return mapper.selectInstallLocationPages(dto);
     }
 
     /**
      * 설치 위치 상세 관리 - 저장
      * @param dtos : [{ cntrNo : 계약번호, cntrSn : 계약일련번호, istLctDtlCn : 설치위치상세, wkPrtnrNo : 작업파트너번호 }]
      */
-    public int createIstLocationDetails(List<WsnbIstLctDtlMngtDto.SaveReq> dtos) {
+    public int createInstallLocations(List<CreateReq> dtos) {
         int processCount = 0;
-        for (WsnbIstLctDtlMngtDto.SaveReq dto : dtos) {
-            WsnbIstLctDtlDvo dvo = converter.mapSaveReqToWsnbIstLctDtlDvo(dto);
+        for (CreateReq dto : dtos) {
+            WsnbInstallLocationDvo dvo = converter.mapCreateReqToWsnbInstallLocationDvo(dto);
 
-            int result = mapper.insertIstLocationDetail(dvo);
+            int result = mapper.insertInstallLocation(dvo);
             processCount += result;
         }
         return processCount;
@@ -79,22 +78,23 @@ public class WsnbIstLctDtlMngtService {
      * 설치 위치 상세 관리 - 저장 프로시저
      * @param dtos : [{ cntrNo : 계약번호, cntrSn : 계약일련번호, istLctDtlCn : 설치위치상세, wkPrtnrNo : 작업파트너번호 }]
      */
-    public int createInitializeIstLocationDetails(List<FindReq> dtos) {
+    public int createInitializeInstallLocations(List<CreateReq> dtos) {
         int processCount = 0;
 
-        for (FindReq dto : dtos) {
+        for (CreateReq dto : dtos) {
             int result = 0;
-            WsnbIstLctDtlDvo dvo = converter.mapFindReqToWsnbIstLctDtlDvo(dto);
+            WsnbInstallLocationDvo dvo = converter.mapCreateReqToWsnbInstallLocationDvo(dto);
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("cntrNo", dto.cntrNo());
 
-            String dtlSn = mapper.findDtlSn(dto);
-            map.put("dtlSn", dtlSn);
-            dvo.setDtlSn(dtlSn);
+            String dtlSn = mapper.selectSerialNumberByPk(dto.cntrNo());
+
             if (Integer.parseInt(dtlSn) >= 001) {
-                int dtlsnLength = mapper.findIstLctDtlSnLength(map);
-                if (dtlsnLength > 0) {
-                    result += mapper.insertInitializeIstLocationDetail(dvo);
+                map.put("dtlSn", dtlSn);
+                dvo.setDtlSn(dtlSn);
+                int cnLength = mapper.selectInstallLocationContentLength(map);
+                if (cnLength > 0) {
+                    result += mapper.insertInitializeInstallLocation(dvo);
                 }
             }
             processCount += result;

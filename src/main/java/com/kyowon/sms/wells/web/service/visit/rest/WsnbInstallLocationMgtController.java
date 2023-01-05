@@ -8,11 +8,10 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto.FindReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstLctDtlMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbIstLctDtlMngtService;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallLocationMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -24,53 +23,53 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/installation-location-details")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/installation-locations")
 @Api(tags = "[WSNB] 설치위치상세관리 REST API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class WsnbIstLctDtlMngtController {
+public class WsnbInstallLocationMgtController {
 
-    private final WsnbIstLctDtlMngtService service;
+    private final WsnbInstallLocationMgtService service;
 
     @ApiOperation(value = "설치위치상세관리 조회", notes = "설치위치상세관리를 조회한다.")
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getIstLocationDetailPages(
+    public PagingResult<SearchRes> getInstallLocationPages(
         SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.getIstLocationDetailPages(dto, pageInfo);
+        return service.getInstallLocationPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "설치위치상세관리 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 설치위치상세관리 목록을 조회한다.")
     @GetMapping("/excel-download")
-    public List<SearchRes> getIstLocationDetailExcelDownload(SearchReq dto) {
-        return service.getIstLocationDetailExcelDownload(dto);
+    public List<SearchRes> getInstallLocationPagesExcelDownload(SearchReq dto) {
+        return service.getInstallLocationPagesExcelDownload(dto);
     }
 
     @ApiOperation(value = "설치위치상세관리 저장", notes = "설치위치상세관리를 저장한다.")
     @PostMapping
-    public SaveResponse createIstLocationDetails(
+    public SaveResponse createInstallLocations(
         @Valid
         @RequestBody
         @NotEmpty
-        List<SaveReq> dtos
+        List<CreateReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.createIstLocationDetails(dtos))
+            .processCount(service.createInstallLocations(dtos))
             .build();
     }
 
     @ApiOperation(value = "설치위치상세관리 저장 프로시저", notes = "설치위치상세관리 초기화값을 저장한다.")
     @PostMapping("/initialize")
-    public SaveResponse createInitializeIstLocationDetails(
+    public SaveResponse createInitializeInstallLocations(
         @Valid
         @RequestBody
         @NotEmpty
-        List<FindReq> dtos
+        List<CreateReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.createInitializeIstLocationDetails(dtos))
+            .processCount(service.createInitializeInstallLocations(dtos))
             .build();
     }
 

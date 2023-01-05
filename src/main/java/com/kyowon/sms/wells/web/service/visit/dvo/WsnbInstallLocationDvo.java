@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnbIstLctDtlDvo {
+public class WsnbInstallLocationDvo {
 
     String cntrNo; /* 계약번호 */
     String cntrSn; /* 계약일련번호 */

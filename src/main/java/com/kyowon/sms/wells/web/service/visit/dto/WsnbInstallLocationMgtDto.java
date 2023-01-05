@@ -10,7 +10,7 @@ import io.swagger.annotations.ApiModel;
  * @author gs.piit129 천영화
  * @since 2022.12.08
  */
-public class WsnbIstLctDtlMngtDto {
+public class WsnbInstallLocationMgtDto {
 
     @ApiModel(value = "WsnbIstLctDtlMngtDto-SearchReq")
     public record SearchReq(
@@ -45,16 +45,8 @@ public class WsnbIstLctDtlMngtDto {
         String fstRgstDtm /* 최초등록일자 */
     ) {}
 
-    @ApiModel(value = "WsnbIstLctDtlMngtDto-SaveReq")
-    public record SaveReq(
-        String cntrNo, /* 계약번호 */
-        String cntrSn, /* 계약일련번호 */
-        String istLctDtlCn, /* 설치위치상세 */
-        String wkPrtnrNo /* 작업파트너번호 */
-    ) {}
-
-    @ApiModel(value = "WsnbIstLctDtlMngtDto-FindReq")
-    public record FindReq(
+    @ApiModel(value = "WsnbIstLctDtlMngtDto-CreateReq")
+    public record CreateReq(
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String dtlsn, /* 상세일련번호 */
