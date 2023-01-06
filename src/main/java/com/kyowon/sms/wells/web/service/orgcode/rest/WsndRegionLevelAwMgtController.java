@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/region-level-allowances")
-@Api(tags = "[WSND] 급지 관리 REST API")
+@Api(tags = "[WSND] 급지 수당 관리 REST API")
 @RequiredArgsConstructor
 @Validated
 public class WsndRegionLevelAwMgtController {

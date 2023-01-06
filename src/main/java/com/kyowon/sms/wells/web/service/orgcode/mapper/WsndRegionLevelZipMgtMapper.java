@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchExcelRes;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMgtDto.SearchExcelRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelZipNoDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -19,7 +19,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
  * @since 2022.12.06
  */
 @Mapper
-public interface WsndRegionLevelZipMngtMapper {
+public interface WsndRegionLevelZipMgtMapper {
 
     /**
      * 급지 우편번호 관리 - 조회 (페이징)

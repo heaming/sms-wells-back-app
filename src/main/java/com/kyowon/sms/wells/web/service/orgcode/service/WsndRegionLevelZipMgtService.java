@@ -5,13 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelZipMngtConverter;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.EditReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchExcelRes;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelZipMgtConverter;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMgtDto.EditReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMgtDto.SearchExcelRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelZipMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelZipNoDvo;
-import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelZipMngtMapper;
+import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelZipMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -27,11 +27,11 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
-public class WsndRegionLevelZipMngtService {
+public class WsndRegionLevelZipMgtService {
 
-    private final WsndRegionLevelZipMngtMapper mapper;
+    private final WsndRegionLevelZipMgtMapper mapper;
 
-    private final WsndRegionLevelZipMngtConverter converter;
+    private final WsndRegionLevelZipMgtConverter converter;
 
     /**
      * 급지 우편번호 관리 - 조회 (페이징)
