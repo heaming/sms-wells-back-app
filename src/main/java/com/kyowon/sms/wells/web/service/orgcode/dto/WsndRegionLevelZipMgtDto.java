@@ -14,7 +14,7 @@ import io.swagger.annotations.ApiModel;
  * @author gs.piit130 김혜원
  * @since 2022.12.06
  */
-public class WsndRegionLevelZipMngtDto {
+public class WsndRegionLevelZipMgtDto {
 
     @ApiModel(value = "WsndRegionLevelZipMngtDto-SearchReq")
     public record SearchReq(
