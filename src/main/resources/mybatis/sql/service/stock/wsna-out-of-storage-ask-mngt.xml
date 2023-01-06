@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+ ****************************************************************************************************
+ * 프로그램 개요
+ ****************************************************************************************************
+ 1. 모듈 : SNA (재고관리)
+ 2. 프로그램 ID : W-SV-U-0117M01 AS 출고요청 관리
+ 3. 작성자 : gs.piit130
+ 4. 작성일 : 2022.11.25
+ ****************************************************************************************************
+ * 프로그램 설명
+ ****************************************************************************************************
+ - 출고요청 관리 (http://localhost:3000/#/service/wwsna-out-of-storage-ask-mgt)
+ ****************************************************************************************************
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAskMngtMapper">
+
+    <select id="selectOutOfStorageAsks" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$SearchRes">
+        SELECT T1.OSTR_AK_NO              /* 출고요청번호 */
+             , T1.OSTR_AK_TP_CD           /* 출고요청유형코드 */
+             , T1.STR_HOP_DT              /* 입고희망일자 */
+             , T1.RECT_OSTR_DT            /* 최근출고일자 */
+             , T1.WARE_NM                 /* 창고명 */
+          FROM
+             (
+          	   SELECT '310' AS OSTR_AK_TP_CD,'310-100002-20090320-001' AS OSTR_AK_NO, '20090201' AS STR_HOP_DT,'20090320' AS RECT_OSTR_DT, '파주물류센터' AS WARE_NM FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090321-002','20090301','20090321','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090323-003','20090301','20090323','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090324-001','20090324','20090324','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090324-002','20090323','20090324','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090324-003','20090323','20090324','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090324-004','20090324','20090324','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090325-001','20090325','20090325','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '310','310-100002-20090325-002','20090326','20090325','파주물류센터' FROM DUAL UNION ALL
+        	   SELECT '320','320-100002-20190426-001','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
+        	   SELECT '320','320-100002-20190426-002','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
+        	   SELECT '320','320-100002-20190426-003','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
+        	   SELECT '320','320-100002-20190426-004','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
+        	   SELECT '320','320-100002-20190426-005','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
+        	   SELECT '320','320-100002-20190426-006','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
+        	   SELECT '320','320-100002-20190426-007','20190426','20190426','김해물류센터' FROM DUAL
+             ) T1
+         WHERE 1 = 1
+    </select>
+
+    <select id="selectWarehouses" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$Warehouse">
+        SELECT A.WARE_NO AS CODE
+             , A.WARE_NM AS CODE_NAME
+             , A.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
+             , A.WARE_ICHR_NO AS WARE_ICHR_NO
+             , A.WARE_DV_CD AS WARE_DV_CD
+             , B.HGR_WARE_NO AS HGR_WARE_NO
+             , B.WARE_NM AS WARE_NM_UP
+             , B.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO_UP
+             , B.WARE_LOCARA_CD AS WARE_LOCARA_CD_UP
+             , B.WARE_DV_CD AS WARE_DV_CD_UP
+          FROM TB_SVST_MCBY_WARE_IZ A
+             , TB_SVST_MCBY_WARE_IZ B
+         WHERE A.APY_YM = B.APY_YM
+           AND A.HGR_WARE_NO = B.WARE_NO
+           AND A.WARE_MNGT_PRTNR_NO = #{session.userId}
+           AND A.APY_YM = #{apyYm}
+           AND A.WARE_USE_YN='Y'
+           AND B.WARE_USE_YN='Y'
+         ORDER BY WARE_DV_CD_UP
+
+        <!--
+        SELECT T1.HGR_WARE_NO AS CODE
+             , T1.WARE_NM AS CDOE_NAME
+             , T1.WARE_MNGT_PRTNR_NO AS SV_STCK_MGR
+             , T1.WARE_ICHR_NO AS SV_CHG_CD
+             , T1.WARE_DV_CD AS SV_STCK_GB
+             , T2.WARE_NO AS STCK_CD_UP
+             , T2.WARE_NM AS STCK_NM_UP
+             , T2.WARE_MNGT_PRTNR_NO AS STCK_MGR_UP
+             , T2.WARE_LOCARA_CD AS STCK_AR_CD_UP
+             , T2.WARE_DV_CD AS STCK_GB_UP
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+            ON T1.WARE_USE_YN = 'Y'
+           AND T2.WARE_USE_YN = 'Y'
+           AND T2.APY_YM = T1.APY_YM
+           AND T2.WARE_NO = T1.HGR_WARE_NO
+         WHERE 1 = 1
+           AND T1.WARE_MNGT_PRTNR_NO = '' /* 창고관리파트너번호 */
+           AND T1.APY_YM = '' /* 적용연월 */
+         ORDER BY T1.WARE_DTL_DV_CD
+                , T1.HGR_WARE_NO
+        -->
+    </select>
+
+</mapper>
