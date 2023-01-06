@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto.Allowance;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto.BaseInfo;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.Allowance;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.FindBaseInfoRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
 
 /**
@@ -17,9 +17,9 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
  * @since 2022.12.14
  */
 @Mapper
-public interface WsndRegionLevelAwMngtMapper {
+public interface WsndRegionLevelAwMgtMapper {
 
-    BaseInfo selectBaseInfo();
+    FindBaseInfoRes selectBaseInfo();
 
     List<Allowance> selectMovementAllowances(String applyDate);
 

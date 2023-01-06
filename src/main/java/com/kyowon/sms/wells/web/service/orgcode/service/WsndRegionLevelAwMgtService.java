@@ -2,16 +2,16 @@ package com.kyowon.sms.wells.web.service.orgcode.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAwMgtConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAwMngtConverter;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto.Allowance;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto.BaseInfo;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.Allowance;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.FindBaseInfoRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
-import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAwMngtMapper;
+import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAwMgtMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,18 +27,18 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsndRegionLevelAwMngtService {
+public class WsndRegionLevelAwMgtService {
 
-    private final WsndRegionLevelAwMngtMapper mapper;
+    private final WsndRegionLevelAwMgtMapper mapper;
 
-    private final WsndRegionLevelAwMngtConverter converter;
+    private final WsndRegionLevelAwMgtConverter converter;
 
     /**
      * 급지 수당 기본정보 조회
      *
      * @return 조회결과
      */
-    public BaseInfo getBaseInfo() {
+    public FindBaseInfoRes getBaseInfo() {
         return this.mapper.selectBaseInfo();
     }
 

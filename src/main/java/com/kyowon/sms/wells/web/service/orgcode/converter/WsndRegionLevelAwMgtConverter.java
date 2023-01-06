@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.service.orgcode.converter;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMngtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
 
 /**
@@ -14,7 +14,7 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
  * @since 2022.12.14
  */
 @Mapper(componentModel = "spring")
-public interface WsndRegionLevelAwMngtConverter {
+public interface WsndRegionLevelAwMgtConverter {
 
     WsndRegionLevelAwDvo mapSaveReqToWsndRegionLevelAwDvo(SaveReq dto);
 
