@@ -2,14 +2,14 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.service.stock.service.WsnaOutOfStorageAskRgstService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskRgstDto;
-import com.kyowon.sms.wells.web.zcommon.constants.SnServiceConst;
+import com.kyowon.sms.wells.web.service.stock.service.WsnaOutOfStorageAskRgstService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
