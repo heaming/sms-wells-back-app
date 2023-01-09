@@ -1,8 +1,8 @@
 
 package com.kyowon.sms.wells.web.service.common.rest;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyRecapAsBstrCostDto;
-import com.kyowon.sms.wells.web.service.common.service.WsnyRecapAsBstrCostService;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto;
+import com.kyowon.sms.wells.web.service.common.service.WsnyAsVisitCostMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,25 +22,25 @@ import java.text.ParseException;
 import java.util.List;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/recap-as-bstr-costs")
-@Api(tags = "[WSNY] 유상 AS 출장비 관리 REST API")
+@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/as-visit-costs")
+@Api(tags = "[WSNY] W-SV-U-0101M01 유상 AS 출장비 관리 REST API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class WsnyRecapAsBstrCostController {
+public class WsnyAsVisitCostMgtController {
 
-    private final WsnyRecapAsBstrCostService service;
+    private final WsnyAsVisitCostMgtService service;
 
     @ApiOperation(value = "유상 AS 출장비 관리")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "4103000000"),
     })
     @GetMapping("/paging")
-    public PagingResult<WsnyRecapAsBstrCostDto.SearchRes> getRecapAsBstrCostPages(
-        WsnyRecapAsBstrCostDto.SearchReq dto, @Valid
+    public PagingResult<WsnyAsVisitCostMgtDto.SearchRes> getAsVisitCostPages(
+        WsnyAsVisitCostMgtDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.getRecapAsBstrCostPages(dto, pageInfo);
+        return service.getAsVisitCostPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "유상 AS 출장비 관리 저장")
@@ -49,16 +49,16 @@ public class WsnyRecapAsBstrCostController {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query"),
         @ApiImplicitParam(name = "izSn", value = "내역일련번호", paramType = "query"),
         @ApiImplicitParam(name = "bstrCsAmt", value = "비용", paramType = "query"),
-        @ApiImplicitParam(name = "vlStrtDtm", value = "유효시작일시", paramType = "query"),
-        @ApiImplicitParam(name = "vlEndDtm", value = "유효종료일시", paramType = "query"),
+        @ApiImplicitParam(name = "apyStrtdt", value = "유효시작일시", paramType = "query"),
+        @ApiImplicitParam(name = "apyEnddt", value = "유효종료일시", paramType = "query"),
         @ApiImplicitParam(name = "rmkCn", value = "비고내용", paramType = "query"),
     })
-    public SaveResponse saveRecapAsBstrCost(
+    public SaveResponse saveAsVisitCosts(
         @RequestBody
         @Valid
         @NotEmpty
-        List<WsnyRecapAsBstrCostDto.SaveReq> rowData
+        List<WsnyAsVisitCostMgtDto.SaveReq> rowData
     ) throws ParseException {
-        return SaveResponse.builder().processCount(service.saveRecapAsBstrCost(rowData)).build();
+        return SaveResponse.builder().processCount(service.saveAsVisitCosts(rowData)).build();
     }
 }

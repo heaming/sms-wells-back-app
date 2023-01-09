@@ -14,7 +14,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnyAfterServiceCodeDvo {
+public class WsnyAsCodeMgtDvo {
     String svTpCd;
     String asLctCd;
     String asLctNm;

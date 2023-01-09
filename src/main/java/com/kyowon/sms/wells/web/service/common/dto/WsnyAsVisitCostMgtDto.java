@@ -14,30 +14,30 @@ import javax.validation.constraints.NotBlank;
  * @author gs.piit122 김동엽
  * @since 2022.11.18
  */
-public class WsnyRecapAsBstrCostDto {
+public class WsnyAsVisitCostMgtDto {
 
-    @ApiModel(value = "WsnyRecapAsBstrCostDto-SearchReq")
+    @ApiModel(value = "WsnyAsVisitCostMgtDto-SearchReq")
     public record SearchReq(
         String pdCd,
         String izSn,
         String bstrCsAmt,
-        String vlStrtDtm,
-        String vlEndDtm,
+        String apyStrtdt,
+        String apyEnddt,
         String rmkCn
     ) {}
 
-    @ApiModel(value = "WsnyRecapAsBstrCostDto-SearchRes")
+    @ApiModel(value = "WsnyAsVisitCostMgtDto-SearchRes")
     public record SearchRes(
         String pdCd,
         String izSn,
         String bstrCsAmt,
-        String vlStrtDtm,
-        String vlEndDtm,
+        String apyStrtdt,
+        String apyEnddt,
         String rmkCn
     ) {}
 
     @Builder
-    @ApiModel(value = "WsnyRecapAsBstrCostDto-SaveReq")
+    @ApiModel(value = "WsnyAsVisitCostMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rowState,
@@ -47,12 +47,12 @@ public class WsnyRecapAsBstrCostDto {
         @NotBlank
         String bstrCsAmt,
         @NotBlank
-        String vlStrtDtm,
+        String apyStrtdt,
         @NotBlank
-        String vlEndDtm,
+        String apyEnddt,
         String rmkCn,
-        String oldVlStrtDtm,
-        String oldVlEndDtm,
+        String oldApyStrtdt,
+        String oldApyEnddt,
         String oldRmkCn,
         String prevIzSn,
         String nextIzSn

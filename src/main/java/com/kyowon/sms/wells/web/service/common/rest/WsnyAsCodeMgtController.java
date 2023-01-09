@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAfterServiceCodeDto;
-import com.kyowon.sms.wells.web.service.common.service.WsnyAfterServiceCodeService;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto;
+import com.kyowon.sms.wells.web.service.common.service.WsnyAsCodeMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/as-codes")
-@Api(tags = "[WSNY] AS 코드 관리 REST API")
+@Api(tags = "[WSNY] W-SV-U-0016M01 AS 코드 관리 REST API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class WsnyAfterServiceCodeController {
+public class WsnyAsCodeMgtController {
 
-    private final WsnyAfterServiceCodeService service;
+    private final WsnyAsCodeMgtService service;
 
     @ApiOperation(value = "AS 코드 관리 목록조회", notes = "조회조건에 일치하는 AS 코드 정보를 조회한다.")
     @ApiImplicitParams(value = {
@@ -39,11 +39,11 @@ public class WsnyAfterServiceCodeController {
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101")
     })
     @GetMapping("/paging")
-    public PagingResult<WsnyAfterServiceCodeDto.SearchRes> selectAfterServiceCode(
-        WsnyAfterServiceCodeDto.SearchReq dto, @Valid
+    public PagingResult<WsnyAsCodeMgtDto.SearchRes> getAsCodePages(
+        WsnyAsCodeMgtDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.selectAfterServiceCode(dto, pageInfo);
+        return service.getAsCodePages(dto, pageInfo);
     }
 
 }
