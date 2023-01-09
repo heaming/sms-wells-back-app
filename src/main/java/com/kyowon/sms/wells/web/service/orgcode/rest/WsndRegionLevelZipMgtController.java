@@ -67,7 +67,7 @@ public class WsndRegionLevelZipMgtController {
 
     @ApiOperation(value = "급지 우편번호 저장", notes = "우편번호의 출고지 정보를 저장한다.")
     @PutMapping
-    public SaveResponse editZipNo(
+    public SaveResponse editZipNos(
         @Valid
         @RequestBody
         @NotEmpty
