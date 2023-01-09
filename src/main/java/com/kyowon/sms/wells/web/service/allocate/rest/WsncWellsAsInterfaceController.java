@@ -52,9 +52,7 @@ public class WsncWellsAsInterfaceController {
     }
 
     @ApiOperation(value = "Wells 인터페이스 맞춤가이드 사용중인 제품 조회")
-    @ApiImplicitParams(value = {
-    })
-    @GetMapping("/using-products")
+    @PostMapping("/using-products")
     public EaiWrapper getUsingProducts(
         @Valid
         @RequestBody
@@ -63,6 +61,17 @@ public class WsncWellsAsInterfaceController {
         EaiWrapper<List<SearchUsingProductsRes>> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getUsingProducts(reqWrapper.getBody()));
         return resWrapper;
+    }
+
+    @ApiOperation(value = "Wells 인터페이스 맞춤가이드 서비스 이력 조회")
+    @PostMapping("/service-historys/paging")
+    public EaiWrapper getServiceHistoryPages(
+        @Valid
+        @RequestBody
+        EaiWrapper<SearchServiceHistoryReq> reqWrapper
+    ) {
+        return null;
+        //return service.getServiceHistoryPages(req);
     }
 
 }

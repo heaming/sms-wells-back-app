@@ -2,15 +2,16 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 public class WsncAsInterfaceDto {
 
-    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustInfoReq")
+    @ApiModel(value = "WsncAsInterfaceDto-SearchCustInfoReq")
     public record SearchCustInfoReq(
-        @NotNull
+        @NotBlank
         String cntrNo,
-        @NotNull
+        @NotBlank
         int cntrSn,
         String cstKnm,
         String hpno,
@@ -18,7 +19,7 @@ public class WsncAsInterfaceDto {
         String pdGrpId
     ) {}
 
-    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustInfoRes")
+    @ApiModel(value = "WsncAsInterfaceDto-SearchCustInfoRes")
     public record SearchCustInfoRes(
         String cntrNo,
         String cstKnm,
@@ -49,14 +50,14 @@ public class WsncAsInterfaceDto {
         String cntrCstNo
     ) {}
 
-    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchRecInfoReq")
+    @ApiModel(value = "WsncAsInterfaceDto-SearchRecInfoReq")
     public record SearchRecInfoReq(
-        @NotNull
+        @NotBlank
         String cntrNo,
         String svBizDclsfCd
     ) {}
 
-    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchRecInfoRes")
+    @ApiModel(value = "WsncAsInterfaceDto-SearchRecInfoRes")
     public record SearchRecInfoRes(
         String cntrNo,
         String inChnlDvCd,
@@ -88,12 +89,13 @@ public class WsncAsInterfaceDto {
         String addGb
     ) {}
 
-    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchUsingProductReq")
+    @ApiModel(value = "WsncAsInterfaceDto-SearchUsingProductReq")
     public record SearchUsingProductsReq(
+        @NotBlank
         String cntrNo
     ) {}
 
-    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchUsingProductsRes")
+    @ApiModel(value = "WsncAsInterfaceDto-SearchUsingProductsRes")
     public record SearchUsingProductsRes(
         String cstNm,
         String cntrNo,
@@ -102,6 +104,28 @@ public class WsncAsInterfaceDto {
         String mpno,
         String adr,
         String pdNm
+    ) {}
+
+    @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryReq")
+    public record SearchServiceHistoryReq(
+        String cntrNo
+    ) {}
+
+    @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryRes")
+    public record SearchServiceHistoryRes(
+        String SvTpNm,
+        String cntrNo,
+        String wkExcnDt,
+        String rgstDt,
+        String asIstOjNo,
+        String cstSvAsnNo,
+        String svProcsCn,
+        String cnslMoCn,
+        String svBizDclsfCd,
+        String svBizDclsfNm,
+        String rcpDtm,
+        String istNmnN,
+        String wkpNm
     ) {}
 
 }
