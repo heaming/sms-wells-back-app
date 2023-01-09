@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotNull;
 
-public class WsncWellsAsInterfaceDto {
+public class WsncAsInterfaceDto {
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustInfoReq")
     public record SearchCustInfoReq(
@@ -87,4 +87,21 @@ public class WsncWellsAsInterfaceDto {
         String addRefer,
         String addGb
     ) {}
+
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchUsingProductReq")
+    public record SearchUsingProductsReq(
+        String cntrNo
+    ) {}
+
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchUsingProductsRes")
+    public record SearchUsingProductsRes(
+        String cstNm,
+        String cntrNo,
+        String pdCd,
+        String bcNo,
+        String mpno,
+        String adr,
+        String pdNm
+    ) {}
+
 }

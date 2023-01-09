@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncWellsAsInterfaceRecInfoDvo {
+public class WsncAsInterfaceRecInfoDvo {
     String cntrNo;
     String inChnlDvCd;
     String svBizHclsfCd;
