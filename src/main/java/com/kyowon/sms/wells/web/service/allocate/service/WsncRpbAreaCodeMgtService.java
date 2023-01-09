@@ -1,15 +1,15 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraCdMngtDto.*;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto.*;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraCdMngtConverter;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraCdDvo;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraCdMngtMapper;
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbAreaCodeMgtConverter;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbAreaCodeMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -27,10 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsncRpbLocaraCdMngtService {
+public class WsncRpbAreaCodeMgtService {
 
-    private final WsncRpbLocaraCdMngtMapper mapper;
-    private final WsncRpbLocaraCdMngtConverter converter;
+    private final WsncRpbAreaCodeMgtMapper mapper;
+    private final WsncRpbAreaCodeMgtConverter converter;
 
     /**
      * 책임지역 지역코드 관리 - 조회 (페이징)
@@ -39,10 +39,10 @@ public class WsncRpbLocaraCdMngtService {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    public PagingResult<SearchRes> getLocalAreaCodePages(
+    public PagingResult<SearchRes> getAreaCodePages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectLocalAreaCodePages(dto, pageInfo);
+        return mapper.selectAreaCodePages(dto, pageInfo);
     }
 
     /**
@@ -51,8 +51,8 @@ public class WsncRpbLocaraCdMngtService {
      *           ogId :서비스센터 ID, wrkGrpCd : 작업그룹코드, applyDate : 적용일자, locaraCdFrom : 지역코드 From, locaraCdTo : 지역코드 To }
      * @return 조회결과
      */
-    public List<SearchRes> getLocalAreaCodePagesExcelDownload(SearchReq dto) {
-        return mapper.selectLocalAreaCodePages(dto);
+    public List<SearchRes> getAreaCodePagesExcelDownload(SearchReq dto) {
+        return mapper.selectAreaCodePages(dto);
     }
 
     /**
@@ -62,15 +62,15 @@ public class WsncRpbLocaraCdMngtService {
      * @return
      */
     @Transactional
-    public int createLocalAreaCodes(List<SaveReq> dtos) {
+    public int createAreaCodes(List<SaveReq> dtos) {
         int processCount = 0;
         for (SaveReq dto : dtos) {
-            WsncRpbLocaraCdDvo dvo = converter.mapSaveReqToWsncRpbLocaraCdDvo(dto);
+            WsncRpbAreaCodeDvo dvo = converter.mapSaveReqToWsncRpbAreaCodeDvo(dto);
 
-            int result = mapper.insertResponsibleAreaCode(dvo);
-            int psicCount = mapper.selectCountResponsibleAreaCodePsic(dvo);
+            int result = mapper.insertAreaCode(dvo);
+            int psicCount = mapper.selectCountAreaCodePsic(dvo);
             if (psicCount == 0) {
-                mapper.insertResponsibleAreaCodePsic(dvo);
+                mapper.insertAreaCodePsic(dvo);
             }
             processCount += result;
         }
