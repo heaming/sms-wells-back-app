@@ -1,8 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -84,15 +82,12 @@ public class WsnbInstallLocationMgtService {
         for (CreateReq dto : dtos) {
             int result = 0;
             WsnbInstallLocationDvo dvo = converter.mapCreateReqToWsnbInstallLocationDvo(dto);
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("cntrNo", dto.cntrNo());
-
             String dtlSn = mapper.selectSerialNumberByPk(dto.cntrNo());
 
             if (Integer.parseInt(dtlSn) >= 001) {
-                map.put("dtlSn", dtlSn);
                 dvo.setDtlSn(dtlSn);
-                int cnLength = mapper.selectInstallLocationContentLength(map);
+
+                int cnLength = mapper.selectInstallLocationContentLength(dvo);
                 if (cnLength > 0) {
                     result += mapper.insertInitializeInstallLocation(dvo);
                 }

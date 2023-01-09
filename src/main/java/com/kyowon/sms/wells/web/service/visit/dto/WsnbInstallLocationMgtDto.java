@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.visit.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * <pre>
  * W-SV-U-0059M01 - 설치 위치 상세 관리
@@ -31,6 +33,8 @@ public class WsnbInstallLocationMgtDto {
     public record SearchRes(
         String istDt, /* 설치일자 */
         String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String dtlSn, /* 상세일련번호 */
         String custNm, /* 고객명 */
         String sellTpCd, /* 유형코드 */
         String pdNm, /* 상품명 */
@@ -47,8 +51,11 @@ public class WsnbInstallLocationMgtDto {
 
     @ApiModel(value = "WsnbIstLctDtlMngtDto-CreateReq")
     public record CreateReq(
+        @NotBlank
         String cntrNo, /* 계약번호 */
+        @NotBlank
         String cntrSn, /* 계약일련번호 */
+        @NotBlank
         String dtlsn, /* 상세일련번호 */
         String istLctDtlCn, /* 설치위치상세 */
         String wkPrtnrNo /* 작업파트너번호 */

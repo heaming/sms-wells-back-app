@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
@@ -35,6 +34,6 @@ public interface WsnbInstallLocationMgtMapper {
     );
 
     int selectInstallLocationContentLength(
-        Map<String, Object> map
+        WsnbInstallLocationDvo dvo
     );
 }
