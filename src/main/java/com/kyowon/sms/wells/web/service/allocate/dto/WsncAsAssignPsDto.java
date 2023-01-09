@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModel;
 /**
  *
  * <pre>
- * W-SV-U-0228M01 총 관리고객 집계
+ * 배정관리 집계
  * </pre>
  *
  * @author gs.piit122 김동엽
