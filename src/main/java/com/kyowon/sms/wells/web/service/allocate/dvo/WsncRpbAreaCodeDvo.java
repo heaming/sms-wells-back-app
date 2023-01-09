@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsncRpbLocaraCdDvo {
+public class WsncRpbAreaCodeDvo {
 
     String chLocaraCd; /* 변경 책임지역코드 */
     String fr2pLgldCd; /* 법정동코드 앞2자리 */

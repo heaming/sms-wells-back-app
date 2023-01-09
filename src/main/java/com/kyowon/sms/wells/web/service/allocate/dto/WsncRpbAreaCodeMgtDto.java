@@ -12,7 +12,7 @@ import javax.validation.constraints.NotBlank;
  * @author gs.piit129 천영화
  * @since 2022.11.22
  */
-public class WsncRpbLocaraCdMngtDto {
+public class WsncRpbAreaCodeMgtDto {
 
     @ApiModel(value = "WsncRpbLocaraCdMngtDto-SearchReq")
     public record SearchReq(
