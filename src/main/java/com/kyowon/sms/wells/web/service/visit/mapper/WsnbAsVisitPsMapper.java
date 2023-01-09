@@ -18,6 +18,6 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbAsVisitPsDto.SearchRes;
 @Mapper
 public interface WsnbAsVisitPsMapper {
 
-    List<SearchRes> selectServiceAggregates(SearchReq dto);
+    List<SearchRes> selectProductServices(SearchReq dto);
 
 }

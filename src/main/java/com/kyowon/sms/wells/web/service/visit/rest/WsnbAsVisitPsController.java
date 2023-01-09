@@ -36,10 +36,10 @@ public class WsnbAsVisitPsController {
         @ApiImplicitParam(name = "처리일자 To", value = "wkExcnDtTo", paramType = "query", example = "20221230", required = true),
         @ApiImplicitParam(name = "유/무상구분", value = "refriDvCd", paramType = "query", example = "1")
     })
-    @GetMapping("/service-aggregates")
-    public List<SearchRes> getServiceAggregates(@Valid
+    @GetMapping("/product-services")
+    public List<SearchRes> getProductServices(@Valid
     SearchReq dto) {
-        return this.service.getServiceAggregates(dto);
+        return this.service.getProductServices(dto);
     }
 
 }

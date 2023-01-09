@@ -24,8 +24,8 @@ public class WsnbAsVisitPsService {
 
     private final WsnbAsVisitPsMapper mapper;
 
-    public List<SearchRes> getServiceAggregates(SearchReq dto) {
-        return this.mapper.selectServiceAggregates(dto);
+    public List<SearchRes> getProductServices(SearchReq dto) {
+        return this.mapper.selectProductServices(dto);
     }
 
 }
