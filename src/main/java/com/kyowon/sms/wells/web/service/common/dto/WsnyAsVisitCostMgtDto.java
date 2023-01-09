@@ -21,8 +21,8 @@ public class WsnyAsVisitCostMgtDto {
         String pdCd,
         String izSn,
         String bstrCsAmt,
-        String vlStrtDtm,
-        String vlEndDtm,
+        String apyStrtdt,
+        String apyEnddt,
         String rmkCn
     ) {}
 
@@ -31,8 +31,8 @@ public class WsnyAsVisitCostMgtDto {
         String pdCd,
         String izSn,
         String bstrCsAmt,
-        String vlStrtDtm,
-        String vlEndDtm,
+        String apyStrtdt,
+        String apyEnddt,
         String rmkCn
     ) {}
 
@@ -47,12 +47,12 @@ public class WsnyAsVisitCostMgtDto {
         @NotBlank
         String bstrCsAmt,
         @NotBlank
-        String vlStrtDtm,
+        String apyStrtdt,
         @NotBlank
-        String vlEndDtm,
+        String apyEnddt,
         String rmkCn,
-        String oldVlStrtDtm,
-        String oldVlEndDtm,
+        String oldApyStrtdt,
+        String oldApyEnddt,
         String oldRmkCn,
         String prevIzSn,
         String nextIzSn

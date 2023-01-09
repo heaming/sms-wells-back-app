@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/as-visit-costs")
-@Api(tags = "[WSNY] 유상 AS 출장비 관리 REST API")
+@Api(tags = "[WSNY] W-SV-U-0101M01 유상 AS 출장비 관리 REST API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
@@ -49,8 +49,8 @@ public class WsnyAsVisitCostMgtController {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query"),
         @ApiImplicitParam(name = "izSn", value = "내역일련번호", paramType = "query"),
         @ApiImplicitParam(name = "bstrCsAmt", value = "비용", paramType = "query"),
-        @ApiImplicitParam(name = "vlStrtDtm", value = "유효시작일시", paramType = "query"),
-        @ApiImplicitParam(name = "vlEndDtm", value = "유효종료일시", paramType = "query"),
+        @ApiImplicitParam(name = "apyStrtdt", value = "유효시작일시", paramType = "query"),
+        @ApiImplicitParam(name = "apyEnddt", value = "유효종료일시", paramType = "query"),
         @ApiImplicitParam(name = "rmkCn", value = "비고내용", paramType = "query"),
     })
     public SaveResponse saveAsVisitCosts(

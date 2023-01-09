@@ -51,7 +51,7 @@ public class WsnyAsVisitCostMgtService {
     /**
      * 유상 AS 출장비 관리 저장
      *
-     * @param rowData : [ {pdCd:상품코드, izSn, bstrCsAmt:출장비용금액, vlStrtDtm:유효시작일시, vlEndDtm:유효종료일시 } ...]
+     * @param rowData : [ {pdCd:상품코드, izSn, bstrCsAmt:출장비용금액, apyStrtdt:유효시작일시, apyEnddt:유효종료일시 } ...]
      * @return 처리수
      */
     public int saveAsVisitCosts(List<WsnyAsVisitCostMgtDto.SaveReq> rowData) throws ParseException {
@@ -72,7 +72,7 @@ public class WsnyAsVisitCostMgtService {
                     target = mapper.selectTarget(converter.mapAllDvoToSaveReq(newRow));
                     String pdCd = row.pdCd();
                     String prevIzSn = target.getPrevIzSn();
-                    String startDtm = row.vlStrtDtm();
+                    String startDtm = row.apyStrtdt();
                     if (!ObjectUtils.isEmpty(prevIzSn))
                         mapper.updatePrevIsZnEndDtm(
                             new WsnyAsVisitCostMgtDvo(pdCd, prevIzSn, null, DateUtil.addDays(startDtm, -1))
@@ -83,8 +83,8 @@ public class WsnyAsVisitCostMgtService {
                     String pdCd = row.pdCd();
                     String prevIzSn = target.getPrevIzSn();
                     String nextIzSn = target.getNextIzSn();
-                    String startDtm = row.vlStrtDtm();
-                    String endDtm = row.vlEndDtm();
+                    String startDtm = row.apyStrtdt();
+                    String endDtm = row.apyEnddt();
                     updateCount.addAndGet(mapper.updateRecapAsBstrCost(converter.mapAllRecapAsBstrCostSaveReqToDvo(row)));
                     if (!ObjectUtils.isEmpty(prevIzSn))
                         mapper.updatePrevIsZnEndDtm(

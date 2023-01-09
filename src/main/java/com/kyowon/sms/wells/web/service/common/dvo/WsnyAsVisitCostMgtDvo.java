@@ -17,18 +17,18 @@ import lombok.Setter;
 public class WsnyAsVisitCostMgtDvo {
     public WsnyAsVisitCostMgtDvo() {}
 
-    public WsnyAsVisitCostMgtDvo(String pdCd, String izSn, String vlStrtDtm, String vlEndDtm) {
+    public WsnyAsVisitCostMgtDvo(String pdCd, String izSn, String apyStrtdt, String apyEnddt) {
         this.pdCd = pdCd;
         this.izSn = izSn;
-        this.vlStrtDtm = vlStrtDtm;
-        this.vlEndDtm = vlEndDtm;
+        this.apyStrtdt = apyStrtdt;
+        this.apyEnddt = apyEnddt;
     }
 
     String pdCd;
     String izSn;
     String bstrCsAmt;
-    String vlStrtDtm;
-    String vlEndDtm;
+    String apyStrtdt;
+    String apyEnddt;
     String rmkCn;
     String prevIzSn;
     String nextIzSn;
