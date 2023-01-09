@@ -19,5 +19,5 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface WsnyAsCodeMgtConverter {
 
-    List<WsnyAsCodeMgtDto.SearchRes> mapAllSearchResToDvo(List<WsnyAsCodeMgtDvo> dvoList);
+    List<WsnyAsCodeMgtDto.SearchRes> mapAllSearchResToDvo(List<WsnyAsCodeMgtDvo> dvos);
 }

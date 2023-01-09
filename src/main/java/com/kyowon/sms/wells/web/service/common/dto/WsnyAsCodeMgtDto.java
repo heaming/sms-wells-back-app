@@ -13,7 +13,7 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsnyAsCodeMgtDto {
 
-    @ApiModel(value = "WsnyAfterServiceCodeDto-SearchReq")
+    @ApiModel(value = "WsnyAsCodeMgtDto-SearchReq")
     public record SearchReq(
         String pdGrpCd,
         String pdCd,
@@ -26,7 +26,7 @@ public class WsnyAsCodeMgtDto {
 
     }
 
-    @ApiModel(value = "WsnyAfterServiceCodeDto-SearchRes")
+    @ApiModel(value = "WsnyAsCodeMgtDto-SearchRes")
     public record SearchRes(
         String svTpCd,
         String asLctCd,

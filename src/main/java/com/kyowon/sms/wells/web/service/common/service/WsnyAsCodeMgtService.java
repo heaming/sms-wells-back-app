@@ -26,11 +26,11 @@ public class WsnyAsCodeMgtService {
     private final WsnyAsCodeMgtMapper mapper;
     private final WsnyAsCodeMgtConverter converter;
 
-    public PagingResult<WsnyAsCodeMgtDto.SearchRes> selectAfterServiceCode(
+    public PagingResult<WsnyAsCodeMgtDto.SearchRes> getAsCodePages(
         WsnyAsCodeMgtDto.SearchReq dto, PageInfo pageInfo
     ) {
         return new PagingResult<>(
-            converter.mapAllSearchResToDvo(mapper.selectAfterServiceCode(dto, pageInfo)), pageInfo
+            converter.mapAllSearchResToDvo(mapper.selectAsCodePages(dto, pageInfo)), pageInfo
         );
     }
 

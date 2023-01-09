@@ -14,9 +14,9 @@ import javax.validation.constraints.NotBlank;
  * @author gs.piit122 김동엽
  * @since 2022.11.18
  */
-public class WsnyRecapAsBstrCostDto {
+public class WsnyAsVisitCostMgtDto {
 
-    @ApiModel(value = "WsnyRecapAsBstrCostDto-SearchReq")
+    @ApiModel(value = "WsnyAsVisitCostMgtDto-SearchReq")
     public record SearchReq(
         String pdCd,
         String izSn,
@@ -26,7 +26,7 @@ public class WsnyRecapAsBstrCostDto {
         String rmkCn
     ) {}
 
-    @ApiModel(value = "WsnyRecapAsBstrCostDto-SearchRes")
+    @ApiModel(value = "WsnyAsVisitCostMgtDto-SearchRes")
     public record SearchRes(
         String pdCd,
         String izSn,
@@ -37,7 +37,7 @@ public class WsnyRecapAsBstrCostDto {
     ) {}
 
     @Builder
-    @ApiModel(value = "WsnyRecapAsBstrCostDto-SaveReq")
+    @ApiModel(value = "WsnyAsVisitCostMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rowState,

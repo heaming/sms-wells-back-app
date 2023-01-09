@@ -19,7 +19,7 @@ import java.util.List;
 @Mapper
 public interface WsnyAsCodeMgtMapper {
 
-    List<WsnyAsCodeMgtDvo> selectAfterServiceCode(
+    List<WsnyAsCodeMgtDvo> selectAsCodePages(
         WsnyAsCodeMgtDto.SearchReq dto, PageInfo pageInfo
     );
 }

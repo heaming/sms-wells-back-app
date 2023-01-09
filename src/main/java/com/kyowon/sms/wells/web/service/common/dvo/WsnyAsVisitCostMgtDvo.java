@@ -14,11 +14,10 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnyRecapAsBstrCostDvo {
+public class WsnyAsVisitCostMgtDvo {
+    public WsnyAsVisitCostMgtDvo() {}
 
-    public WsnyRecapAsBstrCostDvo() {}
-
-    public WsnyRecapAsBstrCostDvo(String pdCd, String izSn, String vlStrtDtm, String vlEndDtm) {
+    public WsnyAsVisitCostMgtDvo(String pdCd, String izSn, String vlStrtDtm, String vlEndDtm) {
         this.pdCd = pdCd;
         this.izSn = izSn;
         this.vlStrtDtm = vlStrtDtm;
@@ -33,5 +32,4 @@ public class WsnyRecapAsBstrCostDvo {
     String rmkCn;
     String prevIzSn;
     String nextIzSn;
-
 }

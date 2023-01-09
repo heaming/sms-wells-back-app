@@ -39,11 +39,11 @@ public class WsnyAsCodeMgtController {
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101")
     })
     @GetMapping("/paging")
-    public PagingResult<WsnyAsCodeMgtDto.SearchRes> selectAfterServiceCode(
+    public PagingResult<WsnyAsCodeMgtDto.SearchRes> getAsCodePages(
         WsnyAsCodeMgtDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.selectAfterServiceCode(dto, pageInfo);
+        return service.getAsCodePages(dto, pageInfo);
     }
 
 }
