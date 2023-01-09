@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
-import com.kyowon.sms.wells.web.service.common.converter.WsnyAfterServiceCodeConverter;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAfterServiceCodeDto;
-import com.kyowon.sms.wells.web.service.common.mapper.WsnyAfterServiceCodeMapper;
+import com.kyowon.sms.wells.web.service.common.converter.WsnyAsCodeMgtConverter;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto;
+import com.kyowon.sms.wells.web.service.common.mapper.WsnyAsCodeMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +21,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnyAfterServiceCodeService {
+public class WsnyAsCodeMgtService {
 
-    private final WsnyAfterServiceCodeMapper mapper;
-    private final WsnyAfterServiceCodeConverter converter;
+    private final WsnyAsCodeMgtMapper mapper;
+    private final WsnyAsCodeMgtConverter converter;
 
-    public PagingResult<WsnyAfterServiceCodeDto.SearchRes> selectAfterServiceCode(
-        WsnyAfterServiceCodeDto.SearchReq dto, PageInfo pageInfo
+    public PagingResult<WsnyAsCodeMgtDto.SearchRes> selectAfterServiceCode(
+        WsnyAsCodeMgtDto.SearchReq dto, PageInfo pageInfo
     ) {
         return new PagingResult<>(
             converter.mapAllSearchResToDvo(mapper.selectAfterServiceCode(dto, pageInfo)), pageInfo

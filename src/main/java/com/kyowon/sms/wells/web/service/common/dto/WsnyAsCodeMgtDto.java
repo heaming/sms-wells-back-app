@@ -11,7 +11,7 @@ import io.swagger.annotations.ApiModel;
  * @author gs.piit122 김동엽
  * @since 2022-11-08
  */
-public class WsnyAfterServiceCodeDto {
+public class WsnyAsCodeMgtDto {
 
     @ApiModel(value = "WsnyAfterServiceCodeDto-SearchReq")
     public record SearchReq(
