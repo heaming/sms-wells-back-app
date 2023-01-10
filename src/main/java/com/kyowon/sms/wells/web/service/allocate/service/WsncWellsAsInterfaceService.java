@@ -77,4 +77,16 @@ public class WsncWellsAsInterfaceService {
         );
     }
 
+    /**
+    * Wells 인터페이스 맞춤가이드 서비스 내용 조회
+    *
+    * @param req : 조회파라메터
+    * @return 조회결과
+    */
+    public List<SearchServiceContentsRes> getServiceContents(
+        SearchServiceContentsReq req
+    ) {
+        return converter.mapAllServiceContentsDvoToRes(mapper.selectServiceContents(req));
+    }
+
 }

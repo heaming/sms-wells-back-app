@@ -1,10 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceCustInfoDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceRecInfoDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceServHistDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceUsingPdutDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
@@ -52,4 +49,12 @@ public interface WsncWellsAsInterfaceMapper {
      * @return 조회결과
      */
     List<WsncAsInterfaceServHistDvo> selectServiceHistorys(SearchServiceHistoryReq req, PageInfo pageInfo);
+
+  /**
+   * Wells 인터페이스 맞춤가이드 서비스 내용 조회
+   *
+   * @param req : 조회파라메터
+   * @return 조회결과
+   */
+   List<WsncAsInterfaceServContDvo> selectServiceContents(SearchServiceContentsReq req);
 }

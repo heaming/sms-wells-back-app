@@ -11,7 +11,7 @@ public class WsncAsInterfaceDto {
     public record SearchCustInfoReq(
         @NotBlank
         String cntrNo,
-        @NotBlank
+        @NotNull
         int cntrSn,
         String cstKnm,
         String hpno,
@@ -108,9 +108,8 @@ public class WsncAsInterfaceDto {
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryReq")
     public record SearchServiceHistoryReq(
-        String cntrNo,
-        int pageIndex,
-        int pageSize
+        @NotBlank
+        String cntrNo
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryRes")
@@ -129,6 +128,30 @@ public class WsncAsInterfaceDto {
         String istNmnN,
         String wkpNm,
         int totalCount
+    ) {}
+
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchServiceContentsReq")
+    public record SearchServiceContentsReq(
+        @NotBlank
+        String cstSvAsnNo
+    ) {}
+
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchServiceContentsRes")
+    public record SearchServiceContentsRes(
+        String svTpNm,
+        String cntrNo,
+        String wkExcnDt,
+        String rgstDt,
+        String asIstOjNo,
+        String cstSvAsnNo,
+        String svProcsCn,
+        String cnslMoCn,
+        String svBizDclsfCd,
+        String svBizDclsfNm,
+        String rcpDtm,
+        String wkpNm,
+        String pdNm,
+        String matNm
     ) {}
 
 }

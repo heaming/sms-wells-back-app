@@ -78,4 +78,16 @@ public class WsncWellsAsInterfaceController {
         return resWrapper;
     }
 
+    @ApiOperation(value = "Wells 인터페이스 맞춤가이드 서비스 내용 조회")
+    @PostMapping("/service-contents")
+    public EaiWrapper getServiceContents(
+        @Valid
+        @RequestBody
+        EaiWrapper<SearchServiceContentsReq> reqWrapper
+    ) {
+        EaiWrapper<List<SearchServiceContentsRes>> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getServiceContents(reqWrapper.getBody()));
+        return resWrapper;
+    }
+
 }
