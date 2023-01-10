@@ -5,13 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraZipMngtConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.District;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraZipMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraZipNoDvo;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraZipMngtMapper;
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbAreaZipMgtConverter;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaZipMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaZipMgtDto.District;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaZipMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaZipMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaZipNoDvo;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbAreaZipMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -29,11 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsncRpbLocaraZipMngtService {
+public class WsncRpbAreaZipMgtService {
 
-    private final WsncRpbLocaraZipMngtMapper mapper;
+    private final WsncRpbAreaZipMgtMapper mapper;
 
-    private final WsncRpbLocaraZipMngtConverter converter;
+    private final WsncRpbAreaZipMgtConverter converter;
 
     /**
      * 책임지역 우편번호 관리 - 조회 (페이징)
@@ -77,7 +77,7 @@ public class WsncRpbLocaraZipMngtService {
         int processCount = 0;
 
         for (CreateReq dto : dtos) {
-            WsncRpbLocaraZipNoDvo rpbLocaraZip = this.converter.mapCreateReqToWsncRpbLocaraZipNoDvo(dto);
+            WsncRpbAreaZipNoDvo rpbLocaraZip = this.converter.mapCreateReqToWsncRpbAreaZipNoDvo(dto);
             processCount += this.mapper.insertZipNo(rpbLocaraZip);
         }
 

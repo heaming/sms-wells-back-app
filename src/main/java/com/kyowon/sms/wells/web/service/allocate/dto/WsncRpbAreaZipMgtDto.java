@@ -14,7 +14,7 @@ import lombok.Builder;
  * @author gs.piit130 김혜원
  * @since 2022.11.17
  */
-public class WsncRpbLocaraZipMngtDto {
+public class WsncRpbAreaZipMgtDto {
 
     @ApiModel(value = "WsncRpbLocaraZipMngtDto-SearchReq")
     public record SearchReq(

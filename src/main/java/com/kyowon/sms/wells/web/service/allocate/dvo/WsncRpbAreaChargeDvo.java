@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsncRpbLocaraPsicDvo {
+public class WsncRpbAreaChargeDvo {
 
     private String zipList; // 우편번호 리스트
     private String hemdList; // 행정동 리스트

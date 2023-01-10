@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbLocaraPsicMngtConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraPsicMngtDto;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraPsicMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraPsicMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraPsicDvo;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbLocaraPsicMngtMapper;
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbAreaChargeMgtConverter;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaChargeDvo;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbAreaChargeMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -25,11 +25,11 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
-public class WsncRpbLocaraPsicMngtService {
+public class WsncRpbAreaChargeMgtService {
 
-    private final WsncRpbLocaraPsicMngtMapper mapper;
+    private final WsncRpbAreaChargeMgtMapper mapper;
 
-    private final WsncRpbLocaraPsicMngtConverter converter;
+    private final WsncRpbAreaChargeMgtConverter converter;
 
     /**
      * 책임지역 담당자 관리 - 조회 (페이징)
@@ -38,7 +38,7 @@ public class WsncRpbLocaraPsicMngtService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<SearchRes> getPersonInChargePages(SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRes> getAreaChargePages(SearchReq dto, PageInfo pageInfo) {
         return this.mapper.selectPersonInCharges(dto, pageInfo);
     }
 
@@ -48,7 +48,7 @@ public class WsncRpbLocaraPsicMngtService {
      * @param dto : { zipFrom: 우편번호 From, zipTo: 우편번호 To, ctpvNm: 시도명, ctctyNm: 시군구명, ogId: 서비스센터(조직ID), wkGrpCd: 작업그룹코드, applyDate: 적용일자, rpbLocaraCdFrom: 지역코드 From, rpbLocaraCdTo: 지역코드 To }
      * @return
      */
-    public List<SearchRes> getPersonInChargesForExcelDownload(SearchReq dto) {
+    public List<SearchRes> getAreaChargesForExcelDownload(SearchReq dto) {
         return this.mapper.selectPersonInCharges(dto);
     }
 
@@ -59,11 +59,11 @@ public class WsncRpbLocaraPsicMngtService {
      * @return
      * @throws Exception
      */
-    public int createPersonInCharge(List<WsncRpbLocaraPsicMngtDto.CreateReq> dtos) throws Exception {
+    public int createAreaCharges(List<CreateReq> dtos) throws Exception {
         int processCount = 0;
 
-        for (WsncRpbLocaraPsicMngtDto.CreateReq dto : dtos) {
-            WsncRpbLocaraPsicDvo rpbLocaraPsic = this.converter.mapCreateReqToWsncRpbLocaraPsicDvo(dto);
+        for (CreateReq dto : dtos) {
+            WsncRpbAreaChargeDvo rpbLocaraPsic = this.converter.mapCreateReqToWsncRpbAreaChargeDvo(dto);
             processCount += this.mapper.insertPersonInCharge(rpbLocaraPsic);
         }
 

@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraPsicMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbLocaraPsicMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbLocaraPsicDvo;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaChargeDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -19,7 +19,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
  * @since 2022.12.22
  */
 @Mapper
-public interface WsncRpbLocaraPsicMngtMapper {
+public interface WsncRpbAreaChargeMgtMapper {
 
     /**
      * 책임지역 담당자 관리 - 조회 (페이징)
@@ -42,6 +42,6 @@ public interface WsncRpbLocaraPsicMngtMapper {
      * @param dvo
      * @return
      */
-    int insertPersonInCharge(WsncRpbLocaraPsicDvo dvo);
+    int insertPersonInCharge(WsncRpbAreaChargeDvo dvo);
 
 }
