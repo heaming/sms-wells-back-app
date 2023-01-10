@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyCalendarMapper">
+    <select id="selectCalendar"
+            resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyCalendarDto$SearchRes">
+        WITH TB_CAL AS (
+            SELECT TO_CHAR(FIRST_DAY + LEVEL - 1, 'D') DAYS
+                 , TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD') BASE_YMD
+                 , SUBSTR(TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD'), 1, 4) AS BASE_Y
+                 , SUBSTR(TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD'), 5, 2) AS BASE_MM
+                 , SUBSTR(TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD'), 7, 2) AS BASE_D
+              FROM (SELECT TRUNC(TO_DATE(#{baseYm} || '01', 'YYYYMMDD') , 'MM') - (TO_NUMBER(TO_CHAR(TO_DATE(#{baseYm} || '01', 'YYYYMMDD'), 'D')) - 1) FIRST_DAY FROM DUAL)
+             WHERE 1=1
+           CONNECT BY FIRST_DAY + LEVEL - 1 <![CDATA[ <= ]]> TRUNC(LAST_DAY(TO_DATE(#{baseYm} || '01', 'YYYYMMDD'))) + (7 - (TO_NUMBER(TO_CHAR(LAST_DAY(TO_DATE(#{baseYm} || '01', 'YYYYMMDD')), 'D'))))
+        )
+        SELECT TB_1.BASE_Y         AS BASE_Y         /* 기준년도 */
+		     , TB_1.BASE_MM        AS BASE_MM        /* 기준월 */
+             , TB_1.BASE_D         AS BASE_D         /* 기준일 */
+             , TB_2.DOW_DV_CD      AS DOW_DV_CD      /* 요일구분코드 */
+             , TB_2.DF_YN          AS DF_YN          /* 휴무여부 */
+             , TB_2.PHLD_YN        AS PHLD_YN        /* 공휴일여부 */
+             , TB_2.RMK_CN         AS RMK_CN         /* 비고내용 */
+             , TB_2.WRK_STRT_HH    AS WRK_STRT_HH    /* 근무시작시간 */
+             , TB_2.WRK_END_HH     AS WRK_END_HH     /* 근무종료시간 */
+             , TB_2.REST_HH        AS REST_HH        /* 휴식시간 */
+             , TB_2.WRK_HH         AS WRK_HH         /* 근무시간 */
+             , TB_3.BNDT_WRK_PSIC_NO AS BNDT_WRK_PSIC_NO /* 당직근무담당자번호 */
+             , #{serviceCenterCd}   AS SV_CNR_OG_ID /* 서비스센터조직ID */
+          FROM TB_CAL TB_1
+          LEFT OUTER JOIN TB_SVPD_SV_CLND_BAS TB_2
+          ON (
+               TB_1.BASE_Y = TB_2.BASE_Y
+           AND TB_1.BASE_MM = TB_2.BASE_MM
+           AND TB_1.BASE_D = TB_2.BASE_D
+          )
+          LEFT OUTER JOIN TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TB_3
+          ON (
+               TB_1.BASE_Y = TB_3.BASE_Y
+           AND TB_1.BASE_MM = TB_3.BASE_MM
+           AND TB_1.BASE_D = TB_3.BASE_D
+           AND #{serviceCenterCd} = TB_3.SV_CNR_OG_ID
+          )
+         WHERE 1=1
+         ORDER BY TB_1.BASE_Y
+                , TB_1.BASE_MM
+                , TB_1.BASE_D
+    </select>
+
+    <update id="updateCalendar">
+        UPDATE TB_SVPD_SV_CLND_BAS
+           SET DF_YN = #{dfYn}
+             , RMK_CN = #{rmkCn}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND BASE_Y = #{baseY}
+           AND BASE_MM = #{baseMm}
+           AND BASE_D = #{baseD}
+    </update>
+
+    <update id="saveCalendar">
+        MERGE INTO TB_SVPD_BNDT_WRK_PSIC_RGST_IZ
+        USING DUAL
+        ON (
+                SV_CNR_OG_ID = #{svCnrOgId}
+            AND BASE_Y = #{baseY}
+            AND BASE_MM = #{baseMm}
+            AND BASE_D = #{baseD}
+        )
+        WHEN MATCHED THEN
+            UPDATE
+               SET BNDT_WRK_PSIC_NO = #{bndtWrkPsicNo}
+                   <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+            INSERT (
+                  SV_CNR_OG_ID
+                , BASE_Y
+                , BASE_MM
+                , BASE_D
+                , BNDT_WRK_PSIC_NO
+                , DTA_DL_YN
+                  <include refid="COMMON.insertSystemField"/>
+            ) VALUES (
+                  #{svCnrOgId}
+                , #{baseY}
+                , #{baseMm}
+                , #{baseD}
+                , #{bndtWrkPsicNo}
+                , 'N'
+                  <include refid="COMMON.insertSystemFieldValue"/>
+            )
+    </update>
+
+    <select id="selectCalendarDay"
+            resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyCalendarDto$FindRegRes">
+        SELECT TB_1.BASE_Y
+             , TB_1.BASE_MM
+             , TB_1.BASE_D
+             , TB_1.DF_YN
+             , TB_1.RMK_CN
+             , #{svCnrOgId} AS SV_CNR_OG_ID
+             , TB_2.BNDT_WRK_PSIC_NO
+          FROM TB_SVPD_SV_CLND_BAS TB_1
+          LEFT OUTER JOIN TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TB_2
+          ON (
+               TB_1.BASE_Y = TB_2.BASE_Y
+           AND TB_1.BASE_MM = TB_2.BASE_MM
+           AND TB_1.BASE_D = TB_2.BASE_D
+           AND #{svCnrOgId} = TB_2.SV_CNR_OG_ID
+          )
+         WHERE 1=1
+           AND TB_1.BASE_Y = #{baseY}
+           AND TB_1.BASE_MM = #{baseMm}
+           AND TB_1.BASE_D = #{baseD}
+    </select>
+</mapper>
