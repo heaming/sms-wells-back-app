@@ -1,9 +1,11 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceCustInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceRecInfoDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceServHistDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceUsingPdutDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
@@ -25,7 +27,7 @@ public interface WsncWellsAsInterfaceMapper {
      * @param req : 조회파라메터
      * @return 조회결과
      */
-    List<WsncAsInterfaceCustInfoDvo> selectCustomerInformations(WsncAsInterfaceDto.SearchCustInfoReq req);
+    List<WsncAsInterfaceCustInfoDvo> selectCustomerInformations(SearchCustInfoReq req);
 
     /**
     * 고객서비스AS설치대상내역, 고객서비스수행배정내역, 고객서비스수행내역, 계약주소지기본 테이블을 기준으로 고객정보 조회
@@ -33,7 +35,7 @@ public interface WsncWellsAsInterfaceMapper {
     * @param req : 조회파라메터
     * @return 조회결과
     */
-    List<WsncAsInterfaceRecInfoDvo> selectReceiptInformations(WsncAsInterfaceDto.SearchRecInfoReq req);
+    List<WsncAsInterfaceRecInfoDvo> selectReceiptInformations(SearchRecInfoReq req);
 
     /**
     * Wells 인터페이스 맞춤가이드 사용중인 제품 조회
@@ -41,6 +43,13 @@ public interface WsncWellsAsInterfaceMapper {
     * @param req : 조회파라메터
     * @return 조회결과
     */
-    List<WsncAsInterfaceUsingPdutDvo> selectUsingProducts(WsncAsInterfaceDto.SearchUsingProductsReq req);
+    List<WsncAsInterfaceUsingPdutDvo> selectUsingProducts(SearchUsingProductsReq req);
 
+    /**
+     * Wells 인터페이스 맞춤가이드 서비스 이력 조회
+     *
+     * @param req : 조회파라메터
+     * @return 조회결과
+     */
+    List<WsncAsInterfaceServHistDvo> selectServiceHistorys(SearchServiceHistoryReq req, PageInfo pageInfo);
 }

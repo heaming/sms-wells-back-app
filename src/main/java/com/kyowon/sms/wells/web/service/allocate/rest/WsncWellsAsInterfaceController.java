@@ -4,6 +4,8 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncWellsAsInterfaceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParams;
@@ -17,7 +19,6 @@ import javax.validation.Valid;
 import java.util.List;
 
 @InterfaceController
-//@RestController
 @RequestMapping(SnServiceConst.INTERFACE_URL_V1 + "/wells-as-interfaces")
 @Api(tags = "[WSNC] Wells 인터페이스 RESET API")
 @RequiredArgsConstructor
@@ -68,10 +69,13 @@ public class WsncWellsAsInterfaceController {
     public EaiWrapper getServiceHistoryPages(
         @Valid
         @RequestBody
-        EaiWrapper<SearchServiceHistoryReq> reqWrapper
+        EaiWrapper<SearchServiceHistoryReq> reqWrapper,
+        @Valid
+        PageInfo pageInfo
     ) {
-        return null;
-        //return service.getServiceHistoryPages(req);
+        EaiWrapper<PagingResult<SearchServiceHistoryRes>> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getServiceHistoryPages(reqWrapper.getBody(), pageInfo));
+        return resWrapper;
     }
 
 }

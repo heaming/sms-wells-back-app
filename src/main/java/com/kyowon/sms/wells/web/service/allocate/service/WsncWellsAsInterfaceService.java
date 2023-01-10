@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncWellsAsInterfaceConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncWellsAsInterfaceMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,6 +61,20 @@ public class WsncWellsAsInterfaceService {
         SearchUsingProductsReq req
     ) {
         return converter.mapAllUsingProductDvoToRes(mapper.selectUsingProducts(req));
+    }
+
+    /**
+    * Wells 인터페이스 맞춤가이드 서비스 이력 조회
+    *
+    * @param req : 조회파라메터
+    * @return 조회결과
+    */
+    public PagingResult<SearchServiceHistoryRes> getServiceHistoryPages(
+        SearchServiceHistoryReq req, PageInfo pageInfo
+    ) {
+        return new PagingResult<>(
+            converter.mapAllServiceHistoryDvoToRes(mapper.selectServiceHistorys(req, pageInfo)), pageInfo
+        );
     }
 
 }

@@ -108,12 +108,14 @@ public class WsncAsInterfaceDto {
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryReq")
     public record SearchServiceHistoryReq(
-        String cntrNo
+        String cntrNo,
+        int pageIndex,
+        int pageSize
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryRes")
     public record SearchServiceHistoryRes(
-        String SvTpNm,
+        String svTpNm,
         String cntrNo,
         String wkExcnDt,
         String rgstDt,
@@ -125,7 +127,8 @@ public class WsncAsInterfaceDto {
         String svBizDclsfNm,
         String rcpDtm,
         String istNmnN,
-        String wkpNm
+        String wkpNm,
+        int totalCount
     ) {}
 
 }
