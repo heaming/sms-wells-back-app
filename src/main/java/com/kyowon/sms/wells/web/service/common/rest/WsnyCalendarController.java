@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Api(tags = "[WSNF] Calendar 관리")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/calendar-management")
+@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/calendars")
 public class WsnyCalendarController {
     private final WsnyCalendarService wsnyCalendarService;
 
@@ -56,8 +56,8 @@ public class WsnyCalendarController {
         @ApiImplicitParam(name = "baseD", value = "기준일", paramType = "query", required = false),
     })
     @GetMapping("/day")
-    public WsnyCalendarDto.SearchRegRes getCalendarDay(
-        WsnyCalendarDto.SearchRegReq dto
+    public WsnyCalendarDto.FindRegRes getCalendarDay(
+        WsnyCalendarDto.FineRegReq dto
     ) {
         return wsnyCalendarService.getCalendarDay(dto);
     }

@@ -34,8 +34,8 @@ public class WsnyCalendarService {
         return 1;
     }
 
-    public WsnyCalendarDto.SearchRegRes getCalendarDay(
-        WsnyCalendarDto.SearchRegReq dto
+    public WsnyCalendarDto.FindRegRes getCalendarDay(
+        WsnyCalendarDto.FineRegReq dto
     ) {
         return wsnyCalendarMapper.selectCalendarDay(dto);
     }

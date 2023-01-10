@@ -15,8 +15,8 @@ public class WsnyCalendarDto {
         String serviceCenterCd
     ) {}
 
-    @ApiModel(value = "WsnyCalendarDto-SearchRegReq")
-    public record SearchRegReq(
+    @ApiModel(value = "WsnyCalendarDto-FineRegReq")
+    public record FineRegReq(
         @NotBlank
         String svCnrOgId,
         @NotBlank
@@ -47,11 +47,8 @@ public class WsnyCalendarDto {
     // *********************************************************
     @ApiModel(value = "WsnyCalendarDto-SearchRes")
     public record SearchRes(
-        @NotBlank
         String baseY,
-        @NotBlank
         String baseMm,
-        @NotBlank
         String baseD,
         String dowDvCd,
         String dfYn,
@@ -65,13 +62,10 @@ public class WsnyCalendarDto {
         String svCnrOgId
     ) {}
 
-    @ApiModel(value = "WsnyCalendarDto-SearchRegRes")
-    public record SearchRegRes(
-        @NotBlank
+    @ApiModel(value = "WsnyCalendarDto-FindRegRes")
+    public record FindRegRes(
         String baseY,
-        @NotBlank
         String baseMm,
-        @NotBlank
         String baseD,
         String dfYn,
         String rmkCn,

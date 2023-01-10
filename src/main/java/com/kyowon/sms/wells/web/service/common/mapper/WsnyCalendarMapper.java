@@ -17,7 +17,7 @@ public interface WsnyCalendarMapper {
 
     int saveCalendar(WsnyCalendarDvo dvo);
 
-    WsnyCalendarDto.SearchRegRes selectCalendarDay(
-        WsnyCalendarDto.SearchRegReq dto
+    WsnyCalendarDto.FindRegRes selectCalendarDay(
+        WsnyCalendarDto.FineRegReq dto
     );
 }
