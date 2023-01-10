@@ -14,7 +14,7 @@ import io.swagger.annotations.ApiModel;
  * @author hyewon.kim
  * @since 2022.12.22
  */
-public class WsncRpbLocaraPsicMngtDto {
+public class WsncRpbAreaChargeMgtDto {
 
     @ApiModel(value = "WsncRpbLocaraPsicMngtDto-SearchReq")
     public record SearchReq(
