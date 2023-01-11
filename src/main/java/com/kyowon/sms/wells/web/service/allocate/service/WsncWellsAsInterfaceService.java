@@ -70,8 +70,11 @@ public class WsncWellsAsInterfaceService {
     * @return 조회결과
     */
     public PagingResult<SearchServiceHistoryRes> getServiceHistoryPages(
-        SearchServiceHistoryReq req, PageInfo pageInfo
+        SearchServiceHistoryReq req
     ) {
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setPageIndex(req.pageIndex());
+        pageInfo.setPageSize(req.pageSize());
         return new PagingResult<>(
             converter.mapAllServiceHistoryDvoToRes(mapper.selectServiceHistorys(req, pageInfo)), pageInfo
         );

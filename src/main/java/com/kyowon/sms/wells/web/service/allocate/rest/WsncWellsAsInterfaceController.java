@@ -69,12 +69,10 @@ public class WsncWellsAsInterfaceController {
     public EaiWrapper getServiceHistoryPages(
         @Valid
         @RequestBody
-        EaiWrapper<SearchServiceHistoryReq> reqWrapper,
-        @Valid
-        PageInfo pageInfo
+        EaiWrapper<SearchServiceHistoryReq> reqWrapper
     ) {
         EaiWrapper<PagingResult<SearchServiceHistoryRes>> resWrapper = reqWrapper.newResInstance();
-        resWrapper.setBody(service.getServiceHistoryPages(reqWrapper.getBody(), pageInfo));
+        resWrapper.setBody(service.getServiceHistoryPages(reqWrapper.getBody()));
         return resWrapper;
     }
 

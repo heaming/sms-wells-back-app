@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -109,7 +110,13 @@ public class WsncAsInterfaceDto {
     @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryReq")
     public record SearchServiceHistoryReq(
         @NotBlank
-        String cntrNo
+        String cntrNo,
+        @NotNull
+        @Min(1L)
+        Integer pageIndex,
+        @NotNull
+        @Min(10L)
+        Integer pageSize
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryRes")
@@ -127,7 +134,13 @@ public class WsncAsInterfaceDto {
         String rcpDtm,
         String istNmnN,
         String wkpNm,
-        int totalCount
+        @NotNull
+        @Min(1L)
+        Integer pageIndex,
+        @NotNull
+        @Min(1L)
+        Integer pageSize,
+        Long totalCount
     ) {}
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchServiceContentsReq")
