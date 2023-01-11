@@ -1,13 +1,29 @@
 package com.kyowon.sms.wells.web.service.allocate.converter;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncWellsAsInterfaceDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncWellsAsInterfaceCustInfoDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncWellsAsInterfaceRecInfoDvo;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
+import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import org.mapstruct.Mapper;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface WsncWellsAsInterfaceConverter {
-    List<WsncWellsAsInterfaceDto.SearchCustInfoRes> mapAllListCustInfoDvoToListRes(List<WsncWellsAsInterfaceCustInfoDvo> dvos);
-    List<WsncWellsAsInterfaceDto.SearchRecInfoRes> mapAllListRecInfoDvoToListRes(List<WsncWellsAsInterfaceRecInfoDvo> dvos);
+    List<SearchCustInfoRes> mapAllCustInfoDvoToRes(
+        List<WsncAsInterfaceCustInfoDvo> dvos
+    );
+
+    List<SearchRecInfoRes> mapAllRecInfoDvoToRes(
+        List<WsncAsInterfaceRecInfoDvo> dvos
+    );
+
+    List<SearchUsingProductsRes> mapAllUsingProductDvoToRes(
+        List<WsncAsInterfaceUsingPdutDvo> dvos
+    );
+
+    List<SearchServiceHistoryRes> mapAllServiceHistoryDvoToRes(
+        List<WsncAsInterfaceServHistDvo> dvos
+    );
+    List<SearchServiceContentsRes> mapAllServiceContentsDvoToRes(
+        List<WsncAsInterfaceServContDvo> dvos
+    );
+
 }
