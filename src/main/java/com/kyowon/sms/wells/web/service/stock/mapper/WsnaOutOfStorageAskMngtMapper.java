@@ -1,7 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskRgstDto;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.SearchReq;
@@ -9,14 +14,8 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.Sea
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.Warehouse;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.WarehouseReq;
 
-/**
- * <pre>
- * W-SV-U-0117M01 출고요청 관리
- * </pre>
- *
- * @author gs.piit130 김혜원
- * @since 2022.11.25
- */
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
+
 @Mapper
 public interface WsnaOutOfStorageAskMngtMapper {
 
@@ -24,4 +23,9 @@ public interface WsnaOutOfStorageAskMngtMapper {
 
     List<Warehouse> selectWarehouses(WarehouseReq dto);
 
+    Optional<FindRes> selectOutOfStorageAskItms(FindReq dto);
+
+    PagingResult<WsnaOutOfStorageAskMngtDto.OutOfRes> selectOutOfStorageItms(
+        WsnaOutOfStorageAskMngtDto.SearchReq dto, PageInfo pageInfo
+    );
 }

@@ -2,7 +2,12 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.Warehouse;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskRgstDto;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.exception.BizException;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.SearchReq;
@@ -12,14 +17,16 @@ import com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAskMngtMapp
 
 import lombok.RequiredArgsConstructor;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
+
 /**
  *
  * <pre>
  * W-SV-U-0117M01 출고요청 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
- * @since 2022.11.25
+ * @author songtaesung
+ * @since 2022.12.26
  */
 @Service
 @RequiredArgsConstructor
@@ -36,13 +43,24 @@ public class WsnaOutOfStorageAskMngtService {
         return this.mapper.selectOutOfStorageAsks(dto);
     }
 
+    /**
+     * 출고요청 관리 - 로그인 사용자 출고요청창고 조회
+     * @param dto : { session.userid : 사용자id , apyYm : 기준년월 }
+     * @return 조회결과
+     */
     public List<Warehouse> getOutOfStorageAskWares(WarehouseReq dto) {
         return this.mapper.selectWarehouses(dto);
     }
 
-    /**
-     * 물류창고 리스트 조회
-     * @return 조회결과
-     */
+    public FindRes getOutOfStorageAskItems(FindReq dto) {
+        return this.mapper.selectOutOfStorageAskItms(dto).orElseThrow(
+            () -> new BizException("MSG_ALT_NO_DATA")
+        );
+    }
 
+    public PagingResult<WsnaOutOfStorageAskMngtDto.OutOfRes> getOutOfStorageItemPages(
+        WsnaOutOfStorageAskMngtDto.SearchReq dto, PageInfo pageInfo
+    ) {
+        return this.mapper.selectOutOfStorageItms(dto, pageInfo);
+    }
 }
