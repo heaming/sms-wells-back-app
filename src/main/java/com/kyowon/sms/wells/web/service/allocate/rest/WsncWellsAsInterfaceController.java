@@ -29,7 +29,7 @@ public class WsncWellsAsInterfaceController {
     private final WsncWellsAsInterfaceService service;
 
     @ApiOperation(value = "고객서비스수행내역, 계약주소지기본 테이블을 기준으로 고객정보 조회")
-    @PostMapping("/customer-informations")
+    @PostMapping("/customers")
     public EaiWrapper getCustomerInformations(
         @Valid
         @RequestBody
@@ -41,7 +41,7 @@ public class WsncWellsAsInterfaceController {
     }
 
     @ApiOperation(value = "고객서비스AS설치대상내역, 고객서비스수행배정내역, 고객서비스수행내역, 계약주소지기본 테이블을 기준으로 고객정보 조회")
-    @PostMapping("/receipt-Informations")
+    @PostMapping("/receipts")
     public EaiWrapper getReceiptInformations(
         @Valid
         @RequestBody
