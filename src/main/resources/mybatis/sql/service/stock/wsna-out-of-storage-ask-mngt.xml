@@ -16,78 +16,233 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAskMngtMapper">
 
-    <select id="selectOutOfStorageAsks" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$SearchRes">
-        SELECT T1.OSTR_AK_NO              /* 출고요청번호 */
-             , T1.OSTR_AK_TP_CD           /* 출고요청유형코드 */
-             , T1.STR_HOP_DT              /* 입고희망일자 */
-             , T1.RECT_OSTR_DT            /* 최근출고일자 */
-             , T1.WARE_NM                 /* 창고명 */
-          FROM
-             (
-          	   SELECT '310' AS OSTR_AK_TP_CD,'310-100002-20090320-001' AS OSTR_AK_NO, '20090201' AS STR_HOP_DT,'20090320' AS RECT_OSTR_DT, '파주물류센터' AS WARE_NM FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090321-002','20090301','20090321','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090323-003','20090301','20090323','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090324-001','20090324','20090324','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090324-002','20090323','20090324','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090324-003','20090323','20090324','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090324-004','20090324','20090324','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090325-001','20090325','20090325','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '310','310-100002-20090325-002','20090326','20090325','파주물류센터' FROM DUAL UNION ALL
-        	   SELECT '320','320-100002-20190426-001','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
-        	   SELECT '320','320-100002-20190426-002','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
-        	   SELECT '320','320-100002-20190426-003','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
-        	   SELECT '320','320-100002-20190426-004','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
-        	   SELECT '320','320-100002-20190426-005','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
-        	   SELECT '320','320-100002-20190426-006','20190426','20190426','김해물류센터' FROM DUAL UNION ALL
-        	   SELECT '320','320-100002-20190426-007','20190426','20190426','김해물류센터' FROM DUAL
-             ) T1
-         WHERE 1 = 1
+    <select id="selectOutOfStorageAsks"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$SearchRes">
+        SELECT OSTR_AK_TP_CD AS OSTR_AK_TP_CD /*출고요청번호*/
+             , STR_OJ_WARE_NO AS STR_OJ_WARE_NO /*입고대상창고번호*/
+             , OSTR_AK_NO AS OSTR_AK_NO /*출고요청번호*/
+             , OSTR_AK_RGST_DT AS OSTR_AK_RGST_DT /*출고요청등록일자*/
+             , STR_HOP_DT AS STR_HOP_DT /*입고희망일자*/
+             , MAX(RECT_OSTR_DT) AS RECT_OSTR_DT /*최근출고일자*/
+             , WARE_NM AS WARE_NM /*창고명*/
+             , OSTR_OJ_WARE_NO /*출고대상창고번호*/
+          FROM TB_SVST_ITM_OSTR_AK_IZ
+             , TB_SVST_MCBY_WARE_IZ
+         WHERE STR_OJ_WARE_NO = #{strOjWareNo} /*입고대상창고번호*/
+           AND WARE_USE_YN='Y'
+        <if test="@MybatisUtils@isEmpty(ostrAkTpCd)">
+           AND OSTR_AK_TP_CD IN ('310','320','330')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(ostrAkTpCd)">
+           AND OSTR_AK_TP_CD = #{ostrAkTpCd}
+        </if>
+           AND STR_HOP_DT BETWEEN #{startStrHopDt} AND #{endStrHopDt}
+           AND OSTR_OJ_WARE_NO = WARE_NO
+           AND APY_YM = SUBSTR(#{startStrHopDt},1,6)
+           AND WARE_DV_CD = #{wareDvCd}
+        <if test="@MybatisUtils@isNotEmpty(wareLocaraCd)">
+           AND WARE_LOCARA_CD = #{wareLocaraCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(wareLocaraCd)">
+           AND WARE_LOCARA_CD = #{wareLocaraCd}
+        </if>
+         GROUP BY OSTR_AK_TP_CD,STR_OJ_WARE_NO,OSTR_AK_RGST_DT,OSTR_AK_NO,STR_HOP_DT,OSTR_OJ_WARE_NO,WARE_NM
+         ORDER BY OSTR_AK_TP_CD,STR_OJ_WARE_NO,OSTR_AK_RGST_DT,OSTR_AK_NO ASC
     </select>
 
-    <select id="selectWarehouses" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$Warehouse">
-        SELECT A.WARE_NO AS CODE
-             , A.WARE_NM AS CODE_NAME
+    <select id="selectWarehouses"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$Warehouse">
+        SELECT A.WARE_NO            AS CODE
+             , A.WARE_NM            AS CODE_NAME
              , A.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
-             , A.WARE_ICHR_NO AS WARE_ICHR_NO
-             , A.WARE_DV_CD AS WARE_DV_CD
-             , B.HGR_WARE_NO AS HGR_WARE_NO
-             , B.WARE_NM AS WARE_NM_UP
+             , A.WARE_ICHR_NO       AS WARE_ICHR_NO
+             , A.WARE_DV_CD         AS WARE_DV_CD
+             , B.HGR_WARE_NO        AS HGR_WARE_NO
+             , B.WARE_NM            AS WARE_NM_UP
              , B.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO_UP
-             , B.WARE_LOCARA_CD AS WARE_LOCARA_CD_UP
-             , B.WARE_DV_CD AS WARE_DV_CD_UP
+             , B.WARE_LOCARA_CD     AS WARE_LOCARA_CD_UP
+             , B.WARE_DV_CD         AS WARE_DV_CD_UP
           FROM TB_SVST_MCBY_WARE_IZ A
-             , TB_SVST_MCBY_WARE_IZ B
-         WHERE A.APY_YM = B.APY_YM
+         INNER JOIN TB_SVST_MCBY_WARE_IZ B
+            ON A.APY_YM = B.APY_YM
            AND A.HGR_WARE_NO = B.WARE_NO
-           AND A.WARE_MNGT_PRTNR_NO = #{session.userId}
-           AND A.APY_YM = #{apyYm}
-           AND A.WARE_USE_YN='Y'
-           AND B.WARE_USE_YN='Y'
-         ORDER BY WARE_DV_CD_UP
-
-        <!--
-        SELECT T1.HGR_WARE_NO AS CODE
-             , T1.WARE_NM AS CDOE_NAME
-             , T1.WARE_MNGT_PRTNR_NO AS SV_STCK_MGR
-             , T1.WARE_ICHR_NO AS SV_CHG_CD
-             , T1.WARE_DV_CD AS SV_STCK_GB
-             , T2.WARE_NO AS STCK_CD_UP
-             , T2.WARE_NM AS STCK_NM_UP
-             , T2.WARE_MNGT_PRTNR_NO AS STCK_MGR_UP
-             , T2.WARE_LOCARA_CD AS STCK_AR_CD_UP
-             , T2.WARE_DV_CD AS STCK_GB_UP
-          FROM TB_SVST_MCBY_WARE_IZ T1
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
-            ON T1.WARE_USE_YN = 'Y'
-           AND T2.WARE_USE_YN = 'Y'
-           AND T2.APY_YM = T1.APY_YM
-           AND T2.WARE_NO = T1.HGR_WARE_NO
          WHERE 1 = 1
-           AND T1.WARE_MNGT_PRTNR_NO = '' /* 창고관리파트너번호 */
-           AND T1.APY_YM = '' /* 적용연월 */
-         ORDER BY T1.WARE_DTL_DV_CD
-                , T1.HGR_WARE_NO
-        -->
+           AND A.WARE_MNGT_PRTNR_NO = '36680'
+           AND A.APY_YM = '202210'
+           AND A.WARE_USE_YN = 'Y'
+           AND B.WARE_USE_YN = 'Y'
+         ORDER BY WARE_DV_CD_UP
+    </select>
+
+    <select id="selectOutOfStorageAskItms"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$FindRes">
+        SELECT OSTR_AK_NO /*출고요청번호*/
+             , OSTR_AK_TP_CD /*출고요청유형*/
+             , STR_OJ_WARE_NO /*입고대상창고번호*/
+             , WAREIZA.WARE_NM AS  STR_OJ_WARE_NM /*ST156_REQ_STCK_NM*/
+	         , WAREIZA.WARE_MNGT_PRTNR_NO AS STR_OJ_STCK_MGR /*ST156_REQ_STCK_MGR*/
+	         , OSTR_AK_RGST_DT /*출고요청등록일자*/
+	         , STR_HOP_DT /*입고희망일자*/
+             , OSTR_OJ_WARE_NO /*출고대상창고번호*/
+             , WAREIZB.WARE_NM AS OSTR_OJ_WARE_NM /*출고대상창고명*/
+             , WAREIZB.WARE_MNGT_PRTNR_NO AS OSTR_OJ_STCK_MGR /*출고대상창고파트너*/
+             , WAREIZB.WARE_LOCARA_CD AS OSTR_WARE_LOCARA_CD /*출고창고지역코드*/
+             , NVL(OVIV_TP_CD, '0') AS OVIV_TP_CD /*배차유형코드*/
+             /*, PD_PRP_VAL19 AS ST156_ITM_KND*/
+          FROM TB_SVST_ITM_OSTR_AK_IZ
+	            /*, TB_PDBS_PD_BAS*/
+	         , TB_SVST_MCBY_WARE_IZ WAREIZA
+	         , T_CMZ_CD_D CMZCD
+	         , TB_SVST_MCBY_WARE_IZ WAREIZB
+	            /*, TB_PDBS_PD_ECOM_PRP_DTL*/
+         WHERE WAREIZA.APY_YM = SUBSTR(STR_HOP_DT,1,6)
+           AND WAREIZB.APY_YM = SUBSTR(STR_HOP_DT,1,6)
+           AND WAREIZA.WARE_NO = STR_OJ_WARE_NO
+           AND WAREIZB.WARE_NO = OSTR_OJ_WARE_NO
+           AND CD_ID = 'OSTR_AK_TP_CD'
+           AND CD_VLD_VAL = OSTR_AK_TP_CD
+           AND TENANT_ID ='TNT_WELLS'
+           AND WAREIZA.WARE_USE_YN = 'Y'
+           AND WAREIZB.WARE_USE_YN = 'Y'
+       <if test="@MybatisUtils@isNotEmpty(ostrAkTpCd)">
+           AND OSTR_AK_TP_CD = #{ostrAkTpCd}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(strOjWareNo)">
+           AND STR_OJ_WARE_NO = #{strOjWareNo}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(ostrAkRgstDt)">
+           AND OSTR_AK_RGST_DT = #{ostrAkRgstDt}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(ostrAkNo)">
+           AND OSTR_AK_NO = #{ostrAkNo}
+       </if>
+--  AND PDBAS.PD_CD = AKIZ.ITM_PD_CD
+--  AND ROWNUM = 1;
+    </select>
+
+
+    <select id="selectOutOfStorageItms"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$OutOfRes">
+        SELECT '1' AS CHK
+             , 'U' AS FLAG
+             , ST101.SAP_MAT_CD --//SAP코드
+        --    , ST156_ITEM_CD||ST156_PART_CD AS ITEM_CD --//품목코드
+             , ST156.OSTR_AK_TP_CD /*출고요청유형코드*/
+             , ST156.STR_OJ_WARE_NO /*입고대상창고번호*/
+             , ST156.OSTR_AK_RGST_DT /*출고요청등록일자*/
+             , ST156.OSTR_AK_NO /*출고요청번호*/
+             , ST156.OSTR_AK_SN  /*출고요청일련번호*/
+             , ST156.FST_RGST_DTM /*최초등록일시*/
+             , ST156.STR_HOP_DT /*입고희망일자*/
+             , ST156.ITM_PD_CD /*품목상품코드*/
+        --    , ST101_ITEM_KND AS ITEM_KND
+             , ST101.PD_ABBR_NM AS ITM_NM -- 품목명
+             , ST156.OSTR_AK_WARE_DV_CD /*출고요청창고구분코드*/
+             , ST156.WARE_MNGT_PRTNR_NO /*창고관리파트너번호*/
+             , ST156.OSTR_OJ_WARE_DV_CD /*출고대상창고구분코드*/
+             , ST156.OSTR_OJ_WARE_NO /*출고대상창고번호*/
+             , ST156.OSTR_WARE_MNGT_PRTNR_NO /*출고창고관리파트너번호*/
+             , ST156.MNGT_UNIT_CD /*관리단위코드*/
+             , ST156.BOX_UNIT_QTY /*박스단위수량*/
+             , ST156.ITM_GD_CD --품목등급코드
+        --    , GET_STCK_ON_QTY(ST156_REQ_STCK_CD,ST156_ITEM_CD||ST156_PART_CD,ST156_DEG) AS QTY
+             , ST156.OSTR_AK_QTY   --출고요청수량
+             , ST156.OSTR_CNFM_QTY --출고확정수량
+             , ST156.RMK_CN --비고내용
+             , ST156.RECT_OSTR_DT --최근출고일자
+             , ST156.OSTR_AGG_QTY --출고누계수량
+             , WAREHOUSE_QTY --재고
+             , ST117.BASE_STOC_QTY --기준
+             , ST117.SFT_STOC_QTY --안전
+             , USE_QTY --당월
+             , CENTER_QTY --센터
+             , INDI_QTY --개인
+             , ST101.IMG_APN_FILE_ID --이미지
+             , NVL((
+                        --일별 방문예정 집계
+                        SELECT /*+ LEADING(AC221 AC211) INDEX(AC221 LC_ALLOCATE_AC221TB_IDX02)  INDEX(AC211 LC_ALLOCATE_AC211TB_IDX01) */
+                               SUM(DECODE(AC211.SV_CNR_OG_ID,'',0,1)) AS CFRM_CNT
+                          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ AC211
+        --	                 , /*LC_ALLOCATE_AC221TB AC221*/
+                             , TB_SVPD_CST_SV_EXCN_ASN_IZ AC221
+        --                   , LC_ALLOCATE_AC125TB /*조직 확인 필요 테이블*/
+                             , (SELECT MIN(BASE_Y||BASE_MM||BASE_D) STRTDT , MAX(BASE_Y||BASE_MM||BASE_D) ENDDT
+                                  FROM
+                                       (
+                                          SELECT BASE_Y
+                                               , BASE_MM
+                                               , BASE_D
+                                               , RANK() OVER(ORDER BY BASE_Y||BASE_MM||BASE_D) AS RN
+                                            FROM TB_SVPD_SV_CLND_BAS
+                                           WHERE BASE_Y||BASE_MM||BASE_D > TO_CHAR(SYSDATE,'YYYYMMDD')
+                                             AND DF_YN IS NULL
+                                             AND PHLD_YN IS NULL
+                                             AND DOW_DV_CD IN ('2','3','4','5','6')
+                                        )
+                                  WHERE RN <![CDATA[<=]]> 5)
+                         WHERE 1 = 1
+                           AND AC211.CST_SV_ASN_NO(+) = AC221.CST_SV_ASN_NO
+                           AND AC221.VST_CNFMDT BETWEEN STRTDT AND ENDDT
+                           AND AC211.MTR_STAT_CD IN ('1', '2')
+                           AND AC221.WK_PRGS_STAT_CD IN ('00','10')
+                           AND SUBSTR(AC211.SV_BIZ_DCLSF_CD,1,1) = '1'
+                           AND AC211.RCP_SV_BIZ_DCLSF_CD NOT LIKE '13%'
+        --                   AND AC211.SV_CNR_OG_ID = AC125_DEPT_CD
+                           AND AC211.SV_BIZ_HCLSF_CD = '1'
+        --                   AND AC125_STCK_CD = '200371'
+                           AND AC221.SV_BIZ_HCLSF_CD = '1'
+        --                   AND AC221_GDS_GR = ST101_ITEM_GR
+        --                   AND ST156.ITM_PD_CD   = AC211.PD_CD
+        --	             GROUP BY AC125_STCK_CD
+                    ),0) AS CFRM_CNT
+         FROM    --LC_STOCK_ST156TB
+              TB_SVST_ITM_OSTR_AK_IZ ST156
+               , --LC_STOCK_ST101TB
+                 TB_PDBS_PD_BAS ST101
+               , --LC_STOCK_ST117TB
+                 TB_SVST_MCITM_BASE_SFT_STOC_IZ ST117
+               , (SELECT  IX.ITM_PD_CD
+                        ,SUM(DECODE(IX.WARE_NO, '100002' , IX.PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
+                        ,SUM(DECODE(IX.WARE_NO, '200371' , IX.PITM_STOC_A_GD_QTY)) AS CENTER_QTY
+                    FROM TB_SVST_CST_SV_ITM_STOC_IZ IX
+                   WHERE  IX.WARE_NO IN('100002', '200371')
+                GROUP BY  IX.ITM_PD_CD) A
+               , (SELECT /*+ LEADING(IB IA) */
+                      IA.ITM_PD_CD
+                        , SUM(IA.PITM_STOC_A_GD_QTY) INDI_QTY
+                    FROM TB_SVST_CST_SV_ITM_STOC_IZ IA
+                       , TB_SVST_MCBY_WARE_IZ IB
+                   WHERE 1=1
+        --             AND IA.WARE_NO = IB.WARE_NO
+                     AND IB.APY_YM = TO_CHAR(SYSDATE  , 'YYYYMM')
+        --			 AND IB.HGR_WARE_NO  = '200371'
+                     AND IB.WARE_DV_CD = '2' --'3'
+                     AND IB.WARE_ICHR_NO != '000'
+                GROUP BY IA.ITM_PD_CD) IQTY
+               , ( SELECT /*+ LEADING (IB IA) */
+                           IA.ITM_PD_CD,
+                           SUM(IA.USE_QTY) USE_QTY
+                     FROM TB_SVST_SV_WK_OSTR_IZ IA
+                        , TB_SVST_MCBY_WARE_IZ IB
+                    WHERE 1=1
+                      AND IA.FNL_VST_FSH_DT LIKE TO_CHAR(SYSDATE , 'YYYYMM')||'%'
+                      AND IA.WK_WARE_NO = IB.WARE_NO
+                      AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+                      AND IB.HGR_WARE_NO  = '200371'
+                      AND IB.WARE_DV_CD =  '2' -- '3'
+                 GROUP BY IA.ITM_PD_CD) UQTY
+         WHERE ST101.PD_CD = ST156.ITM_PD_CD
+           AND ST156.OSTR_AK_TP_CD='310'
+           AND ST156.STR_OJ_WARE_NO = '200371'
+           AND ST156.OSTR_AK_RGST_DT='20220714'
+        --    AND ST156.OSTR_AK_NO = ''
+           AND ST101.PD_CD = ST117.PD_CD(+)
+           AND ST117.APY_YM(+) = TO_CHAR(SYSDATE, 'YYYYMM')
+        --	 AND ST101_USE_YN = 'Y'   ?????
+           AND ST117.WARE_NO(+) = '200371' 	/* 해당조직창고 */
+           AND A.ITM_PD_CD(+) = ST101.PD_CD
+           AND IQTY.ITM_PD_CD(+) = ST101.PD_CD
+           AND UQTY.ITM_PD_CD(+) = ST101.PD_CD
     </select>
 
 </mapper>

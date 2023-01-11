@@ -9,8 +9,8 @@ import lombok.Setter;
  * W-SV-U-0117M01 출고요청 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
- * @since 2022.11.25
+ * @author gs.piit58 송태성
+ * @since 2022.12.26
  */
 @Setter
 @Getter
