@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbFeverbikeTalkSendConverter;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbFeverbikeTalkSendDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbFeverbikeTalkSendDto.*;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbFeverbikeTalkSendMapper;
 import lombok.RequiredArgsConstructor;
@@ -55,10 +56,12 @@ public class WsnbFeverbikeTalkSendService {
             dvo.setCallback("15884113");
 
             try {
-                updateCount.addAndGet(kakaoMessageService.sendMessage(dvo));
+                kakaoMessageService.sendMessage(dvo);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+
+            updateCount.addAndGet(mapper.updateFeverbikeTalkSendTarget(x.cntrSn()));
 
         });
         return updateCount.get();

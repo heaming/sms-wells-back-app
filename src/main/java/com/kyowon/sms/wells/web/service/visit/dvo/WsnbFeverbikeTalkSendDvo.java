@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 public class WsnbFeverbikeTalkSendDvo {
    String cntrNo;
+   int cntrSn;
    String pifThpOfrAgYn;
    String cntrCstNm;
    String mpno;
