@@ -22,7 +22,7 @@ import java.text.ParseException;
 import java.util.List;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/as-visit-costs")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-visit-costs")
 @Api(tags = "[WSNY] W-SV-U-0101M01 유상 AS 출장비 관리 REST API")
 @RequiredArgsConstructor
 @Validated

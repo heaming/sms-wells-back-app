@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/as-assign-state")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-assign-state")
 @Api(tags = "[WSNC] 배정관리 집계 RESET API")
 @RequiredArgsConstructor
 @Validated
