@@ -24,5 +24,5 @@ public interface WsnbFeverbikeTalkSendMapper {
      * @return 변경 개수
      */
     List<WsnbFeverbikeTalkSendDvo> selectFeverbikeTalkSendTarget();
-    int updateFeverbikeTalkSendTarget(int cntrSn);
+    int updateFeverbikeTalkSendTarget(String cntrNo);
 }

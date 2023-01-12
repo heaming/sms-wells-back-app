@@ -22,7 +22,7 @@ public class WsnbFeverbikeTalkSendController {
 
     @ApiOperation(value = "피버 바이크 플러스 온라인 강의 무료 구독 신청완료 후 고객에게 알림톡으로 발송한다.")
     @PutMapping
-    public SaveResponse saveFeverbikeTalkSend() {
+    public SaveResponse saveFeverbikeTalkSend() throws Exception {
         return SaveResponse.builder().processCount(service.saveFeverbikeTalkSend()).build();
     }
 

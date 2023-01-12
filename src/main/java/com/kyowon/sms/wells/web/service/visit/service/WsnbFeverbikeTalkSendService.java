@@ -3,9 +3,9 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbFeverbikeTalkSendConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbFeverbikeTalkSendDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbFeverbikeTalkSendDto.*;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbFeverbikeTalkSendMapper;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,32 +38,25 @@ public class WsnbFeverbikeTalkSendService {
      *
      * @return 변경 개수
      */
-    public int saveFeverbikeTalkSend() {
+    public int saveFeverbikeTalkSend() throws Exception {
         final AtomicInteger updateCount = new AtomicInteger();
         final List<SearchRes> rows = converter.mapAllDvoToRes(mapper.selectFeverbikeTalkSendTarget());
-        rows.forEach(x -> {
-            Map<String, Object> paramMap = new HashMap<>();
+        final Map<String, Object> paramMap = new HashMap<>();
+        for (SearchRes x : rows) {
+            paramMap.clear();
             paramMap.put("cntrCstNm", x.cntrCstNm());
             paramMap.put("cntrNo", x.cntrNo());
-            KakaoSendReqDvo dvo;
-            if (x.pifThpOfrAgYn().equals("Y")) {
-                dvo = KakaoSendReqDvo.withTemplateCode().templateCode("FEVERBIKE_APLC_Y").build();
-            } else {
-                dvo = KakaoSendReqDvo.withTemplateCode().templateCode("FEVERBIKE_APLC_N").build();
-            }
-            dvo.setTemplateParamMap(paramMap);
-            dvo.setDestInfo(x.cntrCstNm() + "^" + x.mpno());
-            dvo.setCallback("15884113");
-
-            try {
-                kakaoMessageService.sendMessage(dvo);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-            updateCount.addAndGet(mapper.updateFeverbikeTalkSendTarget(x.cntrSn()));
-
-        });
+            String yn = x.pifThpOfrAgYn();
+            if (x.pifThpOfrAgYn() == null)
+                yn = "N";
+            kakaoMessageService.sendMessage(
+                KakaoSendReqDvo.withTemplateCode()
+                    .templateCode(yn.equals("Y") ? "FEVERBIKE_APLC_Y" : "FEVERBIKE_APLC_N").templateParamMap(paramMap)
+                    .destInfo(x.cntrCstNm().concat("^").concat(x.mpno())).callback(SnServiceConst.KAKAO_TALK_CALLBACK)
+                    .build()
+            );
+            updateCount.addAndGet(mapper.updateFeverbikeTalkSendTarget(x.cntrNo()));
+        }
         return updateCount.get();
     }
 

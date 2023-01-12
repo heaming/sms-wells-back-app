@@ -11,4 +11,6 @@ public class SnServiceConst {
     public static final String REST_URL_V1 = CommConst.REST_URL_V1 + "/sms/wells/service";
     public static final String INTERFACE_URL_V1 = CommConst.REST_URL_V1 + "/api/v1/sms/wells/service/wells-as-interfaces/";
 
+    public static final String KAKAO_TALK_CALLBACK = "15884113";
+
 }
