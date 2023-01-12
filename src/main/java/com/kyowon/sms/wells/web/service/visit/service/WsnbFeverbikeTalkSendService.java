@@ -51,8 +51,9 @@ public class WsnbFeverbikeTalkSendService {
                 yn = "N";
             kakaoMessageService.sendMessage(
                 KakaoSendReqDvo.withTemplateCode()
-                    .templateCode(yn.equals("Y") ? "FEVERBIKE_APLC_Y" : "FEVERBIKE_APLC_N").templateParamMap(paramMap)
-                    .destInfo(x.cntrCstNm().concat("^").concat(x.mpno())).callback(SnServiceConst.KAKAO_TALK_CALLBACK)
+                    .templateCode(yn.equals("Y") ? "FEVERBIKE_APLC_Y" : "FEVERBIKE_APLC_N")
+                    .templateParamMap(paramMap)
+                    .destInfo(x.cntrCstNm().concat("^").concat(x.mpno())).callback("15884113")
                     .build()
             );
             updateCount.addAndGet(mapper.updateFeverbikeTalkSendTarget(x.cntrNo()));
