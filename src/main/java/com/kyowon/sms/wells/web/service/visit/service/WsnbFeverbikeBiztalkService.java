@@ -2,13 +2,12 @@ package com.kyowon.sms.wells.web.service.visit.service;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sms.wells.web.service.visit.converter.WsnbFeverbikeTalkSendConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbFeverbikeTalkSendDto.*;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbFeverbikeTalkSendMapper;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbFeverbikeBiztalkDvo;
+import com.kyowon.sms.wells.web.service.visit.mapper.WsnbFeverbikeBiztalkMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,10 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbFeverbikeTalkSendService {
+public class WsnbFeverbikeBiztalkService {
 
-    private final WsnbFeverbikeTalkSendMapper mapper;
-    private final WsnbFeverbikeTalkSendConverter converter;
+    private final WsnbFeverbikeBiztalkMapper mapper;
     private final KakaoMessageService kakaoMessageService;
 
     /**
@@ -38,25 +36,26 @@ public class WsnbFeverbikeTalkSendService {
      *
      * @return 변경 개수
      */
-    public int saveFeverbikeTalkSend() throws Exception {
+    @Transactional
+    public int sendFeverbikeBiztalk() throws Exception {
         final AtomicInteger updateCount = new AtomicInteger();
-        final List<SearchRes> rows = converter.mapAllDvoToRes(mapper.selectFeverbikeTalkSendTarget());
+        final List<WsnbFeverbikeBiztalkDvo> rows = mapper.selectFeverbikeBiztalk();
         final Map<String, Object> paramMap = new HashMap<>();
-        for (SearchRes x : rows) {
+        for (WsnbFeverbikeBiztalkDvo x : rows) {
             paramMap.clear();
-            paramMap.put("cntrCstNm", x.cntrCstNm());
-            paramMap.put("cntrNo", x.cntrNo());
-            String yn = x.pifThpOfrAgYn();
-            if (x.pifThpOfrAgYn() == null)
+            paramMap.put("cntrCstNm", x.getCntrCstNm());
+            paramMap.put("cntrNo", x.getCntrNo());
+            String yn = x.getPifThpOfrAgYn();
+            if (x.getPifThpOfrAgYn() == null)
                 yn = "N";
             kakaoMessageService.sendMessage(
                 KakaoSendReqDvo.withTemplateCode()
                     .templateCode(yn.equals("Y") ? "FEVERBIKE_APLC_Y" : "FEVERBIKE_APLC_N")
                     .templateParamMap(paramMap)
-                    .destInfo(x.cntrCstNm().concat("^").concat(x.mpno())).callback("15884113")
+                    .destInfo(x.getCntrCstNm().concat("^").concat(x.getMpno())).callback("15884113")
                     .build()
             );
-            updateCount.addAndGet(mapper.updateFeverbikeTalkSendTarget(x.cntrNo()));
+            updateCount.addAndGet(mapper.updateFeverbikeBiztalk(x.getCntrNo()));
         }
         return updateCount.get();
     }

@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsnbFeverbikeTalkSendDvo {
+public class WsnbFeverbikeBiztalkDvo {
    String cntrNo;
    int cntrSn;
    String pifThpOfrAgYn;

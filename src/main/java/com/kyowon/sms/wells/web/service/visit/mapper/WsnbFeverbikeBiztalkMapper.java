@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbFeverbikeTalkSendDto.*;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbFeverbikeTalkSendDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbFeverbikeBiztalkDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -16,13 +15,13 @@ import java.util.List;
  * @since 2023-01-11
  */
 @Mapper
-public interface WsnbFeverbikeTalkSendMapper {
+public interface WsnbFeverbikeBiztalkMapper {
 
     /**
      * 피버 바이크 플러스 온라인 강의 무료 구독 신청완료 후 고객에게 알림톡으로 발송한다.
      *
      * @return 변경 개수
      */
-    List<WsnbFeverbikeTalkSendDvo> selectFeverbikeTalkSendTarget();
-    int updateFeverbikeTalkSendTarget(String cntrNo);
+    List<WsnbFeverbikeBiztalkDvo> selectFeverbikeBiztalk();
+    int updateFeverbikeBiztalk(String cntrNo);
 }

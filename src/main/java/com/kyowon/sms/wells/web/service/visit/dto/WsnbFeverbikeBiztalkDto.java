@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.service.visit.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsnbFeverbikeTalkSendDto {
+public class WsnbFeverbikeBiztalkDto {
 
     @ApiModel(value = "WsnbFeverbikeTalkSendDto-SearchRes")
     public record SearchRes(
