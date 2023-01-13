@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageRsonMapper">
+
+    <select id="selectEtcOutOfStorageRsons" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$SearchRes">
+        SELECT SAP_MAT_CD AS SAP_MAT_CD /*SAP코드*/
+             , ITM_PD_CD AS ITM_PD_CD
+             , PD_NM AS ITEM_NM
+             , OSTR_WARE_NO AS OSTR_WARE_NO /*출고창고번호*/
+             , WARE_NM AS WARE_NM /*창고명*/
+             , ITM_GD_CD /*품목등급코드*/
+             , OSTR_DT AS OSTR_DT /*출고일자*/
+             , CD_CNTN AS CD_CNTN
+             , SUM(OSTR_QTY) AS SUM_QTY
+             , SUM(CSMR_UPRC_AMT) AS CSMR_UPRC_AMT
+             , (SUM(OSTR_QTY) * SUM(CSMR_UPRC_AMT)) AS TOTAL_AMT
+        --     , (SELECT ISDNA2 FROM KWMART.IS2500P WHERE ISDEPT = ST161_IN_STCK_CD) AS DEPT_NM
+             , SORT_DV_VAL
+          FROM TB_SVST_ITM_OSTR_IZ
+             , TB_SVST_MCBY_WARE_IZ
+             , TB_PDBS_PD_BAS --101TB
+             , T_CMZ_CD_D
+             , TB_SVPD_RCAS_ITM_PRC_IZ
+         WHERE PD_CD = ITM_PD_CD
+           AND WARE_NO = OSTR_WARE_NO
+           AND WARE_DV_CD='2'
+           AND OSTR_TP_CD = '217'
+           AND WARE_ICHR_NO='000'
+           AND CD_ID = 'BIL_RSON_CD' -- 청구사유
+           AND TENANT_ID = 'TNT_WELLS'
+           AND APY_YM = SUBSTR(OSTR_DT,1,6)
+           AND OSTR_RSON_CD = CD_ID(+)
+           AND OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+        <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
+           AND ITM_GD_CD = #{pdGdCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+           AND ITM_KND_CD = #{itmKndCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(startItemCd)">
+           AND ITM_PD_CD <![CDATA[>=]]> #{startItemCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(endItemCd)">
+           AND ITM_PD_CD <![CDATA[<=]]> #{edItemCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(bilRsonCd)">
+           AND OSTR_RSON_CD = #{bilRsonCd}
+        </if>
+
+         GROUP BY SORT_DV_VAL
+                , ITM_PD_CD
+                , SAP_MAT_CD
+                , PD_NM
+                , OSTR_WARE_NO
+                , WARE_NM
+                , ITM_GD_CD
+                , OSTR_DT
+                , OSTR_RSON_CD
+                , CD_CNTN
+                , STR_WARE_NO
+         ORDER BY ITM_PD_CD, OSTR_DT, ITM_GD_CD
+    </select>
+
+</mapper>
