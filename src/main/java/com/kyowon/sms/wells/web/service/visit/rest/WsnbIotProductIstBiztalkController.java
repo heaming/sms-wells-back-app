@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,7 +23,7 @@ public class WsnbIotProductIstBiztalkController {
     private final WsnbIotProductIstBiztalkService service;
 
     @ApiOperation(value = "IoT 제품 설치 완료 알림톡 발송", notes = "IoT 제품 설치 완료 후, 익일 오후 3시에 알림톡을 발송한다.")
-    @GetMapping
+    @PostMapping
     public SaveResponse sendIotBiztalks() throws Exception {
         return SaveResponse.builder()
             .processCount(this.service.sendIotBiztalks())
