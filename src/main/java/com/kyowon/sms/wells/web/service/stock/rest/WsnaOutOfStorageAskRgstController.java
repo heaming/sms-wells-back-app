@@ -17,7 +17,7 @@ import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/out-of-storage-ask-rgst")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/out-of-storage-ask-rgst")
 @Api(tags = "[WSNA] 출고요청 등록 REST API")
 @RequiredArgsConstructor
 @Validated
