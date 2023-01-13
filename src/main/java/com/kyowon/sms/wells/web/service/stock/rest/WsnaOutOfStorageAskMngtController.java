@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/out-of-storage-asks")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/out-of-storage-asks")
 @Api(tags = "[WSNA] 출고요청 관리 REST API")
 @RequiredArgsConstructor
 public class WsnaOutOfStorageAskMngtController {
