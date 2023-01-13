@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsnbHealthCareNotakFwDvo {
+public class WsnbHealthCareSmsDvo {
     String cntrNo;
     String cntrSn;
     String spmtCstSvUAgYn;

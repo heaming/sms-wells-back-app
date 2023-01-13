@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbHealthCareNotakFwDto.*;
-import com.sds.sflex.system.config.datasource.PageInfo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbHealthCareSmsDvo;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
@@ -15,12 +14,14 @@ import java.util.List;
  * @since 2023-01-13
  */
 @Mapper
-public interface WsnbHealthCareNotakFwMapper {
+public interface WsnbHealthCareSmsMapper {
 
     /**
      * 안마의자, 웰스팜, 매트리스 등 설치 후 건강케어 고객에게 알림톡으로 발송한다.
      */
 
-    List<SearchRes> selectHealthcareBiztalk();
+    List<WsnbHealthCareSmsDvo> selectHealthCareSms();
+
+    int updateHealthCareSms();
 
 }
