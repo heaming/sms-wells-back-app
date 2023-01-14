@@ -27,7 +27,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(value = SnServiceConst.REST_URL_WELLS_SERVICE + "/warehouse-organizations")
+@RequestMapping(value = SnServiceConst.REST_URL_V1 + "/warehouse-organizations")
 @Api(tags = "[WSNA] 창고조직관리 REST API")
 @RequiredArgsConstructor
 @Validated

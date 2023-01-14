@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_WELLS_SERVICE + "/as-codes")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-codes")
 @Api(tags = "[WSNY] W-SV-U-0016M01 AS 코드 관리 REST API")
 @RequiredArgsConstructor
 @Validated
