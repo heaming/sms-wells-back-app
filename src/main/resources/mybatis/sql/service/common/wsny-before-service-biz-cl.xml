@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyBeforeServiceBizClMapper">
+    <select id="selectBusinessClosesForBeforeService"
+            resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyBeforeServiceBizClDto$SearchRes">
+        WITH TB_CAL AS (
+            SELECT TO_CHAR(ADD_MONTHS(FIRST_MONTH, LEVEL - 1), 'YYYYMM') AS BASE_YM
+              FROM (
+                  SELECT TO_DATE(#{managementYear} || '01', 'YYYYMM') AS FIRST_MONTH
+                    FROM DUAL
+              )
+             WHERE 1=1
+           CONNECT BY ADD_MONTHS(FIRST_MONTH, LEVEL - 1) <![CDATA[ <= ]]> TO_DATE(#{managementYear} || '12', 'YYYYMM')
+        )
+        SELECT TB_1.BASE_YM                                     AS MNGT_YM
+             , NVL(TB_2.BFSVC_STRTDT, TB_1.BASE_YM || '01')     AS STRTDT
+             , NVL(TB_2.BFSVC_STRT_HH, '000000')                AS STRT_HH
+             , NVL(TB_2.BFSVC_ENDDT, TO_CHAR(LAST_DAY(TO_DATE(TB_1.BASE_YM || '01', 'YYYYMMDD')), 'YYYYMMDD')) AS ENDDT
+             , NVL(TB_2.BFSVC_END_HH, '235959')                 AS END_HH
+             , #{managementItem}    AS MNGT_ITM
+          FROM TB_CAL TB_1
+          LEFT OUTER JOIN TB_SVPD_BFSVC_CL_D_BASE_IZ TB_2
+          ON (
+                  TB_1.BASE_YM = TB_2.MNGT_YM
+              AND TB_2.MNGT_YM LIKE #{managementYear} || '%'
+          )
+         WHERE 1=1
+         ORDER BY TB_1.BASE_YM
+    </select>
+
+    <select id="selectBusinessClosesForEtc"
+            resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyBeforeServiceBizClDto$SearchRes">
+        WITH TB_CAL AS (
+            SELECT TO_CHAR(ADD_MONTHS(FIRST_MONTH, LEVEL - 1), 'YYYYMM') AS BASE_YM
+              FROM (
+                  SELECT TO_DATE(#{managementYear} || '01', 'YYYYMM') AS FIRST_MONTH
+                    FROM DUAL
+              )
+             WHERE 1=1
+           CONNECT BY ADD_MONTHS(FIRST_MONTH, LEVEL - 1) <![CDATA[ <= ]]> TO_DATE(#{managementYear} || '12', 'YYYYMM')
+        )
+        SELECT TB_1.BASE_YM                                     AS MNGT_YM
+             , NVL(TB_2.BIZ_STRTDT, TB_1.BASE_YM || '01')       AS STRTDT
+             , NVL(TB_2.BIZ_STRT_HH, '000000')                  AS STRT_HH
+             , NVL(TB_2.BIZ_ENDDT, TO_CHAR(LAST_DAY(TO_DATE(TB_1.BASE_YM || '01', 'YYYYMMDD')), 'YYYYMMDD')) AS ENDDT
+             , NVL(TB_2.BIZ_END_HH, '235959')                   AS END_HH
+             , #{managementItem}    AS MNGT_ITM
+          FROM TB_CAL TB_1
+          LEFT OUTER JOIN TB_SVST_BIZ_CL_BAS TB_2
+          ON (
+                  TB_1.BASE_YM = TB_2.MNGT_YM
+              AND TB_2.MNGT_YM LIKE #{managementYear} || '%'
+              AND TB_2.DTA_DL_YN = 'N'
+          )
+         WHERE 1=1
+         ORDER BY TB_1.BASE_YM
+    </select>
+
+    <update id="saveBusinessClosesForBeforeService">
+        MERGE INTO TB_SVPD_BFSVC_CL_D_BASE_IZ
+        USING DUAL
+        ON (
+            MNGT_YM = #{mngtYm}
+        )
+        WHEN MATCHED THEN
+        UPDATE
+           SET BFSVC_STRTDT = #{strtdt}
+             , BFSVC_STRT_HH = #{strtHh}
+             , BFSVC_ENDDT = #{enddt}
+             , BFSVC_END_HH = #{endHh}
+               <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+        INSERT (
+              MNGT_YM
+            , BFSVC_STRTDT
+            , BFSVC_STRT_HH
+            , BFSVC_ENDDT
+            , BFSVC_END_HH
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{mngtYm}
+            , #{strtdt}
+            , #{strtHh}
+            , #{enddt}
+            , #{endHh}
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </update>
+
+    <update id="saveBusinessClosesForEtc">
+        MERGE INTO TB_SVST_BIZ_CL_BAS
+        USING DUAL
+        ON (
+                MNGT_YM = #{mngtYm}
+            AND CL_MNGT_DV_CD = #{mngtItm}
+        )
+        WHEN MATCHED THEN
+        UPDATE
+           SET BIZ_STRTDT = #{strtdt}
+             , BIZ_STRT_HH = #{strtHh}
+             , BIZ_ENDDT = #{enddt}
+             , BIZ_END_HH = #{endHh}
+             , DTA_DL_YN = 'N'
+               <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+        INSERT (
+              MNGT_YM
+            , CL_MNGT_DV_CD
+            , BIZ_STRTDT
+            , BIZ_STRT_HH
+            , BIZ_ENDDT
+            , BIZ_END_HH
+            , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{mngtYm}
+            , #{mngtItm}
+            , #{strtdt}
+            , #{strtHh}
+            , #{enddt}
+            , #{endHh}
+            , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </update>
+</mapper>
