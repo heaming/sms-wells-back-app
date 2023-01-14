@@ -38,7 +38,7 @@ public class WsnyBeforeServiceBizClController {
 
     @ApiOperation(value = "BS 업무시간및 마감관리 화면 - BS 업무시간및 마감관리 등록 및 수정", notes = "BS 업무시간및 마감관리 저장")
     @PostMapping
-    public SaveResponse saveCalendar(
+    public SaveResponse saveBusinessCloses(
         @Valid
         @RequestBody
         List<WsnyBeforeServiceBizClDto.SaveReq> dtos
