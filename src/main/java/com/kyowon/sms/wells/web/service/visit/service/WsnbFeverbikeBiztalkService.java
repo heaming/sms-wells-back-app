@@ -50,7 +50,7 @@ public class WsnbFeverbikeBiztalkService {
                 yn = "N";
             kakaoMessageService.sendMessage(
                 KakaoSendReqDvo.withTemplateCode()
-                    .templateCode(yn.equals("Y") ? "FEVERBIKE_APLC_Y" : "FEVERBIKE_APLC_N")
+                    .templateCode(yn.equals("Y") ? "Wells18207" : "Wells18208")
                     .templateParamMap(paramMap)
                     .destInfo(x.getCntrCstNm().concat("^").concat(x.getMpno())).callback("15884113")
                     .build()
