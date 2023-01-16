@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.contract.orderstatus.service;
 import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.SearchRes;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,8 +27,8 @@ public class WctdExpiredRetentionCntrService {
     private final WctdExpiredRetentionCntrConverter converter;
 
     @Transactional
-    public ArrayList<SearchRes> setMshCntrInfo(List<WctdExpiredRetentionCntrDvo> dvos) {
-        ArrayList<SearchRes> cntrs = Lists.newArrayList();
+    public List<SearchRes> setMshCntrInfo(List<WctdExpiredRetentionCntrDvo> dvos) {
+        List<SearchRes> cntrs = Lists.newArrayList();
         for (WctdExpiredRetentionCntrDvo cntr : dvos) {
             WctdExpiredRetentionCntrDvo mshCntrInfo = mapper.getMembershipCntrInfo(
                 cntr.getCntrNo(), cntr.getCntrSn(), Arrays.asList(CtContractConst.CntrStatCd.CANCELLATION.getDtlCds())
