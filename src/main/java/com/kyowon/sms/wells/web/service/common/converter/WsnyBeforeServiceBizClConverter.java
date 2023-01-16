@@ -7,6 +7,6 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnyBeforeServiceBizClDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsnyBeforeServiceBizClConverter {
-    WsnyBeforeServiceBizClDvo mapBeforeServiceBizClReqToBeforeServiceBizClDvo(WsnyBeforeServiceBizClDto.SaveReq dto)
+    WsnyBeforeServiceBizClDvo mapSaveReqToBeforeServiceBizClDvo(WsnyBeforeServiceBizClDto.SaveReq dto)
         throws Exception;
 }

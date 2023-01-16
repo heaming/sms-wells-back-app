@@ -36,7 +36,7 @@ public class WsnyBeforeServiceBizClService {
 
         for (WsnyBeforeServiceBizClDto.SaveReq dto : dtos) {
             WsnyBeforeServiceBizClDvo dvo = wsnyBeforeServiceBizClConverter
-                .mapBeforeServiceBizClReqToBeforeServiceBizClDvo(dto);
+                .mapSaveReqToBeforeServiceBizClDvo(dto);
 
             switch (dto.mngtItm()) {
                 case "0" -> wsnyBeforeServiceBizClMapper.saveBusinessClosesForBeforeService(dvo);

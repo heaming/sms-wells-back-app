@@ -3,7 +3,9 @@ package com.kyowon.sms.wells.web.service.common.rest;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.common.dto.WsnyBeforeServiceBizClDto;
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @Api(tags = "[WSNF] BS 업무시간및 마감관리")
 @RequiredArgsConstructor
 @RestController
+@Validated
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/business-closes")
 public class WsnyBeforeServiceBizClController {
     private final WsnyBeforeServiceBizClService wsnyBeforeServiceBizClService;
@@ -40,6 +43,7 @@ public class WsnyBeforeServiceBizClController {
     @PostMapping
     public SaveResponse saveBusinessCloses(
         @Valid
+        @NotEmpty
         @RequestBody
         List<WsnyBeforeServiceBizClDto.SaveReq> dtos
     ) throws Exception {
