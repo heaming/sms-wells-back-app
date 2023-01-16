@@ -3,7 +3,10 @@ package com.kyowon.sms.wells.web.contract.orderstatus.dto;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -16,7 +19,11 @@ public class WctdExpiredRetentionCntrDto {
     @Builder
     @ApiModel("WctdExpiredRetentionCntrDto-SearchReq")
     public record SearchReq(
+        @NotBlank
+        @ValidDate
         String cntrPdEnddtStrtdt,
+        @NotBlank
+        @ValidDate
         String cntrPdEnddtEnddt,
         String pdHclsfId,
         String pdMclsfId,
