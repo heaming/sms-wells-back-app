@@ -30,6 +30,7 @@ public class WsncWellsAsInterfaceService {
     /**
      * 고객서비스수행내역, 계약주소지기본 테이블을 기준으로 고객정보 조회
      *
+     * @programId : W-SV-I-0021
      * @param req : 조회파라메터
      * @return 조회결과
      */
@@ -42,6 +43,7 @@ public class WsncWellsAsInterfaceService {
     /**
     * 고객서비스AS설치대상내역, 고객서비스수행배정내역, 고객서비스수행내역, 계약주소지기본 테이블을 기준으로 고객정보 조회
     *
+    * @programId : W-SV-I-0022
     * @param req : 조회파라메터
     * @return 조회결과
     */
@@ -54,6 +56,7 @@ public class WsncWellsAsInterfaceService {
     /**
     * Wells 인터페이스 맞춤가이드 사용중인 제품 조회
     *
+    * @programId : W-SV-I-0004
     * @param req : 조회파라메터
     * @return 조회결과
     */
@@ -66,6 +69,7 @@ public class WsncWellsAsInterfaceService {
     /**
     * Wells 인터페이스 맞춤가이드 서비스 이력 조회
     *
+    * @programId : W-SV-I-0001
     * @param req : 조회파라메터
     * @return 조회결과
     */
@@ -83,6 +87,7 @@ public class WsncWellsAsInterfaceService {
     /**
     * Wells 인터페이스 맞춤가이드 서비스 내용 조회
     *
+    * @programId : W-SV-I-0003
     * @param req : 조회파라메터
     * @return 조회결과
     */
