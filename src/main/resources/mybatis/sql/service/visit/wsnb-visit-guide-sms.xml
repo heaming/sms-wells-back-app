@@ -1,0 +1,254 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbVisitGuideSmsMapper">
+
+    <select id="selectCustomers" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbVisitGuideSmsDvo">
+        SELECT V1.VST_CNFMDT
+             , V1.VST_CNFM_HH
+             , V1.ISTLL_KNM
+             , V1.DEST_INFO
+             , V1.PD_NM
+             , V1.NOW_DATE
+             , V1.SEND_DATETIME
+             , V1.USER_ID
+             , V1.CALLBACK
+             , V1.TEMPLATE_ID
+          FROM (SELECT '20230110' AS VST_CNFMDT, '093000' AS VST_CNFM_HH, '강금자' AS ISTLL_KNM, '01027881777' AS DEST_INFO, '정수기(KW-PK2W1) 스탠드' AS PD_NM, '20230113134818' AS NOW_DATE, '20230113134818' AS SEND_DATETIME, '36911' AS USER_ID, '15884113' AS CALLBACK, 'TMP_SNB_WELLS18105' AS TEMPLATE_ID FROM DUAL UNION ALL
+                SELECT '20230111','100000','강민지','01027881155','정수기(WL672NWA) 냉온 화이트 tt리뉴얼','20230113134818','20230113134818','37171','15884113','TMP_SNB_WELLS18105' FROM DUAL UNION ALL
+                SELECT '20230112','123000','고길동','01027886795','연수기(KW-S03W1)','20230113134818','20230113134818','38926','15884113','TMP_SNB_WELLS18105' FROM DUAL UNION ALL
+                SELECT '20230110','140000','KCC익','01027886437','정수기(KW-P57W1) 냉정 tt헬스','20230113134818','20230113134818','37099','15884113','TMP_SNB_WELLS18086' FROM DUAL
+               ) V1
+    <!--
+        WITH TEMP1 AS (
+             SELECT *
+               FROM (
+                     SELECT T1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+                          , T1.CNTR_NO /* 계약번호 */
+                          , T1.ISTLL_KNM /* 설치자한글명 */
+                          , NVL(T1.USE_MPNO1, T1.USE_MPNO2) AS USE_MPNO /* 사용휴대전화번호 */
+                          , T2.VST_CNFMDT /* 방문확정일자 */
+                          , T2.VST_CNFM_HH /* 방문확정시간 */
+                          , T2.WK_PRTNR_NO /* 작업파트너번호 */
+                          , T1.PD_CD /* 상품코드 */
+                          , COUNT(1) OVER (PARTITION BY T1.ISTLL_KNM, NVL(T1.USE_MPNO1, T1.USE_MPNO2), T2.VST_CNFMDT) AS T_CNT
+                          , RANK() OVER (PARTITION BY T1.ISTLL_KNM, NVL(T1.USE_MPNO1, T1.USE_MPNO2), T2.VST_CNFMDT ORDER BY T2.VST_CNFMDT, T2.VST_CNFM_HH, T2.WK_PRTNR_NO, T1.CNTR_NO ASC) AS VST_RN
+                       FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1 /* 고객서비스AS설치대상내역 */
+                      INNER JOIN TB_SVPD_CST_SV_EXCN_ASN_IZ T2 /* 고객서비스수행배정내역 */
+                         ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                      INNER JOIN TB_OGBS_PRTNR_BAS T3 /* 파트너기본 */
+                         ON T3.PRTNR_NO = T1.FST_RGST_USR_ID
+                      WHERE 1 = 1
+                        /* A/S 발송 상세서비스유형
+                           [3110 제품A/S, 3310 분리, 3320 재설치, 3121 필터B/S, 3330 위치변경, 3311 자사이동_분리, 3321 자사이동_재설치]
+                           그 외 업무 유형은 알림톡 발송 X, 동일 제품 동시 방문(분리 재설치)은 1건만 발송 */
+                        AND T1.SV_BIZ_DCLSF_CD IN ('3110','3310','3320','3121','3330','3311','3321')
+                        AND T2.VST_CNFMDT = TO_CHAR(SYSDATE + 1, 'YYYYMMDD')  /* 익일 AS, 설치 배정 건 알림톡 발송 */
+                        AND T1.RCPDT != TO_CHAR(SYSDATE, 'YYYYMMDD') /* 알림톡 발송 당일 AS, 설치 접수(배정)건 발송 X */
+                        AND ((T1.IN_CHNL_DV_CD = '1' AND T3.OG_ID = '71309') OR (T1.IN_CHNL_DV_CD != '1')) /* 접수채널이 고객센터일 경우 Wells상담파트만, 그외 모든 채널 */
+                        AND T2.WK_PRTNR_NO NOT IN ('99010', '99020') /* 성우메디텍, BMB 제외 */
+                        AND T2.WK_PRGS_STAT_CD IN ('00')
+                        AND (T1.USE_MPNO1 IS NOT NULL OR T1.USE_MPNO2 IS NOT NULL) /* TODO: 확인필요 */
+                        AND T2.VST_CNFM_HH >= '090000'
+                        AND T2.VST_DUEDT = T2.VST_CNFMDT /* 21.06.17 정희은매니저님요청, 최초 약속된 시간이 변경 되지 않은 경우만 대상 */
+                      UNION ALL
+                     SELECT T1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+                          , T1.CNTR_NO /* 계약번호 */
+                          , T1.ISTLL_KNM /* 설치자한글명 */
+                          , NVL(T1.USE_MPNO1, T1.USE_MPNO2) AS USE_MPNO /* 사용휴대전화번호 */
+                          , T2.VST_CNFMDT /* 방문확정일자 */
+                          , T2.VST_CNFM_HH /* 방문확정시간 */
+                          , T2.WK_PRTNR_NO /* 작업파트너번호 */
+                          , T1.PD_CD /* 상품코드 */
+                          , COUNT(1) OVER (PARTITION BY T1.ISTLL_KNM, NVL(T1.USE_MPNO1, T1.USE_MPNO2), T2.VST_CNFMDT) AS T_CNT
+                          , RANK() OVER (PARTITION BY T1.ISTLL_KNM, NVL(T1.USE_MPNO1, T1.USE_MPNO2), T2.VST_CNFMDT ORDER BY T2.VST_CNFMDT, T2.VST_CNFM_HH, T2.WK_PRTNR_NO, T1.CNTR_NO ASC) AS VST_RN
+                       FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1 /* 고객서비스AS설치대상내역 */
+                      INNER JOIN TB_SVPD_CST_SV_EXCN_ASN_IZ T2 /* 고객서비스수행배정내역 */
+                         ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                      INNER JOIN TB_OGBS_PRTNR_BAS T3 /* 파트너기본 */
+                         ON T3.PRTNR_NO = T1.FST_RGST_USR_ID
+                      WHERE 1 = 1
+                        AND T1.SV_BIZ_DCLSF_CD LIKE '11%' /* 설치 - 필터판매(방문) 제외 13% */
+                        AND T1.PD_CD NOT LIKE '60%' /* 웰스팜 모종 제외 */
+                        AND T2.VST_CNFMDT = TO_CHAR(SYSDATE + 1, 'YYYYMMDD') /* 익일 AS, 설치 배정 건 알림톡 발송 */
+                        AND T1.RCPDT != TO_CHAR(SYSDATE, 'YYYYMMDD') /* 알림톡 발송 당일 AS, 설치 접수(배정)건 발송 X */
+                        AND T2.WK_PRTNR_NO NOT IN ('99010', '99020') /* 성우메디텍, BMB 제외 */
+                        AND T2.WK_PRGS_STAT_CD IN ('00')
+                        AND (T1.USE_MPNO1 IS NOT NULL OR T1.USE_MPNO2 IS NOT NULL) /* TODO: 확인필요 */
+                        AND T2.VST_CNFM_HH >= '090000'
+                        AND T2.VST_DUEDT = T2.VST_CNFMDT /* 21.06.17 정희은매니저님요청, 최초 약속된 시간이 변경 되지 않은 경우만 대상 */
+                   ) V1
+             WHERE 1 = 1
+             ORDER BY V1.ISTLL_KNM, V1.VST_RN, V1.CST_SV_ASN_NO
+        ), TEMP2 AS (
+            SELECT V1.VST_CNFMDT
+                 , V1.VST_CNFM_HH
+                 , V1.USE_MPNO AS DEST_INFO
+                 , V1.ISTLL_KNM
+                 , V1.WK_PRTNR_NO AS USER_ID
+                 , V1.PD_NM
+                 , (CASE WHEN SUBSTR(V1.CST_SV_ASN_NO, 1, 1) = '1' AND TO_CHAR(SYSDATE, 'YYYYMMDD') <![CDATA[<]]> '20210621' THEN 'Wells18084' /* 21.06.17 정희은매니저님요청 템플릿 변경 */
+                         WHEN SUBSTR(V1.CST_SV_ASN_NO, 1, 1) = '1' AND TO_CHAR(SYSDATE, 'YYYYMMDD') <![CDATA[>=]]> '20210621' THEN 'Wells18106' /* 21.06.17 정희은매니저님요청 템플릿 변경 */
+                         WHEN SUBSTR(V1.CST_SV_ASN_NO, 1, 1) = '3' AND TO_CHAR(SYSDATE, 'YYYYMMDD') <![CDATA[<]]> '20210621' THEN 'Wells18086' /* 21.06.17 정희은매니저님요청 템플릿 변경 */
+                         WHEN SUBSTR(V1.CST_SV_ASN_NO, 1, 1) = '3' AND TO_CHAR(SYSDATE, 'YYYYMMDD') <![CDATA[>=]]> '20210621' THEN 'Wells18105' /* 21.06.17 정희은매니저님요청 템플릿 변경 */
+                     END) AS T_CODE
+                 , V1.CST_SV_ASN_NO
+              FROM (
+                    SELECT T1.CST_SV_ASN_NO
+                         , T1.ISTLL_KNM
+                         , T1.USE_MPNO
+                         , T1.VST_CNFMDT
+                         , (SELECT E1.VST_CNFM_HH
+                              FROM TEMP1 E1
+                             WHERE E1.VST_RN = 1
+                               AND E1.ISTLL_KNM = T1.ISTLL_KNM
+                               AND E1.USE_MPNO = T1.USE_MPNO
+                               AND E1.VST_CNFMDT = T1.VST_CNFMDT
+                               AND ROWNUM = 1) AS VST_CNFM_HH /* 해당일 첫번째 방문 시간 */
+                         , (SELECT E1.WK_PRTNR_NO
+                              FROM TEMP1 E1
+                             WHERE E1.VST_RN = 1
+                               AND E1.ISTLL_KNM = T1.ISTLL_KNM
+                               AND E1.USE_MPNO = T1.USE_MPNO
+                               AND E1.VST_CNFMDT = T1.VST_CNFMDT
+                               AND ROWNUM = 1) AS WK_PRTNR_NO /* 해당일 첫번째 방문의 담당자 */
+                         , MAX(T_CNT) AS M_T_CNT
+                         , (SELECT REPLACE(REGEXP_REPLACE(LISTAGG(S1.PD_NM, ',') WITHIN GROUP (ORDER BY (CASE WHEN S1.PD_CD LIKE '42%' THEN '1'
+                                                                                                              WHEN S1.PD_CD LIKE '43%' THEN '2'
+                                                                                                              WHEN S1.PD_CD LIKE '41%' THEN '3'
+                                                                                                              WHEN S1.PD_CD LIKE '44%' THEN '4'
+                                                                                                              ELSE '5'
+                                                                                                          END) ASC, E1.CST_SV_ASN_NO), '([^,]+)(,\1)*(,|$)', '\1\3')
+                                                          , ','
+                                                          , CHR(10))
+                              FROM TEMP1 E1
+                             INNER JOIN TB_PDBS_PD_BAS S1 /* 상품기본 */
+                                ON E1.PD_CD = S1.PD_CD
+                             WHERE 1 = 1
+                               AND E1.ISTLL_KNM = T1.ISTLL_KNM
+                               AND E1.USE_MPNO = T1.USE_MPNO
+                               AND E1.VST_CNFMDT = T1.VST_CNFMDT) AS PD_NM
+                         , (SELECT REGEXP_REPLACE(LISTAGG(E1.CST_SV_ASN_NO, ',') WITHIN GROUP (ORDER BY (CASE WHEN E1.PD_CD LIKE '42%' THEN '1'
+                                                                                                              WHEN E1.PD_CD LIKE '43%' THEN '2'
+                                                                                                              WHEN E1.PD_CD LIKE '41%' THEN '3'
+                                                                                                              WHEN E1.PD_CD LIKE '44%' THEN '4'
+                                                                                                              ELSE '5'
+                                                                                                          END) ASC, E1.CST_SV_ASN_NO), '([^,]+)(,\1)*(,|$)', '\1\3')
+                              FROM TEMP1 E1
+                             WHERE 1 = 1
+                               AND E1.ISTLL_KNM = T1.ISTLL_KNM
+                               AND E1.USE_MPNO = T1.USE_MPNO
+                               AND E1.VST_CNFMDT = T1.VST_CNFMDT) AS CST_SV_ASN_NO_LIST
+                      FROM TEMP1 T1
+                     GROUP BY T1.CST_SV_ASN_NO, T1.ISTLL_KNM, T1.USE_MPNO, T1.VST_CNFMDT
+                     ORDER BY T1.ISTLL_KNM
+                    ) V1
+        )
+        SELECT DISTINCT
+               T2.VST_CNFMDT
+             , T2.DEST_INFO
+             , '[웰스] 엔지니어 방문 안내' AS SUBJECT
+             , (CASE WHEN T2.T_CODE = 'Wells18084' THEN /* 설치 방문 안내 (D-1) */
+                          '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                          '안녕하세요. ' || T2.ISTLL_KNM || '고객님.' || CHR(10) ||
+                          '제품 설치 방문 일정 안내드립니다.' || CHR(10) || CHR(10) ||
+                          '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                          '▶ 방문예약시간 : ' || SUBSTR(T2.VST_CNFM_HH,1,2) || ':' || SUBSTR(T2.VST_CNFM_HH,3,2) || '~' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),1,2) || ':' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),3,2) || CHR(10) ||
+                          '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                          '▶ 설치제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                          '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) ||
+                          '감사합니다.' || CHR(10) || CHR(10) || 'Wells고객센터(1588-4113)'
+                     WHEN T2.T_CODE = 'Wells18106' THEN /* 설치 방문 안내 (D-1) */
+                           '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                           '안녕하세요. ' || T2.ISTLL_KNM || '고객님.' || CHR(10) ||
+                           '제품 설치 방문 일정 안내드립니다.' || CHR(10) || CHR(10) ||
+                           '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                           '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                           '▶ 설치제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                           '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) || CHR(10) ||
+                           '※ 엔지니어가 마스크를 착용하고 방문합니다. 서로의 안전을 위하여 마스크 착용을 부탁드립니다.' || CHR(10) || CHR(10) ||
+                           '※ 자가 격리자 가구는 방문이 불가하오니 접수 취소 및 격리 해제 후 재접수 부탁드립니다.' || CHR(10) || CHR(10) ||
+                           '감사합니다.' || CHR(10) || 'Wells고객센터(1588-4113)'
+                     WHEN T2.T_CODE = 'Wells18086' THEN /* A/S 방문 안내 (D-1) */
+                           '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                           '안녕하세요. ' || T2.ISTLL_KNM || ' 고객님.' || CHR(10) ||
+                           '엔지니어 A/S 방문 일정 안내 드립니다.' || CHR(10) || CHR(10) ||
+                           '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                           '▶ 방문예약시간 : ' || SUBSTR(T2.VST_CNFM_HH,1,2) || ':' || SUBSTR(T2.VST_CNFM_HH,3,2) || '~' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),1,2) || ':' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),3,2) || CHR(10) ||
+                           '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                           '▶ 점검제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                           '방문 취소 또는 일정변경을 원하시면 고객센터로 연락바랍니다.' || CHR(10) || CHR(10) ||
+                           '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) ||
+                           '감사합니다.' || CHR(10) || CHR(10) || 'Wells고객센터(1588-4113)'
+                     WHEN T2.T_CODE = 'Wells18105' THEN /* A/S 방문 안내 (D-1)*/
+                           '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                           '안녕하세요. ' || T2.ISTLL_KNM || ' 고객님.' || CHR(10) ||
+                           '엔지니어 A/S 방문 일정 안내 드립니다.' || CHR(10) || CHR(10) ||
+                           '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                           '▶ 방문예약시간 : ' || SUBSTR(T2.VST_CNFM_HH,1,2) || ':' || SUBSTR(T2.VST_CNFM_HH,3,2) || '~' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),1,2) || ':' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),3,2) || CHR(10) ||
+                           '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                           '▶ 점검제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                           '방문 취소 또는 일정변경을 원하시면 고객센터로 연락바랍니다.' || CHR(10) ||
+                           '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) || CHR(10) ||
+                           '※ 엔지니어가 마스크를 착용하고 방문합니다. 서로의 안전을 위하여 마스크 착용을 부탁드립니다.' || CHR(10) || CHR(10) ||
+                           '※ 자가 격리자 가구는 방문이 불가하오니 접수 취소 및 격리 해제 후 재접수 부탁드립니다.' || CHR(10) || CHR(10) ||
+                           '감사합니다.' || CHR(10) || 'Wells고객센터(1588-4113)'
+               END) AS SMS_MSG
+             , (CASE WHEN T2.T_CODE = 'Wells18084' THEN /* 설치 방문 안내 (D-1) */
+                       '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                       '안녕하세요. ' || T2.ISTLL_KNM || '고객님.' || CHR(10) ||
+                       '제품 설치 방문 일정 안내드립니다.' || CHR(10) || CHR(10) ||
+                       '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                       '▶ 방문예약시간 : ' || SUBSTR(T2.VST_CNFM_HH,1,2) || ':' || SUBSTR(T2.VST_CNFM_HH,3,2) || '~' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),1,2) || ':' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),3,2) || CHR(10) ||
+                       '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                       '▶ 설치제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                       '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) ||
+                       'http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_engineer.do' || CHR(63) || 'EMP_ID=' || T2.USER_ID || CHR(10) ||
+                       '감사합니다.' || CHR(10) || CHR(10) || 'Wells고객센터(1588-4113)'
+                     WHEN T2.T_CODE = 'Wells18106' THEN    /*설치 방문 안내 (D-1)*/
+                       '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                       '안녕하세요. ' || T2.ISTLL_KNM || '고객님.' || CHR(10) ||
+                       '제품 설치 방문 일정 안내드립니다.' || CHR(10) || CHR(10) ||
+                       '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                       '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                       '▶ 설치제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                       '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) ||
+                       'http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_engineer.do' || CHR(63) || 'EMP_ID=' || T2.USER_ID|| CHR(10) || CHR(10) ||
+                       '※ 엔지니어가 마스크를 착용하고 방문합니다. 서로의 안전을 위하여 마스크 착용을 부탁드립니다.' || CHR(10) || CHR(10) ||
+                       '※ 자가 격리자 가구는 방문이 불가하오니 접수 취소 및 격리 해제 후 재접수 부탁드립니다.' || CHR(10) || CHR(10) ||
+                       '감사합니다.' || CHR(10) || 'Wells고객센터(1588-4113)'
+                     WHEN T2.T_CODE = 'Wells18086' THEN /* A/S 방문 안내 (D-1) */
+                       '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                       '안녕하세요. ' || T2.ISTLL_KNM || ' 고객님.' || CHR(10) ||
+                       '제품 설치 방문 일정 안내드립니다.' || CHR(10) || CHR(10) ||
+                       '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                       '▶ 방문예약시간 : ' || SUBSTR(T2.VST_CNFM_HH,1,2) || ':' || SUBSTR(T2.VST_CNFM_HH,3,2) || '~' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),1,2) || ':' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),3,2) || CHR(10) ||
+                       '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                       '▶ 점검제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                       '방문 취소 또는 일정변경을 원하시면 고객센터로 연락바랍니다.' || CHR(10) || CHR(10) ||
+                       '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) ||
+                       'http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_engineer.do' || CHR(63) || 'EMP_ID=' || T2.USER_ID|| CHR(10) ||
+                       '감사합니다.' || CHR(10) || CHR(10) || 'Wells고객센터(1588-4113)'
+                     WHEN T2.T_CODE = 'Wells18105' THEN /* A/S 방문 안내 (D-1) */
+                       '[웰스] 엔지니어 방문 안내' || CHR(10) || CHR(10) ||
+                       '안녕하세요. ' || T2.ISTLL_KNM || ' 고객님.' || CHR(10) ||
+                       '엔지니어 A/S 방문 일정 안내 드립니다.' || CHR(10) || CHR(10) ||
+                       '▶ 방문예정일 : ' || TO_CHAR(TO_DATE(T2.VST_CNFMDT), 'YYYY/MM/DD') || CHR(10) ||
+                       '▶ 방문예약시간 : ' || SUBSTR(T2.VST_CNFM_HH,1,2) || ':' || SUBSTR(T2.VST_CNFM_HH,3,2) || '~' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),1,2) || ':' || SUBSTR(TO_CHAR(TO_DATE(T2.VST_CNFM_HH, 'HH24MISS') + 1/48, 'HH24MISS'),3,2) || CHR(10) ||
+                       '※ 방문 시간은 상황에 따라 조정될 수 있으며 엔지니어가 방문 당일 연락드리겠습니다.' || CHR(10) ||
+                       '▶ 점검제품 : ' || CHR(10) || T2.PD_NM || CHR(10) || CHR(10) ||
+                       '방문 취소 또는 일정변경을 원하시면 고객센터로 연락바랍니다.' || CHR(10) ||
+                       '아래 버튼을 통해 담당 엔지니어를 확인하실 수 있습니다.' || CHR(10) ||
+                       'http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_engineer.do' || CHR(63) || 'EMP_ID=' || T2.USER_ID|| CHR(10) || CHR(10) ||
+                       '※ 엔지니어가 마스크를 착용하고 방문합니다. 서로의 안전을 위하여 마스크 착용을 부탁드립니다.' || CHR(10) || CHR(10) ||
+                       '※ 자가 격리자 가구는 방문이 불가하오니 접수 취소 및 격리 해제 후 재접수 부탁드립니다.' || CHR(10) || CHR(10) ||
+                       '감사합니다.' || CHR(10) || CHR(10) || 'Wells고객센터(1588-4113)'
+               END) AS SMS_MSG2
+             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS NOW_DATE
+             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS SEND_DATE
+             , T2.USER_ID
+             , '15884113' AS CALLBACK
+             , T2.T_CODE
+          FROM TEMP2 T2
+    -->
+    </select>
+
+</mapper>
