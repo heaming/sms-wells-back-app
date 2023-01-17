@@ -21,7 +21,8 @@
          INNER JOIN TB_PDBS_PD_BAS PD_BAS
             ON PD_BAS.PD_CD = OSTR_IZ.ITM_PD_CD
          INNER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ
-            ON WARE_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO AND WARE_IZ.APY_YM = SUBSTR(OSTR_IZ.OSTR_DT,1,6)
+            ON WARE_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO
+           AND WARE_IZ.APY_YM = SUBSTR(OSTR_IZ.OSTR_DT,1,6)
          LEFT OUTER JOIN T_CMZ_CD_D CMZ
             ON OSTR_IZ.OSTR_RSON_CD = CMZ.CD_ID
          LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ PRC_IZ
@@ -32,20 +33,23 @@
            AND CMZ.TENANT_ID = 'TNT_WELLS'
            AND WARE_IZ.WARE_DV_CD='2'
            AND WARE_IZ.WARE_ICHR_NO='000'
+        <if test="@MybatisUtils@isNotEmpty(ostrWareNo)">
+           AND OSTR_IZ.OSTR_WARE_NO = #{ostrWareNo}
+        </if>
         <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-           AND ITM_GD_CD = #{pdGdCd}
+           AND OSTR_IZ.ITM_GD_CD = #{pdGdCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-           AND ITM_KND_CD = #{itmKndCd}
+           AND PD_BAS.ITM_KND_CD = #{itmKndCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(startItemCd)">
-           AND ITM_PD_CD <![CDATA[>=]]> #{startItemCd}
+           AND OSTR_IZ.ITM_PD_CD <![CDATA[>=]]> #{startItemCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(endItemCd)">
-           AND ITM_PD_CD <![CDATA[<=]]> #{edItemCd}
+           AND OSTR_IZ.ITM_PD_CD <![CDATA[<=]]> #{edItemCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(bilRsonCd)">
-           AND OSTR_RSON_CD = #{bilRsonCd}
+           AND OSTR_IZ.OSTR_RSON_CD = #{bilRsonCd}
         </if>
 
          GROUP BY WARE_IZ.SORT_DV_VAL
@@ -60,6 +64,79 @@
                 , CD_CNTN
                 /*, STR_WARE_NO*/
          ORDER BY OSTR_IZ.ITM_PD_CD, OSTR_IZ.OSTR_DT, OSTR_IZ.ITM_GD_CD
+    </select>
+
+    <select id="selectServiceCenters" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$CenterRes">
+        SELECT WAREIZ.WARE_NO  AS CODE
+             , WAREIZ.WARE_NM  AS CODE_NAME
+        --     , WAREIZ.OG_ID
+             , WAREIZ.WARE_MNGT_PRTNR_NO /*창고관리파트너번호*/
+          FROM TB_SVST_MCBY_WARE_IZ WAREIZ
+         WHERE APY_YM = SUBSTR(#{stOstrDt},1,6)
+           AND WARE_DV_CD = '2'
+           AND WARE_ICHR_NO  = '000'
+         ORDER BY SORT_DV_VAL
+                , CODE_NAME
+                , WARE_NO
+
+    </select>
+
+    <select id="selectBusinessCenter" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$BusinessRes">
+        SELECT WARE_NO AS CODE
+             , WARE_NM AS CODE_NAME
+             , WARE_DV_CD
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE WARE_DV_CD = '3'
+           AND WARE_USE_YN ='Y'
+           AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+         ORDER BY WARE_NM
+    </select>
+
+    <select id="selectEtcOutOfStorageRsonBusiness" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$SearchRes">
+        SELECT OSTR_IZ.ITM_PD_CD AS ITM_PD_CD
+             , PD_BAS.PD_NM  AS ITEM_NM
+             , OSTR_IZ.OSTR_WARE_NO AS OSTR_WARE_NO
+             , WARE_IZ.WARE_NM AS WARE_NM
+             , OSTR_IZ.ITM_GD_CD AS ITM_GD_CD
+             , OSTR_IZ.OSTR_DT AS OSTR_DT
+             , F_CMZ_CD_NM(#{session.tenantId}, 'BIL_RSON_CD', OSTR_IZ.OSTR_RSON_CD) AS CD_CNTN
+             , OSTR_IZ.OSTR_QTY AS SUM_QTY
+             --, (SELECT ISDNA2 FROM KWMART.IS2500P WHERE ISDEPT = ST161_IN_STCK_CD) AS DEPT_NM
+             , WARE_IZ.SORT_DV_VAL AS SORT_DV_VAL
+             , OSTR_IZ.RMK_CN AS RMK_CN
+             , PD_BAS.SAP_MAT_CD AS SAP_MAT_CD /*SAP코드*/
+         FROM TB_SVST_ITM_OSTR_IZ OSTR_IZ
+        INNER JOIN TB_PDBS_PD_BAS PD_BAS
+           ON PD_BAS.PD_CD = OSTR_IZ.ITM_PD_CD
+        INNER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ
+           ON WARE_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO
+          AND WARE_IZ.APY_YM = SUBSTR(OSTR_IZ.OSTR_DT,1,6)
+        LEFT OUTER JOIN T_CMZ_CD_D CMZ
+           ON OSTR_IZ.OSTR_RSON_CD = CMZ.CD_ID
+        WHERE OSTR_IZ.OSTR_TP_CD = '217'
+          AND OSTR_IZ.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+          AND CMZ.CD_ID = 'BIL_RSON_CD' -- 청구사유
+          AND CMZ.TENANT_ID = 'TNT_WELLS'
+          AND WARE_IZ.WARE_DV_CD='3'
+          AND WARE_IZ.WARE_ICHR_NO='000'
+        <if test="@MybatisUtils@isNotEmpty(ostrWareNo)">
+          AND OSTR_IZ.OSTR_WARE_NO = #{ostrWareNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
+          AND OSTR_IZ.ITM_GD_CD = #{pdGdCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+          AND PD_BAS.ITM_KND_CD = #{itmKndCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(startItemCd)">
+          AND OSTR_IZ.ITM_PD_CD <![CDATA[>=]]> #{startItemCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(endItemCd)">
+          AND OSTR_IZ.ITM_PD_CD <![CDATA[<=]]> #{edItemCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(bilRsonCd)">
+          AND OSTR_IZ.OSTR_RSON_CD = #{bilRsonCd}
+        </if>
     </select>
 
 </mapper>
