@@ -59,13 +59,13 @@ public class WsnaEtcOutOfStorageRsonController {
     }
 
     @ApiOperation(value = "조회조건 서비스센터 콤보박스 조회", notes = "조회조건에 일치하는 기타출고 사유내역 콤보정보를 조회한다.")
-    @GetMapping("serviceCenter")
+    @GetMapping("service-Center")
     public List<CenterRes> getServiceCenter(SearchReq dto) {
         return this.service.getServiceCenters(dto);
     }
 
     @ApiOperation(value = "조회조건 영업센터 콤보박스 조회", notes = "조회조건에 일치하는 기타출고 사유내역 콤보정보를 조회한다.")
-    @GetMapping("businessCenter")
+    @GetMapping("business-Center")
     public List<BusinessRes> getBusinessCenter(SearchReq dto) {
         return this.service.getBusinessCenter(dto);
     }

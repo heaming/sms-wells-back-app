@@ -44,14 +44,14 @@ public class WsnaEtcOutOfStorageRsonDto {
 
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-CenterRes")
     public record CenterRes(
-        String code,
+        String codeId,
         String codeName,
         String wareMngtPrtnrNo
     ) {}
 
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-BusinessRes")
     public record BusinessRes(
-        String code,
+        String codeId,
         String codeName,
         String wareDvCd
     ) {}
