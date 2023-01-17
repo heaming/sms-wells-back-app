@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -33,9 +34,16 @@ public class WsnbVisitGuideSmsService {
         int processCount = 0;
 
         for (WsnbVisitGuideSmsDvo dvo : dvos) {
-            SmsSendReqDvo smsDvo = SmsSendReqDvo.builder()
-                .subject(dvo.getSubject())
-                .msgContent(dvo.getSmsContent())
+            SmsSendReqDvo smsDvo = SmsSendReqDvo.withTemplateId()
+                .templateId(dvo.getTemplateId())
+                .templateParamMap(
+                    Map.of(
+                        "vstCnfmdt", dvo.getVstCnfmdt(),
+                        "vstCnfmHh", dvo.getVstCnfmHh(),
+                        "istllKnm", dvo.getIstllKnm(),
+                        "pdNm", dvo.getPdNm()
+                    )
+                )
                 .destInfo(dvo.getUserId() + "^" + dvo.getDestInfo())
                 .callback(dvo.getCallback())
                 .build();

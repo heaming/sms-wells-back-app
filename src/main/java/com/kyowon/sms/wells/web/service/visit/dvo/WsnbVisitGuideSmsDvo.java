@@ -16,13 +16,14 @@ import lombok.Setter;
 public class WsnbVisitGuideSmsDvo {
 
     String vstCnfmdt;
+    String vstCnfmHh;
+    String istllKnm;
+    String pdNm;
     String destInfo;
-    String subject;
-    String smsContent;
     String nowDate;
     String sendDatetime;
     String userId;
     String callback;
-    String tCode;
+    String templateId;
 
 }
