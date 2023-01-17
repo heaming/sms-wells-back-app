@@ -1,18 +1,15 @@
 package com.kyowon.sms.wells.web.contract.orderstatus.service;
 
-import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.*;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import com.google.api.client.util.Lists;
 import com.kyowon.sms.wells.web.contract.orderstatus.converter.WctdExpiredRetentionCntrConverter;
-import com.kyowon.sms.wells.web.contract.orderstatus.dvo.WctdExpiredRetentionCntrDvo;
 import com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdExpiredRetentionCntrMapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -27,39 +24,26 @@ public class WctdExpiredRetentionCntrService {
     private final WctdExpiredRetentionCntrConverter converter;
 
     @Transactional
-    public List<SearchRes> setMshCntrInfo(List<WctdExpiredRetentionCntrDvo> dvos) {
-        List<SearchRes> cntrs = Lists.newArrayList();
-        for (WctdExpiredRetentionCntrDvo cntr : dvos) {
-            WctdExpiredRetentionCntrDvo mshCntrInfo = mapper.getMembershipCntrInfo(
-                cntr.getCntrNo(), cntr.getCntrSn(), Arrays.asList(CtContractConst.CntrStatCd.CANCELLATION.getDtlCds())
+    public List<SearchRes> setMshCntrInfo(List<SearchCntrRes> cntrs) {
+        List<SearchRes> results = Lists.newArrayList();
+        for (SearchCntrRes cntr : cntrs) {
+            FindMshCntrRes mshCntrRes = mapper.getMembershipCntrInfo(
+                cntr.cntrNo(), cntr.cntrSn(), Arrays.asList(CtContractConst.CntrStatCd.CANCELLATION.getDtlCds())
             );
-            if (!ObjectUtils.isEmpty(mshCntrInfo)) {
-                cntr.setMshCntrNo(mshCntrInfo.getMshCntrNo());
-                cntr.setMshCntrSn(mshCntrInfo.getMshCntrSn());
-                cntr.setMshCntrDt(mshCntrInfo.getMshCntrDt());
-                cntr.setMshCanDt(mshCntrInfo.getMshCanDt());
-                cntr.setMshWdwalDt(mshCntrInfo.getMshWdwalDt());
-                cntr.setCntrtCralLocaraTno(mshCntrInfo.getCntrtCralLocaraTno());
-                cntr.setCntrtMexnoEncr(mshCntrInfo.getCntrtMexnoEncr());
-                cntr.setCntrtCralIdvTno(mshCntrInfo.getCntrtCralIdvTno());
-                cntr.setIstllCralLocaraTno(mshCntrInfo.getIstllCralLocaraTno());
-                cntr.setIstllMexnoEncr(mshCntrInfo.getIstllMexnoEncr());
-                cntr.setIstllCralIdvTno(mshCntrInfo.getIstllCralIdvTno());
-            }
-            cntrs.add(converter.mapWctdExpiredRetentionCntrDvoToSearchRes(cntr));
+            results.add(converter.mapCntrResAndMshCntrResToSearchRes(cntr, mshCntrRes));
         }
-        return cntrs;
+        return results;
     }
 
     @Transactional
     public PagingResult<SearchRes> getExpiredRetentionCntrPages(SearchReq dto, PageInfo pageInfo) {
-        PagingResult<WctdExpiredRetentionCntrDvo> result = mapper.selectExpiredRetentionCntrPages(dto, pageInfo);
+        PagingResult<SearchCntrRes> result = mapper.selectExpiredRetentionCntrPages(dto, pageInfo);
         return new PagingResult(setMshCntrInfo(result.getList()), result.getPageInfo());
     }
 
     @Transactional
     public List<SearchRes> getExpiredRetentionCntrsForExcelDownload(SearchReq dto) {
-        List<WctdExpiredRetentionCntrDvo> result = mapper.selectExpiredRetentionCntrPages(dto);
+        List<SearchCntrRes> result = mapper.selectExpiredRetentionCntrPages(dto);
         return setMshCntrInfo(result);
     }
 }
