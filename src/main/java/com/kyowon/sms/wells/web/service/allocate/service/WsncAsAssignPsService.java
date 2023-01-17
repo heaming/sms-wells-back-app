@@ -8,15 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
-/**
- *
- * <pre>
- * 배정관리 집계
- * </pre>
- *
- * @author gs.piit122 김동엽
- * @since 2022-12-06
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +19,7 @@ public class WsncAsAssignPsService {
     /**
      * 총 관리고객 집계
      *
+     * @programId : W-SV-U-0228M01
      * @param dto : 조회파라메터
      * @return 조회결과
      */
@@ -40,6 +32,7 @@ public class WsncAsAssignPsService {
     /**
     * 제품 서비스 현황
     *
+    * @programId : W-SV-U-0229M01
     * @param req : 조회파라메터
     * @return 조회결과
     */
