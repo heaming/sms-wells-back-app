@@ -11,4 +11,10 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRson
 public interface WsnaEtcOutOfStorageRsonMapper {
 
     List<SearchRes> selectEtcOutOfStorageRsons(SearchReq dto);
+
+    List<CenterRes> selectServiceCenters(SearchReq dto);
+
+    List<BusinessRes> selectBusinessCenter(SearchReq dto);
+
+    List<SearchRes> selectEtcOutOfStorageRsonBusiness(SearchReq dto);
 }

@@ -19,7 +19,8 @@ public class WsnaEtcOutOfStorageRsonDto {
         String pdGdCd,
         String itmKndCd,
         String startItemCd,
-        String endItemCd
+        String endItemCd,
+        String ostrWareNo
 
     ) {}
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-SearchRes")
@@ -34,8 +35,24 @@ public class WsnaEtcOutOfStorageRsonDto {
         String totalAmt,
         String deptNm2,
         String ostrRsonCd,
+        String sumQty,
         String wareNm,
-        String rmkCn
+        String rmkCn,
+        String sortDvVal,
+        String cdCntn
     ) {}
 
+    @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-CenterRes")
+    public record CenterRes(
+        String codeId,
+        String codeName,
+        String wareMngtPrtnrNo
+    ) {}
+
+    @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-BusinessRes")
+    public record BusinessRes(
+        String codeId,
+        String codeName,
+        String wareDvCd
+    ) {}
 }
