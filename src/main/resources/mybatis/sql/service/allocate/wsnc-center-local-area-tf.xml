@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncCenterLocalAreaTfMapper">
+    <select id="selectCenterAreas"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncCenterLocalAreaTfDto$SearchRes">
+        SELECT TB.NEW_ADR_ZIP
+             , TB.CTPV_NM
+             , TB.CTCTY_NM
+             , TB.EMD_NM
+             , TB.CH_SN
+             , TB.MNGER_RGLVL_DV_CD
+             , TB.MNGR_DV_CD
+             , TB.BRCH_OG_ID
+             , TB.BRCH_OG_ID AS MDFC_BRCH_OG_ID
+             , TB.ICHR_LOCARA_CTR_RSON_CD
+             , TB.ICHR_LOCARA_CTR_RSON_CD AS MDFC_ICHR_LOCARA_CTR_RSON_CD
+             , TB.FNL_MDFC_DTM
+             , (
+                 SELECT TEMP.BRCH_OG_ID
+                   FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ TEMP
+                  WHERE 1=1
+                    AND TEMP.NEW_ADR_ZIP = TB.NEW_ADR_ZIP
+                    AND TEMP.CH_SN = (TB.CH_SN - 1)
+               ) AS BF_BRCH_OG_ID
+          FROM (
+            SELECT TB_1.NEW_ADR_ZIP
+                 , TB_1.CTPV_NM
+                 , TB_1.CTCTY_NM
+                 , TB_1.EMD_NM
+                 , TB_2.CH_SN
+                 , TB_2.MNGER_RGLVL_DV_CD
+                 , TB_2.MNGR_DV_CD
+                 , TB_2.BRCH_OG_ID
+                 , TB_2.ICHR_LOCARA_CTR_RSON_CD
+                 , TB_2.FNL_MDFC_DTM
+                 , RANK() OVER(PARTITION BY TB_2.NEW_ADR_ZIP ORDER BY TB_2.CH_SN DESC NULLS LAST) AS RNK
+              FROM TB_GBCO_ZIP_BAS TB_1
+              LEFT OUTER JOIN TB_SVPD_LOCARA_BFSVC_OGMGR_IZ TB_2
+              ON (
+                  TB_1.NEW_ADR_ZIP = TB_2.NEW_ADR_ZIP
+              )
+             WHERE 1=1
+             <if test='@MybatisUtils@isNotEmpty(zipFrom) or @MybatisUtils@isNotEmpty(zipTo)'>
+               AND TB_1.NEW_ADR_ZIP BETWEEN LPAD(SUBSTR(NVL(#{zipFrom}, '00000'), 1, 5), 5, '0') AND LPAD(SUBSTR(NVL(#{zipTo}, '99999'), 1, 5), 5, '0')
+             </if>
+             ) TB
+         WHERE 1=1
+           AND RNK = 1
+        <if test='@MybatisUtils@isNotEmpty(wareDvCd)'>
+           AND TB.MNGR_DV_CD IN (#{wareDvCd}, '1', '2')
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(wareAreaCd)'>
+           AND TB.BRCH_OG_ID = #{wareAreaCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(rsonCd)'>
+           AND TB.ICHR_LOCARA_CTR_RSON_CD = #{rsonCd}
+        </if>
+         ORDER BY TB.NEW_ADR_ZIP
+    </select>
+
+    <insert id="insertCenterArea">
+        INSERT INTO TB_SVPD_LOCARA_BFSVC_OGMGR_IZ (
+              NEW_ADR_ZIP
+            , CH_SN
+            , MNGER_RGLVL_DV_CD
+            , MNGR_DV_CD
+            , BRCH_OG_ID
+            , ICHR_LOCARA_CTR_RSON_CD
+            , USE_YN
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{newAdrZip}
+            , (
+               SELECT NVL(MAX(TEMP.CH_SN) + 1, 1) AS CH_SN
+                 FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ TEMP
+                WHERE 1=1
+                  AND TEMP.NEW_ADR_ZIP = #{newAdrZip}
+              )
+            , '1'
+            , '1'
+            , #{mdfcBrchOgId}
+            , #{mdfcIchrLocaraCtrRsonCd}
+            , 'Y'
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+</mapper>
