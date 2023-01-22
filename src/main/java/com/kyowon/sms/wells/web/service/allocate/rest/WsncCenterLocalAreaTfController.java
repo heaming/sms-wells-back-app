@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @Validated
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/center-area")
+@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/center-areas")
 public class WsncCenterLocalAreaTfController {
 
     private final WsncCenterLocalAreaTfService wsncCenterLocalAreaTfService;
@@ -48,7 +48,7 @@ public class WsncCenterLocalAreaTfController {
 
     @ApiOperation(value = "센터지역 이관 화면 - 센터지역 이관 등록 및 수정", notes = "센터지역 이관 저장")
     @PostMapping
-    public SaveResponse insertCenterAreas(
+    public SaveResponse createCenterAreas(
         @Valid
         @RequestBody
         @NotEmpty
