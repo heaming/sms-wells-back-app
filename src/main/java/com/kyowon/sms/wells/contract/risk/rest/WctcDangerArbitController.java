@@ -8,12 +8,11 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.contract.risk.Service.WctcDangerArbitService;
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.RemoveReq;
 import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchReq;
 import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
@@ -35,15 +34,15 @@ public class WctcDangerArbitController {
 
     @ApiOperation(value = "비정도영업 조치사항 조회", notes = "조회조건에 따른 비정도영업 조치사항 목록을 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "searchGubun", value = "파트너번호", paramType = "query"),
-        @ApiImplicitParam(name = "startDate", value = "고위험등록사유", paramType = "query"),
-        @ApiImplicitParam(name = "endDate", value = "고위험등록사유", paramType = "query"),
-        @ApiImplicitParam(name = "startMonth", value = "고위험등록사유", paramType = "query"),
-        @ApiImplicitParam(name = "endMonth", value = "고위험등록사유", paramType = "query"),
-        @ApiImplicitParam(name = "generalDivision", value = "고위험등록사유", paramType = "query"),
-        @ApiImplicitParam(name = "regionalGroup", value = "고위험등록사유", paramType = "query"),
-        @ApiImplicitParam(name = "branchOffice", value = "고위험등록사유", paramType = "query"),
-        @ApiImplicitParam(name = "employeeNo", value = "고위험등록사유", paramType = "query"),
+        @ApiImplicitParam(name = "searchGubun", value = "조회구분", paramType = "query"),
+        @ApiImplicitParam(name = "startDate", value = "조회시작날짜", paramType = "query"),
+        @ApiImplicitParam(name = "endDate", value = "조회마지막날짜", paramType = "query"),
+        @ApiImplicitParam(name = "startMonth", value = "조회시작월", paramType = "query"),
+        @ApiImplicitParam(name = "endMonth", value = "조회마지막월", paramType = "query"),
+        @ApiImplicitParam(name = "generalDivision", value = "총괄단", paramType = "query"),
+        @ApiImplicitParam(name = "regionalGroup", value = "지역단", paramType = "query"),
+        @ApiImplicitParam(name = "branchOffice", value = "지점", paramType = "query"),
+        @ApiImplicitParam(name = "employeeNo", value = "사번", paramType = "query"),
     })
     @GetMapping("/irg-bzns-arbit-artcs")
     public List<SearchRes> getIrgBznsArbitArtc(
@@ -56,11 +55,10 @@ public class WctcDangerArbitController {
     @ApiOperation(value = "비정도 영업 조치 사항 삭제", notes = "비정도 영업 조치 사항 삭제")
     @DeleteMapping("/irg-bzns-arbit-artcs")
     public SaveResponse removeIrgBznsArbitArtc(
-        @RequestBody
-        @Valid
+        @RequestParam
         @NotEmpty
-        List<RemoveReq> dtos
+        List<String> dangChkIds
     ) {
-        return SaveResponse.builder().processCount(service.removeIrgBznsArbitArtc(dtos)).build();
+        return SaveResponse.builder().processCount(service.removeIrgBznsArbitArtc(dangChkIds)).build();
     }
 }

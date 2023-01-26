@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchReq;
 import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchRes;
+import com.kyowon.sms.wells.contract.risk.dvo.WctcDangerArbitDvo;
 
 @Mapper
 public interface WctcDangerArbitMapper {
@@ -15,5 +16,5 @@ public interface WctcDangerArbitMapper {
 
     int updateDangerCheckChHist(String dangChkId);
 
-    int insertDangerCheckChHist(String dangChkId);
+    int insertDangerCheckChHist(WctcDangerArbitDvo dangerArbit);
 }

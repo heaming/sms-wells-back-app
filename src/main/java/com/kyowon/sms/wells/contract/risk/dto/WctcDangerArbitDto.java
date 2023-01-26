@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.contract.risk.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 
 public class WctcDangerArbitDto {
@@ -43,12 +41,5 @@ public class WctcDangerArbitDto {
         String regionalGroup,
         String branchOffice,
         String employeeNo
-    ) {}
-
-    // 고위험 파트너 Remove Request Dto
-    @ApiModel("WctcDangerArbitDto-RemoveReq")
-    public record RemoveReq(
-        @NotBlank
-        String dangChkId
     ) {}
 }
