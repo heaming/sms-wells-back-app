@@ -6,7 +6,22 @@ public class WctcRiskAuditDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel(value = "WctcDangerArbitDto-SearchRes")
+    @ApiModel(value = "WctcRiskAuditDto-SearchReq")
+    public record SearchReq(
+        String searchGubun,
+        String startDate,
+        String endDate,
+        String startMonth,
+        String endMonth,
+        String generalDivision,
+        String regionalGroup,
+        String branchOffice,
+        String employeeNo
+    ) {}
+    // *********************************************************
+    // Response Dto
+    // *********************************************************
+    @ApiModel(value = "WctcRiskAuditDto-SearchRes")
     public record SearchRes(
         String dangChkId,
         String wellsOjPstnRankNm,
@@ -26,20 +41,5 @@ public class WctcRiskAuditDto {
         String dangArbitLvyPcSum,
         String fstRgstUsrId,
         String fstRgstDt
-    ) {}
-    // *********************************************************
-    // Request Dto
-    // *********************************************************
-    @ApiModel(value = "WctcDangerArbitDto-SearchReq")
-    public record SearchReq(
-        String searchGubun,
-        String startDate,
-        String endDate,
-        String startMonth,
-        String endMonth,
-        String generalDivision,
-        String regionalGroup,
-        String branchOffice,
-        String employeeNo
     ) {}
 }

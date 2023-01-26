@@ -10,7 +10,7 @@ import com.kyowon.sms.wells.contract.risk.dvo.WctcRiskAuditDvo;
 
 @Mapper
 public interface WctcRiskAuditMapper {
-    List<SearchRes> selectIrgBznsArbitArtc(SearchReq dto);
+    List<SearchRes> selectIrregularBznsInqr(SearchReq dto);
 
     int updateDangerCheckIz(String dangChkId);
 

@@ -21,8 +21,8 @@ public class WctcRiskAuditService {
     private final WctcRiskAuditConverter converter;
 
     @Transactional
-    public List<SearchRes> getIrgBznsArbitArtc(SearchReq dto) {
-        return mapper.selectIrgBznsArbitArtc(dto);
+    public List<SearchRes> getIrregularBznsInqr(SearchReq dto) {
+        return mapper.selectIrregularBznsInqr(dto);
     }
 
     @Transactional
@@ -31,7 +31,7 @@ public class WctcRiskAuditService {
         int result = 0;
         for (Iterator<String> iterator = dangChkIds.iterator(); iterator.hasNext(); processCount += result) {
             String dangChkId = iterator.next();
-            WctcRiskAuditDvo dangerArbit = converter.mapSaveReqWctcDangerArbitDvo(dangChkId);
+            WctcRiskAuditDvo dangerArbit = converter.mapSaveReqWctcRiskAuditDvo(dangChkId);
             mapper.updateDangerCheckIz(dangChkId);
             mapper.updateDangerCheckChHist(dangChkId);
             result = mapper.insertDangerCheckChHist(dangerArbit);

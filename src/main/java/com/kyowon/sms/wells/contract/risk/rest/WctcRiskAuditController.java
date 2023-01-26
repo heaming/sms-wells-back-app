@@ -44,16 +44,16 @@ public class WctcRiskAuditController {
         @ApiImplicitParam(name = "branchOffice", value = "지점", paramType = "query"),
         @ApiImplicitParam(name = "employeeNo", value = "사번", paramType = "query"),
     })
-    @GetMapping("/irg-bzns-arbit-artcs")
-    public List<SearchRes> getIrgBznsArbitArtc(
+    @GetMapping("/irregular-sales-actions")
+    public List<SearchRes> getIrregularBznsInqr(
         @Valid
         SearchReq dto
     ) {
-        return service.getIrgBznsArbitArtc(dto);
+        return service.getIrregularBznsInqr(dto);
     }
 
     @ApiOperation(value = "비정도 영업 조치 사항 삭제", notes = "비정도 영업 조치 사항 삭제")
-    @DeleteMapping("/irg-bzns-arbit-artcs")
+    @DeleteMapping("/irregular-sales-actions")
     public SaveResponse removeIrgBznsArbitArtc(
         @RequestParam
         @NotEmpty
