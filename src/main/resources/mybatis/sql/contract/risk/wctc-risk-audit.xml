@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.contract.risk.mapper.WctcDangerArbitMapper">
+    <select id="selectIrgBznsArbitArtc" resultType="com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto$SearchRes">
+        SELECT 
+             G.DANG_CHK_ID
+             , G.WELLS_OJ_PSTN_RANK_NM /* 구분 */
+             , G.DANG_MNGT_PNTNR_OG_NM /* 소속명 */
+             , G.DANG_MNGT_PNTNR_OG_CD /* 소속코드 */
+             , G.DANG_MNGT_PNTNR_NM /* 성명 */
+             , G.DANG_MNGT_PRTNR_NO /* 사번 */
+             , G.DANG_OJ_PRTNR_NM /* 행위자사번-성명 */
+             , G.DANG_OJ_PRTNR_NO /* 행위자사번-사번 */
+             , G.DANG_OJ_PRTNR_PSTN_DV_NM /* 행위자사번-직급 */
+             , G.DANG_OC_STRTMM /* 벌점-발생년월 */
+             , G.DANG_ARBIT_OG_NM /* 벌점-조치부서 */
+             , G.DANG_CHK_NM /* 벌점-부과내역 */
+             , G.DANG_ARBIT_CD_NM /* 벌점-조치항목 */
+             , G.DANG_UNCVR_CT /* 벌점-부과대상건수 */
+             , G.DANG_ARBIT_LVY_PC /* 벌점-조치결과부과점수 */
+             , G.DANG_ARBIT_LVY_PC_SUM /* 벌점-합계점수 */
+             , G.FST_RGST_USR_ID /* 등록자 */
+             , G.FST_RGST_DT /* 등록일자 */
+        FROM (
+        WITH TB_OGBS_MM AS (
+        SELECT D.PSTN_DV_CD /*월파트너마감.직급구분코드*/ 
+             , D.PRTNR_NO /* 월파트너마감.파트너번호 */
+             , D.PRTNR_KNM /* 월파트너마감.파트너한글명 */
+             , D.PSTN_DV_CD /* 월파트너마감.직급구분코드 */
+             , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'PSTN_DV_CD', D.PSTN_DV_CD) AS PSTN_DV_NM /* 직급구분명 */
+             , C.DGR1_HGR_OG_CLSF_NM /* 월조직마감.1차상위조직분류명 - 총괄단 */
+             , C.DGR1_HGR_OG_CD /* 월조직마감.1차상위조직코드 - 총괄단 */
+             , C.DGR1_HGR_OG_NM /* 월조직마감.1차상위조직명 - 총괄단 */
+             , C.DGR1_HGR_DG_PRTNR_NO /* 월조직마감.1차상위대표파트너번호 - 총괄단 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR1_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.1차상위조직코드 */
+               ) AS DGR1_HGR_OG_ID /* 1차상위조직ID */
+             , C.DGR2_HGR_OG_CLSF_NM /* 월조직마감.2차상위조직분류명 - 지역단 */
+             , C.DGR2_HGR_OG_CD /* 월조직마감.2차상위조직코드 - 지역단 */
+             , C.DGR2_HGR_OG_NM /* 월조직마감.2차상위조직명 - 지역단 */
+             , C.DGR2_HGR_DG_PRTNR_NO /* 월조직마감.2차상위대표파트너번호 - 지역단 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR2_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.2차상위조직코드 */
+               ) AS DGR2_HGR_OG_ID /* 2차상위조직ID */     
+             , C.DGR3_HGR_OG_CLSF_NM /* 월조직마감.3차상위조직분류명 - 지점 */
+             , C.DGR3_HGR_OG_CD /* 월조직마감.3차상위조직코드 - 지점 */
+             , C.DGR3_HGR_OG_NM /* 월조직마감.3차상위조직명 - 지점 */
+             , C.DGR3_HGR_DG_PRTNR_NO /* 월조직마감.3차상위대표파트너번호 - 지점 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR3_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.3차상위조직코드 */
+               ) AS DGR3_HGR_OG_ID /* 3차상위조직ID */        
+             , C.BIZ_SPPT_PRTNR_NO /* 월조직마감.업무지원파트너번호 */
+             , C.BZNS_SPPT_PRTNR_NO /* 월조직마감.영업지원파트너번호 */
+             , C.OG_CD /* 월조직마감.조직코드 */
+             , C.OG_ID /* 월조직마감.조직ID */
+             , C.OG_NM /* 월조직마감.조직명 */
+             , C.BASE_YM /* 월조직마감.기준년월 */    
+         FROM WSMDBS.TB_OGBS_MM_OG_CL C/* 월조직마감 - 월조직마감 TABLE의 1~5차 상위 조직ID가 없으므로 별도로 조회 */
+        INNER JOIN WSMDBS.TB_OGBS_MM_PRTNR_CL D /* 월파트너마감 */
+           ON D.BASE_YM = C.BASE_YM /* 월파트너마감.기준년월 = 월조직마감.기준년월 */
+          AND D.OG_ID = C.OG_ID /* 월조직마감.조직ID = 월파트너마감.조직ID */
+          AND D.USE_YN = 'Y' /* 월파트너마감.사용여부가 'Y'인 건 */
+          AND D.DTA_DL_YN != 'Y' /* 월파트너마감.데이터삭제여부가 'Y'가 아닌 건 */
+          AND D.TEMP_SAVE_YN != 'Y' /* 월파트너마감.임시저장여부가 'Y'가 아닌 건 */   
+          AND D.DTA_DL_YN != 'Y' /* 월조직마감.데이터삭제여부가 'Y'가 아닌 건*/
+        WHERE 1=1
+          <if test='@MybatisUtils@equals(searchGubun, "1")'>
+            AND C.BASE_YM <![CDATA[ >= ]]> SUBSTR(#{startDate}, 1, 6)
+            AND C.BASE_YM <![CDATA[ <= ]]> SUBSTR(#{endDate}, 1, 6)
+          </if>
+          <if test='@MybatisUtils@equals(searchGubun, "2")'>
+            AND C.BASE_YM <![CDATA[ >= ]]> TRIM(#{startMonth})
+            AND C.BASE_YM <![CDATA[ <= ]]> TRIM(#{endMonth})
+          </if>        
+        )
+        SELECT
+               DANG_CHK_ID
+              , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'WELLS_OJ_PSTN_RANK_CD', A.DANG_MNGT_PSTN_DV_CD)  AS WELLS_OJ_PSTN_RANK_NM /* [구분] - WELLS대상직급명-CODE : WELLS_OJ_PSTN_RANK_CD */
+             , (
+                SELECT OG_NM /* 월 조직/파트너 마감(WITH).조직명 */
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_MNGT_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험관리파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DANG_MNGT_PNTNR_OG_NM /* [소속명] - 월 조직/파트너 마감(WITH).조직명 */
+             , (
+                SELECT OG_CD /* 월 조직/파트너 마감(WITH).조직코드 */
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_MNGT_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험관리파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DANG_MNGT_PNTNR_OG_CD /* [소속코드] - 월 조직/파트너 마감(WITH).조직코드 */  
+             , (
+                SELECT PRTNR_KNM /* 월 조직/파트너 마감(WITH).파트너한글명 */ 
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_MNGT_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험관리파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DANG_MNGT_PNTNR_NM /* [성명] - 월 조직/파트너 마감(WITH).파트너한글명 */  
+             , A.DANG_MNGT_PRTNR_NO /* [사번] - 위험점검내역.위험관리파트너번호 */
+             , (
+                SELECT PRTNR_KNM /* 파트너한글명 */ 
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_OJ_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험대상파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DANG_OJ_PRTNR_NM /* [행위자사번 - 성명] - 월 조직/파트너 마감(WITH).파트너한글명 */
+             , A.DANG_OJ_PRTNR_NO /* [행위자사번- 사번] - 위험점검내역.위험대상파트너번호 */ 
+             , (
+                SELECT PSTN_DV_NM /* 직급구분명 */ 
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_OJ_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험대상파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DANG_OJ_PRTNR_PSTN_DV_NM /* [행위자사번 - 직급] - 월 조직/파트너 마감(WITH).직급구분명 */
+             , SUBSTR(A.DANG_OC_STRTDT, 1, 6) AS DANG_OC_STRTMM /* [벌점 - 발생년월] - SUBSTR(위험점검내역.위험발생시작일자,1,6) */
+             , (
+                SELECT C.OG_NM
+                  FROM WSMDBS.TB_OGBS_MM_OG_CL C/* 월조직마감 */
+                 WHERE C.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월조직마감.기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+                   AND C.OG_ID = A.DANG_ARBIT_OG_ID /* 월조직마감.조직ID = 위험점검내역.위험조치조직ID  */
+               ) AS DANG_ARBIT_OG_NM /* [벌점 - 조치부서] - 월조직마감.조직명 */   
+             , A.DANG_CHK_NM /* [벌점 - 부과내역] - 위험점검내역.위험점검명 */
+             , B.DANG_ARBIT_CD_NM /* [벌점 - 조치항목] - 위험조치코드.위험조치코드명 */
+             , A.DANG_UNCVR_CT /* [벌점 - 부과대상건수] - 위험점검내역.위험적발건수 */
+             , CASE WHEN A.DANG_MNGT_PSTN_DV_CD = '5' /* 위험점검내역.위험관리직급구분코드 = 5(업무지원매니저-BM) */
+                         THEN TRUNC(NVL(A.DANG_ARBIT_LVY_PC,0) * 0.5, 1) /* TRUNC(위험점검내역.위험조치부과점수 * 0.5,1) */
+                    ELSE NVL(A.DANG_ARBIT_LVY_PC,0)
+               END DANG_ARBIT_LVY_PC /* [벌점 - 조치결과 부과점수] */
+             , (
+                SELECT SUM(CASE WHEN A.DANG_MNGT_PSTN_DV_CD = '5' /* 위험점검내역.위험관리직급구분코드 = 5(업무지원매니저-BM) */
+                                     THEN TRUNC(NVL(A.DANG_ARBIT_LVY_PC,0) * 0.5, 1) /* TRUNC(위험점검내역.위험조치부과점수 * 0.5,1) */
+                                ELSE NVL(A.DANG_ARBIT_LVY_PC,0)
+                           END)  
+                  FROM WSMDBS.TB_SSCT_DANG_CHK_IZ A2
+                 WHERE A2.DANG_MNGT_PRTNR_NO = A.DANG_MNGT_PRTNR_NO /* 위험점검내역.위험관리파트너번호 = 위험점검내역.위험관리파트너번호 */
+                   AND A2.DANG_MNGT_PSTN_DV_CD = A.DANG_MNGT_PSTN_DV_CD /* 위험점검내역.위험관리직급구분코드 = 위험점검내역.위험관리직급구분코드 */
+                   AND (
+                        CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                                  THEN SUBSTR(A2.FST_RGST_DTM,1,8) /* SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                             WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                                  THEN A2.DANG_OC_STRTDT /* 위험점검내역.위험발생시작일자 */
+                             ELSE SUBSTR(A2.FST_RGST_DTM,1,8) /* DEFAULT - SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                        END
+                       )
+                        <![CDATA[ >= ]]> 
+                       (
+                        CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                                  THEN TRIM(#{startDate}) /* 입력한 FROM년월일 */
+                             WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                                  THEN TRIM(#{startMonth})||'01' /* 입력한 FROM년월 */
+                             ELSE TO_CHAR(SYSDATE,'YYYYMMDD') /* DEFAULT - 현재년월일 */
+                        END
+                       ) /* FROM일자/FROM월 */
+                   AND (
+                        CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                                  THEN SUBSTR(A2.FST_RGST_DTM,1,8) /* SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                             WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                                  THEN A2.DANG_OC_ENDDT /* 위험점검내역.위험발생종료일자 */
+                             ELSE SUBSTR(A2.FST_RGST_DTM,1,8) /* DEFAULT - SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                        END
+                       )
+                        <![CDATA[<= ]]>
+                       (
+                        CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                                  THEN TRIM(#{endDate}) /* 입력한 TO년월일 */
+                             WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                                  THEN TO_CHAR(LAST_DAY(TRIM(#{endMonth})||'01'),'YYYYMMDD') /* 입력한 TO년월||'01'의 말일(월말일) */
+                             ELSE TO_CHAR(SYSDATE,'YYYYMMDD') /* DEFAULT - 현재년월일 */
+                        END
+                       )
+                ) AS DANG_ARBIT_LVY_PC_SUM /* [벌점 - 합계점수] */
+             , A.FST_RGST_USR_ID /* [등록자] - 위험점검내역.최초등록사용자ID */
+             , SUBSTR(A.FST_RGST_DTM,0,6) AS FST_RGST_DT /* [등록일자] - 위험점검내역.최초등록일시 */
+             , (
+                SELECT DGR1_HGR_OG_CD /* 월 조직/파트너 마감(WITH).1차상위조직코드-총괄단 */
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_MNGT_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험관리파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DGR1_HGR_OG_CD /* 총괄단 - 월 조직/파트너 마감(WITH).1차상위조직코드 */
+             , (
+                SELECT DGR2_HGR_OG_CD /* 월 조직/파트너 마감(WITH).2차상위조직코드-지역단 */
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_MNGT_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험관리파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DGR2_HGR_OG_CD /* 지역단 - 월 조직/파트너 마감(WITH).2차상위조직코드 */
+             , (
+                SELECT DGR3_HGR_OG_CD /* 월 조직/파트너 마감(WITH).3차상위조직코드-지점 */
+                  FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                 WHERE E.PRTNR_NO = A.DANG_MNGT_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험관리파트너번호 */
+                  AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+               ) AS DGR3_HGR_OG_CD /* 지점 - 월 조직/파트너 마감(WITH).2차상위조직코드 */
+          FROM WSMDBS.TB_SSCT_DANG_CHK_IZ A /* 위험점검내역 */
+          LEFT OUTER JOIN WSMDBS.TB_SSCT_DANG_ARBIT_CD B /* 위험조치코드 */
+            ON B.DANG_ARBIT_CD = A.DANG_ARBIT_CD /* 위험조치코드.위험조치코드 = 위험점검내역.위험조치코드*/
+           AND B.DTA_DL_YN != 'Y' /* 위험조치코드.데이터삭제여부가 'Y'가 아닌 건*/           
+           /* 위험조치코드 유효시작일시, 유효종료일시는 위험점검내역 위험 */
+           AND B.VL_STRT_DTM <![CDATA[ >= ]]> A.DANG_OC_STRTDT /* 위험조치코드.유효시작일시 >= 위험점검내역.위험발생시작일자 */
+           AND B.VL_END_DTM <![CDATA[<= ]]> A.DANG_OC_ENDDT/* 위험조치코드.유효종료일시 >= 위험점검내역.위험발생종료일자 */
+         WHERE 1 = 1
+           AND A.DANG_MNGT_PSTN_DV_CD != 15 /* 위험점검내역.위험관리직급구분코드 != 15 ▶ as-is 조건 15(웰스플레너) 제외 */
+           AND A.DTA_DL_YN != 'Y' /* 위험점검내역.데이터삭제여부가 'Y'가 아닌 건*/ 
+           /* 조회조건 - 적용기간(등록일자 또는 발생년월) FROM~TO */
+           AND (
+                CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                          THEN SUBSTR(A.FST_RGST_DTM,1,8) /* SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                     WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                          THEN A.DANG_OC_STRTDT /* 위험점검내역.위험발생시작일자 */
+                     ELSE SUBSTR(A.FST_RGST_DTM,1,8) /* DEFAULT - SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                END
+               )
+               <![CDATA[ >= ]]> 
+               (
+                CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                          THEN TRIM(#{startDate}) /* 입력한 FROM년월일 */
+                     WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                          THEN TRIM(#{startMonth})||'01' /* 입력한 FROM년월 */
+                     ELSE TO_CHAR(SYSDATE,'YYYYMMDD') /* DEFAULT - 현재년월일 */
+                END
+               ) /* FROM일자/FROM월 */
+           AND (
+                CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                          THEN SUBSTR(A.FST_RGST_DTM,1,8) /* SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                     WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                          THEN A.DANG_OC_ENDDT /* 위험점검내역.위험발생종료일자 */
+                     ELSE SUBSTR(A.FST_RGST_DTM,1,8) /* DEFAULT - SUBSTR(위험점검내역.최초등록일시, 1, 8) */
+                END
+               )
+               <![CDATA[<= ]]>
+               (
+                CASE WHEN #{searchGubun} = '1' /* 적용기간 선택이 등록일자(1)인 경우 */
+                          THEN TRIM( #{endDate} ) /* 입력한 TO년월일 */
+                     WHEN #{searchGubun} = '2' /* 적용기간 선택이 발생년월(2)인 경우 */
+                          THEN TO_CHAR(LAST_DAY(TRIM(#{endMonth})||'01'),'YYYYMMDD') /* 입력한 TO년월||'01'의 말일(월말일) */
+                     ELSE TO_CHAR(SYSDATE,'YYYYMMDD') /* DEFAULT - 현재년월일 */
+                END
+               ) 
+               ) G
+         WHERE 1=1
+           /* 조회조건 - 총괄단 ▶ 값이 있을때만 조건 추가 */ 
+           AND (TRIM(G.DGR1_HGR_OG_CD) LIKE #{generalDivision}||'%' OR G.DGR1_HGR_OG_CD IS NULL) /* 1차상위조직 - 230119 NULL DATA로 인하여 LIKE 검색이 안됨 */
+       
+           /* 조회조건 - 지역단 ▶ 값이 있을때만 조건 추가 */
+           AND (TRIM(G.DGR2_HGR_OG_CD) LIKE #{regionalGroup}||'%' OR G.DGR2_HGR_OG_CD IS NULL) /* 2차상위조직 - 230119 NULL DATA로 인하여 LIKE 검색이 안됨 */
+          
+           /* 조회조건 - 지점 ▶ 값이 있을때만 조건 추가 */
+           AND (TRIM(G.DGR3_HGR_OG_CD) LIKE #{branchOffice}||'%'  OR G.DGR3_HGR_OG_CD IS NULL) /* 3차상위조직 - 230119 NULL DATA로 인하여 LIKE 검색이 안됨 */
+
+           /* 조회조건 - 사번 */
+           AND TRIM(G.DANG_MNGT_PRTNR_NO) LIKE #{employeeNo}||'%' /* 조건추가 시 - 위험점검내역.위험관리파트너번호 */
+         ORDER BY             
+                    G.DANG_MNGT_PNTNR_OG_CD /* 소속코드 */
+                   ,G.WELLS_OJ_PSTN_RANK_NM /* 구분 */
+                   ,G.DANG_MNGT_PNTNR_NM /* 성명 */
+                   ,G.DANG_OJ_PRTNR_PSTN_DV_NM /* 행위자사번-직급 */ 
+                   ,G.DANG_OJ_PRTNR_NM /* 행위자사번-성명 */
+    </select>
+    <update id="updateDangerCheckIz">
+        UPDATE WSMDBS.TB_SSCT_DANG_CHK_IZ
+           SET DTA_DL_YN = 'Y'
+         WHERE DANG_CHK_ID = #{dangChkId} 
+    </update>
+    <update id="updateDangerCheckChHist">
+        UPDATE WSMDBS.TB_SSCT_DANG_CHK_CH_HIST
+           SET DTA_DL_YN = 'Y'
+         WHERE HIST_END_DTM = '99991231999999'
+            AND DANG_CHK_ID = #{dangChkId} 
+    </update>
+    <insert id="insertDangerCheckChHist">
+        INSERT INTO WSMDBS.TB_SSCT_DANG_CHK_CH_HIST(
+            DANG_CHK_ID
+            ,HIST_STRT_DTM
+            ,HIST_END_DTM
+            ,DANG_OJ_PRTNR_NO
+            ,DANG_MNGT_PRTNR_NO
+            ,DANG_OJ_OG_ID
+            ,DANG_OJ_PSTN_DV_CD
+            ,DANG_MNGT_PSTN_DV_CD
+            ,DANG_GD_VAL
+            ,DANG_UNCVR_CT
+            ,DANG_CHK_NM
+            ,DANG_CHK_DT
+            ,DANG_UNCVR_CN
+            ,DANG_OC_STRTDT
+            ,DANG_OC_ENDDT
+            ,DANG_ARBIT_DT
+            ,DANG_ARBIT_CD
+            ,DANG_ARBIT_LVY_PC
+            ,DANG_ARBIT_OG_ID
+            ,DANG_ARBIT_CN
+            ,DCPLA_RS_CN
+            ,DCPLA_RIMB_AMT
+            ,DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+             #{dangChkId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , '99991231999999'
+            , #{dangOjPrtnrNo}
+            , #{dangMngtPrtnrNo}
+            , #{dangOjOgId}
+            , #{dangOjPstnDvCd}
+            , #{dangMngtPstnDvCd}
+            , #{dangGdVal}
+            , #{dangUncvrCt}
+            , #{dangChkNm}
+            , #{dangChkDt}
+            , #{dangUncvrCn}
+            , #{dangOcStrtdt}
+            , #{dangOcEnddt}
+            , #{dangArbitDt}
+            , #{dangArbitCd}
+            , #{dangArbitLvyPc}
+            , #{dangArbitOgId}
+            , #{dangArbitCn}
+            , #{dcplaRsCn}
+            , #{dcplaRimbAmt}
+            , 'Y'
+            <include refid="COMMON.insertSystemFieldValue" />
+            )
+    </insert>
+    
+    <select id="selectIrgBznsArbitMngt" resultType="com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto$SearchRes">
+        SELECT G.DANG_CHK_ID    /* 위험점검ID */
+             , G.DANG_OJ_PRTNR_NO /* 행위자사번-사번 */
+             , G.DANG_OC_STRTMM /* 행위자사번-발생년월 */
+             , G.DANG_OJ_OG_ID /* 행위자사번-소속 */
+             , G.DANG_OJ_PRTNR_NM /* 행위자사번-성명 */
+             , G.DANG_OJ_PRTNR_PSTN_DV_NM /* 행위자사번-직급 */
+             , G.DGR1_HGR_DG_PRTNR_NM /*소속-총괄단*/
+             , G.DGR2_HGR_DG_PRTNR_NM /*소속-지역단*/
+             , G.DGR3_HGR_DG_PRTNR_NM /*소속- BM*/
+             , G.DGR4_HGR_DG_PRTNR_NM /*소속-지점*/
+             , G.DANG_CHK_NM /* 벌점-부과내역 */
+             , G.DANG_ARBIT_CD_NM /* 벌점-조치항목 */
+             , G.DANG_UNCVR_CT /* 벌점-부과대상건수 */
+             , G.DANG_ARBIT_LVY_PC /* 벌점-조치결과부과점수 */
+             , G.DANG_ARBIT_OG_NM /* 벌점-조치부서 */
+             , G.FST_RGST_USR_ID /* 등록자 */
+             , G.FST_RGST_DT /* 등록일자 */
+         FROM (
+         WITH TB_OGBS_MM AS (
+            SELECT D.PSTN_DV_CD /*월파트너마감.직급구분코드*/ 
+             , D.PRTNR_NO /* 월파트너마감.파트너번호 */
+             , D.PRTNR_KNM /* 월파트너마감.파트너한글명 */
+             , D.PSTN_DV_CD /* 월파트너마감.직급구분코드 */
+             , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'PSTN_DV_CD', D.PSTN_DV_CD) AS PSTN_DV_NM /* 직급구분명 */
+             , C.DGR1_HGR_OG_CLSF_NM /* 월조직마감.1차상위조직분류명 - 총괄단 */
+             , C.DGR1_HGR_OG_CD /* 월조직마감.1차상위조직코드 - 총괄단 */
+             , C.DGR1_HGR_OG_NM /* 월조직마감.1차상위조직명 - 총괄단 */
+             , C.DGR1_HGR_DG_PRTNR_NO /* 월조직마감.1차상위대표파트너번호 - 총괄단 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR1_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.1차상위조직코드 */
+               ) AS DGR1_HGR_OG_ID /* 1차상위조직ID */
+             , C.DGR2_HGR_OG_CLSF_NM /* 월조직마감.2차상위조직분류명 - 지역단 */
+             , C.DGR2_HGR_OG_CD /* 월조직마감.2차상위조직코드 - 지역단 */
+             , C.DGR2_HGR_OG_NM /* 월조직마감.2차상위조직명 - 지역단 */
+             , C.DGR2_HGR_DG_PRTNR_NO /* 월조직마감.2차상위대표파트너번호 - 지역단 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR2_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.2차상위조직코드 */
+               ) AS DGR2_HGR_OG_ID /* 2차상위조직ID */     
+             , C.DGR3_HGR_OG_CLSF_NM /* 월조직마감.3차상위조직분류명 - 지점 */
+             , C.DGR3_HGR_OG_CD /* 월조직마감.3차상위조직코드 - 지점 */
+             , C.DGR3_HGR_OG_NM /* 월조직마감.3차상위조직명 - 지점 */
+             , C.DGR3_HGR_DG_PRTNR_NO /* 월조직마감.3차상위대표파트너번호 - 지점 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR3_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.3차상위조직코드 */
+               ) AS DGR3_HGR_OG_ID /* 3차상위조직ID */      
+             , C.DGR4_HGR_OG_CLSF_NM /* 월조직마감.4차상위조직분류명 */
+             , C.DGR4_HGR_OG_CD /* 월조직마감.4차상위조직코드 */
+             , C.DGR4_HGR_OG_NM /* 월조직마감.4차상위조직명 */
+             , C.DGR4_HGR_DG_PRTNR_NO /* 월조직마감.4차상위대표파트너번호 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR4_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.4차상위조직코드 */
+               ) AS DGR4_HGR_OG_ID /* 4차상위조직ID */           
+             , C.DGR5_HGR_OG_CLSF_NM /* 월조직마감.4차상위조직분류명 */
+             , C.DGR5_HGR_OG_CD /* 월조직마감.5차상위조직코드 */
+             , C.DGR5_HGR_OG_NM /* 월조직마감.5차상위조직명 */
+             , C.DGR5_HGR_DG_PRTNR_NO /* 월조직마감.5차상위대표파트너번호 */
+             , (
+                SELECT MAX(F.OG_ID)
+                  FROM WSMDBS.TB_OGBS_OG_BAS F /* 조직기본 */
+                 WHERE F.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                   AND F.OG_CD = C.DGR5_HGR_OG_CD /* 조직기본.조직ID = 월조직마감.5차상위조직코드 */
+               ) AS DGR5_HGR_OG_ID /* 5차상위조직ID */          
+             , C.BIZ_SPPT_PRTNR_NO /* 월조직마감.업무지원파트너번호 */
+             , C.BZNS_SPPT_PRTNR_NO /* 월조직마감.영업지원파트너번호 */
+             , C.OG_CD /* 월조직마감.조직코드 */
+             , C.OG_ID /* 월조직마감.조직ID */
+             , C.OG_NM /* 월조직마감.조직명 */
+             , C.BASE_YM /* 월조직마감.기준년월 */    
+            FROM WSMDBS.TB_OGBS_MM_OG_CL C/* 월조직마감 - 월조직마감 TABLE의 1~5차 상위 조직ID가 없으므로 별도로 조회 */
+                INNER JOIN WSMDBS.TB_OGBS_MM_PRTNR_CL D /* 월파트너마감 */
+                   ON D.BASE_YM = C.BASE_YM /* 월파트너마감.기준년월 = 월조직마감.기준년월 */
+                  AND D.OG_ID = C.OG_ID /* 월조직마감.조직ID = 월파트너마감.조직ID */
+                  AND D.USE_YN = 'Y' /* 월파트너마감.사용여부가 'Y'인 건 */
+                  AND D.DTA_DL_YN != 'Y' /* 월파트너마감.데이터삭제여부가 'Y'가 아닌 건 */
+                  AND D.TEMP_SAVE_YN != 'Y' /* 월파트너마감.임시저장여부가 'Y'가 아닌 건 */   
+                  AND D.DTA_DL_YN != 'Y' /* 월조직마감.데이터삭제여부가 'Y'가 아닌 건*/
+                WHERE 1=1
+                <if test='@MybatisUtils@equals(searchGubun, "1")'>
+                  AND C.BASE_YM <![CDATA[ >= ]]> SUBSTR(#{startDate}, 1, 6)
+                  AND C.BASE_YM <![CDATA[ <= ]]> SUBSTR(#{endDate}, 1, 6)
+                </if>
+                <if test='@MybatisUtils@equals(searchGubun, "2")'>
+                  AND C.BASE_YM <![CDATA[ >= ]]> TRIM(#{startMonth})
+                  AND C.BASE_YM <![CDATA[ <= ]]> TRIM(#{endMonth})
+                </if>  
+               )
+                SELECT  A.DANG_CHK_ID   /* 위험점검ID */
+                    , A.DANG_OJ_PRTNR_NO /* [행위자사번- 사번] - 위험점검내역.위험대상파트너번호 */ 
+                    , SUBSTR(A.DANG_OC_STRTDT, 1, 6) AS DANG_OC_STRTMM /* [벌점 - 발생년월] - SUBSTR(위험점검내역.위험발생시작일자,1,6) */
+                    , A.DANG_OJ_OG_ID /* 행위자사번-소속 */
+                    , (
+                        SELECT PRTNR_KNM /* 파트너한글명 */ 
+                          FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                         WHERE E.PRTNR_NO = A.DANG_OJ_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험대상파트너번호 */
+                          AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+                       ) AS DANG_OJ_PRTNR_NM /* [행위자사번 - 성명] - 월 조직/파트너 마감(WITH).파트너한글명 */
+                    , (
+                        SELECT PSTN_DV_NM /* 직급구분명 */ 
+                          FROM TB_OGBS_MM E /* 월 조직/파트너 마감(WITH) */
+                         WHERE E.PRTNR_NO = A.DANG_OJ_PRTNR_NO /* 월 조직/파트너 마감(WITH).파트너번호 = 위험점검내역.위험대상파트너번호 */
+                          AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 마감(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+                       ) AS DANG_OJ_PRTNR_PSTN_DV_NM /* [행위자사번 - 직급] - 월 조직/파트너 마감(WITH).직급구분명 */
+                    , C.DGR1_HGR_DG_PRTNR_NM /* [ 소속 - 총괄단 ] 월조직마감.1차상위대표파트너명 */
+                    , C.DGR2_HGR_DG_PRTNR_NM /* [ 소속 - 지역단 ] 월조직마감.2차상위대표파트너명 */
+                    , C.DGR3_HGR_DG_PRTNR_NM /* [ 소속 - BM ] 월조직마감.3차상위대표파트너명 */
+                    , C.DGR4_HGR_DG_PRTNR_NM /* [ 소속 - 지점 ] 월조직마감.4차상위대표파트너명 */
+                    , A.DANG_CHK_NM /* [벌점 - 부과내역] - 위험점검내역.위험점검명 */
+                    , B.DANG_ARBIT_CD_NM /* [벌점 - 조치항목] - 위험조치코드.위험조치코드명 */
+                    , A.DANG_UNCVR_CT /* [벌점 - 부과대상건수] - 위험점검내역.위험적발건수 */
+                    , CASE WHEN A.DANG_MNGT_PSTN_DV_CD = '5' /* 위험점검내역.위험관리직급구분코드 = 5(업무지원매니저-BM) */
+                                 THEN TRUNC(NVL(A.DANG_ARBIT_LVY_PC,0) * 0.5, 1) /* TRUNC(위험점검내역.위험조치부과점수 * 0.5,1) */
+                            ELSE NVL(A.DANG_ARBIT_LVY_PC,0)
+                       END DANG_ARBIT_LVY_PC /* [벌점 - 조치결과 부과점수] */
+                    ,(
+                        SELECT C.OG_NM
+                          FROM WSMDBS.TB_OGBS_MM_OG_CL C/* 월조직마감 */
+                         WHERE C.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월조직마감.기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+                           AND C.OG_ID = A.DANG_ARBIT_OG_ID /* 월조직마감.조직ID = 위험점검내역.위험조치조직ID  */
+                       ) AS DANG_ARBIT_OG_NM /* [벌점 - 조치부서] - 월조직마감.조직명 */   
+                    , A.FST_RGST_USR_ID /* [등록자] - 위험점검내역.최초등록사용자ID */
+                        , SUBSTR(A.FST_RGST_DTM,0,6) AS FST_RGST_DT /* [등록일자] - 위험점검내역.최초등록일시 */
+                FROM WSMDBS.TB_SSCT_DANG_CHK_IZ A /* 위험점검내역 */
+                LEFT OUTER JOIN WSMDBS.TB_SSCT_DANG_ARBIT_CD B /* 위험조치코드 */
+                        ON B.DANG_ARBIT_CD = A.DANG_ARBIT_CD /* 위험조치코드.위험조치코드 = 위험점검내역.위험조치코드*/
+                       AND B.DTA_DL_YN != 'Y' /* 위험조치코드.데이터삭제여부가 'Y'가 아닌 건*/
+                       /* 위험조치코드 유효시작일시, 유효종료일시는 위험점검내역 위험 */
+                       AND B.VL_STRT_DTM <![CDATA[ >= ]]>A.DANG_OC_STRTDT /* 위험조치코드.유효시작일시 >= 위험점검내역.위험발생시작일자 */
+                       AND B.VL_END_DTM <![CDATA[ <= ]]> A.DANG_OC_ENDDT /* 위험조치코드.유효종료일시 >= 위험점검내역.위험발생종료일자 */
+                LEFT OUTER JOIN TB_OGBS_MM_OG_CL C  /* 월조직마감 */
+                    ON A.DANG_OJ_OG_ID = C.OG_ID /* 위험점검내역.위험대상조직ID >= 월조직마감.조직ID */
+                ) G
+                WHERE 1=1
+                ORDER BY             
+                        G.DANG_OJ_OG_ID /* 행위자사번-소속 */
+                       ,G.DANG_OJ_PRTNR_NM /* 행위자사번-성명 */
+                       
+                       
+                   
+    </select>
+</mapper>
