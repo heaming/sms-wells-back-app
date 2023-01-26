@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStoreDetailItemizationMapper">
+
+    <select id="selectStoreDetailItemizations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreDetailItemizationDto$SearchRes">
+    SELECT *
+      FROM (
+        SELECT STR_IZ.STR_RGST_DT /*입고등록일자*/
+             , STR_IZ.ITM_PD_CD /*품목상품코드*/
+             , PD_BAS.PD_ABBR_NM /*품목명*/
+	         , F_CMZ_CD_NM('TNT_WELLS', 'STR_TP_CD', STR_IZ.STR_TP_CD) AS CD_CNTN /*입고코드명*/
+             , STR_IZ.MNGT_UNIT_CD /*관리단위코드*/
+             , STR_IZ.ITM_GD_CD /*품목등급코드*/
+             , STR_IZ.STR_QTY /*입고수량*/
+             , STR_IZ.ACB_DT /*회계일자*/
+             , STR_IZ.OSTR_DT /*출고일자*/
+             , STR_IZ.OSTR_WARE_NO /*출고창고번호*/
+             , DECODE(STR_IZ.STR_TP_CD,'110',F_CMZ_CD_NM('TNT_WELLS', 'GO_DLPNR_CD', STR_IZ.DLVG_DLPNR_PRTNR_NO)
+                         ,( SELECT WARE_IZ.WARE_NM
+                              FROM TB_SVST_MCBY_WARE_IZ WARE_IZ
+                             WHERE WARE_IZ.APY_YM = SUBSTR(STR_IZ.OSTR_DT,1,6)
+                               AND WARE_IZ.WARE_NO = STR_IZ.OSTR_WARE_NO
+                           )
+                     ) OSTR_WARE_NM /*출고창고명*/
+             , STR_IZ.STR_WARE_NO
+             , (SELECT WARE_IZ.WARE_NM
+                 FROM TB_SVST_MCBY_WARE_IZ WARE_IZ
+                WHERE WARE_IZ.APY_YM = SUBSTR(STR_IZ.STR_RGST_DT,1,6)
+                  AND WARE_IZ.WARE_NO = STR_IZ.STR_WARE_NO
+	            ) STR_WARE_NM
+             , STR_IZ.ITM_STR_NO /*품목입고번호*/
+	         , STR_IZ.ITM_OSTR_NO /*품목출고번호*/
+             , (SELECT WARE_IZ.HGR_WARE_NO /*상위창고번호*/
+                  FROM TB_SVST_MCBY_WARE_IZ WARE_IZ
+                 WHERE WARE_IZ.WARE_NO = STR_IZ.STR_WARE_NO
+                   AND WARE_IZ.APY_YM = SUBSTR(#{stStrDt},1,6)) AS STR_WARE_NO_UP  -- 입고창고의 상위 테이블 코드
+             , (SELECT WARE_IZ.WARE_ICHR_NO
+                  FROM TB_SVST_MCBY_WARE_IZ WARE_IZ
+                 WHERE WARE_IZ.WARE_NO = STR_IZ.STR_WARE_NO
+                   AND WARE_IZ.APY_YM = SUBSTR(#{stStrDt},1,6)) AS STR_WARE_CHG_CD -- 입고창고의 창고 구분
+             , (SELECT WARE_IZ.HGR_WARE_NO
+                  FROM TB_SVST_MCBY_WARE_IZ WARE_IZ
+                 WHERE WARE_IZ.WARE_NO = STR_IZ.OSTR_WARE_NO
+                   AND WARE_IZ.APY_YM = SUBSTR(#{stStrDt},1,6)) AS OSTR_WARE_NO_UP -- 출고창고의 상위 테이블 코드
+             , (SELECT WARE_IZ.WARE_ICHR_NO
+                  FROM TB_SVST_MCBY_WARE_IZ WARE_IZ
+                 WHERE WARE_IZ.WARE_NO = STR_IZ.OSTR_WARE_NO
+                   AND WARE_IZ.APY_YM = SUBSTR(#{stStrDt},1,6)) AS OSTR_WARE_CHG_CD -- 출고창고의 창고 구분
+             , PD_BAS.SAP_MAT_CD
+        FROM TB_SVST_ITM_STR_IZ STR_IZ -- 입고테이블
+	   INNER JOIN TB_PDBS_PD_BAS PD_BAS  -- 상품테이블
+	      ON PD_BAS.PD_CD = STR_IZ.ITM_PD_CD
+	   LEFT OUTER JOIN TB_SVST_ITM_OSTR_IZ OSTR_IZ --출고테이블
+	      ON STR_IZ.ITM_STR_NO = OSTR_IZ.ITM_STR_NO
+	     AND STR_IZ.STR_SN = OSTR_IZ.STR_SN
+	   LEFT OUTER JOIN TB_SVST_ITM_OSTR_AK_IZ AK_IZ
+	      ON AK_IZ.OSTR_AK_NO = OSTR_IZ.OSTR_AK_NO
+	     AND AK_IZ.OSTR_AK_SN = OSTR_IZ.OSTR_SN
+	   LEFT OUTER JOIN T_CMZ_CD_D CMZ
+	      ON STR_IZ.STR_TP_CD = CMZ.CD_ID
+--	     WHERE CMZ.CD_ID = 'STR_TP_CD'
+--	       AND CMZ.TENANT_ID = 'TNT_WELLS'
+	   WHERE STR_IZ.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}
+      <if test="@MybatisUtils@isNotEmpty(strTpCd)">
+	   	 --입고유형
+         AND STR_IZ.STR_TP_CD = #{strTpCd}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+	   	 --입고창고구분
+         AND SUBSTR(STR_IZ.STR_WARE_NO,1,1) = #{wareDvCd}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
+	   	 --출고창고구분
+         AND SUBSTR(STR_IZ.OSTR_WARE_NO,1,1) = #{ostrWareDvCd}
+      </if>
+	   --품목구분
+	   --품목코드
+      <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+         AND STR_IZ.ITM_PD_CD = #{itmPdCd}
+      </if>
+	   --사용유무
+      <if test="@MybatisUtils@isNotEmpty(pgGdCd)">
+         --품목등급
+	     AND STR_IZ.ITM_GD_CD = #{pgGdCd}
+      </if>
+	   ) V1
+    WHERE 1 = 1
+    ORDER BY STR_RGST_DT, ITM_PD_CD
+    </select>
+
+</mapper>
