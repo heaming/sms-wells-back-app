@@ -16,7 +16,7 @@ import java.util.List;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreDetailItemizationDto.*;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/store-detail-itemization")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/store-detail-itemizations")
 @Api(tags = "[WSNA] 입고상세내역 REST API")
 @RequiredArgsConstructor
 public class WsnaStoreDetailItemizationController {
