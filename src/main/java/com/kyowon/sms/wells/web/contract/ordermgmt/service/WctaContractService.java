@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.risk.service;
+package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import java.util.Iterator;
 import java.util.List;
@@ -6,11 +6,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.contract.risk.converter.WctaContractConverter;
-import com.kyowon.sms.wells.web.contract.risk.dto.WctaContractDto.RemoveReq;
-import com.kyowon.sms.wells.web.contract.risk.dto.WctaContractDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.risk.dvo.WctaCntrAprAkDvCdDvo;
-import com.kyowon.sms.wells.web.contract.risk.mapper.WctaContractMapper;
+import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.RemoveReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class WctaContractService {
         while (iterator.hasNext()) {
             RemoveReq dto = iterator.next();
             WctaCntrAprAkDvCdDvo dvo = converter.mapRemoveReqToWctaCntrAprAkDvCdDvo(dto);
-            int result = mapper.removeApprovalAskDivides(dvo);
+            int result = mapper.deleteApprovalAskDivides(dvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_DEL_ERR");
             processCount += result;
         }

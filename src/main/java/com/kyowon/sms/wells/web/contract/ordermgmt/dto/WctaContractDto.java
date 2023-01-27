@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.risk.dto;
+package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
 import javax.validation.constraints.NotBlank;
 
@@ -11,7 +11,7 @@ public class WctaContractDto {
     // Request Dto
     // *********************************************************
     // 고위험 파트너 Remove Request Dto
-    @ApiModel("WctaContractDto-RemoveReq")
+    @ApiModel("WctaConfirmApprovalDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
         String cntrAprAkDvPk,
@@ -24,7 +24,7 @@ public class WctaContractDto {
     // Result Dto
     // *********************************************************
     // 고위험 파트너 Search Result Dto
-    @ApiModel("WctaContractDto-SearchRes")
+    @ApiModel("WctaConfirmApprovalDto-SearchRes")
     public record SearchRes(
         String cntrAprAkDvCd,
         String cntrAprAkDvPk,

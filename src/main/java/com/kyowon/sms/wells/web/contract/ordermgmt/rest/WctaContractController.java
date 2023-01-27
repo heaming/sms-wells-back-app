@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.risk.rest;
+package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 
 import java.util.List;
 
@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.contract.risk.dto.WctaContractDto.RemoveReq;
-import com.kyowon.sms.wells.web.contract.risk.dto.WctaContractDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.risk.service.WctaContractService;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.RemoveReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaContractService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
 import io.swagger.annotations.Api;
@@ -23,11 +23,11 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WCTA] 확정승인기준 리스트(팝업)")
+@Api(tags = "[WCTA] 확정승인기준 리스트")
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/approval-ask-divides")
+@RequestMapping(CtContractConst.REST_URL_V1 + "/approval-requests")
 public class WctaContractController {
 
     private WctaContractService service;
