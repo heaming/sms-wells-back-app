@@ -53,7 +53,7 @@ public class WsnbHealthCareSmsService {
             updateCount.addAndGet(
                 smsMessageService.sendMessage(
                     SmsSendReqDvo.withTemplateId()
-                        .templateId(yn.equals("Y") ? "Wells18287" : "Wells18286")
+                        .templateId(yn.equals("Y") ? "TMP_SNB_WELLS18287" : "TMP_SNB_WELLS18286")
                         .templateParamMap(paramMap)
                         .destInfo(row.getCstNm().concat("^").concat(row.getCphonIdvTno()))
                         .build()
