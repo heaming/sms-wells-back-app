@@ -60,18 +60,6 @@ public class WctcDangerArbitDto {
         String dangOcStrtdt,
         String dangOjOgId,
         String dangOjPrtnrNo,
-        String dangUncvrCt,
-        String dgr1HgrDgPrtnrNm,
-        String dgr1HgrDgPrtnrNo,
-        String dgr1HgrDgPstnDvCd,
-        String dgr2HgrDgPrtnrNm,
-        String dgr2HgrDgPrtnrNo,
-        String dgr2HgrDgPstnDvCd,
-        String dgr3HgrDgPrtnrNm,
-        String dgr3HgrDgPrtnrNo,
-        String dgr3HgrDgPstnDvCd,
-        String dgr4HgrDgPrtnrNm,
-        String dgr4HgrDgPrtnrNo,
-        String dgr4HgrDgPstnDvCd
+        String dangUncvrCt
     ) {}
 }
