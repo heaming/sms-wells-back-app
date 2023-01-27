@@ -23,20 +23,20 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WCTA] 확정승인기준 리스트")
+@Api(tags = "[WCTA] Contract 공통")
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/approval-requests")
+@RequestMapping(CtContractConst.REST_URL_V1 + "/contracts")
 public class WctaContractController {
 
-    private WctaContractService service;
+    private final WctaContractService service;
 
-    @ApiOperation(value = "승인 요청 구분 조회", notes = "기준일자로 유효시작, 종료일시 에 존재하며, 데이터삭제여부가 Y가 아닌확정승인기준 조회를 한다.")
+    @ApiOperation(value = "확정승인기준 리스트 - 승인 요청 구분 조회", notes = "기준일자로 유효시작, 종료일시 에 존재하며, 데이터삭제여부가 Y가 아닌확정승인기준 조회를 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "standardDt", value = "기준일자", paramType = "query"),
     })
-    @GetMapping
+    @GetMapping("/approval-requests")
     public List<SearchRes> getApprovalAskDivides(
         @RequestParam
         String standardDt
@@ -44,8 +44,8 @@ public class WctaContractController {
         return service.getApprovalAskDivides(standardDt);
     }
 
-    @ApiOperation(value = "승인 요청 리스트 삭제", notes = "계약약승인요청구분코드, 유효시작일시 존재여부 체크 후 삭제한다.")
-    @DeleteMapping
+    @ApiOperation(value = "확정승인기준 리스트 - 승인 요청 리스트 삭제", notes = "계약약승인요청구분코드, 유효시작일시 존재여부 체크 후 삭제한다.")
+    @DeleteMapping("/approval-requests")
     public int removeApprovalAskDivides(
         @RequestBody
         @NotEmpty

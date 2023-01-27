@@ -11,7 +11,7 @@ public class WctaContractDto {
     // Request Dto
     // *********************************************************
     // 고위험 파트너 Remove Request Dto
-    @ApiModel("WctaConfirmApprovalDto-RemoveReq")
+    @ApiModel("WctaContractDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
         String cntrAprAkDvPk,
@@ -24,7 +24,7 @@ public class WctaContractDto {
     // Result Dto
     // *********************************************************
     // 고위험 파트너 Search Result Dto
-    @ApiModel("WctaConfirmApprovalDto-SearchRes")
+    @ApiModel("WctaContractDto-SearchRes")
     public record SearchRes(
         String cntrAprAkDvCd,
         String cntrAprAkDvPk,
