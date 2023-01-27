@@ -6,10 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.contract.risk.converter.WctcRiskAuditConverter;
 import com.kyowon.sms.wells.contract.risk.dto.WctcRiskAuditDto.SearchReq;
 import com.kyowon.sms.wells.contract.risk.dto.WctcRiskAuditDto.SearchRes;
-import com.kyowon.sms.wells.contract.risk.dvo.WctcRiskAuditDvo;
 import com.kyowon.sms.wells.contract.risk.mapper.WctcRiskAuditMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -18,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WctcRiskAuditService {
     private final WctcRiskAuditMapper mapper;
-    private final WctcRiskAuditConverter converter;
 
     @Transactional
     public List<SearchRes> getIrregularBznsInqr(SearchReq dto) {
@@ -31,10 +28,10 @@ public class WctcRiskAuditService {
         int result = 0;
         for (Iterator<String> iterator = dangChkIds.iterator(); iterator.hasNext(); processCount += result) {
             String dangChkId = iterator.next();
-            WctcRiskAuditDvo dangerArbit = converter.mapSaveReqWctcRiskAuditDvo(dangChkId);
+
             mapper.updateDangerCheckIz(dangChkId);
             mapper.updateDangerCheckChHist(dangChkId);
-            result = mapper.insertDangerCheckChHist(dangerArbit);
+            result = mapper.insertDangerCheckChHist(dangChkId);
         }
         return processCount;
     }
