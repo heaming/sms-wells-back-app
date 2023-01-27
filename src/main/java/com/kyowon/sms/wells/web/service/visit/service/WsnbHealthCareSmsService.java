@@ -4,6 +4,7 @@ import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
 import com.kyowon.sflex.common.message.service.SmsMessageService;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbHealthCareSmsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbHealthCareSmsMapper;
+import com.sds.sflex.common.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,15 +42,11 @@ public class WsnbHealthCareSmsService {
         final Map<String, Object> paramMap = new HashMap<>();
         final String callback = "1588-4113";
         for (WsnbHealthCareSmsDvo row : rows) {
-            String yn = row.getPifThpOfrAgYn();
-            if (row.getPifThpOfrAgYn() == null)
-                yn = "N";
-
+            String yn = StringUtil.nvl2(row.getPifThpOfrAgYn(), "N");
             paramMap.clear();
             paramMap.put("cstFnm", row.getCstFnm());
             paramMap.put("cntrNo", row.getCntrNo());
             paramMap.put("callback", callback);
-
             updateCount.addAndGet(
                 smsMessageService.sendMessage(
                     SmsSendReqDvo.withTemplateId()
