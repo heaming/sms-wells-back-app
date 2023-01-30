@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdExpiredRetentionCntrMapper">
+    <select id="selectBlacklistPages" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto$SearchBlacklistRes">
+        SELECT T1.DTA_DL_YN
+             , T1.DTA_DL_YN AS ORGL_DTA_DL_YN
+             , T2.SELL_TP_CD
+             , T3.CNTR_CST_NO
+             , T1.SELL_LM_RSON_CN
+             , T1.SELL_LM_CNTR_NO
+             , T1.SELL_LM_CNTR_SN
+             , T4.CST_KNM
+             , T3.COPN_DV_CD
+             , T4.BRYY_MMDD
+             , T4.BZRNO
+             , T5.OG_NM
+             , T5.PRTNR_KNM
+          FROM TB_SSCT_SELL_LM_OJ_IZ T1
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.SELL_LM_CNTR_NO
+           AND T2.CNTR_SN = T1.SELL_LM_CNTR_SN
+          LEFT OUTER JOIN TB_SSCT_CNTR_BAS T3
+            ON T3.CNTR_NO = T1.SELL_LM_CNTR_NO
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+            ON T4.CST_NO = T3.CNTR_CST_NO
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_CL T5
+            ON T5.PRTNR_NO = T3.SELL_PRTNR_NO
+           AND T5.BASE_YM = SUBSTR(T3.CNTR_CNFM_DTM, 0, 6)
+         WHERE 1 = 1
+           AND T1.SELL_LM_OJ_DRM_CD = '2'
+           AND T1.SELL_LM_CNTR_NO = #{cntrNo}
+           AND T3.CNTR_CST_NO = #{cstNo}
+           AND T5.CST_KNM = #{cstKnm}
+    </select>
+
+    <insert id="insertBlacklist">
+        <selectKey keyProperty="item.sellLmId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD((MAX(SELL_LM_ID) + 1),15,0)
+              FROM TB_SSCT_SELL_LM_OJ_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_SELL_LM_OJ_IZ (
+               SELL_LM_ID
+             , VL_STRT_DTM
+             , VL_END_DTM
+             , SELL_LM_PROCS_TP_CD
+             , SELL_LM_OJ_DRM_CD
+             , SELL_LM_CNTR_NO
+             , SELL_LM_CNTR_SN
+             , SELL_LM_RSON_CN
+             , SELL_LM_OC_DTM
+             , SELL_LM_RLS_DTM
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{item.sellLmId}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHHMMSS')
+             , '99991231235959'
+             , 'E'
+             , '2'
+             , #{item.sellLmCntrNo}
+             , #{item.sellLmCntrSn}
+             , #{item.sellLmRsonCn}
+             , CASE WHEN #{item.dtaDlYn} = 'Y'
+                    THEN TO_CHAR(SYSDATE, 'YYYYMMDDHHMMSS')
+                    ELSE ''
+                     END
+             , CASE WHEN #{item.dtaDlYn} = 'N'
+                    THEN TO_CHAR(SYSDATE, 'YYYYMMDDHHMMSS')
+                    ELSE ''
+                     END
+             , #{item.dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateBlacklist">
+        UPDATE TB_SSCT_SELL_LM_OJ_IZ
+           SET SELL_LM_CNTR_NO = #{sellLmCntrNo}
+             , SELL_LM_CNTR_SN = #{sellLmCntrSn}
+             , SELL_LM_RSON_CN = #{sellLmRsonCn}
+        <if test='dtaDlYn != orglDtaDlYn'>
+            <choose>
+                <when test='dtaDlYn == "Y"'>
+             , SELL_LM_OC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHHMMSS')
+                </when>
+                <otherwise>
+             , SELL_LM_RLS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHHMMSS')
+                </otherwise>
+            </choose>
+        </if>
+              <include refid="COMMON.updateSystemField"/>
+         WHERE SELL_LM_ID = #{sellLmId}
+    </update>
+
+    <delete id="deleteBlacklist">
+        DELETE
+          FROM TB_SSCT_SELL_LM_OJ_IZ
+         WHERE SELL_LM_ID = #{sellLmId}
+    </delete>
+</mapper>
