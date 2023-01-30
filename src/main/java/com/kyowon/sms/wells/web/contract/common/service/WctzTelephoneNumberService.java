@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.contract.common.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.common.dto.WctzTelephoneNumberDto.SearchMpnoRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzTelephoneNumberDto.SearchTnoRes;
@@ -20,7 +19,6 @@ public class WctzTelephoneNumberService {
      * @param cntrNo 계약번호
      * @return 전화번호 DTO
      */
-    @Transactional
     public SearchTnoRes getContractorTnoByCntr(String cntrNo) {
         return mapper.selectContractorTnoByCntr(cntrNo);
     }
@@ -30,7 +28,6 @@ public class WctzTelephoneNumberService {
      * @param cntrNo 계약번호
      * @return 전화번호 DTO
      */
-    @Transactional
     public SearchMpnoRes getContractorMpnoByCntr(String cntrNo) {
         return mapper.selectContractorMpnoByCntr(cntrNo);
     }
@@ -41,7 +38,6 @@ public class WctzTelephoneNumberService {
      * @param dtlCntrSn 상세계약일련번호
      * @return 전화번호 DTO
      */
-    @Transactional
     public SearchTnoRes getInstallerTnoByCntr(String dtlCntrNo, int dtlCntrSn) {
         return mapper.selectInstallerTnoByCntr(dtlCntrNo, dtlCntrSn);
     }
@@ -52,7 +48,6 @@ public class WctzTelephoneNumberService {
      * @param dtlCntrSn 상세계약일련번호
      * @return 전화번호 DTO
      */
-    @Transactional
     public SearchMpnoRes getInstallerMpnoByCntr(String dtlCntrNo, int dtlCntrSn) {
         return mapper.selectInstallerMpnoByCntr(dtlCntrNo, dtlCntrSn);
     }
@@ -62,7 +57,6 @@ public class WctzTelephoneNumberService {
      * @param cntrNo 계약번호
      * @return 전화번호 DTO
      */
-    @Transactional
     public SearchMpnoRes getPartnerMpnoByCntr(String cntrNo) {
         return mapper.selectPartnerMpnoByCntr(cntrNo);
     }
