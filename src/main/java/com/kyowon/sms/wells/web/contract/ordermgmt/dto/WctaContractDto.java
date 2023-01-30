@@ -37,4 +37,38 @@ public class WctaContractDto {
         String vlStrtDtmPk,
         String vlEndDtm
     ) {}
+
+    // 확정승인 요청내역 - 확정 승인 요청 내역 Search Result Dto
+    @ApiModel("WctaContractDto-SearchConfirmAprPsicAksRes")
+    public record SearchConfirmAprPsicAksRes(
+        String cntrAprFwId,
+        String cntrAprAkDvCd,
+        String akPrtnrNo,
+        String rqrNm,
+        String cntrAprFwDvCd,
+        String cntrAprFwDvNm,
+        String rcvUsrNm,
+        String sendDttm,
+        String arpvYn,
+        String arpvId,
+        String aprvNm,
+        String aprvDttm,
+        String cancYn,
+        String ackdReqNm
+    ) {}
+
+    //확정승인 요청내역 - 확정 승인 구매 내역 Search Result Dto
+    @ApiModel("WctaContractDto-SearchConfirmAprPsicPrchssRes")
+    public record SearchConfirmAprPsicPrchssRes(
+        String cntrNo,
+        String cstKnm,
+        String cstGdNm,
+        String rcgvpKnm,
+        String adr,
+        String pdNm,
+        String istDt,
+        String useDiv,
+        String apyTn,
+        String dlqInfo
+    ) {}
 }
