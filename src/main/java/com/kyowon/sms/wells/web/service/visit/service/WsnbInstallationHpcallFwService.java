@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +40,10 @@ public class WsnbInstallationHpcallFwService {
 
         int processCount = 0;
 
+        SimpleDateFormat toDate = new SimpleDateFormat("yyyyMMdd");
+        SimpleDateFormat dtFormat = new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat dtFormatKr = new SimpleDateFormat("yyyy년 MM월 dd일");
+
         for (WsnbInstallationHpcallDvo dvo : dvos) {
 
             SearchReq searchReq = converter.mapWsnbInstallationHpcallDvoToSearchReq(dvo);
@@ -51,6 +56,7 @@ public class WsnbInstallationHpcallFwService {
             }
             /* 차기방문일자 등록했는지 체크 */
             String vstPromDt = mapper.selectVstPromDt(dvo);
+            Date vstPromDate = toDate.parse(vstPromDt);
 
             /* 즉시 발송인지 예약발송인지 */
             int nowTime = Integer.parseInt(DateUtil.getNowTimeString());
@@ -124,24 +130,31 @@ public class WsnbInstallationHpcallFwService {
 
             /* wells399 안내 알림톡 처리는 아직 미정. */
 
-            Map<String, Object> paramMap = new HashMap<>();
-            String hp = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno();
-
-            paramMap.put("cstNm", dvo.getRcgvpKnm());
-            paramMap.put("pdNm", dvo.getPrdtNm());
-            paramMap.put("vstDt", dvo.getWkExcnDt());
-            paramMap.put("hpyUrl", "http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_hpy.do?para=");
-            paramMap.put("paraVal", paraVal);
-            paramMap.put("hpyRejectUrl", "http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_hpy_reject.do?para=");
-            paramMap.put("bcNo", dvo.getBcNo());
-            paramMap.put("nVstDt", vstPromDt);
-            paramMap.put("csmrYr", StringUtils.substring(dvo.getCntrNo(), 1, 4));
-            paramMap.put("csmrCd", StringUtils.substring(dvo.getCntrNo(), 5));
-
             if (templateCode != "") {
                 String[] arr = {"Wells18236", "Wells18237", "Wells18238", "Wells18249", "Wells18250", "Wells18251"};
                 Set<String> btnTcodes = new HashSet<String>(Arrays.asList(arr));
                 int success = 0;
+                /* 템플릿code따라 차기방문일자 포맷 세팅(변경할수있음) */
+
+                if (templateCode == "Wells17903") {
+                    vstPromDt = dtFormat.format(vstPromDate); // yyyy/mm/dd
+                } else {
+                    vstPromDt = dtFormatKr.format(vstPromDate); // yyyy년 mm월 dd일
+                }
+
+                Map<String, Object> paramMap = new HashMap<>();
+                String hp = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno();
+
+                paramMap.put("cstNm", dvo.getRcgvpKnm());
+                paramMap.put("pdNm", dvo.getPrdtNm());
+                paramMap.put("vstDt", dvo.getWkExcnDt());
+                paramMap.put("hpyUrl", "http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_hpy.do?para=");
+                paramMap.put("paraVal", paraVal);
+                paramMap.put("hpyRejectUrl", "http://kiwi-m.kyowon.co.kr/KIWI-W/nosession_hpy_reject.do?para=");
+                paramMap.put("bcNo", dvo.getBcNo());
+                paramMap.put("nVstDt", vstPromDt);
+                paramMap.put("csmrYr", StringUtils.substring(dvo.getCntrNo(), 1, 4));
+                paramMap.put("csmrCd", StringUtils.substring(dvo.getCntrNo(), 5));
                 if (btnTcodes.contains(templateCode)) {
                     /* 버튼형 세팅해주고 알림톡 호출. */
                     KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
