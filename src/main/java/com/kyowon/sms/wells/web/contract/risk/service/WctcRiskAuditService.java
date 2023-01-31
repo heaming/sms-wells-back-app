@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.contract.risk.Service;
+package com.kyowon.sms.wells.web.contract.risk.service;
 
 import java.util.Iterator;
 import java.util.List;
@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.contract.risk.dto.WctcRiskAuditDto.SearchReq;
-import com.kyowon.sms.wells.contract.risk.dto.WctcRiskAuditDto.SearchRes;
-import com.kyowon.sms.wells.contract.risk.mapper.WctcRiskAuditMapper;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcRiskAuditDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcRiskAuditDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.risk.mapper.WctcRiskAuditMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 public class WctcRiskAuditService {
     private final WctcRiskAuditMapper mapper;
 
-    @Transactional
     public List<SearchRes> getIrregularBznsInqr(SearchReq dto) {
         return mapper.selectIrregularBznsInqr(dto);
     }

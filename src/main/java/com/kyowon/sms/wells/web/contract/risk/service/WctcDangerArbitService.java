@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.contract.risk.Service;
+package com.kyowon.sms.wells.web.contract.risk.service;
 
 import java.util.Iterator;
 import java.util.List;
@@ -6,12 +6,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.contract.risk.converter.WctcDangerArbitConverter;
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SaveReq;
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchReq;
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchRes;
-import com.kyowon.sms.wells.contract.risk.dvo.WctcDangerArbitDvo;
-import com.kyowon.sms.wells.contract.risk.mapper.WctcDangerArbitMapper;
+import com.kyowon.sms.wells.web.contract.risk.converter.WctcDangerArbitConverter;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SaveReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
+import com.kyowon.sms.wells.web.contract.risk.mapper.WctcDangerArbitMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;

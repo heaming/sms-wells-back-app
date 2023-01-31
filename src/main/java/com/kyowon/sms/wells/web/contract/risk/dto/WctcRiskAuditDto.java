@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.contract.risk.dto;
+package com.kyowon.sms.wells.web.contract.risk.dto;
 
 import io.swagger.annotations.ApiModel;
 
