@@ -11,7 +11,7 @@ import com.kyowon.sms.wells.contract.risk.dvo.WctcDangerArbitDvo;
 
 @Mapper
 public interface WctcDangerArbitMapper {
-    List<SearchRes> selectDangerArbitMngt(SearchReq dto);
+    List<SearchRes> selectDangerArbitManagerial(SearchReq dto);
 
     int updateDangerCheckIzDlYn(String dangChkId);
 

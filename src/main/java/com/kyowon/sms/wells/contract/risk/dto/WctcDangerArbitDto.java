@@ -10,6 +10,7 @@ public class WctcDangerArbitDto {
     // *********************************************************
     @ApiModel(value = "WctcDangerArbitDto-SearchReq")
     public record SearchReq(
+        @NotBlank
         String searchGubun,
         String startDate,
         String endDate,
@@ -57,7 +58,9 @@ public class WctcDangerArbitDto {
         String dangArbitLvyPc,
         String dangArbitOgNm,
         String dangChkNm,
+        @NotBlank
         String dangOcStrtdt,
+        @NotBlank
         String dangOjOgId,
         String dangOjPrtnrNo,
         String dangUncvrCt

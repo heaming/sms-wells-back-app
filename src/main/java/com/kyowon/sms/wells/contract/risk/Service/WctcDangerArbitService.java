@@ -24,13 +24,12 @@ public class WctcDangerArbitService {
     private final WctcDangerArbitMapper mapper;
     private final WctcDangerArbitConverter converter;
 
-    @Transactional
-    public List<SearchRes> getDangerArbitMngt(SearchReq dto) {
-        return mapper.selectDangerArbitMngt(dto);
+    public List<SearchRes> getDangerArbitManagerial(SearchReq dto) {
+        return mapper.selectDangerArbitManagerial(dto);
     }
 
     @Transactional
-    public int removeDangerArbitMngt(List<String> dangChkIds) {
+    public int removeDangerArbitManagerial(List<String> dangChkIds) {
         int processCount = 0;
         int result = 0;
         for (Iterator<String> iterator = dangChkIds.iterator(); iterator.hasNext(); processCount += result) {
@@ -43,24 +42,24 @@ public class WctcDangerArbitService {
     }
 
     @Transactional
-    public int saveDangerArbitMngt(List<SaveReq> dtos) {
+    public int saveDangerArbitManagerial(List<SaveReq> dtos) {
         int processCount = 0;
         Iterator<SaveReq> iterator = dtos.iterator();
         while (iterator.hasNext()) {
             SaveReq dto = iterator.next();
-            WctcDangerArbitDvo dangerArbitMngt = converter.mapSaveReqWctcDangerArbitDvo(dto);
+            WctcDangerArbitDvo dangerArbitManagerial = converter.mapSaveReqWctcDangerArbitDvo(dto);
             processCount += switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
-                    dangerArbitMngt.setDangMngtPrtnrNo(dangerArbitMngt.getDangOjPrtnrNo());
-                    dangerArbitMngt.setDangMngtPstnDvCd(dangerArbitMngt.getDangOjPstnDvCd());
-                    mapper.insertDangerCheckIz(dangerArbitMngt);
-                    int result = mapper.insertDangerCheckChHistN(dangerArbitMngt.getDangChkId());
+                    dangerArbitManagerial.setDangMngtPrtnrNo(dangerArbitManagerial.getDangOjPrtnrNo());
+                    dangerArbitManagerial.setDangMngtPstnDvCd(dangerArbitManagerial.getDangOjPstnDvCd());
+                    mapper.insertDangerCheckIz(dangerArbitManagerial);
+                    int result = mapper.insertDangerCheckChHistN(dangerArbitManagerial.getDangChkId());
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
                     yield result;
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
-                    mapper.updateDangerCheckIz(dangerArbitMngt);
+                    mapper.updateDangerCheckIz(dangerArbitManagerial);
                     int result = mapper.insertDangerCheckChHistN(dto.dangChkId());
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     yield result;

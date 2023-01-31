@@ -48,31 +48,31 @@ public class WctcDangerArbitController {
         @ApiImplicitParam(name = "employeeNo", value = "사번", paramType = "query"),
     })
     @GetMapping("/managerial-tasks")
-    public List<SearchRes> getIrregularBznsInqr(
+    public List<SearchRes> getDangerArbitManagerial(
         @Valid
         SearchReq dto
     ) {
-        return service.getDangerArbitMngt(dto);
+        return service.getDangerArbitManagerial(dto);
     }
 
     @ApiOperation(value = "비정도 영업 조치 사항 관리 삭제", notes = "비정도 영업 조치 사항 관리 삭제")
     @DeleteMapping("/managerial-tasks")
-    public SaveResponse removeIrgBznsArbitArtc(
+    public SaveResponse removeDangerArbitManagerial(
         @RequestParam
         @NotEmpty
         List<String> dangChkIds
     ) {
-        return SaveResponse.builder().processCount(service.removeDangerArbitMngt(dangChkIds)).build();
+        return SaveResponse.builder().processCount(service.removeDangerArbitManagerial(dangChkIds)).build();
     }
 
     @ApiOperation(value = "비정도 영업 조치 사항 관리 저장", notes = "추가 / 수정한 비정도 영업 조치 사항 목록을 저장한다.")
     @PostMapping("/managerial-tasks")
-    public SaveResponse saveDangerArbitMngt(
+    public SaveResponse saveDangerArbitManagerial(
         @RequestBody
         @Valid
         @NotEmpty
         List<SaveReq> dtos
     ) {
-        return SaveResponse.builder().processCount(service.saveDangerArbitMngt(dtos)).build();
+        return SaveResponse.builder().processCount(service.saveDangerArbitManagerial(dtos)).build();
     }
 }
