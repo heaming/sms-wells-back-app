@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.RemoveReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmAprPsicAksRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmAprPsicPrchssRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
@@ -22,9 +24,16 @@ public class WctaContractService {
     private final WctaContractMapper mapper;
     private final WctaContractConverter converter;
 
-    @Transactional
     public List<SearchRes> getApprovalAskDivides(String standardDt) {
         return mapper.selectApprovalAskDivides(standardDt);
+    }
+
+    public List<SearchConfirmAprPsicAksRes> getConfirmAprPsicAks(String cntrNo) {
+        return mapper.selectConfirmAprPsicAks(cntrNo);
+    }
+
+    public List<SearchConfirmAprPsicPrchssRes> getConfirmAprPsicPrchss(String cntrNo) {
+        return mapper.selectConfirmAprPsicPrchss(cntrNo);
     }
 
     @Transactional
