@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.contract.risk.rest;
+package com.kyowon.sms.wells.web.contract.risk.rest;
 
 import java.util.List;
 
@@ -8,16 +8,13 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.contract.risk.Service.WctcDangerArbitService;
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SaveReq;
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchReq;
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcRiskAuditDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcRiskAuditDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.risk.service.WctcRiskAuditService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -27,15 +24,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WCTC] wells 비정도영업 조치사항 관리")
+@Api(tags = "[WCTC] wells 비정도영업 조치사항 조회")
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/risk-audits/irregular-sales-actions")
-public class WctcDangerArbitController {
-    private final WctcDangerArbitService service;
+@RequestMapping(CtContractConst.REST_URL_V1 + "/risk-audits")
+public class WctcRiskAuditController {
+    private final WctcRiskAuditService service;
 
-    @ApiOperation(value = "비정도영업 조치사항 관리 조회", notes = "조회조건에 따른 비정도영업 조치사항 관리 목록을 조회한다.")
+    @ApiOperation(value = "비정도영업 조치사항 조회", notes = "조회조건에 따른 비정도영업 조치사항 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "searchGubun", value = "조회구분", paramType = "query"),
         @ApiImplicitParam(name = "startDate", value = "조회시작날짜", paramType = "query"),
@@ -47,32 +44,21 @@ public class WctcDangerArbitController {
         @ApiImplicitParam(name = "branchOffice", value = "지점", paramType = "query"),
         @ApiImplicitParam(name = "employeeNo", value = "사번", paramType = "query"),
     })
-    @GetMapping("/managerial-tasks")
-    public List<SearchRes> getDangerArbitManagerial(
+    @GetMapping("/irregular-sales-actions")
+    public List<SearchRes> getIrregularBznsInqr(
         @Valid
         SearchReq dto
     ) {
-        return service.getDangerArbitManagerial(dto);
+        return service.getIrregularBznsInqr(dto);
     }
 
-    @ApiOperation(value = "비정도 영업 조치 사항 관리 삭제", notes = "비정도 영업 조치 사항 관리 삭제")
-    @DeleteMapping("/managerial-tasks")
-    public SaveResponse removeDangerArbitManagerial(
+    @ApiOperation(value = "비정도 영업 조치 사항 삭제", notes = "비정도 영업 조치 사항 삭제")
+    @DeleteMapping("/irregular-sales-actions")
+    public SaveResponse removeIrgBznsArbitArtc(
         @RequestParam
         @NotEmpty
         List<String> dangChkIds
     ) {
-        return SaveResponse.builder().processCount(service.removeDangerArbitManagerial(dangChkIds)).build();
-    }
-
-    @ApiOperation(value = "비정도 영업 조치 사항 관리 저장", notes = "추가 / 수정한 비정도 영업 조치 사항 목록을 저장한다.")
-    @PostMapping("/managerial-tasks")
-    public SaveResponse saveDangerArbitManagerial(
-        @RequestBody
-        @Valid
-        @NotEmpty
-        List<SaveReq> dtos
-    ) {
-        return SaveResponse.builder().processCount(service.saveDangerArbitManagerial(dtos)).build();
+        return SaveResponse.builder().processCount(service.removeIrgBznsArbitArtc(dangChkIds)).build();
     }
 }

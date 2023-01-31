@@ -1,6 +1,8 @@
-package com.kyowon.sms.wells.contract.risk.dto;
+package com.kyowon.sms.wells.web.contract.risk.dto;
 
 import javax.validation.constraints.NotBlank;
+
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 

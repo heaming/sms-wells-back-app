@@ -1,10 +1,10 @@
-package com.kyowon.sms.wells.contract.risk.converter;
+package com.kyowon.sms.wells.web.contract.risk.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.kyowon.sms.wells.contract.risk.dto.WctcDangerArbitDto;
-import com.kyowon.sms.wells.contract.risk.dvo.WctcDangerArbitDvo;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto;
+import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
 
 @Mapper(componentModel = "spring")
 public interface WctcDangerArbitConverter {
