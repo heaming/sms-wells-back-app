@@ -141,4 +141,112 @@
           AND T6.SELL_YN = 'Y'
           AND T6.DTA_DL_YN != 'Y'
     </select>
+    
+    <select id="selectConfirmApprovalBases" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchConfirmApprovalBaseRes">
+        SELECT T1.CNTR_APR_BASE_ID
+             , T1.CNTR_APR_AK_DV_CD
+             , T2.CNTR_APR_AK_DV_CD_NM
+             , T1.CNTR_APR_CHNL_DV_VAL
+             , T1.CNTR_APR_ICHR_DV_CD
+             , T1.ICHR_USR_ID
+             , CASE WHEN T1.PSIC_NM = '0' THEN '' ELSE T1.PSIC_NM END PSIC_NM
+             , T1.VL_STRT_DTM 
+             , T1.VL_END_DTM
+             , T1.NOTY_FW_OJ_YN
+          FROM TB_SSCT_CNTR_APR_BASE_BAS T1
+             , TB_SSCT_CNTR_APR_AK_DV_CD T2
+         WHERE 1=1
+           AND T1.CNTR_APR_AK_DV_CD = T2.CNTR_APR_AK_DV_CD
+         <if test='@MybatisUtils@isNotEmpty(cntrAprSellDvCd)'>
+           AND T1.CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(standardDt)'>
+           AND #{standardDt} BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+         </if>
+           AND T1.DTA_DL_YN != 'Y'
+    </select>
+    
+    <select id="selectCountConfirmApprovalBases" resultType="int">
+         SELECT COUNT(1) AS "CNT"
+           FROM TB_SSCT_CNTR_APR_BASE_BAS
+          WHERE 1=1
+            AND CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
+         <if test='@MybatisUtils@equals(checkType,"U")'>    <!-- Unique : 삭제시 존재 여부 체크, 수정시 변경하려는 자료의 값이 존재하는지 체크 -->
+            AND CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
+            AND CNTR_APR_CHNL_DV_VAL = #{cntrAprChnlDvVal}
+            AND CNTR_APR_ICHR_DV_CD = #{cntrAprIchrDvCd}
+            AND ICHR_USR_ID = #{ichrUsrId}
+            AND VL_STRT_DTM = #{vlStrtDtm}
+            AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
+         </if>
+          <if test='@MybatisUtils@equals(checkType,"A")'>    <!-- Area : 수정시 기존 자료와 기간 중복 체크-->
+            AND CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
+            AND CNTR_APR_CHNL_DV_VAL = #{cntrAprChnlDvVal}
+            AND CNTR_APR_ICHR_DV_CD = #{cntrAprIchrDvCd}
+            AND ICHR_USR_ID = #{ichrUsrId}
+            AND (#{vlStrtDtm} BETWEEN VL_STRT_DTM AND VL_END_DTM
+              OR #{vlEndDtm} BETWEEN VL_STRT_DTM AND VL_END_DTM
+              OR VL_END_DTM BETWEEN #{vlStrtDtm} AND #{vlEndDtm})
+          <if test='@MybatisUtils@isNotEmpty(cntrAprBaseId)'>
+            AND CNTR_APR_BASE_ID != #{cntrAprBaseId}
+          </if>
+         </if>
+    </select>
+    
+    <insert id="insertConfirmApprovalBases">
+        INSERT INTO TB_SSCT_CNTR_APR_BASE_BAS(
+           CNTR_APR_BASE_ID
+         , CNTR_APR_AK_DV_CD
+         , CNTR_APR_SELL_DV_CD
+         , CNTR_APR_CHNL_DV_VAL
+         , CNTR_APR_ICHR_DV_CD
+         , ICHR_USR_ID
+         , PSIC_NM
+         , VL_STRT_DTM
+         , VL_END_DTM
+         , NOTY_FW_OJ_YN
+         <include refid="COMMON.insertSystemField"/>
+    ) VALUES (
+         , TO_CHAR(SELECT NVL(MAX(TO_NUMBER(CNTR_APR_BASE_ID))+1,0) FROM TB_SSCT_CNTR_APR_BASE_BAS)
+         , #{cntrAprAkDvCd}
+         , #{cntrAprSellDvCd}
+         , #{cntrAprChnlDvVal}
+         , #{cntrAprIchrDvCd}
+         , #{ichrUsrId}
+         , #{psicNm}
+         , #{vlStrtDtm}
+         , #{vlEndDtm}
+         , #{notyFwOjYn}
+         <include refid="COMMON.insertSystemFieldValue"/>
+       ) 
+    </insert>
+    
+    <update id="updateConfirmApprovalBases">
+        UPDATE TB_SSCT_CNTR_APR_BASE_BAS
+           SET CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
+             , CNTR_APR_CHNL_DV_VAL = #{cntrAprChnlDvVal}
+             , CNTR_APR_ICHR_DV_CD = #{cntrAprIchrDvCd}
+             , ICHR_USR_ID = #{ichrUsrId}
+             , PSIC_NM = #{psicNm}
+             , VL_STRT_DTM = #{vlStrtDtm}
+             , VL_END_DTM = #{vlEndDtm}
+             , NOTY_FW_OJ_YN = #{notyFwOjYn}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1 
+           AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
+    </update>
+    
+    <update id="deleteConfirmApprovalBases">
+        UPDATE TB_SSCT_CNTR_APR_BASE_BAS
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1 
+           AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
+           AND CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
+           AND CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
+           AND CNTR_APR_CHNL_DV_VAL = #{cntrAprChnlDvVal}
+           AND CNTR_APR_ICHR_DV_CD = #{cntrAprIchrDvCd}
+           AND ICHR_USR_ID = #{ichrUsrId}
+           AND VL_STRT_DTM = #{psicNm}
+    </update>
 </mapper>
