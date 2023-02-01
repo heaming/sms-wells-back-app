@@ -178,7 +178,7 @@ public class WsnbInstallationHpcallFwService {
                                 .templateId(templateId)
                                 .templateParamMap(paramMap)
                                 .destInfo(dvo.getRcgvpKnm() + "^" + hp)
-                                .callback("15884113")
+                                .callback(callbackValue)
                                 .sendDatetime(sendDateTime)
                                 .build();
                         } else {

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallationHpcallFwService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -16,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/installation-hpcall-fws")
 public class WsnbInstallationHpcallFwController {
 
     private final WsnbInstallationHpcallFwService service;
