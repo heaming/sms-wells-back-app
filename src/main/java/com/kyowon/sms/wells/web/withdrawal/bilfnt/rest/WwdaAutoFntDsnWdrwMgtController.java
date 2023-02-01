@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutoFntDsnWdrwCstReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutoFntDsnWdrwCstRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaAutoFntDsnWdrwMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
 import com.sds.sflex.system.config.datasource.PagingResult;

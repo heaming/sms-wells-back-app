@@ -2,11 +2,11 @@ package com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutoFntDsnWdrwCstReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutoFntDsnWdrwCstRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutomaticFntOjYnConfRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchWwdaBilFntAkDtlRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchWwdaBilFntAkDtlRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutoFntDsnWdrwMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
@@ -34,9 +34,9 @@ public interface WwdaAutoFntDsnWdrwMgtMapper {
     /** 자동이체 대상 여부 확인
      * 
      * @param WwdaAutoFntDsnWdrwMgtDvo
-     * @return SearchAutomaticFntOjYnConfRes
+     * @return WwdaAutomaticFntOjYnConfDvo
      */
-    SearchAutomaticFntOjYnConfRes selectAutomaticFntOjYnConf(WwdaAutoFntDsnWdrwMgtDvo dvo);
+    WwdaAutomaticFntOjYnConfDvo selectAutomaticFntOjYnConf(WwdaAutoFntDsnWdrwMgtDvo dvo);
 
     /** 통합청구 등록 고객 확인
      * 

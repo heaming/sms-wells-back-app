@@ -6,12 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.converter.WwdaAutoFntDsnWdrwMgtConverter;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutoFntDsnWdrwCstReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutoFntDsnWdrwCstRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchAutomaticFntOjYnConfRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutomaticFntDsnWdrwDto.SearchWwdaBilFntAkDtlRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchWwdaBilFntAkDtlRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutoFntDsnWdrwMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaAutoFntDsnWdrwMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -61,14 +61,14 @@ public class WwdaAutoFntDsnWdrwMgtService {
             int index = Integer.parseInt(dto.dataRow()) + 1;
             WwdaAutoFntDsnWdrwMgtDvo dvo = converter.mapSaveReqToWwdaAutoFntDsnWdrwMgtDvo(dto);
             // SearchContractDetailInfRes res = mapper.selectContractDetailInf(dvo); // 필요한지 모르곘음
-            SearchAutomaticFntOjYnConfRes res = mapper.selectAutomaticFntOjYnConf(dvo); // 자동이체 대상 여부 확인
-            if (res == null) {
+            WwdaAutomaticFntOjYnConfDvo afyDvo = mapper.selectAutomaticFntOjYnConf(dvo); // 자동이체 대상 여부 확인
+            if (afyDvo == null) {
                 throw new BizException("계약번호를 확인해 주시기 바랍니다.");
             }
-            if (!res.mpyMthdTpCd().equals("110") && !res.mpyMthdTpCd().equals("120")) {
+            if (!afyDvo.getMpyMthdTpCd().equals("110") && !afyDvo.getMpyMthdTpCd().equals("120")) {
                 throw new BizException(index + "번째 라인은 자동이체　대상고객이　아닙니다！");
             }
-            if (!res.fnitAprRsCd().equals("Y")) {
+            if (!afyDvo.getFnitAprRsCd().equals("Y")) {
                 throw new BizException(index + " 번째 라인은  자동이체　계좌승인　고객이　아닙니다！");
             }
             int igCount = mapper.selectItgWdrwRgstCstCk(dvo); // 통합청구 등록 고객 확인
@@ -85,8 +85,8 @@ public class WwdaAutoFntDsnWdrwMgtService {
             }
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
-                    int pkYn = mapper.selectAcFntDsnWdrwBasByPk(dvo); // 기존 데이터가 삭제된 것인지 조회
-                    if (pkYn > 0) {
+                    int checkCount = mapper.selectAcFntDsnWdrwBasByPk(dvo); // 기존 데이터가 삭제된 것인지 조회
+                    if (checkCount > 0) {
                         processCount += mapper.updateAcFntDsnWdrwBasByPk(dvo); // 삭제된 데이터 'N'으로 변경 후 처리
                     } else {
                         int count = mapper.selectAcFntDsnWdrwBasCt(dvo); // 계좌 이체 지정 출금 기본 건수 조회

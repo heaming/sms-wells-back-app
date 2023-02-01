@@ -5,7 +5,7 @@ import javax.validation.constraints.NotBlank;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-public class WwdaAutomaticFntDsnWdrwDto {
+public class WwdaAutoFntDsnWdrwMgtDto {
 
     @ApiModel("WwdaAutomaticFntDsnWdrwDto-SearchAutoFntDsnWdrwCstReq")
     public record SearchAutoFntDsnWdrwCstReq(
@@ -36,12 +36,18 @@ public class WwdaAutomaticFntDsnWdrwDto {
         @NotBlank
         String rowState,
         String dataRow,
+        @NotBlank
         String cntrNo, // 계약번호
+        @NotBlank
         Integer cntrSn, // 계약일련번호
+        @NotBlank
         Integer dsnWdrwAmt, // 지정금액
         Integer dpAmt, // 입금금액
+        @NotBlank
         String fntYn, // 이체구분
+        @NotBlank
         String dsnWdrwFntD, // 이체일
+        @NotBlank
         String dsnWdrwFntPrdCd, // 이체주기코드
         String reInsertYn // 삭제된 코드 재등록 여부 
     ) {}
