@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallationHpcallFw
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationHpcallFwDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationHpcallDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationHpcallFwMapper;
+import com.sds.sflex.common.common.service.ConfigurationService;
 import com.sds.sflex.common.utils.DateUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -34,11 +35,13 @@ public class WsnbInstallationHpcallFwService {
     private final SmsMessageService smsMessageService;
     private final WsnbInstallationHpcallFwMapper mapper;
     private final WsnbInstallationHpcallFwConverter converter;
+    private final ConfigurationService configurationService;
 
     public int sendInstallationHpcallFws() throws Exception {
         List<WsnbInstallationHpcallDvo> dvos = mapper.selectCustomers();
 
         int processCount = 0;
+        String callbackValue = configurationService.getConfigurationValue("CFG_SNB_WELLS_CST_CNR_TNO");
 
         SimpleDateFormat toDate = new SimpleDateFormat("yyyyMMdd");
         SimpleDateFormat dtFormat = new SimpleDateFormat("yyyy/MM/dd");
@@ -133,7 +136,7 @@ public class WsnbInstallationHpcallFwService {
             if (templateCode != "") {
                 String[] arr = {"Wells18236", "Wells18237", "Wells18238", "Wells18249", "Wells18250", "Wells18251"};
                 Set<String> btnTcodes = new HashSet<String>(Arrays.asList(arr));
-                int success = 0;
+                int successCount = 0;
                 /* 템플릿code따라 차기방문일자 포맷 세팅(변경할수있음) */
 
                 if (templateCode == "Wells17903") {
@@ -155,18 +158,19 @@ public class WsnbInstallationHpcallFwService {
                 paramMap.put("nVstDt", vstPromDt);
                 paramMap.put("csmrYr", StringUtils.substring(dvo.getCntrNo(), 1, 4));
                 paramMap.put("csmrCd", StringUtils.substring(dvo.getCntrNo(), 5));
+
                 if (btnTcodes.contains(templateCode)) {
                     /* 버튼형 세팅해주고 알림톡 호출. */
                     KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
                         .templateCode(templateCode)
                         .templateParamMap(paramMap)
                         .destInfo(dvo.getRcgvpKnm() + "^" + hp)
-                        .callback("15884113")
+                        .callback(callbackValue)
                         .build();
-                    success = kakaoMessageService.sendMessage(kakaoSendReqDvo);
+                    successCount = kakaoMessageService.sendMessage(kakaoSendReqDvo);
 
                     /* 버튼형 알림톡 발송 실패시 sms 발송 */
-                    if (success == 0) {
+                    if (successCount == 0) {
                         String templateId = "TMP_SNB_S" + StringUtils.upperCase(templateCode);
                         SmsSendReqDvo smsSendReqDvo;
                         if (sendDateTime != "") {
@@ -182,25 +186,23 @@ public class WsnbInstallationHpcallFwService {
                                 .templateId(templateId)
                                 .templateParamMap(paramMap)
                                 .destInfo(dvo.getRcgvpKnm() + "^" + hp)
-                                .callback("15884113")
+                                .callback(callbackValue)
                                 .build();
                         }
-                        success = smsMessageService.sendMessage(smsSendReqDvo);
+                        successCount = smsMessageService.sendMessage(smsSendReqDvo);
                     }
-                    processCount += success;
+                    processCount += successCount;
                 } else {
                     KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
                         .templateCode(templateCode)
                         .templateParamMap(paramMap)
                         .destInfo(dvo.getRcgvpKnm() + "^" + hp)
-                        .callback("15884113")
+                        .callback(callbackValue)
                         .build();
                     processCount += kakaoMessageService.sendMessage(kakaoSendReqDvo);
                 }
-
             }
         }
-
         return processCount;
     }
 }
