@@ -9,5 +9,7 @@ public class WwdaAutomaticFntOjYnConfDvo {
 
     private String mpyMthdTpCd;
     private String fnitAprRsCd;
+    private String bilNo;
+    private Integer bilDtlSn;
 
 }

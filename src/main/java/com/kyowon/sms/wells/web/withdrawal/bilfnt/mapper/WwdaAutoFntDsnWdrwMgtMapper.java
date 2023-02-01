@@ -4,7 +4,6 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchWwdaBilFntAkDtlRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutoFntDsnWdrwMgtDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -97,9 +96,9 @@ public interface WwdaAutoFntDsnWdrwMgtMapper {
     /** 청구이체요청상세 조회
      * 
      * @param WwdaAutoFntDsnWdrwMgtDvo
-     * @return SearchWwdaBilFntAkDtlRes
+     * @return WwdaAutomaticFntOjYnConfDvo
      */
-    SearchWwdaBilFntAkDtlRes selectBilFntAkDtl(WwdaAutoFntDsnWdrwMgtDvo dvo);
+    WwdaAutomaticFntOjYnConfDvo selectBilFntAkDtl(WwdaAutoFntDsnWdrwMgtDvo dvo);
 
     /** 기존 데이터가 삭제된 것인지 조회
      * 

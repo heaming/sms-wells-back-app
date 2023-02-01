@@ -9,7 +9,6 @@ import com.kyowon.sms.wells.web.withdrawal.bilfnt.converter.WwdaAutoFntDsnWdrwMg
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchWwdaBilFntAkDtlRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutoFntDsnWdrwMgtDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaAutoFntDsnWdrwMgtMapper;
@@ -75,10 +74,10 @@ public class WwdaAutoFntDsnWdrwMgtService {
             if (igCount > 0) {
                 throw new BizException(index + " 번째 라인은  통합출금　등록　고객입니다！");
             }
-            SearchWwdaBilFntAkDtlRes bilVo = mapper.selectBilFntAkDtl(dvo);// 청구이체요청상세 조회
+            WwdaAutomaticFntOjYnConfDvo bilVo = mapper.selectBilFntAkDtl(dvo);// 청구이체요청상세 조회
             if (bilVo != null) {
-                dvo.setBilNo(bilVo.bilNo());
-                dvo.setBilDtlSn(bilVo.bilDtlSn());
+                dvo.setBilNo(bilVo.getBilNo());
+                dvo.setBilDtlSn(bilVo.getBilDtlSn());
             } else { // 추후에 수정 TB_RVCL_BIL_FNT_AK_DTL 데이터 없음
                 dvo.setBilNo("20230131163");
                 dvo.setBilDtlSn(1);

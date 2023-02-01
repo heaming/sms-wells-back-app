@@ -7,14 +7,14 @@ import lombok.Builder;
 
 public class WwdaAutoFntDsnWdrwMgtDto {
 
-    @ApiModel("WwdaAutomaticFntDsnWdrwDto-SearchAutoFntDsnWdrwCstReq")
+    @ApiModel("WwdaAutoFntDsnWdrwMgtDto-SearchAutoFntDsnWdrwCstReq")
     public record SearchAutoFntDsnWdrwCstReq(
         String cntrNo, // 계약번호
         Integer cntrSn, // 계약일련번호
         String sellTpCd // 판매유형코드
     ) {}
 
-    @ApiModel("WwdaAutomaticFntDsnWdrwDto-SearchAutoFntDsnWdrwCstRes")
+    @ApiModel("WwdaAutoFntDsnWdrwMgtDto-SearchAutoFntDsnWdrwCstRes")
     public record SearchAutoFntDsnWdrwCstRes(
         String cntr, // 계약상세번호
         String cstKnm, // 고객성명
@@ -31,7 +31,7 @@ public class WwdaAutoFntDsnWdrwMgtDto {
     ) {}
 
     @Builder
-    @ApiModel("WwdaAutomaticFntDsnWdrwDto-SaveReq")
+    @ApiModel("WwdaAutoFntDsnWdrwMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rowState,
@@ -50,18 +50,6 @@ public class WwdaAutoFntDsnWdrwMgtDto {
         @NotBlank
         String dsnWdrwFntPrdCd, // 이체주기코드
         String reInsertYn // 삭제된 코드 재등록 여부 
-    ) {}
-
-    @ApiModel("WwdaAutomaticFntDsnWdrwDto-SearchAutomaticFntOjYnConfRes")
-    public record SearchAutomaticFntOjYnConfRes(
-        String mpyMthdTpCd, // 납부방식유형코드 
-        String fnitAprRsCd // 금융기관승인결과코드
-    ) {}
-
-    @ApiModel("WwdaAutomaticFntDsnWdrwDto-SearchWwdaBilFntAkDtlRes")
-    public record SearchWwdaBilFntAkDtlRes(
-        String bilNo, // 청구번호
-        Integer bilDtlSn // 청구상세일련번호
     ) {}
 
 }
