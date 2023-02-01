@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "installation-hpcall-fw")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/installation-hpcall-fw")
 public class WsnbInstallationHpcallFwController {
 
     private final WsnbInstallationHpcallFwService service;
