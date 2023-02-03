@@ -14,7 +14,7 @@ import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaInterfaceResultDvo;
 public interface WcsaCustomerInterfaceConverter {
 
     @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "searchType", constant = "1")
+    @Mapping(target = "searchType", constant = "C01")
     SearchParameterTypeReq copy(SearchCustomerInfoReq dto);
 
     @BeanMapping(ignoreByDefault = true)
