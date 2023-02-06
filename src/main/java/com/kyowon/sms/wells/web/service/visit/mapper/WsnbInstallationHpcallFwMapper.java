@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationHpcallFwDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationHpcallDvo;
 
 /**
@@ -18,9 +17,15 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationHpcallDvo;
 @Mapper
 public interface WsnbInstallationHpcallFwMapper {
 
-    List<WsnbInstallationHpcallDvo> selectCustomers();
+    List<WsnbInstallationHpcallDvo> selectCustomers(WsnbInstallationHpcallDvo dvo);
 
     String selectVstPromDt(WsnbInstallationHpcallDvo dvo);
 
-    int selectCountCustomerByPk(SearchReq searchReq);
+    int selectCountCustomerByPk(WsnbInstallationHpcallDvo dvo);
+
+    int updateHappyCallBiztalkFwIz(WsnbInstallationHpcallDvo dvo);
+
+    String selectCountProcessingCase(WsnbInstallationHpcallDvo dvo);
+
+    int updateHappyCallBiztalkFwIzYn(WsnbInstallationHpcallDvo dvo);
 }

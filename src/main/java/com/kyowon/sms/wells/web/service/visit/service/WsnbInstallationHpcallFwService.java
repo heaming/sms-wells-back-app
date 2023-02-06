@@ -10,12 +10,11 @@ import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sflex.common.message.service.SmsMessageService;
-import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallationHpcallFwConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationHpcallFwDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationHpcallDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationHpcallFwMapper;
 import com.sds.sflex.common.common.service.ConfigurationService;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.DbEncUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,14 +33,29 @@ public class WsnbInstallationHpcallFwService {
     private final KakaoMessageService kakaoMessageService;
     private final SmsMessageService smsMessageService;
     private final WsnbInstallationHpcallFwMapper mapper;
-    private final WsnbInstallationHpcallFwConverter converter;
     private final ConfigurationService configurationService;
 
     public int sendInstallationHpcallFws() throws Exception {
-        List<WsnbInstallationHpcallDvo> dvos = mapper.selectCustomers();
 
         int processCount = 0;
         String callbackValue = configurationService.getConfigurationValue("CFG_SNB_WELLS_CST_CNR_TNO");
+        String nowDate = DateUtil.getNowDayString();
+        String nowTime = DateUtil.getNowTimeString();
+        int nowTime2 = Integer.parseInt(nowTime);
+
+        WsnbInstallationHpcallDvo SearchReq = new WsnbInstallationHpcallDvo();
+        SearchReq.setMexnoEncr(DbEncUtil.enc("    "));
+        SearchReq.setChkDt(nowDate);
+        SearchReq.setChkTm(nowTime);
+
+        /* TODO : 해피콜알림톡발송내역 테이블 변경 후 수정 */
+        mapper.updateHappyCallBiztalkFwIz(SearchReq);
+        /* 전체 대상 몇 % 처리 할지 건수 카운팅 100%처리 */
+        String percent = mapper.selectCountProcessingCase(SearchReq);
+
+        SearchReq.setPercent(percent);
+
+        List<WsnbInstallationHpcallDvo> dvos = mapper.selectCustomers(SearchReq);
 
         SimpleDateFormat toDate = new SimpleDateFormat("yyyyMMdd");
         SimpleDateFormat dtFormat = new SimpleDateFormat("yyyy/MM/dd");
@@ -49,12 +63,13 @@ public class WsnbInstallationHpcallFwService {
 
         for (WsnbInstallationHpcallDvo dvo : dvos) {
 
-            SearchReq searchReq = converter.mapWsnbInstallationHpcallDvoToSearchReq(dvo);
-
             String sendDateTime = "";
 
+            /* TODO : 해당건 처리 여부 업데이트 (위치 확인필요) */
+            mapper.updateHappyCallBiztalkFwIzYn(dvo);
+
             /* TODO : pk중복관련 검증 로직 추가되야함 . (테이블 정리 덜 됨) */
-            if (mapper.selectCountCustomerByPk(searchReq) != 0) {
+            if (mapper.selectCountCustomerByPk(dvo) != 0) {
                 break;
             }
             /* 차기방문일자 등록했는지 체크 */
@@ -62,12 +77,11 @@ public class WsnbInstallationHpcallFwService {
             Date vstPromDate = toDate.parse(vstPromDt);
 
             /* 즉시 발송인지 예약발송인지 */
-            int nowTime = Integer.parseInt(DateUtil.getNowTimeString());
 
-            if (nowTime >= 210000 && nowTime <= 240000) {
-                sendDateTime = DateUtil.addDays(DateUtil.getNowDayString(), 1) + "100000";
-            } else if (nowTime >= 0 && nowTime <= 80000) {
-                sendDateTime = DateUtil.getNowDayString() + "100000";
+            if (nowTime2 >= 210000 && nowTime2 <= 240000) {
+                sendDateTime = DateUtil.addDays(nowDate, 1) + "100000";
+            } else if (nowTime2 >= 0 && nowTime2 <= 80000) {
+                sendDateTime = nowDate + "100000";
             }
 
             /* 파라미터 암호화 (GET 방식 파라미터 특수문자(&, +) 잘림 방지 */
