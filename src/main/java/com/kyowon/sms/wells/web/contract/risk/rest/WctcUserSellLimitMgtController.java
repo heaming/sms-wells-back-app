@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMngtDto.SaveReq;
-import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.risk.service.WctcUserSellLimitMngtService;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.risk.service.WctcUserSellLimitMgtService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -32,8 +32,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CtContractConst.REST_URL_V1 + "/sales-limits")
-public class WctcUserSellLimitMngtController {
-    private final WctcUserSellLimitMngtService service;
+public class WctcUserSellLimitMgtController {
+    private final WctcUserSellLimitMgtService service;
 
     @ApiOperation(value = "사용자판매제한 관리", notes = "조회조건에 따른 사용자판매제한 관리 목록을 조회한다.")
     @ApiImplicitParams(value = {
@@ -48,11 +48,11 @@ public class WctcUserSellLimitMngtController {
         @ApiImplicitParam(name = "sellLimit", value = "판매제한", paramType = "query"),
     })
     @GetMapping("/users")
-    public List<SearchRes> getSellLimitList(
+    public List<SearchRes> getSellLimitLists(
         @Valid
         SearchReq dto
     ) {
-        return service.getSellLimitList(dto);
+        return service.getSellLimitLists(dto);
     }
 
     @ApiOperation(value = "사용자판매제한관리 저장", notes = "추가 / 수정한 사용자 판매 제한 관리 목록을 저장한다.")

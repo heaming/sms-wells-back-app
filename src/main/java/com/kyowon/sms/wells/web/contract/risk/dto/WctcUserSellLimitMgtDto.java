@@ -4,7 +4,7 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WctcUserSellLimitMngtDto {
+public class WctcUserSellLimitMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
@@ -53,7 +53,7 @@ public class WctcUserSellLimitMngtDto {
     // *********************************************************
     // Request Cd Check Dto
     // *********************************************************
-    @ApiModel(value = "WctcRiskAuditDto-SearchReq")
+    @ApiModel(value = "WctcRiskAuditDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rowState,

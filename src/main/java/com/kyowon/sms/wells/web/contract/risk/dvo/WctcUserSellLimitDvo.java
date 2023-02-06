@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WctcUserSellLimitMngtDvo {
+public class WctcUserSellLimitDvo {
     private String rowState;
     private String sellBaseId;
     private String sellBaseCd;
