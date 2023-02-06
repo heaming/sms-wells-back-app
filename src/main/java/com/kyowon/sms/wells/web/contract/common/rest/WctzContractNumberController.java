@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.common.rest;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.contract.common.dto.WctzContractNumberDto.SearchRes;
@@ -26,10 +27,11 @@ public class WctzContractNumberController {
 
     @ApiOperation(value = "계약번호 채번", notes = "계약번호와 계약일련번호를 채번한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", example = "W20217674357"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "W20217674357"),
     })
     @GetMapping
     public SearchRes getContractNumber(
+        @RequestParam
         @Nullable
         String cntrNo
     ) {
