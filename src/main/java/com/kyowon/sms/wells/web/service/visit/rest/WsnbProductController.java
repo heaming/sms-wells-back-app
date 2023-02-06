@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,7 +25,7 @@ public class WsnbProductController {
     private final WsnbProductService service;
 
     @ApiOperation(value = "큐빅 CC 홈쇼핑건 상담중 상품변경건", notes = "CuBig CC에서 홈쇼핑건 상담중에 상품변경 요청건에 대하여 확인한다.")
-    @PostMapping
+    @PutMapping
     public SaveResponse editProducts() throws Exception {
         return SaveResponse.builder()
             .processCount(service.editProducts())
