@@ -62,12 +62,12 @@ public class WcsaCustomerInterfaceService {
             //    - 개인고객 호출
             ZcsaCustomerInfoDvo indvCustomerDtl = zcsaCustomerInfoService
                 .getIndvCustomerInfo(pextCustomer.get(0).cstNo());
-            return converter.mapCreateIndvCustomerToCustomerRes(indvCustomerDtl, ifResDvo);
+            return converter.mapCreateCustomerDtlToCustomerRes(indvCustomerDtl, ifResDvo);
         } else {
             //    - 법인고객 호출
             ZcsaCustomerInfoDvo crpCustomerDtl = zcsaCustomerInfoService
                 .getCrpCustomerInfo(pextCustomer.get(0).cstNo());
-            return converter.mapCreateCrpCustomerToCustomerRes(crpCustomerDtl, ifResDvo);
+            return converter.mapCreateCustomerDtlToCustomerRes(crpCustomerDtl, ifResDvo);
         }
 
     }
