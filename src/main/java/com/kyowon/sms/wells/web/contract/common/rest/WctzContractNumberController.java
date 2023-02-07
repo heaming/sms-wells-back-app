@@ -31,8 +31,7 @@ public class WctzContractNumberController {
     })
     @GetMapping
     public SearchRes getContractNumber(
-        @RequestParam
-        @Nullable
+        @RequestParam(required = false)
         String cntrNo
     ) {
         return service.getContractNumber(cntrNo);
