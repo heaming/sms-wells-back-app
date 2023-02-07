@@ -6,7 +6,8 @@ public class CtContractConst {
 
     private CtContractConst() {}
 
-    public static final String REST_URL_V1 = CommConst.REST_URL_V1 + "/sms/edu/contract";
+    public static final String REST_URL_V1 = CommConst.REST_URL_V1 + "/sms/wells/contract";
+    public static final String TNO_DELIM = "-";
 
     public enum CntrStatCd {
         /*

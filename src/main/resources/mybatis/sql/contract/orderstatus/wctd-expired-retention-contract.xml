@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdExpiredRetentionCntrMapper">
+    <select id="selectExpiredRetentionCntrPages" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto$SearchCntrRes">
+        SELECT T1.CNTR_NO
+		     , T1.CNTR_SN
+		     , T2.CNTR_CST_NO
+		     , T3.CST_KNM
+		     , T1.BASE_PD_CD
+		     , T4.PD_NM
+		     , T1.ISTM_MCN
+		     , T5.RECAP_DUTY_PTRM_N
+		     , (SELECT SL_DT
+		          FROM TB_CBCL_CNTR_PERF_MM_CL
+		         WHERE CNTR_NO = T1.CNTR_NO
+		           AND CNTR_SN = T1.CNTR_SN) AS SL_DT
+		     , T1.CNTR_PD_STRTDT + T5.RECAP_DUTY_PTRM_N AS DUTY_USE_DT /* TODO 날짜계산 */
+		     , T1.CNTR_PD_ENDDT AS EXN_DT
+		     , CASE WHEN T1.CNTR_DTL_STAT_CD IN (
+        <foreach collection="canDtlCds" item="code" separator=",">
+               #{code}
+        </foreach>
+               ) THEN T6.HIST_STRT_DTM
+		            ELSE ''
+		             END AS CAN_DT
+		     , CASE WHEN T1.CNTR_DTL_STAT_CD IN (
+        <foreach collection="canDtlCds" item="code" separator=",">
+               #{code}
+        </foreach>
+               )
+		            THEN CASE WHEN T1.CNTR_PD_STRTDT + T5.RECAP_DUTY_PTRM_N > T6.HIST_STRT_DTM THEN 'N'
+		                      ELSE 'Y'
+		                       END
+		            ELSE ''
+		             END AS CAN_CST_DUTY_USE_EXPR_YN
+		  FROM TB_SSCT_CNTR_DTL T1 /* 계약상세 */
+		 INNER JOIN TB_SSCT_CNTR_BAS T2	/* 계약기본 */
+		    ON T2.CNTR_NO = T1.CNTR_NO
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3 /* 고객기본 */
+            ON T3.CST_NO = T2.CNTR_CST_NO
+		  LEFT OUTER JOIN TB_PDBS_PD_BAS T4
+		    ON T4.PD_CD = T1.BASE_PD_CD
+		  LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T5
+		    ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+	      LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6
+		    ON T6.CNTR_NO = T1.CNTR_NO
+		   AND T6.CNTR_SN = T1.CNTR_SN
+		   AND T6.CNTR_DTL_STAT_CD IN (
+        <foreach collection="canDtlCds" item="code" separator=",">
+               #{code}
+        </foreach>
+               )
+		   AND T6.HIST_END_DTM = '99991231235959'
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           /* 계약상세 테이블 계약상품시작일자 + 할부개월수가 입력파라미터의 시작일 ~ 종료일 */
+           AND TO_CHAR(ADD_MONTHS(TO_DATE(T1.CNTR_PD_ENDDT, 'YYYYMMDD'), NVL(T1.ISTM_MCN, 0)), 'YYYYMMDD') BETWEEN #{cntrPdEnddtStrtdt} AND #{cntrPdEnddtEnddt}
+        <if test='@MybatisUtils@isNotEmpty(pdHclsfId)'>
+           AND T1.PD_HCLSF_ID = #{pdHclsfId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
+           AND T1.PD_MCLSF_ID = #{pdMclsfId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
+           AND T1.BASE_PD_CD = #{basePdCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdNm)'>
+           AND T4.PD_NM LIKE '%' || #{pdNm} || '%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(isExcdCan) and @MybatisUtils@equals(isExcdCan, "Y")'>
+           AND T1.CNTR_DTL_STAT_CD NOT IN (
+        <foreach collection="canDtlCds" item="code" separator=",">
+               #{code}
+        </foreach>
+               )
+        </if>
+    </select>
+
+    <select id="getMembershipCntrInfo" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto$FindMshCntrRes">
+        WITH W1 AS (
+                    SELECT OJ_DTL_CNTR_NO, OJ_DTL_CNTR_SN
+                      FROM (
+                            SELECT OJ_DTL_CNTR_NO, OJ_DTL_CNTR_SN
+                              FROM TB_SSCT_CNTR_REL
+                             WHERE CNTR_REL_DTL_CD = '212'
+                               AND BASE_DTL_CNTR_NO = #{cntrNo}
+                               AND BASE_DTL_CNTR_SN = #{cntrSn}
+                             ORDER BY VL_STRT_DTM DESC
+                           )
+                     WHERE ROWNUM = 1
+        )
+        SELECT T1.CNTR_NO AS MSH_CNTR_NO
+             , T1.CNTR_SN AS MSH_CNTR_SN
+             , T2.CNTR_CNFM_DTM AS MSH_CNTR_DT
+             , CASE WHEN T1.CNTR_DTL_STAT_CD IN (
+        <foreach collection="canDtlCds" item="code" separator=",">
+               #{code}
+        </foreach>
+               ) THEN T5.HIST_STRT_DTM
+                    ELSE ''
+                     END AS MSH_CAN_DT
+             , T1.CNTR_PD_ENDDT AS MSH_WDWAL_DT
+             /* 계약자 휴대전화번호 */
+             , T3.CRAL_LOCARA_TNO AS CNTRT_CRAL_LOCARA_TNO
+             , T3.MEXNO_ENCR AS CNTRT_MEXNO_ENCR
+             , T3.CRAL_IDV_TNO AS CNTRT_CRAL_IDV_TNO
+             /* 설치자 휴대전화번호 */
+             , T4.CRAL_LOCARA_TNO AS ISTLL_CRAL_LOCARA_TNO
+             , T4.MEXNO_ENCR AS ISTLL_MEXNO_ENCR
+             , T4.CRAL_IDV_TNO AS ISTLL_CRAL_IDV_TNO
+          FROM W1
+         INNER JOIN TB_SSCT_CNTR_DTL T1
+            ON T1.CNTR_NO = W1.OJ_DTL_CNTR_NO
+           AND T1.CNTR_SN = W1.OJ_DTL_CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = W1.OJ_DTL_CNTR_NO
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3 /* 고객기본 */
+            ON T3.CST_NO = T2.CNTR_CST_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T4 /* 계약주소지기본 */
+            ON T4.CNTR_NO = T1.CNTR_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+           AND T5.CNTR_DTL_STAT_CD IN (
+        <foreach collection="canDtlCds" item="code" separator=",">
+               #{code}
+        </foreach>
+               )
+           AND T5.HIST_END_DTM = '99991231235959'
+    </select>
+</mapper>
