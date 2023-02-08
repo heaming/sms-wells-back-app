@@ -48,8 +48,7 @@ public class WwdaAutoFntDsnWdrwMgtDto {
         @NotBlank
         String dsnWdrwFntD, // 이체일
         @NotBlank
-        String dsnWdrwFntPrdCd, // 이체주기코드
-        String reInsertYn // 삭제된 코드 재등록 여부 
+        String dsnWdrwFntPrdCd // 이체주기코드
     ) {}
 
 }

@@ -20,6 +20,5 @@ public class WwdaAutoFntDsnWdrwMgtDvo {
     private String dsnWdrwFntPrdCd; // 이체주기코드
     private String bilNo; // 이체주기코드
     private Integer bilDtlSn; // 이체주기코드
-    private String reInsertYn; // 재등록여부
 
 }

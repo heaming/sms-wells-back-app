@@ -14,6 +14,8 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +23,16 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(WithdrawalConst.REST_URL_V1)
-@Api(tags = "[WDA] 자동이체 미수신 체크 목록 관리")
+@Api(tags = "[WWDA] 자동이체 미수신 체크 목록 관리")
 public class WwdaAftnCheckListController {
 
     private final WwdaAftnCheckListService service;
 
     @ApiOperation(value = "자동이체 미수신 체크 목록")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "bilDt", value = "기준일자", paramType = "query", required = false, example = "20230208"),
+        @ApiImplicitParam(name = "fntDvCd", value = "이체구분", paramType = "query", required = false, example = "01"),
+    })
     @GetMapping("/w-aftn-nrcv-check-list") // url은 추후에 수정
     public PagingResult<SearchAftnBilNrcvListRes> getAftnBilNrcvListPages(
         @ApiParam
