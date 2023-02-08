@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.orderstatus.mapper;
 
-import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.*;
+import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.SearchReq;
+import static com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto.SearchRes;
 
 import java.util.List;
 
@@ -12,18 +13,12 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WctdExpiredRetentionCntrMapper {
 
-    FindMshCntrRes getMembershipCntrInfo(
-        String cntrNo,
-        String cntrSn,
-        List<String> canDtlCds
-    );
-
-    PagingResult<SearchCntrRes> selectExpiredRetentionCntrPages(
+    PagingResult<SearchRes> selectExpiredRetentionCntrPages(
         SearchReq dto,
         PageInfo pageInfo
     );
 
-    List<SearchCntrRes> selectExpiredRetentionCntrPages(
+    List<SearchRes> selectExpiredRetentionCntrPages(
         SearchReq dto
     );
 }
