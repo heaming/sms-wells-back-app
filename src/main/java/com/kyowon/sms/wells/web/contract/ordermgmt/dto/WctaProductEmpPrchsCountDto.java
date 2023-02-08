@@ -2,11 +2,11 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WctaPdctClsfDvRcpQtyInqrDto {
+public class WctaProductEmpPrchsCountDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel("WctaPdctClsfDvRcpQtyInqrDto-SearchReq")
+    @ApiModel("WctaProductEmpPrchsCountDto-SearchReq")
     public record SearchReq(
         String cntrNo,
         String cntrSn,
