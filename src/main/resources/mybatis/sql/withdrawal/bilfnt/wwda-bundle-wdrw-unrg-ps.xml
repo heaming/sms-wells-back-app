@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaAutoFntBndlWdrwRgstMgtMapper">
+
+    <select id="selectUnregistrationPsInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto$SearchUnrgPsRes">
+            SELECT 
+                    CST_KNM
+                  , PD_NM
+                  , CNTR_PD_STRTDT
+                  ,  CASE WHEN A.MPY_MTHD_TP_CD != B.SDING_MPY_MTHD_TP_CD THEN '01' /*1. 이체구분값 상이*/
+                          WHEN A.MPY_MTHD_TP_CD = '110' THEN
+                            CASE WHEN A.ACNO_ENCR IS NULL THEN '02' /*2. 계좌미등록(기기)*/
+                                 WHEN A.FNIT_APR_RS_CD != 'Y' AND A.FNIT_RSG_FSH_DTM IS NULL THEN '12' /*12. 계좌등록오류(기기)*/
+                                 WHEN A.ACNO_ENCR != B.SDING_ACNO_ENCR THEN '04' /*4.계좌정보 상이*/
+                                 WHEN A.DG_CNTR_NO IS NULL THEN '06' /*6.묶음미등록(계좌-기기)*/
+                                 WHEN A.DG_CNTR_NO != B.SDING_DG_CNTR_NO THEN '10' /*10.대표코드상이(계좌묶음)*/
+                            END
+                          WHEN A.MPY_MTHD_TP_CD = '120' THEN
+                            CASE WHEN A.CRCDNO_ENCR IS NULL THEN '03' /*3. 카드미등록(기기)*/
+                                 WHEN A.CRCDNO_ENCR != B.SDING_CRCDNO_ENCR THEN '05' /*5.카드정보 상이*/
+                                 WHEN A.DG_CNTR_NO IS NULL THEN '07' /*7.묶음출금미등록(카드-기기)*/
+                                 WHEN A.DG_CNTR_NO != B.SDING_DG_CNTR_NO THEN '11' /*11.대표코드상이(카드묶음)*/
+                            END
+                          WHEN B.SDING_MPY_MTHD_TP_CD = '110' THEN 
+                            CASE WHEN B.SDING_DG_CNTR_NO IS NULL THEN '08' /*8.묶음미등록(계좌-모종)*/
+                            END 
+                          WHEN B.SDING_MPY_MTHD_TP_CD = '120' THEN
+                            CASE WHEN B.SDING_DG_CNTR_NO IS NULL THEN '09' /*9.묶음출금미등록(카드-모종)*/
+                            END
+                         ELSE '99'
+                     END UNRG_RSON
+                  , A.CNTR_SN
+                  , A.MPY_MTHD_TP_CD 
+                  , A.FNIT_APR_RS_CD 
+                  , A.ACNO_ENCR
+                  , A.CRCDNO_ENCR
+                  , A.FNIT_RSG_FSH_DTM
+                  , A.DG_CNTR_NO 
+                  , A.BNK_NM
+                  , A.OWR_KNM    
+                  , A.MPY_BSDT
+                  , A.BRYY_MMDD
+                  , B.SDING_CNTR_SN 
+                  , B.SDING_MPY_MTHD_TP_CD
+                  , B.SDING_FNIT_APR_RS_CD
+                  , B.SDING_DG_CNTR_NO
+                  , B.SDING_BNK_NM
+                  , B.SDING_ACNO_ENCR
+                  , B.SDING_CRCDNO_ENCR
+                  , B.SDING_OWR_KNM
+                  , B.SDING_MPY_BSDT
+                  , B.SDING_BRYY_MMDD  
+             FROM (
+                SELECT /* 기기 */
+                    CCB.CST_KNM 
+                  , ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = SCD.BASE_PD_CD) AS PD_NM 
+                  , SCD.CNTR_PD_STRTDT  
+                  
+                  , SCD.CNTR_NO || SCD.CNTR_SN AS CNTR_SN 
+                  , SCSB.MPY_MTHD_TP_CD 
+                  , SCSB.FNIT_APR_RS_CD 
+                  , SCSB.ACNO_ENCR
+                  , SCSB.CRCDNO_ENCR
+                  , SCSB.FNIT_RSG_FSH_DTM
+                  , RIBB.DG_CNTR_NO 
+                  , SCSB.BNK_CD AS BNK_NM
+                  , SCSB.OWR_KNM    
+                  , SCSB.MPY_BSDT
+                  , CCB.BRYY_MMDD 
+                  FROM TB_SSCT_CNTR_DTL SCD
+                  JOIN TB_SSCT_CNTR_BAS SCB
+                    ON SCD.CNTR_NO = SCB.CNTR_NO 
+                  JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                    ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO 
+                   AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN  
+                  JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                    ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                  JOIN TB_CUBS_CST_BAS CCB
+                    ON SCB.CNTR_CST_NO = CCB.CST_NO 
+                  JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                    ON SCD.CNTR_NO = RIBB.SUBOD_CNTR_NO 
+                   AND SCD.CNTR_SN = RIBB.SUBOD_CNTR_SN
+                   AND RIBB.DG_CNTR_NO = RIBB.SUBOD_CNTR_NO 
+                 WHERE RIBB.DTA_DL_YN = 'N'
+                   AND SCB.CNTR_CNFM_DTM >= '20200201000000' /*공유렌탈 시행 시작월 2020.02*/
+                   AND SCB.CNTR_CAN_DTM IS NULL
+                   AND SCSB.MPY_MTHD_TP_CD IN ('110','120')
+                   <!-- AND SCB.CNTR_RCP_FSH_DTM BETWEEN #{cntrPdStrtdt} AND #{cntrPdEnddt} 추후에 수정-->
+              ) A 
+              JOIN ( /* 모종 */
+                   SELECT   
+                        RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN AS SDING_CNTR_SN
+                      , SCSB.MPY_MTHD_TP_CD AS SDING_MPY_MTHD_TP_CD
+                      , SCSB.FNIT_APR_RS_CD AS SDING_FNIT_APR_RS_CD
+                      , RIBB.DG_CNTR_NO AS SDING_DG_CNTR_NO
+                      , SCSB.BNK_CD AS SDING_BNK_NM
+                      , SCSB.ACNO_ENCR AS SDING_ACNO_ENCR
+                      , SCSB.CRCDNO_ENCR AS SDING_CRCDNO_ENCR
+                      , SCSB.OWR_KNM AS SDING_OWR_KNM
+                      , SCSB.MPY_BSDT AS SDING_MPY_BSDT
+                      , CCB.BRYY_MMDD AS SDING_BRYY_MMDD 
+                  FROM TB_SSCT_CNTR_DTL SCD
+                  JOIN TB_SSCT_CNTR_BAS SCB
+                    ON SCD.CNTR_NO = SCB.CNTR_NO 
+                  JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                    ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO 
+                   AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN  
+                  JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                    ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                  JOIN TB_CUBS_CST_BAS CCB
+                    ON SCB.CNTR_CST_NO = CCB.CST_NO 
+                  JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                    ON SCD.CNTR_NO = RIBB.SUBOD_CNTR_NO 
+                   AND SCD.CNTR_SN = RIBB.SUBOD_CNTR_SN
+                   AND RIBB.DG_CNTR_NO != RIBB.SUBOD_CNTR_NO 
+                 WHERE RIBB.DTA_DL_YN = 'N'
+                   AND SCB.CNTR_CNFM_DTM >= '20200201000000' /*공유렌탈 시행 시작월 2020.02*/
+                   AND SCB.CNTR_CAN_DTM IS NULL
+                   AND SCSB.MPY_MTHD_TP_CD IN ('110','120')
+                  <!-- AND SCB.CNTR_RCP_FSH_DTM BETWEEN #{cntrPdStrtdt} AND #{cntrPdEnddt} 추후에 수정-->
+              ) B  
+              ON (A.DG_CNTR_NO = B.SDING_DG_CNTR_NO)
+                 WHERE 1 = 1
+                   AND NOT EXISTS ( <!-- 추후에 수정  -->
+                                        SELECT 1
+                                          FROM TB_RVCL_ITG_BIL_OJ_ERR_IZ
+                                         WHERE 1 = 1
+                                            <if test='@MybatisUtils@equals(unrgRs, "1")'>
+                                           AND AFTN_ITG_UNRG_RSON_CD NOT IN ('2','3','12','13')
+                                            </if>
+                                           <if test='@MybatisUtils@equals(unrgRs, "2")'>
+                                           AND AFTN_ITG_UNRG_RSON_CD IN ('2','3','12','13')
+                                           </if>
+                                    )
+                   AND A.CNTR_SN = #{fullCntr}
+                   
+    </select>
+    
+    <select id="selectBundleRgstRsInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto$SearchRgstHistRes">
+                SELECT 
+                        RIBR.ITG_BIL_PRTC_DTM   
+                      , RIBR.FNL_MDFC_USR_ID    
+                      , RIBR.AFTN_ITG_UNRG_RS_CD    
+                      , RIBR.ERR_CN 
+                      , CCB.CST_KNM 
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = SCD.BASE_PD_CD) AS PD_NM 
+                      , SCB.CNTR_CNFM_DTM   
+                      , RIBR.AFTN_ITG_UNRG_RSON_CD 
+                      
+                      , RIBR.DG_CNTR_SN AS CNTR_SN
+                      , SCSB.MPY_MTHD_TP_CD 
+                      , RIBB.DG_CNTR_SN  
+                      , SCSB.BNK_CD 
+                      , SCSB.ACNO_ENCR  
+                      , SCSB.OWR_KNM    
+                      , SCSB.MPY_BSDT   
+                      , CCB.BRYY_MMDD   
+                      
+                      , RIBR.SUBOD_CNTR_SN AS SDING_CNTR_SN
+                      , SCSB.MPY_MTHD_TP_CD AS SDING_MPY_MTHD_TP_CD
+                      , RIBB.DG_CNTR_SN AS SDING_DG_CNTR_SN
+                      , SCSB.BNK_CD AS SDING_BNK_CD
+                      , SCSB.ACNO_ENCR AS SDING_ACNO_ENCR   
+                      , SCSB.OWR_KNM  AS SDING_OWR_KNM  
+                      , SCSB.MPY_BSDT AS SDING_MPY_BSDT 
+                      , CCB.BRYY_MMDD AS SDING_BRYY_MMDD    
+                  FROM TB_RVCL_ITG_BIL_OJ_ERR_IZ RIBR
+      RIGHT OUTER JOIN TB_SSCT_CNTR_DTL SCD
+                    ON RIBR.DG_CNTR_NO = SCD.CNTR_NO 
+                   AND RIBR.DG_CNTR_SN = SCD.CNTR_SN
+                   AND RIBR.SUBOD_CNTR_NO = SCD.CNTR_NO 
+                   AND RIBR.SUBOD_CNTR_SN = SCD.CNTR_SN 
+                  JOIN TB_SSCT_CNTR_BAS SCB
+                    ON SCB.CNTR_NO = SCD.CNTR_NO 
+      RIGHT OUTER JOIN TB_CUBS_CST_BAS CCB
+                    ON CCB.CST_NO = SCB.CNTR_CST_NO 
+                   /* AND COPN_DV_CD 법인격구분코드 추후에 수정*/ 
+      RIGHT OUTER JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                    ON RIBR.DG_CNTR_NO = RIBB.SUBOD_CNTR_NO 
+                   AND RIBR.DG_CNTR_SN = RIBB.SUBOD_CNTR_SN
+                   AND RIBR.SUBOD_CNTR_NO = RIBB.SUBOD_CNTR_NO 
+                   AND RIBR.SUBOD_CNTR_SN = RIBB.SUBOD_CNTR_SN 
+                   AND RIBB.DG_YN = 'Y'
+                   AND RIBB.FNT_DV_CD IN ('01','02')
+      RIGHT OUTER JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                    ON RIBR.DG_CNTR_NO = SCSR.DTL_CNTR_NO 
+                   AND RIBR.DG_CNTR_SN = SCSR.DTL_CNTR_SN
+                   AND RIBR.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO 
+                   AND RIBR.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN 
+                   AND SCSR.DTA_DL_YN = 'N'
+                  JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                    ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+                 WHERE 1 = 1
+                   AND RIBR.DTA_DL_YN = 'N'
+                   <if test='@MybatisUtils@equals(unrgRs, "1")'>
+                   AND RIBR.AFTN_ITG_UNRG_RS_CD = '00'
+                   </if>
+                   <if test='@MybatisUtils@equals(unrgRs, "2")'>
+                   AND RIBR.AFTN_ITG_UNRG_RS_CD = '01'
+                   </if>
+                   AND RIBR.DG_CNTR_NO = #{cntrNo}
+                   AND RIBR.DG_CNTR_SN = ${cntrSn}
+                   AND RIBR.ITG_BIL_PRTC_DTM BETWEEN #{cntrPdStrtdt} AND #{cntrPdEnddt}
+                                       
+    </select>
+</mapper>
