@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractDetailMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="detailInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailDto$SearchRes">
+        <constructor>
+            <arg name="CNTR_NO" javaType="java.lang.String" column="CNTR_NO"/>
+            <arg name="CNTR_SN" javaType="java.lang.String" column="CNTR_SN"/>
+            <arg name="CNTR_DTL_STAT_CD" javaType="java.lang.String" column="CNTR_DTL_STAT_CD"/>
+            <arg name="CNTR_DTL_STAT_NM" javaType="java.lang.String" column="CNTR_DTL_STAT_NM"/>
+            <arg name="PD_HCLSF_ID" javaType="java.lang.String" column="PD_HCLSF_ID"/>
+            <arg name="PD_HCLSF_NM" javaType="java.lang.String" column="PD_HCLSF_NM"/>
+            <arg name="PD_MCLSF_ID" javaType="java.lang.String" column="PD_MCLSF_ID"/>
+            <arg name="PD_MCLSF_NM" javaType="java.lang.String" column="PD_MCLSF_NM"/>
+            <arg name="PD_LCLSF_ID" javaType="java.lang.String" column="PD_LCLSF_ID"/>
+            <arg name="PD_LCLSF_NM" javaType="java.lang.String" column="PD_LCLSF_NM"/>
+            <arg name="BASE_PD_CD" javaType="java.lang.String" column="BASE_PD_CD"/>
+            <arg name="BASE_PD_NM" javaType="java.lang.String" column="BASE_PD_NM"/>
+            <arg name="CNTRT_NM" javaType="java.lang.String" column="CNTRT_NM"/>
+            <arg name="CNTR_DT" javaType="java.lang.String" column="CNTR_DT"/>
+            <arg name="CRAL_LOCARA_TNO" javaType="java.lang.String" column="CRAL_LOCARA_TNO"/>
+            <arg name="MEXNO" javaType="java.lang.String" column="MEXNO"/>
+            <arg name="CRAL_IDV_TNO" javaType="java.lang.String" column="CRAL_IDV_TNO"/>
+            <arg name="LOCARA_TNO" javaType="java.lang.String" column="LOCARA_TNO"/>
+            <arg name="EXNO" javaType="java.lang.String" column="EXNO"/>
+            <arg name="IDV_TNO" javaType="java.lang.String" column="IDV_TNO"/>
+            <arg name="CNTR_ADRPC_ID" javaType="java.lang.String" column="CNTR_ADRPC_ID"/>
+            <arg name="CNTR_ADR" javaType="java.lang.String" column="CNTR_ADR"/>
+            <arg name="CNTR_DTL_ADR" javaType="java.lang.String" column="CNTR_DTL_ADR"/>
+            <arg name="BRYY_MMDD" javaType="java.lang.String" column="BRYY_MMDD"/>
+            <arg name="SEX_DV_CD" javaType="java.lang.String" column="SEX_DV_CD"/>
+            <arg name="ISTLL_NM" javaType="java.lang.String" column="ISTLL_NM"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectContractDetails" resultMap="detailInfo">
+        SELECT CB.CNTR_NO
+             , CD.CNTR_SN
+             , CD.CNTR_DTL_STAT_CD
+             , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', CD.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM
+             , CD.PD_HCLSF_ID
+             , CD.PD_MCLSF_ID
+             , CD.PD_LCLSF_ID
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_HCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N' AND USE_YN='Y') AS PD_HCLSF_NM
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_MCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N' AND USE_YN='Y') AS PD_MCLSF_NM
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_LCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N' AND USE_YN='Y') AS PD_LCLSF_NM
+             , CD.BASE_PD_CD
+             , PB.PD_NM AS BASE_PD_NM
+             , NVL(CS.CST_KNM, CS.CST_ENM) AS CNTRT_NM
+             , CS.BRYY_MMDD
+             , CS.SEX_DV_CD
+             , SUBSTR(CB.CNTR_CNFM_DTM, 0, 8) AS CNTR_DT
+             , AB.CRAL_LOCARA_TNO
+             , AB.MEXNO_ENCR AS MEXNO
+             , AB.CRAL_IDV_TNO
+             , AB.LOCARA_TNO
+             , AB.EXNO_ENCR AS EXNO
+             , AB.IDV_TNO
+             , AB.CNTR_ADRPC_ID
+             , NVL(AD.RNADR, AD.LTN_ADR) AS CNTR_ADR
+             , NVL(AD.RDADR, AD.LTN_DTL_ADR) AS CNTR_DTL_ADR
+             , NVL(AB.RCGVP_KNM, AB.RCGVP_ENM) AS ISTLL_NM
+          FROM TB_SSCT_CNTR_BAS CB
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CD.DTA_DL_YN != 'Y'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON CD.BASE_PD_CD = PB.PD_CD
+           AND PB.DTA_DL_YN = 'N'
+           AND PB.TEMP_SAVE_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(PD_NM)'>AND PB.PD_NM LIKE '%'||#{PD_NM}||'%'</if>
+        <if test='@MybatisUtils@isNotEmpty(SELL_TP_CD)'>AND PB.SELL_TP_CD = #{SELL_TP_CD}</if>
+         INNER JOIN TB_CUBS_CST_BAS CS
+            ON CB.CNTR_CST_NO = CS.CST_NO
+           AND CS.DTA_DL_YN = 'N'
+           AND CS.TEMP_SAVE_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS AB
+            ON CB.CNTR_NO = AB.CNTR_NO
+           AND CB.CNTR_CST_NO = AB.CNTR_CST_NO
+           AND AB.DTA_DL_YN != 'Y'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS AD
+            ON AB.ADR_ID = AD.ADR_ID
+           AND AD.DTA_DL_YN != 'Y'
+         WHERE CB.CNTR_NO = #{CST_NO}
+           AND CB.DTA_DL_YN != 'Y'
+         ORDER BY CB.CNTR_NO, CD.CNTR_SN, PB.PD_HCLSF_ID, PB.PD_MCLSF_ID, PB.PD_LCLSF_ID
+    </select>
+
+</mapper>
