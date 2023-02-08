@@ -26,6 +26,11 @@ public class WsnbServiceWorkInterfaceDto {
     @ApiModel(value = "WsnbServiceWorkInterfaceDto-CreateRes")
     public record CreateRes(
         String asIstOjNo, // AS설치대상번호
+        String inChnlDvCd, // 입력채널구분코드
+        String svBizHclsfCd, // 서비스업무대분류코드
+        String rcpdt, // 접수일자
+        String cntrNo // 계약번호
+        /*
         String mtrStatCd, // 자료상태코드
         String svBizDclsfCd, // 서비스업무세분류코드
         String urgtYn, // 긴급여부
@@ -39,11 +44,11 @@ public class WsnbServiceWorkInterfaceDto {
         String cnslMoCn, // 상담메모내용
         String refriYn, // 유무상여부
         String mnftCoCd, // 제조회사코드
-        String cntrNo, // 계약번호
         String vstRqdt, // 방문요청일자
         String vstAkHh, // 방문요청시간
         String regUserId, // 입력사용자ID
         String modUserId // 수정사용자ID
+         */
     ) {}
 
 }
