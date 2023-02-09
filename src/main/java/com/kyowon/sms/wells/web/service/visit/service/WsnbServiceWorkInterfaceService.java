@@ -63,8 +63,8 @@ public class WsnbServiceWorkInterfaceService {
             // LC_ASREGN_API_U01M_T
         }
 
-        if (P_WRK_GB_IST_A.equals(P_WRK_TYPE_DTL.substring(0, 2))
-            || P_WRK_GB_IST_B.equals(P_WRK_TYPE_DTL.substring(0, 2))) {
+        if (P_WRK_GB_IST_A.equals(P_WRK_TYPE_DTL)
+            || P_WRK_GB_IST_B.equals(P_WRK_TYPE_DTL)) {
             // LC_ASREGN_API_U02_T 설치 건이면서 KIWI 에서 정상 처리 되었다면 기간계(5250)에 예정일자 업데이트 처리
             log.debug("예정일자 업데이트");
         }
@@ -73,7 +73,7 @@ public class WsnbServiceWorkInterfaceService {
          * 고객 삭제 아니고 웰스팜 기기 설치 오더라면 모종 배송 스케쥴을 생성
          * (output.get("KAETCT") != null && P_WRK_TYP_DTL != null && output.get("KAETCT").toString().equalsIgnoreCase("4E"))
          */
-        if (!P_WRK_GB_DEL_CST.equalsIgnoreCase(P_WRK_GB) && P_WRK_GB_IST_A.equals(P_WRK_TYPE_DTL.substring(0, 2))) {
+        if (!P_WRK_GB_DEL_CST.equalsIgnoreCase(P_WRK_GB) && P_WRK_GB_IST_A.equals(P_WRK_TYPE_DTL)) {
             // LC_ASREGN_API_U05_T 모종 마스터 생성 및 작업 오더 (설치 개념)
             log.debug("모종 마스터 생성 및 작업 오더");
         }
