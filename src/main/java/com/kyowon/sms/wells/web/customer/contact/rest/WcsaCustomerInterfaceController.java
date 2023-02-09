@@ -26,7 +26,7 @@ public class WcsaCustomerInterfaceController {
     private final WcsaCustomerInterfaceService wcsaCustomerInterfaceService;
 
     @ApiOperation(value = "고객번호 기준으로 고객정보를 조회(IF ID:EAI_WCUI1011)", notes = "고객번호에 해당하는 고객 기본/상세 정보 조회")
-    @PostMapping("/{cstNo}")
+    @PostMapping("/")
     public EaiWrapper getCustomerByCstNo(
         @Valid
         @RequestBody
