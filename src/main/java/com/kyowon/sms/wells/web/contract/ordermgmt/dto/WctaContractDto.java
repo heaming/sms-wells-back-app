@@ -14,10 +14,10 @@ public class WctaContractDto {
     @ApiModel("WctaContractDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
-        String cntrAprAkDvPk,
+        String cntrAprAkDvCd,
         @NotBlank
         @ValidDate
-        String vlStartDtmPk
+        String vlStartDtm
     ) {}
 
     //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Request Dto
@@ -52,6 +52,9 @@ public class WctaContractDto {
         String vlEndDtm,
         @NotBlank
         String cntrAprAkDvCdNm,
+
+        @NotBlank
+        String dtaDlYn,
         String notyFwOjYn
     ) {}
 

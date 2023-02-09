@@ -17,5 +17,7 @@ public class WctaCntrAprBaseBasDvo {
     private String psicNm;
     private String vlStrtDtm;
     private String vlEndDtm;
+
+    private String dtaDlYn;
     private String notyFwOjYn;
 }

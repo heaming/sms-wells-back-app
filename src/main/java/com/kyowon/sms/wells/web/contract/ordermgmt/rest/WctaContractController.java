@@ -6,22 +6,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.RemoveConfirmApprovalBaseReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.RemoveReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SaveConfirmApprovalBaseReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmApprovalBaseReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmApprovalBaseRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmAprPsicAksRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmAprPsicPrchssRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaContractService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -96,8 +83,7 @@ public class WctaContractController {
     })
     @GetMapping("/approval-standards/paging")
     public PagingResult<SearchConfirmApprovalBaseRes> getConfirmApprovalBasePages(
-        @RequestBody
-        List<SearchConfirmApprovalBaseReq> dto,
+        SearchConfirmApprovalBaseReq dto,
         @Valid
         PageInfo pageInfo
     ) {
