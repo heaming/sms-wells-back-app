@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper">
+<!-- wpdc-product-material-mgt.xml -->
+    <select id="selectMaterialSapPages" resultType="com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto$SearchSapRes">
+        SELECT M1.SAP_PLNT_VAL             /* SAP플랜트값 */
+             , M1.SAP_MAT_CD               /* SAP자재코드 */
+             , M1.SAP_MAT_NM               /* SAP자재명 */
+             , M1.SAP_MAT_TP_VAL           /* SAP자재유형값 */
+             , M1.SAP_MAT_GRP_VAL          /* SAP자재그룹값 */
+             , M1.SAP_MAT_BAS_UNIT_VAL     /* SAP자재기본단위값 */
+             , M1.SAP_PDCT_SCLSRT_STRC_VAL /* SAP제품계층구조값 */
+             , M1.MODEL_NO                 /* 모델번호 */
+             , M1.SAP_MAT_EVL_CLSS_VAL     /* SAP자재평가클래스값 */
+          FROM TB_GBCO_SAP_MAT_RCV_IZ M1   /* SAP자재수신내역 */
+         WHERE M1.DTA_DL_YN = 'N'          /* 데이터삭제여부 */
+           AND M1.USE_YN != 'X'
+           AND ( M1.SAP_PLNT_VAL BETWEEN '2015' AND '2016' 
+             OR  M1.SAP_PLNT_VAL BETWEEN '2107' AND '2109' )
+         <if test='@MybatisUtils@isNotEmpty(dto.searchCond) and @MybatisUtils@isNotEmpty(dto.searchKeyword)'>
+            <if test="dto.searchCond == 'sapMatCd' ">
+            AND UPPER(M1.SAP_MAT_CD) LIKE '%' || UPPER(#{dto.searchKeyword}) || '%'   /* SAP자재코드 */
+            </if>
+            <if test="dto.searchCond == 'sapMatNm' ">
+            AND UPPER(M1.SAP_MAT_NM) LIKE '%' || UPPER(#{dto.searchKeyword}) || '%'   /* SAP자재명 */
+            </if>
+         </if>
+    </select>
+    
+    <update id="deleteTbPdbsPdRel">
+        UPDATE TB_PDBS_PD_REL M1
+           SET DTA_DL_YN = 'Y'
+         WHERE BASE_PD_CD = #{pdCd}
+         <if test = 'delMode eq "NOTALL"'>
+         AND NOT EXISTS (
+                            SELECT 1
+                              FROM TB_PDBS_PD_REL M2
+                             WHERE m1.pd_rel_id = m2.pd_rel_id
+                               AND M2.DTA_DL_YN = 'N'
+                               AND m2.pd_rel_id  IN 
+                               <foreach item="item" index="index" collection="info" open="(" separator="," close=")">
+                                    #{item.pdRelId}
+                              </foreach>
+                          )
+         </if>
+         <if test = 'delMode eq "ALL"'>
+         AND EXISTS (
+                   SELECT 1
+                     FROM TB_PDBS_PD_REL M2
+                    WHERE M2.DTA_DL_YN = 'N'
+                      AND m2.BASE_PD_CD = #{pdCd}
+           )
+         </if>
+    </update>
+    
+    <update id="mergeEachTbPdbsPdRel">
+        MERGE INTO TB_PDBS_PD_REL T1  /* 상품관계 */
+             USING ( SELECT #{info.pdRelId} AS PD_REL_ID                       /* 상품관계ID */
+                          , #{info.vlStrtDtm} AS VL_STRT_DTM                   /* 유효시작일시 */
+                          , #{info.vlEndDtm} AS VL_END_DTM                     /* 유효종료일시 */
+                          , #{info.basePdCd} AS BASE_PD_CD                     /* 기준상품코드 */
+                          , #{info.pdRelTpCd} AS PD_REL_TP_CD                  /* 상품관계유형코드 */
+                          , #{info.pdRelDtlTpCd} AS PD_REL_DTL_TP_CD           /* 상품관계상세유형코드 */
+                          , #{info.ojPdCd} AS OJ_PD_CD                         /* 대상상품코드 */
+                          , #{info.svPdCd} AS SV_PD_CD                         /* 서비스상품코드 */
+                          , #{info.rltgPdCd} AS RLTG_PD_CD                     /* 실물상품코드 */
+                          , #{info.stplPrdCd} AS STPL_PRD_CD                   /* 약정주기코드 */
+                          , #{info.cpbDvCd} AS CPB_DV_CD                       /* 호환구분코드 */
+                          , #{info.pdGrpId} AS PD_GRP_ID                       /* 상품그룹ID */
+                          , #{info.pdDtlId} AS PD_DTL_ID                       /* 상품상세ID */
+                          , #{info.diviRat} AS DIVI_RAT                        /* 안분비율 */
+                          , NVL(#{info.blamInptYn},'N') AS BLAM_INPT_YN        /* 잔액산입여부 */
+                          , #{info.pdRelPrpVal01} AS PD_REL_PRP_VAL01          /* 상품관계속성값01 */
+                          , #{info.pdRelPrpVal02} AS PD_REL_PRP_VAL02          /* 상품관계속성값02 */
+                          , #{info.pdRelPrpVal03} AS PD_REL_PRP_VAL03          /* 상품관계속성값03 */
+                          , #{info.pdRelPrpVal04} AS PD_REL_PRP_VAL04          /* 상품관계속성값04 */
+                          , #{info.pdRelPrpVal05} AS PD_REL_PRP_VAL05          /* 상품관계속성값05 */
+                          , #{info.pdRelPrpVal06} AS PD_REL_PRP_VAL06          /* 상품관계속성값06 */
+                          , #{info.pdRelPrpVal07} AS PD_REL_PRP_VAL07          /* 상품관계속성값07 */
+                          , #{info.pdRelPrpVal08} AS PD_REL_PRP_VAL08          /* 상품관계속성값08 */
+                          , #{info.pdRelPrpVal09} AS PD_REL_PRP_VAL09          /* 상품관계속성값09 */
+                          , #{info.pdRelPrpVal10} AS PD_REL_PRP_VAL10          /* 상품관계속성값10 */
+                          , NVL(#{info.tempSaveYn},'Y') AS TEMP_SAVE_YN        /* 임시저장여부 */
+                          , NVL(#{info.dtaDlYn},'N') AS DTA_DL_YN              /* 데이터삭제여부 */
+                       FROM DUAL  ) T2
+                ON (T1.PD_REL_ID = T2.PD_REL_ID        /* 상품관계ID */
+                   )
+        WHEN MATCHED THEN
+          UPDATE
+          SET DTA_DL_YN = T2.DTA_DL_YN
+             <if test='@MybatisUtils@isNotEmpty( info.tempSaveYn )'>
+                 , TEMP_SAVE_YN = T2.TEMP_SAVE_YN
+             </if>
+            <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                 PD_REL_ID
+               , VL_STRT_DTM
+               , VL_END_DTM
+               , BASE_PD_CD
+               , PD_REL_TP_CD
+               , PD_REL_DTL_TP_CD
+               , OJ_PD_CD   
+               , SV_PD_CD
+               , RLTG_PD_CD
+               , STPL_PRD_CD
+               , CPB_DV_CD
+               , PD_GRP_ID
+               , PD_DTL_ID
+               , DIVI_RAT
+               , BLAM_INPT_YN
+               , PD_REL_PRP_VAL01
+               , PD_REL_PRP_VAL02
+               , PD_REL_PRP_VAL03
+               , PD_REL_PRP_VAL04
+               , PD_REL_PRP_VAL05
+               , PD_REL_PRP_VAL06
+               , PD_REL_PRP_VAL07
+               , PD_REL_PRP_VAL08
+               , PD_REL_PRP_VAL09
+               , PD_REL_PRP_VAL10
+               , TEMP_SAVE_YN
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField"/>
+          ) VALUES (
+                 (SELECT
+                    CASE 
+                        WHEN MAX(PD_REL_ID) IS NULL  THEN 'PDREL' || '0000000001'
+                        ELSE 'PDREL' || LPAD(MAX(TO_NUMBER(replace(PD_REL_ID,'PDREL')))+1,10,'0')
+                    END
+                   FROM TB_PDBS_PD_REL) /*T2.PD_REL_ID*/
+               , T2.VL_STRT_DTM
+               , T2.VL_END_DTM
+               , T2.BASE_PD_CD
+               , T2.PD_REL_TP_CD
+               , T2.PD_REL_DTL_TP_CD
+               , T2.OJ_PD_CD
+               , T2.SV_PD_CD
+               , T2.RLTG_PD_CD
+               , T2.STPL_PRD_CD
+               , T2.CPB_DV_CD
+               , T2.PD_GRP_ID
+               , T2.PD_DTL_ID
+               , T2.DIVI_RAT
+               , T2.BLAM_INPT_YN
+               , T2.PD_REL_PRP_VAL01
+               , T2.PD_REL_PRP_VAL02
+               , T2.PD_REL_PRP_VAL03
+               , T2.PD_REL_PRP_VAL04
+               , T2.PD_REL_PRP_VAL05
+               , T2.PD_REL_PRP_VAL06
+               , T2.PD_REL_PRP_VAL07
+               , T2.PD_REL_PRP_VAL08
+               , T2.PD_REL_PRP_VAL09
+               , T2.PD_REL_PRP_VAL10
+               , T2.TEMP_SAVE_YN
+               , T2.DTA_DL_YN
+                <include refid="COMMON.insertSystemFieldValue"/>
+          )
+    </update>
+    
+    <update id="deleteEachPdbsPdRels">
+        UPDATE TB_PDBS_PD_REL
+           SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField" />
+         WHERE BASE_PD_CD = #{pdCd}
+    </update>
+    
+</mapper>
