@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceWorkInterfaceDto.CreateReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceWorkInterfaceDto.CreateRes;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbServiceWorkInterfaceService;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstWorkInterfaceDto.CreateReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstWorkInterfaceDto.CreateRes;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbIstWorkInterfaceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -20,23 +20,23 @@ import lombok.RequiredArgsConstructor;
 
 // TODO: API 스펙 확인 후 수정 필요
 @InterfaceController
-@RequestMapping(SnServiceConst.INTERFACE_URL_V1 + "service-works")
-@Api(tags = "[WSNB] 타시스템용 설치/AS/BS/홈케어 서비스 작업 오더 생성 API")
+@RequestMapping(SnServiceConst.INTERFACE_URL_V1 + "installation-works")
+@Api(tags = "[WSNB] 타시스템용(Wells) 설치 오더 생성 API")
 @RequiredArgsConstructor
 @Validated
-public class WsnbServiceWorkInterfaceController {
+public class WsnbIstWorkInterfaceController {
 
-    private final WsnbServiceWorkInterfaceService service;
+    private final WsnbIstWorkInterfaceService service;
 
-    @ApiOperation(value = "설치/AS/BS/홈케어 서비스 작업 오더 생성", notes = "타시스템(kyowonwells, CubigCC, kmembers)에서 설치/AS/BS/홈케어 서비스 작업 오더 생성을 위해 사용한다.")
+    @ApiOperation(value = "설치 오더 생성", notes = "타시스템(Wells)에서 설치/AS/BS/홈케어 서비스 작업 오더 생성을 위해 사용한다.")
     @PostMapping
-    public EaiWrapper createServiceWorks(
+    public EaiWrapper createInstallationWorks(
         @Valid
         @RequestBody
         EaiWrapper<CreateReq> reqEaiWrapper
-    ) throws Exception {
+    ) {
         EaiWrapper<CreateRes> resEaiWrapper = reqEaiWrapper.newResInstance();
-        resEaiWrapper.setBody(service.createServiceWorks(reqEaiWrapper.getBody()));
+        resEaiWrapper.setBody(service.createInstallationWorks(reqEaiWrapper.getBody()));
         return resEaiWrapper;
     }
 
