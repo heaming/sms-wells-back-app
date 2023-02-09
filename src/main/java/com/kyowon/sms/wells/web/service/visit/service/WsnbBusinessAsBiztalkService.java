@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbCnrRcpBzsAsBiztalkDvo;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbCnrRcpBzsAsBiztalkMapper;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbBusinessAsBiztalkDvo;
+import com.kyowon.sms.wells.web.service.visit.mapper.WsnbBusinessAsBiztalkMapper;
 import com.sds.sflex.common.common.service.ConfigurationService;
 import com.sds.sflex.common.utils.DbEncUtil;
 
@@ -27,27 +27,27 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbCnrRcpBzsAsBiztalkService {
+public class WsnbBusinessAsBiztalkService {
     private final KakaoMessageService kakaoMessageService;
-    private WsnbCnrRcpBzsAsBiztalkMapper mapper;
+    private WsnbBusinessAsBiztalkMapper mapper;
     private final ConfigurationService configurationService;
 
     public int sendBusinessAsBiztalks() throws Exception {
         /* mexnoEncr null 체크용 암호화 값 */
         String mexnoEncr = DbEncUtil.enc("    ");
 
-        List<WsnbCnrRcpBzsAsBiztalkDvo> targets = mapper.selectBiztalkTargets(mexnoEncr);
+        List<WsnbBusinessAsBiztalkDvo> targets = mapper.selectBiztalkTargets(mexnoEncr);
 
         int processCount = 0;
         String callbackValue = configurationService.getConfigurationValue("CFG_SNB_WELLS_CST_CNR_TNO");
 
-        for (WsnbCnrRcpBzsAsBiztalkDvo target : targets) {
+        for (WsnbBusinessAsBiztalkDvo target : targets) {
 
             /* 금일 발송 내역 유무 */
             if (mapper.selectCountBiztalkItemization() != 0) {
                 break;
             }
-            WsnbCnrRcpBzsAsBiztalkDvo dvo = mapper.selectBiztalkTarget(target);
+            WsnbBusinessAsBiztalkDvo dvo = mapper.selectBiztalkTarget(target);
             Map<String, Object> paramMap = new HashMap<>();
             String hp = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno();
 

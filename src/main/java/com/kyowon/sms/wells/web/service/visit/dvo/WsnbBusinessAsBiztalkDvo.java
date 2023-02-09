@@ -15,7 +15,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnbCnrRcpBzsAsBiztalkDvo {
+public class WsnbBusinessAsBiztalkDvo {
 
     String svBizHclsfCd; /* 서비스업무대분류코드 */
     String rcpdt; /* 접수일자 */
