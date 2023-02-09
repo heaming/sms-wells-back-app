@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WpdaMaterialMngtService {
+public class WpdaMaterialMgtService {
 
     private final WpdcMaterialMngtMapper mapper;
     private final ZpdcProductConverter productConverter;
@@ -76,7 +76,7 @@ public class WpdaMaterialMngtService {
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
         // #4. 연결상품 INSERT
-        this.updateEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
+        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
 
         // #5. 이력 INSERT
         String startDtm = DateUtil.getDate(new Date());
@@ -91,7 +91,7 @@ public class WpdaMaterialMngtService {
      * @param tbPdbsPdEcomPrpDtls
      * @throws Exception
      */
-    public void updateEachTbPdbsPdRel(String pdCd, List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels)
+    public void editEachTbPdbsPdRel(String pdCd, List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels)
         throws Exception {
 
         if (CollectionUtils.isNotEmpty(tbPdbsPdRels)) {
@@ -127,7 +127,7 @@ public class WpdaMaterialMngtService {
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
-        this.updateEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
+        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
 
         String startDtm = DateUtil.getDate(new Date());
         hisService.createProductHistory(dvo.getPdCd(), startDtm);
