@@ -14,7 +14,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 /* wpdc-product-material-mgt.xml */
 @Mapper
-public interface WpdcMaterialMngtMapper {
+public interface WpdcMaterialMgtMapper {
 
     PagingResult<SearchSapRes> selectMaterialSapPages(@Param("dto")
     SearchSapReq dto, PageInfo pageInfo);
