@@ -17,7 +17,7 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSap
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcRelationMgtService;
-import com.kyowon.sms.wells.web.product.manage.service.WpdaMaterialMngtService;
+import com.kyowon.sms.wells.web.product.manage.service.WpdcMaterialMgtService;
 import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class WpdcMaterialMgtController {
 
-    private final WpdaMaterialMngtService service;
+    private final WpdcMaterialMgtService service;
 
     private final ZpdcProductService cmnService;
 
