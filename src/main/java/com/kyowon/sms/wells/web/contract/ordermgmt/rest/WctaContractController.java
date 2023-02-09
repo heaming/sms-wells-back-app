@@ -97,8 +97,7 @@ public class WctaContractController {
     })
     @GetMapping("/approval-standards/excel-download")
     public List<SearchConfirmApprovalBaseRes> getConfirmApprovalBasesExcelDownload(
-        @RequestBody
-        List<SearchConfirmApprovalBaseReq> dto
+        SearchConfirmApprovalBaseReq dto
     ) {
         return service.getConfirmApprovalBasesExcelDownload(dto);
     }

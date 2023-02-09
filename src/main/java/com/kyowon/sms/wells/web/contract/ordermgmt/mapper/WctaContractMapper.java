@@ -19,7 +19,7 @@ public interface WctaContractMapper {
     List<SearchConfirmAprPsicPrchssRes> selectConfirmAprPsicPrchss(String cntrNo);
 
     List<SearchConfirmApprovalBaseRes> selectConfirmApprovalBases(
-        List<SearchConfirmApprovalBaseReq> dto
+        SearchConfirmApprovalBaseReq dto
     );
 
     PagingResult<SearchConfirmApprovalBaseRes> selectConfirmApprovalBases(

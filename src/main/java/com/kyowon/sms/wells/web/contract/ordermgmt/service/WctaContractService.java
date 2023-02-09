@@ -46,7 +46,7 @@ public class WctaContractService {
     }
 
     public List<SearchConfirmApprovalBaseRes> getConfirmApprovalBasesExcelDownload(
-        List<SearchConfirmApprovalBaseReq> dto
+        SearchConfirmApprovalBaseReq dto
     ) {
         return mapper.selectConfirmApprovalBases(dto);
     }
