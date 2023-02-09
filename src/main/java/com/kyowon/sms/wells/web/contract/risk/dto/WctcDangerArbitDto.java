@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.contract.risk.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 
 public class WctcDangerArbitDto {
@@ -34,10 +32,10 @@ public class WctcDangerArbitDto {
         String dangOjOgId,
         String dangOjPrtnrNm,
         String dangOjPrtnrPstnDvNm,
-        String dgr1HgrDgPrtnrNm,
-        String dgr2HgrDgPrtnrNm,
-        String dgr3HgrDgPrtnrNm,
-        String dgr4HgrDgPrtnrNm,
+        String dgr1LevlDgPrtnrNm,
+        String dgr2LevlDgPrtnrNm,
+        String dgr3LevlDgPrtnrNm,
+        String dgr4LevlDgPrtnrNm,
         String dangChkNm,
         String dangArbitCdNm,
         String dangUncvrCt,
