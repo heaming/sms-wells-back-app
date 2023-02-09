@@ -19,7 +19,7 @@ import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
-import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMngtMapper;
+import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
 import com.sds.sflex.common.common.dvo.UserSessionDvo;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WpdcMaterialMgtService {
 
-    private final WpdcMaterialMngtMapper mapper;
+    private final WpdcMaterialMgtMapper mapper;
     private final ZpdcProductConverter productConverter;
     private final ZpdaClassificationMgtService clsfService;
     private final ZpdcProductMapper productMapper;
