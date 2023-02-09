@@ -7,14 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.RemoveConfirmApprovalBaseReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.RemoveReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SaveConfirmApprovalBaseReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmApprovalBaseReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmApprovalBaseRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmAprPsicAksRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchConfirmAprPsicPrchssRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
@@ -46,14 +39,14 @@ public class WctaContractService {
     }
 
     public PagingResult<SearchConfirmApprovalBaseRes> getConfirmApprovalBasePages(
-        List<SearchConfirmApprovalBaseReq> dto,
+        SearchConfirmApprovalBaseReq dto,
         PageInfo pageInfo
     ) {
         return mapper.selectConfirmApprovalBases(dto, pageInfo);
     }
 
     public List<SearchConfirmApprovalBaseRes> getConfirmApprovalBasesExcelDownload(
-        List<SearchConfirmApprovalBaseReq> dto
+        SearchConfirmApprovalBaseReq dto
     ) {
         return mapper.selectConfirmApprovalBases(dto);
     }

@@ -19,10 +19,10 @@
          </if>
          ORDER BY TO_NUMBER(CNTR_APR_AK_DV_CD)
     </select>
-    
+
     <update id="deleteApprovalAskDivides">
         UPDATE TB_SSCT_CNTR_APR_AK_DV_CD
-           SET DTA_DL_YN = 'Y' 
+           SET DTA_DL_YN = 'Y'
                <include refid="COMMON.updateSystemField"/>
          WHERE 1=1
            AND CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
@@ -40,7 +40,7 @@
                     ELSE ''
                END                                          AS CNTR_APR_FW_DV_NM       /*요청구분 1:요청,4:취소*/
              , LISTAGG(T2.RCV_USR_NM,',') WITHIN GROUP (ORDER BY T1.AK_PRTNR_NO) AS RCV_USR_NM
-             , TO_CHAR(MIN(T2.FW_DTM),'YYYY.MM.DD HH24:MI:SS') AS SEND_DTTM           /*발송일시*/     
+             , TO_CHAR(MIN(T2.FW_DTM),'YYYY.MM.DD HH24:MI:SS') AS SEND_DTTM           /*발송일시*/
              , MIN(CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN T1.APR_YN ELSE '-' END)     AS APRV_YN     /*승인 여부*/
              , MIN(CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN T1.APR_USR_ID ELSE '-' END) AS APRV_ID     /*승인자 사번*/
              , MIN(CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN T1.APR_USR_NM ELSE '-' END) AS APRV_NM     /*승인자 명*/
@@ -49,28 +49,28 @@
              , MIN(T3.CNTR_APR_AK_DV_CD_NM)                                              AS ACKD_REQ_NM      /*승인 요청 명*/
          FROM TB_SSCT_CNTR_APR_IZ T1                        /* T.계약승인내역     WPN_DFNT_ACKD_REQ REQ */
          LEFT OUTER JOIN TB_SSCT_CNTR_APR_FW_HIST T2        /* T.계약승인발송이력   WPN_DFNT_ACKD_MSG MSG */
-            ON T1.CNTR_APR_ID = T2.CNTR_APR_ID                  /* 계약승인ID (MIG DATA 맞지 않음)*/ 
+            ON T1.CNTR_APR_ID = T2.CNTR_APR_ID                  /* 계약승인ID (MIG DATA 맞지 않음)*/
          LEFT OUTER JOIN TB_SSCT_CNTR_APR_AK_DV_CD T3       /* T.계약승인요청구분코드 WPN_DFNT_ACKD_BAS BAS */
-           ON T1.CNTR_APR_AK_DV_CD = T3.CNTR_APR_AK_DV_CD   /* 계약승인요청구분코드 */ 
-        WHERE 1=1 
+           ON T1.CNTR_APR_AK_DV_CD = T3.CNTR_APR_AK_DV_CD   /* 계약승인요청구분코드 */
+        WHERE 1=1
           AND T1.CNTR_NO = #{cntrNo}/* 계약번호 */
           AND T1.DTA_DL_YN != 'Y'  /* 데이터삭제여부 */
         GROUP BY T1.CNTR_APR_AK_DV_CD, T2.CNTR_APR_FW_DV_CD, T1.CNTR_APR_AK_DV_CD /*계약승인ID, 계약승인발송구분코드, 계약승인요청구분코드*/
         ORDER BY T1.CNTR_APR_AK_DV_CD, T2.CNTR_APR_FW_DV_CD, T1.CNTR_APR_AK_DV_CD /*계약승인ID, 계약승인발송구분코드, 계약승인요청구분코드*/
     </select>
-    
+
     <select id="selectConfirmAprPsicPrchss" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchConfirmAprPsicPrchssRes">
         SELECT T2.CNTR_NO || T2.CNTR_SN  AS CNTR_NO /* 계약번호 */
              , T3.CST_KNM  /* 계약자명 */
              , NVL((SELECT CASE WHEN CST_GD_CD = '2' THEN 'VIP' ELSE '일반' END        /* 고객등급 */
                   FROM TB_SSCT_CST_GD_ESTM_IZ T10 /* T.고객등급산정내역*/
                  WHERE 1=1
-                  AND T10.CST_NO = T0.CNTR_CST_NO       /* 고객번호 */  
+                  AND T10.CST_NO = T0.CNTR_CST_NO       /* 고객번호 */
                   AND T10.VL_END_DTM = '99991231235959' /* 유효종료일시*/
                   AND T10.DTA_DL_YN != 'Y'               /* 데이터삭제여부*/
                   AND T10.CST_GD_ESTM_DT = (SELECT MAX(CST_GD_ESTM_DT)
                                              FROM TB_SSCT_CST_GD_ESTM_BAI_IZ T11 /*고객등급산정근거내역*/
-                                            WHERE 1=1 
+                                            WHERE 1=1
                                               AND T11.CNTR_NO = T2.CNTR_NO  /* 계약변호*/
                                               AND T11.CNTR_SN = T2.CNTR_SN  /* 계약일련번호 */
                                               AND T11.DTA_DL_YN != 'Y'
@@ -88,52 +88,52 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', T2.CNTR_DTL_STAT_CD) AS TCNTR_DTL_STAT_CD2  /* 사용구분 1:관리,2:탈퇴,3:취소, 0:완료 */
              , T8.APY_TN                            AS APY_TN   /* 렌탈회차(적용회차) : 월마감실적에 생성될예정*/
              , T9.DLQ_MCN || '/' ||T9.DLQ_OC_AMT    AS DLQ_INFO /* 연체개월/금액 */
-          FROM TB_SSCT_CNTR_BAS T0                  /* T.계약기본 (계약번호)*/      
-         INNER JOIN TB_SSCT_CNTR_BAS T1             /* T.계약기본 (고객번호)*/      
+          FROM TB_SSCT_CNTR_BAS T0                  /* T.계약기본 (계약번호)*/
+         INNER JOIN TB_SSCT_CNTR_BAS T1             /* T.계약기본 (고객번호)*/
             ON T0.CNTR_CST_NO = T1.CNTR_CST_NO      /* 고객번호로 계약 찾기*/
          INNER JOIN TB_SSCT_CNTR_DTL T2             /* T.계약상세 */
             ON T1.CNTR_NO = T2.CNTR_NO
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T3        /* T.고객기본 */ 
-            ON T3.CST_NO = T1.CNTR_CST_NO           
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3        /* T.고객기본 */
+            ON T3.CST_NO = T1.CNTR_CST_NO
           LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T5 /* T.계약주소지기본 */
-            ON T5.CNTR_CST_NO = T1.CNTR_CST_NO      
-           AND T5.CNTR_NO = T1.CNTR_NO           
-           AND T5.DTA_DL_YN != 'Y'               
+            ON T5.CNTR_CST_NO = T1.CNTR_CST_NO
+           AND T5.CNTR_NO = T1.CNTR_NO
+           AND T5.DTA_DL_YN != 'Y'
           LEFT OUTER JOIN TB_GBCO_ADR_BAS T51       /* T.주소기본 */
-            ON T51.ADR_ID = T5.ADR_ID           
+            ON T51.ADR_ID = T5.ADR_ID
           LEFT OUTER JOIN TB_PDBS_PD_BAS T6         /* T.상품기본 */
-            ON T6.PD_CD = T2.BASE_PD_CD                    
+            ON T6.PD_CD = T2.BASE_PD_CD
           LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T7 /* T.계약WELLS상세 */
-            ON T7.CNTR_NO = T2.CNTR_NO              /* 계약번호 */       
-           AND T7.CNTR_SN = T2.CNTR_SN          
-           LEFT OUTER JOIN LATERAL (SELECT * 
+            ON T7.CNTR_NO = T2.CNTR_NO              /* 계약번호 */
+           AND T7.CNTR_SN = T2.CNTR_SN
+           LEFT OUTER JOIN LATERAL (SELECT *
                                      FROM (SELECT T80.CNTR_NO
                                                 , T80.CNTR_SN
                                                 , /*T8.APY_TN*/ 'TODO'  AS APY_TN   /* 렌탈회차 */
                                              FROM TB_CBCL_CNTR_PERF_MM_CL T80       /* T.계약실적월마감 */
-                                            WHERE 1=1 
-                                              AND T80.CNTR_NO = T2.CNTR_NO 
-                                              AND T80.CNTR_SN = T2.CNTR_SN 
+                                            WHERE 1=1
+                                              AND T80.CNTR_NO = T2.CNTR_NO
+                                              AND T80.CNTR_SN = T2.CNTR_SN
                                               AND T80.BASE_YM IN (TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM'), TO_CHAR(SYSDATE,'YYYYMM'))
                                             ORDER BY T80.BASE_YM DESC
                                             )
-                                      WHERE ROWNUM= 1  
+                                      WHERE ROWNUM= 1
             ) T8
-            ON T8.CNTR_NO = T2.CNTR_NO 
-           AND T8.CNTR_SN = T2.CNTR_SN 
-          LEFT OUTER JOIN LATERAL (SELECT * 
-                                     FROM (SELECT T90.CNTR_NO, T90.CNTR_SN, T90.DLQ_MCN, T90.DLQ_OC_AMT 
+            ON T8.CNTR_NO = T2.CNTR_NO
+           AND T8.CNTR_SN = T2.CNTR_SN
+          LEFT OUTER JOIN LATERAL (SELECT *
+                                     FROM (SELECT T90.CNTR_NO, T90.CNTR_SN, T90.DLQ_MCN, T90.DLQ_OC_AMT
                                              FROM TB_CBCL_DLQ_BAS T90         /* T.연체기본 */
-                                            WHERE 1=1 
-                                              AND T90.CNTR_NO = T2.CNTR_NO 
-                                              AND T90.CNTR_SN = T2.CNTR_SN 
+                                            WHERE 1=1
+                                              AND T90.CNTR_NO = T2.CNTR_NO
+                                              AND T90.CNTR_SN = T2.CNTR_SN
                                               AND T90.BASE_YM IN (TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM'), TO_CHAR(SYSDATE,'YYYYMM'))
                                             ORDER BY T90.BASE_YM DESC
                                             )
-                                      WHERE ROWNUM= 1  
+                                      WHERE ROWNUM= 1
             ) T9
-            ON T9.CNTR_NO = T2.CNTR_NO 
-           AND T9.CNTR_SN = T2.CNTR_SN 
+            ON T9.CNTR_NO = T2.CNTR_NO
+           AND T9.CNTR_SN = T2.CNTR_SN
         WHERE 1=1
           AND T0.CNTR_NO = #{cntrNo}
           AND T2.SELL_TP_CD = '2' /*렌탈*/
@@ -141,7 +141,7 @@
           AND T6.SELL_YN = 'Y'
           AND T6.DTA_DL_YN != 'Y'
     </select>
-    
+
     <select id="selectConfirmApprovalBases" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchConfirmApprovalBaseRes">
         SELECT T1.CNTR_APR_BASE_ID
              , T1.CNTR_APR_AK_DV_CD
@@ -150,14 +150,14 @@
              , T1.CNTR_APR_ICHR_DV_CD
              , T1.ICHR_USR_ID
              , CASE WHEN T1.PSIC_NM = '0' THEN '' ELSE T1.PSIC_NM END PSIC_NM
-             , T1.VL_STRT_DTM 
+             , T1.VL_STRT_DTM
              , T1.VL_END_DTM
              , T1.NOTY_FW_OJ_YN
           FROM TB_SSCT_CNTR_APR_BASE_BAS T1
              , TB_SSCT_CNTR_APR_AK_DV_CD T2
          WHERE 1=1
            AND T1.CNTR_APR_AK_DV_CD = T2.CNTR_APR_AK_DV_CD
-         <if test='@MybatisUtils@isNotEmpty(cntrAprSellDvCd)'>
+         <if test='@MybatisUtils@isNotEmpty(cntrAprAkDvCd)'>
            AND T1.CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
          </if>
          <if test='@MybatisUtils@isNotEmpty(standardDt)'>
@@ -165,7 +165,7 @@
          </if>
            AND T1.DTA_DL_YN != 'Y'
     </select>
-    
+
     <select id="selectCountConfirmApprovalBases" resultType="int">
          SELECT COUNT(1) AS "CNT"
            FROM TB_SSCT_CNTR_APR_BASE_BAS
@@ -192,7 +192,7 @@
           </if>
          </if>
     </select>
-    
+
     <insert id="insertConfirmApprovalBases">
         INSERT INTO TB_SSCT_CNTR_APR_BASE_BAS(
            CNTR_APR_BASE_ID
@@ -205,9 +205,10 @@
          , VL_STRT_DTM
          , VL_END_DTM
          , NOTY_FW_OJ_YN
+         , DTA_DL_YN
          <include refid="COMMON.insertSystemField"/>
     ) VALUES (
-         , TO_CHAR(SELECT NVL(MAX(TO_NUMBER(CNTR_APR_BASE_ID))+1,0) FROM TB_SSCT_CNTR_APR_BASE_BAS)
+           (SELECT NVL(MAX(TO_NUMBER(CNTR_APR_BASE_ID))+1,0) FROM TB_SSCT_CNTR_APR_BASE_BAS)
          , #{cntrAprAkDvCd}
          , #{cntrAprSellDvCd}
          , #{cntrAprChnlDvVal}
@@ -217,10 +218,11 @@
          , #{vlStrtDtm}
          , #{vlEndDtm}
          , #{notyFwOjYn}
+         , NVL(#{dtaDlYn}, 'N')
          <include refid="COMMON.insertSystemFieldValue"/>
-       ) 
+       )
     </insert>
-    
+
     <update id="updateConfirmApprovalBases">
         UPDATE TB_SSCT_CNTR_APR_BASE_BAS
            SET CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
@@ -232,15 +234,15 @@
              , VL_END_DTM = #{vlEndDtm}
              , NOTY_FW_OJ_YN = #{notyFwOjYn}
                <include refid="COMMON.updateSystemField"/>
-         WHERE 1=1 
+         WHERE 1=1
            AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
     </update>
-    
+
     <update id="deleteConfirmApprovalBases">
         UPDATE TB_SSCT_CNTR_APR_BASE_BAS
            SET DTA_DL_YN = 'Y'
                <include refid="COMMON.updateSystemField"/>
-         WHERE 1=1 
+         WHERE 1=1
            AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
            AND CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
            AND CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
