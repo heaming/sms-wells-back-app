@@ -82,8 +82,8 @@ public class WpdcMaterialMgtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "상품코드", value = "PD_CD", paramType = "path", required = true)
     })
-    @DeleteMapping("/{pd-cd}")
-    public SaveResponse removeMaterial(@PathVariable("pd-cd")
+    @DeleteMapping("/{pdCd}")
+    public SaveResponse removeMaterial(@PathVariable
     String pdCd) throws Exception {
         return SaveResponse.builder().processCount(service.removeMaterial(pdCd)).build();
     }
