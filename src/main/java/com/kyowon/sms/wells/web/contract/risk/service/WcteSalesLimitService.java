@@ -84,7 +84,7 @@ public class WcteSalesLimitService {
     }
 
     @Transactional
-    public int removeEntrepreneurJoinLmOjss(String[] sellLmIds) {
+    public int removeEntrepreneurJoinLmOjss(List<String> sellLmIds) {
         int processCount = 0;
 
         for (String sellLmId : sellLmIds) {

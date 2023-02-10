@@ -77,7 +77,7 @@ public class WcteSalesLimitController {
     @DeleteMapping
     public SaveResponse removeEntrepreneurJoinLmOjss(
         @RequestParam
-        String[] sellLmIds
+        List<String> sellLmIds
     ) {
         return SaveResponse.builder()
             .processCount(service.removeEntrepreneurJoinLmOjss(sellLmIds))
