@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.visit.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * <pre>
  * W-SV-S-0013 PR_KIWI_WRK_CREATE_V2M 호출 로그 저장
@@ -15,7 +17,9 @@ public class WsnbCallingLogSaveDto {
     @ApiModel(value = "WsnbCallingLogSaveDto-CreateReq")
     public record CreateReq(
         /* TODO : 로그 저장 테이블 확정되면 정비 */
+        @NotBlank
         String asIstOjNo, /* AS설치대상번호 */
+        @NotBlank
         String histChDtm, /* 이력변경일시 */
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
@@ -26,6 +30,7 @@ public class WsnbCallingLogSaveDto {
         String rcpSvBizDclsfCd, /* 접수서비스업무세분류코드 */
         String rcpdt, /* 접수일자 */
         String rcpHh, /* 접수시간 */
+        @NotBlank
         String urgtYn, /* 긴급여부 */
         String vstRqdt, /* 방문요청일자 */
         String vstAkHh, /* 방문요청시간 */
@@ -34,6 +39,7 @@ public class WsnbCallingLogSaveDto {
         String cnslTpLclsfCd, /* 상담유형소분류코드 */
         String asRefriDvCd, /* AS유무상구분코드 */
         String bfsvcRefriDvCd, /* BS유무상구분코드 */
+        @NotBlank
         String smsFwYn, /* SMS발송여부 */
         String dpDvCd, /* 입금구분코드 */
         String svEtAmt, /* 서비스예상금액 */

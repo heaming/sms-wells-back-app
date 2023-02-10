@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/calling-log-save")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/calling-logs")
 @Api(tags = "[WSNB] PR_KIWI_WRK_CREATE_V2M 호출 로그 저장 REST API")
 @RequiredArgsConstructor
 @Slf4j
@@ -31,7 +30,6 @@ public class WsnbCallingLogSaveController {
     public SaveResponse createCallingLog(
         @Valid
         @RequestBody
-        @NotEmpty
         CreateReq dto
     ) throws Exception {
         return SaveResponse.builder()
