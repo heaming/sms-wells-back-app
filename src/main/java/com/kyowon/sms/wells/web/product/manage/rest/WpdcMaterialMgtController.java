@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,11 +37,9 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class WpdcMaterialMgtController {
 
-    private final WpdcMaterialMgtService service;
-
     private final ZpdcProductService cmnService;
-
     private final ZpdcRelationMgtService relationService;
+    private final WpdcMaterialMgtService service;
 
     @ApiOperation(value = "교재/자재 단건 조회")
     @GetMapping("/{pdCd}")
@@ -67,9 +66,24 @@ public class WpdcMaterialMgtController {
             .build();
     }
 
+    @ApiOperation(value = "교재/자재 수정", notes = "수정된 교재/자재 정보를 반영한다.")
+    @PutMapping
+    public SaveResponse editMaterial(
+        @Valid
+        @RequestBody
+        ZpdcMaterialMgtDto.EditReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .data(service.editMaterial(dto))
+            .build();
+    }
+
     @ApiOperation(value = "교재/자재 삭제")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "상품코드", value = "PD_CD", paramType = "path", required = true)
+    })
     @DeleteMapping("/{pdCd}")
-    public SaveResponse removeMaterial(@PathVariable("pdCd")
+    public SaveResponse removeMaterial(@PathVariable
     String pdCd) throws Exception {
         return SaveResponse.builder().processCount(service.removeMaterial(pdCd)).build();
     }
