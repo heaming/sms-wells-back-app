@@ -26,15 +26,20 @@ public class WctiContractInstallService {
      */
     @Transactional
     public String editContractInstall(WctiContractInstallDto.SaveReq req) {
+        String returnFlag = "N";
         WctiContractInstallDvo dvo = converter.mapSaveReqToWctiContractInstallDvo(req);
 
         //update install info
-        int result = mapper.updateContractInstall(dvo);
+        int resultCount = mapper.updateContractInstall(dvo);
 
         //save history
-        mapper.updateContractInstallHistory(dvo);
-        mapper.insertContractInstallHistory(dvo);
+        if (resultCount >= 1) {
+            returnFlag = "Y";
 
-        return (result >= 1) ? "Y" : "N";
+            mapper.updateContractInstallHistory(dvo);
+            mapper.insertContractInstallHistory(dvo);
+        }
+
+        return returnFlag;
     }
 }
