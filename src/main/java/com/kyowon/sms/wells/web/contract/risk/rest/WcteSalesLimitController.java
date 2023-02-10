@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/sales-limits/business-partners/")
+@RequestMapping(CtContractConst.REST_URL_V1 + "/sales-limits/business-partners")
 public class WcteSalesLimitController {
 
     private final WcteSalesLimitService service;
