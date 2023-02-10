@@ -12,7 +12,7 @@ public class WctzPartnerDto {
     // *********************************************************
     //  Search Result Dto
     @ApiModel("WctzPartnerDto-SearchEntrepreneurBasesRes")
-    public record SearchEntrepreneurBasesRes(
+    public record SearchEntrepreneurBaseRes(
         String dlpnrCd,
         String dlpnrNm,
         String dlgpsNm,

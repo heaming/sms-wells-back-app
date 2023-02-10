@@ -1,14 +1,13 @@
 package com.kyowon.sms.wells.web.contract.common.rest;
 
-import static com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchEntrepreneurBasesRes;
+import static com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchEntrepreneurBaseRes;
 
 import java.util.List;
-
-import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.contract.common.service.WctzPartnerService;
@@ -34,8 +33,8 @@ public class WctzPartnerController {
         @ApiImplicitParam(name = "dlpnrCd", value = "사업자번호", paramType = "query", required = true),
     })
     @GetMapping
-    public List<SearchEntrepreneurBasesRes> getEntrepreneurBases(
-        @Valid
+    public List<SearchEntrepreneurBaseRes> getEntrepreneurBases(
+        @RequestParam
         String dlpnrCd
     ) {
         return service.getEntrepreneurBases(dlpnrCd);

@@ -40,7 +40,6 @@ public class WcteSalesLimitController {
     })
     @GetMapping("/paging")
     public PagingResult<SearchEntrpJLmOjRes> getEntrepreneurJoinLmOjssPages(
-        @Valid
         SearchEntrpJLmOjReq dto,
         @Valid
         PageInfo pageInfo
@@ -58,7 +57,6 @@ public class WcteSalesLimitController {
     })
     @GetMapping("/excel-download")
     public List<SearchEntrpJLmOjRes> getSalesLimitsForExcelDownload(
-        @Valid
         SearchEntrpJLmOjReq dto
     ) {
         return service.getEntrepreneurJoinLmOjssExcelDownload(dto);
@@ -67,7 +65,6 @@ public class WcteSalesLimitController {
     @ApiOperation(value = "wells 사업자 가입제한 대상 저장", notes = "wells 사업자 가입제한 대상 관리를 저장한다.")
     @PostMapping
     public SaveResponse saveEntrepreneurJoinLmOjss(
-        @Valid
         @RequestBody
         List<SaveEntrpJLmOjReq> dtos
     ) {
@@ -79,9 +76,8 @@ public class WcteSalesLimitController {
     @ApiOperation(value = "wells 사업자 가입제한 대상 삭제", notes = "wells 사업자 가입제한 대상 관리를 삭제한다.")
     @DeleteMapping
     public SaveResponse removeEntrepreneurJoinLmOjss(
-        @Valid
-        @RequestBody
-        List<String> sellLmIds
+        @RequestParam
+        String[] sellLmIds
     ) {
         return SaveResponse.builder()
             .processCount(service.removeEntrepreneurJoinLmOjss(sellLmIds))
