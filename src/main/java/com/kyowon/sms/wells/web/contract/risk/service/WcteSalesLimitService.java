@@ -62,8 +62,8 @@ public class WcteSalesLimitService {
 
                     mapper.updateEntrepreneurJoinLmOjss(dvo);
                     int result = mapper.insertEntrepreneurJoinLmOjss(dvo);
-
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+
                     yield result;
                 }
                 case CommConst.ROW_STATE_CREATED -> {
