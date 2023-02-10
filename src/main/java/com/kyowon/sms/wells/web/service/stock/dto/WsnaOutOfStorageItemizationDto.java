@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiModel;
  * W-SV-U-0141M01 출고관리
  * </pre>
  *
- * @author songTaeSung 
+ * @author songTaeSung
  * @since 2023.02.02
  */
 public class WsnaOutOfStorageItemizationDto {
@@ -20,6 +20,8 @@ public class WsnaOutOfStorageItemizationDto {
         String wareDvCd, /*창고구분*/
         String strOjWareNo, /*입고창고번호*/
         String ostrWareDvCd, /*출고창고구분코드*/
+        String ostrWareNoD,
+        String ostrWareNoM,
         String divide /*구분*/
 
     ) {}
