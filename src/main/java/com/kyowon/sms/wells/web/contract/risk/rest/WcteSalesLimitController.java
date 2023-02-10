@@ -65,7 +65,7 @@ public class WcteSalesLimitController {
     }
 
     @ApiOperation(value = "wells 사업자 가입제한 대상 저장", notes = "wells 사업자 가입제한 대상 관리를 저장한다.")
-    @PutMapping
+    @PostMapping
     public SaveResponse saveEntrepreneurJoinLmOjss(
         @Valid
         @RequestBody
