@@ -53,7 +53,7 @@ public class WctiContractIntallController {
             rsProcsYn = "N";
         } else {
             // 서비스 메소드 호출
-            rsProcsYn = service.editContractInstallInf(req);
+            rsProcsYn = service.editContractInstall(req);
         }
 
         // Response Body 세팅

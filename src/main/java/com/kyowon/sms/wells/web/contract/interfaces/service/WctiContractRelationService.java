@@ -22,6 +22,6 @@ public class WctiContractRelationService {
     * @return      list
     */
     public List<SearchRes> getRelatedContracts(SearchReq req) {
-        return mapper.getRelatedContracts(req);
+        return mapper.selectRelatedContracts(req);
     }
 }
