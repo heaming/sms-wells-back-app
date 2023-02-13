@@ -146,7 +146,7 @@ public class WsncAsInterfaceDto {
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchServiceContentsReq")
     public record SearchServiceContentsReq(
         @NotBlank
-        String cstSvAsnNo
+        String cntrNo
     ) {}
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchServiceContentsRes")
