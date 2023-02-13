@@ -13,7 +13,7 @@ public class WctaCntrAprAkDvCdDvo {
     private String cntrAprAkMsgCn;
     private String cntrAprCanMsgCn;
     private String cntrAprConfMsgCn;
-    private String vlStartDtm;
-    private String vlStartDtmPk;
+    private String vlStrtDtm;
+    private String vlStrtDtmPk;
     private String vlEndDtm;
 }
