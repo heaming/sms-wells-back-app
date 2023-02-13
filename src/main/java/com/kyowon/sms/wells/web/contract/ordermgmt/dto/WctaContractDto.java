@@ -17,7 +17,7 @@ public class WctaContractDto {
         String cntrAprAkDvCd,
         @NotBlank
         @ValidDate
-        String vlStartDtm
+        String vlStrtDtm
     ) {}
 
     //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Request Dto
@@ -87,6 +87,7 @@ public class WctaContractDto {
         String cntrAprConfMsgCn,
         String vlStrtDtm,
         String vlStrtDtmPk,
+
         String vlEndDtm
     ) {}
 
@@ -127,6 +128,10 @@ public class WctaContractDto {
     //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Result Dto
     @ApiModel("WctaContractDto-SearchConfirmApprovalBaseRes")
     public record SearchConfirmApprovalBaseRes(
+
+        String cntrAprBaseId,
+
+        String cntrAprSellDvCd,
         String cntrAprAkDvCd,
         String cntrAprChnlDvVal,
         String cntrAprIchrDvCd,
