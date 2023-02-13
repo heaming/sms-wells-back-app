@@ -14,26 +14,27 @@ public class WctcRiskAuditDto {
     @ApiModel(value = "WctcRiskAuditDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String searchGubun,
+        String srchGbn,
         @ValidDate
-        String startDate,
+        String dangOcStrtdt,
         @ValidDate
-        String endDate,
+        String dangOcEnddt,
         @ValidMonth
-        String startMonth,
+        String dangOcStrtMonth,
         @ValidMonth
-        String endMonth,
-        String generalDivision,
-        String regionalGroup,
-        String branchOffice,
-        String employeeNo,
-        String positionDivide
+        String dangOcEndMonth,
+        String gnrdv,
+        String rgrp,
+        String brch,
+        String dangOjPrtnrNo,
+        String dangMngtPrtnrNo
     ) {}
     // *********************************************************
     // Response Dto
     // *********************************************************
     @ApiModel(value = "WctcRiskAuditDto-SearchRes")
     public record SearchRes(
+        String dangChkId,
         String wellsOjPstnRankNm,
         String dangMngtPntnrOgNm,
         String dangMngtPntnrOgCd,
