@@ -122,7 +122,7 @@
                           AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 내역(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
                        ) ELSE '' END) AS DGR3_LEVL_DG_PRTNR_NO /* 지점 */
                  , A.DANG_CHK_NM /* 위험점검내역.위험점검명 */
-                 , B.DANG_ARBIT_CD_NM /* 위험조치코드.위험조치코드명 */
+                 , AFMDBS.F_CMZ_CD_NM ('TNT_WELLS', 'PNTSC_ARBIT_ATC_CD', A.DANG_ARBIT_CD) AS DANG_ARBIT_CD_NM /* [벌점 - 조치항목] - 공통코드 벌점조치항목 PNTSC_ARBIT_ATC_CD */
                  , A.DANG_UNCVR_CT /* 위험점검내역.위험적발건수 */
                  , A.DANG_ARBIT_LVY_PC /* 위험점검내역.위험조치부과점수 */
                  , (
@@ -132,15 +132,9 @@
                        AND C.OG_ID = A.DANG_ARBIT_OG_ID /* 월조직내역.조직ID = 위험점검내역.위험조치조직ID  */
                    ) AS DANG_ARBIT_OG_NM /* [벌점 - 조치부서] - 월조직내역.조직명 */
                  , A.FST_RGST_USR_ID /* 위험점검내역.최초등록사용자ID */
-                 , SUBSTR(A.FST_RGST_DTM,0,6) AS FST_RGST_DT /* 위험점검내역.최초등록일시 */
+                 , SUBSTR(A.FST_RGST_DTM,0,8) AS FST_RGST_DT /* 위험점검내역.최초등록일시 */
                  , A.DANG_MNGT_PRTNR_NO  /* 위험점검내역.위험관리파트너번호 */
             FROM TB_SSCT_DANG_CHK_IZ A /* 위험점검내역 */
-            LEFT OUTER JOIN WSMDBS.TB_SSCT_DANG_ARBIT_CD B /* 위험조치코드 */
-                    ON B.DANG_ARBIT_CD = A.DANG_ARBIT_CD /* 위험조치코드.위험조치코드 = 위험점검내역.위험조치코드*/
-                   AND B.DTA_DL_YN != 'Y' /* 위험조치코드.데이터삭제여부가 'Y'가 아닌 건*/
-                   /* 위험조치코드 유효시작일시, 유효종료일시는 위험점검내역 위험 */
-                   AND B.VL_STRT_DTM   <![CDATA[ >= ]]> A.DANG_OC_STRTDT /* 위험조치코드.유효시작일시 >= 위험점검내역.위험발생시작일자 */
-                   AND B.VL_END_DTM  <![CDATA[ <= ]]>  A.DANG_OC_ENDDT/* 위험조치코드.유효종료일시 >= 위험점검내역.위험발생종료일자 */
              WHERE 1=1
              AND A.DTA_DL_YN = 'N'
             /* 조회조건 - 적용기간(등록일자 또는 발생년월) FROM~TO */
@@ -160,7 +154,7 @@
                                 AND A.DANG_OC_ENDDT <![CDATA[<= ]]> TO_CHAR(LAST_DAY(TRIM(#{dangOcEndMonth})||'01'),'YYYYMMDD') /* 위험점검내역.최초등록일시 입력한 TO년월 */
                             </if>
                         </if>
-            GROUP BY A.DANG_OJ_PRTNR_NO, A.DANG_OC_STRTDT, A.DANG_OJ_OG_ID, A.DANG_MNGT_PRTNR_NO, A.DANG_CHK_NM, B.DANG_ARBIT_CD_NM, A.DANG_UNCVR_CT, A.FST_RGST_USR_ID, A.FST_RGST_DTM, DANG_ARBIT_OG_ID, DANG_ARBIT_LVY_PC
+            GROUP BY A.DANG_OJ_PRTNR_NO, A.DANG_OC_STRTDT, A.DANG_OJ_OG_ID, A.DANG_MNGT_PRTNR_NO, A.DANG_CHK_NM, A.DANG_ARBIT_CD, A.DANG_UNCVR_CT, A.FST_RGST_USR_ID, A.FST_RGST_DTM, DANG_ARBIT_OG_ID, DANG_ARBIT_LVY_PC
                 ) G
             WHERE 1=1
                 <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
