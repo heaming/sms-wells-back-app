@@ -9,13 +9,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Lists;
 import com.kyowon.sms.wells.web.contract.common.service.WctzAddressService;
 import com.kyowon.sms.wells.web.contract.common.service.WctzTelephoneNumberService;
 import com.kyowon.sms.wells.web.contract.risk.converter.WctcIncompletenessSalesConverter;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto.SearchByCntrNoReq;
-import com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto.SearchInfoRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcIcptSellChHistDvo;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcIncompletenessSellIzDvo;
@@ -41,38 +39,22 @@ public class WctcIncompletenessSalesService {
         return "Y".equals(mapper.isValidCntrs(dto));
     }
 
-    private List<SearchRes> getIncompletenessSalesPages(List<SearchInfoRes> sales) {
-        List<SearchRes> results = Lists.newArrayList();
-        sales.forEach((sale) -> {
-            results.add(
-                converter.mapIncompletenessSaleInfosToSearchRes(
-                    sale, telephoneNumberService.getInstallerMpnoByCntr(sale.baseCntrNo(), sale.baseCntrSn()),
-                    addressService.getInstallerAddressByCntr(sale.baseCntrNo(), sale.baseCntrSn()),
-                    addressService.getInstallerAddressByCntr(sale.ojCntrNo(), sale.ojCntrSn())
-                )
-            );
-        });
-        return results;
-    }
-
     public SearchRes getIncompletenessSales(SearchByCntrNoReq dto) {
         if (isValidCntrs(dto)) {
-            List<SearchInfoRes> sales = mapper.selectIncompletenessSales(dto);
-            List<SearchRes> searchRes = getIncompletenessSalesPages(sales);
-            if (CollectionUtils.isNotEmpty(searchRes)) {
-                return searchRes.get(0);
+            List<SearchRes> sales = mapper.selectIncompletenessSales(dto);
+            if (CollectionUtils.isNotEmpty(sales)) {
+                return sales.get(0);
             }
         }
         throw new BizException("MSG_ALT_INVALID_DEVICE_CHANGE");
     }
 
     public PagingResult<SearchRes> getIncompletenessSalesPages(SearchReq dto, PageInfo pageInfo) {
-        PagingResult<SearchInfoRes> sales = mapper.selectIncompletenessSalePages(dto, pageInfo);
-        return new PagingResult(getIncompletenessSalesPages(sales.getList()), pageInfo);
+        return mapper.selectIncompletenessSalePages(dto, pageInfo);
     }
 
     public List<SearchRes> getIncompletenessSalesForExcelDownload(SearchReq dto) {
-        return getIncompletenessSalesPages(mapper.selectIncompletenessSalePages(dto));
+        return mapper.selectIncompletenessSalePages(dto);
     }
 
     @Transactional
@@ -88,6 +70,7 @@ public class WctcIncompletenessSalesService {
                     int result = mapper.insertIncompletenessSales(dvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     // 저장 성공 시 이력 생성
+                    hist.setIcptSellId(dvo.getIcptSellId());
                     mapper.insertIncompletenessSalesHist(hist);
                     yield result;
                 }
