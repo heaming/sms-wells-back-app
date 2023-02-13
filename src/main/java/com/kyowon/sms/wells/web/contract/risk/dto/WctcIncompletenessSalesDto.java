@@ -2,6 +2,9 @@ package com.kyowon.sms.wells.web.contract.risk.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -54,35 +57,6 @@ public class WctcIncompletenessSalesDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 기기변경 부정행위 1차조회 Search Result Dto
-    @ApiModel("IncompletenessSalesDto-SearchInfoRes")
-    public record SearchInfoRes(
-        String icptSellProcsTpCd,
-        String icptSellRsonCn,
-        String baseCntrNo,
-        int baseCntrSn,
-        String ojCntrNo,
-        int ojCntrSn,
-        String icptSellExrDt,
-        String cntrPdStrtdt,
-        String baseUsedCpsYn,
-        String baseChdvcRerntYn,
-        String baseIstDt,
-        String baseReqdDt,
-        String baseIstGapMm,
-        String basePdCd,
-        String prtnrKnm,
-        String prtnrNo,
-        String locaraCd,
-        String ogCd,
-        String ojChdvcRerntYn,
-        String ojIstDt,
-        String ojReqdDt,
-        String ojIstGapMm,
-        String ojPdCd,
-        String fnlMdfcDtm
-    ) {}
-
     // 기기변경 부정행위 Search Result Dto
     @ApiModel("IncompletenessSalesDto-SearchRes")
     public record SearchRes(
@@ -100,6 +74,9 @@ public class WctcIncompletenessSalesDto {
         String baseIstDt,
         String baseReqdDt,
         String baseIstGapMm,
+        String baseCralLocaraTno,
+        String baseMexnoEncr,
+        String baseCralIdvTno,
         String baseMpno,
         String basePdCd,
         String baseAdr,
@@ -115,5 +92,10 @@ public class WctcIncompletenessSalesDto {
         String ojPdCd,
         String ojAdr,
         String fnlMdfcDtm
-    ) {}
+    ) {
+        public SearchRes {
+            baseMpno = baseCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(baseMexnoEncr)
+                + CtContractConst.TNO_DELIM + baseCralIdvTno;
+        }
+    }
 }

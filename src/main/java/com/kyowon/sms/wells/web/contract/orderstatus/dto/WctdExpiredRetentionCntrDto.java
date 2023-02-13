@@ -6,6 +6,7 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
@@ -65,8 +66,17 @@ public class WctdExpiredRetentionCntrDto {
         String cntrtCralLocaraTno,
         String cntrtMexnoEncr,
         String cntrtCralIdvTno,
+        String cntrtMpno,
         String istllCralLocaraTno,
         String istllMexnoEncr,
-        String istllCralIdvTno
-    ) {}
+        String istllCralIdvTno,
+        String istllMpno
+    ) {
+        public SearchRes {
+            cntrtMpno = cntrtCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(cntrtMexnoEncr)
+                + CtContractConst.TNO_DELIM + cntrtCralIdvTno;
+            istllMpno = istllCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(istllMexnoEncr)
+                + CtContractConst.TNO_DELIM + istllCralIdvTno;
+        }
+    }
 }
