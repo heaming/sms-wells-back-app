@@ -2,6 +2,9 @@ package com.kyowon.sms.wells.web.contract.risk.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -27,7 +30,6 @@ public class WctcSalesLimitsDto {
     public record SaveBlacklistReq(
         @NotBlank
         String rowState,
-        @NotBlank
         String sellLmId,
         String sellLmCntrNo,
         int sellLmCntrSn,
@@ -41,61 +43,64 @@ public class WctcSalesLimitsDto {
     // Result Dto
     // *********************************************************
     // 접수제한 관리-블랙리스트 Search Result Dto
-    @ApiModel("WctcSalesLimitsDto-SearchBlacklistInfoRes")
-    public record SearchBlacklistInfoRes(
-        boolean isIndv,
-        String sellLmId,
-        String dtaDlYn,
-        String orglDtaDlYn,
-        String sellTpCd,
-        String sellLmCntrNo,
-        int sellLmCntrSn,
-        String sellLmRsonCn,
-        String cntrCstNo,
-        String cstKnm,
-        String bryyMmdd,
-        String bzrno,
-        String ogNm,
-        String prtnrKnm,
-        String prtnrNo,
-        String fstRgstDtm,
-        String fstRgstUsrId,
-        String fnlMdfcDtm,
-        String fnlMdfcUsrId,
-        String orglFnlMdfcDtm
-    ) {}
-
     @ApiModel("WctcSalesLimitsDto-SearchBlacklistRes")
     public record SearchBlacklistRes(
-        boolean isIndv,
         String sellLmId,
         String dtaDlYn,
         String orglDtaDlYn,
         String sellTpCd,
+        String cntrCstNo,
+        String sellLmRsonCn,
         String sellLmCntrNo,
         int sellLmCntrSn,
-        String sellLmRsonCn,
-        String cntrCstNo,
         String cstKnm,
+        String copnDvCd,
         String bryyMmdd,
         String bzrno,
+        String cntrCralLocaraTno,
+        String cntrMexnoEncr,
+        String cntrCralIdvTno,
         String cntrMpno,
+        String cntrLocaraTno,
+        String cntrExnoEncr,
+        String cntrIdvTno,
         String cntrTno,
         String cntrZip,
         String cntrAdr,
         String istllKnm,
+        String istllCralLocaraTno,
+        String istllMexnoEncr,
+        String istllCralIdvTno,
         String istllMpno,
+        String istllLocaraTno,
+        String istllExnoEncr,
+        String istllIdvTno,
         String istllTno,
         String istllZip,
         String istllAdr,
         String ogNm,
         String prtnrKnm,
         String prtnrNo,
+        String prtnrCralLocaraTno,
+        String prtnrMexnoEncr,
+        String prtnrCralIdvTno,
         String prtnrMpno,
         String fstRgstDtm,
         String fstRgstUsrId,
         String fnlMdfcDtm,
-        String fnlMdfcUsrId,
-        String orglFnlMdfcDtm
-    ) {}
+        String fnlMdfcUsrId
+    ) {
+        public SearchBlacklistRes {
+            cntrMpno = cntrCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(cntrMexnoEncr)
+                + CtContractConst.TNO_DELIM + cntrCralIdvTno;
+            cntrTno = cntrLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(cntrExnoEncr)
+                + CtContractConst.TNO_DELIM + cntrIdvTno;
+            istllMpno = istllCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(istllMexnoEncr)
+                + CtContractConst.TNO_DELIM + istllCralIdvTno;
+            istllTno = istllLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(istllExnoEncr)
+                + CtContractConst.TNO_DELIM + istllIdvTno;
+            prtnrMpno = prtnrCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(prtnrMexnoEncr)
+                + CtContractConst.TNO_DELIM + prtnrCralIdvTno;
+        }
+    }
 }

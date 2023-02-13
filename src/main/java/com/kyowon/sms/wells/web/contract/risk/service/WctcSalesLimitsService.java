@@ -9,12 +9,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Lists;
-import com.kyowon.sms.wells.web.contract.common.service.WctzAddressService;
-import com.kyowon.sms.wells.web.contract.common.service.WctzTelephoneNumberService;
 import com.kyowon.sms.wells.web.contract.risk.converter.WctcSalesLimitsConverter;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SaveBlacklistReq;
-import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchBlacklistInfoRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcSellLimitOjIzDvo;
 import com.kyowon.sms.wells.web.contract.risk.mapper.WctcSalesLimitsMapper;
 import com.sds.sflex.system.config.constant.CommConst;
@@ -31,59 +27,13 @@ public class WctcSalesLimitsService {
 
     private final WctcSalesLimitsMapper mapper;
     private final WctcSalesLimitsConverter converter;
-    private final WctzAddressService adrService;
-    private final WctzTelephoneNumberService tnoService;
 
     public PagingResult<SearchBlacklistRes> getBlacklistPages(SearchBlacklistReq dto, PageInfo pageInfo) {
-        List<SearchBlacklistInfoRes> blacklistBeforeFilter = mapper.selectBlacklistPages(dto);
-        List<SearchBlacklistRes> results = Lists.newArrayList();
-        String cntrNo;
-        int cntrSn;
-        // java에서 검증할 조회조건 선언
-        String adr = dto.adr();
-        String tno = dto.tno();
-        String selrInf = dto.selrInf();
-        int blackCount = 1;
-        for (SearchBlacklistInfoRes black : blacklistBeforeFilter) {
-            cntrNo = black.sellLmCntrNo();
-            cntrSn = black.sellLmCntrSn();
-            SearchBlacklistRes newBlack;
-            if (black.isIndv()) {
-                newBlack = converter.mapBlacklistInfosToSearchBlacklistRes(
-                    black,
-                    tnoService.getContractorMpnoByCntr(cntrNo),
-                    tnoService.getContractorTnoByCntr(cntrNo),
-                    adrService.getContractorAddressByCntr(cntrNo),
-                    tnoService.getInstallerMpnoByCntr(cntrNo, cntrSn),
-                    tnoService.getInstallerTnoByCntr(cntrNo, cntrSn),
-                    adrService.getInstallerAddressByCntr(cntrNo, cntrSn),
-                    tnoService.getPartnerMpnoByCntr(cntrNo)
-                );
-            } else {
-                newBlack = converter.mapBlacklistInfosToSearchBlacklistRes(
-                    black,
-                    tnoService.getContractorTnoByCntr(cntrNo),
-                    adrService.getContractorAddressByCntr(cntrNo),
-                    tnoService.getInstallerTnoByCntr(cntrNo, cntrSn),
-                    adrService.getInstallerAddressByCntr(cntrNo, cntrSn)
-                );
-            }
-            // 조회된 데이터에서 전화번호, 주소, 판매자정보(이름, 사번, 연락처) 조건 filtering
-            // 해당하면 리스트에 추가((페이지인덱스-1)*페이지사이즈 < blackCount <= 페이지인덱스*페이지사이즈 인 경우)
-            if (newBlack.cntrAdr().contains(adr) || newBlack.cntrZip().contains(adr)
-                || newBlack.cntrMpno().contains(tno) || newBlack.cntrTno().contains(tno)
-                || newBlack.prtnrKnm().contains(selrInf) || newBlack.prtnrNo().contains(selrInf)
-                || newBlack.prtnrMpno().contains(selrInf)) {
-                if (((pageInfo.getPageIndex() - 1) * pageInfo.getPageSize() < blackCount)
-                    && (pageInfo.getPageIndex() * pageInfo.getPageSize() >= blackCount)) {
-                    results.add(newBlack);
-                }
-                blackCount++;
-            }
-        }
-        // pageInfo에 totalcount 세팅
-        pageInfo.setTotalCount(Long.valueOf(blackCount));
-        return new PagingResult(results, pageInfo);
+        return mapper.selectBlacklistPages(dto, pageInfo);
+    }
+
+    public List<SearchBlacklistRes> getBlacklistsForExcelDownload(SearchBlacklistReq dto) {
+        return mapper.selectBlacklistPages(dto);
     }
 
     @Transactional
