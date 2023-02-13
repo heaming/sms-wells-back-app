@@ -19,7 +19,7 @@ public class WctiTaxInvoiceDetailService {
      * 세금계산서 상세목록 조회
      *
      * @programid EAI_WSSI1088
-     * @param  String
+     * @param  txinvId 세금계산서ID
      * @return list
      */
     public List<SearchRes> getTaxInvoiceDetails(String txinvId) {

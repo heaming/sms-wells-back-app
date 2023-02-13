@@ -19,7 +19,7 @@ public class WctiTaxInvoicePersonService {
      * 세금계산서 담당자 정보 조회
      *
      * @programid EAI_WSSI1089
-     * @param  String
+     * @param  psicNm 담당자명
      * @return list
      */
     public List<SearchRes> getTaxInvoicePersons(String psicNm) {

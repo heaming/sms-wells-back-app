@@ -19,7 +19,7 @@ public class WctiTaxInvoiceCorporateService {
      * 세금계산서 사업자번호 조회
      *
      * @programid EAI_WSSI1090
-     * @param  String 
+     * @param  dlpnrNm 거래처명
      * @return list
      */
     public List<SearchRes> getTaxInvoiceCorporates(String dlpnrNm) {
