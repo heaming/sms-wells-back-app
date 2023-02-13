@@ -40,6 +40,8 @@ public class WcteSalesLimitDto {
         String sellLmRsonCd,
         String sellLmRsonCn,
         String sellLmRlsCn,
+
+        String sellLmCntrSn,
         String rownum,
         String sellLmOcDtm,
         String sellLmRlsDtm,
