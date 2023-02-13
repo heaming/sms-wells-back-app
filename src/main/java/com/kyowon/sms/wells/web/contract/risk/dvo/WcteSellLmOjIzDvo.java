@@ -13,7 +13,9 @@ public class WcteSellLmOjIzDvo {
     private String dlpnrNm;
     private String dlgpsNm;
     private String bryyMmdd;
-
+    private String sellLmCntrSn;
+    private String sellLmRsonCn;
+    private String sellLmRlsCn;
     private String rowState;
     private String rownum;
     private String sellLmRsonCd;
@@ -25,4 +27,5 @@ public class WcteSellLmOjIzDvo {
     private String sellLmPsicNm;
     private String sellLmRlsPsicNm;
     private String dtaDlYn;
+
 }
