@@ -5,10 +5,10 @@ import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceCor
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
-
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceCorporateDto.SearchReq;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface WctiTaxInvoiceCorporateMapper {
-    List<SearchRes>selectTaxInvoiceCorporates(SearchReq dto);
+    List<SearchRes> selectTaxInvoiceCorporates(@Param("DLPNR_NM")
+    String dlpnrNm);
 }
