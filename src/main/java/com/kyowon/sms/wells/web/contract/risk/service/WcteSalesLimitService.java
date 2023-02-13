@@ -52,16 +52,15 @@ public class WcteSalesLimitService {
             processCount += switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_UPDATED -> {
                     if ("3".equals(sellLmDv))
-                        BizAssert.isTrue(sellLmRlsDtm.length() < 1, "MSG_ALT_RLS_DT_ERR", param);
+                        BizAssert.isTrue(sellLmRlsDtm.length() < 1, "MSG_ALT_BAD_RLS_ERR", param);
 
                     if ("4".equals(sellLmDv))
-                        BizAssert.isFalse(sellLmRlsDtm.isEmpty(), "MSG_ALT_BAD_RLS_ERR", param);
+                        BizAssert.isFalse(sellLmRlsDtm.isEmpty(), "MSG_ALT_RLS_DT_ERR", param);
 
                     String sellLmBzrno = mapper.selectEntrepreneurJoinLmOjssCheck(dvo.getSellLmId());
                     BizAssert.isTrue(dvo.getSellLmBzrno().equals(sellLmBzrno), "MSG_ALT_LM_BZRNO_ERR");
 
-                    mapper.updateEntrepreneurJoinLmOjss(dvo);
-                    int result = mapper.insertEntrepreneurJoinLmOjss(dvo);
+                    int result = mapper.updateEntrepreneurJoinLmOjss(dvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
                     yield result;
