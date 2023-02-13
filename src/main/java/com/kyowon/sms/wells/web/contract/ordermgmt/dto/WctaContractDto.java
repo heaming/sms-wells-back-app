@@ -128,6 +128,8 @@ public class WctaContractDto {
     //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Result Dto
     @ApiModel("WctaContractDto-SearchConfirmApprovalBaseRes")
     public record SearchConfirmApprovalBaseRes(
+
+        String cntrAprBaseId,
         String cntrAprAkDvCd,
         String cntrAprChnlDvVal,
         String cntrAprIchrDvCd,
