@@ -87,6 +87,7 @@ public class WctaContractDto {
         String cntrAprConfMsgCn,
         String vlStrtDtm,
         String vlStrtDtmPk,
+
         String vlEndDtm
     ) {}
 
