@@ -52,6 +52,23 @@ public class WctcSalesLimitsController {
         return service.getBlacklistPages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "접수제한 관리-블랙리스트 엑셀 다운로드", notes = "조회조건에 맞는 블랙리스트 목록을 엑셀 다운로드한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "주소/우편번호", paramType = "query"),
+        @ApiImplicitParam(name = "tno", value = "전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "selrInf", value = "판매자정보", paramType = "query"),
+    })
+    @GetMapping("/blacklists/excel-download")
+    public List<SearchBlacklistRes> getBlacklistsForExcelDownload(
+        @Valid
+        SearchBlacklistReq dto
+    ) {
+        return service.getBlacklistsForExcelDownload(dto);
+    }
+
     @ApiOperation(value = "접수제한관리-블랙리스트 저장", notes = "수정한 값으로 판매제한대상내역 테이블에  insert 한다.\n 판매제한ID 값이 있는경우 수정으로 해당 row를 update한다.")
     @PostMapping("/blacklists")
     public SaveResponse saveBlacklists(
