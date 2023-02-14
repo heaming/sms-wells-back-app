@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMovementStoreMapper">
+
+    <select id="selectMovementStores"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto$SearchRes">
+        SELECT STR_IZ.STR_TP_CD   /*입고유형코드*/
+             , STR_IZ.STR_WARE_NO /*입고창고번호*/
+             , STR_IZ.STR_SN /*입고일련번호*/
+             , STR_IZ.STR_RGST_DT /*입고등록일자*/
+             , STR_IZ.DLVG_DLPNR_NO /*납품거래처번호*/
+             , STR_IZ.ITM_STR_NO /*품목입고번호*/
+             , STR_IZ.OSTR_TP_CD /*출고유형코드*/
+             , STR_IZ.OSTR_WARE_NO /*출고창고번호*/
+             , STR_IZ.OSTR_DT /*출고일자*/
+             , STR_IZ.OSTR_SN /*출고일련번호*/
+             , STR_IZ.ITM_OSTR_NO /*품목출고번호*/
+             , WARE_IZ.WARE_NM /*창고명*/
+          FROM TB_SVST_ITM_STR_IZ STR_IZ --품목입고내역
+         INNER JOIN TB_SVST_ITM_OSTR_IZ OSTR_IZ --품목출고내역
+            ON OSTR_IZ.ITM_OSTR_NO = STR_IZ.ITM_OSTR_NO
+           AND OSTR_IZ.OSTR_SN = STR_IZ.OSTR_SN
+         LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ --월별창고
+            ON STR_IZ.OSTR_WARE_NO = WARE_IZ.WARE_NO
+           AND WARE_IZ.WARE_USE_YN = 'Y'
+           AND WARE_IZ.APY_YM BETWEEN SUBSTR(#{stStrDt},1,6) AND SUBSTR(#{edStrDt},1,6)
+         WHERE 1 = 1
+           AND STR_IZ.STR_WARE_NO = #{strOjWareNo}
+           AND STR_IZ.STR_CONF_DT IS NOT NULL
+           AND STR_IZ.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}
+        <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
+           AND WARE_IZ.WARE_DV_CD = #{ostrWareDvCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(ostrWareNoM)">
+           AND WARE_IZ.HGR_WARE_NO = #{ostrWareNoM}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(ostrWareNoD)">
+           AND OSTR_IZ.OSTR_WARE_NO = #{ostrWareNoD}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strTpCd)">
+           AND STR_IZ.STR_TP_CD = #{strTpCd}
+        </if>
+        <if test="@MybatisUtils@isEmpty(strTpCd)">
+           AND STR_IZ.STR_TP_CD IN ('121','122','123','162','161')
+        </if>
+        GROUP BY STR_IZ.STR_TP_CD
+                ,STR_IZ.STR_WARE_NO
+                ,STR_IZ.STR_SN
+                ,STR_IZ.STR_RGST_DT
+                ,STR_IZ.DLVG_DLPNR_NO
+                ,STR_IZ.ITM_STR_NO
+                ,STR_IZ.OSTR_TP_CD
+                ,STR_IZ.OSTR_WARE_NO
+                ,STR_IZ.OSTR_DT
+                ,STR_IZ.OSTR_SN
+                ,STR_IZ.ITM_OSTR_NO
+                ,WARE_IZ.WARE_NM
+        ORDER BY STR_IZ.STR_TP_CD, STR_IZ.STR_WARE_NO, STR_IZ.STR_RGST_DT, STR_IZ.ITM_STR_NO
+
+
+    </select>
+
+
+</mapper>
