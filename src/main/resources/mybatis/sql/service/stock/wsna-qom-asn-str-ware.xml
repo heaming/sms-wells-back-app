@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnStrWareMapper">
+
+    <select id="selectQomAsnStrWares"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStrWareDto$SearchRes">
+        SELECT T3.PRTNR_NO
+             , '' AS OG_ID
+             , '' AS OG_NM
+             , '' AS PRTNR_KNM
+             , T2.APY_YM AS BASE_YM
+             , T2.WARE_NO
+             , T2.WARE_NM
+             , T2.HGR_WARE_NO
+             , ( SELECT S2.WARE_NM
+                   FROM TB_SVST_MCBY_WARE_IZ S2
+                  WHERE S2.WARE_NO = T2.HGR_WARE_NO
+                    AND S2.APY_YM = T2.APY_YM
+               ) AS HGR_WARE_NM
+             , T2.BLD_CD
+             , '' AS BLD_NM
+             , T2.DIDY_DV_CD
+             , T2.ADR_USE_YN
+             , T2.WARE_ADR_ID
+             , T2.RMK_CN
+             , T3.APY_SN
+             , T3.QOM_ASN_APY_YN
+             , '' AS ZIP_CD
+             , '' AS ADDR
+          FROM TB_SVST_MCBY_WARE_IZ T2
+             , TB_SVST_QOM_ASN_PRTNR_APY_IZ T3
+         WHERE T2.APY_YM = #{baseYm}
+           AND T2.WARE_MNGT_PRTNR_NO = T3.PRTNR_NO
+           <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+           AND T3.PRTNR_NO = #{prtnrNo}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(wareNo)">
+           AND T2.WARE_NO = #{wareNo}
+           </if>
+           AND T2.WARE_USE_YN = 'Y'
+           AND T3.APY_SN = ( SELECT MAX(APY_SN)
+                               FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1
+                              WHERE S1.PRTNR_NO =T3.PRTNR_NO
+                           )
+           AND T2.DTA_DL_YN = 'N'
+           AND T3.DTA_DL_YN = 'N'
+         ORDER BY T3.FNL_MDFC_DTM DESC
+    </select>
+
+    <select id="selectWareGroup"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStrWareDto$SearchWareRes">
+        SELECT T1.APY_YM AS BASE_YM
+             , T1.WARE_NO
+             , T1.WARE_DV_CD
+             , T1.WARE_LOCARA_CD
+             , T1.WARE_NM
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         WHERE T1.APY_YM = #{baseYm}
+        <if test="@MybatisUtils@isNotEmpty(wareNo)">
+           AND T1.WARE_NO = #{wareNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+           AND T1.WARE_DV_CD = #{wareDvCd}
+        </if>
+    </select>
+    <select id="selectOrganizations"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStrWareDto$ogRes">
+        SELECT OG_ID
+             , HGR_OG_ID
+             , OG_TP_CD
+             , OG_LEVL_DV_CD
+             , OG_CD
+             , OG_NM
+             , BLD_CD
+             , BLD_NM
+             , HOO_OG_TP_CD
+             , HOO_PRTNR_NO
+             , HOO_PRTNR_NO
+          FROM TB_OGBS_MM_OG_IZ
+         WHERE BASE_YM = #{baseYm}
+           <if test="@MybatisUtils@isNotEmpty(ogLevlDvCd)">
+           AND OG_LEVL_DV_CD = #{ogLevlDvCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(ogId)">
+           AND OG_ID = #{ogId}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
+           AND OG_TP_CD = #{ogTpCd}
+           </if>
+           AND CLO_YN = 'N'
+           AND DTA_DL_YN = 'N'
+    </select>
+    <select id="selectPartners"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStrWareDto$prtnrRes">
+        SELECT OG_ID
+             , PRTNR_NO
+             , PRTNR_KNM
+          FROM TB_OGBS_MM_PRTNR_IZ
+         WHERE BASE_YM = #{baseYm}
+           <if test="@MybatisUtils@isNotEmpty(ogId)">
+           AND OG_ID = #{ogId}
+           </if>
+    </select>
+    <insert id="insertQomAsnStrWare">
+        INSERT INTO TB_SVST_QOM_ASN_PRTNR_APY_IZ (
+               PRTNR_NO /* 파트너번호 */
+             , OG_TP_CD /*조직유형코드 */
+             , APY_SN /* 적용일련번호 */
+             , QOM_ASN_APY_YN /* 물량배정적용여부 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+        )
+        <foreach collection="list" item="item" separator=" UNION ALL" >
+        SELECT
+             #{item.prtnrNo}
+             , OG_TP_CD /*조직유형코드 */
+             , APY_SN + 1 /* 적용일련번호 */
+             , #{item.qomAsnApyYn} /* 물량배정적용여부 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
+         WHERE PRTNR_NO = #{item.prtnrNo}
+           AND APY_SN = (SELECT MAX(APY_SN)
+                           FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
+                          WHERE PRTNR_NO = #{item.prtnrNo}
+                        )
+        </foreach>
+    </insert>
+</mapper>
