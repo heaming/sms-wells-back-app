@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMovementStrMapper;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMovementStoreMapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStrDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,9 +20,9 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
-public class WsnaMovementStrService {
+public class WsnaMovementStoreService {
 
-    private final WsnaMovementStrMapper mapper;
+    private final WsnaMovementStoreMapper mapper;
 
     /**
      * 이동입고현황 조회
@@ -38,8 +38,8 @@ public class WsnaMovementStrService {
      *
      * @return 조회결과
      */
-    public List<SearchRes> getMovementStorePss(SearchReq dto) {
-        return mapper.selectMovementStorePss(dto);
+    public List<SearchRes> getMovementStores(SearchReq dto) {
+        return mapper.selectMovementStores(dto);
     }
 
     /**
@@ -56,7 +56,7 @@ public class WsnaMovementStrService {
      *
      * @return 조회결과
      */
-    public List<SearchRes> getMovementStrExcelDownload(SearchReq dto) {
-        return mapper.selectMovementStorePss(dto);
+    public List<SearchRes> getMovementStoresExcelDownload(SearchReq dto) {
+        return mapper.selectMovementStores(dto);
     }
 }

@@ -11,6 +11,6 @@ import org.mapstruct.Mapper;
  * @since 2023.02.13
  */
 @Mapper(componentModel = "spring")
-public interface WsnaMovementStrConverter {
+public interface WsnaMovementStoreConverter {
 
 }

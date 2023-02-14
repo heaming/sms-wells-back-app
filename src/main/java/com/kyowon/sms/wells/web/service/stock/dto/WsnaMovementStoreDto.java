@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -15,7 +13,7 @@ import lombok.Builder;
  * @author  songTaeSung
  * @since 2023.02.13
  */
-public class WsnaMovementStrDto {
+public class WsnaMovementStoreDto {
     @Builder
     @ApiModel("WsnaMovementStrControllerDto-SearchReq")
     public record SearchReq(

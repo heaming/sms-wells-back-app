@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class WsnaMovementStrDvo {
+public class WsnaMovementStoreDvo {
     String strTpCd; /*입고유형코드,*/
     String strWareNo; /*입고창고번호*/
     String strSn; /*입고일련번호*/

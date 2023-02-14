@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStrDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
 
 @Mapper
-public interface WsnaMovementStrMapper {
+public interface WsnaMovementStoreMapper {
 
     /**
     * 이동입고현황 조회
@@ -23,5 +23,5 @@ public interface WsnaMovementStrMapper {
     *
     * @return 조회결과
     */
-    List<SearchRes> selectMovementStorePss(SearchReq dto);
+    List<SearchRes> selectMovementStores(SearchReq dto);
 }
