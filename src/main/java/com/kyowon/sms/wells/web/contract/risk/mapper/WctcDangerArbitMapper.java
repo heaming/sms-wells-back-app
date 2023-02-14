@@ -13,6 +13,8 @@ import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
 public interface WctcDangerArbitMapper {
     List<SearchRes> selectDangerArbitManagerial(SearchReq dto);
 
+    String selectDangChkId(String dangOjPrtnrNo, String dangOcStrtdt, String dangMngtPstnDvCd);
+
     int updateDangerCheckIzDlYn(String dangChkId);
 
     int updateDangerCheckChHist(String dangChkId);

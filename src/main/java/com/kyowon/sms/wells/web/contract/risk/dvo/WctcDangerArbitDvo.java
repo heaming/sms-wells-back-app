@@ -6,24 +6,27 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctcDangerArbitDvo {
-    private String dangChkId;
-    private String dangOjPrtnrNo;
-    private String dangMngtPrtnrNo;
-    private String dangOjOgId;
-    private String dangOjPstnDvCd;
-    private String dangMngtPstnDvCd;
-    private String dangGdVal;
-    private String dangUncvrCt;
-    private String dangChkNm;
-    private String dangChkDt;
-    private String dangUncvrCn;
-    private String dangOcStrtdt;
-    private String dangOcEnddt;
-    private String dangArbitDt;
-    private String dangArbitCd;
-    private String dangArbitLvyPc;
-    private String dangArbitOgId;
-    private String dangArbitCn;
-    private String dcplaRsCn;
-    private String dcplaRimbAmt;
+    private String dangChkId; /* 위험점검ID */
+    private String dangOjOgTpCd; /* 위험대상조직유형코드 */
+    private String dangOjPrtnrNo; /* 위험대상파트너번호 */
+    private String dangMngtOgTpCd; /* 위험관리조직유형코드 */
+    private String dangMngtPrtnrNo; /* 위험관리파트너번호 */
+    private String dangOjOgId; /* 위험대상조직ID */
+    private String dangOjPstnDvCd; /* 위험대상직급구분코드 */
+    private String dangMngtPstnDvCd; /* 위험관리직급구분코드 */
+    private String dangGdVal; /* 위험등급값 */
+    private Long dangUncvrCt; /* 위험적발건수 */
+    private String dangChkNm; /* 위험점검명 */
+    private String dangChkDt; /* 위험점검일자 */
+    private String dangUncvrCn; /* 위험적발내용 */
+    private String dangOcStrtdt; /* 위험발생시작일자 */
+    private String dangOcEnddt; /* 위험발생종료일자 */
+    private String dangArbitDt; /* 위험조치일자 */
+    private String dangArbitCd; /* 위험조치코드 */
+    private Integer dangArbitLvyPc; /* 위험조치부과점수 */
+    private String dangArbitOgId; /* 위험조치조직ID */
+    private String dangArbitCn; /* 위험조치내용 */
+    private String dcplaRsCn; /* 징계결과내용 */
+    private Long dcplaRimbAmt; /* 징계변제금액 */
+    private String dtaDlYn; /* 데이터삭제여부 */
 }
