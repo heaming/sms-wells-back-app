@@ -60,6 +60,7 @@ public class WctcIncompletenessSalesDto {
     // 기기변경 부정행위 Search Result Dto
     @ApiModel("IncompletenessSalesDto-SearchRes")
     public record SearchRes(
+        String icptSellId,
         String icptSellProcsTpCd,
         String icptSellRsonCn,
         String baseCntrNo,
