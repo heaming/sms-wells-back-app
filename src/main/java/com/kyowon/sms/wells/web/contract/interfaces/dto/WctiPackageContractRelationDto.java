@@ -8,9 +8,9 @@ public class WctiPackageContractRelationDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 패키지연관 계약건 Search Request Dto
-    @ApiModel("WctiPackageContractRelationDto-SearchReq")
-    public record SearchReq(
+    // 패키지연관 계약건 Find Request Dto
+    @ApiModel("WctiPackageContractRelationDto-FindReq")
+    public record FindReq(
         @NotBlank
         String CNTR_NO, //계약번호(필수)
         @NotBlank
@@ -20,9 +20,9 @@ public class WctiPackageContractRelationDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 패키지연관 계약건 Search Result Dto
-    @ApiModel("WctiPackageContractRelationDto-SearchRes")
-    public record SearchRes(
+    // 패키지연관 계약건 Find Result Dto
+    @ApiModel("WctiPackageContractRelationDto-FindRes")
+    public record FindRes(
         String DV_NM,			//구분명
         String SELL_TP_NM,		//판매유형명
         String RLTD_CNTR_NO,	//관련계약번호

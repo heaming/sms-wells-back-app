@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindRes;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiPackageContractRelationService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -33,13 +33,13 @@ public class WctiPackageContractRelationController {
     public EaiWrapper getPackageContractRelations(
         @Valid
         @RequestBody
-        EaiWrapper<SearchReq> reqWrapper
+        EaiWrapper<FindReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<SearchRes> res = service.getPackageContractRelations(reqWrapper.getBody());
+        List<FindRes> res = service.getPackageContractRelations(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

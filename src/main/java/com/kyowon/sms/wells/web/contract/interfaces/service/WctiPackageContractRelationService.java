@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.service;
 
-import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindReq;
+import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindRes;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class WctiPackageContractRelationService {
     * @param       req
     * @return      list
     */
-    public List<SearchRes> getPackageContractRelations(SearchReq req) {
+    public List<FindRes> getPackageContractRelations(FindReq req) {
         return mapper.selectPackageContractRelations(req);
     }
 }
