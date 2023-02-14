@@ -46,12 +46,6 @@ public class WsnaQomAsnStrWareService {
         return mapper.insertQomAsnStrWare(voList);
     }
 
-    public List<SearchWareRes> getWareGroups(
-        SearchWareReq dto
-    ) {
-        return mapper.selectWareGroup(dto);
-    }
-
     public List<prtnrRes> selectPartners(
         prtnrRes dto
     ) {
