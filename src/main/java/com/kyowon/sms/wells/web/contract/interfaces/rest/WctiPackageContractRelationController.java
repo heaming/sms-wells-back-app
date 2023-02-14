@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoicePersonDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.interfaces.service.WctiTaxInvoicePersonService;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindRes;
+import com.kyowon.sms.wells.web.contract.interfaces.service.WctiPackageContractRelationService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -24,21 +25,21 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiTaxInvoicePersonController {
-    private final WctiTaxInvoicePersonService service;
+public class WctiPackageContractRelationController {
+    private final WctiPackageContractRelationService service;
 
-    @ApiOperation(value = "[EAI_WSSI1087] 세금계산서 담당자 정보 조회", notes = "입력받은 담당자명에 대해서 담당자 정보를 조회")
-    @PostMapping("/tax-invoice-persons")
-    public EaiWrapper getTaxInvoicePersons(
+    @ApiOperation(value = "[EAI_WSSI1067] 패키지연관 계약건 조회", notes = "입력받은 계약번호, 계약일련번호에 대한 홈케어멤버십, 패키지 관계 계약정보를 조회")
+    @PostMapping("/package-contract-relations")
+    public EaiWrapper getPackageContractRelations(
         @Valid
         @RequestBody
-        EaiWrapper<String> reqWrapper
+        EaiWrapper<FindReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<SearchRes> res = service.getTaxInvoicePersons(reqWrapper.getBody());
+        List<FindRes> res = service.getPackageContractRelations(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

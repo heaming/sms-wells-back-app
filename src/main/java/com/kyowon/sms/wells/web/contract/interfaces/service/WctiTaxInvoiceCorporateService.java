@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.contract.interfaces.service;
 
-import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceCorporateDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceCorporateDto.SearchRes;
 
 import java.util.List;
@@ -20,10 +19,10 @@ public class WctiTaxInvoiceCorporateService {
      * 세금계산서 사업자번호 조회
      *
      * @programid EAI_WSSI1090
-     * @param req
+     * @param  dlpnrNm 거래처명
      * @return list
      */
-    public List<SearchRes> getTaxInvoiceCorporates(SearchReq req) {
-        return mapper.selectTaxInvoiceCorporates(req);
+    public List<SearchRes> getTaxInvoiceCorporates(String dlpnrNm) {
+        return mapper.selectTaxInvoiceCorporates(dlpnrNm);
     }
 }

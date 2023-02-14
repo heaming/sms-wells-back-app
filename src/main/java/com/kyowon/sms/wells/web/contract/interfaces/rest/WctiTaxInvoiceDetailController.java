@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
-import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceDetailDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceDetailDto.SearchRes;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class WctiTaxInvoiceDetailController {
     public EaiWrapper getTaxInvoiceDetails(
         @Valid
         @RequestBody
-        EaiWrapper<SearchReq> reqWrapper
+        EaiWrapper<String> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();

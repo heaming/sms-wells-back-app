@@ -1,22 +1,8 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
-import lombok.Builder;
 
 public class WctiTaxInvoicePersonDto {
-    // *********************************************************
-    // Request Dto
-    // *********************************************************
-    // 세금계산서 담당자 정보 Search Request Dto
-    @Builder
-    @ApiModel("WctiTaxInvoicePersonDto-SearchReq")
-    public record SearchReq(
-        @NotBlank
-        String PSIC_NM
-    ) {}
-
     // *********************************************************
     // Result Dto
     // *********************************************************

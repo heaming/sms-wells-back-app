@@ -1,21 +1,8 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 
 public class WctiTaxInvoiceCorporateDto {
-    // *********************************************************
-    // Request Dto
-    // *********************************************************
-    // 세금계산서 사업자번호 조회 Search Request Dto
-    @ApiModel("WctiTaxInvoiceCorporateDto-SearchReq")
-    public record SearchReq(
-        @NotBlank
-        String DLPNR_NM
-    ) {}
-
-
     // *********************************************************
     // Result Dto
     // *********************************************************
