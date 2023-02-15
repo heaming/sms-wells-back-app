@@ -130,8 +130,6 @@ public class WctaContractDto {
     public record SearchConfirmApprovalBaseRes(
 
         String cntrAprBaseId,
-
-        String cntrAprSellDvCd,
         String cntrAprAkDvCd,
         String cntrAprChnlDvVal,
         String cntrAprIchrDvCd,
