@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.closing.standard.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.closing.standard.dto.WdcyBusinessCloseHhCheckDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.standard.dto.WdcyBusinessCloseHhCheckDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyBusinessCloseHhCheckDvo;
 
 /**
@@ -20,5 +20,7 @@ public interface WdcyBusinessCloseHhCheckMapper {
      * @param searchParam 검색 조건(key: clDt(일자), clPsicNo(담당자번호), clBizTpCd(마감업무유형코드))
      * @return EBusinessCloseHhCheckDvo 검색 결과
      */
-    WdcyBusinessCloseHhCheckDvo selectBusinessCloseHh(SearchReq searchParam);
+    WdcyBusinessCloseHhCheckDvo selectBusinessCloseHh(String clDt, String clPsicNo, String clBizTpCd);
+
+    SearchRes selectCloseHourConfirm(WdcyBusinessCloseHhCheckDvo wdcyBusinessCloseHhCheckDvo);
 }

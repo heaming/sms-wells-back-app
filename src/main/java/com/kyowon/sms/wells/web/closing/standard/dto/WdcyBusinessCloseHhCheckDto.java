@@ -18,4 +18,16 @@ public class WdcyBusinessCloseHhCheckDto {
         @NotBlank
         String clBizTpCd
     ) {}
+    
+ // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 일마감통제확인 Result Dto
+    @ApiModel("WdcyBusinessCloseHhCheckDto-SearchRes")
+    public record SearchRes(
+        @NotBlank
+        String procsPsbYn,
+        @NotBlank
+        String perfDt
+    ) {}
 }
