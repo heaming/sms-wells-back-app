@@ -1,0 +1,100 @@
+package com.kyowon.sms.wells.web.withdrawal.idvrve.rest;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.removePrintReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbGiroOcrForwardingMgtService;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Api(tags = "[수납입출금 - 개별수납] 지로OCR발송관리")
+@RestController
+@RequiredArgsConstructor
+@RequestMapping(value = WithdrawalConst.REST_URL_V1 + WithdrawalConst.REST_URL_IDVRVE + "/giro-ocr-forwardings")
+public class WwdbGiroOcrForwardingMgtController {
+
+    private final WwdbGiroOcrForwardingMgtService service;
+
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "wkDt", value = "일자", paramType = "query", required = false),
+        @ApiImplicitParam(name = "giroRglrDvCd", value = "정기구분", paramType = "query", required = false),
+    })
+    @ApiOperation(value = "지로OCR발송관리 목록 조회", notes = " 검색조건을 받아 지로OCR발송관리 코드관리 목록을 조회한다.")
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getGiroOcrForwardingMgtPages(SearchReq dto, PageInfo pageInfo) {
+        return service.getGiroOcrForwardingMgtPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "지로OCR발송관리 대상 조회", notes = "지로OCR발송관리 대상 목록을 조회한다.")
+    @GetMapping("/objects")
+    public List<SearchRes> getGiroOcrForwardingMgtObjects() {
+        return service.getGiroOcrForwardingMgtObjects();
+    }
+
+    @ApiOperation(value = "지로OCR발송관리 저장", notes = " RDS 적요 지로OCR발송관리 등록 및 수정한다.")
+    @PostMapping()
+    public SaveResponse saveGiroOcrForwardingMgts(
+        @RequestBody
+        @Valid
+        List<SaveReq> dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveGiroOcrForwardingMgts(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "지로OCR발송관리 출력 조회", notes = "지로OCR발송관리 출력 목록을 조회한다.")
+    @GetMapping("/print")
+    public List<SearchPrintRes> getGiroOcrForwardingPrintMgt(SearchPrintReq dto) {
+        return service.getGiroOcrForwardingPrintMgt(dto);
+    }
+
+    @ApiOperation(value = "지로OCR발송관리 출력 등록", notes = "RDS 적요 지로OCR발송관리 등록한다.")
+    @PostMapping("/print")
+    public SaveResponse saveGiroOcrForwardingPrintMgt(
+        @RequestBody
+        @Valid
+        SavePrintReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveGiroOcrForwardingPrintMgt(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "지로OCR발송관리 출력 삭제", notes = "지로OCR발송관리 출력 목록을 삭제한다.")
+    @PutMapping("/print")
+    public SaveResponse removeGiroOcrForwardingPrintMgt(
+        @RequestBody
+        @Valid
+        List<removePrintReq> dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.removeGiroOcrForwardingPrintMgts(dto))
+            .build();
+    }
+}
