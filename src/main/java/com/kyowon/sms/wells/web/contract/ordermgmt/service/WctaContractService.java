@@ -105,16 +105,4 @@ public class WctaContractService {
         }
         return processCount;
     }
-
-    public List<SearchBpdRentalAccMgtPssRes> getBpdRentalAccMgtPss(
-        SearchBpdRentalAccMgtPssReq dto
-    ) {
-        return mapper.selectBpdRentalAccMgtPss(dto);
-    }
-
-    public List<SearchByoRentalAccMgtInqrsRes> getByoRentalAccMgtInqrs(
-        SearchByoRentalAccMgtInqrsReq dto
-    ) {
-        return mapper.selectByoRentalAccMgtInqrs(dto);
-    }
 }
