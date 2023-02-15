@@ -1,12 +1,12 @@
 package com.kyowon.sms.wells.web.closing.standard.service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.closing.standard.dto.WdcyBusinessCloseHhCheckDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyBusinessCloseHhCheckDvo;
 import com.kyowon.sms.wells.web.closing.standard.mapper.WdcyBusinessCloseHhCheckMapper;
 import com.sds.sflex.system.config.exception.BizException;
@@ -39,30 +39,26 @@ public class WdcyBusinessCloseHhCheckService {
      */
     public WdcyBusinessCloseHhCheckDvo getBusinessCloseHhCheck(String clDt, String clPsicNo, String clBizTpCd)
         throws BizException {
-        HashMap<String, String> searchParam = new HashMap<>();
-        searchParam.put("clDt", clDt);
-        searchParam.put("clPsicNo", clPsicNo);
-        searchParam.put("clBizTpCd", clBizTpCd);
+        SearchReq searchParam = new SearchReq(clDt, clPsicNo, clBizTpCd);
 
-        WdcyBusinessCloseHhCheckDvo WdcyBusinessCloseHhCheckDvo = mapper.selectBusinessCloseHh(searchParam);
-        if (Objects.isNull(WdcyBusinessCloseHhCheckDvo)) {
+        WdcyBusinessCloseHhCheckDvo wdcyBusinessCloseHhCheckDvo = mapper.selectBusinessCloseHh(searchParam);
+        if (Objects.isNull(wdcyBusinessCloseHhCheckDvo)) {
 
             //입력 값으로 조회 검색 결과가 없는 경우 담당자번호 전체('0')로 변경 후 다시 검색
-            HashMap<String, String> cloneParam = new HashMap<>(searchParam);
-            cloneParam.put("clPsicNo", "0");
-            WdcyBusinessCloseHhCheckDvo = mapper.selectBusinessCloseHh(cloneParam);
+            SearchReq cloneParam = new SearchReq(clDt, "0", clBizTpCd);
+            wdcyBusinessCloseHhCheckDvo = mapper.selectBusinessCloseHh(cloneParam);
         }
-        Optional<WdcyBusinessCloseHhCheckDvo> optionalRes = Optional.ofNullable(WdcyBusinessCloseHhCheckDvo);
+        Optional<WdcyBusinessCloseHhCheckDvo> optionalRes = Optional.ofNullable(wdcyBusinessCloseHhCheckDvo);
 
         //조회 결과 없는 경우 에러 발생
-        WdcyBusinessCloseHhCheckDvo = optionalRes.orElseThrow(() -> new BizException("MSG_ALT_CL_HH_UNRG"));
+        wdcyBusinessCloseHhCheckDvo = optionalRes.orElseThrow(() -> new BizException("MSG_ALT_CL_HH_UNRG"));
         if (closeHourConfirmation()) {
-            WdcyBusinessCloseHhCheckDvo.setProcsPsbYn("Y");
-            return WdcyBusinessCloseHhCheckDvo;
+            wdcyBusinessCloseHhCheckDvo.setProcsPsbYn("Y");
+            return wdcyBusinessCloseHhCheckDvo;
         } else {
-            WdcyBusinessCloseHhCheckDvo.setProcsPsbYn("N");
-            WdcyBusinessCloseHhCheckDvo.setPerfDt("00010101"); // 2곳 이상 사용하는 경우 상수로 변경
-            return WdcyBusinessCloseHhCheckDvo;
+            wdcyBusinessCloseHhCheckDvo.setProcsPsbYn("N");
+            wdcyBusinessCloseHhCheckDvo.setPerfDt("00010101"); // 2곳 이상 사용하는 경우 상수로 변경
+            return wdcyBusinessCloseHhCheckDvo;
         }
     }
 
@@ -79,5 +75,4 @@ public class WdcyBusinessCloseHhCheckService {
         return (curDate.isAfter(stDate) || curDate.isEqual(stDate))
             && (curDate.isBefore(edDate) || curDate.isEqual(edDate));
     }
-
 }

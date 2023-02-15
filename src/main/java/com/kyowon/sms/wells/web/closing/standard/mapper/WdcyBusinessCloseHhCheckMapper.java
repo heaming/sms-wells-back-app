@@ -1,9 +1,8 @@
 package com.kyowon.sms.wells.web.closing.standard.mapper;
 
-import java.util.HashMap;
-
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.closing.standard.dto.WdcyBusinessCloseHhCheckDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyBusinessCloseHhCheckDvo;
 
 /**
@@ -11,8 +10,8 @@ import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyBusinessCloseHhCheckDvo
  * 영업마감통제 서비스 맵퍼
  * </pre>
  *
- * @author gugyeongu
- * @since 2023-02-03
+ * @author gs.piit183
+ * @since 2023-02-06
  */
 @Mapper
 public interface WdcyBusinessCloseHhCheckMapper {
@@ -21,5 +20,5 @@ public interface WdcyBusinessCloseHhCheckMapper {
      * @param searchParam 검색 조건(key: clDt(일자), clPsicNo(담당자번호), clBizTpCd(마감업무유형코드))
      * @return EBusinessCloseHhCheckDvo 검색 결과
      */
-    WdcyBusinessCloseHhCheckDvo selectBusinessCloseHh(HashMap<String, String> searchParam);
+    WdcyBusinessCloseHhCheckDvo selectBusinessCloseHh(SearchReq searchParam);
 }
