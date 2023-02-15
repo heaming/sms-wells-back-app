@@ -130,6 +130,8 @@ public class WctaContractDto {
     public record SearchConfirmApprovalBaseRes(
 
         String cntrAprBaseId,
+
+        String cntrAprSellDvCd,
         String cntrAprAkDvCd,
         String cntrAprChnlDvVal,
         String cntrAprIchrDvCd,
@@ -138,68 +140,5 @@ public class WctaContractDto {
         String vlStrtDtm,
         String vlEndDtm,
         String notyFwOjYn
-    ) {}
-
-    //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Result Dto
-    @ApiModel("WctaContractDto-SearchBpdRentalAccMgtPssRes")
-    public record SearchBpdRentalAccMgtPssRes(
-        String pdgrpNm,
-        String pdNm,
-        String basePdCd,
-        String istDt,
-        String rstlYn,
-        String jCnt,
-        String mchnChCnt,
-        String reRentalCnt,
-        String mshCnt,
-        String keepRentalCnt,
-        String sprExnCnt,
-        String sprReqdCnt,
-        String sprRat
-    ) {}
-
-    //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Result Dto
-    @ApiModel("WctaContractDto-SearchBpdRentalAccMgtPssReq")
-    public record SearchBpdRentalAccMgtPssReq(
-        @NotBlank
-        String srchGbn,
-        @ValidDate
-        String istStartDt,
-        @ValidDate
-        String istEndDt,
-        String pdMclsfId,
-        String basePdCd,
-        String copnDvCd
-    ) {}
-
-    //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Result Dto
-    @ApiModel("WctaContractDto-SearchByoRentalAccMgtInqrsRes")
-    public record SearchByoRentalAccMgtInqrsRes(
-        String dgr1LevlOgNm,
-        String dgr2LevlOgNm,
-        String istDt,
-        String rstlYn,
-        String jCnt,
-        String mchnChCnt,
-        String reRentalCnt,
-        String mshCnt,
-        String keepRentalCnt,
-        String sprExnCnt,
-        String sprReqdCnt,
-        String sprRat
-    ) {}
-
-    //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Result Dto
-    @ApiModel("WctaContractDto-SearchByoRentalAccMgtInqrsReq")
-    public record SearchByoRentalAccMgtInqrsReq(
-        @NotBlank
-        String srchGbn,
-        @ValidDate
-        String istStartDt,
-        @ValidDate
-        String istEndDt,
-        String dgr1LevlOgNm,
-        String dgr2LevlOgNm,
-        String copnDvCd
     ) {}
 }
