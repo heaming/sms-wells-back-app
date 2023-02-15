@@ -4,8 +4,8 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.kyowon.sms.common.web.customer.common.dto.ZcsaCustomerInfoDto.SearchParameterTypeReq;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoDvo;
+import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoReqDvo;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerInfoReq;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerRes;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaInterfaceResultDvo;
@@ -15,7 +15,8 @@ public interface WcsaCustomerInterfaceConverter {
 
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "searchType", constant = "C01")
-    SearchParameterTypeReq copy(SearchCustomerInfoReq dto);
+    @Mapping(source = "CST_NO", target = "cstNo")
+    ZcsaCustomerInfoReqDvo copy(SearchCustomerInfoReq dto);
 
     @BeanMapping(ignoreByDefault = true)
     @Mapping(source = "dvo.rsCd", target = "RS_CD")

@@ -10,11 +10,11 @@ public class WcsaCustomerInterfaceDto {
 
     /**
      * 고객번호 기준으로 고객정보를 조회 (서비스) Search Request Dto
-     * @param cstNo 고객번호
+     * @param CST_NO 고객번호
      */
     @ApiModel(value = "WcsaCustomerInterfaceDto-SearchCustomerInfoReq")
     public record SearchCustomerInfoReq(
-        String cstNo /* 고객번호 */
+        String CST_NO /* 고객번호 */
     ) {}
 
     /**

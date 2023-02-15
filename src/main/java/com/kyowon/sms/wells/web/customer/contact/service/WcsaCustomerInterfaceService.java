@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.common.web.customer.common.dto.ZcsaCustomerInfoDto.SearchCustomersRes;
-import com.kyowon.sms.common.web.customer.common.dto.ZcsaCustomerInfoDto.SearchParameterTypeReq;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoDvo;
+import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoReqDvo;
 import com.kyowon.sms.common.web.customer.common.service.ZcsaCustomerInfoService;
 import com.kyowon.sms.wells.web.customer.contact.converter.WcsaCustomerInterfaceConverter;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerInfoReq;
@@ -38,7 +38,7 @@ public class WcsaCustomerInterfaceService {
         ifResDvo.setRsMsg(null); //정상의 경우 결과코드(rsCd)만 송신한다.
 
         //  1. 필수값 체크(고객번호 → 필수값 체크)
-        if (dto.cstNo().isEmpty()) {
+        if (dto.CST_NO().isEmpty()) {
             ifResDvo.setRsCd("F");
             Arrays.stream(dto.getClass().getDeclaredFields()).forEach(data -> {
                 ifResDvo.setRsMsg(data.getName() + "가(이) 없습니다 !");
@@ -48,7 +48,7 @@ public class WcsaCustomerInterfaceService {
         }
 
         //  2. 고객 조회 서비스 호출
-        SearchParameterTypeReq param = converter.copy(dto);
+        ZcsaCustomerInfoReqDvo param = converter.copy(dto);
 
         List<SearchCustomersRes> pextCustomer = zcsaCustomerInfoService.getCustomers(param);
         if (pextCustomer.isEmpty()) {
