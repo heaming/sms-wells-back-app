@@ -7,11 +7,11 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndVehiclesDsbRgstDto.CreateReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndVehiclesDsbRgstDto.EditReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndVehiclesDsbRgstDto.FindRes;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndVehiclesDsbRgstDto.SearchVehiclesRes;
-import com.kyowon.sms.wells.web.service.orgcode.service.WsndVehiclesDsbRgstService;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.EditReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.FindRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.SearchVehiclesRes;
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndBusinessVehiclesMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -25,16 +25,16 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/business-vehicle")
-public class WsndVehiclesDsbRgstController {
-    private final WsndVehiclesDsbRgstService service;
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/business-vehicles")
+public class WsndBusinessVehiclesMgtController {
+    private final WsndBusinessVehiclesMgtService service;
 
     @ApiOperation(value = "차량지급 상세 조회", notes = "엔지니어 차량지급 상세조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "vhcMngtNo", value = "차량관리번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "vhcMngtSn", value = "차량관리일련번호", paramType = "query", required = true)
     })
-    @GetMapping("/{vhcMngtNo}/{vhcMngtSn}")
+    @GetMapping("/{vhcMngtNo}-{vhcMngtSn}")
     public FindRes getBusinessVehicle(
         @PathVariable
         String vhcMngtNo,

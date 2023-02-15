@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsndVehiclesDsbRgstDvo {
+public class WsndBusinessVehiclesMgtDvo {
     String vhcMngtNo;
     String vhcMngtSn;
     String carno;
@@ -24,4 +24,5 @@ public class WsndVehiclesDsbRgstDvo {
     @DBDecField
     String hipsCdnoEncr;
     String vhcDsbRmkCn;
+    String orglFnlMdfcDtm;
 }

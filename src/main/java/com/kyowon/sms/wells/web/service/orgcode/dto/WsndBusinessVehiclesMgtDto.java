@@ -7,14 +7,7 @@ import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsndVehiclesDsbRgstDto {
-    // 차량지급등록 Find Request Dto
-    @ApiModel(value = "WsndVehiclesDsbRgstDto-FindReq")
-    public record FindReq(
-        String vhcMngtNo,
-        String vhcMngtSn
-    ) {}
-
+public class WsndBusinessVehiclesMgtDto {
     // 차량지급등록 Find Result Dto
     @ApiModel(value = "WsndVehiclesDsbRgstDto-FindRes")
     public record FindRes(
@@ -27,7 +20,7 @@ public class WsndVehiclesDsbRgstDto {
         String vhcMngtTpCd,
         String insrAgeCd,
         String rflngCdnoEncr,
-        String hipsCdnoEncr, // 암/복호화 필요 컬럼
+        String hipsCdnoEncr,
         String vhcDsbRmkCn
     ) {
         public FindRes {
@@ -53,7 +46,8 @@ public class WsndVehiclesDsbRgstDto {
         String insrAgeCd,
         String rflngCdnoEncr,
         String hipsCdnoEncr,
-        String vhcDsbRmkCn
+        String vhcDsbRmkCn,
+        String fnlMdfcDtm
     ) {}
 
     // 차량지급등록 Edit Request Dto
@@ -74,7 +68,10 @@ public class WsndVehiclesDsbRgstDto {
         String insrAgeCd,
         String rflngCdnoEncr,
         String hipsCdnoEncr,
-        String vhcDsbRmkCn
+        String vhcDsbRmkCn,
+        String fnlMdfcDtm,
+        String fnlMdfcUsrNmSet,
+        String fnlMdfcDeptNm
     ) {}
 
     // 차량번호조회 Search Result Dto
