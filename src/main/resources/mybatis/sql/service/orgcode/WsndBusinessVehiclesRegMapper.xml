@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesRegMapper">
+    <select id="selectBusinessVehicle"
+            resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto$FindRes">
+        SELECT T1.VHC_MNGT_NO
+             , T1.VHC_MNGT_PRTNR_NO
+             , T1.VHC_MNGT_SN
+             , T1.CARNO
+             , T1.VHC_PYMDT
+             , T1.DSB_ENDDT
+             , T1.VHC_KND_CD
+             , T1.VHC_MNGT_TP_CD
+             , T1.INSR_AGE_CD
+             , T1.RFLNG_CDNO_ENCR
+             , T1.HIPS_CDNO_ENCR
+             , T1.VHC_DSB_RMK_CN
+          FROM TB_SVPD_VHC_DSB_IZ T1
+         WHERE T1.VHC_MNGT_NO = #{vhcMngtNo}
+           AND T1.VHC_MNGT_SN = (CASE WHEN T1.VHC_MNGT_SN = 00 THEN (SELECT TO_NUMBER(MAX(T2.VHC_MNGT_SN))
+                                                                       FROM TB_SVPD_VHC_DSB_IZ T2
+                                                                      WHERE T2.VHC_MNGT_PRTNR_NO = #{vhcMngtNo})
+                                      ELSE TO_NUMBER(#{vhcMngtSn})
+                                  END)
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <update id="mergeBusinessVehicle">
+        MERGE
+         INTO TB_SVPD_VHC_DSB_IZ T1
+        USING (
+               SELECT #{vhcMngtNo} AS VHC_MNGT_NO
+                    , (CASE WHEN #{vhcMngtSn} IS NULL THEN (SELECT MAX(A.VHC_MNGT_SN)
+                                                              FROM TB_SVPD_VHC_DSB_IZ A
+                                                             WHERE A.VHC_MNGT_NO = #{vhcMngtNo})
+                                                      ELSE #{vhcMngtSn}
+                       END) AS VHC_MNGT_SN
+                    , #{carno} AS CARNO
+                    , #{vhcMngtPrtnrNo} AS VHC_MNGT_PRTNR_NO
+                    , #{vhcPymdt} AS VHC_PYMDT
+                    , #{dsbEnddt} AS DSB_ENDDT
+                    , #{vhcMngtTpCd} AS VHC_MNGT_TP_CD
+                    , #{insrAgeCd} AS INSR_AGE_CD
+                    , #{rflngCdnoEncr} AS RFLNG_CDNO_ENCR
+                    , #{hipsCdnoEncr} AS HIPS_CDNO_ENCR
+                    , #{vhcDsbRmkCn} AS VHC_DSB_RMK_CN
+                    , #{vhcKndCd} AS VHC_KND_CD
+                 FROM DUAL
+              ) T2
+           ON (
+               T2.VHC_MNGT_NO = T1.VHC_MNGT_NO
+           AND T2.VHC_MNGT_SN = T1.VHC_MNGT_SN
+              )
+        WHEN MATCHED THEN
+      UPDATE
+         SET T1.CARNO = T2.CARNO
+           , T1.VHC_PYMDT = T2.VHC_PYMDT
+           , T1.DSB_ENDDT = T2.DSB_ENDDT
+           , T1.VHC_MNGT_TP_CD = T2.VHC_MNGT_TP_CD
+           , T1.INSR_AGE_CD = T2.INSR_AGE_CD
+           , T1.RFLNG_CDNO_ENCR = T2.RFLNG_CDNO_ENCR
+           , T1.HIPS_CDNO_ENCR = T2.HIPS_CDNO_ENCR
+           , T1.VHC_DSB_RMK_CN = T2.VHC_DSB_RMK_CN
+           <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+      INSERT
+           ( T1.VHC_MNGT_NO
+           , T1.VHC_MNGT_SN
+           , T1.CARNO
+           , T1.VHC_MNGT_PRTNR_NO
+           , T1.VHC_PYMDT
+           , T1.DSB_ENDDT
+           , T1.VHC_MNGT_TP_CD
+           , T1.INSR_AGE_CD
+           , T1.RFLNG_CDNO_ENCR
+           , T1.HIPS_CDNO_ENCR
+           , T1.VHC_DSB_RMK_CN
+           , T1.DTA_DL_YN
+           <include refid="COMMON.insertSystemField"/>
+           )
+      VALUES
+           ( T2.VHC_MNGT_NO
+           , T2.VHC_MNGT_SN
+           , T2.CARNO
+           , T2.VHC_MNGT_PRTNR_NO
+           , T2.VHC_PYMDT
+           , T2.DSB_ENDDT
+           , T2.VHC_MNGT_TP_CD
+           , T2.INSR_AGE_CD
+           , T2.RFLNG_CDNO_ENCR
+           , T2.HIPS_CDNO_ENCR
+           , T2.VHC_DSB_RMK_CN
+           , 'N'
+           <include refid="COMMON.insertSystemFieldValue"/>
+           )
+    </update>
+
+    <select id="selectAllVehicles"
+            resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto$SearchVehiclesRes">
+        SELECT T1.CARSEQ
+             , T1.OWSTAT
+             , T1.CARNO
+             , T1.CARNM
+             , T1.CARDNO1
+             , T1.CARDNO2
+          FROM TB_IFIN_SAP_EGBVC_DSB_RCV_ETXT T1
+         WHERE 1=1
+           AND (TRIM(DDATE) IS NULL OR TRIM(DDATE) = '00000000')
+         ORDER BY TRIM(CARNO)
+    </select>
+</mapper>
