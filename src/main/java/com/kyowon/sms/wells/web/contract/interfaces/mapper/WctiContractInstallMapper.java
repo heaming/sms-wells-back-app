@@ -6,5 +6,9 @@ import com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractInstallDvo;
 
 @Mapper
 public interface WctiContractInstallMapper {
-    int updateContractInstallInf(WctiContractInstallDvo dvo);
+    int updateContractInstall(WctiContractInstallDvo dvo);
+
+    int updateContractInstallHistory(WctiContractInstallDvo dvo);
+
+    int insertContractInstallHistory(WctiContractInstallDvo dvo);
 }

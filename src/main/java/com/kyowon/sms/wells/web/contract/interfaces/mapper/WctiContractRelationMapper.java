@@ -9,5 +9,5 @@ import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractRelationDto.
 
 @Mapper
 public interface WctiContractRelationMapper {
-    List<SearchRes> getRelatedContracts(SearchReq req);
+    List<SearchRes> selectRelatedContracts(SearchReq req);
 }

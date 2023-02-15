@@ -83,7 +83,7 @@ public class WsnaOutOfStorageAskMngtDto {
 
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-Warehouse")
     public record Warehouse(
-        String code,
+        String codeId,
         String codeName,
         String wareMngtPrtnrNo,
         String wareIchrNo,

@@ -6,9 +6,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceCorporateDto.SearchReq;
-
 @Mapper
 public interface WctiTaxInvoiceCorporateMapper {
-    List<SearchRes>selectTaxInvoiceCorporates(SearchReq dto);
+    List<SearchRes> selectTaxInvoiceCorporates(String dlpnrNm);
 }
