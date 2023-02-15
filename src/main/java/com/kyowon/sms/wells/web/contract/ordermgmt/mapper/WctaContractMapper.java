@@ -36,7 +36,4 @@ public interface WctaContractMapper {
 
     int deleteConfirmApprovalBases(WctaCntrAprBaseBasDvo dvo);
 
-    List<SearchBpdRentalAccMgtPssRes> selectBpdRentalAccMgtPss(SearchBpdRentalAccMgtPssReq dto);
-
-    List<SearchByoRentalAccMgtInqrsRes> selectByoRentalAccMgtInqrs(SearchByoRentalAccMgtInqrsReq dto);
 }
