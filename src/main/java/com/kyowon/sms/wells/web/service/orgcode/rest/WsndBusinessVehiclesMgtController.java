@@ -73,4 +73,5 @@ public class WsndBusinessVehiclesMgtController {
     public List<SearchVehiclesRes> getAllVehicles() {
         return service.getAllVehicles();
     }
+
 }

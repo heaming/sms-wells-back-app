@@ -16,4 +16,5 @@ public interface WsndBusinessVehiclesMgtMapper {
     int mergeBusinessVehicle(WsndBusinessVehiclesMgtDvo dvo);
 
     List<SearchVehiclesRes> selectAllVehicles();
+
 }

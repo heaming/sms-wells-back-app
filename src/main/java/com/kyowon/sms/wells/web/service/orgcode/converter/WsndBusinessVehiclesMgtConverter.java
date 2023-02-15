@@ -8,8 +8,8 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesMgtDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsndBusinessVehiclesMgtConverter {
-    WsndBusinessVehiclesMgtDvo mapCreateReqToVehiclesDsbDvo(WsndBusinessVehiclesMgtDto.CreateReq dto);
+    WsndBusinessVehiclesMgtDvo mapCreateReqToBusinessVehiclesMgtDvo(WsndBusinessVehiclesMgtDto.CreateReq dto);
 
     @Mapping(source = "fnlMdfcDtm", target = "orglFnlMdfcDtm")
-    WsndBusinessVehiclesMgtDvo mapEditReqToVehiclesDsbDvo(WsndBusinessVehiclesMgtDto.EditReq dto);
+    WsndBusinessVehiclesMgtDvo mapEditReqToBusinessVehiclesMgtDvo(WsndBusinessVehiclesMgtDto.EditReq dto);
 }

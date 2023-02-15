@@ -30,14 +30,14 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int createBusinessVehicle(CreateReq dto) {
-        WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToVehiclesDsbDvo(dto);
+        WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
         /*return mapper.mergeBusinessVehicle(dvo);*/
         return 1;
     }
 
     @Transactional
     public int editBusinessVehicle(EditReq dto) {
-        WsndBusinessVehiclesMgtDvo dvo = converter.mapEditReqToVehiclesDsbDvo(dto);
+        WsndBusinessVehiclesMgtDvo dvo = converter.mapEditReqToBusinessVehiclesMgtDvo(dto);
         /*return mapper.mergeBusinessVehicle(dvo);*/
         return 1;
     }

@@ -25,4 +25,5 @@ public class WsndBusinessVehiclesMgtDvo {
     String hipsCdnoEncr;
     String vhcDsbRmkCn;
     String orglFnlMdfcDtm;
+
 }

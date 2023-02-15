@@ -9,7 +9,7 @@ import io.swagger.annotations.ApiModel;
 
 public class WsndBusinessVehiclesMgtDto {
     // 차량지급등록 Find Result Dto
-    @ApiModel(value = "WsndVehiclesDsbRgstDto-FindRes")
+    @ApiModel(value = "WsndBusinessVehiclesMgtDto-FindRes")
     public record FindRes(
         String vhcMngtNo,
         String vhcMngtSn,
@@ -31,7 +31,7 @@ public class WsndBusinessVehiclesMgtDto {
     }
 
     // 차량지급등록 Create Request Dto
-    @ApiModel(value = "WsndVehiclesDsbRgstDto-CreateReq")
+    @ApiModel(value = "WsndBusinessVehiclesMgtDto-CreateReq")
     public record CreateReq(
         @NotBlank
         String vhcMngtNo,
@@ -51,7 +51,7 @@ public class WsndBusinessVehiclesMgtDto {
     ) {}
 
     // 차량지급등록 Edit Request Dto
-    @ApiModel(value = "WsndVehiclesDsbRgstDto-CreateReq")
+    @ApiModel(value = "WsndBusinessVehiclesMgtDto-EditReq")
     public record EditReq(
         @NotBlank
         String vhcMngtNo,
@@ -75,7 +75,7 @@ public class WsndBusinessVehiclesMgtDto {
     ) {}
 
     // 차량번호조회 Search Result Dto
-    @ApiModel(value = "WsndVehiclesDsbRgstDto-SearchVehiclesRes")
+    @ApiModel(value = "WsndBusinessVehiclesMgtDto-SearchVehiclesRes")
     public record SearchVehiclesRes(
         String carseq,
         String owstat,
