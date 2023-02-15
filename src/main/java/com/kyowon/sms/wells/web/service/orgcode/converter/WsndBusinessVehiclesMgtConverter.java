@@ -3,13 +3,14 @@ package com.kyowon.sms.wells.web.service.orgcode.converter;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto;
-import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesRegDvo;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.EditReq;
+import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesMgtDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsndBusinessVehiclesMgtConverter {
-    WsndBusinessVehiclesRegDvo mapCreateReqToBusinessVehiclesMgtDvo(WsndBusinessVehiclesRegDto.CreateReq dto);
+    WsndBusinessVehiclesMgtDvo mapCreateReqToBusinessVehiclesMgtDvo(CreateReq dto);
 
     @Mapping(source = "fnlMdfcDtm", target = "orglFnlMdfcDtm")
-    WsndBusinessVehiclesRegDvo mapEditReqToBusinessVehiclesMgtDvo(WsndBusinessVehiclesRegDto.EditReq dto);
+    WsndBusinessVehiclesMgtDvo mapEditReqToBusinessVehiclesMgtDvo(EditReq dto);
 }
