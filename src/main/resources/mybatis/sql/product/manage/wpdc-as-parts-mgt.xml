@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.manage.mapper.WpdcAsPartMgtMapper">
+<!-- wpdc-as-parts-mgt.xml -->
+    
+    <select id="selectAsPartPages" resultType="com.kyowon.sms.wells.web.product.manage.dto.WpdcAsPartMgtDto$SearchRes">
+        SELECT  
+                PB.SELL_YN                                  /* 판매여부 */
+                , PB.TEMP_SAVE_YN                           /* 상태 : Y(임시저장),N(등록) */
+                , PB.PD_TP_CD                               /* 상품구분 */
+                , CLSF.PD_CLSF_NM                           /* 상품분류 */
+                , PB.PD_NM                                  /* 상품명 */
+                , PB.PD_CD                                  /* 상품코드 */
+                , NVL(PPD.BAS_VAL, 0) AS SELL_PRICE         /* 판매가격 */
+                , PB.SELL_TP_CD                             /* 판매유형 */
+                ,  (
+                        SELECT 
+                               LISTAGG(Z.AVL_CHNL_ID,',') WITHIN GROUP (ORDER BY Z.AVL_CHNL_ID) AS CHN_ID
+                          FROM TB_PDBS_PD_DTL Z             /* 상품상세 */
+                         WHERE Z.PD_CD = PB.PD_CD
+                 ) AS CHANNEL_ID                            /* 채널ID */
+                , CASE WHEN PPD.VL_STRT_DTM IS NOT NULL 
+                    THEN SUBSTR(PPD.VL_STRT_DTM, 1, 4) || '-' || SUBSTR(PPD.VL_STRT_DTM, 5, 2) || '-' || SUBSTR(PPD.VL_STRT_DTM, 7, 2)
+                            || ' ~ ' || SUBSTR(PPD.VL_END_DTM, 1, 4) || '-' || SUBSTR(PPD.VL_END_DTM, 5, 2) || '-' || SUBSTR(PPD.VL_END_DTM, 7, 2)
+                    ELSE NULL
+                  END SELL_DURTION                          /* 판매기간 */
+                , PB.FST_RGST_DTM
+                , PB.FST_RGST_USR_ID
+                , RU.USR_NM AS FST_RGST_USR_NM              /* 등록자 */ 
+                , PB.FNL_MDFC_DTM
+                , PB.FNL_MDFC_USR_ID  
+                , MU.USR_NM AS FNL_MDFC_USR_NM              /* 최종수정자 */
+                , PB.SAP_MAT_CD                             /* 자재코드 */
+                , PB.PD_ABBR_NM                             /* 약어 */
+                , PB.OSTR_CNR_CD                            /* 출고센터 */
+                , PB.MODEL_NO                               /* 모델 No */
+          FROM TB_PDBS_PD_BAS PB                            /* 상품기본마스터 */
+          LEFT OUTER JOIN (
+                SELECT 
+                      PD_CLSF_ID
+                    , SUBSTR( SYS_CONNECT_BY_PATH(M1.PD_CLSF_NM,' >> '),5,LENGTH(SYS_CONNECT_BY_PATH(M1.PD_CLSF_NM,' >> '))) PD_CLSF_NM
+                  FROM TB_PDBS_PD_CLSF_BAS M1
+                  LEFT JOIN T_CMY_USR_M U1
+                      ON M1.FST_RGST_USR_ID = U1.USR_ID 
+                     AND U1.TENANT_ID = #{session.tenantId}
+                  LEFT JOIN T_CMY_USR_M U2
+                      ON M1.FNL_MDFC_USR_ID = U2.USR_ID 
+                     AND U2.TENANT_ID = #{session.tenantId}
+                 WHERE M1.DTA_DL_YN = 'N'  
+                   /*AND M1.PD_CLSF_ID = PB.PD_CLSF_ID*/
+                 START WITH M1.HGR_PD_CLSF_ID IS NULL
+               CONNECT BY PRIOR M1.PD_CLSF_ID = M1.HGR_PD_CLSF_ID
+          ) CLSF          /* 기준상품 */ 
+            ON PB.PD_CLSF_ID  = CLSF.PD_CLSF_ID
+          LEFT OUTER JOIN (
+                            SELECT PD_CD, BAS_VAL, VL_STRT_DTM, VL_END_DTM
+                              FROM (
+                                    SELECT PPD.PD_CD
+                                           , PPD.BAS_VAL       /* 기본값 */
+                                           , VL_STRT_DTM
+                                           , VL_END_DTM
+                                           , RANK() OVER(PARTITION BY PPD.PD_CD ORDER BY PPD.PD_PRC_DTL_ID DESC) PD_PRC_DTL_RNK
+                                      FROM TB_PDBS_PD_PRC_DTL PPD
+                                     WHERE DTA_DL_YN = 'N'
+                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN  PPD.VL_STRT_DTM AND PPD.VL_END_DTM
+                              )
+                             WHERE PD_PRC_DTL_RNK = 1
+                           ) PPD
+             ON PB.PD_CD = PPD.PD_CD
+           LEFT JOIN T_CMY_USR_M RU
+             ON RU.TENANT_ID = #{session.tenantId}
+            AND RU.USR_ID = PB.FST_RGST_USR_ID 
+           LEFT JOIN T_CMY_USR_M MU
+             ON MU.TENANT_ID = #{session.tenantId}
+            AND MU.USR_ID = PB.FNL_MDFC_USR_ID 
+         WHERE PB.DTA_DL_YN = 'N'
+           AND PD_TP_DTL_CD = '02' /* 상품유형상세코드 */
+           <if test='@MybatisUtils@isNotEmpty( pdTpCd )'>
+           AND PB.PD_TP_CD = #{pdTpCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdNm )'>
+             <bind name="prdtNm" value="'%'+ pdNm +'%'"/>
+           AND UPPER(PB.PD_NM) LIKE UPPER(#{prdtNm})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdCd )'>
+             <bind name="prdtCd" value="'%'+ pdCd +'%'"/>
+           AND UPPER(PB.PD_CD) LIKE UPPER(#{prdtCd})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdClsfCd )'>
+           AND ( PCB1.PD_CLSF_CD = #{pdClsfCd}
+                OR PCB2.PD_CLSF_CD = #{pdClsfCd}
+                OR PCB3.PD_CLSF_CD = #{pdClsfCd}
+           )
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( tempSaveYn )'>
+           AND PB.TEMP_SAVE_YN = #{tempSaveYn}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( modelNo )'>
+           AND PB.MODEL_NO = #{modelNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( sapMatCd )'>
+           AND PB.SAP_MAT_CD = #{sapMatCd}
+           </if>
+           ORDER BY PB.FST_RGST_DTM DESC
+    </select>
+    
+</mapper>
