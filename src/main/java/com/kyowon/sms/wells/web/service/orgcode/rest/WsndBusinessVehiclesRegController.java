@@ -7,11 +7,11 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.EditReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.FindRes;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.SearchVehiclesRes;
-import com.kyowon.sms.wells.web.service.orgcode.service.WsndBusinessVehiclesMgtService;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.CreateReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.EditReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.FindRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.SearchVehiclesRes;
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndBusinessVehiclesRegService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -26,8 +26,8 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/business-vehicles")
-public class WsndBusinessVehiclesMgtController {
-    private final WsndBusinessVehiclesMgtService service;
+public class WsndBusinessVehiclesRegController {
+    private final WsndBusinessVehiclesRegService service;
 
     @ApiOperation(value = "차량지급 상세 조회", notes = "엔지니어 차량지급 상세조회")
     @ApiImplicitParams(value = {

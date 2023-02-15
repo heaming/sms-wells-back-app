@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsndBusinessVehiclesMgtDvo {
+public class WsndBusinessVehiclesRegDvo {
     String vhcMngtNo;
     String vhcMngtSn;
     String carno;

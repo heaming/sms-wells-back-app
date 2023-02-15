@@ -7,9 +7,9 @@ import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsndBusinessVehiclesMgtDto {
+public class WsndBusinessVehiclesRegDto {
     // 차량지급등록 Find Result Dto
-    @ApiModel(value = "WsndBusinessVehiclesMgtDto-FindRes")
+    @ApiModel(value = "WsndBusinessVehiclesRegDto-FindRes")
     public record FindRes(
         String vhcMngtNo,
         String vhcMngtSn,
@@ -31,7 +31,7 @@ public class WsndBusinessVehiclesMgtDto {
     }
 
     // 차량지급등록 Create Request Dto
-    @ApiModel(value = "WsndBusinessVehiclesMgtDto-CreateReq")
+    @ApiModel(value = "WsndBusinessVehiclesRegDto-CreateReq")
     public record CreateReq(
         @NotBlank
         String vhcMngtNo,
@@ -51,7 +51,7 @@ public class WsndBusinessVehiclesMgtDto {
     ) {}
 
     // 차량지급등록 Edit Request Dto
-    @ApiModel(value = "WsndBusinessVehiclesMgtDto-EditReq")
+    @ApiModel(value = "WsndBusinessVehiclesRegDto-EditReq")
     public record EditReq(
         @NotBlank
         String vhcMngtNo,
@@ -75,7 +75,7 @@ public class WsndBusinessVehiclesMgtDto {
     ) {}
 
     // 차량번호조회 Search Result Dto
-    @ApiModel(value = "WsndBusinessVehiclesMgtDto-SearchVehiclesRes")
+    @ApiModel(value = "WsndBusinessVehiclesRegDto-SearchVehiclesRes")
     public record SearchVehiclesRes(
         String carseq,
         String owstat,

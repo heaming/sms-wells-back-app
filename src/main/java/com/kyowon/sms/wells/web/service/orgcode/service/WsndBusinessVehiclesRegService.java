@@ -6,20 +6,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.orgcode.converter.WsndBusinessVehiclesMgtConverter;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.EditReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.FindRes;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto.SearchVehiclesRes;
-import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesMgtDvo;
-import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesMgtMapper;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.CreateReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.EditReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.FindRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesRegDto.SearchVehiclesRes;
+import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesRegDvo;
+import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesRegMapper;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WsndBusinessVehiclesMgtService {
-    private final WsndBusinessVehiclesMgtMapper mapper;
+public class WsndBusinessVehiclesRegService {
+    private final WsndBusinessVehiclesRegMapper mapper;
     private final WsndBusinessVehiclesMgtConverter converter;
 
     public FindRes getBusinessVehicle(String vhcMngtNo, String vhcMngtSn) {
@@ -30,14 +30,14 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int createBusinessVehicle(CreateReq dto) {
-        WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
+        WsndBusinessVehiclesRegDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
         /*return mapper.mergeBusinessVehicle(dvo);*/
         return 1;
     }
 
     @Transactional
     public int editBusinessVehicle(EditReq dto) {
-        WsndBusinessVehiclesMgtDvo dvo = converter.mapEditReqToBusinessVehiclesMgtDvo(dto);
+        WsndBusinessVehiclesRegDvo dvo = converter.mapEditReqToBusinessVehiclesMgtDvo(dto);
         /*return mapper.mergeBusinessVehicle(dvo);*/
         return 1;
     }
