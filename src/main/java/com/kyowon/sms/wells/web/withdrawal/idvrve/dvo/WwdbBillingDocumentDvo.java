@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WwwdbBillingDocumentDvo {
+public class WwdbBillingDocumentDvo {
     String bildcPblNo;
     String sellPrtnrNo;
     String sellPrtnrNm;

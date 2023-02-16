@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 지로 수신처 관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WithdrawalConst.REST_URL_V1 + WithdrawalConst.REST_URL_IDVRVE + "/giro-placereceived")
+@RequestMapping(value = WithdrawalConst.REST_URL_IDVRVE + "/giro-placereceived")
 public class WwdbGiroPlaceReceivedController {
     private final WwdbGiroPlaceReceivedService service;
 

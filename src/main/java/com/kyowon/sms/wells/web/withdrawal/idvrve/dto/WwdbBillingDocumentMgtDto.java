@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
-public class WwwdbBillingDocumentMgtDto {
+public class WwdbBillingDocumentMgtDto {
     public record SearchReq(
         String cstFnm,
         String fstRgstDtm,

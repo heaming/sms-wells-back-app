@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WwwdbBillingDocumentForwardingDvo {
+public class WwdbBillingDocumentForwardingDvo {
     String bildcPblNo;
     String bildcFwTpCd; //유형코드
     String cstFnm; //--고객성명      

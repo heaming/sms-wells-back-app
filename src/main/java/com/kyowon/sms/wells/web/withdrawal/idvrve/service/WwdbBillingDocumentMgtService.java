@@ -11,22 +11,22 @@ import com.kyowon.sflex.common.message.dvo.EmailSendReqDvo;
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.EmailService;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwwdbBillingDocumentMgtConverter;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.RemoveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SaveDtlsReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SaveFwReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchDtlsReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchDtlsRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchFwReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchFwRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwwdbBillingDocumentDetailDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwwdbBillingDocumentDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwwdbBillingDocumentForwardingDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwwdbBillingDocumentMgtDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwwdbBillingDocumentMgtMapper;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbBillingDocumentMgtConverter;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.RemoveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SaveDtlsReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SaveFwReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchDtlsReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchDtlsRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchFwReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchFwRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillingDocumentDetailDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillingDocumentDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillingDocumentForwardingDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillingDocumentMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbBillingDocumentMgtMapper;
 import com.sds.sflex.common.common.dvo.UserSessionDvo;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.system.config.constant.CommConst;
@@ -41,11 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WwwdbBillingDocumentMgtService {
+public class WwdbBillingDocumentMgtService {
 
-    private final WwwdbBillingDocumentMgtMapper mapper;
+    private final WwdbBillingDocumentMgtMapper mapper;
 
-    private final WwwdbBillingDocumentMgtConverter convert;
+    private final WwdbBillingDocumentMgtConverter convert;
 
     private final TemplateService templateService;
 
@@ -61,7 +61,7 @@ public class WwwdbBillingDocumentMgtService {
      * @return PagingResult
      */
     @Transactional
-    public PagingResult<SearchRes> getBillingDocumentMgtPages(SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRes> getBillingDocumentPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectBillingDocuments(dto, pageInfo);
     }
 
@@ -73,16 +73,16 @@ public class WwwdbBillingDocumentMgtService {
      * @return
      */
     @Transactional
-    public List<SearchRes> getBillingDocumentMgtExcels(SearchReq dto) {
+    public List<SearchRes> getBillingDocumentExcels(SearchReq dto) {
         return mapper.selectBillingDocuments(dto);
     }
 
     @Transactional
-    public int removeBillingDocumentMgts(List<RemoveReq> dtos) throws Exception {
+    public int removeBillingDocuments(List<RemoveReq> dtos) throws Exception {
         int processCount = 0;
 
         for (RemoveReq dto : dtos) {
-            WwwdbBillingDocumentMgtDvo dvo = convert.mapDeleteWwwdbBillingDocumentMgtDvo(dto);
+            WwdbBillingDocumentMgtDvo dvo = convert.mapDeleteWwwdbBillingDocumentMgtDvo(dto);
             processCount += mapper.deleteBillingDocuments(dvo);
             processCount += mapper.deleteBillingDocumentDtails(dvo);
         }
@@ -91,11 +91,11 @@ public class WwwdbBillingDocumentMgtService {
     }
 
     @Transactional
-    public int saveBillingDocumentMgts(SaveReq dto) throws Exception {
+    public int saveBillingDocuments(SaveReq dto) throws Exception {
 
         int processCount = 0;
 
-        WwwdbBillingDocumentDvo dvo = convert.mapSaveWwwdbBillingDocumentDvo(dto.saveMainReq());
+        WwdbBillingDocumentDvo dvo = convert.mapSaveWwwdbBillingDocumentDvo(dto.saveMainReq());
         switch (dto.saveMainReq().state()) {
             case CommConst.ROW_STATE_CREATED -> {
                 String pk = mapper.selectBillingDocumentPk();
@@ -113,9 +113,9 @@ public class WwwdbBillingDocumentMgtService {
     }
 
     @Transactional
-    private int saveBillingDtails(SaveReq dto, int processCount, WwwdbBillingDocumentDvo dvo) throws Exception {
+    private int saveBillingDtails(SaveReq dto, int processCount, WwdbBillingDocumentDvo dvo) throws Exception {
         for (SaveDtlsReq dtlDto : dto.saveDtlsReq()) {
-            WwwdbBillingDocumentDetailDvo dtlDvo = convert.mapSaveWwwdbBillingDocumentDetailDvo(dtlDto);
+            WwdbBillingDocumentDetailDvo dtlDvo = convert.mapSaveWwwdbBillingDocumentDetailDvo(dtlDto);
             dtlDvo.setBildcPblNo(dvo.getBildcPblNo());
             switch (dtlDto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
@@ -144,7 +144,7 @@ public class WwwdbBillingDocumentMgtService {
     public int saveBillingDocumentForwarding(SaveFwReq dto) throws Exception {
         int processCount = 0;
 
-        WwwdbBillingDocumentForwardingDvo dvo = convert.mapSaveWwwBillingDocumentForwardingDvo(dto);
+        WwdbBillingDocumentForwardingDvo dvo = convert.mapSaveWwwBillingDocumentForwardingDvo(dto);
 
         if (dto.bildcFwTpCd().equals("K")) {
             // 알림톡 메시지 발송
@@ -158,7 +158,7 @@ public class WwwdbBillingDocumentMgtService {
     }
 
     //메일 보내기
-    private int sendMail(int processCount, WwwdbBillingDocumentForwardingDvo dvo) throws Exception {
+    private int sendMail(int processCount, WwdbBillingDocumentForwardingDvo dvo) throws Exception {
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         String content = "TEST";
         //            String content = templateService.getTemplateContentOriginal("TMP_WDB_MAIL_TEST"); //이거 템플리 서식 들고오는거 알아보자
@@ -178,7 +178,7 @@ public class WwwdbBillingDocumentMgtService {
     }
 
     // 알림톡 메시지 발송
-    private int sendKakao(int processCount, WwwdbBillingDocumentForwardingDvo dvo) throws Exception {
+    private int sendKakao(int processCount, WwdbBillingDocumentForwardingDvo dvo) throws Exception {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("cstFnm", dvo.getCstFnm());
         paramMap.put("pdNm", dvo.getPdNm());

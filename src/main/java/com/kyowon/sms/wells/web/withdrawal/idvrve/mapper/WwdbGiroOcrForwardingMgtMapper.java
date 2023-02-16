@@ -21,7 +21,7 @@ public interface WwdbGiroOcrForwardingMgtMapper {
     public PagingResult<SearchRes> selectGiroOcrForwardings(SearchReq dto, PageInfo pageInfo);
 
     /* 지로OCR발송관리 대상 조회 */
-    public List<SearchRes> selectGiroOcrForwardingMgtObjects();
+    public List<SearchRes> selectGiroOcrForwardingObjects();
 
     /* 지로OCR발송관리 등록 */
     public int insertGiroOcrForwardings(WwdbGiroOcrForwardingMgtDvo dvo);

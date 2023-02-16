@@ -40,7 +40,7 @@ public class WwdbGiroOcrForwardingMgtService {
      * @return PagingResult
      */
     @Transactional
-    public PagingResult<SearchRes> getGiroOcrForwardingMgtPages(SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRes> getGiroOcrForwardingPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectGiroOcrForwardings(dto, pageInfo);
     }
 
@@ -50,12 +50,12 @@ public class WwdbGiroOcrForwardingMgtService {
      * @return List<SearchRes>
      */
     @Transactional
-    public List<SearchRes> getGiroOcrForwardingMgtObjects() {
-        return mapper.selectGiroOcrForwardingMgtObjects();
+    public List<SearchRes> getGiroOcrForwardingObjects() {
+        return mapper.selectGiroOcrForwardingObjects();
     }
 
     @Transactional
-    public int saveGiroOcrForwardingMgts(List<SaveReq> dtos) throws Exception {
+    public int saveGiroOcrForwardings(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
 
         for (SaveReq dto : dtos) {
@@ -84,7 +84,7 @@ public class WwdbGiroOcrForwardingMgtService {
      * @return List<SearchPrintRes>
      */
     @Transactional
-    public List<SearchPrintRes> getGiroOcrForwardingPrintMgt(SearchPrintReq dto) {
+    public List<SearchPrintRes> getGiroOcrForwardingPrints(SearchPrintReq dto) {
         return mapper.selectGiroOcrForwardingPrints(dto);
     }
 
@@ -95,19 +95,19 @@ public class WwdbGiroOcrForwardingMgtService {
      * @return List<SearchPrintRes>
      */
     @Transactional
-    public int saveGiroOcrForwardingPrintMgt(SavePrintReq dtos) throws Exception {
+    public int saveGiroOcrForwardingPrints(SavePrintReq dtos) throws Exception {
         int processCount = 0;
-        int GiroOcrForwardingDetailCount = 0;
+        int giroOcrForwardingDetailCount = 0;
         WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroOcrForwardingPrintDvo(dtos);
         switch (dtos.state()) {
             case CommConst.ROW_STATE_CREATED -> {
                 int selectGiroOcrPk = mapper.selectGiroOcrPk();
                 dvo.setGiroOcrPblSeqn(selectGiroOcrPk);
-                GiroOcrForwardingDetailCount = mapper.insertGiroOcrForwardingDetailPrints(dvo);
-                if (GiroOcrForwardingDetailCount == 0) {
-                    BizAssert.isTrue(GiroOcrForwardingDetailCount == 0, "생성할 자료가 없습니다. 작업일을 확인하세요.");
+                giroOcrForwardingDetailCount = mapper.insertGiroOcrForwardingDetailPrints(dvo);
+                if (giroOcrForwardingDetailCount == 0) {
+                    BizAssert.isTrue(giroOcrForwardingDetailCount == 0, "생성할 자료가 없습니다. 작업일을 확인하세요.");
                 }
-                dvo.setGiroOcrPblTotQty(GiroOcrForwardingDetailCount);
+                dvo.setGiroOcrPblTotQty(giroOcrForwardingDetailCount);
                 processCount += mapper.insertGiroOcrForwardingPrints(dvo);
             }
             default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
@@ -116,7 +116,7 @@ public class WwdbGiroOcrForwardingMgtService {
     }
 
     @Transactional
-    public int removeGiroOcrForwardingPrintMgts(List<removePrintReq> dtos) {
+    public int removeGiroOcrForwardingPrints(List<removePrintReq> dtos) {
         int processCount = 0;
 
         for (removePrintReq dto : dtos) {

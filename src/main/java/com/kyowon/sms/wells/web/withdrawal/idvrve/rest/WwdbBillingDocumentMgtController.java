@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.RemoveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SaveFwReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchDtlsReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchDtlsRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchFwReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchFwRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbBillingDocumentMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwwdbBillingDocumentMgtService;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.RemoveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SaveFwReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchDtlsReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchDtlsRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchFwReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchFwRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbBillingDocumentMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -35,21 +35,21 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 청구서 관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WithdrawalConst.REST_URL_V1 + WithdrawalConst.REST_URL_IDVRVE + "/billing-document-orders")
-public class WwwdbBillingDocumentMgtController {
+@RequestMapping(value = WithdrawalConst.REST_URL_IDVRVE + "/billing-document-orders")
+public class WwdbBillingDocumentMgtController {
 
-    private final WwwdbBillingDocumentMgtService service;
+    private final WwdbBillingDocumentMgtService service;
 
     @ApiOperation(value = "청구서 관리 목록 조회", notes = " 검색조건을 받아 청구서 관리 목록을 조회한다.")
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getBillingDocumentMgtPages(SearchReq dto, PageInfo pageInfo) {
-        return service.getBillingDocumentMgtPages(dto, pageInfo);
+    public PagingResult<SearchRes> getBillingDocumentPages(SearchReq dto, PageInfo pageInfo) {
+        return service.getBillingDocumentPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "청구서 관리 엑셀다운로드", notes = " 검색조건을 받아 청구서 관리 엑셀다운로드을 한다.")
     @GetMapping("/excel-download")
-    public List<SearchRes> getBillingDocumentMgtExcels(SearchReq dto) {
-        return service.getBillingDocumentMgtExcels(dto);
+    public List<SearchRes> getBillingDocumentExcels(SearchReq dto) {
+        return service.getBillingDocumentExcels(dto);
     }
 
     @ApiOperation(value = "청구서 관리 목록 삭제", notes = " 청구서 관리 목록을 삭제한다.")
@@ -60,7 +60,7 @@ public class WwwdbBillingDocumentMgtController {
         List<RemoveReq> dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.removeBillingDocumentMgts(dto))
+            .processCount(service.removeBillingDocuments(dto))
             .build();
     }
 
@@ -72,13 +72,13 @@ public class WwwdbBillingDocumentMgtController {
 
     @ApiOperation(value = "청구서 관리 목록 저장", notes = "RDS 적요 청구서 관리 등록한다.")
     @PostMapping("/details")
-    public SaveResponse saveBillingDocumentMgts(
+    public SaveResponse saveBillingDocuments(
         @RequestBody
         @Valid
         SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveBillingDocumentMgts(dto))
+            .processCount(service.saveBillingDocuments(dto))
             .build();
     }
 

@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 지로OCR발송관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WithdrawalConst.REST_URL_V1 + WithdrawalConst.REST_URL_IDVRVE + "/giro-ocr-forwardings")
+@RequestMapping(value = WithdrawalConst.REST_URL_IDVRVE + "/giro-ocr-forwardings")
 public class WwdbGiroOcrForwardingMgtController {
 
     private final WwdbGiroOcrForwardingMgtService service;
@@ -46,55 +46,55 @@ public class WwdbGiroOcrForwardingMgtController {
     })
     @ApiOperation(value = "지로OCR발송관리 목록 조회", notes = " 검색조건을 받아 지로OCR발송관리 코드관리 목록을 조회한다.")
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getGiroOcrForwardingMgtPages(SearchReq dto, PageInfo pageInfo) {
-        return service.getGiroOcrForwardingMgtPages(dto, pageInfo);
+    public PagingResult<SearchRes> getGiroOcrForwardingPages(SearchReq dto, PageInfo pageInfo) {
+        return service.getGiroOcrForwardingPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "지로OCR발송관리 대상 조회", notes = "지로OCR발송관리 대상 목록을 조회한다.")
     @GetMapping("/objects")
-    public List<SearchRes> getGiroOcrForwardingMgtObjects() {
-        return service.getGiroOcrForwardingMgtObjects();
+    public List<SearchRes> getGiroOcrForwardingObjects() {
+        return service.getGiroOcrForwardingObjects();
     }
 
     @ApiOperation(value = "지로OCR발송관리 저장", notes = " RDS 적요 지로OCR발송관리 등록 및 수정한다.")
     @PostMapping()
-    public SaveResponse saveGiroOcrForwardingMgts(
+    public SaveResponse saveGiroOcrForwardings(
         @RequestBody
         @Valid
         List<SaveReq> dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveGiroOcrForwardingMgts(dto))
+            .processCount(service.saveGiroOcrForwardings(dto))
             .build();
     }
 
     @ApiOperation(value = "지로OCR발송관리 출력 조회", notes = "지로OCR발송관리 출력 목록을 조회한다.")
     @GetMapping("/print")
-    public List<SearchPrintRes> getGiroOcrForwardingPrintMgt(SearchPrintReq dto) {
-        return service.getGiroOcrForwardingPrintMgt(dto);
+    public List<SearchPrintRes> getGiroOcrForwardingPrints(SearchPrintReq dto) {
+        return service.getGiroOcrForwardingPrints(dto);
     }
 
     @ApiOperation(value = "지로OCR발송관리 출력 등록", notes = "RDS 적요 지로OCR발송관리 등록한다.")
     @PostMapping("/print")
-    public SaveResponse saveGiroOcrForwardingPrintMgt(
+    public SaveResponse saveGiroOcrForwardingPrints(
         @RequestBody
         @Valid
         SavePrintReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveGiroOcrForwardingPrintMgt(dto))
+            .processCount(service.saveGiroOcrForwardingPrints(dto))
             .build();
     }
 
     @ApiOperation(value = "지로OCR발송관리 출력 삭제", notes = "지로OCR발송관리 출력 목록을 삭제한다.")
-    @PutMapping("/print")
-    public SaveResponse removeGiroOcrForwardingPrintMgt(
+    @DeleteMapping("/print")
+    public SaveResponse removeGiroOcrForwardingPrints(
         @RequestBody
         @Valid
         List<removePrintReq> dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.removeGiroOcrForwardingPrintMgts(dto))
+            .processCount(service.removeGiroOcrForwardingPrints(dto))
             .build();
     }
 }
