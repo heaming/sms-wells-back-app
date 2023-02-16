@@ -15,7 +15,7 @@ import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.S
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaAutoFntDsnWdrwMgtService;
-import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(WithdrawalConst.REST_URL_V1)
+@RequestMapping(WdWithdrawalConst.REST_URL_V1)
 @Api(tags = "[WWDA] 자동이체 지정 출금 고객 관리")
 public class WwdaAutoFntDsnWdrwMgtController {
 
