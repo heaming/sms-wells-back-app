@@ -19,7 +19,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDt
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.removePrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbGiroOcrForwardingMgtService;
-import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 지로OCR발송관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WithdrawalConst.REST_URL_IDVRVE + "/giro-ocr-forwardings")
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/giro-ocr-forwardings")
 public class WwdbGiroOcrForwardingMgtController {
 
     private final WwdbGiroOcrForwardingMgtService service;
