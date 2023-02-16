@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class WsnaQomAsnStrWareDvo {
+public class WsnaMaterialsAssignStocksDvo {
     String prtnrNo; /* 파트너번호 */
     String qomAsnApyYn; /* 물량배정적용여부 */
 }

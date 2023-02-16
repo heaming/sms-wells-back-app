@@ -12,9 +12,9 @@ import io.swagger.annotations.ApiModel;
  * @author inho.choi
  * @since 2023-01-19
  */
-public class WsnaQomAsnStrWareDto {
+public class WsnaMaterialsAssignStocksDto {
 
-    @ApiModel(value = "WsnaQomAsnStrWareDto-SearchReq")
+    @ApiModel(value = "WsnaMaterialsAssignStocksDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String baseYm, /* 기준년월 */
@@ -26,7 +26,7 @@ public class WsnaQomAsnStrWareDto {
         String hmnrscEmpno /* 인사사원번호 */
     ) {}
 
-    @ApiModel(value = "WsnaQomAsnStrWareDto-SearchRes")
+    @ApiModel(value = "WsnaMaterialsAssignStocksDto-SearchRes")
     public record SearchRes(
         String baseYm, /* 기준년월 */
         String prtnrNo, /* 파트너번호*/
@@ -47,27 +47,27 @@ public class WsnaQomAsnStrWareDto {
         String zipCd, /*우편번호*/
         String addr /*주소*/
     ) {}
-    @ApiModel(value = "WsnaQomAsnStrWareDto-CreateReq")
+    @ApiModel(value = "WsnaMaterialsAssignStocksDto-CreateReq")
     public record CreateReq(
         String prtnrNo, /* 파트너번호 */
         String qomAsnApyYn /* 물량배정적용여부 */
     ) {}
-    @ApiModel(value = "WsnaQomAsnStrWareDto-prtnrsReq")
-    public record prtnrsReq(
+    @ApiModel(value = "WsnaMaterialsAssignStocksDto-prtnrsReq")
+    public record PrtnrReq(
         @NotBlank
         String baseYm, /*기준년월*/
         String ogId /* 조직ID */
     ) {}
 
-    @ApiModel(value = "WsnaQomAsnStrWareDto-prtnrRes")
-    public record prtnrRes(
+    @ApiModel(value = "WsnaMaterialsAssignStocksDto-prtnrRes")
+    public record PrtnrRes(
         String ogId, /* 조직ID */
         String prtnrNo, /* 파트너번호*/
         String prtnrKnm /* 파트너명*/
     ) {}
 
-    @ApiModel(value = "WsnaQomAsnStrWareDto-ogReq")
-    public record ogReq(
+    @ApiModel(value = "WsnaMaterialsAssignStocksDto-ogReq")
+    public record OgReq(
         @NotBlank
         String baseYm,
         String ogId, /* 조직ID */
@@ -75,8 +75,8 @@ public class WsnaQomAsnStrWareDto {
         String ogTpCd
     ) {}
 
-    @ApiModel(value = "WsnaQomAsnStrWareDto-ogRes")
-    public record ogRes(
+    @ApiModel(value = "WsnaMaterialsAssignStocksDto-ogRes")
+    public record OgRes(
         String ogId, /* 조직ID */
         String hgrOgId,
         String ogTpCd,
