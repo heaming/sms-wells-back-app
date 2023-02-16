@@ -40,13 +40,13 @@ public class WctcDangerArbitDto {
         String dangOjPrtnrPstnDvNm,
         String dgr1LevlDgPrtnrNo,
         String dgr2LevlDgPrtnrNo,
+        String bznsSpptPrtnrNo,
         String dgr3LevlDgPrtnrNo,
-        String dgr4LevlDgPrtnrNo,
         String dangChkNm,
-        String dangArbitCdNm,
+        String dangArbitCd,
         String dangUncvrCt,
         String dangArbitLvyPc,
-        String dangArbitOgNm,
+        String dangArbitOgId,
         String fstRgstUsrId,
         String fstRgstDt
     ) {}
@@ -66,10 +66,10 @@ public class WctcDangerArbitDto {
         String dangOjPrtnrOgNm, /* 소속(행위자) */
         String dangOjPrtnrNm, /* 성명(행위자) */
         String dangOjPrtnrPstnDvNm, /* 직급(행위자) */
-        String dgr1HgrDgPrtnrNo, /* 총괄단(소속) */
-        String dgr2HgrDgPrtnrNo, /* 지역단(소속) */
+        String dgr1LevlDgPrtnrNo, /* 총괄단(소속) */
+        String dgr2LevlDgPrtnrNo, /* 지역단(소속) */
         String bznsSpptPrtnrNo, /* 영업지원파트너(BM)(소속) */
-        String dgr3HgrDgPrtnrNo, /* 지점(소속) */
+        String dgr3LevlDgPrtnrNo, /* 지점(소속) */
         @NotBlank
         String dangChkNm, /* 부과내역(벌점) */
         String dangArbitCd, /* 조치항목(벌점) */
