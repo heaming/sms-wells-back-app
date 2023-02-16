@@ -1,0 +1,30 @@
+package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
+
+import io.swagger.annotations.ApiModel;
+
+public class WctaKakaotalksDto {
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    //카카오톡 발송 내역 - 카카오톡 발송 내역 조회 Search Request Dto
+    @ApiModel(value = "WctaKakaotalksDto-SearchKakaotalkFwIzsReq")
+    public record SearchKakaotalkFwIzsReq(
+        String mtPr,
+        String concDiv
+    ) {}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    //카카오톡 발송 내역 - 카카오톡 발송 내역 조회 Search Result Dto
+    @ApiModel("WctaKakaotalksDto-SearchKakaotalkFwIzsRes")
+    public record SearchKakaotalkFwIzsRes(
+        String recipientNum,
+        String dateClientReq,
+        String dateRslt,
+        String reslCdCntn,
+        String rplcSend,
+        String msg,
+        String userId
+    ) {}
+}
