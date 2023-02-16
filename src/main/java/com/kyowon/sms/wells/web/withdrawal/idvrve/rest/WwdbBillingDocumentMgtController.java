@@ -21,7 +21,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbBillingDocumentMgtService;
-import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 청구서 관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WithdrawalConst.REST_URL_IDVRVE + "/billing-document-orders")
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/billing-document-orders")
 public class WwdbBillingDocumentMgtController {
 
     private final WwdbBillingDocumentMgtService service;

@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroPlaceReceivedDto.F
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroPlaceReceivedDto.FindRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroPlaceReceivedDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbGiroPlaceReceivedService;
-import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 지로 수신처 관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WithdrawalConst.REST_URL_IDVRVE + "/giro-placereceived")
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/giro-placereceived")
 public class WwdbGiroPlaceReceivedController {
     private final WwdbGiroPlaceReceivedService service;
 

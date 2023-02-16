@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAftnCheckListDto.SearchAftnBilNrcvListReq;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAftnCheckListDto.SearchAftnBilNrcvListRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaAftnCheckListService;
-import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(WithdrawalConst.REST_URL_V1)
+@RequestMapping(WdWithdrawalConst.REST_URL_V1)
 @Api(tags = "[WWDA] 자동이체 미수신 체크 목록 관리")
 public class WwdaAftnCheckListController {
 
