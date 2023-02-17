@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 
@@ -12,20 +13,10 @@ import io.swagger.annotations.ApiModel;
  * W-SV-U-0226M01 급지 수당 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim 김혜원
  * @since 2022.12.14
  */
 public class WsndRegionLevelAwMgtDto {
-
-    @ApiModel(value = "WsndRegionLevelAwMgtDto-FindBaseInfoRes")
-    public record FindBaseInfoRes(
-        String movementManHour, // 이동급지 분당공수
-        String movementFieldWeight, // 이동급지 급지비중
-        String movementAverageSpeed, // 이동급지 평균시속
-        String bizManHour, // 업무급지 분당공수
-        String bizFieldWeight, // 업무급지 급지비중
-        String bizFieldAirlift // 업무급지 급지공수
-    ) {}
 
     @ApiModel(value = "WsndRegionLevelAwMgtDto-SearchRes")
     public record SearchRes(
@@ -47,7 +38,10 @@ public class WsndRegionLevelAwMgtDto {
         String fstRgstUsrId, // 최초등록사용자ID
         String rgstNm, // 사용자명
         Integer izSn, // 내역일련번호
-        Long mmtDstn // 이동거리
+        Long mmtDstn, // 이동거리
+        Integer minPerManho, // 분당공수
+        Integer rglvlWeit, // 급지비중
+        Integer avVe // 평균속도
     ) {}
 
     @ApiModel(value = "WsndRegionLevelAwMgtDto-SaveReq")
@@ -64,8 +58,13 @@ public class WsndRegionLevelAwMgtDto {
         String mmtDstn, // 이동거리
         @NotBlank
         String rglvlGdCd, // 급지등급코드
-        @NotBlank
-        String rglvlAwAmt // 급지수당금액
+        @NotNull
+        BigDecimal rglvlAwAmt, // 급지수당금액
+        @NotNull
+        Integer minPerManho, // 분당공수
+        @NotNull
+        Integer rglvlWeit, // 급지비중
+        Integer avVe // 평균속도
     ) {}
 
 }
