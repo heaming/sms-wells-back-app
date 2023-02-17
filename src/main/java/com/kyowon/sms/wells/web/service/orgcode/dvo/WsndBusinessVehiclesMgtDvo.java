@@ -12,6 +12,7 @@ public class WsndBusinessVehiclesMgtDvo {
     String vhcMngtNo;
     String vhcMngtSn;
     String carno;
+    String vhcMngtOgTpCd;
     String vhcMngtPrtnrNo;
     String vhcPymdt;
     String dsbEnddt;

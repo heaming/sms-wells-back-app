@@ -10,7 +10,7 @@ import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgt
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchRgstHistRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchUnrgPsRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaAutoFntBndlWdrwRgstMgtService;
-import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WithdrawalConst;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(WithdrawalConst.REST_URL_V1)
+@RequestMapping(WdWithdrawalConst.REST_URL_V1)
 @Api(tags = "[WWDA] 자동이체 묶음 출금 등록 관리")
 public class WwdaAutoFntBndlWdrwRgstMgtController {
 

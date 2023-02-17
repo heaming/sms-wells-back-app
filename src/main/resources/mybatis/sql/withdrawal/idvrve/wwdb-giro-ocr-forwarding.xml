@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroOcrForwardingMgtMapper">
+    <select id="selectGiroOcrForwardings" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchRes">
+        SELECT
+               A.WK_DT --작업일자
+             , A.WK_SN --작업일련번호
+             , A.GIRO_BIZ_DV_CD --지로업무구분코드
+             , A.GIRO_BIZ_TP_CD --지로업무유형코드
+             , A.CNTR_NO --계약번호
+             , A.CNTR_SN --계약일련번호
+             , A.CST_FNM -- 고객성명
+             , A.SL_DT --매출일자
+              --현재차월
+             , B.RECAP_DUTY_PTRM_N--약정개월
+             , A.STRT_GIRO_TN --시작지로회차
+             , A.END_GIRO_TN --종료지로회차
+             , A.THM0_AMT --0차월금액
+             , A.ISTM_MCN --할부개월수
+             , A.ISTM_AMT --할부금액
+             , A.ISTM_DSC_AMT --할부할인금액
+             , A.PY_AMT --납입금액
+             , A.STPL_NMN_AMT --약정차월금액
+             , A.EXN_NMN_AMT --만료차월금액
+             , A.LTPAY_YN --후납여부
+             , A.GIRO_RGLR_DV_CD --정기구분  
+          FROM TB_RVDW_GIRO_OCR_MNGT_BAS A
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL B ON A.CNTR_NO = B.CNTR_NO AND A.CNTR_SN = B.CNTR_SN
+         WHERE B.RECAP_DUTY_PTRM_UNIT_CD = '20'
+           AND A.WK_DT = #{wkDt}
+           AND A.GIRO_RGLR_DV_CD = #{giroRglrDvCd}
+           AND A.DTA_DL_YN = 'N'
+           AND B.DTA_DL_YN = 'N'        
+    </select>
+    
+    <select id="selectGiroOcrForwardingObjects" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchRes">
+        SELECT 
+               WK_DT
+             , GIRO_BIZ_DV_CD --지로업무구분코드
+             , GIRO_BIZ_TP_CD --지로업무유형코드
+             , CNTR_NO -- 계약번호
+             , CNTR_SN -- 계약일련번호
+             , CST_FNM -- 고객명
+        --     , STRT_GIRO_TN --시작지로회차
+        --     , END_GIRO_TN --종료지로회차
+             , SL_DT --매출일자 
+             , ISTM_MCN --렌탈기간
+             , ISTM_AMT--렌탈료
+             , ISTM_DSC_AMT--렌탈할인
+             , PY_AMT --청구 렌탈료
+        --     , THM0_AMT -- 0차월금액
+             , PY_AMT AS STPL_NMN_AMT --약정차월
+        --     , EXN_NMN_AMT --만료차월
+             , LTPAY_YN --후납여부
+             , GIRO_RGLR_DV_CD --지로정기구분
+             --, --현재차월
+             , RECAP_DUTY_PTRM_N --약정개월
+          FROM(
+                SELECT 
+                       TO_CHAR(to_date(sysdate),'YYYYMMDD') AS WK_DT
+                     , '2' AS GIRO_BIZ_DV_CD
+                     , '2' AS GIRO_BIZ_TP_CD
+                     , A.CNTR_NO -- 계약번호  
+                     , B.CNTR_SN -- 계약일련번호
+                     , A.CST_NO -- 고객번호
+                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS E WHERE E.CST_NO = A.CST_NO) AS CST_FNM
+                     , B.SL_DT -- 매출일자
+                       --현재차월 아직 컬럼이없음 
+                     , C.RECAP_DUTY_PTRM_N --약정개월
+                --     , AS STRT_GIRO_TN --시작   CASE WHEN 현재차월 = 1 THEN 0 ELSE 현재차월 END AS STRT_GIRO_TN
+                --     , AS 시작지로회차 CASE WHEN 현재차월 = 1 THEN 11 ELSE 현재차월 END --종료
+                --       , CASE WHEN 현재차월 = 1 THEN 11
+                --              WHEN 현재차월 + 12 >=T1.LCMONT THEN T1.LCMONT
+                --              ELSE T1.현재차월 + 11 END
+                --         AS END_GIRO_TN
+                     
+                --     , AS THM0_AMT --0차월
+                     , TRUNC(MONTHS_BETWEEN(TO_DATE(D.APY_STRT_TN,'YYYY-MM-DD'),TO_DATE(D.APY_END_TN,'YYYY-MM-DD'))) AS ISTM_MCN --렌탈기간
+                     , D.FNL_VAL AS ISTM_AMT--렌탈료
+                     , D.CTR_VAL AS ISTM_DSC_AMT--렌탈할인
+                     , D.FNL_VAL - D.CTR_VAL AS PY_AMT --청구 렌탈료
+                --     , AS EXN_NMN_AMT --만료차월
+                     , '' AS LTPAY_YN --후납여부
+                     , '01'AS GIRO_RGLR_DV_CD --정기구분(정기)
+                  FROM TB_SSCT_CNTR_STLM_BAS A --계약결제기본
+                     , TB_CBCL_CNTR_PERF_MM_CL B --계약실적월마감
+                     , TB_SSCT_CNTR_WELLS_DTL C--계약WELLS상세
+                     , TB_SSCT_CNTR_PRC_CMPT_IZ D  --계약가격산출내역
+                 WHERE A.CNTR_NO = B.CNTR_NO
+                   AND A.CNTR_NO = C.CNTR_NO
+                   AND A.CNTR_NO = D.CNTR_NO
+                   AND B.CNTR_NO = C.CNTR_NO
+                   AND B.CNTR_NO = D.CNTR_NO
+                   AND C.CNTR_NO = D.CNTR_NO
+                   AND C.CNTR_SN = D.CNTR_SN
+                   AND A.MPY_MTHD_TP_CD = '170' --지로 170   
+                   AND B.BASE_YM = to_char(to_date(sysdate),'YYYYMM')   
+                   AND C.RECAP_DUTY_PTRM_UNIT_CD = '20' --년10 , 월20 , 주30 , 일40    
+                   AND A.DTA_DL_YN = 'N'
+                   AND B.DTA_DL_YN = 'N'
+                   AND C.DTA_DL_YN = 'N'
+                   AND D.DTA_DL_YN = 'N'
+          )
+    </select>
+    
+    <insert id="insertGiroOcrForwardings">
+        INSERT INTO TB_RVDW_GIRO_OCR_MNGT_BAS(
+               WK_DT --작업일자
+             , WK_SN  --작업일련번호
+             , CNTR_NO  
+             , CNTR_SN 
+             , CST_FNM --고객명
+             , SL_DT --매출일자
+             , STRT_GIRO_TN --시작
+             , END_GIRO_TN --종료
+             , THM0_AMT --0차월
+             , ISTM_RENTAL_AMT1--1청구 렌탈료
+             , STPL_NMN_AMT--약정차월
+             , ISTM_RENTAL_AMT2--2청구 렌탈료
+             , EXN_NMN_AMT --만료차월
+             , LTPAY_YN --후납여부
+             <include refid="COMMON.insertSystemField"/>
+        )VALUES(
+               #{wkDt} --작업일자
+             , (SELECT NVL(MAX(WK_SN),0) FROM TB_RVDW_GIRO_OCR_MNGT_BAS WHERE WK_DT = #{wkDt}) + 1  --작업일련번호
+             , #{cntrNo}  
+             , #{cntrSn} 
+             , #{cstFnm} --고객명
+             , #{slDt} --매출일자
+             , #{strtGiroTn} --시작
+             , #{endGiroTn} --종료
+             , #{thm0Amt} --0차월
+             , #{istmRentalAmt1}--1청구 렌탈료
+             , #{stplNmnAmt}--약정차월
+             , #{istmRentalAmt2}--2청구 렌탈료
+             , #{exnNmnAmt} --만료차월
+             , #{ltpayYn} --후납여부
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+        
+    </insert>
+    
+    <select id="selectGiroOcrForwardingPrints" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchPrintRes">
+        SELECT
+               GIRO_OCR_PBL_DTM
+             , TO_CHAR(TO_DATE(GIRO_OCR_PBL_DTM,'YYYYMMDDHH24MISS'),'YYYYMMDD') AS GIRO_OCR_PBL_DATE
+             , TO_CHAR(TO_DATE(GIRO_OCR_PBL_DTM,'YYYYMMDDHH24MISS'),'PM HH:MI:SS') AS GIRO_OCR_PBL_TIME
+             , GIRO_OCR_PBL_SEQN
+             , GIRO_OCR_PBL_OJ_STRTDT
+             , GIRO_OCR_PBL_OJ_ENDDT
+             , TO_CHAR(GIRO_OCR_PBL_OJ_STRTDT,'YYYY-MM-DD')||' ~ '||TO_CHAR(GIRO_OCR_PBL_OJ_ENDDT,'YYYY-MM-DD') AS GIRO_OCR_PBL_OJ
+             , GIRO_OCR_PBL_TOT_QTY
+             , GIRO_OCR_PRNT_DT
+             , GIRO_OCR_DL_DT
+             , DTA_DL_YN
+          FROM TB_RVDW_GIRO_OCR_PBL_BAS
+         WHERE 1 = 1
+           AND DTA_DL_YN = 'N'           
+           <if test='@MybatisUtils@isNotEmpty(giroOcrPblDtm)'>
+           AND GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
+           </if>
+           <if test='@MybatisUtils@equals(giroOcrPrntStatus,"01")'>
+           AND GIRO_OCR_PRNT_DT > 0
+           </if>
+           <if test='@MybatisUtils@equals(giroOcrPrntStatus,"02")'>
+           AND GIRO_OCR_PRNT_DT = 0
+           </if>
+         ORDER BY GIRO_OCR_PBL_DTM DESC , GIRO_OCR_PBL_SEQN
+    </select>
+    
+    <insert id="insertGiroOcrForwardingDetailPrints">
+        INSERT INTO TB_RVDW_GIRO_OCR_PBL_DTL(
+                GIRO_OCR_PBL_DTM
+              , GIRO_OCR_PBL_SEQN
+              , GIRO_OCR_PBL_SN
+              , GIRO_BIZ_DV_CD
+              , GIRO_BIZ_TP_CD
+              , PY_AMT
+              , GIRO_NO --지로번호
+              , CNTR_NO
+              , CNTR_SN
+              , CST_FNM
+              , ELC_MPY_NO --이건 여쭤보고 수정해야함
+              , GIRO_TN  -- 수정해야함
+              , GIRO_PY_YM
+              , GIRO_TN_CN
+              , ZIP
+              , BAS_ADR
+              , DTL_ADR
+              , SL_DT
+              <include refid="COMMON.insertSystemField"/>              
+        )SELECT 
+                #{giroOcrPblDtm} AS GIRO_OCR_PBL_DTM        
+              , #{giroOcrPblSeqn} AS GIRO_OCR_PBL_SEQN --채번따야할듯
+              , ROWNUM AS GIRO_OCR_PBL_SN 
+              , A.GIRO_BIZ_DV_CD --지로업무구분코드 
+              , A.GIRO_BIZ_TP_CD --지로업무유형코드
+              , A.PY_AMT --납입금액
+              , '3010068' --지로번호
+              , A.CNTR_NO -- 계약번호
+              , A.CNTR_SN --계약일련번호
+              , A.CST_FNM --고객명
+              , CONCAT(A.CNTR_NO, LPAD(A.CNTR_SN,0)) AS ELC_MPY_NO--전자납부번호 AS ELC_MPY_NO AS-IS의 경우 CW55.CWYEAR ||  LPAD(CW55.CWCODE,7,'0')  CWUSR1 /           
+              , A.STRT_GIRO_TN --지로회차 이거는 좀 더 보기로하고
+              , TO_CHAR(SYSDATE,'YYYYMM') AS GIRO_PY_YM --지로납입년월 --AS-IS에는 없는 컬럼 현재년월 입력함
+              , '이거수정하자' AS GIRO_TN_CN --지로회차내용 (지로회차 + '회차(' + '월)') 00회차 ( 0월)
+              , B.ZIP --우편번호
+              , B.BAS_ADR --기본주소
+              , B.DTL_ADR --상세주소
+              , SL_DT --매출일자
+              <include refid="COMMON.insertSystemFieldValue"/>
+           FROM TB_RVDW_GIRO_OCR_MNGT_BAS A
+           LEFT JOIN TB_RVDW_GIRO_PLRCV_BAS B
+             ON A.CNTR_NO = B.CNTR_NO AND A.CNTR_SN = B.CNTR_SN
+          WHERE A.WK_DT = #{wkDt}
+    </insert>
+    
+    <insert id="insertGiroOcrForwardingPrints">
+        INSERT INTO TB_RVDW_GIRO_OCR_PBL_BAS(
+             GIRO_OCR_PBL_DTM --발행일시
+           , GIRO_OCR_PBL_SEQN --발행순번
+           , GIRO_OCR_PBL_OJ_STRTDT --시작일자
+           , GIRO_OCR_PBL_OJ_ENDDT --종료일자
+           , GIRO_OCR_PBL_TOT_QTY --총수량  
+           <include refid="COMMON.insertSystemField"/>
+        )VALUES(
+             TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           , #{giroOcrPblSeqn} --시퀀스 따야함
+           , #{giroOcrPblOjStrtdt} 
+           , #{giroOcrPblOjStrtdt}
+           , #{giroOcrPblTotQty}
+           <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <select id="selectGiroOcrPk" resultType="int">
+        SELECT 
+               NVL(MAX(GIRO_OCR_PBL_SEQN),0)+1 
+          FROM TB_RVDW_GIRO_OCR_PBL_BAS
+    </select>
+    
+    <update id="deleteGiroOcrForwardingPrints">
+        UPDATE 
+               TB_RVDW_GIRO_OCR_PBL_BAS
+           SET GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
+             , GIRO_OCR_PBL_SEQN = #{giroOcrPblDate} 
+    </update>
+</mapper>

@@ -19,6 +19,7 @@ public class WsndBusinessVehiclesMgtDto {
     @ApiModel(value = "WsndBusinessVehiclesMgtDto-SearchRes")
     public record SearchRes(
         String ogNm,
+        String ogTpCd,
         String prtnrNo,
         String prtnrKnm,
         String rol,
@@ -49,6 +50,7 @@ public class WsndBusinessVehiclesMgtDto {
         String vhcMngtNo,
         String vhcMngtSn,
         String carno,
+        String vhcMngtOgTpCd,
         String vhcMngtPrtnrNo,
         String vhcPymdt,
         String dsbEnddt,
@@ -72,6 +74,9 @@ public class WsndBusinessVehiclesMgtDto {
         String vhcMngtNo,
         String vhcMngtSn,
         String carno,
+        @NotBlank
+        String vhcMngtOgTpCd,
+        @NotBlank
         String vhcMngtPrtnrNo,
         @ValidDate
         String vhcPymdt,
@@ -93,6 +98,8 @@ public class WsndBusinessVehiclesMgtDto {
         @NotBlank
         String vhcMngtSn,
         String carno,
+        @NotBlank
+        String vhcMngtOgTpCd,
         @NotBlank
         String vhcMngtPrtnrNo,
         @ValidDate
