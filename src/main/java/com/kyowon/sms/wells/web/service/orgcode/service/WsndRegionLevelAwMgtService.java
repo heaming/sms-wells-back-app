@@ -2,12 +2,11 @@ package com.kyowon.sms.wells.web.service.orgcode.service;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAwMgtConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAwMgtConverter;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.Allowance;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.FindBaseInfoRes;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
@@ -21,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0226M01 급지 수당 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim 김혜원
  * @since 2022.12.14
  */
 @Service
@@ -32,15 +31,6 @@ public class WsndRegionLevelAwMgtService {
     private final WsndRegionLevelAwMgtMapper mapper;
 
     private final WsndRegionLevelAwMgtConverter converter;
-
-    /**
-     * 급지 수당 기본정보 조회
-     *
-     * @return 조회결과
-     */
-    public FindBaseInfoRes getBaseInfo() {
-        return this.mapper.selectBaseInfo();
-    }
 
     /**
      * 급지 수당 조회

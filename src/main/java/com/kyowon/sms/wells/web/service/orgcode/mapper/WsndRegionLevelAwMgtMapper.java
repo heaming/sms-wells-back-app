@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.Allowance;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.FindBaseInfoRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
 
 /**
@@ -13,13 +12,11 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
  * W-SV-U-0226M01 급지 수당 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim 김혜원
  * @since 2022.12.14
  */
 @Mapper
 public interface WsndRegionLevelAwMgtMapper {
-
-    FindBaseInfoRes selectBaseInfo();
 
     List<Allowance> selectMovementAllowances(String applyDate);
 
