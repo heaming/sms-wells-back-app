@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageIzDtlMapper">
+
+    <select id="getOutOfStorageIzDtls"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageIzDtlDto$SearchRes">
+        SELECT T1.STR_WARE_NO /* 입고창고번호 */
+             , T1.OSTR_WARE_NO /* 출고창고번호 */
+             , I1.WARE_NM AS IN_WARE_NM /* 입고창고명 */
+             , O1.WARE_NM AS OUT_WARE_NM /* 출고창고명 */
+             , T1.WARE_MNGT_PRTNR_NO
+             , T1.OSTR_DT
+             , T2.SAP_MAT_CD /* SAP코드 */
+             , T1.ITM_CD
+             , T2.PD_NM /* 품목명 */
+             , T1.OSTR_TP_CD /* 출고유형 :MA42 */
+             , T1.MNGT_UNIT_CD /* 관리단위 : MA02 */
+             , T1.ITM_GD_CD /* 상품등급 : MA06 */
+             , T1.OSTR_QTY /* 수량 */
+             , T1.BOX_UNIT_QTY
+             , (CASE WHEN T1.BOX_UNIT_QTY > 0
+                     THEN T1.OSTR_QTY / T1.BOX_UNIT_QTY
+                     ELSE 0
+                 END) AS BOX_QTY
+             , T1.DIDY_DV_CD /* 직배구분코드 ?? */
+             , T1.STR_CONF_DT /* 입고일자 (STR_RGST_DT : 입고등록일자) */
+             , T1.OSTR_AK_NO  || T1.OSTR_AK_SN AS OSTR_AK_NO /* 출고요청번호 */
+             , T1.ITM_OSTR_NO || T1.OSTR_SN AS ITM_OSTR_NO /* 출고관리번호 */
+             , T1.ITM_STR_NO || T1.STR_SN AS ITM_STR_NO /* 입고관리번호 */
+             , (CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN T2.SV_STRTDT AND T2.SV_ENDDT THEN 'Y'
+                     ELSE 'N' END
+               ) AS USE_YN
+          FROM TB_SVST_ITM_OSTR_IZ T1
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL J1 /* 임시로 조인 */
+            ON T1.ITM_CD = J1.PD_PRP_VAL01
+         INNER JOIN TB_PDBS_PD_BAS T2
+            /* ON T1.ITM_CD = T2.PD_CD */
+            ON J1.PD_CD = T2.PD_CD
+         INNER JOIN TB_SVST_MCBY_WARE_IZ I1
+            ON T1.STR_WARE_NO = I1.WARE_NO AND I1.APY_YM = #{apyYm}
+         INNER JOIN TB_SVST_MCBY_WARE_IZ O1
+            ON T1.OSTR_WARE_NO = O1.WARE_NO AND O1.APY_YM = #{apyYm}
+         <where>
+           AND T1.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+           AND T1.OSTR_WARE_NO = #{ostrWareNo} /* 출고창고코드 */
+           AND T1.OSTR_TP_CD  = #{ostrTpCd} /* 출고유형코드 */
+           AND T1.STR_WARE_NO = #{strWareNo} /* 입고창고코드(입고창고/창고지역/조직창고/개인창고코드) */
+           AND T1.ITM_GD_CD = #{itmGdCd} /* 등급 */
+           AND T1.ITM_KND_CD  = #{itmkndCd} /* 품목종류 */
+           AND T1.ITM_CD = #{itmCd}
+           AND ( CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN T2.SV_STRTDT AND T2.SV_ENDDT THEN 'Y'
+                      ELSE 'N' END
+               ) = #{useYn}
+         </where>
+    </select>
+</mapper>
