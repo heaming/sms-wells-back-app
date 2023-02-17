@@ -14,7 +14,7 @@ public class WctcDangerArbitDvo {
     private String dangOjOgId; /* 위험대상조직ID */
     private String dangOjPstnDvCd; /* 위험대상직급구분코드 */
     private String dangMngtPstnDvCd; /* 위험관리직급구분코드 */
-    private String dangGdVal; /* 위험등급값 */
+    private String dangGdCd; /* 위험등급값 */
     private Long dangUncvrCt; /* 위험적발건수 */
     private String dangChkNm; /* 위험점검명 */
     private String dangChkDt; /* 위험점검일자 */
