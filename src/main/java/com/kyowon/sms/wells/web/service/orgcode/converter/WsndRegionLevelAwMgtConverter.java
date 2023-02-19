@@ -10,7 +10,7 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
  * W-SV-U-0226M01 급지 수당 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim 김혜원
  * @since 2022.12.14
  */
 @Mapper(componentModel = "spring")
