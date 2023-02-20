@@ -18,7 +18,7 @@ public class WsndPlaceOfDeliveryDvo {
     private String pdlvDvCd; // 출고지구분코드
     private String pdlvNo; // 출고지번호
     private String apyStrtdt; // 적용시작일자
-    private String apyEnddt; // 적용시작일자
+    private String apyEnddt; // 적용종료일자
     private String pdlvNm; // 출고지명
     private String zip; // 우편번호
     private String pdlvAdr; // 출고지주소

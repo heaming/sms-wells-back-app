@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelPdlvMgtMapper">
+
+    <select id="selectPlaceOfDeliveryPages" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto$SearchRes">
+        SELECT B1.PDLV_DV_CD
+             , B1.PDLV_NO
+             , H1.APY_STRTDT AS APY_STRTDT_ORIGIN /* 적용시작일-초기조회값 */
+             , H1.APY_STRTDT
+             , H1.APY_ENDDT
+             , B1.PDLV_NM
+             , B1.ZIP
+             , B1.PDLV_ADR
+             , B1.PDLV_DTL_ADR
+             , B1.CNR_OG_ID
+          FROM TB_SVPD_PDLV_BAS B1
+         INNER JOIN TB_SVPD_PDLV_HIST H1
+            ON B1.PDLV_NO = H1.PDLV_NO
+           AND H1.APY_ENDDT = ( SELECT MAX(APY_ENDDT)
+                                   FROM TB_SVPD_PDLV_HIST
+                                  WHERE H1.PDLV_NO = PDLV_NO
+                               )
+         WHERE 1 = 1
+           AND B1.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@isNotEmpty(pdlvDvCd)">
+           AND B1.PDLV_DV_CD = #{pdlvDvCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(pdlvNm)">
+           AND B1.PDLV_NM LIKE '%'||#{pdlvNm}||'%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(ogId)">
+           AND B1.CNR_OG_ID = #{ogId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(applyDate)">
+           AND #{applyDate} BETWEEN H1.APY_STRTDT AND H1.APY_ENDDT
+        </if>
+    </select>
+
+    <update id="deletePlaceOfDelivery">
+        UPDATE TB_SVPD_PDLV_BAS
+           SET DTA_DL_YN = 'Y'
+              <include refid="COMMON.updateSystemField"/>
+         WHERE PDLV_DV_CD = #{pdlvDvCd}
+           AND PDLV_NO    = #{pdlvNo}
+    </update>
+
+    <insert id="insertPlaceOfDelivery">
+        INSERT INTO TB_SVPD_PDLV_BAS
+             ( PDLV_NO
+             , PDLV_DV_CD
+             , PDLV_NM
+             , ZIP
+             , PDLV_ADR
+             , PDLV_DTL_ADR
+             , CNR_OG_ID
+             , LATD_GPS_VAL
+             , LO_GPS_VAL
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+             )
+            VALUES
+             ( #{pdlvNo}
+             , #{pdlvDvCd}
+             , #{pdlvNm}
+             , #{zip}
+             , #{pdlvAdr}
+             , #{pdlvDtlAdr}
+             , #{cnrOgId}
+             , ''
+             , ''
+             , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+
+    <insert id="insertPlaceOfDeliveryHistory">
+        INSERT INTO TB_SVPD_PDLV_HIST
+             ( PDLV_NO
+             , APY_STRTDT
+             , APY_ENDDT
+             , PDLV_DV_CD
+             , PDLV_NM
+             , ZIP
+             , PDLV_ADR
+             , PDLV_DTL_ADR
+             , CNR_OG_ID
+             , LATD_GPS_VAL
+             , LO_GPS_VAL
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             ( #{pdlvNo}
+             , #{apyStrtdt}
+             , '99991231'
+             , #{pdlvDvCd}
+             , #{pdlvNm}
+             , #{zip}
+             , #{pdlvAdr}
+             , #{pdlvDtlAdr}
+             , #{cnrOgId}
+             , ''
+             , ''
+             , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+
+    <select id="selectPlaceOfDeliveryByPk" resultType="com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo">
+        SELECT PDLV_NO
+             , DTA_DL_YN AS DATA_DL_YN
+        FROM TB_SVPD_PDLV_BAS
+       WHERE PDLV_NO = #{pdlvNo}
+    </select>
+
+    <select id="selectStrtdtByPk" resultType="string">
+        SELECT H1.APY_STRTDT
+          FROM TB_SVPD_PDLV_HIST H1
+         WHERE H1.APY_ENDDT = ( SELECT MAX(APY_ENDDT)
+                                  FROM TB_SVPD_PDLV_HIST
+                                 WHERE H1.PDLV_NO = PDLV_NO
+                              )
+           AND H1.PDLV_NO = #{pdlvNo}
+    </select>
+
+<!--    <update id="updatePlaceOfDelivery">-->
+<!--        UPDATE TB_SVPD_PDLV_BAS-->
+<!--           SET APY_STRTDT = #{apyStrtdt}-->
+<!--             , DATA_DL_YN = 'N'-->
+<!--              <include refid="COMMON.updateSystemField"/>-->
+<!--         WHERE PDLV_NO    = #{pdlvNo}-->
+<!--           AND PDLV_DV_CD = #{pdlvDvCd}-->
+<!--           AND APY_STRTDT = #{apyStrtdtOrigin}-->
+<!--    </update>-->
+
+    <update id="updatePlaceOfDeliveryHistory">
+        UPDATE TB_SVPD_PDLV_HIST
+           SET APY_ENDDT = (#{apyStrtdt} - 1)
+              <include refid="COMMON.updateSystemField"/>
+         WHERE PDLV_NO    = #{pdlvNo}
+           AND PDLV_DV_CD = #{pdlvDvCd}
+           AND APY_ENDDT = ( SELECT MAX(H1.APY_ENDDT)
+                               FROM TB_SVPD_PDLV_HIST H1
+                              WHERE H1.PDLV_NO = PDLV_NO
+                           )
+    </update>
+
+    <update id="updatePlaceOfDelivery">
+        UPDATE TB_SVPD_PDLV_BAS
+           SET PDLV_NM      = #{pdlvNm}
+             , CNR_OG_ID  = #{cnrOgId}
+             , DTA_DL_YN = 'N'
+              <include refid="COMMON.updateSystemField"/>
+         WHERE PDLV_NO    = #{pdlvNo}
+           AND PDLV_DV_CD = #{pdlvDvCd}
+    </update>
+
+</mapper>
