@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto.SearchKakaotalkFwIzsRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto.SearchRes;
 
 @Mapper
 public interface WctaKakaotalksMapper {
 
-    public List<SearchKakaotalkFwIzsRes> SelectKakaotalkFwIzs(String mtPr, List<String> tempCodeList);
+    public List<SearchRes> selectKakaotalkFwIzs(String mtPr, List<String> tempCodeList);
 
 }

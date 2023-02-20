@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto.SearchKakaotalkFwIzsReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto.SearchKakaotalkFwIzsRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaKakaotalksService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/")
+@RequestMapping(CtContractConst.REST_URL_V1 + "/kakaotalks")
 public class WctaKakaotalksController {
 
     private final WctaKakaotalksService service;
@@ -35,9 +35,9 @@ public class WctaKakaotalksController {
         @ApiImplicitParam(name = "concDiv", value = "계약구분", paramType = "query"),
     })
     @GetMapping("/kakaotalk-forwarding-itemizations")
-    public List<SearchKakaotalkFwIzsRes> getKakaotalkFwIzs(
+    public List<SearchRes> getKakaotalkFwIzs(
         @Valid
-        SearchKakaotalkFwIzsReq dto
+        SearchReq dto
     ) {
         return service.getKakaotalkFwIzs(dto);
     }

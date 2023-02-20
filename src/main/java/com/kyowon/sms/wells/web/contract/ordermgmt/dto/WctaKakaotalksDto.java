@@ -7,8 +7,8 @@ public class WctaKakaotalksDto {
     // Request Dto
     // *********************************************************
     //카카오톡 발송 내역 - 카카오톡 발송 내역 조회 Search Request Dto
-    @ApiModel(value = "WctaKakaotalksDto-SearchKakaotalkFwIzsReq")
-    public record SearchKakaotalkFwIzsReq(
+    @ApiModel(value = "WctaKakaotalksDto-SearchReq")
+    public record SearchReq(
         String mtPr,
         String concDiv
     ) {}
@@ -17,8 +17,8 @@ public class WctaKakaotalksDto {
     // Result Dto
     // *********************************************************
     //카카오톡 발송 내역 - 카카오톡 발송 내역 조회 Search Result Dto
-    @ApiModel("WctaKakaotalksDto-SearchKakaotalkFwIzsRes")
-    public record SearchKakaotalkFwIzsRes(
+    @ApiModel("WctaKakaotalksDto-SearchRes")
+    public record SearchRes(
         String recipientNum,
         String dateClientReq,
         String dateRslt,
