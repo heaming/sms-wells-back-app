@@ -2,14 +2,32 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WctaContractDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
+    // 계약번호 Search Request Dto
+    @Builder
+    @ApiModel("EctaContractDto-SearchCntrNoReq")
+    public record SearchCntrNoReq(
+        String cntrCstKnm,
+        String lrnnCstKnm,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String cntrCstNo
+    ) {
+        public SearchCntrNoReq {
+            mexnoEncr = DbEncUtil.enc(mexnoEncr);
+        }
+    }
+
     // 고위험 파트너 Remove Request Dto
     @ApiModel("WctaContractDto-RemoveReq")
     public record RemoveReq(
@@ -75,6 +93,17 @@ public class WctaContractDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
+    // 계약번호 Search Result Dto
+    @ApiModel("EctaContractDto-SearchCntrNoRes")
+    public record SearchCntrNoRes(
+        String cntrCnfmDtm,
+        String cntrNo,
+        String cntrSn,
+        String cntrCstKnm,
+        String lrnnCstKnm,
+        String pdNm
+    ) {}
+
     // 고위험 파트너 Search Result Dto
     @ApiModel("WctaContractDto-SearchRes")
     public record SearchRes(

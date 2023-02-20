@@ -8,7 +8,6 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.FindBaseInfoRes;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelAwMgtService;
@@ -28,12 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class WsndRegionLevelAwMgtController {
 
     private final WsndRegionLevelAwMgtService service;
-
-    @ApiOperation(value = "급지 수당 기본정보 조회", notes = "급지 수당 관리에 필요한 기본 정보를 조회한다.")
-    @GetMapping("/bases")
-    public FindBaseInfoRes getAllowanceBases() {
-        return this.service.getBaseInfo();
-    }
 
     @ApiOperation(value = "급지 수당 조회", notes = "급지 정보에 일치하는 엔지니어 수당 정보를 조회한다.")
     @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", example = "20221214", required = true)

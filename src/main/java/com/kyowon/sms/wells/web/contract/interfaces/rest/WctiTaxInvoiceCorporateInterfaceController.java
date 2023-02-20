@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiTaxInvoiceCorporateController {
+public class WctiTaxInvoiceCorporateInterfaceController {
     private final WctiTaxInvoiceCorporateService service;
 
     @ApiOperation(value = "[EAI_WSSI1090] 세금계산서 사업자번호 조회", notes = "세금계산서 사업자번호 조회")

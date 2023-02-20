@@ -10,10 +10,10 @@ import javax.validation.constraints.NotBlank;
  * W-SV-U-0218M01 - 급지 출고지 관리
  * </pre>
  *
- * @author gs.piit129 천영화
+ * @author yeonghwa.cheon
  * @since 2022.12.14
  */
-public class WsndRegionLevelPdlvMngtDto {
+public class WsndRegionLevelPdlvMgtDto {
 
     @ApiModel(value = "WsndRegionLevelPdlvMngtDto-SearchReq")
     public record SearchReq(
@@ -27,15 +27,15 @@ public class WsndRegionLevelPdlvMngtDto {
     public record SearchRes(
         String pdlvDvCd, /* 출고지구분코드 */
         String pdlvNo, /* 출고지번호 */
+        String apyStrtdtOrigin, /* 적용시작일 */
+        String apyStrtdt, /* 적용시작일 */
+        String apyEnddt, /* 적용종료일 */
         String pdlvNm, /* 출고지명 */
         String zip, /* 우편번호 */
         String pdlvAdr, /* 출고지주소 */
         String pdlvDtlAdr, /* 출고지상세주소 */
-        String apyStrtdtOrigin, /* 적용시작일 */
-        String apyStrtdt, /* 적용시작일 */
-        String apyEnddt, /* 적용종료일 */
-        String cnrOgId, /* 서비스센터ID */
-        String dataDlYn /* 데이터삭제여부 */
+        String cnrOgId /* 서비스센터ID */
+
     ) {}
 
     @ApiModel(value = "WsndRegionLevelPdlvMngtDto-FindRes")

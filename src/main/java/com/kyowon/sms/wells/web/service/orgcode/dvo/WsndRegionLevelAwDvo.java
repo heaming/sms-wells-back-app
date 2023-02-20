@@ -8,7 +8,7 @@ import lombok.Setter;
  * W-SV-U-0226M01 급지 수당 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim 김혜원
  * @since 2022.12.14
  */
 @Setter
@@ -22,5 +22,8 @@ public class WsndRegionLevelAwDvo {
     String mmtDstn; // 이동거리
     String rglvlGdCd; // 급지등급코드
     String rglvlAwAmt; // 급지수당금액
+    String minPerManho; // 분당공수
+    String rglvlWeit; // 급지비중
+    String avVe; // 평균속도
 
 }
