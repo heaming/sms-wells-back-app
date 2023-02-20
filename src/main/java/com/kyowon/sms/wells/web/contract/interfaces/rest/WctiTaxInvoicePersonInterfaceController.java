@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeGiftDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeGiftDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.interfaces.service.WctiFreeGiftService;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoicePersonDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.interfaces.service.WctiTaxInvoicePersonService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -25,21 +24,21 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiFreeGiftController {
-    private final WctiFreeGiftService service;
+public class WctiTaxInvoicePersonInterfaceController {
+    private final WctiTaxInvoicePersonService service;
 
-    @ApiOperation(value = "[EAI_WSSI1055] 사은품 정보 조회", notes = "계약번호, 계약일련번호에 대한 사은품 정보를 조회")
-    @PostMapping("/free-gifts")
-    public EaiWrapper getFreeGift(
+    @ApiOperation(value = "[EAI_WSSI1087] 세금계산서 담당자 정보 조회", notes = "입력받은 담당자명에 대해서 담당자 정보를 조회")
+    @PostMapping("/tax-invoice-persons")
+    public EaiWrapper getTaxInvoicePersons(
         @Valid
         @RequestBody
-        EaiWrapper<SearchReq> reqWrapper
+        EaiWrapper<String> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<SearchRes> res = service.getFreeGift(reqWrapper.getBody());
+        List<SearchRes> res = service.getTaxInvoicePersons(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

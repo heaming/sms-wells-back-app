@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractRelationDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractRelationDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.interfaces.service.WctiContractRelationService;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.interfaces.service.WctiContractDetailService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -25,12 +25,12 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiContractRelationController {
-    private final WctiContractRelationService service;
+public class WctiContractDetailInterfaceController {
+    private final WctiContractDetailService service;
 
-    @ApiOperation(value = "[EAI_WSSI1048] 연관계약건 목록 조회", notes = "입력받은 계약번호, 계약일련번호에 대해 계약 관계 내에서 '연계상품', '대체회원' 관계에 있는 계약정보를 조회")
-    @PostMapping("/contract-relations")
-    public EaiWrapper getRelatedContracts(
+    @ApiOperation(value = "[EAI_WSSI1045] 계약상세 리스트 조회", notes = "고객센터 내 계약상세 리스트 조회를 위한 I/F 대상 프로그램")
+    @PostMapping("/contract-details")
+    public EaiWrapper getContractDetails(
         @Valid
         @RequestBody
         EaiWrapper<SearchReq> reqWrapper
@@ -39,7 +39,7 @@ public class WctiContractRelationController {
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<SearchRes> res = service.getRelatedContracts(reqWrapper.getBody());
+        List<SearchRes> res = service.getContractDetails(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);
