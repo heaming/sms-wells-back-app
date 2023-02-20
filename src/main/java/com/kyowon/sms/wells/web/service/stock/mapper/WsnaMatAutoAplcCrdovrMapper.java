@@ -1,10 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import org.mapstruct.Mapper;
+import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMatAutoAplcCrdovrDvo;
 
 @Mapper
 public interface WsnaMatAutoAplcCrdovrMapper {
-    int insertMatCarried();
+    int insertMatAutoAplcCrdovr(WsnaMatAutoAplcCrdovrDvo dvo);
 
-    int updateItmOstrAkIz();
+    int updateMatAutoAplcCrdovr(WsnaMatAutoAplcCrdovrDvo dvo);
 }
