@@ -38,7 +38,7 @@ public class WctaContractExceptionService {
     }
 
     @Transactional
-    public void insertDtls(SaveReq dto, WctaContractExOjDtlDvo dtlDvo) {
+    public void saveDtls(SaveReq dto, WctaContractExOjDtlDvo dtlDvo) {
         switch (dto.exProcsCd()) {
             case "W01" -> {
                 dtlDvo.setValsByExProcsCd(1, "C1", dto.cstNo());
@@ -76,7 +76,7 @@ public class WctaContractExceptionService {
                 case CommConst.ROW_STATE_CREATED -> {
                     int result = mapper.insertContractExceptionBas(dvo);
                     dtlDvo.setExProcsId(dvo.getExProcsId());
-                    insertDtls(dto, dtlDvo);
+                    saveDtls(dto, dtlDvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     yield result;
                 }
@@ -84,7 +84,7 @@ public class WctaContractExceptionService {
                     int result = mapper.updateContractExceptionBas(dvo);
                     // 업데이트 시 DTL delete and insert
                     mapper.deleteContractExceptionDtl(dto.exProcsId());
-                    insertDtls(dto, dtlDvo);
+                    saveDtls(dto, dtlDvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     yield result;
                 }
