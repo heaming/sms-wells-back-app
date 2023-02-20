@@ -2,9 +2,9 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeeSellQuantityDto;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaEmployeeSellQuantityDvo;
 
 @Mapper
 public interface WctaEmployeeSellQuantityMapper {
-    WctaEmployeeSellQuantityDto.SearchRes selectEmployeeSellQuantity(WctaEmployeeSellQuantityDto.SearchReq dto);
+    WctaEmployeeSellQuantityDvo selectEmployeeSellQuantity(WctaEmployeeSellQuantityDvo dvo);
 }
