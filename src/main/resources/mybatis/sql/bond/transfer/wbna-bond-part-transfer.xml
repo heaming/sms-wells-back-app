@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.transfer.mapper.WbnaBondPartTransferMapper">
+    <!-- TODO 테이블 구조 정의 되면 맞춰서 쿼리문 수정 필요 -->
+    <select id="selectPartTransferAggregation" resultType="com.kyowon.sms.wells.web.bond.transfer.dto.WbnaBondPartTransferDto$SearchRes">
+        SELECT '' AS BASE_YM /* 기준년월  */
+              ,'' AS BZ_HDQ_DV_CD /* 사업본부구분코드 */
+              ,'' AS CLCTAM_DV_CD /* 집금구분코드 */
+              ,'' AS TOT_CST_CT /* 전체-고개수 */
+              ,'' AS TOT_CNTR_CT /* 전체-계약수 */
+              ,'' AS WO_CST_CT /* 전체-고개수 */
+              ,'' AS WO_CNTR_CT /* 전체-계약수 */
+              ,'' AS WO_OBJ_AMT /* 전체-대상금액 */
+              ,'' AS WO_DLQ_AMT /* 전체-연체금액 */
+              ,'' AS WO_THM_CHRAM_AMT /* 전체-당월금액 */
+              ,'' AS WO_DLQ_ADD_AMT /* 전체-연체가산금액 */
+              ,'' AS WO_RSG_BOR_AMT /* 전체-위약금액 */
+              ,'' AS COCN_CST_CT /*  */
+              ,'' AS COCN_CNTR_CT /*  */
+              ,'' AS COCN_OBJ_AMT /*  */
+              ,'' AS COCN_DLQ_AMT /*  */
+              ,'' AS COCN_THM_CHRAM_AMT /*  */
+              ,'' AS COCN_DLQ_ADD_AMT /*  */
+              ,'' AS COCN_RSG_BOR_AMT /*  */
+              ,'' AS HSMTRL_CST_CT /*  */
+              ,'' AS HSMTRL_CNTR_CT /*  */
+              ,'' AS HSMTRL_OBJ_AMT /*  */
+              ,'' AS HSMTRL_DLQ_AMT /*  */
+              ,'' AS HSMTRL_THM_CHRAM_AMT /*  */
+              ,'' AS HSMTRL_DLQ_ADD_AMT /*  */
+              ,'' AS HSMTRL_RSG_BOR_AMT /*  */
+              ,'' AS HSMTRL_BOR_CST_CT /*  */
+              ,'' AS HSMTRL_BOR_CNTR_CT /*  */
+              ,'' AS HSMTRL_BOR_OBJ_AMT /*  */
+              ,'' AS HSMTRL_BOR_DLQ_AMT /*  */
+              ,'' AS HSMTRL_BOR_THM_CHRAM_AMT /*  */
+              ,'' AS HSMTRL_BOR_DLQ_ADD_AMT /*  */
+              ,'' AS HSMTRL_BOR_RSG_BOR_AMT /*  */
+              ,'' AS MCHN_RENTAL_CST_CT /*  */
+              ,'' AS MCHN_RENTAL_CNTR_CT /*  */
+              ,'' AS MCHN_RENTAL_OBJ_AMT /*  */
+              ,'' AS MCHN_RENTAL_DLQ_AMT /*  */
+              ,'' AS MCHN_RENTAL_THM_CHRAM_AMT /*  */
+              ,'' AS MCHN_RENTAL_DLQ_ADD_AMT /*  */
+              ,'' AS MCHN_RENTAL_RSG_BOR_AMT /*  */
+              ,'' AS MCHN_RENTAL_BOR_CST_CT /*  */
+              ,'' AS MCHN_RENTAL_BOR_CNTR_CT /*  */
+              ,'' AS MCHN_RENTAL_BOR_OBJ_AMT /*  */
+              ,'' AS MCHN_RENTAL_BOR_DLQ_AMT /*  */
+              ,'' AS MCHN_RENTAL_BOR_THM_CHRAM_AMT /*  */
+              ,'' AS MCHN_RENTAL_BOR_DLQ_ADD_AMT /*  */
+              ,'' AS MCHN_RENTAL_BOR_RSG_BOR_AMT /*  */
+          FROM TB_CBBO_BND_CNTR_BAS /* 채권계약기본 Table */
+         WHERE 1=1
+           AND BND_CLCTN_PRP_DV_CD = '02' /* 연체 상태의 채권만 대상 */
+         <if test="@MybatisUtils@isNotEmpty(clctamDvCd)">
+           AND CLCTAM_DV_CD = #{clctamDvCd} /* 집금구분 */
+         </if>
+        <if test="@MybatisUtils@isNotEmpty(nwYn)">
+           AND NW_YN = #{nwYn} /* 신규구분 */
+         </if>
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+           AND CST_NO = #{cstNo} /* 고객번호 */
+         </if>
+    </select>
+    <!-- TODO 전월 집금담당자 가지고 오는 쿼리문 데이터 없어서 확인 못함... 테스트 후 수정 필요 -->
+    <select id="selectPartTransferDetailPages" resultType="com.kyowon.sms.wells.web.bond.transfer.dto.WbnaBondPartTransferDto$SearchDetailRes">
+        SELECT T1.CLCTAM_DV_CD
+             , (SELECT PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS
+                 WHERE PRTNR_NO = (SELECT FIRST_VALUE(CLCTAM_PRTNR_NO) OVER(ORDER BY BASE_YM DESC) FROM TB_CBBO_BND_CNTR_BAS T2 WHERE T2.CNTR_SN = T1.CNTR_SN)
+                ) AS PRTNR_KNM /* 전월담당자 */
+             , T1.CNTR_NO /* 계약번호 */
+             , T3.CST_KNM /* 고객명 */
+             , T1.CST_NO /* 고객번호 */
+             , '' AS PD_DV_CD /* 상품구분 */
+             , T1.DLQ_MCN /* 연체개월 */
+             , (T1.DLQ_AMT + T1.THM_CHRAM_AMT) AS OBJ_AMT /* 대상금액 */
+             , T1.DLQ_AMT /* 연체금액 */
+             , T1.THM_CHRAM_AMT /* 당월금액 */
+             , T1.DLQ_ADD_DP_AMT /* 연체가산금액 */
+             , T1.RSG_BOR_AMT /* 위약금액 */
+             , T2.LWM_TP_CD /* 법조치유형 */
+             , T2.LWM_DTL_TP_CD /* 법조치상세 */
+             , T2.LWM_DT /* 법조치일자 */
+             , T2.DFLT_DT /* 채불등록일자 */
+             , T4.BAS_ADR||T4.DTL_ADR AS ADDR /* 주소 */
+          FROM TB_CBBO_BND_CNTR_BAS T1
+          LEFT OUTER JOIN TB_CBBO_BND_LWM_IZ T2
+            ON T1.CST_NO = T2.CST_NO
+           AND T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CST_NO = T2.CST_NO
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3
+            ON T1.CST_NO = T3.CST_NO
+          LEFT OUTER JOIN TB_CUBS_CST_CTPLC_BAS T4
+            ON T3.ADR_ID = T4.ADR_ID
+         WHERE 1=1
+           AND T1.BASE_YM = #{baseYm}
+           AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd}
+           AND T1.CLCTAM_DV_CD = #{clctamDvCd}
+           AND T1.BND_CLCTN_PRP_DV_CD = '02' /* 연체 상태의 채권만 대상 */
+         ORDER BY T1.FST_RGST_DTM DESC
+    </select>
+    <select id="selectHasPartTransfer"
+            resultType="Integer">
+        SELECT (CASE WHEN COUNT(*) >= 1 THEN 1
+                    ELSE 0
+                 END) AS hasPartTransfer
+         FROM TB_CBBO_BND_CNTR_BAS     /* 채권계약기본 */
+        WHERE BND_TF_DT LIKE #{baseYm}||'%'
+    </select>
+
+    <select id="selectHasPartTransferDetail"
+            resultType="Integer">
+        SELECT (CASE WHEN COUNT(*) >= 1 THEN 1
+                    ELSE 0
+                 END) AS hasPartTransfer
+         FROM TB_CBBO_BND_TF_ASN_EXCN_IZ     /* 채권이관배정수행내역 */
+        WHERE BASE_YM = #{baseYm}
+          AND BZ_HDQ_DV_CD = #{bzHdqDvCd}
+          AND TF_BIZ_DV_CD = '01' /* 파트이관 = 01 */
+    </select>
+</mapper>
