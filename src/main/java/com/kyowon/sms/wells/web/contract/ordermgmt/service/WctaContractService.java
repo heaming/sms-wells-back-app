@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -7,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
@@ -25,6 +26,12 @@ public class WctaContractService {
 
     private final WctaContractMapper mapper;
     private final WctaContractConverter converter;
+
+    public PagingResult<SearchCntrNoRes> getContractNumberInqrPages(
+        SearchCntrNoReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectContractNumberInqrPages(dto, pageInfo);
+    }
 
     public List<SearchRes> getApprovalAskDivides(String standardDt) {
         return mapper.selectApprovalAskDivides(standardDt);

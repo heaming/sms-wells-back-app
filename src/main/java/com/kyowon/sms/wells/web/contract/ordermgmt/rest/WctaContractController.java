@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
@@ -8,7 +10,6 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaContractService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -29,6 +30,25 @@ import lombok.RequiredArgsConstructor;
 public class WctaContractController {
 
     private final WctaContractService service;
+
+    @ApiOperation(value = "계약번호 페이징 조회", notes = "계약자명, 학습자명, 휴대전화번호, 고객번호를 입력받아 계약번호를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrCstKnm", value = "계약자명", paramType = "query"),
+        @ApiImplicitParam(name = "lrnnCstKnm", value = "학습자명", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/numbers/paging")
+    public PagingResult<SearchCntrNoRes> getContractNumberInqrPages(
+        @Valid
+        SearchCntrNoReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getContractNumberInqrPages(dto, pageInfo);
+    }
 
     @ApiOperation(value = "확정승인기준 리스트 - 승인 요청 구분 조회", notes = "기준일자로 유효시작, 종료일시 에 존재하며, 데이터삭제여부가 Y가 아닌확정승인기준 조회를 한다.")
     @ApiImplicitParams(value = {
