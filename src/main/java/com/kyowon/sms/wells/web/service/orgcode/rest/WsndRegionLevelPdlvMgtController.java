@@ -8,10 +8,10 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelPdlvMngtService;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelPdlvMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class WsndRegionLevelPdlvMgtController {
 
-    private final WsndRegionLevelPdlvMngtService service;
+    private final WsndRegionLevelPdlvMgtService service;
 
     @ApiOperation(value = "급지 출고지 조회", notes = "조회조건에 일치하는 출고지 정보를 조회한다.")
     @GetMapping("/place-of-deliverys/paging")

@@ -5,12 +5,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelPdlvMngtConverter;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelPdlvMgtConverter;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo;
-import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelPdlvMngtMapper;
+import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelPdlvMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -24,16 +24,16 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0218M01 - 급지 출고지 관리
  * </pre>
  *
- * @author gs.piit129 천영화
+ * @author yeonghws.cheon
  * @since 2022.12.14
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsndRegionLevelPdlvMngtService {
+public class WsndRegionLevelPdlvMgtService {
 
-    private final WsndRegionLevelPdlvMngtMapper mapper;
-    private final WsndRegionLevelPdlvMngtConverter converter;
+    private final WsndRegionLevelPdlvMgtMapper mapper;
+    private final WsndRegionLevelPdlvMgtConverter converter;
 
     /**
      * 급지 출고지 관리 - 조회(페이징)
@@ -99,13 +99,20 @@ public class WsndRegionLevelPdlvMngtService {
                     if (res == null) {
                         result += mapper.insertPlaceOfDelivery(dvo);
                         mapper.insertPlaceOfDeliveryHistory(dvo);
-                    } else if (res.getDataDlYn().equals("Y")) {
-                        result += mapper.updatePlaceOfDeliveryHistory(dvo);
-                        mapper.updatePlaceOfDelivery(dvo);
-                        mapper.insertPlaceOfDeliveryHistory(dvo);
                     } else if (res.getDataDlYn().equals("N")) {
                         BizAssert.isTrue(res.getDataDlYn().equals("N"), "MSG_ALT_DUP_PDLV_DV");
+                        processCount = -2;
                         return processCount;
+                    } else if (res.getDataDlYn().equals("Y")) {
+                        String apyStrtdt = mapper.selectStrtdtByPk(dto.pdlvNo());
+                        if (Integer.parseInt(apyStrtdt) > Integer.parseInt(dvo.getApyStrtdt())) {
+                            processCount = -1;
+                            return processCount;
+                        } else {
+                            result += mapper.updatePlaceOfDeliveryHistory(dvo);
+                            mapper.updatePlaceOfDelivery(dvo);
+                            mapper.insertPlaceOfDeliveryHistory(dvo);
+                        }
                     }
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
