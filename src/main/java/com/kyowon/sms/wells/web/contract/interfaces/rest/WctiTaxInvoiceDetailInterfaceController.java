@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
+import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceDetailDto.SearchRes;
+
 import java.util.List;
 
 import javax.validation.Valid;
@@ -9,9 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRentalAdditionalServiceDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRentalAdditionalServiceDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.interfaces.service.WctiRentalAdditionalServiceService;
+import com.kyowon.sms.wells.web.contract.interfaces.service.WctiTaxInvoiceDetailService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -25,22 +25,21 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiRentalAdditionalServiceController {
+public class WctiTaxInvoiceDetailInterfaceController {
+    private final WctiTaxInvoiceDetailService service;
 
-    private final WctiRentalAdditionalServiceService service;
-
-    @ApiOperation(value = "[EAI_WSSI1062] 렌탈 부가서비스 변경이력 조회", notes = "렌탈 부가서비스 변경이력을 계약번호 + 계약일련번호 단위로 조회")
-    @PostMapping("/rental-additional-services")
-    public EaiWrapper getRentalAdditionalServiceHistories(
+    @ApiOperation(value = "[EAI_WSSI1087] 세금계산서 상세 목록 조회", notes = "입력받은 세금계산서ID로 세금계산서신청상세 정보를 조회")
+    @PostMapping("/tax-invoice-details")
+    public EaiWrapper getTaxInvoiceDetails(
         @Valid
         @RequestBody
-        EaiWrapper<SearchReq> reqWrapper
+        EaiWrapper<String> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<SearchRes> res = service.getRentalAdditionalServiceHistories(reqWrapper.getBody());
+        List<SearchRes> res = service.getTaxInvoiceDetails(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

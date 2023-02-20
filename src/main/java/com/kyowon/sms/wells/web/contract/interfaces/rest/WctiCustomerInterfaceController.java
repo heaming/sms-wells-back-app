@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
+import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerDto.SearchReq;
+import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerDto.SearchRes;
+
 import java.util.List;
 
 import javax.validation.Valid;
@@ -9,9 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiPackageContractRelationDto.FindRes;
-import com.kyowon.sms.wells.web.contract.interfaces.service.WctiPackageContractRelationService;
+import com.kyowon.sms.wells.web.contract.interfaces.service.WctiCustomerService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -25,21 +26,22 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiPackageContractRelationController {
-    private final WctiPackageContractRelationService service;
+public class WctiCustomerInterfaceController {
 
-    @ApiOperation(value = "[EAI_WSSI1067] 패키지연관 계약건 조회", notes = "입력받은 계약번호, 계약일련번호에 대한 홈케어멤버십, 패키지 관계 계약정보를 조회")
-    @PostMapping("/package-contract-relations")
-    public EaiWrapper getPackageContractRelations(
+    private final WctiCustomerService service;
+
+    @ApiOperation(value = "[EAI_WCUI1010] 고객 통합 리스트 조회", notes = "입력받은 고객명, 휴대전화번호 고객번호를 조건으로 계약, 가망고객, 무료체험 고객에 해당하는 고객정보를 조회")
+    @PostMapping("/customer-lists")
+    public EaiWrapper getCustomers(
         @Valid
         @RequestBody
-        EaiWrapper<FindReq> reqWrapper
+        EaiWrapper<SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<FindRes> res = service.getPackageContractRelations(reqWrapper.getBody());
+        List<SearchRes> res = service.getCustomers(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);
