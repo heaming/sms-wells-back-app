@@ -34,7 +34,7 @@ public interface WbnaBondPartTransferMapper {
         SearchDetailReq dto
     );
 
-    Integer hasPartTransfer(
+    Integer selectHasPartTransfer(
         String baseYm
     );
 

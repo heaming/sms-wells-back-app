@@ -34,7 +34,7 @@ public class WbnaBondPartTransferController {
     private final WbnaBondPartTransferService service;
 
     @ApiOperation(value = "채권 파트이관 파트별 집계", notes = "검색 조건을 입력 받아 채권 파트별 집계 정보를 조회 한다.")
-    @GetMapping()
+    @GetMapping
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "bzHdqDvCd", value = "사업본부구분코드", paramType = "query", required = true),
@@ -93,29 +93,26 @@ public class WbnaBondPartTransferController {
     }
 
     @ApiOperation(value = "파트 이관 정보 생성", notes = "집금(추심)대상 채권을 집금구분(단기, 중기, 소송, 집행)별로 사업부 파트로 채권을 이관한다. 이관 후 파트별 집계 상세에서 집금구분 수정건에 대하여 저장한다.")
-    @PostMapping()
+    @PostMapping
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "body", required = true),
         @ApiImplicitParam(name = "bzHdqDvCd", value = "기준년월", paramType = "body", required = true),
         @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "body", required = true)
     })
-    public SaveResponse createPartTransfers(
+    public SaveResponse createPartTransfer(
         @Valid
         @RequestBody
         CreateReq dto
     ) {
         // TODO 멩세서 내용 확인 후 추가 작업 예정 그 전에는 임시 갱신 건수 전달
-        log.debug("call createPartTransfers");
+        log.debug("call createPartTransfer");
         return SaveResponse.builder()
-            .processCount(service.createPartTransfers(dto))
+            .processCount(service.createPartTransfer(dto))
             .build();
     }
 
     @ApiOperation(value = "채권 집금구분 정보 갱신", notes = "계약,배정내역의 집금 구분 정보를 갱신")
     @PutMapping
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "List<EditReq>", value = "갱신 목록", paramType = "body", required = true)
-    })
     public SaveResponse editPartTransferDetails(
         @Valid
         @RequestBody

@@ -75,7 +75,7 @@ public class WbnaBondPartTransferService {
      * @return 갱신건수
      */
     @Transactional
-    public int createPartTransfers(
+    public int createPartTransfer(
         CreateReq dto
     ) {
 
@@ -118,7 +118,7 @@ public class WbnaBondPartTransferService {
     ) throws BizException {
 
         //조회된 정보가 true, false에 해당하지 않는 경우 exception발생을 위해 switch 처리
-        return switch (mapper.hasPartTransfer(baseYm)) {
+        return switch (mapper.selectHasPartTransfer(baseYm)) {
             case 1 -> true;
             case 0 -> false;
             default -> throw new BizException("MSG_ALT_ERR_CONTACT_ADMIN");
