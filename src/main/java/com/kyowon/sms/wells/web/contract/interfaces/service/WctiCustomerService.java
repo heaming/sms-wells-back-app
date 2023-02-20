@@ -36,26 +36,34 @@ public class WctiCustomerService {
 
         // 파라미터 체크 - 연락처 검색어가 2개 이상 아닐 경우, 조회 하지 않음
         int emptyCnt = 0;
-        if (StringUtils.isEmpty(req.CRAL_LOCARA_TNO()))
+        if (StringUtils.isEmpty(req.CRAL_LOCARA_TNO())) {
             ++emptyCnt;
-        if (StringUtils.isEmpty(req.MEXNO()))
+        }
+        if (StringUtils.isEmpty(req.MEXNO())) {
             ++emptyCnt;
-        if (StringUtils.isEmpty(req.CRAL_IDV_TNO()))
+        }
+        if (StringUtils.isEmpty(req.CRAL_IDV_TNO())) {
             ++emptyCnt;
+        }
 
-        if (emptyCnt == 2)
+        if (emptyCnt == 2) {
             throw new BizException("휴대전화번호를 2개 이상 입력해주세요.");
+        }
 
         emptyCnt = 0;
-        if (StringUtils.isEmpty(req.LOCARA_TNO()))
+        if (StringUtils.isEmpty(req.LOCARA_TNO())) {
             ++emptyCnt;
-        if (StringUtils.isEmpty(req.EXNO()))
+        }
+        if (StringUtils.isEmpty(req.EXNO())) {
             ++emptyCnt;
-        if (StringUtils.isEmpty(req.IDV_TNO()))
+        }
+        if (StringUtils.isEmpty(req.IDV_TNO())) {
             ++emptyCnt;
+        }
 
-        if (emptyCnt == 2)
+        if (emptyCnt == 2) {
             throw new BizException("전화번호를 2개 이상 입력해주세요.");
+        }
 
         //고객 검색
         List<SearchRes> resList = new ArrayList<>();

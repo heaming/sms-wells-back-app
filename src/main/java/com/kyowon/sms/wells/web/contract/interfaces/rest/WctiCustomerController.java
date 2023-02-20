@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiCustomerService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
-import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
-import com.sds.sflex.system.config.webclient.ivo.Header;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -43,16 +41,10 @@ public class WctiCustomerController {
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        try {
-            List<SearchRes> res = service.getCustomers(reqWrapper.getBody());
-            // Response Body 세팅
-            resWrapper.setBody(res);
-        } catch (BizException ex) {
-            Header resHeader = resWrapper.getHeader();
-            resHeader.setErrOcYn("X");
-            resHeader.setRspMsg(ex.getMessage());
-            resHeader.setRspDtlMsg(ex.toString());
-        }
+        List<SearchRes> res = service.getCustomers(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
 
         return resWrapper;
     }
