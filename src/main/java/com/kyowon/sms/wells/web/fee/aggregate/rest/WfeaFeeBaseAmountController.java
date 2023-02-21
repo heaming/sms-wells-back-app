@@ -32,7 +32,7 @@ public class WfeaFeeBaseAmountController {
         @ApiImplicitParam(name = "ogtp", value = "조직유형", paramType = "query", required = true),
     })
 
-    @GetMapping()
+    @GetMapping
     public List<SearchRes> getFeeBaseAmounts(
         @Valid
         SearchReq dto

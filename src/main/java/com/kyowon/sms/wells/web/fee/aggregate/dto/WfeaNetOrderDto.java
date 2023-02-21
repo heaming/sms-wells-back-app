@@ -78,11 +78,11 @@ public class WfeaNetOrderDto {
     // *********************************************************
     @ApiModel(value = "WfeaNetOrderDto-SaveReq")
     public record SaveReq(
-        String Lcnam2, /* 수당내역 */
-        String Lcgun0, /* 구분０ */
-        String Lcpseq, /* 출력순서 */
-        String Lcamt1a, /* 금액  */
-        String Lcamt1b, /* 추가지급*/
-        String Lcamt1c /* 수당공제*/
+        String col1,
+        String col2,
+        String col3,
+        String col4,
+        String col5,
+        String col6
     ) {}
 }

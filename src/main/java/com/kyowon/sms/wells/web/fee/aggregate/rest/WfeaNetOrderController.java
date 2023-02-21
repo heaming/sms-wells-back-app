@@ -21,7 +21,7 @@ import javax.validation.Valid;
 @Api(tags = "[WFEA] 월순주문 집계")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtFeeConst.REST_URL_V1 + "/net-orders")
+@RequestMapping(CtFeeConst.REST_URL_V1 + "/monthly-net-order")
 @Slf4j
 public class WfeaNetOrderController {
     private final WfeaNetOrderService service;
@@ -36,7 +36,7 @@ public class WfeaNetOrderController {
         @ApiImplicitParam(name = "slDtEnd", value = "매출일자 종료", paramType = "query", required = true),
     })
 
-    @GetMapping()
+    @GetMapping
     public List<SearchRes> getNetOrders(
         @Valid
         SearchReq dto
