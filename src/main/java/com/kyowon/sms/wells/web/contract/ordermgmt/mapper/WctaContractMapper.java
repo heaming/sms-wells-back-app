@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSpaySlamtInqrDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -37,5 +36,4 @@ public interface WctaContractMapper {
 
     int deleteConfirmApprovalBases(WctaCntrAprBaseBasDvo dvo);
 
-    List<SearchSpaySlamtInqrRes> selectSpaySlamtInqr(WctaSpaySlamtInqrDvo dvo);
 }
