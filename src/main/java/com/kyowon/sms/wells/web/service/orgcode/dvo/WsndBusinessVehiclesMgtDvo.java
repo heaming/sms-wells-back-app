@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 public class WsndBusinessVehiclesMgtDvo {
     String vhcMngtNo;
-    String vhcMngtSn;
+    int vhcMngtSn;
     String carno;
     String vhcMngtOgTpCd;
     String vhcMngtPrtnrNo;

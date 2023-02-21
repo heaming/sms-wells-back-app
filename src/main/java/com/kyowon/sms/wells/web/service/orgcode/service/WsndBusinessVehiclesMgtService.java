@@ -37,16 +37,20 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int createBusinessVehicle(CreateReq dto) {
+        int vehicleDupYn = mapper.selectVehicleDupYn(dto.vhcMngtPrtnrNo());
+
+        if (vehicleDupYn > 0) {
+            throw new BizException("MSG_ALT_SMD_PSIC_VHC_DSB");
+        }
+
         WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
-        /*return mapper.mergeBusinessVehicle(dvo);*/
-        return 1;
+        return mapper.mergeBusinessVehicle(dvo);
     }
 
     @Transactional
     public int editBusinessVehicle(EditReq dto) {
         WsndBusinessVehiclesMgtDvo dvo = converter.mapEditReqToBusinessVehiclesMgtDvo(dto);
-        /*return mapper.mergeBusinessVehicle(dvo);*/
-        return 1;
+        return mapper.mergeBusinessVehicle(dvo);
     }
 
     public List<SearchVehiclesRes> getAllVehicles() {
