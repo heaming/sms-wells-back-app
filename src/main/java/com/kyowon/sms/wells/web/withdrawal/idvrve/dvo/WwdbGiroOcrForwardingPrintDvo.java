@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class WwdbGiroOcrForwardingPrintDvo {
     private int giroOcrPblSeqn;
+    private String giroOcrPblDtm;
     private String giroOcrPblOjStrtdt;
     private int giroOcrPblTotQty;
     private String wkDt;

@@ -2,12 +2,10 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
-public class WwdbGiroOcrForwardingPrintDeleteDvo {
+public class WwdbGiroOcrForwardingPrintSeqDvo {
     String giroOcrPblDtm;
-    String giroOcrPblSeqn;
+    int giroOcrPblSeqn;
 }

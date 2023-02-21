@@ -10,4 +10,5 @@ public class WwdbBillingDocumentDvo {
     String sellPrtnrNo;
     String sellPrtnrNm;
     String cstFnm;
+    String bildcWrteDt;
 }
