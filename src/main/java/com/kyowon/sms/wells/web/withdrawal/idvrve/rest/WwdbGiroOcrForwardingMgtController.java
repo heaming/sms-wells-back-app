@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,6 +50,12 @@ public class WwdbGiroOcrForwardingMgtController {
         return service.getGiroOcrForwardingPages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "지로OCR발송관리 목록 조회", notes = " 검색조건을 받아 지로OCR발송관리 코드관리 목록을 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getGiroOcrForwardingExcels(SearchReq dto) {
+        return service.getGiroOcrForwardingExcels(dto);
+    }
+
     @ApiOperation(value = "지로OCR발송관리 대상 조회", notes = "지로OCR발송관리 대상 목록을 조회한다.")
     @GetMapping("/objects")
     public List<SearchRes> getGiroOcrForwardingObjects() {
@@ -70,8 +76,16 @@ public class WwdbGiroOcrForwardingMgtController {
 
     @ApiOperation(value = "지로OCR발송관리 출력 조회", notes = "지로OCR발송관리 출력 목록을 조회한다.")
     @GetMapping("/print")
-    public List<SearchPrintRes> getGiroOcrForwardingPrints(SearchPrintReq dto) {
-        return service.getGiroOcrForwardingPrints(dto);
+    public PagingResult<SearchPrintRes> getGiroOcrForwardingPrints(SearchPrintReq dto, PageInfo pageInfo) {
+
+        return service.getGiroOcrForwardingPrints(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "지로OCR발송관리 출력 엑셀 다운로드", notes = "지로OCR발송관리 출력 엑셀 다운로드 한다.")
+    @GetMapping("/print/excel-download")
+    public List<SearchPrintRes> getGiroOcrForwardingExels(SearchPrintReq dto) {
+
+        return service.getGiroOcrForwardingExels(dto);
     }
 
     @ApiOperation(value = "지로OCR발송관리 출력 등록", notes = "RDS 적요 지로OCR발송관리 등록한다.")
@@ -87,12 +101,16 @@ public class WwdbGiroOcrForwardingMgtController {
     }
 
     @ApiOperation(value = "지로OCR발송관리 출력 삭제", notes = "지로OCR발송관리 출력 목록을 삭제한다.")
-    @DeleteMapping("/print")
+    @PutMapping("/print")
     public SaveResponse removeGiroOcrForwardingPrints(
         @RequestBody
         @Valid
         List<removePrintReq> dto
     ) throws Exception {
+        log.info("=======cont=========");
+        log.info(dto.toString());
+        log.info("================");
+
         return SaveResponse.builder()
             .processCount(service.removeGiroOcrForwardingPrints(dto))
             .build();

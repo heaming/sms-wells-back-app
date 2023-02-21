@@ -95,6 +95,9 @@ public class WwdbBillingDocumentMgtController {
         @Valid
         SaveFwReq dto
     ) throws Exception {
+        log.info("===========");
+        log.info(dto.toString());
+        log.info("===========");
         return SaveResponse.builder()
             .processCount(service.saveBillingDocumentForwarding(dto))
             .build();

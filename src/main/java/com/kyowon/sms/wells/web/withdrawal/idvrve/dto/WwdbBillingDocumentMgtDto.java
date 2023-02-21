@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 public class WwdbBillingDocumentMgtDto {
     public record SearchReq(
         String cstFnm,
-        String fstRgstDtm,
+        String bildcWrteDt,
         String bildcPblNo
     ) {}
 
@@ -24,7 +24,8 @@ public class WwdbBillingDocumentMgtDto {
         String pdSellAmtSum, //--총금액
         String rmkCn, //--비고 이건 수정 가능성이 잇음
         String fstRgstDtm, //--작성일자
-        String dummyText //발송
+        String dummyText, //발송
+        String bildcWrteDt
     ) {}
 
     public record RemoveReq(
@@ -36,7 +37,6 @@ public class WwdbBillingDocumentMgtDto {
     }
     public record SaveReq(
         List<SaveDtlsReq> saveDtlsReq,
-        @NotBlank
         SaveMainReq saveMainReq
     ) {
 
@@ -44,23 +44,18 @@ public class WwdbBillingDocumentMgtDto {
 
     public record SaveMainReq(
         String state,
-        @NotBlank
         String bildcPblNo,
-        @NotBlank
         String sellPrtnrNo,
-        @NotBlank
         String sellPrtnrNm,
-        String cstFnm
+        String cstFnm,
+        String bildcWrteDt
     ) {
 
     }
     public record SaveDtlsReq(
         String rowState,
-        @NotBlank
         String bildcPblNo,
-        @NotBlank
         String bildcPblSn,
-        @NotBlank
         String pdNm,
         String pdQty,
         String pdUprc,
@@ -108,7 +103,6 @@ public class WwdbBillingDocumentMgtDto {
     }
 
     public record SaveFwReq(
-        @NotBlank
         String bildcPblNo,
         String bildcFwTpCd,
         String cstFnm,

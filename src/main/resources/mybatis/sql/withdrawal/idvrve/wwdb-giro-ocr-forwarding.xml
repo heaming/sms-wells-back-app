@@ -25,12 +25,15 @@
              , A.LTPAY_YN --후납여부
              , A.GIRO_RGLR_DV_CD --정기구분  
           FROM TB_RVDW_GIRO_OCR_MNGT_BAS A
-         INNER JOIN TB_SSCT_CNTR_WELLS_DTL B ON A.CNTR_NO = B.CNTR_NO AND A.CNTR_SN = B.CNTR_SN
-         WHERE B.RECAP_DUTY_PTRM_UNIT_CD = '20'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B ON A.CNTR_NO = B.CNTR_NO AND A.CNTR_SN = B.CNTR_SN
+         WHERE 1 = 1 --AND B.RECAP_DUTY_PTRM_UNIT_CD = '20'           
+         <if test='@MybatisUtils@isNotEmpty(wkDt)'>
            AND A.WK_DT = #{wkDt}
+         </if>  
+         <if test='@MybatisUtils@isNotEmpty(giroRglrDvCd)'>
            AND A.GIRO_RGLR_DV_CD = #{giroRglrDvCd}
-           AND A.DTA_DL_YN = 'N'
-           AND B.DTA_DL_YN = 'N'        
+         </if>
+           AND A.DTA_DL_YN = 'N'                  
     </select>
     
     <select id="selectGiroOcrForwardingObjects" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchRes">
@@ -86,7 +89,7 @@
                      , TB_CBCL_CNTR_PERF_MM_CL B --계약실적월마감
                      , TB_SSCT_CNTR_WELLS_DTL C--계약WELLS상세
                      , TB_SSCT_CNTR_PRC_CMPT_IZ D  --계약가격산출내역
-                 WHERE A.CNTR_NO = B.CNTR_NO
+                 WHERE A.CNTR_NO = CNTR_NO
                    AND A.CNTR_NO = C.CNTR_NO
                    AND A.CNTR_NO = D.CNTR_NO
                    AND B.CNTR_NO = C.CNTR_NO
@@ -114,11 +117,14 @@
              , STRT_GIRO_TN --시작
              , END_GIRO_TN --종료
              , THM0_AMT --0차월
-             , ISTM_RENTAL_AMT1--1청구 렌탈료
-             , STPL_NMN_AMT--약정차월
-             , ISTM_RENTAL_AMT2--2청구 렌탈료
-             , EXN_NMN_AMT --만료차월
-             , LTPAY_YN --후납여부
+             , ISTM_MCN
+             , ISTM_AMT
+             , ISTM_DSC_AMT
+             , PY_AMT
+             , STPL_NMN_AMT
+             , EXN_NMN_AMT
+             , LTPAY_YN
+             , GIRO_RGLR_DV_CD             
              <include refid="COMMON.insertSystemField"/>
         )VALUES(
                #{wkDt} --작업일자
@@ -130,15 +136,43 @@
              , #{strtGiroTn} --시작
              , #{endGiroTn} --종료
              , #{thm0Amt} --0차월
-             , #{istmRentalAmt1}--1청구 렌탈료
-             , #{stplNmnAmt}--약정차월
-             , #{istmRentalAmt2}--2청구 렌탈료
-             , #{exnNmnAmt} --만료차월
-             , #{ltpayYn} --후납여부
+             , #{istmMcn}
+             , #{istmAmt}
+             , #{istmDscAmt}
+             , #{pyAmt}
+             , #{stplNmnAmt}
+             , #{exnNmnAmt}
+             , #{ltpayYn}
+             , #{giroRglrDvCd}
              <include refid="COMMON.insertSystemFieldValue" />
         )
         
     </insert>
+    
+    <update id="updateGiroOcrForwardings">
+        UPDATE TB_RVDW_GIRO_OCR_MNGT_BAS
+           SET               
+               STRT_GIRO_TN = #{strtGiroTn}--시작
+             , END_GIRO_TN = #{endGiroTn}--종료
+             , THM0_AMT = #{thm0Amt} --0차월
+             , ISTM_MCN = #{istmMcn}
+             , ISTM_AMT = #{istmAmt}
+             , ISTM_DSC_AMT = #{istmDscAmt}
+             , PY_AMT = #{pyAmt}
+             , STPL_NMN_AMT = #{stplNmnAmt}
+             , EXN_NMN_AMT = #{exnNmnAmt}
+             , LTPAY_YN = #{ltpayYn}             
+         WHERE WK_DT = #{wkDt}
+           AND WK_SN = #{wkSn}                     
+    </update>
+    
+    <update id="deleteGiroOcrForwardings">
+        UPDATE TB_RVDW_GIRO_OCR_MNGT_BAS
+           SET               
+               DTA_DL_YN = 'Y'         
+         WHERE WK_DT = #{wkDt}
+           AND WK_SN = #{wkSn}       
+    </update>
     
     <select id="selectGiroOcrForwardingPrints" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchPrintRes">
         SELECT
@@ -148,22 +182,23 @@
              , GIRO_OCR_PBL_SEQN
              , GIRO_OCR_PBL_OJ_STRTDT
              , GIRO_OCR_PBL_OJ_ENDDT
-             , TO_CHAR(GIRO_OCR_PBL_OJ_STRTDT,'YYYY-MM-DD')||' ~ '||TO_CHAR(GIRO_OCR_PBL_OJ_ENDDT,'YYYY-MM-DD') AS GIRO_OCR_PBL_OJ
+             , TO_CHAR(TO_DATE(GIRO_OCR_PBL_OJ_STRTDT,'YYYYMMDD'),'YYYY-MM-DD')||' ~ '||TO_CHAR(TO_DATE(GIRO_OCR_PBL_OJ_ENDDT,'YYYYMMDD'),'YYYY-MM-DD') AS GIRO_OCR_PBL_OJ
              , GIRO_OCR_PBL_TOT_QTY
              , GIRO_OCR_PRNT_DT
+             , DECODE(GIRO_OCR_PRNT_DT,null,'출력','재출력') AS GIRO_OCR_PRNT             
              , GIRO_OCR_DL_DT
              , DTA_DL_YN
           FROM TB_RVDW_GIRO_OCR_PBL_BAS
          WHERE 1 = 1
            AND DTA_DL_YN = 'N'           
            <if test='@MybatisUtils@isNotEmpty(giroOcrPblDtm)'>
-           AND GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
+           AND GIRO_OCR_PBL_DTM LIKE #{giroOcrPblDtm}||'%'
            </if>
            <if test='@MybatisUtils@equals(giroOcrPrntStatus,"01")'>
-           AND GIRO_OCR_PRNT_DT > 0
+           AND GIRO_OCR_PRNT_DT IS NOT NULL
            </if>
            <if test='@MybatisUtils@equals(giroOcrPrntStatus,"02")'>
-           AND GIRO_OCR_PRNT_DT = 0
+           AND GIRO_OCR_PRNT_DT IS NULL
            </if>
          ORDER BY GIRO_OCR_PBL_DTM DESC , GIRO_OCR_PBL_SEQN
     </select>
@@ -190,29 +225,238 @@
               , SL_DT
               <include refid="COMMON.insertSystemField"/>              
         )SELECT 
-                #{giroOcrPblDtm} AS GIRO_OCR_PBL_DTM        
-              , #{giroOcrPblSeqn} AS GIRO_OCR_PBL_SEQN --채번따야할듯
-              , ROWNUM AS GIRO_OCR_PBL_SN 
-              , A.GIRO_BIZ_DV_CD --지로업무구분코드 
-              , A.GIRO_BIZ_TP_CD --지로업무유형코드
-              , A.PY_AMT --납입금액
-              , '3010068' --지로번호
-              , A.CNTR_NO -- 계약번호
-              , A.CNTR_SN --계약일련번호
-              , A.CST_FNM --고객명
-              , CONCAT(A.CNTR_NO, LPAD(A.CNTR_SN,0)) AS ELC_MPY_NO--전자납부번호 AS ELC_MPY_NO AS-IS의 경우 CW55.CWYEAR ||  LPAD(CW55.CWCODE,7,'0')  CWUSR1 /           
-              , A.STRT_GIRO_TN --지로회차 이거는 좀 더 보기로하고
-              , TO_CHAR(SYSDATE,'YYYYMM') AS GIRO_PY_YM --지로납입년월 --AS-IS에는 없는 컬럼 현재년월 입력함
-              , '이거수정하자' AS GIRO_TN_CN --지로회차내용 (지로회차 + '회차(' + '월)') 00회차 ( 0월)
-              , B.ZIP --우편번호
-              , B.BAS_ADR --기본주소
-              , B.DTL_ADR --상세주소
-              , SL_DT --매출일자
-              <include refid="COMMON.insertSystemFieldValue"/>
-           FROM TB_RVDW_GIRO_OCR_MNGT_BAS A
-           LEFT JOIN TB_RVDW_GIRO_PLRCV_BAS B
-             ON A.CNTR_NO = B.CNTR_NO AND A.CNTR_SN = B.CNTR_SN
-          WHERE A.WK_DT = #{wkDt}
+                   #{giroOcrPblDtm}
+                 , #{giroOcrPblSeqn}
+                 --(SELECT NVL(MAX(GIRO_OCR_PBL_DTM),0)+1 FROM TB_RVDW_GIRO_OCR_PBL_DTL WHERE GIRO_OCR_PBL_DTM = GIRO_OCR_PBL_DTM) AS GIRO_OCR_PBL_SEQN --순번
+                 , GIRO_OCR_PBL_SN
+                 , GIRO_BIZ_DV_CD
+                 , GIRO_BIZ_TP_CD
+                 , PY_AMT
+                 , GIRO_NO
+                 , T1CNTR_NO
+                 , CNTR_SN 
+                 , CST_FNM
+                 , ELC_MPY_NO
+                 , GIRO_TN
+                 , GIRO_PY_YM
+                 , GIRO_TN_CN
+                 , ZIP
+                 , BAS_ADR 
+                 , DTL_ADR
+                 , SL_DT
+                 <include refid="COMMON.insertSystemFieldValue" />
+              FROM (
+                        SELECT 
+                             --  TO_CHAR(SYSDATE, 'HH24MISS') AS GIRO_OCR_PBL_DTM --작업일자                                     
+                               ROW_NUMBER()  OVER ( ORDER BY WK_DT , WK_SN ,T1CNTR_NO ,HOECHA  ) AS GIRO_OCR_PBL_SN--지로OCR발행일련번호
+                             , '2' AS GIRO_BIZ_DV_CD --지로업무구분코드
+                             , '2' AS GIRO_BIZ_TP_CD --지로업무유형코드
+                             , CWQAM3 AS PY_AMT --납입금액
+                        --     , CWGCDE --지로번호     
+                             , CWCCDE ||  SAVE_INSY ||  SAVE_INSM ||
+                               CASE WHEN
+                                    CAST( MOD( CAST(
+                                    CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,1 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,2 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,3 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,4 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,5 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,6 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,7 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,8 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,9 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,10,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,11,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,12,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,13,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,1 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,2 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,3 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,4 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,5 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,6 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,7 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,8 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,9 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,10,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,11,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,12,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,13,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)
+                                 AS FLOAT ) , 10  ) AS NUMBER ) = 0 THEN  0
+                               ELSE  
+                               10 - CAST( MOD( CAST(
+                                    CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,1 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,2 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,3 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,4 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,5 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,6 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,7 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,8 ,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,9 ,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,10,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,11,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,12,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,13,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,1 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,2 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,3 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,4 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,5 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,6 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,7 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,8 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,9 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,10,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,11,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,12,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,13,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)
+                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)
+                                 AS FLOAT ) , 10  ) AS NUMBER )
+                                END GIRO_NO  /* 지로번호     */     
+                             , T1CNTR_NO --계약번호
+                             , CNTR_SN --일련번호
+                             , CST_KNM AS CST_FNM --고객명
+                             , CWUSR1 AS ELC_MPY_NO -- 전자납부번호
+                             , HOECHA AS GIRO_TN -- 지로회차
+                             , CASE WHEN CWHMO1 = SAVE_INSM THEN SAVE_INSY02 || LPAD(CWHMO1, 2, '0') ELSE (SAVE_INSY02 - 1) || LPAD(CWHMO1, 2, '0') END AS GIRO_PY_YM    --지로납입년월
+                             , HOECHA || '회차(' ||  CWHMO1 || '월)' AS GIRO_TN_CN --지로회차내용
+                             , ZIP --우편번호
+                             , BAS_ADR --기본주소
+                             , DTL_ADR --상세주소    
+                             , SAVE_INSY02 || SAVE_INSM ||'27' AS SL_DT /* 매출일자       */     
+                          FROM (   
+                                    SELECT 
+                                           SUBSTR(
+                                                    CASE WHEN SAVE_INSM02  >  84  THEN  TO_NUMBER(CWSLEY) + 7
+                                                         WHEN SAVE_INSM02  >  72  THEN  TO_NUMBER(CWSLEY) + 6
+                                                         WHEN SAVE_INSM02  >  60  THEN  TO_NUMBER(CWSLEY) + 5
+                                                         WHEN SAVE_INSM02  >  48  THEN  TO_NUMBER(CWSLEY) + 4
+                                                         WHEN SAVE_INSM02  >  36  THEN  TO_NUMBER(CWSLEY) + 3
+                                                         WHEN SAVE_INSM02  >  24  THEN  TO_NUMBER(CWSLEY) + 2
+                                                         WHEN SAVE_INSM02  >  12  THEN  TO_NUMBER(CWSLEY) + 1
+                                                         ELSE TO_NUMBER(CWSLEY) END  ,3,2 
+                                                  ) AS  SAVE_INSY
+                                         , CASE WHEN SAVE_INSM02  >  84  THEN  TO_NUMBER(CWSLEY) + 7
+                                                WHEN SAVE_INSM02  >  72  THEN  TO_NUMBER(CWSLEY) + 6
+                                                WHEN SAVE_INSM02  >  60  THEN  TO_NUMBER(CWSLEY) + 5
+                                                WHEN SAVE_INSM02  >  48  THEN  TO_NUMBER(CWSLEY) + 4
+                                                WHEN SAVE_INSM02  >  36  THEN  TO_NUMBER(CWSLEY) + 3
+                                                WHEN SAVE_INSM02  >  24  THEN  TO_NUMBER(CWSLEY) + 2
+                                                WHEN SAVE_INSM02  >  12  THEN  TO_NUMBER(CWSLEY) + 1
+                                                ELSE TO_NUMBER(CWSLEY) END        AS  SAVE_INSY02
+                                         , LPAD(
+                                                    CASE WHEN SAVE_INSM02  >  84  THEN  TO_NUMBER(SAVE_INSM02) - 84
+                                                         WHEN SAVE_INSM02  >  72  THEN  TO_NUMBER(SAVE_INSM02) - 72
+                                                         WHEN SAVE_INSM02  >  60  THEN  TO_NUMBER(SAVE_INSM02) - 60
+                                                         WHEN SAVE_INSM02  >  48  THEN  TO_NUMBER(SAVE_INSM02) - 48
+                                                         WHEN SAVE_INSM02  >  36  THEN  TO_NUMBER(SAVE_INSM02) - 36
+                                                         WHEN SAVE_INSM02  >  24  THEN  TO_NUMBER(SAVE_INSM02) - 24
+                                                         WHEN SAVE_INSM02  >  12  THEN  TO_NUMBER(SAVE_INSM02) - 12
+                                                         ELSE SAVE_INSM02 END  ,2,'0'
+                                                ) AS SAVE_INSM 
+                                          , LPAD(CWQAM3,8,'0') SAVE_AMT  /* 납입액       */  
+                                          , CASE WHEN  HOECHA02 = 0  THEN  LCSETM  /* 설치월    */
+                                                 ELSE SUBSTR(TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(IST_DT,'YYYY-MM-DD'),HOECHA02)),'YYYYMMDD'),5,2)
+                                                  END AS CWHMO1 /* 지로회차     */
+                                          , WK_DT 
+                                          , WK_SN 
+                                          , T1CNTR_NO
+                                          , CWQAM3   
+                                          , CWGCDE
+                                          , HOECHA
+                                          , CNTR_SN
+                                          , CWUSR1
+                                          , ZIP --우편번호
+                                          , BAS_ADR --기본주소
+                                          , DTL_ADR --상세주소    
+                                          , IST_DT --설치일자
+                                          , CWCCDE --지로번호
+                                          , CST_KNM
+                                       FROM (              
+                                                SELECT 
+                                                       T1.WK_DT --작업년월
+                                                     , T1.WK_SN --일련번호
+                                                     , T1.CNTR_NO AS T1CNTR_NO--계약번호     
+                                                     , T1.CNTR_SN  --계약번호
+                                                     , T1.CNTR_NO --계약일련번호
+                                                     , LPAD(SUBSTR(T1.CNTR_NO,6),7,'0') 
+                                                     , SUBSTR(T1.CNTR_NO,2) || LPAD(T2.HOECHA,2,'0') AS CWCCDE --지로번호
+                                                     , T1.SL_DT 
+                                                --   , TO_NUMBER(SUBSTR(T1.SL_DT,5,2)) 
+                                                     , CASE WHEN T1.LTPAY_YN = 'Y' THEN  ( CASE WHEN  T2.HOECHA > 0 THEN  TO_NUMBER(SUBSTR(T1.SL_DT,5,2)) + T2.HOECHA -1  ELSE TO_NUMBER(SUBSTR(T1.SL_DT,5,2))  END  ) + 2
+                                                                                   ELSE  ( CASE WHEN  T2.HOECHA > 0 THEN  TO_NUMBER(SUBSTR(T1.SL_DT,5,2)) + T2.HOECHA -1  ELSE TO_NUMBER(SUBSTR(T1.SL_DT,5,2))  END  ) + 1 
+                                                                                    END  SAVE_INSM02
+                                                     , T6.CNTR_CST_NO  --고객번호
+                                                     , T9.CST_KNM  --성명
+                                                     , SUBSTR(T1.CNTR_NO,2) AS CWUSR1 --전자납부번호                   
+                                                     , T7.ADR_ID
+                                                     , NVL(T3.ZIP,T8.NEW_ADR_ZIP) AS ZIP--우편번호
+                                                     , NVL(T3.BAS_ADR,T8.RNADR) AS BAS_ADR --기본주소
+                                                     , NVL(T3.DTL_ADR,T8.RDADR) AS DTL_ADR--상세주소    
+                                                     , T4.IST_DT --설치일자     
+                                                     , SUBSTR(T4.IST_DT,5,2) AS LCSETM
+                                                     , T4.REQD_DT --철거일자
+                                                     , T1.ISTM_AMT --할부금액
+                                                     , T1.ISTM_DSC_AMT --월할부
+                                                     , T1.THM0_AMT --0차월
+                                                     , T1.STPL_NMN_AMT --약정차월금액
+                                                     , T1.EXN_NMN_AMT --만료차월금액
+                                                     , T1.ISTM_MCN --
+                                                     , T1.STRT_GIRO_TN --시작회차
+                                                     , T1.END_GIRO_TN --종료회차
+                                                     , T1.SL_DT --매출일자
+                                                     , SUBSTR(T1.SL_DT,1,4) AS CWSLEY
+                                                     , T1.SELL_TAM --판매총액
+                                                     , '3010068' AS CWGCDE --지로번호
+                                                     , T1.LTPAY_YN --후납여부
+                                                     , LPAD(T2.HOECHA,2,'0') HOECHA --회차
+                                                     , T2.HOECHA HOECHA02 --회차      
+                                                --       , T5.ISTM_MCN --할부개월수
+                                                     , CASE WHEN T2.HOECHA = 0           THEN T1.THM0_AMT /* ０차월         */
+                                                            WHEN T2.HOECHA = T5.ISTM_MCN THEN T1.EXN_NMN_AMT /* ６０차월       */
+                                                --            WHEN T2.HOECHA = LC31.LCMON1 THEN CW55.CWAM12 /* １２차월       */
+                                                            WHEN T2.HOECHA <![CDATA[ < ]]> T5.ISTM_MCN THEN T1.ISTM_AMT /* 할부／렌탈１   */
+                                                            ELSE T1.ISTM_DSC_AMT /* 월할부／렌탈２ */
+                                                             END AS CWQAM3 /* 납입액       */
+                                                  FROM TB_RVDW_GIRO_OCR_MNGT_BAS T1  --OCR관리기본  
+                                                  LEFT OUTER JOIN (SELECT LEVEL AS HOECHA FROM DUAL CONNECT BY LEVEL<![CDATA[ <= ]]> 100) T2
+                                                    ON T2.HOECHA BETWEEN T1.STRT_GIRO_TN AND T1.END_GIRO_TN
+                                                  LEFT OUTER JOIN TB_RVDW_GIRO_PLRCV_BAS T3 --지로수신처 
+                                                    ON T3.CNTR_NO = T1.CNTR_NO AND T3.CNTR_SN = T3.CNTR_SN     
+                                                  LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T4 --계약WELLS상세
+                                                    ON T4.CNTR_NO = T1.CNTR_NO 
+                                                --    AND T4.CNTR_SN = T1.CNTR_SN   
+                                                  LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5 --계약상세
+                                                    ON T5.CNTR_NO = T1.CNTR_NO AND T5.CNTR_SN = T1.CNTR_SN   
+                                                 INNER JOIN TB_SSCT_CNTR_BAS T6 --계약기본
+                                                    ON T6.CNTR_NO = T1.CNTR_NO
+                                                  LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T7 --계약주소
+                                                    ON T7.CNTR_NO = T6.CNTR_NO AND T7.CNTR_CST_NO = T6.CNTR_CST_NO    
+                                                  LEFT OUTER JOIN TB_GBCO_ADR_BAS T8 --주소기본
+                                                    ON T8.ADR_ID = T7.ADR_ID
+                                                  LEFT OUTER JOIN TB_CUBS_CST_BAS T9 --고객기본
+                                                    ON T9.CST_NO = T6.CNTR_CST_NO 
+                                                 WHERE 1 = 1
+                                                   AND T1.WK_DT = #{wkDt}
+                                             ) T02
+                                ) T03
+                    )
     </insert>
     
     <insert id="insertGiroOcrForwardingPrints">
@@ -224,8 +468,8 @@
            , GIRO_OCR_PBL_TOT_QTY --총수량  
            <include refid="COMMON.insertSystemField"/>
         )VALUES(
-             TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-           , #{giroOcrPblSeqn} --시퀀스 따야함
+             #{giroOcrPblDtm}
+           , #{giroOcrPblSeqn} 
            , #{giroOcrPblOjStrtdt} 
            , #{giroOcrPblOjStrtdt}
            , #{giroOcrPblTotQty}
@@ -233,16 +477,26 @@
         )
     </insert>
     
+    <select id="selectGiroOcrForwardingPrintInfo" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchDateSeq">
+        SELECT 
+               #{giroOcrPblOjStrtdt}||TO_CHAR(SYSDATE, 'HH24MISS') AS GIRO_OCR_PBL_DTM
+             , NVL(MAX(GIRO_OCR_PBL_DTM),0)+1 AS GIRO_OCR_PBL_SEQN
+          FROM TB_RVDW_GIRO_OCR_PBL_DTL
+         WHERE GIRO_OCR_PBL_DTM =  #{giroOcrPblOjStrtdt}||TO_CHAR(SYSDATE, 'HH24MISS')
+    </select>
+    
+    <!-- 
     <select id="selectGiroOcrPk" resultType="int">
         SELECT 
                NVL(MAX(GIRO_OCR_PBL_SEQN),0)+1 
           FROM TB_RVDW_GIRO_OCR_PBL_BAS
     </select>
-    
+     -->
     <update id="deleteGiroOcrForwardingPrints">
         UPDATE 
                TB_RVDW_GIRO_OCR_PBL_BAS
-           SET GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
-             , GIRO_OCR_PBL_SEQN = #{giroOcrPblDate} 
+           SET DTA_DL_YN = 'Y'
+         WHERE GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
+           AND GIRO_OCR_PBL_SEQN = #{giroOcrPblSeqn} 
     </update>
 </mapper>

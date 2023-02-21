@@ -186,7 +186,7 @@ public class WwdbBillingDocumentMgtService {
         paramMap.put("pdSellAmtSum", dvo.getPdSellAmtSum());
 
         KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
-            .templateCode("wells51878") //서식은 나중에 만들어야함
+            .templateCode("Wells18236") //서식은 나중에 만들어야함
             .templateParamMap(paramMap)
             .destInfo(dvo.getPdNm() + "^" + dvo.getDestInfo())
             .callback(dvo.getCallback())
