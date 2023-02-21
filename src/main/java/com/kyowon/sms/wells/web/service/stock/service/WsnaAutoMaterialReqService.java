@@ -29,8 +29,8 @@ public class WsnaAutoMaterialReqService {
     public int carryOver(CreateReq dto) {
         int cnt = 0;
         WsnaAutoMaterialReqDvo dvo = converter.mapCreateReqToWsnaAutoMaterialReqDvo(dto);
-        cnt += mapper.insertMatAutoAplcCrdovr(dvo);
-        cnt += mapper.updateMatAutoAplcCrdovr(dvo);
+        cnt += mapper.insertOteamMatAutoAplcIz(dvo);
+        cnt += mapper.updateItmOstrAkIz(dvo);
         return cnt;
     }
 }
