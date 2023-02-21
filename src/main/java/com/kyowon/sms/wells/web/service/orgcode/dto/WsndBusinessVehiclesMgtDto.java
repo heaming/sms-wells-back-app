@@ -58,7 +58,8 @@ public class WsndBusinessVehiclesMgtDto {
         String insrAgeCd,
         String rflngCdnoEncr,
         String hipsCdnoEncr,
-        String vhcDsbRmkCn
+        String vhcDsbRmkCn,
+        String carnm
     ) {
         public FindRes {
             // 복호화
