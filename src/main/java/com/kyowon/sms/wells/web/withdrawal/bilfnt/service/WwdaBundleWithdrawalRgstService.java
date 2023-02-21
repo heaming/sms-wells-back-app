@@ -2,11 +2,10 @@ package com.kyowon.sms.wells.web.withdrawal.bilfnt.service;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.converter.WwdaAutoFntBndlWdrwRgstMgtConverter;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchRgstHistRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchUnrgPsRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaAutoFntBndlWdrwRgstMgtMapper;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto.SearchRgstHistRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto.SearchUnrgPsRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaBundleWithdrawalRgstMapper;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
@@ -17,14 +16,13 @@ import lombok.RequiredArgsConstructor;
  * </pre>
  *
  * @author donghyun.yoo
- * @since 2023-02-01
+ * @since 2023-02-01z
  */
 @Service
 @RequiredArgsConstructor
-public class WwdaAutoFntBndlWdrwRgstMgtService {
+public class WwdaBundleWithdrawalRgstService {
 
-    private final WwdaAutoFntBndlWdrwRgstMgtMapper mapper;
-    private final WwdaAutoFntBndlWdrwRgstMgtConverter converter;
+    private final WwdaBundleWithdrawalRgstMapper mapper;
 
     /** 묶음출금 미등록 현황 조회
      * 

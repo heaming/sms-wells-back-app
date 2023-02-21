@@ -5,16 +5,18 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaAutoFntDsnWdrwMgtService;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.RemoveReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaDesignationWithdrawalCustomerMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -28,11 +30,11 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(WdWithdrawalConst.REST_URL_V1)
+@RequestMapping(WdWithdrawalConst.REST_URL_V1 + "/bilfnt")
 @Api(tags = "[WWDA] 자동이체 지정 출금 고객 관리")
-public class WwdaAutoFntDsnWdrwMgtController {
+public class WwdaDesignationWithdrawalCustomerMgtController {
 
-    private final WwdaAutoFntDsnWdrwMgtService service;
+    private final WwdaDesignationWithdrawalCustomerMgtService service;
 
     @ApiOperation(value = "자동이체 지정 출금 고객 조회")
     @ApiImplicitParams(value = {
@@ -40,7 +42,7 @@ public class WwdaAutoFntDsnWdrwMgtController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = false, example = "1"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형코드", paramType = "query", required = false, example = "20230215"),
     })
-    @GetMapping("/w-aftn-dsn-wdrw-cst-inqr")
+    @GetMapping("/designation-wdrw-csts")
     public PagingResult<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrPages(
         @ApiParam
         @Valid
@@ -61,7 +63,7 @@ public class WwdaAutoFntDsnWdrwMgtController {
         @ApiImplicitParam(name = "dsnWdrwFntD", value = "이체일자", paramType = "query", required = false, example = "10"),
         @ApiImplicitParam(name = "dsnWdrwFntPrdCd", value = "이체주기", paramType = "query", required = false, example = "2"),
     })
-    @PostMapping("/w-aftn-dsn-wdrw-cst-rgst")
+    @PostMapping("/designation-wdrw-csts")
     public SaveResponse saveAutoFntDsnWdrwCst(
         @RequestBody
         @Valid
@@ -70,6 +72,23 @@ public class WwdaAutoFntDsnWdrwMgtController {
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveAutoFntDsnWdrwCst(req))
+            .build();
+    }
+
+    @ApiOperation(value = "자동이체 지정 출금 고객 저장")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "W20220086004"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = false, example = "1"),
+    })
+    @DeleteMapping("/designation-wdrw-csts")
+    public SaveResponse deleteAutoFntDsnWdrwCst(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<RemoveReq> req
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.deleteAutoFntDsnWdrwCst(req))
             .build();
     }
 }

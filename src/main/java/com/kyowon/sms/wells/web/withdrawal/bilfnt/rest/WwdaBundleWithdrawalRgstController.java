@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchRgstHistRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntBndlWdrwRgstMgtDto.SearchUnrgPsRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaAutoFntBndlWdrwRgstMgtService;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto.SearchRgstHistRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto.SearchUnrgPsRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaBundleWithdrawalRgstService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -22,11 +22,11 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(WdWithdrawalConst.REST_URL_V1)
+@RequestMapping(WdWithdrawalConst.REST_URL_V1 + "/bilfnt")
 @Api(tags = "[WWDA] 자동이체 묶음 출금 등록 관리")
-public class WwdaAutoFntBndlWdrwRgstMgtController {
+public class WwdaBundleWithdrawalRgstController {
 
-    private final WwdaAutoFntBndlWdrwRgstMgtService service;
+    private final WwdaBundleWithdrawalRgstService service;
 
     @ApiOperation(value = "묶음출금 미등록 현황 조회")
     @ApiImplicitParams(value = {
@@ -37,7 +37,7 @@ public class WwdaAutoFntBndlWdrwRgstMgtController {
         @ApiImplicitParam(name = "cntrPdStrtdt", value = "접수시작일", paramType = "query", required = false, example = "20230208"),
         @ApiImplicitParam(name = "cntrPdEnddt", value = "접수종료일", paramType = "query", required = false, example = "20230215"),
     })
-    @GetMapping("/w-bundle-wdrw-unrg-ps-inqr") // url은 추후에 수정
+    @GetMapping("/bundle-withdrawal-unrgs")
     public PagingResult<SearchUnrgPsRes> getUnregistrationPsInqrPages(
         @ApiParam
         @Valid
@@ -55,7 +55,7 @@ public class WwdaAutoFntBndlWdrwRgstMgtController {
         @ApiImplicitParam(name = "cntrPdStrtdt", value = "접수시작일", paramType = "query", required = false, example = "20230208"),
         @ApiImplicitParam(name = "cntrPdEnddt", value = "접수종료일", paramType = "query", required = false, example = "20230215"),
     })
-    @GetMapping("/wwda-bndl-wdrw-rgst-hist-inqr") // url은 추후에 수정
+    @GetMapping("/bundle-withdrawal-hist")
     public PagingResult<SearchRgstHistRes> getgetBundleRgstRsInqrPages(
         @ApiParam
         @Valid
