@@ -23,9 +23,8 @@ public class WsndBusinessVehiclesMgtDto {
         String prtnrNo,
         String prtnrKnm,
         String rol,
-        String entcoDt,
+        String cntrDt,
         String carno,
-        String vhcKndCd,
         String vhcMngtTpCd,
         String vhcPymdt,
         String dsbEnddt,
@@ -36,7 +35,8 @@ public class WsndBusinessVehiclesMgtDto {
         String ogCd,
         String vhcMngtNo,
         String vhcMngtSn,
-        String vhcMngtPrtnrNo
+        String vhcMngtPrtnrNo,
+        String carnm
     ) {
         public SearchRes {
             rflngCdnoEncr = DbEncUtil.dec(rflngCdnoEncr);
