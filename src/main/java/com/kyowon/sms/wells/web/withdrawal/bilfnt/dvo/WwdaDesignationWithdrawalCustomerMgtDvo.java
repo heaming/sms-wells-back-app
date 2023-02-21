@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class WwdaAutoFntDsnWdrwMgtDvo {
+public class WwdaDesignationWithdrawalCustomerMgtDvo {
 
     private String rowState;
     private String dataRow;

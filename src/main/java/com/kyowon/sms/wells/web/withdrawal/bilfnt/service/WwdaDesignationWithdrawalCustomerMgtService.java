@@ -5,16 +5,18 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.converter.WwdaAutoFntDsnWdrwMgtConverter;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaAutoFntDsnWdrwMgtDto.SearchAutoFntDsnWdrwCstRes;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutoFntDsnWdrwMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.converter.WwdaDesignationWithdrawalCustomerMgtConverter;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.RemoveReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstReq;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaAutoFntDsnWdrwMgtMapper;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaDesignationWithdrawalCustomerMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaDesignationWithdrawalCustomerMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,10 +30,10 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
-public class WwdaAutoFntDsnWdrwMgtService {
+public class WwdaDesignationWithdrawalCustomerMgtService {
 
-    private final WwdaAutoFntDsnWdrwMgtMapper mapper;
-    private final WwdaAutoFntDsnWdrwMgtConverter converter;
+    private final WwdaDesignationWithdrawalCustomerMgtMapper mapper;
+    private final WwdaDesignationWithdrawalCustomerMgtConverter converter;
 
     /** 자동이체 지정 출금 고객 조회
      * 
@@ -58,7 +60,8 @@ public class WwdaAutoFntDsnWdrwMgtService {
 
         for (SaveReq dto : req) {
             int index = Integer.parseInt(dto.dataRow()) + 1;
-            WwdaAutoFntDsnWdrwMgtDvo dvo = converter.mapSaveReqToWwdaAutoFntDsnWdrwMgtDvo(dto);
+            WwdaDesignationWithdrawalCustomerMgtDvo dvo = converter
+                .mapSaveReqToWwdaDesignationWithdrawalCustomerMgtDvo(dto);
             // SearchContractDetailInfRes res = mapper.selectContractDetailInf(dvo); // 필요한지 모르곘음
             WwdaAutomaticFntOjYnConfDvo afyDvo = mapper.selectAutomaticFntOjYnConf(dvo); // 자동이체 대상 여부 확인
             if (afyDvo == null) {
@@ -78,43 +81,66 @@ public class WwdaAutoFntDsnWdrwMgtService {
             if (bilVo != null) {
                 dvo.setBilNo(bilVo.getBilNo());
                 dvo.setBilDtlSn(bilVo.getBilDtlSn());
-            } else { // 추후에 수정 TB_RVCL_BIL_FNT_AK_DTL 데이터 없음
-                dvo.setBilNo("20230131163");
-                dvo.setBilDtlSn(1);
             }
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
                     int checkCount = mapper.selectAcFntDsnWdrwBasByPk(dvo); // 기존 데이터가 삭제된 것인지 조회
                     if (checkCount > 0) {
-                        processCount += mapper.updateAcFntDsnWdrwBasByPk(dvo); // 삭제된 데이터 'N'으로 변경 후 처리
+                        processCount += mapper.updateAcFntDsnWdrwBasByPk(dvo); // 계좌이체지정출금기본 삭제된 데이터 'N'으로 변경 후 처리
+                        processCount += mapper.updateAutoFntDsnWdrwRelByPk(dvo); // 계좌이체지정출금관계 삭제된 데이터 'N'으로 변경 후 처리
                     } else {
                         int count = mapper.selectAcFntDsnWdrwBasCt(dvo); // 계좌 이체 지정 출금 기본 건수 조회
                         if (count > 0) {
                             throw new BizException(index + "번째 라인은 이미　등록된　고객입니다！");
                         }
                         processCount += mapper.insertAutoFntDsnWdrwCstBas(dvo); // 계좌이체지정출금기본 저장
-                    }
-                    processCount += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 저장
-                    if (dto.fntYn().equals("Y")) { // 신규이면서 이체구분이 'Y' 이면
-                        int bilCount = mapper.selectBilFntAkCt(dvo); // 청구이체요청상세 , 청구이체요청기본 데이터 존재 여부
-                        if (bilCount > 0) {
-                            processCount += mapper.insertAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 저장
+                        if (dto.fntYn().equals("Y")) { // 신규이면서 이체구분이 'Y' 이면
+                            int bilCount = mapper.selectBilFntAkCt(dvo); // 청구이체요청상세 , 청구이체요청기본 데이터 존재 여부
+                            if (bilCount > 0) {
+                                processCount += mapper.insertAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 저장
+                            }
                         }
                     }
+                    processCount += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 저장
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     processCount += mapper.updateAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 수정
-                    processCount += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
-                }
-                case CommConst.ROW_STATE_DELETED -> {
-                    processCount += mapper.deleteAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 삭제
-                    processCount += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제 
                     processCount += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
                 }
             }
 
         }
 
+        return processCount;
+    }
+
+    /**
+     * 
+     * @param req
+     * @return
+     */
+    @Transactional
+    public int deleteAutoFntDsnWdrwCst(
+        List<RemoveReq> req
+    ) {
+        int processCount = 0;
+
+        for (RemoveReq dto : req) {
+            int result = 0;
+            WwdaDesignationWithdrawalCustomerMgtDvo dvo = converter
+                .mapRemoveReqToWwdaDesignationWithdrawalCustomerMgtDvo(dto);
+            WwdaAutomaticFntOjYnConfDvo bilVo = mapper.selectBilFntAkDtl(dvo);// 청구이체요청상세 조회
+            if (bilVo != null) {
+                dvo.setBilNo(bilVo.getBilNo());
+                dvo.setBilDtlSn(bilVo.getBilDtlSn());
+            }
+            result += mapper.deleteAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 삭제
+            result += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제 
+            result += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
+            BizAssert.isTrue(result == 3, "MSG_ALT_SVE_ERR");
+            processCount += result;
+
+        }
         return processCount;
     }
 }

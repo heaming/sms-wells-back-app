@@ -5,16 +5,16 @@ import javax.validation.constraints.NotBlank;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-public class WwdaAutoFntDsnWdrwMgtDto {
+public class WwdaDesignationWithdrawalCustomerMgtDto {
 
-    @ApiModel("WwdaAutoFntDsnWdrwMgtDto-SearchAutoFntDsnWdrwCstReq")
+    @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-SearchAutoFntDsnWdrwCstReq")
     public record SearchAutoFntDsnWdrwCstReq(
         String cntrNo, // 계약번호
         Integer cntrSn, // 계약일련번호
         String sellTpCd // 판매유형코드
     ) {}
 
-    @ApiModel("WwdaAutoFntDsnWdrwMgtDto-SearchAutoFntDsnWdrwCstRes")
+    @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-SearchAutoFntDsnWdrwCstRes")
     public record SearchAutoFntDsnWdrwCstRes(
         String cntr, // 계약상세번호
         String cstKnm, // 고객성명
@@ -31,7 +31,7 @@ public class WwdaAutoFntDsnWdrwMgtDto {
     ) {}
 
     @Builder
-    @ApiModel("WwdaAutoFntDsnWdrwMgtDto-SaveReq")
+    @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rowState,
@@ -49,6 +49,15 @@ public class WwdaAutoFntDsnWdrwMgtDto {
         String dsnWdrwFntD, // 이체일
         @NotBlank
         String dsnWdrwFntPrdCd // 이체주기코드
+    ) {}
+
+    @Builder
+    @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
+        String cntrNo, // 계약번호
+        @NotBlank
+        Integer cntrSn // 계약일련번호
     ) {}
 
 }

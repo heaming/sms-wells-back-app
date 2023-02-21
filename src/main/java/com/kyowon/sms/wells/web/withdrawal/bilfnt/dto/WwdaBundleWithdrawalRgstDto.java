@@ -2,20 +2,20 @@ package com.kyowon.sms.wells.web.withdrawal.bilfnt.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WwdaAutoFntBndlWdrwRgstMgtDto {
+public class WwdaBundleWithdrawalRgstDto {
 
-    @ApiModel("WwdaAutoFntBndlWdrwRgstMgtDto-SearchReq")
+    @ApiModel("WwdaBundleWithdrawalRgstDto-SearchReq")
     public record SearchReq(
         String unrgRs, // 대상구분, 처리결과
         String fullCntr, // 계약상세번호
         String cntrNo, // 계약상세
-        Integer cntrSn, // 계약상세일련번호
+        String cntrSn, // 계약상세일련번호
         String cntrPdStrtdt, // 접수시작일
         String cntrPdEnddt // 접수종료일
 
     ) {}
 
-    @ApiModel("WwdaAutoFntBndlWdrwRgstMgtDto-SearchUnrgPsRes")
+    @ApiModel("WwdaBundleWithdrawalRgstDto-SearchUnrgPsRes")
     public record SearchUnrgPsRes(
         String cstKnm, // 고객명
         String pdNm, // 상품명
@@ -43,7 +43,7 @@ public class WwdaAutoFntBndlWdrwRgstMgtDto {
         String sdingBryyMmdd // 이체 인증번호
     ) {}
 
-    @ApiModel("WwdaAutoFntBndlWdrwRgstMgtDto-SearchRgstHistRes")
+    @ApiModel("WwdaBundleWithdrawalRgstDto-SearchRgstHistRes")
     public record SearchRgstHistRes(
         String itgBilPrtcDtm, //등록일시
         String fnlMdfcUsrId, //등록사번
@@ -51,7 +51,7 @@ public class WwdaAutoFntBndlWdrwRgstMgtDto {
         String errCn, //오류내용
         String cstKnm, //고객명
         String pdNm, //상품명
-        String cntrCnfmDtm, //접수일자
+        String cntrPdStrtdt, //접수일자
         String aftnItgUnrgRsonCd, //묶음출금 미등록
         String cntrSn, //기기주문번호
         String mpyMthdTpCd, //이체구분
