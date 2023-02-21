@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaMatAutoAplcCrdovrDvo {
+public class WsnaAutoMaterialReqDvo {
 
 }
