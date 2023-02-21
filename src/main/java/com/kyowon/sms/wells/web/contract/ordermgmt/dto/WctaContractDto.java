@@ -72,6 +72,19 @@ public class WctaContractDto {
         String vlStrtDtm
     ) {}
 
+    //wells 일시불 판매금 조회 - 일시불 판매금 조회 Search Request Dto
+    @ApiModel(value = "WctaContractDto-SearchSpaySlamtInqrReq")
+    public record SearchSpaySlamtInqrReq(
+        String pdGubn,
+        String vlDtm,
+        String pdCd,
+        String pdClsfId,
+        String vstCycl,
+        String useGubn,
+        String dscGubn,
+        String dscType
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -140,5 +153,17 @@ public class WctaContractDto {
         String vlStrtDtm,
         String vlEndDtm,
         String notyFwOjYn
+    ) {}
+
+    //wells 일시불 판매금 조회 - 일시불 판매금 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchSpaySlamtInqrRes")
+    public record SearchSpaySlamtInqrRes(
+        String fnlVal,
+        String vat,
+        String AckmtRt,
+        String AckmtAmt,
+        String ctrVal,
+        String sellFee,
+        String svFee
     ) {}
 }
