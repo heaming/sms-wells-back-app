@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbGiroOcrForwardingMgtConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchDateSeq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchReq;
@@ -17,6 +16,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDt
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingMgtDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingPrintDeleteDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingPrintDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingPrintSeqDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroOcrForwardingMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -120,10 +120,11 @@ public class WwdbGiroOcrForwardingMgtService {
         switch (dtos.state()) {
             case CommConst.ROW_STATE_CREATED -> {
                 //                int selectGiroOcrPk = mapper.selectGiroOcrPk();
-                SearchDateSeq selectGiroOcrForwardingPrintInfo = mapper.selectGiroOcrForwardingPrintInfo(dtos);
+                WwdbGiroOcrForwardingPrintSeqDvo selectGiroOcrForwardingPrintInfo = mapper
+                    .selectGiroOcrForwardingPrintInfo(dtos);
 
-                dvo.setGiroOcrPblSeqn(selectGiroOcrForwardingPrintInfo.giroOcrPblSeqn());
-                dvo.setGiroOcrPblDtm(selectGiroOcrForwardingPrintInfo.giroOcrPblDtm());
+                dvo.setGiroOcrPblSeqn(selectGiroOcrForwardingPrintInfo.getGiroOcrPblSeqn());
+                dvo.setGiroOcrPblDtm(selectGiroOcrForwardingPrintInfo.getGiroOcrPblDtm());
                 giroOcrForwardingDetailCount = mapper.insertGiroOcrForwardingDetailPrints(dvo);
                 if (giroOcrForwardingDetailCount == 0) {
                     BizAssert.isTrue(giroOcrForwardingDetailCount == 0, "생성할 자료가 없습니다. 작업일을 확인하세요.");

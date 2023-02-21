@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchDateSeq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchReq;
@@ -13,6 +12,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDt
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingMgtDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingPrintDeleteDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingPrintDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroOcrForwardingPrintSeqDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -52,7 +52,7 @@ public interface WwdbGiroOcrForwardingMgtMapper {
      */
 
     /* 지로OCR발송관리 출력 생성 날짜 및 시퀀스 조회 */
-    public SearchDateSeq selectGiroOcrForwardingPrintInfo(SavePrintReq dto);
+    public WwdbGiroOcrForwardingPrintSeqDvo selectGiroOcrForwardingPrintInfo(SavePrintReq dto);
 
     /* 지로OCR발송관리 출력 삭제 */
     public int deleteGiroOcrForwardingPrints(WwdbGiroOcrForwardingPrintDeleteDvo dvo) throws Exception;

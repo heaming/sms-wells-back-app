@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WwdbGiroDepositMgtDto {
@@ -26,10 +28,11 @@ public class WwdbGiroDepositMgtDto {
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveReq(
         String giroDpMtrDvCd, // --구분코드
-        String dpSn, // --일련번호
-        String rveDt, //--수납일자
+        String dpSn, // --일련번호      
+        @NotBlank
+        String rveDt, //--수납일자        
         String fntDt, //--이체일자
-        String giroDpBnkCd, //--은행코드
+        String giroDpBnkCd, //--은행코드        
         String bnkBrncCd, //--은행점포코드
         String giroIndxNo, //--지로색인번호
         String giroInqNo, //--지로조회번호
