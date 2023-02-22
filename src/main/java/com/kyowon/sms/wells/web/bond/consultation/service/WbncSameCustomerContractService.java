@@ -15,19 +15,19 @@ import lombok.RequiredArgsConstructor;
 public class WbncSameCustomerContractService {
     private final WbncSameCustomerContractMapper mapper;
 
-    public List<FindContractRes> getSameCustomerContracts(
+    public List<FindContractRes> getContracts(
         String cstNo, String safeKey, String clctamPrtnrNo
     ) {
-        return mapper.selectSameCustomerContracts(cstNo, safeKey, clctamPrtnrNo);
+        return mapper.selectContracts(cstNo, safeKey, clctamPrtnrNo);
     }
 
-    public List<FindDepositRes> getSameCstCntrDeposits(
+    public List<FindDepositRes> getContractDeposits(
         String bndCntrRefId
     ) {
-        return mapper.selectSameCstCntrDeposits(bndCntrRefId);
+        return mapper.selectContractDeposits(bndCntrRefId);
     }
 
-    public FindDepositDtlRes getSameCstCntrDeposit(String bndCntrRefId) {
-        return mapper.selectSameCstCntrDeposit(bndCntrRefId);
+    public FindDepositDtlRes getContractDeposit(String bndCntrRefId) {
+        return mapper.selectContractDeposit(bndCntrRefId);
     }
 }

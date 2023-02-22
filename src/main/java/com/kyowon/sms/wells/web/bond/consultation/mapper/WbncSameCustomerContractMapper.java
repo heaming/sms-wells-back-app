@@ -8,15 +8,15 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface WbncSameCustomerContractMapper {
-    List<FindContractRes> selectSameCustomerContracts(
+    List<FindContractRes> selectContracts(
         String cstNo, String safeKey, String clctamPrtnrNo
     );
 
-    List<FindDepositRes> selectSameCstCntrDeposits(
+    List<FindDepositRes> selectContractDeposits(
         String bndCntrRefId
     );
 
-    FindDepositDtlRes selectSameCstCntrDeposit(
+    FindDepositDtlRes selectContractDeposit(
         String bndCntrRefId
     );
 }

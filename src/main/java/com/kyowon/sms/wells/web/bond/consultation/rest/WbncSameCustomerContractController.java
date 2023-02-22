@@ -25,24 +25,24 @@ public class WbncSameCustomerContractController {
 
     @ApiOperation(value = "동일고객 계약내역 조회", notes = "동일고객 계약내역을 조회한다.")
     @GetMapping("/{cstNo}-{safeKey}-{clctamPrtnrNo}")
-    public List<FindContractRes> getSameCustomerContracts(@PathVariable
+    public List<FindContractRes> getContracts(@PathVariable
     String cstNo, @PathVariable
     String safeKey, @PathVariable
     String clctamPrtnrNo) {
-        return service.getSameCustomerContracts(cstNo, safeKey, clctamPrtnrNo);
+        return service.getContracts(cstNo, safeKey, clctamPrtnrNo);
     }
 
     @ApiOperation(value = "동일고객 계약 입금정보 조회", notes = "동일고객 계약번호에 대한 입금정보를 조회한다.")
     @GetMapping("/{bndCntrRefId}/deposits")
-    public List<FindDepositRes> getSameCstCntrDeposits(@PathVariable
+    public List<FindDepositRes> getContractDeposits(@PathVariable
     String bndCntrRefId) {
-        return service.getSameCstCntrDeposits(bndCntrRefId);
+        return service.getContractDeposits(bndCntrRefId);
     }
 
     @ApiOperation(value = "동일고객 계약 입금정보 상세조회", notes = "동일고객 계약번호에 대한 입금 상세정보를 조회한다.")
     @GetMapping("/{bndCntrRefId}/deposit")
-    public FindDepositDtlRes getSameCstCntrDeposit(@PathVariable
+    public FindDepositDtlRes getContractDeposit(@PathVariable
     String bndCntrRefId) {
-        return service.getSameCstCntrDeposit(bndCntrRefId);
+        return service.getContractDeposit(bndCntrRefId);
     }
 }
