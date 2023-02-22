@@ -27,54 +27,61 @@ public class WbnaBondPartTransferDto {
     ) {}
 
     /**
-     * 파트이관 집계 조회 결과
+     * 파트 이관(집계) 검색 결과
      * @param baseYm 기준년월
-     * @param bzHdqDvCd 사업부코드
-     * @param clctamDvCd 집금구분코드
-     * @param totCstCt 고객수
-     * @param totCntrCt 계정수
-     * @param woCstCt 고객수(전체)
-     * @param woCntrCt 계약수(전체)
-     * @param woObjAmt 대상금액(전체)
-     * @param woDlqAmt 연체금액(전체)
-     * @param woThmChramAmt 당월금액(전체)
-     * @param woDlqAddAmt 연체가산금액(전체)
-     * @param woRsgBorAmt 위약금액(전체)
-     * @param cocnCstCt 고객수(전집)
-     * @param cocnCntrCt 계약수(전집)
-     * @param cocnObjAmt 대상금액(전집)
-     * @param cocnDlqAmt 연체금액(전집)
-     * @param cocnThmChramAmt 당월금액(전집)
-     * @param cocnDlqAddAmt 연체가산금액(전집)
-     * @param cocnRsgBorAmt 위약금액(전집)
-     * @param hsmtrlCstCt 고객수(학습지)
-     * @param hsmtrlCntrCt 계약수(학습지)
-     * @param hsmtrlObjAmt 대상금액(학습지)
-     * @param hsmtrlDlqAmt 연체금액(학습지)
-     * @param hsmtrlThmChramAmt 당월금액(학습지)
-     * @param hsmtrlDlqAddAmt 연체가산금액(학습지)
-     * @param hsmtrlRsgBorAmt 위약금액(학습지)
-     * @param hsmtrlBorCstCt 고객수(학습지-위약)
-     * @param hsmtrlBorCntrCt 계약수(학습지-위약)
-     * @param hsmtrlBorObjAmt 대상금액(학습지-위약)
-     * @param hsmtrlBorDlqAmt 연체금액(학습지-위약)
-     * @param hsmtrlBorThmChramAmt 당월금액(학습지-위약)
-     * @param hsmtrlBorDlqAddAmt 연체가산금액(학습지-위약)
-     * @param hsmtrlBorRsgBorAmt 위약금액(학습지-위약)
-     * @param mchnRentalCstCt 고객수(기기렌탈)
-     * @param mchnRentalCntrCt 계약수(기기렌탈)
-     * @param mchnRentalObjAmt 대상금액(기기렌탈)
-     * @param mchnRentalDlqAmt 연체금액(기기렌탈)
-     * @param mchnRentalThmChramAmt 당월금액(기기렌탈)
-     * @param mchnRentalDlqAddAmt 연체가산금액(기기렌탈)
-     * @param mchnRentalRsgBorAmt 위약금액(기기렌탈)
-     * @param mchnRentalBorCstCt 고객수(기기렌탈-위약)
-     * @param mchnRentalBorCntrCt 계약수(기기렌탈-위약)
-     * @param mchnRentalBorObjAmt 대상금액(기기렌탈-위약)
-     * @param mchnRentalBorDlqAmt 연체금액(기기렌탈-위약)
-     * @param mchnRentalBorThmChramAmt 당월금액(기기렌탈-위약)
-     * @param mchnRentalBorDlqAddAmt 연체가산금액(기기렌탈-위약)
-     * @param mchnRentalBorRsgBorAmt 위약금액(기기렌탈-위약)
+     * @param bzHdqDvCd 사업본부코드
+     * @param clctamDvCd 직금구분코드
+     * @param totCstCt 전체 고객수
+     * @param totCntrCt 전체 계약수
+     * @param woCstCt 전체 고객수
+     * @param woCntrCt 전체 계약수
+     * @param woObjAmt 전체 대상금액
+     * @param woDlqAmt 전체 연체금액
+     * @param woThmChramAmt 전체 당월금액
+     * @param woDlqAddAmt 전체 연체가산금액
+     * @param woRsgBorAmt 전체 위약금액
+     * @param rentalCstCt 렌탈 고객수
+     * @param rentalCntrCt 렌탈 계약수
+     * @param rentalObjAmt 렌탈 대상금액
+     * @param rentalDlqAmt 렌탈 연체금액
+     * @param rentalThmChramAmt 렌탈 당월금액
+     * @param rentalDlqAddAmt 렌탈 연체가산금액
+     * @param rentalRsgBorAmt 렌탈 위약금액
+     * @param leaseCstCt 금융리스 고객수
+     * @param leaseCntrCt 금융리스 계약수
+     * @param leaseObjAmt 금융리스 대상금액
+     * @param leaseDlqAmt 금융리스 연체금액
+     * @param leaseThmChramAmt 금융리스 당월금액
+     * @param leaseDlqAddAmt 금융리스 연체가산금액
+     * @param leaseRsgBorAmt 금융리스 위약금액
+     * @param mshCstCt 일반맴버십 고객수
+     * @param mshCntrCt 일반맴버십 계약수
+     * @param mshObjAmt 일반맴버십 대상금액
+     * @param mshDlqAmt 일반맴버십 연체금액
+     * @param mshThmChramAmt 일반맴버십 당월금액
+     * @param mshDlqAddAmt 일반맴버십 연체가산금액
+     * @param mshRsgBorAmt 일반맴버십 위약금액
+     * @param rglrSppCstCt 정기배송 고객수
+     * @param rglrSppCntrCt 정기배송 계약수
+     * @param rglrSppObjAmt 정기배송 대상금액
+     * @param rglrSppDlqAmt 정기배송 연체금액
+     * @param rglrSppThmChramAmt 정기배송 당월금액
+     * @param rglrSppDlqAddAmt 정기배송 연체가산금액
+     * @param rglrSppRsgBorAmt 정기배송 위약금액
+     * @param hcrCstCt 홈케어맴버십 고객수
+     * @param hcrCntrCt 홈케어맴버십 계약수
+     * @param hcrObjAmt 홈케어맴버십 대상금액
+     * @param hcrDlqAmt 홈케어맴버십 연체금액
+     * @param hcrThmChramAmt 홈케어맴버십 당월금액
+     * @param hcrDlqAddAmt 홈케어맴버십 연체가산금액
+     * @param hcrRsgBorAmt 홈케어맴버십 위약금액
+     * @param spayCstCt 일시불 고객수
+     * @param spayCntrCt 일시불 계약수
+     * @param spayObjAmt 일시불 대상금액
+     * @param spayDlqAmt 일시불 연체금액
+     * @param spayThmChramAmt 일시불 당월금액
+     * @param spayDlqAddAmt 일시불 연체가산금액
+     * @param spayRsgBorAmt 일시불 위약금액
      */
     @ApiModel("WbnaBondPartTransferDto-SearchRes")
     public record SearchRes(
@@ -90,41 +97,48 @@ public class WbnaBondPartTransferDto {
         String woThmChramAmt,
         String woDlqAddAmt,
         String woRsgBorAmt,
-        String cocnCstCt,
-        String cocnCntrCt,
-        String cocnObjAmt,
-        String cocnDlqAmt,
-        String cocnThmChramAmt,
-        String cocnDlqAddAmt,
-        String cocnRsgBorAmt,
-        String hsmtrlCstCt,
-        String hsmtrlCntrCt,
-        String hsmtrlObjAmt,
-        String hsmtrlDlqAmt,
-        String hsmtrlThmChramAmt,
-        String hsmtrlDlqAddAmt,
-        String hsmtrlRsgBorAmt,
-        String hsmtrlBorCstCt,
-        String hsmtrlBorCntrCt,
-        String hsmtrlBorObjAmt,
-        String hsmtrlBorDlqAmt,
-        String hsmtrlBorThmChramAmt,
-        String hsmtrlBorDlqAddAmt,
-        String hsmtrlBorRsgBorAmt,
-        String mchnRentalCstCt,
-        String mchnRentalCntrCt,
-        String mchnRentalObjAmt,
-        String mchnRentalDlqAmt,
-        String mchnRentalThmChramAmt,
-        String mchnRentalDlqAddAmt,
-        String mchnRentalRsgBorAmt,
-        String mchnRentalBorCstCt,
-        String mchnRentalBorCntrCt,
-        String mchnRentalBorObjAmt,
-        String mchnRentalBorDlqAmt,
-        String mchnRentalBorThmChramAmt,
-        String mchnRentalBorDlqAddAmt,
-        String mchnRentalBorRsgBorAmt
+        String rentalCstCt,
+        String rentalCntrCt,
+        String rentalObjAmt,
+        String rentalDlqAmt,
+        String rentalThmChramAmt,
+        String rentalDlqAddAmt,
+        String rentalRsgBorAmt,
+        String leaseCstCt,
+        String leaseCntrCt,
+        String leaseObjAmt,
+        String leaseDlqAmt,
+        String leaseThmChramAmt,
+        String leaseDlqAddAmt,
+        String leaseRsgBorAmt,
+        String mshCstCt,
+        String mshCntrCt,
+        String mshObjAmt,
+        String mshDlqAmt,
+        String mshThmChramAmt,
+        String mshDlqAddAmt,
+        String mshRsgBorAmt,
+        String rglrSppCstCt,
+        String rglrSppCntrCt,
+        String rglrSppObjAmt,
+        String rglrSppDlqAmt,
+        String rglrSppThmChramAmt,
+        String rglrSppDlqAddAmt,
+        String rglrSppRsgBorAmt,
+        String hcrCstCt,
+        String hcrCntrCt,
+        String hcrObjAmt,
+        String hcrDlqAmt,
+        String hcrThmChramAmt,
+        String hcrDlqAddAmt,
+        String hcrRsgBorAmt,
+        String spayCstCt,
+        String spayCntrCt,
+        String spayObjAmt,
+        String spayDlqAmt,
+        String spayThmChramAmt,
+        String spayDlqAddAmt,
+        String spayRsgBorAmt
     ) {}
 
     /**

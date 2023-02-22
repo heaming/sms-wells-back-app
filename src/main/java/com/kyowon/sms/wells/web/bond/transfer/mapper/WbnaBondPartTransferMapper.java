@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.bond.transfer.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.bond.transfer.dvo.WbnaBondPartTransferDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaBondPartTransferDto.SearchDetailReq;
@@ -41,4 +42,15 @@ public interface WbnaBondPartTransferMapper {
     Integer selectHasPartTransferDetail(
         SearchDetailReq dto
     );
+
+    int insertPartTransfers(WbnaBondPartTransferDvo dvo);
+
+    int insertPartTransferItemization(WbnaBondPartTransferDvo dvo);
+
+    int insertBondContractHistories(WbnaBondPartTransferDvo dvo);
+
+    int updateBondContractBase(WbnaBondPartTransferDvo dvo);
+
+    int updateBondAssignItemization(WbnaBondPartTransferDvo dvo);
+
 }
