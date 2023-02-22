@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(CtFeeConst.REST_URL_V1 + "/og-netorders")
+@RequestMapping(CtFeeConst.REST_URL_V1 + "/organiztion-netorders")
 @Api(tags = "[WFEA] 조직별 실적 집계")
 @RequiredArgsConstructor
 @Validated
