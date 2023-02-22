@@ -37,9 +37,9 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int createBusinessVehicle(CreateReq dto) {
-        int vehicleDupYn = mapper.selectVehicleDupYn(dto.vhcMngtPrtnrNo());
+        String vehicleDupYn = mapper.selectVehicleDupYn(dto.vhcMngtPrtnrNo(), dto.vhcMngtNo());
 
-        if (vehicleDupYn > 0) {
+        if (vehicleDupYn != null) {
             throw new BizException("MSG_ALT_SMD_PSIC_VHC_DSB");
         }
 
