@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.closing.expense.mapper.WwdcdMarketableSecuritiesMgtMapper">
+
+    <select id="selectOperatingCostAmount" resultType="com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtDto">
+        SELECT SUM(COALESCE(BEF_LIMIT_AMT,0)) AS BEF_LIMIT_AMT
+             , SUM(COALESCE(BEF_USE_AMT,0)) AS BEF_USE_AMT
+             , SUM(COALESCE(BEF_JAN_AMT,0)) AS BEF_JAN_AMT
+             , SUM(COALESCE(BEF_LIMIT_AMT,0)) - SUM(COALESCE(BEF_JAN_AMT,0)) AS ADD_AMT
+             , SUM(COALESCE(CARD_LIM_AMT,0)) AS CARD_LIM_AMT
+             , SUM(COALESCE(CARD_USE_AMT,0)) AS CARD_USE_AMT
+             , SUM(COALESCE(MSCR_USE_AMT,0)) AS MSCR_USE_AMT
+             , SUM(COALESCE(CARD_RES_AMT,0)) AS CARD_RES_AMT
+          FROM ( SELECT CASE WHEN SUBSTR('${baseYM}',5,2) != '01'
+                        THEN (SELECT CARD_LIM_AMT
+                                FROM WSMDBS.TB_CBCL_OPCS_ADJ_CARD_IZ AA
+                               WHERE AA.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM || '01','YYYYMMDD'),-1),'YYYYMM')
+                                 AND AA.CRCDNO_ENCR = A.CRCDNO_ENCR AND AA.USE_YN='Y')
+                              ELSE 0
+                        END AS BEF_LIMIT_AMT
+                      , CASE WHEN SUBSTR('${baseYM}',5,2) != '01'
+                        THEN (SELECT CARD_USE_AMT
+                                FROM WSMDBS.TB_CBCL_OPCS_ADJ_CARD_IZ AA
+                               WHERE AA.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM || '01','YYYYMMDD'),-1),'YYYYMM')
+                                 AND AA.CRCDNO_ENCR = A.CRCDNO_ENCR AND AA.USE_YN='Y')
+                              ELSE 0
+                        END AS BEF_USE_AMT
+                     , CASE WHEN SUBSTR('${baseYM}',5,2) != '01'
+                       THEN (SELECT CARD_RES_AMT
+                               FROM WSMDBS.TB_CBCL_OPCS_ADJ_CARD_IZ AA
+                              WHERE AA.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM || '01','YYYYMMDD'),-1),'YYYYMM')
+                                AND AA.CRCDNO_ENCR = A.CRCDNO_ENCR AND AA.USE_YN='Y')
+                             ELSE 0
+                        END AS BEF_JAN_AMT
+                     , A.CARD_LIM_AMT AS CARD_LIM_AMT
+                     , A.CARD_USE_AMT AS CARD_USE_AMT
+                     , A.MSCR_USE_AMT AS MSCR_USE_AMT
+                     , A.CARD_RES_AMT AS CARD_RES_AMT
+                  FROM WSMDBS.TB_CBCL_OPCS_ADJ_CARD_IZ A
+                 WHERE A.BASE_YM = '${useYearMonth}'
+                   AND A.USE_YN = 'Y'
+                 /*AND A.ENTRP_DV_CD = '${entrpDvCd}' 사업자 구분 코드*/
+                   AND A.ADJ_USR_ID != 0
+            )
+        <if test="pstnDvCd != null and pstnDvCd != '' and pstnDvCd != 0 ">
+            AND A.PSTN_DV_CD = '${pstnDvCd}'
+        </if>
+        <if test=" pstnDvCd != null and pstnDvCd != '' and pstnDvCd == 0 ">
+            AND A.PSTN_DV_CD != '91' /* 육성팀장 제외 영업부 전체 */
+        </if>
+        <if test=" adjOgId != null and adjOgId != '' ">
+            AND SUBSTR(A.ADJ_OG_ID, 1,1) = '${adjOgId}'
+        </if>
+        )
+    </select>
+
+    <select id="selectOperatingCostSummary" resultType="com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtDto">
+        SELECT '' AS COL1
+               '' AS COL2
+               '다운로드' AS COD3
+               '등록' AS COD4
+          FROM DUAL
+    </select>
+</mapper>
