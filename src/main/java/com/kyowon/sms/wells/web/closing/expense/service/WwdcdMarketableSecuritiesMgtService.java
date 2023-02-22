@@ -1,6 +1,6 @@
-package com.kyowon.sms.wells.closing.expense.service;
+package com.kyowon.sms.wells.web.closing.expense.service;
 
-import com.kyowon.sms.wells.closing.expense.mapper.WwdcdOperatingCostMgtMapper;
+import com.kyowon.sms.wells.web.closing.expense.mapper.WwdcdOperatingCostMgtMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

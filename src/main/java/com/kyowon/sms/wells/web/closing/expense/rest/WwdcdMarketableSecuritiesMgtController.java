@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.closing.expense.rest;
+package com.kyowon.sms.wells.web.closing.expense.rest;
 
 import com.kyowon.sms.wells.closing.expense.service.WwdcdMarketableSecuritiesMgtService;
 import io.swagger.annotations.Api;

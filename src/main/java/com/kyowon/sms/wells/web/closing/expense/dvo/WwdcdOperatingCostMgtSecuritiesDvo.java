@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.closing.expense.dvo;
+package com.kyowon.sms.wells.web.closing.expense.dvo;
 
 public class WwdcdOperatingCostMgtSecuritiesDvo {
 }

@@ -1,8 +1,8 @@
-package com.kyowon.sms.wells.closing.expense.service;
+package com.kyowon.sms.wells.web.closing.expense.service;
 
-import com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtSecuritiesDto.SearchReq;
-import com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtSecuritiesDto.SearchRes;
-import com.kyowon.sms.wells.closing.expense.mapper.WwdcdOperatingCostMgtSecuritiesMapper;
+import com.kyowon.sms.wells.web.closing.expense.dto.WwdcdOperatingCostMgtSecuritiesDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.expense.dto.WwdcdOperatingCostMgtSecuritiesDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.expense.mapper.WwdcdOperatingCostMgtSecuritiesMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
-package com.kyowon.sms.wells.closing.expense.rest;
+package com.kyowon.sms.wells.web.closing.expense.rest;
 
-import com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtDto.*;
-import com.kyowon.sms.wells.closing.expense.service.WwdcdOperatingCostMgtService;
+import com.kyowon.sms.wells.web.closing.expense.dto.WwdcdOperatingCostMgtDto.*;
+import com.kyowon.sms.wells.web.closing.expense.service.WwdcdOperatingCostMgtService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;

@@ -1,9 +1,9 @@
-package com.kyowon.sms.wells.closing.expense.dto;
-
-import javax.validation.constraints.NotBlank;
+package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+
+import javax.validation.constraints.NotBlank;
 
 public class WwdcdOperatingCostMgtSecuritiesDto {
 
@@ -17,7 +17,8 @@ public class WwdcdOperatingCostMgtSecuritiesDto {
         @NotBlank
         String useYearMonth,
         String registration
-    ) {}
+    ) {
+    }
 
     @Builder
     @ApiModel(value = "WwdcdOperatingCostMgtMscrDto-SearchRes")
@@ -25,7 +26,8 @@ public class WwdcdOperatingCostMgtSecuritiesDto {
         @NotBlank
         String useYearMonth,
         String registration
-    ) {}
+    ) {
+    }
 
     @Builder
     @ApiModel(value = "WwdcdOperatingCostMgtMscrDto-SaveReq")
@@ -33,7 +35,8 @@ public class WwdcdOperatingCostMgtSecuritiesDto {
         @NotBlank
         String useYearMonth,
         String registration
-    ) {}
+    ) {
+    }
 
     // *********************************************************
     // Request Dto

@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.closing.expense.service;
+package com.kyowon.sms.wells.web.closing.expense.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

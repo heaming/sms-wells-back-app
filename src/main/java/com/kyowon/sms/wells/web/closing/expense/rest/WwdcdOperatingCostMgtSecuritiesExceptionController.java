@@ -1,6 +1,6 @@
-package com.kyowon.sms.wells.closing.expense.rest;
+package com.kyowon.sms.wells.web.closing.expense.rest;
 
-import com.kyowon.sms.wells.closing.expense.service.WwdcdOperatingCostMgtSecuritiesExceptionService;
+import com.kyowon.sms.wells.web.closing.expense.service.WwdcdOperatingCostMgtSecuritiesExceptionService;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

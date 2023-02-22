@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.closing.expense.dto;
+package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;

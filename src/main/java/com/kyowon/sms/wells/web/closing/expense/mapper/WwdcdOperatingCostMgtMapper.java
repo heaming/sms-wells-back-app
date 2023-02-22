@@ -1,8 +1,8 @@
-package com.kyowon.sms.wells.closing.expense.mapper;
+package com.kyowon.sms.wells.web.closing.expense.mapper;
 
-import com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtDto;
-import com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtDto.SearchReq;
-import com.kyowon.sms.wells.closing.expense.dto.WwdcdOperatingCostMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WwdcdOperatingCostMgtDto;
+import com.kyowon.sms.wells.web.closing.expense.dto.WwdcdOperatingCostMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.expense.dto.WwdcdOperatingCostMgtDto.SearchRes;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
@@ -15,5 +15,5 @@ public interface WwdcdOperatingCostMgtMapper {
     void insertWithholdingTaxCfdc(WwdcdOperatingCostMgtDto.FileReq req);
 
     WwdcdOperatingCostMgtDto.SaveRes selectWithholdingTaxCfdc(WwdcdOperatingCostMgtDto.SaveReq req);
-    
+
 }
