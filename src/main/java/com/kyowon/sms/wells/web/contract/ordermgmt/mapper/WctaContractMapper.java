@@ -18,6 +18,12 @@ public interface WctaContractMapper {
         PageInfo pageInfo
     );
 
+    List<SearchHomecareContractsRes> selectHomecareContracts(List<SearchHomecareContractsReq> dtos);
+
+    int updateHomecareContractsDuedt(SaveHomecareContractsReq dto);
+
+    int updateHomecareContractsCandt(SaveHomecareContractsReq dto);
+
     List<SearchRes> selectApprovalAskDivides(String standardDt);
 
     List<SearchConfirmAprPsicAksRes> selectConfirmAprPsicAks(String cntrNo);
@@ -41,5 +47,4 @@ public interface WctaContractMapper {
     int updateConfirmApprovalBases(WctaCntrAprBaseBasDvo dvo);
 
     int deleteConfirmApprovalBases(WctaCntrAprBaseBasDvo dvo);
-
 }

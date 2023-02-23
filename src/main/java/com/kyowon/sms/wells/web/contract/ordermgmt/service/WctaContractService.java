@@ -8,10 +8,15 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
+import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -26,11 +31,47 @@ public class WctaContractService {
 
     private final WctaContractMapper mapper;
     private final WctaContractConverter converter;
+    private final WctzHistoryService historyService;
 
     public PagingResult<SearchCntrNoRes> getContractNumberInqrPages(
         SearchCntrNoReq dto, PageInfo pageInfo
     ) {
         return mapper.selectContractNumberInqrPages(dto, pageInfo);
+    }
+
+    public List<SearchHomecareContractsRes> getHomecareContracts(List<SearchHomecareContractsReq> dtos) {
+        return mapper.selectHomecareContracts(dtos);
+    }
+
+    @Transactional
+    public int saveHomecareContracts(List<SaveHomecareContractsReq> dtos) {
+        int processCount = 0;
+        Iterator<SaveHomecareContractsReq> iterator = dtos.iterator();
+        while (iterator.hasNext()) {
+            SaveHomecareContractsReq dto = iterator.next();
+            String histStrtDtm = DateUtil.getNowDayString() + "000000";
+            if (StringUtil.isNotEmpty(dto.duedt())) {
+                mapper.updateHomecareContractsDuedt(dto);
+            }
+            if (StringUtil.isNotEmpty(dto.candt())) {
+                mapper.updateHomecareContractsCandt(dto);
+                historyService.createContractDetailStatChangeHistory(
+                    WctzCntrDtlStatChangeHistDvo.builder()
+                        .cntrNo(dto.cntrNo())
+                        .cntrSn(dto.cntrSn())
+                        .histStrtDtm(histStrtDtm)
+                        .build()
+                );
+            }
+            historyService.createContractDetailChangeHistory(
+                WctzCntrDetailChangeHistDvo.builder()
+                    .cntrNo(dto.cntrNo())
+                    .cntrSn(dto.cntrSn())
+                    .histStrtDtm(histStrtDtm)
+                    .build()
+            );
+        }
+        return processCount;
     }
 
     public List<SearchRes> getApprovalAskDivides(String standardDt) {

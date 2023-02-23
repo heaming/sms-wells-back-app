@@ -14,7 +14,7 @@ public class WctaContractDto {
     // *********************************************************
     // 계약번호 Search Request Dto
     @Builder
-    @ApiModel("EctaContractDto-SearchCntrNoReq")
+    @ApiModel("WctaContractDto-SearchCntrNoReq")
     public record SearchCntrNoReq(
         String cntrCstKnm,
         String lrnnCstKnm,
@@ -27,6 +27,26 @@ public class WctaContractDto {
             mexnoEncr = DbEncUtil.enc(mexnoEncr);
         }
     }
+
+    // 홈케어 계약 Search Request Dto
+    @ApiModel("WctaContractDto-SearchHomecareContractsReq")
+    public record SearchHomecareContractsReq(
+        @NotBlank
+        String cntrNo,
+        int cntrSn
+    ) {}
+
+    // 홈케어 계약 Save Request Dto
+    @ApiModel("WctaContractDto-SaveHomecareContractsReq")
+    public record SaveHomecareContractsReq(
+        @NotBlank
+        String cntrNo,
+        int cntrSn,
+        @ValidDate
+        String candt,
+        @ValidDate
+        String duedt
+    ) {}
 
     // 고위험 파트너 Remove Request Dto
     @ApiModel("WctaContractDto-RemoveReq")
@@ -94,7 +114,7 @@ public class WctaContractDto {
     // Result Dto
     // *********************************************************
     // 계약번호 Search Result Dto
-    @ApiModel("EctaContractDto-SearchCntrNoRes")
+    @ApiModel("WctaContractDto-SearchCntrNoRes")
     public record SearchCntrNoRes(
         String cntrCnfmDtm,
         String cntrNo,
@@ -102,6 +122,17 @@ public class WctaContractDto {
         String cntrCstKnm,
         String lrnnCstKnm,
         String pdNm
+    ) {}
+
+    // 홈케어 계약 Search Result Dto
+    @ApiModel("WctaContractDto-SearchHomecareContractsRes")
+    public record SearchHomecareContractsRes(
+        String cntrNo,
+        int cntrSn,
+        String rcgvpKnm,
+        String pdCd,
+        String pdNm,
+        String cntrCnfmDtm
     ) {}
 
     // 고위험 파트너 Search Result Dto
