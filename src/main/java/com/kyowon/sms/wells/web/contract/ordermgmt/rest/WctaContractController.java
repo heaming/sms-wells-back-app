@@ -50,6 +50,43 @@ public class WctaContractController {
         return service.getContractNumberInqrPages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "계약서 메일 발송", notes = "계약번호를 받아 수신인에게 메일로 발송한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNos", value = "계약번호", paramType = "query", required = true, allowMultiple = true),
+    })
+    @PostMapping("/send-emails")
+    public String sendContractEmail(
+        @RequestBody
+        @Valid
+        SaveSendEmailsReq dto
+    ) throws Exception {
+        return service.sendContractEmail(dto);
+    }
+
+    @ApiOperation(value = "홈케어 계약 조회", notes = "취소일자, 예정일자 수정 대상 홈케어 계약을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNos", value = "계약번호", paramType = "query", required = true, allowMultiple = true),
+    })
+    @PostMapping("/homecares")
+    public List<SearchHomecareContractsRes> getHomecareContracts(
+        @RequestBody
+        @Valid
+        List<SearchHomecareContractsReq> dtos
+    ) {
+        return service.getHomecareContracts(dtos);
+    }
+
+    @ApiOperation(value = "홈케어 계약 저장", notes = "취소일자, 예정일자를 대상 홈케어 계약에 반영한다.")
+    @PutMapping("/homecares")
+    public SaveResponse saveHomecareContracts(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<SaveHomecareContractsReq> dtos
+    ) {
+        return SaveResponse.builder().processCount(service.saveHomecareContracts(dtos)).build();
+    }
+
     @ApiOperation(value = "확정승인기준 리스트 - 승인 요청 구분 조회", notes = "기준일자로 유효시작, 종료일시 에 존재하며, 데이터삭제여부가 Y가 아닌확정승인기준 조회를 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "standardDt", value = "기준일자", paramType = "query"),
