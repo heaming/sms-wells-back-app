@@ -22,7 +22,7 @@ public class WsndBusinessVehiclesMgtDto {
         String ogTpCd,
         String prtnrNo,
         String prtnrKnm,
-        String rol,
+        String rolDvCd,
         String cntrDt,
         String carno,
         String vhcMngtTpCd,

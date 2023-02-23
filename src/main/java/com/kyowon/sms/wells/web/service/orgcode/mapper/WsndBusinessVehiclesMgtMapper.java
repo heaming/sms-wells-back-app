@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.orgcode.mapper;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -25,5 +26,5 @@ public interface WsndBusinessVehiclesMgtMapper {
 
     List<SearchVehiclesRes> selectAllVehicles();
 
-    String selectVehicleDupYn(String vhcMngtPrtnrNo, String vhcMngtNo);
+    String selectVehicleDupYn(Map<String, Object> validateReq);
 }
