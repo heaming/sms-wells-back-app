@@ -96,6 +96,14 @@ public class WwdbBillingDocumentMgtService {
         int processCount = 0;
 
         WwdbBillingDocumentDvo dvo = convert.mapSaveWwwdbBillingDocumentDvo(dto.saveMainReq());
+
+        log.info("==============ser===============");
+        log.info(dto.saveMainReq().bildcPblNo());
+        log.info(dto.saveMainReq().bildcPblSn());
+        log.info(dvo.getBildcPblSn());
+        log.info(dvo.getBildcPblNo());
+        log.info("=============================");
+
         switch (dto.saveMainReq().state()) {
             case CommConst.ROW_STATE_CREATED -> {
                 String pk = mapper.selectBillingDocumentPk();
@@ -117,6 +125,7 @@ public class WwdbBillingDocumentMgtService {
         for (SaveDtlsReq dtlDto : dto.saveDtlsReq()) {
             WwdbBillingDocumentDetailDvo dtlDvo = convert.mapSaveWwwdbBillingDocumentDetailDvo(dtlDto);
             dtlDvo.setBildcPblNo(dvo.getBildcPblNo());
+            dtlDvo.setBildcPblSn(dvo.getBildcPblSn());
             switch (dtlDto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
                     processCount += mapper.insertBillingDocumentDtails(dtlDvo);

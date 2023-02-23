@@ -37,6 +37,9 @@ public class WwdbGiroDepositMgtController {
     @ApiOperation(value = "지로 입금관리", notes = " 검색조건을 받아 청구서 관리 목록을 조회한다.")
     @GetMapping("/paging")
     public PagingResult<SearchRes> getBillingDocumentMgtPages(SearchReq dto, PageInfo pageInfo) {
+        log.info("=============");
+        log.info(dto.toString());
+        log.info("=============");
         return service.getBillingDocumentMgtPages(dto, pageInfo);
     }
 
@@ -68,8 +71,8 @@ public class WwdbGiroDepositMgtController {
 
     @ApiOperation(value = "지로 입금관리 에러 조회", notes = " 검색조건을 받아 지로 입금관리 에러를 조회한다.")
     @GetMapping("/errors")
-    public PagingResult<SearchErrosRes> getBillingDocumentErrorsPages(PageInfo pageInfo) {
-        return service.getBillingDocumentErrorsPages(pageInfo);
+    public PagingResult<SearchErrosRes> getBillingDocumentErrorsPages(SearchReq dto, PageInfo pageInfo) {
+        return service.getBillingDocumentErrorsPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "지로 입금관리 에러 조회", notes = " 검색조건을 받아 지로 입금관리 에러를 조회한다.")

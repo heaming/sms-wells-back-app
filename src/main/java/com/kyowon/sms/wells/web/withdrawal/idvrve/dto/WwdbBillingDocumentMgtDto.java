@@ -45,6 +45,7 @@ public class WwdbBillingDocumentMgtDto {
     public record SaveMainReq(
         String state,
         String bildcPblNo,
+        String bildcPblSn,
         String sellPrtnrNo,
         String sellPrtnrNm,
         String cstFnm,
