@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaRentalAccountMgtMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,13 +16,27 @@ import lombok.RequiredArgsConstructor;
 public class WctaRentalAccountMgtService {
     private final WctaRentalAccountMgtMapper mapper;
 
-    public List<WctaRentalAccountMgtDto.SearchBpdRentalAccountRes> getBpdRentalAccount(
+    public PagingResult<WctaRentalAccountMgtDto.SearchBpdRentalAccountRes> getBpdRentalAccount(
+        WctaRentalAccountMgtDto.SearchBpdRentalAccountReq dto,
+        PageInfo pageInfo
+    ) {
+        return mapper.selectBpdRentalAccount(dto, pageInfo);
+    }
+
+    public List<WctaRentalAccountMgtDto.SearchBpdRentalAccountRes> getBpdRentalAccountExcelDownload(
         WctaRentalAccountMgtDto.SearchBpdRentalAccountReq dto
     ) {
         return mapper.selectBpdRentalAccount(dto);
     }
 
-    public List<WctaRentalAccountMgtDto.SearchByoRentalAccountRes> getByoRentalAccount(
+    public PagingResult<WctaRentalAccountMgtDto.SearchByoRentalAccountRes> getByoRentalAccount(
+        WctaRentalAccountMgtDto.SearchByoRentalAccountReq dto,
+        PageInfo pageInfo
+    ) {
+        return mapper.selectByoRentalAccount(dto, pageInfo);
+    }
+
+    public List<WctaRentalAccountMgtDto.SearchByoRentalAccountRes> getByoRentalAccountExcelDownload(
         WctaRentalAccountMgtDto.SearchByoRentalAccountReq dto
     ) {
         return mapper.selectByoRentalAccount(dto);

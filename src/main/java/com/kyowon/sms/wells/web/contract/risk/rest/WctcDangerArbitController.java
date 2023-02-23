@@ -13,6 +13,8 @@ import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.service.WctcDangerArbitService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -42,11 +44,33 @@ public class WctcDangerArbitController {
         @ApiImplicitParam(name = "dangOjPrtnrNo", value = "사번", paramType = "query"),
     })
     @GetMapping("/managerial-tasks")
-    public List<SearchRes> getDangerArbitManagerial(
+    public PagingResult<SearchRes> getDangerArbitManagerial(
+        @Valid
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getDangerArbitManagerial(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "비정도영업 조치사항 관리 조회", notes = "조회조건에 따른 비정도영업 조치사항 관리 목록을 조회 후 엑셀 다운로드한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "dangOcStrtdt", value = "조회시작날짜", paramType = "query", example = "20220101"),
+        @ApiImplicitParam(name = "dangOcEnddt", value = "조회마지막날짜", paramType = "query", example = "20221231"),
+        @ApiImplicitParam(name = "dangOcStrtMonth", value = "조회시작월", paramType = "query"),
+        @ApiImplicitParam(name = "dangOcEndMonth", value = "조회마지막월", paramType = "query"),
+        @ApiImplicitParam(name = "gnrdv", value = "총괄단", paramType = "query"),
+        @ApiImplicitParam(name = "rgrp", value = "지역단", paramType = "query"),
+        @ApiImplicitParam(name = "brch", value = "지점", paramType = "query"),
+        @ApiImplicitParam(name = "dangOjPrtnrNo", value = "사번", paramType = "query"),
+    })
+    @GetMapping("/managerial-tasks/excel-download")
+    public List<SearchRes> getDangerArbitManagerialExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getDangerArbitManagerial(dto);
+        return service.getDangerArbitManagerialExcelDownload(dto);
     }
 
     @ApiOperation(value = "비정도 영업 조치 사항 관리 삭제", notes = "비정도 영업 조치 사항 관리 삭제")
