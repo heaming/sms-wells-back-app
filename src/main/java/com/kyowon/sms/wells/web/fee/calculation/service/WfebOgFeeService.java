@@ -57,6 +57,26 @@ public class WfebOgFeeService {
     }
 
     /**
+     * WELLS M조직 수수료 생성관리 지점장 목록 조회
+     * @param 'SearchMngerReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchMngerBrmgrRes> getManagerBranchManagerFees(SearchMngerReq dto) {
+        return this.mapper.selectManagerBranchManagerFees(dto);
+    }
+
+    /**
+     * WELLS M조직 수수료 생성관리 전체 목록 조회
+     * @param 'SearchMngerReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchMngerTotalRes> getManagerTotalFees(SearchMngerReq dto) {
+        return this.mapper.selectManagerTotalFees(dto);
+    }
+
+    /**
      * WELLS P조직 수수료 생성관리 목록 조회
      * @param 'SearchPlarReq' 검색조건 정보
      * @return 조회된 데이터
@@ -64,6 +84,26 @@ public class WfebOgFeeService {
 
     public List<SearchPlarRes> getPlannerFees(SearchPlarReq dto) {
         return this.mapper.selectPlannerFees(dto);
+    }
+
+    /**
+     * WELLS P조직 수수료 생성관리 지점장 목록 조회
+     * @param 'SearchPlarReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchPlarBrmgrRes> getPlannerBranchManagerFees(SearchPlarReq dto) {
+        return this.mapper.selectPlannerBranchManagerFees(dto);
+    }
+
+    /**
+     * WELLS P조직 수수료 생성관리 전체 목록 조회
+     * @param 'SearchPlarReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchPlarTotalRes> getPlannerTotalFees(SearchPlarReq dto) {
+        return this.mapper.selectPlannerTotalFees(dto);
     }
 
 }
