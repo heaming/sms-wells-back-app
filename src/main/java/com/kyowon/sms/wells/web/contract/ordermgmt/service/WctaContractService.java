@@ -4,10 +4,13 @@ import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sflex.common.message.dvo.EmailSendReqDvo;
+import com.kyowon.sflex.common.message.service.EmailService;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
@@ -15,6 +18,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConvert
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
+import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.constant.CommConst;
@@ -32,11 +36,33 @@ public class WctaContractService {
     private final WctaContractMapper mapper;
     private final WctaContractConverter converter;
     private final WctzHistoryService historyService;
+    private final TemplateService templateService;
+    private final EmailService emailService;
 
     public PagingResult<SearchCntrNoRes> getContractNumberInqrPages(
         SearchCntrNoReq dto, PageInfo pageInfo
     ) {
         return mapper.selectContractNumberInqrPages(dto, pageInfo);
+    }
+
+    public String sendContractEmail(SaveSendEmailsReq dto) throws Exception {
+        String templateId = "TMP_CTA_WELLS_ELCN_GUD";
+        String pdfUrl = ""; // TODO 계약서 pdf 생성 로직 추가
+
+        return emailService.sendEmail(
+            EmailSendReqDvo.builder()
+                .title(templateService.getTemplateByTemplateId(templateId).getSendTemplateTitle())
+                .content(
+                    templateService.getTemplateContent(
+                        templateId, Map.of(
+                            "cnrtNm", dto.cntrNm(),
+                            "pdfUrl", pdfUrl
+                        )
+                    )
+                )
+                .receiveUsers(List.of(EmailSendReqDvo.ReceiveUser.fromEmail(dto.emadr())))
+                .build()
+        );
     }
 
     public List<SearchHomecareContractsRes> getHomecareContracts(List<SearchHomecareContractsReq> dtos) {

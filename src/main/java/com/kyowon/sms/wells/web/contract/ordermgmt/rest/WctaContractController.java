@@ -50,6 +50,19 @@ public class WctaContractController {
         return service.getContractNumberInqrPages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "계약서 메일 발송", notes = "계약번호를 받아 수신인에게 메일로 발송한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNos", value = "계약번호", paramType = "query", required = true, allowMultiple = true),
+    })
+    @PostMapping("/send-emails")
+    public String sendContractEmail(
+        @RequestBody
+        @Valid
+        SaveSendEmailsReq dto
+    ) throws Exception {
+        return service.sendContractEmail(dto);
+    }
+
     @ApiOperation(value = "홈케어 계약 조회", notes = "취소일자, 예정일자 수정 대상 홈케어 계약을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNos", value = "계약번호", paramType = "query", required = true, allowMultiple = true),

@@ -48,6 +48,17 @@ public class WctaContractDto {
         String duedt
     ) {}
 
+    // 메일발송 Save Request Dto
+    @ApiModel("WctaContractDto-SaveSendEmailsReq")
+    public record SaveSendEmailsReq(
+        @NotBlank
+        String cntrNm,
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String emadr
+    ) {}
+
     // 고위험 파트너 Remove Request Dto
     @ApiModel("WctaContractDto-RemoveReq")
     public record RemoveReq(
