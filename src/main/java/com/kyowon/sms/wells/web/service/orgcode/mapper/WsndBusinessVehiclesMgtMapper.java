@@ -25,5 +25,5 @@ public interface WsndBusinessVehiclesMgtMapper {
 
     List<SearchVehiclesRes> selectAllVehicles();
 
-    int selectVehicleDupYn(String vhcMngtPrtnrNo);
+    String selectVehicleDupYn(String vhcMngtPrtnrNo, String vhcMngtNo);
 }

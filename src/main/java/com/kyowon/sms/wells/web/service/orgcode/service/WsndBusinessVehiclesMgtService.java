@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesMgtMa
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,11 +38,8 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int createBusinessVehicle(CreateReq dto) {
-        int vehicleDupYn = mapper.selectVehicleDupYn(dto.vhcMngtPrtnrNo());
-
-        if (vehicleDupYn > 0) {
-            throw new BizException("MSG_ALT_SMD_PSIC_VHC_DSB");
-        }
+        String vehicleDupYn = mapper.selectVehicleDupYn(dto.vhcMngtPrtnrNo(), dto.vhcMngtNo());
+        BizAssert.notNull(vehicleDupYn, "MSG_ALT_SMD_PSIC_VHC_DSB");
 
         WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
         return mapper.mergeBusinessVehicle(dvo);
