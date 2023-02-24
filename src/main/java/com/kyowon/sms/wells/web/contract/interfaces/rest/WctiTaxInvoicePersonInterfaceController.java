@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoicePersonDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoicePersonDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiTaxInvoicePersonService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
@@ -32,7 +33,7 @@ public class WctiTaxInvoicePersonInterfaceController {
     public EaiWrapper getTaxInvoicePersons(
         @Valid
         @RequestBody
-        EaiWrapper<String> reqWrapper
+        EaiWrapper<SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
