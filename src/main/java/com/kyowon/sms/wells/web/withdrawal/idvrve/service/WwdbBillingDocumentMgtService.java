@@ -114,6 +114,8 @@ public class WwdbBillingDocumentMgtService {
                 processCount = saveBillingDtails(dto, processCount, dvo);
             }
             case CommConst.ROW_STATE_UPDATED -> {
+
+                processCount += mapper.updateBillingDocument(dvo);
                 processCount += mapper.insertBillingDocumentHistory(dvo);
 
                 processCount = saveBillingDtails(dto, processCount, dvo);
