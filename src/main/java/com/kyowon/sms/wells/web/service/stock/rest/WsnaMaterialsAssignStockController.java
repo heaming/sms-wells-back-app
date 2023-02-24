@@ -76,14 +76,14 @@ public class WsnaMaterialsAssignStockController {
     /* TODO: 조직/파트너 공통 API가 없어서 임시 사용. 공통API 만들어지먼 삭제.*/
     @GetMapping("/partners")
     public List<PrtnrRes> selectPartners(
-        PrtnrRes dto
+        PrtnrReq dto
     ) {
         return service.selectPartners(dto);
     }
 
     /* TODO: 조직/파트너 공통 API가 없어서 임시 사용. 공통API 만들어지먼 삭제.*/
     @GetMapping("/organizations")
-    public List<OgRes> selectOrganizations(OgRes dto) {
+    public List<OgRes> selectOrganizations(OgReq dto) {
         return service.selectOrganizations(dto);
     }
 }

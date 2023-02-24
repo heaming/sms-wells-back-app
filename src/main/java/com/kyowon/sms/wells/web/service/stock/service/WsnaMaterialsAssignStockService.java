@@ -47,12 +47,12 @@ public class WsnaMaterialsAssignStockService {
     }
 
     public List<PrtnrRes> selectPartners(
-        PrtnrRes dto
+        PrtnrReq dto
     ) {
         return mapper.selectPartners(dto);
     }
 
-    public List<OgRes> selectOrganizations(OgRes dto) {
+    public List<OgRes> selectOrganizations(OgReq dto) {
         return mapper.selectOrganizations(dto);
     }
 }

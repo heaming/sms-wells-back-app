@@ -21,9 +21,9 @@ public class WsnaMaterialsAssignStocksDto {
         String ogId, /* 조직ID */
         String prtnrNo, /* 사번 */
         String prtnrKnm, /* 담당자명 */
-        String wareNo, /* 창고번호 */
+        String hgrWareNo, /* 상위창고번호 */
         String wareDvCd, /* 창고구분코드 */
-        String hmnrscEmpno /* 인사사원번호 */
+        String ogTpCd /* 조직유형코드 */
     ) {}
 
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-SearchRes")
@@ -32,6 +32,8 @@ public class WsnaMaterialsAssignStocksDto {
         String prtnrNo, /* 파트너번호*/
         String prtnrKnm, /* 파트너명 */
         String ogId, /* 조직ID */
+        String hgrOgId, /* 상위조직ID */
+        String ogCd, /* 조직코드 */
         String ogNm, /* 소속 */
         String bldCd, /*빌딩코드*/
         String bldNm, /* 빌딩 */
@@ -83,9 +85,11 @@ public class WsnaMaterialsAssignStocksDto {
         String ogLevlDvCd,
         String ogCd,
         String ogNm,
+        String hgrOgCd,
         String bldCd,
         String bldNm,
         String hooOgTpCd,
-        String hooPrtnrNo
+        String hooPrtnrNo,
+        String hooPrtnrNm
     ) {}
 }

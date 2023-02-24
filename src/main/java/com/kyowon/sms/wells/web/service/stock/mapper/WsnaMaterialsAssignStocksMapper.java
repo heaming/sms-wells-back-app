@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.OgRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.PrtnrRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMaterialsAssignStocksDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -20,7 +17,7 @@ public interface WsnaMaterialsAssignStocksMapper {
 
     int insertMaterialsAssignStocks(List<WsnaMaterialsAssignStocksDvo> list);
 
-    List<PrtnrRes> selectPartners(PrtnrRes dto);
+    List<PrtnrRes> selectPartners(PrtnrReq dto);
 
-    List<OgRes> selectOrganizations(OgRes dto);
+    List<OgRes> selectOrganizations(OgReq dto);
 }
