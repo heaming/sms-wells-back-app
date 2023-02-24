@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class WwdbBillingDocumentDvo {
     String bildcPblNo;
+    String bildcPblSn;
     String sellPrtnrNo;
     String sellPrtnrNm;
     String cstFnm;

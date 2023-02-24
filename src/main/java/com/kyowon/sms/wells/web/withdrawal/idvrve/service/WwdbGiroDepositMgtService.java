@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbGiroDepositMgtConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveErrosReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDtlStateRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
@@ -54,17 +56,34 @@ public class WwdbGiroDepositMgtService {
     public int saveBillingDocumentMgt(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
         processCount += mapper.deleteGiroDeposit();
+        log.info("service1");
+        log.info(dtos.toString());
+        log.info("service1");
+        String errorChk = ""; //에러체크
+
         if (dtos.size() > 0) {
             for (SaveReq dto : dtos) {
                 WwdbGiroDepositSaveDvo dvo = convert.mapSaveWwwdbGiroDepositSaveDvo(dto);
-                log.info(dvo.toString());
                 processCount += mapper.inertGiroDeposit(dvo);
                 //                processCount += mapper.inertGiroDeposit(dto);
             }
             List<WwdbGiroDepositSaveInfoDvo> dvos = mapper.selectGiroDepositItemizationInfo();
             for (WwdbGiroDepositSaveInfoDvo infoDvo : dvos) {
+
+                SearchDtlStateRes selectDtlState = mapper.selectDtlState(infoDvo);
+
+                if (Objects.isNull(selectDtlState)) { //자료가없으면 주문 x
+                    errorChk = "1";
+                } else if (!selectDtlState.cntrDtlStatCd().equals("101")) { //정상처리가 아니면 2
+                    errorChk = "2";
+                } else {
+                    errorChk = "3";
+                }
+                infoDvo.setProcsErrTpCd(errorChk);
+
                 processCount += mapper.inertGiroDepositItemization(infoDvo);
                 processCount += mapper.inertIntegrationItemization(infoDvo);
+
                 //                processCount += mapper.inertIntegrationItemizationHistory(infoDvo);
             }
         }
@@ -226,9 +245,9 @@ public class WwdbGiroDepositMgtService {
     }
 
     @Transactional
-    public PagingResult<SearchErrosRes> getBillingDocumentErrorsPages(PageInfo pageInfo) {
+    public PagingResult<SearchErrosRes> getBillingDocumentErrorsPages(SearchReq dto, PageInfo pageInfo) {
 
-        return mapper.selectBillingDocumentErrors(pageInfo);
+        return mapper.selectBillingDocumentErrors(dto, pageInfo);
     }
 
     @Transactional
@@ -240,11 +259,34 @@ public class WwdbGiroDepositMgtService {
     @Transactional
     public int saveBillingDocumentErrors(List<SaveErrosReq> dtos) throws Exception {
         int processCount = 0;
+        String errorChk = "";
         for (SaveErrosReq saveReq : dtos) {
             WwdbGiroDepositErrorSaveDvo dvo = convert.mapSaveGiroDepositErrorSaveDvo(saveReq);
 
             switch (saveReq.rowState()) {
-                case CommConst.ROW_STATE_UPDATED -> processCount += mapper.updateBillingDocumentErrors(dvo);
+                case CommConst.ROW_STATE_UPDATED -> {
+                    String cntr = dvo.getCntr();
+                    dvo.setCntrNo(cntr.substring(0, 12));
+                    dvo.setCntrSn(cntr.substring(12));
+
+                    WwdbGiroDepositSaveInfoDvo selectDtlStateChk = new WwdbGiroDepositSaveInfoDvo();
+                    selectDtlStateChk.setCntrNo(dvo.getCntrNo());
+                    selectDtlStateChk.setCntrSn(dvo.getCntrSn());
+
+                    SearchDtlStateRes selectDtlState = mapper.selectDtlState(selectDtlStateChk);
+
+                    if (Objects.isNull(selectDtlState)) { //자료가없으면 주문 x
+                        errorChk = "1";
+                    } else if (!selectDtlState.cntrDtlStatCd().equals("101")) { //정상처리가 아니면 2
+                        errorChk = "2";
+                    } else {
+                        errorChk = "3";
+                    }
+
+                    dvo.setProcsErrTpCd(errorChk);
+
+                    processCount += mapper.updateBillingDocumentErrors(dvo);
+                }
                 default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
             }
         }

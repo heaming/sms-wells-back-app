@@ -77,6 +77,10 @@ public class WwdbBillingDocumentMgtController {
         @Valid
         SaveReq dto
     ) throws Exception {
+        log.info("=========cont===============");
+        log.info(dto.saveMainReq().bildcPblSn());
+        log.info("=========cont===============");
+
         return SaveResponse.builder()
             .processCount(service.saveBillingDocuments(dto))
             .build();
