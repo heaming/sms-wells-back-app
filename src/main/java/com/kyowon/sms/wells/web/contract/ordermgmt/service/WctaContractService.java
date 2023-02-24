@@ -75,7 +75,7 @@ public class WctaContractService {
         Iterator<SaveHomecareContractsReq> iterator = dtos.iterator();
         while (iterator.hasNext()) {
             SaveHomecareContractsReq dto = iterator.next();
-            String histStrtDtm = DateUtil.getNowDayString() + "000000";
+            String histStrtDtm = DateUtil.getNowString();
             if (StringUtil.isNotEmpty(dto.duedt())) {
                 mapper.updateHomecareContractsDuedt(dto);
             }

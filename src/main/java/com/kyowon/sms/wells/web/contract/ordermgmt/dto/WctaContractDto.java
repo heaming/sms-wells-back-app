@@ -131,7 +131,7 @@ public class WctaContractDto {
         String cntrNo,
         String cntrSn,
         String cntrCstKnm,
-        String lrnnCstKnm,
+        String istCstKnm,
         String pdNm
     ) {}
 
