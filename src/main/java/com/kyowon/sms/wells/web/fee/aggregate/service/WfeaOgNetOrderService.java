@@ -45,14 +45,14 @@ public class WfeaOgNetOrderService {
      */
     @Transactional
     public int saveBsPerformances(WfeaOgNetOrderDto.SaveBsReq dto) {
-        int processCnt = 1;
+        int processCnt = 0;
 
         WfeaOgNetOrderDvo dvo = converter.mapSaveBsReqToWfeaOgNetOrderDvo(dto);
 
         mapper.deleteBsPerformances(dvo);
         processCnt = mapper.insertBsPerformances(dvo);
 
-        BizAssert.isTrue(processCnt < 0, "MSG_ALT_AGRG_FAIL");
+        BizAssert.isTrue(processCnt > 0, "MSG_ALT_AGRG_FAIL");
 
         return processCnt;
     }
