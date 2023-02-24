@@ -21,20 +21,4 @@ public class WsnbCustomerRglrBfsvcDlDto {
         String asnOjYm
     ) {}
 
-    // *********************************************************
-    // Result Dto
-    // *********************************************************
-    @ApiModel(value = "WsnbCustomerRglrBfsvcDlDto-SaveRes")
-    public record SaveRes(
-        String cstSvAsnNo,
-        String asnOjYm,
-        String cntrNo,
-        String cntrSn,
-        String svBizMclsfCd,
-        String svBizDclsfCd,
-        String wkSn,
-        String wkExcnDt
-
-    ) {}
-
 }
