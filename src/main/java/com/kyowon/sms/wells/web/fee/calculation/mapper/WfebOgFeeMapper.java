@@ -21,7 +21,23 @@ public interface WfebOgFeeMapper {
         SearchMngerReq dto
     );
 
+    List<SearchMngerBrmgrRes> selectManagerBranchManagerFees(
+        SearchMngerReq dto
+    );
+
+    List<SearchMngerTotalRes> selectManagerTotalFees(
+        SearchMngerReq dto
+    );
+
     List<SearchPlarRes> selectPlannerFees(
+        SearchPlarReq dto
+    );
+
+    List<SearchPlarBrmgrRes> selectPlannerBranchManagerFees(
+        SearchPlarReq dto
+    );
+
+    List<SearchPlarTotalRes> selectPlannerTotalFees(
         SearchPlarReq dto
     );
 }

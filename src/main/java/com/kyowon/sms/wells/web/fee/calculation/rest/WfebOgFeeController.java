@@ -79,6 +79,38 @@ public class WfebOgFeeController {
         return this.service.getManagerFees(dto);
     }
 
+    @ApiOperation(value = "M조직 수수료 생성관리 지점장 목록 조회", notes = "조회조건에 따른 M조직 수수료 생성관리 지점장 목록 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "blgCd", value = "소속코드", paramType = "query", required = false),
+    })
+
+    @GetMapping("/mngers-brmgr")
+    public List<SearchMngerBrmgrRes> getManagerBranchManagerFees(
+        @Valid
+        SearchMngerReq dto
+    ) {
+        return this.service.getManagerBranchManagerFees(dto);
+    }
+
+    @ApiOperation(value = "M조직 수수료 생성관리 전체 목록 조회", notes = "조회조건에 따른 M조직 수수료 생성관리 전체 목록 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "blgCd", value = "소속코드", paramType = "query", required = false),
+    })
+
+    @GetMapping("/mngers-total")
+    public List<SearchMngerTotalRes> getManagerTotalFees(
+        @Valid
+        SearchMngerReq dto
+    ) {
+        return this.service.getManagerTotalFees(dto);
+    }
+
     @ApiOperation(value = "P조직 수수료 생성관리 목록 조회", notes = "조회조건에 따른 P조직 수수료 생성관리 목록 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
@@ -94,5 +126,39 @@ public class WfebOgFeeController {
         SearchPlarReq dto
     ) {
         return this.service.getPlannerFees(dto);
+    }
+
+    @ApiOperation(value = "P조직 수수료 생성관리 지점장 목록 조회", notes = "조회조건에 따른 P조직 수수료 생성관리 지점장 목록 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
+    })
+
+    @GetMapping("/plars-brmgr")
+    public List<SearchPlarBrmgrRes> getPlannerBranchManagerFees(
+        @Valid
+        SearchPlarReq dto
+    ) {
+        return this.service.getPlannerBranchManagerFees(dto);
+    }
+
+    @ApiOperation(value = "P조직 수수료 생성관리 전체 목록 조회", notes = "조회조건에 따른 P조직 수수료 생성관리 전체 목록 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
+    })
+
+    @GetMapping("/plars-total")
+    public List<SearchPlarTotalRes> getPlannerTotalFees(
+        @Valid
+        SearchPlarReq dto
+    ) {
+        return this.service.getPlannerTotalFees(dto);
     }
 }
