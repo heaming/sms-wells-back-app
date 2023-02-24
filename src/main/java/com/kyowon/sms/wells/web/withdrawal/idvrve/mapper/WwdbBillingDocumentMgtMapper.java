@@ -35,8 +35,14 @@ public interface WwdbBillingDocumentMgtMapper {
     /* 청구서 관리 저장 */
     int insertBillingDocument(WwdbBillingDocumentDvo dvo) throws Exception;
 
+    /* 청구서 관리 이력 저장 */
+    int insertBillingDocumentHistory(WwdbBillingDocumentDvo dvo) throws Exception;
+
     /* 청구서 관리 상세 등록 */
     int insertBillingDocumentDtails(WwdbBillingDocumentDetailDvo dvo) throws Exception;
+
+    /* 청구서 관리 상세 이력 등록 */
+    int insertBillingDocumentDtailsHistory(WwdbBillingDocumentDetailDvo dvo) throws Exception;
 
     /* 청구서 관리 상세 수정 */
     int updateBillingDocumentDtails(WwdbBillingDocumentDetailDvo dvo) throws Exception;

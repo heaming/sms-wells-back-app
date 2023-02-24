@@ -109,9 +109,13 @@ public class WwdbBillingDocumentMgtService {
                 String pk = mapper.selectBillingDocumentPk();
                 dvo.setBildcPblNo(pk);
                 processCount += mapper.insertBillingDocument(dvo);
+                processCount += mapper.insertBillingDocumentHistory(dvo);
+
                 processCount = saveBillingDtails(dto, processCount, dvo);
             }
             case CommConst.ROW_STATE_UPDATED -> {
+                processCount += mapper.insertBillingDocumentHistory(dvo);
+
                 processCount = saveBillingDtails(dto, processCount, dvo);
             }
             default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
@@ -124,15 +128,20 @@ public class WwdbBillingDocumentMgtService {
     private int saveBillingDtails(SaveReq dto, int processCount, WwdbBillingDocumentDvo dvo) throws Exception {
         for (SaveDtlsReq dtlDto : dto.saveDtlsReq()) {
             WwdbBillingDocumentDetailDvo dtlDvo = convert.mapSaveWwwdbBillingDocumentDetailDvo(dtlDto);
+
             dtlDvo.setBildcPblNo(dvo.getBildcPblNo());
             dtlDvo.setBildcPblSn(dvo.getBildcPblSn());
+
             switch (dtlDto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
                     processCount += mapper.insertBillingDocumentDtails(dtlDvo);
+                    processCount += mapper.insertBillingDocumentDtailsHistory(dtlDvo);
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     processCount += mapper.updateBillingDocumentDtails(dtlDvo);
+                    processCount += mapper.insertBillingDocumentDtailsHistory(dtlDvo);
                 }
+
                 default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
             }
         }
@@ -152,6 +161,10 @@ public class WwdbBillingDocumentMgtService {
     @Transactional
     public int saveBillingDocumentForwarding(SaveFwReq dto) throws Exception {
         int processCount = 0;
+
+        log.info("=============service===========");
+        log.info(dto.toString());
+        log.info("========================");
 
         WwdbBillingDocumentForwardingDvo dvo = convert.mapSaveWwwBillingDocumentForwardingDvo(dto);
 
@@ -195,7 +208,7 @@ public class WwdbBillingDocumentMgtService {
         paramMap.put("pdSellAmtSum", dvo.getPdSellAmtSum());
 
         KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
-            .templateCode("Wells18236") //서식은 나중에 만들어야함
+            .templateCode("WellsTest") //서식은 나중에 만들어야함
             .templateParamMap(paramMap)
             .destInfo(dvo.getPdNm() + "^" + dvo.getDestInfo())
             .callback(dvo.getCallback())
