@@ -20,7 +20,7 @@ public class WsnbCustomerRglrBfsvcDlService {
     private final WsnbCustomerRglrBfsvcDlMapper mapper;
 
     @Transactional
-    public int deleteRglrBfsvcDl(WsnbCustomerRglrBfsvcDlDto.SaveReq dto) {
+    public int removeRglrBfsvcDl(WsnbCustomerRglrBfsvcDlDto.SaveReq dto) {
 
         /*
          * 1. TB_SVPD_CST_SV_BFSVC_ASN_IZ 테이블 데이터를 확인한다.

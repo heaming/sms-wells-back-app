@@ -28,13 +28,13 @@ public class WsnbCustomerRglrBfsvcDlController {
 
     @ApiOperation(value = "고객 정기BS 삭제", notes = "고객 정기BS 삭제")
     @DeleteMapping
-    public SaveResponse deleteRglrBfsvcDl(
+    public SaveResponse removeRglrBfsvcDl(
         @Valid
         @RequestBody
         WsnbCustomerRglrBfsvcDlDto.SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.deleteRglrBfsvcDl(dto))
+            .processCount(service.removeRglrBfsvcDl(dto))
             .build();
     }
 }
