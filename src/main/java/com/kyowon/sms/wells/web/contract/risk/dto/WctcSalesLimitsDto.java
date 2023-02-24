@@ -20,9 +20,15 @@ public class WctcSalesLimitsDto {
         String cntrNo,
         String cstKnm,
         String adr,
-        String tno,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
         String selrInf
-    ) {}
+    ) {
+        public SearchBlacklistReq {
+            mexnoEncr = DbEncUtil.enc(mexnoEncr);
+        }
+    }
 
     // 접수제한 관리-블랙리스트 Save Request Dto
     @Builder
