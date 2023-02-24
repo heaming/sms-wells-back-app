@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
-import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceDetailDto.SearchRes;
-
 import java.util.List;
 
 import javax.validation.Valid;
@@ -11,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceDetailDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceDetailDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiTaxInvoiceDetailService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -33,7 +33,7 @@ public class WctiTaxInvoiceDetailInterfaceController {
     public EaiWrapper getTaxInvoiceDetails(
         @Valid
         @RequestBody
-        EaiWrapper<String> reqWrapper
+        EaiWrapper<SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
