@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiFreeASPeriodController {
+public class WctiFreeASPeriodInterfaceController {
 
     private final WctiFreeASPeriodService service;
 
