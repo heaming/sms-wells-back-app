@@ -14,7 +14,7 @@ public class WctcRiskAuditDto {
     @ApiModel(value = "WctcRiskAuditDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String actPrd,
+        String srchGbn,
         @ValidDate
         String dangOcStrtdt,
         @ValidDate
