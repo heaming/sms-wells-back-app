@@ -32,7 +32,7 @@ public class WctcRiskAuditController {
 
     @ApiOperation(value = "비정도영업 조치사항 조회", notes = "조회조건에 따른 비정도영업 조치사항 목록을 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "actPrd", value = "조회구분", paramType = "query", required = true, example = "1"),
+        @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", required = true, example = "1"),
         @ApiImplicitParam(name = "dangOcStrtdt", value = "조회시작날짜", paramType = "query", example = "20220101"),
         @ApiImplicitParam(name = "dangOcEnddt", value = "조회마지막날짜", paramType = "query", example = "20221231"),
         @ApiImplicitParam(name = "dangOcStrtMonth", value = "조회시작월", paramType = "query"),
@@ -55,7 +55,7 @@ public class WctcRiskAuditController {
 
     @ApiOperation(value = "비정도영업 조치사항 조회", notes = "조회조건에 따른 비정도영업 조치사항 목록을 조회 후 엑셀 다운로드한다..")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "actPrd", value = "조회구분", paramType = "query", required = true, example = "1"),
+        @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", required = true, example = "1"),
         @ApiImplicitParam(name = "dangOcStrtdt", value = "조회시작날짜", paramType = "query", example = "20220101"),
         @ApiImplicitParam(name = "dangOcEnddt", value = "조회마지막날짜", paramType = "query", example = "20221231"),
         @ApiImplicitParam(name = "dangOcStrtMonth", value = "조회시작월", paramType = "query"),
