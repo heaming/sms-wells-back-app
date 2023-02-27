@@ -3,13 +3,16 @@ package com.kyowon.sms.wells.web.bond.transfer.rest;
 import java.util.HashMap;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.EditReq;
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchRes;
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchDetailRes;
+import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchDetailReq;
 import com.kyowon.sms.wells.web.bond.transfer.service.WbnaCollectorAssignService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 @Slf4j
 @Api(tags = "[WBNA] 집금자배정")
@@ -64,7 +68,7 @@ public class WbnaCollectorAssignController {
     }) // TODO HashMap<String, String> 임시로 데이터 작업 PagingResult<SearchDetailRes>로 변경 필요
     public PagingResult<HashMap<String, String>> getCollectorAssignDetails(
         @Valid
-        SearchReq reqDto,
+        SearchDetailReq reqDto,
         PageInfo pageInfo
     ) {
         log.debug("call getCollectorAssignDetails");
@@ -87,11 +91,40 @@ public class WbnaCollectorAssignController {
     }) // TODO HashMap<String, String> 임시로 데이터 작업 List<SearchDetailRes>로 변경 필요
     public List<HashMap<String, String>> getCollectorAssignsDetailsForExcelDownload(
         @Valid
-        SearchReq reqDto
+        SearchDetailReq reqDto
     ) {
         List<SearchDetailRes> searchDetailRes = service.getExcelDownload(reqDto);
         log.debug("searchDetailRes: " + searchDetailRes); // 쿼리 동작 확인을 위한 임시 소스
         // TODO: 데이터 없는 상태로 작업 하기 때문에 임시 데이터 작업 진행
         return service.getDumyData2();
+    }
+
+    @ApiOperation(value = "집금자 배정 정보 수정", notes = "집금자 배정 정보를 수정")
+    @PutMapping
+    public SaveResponse editCollectorAssignsDetails(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<EditReq> dtos
+    ) {
+        // TODO 멩세서 내용 확인 후 추가 작업 예정 그 전에는 임시 갱신 건수 전달
+        log.debug("call editCollectorAssignsDetails");
+        return SaveResponse.builder()
+            .processCount(service.editCollectorAssignsDetails(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "집금자 배정 확정", notes = "집금자 배정 정보를 확정 상태로 변경 한다")
+    @PutMapping("/confirm")
+    public SaveResponse editCollectorAssingsConfirm(
+        @Valid
+        @RequestBody
+        SearchReq reqDto
+    ) {
+        // TODO 멩세서 내용 확인 후 추가 작업 예정 그 전에는 임시 갱신 건수 전달
+        log.debug("call editCollectorAssingsConfirm");
+        return SaveResponse.builder()
+            .processCount(service.editCollectorAssingsConfirm(reqDto))
+            .build();
     }
 }
