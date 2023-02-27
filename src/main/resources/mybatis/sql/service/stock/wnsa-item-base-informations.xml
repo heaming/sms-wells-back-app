@@ -1,0 +1,314 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemBaseInformationMapper">
+
+
+<select id="selectItemBaseInformations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto$SearchRes">
+    SELECT 0 AS CHK
+         , T2.PD_CD AS ITM_PD_CD /*품목코드*/
+         , T2.PD_NM AS ITM_NM/*품목명*/
+         , T2.PD_PRP_VAL19 /*품목종류*/
+         , T2.PD_PRP_VAL05 AS MNGT_UNIT_CD/*관리단위*/
+         , T2.PD_PRP_VAL06 /*Lead Time*/
+         , T2.PD_PRP_VAL11 /*출고단위*/
+         , T2.SV_STRTDT /*적용시작일자*/
+         , T2.SV_ENDDT /*적용종료일자*/
+         , T2.PD_PRP_VAL12 AS BOX_QTY/*OutBox내 수량*/
+         , T2.SAP_MAT_CD /*SAP코드*/
+         , T2.SAP_MAT_GRP_VAL  /*SAP_자재그룹*/
+         , T2.PD_PRP_VAL16 /*기초자재색상여부*/
+         ,(SELECT PD_ABBR_NM
+             FROM TB_PDBS_PD_BAS
+             WHERE PD_CD = T2.PD_CD
+         ) AS PD_ABBR_NM /*품목명(약어(1))*/
+         , T1.QTY_100002 MUL_QTY /*물류수량*/
+         , T1.CENTER_QTY /*센터수량*/
+         , T1.MY_CENTER_QTY AS ON_QTY /*조직창고수량*/
+         , T1.INDI_STCK_QTY /*개인창고수량*/
+        <!--, ST132_QTY ST132_QTY-->
+         , T1.L_QTY
+        <!--, ST132_ORD_DT AS ST131_ORD_DT -->
+      FROM (
+                SELECT A.ITM_PD_CD
+                     , SUM(DECODE(A.WARE_NO , '100002', A.PITM_STOC_A_GD_QTY,0)) QTY_100002
+                     , SUM(CASE WHEN A.WARE_NO != '100002' AND B.WARE_ICHR_NO = '000' AND B.WARE_DV_CD = '2' THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) CENTER_QTY
+                     , SUM(CASE WHEN A.WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) MY_CENTER_QTY
+                     , SUM(CASE WHEN B.HGR_WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) INDI_STCK_QTY
+                     , SUM(NVL(USE_QTY,0)) L_QTY
+                  FROM TB_SVST_CST_SV_ITM_STOC_IZ A --고객서비스품목재고내역
+                 INNER JOIN TB_SVST_MCBY_WARE_IZ B
+                    ON A.WARE_NO = B.WARE_NO
+                 LEFT OUTER JOIN (
+                                    SELECT MIN(HGR_WARE_NO) AS HGR_WARE_NO
+                                      FROM TB_SVST_MCBY_WARE_IZ
+                                     WHERE APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                                      <!--AND ST102_CHG_CD = '000' -->
+                                       AND WARE_MNGT_PRTNR_NO = '36680' -- 파라미터
+                                       AND WARE_USE_YN = 'Y'
+                                       AND SUBSTR(HGR_WARE_NO,1,1) != '1'
+                                      <!--WARE_DTL_DV_CD != '1' -->
+                                 ) C
+                   ON B.HGR_WARE_NO = C.HGR_WARE_NO
+                  LEFT OUTER JOIN (
+                                    SELECT WK_WARE_NO
+                                         , ITM_PD_CD
+                                         , SUM(USE_QTY) USE_QTY
+                                      FROM TB_SVST_SV_WK_OSTR_IZ
+                                     WHERE SUBSTR(FNL_VST_FSH_DT,1,6) = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+                                       AND ICHR_PRTNR_NO = '36680' --파라미터
+                                     GROUP BY WK_WARE_NO, ITM_PD_CD
+                                  ) D
+                   ON A.WARE_NO  = D.WK_WARE_NO
+                  AND A.ITM_PD_CD  = D.ITM_PD_CD
+                 WHERE B.APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND B.WARE_USE_YN = 'Y'
+                 GROUP BY A.ITM_PD_CD
+           ) T1
+          ,(
+               SELECT PD_CD
+                    , PD_NM
+                    , PD_PRP_VAL19
+                    , PD_PRP_VAL05
+                    , PD_PRP_VAL06
+                    , PD_PRP_VAL11
+                    , SV_STRTDT
+                    , SV_ENDDT
+                    , PD_PRP_VAL12
+                    , SAP_MAT_CD
+                    , SAP_MAT_GRP_VAL
+                    , PD_PRP_VAL16
+                 FROM (
+                            SELECT PD_BAS.PD_CD
+                                 , PD_BAS.PD_NM
+                                 , PRP_DTL.PD_PRP_VAL19 -- ST101_ITEM_KND
+                                 , PRP_DTL.PD_PRP_VAL05 -- ST101_MGT_UNT
+                                 , PRP_DTL.PD_PRP_VAL06 -- ST101_LT
+                                 , PRP_DTL.PD_PRP_VAL11 -- ST101_DEL_UNT
+                                 , PD_BAS.SV_STRTDT -- ST101_APLD_FR
+                                 , PD_BAS.SV_ENDDT -- ST101_APLD_TO
+                                 , PRP_DTL.PD_PRP_VAL12 -- ST101_BOX_QTY
+                                 , PD_BAS.SAP_MAT_CD -- ST101_SAP_CD
+                                 , PD_BAS.SAP_MAT_GRP_VAL --ST101_SAP_GRP
+                                 , PRP_DTL.PD_PRP_VAL16 -- ST101_BASE_COLOR_GB
+                              FROM TB_PDBS_PD_BAS PD_BAS
+                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PRP_DTL
+                                 ON PD_BAS.PD_CD 	= PRP_DTL.PD_CD
+                                AND PRP_DTL.PD_EXTS_PRP_GRP_CD = 'PART'
+                              WHERE 1 = 1
+                                   <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                                      AND PRP_DTL.PD_PRP_VAL19 = #{itmKndCd}
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(pdNm)">
+                                      AND PD_BAS.PD_NM = LIKE '%' || #{pdNm} || '%'
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(pdCd)">
+                                      AND ((PD_BAS.PD_CD LIKE #{pdCd}||'%') OR (PD_BAS.PD_CD LIKE #{pdCd}||'%'))
+                                   </if>
+                       ) A
+                 WHERE 1 = 1
+                 GROUP BY PD_CD
+                    , PD_NM
+                    , PD_PRP_VAL19
+                    , PD_PRP_VAL05
+                    , PD_PRP_VAL06
+                    , PD_PRP_VAL11
+                    , SV_STRTDT
+                    , SV_ENDDT
+                    , PD_PRP_VAL12
+                    , SAP_MAT_CD
+                    , SAP_MAT_GRP_VAL
+                    , PD_PRP_VAL16
+           ) T2
+     WHERE 1=1
+       AND T2.PD_CD = T1.ITM_PD_CD
+     ORDER BY PD_CD
+</select>
+
+<select id="selectItemBaseInformationsOutOf" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto$OstrRes">
+SELECT 0 AS CHK
+     , A.SAP_MAT_CD                             /* SAP 코드 */
+     , A.ITEM_PD_CD                                  /* KIWI 코드 */
+     , A.PD_NM                             /* 품목명 */
+     , A.PD_PRP_VAL05                            /* 신청 단위 */
+     , A.PD_PRP_VAL02                            /* 관리 유형 */
+     , A.USE_QTY                                  /* 현재작업출고량 */
+     , A.USE_QTY_P                                /* 전월작업출고량 */
+     , A.USE_QTY_Y                               /* 전년도 당월 출고수량 */
+     , A.WAREHOUSE_QTY                            /* 현재물류재고 */
+     , A.CENTER_QTY                               /* 현재센터조직재고 */
+     , A.INDI_QTY                                 /* 현재센터개인재고 */
+     , A.WAREHOUSE_B_QTY                          /* 현재물류재고 */
+     , A.CENTER_B_QTY                             /* 현재센터조직재고 */
+     , A.INDI_B_QTY                               /* 현재센터개인재고 */
+     , (CASE WHEN A.USE_QTY_P > A.CENTER_QTY THEN  (A.USE_QTY_P - A.CENTER_QTY)
+             ELSE 0
+         END)  AS SHORT_SUPPLY               /* 신청 예상수량 (전월-센터) */
+     , A.TOTAL_QTY
+     , A.PD_PRP_VAL06                                 /* LEADTIME */
+     , A.PD_PRP_VAL11                            /* 관리단위 */
+     , A.SV_STRTDT                            /* 관리시작일 */
+     , A.SV_ENDDT                            /* 관리종료일 */
+     , A.IMG_APN_FILE_ID
+     --처리시 필요 한 칼람
+     , A.PD_PRP_VAL01
+     , A.PD_PRP_VAL31
+     , A.PD_PRP_VAL19
+     , A.PD_ABBR_NM AS PD_ABBR_NM
+     , A.PD_PRP_VAL12
+     , A.PD_PRP_VAL16
+     , A.SAP_MAT_GRP_VAL
+     , NVL((
+            --일별 방문예정 집계
+            SELECT SUM(DECODE(AC211.SV_CNR_OG_ID,'',0,1)) AS CFRM_CNT
+              FROM TB_SVPD_CST_SVAS_IST_OJ_IZ AC211
+                 , TB_SVPD_CST_SV_AS_IST_ASN_IZ AC221
+--                 , LC_ALLOCATE_AC125TB
+                 , (SELECT MIN(BASE_Y||BASE_MM||BASE_D) STRTDT , MAX(BASE_Y||BASE_MM||BASE_D) ENDDT
+                      FROM
+                           (
+                              SELECT BASE_Y
+                                   , BASE_MM
+                                   , BASE_D
+                                   , RANK() OVER(order by BASE_Y||BASE_MM||BASE_D) AS RN
+                                FROM TB_SVPD_SV_CLND_BAS --LC_COMMONCODE_CO160TB
+                               WHERE BASE_Y||BASE_MM||BASE_D > TO_CHAR(SYSDATE,'YYYYMMDD')
+                                 AND DF_YN IS NULL
+                                 AND PHLD_YN IS NULL
+                                 AND DOW_DV_CD IN ('2','3','4','5','6')
+                            )
+                      WHERE RN <![CDATA[<]]> = 5)
+             WHERE 1=1
+               AND AC211.CST_SV_ASN_NO(+) = AC221.CST_SV_ASN_NO
+               AND AC221.VST_CNFMDT BETWEEN STRTDT AND ENDDT
+               AND AC221.MTR_STAT_CD IN ('1', '2')
+               AND AC221.WK_PRGS_STAT_CD IN ('00','10') --작업진행상태코드
+               AND SUBSTR(AC211.SV_BIZ_DCLSF_CD,1,1) = '1'
+               AND AC211.SV_BIZ_DCLSF_CD NOT LIKE '13%'
+--                   AND AC211.SV_CNR_OG_ID = AC125_DEPT_CD
+               AND AC211.SV_BIZ_HCLSF_CD = '1'
+--                   AND AC125_STCK_CD =  #STCK_CD#
+               AND AC221.SV_BIZ_HCLSF_CD = '1'
+               AND AC221.SITE_AW_PD_GRP_CD = A.PD_PRP_VAL20
+               AND A.ITEM_PD_CD   = AC211.PD_CD  ),0) AS CFRM_CNT
+  FROM (
+        SELECT /*+ LEADING (ST101 ST117) USE_HASH(ST101 ST117) NO_PUSH_PRED(UQTY) NO_PUSH_PRED(A) NO_PUSH_PRED(IQTY) */
+               PD_BAS.SAP_MAT_CD                             /* SAP 코드 */
+             , PD_BAS.PD_CD AS ITEM_PD_CD  /* KIWI 코드 */
+             , PD_BAS.PD_NM                             /* 품목명 */
+             , PRP_DTL.PD_PRP_VAL05 --ST101_MGT_UNT     /* 신청 단위 */
+             , NVL(WAREHOUSE_QTY, 0) WAREHOUSE_QTY      /* 현재출고창고재고 */
+             , NVL(CENTER_QTY, 0) CENTER_QTY            /* 현재센터재고(조직) */
+             , NVL(IQTY.INDI_QTY, 0) AS INDI_QTY       /*개인수량*/
+             , NVL(WAREHOUSE_B_QTY, 0) WAREHOUSE_B_QTY  /* 현재출고창고재고 */
+             , NVL(CENTER_B_QTY, 0) CENTER_B_QTY        /* 현재센터재고(조직) */
+             , NVL(IQTY.INDI_B_QTY, 0) AS INDI_B_QTY
+             , NVL(UQTY.USE_QTY, 0) AS USE_QTY
+             , NVL(UQTY_P.USE_QTY, 0) AS USE_QTY_P    /*전월기준재고*/
+             , NVL(UQTY_Y.USE_QTY, 0) AS USE_QTY_Y
+             , PRP_DTL.PD_PRP_VAL06                                 /* LEADTIME */
+             , PRP_DTL.PD_PRP_VAL11                            /* 관리단위 */
+             , PD_BAS.SV_STRTDT                            /* 관리시작일 */
+             , PD_BAS.SV_ENDDT                            /* 관리종료일 */
+             , PD_BAS.IMG_APN_FILE_ID
+             --처리시 필요 한 칼람
+             , PRP_DTL.PD_PRP_VAL01 --ST101_ITEM_CD
+             , PRP_DTL.PD_PRP_VAL31 --ST101_PART_CD
+             , PRP_DTL.PD_PRP_VAL19 --ST101_ITEM_KND
+             , PRP_DTL.PD_PRP_VAL20 --ST101_ITEM_GR
+             , PD_BAS.PD_ABBR_NM AS PD_ABBR_NM
+             , PRP_DTL.PD_PRP_VAL12 -- ST101_BOX_QTY
+             , PRP_DTL.PD_PRP_VAL16 -- ST101_BASE_COLOR_GB
+             , PD_BAS.SAP_MAT_GRP_VAL --ST101_SAP_GRP
+             , PRP_DTL.PD_PRP_VAL02 AS PD_PRP_VAL02 --(자재유형(물류))
+             , NVL(TQTY.TOTAL_QTY, 0) TOTAL_QTY
+          FROM TB_PDBS_PD_BAS PD_BAS
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PRP_DTL
+     	    ON PD_BAS.PD_CD = PRP_DTL.PD_CD
+	       AND PRP_DTL.PD_EXTS_PRP_GRP_CD = 'PART'
+          LEFT OUTER JOIN (SELECT STOC_IZ.ITM_PD_CD
+                                , SUM(DECODE(STOC_IZ.WARE_NO, '100002' , STOC_IZ.PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
+                                , SUM(DECODE(STOC_IZ.WARE_NO, '201698' , STOC_IZ.PITM_STOC_A_GD_QTY)) AS CENTER_QTY
+                                , SUM(DECODE(STOC_IZ.WARE_NO, '100002' , STOC_IZ.PITM_STOC_B_GD_QTY)) AS WAREHOUSE_B_QTY
+		             	        , SUM(DECODE(STOC_IZ.WARE_NO, '200001' , STOC_IZ.PITM_STOC_B_GD_QTY)) AS CENTER_B_QTY
+		                     FROM TB_SVST_CST_SV_ITM_STOC_IZ STOC_IZ --LC_STOCK_ST121TB IX
+		           		    WHERE STOC_IZ.WARE_NO IN('100002', '201698' ) GROUP BY  ITM_PD_CD) A
+	        ON PD_BAS.PD_CD = A.ITM_PD_CD
+         LEFT OUTER JOIN (SELECT /*+ LEADING(IB IA) */
+				  			    IA.ITM_PD_CD
+                               , SUM(IA.PITM_STOC_A_GD_QTY) INDI_QTY
+                               , SUM(IA.PITM_STOC_B_GD_QTY) INDI_B_QTY
+			                FROM TB_SVST_CST_SV_ITM_STOC_IZ IA
+			                   , TB_SVST_MCBY_WARE_IZ IB
+			                WHERE 1=1
+			                  AND IA.WARE_NO = IB.WARE_NO
+			                  AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+			                  AND IB.HGR_WARE_NO = '201698'
+			                  AND IB.WARE_DV_CD = '2' --'3'
+			                  AND IB.WARE_ICHR_NO != '000'
+			                GROUP BY IA.ITM_PD_CD
+			              ) IQTY
+	        ON PD_BAS.PD_CD = IQTY.ITM_PD_CD
+           AND PD_BAS.PD_CD = IQTY.ITM_PD_CD
+         LEFT OUTER JOIN (SELECT /*+ LEADING (IB IA) */
+			                     IA.ITM_PD_CD
+                               , SUM(IA.USE_QTY) USE_QTY /*사용수량*/
+		                    FROM TB_SVST_SV_WK_OSTR_IZ IA
+		                       , TB_SVST_MCBY_WARE_IZ IB
+			               WHERE 1=1
+		                     AND IA.FNL_VST_FSH_DT LIKE TO_CHAR(SYSDATE , 'YYYYMM')||'%'
+		                     AND IA.WK_WARE_NO = IB.WARE_NO
+		                     AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+		                     AND IB.HGR_WARE_NO = '201698'
+		                     AND IB.WARE_DV_CD = '2' --'3'
+			               GROUP BY IA.ITM_PD_CD
+			              ) UQTY
+	       ON PD_BAS.PD_CD = UQTY.ITM_PD_CD
+          LEFT OUTER JOIN (SELECT /*+ LEADING (IB IA) */
+			                      IA.ITM_PD_CD
+                                , SUM(IA.USE_QTY) USE_QTY
+		                     FROM TB_SVST_SV_WK_OSTR_IZ IA
+		                        , TB_SVST_MCBY_WARE_IZ IB
+		                    WHERE 1=1
+		                      AND IA.FNL_VST_FSH_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1) , 'YYYYMM')||'%'
+		                      AND IA.WK_WARE_NO = IB.WARE_NO
+		                      AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+		                      AND IB.HGR_WARE_NO = '201698'
+		                      AND IB.WARE_DV_CD = '2' --'3'
+		                    GROUP BY IA.ITM_PD_CD
+			               ) UQTY_P
+	       ON PD_BAS.PD_CD = UQTY_P.ITM_PD_CD
+         LEFT OUTER JOIN (SELECT /*+ LEADING (IB IA) */
+                                 IA.ITM_PD_CD
+                               , SUM(IA.USE_QTY) USE_QTY
+			                FROM TB_SVST_SV_WK_OSTR_IZ IA
+			                   , TB_SVST_MCBY_WARE_IZ IB
+		                   WHERE 1=1
+			                 AND IA.FNL_VST_FSH_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -12) , 'YYYYMM')||'%'
+			                 AND WK_WARE_NO = IB.WARE_NO
+			                 AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+			                 AND IB.HGR_WARE_NO = '201698'
+			                 AND IB.WARE_DV_CD = '2' --'3'
+			               GROUP BY IA.ITM_PD_CD
+			              ) UQTY_Y
+	       ON PD_BAS.PD_CD = UQTY_Y.ITM_PD_CD
+         LEFT OUTER JOIN (SELECT IA.ITM_PD_CD AS ITM_PD_CD
+				               , SUM(IA.PITM_STOC_A_GD_QTY) TOTAL_QTY /*시점재고A수량*/
+			                FROM TB_SVST_CST_SV_ITM_STOC_IZ IA
+				               , TB_SVST_MCBY_WARE_IZ IB
+			               WHERE 1=1
+			                 AND IB.APY_YM = SUBSTR(TO_CHAR(SYSDATE, 'YYYYMMDD'), 1, 6)
+			                 AND IB.WARE_NO = IA.WARE_NO
+			                 AND IB.WARE_DV_CD = '3'
+			                 AND IB.WARE_ICHR_NO = '000'
+			               GROUP BY ITM_PD_CD
+			              ) TQTY
+             ON PD_BAS.PD_CD = TQTY.ITM_PD_CD
+           WHERE 1=1
+               AND PD_BAS.SV_STRTDT || PD_BAS.SV_ENDDT = 'Y'
+               AND PRP_DTL.PD_PRP_VAL04 = 'Y'
+           ) A
+     WHERE 1=1
+     ORDER BY ITEM_PD_CD
+</select>
+
+
+</mapper>

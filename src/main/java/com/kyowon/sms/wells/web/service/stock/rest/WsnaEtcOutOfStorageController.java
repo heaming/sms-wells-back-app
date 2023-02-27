@@ -1,0 +1,82 @@
+package com.kyowon.sms.wells.web.service.stock.rest;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import org.springframework.web.bind.annotation.*;
+
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.*;
+
+import com.kyowon.sms.wells.web.service.stock.service.WsnaEtcOutOfStorageService;
+import com.sds.sflex.system.config.response.SaveResponse;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+
+@Api(tags = "[WSNA] 기타출고 등록 조회")
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/etc-out-of-storages")
+public class WsnaEtcOutOfStorageController {
+
+    private final WsnaEtcOutOfStorageService service;
+
+    @ApiOperation(value = "기타출고 등록 조회", notes = "조회조건에 일치하는 기타출고 정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
+    })
+    @GetMapping
+    public List<SearchRes> getEtcOutOfStorages(
+        SearchReq dto
+    ) {
+        return service.getEtcOutOfStorages(dto);
+    }
+
+    @ApiOperation(value = "기타출고 등록 조회 엑셀 다운로드", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
+    })
+    @GetMapping("/excel-download")
+    public List<SearchRes> getEtcOutOfStoragesForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getEtcOutOfStoragesForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "기타출고 삭제", notes = "기타출고 삭제 처리 및 품목재고내역 삭제")
+    @PostMapping("returning-goods-ostr")
+    public SaveResponse saveEtcOutOfStorages(
+        @Valid
+        @RequestBody
+        List<DeleteReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.service.saveEtcOutOfStorages(dtos))
+            .build();
+
+    }
+
+    @PostMapping("/{strOjWareNo}/{ostrDt}/out-of")
+    public SaveResponse saveEtcOutOfStoragess(
+        @Valid
+        @RequestBody
+        List<SaveReq> dtos,
+        @Valid
+        @PathVariable
+        String strOjWareNo,
+        @Valid
+        @PathVariable
+        String ostrDt
+
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.service.saveEtcOutOfStoragess(dtos, strOjWareNo, ostrDt))
+            .build();
+    }
+}
