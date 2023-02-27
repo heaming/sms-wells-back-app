@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOgFeeDto.*;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto.*;
 
 @Mapper
-public interface WfebOgFeeMapper {
+public interface WfebOrganizationFeeMapper {
 
     List<SearchHmstRes> selectHomeMasterFees(
         SearchHmstReq dto
@@ -40,4 +40,6 @@ public interface WfebOgFeeMapper {
     List<SearchPlarTotalRes> selectPlannerTotalFees(
         SearchPlarReq dto
     );
+
+    List<SearchWmRes> selectWmFees(SearchWmReq dto);
 }

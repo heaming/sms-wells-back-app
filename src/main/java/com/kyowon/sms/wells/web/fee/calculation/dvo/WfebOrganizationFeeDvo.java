@@ -5,4 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WfebOgFeeDvo {}
+public class WfebOrganizationFeeDvo {
+
+    String perfYm;
+    String no;
+
+}

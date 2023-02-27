@@ -2,11 +2,14 @@ package com.kyowon.sms.wells.web.fee.calculation.service;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.fee.calculation.converter.WfebOgFeeConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOgFeeDto.*;
-import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOgFeeMapper;
+import com.kyowon.sms.wells.web.fee.calculation.converter.WfebOrganizationFeeConverter;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto.*;
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebOrganizationFeeDvo;
+import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOrganizationFeeMapper;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,10 +24,10 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WfebOgFeeService {
+public class WfebOrganizationFeeService {
 
-    private final WfebOgFeeMapper mapper;
-    private final WfebOgFeeConverter converter;;
+    private final WfebOrganizationFeeMapper mapper;
+    private final WfebOrganizationFeeConverter converter;;
 
     /**
      * WELLS 홈마스터 수수료 생성관리 목록 조회
@@ -104,6 +107,36 @@ public class WfebOgFeeService {
 
     public List<SearchPlarTotalRes> getPlannerTotalFees(SearchPlarReq dto) {
         return this.mapper.selectPlannerTotalFees(dto);
+    }
+
+    /** WM수수료 내역 - 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public List<SearchWmRes> getWmFees(SearchWmReq dto) {
+        return this.mapper.selectWmFees(dto);
+    }
+
+    /**
+     * WM수수료 생성
+     * @param dto : {
+     * perfYm : 실적년월
+     * }
+     * @return 생성건수
+     * @throws Exception
+     * */
+    @Transactional
+    public int saveWmFees(SaveReq dto) {
+        int processCount = 0;
+
+        WfebOrganizationFeeDvo dvo = converter.mapSaveReqToWfebOgFeeDvo(dto);
+
+        // TODO: WM 수수료 생성 서비스 호출
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
+
+        return processCount;
     }
 
 }
