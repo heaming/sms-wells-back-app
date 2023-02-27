@@ -60,7 +60,8 @@ public class WbnaBondPartTransferController {
     @GetMapping("/details/paging")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true)
+        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "bzHdqDvCd", value = "사업부구분코드", paramType = "query")
     }) // TODO HashMap<String, String> 임시로 데이터 작업 PagingResult<SearchDetailRes>로 변경 필요
     public PagingResult<HashMap<String, String>> getPartAggregationDetails(
         @Valid
@@ -80,7 +81,8 @@ public class WbnaBondPartTransferController {
     @GetMapping("/details/excel-download")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true)
+        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "bzHdqDvCd", value = "사업부구분코드", paramType = "query")
     }) // TODO HashMap<String, String> 임시로 데이터 작업 List<SearchDetailRes>로 변경 필요
     public List<HashMap<String, String>> getPartAggregationDetailsForExcelDownload(
         @Valid
