@@ -4,12 +4,12 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WfebOgFeeDto {
+public class WfebOrganizationFeeDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
 
-    @ApiModel(value = "WfebOgFeeDto-SearchHmstReq")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstReq")
     public record SearchHmstReq(
         String perfYm,
         String rsbDv,
@@ -19,7 +19,7 @@ public class WfebOgFeeDto {
         String no
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SearchMngerReq")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerReq")
     public record SearchMngerReq(
         String perfYm,
         String rsbTp,
@@ -27,7 +27,7 @@ public class WfebOgFeeDto {
         String blgCd
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SearchPlarReq")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarReq")
     public record SearchPlarReq(
         String perfYm,
         String rsbTp,
@@ -37,7 +37,7 @@ public class WfebOgFeeDto {
         String ogLevl3
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SearchWmReq")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchWmReq")
     public record SearchWmReq(
         @NotBlank
         String perfYm,
@@ -45,7 +45,7 @@ public class WfebOgFeeDto {
 
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SaveReq")
+    @ApiModel(value = "WfebOrganizationFeeDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String perfYm
@@ -54,7 +54,7 @@ public class WfebOgFeeDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel(value = "WfebOgFeeDto-SearchHmstRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstRes")
     public record SearchHmstRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -102,7 +102,7 @@ public class WfebOgFeeDto {
         String col44 /*과표합계 */
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SearchHmstBrmgrRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstBrmgrRes")
     public record SearchHmstBrmgrRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -158,7 +158,7 @@ public class WfebOgFeeDto {
         String col52 /*과표합계 */
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SearchMngerRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerRes")
     public record SearchMngerRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -241,7 +241,7 @@ public class WfebOgFeeDto {
         String col79,
         String col80
     ) {}
-    @ApiModel(value = "WfebOgFeeDto-SearchMngerBrmgrRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerBrmgrRes")
     public record SearchMngerBrmgrRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -325,7 +325,7 @@ public class WfebOgFeeDto {
     )
 
     {}
-    @ApiModel(value = "WfebOgFeeDto-SearchMngerTotalRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerTotalRes")
     public record SearchMngerTotalRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -417,7 +417,7 @@ public class WfebOgFeeDto {
         String col88
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SearchPlarRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarRes")
     public record SearchPlarRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -459,7 +459,7 @@ public class WfebOgFeeDto {
         String col38, /*기타지원*/
         String col39 /*과표합계 */
     ) {}
-    @ApiModel(value = "WfebOgFeeDto-SearchPlarBrmgrRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarBrmgrRes")
     public record SearchPlarBrmgrRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -508,7 +508,7 @@ public class WfebOgFeeDto {
         String col45,
         String col46
     ) {}
-    @ApiModel(value = "WfebOgFeeDto-SearchPlarTotalRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarTotalRes")
     public record SearchPlarTotalRes(
         String col1, /*소속*/
         String col2, /*번호*/
@@ -565,7 +565,7 @@ public class WfebOgFeeDto {
         String col53
     ) {}
 
-    @ApiModel(value = "WfebOgFeeDto-SearchWmRes")
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchWmRes")
     public record SearchWmRes(
         String col1, /*총괄단*/
         String col2, /*지역단*/

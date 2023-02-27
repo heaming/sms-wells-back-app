@@ -6,8 +6,8 @@ import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOgFeeDto.*;
-import com.kyowon.sms.wells.web.fee.calculation.service.WfebOgFeeService;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto.*;
+import com.kyowon.sms.wells.web.fee.calculation.service.WfebOrganizationFeeService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -23,8 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping(CtFeeConst.REST_URL_V1 + "/organization-fees")
 @Slf4j
-public class WfebOgFeeController {
-    private final WfebOgFeeService service;
+public class WfebOrganizationFeeController {
+    private final WfebOrganizationFeeService service;
 
     @ApiOperation(value = "홈마스터 수수료 생성관리 목록 조회", notes = "조회조건에 따른 홈마스터 수수료 생성관리 목록 조회")
     @ApiImplicitParams(value = {
