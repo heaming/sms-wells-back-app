@@ -40,4 +40,6 @@ public interface WfebOgFeeMapper {
     List<SearchPlarTotalRes> selectPlannerTotalFees(
         SearchPlarReq dto
     );
+
+    List<SearchWmRes> selectWmFees(SearchWmReq dto);
 }

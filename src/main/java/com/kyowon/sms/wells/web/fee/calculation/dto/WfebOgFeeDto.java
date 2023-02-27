@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.fee.calculation.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WfebOgFeeDto {
@@ -33,6 +35,20 @@ public class WfebOgFeeDto {
         String ogLevl1,
         String ogLevl2,
         String ogLevl3
+    ) {}
+
+    @ApiModel(value = "WfebOgFeeDto-SearchWmReq")
+    public record SearchWmReq(
+        @NotBlank
+        String perfYm,
+        String no
+
+    ) {}
+
+    @ApiModel(value = "WfebOgFeeDto-SaveReq")
+    public record SaveReq(
+        @NotBlank
+        String perfYm
     ) {}
 
     // *********************************************************
@@ -547,5 +563,49 @@ public class WfebOgFeeDto {
         String col51,
         String col52,
         String col53
+    ) {}
+
+    @ApiModel(value = "WfebOgFeeDto-SearchWmRes")
+    public record SearchWmRes(
+        String col1, /*총괄단*/
+        String col2, /*지역단*/
+        String col3, /*지점*/
+        String col4, /*번호*/
+        String col5, /*성명*/
+        String col6, /*직책*/
+        int col7, /*차월*/
+        String col8, /*개시월*/
+        String col9, /*해약월*/
+        String col10, /*최종해약월*/
+        int col11, /*재개시차월*/
+        String col12, /*정착수수료지급유형*/
+        int col13, /*수수료계*/
+        int col14, /*BS인정건수*/
+        int col15, /*인정건수*/
+        int col16, /*기변1건수*/
+        int col17, /*대상건수*/
+        int col18, /*방문완료건수*/
+        int col19, /*W1급지건수*/
+        int col20, /*W2급지건수*/
+        int col21, /*방문실적수수료*/
+        int col22, /*수수료율*/
+        int col23, /*방문수수료*/
+        int col24, /*판매장려수수료*/
+        int col25, /*판매미팅수수료*/
+        int col26, /*정착수수료*/
+        int col27, /*정착보완수수료*/
+        int col28, /*급지수수료*/
+        int col29, /*자재실장수수료*/
+        int col30, /*통신보조수수료*/
+        int col31, /*기타수수료*/
+        int col32, /*유니폼수수료*/
+        int col33, /*사전방문수수료*/
+        int col34, /*스타트업월*/
+        int col35, /*OJT일수*/
+        int col36, /*5일배정수*/
+        String col37, /*중급수료여부*/
+        String col38, /*매니저정착2 수료여부*/
+        int col39, /*미팅일수*/
+        String col40 /*보수교육여부*/
     ) {}
 }
