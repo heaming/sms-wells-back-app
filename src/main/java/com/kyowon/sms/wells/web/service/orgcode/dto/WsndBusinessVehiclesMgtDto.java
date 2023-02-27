@@ -89,7 +89,12 @@ public class WsndBusinessVehiclesMgtDto {
         String hipsCdnoEncr,
         String vhcDsbRmkCn,
         String fnlMdfcDtm
-    ) {}
+    ) {
+        public CreateReq {
+            rflngCdnoEncr = DbEncUtil.enc(rflngCdnoEncr);
+            hipsCdnoEncr = DbEncUtil.enc(hipsCdnoEncr);
+        }
+    }
 
     // 차량지급등록 Edit Request Dto
     @ApiModel(value = "WsndBusinessVehiclesMgtDto-EditReq")
@@ -115,7 +120,12 @@ public class WsndBusinessVehiclesMgtDto {
         String fnlMdfcDtm,
         String fnlMdfcUsrNmSet,
         String fnlMdfcDeptNm
-    ) {}
+    ) {
+        public EditReq {
+            rflngCdnoEncr = DbEncUtil.enc(rflngCdnoEncr);
+            hipsCdnoEncr = DbEncUtil.enc(hipsCdnoEncr);
+        }
+    }
 
     // 차량번호조회 Search Result Dto
     @ApiModel(value = "WsndBusinessVehiclesMgtDto-SearchVehiclesRes")
