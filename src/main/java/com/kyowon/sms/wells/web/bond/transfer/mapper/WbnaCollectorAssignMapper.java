@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.bond.transfer.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.bond.transfer.dvo.WbnaCollectorAssignDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.*;
@@ -25,10 +26,20 @@ public interface WbnaCollectorAssignMapper {
     );
 
     PagingResult<SearchDetailRes> selectCollectorAssignDetailPages(
-        SearchReq dto, PageInfo pageInfo
+        SearchDetailReq dto, PageInfo pageInfo
     );
 
     List<SearchDetailRes> selectCollectorAssignDetailPages(
+        SearchDetailReq dto
+    );
+
+    Integer selectHasCollectorAssing(
         SearchReq dto
     );
+
+    int updateCollectorAssingsConfirm(WbnaCollectorAssignDvo dvo);
+
+    int updateCollectorAssing(WbnaCollectorAssignDvo dvo);
+
+    int updateCollectorAssingForBondAssignItemization(WbnaCollectorAssignDvo dvo);
 }
