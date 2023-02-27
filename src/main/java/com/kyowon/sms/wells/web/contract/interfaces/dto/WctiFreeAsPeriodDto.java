@@ -4,12 +4,12 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WctiFreeASPeriodDto {
+public class WctiFreeAsPeriodDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
     // 무상 AS 기간 Search Request Dto
-    @ApiModel("WctiFreeASPeriodDto-FindReq")
+    @ApiModel("WctiFreeAsPeriodDto-FindReq")
     public record FindReq(
         @NotBlank
         String CNTR_NO,
@@ -21,7 +21,7 @@ public class WctiFreeASPeriodDto {
     // Result Dto
     // *********************************************************
     // 무상 AS 기간 Search Result Dto
-    @ApiModel("WctiFreeASPeriodDto-FindRes")
+    @ApiModel("WctiFreeAsPeriodDto-FindRes")
     public record FindRes(
         String FRISU_AS_MCN,
         String SS_FRISU_AS_MCN

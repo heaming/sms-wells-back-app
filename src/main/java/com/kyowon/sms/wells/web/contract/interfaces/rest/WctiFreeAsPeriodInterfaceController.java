@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeASPeriodDto.FindReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeASPeriodDto.FindRes;
-import com.kyowon.sms.wells.web.contract.interfaces.service.WctiFreeASPeriodService;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeAsPeriodDto.FindReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeAsPeriodDto.FindRes;
+import com.kyowon.sms.wells.web.contract.interfaces.service.WctiFreeAsPeriodService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -23,13 +23,13 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiFreeASPeriodInterfaceController {
+public class WctiFreeAsPeriodInterfaceController {
 
-    private final WctiFreeASPeriodService service;
+    private final WctiFreeAsPeriodService service;
 
     @ApiOperation(value = "[EAI_WSSI1059] 삼성제품 무상 AS 기간 조회", notes = "계약예외처리를 통한 삼성 무상 AS 건 및 기간 및 상품에 따른 무상 AS 기간 조회")
-    @PostMapping("/free-AS-periods")
-    public EaiWrapper getFreeASPeriod(
+    @PostMapping("/free-as-periods")
+    public EaiWrapper getFreeAsPeriod(
         @Valid
         @RequestBody
         EaiWrapper<FindReq> reqWrapper
@@ -38,7 +38,7 @@ public class WctiFreeASPeriodInterfaceController {
         EaiWrapper<FindRes> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출 및 Response Body 세팅
-        resWrapper.setBody(service.getFreeASPeriod(reqWrapper.getBody()));
+        resWrapper.setBody(service.getFreeAsPeriod(reqWrapper.getBody()));
 
         return resWrapper;
     }
