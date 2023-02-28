@@ -35,11 +35,11 @@ public class WctaRentalAccountMgtController {
     @ApiOperation(value = "렌탈 계정 관리 현황 - 상품별 조회", notes = "렌탈 계정 관리 현황 - 상품별 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "20220101"),
-        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "20221231"),
-        @ApiImplicitParam(name = "pdMclsfId", value = "상품군", paramType = "query"),
-        @ApiImplicitParam(name = "basePdCd", value = "상품코드", paramType = "query"),
-        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query"),
+        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "202201"),
+        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "202212"),
+        @ApiImplicitParam(name = "pdMclsfId", value = "상품군", paramType = "query", example = "PDC000000000165"),
+        @ApiImplicitParam(name = "basePdCd", value = "상품코드", paramType = "query", example = "WM07104845"),
+        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
     })
     @GetMapping("/products/paging")
     public PagingResult<SearchBpdRentalAccountRes> getBpdRentalAccount(
@@ -53,11 +53,11 @@ public class WctaRentalAccountMgtController {
     @ApiOperation(value = "렌탈 계정 관리 현황 - 상품별 조회", notes = "렌탈 계정 관리 현황 - 상품별 조회 후 엑셀 다운로드 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "20220101"),
-        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "20221231"),
-        @ApiImplicitParam(name = "pdMclsfId", value = "상품군", paramType = "query"),
-        @ApiImplicitParam(name = "basePdCd", value = "상품코드", paramType = "query"),
-        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query"),
+        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "202201"),
+        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "202212"),
+        @ApiImplicitParam(name = "pdMclsfId", value = "상품군", paramType = "query", example = "PDC000000000165"),
+        @ApiImplicitParam(name = "basePdCd", value = "상품코드", paramType = "query", example = "WM07104845"),
+        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
     })
     @GetMapping("/products/excel-download")
     public List<SearchBpdRentalAccountRes> getBpdRentalAccountExcelDownload(
@@ -69,11 +69,11 @@ public class WctaRentalAccountMgtController {
     @ApiOperation(value = "렌탈 계정 관리 현황 - 조직별 조회", notes = "렌탈 계정 관리 현황 - 조직별 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "20220101"),
-        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "20221231"),
-        @ApiImplicitParam(name = "dgr1LevlOgNm", value = "총괄단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr2LevlOgNm", value = "지역단", paramType = "query"),
-        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query"),
+        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "202201"),
+        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "202212"),
+        @ApiImplicitParam(name = "dgr1LevlOgCd", value = "총괄단", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
     })
     @GetMapping("/organizations/paging")
     public PagingResult<SearchByoRentalAccountRes> getByoRentalAccount(
@@ -87,11 +87,11 @@ public class WctaRentalAccountMgtController {
     @ApiOperation(value = "렌탈 계정 관리 현황 - 조직별 조회", notes = "렌탈 계정 관리 현황 - 조직별 조회 후 엑셀 다운로드 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "20220101"),
-        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "20221231"),
-        @ApiImplicitParam(name = "dgr1LevlOgNm", value = "총괄단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr2LevlOgNm", value = "지역단", paramType = "query"),
-        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query"),
+        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "202201"),
+        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "202212"),
+        @ApiImplicitParam(name = "dgr1LevlOgCd", value = "총괄단", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
     })
     @GetMapping("/organizations/excel-download")
     public List<SearchByoRentalAccountRes> getByoRentalAccountExcelDownload(
