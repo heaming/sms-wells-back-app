@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncCustomerSearchMapper">
+    <select id="selectCustomers" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerSearchDto$SearchRes">
+        SELECT BND_BIZ_DV_CD
+             , BND_BIZ_DV_NM
+             , CNTR_NO
+             , CNTR_SN
+             , CST_KNM
+             , CLCTAM_PRTNR_NO
+             , PRTNR_KNM
+             , CST_NO
+             , SPP_ZIP
+             , SPP_ADR
+             , SPP_DTL_ADR
+             , ADR
+             , CNTR_LOCARA_TNO
+             , CNTR_EXNO_ENCR
+             , CNTR_IDV_TNO
+             , CNTR_CRAL_LOCARA_TNO
+             , CNTR_MEXNO_ENCR
+             , CNTR_CRAL_IDV_TNO
+             , IST_LOCARA_TNO
+             , IST_EXNO_ENCR
+             , IST_IDV_TNO
+             , IST_CRAL_LOCARA_TNO
+             , IST_MEXNO_ENCR
+             , IST_CRAL_IDV_TNO
+             , SAFE_KEY
+             , BND_CLCTN_PRP_DV_CD
+             , BND_CLCTN_PRP_DV_NM
+             , BND_CLCTN_PRP_RSON_CD
+             , BND_CLCTN_PRP_RSON_NM
+          FROM
+             (
+               SELECT T1.BND_BIZ_DV_CD    /* 채권업무구분코드 */
+                    , F_CMZ_CD_NM(#{session.tenantId}, 'BND_BIZ_DV_CD', T1.BND_BIZ_DV_CD) AS BND_BIZ_DV_NM  /* 채권업무구분코드명 */
+                    , T1.CNTR_NO  /* 계약번호 */
+                    , T1.CNTR_SN  /* 계약일련번호 */
+                    , ( SELECT CST_KNM
+                        FROM TB_CUBS_CST_BAS
+                        WHERE CST_NO = T1.CST_NO)  AS CST_KNM  /* 고객명 */
+                     , T1.CLCTAM_PRTNR_NO /* 집급담당파트너번호 */
+                     , ( SELECT PRTNR_KNM
+                         FROM TB_OGBS_PRTNR_BAS
+                         WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO)  AS PRTNR_KNM   /* 집급담당파트너명 */
+                     , T1.CST_NO /* 고객번호 */
+                     , T2.SPP_ZIP /* 계약처우편번호 */
+                     , T2.SPP_ADR /* 계약처기본주소 */
+                     , T2.SPP_DTL_ADR  /* 계약처상세주소 */
+                     , T2.SPP_ADR || T2.SPP_DTL_ADR AS ADR
+                     , T2.LOCARA_TNO AS CNTR_LOCARA_TNO /* 계약처지역전화번호 */
+                     , T2.EXNO_ENCR  AS CNTR_EXNO_ENCR  /* 계약처전화국번호암호화 */
+                     , T2.IDV_TNO    AS CNTR_IDV_TNO    /* 계약처휴대개별전화번호 */
+                     , T2.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO  /* 계약처휴대지역전화번호 */
+                     , T2.MEXNO_ENCR  AS CNTR_MEXNO_ENCR           /* 계약처휴대전화국번호암호화 */
+                     , T2.CRAL_IDV_TNO  AS CNTR_CRAL_IDV_TNO       /* 계약처휴대전화번호3 */
+                     , T3.LOCARA_TNO AS IST_LOCARA_TNO   /* 설치처지역전화번호 */
+                     , T3.EXNO_ENCR AS IST_EXNO_ENCR     /* 설치처전화국번호암호화 */
+                     , T3.IDV_TNO AS IST_IDV_TNO         /* 설치처개별전화번호 */
+                     , T3.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO   /* 설치처휴대지역전화번호 */
+                     , T3.MEXNO_ENCR AS IST_MEXNO_ENCR             /* 설치처휴대전화국번호암호화 */
+                     , T3.CRAL_IDV_TNO AS IST_CRAL_IDV_TNO         /* 설치처휴대개별전화번호 */
+                     , ( SELECT SFK_VAL
+                         FROM TB_CUBS_CST_BAS
+                         WHERE CST_NO = T1.CST_NO) AS SAFE_KEY  /* 세이프키*/
+                     , T4.BND_CLCTN_PRP_DV_CD  /* 채권속성코드 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'BND_CLCTN_PRP_DV_CD', T4.BND_CLCTN_PRP_DV_CD) AS BND_CLCTN_PRP_DV_NM  /* 채권속성명 */
+                     , T4.BND_CLCTN_PRP_RSON_CD  /* 속성사유코드 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'BND_CLCTN_PRP_RSON_CD', T4.BND_CLCTN_PRP_RSON_CD) AS BND_CLCTN_PRP_RSON_NM  /* 속성사유명 */
+                  FROM TB_CBBO_BND_CNSL_BAS_IZ T1
+                  LEFT OUTER JOIN (
+                                    SELECT CR.CNTR_ADRPC_ID
+                                         , CB.ADR_ID
+                                         , CR.DTL_CNTR_NO
+                                         , CR.DTL_CNTR_SN
+                                         , CB.LOCARA_TNO
+                                         , CB.EXNO_ENCR
+                                         , CB.IDV_TNO
+                                         , CB.CRAL_LOCARA_TNO
+                                         , CB.MEXNO_ENCR
+                                         , CB.CRAL_IDV_TNO
+                                         , NVL(AB.NEW_ADR_ZIP, AB.OLD_ADR_ZIP) AS SPP_ZIP
+                                         , NVL(AB.RNADR, AB.LTN_ADR) AS SPP_ADR
+                                         , NVL(AB.RDADR, AB.LTN_DTL_ADR) AS SPP_DTL_ADR
+                                      FROM TB_SSCT_CNTR_ADR_REL CR
+                                      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB
+                                        ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
+                                      LEFT OUTER JOIN TB_GBCO_ADR_BAS AB
+                                        ON AB.ADR_ID = CB.ADR_ID
+                                     WHERE CR.CNTR_UNIT_TP_CD = '020'
+                                       AND CR.ADRPC_TP_CD = '1'   /* 계약주소 */
+                                       AND CR.DTA_DL_YN = 'N'
+                                  ) T2
+                    ON T2.DTL_CNTR_NO = T1.CNTR_NO
+                   AND T2.DTL_CNTR_SN = T1.CNTR_SN
+                  LEFT OUTER JOIN (
+                                    SELECT CR.CNTR_ADRPC_ID
+                                         , CR.DTL_CNTR_NO
+                                         , CR.DTL_CNTR_SN
+                                         , CB.LOCARA_TNO
+                                         , CB.EXNO_ENCR
+                                         , CB.IDV_TNO
+                                         , CB.CRAL_LOCARA_TNO
+                                         , CB.MEXNO_ENCR
+                                         , CB.CRAL_IDV_TNO
+                                      FROM TB_SSCT_CNTR_ADR_REL CR
+                                      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB
+                                        ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
+                                     WHERE CR.CNTR_UNIT_TP_CD = '020'
+                                       AND CR.ADRPC_TP_CD = '2'  /* 설치주소 */
+                                       AND CR.DTA_DL_YN = 'N'
+                                  ) T3
+                    ON T3.DTL_CNTR_NO = T1.CNTR_NO
+                   AND T3.DTL_CNTR_SN = T1.CNTR_SN
+                  LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T4
+                    ON T4.CNTR_NO = T1.CNTR_NO
+                   AND T4.CNTR_SN = T1.CNTR_SN
+             )
+         WHERE 1=1
+           <if test='@MybatisUtils@isNotEmpty(clctamPrtnrNo)'>
+           AND CLCTAM_PRTNR_NO = #{clctamPrtnrNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cstKnm)'>
+           AND CST_KNM = #{cstKnm}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrCralLocaraTno) and @MybatisUtils@isNotEmpty(cntrMexnoEncr) and @MybatisUtils@isNotEmpty(cntrCralIdvTno)'>
+           AND (CNTR_CRAL_LOCARA_TNO = #{cntrCralLocaraTno} AND CNTR_MEXNO_ENCR = #{cntrMexnoEncr} AND CNTR_CRAL_IDV_TNO = #{cntrCralIdvTno})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(istCralLocaraTno) and @MybatisUtils@isNotEmpty(istMexnoEncr) and @MybatisUtils@isNotEmpty(istCralIdvTno)'>
+           AND (IST_CRAL_LOCARA_TNO = #{istCralLocaraTno} AND IST_MEXNO_ENCR = #{istMexnoEncr} AND IST_CRAL_IDV_TNO = #{istCralIdvTno})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(bndClctnPrpDvCd)'>
+           AND BND_CLCTN_PRP_DV_CD = #{bndClctnPrpDvCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(bndClctnPrpRsonCd)'>
+           AND BND_CLCTN_PRP_RSON_CD = #{bndClctnPrpRsonCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrLocaraTno) and @MybatisUtils@isNotEmpty(cntrExnoEncr) and @MybatisUtils@isNotEmpty(cntrIdvTno)'>
+           AND (CNTR_LOCARA_TNO = #{cntrLocaraTno} AND CNTR_EXNO_ENCR = #{cntrExnoEncr} AND CNTR_IDV_TNO = #{cntrIdvTno})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(istLocaraTno) and @MybatisUtils@isNotEmpty(istExnoEncr) and @MybatisUtils@isNotEmpty(istIdvTno)'>
+           AND (IST_LOCARA_TNO = #{istLocaraTno} AND IST_EXNO_ENCR = #{istExnoEncr} AND IST_IDV_TNO = #{istIdvTno})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(adr) '>
+           AND ADR LIKE '%' || #{adr} || '%'
+           </if>
+    </select>
+</mapper>
