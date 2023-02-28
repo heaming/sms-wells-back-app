@@ -76,7 +76,7 @@ public class WcteSalesLimitController {
     @ApiOperation(value = "wells 사업자 가입제한 대상 삭제", notes = "wells 사업자 가입제한 대상 관리를 삭제한다.")
     @DeleteMapping
     public SaveResponse removeEntrepreneurJoinLmOjss(
-        @RequestParam
+        @RequestBody
         List<String> sellLmIds
     ) {
         return SaveResponse.builder()

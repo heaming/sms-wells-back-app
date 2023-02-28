@@ -59,14 +59,12 @@ public class WcteSalesLimitDto {
     // wells 사업자 가입제한 대상 관리 Search Result Dto
     @ApiModel("WcteSalesLimitDto-SearchEntrpJLmOjRes")
     public record SearchEntrpJLmOjRes(
+        String sellLmId,
         String sellLmDv,
         String sellLmBzrno,
         String dlpnrNm,
         String dlgpsNm,
         String bryyMmdd,
-
-        String rownum,
-
         String sellLmRsonCd,
         String sellLmOcDtm,
         String sellLmRlsDtm,
