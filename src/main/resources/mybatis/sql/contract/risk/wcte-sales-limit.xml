@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.risk.mapper.WcteSalesLimitMapper">
     <select id="selectEntrepreneurJoinLmOjss" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WcteSalesLimitDto$SearchEntrpJLmOjRes">
-        SELECT NVL2(T1.SELL_LM_RLS_DTM, '3', '4') AS SELL_LM_DV /* 제한 등록/해제 구분  3:등록, 4: 해제*/
+        SELECT NVL2(T1.SELL_LM_RLS_DTM, '4', '3') AS SELL_LM_DV /* 제한 등록/해제 구분  3:등록, 4: 해제*/
              , T1.SELL_LM_ID
              , T1.SELL_LM_BZRNO        /* 사업자번호 */
              , T2.DLPNR_NM             /* 거래처명 */
@@ -13,9 +13,9 @@
              , SUBSTR(T1.SELL_LM_RLS_DTM, 0, 8) AS  SELL_LM_RLS_DTM  /* 해제일자 */
              , NVL2(T1.SELL_LM_RLS_DTM, T1.SELL_LM_RSON_CN, T1.SELL_LM_RLS_CN) AS SELL_RSON    /*발생사유*/
              , T1.FST_RGST_USR_ID                               AS SELL_LM_PSIC                /* 제한 등록 담당자 ID */
-             , NVL2(T1.SELL_LM_RLS_DTM, '', T1.FNL_MDFC_USR_ID) AS SELL_LM_RLS_PSIC            /* 제한 해제 담당자 ID */
+             , NVL2(T1.SELL_LM_RLS_DTM, T1.FNL_MDFC_USR_ID, '') AS SELL_LM_RLS_PSIC            /* 제한 해제 담당자 ID */
              , T3.USR_NM                                        AS SELL_LM_PSIC_NM             /* 제한 등록 담당자 NM */
-             , NVL2(T1.SELL_LM_RLS_DTM, '',T4.USR_NM)           AS SELL_LM_RLS_PSIC_NM         /* 제한 등록 담당자 NM */
+             , NVL2(T1.SELL_LM_RLS_DTM, T4.USR_NM, '')           AS SELL_LM_RLS_PSIC_NM         /* 제한 등록 담당자 NM */
         FROM TB_SSCT_SELL_LM_OJ_IZ T1         /* T1.판매제한대상내역 */
         LEFT OUTER JOIN TB_GBCO_DLPNR_BAS T2  /* T2.거래처 기본*/
           ON T2.DLPNR_CD = T1.SELL_LM_BZRNO   /*사업자번호*/
@@ -60,10 +60,18 @@
             , SELL_LM_BZRNO  /* 사업자번호 */
             , SELL_LM_RSON_CD /* 불량코드 */
             , SELL_LM_OC_DTM /* 발생일자 */
-            , SELL_LM_RSON_CN /* 판매제한사유내용 */
-            , SELL_LM_RLS_CN /* 판매제한해제내용 */
+        <choose>
+            <when test="@MybatisUtils@equals(sellLmDv, '3')">
+                , SELL_LM_RSON_CN /* 판매제한사유내용 */
+            </when>
+            <otherwise>
+                , SELL_LM_RLS_CN /* 판매제한해제내용 */
+            </otherwise>
+
+        </choose>
             , SELL_LM_RLS_DTM /* 판매제한해제일시 */
             , SELL_LM_CNTR_SN /* 판매제한계약일련번호 */
+            , SELL_LM_OJ_DRM_CD  /* 판매제한대상식별코드 : 사업자등록번호 */
             , VL_STRT_DTM /* 유효시작일시 */
             , VL_END_DTM /* 유효종료일시 */
             , DTA_DL_YN /* 삭제여부 */
@@ -73,10 +81,11 @@
             , #{sellLmBzrno}
             , #{sellLmRsonCd}
             , NVL2(#{sellLmOcDtm},#{sellLmOcDtm}||'000000','')
-            , #{sellLmRsonCn}
+            , #{sellLmRson}
             , #{sellLmRlsCn}
             , NVL2(#{sellLmRlsDtm},#{sellLmRlsDtm}||'000000','')
             , #{sellLmCntrSn}
+            , '7'
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24mmSS')
             , '99991231235959'
             , NVL(#{dtaDlYn}, 'N')

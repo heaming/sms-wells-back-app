@@ -17,7 +17,7 @@ public class WcteSellLmOjIzDvo {
     private String sellLmRsonCn;
     private String sellLmRlsCn;
     private String rowState;
-    private String rownum;
+    private String dataRow;
     private String sellLmRsonCd;
     private String sellLmOcDtm;
     private String sellLmRlsDtm;

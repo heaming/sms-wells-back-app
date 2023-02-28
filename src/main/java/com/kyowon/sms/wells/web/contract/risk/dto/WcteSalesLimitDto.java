@@ -37,12 +37,12 @@ public class WcteSalesLimitDto {
         String rowState, //Row의 상태
         String sellLmId,
 
+        String sellLmRson,
         String sellLmRsonCd,
         String sellLmRsonCn,
         String sellLmRlsCn,
-
         String sellLmCntrSn,
-        String rownum,
+        String dataRow,
         String sellLmOcDtm,
         String sellLmRlsDtm,
         String sellRson,
