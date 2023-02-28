@@ -39,9 +39,13 @@ public class WctcDangerArbitDto {
         String dangOjPntnrNm,
         String dangOjPrtnrPstnDvNm,
         String dgr1LevlDgPrtnrNo,
+        String dgr1LevlDgPrtnrNm,
         String dgr2LevlDgPrtnrNo,
+        String dgr2LevlDgPrtnrNm,
         String bznsSpptPrtnrNo,
+        String bznsSpptPrtnrNm,
         String dgr3LevlDgPrtnrNo,
+        String dgr3LevlDgPrtnrNm,
         String dangChkNm,
         String dangArbitCd,
         String dangUncvrCt,
@@ -49,6 +53,47 @@ public class WctcDangerArbitDto {
         String dangArbitOgId,
         String fstRgstUsrId,
         String fstRgstDt
+    ) {}
+    // *********************************************************
+    // Response Dto
+    // *********************************************************
+    @ApiModel(value = "WctcDangerArbitDto-SearchOrganizationRes")
+    public record SearchOrganizationRes(
+        String prtnrNo,
+        String prtnrKnm,
+        String pstnDvCd,
+        String pstnDvNm,
+        String dgr1LevlOgCd,
+        String dgr1LevlOgNm,
+        String dgr1LevlDgPrtnrNo,
+        String dgr1LevlOgId,
+        String dgr1LevlDgPstnDvCd,
+        String dgr2LevlOgCd,
+        String dgr2LevlOgNm,
+        String dgr2LevlDgPrtnrNo,
+        String dgr2LevlOgId,
+        String dgr2LevlDgPstnDvCd,
+        String dgr3LevlOgCd,
+        String dgr3LevlOgNm,
+        String dgr3LevlDgPrtnrNo,
+        String dgr3LevlOgId,
+        String dgr3LevlDgPstnDvCd,
+        String dgr4LevlOgCd,
+        String dgr4LevlOgNm,
+        String dgr4LevlDgPrtnrNo,
+        String dgr4LevlOgId,
+        String dgr4LevlDgPstnDvCd,
+        String dgr5LevlOgCd,
+        String dgr5LevlOgNm,
+        String dgr5LevlDgPrtnrNo,
+        String dgr5LevlOgId,
+        String bizSpptPrtnrNo,
+        String ogUpbrngPrtnrNo,
+        String ogCd,
+        String ogId,
+        String ogNm,
+        String baseYm,
+        String ogTpCd
     ) {}
 
     // *********************************************************
