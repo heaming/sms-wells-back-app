@@ -73,7 +73,9 @@ public class WctaContractDto {
     @ApiModel("WctaContractDto-SearchConfirmApprovalBaseReq")
     public record SearchConfirmApprovalBaseReq(
         String cntrAprAkDvCd,
-        String standardDt
+        String standardDt,
+        boolean aprReqCtgValid
+
     ) {}
 
     //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 저장 Save Result Dto
