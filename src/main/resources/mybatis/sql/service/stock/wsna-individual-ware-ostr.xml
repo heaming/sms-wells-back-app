@@ -42,6 +42,13 @@
             WHERE STOC_IZ.WARE_NO = HGR_WARE_NO
               AND STOC_IZ.ITM_PD_CD = ITM_PD_CD ) STOC_IZ_UP_ON_QTY  /*센터재고*/
          , NED_QTY /*소요수량*/
+         , CASE WHEN (  DECODE (PD_PRP_VAL12, 0, 0, (OUT_QTY / PD_PRP_VAL12))
+		                 - FLOOR (DECODE (PD_PRP_VAL12, 0, 0, (OUT_QTY / PD_PRP_VAL12)))
+		                 ) > 0
+		        THEN (FLOOR (DECODE (PD_PRP_VAL12, 0, 0, (OUT_QTY / PD_PRP_VAL12))) + 1
+		                 )
+		        ELSE FLOOR (DECODE (PD_PRP_VAL12, 0, 0, (OUT_QTY / PD_PRP_VAL12)))
+		    END  ASN_IZ_OUT_BOX_QTY
          , UNDER_20PER /*배정수량 대비 재고수량 부족*/
          , FILT_USE_QTY /*필터소요량*/
           , NVL((SELECT PITM_STOC_A_GD_QTY - MMT_STOC_A_GD_QTY
@@ -59,7 +66,7 @@
                  , CASE WHEN NVL(PRP_DTL.PD_PRP_VAL12,0) > 0
 	                    THEN ASN_IZ.CNFM_QTY
 	                    ELSE ASN_IZ.CNFM_QTY
-                   END  AS CFRM_QTY
+                    END  AS CFRM_QTY
 	             , CASE WHEN NVL(PRP_DTL.PD_PRP_VAL12,0) > 0
 	                    THEN ROUND (  NVL (ASN_IZ.CNFM_QTY, 0)
 	                                / NVL(PRP_DTL.PD_PRP_VAL12,0)

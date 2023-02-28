@@ -34,20 +34,21 @@ public class WsnaIndividualWareOstrDto {
 
     @ApiModel("WsnaIndividualWareOstrDto-SearchRes")
     public record SearchRes(
-        String wareNm,
-        String itemCd,
-        String pdAbbrNm,
-        String mgtGdCd,
-        String matGdCd,
+        String wareNm, /*창고명*/
+        String itmPdCd, /*품목상품코드*/
+        String pdAbbrNm, /*상품약어명*/
+        String mgtGdCd, /*관리단위코드*/
+        String matGdCd, /*자재등급코드*/
         String pdPrpVal05,
-        String mgtUntNm,
-        String boxUnitQty,
-        String mcbyAcuOstrQty,
-        String oustQtyBak,
+        String mgtUntNm, /*관리단위명*/
+        String boxUnitQty, /*박스단위수량*/
+        String mcbyAcuOstrQty, /*월별누적출고수량*/
+        String outQtyBak,
         String ostrWareNo,
         String strWareNo,
         String wareDvCd,
         String wareMngtPrtnrNo,
+        String asnIzOutBoxQty,
         String crtlStocQty,
         String itmQomAsnNo,
         String pdPrpVal19,
@@ -57,15 +58,19 @@ public class WsnaIndividualWareOstrDto {
         String filtUseQty,
         String sapMatCd,
         String under20per,
-        String toutQty,
-        String nedQty,
-        String rmks,
-        String ostrIzOstrTpCd,
-        String ostrIzOstrWareNo,
-        String ostrIzOstrDt,
-        String ostrIzItmOstrNo,
-        String ostrIzOstrSn,
-        String ostrIzSellRcpdt
+        String toutQty, /**/
+        String nedQty, /*소요수량*/
+        String rmks, /*비고*/
+        String ostrIzOstrTpCd, /*출고유형*/
+        String ostrIzOstrWareNo, /*출고창고번호*/
+        String ostrIzOstrDt, /*출고일자*/
+        String ostrIzItmOstrNo, /*품목출고번호*/
+        String ostrIzOstrSn, /*출고일련번호*/
+        String ostrIzSellRcpdt, /*판매접수일자*/
+        String cfrmQty, /*확정수량*/
+        String outQty, /*출고수량*/
+        String accBoxQty, /*물량배정출고박스수량*/
+        String outBoxQty /*출고박스수량*/
     ) {}
 
     @ApiModel("WsnaIndividualWareOstrDto-LogisticReq")
