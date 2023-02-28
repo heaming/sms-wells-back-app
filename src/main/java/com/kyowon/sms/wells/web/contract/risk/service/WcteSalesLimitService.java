@@ -4,7 +4,6 @@ import static com.kyowon.sms.wells.web.contract.risk.dto.WcteSalesLimitDto.*;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,10 +52,10 @@ public class WcteSalesLimitService {
             processCount += switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_UPDATED -> {
                     if ("3".equals(sellLmDv))
-                        BizAssert.hasText(sellLmRlsDtm, "MSG_ALT_BAD_RLS_ERR", param);
+                        BizAssert.isNull(sellLmRlsDtm, "MSG_ALT_BAD_RLS_ERR", param);
 
                     if ("4".equals(sellLmDv))
-                        BizAssert.isFalse(Objects.isNull(sellLmRlsDtm), "MSG_ALT_RLS_DT_ERR", param);
+                        BizAssert.hasText(sellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
 
                     String sellLmBzrno = mapper.selectEntrepreneurJoinLmOjssCheck(dvo.getSellLmId());
                     BizAssert.isTrue(dvo.getSellLmBzrno().equals(sellLmBzrno), "MSG_ALT_LM_BZRNO_ERR");
@@ -68,7 +67,7 @@ public class WcteSalesLimitService {
                 }
                 case CommConst.ROW_STATE_CREATED -> {
                     if ("3".equals(sellLmDv))
-                        BizAssert.hasText(sellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
+                        BizAssert.isNull(sellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
 
                     BizAssert.isTrue(sellLmOcDtm.length() == 8, "MSG_ALT_BAD_OC_DT_ERR");
 
