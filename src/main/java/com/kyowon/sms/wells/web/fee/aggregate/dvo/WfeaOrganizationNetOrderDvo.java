@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WfeaOgNetOrderDvo {
+public class WfeaOrganizationNetOrderDvo {
 
     String perfYm; //실적년월
     String ogTp; //조직유형
