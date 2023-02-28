@@ -23,6 +23,4 @@ public interface WsndBusinessVehiclesMgtMapper {
     List<SearchVehiclesRes> selectAllVehicles();
 
     String selectVehicleDupYn(CreateReq dto);
-
-    String selectVehicleDupYn(EditReq dto);
 }

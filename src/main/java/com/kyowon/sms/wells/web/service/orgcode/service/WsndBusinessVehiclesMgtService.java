@@ -47,9 +47,6 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int editBusinessVehicle(EditReq dto) {
-        String vehicleDupYn = mapper.selectVehicleDupYn(dto);
-        BizAssert.isNull(vehicleDupYn, "MSG_ALT_SMD_PSIC_VHC_DSB");
-
         WsndBusinessVehiclesMgtDvo dvo = converter.mapEditReqToBusinessVehiclesMgtDvo(dto);
         return mapper.mergeBusinessVehicle(dvo);
     }
