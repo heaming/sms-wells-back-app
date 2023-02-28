@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SaveReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchOrganizationRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.service.WctcDangerArbitService;
@@ -43,7 +44,7 @@ public class WctcDangerArbitController {
         @ApiImplicitParam(name = "brch", value = "지점", paramType = "query"),
         @ApiImplicitParam(name = "dangOjPrtnrNo", value = "사번", paramType = "query"),
     })
-    @GetMapping("/managerial-tasks")
+    @GetMapping("/managerial-tasks/paging")
     public PagingResult<SearchRes> getDangerArbitManagerial(
         @Valid
         SearchReq dto,
@@ -71,6 +72,22 @@ public class WctcDangerArbitController {
         SearchReq dto
     ) {
         return service.getDangerArbitManagerialExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "조직정보조회(비정도 영업 조치사항)", notes = "행위자사번을 통해 조직정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "발생년월", paramType = "query"),
+        @ApiImplicitParam(name = "pntnrNo", value = "행위자사번", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query"),
+    })
+    @GetMapping("/Organizations")
+    public List<SearchOrganizationRes> getOrganizationInfInqr(
+        String baseYm,
+        @NotEmpty
+        String pntnrNo,
+        String ogTpCd
+    ) {
+        return service.getOrganizationInfInqr(baseYm, pntnrNo, ogTpCd);
     }
 
     @ApiOperation(value = "비정도 영업 조치 사항 관리 삭제", notes = "비정도 영업 조치 사항 관리 삭제")

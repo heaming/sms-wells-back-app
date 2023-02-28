@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchOrganizationRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
@@ -18,6 +19,8 @@ public interface WctcDangerArbitMapper {
     List<SearchRes> selectDangerArbitManagerial(SearchReq dto);
 
     String selectDangChkId(String dangOjPrtnrNo, String dangOcStrtdt, String dangMngtPstnDvCd);
+
+    List<SearchOrganizationRes> selectOrganizationInfInqr(String baseYm, String pntnrNo, String ogTpCd);
 
     int updateDangerCheckIzDlYn(String dangChkId);
 
