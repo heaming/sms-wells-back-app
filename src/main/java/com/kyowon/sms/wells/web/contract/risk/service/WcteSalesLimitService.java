@@ -53,7 +53,7 @@ public class WcteSalesLimitService {
             processCount += switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_UPDATED -> {
                     if ("3".equals(sellLmDv))
-                        BizAssert.isTrue(Objects.isNull(sellLmRlsDtm), "MSG_ALT_BAD_RLS_ERR", param);
+                        BizAssert.hasText(sellLmRlsDtm, "MSG_ALT_BAD_RLS_ERR", param);
 
                     if ("4".equals(sellLmDv))
                         BizAssert.isFalse(Objects.isNull(sellLmRlsDtm), "MSG_ALT_RLS_DT_ERR", param);
@@ -68,7 +68,7 @@ public class WcteSalesLimitService {
                 }
                 case CommConst.ROW_STATE_CREATED -> {
                     if ("3".equals(sellLmDv))
-                        BizAssert.isTrue(Objects.isNull(sellLmRlsDtm), "MSG_ALT_RLS_DT_ERR", param);
+                        BizAssert.hasText(sellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
 
                     BizAssert.isTrue(sellLmOcDtm.length() == 8, "MSG_ALT_BAD_OC_DT_ERR");
 
