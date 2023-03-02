@@ -26,8 +26,10 @@ public class WsnaStoreDetailItemizationDto {
         String strWareDvCd,
         String strWareNoD,
         String strWareNoM,
+        String strWareDtlDvCd,
         String ostrWareNoD,
-        String ostrWareNoM
+        String ostrWareNoM,
+        String ostrWareDtlDvCd
     ) {}
 
     @ApiModel(value = "WsnaStoreDetailItemizationDto-SearchRes")
@@ -51,6 +53,13 @@ public class WsnaStoreDetailItemizationDto {
         String strWareChgCd, /*입고창고의 창고구분*/
         String ostrWareNoUp, /*출고창고의 상위테이블번호*/
         String ostrWareChgCd, /*출고창고의 창고구분*/
-        String sapMatCd /*sap코드*/
+        String sapMatCd, /*sap코드*/
+        String strTpNm, /*입고코드명*/
+        String mngtUnitNm, /*관리단위코드명*/
+        String itmGdNm, /*품목등급코드명*/
+        String strWareDtlDvCd, /*입고창고상세구분코드*/
+        String ostrWareDtlDvCd, /*출고창고상세구분코드*/
+        String ostrWareDtlDvNm/*출고창고상세구분명*/
+
     ) {}
 }
