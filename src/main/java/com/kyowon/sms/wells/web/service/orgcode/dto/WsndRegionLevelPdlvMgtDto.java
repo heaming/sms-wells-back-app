@@ -27,7 +27,7 @@ public class WsndRegionLevelPdlvMgtDto {
     public record SearchRes(
         String pdlvDvCd, /* 출고지구분코드 */
         String pdlvNo, /* 출고지번호 */
-        String apyStrtdtOrigin, /* 적용시작일 */
+        String apyStrtdtMax, /* 적용시작일-최대값 */
         String apyStrtdt, /* 적용시작일 */
         String apyEnddt, /* 적용종료일 */
         String pdlvNm, /* 출고지명 */
