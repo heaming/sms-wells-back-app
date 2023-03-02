@@ -21,33 +21,38 @@ public class WsnaMaterialsAssignStocksDto {
         String ogId, /* 조직ID */
         String prtnrNo, /* 사번 */
         String prtnrKnm, /* 담당자명 */
-        String hgrWareNo, /* 상위창고번호 */
+        String wareNo, /* 창고번호 */
         String wareDvCd, /* 창고구분코드 */
+        String wareDtlDvCd, /* 창고상세구분코드 */
         String ogTpCd /* 조직유형코드 */
     ) {}
 
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-SearchRes")
     public record SearchRes(
         String baseYm, /* 기준년월 */
+        String ogTpCd, /* 조직유형코드 */
         String prtnrNo, /* 파트너번호*/
         String prtnrKnm, /* 파트너명 */
         String ogId, /* 조직ID */
-        String hgrOgId, /* 상위조직ID */
         String ogCd, /* 조직코드 */
         String ogNm, /* 소속 */
+        String hgrOgId, /* 상위조직ID */
         String bldCd, /*빌딩코드*/
         String bldNm, /* 빌딩 */
         String wareNm, /* 창고명 */
         String wareNo, /* 창고번호 */
+        String wareDvCd, /* 창고구분코드 */
+        String wareDtlDvCd, /* 창고상세구분코드 */
         String hgrWareNm, /* 상위창고명 */
         String hgrWareNo, /* 상위창고번호 */
         String qomAsnApyYn, /*물량배정적용여부*/
         String didyDvCd, /*직배구분코드*/
+        String didyDvNm, /*독립매니저여부*/
         String adrUseYn, /*지정주소여부*/
         String wareAdrId, /*창고주소ID*/
-        String rmkCn, /*비고*/
-        String zipCd, /*우편번호*/
-        String addr /*주소*/
+        String rdadr, /*주소*/
+        String newAdrZip, /*우편번호*/
+        String rmkCn /*비고*/
     ) {}
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-CreateReq")
     public record CreateReq(

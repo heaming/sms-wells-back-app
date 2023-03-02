@@ -1,115 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMaterialsAssignStocksMapper">
-
-        <select id="selectMaterialsAssignStocks"
+    <select id="selectMaterialsAssignStocks"
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto$SearchRes">
-            SELECT T1.BASE_YM
-                 , T1.OG_ID
-                 , T1.HGR_OG_ID
-                 , T1.OG_TP_CD
-                 , T1.OG_CD
-                 , T1.OG_NM
-                 , T1.BLD_CD
-                 , T1.BLD_NM
-                 , T2.PRTNR_NO
-                 , T2.PRTNR_KNM
-                 , ( SELECT MAX(S1.APY_SN)
-                       FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1
-                      WHERE S1.PRTNR_NO = T3.PRTNR_NO) AS APY_SN
-                 , T3.QOM_ASN_APY_YN
-                 , T4.WARE_NO
-                 , T4.WARE_NM
-                 , T4.HGR_WARE_NO
-                 , ( SELECT S2.WARE_NM
-                       FROM TB_SVST_MCBY_WARE_IZ S2
-                      WHERE S2.WARE_NO = T4.HGR_WARE_NO
-                        AND S2.APY_YM = T4.APY_YM) AS HGR_WARE_NM
-                 , T4.DIDY_DV_CD
-                 , T4.ADR_USE_YN
-                 , T4.WARE_ADR_ID
-              FROM
-                 ( SELECT BASE_YM
-                        , OG_ID
-                        , HGR_OG_ID
-                        , OG_TP_CD
-                        , OG_CD
-                        , OG_NM
-                        , BLD_CD
-                        , BLD_NM
-                     FROM TB_OGBS_MM_OG_IZ
-                    WHERE BASE_YM = #{baseYm}
-                      /* AND OG_TP_CD = 'W02' */
-                      AND OG_CD IS NOT NULL
-                      AND OG_NM IS NOT NULL
-                      AND DTA_DL_YN = 'N'
-                    START WITH HGR_OG_ID = #{ogId}
-                  CONNECT BY PRIOR OG_ID = HGR_OG_ID
-                 ) T1
-             INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
-                ON T2.BASE_YM = T1.BASE_YM AND T2.OG_ID = T1.OG_ID
-             INNER JOIN TB_SVST_QOM_ASN_PRTNR_APY_IZ T3
-                ON T3.PRTNR_NO = T2.PRTNR_NO
-             INNER JOIN TB_SVST_MCBY_WARE_IZ T4
-                ON T4.WARE_MNGT_PRTNR_NO = T3.PRTNR_NO
-               AND T4.APY_YM = T1.BASE_YM
-           <where>
-             <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-               AND T3.PRTNR_NO = #{prtnrNo}
-             </if>
-             <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
-               AND T4.HGR_WARE_NO = #{hgrWareNo}
-             </if>
-               AND T2.DTA_DL_YN = 'N'
-               AND T3.DTA_DL_YN = 'N'
-               AND T4.DTA_DL_YN = 'N'
-               AND T4.WARE_USE_YN = 'Y'
-           </where>
+        SELECT T1.BASE_YM
+             , T1.OG_TP_CD
+             , T1.PRTNR_NO
+             , T1.PRTNR_KNM
+             , T1.OG_ID
+             , T1.OG_CD
+             , T1.OG_NM
+             , T2.QOM_ASN_APY_YN
+             , ( SELECT MAX(S1.APY_SN)
+                   FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1
+                  WHERE S1.PRTNR_NO = T1.PRTNR_NO
+               ) AS APY_SN
+             , T3.WARE_NO
+             , T3.WARE_NM
+             , T3.WARE_DV_CD
+             , T3.WARE_DTL_DV_CD
+             , T3.HGR_WARE_NO
+             , T3.DIDY_DV_CD
+             , ( CASE WHEN T3.DIDY_DV_CD  = '2' THEN '독립'
+                      ELSE '개인'
+                 END
+               ) AS DIDY_DV_NM
+             , T3.BLD_CD
+             , T3.ADR_USE_YN
+             , T3.RMK_CN
+             , T3.WARE_ADR_ID
+             , T4.RNADR
+             , T4.RDADR
+             , T4.NEW_ADR_ZIP
+        FROM TB_OGBS_MM_PRTNR_IZ T1
+       INNER JOIN TB_SVST_QOM_ASN_PRTNR_APY_IZ T2
+          ON T2.PRTNR_NO = T1.PRTNR_NO
+       INNER JOIN TB_SVST_MCBY_WARE_IZ T3
+          ON T3.WARE_MNGT_PRTNR_NO = T2.PRTNR_NO
+             AND T3.APY_YM = T1.BASE_YM
+       INNER JOIN TB_GBCO_ADR_BAS T4
+          ON T3.WARE_ADR_ID = T4.ADR_ID
+     <where>
+         AND T1.BASE_YM = #{baseYm}
+       <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
+         AND T1.OG_TP_CD = #{ogTpCd}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+         AND T1.PRTNR_NO = #{prtnrNo}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(prtnrKnm)">
+         AND T1.PRTNR_KNM = #{prtnrKnm}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+         AND T3.WARE_DV_CD = #{wareDvCd}
+       </if>
+        <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+         AND T3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(wareNo)">
+         AND T3.WARE_NO = #{wareNo}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
+         AND T3.WARE_NO = #{hgrWareNo}
+       </if>
+         AND T3.WARE_USE_YN = 'Y'
+         AND T1.DTA_DL_YN = 'N'
+         AND T2.DTA_DL_YN = 'N'
+         AND T3.DTA_DL_YN = 'N'
+         AND T4.DTA_DL_YN = 'N'
+     </where>
     </select>
 
-    <select id="selectMaterialsAssignStocks_OLD"
+    <select id="selectMaterialsAssignStocks_old"
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto$SearchRes">
-        SELECT T3.PRTNR_NO
-             , '' AS OG_ID
-             , '' AS OG_NM
-             , '' AS PRTNR_KNM
-             , T2.APY_YM AS BASE_YM
-             , T2.WARE_NO
-             , T2.WARE_NM
-             , T2.HGR_WARE_NO
+        SELECT T1.BASE_YM
+             , T1.OG_ID
+             , T1.HGR_OG_ID
+             , T1.OG_TP_CD
+             , T1.OG_CD
+             , T1.OG_NM
+             , T1.BLD_CD
+             , T1.BLD_NM
+             , T2.PRTNR_NO
+             , T2.PRTNR_KNM
+             , ( SELECT MAX(S1.APY_SN)
+                   FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1
+                  WHERE S1.PRTNR_NO = T3.PRTNR_NO) AS APY_SN
+             , T3.QOM_ASN_APY_YN
+             , T4.WARE_NO
+             , T4.WARE_NM
+             , T4.HGR_WARE_NO
              , ( SELECT S2.WARE_NM
                    FROM TB_SVST_MCBY_WARE_IZ S2
-                  WHERE S2.WARE_NO = T2.HGR_WARE_NO
-                    AND S2.APY_YM = T2.APY_YM
-               ) AS HGR_WARE_NM
-             , T2.BLD_CD
-             , '' AS BLD_NM
-             , T2.DIDY_DV_CD
-             , T2.ADR_USE_YN
-             , T2.WARE_ADR_ID
-             , T2.RMK_CN
-             , T3.APY_SN
-             , T3.QOM_ASN_APY_YN
-             , '' AS ZIP_CD
-             , '' AS ADDR
-          FROM TB_SVST_MCBY_WARE_IZ T2
-             , TB_SVST_QOM_ASN_PRTNR_APY_IZ T3
-         WHERE T2.APY_YM = #{baseYm}
-           AND T2.WARE_MNGT_PRTNR_NO = T3.PRTNR_NO
-           <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                  WHERE S2.WARE_NO = T4.HGR_WARE_NO
+                    AND S2.APY_YM = T4.APY_YM) AS HGR_WARE_NM
+             , T4.DIDY_DV_CD
+             , (CASE WHEN T4.DIDY_DV_CD = '2' THEN '독립'
+                     ELSE '개인'
+                END
+               ) AS DIDY_DV_NM
+             , T4.ADR_USE_YN
+             , T4.WARE_ADR_ID
+             , T5.RDADR
+             , T5.NEW_ADR_ZIP
+          FROM ( SELECT BASE_YM
+                      , OG_ID
+                      , HGR_OG_ID
+                      , OG_TP_CD
+                      , OG_CD
+                      , OG_NM
+                      , BLD_CD
+                      , BLD_NM
+                   FROM TB_OGBS_MM_OG_IZ
+                  WHERE BASE_YM = #{baseYm}
+                    /* AND OG_TP_CD = 'W02' */
+                    AND OG_CD IS NOT NULL
+                    AND OG_NM IS NOT NULL
+                    AND DTA_DL_YN = 'N'
+                  START WITH HGR_OG_ID = #{ogId}
+                CONNECT BY PRIOR OG_ID = HGR_OG_ID
+               ) T1
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
+            ON T2.BASE_YM = T1.BASE_YM AND T2.OG_ID = T1.OG_ID
+         INNER JOIN TB_SVST_QOM_ASN_PRTNR_APY_IZ T3
+            ON T3.PRTNR_NO = T2.PRTNR_NO
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T4
+            ON T4.WARE_MNGT_PRTNR_NO = T3.PRTNR_NO
+           AND T4.APY_YM = T1.BASE_YM
+         INNER JOIN TB_GBCO_ADR_BAS T5
+            ON T4.WARE_ADR_ID = T5.ADR_ID
+        <where>
+          <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
            AND T3.PRTNR_NO = #{prtnrNo}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(wareNo)">
-           AND T2.WARE_NO = #{wareNo}
-           </if>
-           AND T2.WARE_USE_YN = 'Y'
-           AND T3.APY_SN = ( SELECT MAX(APY_SN)
-                               FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1
-                              WHERE S1.PRTNR_NO =T3.PRTNR_NO
-                           )
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
+           AND T4.HGR_WARE_NO = #{hgrWareNo}
+          </if>
            AND T2.DTA_DL_YN = 'N'
            AND T3.DTA_DL_YN = 'N'
-         ORDER BY T3.FNL_MDFC_DTM DESC
+           AND T4.DTA_DL_YN = 'N'
+           AND T5.DTA_DL_YN = 'N'
+           AND T4.WARE_USE_YN = 'Y'
+        </where>
     </select>
 
     <select id="selectOrganizations"
