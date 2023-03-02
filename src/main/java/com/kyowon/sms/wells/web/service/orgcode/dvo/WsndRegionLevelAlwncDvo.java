@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsndRegionLevelAwDvo {
+public class WsndRegionLevelAlwncDvo {
 
     String rglvlDvCd; // 급지구분코드
     String bizRglvlCd; // 업무급지코드

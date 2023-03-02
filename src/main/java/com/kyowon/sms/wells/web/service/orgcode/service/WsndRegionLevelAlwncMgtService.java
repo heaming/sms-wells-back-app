@@ -5,12 +5,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAwMgtConverter;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.Allowance;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAwDvo;
-import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAwMgtMapper;
+import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAlwncMgtConverter;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.Allowance;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAlwncDvo;
+import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAlwncMgtMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,11 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsndRegionLevelAwMgtService {
+public class WsndRegionLevelAlwncMgtService {
 
-    private final WsndRegionLevelAwMgtMapper mapper;
+    private final WsndRegionLevelAlwncMgtMapper mapper;
 
-    private final WsndRegionLevelAwMgtConverter converter;
+    private final WsndRegionLevelAlwncMgtConverter converter;
 
     /**
      * 급지 수당 조회
@@ -55,7 +55,7 @@ public class WsndRegionLevelAwMgtService {
         int processCount = 0;
 
         for (SaveReq dto : dtos) {
-            WsndRegionLevelAwDvo regionLevelAw = this.converter.mapSaveReqToWsndRegionLevelAwDvo(dto);
+            WsndRegionLevelAlwncDvo regionLevelAw = this.converter.mapSaveReqToWsndRegionLevelAwDvo(dto);
             int updateCount = this.mapper.updateAllowance(regionLevelAw);
             int insertCount = this.mapper.insertAllowance(regionLevelAw);
             processCount += (updateCount & insertCount);

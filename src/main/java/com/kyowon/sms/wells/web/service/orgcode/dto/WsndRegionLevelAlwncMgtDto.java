@@ -16,15 +16,15 @@ import io.swagger.annotations.ApiModel;
  * @author hyewon.kim 김혜원
  * @since 2022.12.14
  */
-public class WsndRegionLevelAwMgtDto {
+public class WsndRegionLevelAlwncMgtDto {
 
-    @ApiModel(value = "WsndRegionLevelAwMgtDto-SearchRes")
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-SearchRes")
     public record SearchRes(
         List<Allowance> movementAllowances, // 이동급지 리스트
         List<Allowance> bizAllowances // 업무급지 리스트
     ) {}
 
-    @ApiModel(value = "WsndRegionLevelAwMgtDto-Allowance")
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-Allowance")
     public record Allowance(
         BigDecimal chAwAmt, // 변경수당금액
         String apyStrtdt, // 적용시작일
@@ -45,7 +45,7 @@ public class WsndRegionLevelAwMgtDto {
         String maxApyStrtdt // 최대적용시작일
     ) {}
 
-    @ApiModel(value = "WsndRegionLevelAwMgtDto-SaveReq")
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rglvlDvCd, // 급지구분코드

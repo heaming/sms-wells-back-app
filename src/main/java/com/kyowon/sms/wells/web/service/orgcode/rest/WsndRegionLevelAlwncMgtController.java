@@ -8,9 +8,9 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAwMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelAwMgtService;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelAlwncMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 @Api(tags = "[WSND] 급지 수당 관리 REST API")
 @RequiredArgsConstructor
 @Validated
-public class WsndRegionLevelAwMgtController {
+public class WsndRegionLevelAlwncMgtController {
 
-    private final WsndRegionLevelAwMgtService service;
+    private final WsndRegionLevelAlwncMgtService service;
 
     @ApiOperation(value = "급지 수당 조회", notes = "급지 정보에 일치하는 엔지니어 수당 정보를 조회한다.")
     @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", example = "20221214", required = true)
