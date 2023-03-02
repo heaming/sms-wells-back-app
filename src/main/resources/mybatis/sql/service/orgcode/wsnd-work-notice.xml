@@ -7,7 +7,7 @@
              , T1.NTC_SN
              , T1.PD_GRP_CD
              , T1.PD_CD
-             , T2.PD_NM
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM
              , T1.IST_WK_YN
              , T1.AS_WK_YN
              , T1.BFSVC_WK_YN
@@ -40,6 +40,7 @@
                            , RANK() OVER (PARTITION BY MNGT_YM, NTC_ID ORDER BY NTC_SN DESC) AS RNK
                         FROM TB_SVPD_EGER_WK_NTC_IZ
                        WHERE 1=1
+                         AND DTA_DL_YN = 'N'
                     <if test='@MybatisUtils@isNotEmpty(stRgstDt) and @MybatisUtils@isNotEmpty(edRgstDt)'>
                          AND SUBSTR(FST_RGST_DTM, 0, 8) BETWEEN #{stRgstDt} || '000000' AND #{edRgstDt} || '235959'
                     </if>
@@ -49,12 +50,9 @@
                     <if test='@MybatisUtils@isNotEmpty(mngrDvCd)'>
                          AND MNGR_DV_CD = #{mngrDvCd}
                     </if>
-                         AND DTA_DL_YN <![CDATA[<>]]> 'Y'
                     )
                 WHERE RNK = 1
              ) T1
-          LEFT OUTER JOIN TB_PDBS_PD_BAS T2
-            ON T2.PD_CD = T1.PD_CD
          ORDER BY T1.FST_RGST_DTM DESC
     </select>
 
@@ -77,29 +75,15 @@
            AND MNGT_YM = #{mngtYm}
            AND NTC_ID = #{ntcId}
            AND NTC_SN = #{ntcSn}
-           AND DTA_DL_YN <![CDATA[<>]]> 'Y'
+           AND DTA_DL_YN = 'N'
     </select>
 
     <select id="selectProductsByProductGroup" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndWorkNoticeDto$SearchProductRes">
-        SELECT '0000000001' AS PD_CD
-             , '테스트 제품1' AS PD_NM
-             , #{pdGrpCd} AS PD_GRP_CD
-          FROM dual
-         UNION ALL
-        SELECT '0000000002' AS PD_CD
-             , '테스트 제품2' AS PD_NM
-             , #{pdGrpCd} AS PD_GRP_CD
-          FROM dual
-         UNION ALL
-        SELECT '0000000003' AS PD_CD
-             , '테스트 제품3' AS PD_NM
-             , #{pdGrpCd} AS PD_GRP_CD
-          FROM dual
-         UNION ALL
-        SELECT '0000000004' AS PD_CD
-             , '테스트 제품4' AS PD_NM
-             , #{pdGrpCd} AS PD_GRP_CD
-          FROM dual
+        SELECT PD_CD AS PD_CD
+             , ST101_NM_KOR AS PD_NM
+             , ST101_ITEM_GR AS PD_GRP_CD
+          FROM (<include refid="com.kyowon.sms.common.web.common.BASE.selectPartMaster"/>)
+         WHERE ST101_ITEM_GR = #{pdGrpCd}
     </select>
 
     <insert id="insertWorkNotice">
