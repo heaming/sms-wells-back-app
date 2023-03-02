@@ -19,7 +19,15 @@
              , T3.WARE_NM
              , T3.WARE_DV_CD
              , T3.WARE_DTL_DV_CD
+             , F_CMZ_CD_NM(#{session.tenantId}
+                 , 'WARE_DTL_DV_CD'
+                 , T3.WARE_DTL_DV_CD) AS WARE_DTL_DV_NM
              , T3.HGR_WARE_NO
+             , ( SELECT WARE_NM
+                   FROM TB_SVST_MCBY_WARE_IZ S2
+                  WHERE S2.APY_YM = T3.APY_YM
+                    AND S2.WARE_NO = T3.HGR_WARE_NO
+               ) AS HGR_WARE_NM
              , T3.DIDY_DV_CD
              , ( CASE WHEN T3.DIDY_DV_CD  = '2' THEN '독립'
                       ELSE '개인'
@@ -32,6 +40,7 @@
              , T4.RNADR
              , T4.RDADR
              , T4.NEW_ADR_ZIP
+             , T5.BLD_NM
         FROM TB_OGBS_MM_PRTNR_IZ T1
        INNER JOIN TB_SVST_QOM_ASN_PRTNR_APY_IZ T2
           ON T2.PRTNR_NO = T1.PRTNR_NO
@@ -40,6 +49,8 @@
              AND T3.APY_YM = T1.BASE_YM
        INNER JOIN TB_GBCO_ADR_BAS T4
           ON T3.WARE_ADR_ID = T4.ADR_ID
+       INNER JOIN TB_OGBS_BLD_BAS T5
+          ON T3.BLD_CD = T5.BLD_CD
      <where>
          AND T1.BASE_YM = #{baseYm}
        <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
@@ -49,7 +60,7 @@
          AND T1.PRTNR_NO = #{prtnrNo}
        </if>
        <if test="@MybatisUtils@isNotEmpty(prtnrKnm)">
-         AND T1.PRTNR_KNM = #{prtnrKnm}
+         AND T1.PRTNR_KNM LIKE '%'||#{prtnrKnm}||'%'
        </if>
        <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
          AND T3.WARE_DV_CD = #{wareDvCd}
@@ -68,6 +79,7 @@
          AND T2.DTA_DL_YN = 'N'
          AND T3.DTA_DL_YN = 'N'
          AND T4.DTA_DL_YN = 'N'
+         AND T5.DTA_DL_YN = 'N'
      </where>
     </select>
 

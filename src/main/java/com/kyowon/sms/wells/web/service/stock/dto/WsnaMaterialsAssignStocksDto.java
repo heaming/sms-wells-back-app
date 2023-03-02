@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 /**
  * <pre>
@@ -14,6 +15,7 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsnaMaterialsAssignStocksDto {
 
+    @Builder
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-SearchReq")
     public record SearchReq(
         @NotBlank
@@ -22,6 +24,7 @@ public class WsnaMaterialsAssignStocksDto {
         String prtnrNo, /* 사번 */
         String prtnrKnm, /* 담당자명 */
         String wareNo, /* 창고번호 */
+        String hgrWareNo, /* 상위창고번호 */
         String wareDvCd, /* 창고구분코드 */
         String wareDtlDvCd, /* 창고상세구분코드 */
         String ogTpCd /* 조직유형코드 */
@@ -36,13 +39,13 @@ public class WsnaMaterialsAssignStocksDto {
         String ogId, /* 조직ID */
         String ogCd, /* 조직코드 */
         String ogNm, /* 소속 */
-        String hgrOgId, /* 상위조직ID */
         String bldCd, /*빌딩코드*/
         String bldNm, /* 빌딩 */
         String wareNm, /* 창고명 */
         String wareNo, /* 창고번호 */
         String wareDvCd, /* 창고구분코드 */
         String wareDtlDvCd, /* 창고상세구분코드 */
+        String wareDtlDvNm, /* 창고상세구분명 */
         String hgrWareNm, /* 상위창고명 */
         String hgrWareNo, /* 상위창고번호 */
         String qomAsnApyYn, /*물량배정적용여부*/
