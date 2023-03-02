@@ -8,6 +8,7 @@ import lombok.Setter;
 public class WcteSellLmOjIzDvo {
     private String sellLmDv;
 
+    private String sellLmRson;
     private String sellLmId;
     private String sellLmBzrno;
     private String dlpnrNm;
@@ -17,7 +18,7 @@ public class WcteSellLmOjIzDvo {
     private String sellLmRsonCn;
     private String sellLmRlsCn;
     private String rowState;
-    private String rownum;
+    private String dataRow;
     private String sellLmRsonCd;
     private String sellLmOcDtm;
     private String sellLmRlsDtm;

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageMapper">
+
+    <select id="selectEtcOutOfStorages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto$SearchRes">
+        SELECT 1 AS CHK
+             , OSTR_IZ.ITM_OSTR_NO AS ITM_OSTR_NO
+             , OSTR_IZ.OSTR_TP_CD AS OSTR_TP_CD
+             , OSTR_IZ.OSTR_WARE_NO AS OSTR_WARE_NO
+             , WARE_IZ.WARE_NM AS WARE_NM
+             , WARE_IZ.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
+             , OSTR_IZ.OSTR_DT AS OSTR_DT
+             , OSTR_IZ.OSTR_SN AS OSTR_SN
+             , OSTR_IZ.ITM_PD_CD /*품목상품코드*/ AS ITM_PD_CD
+             , PD_BAS.PD_NM /*품목명*/ AS ITM_NM
+             , PD_BAS.PD_ABBR_NM /*품목명약어*/ AS PD_ABBR_NM
+             , OSTR_IZ.ITM_KND_CD AS ITM_KND_CD
+             , OSTR_IZ.ITM_GD_CD /*품목등급코드*/ AS ITM_GD_CD
+             , OSTR_IZ.MNGT_UNIT_CD /*관리단위코드*/ AS MNGT_UNIT_CD
+             , OSTR_IZ.OSTR_RSON_CD /*출고사유코드*/ AS OSTR_RSON_CD
+             , OSTR_IZ.OSTR_QTY /*출고수량*/ AS OSTR_QTY
+             , OSTR_IZ.RMK_CN /*비고*/ AS RMK_CN
+             , OSTR_IZ.OSTR_AK_SN /*출고요청일련번호*/ AS OSTR_AK_SN
+             , PD_BAS.SAP_MAT_CD /*SAP코드*/ AS SAP_MAT_CD
+          FROM TB_SVST_ITM_OSTR_IZ OSTR_IZ
+         INNER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ
+            ON OSTR_IZ.OSTR_WARE_NO = WARE_IZ.WARE_NO
+           AND WARE_IZ.APY_YM = SUBSTR(OSTR_DT,1,6)
+         LEFT OUTER JOIN TB_PDBS_PD_BAS PD_BAS
+            ON PD_BAS.PD_CD = OSTR_IZ.ITM_PD_CD
+         LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC_IZ /*고객서비스품목재고내역*/
+            ON STOC_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO
+           AND STOC_IZ.ITM_PD_CD = OSTR_IZ.ITM_PD_CD
+           WHERE 1 = 1
+           AND OSTR_IZ.ITM_OSTR_NO = '217202102040000006'
+           AND OSTR_IZ.OSTR_WARE_NO = '200371'
+           AND WARE_IZ.WARE_USE_YN = 'Y'
+
+    </select>
+    <update id="deleteEtcOutOfStorages">
+      UPDATE TB_SVST_ITM_OSTR_IZ
+         SET DTA_DL_YN = 'Y'
+      <include refid="COMMON.updateSystemField"/>
+        <where>
+         AND ITM_OSTR_NO = #{itmOstrNo}
+         AND OSTR_WARE_NO = #{ostrWareNo}
+         AND OSTR_SN = #{ostrSn}
+        </where>
+
+    </update>
+    <select id="selectNewItmOstrNo" resultType="java.lang.String">
+         SELECT NVL(MAX(ITM_OSTR_NO), #{ostrTpCd}||#{ostrDt}||LPAD(0, 7, '0')) +1 AS ITM_OSTR_NO
+           FROM TB_SVST_ITM_OSTR_IZ
+          WHERE OSTR_TP_CD = #{ostrTpCd}
+            AND OSTR_DT= #{ostrDt}
+            AND OSTR_WARE_NO = #{ostrWareNo}
+     </select>
+    <select id="selectNewOstrSn" resultType="java.lang.String">
+           SELECT (NVL(MAX(OSTR_SN),0)+1) AS OSTR_SN
+             FROM TB_SVST_ITM_OSTR_IZ
+            WHERE OSTR_TP_CD = #{ostrTpCd}
+              AND OSTR_DT= #{ostrDt}
+              AND OSTR_WARE_NO = #{ostrWareNo}
+              AND ITM_OSTR_NO = #{itmOstrNo}
+     </select>
+
+
+
+</mapper>

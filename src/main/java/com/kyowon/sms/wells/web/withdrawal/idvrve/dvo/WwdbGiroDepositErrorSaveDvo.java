@@ -14,4 +14,6 @@ public class WwdbGiroDepositErrorSaveDvo {
     String pyAmt; //--납입금액  
     String rveDt; //--입금일
     String fntDt; //--실적일
+    String procsErrTpCd; //오류처리
+    String cntr;
 }

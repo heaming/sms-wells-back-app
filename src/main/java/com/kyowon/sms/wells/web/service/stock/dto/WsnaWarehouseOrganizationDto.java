@@ -22,7 +22,9 @@ public class WsnaWarehouseOrganizationDto {
         @NotBlank
         String baseYm, /*기준년월*/
         String codeUseYn, /*사용여부*/
-        String wareLocaraCd, /*창고지역코드*/
+        String wareDtlDvCd, /*창고상세구분코드*/
+        String wareNoM,
+        String wareNoD,
         String wareMngtPrtnrNo, /*창고관리파트너번호*/
         String wareDvCd /*창고구분*/
     ) {}
@@ -52,9 +54,10 @@ public class WsnaWarehouseOrganizationDto {
         //        String coCd, /* 회사코드 */
         String didyDvCd, /* 직배구분코드 */
         //        String sortDvVal, /* 정렬구분값 */
+        String wareStocMgr, /*관리자*/
         String wareAdrId, /* 창고주소ID */
         //        String bldCd, /* 빌딩코드 */
-        //        String bldNm, /* 빌딩명 */
+        String bldNm, /* 빌딩명 */
         //        String ogCd, /* 조직코드 */
         String wareUseYn /* 창고사용여부 */
         //        String adrUseYn, /* 주소사용여부 */

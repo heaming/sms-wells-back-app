@@ -38,8 +38,8 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int createBusinessVehicle(CreateReq dto) {
-        String vehicleDupYn = mapper.selectVehicleDupYn(dto.vhcMngtPrtnrNo(), dto.vhcMngtNo());
-        BizAssert.notNull(vehicleDupYn, "MSG_ALT_SMD_PSIC_VHC_DSB");
+        String vehicleDupYn = mapper.selectVehicleDupYn(dto);
+        BizAssert.isNull(vehicleDupYn, "MSG_ALT_SMD_PSIC_VHC_DSB");
 
         WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
         return mapper.mergeBusinessVehicle(dvo);

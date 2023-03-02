@@ -18,4 +18,21 @@ public class WctzPartnerDto {
         String dlgpsNm,
         String bryyMmdd
     ) {}
+
+    //  Search Result Dto
+    @ApiModel("WctzPartnerDto-SearchGeneralDivisionsRes")
+    public record SearchGeneralDivisionsRes(
+        String dgr1LevlOgCd,
+        String dgr1LevlOgNm,
+        String dgr1LevlDgPrtnrNo,
+        String dgr1LevlOgId
+    ) {}
+    //  Search Result Dto
+    @ApiModel("WctzPartnerDto-SearchRegionalDivisionsRes")
+    public record SearchRegionalDivisionsRes(
+        String dgr2LevlOgCd,
+        String dgr2LevlOgNm,
+        String dgr2LevlDgPrtnrNo,
+        String dgr2LevlOgId
+    ) {}
 }

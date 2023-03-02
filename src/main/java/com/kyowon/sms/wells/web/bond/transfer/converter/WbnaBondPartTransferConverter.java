@@ -13,7 +13,7 @@ public interface WbnaBondPartTransferConverter {
     @Mapping(target = "cntrNo", ignore = true)
     @Mapping(target = "cntrSn", ignore = true)
     @Mapping(target = "cstNo", ignore = true)
-    WbnaBondPartTransferDvo mapCreateReqToEbnaBondPartTransferDvo(CreateReq dto);
+    WbnaBondPartTransferDvo mapCreateReqToWbnaBondPartTransferDvo(CreateReq dto);
 
-    WbnaBondPartTransferDvo mapEditReqToEbnaBondPartTransferDvo(EditReq dto);
+    WbnaBondPartTransferDvo mapEditReqToWbnaBondPartTransferDvo(EditReq dto);
 }

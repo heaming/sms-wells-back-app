@@ -81,7 +81,7 @@ public class WbnaBondPartTransferService {
 
         // TODO 테이블 및 쿼리문 정의가 완료 되지 않아 mapper 호출은 하지 않은 상태 DB완료 후 작업 예정
         int processCount = 1;
-        WbnaBondPartTransferDvo dvo = converter.mapCreateReqToEbnaBondPartTransferDvo(dto);
+        WbnaBondPartTransferDvo dvo = converter.mapCreateReqToWbnaBondPartTransferDvo(dto);
         log.debug("dvo: " + dvo);
         // 1. createPartTransfers - TB_CBBO_BND_ASN_IZ 수행(파트이관 생성 조건 참조)
         // 2. createPartTransferItemization - TB_CBBO_BND_TF_ASN_EXCN_IZ 수행
@@ -104,7 +104,7 @@ public class WbnaBondPartTransferService {
 
             // TODO 테이블 및 쿼리문 정의가 완료 되지 않아 mapper 호출은 하지 않은 상태 DB완료 후 작업 예정
             log.debug(dto.cntrNo());
-            WbnaBondPartTransferDvo dvo = converter.mapEditReqToEbnaBondPartTransferDvo(dto);
+            WbnaBondPartTransferDvo dvo = converter.mapEditReqToWbnaBondPartTransferDvo(dto);
             log.debug("dvo display information on service page: " + dvo);
             processCount += 1;
             // 1. updateBondContractBase - TB_CBBO_BND_CNTR_BAS 정보 수정

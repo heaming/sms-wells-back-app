@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.validation.validator.ValidDate;
+import com.sds.sflex.system.config.validation.validator.ValidMonth;
 
 import io.swagger.annotations.ApiModel;
 
@@ -30,12 +30,15 @@ public class WctaRentalAccountMgtDto {
     public record SearchBpdRentalAccountReq(
         @NotBlank
         String srchGbn,
-        @ValidDate
+        @ValidMonth
         String istStartDt,
-        @ValidDate
+        @ValidMonth
         String istEndDt,
+        @NotBlank
         String pdMclsfId,
+        @NotBlank
         String basePdCd,
+        @NotBlank
         String copnDvCd
     ) {}
 
@@ -61,12 +64,15 @@ public class WctaRentalAccountMgtDto {
     public record SearchByoRentalAccountReq(
         @NotBlank
         String srchGbn,
-        @ValidDate
+        @ValidMonth
         String istStartDt,
-        @ValidDate
+        @ValidMonth
         String istEndDt,
-        String dgr1LevlOgNm,
-        String dgr2LevlOgNm,
+        @NotBlank
+        String dgr1LevlOgCd,
+        @NotBlank
+        String dgr2LevlOgCd,
+        @NotBlank
         String copnDvCd
     ) {}
 }

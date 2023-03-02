@@ -37,12 +37,12 @@ public class WcteSalesLimitDto {
         String rowState, //Row의 상태
         String sellLmId,
 
+        String sellLmRson,
         String sellLmRsonCd,
         String sellLmRsonCn,
         String sellLmRlsCn,
-
         String sellLmCntrSn,
-        String rownum,
+        String dataRow,
         String sellLmOcDtm,
         String sellLmRlsDtm,
         String sellRson,
@@ -59,18 +59,16 @@ public class WcteSalesLimitDto {
     // wells 사업자 가입제한 대상 관리 Search Result Dto
     @ApiModel("WcteSalesLimitDto-SearchEntrpJLmOjRes")
     public record SearchEntrpJLmOjRes(
+        String sellLmId,
         String sellLmDv,
         String sellLmBzrno,
         String dlpnrNm,
         String dlgpsNm,
         String bryyMmdd,
-
-        String rownum,
-
+        String sellLmRson,
         String sellLmRsonCd,
         String sellLmOcDtm,
         String sellLmRlsDtm,
-        String sellRson,
         String sellLmPsic,
         String sellLmRlsPsic,
         String sellLmPsicNm,

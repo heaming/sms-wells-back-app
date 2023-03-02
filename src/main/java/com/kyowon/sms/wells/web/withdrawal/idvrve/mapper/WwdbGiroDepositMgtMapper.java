@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchContractDetailRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDepositRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDepositSettingRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDtlStateRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
@@ -65,11 +66,13 @@ public interface WwdbGiroDepositMgtMapper {
     List<SearchDepositSettingRes> selectGiroDepositSettingList(Map<String, Object> dto);
 
     /* 지로 입금 에러 조회 */
-    PagingResult<SearchErrosRes> selectBillingDocumentErrors(PageInfo pageInfo);
+    PagingResult<SearchErrosRes> selectBillingDocumentErrors(SearchReq dto, PageInfo pageInfo);
 
     /* 지로 입금 엑셀 다운로드 */
     List<SearchErrosRes> selectBillingDocumentErrors();
 
     /* 지로 입금 에러 저장 */
     int updateBillingDocumentErrors(WwdbGiroDepositErrorSaveDvo dvo) throws Exception;
+
+    SearchDtlStateRes selectDtlState(WwdbGiroDepositSaveInfoDvo dto);
 }

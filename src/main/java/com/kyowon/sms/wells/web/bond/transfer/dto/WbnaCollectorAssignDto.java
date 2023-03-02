@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModel;
 public class WbnaCollectorAssignDto {
     /**
      * 집금자배정 검색
+     * @param baseYm 기준년월
      * @param bzHdqDvCd 사업부코드
      * @param clctamDvCd 집금구분코드
      * @param cstNo 고객번호
@@ -15,8 +16,10 @@ public class WbnaCollectorAssignDto {
      */
     @ApiModel("WbnaCollectorAssignDto-SearchReq")
     public record SearchReq(
+        String baseYm, // TODO 화면에서 사용할지 여부 확인 후 필수 추가 작업 필요
         @NotBlank
         String bzHdqDvCd,
+        @NotBlank
         String clctamDvCd,
         String cstNo,
         String nwYn,
@@ -79,8 +82,21 @@ public class WbnaCollectorAssignDto {
         Long rglrSppRsgBorAmt /* 정기배송 : 위약금액    */
     ) {}
 
+    @ApiModel("WbnaCollectorAssignDto-SearchDetailReq")
+    public record SearchDetailReq(
+        String baseYm, // TODO 화면에서 사용할지 여부 확인 후 필수 추가 작업 필요
+        @NotBlank
+        String bzHdqDvCd,
+        @NotBlank
+        String clctamDvCd,
+        @NotBlank
+        String clctamPrtnrNo
+    ) {}
+
     @ApiModel("WbnaCollectorAssignDto-SearchDetailRes")
     public record SearchDetailRes(
+        String baseYm, /* 기준년도 */
+        String bzHdqDvCd, /* 사업부 구분 */
         String clctamPrtnrNo, /* 담당자번호		*/
         String clctamPrtnrKnm, /* 담당자명		*/
         String lstmmClctamDvCd, /* 전월담당집금구분   */
@@ -104,4 +120,28 @@ public class WbnaCollectorAssignDto {
         String addr /* 주소           */
     ) {}
 
+    /**
+     * 집금자 정보 수정
+     * @param baseYm 기준년월
+     * @param bzHdqDvCd 사업부구분코드
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @param cstNo 고객번호
+     * @param clctamPrtnrNo 집금담당자번호
+     */
+    @ApiModel("WbnaCollectorAssignDto-EditReq")
+    public record EditReq(
+        @NotBlank
+        String baseYm,
+        @NotBlank
+        String bzHdqDvCd,
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        @NotBlank
+        String cstNo,
+        @NotBlank
+        String clctamPrtnrNo
+    ) {}
 }

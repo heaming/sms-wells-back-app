@@ -55,7 +55,7 @@
          </if>
          <if test='@MybatisUtils@isNotEmpty(bildcPblNo)'>
            AND BILDC_PBL_NO = #{bildcPblNo}
-         </if>   
+         </if>            
         ORDER BY BILDC_PBL_NO DESC , BILDC_PBL_SN DESC     
     </select>
     
@@ -63,6 +63,7 @@
         UPDATE 
                TB_RVDW_BILDC_PBL_BAS
            SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
          WHERE BILDC_PBL_NO = #{bildcPblNo}     
     </update>
     
@@ -70,6 +71,7 @@
         UPDATE 
                TB_RVDW_BILDC_PBL_DTL
            SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
          WHERE BILDC_PBL_NO = #{bildcPblNo}     
     </update>
     
@@ -91,6 +93,33 @@
         )
     </insert>
     
+    <update id="updateBillingDocument"> 
+        UPDATE TB_RVDW_BILDC_PBL_BAS 
+           SET BILDC_WRTE_DT = #{bildcWrteDt}
+           <include refid="COMMON.updateSystemField"/>
+         WHERE BILDC_PBL_NO = #{bildcPblNo}           
+    </update>
+    
+    <insert id="insertBillingDocumentHistory">
+        INSERT INTO TB_RVDW_BILDC_PBL_BAS_HIST(
+              BILDC_PBL_NO
+            , SELL_PRTNR_NO
+            , HIST_CH_DTM
+            , SELL_PRTNR_NM
+            , CST_FNM      
+            , BILDC_WRTE_DT      
+            <include refid="COMMON.insertSystemField"/>
+        )VALUES(
+              #{bildcPblNo}
+            , #{sellPrtnrNo}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{sellPrtnrNm}
+            , #{cstFnm}    
+            , #{bildcWrteDt}        
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
     <update id="updateBillingDocumentDtails">
         UPDATE 
                TB_RVDW_BILDC_PBL_DTL
@@ -101,6 +130,7 @@
              , PD_SPL_AMT = CEIL(#{pdSellAmt} / 1.1) 
              , PD_VAT = #{pdSellAmt} - (CEIL(#{pdSellAmt} / 1.1))
              , RMK_CN = #{rmkCn}
+             <include refid="COMMON.updateSystemField"/>
          WHERE BILDC_PBL_NO = #{bildcPblNo}
            AND BILDC_PBL_SN = #{bildcPblSn}
     </update>
@@ -120,6 +150,38 @@
         )    
         VALUES(
                #{bildcPblNo}
+             , (SELECT NVL(MAX(BILDC_PBL_SN),0) + 1
+                 FROM TB_RVDW_BILDC_PBL_DTL
+                WHERE BILDC_PBL_NO = #{bildcPblNo}
+               ) 
+             , #{pdNm}
+             , #{pdQty}
+             , CEIL(#{pdSellAmt} / CASE WHEN #{pdQty} = 0 THEN 1 ELSE TO_NUMBER(#{pdQty}) END)
+             , #{pdSellAmt}
+             , CEIL(#{pdSellAmt} / 1.1) 
+             , #{pdSellAmt} - (CEIL(#{pdSellAmt} / 1.1)) 
+             , #{rmkCn}  
+             <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <insert id="insertBillingDocumentDtailsHistory">
+        INSERT INTO TB_RVDW_BILDC_PBL_DTL_HIST(
+               BILDC_PBL_NO
+             , HIST_CH_DTM  
+             , BILDC_PBL_SN
+             , PD_NM
+             , PD_QTY
+             , PD_UPRC
+             , PD_SELL_AMT
+             , PD_SPL_AMT
+             , PD_VAT
+             , RMK_CN       
+             <include refid="COMMON.insertSystemField"/>
+        )    
+        VALUES(
+               #{bildcPblNo}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  
              , (SELECT NVL(MAX(BILDC_PBL_SN),0) + 1
                  FROM TB_RVDW_BILDC_PBL_DTL
                 WHERE BILDC_PBL_NO = #{bildcPblNo}

@@ -24,4 +24,5 @@ public class WwdbGiroDepositSaveInfoDvo {
     String dtaDlYn;
     String itgDpCanYn;
     String incmdcYn;
+    String procsErrTpCd; //오류처리
 }

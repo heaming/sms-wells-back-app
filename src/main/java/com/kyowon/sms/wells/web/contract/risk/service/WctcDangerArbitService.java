@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.risk.converter.WctcDangerArbitConverter;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SaveReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchOrganizationRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
@@ -33,6 +34,10 @@ public class WctcDangerArbitService {
 
     public List<SearchRes> getDangerArbitManagerialExcelDownload(SearchReq dto) {
         return mapper.selectDangerArbitManagerial(dto);
+    }
+
+    public List<SearchOrganizationRes> getOrganizationInfInqr(String baseYm, String pntnrNo, String ogTpCd) {
+        return mapper.selectOrganizationInfInqr(baseYm, pntnrNo, ogTpCd);
     }
 
     @Transactional
@@ -96,7 +101,7 @@ public class WctcDangerArbitService {
                         mapper.insertDangerCheckChHistN(dangerArbitManagerial.getDangChkId());
                     }
                     dangerArbitManagerial.setDangMngtPstnDvCd("15");
-                    dangerArbitManagerial.setDangMngtPrtnrNo(dangerArbitManagerial.getDangOjPstnDvCd());
+                    dangerArbitManagerial.setDangMngtPrtnrNo(dto.dangOjPrtnrNo());
                     mapper.insertDangerCheckIz(dangerArbitManagerial);
                     int result = mapper.insertDangerCheckChHistN(dangerArbitManagerial.getDangChkId());
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
@@ -106,18 +111,26 @@ public class WctcDangerArbitService {
                 case CommConst.ROW_STATE_UPDATED -> {
                     if (StringUtils.isNotEmpty(dto.dgr1LevlDgPrtnrNo())) {
                         String dangChkId = mapper.selectDangChkId(dto.dgr1LevlDgPrtnrNo(), dto.dangOcStrtmm(), "2");
+                        dangerArbitManagerial.setDangChkId(dangChkId);
+                        mapper.updateDangerCheckIz(dangerArbitManagerial);
                         mapper.insertDangerCheckChHistN(dangChkId);
                     }
                     if (StringUtils.isNotEmpty(dto.dgr2LevlDgPrtnrNo())) {
                         String dangChkId = mapper.selectDangChkId(dto.dgr2LevlDgPrtnrNo(), dto.dangOcStrtmm(), "4");
+                        dangerArbitManagerial.setDangChkId(dangChkId);
+                        mapper.updateDangerCheckIz(dangerArbitManagerial);
                         mapper.insertDangerCheckChHistN(dangChkId);
                     }
                     if (StringUtils.isNotEmpty(dto.dgr3LevlDgPrtnrNo())) {
                         String dangChkId = mapper.selectDangChkId(dto.dgr3LevlDgPrtnrNo(), dto.dangOcStrtmm(), "7");
+                        dangerArbitManagerial.setDangChkId(dangChkId);
+                        mapper.updateDangerCheckIz(dangerArbitManagerial);
                         mapper.insertDangerCheckChHistN(dangChkId);
                     }
-                    mapper.updateDangerCheckIz(dangerArbitManagerial);
                     String dangChkId = mapper.selectDangChkId(dto.dangOjPrtnrNo(), dto.dangOcStrtmm(), "15");
+                    dangerArbitManagerial.setDangChkId(dangChkId);
+                    mapper.updateDangerCheckIz(dangerArbitManagerial);
+                    mapper.insertDangerCheckChHistN(dangChkId);
                     int result = mapper.insertDangerCheckChHistN(dangChkId);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     yield result;
