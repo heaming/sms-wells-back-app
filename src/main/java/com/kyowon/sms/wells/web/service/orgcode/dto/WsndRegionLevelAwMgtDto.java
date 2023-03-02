@@ -27,8 +27,8 @@ public class WsndRegionLevelAwMgtDto {
     @ApiModel(value = "WsndRegionLevelAwMgtDto-Allowance")
     public record Allowance(
         BigDecimal chAwAmt, // 변경수당금액
-        String apyStrtdt, // 유효시작일시
-        String apyEnddt, // 유효종료일시
+        String apyStrtdt, // 적용시작일
+        String apyEnddt, // 적용종료일
         String rglvlGdCd, // 급지등급코드
         BigDecimal rglvlAwAmt, // 급지수당금액
         String bizRglvlCd, // 업무급지코드
@@ -41,7 +41,8 @@ public class WsndRegionLevelAwMgtDto {
         Long mmtDstn, // 이동거리
         Integer minPerManho, // 분당공수
         Integer rglvlWeit, // 급지비중
-        Integer avVe // 평균속도
+        Integer avVe, // 평균속도
+        String maxApyStrtdt // 최대적용시작일
     ) {}
 
     @ApiModel(value = "WsndRegionLevelAwMgtDto-SaveReq")
@@ -51,7 +52,7 @@ public class WsndRegionLevelAwMgtDto {
         @NotBlank
         String bizRglvlCd, // 업무급지코드
         @NotBlank
-        String apyStrtdt, // 유효시작일시
+        String apyStrtdt, // 적용시작일
         @NotBlank
         String mmtLdtm, // 이동소요시간
         @NotBlank
