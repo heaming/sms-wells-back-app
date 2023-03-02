@@ -48,19 +48,25 @@ public class WctcDangerArbitService {
             SaveReq dto = iterator.next();
             String dangChkId = "";
             if (StringUtils.isNotEmpty(dto.dgr1LevlDgPrtnrNo())) {
-                dangChkId = mapper.selectDangChkId(dto.dangOjPrtnrNo(), dto.dangOcStrtmm(), "2");
+                dangChkId = mapper.selectDangChkId(dto.dgr1LevlDgPrtnrNo(), dto.dangOcStrtmm(), "2");
                 mapper.updateDangerCheckIzDlYn(dangChkId);
                 mapper.updateDangerCheckChHist(dangChkId);
                 mapper.insertDangerCheckChHistY(dangChkId);
             }
             if (StringUtils.isNotEmpty(dto.dgr2LevlDgPrtnrNo())) {
-                dangChkId = mapper.selectDangChkId(dto.dangOjPrtnrNo(), dto.dangOcStrtmm(), "4");
+                dangChkId = mapper.selectDangChkId(dto.dgr2LevlDgPrtnrNo(), dto.dangOcStrtmm(), "4");
+                mapper.updateDangerCheckIzDlYn(dangChkId);
+                mapper.updateDangerCheckChHist(dangChkId);
+                mapper.insertDangerCheckChHistY(dangChkId);
+            }
+            if (StringUtils.isNotEmpty(dto.bznsSpptPrtnrNo())) {
+                dangChkId = mapper.selectDangChkId(dto.bznsSpptPrtnrNo(), dto.dangOcStrtmm(), "5");
                 mapper.updateDangerCheckIzDlYn(dangChkId);
                 mapper.updateDangerCheckChHist(dangChkId);
                 mapper.insertDangerCheckChHistY(dangChkId);
             }
             if (StringUtils.isNotEmpty(dto.dgr3LevlDgPrtnrNo())) {
-                dangChkId = mapper.selectDangChkId(dto.dangOjPrtnrNo(), dto.dangOcStrtmm(), "7");
+                dangChkId = mapper.selectDangChkId(dto.dgr3LevlDgPrtnrNo(), dto.dangOcStrtmm(), "7");
                 mapper.updateDangerCheckIzDlYn(dangChkId);
                 mapper.updateDangerCheckChHist(dangChkId);
                 mapper.insertDangerCheckChHistY(dangChkId);
@@ -94,6 +100,12 @@ public class WctcDangerArbitService {
                         mapper.insertDangerCheckIz(dangerArbitManagerial);
                         mapper.insertDangerCheckChHistN(dangerArbitManagerial.getDangChkId());
                     }
+                    if (StringUtils.isNotEmpty(dto.bznsSpptPrtnrNo())) {
+                        dangerArbitManagerial.setDangMngtPstnDvCd("5");
+                        dangerArbitManagerial.setDangMngtPrtnrNo(dto.bznsSpptPrtnrNo());
+                        mapper.insertDangerCheckIz(dangerArbitManagerial);
+                        mapper.insertDangerCheckChHistN(dangerArbitManagerial.getDangChkId());
+                    }
                     if (StringUtils.isNotEmpty(dto.dgr3LevlDgPrtnrNo())) {
                         dangerArbitManagerial.setDangMngtPstnDvCd("7");
                         dangerArbitManagerial.setDangMngtPrtnrNo(dto.dgr3LevlDgPrtnrNo());
@@ -121,6 +133,12 @@ public class WctcDangerArbitService {
                         mapper.updateDangerCheckIz(dangerArbitManagerial);
                         mapper.insertDangerCheckChHistN(dangChkId);
                     }
+                    if (StringUtils.isNotEmpty(dto.bznsSpptPrtnrNo())) {
+                        String dangChkId = mapper.selectDangChkId(dto.bznsSpptPrtnrNo(), dto.dangOcStrtmm(), "5");
+                        dangerArbitManagerial.setDangChkId(dangChkId);
+                        mapper.updateDangerCheckIz(dangerArbitManagerial);
+                        mapper.insertDangerCheckChHistN(dangChkId);
+                    }
                     if (StringUtils.isNotEmpty(dto.dgr3LevlDgPrtnrNo())) {
                         String dangChkId = mapper.selectDangChkId(dto.dgr3LevlDgPrtnrNo(), dto.dangOcStrtmm(), "7");
                         dangerArbitManagerial.setDangChkId(dangChkId);
@@ -130,7 +148,6 @@ public class WctcDangerArbitService {
                     String dangChkId = mapper.selectDangChkId(dto.dangOjPrtnrNo(), dto.dangOcStrtmm(), "15");
                     dangerArbitManagerial.setDangChkId(dangChkId);
                     mapper.updateDangerCheckIz(dangerArbitManagerial);
-                    mapper.insertDangerCheckChHistN(dangChkId);
                     int result = mapper.insertDangerCheckChHistN(dangChkId);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     yield result;
