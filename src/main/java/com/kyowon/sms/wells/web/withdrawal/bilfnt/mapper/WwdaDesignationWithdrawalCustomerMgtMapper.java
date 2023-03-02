@@ -6,6 +6,7 @@ import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalC
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaDesignationWithdrawalCustomerMgtDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
@@ -20,12 +21,13 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WwdaDesignationWithdrawalCustomerMgtMapper {
 
     /** 자동이체 지정 출금 고객 조회
+     * @param pageInfo 
      * 
      * @param SearchAutoFntDsnWdrwCstReq
      * @return PagingResult<SearchAutoFntDsnWdrwCstRes>
      */
     PagingResult<SearchAutoFntDsnWdrwCstRes> selectAftnDsnWdrwCstInqrPages(
-        SearchAutoFntDsnWdrwCstReq req
+        SearchAutoFntDsnWdrwCstReq req, PageInfo pageInfo
     );
 
     //    SearchContractDetailInfRes selectContractDetailInf(WwdaDesignationWithdrawalCustomerMgtDvo dvo); 왜필요한지 모르겠음

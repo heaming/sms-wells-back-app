@@ -18,6 +18,7 @@ import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalC
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstRes;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.service.WwdaDesignationWithdrawalCustomerMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -46,9 +47,11 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
     public PagingResult<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrPages(
         @ApiParam
         @Valid
-        SearchAutoFntDsnWdrwCstReq req
+        SearchAutoFntDsnWdrwCstReq req,
+        @Valid
+        PageInfo pageInfo
     ) {
-        return service.getAftnDsnWdrwCstInqrPages(req);
+        return service.getAftnDsnWdrwCstInqrPages(req, pageInfo);
     }
 
     @ApiOperation(value = "자동이체 지정 출금 고객 저장")

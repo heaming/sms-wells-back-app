@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDv
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaDesignationWithdrawalCustomerMgtDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaDesignationWithdrawalCustomerMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -36,15 +37,17 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     private final WwdaDesignationWithdrawalCustomerMgtConverter converter;
 
     /** 자동이체 지정 출금 고객 조회
+     * @param pageInfo 
      * 
      * @param SearchAutoFntDsnWdrwCstReq
      * @return PagingResult<SearchAutoFntDsnWdrwCstRes>
      */
     public PagingResult<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrPages(
-        SearchAutoFntDsnWdrwCstReq req
+        SearchAutoFntDsnWdrwCstReq req,
+        PageInfo pageInfo
     ) {
 
-        return mapper.selectAftnDsnWdrwCstInqrPages(req); // 자동이체 지정 출금 고객 조회
+        return mapper.selectAftnDsnWdrwCstInqrPages(req, pageInfo); // 자동이체 지정 출금 고객 조회
     }
 
     /** 자동이체 지정 출금 고객 저장
