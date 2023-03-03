@@ -25,8 +25,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 개인별 실적 상세 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchRes> getIndividualPerformanceDetails(
@@ -38,8 +38,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 홈마스터 개인별 실적 기본정보 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public FindHmstRes getHmst(SearchHmstReq dto) {
@@ -49,8 +49,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 홈마스터 개인별 실적 기타내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchHmstEtcRes> getHmstEtcs(
@@ -62,8 +62,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 홈마스터 개인별 실적 수수료 내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchHmstFeeRes> getHmstFees(
@@ -75,8 +75,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 홈마스터 개인별 실적 공제 내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public FindHmstDeductionRes getHmstDeductions(SearchHmstReq dto) {
@@ -86,8 +86,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 홈마스터 개인별 실적 가지급금 세부내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchHmstPnpyamRes> getHmstPnpyams(
@@ -99,8 +99,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 P조직 개인별 실적 기본정보 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public FindPlarRes getPlar(SearchPlarReq dto) {
@@ -110,8 +110,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 P조직 개인별 실적 기타내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchPlarEtcRes> getPlarEtcs(
@@ -123,8 +123,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 P조직 개인별 실적 수수료 내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchPlarFeeRes> getPlarFees(
@@ -136,8 +136,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 P조직 개인별 실적 공제 내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public FindPlarDeductionRes getPlarDeduction(SearchPlarReq dto) {
@@ -147,8 +147,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 P조직 개인별 실적 가지급금 세부내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchPlarPnpyamRes> getPlarPnpyams(
@@ -160,8 +160,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 M조직 개인별 실적 기본정보 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public FindMngerRes getMnger(SearchMngerReq dto) {
@@ -171,8 +171,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 M조직 개인별 실적 기타내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchMngerEtcRes> getMngerEtcs(
@@ -184,8 +184,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 M조직 개인별 실적 수수료 내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchMngerFeeRes> getMngerFees(
@@ -197,8 +197,8 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 M조직 개인별 실적 공제 내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public FindMngerDeductionRes getMngerDeduction(SearchMngerReq dto) {
@@ -208,14 +208,52 @@ public class WfeeIndividualFeeService {
     /**
      * 수수료 M조직 개인별 실적 가지급금 세부내역 조회
      * @param dto : {
-     * schPerfYm : 실적년월,
-     * schNo : 번호 }
+     * perfYm : 실적년월,
+     * no : 번호 }
      * @return 조회결과
      */
     public List<SearchMngerPnpyamRes> getMngerPnpyams(
         SearchMngerReq dto
     ) {
         return this.mapper.selectMngerPnpyams(dto);
+    }
+
+    /**
+     * 추진단 수수료 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * ogTp : 조직유형,
+     * rsbTp : 직책유형,
+     * ogLevl1 : 조직레벨1,
+     * ogLevl2 : 조직레벨2,
+     * ogLevl3 : 조직레벨3,
+     * no : 번호,
+     * feeDsbYn : 수수료지급여부}
+     * @return 조회결과
+     */
+    public List<SearchFeeRes> getFees(
+        SearchFeeReq dto
+    ) {
+        return this.mapper.selectFees(dto);
+    }
+
+    /**
+     * 홈마스터 수수료 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * ogTp : 조직유형,
+     * rsbTp : 직책유형,
+     * ogLevl1 : 조직레벨1,
+     * ogLevl2 : 조직레벨2,
+     * ogLevl3 : 조직레벨3,
+     * no : 번호,
+     * feeDsbYn : 수수료지급여부}
+     * @return 조회결과
+     */
+    public List<SearchFeeHmstRes> getFeeHmsts(
+        SearchFeeReq dto
+    ) {
+        return this.mapper.selectFeeHmsts(dto);
     }
 
 }

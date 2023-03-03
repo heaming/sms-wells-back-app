@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.fee.confirm.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -44,6 +45,20 @@ public class WfeeIndividualFeeDto {
         String perfYm,
         @NotBlank
         String no
+    ) {}
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeReq")
+    public record SearchFeeReq(
+        @NotBlank
+        String perfYm,
+        @NotBlank
+        String ogTp,
+        @NotBlank
+        String rsbTp,
+        String ogLevl1,
+        String ogLevl2,
+        String ogLevl3,
+        String no,
+        String feeDsbYn
     ) {}
 
     // *********************************************************
@@ -229,5 +244,42 @@ public class WfeeIndividualFeeDto {
         int col4,
         int col5,
         int col6
+    ) {}
+
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeRes")
+    public record SearchFeeRes(
+        String col1,
+        String col2,
+        String col3,
+        String col4,
+        String col5,
+        String col6,
+        String col7,
+        String col8,
+        String col9,
+        int col10,
+        int col11,
+        int col12,
+        int col13,
+        int col14,
+        int col15
+    ) {}
+
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeHmstRes")
+    public record SearchFeeHmstRes(
+        String col1,
+        String col2,
+        String col3,
+        String col4,
+        String col5,
+        String col6,
+        String col7,
+        String col8,
+        int col9,
+        int col10,
+        int col11,
+        int col12,
+        int col13,
+        int col14
     ) {}
 }

@@ -79,4 +79,12 @@ public interface WfeeIndividualFeeMapper {
     List<SearchMngerPnpyamRes> selectMngerPnpyams(
         SearchMngerReq dto
     );
+
+    List<SearchFeeRes> selectFees(
+        SearchFeeReq dto
+    );
+
+    List<SearchFeeHmstRes> selectFeeHmsts(
+        SearchFeeReq dto
+    );
 }

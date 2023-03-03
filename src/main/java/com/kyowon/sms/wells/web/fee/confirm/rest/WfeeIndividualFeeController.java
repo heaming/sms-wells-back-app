@@ -226,4 +226,41 @@ public class WfeeIndividualFeeController {
     ) {
         return this.service.getMngerPnpyams(dto);
     }
+
+    @ApiOperation(value = "수수료 조회(추진단)", notes = "조회조건에 해당하는 추진단의 개인별 수수료 내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTp", value = "조직유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
+    })
+    @GetMapping("/mnger-plars")
+    public List<SearchFeeRes> getFees(
+        SearchFeeReq dto
+    ) {
+        return this.service.getFees(dto);
+    }
+
+    @ApiOperation(value = "수수료 조회(홈마스터)", notes = "조회조건에 해당하는 홈마스터의 개인별 수수료 내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTp", value = "조직유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
+    })
+    @GetMapping("/hmsts")
+    public List<SearchFeeHmstRes> getFeeHmsts(
+        SearchFeeReq dto
+    ) {
+        return this.service.getFeeHmsts(dto);
+    }
+
 }
