@@ -25,21 +25,20 @@ public class WsnaEtcOutOfStorageRsonDto {
     ) {}
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-SearchRes")
     public record SearchRes(
-        String sapMatCd,
-        String itmPdCd,
-        String itmNm,
-        String itmGdCd,
-        String ostrDt,
-        String ostrQty,
-        String whlsUprcAmt,
-        String totalAmt,
-        String deptNm2,
-        String ostrRsonCd,
-        String sumQty,
-        String wareNm,
-        String rmkCn,
+        String sapMatCd, /*SAP코드*/
+        String itemNm, /*품목명*/
+        String ostrWareNo, /**/
+        String itmPdCd, /*품목상품코드*/
+        String wareNm, /*창고명*/
+        String itmGdCd, /*등큽코드*/
+        String ostrDt, /*출고일자*/
+        String ostrRsonCd, /*청구사유*/
+        String ostrQty, /*수량*/
+        String csmrUprcAmt, /*소비자가*/
+        String totalAmt, /*총금액*/
+        //        String deptNm
         String sortDvVal,
-        String cdCntn
+        String rmkCn /*비고*/
     ) {}
 
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-CenterRes")
