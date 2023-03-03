@@ -2,15 +2,18 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncWellsAsInterfaceMapper">
 
     <!--@TODO TEMP_CODE-->
+    <!-- W-SV-I-0021 > LC_ASREGN_API_S13 -->
     <select id='selectCustomerInformations' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceCustInfoDvo">
-    SELECT CNTR_NO,CST_KNM,CNTR_DT,PD_CD,PD_NM,CRAL_MPNO,MEXNO_ENCR,CRAL_IDV_TNO,MPNO,EXNO_ENCR,IDV_TNO,NEW_ADR_ZIP,RNADR,RDADR,ADD_REFER,ADD_GB,ADDR,HPNO,TELNO,RCGVP_KNM,BRYY_MMDD,SEX_DV_CD,CNTR_CST_NO
+    SELECT CNTR_NO,CST_KNM,CNTR_DT,PD_CD,PD_NM,CRAL_MPNO,MEXNO_ENCR,CRAL_IDV_TNO,MPNO,EXNO_ENCR,IDV_TNO,NEW_ADR_ZIP,RNADR,RDADR,ADD_REFER,ADD_GB,ADDR,HPNO,TELNO,RCGVP_KNM,BRYY_MMDD,SEX_DV_CD,CNTR_CST_NO, PD_GRP_ID
     FROM (
         SELECT T1.CNTR_NO                                             AS CNTR_NO
              , T2.BASE_PD_CD                                          AS PD_CD
+             , PD_PRP_VAL20                                           AS PD_GRP_ID /*ST101_ITEM_GR*/
              , T3.CST_KNM                                             AS CST_KNM
              , CAST(T1.CNTR_CNFM_DTM AS CHAR(7))                      AS CNTR_DT
              , ''                                                     AS DB2_ICDE
              , T4.PD_NM                                               AS PD_NM
+             , BASE_PD_CD
              , T3.CRAL_LOCARA_TNO                                     AS CRAL_MPNO
              , T3.MEXNO_ENCR                                          AS MEXNO_ENCR
              , T3.CRAL_IDV_TNO                                        AS CRAL_IDV_TNO
@@ -29,19 +32,33 @@
              , BRYY_MMDD                                              AS BRYY_MMDD
              , SEX_DV_CD                                              AS SEX_DV_CD
              , T1.CNTR_CST_NO                                         AS CNTR_CST_NO
-        FROM TB_SSCT_CNTR_BAS T1 /*계약기본*/
-                 JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/ON T1.CNTR_NO = T2.CNTR_NO AND T2.SELL_TP_CD != '9'
-                 JOIN TB_CUBS_CST_BAS T3 /*고객기본*/ ON T1.CNTR_CST_NO = T3.CST_NO
-                 JOIN TB_PDBS_PD_BAS T4 /*상품기본*/ ON T2.BASE_PD_CD = T4.PD_CD
-                 LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T5 /*계약주소지기본*/ ON T5.DTA_DL_YN = 'N' AND T1.CNTR_NO = T5.CNTR_NO AND T1.CNTR_CST_NO = T5.CNTR_CST_NO
-                 LEFT OUTER JOIN TB_GBCO_ADR_BAS /*주소기본*/ T6 ON T6.DTA_DL_YN = 'N' AND T5.ADR_ID = T6.ADR_ID
+          FROM TB_SSCT_CNTR_BAS T1 /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/ON T1.CNTR_NO = T2.CNTR_NO AND T2.SELL_TP_CD != '9'
+         INNER JOIN TB_CUBS_CST_BAS T3 /*고객기본*/ ON T1.CNTR_CST_NO = T3.CST_NO
+         INNER JOIN TB_PDBS_PD_BAS T4 /*상품기본*/ ON T2.BASE_PD_CD = T4.PD_CD
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T5 /*계약주소지기본*/ ON T5.DTA_DL_YN = 'N' AND T1.CNTR_NO = T5.CNTR_NO AND T1.CNTR_CST_NO = T5.CNTR_CST_NO
+         INNER JOIN TB_GBCO_ADR_BAS /*주소기본*/ T6 ON T6.DTA_DL_YN = 'N' AND T5.ADR_ID = T6.ADR_ID
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T7 ON T4.PD_CD = T7.PD_cD  AND T7.PD_EXTS_PRP_GRP_CD = 'PART' AND PD_PRP_VAL20 IN ('1','2','3','4', '92', '11')
     ) WHERE 1 = 1
         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
         AND CNTR_NO = #{cntrNo}
         </if>
+      <if test="@MybatisUtils@isNotEmpty(cstKnm)">
+      AND CST_KNM = #{cstKnm}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(hpno)">
+      AND HPNO = #{hpno}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(newAdrZip)">
+      AND NEW_ADR_ZIP = #{newAdrZip}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(pdGrpId)">
+      AND PD_GRP_ID = #{pdGrpId}
+      </if>
     </select>
 
     <!--@TODO TEMP_CODE-->
+    <!--W-SV-I-0022-->
     <select id='selectReceiptInformations' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceRecInfoDvo">
     SELECT AS_IST_OJ_NO
          , CNSL_MO_CN
