@@ -20,9 +20,10 @@ public class WsnaReturningGoodsDvo {
     String itmOstrNo; // 품목출고번호
     String ostrSn; // 출고일련번호
     String itmKndCd; // 품목종류코드
-    String itmPdCd; // 품목상품코드(SAP코드)
+    String sapMatCd; // SAP자재코드
+    String itmPdCd; // 품목상품코드
     String itmCd; // 품목코드
-    String itmNm; // 품목명(한글)
+    String itmPdNm; // 품목명(한글)
     String itmGdCd; // 품목등급코드
     BigDecimal onQty; // 재고수량
     String mngtUnitCd; // 관리단위코드
@@ -40,6 +41,7 @@ public class WsnaReturningGoodsDvo {
     String strTpCd; // 입고유형코드
     String strWareDvCd; // 입고창고구분코드
     String strWareNo; // 입고창고번호
+    String itmStrNo; // 품목입고번호
     String strSn; // 일련번호
     String strWareMngtPrtnrNo; // 입고창고관리파트너번호
 

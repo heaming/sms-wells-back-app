@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.ItemOutOfStorage;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.SearchWarehouseReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.SearchWarehouseRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 
 /**
@@ -24,7 +22,7 @@ public interface WsnaReturningGoodsOstrMapper {
 
     List<WsnaReturningGoodsDvo> selectReturningGoodsOstrs(String itmOstrNo);
 
-    ItemOutOfStorage selectItemOutOfStorage(String itmOstrNo);
+    ItemOutOfStorage selectItemOutOfStorage(SearchReq itmOstrNo);
 
     String selectIsClosedByPk(String itmOstrNo);
 
@@ -35,5 +33,9 @@ public interface WsnaReturningGoodsOstrMapper {
     int deleteItemForwardingHistory(WsnaReturningGoodsDvo dvo);
 
     int deleteItemReceivingHistory(WsnaReturningGoodsDvo dvo);
+
+    String selectNextItmOstrNo(FindItmOstrNoReq dto);
+
+    String selectNextItmStrNo(FindItmStrNoReq dto);
 
 }

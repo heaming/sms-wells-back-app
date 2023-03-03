@@ -20,13 +20,10 @@ public class WsnaReturningGoodsOstrDto {
 
     @ApiModel(value = "WsnaReturningGoodsOstrDto-SearchReq")
     public record SearchReq(
-        @NotBlank
         String ostrTpCd, // 출고유형
-        @NotBlank
         String ostrWareNo, // 출고창고번호
-        @NotBlank
         String ostrDt, // 출고일자
-        String strWareNo // 입고창고번호
+        String itmOstrNo // 품목출고번호
     ) {}
 
     @ApiModel(value = "WsnaReturningGoodsOstrDto-SearchRes")
@@ -59,6 +56,19 @@ public class WsnaReturningGoodsOstrDto {
         String wareDtlDvCdUp
     ) {}
 
+    @ApiModel(value = "WsnaReturningGoodsOstrDto-FindItmOstrNoReq")
+    public record FindItmOstrNoReq(
+        String ostrTpCd, // 출고유형코드
+        String ostrDt // 출고일자
+    ) {}
+
+    @ApiModel(value = "WsnaReturningGoodsOstrDto-FindItmStrNoReq")
+    public record FindItmStrNoReq(
+        String ostrTpCd, // 출고유형코드
+        String ostrDt, // 출고일자
+        String strWareNo // strWareNo
+    ) {}
+
     @ApiModel(value = "WsnaReturningGoodsOstrDto-ItemOutOfStorage")
     public record ItemOutOfStorage(
         String itmOstrNo, // 품목출고번호
@@ -85,9 +95,10 @@ public class WsnaReturningGoodsOstrDto {
         String itmOstrNo, // 품목출고번호
         String ostrSn, // 출고일련번호
         String itmKndCd, // 품목종류코드
-        String itmPdCd, // 품목상품코드(SAP코드)
+        String sapMatCd, // SAP자재코드
+        String itmPdCd, // 품목상품코드
         String itmCd, // 품목코드
-        String itmNm, // 품목명(한글)
+        String itmPdNm, // 품목명(한글)
         String itmGdCd, // 품목등급코드
         BigDecimal onQty, // 재고수량
         String mngtUnitCd, // 관리단위코드
@@ -102,7 +113,6 @@ public class WsnaReturningGoodsOstrDto {
 
     @ApiModel(value = "WsnaReturningGoodsOstrDto-SaveReq")
     public record SaveReq(
-        // TODO: 수정
         @NotBlank
         String rowState,
         @NotBlank
@@ -115,10 +125,11 @@ public class WsnaReturningGoodsOstrDto {
 
         String itmOstrNo, // 품목출고번호
         String ostrSn, // 출고일련번호
-        String itmPdCd, // 품목상품코드(SAP코드)
+        String sapMatCd, // SAP자재코드
         @NotBlank
+        String itmPdCd, // 품목상품코드
         String itmCd, // 품목코드
-        String itmNm, // 품목명(한글)
+        String itmPdNm, // 품목명(한글)
         String itmGdCd, // 품목등급코드
         BigDecimal onQty, // 재고수량
         String mngtUnitCd, // 관리단위코드
@@ -152,9 +163,10 @@ public class WsnaReturningGoodsOstrDto {
         @NotBlank
         String ostrSn, // 출고일련번호
 
-        String itmPdCd, // 품목상품코드(SAP코드)
+        String sapMatCd, // SAP자재코드
+        String itmPdCd, // 품목상품코드
         String itmCd, // 품목코드
-        String itmNm, // 품목명(한글)
+        String itmPdNm, // 품목명(한글)
         String itmGdCd, // 품목등급코드
         BigDecimal onQty, // 재고수량
         String mngtUnitCd, // 관리단위코드
