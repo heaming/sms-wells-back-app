@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
-import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +10,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsOstrMapper;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,10 +40,12 @@ public class WsnaReturningGoodsOstrService {
         return this.mapper.selectWareHouses(dto);
     }
 
-    public SearchRes getReturningGoodsOstrs(String itmOstrNo) {
-        ItemOutOfStorage itemOutOfStorage = this.mapper.selectItemOutOfStorage(itmOstrNo);
+    public SearchRes getReturningGoodsOstrs(SearchReq dto) {
+        ItemOutOfStorage itemOutOfStorage = this.mapper.selectItemOutOfStorage(dto);
         List<ReturningGoods> returningGoods = this.converter
-            .mapAllReturningGoodsDvoToReturningGoods(this.mapper.selectReturningGoodsOstrs(itmOstrNo));
+            .mapAllReturningGoodsDvoToReturningGoods(
+                this.mapper.selectReturningGoodsOstrs(itemOutOfStorage.itmOstrNo())
+            );
 
         return new SearchRes(itemOutOfStorage, returningGoods);
     }
@@ -54,15 +56,27 @@ public class WsnaReturningGoodsOstrService {
     }
 
     @Transactional
-    public int saveReturningGoodsOstrs(List<SaveReq> dtos) throws Exception {
+    public int saveReturningGoodsOstrs(List<SaveReq> dtos) {
         int processCount = 0;
         int serialNumber = 0;
+
+        SaveReq saveReq = dtos.get(0);
+
+        String itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(saveReq.ostrTpCd(), saveReq.ostrDt()));
+        String itmStrNo = null;
+
+        if (isReturning(saveReq.ostrTpCd()) && StringUtil.isNotBlank(saveReq.strWareNo())) {
+            itmStrNo = this.mapper
+                .selectNextItmStrNo(new FindItmStrNoReq(saveReq.ostrTpCd(), saveReq.ostrDt(), saveReq.strWareNo()));
+        }
 
         for (SaveReq dto : dtos) {
             serialNumber += 1;
             WsnaReturningGoodsDvo dvo = this.converter.mapSaveReqToReturningGoodsDvo(dto);
 
+            dvo.setItmOstrNo(itmOstrNo);
             dvo.setOstrSn(String.valueOf(serialNumber));
+            dvo.setItmStrNo(itmStrNo);
             dvo.setStrSn(String.valueOf(serialNumber));
 
             // 품목출고내역 insert
@@ -89,7 +103,7 @@ public class WsnaReturningGoodsOstrService {
     }
 
     @Transactional
-    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) throws Exception {
+    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) {
         int processCount = 0;
 
         for (RemoveReq dto : dtos) {

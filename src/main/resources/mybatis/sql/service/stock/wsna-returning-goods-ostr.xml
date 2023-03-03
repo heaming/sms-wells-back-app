@@ -55,21 +55,30 @@
            AND I1.APY_YM = SUBSTR(T1.OSTR_AK_NO, 4, 6)
          WHERE 1 = 1
            AND T1.DTA_DL_YN = 'N'
-           AND O1.DTA_DL_YN = 'N'
-           AND I1.DTA_DL_YN = 'N'
-           AND O1.WARE_USE_YN = 'Y'
-           AND I1.WARE_USE_YN = 'Y'
+       <choose>
+           <when test="@MybatisUtils@isNotEmpty(itmOstrNo)">
            AND T1.ITM_OSTR_NO = #{itmOstrNo}
+           </when>
+           <otherwise>
+           AND T1.ITM_OSTR_NO = (SELECT MAX(ITM_OSTR_NO)
+                                   FROM TB_SVST_ITM_OSTR_IZ
+                                  WHERE DTA_DL_YN = 'N'
+                                    AND OSTR_TP_CD = #{ostrTpCd} /* 출고유형코드 */
+                                    AND OSTR_WARE_NO = #{ostrWareNo} /* 출고창고번호 */
+                                    AND OSTR_DT = #{ostrDt} /* 출고일자 */)
+           </otherwise>
+       </choose>
            AND ROWNUM = 1
     </select>
 
     <select id="selectReturningGoodsOstrs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo">
         SELECT T1.ITM_OSTR_NO /* 품목출고번호 */
              , T1.OSTR_SN /* 출고일련번호 */
+             , (SELECT SAP_MAT_CD FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.ITM_PD_CD) AS SAP_MAT_CD /* SAP자재코드 */
              , T1.ITM_KND_CD /* 품목종류코드 */
              , T1.ITM_PD_CD /* 품목상품코드 */
              , T1.ITM_CD /* 품목코드 */
-             , '품목명' AS ITM_NM /* 품목명 */
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.ITM_PD_CD) AS ITM_PD_NM /* 품목명 */
              , T1.ITM_GD_CD /* 품목등급코드 */
              , T1.ACB_DT /* 회계일자 */
              , T1.EVID_DV_CD /* 증빙구분코드 */
@@ -109,6 +118,22 @@
          GROUP BY T1.SELL_RCPDT
     </select>
 
+    <select id="selectNextItmOstrNo" resultType="java.lang.String">
+        SELECT #{ostrTpCd} || #{ostrDt} || LPAD(NVL(SUBSTR(MAX(V1.ITM_OSTR_NO), 12, 7), 0) + 1, 7, '0') AS ITM_OSTR_NO
+          FROM TB_SVST_ITM_OSTR_IZ V1
+         WHERE V1.OSTR_TP_CD = #{ostrTpCd}
+           AND V1.OSTR_DT = #{ostrDt}
+    </select>
+
+    <select id="selectNextItmStrNo" resultType="java.lang.String">
+    <!-- 반품인 경우 입고번호 채번 261 -> 161 itmStrNo (입고유형3 + 등록일자8 + 일련번호7) -->
+        SELECT (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END) || #{ostrDt} || LPAD(NVL(SUBSTR(MAX(V2.ITM_STR_NO), 12, 7), 0) + 1, 7, '0') AS ITM_STR_NO
+          FROM TB_SVST_ITM_STR_IZ V2
+         WHERE V2.STR_TP_CD = (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END)
+           AND V2.STR_WARE_NO = #{strWareNo}
+           AND V2.STR_RGST_DT = #{ostrDt}
+    </select>
+
     <insert id="insertItemForwardingHistory">
         INSERT INTO TB_SVST_ITM_OSTR_IZ (  /* 품목출고내역 */
                ITM_OSTR_NO              /* 품목출고번호 */
@@ -132,18 +157,13 @@
              , STR_TP_CD                /* 입고유형코드 */
              , STR_WARE_NO              /* 입고창고번호 */
         <if test='@MybatisUtils@equals(ostrTpCd, "261")'>
-        <!-- 반품인 경우 입고번호 채번 261 -> 161 itmStrNo (입고유형3 + 등록일자8 + 일련번호7) -->
              , ITM_STR_NO               /* 품목입고번호 */
              , STR_SN                   /* 입고일련번호 */
         </if>
              , DTA_DL_YN                /* 데이터삭제여부 */
              , RMK_CN                   /* 비고내용 */
              <include refid="COMMON.insertSystemField" />)
-        VALUES (
-               SELECT #{ostrTpCd} || #{ostrDt} || LPAD(NVL(SUBSTR(MAX(V1.ITM_OSTR_NO), 12, 7), 0) + 1, 7, '0')
-                 FROM TB_SVST_ITM_OSTR_IZ V1
-                WHERE V1.OSTR_TP_CD = #{ostrTpCd}
-                  AND V1.OSTR_DT = #{ostrDt}
+        SELECT #{itmOstrNo}
              , ${ostrSn}
              , #{ostrTpCd}
              , #{ostrWareNo}
@@ -167,18 +187,13 @@
              , (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END)
              , #{strWareNo}
          <if test='@MybatisUtils@equals(ostrTpCd, "261")'>
-         <!-- 반품인 경우 입고번호 채번 261 -> 161 itmStrNo (입고유형3 + 등록일자8 + 일련번호7) -->
-             , SELECT (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END) || #{ostrDt} || LPAD(NVL(SUBSTR(MAX(V2.ITM_STR_NO), 12, 7), 0) + 1, 7, '0')
-                 FROM TB_SVST_ITM_STR_IZ V2
-                WHERE V2.STR_TP_CD = (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END)
-                  AND V2.STR_WARE_NO = #{strWareNo}
-                  AND V2.STR_RGST_DT = #{ostrDt}
+             , #{itmStrNo}
              , ${strSn}
          </if>
              , 'N'
              , #{rmkCn}
              <include refid="COMMON.insertSystemFieldValue" />
-             )
+          FROM DUAL
     </insert>
 
     <insert id="insertItemReceivingHistory">
@@ -206,17 +221,13 @@
              , OSTR_WARE_NO              /* 출고창고번호 */
              , OSTR_DT                   /* 출고일자 */
              , RMK_CN                    /* 비고내용 */
+             , DRT_STR_YN                /* 직접입고여부 */
              , DTA_DL_YN                 /* 데이터삭제여부 */
              <include refid="COMMON.insertSystemField" />)
-        VALUES (
-               SELECT (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END) || #{ostrDt} || LPAD(NVL(SUBSTR(MAX(V2.ITM_STR_NO), 12, 7), 0) + 1, 7, '0')
-                 FROM TB_SVST_ITM_STR_IZ V2
-                WHERE V2.STR_TP_CD = (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END)
-                  AND V2.STR_WARE_NO = #{strWareNo}
-                  AND V2.STR_RGST_DT = #{ostrDt}
+        SELECT #{itmStrNo}
              , ${strSn}
              , (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '262' THEN '162' ELSE '' END)
-             , #{strRgstDt}
+             , #{ostrDt}
              , #{strWareNo}
              , #{strWareMngtPrtnrNo}
              , (SELECT P1.OG_TP_CD
@@ -233,18 +244,19 @@
              , 0
              , #{acbDt}
              , #{evidDvCd}
-             , SELECT #{ostrTpCd} || #{ostrDt} || LPAD(NVL(SUBSTR(MAX(V1.ITM_OSTR_NO), 12, 7), 0) + 1, 7, '0')
+             , (SELECT #{ostrTpCd} || #{ostrDt} || LPAD(NVL(SUBSTR(MAX(V1.ITM_OSTR_NO), 12, 7), 0) + 1, 7, '0')
                  FROM TB_SVST_ITM_OSTR_IZ V1
                 WHERE V1.OSTR_TP_CD = #{ostrTpCd}
-                  AND V1.OSTR_DT = #{ostrDt}
+                  AND V1.OSTR_DT = #{ostrDt})
              , ${ostrSn}
              , #{ostrTpCd}
              , #{ostrWareNo}
              , #{ostrDt}
              , #{rmkCn}
              , 'N'
+             , 'N'
              <include refid="COMMON.insertSystemFieldValue" />
-             )
+          FROM DUAL
     </insert>
 
     <delete id="deleteItemForwardingHistory">

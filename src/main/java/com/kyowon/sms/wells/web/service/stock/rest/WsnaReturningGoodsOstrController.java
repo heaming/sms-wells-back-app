@@ -8,11 +8,7 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.SaveReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.SearchWarehouseReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.SearchWarehouseRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.*;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaReturningGoodsOstrService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -46,13 +42,15 @@ public class WsnaReturningGoodsOstrController {
     }
 
     @ApiOperation(value = "반품출고 조회", notes = "조회조건에 일치하는 반품출고 등록된 상품과 재고를 조회한다.")
-    @ApiImplicitParam(name = "itmOstrNo", value = "품목출고", paramType = "path", example = "221202302160000001", required = true)
-    @GetMapping("/{itmOstrNo}")
-    public SearchRes getReturningGoodsOstrs(
-        @PathVariable
-        String itmOstrNo
-    ) {
-        return this.service.getReturningGoodsOstrs(itmOstrNo);
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ostrTpCd", value = "출고유형", paramType = "query", example = "212"),
+        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "200005"),
+        @ApiImplicitParam(name = "ostrDt", value = "출고일자", paramType = "query", example = "20230302"),
+        @ApiImplicitParam(name = "itmOstrNo", value = "품목출고번호", paramType = "query", example = "221202302160000001")
+    })
+    @GetMapping
+    public SearchRes getReturningGoodsOstrs(SearchReq dto) {
+        return this.service.getReturningGoodsOstrs(dto);
     }
 
     @ApiOperation(value = "입고마감 체크", notes = "품목출고내역에서 품목출고번호의 입고마감 여부를 체크한다.")
@@ -80,7 +78,7 @@ public class WsnaReturningGoodsOstrController {
         @Valid
         @RequestBody
         @NotEmpty
-        List<WsnaReturningGoodsOstrDto.RemoveReq> dtos
+        List<RemoveReq> dtos
     ) throws Exception {
         return SaveResponse.builder().processCount(this.service.removeReturningGoodsOstrs(dtos)).build();
     }
