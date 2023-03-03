@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0218M01 - 급지 출고지 관리
  * </pre>
  *
- * @author yeonghws.cheon
+ * @author yeonghwa.cheon
  * @since 2022.12.14
  */
 @Service
