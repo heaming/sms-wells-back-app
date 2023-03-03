@@ -191,13 +191,7 @@
                               AND E.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월 조직/파트너 내역(WITH).기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
                            ) AS DANG_OJ_PRTNR_PSTN_DV_NM /* [행위자사번 - 직급] - 월 조직/파트너 내역(WITH).직급구분명 */
                          , SUBSTR(A.DANG_OC_STRTDT, 1, 6) AS DANG_OC_STRTMM /* [벌점 - 발생년월] - SUBSTR(위험점검내역.위험발생시작일자,1,6) */
-                         , (
-                            SELECT C.OG_NM
-                              FROM WSMDBS.TB_OGBS_MM_OG_IZ C/* 월조직내역 */
-                             WHERE C.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월조직내역.기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
-                               AND C.OG_ID = A.DANG_ARBIT_OG_ID /* 월조직내역.조직ID = 위험점검내역.위험조치조직ID  */
-                               AND C.OG_TP_CD LIKE 'W%' /* 월조직내역의 조직유형코드 'W'로 시작 하는 건 - ▷임시처리 조직유형코드 적용 확정 이후 수정 필요 */
-                           ) AS DANG_ARBIT_OG_NM /* [벌점 - 조치부서] - 월조직내역.조직명 */
+                         , AFMDBS.F_CMZ_CD_NM ('TNT_WELLS', 'PNTSC_ARBIT_DEPT_CD', A.DANG_ARBIT_OG_ID) AS DANG_ARBIT_OG_NM /* [벌점 - 조치부서] - 공통코드 벌점 조치 부서 PNTSC_ARBIT_DEPT_CD */
                          , A.DANG_CHK_NM /* [벌점 - 부과내역] - 위험점검내역.위험점검명 */
                          , AFMDBS.F_CMZ_CD_NM ('TNT_WELLS', 'PNTSC_ARBIT_ATC_CD', A.DANG_ARBIT_CD) AS DANG_ARBIT_CD_NM /* [벌점 - 조치항목] - 공통코드 벌점조치항목 PNTSC_ARBIT_ATC_CD */
                          , A.DANG_UNCVR_CT /* [벌점 - 부과대상건수] - 위험점검내역.위험적발건수 */
@@ -223,10 +217,10 @@
                                 </if>
                                 <if test='@MybatisUtils@equals(srchGbn, "2")'>
                                       <if test='@MybatisUtils@isNotEmpty(dangOcStrtMonth)'>
-                                          AND  A2.DANG_OC_STRTDT <![CDATA[ >= ]]> TRIM(#{dangOcStrtMonth})||'01' /* 위험점검내역.위험발생시작일자 입력한 FROM년월 */
+                                         AND DECODE(LENGTH(A.DANG_OC_STRTDT ), 6, A.DANG_OC_STRTDT ||'01', A.DANG_OC_STRTDT )  <![CDATA[ >= ]]> TRIM(#{dangOcStrtMonth})||'01' /* 위험점검내역.위험발생시작일자 입력한 FROM년월 */
                                       </if>
                                       <if test='@MybatisUtils@isNotEmpty(dangOcEndMonth)'>
-                                          AND A2.DANG_OC_ENDDT <![CDATA[<= ]]> TO_CHAR(LAST_DAY(TRIM(#{dangOcEndMonth})||'01'),'YYYYMMDD') /* 위험점검내역.최초등록일시 입력한 TO년월 */
+                                          AND A2.DANG_OC_STRTDT <![CDATA[<= ]]> TO_CHAR(LAST_DAY(TRIM(#{dangOcEndMonth})||'01'),'YYYYMMDD') /* 위험점검내역.최초등록일시 입력한 TO년월 */
                                       </if>
                                 </if>
                             ) AS DANG_ARBIT_LVY_PC_SUM /* [벌점 - 합계점수] */
@@ -236,7 +230,7 @@
                          , A.DANG_ARBIT_OG_ID /* 위험점검내역.위험조치조직ID */
                          , A.DANG_ARBIT_CD /* 위험점검내역.위험조치코드 */
                          , A.DANG_ARBIT_LVY_PC AS DANG_ARBIT_LVY_PC_ORG /* 위험점검내역.위험조치부과점수(ORG) */
-                         , A.FST_RGST_DTM /* 위험점검내역.최초등록일시 */
+                         , SUBSTR(A.FST_RGST_DTM,'1','8') AS FST_RGST_DTM /* 위험점검내역.최초등록일시 */
                          , (
                             SELECT DGR1_LEVL_OG_CD /* 월 조직/파트너 내역(WITH).1차레벨조직코드-총괄단 */
                               FROM TB_OGBS_MM E /* 월 조직/파트너 내역(WITH) */
@@ -282,10 +276,10 @@
                         </if>
                         <if test='@MybatisUtils@equals(srchGbn, "2")'>
                             <if test='@MybatisUtils@isNotEmpty(dangOcStrtMonth)'>
-                                AND  A.DANG_OC_STRTDT <![CDATA[ >= ]]> TRIM(#{dangOcStrtMonth})||'01' /* 위험점검내역.위험발생시작일자 입력한 FROM년월 */
+                               AND DECODE(LENGTH(A.DANG_OC_STRTDT ), 6, A.DANG_OC_STRTDT ||'01', A.DANG_OC_STRTDT )  <![CDATA[ >= ]]> TRIM(#{dangOcStrtMonth})||'01' /* 위험점검내역.위험발생시작일자 입력한 FROM년월 */
                             </if>
                             <if test='@MybatisUtils@isNotEmpty(dangOcEndMonth)'>
-                                AND A.DANG_OC_ENDDT <![CDATA[<= ]]> TO_CHAR(LAST_DAY(TRIM(#{dangOcEndMonth})||'01'),'YYYYMMDD') /* 위험점검내역.최초등록일시 입력한 TO년월 */
+                                AND A.DANG_OC_STRTDT <![CDATA[<= ]]> TO_CHAR(LAST_DAY(TRIM(#{dangOcEndMonth})||'01'),'YYYYMMDD') /* 위험점검내역.최초등록일시 입력한 TO년월 */
                             </if>
                         </if>
                    ) G
@@ -308,7 +302,8 @@
             UNION ALL
             SELECT
                    '' AS DANG_CHK_ID
-                 , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'PSTN_DV_CD', B.PSTN_DV_CD) AS WELLS_OJ_PSTN_RANK_NM /* 구분 - 직급구분명 */
+                 , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'WELLS_OJ_PSTN_RANK_CD', TRIM(B.PSTN_DV_CD)) AS WELLS_OJ_PSTN_RANK_NM  /* 구분 - 직급구분명 */
+
                  , B.OG_NM AS DANG_MNGT_PNTNR_OG_NM /* 소속명 - 조직명*/
                  , B.OG_CD AS DANG_MNGT_PNTNR_OG_CD /* 소속코드 - 조직코드*/
                  , B.PRTNR_KNM AS DANG_MNGT_PNTNR_NM /* 성명 - 파트너한글명 */
@@ -390,6 +385,24 @@
                AND B.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') /* 월파트너내역.기준년월 = 현재월 */
                AND NVL(B.DTA_DL_YN, 'N') = 'N' /* 월파트너내역.데이터삭제여부가 'N'인 건 */
                AND B.OG_TP_CD LIKE 'W%' /* 월조직내역의 조직유형코드 'W'로 시작 하는 건 - ▷임시처리 조직유형코드 적용 확정 이후 수정 필요 */
+            INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ B2
+               ON B2.OG_ID = B.OG_ID
+            WHERE 1=1
+                <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
+                    AND TRIM(B2.DGR1_LEVL_OG_CD) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(rgrp)'>
+                    AND TRIM(B2.DGR2_LEVL_OG_CD) LIKE #{rgrp}||'%' /* 조회조건 - 지역단 - 2차레벨조직 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(brch)'>
+                    AND TRIM(B2.DGR3_LEVL_OG_CD) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dangOjPrtnrNo)'>
+                    AND TRIM(A.OG_PRTNR_NO) LIKE #{dangOjPrtnrNo}||'%' /* 조회조건 - 사번 - 위험점검내역.위험관리파트너번호 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dangMngtPrtnrNo)'>
+                    AND TRIM(B.PSTN_DV_CD) LIKE #{dangMngtPrtnrNo}||'%' /* 조회조건 - 직위구분 - 위험점검내역.위험관리직급구분코드 */
+                </if>
            ) H
      GROUP BY H.DANG_MNGT_PNTNR_OG_CD /* 소속코드 - 조직코드*/
             , H.DANG_MNGT_PRTNR_NO /* 사번 - 1/2/3차 레벨 대표 파트너번호, 영업지원 파트너 번호 (총괄단,지역단,지점,영업지원파트너 번호 ) */
