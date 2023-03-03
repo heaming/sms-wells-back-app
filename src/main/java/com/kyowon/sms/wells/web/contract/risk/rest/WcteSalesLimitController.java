@@ -8,9 +8,11 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.wells.web.contract.risk.service.WcteSalesLimitService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -29,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class WcteSalesLimitController {
 
     private final WcteSalesLimitService service;
+    private final ExcelReadService excelReadService;
 
     @ApiOperation(value = "wells 사업자 가입제한 대상 관리 페이징 조회", notes = "wells 사업자 가입제한 대상 관리를 페이징 조회한다.")
     @ApiImplicitParams(value = {
@@ -84,4 +87,13 @@ public class WcteSalesLimitController {
             .build();
     }
 
+    @ApiOperation(value = "wells 사업자 가입제한 대상 - Excel Upload")
+    @PostMapping("/excel-upload")
+    public SaveResponse saveEntrepreneurForExcelUpload(@RequestParam("file")
+    MultipartFile file) throws Exception {
+        List<SaveEntrpJLmOjReq> result = service.saveEntrepreneurForExcelUpload(file);
+        return SaveResponse.builder()
+            .processCount(service.saveEntrepreneurJoinLmOjss(result))
+            .build();
+    }
 }

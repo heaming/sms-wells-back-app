@@ -17,8 +17,8 @@ public class WctzPartnerService {
 
     private final WctzPartnerMapper mapper;
 
-    public List<SearchEntrepreneurBaseRes> getEntrepreneurBases(String dlpnrCd) {
-        return mapper.selectEntrepreneurBases(dlpnrCd);
+    public List<SearchEntrepreneurBaseRes> getEntrepreneurBases(String bzrno) {
+        return mapper.selectEntrepreneurBases(bzrno);
     }
 
     public List<SearchGeneralDivisionsRes> getGeneralDivisions() {

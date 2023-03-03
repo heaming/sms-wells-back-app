@@ -2,14 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.common.mapper.WctzPartnerMapper">
     <select id="selectEntrepreneurBases" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto$SearchEntrepreneurBaseRes">
-        SELECT T1.DLPNR_CD              /* 사업자번호 */
-            , T1.DLPNR_NM             /* 거래처명 */
-            , T1.DLGPS_NM             /* 대표자명*/
-            , T1.BRYY_MMDD            /* 생년월일 */
-        FROM TB_GBCO_DLPNR_BAS T1    /* 거래처 기본*/
-        WHERE 1=1
-            AND T1.DTA_DL_YN = 'N'
-            AND T1.DLPNR_CD = #{dlpnrCd}   /*사업자번호*/
+        SELECT *  /* 가장최근 사업자정보  */
+          FROM (SELECT T1.BZRNO              /* 사업자번호 */
+                     , T1.DLPNR_NM             /* 거래처명 */
+                     , T1.DLGPS_NM             /* 대표자명*/
+                     , T1.BRYY_MMDD            /* 생년월일 */
+                     , ROW_NUMBER () OVER(ORDER BY T1.FNL_MDFC_PRG_ID DESC) AS RN /* 최종 한건만*/
+                  FROM TB_GBCO_DLPNR_BAS T1    /* 거래처 기본*/
+                 WHERE 1=1
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T1.BZRNO_VD_YN = 'Y'     /* 사업자등록번호검증여부 */
+                   AND T1.SOCBZ_DV_CD IS NULL   /* 휴폐업구분코드 빈값*/
+                   AND T1.BZRNO = #{bzrno}   /*사업자번호*/
+             )
+        WHERE RN = 1
     </select>
     <select id="selectGeneralDivisions" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto$SearchGeneralDivisionsRes">
         SELECT NVL(MAX(D.DGR1_LEVL_OG_CD),'') AS DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */

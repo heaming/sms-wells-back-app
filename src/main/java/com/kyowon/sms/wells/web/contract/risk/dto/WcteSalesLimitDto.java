@@ -15,11 +15,9 @@ public class WcteSalesLimitDto {
     @Builder
     @ApiModel("WcteSalesLimitDto-SearchEntrpJLmOjReq")
     public record SearchEntrpJLmOjReq(
-
         String dlpnrNm, //상호명
-        @NotBlank
-        String sellLmBzrno, //사업자번호
 
+        String sellLmBzrno, //사업자번호
         @ValidDate
         String sellLmOcStm, //시작일자
         @ValidDate

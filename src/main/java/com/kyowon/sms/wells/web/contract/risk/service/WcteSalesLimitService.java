@@ -2,15 +2,18 @@ package com.kyowon.sms.wells.web.contract.risk.service;
 
 import static com.kyowon.sms.wells.web.contract.risk.dto.WcteSalesLimitDto.*;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.wells.web.contract.risk.converter.WcteSalesLimitConverter;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WcteSellLmOjIzDvo;
 import com.kyowon.sms.wells.web.contract.risk.mapper.WcteSalesLimitMapper;
+import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
+import com.sds.sflex.common.common.service.ExcelReadService;
+import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -25,6 +28,8 @@ public class WcteSalesLimitService {
 
     private final WcteSalesLimitMapper mapper;
     private final WcteSalesLimitConverter converter;
+    private final MessageResourceService messageResourceService;
+    private final ExcelReadService excelReadService;
 
     public PagingResult<SearchEntrpJLmOjRes> getEntrepreneurJoinLmOjssPages(
         SearchEntrpJLmOjReq dto, PageInfo pageInfo
@@ -93,5 +98,54 @@ public class WcteSalesLimitService {
             processCount += result;
         }
         return processCount;
+    }
+
+    @Transactional
+    public List<SaveEntrpJLmOjReq> saveEntrepreneurForExcelUpload(MultipartFile file) throws Exception {
+        Map<String, String> headerTitle = new LinkedHashMap<>();
+        headerTitle.put("sellLmDv", messageResourceService.getMessage("MSG_TXT_INF_CLS"));
+        headerTitle.put("sellLmBzrno", messageResourceService.getMessage("MSG_TXT_ENTRP_NO"));
+        headerTitle.put("sellLmRsonCd", messageResourceService.getMessage("MSG_TXT_DFT_CD"));
+        headerTitle.put("sellLmOcDtm", messageResourceService.getMessage("MSG_TXT_OCCUR_DATE"));
+        headerTitle.put("sellLmRlsDtm", messageResourceService.getMessage("MSG_TXT_CNC_DT"));
+        headerTitle.put("sellLmRson", messageResourceService.getMessage("MSG_TXT_OCC_RSN"));
+        headerTitle.put("sellLmPsicNm", messageResourceService.getMessage("MSG_TXT_RGST_ICHR"));
+        headerTitle.put("sellLmRlsPsicNm", messageResourceService.getMessage("MSG_TXT_CNC_INCHR"));
+
+        // 업로드 엑셀 파일 DRM 복호화
+        List<WcteSellLmOjIzDvo> dvos = excelReadService.readExcel(file, new ExcelMetaDvo(1), WcteSellLmOjIzDvo.class);
+        List<SaveEntrpJLmOjReq> result = new LinkedList<>();
+
+        int processCount = 0;
+        int row = 1;
+        for (WcteSellLmOjIzDvo dvo : dvos) {
+            result.add(converter.mapSaveEntrpJLmOjReqToDvoToSaveEntrpJLmOjReq(dvo));
+        }
+        System.out.println(result.toString());
+        // 업로드 엑셀 파일 DRM 복호화
+        Map<String, String> kvForValidation;
+        for (WcteSellLmOjIzDvo req : dvos) {
+            kvForValidation = Map.of(
+                "sellLmDv", req.getSellLmDv(),
+                "sellLmBzrno", req.getSellLmBzrno(),
+                "sellLmRsonCd", req.getSellLmRsonCd(),
+                "sellLmOcDtm", req.getSellLmOcDtm(),
+                "sellLmRsonCd", req.getSellLmRsonCd(),
+                "sellLmOcDtm", req.getSellLmOcDtm(),
+                "sellLmRlsDtm", req.getSellLmRlsDtm(),
+                "sellLmRson", req.getSellLmRson(),
+                "sellLmPsicNm", req.getSellLmPsicNm(),
+                "sellLmRlsPsicNm", req.getSellLmRlsPsicNm()
+            );
+
+            // 유효성검사
+            for (String key : kvForValidation.keySet()) {
+                BizAssert.hasText(
+                    kvForValidation.get(key), "MSG_ALT_INVALID_UPLOAD_DATA",
+                    new String[] {String.valueOf(row), headerTitle.get(key), kvForValidation.get(key)}
+                );
+            }
+        }
+        return result;
     }
 }

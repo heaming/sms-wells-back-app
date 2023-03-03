@@ -17,9 +17,22 @@
              , T3.USR_NM                                        AS SELL_LM_PSIC_NM             /* 제한 등록 담당자 NM */
              , NVL2(T1.SELL_LM_RLS_DTM, T4.USR_NM, '')           AS SELL_LM_RLS_PSIC_NM         /* 제한 등록 담당자 NM */
         FROM TB_SSCT_SELL_LM_OJ_IZ T1         /* T1.판매제한대상내역 */
-        LEFT OUTER JOIN TB_GBCO_DLPNR_BAS T2  /* T2.거래처 기본*/
-          ON T2.DLPNR_CD = T1.SELL_LM_BZRNO   /*사업자번호*/
-          AND T2.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN LATERAL (SELECT *  /* 가장최근 사업자정보  */
+                                   FROM (SELECT T20.BZRNO              /* 사업자번호 */
+                                              , T20.DLPNR_NM             /* 거래처명 */
+                                              , T20.DLGPS_NM             /* 대표자명*/
+                                              , T20.BRYY_MMDD            /* 생년월일 */
+                                              , ROW_NUMBER () OVER(ORDER BY T20.FNL_MDFC_PRG_ID DESC) AS RN /* 최종 한건만*/
+                                  FROM TB_GBCO_DLPNR_BAS T20    /* 거래처 기본*/
+                                 WHERE 1=1
+                                   AND T20.DTA_DL_YN = 'N'
+                                   AND T20.BZRNO_VD_YN = 'Y'     /* 사업자등록번호검증여부 */
+                                   AND T20.SOCBZ_DV_CD IS NULL   /* 휴폐업구분코드 빈값*/
+                                   AND T20.BZRNO = T1.SELL_LM_BZRNO   /*사업자번호*/
+                             )
+                            WHERE RN = 1
+                          ) T2
+           ON T2.BZRNO = T1.SELL_LM_BZRNO   /*사업자번호*/
          LEFT OUTER JOIN T_CMY_USR_M T3
            ON T3.USR_ID = T1.FST_RGST_USR_ID
           AND T3.TENANT_ID = #{session.tenantId}

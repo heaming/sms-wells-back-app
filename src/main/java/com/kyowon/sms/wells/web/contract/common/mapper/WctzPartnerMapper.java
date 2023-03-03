@@ -11,7 +11,7 @@ import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchRegiona
 @Mapper
 public interface WctzPartnerMapper {
 
-    List<SearchEntrepreneurBaseRes> selectEntrepreneurBases(String dlpnrCd);
+    List<SearchEntrepreneurBaseRes> selectEntrepreneurBases(String bzrno);
 
     List<SearchGeneralDivisionsRes> selectGeneralDivisions();
 

@@ -10,4 +10,6 @@ public interface WcteSalesLimitConverter {
 
     WcteSellLmOjIzDvo mapSaveEntrpJLmOjReqToDvo(SaveEntrpJLmOjReq dto);
 
+    SaveEntrpJLmOjReq mapSaveEntrpJLmOjReqToDvoToSaveEntrpJLmOjReq(WcteSellLmOjIzDvo dvo);
+
 }
