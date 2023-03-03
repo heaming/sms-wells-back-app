@@ -32,14 +32,14 @@ public class WctzPartnerController {
 
     @ApiOperation(value = "wells 사업자 가입제한 대상 관리 - 사업자 기본 정보 (WELLS)", notes = "사업자 기본 정보를 조회한다")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "dlpnrCd", value = "사업자번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "bzrno", value = "사업자번호", paramType = "query", required = true),
     })
     @GetMapping
     public List<SearchEntrepreneurBaseRes> getEntrepreneurBases(
         @RequestParam
-        String dlpnrCd
+        String bzrno
     ) {
-        return service.getEntrepreneurBases(dlpnrCd);
+        return service.getEntrepreneurBases(bzrno);
     }
 
     @ApiOperation(value = "총괄단 조회", notes = "월조직내역(TB_OGBS_MM_OG_IZ)의 1차레벨 조직정보를 조회")
