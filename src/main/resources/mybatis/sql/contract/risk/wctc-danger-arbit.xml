@@ -69,22 +69,6 @@
                 WHERE 1=1
                   AND C.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'N'인 건*/
                   AND D.DTA_DL_YN = 'N' /* 월파트너내역.데이터삭제여부가 'N'인 건 */
-          <if test='@MybatisUtils@equals(srchGbn, "1")'>
-          	<if test='@MybatisUtils@isNotEmpty(dangOcStrtdt)'>
-          		AND  C.BASE_YM <![CDATA[ >= ]]> SUBSTR(#{dangOcStrtdt}, 1, 6)/* 입력한 FROM년월일 */
-          	</if>
-          	<if test='@MybatisUtils@isNotEmpty(dangOcEnddt)'>
-          		AND C.BASE_YM <![CDATA[<= ]]> SUBSTR(#{dangOcEnddt}, 1, 6) /* 입력한 TO년월일 */
-          	</if>
-           </if>
-           <if test='@MybatisUtils@equals(srchGbn, "2")'>
-           	<if test='@MybatisUtils@isNotEmpty(dangOcStrtMonth)'>
-           		AND  C.BASE_YM <![CDATA[ >= ]]> TRIM(#{dangOcStrtMonth}) /* 입력한 FROM년월 */
-           	</if>
-           	<if test='@MybatisUtils@isNotEmpty(dangOcEndMonth)'>
-           		AND C.BASE_YM <![CDATA[<= ]]> TRIM(#{dangOcEndMonth}) /* 입력한 TO년월 */
-           	</if>
-           </if>
             )
            , W1 AS( SELECT T1.DANG_CHK_ID
      			, (CASE WHEN T1.DANG_MNGT_PSTN_DV_CD = 2 THEN T1.DANG_MNGT_PRTNR_NO ELSE '' END) AS DGR1_LEVL_DG_PRTNR_NO /* 총괄단 */
@@ -146,6 +130,8 @@
             FROM TB_SSCT_DANG_CHK_IZ A /* 위험점검내역 */
             INNER JOIN W1
             ON W1.DANG_CHK_ID = A.DANG_CHK_ID
+            LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T2
+            ON T2.OG_CD = A.DANG_OJ_OG_ID
              WHERE 1=1
              AND A.DTA_DL_YN = 'N'
             /* 조회조건 - 적용기간(등록일자 또는 발생년월) FROM~TO */
@@ -165,21 +151,21 @@
                                 AND A.DANG_OC_STRTDT <![CDATA[<= ]]> TO_CHAR(LAST_DAY(TRIM(#{dangOcEndMonth})||'01'),'YYYYMMDD') /* 위험점검내역.최초등록일시 입력한 TO년월 */
                             </if>
                         </if>
+                        <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
+                            AND TRIM(T2.DGR1_LEVL_OG_CD) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(rgrp)'>
+                            AND TRIM(T2.DGR2_LEVL_OG_CD) LIKE #{rgrp}||'%' /* 조회조건 - 지역단 - 2차레벨조직 */
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(brch)'>
+                            AND TRIM(T2.DGR3_LEVL_OG_CD) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
+                        </if>
             GROUP BY A.DANG_OJ_PRTNR_NO, A.DANG_OC_STRTDT, A.DANG_OJ_OG_ID, A.DANG_CHK_NM, A.DANG_ARBIT_CD, A.DANG_UNCVR_CT, A.FST_RGST_USR_ID, A.FST_RGST_DTM, DANG_ARBIT_OG_ID, DANG_ARBIT_LVY_PC, A.DANG_OJ_PSTN_DV_CD
                 ) G
             WHERE 1=1
-                <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
-                    AND TRIM(G.DGR1_LEVL_DG_PRTNR_NO) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
-                </if>
-                <if test='@MybatisUtils@isNotEmpty(rgrp)'>
-                    AND TRIM(G.DGR2_LEVL_DG_PRTNR_NO) LIKE #{rgrp}||'%' /* 조회조건 - 지역단 - 2차레벨조직 */
-                </if>
-                <if test='@MybatisUtils@isNotEmpty(brch)'>
-                    AND TRIM(G.DGR3_LEVL_DG_PRTNR_NO) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
-                </if>
-                <if test='@MybatisUtils@isNotEmpty(dangOjPrtnrNo)'>
-                    AND TRIM(G.DANG_OJ_PRTNR_NO) LIKE #{dangOjPrtnrNo}||'%' /* 조회조건 - 사번 - 위험점검내역.위험관리파트너번호 */
-                </if>
+            <if test='@MybatisUtils@isNotEmpty(dangOjPrtnrNo)'>
+                AND TRIM(G.DANG_OJ_PRTNR_NO) LIKE #{dangOjPrtnrNo}||'%' /* 조회조건 - 사번 - 위험점검내역.위험관리파트너번호 */
+            </if>
     </select>
     <select id="selectDangChkId" resultType="java.lang.String">
         SELECT DANG_CHK_ID
