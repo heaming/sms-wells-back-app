@@ -160,7 +160,7 @@ public class WctaContractDto {
         String cntrAprConfMsgCn,
         String vlStrtDtm,
         String vlStrtDtmPk,
-
+        String cntrNo,
         String vlEndDtm
     ) {}
 
@@ -180,7 +180,7 @@ public class WctaContractDto {
         String aprvNm,
         String aprvDttm,
         String cancYn,
-        String ackdReqNm
+        String cntrAprAkDvCdNm
     ) {}
 
     //확정승인 요청내역 - 확정 승인 구매 내역 Search Result Dto
