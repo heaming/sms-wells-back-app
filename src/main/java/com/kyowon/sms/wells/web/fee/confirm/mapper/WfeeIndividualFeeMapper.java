@@ -4,79 +4,79 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto;
+import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
 
 /**
  * <pre>
  * 수수료 개인 상세
  * </pre>
  *
- * @author gs.piit56
- * @since 2023.02.01
+ * @author gs.piit150
+ * @since 2023.02.17
  */
 @Mapper
 public interface WfeeIndividualFeeMapper {
-    List<WfeeIndividualFeeDto.SearchRes> selectIndividualPerformanceDetails(
-        WfeeIndividualFeeDto.SearchReq dto
+    List<SearchRes> selectIndividualPerformanceDetails(
+        SearchReq dto
     );
 
-    WfeeIndividualFeeDto.FindHmstInformationRes selectHmstInformation(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    FindHmstRes selectHmst(
+        SearchHmstReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchHmstEtcRes> selectHmstEtcInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    List<SearchHmstEtcRes> selectHmstEtcs(
+        SearchHmstReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchHmstFeeRes> selectHmstFeeInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    List<SearchHmstFeeRes> selectHmstFees(
+        SearchHmstReq dto
     );
 
-    WfeeIndividualFeeDto.FindHmstDeductionRes selectHmstDeduction(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    FindHmstDeductionRes selectHmstDeduction(
+        SearchHmstReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchHmstPnpyamRes> selectHmstPnpyamInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    List<SearchHmstPnpyamRes> selectHmstPnpyams(
+        SearchHmstReq dto
     );
 
-    WfeeIndividualFeeDto.FindPlarInformationRes selectPlarInformation(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    FindPlarRes selectPlar(
+        SearchPlarReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchPlarEtcRes> selectPlarEtcInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    List<SearchPlarEtcRes> selectPlarEtcs(
+        SearchPlarReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchPlarFeeRes> selectPlarFeeInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    List<SearchPlarFeeRes> selectPlarFees(
+        SearchPlarReq dto
     );
 
-    WfeeIndividualFeeDto.FindPlarDeductionRes selectPlarDeduction(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    FindPlarDeductionRes selectPlarDeduction(
+        SearchPlarReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchPlarPnpyamRes> selectPlarPnpyamInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    List<SearchPlarPnpyamRes> selectPlarPnpyams(
+        SearchPlarReq dto
     );
 
-    WfeeIndividualFeeDto.FindMngerInformationRes selectMngerInformation(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    FindMngerRes selectMnger(
+        SearchMngerReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchMngerEtcRes> selectMngerEtcInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    List<SearchMngerEtcRes> selectMngerEtcs(
+        SearchMngerReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchMngerFeeRes> selectMngerFeeInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    List<SearchMngerFeeRes> selectMngerFees(
+        SearchMngerReq dto
     );
 
-    WfeeIndividualFeeDto.FindMngerDeductionRes selectMngerDeduction(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    FindMngerDeductionRes selectMngerDeduction(
+        SearchMngerReq dto
     );
 
-    List<WfeeIndividualFeeDto.SearchMngerPnpyamRes> selectMngerPnpyamInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    List<SearchMngerPnpyamRes> selectMngerPnpyams(
+        SearchMngerReq dto
     );
 }

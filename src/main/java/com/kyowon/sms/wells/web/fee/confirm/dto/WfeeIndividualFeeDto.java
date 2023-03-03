@@ -67,8 +67,8 @@ public class WfeeIndividualFeeDto {
         int col13 /*환경가전정액*/
     ) {}
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstInformationRes")
-    public record FindHmstInformationRes(
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstRes")
+    public record FindHmstRes(
         String col1, /*실적년월*/
         String col2, /*번호*/
         int col3, /*수수료계*/
@@ -121,8 +121,8 @@ public class WfeeIndividualFeeDto {
         int col6
     ) {}
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerInformationRes")
-    public record FindMngerInformationRes(
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerRes")
+    public record FindMngerRes(
         String col1, /*실적년월*/
         String col2, /*번호*/
         int col3, /*수수료계*/
@@ -177,8 +177,8 @@ public class WfeeIndividualFeeDto {
         int col6
     ) {}
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindPlarInformationRes")
-    public record FindPlarInformationRes(
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindPlarRes")
+    public record FindPlarRes(
         String col1, /*실적년월*/
         String col2, /*번호*/
         int col3, /*수수료계*/

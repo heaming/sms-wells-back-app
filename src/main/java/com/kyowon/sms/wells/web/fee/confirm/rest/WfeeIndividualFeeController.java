@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto;
+import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
 import com.kyowon.sms.wells.web.fee.confirm.service.WfeeIndividualFeeService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 
@@ -35,8 +35,8 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/details")
-    public List<WfeeIndividualFeeDto.SearchRes> getIndividualPerformanceDetails(
-        WfeeIndividualFeeDto.SearchReq dto
+    public List<SearchRes> getIndividualPerformanceDetails(
+        SearchReq dto
     ) {
         return this.service.getIndividualPerformanceDetails(dto);
     }
@@ -47,11 +47,11 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/hmst-informations")
-    public WfeeIndividualFeeDto.FindHmstInformationRes getHmstInformation(
+    public FindHmstRes getHmst(
         @Valid
-        WfeeIndividualFeeDto.SearchHmstReq dto
+        SearchHmstReq dto
     ) {
-        return service.getHmstInformation(dto);
+        return service.getHmst(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기타내역 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 상세 실적 기타내역을 조회한다.")
@@ -60,10 +60,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/hmst-etcs")
-    public List<WfeeIndividualFeeDto.SearchHmstEtcRes> getHmstEtcInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    public List<SearchHmstEtcRes> getHmstEtcs(
+        SearchHmstReq dto
     ) {
-        return this.service.getHmstEtcInformations(dto);
+        return this.service.getHmstEtcs(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 수수료내역 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 상세 실적 수수료 내역을 조회한다.")
@@ -72,10 +72,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/hmst-fees")
-    public List<WfeeIndividualFeeDto.SearchHmstFeeRes> getHmstFeeInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    public List<SearchHmstFeeRes> getHmstFees(
+        SearchHmstReq dto
     ) {
-        return this.service.getHmstFeeInformations(dto);
+        return this.service.getHmstFees(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 공제내역 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 상세 실적 공제 내역을 조회한다.")
@@ -84,9 +84,9 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/hmst-deductions")
-    public WfeeIndividualFeeDto.FindHmstDeductionRes getHmstDeductions(
+    public FindHmstDeductionRes getHmstDeductions(
         @Valid
-        WfeeIndividualFeeDto.SearchHmstReq dto
+        SearchHmstReq dto
     ) {
         return service.getHmstDeductions(dto);
     }
@@ -97,10 +97,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/hmst-pnpyam")
-    public List<WfeeIndividualFeeDto.SearchHmstPnpyamRes> getHmstPnpyamInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    public List<SearchHmstPnpyamRes> getHmstPnpyams(
+        SearchHmstReq dto
     ) {
-        return this.service.getHmstPnpyamInformations(dto);
+        return this.service.getHmstPnpyams(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기본정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 기본정보 내역을 조회한다.")
@@ -109,11 +109,11 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/plar-informations")
-    public WfeeIndividualFeeDto.FindPlarInformationRes getPlarInformation(
+    public FindPlarRes getPlar(
         @Valid
-        WfeeIndividualFeeDto.SearchPlarReq dto
+        SearchPlarReq dto
     ) {
-        return service.getPlarInformation(dto);
+        return service.getPlar(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기타내역 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 기타내역을 조회한다.")
@@ -122,10 +122,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/plar-etcs")
-    public List<WfeeIndividualFeeDto.SearchPlarEtcRes> getPlarEtcInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    public List<SearchPlarEtcRes> getPlarEtcs(
+        SearchPlarReq dto
     ) {
-        return this.service.getPlarEtcInformations(dto);
+        return this.service.getPlarEtcs(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 수수료내역 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 수수료 내역을 조회한다.")
@@ -134,10 +134,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/plar-fees")
-    public List<WfeeIndividualFeeDto.SearchPlarFeeRes> getPlarFeeInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    public List<SearchPlarFeeRes> getPlarFees(
+        SearchPlarReq dto
     ) {
-        return this.service.getPlarFeeInformations(dto);
+        return this.service.getPlarFees(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 공제내역 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 공제 내역을 조회한다.")
@@ -146,9 +146,9 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/plar-deductions")
-    public WfeeIndividualFeeDto.FindPlarDeductionRes getPlarDeduction(
+    public FindPlarDeductionRes getPlarDeduction(
         @Valid
-        WfeeIndividualFeeDto.SearchPlarReq dto
+        SearchPlarReq dto
     ) {
         return service.getPlarDeduction(dto);
     }
@@ -159,10 +159,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/plar-pnpyam")
-    public List<WfeeIndividualFeeDto.SearchPlarPnpyamRes> getPlarPnpyamInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    public List<SearchPlarPnpyamRes> getPlarPnpyams(
+        SearchPlarReq dto
     ) {
-        return this.service.getPlarPnpyamInformations(dto);
+        return this.service.getPlarPnpyams(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기본정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 상세 실적 기본정보 내역을 조회한다.")
@@ -171,11 +171,11 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/mnger-informations")
-    public WfeeIndividualFeeDto.FindMngerInformationRes getMngerInformation(
+    public FindMngerRes getMnger(
         @Valid
-        WfeeIndividualFeeDto.SearchMngerReq dto
+        SearchMngerReq dto
     ) {
-        return service.getMngerInformation(dto);
+        return service.getMnger(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기타내역 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 상세 실적 기타내역을 조회한다.")
@@ -184,10 +184,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-etcs")
-    public List<WfeeIndividualFeeDto.SearchMngerEtcRes> getMngerEtcInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    public List<SearchMngerEtcRes> getMngerEtcs(
+        SearchMngerReq dto
     ) {
-        return this.service.getMngerEtcInformations(dto);
+        return this.service.getMngerEtcs(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 수수료내역 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 상세 실적 수수료 내역을 조회한다.")
@@ -196,10 +196,10 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-fees")
-    public List<WfeeIndividualFeeDto.SearchMngerFeeRes> getMngerFeeInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    public List<SearchMngerFeeRes> getMngerFees(
+        SearchMngerReq dto
     ) {
-        return this.service.getMngerFeeInformations(dto);
+        return this.service.getMngerFees(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 공제내역 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 상세 실적 공제 내역을 조회한다.")
@@ -208,9 +208,9 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-deductions")
-    public WfeeIndividualFeeDto.FindMngerDeductionRes getMngerDeduction(
+    public FindMngerDeductionRes getMngerDeduction(
         @Valid
-        WfeeIndividualFeeDto.SearchMngerReq dto
+        SearchMngerReq dto
     ) {
         return service.getMngerDeduction(dto);
     }
@@ -221,9 +221,9 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-pnpyam")
-    public List<WfeeIndividualFeeDto.SearchMngerPnpyamRes> getMngerPnpyamInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    public List<SearchMngerPnpyamRes> getMngerPnpyams(
+        SearchMngerReq dto
     ) {
-        return this.service.getMngerPnpyamInformations(dto);
+        return this.service.getMngerPnpyams(dto);
     }
 }

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto;
+import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
 import com.kyowon.sms.wells.web.fee.confirm.mapper.WfeeIndividualFeeMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -29,8 +29,8 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchRes> getIndividualPerformanceDetails(
-        WfeeIndividualFeeDto.SearchReq dto
+    public List<SearchRes> getIndividualPerformanceDetails(
+        SearchReq dto
     ) {
         return this.mapper.selectIndividualPerformanceDetails(dto);
     }
@@ -42,8 +42,8 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public WfeeIndividualFeeDto.FindHmstInformationRes getHmstInformation(WfeeIndividualFeeDto.SearchHmstReq dto) {
-        return mapper.selectHmstInformation(dto);
+    public FindHmstRes getHmst(SearchHmstReq dto) {
+        return mapper.selectHmst(dto);
     }
 
     /**
@@ -53,10 +53,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchHmstEtcRes> getHmstEtcInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    public List<SearchHmstEtcRes> getHmstEtcs(
+        SearchHmstReq dto
     ) {
-        return this.mapper.selectHmstEtcInformations(dto);
+        return this.mapper.selectHmstEtcs(dto);
     }
 
     /**
@@ -66,10 +66,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchHmstFeeRes> getHmstFeeInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    public List<SearchHmstFeeRes> getHmstFees(
+        SearchHmstReq dto
     ) {
-        return this.mapper.selectHmstFeeInformations(dto);
+        return this.mapper.selectHmstFees(dto);
     }
 
     /**
@@ -79,7 +79,7 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public WfeeIndividualFeeDto.FindHmstDeductionRes getHmstDeductions(WfeeIndividualFeeDto.SearchHmstReq dto) {
+    public FindHmstDeductionRes getHmstDeductions(SearchHmstReq dto) {
         return mapper.selectHmstDeduction(dto);
     }
 
@@ -90,10 +90,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchHmstPnpyamRes> getHmstPnpyamInformations(
-        WfeeIndividualFeeDto.SearchHmstReq dto
+    public List<SearchHmstPnpyamRes> getHmstPnpyams(
+        SearchHmstReq dto
     ) {
-        return this.mapper.selectHmstPnpyamInformations(dto);
+        return this.mapper.selectHmstPnpyams(dto);
     }
 
     /**
@@ -103,8 +103,8 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public WfeeIndividualFeeDto.FindPlarInformationRes getPlarInformation(WfeeIndividualFeeDto.SearchPlarReq dto) {
-        return mapper.selectPlarInformation(dto);
+    public FindPlarRes getPlar(SearchPlarReq dto) {
+        return mapper.selectPlar(dto);
     }
 
     /**
@@ -114,10 +114,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchPlarEtcRes> getPlarEtcInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    public List<SearchPlarEtcRes> getPlarEtcs(
+        SearchPlarReq dto
     ) {
-        return this.mapper.selectPlarEtcInformations(dto);
+        return this.mapper.selectPlarEtcs(dto);
     }
 
     /**
@@ -127,10 +127,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchPlarFeeRes> getPlarFeeInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    public List<SearchPlarFeeRes> getPlarFees(
+        SearchPlarReq dto
     ) {
-        return this.mapper.selectPlarFeeInformations(dto);
+        return this.mapper.selectPlarFees(dto);
     }
 
     /**
@@ -140,7 +140,7 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public WfeeIndividualFeeDto.FindPlarDeductionRes getPlarDeduction(WfeeIndividualFeeDto.SearchPlarReq dto) {
+    public FindPlarDeductionRes getPlarDeduction(SearchPlarReq dto) {
         return mapper.selectPlarDeduction(dto);
     }
 
@@ -151,10 +151,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchPlarPnpyamRes> getPlarPnpyamInformations(
-        WfeeIndividualFeeDto.SearchPlarReq dto
+    public List<SearchPlarPnpyamRes> getPlarPnpyams(
+        SearchPlarReq dto
     ) {
-        return this.mapper.selectPlarPnpyamInformations(dto);
+        return this.mapper.selectPlarPnpyams(dto);
     }
 
     /**
@@ -164,8 +164,8 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public WfeeIndividualFeeDto.FindMngerInformationRes getMngerInformation(WfeeIndividualFeeDto.SearchMngerReq dto) {
-        return mapper.selectMngerInformation(dto);
+    public FindMngerRes getMnger(SearchMngerReq dto) {
+        return mapper.selectMnger(dto);
     }
 
     /**
@@ -175,10 +175,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchMngerEtcRes> getMngerEtcInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    public List<SearchMngerEtcRes> getMngerEtcs(
+        SearchMngerReq dto
     ) {
-        return this.mapper.selectMngerEtcInformations(dto);
+        return this.mapper.selectMngerEtcs(dto);
     }
 
     /**
@@ -188,10 +188,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchMngerFeeRes> getMngerFeeInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    public List<SearchMngerFeeRes> getMngerFees(
+        SearchMngerReq dto
     ) {
-        return this.mapper.selectMngerFeeInformations(dto);
+        return this.mapper.selectMngerFees(dto);
     }
 
     /**
@@ -201,7 +201,7 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public WfeeIndividualFeeDto.FindMngerDeductionRes getMngerDeduction(WfeeIndividualFeeDto.SearchMngerReq dto) {
+    public FindMngerDeductionRes getMngerDeduction(SearchMngerReq dto) {
         return mapper.selectMngerDeduction(dto);
     }
 
@@ -212,10 +212,10 @@ public class WfeeIndividualFeeService {
      * schNo : 번호 }
      * @return 조회결과
      */
-    public List<WfeeIndividualFeeDto.SearchMngerPnpyamRes> getMngerPnpyamInformations(
-        WfeeIndividualFeeDto.SearchMngerReq dto
+    public List<SearchMngerPnpyamRes> getMngerPnpyams(
+        SearchMngerReq dto
     ) {
-        return this.mapper.selectMngerPnpyamInformations(dto);
+        return this.mapper.selectMngerPnpyams(dto);
     }
 
 }
