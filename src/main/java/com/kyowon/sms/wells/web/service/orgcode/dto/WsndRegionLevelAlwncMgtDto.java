@@ -16,19 +16,19 @@ import io.swagger.annotations.ApiModel;
  * @author hyewon.kim 김혜원
  * @since 2022.12.14
  */
-public class WsndRegionLevelAwMgtDto {
+public class WsndRegionLevelAlwncMgtDto {
 
-    @ApiModel(value = "WsndRegionLevelAwMgtDto-SearchRes")
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-SearchRes")
     public record SearchRes(
         List<Allowance> movementAllowances, // 이동급지 리스트
         List<Allowance> bizAllowances // 업무급지 리스트
     ) {}
 
-    @ApiModel(value = "WsndRegionLevelAwMgtDto-Allowance")
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-Allowance")
     public record Allowance(
         BigDecimal chAwAmt, // 변경수당금액
-        String apyStrtdt, // 유효시작일시
-        String apyEnddt, // 유효종료일시
+        String apyStrtdt, // 적용시작일
+        String apyEnddt, // 적용종료일
         String rglvlGdCd, // 급지등급코드
         BigDecimal rglvlAwAmt, // 급지수당금액
         String bizRglvlCd, // 업무급지코드
@@ -41,17 +41,18 @@ public class WsndRegionLevelAwMgtDto {
         Long mmtDstn, // 이동거리
         Integer minPerManho, // 분당공수
         Integer rglvlWeit, // 급지비중
-        Integer avVe // 평균속도
+        Integer avVe, // 평균속도
+        String maxApyStrtdt // 최대적용시작일
     ) {}
 
-    @ApiModel(value = "WsndRegionLevelAwMgtDto-SaveReq")
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rglvlDvCd, // 급지구분코드
         @NotBlank
         String bizRglvlCd, // 업무급지코드
         @NotBlank
-        String apyStrtdt, // 유효시작일시
+        String apyStrtdt, // 적용시작일
         @NotBlank
         String mmtLdtm, // 이동소요시간
         @NotBlank
