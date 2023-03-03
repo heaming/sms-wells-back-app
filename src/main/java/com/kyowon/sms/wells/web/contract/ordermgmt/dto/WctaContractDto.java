@@ -180,7 +180,8 @@ public class WctaContractDto {
         String aprvNm,
         String aprvDttm,
         String cancYn,
-        String cntrAprAkDvCdNm
+        String cntrAprAkDvCdNm,
+        String cntrNo
     ) {}
 
     //확정승인 요청내역 - 확정 승인 구매 내역 Search Result Dto
