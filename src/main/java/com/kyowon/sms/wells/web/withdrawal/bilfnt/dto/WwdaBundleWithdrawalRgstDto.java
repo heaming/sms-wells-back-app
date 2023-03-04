@@ -30,7 +30,6 @@ public class WwdaBundleWithdrawalRgstDto {
         String acnoEncr, // 이체번호
         String owrKnm, // 이체 소유주명
         String mpyBsdt, // 이체일자
-        String bryyMmdd, // 이체 인증번호
 
         String sdingCntrSn, // 모종주문번호
         String sdingMpyMthdTpCd, // 이체구분
@@ -39,8 +38,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String sdingBnkNm, // 이체기관명
         String sdingAcnoEncr, // 이체번호
         String sdingOwrKnm, // 이체 소유주명
-        String sdingMpyBsdt, // 이체일자
-        String sdingBryyMmdd // 이체 인증번호
+        String sdingMpyBsdt // 이체일자
     ) {}
 
     @ApiModel("WwdaBundleWithdrawalRgstDto-SearchRgstHistRes")

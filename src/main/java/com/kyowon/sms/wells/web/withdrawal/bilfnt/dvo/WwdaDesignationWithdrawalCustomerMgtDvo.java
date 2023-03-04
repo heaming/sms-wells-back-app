@@ -18,7 +18,8 @@ public class WwdaDesignationWithdrawalCustomerMgtDvo {
     private String fntYn; // 이체구분
     private String dsnWdrwFntD; // 이체일
     private String dsnWdrwFntPrdCd; // 이체주기코드
-    private String bilNo; // 이체주기코드
-    private Integer bilDtlSn; // 이체주기코드
+    private String bilNo; // 청구번호
+    private Integer bilDtlSn; // 청구상세일련번호
+    private String dtaDlYn; // 삭제여부
 
 }

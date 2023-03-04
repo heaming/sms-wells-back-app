@@ -136,6 +136,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
             if (bilVo != null) {
                 dvo.setBilNo(bilVo.getBilNo());
                 dvo.setBilDtlSn(bilVo.getBilDtlSn());
+                dvo.setDtaDlYn("Y");
             }
             result += mapper.deleteAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 삭제
             result += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제 

@@ -9,17 +9,21 @@
              , COUNT(*) AS CT
           FROM (
                         SELECT '자동이체(은행) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
-                                     , SCSB.BNK_CD 
-                                     , CASE WHEN SCSB.MPY_MTHD_TP_CD = '110' 
-                                            THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(SCSB.BNK_CD,3,0) = FNIT_CD)
-                                            ELSE SCSB.CDCO_CD END AS BNK_NM /* 은행명 */
+                                     , CASE WHEN SCSB.MPY_MTHD_TP_CD = '110' THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN SCSB.MPY_MTHD_TP_CD = '110' 
+                                            THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END ,3,0) = FNIT_CD)
+                                            AS BNK_NM /* 은행명 */
                                   FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
                                   JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                    ON RBFB.CNTR_STLM_ID = SCSB.CNTR_STLM_ID <!-- 추후 수정 -->
+                                    ON RBFB.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                   AND RBFB.DTA_DL_YN = 'N'
+                                   AND SCSB.DTA_DL_YN = 'N'
                        LEFT OUTER JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
                                     ON RBFB.BIL_NO = RAFS.BIL_NO 
+                                   AND RAFS.DTA_DL_YN = 'N'
                        LEFT OUTER JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
                                     ON RBFB.BIL_NO = RCFS.BIL_NO 
+                                   AND RCFS.DTA_DL_YN = 'N'
                                  WHERE RBFB.BIL_DT = #{bilDt}
                                    AND RBFB.FNT_DV_CD = #{fntDvCd}
                                    <if test='@MybatisUtils@equals(fntDvCd, "01")'>
@@ -99,125 +103,136 @@
     </select>
     
     <select id="selectAftnRsBndlErrInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchResultBundleErrorRes">
-                    SELECT MSTR_CNTR.SELL_TP_CD AS MSTR_SELL_TP_CD
-                         , RIBB.DG_CNTR_NO
-                         , MSTR_CNTR.MPY_MTHD_TP_CD AS MSTR_MPY_MTHD_TP_CD
-                         , SUB_CNTR.SELL_TP_CD AS SUB_SELL_TP_CD
-                         , RIBB.SUBOD_CNTR_NO
-                         , SUB_CNTR.MPY_MTHD_TP_CD AS SUB_MPY_MTHD_TP_CD
-                         , CASE WHEN MSTR_CNTR.ACNO_ENCR != SUB_CNTR.ACNO_ENCR OR MSTR_CNTR.CRCDNO_ENCR != SUB_CNTR.CRCDNO_ENCR
-                                     THEN (CASE WHEN #{mpyMthdTpCd} = '01' THEN '2.계좌번호상이' || MSTR_CNTR.ACNO_ENCR || '/' || SUB_CNTR.ACNO_ENCR || ')' 
-                                                WHEN #{mpyMthdTpCd} = '02' THEN '2.카드번호상이' || MSTR_CNTR.CRCDNO_ENCR || '/' || SUB_CNTR.CRCDNO_ENCR || ')' 
-                                           END)
-                                WHEN MSTR_CNTR.BNK_CD != SUB_CNTR.BNK_CD OR MSTR_CNTR.CDCO_CD != SUB_CNTR.CDCO_CD 
-                                     THEN (CASE WHEN #{mpyMthdTpCd} = '01' THEN '2.은행코드상이' || (SELECT CD_CNTN
-                                                                                      FROM T_CMZ_CD_D 
-                                                                                     WHERE CD_ID = UPPER('BNK_CD')
-                                                                                       AND DEL_YN = 'N'
-                                                                                       AND CD_VLD_VAL = MSTR_CNTR.BNK_CD)
-                                                                                   || '/'  
-                                                                                   || (SELECT CD_CNTN
-                                                                                      FROM T_CMZ_CD_D 
-                                                                                     WHERE CD_ID = UPPER('BNK_CD')
-                                                                                       AND DEL_YN = 'N'
-                                                                                       AND CD_VLD_VAL = SUB_CNTR.BNK_CD)
-                                                                                   || ')' 
-                                                WHEN #{mpyMthdTpCd} = '02' THEN '2.계좌구분상이' || (SELECT CD_CNTN
-                                                                                      FROM T_CMZ_CD_D 
-                                                                                     WHERE CD_ID = UPPER('CDCO_CD')
-                                                                                       AND DEL_YN = 'N'
-                                                                                       AND CD_VLD_VAL = MSTR_CNTR.CDCO_CD)
-                                                                                   || '/'  
-                                                                                   || (SELECT CD_CNTN
-                                                                                      FROM T_CMZ_CD_D 
-                                                                                     WHERE CD_ID = UPPER('CDCO_CD')
-                                                                                       AND DEL_YN = 'N'
-                                                                                       AND CD_VLD_VAL = SUB_CNTR.CDCO_CD)
-                                                                                   || ')'                                      
-                                                                                  END)
-                                WHEN MSTR_CNTR.CST_NO != SUB_CNTR.CST_NO THEN '4.인증번호 상이(' || MSTR_CNTR.CST_NO || '/' || SUB_CNTR.CST_NO || ')'
-                                WHEN MSTR_CNTR.MPY_BSDT != SUB_CNTR.MPY_BSDT THEN '5.이체일자상이(' || MSTR_CNTR.MPY_BSDT || '/' || SUB_CNTR.MPY_BSDT || ')'
-                                WHEN MSTR_CNTR.MPY_MTHD_TP_CD != SUB_CNTR.MPY_MTHD_TP_CD 
-                                     THEN '6.이체구분상이(' || (
-                                                            SELECT CD_CNTN
-                                                              FROM T_CMZ_CD_D 
-                                                             WHERE CD_ID = UPPER('MPY_MTHD_TP_CD')
-                                                               AND DEL_YN = 'N'
-                                                               AND CD_VLD_VAL = MSTR_CNTR.MPY_MTHD_TP_CD
-                                                            )
-                                                         || '/'
-                                                         || (
-                                                            SELECT CD_CNTN
-                                                              FROM T_CMZ_CD_D 
-                                                             WHERE CD_ID = UPPER('MPY_MTHD_TP_CD')
-                                                               AND DEL_YN = 'N'
-                                                               AND CD_VLD_VAL = SUB_CNTR.MPY_MTHD_TP_CD
-                                                            )
-                                                          || ')'
-                                WHEN MSTR_CNTR.SELL_TP_CD = '3' OR SUB_CNTR.SELL_TP_CD = '3' THEN '7.멤버십주문묶음출금등록불가'
-                                WHEN MSTR_CNTR.SELL_TP_CD = '1' OR SUB_CNTR.SELL_TP_CD = '1' THEN '8.일시불주문묶음출금등록불가'
-                                WHEN MSTR_CNTR.CNTR_DTL_STAT_CD != '101' OR MSTR_CNTR.CNTR_NO IS NULL THEN '10.대표주문번호 계약종료'
-                           END AS ERR_TYP
-                      FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
-                      JOIN (
-                             SELECT SCD.CNTR_NO
-                                  , SCD.CNTR_SN
-                                  , SCD.SELL_TP_CD
-                                  , SCSB.MPY_MTHD_TP_CD
-                                  , SCSB.BNK_CD
-                                  , SCSB.CDCO_CD
-                                  , SCD.CNTR_DTL_STAT_CD
-                                  , SCSB.MPY_BSDT
-                                  , SCSB.CST_NO
-                                  , SCSB.ACNO_ENCR
-                                  , SCSB.CRCDNO_ENCR
-                               FROM TB_SSCT_CNTR_DTL SCD
-                               JOIN TB_SSCT_CNTR_BAS SCB
-                                 ON SCD.CNTR_NO = SCB.CNTR_NO
-                                /*AND SCB.CNTR_CAN_DTM IS NULL 추후 수정*/
-                               JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                 ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO  
-                                AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN 
-                               JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                 ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
-                              WHERE SCD.DTA_DL_YN = 'N'
-                                AND SCB.DTA_DL_YN = 'N'
-                                AND SCSR.DTA_DL_YN = 'N'
-                                AND SCSB.DTA_DL_YN = 'N'
-                           ) MSTR_CNTR
-                        ON RIBB.DG_CNTR_NO = MSTR_CNTR.CNTR_NO
-                       AND RIBB.DG_CNTR_SN = MSTR_CNTR.CNTR_SN
-                       AND RIBB.DTA_DL_YN ='N'
-            JOIN (
-                             SELECT SCD.CNTR_NO
-                                  , SCD.CNTR_SN
-                                  , SCD.SELL_TP_CD
-                                  , SCSB.MPY_MTHD_TP_CD
-                                  , SCSB.BNK_CD
-                                  , SCSB.CDCO_CD
-                                  , SCD.CNTR_DTL_STAT_CD
-                                  , SCSB.MPY_BSDT
-                                  , SCSB.CST_NO
-                                  , SCSB.ACNO_ENCR
-                                  , SCSB.CRCDNO_ENCR
-                               FROM TB_SSCT_CNTR_DTL SCD
-                               JOIN TB_SSCT_CNTR_BAS SCB
-                                 ON SCD.CNTR_NO = SCB.CNTR_NO
-                                /*AND SCB.CNTR_CAN_DTM IS NULL 추후 수정*/
-                               JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                 ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO  
-                                AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN 
-                               JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                 ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
-                              WHERE SCD.DTA_DL_YN = 'N'
-                                AND SCB.DTA_DL_YN = 'N'
-                                AND SCSR.DTA_DL_YN = 'N'
-                                AND SCSB.DTA_DL_YN = 'N'
-                           ) SUB_CNTR
-                       ON RIBB.SUBOD_CNTR_NO = SUB_CNTR.CNTR_NO
-                      AND RIBB.SUBOD_CNTR_SN = SUB_CNTR.CNTR_SN
-                      AND RIBB.DTA_DL_YN ='N'
-                    WHERE RIBB.DG_CNTR_NO != RIBB.SUBOD_CNTR_NO 
- 
+                    SELECT MSTR_SELL_TP_CD
+                         , DG_CNTR_NO
+                         , MSTR_MPY_MTHD_TP_CD
+                         , SUB_SELL_TP_CD
+                         , SUBOD_CNTR_NO
+                         , SUB_MPY_MTHD_TP_CD
+                         , '테스트용 오류' AS ERR_TYP
+                         <!-- , ERR_TYP -->
+                      FROM (
+                                SELECT MSTR_CNTR.SELL_TP_CD AS MSTR_SELL_TP_CD
+                                     , RIBB.DG_CNTR_NO
+                                     , MSTR_CNTR.MPY_MTHD_TP_CD AS MSTR_MPY_MTHD_TP_CD
+                                     , SUB_CNTR.SELL_TP_CD AS SUB_SELL_TP_CD
+                                     , RIBB.SUBOD_CNTR_NO
+                                     , SUB_CNTR.MPY_MTHD_TP_CD AS SUB_MPY_MTHD_TP_CD
+                                     , CASE WHEN MSTR_CNTR.ACNO_ENCR != SUB_CNTR.ACNO_ENCR OR MSTR_CNTR.CRCDNO_ENCR != SUB_CNTR.CRCDNO_ENCR
+                                                 THEN (CASE WHEN #{mpyMthdTpCd} = '110' THEN '2.계좌번호상이' || MSTR_CNTR.ACNO_ENCR || '/' || SUB_CNTR.ACNO_ENCR || ')' 
+                                                            WHEN #{mpyMthdTpCd} = '120' THEN '2.카드번호상이' || MSTR_CNTR.CRCDNO_ENCR || '/' || SUB_CNTR.CRCDNO_ENCR || ')' 
+                                                       END)
+                                            WHEN MSTR_CNTR.BNK_CD != SUB_CNTR.BNK_CD OR MSTR_CNTR.CDCO_CD != SUB_CNTR.CDCO_CD 
+                                                 THEN (CASE WHEN #{mpyMthdTpCd} = '110' THEN '2.은행코드상이' || (SELECT CD_CNTN
+                                                                                                  FROM T_CMZ_CD_D 
+                                                                                                 WHERE CD_ID = UPPER('BNK_CD')
+                                                                                                   AND DEL_YN = 'N'
+                                                                                                   AND CD_VLD_VAL = MSTR_CNTR.BNK_CD)
+                                                                                               || '/'  
+                                                                                               || (SELECT CD_CNTN
+                                                                                                  FROM T_CMZ_CD_D 
+                                                                                                 WHERE CD_ID = UPPER('BNK_CD')
+                                                                                                   AND DEL_YN = 'N'
+                                                                                                   AND CD_VLD_VAL = SUB_CNTR.BNK_CD)
+                                                                                               || ')' 
+                                                            WHEN #{mpyMthdTpCd} = '120' THEN '2.계좌구분상이' || (SELECT CD_CNTN
+                                                                                                  FROM T_CMZ_CD_D 
+                                                                                                 WHERE CD_ID = UPPER('CDCO_CD')
+                                                                                                   AND DEL_YN = 'N'
+                                                                                                   AND CD_VLD_VAL = MSTR_CNTR.CDCO_CD)
+                                                                                               || '/'  
+                                                                                               || (SELECT CD_CNTN
+                                                                                                  FROM T_CMZ_CD_D 
+                                                                                                 WHERE CD_ID = UPPER('CDCO_CD')
+                                                                                                   AND DEL_YN = 'N'
+                                                                                                   AND CD_VLD_VAL = SUB_CNTR.CDCO_CD)
+                                                                                               || ')'                                      
+                                                                                              END)
+                                            WHEN MSTR_CNTR.CST_NO != SUB_CNTR.CST_NO THEN '4.인증번호 상이(' || MSTR_CNTR.CST_NO || '/' || SUB_CNTR.CST_NO || ')'
+                                            WHEN MSTR_CNTR.MPY_BSDT != SUB_CNTR.MPY_BSDT THEN '5.이체일자상이(' || MSTR_CNTR.MPY_BSDT || '/' || SUB_CNTR.MPY_BSDT || ')'
+                                            WHEN MSTR_CNTR.MPY_MTHD_TP_CD != SUB_CNTR.MPY_MTHD_TP_CD 
+                                                 THEN '6.이체구분상이(' || (
+                                                                        SELECT CD_CNTN
+                                                                          FROM T_CMZ_CD_D 
+                                                                         WHERE CD_ID = UPPER('MPY_MTHD_TP_CD')
+                                                                           AND DEL_YN = 'N'
+                                                                           AND CD_VLD_VAL = MSTR_CNTR.MPY_MTHD_TP_CD
+                                                                        )
+                                                                     || '/'
+                                                                     || (
+                                                                        SELECT CD_CNTN
+                                                                          FROM T_CMZ_CD_D 
+                                                                         WHERE CD_ID = UPPER('MPY_MTHD_TP_CD')
+                                                                           AND DEL_YN = 'N'
+                                                                           AND CD_VLD_VAL = SUB_CNTR.MPY_MTHD_TP_CD
+                                                                        )
+                                                                      || ')'
+                                            WHEN MSTR_CNTR.SELL_TP_CD = '3' OR SUB_CNTR.SELL_TP_CD = '3' THEN '7.멤버십주문묶음출금등록불가'
+                                            WHEN MSTR_CNTR.SELL_TP_CD = '1' OR SUB_CNTR.SELL_TP_CD = '1' THEN '8.일시불주문묶음출금등록불가'
+                                            WHEN MSTR_CNTR.CNTR_DTL_STAT_CD != '101' OR MSTR_CNTR.CNTR_NO IS NULL THEN '10.대표주문번호 계약종료'
+                                       END AS ERR_TYP
+                                  FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                                  JOIN (
+                                         SELECT SCD.CNTR_NO
+                                              , SCD.CNTR_SN
+                                              , SCD.SELL_TP_CD
+                                              , SCSB.MPY_MTHD_TP_CD
+                                              , SCSB.BNK_CD
+                                              , SCSB.CDCO_CD
+                                              , SCD.CNTR_DTL_STAT_CD
+                                              , SCSB.MPY_BSDT
+                                              , SCSB.CST_NO
+                                              , SCSB.ACNO_ENCR
+                                              , SCSB.CRCDNO_ENCR
+                                           FROM TB_SSCT_CNTR_DTL SCD
+                                           JOIN TB_SSCT_CNTR_BAS SCB
+                                             ON SCD.CNTR_NO = SCB.CNTR_NO
+                                             AND SCB.CNTR_CAN_DTM IS NULL 
+                                           JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                                             ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO  
+                                            AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN 
+                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                             ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                          WHERE SCD.DTA_DL_YN = 'N'
+                                            AND SCB.DTA_DL_YN = 'N'
+                                            AND SCSR.DTA_DL_YN = 'N'
+                                            AND SCSB.DTA_DL_YN = 'N'
+                                       ) MSTR_CNTR
+                                    ON RIBB.DG_CNTR_NO = MSTR_CNTR.CNTR_NO
+                                   AND RIBB.DG_CNTR_SN = MSTR_CNTR.CNTR_SN
+                                   AND RIBB.DTA_DL_YN ='N'
+                        JOIN (
+                                         SELECT SCD.CNTR_NO
+                                              , SCD.CNTR_SN
+                                              , SCD.SELL_TP_CD
+                                              , SCSB.MPY_MTHD_TP_CD
+                                              , SCSB.BNK_CD
+                                              , SCSB.CDCO_CD
+                                              , SCD.CNTR_DTL_STAT_CD
+                                              , SCSB.MPY_BSDT
+                                              , SCSB.CST_NO
+                                              , SCSB.ACNO_ENCR
+                                              , SCSB.CRCDNO_ENCR
+                                           FROM TB_SSCT_CNTR_DTL SCD
+                                           JOIN TB_SSCT_CNTR_BAS SCB
+                                             ON SCD.CNTR_NO = SCB.CNTR_NO
+                                             AND SCB.CNTR_CAN_DTM IS NULL
+                                           JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                                             ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO  
+                                            AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN 
+                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                             ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                          WHERE SCD.DTA_DL_YN = 'N'
+                                            AND SCB.DTA_DL_YN = 'N'
+                                            AND SCSR.DTA_DL_YN = 'N'
+                                            AND SCSB.DTA_DL_YN = 'N'
+                                       ) SUB_CNTR
+                                   ON RIBB.SUBOD_CNTR_NO = SUB_CNTR.CNTR_NO
+                                  AND RIBB.SUBOD_CNTR_SN = SUB_CNTR.CNTR_SN
+                                  AND RIBB.DTA_DL_YN ='N'
+                                WHERE RIBB.DG_CNTR_NO != RIBB.SUBOD_CNTR_NO 
+                                  AND MSTR_CNTR.MPY_MTHD_TP_CD = #{mpyMthdTpCd}
+                           ) 
+                         WHERE ERR_TYP IS NULL <!-- 추후에 수정 IS NOT NULL 임 -->
     </select>
 </mapper>
