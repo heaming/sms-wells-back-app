@@ -6,10 +6,12 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.service.orgcode.service.WsndHumanResourcesService;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.service.orgcode.service.WsndHumanResourcesService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -44,27 +46,10 @@ public class WsndHumanResourcesController {
         return service.getHumanResourcesPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "매니저 총국코드 조회", notes = "매니저 총국코드 조회")
-    @GetMapping("/manager-departments")
-    public List<SearchDepartmentRes> getManagerDepartmentCodes() {
-        return service.getManagerDepartmentCodes();
+    @ApiOperation(value = "조직 조회", notes = "조직 조회")
+    @GetMapping("/organizations")
+    public List<SearchOrganizationRes> getOrganizations() {
+        return service.getOrganizations();
     }
 
-    @ApiOperation(value = "매니저 센터코드 조회", notes = "총국코드에 따른 매니저 센터코드 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "deptCd", value = "총국코드", paramType = "path", required = true),
-    })
-    @GetMapping("/manager-centers/{deptCd}")
-    public List<SearchCenterRes> getManagerCenterCodes(
-        @PathVariable
-        String deptCd
-    ) {
-        return service.getManagerCenterCodes(deptCd);
-    }
-
-    @ApiOperation(value = "엔지니어 센터코드 조회", notes = "엔지니어 센터코드 조회")
-    @GetMapping("/engineer-centers")
-    public List<SearchCenterRes> getEngineerCenterCodes() {
-        return service.getEngineerCenterCodes();
-    }
 }

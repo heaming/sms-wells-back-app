@@ -13,9 +13,5 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsndHumanResourcesMapper {
     PagingResult<SearchRes> selectHumanResources(SearchReq dto, PageInfo pageInfo);
 
-    List<SearchDepartmentRes> selectManagerDepartmentCodes();
-
-    List<SearchCenterRes> selectManagerCenterCodes(String detpCd);
-
-    List<SearchCenterRes> selectEngineerCenterCodes();
+    List<SearchOrganizationRes> selectOrganizations();
 }

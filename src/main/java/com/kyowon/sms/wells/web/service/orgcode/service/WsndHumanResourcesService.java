@@ -4,9 +4,9 @@ import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndHumanResourcesMapper;
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndHumanResourcesMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -23,15 +23,7 @@ public class WsndHumanResourcesService {
         return mapper.selectHumanResources(dto, pageInfo);
     }
 
-    public List<SearchDepartmentRes> getManagerDepartmentCodes() {
-        return mapper.selectManagerDepartmentCodes();
-    }
-
-    public List<SearchCenterRes> getManagerCenterCodes(String detpCd) {
-        return mapper.selectManagerCenterCodes(detpCd);
-    }
-
-    public List<SearchCenterRes> getEngineerCenterCodes() {
-        return mapper.selectEngineerCenterCodes();
+    public List<SearchOrganizationRes> getOrganizations() {
+        return mapper.selectOrganizations();
     }
 }
