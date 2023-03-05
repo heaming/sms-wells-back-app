@@ -48,8 +48,14 @@ public class WwdaDesignationWithdrawalCustomerMgtDto {
         @NotBlank
         String dsnWdrwFntD, // 이체일
         @NotBlank
-        String dsnWdrwFntPrdCd // 이체주기코드
-    ) {}
+        String dsnWdrwFntPrdCd, // 이체주기코드
+        String dtaDlYn
+    ) {
+        public SaveReq {
+            dtaDlYn = "N";
+        }
+
+    }
 
     @Builder
     @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-RemoveReq")
@@ -57,7 +63,10 @@ public class WwdaDesignationWithdrawalCustomerMgtDto {
         @NotBlank
         String cntrNo, // 계약번호
         @NotBlank
-        Integer cntrSn // 계약일련번호
+        Integer cntrSn, // 계약일련번호
+        @NotBlank
+        String dsnWdrwFntD // 이체일
+
     ) {}
 
 }
