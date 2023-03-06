@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(DeDeductionConst.REST_URL_V1 + "/bu-ddtn")
+@RequestMapping(DeDeductionConst.REST_URL_V1 + "/burden-deduction")
 public class WdeeRealTimeDlqAdamtController {
     private final WdeeRealTimeDlqAdamtService service;
 
@@ -33,7 +33,7 @@ public class WdeeRealTimeDlqAdamtController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
     })
-    @GetMapping("/real-time-dlq-adamt")
+    @GetMapping("/real-time-delinquent-additional-charges")
     public List<WdeeRealTimeDlqAdamtDto.SearchRes> getRealTimeDelinquentAdamt(
         @Valid
         WdeeRealTimeDlqAdamtDto.SearchReq dto
