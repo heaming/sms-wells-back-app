@@ -11,7 +11,7 @@ public class WsncAsInterfaceRecInfoDvo {
     String svBizDclsfCd;
     String svBizDclsfNm;
     String svBizHclsfCd;
-    String asnDt;
+    String egerAsnDt;
     String cstSvAsnNo;
     String cnclYn;
     String wkAcpteStatCd;
