@@ -9,6 +9,7 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachTbPdbsPdRelDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -32,5 +33,7 @@ public interface WpdcMaterialMgtMapper {
     ZpdcEachTbPdbsPdRelDvo info);
 
     int deleteEachPdbsPdRels(String pdCd);
+
+    ZpdcGbcoSapMatDvo selectMaterialSap(String sapMatCd);
 
 }
