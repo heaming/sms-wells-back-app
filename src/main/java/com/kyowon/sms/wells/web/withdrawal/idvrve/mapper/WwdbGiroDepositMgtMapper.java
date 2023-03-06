@@ -69,7 +69,7 @@ public interface WwdbGiroDepositMgtMapper {
     PagingResult<SearchErrosRes> selectBillingDocumentErrors(SearchReq dto, PageInfo pageInfo);
 
     /* 지로 입금 엑셀 다운로드 */
-    List<SearchErrosRes> selectBillingDocumentErrors();
+    List<SearchErrosRes> selectBillingDocumentErrors(SearchReq dto);
 
     /* 지로 입금 에러 저장 */
     int updateBillingDocumentErrors(WwdbGiroDepositErrorSaveDvo dvo) throws Exception;

@@ -251,9 +251,9 @@ public class WwdbGiroDepositMgtService {
     }
 
     @Transactional
-    public List<SearchErrosRes> getBillingDocumentErrorsExcels() {
+    public List<SearchErrosRes> getBillingDocumentErrorsExcels(SearchReq dto) {
 
-        return mapper.selectBillingDocumentErrors();
+        return mapper.selectBillingDocumentErrors(dto);
     }
 
     @Transactional

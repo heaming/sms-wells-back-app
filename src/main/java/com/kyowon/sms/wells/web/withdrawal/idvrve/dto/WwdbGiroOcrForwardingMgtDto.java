@@ -17,6 +17,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String giroBizTpCd, //지로업무유형코드
         String cntrNo, //계약번호
         String cntrSn, //계약일련번호
+        String cntr, //계약일련번호
         String cstFnm, // 고객성명
         String slDt, //매출일자
         //현재차월
@@ -39,10 +40,10 @@ public class WwdbGiroOcrForwardingMgtDto {
         @NotBlank
         String wkDt,
         String wkSn, // --작업일련번호
-        @NotBlank
         String cntrNo,
-        @NotBlank
         String cntrSn,
+        @NotBlank
+        String cntr,
         String cstFnm, //--고객명
         String slDt, // --매출일자
         String strtGiroTn, //--시작

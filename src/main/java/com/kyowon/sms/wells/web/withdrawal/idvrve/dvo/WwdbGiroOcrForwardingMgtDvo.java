@@ -9,6 +9,7 @@ public class WwdbGiroOcrForwardingMgtDvo {
     String rowState;
     String wkDt;
     String wkSn; // --작업일련번호
+    String cntr;
     String cntrNo;
     String cntrSn;
     String cstFnm; //--고객명

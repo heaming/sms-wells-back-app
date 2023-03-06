@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbAutoPrepaymentDiscountExcludeMgtMapper">
+
+    <select id="selectAutoPrepaymentDiscountExcludes" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAutoPrepaymentDiscountExcludeMgtDto$SearchRes">
+        SELECT
+               CNTR_NO||CNTR_SN AS CNTR  
+             , CNTR_NO --계약번호
+             , CNTR_SN --일련번호 
+             , CST_KNM --고객명
+             , SELL_TP_CD --판매유형
+             , PD_CD --상품코드
+             , PD_NM --상품명
+             , PRM_DSC_EXCD_STRT_YM --선납제외시작일
+             , PRM_DSC_EXCD_END_YM --선납제외종료일  
+        --   선납시작일
+             , ( SELECT SUM(SL_CTR_AMT)
+                   FROM TB_RVDW_SL_CTR_BAS S1
+                  WHERE S1.CNTR_NO = T01.CNTR_NO 
+                    AND S1.CNTR_SN = T01.CNTR_SN 
+                    AND SL_CTR_MTR_DV_CD = '1'
+                    AND SL_CTR_MTR_TP_CD = '1'
+                    AND SL_CTR_STRT_YM BETWEEN PRM_DSC_EXCD_STRT_YM AND PRM_DSC_EXCD_END_YM
+                ) AS SL_CTR_AMT --조정값
+             , FST_RGST_DTM --등록일시
+             , FST_RGST_USR_ID --등록자 ID
+             , FNL_MDFC_DTM --수정일시
+             , FNL_MDFC_USR_ID --수정자 ID     
+           FROM(
+                    SELECT
+                           T1.CNTR_NO --계약번호
+                         , T1.CNTR_SN --일련번호 
+                         , T4.CST_KNM --고객명
+                         , T2.SELL_TP_CD --판매유형
+                         , T5.PD_CD --상품코드
+                         , T5.PD_NM --상품명
+                         , T1.PRM_DSC_EXCD_STRT_YM --선납제외시작일
+                         , T1.PRM_DSC_EXCD_END_YM --선납제외종료일  
+                    --   선납시작일
+                    --   조정금액                         
+                         , TO_CHAR(TO_DATE(T1.FST_RGST_DTM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD AMHH24:MI:SS') AS FST_RGST_DTM --등록일시
+                         , TO_CHAR(TO_DATE(T1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD AMHH24:MI:SS') AS FNL_MDFC_DTM--수정일시
+                         , T1.FST_RGST_USR_ID --등록자 ID                         
+                         , T1.FNL_MDFC_USR_ID --수정자 ID
+                      FROM TB_RVDW_PRM_DSC_EXCD_BAS T1--선납할인제외기본
+                      LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2 --계약상세
+                        ON T2.CNTR_NO = T1.CNTR_NO AND T2.CNTR_SN = T1.CNTR_SN   
+                      LEFT OUTER JOIN TB_SSCT_CNTR_BAS T3 --계약기본 
+                        ON T3.CNTR_NO = T2.CNTR_NO 
+                      LEFT OUTER JOIN TB_CUBS_CST_BAS T4 --고객기본
+                        ON T4.CST_NO = T3.CNTR_CST_NO        
+                      LEFT OUTER JOIN TB_PDBS_PD_BAS T5 --상품기본  
+                        ON T5.PD_CD = T2.BASE_PD_CD     
+                     WHERE 1 = 1
+                       AND T1.DTA_DL_YN = 'N'
+                     <if test='@MybatisUtils@isNotEmpty(prmDscExcdStrtYm)'>
+                       AND T1.PRM_DSC_EXCD_STRT_YM = #{prmDscExcdStrtYm}
+                     </if>                            
+                     <if test='@MybatisUtils@isNotEmpty(prmDscExcdEndYm)'>
+                       AND T1.PRM_DSC_EXCD_END_YM = #{prmDscExcdEndYm}          
+                     </if>                            
+                     <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                       AND T1.CNTR_NO = #{cntrNo}
+                     </if>                     
+                     <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                       AND T1.CNTR_SN = #{cntrSn}
+                     </if>
+                       AND EXISTS (   
+                                    SELECT 1 
+                                      FROM TB_RVDW_PRM_DSC_EXCD_BAS S1
+                                     WHERE S1.CNTR_NO = T1.CNTR_NO
+                                       AND S1.CNTR_SN = T1.CNTR_SN       
+                                       AND S1.PRM_DSC_EXCD_STRT_YM = #{baseYm}
+                                       AND S1.PRM_DSC_EXCD_END_YM = T1.PRM_DSC_EXCD_END_YM                                       
+                                   )
+           ) T01            
+    </select>
+    
+    <select id="selectAutoPrepaymentDiscountExcludeContractInformation" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAutoPrepaymentDiscountExcludeMgtDto$SearchContractRes">
+          SELECT
+                 T1.CNTR_NO 
+               , T1.CNTR_SN 
+               , T3.CST_KNM --고객명
+               , T1.SELL_TP_CD --판매유형
+               , T4.PD_NM --상품명
+               , T4.PD_CD --상품코드   
+            FROM TB_SSCT_CNTR_DTL T1 --계약상세
+            INNER JOIN TB_SSCT_CNTR_BAS T2 -- 계약기본
+              ON T2.CNTR_NO = T1.CNTR_NO 
+            INNER JOIN TB_CUBS_CST_BAS T3 --고객기본 
+              ON T3.CST_NO  = T2.CNTR_CST_NO 
+            INNER JOIN TB_PDBS_PD_BAS T4 --상품기본   
+              ON T4.PD_CD = T1.BASE_PD_CD
+           WHERE T1.DTA_DL_YN = 'N'
+             AND T1.SELL_TP_CD IN ('2','3')
+             AND T1.CNTR_NO = #{cntrNo}
+             AND T1.CNTR_SN = #{cntrSn}  
+    </select>
+    
+    <insert id="insertAutoPrepaymentDiscountExcludes">
+        INSERT INTO TB_RVDW_PRM_DSC_EXCD_BAS(
+              CNTR_NO
+            , CNTR_SN
+            , PRM_DSC_EXCD_STRT_YM
+            , PRM_DSC_EXCD_END_YM 
+            <include refid="COMMON.insertSystemField"/>      
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , #{prmDscExcdStrtYm}
+            , #{prmDscExcdEndYm} 
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <insert id="insertAutoPrepaymentDiscountExcludeHistory">
+        INSERT INTO TB_RVDW_PRM_DSC_EXCD_BAS_HIST(
+              CNTR_NO
+            , CNTR_SN
+            , PRM_DSC_EXCD_STRT_YM
+            , PRM_DSC_EXCD_END_YM
+            , PRM_DSC_EXCD_CH_SN
+            <include refid="COMMON.insertSystemField"/>      
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , #{prmDscExcdStrtYm}
+            , #{prmDscExcdEndYm}
+            , (SELECT 
+                      NVL(MAX(PRM_DSC_EXCD_CH_SN),0)+1 
+                 FROM TB_RVDW_PRM_DSC_EXCD_BAS_HIST
+                WHERE CNTR_NO = #{cntrNo}
+                  AND CNTR_SN = #{cntrSn}
+                  AND PRM_DSC_EXCD_STRT_YM = #{prmDscExcdStrtYm})     
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <update id="updateAutoPrepaymentDiscountExcludes">
+        UPDATE TB_RVDW_PRM_DSC_EXCD_BAS
+           SET PRM_DSC_EXCD_END_YM = #{prmDscExcdEndYm}
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND PRM_DSC_EXCD_STRT_YM = #{prmDscExcdStrtYm}
+    </update>
+    
+    <delete id="deleteAutoPrepaymentDiscountExcludes">
+        DELETE 
+          FROM TB_RVDW_PRM_DSC_EXCD_BAS
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND PRM_DSC_EXCD_STRT_YM = #{prmDscExcdStrtYm}          
+    </delete>
+    
+    <select id="selectAutoPrepaymentDiscountExcludesDuplicateCount" resultType="int">
+        SELECT 
+               COUNT(*)
+          FROM TB_RVDW_PRM_DSC_EXCD_BAS
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND PRM_DSC_EXCD_STRT_YM = #{prmDscExcdStrtYm}    
+    </select>
+    
+</mapper>

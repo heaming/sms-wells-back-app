@@ -75,10 +75,10 @@ public class WwdbGiroDepositMgtController {
         return service.getBillingDocumentErrorsPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "지로 입금관리 에러 조회", notes = " 검색조건을 받아 지로 입금관리 에러를 조회한다.")
+    @ApiOperation(value = "지로 입금관리 에러 엑셀다운로드", notes = " 검색조건을 받아 지로 입금관리 에러를 엑셀다운로드 한다.")
     @GetMapping("/errors/excel-download")
-    public List<SearchErrosRes> getBillingDocumentErrorsExcels() {
-        return service.getBillingDocumentErrorsExcels();
+    public List<SearchErrosRes> getBillingDocumentErrorsExcels(SearchReq dto) {
+        return service.getBillingDocumentErrorsExcels(dto);
     }
 
     @ApiOperation(value = "지로 입금관리 에러 저장")
