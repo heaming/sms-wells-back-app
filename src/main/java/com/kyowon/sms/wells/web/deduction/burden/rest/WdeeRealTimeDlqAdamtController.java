@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "wells 가산금합계, 가산입금, 잔액")
+@Api(tags = "wells 실시간 가산금합계, 가산입금, 잔액")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -27,13 +27,13 @@ import lombok.RequiredArgsConstructor;
 public class WdeeRealTimeDlqAdamtController {
     private final WdeeRealTimeDlqAdamtService service;
 
-    @ApiOperation(value = "wells 가산금합계, 가산입금, 잔액", notes = "wells 가산금합계, 가산입금, 잔액 데이터를 조회하고 결과를 반환한다.")
+    @ApiOperation(value = "wells 실시간 가산금합계, 가산입금, 잔액", notes = "wells 실시간 가산금합계, 가산입금, 잔액 데이터를 조회하고 결과를 반환한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
     })
-    @GetMapping("/real-time-dlq-adamts")
+    @GetMapping("/real-time-dlq-adamt")
     public List<WdeeRealTimeDlqAdamtDto.SearchRes> getRealTimeDelinquentAdamt(
         @Valid
         WdeeRealTimeDlqAdamtDto.SearchReq dto
