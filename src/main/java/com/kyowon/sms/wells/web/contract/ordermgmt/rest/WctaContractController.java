@@ -34,7 +34,7 @@ public class WctaContractController {
     @ApiOperation(value = "계약번호 페이징 조회", notes = "계약자명, 학습자명, 휴대전화번호, 고객번호를 입력받아 계약번호를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrCstKnm", value = "계약자명", paramType = "query"),
-        @ApiImplicitParam(name = "lrnnCstKnm", value = "학습자명", paramType = "query"),
+        @ApiImplicitParam(name = "istCstKnm", value = "설치자명", paramType = "query"),
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대전화번호", paramType = "query"),
         @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화번호", paramType = "query"),
         @ApiImplicitParam(name = "cralIdvTno", value = "휴대전화번호", paramType = "query"),

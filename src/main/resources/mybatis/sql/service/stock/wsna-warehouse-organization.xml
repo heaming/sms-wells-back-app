@@ -57,22 +57,28 @@
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto$SearchRes">
         SELECT B.APY_YM AS APY_YM       /* 적용년월 */
              , B.WARE_DV_CD AS WARE_DV_CD    /* 창고구분코드 */
-             , B.WARE_DTL_DV_CD AS WARE_DTL_DV_CD
-             , B.WARE_LOCARA_CD AS WARE_LOCARA_CD
-             , B.WARE_LOCARA_SN AS WARE_LOCARA_SN
-             , B.HGR_WARE_NO AS HGR_WARE_NO
-             , A.WARE_NM AS HGR_WARE_NM
-             , B.WARE_NO AS WARE_NO
-             , B.WARE_NM AS WARE_NM
-             , B.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
-             , B.DIDY_DV_CD AS DIDY_DV_CD
-             , B.WARE_ADR_ID AS WARE_ADR_ID
-             , B.WARE_USE_YN AS WARE_USE_YN
+             , B.WARE_DV_CD ||B.WARE_LOCARA_CD||B.WARE_ICHR_NO AS WARE_CD /*창고코드*/
+             , A.WARE_DV_CD ||A.WARE_LOCARA_CD||A.WARE_ICHR_NO AS HGR_WARE /*상위창고코드*/
+             , B.WARE_DTL_DV_CD AS WARE_DTL_DV_CD /*창고상세구분코드*/
+             , B.WARE_LOCARA_CD AS WARE_LOCARA_CD /*창고지역코드*/
+             , B.WARE_LOCARA_SN AS WARE_LOCARA_SN /*창고지역순번*/
+             , B.HGR_WARE_NO AS HGR_WARE_NO /*상위창고번호*/
+             , A.WARE_NM AS HGR_WARE_NM /*상위창고명*/
+             , B.WARE_NO AS WARE_NO /*창고번호*/
+             , B.WARE_NM AS WARE_NM /*창고명*/
+             , B.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO /*파트너번호*/
+             , B.DIDY_DV_CD AS DIDY_DV_CD /*직배구분코드*/
+             , B.WARE_ADR_ID AS WARE_ADR_ID /*창고주소*/
+             , B.WARE_USE_YN AS WARE_USE_YN /*창고사용여부*/
+             , B.ADR_USE_YN AS ADR_USE_YN /*지정주소사용여부*/
+             , (SELECT A.BLD_NM
+              	  FROM TB_OGBS_BLD_BAS A
+              	 WHERE A.BLD_CD = B.BLD_CD) AS DSN_BLD_NM /*지정빌딩명*/
              , ( SELECT PRTNR_KNM
                    FROM TB_OGBS_MM_PRTNR_IZ A
                   WHERE A.PRTNR_NO = B.WARE_MNGT_PRTNR_NO
                     AND A.BASE_YM = B.APY_YM
-                    AND A.OG_TP_CD IN ('W02', 'W06')) AS WARE_STOC_MGR
+                    AND A.OG_TP_CD IN ('W02', 'W06')) AS WARE_STOC_MGR /*파트너담당자명*/
              , (SELECT A.BLD_NM
                   FROM TB_OGBS_MM_OG_IZ A
                      , TB_OGBS_MM_PRTNR_IZ C
@@ -80,13 +86,17 @@
                    AND A.BASE_YM = C.BASE_YM
                    AND C.OG_TP_CD IN ('W02','W06')
                    AND C.PRTNR_NO = B.WARE_MNGT_PRTNR_NO
-                   AND C.BASE_YM = B.APY_YM ) AS BLD_NM
+                   AND C.BASE_YM = B.APY_YM ) AS BLD_NM /*빌딩명*/
+<!--             , C.RNADR AS RNADR /*도로명주소*/ -->
+<!--             , C.RDADR AS RDADR /*도로명상세주소*/ -->
           FROM TB_SVST_MCBY_WARE_IZ B
-             , TB_SVST_MCBY_WARE_IZ A
+          INNER JOIN TB_SVST_MCBY_WARE_IZ A
+            ON B.HGR_WARE_NO = A.WARE_NO
+           AND B.APY_YM = A.APY_YM
+<!--          INNER JOIN TB_GBCO_ADR_BAS C
+            ON C.ADR_ID = B.WARE_ADR_ID -->
          WHERE 1 = 1
            AND B.APY_YM = #{baseYm}
-           AND B.HGR_WARE_NO = A.WARE_NO
-           AND B.APY_YM = A.APY_YM
          <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
            AND B.WARE_DTL_DV_CD = #{wareDtlDvCd}
          </if>

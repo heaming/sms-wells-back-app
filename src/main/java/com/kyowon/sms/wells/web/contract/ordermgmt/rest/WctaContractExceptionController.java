@@ -35,8 +35,8 @@ public class WctaContractExceptionController {
 
     @ApiOperation(value = "예외 처리 관리 페이징 조회", notes = "계약예외대상기본 테이블에서 데이터를 조회하고 결과를 반환한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "vlStrtDtm", value = "적용기간 시작일", paramType = "query", required = true),
-        @ApiImplicitParam(name = "vlEndDtm", value = "적용기간 종료일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "startDt", value = "적용기간 시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "endDt", value = "적용기간 종료일", paramType = "query", required = true),
         @ApiImplicitParam(name = "prtnrNo", value = "판매자사번", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),

@@ -9,5 +9,7 @@ import com.kyowon.sms.wells.web.contract.risk.dvo.WctcSellLimitOjIzDvo;
 @Mapper(componentModel = "spring")
 public interface WctcSalesLimitsConverter {
     @Mapping(source = "fnlMdfcDtm", target = "orglFnlMdfcDtm")
+    @Mapping(source = "cntrNo", target = "sellLmCntrNo")
+    @Mapping(source = "cntrSn", target = "sellLmCntrSn")
     WctcSellLimitOjIzDvo mapSaveBlacklistReqToWctcSellLimitOjIzDvo(SaveBlacklistReq dto);
 }
