@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -37,10 +35,10 @@ public class WctiContractDetailSummaryInterfaceController {
         EaiWrapper<FindReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<FindRes> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<FindRes> res = service.getDetailSummary(reqWrapper.getBody());
+        FindRes res = service.getDetailSummary(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

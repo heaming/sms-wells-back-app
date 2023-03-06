@@ -2,10 +2,6 @@ package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -18,7 +14,7 @@ public class WctiContractInstallDto {
     // Request Dto
     // *********************************************************
     // 계약처, 설치처 정보 변경용 Save Request Dto
-    @ApiModel("WctiContractDeliversDto-SaveReq")
+    @ApiModel("WctiContractInstallDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String CNTR_NO, //계약번호(필수)
@@ -31,19 +27,13 @@ public class WctiContractInstallDto {
         String LOCARA_TNO, //지역전화번호
         String EXNO, //전화국번호
         String IDV_TNO //개별전화번호
-    ) {
-        public SaveReq {
-            /* TODO:암호화모듈 확인중 */
-            MEXNO = StringUtils.isNotEmpty(MEXNO) ? DbEncUtil.enc(MEXNO) : MEXNO; //암호화
-            EXNO = StringUtils.isNotEmpty(EXNO) ? DbEncUtil.enc(EXNO) : EXNO; //암호화
-        }
-    }
+    ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 계약처, 배송지 정보 변경용 Save Search Response Dto
-    @ApiModel("WctiContractDeliversDto-SaveRes")
+    @ApiModel("WctiContractInstallDto-SaveRes")
     public record SaveRes(
         String RS_PROCS_YN //처리결과(Y/N)
     ) {}

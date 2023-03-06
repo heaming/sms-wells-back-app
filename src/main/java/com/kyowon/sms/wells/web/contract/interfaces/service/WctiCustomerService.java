@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.contract.interfaces.converter.WctiCustomerConverter;
 import com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiCustomerMapper;
 import com.sds.sflex.system.config.exception.BizException;
 
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class WctiCustomerService {
 
     private final WctiCustomerMapper mapper;
+    private final WctiCustomerConverter converter;
 
     public List<SearchRes> getCustomers(SearchReq req) {
         // 파라미터 체크 - 파라미터값이 NULL 인 경우, 조회 하지 않음
@@ -68,8 +70,8 @@ public class WctiCustomerService {
         //고객 검색
         List<SearchRes> resList = new ArrayList<>();
 
-        resList.addAll(mapper.selectCustomers(req));
-        resList.addAll(mapper.selectProspactCustomers(req));
+        resList.addAll(converter.mapWctiCustomerDvoToSearchRes(mapper.selectCustomers(req)));
+        resList.addAll(converter.mapWctiCustomerDvoToSearchRes(mapper.selectProspactCustomers(req)));
 
         return resList;
     }
