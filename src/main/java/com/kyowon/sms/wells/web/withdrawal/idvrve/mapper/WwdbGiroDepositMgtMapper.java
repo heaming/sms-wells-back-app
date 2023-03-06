@@ -24,6 +24,8 @@ public interface WwdbGiroDepositMgtMapper {
     /* 지로 입금 조회 */
     PagingResult<SearchRes> selectGiroDepositMgt(SearchReq dto, PageInfo pageInfo);
 
+    SearchRes selectGiroDepositSum(SearchReq dto);
+
     List<SearchRes> selectGiroDepositMgt(SearchReq dto);
 
     //    /* 지로 입금 등록 - 지로입금원장내역 */
