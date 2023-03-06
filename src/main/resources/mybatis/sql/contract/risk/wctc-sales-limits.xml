@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.risk.mapper.WctcSalesLimitsMapper">
-    <select id="selectBlacklistPages" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto$SearchBlacklistRes">
-        SELECT * FROM (
-        SELECT T1.SELL_LM_ID
-             , T1.DTA_DL_YN
-             , T1.DTA_DL_YN AS ORGL_DTA_DL_YN
+    <sql id="blacklistSelectClause">
+               T2.CNTR_NO
+             , T2.CNTR_SN
              , T2.SELL_TP_CD
              , T3.CNTR_CST_NO
-             , T1.SELL_LM_RSON_CN
-             , T1.SELL_LM_CNTR_NO
-             , T1.SELL_LM_CNTR_SN
              , T4.CST_KNM
              , T3.COPN_DV_CD
              , T4.BRYY_MMDD
@@ -55,17 +50,10 @@
              , I6.MEXNO_ENCR AS PRTNR_MEXNO_ENCR
              , I6.CRAL_IDV_TNO AS PRTNR_CRAL_IDV_TNO
              , '' AS PRTNR_MPNO
-             , T1.FST_RGST_DTM
-             , T1.FST_RGST_USR_ID
-             , T1.FNL_MDFC_DTM
-             , T1.FNL_MDFC_USR_ID
-          FROM TB_SSCT_SELL_LM_OJ_IZ T1
-         INNER JOIN TB_SSCT_CNTR_DTL T2
-            ON T2.CNTR_NO = T1.SELL_LM_CNTR_NO
-           AND T2.CNTR_SN = T1.SELL_LM_CNTR_SN
-           AND T2.DTA_DL_YN = 'N'
+    </sql>
+    <sql id="blacklistJoinClause">
          INNER JOIN TB_SSCT_CNTR_BAS T3
-            ON T3.CNTR_NO = T1.SELL_LM_CNTR_NO
+            ON T3.CNTR_NO = T2.CNTR_NO
            AND T3.DTA_DL_YN = 'N'
          INNER JOIN TB_CUBS_CST_BAS T4
             ON T4.CST_NO = T3.CNTR_CST_NO
@@ -79,7 +67,6 @@
             ON T6.DTL_CNTR_NO = T2.CNTR_NO
            AND T6.DTL_CNTR_SN = T2.CNTR_SN
            AND T6.DTA_DL_YN = 'N'
-
           LEFT OUTER JOIN TB_CUBS_CST_BAS I1
             ON I1.CST_NO = T3.CNTR_CST_NO
           LEFT OUTER JOIN (SELECT * FROM TB_CUBS_CST_CTPLC_BAS WHERE CST_CTPLC_OJ_DV_CD = 1) I2
@@ -88,7 +75,6 @@
           LEFT OUTER JOIN TB_GBCO_ADR_BAS I3
             ON I3.ADR_ID = T4.ADR_ID
            AND I3.DTA_DL_YN = 'N'
-
           LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS I4
             ON I4.CNTR_ADRPC_ID = T6.CNTR_ADRPC_ID
            AND I4.DTA_DL_YN = 'N'
@@ -99,38 +85,87 @@
             ON I6.OG_TP_CD = T5.OG_TP_CD
            AND I6.PRTNR_NO = T5.PRTNR_NO
            AND I6.DTA_DL_YN = 'N'
+    </sql>
 
+    <select id="selectBlacklistInfos" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto$FindBlacklistRes">
+        SELECT <include refid="blacklistSelectClause" />
+          FROM TB_SSCT_CNTR_DTL T2
+               <include refid="blacklistJoinClause" />
+         WHERE 1 = 1
+           AND T2.CNTR_NO = #{cntrNo}
+           AND T2.CNTR_SN = #{cntrSn}
+           AND T2.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectBlacklistPages" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto$SearchBlacklistRes">
+        SELECT * FROM (
+        SELECT <include refid="blacklistSelectClause" />
+             , T1.SELL_LM_ID
+             , T1.DTA_DL_YN
+             , T1.DTA_DL_YN AS ORGL_DTA_DL_YN
+             , T1.SELL_LM_RSON_CN
+             , T1.SELL_LM_CNTR_NO
+             , T1.SELL_LM_CNTR_SN
+             , T1.FST_RGST_DTM
+             , (
+               SELECT USR_NM
+                 FROM T_CMY_USR_M
+                WHERE TENANT_ID = #{session.tenantId}
+                  AND DEL_YN = 'N'
+                  AND USR_ID = T1.FNL_MDFC_USR_ID
+               ) AS FST_RGST_USR_NM
+             , T1.FNL_MDFC_DTM
+             , (
+               SELECT USR_NM
+                 FROM T_CMY_USR_M
+                WHERE TENANT_ID = #{session.tenantId}
+                  AND DEL_YN = 'N'
+                  AND USR_ID = T1.FNL_MDFC_USR_ID
+               ) AS FNL_MDFC_USR_NM
+          FROM TB_SSCT_SELL_LM_OJ_IZ T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.SELL_LM_CNTR_NO
+           AND T2.CNTR_SN = T1.SELL_LM_CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+               <include refid="blacklistJoinClause" />
          WHERE 1 = 1
            AND T1.DTA_DL_YN = 'N'
            AND T1.SELL_LM_OJ_DRM_CD = '2'
         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
            AND T1.SELL_LM_CNTR_NO = #{cntrNo}
         </if>
-        <if test='@MybatisUtils@isNotEmpty(cstNo)'>
-           AND T3.CNTR_CST_NO = #{cstNo}
+        <if test='@MybatisUtils@isNotEmpty(cntrCstNo)'>
+           AND T3.CNTR_CST_NO = #{cntrCstNo}
         </if>
         <if test='@MybatisUtils@isNotEmpty(cstKnm)'>
-           AND T5.CST_KNM = #{cstKnm}
+           AND T4.CST_KNM = #{cstKnm}
         </if>
            )
          WHERE 1 = 1
-        <if test='@MybatisUtils@isNotEmpty(adr)'>
-           AND (CNTR_ADR LIKE '%' || #{adr} || '%' OR CNTR_ZIP LIKE '%' || #{adr} || '%')
+        <if test='@MybatisUtils@isNotEmpty(adrCl)'>
+            <choose>
+                <when test='@MybatisUtils@equals(adrCl, "1")'>
+               AND CNTR_ADR LIKE '%' || #{adr} || '%'
+                </when>
+                <otherwise>
+               AND CNTR_ZIP LIKE '%' || #{adr} || '%'
+                </otherwise>
+            </choose>
         </if>
         <if test='@MybatisUtils@isNotEmpty(cralLocaraTno) or @MybatisUtils@isNotEmpty(mexnoEncr) or @MybatisUtils@isNotEmpty(cralIdvTno)'>
             AND (
-            I1.CRAL_LOCARA_TNO = #{cralLocaraTno}
-            AND I1.MEXNO_ENCR = #{mexnoEncr}
-            AND I1.CRAL_IDV_TNO = #{cralIdvTno}
+            CNTR_CRAL_LOCARA_TNO = #{cralLocaraTno}
+            AND CNTR_MEXNO_ENCR = #{mexnoEncr}
+            AND CNTR_CRAL_IDV_TNO = #{cralIdvTno}
             ) OR (
-            I2.LOCARA_TNO = #{cralLocaraTno}
-            AND I2.EXNO_ENCR = #{mexnoEncr}
-            AND I2.IDV_TNO = #{cralIdvTno}
+            CNTR_LOCARA_TNO = #{cralLocaraTno}
+            AND CNTR_EXNO_ENCR = #{mexnoEncr}
+            AND CNTR_IDV_TNO = #{cralIdvTno}
             )
         </if>
-        <if test='@MybatisUtils@isNotEmpty(selrInf)'>
-           AND (PRTNR_KNM LIKE '%' || #{selrInf} || '%'
-                    OR PRTNR_ LIKE '%' || #{selrInf} || '%')
+        <if test='@MybatisUtils@isNotEmpty(prtnrInfo)'>
+           AND (PRTNR_KNM LIKE '%' || #{prtnrInfo} || '%'
+                    OR PRTNR_NO LIKE '%' || #{prtnrInfo} || '%')
         </if>
     </select>
 

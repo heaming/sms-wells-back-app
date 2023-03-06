@@ -17,7 +17,7 @@ public class WctaContractDto {
     @ApiModel("WctaContractDto-SearchCntrNoReq")
     public record SearchCntrNoReq(
         String cntrCstKnm,
-        String lrnnCstKnm,
+        String istCstKnm,
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,

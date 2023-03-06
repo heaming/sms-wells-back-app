@@ -14,7 +14,7 @@ public class WctcSellLimitOjIzDvo {
     private String sellLmCstNo;
     private String sellLmPrtnrNo;
     private String sellLmCntrNo;
-    private Integer sellLmCntrSn;
+    private int sellLmCntrSn;
     private String sellLmBzrno;
     private String sellLmRsonCn;
     private String sellLmRsonCd;

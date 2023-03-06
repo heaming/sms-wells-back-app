@@ -10,6 +10,7 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.FindBlacklistRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SaveBlacklistReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchBlacklistReq;
 import com.kyowon.sms.wells.web.contract.risk.service.WctcSalesLimitsService;
@@ -35,12 +36,30 @@ public class WctcSalesLimitsController {
 
     @ApiOperation(value = "접수제한 관리-블랙리스트 페이징 조회", notes = "조회조건에 맞는 블랙리스트 목록을 페이징 조회한다")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @GetMapping("/blacklists")
+    public FindBlacklistRes getBlacklistPages(
+        @RequestParam
+        String cntrNo,
+        @RequestParam
+        int cntrSn
+    ) {
+        return service.getBlacklistInfos(cntrNo, cntrSn);
+    }
+
+    @ApiOperation(value = "접수제한 관리-블랙리스트 페이징 조회", notes = "조회조건에 맞는 블랙리스트 목록을 페이징 조회한다")
+    @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
-        @ApiImplicitParam(name = "cntrNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
-        @ApiImplicitParam(name = "cntrNo", value = "주소/우편번호", paramType = "query"),
-        @ApiImplicitParam(name = "tno", value = "전화번호", paramType = "query"),
-        @ApiImplicitParam(name = "selrInf", value = "판매자정보", paramType = "query"),
+        @ApiImplicitParam(name = "adrCl", value = "주소/우편번호", paramType = "query"),
+        @ApiImplicitParam(name = "adr", value = "주소/우편번호", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "전화번호1", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "전화번호2", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "전화번호3", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrInfo", value = "파트너정보", paramType = "query"),
     })
     @GetMapping("/blacklists/paging")
     public PagingResult<SearchBlacklistRes> getBlacklistPages(
@@ -59,7 +78,7 @@ public class WctcSalesLimitsController {
         @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo", value = "주소/우편번호", paramType = "query"),
         @ApiImplicitParam(name = "tno", value = "전화번호", paramType = "query"),
-        @ApiImplicitParam(name = "selrInf", value = "판매자정보", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrInfo", value = "판매자정보", paramType = "query"),
     })
     @GetMapping("/blacklists/excel-download")
     public List<SearchBlacklistRes> getBlacklistsForExcelDownload(
@@ -81,7 +100,7 @@ public class WctcSalesLimitsController {
     }
 
     @ApiOperation(value = "접수제한관리-블랙리스트 삭제", notes = "선택한 row의 판매제한ID 를 key로 판매제한대상 테이블에서 삭제한 후 결과값을 반환한다.")
-    @DeleteMapping
+    @DeleteMapping("/blacklists")
     public SaveResponse removeBlacklists(
         @RequestBody
         @Valid

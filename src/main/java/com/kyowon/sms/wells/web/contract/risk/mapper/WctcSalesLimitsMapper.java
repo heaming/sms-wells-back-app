@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.FindBlacklistRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchBlacklistRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcSellLimitOjIzDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -14,6 +15,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WctcSalesLimitsMapper {
+    FindBlacklistRes selectBlacklistInfos(String cntrNo, int cntrSn);
 
     PagingResult<SearchBlacklistRes> selectBlacklistPages(SearchBlacklistReq dto, PageInfo pageInfo);
 
@@ -25,4 +27,5 @@ public interface WctcSalesLimitsMapper {
     int updateBlacklist(WctcSellLimitOjIzDvo dvo);
 
     int deleteBlacklist(String sellLmId);
+
 }

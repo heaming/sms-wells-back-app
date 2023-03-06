@@ -67,10 +67,20 @@ public class WctaContractExceptionService {
             SaveReq dto = iterator.next();
             WctaContractExOjBasDvo dvo = converter.mapSaveReqToWctaContractExOjBasDvo(dto);
             WctaContractExOjDtlDvo dtlDvo = converter.mapSaveReqToWctaContractExOjDtlDvo(dto);
-            switch (dto.exProcsOjDrmTpCd()) {
-                case "1" -> dvo.setExProcsOjDrmVal(dto.cstNo());
-                case "2" -> dvo.setExProcsOjDrmVal(dto.cntrNo());
-                case "3" -> dvo.setExProcsOjDrmVal(dto.prtnrNo());
+            switch (dto.exProcsCd()) {
+                case "W01" -> {
+                    dvo.setExProcsOjDrmTpCd("5");
+                    dvo.setExProcsOjDrmVal(dto.prtnrNo());
+                    dvo.setOgTpCd(dto.ogTpCd());
+                }
+                case "W02" -> {
+                    dvo.setExProcsOjDrmTpCd("1");
+                    dvo.setExProcsOjDrmVal(dto.cstNo());
+                }
+                default -> {
+                    dvo.setExProcsOjDrmTpCd("2");
+                    dvo.setExProcsOjDrmVal(dto.cntrNo());
+                }
             }
             processCount += switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
@@ -99,8 +109,9 @@ public class WctaContractExceptionService {
         int processCount = 0;
         int result;
         for (Iterator<String> iterator = keys.iterator(); iterator.hasNext(); processCount += result) {
-            result = mapper.deleteContractExceptionBas(iterator.next());
-            mapper.deleteContractExceptionDtl(iterator.next());
+            String exProcsId = iterator.next();
+            result = mapper.deleteContractExceptionBas(exProcsId);
+            mapper.deleteContractExceptionDtl(exProcsId);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         }
         return processCount;
