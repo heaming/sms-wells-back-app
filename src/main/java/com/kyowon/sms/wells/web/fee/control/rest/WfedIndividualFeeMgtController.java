@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(CtFeeConst.REST_URL_V1 + "/individual-fee-mgts")
+@RequestMapping(CtFeeConst.REST_URL_V1 + "/individual-fee")
 @Api(tags = "[WFED] 개인별 수수료 관리")
 @RequiredArgsConstructor
 @Validated
@@ -34,7 +34,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/hmst-entrepreneur")
+    @GetMapping("/home-master/entrepreneurs")
     public FindHmstEntrpRes getHmstEntrp(
         @Valid
         SearchHmstReq dto
@@ -47,7 +47,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/hmst-basic")
+    @GetMapping("/home-master/basic")
     public FindHmstBasicRes getHmstBasic(
         @Valid
         SearchHmstReq dto
@@ -60,7 +60,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/hmst-total-sum")
+    @GetMapping("/home-master/total-sum")
     public FindHmstTotalSumRes getHmstTotalSum(
         @Valid
         SearchHmstReq dto
@@ -73,7 +73,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/hmst-fee")
+    @GetMapping("/home-master/fee")
     public FindHmstFeeRes getHmstFee(
         @Valid
         SearchHmstReq dto
@@ -86,7 +86,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/hmst-deduction")
+    @GetMapping("/home-master/deduction")
     public FindHmstDeductionRes getHmstDeduction(
         @Valid
         SearchHmstReq dto
@@ -99,7 +99,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
-    @GetMapping("/hmst-control")
+    @GetMapping("/home-master/control")
     public List<SearchHmstControlRes> getHmstControls(
         SearchHmstReq dto
     ) {

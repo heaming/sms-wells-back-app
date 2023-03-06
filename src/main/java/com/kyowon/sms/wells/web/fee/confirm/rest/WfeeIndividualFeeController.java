@@ -238,7 +238,7 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
     })
-    @GetMapping("/mnger-plars")
+    @GetMapping("/manager-planers")
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
@@ -256,7 +256,7 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
     })
-    @GetMapping("/hmsts")
+    @GetMapping("/home-masters")
     public List<SearchFeeHmstRes> getFeeHmsts(
         SearchFeeReq dto
     ) {
