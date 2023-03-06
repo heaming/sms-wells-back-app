@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.contract.risk.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
@@ -19,11 +18,12 @@ public class WctcSalesLimitsDto {
         String cntrCstNo,
         String cntrNo,
         String cstKnm,
+        String adrCl,
         String adr,
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String selrInf
+        String prtnrInfo
     ) {
         public SearchBlacklistReq {
             mexnoEncr = DbEncUtil.enc(mexnoEncr);
@@ -37,8 +37,8 @@ public class WctcSalesLimitsDto {
         @NotBlank
         String rowState,
         String sellLmId,
-        String sellLmCntrNo,
-        int sellLmCntrSn,
+        String cntrNo,
+        int cntrSn,
         String sellLmRsonCn,
         String dtaDlYn,
         String orglDtaDlYn,
@@ -48,6 +48,53 @@ public class WctcSalesLimitsDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
+    // 접수제한 관리-블랙리스트 Find Result Dto
+    @ApiModel("WctcSalesLimitsDto-FindBlacklistRes")
+    public record FindBlacklistRes(
+        String sellTpCd,
+        String cntrCstNo,
+        String cstKnm,
+        String copnDvCd,
+        String bryyMmdd,
+        String bzrno,
+        String cntrCralLocaraTno,
+        String cntrMexnoEncr,
+        String cntrCralIdvTno,
+        String cntrMpno,
+        String cntrLocaraTno,
+        String cntrExnoEncr,
+        String cntrIdvTno,
+        String cntrTno,
+        String cntrZip,
+        String cntrAdr,
+        String istllKnm,
+        String istllCralLocaraTno,
+        String istllMexnoEncr,
+        String istllCralIdvTno,
+        String istllMpno,
+        String istllLocaraTno,
+        String istllExnoEncr,
+        String istllIdvTno,
+        String istllTno,
+        String istllZip,
+        String istllAdr,
+        String ogNm,
+        String prtnrKnm,
+        String prtnrNo,
+        String prtnrCralLocaraTno,
+        String prtnrMexnoEncr,
+        String prtnrCralIdvTno,
+        String prtnrMpno
+    ) {
+        public FindBlacklistRes {
+            cntrMexnoEncr = DbEncUtil.dec(cntrMexnoEncr);
+            cntrExnoEncr = DbEncUtil.dec(cntrExnoEncr);
+            istllMexnoEncr = DbEncUtil.dec(istllMexnoEncr);
+            istllExnoEncr = DbEncUtil.dec(istllExnoEncr);
+            prtnrMexnoEncr = DbEncUtil.dec(prtnrMexnoEncr);
+        }
+    }
+
     // 접수제한 관리-블랙리스트 Search Result Dto
     @ApiModel("WctcSalesLimitsDto-SearchBlacklistRes")
     public record SearchBlacklistRes(
@@ -55,10 +102,10 @@ public class WctcSalesLimitsDto {
         String dtaDlYn,
         String orglDtaDlYn,
         String sellTpCd,
-        String cntrCstNo,
+        String cntrNo,
+        int cntrSn,
         String sellLmRsonCn,
-        String sellLmCntrNo,
-        int sellLmCntrSn,
+        String cntrCstNo,
         String cstKnm,
         String copnDvCd,
         String bryyMmdd,
@@ -92,21 +139,16 @@ public class WctcSalesLimitsDto {
         String prtnrCralIdvTno,
         String prtnrMpno,
         String fstRgstDtm,
-        String fstRgstUsrId,
+        String fstRgstUsrNm,
         String fnlMdfcDtm,
-        String fnlMdfcUsrId
+        String fnlMdfcUsrNm
     ) {
         public SearchBlacklistRes {
-            cntrMpno = cntrCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(cntrMexnoEncr)
-                + CtContractConst.TNO_DELIM + cntrCralIdvTno;
-            cntrTno = cntrLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(cntrExnoEncr)
-                + CtContractConst.TNO_DELIM + cntrIdvTno;
-            istllMpno = istllCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(istllMexnoEncr)
-                + CtContractConst.TNO_DELIM + istllCralIdvTno;
-            istllTno = istllLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(istllExnoEncr)
-                + CtContractConst.TNO_DELIM + istllIdvTno;
-            prtnrMpno = prtnrCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(prtnrMexnoEncr)
-                + CtContractConst.TNO_DELIM + prtnrCralIdvTno;
+            cntrMexnoEncr = DbEncUtil.dec(cntrMexnoEncr);
+            cntrExnoEncr = DbEncUtil.dec(cntrExnoEncr);
+            istllMexnoEncr = DbEncUtil.dec(istllMexnoEncr);
+            istllExnoEncr = DbEncUtil.dec(istllExnoEncr);
+            prtnrMexnoEncr = DbEncUtil.dec(prtnrMexnoEncr);
         }
     }
 }

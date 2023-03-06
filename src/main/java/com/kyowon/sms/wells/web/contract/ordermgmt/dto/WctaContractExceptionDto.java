@@ -15,12 +15,10 @@ public class WctaContractExceptionDto {
     @Builder
     @ApiModel("WctaContractExceptionDto-SearchReq")
     public record SearchReq(
-        @NotBlank
         @ValidDate
-        String vlStrtDtm,
-        @NotBlank
+        String strtDt,
         @ValidDate
-        String vlEndDtm,
+        String endDt,
         String prtnrNo,
         String cstNo,
         String cntrNo,
@@ -65,8 +63,10 @@ public class WctaContractExceptionDto {
         String vlStrtDtm,
         String vlEndDtm,
         String fstRgstUsrId,
+        String fstRgstUsrNm,
         String fstRgstDtm,
         String fnlMdfcUsrId,
+        String fnlMdfcUsrNm,
         String fnlMdfcDtm
     ) {}
 }

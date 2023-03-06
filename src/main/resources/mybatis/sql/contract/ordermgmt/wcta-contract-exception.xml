@@ -78,13 +78,27 @@
              , T1.VL_STRT_DTM
              , T1.VL_END_DTM
              , T1.FST_RGST_USR_ID
-             , T1.FST_RGST_DTM
+             , (
+               SELECT USR_NM
+                 FROM T_CMY_USR_M
+                WHERE TENANT_ID = #{session.tenantId}
+                  AND DEL_YN = 'N'
+                  AND USR_ID = T1.FST_RGST_USR_ID
+               ) AS FST_RGST_USR_NM
+             , SUBSTR(T1.FST_RGST_DTM, 1, 8) AS FST_RGST_DTM
              , T1.FNL_MDFC_USR_ID
-             , T1.FNL_MDFC_DTM
+             , (
+               SELECT USR_NM
+                 FROM T_CMY_USR_M
+                WHERE TENANT_ID = #{session.tenantId}
+                  AND DEL_YN = 'N'
+                  AND USR_ID = T1.FNL_MDFC_USR_ID
+               ) AS FNL_MDFC_USR_NM
+             , SUBSTR(T1.FNL_MDFC_DTM, 1, 8) AS FNL_MDFC_DTM
           FROM TB_SSCT_CNTR_EX_OJ_BAS T1
          WHERE 1 = 1
-           AND T1.VL_STRT_DTM <![CDATA[>=]]> #{vlStrtDtm}
-           AND T1.VL_END_DTM <![CDATA[<=]]> #{vlEndDtm}
+           AND T1.VL_STRT_DTM <![CDATA[>=]]> #{strtDt} || '000000'
+           AND T1.VL_END_DTM <![CDATA[<=]]> #{endDt} || '235959'
                )
          WHERE 1 = 1
         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
@@ -118,8 +132,8 @@
              <include refid="COMMON.insertSystemField" />)
         VALUES (
                #{item.exProcsId}
-             , #{item.vlStrtDtm}
-             , #{item.vlEndDtm}
+             , #{item.vlStrtDtm} || '000000'
+             , #{item.vlEndDtm} || '235959'
              , #{item.exProcsCd}
              , #{item.exProcsOjDrmTpCd}
              , #{item.exProcsOjDrmVal}

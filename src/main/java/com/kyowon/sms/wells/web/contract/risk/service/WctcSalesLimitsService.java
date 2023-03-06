@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.risk.converter.WctcSalesLimitsConverter;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.FindBlacklistRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SaveBlacklistReq;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcSellLimitOjIzDvo;
 import com.kyowon.sms.wells.web.contract.risk.mapper.WctcSalesLimitsMapper;
@@ -27,6 +28,10 @@ public class WctcSalesLimitsService {
 
     private final WctcSalesLimitsMapper mapper;
     private final WctcSalesLimitsConverter converter;
+
+    public FindBlacklistRes getBlacklistInfos(String cntrNo, int cntrSn) {
+        return mapper.selectBlacklistInfos(cntrNo, cntrSn);
+    }
 
     public PagingResult<SearchBlacklistRes> getBlacklistPages(SearchBlacklistReq dto, PageInfo pageInfo) {
         return mapper.selectBlacklistPages(dto, pageInfo);
