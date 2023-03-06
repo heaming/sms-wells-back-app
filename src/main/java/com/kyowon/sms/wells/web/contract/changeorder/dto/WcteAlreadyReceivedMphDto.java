@@ -11,12 +11,4 @@ public class WcteAlreadyReceivedMphDto {
         String cntrNo,
         String cntCstNo
     ) {}
-
-    // *********************************************************
-    // Result Dto
-    // *********************************************************
-    @ApiModel("WcteAlreadyReceivedMphDto-SearchRes")
-    public record SearchRes(
-        String cralLocapaMexnoIdvTno
-    ) {}
 }
