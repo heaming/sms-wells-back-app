@@ -1,12 +1,17 @@
 package com.kyowon.sms.wells.web.product.manage.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyowon.sms.common.web.product.category.service.ZpdaClassificationMgtService;
 import com.kyowon.sms.common.web.product.manage.converter.ZpdcMaterialConverter;
 import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
@@ -14,14 +19,24 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachTbPdbsPdRelDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
-import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
+import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductConst;
+import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
+import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
+import com.sds.sflex.common.common.dvo.UserSessionDvo;
+import com.sds.sflex.common.common.service.CodeService;
+import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -39,6 +54,9 @@ public class WpdcMaterialMgtService {
     private final ZpdcProductService productService;
     private final ZpdcHistoryMgtService hisService;
     private final ZpdcMaterialConverter converter;
+
+    private final CodeService codeService;
+    private final MessageResourceService messageResourceService;
 
     /**
      * SAP 교재/자재 페이징 조회(팝업)
@@ -139,5 +157,247 @@ public class WpdcMaterialMgtService {
         String startDtm = DateUtil.getDate(new Date());
         hisService.createProductHistory(pdCd, startDtm);
         return processCount;
+    }
+
+    /**
+     * 엑셀 데이터 유효성 체크
+     * @param excelData
+     * @param metaItems
+     * @param tbPdbsPdBas
+     * @param tbPdbsPdEcomPrpDtl
+     * @return
+     * @throws Exception
+     */
+    public List<ExcelUploadErrorDvo> checkValidationForExcelUpload(
+        List<Map<String, Object>> excelData,
+        List<ZpdcPropertyMetaDvo> metaItems,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl
+    ) throws Exception {
+
+        List<ExcelUploadErrorDvo> dataErrors = new ArrayList<ExcelUploadErrorDvo>();
+
+        int rowIndex = 1;
+        for (Map<String, Object> excelDataMap : excelData) {
+
+            for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+                for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
+
+                    if (PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm())) {
+                        this.checkExcelValidation(
+                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_DB
+                        );
+                    } else if (entry.getKey().equals(metaVo.getColNm())) {
+                        this.checkExcelValidation(
+                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_META
+                        );
+                    }
+                }
+
+                for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdEcomPrpDtl) {
+                    if (entry.getKey().equals(metaVo.getColNm())) {
+                        this.checkExcelValidation(
+                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_META
+                        );
+                    }
+                }
+            }
+            rowIndex++;
+        }
+
+        return dataErrors;
+    }
+
+    /**
+     * 엑셀 유효성 체크 Method
+     * @param entry - Excel 데이터객체
+     * @param metaVo - Meta 정보객체
+     * @param rowIndex - 현재 읽은 Excel Data Row Number
+     * @param dataErrors - 오류 정보를 담고 있는 배열객체.
+     */
+    private void checkExcelValidation(
+        Entry<String, Object> entry,
+        ZpdcPropertyMetaDvo metaVo,
+        int rowIndex,
+        List<ExcelUploadErrorDvo> dataErrors,
+        String validationTarget
+    ) {
+
+        String compareValue = StringUtil.nvl2(entry.getValue().toString(), "");
+        if (compareValue.split("\\|").length > 1) {
+            compareValue = compareValue.split("\\|")[1].trim();
+        }
+
+        if (PdProductConst.VALIDATION_TARGET_DB.equals(validationTarget)) {
+            // 추후 확장성을 위해 건 By 건으로 체크하지 않고 'VALIDATION_TARGET_DB' 으로 한번 감싸서 받는다.
+
+            // 자재코드(SAP_MAT_CD) - 자재코드값({0})이 올바르지 않습니다.
+            if (PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm()) && !"".equals(compareValue)) {
+                // 넘어온 자재코드 값에 해당하는 데이터 유무를 확인.
+                ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
+                if (null == sapMatVo) {
+                    ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+                    errorVo.setHeaderName(metaVo.getPrpNm());
+                    errorVo.setErrorRow(rowIndex);
+                    errorVo.setErrorData(
+                        messageResourceService.getMessage("MSG_ALT_ABNORMAL_SAP_MAT_CD", new String[] {compareValue})
+                    );
+
+                    dataErrors.add(errorVo);
+                }
+            }
+        }
+
+        // #1.Essential Value - 필수값이 누락되어 있습니다.
+        if (PdProductConst.MNDT_Y.equals(metaVo.getMndtYn()) && "".equals(compareValue)) {
+            ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+            errorVo.setHeaderName(metaVo.getPrpNm());
+            errorVo.setErrorRow(rowIndex);
+            errorVo.setErrorData(messageResourceService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL"));
+            dataErrors.add(errorVo);
+        }
+
+        // #2. Number Type - 숫자만 입력 가능합니다.
+        if (PdProductConst.DTA_TP_NUMBER.equals(metaVo.getDtaTpCd())
+            && !compareValue.matches("[-+]?\\d*\\.?\\d+")) {
+            ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+            errorVo.setHeaderName(metaVo.getPrpNm());
+            errorVo.setErrorRow(rowIndex);
+            errorVo.setErrorData(messageResourceService.getMessage("MSG_ALT_ONLY_NUMBER"));
+            dataErrors.add(errorVo);
+        }
+
+        // #3. Length Check - 입력 가능 길이를 초과하였습니다 (최대: {0}, 입력: {1})
+        if (null != metaVo.getDtaLnth() && null != entry.getValue()
+            && metaVo.getDtaLnth().intValue() < compareValue.length()) {
+            ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+            errorVo.setHeaderName(metaVo.getPrpNm());
+            errorVo.setErrorRow(rowIndex);
+            errorVo.setErrorData(
+                messageResourceService.getMessage(
+                    "MSG_ALT_INPUT_OVER_LEN",
+                    new String[] {metaVo.getDtaLnth() + "", compareValue.length() + ""}
+                )
+            );
+            dataErrors.add(errorVo);
+        }
+
+    }
+
+    /**
+     * Excel Data를 DB에 저장.
+     * 코드값은 Excel Dropdown으로 'CODE_NM|CODE_CD'로 입력받는다는 대전제.
+     * @param excelData
+     * @param metaItems
+     * @param tbPdbsPdBas
+     * @param tbPdbsPdEcomPrpDtl
+     * @param prgGrpDves
+     * @throws Exception
+     */
+    @Transactional
+    public void saveExcelUpload(
+        List<Map<String, Object>> excelData,
+        List<ZpdcPropertyMetaDvo> metaItems,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl,
+        ArrayList<String> prgGrpDves
+    ) throws Exception {
+
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+
+        String startDtm = DateUtil.getDate(new Date());
+        // 단계그룹구분코드(공통 코드값), 예외적으로 해당 컬럼만 CODE_NM으로 받고 JAVA에서 mapping처리.
+        List<CodeComponent> lrnnLvGrpDvCds = codeService.getCodesByCodeId(PdProductConst.LRNN_LV_GRP_DV_CD, null);
+
+        for (Map<String, Object> excelDataMap : excelData) {
+
+            Map<String, Object> masterMap = new HashMap<String, Object>();
+            for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+                for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
+                    if (entry.getKey().equals(metaVo.getColNm())) {
+                        if (entry.getValue().toString().split("\\|").length > 1) {
+                            String tempVal[] = entry.getValue().toString().split("\\|");
+                            masterMap.put(metaVo.getColId(), tempVal[1].trim());
+                        } else {
+                            masterMap.put(metaVo.getColId(), entry.getValue());
+                        }
+                    }
+                }
+            }
+            ObjectMapper objectMapper = new ObjectMapper();
+            ZpdcProductDvo dvo = objectMapper.convertValue(masterMap, ZpdcProductDvo.class);
+
+            // 230303 자재코드가 들어오면 UI와 동일하게 자동으로 Fill-In
+            if (StringUtil.isNotEmpty(dvo.getSapMatCd())) {
+                // TODO 조회쿼리 한방 날리고 값들 채우고!!! 여기부터 시작!!!!
+                ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(dvo.getSapMatCd());
+
+                dvo.setModelNo(sapMatVo.getModelNo());
+                dvo.setSapPdctSclsrtStrcVal(sapMatVo.getSapPdctSclsrtStrcVal());
+                dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
+                dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
+                dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+            }
+
+            // #1. 상품 마스터 INSERT
+            dvo.setPdTpCd(PdProductConst.PD_TP_CD_MATERIAL);
+            dvo.setTempSaveYn(PdProductConst.TEMP_SAVE_N);
+            dvo = productService.saveProductBase(dvo, startDtm);
+
+            /**
+             * 각사 속성의 경우 
+             * TB_PDBS_PD_PRP_META_BAS.PD_PRP_GRP_DV_CD(=상품속성그룹구분코드) Lv INSERT
+             */
+            for (String pdPrpGrpDtlDvCd : prgGrpDves) {
+                List<ZpdcPropertyMetaDvo> eachPdPrpGrpDtlDvCd = tbPdbsPdEcomPrpDtl.stream()
+                    .filter(x -> pdPrpGrpDtlDvCd.equals(x.getPdPrpGrpDtlDvCd())).toList();
+
+                Map<String, Object> propertyMap = new HashMap<String, Object>();
+                for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+                    for (ZpdcPropertyMetaDvo metaVo : eachPdPrpGrpDtlDvCd) {
+
+                        propertyMap.put("pdExtsPrpGrpCd", pdPrpGrpDtlDvCd);
+                        if (entry.getKey().equals(metaVo.getColNm())) {
+                            if (entry.getValue().toString().split("\\|").length > 1) {
+                                String tempVal[] = entry.getValue().toString().split("\\|");
+                                propertyMap.put(metaVo.getColId(), tempVal[1]);
+                            } else {
+                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스 
+                                // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.
+                                if (PdProductConst.PD_EXTS_PRP_GRP_CD_LRNN.equals(pdPrpGrpDtlDvCd)
+                                    && PdProductConst.CARMEL_LRNN_LV_CD.equals(metaVo.getColNm())) {
+
+                                    for (CodeComponent codeVo : lrnnLvGrpDvCds) {
+                                        if (entry.getValue().equals(codeVo.codeName())) {
+                                            propertyMap.put(metaVo.getColId(), codeVo.codeId());
+                                        }
+                                    }
+
+                                } else {
+                                    propertyMap.put(metaVo.getColId(), entry.getValue());
+                                }
+
+                            }
+                        }
+
+                    }
+
+                }
+                objectMapper = new ObjectMapper();
+                ZpdcEachCompanyPropDtlDvo propertyVo = objectMapper
+                    .convertValue(propertyMap, ZpdcEachCompanyPropDtlDvo.class);
+
+                propertyVo.setPdCd(dvo.getPdCd());
+                if (null != propertyVo.getPdExtsPrpGrpCd()) {
+                    productService.saveEachCompanyPropDtl(propertyVo);
+                    propertyMap = new HashMap<String, Object>();
+                }
+
+            }
+
+            // #3. 이력 INSERT
+            hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        }
+
     }
 }
