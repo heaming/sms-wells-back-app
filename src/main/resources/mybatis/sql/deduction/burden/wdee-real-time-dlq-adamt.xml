@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.deduction.burden.mapper.WdeeRealTimeDlqAdamtMapper">
+    <select id="selectRealTimeDlqAdamt" resultType="com.kyowon.sms.wells.web.deduction.burden.dto.WdeeRealTimeDlqAdamtDto$SearchRes">
+        SELECT NVL(A.THM_CTR_DLQ_ADD_AMT,0) AS THM_CTR_DLQ_ADD_AMT
+             , NVL(B.WORK_ACDP,0) AS WORK_ACDP
+             , NVL(A.THM_CTR_DLQ_ADD_AMT,0) - NVL(B.WORK_ACDP,0) AS JAN_AMT
+          FROM TB_CBCL_DLQ_BAS A
+          LEFT OUTER JOIN (SELECT SUM(CASE WHEN A.RVE_DV_CD = '02' AND A.DP_DV_CD = '1' THEN A.RVE_AMT
+                                           WHEN A.DP_DV_CD = '2' THEN -1 * A.RVE_AMT END) AS WORK_ACDP /*가산입금(수납금액 OR 입금금액)*/
+                                , A.CNTR_NO 
+                                , A.CNTR_SN 
+                             FROM TB_RVDW_RVE_DTL A
+                            WHERE A.CNTR_NO = #{cntrNo}
+                            <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                              AND A.CNTR_SN = #{cntrSn}
+                            </if>
+                            GROUP BY A.CNTR_NO, A.CNTR_SN
+                          ) B
+            ON A.CNTR_NO = B.CNTR_NO 
+           AND A.CNTR_SN = B.CNTR_SN 
+         WHERE 1=1
+           AND A.PERF_YM = #{perfYm}
+           AND A.CNTR_NO = #{cntrNo}
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND A.CNTR_SN = #{cntrSn}
+         </if>
+    </select>
+</mapper>
