@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctaDeviceChangeCancelTypeDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctaDeviceChangeCancelTypeMapper;
-import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -19,13 +18,9 @@ public class WctaDeviceChangeCancelTypeService {
 
     public List<SearchRes> getDeivceChangeCancelType(String ojCntrNo, String ojCntrSn) {
 
-        if (StringUtil.isEmpty(ojCntrNo)) {
-            BizAssert.hasText(ojCntrNo, "MSG_ALT_CHK_CNTR_NO"); //계약번호를 확인해주세요.
-        }
+        BizAssert.hasText(ojCntrNo, "MSG_ALT_CHK_CNTR_NO"); //계약번호를 확인해주세요.
 
-        if (StringUtil.isEmpty(ojCntrSn)) {
-            BizAssert.hasText(ojCntrSn, "MSG_ALT_CHK_CNTR_SN"); //계약일련번호를 확인해주세요.
-        }
+        BizAssert.hasText(ojCntrSn, "MSG_ALT_CHK_CNTR_SN"); //계약일련번호를 확인해주세요.
 
         return mapper.selectDeivceChangeCancelType(ojCntrNo, ojCntrSn);
     }
