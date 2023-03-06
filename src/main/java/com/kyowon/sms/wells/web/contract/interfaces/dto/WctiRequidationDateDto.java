@@ -11,12 +11,11 @@ public class WctiRequidationDateDto {
     // 계약건의 철거 정보 Find Request Dto
     @ApiModel("WctiRequidationDateDto-FindReq")
     public record FindReq(
-            @NotBlank
-            String CNTR_NO,
-            @NotBlank
-            String CNTR_SN
-    ) {
-    }
+        @NotBlank
+        String CNTR_NO,
+        @NotBlank
+        String CNTR_SN
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -30,6 +29,5 @@ public class WctiRequidationDateDto {
         String IST_DT,
         String REQD_DT,
         String REQD_IST_DC_GAP
-    ) {
-    }
+    ) {}
 }
