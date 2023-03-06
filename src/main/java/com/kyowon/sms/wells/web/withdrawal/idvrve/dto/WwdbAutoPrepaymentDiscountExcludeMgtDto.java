@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
-public class WwdbAutomaticPrepaymentDiscountExcludeMgtDto {
+import javax.validation.constraints.NotBlank;
+
+public class WwdbAutoPrepaymentDiscountExcludeMgtDto {
     public record SearchReq(
         String prmDscExcdStrtYm,
         String prmDscExcdEndYm,
@@ -32,13 +34,13 @@ public class WwdbAutomaticPrepaymentDiscountExcludeMgtDto {
 
     }
 
-    public record SearchContractInformationReq(
+    public record SearchContractReq(
         String cntrNo,
         String cntrSn
     ) {
 
     }
-    public record SearchContractInformationRes(
+    public record SearchContractRes(
         String cntrNo, //계약번호
         String cntrSn, //일련번호 
         String cstKnm, //고객명
@@ -51,9 +53,11 @@ public class WwdbAutomaticPrepaymentDiscountExcludeMgtDto {
 
     public record SaveReq(
         String rowState,
+        @NotBlank
         String cntr, //계약 
         String cntrNo, //계약번호
-        String cntrSn, //일련번호 
+        String cntrSn, //일련번호
+        @NotBlank
         String prmDscExcdStrtYm, //선납제외시작월
         String prmDscExcdEndYm //선납제외종료월
     ) {
