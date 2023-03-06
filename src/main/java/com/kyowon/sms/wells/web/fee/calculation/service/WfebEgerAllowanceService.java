@@ -3,9 +3,13 @@ package com.kyowon.sms.wells.web.fee.calculation.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.fee.calculation.converter.WfebEgerAllowanceConverter;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto;
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebEgerAllowanceDvo;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebEgerAllowanceMapper;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class WfebEgerAllowanceService {
 
     private final WfebEgerAllowanceMapper mapper;
+    private final WfebEgerAllowanceConverter converter;
 
     /**
      * 엔지니어 수당 내역 - 조회
@@ -55,4 +60,24 @@ public class WfebEgerAllowanceService {
         return this.mapper.selectEngineerManagerAllowances(dto);
     }
 
+    /**
+     * 엔지니어 수당 생성 - 생성
+     * @param dto : {
+     * param1 : 실적년월,
+     * param2 : 직책유형
+     * @return 생성건수
+     */
+    @Transactional
+    public int saveEgerAllowances(WfebEgerAllowanceDto.SaveReq dto) {
+        int processCount = 0;
+
+        WfebEgerAllowanceDvo dvo = this.converter.mapSaveReqToWfebEgerAllowanceDvo(dto);
+
+        this.mapper.deleteEgerAllowances(dvo);
+        processCount = this.mapper.insertEgerAllowances(dvo);
+
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
+
+        return processCount;
+    }
 }

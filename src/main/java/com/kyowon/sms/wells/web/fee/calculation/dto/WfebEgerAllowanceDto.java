@@ -99,4 +99,13 @@ public class WfebEgerAllowanceDto {
         int col8 /*수당합계*/
     ) {}
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 엔지니어 수당 생성관리 Save Request Dto
+    @ApiModel(value = "WfebEgerAllowanceDto-SaveReq")
+    public record SaveReq(
+        String param1, /* 실적년월 */
+        String param2 /* 직책유형 */
+    ) {}
 }

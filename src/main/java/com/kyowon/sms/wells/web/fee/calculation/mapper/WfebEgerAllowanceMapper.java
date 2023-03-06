@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto;
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebEgerAllowanceDvo;
 
 /**
  * <pre>
@@ -22,5 +23,9 @@ public interface WfebEgerAllowanceMapper {
     List<WfebEgerAllowanceDto.SearchEngineerManagerRes> selectEngineerManagerAllowances(
         WfebEgerAllowanceDto.SearchReq dto
     );
+
+    int deleteEgerAllowances(WfebEgerAllowanceDvo dvo);
+
+    int insertEgerAllowances(WfebEgerAllowanceDvo dvo);
 
 }
