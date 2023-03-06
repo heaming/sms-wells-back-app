@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.service.visit.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 
 @Mapper
@@ -36,9 +36,9 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int selectCountItem(String cntrNo);
 
-    int selectCountAsIstOjIz(SearchReq dto);
+    int selectCountAsIstOjIz(SaveReq dto);
 
-    WsnbMultipleTaskOrderDvo selectAsIstOjIzKey(SearchReq dto);
+    WsnbMultipleTaskOrderDvo selectAsIstOjIzKey(SaveReq dto);
 
     String selectBasePdCdBySaleCd(String saleCd);
 

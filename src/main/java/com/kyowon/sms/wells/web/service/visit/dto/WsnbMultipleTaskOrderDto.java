@@ -13,8 +13,8 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsnbMultipleTaskOrderDto {
 
-    @ApiModel(value = "WsnbMultipleTaskOrderDto-CreateReq")
-    public record SearchReq(
+    @ApiModel(value = "WsnbMultipleTaskOrderDto-SaveReq")
+    public record SaveReq(
         /* TODO: 파라미터로 받아오는 값에 따라 로직 변경 필요 */
         String inChnlDvCd, /* 입력채널구분코드 */
         String svBizHclsfCd, /* 서비스업무대분류코드 */

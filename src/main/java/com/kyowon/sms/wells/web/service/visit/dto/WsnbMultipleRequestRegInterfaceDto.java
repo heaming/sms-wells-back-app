@@ -15,20 +15,20 @@ import io.swagger.annotations.ApiModel;
  * @author yeonghwa.cheon 천영화
  * @since 2023.03.03
  */
-public class WsnbMultiAskRegInterfaceDto {
+public class WsnbMultipleRequestRegInterfaceDto {
 
-    @ApiModel(value = "WsnbMultiAskRegInterfaceDto-SaveReq")
+    @ApiModel(value = "WsnbMultipleRequestRegInterfaceDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String wrkTypDtl,
         @NotBlank
         String wrkGb,
         // String asIstOjNo, // AS설치대상번호
-        List<AskingInfo> askingInfos
+        List<Request> requests
     ) {}
 
-    @ApiModel(value = "WsnbMultiAskRegInterfaceDto-AskingInfo")
-    public record AskingInfo(
+    @ApiModel(value = "WsnbMultipleRequestRegInterfaceDto-Request")
+    public record Request(
         // TODO: 수정 필요
         String ugntYn,
         String smsYn,
@@ -36,7 +36,7 @@ public class WsnbMultiAskRegInterfaceDto {
         String accGb
     ) {}
 
-    @ApiModel(value = "WsnbMultiAskRegInterfaceDto-SaveRes")
+    @ApiModel(value = "WsnbMultipleRequestRegInterfaceDto-SaveRes")
     public record SaveRes(
         String asIstOjNo, // AS설치대상번호
         String mtrStatCd, // 자료상태코드

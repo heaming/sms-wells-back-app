@@ -12,4 +12,4 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2023.03.03
  */
 @Mapper
-public interface WsnbMultiAskRegInterfaceMapper {}
+public interface WsnbMultipleRequestRegInterfaceMapper {}

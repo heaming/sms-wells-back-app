@@ -1,14 +1,13 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbMultipleTaskOrderService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -31,8 +30,7 @@ public class WsnbMultipleTaskOrderController {
     public SaveResponse saveMultipleTaskOrders(
         @Valid
         @RequestBody
-        @NotEmpty
-        SearchReq dto
+        SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveMultipleTaskOrders(dto))

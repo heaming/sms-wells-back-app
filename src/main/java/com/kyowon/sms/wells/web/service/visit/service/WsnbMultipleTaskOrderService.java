@@ -1,11 +1,11 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbMultipleTaskOrderMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -42,7 +42,7 @@ public class WsnbMultipleTaskOrderService {
      *            cnslDtlpTpCd : 상담세부유형코드, asAkDvCd1 : AS요청구분코드1, asAkDvCd2 : AS요청구분코드2,
      *            istllKnm : 설치자한글명, adrDvCd : 주소구분코드, istAdr : 설치주소 }]
      */
-    public int saveMultipleTaskOrders(SearchReq dto) throws Exception {
+    public int saveMultipleTaskOrders(SaveReq dto) throws Exception {
         int processCount = 0;
         WsnbMultipleTaskOrderDvo dvo = new WsnbMultipleTaskOrderDvo();
 
@@ -56,11 +56,9 @@ public class WsnbMultipleTaskOrderService {
         int rangeChangeBsCnt = 0;
         int itemCnt = 0;
         int asIstOjIzCnt = 0;
-        String svBizDclsfCd = "";
-        String mrtStatCd = "";
 
         /* KSS 접수 건이면 작업상세코드 재확인 */
-        if (Arrays.asList("3", "9").contains(dto.inChnlDvCd()) && Arrays.asList("1", "2").contains(dto.mrtStatCd())
+        if (List.of("3", "9").contains(dto.inChnlDvCd()) && List.of("1", "2").contains(dto.mrtStatCd())
             && !StringUtils.startsWith(dto.svBizDclsfCd(), "7")) {
             if ("Y".equals(dto.compYn())) {
                 dvo.setSvBizDclsfCd("1124");
@@ -82,7 +80,7 @@ public class WsnbMultipleTaskOrderService {
             } else {
                 dvo.setSvBizDclsfCd(dto.svBizDclsfCd());
             }
-        } else if (Arrays.asList("2", "3").contains(dto.mrtStatCd())) {
+        } else if (List.of("2", "3").contains(dto.mrtStatCd())) {
             //wrkTypDtl, cfrmStusWrk, dataStus, ac221CfrmDt, ac221ProcStus
             WsnbMultipleTaskOrderDvo res = mapper.selectWorkRequidationItemization(dto.asIstOjNo());
             dvo.setSvBizDclsfCd(res.getSvBizDclsfCd());
@@ -118,7 +116,7 @@ public class WsnbMultipleTaskOrderService {
             stopDtcnt = mapper.selectCountStopDate(dto.cntrNo());
 
             if (DateUtil.getNowDayString().equals(dto.vstRqdt().trim())
-                && Arrays.asList("3", "4", "5").contains(dto.inChnlDvCd())) {
+                && List.of("3", "4", "5").contains(dto.inChnlDvCd())) {
                 BizAssert.isTrue(false, "MSG_ALT_TOD_VST_AK_REJ");
             }
             BizAssert.isFalse(instDtCnt > 0, "MSG_ALT_ARDY_IST", cstNm);
@@ -176,7 +174,7 @@ public class WsnbMultipleTaskOrderService {
             }
         }
 
-        if (Arrays.asList("2", "3").contains(dto.mrtStatCd())) {
+        if (List.of("2", "3").contains(dto.mrtStatCd())) {
             /*해당접수키로 존재하는지 체크*/
             asIstOjIzCnt = mapper.selectCountAsIstOjIz(dto);
 
@@ -184,7 +182,7 @@ public class WsnbMultipleTaskOrderService {
                 BizAssert.isTrue(false, "MSG_ALT_NOT_MDFC_CAN_STAT");
             }
             if (DateUtil.getNowDayString().equals(dto.vstRqdt().trim())
-                && Arrays.asList("3", "4", "5").contains(dto.inChnlDvCd())) {
+                && List.of("3", "4", "5").contains(dto.inChnlDvCd())) {
                 BizAssert.isTrue(false, "MSG_ALT_TOD_VST_AK_REJ");
             }
             BizAssert.isFalse(asIstOjIzCnt == 0, "MSG_ALT_RCP_DIFF_WAY", cstNm);
@@ -246,7 +244,7 @@ public class WsnbMultipleTaskOrderService {
         if (!(StringUtils.startsWith(dvo.getSvBizDclsfCd(), "7"))) {
             /* 받아온 접수키가 존재하는데 P_DATA_STUS 수정(2)이나 취소(3)가 아닌경우 에러 로그 TB_SVPD_CST_SVAS_IST_OJ_ERR_IZ에 저장 */
             if (!"1".equals(dto.inChnlDvCd().trim()) && dto.asIstOjNo().trim().length() > 0
-                && Arrays.asList("2", "3").contains(dto.mrtStatCd())) {
+                && List.of("2", "3").contains(dto.mrtStatCd())) {
                 processCount += mapper.insertErrorItemization(dvo);
             } else if ("1".equals(dto.mrtStatCd())) {
                 processCount += mapper.insertIstObjectItemization(dvo);
@@ -256,7 +254,7 @@ public class WsnbMultipleTaskOrderService {
                 processCount += mapper.updateIstObjectItemizationByPk(dvo);
             }
 
-            if (!"3".equals(dto.mrtStatCd()) && Arrays.asList("1310", "3531").contains(dto.inChnlDvCd())
+            if (!"3".equals(dto.mrtStatCd()) && List.of("1310", "3531").contains(dto.inChnlDvCd())
                 && dto.partList() != null) {
                 mapper.deleteAsPutItemIz(dvo);
                 /*PART_LIST 자재코드,수량,금액 | 자재코드,수량,금액 | ~~~
@@ -273,7 +271,7 @@ public class WsnbMultipleTaskOrderService {
             }
             String cstSvAsnNo = "";
             /*고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ) 키를 조회 한다.*/
-            if (Arrays.asList("2", "3").contains(dto.mrtStatCd())) {
+            if (List.of("2", "3").contains(dto.mrtStatCd())) {
                 cstSvAsnNo = mapper.selectCustomerServiceAssignNo(dvo);
                 dvo.setCstSvAsnNo(cstSvAsnNo);
                 /* 로그저장(TB_SVPD_CST_SV_AS_IST_ASN_HIST) */

@@ -3,10 +3,10 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultiAskRegInterfaceDto.AskingInfo;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultiAskRegInterfaceDto.SaveReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultiAskRegInterfaceDto.SaveRes;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbMultiAskRegInterfaceMapper;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.Request;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.SaveReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.SaveRes;
+import com.kyowon.sms.wells.web.service.visit.mapper.WsnbMultipleRequestRegInterfaceMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,28 +21,28 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
-public class WsnbMultiAskRegInterfaceService {
+public class WsnbMultipleRequestRegInterfaceService {
 
-    private final WsnbMultiAskRegInterfaceMapper mapper;
+    private final WsnbMultipleRequestRegInterfaceMapper mapper;
 
     final String INSTALL_REQUEST = "11"; // 설치요청
     final String SEPARATION_REQUEST = "331"; // 분리요청
 
     @Transactional
-    public SaveRes saveMultiAsks(SaveReq saveReq) {
+    public SaveRes saveMultiRequests(SaveReq saveReq) {
 
         if (INSTALL_REQUEST.equals(saveReq.wrkTypDtl().substring(0, 2))) { // 설치요청
 
             // 고객삭제 (당일설치요청후 계약 취소일 경우, kiwi 상에 모든 기록 삭제
             if ("9".equals(saveReq.wrkGb().substring(0, 1))) {
 
-                for (AskingInfo askingInfo : saveReq.askingInfos()) {
+                for (Request request : saveReq.requests()) {
                     // TODO: LC_ASREGN_API_U03_T
                 }
 
             } else {
 
-                for (AskingInfo askingInfo : saveReq.askingInfos()) {
+                for (Request request : saveReq.requests()) {
                     // TODO: 1.KIWI 처리 로직 - LC_ASREGN_API_U01M_T
 
                     // TODO: 2. 설치 건이면서 1번 정상 처리 시 예정일자 업데이트 처리 - LC_ASREGN_API_U02_T
@@ -56,7 +56,7 @@ public class WsnbMultiAskRegInterfaceService {
 
         } else if (SEPARATION_REQUEST.equals(saveReq.wrkTypDtl().substring(0, 3))) { // 분리요청
 
-            for (AskingInfo askingInfo : saveReq.askingInfos()) {
+            for (Request request : saveReq.requests()) {
                 // TODO: 1.KIWI 처리 로직 - LC_ASREGN_API_U01M_T
 
                 // TODO: LC_USERDETAILINFO_S03M_T, LC_USERDETAILINFO_I04M_T, LC_USERDETAILINFO_I05M_T
