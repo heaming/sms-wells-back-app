@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerPlannerMapper">
+
+    <select id="selectPlannerLicensePages" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto$SearchPlannerLicenseRes">
+        SELECT
+               REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 1) LEVEL2_NM
+             , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 2) LEVEL3_NM
+             , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 3) LEVEL4_NM
+             , T.OG_CD
+             , T.BLD_NM
+             , T.PRTNR_NO
+             , T.PRTNR_KNM
+             , T.TELNO
+             , T.RRNO_FRPSN_VAL
+             , T.A
+             , T.B
+             , T.OG_ID
+         FROM (
+                SELECT
+                      (SELECT LISTAGG(TRIM(BAS.OG_NM), '/') WITHIN GROUP(ORDER BY BAS.OG_NM)
+                         FROM TB_OGBS_OG_BAS BAS
+                        START WITH BAS.OG_ID = T1.OG_ID
+                      CONNECT BY PRIOR BAS.HGR_OG_ID = BAS.OG_ID) OG_NM
+                    , T1.PRTNR_NO
+                    , T1.PRTNR_KNM
+                    , F_CMZ_CD_NM('TNT_WELLS', 'SELL_OG_DV_ACD', T2.PSTN_DV_CD) AA
+                    , T1.CRAL_LOCARA_TNO||T1.MEXNO_ENCR TELNO
+                    , T1.RRNO_FRPSN_VAL
+                    , '리쿠르팅일자' A
+                    , '최종해약일자' B
+                    , T1.OG_ID
+                    , T3.BLD_NM
+                    , T1.OG_CD
+                 FROM TB_OGBS_PRTNR_BAS T1
+                INNER JOIN TB_OGBS_PRTNR_DTL T2
+                   ON T1.OG_TP_CD  = T2.OG_TP_CD
+                  AND T1.PRTNR_NO  = T2.PRTNR_NO
+                INNER JOIN TB_OGBS_BLD_BAS T3
+                   ON T1.PRTNR_NO = T3.RSPP_PRTNR_NO
+                INNER JOIN TB_OGBS_OG_BAS T4
+                   ON T1.OG_ID = T4.OG_ID
+               <where>
+               <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
+                  AND T1.OG_TP_CD = #{ogTpCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(prtnrKnm)">
+                  AND T1.PRTNR_KNM = #{prtnrKnm}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                  AND T1.PRTNR_NO = #{prtnrNo}
+               </if>
+               </where>
+         ) T
+    </select>
+</mapper>
