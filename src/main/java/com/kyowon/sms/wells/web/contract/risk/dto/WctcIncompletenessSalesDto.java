@@ -26,14 +26,15 @@ public class WctcIncompletenessSalesDto {
     @Builder
     @ApiModel("IncompletenessSalesDto-SearchReq")
     public record SearchReq(
-        String icptSellExrDt,
-        String baseCntrRcpdt,
-        String apyStrtDt,
-        String apyEndDt,
+        String apyCls,
+        String strtDt,
+        String endDt,
+        String strtYm,
+        String endYm,
         String cntrNo,
         String dgr1HgrOgCd,
         String dgr2HgrOgCd,
-        String prtnrNo
+        String prtnrKnm
     ) {}
 
     // 기기변경 부정행위 Save Request Dto
