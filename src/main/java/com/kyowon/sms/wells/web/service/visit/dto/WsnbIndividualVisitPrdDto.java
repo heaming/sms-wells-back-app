@@ -88,9 +88,4 @@ public class WsnbIndividualVisitPrdDto {
         String partUseQty,
         String vstDvCd
     ) {}
-
-    @ApiModel(value = "WsnbIndividualVisitPrdDto-SearchAsnNoRes")
-    public record SearchAsnNoRes(
-        String cstSvAsnNo
-    ) {}
 }

@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.visit.service;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +13,7 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbIndividualVisitPrdMapper;
 import com.sds.sflex.common.uifw.service.MessageResourceService;
-import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -101,15 +100,15 @@ public class WsnbIndividualVisitPrdService {
      */
     @Transactional
     public int processVisitPeriodDelete(WsnbIndividualVisitPrdDto.SearchProcessReq dto) throws Exception {
-        if (StringUtils.isEmpty(dto.cntrNo())) {
-            throw new BizException("MSG_ALT_CHK_CNTR_NO"); //계약번호를 확인해주세요.
-        }
-        if (StringUtils.isEmpty(dto.cntrSn())) {
-            throw new BizException("MSG_ALT_CHK_CNTR_SN"); //계약일련번호를 확인해주세요.
-        }
-        if (StringUtils.isEmpty(dto.periodDeleteYmd())) {
-            throw new BizException("MSG_ALT_NCELL_REQUIRED_ITEM", messageService.getMessage("MSG_TXT_CYCL_DELETE_DT"));
-        }
+        //계약번호를 확인해주세요.
+        BizAssert.hasText(dto.cntrNo(), "MSG_ALT_CHK_CNTR_NO");
+        //계약일련번호를 확인해주세요.
+        BizAssert.hasText(dto.cntrSn(), "MSG_ALT_CHK_CNTR_SN");
+        BizAssert.hasText(
+            dto.periodDeleteYmd(), "MSG_ALT_NCELL_REQUIRED_ITEM",
+            new String[] {messageService.getMessage("MSG_TXT_CYCL_DELETE_DT")}
+        );
+
         return mapper.deleteSvRgbsprIz(dto);
     }
 

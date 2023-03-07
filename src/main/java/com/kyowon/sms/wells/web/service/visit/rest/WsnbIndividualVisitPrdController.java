@@ -26,19 +26,19 @@ public class WsnbIndividualVisitPrdController {
     private final WsnbIndividualVisitPrdService service;
 
     @ApiOperation(value = "개인별 방문주기 생성 - 고객정보 조회", notes = "개인별 방문주기 생성 - 고객정보 조회")
-    @GetMapping("/getCustomerInfo")
+    @GetMapping("/customer-infos")
     public WsnbIndividualVisitPrdDto.SearchRes getCustomerInfo(WsnbIndividualVisitPrdDto.SearchReq dto) {
         return service.getCustomerInfo(dto);
     }
 
     @ApiOperation(value = "개인별 방문주기 생성 - 방문현황 조회", notes = "개인별 방문주기 생성 - 방문현황 조회")
-    @GetMapping("/getVisits")
+    @GetMapping("/visits")
     public List<WsnbIndividualVisitPrdDto.SearchVstRes> getVisits(WsnbIndividualVisitPrdDto.SearchReq dto) {
         return service.getVisits(dto);
     }
 
     @ApiOperation(value = "개인별 방문주기 생성 - 주기표 조회", notes = "개인별 방문주기 생성 - 주기표 조회")
-    @GetMapping("/getPeriods")
+    @GetMapping("/periods")
     public List<WsnbIndividualVisitPrdDto.SearchPeriodRes> getPeriods(WsnbIndividualVisitPrdDto.SearchPeriodReq dto) {
         return service.getPeriods(dto);
     }
