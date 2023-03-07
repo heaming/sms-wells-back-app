@@ -74,7 +74,6 @@ public class WctcUserSellLimitMgtDto {
         @NotBlank
         String sellBaseSellTp,
         String sellPrmitDvCd,
-        @NotBlank
         String vlStrtDtm,
         String vlEndDtm,
         String sellBaseApyCn
