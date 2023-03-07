@@ -60,7 +60,7 @@ public class WfebEgerAllowanceController {
     }
 
     @ApiOperation(value = "엔지니어 수당 생성", notes = "해당 실적년월의 엔지니어 수당를 생성한다.")
-    @PostMapping("/creates")
+    @PostMapping
     public SaveResponse saveEgerAllowances(
         @RequestBody @Valid
         WfebEgerAllowanceDto.SaveReq dto
