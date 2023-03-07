@@ -6,19 +6,15 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.service.WctcUserSellLimitMgtService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -47,12 +43,34 @@ public class WctcUserSellLimitMgtController {
         @ApiImplicitParam(name = "sellType", value = "판매유형", paramType = "query"),
         @ApiImplicitParam(name = "sellLimit", value = "판매제한", paramType = "query"),
     })
-    @GetMapping("/users")
-    public List<SearchRes> getSellLimitLists(
+    @GetMapping("/users/paging")
+    public PagingResult<SearchRes> getSellLimitLists(
+        @Valid
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getSellLimitLists(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "사용자판매제한 관리", notes = "조회조건에 따른 사용자판매제한 관리 목록을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "startDate", value = "조회시작날짜", paramType = "query"),
+        @ApiImplicitParam(name = "endDate", value = "조회마지막날짜", paramType = "query"),
+        @ApiImplicitParam(name = "sell", value = "판매", paramType = "query"),
+        @ApiImplicitParam(name = "channel", value = "채널", paramType = "query"),
+        @ApiImplicitParam(name = "organization", value = "조직", paramType = "query"),
+        @ApiImplicitParam(name = "user", value = "사용자", paramType = "query"),
+        @ApiImplicitParam(name = "productName", value = "상품명", paramType = "query"),
+        @ApiImplicitParam(name = "sellType", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellLimit", value = "판매제한", paramType = "query"),
+    })
+    @GetMapping("/users/excel-download")
+    public List<SearchRes> getSellLimitListsExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getSellLimitLists(dto);
+        return service.getSellLimitListsExcelDownload(dto);
     }
 
     @ApiOperation(value = "사용자판매제한관리 저장", notes = "추가 / 수정한 사용자 판매 제한 관리 목록을 저장한다.")

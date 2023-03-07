@@ -8,6 +8,7 @@ import lombok.Setter;
 public class WctcUserSellLimitDvo {
     private String rowState;
     private String sellBaseId;
+    private String sellBaseSn;
     private String sellBaseCd;
     private String vlStrtDtm;
     private String vlEndDtm;
