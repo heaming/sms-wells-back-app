@@ -2,14 +2,15 @@ package com.kyowon.sms.wells.web.fee.calculation.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto;
 import com.kyowon.sms.wells.web.fee.calculation.service.WfebEgerAllowanceService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -56,6 +57,17 @@ public class WfebEgerAllowanceController {
         WfebEgerAllowanceDto.SearchReq dto
     ) {
         return this.service.getEngineerManagerAllowances(dto);
+    }
+
+    @ApiOperation(value = "엔지니어 수당 생성", notes = "해당 실적년월의 엔지니어 수당를 생성한다.")
+    @PostMapping
+    public SaveResponse saveEgerAllowances(
+        @RequestBody @Valid
+        WfebEgerAllowanceDto.SaveReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.service.saveEgerAllowances(dto))
+            .build();
     }
 
 }
