@@ -22,9 +22,7 @@ public class WsnaMovementStoreDto {
         @NotBlank
         String edStrDt,
         String strTpCd,
-        String ostrWareDvCd,
-        String ostrWareNoD,
-        String ostrWareNoM,
+        String wareDvCd,
         String strOjWareNo
 
     ) {}
