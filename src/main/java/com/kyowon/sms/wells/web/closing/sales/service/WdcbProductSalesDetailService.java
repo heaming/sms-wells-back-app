@@ -19,15 +19,15 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbProductSalesDetailService {
     private final WdcbProductSalesDetailMapper mapper;
 
-    public List<SingleSearchRes> getProductSalesSinglePaymentsDetail(SearchReq dto) {
-        return mapper.selectProductSalesSinglePaymentsDetail(dto);
+    public List<SingleSearchRes> getProductSalesSinglePaymentDetails(SearchReq dto) {
+        return mapper.selectProductSalesSinglePaymentDetails(dto);
     }
 
-    public List<RentalSearchRes> getProductSalesRentalsDetail(SearchReq dto) {
-        return mapper.selectProductSalesRentalsDetail(dto);
+    public List<RentalSearchRes> getProductSalesRentalDetails(SearchReq dto) {
+        return mapper.selectProductSalesRentalDetails(dto);
     }
 
-    public List<MembershipSearchRes> getProductSalesMembershipsDetail(SearchReq dto) {
-        return mapper.selectProductSalesMembershipsDetail(dto);
+    public List<MembershipSearchRes> getProductSalesMembershipDetails(SearchReq dto) {
+        return mapper.selectProductSalesMembershipDetails(dto);
     }
 }

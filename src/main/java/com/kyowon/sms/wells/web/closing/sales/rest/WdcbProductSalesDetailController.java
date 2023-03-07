@@ -44,11 +44,11 @@ public class WdcbProductSalesDetailController {
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
     })
     @GetMapping("/single-payment")
-    public List<SingleSearchRes> getProductSalesSinglePaymentsDetail(
+    public List<SingleSearchRes> getProductSalesSinglePaymentDetails(
         @Valid
         SearchReq dto
     ) {
-        return service.getProductSalesSinglePaymentsDetail(dto);
+        return service.getProductSalesSinglePaymentDetails(dto);
     }
 
     @ApiOperation(value = "매출상세조회", notes = "조회조건에 따른 매출상세를 조회")
@@ -63,11 +63,11 @@ public class WdcbProductSalesDetailController {
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
     })
     @GetMapping("/rental")
-    public List<RentalSearchRes> getProductSalesRentalsDetail(
+    public List<RentalSearchRes> getProductSalesRentalDetails(
         @Valid
         SearchReq dto
     ) {
-        return service.getProductSalesRentalsDetail(dto);
+        return service.getProductSalesRentalDetails(dto);
     }
 
     @ApiOperation(value = "매출상세조회", notes = "조회조건에 따른 매출상세를 조회")
@@ -82,11 +82,11 @@ public class WdcbProductSalesDetailController {
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
     })
     @GetMapping("/membership")
-    public List<MembershipSearchRes> getProductSalesMembershipsDetail(
+    public List<MembershipSearchRes> getProductSalesMembershipDetails(
         @Valid
         SearchReq dto
     ) {
-        return service.getProductSalesMembershipsDetail(dto);
+        return service.getProductSalesMembershipDetails(dto);
     }
 
     @ApiOperation(value = "상품별 매출 현황 엑셀 다운로드", notes = "조회조건에 따른 상품별 매출 목록을 엑셀 다운로드")
@@ -101,11 +101,11 @@ public class WdcbProductSalesDetailController {
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
     })
     @GetMapping("/single-payment/excel-download")
-    public List<SingleSearchRes> getProductSalesSinglePaymentsDetailExcelDownload(
+    public List<SingleSearchRes> getProductSalesSinglePaymentDetailsExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getProductSalesSinglePaymentsDetail(dto);
+        return service.getProductSalesSinglePaymentDetails(dto);
     }
 
     @ApiOperation(value = "상품별 매출 현황 엑셀 다운로드", notes = "조회조건에 따른 상품별 매출 목록을 엑셀 다운로드")
@@ -120,11 +120,11 @@ public class WdcbProductSalesDetailController {
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
     })
     @GetMapping("/rental/excel-download")
-    public List<RentalSearchRes> getProductSalesRentalsDetailExcelDownload(
+    public List<RentalSearchRes> getProductSalesRentalDetailsExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getProductSalesRentalsDetail(dto);
+        return service.getProductSalesRentalDetails(dto);
     }
 
     @ApiOperation(value = "상품별 매출 현황 엑셀 다운로드", notes = "조회조건에 따른 상품별 매출 목록을 엑셀 다운로드")
@@ -139,10 +139,10 @@ public class WdcbProductSalesDetailController {
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
     })
     @GetMapping("/membership/excel-download")
-    public List<MembershipSearchRes> getProductSalesMembershipsDetailExcelDownload(
+    public List<MembershipSearchRes> getProductSalesMembershipDetailsExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getProductSalesMembershipsDetail(dto);
+        return service.getProductSalesMembershipDetails(dto);
     }
 }
