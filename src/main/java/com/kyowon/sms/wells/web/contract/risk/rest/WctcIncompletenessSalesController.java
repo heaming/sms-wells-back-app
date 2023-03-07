@@ -51,14 +51,15 @@ public class WctcIncompletenessSalesController {
 
     @ApiOperation(value = "기기 변경 부정 행위 페이징 조회", notes = "불완전판매내역 테이블을 조회하여, 해당하는 계약번호의 계약상세 및 파트너, 조직 테이블을 Join 하여 정보를 가져온다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "icptSellExrDt", value = "적발년월", paramType = "query"),
-        @ApiImplicitParam(name = "baseCntrRcpdt", value = "발생년월", paramType = "query"),
-        @ApiImplicitParam(name = "apyStrtDt", value = "시작일자", paramType = "query"),
-        @ApiImplicitParam(name = "apyEndDt", value = "종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "apyCls", value = "적발년월/발생년월", paramType = "query"),
+        @ApiImplicitParam(name = "strtDt", value = "시작일자", paramType = "query"),
+        @ApiImplicitParam(name = "endDt", value = "종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "strtYm", value = "시작년월", paramType = "query"),
+        @ApiImplicitParam(name = "endYm", value = "종료년월", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "dgr1HgrOgCd", value = "지역단 코드", paramType = "query"),
         @ApiImplicitParam(name = "dgr2HgrOgCd", value = "지점 코드", paramType = "query"),
-        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrKnm", value = "파트너명", paramType = "query"),
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getIncompletenessSalesPages(
