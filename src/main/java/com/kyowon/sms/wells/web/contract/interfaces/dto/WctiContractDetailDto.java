@@ -2,10 +2,6 @@ package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -57,11 +53,5 @@ public class WctiContractDetailDto {
         String BRYY_MMDD, //생년월일
         String SEX_DV_CD, //성별구분코드
         String ISTLL_NM //설지차명
-    ) {
-        public SearchRes {
-            /* TODO:암호화모듈 확인중 */
-            MEXNO = StringUtils.isNotEmpty(MEXNO) ? DbEncUtil.dec(MEXNO) : MEXNO; //복호화
-            EXNO = StringUtils.isNotEmpty(EXNO) ? DbEncUtil.dec(EXNO) : EXNO; //복호화
-        }
-    }
+    ) {}
 }

@@ -2,10 +2,6 @@ package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
 
 public class WctiContractDetailSummaryDto {
@@ -19,8 +15,7 @@ public class WctiContractDetailSummaryDto {
         String CNTR_NO,
         @NotBlank
         String CNTR_SN
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -41,11 +36,5 @@ public class WctiContractDetailSummaryDto {
         String IST_IDV_TNO,
         String BASE_PD_CD,
         String BASE_PD_NM
-    ) {
-        public FindRes {
-            /* TODO:암호화모듈 확인중 */
-            IST_MEXNO = StringUtils.isNotEmpty(IST_MEXNO) ? DbEncUtil.dec(IST_MEXNO) : IST_MEXNO;
-            IST_EXNO = StringUtils.isNotEmpty(IST_EXNO) ? DbEncUtil.dec(IST_EXNO) : IST_EXNO;
-        }
-    }
+    ) {}
 }

@@ -1,9 +1,5 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
 
 public class WctiCustomerDto {
@@ -42,11 +38,5 @@ public class WctiCustomerDto {
         String EMADR,
         String BRYY_MMDD,
         String SEX_DV_CD
-    ) {
-         public SearchRes {
-            /* TODO:암호화모듈 확인중 */
-            MEXNO = StringUtils.isNotEmpty(MEXNO) ? DbEncUtil.dec(MEXNO) : MEXNO;
-            EXNO = StringUtils.isNotEmpty(EXNO) ? DbEncUtil.dec(EXNO) : EXNO;
-        }
-    }
+    ) {}
 }

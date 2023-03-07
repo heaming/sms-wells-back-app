@@ -24,6 +24,7 @@ public class WctiContractInstallHistoryDto {
         String CNTR_NO,
         @NotBlank
         String CNTR_SN,
+        @NotBlank
         String INQR_DV_CD
     ) {}
 
