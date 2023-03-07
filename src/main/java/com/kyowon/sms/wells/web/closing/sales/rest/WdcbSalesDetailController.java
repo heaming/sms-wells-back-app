@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.closing.sales.rest;
 
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -38,7 +36,7 @@ public class WdcbSalesDetailController {
         @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query", required = true),
     })
     @GetMapping("/rental")
-    public List<RentalSearchRes> getSalesDetailRental(
+    public RentalSearchRes getSalesDetailRental(
         @Valid
         SearchReq dto
     ) {
@@ -51,7 +49,7 @@ public class WdcbSalesDetailController {
         @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query", required = true),
     })
     @GetMapping("/membership")
-    public List<MembershipSearchRes> getSalesDetailMembership(
+    public MembershipSearchRes getSalesDetailMembership(
         @Valid
         SearchReq dto
     ) {
@@ -64,7 +62,7 @@ public class WdcbSalesDetailController {
         @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query", required = true),
     })
     @GetMapping("/single-payment")
-    public List<SingleSearchRes> getSalesDetailSinglePayment(
+    public SingleSearchRes getSalesDetailSinglePayment(
         @Valid
         SearchReq dto
     ) {

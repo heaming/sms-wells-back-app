@@ -12,9 +12,9 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.Sing
 @Mapper
 public interface WdcbProductSalesDetailMapper {
 
-    List<SingleSearchRes> selectProductSalesSinglePaymentDetail(SearchReq dto);
+    List<SingleSearchRes> selectProductSalesSinglePaymentsDetail(SearchReq dto);
 
-    List<RentalSearchRes> selectProductSalesRentalDetail(SearchReq dto);
+    List<RentalSearchRes> selectProductSalesRentalsDetail(SearchReq dto);
 
-    List<MembershipSearchRes> selectProductSalesMembershipDetail(SearchReq dto);
+    List<MembershipSearchRes> selectProductSalesMembershipsDetail(SearchReq dto);
 }
