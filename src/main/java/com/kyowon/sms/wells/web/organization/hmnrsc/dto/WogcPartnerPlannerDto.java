@@ -5,17 +5,17 @@ import lombok.Builder;
 
 public class WogcPartnerPlannerDto {
 
-    @ApiModel(value = "WogcPartnerPlannerDto-SearchPlannerLicenseReq")
+    @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseReq")
     @Builder
-    public record SearchPlannerLicenseReq(
+    public record SearchLicenseReq(
         String ogTpCd,
         String prtnrKnm,
         String prtnrNo,
         String olfDvCd
     ) {}
 
-    @ApiModel(value = "WogcPartnerPlannerDto-SearchPlannerLicenseRes")
-    public record SearchPlannerLicenseRes(
+    @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseRes")
+    public record SearchLicenseRes(
         String level2Nm,
         String level3Nm,
         String level4Nm,

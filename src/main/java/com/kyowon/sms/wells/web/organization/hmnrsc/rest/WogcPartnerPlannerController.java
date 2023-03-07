@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchPlannerLicenseReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchPlannerLicenseRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.service.WogcPartnerPlannerService;
 import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -40,15 +40,15 @@ public class WogcPartnerPlannerController {
 
     })
     @GetMapping("/planner-license/paging")
-    public PagingResult<SearchPlannerLicenseRes> getPlannerLicensePages(
-        SearchPlannerLicenseReq dto,
+    public PagingResult<SearchLicenseRes> getLicensePages(
+        SearchLicenseReq dto,
         @Valid
         PageInfo pageinfo) {
         return service.getPlannerLicensePages(dto, pageinfo);
     }
     @ApiOperation(value = "플래너자격관리 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 플래너 자격관리를 조회한다.")
     @GetMapping("/planner-license/excel-download")
-    public List<SearchPlannerLicenseRes> getPlannerLicenseForExcelDownload(SearchPlannerLicenseReq dto) {
+    public List<SearchLicenseRes> getPlannerLicenseForExcelDownload(SearchLicenseReq dto) {
         return service.getPlannerLicenseForExcelDownload(dto);
     }
 }
