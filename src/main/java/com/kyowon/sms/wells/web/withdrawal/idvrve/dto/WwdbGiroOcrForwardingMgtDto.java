@@ -42,7 +42,6 @@ public class WwdbGiroOcrForwardingMgtDto {
         String wkSn, // --작업일련번호
         String cntrNo,
         String cntrSn,
-        @NotBlank
         String cntr,
         String cstFnm, //--고객명
         String slDt, // --매출일자
