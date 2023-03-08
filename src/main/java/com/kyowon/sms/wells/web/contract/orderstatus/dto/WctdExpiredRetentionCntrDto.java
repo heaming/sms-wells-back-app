@@ -62,6 +62,7 @@ public class WctdExpiredRetentionCntrDto {
         String mshCntrNo,
         String mshCntrSn,
         String mshCntrDt,
+        String mshJoinDt,
         String mshCanDt,
         String mshWdwalDt,
         String cntrtCralLocaraTno,
