@@ -2,24 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroPlaceReceivedMapper">
     <select id="selectGiroPlaceReceived" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroPlaceReceivedDto$FindRes">
-        SELECT
-               CNTR_NO
-             , CNTR_SN
-             , GIRO_BIZ_DV_CD --지로업무구분코드 
-             , GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
-             , CST_FNM --고객명
-             , ZIP --우편번호
-             , ADR_DV_CD --주소구분코드
-             , BAS_ADR --기본주소
-             , DTL_ADR --상세주소
-             , DTA_DL_YN --삭제여부
-             , FST_RGST_USR_ID --업무담당
-             , FNL_MDFC_DTM --일시
-          FROM TB_RVDW_GIRO_PLRCV_BAS
-         WHERE 1 = 1
+       SELECT
+               T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.GIRO_BIZ_DV_CD --지로업무구분코드 
+             , T1.GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
+             , T1.CST_FNM --고객명                          
+             , T1.GIRO_PLRCV_ADR_ID --주소ID
+             , T1.GIRO_PLRCV_RGST_DT --등록일자
+             , T1.FST_RGST_USR_ID --업무담당  
+             , T2.RNADR AS BAS_ADR /*주소*/          
+             , T2.RDADR AS DTL_ADR /*상세주소*/
+             , T2.NEW_ADR_ZIP AS ZIP /*우편번호*/
+          FROM TB_RVDW_GIRO_PLRCV_BAS T1
+         INNER JOIN TB_GBCO_ADR_BAS T2
+            ON T2.ADR_ID = T1.GIRO_PLRCV_ADR_ID
+         WHERE 1 = 1         
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
-           AND DTA_DL_YN = 'N' 
+           AND T1.DTA_DL_YN = 'N'          
+           AND T2.DTA_DL_YN = 'N' 
     </select>
     
     <insert id="insertGiroPlaceReceived">
@@ -29,9 +31,8 @@
           , GIRO_BIZ_DV_CD --지로업무구분코드 
           , GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
           , CST_FNM --고객명
-          , ZIP --우편번호
-          , ADR_DV_CD --주소구분코드
-          , BAS_ADR --기본주소
+          , GIRO_PLRCV_ADR_ID /* 주소 ID*/
+          , GIRO_PLRCV_RGST_DT /* 등록일자*/
           <include refid="COMMON.insertSystemField"/>
         )VALUES(
             #{cntrNo}
@@ -39,9 +40,8 @@
           , #{giroBizDvCd}
           , #{giroBizTpCd}
           , #{cstFnm}   
-          , #{zip}
-          , #{adrDvCd}
-          , #{basAdr}
+          , #{giroPlrcvAdrId}
+          , #{giroPlrcvRgstDt}          
           <include refid="COMMON.insertSystemFieldValue" />
         )
         
@@ -49,9 +49,8 @@
     
     <update id="updateGiroPlaceReceived">
         UPDATE TB_RVDW_GIRO_PLRCV_BAS 
-           SET ZIP = #{zip}--우편번호
-             , ADR_DV_CD = #{adrDvCd}--주소구분코드
-             , BAS_ADR = #{basAdr}--기본주소
+           SET GIRO_PLRCV_ADR_ID = #{giroPlrcvAdrId} /* 주소 ID*/
+             , GIRO_PLRCV_RGST_DT = #{giroPlrcvRgstDt} /* 등록일자*/
              <include refid="COMMON.updateSystemField"/>
          WHERE CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
@@ -63,10 +62,8 @@
           , GIRO_BIZ_DV_CD --지로업무구분코드 
           , GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
           , CST_FNM --고객명
-          , ZIP --우편번호
-          , ADR_DV_CD --주소구분코드
-          , BAS_ADR --기본주소
-          , DTL_ADR --상세주소
+          , GIRO_PLRCV_ADR_ID /* 주소 ID*/
+          , GIRO_PLRCV_RGST_DT /* 등록일자*/
           , HIST_CH_DTM
           <include refid="COMMON.insertSystemField"/>
         )VALUES(
@@ -75,10 +72,8 @@
           , #{giroBizDvCd}
           , #{giroBizTpCd}
           , #{cstFnm}   
-          , #{zip}
-          , #{adrDvCd}
-          , #{basAdr}
-          , #{dtlAdr}
+          , #{giroPlrcvAdrId}
+          , #{giroPlrcvRgstDt}
           , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
           <include refid="COMMON.insertSystemFieldValue" />
         )

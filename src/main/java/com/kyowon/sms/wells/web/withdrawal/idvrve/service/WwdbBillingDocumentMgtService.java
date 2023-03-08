@@ -120,6 +120,10 @@ public class WwdbBillingDocumentMgtService {
 
                 processCount = saveBillingDtails(dto, processCount, dvo);
             }
+
+            case CommConst.ROW_STATE_DELETED -> {
+                processCount = saveBillingDtails(dto, processCount, dvo);
+            }
             default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
         }
 
@@ -141,6 +145,11 @@ public class WwdbBillingDocumentMgtService {
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     processCount += mapper.updateBillingDocumentDtails(dtlDvo);
+                    processCount += mapper.insertBillingDocumentDtailsHistory(dtlDvo);
+                }
+
+                case CommConst.ROW_STATE_DELETED -> {
+                    processCount += mapper.deleteBillingDocumentDtails(dtlDvo);
                     processCount += mapper.insertBillingDocumentDtailsHistory(dtlDvo);
                 }
 

@@ -50,6 +50,9 @@ public interface WwdbBillingDocumentMgtMapper {
     /* 청구서 관리 상세 수정 */
     int updateBillingDocumentDtails(WwdbBillingDocumentDetailDvo dvo) throws Exception;
 
+    /* 청구서 관리 상세 삭제 */
+    int deleteBillingDocumentDtails(WwdbBillingDocumentDetailDvo dvo) throws Exception;
+
     /* 청구서 관리 채번 */
     String selectBillingDocumentPk();
 

@@ -88,7 +88,7 @@ public class WwdbGiroOcrForwardingMgtController {
         return service.getGiroOcrForwardingExels(dto);
     }
 
-    @ApiOperation(value = "지로OCR발송관리 출력 등록", notes = "RDS 적요 지로OCR발송관리 등록한다.")
+    @ApiOperation(value = "지로OCR발송관리 출력 등록", notes = "지로OCR발송관리 출력 등록")
     @PostMapping("/print")
     public SaveResponse saveGiroOcrForwardingPrints(
         @RequestBody
