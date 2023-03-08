@@ -68,9 +68,9 @@ public class WwdbGiroOcrForwardingMgtService {
 
         for (SaveReq dto : dtos) {
             WwdbGiroOcrForwardingMgtDvo dvo = convert.mapSaveGiroOcrForwardingDvo(dto);
-            String cntr = dvo.getCntr();
-            dvo.setCntrNo(cntr.substring(0, 12));
-            dvo.setCntrSn(cntr.substring(12));
+            //            String cntr = dvo.getCntr();
+            //            dvo.setCntrNo(cntr.substring(0, 12));
+            //            dvo.setCntrSn(cntr.substring(12));
 
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
