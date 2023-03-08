@@ -61,4 +61,19 @@ public class WbncSameCustomerContractDto {
         BigDecimal addBlam
     ) {}
 
+    @ApiModel(value = "WbncSameCustomerContractDto-FindBreachOfPromiseRes")
+    public record FindBreachOfPromiseRes(
+        BigDecimal ccamTam,
+        BigDecimal acuDp,
+        BigDecimal rentalRntf,
+        BigDecimal borDp,
+        BigDecimal bndNpd,
+        BigDecimal csmbCs,
+        BigDecimal borBlam,
+        BigDecimal rgstCsDsc,
+        BigDecimal reqdCs,
+        BigDecimal slAmt,
+        BigDecimal ucAmt,
+        BigDecimal lsfe
+    ) {}
 }

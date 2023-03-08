@@ -30,4 +30,8 @@ public class WbncSameCustomerContractService {
     public FindDepositDtlRes getContractDeposit(String bndCntrRefId) {
         return mapper.selectContractDeposit(bndCntrRefId);
     }
+
+    public FindBreachOfPromiseRes getBreachOfPromise(String bndCntrRefId) {
+        return mapper.selectBreachOfPromise(bndCntrRefId);
+    }
 }
