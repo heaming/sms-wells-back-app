@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WctaReBogoCustomerCheckService {
     private final WctaReBogoCustomerCheckMapper mapper;
-    List<WctaReBogoCustomerCheckResultDvo> result;
+    WctaReBogoCustomerCheckResultDvo result;
     public String rsltMchnChgYn; //기기변경여부
     public String rsltPdCd; //W-SS-S-0009 상품코드 결과값
     public String rsltPmotCd; //W-SS-S-0009 상품코드 결과값
@@ -29,6 +29,13 @@ public class WctaReBogoCustomerCheckService {
     public String rsltCanDt; //W-SS-S-0009 취소일
     public String rsltReqdDt; //W-SS-S-0009 철거일
     public String rsltRcvrDt; //W-SS-S-0009 회수일
+    public String rsltApyTpCd; //적용유형
+    public String rsltRgstAmt; //등록비
+    public String rsltRgstAmtDsc; //등록비할인
+    public String rsltRntlDsc1; //렌탈할인１
+    public String rsltRntlDsc2; //렌탈할인2
+    public String rsltFreeMnts; //무료개월
+    public String rsltPrcNoCnt; //가격차수（채널）
 
     public List<WctaReBogoCustomerCheckResultDvo> getRerentalBogoInqr(WctaReBogoCustomerCheckDvo dvo) {
         //체크1. 필수입력값　체크
@@ -83,32 +90,32 @@ public class WctaReBogoCustomerCheckService {
         BizAssert.hasText(dvo.getCntrCstNo(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_CST_NO"}); //고객번호를 확인하세요.
 
         //체크2. 기본 반환값 설정
-        result.get(0).setRgstAmt(dvo.getRgstAmt()); //등록비
-        result.get(0).setPmotCd(dvo.getPmotCd()); //프로모션코드
+        rsltRgstAmt = dvo.getRgstAmt(); //등록비
+        rsltPmotCd = dvo.getPmotCd(); //프로모션코드
 
         //체크3. 화면선택 프로모션인 경우 선택값 그대로 적용
-        if (Integer.parseInt(result.get(0).getPmotCd()) >= 81 && Integer.parseInt(result.get(0).getPmotCd()) <= 89) {
-            result.get(0).setPmotCd("1"); //적용유형
+        if (Integer.parseInt(rsltPmotCd) >= 81 && Integer.parseInt(rsltPmotCd) <= 89) {
+            rsltApyTpCd = "1"; //적용유형
             //가격차수　설정
             if (dvo.getDscApyDtlCd().equals("202")) {
-                result.get(0).setPrcNoCnt("03");
+                rsltPrcNoCnt = "03";
             } else if (dvo.getAlncmpCd().equals("68")) {
-                result.get(0).setPrcNoCnt("04");
+                rsltPrcNoCnt = "04";
             } else {
-                result.get(0).setPrcNoCnt("01");
+                rsltPrcNoCnt = "01";
             }
         }
 
         //체크4. 재렌탈，１＋１은 프로모션코드 CLEAR (02:재렌탈, 18:특별할인(자동1), 17:특별할인(자동2))
         if (Arrays.asList(new String[] {"02", "18", "71"}).contains(dvo.getPmotCd())) {
-            result.get(0).setPmotCd("");
+            rsltPmotCd = "";
         }
 
         //체크5. １＋１변경 후 기변，법인，８－３이외건은　프로모션 CLEAR (프로모션코드 03일 경우 1+1)
         if (Integer.parseInt(dvo.getRcpDt()) >= 20160701 && dvo.getPmotCd().equals("03")
             && dvo.getMchnChgYn().equals("Y")) {
             chekPmotCd = "";
-            result.get(0).setPmotCd("");
+            rsltPmotCd = "";
         }
 
         //체크6. 등록비 할인 설정
@@ -123,6 +130,7 @@ public class WctaReBogoCustomerCheckService {
             //W-SS-S-0009 (KSS기기변경 정보검색)호출하여 상품분류 ID와 조회결과의 상품유형 체크
             if (!dvo.getPdTpCd().equals(rsltPdTpCd)) {
                 rsltMchnChgYn = "Y"; //W-SS-S-0009 결과값 상태
+                rsltPdCd = "";
             }
         }
 
@@ -235,7 +243,7 @@ public class WctaReBogoCustomerCheckService {
 
         //체크8 １＋１여부 설정 및 차수설정
         //환경가전 １＋１ 적용 조회
-        if (!result.get(0).getPmotCd().equals("02")) {
+        if (!rsltPmotCd.equals("02")) {
             //상품코드 6090 커피머신（ＫＷ－Ｅ０１Ｗ１） && 계약구분 2:법인 && 기기변경여부
             if (dvo.getPdCd().equals("6090") && dvo.getCntrGubn().equals("2") && dvo.getMchnChgYn().equals("")) {
                 //１＋１ 프로모션 검사(P06W1(4090)제외 / S01W0(4410, 4420)만 적용 제외)
@@ -281,89 +289,99 @@ public class WctaReBogoCustomerCheckService {
                 //결과 체크 4 : 가격구조 변경 적용
                 if (Integer.parseInt(dvo.getRcpDt()) >= 20160301) {
                     chekPmotCd = "Y";
-                    result.get(0).setPmotCd("03");
+                    rsltPmotCd = "03";
                     return null;
                 }
                 //결과 체크 5 :
                 //상풐코드 4070,4060, 4340은 ２０만원 구간 적용＋２개월 무료(무료개월설정은 FIELD-MMON-RTN에서 설정)
                 if (Arrays.asList(new String[] {"4060", "4070", "4340", "4190"}).contains(dvo.getPdCd())) {
-                    result.get(0).setPmotCd("03"); //프로모션코드
-                    result.get(0).setApyTpCd("3"); //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
-                    result.get(0).setFreeMnts("0"); //무료개월 적용유형 4일 경우
-                    result.get(0).setRntlDsc1("1000"); //렌탈할인１ 적용유형 3,5일 경우
-                    result.get(0).setRntlDsc2("1000"); //렌탈할인2 적용유형 3,5일 경우
+                    rsltPmotCd = "03"; //프로모션코드
+                    rsltApyTpCd = "3"; //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
+                    rsltFreeMnts = "0"; //무료개월 적용유형 4일 경우
+                    rsltRntlDsc1 = "1000"; //렌탈할인１ 적용유형 3,5일 경우
+                    rsltRntlDsc2 = "1000"; //렌탈할인2 적용유형 3,5일 경우
                     if (dvo.getPdCd().equals("4340")) {
-                        result.get(0).setRntlDsc2("0"); //렌탈할인2 적용유형 3,5일 경우
+                        rsltRntlDsc2 = "0"; //렌탈할인2 적용유형 3,5일 경우
                         return null;
                     }
                 }
                 //상풐코드 4640 && 접수일자 20131209 이후일 경우 ３０만원 구간 적용＋렌탈료 할인
                 if (dvo.getPdCd().equals("4640") && Integer.parseInt(dvo.getRcpDt()) >= 20131209) {
-                    result.get(0).setPmotCd("03"); //프로모션코드
-                    result.get(0).setApyTpCd("3"); //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
-                    result.get(0).setFreeMnts("0"); //무료개월 적용유형 4일 경우
-                    result.get(0).setRntlDsc1("2500"); //렌탈할인１ 적용유형 3,5일 경우
-                    result.get(0).setRntlDsc2("1000"); //렌탈할인2 적용유형 3,5일 경우
+                    rsltPmotCd = "03"; //프로모션코드
+                    rsltApyTpCd = "3"; //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
+                    rsltFreeMnts = "0"; //무료개월 적용유형 4일 경우
+                    rsltRntlDsc1 = "2500"; //렌탈할인１ 적용유형 3,5일 경우
+                    rsltRntlDsc2 = "1000"; //렌탈할인2 적용유형 3,5일 경우
                     return null;
                 }
                 //상풐코드 4660(P16W1) && 접수일자 20141126 이후일 경우
                 if (dvo.getPdCd().equals("4660") && Integer.parseInt(dvo.getRcpDt()) >= 20141126) {
-                    result.get(0).setPmotCd("03"); //프로모션코드
-                    result.get(0).setApyTpCd("3"); //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
-                    result.get(0).setFreeMnts("0"); //무료개월 적용유형 4일 경우
-                    result.get(0).setRntlDsc1("1000"); //렌탈할인１ 적용유형 3,5일 경우
-                    result.get(0).setRntlDsc2("1000"); //렌탈할인2 적용유형 3,5일 경우
+                    rsltPmotCd = "03"; //프로모션코드
+                    rsltApyTpCd = "3"; //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
+                    rsltFreeMnts = "0"; //무료개월 적용유형 4일 경우
+                    rsltRntlDsc1 = "1000"; //렌탈할인１ 적용유형 3,5일 경우
+                    rsltRntlDsc2 = "1000"; //렌탈할인2 적용유형 3,5일 경우
                     return null;
                 }
                 //상풐코드 4690(P15W1) && 접수일자 20150302 이후일 경우
                 if (dvo.getPdCd().equals("4690") && Integer.parseInt(dvo.getRcpDt()) >= 20150302) {
-                    result.get(0).setPmotCd("03"); //프로모션코드
-                    result.get(0).setApyTpCd("3"); //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
-                    result.get(0).setFreeMnts("0"); //무료개월 적용유형 4일 경우
-                    result.get(0).setRntlDsc1("2500"); //렌탈할인１ 적용유형 3,5일 경우
-                    result.get(0).setRntlDsc2("2500"); //렌탈할인2 적용유형 3,5일 경우
+                    rsltPmotCd = "03"; //프로모션코드
+                    rsltApyTpCd = "3"; //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
+                    rsltFreeMnts = "0"; //무료개월 적용유형 4일 경우
+                    rsltRntlDsc1 = "2500"; //렌탈할인１ 적용유형 3,5일 경우
+                    rsltRntlDsc2 = "2500"; //렌탈할인2 적용유형 3,5일 경우
                     return null;
                 }
                 //할인구간이 이미 적용되어 있으면，무료개월만 설정
                 if (((dvo.getPdTpCd().equals("1"))
                     && (!Arrays.asList(new String[] {"4121", "4790", "4060", "4070"}).contains(dvo.getPdCd()))
-                    && (result.get(0).getRgstAmt().equals("300000"))
-                    && (result.get(0).getRgstAmtDsc().equals("300000")))
+                    && (rsltRgstAmt.equals("300000"))
+                    && (rsltRgstAmtDsc.equals("300000")))
                     || ((dvo.getPdTpCd().equals("1"))
                         && (Arrays.asList(new String[] {"4121", "4060", "4070"}).contains(dvo.getPdCd()))
-                        && (result.get(0).getRgstAmt().equals("200000"))
-                        && (result.get(0).getRgstAmtDsc().equals("200000")))
+                        && (rsltRgstAmt.equals("200000"))
+                        && (rsltRgstAmtDsc.equals("200000")))
                     || ((dvo.getPdTpCd().equals("2"))
-                        && (result.get(0).getRgstAmt().equals("200000"))
-                        && (result.get(0).getRgstAmtDsc().equals("200000")))
+                        && (rsltRgstAmt.equals("200000"))
+                        && (rsltRgstAmtDsc.equals("200000")))
                     || ((dvo.getPdTpCd().equals("3"))
                         && (dvo.getPdCd().equals("4330"))
-                        && (result.get(0).getRgstAmt().equals("300000"))
-                        && (result.get(0).getRgstAmtDsc().equals("300000")))
+                        && (rsltRgstAmt.equals("300000"))
+                        && (rsltRgstAmtDsc.equals("300000")))
                     || ((dvo.getPdTpCd().equals("3"))
                         && (dvo.getPdCd().equals("4340"))
-                        && (result.get(0).getRgstAmt().equals("200000"))
-                        && (result.get(0).getRgstAmtDsc().equals("200000")))) {
-                    result.get(0).setPmotCd("03"); //프로모션코드
-                    result.get(0).setApyTpCd("4"); //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
-                    result.get(0).setFreeMnts("02"); //무료개월 적용유형 4일 경우
+                        && (rsltRgstAmt.equals("200000"))
+                        && (rsltRgstAmtDsc.equals("200000")))) {
+                    rsltPmotCd = "03"; //프로모션코드
+                    rsltApyTpCd = "4"; //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
+                    rsltFreeMnts = "02"; //무료개월 적용유형 4일 경우
                     return null;
                 } else if ((dvo.getPdTpCd().equals("5"))
                     && (dvo.getPdCd().equals("4510"))
-                    && (result.get(0).getRgstAmt().equals("300000"))
-                    && (result.get(0).getRgstAmtDsc().equals("300000"))) {
-                    result.get(0).setPmotCd("03"); //프로모션코드
-                    result.get(0).setApyTpCd("3"); //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
-                    result.get(0).setFreeMnts("0"); //무료개월 적용유형 4일 경우
-                    result.get(0).setRntlDsc1("3500"); //렌탈할인１ 적용유형 3,5일 경우
-                    result.get(0).setRntlDsc2("3500"); //렌탈할인2 적용유형 3,5일 경우
+                    && (rsltRgstAmt.equals("300000"))
+                    && (rsltRgstAmtDsc.equals("300000"))) {
+                    rsltPmotCd = "03"; //프로모션코드
+                    rsltApyTpCd = "3"; //적용유형 １:일반, 2:등록할인, 3:렌탈할인, 4:무료개월, 5:등록＋렌탈할인
+                    rsltFreeMnts = "0"; //무료개월 적용유형 4일 경우
+                    rsltRntlDsc1 = "3500"; //렌탈할인１ 적용유형 3,5일 경우
+                    rsltRntlDsc2 = "3500"; //렌탈할인2 적용유형 3,5일 경우
                     return null;
                 }
                 chekPmotCd = "Y";
-                result.get(0).setPmotCd("03"); //프로모션코드
+                rsltPmotCd = "03"; //프로모션코드
             }
         }
-        return result;
+        //결과값 셋팅
+        result.setPmotCd(rsltPmotCd);
+        result.setApyTpCd(rsltApyTpCd);
+        result.setRgstAmt(rsltRgstAmt);
+        result.setRgstAmtDsc(rsltRgstAmtDsc);
+        result.setRntlDsc1(rsltRntlDsc1);
+        result.setRntlDsc2(rsltRntlDsc2);
+        result.setFreeMnts(rsltFreeMnts);
+        result.setPrcNoCnt(rsltPrcNoCnt);
+
+        return (List<WctaReBogoCustomerCheckResultDvo>)result;
     }
 
     private String getCalcDate(String baseDate, int days) {
