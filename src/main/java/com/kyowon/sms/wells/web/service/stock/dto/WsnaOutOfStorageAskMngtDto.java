@@ -25,8 +25,7 @@ public class WsnaOutOfStorageAskMngtDto {
         @NotBlank
         String endStrHopDt, // 입고희망일자 종료일
         @NotBlank
-        String wareDvCd, // 출고요청 접수창고
-        String wareLocaraCd // 창고지역코드
+        String wareDvCd// 출고요청 접수창고
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-WarehouseReq")
