@@ -48,9 +48,6 @@ public class WctcUserSellLimitMgtService {
                     String cdCheck = mapper.selecBaseCdCheck(dto);
                     BizAssert.isTrue(cdCheck != "0", "MSG_ALT_DUPLICATE_EXISTS");
                     int result = mapper.insertSellBaseBas(userSellLimit);
-                    if (StringUtils.isEmpty(userSellLimit.getVlEndDtm())) {
-                        userSellLimit.setVlEndDtm("99991231");
-                    }
 
                     if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
                         userSellLimit.setSellBaseCd("11");
@@ -113,13 +110,13 @@ public class WctcUserSellLimitMgtService {
                         userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "11"));
                         mapper.updateSellBaseDtl(userSellLimit);
                     }
-                    if (StringUtils.isNotEmpty(dto.deptCd()) && dto.deptCd() != "ALL") {
+                    if (StringUtils.isNotEmpty(dto.deptCd())) {
                         userSellLimit.setSellBaseCd("12");
                         userSellLimit.setSellBaseChval(dto.deptCd());
                         userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "12"));
                         mapper.updateSellBaseDtl(userSellLimit);
                     }
-                    if (StringUtils.isNotEmpty(dto.sellBaseUsr()) && dto.sellBaseUsr() != "ALL") {
+                    if (StringUtils.isNotEmpty(dto.sellBaseUsr())) {
                         userSellLimit.setSellBaseCd("13");
                         userSellLimit.setSellBaseChval(dto.sellBaseUsr());
                         userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "13"));
@@ -155,7 +152,7 @@ public class WctcUserSellLimitMgtService {
                         userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "23"));
                         mapper.updateSellBaseDtl(userSellLimit);
                     }
-                    if (StringUtils.isNotEmpty(dto.sellBasePrd()) && dto.sellBasePrd() != "ALL") {
+                    if (StringUtils.isNotEmpty(dto.sellBasePrd())) {
                         userSellLimit.setSellBaseCd("27");
                         userSellLimit.setSellBaseChval(dto.sellBasePrd());
                         userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "27"));
