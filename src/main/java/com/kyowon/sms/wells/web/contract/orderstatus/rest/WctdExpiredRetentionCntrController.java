@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.contract.orderstatus.service.WctdExpiredRetentionCntrService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -32,7 +30,7 @@ public class WctdExpiredRetentionCntrController {
 
     private final WctdExpiredRetentionCntrService service;
 
-    @ApiOperation(value = "wells 렌탈 설치 약정만료 현황 조회 페이징 조회", notes = "아래 2가지의 데이터를 조회하여 반환한다. \n1) 렌탈 계약중 만료된 계약, \n2) 렌탈 계약중 만료되었으나, 멤버십 계약으로 연결된 계약")
+    @ApiOperation(value = "wells 렌탈 설치 약정만료 현황 조회", notes = "아래 2가지의 데이터를 조회하여 반환한다. \n1) 렌탈 계약중 만료된 계약, \n2) 렌탈 계약중 만료되었으나, 멤버십 계약으로 연결된 계약")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrPdEnddtStrtdt", value = "계약상품종료일자 시작일", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrPdEnddtEnddt", value = "계약상품종료일자 종료일", paramType = "query", required = true),
@@ -42,31 +40,11 @@ public class WctdExpiredRetentionCntrController {
         @ApiImplicitParam(name = "pdNm", value = "상품명", paramType = "query"),
         @ApiImplicitParam(name = "isExcdCan", value = "취소제외", paramType = "query"),
     })
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getExpiredRetentionCntrPages(
-        @Valid
-        SearchReq dto,
-        @Valid
-        PageInfo pageInfo
-    ) {
-        return service.getExpiredRetentionCntrPages(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "wells 렌탈 설치 약정만료 현황 조회 엑셀 다운로드", notes = "")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrPdEnddtStrtdt", value = "계약상품종료일자 시작일", paramType = "query", required = true),
-        @ApiImplicitParam(name = "cntrPdEnddtEnddt", value = "계약상품종료일자 종료일", paramType = "query", required = true),
-        @ApiImplicitParam(name = "pdHclsfId", value = "상품대분류ID", paramType = "query"),
-        @ApiImplicitParam(name = "pdMclsfId", value = "상품중분류ID", paramType = "query"),
-        @ApiImplicitParam(name = "basePdCd", value = "기준상품코드", paramType = "query"),
-        @ApiImplicitParam(name = "pdNm", value = "상품명", paramType = "query"),
-        @ApiImplicitParam(name = "isExcdCan", value = "취소제외", paramType = "query"),
-    })
-    @GetMapping("/excel-download")
-    public List<SearchRes> getExpiredRetentionCntrsForExcelDownload(
+    @GetMapping
+    public List<SearchRes> getExpiredRetentionCntrs(
         @Valid
         SearchReq dto
     ) {
-        return service.getExpiredRetentionCntrsForExcelDownload(dto);
+        return service.getExpiredRetentionCntrs(dto);
     }
 }

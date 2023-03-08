@@ -9,8 +9,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.contract.common.service.WctzAddressService;
-import com.kyowon.sms.wells.web.contract.common.service.WctzTelephoneNumberService;
 import com.kyowon.sms.wells.web.contract.risk.converter.WctcIncompletenessSalesConverter;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto.SearchByCntrNoReq;
@@ -32,8 +30,6 @@ public class WctcIncompletenessSalesService {
 
     private final WctcIncompletenessSalesMapper mapper;
     private final WctcIncompletenessSalesConverter converter;
-    private final WctzAddressService addressService;
-    private final WctzTelephoneNumberService telephoneNumberService;
 
     private boolean isValidCntrs(SearchByCntrNoReq dto) {
         return "Y".equals(mapper.isValidCntrs(dto));
