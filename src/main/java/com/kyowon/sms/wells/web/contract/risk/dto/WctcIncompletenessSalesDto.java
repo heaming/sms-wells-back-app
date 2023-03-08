@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.contract.risk.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.kyowon.sms.common.web.contract.zcommon.utils.CtContractUtils;
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
@@ -96,8 +96,7 @@ public class WctcIncompletenessSalesDto {
         String fnlMdfcDtm
     ) {
         public SearchRes {
-            baseMpno = baseCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(baseMexnoEncr)
-                + CtContractConst.TNO_DELIM + baseCralIdvTno;
+            baseMpno = CtContractUtils.buildTno(baseCralLocaraTno, DbEncUtil.dec(baseMexnoEncr), baseCralIdvTno);
         }
     }
 }

@@ -5,7 +5,8 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.kyowon.sms.common.web.contract.zcommon.constants.CtContractConst;
+import com.kyowon.sms.common.web.contract.zcommon.utils.CtContractUtils;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
@@ -28,7 +29,6 @@ public class WctdExpiredRetentionCntrDto {
         String cntrPdEnddtEnddt,
         String pdHclsfId,
         String pdMclsfId,
-        String pdLclsfId,
         String basePdCd,
         String pdNm,
         String isExcdCan,
@@ -45,19 +45,20 @@ public class WctdExpiredRetentionCntrDto {
     // wells 렌탈 설치 약정만료 현황 조회 Search Result Dto
     @ApiModel("WctdExpiredRetentionCntrDto-SearchRes")
     public record SearchRes(
+        String exnDt,
         String cntrNo,
         String cntrSn,
         String cntrCstNo,
         String cstKnm,
+        String pdClsf,
         String basePdCd,
         String pdNm,
         String istmMcn,
         String recapDutyPtrmN,
-        String slDt,
-        String dutyUseDt,
-        String exnDt,
         String canDt,
         String canCstDutyUseExprYn,
+        String slDt,
+        String dutyUseDt,
         String mshCntrNo,
         String mshCntrSn,
         String mshCntrDt,
@@ -73,10 +74,8 @@ public class WctdExpiredRetentionCntrDto {
         String istllMpno
     ) {
         public SearchRes {
-            cntrtMpno = cntrtCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(cntrtMexnoEncr)
-                + CtContractConst.TNO_DELIM + cntrtCralIdvTno;
-            istllMpno = istllCralLocaraTno + CtContractConst.TNO_DELIM + DbEncUtil.dec(istllMexnoEncr)
-                + CtContractConst.TNO_DELIM + istllCralIdvTno;
+            cntrtMpno = CtContractUtils.buildTno(cntrtCralLocaraTno, DbEncUtil.dec(cntrtMexnoEncr), cntrtCralIdvTno);
+            istllMpno = CtContractUtils.buildTno(istllCralLocaraTno, DbEncUtil.dec(istllMexnoEncr), istllCralIdvTno);
         }
     }
 }

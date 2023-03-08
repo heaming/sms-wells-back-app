@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdExpiredRetentionCntrMapper">
-    <select id="selectExpiredRetentionCntrPages" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto$SearchRes">
-        SELECT T1.CNTR_NO
+    <select id="selectExpiredRetentionCntrs" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdExpiredRetentionCntrDto$SearchRes">
+        SELECT T1.CNTR_PD_ENDDT AS EXN_DT
+             , T1.CNTR_NO
              , T1.CNTR_SN
              , T2.CNTR_CST_NO
              , T3.CST_KNM
+             , (
+               SELECT PD_CLSF_NM
+                 FROM TB_PDBS_PD_CLSF_BAS
+                WHERE DTA_DL_YN = 'N'
+                  AND PD_CLSF_ID = T1.PD_HCLSF_ID
+               ) || ' > ' || (
+               SELECT PD_CLSF_NM
+                 FROM TB_PDBS_PD_CLSF_BAS
+                WHERE DTA_DL_YN = 'N'
+                  AND PD_CLSF_ID = T1.PD_MCLSF_ID
+               ) AS PD_CLSF
              , T1.BASE_PD_CD
              , T4.PD_NM
              , T1.ISTM_MCN
              , T5.RECAP_DUTY_PTRM_N
-             , T7.SL_DT
-             , T1.CNTR_PD_STRTDT + T5.RECAP_DUTY_PTRM_N AS DUTY_USE_DT /* TODO 날짜계산 */
-             , T1.CNTR_PD_ENDDT AS EXN_DT
              , CASE WHEN T1.CNTR_DTL_STAT_CD IN (
         <foreach collection="canDtlCds" item="code" separator=",">
                #{code}
@@ -30,6 +39,8 @@
                                END
                     ELSE ''
                      END AS CAN_CST_DUTY_USE_EXPR_YN
+             , T7.SL_DT
+             , T1.CNTR_PD_STRTDT + T5.RECAP_DUTY_PTRM_N AS DUTY_USE_DT
              , T11.CNTR_NO AS MSH_CNTR_NO
              , T11.CNTR_SN AS MSH_CNTR_SN
              , T12.CNTR_CNFM_DTM AS MSH_CNTR_DT
@@ -80,7 +91,7 @@
            AND T7.CNTR_SN = T1.CNTR_SN
            AND T7.SL_CL_YM = SUBSTR(T2.CNTR_CNFM_DTM, 0, 6)
            AND T7.DTA_DL_YN = 'N'
-         LEFT OUTER  JOIN TB_SSCT_CNTR_REL T10
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL T10
             ON T10.BASE_DTL_CNTR_NO = T1.CNTR_NO
            AND T10.BASE_DTL_CNTR_SN = T1.CNTR_SN
            AND T10.CNTR_REL_DTL_CD = '212'
@@ -117,9 +128,6 @@
         </if>
         <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
            AND T1.PD_MCLSF_ID = #{pdMclsfId}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(pdLclsfId)'>
-           AND T1.PD_LCLSF_ID = #{pdLclsfId}
         </if>
         <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
            AND T1.BASE_PD_CD = #{basePdCd}

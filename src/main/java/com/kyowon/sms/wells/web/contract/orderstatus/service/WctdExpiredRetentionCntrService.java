@@ -8,8 +8,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdExpiredRetentionCntrMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,11 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class WctdExpiredRetentionCntrService {
     private final WctdExpiredRetentionCntrMapper mapper;
 
-    public PagingResult<SearchRes> getExpiredRetentionCntrPages(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectExpiredRetentionCntrPages(dto, pageInfo);
-    }
-
-    public List<SearchRes> getExpiredRetentionCntrsForExcelDownload(SearchReq dto) {
-        return mapper.selectExpiredRetentionCntrPages(dto);
+    public List<SearchRes> getExpiredRetentionCntrs(SearchReq dto) {
+        return mapper.selectExpiredRetentionCntrs(dto);
     }
 }

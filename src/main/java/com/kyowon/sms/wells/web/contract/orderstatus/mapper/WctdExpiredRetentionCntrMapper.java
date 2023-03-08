@@ -7,18 +7,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
-
 @Mapper
 public interface WctdExpiredRetentionCntrMapper {
-
-    PagingResult<SearchRes> selectExpiredRetentionCntrPages(
-        SearchReq dto,
-        PageInfo pageInfo
-    );
-
-    List<SearchRes> selectExpiredRetentionCntrPages(
-        SearchReq dto
-    );
+    List<SearchRes> selectExpiredRetentionCntrs(SearchReq dto);
 }
