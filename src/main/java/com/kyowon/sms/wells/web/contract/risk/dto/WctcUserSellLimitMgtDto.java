@@ -65,7 +65,6 @@ public class WctcUserSellLimitMgtDto {
         String sellBaseUsr,
         String copnDvCd,
         String zip,
-        @NotBlank
         String pdCd,
         String pdMclsfId,
         String pdLclsfId,

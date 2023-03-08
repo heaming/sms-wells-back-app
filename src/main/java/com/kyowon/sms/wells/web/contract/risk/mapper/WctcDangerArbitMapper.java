@@ -18,7 +18,7 @@ public interface WctcDangerArbitMapper {
 
     List<SearchRes> selectDangerArbitManagerial(SearchReq dto);
 
-    String selectDangChkId(String dangOjPrtnrNo, String dangOcStrtdt, String dangMngtPstnDvCd);
+    String selectDangChkId(String dangMngtPrtnrNo, String dangOcStrtdt, String dangMngtPstnDvCd, String dangOjPrtnrNo);
 
     List<SearchOrganizationRes> selectOrganizationInfInqr(String baseYm, String pntnrNo, String ogTpCd);
 
