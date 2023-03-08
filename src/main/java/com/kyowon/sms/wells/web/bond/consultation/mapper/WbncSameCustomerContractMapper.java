@@ -19,4 +19,8 @@ public interface WbncSameCustomerContractMapper {
     FindDepositDtlRes selectContractDeposit(
         String bndCntrRefId
     );
+
+    FindBreachOfPromiseRes selectBreachOfPromise(
+        String bndCntrRefId
+    );
 }

@@ -45,4 +45,11 @@ public class WbncSameCustomerContractController {
     String bndCntrRefId) {
         return service.getContractDeposit(bndCntrRefId);
     }
+
+    @ApiOperation(value = "동일고객 계약 위약정보 조회", notes = "동일고객 계약번호에 대한 위약정보를 조회한다.")
+    @GetMapping("/{bndCntrRefId}/breach-of-promise")
+    public FindBreachOfPromiseRes getBreachOfPromise(@PathVariable
+    String bndCntrRefId) {
+        return service.getBreachOfPromise(bndCntrRefId);
+    }
 }
