@@ -92,6 +92,19 @@ public class WwdbGiroOcrForwardingMgtService {
         return processCount;
     }
 
+    @Transactional
+    public int removeGiroOcrForwardings(List<SaveReq> dtos) throws Exception {
+        int processCount = 0;
+
+        for (SaveReq dto : dtos) {
+            WwdbGiroOcrForwardingMgtDvo dvo = convert.mapSaveGiroOcrForwardingDvo(dto);
+            processCount += mapper.deleteGiroOcrForwardings(dvo);
+
+        }
+
+        return processCount;
+    }
+
     /**
      * 지로OCR발송관리 출력 조회
      *
