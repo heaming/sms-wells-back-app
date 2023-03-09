@@ -23,4 +23,17 @@ public class WctcSellLimitOjIzDvo {
     private String sellLmRlsCn;
     private String dtaDlYn;
     private String orglFnlMdfcDtm;
+
+    private String sellLmDv;
+    private String sellLmRson;
+    private String dlpnrNm;
+    private String dlgpsNm;
+    private String bryyMmdd;
+    private String rowState;
+    private String dataRow;
+    private String sellRson;
+    private String sellLmPsic;
+    private String sellLmRlsPsic;
+    private String sellLmPsicNm;
+    private String sellLmRlsPsicNm;
 }
