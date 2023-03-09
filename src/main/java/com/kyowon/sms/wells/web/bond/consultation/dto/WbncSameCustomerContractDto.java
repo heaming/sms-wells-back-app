@@ -76,4 +76,48 @@ public class WbncSameCustomerContractDto {
         BigDecimal ucAmt,
         BigDecimal lsfe
     ) {}
+
+    @ApiModel(value = "EbncSameCustomerContractDto-FindSalesRes")
+    public record FindSalesRes(
+        BigDecimal regFee,
+        BigDecimal rtlfe1MmChram,
+        String rtlfeDutyPtrm,
+        String reqdRqdt,
+        BigDecimal rgstCostDsc,
+        BigDecimal rtlfe1Dsc,
+        String pdDcClass,
+        String cancDt,
+        BigDecimal rntlTotal,
+        BigDecimal rtlfe1Mcnt,
+        String discCode,
+        String leaseDv,
+        BigDecimal rtlfe2MmChram,
+        BigDecimal mngtPrdMcnt,
+        String onePlusOneLkCntr,
+        BigDecimal rtlfe2Dsc,
+        String parCntr,
+        String alncLkCntr,
+        BigDecimal rtlfe2Mcnt,
+        String slDt,
+        BigDecimal mmSspcs,
+        String discCode2,
+        String wdwalDt,
+        BigDecimal vstPrd,
+        BigDecimal stplMcnt,
+        BigDecimal dscAmt,
+        String vstDt,
+        BigDecimal mngtPrd,
+        String jDt,
+        BigDecimal vstNmn,
+        BigDecimal frisuMsh,
+        BigDecimal salePrice,
+        BigDecimal tkAmt,
+        BigDecimal istmMcnt,
+        BigDecimal frisuAs,
+        BigDecimal cntrctAmt,
+        BigDecimal istmAmt,
+        BigDecimal recapMsh,
+        BigDecimal sbscm,
+        BigDecimal mmIntam
+    ) {}
 }

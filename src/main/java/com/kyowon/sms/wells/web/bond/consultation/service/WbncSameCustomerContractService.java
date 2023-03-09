@@ -1,11 +1,14 @@
 package com.kyowon.sms.wells.web.bond.consultation.service;
 
-import static com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
-
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -33,5 +36,9 @@ public class WbncSameCustomerContractService {
 
     public FindBreachOfPromiseRes getBreachOfPromise(String bndCntrRefId) {
         return mapper.selectBreachOfPromise(bndCntrRefId);
+    }
+
+    public FindSalesRes getContractSales(String bndCntrRefId) {
+        return mapper.selectContractSales(bndCntrRefId);
     }
 }
