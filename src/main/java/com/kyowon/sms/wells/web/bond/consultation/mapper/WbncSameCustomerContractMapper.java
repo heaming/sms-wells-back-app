@@ -1,10 +1,14 @@
 package com.kyowon.sms.wells.web.bond.consultation.mapper;
 
-import static com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
-
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
 
 @Mapper
 public interface WbncSameCustomerContractMapper {
@@ -21,6 +25,10 @@ public interface WbncSameCustomerContractMapper {
     );
 
     FindBreachOfPromiseRes selectBreachOfPromise(
+        String bndCntrRefId
+    );
+
+    FindSalesRes selectContractSales(
         String bndCntrRefId
     );
 }
