@@ -9,6 +9,8 @@ import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.FindBlacklistRes;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchBlacklistRes;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchEntrpJLmOjReq;
+import com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchEntrpJLmOjRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcSellLimitOjIzDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -28,4 +30,20 @@ public interface WctcSalesLimitsMapper {
 
     int deleteBlacklist(String sellLmId);
 
+    PagingResult<SearchEntrpJLmOjRes> selectEntrepreneurJoinLmOjss(
+        SearchEntrpJLmOjReq dto,
+        PageInfo pageInfo
+    );
+
+    List<SearchEntrpJLmOjRes> selectEntrepreneurJoinLmOjss(
+        SearchEntrpJLmOjReq dto
+    );
+
+    int insertEntrepreneurJoinLmOjss(WctcSellLimitOjIzDvo dvo);
+
+    int updateEntrepreneurJoinLmOjss(WctcSellLimitOjIzDvo dvo);
+
+    int deleteEntrepreneurJoinLmOjss(String sellLmId);
+
+    String selectEntrepreneurJoinLmOjssCheck(String sellLmId);
 }

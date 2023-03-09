@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.risk.dto;
 import javax.validation.constraints.NotBlank;
 
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -94,6 +95,45 @@ public class WctcSalesLimitsDto {
             prtnrMexnoEncr = DbEncUtil.dec(prtnrMexnoEncr);
         }
     }
+    // wells 사업자 가입제한 대상 관리 Search Request Dto
+    @Builder
+    @ApiModel("WctcSalesLimitDto-SearchEntrpJLmOjReq")
+    public record SearchEntrpJLmOjReq(
+        String dlpnrNm, //상호명
+
+        String sellLmBzrno, //사업자번호
+        @ValidDate
+        String sellLmOcStm, //시작일자
+        @ValidDate
+        String sellLmOcDtm //종료일자
+    ) {}
+
+    @Builder
+    @ApiModel("WctcSalesLimitDto-SaveEntrpJLmOjReq")
+    public record SaveEntrpJLmOjReq(
+        @NotBlank
+        String sellLmBzrno, //사업자번호
+        @NotBlank
+        String sellLmDv,
+        @NotBlank
+        String rowState, //Row의 상태
+        String sellLmId,
+
+        String sellLmRson,
+        String sellLmRsonCd,
+        String sellLmRsonCn,
+        String sellLmRlsCn,
+        String sellLmCntrSn,
+        String dataRow,
+        String sellLmOcDtm,
+        String sellLmRlsDtm,
+        String sellRson,
+        String sellLmPsic,
+        String sellLmRlsPsic,
+        String sellLmPsicNm,
+        String sellLmRlsPsicNm,
+        String dtaDlYn
+    ) {}
 
     // 접수제한 관리-블랙리스트 Search Result Dto
     @ApiModel("WctcSalesLimitsDto-SearchBlacklistRes")
@@ -151,4 +191,23 @@ public class WctcSalesLimitsDto {
             prtnrMexnoEncr = DbEncUtil.dec(prtnrMexnoEncr);
         }
     }
+
+    // wells 사업자 가입제한 대상 관리 Search Result Dto
+    @ApiModel("WctcSalesLimitDto-SearchEntrpJLmOjRes")
+    public record SearchEntrpJLmOjRes(
+        String sellLmId,
+        String sellLmDv,
+        String sellLmBzrno,
+        String dlpnrNm,
+        String dlgpsNm,
+        String bryyMmdd,
+        String sellLmRson,
+        String sellLmRsonCd,
+        String sellLmOcDtm,
+        String sellLmRlsDtm,
+        String sellLmPsic,
+        String sellLmRlsPsic,
+        String sellLmPsicNm,
+        String sellLmRlsPsicNm
+    ) {}
 }
