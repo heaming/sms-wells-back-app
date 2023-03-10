@@ -347,4 +347,149 @@
          WHERE 1=1
            AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
     </update>
+
+    <select id="selectSpaySlamtInqr" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchSpaySlamtInqrRes">
+        SELECT T0.FNL_VAL          /* 최종값(판매가)*/
+             , T0.VAT              /* 부가세 */
+             , T0.PD_PRC_FNL_PRP_VAL01 AS ACKMT_RT /* 인정실적율(인정율) */
+             , T0.ACKMT_AMT        /* 인정금액 */
+             , T0.CTR_VAL          /* 할인금액(조정값)*/
+             , T0.SELL_FEE         /* 판매수수료 */
+             , T0.SV_FEE           /* 서비스수수료  */
+          FROM TB_PDBS_PD_PRC_FNL_DTL T0    /*  T.상품가격최종상세 */
+         INNER JOIN TB_PDBS_PD_BAS T1       /* T.상품기본 */
+            ON T0.PD_CD = T1.PD_CD
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T2       /* T.상품분류기본 상품분류ID =참조상품분류값 */
+            ON T2.PD_CLSF_ID = T1.PD_CLSF_ID
+           AND T2.DTA_DL_YN = 'N'
+           AND T2.USE_YN = 'Y'
+           AND T2.TEMP_SAVE_YN = 'N'
+           AND T1.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T0.PD_CD = #{pdCd}                              /* 상품코드 */
+           AND T1.PD_CLSF_ID = #{pdClsfId}                       /* ex) CLSF01001003 */
+           AND T0.SELL_TP_CD = '1'                               /* 판매유형코드 : 일시불/할부(1) */
+           AND #{vlDtm} BETWEEN T0.VL_STRT_DTM AND T0.VL_END_DTM  /* 유효시작/종료일자 사이 */
+         <if test='@MybatisUtils@equals(pdGubn,"H")'>
+           AND T1.PD_CLSF_ID LIKE 'CLSF06%'                        /*작업구분:H-홈케어:CLSF06*/
+         </if>
+         <if test='@MybatisUtils@equals(pdGubn,"K")'>
+           AND T1.PD_CLSF_ID NOT LIKE 'CLSF06%'                    /*작업구분:K-일반 : !홈케어:CLSF06*/
+         </if>
+		   AND T2.REF_PD_CLSF_VAL LIKE '01001%' /* 참조상품분류값  */
+           AND T0.DTA_DL_YN = 'N'
+           AND T0.TEMP_SAVE_YN = 'N'
+    </select>
+
+    <select id="selectHomeCareMshChecks" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchHomeCareMshChecksRes">
+        SELECT COUNT(1)                                     AS HCRMMBRCNT /* 홈케어멤버십 건수 */
+             , CASE WHEN COUNT(1) > 0 THEN 'Y' ELSE 'N' END AS HCRMMBRYN /* 홈케어멤버십 여부 */
+             , MAX(NVL(SUB.CNT,0))                          AS HCRSPAYCNT /* 홈케어일시불 건수 */
+          FROM TB_SSCT_CNTR_BAS T1          /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2     /* T.계약상세 */
+            ON T1.CNTR_NO = T2.CNTR_NO      /*계약번호  */
+           AND T1.CNTR_PRGS_STAT_CD = '050' /* 계약진행상태코드=계약확정*/
+           AND T2.SELL_TP_CD = '3'          /* 판매유형코드=멤버십 */
+           AND T2.CNTR_PD_ENDDT IS NOT NULL /* 정상인건(종료아님)*/
+         INNER JOIN TB_PDBS_PD_BAS T3       /* T.상품기본 */
+            ON T3.PD_CD = T2.BASE_PD_CD     /* 상품코드 */
+            AND REGEXP_LIKE(T3.PD_CLSF_ID, '^CLSF06') /*홈케어:CLSF06*/
+          LEFT OUTER JOIN
+             ( SELECT T10.CNTR_CST_NO
+                    , COUNT(1)  AS CNT
+                 FROM TB_SSCT_CNTR_BAS T10          /* T.계약기본 */
+                INNER JOIN TB_SSCT_CNTR_DTL T20     /* T.계약상세 */
+                   ON T10.CNTR_NO = T20.CNTR_NO     /* 계약번호  */
+                  AND T10.CNTR_PRGS_STAT_CD = '050' /* 계약진행상태코드=계약확정*/
+                  AND T20.CNTR_PD_ENDDT IS NOT NULL /* 정상인건(종료아님)*/
+                  AND T20.SELL_TP_CD = '1'          /* 판매유형코드=일시불 */
+                  AND T20.DSC_APY_TP_CD = '3'       /* 할인적용유형코드:멤버십할인적용유형코드(3) */
+                  AND T20.DSC_APY_DTL_CD = '4'       /* 할인적용상세코드:할인가(4) */
+                INNER JOIN TB_PDBS_PD_BAS T30       /* T.상품기본 */
+                   ON T30.PD_CD = T20.BASE_PD_CD    /* 상품코드 */
+                  AND REGEXP_LIKE(T30.PD_CLSF_ID, '^CLSF06') /*홈케어:CLSF06*/         /* 상품구분:홈케어(KA1100P@KAETC1 = '8') */
+                 WHERE 1=1
+                   AND T10.CNTR_CST_NO = #{cntrCstNo}
+                 GROUP BY T10.CNTR_CST_NO
+             ) SUB
+            ON T1.CNTR_CST_NO = SUB.CNTR_CST_NO
+         WHERE 1=1
+           AND T1.CNTR_CST_NO = #{cntrCstNo}
+         GROUP BY T1.CNTR_CST_NO
+    </select>
+
+    <select id="selectRentalPackageGrpMngts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchRentalPackageGrpMngtsRes">
+        SELECT T0.BASE_DTL_CNTR_NO          /* 계약번호 */
+             , T0.BASE_DTL_CNTR_SN          /* 계약상세번호 */
+             , NVL2(T1.CNTR_PD_STRTDT, 'Y', 'N') AS START_YN /* 상품시작여부 */
+          FROM TB_SSCT_CNTR_REL T0              /* T.계약관계 */
+         LEFT OUTER JOIN TB_SSCT_CNTR_DTL T1    /* T.계약상세 */
+            ON T0.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T0.BASE_DTL_CNTR_SN = T1.CNTR_SN
+         WHERE 1=1
+           AND T0.VL_END_DTM = '99991231235959'         /* 유효종료일시가 마지막으로 유효한 건 */
+           AND T0.CNTR_UNIT_TP_CD = '020'               /* 계약단위유형코드:계약상세 */
+           AND T0.CNTR_REL_TP_CD = '20'                 /* 계약관계유형코드:연계상품계약관계 */
+           AND T0.CNTR_REL_DTL_CD = '22P'               /* 계약관계상세코드:패키지(대수할인) */
+           AND T0.BASE_DTL_CNTR_NO = #{baseDtlCntrNo}   /* 기준상세계약번호 */
+           AND T0.BASE_DTL_CNTR_SN = #{baseDtlCntrSn}   /* 기준상세계약일련번호 */
+           AND T0.DTA_DL_YN = 'N'                       /* 삭제여부 */
+    </select>
+
+    <insert id="insertRentalPackageGrpMngts" parameterType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalPackageGrpMngtsDvo">
+        <selectKey keyProperty="dvo.cntrRelId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_REL_ID)) + 1, 0), 15, '0')
+              FROM TB_SSCT_CNTR_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_REL(
+           CNTR_REL_ID
+         , VL_STRT_DTM
+         , VL_END_DTM
+         , CNTR_UNIT_TP_CD
+         , CNTR_REL_TP_CD
+         , CNTR_REL_DTL_CD
+         , BASE_CNTR_NO
+         , OJ_CNTR_NO
+         , BASE_DTL_CNTR_NO
+         , BASE_DTL_CNTR_SN
+         , OJ_DTL_CNTR_NO
+         , OJ_DTL_CNTR_SN
+         , CNTR_CST_GRP_ID
+         , CNTR_REL_DTL_CN
+         , OTSD_LK_DRM_VAL
+         , DTA_DL_YN
+         <include refid="COMMON.insertSystemField"/>
+    ) VALUES (
+           #{dvo.cntrRelId}
+         , #{vlStrtDtm}
+         , #{vlEndDtm}
+         , #{cntrUnitTpCd}
+         , #{cntrRelTpCd}
+         , #{cntrRelDtlCd}
+         , #{baseCntrNo}
+         , #{ojCntrNo}
+         , #{baseDtlCntrNo}
+         , #{baseDtlCntrSn}
+         , #{ojDtlCntrNo}
+         , #{ojDtlCntrSn}
+         , #{cntrCstGrpId}
+         , #{cntrRelDtlCn}
+         , #{otsdLkDrmVal}
+         , NVL(#{dtaDlYn}, 'N')
+         <include refid="COMMON.insertSystemFieldValue"/>
+       )
+    </insert>
+
+    <update id="deleteRentalPackageGrpMngts">
+        UPDATE TB_SSCT_CNTR_REL
+           SET DTA_DL_YN = 'Y'
+             , VL_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_REL_ID = #{cntrRelId}
+           AND BASE_DTL_CNTR_NO = #{baseDtlCntrNo}
+           AND BASE_DTL_CNTR_SN = #{baseDtlCntrSn}
+           AND CNTR_REL_DTL_CD = #{cntrRelDtlCd}
+           AND CNTR_CST_GRP_ID = #{cntrCstGrpId}
+    </update>
 </mapper>
