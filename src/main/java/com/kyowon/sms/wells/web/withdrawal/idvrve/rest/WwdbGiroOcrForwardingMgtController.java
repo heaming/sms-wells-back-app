@@ -4,13 +4,14 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
@@ -62,8 +63,8 @@ public class WwdbGiroOcrForwardingMgtController {
         return service.getGiroOcrForwardingObjects();
     }
 
-    @ApiOperation(value = "지로OCR발송관리 저장", notes = " RDS 적요 지로OCR발송관리 등록 및 수정한다.")
-    @PostMapping()
+    @ApiOperation(value = "지로OCR발송관리 저장", notes = "지로OCR발송관리 등록 및 수정한다.")
+    @PostMapping
     public SaveResponse saveGiroOcrForwardings(
         @RequestBody
         @Valid
@@ -71,6 +72,18 @@ public class WwdbGiroOcrForwardingMgtController {
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveGiroOcrForwardings(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "지로OCR발송관리 삭제", notes = "지로OCR발송관리 삭제한다.")
+    @DeleteMapping
+    public SaveResponse removeGiroOcrForwardings(
+        @RequestBody
+        @Valid
+        List<RemoveReq> dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.removeGiroOcrForwardings(dto))
             .build();
     }
 
@@ -101,7 +114,7 @@ public class WwdbGiroOcrForwardingMgtController {
     }
 
     @ApiOperation(value = "지로OCR발송관리 출력 삭제", notes = "지로OCR발송관리 출력 목록을 삭제한다.")
-    @PutMapping("/print")
+    @DeleteMapping("/print")
     public SaveResponse removeGiroOcrForwardingPrints(
         @RequestBody
         @Valid

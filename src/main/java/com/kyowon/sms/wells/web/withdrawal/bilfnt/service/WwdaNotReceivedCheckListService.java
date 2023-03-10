@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.bilfnt.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto.SearchAftnBilNrcvListReq;
@@ -41,6 +43,15 @@ public class WwdaNotReceivedCheckListService {
 
     }
 
+    /** 자동이체 미수신 체크 엑셀다운로드
+     * 
+     * @param req
+     * @return
+     */
+    public List<SearchAftnBilNrcvListRes> getAftnBilNrcvListExcels(SearchAftnBilNrcvListReq req) {
+        return mapper.selectAftnBilNrcvListPages(req);
+    }
+
     /** 자동이체 입금 미생성 체크 목록
      * 
      * @param req
@@ -52,6 +63,17 @@ public class WwdaNotReceivedCheckListService {
         PageInfo pageInfo
     ) {
         return mapper.selectAftnDpNcrtCheckListPages(req, pageInfo);
+    }
+
+    /** 자동이체 입금 미생성 체크 엑셀다운로드
+     * 
+     * @param req
+     * @return
+     */
+    public List<SearchAftnDpNcrtCheckListRes> getAftnDpNcrtCheckListExcels(
+        SearchAftnDpNcrtCheckListReq req
+    ) {
+        return mapper.selectAftnDpNcrtCheckListPages(req);
     }
 
     /** 자동이체 매출실적 체크 목록 조회
@@ -67,6 +89,15 @@ public class WwdaNotReceivedCheckListService {
         return mapper.selectAftnSlPerfCheckInqrPages(bilYm, pageInfo);
     }
 
+    /** 자동이체 매출실적 체크 목록 엑셀다운로드
+     * 
+     * @param bilYm
+     * @return
+     */
+    public List<SearchAftnSlPerfCheckInqrRes> getAftnSlPerfCheckInqrExcels(String bilYm) {
+        return mapper.selectAftnSlPerfCheckInqrPages(bilYm);
+    }
+
     /** 자동이체 결과 묶음 오류 조회
      * 
      * @param mpyMthdTpCd
@@ -78,6 +109,15 @@ public class WwdaNotReceivedCheckListService {
         PageInfo pageInfo
     ) {
         return mapper.selectAftnRsBndlErrInqrPages(mpyMthdTpCd, pageInfo);
+    }
+
+    /** 자동이체 결과 묶음 오류 엑셀다운로드
+     * 
+     * @param mpyMthdTpCd
+     * @return
+     */
+    public List<SearchResultBundleErrorRes> getAftnRsBndlErrInqrExcels(String mpyMthdTpCd) {
+        return mapper.selectAftnRsBndlErrInqrPages(mpyMthdTpCd);
     }
 
 }

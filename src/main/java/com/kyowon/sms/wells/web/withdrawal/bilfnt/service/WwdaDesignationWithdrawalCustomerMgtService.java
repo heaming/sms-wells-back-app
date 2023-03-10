@@ -50,6 +50,17 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
         return mapper.selectAftnDsnWdrwCstInqrPages(req, pageInfo); // 자동이체 지정 출금 고객 조회
     }
 
+    /** 자동이체 지정 출금 고객 엑셀다운로드
+     * 
+     * @param req
+     * @return
+     */
+    public List<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrExcels(
+        SearchAutoFntDsnWdrwCstReq req
+    ) {
+        return mapper.selectAftnDsnWdrwCstInqrPages(req);
+    }
+
     /** 자동이체 지정 출금 고객 저장
      * 
      * @param req
@@ -147,4 +158,5 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
         }
         return processCount;
     }
+
 }

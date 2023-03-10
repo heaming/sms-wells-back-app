@@ -3,10 +3,37 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaBundleWithdrawalRgstMapper">
 
     <select id="selectUnregistrationPsInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto$SearchUnrgPsRes">
-                SELECT CST_KNM
+                                SELECT CST_KNM
+                     , PD_NM  
+                     , CNTR_PD_STRTDT
+
+                     , UNRG_RSON
+
+                     , CNTR_SN
+                     , MPY_MTHD_TP_CD 
+                     , FNIT_APR_RS_CD 
+                     , ACNO_ENCR
+                     , CRCDNO_ENCR
+                     , FNIT_RSG_FSH_DTM
+                     , DG_CNTR_NO 
+                     , BNK_NM
+                     , OWR_KNM    
+                     , MPY_BSDT
+
+                     , SDING_CNTR_SN 
+                     , SDING_MPY_MTHD_TP_CD
+                     , SDING_FNIT_APR_RS_CD
+                     , SDING_DG_CNTR_NO
+                     , SDING_BNK_NM
+                     , SDING_ACNO_ENCR
+                     , SDING_CRCDNO_ENCR
+                     , SDING_OWR_KNM
+                     , SDING_MPY_BSDT
+                  FROM (
+                         SELECT CST_KNM
                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = SCD.BASE_PD_CD) AS PD_NM  
                      , CNTR_PD_STRTDT
-                     
+
                      , CASE WHEN T1.MPY_MTHD_TP_CD != T1.SUBOD_CNTR_MPY_MTHD_TP_CD THEN '01' /*1. 이체구분값 상이*/
                             WHEN T1.MPY_MTHD_TP_CD = '110' THEN
                                 CASE WHEN T1.ACNO_ENCR IS NULL THEN '02' /*2. 계좌미등록(기기)*/
@@ -29,7 +56,7 @@
                                 END
                              ELSE '99'
                          END UNRG_RSON
-                                 
+
                      , T1.DG_CNTR_NO AS CNTR_SN
                      , T1.MPY_MTHD_TP_CD 
                      , T1.FNIT_APR_RS_CD 
@@ -40,7 +67,7 @@
                      , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.BNK_CD,3,0) = FNIT_CD) AS BNK_NM
                      , T1.OWR_KNM    
                      , T1.MPY_BSDT
-                     
+
                      , T1.SUBOD_CNTR_DG_CNTR_NO AS SDING_CNTR_SN 
                      , T1.SUBOD_CNTR_MPY_MTHD_TP_CD AS SDING_MPY_MTHD_TP_CD
                      , T1.SUBOD_CNTR_FNIT_APR_RS_CD AS SDING_FNIT_APR_RS_CD
@@ -66,8 +93,7 @@
                               , DG_CNTR.ACNO_ENCR
                               , DG_CNTR.OWR_KNM
                               , DG_CNTR.MPY_BSDT
-                              
-                              
+
                               , SUBOD_CNTR.DG_CNTR_NO AS BNDL_DG_CNTR_NO
                               , SUBOD_CNTR.DG_CNTR_SN AS BNDL_DG_CNTR_SN
                               , SUBOD_CNTR.SUBOD_CNTR_NO AS SUBOD_CNTR_DG_CNTR_NO
@@ -143,19 +169,18 @@
                    AND T1.DG_CNTR_NO = #{cntrNo}
                    AND T1.DG_CNTR_SN = #{cntrSn}
                    </if> 
-                   <!-- AND SCB.CNTR_RCP_FSH_DTM BETWEEN #{cntrPdStrtdt} AND #{cntrPdEnddt} NULL로 들어간 값이 있음 -->
-                   AND EXISTS (
-                            SELECT 1
-                              FROM TB_RVCL_ITG_BIL_OJ_ERR_IZ
-                             WHERE 1 = 1
-                                <if test='@MybatisUtils@equals(unrgRs, "1")'>
-                               AND AFTN_ITG_UNRG_RSON_CD NOT IN ('2','3','12','13')
-                                </if>
-                               <if test='@MybatisUtils@equals(unrgRs, "2")'>
-                               AND AFTN_ITG_UNRG_RSON_CD IN ('2','3','12','13')
-                               </if>
-                        )
-                   
+                   AND SCD.CNTR_PD_STRTDT >= #{cntrPdStrtdt} 
+                   AND SCD.CNTR_PD_STRTDT <![CDATA[ <= ]]> #{cntrPdEnddt}
+                  )
+                WHERE 1 = 1
+                <if test='@MybatisUtils@isNotEmpty(unrgRs)'>
+                     <if test='@MybatisUtils@equals(unrgRs, "1")'>
+                  AND UNRG_RSON NOT IN ('2','3','12','13')
+                     </if>
+                     <if test='@MybatisUtils@equals(unrgRs, "2")'>
+                  AND UNRG_RSON IN ('2','3','12','13')
+                     </if>
+                </if>
                    
     </select>
     
@@ -253,7 +278,8 @@
                                                 <if test='@MybatisUtils@equals(unrgRs, "02")'>
                                                 AND AFTN_ITG_UNRG_RS_CD != '00'
                                                 </if>
-                                                AND ITG_BIL_PRTC_DTM BETWEEN #{cntrPdStrtdt} || '000000' AND #{cntrPdEnddt} || '000000'
+                                                AND ITG_BIL_PRTC_DTM >= #{cntrPdStrtdt} || '000000' 
+                                                AND ITG_BIL_PRTC_DTM <![CDATA[ <= ]]> #{cntrPdEnddt} || '000000'
                                               WHERE RIBB.FNT_DV_CD IN ('01','02')
                                                 AND RIBB.DG_CNTR_NO || RIBB.DG_CNTR_SN = RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN
                                          ) DG_CNTR
@@ -292,7 +318,8 @@
                                                <if test='@MybatisUtils@equals(unrgRs, "02")'>
                                                 AND AFTN_ITG_UNRG_RS_CD != '00'
                                                </if>
-                                                AND ITG_BIL_PRTC_DTM BETWEEN #{cntrPdStrtdt} || '000000' AND #{cntrPdEnddt} || '000000'
+                                                AND ITG_BIL_PRTC_DTM >= #{cntrPdStrtdt} || '000000' 
+                                                AND ITG_BIL_PRTC_DTM <![CDATA[ <= ]]> #{cntrPdEnddt} || '000000'
                                               WHERE RIBB.FNT_DV_CD IN ('01','02')
                                                 AND RIBB.DG_CNTR_NO || RIBB.DG_CNTR_SN != RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN
                                          ) SUBOD_CNTR
@@ -302,7 +329,6 @@
                                 ON SCD.CNTR_NO = T1.DG_CNTR_NO
                                AND SCD.CNTR_SN = T1.DG_CNTR_SN
                              WHERE 1 = 1
-                               <!-- SCB.CNTR_CNFM_DTM BETWEEN #{cntrPdStrtdt} || '0000000' AND #{cntrPdEnddt} || '9999999' 일부 NULL 값이 들어가 있음-->
                                <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
                                AND T1.DG_CNTR_NO = #{cntrNo}
                                AND T1.DG_CNTR_SN = #{cntrSn}

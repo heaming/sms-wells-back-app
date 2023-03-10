@@ -129,4 +129,28 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtService {
         return processCount;
     }
 
+    @Transactional
+    public int removeAutoPrepaymentDiscountExcludes(
+        List<SaveReq> dtos
+    ) throws Exception {
+        int processCount = 0;
+
+        for (SaveReq dto : dtos) {
+            WwdbAutoPrepaymentDiscountExcludeMgtDvo dvo = convert
+                .mapSaveWwdbAutoPrepaymentDiscountExcludeMgtDvo(dto);
+
+            String cntr = dto.cntr();
+            BizAssert.hasText(cntr, "MSG_ALT_CHK_CNTR_NO");
+
+            dvo.setCntrNo(cntr.substring(0, 12));
+            dvo.setCntrSn(cntr.substring(12));
+
+            processCount += mapper.deleteAutoPrepaymentDiscountExcludes(dvo);
+            processCount += mapper.insertAutoPrepaymentDiscountExcludeHistory(dvo);
+
+        }
+
+        return processCount;
+    }
+
 }
