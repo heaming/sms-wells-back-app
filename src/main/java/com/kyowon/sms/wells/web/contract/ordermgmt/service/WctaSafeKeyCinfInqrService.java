@@ -8,10 +8,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.ListUtils;
 
 import com.kyowon.sflex.common.nice.service.NiceSafekeyService;
-import com.kyowon.sms.wells.web.contract.changeorder.service.WcteSellLimitObjectService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSafeKeyCinfInqrDto.SearchCstInfoRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSafeKeyCinfInqrDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSafeKeyCinfInqrDto.SearchRes;
@@ -26,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WctaSafeKeyCinfInqrService {
     private final WctaSafeKeyCinfInqrMapper mapper;
-    private final WcteSellLimitObjectService wcteSellLimitObjectService;
+    // private final WcteSellLimitObjectService wcteSellLimitObjectService;
     // private final WctaBlackContractService wctaBlackContractService;
     private final NiceSafekeyService niceSafekeyService;
     // private final ZctaCinfInqrService zctaCinfInqrService;
@@ -89,8 +87,8 @@ public class WctaSafeKeyCinfInqrService {
                 LocalDate.parse(cntrCnfmDt, DateTimeFormatter.ofPattern("yyyyMMdd"))
             ).getYears() < 19) {
             return SearchRes.builder().isSuccess(false).message("I00151").build();
-        } else if (req.copnDvCd().equals("2")
-            && ListUtils.isEmpty(wcteSellLimitObjectService.getCrpJLmOjRgstYnInqr(req.bzrno()))) {
+        } else if (req.copnDvCd().equals("2")) {
+            // && ListUtils.isEmpty(wcteSellLimitObjectService.getCrpJLmOjRgstYnInqr(req.bzrno()))) {
             return SearchRes.builder().isSuccess(false).message("I00146").build();
         }
 
