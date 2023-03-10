@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
@@ -79,7 +80,7 @@ public class WwdbGiroOcrForwardingMgtController {
     public SaveResponse removeGiroOcrForwardings(
         @RequestBody
         @Valid
-        List<SaveReq> dto
+        List<RemoveReq> dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.removeGiroOcrForwardings(dto))
