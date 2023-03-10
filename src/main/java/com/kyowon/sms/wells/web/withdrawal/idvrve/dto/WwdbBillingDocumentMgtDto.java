@@ -25,7 +25,9 @@ public class WwdbBillingDocumentMgtDto {
         String rmkCn, //--비고 이건 수정 가능성이 잇음
         String fstRgstDtm, //--작성일자
         String dummyText, //발송
-        String bildcWrteDt
+        String bildcWrteDt,
+        String sellPrtnrNo, /*파트너번호*/
+        String sellPrtnrNm /*파트너번호*/
     ) {}
 
     public record RemoveReq(

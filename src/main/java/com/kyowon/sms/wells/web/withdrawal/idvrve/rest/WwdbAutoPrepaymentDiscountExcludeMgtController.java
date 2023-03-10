@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -64,6 +65,18 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtController {
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveAutoPrepaymentDiscountExcludes(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "자동 선납할인제외 관리 삭제", notes = "자동 선납할인제외 관리를 삭제한다.")
+    @DeleteMapping
+    public SaveResponse removeAutoPrepaymentDiscountExcludes(
+        @RequestBody
+        @Valid
+        List<SaveReq> dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.removeAutoPrepaymentDiscountExcludes(dto))
             .build();
     }
 

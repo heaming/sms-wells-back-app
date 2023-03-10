@@ -60,6 +60,15 @@ public class WwdbGiroOcrForwardingMgtDto {
 
     }
 
+    public record RemoveReq(
+        @NotBlank
+        String wkDt,
+        @NotBlank
+        String wkSn
+    ) {
+
+    }
+
     public record SearchPrintReq(
         String giroOcrPblDtm,
         String giroOcrPrntStatus

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbGiroOcrForwardingMgtConverter;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
@@ -87,6 +88,19 @@ public class WwdbGiroOcrForwardingMgtService {
                 //                case CommConst.ROW_STATE_DELETED -> processCount += mapper.deleteDivReceiveCd(dvo);
                 default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
             }
+        }
+
+        return processCount;
+    }
+
+    @Transactional
+    public int removeGiroOcrForwardings(List<RemoveReq> dtos) throws Exception {
+        int processCount = 0;
+
+        for (RemoveReq dto : dtos) {
+            WwdbGiroOcrForwardingMgtDvo dvo = convert.mapRemoveGiroOcrForwardingDvo(dto);
+            processCount += mapper.deleteGiroOcrForwardings(dvo);
+
         }
 
         return processCount;
