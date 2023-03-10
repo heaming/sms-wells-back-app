@@ -123,6 +123,28 @@ public class WctaContractDto {
         String vlStrtDtm
     ) {}
 
+    //wells 일시불 판매금 조회 - 일시불 판매금 조회 Search Request Dto
+    @ApiModel(value = "WctaContractDto-SearchSpaySlamtInqrReq")
+    public record SearchSpaySlamtInqrReq(
+        String pdGubn,
+        String vlDtm,
+        String pdCd,
+        String pdClsfId,
+        String vstCycl,
+        String useGubn,
+        String dscGubn,
+        String dscType
+    ) {}
+
+    //wells 렌탈 패키지 그룹 등록 삭제 - 렌탈 패키지 그룹 등록 삭제 Remove Request Dto
+    @ApiModel("WctaContractDto-RemoveRentalPackageGrpMngtsReq")
+    public record RemoveRentalPackageGrpMngtsReq(
+        String baseDtlCntrNo,
+        String baseDtlCntrSn,
+        String cntrRelDtlCd,
+        String cntrCstGrpId
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -213,5 +235,58 @@ public class WctaContractDto {
         String vlStrtDtm,
         String vlEndDtm,
         String notyFwOjYn
+    ) {}
+
+    //wells 일시불 판매금 조회 - 일시불 판매금 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchSpaySlamtInqrRes")
+    public record SearchSpaySlamtInqrRes(
+        String fnlVal,
+        String vat,
+        String AckmtRt,
+        String AckmtAmt,
+        String ctrVal,
+        String sellFee,
+        String svFee
+    ) {}
+
+    //wells 홈케어멤버십 가입고객여부 조회 - 홈케어멤버십 가입고객여부 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchHomeCareMshChecksRes")
+    public record SearchHomeCareMshChecksRes(
+        String hcrMmbrCnt,
+        String hcrMmbrYn,
+        String hcrSpayCnt
+    ) {}
+
+    //wells 렌탈 패키지 그룹 기등록 조회 - 렌탈 패키지 그룹 기등록 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchRentalPackageGrpMngtsRes")
+    public record SearchRentalPackageGrpMngtsRes(
+        String baseDtlCntrNo,
+        String baseDtlCntrSn,
+        String startYn
+    ) {}
+
+    //wells 렌탈 패키지 그룹 등록 - 렌탈 패키지 그룹 저장 Save Result Dto
+    @ApiModel("WctaContractDto-SaveRentalPackageGrpMngtsReq")
+    public record SaveRentalPackageGrpMngtsReq(
+        String userGubn,
+        String inpGubn,
+        @NotBlank
+        String cntrRelId,
+        String vlStrtDtm,
+        String vlEndDtm,
+        String cntrUnitTpCd,
+        String cntrRelTpCd,
+        String cntrRelDtlCd,
+        String baseCntrNo,
+        String ojCntrNo,
+        String baseDtlCntrNo,
+        String baseDtlCntrSn,
+        String ojDtlCntrNo,
+        String ojDtlCntrSn,
+        String cntrCstGrpId,
+        String cntrRelDtlCn,
+        String otsdLkDrmVal,
+        @NotBlank
+        String dtaDlYn
     ) {}
 }

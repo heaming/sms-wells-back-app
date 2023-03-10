@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,8 @@ import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalPackageGrpMngtsDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSpaySlamtInqrDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.common.utils.DateUtil;
@@ -178,5 +181,125 @@ public class WctaContractService {
             processCount += result;
         }
         return processCount;
+    }
+
+    public List<SearchSpaySlamtInqrRes> getSpaySlamtInqr(SearchSpaySlamtInqrReq dto) {
+        WctaSpaySlamtInqrDvo dvo = converter.mapSearchSpaySlamtInqrReqToWctaSpaySlamtInqrDvo(dto);
+
+        //GUBN : W-WEB(홈케어）H-KSS(홈케어）, K-KSS(일반상품)
+        if (dvo.getPdGubn().equals("W")) {
+            if (StringUtil.isNull(dvo.getPdCd()) || StringUtil.isNull(dvo.getDscGubn())
+                || StringUtil.isNull(dvo.getVlDtm())) {
+                return null;
+            }
+        }
+
+        //상품구분/상품코드／접수일/할인구분 필수 체크
+        if (StringUtil.isNull(dvo.getPdGubn()) || StringUtil.isNull(dvo.getPdCd()) || StringUtil.isNull(dvo.getVlDtm())
+            || StringUtil.isNull(dvo.getDscGubn())) {
+            return null;
+        }
+
+        //상품구분 (홈케어/일반상품) 필수 체크
+        if (!(dvo.getPdGubn().equals("W") || dvo.getPdGubn().equals("K") || dvo.getPdGubn().equals("H"))) {
+            return null;
+        }
+
+        //쿠폰은 웹에서만 등록 가능
+        if (dvo.getDscGubn().equals("C") || dvo.getDscGubn().equals("D")) {
+            if (!dvo.getPdGubn().equals("W")) {
+                return null;
+            }
+        }
+
+        //쿠폰일 경우 ETC3-ETC4는　필수조건
+        if (dvo.getPdGubn().equals("W") && (dvo.getDscGubn().equals("C") || dvo.getDscGubn().equals("D"))) {
+            if (StringUtil.isNull(dvo.getDscType())) {
+                return null;
+            }
+        }
+
+        //상품코드별 필수 체크
+        if (Arrays.asList(new String[] {"3720", "3730", "3810", "3820", "3830", "3840"}).contains(dvo.getPdCd())) {
+            if (StringUtil.isNull(dvo.getPdClsfId())) {
+                return null;
+            }
+        }
+
+        //홈케어　상품구분１，２필수체크위한　변수
+        if ((dvo.getPdGubn().equals("W") || dvo.getPdGubn().equals("H")) && (!dvo.getPdCd().equals("3710"))) {
+            dvo.setPdClsfId("Y");
+        }
+
+        if (dvo.getPdCd().equals("3710")) {
+            dvo.setPdClsfId("");
+        }
+
+        //홈케어 용도구분 강제세팅
+        if (Arrays.asList(new String[] {"3720", "3730", "3810", "3820", "3830", "3840", "3710"})
+            .contains(dvo.getPdCd())) {
+            if (StringUtil.isNull(dvo.getUseGubn())) {
+                dvo.setUseGubn("0");
+            }
+        }
+
+        return mapper.selectSpaySlamtInqr(dvo);
+    }
+
+    public List<SearchHomeCareMshChecksRes> getHomeCareMshChecks(String cntrCstNo) {
+        return mapper.selectHomeCareMshChecks(cntrCstNo);
+    }
+
+    @Transactional
+    public String saveRentalPackageGrpMngts(WctaRentalPackageGrpMngtsDvo dvo) {
+        //사용자구분이 1:현업 아닐 경우 종료
+        if (!"1".equals(dvo.getUserGubn())) {
+            BizAssert.hasText(dvo.getBaseCntrNo(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_USR_TYPE"}); //사용자유형을 확인하세요.
+        }
+
+        //작업구분이 1:등록, 4:삭제가 아닐 경우 종료
+        if (!Arrays.asList(new String[] {"1", "4"}).contains(dvo.getInpGubn())) {
+            BizAssert.hasText(dvo.getBaseCntrNo(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_WK_CLS"}); //작업구분을 확인하세요.
+        }
+        if ("1".equals(dvo.getInpGubn())) {
+            if ("22P".equals(dvo.getCntrRelTpCd())) {
+                //계약번호, 계약상세번호가 존재하는지 여부 확인 비어었으면 종료
+                BizAssert.hasText(dvo.getBaseCntrNo(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_CNTR_NO"}); //계약번호를 확인하세요.
+                BizAssert.hasText(dvo.getBaseDtlCntrNo(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_CNTR_SN"}); //계약일련번호를 확인하세요.
+
+                //계약관계상세내용(CNTR_REL_DTL_CN) 에 할인코드(14,15,16)이 존재하는지 여부 체크
+                if (!Arrays.asList(new String[] {"14", "15", "16"}).contains(dvo.getCntrRelDtlCn())) {
+                    return null;
+                }
+
+                List<SearchRentalPackageGrpMngtsRes> rentalPackageGrpMngts = mapper
+                    .selectRentalPackageGrpMngts(dvo);
+                int checkCount = rentalPackageGrpMngts.size();
+                BizAssert.isTrue(checkCount <= 0, "MSG_ALT_DUPLICATE_ROW_EXISTS");
+            }
+            // String startYn = rentalPackageGrpMngts.get(0).startYn();
+            int result = mapper.insertRentalPackageGrpMngts(dvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); //저장에 실패 하였습니다.
+        } else if ("4".equals(dvo.getInpGubn())) {
+            if ("22P".equals(dvo.getCntrRelTpCd())) {
+                BizAssert.hasText(dvo.getBaseCntrNo(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_CNTR_NO"}); //계약번호를 확인하세요.
+                BizAssert.hasText(dvo.getBaseDtlCntrNo(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_CNTR_SN"}); //계약일련번호를 확인하세요.
+
+                List<SearchRentalPackageGrpMngtsRes> rentalPackageGrpMngts = mapper
+                    .selectRentalPackageGrpMngts(dvo);
+                int checkCount = rentalPackageGrpMngts.size();
+                BizAssert.isTrue(checkCount <= 0, "MSG_ALT_DUPLICATE_ROW_EXISTS");
+
+                //작업구분이 4 && 상품시작여부가 'Y' 이면 삭제 불가
+                String startYn = rentalPackageGrpMngts.get(0).startYn();
+                if ("y".equals(startYn)) {
+                    return null;
+                }
+            }
+            int result = mapper.deleteRentalPackageGrpMngts(dvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_DEL_ERR"); //삭제에 실패 하였습니다.
+        }
+        //등록된(입력된) 그룹번호 리턴
+        return dvo.getCntrCstGrpId();
     }
 }
