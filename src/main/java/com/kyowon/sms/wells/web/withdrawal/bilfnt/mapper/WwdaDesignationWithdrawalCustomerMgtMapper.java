@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstReq;
@@ -29,6 +31,13 @@ public interface WwdaDesignationWithdrawalCustomerMgtMapper {
     PagingResult<SearchAutoFntDsnWdrwCstRes> selectAftnDsnWdrwCstInqrPages(
         SearchAutoFntDsnWdrwCstReq req, PageInfo pageInfo
     );
+
+    /** 자동이체 지정 출금 고객 엑셀다운로드
+     * 
+     * @param req
+     * @return
+     */
+    List<SearchAutoFntDsnWdrwCstRes> selectAftnDsnWdrwCstInqrPages(SearchAutoFntDsnWdrwCstReq req);
 
     //    SearchContractDetailInfRes selectContractDetailInf(WwdaDesignationWithdrawalCustomerMgtDvo dvo); 왜필요한지 모르겠음
 
