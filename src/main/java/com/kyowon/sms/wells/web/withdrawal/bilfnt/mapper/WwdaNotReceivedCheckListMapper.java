@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto.SearchAftnBilNrcvListReq;
@@ -22,6 +24,13 @@ public interface WwdaNotReceivedCheckListMapper {
      */
     PagingResult<SearchAftnBilNrcvListRes> selectAftnBilNrcvListPages(SearchAftnBilNrcvListReq req, PageInfo pageInfo);
 
+    /** 자동이체 미수신 체크 엑셀다운로드
+     * 
+     * @param req
+     * @return
+     */
+    List<SearchAftnBilNrcvListRes> selectAftnBilNrcvListPages(SearchAftnBilNrcvListReq req);
+
     /** 자동이체 입금 미생성 체크 목록
      * 
      * @param req
@@ -31,6 +40,13 @@ public interface WwdaNotReceivedCheckListMapper {
     PagingResult<SearchAftnDpNcrtCheckListRes> selectAftnDpNcrtCheckListPages(
         SearchAftnDpNcrtCheckListReq req, PageInfo pageInfo
     );
+
+    /** 자동이체 입금 미생성 체크 엑셀다운로드
+     * 
+     * @param req
+     * @return
+     */
+    List<SearchAftnDpNcrtCheckListRes> selectAftnDpNcrtCheckListPages(SearchAftnDpNcrtCheckListReq req);
 
     /** 자동이체 매출실적 체크 목록 조회
      * 
@@ -42,6 +58,13 @@ public interface WwdaNotReceivedCheckListMapper {
         String bilYm, PageInfo pageInfo
     );
 
+    /** 자동이체 매출실적 체크 목록 엑셀다운로드
+     * 
+     * @param bilYm
+     * @return
+     */
+    List<SearchAftnSlPerfCheckInqrRes> selectAftnSlPerfCheckInqrPages(String bilYm);
+
     /** 자동이체 결과 묶음 오류 조회
      * 
      * @param mpyMthdTpCd
@@ -49,5 +72,12 @@ public interface WwdaNotReceivedCheckListMapper {
      * @return
      */
     PagingResult<SearchResultBundleErrorRes> selectAftnRsBndlErrInqrPages(String mpyMthdTpCd, PageInfo pageInfo);
+
+    /** 자동이체 결과 묶음 오류 엑셀다운로드
+     * 
+     * @param mpyMthdTpCd
+     * @return
+     */
+    List<SearchResultBundleErrorRes> selectAftnRsBndlErrInqrPages(String mpyMthdTpCd);
 
 }

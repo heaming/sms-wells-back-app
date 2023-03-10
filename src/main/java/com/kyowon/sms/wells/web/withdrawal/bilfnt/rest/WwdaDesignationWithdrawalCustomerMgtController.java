@@ -26,7 +26,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -45,13 +44,26 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
     })
     @GetMapping("/designation-wdrw-csts")
     public PagingResult<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrPages(
-        @ApiParam
         @Valid
         SearchAutoFntDsnWdrwCstReq req,
         @Valid
         PageInfo pageInfo
     ) {
         return service.getAftnDsnWdrwCstInqrPages(req, pageInfo);
+    }
+
+    @ApiOperation(value = "자동이체 지정 출금 고객 엑셀다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "W20220086004"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = false, example = "1"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형코드", paramType = "query", required = false, example = "20230215"),
+    })
+    @GetMapping("/designation-wdrw-csts/excel-download")
+    public List<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrExcels(
+        @Valid
+        SearchAutoFntDsnWdrwCstReq req
+    ) {
+        return service.getAftnDsnWdrwCstInqrExcels(req);
     }
 
     @ApiOperation(value = "자동이체 지정 출금 고객 저장")
