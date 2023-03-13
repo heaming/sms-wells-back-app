@@ -51,6 +51,7 @@ public class WsncQuickResponseRpblDto {
         String vstFshDt,
         String vstFshHh,
         String bcInMthdCd,
-        String useMpno
+        String useMpno,
+        String publishInfo
     ) {}
 }
