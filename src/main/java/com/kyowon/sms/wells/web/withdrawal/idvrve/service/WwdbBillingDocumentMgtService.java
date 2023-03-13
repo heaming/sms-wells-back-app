@@ -133,13 +133,23 @@ public class WwdbBillingDocumentMgtService {
     @Transactional
     private int saveBillingDtails(SaveReq dto, int processCount, WwdbBillingDocumentDvo dvo) throws Exception {
         for (SaveDtlsReq dtlDto : dto.saveDtlsReq()) {
+            log.info("==============");
+            log.info(dtlDto.bildcPblNo());
+            log.info(dtlDto.bildcPblSn());
+            log.info("==============");
             WwdbBillingDocumentDetailDvo dtlDvo = convert.mapSaveWwwdbBillingDocumentDetailDvo(dtlDto);
 
-            dtlDvo.setBildcPblNo(dvo.getBildcPblNo());
-            dtlDvo.setBildcPblSn(dvo.getBildcPblSn());
+            dtlDvo.setBildcPblNo(dtlDto.bildcPblNo());
+            dtlDvo.setBildcPblSn(dtlDto.bildcPblSn());
+
+            log.info("=====DVO=====");
+            log.info(dtlDvo.getBildcPblSn());
+            log.info(dtlDvo.getBildcPblNo());
+            log.info("=====DVO=====");
 
             switch (dtlDto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
+                    dtlDvo.setBildcPblNo(dvo.getBildcPblNo());
                     processCount += mapper.insertBillingDocumentDtails(dtlDvo);
                     processCount += mapper.insertBillingDocumentDtailsHistory(dtlDvo);
                 }
