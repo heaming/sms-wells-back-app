@@ -3,36 +3,33 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 import java.text.ParseException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaWellsVlCntrEynInqrDto.RequestRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaWellsVlCntrEynInqrDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaWellsVlCntrEynInqrDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaWellsVlCntrEynInqrMapper;
 import com.sds.sflex.common.utils.DateUtil;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WctaWellsVlCntrEynInqrService {
     private final WctaWellsVlCntrEynInqrMapper mapper;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
-    public RequestRes getWellsVlCntrEynInqrs(SearchReq reqdto) {
+    public WctaWellsVlCntrEynInqrDvo getWellsVlCntrEynInqrs(WctaWellsVlCntrEynInqrDvo reqdvo) {
         // 리턴변수를 초기화한다.
         String rtnNwYn = ""; // Y:신규, N:기존
         String rtnCntrNo = "";
         Integer rtnCntrSn = 0;
 
         // 작업변수를 설정한다.
-        Integer i_wkVlStrtDt = 0; // (작업)유효시작일
+        Integer wkVlStrtDt = 0; // (작업)유효시작일
         String wkSlDt = ""; // (작업)매출일자
-        Integer i_wkSlDt = 0; // (작업)매출일자
-        Integer i_wkRentalCstInfoExistYn = 0; // 렌탈고객정보유무
-        Integer i_wkMshCstInfoExistYn = 0; // 멤버십고객정보유무
+        Integer wkIntTpyeSlDt = 0; // (작업)정수형매출일자
+        Integer wkRentalCstInfoExistYn = 0; // 렌탈고객정보유무
+        Integer wkMshCstInfoExistYn = 0; // 멤버십고객정보유무
 
         // 현재년월을 변수에 담는다.
         String currYmdHms = DateUtil.todayNnow(); // yyyyMMddHHmmss
@@ -40,15 +37,15 @@ public class WctaWellsVlCntrEynInqrService {
 
         // (작업)유효시작일을 구한다.
         try {
-            i_wkVlStrtDt = Integer.parseInt(DateUtil.addMonths(currDt, -6));
+            wkVlStrtDt = Integer.parseInt(DateUtil.addMonths(currDt, -6));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
 
         // 렌탈고객정보조회를 가져온다.
-        List<WctaWellsVlCntrEynInqrDvo> resultRentalCstInfo = mapper.selectRentalCstInfo(reqdto);
+        List<WctaWellsVlCntrEynInqrDvo> resultRentalCsts = mapper.selectRentalCsts(reqdvo);
 
-        if (resultRentalCstInfo != null && resultRentalCstInfo.size() > 0) {
+        if (resultRentalCsts != null && resultRentalCsts.size() > 0) {
             String cntrNo = ""; // 계약번호
             int cntrSn = 0; // 계약일련번호
             String copnDvCd = ""; // 법인격구분코드
@@ -61,18 +58,18 @@ public class WctaWellsVlCntrEynInqrService {
             String slDt = ""; // 매출일자
             String canDt = ""; // 취소일자
 
-            for (int i = 0; i < resultRentalCstInfo.size(); i++) {
-                cntrNo = resultRentalCstInfo.get(i).getCntrNo(); // 계약번호
-                cntrSn = resultRentalCstInfo.get(i).getCntrSn(); // 계약일련번호
-                copnDvCd = resultRentalCstInfo.get(i).getCopnDvCd(); // 법인격구분코드
-                istmMcn = resultRentalCstInfo.get(i).getIstmMcn(); // 할부개월수
-                frisuBfsvcPtrmN = resultRentalCstInfo.get(i).getFrisuBfsvcPtrmN(); // 무상BS기간수
-                istDt = resultRentalCstInfo.get(i).getIstDt(); // 설치일자
-                bryyMmdd = resultRentalCstInfo.get(i).getBryyMmdd(); // 생년월일
-                sexDvCd = resultRentalCstInfo.get(i).getSexDvCd(); // 성별구분코드
-                ogId = resultRentalCstInfo.get(i).getOgId(); // 조직ID
-                slDt = resultRentalCstInfo.get(i).getSlDt(); // 매출일자
-                canDt = resultRentalCstInfo.get(i).getCanDt(); // 취소일자
+            for (WctaWellsVlCntrEynInqrDvo dvo1 : resultRentalCsts) {
+                cntrNo = dvo1.getCntrNo(); // 계약번호
+                cntrSn = dvo1.getCntrSn(); // 계약일련번호
+                copnDvCd = dvo1.getCopnDvCd(); // 법인격구분코드
+                istmMcn = dvo1.getIstmMcn(); // 할부개월수
+                frisuBfsvcPtrmN = dvo1.getFrisuBfsvcPtrmN(); // 무상BS기간수
+                istDt = dvo1.getIstDt(); // 설치일자
+                bryyMmdd = dvo1.getBryyMmdd(); // 생년월일
+                sexDvCd = dvo1.getSexDvCd(); // 성별구분코드
+                ogId = dvo1.getOgId(); // 조직ID
+                slDt = dvo1.getSlDt(); // 매출일자
+                canDt = dvo1.getCanDt(); // 취소일자
 
                 // 만료일계산
                 // (작업)매출일자에 (추출)매출일자를 대입한다.
@@ -83,30 +80,30 @@ public class WctaWellsVlCntrEynInqrService {
                 } catch (ParseException e) {
                     throw new RuntimeException(e);
                 }
-                i_wkSlDt = Integer.parseInt(wkSlDt);
+                wkIntTpyeSlDt = Integer.parseInt(wkSlDt);
                 // 만료일자가 6개월 경과한 경우 제외((작업)유효시작일 보다 적은 경우)
-                if (i_wkSlDt < i_wkVlStrtDt) {
+                if (wkIntTpyeSlDt < wkVlStrtDt) {
                     continue;
                 }
                 // 취소일계산
                 // (작업)매출일자에 (추출)취소일자를 대입한다.
                 wkSlDt = canDt;
-                i_wkSlDt = Integer.parseInt(wkSlDt);
+                wkIntTpyeSlDt = Integer.parseInt(wkSlDt);
                 // 취소일이 6개월 경과한 경우 제외
-                if (i_wkSlDt > 0 && i_wkSlDt < i_wkVlStrtDt) {
+                if (wkIntTpyeSlDt > 0 && wkIntTpyeSlDt < wkVlStrtDt) {
                     continue;
                 }
 
-                i_wkRentalCstInfoExistYn += 1; // 렌탈고객정보유무
+                wkRentalCstInfoExistYn += 1; // 렌탈고객정보유무
                 // 추출계약번호보관
                 rtnCntrNo = cntrNo;
                 rtnCntrSn = cntrSn;
             }
         } else {
             // 멤버십고객정보를 가져온다.
-            List<WctaWellsVlCntrEynInqrDvo> resultMshCstInfo = mapper.selectMshCstInfo(reqdto);
+            List<WctaWellsVlCntrEynInqrDvo> resultMshCsts = mapper.selectMshCsts(reqdvo);
 
-            if (resultMshCstInfo != null && resultMshCstInfo.size() > 0) {
+            if (resultMshCsts != null && resultMshCsts.size() > 0) {
                 String cntrNo = ""; // 계약번호
                 int cntrSn = 0; // 계약일련번호
                 String copnDvCd = ""; // 법인격구분코드
@@ -118,36 +115,36 @@ public class WctaWellsVlCntrEynInqrService {
                 String cntrCanDtm = ""; // 계약취소일시
                 String canDt = ""; // 취소일자
                 String slDt = ""; // 매출일자
-                for (int i = 0; i < resultRentalCstInfo.size(); i++) {
-                    cntrNo = resultRentalCstInfo.get(i).getCntrNo(); // 계약번호
-                    cntrSn = resultRentalCstInfo.get(i).getCntrSn(); // 계약일련번호
-                    copnDvCd = resultRentalCstInfo.get(i).getCopnDvCd(); // 법인격구분코드
-                    cntrCnfmDtm = resultRentalCstInfo.get(i).getCntrCnfmDtm(); // 계약확정일시
-                    cntrPdEnddt = resultRentalCstInfo.get(i).getCntrPdEnddt(); // 탈퇴일자
-                    bryyMmdd = resultRentalCstInfo.get(i).getBryyMmdd(); // 생년월일
-                    sexDvCd = resultRentalCstInfo.get(i).getSexDvCd(); // 성별구분코드
-                    ogId = resultRentalCstInfo.get(i).getOgId(); // 조직ID
-                    cntrCanDtm = resultRentalCstInfo.get(i).getCntrCanDtm(); // 계약취소일시
-                    slDt = resultRentalCstInfo.get(i).getSlDt(); // 매출일자
-                    canDt = resultRentalCstInfo.get(i).getCanDt(); // 취소일자
+                for (WctaWellsVlCntrEynInqrDvo dvo2 : resultMshCsts) {
+                    cntrNo = dvo2.getCntrNo(); // 계약번호
+                    cntrSn = dvo2.getCntrSn(); // 계약일련번호
+                    copnDvCd = dvo2.getCopnDvCd(); // 법인격구분코드
+                    cntrCnfmDtm = dvo2.getCntrCnfmDtm(); // 계약확정일시
+                    cntrPdEnddt = dvo2.getCntrPdEnddt(); // 탈퇴일자
+                    bryyMmdd = dvo2.getBryyMmdd(); // 생년월일
+                    sexDvCd = dvo2.getSexDvCd(); // 성별구분코드
+                    ogId = dvo2.getOgId(); // 조직ID
+                    cntrCanDtm = dvo2.getCntrCanDtm(); // 계약취소일시
+                    slDt = dvo2.getSlDt(); // 매출일자
+                    canDt = dvo2.getCanDt(); // 취소일자
 
                     // 탈퇴일계산
                     // (작업)매출일자 = (추출)탈퇴일자
                     wkSlDt = cntrPdEnddt;
-                    i_wkSlDt = Integer.parseInt(wkSlDt);
+                    wkIntTpyeSlDt = Integer.parseInt(wkSlDt);
                     // 탈퇴일이 6개월 경과한 경우 제외
-                    if (i_wkSlDt > 0 && i_wkSlDt < i_wkVlStrtDt) {
+                    if (wkIntTpyeSlDt > 0 && wkIntTpyeSlDt < wkVlStrtDt) {
                         continue;
                     }
                     // 취소일계산
                     // (작업)매출일자 = (추출)취소일자
                     wkSlDt = canDt;
-                    i_wkSlDt = Integer.parseInt(wkSlDt);
+                    wkIntTpyeSlDt = Integer.parseInt(wkSlDt);
                     // 취소일이 6개월 경과한 경우 제외
-                    if (i_wkSlDt > 0 && i_wkSlDt < i_wkVlStrtDt) {
+                    if (wkIntTpyeSlDt > 0 && wkIntTpyeSlDt < wkVlStrtDt) {
                         continue;
                     }
-                    i_wkMshCstInfoExistYn += 1; // 멤버십고객정보유무
+                    wkMshCstInfoExistYn += 1; // 멤버십고객정보유무
                     // 추출한계약번호보관
                     rtnCntrNo = cntrNo;
                     rtnCntrSn = cntrSn;
@@ -156,19 +153,20 @@ public class WctaWellsVlCntrEynInqrService {
         }
 
         // 신규여부를 판단한다.
-        if (i_wkRentalCstInfoExistYn > 0) { // 렌탈고객정보유무
+        if (wkRentalCstInfoExistYn > 0) { // 렌탈고객정보유무
             rtnNwYn = "N"; // 기존
-        } else if (i_wkMshCstInfoExistYn > 0) { // 멤버십고객정보유무
+        } else if (wkMshCstInfoExistYn > 0) { // 멤버십고객정보유무
             rtnNwYn = "N"; // 기존
-        } else if (i_wkRentalCstInfoExistYn == 0 && i_wkMshCstInfoExistYn == 0) {
+        } else if (wkRentalCstInfoExistYn == 0 && wkMshCstInfoExistYn == 0) {
             rtnNwYn = "Y"; // 신규
         }
 
         // 결과를 리턴한다.
-        RequestRes resdto = null;
-        resdto = new RequestRes(
-            rtnNwYn, rtnCntrNo, rtnCntrSn
-        );
-        return resdto;
+        WctaWellsVlCntrEynInqrDvo resdvo = new WctaWellsVlCntrEynInqrDvo();
+        resdvo.setNwYn(rtnNwYn);
+        resdvo.setCntrNo(rtnCntrNo);
+        resdvo.setCntrSn(rtnCntrSn);
+
+        return resdvo;
     }
 }
