@@ -13,14 +13,14 @@ public class WwdbBillingDocumentMgtDto {
 
     public record SearchRes(
         String bildcPblNo,
-        String bildcPblSn,
+        //        String bildcPblSn,
         String cstFnm, //--고객성명      
         //--     --작성일자 필요
         String fwDt, //      --발송일자
         String pdNm, //--상품명
-        String pdQty,
+        //        String pdQty,
         String pdQtySum, //--총수량
-        String pdSellAmt, //--판매금액
+        //        String pdSellAmt, //--판매금액
         String pdSellAmtSum, //--총금액
         String rmkCn, //--비고 이건 수정 가능성이 잇음
         String fstRgstDtm, //--작성일자

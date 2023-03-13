@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,7 +53,7 @@ public class WwdbBillingDocumentMgtController {
     }
 
     @ApiOperation(value = "청구서 관리 목록 삭제", notes = " 청구서 관리 목록을 삭제한다.")
-    @PutMapping
+    @DeleteMapping
     public SaveResponse removeBillingDocumentMgts(
         @RequestBody
         @Valid
