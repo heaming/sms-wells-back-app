@@ -3,19 +3,18 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbBillingDocumentMgtMapper">
     <select id="selectBillingDocuments" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto$SearchRes">
        SELECT 
-               MT.BILDC_PBL_NO        AS BILDC_PBL_NO
-             , MAX(MT.CST_FNM)        AS CST_FNM --고객성명     
+               MT.BILDC_PBL_NO AS BILDC_PBL_NO
+             , MAX(MT.CST_FNM) AS CST_FNM --고객성명     
              , MAX(BILDC_WRTE_DT) AS BILDC_WRTE_DT 
              , (SELECT MAX(FT.FW_DT)
                   FROM TB_RVDW_BILDC_FW_LZ FT
                  WHERE FT.BILDC_PBL_NO = MT.BILDC_PBL_NO)  AS FW_DT --발송일자             /*임시로 'TNT_BASE' 넣어두기*/
-             , MAX(MT.PD_NM) ||' '||F_CMZ_MLNG_NM('TNT_BASE', 'MSG_TXT_INC' , #{session.langId}) || 
-               COUNT(MT.BILDC_PBL_SN) || F_CMZ_MLNG_NM('TNT_BASE', 'MSG_TXT_VALUE_SORT' , #{session.langId})      
-             AS PD_NM  --상품명
+             , MAX(MT.PD_NM) ||' '||F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_INC' , #{session.langId}) || 
+               COUNT(MT.BILDC_PBL_SN) || F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_VALUE_SORT' , #{session.langId}) AS PD_NM  --상품명
              , SUM(MT.PD_QTY)         AS PD_QTY_SUM--총수량
              , SUM(MT.PD_SELL_AMT)    AS PD_SELL_AMT_SUM --총금액
              , MAX(MT.FST_RGST_DTM)   AS FST_RGST_DTM--작성일자
-             , F_CMZ_MLNG_NM('TNT_BASE', 'MSG_TXT_PSH_SEND' , #{session.langId})                  AS DUMMY_TEXT
+             , F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_PSH_SEND' , #{session.langId})                  AS DUMMY_TEXT
              , MAX(MT.SELL_PRTNR_NO)  AS SELL_PRTNR_NO /*파트너번호*/
              , MAX(MT.SELL_PRTNR_NM)  AS SELL_PRTNR_NM /*파트너번호*/
              , '' AS RMK_CN
@@ -32,9 +31,8 @@
                       , MT.SELL_PRTNR_NO AS SELL_PRTNR_NO  /*파트너번호*/
                       , MT.SELL_PRTNR_NM AS SELL_PRTNR_NM  /*파트너번호*/
                    FROM TB_RVDW_BILDC_PBL_BAS MT
-                        INNER JOIN TB_RVDW_BILDC_PBL_DTL ST 
-                                ON (    MT.BILDC_PBL_NO  = ST.BILDC_PBL_NO
-                                    AND ST.DTA_DL_YN      = 'N')                     
+                  INNER JOIN TB_RVDW_BILDC_PBL_DTL ST 
+                     ON ( MT.BILDC_PBL_NO  = ST.BILDC_PBL_NO AND ST.DTA_DL_YN = 'N')                     
                     AND MT.DTA_DL_YN = 'N'
                     <if test='@MybatisUtils@isNotEmpty(cstFnm)'>
                     AND MT.CST_FNM LIKE #{cstFnm}||'%'
@@ -46,8 +44,8 @@
                     AND MT.BILDC_PBL_NO = #{bildcPblNo}
                     </if>
                 ) MT
-       GROUP BY MT.BILDC_PBL_NO 
-       ORDER BY MT.BILDC_PBL_NO DESC   
+         GROUP BY MT.BILDC_PBL_NO 
+         ORDER BY MT.BILDC_PBL_NO DESC   
     </select>
     
     <update id="deleteBillingDocuments">
@@ -281,9 +279,7 @@
     </insert>
     
     <select id="selectMmtSeq" resultType="String">
-        SELECT 
-               LAST_NUMBER
-          FROM all_sequences
-         WHERE sequence_name = 'ATA_MMT_TRAN_SEQ'
+        SELECT ATA_MMT_TRAN_SEQ.CURRVAL
+          FROM DUAL
     </select>
 </mapper>
