@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.sds.sflex.system.config.validation.validator.ValidDate;
+
 import io.swagger.annotations.ApiModel;
 
 public class WctiTaxInvoiceBaseDto {
@@ -13,8 +15,10 @@ public class WctiTaxInvoiceBaseDto {
     public record SearchReq(
         String TXINV_PBL_MTHD_CD,	//세금계산서발행방식코드
         @NotBlank
+        @ValidDate
         String SPLR_WRTE_STRTDT,    //공급자작성시작일자
         @NotBlank
+        @ValidDate
         String SPLR_WRTE_ENDDT,     //공급자작성종료일자
         String BZRNO,               //사업자등록번호
         String APLC_PSIC_ID         //신청담당자ID
