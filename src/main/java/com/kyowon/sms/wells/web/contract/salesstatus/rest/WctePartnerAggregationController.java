@@ -30,9 +30,11 @@ public class WctePartnerAggregationController {
 
     private final WctePartnerAggregationService service;
 
-    @ApiOperation(value = "wells 플래너별 계약 집계정보 조회", notes = "")
+    @ApiOperation(value = "wells 플래너별 계약 집계정보 조회", notes = "wells 플래너별 계약 집계정보 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query"),
+        @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query"),
     })
     @GetMapping
     public List<SearchRes> getPartnerAggregations(
