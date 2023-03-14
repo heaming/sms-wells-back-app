@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WctaSafeKeyCinfInqrService {
     private final WctaSafeKeyCinfInqrMapper mapper;
     // private final WcteSellLimitObjectService wcteSellLimitObjectService;
-    // private final WctaBlackContractService wctaBlackContractService;
+    private final WctaBlackContractService wctaBlackContractService;
     private final NiceSafekeyService niceSafekeyService;
     // private final ZctaCinfInqrService zctaCinfInqrService;
 
@@ -130,10 +130,10 @@ public class WctaSafeKeyCinfInqrService {
 
         // 처리내용5. 불필요
 
-        // 처리내용6.
-        // TODO 미개발 서비스
-        // wctaBlackContractService.getBlackListContracts();
-        // return SearchRes.builder().isSuccess(false).message("I00870").build();
+        // 처리내용6. 블랙리스트 여부 확인
+        if (wctaBlackContractService.isBlacklist(req.cralLocaraTno(), req.mexnoEncr(), req.cralIdvTno())) {
+            return SearchRes.builder().isSuccess(false).message("I00870").build();
+        }
 
         // 처리내용7.
         if (!req.isCinfInqr()) {
