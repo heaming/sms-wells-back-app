@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class WctiContractDetailDvo {
     private String cntrNo;
-    private String cntrSn;
+    private int cntrSn;
     private String cntrDtlStatCd;
     private String cntrDtlStatNm;
     private String pdHclsfId;
