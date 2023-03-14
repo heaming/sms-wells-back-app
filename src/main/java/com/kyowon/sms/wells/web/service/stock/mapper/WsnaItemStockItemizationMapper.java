@@ -109,25 +109,25 @@ public interface WsnaItemStockItemizationMapper {
      *
      * */
     /*작업유형이 등록 (V_WCOM_WRK_GB = 'A')이고 입출고유형이 기타입고(117), 외부 반품입고(162) 인경우 */
-    int insertAGdSvstCstSvItmStocIz(SaveReq dto);
+    int insertAGdSvstCstSvItmStocIz(WsnaItemStockItemizationDvo dvo);
 
     /**
      * 기타입고(117) , 외부 반품입고(162) B등급 INSERT 처리
      *
      * */
-    int insertBGdSvstCstSvItmStocIz(SaveReq dto);
+    int insertBGdSvstCstSvItmStocIz(WsnaItemStockItemizationDvo dvo);
 
     /**
      * 기타입고(117) , 외부 반품입고(162) E등급 INSERT 처리
      *
      * */
-    int insertEGdSvstCstSvItmStocIz(SaveReq dto);
+    int insertEGdSvstCstSvItmStocIz(WsnaItemStockItemizationDvo dvo);
 
     /**
      * 기타입고(117) , 외부 반품입고(162) R등급 INSERT 처리
      *
      * */
-    int insertRGdSvstCstSvItmStocIz(SaveReq dto);
+    int insertRGdSvstCstSvItmStocIz(WsnaItemStockItemizationDvo dvo);
 
     /**
      * 구매입고(110) A등급 UPDATE 처리
@@ -248,20 +248,20 @@ public interface WsnaItemStockItemizationMapper {
     /**
      * 이동재고처리(조회결과가 0 일경우) - 입출고유형 : 이동입고(991) A등급(작업구분이 A일경우)
      */
-    int insertMovementAGdQty(SaveReq dto);
+    int insertMovementAGdQty(WsnaItemStockItemizationDvo dvo);
 
     /**
      * 이동재고처리(조회결과가 0 일경우) - 입출고유형 : 이동입고(991) A등급(작업구분이 A일경우)
      */
-    int insertMovementBGdQty(SaveReq dto);
+    int insertMovementBGdQty(WsnaItemStockItemizationDvo dvo);
 
     /**
      * 이동재고처리(조회결과가 0 일경우) - 입출고유형 : 이동입고(991) A등급(작업구분이 A일경우)
      */
-    int insertMovementEGdQty(SaveReq dto);
+    int insertMovementEGdQty(WsnaItemStockItemizationDvo dvo);
 
     /**
      * 이동재고처리(조회결과가 0 일경우) - 입출고유형 : 이동입고(991) A등급(작업구분이 A일경우)
      */
-    int insertMovementRGdQty(SaveReq dto);
+    int insertMovementRGdQty(WsnaItemStockItemizationDvo dvo);
 }

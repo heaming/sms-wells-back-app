@@ -9,10 +9,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -26,33 +23,33 @@ public class WsnaItemStockItemizationController {
     private final WsnaItemStockItemizationService service;
 
     @ApiOperation(value = "품목재고내역 등록", notes = "고객서비스 품목재고내역에 입출고유형 및 등급에 따라 내역, 수량을 INSERT / DELETE / UPDATE 한다.")
-    @PostMapping("stock-registration")
-    public SaveResponse saveItemStockIzRgsts(
+    @PostMapping("/stocks")
+    public SaveResponse createStock(
         @Valid
         @RequestBody
         WsnaItemStockItemizationDto.SaveReq dto
     ) throws Exception {
-        return SaveResponse.builder().processCount(service.saveItemStockIzRgsts(dto)).build();
+        return SaveResponse.builder().processCount(service.createStock(dto)).build();
     }
 
     @ApiOperation(value = "품목재고내역 삭제", notes = "고객서비스 품목재고내역에 입출고유형 및 등급에 따라 내역, 수량을 INSERT / DELETE / UPDATE 한다.")
-    @PostMapping("stock-delete")
-    public SaveResponse saveItemStockIzDls(
+    @DeleteMapping("/stocks")
+    public SaveResponse removeStock(
         @Valid
         @RequestBody
         WsnaItemStockItemizationDto.SaveReq dto
     ) throws Exception {
-        return SaveResponse.builder().processCount(service.saveItemStockIzDls(dto)).build();
+        return SaveResponse.builder().processCount(service.removeStock(dto)).build();
     }
 
     @ApiOperation(value = "품목재고내역 이동", notes = "고객서비스 품목재고내역에 입출고유형 및 등급에 따라 내역, 수량을 INSERT / DELETE / UPDATE 한다.")
-    @PostMapping("stock-movement")
-    public SaveResponse saveItemStockIzMmts(
+    @PutMapping("/stocks/movement")
+    public SaveResponse saveStockMovement(
         @Valid
         @RequestBody
         WsnaItemStockItemizationDto.SaveReq dto
     ) throws Exception {
-        return SaveResponse.builder().processCount(service.saveItemStockIzMmts(dto)).build();
+        return SaveResponse.builder().processCount(service.saveStockMovement(dto)).build();
     }
 
 }

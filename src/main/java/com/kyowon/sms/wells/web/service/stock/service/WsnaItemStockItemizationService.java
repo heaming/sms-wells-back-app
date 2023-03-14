@@ -4,6 +4,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.lang.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public class WsnaItemStockItemizationService {
      *            iostTp : 입출고유형 , workDiv : 작업구분, itmPdCd : 품목상품코드, mngtUnit : 관리단위
      *            itemGd : 상품등급 , qty : 수량 , mvcYn : ?? , freeYn : ??, chgYn : ??}]
      */
-    public int saveItemStockIzRgsts(WsnaItemStockItemizationDto.SaveReq dto) throws ParseException {
+    public int createStock(WsnaItemStockItemizationDto.SaveReq dto) throws ParseException {
         WsnaItemStockItemizationDvo dvo = new WsnaItemStockItemizationDvo();
         int processCount = 0;
         int cmpPlnQty = 0; /*입고예정수량과 파라미터로 넘어온 수량을 뺀 결과값*/
@@ -105,42 +106,37 @@ public class WsnaItemStockItemizationService {
                     cmpPlnQty = Integer.parseInt(varbDvo.getStrExpAGdQty()) - Integer.parseInt(dto.qty());
                     cmpBuffQty = Integer.parseInt(varbDvo.getPitmStocAGdQty());
 
-                    if (cmpPlnQty >= 0) {
-                        /*시점재고등급수량*/
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
-                        /*입고예정등급수량*/
-                        strExpGdQty = Integer.parseInt(varbDvo.getStrExpAGdQty()) - Integer.parseInt(dto.qty());
-                        dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setStrExpAGdQty(String.valueOf(strExpGdQty));
-                        dvo.setFnlStrDt(sampleDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
+                    BizAssert.isTrue(cmpPlnQty >= 0, "MSG_TXT_STR_EXP_MINUS");
 
-                        processCount += mapper.updatePurchaseAStore(dvo);
+                    /*시점재고등급수량*/
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
+                    /*입고예정등급수량*/
+                    strExpGdQty = Integer.parseInt(varbDvo.getStrExpAGdQty()) - Integer.parseInt(dto.qty());
+                    dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setStrExpAGdQty(String.valueOf(strExpGdQty));
+                    dvo.setFnlStrDt(sampleDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
 
-                    } else {
-                        throw new BizException("MSG_TXT_STR_EXP_MINUS"); //입고예정부수가 MINUS 발생 오류!
-                    }
+                    processCount += mapper.updatePurchaseAStore(dvo);
 
                 } else if ("110".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     cmpPlnQty = Integer.parseInt(varbDvo.getSftStocBGdQty()) - Integer.parseInt(dto.qty());
                     cmpBuffQty = Integer.parseInt(varbDvo.getPitmStocBGdQty());
 
-                    if (cmpPlnQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
-                        /*입고예정등급수량*/
-                        strExpGdQty = Integer.parseInt(dvo.getStrExpBGdQty()) - Integer.parseInt(dto.qty());
-                        dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setStrExpBGdQty(String.valueOf(strExpGdQty));
-                        dvo.setFnlStrDt(sampleDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
+                    //입고예정부수가 MINUS 발생 오류!
+                    BizAssert.isTrue(cmpPlnQty >= 0, "MSG_TXT_STR_EXP_MINUS");
 
-                        processCount += mapper.updatePurchaseBStore(dvo);
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
+                    /*입고예정등급수량*/
+                    strExpGdQty = Integer.parseInt(dvo.getStrExpBGdQty()) - Integer.parseInt(dto.qty());
+                    dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setStrExpBGdQty(String.valueOf(strExpGdQty));
+                    dvo.setFnlStrDt(sampleDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
 
-                    } else {
-                        throw new BizException("MSG_TXT_STR_EXP_MINUS"); //입고예정부수가 MINUS 발생 오류!
-                    }
+                    processCount += mapper.updatePurchaseBStore(dvo);
 
                 }
                 /*===============================================================================
@@ -152,27 +148,25 @@ public class WsnaItemStockItemizationService {
                 ===============================================================================*/
                 if ("117".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     cmpOnQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
-                    if (cmpOnQty >= 0) {
-                        dvo.setPitmStocAGdQty(String.valueOf(cmpOnQty));
-                        dvo.setFnlOstrDt(String.valueOf(fnlOstrDt));
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
-                        processCount += mapper.updatePitmStocAGd(dvo);
-                    } else {
-                        throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류!
-                    }
+                    //시점재고부수가 MINUS 발생 오류!
+                    BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
+
+                    dvo.setPitmStocAGdQty(String.valueOf(cmpOnQty));
+                    dvo.setFnlOstrDt(String.valueOf(fnlOstrDt));
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    processCount += mapper.updatePitmStocAGd(dvo);
 
                 } else if ("117".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     cmpOnQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
-                    if (cmpOnQty >= 0) {
-                        dvo.setPitmStocEGdQty(String.valueOf(cmpOnQty));
-                        dvo.setFnlOstrDt(String.valueOf(fnlOstrDt));
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
-                        processCount += mapper.updatePitmStocEGd(dvo);
-                    } else {
-                        throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류!
-                    }
+
+                    BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
+
+                    dvo.setPitmStocEGdQty(String.valueOf(cmpOnQty));
+                    dvo.setFnlOstrDt(String.valueOf(fnlOstrDt));
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    processCount += mapper.updatePitmStocEGd(dvo);
 
                 }
                 /*===============================================================================
@@ -193,57 +187,55 @@ public class WsnaItemStockItemizationService {
                 if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     //이동재고A등급수량 - 입력된수량
                     cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocAGdQty()) - Integer.parseInt(dto.qty());
-                    if (cmpBuffQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
-                        dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlStrDt(sampleDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
-                        processCount += mapper.updateNormalStoreAQty(dvo);
-                    } else {
-                        throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                    }
+
+                    //이동재고부수가 MINUS 발생 오류!
+                    BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
+
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
+                    dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlStrDt(sampleDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    processCount += mapper.updateNormalStoreAQty(dvo);
+
                 } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocBGdQty()) - Integer.parseInt(dto.qty());
 
-                    if (cmpBuffQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
-                        dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlStrDt(sampleDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
-                        processCount += mapper.updateNormalStoreBQty(dvo);
-                    } else {
-                        throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                    }
+                    //이동재고부수가 MINUS 발생 오류!
+                    BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
+
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
+                    dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlStrDt(sampleDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    processCount += mapper.updateNormalStoreBQty(dvo);
 
                 } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocEGdQty()) - Integer.parseInt(dto.qty());
 
-                    if (cmpBuffQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
-                        dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlStrDt(sampleDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
-                        processCount += mapper.updateNormalStoreEQty(dvo);
-                    } else {
-                        throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                    }
+                    //이동재고부수가 MINUS 발생 오류!
+                    BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
+
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
+                    dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlStrDt(sampleDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    processCount += mapper.updateNormalStoreEQty(dvo);
 
                 } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocRGdQty()) - Integer.parseInt(dto.qty());
 
-                    if (cmpBuffQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
-                        dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlStrDt(sampleDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
-                        processCount += mapper.updateNormalStoreRQty(dvo);
-                    } else {
-                        throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                    }
+                    //이동재고부수가 MINUS 발생 오류!
+                    BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
+
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
+                    dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlStrDt(sampleDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    processCount += mapper.updateNormalStoreRQty(dvo);
 
                 }
                 /*===============================================================================
@@ -324,72 +316,65 @@ public class WsnaItemStockItemizationService {
 
                     cmpOnQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
 
-                    if (cmpOnQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
-                        dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlOstrDt(endOstrDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
+                    //시점재고부수가 MINUS 발생 오류 !
+                    BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                        processCount += mapper.updateInsiOtsdAGdOstr(dvo);
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
+                    dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlOstrDt(endOstrDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
 
-                    } else {
-                        throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                    }
+                    processCount += mapper.updateInsiOtsdAGdOstr(dvo);
 
                 } else if (List.of("221", "222", "223", "261", "262", "211", "212", "213", "217", "218", "281", "292")
                     .contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
 
                     cmpOnQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
 
-                    if (cmpOnQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
-                        dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlOstrDt(endOstrDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
+                    //시점재고부수가 MINUS 발생 오류 !
+                    BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                        processCount += mapper.updateInsiOtsdBGdOstr(dvo);
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
+                    dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlOstrDt(endOstrDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
 
-                    } else {
-                        throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                    }
+                    processCount += mapper.updateInsiOtsdBGdOstr(dvo);
 
                 } else if (List.of("221", "222", "223", "261", "262", "211", "212", "213", "217", "218", "281", "292")
                     .contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
 
                     cmpOnQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
 
-                    if (cmpOnQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
-                        dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlOstrDt(endOstrDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
+                    //시점재고부수가 MINUS 발생 오류 !
+                    BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                        processCount += mapper.updateInsiOtsdEGdOstr(dvo);
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
+                    dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlOstrDt(endOstrDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
 
-                    } else {
-                        throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                    }
+                    processCount += mapper.updateInsiOtsdEGdOstr(dvo);
 
                 } else if (List.of("221", "222", "223", "261", "262", "211", "212", "213", "217", "218", "281", "292")
                     .contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
 
                     cmpOnQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
 
-                    if (cmpOnQty >= 0) {
-                        pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
-                        dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                        dvo.setFnlOstrDt(endOstrDate);
-                        dvo.setWareNo(dto.wareNo());
-                        dvo.setItmPdCd(dto.itmPdCd());
+                    //시점재고부수가 MINUS 발생 오류 !
+                    BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                        processCount += mapper.updateInsiOtsdRGdOstr(dvo);
+                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
+                    dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
+                    dvo.setFnlOstrDt(endOstrDate);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
 
-                    } else {
-                        throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                    }
+                    processCount += mapper.updateInsiOtsdRGdOstr(dvo);
+
                 }
                 //TODO : 월별품목재고내역 관리 서비스(W-SV-S-0086)의 등록 메소드를(saveMcbyItmStocIzRgsts)를 호출한다. (개발완료시 반영예정)
             }
@@ -397,14 +382,32 @@ public class WsnaItemStockItemizationService {
             if (StringUtils.startsWith(dto.workDiv(), "A")) {
                 /*작업유형이 등록 (V_WCOM_WRK_GB = 'A')이고 입출고유형이 기타입고(117), 외부 반품입고(162) 인경우 */
                 if (List.of("117", "162").contains(dto.iostTp()) && "A".equals(dto.itemGd())) {
-                    processCount += mapper.insertAGdSvstCstSvItmStocIz(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setPitmStocAGdQty(dto.qty());
+
+                    processCount += mapper.insertAGdSvstCstSvItmStocIz(dvo);
 
                 } else if (List.of("117", "162").contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
-                    processCount += mapper.insertBGdSvstCstSvItmStocIz(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setPitmStocBGdQty(dto.qty());
+
+                    processCount += mapper.insertBGdSvstCstSvItmStocIz(dvo);
+
                 } else if (List.of("117", "162").contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
-                    processCount += mapper.insertEGdSvstCstSvItmStocIz(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setPitmStocEGdQty(dto.qty());
+
+                    processCount += mapper.insertEGdSvstCstSvItmStocIz(dvo);
+
                 } else if (List.of("117", "162").contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
-                    processCount += mapper.insertRGdSvstCstSvItmStocIz(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setPitmStocRGdQty(dto.qty());
+
+                    processCount += mapper.insertRGdSvstCstSvItmStocIz(dvo);
                 }
 
                 //TODO : 월별품목재고내역 관리 서비스(W-SV-S-0086)의 등록 메소드를(saveMcbyItmStocIzRgsts)를 호출 (개발완료시 반영예정)
@@ -421,7 +424,7 @@ public class WsnaItemStockItemizationService {
      *            iostTp : 입출고유형 , workDiv : 작업구분, itmPdCd : 품목상품코드, mngtUnit : 관리단위
      *            itemGd : 상품등급 , qty : 수량 , mvcYn : ?? , freeYn : ??, chgYn : ??}]
      */
-    public int saveItemStockIzDls(WsnaItemStockItemizationDto.SaveReq dto) throws ParseException {
+    public int removeStock(WsnaItemStockItemizationDto.SaveReq dto) throws ParseException {
 
         WsnaItemStockItemizationDvo dvo = new WsnaItemStockItemizationDvo();
         int processCount = 0;
@@ -487,41 +490,37 @@ public class WsnaItemStockItemizationService {
             if ("110".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 cmpPlnQty = Integer.parseInt(varbDvo.getStrExpAGdQty()) + Integer.parseInt(dto.qty());
 
-                if (cmpPlnQty >= 0) {
-                    /*시점재고등급수량*/
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
-                    /*입고예정등급수량*/
-                    strExpGdQty = Integer.parseInt(varbDvo.getStrExpAGdQty()) + Integer.parseInt(dto.qty());
-                    dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setStrExpAGdQty(String.valueOf(strExpGdQty));
-                    dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //입고예정부수가 MINUS 발생 오류!
+                BizAssert.isTrue(cmpPlnQty >= 0, "MSG_TXT_STR_EXP_MINUS");
 
-                    processCount += mapper.updatePurchaseAGdStore(dvo);
+                /*시점재고등급수량*/
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
+                /*입고예정등급수량*/
+                strExpGdQty = Integer.parseInt(varbDvo.getStrExpAGdQty()) + Integer.parseInt(dto.qty());
+                dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setStrExpAGdQty(String.valueOf(strExpGdQty));
+                dvo.setFnlStrDt(sampleDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
 
-                } else {
-                    throw new BizException("MSG_TXT_STR_EXP_MINUS"); //입고예정부수가 MINUS 발생 오류!
-                }
+                processCount += mapper.updatePurchaseAGdStore(dvo);
 
             } else if ("110".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 cmpPlnQty = Integer.parseInt(varbDvo.getStrExpBGdQty()) + Integer.parseInt(dto.qty());
 
-                if (cmpPlnQty >= 0) {
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
-                    /*입고예정등급수량*/
-                    strExpGdQty = Integer.parseInt(dvo.getStrExpBGdQty()) + Integer.parseInt(dto.qty());
-                    dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setStrExpBGdQty(String.valueOf(strExpGdQty));
-                    dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //입고예정부수가 MINUS 발생 오류!
+                BizAssert.isTrue(cmpPlnQty >= 0, "MSG_TXT_STR_EXP_MINUS");
 
-                    processCount += mapper.updatePurchaseBGdStore(dvo);
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
+                /*입고예정등급수량*/
+                strExpGdQty = Integer.parseInt(dvo.getStrExpBGdQty()) + Integer.parseInt(dto.qty());
+                dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setStrExpBGdQty(String.valueOf(strExpGdQty));
+                dvo.setFnlStrDt(sampleDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
 
-                } else {
-                    throw new BizException("MSG_TXT_STR_EXP_MINUS"); //입고예정부수가 MINUS 발생 오류!
-                }
+                processCount += mapper.updatePurchaseBGdStore(dvo);
 
             }
 
@@ -539,64 +538,64 @@ public class WsnaItemStockItemizationService {
             --이동재고부수가 0보다 적으면 ERROR 발생
             ===============================================================================*/
             if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "A".equals(dto.itemGd())) {
+
                 cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocAGdQty()) + Integer.parseInt(dto.qty());
 
-                if (cmpBuffQty >= 0) {
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
-                    dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //이동재고부수가 MINUS 발생 오류!
+                BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
 
-                    processCount += mapper.updateInsiStoreAGdQty(dvo);
-                } else {
-                    throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                }
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
+                dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlStrDt(sampleDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
+
+                processCount += mapper.updateInsiStoreAGdQty(dvo);
+
             } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
+
                 cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocBGdQty()) + Integer.parseInt(dto.qty());
 
-                if (cmpBuffQty >= 0) {
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
-                    dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //이동재고부수가 MINUS 발생 오류!
+                BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
 
-                    processCount += mapper.updateInsiStoreBGdQty(dvo);
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
+                dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlStrDt(sampleDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
 
-                } else {
-                    throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                }
+                processCount += mapper.updateInsiStoreBGdQty(dvo);
+
             } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
+
                 cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocEGdQty()) + Integer.parseInt(dto.qty());
 
-                if (cmpBuffQty >= 0) {
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
-                    dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //이동재고부수가 MINUS 발생 오류!
+                BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
 
-                    processCount += mapper.updateInsiStoreEGdQty(dvo);
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
+                dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlStrDt(sampleDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
 
-                } else {
-                    throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                }
+                processCount += mapper.updateInsiStoreEGdQty(dvo);
+
             } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 cmpBuffQty = Integer.parseInt(varbDvo.getMmtStocRGdQty()) + Integer.parseInt(dto.qty());
 
-                if (cmpBuffQty >= 0) {
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
-                    dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //이동재고부수가 MINUS 발생 오류!
+                BizAssert.isTrue(cmpBuffQty >= 0, "MSG_TXT_MMT_STOC_MINUS");
 
-                    processCount += mapper.updateInsiStoreRGdQty(dvo);
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
+                dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlStrDt(sampleDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
 
-                } else {
-                    throw new BizException("MSG_TXT_MMT_STOC_MINUS"); //이동재고부수가 MINUS 발생 오류!
-                }
+                processCount += mapper.updateInsiStoreRGdQty(dvo);
+
             }
             /*입출고유형이 반품외부입고(162), 재고조정입고(181)*/
             if (List.of("162", "181").contains(dto.iostTp()) && "A".equals(dto.itemGd())) {
@@ -658,71 +657,68 @@ public class WsnaItemStockItemizationService {
                 .contains(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 cmpOnQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
 
-                if (cmpOnQty >= 0) {
+                //시점재고부수가 MINUS 발생 오류 !
+                BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
 
-                    dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlOstrDt(endOstrDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
 
-                    processCount += mapper.updateInsiOstrAGdQty(dvo);
+                processCount += mapper.updateInsiOstrAGdQty(dvo);
 
-                } else {
-                    throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                }
             } else if (List.of("221", "222", "223", "261", "262", "211", "212", "213", "217", "218", "281", "292")
                 .contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
-                if (cmpOnQty >= 0) {
 
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
+                cmpOnQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
 
-                    dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //시점재고부수가 MINUS 발생 오류 !
+                BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                    processCount += mapper.updateInsiOstrBGdQty(dvo);
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
 
-                } else {
-                    throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                }
+                dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlOstrDt(endOstrDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
+
+                processCount += mapper.updateInsiOstrBGdQty(dvo);
 
             } else if (List.of("221", "222", "223", "261", "262", "211", "212", "213", "217", "218", "281", "292")
                 .contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
-                if (cmpOnQty >= 0) {
 
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
+                cmpOnQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
 
-                    dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                //시점재고부수가 MINUS 발생 오류 !
+                BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                    processCount += mapper.updateInsiOstrEGdQty(dvo);
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
 
-                } else {
-                    throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                }
+                dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlOstrDt(endOstrDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
+
+                processCount += mapper.updateInsiOstrEGdQty(dvo);
 
             } else if (List.of("221", "222", "223", "261", "262", "211", "212", "213", "217", "218", "281", "292")
                 .contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
 
-                if (cmpOnQty >= 0) {
+                cmpOnQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
 
-                    pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
+                //시점재고부수가 MINUS 발생 오류 !
+                BizAssert.isTrue(cmpOnQty >= 0, "MSG_TXT_PITM_STOC_MINUS");
 
-                    dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+                pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
 
-                    processCount += mapper.updateInsiOstrRGdQty(dvo);
+                dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
+                dvo.setFnlOstrDt(endOstrDate);
+                dvo.setWareNo(dto.wareNo());
+                dvo.setItmPdCd(dto.itmPdCd());
 
-                } else {
-                    throw new BizException("MSG_TXT_PITM_STOC_MINUS"); //시점재고부수가 MINUS 발생 오류 !
-                }
+                processCount += mapper.updateInsiOstrRGdQty(dvo);
 
             }
 
@@ -737,7 +733,7 @@ public class WsnaItemStockItemizationService {
      *            iostTp : 입출고유형 , workDiv : 작업구분, itmPdCd : 품목상품코드, mngtUnit : 관리단위
      *            itemGd : 상품등급 , qty : 수량 , mvcYn : ?? , freeYn : ??, chgYn : ??}]
      */
-    public int saveItemStockIzMmts(WsnaItemStockItemizationDto.SaveReq dto) {
+    public int saveStockMovement(WsnaItemStockItemizationDto.SaveReq dto) {
 
         int processCount = 0;
         int movementValue = 0;
@@ -864,16 +860,28 @@ public class WsnaItemStockItemizationService {
             if (StringUtils.startsWith(dto.workDiv(), "A")) {
 
                 if ("991".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
-                    processCount += mapper.insertMovementAGdQty(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setMmtStocAGdQty(dto.qty());
+                    processCount += mapper.insertMovementAGdQty(dvo);
 
                 } else if ("991".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
-                    processCount += mapper.insertMovementBGdQty(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setMmtStocBGdQty(dto.qty());
+                    processCount += mapper.insertMovementBGdQty(dvo);
 
                 } else if ("991".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
-                    processCount += mapper.insertMovementEGdQty(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setMmtStocEGdQty(dto.qty());
+                    processCount += mapper.insertMovementEGdQty(dvo);
 
                 } else if ("991".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
-                    processCount += mapper.insertMovementRGdQty(dto);
+                    dvo.setWareNo(dto.wareNo());
+                    dvo.setItmPdCd(dto.itmPdCd());
+                    dvo.setMmtStocRGdQty(dto.qty());
+                    processCount += mapper.insertMovementRGdQty(dvo);
 
                 }
             } else {
