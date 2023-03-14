@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
-public class WctiContractIntallInterfaceController {
+public class WctiContractInstallInterfaceController {
     private final WctiContractInstallService service;
 
     @ApiOperation(value = "[EAI_WSSI1051] 계약처, 설치처 정보 변경", notes = "설치처 정보 변경에 한함")
