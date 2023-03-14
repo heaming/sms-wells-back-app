@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -187,33 +188,39 @@ public class WctaContractService {
         WctaSpaySlamtInqrDvo dvo = converter.mapSearchSpaySlamtInqrReqToWctaSpaySlamtInqrDvo(dto);
 
         //GUBN : W-WEB(홈케어）H-KSS(홈케어）, K-KSS(일반상품)
-        if (dvo.getPdGubn().equals("W")) {
-            if (StringUtil.isNull(dvo.getPdCd()) || StringUtil.isNull(dvo.getDscGubn())
-                || StringUtil.isNull(dvo.getVlDtm())) {
+        if ("W".equals(dvo.getPdGubn())) {
+            if (StringUtils.isAnyEmpty(dvo.getPdCd(), dvo.getDscGubn(), dvo.getVlDtm())) {
                 return null;
             }
+            /*if (StringUtil.isNull(dvo.getPdCd()) || StringUtil.isNull(dvo.getDscGubn())
+                || StringUtil.isNull(dvo.getVlDtm())) {
+                return null;
+            }*/
         }
 
         //상품구분/상품코드／접수일/할인구분 필수 체크
-        if (StringUtil.isNull(dvo.getPdGubn()) || StringUtil.isNull(dvo.getPdCd()) || StringUtil.isNull(dvo.getVlDtm())
-            || StringUtil.isNull(dvo.getDscGubn())) {
+        if (StringUtils.isAnyEmpty(dvo.getPdGubn(), dvo.getPdCd(), dvo.getVlDtm(), dvo.getDscGubn())) {
             return null;
         }
+        /*if (StringUtil.isNull(dvo.getPdGubn()) || StringUtil.isNull(dvo.getPdCd()) || StringUtil.isNull(dvo.getVlDtm())
+            || StringUtil.isNull(dvo.getDscGubn())) {
+            return null;
+        }*/
 
         //상품구분 (홈케어/일반상품) 필수 체크
-        if (!(dvo.getPdGubn().equals("W") || dvo.getPdGubn().equals("K") || dvo.getPdGubn().equals("H"))) {
+        if (!("W".equals(dvo.getPdGubn()) || "K".equals(dvo.getPdGubn()) || "H".equals(dvo.getPdGubn()))) {
             return null;
         }
 
         //쿠폰은 웹에서만 등록 가능
-        if (dvo.getDscGubn().equals("C") || dvo.getDscGubn().equals("D")) {
+        if ("C".equals(dvo.getDscGubn()) || "D".equals(dvo.getDscGubn())) {
             if (!dvo.getPdGubn().equals("W")) {
                 return null;
             }
         }
 
         //쿠폰일 경우 ETC3-ETC4는　필수조건
-        if (dvo.getPdGubn().equals("W") && (dvo.getDscGubn().equals("C") || dvo.getDscGubn().equals("D"))) {
+        if ("W".equals(dvo.getPdGubn()) && ("C".equals(dvo.getDscGubn()) || "D".equals(dvo.getDscGubn()))) {
             if (StringUtil.isNull(dvo.getDscType())) {
                 return null;
             }
@@ -227,11 +234,11 @@ public class WctaContractService {
         }
 
         //홈케어　상품구분１，２필수체크위한　변수
-        if ((dvo.getPdGubn().equals("W") || dvo.getPdGubn().equals("H")) && (!dvo.getPdCd().equals("3710"))) {
+        if (("W".equals(dvo.getPdGubn()) || "H".equals(dvo.getPdGubn())) && (!"3710".equals(dvo.getPdCd()))) {
             dvo.setPdClsfId("Y");
         }
 
-        if (dvo.getPdCd().equals("3710")) {
+        if ("3710".equals(dvo.getPdCd())) {
             dvo.setPdClsfId("");
         }
 

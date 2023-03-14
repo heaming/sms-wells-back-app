@@ -76,7 +76,7 @@ public class WctaReBogoCustomerCheckService {
         BizAssert.hasText(dvo.getDscApyDtlCd(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_PD_DC_CLASS"}); //할인구분을 확인하세요.
 
         //할인유형 필수 (할인구분 직원구매(2)가 아닌경우 유형 필수)
-        if (!dvo.getDscApyDtlCd().equals("202") && StringUtil.isEmpty(dvo.getDscApyDrmVal())) {
+        if (!"202".equals(dvo.getDscApyDtlCd()) && StringUtil.isEmpty(dvo.getDscApyDrmVal())) {
             BizAssert.hasText(dvo.getDscApyDrmVal(), "MSG_ALT_CHK_CONFIRM", new String[] {"MSG_TXT_DISC_CODE"}); //할인유형을 확인하세요.
         }
 
