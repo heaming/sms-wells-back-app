@@ -80,7 +80,9 @@ public class WpdcAsPartsMgtService {
 
         // #5. 이력 INSERT
         String startDtm = DateUtil.getDate(new Date());
-        hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        // AS부품은 'CMM'과 'PART' 만 이력을 쌓는다.
+        //        hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
 
         return productConverter.mapProductDvoToPdBas(dvo);
     }
