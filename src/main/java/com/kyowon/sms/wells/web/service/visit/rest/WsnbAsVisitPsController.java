@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/as-visit-state")
-@Api(tags = "[WSNB] 방문 관리 REST API")
+@Api(tags = "[WSNB] 상품별 서비스 처리 집계 REST API")
 @RequiredArgsConstructor
 @Validated
 public class WsnbAsVisitPsController {

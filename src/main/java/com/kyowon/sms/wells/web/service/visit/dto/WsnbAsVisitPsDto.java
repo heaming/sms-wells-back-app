@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.visit.dto;
 
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 /**
  * <pre>
@@ -26,6 +26,7 @@ public class WsnbAsVisitPsDto {
 
     @ApiModel(value = "WsnbBpdSvProcsAgrgPsDto-SearchRes")
     public record SearchRes(
+        String sapMatCd, // SAP코드
         String pdCd, // 상품코드
         String pdNm, // 상품약어명
         String siteAwPdGrpCd, // 현장수당상품그룹코드
