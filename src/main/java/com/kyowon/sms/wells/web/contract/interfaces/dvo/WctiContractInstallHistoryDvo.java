@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class WctiContractInstallHistoryDvo {
     private String cntrNo;
-    private String cntrSn;
+    private int cntrSn;
     private String cralLocaraTno;
     @DBDecField
     private String mexno;
