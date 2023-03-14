@@ -235,9 +235,10 @@ public class WwdbBillingDocumentMgtService {
             .callback(dvo.getCallback())
             .build();
 
-        String selectMmtSeq = mapper.selectMmtSeq();
+        //        String selectMmtSeq = mapper.selectMmtSeq();
         processCount += kakaoMessageService.sendMessage(kakaoSendReqDvo); //채번에 문제가 있음
-        dvo.setBildcFwDrmNo1(selectMmtSeq);
+        dvo.setBildcFwDrmNo1(dvo.getDestInfo());
+        dvo.setBildcFwDrmNo2(dvo.getCallback());
         processCount += mapper.insertBillingDocumentForwarding(dvo);
         return processCount;
     }
