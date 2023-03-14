@@ -749,5 +749,176 @@
 		     ) A
 		 WHERE 1=1
 		   AND A.DV = #{schDv}
+		   
+    <!--
+        SELECT CASE WHEN T1.BND_ASN_DT <![CDATA[>]]> T2.FST_RGST_DTM AND SUBSTR( T2.TEL_CNSL_RS_CD , 1 ,1 ) = 1 THEN '○'
+		            WHEN T1.BND_ASN_DT <![CDATA[>]]> T2.FST_RGST_DTM AND SUBSTR( T2.TEL_CNSL_RS_CD , 1 ,1 ) = 2 THEN '△'
+		            ELSE 'Ｘ'
+		        END AS CTT /* 컨택 */
+		     , T3.SELL_TP_CD AS BIZ_DV/* 업무구분 */
+		     , '제품군' AS PRDF /* 제품군 */
+		     , T4.PD_NM AS PDCT_NM /* 제품명 */
+		     , T1.CNTR_NO AS CNTR_NO /* 계약번호 */
+		     , T5.CST_KNM AS CST_NM /* 고객명 */
+		     , T6.DLQ_MCN AS DLQ_MCNT /* 연체개월 */
+		     , NVL(0, 0) AS OJ_AMT /* 대상금액 */ 
+		     , NVL(0, 0) AS OJ_DT /* 대상입금 */ 
+		     , NVL(0, 0) - NVL(0, 0) AS OJ_BLAM /* 대상금액 - 대상입금 = 대상잔액 */ 
+		     , T6.DLQ_AMT + T6.DLQ_ADD_AMT AS TOT_DLQ_AMT /* 연체금액 + 연체가산금 = 총연체금 */
+		     , T6.DLQ_DP_AMT + T6.DLQ_ADD_DP_AMT AS TOT_DLQ_DP /* 연체입금금액 + 연체가산금입금금액 = 총연체입금 */
+		     , (T6.DLQ_AMT + T6.DLQ_ADD_AMT) - (T6.DLQ_DP_AMT + T6.DLQ_ADD_DP_AMT) AS TOT_DLQ_BLAM /* 총연체금 - 총연체입금 = 총연체잔액 */
+		     , T6.DLQ_AMT AS DLQ_AMT /* 연체금액 */
+		     , T6.DLQ_DP_AMT AS DLQ_DP /* 연체입금 */
+		     , T6.DLQ_AMT - T6.DLQ_DP_AMT AS DLQ_BLAM /* 연체금액 - 연체입금 = 연체잔액 */  
+		     , T6.THM_CHRAM_AMT AS MM_CHRAM_AMT /* 월요금액 */      
+		     , T6.THM_CHRAM_DP_AMT AS MM_CHRAM_DP /* 월요금입금 */       
+		     , T6.THM_CHRAM_AMT - T6.THM_CHRAM_DP_AMT AS MM_CHRAM_BLAM /* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */      
+		     , T6.DLQ_ADD_AMT AS DLQ_ADD_AMT /* 연체가산금액 */       
+		     , T6.DLQ_ADD_DP_AMT AS DLQ_ADD_DP /* 연체가산입금 */     
+		     , T6.DLQ_ADD_AMT - T6.DLQ_ADD_DP_AMT AS DLQ_ADAMT_BLAM /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */      
+		     , T6.UC_AMT AS UC_AMT /* 미수금액 */       
+		     , 'UC_DP' AS UC_DP /* 미수입금 */  
+		     , 'UC_BLAM' AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */ 
+		     , 'TOT_AM' AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */ 
+		     , 'SPMT_SL' AS SPMT_SL /* 추가매출 */  
+		     , T6.RSG_BOR_AMT AS CCAM /* 위약금 */
+		     , 'LSFE' AS LSFE /* 분실료 */     
+		     , 'RTLFE1' AS RTLFE1 /* 렌탈료1 */        
+		     , 'RTLFE1_DSC' AS RTLFE1_DSC /* 렌탈료1할 */       
+		     , 'RTLFE2' AS RTLFE2 /* 렌탈료2 */        
+		     , 'RTLFE2_DSC' AS RTLFE2_DSC /* 렌탈료2할 */       
+		     , T7.PROM_DT AS PROM_DT /* 약속일자 */ 
+		     , T2.DPR_NM AS DPR_NM /* 입금자명 */   
+		     , T8.CVCP_CN AS CVCP_INF /* 민원정보 */    
+		     , ( SELECT PRTNR_KNM
+		           FROM TB_OGBS_PRTNR_BAS
+		          WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO
+		       ) AS PRTNR_KNM   /* 집급담당 */
+		     , T9.CRAL_LOCARA_TNO || T9.MEXNO_ENCR || T9.CRAL_IDV_TNO AS CNTR_MPNO /* 계약휴대전화번호 */
+		     , T9.LOCARA_TNO || T9.EXNO_ENCR || T9.IDV_TNO AS CNTR_TNO /* 계약전화번호 */
+		     , T14.CRAL_LOCARA_TNO || T14.MEXNO_ENCR || T14.CRAL_IDV_TNO AS IST_MPNO /* 설치휴대전화번호 */
+		     , T14.LOCARA_TNO || T14.EXNO_ENCR || T14.IDV_TNO AS IST_TNO /* 설치전화번호 */
+		     , T1.CST_NO AS CST_NO /* 고객번호 */
+		     , T1.BND_TF_DT AS TF_DT /* 이관일자 */ 
+		     , T10.BU_NOTI_DT AS BU_NOTI_DT /* 부담통보일자 */    
+		     , T10.BU_NOTI_TP_CD AS BU_NOTI_TP /* 부담통보유형 */ 
+		     , T9.SPP_ZIP AS CNTR_ZIP /* 계약우편번호 */
+		     , T9.SPP_ADR || T9.SPP_DTL_ADR AS CNTR_ADR /* 계약주소 */
+		     , T14.SPP_ZIP AS IST_ZIP /* 설치우편번호 */
+		     , T14.SPP_ADR || T14.SPP_DTL_ADR AS IST_ADR /* 설치주소 */
+		     , T11.VAC_BNK_CD AS VT_AC_BNK /* 가상계좌은행 */ 
+		     , T11.VAC_NO AS VT_AC_NO /* 가상계좌번호 */  
+		     , T12.PESU_DT AS PESU_DT /* 독촉일자 */    
+		     , T12.HI_DT AS HI_DT /* 최고일자 */    
+		     , T12.DFLT_DT AS BND_NFF_DT /* 채불일자 */ 
+		     , ( SELECT LWM_DT
+		           FROM TB_CBBO_BND_LWM_IZ
+		          WHERE CST_NO = T1.CST_NO 
+		            AND LWM_TP_CD = '01' 
+		            AND LWM_DTL_TP_CD = '01' 
+		       ) AS CPSN_EFCM  /* 강제집행*/
+		     , ( SELECT LWM_DT
+		           FROM TB_CBBO_BND_LWM_IZ
+		          WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '02' AND LWM_DTL_TP_CD = '02'
+		       ) AS DSB_CMD  /* 지급명령*/
+		     , ( SELECT LWM_DT
+		           FROM TB_CBBO_BND_LWM_IZ
+		          WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '03' AND LWM_DTL_TP_CD = '03'
+		       ) AS PRTY_CLRS  /* 재산명시*/
+		     , ( SELECT LWM_DT
+		           FROM TB_CBBO_BND_LWM_IZ
+		          WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '04' AND LWM_DTL_TP_CD = '04'
+		       ) AS SUBM_CMD  /* 제출명령*/
+		     , ( SELECT LWM_DT
+		           FROM TB_CBBO_BND_LWM_IZ
+		          WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '06' AND LWM_DTL_TP_CD = '06'
+		       ) AS CRC_CMD  /* 보정명령*/
+		     , ( SELECT LWM_DT
+		           FROM TB_CBBO_BND_LWM_IZ
+		          WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '07' AND LWM_DTL_TP_CD = '07'
+		       ) AS CUJ_DBT_NFF  /* 법원채불*/
+		     , T13.BND_VST_RS_CD AS VST_RS  /* 방문결과*/   
+		     , T13.VST_DT AS VST_DT  /* 방문일자*/  
+		     , T5.SFK_VAL AS SFK /* 세이프키*/
+		     , T8.CNSL_UNUITM_CN AS UNUITM /* 특이사항*/
+		  FROM TB_CBBO_BND_CNSL_BAS_IZ T1 /* 채권상담기본내역 */
+		 INNER JOIN TB_CBBO_BND_TEL_CNSL_IZ T2 /* 채권전화상담내역 */
+		    ON T1.CST_NO = T2.CST_NO
+		 INNER JOIN TB_SSCT_CNTR_DTL T3 /* 계약상세 */
+		    ON T1.CNTR_NO = T3.CNTR_NO
+		   AND T1.CNTR_SN = T3.CNTR_SN
+		 INNER JOIN TB_PDBS_PD_BAS T4 /* 상품기본 */
+		    ON T3.BASE_PD_CD = T4.PD_CD
+		 INNER JOIN TB_CUBS_CST_BAS T5 /* 고객기본 */
+		    ON T1.CST_NO = T5.CST_NO
+		 INNER JOIN TB_CBBO_BND_CNTR_BAS T6 /* 채권계약기본 */
+		    ON T1.CNTR_NO = T6.CNTR_NO
+		   AND T1.CNTR_SN = T6.CNTR_SN
+		 INNER JOIN TB_CBBO_BND_CNSL_PROM_BOO_IZ T7 /* 채권상담약속예약내역 */
+		    ON T1.CST_NO = T7.CST_NO
+		 INNER JOIN TB_CBBO_BND_UNUITM_CVCP_DTL T8 /* 채권특이사항민원상세 */
+		    ON T1.CST_NO = T8.CST_NO
+		  LEFT OUTER JOIN 
+		                (
+		                  SELECT CR.CNTR_ADRPC_ID /* 계약주소지ID */
+		                       , CB.ADR_ID /* 주소ID */
+		                       , CR.DTL_CNTR_NO /* 상세계약번호 */
+		                       , CR.DTL_CNTR_SN /* 상세계약일련번호 */
+		                       , CB.LOCARA_TNO /* 전화번호1 */
+		                       , CB.EXNO_ENCR /* 전화번호2 */
+		                       , CB.IDV_TNO /* 전화번호3 */
+		                       , CB.CRAL_LOCARA_TNO /* 휴대전화번호1 */
+		                       , CB.MEXNO_ENCR /* 휴대전화번호2 */
+		                       , CB.CRAL_IDV_TNO /* 휴대전화번호3 */
+		                       , NVL(AB.NEW_ADR_ZIP, AB.OLD_ADR_ZIP) AS SPP_ZIP /* 우편번호 */
+		                       , NVL(AB.RNADR, AB.LTN_ADR) AS SPP_ADR /* 주소 */
+		                       , NVL(AB.RDADR, AB.LTN_DTL_ADR) AS SPP_DTL_ADR /* 상세주소 */
+		                    FROM TB_SSCT_CNTR_ADR_REL CR /* 계약주소관계 */
+		                    LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB /* 계약주소지기본 */
+		                      ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
+		                    LEFT OUTER JOIN TB_GBCO_ADR_BAS AB /* 주소기본 */
+		                      ON AB.ADR_ID = CB.ADR_ID
+		                   WHERE CR.CNTR_UNIT_TP_CD = '020'
+		                     AND CR.ADRPC_TP_CD = '1'   /* 계약주소 */
+		                     AND CR.DTA_DL_YN = 'N'
+		                ) T9
+		    ON T1.CNTR_NO = T9.DTL_CNTR_NO
+		   AND T1.CNTR_SN = T9.DTL_CNTR_SN
+		 INNER JOIN TB_FEDD_BU_NOTI_RGST_BAS T10 /* 부담통보등록기본 */
+		    ON T1.CNTR_NO = T10.CNTR_NO
+		   AND T1.CNTR_SN = T10.CNTR_SN
+		 INNER JOIN TB_RVDW_VAC_IS_IZ T11 /* 가상계좌발급내역 */
+		    ON T1.CST_NO = T11.ICHR_PRTNR_NO
+		 INNER JOIN TB_CBBO_BND_LWM_IZ T12 /* 채권법조치내역 */
+		    ON T1.CST_NO = T12.CST_NO
+		 INNER JOIN TB_CBBO_BND_CNSL_VST_IZ T13 /* 채권상담방문내역 */
+		    ON T1.CST_NO = T13.CST_NO 
+		  LEFT OUTER JOIN 
+		                (
+		                  SELECT CR.CNTR_ADRPC_ID
+		                       , CR.DTL_CNTR_NO
+		                       , CR.DTL_CNTR_SN
+		                       , CB.LOCARA_TNO
+		                       , CB.EXNO_ENCR
+		                       , CB.IDV_TNO
+		                       , CB.CRAL_LOCARA_TNO
+		                       , CB.MEXNO_ENCR
+		                       , CB.CRAL_IDV_TNO
+		                       , NVL(AB.NEW_ADR_ZIP, AB.OLD_ADR_ZIP) AS SPP_ZIP /* 우편번호 */
+		                       , NVL(AB.RNADR, AB.LTN_ADR) AS SPP_ADR /* 주소 */
+		                       , NVL(AB.RDADR, AB.LTN_DTL_ADR) AS SPP_DTL_ADR /* 상세주소 */
+		                    FROM TB_SSCT_CNTR_ADR_REL CR
+		                    LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB
+		                      ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
+		                    LEFT OUTER JOIN TB_GBCO_ADR_BAS AB /* 주소기본 */
+		                      ON AB.ADR_ID = CB.ADR_ID 
+		                   WHERE CR.CNTR_UNIT_TP_CD = '020'
+		                     AND CR.ADRPC_TP_CD = '2'  /* 설치주소 */
+		                     AND CR.DTA_DL_YN = 'N'
+		                ) T14
+		    ON T1.CNTR_NO = T14.DTL_CNTR_NO
+		   AND T1.CNTR_SN = T14.DTL_CNTR_SN  
+
+			    -->
     </select>
 </mapper>
