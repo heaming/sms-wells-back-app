@@ -46,4 +46,12 @@ public class WwctaDocumentReceiptPssController {
     ) {
         return service.getDocumentReceipts(dto);
     }
+
+    @GetMapping("/document-receipts/excel-download")
+    public List<SearchRes> getDocumentReceiptsExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getDocumentReceiptsExcelDownload(dto);
+    }
 }

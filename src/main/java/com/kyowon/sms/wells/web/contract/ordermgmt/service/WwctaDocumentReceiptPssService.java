@@ -19,7 +19,10 @@ public class WwctaDocumentReceiptPssService {
     private final WwctaDocumentReceiptPssMapper mapper;
 
     public List<SearchRes> getDocumentReceipts(SearchReq dto) {
+        return mapper.selectDocumentReceipts(dto);
+    }
 
+    public List<SearchRes> getDocumentReceiptsExcelDownload(SearchReq dto) {
         return mapper.selectDocumentReceipts(dto);
     }
 }
