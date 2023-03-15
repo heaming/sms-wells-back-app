@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 
@@ -13,8 +14,8 @@ public class WctiRentalAdditionalServiceDto {
     public record SearchReq(
         @NotBlank
         String CNTR_NO, //계약번호(필수)
-        @NotBlank
-        String CNTR_SN //계약일련번호(필수)
+        @NotNull
+        int CNTR_SN //계약일련번호(필수)
     ) {}
 
     // *********************************************************
@@ -25,9 +26,9 @@ public class WctiRentalAdditionalServiceDto {
     public record SearchRes(
         String IST_DT,
         String REQD_DT,
-        String ADN_SV_CS_AMT,
-        String RENTAL_AMT,
-        String TOT_AMT
+        Integer ADN_SV_CS_AMT,
+        Integer RENTAL_AMT,
+        Integer TOT_AMT
     ) {}
 }
 
