@@ -15,5 +15,5 @@ public class WctbRentalMshSmdCstUseCtDvo {
     private String pdHclsfCnt;
     private String pdMclsfId;
     private String pdMclsfCnt;
-    private String TotPdQty;
+    private String totPdQty;
 }
