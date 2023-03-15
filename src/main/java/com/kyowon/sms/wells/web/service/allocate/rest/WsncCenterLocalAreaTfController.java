@@ -46,6 +46,13 @@ public class WsncCenterLocalAreaTfController {
         return wsncCenterLocalAreaTfService.getCenterAreas(dto, pageInfo);
     }
 
+    @GetMapping("/excel-download")
+    public List<WsncCenterLocalAreaTfDto.SearchRes> getCenterAreasExcelDownload(
+        WsncCenterLocalAreaTfDto.SearchReq dto
+    ) {
+        return wsncCenterLocalAreaTfService.getCenterAreasExcelDownload(dto);
+    }
+
     @ApiOperation(value = "센터지역 이관 화면 - 센터지역 이관 등록 및 수정", notes = "센터지역 이관 저장")
     @PostMapping
     public SaveResponse createCenterAreas(

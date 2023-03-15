@@ -27,6 +27,12 @@ public class WsncCenterLocalAreaTfService {
         return wsncCenterLocalAreaTfMapper.selectCenterAreas(dto, pageInfo);
     }
 
+    public List<WsncCenterLocalAreaTfDto.SearchRes> getCenterAreasExcelDownload(
+        WsncCenterLocalAreaTfDto.SearchReq dto
+    ) {
+        return wsncCenterLocalAreaTfMapper.selectCenterAreas(dto);
+    }
+
     @Transactional
     public int insertCenterAreas(List<WsncCenterLocalAreaTfDto.SaveReq> dtos) throws Exception {
         int processCnt = 0;

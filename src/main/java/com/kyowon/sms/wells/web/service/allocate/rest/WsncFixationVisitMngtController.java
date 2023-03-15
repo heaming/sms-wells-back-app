@@ -1,14 +1,16 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncFixationVisitDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncFixationVisitService;
-import com.sds.sflex.system.config.datasource.PagingResult;
-import org.springframework.web.bind.annotation.*;
-
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -38,6 +40,13 @@ public class WsncFixationVisitMngtController {
         PageInfo pageInfo
     ) {
         return wsncFixationVisitMgntService.getFixationVisits(dto, pageInfo);
+    }
+
+    @GetMapping("/excel-download")
+    public List<WsncFixationVisitDto.SearchRes> getFixationVisitsExcelDownload(
+        WsncFixationVisitDto.SearchReq dto
+    ) {
+        return wsncFixationVisitMgntService.getFixationVisitsExcelDownload(dto);
     }
 
     @ApiOperation(value = "고정방문 등록 팝업 - 고정방문 등록 팝업 조회", notes = "조회조건에 따른 고정방문 등록 팝업 조회")
