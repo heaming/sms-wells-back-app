@@ -32,6 +32,13 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
 
     }
 
+    public record SearchSumReq(
+        String lifSpptYm, /*라이프지원년월*/
+        String lifAlncDvCd /*라이프제휴구분코드*/
+    ) {
+
+    }
+
     public record SaveReq(
         String lifSpptYm, /*라이프지원년월*/
         String lifAlncDvCd, /*라이프제휴구분코드*/

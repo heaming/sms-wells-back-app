@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbMutualAidAllianceBulkDepositRegDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -18,7 +19,7 @@ public interface WwdbMutualAidAllianceBulkDepositRegMapper {
 
     List<SearchRes> selectMutualAidAllianceBulkDepositRegs(SearchReq dto);
 
-    SearchSumRes selectMutualAidAllianceBulkDepositRegsSum(SearchReq dto);
+    SearchSumRes selectMutualAidAllianceBulkDepositRegsSum(SearchSumReq dto);
 
     int insertMutualAidAllianceBulkDepositReg(WwdbMutualAidAllianceBulkDepositRegDvo dvo);
 }

@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkD
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchDepositRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbMutualAidAllianceBulkDepositRegDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbIntegrationDepositMapper;
@@ -53,7 +54,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
     }
 
     @Transactional
-    public SearchSumRes getMutualAidAllianceBulkDepositRegsSum(SearchReq dto) {
+    public SearchSumRes getMutualAidAllianceBulkDepositRegsSum(SearchSumReq dto) {
         return mapper.selectMutualAidAllianceBulkDepositRegsSum(dto);
     }
 
@@ -142,9 +143,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         int diffDay = DateUtil.getDays(sysDateYm, dto.rveDt());
 
         //이전만 가능하기에 0보다 크면 예외 발생
-        if (diffDay > 0) {
-            throw new BizException("수납일자는 현재일 과 이전만 가능 합니다.");
-        }
+        BizAssert.isTrue(diffDay > 0, "수납일자는 현재일 과 이전만 가능 합니다.");
 
         //수납일자가 같은 월이 아니면 예외 발생
         if (!sysDateYm.contentEquals(dto.rveDt().substring(0, 6))) {
@@ -153,10 +152,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         diffDay = DateUtil.getDays(sysDateYm, dto.perfDt());
 
-        //오늘 날짜와 실적일자사이가 0보다 클 경우 예외 발생 
-        if (diffDay > 0) {
-            throw new BizException("실적일자는 현재일과 이전만 가능 합니다.");
-        }
+        //오늘 날짜와 실적일자사이가 0보다 클 경우 예외 발생         
+        BizAssert.isTrue(diffDay > 0, "수납일자는 현재일 과 이전만 가능 합니다.");
 
         if (!sysDateYm.contentEquals(dto.perfDt().substring(0, 6))) {
             throw new BizException("실적일자 는 현재월 만 가능합니다.");
@@ -178,12 +175,9 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         long dpBlam = selectIntegrationDeposit.dpBlam();
         long sumAmt = selectMutualAidAllianceBulkDepositRegs.get(0).sumAmt();
 
-        if (dpBlam == 0) {
-            throw new BizException("대사 할 입금잔액이 없습니다. 입금잔액을 확인하세요.");
-        }
-        if (dpBlam != sumAmt) {
-            throw new BizException("통합 입금잔액 과 총 대사금액 이 일치하지 않습니다.");
-        }
+        BizAssert.isTrue(dpBlam == 0, "대사 할 입금잔액이 없습니다. 입금잔액을 확인하세요.");
+
+        BizAssert.isTrue(dpBlam != sumAmt, "통합 입금잔액 과 총 대사금액 이 일치하지 않습니다.");
 
         /* 아직 테스트 중이라 미완성*/
 

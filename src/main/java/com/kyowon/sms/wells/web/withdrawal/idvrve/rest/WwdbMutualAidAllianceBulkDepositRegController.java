@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbMutualAidAllianceBulkDepositRegService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
@@ -70,10 +71,12 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
     }
 
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "lifSpptYm", value = "라이프지원년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "lifAlncDvCd", value = "라이프제휴구분코드", paramType = "query", required = false),
     })
     @ApiOperation(value = "상조제휴 일괄입금 등록 입금내역 조회", notes = " 검색조건을 받아 상조제휴 일괄입금 등록 입금내역 목록을 조회한다.")
     @GetMapping
-    public SearchSumRes getMutualAidAllianceBulkDepositRegsSum(SearchReq dto) {
+    public SearchSumRes getMutualAidAllianceBulkDepositRegsSum(SearchSumReq dto) {
         return service.getMutualAidAllianceBulkDepositRegsSum(dto);
     }
 
