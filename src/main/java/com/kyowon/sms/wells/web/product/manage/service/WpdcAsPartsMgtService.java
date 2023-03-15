@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.manage.service;
 import java.util.Date;
 import java.util.List;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,26 +65,33 @@ public class WpdcAsPartsMgtService {
         int processCount = 0;
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
 
-        // #1. Wells 특화
-        // 교재/자재 : PD_TP_DTL_M(제품) , AS부품: PD_TP_DTL_A (As)부품
-        dvo.setPdTpDtlCd(PdProductConst.PD_TP_DTL_CD_P);
-
-        // #2. 분류체계 분류 계층값 FILL-IN
+        // #1. 분류체계 분류 계층값 FILL-IN(순서변경불가.) 
         dvo = clsfService.getClassifcationHierarchy(dvo);
 
-        // #3. 상품 마스터 INSERT
-        processCount = productMapper.insertProduct(dvo);
+        /* 
+         * #2. 상품 마스터 INSERT/UPDATE
+         * 교재/자재 : PD_TP_DTL_M(제품) , AS부품: PD_TP_DTL_A (As)부품
+         * 해당 값이 없으면 'AS-PART'에서 신규추가한 데이터이므로 INSERT
+         *        있으면 '교재/자재'에서  생성된    데이터이므로 UPDATE
+         */
+        if (StringUtil.isEmpty(dvo.getPdTpDtlCd())) {
+            dvo.setPdTpDtlCd(PdProductConst.PD_TP_DTL_CD_P);
+            processCount = productMapper.insertProduct(dvo);
+        } else {
+            processCount = productMapper.updateProduct(dvo);
+        }
 
-        // #4. 각사 속성 INSERT
+        // #3. 각사 속성 INSERT
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
-        // #5. 이력 INSERT
-        String startDtm = DateUtil.getDate(new Date());
-        // AS부품은 'CMM'과 'PART' 만 이력을 쌓는다.
-        // hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        // #4. 이력 INSERT
+        // TODO - 확인필요 POINT
+        // AS부품은 'CMM'과 'PART' 만 이력을 쌓는 게 맞으면 createAsPartHistory() 아니라면 createProductHistory
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
-            hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
+            String startDtm = DateUtil.getDate(new Date());
+            //  hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
+            hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
 
         return productConverter.mapProductDvoToPdBas(dvo);
