@@ -81,8 +81,10 @@ public class WpdcAsPartsMgtService {
         // #5. 이력 INSERT
         String startDtm = DateUtil.getDate(new Date());
         // AS부품은 'CMM'과 'PART' 만 이력을 쌓는다.
-        //        hisService.createProductHistory(dvo.getPdCd(), startDtm);
-        ///hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
+        // hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+            hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
+        }
 
         return productConverter.mapProductDvoToPdBas(dvo);
     }
@@ -99,8 +101,10 @@ public class WpdcAsPartsMgtService {
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
-        String startDtm = DateUtil.getDate(new Date());
-        hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+            String startDtm = DateUtil.getDate(new Date());
+            hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        }
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 
