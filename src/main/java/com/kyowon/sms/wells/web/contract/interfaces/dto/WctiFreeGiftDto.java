@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 
@@ -18,8 +19,8 @@ public class WctiFreeGiftDto {
     public record SearchReq(
         @NotBlank
         String CNTR_NO,
-        @NotBlank
-        String CNTR_SN
+        @NotNull
+        int CNTR_SN
     ) {}
 
     // *********************************************************
@@ -30,6 +31,6 @@ public class WctiFreeGiftDto {
     public record SearchRes(
         String FGPT_PD_CD, // 사은품상품코드
         String FGPT_PD_NM, // 사은품상품명
-        String FGPT_QTY // 사은품수량
+        Integer FGPT_QTY // 사은품수량
     ) {}
 }
