@@ -13,7 +13,7 @@ public interface WfebHomeMasterGradeConverter {
 
     WfebHomeMasterGradeDvo mapSaveReqToWfebHomeMasterPointDvo(SavePointReq dto);
 
-    WfebHomeMasterGradeDvo mapSaveReqToWfebHomeMasterGradeTransferDvo(SearchReq dto);
+    WfebHomeMasterGradeDvo mapSaveReqToWfebHomeMasterGradeTransferDvo(SearchTransferReq dto);
 
     WfebHomeMasterGradeDvo mapRemoveReqToWfebHomeMasterGradeTransferDvo(RemoveReq dto);
 

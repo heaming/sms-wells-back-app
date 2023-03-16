@@ -26,6 +26,14 @@ public class WfebHomeMasterGradeDto {
         String prtnrNo
     ) {}
 
+    @ApiModel(value = "WfebHomeMasterGradeDto-SearchTransferReq")
+    public record SearchTransferReq(
+        @NotBlank
+        String mngtYm,
+        String emplNm,
+        String prtnrNo
+    ) {}
+
     // 홈마스터 등급관리 상세 Search Request Dto
     @ApiModel(value = "WfebHomeMasterGradeDto-SearchDetailReq")
     public record SearchDetailReq(
@@ -46,7 +54,9 @@ public class WfebHomeMasterGradeDto {
     // 홈마스터 포인트 저장 Save Request Dto
     @ApiModel(value = "WfebHomeMasterGradeDto-SavePointReq")
     public record SavePointReq(
+        @NotBlank
         String prtnrNo,
+        @NotBlank
         String mngtYm,
         String sellPVal,
         String svPVal,
@@ -60,7 +70,9 @@ public class WfebHomeMasterGradeDto {
     // 홈마스터 등급 포인트 삭제  remove Request Dto
     @ApiModel(value = "WfebHomeMasterGradeDto-RemoveReq")
     public record RemoveReq(
+        @NotBlank
         String prtnrNo,
+        @NotBlank
         String mngtYm
     ) {}
 

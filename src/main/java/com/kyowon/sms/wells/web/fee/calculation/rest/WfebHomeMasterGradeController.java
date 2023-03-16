@@ -103,7 +103,7 @@ public class WfebHomeMasterGradeController {
     public SaveResponse saveHomeMasterGradeTransfers(
         @RequestBody
         @Valid
-        SearchReq dto
+        SearchTransferReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveHomeMasterGradeTransfers(dto))

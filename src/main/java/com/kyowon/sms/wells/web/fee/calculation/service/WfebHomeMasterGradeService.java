@@ -138,7 +138,7 @@ public class WfebHomeMasterGradeService {
      */
 
     @Transactional
-    public int saveHomeMasterGradeTransfers(SearchReq dto) {
+    public int saveHomeMasterGradeTransfers(SearchTransferReq dto) {
         int processCount = 0;
 
         WfebHomeMasterGradeDvo dvo = this.converter.mapSaveReqToWfebHomeMasterGradeTransferDvo(dto);
