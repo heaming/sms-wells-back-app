@@ -2,10 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.*;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -17,10 +14,7 @@ import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalPackageGrpMngtsDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSpaySlamtInqrDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.common.utils.DateUtil;
@@ -127,6 +121,16 @@ public class WctaContractService {
         SearchConfirmApprovalBaseReq dto
     ) {
         return mapper.selectConfirmApprovalBases(dto);
+    }
+
+    // 렌탈료 가져오기
+    public WctaPdPrcFnlDtlDvo getRentalFee(SearchRentalFeeReq req) {
+        WctaPdPrcFnlDtlDvo dvo = mapper.selectRentalFee(req);
+        if (Objects.isNull(dvo)) {
+            dvo = new WctaPdPrcFnlDtlDvo();
+            dvo.setRentalCheck("1");
+        }
+        return dvo;
     }
 
     @Transactional

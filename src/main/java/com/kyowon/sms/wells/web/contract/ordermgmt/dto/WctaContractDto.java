@@ -236,6 +236,22 @@ public class WctaContractDto {
         String vlEndDtm,
         String notyFwOjYn
     ) {}
+    //wells 렌탈료 가져오기 SearchReq
+    @ApiModel("WctaContractDto-SearchRentalFeeReq")
+    public record SearchRentalFeeReq(
+        @NotBlank
+        String pdCd,
+        @NotBlank
+        String svVstPrdCd,
+        @NotBlank
+        String svTpCd,
+        @NotBlank
+        String rgstFee,
+        @NotBlank
+        String chgMcn,
+        @NotBlank
+        String verSn
+    ) {}
 
     //wells 일시불 판매금 조회 - 일시불 판매금 조회 Search Result Dto
     @ApiModel("WctaContractDto-SearchSpaySlamtInqrRes")
