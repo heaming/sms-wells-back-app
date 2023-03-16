@@ -14,6 +14,7 @@ import org.thymeleaf.util.StringUtils;
 import com.google.gson.JsonObject;
 import com.kyowon.sms.wells.web.service.common.dto.WsnzRegistrationBarCodeDto;
 import com.kyowon.sms.wells.web.service.common.service.WsnzRegistrationBarCodeService;
+import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.system.config.constant.CommConst;
 
 import io.swagger.annotations.Api;
@@ -28,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 public class WsnzRegistrationBarCodeController {
 
     private final WsnzRegistrationBarCodeService service;
+
+    private final MessageResourceService messageService;
 
     @GetMapping
     public void getRegistrationBarCodes(
@@ -47,10 +50,10 @@ public class WsnzRegistrationBarCodeController {
 
             if (res == null || StringUtils.isEmpty(res.custCd())) {
                 json.addProperty("CODE", "1");
-                json.addProperty("MESSAGE", "정보가 존재하지 않습니다");
+                json.addProperty("MESSAGE", messageService.getMessage("MSG_TXT_NOT_EXIST_QR")); //정보가 존재하지 않습니다
             } else {
                 json.addProperty("CODE", "0");
-                json.addProperty("MESSAGE", "정상");
+                json.addProperty("MESSAGE", messageService.getMessage("MSG_TXT_NOM")); //정상
                 json.addProperty("LCNCDE", res.lcncde());
                 json.addProperty("LCIUSE", res.lciuse());
                 json.addProperty("GDS_CD", res.gdsCd());
@@ -76,15 +79,15 @@ public class WsnzRegistrationBarCodeController {
         } catch (Exception e) {
             e.printStackTrace();
             json.addProperty("CODE", "1");
-            json.addProperty("MESSAGE", "QR코드 조회 오류");
+            json.addProperty("MESSAGE", messageService.getMessage("MSG_TXT_QR_SEARCH_ERROR")); //QR코드 조회 오류
         }
 
         try {
-            out.print(json.toString());
+            out.print(json);
             out.close();
         } catch (Exception e) {
             json.addProperty("CODE", "1");
-            json.addProperty("MESSAGE", "Json파일 생성오류");
+            json.addProperty("MESSAGE", messageService.getMessage("MSG_TXT_JSON_CREATE_ERROR")); //Json파일 생성오류
             out.print(json);
             out.close();
         }

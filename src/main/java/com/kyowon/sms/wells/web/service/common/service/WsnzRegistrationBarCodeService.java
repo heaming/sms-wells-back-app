@@ -26,4 +26,5 @@ public class WsnzRegistrationBarCodeService {
         WsnzRegistrationBarCodeDto.SearchReq dto = new WsnzRegistrationBarCodeDto.SearchReq(qrcd);
         return getRegistrationBarCodes(dto);
     }
+
 }
