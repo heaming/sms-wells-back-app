@@ -1,0 +1,286 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebHomeMasterGradeMapper">
+
+
+    <select id='selectHomeMasterGrades'
+            resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebHomeMasterGradeDto$SearchRes">
+        SELECT AK05.AKDDYM AS MNGT_YM
+        ,AK05.AKDDPT AS BELONG
+        ,AK05.AKDNAM AS EMPL_NM
+        ,AK05.AKDCDE AS PRTNR_NO
+        ,AK05.AKDSYM AS RGST_YM
+        ,B.HMST_GD_VAL AS CL_DV_CD
+        ,AK05.BONNAM AS BRMGR_EMPL_NM
+        ,AK05.AKDBON AS BRMGR_PRTNR_NO
+        , '저장' AS SAVE
+        , '포인트이력' AS POINT_HISTORY
+        FROM
+        (
+        SELECT '서울지점' AS AKDDPT
+        ,'1234567' AS AKDCDE
+        ,'홍길동' AS AKDNAM
+        ,#{mngtYm} AS AKDDYM
+        ,#{mngtYm} AS AKDSYM
+        ,'1230000' AS AKDBON
+        ,'홍서방' BONNAM
+        FROM DUAL
+        UNION
+        SELECT '부산지점' AS AKDDPT
+        ,'1223456' AS AKDCDE
+        ,'고길동' AS AKDNAM
+        ,#{mngtYm} AS AKDDYM
+        ,#{mngtYm} AS AKDSYM
+        ,'1220000' AS AKDBON
+        ,'고서방' BONNAM
+        FROM DUAL
+        /* AK0500P 조직테이블 현재없음 테스트를 위한 임시처리*/
+        )AK05
+        LEFT OUTER JOIN
+        (SELECT B.PRTNR_NO
+        ,B.HMST_GD_VAL
+        FROM TB_FEAM_HMST_GD_BAS B
+        WHERE 1 = 1
+        AND MNGT_YM = #{mngtYm}
+        )B ON (AK05.AKDCDE = B.PRTNR_NO)
+        WHERE 1 = 1
+        ORDER BY AK05.AKDDPT
+
+    </select>
+
+    <select id='selectHomeMasterGradeDetails'
+            resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebHomeMasterGradeDto$SearchDetailRes">
+        SELECT MAIN.MNGT_YM
+        ,MAIN.PRTNR_NO
+        ,MAIN.EMPL_NM
+        ,MAIN.SELL_P_VAL
+        ,MAIN.SV_P_VAL
+        ,MAIN.EDUC_P_VAL
+        ,MAIN.ETC_P_VAL1
+        ,MAIN.ETC_P_VAL2
+        ,MAIN.ETC_P_VAL3
+        ,MAIN.TOT_SUM
+        ,C.HMST_GD_VAL AS CL_DV_CD
+        ,'저장' AS SAVE
+        ,MAIN.NEW_YN
+        FROM
+        (SELECT NVL(B.MNGT_YM,#{mngtYm}) AS MNGT_YM
+        ,A.AKDCDE AS PRTNR_NO
+        ,A.AKDNAM AS EMPL_NM
+        ,B.SELL_P_VAL
+        ,B.SV_P_VAL
+        ,B.EDUC_P_VAL
+        ,B.ETC_P_VAL1
+        ,B.ETC_P_VAL2
+        ,B.ETC_P_VAL3
+        ,NVL(B.SELL_P_VAL+B.SV_P_VAL+B.EDUC_P_VAL+B.ETC_P_VAL1+B.ETC_P_VAL2+B.ETC_P_VAL3,0) AS TOT_SUM
+        ,CASE WHEN B.MNGT_YM IS NULL THEN 'Y' ELSE 'N' END AS NEW_YN
+        FROM
+        (
+        SELECT #{prtnrNo} AS AKDCDE
+        ,#{emplNm} AS AKDNAM
+        FROM DUAL A
+        /* AK0500P 조직테이블 현재없음 테스트를 위한 임시처리 */
+        )A
+        LEFT OUTER JOIN
+        (
+        SELECT T.MNGT_YM
+        ,PRTNR_NO
+        ,SUM(SELL_P_VAL) SELL_P_VAL
+        ,SUM(SV_P_VAL) SV_P_VAL
+        ,SUM(EDUC_P_VAL) EDUC_P_VAL
+        ,SUM(ETC_P_VAL1) ETC_P_VAL1
+        ,SUM(ETC_P_VAL2) ETC_P_VAL2
+        ,SUM(ETC_P_VAL3) ETC_P_VAL3
+        FROM
+        (
+        SELECT MNGT_YM
+        ,PRTNR_NO
+        ,SELL_P_VAL
+        ,SV_P_VAL
+        ,EDUC_P_VAL
+        ,ETC_P_VAL1
+        ,ETC_P_VAL2
+        ,ETC_P_VAL3
+        FROM TB_FEAM_HMST_GD_IZ
+        WHERE 1 = 1
+        AND SUBSTR(MNGT_YM,0,4) = SUBSTR(#{mngtYm},0,4)
+        AND SUBSTR(MNGT_YM,5,2) BETWEEN 1 AND 12
+        )T
+        GROUP BY MNGT_YM,PRTNR_NO
+        )B ON (A.AKDCDE = B.PRTNR_NO)
+        )MAIN
+        LEFT OUTER JOIN
+        (SELECT MNGT_YM
+        ,PRTNR_NO
+        ,HMST_GD_VAL
+        FROM TB_FEAM_HMST_GD_BAS
+        WHERE 1 = 1
+        AND SUBSTR(MNGT_YM,0,4) = SUBSTR(#{mngtYm},0,4)
+        AND SUBSTR(MNGT_YM,5,2) BETWEEN 1 AND 12
+        )C ON (MAIN.MNGT_YM = C.MNGT_YM AND MAIN.PRTNR_NO = C.PRTNR_NO)
+        ORDER BY MAIN.MNGT_YM
+    </select>
+
+    <insert id="mergeHomeMasterGrades">
+        MERGE INTO TB_FEAM_HMST_GD_BAS A
+        USING DUAL
+        ON(A.PRTNR_NO = #{prtnrNo}
+        AND A.MNGT_YM = #{mngtYm})
+        WHEN MATCHED THEN
+        UPDATE SET A.HMST_GD_VAL = #{clDvCd}
+        , A.FNL_MDFC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        , A.FNL_MDFC_USR_ID = 'TESTUSR'
+        , A.FNL_MDFC_PRG_ID = 'KSS_WELLS'
+        , A.FNL_MDFC_DEPT_ID = 'TESTDEPT'
+        WHEN NOT MATCHED THEN
+        INSERT(
+        A.MNGT_YM
+        , A.PRTNR_NO
+        , A.HMST_GD_VAL
+        , A.FST_RGST_DTM
+        , A.FST_RGST_USR_ID
+        , A.FST_RGST_PRG_ID
+        , A.FST_RGST_DEPT_ID
+        , A.FNL_MDFC_DTM
+        , A.FNL_MDFC_USR_ID
+        , A.FNL_MDFC_PRG_ID
+        , A.FNL_MDFC_DEPT_ID
+        )
+        VALUES (
+          #{mngtYm}
+        , #{prtnrNo}
+        , #{clDvCd}
+        , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        , 'TESTUSR'
+        , 'KSS_WELLS'
+        , 'TESTDEPT'
+        , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        , 'TESTUSR'
+        , 'KSS_WELLS'
+        , 'TESTDEPT'
+        )
+
+    </insert>
+
+    <insert id="mergeHomeMasterPoint">
+        MERGE INTO TB_FEAM_HMST_GD_IZ A
+        USING DUAL
+        ON(A.PRTNR_NO = #{prtnrNo}
+        AND A.MNGT_YM = #{mngtYm})
+        WHEN MATCHED THEN
+        UPDATE SET A.SELL_P_VAL = NVL(#{sellPVal},0)
+        , A.SV_P_VAL = NVL(#{svPVal},0)
+        , A.EDUC_P_VAL = NVL(#{educPVal},0)
+        , A.ETC_P_VAL1 = NVL(#{etcPVal1},0)
+        , A.ETC_P_VAL2 = NVL(#{etcPVal2},0)
+        , A.ETC_P_VAL3 = NVL(#{etcPVal3},0)
+        , A.CL_DV_CD = #{clDvCd}
+        , A.FNL_MDFC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        , A.FNL_MDFC_USR_ID = 'TESTUSR'
+        , A.FNL_MDFC_PRG_ID = 'KSS_WELLS'
+        , A.FNL_MDFC_DEPT_ID = 'TESTDEPT'
+        WHEN NOT MATCHED THEN
+        INSERT(
+        A.PRTNR_NO
+        , A.MNGT_YM
+        , A.SELL_P_VAL
+        , A.SV_P_VAL
+        , A.EDUC_P_VAL
+        , A.ETC_P_VAL1
+        , A.ETC_P_VAL2
+        , A.ETC_P_VAL3
+        , A.CL_DV_CD
+        , A.FST_RGST_DTM
+        , A.FST_RGST_USR_ID
+        , A.FST_RGST_PRG_ID
+        , A.FST_RGST_DEPT_ID
+        , A.FNL_MDFC_DTM
+        , A.FNL_MDFC_USR_ID
+        , A.FNL_MDFC_PRG_ID
+        , A.FNL_MDFC_DEPT_ID
+        )
+        VALUES (
+        #{prtnrNo}
+        , #{mngtYm}
+        , NVL(#{sellPVal},0)
+        , NVL(#{svPVal},0)
+        , NVL(#{educPVal},0)
+        , NVL(#{etcPVal1},0)
+        , NVL(#{etcPVal2},0)
+        , NVL(#{etcPVal3},0)
+        , #{clDvCd}
+        , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        , 'TESTUSR'
+        , 'KSS_WELLS'
+        , 'TESTDEPT'
+        , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        , 'TESTUSR'
+        , 'KSS_WELLS'
+        , 'TESTDEPT'
+        )
+
+    </insert>
+
+
+    <delete id="deletegeHomeMasterGrades">
+        DELETE
+        FROM TB_FEAM_HMST_GD_BAS
+        WHERE 1 = 1
+        AND MNGT_YM = #{mngtYm}
+    </delete>
+
+    <insert id="insertHomeMasterGradeTransfers">
+        INSERT INTO TB_FEAM_HMST_GD_BAS
+        ( MNGT_YM
+        , PRTNR_NO
+        , HMST_GD_VAL
+        , FST_RGST_DTM
+        , FST_RGST_USR_ID
+        , FST_RGST_PRG_ID
+        , FST_RGST_DEPT_ID
+        , FNL_MDFC_DTM
+        , FNL_MDFC_USR_ID
+        , FNL_MDFC_PRG_ID
+        , FNL_MDFC_DEPT_ID
+        )
+        SELECT A.AKDDTY||A.AKDDTM AS MNGT_YM
+        , A.AKDCDE AS PRTNR_NO
+        , NVL(B.HMST_GD_VAL,'2') AS HMST_GD_VAL
+        , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+        , 'TESTUSR' AS FST_RGST_USR_ID
+        , 'KSS_WELLS' AS FST_RGST_PRG_ID
+        , 'TESTDEPT' AS FST_RGST_DEPT_ID
+        , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+        , 'TESTUSR' AS FNL_MDFC_USR_ID
+        , 'KSS_WELLS' AS FNL_MDFC_PRG_ID
+        , 'TESTDEPT' AS FNL_MDFC_DEPT_ID
+        FROM
+        (SELECT SUBSTR(#{mngtYm},0,4) AS AKDDTY
+        , SUBSTR(#{mngtYm},5,2) AS AKDDTM
+        ,'1234567' AS AKDCDE
+        FROM DUAL
+        UNION
+        SELECT SUBSTR(#{mngtYm},0,4) AS AKDDTY
+        , SUBSTR(#{mngtYm},5,2) AS AKDDTM
+        ,'1223456' AS AKDCDE
+        FROM DUAL
+        /* AK0500P 조직테이블 현재없음 테스트를 위한 임시처리 */
+        )A
+        LEFT OUTER JOIN
+        (SELECT PRTNR_NO
+        , HMST_GD_VAL
+        FROM TB_FEAM_HMST_GD_BAS
+        WHERE 1 = 1
+        AND MNGT_YM = TO_CHAR(ADD_MONTHS( #{mngtYm}||'01', '-1' ),'YYYYMM' )
+        )B ON (A.AKDCDE = B.PRTNR_NO)
+    </insert>
+
+    <delete id="deleteHomeMasterPoint">
+        DELETE
+        FROM TB_FEAM_HMST_GD_IZ
+        WHERE 1 = 1
+        AND MNGT_YM = #{mngtYm}
+        AND PRTNR_NO = #{prtnrNo}
+    </delete>
+
+</mapper>
