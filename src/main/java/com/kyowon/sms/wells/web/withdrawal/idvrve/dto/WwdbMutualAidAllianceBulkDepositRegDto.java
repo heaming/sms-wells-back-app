@@ -60,7 +60,10 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
         String lifSpptAmt, /*지원금액*/
         String lifCntrNo, /*상조계약번호*/
         String lifCntrSn, /*상조계약번호*/
-        String lifAlncDvCd /*제휴코드*/
+        String lifAlncDvCd, /*제휴코드*/
+        String lifRepAmt, /*라이프환수금액*/
+        String lifSpptAggAmt, /*라이프지원누계금액*/
+        String amt /*합계*/
     ) {
 
     }

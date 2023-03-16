@@ -16,13 +16,13 @@ public class WwdbBillingDocumentMgtDto {
         //        String bildcPblSn,
         String cstFnm, //--고객성명      
         //--     --작성일자 필요
-        String fwDt, //      --발송일자
+        String bildcFwDtm, //      --발송일자               
         String pdNm, //--상품명
         //        String pdQty,
         String pdQtySum, //--총수량
         //        String pdSellAmt, //--판매금액
         String pdSellAmtSum, //--총금액
-        String rmkCn, //--비고 이건 수정 가능성이 잇음
+        //        String rmkCn, //--비고 이건 수정 가능성이 잇음
         String fstRgstDtm, //--작성일자
         String dummyText, //발송
         String bildcWrteDt,
@@ -98,7 +98,7 @@ public class WwdbBillingDocumentMgtDto {
 
     public record SearchFwRes(
         String bildcFwTpCd, //--발송유형
-        String fwDt, //--발송일자 
+        String bildcFwDtm, //--발송일자 
         String callback, //--발신자 번호
         String recipientNum //--수신자 전화 번호 
     ) {

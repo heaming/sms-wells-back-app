@@ -5,6 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,14 +13,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveUploadReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbMutualAidAllianceBulkDepositRegService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
-import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -61,13 +61,18 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
     }
 
     @ApiOperation(value = "상조제휴 일괄입금 등록 엑셀 업로드", notes = " 검색조건을 받아 상조제휴 일괄입금 등록 엑셀 업로드한다.")
-    @PostMapping("/excel-upload")
-    public UploadRes saveMutualAidAllianceBulkDepositRegExcelUpload(
+    @PostMapping("{lifAlncDvCd}/{lifSpptYm}/excel-upload")
+    public SaveResponse saveMutualAidAllianceBulkDepositRegExcelUpload(
+        @PathVariable("lifAlncDvCd")
+        String lifAlncDvCd,
+        @PathVariable("lifSpptYm")
+        String lifSpptYm,
         @RequestParam("file")
         MultipartFile file
     ) throws Exception {
-        service.saveMutualAidAllianceBulkDepositRegExcelUpload(file);
-        return UploadRes.builder().status("S").build();
+        return SaveResponse.builder()
+            .processCount(service.saveMutualAidAllianceBulkDepositRegExcelUpload(lifAlncDvCd, lifSpptYm, file))
+            .build();
     }
 
     @ApiImplicitParams(value = {
@@ -85,10 +90,21 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
     public SaveResponse saveMutualAidAllianceBulkDepositRegsSum(
         @RequestBody
         @Valid
-        SaveReq dto
+        List<SaveUploadReq> dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveMutualAidAllianceBulkDepositRegs(dto))
+            .processCount(service.saveMutualAidAllianceBulkDepositReg(dto))
             .build();
     }
+    //    @ApiOperation(value = "상조제휴 일괄입금 등록 생성", notes = "상조제휴 일괄입금 등록 생성한다.")
+    //    @PostMapping
+    //    public SaveResponse saveMutualAidAllianceBulkDepositRegsSum(
+    //        @RequestBody
+    //        @Valid
+    //        SaveReq dto
+    //        ) throws Exception {
+    //        return SaveResponse.builder()
+    //            .processCount(service.saveMutualAidAllianceBulkDepositRegs(dto))
+    //            .build();
+    //    }
 }
