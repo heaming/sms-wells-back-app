@@ -27,7 +27,7 @@
                , T1.FST_RGST_DTM /*입력일자*/
                , T1.FST_RGST_USR_ID /*입력담당자ID*/
             FROM TB_RVDW_LIF_RENTAL_SPPT_BAS T1 /*라이프렌탈지원기본*/
-           INNER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/
+            LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/
               ON T2.CNTR_NO = T1.WELS_CNTR_NO 
              AND T2.CNTR_SN = T1.WELS_CNTR_SN 
            WHERE 1 = 1 
@@ -64,7 +64,7 @@
                 </otherwise>
               </choose>                                            
             FROM TB_RVDW_LIF_RENTAL_SPPT_BAS T1 /*라이프렌탈지원기본*/
-           INNER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/
+            LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/
               ON T2.CNTR_NO = T1.WELS_CNTR_NO 
              AND T2.CNTR_SN = T1.WELS_CNTR_SN 
            WHERE 1 = 1 
@@ -89,31 +89,69 @@
     
     
     <insert id="insertMutualAidAllianceBulkDepositReg" >
-        INSERT 
-          INTO TB_RVDW_LIF_RENTAL_SPPT_BAS (
-               KW_GRP_CO_CD
-             , LIF_SPPT_YM /* 지원년월 */
-             , WELS_CNTR_NO /*웰스계약번호*/
-             , WELS_CNTR_SN /*웰스계약일련번호*/
-             , LIF_ALNC_PD_CD  /*상품*/
-             , LIF_ALNC_PD_NM /*상품명*/
-             , LIF_SPPT_AMT /*지원금액*/
-             , LIF_CNTR_NO /*상조계약번호*/
-             , LIF_CNTR_SN /*상조일련번호*/
-             , LIF_ALNC_DV_CD /*제휴구분코드*/
-             <include refid="COMMON.insertSystemField"/>
-          ) VALUES (
-               #{session.companyCode}
-             , #{lifSpptYm} /* 지원년월 */
-             , #{welsCntrNo} /*웰스계약번호*/
-             , #{welsCntrSn}  /*웰스계약일련번호*/
-             , #{lifAlncPdCd}  /*상품*/
-             , #{lifAlncPdNm}  /*상품명*/
-             , #{lifSpptAmt}  /*지원금액*/
-             , #{lifCntrNo}  /*상조계약번호*/
-             , #{lifCntrSn}  /*상조일련번호*/
-             , #{lifAlncDvCd} /*제휴구분코드*/  
-             <include refid="COMMON.insertSystemFieldValue" />
-           )
+        MERGE 
+         INTO TB_RVDW_LIF_RENTAL_SPPT_BAS T1
+        USING DUAL
+           ON (    T1.KW_GRP_CO_CD = #{session.companyCode}
+               AND T1.LIF_SPPT_YM = #{lifSpptYm}
+               AND T1.LIF_CNTR_NO = #{lifCntrNo}
+               AND T1.LIF_CNTR_SN = #{lifCntrSn}
+              )
+         WHEN MATCHED THEN
+              UPDATE 
+                 SET WELS_CNTR_NO = #{welsCntrNo}/*웰스계약번호*/
+                   , WELS_CNTR_SN = #{welsCntrSn}/*웰스계약일련번호*/
+                   , LIF_ALNC_PD_CD = #{lifAlncPdCd} /*상품*/
+                   , LIF_ALNC_PD_NM = #{lifAlncPdNm}/*상품명*/
+                   <choose>
+                    <when test='@MybatisUtils@equals(lifAlncDvCd, "30")'>                                                          
+                   , LIF_SPPT_AMT = #{lifSpptAmt}/*지원금액*/
+                    </when>
+                    <otherwise>                     
+                   , WELS_DP_AMT = #{lifSpptAmt} /*웰스입금금액*/                   
+                    </otherwise>
+                  </choose>     
+                   , LIF_ALNC_DV_CD = #{lifAlncDvCd}/*제휴구분코드*/
+                   , LIF_REP_AMT = #{lifRepAmt}/*라이프환수금액*/
+                   , LIF_SPPT_AGG_AMT = #{lifSpptAggAmt}/*라이프지원누계금액*/
+                   <include refid="COMMON.updateSystemField"/>
+         WHEN NOT MATCHED THEN
+              INSERT (
+                     WELS_CNTR_NO /*웰스계약번호*/
+                   , WELS_CNTR_SN /*웰스계약일련번호*/
+                   , LIF_ALNC_PD_CD  /*상품*/
+                   , LIF_ALNC_PD_NM /*상품명*/
+                   <choose>
+                    <when test='@MybatisUtils@equals(lifAlncDvCd, "30")'>                     
+                   , LIF_SPPT_AMT /*라이프지원금액*/                   
+                    </when>
+                    <otherwise>                     
+                   , WELS_DP_AMT /*웰스입금금액*/                   
+                    </otherwise>
+                  </choose>                                      
+                   , LIF_ALNC_DV_CD /*제휴구분코드*/
+                   , LIF_REP_AMT /*라이프환수금액*/
+                   , LIF_SPPT_AGG_AMT /*라이프지원누계금액*/
+                   , KW_GRP_CO_CD  
+                   , LIF_SPPT_YM  
+                   , LIF_CNTR_NO 
+                   , LIF_CNTR_SN  
+                   <include refid="COMMON.insertSystemField"/>
+                     )
+              VALUES (
+                     #{welsCntrNo} /*웰스계약번호*/
+                   , #{welsCntrSn}  /*웰스계약일련번호*/
+                   , #{lifAlncPdCd}  /*상품*/
+                   , #{lifAlncPdNm}  /*상품명*/
+                   , #{lifSpptAmt}  /*지원금액*/
+                   , #{lifAlncDvCd} /*제휴구분코드*/  
+                   , #{lifRepAmt}  /*라이프환수금액*/
+                   , #{lifSpptAggAmt} /*라이프지원누계금액*/ 
+                   , #{session.companyCode}
+                   , #{lifSpptYm}
+                   , #{lifCntrNo}
+                   , #{lifCntrSn}
+                   <include refid="COMMON.insertSystemFieldValue" />
+                     )
     </insert>
 </mapper>

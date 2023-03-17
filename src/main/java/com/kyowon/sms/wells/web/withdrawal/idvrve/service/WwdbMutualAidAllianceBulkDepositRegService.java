@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkD
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbMutualAidAllianceBulkDepositRegDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbIntegrationDepositMapper;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbMutualAidAllianceBulkDepositRegMapper;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.util.WithdrawalExcelUtil;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.common.uifw.service.MessageResourceService;
@@ -29,9 +32,11 @@ import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WwdbMutualAidAllianceBulkDepositRegService {
     private final WwdbMutualAidAllianceBulkDepositRegMapper mapper;
 
@@ -59,60 +64,130 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
     }
 
     @Transactional
-    public int saveMutualAidAllianceBulkDepositRegExcelUpload(MultipartFile file)
+    public int saveMutualAidAllianceBulkDepositRegExcelUpload(String lifAlncDvCd, String lifSpptYm, MultipartFile file)
         throws Exception {
 
-        Map<String, String> headerTitle = Map.of(
-            "lifSpptYm", messageResourceService.getMessage("MSG_TXT_SPPT_YM"), /* 지원년월 */
-            "welsCntrNo", messageResourceService.getMessage("MSG_TXT_WELLS_CNTR_NO"), /*웰스계약번호*/
-            "welsCntrSn", messageResourceService.getMessage("MSG_TXT_WELLS_CNTR_SN"), /*웰스계약일련번호*/
-            "lifAlncPdCd", messageResourceService.getMessage("MSG_TXT_PRDT"), /*상품*/
-            "lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM"), /*상품명*/
-            "lifSpptAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT"), /*지원금액*/
-            "lifCntrNo", messageResourceService.getMessage("MSG_TXT_MUTU_CNTR_NO"), /*상조계약번호*/
-            "lifCntrSn", messageResourceService.getMessage("MSG_TXT_MUTU_CNTR_SN") /*상조계약번호*/
-        );
+        Map<String, String> headerTitle = setLifAlncDvCdHeader(lifAlncDvCd);
 
-        List<SaveUploadReq> dtos = excelReadService.readExcel(file, new ExcelMetaDvo(7), SaveUploadReq.class);
+        ExcelMetaDvo meta = new ExcelMetaDvo(7, headerTitle);
+        System.out.println("========meta=========");
+        System.out.println(meta.getHeaderTitle());
+        System.out.println("========meta=========");
 
+        List<WwdbMutualAidAllianceBulkDepositRegDvo> dvos = excelReadService
+            .readExcel(file, meta, WwdbMutualAidAllianceBulkDepositRegDvo.class);
+
+        for (WwdbMutualAidAllianceBulkDepositRegDvo dvo : dvos) {
+            if (!Objects.isNull(dvo.getLifCntrNo())) {
+
+                //                dvo.setLifSpptYm(WithdrawalExcelUtil.formatObjToString(dvo.getLifSpptYm())); /* 지원년월 */
+                dvo.setWelsCntrNo(WithdrawalExcelUtil.formatObjToString(dvo.getWelsCntrNo())); /*웰스계약번호*/
+                //                dvo.setWelsCntrSn(WithdrawalExcelUtil.formatObjToString(dvo.getWelsCntrSn())); /*웰스계약일련번호*/
+                dvo.setLifAlncPdCd(WithdrawalExcelUtil.formatObjToString(dvo.getLifAlncPdCd())); /*상품*/
+                dvo.setLifAlncPdNm(WithdrawalExcelUtil.formatObjToString(dvo.getLifAlncPdNm())); /*상품명*/
+                dvo.setLifSpptAmt(WithdrawalExcelUtil.formatObjToString(dvo.getLifSpptAmt())); /*지원금액*/
+                dvo.setLifSpptAggAmt(WithdrawalExcelUtil.formatObjToString(dvo.getLifSpptAggAmt())); /*라이프지원누계금액*/
+                dvo.setLifRepAmt(WithdrawalExcelUtil.formatObjToString(dvo.getLifRepAmt())); /*라이프환수금액*/
+                dvo.setLifCntrNo(WithdrawalExcelUtil.formatObjToString(dvo.getLifCntrNo())); /*상조계약번호*/
+                //                dvo.setLifCntrSn(WithdrawalExcelUtil.formatObjToString(dvo.getLifCntrSn())); /*상조계약번호*/
+
+                System.out.println(dvo.toString());
+                System.out.println("========dvos=========");
+            }
+        }
+
+        int processCount = 0;
         int row = 1;
 
-        Map<String, String> headerTitleValidation;
+        if (dvos.size() > 0) {
+            Map<String, Object> headerTitleValidation;
 
-        for (SaveUploadReq req : dtos) {
-            headerTitleValidation = Map.of(
-                "lifSpptYm", req.lifSpptYm(), /* 지원년월 */
-                "welsCntrNo", req.welsCntrNo(), /*웰스계약번호*/
-                "welsCntrSn", req.welsCntrSn(), /*웰스계약일련번호*/
-                "lifAlncPdCd", req.lifAlncPdCd(), /*상품*/
-                "lifAlncPdNm", req.lifAlncPdNm(), /*상품명*/
-                "lifSpptAmt", req.lifSpptAmt(), /*지원금액*/
-                "lifCntrNo", req.lifCntrNo(), /*상조계약번호*/
-                "lifCntrSn", req.lifCntrSn() /*상조일련번호*/
-            );
+            //            for (WwdbMutualAidAllianceBulkDepositRegDvo req : dvos) {
+            //                headerTitleValidation = Map.of(
+            //                    "lifSpptYm", req.getLifSpptYm(), /* 지원년월 */
+            //                    "welsCntrNo", req.getWelsCntrNo(), /*웰스계약번호*/
+            //                    "welsCntrSn", req.getWelsCntrSn(), /*웰스계약일련번호*/
+            //                    "lifAlncPdCd", req.getLifAlncPdCd(), /*상품*/
+            //                    "lifAlncPdNm", req.getLifAlncPdNm(), /*상품명*/
+            //                    "lifSpptAmt", req.getLifSpptAmt(), /*지원금액*/
+            //                    "lifCntrNo", req.getLifCntrNo(), /*상조계약번호*/
+            //                    "lifCntrSn", req.getLifCntrSn() /*상조일련번호*/
+            //                );
+            //
+            //                for (String key : headerTitleValidation.keySet()) {
+            //                    BizAssert.hasText(
+            //                        headerTitleValidation.get(key), "MSG_ALT_INVALID_UPLOAD_DATA",
+            //                        new String[] {String.valueOf(row), headerTitle.get(key), headerTitleValidation.get(key)}
+            //                    );
+            //                }
+            //                row++;
+            //            }
 
-            for (String key : headerTitleValidation.keySet()) {
-                BizAssert.hasText(
-                    headerTitleValidation.get(key), "MSG_ALT_INVALID_UPLOAD_DATA",
-                    new String[] {String.valueOf(row), headerTitle.get(key), headerTitleValidation.get(key)}
-                );
+            for (WwdbMutualAidAllianceBulkDepositRegDvo dvo : dvos) {
+                if (!Objects.isNull(dvo.getLifCntrNo())) {
+                    dvo.setWelsCntrNo("W" + dvo.getWelsCntrNo().toString().replace("-", ""));
+                    dvo.setLifSpptYm(lifSpptYm); //지원년월
+                    dvo.setLifAlncDvCd(lifAlncDvCd); //제휴코드
+                    dvo.setLifCntrSn(1);
+                    dvo.setWelsCntrSn(1);
+                    processCount += mapper.insertMutualAidAllianceBulkDepositReg(dvo);
+                }
             }
-            row++;
         }
-        return saveMutualAidAllianceBulkDepositRegs(dtos);
+
+        return processCount;
+    }
+
+    public Map<String, String> setLifAlncDvCdHeader(String lifAlncDvCd) {
+        Map<String, String> headerTitle = new LinkedHashMap<>();
+        if (lifAlncDvCd.equals("30")) { //웰스399
+            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); /* 순번 */
+            headerTitle.put("welsCntrNo", messageResourceService.getMessage("MSG_TXT_CST_CD"));/*고객코드*/
+            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); /* 고객성명 */
+            headerTitle.put("lifAlncPdCd", messageResourceService.getMessage("MSG_TXT_PRDT")); /*상품*/
+            headerTitle.put("lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM")); /*상품명*/
+            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); /* 계약일자 */
+            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); /* 해지일자 */
+            headerTitle.put("test2", messageResourceService.getMessage("MSG_TXT_EV_DT")); /*행사일자*/
+            headerTitle.put("test3", messageResourceService.getMessage("MSG_TXT_MPY")); /*납부*/
+            headerTitle.put("test4", messageResourceService.getMessage("MSG_TXT_AGGS")); /*누계*/
+            headerTitle.put("test5", messageResourceService.getMessage("MSG_TXT_INSLM_AMT")); /*부금금액*/
+            headerTitle.put("test6", messageResourceService.getMessage("MSG_TXT_INSLM_AGG")); /*부금누계*/
+            headerTitle.put("lifSpptAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*지원금액*/
+            headerTitle.put("lifSpptAggAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*라이프지원누계금액*/
+            headerTitle.put("lifRepAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*라이프환수금액*/
+            headerTitle.put("lifCntrNo", messageResourceService.getMessage("MSG_TXT_MUTU_CNTR_NO")); /*상조계약번호*/
+        } else {
+            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); /* 순번 */
+            headerTitle.put("lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM")); /*상품명*/
+            headerTitle.put("lifCntrNo", messageResourceService.getMessage("MSG_TXT_MUTU_CNTR_NO")); /*상조계약번호*/
+            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); /* 고객성명 */
+            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); /* 계약일자 */
+            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); /* 해지일자 */
+            headerTitle.put("test2", messageResourceService.getMessage("MSG_TXT_EV_DT")); /*행사일자*/
+            headerTitle.put("test3", messageResourceService.getMessage("MSG_TXT_MPY")); /*납부*/
+            headerTitle.put("test4", messageResourceService.getMessage("MSG_TXT_AGGS")); /*누계*/
+            headerTitle.put("test5", messageResourceService.getMessage("MSG_TXT_INSLM_AMT")); /*부금금액*/
+            headerTitle.put("test6", messageResourceService.getMessage("MSG_TXT_INSLM_AGG")); /*부금누계*/
+            headerTitle.put("lifSpptAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*지원금액*/
+            headerTitle.put("lifSpptAggAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*라이프지원누계금액*/
+            headerTitle.put("lifRepAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*라이프환수금액*/
+            headerTitle.put("welsCntrNo", messageResourceService.getMessage("MSG_TXT_WELS_MB_CD"));/*웰스회원코드*/
+        }
+
+        return headerTitle;
     }
 
     @Transactional
-    public int saveMutualAidAllianceBulkDepositRegs(List<SaveUploadReq> dtos) throws Exception {
-
+    public int saveMutualAidAllianceBulkDepositReg(List<SaveUploadReq> dtos) throws Exception {
         int processCount = 0;
 
         for (SaveUploadReq dto : dtos) {
-            WwdbMutualAidAllianceBulkDepositRegDvo dvo = convert.mapSaveWwdbMutualAidAllianceBulkDepositRegDvo(dto);
-            dvo.setLifAlncDvCd("30");
-            processCount += mapper.insertMutualAidAllianceBulkDepositReg(dvo);
-        }
 
+            WwdbMutualAidAllianceBulkDepositRegDvo dvo = convert.mapSaveWwdbMutualAidAllianceBulkDepositRegDvo(dto);
+            processCount += mapper.insertMutualAidAllianceBulkDepositReg(dvo);
+
+        }
         return processCount;
     }
 
