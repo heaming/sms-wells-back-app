@@ -1,9 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CreateReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.FindRes;
+
 import org.mapstruct.Mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SaveReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
 
 /**
  * <pre>
@@ -16,5 +19,11 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizati
  */
 @Mapper(componentModel = "spring")
 public interface WsnaWarehouseOrganizationConverter {
+
     WsnaWarehouseOrganizationDvo mapCreateReqToWsnaWarehouseOgDvo(CreateReq dto);
+
+    FindRes mapWsnaWarehouseOgDvoToFindRes(WsnaWarehouseOrganizationDvo dvo);
+
+    WsnaWarehouseOrganizationDvo mapSaveReqToWsnaWarehouseOgDvo(SaveReq dto);
+
 }
