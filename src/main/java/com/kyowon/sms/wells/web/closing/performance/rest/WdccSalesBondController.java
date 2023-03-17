@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[DCC] 매출채권/선수금 현황 - 매출채권")
+@Api(tags = "[WDCC] 매출채권/선수금 현황 - 매출채권")
 @RestController
 @RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/sales-bond")
 @RequiredArgsConstructor
