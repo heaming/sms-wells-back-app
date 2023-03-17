@@ -125,4 +125,131 @@
          WHERE APY_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1), 'YYYYMM')
     </select>
 
+    <select id="selectWarehouseByPk" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo">
+        SELECT T1.APY_YM /* 적용년월 */
+             , T1.WARE_DV_CD /* 창고구분코드 */
+             , T1.WARE_DTL_DV_CD /* 창고상세구분코드 */
+             , T1.WARE_NO /* 창고번호 */
+             , T2.PRTNR_NO /* 관리자번호 */
+             , T2.PRTNR_KNM /* 관리자명 */
+             , T1.WARE_NM /* 창고명 */
+             , T1.HGR_WARE_NO /* 상위창고번호 */
+             , (SELECT WARE_NM FROM TB_SVST_MCBY_WARE_IZ WHERE WARE_NO = T1.HGR_WARE_NO AND APY_YM = T1.APY_YM) AS HGR_WARE_NM /* 상위창고명 */
+             , T1.RMK_CN /* 비고내용 */
+             , T1.WARE_USE_YN /* 창고사용여부 */
+             , SUBSTR(T1.FST_RGST_DTM, 1, 8) AS FST_RGST_DT /* 최초등록일 */
+             , T1.ADR_USE_YN /* 주소사용여부 */
+             , T1.BLD_CD /* 빌딩코드 */
+             , T1.WARE_ADR_ID
+             , T4.RNADR
+             , T4.RDADR
+             , T4.NEW_ADR_ZIP
+             , T3.OG_ID
+             , T3.OG_NM
+             , T3.DGR1_LEVL_OG_ID
+             , T3.DGR1_LEVL_OG_NM
+             , T3.DGR2_LEVL_OG_ID
+             , T3.DGR2_LEVL_OG_NM
+          FROM TB_SVST_MCBY_WARE_IZ T1 /* 월별창고내역 */
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
+            ON T2.PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
+           AND T2.BASE_YM = T1.APY_YM
+           AND T2.OG_TP_CD = T1.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T3 /* 월조직내역 */
+            ON T3.BASE_YM = T2.BASE_YM
+           AND T3.OG_CD = T2.OG_CD
+           AND T3.OG_TP_CD = T2.OG_TP_CD
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T4 /* 주소기본 */
+            ON T4.ADR_ID = T1.WARE_ADR_ID
+         WHERE T1.APY_YM = SUBSTR(#{apyYmWareNo}, 1, 6)
+           AND T1.WARE_NO = SUBSTR(#{apyYmWareNo}, 7)
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectWarehouseOgPartner" resultType="java.lang.Integer">
+        SELECT COUNT(T1.WARE_NO)
+          FROM TB_SVST_MCBY_WARE_IZ T1 /* 월별창고내역 */
+         WHERE 1 = 1
+           AND T1.APY_YM = #{apyYm}
+       <if test='@MybatisUtils@isNotEmpty(wareNo)'>
+           AND T1.WARE_NO != #{wareNo}
+       </if>
+       <choose>
+           <when test='@MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+           AND T1.WARE_DTL_DV_CD IN ('20', '30') /* 조직창고인 경우 */
+           AND T1.WARE_ICHR_NO = '000' /* TODO: 추후 컬럼 삭제 예정 */
+           </when>
+           <otherwise>
+           AND T1.WARE_DTL_DV_CD IN ('21', '31', '32') /* 조직창고가 아닌 경우 */
+           AND T1.WARE_ICHR_NO != '000' /* TODO: 추후 컬럼 삭제 예정 */
+           </otherwise>
+       </choose>
+           AND T1.WARE_USE_YN = 'Y'
+           AND TRIM(T1.WARE_MNGT_PRTNR_NO) = TRIM(#{prtnrNo})
+    </select>
+
+    <insert id="insertWarehouseOg">
+        INSERT INTO TB_SVST_MCBY_WARE_IZ (  /* 월별창고내역 */
+              APY_YM             /* 적용년월 */
+            , WARE_NO            /* 창고번호 */
+            , WARE_DV_CD         /* 창고구분코드 */
+            , WARE_DTL_DV_CD     /* 창고상세구분코드 */
+            , HGR_WARE_NO        /* 상위창고번호 */
+            , WARE_NM            /* 창고명 */
+            , WARE_ICHR_NO       /* 창고담당번호 */
+            , WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+            , OG_TP_CD           /* 조직유형코드 */
+            , OG_ID              /* 조직ID */
+            , DIDY_DV_CD         /* 직배구분코드 */
+            , WARE_ADR_ID        /* 창고주소ID */
+            , BLD_CD             /* 빌딩코드 */
+            , WARE_USE_YN        /* 창고사용여부 */
+            , ADR_USE_YN         /* 주소사용여부 */
+            , APY_STRTDT         /* 적용시작일자 */
+            , APY_ENDDT          /* 적용종료일자 */
+            , RMK_CN             /* 비고내용 */
+            , DTA_DL_YN          /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        SELECT #{apyYm}
+            , (SELECT #{wareDvCd} || LPAD(NVL(TO_NUMBER(MAX(SUBSTR(WARE_NO, 2))), 0) + 1, 5, '0')
+                 FROM TB_SVST_MCBY_WARE_IZ
+                WHERE APY_YM = #{apyYm}
+                  AND WARE_DV_CD = #{wareDvCd})
+            , #{wareDvCd}
+            , #{wareDtlDvCd}
+            , #{hgrWareNo}
+            , #{wareNm}
+            , (CASE WHEN #{wareDtlDvCd} IN ('20', '30') THEN '000' ELSE '010' END) /* 창고담당번호 */
+            , #{prtnrNo}
+            , 'W06'
+            , #{ogId}
+            , (CASE WHEN #{wareDtlDvCd} = '32' THEN '2' ELSE '1' END) /* 직배구분코드 */
+            , #{wareAdrId}
+            , (CASE WHEN #{adrUseYn} = 'Y' THEN #{bldCd} ELSE NULL END) /* 빌딩코드 */
+            , 'Y'
+            , #{adrUseYn}
+            , TO_CHAR(SYSDATE, 'YYYYMMDD')
+            , '99991231'
+            , #{rmkCn}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" />
+         FROM DUAL
+    </insert>
+
+    <update id="updateWarehouseOg">
+        UPDATE TB_SVST_MCBY_WARE_IZ /* 월별창고내역 */
+           SET WARE_DTL_DV_CD = #{wareDtlDvCd}
+             , WARE_ICHR_NO = (CASE WHEN #{wareDtlDvCd} IN ('20', '30') THEN '000' ELSE '010' END)
+             , DIDY_DV_CD = (CASE WHEN #{wareDtlDvCd} = '32' THEN '2' ELSE '1' END)
+             , WARE_ADR_ID = #{wareAdrId}
+             , BLD_CD = (CASE WHEN #{adrUseYn} = 'Y' THEN #{bldCd} ELSE NULL END)
+             , WARE_USE_YN = #{wareUseYn}
+             , ADR_USE_YN = #{adrUseYn}
+             , RMK_CN = #{rmkCn}
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND APY_YM = #{apyYm}
+           AND WARE_NO = #{wareNo}
+    </update>
+
 </mapper>

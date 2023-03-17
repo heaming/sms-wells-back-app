@@ -1,21 +1,14 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CountReq;
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CreateReq;
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
 
 import java.util.List;
 
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaWarehouseOrganizationService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -73,7 +66,7 @@ public class WsnaWarehouseOrganizationController {
     }
 
     @ApiOperation(value = "창고조직이월 저장", notes = "기준년월에 일치하는 창고조직 관리 데이터를 저장한다.")
-    @PostMapping
+    @PostMapping("/carried-over")
     public SaveResponse createWareCarried(
         @Valid
         @RequestBody
@@ -82,6 +75,26 @@ public class WsnaWarehouseOrganizationController {
         return SaveResponse.builder()
             .processCount(this.service.createWareCarried(dto))
             .build();
+    }
+
+    @ApiOperation(value = "창고조직 조회", notes = "창고조직에 대한 정보를 조회한다.")
+    @ApiImplicitParam(name = "apyYmWareNo", value = "기준년월창고번호", paramType = "path", example = "202302201245", required = true)
+    @GetMapping("/{apyYmWareNo}")
+    public FindRes getWarehouseOg(
+        @PathVariable
+        String apyYmWareNo
+    ) {
+        return this.service.getWarehouseOg(apyYmWareNo);
+    }
+
+    @ApiOperation(value = "창고조직 등록", notes = "창고조직에 대한 정보를 등록 및 수정한다.")
+    @PostMapping
+    public SaveResponse saveWarehouseOg(
+        @Valid
+        @RequestBody
+        SaveReq dto
+    ) {
+        return SaveResponse.builder().processCount(this.service.saveWarehouseOg(dto)).build();
     }
 
 }
