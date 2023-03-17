@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
@@ -18,7 +17,7 @@ public class WdccDelinquentAdditionalChargesService {
     private final WdccDelinquentAdditionalChargesMapper mapper;
 
     public List<SearchRes> getDelinquentAdditionalCharges(
-        @Valid SearchReq req
+        SearchReq req
     ) {
         return mapper.selectDelinquentAdditionalCharges(req);
     }

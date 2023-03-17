@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Api(tags = "[WDCC] 매출채권/선수금 현황 - 연체가산금")
@@ -36,7 +37,8 @@ public class WdccDelinquentAdditionalChargesController {
     })
     @GetMapping
     public List<SearchRes> getDelinquentAdditionalCharges(
-        SearchReq req
+
+        @Valid SearchReq req
     ) {
         return service.getDelinquentAdditionalCharges(req);
     }
