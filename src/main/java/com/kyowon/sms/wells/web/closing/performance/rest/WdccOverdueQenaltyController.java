@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondAtamDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondAtamDto.SearchRes;
-import com.kyowon.sms.wells.web.closing.performance.service.WdccSalesBondAtamService;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverdueQenaltyDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverdueQenaltyDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.service.WdccOverdueQenaltyService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[DCC] 매출채권/선수금 현황 - 영업선수금")
+@Api(tags = "[WDCC] 매출채권/선수금 현황 - 영업선수금")
 @RestController
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/sales-bond-atam")
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/overdue-qenalty")
 @RequiredArgsConstructor
 @Validated
-public class WdccSalesBondAtamController {
+public class WdccOverdueQenaltyController {
 
-    private final WdccSalesBondAtamService service;
+    private final WdccOverdueQenaltyService service;
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(집계)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
@@ -37,10 +37,10 @@ public class WdccSalesBondAtamController {
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query"),
     })
     @GetMapping("/aggregate")
-    public List<SearchRes> getSalesBondAtamAggregateList(
+    public List<SearchRes> getSalesBondAdditionalChargesAggregate(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAtamAggregateList(req);
+        return service.getSalesBondAdditionalChargesAggregate(req);
     }
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
@@ -53,11 +53,11 @@ public class WdccSalesBondAtamController {
         @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
     })
-    @GetMapping("/date")
-    public List<SearchRes> getSalesBondAtamDateList(
+    @GetMapping("/dates")
+    public List<SearchRes> getSalesBondAdditionalChargesDates(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAtamDateList(req);
+        return service.getSalesBondAdditionalChargesDates(req);
     }
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
@@ -70,11 +70,11 @@ public class WdccSalesBondAtamController {
         @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
     })
-    @GetMapping("/order")
-    public List<SearchRes> getSalesBondAtamOrderList(
+    @GetMapping("/orders")
+    public List<SearchRes> getSalesBondAdditionalChargesOrders(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAtamOrderList(req);
+        return service.getSalesBondAdditionalChargesOrders(req);
     }
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(가로계산식 틀린회원)", notes = "매출채권/선수금 현황 - 연체가산금")
@@ -87,11 +87,11 @@ public class WdccSalesBondAtamController {
         @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
     })
-    @GetMapping("/member")
-    public List<SearchRes> getSalesBondAtamMemberList(
+    @GetMapping("/members")
+    public List<SearchRes> getSalesBondAdditionalChargesMembers(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAtamMemberList(req);
+        return service.getSalesBondAdditionalChargesMembers(req);
     }
 
 }

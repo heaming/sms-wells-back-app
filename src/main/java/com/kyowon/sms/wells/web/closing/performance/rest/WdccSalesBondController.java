@@ -36,10 +36,10 @@ public class WdccSalesBondController {
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query"),
     })
     @GetMapping("/aggregate")
-    public List<SearchRes> getSalesBondAggregateList(
+    public List<SearchRes> getSalesBondAggregate(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAggregateList(req);
+        return service.getSalesBondAggregate(req);
     }
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
@@ -52,11 +52,11 @@ public class WdccSalesBondController {
         @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
     })
-    @GetMapping("/date")
-    public List<SearchRes> getSalesBondDateList(
+    @GetMapping("/dates")
+    public List<SearchRes> getSalesBondDates(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondDateList(req);
+        return service.getSalesBondDates(req);
     }
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
@@ -69,11 +69,11 @@ public class WdccSalesBondController {
         @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
     })
-    @GetMapping("/order")
-    public List<SearchRes> getSalesBondOrderList(
+    @GetMapping("/orders")
+    public List<SearchRes> getSalesBondOrders(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondOrderList(req);
+        return service.getSalesBondOrders(req);
     }
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(가로계산식 틀린회원)", notes = "매출채권/선수금 현황 - 연체가산금")
@@ -86,10 +86,10 @@ public class WdccSalesBondController {
         @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
     })
-    @GetMapping("/member")
-    public List<SearchRes> getSalesBondMemberList(
+    @GetMapping("/members")
+    public List<SearchRes> getSalesBondMembers(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondMemberList(req);
+        return service.getSalesBondMembers(req);
     }
 }

@@ -9,11 +9,11 @@ import java.util.List;
 @Mapper
 public interface WdccSalesBondMapper {
 
-    List<SearchRes> selectSalesBondAggregateList(SearchReq req);
+    List<SearchRes> selectSalesBondAggregate(SearchReq req);
 
-    List<SearchRes> selectSalesBondDateList(SearchReq req);
+    List<SearchRes> selectSalesBondDates(SearchReq req);
 
-    List<SearchRes> selectSalesBondrderList(SearchReq req);
+    List<SearchRes> selectSalesBondrders(SearchReq req);
 
-    List<SearchRes> selectSalesBondMemberList(SearchReq req);
+    List<SearchRes> selectSalesBondMembers(SearchReq req);
 }

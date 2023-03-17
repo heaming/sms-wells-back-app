@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdamtDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdamtDto.SearchRes;
-import com.kyowon.sms.wells.web.closing.performance.service.WdccDelinquentAdamtService;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.service.WdccDelinquentAdditionalChargesService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[DCC] 매출채권/선수금 현황 - 연체가산금")
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/delinquent-adamt")
+@Api(tags = "[WDCC] 매출채권/선수금 현황 - 연체가산금")
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/delinquent-additional-charges")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-public class WdccDelinquentAdamtController {
+public class WdccDelinquentAdditionalChargesController {
 
-    private final WdccDelinquentAdamtService service;
+    private final WdccDelinquentAdditionalChargesService service;
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
@@ -36,9 +36,9 @@ public class WdccDelinquentAdamtController {
         @ApiImplicitParam(name = "eotDlqAddAmt", value = "기말잔액", paramType = "query"),
     })
     @GetMapping
-    public List<SearchRes> getDelinquentAdamt(
+    public List<SearchRes> getDelinquentAdditionalCharges(
         @Valid SearchReq req
     ) {
-        return service.getDelinquentAdamt(req);
+        return service.getDelinquentAdditionalCharges(req);
     }
 }

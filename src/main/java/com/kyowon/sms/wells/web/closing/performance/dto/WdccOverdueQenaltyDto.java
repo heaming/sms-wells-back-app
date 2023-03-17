@@ -4,12 +4,12 @@ import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
 
-public class WdccSalesBondAtamDto {
+public class WdccOverdueQenaltyDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 매출채권/선수금 현황 - 영업선수금 searchReq
-    @ApiModel(value = "WdccDelinquentAdamtDto-SearchReq")
+    @ApiModel(value = "WdccOverdueQenaltyDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String perfYm,
@@ -27,7 +27,7 @@ public class WdccSalesBondAtamDto {
     // Result Dto
     // *********************************************************
     // 매출채권/선수금 현황 - 영업선수금 searchReq
-    @ApiModel(value = "WdccDelinquentAdamtDto-SearchRes")
+    @ApiModel(value = "WdccOverdueQenaltyDto-SearchRes")
     public record SearchRes(
         String perfYm,       /*실적년월*/
         String perfDt, /*실적일자*/

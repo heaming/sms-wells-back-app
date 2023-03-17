@@ -14,27 +14,27 @@ public class WdccSalesBondService {
 
     private final WdccSalesBondMapper mapper;
 
-    public List<SearchRes> getSalesBondAggregateList(
+    public List<SearchRes> getSalesBondAggregate(
         SearchReq req
     ) {
-        return mapper.selectSalesBondAggregateList(req);
+        return mapper.selectSalesBondAggregate(req);
     }
 
-    public List<SearchRes> getSalesBondDateList(
+    public List<SearchRes> getSalesBondDates(
         SearchReq req
     ) {
-        return mapper.selectSalesBondDateList(req);
+        return mapper.selectSalesBondDates(req);
     }
 
-    public List<SearchRes> getSalesBondOrderList(
+    public List<SearchRes> getSalesBondOrders(
         SearchReq req
     ) {
-        return mapper.selectSalesBondrderList(req);
+        return mapper.selectSalesBondrders(req);
     }
 
-    public List<SearchRes> getSalesBondMemberList(
+    public List<SearchRes> getSalesBondMembers(
         SearchReq req
     ) {
-        return mapper.selectSalesBondMemberList(req);
+        return mapper.selectSalesBondMembers(req);
     }
 }
