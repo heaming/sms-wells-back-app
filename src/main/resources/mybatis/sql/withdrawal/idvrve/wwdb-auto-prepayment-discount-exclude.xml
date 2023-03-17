@@ -4,16 +4,25 @@
 
     <select id="selectAutoPrepaymentDiscountExcludes" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAutoPrepaymentDiscountExcludeMgtDto$SearchRes">
         SELECT
-               CNTR_NO||CNTR_SN AS CNTR  
-             , CNTR_NO --계약번호
-             , CNTR_SN --일련번호 
-             , CST_KNM --고객명
-             , SELL_TP_CD --판매유형
-             , PD_CD --상품코드
-             , PD_NM --상품명
-             , PRM_DSC_EXCD_STRT_YM --선납제외시작일
-             , PRM_DSC_EXCD_END_YM --선납제외종료일  
-        --   선납시작일
+               T01.CNTR_NO||T01.CNTR_SN AS CNTR  
+             , T01.CNTR_NO --계약번호
+             , T01.CNTR_SN --일련번호 
+             , T01.CST_KNM --고객명
+             , T01.SELL_TP_CD --판매유형
+             , T01.PD_CD --상품코드
+             , T01.PD_NM --상품명
+             , T01.PRM_DSC_EXCD_STRT_YM --선납제외시작일
+             , T01.PRM_DSC_EXCD_END_YM --선납제외종료일  
+             , CASE WHEN T02.CNTR_NO IS NOT NULL
+                    THEN CASE WHEN T02.SELL_TP_CD = '2' AND T02.PRM_MCN > 0 AND TO_CHAR(SYSDATE,'YYYYMM') > T02.PRM_STRT_Y || T02.PRM_STRT_MM
+                              THEN T02.PRM_STRT_Y || T02.PRM_STRT_MM
+                              WHEN T02.SELL_TP_CD = '3' AND T02.PRM_MCN > 0 AND TO_CHAR(SYSDATE,'YYYYMM') > T02.PRM_STRT_Y || T02.PRM_STRT_MM
+                              THEN T02.PRM_STRT_Y || T02.PRM_STRT_MM
+                              ELSE ''
+                               END
+                    ELSE ''
+                     END AS PRM_STRT_DATE
+                              --선납시작일
              , ( SELECT SUM(SL_CTR_AMT)
                    FROM TB_RVDW_SL_CTR_BAS S1
                   WHERE S1.CNTR_NO = T01.CNTR_NO 
@@ -22,11 +31,11 @@
                     AND SL_CTR_MTR_TP_CD = '1'
                     AND SL_CTR_STRT_YM BETWEEN PRM_DSC_EXCD_STRT_YM AND PRM_DSC_EXCD_END_YM
                 ) AS SL_CTR_AMT --조정값
-             , FST_RGST_DTM --등록일시
-             , FST_RGST_USR_ID --등록자 ID
-             , FNL_MDFC_DTM --수정일시
-             , FNL_MDFC_USR_ID --수정자 ID     
-           FROM(
+             , T01.FST_RGST_DTM --등록일시
+             , T01.FST_RGST_USR_ID --등록자 ID
+             , T01.FNL_MDFC_DTM --수정일시
+             , T01.FNL_MDFC_USR_ID --수정자 ID       
+          FROM(
                     SELECT
                            T1.CNTR_NO --계약번호
                          , T1.CNTR_SN --일련번호 
@@ -73,7 +82,11 @@
                                        AND S1.PRM_DSC_EXCD_STRT_YM = #{baseYm}
                                        AND S1.PRM_DSC_EXCD_END_YM = T1.PRM_DSC_EXCD_END_YM                                       
                                    )
-           ) T01            
+           ) T01      
+           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T02
+             ON T02.SL_CL_YM = T01.PRM_DSC_EXCD_STRT_YM
+            AND T02.CNTR_NO = T01.CNTR_NO
+            AND T02.CNTR_SN = T01.CNTR_SN       
     </select>
     
     <select id="selectAutoPrepaymentDiscountExcludeContractInformation" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAutoPrepaymentDiscountExcludeMgtDto$SearchContractRes">

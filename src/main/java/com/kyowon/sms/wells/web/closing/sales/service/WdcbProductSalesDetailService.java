@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.sales.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -20,7 +21,15 @@ public class WdcbProductSalesDetailService {
     private final WdcbProductSalesDetailMapper mapper;
 
     public List<SingleSearchRes> getProductSalesSinglePaymentDetails(SearchReq dto) {
-        return mapper.selectProductSalesSinglePaymentDetails(dto);
+        List<SingleSearchRes> result = new ArrayList<SingleSearchRes>();
+        if ("1".equals(dto.taskDiv())) {
+            result = mapper.selectProductSalesSinglePaymentDetails(dto);
+        } else if ("3".equals(dto.taskDiv())) {
+            result = mapper.selectProductSalesLeaseDetails(dto);
+        } else if ("5".equals(dto.taskDiv())) {
+            result = mapper.selectProductSalesFarmSaleDetails(dto);
+        }
+        return result;
     }
 
     public List<RentalSearchRes> getProductSalesRentalDetails(SearchReq dto) {

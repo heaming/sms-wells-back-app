@@ -1,21 +1,30 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaWarehouseOrganizationConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CountReq;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaWarehouseOrganizationMapper;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CreateReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.FindRes;
 
 import java.util.List;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SaveReq;
+import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.validation.BizAssert;
+import org.springframework.stereotype.Service;
+
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaWarehouseOrganizationConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CountReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaWarehouseOrganizationMapper;
+import com.sds.sflex.system.config.validation.ValidAssert;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * Class Description
+ * W-SV-U-0138M01 창고조직 관리
+ * W-SV-U-0175P01 창고조직 등록
  * </pre>
  *
  * @author songTaeSung
@@ -68,4 +77,39 @@ public class WsnaWarehouseOrganizationService {
     public List<SearchRes> getWarehouseOgsExcelDownload(SearchReq dto) {
         return this.mapper.selectWarehouseOgs(dto);
     }
+
+    /**
+     * 창고조직 등록 - 조회
+     *
+     * @param apyYmWareNo 기준년월 + 창고번호
+     * @return 조회결과
+     */
+    public FindRes getWarehouseOg(String apyYmWareNo) {
+        WsnaWarehouseOrganizationDvo warehouse = getWarehouseByPk(apyYmWareNo);
+        return this.converter.mapWsnaWarehouseOgDvoToFindRes(warehouse);
+    }
+
+    private WsnaWarehouseOrganizationDvo getWarehouseByPk(String apyYmWareNo) {
+        ValidAssert.hasText(apyYmWareNo);
+        return this.mapper.selectWarehouseByPk(apyYmWareNo).orElseThrow();
+    }
+
+    public int saveWarehouseOg(SaveReq dto) {
+        int processCount = 0;
+
+        WsnaWarehouseOrganizationDvo dvo = this.converter.mapSaveReqToWsnaWarehouseOgDvo(dto);
+
+        int isDuplicate = this.mapper.selectWarehouseOgPartner(dvo);
+
+        BizAssert.isTrue(isDuplicate == 0, "MSG_ALT_MNGR_DUP");
+
+        if (StringUtil.isBlank(dvo.getWareNo())) {
+            processCount += this.mapper.insertWarehouseOg(dvo);
+        } else {
+            processCount += this.mapper.updateWarehouseOg(dvo);
+        }
+
+        return processCount;
+    }
+
 }

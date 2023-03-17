@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.product.zcommon.constants;
 
 import com.sds.sflex.system.config.constant.CommConst;
 
+@Deprecated /* PdProductWellsConst 변경 */
 public class PdProductConst {
 
     // 상품 기본 URL

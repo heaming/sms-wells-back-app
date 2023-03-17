@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 
@@ -13,8 +14,8 @@ public class WctiFreeAsPeriodDto {
     public record FindReq(
         @NotBlank
         String CNTR_NO,
-        @NotBlank
-        String CNTR_SN
+        @NotNull
+        int CNTR_SN
     ) {}
 
     // *********************************************************
@@ -23,7 +24,7 @@ public class WctiFreeAsPeriodDto {
     // 무상 AS 기간 Search Result Dto
     @ApiModel("WctiFreeAsPeriodDto-FindRes")
     public record FindRes(
-        String FRISU_AS_MCN,
-        String SS_FRISU_AS_MCN
+        Integer FRISU_AS_MCN,
+        Integer SS_FRISU_AS_MCN
     ) {}
 }

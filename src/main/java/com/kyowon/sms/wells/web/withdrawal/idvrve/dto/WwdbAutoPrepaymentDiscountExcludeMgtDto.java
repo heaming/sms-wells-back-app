@@ -29,7 +29,8 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtDto {
         String fstRgstDtm, //등록일시
         String fstRgstUsrId, //등록자 id
         String fnlMdfcDtm, //수정일시
-        String fnlMdfcUsrId //수정자 id  
+        String fnlMdfcUsrId, //수정자 id  
+        String prmStrtDate //선납시작월 
     ) {
 
     }

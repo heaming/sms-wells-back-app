@@ -118,6 +118,34 @@
          ORDER BY TO_NUMBER(CNTR_APR_AK_DV_CD)
     </select>
 
+    <select id="selectRentalFee" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPdPrcFnlDtlDvo">
+       SELECT T1.PD_CD
+            , NVL(T1.PD_PRC_FNL_PRP_VAL05, 0) AS SV_FEE_AMT /*렌탈료 */
+            , TRUNC(T1.PD_PRC_FNL_PRP_VAL05*0.95/10)*10 AS SV_FEE_AMT_05 -- 선납 5% (일자리 버림)
+            , TRUNC(T1.PD_PRC_FNL_PRP_VAL05*0.9/10)*10  AS SV_FEE_AMT_10 -- 선납 10% (일자리 버림)
+            , CASE WHEN PD_PRC_FNL_PRP_VAL05 IS NULL OR PD_PRC_FNL_PRP_VAL05 <![CDATA[<=]]> 0 THEN '3'
+                   ELSE '' END AS RENTAL_CHECK
+         FROM TB_PDBS_PD_PRC_FNL_DTL T1 /*상품가격최종상세*/
+         LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2 /* 상품각사속성상세 - 방문주기(BS주기) */
+          ON T2.PD_EXTS_PRP_GRP_CD ='SCHD'
+         AND T1.PD_CD = T2.PD_CD
+         AND T2.DTA_DL_YN ='N'
+        LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3 /* 상품각사속성상세 - 용두구분(서비스유형) */
+          ON T3.PD_EXTS_PRP_GRP_CD ='CMN'
+         AND T1.PD_CD = T3.PD_CD
+         AND T3.DTA_DL_YN ='N'      /* P.용도구분 */
+       WHERE 1=1
+      /* AND T1.VL_END_DTM = '99991231235959'  */ /*VL_END_DTM*/
+        AND T1.TEMP_SAVE_YN = 'N'                    /* 임시저장여부*/
+        AND T1.DTA_DL_YN  = 'N'                      /* 데이터삭제여부*/
+        AND T1.PD_CD = #{pdCd}                     /* P.상품코드 */
+        AND T2.PD_PRP_VAL02 = #{svVstPrdCd}       /* P.방문주기(BS주기) */
+        AND T3.PD_PRP_VAL01 = #{svTpCd}            /* P.용도구분  */
+        AND T1.PD_PRC_CNDT_CHRC_VAL01 = #{rgstFee}  /* P.등록비 */
+        AND T1.PD_PRC_CNDT_CHRC_VAL07 = #{chgMcn}   /* P.변동개월 */
+        AND T1.VER_SN = #{verSn}                    /* P.가격차수(버전일련번호) */
+    </select>
+
     <update id="deleteApprovalAskDivides">
         UPDATE TB_SSCT_CNTR_APR_AK_DV_CD
            SET DTA_DL_YN = 'Y'

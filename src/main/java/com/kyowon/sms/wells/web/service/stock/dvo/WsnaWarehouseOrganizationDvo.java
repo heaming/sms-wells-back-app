@@ -15,6 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnaWarehouseOrganizationDvo {
+
     private String apyYm; /* 적용년월 */
     private String wareNo; /* 창고번호 */
     private String wareDvCd; /* 창고구분코드 */
@@ -37,6 +38,7 @@ public class WsnaWarehouseOrganizationDvo {
     private String dtaDlYn; /* 데이터삭제여부 */
     private String rmkCn; /* 비고내용 */
     private String baseYm; /*기준년월*/
+    String fstRgstDt; /* 최초등록일 */
     String fstRgstDtm; /* 최초등록일시 */
     String fstRgstUsrId; /* 최초등록사용자ID */
     String fstRgstPrgId; /* 최초등록프로그램ID */
@@ -45,4 +47,18 @@ public class WsnaWarehouseOrganizationDvo {
     String fnlMdfcUsrId; /* 최종수정사용자ID */
     String fnlMdfcPrgId; /* 최종수정프로그램ID */
     String fnlMdfcDeptId; /* 최종수정부서ID */
+
+    String prtnrNo;
+    String prtnrKnm;
+    String hgrWareNm;
+    String rnadr;
+    String rdadr;
+    String newAdrZip;
+    String ogId;
+    String ogNm;
+    String dgr1LevlOgId;
+    String dgr1LevlOgNm;
+    String dgr2LevlOgId;
+    String dgr2LevlOgNm;
+
 }

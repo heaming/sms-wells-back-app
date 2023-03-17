@@ -1,13 +1,15 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncFixationVisitConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncFixationVisitDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncFixationVisitDvo;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncFixationVisitMapper;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncFixationVisitConverter;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncFixationVisitDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncFixationVisitDvo;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncFixationVisitMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -24,6 +26,12 @@ public class WsncFixationVisitService {
         WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     ) {
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
+    }
+
+    public List<WsncFixationVisitDto.SearchRes> getFixationVisitsExcelDownload(
+        WsncFixationVisitDto.SearchReq dto
+    ) {
+        return wwsncFixationVisitMgntMapper.selectFixationVisits(dto);
     }
 
     public WsncFixationVisitDto.SearchRegRes getFixationVisit(

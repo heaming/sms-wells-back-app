@@ -93,8 +93,10 @@ public class WpdcMaterialMgtService {
         this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
 
         // #6. 이력 INSERT
-        String startDtm = DateUtil.getDate(new Date());
-        hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+            String startDtm = DateUtil.getDate(new Date());
+            hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        }
 
         return productConverter.mapProductDvoToPdBas(dvo);
     }
@@ -143,8 +145,10 @@ public class WpdcMaterialMgtService {
 
         this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
 
-        String startDtm = DateUtil.getDate(new Date());
-        hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+            String startDtm = DateUtil.getDate(new Date());
+            hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        }
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 

@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 
@@ -18,8 +19,8 @@ public class WctiContractInstallDto {
     public record SaveReq(
         @NotBlank
         String CNTR_NO, //계약번호(필수)
-        @NotBlank
-        String CNTR_SN, //계약일련번호(필수)
+        @NotNull
+        int CNTR_SN, //계약일련번호(필수)
         String ADR_ID, //변경될 주소ID
         String CRAL_LOCARA_TNO, //휴대지역전화번호
         String MEXNO, //휴대전화국번호

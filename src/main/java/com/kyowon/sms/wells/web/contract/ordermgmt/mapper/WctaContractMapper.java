@@ -6,10 +6,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprAkDvCdDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCntrAprBaseBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalPackageGrpMngtsDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSpaySlamtInqrDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -42,6 +39,8 @@ public interface WctaContractMapper {
 
     int selectCountConfirmApprovalBases(WctaCntrAprBaseBasDvo dvo);
 
+    WctaPdPrcFnlDtlDvo selectRentalFee(SearchRentalFeeReq dto);
+
     int deleteApprovalAskDivides(WctaCntrAprAkDvCdDvo dvo);
 
     int insertConfirmApprovalBases(WctaCntrAprBaseBasDvo dvo);
@@ -59,4 +58,5 @@ public interface WctaContractMapper {
     int deleteRentalPackageGrpMngts(WctaRentalPackageGrpMngtsDvo dvo);
 
     List<SearchRentalPackageGrpMngtsRes> selectRentalPackageGrpMngts(WctaRentalPackageGrpMngtsDvo dvo);
+
 }

@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 
@@ -13,8 +14,8 @@ public class WctiRequidationDateDto {
     public record FindReq(
         @NotBlank
         String CNTR_NO,
-        @NotBlank
-        String CNTR_SN
+        @NotNull
+        int CNTR_SN
     ) {}
 
     // *********************************************************
@@ -24,10 +25,10 @@ public class WctiRequidationDateDto {
     @ApiModel("WctiRequidationDateDto-FindRes")
     public record FindRes(
         String CNTR_NO,
-        String CNTR_SN,
+        Integer CNTR_SN,
         String CNTR_DT,
         String IST_DT,
         String REQD_DT,
-        String REQD_IST_DC_GAP
+        Integer REQD_IST_DC_GAP
     ) {}
 }

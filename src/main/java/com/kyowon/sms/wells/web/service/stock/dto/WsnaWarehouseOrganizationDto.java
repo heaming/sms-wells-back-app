@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import javax.validation.constraints.NotBlank;
 
 /**
  * <pre>
@@ -74,6 +74,66 @@ public class WsnaWarehouseOrganizationDto {
         @NotBlank
         String baseYm //기준년월
         //        String userId //사용자ID
+    ) {}
+
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-FindRes")
+    public record FindRes(
+        String apyYm, // 기준년월
+        String wareDvCd, // 창고구분코드
+        String wareDtlDvCd, // 창고상세구분코드
+        String wareNo, // 창고번호
+        String prtnrNo, // 관리자번호
+        String prtnrKnm, // 관리자명
+        String wareNm, // 창고명
+        String hgrWareNo, // 상위창고번호
+        String hgrWareNm, // 상위창고명
+        String rmkCn, // 비고내용
+        String wareUseYn, // 창고사용여부
+        String fstRgstDt, // 최초등록일
+        String adrUseYn, // 주소사용여부
+        String bldCd, // 빌딩코드
+        String wareAdrId, // 창고주소ID
+        String rnadr,
+        String rdadr,
+        String newAdrZip,
+        String ogId,
+        String ogNm,
+        String dgr1LevlOgId,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgId,
+        String dgr2LevlOgNm
+    ) {}
+
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-SaveReq")
+    public record SaveReq(
+        @NotBlank
+        String apyYm, // 기준년월
+        @NotBlank
+        String wareDvCd, // 창고구분코드
+        @NotBlank
+        String wareDtlDvCd, // 창고상세구분코드
+        String wareNo, // 창고번호
+        String prtnrNo, // 관리자번호
+        String prtnrKnm, // 관리자명
+        String wareNm, // 창고명
+        String hgrWareNo, // 상위창고번호
+        String hgrWareNm, // 상위창고명
+        String rmkCn, // 비고내용
+        String wareUseYn, // 창고사용여부
+        String fstRgstDt, // 최초등록일
+        @NotBlank
+        String adrUseYn, // 주소사용여부
+        String bldCd, // 빌딩코드
+        String wareAdrId, // 창고주소ID
+        String rnadr, // 도로명주소
+        String rdadr, // 도로명주소상세
+        String newAdrZip, // 신주소우편번호
+        String ogId, // 조직ID
+        String ogNm, // 조직명
+        String dgr1LevlOgId, // 1차조직레벨ID
+        String dgr1LevlOgNm, // 1차조직레벨명
+        String dgr2LevlOgId, // 2차조직레벨ID
+        String dgr2LevlOgNm // 2차조직레벨명
     ) {}
 
 }

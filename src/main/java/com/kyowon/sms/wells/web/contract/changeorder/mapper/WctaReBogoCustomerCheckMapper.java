@@ -7,5 +7,4 @@ import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctaReBogoCustomerCheck
 @Mapper
 public interface WctaReBogoCustomerCheckMapper {
     String selectReRntlPmotApyYn(WctaReBogoCustomerCheckDvo dvo);
-
 }

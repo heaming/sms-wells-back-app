@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 
@@ -13,8 +14,8 @@ public class WctiContractCurrentProductDto {
     public record FindReq(
         @NotBlank
         String CNTR_NO,
-        @NotBlank
-        String CNTR_SN
+        @NotNull
+        int CNTR_SN
     ) {}
 
     // *********************************************************
@@ -34,6 +35,6 @@ public class WctiContractCurrentProductDto {
         String HGR_PD_CD,
         String HGR_PD_NM,
         String AS_PSB_YN,
-        String FRISU_AS_PTRM_N
+        Integer FRISU_AS_PTRM_N
     ) {}
 }

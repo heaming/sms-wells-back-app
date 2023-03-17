@@ -28,7 +28,7 @@ public class WctiContractDetailDto {
     @ApiModel("WctiContractDetailDto-SearchRes")
     public record SearchRes(
         String CNTR_NO, //계약번호
-        String CNTR_SN, //계약일련번호
+        int CNTR_SN, //계약일련번호
         String CNTR_DTL_STAT_CD, //계약상세상태코드
         String CNTR_DTL_STAT_NM, //계약상세상태코드명
         String PD_HCLSF_ID, //상품대분류ID
