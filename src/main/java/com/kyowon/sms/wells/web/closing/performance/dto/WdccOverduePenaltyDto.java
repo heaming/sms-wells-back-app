@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
 
-public class WdccOverdueQenaltyDto {
+public class WdccOverduePenaltyDto {
     // *********************************************************
     // Result Dto
     // *********************************************************

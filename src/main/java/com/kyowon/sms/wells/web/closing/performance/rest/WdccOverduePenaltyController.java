@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverdueQenaltyDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverdueQenaltyDto.SearchRes;
-import com.kyowon.sms.wells.web.closing.performance.service.WdccOverdueQenaltyService;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.service.WdccOverduePenaltyService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -19,12 +19,12 @@ import java.util.List;
 
 @Api(tags = "[WDCC] 매출채권/선수금 현황 - 영업선수금")
 @RestController
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/overdue-qenalty")
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/overdue-penalty")
 @RequiredArgsConstructor
 @Validated
-public class WdccOverdueQenaltyController {
+public class WdccOverduePenaltyController {
 
-    private final WdccOverdueQenaltyService service;
+    private final WdccOverduePenaltyService service;
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(집계)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {

@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.closing.performance.service;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverdueQenaltyDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverdueQenaltyDto.SearchRes;
-import com.kyowon.sms.wells.web.closing.performance.mapper.WdccOverdueQenaltyMapper;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.mapper.WdccOverduePenaltyMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,9 +12,9 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WdccOverdueQenaltyService {
+public class WdccOverduePenaltyService {
 
-    private final WdccOverdueQenaltyMapper mapper;
+    private final WdccOverduePenaltyMapper mapper;
 
     public List<SearchRes> getSalesBondAdditionalChargesAggregate(
         SearchReq req
