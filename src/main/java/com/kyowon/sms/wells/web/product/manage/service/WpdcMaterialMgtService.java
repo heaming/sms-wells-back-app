@@ -27,16 +27,14 @@ import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
+import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
-import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductConst;
 import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
-import com.sds.sflex.common.common.dvo.UserSessionDvo;
 import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -307,8 +305,6 @@ public class WpdcMaterialMgtService {
         ArrayList<String> prgGrpDves
     ) throws Exception {
 
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
-
         String startDtm = DateUtil.getDate(new Date());
         // 단계그룹구분코드(공통 코드값), 예외적으로 해당 컬럼만 CODE_NM으로 받고 JAVA에서 mapping처리.
         List<CodeComponent> lrnnLvGrpDvCds = codeService.getCodesByCodeId(PdProductConst.LRNN_LV_GRP_DV_CD, null);
@@ -345,6 +341,7 @@ public class WpdcMaterialMgtService {
 
             // #1. 상품 마스터 INSERT
             dvo.setPdTpCd(PdProductConst.PD_TP_CD_MATERIAL);
+            dvo.setPdTpDtlCd(PdProductConst.PD_TP_DTL_CD_M);
             dvo.setTempSaveYn(PdProductConst.TEMP_SAVE_N);
             dvo = productService.saveProductBase(dvo, startDtm);
 
