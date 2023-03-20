@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.closing.performances.interfaces.dto;
+package com.kyowon.sms.wells.web.closing.performances.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;

@@ -1,9 +1,8 @@
-package com.kyowon.sms.wells.web.closing.performances.interfaces.rest;
+package com.kyowon.sms.wells.web.closing.performances.rest;
 
 import com.kyowon.sms.common.web.closing.zcommon.constants.DcClosingConst;
-import com.kyowon.sms.wells.web.closing.performances.interfaces.dto.WdccPerformanceInterfaceDto.FindReq;
-import com.kyowon.sms.wells.web.closing.performances.interfaces.dto.WdccPerformanceInterfaceDto.FindRes;
-import com.kyowon.sms.wells.web.closing.performances.interfaces.service.WdccPerformanceInterfaceService;
+import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto;
+import com.kyowon.sms.wells.web.closing.performances.service.WdccPerformanceInterfaceService;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import io.swagger.annotations.Api;
@@ -36,13 +35,13 @@ public class WdccPerformanceInterfaceController {
     public EaiWrapper getLumpSumPerformances(
         @Valid
         @RequestBody
-        EaiWrapper<FindReq> reqWrapper
+        EaiWrapper<WdccPerformanceInterfaceDto.FindReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<WdccPerformanceInterfaceDto.FindRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<FindRes> res = service.getLumpSumPerformance(reqWrapper.getBody());
+        List<WdccPerformanceInterfaceDto.FindRes> res = service.getLumpSumPerformance(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);
