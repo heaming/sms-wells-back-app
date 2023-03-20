@@ -1,23 +1,35 @@
 package com.kyowon.sms.wells.web.product.manage.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyowon.sms.common.web.product.category.service.ZpdaClassificationMgtService;
 import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.dto.WpdcAsPartMgtDto;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcAsPartMgtMapper;
+import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
+import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
+import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.common.utils.DateUtil;
+//import org.eclipse.jetty.util.StringUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -34,6 +46,10 @@ public class WpdcAsPartsMgtService {
     private final ZpdcProductMapper productMapper;
     private final ZpdcProductService productService;
     private final ZpdcHistoryMgtService hisService;
+
+    private final WpdcMaterialMgtMapper wMapper;
+
+    private final CodeService codeService;
 
     /**
      * AS부품 목록 페이징 조회
@@ -124,5 +140,121 @@ public class WpdcAsPartsMgtService {
         String startDtm = DateUtil.getDate(new Date());
         hisService.createProductHistory(pdCd, startDtm);
         return processCount;
+    }
+
+    /**
+     * Excel Data를 DB에 저장.
+     * 코드값은 Excel Dropdown으로 'CODE_NM|CODE_CD'로 입력받는다는 대전제.
+     * @param excelData
+     * @param metaItems
+     * @param tbPdbsPdBas
+     * @param tbPdbsPdEcomPrpDtl
+     * @param prgGrpDves
+     * @throws Exception
+     */
+    @Transactional
+    public void saveExcelUpload(
+        List<Map<String, Object>> excelData,
+        List<ZpdcPropertyMetaDvo> metaItems,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl,
+        ArrayList<String> prgGrpDves
+    ) throws Exception {
+
+        String startDtm = DateUtil.getDate(new Date());
+        // 단계그룹구분코드(공통 코드값), 예외적으로 해당 컬럼만 CODE_NM으로 받고 JAVA에서 mapping처리.
+        List<CodeComponent> lrnnLvGrpDvCds = codeService.getCodesByCodeId(PdProductConst.LRNN_LV_GRP_DV_CD, null);
+
+        for (Map<String, Object> excelDataMap : excelData) {
+
+            Map<String, Object> masterMap = new HashMap<String, Object>();
+            for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+                for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
+                    if (entry.getKey().equals(metaVo.getColNm())) {
+                        if (entry.getValue().toString().split("\\|").length > 1) {
+                            String tempVal[] = entry.getValue().toString().split("\\|");
+                            masterMap.put(metaVo.getColId(), tempVal[1].trim());
+                        } else {
+                            masterMap.put(metaVo.getColId(), entry.getValue());
+                        }
+                    }
+                }
+            }
+            ObjectMapper objectMapper = new ObjectMapper();
+            ZpdcProductDvo dvo = objectMapper.convertValue(masterMap, ZpdcProductDvo.class);
+
+            // 230303 자재코드가 들어오면 UI와 동일하게 자동으로 Fill-In
+            if (StringUtil.isNotEmpty(dvo.getSapMatCd())) {
+                // TODO 조회쿼리 한방 날리고 값들 채우고!!! 여기부터 시작!!!!
+                ZpdcGbcoSapMatDvo sapMatVo = wMapper.selectMaterialSap(dvo.getSapMatCd());
+
+                dvo.setModelNo(sapMatVo.getModelNo());
+                dvo.setSapPdctSclsrtStrcVal(sapMatVo.getSapPdctSclsrtStrcVal());
+                dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
+                dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
+                dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+            }
+
+            // #1. 상품 마스터 INSERT
+            dvo.setPdTpCd(PdProductConst.PD_TP_CD_MATERIAL);
+            dvo.setPdTpDtlCd(PdProductConst.PD_TP_DTL_CD_P);
+            dvo.setTempSaveYn(PdProductConst.TEMP_SAVE_N);
+            dvo = productService.saveProductBase(dvo, startDtm);
+
+            /**
+             * 각사 속성의 경우 
+             * TB_PDBS_PD_PRP_META_BAS.PD_PRP_GRP_DV_CD(=상품속성그룹구분코드) Lv INSERT
+             */
+            for (String pdPrpGrpDtlDvCd : prgGrpDves) {
+                List<ZpdcPropertyMetaDvo> eachPdPrpGrpDtlDvCd = tbPdbsPdEcomPrpDtl.stream()
+                    .filter(x -> pdPrpGrpDtlDvCd.equals(x.getPdPrpGrpDtlDvCd())).toList();
+
+                Map<String, Object> propertyMap = new HashMap<String, Object>();
+                for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+                    for (ZpdcPropertyMetaDvo metaVo : eachPdPrpGrpDtlDvCd) {
+
+                        propertyMap.put("pdExtsPrpGrpCd", pdPrpGrpDtlDvCd);
+                        if (entry.getKey().equals(metaVo.getColNm())) {
+                            if (entry.getValue().toString().split("\\|").length > 1) {
+                                String tempVal[] = entry.getValue().toString().split("\\|");
+                                propertyMap.put(metaVo.getColId(), tempVal[1]);
+                            } else {
+                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스 
+                                // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.
+                                if (PdProductConst.PD_EXTS_PRP_GRP_CD_LRNN.equals(pdPrpGrpDtlDvCd)
+                                    && PdProductConst.CARMEL_LRNN_LV_CD.equals(metaVo.getColNm())) {
+
+                                    for (CodeComponent codeVo : lrnnLvGrpDvCds) {
+                                        if (entry.getValue().equals(codeVo.codeName())) {
+                                            propertyMap.put(metaVo.getColId(), codeVo.codeId());
+                                        }
+                                    }
+
+                                } else {
+                                    propertyMap.put(metaVo.getColId(), entry.getValue());
+                                }
+
+                            }
+                        }
+
+                    }
+
+                }
+                objectMapper = new ObjectMapper();
+                ZpdcEachCompanyPropDtlDvo propertyVo = objectMapper
+                    .convertValue(propertyMap, ZpdcEachCompanyPropDtlDvo.class);
+
+                propertyVo.setPdCd(dvo.getPdCd());
+                if (null != propertyVo.getPdExtsPrpGrpCd()) {
+                    productService.saveEachCompanyPropDtl(propertyVo);
+                    propertyMap = new HashMap<String, Object>();
+                }
+
+            }
+
+            // #3. 이력 INSERT
+            hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        }
+
     }
 }
