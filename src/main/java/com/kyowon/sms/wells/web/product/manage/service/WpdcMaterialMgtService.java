@@ -29,7 +29,6 @@ import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
-import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductConst;
 import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.common.common.service.CodeService;
