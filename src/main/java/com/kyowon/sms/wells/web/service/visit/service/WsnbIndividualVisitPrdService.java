@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.service.allocate.service.WsncVisitPeriodRecrtSer
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbIndividualVisitPrdMapper;
-import com.sds.sflex.common.uifw.service.MessageResourceService;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;

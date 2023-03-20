@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.JsonObject;
 import com.kyowon.sms.wells.web.service.common.dto.WsnzBarCodeProductInfDto;
 import com.kyowon.sms.wells.web.service.common.service.WsnzBarCodeProductInfService;
-import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.system.config.constant.CommConst;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;

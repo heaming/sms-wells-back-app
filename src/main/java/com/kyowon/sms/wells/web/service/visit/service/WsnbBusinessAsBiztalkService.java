@@ -10,8 +10,8 @@ import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbBusinessAsBiztalkDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbBusinessAsBiztalkMapper;
-import com.sds.sflex.common.common.service.ConfigurationService;
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.core.service.ConfigurationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

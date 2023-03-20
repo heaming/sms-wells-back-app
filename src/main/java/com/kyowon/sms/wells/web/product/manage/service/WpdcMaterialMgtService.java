@@ -29,12 +29,15 @@ import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
+import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductConst;
 import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.common.common.service.CodeService;
-import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -305,6 +308,8 @@ public class WpdcMaterialMgtService {
         ArrayList<String> prgGrpDves
     ) throws Exception {
 
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+
         String startDtm = DateUtil.getDate(new Date());
         // 단계그룹구분코드(공통 코드값), 예외적으로 해당 컬럼만 CODE_NM으로 받고 JAVA에서 mapping처리.
         List<CodeComponent> lrnnLvGrpDvCds = codeService.getCodesByCodeId(PdProductConst.LRNN_LV_GRP_DV_CD, null);
@@ -341,12 +346,11 @@ public class WpdcMaterialMgtService {
 
             // #1. 상품 마스터 INSERT
             dvo.setPdTpCd(PdProductConst.PD_TP_CD_MATERIAL);
-            dvo.setPdTpDtlCd(PdProductConst.PD_TP_DTL_CD_M);
             dvo.setTempSaveYn(PdProductConst.TEMP_SAVE_N);
             dvo = productService.saveProductBase(dvo, startDtm);
 
             /**
-             * 각사 속성의 경우 
+             * 각사 속성의 경우
              * TB_PDBS_PD_PRP_META_BAS.PD_PRP_GRP_DV_CD(=상품속성그룹구분코드) Lv INSERT
              */
             for (String pdPrpGrpDtlDvCd : prgGrpDves) {
@@ -363,7 +367,7 @@ public class WpdcMaterialMgtService {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1]);
                             } else {
-                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스 
+                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스
                                 // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.
                                 if (PdProductConst.PD_EXTS_PRP_GRP_CD_LRNN.equals(pdPrpGrpDtlDvCd)
                                     && PdProductConst.CARMEL_LRNN_LV_CD.equals(metaVo.getColNm())) {
