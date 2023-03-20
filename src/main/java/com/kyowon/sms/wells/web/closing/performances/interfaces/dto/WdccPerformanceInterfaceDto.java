@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.performances.interfaces.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -15,9 +16,11 @@ public class WdccPerformanceInterfaceDto {
     @ApiModel("WdccPerformanceInterfaceDto-FindReq")
     public record FindReq(
         @NotBlank
-        String CNTR_NO,
+        @JsonProperty("CNTR_NO")
+        String cntrNo,
         @NotBlank
-        String CNTR_SN
+        @JsonProperty("CNTR_SN")
+        int cntrSn
     ) {
     }
 
@@ -28,19 +31,32 @@ public class WdccPerformanceInterfaceDto {
     @Builder
     @ApiModel("WdccPerformanceInterfaceDto-FindRes")
     public record FindRes(
-        String CNTR_NO,
-        String CNTR_SN,
-        String DP_SUM_AMT,
-        String DLQ_MCN,
-        String UC_AMT,
-        String FULPY_DT,
-        String BU_NOTI_DT,
-        String REDF_DT,
-        String ADSB_DT,
-        String FULPY_EXP_AMT,
-        String MPY_TN,
-        String RES_TN,
-        String EOT_DLQ_AMT
+        @JsonProperty("CNTR_NO")
+        String cntrNo,
+        @JsonProperty("CNTR_SN")
+        String cntrSn,
+        @JsonProperty("DP_SUM_AMT")
+        String dpSumAmt,
+        @JsonProperty("DLQ_MCN")
+        String dlqMcn,
+        @JsonProperty("UC_AMT")
+        String ucAmt,
+        @JsonProperty("FULPY_DT")
+        String fulpyDt,
+        @JsonProperty("BU_NOTI_DT")
+        String buNotiDt,
+        @JsonProperty("REDF_DT")
+        String redfDt,
+        @JsonProperty("ADSB_DT")
+        String adsbDt,
+        @JsonProperty("FULPY_EXP_AMT")
+        String fulpyExpAmt,
+        @JsonProperty("MPY_TN")
+        String mpyTn,
+        @JsonProperty("RES_TN")
+        String resTn,
+        @JsonProperty("EOT_DLQ_AMT")
+        String eotDlqAmt
     ) {
     }
 }
