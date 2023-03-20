@@ -18,9 +18,9 @@ public interface WdcbSinglePaymentMapper {
 
     PagingResult<SalesSearchRes> selectSalesPerformances(SearchReq dto, PageInfo pageInfo);
 
-    PagingResult<DepositSearchRes> selectDepositItemizations(SearchReq dto, PageInfo pageInfo);
+    PagingResult<DepositSearchRes> selectDepositsPages(SearchReq dto, PageInfo pageInfo);
 
     List<SalesSearchRes> selectSalesPerformances(SearchReq dto);
 
-    List<DepositSearchRes> selectDepositItemizations(SearchReq dto);
+    List<DepositSearchRes> selectDepositsPages(SearchReq dto);
 }

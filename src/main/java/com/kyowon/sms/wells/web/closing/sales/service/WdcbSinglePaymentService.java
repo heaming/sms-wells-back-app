@@ -29,15 +29,15 @@ public class WdcbSinglePaymentService {
         return mapper.selectSalesPerformances(dto, pageInfo);
     }
 
-    public PagingResult<DepositSearchRes> getDepositItemizations(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectDepositItemizations(dto, pageInfo);
+    public PagingResult<DepositSearchRes> getDepositsPages(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectDepositsPages(dto, pageInfo);
     }
 
     public List<SalesSearchRes> getSalesPerformanceExcelDownload(SearchReq dto) {
         return mapper.selectSalesPerformances(dto);
     }
 
-    public List<DepositSearchRes> getDepositItemizationExcelDownload(SearchReq dto) {
-        return mapper.selectDepositItemizations(dto);
+    public List<DepositSearchRes> getDepositExcelDownload(SearchReq dto) {
+        return mapper.selectDepositsPages(dto);
     }
 }

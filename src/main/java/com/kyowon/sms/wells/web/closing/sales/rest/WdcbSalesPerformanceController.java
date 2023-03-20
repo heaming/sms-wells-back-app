@@ -9,9 +9,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.BaseSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SalesSearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRegularMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRegularRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRentalMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRentalRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbSalesPerformanceService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -40,11 +45,53 @@ public class WdcbSalesPerformanceController {
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
     @GetMapping("/base-information")
-    public BaseSearchRes getBaseInformation(
+    public SearchRes getBaseInformation(
         @Valid
         SearchReq dto
     ) {
         return service.getBaseInformation(dto);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 기본정보(렌탈, 리스)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/rental")
+    public SearchRentalRes getRental(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getRental(dto);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 기본정보(멤버십)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/membership")
+    public SearchMembershipRes getMembership(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getMembership(dto);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 기본정보(정기배송)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/regular")
+    public SearchRegularRes getRegular(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getRegular(dto);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별)", notes = "조회조건에 따른 매출 실적 현황을 조회")
@@ -53,13 +100,13 @@ public class WdcbSalesPerformanceController {
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
-    @GetMapping("/sales-performance-mcby/paging")
-    public PagingResult<SalesSearchRes> getSalesPerformancePages(
+    @GetMapping("/rental/paging")
+    public PagingResult<SearchRentalMonthlyRes> getRentalPages(
         @Valid
         SearchReq dto,
         PageInfo pageInfo
     ) {
-        return service.getSalesPerformancePages(dto, pageInfo);
+        return service.getRentalPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적을 엑셀 다운로드")
@@ -68,11 +115,69 @@ public class WdcbSalesPerformanceController {
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
-    @GetMapping("/sales-performance-mcby/excel-download")
-    public List<SalesSearchRes> getSalesPerformanceExcelDownload(
+    @GetMapping("/rental/excel-download")
+    public List<SearchRentalMonthlyRes> getRentalExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getSalesPerformanceExcelDownload(dto);
+        return service.getRentalExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 매출실적(월별)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/membership/paging")
+    public PagingResult<SearchMembershipMonthlyRes> getMembershipPages(
+        @Valid
+        SearchReq dto,
+        PageInfo pageInfo
+    ) {
+        return service.getMembershipPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 매출실적(월별) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적을 엑셀 다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/membership/excel-download")
+    public List<SearchMembershipMonthlyRes> getMembershipExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getMembershipExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 매출실적(월별)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/regular/paging")
+    public PagingResult<SearchRegularMonthlyRes> getRegularPages(
+        @Valid
+        SearchReq dto,
+        PageInfo pageInfo
+    ) {
+        return service.getRegularPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 매출실적(월별) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적을 엑셀 다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/regular/excel-download")
+    public List<SearchRegularMonthlyRes> getRegularExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getRegularExcelDownload(dto);
     }
 }

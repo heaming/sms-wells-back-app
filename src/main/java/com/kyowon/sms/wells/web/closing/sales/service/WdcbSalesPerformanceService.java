@@ -4,9 +4,14 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.BaseSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SalesSearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRegularMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRegularRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRentalMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRentalRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesPerformanceMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -20,15 +25,45 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbSalesPerformanceService {
     private final WdcbSalesPerformanceMapper mapper;
 
-    public BaseSearchRes getBaseInformation(SearchReq dto) {
-        return mapper.selectBaseInformation(dto);
+    public SearchRes getBaseInformation(SearchReq dto) {
+        return mapper.selectSellTpCd(dto);
     }
 
-    public PagingResult<SalesSearchRes> getSalesPerformancePages(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectSalesPerformances(dto, pageInfo);
+    public SearchRentalRes getRental(SearchReq dto) {
+        return mapper.selectRental(dto);
     }
 
-    public List<SalesSearchRes> getSalesPerformanceExcelDownload(SearchReq dto) {
-        return mapper.selectSalesPerformances(dto);
+    public SearchMembershipRes getMembership(SearchReq dto) {
+        return mapper.selectMembership(dto);
+    }
+
+    public SearchRegularRes getRegular(SearchReq dto) {
+        return mapper.selectRegular(dto);
+    }
+
+    public PagingResult<SearchRentalMonthlyRes> getRentalPages(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectRentalPages(dto, pageInfo);
+    }
+
+    public List<SearchRentalMonthlyRes> getRentalExcelDownload(SearchReq dto) {
+        return mapper.selectRentalPages(dto);
+    }
+
+    public PagingResult<SearchMembershipMonthlyRes> getMembershipPages(
+        SearchReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectMembershipPages(dto, pageInfo);
+    }
+
+    public List<SearchMembershipMonthlyRes> getMembershipExcelDownload(SearchReq dto) {
+        return mapper.selectMembershipPages(dto);
+    }
+
+    public PagingResult<SearchRegularMonthlyRes> getRegularPages(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectRegularPages(dto, pageInfo);
+    }
+
+    public List<SearchRegularMonthlyRes> getRegularExcelDownload(SearchReq dto) {
+        return mapper.selectRegularPages(dto);
     }
 }

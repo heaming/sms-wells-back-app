@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@RequestMapping(DcClosingConst.COMMON_URL_V1)
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/single-payment")
 public class WdcbSinglePaymentController {
     private final WdcbSinglePaymentService service;
 
@@ -38,7 +38,7 @@ public class WdcbSinglePaymentController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
     })
-    @GetMapping("/single-payment-base")
+    @GetMapping("/base")
     public BaseSearchRes getBaseInformation(
         @Valid
         SearchReq dto
@@ -50,7 +50,7 @@ public class WdcbSinglePaymentController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
     })
-    @GetMapping("/single-payment-sales")
+    @GetMapping("/sales")
     public PagingResult<SalesSearchRes> getSalesPerformancePages(
         @Valid
         SearchReq dto,
@@ -63,20 +63,20 @@ public class WdcbSinglePaymentController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
     })
-    @GetMapping("/single-payment-deposits")
-    public PagingResult<DepositSearchRes> getDepositItemizationPages(
+    @GetMapping("/deposits")
+    public PagingResult<DepositSearchRes> getDepositPages(
         @Valid
         SearchReq dto,
         PageInfo depositPageInfo
     ) {
-        return service.getDepositItemizations(dto, depositPageInfo);
+        return service.getDepositsPages(dto, depositPageInfo);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 일시불(매출실적) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적 - 일시불을 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
     })
-    @GetMapping("/single-payment-sales/excel-download")
+    @GetMapping("/sales/excel-download")
     public List<SalesSearchRes> getSalesPerformanceExcelDownload(
         @Valid
         SearchReq dto
@@ -88,11 +88,11 @@ public class WdcbSinglePaymentController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
     })
-    @GetMapping("/single-payment-deposits/excel-download")
-    public List<DepositSearchRes> getDepositItemizationExcelDownload(
+    @GetMapping("/deposits/excel-download")
+    public List<DepositSearchRes> getDepositExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getDepositItemizationExcelDownload(dto);
+        return service.getDepositExcelDownload(dto);
     }
 }

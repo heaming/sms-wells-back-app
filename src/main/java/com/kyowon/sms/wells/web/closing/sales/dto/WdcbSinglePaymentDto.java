@@ -30,7 +30,7 @@ public class WdcbSinglePaymentDto {
         String slDt,
         String slCanDt,
         String sellOgTpCd,
-        String tbSsctCntrDtl,
+        String basePdCd,
         String dscAmt,
         String dscApyTpCd,
         String alncmpCd,

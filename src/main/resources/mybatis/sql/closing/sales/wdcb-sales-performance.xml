@@ -1,97 +1,235 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesPerformanceMapper">
-    <!--
-    테이블 생성 전 테이블 정리되면 쿼리문 살리고 다시 테스트 진행 해야 함
-    <select id="selectBaseInformation" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$RentalSearchRes">
-        SELECT SAP_DP_TP_CD
-          FROM TB_CBCL_SAP_DP_TP_CD_BASE
+    
+    <select id="selectSellTpCd" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRes">
+        SELECT SELL_TP_CD
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
          WHERE 1=1
-           AND CO_CD = #{coCd}
-           AND APY_STRTDT <= #{dpClDt}
-           AND APY_ENDDT >= #{dpClDt}
-           AND RVE_TP_CD = #{rveTpCd}
-           AND DP_KND_CD = #{dpKndCd}
-           AND DP_TP_CD = #{dpTpCd}
-    </select>-->
+           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+    </select>
 
-    <select id="selectBaseInformation" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$BaseSearchRes">
-        SELECT '1' AS COL1
-            , #{cntrDtlNo} AS COL2
-            , '너고객' AS COL3
-            , '(5148)웰스(KW-15469)' AS COL4
-            , '만료유형' AS COL5
-            , '제휴구분' AS COL6
-            , '2023-03-02' AS COL7
-            , '2023-03-03' AS COL8
-            , '2023-04-01' AS COL9
-            , '2023-04-01' AS COL10
-            , '2023-05-01' AS COL11
-            , '2023-05-01' AS COL12
-            , '법인 / 3년 약정' AS COL13
-            , '은행/20/Y' AS COL14
-            , '100000(10000 할인)' AS COL15
-            , '60/25,900' AS COL16
-            , 360000 AS COL17
-            , 15000 AS COL18
-            , 0 AS COL19
-            , 45000 AS COL20
-            , 315000 AS COL21
-            , 0 AS COL22
-            , 0 AS COL23
-            , 0 AS COL24
-            , 0 AS COL25
-            , 0 AS COL26
-          FROM DUAL
+    <select id="selectRental" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRentalRes">
+        /* 렌탈, 리스 */
+        SELECT T2.SELL_TP_CD    
+             , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
+             , T4.CST_KNM
+             , T5.PD_NM
+             , '' AS COL5
+             , '' AS COL6
+             , TO_CHAR(T3.CNTR_RCP_FSH_DTM,'YYYYMMDD') AS CNTR_RCP_FSH_DTM
+             , T1.SL_DT
+             , TO_CHAR(T3.CNTR_CAN_DTM,'YYYYMMDD') AS CNTR_CAN_DTM
+             , '' AS COL10
+             , T6.REDF_DT
+             , T6.ADSB_DT
+             , T5.DSC_TP_CD
+             , T7.DP_TP_CD || '/' || T7.MPY_BSDT AS DP_TP_CD
+             , T1.RENTAL_RGST_COST || '/' || T1.DSC_AMT AS RENTAL_RGST_COST
+             , T1.RENTAL_PTRM || '/' || T1.RENTAL_AMT AS RENTAL_PTRM
+             , T1.SL_AGG_AMT
+             , '' AS COL18
+             , '' AS COL19
+             , T1.SL_DP_AGG_AMT
+             , '' AS COL21
+             , T8.THM_OC_DLQ_AMT /* 명세서에는 DLQ_OC_AMT */
+             , '' AS COL23
+             , T8.EOT_DLQ_ADD_AMT
+             , T9.DFA_AMT
+             , T10.DFA_DP_AMT
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_BAS T3
+            ON T2.CNTR_NO = T3.CNTR_NO
+         INNER JOIN TB_CUBS_CST_BAS T4
+            ON T1.CST_NO = T4.CST_NO
+         INNER JOIN TB_PDBS_PD_BAS T5
+            ON T1.PD_CD = T5.PD_CD
+          LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS T6
+            ON T1.CNTR_NO = T6.CNTR_NO
+           AND T1.CNTR_SN = T6.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_STLM_BAS T7
+            ON T1.CNTR_NO = T7.CNTR_NO
+           AND T1.CST_NO = T7.CST_NO
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
+            ON T1.CNTR_NO = T8.CNTR_NO
+           AND T1.CNTR_SN = T8.CNTR_SN
+          LEFT OUTER JOIN TB_CBBO_DFA_IZ T9
+            ON T1.CNTR_NO = T9.CNTR_NO
+           AND T1.CNTR_SN = T9.CNTR_SN
+          LEFT OUTER JOIN TB_CBBO_DFA_DP_IZ T10
+            ON T9.DFA_TP_CD = T10.DFA_TP_CD
          WHERE 1=1
+           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
     </select>
     
-    <select id="selectSalesPerformances" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SalesSearchRes">
-       SELECT #{cntrDtlNo} AS COL1
-            , '2023-04' AS COL2
-            , '매출중지' AS COL3
-            , 0 AS COL4
-            , '관리구분' AS COL5
-            , 0 AS COL6
-            , 400000 AS COL7
-            , 0 AS COL8
-            , 30000 AS COL9
-            , 150000 AS COL10
-            , 250000 AS COL11
-            , 0 AS COL12
-            , 0 AS COL13
-            , 0 AS COL14
-            , 0 AS COL15
-            , 0 AS COL16
-            , 0 AS COL17
-            , 0 AS COL18
-            , 0 AS COL19
-            , 0 AS COL20
-          FROM DUAL
-         WHERE 1=1
-         UNION ALL
-        SELECT '2023-5461685' AS COL1
-             , '2023-04' AS COL2
-             , '매출중지' AS COL3
-             , 1 AS COL4
-             , '관리구분' AS COL5
-             , 12 AS COL6
-             , 400000 AS COL7
-             , 0 AS COL8
-             , 0 AS COL9
-             , 100000 AS COL10
-             , 300000 AS COL11
-             , 0 AS COL12
-             , 0 AS COL13
-             , 0 AS COL14
+    <select id="selectMembership" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchMembershipRes">
+        /* 멤버십 */
+        SELECT T2.SELL_TP_CD    
+             , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
+             , T4.CST_KNM
+             , T5.PD_NM
+             , T7.DP_TP_CD || '/' || T7.MPY_BSDT AS DP_TP_CD
+             , T6.CNTR_DT
+             , T3.CNTR_CNFM_DTM
+             , TO_CHAR(T3.CNTR_CAN_DTM, 'YYYYMMDD') AS CNTR_CAN_DTM
+             , '' AS COL9
+             , '' AS COL10
+             , '' AS COL11
+             , T1.SELL_AMT
+             , T1.DSC_AMT
+             , T1.SL_AGG_AMT
              , 0 AS COL15
              , 0 AS COL16
-             , 0 AS COL17
-             , 0 AS COL18
-             , 0 AS COL19
-             , 0 AS COL20
-          FROM DUAL
+             , T1.SL_DP_AGG_AMT
+             , T1.THM_UC_BLAM
+             , T8.THM_OC_DLQ_AMT / T8.EOT_DLQ_ADD_AMT AS THM_OC_DLQ_AMT
+             , T9.DFA_AMT
+             , T10.DFA_DP_AMT
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_BAS T3
+            ON T2.CNTR_NO = T3.CNTR_NO
+         INNER JOIN TB_CUBS_CST_BAS T4
+            ON T1.CST_NO = T4.CST_NO
+         INNER JOIN TB_PDBS_PD_BAS T5
+            ON T1.PD_CD = T5.PD_CD
+          LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T6
+            ON T1.CNTR_NO = T6.CNTR_NO
+           AND T1.CNTR_SN = T6.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_STLM_BAS T7
+            ON T1.CNTR_NO = T7.CNTR_NO
+           AND T1.CST_NO = T7.CST_NO
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
+            ON T1.CNTR_NO = T8.CNTR_NO
+           AND T1.CNTR_SN = T8.CNTR_SN
+          LEFT OUTER JOIN TB_CBBO_DFA_IZ T9
+            ON T1.CNTR_NO = T9.CNTR_NO
+           AND T1.CNTR_SN = T9.CNTR_SN
+          LEFT OUTER JOIN TB_CBBO_DFA_DP_IZ T10
+            ON T9.DFA_TP_CD = T10.DFA_TP_CD
          WHERE 1=1
+           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+    </select>
+    
+    <select id="selectRegular" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRegularRes">
+        /* 정기배송 */
+        SELECT T2.SELL_TP_CD    
+             , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
+             , T4.CST_KNM
+             , TO_CHAR(T3.CNTR_RCP_FSH_DTM, 'YYYYMMDD') AS CNTR_RCP_FSH_DTM
+             , T1.SL_DT
+             , '' AS COL6
+             , '' AS COL7
+             , '' AS COL8
+             , T1.SPP_DTM
+             , T5.DP_TP_CD || '/' || T5.MPY_BSDT AS DP_TP_CD
+             , T1.SL_AGG_AMT
+             , 0 AS COL12
+             , 0 AS COL13
+             , T1.SL_DP_AGG_AMT
+             , T1.THM_UC_BLAM
+             , 0 AS COL16
+             , T6.THM_OC_DLQ_AMT
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_BAS T3
+            ON T2.CNTR_NO = T3.CNTR_NO
+         INNER JOIN TB_CUBS_CST_BAS T4
+            ON T1.CST_NO = T4.CST_NO
+         INNER JOIN TB_SSCT_CNTR_STLM_BAS T5
+            ON T1.CNTR_NO = T5.CNTR_NO
+           AND T1.CST_NO = T5.CST_NO
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T6
+            ON T1.CNTR_NO = T6.CNTR_NO
+           AND T1.CNTR_SN = T6.CNTR_SN
+         WHERE 1=1
+           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+    </select>
+    
+    <select id="selectRentalPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRentalMonthlyRes">
+       SELECT T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
+            , SUBSTR(SL_DT, 1, 4) AS SL_DT
+            , T2.CNTR_DTL_STAT_CD
+            , '' AS COL4
+            , '' AS COL5
+            , T1.PRM_MCN
+            , T1.THM_SL_SUM_AMT
+            , 0 AS COL8
+            , 0 AS COL9
+            , T1.EOT_ATAM
+            , T1.THM_UC_BLAM
+            , T3.THM_OC_DLQ_AMT
+            , T3.DLQ_MCN
+            , T3.BTD_DLQ_ADD_AMT
+            , T3.THM_OC_DLQ_ADD_AMT
+            , T3.THM_CTR_DLQ_ADD_AMT
+            , T3.THM_DLQ_DP_SUM_AMT
+            , T3.THM_DLQ_RFND_SUM_AMT
+            , T3.EOT_DLQ_ADD_AMT
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+        INNER JOIN TB_SSCT_CNTR_DTL T2
+           ON T1.CNTR_NO = T2.CNTR_NO
+          AND T1.CNTR_SN = T2.CNTR_SN
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
+           ON T1.CNTR_NO = T3.CNTR_NO
+          AND T1.CNTR_SN = T3.CNTR_SN
+        WHERE 1=1
+          AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+          AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+    </select>
+    
+    <select id="selectMembershipPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchMembershipMonthlyRes">
+       SELECT T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
+            , SUBSTR(SL_DT, 1, 6) AS SL_DT
+            , '' AS COL3
+            , '' AS COL4
+            , T1.THM_SL_SUM_AMT
+            , T1.THM_ATAM_DP_AMT - T1.THM_ATAM_RFND_AMT AS THM_ATAM_DP_AMT
+            , T1.EOT_ATAM
+            , T2.THM_OC_DLQ_AMT
+            , T2.BTD_DLQ_ADD_AMT   
+            , T2.THM_OC_DLQ_ADD_AMT
+            , T2.THM_CTR_DLQ_ADD_AMT   
+            , T2.THM_DLQ_DP_SUM_AMT    
+            , T2.THM_DLQ_RFND_SUM_AMT  
+            , T2.EOT_DLQ_ADD_AMT
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS T2
+           ON T1.CNTR_NO = T2.CNTR_NO
+          AND T1.CNTR_SN = T2.CNTR_SN
+        WHERE 1=1
+          AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+          AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+    </select>
+    
+    <select id="selectRegularPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRegularMonthlyRes">
+       SELECT T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
+            , '' AS COL2
+            , SUBSTR(SL_DT, 1, 6) AS SL_DT
+            , '' AS COL4
+            , T1.THM_SL_SUM_AMT
+            , T1.THM_ATAM_DP_AMT - T1.THM_ATAM_RFND_AMT AS THM_ATAM_DP_AMT
+            , T1.EOT_ATAM
+            , T1.THM_UC_BLAM
+            , '' AS COL8
+            , T2.THM_OC_DLQ_AMT
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS T2
+           ON T1.CNTR_NO = T2.CNTR_NO
+          AND T1.CNTR_SN = T2.CNTR_SN
+        WHERE 1=1
+          AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+          AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
     </select>
 
 </mapper>
