@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.etcPerformances.mapper.WdccEtcPerformanceInterfaceMapper">
+
+	<resultMap id="dataInfo" type="com.kyowon.sms.wells.web.closing.etcPerformances.dto.WdccEtcPerformanceInterfaceDto$FindRes">
+		<constructor>
+            <arg name="cntrNo"         javaType="java.lang.String" column="CNTR_NO"                 />
+            <arg name="cntrSn"         javaType="java.lang.String" column="CNTR_SN"                 />
+            <arg name="slClYm"         javaType="java.lang.String" column="SL_CL_YM"                />
+            <arg name="rentalTn"       javaType="java.lang.String" column="RENTAL_TN"               />
+            <arg name="slStpYn"        javaType="java.lang.String" column="SL_STP_YN"               />
+            <arg name="thmSlSumAmt"    javaType="java.lang.String" column="THM_SL_SUM_AMT"          />
+            <arg name="slDpAggAmt"     javaType="java.lang.String" column="SL_DP_AGG_AMT"           />
+            <arg name="acuOcAtam"      javaType="java.lang.String" column="ACU_OC_ATAM"             />
+            <arg name="eotAtam"        javaType="java.lang.String" column="EOT_ATAM"                />
+            <arg name="eotDlqAmt"      javaType="java.lang.String" column="EOT_DLQ_AMT"             />
+            <arg name="eotDlqAddAmt"   javaType="java.lang.String" column="EOT_DLQ_ADD_AMT"         />
+            <arg name="slStpAmt"       javaType="java.lang.String" column="SL_STP_AMT"              />
+            <arg name="clctamDvCd"     javaType="java.lang.String" column="CLCTAM_DV_CD"            />
+            <arg name="clctamDvCdNm"   javaType="java.lang.String" column="CLCTAM_DV_CD_NM"         />
+            <arg name="prtnrNo"        javaType="java.lang.String" column="PRTNR_NO"                />
+            <arg name="prtnrFnm"       javaType="java.lang.String" column="PRTNR_FNM"               />
+        </constructor>
+	</resultMap>
+
+	<select id="selectOtherLumpSumPerformance" resultMap="dataInfo">
+        SELECT A.CNTR_NO
+             , A.CNTR_SN
+             , C.SL_CL_YM                                               AS SL_CL_YM        /*매출마감년월[AS-IS:실적년월]*/
+             , C.RENTAL_TN                                              AS RENTAL_TN       /*렌탈회차[AS-IS:렌탈차월]*/
+            /* -- TO-BE매출중지여부 어딘가 생성 후 명시 */
+             , ''                                                       AS SL_STP_YN       /*매출중지여부[AS-IS:매출중지여부]*/
+             , NVL(C.THM_SL_SUM_AMT, 0)                                 AS THM_SL_SUM_AMT  /*당월매출합계금액[AS-IS:렌탈 매출금액]*/
+             , NVL(C.SL_DP_AGG_AMT, 0)                                  AS SL_DP_AGG_AMT   /*매출입금누계금액[AS-IS:입금금액]*/
+            /* --총선수금액 : 선수금액 + 포인트선수금액(TO-BE미존재)*/
+             , NVL(C.EOT_ATAM, 0)                                       AS ACU_OC_ATAM     /*누적발생선수금[AS-IS:총선수금액]*/
+             , NVL(C.EOT_ATAM, 0)                                       AS EOT_ATAM        /*기말선수금[AS-IS:선수금액]*/
+            /* --포인트선수금액(TO-BE미존재)*/
+             , NVL(G.EOT_DLQ_AMT, 0)                                    AS EOT_DLQ_AMT     /*기말연체금액[AS-IS:연체금액]*/
+             , NVL(G.EOT_DLQ_ADD_AMT, 0)                                AS EOT_DLQ_ADD_AMT /*기말연체가산금액[AS-IS:연체가산금액]*/
+            /* --점유비? 쿼리 상 미표시됨 -> 매출중지금액 어디에 만들어야할지 확인 필요*/
+            /* FLOOR(LC50.LCAM96*0.3/10)*10 AS LCAM96*/
+             , NVL(I.CLCTAM_DV_CD, '')                                  AS CLCTAM_DV_CD             /*집금구분코드[AS-IS:집금구분]*/
+            /* -- 채권영역의 테이블 데이터 적재 후 공통코드 테이블 조인으로 변경*/
+            /* -- 코드 확인을 위한 작업 실제 처리는 아래 주석 처리된 것으로 반영해 주세요.*/
+            /* -- Q. 인터페이스 처리 시 tenant ID는 무엇이 들어올까?*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'CLCTAM_DV_CD', I.CLCTAM_DV_CD) AS CLCTAM_DV_CD_NM          /*집금구분코드명*/
+            /* --,F_CMZ_CD_NM(#{session.tenantId}, 'CLCTAM_DV_CD', I.CLCTAM_DV_CD)     AS CLCTAM_DV_CD_NM*/          /*집금구분코드명*/
+             , NVL(I.PRTNR_NO, '')                                      AS PRTNR_NO                 /*파트너번호[AS-IS:집금담당ID]*/
+            /* --현재 조직유형코드가 없어 조인 불가 - 테이블 변경 후 쿼리 수정*/
+             , ''                                                       AS PRTNR_FNM                /*파트너성명[AS-IS:집금담당자명]*/
+          FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*WELLS매출월마감내역*/
+            ON A.CNTR_NO   = C.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN   = C.CNTR_SN /*계약일련번호*/
+           AND C.DTA_DL_YN = 'N'       /*데이터삭제여부*/
+           AND C.SL_CL_YM BETWEEN #{slClYm1} AND #{slClYm2} /*매출마감년월*/
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS G /*연체기본*/
+            ON A.CNTR_NO   = G.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN   = G.CNTR_SN /*계약일련번호*/
+           AND G.PERF_YM BETWEEN #{slClYm1} AND #{slClYm2} /*실적년월*/
+           AND G.DTA_DL_YN = 'N'     /*데이터삭제여부*/
+            /* --속도 문제 시 H절의 Where문에 계약번호+계약일련번호 추가*/
+          LEFT OUTER JOIN (SELECT CNTR_NO
+                                , CNTR_SN
+                                , BASE_YM
+                                , BND_CNTR_ID /*채권계약ID*/
+                               /* --채권배정상태코드 = '04'[확정] 아니면 전달로 집금자배정정보를 조회한다.*/
+                                , CASE WHEN BND_ASN_STAT_CD = '04' THEN BASE_YM
+                                       ELSE TO_CHAR(ADD_MONTHS(TO_DATE(BASE_YM || '01'), -1), 'YYYYMM') END AS BASE_YM /*기준년월*/
+                             FROM TB_CBBO_BND_CNTR_BAS /*채권계약기본*/
+                            WHERE DTA_DL_YN = 'N' /*데이터삭제여부*/
+                              AND BASE_YM BETWEEN #{slClYm1} AND #{slClYm2} ) H
+            ON A.CNTR_NO  = H.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN  = H.CNTR_SN /*계약일련번호*/
+           AND C.SL_CL_YM = H.BASE_YM
+          LEFT OUTER JOIN TB_CBBO_BND_ASN_IZ I /*채권배정내역*/
+            ON H.BND_CNTR_ID = I.BND_CNTR_ID /*채권계약ID*/
+           AND H.BASE_YM     = I.BASE_YM     /*기준년월*/
+           AND I.DTA_DL_YN   = 'N'            /*데이터삭제여부*/
+         WHERE 1 = 1
+           AND A.CNTR_NO   = #{cntrNo}    /*계약번호*/
+           AND A.CNTR_SN   = #{cntrSn} /*계약일련번호*/
+           AND A.SELL_TP_CD  <![CDATA[<>]]> '1' /*판매유형코드[1:할부]*/
+           AND A.DTA_DL_YN  = 'N'  /*데이터삭제여부*/
+	</select>
+</mapper>
