@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.performances.interfaces.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
@@ -13,9 +14,11 @@ public class WdccPerformanceInterfaceDto {
     @ApiModel("WdccPerformanceInterfaceDto-FindReq")
     public record FindReq(
         @NotBlank
-        String CNTR_NO,
+        @JsonProperty("CNTR_NO")
+        String cNTRNO,
         @NotBlank
-        String CNTR_SN
+        @JsonProperty("CNTR_SN")
+        String cNTRSN
     ) {
     }
 
