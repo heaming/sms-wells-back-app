@@ -18,7 +18,6 @@ public class WdccPerformanceInterfaceDto {
         @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo,
-        @NotBlank
         @JsonProperty("CNTR_SN")
         int cntrSn
     ) {
