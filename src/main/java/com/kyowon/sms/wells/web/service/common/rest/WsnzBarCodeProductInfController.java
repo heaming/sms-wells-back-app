@@ -33,7 +33,7 @@ public class WsnzBarCodeProductInfController {
 
     @GetMapping
     public void getBarCodeProducts(
-        @RequestParam(required = true)
+        @RequestParam
         String QRCD, HttpServletResponse response
     ) throws IOException, Exception {
         response.setContentType("application/json");

@@ -5,5 +5,6 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface WsnzBarCodeProductInfMapper {
-    WsnzBarCodeProductInfDto.SearchRes selectBarCodeProduct(WsnzBarCodeProductInfDto.SearchReq dto);
+
+    WsnzBarCodeProductInfDto.SearchRes selectBarCodeProduct(String qrcd);
 }

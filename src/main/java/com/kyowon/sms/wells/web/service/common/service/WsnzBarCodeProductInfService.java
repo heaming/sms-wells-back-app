@@ -14,15 +14,8 @@ public class WsnzBarCodeProductInfService {
     private final WsnzBarCodeProductInfMapper mapper;
 
     public WsnzBarCodeProductInfDto.SearchRes getBarCodeProducts(
-        WsnzBarCodeProductInfDto.SearchReq dto
-    ) {
-        return mapper.selectBarCodeProduct(dto);
-    }
-
-    public WsnzBarCodeProductInfDto.SearchRes getBarCodeProducts(
         String qrcd
     ) {
-        WsnzBarCodeProductInfDto.SearchReq dto = new WsnzBarCodeProductInfDto.SearchReq(qrcd);
-        return getBarCodeProducts(dto);
+        return mapper.selectBarCodeProduct(qrcd);
     }
 }
