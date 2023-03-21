@@ -1,8 +1,8 @@
-package com.kyowon.sms.wells.web.closing.etcPerformances.service;
+package com.kyowon.sms.wells.web.closing.performance.service;
 
-import com.kyowon.sms.wells.web.closing.etcPerformances.dto.WdccEtcPerformanceInterfaceDto.FindReq;
-import com.kyowon.sms.wells.web.closing.etcPerformances.dto.WdccEtcPerformanceInterfaceDto.FindRes;
-import com.kyowon.sms.wells.web.closing.etcPerformances.mapper.WdccEtcPerformanceInterfaceMapper;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindReq;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindRes;
+import com.kyowon.sms.wells.web.closing.performance.mapper.WdccEtcPerformanceInterfaceMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

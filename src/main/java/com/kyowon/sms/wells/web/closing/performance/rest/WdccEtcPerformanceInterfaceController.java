@@ -1,8 +1,8 @@
-package com.kyowon.sms.wells.web.closing.etcPerformances.rest;
+package com.kyowon.sms.wells.web.closing.performance.rest;
 
-import com.kyowon.sms.wells.web.closing.etcPerformances.dto.WdccEtcPerformanceInterfaceDto.FindReq;
-import com.kyowon.sms.wells.web.closing.etcPerformances.dto.WdccEtcPerformanceInterfaceDto.FindRes;
-import com.kyowon.sms.wells.web.closing.etcPerformances.service.WdccEtcPerformanceInterfaceService;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindReq;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindRes;
+import com.kyowon.sms.wells.web.closing.performance.service.WdccEtcPerformanceInterfaceService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
