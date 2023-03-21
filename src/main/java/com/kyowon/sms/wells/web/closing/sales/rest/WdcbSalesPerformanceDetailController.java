@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.LeaseSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.MembershipSearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbSalesPerformanceDetailService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
@@ -34,7 +34,7 @@ public class WdcbSalesPerformanceDetailController {
         @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
     })
     @GetMapping("/membership-sales-detail")
-    public MembershipSearchRes getMembershipSalesDetail(
+    public SearchMembershipRes getMembershipSalesDetail(
         @Valid
         SearchReq dto
     ) {
@@ -46,7 +46,7 @@ public class WdcbSalesPerformanceDetailController {
         @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
     })
     @GetMapping("/lease-sales-detail")
-    public LeaseSearchRes getLeaseSalesDetail(
+    public SearchLeaseRes getLeaseSalesDetail(
         @Valid
         SearchReq dto
     ) {

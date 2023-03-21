@@ -19,8 +19,8 @@ public class WdcbSalesPerformanceDetailDto {
     // Result Dto
     // *********************************************************
     // 매출 상세정보 Search Result Dto
-    @ApiModel("WdcbSalesPerformanceDetailDto-MembershipSearchRes")
-    public record MembershipSearchRes(
+    @ApiModel("WdcbSalesPerformanceDetailDto-SearchMembershipRes")
+    public record SearchMembershipRes(
         String cstKnm,
         String cntrDtlNo,
         String slClYm,
@@ -93,8 +93,8 @@ public class WdcbSalesPerformanceDetailDto {
     // Result Dto
     // *********************************************************
     // 매출 상세정보 Search Result Dto
-    @ApiModel("WdcbSalesPerformanceDetailDto-LeaseSearchRes")
-    public record LeaseSearchRes(
+    @ApiModel("WdcbSalesPerformanceDetailDto-SearchLeaseRes")
+    public record SearchLeaseRes(
         String col1,
         String col2,
         String col3,
