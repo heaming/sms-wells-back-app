@@ -1,15 +1,13 @@
 package com.kyowon.sms.wells.web.closing.sales.rest;
 
-import javax.validation.Valid;
-
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchMembershipRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbSalesPerformanceDetailService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 
@@ -35,10 +33,10 @@ public class WdcbSalesPerformanceDetailController {
     })
     @GetMapping("/membership-sales-detail")
     public SearchMembershipRes getMembershipSalesDetail(
-        @Valid
-        SearchReq dto
+        @RequestParam
+        String slDt
     ) {
-        return service.getMembershipSalesDetail(dto);
+        return service.getMembershipSalesDetail(slDt);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 리스매출 상세내역", notes = "조회조건에 따른 리스매출 상세내역을 조회")
@@ -47,9 +45,9 @@ public class WdcbSalesPerformanceDetailController {
     })
     @GetMapping("/lease-sales-detail")
     public SearchLeaseRes getLeaseSalesDetail(
-        @Valid
-        SearchReq dto
+        @RequestParam
+        String slDt
     ) {
-        return service.getLeaseSalesDetail(dto);
+        return service.getLeaseSalesDetail(slDt);
     }
 }

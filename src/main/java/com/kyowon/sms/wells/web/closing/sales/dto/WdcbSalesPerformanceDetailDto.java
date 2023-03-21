@@ -1,20 +1,8 @@
 package com.kyowon.sms.wells.web.closing.sales.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 
 public class WdcbSalesPerformanceDetailDto {
-    // *********************************************************
-    // Search Dto
-    // *********************************************************
-    // 매출 상세정보 Search Dto
-    @ApiModel("WdcbSalesPerformanceDetailDto-SearchReq")
-    public record SearchReq(
-        @NotBlank
-        String slDt
-    ) {}
-
     // *********************************************************
     // Result Dto
     // *********************************************************

@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchMembershipRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesPerformanceDetailMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -16,11 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbSalesPerformanceDetailService {
     private final WdcbSalesPerformanceDetailMapper mapper;
 
-    public SearchMembershipRes getMembershipSalesDetail(SearchReq dto) {
-        return mapper.selectMembershipSalesDetail(dto);
+    public SearchMembershipRes getMembershipSalesDetail(String slDt) {
+        return mapper.selectMembershipSalesDetail(slDt);
     }
 
-    public SearchLeaseRes getLeaseSalesDetail(SearchReq dto) {
-        return mapper.selectLeaseSalesDetail(dto);
+    public SearchLeaseRes getLeaseSalesDetail(String slDt) {
+        return mapper.selectLeaseSalesDetail(slDt);
     }
 }
