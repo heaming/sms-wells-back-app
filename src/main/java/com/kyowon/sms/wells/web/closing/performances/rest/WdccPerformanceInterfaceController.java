@@ -20,7 +20,7 @@ import java.util.List;
 
 @InterfaceController
 @Api(tags = "[WDCC] wells일시불(할부)-실적정보조회 I/F")
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performances")
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performances/singlePayment")
 @RequiredArgsConstructor
 @Validated
 public class WdccPerformanceInterfaceController {
