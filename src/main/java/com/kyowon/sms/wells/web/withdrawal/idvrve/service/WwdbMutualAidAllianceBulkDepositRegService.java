@@ -25,9 +25,9 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.util.WithdrawalExcelUtil;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.common.common.service.ExcelReadService;
-import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
@@ -265,7 +265,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         diffDay = DateUtil.getDays(sysDateYm, dto.perfDt());
 
-        //오늘 날짜와 실적일자사이가 0보다 클 경우 예외 발생         
+        //오늘 날짜와 실적일자사이가 0보다 클 경우 예외 발생
         BizAssert.isTrue(diffDay > 0, "수납일자는 현재일 과 이전만 가능 합니다.");
 
         if (!sysDateYm.contentEquals(dto.perfDt().substring(0, 6))) {

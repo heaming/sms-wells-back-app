@@ -27,10 +27,10 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillingDocumentDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillingDocumentForwardingDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillingDocumentMgtDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbBillingDocumentMgtMapper;
-import com.sds.sflex.common.common.dvo.UserSessionDvo;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
@@ -193,7 +193,7 @@ public class WwdbBillingDocumentMgtService {
             // 알림톡 메시지 발송
             processCount = sendKakao(processCount, dvo);
         } else if (dto.bildcFwTpCd().equals("E")) {
-            //메일 보내기            
+            //메일 보내기
             processCount = sendMail(processCount, dvo);
         }
 

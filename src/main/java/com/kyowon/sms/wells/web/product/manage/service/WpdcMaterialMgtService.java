@@ -27,16 +27,16 @@ import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
+import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
-import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductConst;
 import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
-import com.sds.sflex.common.common.dvo.UserSessionDvo;
 import com.sds.sflex.common.common.service.CodeService;
-import com.sds.sflex.common.uifw.service.MessageResourceService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -349,7 +349,7 @@ public class WpdcMaterialMgtService {
             dvo = productService.saveProductBase(dvo, startDtm);
 
             /**
-             * 각사 속성의 경우 
+             * 각사 속성의 경우
              * TB_PDBS_PD_PRP_META_BAS.PD_PRP_GRP_DV_CD(=상품속성그룹구분코드) Lv INSERT
              */
             for (String pdPrpGrpDtlDvCd : prgGrpDves) {
@@ -366,7 +366,7 @@ public class WpdcMaterialMgtService {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1]);
                             } else {
-                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스 
+                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스
                                 // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.
                                 if (PdProductConst.PD_EXTS_PRP_GRP_CD_LRNN.equals(pdPrpGrpDtlDvCd)
                                     && PdProductConst.CARMEL_LRNN_LV_CD.equals(metaVo.getColNm())) {

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.performances.mapper.WdccPerformanceInterfaceMapper">
+
+	<resultMap id="dataInfo" type="com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto$FindRes">
+		<constructor>
+            <arg name="cntrNo"         javaType="java.lang.String" column="CNTR_NO"         />
+            <arg name="cntrSn"         javaType="java.lang.String" column="CNTR_SN"         />
+			<arg name="dpSumAmt"       javaType="java.lang.String" column="DP_SUM_AMT"      />
+			<arg name="dlqMcn"         javaType="java.lang.String" column="DLQ_MCN"         />
+			<arg name="ucAmt"          javaType="java.lang.String" column="UC_AMT"          />
+			<arg name="fulpyDt"        javaType="java.lang.String" column="FULPY_DT"        />
+			<arg name="buNotiDt"       javaType="java.lang.String" column="BU_NOTI_DT"      />
+			<arg name="redfDt"         javaType="java.lang.String" column="REDF_DT"         />
+			<arg name="adsbDt"         javaType="java.lang.String" column="ADSB_DT"         />
+			<arg name="fulpyExpAmt"    javaType="java.lang.String" column="FULPY_EXP_AMT"   />
+			<arg name="mpyTn"          javaType="java.lang.String" column="MPY_TN"          />
+			<arg name="resTn"          javaType="java.lang.String" column="RES_TN"          />
+			<arg name="eotDlqAmt"      javaType="java.lang.String" column="EOT_DLQ_AMT"     />
+		</constructor>
+	</resultMap>
+
+	<select id="selectLumpSumPerformance" resultMap="dataInfo">
+		SELECT A.CNTR_NO
+             , A.CNTR_SN
+             , NVL(D.DP_SUM_AMT, 0)                                     AS DP_SUM_AMT    /*입금합계금액[AS-IS:입금액계]*/
+             , NVL(G.DLQ_MCN, 0)                                        AS DLQ_MCN       /*연체개월수[AS-IS:연체개월]*/
+            /* 미수금액 : 판매금액 - 입금합계금액*/
+             , NVL(C.ISTM_AMT, 0) - NVL(D.DP_SUM_AMT, 0)                AS UC_AMT        /*미수금액[AS-IS:미수금계]*/
+             , ''                                                       AS FULPY_DT      /*완불일자[AS-IS:완불일자]*/
+             , NVL(E.BU_NOTI_DT, '')                                    AS BU_NOTI_DT    /*부담통보일자[AS-IS:부담통보]*/
+             , NVL(F.REDF_DT, '')                                       AS REDF_DT       /*되물림일자[AS-IS:되물림일자]*/
+             , NVL(F.ADSB_DT, '')                                       AS ADSB_DT       /*재지급일자[AS-IS:재지급일자]*/
+            /* 완불예정금액 : 할부개월수 = 0이면 0, 아니면 판매금액 - 입금합계금액*/
+             , CASE WHEN A.ISTM_MCN = 0 THEN 0
+                    ELSE NVL(C.ISTM_AMT, 0) - NVL(D.DP_SUM_AMT, 0)
+               END                                                      AS FULPY_EXP_AMT /*완불예정금액[AS-IS:완불예정금액]*/
+               /* 입금합계금액 / 월할부금액*/
+             , NVL(TRUNC(NVL(D.DP_SUM_AMT, 0) /  NULLIF (A.MM_ISTM_AMT,0)),0)              AS MPY_TN        /*납부회차[AS-IS:납회회수]*/
+             , A.ISTM_MCN - NVL(TRUNC(NVL(D.DP_SUM_AMT, 0) / NULLIF (A.MM_ISTM_AMT,0)),0) AS RES_TN        /*잔여회차[AS-IS:잔여회수]*/
+             , NVL(G.EOT_DLQ_AMT, 0)                                    AS EOT_DLQ_AMT   /*기말연체금액[AS-IS:연체금액]*/
+          FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*WELLS매출월마감내역*/
+            ON A.CNTR_NO  = C.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN  = C.CNTR_SN /*계약일련번호*/
+           AND C.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')  /*매출마감년월*/
+           AND C.DTA_DL_YN    = 'N'             /*데이터삭제여부*/
+            /* TO-BE 입금구분코드에 전금이 포함되어 있기에. 전금 처리 방안이 나오면 다시 확인 처리 필요*/
+          LEFT OUTER JOIN (SELECT CNTR_NO
+                                , CNTR_SN
+                               /* AS-IS CWIJUB 입금종류(1:할부금,2:매변,3:손료) -> TO-BE RVE_DV_CD 수납구분코드로 용도변경 사용*/
+                               /*  입금금액 합 : 입금구분코드 = 입금 AND 수납구분코드 = 월납입액(할부금, 렌탈료) -> SUM(수납금액)*/
+                               /*             입금구분코드 = 환불 AND 수납구분코드 = 월납입액(할부금, 렌탈료) -> SUM(수납금액) * -1*/
+                                , NVL(SUM(CASE WHEN DP_DV_CD = '1' AND RVE_DV_CD = '03' THEN RVE_AMT
+                                               WHEN DP_DV_CD = '2' AND RVE_DV_CD = '03' THEN RVE_AMT * -1
+                                               ELSE 0 END), 0) AS DP_SUM_AMT /*입금합계금액*/
+                             FROM TB_RVDW_RVE_DTL /*수납상세*/
+                            WHERE DTA_DL_YN    = 'N'             /*데이터삭제여부*/
+                              AND RVE_PROCS_YN = 'Y'             /*수납처리여부*/
+                              AND CNTR_NO      = #{cntrNo}    /*계약번호*/
+                              AND CNTR_SN      = #{cntrSn} /*계약일련번호*/
+                            GROUP BY CNTR_NO, CNTR_SN ) D
+            ON A.CNTR_NO = D.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN = D.CNTR_SN /*계약일련번호*/
+          LEFT OUTER JOIN TB_FEDD_BU_NOTI_RGST_BAS E /*부담통보등록기본*/
+            ON A.CNTR_NO                 = E.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN                 = E.CNTR_SN /*계약일련번호*/
+           AND E.BU_DDTN_OJ_RGST_STAT_CD = '01'      /*부담공제대상등록상태코드[01:등록]*/
+           AND E.DTA_DL_YN               = 'N'       /*데이터삭제여부*/
+            /* 일시불은 한차례 되물림과 재지급이 발생함. -> 재지급조건이 완불임.*/
+          LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS F /*되물림재지급기본*/
+            ON A.CNTR_NO      = F.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN      = F.CNTR_SN /*계약일련번호*/
+           AND F.REDF_ADSB_SN = 1         /*되물림재지급일련번호*/
+           AND F.DTA_DL_YN    = 'N'       /*데이터삭제여부*/
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS G /*연체기본*/
+            ON A.CNTR_NO   = G.CNTR_NO /*계약번호*/
+           AND A.CNTR_SN   = G.CNTR_SN /*계약일련번호*/
+           AND G.PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')  /*실적년월*/
+           AND G.DTA_DL_YN = 'N'     /*데이터삭제여부*/
+         WHERE 1 = 1
+           AND A.CNTR_NO    = #{cntrNo}    /*계약번호*/
+           AND A.CNTR_SN    = #{cntrSn} /*계약일련번호*/
+           AND A.SELL_TP_CD = '1' /*판매유형코드[1:할부]*/
+           AND A.DTA_DL_YN  = 'N' /*데이터삭제여부*/
+	</select>
+
+</mapper>

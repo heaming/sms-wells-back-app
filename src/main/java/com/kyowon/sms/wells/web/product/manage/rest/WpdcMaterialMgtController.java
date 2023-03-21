@@ -26,8 +26,9 @@ import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.service.PdExcelReadService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcRelationMgtService;
+import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.service.WpdcMaterialMgtService;
-import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductConst;
+import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductWellsConst;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
@@ -43,7 +44,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @Api(tags = "[WPDC] 상품 >> 상품운영관리 >> 교재/자재관리")
-@RequestMapping(value = PdProductConst.REST_URL_V1 + "/materials")
+@RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/materials")
 @RequiredArgsConstructor
 @Validated
 public class WpdcMaterialMgtController {
@@ -120,7 +121,7 @@ public class WpdcMaterialMgtController {
 
     @ApiOperation(value = "교재/자재 엑셀 업로드를 통한 일괄등록")
     @PostMapping("/excel-upload")
-    public UploadRes saveMessageResourceForDirectExcelUpload(
+    public UploadRes saveForDirectExcelUpload(
         @RequestParam("file")
         MultipartFile file
     ) throws Exception {
