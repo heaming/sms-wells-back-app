@@ -1,7 +1,8 @@
 package com.kyowon.sms.wells.web.closing.performances.rest;
 
 import com.kyowon.sms.common.web.closing.zcommon.constants.DcClosingConst;
-import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto;
+import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto.FindReq;
+import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto.FindRes;
 import com.kyowon.sms.wells.web.closing.performances.service.WdccPerformanceInterfaceService;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -20,7 +21,7 @@ import java.util.List;
 
 @InterfaceController
 @Api(tags = "[WDCC] wells일시불(할부)-실적정보조회 I/F")
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performances")
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performances/singlePayment")
 @RequiredArgsConstructor
 @Validated
 public class WdccPerformanceInterfaceController {
@@ -28,20 +29,20 @@ public class WdccPerformanceInterfaceController {
 
     @ApiOperation(value = "[EAI_WCLI0003] wells일시불(할부)-실적정보조회", notes = "고객응대를 위한 고객센터 wells일시불(할부)-실적정보조회 Interface에 대한 결과를 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "CNTR_NO", value = "계약번호", paramType = "query", required = false),
-        @ApiImplicitParam(name = "CNTR_SN", value = "계약일련번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "CNTR_NO", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "CNTR_SN", value = "계약일련번호", paramType = "query"),
     })
     @PostMapping
     public EaiWrapper getLumpSumPerformances(
         @Valid
         @RequestBody
-        EaiWrapper<WdccPerformanceInterfaceDto.FindReq> reqWrapper
+        EaiWrapper<FindReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WdccPerformanceInterfaceDto.FindRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        List<WdccPerformanceInterfaceDto.FindRes> res = service.getLumpSumPerformance(reqWrapper.getBody());
+        List<FindRes> res = service.getLumpSumPerformance(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);
