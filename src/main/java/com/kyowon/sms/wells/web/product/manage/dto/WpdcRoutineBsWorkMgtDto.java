@@ -5,15 +5,17 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
-import lombok.Builder;
 
 public class WpdcRoutineBsWorkMgtDto {
 
-    @Builder
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String pdCd
+        String svPdCd,
+        @NotBlank
+        String pdctPdCd,
+        String partPdCd
+
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRes")
@@ -36,8 +38,18 @@ public class WpdcRoutineBsWorkMgtDto {
         String wkMm /* 작업월 */
     ) {}
 
-    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRoutineBsWorkRes")
-    public record SearchRoutineBsWorkRes(
+    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchStdBaseReq")
+    public record SearchStdBaseReq(
+        String svcType, /* 서비스 선택 구분 */
+        String svcValue, /* 서비스 선택 값 */
+        String prdtType, /* 제품 선택 구분 */
+        String prdtValue /* 제품 선택 값 */
+    ) {}
+
+    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRoutineBsWorkBaseRes")
+    public record SearchRoutineBsWorkBaseRes(
+        String partPdNm, /* 제품상품명 */
+
         String svPdCd, /* 서비스상품코드 */
         String pdctPdCd, /* 제품상품코드 */
         Long dtlSn, /* 상세일련번호 */
@@ -54,6 +66,25 @@ public class WpdcRoutineBsWorkMgtDto {
         String istMm, /* 설치월 */
         String strtWkYVal, /* 시작작업년도값 */
         String wkMm /* 작업월 */
+    ) {}
+
+    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRoutineBsWorkDetailRes")
+    public record SearchRoutineBsWorkDetailRes(
+        String svPdCd, /* 서비스상품코드 */
+        String pdctPdCd, /* 제품상품코드 */
+        Long dtlSn, /* 상세일련번호 */
+        Long vstNmnN, /* 방문차월수 */
+        String vstDvCd, /* 방문구분코드 */
+        String svBizDclsfCd, /* 서비스업무세분류코드 */
+        String filtChngLvCd, /* 필터교체단계코드 */
+        String partPdCd, /* 부품상품코드 */
+        Long partUseQty, /* 부품사용수량 */
+        String vstNmnPrdVal, /* 방문차월주기값 */
+        String istMm, /* 설치월 */
+        String strtWkYVal, /* 시작작업년도값 */
+        String wkMm, /* 작업월 */
+        Long totStplMcn, /* 총약정개월수 */
+        String cstmwPdctYn /* 맞춤형제품여부 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchLifeCustomFiltersRes")
@@ -73,22 +104,34 @@ public class WpdcRoutineBsWorkMgtDto {
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-EditReq")
     public record EditReq(
         @NotBlank
-        String pdCd,
-        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkBase> routineBsWorkBases
+        String svPdCd,
+        @NotBlank
+        String pdctPdCd,
+        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkBase> bases,
+        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> details
     ) {}
 
-    @Builder
-    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SaveReq")
-    public record SaveReq(
-        String pdCd,
-        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkBase> routineBsWorkBases
+    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-EditLifeCustomFilterReq")
+    public record EditLifeFilterReq(
+        @NotBlank
+        String svPdCd,
+        @NotBlank
+        String pdctPdCd,
+        @NotBlank
+        String partPdCd,
+        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> bases
     ) {}
 
-    @Builder
-    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SaveLifeCustomFilterReq")
-    public record SaveLifeCustomFilterReq(
-        String pdCd,
-        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> lifeCustomFilterBase
+    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-RemoveLifeFilterReq")
+    public record RemoveLifeFilterReq(
+        @NotBlank
+        String svPdCd,
+        @NotBlank
+        String pdctPdCd,
+        @NotBlank
+        String partPdCd,
+        @NotBlank
+        Long dtlSn /* 상세일련번호 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-RoutineBsWorkBase")

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
+import com.kyowon.sms.common.web.product.manage.service.ZpdcRelationMgtService;
 import com.kyowon.sms.wells.web.product.manage.dto.WpdcServiceMgtDto;
 import com.kyowon.sms.wells.web.product.manage.service.WpdcServiceMgtService;
 import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductWellsConst;
@@ -32,6 +33,7 @@ public class WpdcServiceMgtController {
 
     private final ZpdcProductService pdService;
     private final WpdcServiceMgtService service;
+    private final ZpdcRelationMgtService relService;
 
     @ApiOperation(value = "서비스 상품 단건 조회")
     @GetMapping("/{pdCd}")
@@ -41,6 +43,7 @@ public class WpdcServiceMgtController {
         return WpdcServiceMgtDto.ProductInfoRes.builder().tbPdbsPdBas(pdBas)
             .groupCodes(pdService.getPropertyGroupCodes(pdBas.pdTpCd(), "", null))
             .tbPdbsPdEcomPrpDtl(pdService.getEachCompanyProps(pdCd))
+            .relProducts(relService.getRelationProducts(pdCd, null))
             .build();
     }
 
@@ -58,6 +61,7 @@ public class WpdcServiceMgtController {
                         .pdCd(dto.pdCd())
                         .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
+                        .tbPdbsPdRel(dto.tbPdbsPdRel())
                         .build(),
                     false
                 )
