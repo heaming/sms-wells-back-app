@@ -313,4 +313,10 @@ public class WctaContractService {
         //등록된(입력된) 그룹번호 리턴
         return dvo.getCntrCstGrpId();
     }
+
+    public PagingResult<SearchRnwMshCstRes> getRenewalMembershipCustomerPages(
+        SearchRnwMshCstReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectRenewalMembershipCustomerPages(dto, pageInfo);
+    }
 }

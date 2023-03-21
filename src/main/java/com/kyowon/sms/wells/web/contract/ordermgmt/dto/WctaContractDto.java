@@ -145,6 +145,13 @@ public class WctaContractDto {
         String cntrCstGrpId
     ) {}
 
+    // 재약정/멤버십 대상자 조회 Search Request Dto
+    @ApiModel("WctaContractDto-SearchRnwMshCstReq")
+    public record SearchRnwMshCstReq(
+        String baseDtlCntrNo,
+        String baseDtlCntrSn
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -304,5 +311,12 @@ public class WctaContractDto {
         String otsdLkDrmVal,
         @NotBlank
         String dtaDlYn
+    ) {}
+
+    // 재약정/멤버십 대상자 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchRnwMshCstRes")
+    public record SearchRnwMshCstRes(
+        String baseDtlCntrNo,
+        String baseDtlCntrSn
     ) {}
 }
