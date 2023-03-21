@@ -28,8 +28,8 @@ public class WdccPerformanceInterfaceController {
 
     @ApiOperation(value = "[EAI_WCLI0003] wells일시불(할부)-실적정보조회", notes = "고객응대를 위한 고객센터 wells일시불(할부)-실적정보조회 Interface에 대한 결과를 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "CNTR_NO", value = "계약번호", paramType = "query", required = false),
-        @ApiImplicitParam(name = "CNTR_SN", value = "계약일련번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "CNTR_NO", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "CNTR_SN", value = "계약일련번호", paramType = "query"),
     })
     @PostMapping
     public EaiWrapper getLumpSumPerformances(
