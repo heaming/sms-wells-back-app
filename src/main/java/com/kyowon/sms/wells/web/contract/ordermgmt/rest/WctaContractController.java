@@ -178,4 +178,16 @@ public class WctaContractController {
     ) {
         return SaveResponse.builder().processCount(service.removeConfirmApprovalBases(dtos)).build();
     }
+
+    @ApiOperation(value = "재약정/멤버십 대상자 조회", notes = "관리중인 고객 중 재약정 가입 대상 고객 목록 조회")
+    @ApiImplicitParams(value = {
+    })
+    @GetMapping("/renewal-membership-customers/paging")
+    public PagingResult<SearchRnwMshCstRes> getRenewalMembershipCustomerPages(
+        SearchRnwMshCstReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getRenewalMembershipCustomerPages(dto, pageInfo);
+    }
 }
