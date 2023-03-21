@@ -21,7 +21,7 @@ import java.util.List;
 
 @InterfaceController
 @Api(tags = "[WDCC] wells일시불외(할부)-실적정보조회 I/F")
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/etcPerformances")
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/etcPerformances/etc")
 @RequiredArgsConstructor
 @Validated
 public class WdccEtcPerformanceInterfaceController {
