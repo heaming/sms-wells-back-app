@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,24 +39,9 @@ public class WctiContractInstallInterfaceController {
         // Response용 EaiWrapper 생성
         EaiWrapper<List<SaveRes>> resWrapper = reqWrapper.newResInstance();
         SaveReq req = reqWrapper.getBody();
-        String rsProcsYn = "N";
 
-        // 파라미터 체크 - 필수 입력 외 파라미터값이 NULL 인 경우, 처리결과를 'N'으로 전송
-        if (StringUtils.isEmpty(req.ADR_ID())
-            && StringUtils.isEmpty(req.CRAL_LOCARA_TNO())
-            && StringUtils.isEmpty(req.MEXNO())
-            && StringUtils.isEmpty(req.CRAL_IDV_TNO())
-            && StringUtils.isEmpty(req.LOCARA_TNO())
-            && StringUtils.isEmpty(req.EXNO())
-            && StringUtils.isEmpty(req.IDV_TNO())) {
-            rsProcsYn = "N";
-        } else {
-            // 서비스 메소드 호출
-            rsProcsYn = service.editContractInstall(req);
-        }
-
-        // Response Body 세팅
-        SaveRes res = new WctiContractInstallDto.SaveRes(rsProcsYn);
+        // 서비스 메소드 호출 및 Response Body 세팅
+        SaveRes res = new WctiContractInstallDto.SaveRes(service.editContractInstall(req));
         resWrapper.setBody(List.of(res));
 
         return resWrapper;
