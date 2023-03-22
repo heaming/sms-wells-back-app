@@ -69,7 +69,7 @@ public class WpdcRoutineBsWorkMgtService {
         return cnt;
     }
 
-    public int removeLifeFilters(List<WpdcRoutineBsWorkMgtDto.RemoveLifeFilterReq> dtos) {
+    public int removeLifeFilters(List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos) {
         int cnt = 0;
         List<WpdcLifeCustomFilterBaseDvo> filters = converter.mapAllRemoveLifeFltBaseDtoToLifeFltBaseDvo(dtos);
         for (WpdcLifeCustomFilterBaseDvo filter : filters) {

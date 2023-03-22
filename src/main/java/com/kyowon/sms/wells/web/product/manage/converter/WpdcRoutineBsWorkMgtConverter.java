@@ -17,5 +17,5 @@ public interface WpdcRoutineBsWorkMgtConverter {
 
     List<WpdcLifeCustomFilterBaseDvo> mapAllLifeFltBaseDtoToLifeFltBaseDvo(List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos);
 
-    List<WpdcLifeCustomFilterBaseDvo> mapAllRemoveLifeFltBaseDtoToLifeFltBaseDvo(List<WpdcRoutineBsWorkMgtDto.RemoveLifeFilterReq> dtos);
+    List<WpdcLifeCustomFilterBaseDvo> mapAllRemoveLifeFltBaseDtoToLifeFltBaseDvo(List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos);
 }
