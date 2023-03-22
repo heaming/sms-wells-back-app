@@ -319,4 +319,11 @@ public class WctaContractService {
     ) {
         return mapper.selectRenewalMembershipCustomerPages(dto, pageInfo);
     }
+
+    public PagingResult<SearchMngerPrtnrRes> getDistrictManagerPartnerPages(
+        SearchMngerPrtnrReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectDistrictManagerPartnerPages(dto, pageInfo);
+    }
+
 }
