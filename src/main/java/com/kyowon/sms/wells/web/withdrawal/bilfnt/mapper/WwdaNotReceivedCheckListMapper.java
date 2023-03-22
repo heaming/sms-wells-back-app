@@ -67,17 +67,17 @@ public interface WwdaNotReceivedCheckListMapper {
 
     /** 자동이체 결과 묶음 오류 조회
      * 
-     * @param mpyMthdTpCd
+     * @param dpTpCd
      * @param pageInfo
      * @return
      */
-    PagingResult<SearchResultBundleErrorRes> selectAftnRsBndlErrInqrPages(String mpyMthdTpCd, PageInfo pageInfo);
+    PagingResult<SearchResultBundleErrorRes> selectAftnRsBndlErrInqrPages(String dpTpCd, PageInfo pageInfo);
 
     /** 자동이체 결과 묶음 오류 엑셀다운로드
      * 
-     * @param mpyMthdTpCd
+     * @param dpTpCd
      * @return
      */
-    List<SearchResultBundleErrorRes> selectAftnRsBndlErrInqrPages(String mpyMthdTpCd);
+    List<SearchResultBundleErrorRes> selectAftnRsBndlErrInqrPages(String dpTpCd);
 
 }

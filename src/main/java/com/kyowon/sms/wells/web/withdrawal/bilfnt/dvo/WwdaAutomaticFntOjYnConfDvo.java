@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class WwdaAutomaticFntOjYnConfDvo {
 
-    private String mpyMthdTpCd;
+    private String dpTpCd;
     private String fnitAprRsCd;
     private String bilNo;
     private Integer bilDtlSn;

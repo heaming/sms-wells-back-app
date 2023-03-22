@@ -81,7 +81,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
             if (afyDvo == null) {
                 throw new BizException("계약번호를 확인해 주시기 바랍니다.");
             }
-            if (!afyDvo.getMpyMthdTpCd().equals("110") && !afyDvo.getMpyMthdTpCd().equals("120")) {
+            if (!afyDvo.getDpTpCd().equals("0102") && !afyDvo.getDpTpCd().equals("0203")) {
                 throw new BizException(index + "번째 라인은 자동이체　대상고객이　아닙니다！");
             }
             if (!afyDvo.getFnitAprRsCd().equals("Y")) {
