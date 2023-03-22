@@ -83,6 +83,7 @@ public class WctaContractService {
                     WctzCntrDtlStatChangeHistDvo.builder()
                         .cntrNo(dto.cntrNo())
                         .cntrSn(dto.cntrSn())
+                        .cntrDtlStatCd("303")
                         .histStrtDtm(histStrtDtm)
                         .build()
                 );
