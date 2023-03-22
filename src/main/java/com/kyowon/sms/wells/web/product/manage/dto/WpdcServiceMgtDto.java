@@ -5,6 +5,7 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -17,7 +18,8 @@ public class WpdcServiceMgtDto {
         String pdCd,
         String pdGrpCd,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
+        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel
     ) {}
 
     @Builder
@@ -26,7 +28,9 @@ public class WpdcServiceMgtDto {
         String pdCd,
         String pdGrpCd,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
+        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel
+
     ) {}
 
     @Builder
@@ -34,6 +38,7 @@ public class WpdcServiceMgtDto {
     public record ProductInfoRes(
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.PropertyGroupCode> groupCodes,
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
+        List<ZpdcRelationMgtDto.SearchProductRes> relProducts
     ) {}
 }

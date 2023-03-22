@@ -9,6 +9,7 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
+import com.kyowon.sms.common.web.product.manage.service.ZpdcRelationMgtService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.dto.WpdcServiceMgtDto;
 import com.sds.sflex.common.utils.DateUtil;
@@ -21,6 +22,7 @@ public class WpdcServiceMgtService {
 
     private final ZpdcProductService pdService;
     private final ZpdcHistoryMgtService hisService;
+    private final ZpdcRelationMgtService relService;
 
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas saveProduct(WpdcServiceMgtDto.SaveReq dto, boolean isCreate)
@@ -32,6 +34,7 @@ public class WpdcServiceMgtService {
             // 상품 정보 이력 저장 (가격 X)
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
+        relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
         return pdService.getDtoProduct(dvo);
     }
 

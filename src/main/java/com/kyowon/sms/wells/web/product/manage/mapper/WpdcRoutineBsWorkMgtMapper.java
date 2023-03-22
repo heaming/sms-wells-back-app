@@ -9,6 +9,8 @@ import com.kyowon.sms.wells.web.product.manage.dto.WpdcRoutineBsWorkMgtDto;
 import com.kyowon.sms.wells.web.product.manage.dvo.WpdcLifeCustomFilterBaseDvo;
 import com.kyowon.sms.wells.web.product.manage.dvo.WpdcRoutineBsWorkBaseDvo;
 import com.kyowon.sms.wells.web.product.manage.dvo.WpdcRoutineBsWorkDetailDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  * <pre>
@@ -22,7 +24,15 @@ import com.kyowon.sms.wells.web.product.manage.dvo.WpdcRoutineBsWorkDetailDvo;
 @Mapper
 public interface WpdcRoutineBsWorkMgtMapper {
 
-    List<WpdcRoutineBsWorkMgtDto.SearchRoutineBsWorkRes> selectRoutineBsWorks(WpdcRoutineBsWorkMgtDto.SearchReq dto);
+    List<WpdcRoutineBsWorkMgtDto.SearchRoutineBsWorkBaseRes> selectRoutineBsWorkBases(
+        WpdcRoutineBsWorkMgtDto.SearchReq dto
+    );
+
+    PagingResult<WpdcRoutineBsWorkMgtDto.SearchRoutineBsWorkBaseRes> selectRoutineBsWorkBasePages(
+        WpdcRoutineBsWorkMgtDto.SearchStdBaseReq dto, PageInfo pageInfo
+    );
+
+    List<WpdcRoutineBsWorkMgtDto.SearchRoutineBsWorkDetailRes> selectRoutineBsWorkDetails(WpdcRoutineBsWorkMgtDto.SearchReq dto);
 
     List<WpdcRoutineBsWorkMgtDto.SearchLifeCustomFiltersRes> selectLifeCustomFilters(WpdcRoutineBsWorkMgtDto.SearchReq dto);
 
@@ -32,12 +42,13 @@ public interface WpdcRoutineBsWorkMgtMapper {
     int isnertRoutineBsWorkDetail(@Param("info")
     WpdcRoutineBsWorkDetailDvo info);
 
-    int insertLifeCustomFilterBase(@Param("info")
-    WpdcLifeCustomFilterBaseDvo info);
+    int mergeLifeCustomFilterBase(WpdcLifeCustomFilterBaseDvo info);
 
-    int deleteRoutineBsWorkBaseByPdCd(String pdCd);
+    int deleteRoutineBsWorkBase(String svPdCd, String pdctPdCd);
 
-    int deleteRoutineBsWorkDtlByPdCd(String pdCd);
+    int deleteRoutineBsWorkDetail(String svPdCd, String pdctPdCd);
 
-    int deleteLifeCustomFilterStdByPdCd(String pdCd);
+    int deleteLifeCustomFilterStd(WpdcLifeCustomFilterBaseDvo info);
+
+    int deleteLifeCustomFilterStdByPdCd(String svPdCd);
 }
