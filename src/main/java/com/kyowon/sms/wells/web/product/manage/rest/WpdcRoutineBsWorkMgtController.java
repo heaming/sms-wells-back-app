@@ -87,7 +87,7 @@ public class WpdcRoutineBsWorkMgtController {
     }
 
     @ApiOperation(value = "정기 B/S 투입 방문 작업 기준 수정", notes = "수정된 정기 B/S 투입 기준/상세 정보를 반영한다.")
-    @PutMapping()
+    @PutMapping
     public SaveResponse editBsWork(
         @Valid
         @RequestBody

@@ -1,3 +1,4 @@
+
 package com.kyowon.sms.wells.web.product.manage.service;
 
 import java.util.List;
@@ -44,14 +45,14 @@ public class WpdcRoutineBsWorkMgtService {
         cnt += mapper.deleteRoutineBsWorkBase(dto.svPdCd(), dto.pdctPdCd());
         cnt += mapper.deleteRoutineBsWorkDetail(dto.svPdCd(), dto.pdctPdCd());
         //cnt += mapper.deleteLifeCustomFilterStd(dto.svPdCd(), dto.pdctPdCd(), null);
-        List<WpdcRoutineBsWorkBaseDvo> bases = converter.mapAllBsWorkBaseDtoToBsWorkBaseDvo(dto.bases());
-        if (CollectionUtils.isNotEmpty(bases)) {
+        if (CollectionUtils.isNotEmpty(dto.bases())) {
+            List<WpdcRoutineBsWorkBaseDvo> bases = converter.mapAllBsWorkBaseDtoToBsWorkBaseDvo(dto.bases());
             for (WpdcRoutineBsWorkBaseDvo base : bases) {
                 cnt += mapper.isnertRoutineBsWorkBase(base);
             }
         }
-        List<WpdcRoutineBsWorkDetailDvo> details = converter.mapAllBsWorkDetailDtoToBsWorkDetailDvo(dto.details());
-        if (CollectionUtils.isNotEmpty(details)) {
+        if (CollectionUtils.isNotEmpty(dto.details())) {
+            List<WpdcRoutineBsWorkDetailDvo> details = converter.mapAllBsWorkDetailDtoToBsWorkDetailDvo(dto.details());
             for (WpdcRoutineBsWorkDetailDvo detail : details) {
                 cnt += mapper.isnertRoutineBsWorkDetail(detail);
             }
