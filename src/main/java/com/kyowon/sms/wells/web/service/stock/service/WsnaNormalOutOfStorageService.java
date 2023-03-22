@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchReq;
@@ -36,5 +37,17 @@ public class WsnaNormalOutOfStorageService {
 
     public List<SearchWarehouse> getWarehouses(SearchReq dto) {
         return mapper.selectWarehouses(dto);
+    }
+
+    public PagingResult<WsnaNormalOutOfStorageDto.AskRes> getAskMaterialsHavePss(
+        WsnaNormalOutOfStorageDto.AskReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectAskMaterialsHavePss(dto, pageInfo);
+    }
+
+    public PagingResult<WsnaNormalOutOfStorageDto.CenterRes> getAskMaterialsCenterPresentState(
+        WsnaNormalOutOfStorageDto.AskReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectAskMaterialsCenterPresentState(dto, pageInfo);
     }
 }

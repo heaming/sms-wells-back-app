@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import lombok.RequiredArgsConstructor;
+
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/normal-outofstorages")
@@ -70,4 +73,31 @@ public class WsnaNormalOutOfStorageController {
     public List<SearchWarehouse> getWarehouses(SearchReq dto) {
         return service.getWarehouses(dto);
     }
+
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "", required = true),
+        @ApiImplicitParam(name = "strOjWareNo", value = "출고요청창고번호", paramType = "query", example = "", required = true),
+    })
+    @GetMapping("/person-center/paging")
+    public PagingResult<AskRes> getAskMaterialsHavePss(
+        AskReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getAskMaterialsHavePss(dto, pageInfo);
+    }
+
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "", required = true),
+        @ApiImplicitParam(name = "strOjWareNo", value = "출고요청창고번호", paramType = "query", example = "", required = true),
+    })
+    @GetMapping("/organization-center/paging")
+    public PagingResult<CenterRes> getAskMaterialsCenter(
+        AskReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getAskMaterialsCenterPresentState(dto, pageInfo);
+    }
+
 }
