@@ -55,7 +55,7 @@ public class WsnaItemStockItemizationService {
             WsnaItemStockItemizationDvo varbDvo = mapper.selectItmPdCdInformation(dto);
             log.info("WsnaItemStockItemizationDvo.dvo", dvo);
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmdd");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
             /*처리일자*/
             Date procsDt = new Date(dateFormat.parse(dto.procsDt()).getTime());
             /*최종입고일자*/
@@ -438,7 +438,7 @@ public class WsnaItemStockItemizationService {
 
         WsnaItemStockItemizationDvo varbDvo = mapper.selectItmPdCdInformation(dto);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmdd");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
         /*처리일자*/
         Date procsDt = new Date(dateFormat.parse(dto.procsDt()).getTime());

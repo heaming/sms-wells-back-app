@@ -44,4 +44,26 @@ public class WsnaNormalOutOfStorageDto {
         String wareNo,
         String wareNm
     ) {}
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-AskReq")
+    public record AskReq(
+        String itmPdCd,
+        String strOjWareNo
+    ) {}
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-AskRes")
+    public record AskRes(
+        String wareMngtPrtrnNo, /*창고파트너번호*/
+        String wareNm, /*창고명*/
+        String itmPdCd, /*품목상품코드*/
+        String wareNo, /*창고번호*/
+        String qty /*현재재고수량*/
+    ) {}
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-CenterRes")
+    public record CenterRes(
+        String wareNo, /*창고번호*/
+        String qty, /*현재재고수량*/
+        String ogNm /*조직명*/
+    ) {}
 }
