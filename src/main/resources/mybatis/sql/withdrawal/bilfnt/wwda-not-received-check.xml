@@ -9,8 +9,8 @@
              , COUNT(*) AS CT
           FROM (
                         SELECT '자동이체(은행) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
-                                     , CASE WHEN SCSB.MPY_MTHD_TP_CD = '110' THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END AS BNK_CD
-                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN SCSB.MPY_MTHD_TP_CD = '110' 
+                                     , CASE WHEN SCSB.DP_TP_CD = '0102' THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN SCSB.DP_TP_CD = '0102' 
                                             THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END ,3,0) = FNIT_CD)
                                             AS BNK_NM /* 은행명 */
                                   FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
@@ -30,7 +30,7 @@
                                    AND RAFS.AC_FNT_RS_CD IS NULL
                                    </if>
                                    <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-                                   AND RCFS.PCHS_RS_CD IS NULL 
+                                   AND RCFS.CARD_FNT_RS_CD IS NULL 
                                    </if>
         )   
         GROUP BY AUTO_FNT_CLSF, BNK_CD,BNK_NM
@@ -58,7 +58,7 @@
           JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
             ON RBFB.BIL_NO = RCFS.BIL_NO 
            AND RCFS.DTA_DL_YN = 'N'
-           AND RCFS.PCHS_RS_CD IS NOT NULL
+           AND RCFS.CARD_FNT_RS_CD IS NOT NULL
            </if>
           INNER JOIN TB_RVDW_RVE_AK_DTL RRAD
             ON RBFD.BIL_NO = RRAD.RVE_AK_OJ_DRM_NO1
@@ -89,7 +89,7 @@
              , '' AS INTAM_DP_AMT
              , '' AS INTAM_RFND_AMT
              , '' AS RVE_AMT
-             , '' AS MPY_MTHD_TP_CD
+             , '' AS DP_TP_CD
           FROM TB_RVDW_RVE_DTL
         WHERE RVE_DT = #{bilYm}
           
@@ -105,25 +105,25 @@
     <select id="selectAftnRsBndlErrInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchResultBundleErrorRes">
                     SELECT MSTR_SELL_TP_CD
                          , DG_CNTR_NO
-                         , MSTR_MPY_MTHD_TP_CD
+                         , MSTR_DP_TP_CD
                          , SUB_SELL_TP_CD
                          , SUBOD_CNTR_NO
-                         , SUB_MPY_MTHD_TP_CD
+                         , SUB_DP_TP_CD
                          , '테스트용 오류' AS ERR_TYP
                          <!-- , ERR_TYP -->
                       FROM (
                                 SELECT MSTR_CNTR.SELL_TP_CD AS MSTR_SELL_TP_CD
                                      , RIBB.DG_CNTR_NO
-                                     , MSTR_CNTR.MPY_MTHD_TP_CD AS MSTR_MPY_MTHD_TP_CD
+                                     , MSTR_CNTR.DP_TP_CD AS MSTR_DP_TP_CD
                                      , SUB_CNTR.SELL_TP_CD AS SUB_SELL_TP_CD
                                      , RIBB.SUBOD_CNTR_NO
-                                     , SUB_CNTR.MPY_MTHD_TP_CD AS SUB_MPY_MTHD_TP_CD
+                                     , SUB_CNTR.DP_TP_CD AS SUB_DP_TP_CD
                                      , CASE WHEN MSTR_CNTR.ACNO_ENCR != SUB_CNTR.ACNO_ENCR OR MSTR_CNTR.CRCDNO_ENCR != SUB_CNTR.CRCDNO_ENCR
-                                                 THEN (CASE WHEN #{mpyMthdTpCd} = '110' THEN '2.계좌번호상이' || MSTR_CNTR.ACNO_ENCR || '/' || SUB_CNTR.ACNO_ENCR || ')' 
-                                                            WHEN #{mpyMthdTpCd} = '120' THEN '2.카드번호상이' || MSTR_CNTR.CRCDNO_ENCR || '/' || SUB_CNTR.CRCDNO_ENCR || ')' 
+                                                 THEN (CASE WHEN #{dpTpCd} = '0102' THEN '2.계좌번호상이' || MSTR_CNTR.ACNO_ENCR || '/' || SUB_CNTR.ACNO_ENCR || ')' 
+                                                            WHEN #{dpTpCd} = '0203' THEN '2.카드번호상이' || MSTR_CNTR.CRCDNO_ENCR || '/' || SUB_CNTR.CRCDNO_ENCR || ')' 
                                                        END)
                                             WHEN MSTR_CNTR.BNK_CD != SUB_CNTR.BNK_CD OR MSTR_CNTR.CDCO_CD != SUB_CNTR.CDCO_CD 
-                                                 THEN (CASE WHEN #{mpyMthdTpCd} = '110' THEN '2.은행코드상이' || (SELECT CD_CNTN
+                                                 THEN (CASE WHEN #{dpTpCd} = '0102' THEN '2.은행코드상이' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D 
                                                                                                  WHERE CD_ID = UPPER('BNK_CD')
                                                                                                    AND DEL_YN = 'N'
@@ -135,7 +135,7 @@
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = SUB_CNTR.BNK_CD)
                                                                                                || ')' 
-                                                            WHEN #{mpyMthdTpCd} = '120' THEN '2.계좌구분상이' || (SELECT CD_CNTN
+                                                            WHEN #{dpTpCd} = '0203' THEN '2.계좌구분상이' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D 
                                                                                                  WHERE CD_ID = UPPER('CDCO_CD')
                                                                                                    AND DEL_YN = 'N'
@@ -150,21 +150,21 @@
                                                                                               END)
                                             WHEN MSTR_CNTR.CST_NO != SUB_CNTR.CST_NO THEN '4.인증번호 상이(' || MSTR_CNTR.CST_NO || '/' || SUB_CNTR.CST_NO || ')'
                                             WHEN MSTR_CNTR.MPY_BSDT != SUB_CNTR.MPY_BSDT THEN '5.이체일자상이(' || MSTR_CNTR.MPY_BSDT || '/' || SUB_CNTR.MPY_BSDT || ')'
-                                            WHEN MSTR_CNTR.MPY_MTHD_TP_CD != SUB_CNTR.MPY_MTHD_TP_CD 
+                                            WHEN MSTR_CNTR.DP_TP_CD != SUB_CNTR.DP_TP_CD 
                                                  THEN '6.이체구분상이(' || (
                                                                         SELECT CD_CNTN
                                                                           FROM T_CMZ_CD_D 
-                                                                         WHERE CD_ID = UPPER('MPY_MTHD_TP_CD')
+                                                                         WHERE CD_ID = UPPER('DP_TP_CD')
                                                                            AND DEL_YN = 'N'
-                                                                           AND CD_VLD_VAL = MSTR_CNTR.MPY_MTHD_TP_CD
+                                                                           AND CD_VLD_VAL = MSTR_CNTR.DP_TP_CD
                                                                         )
                                                                      || '/'
                                                                      || (
                                                                         SELECT CD_CNTN
                                                                           FROM T_CMZ_CD_D 
-                                                                         WHERE CD_ID = UPPER('MPY_MTHD_TP_CD')
+                                                                         WHERE CD_ID = UPPER('DP_TP_CD')
                                                                            AND DEL_YN = 'N'
-                                                                           AND CD_VLD_VAL = SUB_CNTR.MPY_MTHD_TP_CD
+                                                                           AND CD_VLD_VAL = SUB_CNTR.DP_TP_CD
                                                                         )
                                                                       || ')'
                                             WHEN MSTR_CNTR.SELL_TP_CD = '3' OR SUB_CNTR.SELL_TP_CD = '3' THEN '7.멤버십주문묶음출금등록불가'
@@ -176,7 +176,7 @@
                                          SELECT SCD.CNTR_NO
                                               , SCD.CNTR_SN
                                               , SCD.SELL_TP_CD
-                                              , SCSB.MPY_MTHD_TP_CD
+                                              , SCSB.DP_TP_CD
                                               , SCSB.BNK_CD
                                               , SCSB.CDCO_CD
                                               , SCD.CNTR_DTL_STAT_CD
@@ -205,7 +205,7 @@
                                          SELECT SCD.CNTR_NO
                                               , SCD.CNTR_SN
                                               , SCD.SELL_TP_CD
-                                              , SCSB.MPY_MTHD_TP_CD
+                                              , SCSB.DP_TP_CD
                                               , SCSB.BNK_CD
                                               , SCSB.CDCO_CD
                                               , SCD.CNTR_DTL_STAT_CD
@@ -231,7 +231,7 @@
                                   AND RIBB.SUBOD_CNTR_SN = SUB_CNTR.CNTR_SN
                                   AND RIBB.DTA_DL_YN ='N'
                                 WHERE RIBB.DG_CNTR_NO != RIBB.SUBOD_CNTR_NO 
-                                  AND MSTR_CNTR.MPY_MTHD_TP_CD = #{mpyMthdTpCd}
+                                  AND MSTR_CNTR.DP_TP_CD = #{dpTpCd}
                            ) 
                          WHERE ERR_TYP IS NULL <!-- 추후에 수정 IS NOT NULL 임 -->
     </select>

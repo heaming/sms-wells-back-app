@@ -117,27 +117,27 @@ public class WwdaNotReceivedCheckListController {
 
     @ApiOperation(value = "자동이체 결과 묶음 오류 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "mpyMthdTpCd", value = "자동이체 체크", paramType = "query", required = false, example = "01"),
+        @ApiImplicitParam(name = "dpTpCd", value = "자동이체 체크", paramType = "query", required = false, example = "01"),
     })
     @GetMapping("/result-bundle-error")
     public PagingResult<SearchResultBundleErrorRes> getAftnRsBndlErrInqrPages(
         @RequestParam
-        String mpyMthdTpCd,
+        String dpTpCd,
         @Valid
         PageInfo pageInfo
     ) {
-        return service.getAftnRsBndlErrInqrPages(mpyMthdTpCd, pageInfo);
+        return service.getAftnRsBndlErrInqrPages(dpTpCd, pageInfo);
     }
 
     @ApiOperation(value = "자동이체 결과 묶음 오류 엑셀다운로드")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "mpyMthdTpCd", value = "자동이체 체크", paramType = "query", required = false, example = "01"),
+        @ApiImplicitParam(name = "dpTpCd", value = "자동이체 체크", paramType = "query", required = false, example = "01"),
     })
     @GetMapping("/result-bundle-error/excel-download")
     public List<SearchResultBundleErrorRes> getAftnRsBndlErrInqrExcels(
         @RequestParam
-        String mpyMthdTpCd
+        String dpTpCd
     ) {
-        return service.getAftnRsBndlErrInqrExcels(mpyMthdTpCd);
+        return service.getAftnRsBndlErrInqrExcels(dpTpCd);
     }
 }

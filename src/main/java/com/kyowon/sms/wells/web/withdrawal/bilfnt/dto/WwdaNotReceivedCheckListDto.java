@@ -44,7 +44,7 @@ public class WwdaNotReceivedCheckListDto {
         String intamDpAmt,
         String intamRfndAmt,
         String rveAmt,
-        String mpyMthdTpCd
+        String dpTpCd
 
     ) {}
 
@@ -53,10 +53,10 @@ public class WwdaNotReceivedCheckListDto {
         // 묶음 출금 오등록
         String mstrSellTpCd,
         String dgCntrNo,
-        String mstrMpyMthdTpCd,
+        String mstrDpTpCd,
         String subSellTpCd,
         String subodCntrNo,
-        String subMpyMthdTpCd,
+        String subDpTpCd,
         String errTyp
     ) {}
 

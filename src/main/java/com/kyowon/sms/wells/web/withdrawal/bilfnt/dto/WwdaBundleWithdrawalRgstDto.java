@@ -23,7 +23,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String unrgRson, // 묶음출금 미등록 사유
 
         String cntrSn, // 기기주문번호
-        String mpyMthdTpCd, // 이체구분
+        String dpTpCd, // 이체구분
         String fnitAprRsCd, // 상태
         String dgCntrNo, // 묶음대표번호
         String bnkNm, // 이체기관명
@@ -32,7 +32,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String mpyBsdt, // 이체일자
 
         String sdingCntrSn, // 모종주문번호
-        String sdingMpyMthdTpCd, // 이체구분
+        String sdingDpTpCd, // 이체구분
         String sdingFnitAprRsCd, // 상태
         String sdingDgCntrNo, // 묶음대표번호
         String sdingBnkNm, // 이체기관명
@@ -52,7 +52,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String cntrPdStrtdt, //접수일자
         String aftnItgUnrgRsonCd, //묶음출금 미등록
         String cntrSn, //기기주문번호
-        String mpyMthdTpCd, //이체구분
+        String dpTpCd, //이체구분
         String dgCntrSn, //묶음대표번호
         String bnkCd, //이체기관명
         String acnoEncr, //이체번호
@@ -61,7 +61,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String bryyMmdd, //이체 인증번호
 
         String sdingCntrSn, //모종주문번호
-        String sdingMpyMthdTpCd, //이체구분
+        String sdingDpTpCd, //이체구분
         String sdingDgCntrSn, //묶음대표번호
         String sdingBnkCd, //이체기관명
         String sdingAcnoEncr, //이체번호

@@ -100,24 +100,24 @@ public class WwdaNotReceivedCheckListService {
 
     /** 자동이체 결과 묶음 오류 조회
      * 
-     * @param mpyMthdTpCd
+     * @param dpTpCd
      * @param pageInfo
      * @return
      */
     public PagingResult<SearchResultBundleErrorRes> getAftnRsBndlErrInqrPages(
-        String mpyMthdTpCd,
+        String dpTpCd,
         PageInfo pageInfo
     ) {
-        return mapper.selectAftnRsBndlErrInqrPages(mpyMthdTpCd, pageInfo);
+        return mapper.selectAftnRsBndlErrInqrPages(dpTpCd, pageInfo);
     }
 
     /** 자동이체 결과 묶음 오류 엑셀다운로드
      * 
-     * @param mpyMthdTpCd
+     * @param dpTpCd
      * @return
      */
-    public List<SearchResultBundleErrorRes> getAftnRsBndlErrInqrExcels(String mpyMthdTpCd) {
-        return mapper.selectAftnRsBndlErrInqrPages(mpyMthdTpCd);
+    public List<SearchResultBundleErrorRes> getAftnRsBndlErrInqrExcels(String dpTpCd) {
+        return mapper.selectAftnRsBndlErrInqrPages(dpTpCd);
     }
 
 }
