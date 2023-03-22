@@ -190,4 +190,16 @@ public class WctaContractController {
     ) {
         return service.getRenewalMembershipCustomerPages(dto, pageInfo);
     }
+
+    @ApiOperation(value = "지국장 소속 파트너 조회", notes = "지국장 소속 파트너 목록을 조회한다.")
+    @ApiImplicitParams(value = {
+    })
+    @GetMapping("/district-manager-partners/paging")
+    public PagingResult<SearchMngerPrtnrRes> getDistrictManagerPartnerPages(
+        SearchMngerPrtnrReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getDistrictManagerPartnerPages(dto, pageInfo);
+    }
 }
