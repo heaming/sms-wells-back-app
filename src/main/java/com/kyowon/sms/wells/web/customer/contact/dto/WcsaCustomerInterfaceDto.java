@@ -24,11 +24,15 @@ public class WcsaCustomerInterfaceDto {
      * @param CIK_VAL ci키값
      * @param SFK_VAL 세이프키값
      * @param COPN_DV_CD 법인격구분코드
+     * @param COPN_DV_CD_NM 법인격구분코드명
      * @param CST_INFLW_PH_DV_CD 고객유입경로코드
+     * @param CST_INFLW_PH_DV_CD_NM 고객유입경로코드명
      * @param CST_KNM 고객한글명
      * @param LNF_DV_CD 내외국인구분코드
+     * @param LNF_DV_CD_NM 내외국인구분코드명
      * @param BRYY_MMDD 생년월일
      * @param SEX_DV_CD 성별구분코드
+     * @param SEX_DV_CD_NM 성별구분코드명
      * @param EMADR 이메일주소
      * @param BZRNO 사업자등록번호
      * @param CRP_SPMT_DRM_NM 법인점포명
@@ -62,11 +66,15 @@ public class WcsaCustomerInterfaceDto {
         String CIK_VAL,
         String SFK_VAL,
         String COPN_DV_CD,
+        String COPN_DV_CD_NM,
         String CST_INFLW_PH_DV_CD,
+        String CST_INFLW_PH_DV_CD_NM,
         String CST_KNM,
         String LNF_DV_CD,
+        String LNF_DV_CD_NM,
         String BRYY_MMDD,
         String SEX_DV_CD,
+        String SEX_DV_CD_NM,
         String EMADR,
         String BZRNO,
         String CRP_SPMT_DRM_NM,
