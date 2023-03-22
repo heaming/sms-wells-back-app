@@ -2,14 +2,10 @@ package com.kyowon.sms.wells.web.contract.common.service;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.common.web.contract.zcommon.constants.CtContractConst;
 import com.kyowon.sms.wells.web.contract.common.converter.WctzHistoryConverter;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzContraceDetailHistDvo;
 import com.kyowon.sms.wells.web.contract.common.mapper.WctzHistoryMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
@@ -91,81 +87,5 @@ public class WctzHistoryService {
         }
         dvo.setHistEndDtm(HIST_END_DTM);
         mapper.insertCntrDetailStatChangeHist(dvo);
-    }
-
-    /**
-     * 계약상세상태변경이력 조회
-     * @param cntrNo 계약번호
-     * @param cntrSn 계약일련번호
-     * @return dvo
-     */
-    public WctzCntrDtlStatChHistDvo getCntrDtlStatChangeHistory(String cntrNo, String cntrSn) {
-        return mapper.selectCntrDtlStatChangeHistory(cntrNo, cntrSn);
-    }
-
-    /**
-     * 계약상세상태변경이력 생성
-     * @param dvo
-     */
-    @Transactional
-    public void createCntrDtlStatChangeHistory(WctzCntrDtlStatChHistDvo dvo) {
-        String now = DateUtil.todayNnow();
-        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
-            dvo.setHistStrtDtm(now);
-        }
-
-        WctzCntrDtlStatChHistDvo newHist = converter.convertCntrDtlStatToChangeHist(
-            dvo,
-            mapper.selectCntrDtlStatForHist(dvo.getCntrNo(), dvo.getCntrSn())
-        );
-
-        WctzCntrDtlStatChHistDvo befHist = getCntrDtlStatChangeHistory(dvo.getCntrNo(), dvo.getCntrSn());
-        if (ObjectUtils.isEmpty(befHist)) {
-            dvo.setHistStrtDtm(now);
-        } else {
-            befHist.setHistEndDtm(dvo.getHistStrtDtm());
-            mapper.updateCntrDtlStatChangeHistory(befHist);
-        }
-
-        newHist.setHistEndDtm(CtContractConst.END_DTM);
-        mapper.insertCntrDtlStatChangeHistory(newHist);
-    }
-
-    /**
-     * 계약상세변경이력 조회
-     * @param cntrNo 계약번호
-     * @param cntrSn 계약일련번호
-     * @return dvo
-     */
-    public WctzContraceDetailHistDvo getContractDetailHistory(String cntrNo, String cntrSn) {
-        return mapper.selectContractDetailHistory(cntrNo, cntrSn);
-    }
-
-    /**
-     * 계약상세변경이력 생성
-     * @param dvo
-     */
-    @Transactional
-    public void createContractDetailHistory(WctzContraceDetailHistDvo dvo) {
-        String now = DateUtil.todayNnow();
-        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
-            dvo.setHistStrtDtm(now);
-        }
-
-        WctzContraceDetailHistDvo newHist = converter.convertContractDetailToHist(
-            dvo,
-            mapper.selectContractDetailForHist(dvo.getCntrNo(), dvo.getCntrSn())
-        );
-
-        WctzContraceDetailHistDvo befHist = getContractDetailHistory(dvo.getCntrNo(), dvo.getCntrSn());
-        if (ObjectUtils.isEmpty(befHist)) {
-            dvo.setHistStrtDtm(now);
-        } else {
-            befHist.setHistEndDtm(dvo.getHistStrtDtm());
-            mapper.updateContractDetailHistory(befHist);
-        }
-
-        newHist.setHistEndDtm(CtContractConst.END_DTM);
-        mapper.insertContractDetailHistory(newHist);
     }
 }

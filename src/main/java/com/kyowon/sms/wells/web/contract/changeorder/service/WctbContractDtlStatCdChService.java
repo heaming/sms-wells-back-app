@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractDtlStatCdChMapper;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzContraceDetailHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.common.utils.DateUtil;
@@ -56,20 +56,20 @@ public class WctbContractDtlStatCdChService {
 
         // 2. 계약상세상태변경이력 insert
         String now = DateUtil.todayNnow();
-        historyService.createCntrDtlStatChangeHistory(
-            WctzCntrDtlStatChHistDvo.builder()
+        historyService.createContractDetailStatChangeHistory(
+            WctzCntrDtlStatChangeHistDvo.builder()
                 .cntrNo(dvo.getCntrNo())
-                .cntrSn(dvo.getCntrSn())
+                .cntrSn(Integer.parseInt(dvo.getCntrSn()))
                 .histStrtDtm(now)
                 .build()
         );
 
         // 3. 계약상세변경이력 insert
-        historyService.createContractDetailHistory(
-            WctzContraceDetailHistDvo.builder()
+        historyService.createContractDetailChangeHistory(
+            WctzCntrDetailChangeHistDvo.builder()
                 .cntrNo(dvo.getCntrNo())
                 .histStrtDtm(now)
-                .cntrSn(dvo.getCntrSn())
+                .cntrSn(Integer.parseInt(dvo.getCntrSn()))
                 .build()
         );
 
