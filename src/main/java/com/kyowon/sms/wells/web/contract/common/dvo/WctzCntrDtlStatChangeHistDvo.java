@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class WctzCntrDtlStatChangeHistDvo {
     private String cntrNo;
-    private Integer cntrSn;
+    private int cntrSn;
     private String histStrtDtm;
     private String histEndDtm;
     private String cntrDtlStatCd;

@@ -9,6 +9,8 @@ import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo
 import com.kyowon.sms.wells.web.contract.common.mapper.WctzHistoryMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -73,6 +75,12 @@ public class WctzHistoryService {
      * @param dvo 이력정보 (코드, 사유코드, 메모내용)
      */
     public void createContractDetailStatChangeHistory(WctzCntrDtlStatChangeHistDvo dvo) {
+        BizAssert.hasText(dvo.getCntrNo(), "MSG_ALT_CHK_CNTR_NO");
+        BizAssert.hasText(dvo.getCntrDtlStatCd(), "MSG_ALT_CHK_CNTR_DTL_STAT_CD");
+        if (0 == dvo.getCntrSn()) {
+            throw new BizException("MSG_ALT_CHK_CNTR_SN");
+        }
+
         String now = DateUtil.todayNnow();
         if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
             dvo.setHistStrtDtm(now);
