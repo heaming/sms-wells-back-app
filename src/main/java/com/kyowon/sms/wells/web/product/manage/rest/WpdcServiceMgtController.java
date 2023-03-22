@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.product.manage.rest;
 
-import javax.validation.Valid;
-
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +48,6 @@ public class WpdcServiceMgtController {
     @ApiOperation(value = "서비스 상품 수정", notes = "수정된 상품정보를 반영한다.")
     @PutMapping("/{pdCd}")
     public SaveResponse editProduct(
-        @Valid
         @RequestBody
         WpdcServiceMgtDto.EditReq dto
     ) throws Exception {
@@ -72,7 +69,6 @@ public class WpdcServiceMgtController {
     @ApiOperation(value = "서비스 상품 생성", notes = "수정된 상품정보를 반영한다.")
     @PostMapping
     public SaveResponse createProduct(
-        @Valid
         @RequestBody
         WpdcServiceMgtDto.SaveReq dto
     ) throws Exception {
