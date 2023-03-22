@@ -6,7 +6,7 @@
         SELECT 
                /*T1.KW_GRP_CO_CD*/
                T2.KW_GRP_CO_CD
-             , T1.CNTR_NO --계약번호
+             , T1.CNTR_NO||T1.CNTR_SN AS CNTR_NO --계약번호
              , T7.CST_KNM  --고객명
              , T1.ITG_DP_NO --통합입금번호
              , T1.FNT_DT AS RVE_DT --입금일자
@@ -67,10 +67,18 @@
             </if>    
     </select>
     
+    <select id="selectGiroDepositDate" resultType="String">
+        SELECT 
+               TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS GIRO_DP_ULD_DTM 
+          FROM DUAL
+    </select>
+    
     <insert id="inertGiroDeposit">
         INSERT INTO TB_RVDW_GIRO_DP_LEDG_IZ /* 지로입금 원장내역 */
         (
-              GIRO_DP_MTR_DV_CD --구분코드
+              GIRO_DP_ULD_DTM /*지로입금업로드일시*/
+            , GIRO_DP_ULD_SN /*지로입금업로드일련번호*/              
+            , GIRO_DP_MTR_DV_CD --구분코드
             , DP_SN --일련번호
             , RVE_DT --수납일자
             , FNT_DT --이체일자
@@ -83,9 +91,17 @@
             , GIRO_FEE_DV_CD --지로수수료구분코드
             , RMK_CN  --비고    
             , DTA_DL_YN
+            , GIRO_DP_ULD_PROCS_YN 
             <include refid="COMMON.insertSystemField"/>
          )VALUES(
-              #{giroDpMtrDvCd} --구분코드
+              #{giroDpUldDtm} /*지로입금업로드일시*/
+            , ( 
+                SELECT 
+                       NVL(MAX(GIRO_DP_ULD_SN),0)+1 
+                  FROM TB_RVDW_GIRO_DP_LEDG_IZ
+                 WHERE GIRO_DP_ULD_DTM = #{giroDpUldDtm}                   
+              ) /*지로입금업로드일련번호*/  
+            , #{giroDpMtrDvCd} --구분코드
             , #{dpSn} --일련번호
             , #{rveDt} --수납일자
             , #{fntDt} --이체일자
@@ -98,9 +114,20 @@
             , #{giroFeeDvCd} --지로수수료구분코드
             , #{rmkCn}  --비고    
             , 'N'
+            , 'N'
             <include refid="COMMON.insertSystemFieldValue" />
          )
     </insert>
+    
+    <update id="updateGiroDeposit">
+        UPDATE TB_RVDW_GIRO_DP_LEDG_IZ
+           SET GIRO_DP_ULD_PROCS_YN = 'Y'
+         WHERE 1 = 1
+           AND FNT_DT = #{fntDt}
+           AND DTA_DL_YN = 'N'
+           AND GIRO_DP_ULD_PROCS_YN = 'N'
+    </update>
+    
     
     <insert id="inertGiroDepositItemization">
         INSERT INTO TB_RVDW_GIRO_DP_IZ(
@@ -120,8 +147,9 @@
                 , GIRO_FEE --지로수수료
                 , GIRO_RVE_DV_CD --지로수납구분코드
                 , DTA_DL_YN
-                , KW_GRP_CO_CD --회사코드
+                /*, KW_GRP_CO_CD*/ --회사코드
                 , PROCS_ERR_TP_CD --오류처리
+                , ITG_DP_PROCS_YN
                 <include refid="COMMON.insertSystemField"/>
                 )VALUES
                 (
@@ -141,27 +169,40 @@
                 , #{giroFeeDvCd} 
                 , #{giroRveDvCd} 
                 , #{dtaDlYn}    
-                , #{session.companyCode}
+               /* , {session.companyCode}*/
                 , #{procsErrTpCd}
+                , 'N'
                  <include refid="COMMON.insertSystemFieldValue" />
                 )
                                           
     </insert>
     
+    <delete id="deleteGiroDepositItemization">
+        DELETE       
+          FROM
+               TB_RVDW_GIRO_DP_IZ
+         WHERE ITG_DP_PROCS_YN = 'N'    
+           AND DTA_DL_YN = 'N'
+           AND FNT_DT IN 
+           <foreach collection="fntDt" item="code" index="index" separator="," open="(" close=")">
+                      #{code}         
+           </foreach>           
+    </delete>
+            
     <insert id="inertIntegrationItemization">
         INSERT INTO TB_RVDW_ITG_DP_BAS(
                     ITG_DP_NO --통합입금번호
                   , ITG_DP_CAN_YN --통합입금취소여부 
                   , INCMDC_YN --소득공제여부
                   , DTA_DL_YN
-                  , KW_GRP_CO_CD
+                 /* , KW_GRP_CO_CD*/
                   <include refid="COMMON.insertSystemField"/>
                   )VALUES(
                     #{itgDpNo}
                   , 'N'
                   , 'N'
                   , #{dtaDlYn}  
-                  , #{session.companyCode}
+                 /* , {session.companyCode}*/
                   <include refid="COMMON.insertSystemFieldValue" />                 
                   )                  
     </insert>
@@ -214,6 +255,7 @@
                                           SELECT SUBSTR(DP_SN,3,5) ||  SUBSTR(RVE_DT,1,2)
                                         FROM TB_RVDW_GIRO_DP_LEDG_IZ  /* 지로입금　원시파일 */
                                        WHERE GIRO_DP_MTR_DV_CD = '11'   /* 구분코드 */
+                                         AND GIRO_DP_ULD_PROCS_YN = 'N'
                                    ) AS GIRO_NO --지로번호
                                  , GIRO_DP_MTR_DV_CD --구분코드
                                  , DP_SN -- 일련번호
@@ -243,7 +285,8 @@
                                  , DTA_DL_YN
                               FROM TB_RVDW_GIRO_DP_LEDG_IZ
                              WHERE GIRO_DP_MTR_DV_CD = '22'
-                               AND DTA_DL_YN = 'N'                                 
+                               AND DTA_DL_YN = 'N'       
+                               AND GIRO_DP_ULD_PROCS_YN = 'N'                          
                       ) T1  
     </select>
     
@@ -456,5 +499,32 @@
         FROM TB_SSCT_CNTR_DTL 
         WHERE CNTR_NO = #{cntrNo}
           AND CNTR_SN = #{cntrSn}    
+    </select>
+    
+    <select id="selectBillingDocumentMgtLedgerItemization" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchLedgerItemizationRes">
+    SELECT 
+           FNT_DT
+         , CHK_CNT
+         , ITG_DP_PROCS_Y_CNT   
+      FROM (
+                SELECT  
+                       FNT_DT 
+                     , COUNT(RVE_DT) AS CHK_CNT /* 조회조건에 해당 하는 수납일자가 존재하는지 */
+                     , SUM(CASE WHEN ITG_DP_PROCS_YN = 'Y' THEN 1 ELSE 0 END) AS ITG_DP_PROCS_Y_CNT /* 통합입금처리가 되었는지 안되었는지 확인하여 입금처리가 완료 되었으면 더한다.*/
+                  FROM TB_RVDW_GIRO_DP_IZ
+                 WHERE DTA_DL_YN = 'N'
+                   AND FNT_DT IN 
+                   <foreach collection="rveDt" item="code" index="index" separator="," open="(" close=")">
+                      #{code}         
+                   </foreach>
+                                  /*(SELECT RVE_DT
+                                     FROM TB_RVDW_GIRO_DP_LEDG_IZ
+                                    WHERE DTA_DL_YN = 'N'
+                                      AND GIRO_DP_ULD_PROCS_YN = 'N'
+                                   GROUP BY RVE_DT)*/
+                 GROUP BY FNT_DT
+                 ORDER BY FNT_DT  
+            )
+      WHERE ROWNUM = 1            
     </select>
 </mapper>

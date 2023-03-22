@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,8 +12,12 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.Save
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDtlStateRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRveDtReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveInfoDvo;
@@ -55,19 +60,38 @@ public class WwdbGiroDepositMgtService {
     @Transactional
     public int saveBillingDocumentMgt(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
-        processCount += mapper.deleteGiroDeposit();
-        log.info("service1");
-        log.info(dtos.toString());
-        log.info("service1");
+
+        WwdbGiroDepositDeleteInfoDvo deleteDvo = new WwdbGiroDepositDeleteInfoDvo();
+
         String errorChk = ""; //에러체크
 
         if (dtos.size() > 0) {
-            for (SaveReq dto : dtos) {
-                WwdbGiroDepositSaveDvo dvo = convert.mapSaveWwwdbGiroDepositSaveDvo(dto);
-                processCount += mapper.inertGiroDeposit(dvo);
-                //                processCount += mapper.inertGiroDeposit(dto);
+            String toDay = mapper.selectGiroDepositDate();
+
+            for (int i = 0; i < dtos.size(); i++) {
+                WwdbGiroDepositSaveDvo dvo = convert.mapSaveWwwdbGiroDepositSaveDvo(dtos.get(i));
+                dvo.setGiroDpUldDtm(toDay);
+                processCount += mapper.inertGiroDeposit(dvo); //원장내역 저장
+
             }
-            List<WwdbGiroDepositSaveInfoDvo> dvos = mapper.selectGiroDepositItemizationInfo();
+
+            // 중복 제거
+            List<SaveReq> duplicateList = dtos.stream().distinct().collect(Collectors.toList());
+
+            String[] fntDt = new String[dtos.size() - 1];
+
+            for (int i = 0; i < duplicateList.size(); i++) {
+                if (duplicateList.get(i).giroDpMtrDvCd().equals("22")) {
+                    fntDt[i] = duplicateList.get(i).rveDt();
+                }
+            }
+
+            deleteDvo.setFntDt(fntDt);
+
+            processCount += mapper.deleteGiroDepositItemization(deleteDvo);
+
+            List<WwdbGiroDepositSaveInfoDvo> dvos = mapper.selectGiroDepositItemizationInfo(); //원장내역 데이터를 가공한다.
+
             for (WwdbGiroDepositSaveInfoDvo infoDvo : dvos) {
 
                 SearchDtlStateRes selectDtlState = mapper.selectDtlState(infoDvo);
@@ -77,14 +101,12 @@ public class WwdbGiroDepositMgtService {
                 } else if (!selectDtlState.cntrDtlStatCd().equals("101")) { //정상처리가 아니면 2
                     errorChk = "2";
                 } else {
-                    errorChk = "3";
+                    errorChk = "3"; //정상처리
                 }
                 infoDvo.setProcsErrTpCd(errorChk);
 
-                processCount += mapper.inertGiroDepositItemization(infoDvo);
-                processCount += mapper.inertIntegrationItemization(infoDvo);
-
-                //                processCount += mapper.inertIntegrationItemizationHistory(infoDvo);
+                processCount += mapper.inertGiroDepositItemization(infoDvo); //지로입금내역 저장
+                processCount += mapper.updateGiroDeposit(infoDvo);
             }
         }
         return processCount;
@@ -294,4 +316,26 @@ public class WwdbGiroDepositMgtService {
         return processCount;
     }
 
+    @Transactional
+    public SearchLedgerItemizationRes getBillingDocumentMgtLedgerItemization(List<SearchLedgerItemizationReq> dtos) {
+        int processCount = 0;
+
+        // 중복 제거
+        List<SearchLedgerItemizationReq> duplicateList = dtos.stream().distinct().collect(Collectors.toList());
+
+        String[] fntDt = new String[duplicateList.size() - 1];
+
+        for (int i = 0; i < duplicateList.size(); i++) {
+            if (duplicateList.get(i).giroDpMtrDvCd().equals("22")) {
+                fntDt[i] = duplicateList.get(i).fntDt();
+            }
+        }
+
+        SearchRveDtReq rvDtReq = new SearchRveDtReq(fntDt);
+
+        SearchLedgerItemizationRes itemizationRes = mapper
+            .selectBillingDocumentMgtLedgerItemization(rvDtReq);
+
+        return itemizationRes;
+    }
 }
