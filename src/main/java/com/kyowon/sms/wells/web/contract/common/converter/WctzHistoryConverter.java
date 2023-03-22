@@ -6,6 +6,8 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzContraceDetailHistDvo;
 
 @Mapper(componentModel = "spring")
 public interface WctzHistoryConverter {
@@ -14,5 +16,19 @@ public interface WctzHistoryConverter {
         WctzCntrDetailChangeHistDvo source,
         @MappingTarget
         WctzCntrDetailChangeHistDvo target
+    );
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    WctzCntrDtlStatChHistDvo convertCntrDtlStatToChangeHist(
+        WctzCntrDtlStatChHistDvo source,
+        @MappingTarget
+        WctzCntrDtlStatChHistDvo target
+    );
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    WctzContraceDetailHistDvo convertContractDetailToHist(
+        WctzContraceDetailHistDvo source,
+        @MappingTarget
+        WctzContraceDetailHistDvo target
     );
 }
