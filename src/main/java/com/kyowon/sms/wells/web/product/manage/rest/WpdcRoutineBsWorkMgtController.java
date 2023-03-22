@@ -114,9 +114,8 @@ public class WpdcRoutineBsWorkMgtController {
     @DeleteMapping("/life-filters")
     public SaveResponse removeLifeCustomFilters(
         @RequestBody
-        @Valid
         @NotEmpty
-        List<WpdcRoutineBsWorkMgtDto.RemoveLifeFilterReq> dtos
+        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.removeLifeFilters(dtos))

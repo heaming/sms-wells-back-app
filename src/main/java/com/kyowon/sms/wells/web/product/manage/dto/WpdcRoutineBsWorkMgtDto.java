@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.manage.dto;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
@@ -89,6 +90,8 @@ public class WpdcRoutineBsWorkMgtDto {
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchLifeCustomFiltersRes")
     public record SearchLifeCustomFiltersRes(
+        String chPdctPdNm, /* 변경제품상품명 */
+
         String svPdCd, /* 서비스상품코드 */
         String pdctPdCd, /* 제품상품코드 */
         String partPdCd, /* 부품상품코드 */
@@ -124,14 +127,8 @@ public class WpdcRoutineBsWorkMgtDto {
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-RemoveLifeFilterReq")
     public record RemoveLifeFilterReq(
-        @NotBlank
-        String svPdCd,
-        @NotBlank
-        String pdctPdCd,
-        @NotBlank
-        String partPdCd,
-        @NotBlank
-        Long dtlSn /* 상세일련번호 */
+        @NotEmpty
+        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> bases
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-RoutineBsWorkBase")
