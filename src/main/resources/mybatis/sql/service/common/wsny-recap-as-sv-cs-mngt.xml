@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyRecapAsSvCsMngtMapper">
+    <select id="selectRecapAsSvCsMngts" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyRecapAsSvCsMngtDto$SearchRes">
+        SELECT TB1.SVPD_SAP_CD AS SAP_MAT_CD --SAP코드
+             , TB1.SVPD_PD_CD AS PD_CD --품목코드 ST101_ITEM_CD
+             , TB1.SVPD_NM_KOR AS PD_NM --품목명 ST101_NM_KOR
+             , TB2.APY_STRTDT AS APY_STRTDT --적용시작일 CO230_APLD_FR
+             , TB2.APY_ENDDT AS APY_ENDDT --적용종료일 CO230_APLD_TO
+             , NVL(TB2.CSMR_UPRC_AMT, 0) AS CSMR_UPRC_AMT --소비자가
+             , NVL(TB2.WHLS_UPRC_AMT, 0) AS WHLS_UPRC_AMT --도매단가
+             , NVL(TB2.INSI_UPRC_AMT, 0) AS INSI_UPRC_AMT --내부단가
+             , NVL(TB2.TCFEE_AMT, 0) AS TCFEE_AMT --기술료
+             , NVL(TB2.CSMR_UPRC_AMT + TB2.TCFEE_AMT, 0) SUM_AMT --합계(소비자가+기술료)
+             , NVL(TB2.IZ_SN, 0) AS IZ_SN --내역일련번호
+             , TB2.BASE_PD_CD --기준상품코드
+         FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB1
+         LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ TB2
+           ON SUBSTR(TB1.SVPD_PD_CD, 1, 5) = SUBSTR(TB2.USE_MAT_PD_CD, 1, 5) /*TODO: 상품코드 조건 확정후 변경 예정*/
+<!--           TB1.SVPD_PD_CD LIKE SUBSTR(TB2.USE_MAT_PD_CD, 1, 5) || '%' -->
+         --현재적용자료 체크시
+          <if test='@MybatisUtils@isNotEmpty(apyMtrChk) and @MybatisUtils@equals(apyMtrChk,"Y")'>
+          AND TB2.APY_STRTDT <![CDATA[<=]]> TO_CHAR( SYSDATE, 'YYYYMMDD')
+          AND TB2.APY_ENDDT <![CDATA[>=]]> TO_CHAR( SYSDATE, 'YYYYMMDD')
+          </if>
+        WHERE 1=1
+         --공통부품 언체크시
+           <if test='@MybatisUtils@isNotEmpty(hgrPdCd) and @MybatisUtils@equals(cmnPartDbCdChk,"N")'>
+           <choose>
+               <when test="@MybatisUtils@isEmpty(pdCd)">
+                -- 전체 조회
+                AND TB1.SVPD_ITEM_KND = #{hgrPdCd}
+               </when>
+               <otherwise>
+                -- 상품명 선택 시 조회
+                AND SUBSTR(TB1.SVPD_PD_CD, 1, 5) = SUBSTR( #{pdCd}, 1, 5)
+                AND TB1.SVPD_PD_CD != '000000'
+               </otherwise>
+           </choose>
+           </if>
+         --공통부품 체크시
+           <if test='@MybatisUtils@isNotEmpty(hgrPdCd) and @MybatisUtils@equals(cmnPartDbCdChk,"Y")'>
+           <choose>
+                  <when test="@MybatisUtils@isEmpty(pdCd)">
+                   -- 전체 조회
+                   AND TB1.SVPD_ITEM_KND = #{hgrPdCd}
+                  </when>
+                  <otherwise>
+                   -- 상품명 선택 시 조회
+                    AND (( TB1.SVPD_COMM_GB IN ('00','01')
+                      OR <if test='@MybatisUtils@equals(hgrPdCd,"1")'>
+                           TB1.SVPD_COMM_GB ='10'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"2")'>
+                           TB1.SVPD_COMM_GB = '20'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"3")'>
+                           TB1.SVPD_COMM_GB = '30'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"4")'>
+                           TB1.SVPD_COMM_GB = '40'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"5")'>
+                           TB1.SVPD_COMM_GB ='50'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"6")'>
+                           TB1.SVPD_COMM_GB = '60'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"7")'>
+                           TB1.SVPD_COMM_GB = '70'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"8")'>
+                           TB1.SVPD_COMM_GB = '80'
+                         </if>
+                         <if test='@MybatisUtils@equals(hgrPdCd,"9")'>
+                           TB1.SVPD_COMM_GB ='90'
+                         </if>
+                        )
+                      OR SUBSTR(TB1.SVPD_PD_CD, 1, 4) = SUBSTR( #{pdCd}, 1, 4)
+                      )
+                    AND TB1.SVPD_PD_CD != '000000'
+                  </otherwise>
+              </choose>
+           </if>
+         ORDER BY TB1.SVPD_PD_CD ASC, TB2.IZ_SN ASC
+    </select>
+    <select id="selectHgrPdCd" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyRecapAsSvCsMngtDto$PdRes">
+        SELECT SVPD_PD_CD AS CODE_ID
+             , SVPD_NM_ABBR1 || '(' || SVPD_PD_CD || ')' AS CODE_NAME
+             , SVPD_NM_KOR  AS ABBR_NAME
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>)
+         WHERE SVPD_ITEM_KND = #{hgrPdCd}
+    </select>
+
+    <update id="updateRecapAsSvCsMngts">
+        UPDATE TB_SVPD_RCAS_ITM_PRC_IZ
+           SET CSMR_UPRC_AMT = ${csmrUprcAmt} /* 소비자단가금액 */
+             , WHLS_UPRC_AMT = ${whlsUprcAmt} /* 도매단가금액 */
+             , INSI_UPRC_AMT = ${insiUprcAmt} /* 내부단가금액*/
+             , TCFEE_AMT = ${tcfeeAmt} /* 기술료금액 */
+               <include refid="COMMON.updateSystemField"/>
+         WHERE BASE_PD_CD = #{basePdCd}
+           AND SUBSTR(USE_MAT_PD_CD, 1, 5) = SUBSTR( #{pdCd}, 1, 5) /*TODO: 상품코드 조건 확정후 변경 예정*/
+           AND IZ_SN = ${izSn}
+    </update>
+
+</mapper>
