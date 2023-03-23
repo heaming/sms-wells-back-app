@@ -13,7 +13,6 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRveDtReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
@@ -89,5 +88,5 @@ public interface WwdbGiroDepositMgtMapper {
 
     SearchDtlStateRes selectDtlState(WwdbGiroDepositSaveInfoDvo dto);
 
-    SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(SearchRveDtReq req);
+    SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(String[] rveDt);
 }

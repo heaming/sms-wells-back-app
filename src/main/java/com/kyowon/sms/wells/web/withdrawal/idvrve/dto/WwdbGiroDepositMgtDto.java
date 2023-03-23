@@ -222,11 +222,6 @@ public class WwdbGiroDepositMgtDto {
     ) {}
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
-    public record SearchRveDtReq(
-        String[] rveDt
-    ) {}
-
-    @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
     public record SearchLedgerItemizationRes(
         String fntDt,
         int chkCnt,

@@ -16,7 +16,6 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRveDtReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
@@ -76,13 +75,13 @@ public class WwdbGiroDepositMgtService {
             }
 
             // 중복 제거
-            List<SaveReq> duplicateList = dtos.stream().distinct().collect(Collectors.toList());
+            List<SaveReq> duplicates = dtos.stream().distinct().collect(Collectors.toList());
 
             String[] fntDt = new String[dtos.size() - 1];
 
-            for (int i = 0; i < duplicateList.size(); i++) {
-                if (duplicateList.get(i).giroDpMtrDvCd().equals("22")) {
-                    fntDt[i] = duplicateList.get(i).rveDt();
+            for (int i = 0; i < duplicates.size(); i++) {
+                if (duplicates.get(i).giroDpMtrDvCd().equals("22")) {
+                    fntDt[i] = duplicates.get(i).rveDt();
                 }
             }
 
@@ -321,20 +320,18 @@ public class WwdbGiroDepositMgtService {
         int processCount = 0;
 
         // 중복 제거
-        List<SearchLedgerItemizationReq> duplicateList = dtos.stream().distinct().collect(Collectors.toList());
+        List<SearchLedgerItemizationReq> duplicates = dtos.stream().distinct().collect(Collectors.toList());
 
-        String[] fntDt = new String[duplicateList.size() - 1];
+        String[] fntDt = new String[duplicates.size() - 1];
 
-        for (int i = 0; i < duplicateList.size(); i++) {
-            if (duplicateList.get(i).giroDpMtrDvCd().equals("22")) {
-                fntDt[i] = duplicateList.get(i).fntDt();
+        for (int i = 0; i < duplicates.size(); i++) {
+            if (duplicates.get(i).giroDpMtrDvCd().equals("22")) {
+                fntDt[i] = duplicates.get(i).fntDt();
             }
         }
 
-        SearchRveDtReq rvDtReq = new SearchRveDtReq(fntDt);
-
         SearchLedgerItemizationRes itemizationRes = mapper
-            .selectBillingDocumentMgtLedgerItemization(rvDtReq);
+            .selectBillingDocumentMgtLedgerItemization(fntDt);
 
         return itemizationRes;
     }
