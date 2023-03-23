@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.contract.changeorder.service;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCltnMtrClCnfmSeDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCltnMtrClCnfmSeMapper;
 
 import lombok.RequiredArgsConstructor;
