@@ -31,7 +31,7 @@ public class WsncRpbAreaCodeMgtDto {
     @ApiModel(value = "WsncRpbLocaraCdMngtDto-SearchRes")
     public record SearchRes(
         String fr2pLgldCd, /* 법정동코드 앞2자리 */
-        String newAdrZip, /* 신주소우편번호 */
+        String zipList, /* 우편번호 List */
         String mgtCnt, /* 지역별 서비스 계정 수 */
         String wrkCnt, /* 월별 수임 건수 (조회월 이전 3개월 평균) */
         String ctpvNm, /* 시도명 */

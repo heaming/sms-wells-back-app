@@ -61,4 +61,12 @@ public class WsnbInstallLocationMgtDto {
         String wkPrtnrNo /* 작업파트너번호 */
     ) {}
 
+    @ApiModel(value = "WsnbIstLctDtlMngtDto-Product")
+    public record Product(
+        String codeId,
+        String codeName,
+        String abbrName,
+        String pdGrpCd
+    ) {}
+
 }

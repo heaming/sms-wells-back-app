@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Product;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo;
@@ -36,4 +37,6 @@ public interface WsnbInstallLocationMgtMapper {
     int selectInstallLocationContentLength(
         WsnbInstallLocationDvo dvo
     );
+
+    List<Product> selectProducts();
 }

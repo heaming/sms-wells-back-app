@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Product;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallLocationMgtService;
@@ -73,4 +74,9 @@ public class WsnbInstallLocationMgtController {
             .build();
     }
 
+    @ApiOperation(value = "상품 조회", notes = "상품 리스르를 조회한다.")
+    @GetMapping("/products")
+    public List<Product> getProducts() {
+        return service.getProducts();
+    }
 }

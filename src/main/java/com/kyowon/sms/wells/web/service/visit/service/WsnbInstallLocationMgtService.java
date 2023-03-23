@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallLocationMgtConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Product;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo;
@@ -95,6 +96,13 @@ public class WsnbInstallLocationMgtService {
             processCount += result;
         }
         return processCount;
+    }
+
+    /**
+     * 검색조건 용 상품내역 조회 (임시)
+     */
+    public List<Product> getProducts() {
+        return mapper.selectProducts();
     }
 
 }
