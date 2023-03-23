@@ -23,6 +23,7 @@ public class WpdcAsPartMgtDto {
         String prdtCateHigh,
         String prdtCateMid,
         String sapMatCd,
+        String asMatCd,
         String modelNo
     ) {}
 
@@ -41,6 +42,9 @@ public class WpdcAsPartMgtDto {
         String pdAbbrNm,
         String modelNo,
         String ostrCnrCd,
+        String asItmCd, /* 각사속성상세 - 품목코드 */
+        String asMatCd, /* 각사속성상세 - AS지재번호 */
+        String asMatEngNm, /* 각사속성상세 - 품목명 */
         String fstRgstDtm,
         String fstRgstUsrNm,
         String fnlMdfcDtm,
