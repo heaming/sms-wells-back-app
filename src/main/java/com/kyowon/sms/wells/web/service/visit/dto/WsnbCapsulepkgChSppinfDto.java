@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -14,20 +15,30 @@ public class WsnbCapsulepkgChSppinfDto {
 
     @ApiModel(value = "WsnbCapsulepkgChSppinfDto-SearchReq")
     public record SearchReq(
-        String CNTR_NO, /* 계약번호 */
-        String CNTR_SN, /* 계약일련번호 */
-        String SPP_DUEDT /* 배송예정일자 */
+        @JsonProperty("CNTR_NO")
+        String cntrNo, /* 계약번호 */
+        @JsonProperty("CNTR_SN")
+        String cntrSn, /* 계약일련번호 */
+        @JsonProperty("SPP_DUEDT")
+        String sppDuedt /* 배송예정일자 */
     ) {}
 
     @ApiModel(value = "WsnbCapsulepkgChSppinfDto-SearchRes")
     public record SearchRes(
-        String SPP_DUEDT, /* 배송예정일자 */
-        String PD_CD, /* 상품코드 */
-        String AFCH_PD_CD, /* 변경후상품코드 */
-        String FILT_PD_CD, /* 필터상품코드 */
-        String SELL_AMT, /* 판매금액 */
-        String SPP_PRGS_STAT_CD, /* 배송진행상태코드 */
-        String IST_ADDR /* 설치주소 */
+        @JsonProperty("SPP_DUEDT")
+        String sppDuedt, /* 배송예정일자 */
+        @JsonProperty("PD_CD")
+        String pdCd, /* 상품코드 */
+        @JsonProperty("AFCH_PD_CD")
+        String afchPdCd, /* 변경후상품코드 */
+        @JsonProperty("FILT_PD_CD")
+        String filtPdCd, /* 필터상품코드 */
+        @JsonProperty("SELL_AMT")
+        String sellAmt, /* 판매금액 */
+        @JsonProperty("SPP_PRGS_STAT_CD")
+        String sppPrgsStatCd, /* 배송진행상태코드 */
+        @JsonProperty("IST_ADDR")
+        String istAddr /* 설치주소 */
     ) {}
 
 }

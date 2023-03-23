@@ -15,11 +15,11 @@ import lombok.Setter;
 @Getter
 public class WsnbCapsulepkgChSppinfDvo {
 
-    String SPP_DUEDT; /* 배송예정일자 */
-    String PD_CD; /* 상품코드 */
-    String AFCH_PD_CD; /* 변경후상품코드 */
-    String FILT_PD_CD; /* 필터상품코드 */
-    String SELL_AMT; /* 판매금액 */
-    String SPP_PRGS_STAT_CD; /* 배송진행상태코드 */
-    String IST_ADDR; /* 설치주소 */
+    String sppDuedt; /* 배송예정일자 */
+    String pdCd; /* 상품코드 */
+    String afchPdCD; /* 변경후상품코드 */
+    String filtPdCd; /* 필터상품코드 */
+    String sellAmt; /* 판매금액 */
+    String sppPrgsStatCd; /* 배송진행상태코드 */
+    String istAddr; /* 설치주소 */
 }
