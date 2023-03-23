@@ -60,6 +60,7 @@ public class WctbContractDtlStatCdChService {
             WctzCntrDtlStatChangeHistDvo.builder()
                 .cntrNo(dvo.getCntrNo())
                 .cntrSn(Integer.parseInt(dvo.getCntrSn()))
+                .cntrDtlStatCd(dvo.getCntrDtlStatCd())
                 .histStrtDtm(now)
                 .build()
         );
