@@ -13,8 +13,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WctaContractMapper {
     PagingResult<SearchCntrNoRes> selectContractNumberInqrPages(
-        SearchCntrNoReq dto,
-        PageInfo pageInfo
+            SearchCntrNoReq dto,
+            PageInfo pageInfo
     );
 
     List<SearchHomecareContractsRes> selectHomecareContracts(List<SearchHomecareContractsReq> dtos);
@@ -30,11 +30,11 @@ public interface WctaContractMapper {
     List<SearchConfirmAprPsicPrchssRes> selectConfirmAprPsicPrchss(String cntrNo);
 
     List<SearchConfirmApprovalBaseRes> selectConfirmApprovalBases(
-        SearchConfirmApprovalBaseReq dto
+            SearchConfirmApprovalBaseReq dto
     );
 
     PagingResult<SearchConfirmApprovalBaseRes> selectConfirmApprovalBases(
-        SearchConfirmApprovalBaseReq dto, PageInfo pageInfo
+            SearchConfirmApprovalBaseReq dto, PageInfo pageInfo
     );
 
     int selectCountConfirmApprovalBases(WctaCntrAprBaseBasDvo dvo);
@@ -63,4 +63,5 @@ public interface WctaContractMapper {
 
     PagingResult<SearchMngerPrtnrRes> selectDistrictManagerPartnerPages(SearchMngerPrtnrReq dto, PageInfo pageInfo);
 
+    List<SearchOnepluseoneRes> selectOneplusoneContracts(SearchOnepluseoneReq dto);
 }

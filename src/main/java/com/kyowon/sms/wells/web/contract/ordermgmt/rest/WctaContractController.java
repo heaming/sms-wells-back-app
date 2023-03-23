@@ -202,4 +202,25 @@ public class WctaContractController {
     ) {
         return service.getDistrictManagerPartnerPages(dto, pageInfo);
     }
+
+    @ApiOperation(value = "1+1 대상 계약 조회", notes = "1+1 대상 계약 목록을 조회한다.")
+    @ApiImplicitParams(value = {
+    })
+    @GetMapping("/oneplusone-contracts")
+    public List<SearchOnepluseoneRes> getOneplusoneContracts(
+        SearchOnepluseoneReq dto
+    ) {
+        return service.getOneplusoneContracts(dto);
+    }
+
+    @ApiOperation(value = "1+1 연계 가능여부 검사", notes = "선택한 계약이 1+1 연계 가능한지 검사한다.")
+    @ApiImplicitParams(value = {
+    })
+    @GetMapping("/oneplusone-contracts/check")
+    public boolean isAvailableOneplusone(
+        SearchOnepluseoneReq dto
+    ) {
+        // TODO W-SS-S-0022 서비스 개발완료되면 호출
+        return true;
+    }
 }

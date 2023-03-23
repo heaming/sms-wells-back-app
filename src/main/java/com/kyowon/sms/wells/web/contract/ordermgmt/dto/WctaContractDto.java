@@ -161,6 +161,13 @@ public class WctaContractDto {
         String baseDtlCntrSn
     ) {}
 
+    // 1+1 대상계약 조회 Search Request Dto
+    @ApiModel("WctaContractDto-SearchOnepluseoneReq")
+    public record SearchOnepluseoneReq(
+        String baseDtlCntrNo,
+        String baseDtlCntrSn
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -337,5 +344,27 @@ public class WctaContractDto {
         String dgr3LevlOgNm,
         String prtnrKnm,
         String prtnrNo
+    ) {}
+
+    // 1+1 대상계약 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchOnepluseoneRes")
+    public record SearchOnepluseoneRes(
+        String cntrNo,
+        String cntrSn,
+        String cstKnm,
+        String sellTpCd,
+        String basePdCd,
+        String pdNm,
+        String copnDvCd,
+        String end,
+        String retentionStrt,
+        String retentionEndt,
+        String cntrRcpFshDtm,
+        String rnadr,
+        String rdadr,
+        String newAdrZip,
+        String ltnAdr,
+        String ltnDtlAdr,
+        String oldAdrZip
     ) {}
 }

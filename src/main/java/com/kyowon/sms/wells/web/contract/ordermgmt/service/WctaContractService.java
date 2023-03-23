@@ -327,4 +327,7 @@ public class WctaContractService {
         return mapper.selectDistrictManagerPartnerPages(dto, pageInfo);
     }
 
+    public List<SearchOnepluseoneRes> getOneplusoneContracts(SearchOnepluseoneReq dto) {
+        return mapper.selectOneplusoneContracts(dto);
+    }
 }
