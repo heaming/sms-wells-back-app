@@ -43,4 +43,15 @@ public class WsnaMovementStoreDto {
         String wareNm /*창고명*/
         //        String strDelButn
     ) {}
+
+    @ApiModel("WsnaMovementStrControllerDto-MovementRes")
+    public record MovementRes(
+        String strTpCd, /*입고구분코드*/
+        String strRgstDt, /*입고일자*/
+        String itmStrNo, /*품목입고번호*/
+        String itmPdNm, /*품목상품명*/
+        String strSn, /*입고일련번호*/
+        String strWareNo, /*입고창고번호*/
+        String wareNm /*창고명*/
+    ) {}
 }

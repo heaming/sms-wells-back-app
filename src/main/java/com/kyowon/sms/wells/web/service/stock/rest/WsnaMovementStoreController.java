@@ -64,4 +64,35 @@ public class WsnaMovementStoreController {
     ) {
         return service.getMovementStoresExcelDownload(dto);
     }
+
+    @ApiOperation(value = "이동입고 관리 조회", notes = "조회조건에 해당하는 이동입고 관리 페이지를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "stStrDt", value = "입고시작일자", paramType = "query", example = "20211001", required = true),
+        @ApiImplicitParam(name = "edStrDt", value = "입고종료일자", paramType = "query", example = "20211031", required = true),
+        @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200371", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "strTpCd", value = "입고유형", paramType = "query", required = true),
+    })
+    @GetMapping("/movements")
+    public List<MovementRes> getMovementStrIzs(
+        SearchReq dto
+    ) {
+        return service.getMovementStrIzs(dto);
+    }
+
+    @ApiOperation(value = "이동입고관리 엑셀 다운로드", notes = "조회조건에 해당하는 이동입고 현황을 엑셀다운로드 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "stStrDt", value = "입고시작일자", paramType = "query", example = "20211001", required = true),
+        @ApiImplicitParam(name = "edStrDt", value = "입고종료일자", paramType = "query", example = "20211031", required = true),
+        @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200371", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "strTpCd", value = "입고유형", paramType = "query", required = true),
+    })
+    @GetMapping("/movements/excel-download")
+    public List<MovementRes> getMovementStrIzsExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getMovementStrIzsExcelDownload(dto);
+    }
 }

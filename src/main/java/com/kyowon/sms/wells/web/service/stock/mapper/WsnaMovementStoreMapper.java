@@ -24,4 +24,17 @@ public interface WsnaMovementStoreMapper {
     * @return 조회결과
     */
     List<SearchRes> selectMovementStores(SearchReq dto);
+
+    /**
+    * 이동입고현황 조회
+    *
+    * @param dto : {
+    *            stStrDt : 입고시작일자
+    *            edStrDt : 입고종료일자
+    *            strTpCd : 입고유형코드
+    *            }
+    *
+    * @return 조회결과
+    */
+    List<MovementRes> selectMoveMentStrIzs(SearchReq dto);
 }
