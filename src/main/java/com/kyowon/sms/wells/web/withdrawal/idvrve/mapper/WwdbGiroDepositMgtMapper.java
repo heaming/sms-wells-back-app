@@ -88,5 +88,5 @@ public interface WwdbGiroDepositMgtMapper {
 
     SearchDtlStateRes selectDtlState(WwdbGiroDepositSaveInfoDvo dto);
 
-    SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(String[] rveDt);
+    SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(List<String> rveDt);
 }

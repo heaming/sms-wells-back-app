@@ -317,21 +317,12 @@ public class WwdbGiroDepositMgtService {
 
     @Transactional
     public SearchLedgerItemizationRes getBillingDocumentMgtLedgerItemization(List<SearchLedgerItemizationReq> dtos) {
-        int processCount = 0;
 
-        // 중복 제거
-        List<SearchLedgerItemizationReq> duplicates = dtos.stream().distinct().collect(Collectors.toList());
-
-        String[] fntDt = new String[duplicates.size() - 1];
-
-        for (int i = 0; i < duplicates.size(); i++) {
-            if (duplicates.get(i).giroDpMtrDvCd().equals("22")) {
-                fntDt[i] = duplicates.get(i).fntDt();
-            }
-        }
+        List<String> fntDts = dtos.stream().distinct()
+            .filter(dto -> "22".equals(dto.giroDpMtrDvCd())).map(dto -> dto.fntDt()).collect(Collectors.toList());
 
         SearchLedgerItemizationRes itemizationRes = mapper
-            .selectBillingDocumentMgtLedgerItemization(fntDt);
+            .selectBillingDocumentMgtLedgerItemization(fntDts);
 
         return itemizationRes;
     }
