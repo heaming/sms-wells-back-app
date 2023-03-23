@@ -59,4 +59,35 @@ public class WsnaMovementStoreService {
     public List<SearchRes> getMovementStoresExcelDownload(SearchReq dto) {
         return mapper.selectMovementStores(dto);
     }
+
+    /**
+     * 이동입고관리 조회
+     *
+     * @param dto : {
+     *            stStrDt : 입고시작일자
+     *            edStrDt : 입고종료일자
+     *            strTpCd : 입고유형코드
+     *            }
+     *
+     * @return 조회결과
+     */
+    public List<MovementRes> getMovementStrIzs(SearchReq dto) {
+        return mapper.selectMoveMentStrIzs(dto);
+    }
+
+    /**
+     * 이동입고관리 엑셀다운로드
+     *
+     * @param dto : {
+     *            stStrDt : 입고시작일자
+     *            edStrDt : 입고종료일자
+     *            strTpCd : 입고유형코드
+     *            wareDvCd : 창고구분코드
+     *            }
+     *
+     * @return 조회결과
+     */
+    public List<MovementRes> getMovementStrIzsExcelDownload(SearchReq dto) {
+        return mapper.selectMoveMentStrIzs(dto);
+    }
 }
