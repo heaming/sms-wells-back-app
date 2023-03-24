@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveErrosReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbGiroDepositMgtService;
@@ -37,9 +39,6 @@ public class WwdbGiroDepositMgtController {
     @ApiOperation(value = "지로 입금관리", notes = " 검색조건을 받아 청구서 관리 목록을 조회한다.")
     @GetMapping("/paging")
     public PagingResult<SearchRes> getBillingDocumentMgtPages(SearchReq dto, PageInfo pageInfo) {
-        log.info("=============");
-        log.info(dto.toString());
-        log.info("=============");
         return service.getBillingDocumentMgtPages(dto, pageInfo);
     }
 
@@ -91,5 +90,15 @@ public class WwdbGiroDepositMgtController {
         return SaveResponse.builder()
             .processCount(service.saveBillingDocumentErrors(dto))
             .build();
+    }
+
+    @ApiOperation(value = "지로 입금관리 원장 내역 조회", notes = " 검색조건을 받아 지로 입금관리 원장 내역 목록을 조회한다.")
+    @PostMapping("/ledg-iz")
+    public SearchLedgerItemizationRes getBillingDocumentMgtLedgerItemization(
+        @RequestBody
+        @Valid
+        List<SearchLedgerItemizationReq> dto
+    ) {
+        return service.getBillingDocumentMgtLedgerItemization(dto);
     }
 }

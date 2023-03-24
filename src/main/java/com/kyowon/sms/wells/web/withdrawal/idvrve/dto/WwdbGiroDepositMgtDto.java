@@ -214,4 +214,18 @@ public class WwdbGiroDepositMgtDto {
         String cntrSn
     ) {}
 
+    @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
+    public record SearchLedgerItemizationReq(
+        String fntDt,
+        String giroDpMtrDvCd
+
+    ) {}
+
+    @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
+    public record SearchLedgerItemizationRes(
+        String fntDt,
+        int chkCnt,
+        int itgDpProcsYCnt
+    ) {}
+
 }

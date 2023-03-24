@@ -10,8 +10,10 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDepositSettingRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDtlStateRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveInfoDvo;
@@ -34,8 +36,16 @@ public interface WwdbGiroDepositMgtMapper {
     /* 지로 입금 등록 - 지로입금원장내역 */
     int inertGiroDeposit(WwdbGiroDepositSaveDvo dvo);
 
+    String selectGiroDepositDate();
+
     /* 지로 입금 등록 - 지로입금내역 */
     int inertGiroDepositItemization(WwdbGiroDepositSaveInfoDvo dvo);
+
+    /* 지로 입금 수정 - 지로입금내역 */
+    int updateGiroDeposit(WwdbGiroDepositSaveInfoDvo dvo);
+
+    /* 지로 입금 삭제 - 지로입금내역 */
+    int deleteGiroDepositItemization(WwdbGiroDepositDeleteInfoDvo dvo);
 
     /* 지로 입금 등록 - 통합내역 */
     int inertIntegrationItemization(WwdbGiroDepositSaveInfoDvo dvo);
@@ -77,4 +87,6 @@ public interface WwdbGiroDepositMgtMapper {
     int updateBillingDocumentErrors(WwdbGiroDepositErrorSaveDvo dvo) throws Exception;
 
     SearchDtlStateRes selectDtlState(WwdbGiroDepositSaveInfoDvo dto);
+
+    SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(List<String> rveDt);
 }
