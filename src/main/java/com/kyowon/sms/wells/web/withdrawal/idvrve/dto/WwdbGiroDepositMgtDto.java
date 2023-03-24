@@ -40,6 +40,12 @@ public class WwdbGiroDepositMgtDto {
         //        String dgCntrNo //--대표번호
     ) {}
 
+    @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchRes")
+    public record SearchSumRes(
+        String rveAmtSum,
+        String giroFeeSum
+    ) {}
+
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveReq(
         String giroDpMtrDvCd, // --구분코드
