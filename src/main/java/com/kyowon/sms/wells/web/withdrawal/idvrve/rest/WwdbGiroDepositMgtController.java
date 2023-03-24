@@ -17,6 +17,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchSumRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbGiroDepositMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -40,6 +41,12 @@ public class WwdbGiroDepositMgtController {
     @GetMapping("/paging")
     public PagingResult<SearchRes> getBillingDocumentMgtPages(SearchReq dto, PageInfo pageInfo) {
         return service.getBillingDocumentMgtPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "지로 입금관리 합계", notes = " 검색조건을 받아 청구서 관리 합계 조회한다.")
+    @GetMapping()
+    public SearchSumRes getGiroDepositSum(SearchReq dto) {
+        return service.getGiroDepositSum(dto);
     }
 
     @ApiOperation(value = "지로 입금관리", notes = " 검색조건을 받아 청구서 관리 목록을 조회한다.")

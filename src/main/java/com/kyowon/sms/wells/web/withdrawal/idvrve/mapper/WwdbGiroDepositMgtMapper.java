@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchSumRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
@@ -26,9 +27,9 @@ public interface WwdbGiroDepositMgtMapper {
     /* 지로 입금 조회 */
     PagingResult<SearchRes> selectGiroDepositMgt(SearchReq dto, PageInfo pageInfo);
 
-    SearchRes selectGiroDepositSum(SearchReq dto);
-
     List<SearchRes> selectGiroDepositMgt(SearchReq dto);
+
+    SearchSumRes selectGiroDepositSum(SearchReq dto);
 
     //    /* 지로 입금 등록 - 지로입금원장내역 */
     //    int inertGiroDeposit(WwwdbGiroDepositSaveDvo dvo);

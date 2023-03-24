@@ -16,6 +16,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchSumRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
@@ -48,6 +49,12 @@ public class WwdbGiroDepositMgtService {
     public PagingResult<SearchRes> getBillingDocumentMgtPages(SearchReq dto, PageInfo pageInfo) {
 
         return mapper.selectGiroDepositMgt(dto, pageInfo);
+    }
+
+    @Transactional
+    public SearchSumRes getGiroDepositSum(SearchReq dto) {
+
+        return mapper.selectGiroDepositSum(dto);
     }
 
     @Transactional
