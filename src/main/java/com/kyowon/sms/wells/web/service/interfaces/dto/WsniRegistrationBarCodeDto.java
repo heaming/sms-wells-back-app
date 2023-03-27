@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.common.dto;
+package com.kyowon.sms.wells.web.service.interfaces.dto;
 
 import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
@@ -6,12 +6,12 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 
-public class WsnzRegistrationBarCodeDto {
+public class WsniRegistrationBarCodeDto {
 
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel(value = "WsnzRegistrationBarCodeDto-SearchReq")
+    @ApiModel(value = "WsniRegistrationBarCodeDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String qrcd
@@ -20,7 +20,7 @@ public class WsnzRegistrationBarCodeDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel(value = "WsnzRegistrationBarCodeDto-SearchRes")
+    @ApiModel(value = "WsniRegistrationBarCodeDto-SearchRes")
     public record SearchRes(
         String lcncde,
         String lciuse,

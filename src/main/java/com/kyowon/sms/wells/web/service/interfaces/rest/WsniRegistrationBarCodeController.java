@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.common.rest;
+package com.kyowon.sms.wells.web.service.interfaces.rest;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,26 +12,28 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thymeleaf.util.StringUtils;
 
 import com.google.gson.JsonObject;
-import com.kyowon.sms.wells.web.service.common.dto.WsnzRegistrationBarCodeDto;
-import com.kyowon.sms.wells.web.service.common.service.WsnzRegistrationBarCodeService;
-import com.sds.sflex.system.config.constant.CommConst;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniRegistrationBarCodeDto;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsniRegistrationBarCodeService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags = "[WSNZ] QR코드별 상품정보 조회 팝업")
+@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/regist-barcodes")
-public class WsnzRegistrationBarCodeController {
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/regist-barcodes")
+public class WsniRegistrationBarCodeController {
 
-    private final WsnzRegistrationBarCodeService service;
+    private final WsniRegistrationBarCodeService service;
 
     private final MessageResourceService messageService;
 
+    @ApiOperation(value = "W-SV-I-0010 QR코드별 상품정보 조회 팝업")
     @GetMapping
     public void getRegistrationBarCodes(
         @RequestParam(required = true)
@@ -41,12 +43,12 @@ public class WsnzRegistrationBarCodeController {
         response.setContentType("application/json");
         response.setCharacterEncoding("utf-8");
         PrintWriter out = response.getWriter();
-        log.info("[WsnzRegistrationBarCodeController.getRegistrationBarCodes] QRCD ::: " + QRCD);
+        log.info("[WsniRegistrationBarCodeController.getRegistrationBarCodes] QRCD ::: " + QRCD);
 
         JsonObject json = new JsonObject();
 
         try {
-            WsnzRegistrationBarCodeDto.SearchRes res = service.getRegistrationBarCodes(QRCD);
+            WsniRegistrationBarCodeDto.SearchRes res = service.getRegistrationBarCodes(QRCD);
 
             if (res == null || StringUtils.isEmpty(res.custCd())) {
                 json.addProperty("CODE", "1");

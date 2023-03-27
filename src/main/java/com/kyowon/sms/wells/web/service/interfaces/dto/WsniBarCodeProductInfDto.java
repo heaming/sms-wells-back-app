@@ -1,14 +1,14 @@
-package com.kyowon.sms.wells.web.service.common.dto;
+package com.kyowon.sms.wells.web.service.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsnzBarCodeProductInfDto {
+public class WsniBarCodeProductInfDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel(value = "WsnzBarCodeProductInfDto-SearchReq")
+    @ApiModel(value = "WsniBarCodeProductInfDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String qrcd
@@ -17,7 +17,7 @@ public class WsnzBarCodeProductInfDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel(value = "WsnzBarCodeProductInfDto-SearchRes")
+    @ApiModel(value = "WsniBarCodeProductInfDto-SearchRes")
     public record SearchRes(
         int resultcode,
         int regi
