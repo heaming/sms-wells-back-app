@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRegistrationListMapper">
+    <select id="selectRegistrationPages" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto$SearchRes">
+        SELECT 
+               T2.CNTR_NO /* 계약번호 */
+             , MAX(T1.BILL_DLPNR_NM) AS MCON_BZS_NM /*거래처명*/
+             , MAX(BILL_RMK_CN) AS BILL_RMK_CN/*어음구분*/
+             , SUM(T2.BILL_DP_AMT) AS BILL_DP_AMT /*입금액*/
+             , T1.BILL_RCP_DT /* 접수일자 */
+             , MAX(T4.BZRNO) AS BZRNO /* 사업자등록번호 */
+             , T1.BILL_BND_NO /* 채권번호 */
+             , T1.BILL_BND_AMT /* 채권금액 */
+             , T1.BILL_EXPR_DT  /* 만기일자 */
+             , COUNT(T2.CNTR_SN) AS CNTR_COUNT /* 계약수 */     
+             , T1.ITG_DP_NO /* 통합입금번호 */
+             /* 입금전표번호 */
+             /* 대체전표번호 */
+          FROM TB_RVDW_BILL_DP_IZ T1/* 어음입금내역 */
+          LEFT JOIN TB_RVDW_BILL_DP_CNTR_REL_IZ T2/* 어음입금계약관계내역 */            
+            ON T2.ITG_DP_NO = T1.ITG_DP_NO /* 통합입금번호 */
+          LEFT JOIN TB_SSCT_CNTR_BAS T3 /*계약기본 */  
+            ON T3.CNTR_NO = T2.CNTR_NO  
+          LEFT JOIN TB_CUBS_CST_BAS T4 /* 고객기본 */
+            ON T4.CST_NO = T3.CNTR_CST_NO 
+           AND T4.COPN_DV_CD = '2'  
+         WHERE 1 = 1         
+         <if test='@MybatisUtils@isNotEmpty(rcpStartDt)'>
+           AND T1.BILL_RCP_DT BETWEEN #{rcpStartDt} AND #{rcpEndDt}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(billExprDt)'>
+             <choose>
+                <when test='@MybatisUtils@equals(billExprDt, "Y")'>                 
+               AND T1.BILL_EXPR_DT >= TO_CHAR(SYSDATE , 'YYYYMMDD')
+                </when>
+                <otherwise>
+               AND T1.BILL_EXPR_DT <![CDATA[<=]]> TO_CHAR(SYSDATE , 'YYYYMMDD')
+                </otherwise>
+              </choose>
+          </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T2.CNTR_NO = #{cntrNo}   
+         </if>
+         GROUP BY T1.ITG_DP_NO /* 통합입금번호 */
+                , T2.CNTR_NO /* 계약번호*/
+                , T1.BILL_RCP_DT /* 접수일자 */
+                , T1.BILL_BND_NO /* 채권번호 */
+                , T1.BILL_BND_AMT /* 채권금액 */
+                , T1.BILL_EXPR_DT  /* 만기일자 */
+         ORDER BY T1.ITG_DP_NO DESC
+    </select>
+    
+    <select id="selectRegistrationElectronics" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto$SearchDetailRes">
+        SELECT  
+               T3.DLPNR_NM /* 거래처명 */
+             , T2.BZRNO /* 사업자등록번호 */
+             , T4.CNTR_NO 
+             , T4.CNTR_NO || T4.CNTR_SN AS CNTR /* 계약상세번호 */     
+             , T4.CNTR_SN /* 일련번호 */
+             , T4.SELL_AMT /* 금액 */
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_CUBS_CST_BAS T2
+            ON T2.CST_NO = T1.CNTR_CST_NO 
+           AND T2.COPN_DV_CD = '2'   
+         INNER JOIN TB_GBCO_DLPNR_BAS T3
+            ON T3.BZRNO = T2.BZRNO
+         INNER JOIN TB_SSCT_CNTR_DTL T4
+            ON T4.CNTR_NO = T1.CNTR_NO 
+         WHERE 1 = 1
+         <if test='@MybatisUtils@isNotEmpty(bzrno)'>
+           AND T2.BZRNO = #{bzrno}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T4.CNTR_NO = #{cntrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T4.CNTR_SN = #{cntrSn}
+         </if>
+    </select>
+    
+    <insert id="insertRegistrationMainElectronics">
+        INSERT INTO TB_RVDW_BILL_DP_IZ (
+               ITG_DP_NO /* 통합입금번호 */
+             , FNIT_CD /* 금융기관코드 */
+             , BILL_BND_NO /* 어음채권번호 */
+             , BILL_BND_AMT /* 어음채권금액 */
+             , BILL_RCP_DT /* 어음접수일자 */
+             , BILL_EXPR_DT /* 어음만기일자 */
+             , BILL_LN_PSB_DT /* 어음대출가능일자 */
+             , BILL_BND_HNDOV_DT /* 어음채권양도일자 */
+             , BILL_LN_PSB_AMT /* 어음대출가능금액 */
+             , BILL_DLPNR_NM /* 어음거래처명 */
+             , SELL_BZS_BZRNO /* 판매업체사업자등록번호 */
+             , PBL_BZS_BZRNO /* 발행업체사업자등록번호 */  
+             , BILL_RMK_CN /* 어음비고내용 */                         
+             , RVE_AK_NO /* 수납요청번호 */
+             , DTA_DL_YN /* 삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+        )VALUES (
+               #{itgDpNo} /* 통합입금번호 o */
+             , #{fnitCd} /* 금융기관코드 x*/
+             , #{billBndNo} /* 어음채권번호 o */
+             , #{billBndAmt} /* 어음채권금액 x*/
+             , #{billRcpDt} /* 어음접수일자 o */
+             , #{billExprDt} /* 어음만기일자 o */
+             , #{billLnPsbDt} /* 어음대출가능일자 x*/
+             , #{billBndHndovDt} /* 어음채권양도일자 x*/
+             , #{billLnPsbAmt} /* 어음대출가능금액 x*/
+             , #{billDlpnrNm} /* 어음거래처명 o*/
+             , #{sellBzsBzrno} /* 판매업체사업자등록번호 o*/
+             , #{pblBzsBzrno} /* 발행업체사업자등록번호 o*/ 
+             , #{billRmkCn} /* 어음비고내용 o*/                          
+             , #{rveAkNo} /* 수납요청번호 x*/
+             , 'N' /* 삭제여부 */        
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+    
+    <insert id="updateRegistrationMainElectronics">
+        UPDATE TB_RVDW_BILL_DP_IZ
+           SET BILL_BND_NO = #{billBndNo} /* 어음채권번호 */
+             , BILL_RMK_CN = #{billRmkCn} /* 어음비고내용 */
+             , BILL_RCP_DT = #{billRcpDt} /* 어음접수일자 o */             
+             , BILL_EXPR_DT = #{billExprDt} /* 어음만기일자 */
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ITG_DP_NO = #{itgDpNo}
+    </insert>
+    
+    <delete id="deleteRegistrationSubElectronics">
+        DELETE 
+          FROM TB_RVDW_BILL_DP_CNTR_REL_IZ
+         WHERE 1 = 1
+           AND ITG_DP_NO = #{itgDpNo}
+    </delete>
+    
+    <insert id="insertRegistrationSubElectronics">
+        INSERT INTO TB_RVDW_BILL_DP_CNTR_REL_IZ (
+               ITG_DP_NO
+             , CNTR_NO
+             , CNTR_SN
+             , BILL_DP_AMT
+             <include refid="COMMON.insertSystemField"/>
+        )
+        VALUES (
+               #{itgDpNo} /* 통합입금번호 */
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{billDpAmt} /* 금액 */
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+    
+    <update id="updateRegistrationSubElectronics">
+        UPDATE TB_RVDW_BILL_DP_CNTR_REL_IZ
+           SET BILL_DP_AMT = #{billDpAmt}
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ITG_DP_NO = #{itgDpNo} /* 통합입금번호 */
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn} 
+    </update>
+    
+    <select id="selectRegistrationElectronicDetails" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto$SearchElectronicRes">
+        SELECT
+               T1.ITG_DP_NO /*통합입금번호*/
+             , T3.RVE_CD/*수납코드*/
+             , T2.BILL_BND_NO /*채권번호*/
+             , T2.BILL_RMK_CN /*어음구분*/
+             , T2.BILL_RCP_DT /*접수일자*/
+             , T2.BILL_EXPR_DT/*만기일자*/
+             , T1.CNTR_NO||T1.CNTR_SN AS CNTR /*계약번호*/
+             , T1.CNTR_NO /*계약번호*/
+             , T1.CNTR_SN  /*계약일련번호*/
+             , T1.BILL_DP_AMT /*입금금액*/
+          FROM TB_RVDW_BILL_DP_CNTR_REL_IZ T1
+          LEFT JOIN TB_RVDW_BILL_DP_IZ T2
+            ON T2.ITG_DP_NO  = T1.ITG_DP_NO 
+          LEFT JOIN TB_RVDW_RVE_DTL T3
+            ON T3.CNTR_NO = T1.CNTR_NO 
+           AND T3.CNTR_SN = T1.CNTR_SN
+         WHERE 1 = 1
+         <if test='@MybatisUtils@isNotEmpty(itgDpNo)'>
+           AND T1.ITG_DP_NO = #{itgDpNo} 
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T1.CNTR_NO = #{cntrNo} 
+         </if>
+         ORDER BY T1.CNTR_NO , T1.CNTR_SN
+    </select>
+    
+    
+    <select id="selectRegistrationPk" resultType="String">
+        SELECT #{session.companyCode}||TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') || COUNT(ITG_DP_NO)+1 AS ITG_DP_NO FROM TB_RVDW_BILL_DP_IZ       
+    </select>
+    
+    
+    
+    
+</mapper>
