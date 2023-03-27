@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ import com.kyowon.sms.wells.web.product.manage.mapper.WpdcAsPartMgtMapper;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
 import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
 import com.sds.sflex.common.common.service.CodeService;
+import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
+import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.DateUtil;
 //import org.eclipse.jetty.util.StringUtil;
 import com.sds.sflex.common.utils.StringUtil;
@@ -46,6 +49,7 @@ public class WpdcAsPartsMgtService {
     private final ZpdcProductMapper productMapper;
     private final ZpdcProductService productService;
     private final ZpdcHistoryMgtService hisService;
+    private final AttachFileService fileService;
 
     private final WpdcMaterialMgtMapper wMapper;
 
@@ -100,6 +104,15 @@ public class WpdcAsPartsMgtService {
         // #3. 각사 속성 INSERT
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
+
+        if (dto.tbPdbsPdBas().isAttach()) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles())) {
+                List<AttachFile> empty = new ArrayList<AttachFile>();
+                fileService.saveAttachFiles(PdProductConst.ATTACH_GROUP_ID_PRD, dvo.getPdCd(), empty);
+            } else {
+                fileService.saveAttachFiles(PdProductConst.ATTACH_GROUP_ID_PRD, dvo.getPdCd(), dvo.getAttachFiles());
+            }
+        }
 
         // #4. 이력 INSERT
         // TODO - 확인필요 POINT
