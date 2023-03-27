@@ -22,6 +22,7 @@ public class WpdcAsPartMgtDto {
         String pdClsfCd,
         String prdtCateHigh,
         String prdtCateMid,
+        String prdtCateLow,
         String sapMatCd,
         String asMatCd,
         String modelNo
