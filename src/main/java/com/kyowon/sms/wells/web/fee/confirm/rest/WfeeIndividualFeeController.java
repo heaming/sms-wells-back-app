@@ -235,7 +235,7 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
     })
     @GetMapping("/manager-planers")
@@ -253,12 +253,12 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
     })
     @GetMapping("/home-masters")
     public List<SearchFeeHmstRes> getFeeHmsts(
-        SearchFeeReq dto
+        SearchFeeHmstReq dto
     ) {
         return this.service.getFeeHmsts(dto);
     }

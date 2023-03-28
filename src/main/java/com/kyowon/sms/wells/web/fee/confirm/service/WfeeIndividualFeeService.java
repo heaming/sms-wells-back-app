@@ -5,7 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
+import com.kyowon.sms.wells.web.fee.confirm.dvo.WfeeIndividualFeeDvo;
 import com.kyowon.sms.wells.web.fee.confirm.mapper.WfeeIndividualFeeMapper;
+import com.kyowon.sms.wells.web.fee.confirm.converter.WfeeIndividualFeeConverter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WfeeIndividualFeeService {
     private final WfeeIndividualFeeMapper mapper;
+    private final WfeeIndividualFeeConverter converter;
 
     /**
      * 수수료 개인별 실적 상세 조회
@@ -234,7 +237,12 @@ public class WfeeIndividualFeeService {
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
-        return this.mapper.selectFees(dto);
+        WfeeIndividualFeeDvo dvo = this.converter.mapSearchFeeReqToWfeeIndividualFeeDvo(dto);
+        String rsbDvCd = "W0206"; /*직책구분코드 ※테스트를 위한 임시값 업무담당*/
+        String hirFomCd = "1"; /*고용형태코드 ※테스트를 위한 임시값 사업자*/
+        dvo.setRsbDvCd(rsbDvCd);
+        dvo.setHirFomCd(hirFomCd);
+        return this.mapper.selectFees(dvo);
     }
 
     /**
@@ -251,9 +259,14 @@ public class WfeeIndividualFeeService {
      * @return 조회결과
      */
     public List<SearchFeeHmstRes> getFeeHmsts(
-        SearchFeeReq dto
+        SearchFeeHmstReq dto
     ) {
-        return this.mapper.selectFeeHmsts(dto);
+        WfeeIndividualFeeDvo dvo = this.converter.mapSearchFeeHmstReqToWfeeIndividualFeeDvo(dto);
+        String rsbDvCd = "W0206"; /*직책구분코드 ※테스트를 위한 임시값 업무담당*/
+        String hirFomCd = "1"; /*고용형태코드 ※테스트를 위한 임시값 사업자*/
+        dvo.setRsbDvCd(rsbDvCd);
+        dvo.setHirFomCd(hirFomCd);
+        return this.mapper.selectFeeHmsts(dvo);
     }
 
 }
