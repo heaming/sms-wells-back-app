@@ -1,12 +1,12 @@
-package com.kyowon.sms.wells.web.service.visit.service;
+package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.Request;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.SaveReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.SaveRes;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbMultipleRequestRegInterfaceMapper;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleRequestRegInterfaceDto.Request;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleRequestRegInterfaceDto.SaveReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleRequestRegInterfaceDto.SaveRes;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbMultipleRequestRegInterfaceMapper;
 
 import lombok.RequiredArgsConstructor;
 

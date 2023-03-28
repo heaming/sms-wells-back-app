@@ -1,14 +1,12 @@
-package com.kyowon.sms.wells.web.service.allocate.rest;
+package com.kyowon.sms.wells.web.service.interfaces.rest;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
-import com.kyowon.sms.wells.web.service.allocate.service.WsncWellsAsInterfaceService;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsncWellsAsInterfaceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
-import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,9 +1,9 @@
-package com.kyowon.sms.wells.web.service.visit.converter;
+package com.kyowon.sms.wells.web.service.interfaces.converter;
 
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbCallingLogDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbCapsulepkgChSppinfDvo;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbCapsulepkgChSppinfDvo;
 
 /**
  * <pre>

@@ -1,11 +1,11 @@
-package com.kyowon.sms.wells.web.service.visit.service;
+package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstWorkInterfaceDto.CreateReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbIstWorkInterfaceDto.CreateRes;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbIstWorkInterfaceMapper;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbIstWorkInterfaceDto.CreateReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbIstWorkInterfaceDto.CreateRes;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbIstWorkInterfaceMapper;
 
 import lombok.RequiredArgsConstructor;
 

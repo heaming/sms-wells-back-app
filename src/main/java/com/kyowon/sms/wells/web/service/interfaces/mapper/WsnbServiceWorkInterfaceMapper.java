@@ -1,8 +1,8 @@
-package com.kyowon.sms.wells.web.service.visit.mapper;
+package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceWorkInterfaceDvo;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbServiceWorkInterfaceDvo;
 
 /**
  * TODO: API 스펙 확인 후 수정 필요

@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.visit.rest;
+package com.kyowon.sms.wells.web.service.interfaces.rest;
 
 import javax.validation.Valid;
 
@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.SaveReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleRequestRegInterfaceDto.SaveRes;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbMultipleRequestRegInterfaceService;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleRequestRegInterfaceDto.SaveReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleRequestRegInterfaceDto.SaveRes;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsnbMultipleRequestRegInterfaceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;

@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.allocate.converter;
+package com.kyowon.sms.wells.web.service.interfaces.converter;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;

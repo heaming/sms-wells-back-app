@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.visit.rest;
+package com.kyowon.sms.wells.web.service.interfaces.rest;
 
 import java.util.List;
 
@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbCapsulepkgChSppinfService;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsnbCapsulepkgChSppinfService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
