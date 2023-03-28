@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -34,6 +32,7 @@ public class WsnaIndividualWareOstrDto {
 
     @ApiModel("WsnaIndividualWareOstrDto-SearchRes")
     public record SearchRes(
+        String wareNo, /*창고*/
         String wareNm, /*창고명*/
         String itmPdCd, /*품목상품코드*/
         String pdAbbrNm, /*상품약어명*/
