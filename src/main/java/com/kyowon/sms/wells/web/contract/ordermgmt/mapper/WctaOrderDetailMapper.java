@@ -16,4 +16,14 @@ public interface WctaOrderDetailMapper {
     List<SearchCustomerBaseRes> selectOrderDetailCustomerBase(SearchReq dto);
 
     List<SearchContractListsRes> selectOrderDetailContractLists(SearchReq dto);
+
+    List<SearchDepositItemizationsRes> selectDepositItemizations(SearchTradeSpecificationSheetReq dto);
+
+    List<SearchTradeSpecificationSheetRes> selectTradeSpcshs(SearchTradeSpecificationSheetReq dto);
+
+    List<SearchCardSalesSlipsRes> selectCardSalesSlips(SearchTradeSpecificationSheetReq dto);
+
+    List<SearchContractArticlesRes> selectContractArticles(SearchTradeSpecificationSheetReq dto);
+
+    List<SearchContractsRes> selectContracts(SearchTradeSpecificationSheetReq dto);
 }

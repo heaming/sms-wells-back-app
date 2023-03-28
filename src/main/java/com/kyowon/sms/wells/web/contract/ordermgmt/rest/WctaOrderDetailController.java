@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto.SearchContractListsRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto.SearchCustomerBaseRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaOrderDetailService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
@@ -67,5 +65,73 @@ public class WctaOrderDetailController {
         SearchReq dto
     ) {
         return service.getCustomerBase(dto);
+    }
+
+    @ApiOperation(value = "wells 주문 상세(거래명세서목록조회-입금내역서)", notes = "주문 상세(거래명세서목록-입금내역서)정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/order-details/specification/deposit-itemizations")
+    public List<SearchDepositItemizationsRes> getDepositItemizations(
+        @Valid
+        SearchTradeSpecificationSheetReq dto
+    ) {
+        return service.getDepositItemizations(dto);
+    }
+
+    @ApiOperation(value = "wells 주문 상세(거래명세서목록조회-거래명세서)", notes = "주문 상세(거래명세서목록-거래명세서)정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/order-details/specification/trade-specification")
+    public List<SearchTradeSpecificationSheetRes> getTradeSpcshs(
+        @Valid
+        SearchTradeSpecificationSheetReq dto
+    ) {
+        return service.getTradeSpcshs(dto);
+    }
+
+    @ApiOperation(value = "wells 주문 상세(거래명세서목록조회-카드매출전표)", notes = "주문 상세(거래명세서목록-카드매출전표)정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/order-details/specification/card-sales-slips")
+    public List<SearchCardSalesSlipsRes> getCardSalesSlips(
+        @Valid
+        SearchTradeSpecificationSheetReq dto
+    ) {
+        return service.getCardSalesSlips(dto);
+    }
+
+    @ApiOperation(value = "wells 주문 상세(거래명세서목록조회-계약사항)", notes = "주문 상세(거래명세서목록-계약사항)정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/order-details/specification/contract-articles")
+    public List<SearchContractArticlesRes> getContractArticles(
+        @Valid
+        SearchTradeSpecificationSheetReq dto
+    ) {
+        return service.getContractArticles(dto);
+    }
+
+    @ApiOperation(value = "wells 주문 상세(거래명세서목록조회-계약목록)", notes = "주문 상세(거래명세서목록-계약목록)정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+    })
+    @GetMapping("/order-details/specification/contracts")
+    public List<SearchContractsRes> getContracts(
+        @Valid
+        SearchTradeSpecificationSheetReq dto
+    ) {
+        return service.getContracts(dto);
     }
 }

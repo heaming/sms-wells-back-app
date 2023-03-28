@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 
-import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.*;
 
 import java.util.List;
 
@@ -18,6 +17,15 @@ public interface WctaOrderDetailMngtMapper {
     );
 
     List<SearchRes> selectOrderDetailRentalPages(
+        SearchReq dto
+    );
+
+    PagingResult<SearchOrderDetailMshPagesRes> selectOrderDetailMshPages(
+        SearchReq dto,
+        PageInfo pageInfo
+    );
+
+    List<SearchOrderDetailMshPagesRes> selectOrderDetailMshPages(
         SearchReq dto
     );
 }

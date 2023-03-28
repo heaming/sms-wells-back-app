@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
-import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.*;
 
 import java.util.List;
 
@@ -26,5 +25,13 @@ public class WctaOrderDetailMngtService {
 
     public List<SearchRes> getOrderDtlRentalExcels(SearchReq dto) {
         return mapper.selectOrderDetailRentalPages(dto);
+    }
+
+    public PagingResult<SearchOrderDetailMshPagesRes> getOrderDetailMshPages(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectOrderDetailMshPages(dto, pageInfo);
+    }
+
+    public List<SearchOrderDetailMshPagesRes> getOrderDetailMshExcels(SearchReq dto) {
+        return mapper.selectOrderDetailMshPages(dto);
     }
 }

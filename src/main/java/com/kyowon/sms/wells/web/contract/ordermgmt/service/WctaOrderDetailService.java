@@ -33,4 +33,24 @@ public class WctaOrderDetailService {
     public List<SearchContractListsRes> getContractLists(SearchReq dto) {
         return mapper.selectOrderDetailContractLists(dto);
     }
+
+    public List<SearchDepositItemizationsRes> getDepositItemizations(SearchTradeSpecificationSheetReq dto) {
+        return mapper.selectDepositItemizations(dto);
+    }
+
+    public List<SearchTradeSpecificationSheetRes> getTradeSpcshs(SearchTradeSpecificationSheetReq dto) {
+        return mapper.selectTradeSpcshs(dto);
+    }
+
+    public List<SearchCardSalesSlipsRes> getCardSalesSlips(SearchTradeSpecificationSheetReq dto) {
+        return mapper.selectCardSalesSlips(dto);
+    }
+
+    public List<SearchContractArticlesRes> getContractArticles(SearchTradeSpecificationSheetReq dto) {
+        return mapper.selectContractArticles(dto);
+    }
+
+    public List<SearchContractsRes> getContracts(SearchTradeSpecificationSheetReq dto) {
+        return mapper.selectContracts(dto);
+    }
 }

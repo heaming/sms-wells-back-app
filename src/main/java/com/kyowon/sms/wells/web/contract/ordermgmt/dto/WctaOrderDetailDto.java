@@ -15,6 +15,14 @@ public class WctaOrderDetailDto {
         String cntrSn
     ) {}
 
+    //wells 주문 상세(거래명세서목록조회) - 거래명세서목록조회 Search Request Dto
+    @ApiModel(value = "WctaOrderDetailDto-SearchTradeSpecificationSheetReq")
+    public record SearchTradeSpecificationSheetReq(
+        String cntrNo,
+        String cntrSn,
+        String cntrCstNo
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -84,5 +92,121 @@ public class WctaOrderDetailDto {
         String cntrNoFull,
         String basePdCd,
         String pdNm
+    ) {}
+
+    //wells 주문 상세(거래명세서목록조회) - 입금내역서 Search Result Dto
+    @ApiModel("WctaOrderDetailDto-SearchDepositItemizationsRes")
+    public record SearchDepositItemizationsRes(
+        String sellTpCd,
+        String cntrNo,
+        String cntrSn,
+        String cntrNoFull,
+        String rveNoFull,
+        String rveDt,
+        String perfDt,
+        String pymDt,
+        String rveDvNm,
+        String rveAmt,
+        String dpTpNm,
+        String cdcoNm,
+        String crcdno,
+        String crdcdAprno,
+        String crdcdIstmMcn,
+        String prmYn,
+        String ozgub1,
+        String lcamt1vat,
+        String lcamt1sply,
+        String ozlcinst,
+        String dpCprcnfYn,
+        String fnlMdfcPrgId,
+        String cwigub,
+        String cwijub,
+        String dtlview,
+        String pdNm
+    ) {}
+
+    //wells 주문 상세(거래명세서목록조회) - 거래명세서 Search Result Dto
+    @ApiModel("WctaOrderDetailDto-SearchTradeSpecificationSheetRes")
+    public record SearchTradeSpecificationSheetRes(
+        String cntrNo,
+        String cntrSn,
+        String cntrNoFull,
+        String sellTpNm,
+        String pdNm,
+        String lcrcnt,
+        String baseYm,
+        String lcsleymd,
+        String lcam16,
+        String w1Iamt,
+        String lcam36,
+        String lcdamt
+    ) {}
+
+    //wells 주문 상세(거래명세서목록조회) - 카드매출전표 Search Result Dto
+    @ApiModel("WctaOrderDetailDto-SearchCardSalesSlipsRes")
+    public record SearchCardSalesSlipsRes(
+        String cntrNo,
+        String cntrSn,
+        String cntrNoFull,
+        String basePdCd,
+        String sellTpCd,
+        String rveOjDrmNo,
+        String cardgbn,
+        String edcgbn,
+        String crdcdIstmMcn,
+        String pdNm,
+        String dpstdt,
+        String dpsthm,
+        String dpcndt,
+        String dpcnhm,
+        String cardvndr,
+        String dpcdnoFull,
+        String crdcdAprno,
+        String dpAmt,
+        String lcetccnt,
+        String affno,
+        String cntrCstNo
+    ) {}
+
+    //wells 주문 상세(거래명세서목록조회) - 계약사항 Search Result Dto
+    @ApiModel("WctaOrderDetailDto-SearchContractArticlesRes")
+    public record SearchContractArticlesRes(
+        String cntrNo,
+        String cntrSn,
+        String cntrNoFull,
+        String sellTpCd,
+        String pdNm,
+        String pdMclsfNm,
+        String lcsetymd,
+        String lcamt1,
+        String lcduty,
+        String lcrcnt,
+        String rcgvpAdr
+    ) {}
+
+    //wells 주문 상세(거래명세서목록조회) - 계약목록 Search Result Dto
+    @ApiModel("WctaOrderDetailDto-SearchContractsRes")
+    public record SearchContractsRes(
+        String cntrNo,
+        String cntrSn,
+        String cntrNoFull,
+        String cntrCstNo,
+        String pdNm,
+        String cntrDt,
+        String canDt,
+        String sellTpCd,
+        String sellTpNm,
+        String spayAmt,
+        String rentalAmt,
+        String rentalAmt2,
+        String mshAmt,
+        String rglrSppAmt,
+        String cstKnm,
+        String mchnKndCd,
+        String dscApyDtlCd,
+        String pdMclsfNm,
+        String stplPtrm,
+        String rcgvpAdr,
+        String rentalNmnN
     ) {}
 }
