@@ -49,16 +49,35 @@ public class WfeeIndividualFeeDto {
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeReq")
     public record SearchFeeReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /*실적년월*/
         @NotBlank
-        String ogTp,
+        String ogTp, /*조직유형*/
         @NotBlank
-        String rsbTp,
-        String ogLevl1,
-        String ogLevl2,
-        String ogLevl3,
-        String no,
-        String feeDsbYn
+        String rsbTp, /*직책유형*/
+        String ogLevl1, /*조직레벨1*/
+        String ogLevl2, /*조직레벨2*/
+        String ogLevl3, /*조직레벨3*/
+        String prtnrNo, /*파트너번호*/
+        String feeDsbYn, /*수수료지급여부*/
+        String rsbDvCd, /*직책구분코드*/
+        String hirFomCd /*고용형태코드*/
+    ) {}
+
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeHmstReq")
+    public record SearchFeeHmstReq(
+        @NotBlank
+        String perfYm, /*실적년월*/
+        @NotBlank
+        String ogTp, /*조직유형*/
+        @NotBlank
+        String rsbTp, /*직책유형*/
+        String ogLevl1, /*조직레벨1*/
+        String ogLevl2, /*조직레벨2*/
+        String ogLevl3, /*조직레벨3*/
+        String prtnrNo, /*파트너번호*/
+        String feeDsbYn, /*수수료지급여부*/
+        String rsbDvCd, /*직책구분코드*/
+        String hirFomCd /*고용형태코드*/
     ) {}
 
     // *********************************************************
@@ -194,92 +213,94 @@ public class WfeeIndividualFeeDto {
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindPlarRes")
     public record FindPlarRes(
-        String col1, /*실적년월*/
-        String col2, /*번호*/
-        int col3, /*수수료계*/
-        String col4, /*소속*/
-        String col5, /*직책*/
-        int col6, /*공제계*/
-        String col7, /*성명*/
-        String col8, /*지급은행*/
-        String col9, /*지급계좌*/
-        String col10 /*실지급*/
+        String perfYm, /*실적년월*/
+        String blg, /*소속*/
+        String prtnrNo, /*번호*/
+        String rsb, /*직책*/
+        String emplNm, /*성명*/
+        String frrSum, /*수수료계*/
+        String ddtnSum, /*공제계*/
+        String aclDsb, /*실지급*/
+        String dsbBnk, /*지급은행*/
+        String dsbAc/*지급계좌*/
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarEtcRes")
     public record SearchPlarEtcRes(
-        String col1, /*서비스처리율*/
-        int col2, /*가전인정건수*/
-        int col3, /*서비스건수*/
-        String col4 /*서비스처리율*/
+        String div,
+        String elhmAckmtCt,
+        String bfsvcAckmtCt,
+        String chng,
+        String fhsCt,
+        String metgPrscD
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarFeeRes")
     public record SearchPlarFeeRes(
-        String col1,
-        int col2,
-        String col3,
-        int col4,
-        String col5,
-        int col6
+        String item1,
+        String amt1,
+        String item2,
+        String amt2,
+        String item3,
+        String amt3
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindPlarDeductionRes")
     public record FindPlarDeductionRes(
-        int col1,
-        int col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6,
-        int col7,
-        int col8
+        String rds,
+        String erntx,
+        String rsdntx,
+        String pnpyam,
+        String hirInsr,
+        String inddInsr,
+        String buddtn,
+        String ddtnSum
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarPnpyamRes")
     public record SearchPlarPnpyamRes(
-        String col1,
-        int col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6
+        String item,
+        String lstmm,
+        String thmOc,
+        String tmh,
+        String thmDdtn,
+        String thmBlam
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeRes")
     public record SearchFeeRes(
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8,
-        String col9,
-        int col10,
-        int col11,
-        int col12,
-        int col13,
-        int col14,
-        int col15
+        String mngtDiv,
+        String renlGrp,
+        String branch,
+        String emplNm,
+        String prtnrNo,
+        String rsb,
+        String qlf,
+        String bnk,
+        String acNo,
+        int intbsSum,
+        int ddtnSum,
+        int aclDsbAmt,
+        int awbIntbsSum,
+        int awbDdtnSum,
+        int awbAclDsbAmt
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeHmstRes")
     public record SearchFeeHmstRes(
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8,
-        int col9,
-        int col10,
-        int col11,
-        int col12,
-        int col13,
-        int col14
+        String renlGrp,
+        String branch,
+        String emplNm,
+        String prtnrNo,
+        String rsb,
+        String qlf,
+        String bnk,
+        String acNo,
+        int intbsSum,
+        int ddtnSum,
+        int aclDsbAmt,
+        int awbIntbsSum,
+        int awbDdtnSum,
+        int awbAclDsbAmt
     ) {}
 }

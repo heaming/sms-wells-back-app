@@ -150,115 +150,328 @@
 
     <select id='selectPlar'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$FindPlarRes">
-        SELECT '2022-10' AS COL1
-        , 'Q000000' AS COL2
-        , 1234567 AS COL3
-        , '플래너' AS COL4
-        , '김교원' AS COL5
-        , 1234500 AS COL6
-        , 123450 AS COL7
-        , 1234500 AS COL8
-        , '국민' AS COL9
-        , '123445667***' AS COL10
-        FROM DUAL
+        SELECT OG.BASE_YM AS PERF_YM
+             , OG.OG_NM AS BLG
+             , OG.PRTNR_NO
+             , CASE WHEN OG.PSTN_DV_CD >= 10 AND OG.QLF_DV_CD = '1' THEN 'SP'
+                    WHEN OG.PSTN_DV_CD >= 10 AND OG.QLF_DV_CD = '3' THEN 'WM'
+                    WHEN OG.PSTN_DV_CD IN (5,6,7) THEN '지점장'
+                    ELSE 'WP'
+               END  RSB
+             , OG.PRTNR_KNM || '(' || OG.PRTNR_NO || ')'  AS EMPL_NM
+             , NVL(FEE.INTBS_SUM , 0) AS FRR_SUM
+             , NVL(FEE.DDTN_SUM, 0) AS DDTN_SUM
+             , NVL(FEE.ACL_DSB_AMT, 0) AS ACL_DSB
+             , OG.FNIT_CD AS DSB_BNK
+             , OG.ACNO_ENCR AS DSB_AC
+        FROM ( SELECT  A.BASE_YM
+                     , A.PRTNR_KNM
+                     , A.PRTNR_NO
+                     , A.QLF_DV_CD
+                     , D.FNIT_CD
+                     , D.ACNO_ENCR
+                     , A.OG_TP_CD
+                     , A.OG_NM
+                     , A.PSTN_DV_CD
+                     , A.PRTNR_GD_CD
+                  FROM TB_OGBS_MM_PRTNR_IZ A
+            INNER JOIN TB_OGBS_MM_OG_IZ B
+                    ON A.BASE_YM = B.BASE_YM
+                   AND A.OG_ID = B.OG_ID
+                   AND A.OG_TP_CD = B.OG_TP_CD
+        LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                    ON A.PRTNR_NO = D.PRTNR_NO
+                   AND A.OG_TP_CD = D.OG_TP_CD
+                 WHERE A.BASE_YM = #{perfYm}
+                   AND A.OG_TP_CD = 'W01' /*W01~03 P,M,홈마스터*/
+                   AND A.PRTNR_NO = #{no}
+             )OG
+        LEFT OUTER JOIN (SELECT E.PRTNR_NO
+                              , E.OG_TP_CD
+                              , SUM(E.INTBS_AMT) AS INTBS_SUM
+                              , SUM(E.DDCTAM) AS DDTN_SUM
+                              , SUM(E.DSB_OJ_AMT) AS ACL_DSB_AMT
+                           FROM TB_FEAM_FEE_DSB_IZ E
+                          WHERE E.DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
+                            AND ( E.INTBS_AMT > 0 OR E.DDCTAM > 0  OR E.DSB_OJ_AMT > 0 )
+                            AND E.PRTNR_NO = #{no}
+                       GROUP BY E.PRTNR_NO, E.OG_TP_CD
+                         )FEE
+         ON OG.PRTNR_NO = FEE.PRTNR_NO
+        AND OG.OG_TP_CD = FEE.OG_TP_CD
     </select>
 
     <select id='selectPlarEtcs'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchPlarEtcRes">
-        SELECT '개인' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , '99.99%' AS COL4
-        FROM DUAL
+        SELECT '개인' AS DIV
+              , NVL(PERS.AKCDA0, 0)  AS ELHM_ACKMT_CT  /*가전*/
+              , NVL(PERS.AKCDA1, 0)  AS BFSVC_ACKMT_CT  /*가전외*/
+              , NVL(PERS.AKCDA2, 0)  AS CHNG  /*가전기변*/
+              , NVL(PERS.AKRTLQ, 0)  AS FHS_CT  /*상조*/
+              , NVL( (SELECT DISTINCT PM.PERF_VAL
+                        FROM TB_FEAM_PRTNR_PERF_MM_CL PM     /*순주문집계 확정 테이블*/
+                       WHERE PM.PRTNR_NO = OG.PRTNR_NO
+                         AND PM.OG_TP_CD = OG.OG_TP_CD
+                         AND PM.BASE_YM = OG.BASE_YM
+                      )
+                    ,0) AS METG_PRSC_D     /*출석일수*/
+           FROM ( SELECT  A.BASE_YM
+                        , A.PRTNR_KNM
+                        , A.PRTNR_NO
+                        , A.QLF_DV_CD
+                        , D.FNIT_CD
+                        , D.ACNO_ENCR
+                        , A.OG_TP_CD
+                        , A.OG_NM
+                        , A.PSTN_DV_CD
+                        , A.PRTNR_GD_CD
+                     FROM TB_OGBS_MM_PRTNR_IZ A
+               INNER JOIN TB_OGBS_MM_OG_IZ B
+                       ON A.BASE_YM = B.BASE_YM
+                      AND A.OG_ID = B.OG_ID
+                      AND A.OG_TP_CD = B.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                       ON A.PRTNR_NO = D.PRTNR_NO
+                      AND A.OG_TP_CD = D.OG_TP_CD
+                    WHERE A.BASE_YM = #{perfYm}
+                      AND A.OG_TP_CD = 'W01' /*W01~03 P,M,홈마스터*/
+                      AND A.PRTNR_NO = #{no}
+                )OG
+        LEFT OUTER JOIN ( SELECT M.PRTNR_NO
+                               , SUM(AKRTLQ) AS AKRTLQ
+                               , SUM(AKCDA0) AS AKCDA0
+                               , SUM(AKCDA1) AS AKCDA1
+                               , SUM(AKCDA2) AS AKCDA2
+                          FROM (SELECT AK17.PRTNR_NO
+                                     , CASE WHEN AK17.PERF_ATC_CD = 'W01P00010' THEN PERF_VAL END AS AKRTLQ
+                                     , CASE WHEN AK17.PERF_ATC_CD = 'W01P00030' THEN PERF_VAL END AS AKCDA0
+                                     , CASE WHEN AK17.PERF_ATC_CD = 'W01P00031' THEN PERF_VAL END AS AKCDA1
+                                     , CASE WHEN AK17.PERF_ATC_CD = 'W01P00032' THEN PERF_VAL END AS AKCDA2
+                                FROM   TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
+                            INNER JOIN TB_OGBS_MM_PRTNR_IZ OG   /*조직정보*/
+                                    ON AK17.PRTNR_NO = OG.PRTNR_NO
+                                   AND AK17.OG_TP_CD = OG.OG_TP_CD
+                                   AND AK17.BASE_YM = OG.BASE_YM
+                                   AND OG.OG_TP_CD = 'W01'  /*웰스 P조직*/
+                             WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                   AND AK17.BASE_YM = #{perfYm}
+                                   AND AK17.PERF_DV_CD = 0
+                                   AND AK17.PRTNR_NO = #{no}
+                               )M GROUP BY M.PRTNR_NO
+                        ) PERS
+                       ON PERS.PRTNR_NO = OG.PRTNR_NO
         UNION ALL
-        SELECT '조직' AS COL1
-        , 11 AS COL2
-        , 11 AS COL3
-        , '88.88%' AS COL4
-        FROM DUAL
+        SELECT '조직' AS DIV
+              , NVL(ORG.AKCDA0, 0)   AS ELHM_ACKMT_CT   /*가전*/
+              , NVL(ORG.AKCDA1, 0)   AS BFSVC_ACKNT_CT  /*가전외*/
+              , NVL(ORG.AKCDA2, 0)   AS CHNG     /*가전기변*/
+              , NVL(ORG.AKRTLQ, 0)   AS FHS_CT   /*상조*/
+              , 0 AS METG_PRSC_D                 /*출석일수*/
+         FROM ( SELECT  A.BASE_YM
+                      , A.PRTNR_KNM
+                      , A.PRTNR_NO
+                      , A.QLF_DV_CD
+                      , D.FNIT_CD
+                      , D.ACNO_ENCR
+                      , A.OG_TP_CD
+                      , A.OG_NM
+                      , A.PSTN_DV_CD
+                      , A.PRTNR_GD_CD
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+             INNER JOIN TB_OGBS_MM_OG_IZ B
+                     ON A.BASE_YM = B.BASE_YM
+                    AND A.OG_ID = B.OG_ID
+                    AND A.OG_TP_CD = B.OG_TP_CD
+        LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                     ON A.PRTNR_NO = D.PRTNR_NO
+                    AND A.OG_TP_CD = D.OG_TP_CD
+                  WHERE A.BASE_YM = #{perfYm}
+                    AND A.OG_TP_CD = 'W01' /*W01~03 P,M,홈마스터*/
+                    AND A.PRTNR_NO = #{no}
+               )OG
+        LEFT OUTER JOIN ( SELECT M.PRTNR_NO
+                               , SUM(AKRTLQ) AS AKRTLQ
+                               , SUM(AKCDA0) AS AKCDA0
+                               , SUM(AKCDA1) AS AKCDA1
+                               , SUM(AKCDA2) AS AKCDA2
+                            FROM ( SELECT AK17.PRTNR_NO
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W01P00010' THEN PERF_VAL END AS AKRTLQ
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W01P00030' THEN PERF_VAL END AS AKCDA0
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W01P00031' THEN PERF_VAL END AS AKCDA1
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W01P00032' THEN PERF_VAL END AS AKCDA2
+                                     FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
+                               INNER JOIN TB_OGBS_MM_PRTNR_IZ OG   /*조직정보*/
+                                       ON AK17.PRTNR_NO = OG.PRTNR_NO
+                                      AND AK17.OG_TP_CD = OG.OG_TP_CD
+                                      AND AK17.BASE_YM = OG.BASE_YM
+                                      AND OG.OG_TP_CD = 'W01'  /*웰스 P조직*/
+                                    WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                      AND AK17.BASE_YM = #{perfYm}
+                                      AND AK17.PERF_DV_CD = CASE WHEN OG.PSTN_DV_CD = 7    THEN 2
+                                                                 WHEN OG.PSTN_DV_CD IN(3,4) THEN 5
+                                                                 WHEN OG.PSTN_DV_CD = 2     THEN 7
+                                                             END
+                                       AND AK17.PRTNR_NO = #{no}
+                                 )M GROUP BY M.PRTNR_NO
+                        ) ORG
+                 ON ORG.PRTNR_NO = OG.PRTNR_NO
     </select>
 
     <select id='selectPlarFees'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchPlarFeeRes">
-        SELECT '비례수수료' AS COL1
-        , 123450 AS COL2
-        , '서비스현장' AS COL3
-        , 123450 AS COL4
-        , '조직실적렌탈' AS COL5
-        , 123450 AS COL6
-        FROM DUAL
-        UNION ALL
-        SELECT '장려수수료' AS COL1
-        , 123450 AS COL2
-        , '서비스활동' AS COL3
-        , 123450 AS COL4
-        , '조직판매연계' AS COL5
-        , 123450 AS COL6
-        FROM DUAL
-        UNION ALL
-        SELECT '' AS COL1
-        ,0 AS COL2
-        , '서비스누적' AS COL3
-        , 123450 AS COL4
-        , '조직관리' AS COL5
-        , 123450 AS COL6
-        FROM DUAL
-        UNION ALL
-        SELECT '' AS COL1
-        , 0 AS COL2
-        , '급지' AS COL3
-        , 123450 AS COL4
-        , '신규판매' AS COL5
-        , 123450 AS COL6
-        FROM DUAL
-        UNION ALL
-        SELECT '' AS COL1
-        , 0 AS COL2
-        , '' AS COL3
-        , 0 AS COL4
-        , '조직서비스연계' AS COL5
-        , 123450 AS COL6
-        FROM DUAL
+        SELECT MAX(FEE_NM1) AS ITEM1
+             , MAX(FEE_VAL1) AS AMT1
+             , MAX(FEE_NM2) AS ITEM2
+             , MAX(FEE_VAL2) AS AMT2
+             , MAX(FEE_NM3) AS ITEM3
+             , MAX(FEE_VAL3) AS AMT3
+        FROM (SELECT ROWNUM AS RNUM
+                   , B.FEE_NM AS FEE_NM1
+                   , TO_CHAR(A.FEE_ATC_VAL) AS FEE_VAL1
+                   , '' AS FEE_NM2
+                   , '' AS FEE_VAL2
+                   , '' AS FEE_NM3
+                   , '' AS FEE_VAL3
+                FROM TB_FEAM_FEE_DSB_DTL_IZ A
+          INNER JOIN TB_FEAM_FEE_CD B
+                  ON A. FEE_CD = B.FEE_CD
+               WHERE A.DSB_YM = #{perfYm}
+                 AND A.OG_TP_CD = 'W01'       --P조직
+                 AND A.FEE_TCNT_DV_CD = '01'  --차수구분
+                 AND A.PRTNR_NO = #{no}
+                 AND A.FEE_CD IN ('W010001', 'W010101', 'W010002', 'W010102', 'W010003', 'W010103', 'W010004', 'W010005', 'W010105', 'W010021', 'W010121')
+              UNION ALL
+              SELECT ROWNUM AS RNUM
+                   , '' AS FEE_NM1
+                   , '' AS FEE_VAL1
+                   , B.FEE_NM AS FEE_NM2
+                   , TO_CHAR(A.FEE_ATC_VAL) AS FEE_VAL2
+                   , '' AS FEE_NM3
+                   , '' AS FEE_VAL3
+                FROM TB_FEAM_FEE_DSB_DTL_IZ A
+          INNER JOIN TB_FEAM_FEE_CD B
+                  ON A. FEE_CD = B.FEE_CD
+               WHERE A.DSB_YM = #{perfYm}
+                 AND A.OG_TP_CD = 'W01'       --P조직
+                 AND A.FEE_TCNT_DV_CD = '01'  --차수구분
+                 AND A.PRTNR_NO = #{no}
+                 AND A.FEE_CD IN ('W010011', 'W010012', 'W010013', 'W010016', 'W010017', 'W010015', 'W010022')
+              UNION ALL
+              SELECT ROWNUM AS RNUM
+                   , '' AS FEE_NM1
+                   , '' AS FEE_VAL1
+                   , '' AS FEE_NM2
+                   , '' AS FEE_VAL2
+                   , B.FEE_NM AS FEE_NM3
+                   , TO_CHAR(A.FEE_ATC_VAL) AS FEE_VAL3
+                FROM TB_FEAM_FEE_DSB_DTL_IZ A
+          INNER JOIN TB_FEAM_FEE_CD B
+                  ON A. FEE_CD = B.FEE_CD
+               WHERE A.DSB_YM = #{perfYm}
+                 AND A.OG_TP_CD = 'W01'       --P조직
+                 AND A.FEE_TCNT_DV_CD = '01'  --차수구분
+                 AND A.PRTNR_NO = #{no}
+                 AND A.FEE_CD IN ('W010030','W010130','W010020','W010120')
+            )
+      GROUP BY RNUM
+      ORDER BY RNUM
     </select>
     <select id='selectPlarDeduction'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$FindPlarDeductionRes">
-        SELECT '123450' AS COL1
-        , 123450 AS COL2
-        , 123450 AS COL3
-        , 123450 AS COL4
-        , 123450 AS COL5
-        , 123450 AS COL6
-        , 123450 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
+
+        SELECT MAX(AMT01) AS RDS
+             , MAX(AMT02) AS ERNTX
+             , MAX(AMT03) AS RSDNTX
+             , MAX(AMT04) AS PNPYAM
+             , MAX(AMT05) AS HIR_INSR
+             , MAX(AMT06) AS INDD_INSR
+             , MAX(AMT07) AS BU_DDTN
+             , MAX(AMT01)+MAX(AMT02)+MAX(AMT03)+MAX(AMT04)+MAX(AMT05)+MAX(AMT06)+MAX(AMT07) AS DDTN_SUM
+        FROM ( SELECT NVL(CASE WHEN FEE_DDTN_TP_CD = '01' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT01
+                    , NVL(CASE WHEN FEE_DDTN_TP_CD = '02' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT02
+                    , NVL(CASE WHEN FEE_DDTN_TP_CD = '03' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT03
+                    , NVL(CASE WHEN FEE_DDTN_TP_CD = '04' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT04
+                    , NVL(CASE WHEN FEE_DDTN_TP_CD = '05' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT05
+                    , NVL(CASE WHEN FEE_DDTN_TP_CD = '06' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT06
+                    , NVL(CASE WHEN FEE_DDTN_TP_CD = '07' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT07
+                 FROM TB_FEAM_FEE_DDTN_IZ A
+                WHERE A.FEE_DDTN_TP_CD IN ('01','02','03','04','05','06','07')
+                  AND A.DDTN_YM = #{perfYm}  --년월
+                  AND A.PRTNR_NO = #{no} --사번
+                  AND A.OG_TP_CD = 'W01'   --P조직
+                  AND A.FEE_DDTN_CNFM_AMT > 0 --0원 이상
+             GROUP BY FEE_DDTN_TP_CD
+             )
+
     </select>
 
     <select id='selectPlarPnpyams'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchPlarPnpyamRes">
-        SELECT 'SP충당' AS COL1
-        , 123450 AS COL2
-        , 123450 AS COL3
-        , 123450 AS COL4
-        , 123450 AS COL5
-        , 123450 AS COL6
-        FROM DUAL
-        UNION ALL
-        SELECT '연체되물림' AS COL1
-        , 123450 AS COL2
-        , 123450 AS COL3
-        , 123450 AS COL4
-        , 123450 AS COL5
-        , 123450 AS COL6
-        FROM DUAL
-        UNION ALL
-        SELECT '시상되물림' AS COL1
-        , 123450 AS COL2
-        , 123450 AS COL3
-        , 123450 AS COL4
-        , 123450 AS COL5
-        , 123450 AS COL6
-        FROM DUAL
-
+        SELECT F.PNPYAM_NM AS ITEM
+             , B.PNPYAM_OC_AMT_P - C.PNPYAM_DDCTAM_P AS LSTMM /* 당월 기초 잔액 */
+             , D.PNPYAM_OC_AMT AS THM_OC                         /* 당월 발생액 */
+             , B.PNPYAM_OC_AMT_P - C.PNPYAM_DDCTAM_P + D.PNPYAM_OC_AMT AS TMH
+             , E.PNPYAM_DDCTAM AS THM_DDTN                       /* 당월 공제액 */
+             , (B.PNPYAM_OC_AMT_P - C.PNPYAM_DDCTAM_P) + D.PNPYAM_OC_AMT - E.PNPYAM_DDCTAM AS THM_BLAM /* 당월 기말 잔액 */
+          FROM TB_OGBS_MM_PRTNR_IZ A
+        LEFT OUTER JOIN (SELECT B.OG_TP_CD
+                              , B.PRTNR_NO
+                              , B.PNPYAM_ATC_CD
+                              , SUM(NVL(B.PNPYAM_OC_AMT,0)) AS PNPYAM_OC_AMT_P       /* 전월 누적 발생 */
+                           FROM TB_FEDD_PNPY_OC_BAS B
+                          WHERE B.PNPYAM_OC_YM &lt; #{perfYm}
+                            AND B.OG_TP_CD = 'W01'  --웰스p조직
+                            AND B.PRTNR_NO = #{no} --사번
+                            AND B.PNPYAM_ATC_CD IN ('18', '4', '19', '17', '10', '2', '3', '8', '29', '14', '37', '30', '28', '9', '7', '6', '20', '26')
+                       GROUP BY B.OG_TP_CD, B.PRTNR_NO, B.PNPYAM_ATC_CD
+                       ) B
+                      ON A.OG_TP_CD = B.OG_TP_CD
+                     AND A.PRTNR_NO = B.PRTNR_NO
+               LEFT OUTER JOIN ( SELECT C.OG_TP_CD
+                                      , C.PRTNR_NO
+                                      , C.PNPYAM_ATC_CD
+                                      , NVL(SUM(NVL(C.PNPYAM_DDCTAM,0)),0) AS PNPYAM_DDCTAM_P        /* 전월 누적 공제 */
+                                   FROM TB_FEDD_PNPY_DDTN_IZ C
+                                  WHERE C.DDTN_YM &lt; #{perfYm}
+                                    AND C.OG_TP_CD = 'W01'  --웰스p조직
+                                    AND C.PRTNR_NO = #{no} --사번
+                                    AND C.PNPYAM_ATC_CD IN ('18', '4', '19', '17', '10', '2', '3', '8', '29', '14', '37', '30', '28', '9', '7', '6', '20', '26')
+                               GROUP BY C.OG_TP_CD, C.PRTNR_NO, C.PNPYAM_ATC_CD
+                               ) C
+                              ON A.OG_TP_CD = C.OG_TP_CD
+                             AND A.PRTNR_NO = C.PRTNR_NO
+               LEFT OUTER JOIN ( SELECT D.OG_TP_CD
+                                      , D.PRTNR_NO
+                                      , D.PNPYAM_ATC_CD
+                                      , SUM(NVL(D.PNPYAM_OC_AMT,0)) AS PNPYAM_OC_AMT       /* 당월 발생 */
+                                   FROM TB_FEDD_PNPY_OC_BAS D
+                                  WHERE D.PNPYAM_OC_YM = #{perfYm}
+                                    AND D.OG_TP_CD = 'W01'  --웰스p조직
+                                    AND D.PRTNR_NO = #{no} --사번
+                                    AND D.PNPYAM_ATC_CD IN ('18', '4', '19', '17', '10', '2', '3', '8', '29', '14', '37', '30', '28', '9', '7', '6', '20', '26')
+                               GROUP BY D.OG_TP_CD, D.PRTNR_NO, D.PNPYAM_ATC_CD
+                               ) D
+                              ON A.OG_TP_CD = D.OG_TP_CD
+                             AND A.PRTNR_NO = D.PRTNR_NO
+               LEFT OUTER JOIN ( SELECT E.OG_TP_CD
+                                      , E.PRTNR_NO
+                                      , E.PNPYAM_ATC_CD
+                                      , NVL(SUM(NVL(E.PNPYAM_DDCTAM,0)),0) AS PNPYAM_DDCTAM        /* 당월 공제 */
+                                   FROM TB_FEDD_PNPY_DDTN_IZ E
+                                  WHERE E.DDTN_YM = #{perfYm}
+                                    AND E.OG_TP_CD = 'W01'  --웰스p조직
+                                    AND E.PRTNR_NO = #{no} --사번
+                                    AND E.PNPYAM_ATC_CD IN ('18', '4', '19', '17', '10', '2', '3', '8', '29', '14', '37', '30', '28', '9', '7', '6', '20', '26')
+                               GROUP BY E.OG_TP_CD, E.PRTNR_NO, E.PNPYAM_ATC_CD
+                               ) E
+                              ON A.OG_TP_CD = E.OG_TP_CD
+                             AND A.PRTNR_NO = E.PRTNR_NO
+               LEFT OUTER JOIN TB_FEDD_PNPYAM_CD F
+                            ON A.OG_TP_CD = F.OG_TP_CD
+                           AND B.PNPYAM_ATC_CD = F.PNPYAM_ATC_CD
+                         WHERE A.OG_TP_CD = 'W01'
+                           AND A.PRTNR_NO = #{no}
+                           AND A.BASE_YM = #{perfYm}
     </select>
 
 
@@ -366,109 +579,255 @@
 
     <select id='selectFees'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchFeeRes">
-        SELECT 'OO총괄단' AS COL1
-        , 'OO지역단' AS COL2
-        , '김웰스지점' AS COL3
-        , '김교원' AS COL4
-        , '123456' AS COL5
-        , '플래너' AS COL6
-        , '웰스플래너' AS COL7
-        , '국민' AS COL8
-        , '1234232321***' AS COL9
-        , 12340 AS COL10
-        , 12340 AS COL11
-        , 12340 AS COL12
-        , 12340 AS COL13
-        , 12340 AS COL14
-        , 12340 AS COL15
-        FROM DUAL
-        UNION ALL
-        SELECT 'OO총괄단' AS COL1
-        , 'OO지역단' AS COL2
-        , '이웰스지점' AS COL3
-        , '김교원' AS COL4
-        , '345678' AS COL5
-        , '플래너' AS COL6
-        , '수석플래너' AS COL7
-        , '국민' AS COL8
-        , '1234232321***' AS COL9
-        , 12340 AS COL10
-        , 12340 AS COL11
-        , 12340 AS COL12
-        , 12340 AS COL13
-        , 12340 AS COL14
-        , 12340 AS COL15
-        FROM DUAL
-        UNION ALL
-        SELECT 'OO총괄단' AS COL1
-        , 'OO지역단' AS COL2
-        , '박웰스지점' AS COL3
-        , '김교원' AS COL4
-        , '567890' AS COL5
-        , '플래너' AS COL6
-        , '웰스매니저' AS COL7
-        , '국민' AS COL8
-        , '1234232321***' AS COL9
-        , 12340 AS COL10
-        , 12340 AS COL11
-        , 12340 AS COL12
-        , 12340 AS COL13
-        , 12340 AS COL14
-        , 12340 AS COL15
-        FROM DUAL
+        SELECT OG.DGR1_LEVL_DG_PRTNR_NM AS MNGT_DIV    /*총괄단*/
+             , OG.DGR2_LEVL_DG_PRTNR_NM AS RENL_GRP	   /*지역단*/
+             , OG.DGR3_LEVL_DG_PRTNR_NM AS BRANCH	   /*지점*/
+             , OG.PRTNR_KNM AS EMPL_NM	               /*성명*/
+             , OG.PRTNR_NO			                   /*파트너번호*/
+             , OG.RSB_DV_CD AS RSB_TP                  /*직책*/
+             , OG.QLF_DV_CD AS QLF	                   /*자격*/
+             , OG.FNIT_CD AS BNK		               /*은행*/
+             , OG.ACNO_ENCR AS AC_NO	               /*계좌번호*/
+             , NVL(FEE.INTBS_SUM,0) AS INTBS_SUM	   /*과표계*/
+             , NVL(FEE.DDTN_SUM,0) AS DDTN_SUM		   /*공제계*/
+             , NVL(FEE.ACL_DSB_AMT,0) AS ACL_DSB_AMT   /*실지급액*/
+             , '0' AS AWB_INTBS_SUM		           /*시상과표계 현재 시상DB 미정*/
+             , '0' AS AWB_DDTN_SUM		           /*시상공제계 현재 시상DB 미정*/
+             , '0' AS AWB_ACL_DSB_AMT	           /*시상실지급액 현재 시상DB 미정*/
+        FROM (  SELECT  B.DGR1_LEVL_DG_PRTNR_NM
+                      , B.DGR2_LEVL_DG_PRTNR_NM
+                      , B.DGR3_LEVL_DG_PRTNR_NM
+                      , A.PRTNR_KNM
+                      , A.PRTNR_NO
+                      , A.RSB_DV_CD
+                      , A.QLF_DV_CD
+                      , D.FNIT_CD
+                      , D.ACNO_ENCR
+                      , A.OG_TP_CD
+                      , A.OG_ID
+                      , A.PRTNR_CLSF_CD
+                      , A.PSTN_DV_CD
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+             INNER JOIN TB_OGBS_MM_OG_IZ B
+                     ON A.BASE_YM = B.BASE_YM
+                    AND A.OG_ID = B.OG_ID
+                    AND A.OG_TP_CD = B.OG_TP_CD
+        <if test="ogLevl1 != null and ogLevl1 != ''">
+                    AND B.DGR1_LEVL_DG_PRTNR_NM = #{ogLevl1}
+        </if>
+        <if test="ogLevl2 != null and ogLevl2 != ''">
+                    AND B.DGR2_LEVL_DG_PRTNR_NM = #{ogLevl2}
+        </if>
+        <if test="ogLevl3 != null and ogLevl3 != ''">
+                    AND B.DGR3_LEVL_DG_PRTNR_NM = #{ogLevl3}
+        </if>
+        LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                     ON A.PRTNR_NO = D.PRTNR_NO
+                    AND A.OG_TP_CD = D.OG_TP_CD
+                  WHERE A.BASE_YM = #{perfYm}
+                    AND A.OG_TP_CD = #{ogTp} /*W01~03 P,M,홈마스터*/
+                    AND A.RSB_DV_CD = #{rsbTp}  /*W204,205 지점장, 플래너*/
+        <if test="prtnrNo != null and prtnrNo != ''">
+                    AND A.PRTNR_NO = #{prtnrNo}
+        </if>
+             )OG
+
+        LEFT OUTER JOIN (SELECT E.PRTNR_NO
+                              , E.OG_TP_CD
+                              , SUM(E.INTBS_AMT) AS INTBS_SUM
+                              , SUM(E.DDCTAM) AS DDTN_SUM
+                              , SUM(E.DSB_OJ_AMT) AS ACL_DSB_AMT
+                           FROM TB_FEAM_FEE_DSB_IZ E
+                          WHERE E.DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
+                       GROUP BY E.PRTNR_NO, E.OG_TP_CD
+                        )FEE
+                     ON OG.PRTNR_NO = FEE.PRTNR_NO
+                    AND OG.OG_TP_CD = FEE.OG_TP_CD
+        <if test="rsbDvCd != null and rsbDvCd != ''">
+            <if test="rsbDvCd == 'W106' or rsbDvCd  == 'W206' or rsbDvCd  == 'W302'">
+                    AND OG.OG_ID = #{session.departmentId}   /*업무담당자, 홈마스터는 본인 조직ID만 조회가능*/
+            </if>
+            <if test="rsbDvCd == 'W107' or rsbDvCd  == 'W207'">
+                    AND OG.PRTNR_CLSF_CD = '20'		          /*BM은 현장 관리자 이어야 하고*/
+                    AND OG.OG_ID = #{session.departmentId}    /*본인 조직ID만 조회가능*/
+            </if>
+        </if>
+        <if test="hirFomCd != null and hirFomCd != ''">
+            <if test="hirFomCd == '1'">
+            /*고용형태 코드가 사업자(=파트너)이면 이하의 직급조건*/
+                <if test="session.careerLevelCode == '15' or session.careerLevelCode == '10'">
+                    AND OG.PRTNR_NO = #{session.userId}  /*15, 10 직급은 자신의 정보만 조회*/
+                </if>
+                <if test="session.careerLevelCode == '7'">
+                /*7,4,2 직급은 웰스 M조직 이면서 자신의 하위 사번 정보만 조회*/
+                    AND OG.PRTNR_NO IN (SELECT X.PRTNR_NO
+                                          FROM TG_OGBS_MM_PRTNR_IZ X
+                                    INNER JOIN TG_OGBS_MM_OG_IZ Z
+                                            ON X.BASE_YM = Z.BASE_YM
+                                           AND X.OG_ID = Z.OG_ID
+                                           AND X.OG_TP_CD = Z.OG_TP_CD
+                                         WHERE X.BASE_YM = #{perfYm}
+                                           AND X.OG_TP_CD = #{ogTp}
+                                           AND Z.DGR3_LEVL_OG_ID = #{session.userId})
+                </if>
+                <if test="session.careerLevelCode == '4'">
+                AND OG.PRTNR_NO IN (SELECT X.PRTNR_NO
+                                      FROM TG_OGBS_MM_PRTNR_IZ X
+                                INNER JOIN TG_OGBS_MM_OG_IZ Z
+                                        ON X.BASE_YM = Z.BASE_YM
+                                       AND X.OG_ID = Z.OG_ID
+                                       AND X.OG_TP_CD = Z.OG_TP_CD
+                                     WHERE X.BASE_YM = #{perfYm}
+                                       AND X.OG_TP_CD = #{ogTp}
+                                       AND Z.DGR2_LEVL_OG_ID = #{session.userId})
+                </if>
+                <if test="session.careerLevelCode == '2'">
+                AND OG.PRTNR_NO IN (SELECT X.PRTNR_NO
+                                      FROM TB_OGBS_MM_PRTNR_IZ X
+                                     INNER JOIN TG_OGBS_MM_OG_IZ Z
+                                        ON X.BASE_YM = Z.BASE_YM
+                                       AND X.OG_ID = Z.OG_ID
+                                       AND X.OG_TP_CD = Z.OG_TP_CD
+                                     WHERE X.BASE_YM = #{perfYm}
+                                       AND X.OG_TP_CD = #{ogTp}
+                                       AND Z.DGR1_LEVL_OG_ID = #{session.userId})
+                </if>
+            </if>
+        </if>
+        <if test='@MybatisUtils@equals(feeDsbYn, "Y")'>
+            AND (FEE.INTBS_SUM > 0 /*지급여부가 Y 이면 과표계, 공제계,실지급액,시상지급액 이 0원 이상인것으로 (※향후 DB정해지면 시상지급액 추가)*/
+            OR FEE.DDTN_SUM > 0
+            OR FEE.ACL_DSB_AMT > 0
+            )
+        </if>
+        ORDER BY OG.PSTN_DV_CD, OG.OG_ID, OG.PRTNR_NO  /*직급, 본부, 사번 순으로 정렬한다.*/
+
 
     </select>
 
     <select id='selectFeeHmsts'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchFeeHmstRes">
-        SELECT 'OO지역단' AS COL1
-        , '김웰스지점' AS COL2
-        , '김교원' AS COL3
-        , '123456' AS COL4
-        , '플래너' AS COL5
-        , '웰스플래너' AS COL6
-        , '국민' AS COL7
-        , '1234232321***' AS COL8
-        , 12340 AS COL9
-        , 12340 AS COL10
-        , 12340 AS COL11
-        , 12340 AS COL12
-        , 12340 AS COL13
-        , 12340 AS COL14
-        FROM DUAL
-        UNION ALL
-        SELECT 'OO지역단' AS COL1
-        , '이웰스지점' AS COL2
-        , '김교원' AS COL3
-        , '345678' AS COL4
-        , '플래너' AS COL5
-        , '수석플래너' AS COL6
-        , '국민' AS COL7
-        , '1234232321***' AS COL8
-        , 12340 AS COL9
-        , 12340 AS COL10
-        , 12340 AS COL11
-        , 12340 AS COL12
-        , 12340 AS COL13
-        , 12340 AS COL14
-        FROM DUAL
-        UNION ALL
-        SELECT 'OO지역단' AS COL1
-        , '박웰스지점' AS COL2
-        , '김교원' AS COL3
-        , '567890' AS COL4
-        , '플래너' AS COL5
-        , '웰스매니저' AS COL6
-        , '국민' AS COL7
-        , '1234232321***' AS COL8
-        , 12340 AS COL9
-        , 12340 AS COL10
-        , 12340 AS COL11
-        , 12340 AS COL12
-        , 12340 AS COL13
-        , 12340 AS COL14
-        FROM DUAL
+        SELECT OG.DGR2_LEVL_DG_PRTNR_NM AS RENL_GRP	   /*지역단*/
+             , OG.DGR3_LEVL_DG_PRTNR_NM AS BRANCH	   /*지점*/
+             , OG.PRTNR_KNM AS EMPL_NM	               /*성명*/
+             , OG.PRTNR_NO			                   /*파트너번호*/
+             , OG.RSB_DV_CD AS RSB_TP                  /*직책*/
+             , OG.QLF_DV_CD AS QLF	                   /*자격*/
+             , OG.FNIT_CD AS BNK		               /*은행*/
+             , OG.ACNO_ENCR AS AC_NO	               /*계좌번호*/
+             , NVL(FEE.INTBS_SUM,0) AS INTBS_SUM	   /*과표계*/
+             , NVL(FEE.DDTN_SUM,0) AS DDTN_SUM		   /*공제계*/
+             , NVL(FEE.ACL_DSB_AMT,0) AS ACL_DSB_AMT   /*실지급액*/
+             , '0' AS AWB_INTBS_SUM		           /*시상과표계 현재 시상DB 미정*/
+             , '0' AS AWB_DDTN_SUM		           /*시상공제계 현재 시상DB 미정*/
+             , '0' AS AWB_ACL_DSB_AMT	           /*시상실지급액 현재 시상DB 미정*/
+        FROM (  SELECT  B.DGR1_LEVL_DG_PRTNR_NM
+                      , B.DGR2_LEVL_DG_PRTNR_NM
+                      , B.DGR3_LEVL_DG_PRTNR_NM
+                      , A.PRTNR_KNM
+                      , A.PRTNR_NO
+                      , A.RSB_DV_CD
+                      , A.QLF_DV_CD
+                      , D.FNIT_CD
+                      , D.ACNO_ENCR
+                      , A.OG_TP_CD
+                      , A.OG_ID
+                      , A.PRTNR_CLSF_CD
+                      , A.PSTN_DV_CD
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+             INNER JOIN TB_OGBS_MM_OG_IZ B
+                     ON A.BASE_YM = B.BASE_YM
+                    AND A.OG_ID = B.OG_ID
+                    AND A.OG_TP_CD = B.OG_TP_CD
+        <if test="ogLevl1 != null and ogLevl1 != ''">
+                    AND B.DGR1_LEVL_DG_PRTNR_NM = #{ogLevl1}
+        </if>
+        <if test="ogLevl2 != null and ogLevl2 != ''">
+                    AND B.DGR2_LEVL_DG_PRTNR_NM = #{ogLevl2}
+        </if>
+        <if test="ogLevl3 != null and ogLevl3 != ''">
+                    AND B.DGR3_LEVL_DG_PRTNR_NM = #{ogLevl3}
+        </if>
+        LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                     ON A.PRTNR_NO = D.PRTNR_NO
+                    AND A.OG_TP_CD = D.OG_TP_CD
+                  WHERE A.BASE_YM = #{mngtYm}
+                    AND A.OG_TP_CD = #{ogTpCd} /*W01~03 P,M,홈마스터*/
+                    AND A.RSB_DV_CD = #{rsbTp}  /*W204,205 지점장, 플래너*/
+        <if test="prtnrNo != null and prtnrNo != ''">
+                    AND A.PRTNR_NO = #{prtnrNo}
+        </if>
+        )OG
 
+        LEFT OUTER JOIN (SELECT E.PRTNR_NO
+                              , E.OG_TP_CD
+                              , SUM(E.INTBS_AMT) AS INTBS_SUM
+                              , SUM(E.DDCTAM) AS DDTN_SUM
+                              , SUM(E.DSB_OJ_AMT) AS ACL_DSB_AMT
+                           FROM TB_FEAM_FEE_DSB_IZ E
+                          WHERE E.DSB_YM = TO_CHAR(ADD_MONTHS( #{mngtYm}||'01', '1' ),'YYYYMM' )
+                       GROUP BY E.PRTNR_NO, E.OG_TP_CD
+                        )FEE
+                     ON OG.PRTNR_NO = FEE.PRTNR_NO
+                    AND OG.OG_TP_CD = FEE.OG_TP_CD
+        <if test="rsbDvCd != null and rsbDvCd != ''">
+            <if test="rsbDvCd == 'W106' or rsbDvCd  == 'W206'">
+                    AND OG.OG_ID = #{session.departmentId}   /*업무담당자는 본인 조직ID만 조회가능*/
+            </if>
+            <if test="rsbDvCd == 'W107' or rsbDvCd  == 'W207'">
+                    AND OG.PRTNR_CLSF_CD = '20'		          /*BM은 현장 관리자 이어야 하고*/
+                    AND OG.OG_ID = #{session.departmentId}    /*본인 조직ID만 조회가능*/
+            </if>
+        </if>
+        <if test="hirFomCd != null and hirFomCd != ''">
+            <if test="hirFomCd == '1'">
+            /*고용형태 코드가 사업자(=파트너)이면 이하의 직급조건*/
+                <if test="session.careerLevelCode == '15' or session.careerLevelCode == '10'">
+                    AND OG.PRTNR_NO = #{session.userId}  /*15, 10 직급은 자신의 정보만 조회*/
+                </if>
+                <if test="session.careerLevelCode == '7'">
+                /*7,4,2 직급은 웰스 M조직 이면서 자신의 하위 사번 정보만 조회*/
+                    AND OG.PRTNR_NO IN (SELECT X.PRTNR_NO
+                                          FROM TG_OGBS_MM_PRTNR_IZ X
+                                    INNER JOIN TG_OGBS_MM_OG_IZ Z
+                                            ON X.BASE_YM = Z.BASE_YM
+                                           AND X.OG_ID = Z.OG_ID
+                                           AND X.OG_TP_CD = Z.OG_TP_CD
+                                         WHERE X.BASE_YM = #{mngtYm}
+                                           AND X.OG_TP_CD = #{ogTp}
+                                           AND Z.DGR3_LEVL_OG_ID = #{session.userId})
+                </if>
+                <if test="session.careerLevelCode == '4'">
+                    AND OG.PRTNR_NO IN (SELECT X.PRTNR_NO
+                                          FROM TG_OGBS_MM_PRTNR_IZ X
+                                    INNER JOIN TG_OGBS_MM_OG_IZ Z
+                                            ON X.BASE_YM = Z.BASE_YM
+                                           AND X.OG_ID = Z.OG_ID
+                                           AND X.OG_TP_CD = Z.OG_TP_CD
+                                         WHERE X.BASE_YM = #{mngtYm}
+                                           AND X.OG_TP_CD = #{ogTp}
+                                           AND Z.DGR2_LEVL_OG_ID = #{session.userId})
+                </if>
+                <if test="session.careerLevelCode == '2'">
+                    AND OG.PRTNR_NO IN (SELECT X.PRTNR_NO
+                                          FROM TG_OGBS_MM_PRTNR_IZ X
+                                    INNER JOIN TG_OGBS_MM_OG_IZ Z
+                                            ON X.BASE_YM = Z.BASE_YM
+                                           AND X.OG_ID = Z.OG_ID
+                                           AND X.OG_TP_CD = Z.OG_TP_CD
+                                         WHERE X.BASE_YM = #{mngtYm}
+                                           AND X.OG_TP_CD = #{ogTp}
+                                           AND Z.DGR3_LEVL_OG_ID = #{session.userId})
+                </if>
+            </if>
+        </if>
+        <if test='@MybatisUtils@equals(feeDsbYn, "Y")'>
+            AND (FEE.INTBS_SUM > 0 /*지급여부가 Y 이면 과표계, 공제계,실지급액,시상지급액 이 0원 이상인것으로 (※향후 DB정해지면 시상지급액 추가)*/
+              OR FEE.DDTN_SUM > 0
+              OR FEE.ACL_DSB_AMT > 0
+                )
+        </if>
+        ORDER BY OG.PSTN_DV_CD, OG.OG_ID, OG.PRTNR_NO  /*직급, 본부, 사번 순으로 정렬한다.*/
     </select>
 
 
