@@ -61,7 +61,7 @@ public class WctiShippingProductChangeService {
         mapper.updateCntrPdRel(saveDvo.getCntrPdRelId());
 
         //계약상품관계 생성
-        ///mapper.insertCntrPdRel(saveDvo); // TODO: 테스트용 주석
+        mapper.insertCntrPdRel(saveDvo); // TODO: 테스트용 주석
 
 
         return "Y";
