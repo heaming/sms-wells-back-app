@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 
-import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.*;
 
 import java.util.List;
 
@@ -56,7 +55,7 @@ public class WctaOrderDetailMngtController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrCstNo", value = "계약고객번호", paramType = "query"),
     })
-    @GetMapping("/order-detail-mngt/order-rentals")
+    @GetMapping("/order-detail-mngt/rentals/paging")
     public PagingResult<SearchRes> getOrderDetailRentalPages(
         @Valid
         SearchReq dto,
@@ -66,11 +65,35 @@ public class WctaOrderDetailMngtController {
         return service.getOrderDetailRentalPages(dto, pageInfo);
     }
 
-    @GetMapping("/order-detail-mngt/order-rentals/excel-download")
+    @GetMapping("/order-detail-mngt/rentals/excel-download")
     public List<SearchRes> getOrderDtlRentalExcels(
         @Valid
         SearchReq dto
     ) {
         return service.getOrderDtlRentalExcels(dto);
+    }
+
+    @ApiOperation(value = "주문상세조회/관리", notes = "멤버쉽 주문상세내역을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "계약고객번호", paramType = "query"),
+    })
+    @GetMapping("/order-detail-mngt/membership/paging")
+    public PagingResult<SearchOrderDetailMshPagesRes> getOrderDetailMshPages(
+        @Valid
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getOrderDetailMshPages(dto, pageInfo);
+    }
+
+    @GetMapping("/order-detail-mngt/membership/excel-download")
+    public List<SearchOrderDetailMshPagesRes> getOrderDetailMshExcels(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getOrderDetailMshExcels(dto);
     }
 }
