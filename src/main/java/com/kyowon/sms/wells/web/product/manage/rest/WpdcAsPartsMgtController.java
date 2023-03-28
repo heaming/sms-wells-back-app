@@ -51,6 +51,7 @@ public class WpdcAsPartsMgtController {
     private final WpdcAsPartsMgtService service;
     private final PdExcelReadService excelReadService;
 
+    private final ZpdcProductService pdService;
     private final WpdcMaterialMgtService wAsservice;
 
     @ApiImplicitParams(value = {
@@ -84,6 +85,7 @@ public class WpdcAsPartsMgtController {
         ZpdcProductDto.TbPdbsPdBas pdBas = cmnService.getProductByPdCd(pdCd);
         return WpdcAsPartMgtDto.ProductInfoRes.builder()
             .tbPdbsPdBas(pdBas)
+            .tbPdbsPdDtl(pdService.getProductDetailsByPdCd(pdCd))
             .tbPdbsPdEcomPrpDtl(cmnService.getEachCompanyProps(pdCd))
             .groupCodes(cmnService.getPropertyGroupCodes(pdBas.pdTpCd(), "", null))
             .build();

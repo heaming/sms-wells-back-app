@@ -60,6 +60,7 @@ public class WpdcAsPartMgtDto {
         String pdGrpCd,
         @NotNull
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas,
+        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl
     ) {}
 
@@ -68,6 +69,7 @@ public class WpdcAsPartMgtDto {
         @NotBlank
         String pdCd, String pdGrpCd, @NotNull
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas,
+        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl
     ) {}
 
@@ -108,6 +110,7 @@ public class WpdcAsPartMgtDto {
     @ApiModel(value = "WpdcAsPartMgtDto-ProductInfoRes")
     public record ProductInfoRes(
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas,
+        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
         List<ZpdcProductDto.PropertyGroupCode> groupCodes
     ) {}
