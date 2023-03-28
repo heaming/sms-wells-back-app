@@ -82,6 +82,8 @@ public class WpdcAsPartsMgtService {
     public ZpdcProductDto.TbPdbsPdBas saveAsParts(WpdcAsPartMgtDto.SaveReq dto)
         throws Exception {
 
+        String startDtm = DateUtil.getDate(new Date());
+
         int processCount = 0;
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
 
@@ -101,6 +103,9 @@ public class WpdcAsPartsMgtService {
             processCount = productMapper.updateProduct(dvo);
         }
 
+        // #3-0 상세
+        productService.saveProductDetail(dvo.getPdCd(), dto.tbPdbsPdDtl(), false, startDtm);
+
         // #3. 각사 속성 INSERT
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
@@ -118,7 +123,7 @@ public class WpdcAsPartsMgtService {
         // TODO - 확인필요 POINT
         // AS부품은 'CMM'과 'PART' 만 이력을 쌓는 게 맞으면 createAsPartHistory() 아니라면 createProductHistory
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
-            String startDtm = DateUtil.getDate(new Date());
+
             //  hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
@@ -132,8 +137,13 @@ public class WpdcAsPartsMgtService {
 
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
 
+        String startDtm = DateUtil.getDate(new Date());
+
         int processCount = 0;
         processCount = productMapper.updateProduct(dvo);
+
+        // #3-0 상세
+        productService.saveProductDetail(dvo.getPdCd(), dto.tbPdbsPdDtl(), false, startDtm);
 
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
@@ -148,7 +158,7 @@ public class WpdcAsPartsMgtService {
         }
 
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
-            String startDtm = DateUtil.getDate(new Date());
+
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
         return productConverter.mapProductDvoToPdBas(dvo);

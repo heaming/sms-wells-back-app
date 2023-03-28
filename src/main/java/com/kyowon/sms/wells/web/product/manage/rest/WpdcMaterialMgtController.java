@@ -52,6 +52,7 @@ public class WpdcMaterialMgtController {
     private final ZpdcProductService cmnService;
     private final ZpdcRelationMgtService relationService;
     private final WpdcMaterialMgtService service;
+    private final ZpdcProductService pdService;
 
     private final PdExcelReadService excelReadService;
 
@@ -62,6 +63,7 @@ public class WpdcMaterialMgtController {
         ZpdcProductDto.TbPdbsPdBas pdBas = cmnService.getProductByPdCd(pdCd);
         return ZpdcMaterialMgtDto.ProductInfoRes.builder()
             .tbPdbsPdBas(pdBas)
+            .tbPdbsPdDtl(pdService.getProductDetailsByPdCd(pdCd))
             .tbPdbsPdEcomPrpDtl(cmnService.getEachCompanyProps(pdCd))
             .groupCodes(cmnService.getPropertyGroupCodes(pdBas.pdTpCd(), "", null))
             .tbPdbsPdRel(relationService.getRelationProducts(pdCd, null))

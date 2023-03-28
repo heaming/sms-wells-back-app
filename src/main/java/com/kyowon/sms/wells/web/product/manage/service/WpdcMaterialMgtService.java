@@ -75,6 +75,7 @@ public class WpdcMaterialMgtService {
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas saveMaterial(ZpdcMaterialMgtDto.SaveReq dto)
         throws Exception {
+        String startDtm = DateUtil.getDate(new Date());
 
         int processCount = 0;
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
@@ -88,6 +89,9 @@ public class WpdcMaterialMgtService {
 
         // #3. 상품 마스터 INSERT
         processCount = productMapper.insertProduct(dvo);
+
+        // #3-0 상세
+        productService.saveProductDetail(dvo.getPdCd(), dto.tbPdbsPdDtl(), false, startDtm);
 
         // #4. 각사 속성 INSERT
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
@@ -107,7 +111,7 @@ public class WpdcMaterialMgtService {
 
         // #6. 이력 INSERT
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
-            String startDtm = DateUtil.getDate(new Date());
+
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
 
@@ -148,10 +152,15 @@ public class WpdcMaterialMgtService {
     public ZpdcProductDto.TbPdbsPdBas editMaterial(ZpdcMaterialMgtDto.EditReq dto)
         throws Exception {
 
+        String startDtm = DateUtil.getDate(new Date());
+
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
 
         int processCount = 0;
         processCount = productMapper.updateProduct(dvo);
+
+        // #3-0 상세
+        productService.saveProductDetail(dvo.getPdCd(), dto.tbPdbsPdDtl(), false, startDtm);
 
         if (dto.tbPdbsPdBas().isAttach()) {
             if (CollectionUtils.isEmpty(dvo.getAttachFiles())) {
@@ -168,7 +177,7 @@ public class WpdcMaterialMgtService {
         this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
 
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
-            String startDtm = DateUtil.getDate(new Date());
+
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
         return productConverter.mapProductDvoToPdBas(dvo);
