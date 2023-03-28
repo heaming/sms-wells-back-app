@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbKmoneySalesBondMapper">
+    <select id="selectSalesBondPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto$SearchBondRes">
+        SELECT CWINST /*년월*/
+             , LCBAST /* 기초금액*/
+             , LCTAMT /* 발생금액*/
+             , CCIAMT /* 당월입금액*/
+             , CWIAMT /* 누적 입금금액*/
+             , LCBLNC /* 잔액*/
+             , LCACMT /* 적립액*/
+             , LCCACT /* 적립취소액*/
+          FROM ( SELECT A.CWINSY  AS CWINSY /* 월별 상세 조회 조건       TB_SSCT_CNTR_DTL   CNTR_PD_STRTDT*/
+                      , A.CWINSM  AS CWINSM /* 월별 상세 조회 조건*/
+                      , A.CWINSY||A.CWINSM                 AS CWINST
+                      , NVL(LAG(CWTAMT - CWIAMT - NVL(DP30_2.DPACCT,0) ) OVER(ORDER BY CWINSY,CWINSM) , 0)  AS LCBAST /* 기초금액*/
+                      , A.LCTAMT   AS LCTAMT   /* 발생금액*/
+                      , A.CCIAMT   AS CCIAMT   /* 당월입금액*/
+                      , A.CWIAMT   AS CWIAMT   /* 누적 입금금액*/
+                      , A.CWTAMT - CWIAMT - NVL(DP30_2.DPACCT,0) AS LCBLNC /* 잔액*/
+                      , NVL(DP30.DPACMT,0)       AS LCACMT  /* 적립액*/
+                      , NVL(DP30_2.DPACCT,0)      AS LCCACT /* 적립취소액*/
+                   FROM ( SELECT CW51.CWINSY
+                               , CW51.CWINSM
+                               , SUM(CW51.LCTAMT) LCTAMT  /*발생금액      TB_SSCT_CNTR_DTL   SELL_AMT*/
+                               , SUM( SUM(CW51.LCTAMT) ) OVER (ORDER BY CW51.CWINSY,CWINSM ROWS BETWEEN UNBOUNDED PRECEDING  AND CURRENT ROW) CWTAMT  /* 발생 누적 금액*/
+                               , SUM(CW51.CWIAMT) CCIAMT   /*현재입금액 (대손포함)*/
+                               , SUM( SUM(CW51.CWIAMT) ) OVER (ORDER BY CW51.CWINSY,CWINSM ROWS BETWEEN UNBOUNDED PRECEDING  AND CURRENT ROW) CWIAMT   /* 누적 입금액 (대손포함)*/
+                            FROM ( SELECT SUBSTR(LC30.CNTR_PD_STRTDT,1,4) AS CWINSY
+                                        , SUBSTR(LC30.CNTR_PD_STRTDT,5,2) AS CWINSM
+                                        , (LC30.SELL_AMT) LCTAMT
+                                        , 0 CWIAMT
+                                        , 0 CWBAMT
+                                        , NULL CWBIYM
+                                     FROM TB_SSCT_CNTR_DTL  LC30
+                                    WHERE 1=1
+                                      AND LC30.BASE_PD_CD = '7001'  /* condition fixed */
+                                      AND LC30.CNTR_PD_STRTDT IS NOT NULL
+                                      AND SUBSTR(LC30.CNTR_PD_STRTDT,1,4) <![CDATA[<=]]> #{cntrPdStrtdt}
+      -----------------------------------------------------------------------------------------------------
+      UNION ALL
+      ------------------------------------------------------------------------------------------------
+                                   SELECT SUBSTR(CW51.PERF_DT,1,4) CWINSY
+                                        , SUBSTR(CW51.PERF_DT,5,2) CWINSM
+                                        , 0  LCTAMT
+                                        , (CASE WHEN CW51.DP_DV_CD = '1' THEN RVE_AMT ELSE RVE_AMT * -1 END) AS CWIAMT
+                                        , (
+                                           CASE WHEN DP_TP_CD = '9' THEN
+                                           CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE RVE_AMT * -1 END
+                                             ELSE 0
+                                            END
+                                          ) AS CWBAMT  /*대손입금액*/
+                                        , (CASE WHEN DP_TP_CD = '9' THEN SUBSTR(RVE_DT,1,6) ELSE NULL END) AS CWBIYM
+                                     FROM TB_RVDW_RVE_DTL CW51
+                                    INNER JOIN ( SELECT LC30.CNTR_NO
+                                                      , LC30.CNTR_SN
+                                                   FROM TB_SSCT_CNTR_DTL LC30
+                                                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ CW50
+                                                     ON LC30.CNTR_NO = CW50.CNTR_NO
+                                                    AND LC30.CNTR_SN = CW50.CNTR_SN
+                                                    AND LC30.BASE_PD_CD = '7001'  /* condition fixed */
+                                                    AND LC30.CNTR_PD_STRTDT IS NOT NULL
+                                                ) LC30
+                                       ON CW51.CNTR_NO = LC30.CNTR_NO
+                                      AND CW51.CNTR_SN = LC30.CNTR_SN
+                                    WHERE SUBSTR(CW51.PERF_DT,1,4) <![CDATA[<=]]> #{cntrPdStrtdt}
+      /*------------------------------------------------------------------------------------------------*/
+                       ) CW51
+                   GROUP BY CW51.CWINSY ,CW51.CWINSM
+
+   ) A
+   /*-------------------------------------------------------------------------------*/
+                    /* 적립액  */
+          LEFT JOIN LATERAL ( SELECT SUM(DP30.DP_AMT)  AS    DPACMT
+                                FROM TB_RVDW_ITG_DP_BAS DP30
+                               INNER JOIN TB_GBMI_ITG_MLG_BAS DP37
+                                  ON DP37.MLG_ALNC_DV_CD = DP30.ITG_DP_NO
+                                 AND DP37.MLG_ALNC_DV_CD = '01'
+                               WHERE 1=1
+                                 AND DP30.DP_TP_CD = '10'
+                                 AND TO_CHAR(DP30.DP_DTM,'YYYYMMDD') <![CDATA[>=]]> #{cntrPdStrtdt}
+                                 AND TO_CHAR(DP30.DP_DTM,'YYYYMMDD') LIKE TO_CHAR(DP30.DP_DTM,'YYYYMM')
+                             ) DP30 ON 1=1
+   /*-------------------------------------------------------------------------------*/
+   /* 적립 취소액 */
+          LEFT JOIN LATERAL ( SELECT SUM(DP30.CAN_AMT)  AS    DPACCT  /* 적립취소액     TB_RVDW_ITG_DP_BAS   CAN_AMT*/
+                                FROM TB_RVDW_ITG_DP_BAS DP30
+                               INNER JOIN TB_GBMI_ITG_MLG_BAS DP37
+                                  ON DP37.MLG_ALNC_DV_CD = DP30.ITG_DP_NO
+                               WHERE 1=1
+                                 AND DP30.DP_TP_CD = '10'
+                                 AND TO_CHAR(DP30.DP_DTM,'YYYYMMDD') <![CDATA[>=]]> #{cntrPdStrtdt}
+                                 AND DP30.ITG_DP_CAN_YN = 'Y'
+                                 AND TO_CHAR(DP30.ITG_DP_CAN_DTM,'YYYYMMDD') LIKE TO_CHAR(DP30.DP_DTM,'YYYYMM')
+                                 AND (DP37.CNTR_NO || DP37.CNTR_SN) NOT IN ('20169490794','20169512679','20173959594')
+                             ) DP30_2 ON 1=1
+   /*-------------------------------------------------------------------------------*/
+        ) T
+        WHERE T.CWINSY = #{cntrPdStrtdt}
+        <if test="sCurrentYear">        /*기준년월이 당해년도이면*/
+          AND T.CWINSM <![CDATA[<=]]>  (SELECT EXTRACT(YEAR FROM SYSDATE) FROM DUAL)
+        </if>
+    </select>
+
+    <select id="selectDepositDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto$SearchDepositRes">
+        SELECT LCORDR
+             , CNTR_NO
+             , CNTR_SN
+             , LCCNAM
+             , LCCRTT
+             , LCSLET
+             , SELL_AMT
+             , CWIAMT
+             , CWBAMT
+             , LCBLNC
+             , CWBIYM
+             , CWINST
+             , CCIAMT
+          FROM ( SELECT (LC30.CNTR_NO) || '-' || (LC30.CNTR_SN)   LCORDR   /* 고객번호*/
+                      , LC30.CNTR_NO    /*-- 고객년도*/
+                      , LC30.CNTR_SN    /*-- 고객코드*/
+                      , NULL AS LCCNAM  /*-- 고객명*/
+                      , SUBSTR(LC40.CNTR_RCP_FSH_DTM,1,4)||'.'||SUBSTR(LC40.CNTR_RCP_FSH_DTM,5,2)  LCCRTT   /*-- 접수년월*/
+                      , SUBSTR(LC30.CNTR_PD_STRTDT,1,4)||'.'||SUBSTR(LC30.CNTR_PD_STRTDT,5,2)  LCSLET       /*-- 설치년월*/
+                      , LC30.SELL_AMT   /* -- 판매금*/
+                      , CW51.CWIAMT     /* -- 현재입금액(대손포함) 누적*/
+                      , CW51.CWBAMT     /* -- 대손입금액 누적*/
+                      , (LC30.FNL_AMT - CW51.CWIAMT) AS LCBLNC /*-- 잔액*/
+                      , CASE WHEN CW51.CWBIYM IS NOT NULL THEN SUBSTR(CW51.CWBIYM,1,4)||'.'||SUBSTR(CW51.CWBIYM,5,2) ELSE '' END   CWBIYM
+                      , CW51.CWINST
+                      , CW51.CCIAMT
+                   FROM TB_SSCT_CNTR_DTL LC30      /*계약상세*/
+                  INNER JOIN TB_SSCT_CNTR_BAS LC40
+                     ON LC30.CNTR_NO = LC40.CNTR_NO
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ CW50    /*-- 매출확정*/
+                     ON LC30.CNTR_NO = CW50.CNTR_NO
+                    AND LC30.CNTR_SN = CW50.CNTR_SN
+                  INNER JOIN /* 누적 입금액 */
+                             ( SELECT CNTR_NO
+                                    , CNTR_SN
+                                    , SUBSTR(PERF_DT,1,4)||'.'||SUBSTR(PERF_DT,5,2)  AS CWINST
+                                    , SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE RVE_AMT * -1 END) CWIAMT   /* 누적 입금액 (대손포함) */
+                                    , SUM( CASE WHEN DP_TP_CD = 0802 THEN
+                                           CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE RVE_AMT * -1 END
+                                                ELSE 0
+                                           END ) CWBAMT  /* 누적 대손입금액 */
+                                    , MAX(CASE WHEN DP_TP_CD = 0802 THEN RVE_DT ELSE NULL END)  CWBIYM
+                                    , SUM( CASE WHEN PERF_DT = #{cwinst} THEN
+                                           CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE RVE_AMT * -1 END
+                                                ELSE 0
+                                           END ) CCIAMT /* 당월 입금액 */
+                                 FROM TB_RVDW_RVE_DTL         /*--수납상세*/
+                                WHERE PERF_DT = #{cwinst}
+                                GROUP BY CNTR_NO, CNTR_SN, SUBSTR(PERF_DT,1,4)||'.'||SUBSTR(PERF_DT,5,2)
+                             ) CW51
+                     ON CW51.CNTR_NO = LC30.CNTR_NO
+                    AND CW51.CNTR_SN = LC30.CNTR_SN
+                  WHERE 1=1
+                    AND LC30.BASE_PD_CD = '7001'  /* condition fixed */
+                    AND LC30.CNTR_PD_STRTDT IS NOT NULL
+        <if test="@MybatisUtils@isNotEmpty(isCurrentYm)">
+                  UNION ALL
+                     /* 당월일경우 미입금 된 경우 포함 */
+                 SELECT (LC30.CNTR_NO) || '-' || (LC30.CNTR_SN)   LCORDR /*-- 고객번호*/
+                      , LC30.CNTR_NO    /*-- 고객년도*/
+                      , LC30.CNTR_SN    /*-- 고객코드*/
+                      , NULL AS LCCNAM  /*-- 고객명*/
+                      , SUBSTR(LC40.CNTR_RCP_FSH_DTM,1,4)||'.'||SUBSTR(LC40.CNTR_RCP_FSH_DTM,5,2)  LCCRTT   /*-- 접수년월*/
+                      , SUBSTR(LC30.CNTR_PD_STRTDT,1,4)||'.'||SUBSTR(LC30.CNTR_PD_STRTDT,5,2)  LCSLET   /*-- 설치년월*/
+                      , LC30.SELL_AMT   /*-- 판매금*/
+                      , 0 AS  CWIAMT    /*-- 현재입금액(대손포함) 누적*/
+                      , 0 AS  CWBAMT    /*-- 대손입금액 누적*/
+                      , 0 AS LCBLNC     /*-- 잔액*/
+                      , '' CWBIYM       /*-- 대손년월*/
+                      , NULL AS CWINST  /*TO_CHAR(CURRENT TIMESTAMP ,'YYYY.MM') AS CWINST*/
+                      , 0 CCIAMT
+                   FROM TB_SSCT_CNTR_DTL LC30
+                  INNER JOIN TB_SSCT_CNTR_BAS LC40
+                     ON LC30.CNTR_NO = LC40.CNTR_NO
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ CW50
+                     ON LC30.CNTR_NO = CW50.CNTR_NO
+                    AND LC30.CNTR_SN = CW50.CNTR_SN
+              LEFT OUTER JOIN /* CW5100P */
+                   ( SELECT CNTR_NO
+                          , CNTR_SN
+                       FROM TB_RVDW_RVE_DTL
+                      GROUP BY CNTR_NO,CNTR_SN
+                   ) CW51
+                ON CW51.CNTR_NO = LC30.CNTR_NO
+               AND CW51.CNTR_SN = LC30.CNTR_SN
+             WHERE 1=1
+               AND LC30.BASE_PD_CD = '7001'  /* condition fixed */
+               AND LC30.CNTR_PD_STRTDT IS NOT NULL
+        </if>) T1
+        WHERE 1=1
+    </select>
+
+    <select id="selectCancelDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto$SearchCancelRes">
+        SELECT TO_CHAR(A.ITG_DP_CAN_DTM,'YYYYMMDD') AS DPCNDT     /*적립 취소일자*/
+              , B.MLG_RV_CNTR_NO||'-'|| B.MLG_RV_CNTR_SN  DPORDR  /*주문번호(계약상세번호)*/
+              , A.CAN_AMT /*취소금액*/
+              , CASE WHEN CNTR_PD_ENDDT IS NOT NULL THEN TO_CHAR(CNTR_PD_ENDDT,'YYYYMMDD')
+                     ELSE ' '
+                END AS LCCANT
+           FROM TB_RVDW_ITG_DP_BAS A
+          INNER JOIN TB_GBMI_MLG_RV_BAS B
+             ON A.ITG_DP_NO = B.ITG_DP_NO
+            AND B.MLG_ALNC_DV_CD = '01'
+          INNER JOIN TB_SSCT_CNTR_DTL C
+             ON C.CNTR_NO = B.MLG_RV_CNTR_NO
+            AND C.CNTR_SN = B.MLG_RV_CNTR_SN
+          WHERE 1=1
+            AND A.ITG_DP_CAN_DTM IS NOT NULL
+            AND A.ITG_DP_CAN_YN = 'Y' /*취소여부*/
+            AND A.ITG_DP_CAN_DTM LIKE #{cwinst} || '%'
+            AND A.DP_TP_CD = '10'
+            AND (B.MLG_RV_CNTR_NO||B.MLG_RV_CNTR_NO) NOT IN ('20169490794','20169512679','20173959594')
+          ORDER BY A.ITG_DP_CAN_DTM, B.MLG_RV_CNTR_NO, B.MLG_RV_CNTR_NO
+    </select>
+
+</mapper>
