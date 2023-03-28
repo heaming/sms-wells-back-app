@@ -2,88 +2,92 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyRecapAsSvCsMngtMapper">
     <select id="selectRecapAsSvCsMngts" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyRecapAsSvCsMngtDto$SearchRes">
-        SELECT T1.SAP_MAT_CD --SAP코드
-             , T1.PD_CD --품목코드 ST101_ITEM_CD
-             , T1.PD_NM --품목명 ST101_NM_KOR
-             , TB.APY_STRTDT --적용시작일 CO230_APLD_FR
-             , TB.APY_ENDDT --적용종료일 CO230_APLD_TO
-             , NVL(TB.CSMR_UPRC_AMT, 0) AS CSMR_UPRC_AMT --소비자가
-             , NVL(TB.WHLS_UPRC_AMT, 0) AS WHLS_UPRC_AMT --도매단가
-             , NVL(TB.INSI_UPRC_AMT, 0) AS INSI_UPRC_AMT --내부단가
-             , NVL(TB.TCFEE_AMT, 0)     AS TCFEE_AMT --기술료
-             , NVL(TB.CSMR_UPRC_AMT + TB.TCFEE_AMT, 0) AS SUM_AMT --합계(소비자가+기술료)
-             , NVL(TB.IZ_SN, 0) AS IZ_SN --내역일련번호
-             , TB.BASE_PD_CD --기준상품코드
+        SELECT T1.SAP_MAT_CD /* SAP코드 */
+             , T1.PD_CD /* 품목코드 */
+             , T1.PD_NM /* 품목명 */
+             , TB.APY_STRTDT /* 적용시작일 */
+             , TB.APY_ENDDT /* 적용종료일 */
+             , NVL(TB.CSMR_UPRC_AMT, 0) AS CSMR_UPRC_AMT /* 소비자가 */
+             , NVL(TB.WHLS_UPRC_AMT, 0) AS WHLS_UPRC_AMT /* 도매단가 */
+             , NVL(TB.INSI_UPRC_AMT, 0) AS INSI_UPRC_AMT /* 내부단가 */
+             , NVL(TB.TCFEE_AMT, 0)     AS TCFEE_AMT /* 기술료 */
+             , NVL(TB.CSMR_UPRC_AMT + TB.TCFEE_AMT, 0) AS SUM_AMT /* 합계(소비자가+기술료) */
+             , NVL(TB.IZ_SN, 0) AS IZ_SN /* 내역일련번호 */
+             , TB.BASE_PD_CD /* 기준상품코드 */
           FROM TB_PDBS_PD_BAS T1
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
             ON T1.PD_CD = T2.PD_CD
            AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
            AND T2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ TB
-            ON T1.PD_CD LIKE SUBSTR(TB.USE_MAT_PD_CD, 1, 5) || '%' /*TODO: 상품코드 조건 확정후 변경 예정*/
-           --현재적용자료 체크시
+            ON T1.PD_CD = TB.USE_MAT_PD_CD
+<!--            ON T1.PD_CD LIKE SUBSTR(TB.USE_MAT_PD_CD, 1, 5) || '%'-->
+           /* 현재적용자료 체크시 */
            <if test='@MybatisUtils@isNotEmpty(apyMtrChk) and @MybatisUtils@equals(apyMtrChk,"Y")'>
-           AND TB.APY_STRTDT <![CDATA[ <= ]]> TO_CHAR( SYSDATE, 'YYYYMMDD')
-           AND TB.APY_ENDDT <![CDATA[ >= ]]> TO_CHAR( SYSDATE, 'YYYYMMDD')
+           AND TB.APY_STRTDT <![CDATA[<=]]> TO_CHAR( SYSDATE, 'YYYYMMDD')
+           AND TB.APY_ENDDT <![CDATA[>=]]> TO_CHAR( SYSDATE, 'YYYYMMDD')
            </if>
          WHERE 1=1
-           --공통부품 언체크시
-           <if test='@MybatisUtils@isNotEmpty(hgrPdCd) and @MybatisUtils@equals(cmnPartDbCdChk,"N")'>
+           /* 공통부품 언체크시 */
+           <if test='@MybatisUtils@isNotEmpty(hgrPdCd) and @MybatisUtils@equals(cmnPartChk,"N")'>
            <choose>
                <when test="@MybatisUtils@isEmpty(pdCd)">
-                -- 전체 조회
+                /* 전체 조회 */
                 AND T2.PD_PRP_VAL19 = #{hgrPdCd}
                </when>
                <otherwise>
-                -- 상품명 선택 시 조회
-                AND T1.PD_CD LIKE SUBSTR( #{pdCd}, 1, 5) || '%'
-                AND T1.PD_CD != '000000'  /*TODO: 상품코드 조건 확정 후 변경 예정 */
+                /* 상품명 선택 시 조회 */
+                AND T1.PD_CD = #{pdCd}
+<!--                AND T1.PD_CD LIKE SUBSTR( #{pdCd}, 1, 5) || '%'-->
+                AND T1.PD_CD != '000000'
                </otherwise>
            </choose>
            </if>
-           --공통부품 체크시
-           <if test='@MybatisUtils@isNotEmpty(hgrPdCd) and @MybatisUtils@equals(cmnPartDbCdChk,"Y")'>
+           /* 공통부품 체크시 */
+           <if test='@MybatisUtils@isNotEmpty(hgrPdCd) and @MybatisUtils@equals(cmnPartChk,"Y")'>
            <choose>
-                  <when test="@MybatisUtils@isEmpty(pdCd)">
-                   -- 전체 조회
-                   AND T2.PD_PRP_VAL19 = #{hgrPdCd}
-                  </when>
-                  <otherwise>
-                   -- 상품명 선택 시 조회
-                   AND (( T2.PD_PRP_VAL21 IN ('00','01')
-                      OR <if test='@MybatisUtils@equals(hgrPdCd,"1")'>
-                          T2.PD_PRP_VAL21 ='10'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"2")'>
-                          T2.PD_PRP_VAL21 = '20'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"3")'>
-                          T2.PD_PRP_VAL21 = '30'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"4")'>
-                          T2.PD_PRP_VAL21 = '40'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"5")'>
-                          T2.PD_PRP_VAL21 ='50'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"6")'>
-                          T2.PD_PRP_VAL21 = '60'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"7")'>
-                          T2.PD_PRP_VAL21 = '70'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"8")'>
-                          T2.PD_PRP_VAL21 = '80'
-                         </if>
-                         <if test='@MybatisUtils@equals(hgrPdCd,"9")'>
-                          T2.PD_PRP_VAL21 ='90'
-                         </if>
-                       )
-                      OR T1.PD_CD LIKE SUBSTR( #{pdCd}, 1, 4) || '%'
-                      )
-                   AND T1.PD_CD != '000000'  /*TODO: 상품코드 조건 확정후 변경 예정*/
-                  </otherwise>
-              </choose>
+              <when test="@MybatisUtils@isEmpty(pdCd)">
+                /* 전체 조회 */
+                AND T2.PD_PRP_VAL19 = #{hgrPdCd}
+              </when>
+              <otherwise>
+                /* 상품명 선택 시 조회 */
+                AND ((T2.PD_PRP_VAL21 IN ('00','01')
+                  /* TODO: 공통코드 'PD_GRP_CD'의 코드 값이 10 이상인 경우 조건 추가 필요 */
+                  OR <if test='@MybatisUtils@equals(hgrPdCd,"1")'>
+                       T2.PD_PRP_VAL21 ='10'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"2")'>
+                       T2.PD_PRP_VAL21 = '20'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"3")'>
+                       T2.PD_PRP_VAL21 = '30'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"4")'>
+                       T2.PD_PRP_VAL21 = '40'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"5")'>
+                       T2.PD_PRP_VAL21 ='50'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"6")'>
+                       T2.PD_PRP_VAL21 = '60'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"7")'>
+                       T2.PD_PRP_VAL21 = '70'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"8")'>
+                       T2.PD_PRP_VAL21 = '80'
+                     </if>
+                     <if test='@MybatisUtils@equals(hgrPdCd,"9")'>
+                       T2.PD_PRP_VAL21 ='90'
+                     </if>
+                   )
+                  OR T1.PD_CD = #{pdCd}
+<!--                  OR T1.PD_CD LIKE SUBSTR( #{pdCd}, 1, 4) || '%'-->
+                  )
+                AND T1.PD_CD != '000000'
+               </otherwise>
+           </choose>
            </if>
          ORDER BY T1.PD_CD ASC, TB.IZ_SN ASC
     </select>
@@ -106,9 +110,11 @@
              , WHLS_UPRC_AMT = ${whlsUprcAmt} /* 도매단가금액 */
              , INSI_UPRC_AMT = ${insiUprcAmt} /* 내부단가금액*/
              , TCFEE_AMT = ${tcfeeAmt} /* 기술료금액 */
+             , APY_STRTDT = #{apyStrtdt} /* 적용시작일 */
+             , APY_ENDDT = #{apyEnddt} /* 적용종료일 */
                <include refid="COMMON.updateSystemField"/>
          WHERE BASE_PD_CD = #{basePdCd}
-           AND USE_MAT_PD_CD LIKE SUBSTR( #{pdCd}, 1, 5) || '%' /*TODO: 상품코드 조건 확정 후 변경 예정*/
+           AND USE_MAT_PD_CD = #{pdCd}
            AND IZ_SN = ${izSn}
     </update>
 

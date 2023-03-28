@@ -23,7 +23,7 @@ public interface WsnyRecapAsSvCsMngtMapper {
 
     List<PdRes> selectHgrPdCd(PdReq dto);
 
-    List<SearchRes> selectRecapAsSvCsMngts( SearchReq dto);
+    List<SearchRes> selectRecapAsSvCsMngts(SearchReq dto);
 
     int updateRecapAsSvCsMngts(WsnyRecapAsSvCsMngtDvo dvo);
 }

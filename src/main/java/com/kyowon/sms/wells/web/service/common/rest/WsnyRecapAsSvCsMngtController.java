@@ -29,6 +29,7 @@ public class WsnyRecapAsSvCsMngtController {
     @ApiOperation(value = "유상 A/S 서비스비용 관리 화면",notes = "유상 A/S 서비스 수행시 품목별 비용(소비자가, 도매단가, 내부단가, 기술료 등)을 관리(조회/저장)하는 화면")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name ="hgrPdCd" , value = "상위상품코드", paramType = "query"),
+        @ApiImplicitParam(name ="pdCd" , value = "품목코드", paramType = "query"),
         @ApiImplicitParam(name ="cmnPartDbCdChk" , value = "공통부품 체크 여부", paramType = "query"),
         @ApiImplicitParam(name ="apyMtrChk" , value = "현재적용자료 체크 여부", paramType = "query")
     })

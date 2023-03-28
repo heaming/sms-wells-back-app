@@ -10,9 +10,8 @@ public class WsnyRecapAsSvCsMngtDto {
     @ApiModel(value = "WsnyRecapAsSvCsMngtDto-SearchReq")
     public record SearchReq(
         String hgrPdCd, // 상위상품코드
-        String pdGr, //상품그룹
         String pdCd, //품목코드
-        String cmnPartDbCdChk, //공통부품 체크 여부
+        String cmnPartChk, //공통부품 체크 여부
         String apyMtrChk //현재적용자료 체크 여부
     ){}
     @ApiModel(value = "WsnyRecapAsSvCsMngtDto-SearchRes")
@@ -51,6 +50,8 @@ public class WsnyRecapAsSvCsMngtDto {
         String basePdCd, // 기준상품코드
         @NotBlank
         int izSn, //내역일련번호
+        String apyStrtdt, // 적용시작일자
+        String apyEnddt, // 적용종료일자
         int csmrUprcAmt, // 소비자단가금액
         int whlsUprcAmt, // 도매단가금액
         int insiUprcAmt, // 내부단가금액
