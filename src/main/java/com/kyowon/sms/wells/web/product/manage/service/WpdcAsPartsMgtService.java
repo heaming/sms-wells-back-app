@@ -138,6 +138,15 @@ public class WpdcAsPartsMgtService {
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
+        if (dto.tbPdbsPdBas().isAttach()) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles())) {
+                List<AttachFile> empty = new ArrayList<AttachFile>();
+                fileService.saveAttachFiles(PdProductConst.ATTACH_GROUP_ID_PRD, dvo.getPdCd(), empty);
+            } else {
+                fileService.saveAttachFiles(PdProductConst.ATTACH_GROUP_ID_PRD, dvo.getPdCd(), dvo.getAttachFiles());
+            }
+        }
+
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
             String startDtm = DateUtil.getDate(new Date());
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
