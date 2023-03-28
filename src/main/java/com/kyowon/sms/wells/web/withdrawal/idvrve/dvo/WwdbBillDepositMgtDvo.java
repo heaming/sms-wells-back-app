@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WwdbRegistrationListDvo {
+public class WwdbBillDepositMgtDvo {
     String itgDpNo; /* 통합입금번호 */
     String fnitCd; /* 금융기관코드 */
     String billBndNo; /* 어음채권번호 */

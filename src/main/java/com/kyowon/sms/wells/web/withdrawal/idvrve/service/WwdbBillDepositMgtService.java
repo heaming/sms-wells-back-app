@@ -5,19 +5,19 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbRegistrationListConvert;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SaveMainDtlReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SaveMainReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchDetailReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchDetailRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchElectronicReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchElectronicRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRegistrationListDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRegistrationSubListDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRegistrationListMapper;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbBillDepositMgtConvert;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveMainDtlReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveMainReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchDetailReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchDetailRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchElectronicReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchElectronicRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositMgtSubDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbBillDepositMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -29,11 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WwdbRegistrationListService {
+public class WwdbBillDepositMgtService {
 
-    private final WwdbRegistrationListMapper mapper;
+    private final WwdbBillDepositMgtMapper mapper;
 
-    private final WwdbRegistrationListConvert convert;
+    private final WwdbBillDepositMgtConvert convert;
 
     @Transactional
     public PagingResult<SearchRes> getRegistrationPages(SearchReq dto, PageInfo pageInfo) {
@@ -72,7 +72,7 @@ public class WwdbRegistrationListService {
         log.info(mainDto.toString());
         log.info("==============service");
 
-        WwdbRegistrationListDvo dvo = convert.mapSaveWwdbRegistrationListDvo(mainDto);
+        WwdbBillDepositMgtDvo dvo = convert.mapSaveWwdbRegistrationListDvo(mainDto);
 
         switch (mainDto.state()) {
             case CommConst.ROW_STATE_CREATED -> {
@@ -90,7 +90,7 @@ public class WwdbRegistrationListService {
                 processCount += mapper.deleteRegistrationSubElectronics(dvo);
 
             for (SaveMainDtlReq dto : subDto) {
-                WwdbRegistrationSubListDvo subDvo = convert.mapSaveWwdbRegistrationSubListDvo(dto);
+                WwdbBillDepositMgtSubDvo subDvo = convert.mapSaveWwdbRegistrationSubListDvo(dto);
                 switch (dto.rowState()) {
                     case CommConst.ROW_STATE_CREATED -> {
                         processCount += mapper.insertRegistrationSubElectronics(subDvo);

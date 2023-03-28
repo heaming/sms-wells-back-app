@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchDetailReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchDetailRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchElectronicReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchElectronicRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRegistrationListDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbRegistrationListService;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchDetailReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchDetailRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchElectronicReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchElectronicRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbBillDepositMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -34,9 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/bill-deposits")
 @Slf4j
-public class WwdbRegistrationListController {
+public class WwdbBillDepositMgtController {
 
-    private final WwdbRegistrationListService service;
+    private final WwdbBillDepositMgtService service;
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "rcpStartDt", value = "시작일자", paramType = "query", required = false),

@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
-public class WwdbRegistrationListDto {
+public class WwdbBillDepositMgtDto {
     public record SearchReq(
         String rcpStartDt,
         String rcpEndDt,
