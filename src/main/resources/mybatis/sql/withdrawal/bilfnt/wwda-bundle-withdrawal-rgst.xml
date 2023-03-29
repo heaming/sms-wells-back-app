@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaBundleWithdrawalRgstMapper">
 
     <select id="selectUnregistrationPsInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto$SearchUnrgPsRes">
-                                SELECT CST_KNM
+                SELECT CST_KNM
                      , PD_NM  
                      , CNTR_PD_STRTDT
 
@@ -12,23 +12,25 @@
                      , CNTR_SN
                      , DP_TP_CD 
                      , FNIT_APR_RS_CD 
-                     , ACNO_ENCR
+                     , CASE WHEN ACNO_ENCR IS NULL THEN CRCDNO_ENCR ELSE ACNO_ENCR END AS ACNO_ENCR
                      , CRCDNO_ENCR
                      , FNIT_RSG_FSH_DTM
                      , DG_CNTR_NO 
                      , BNK_NM
                      , OWR_KNM    
                      , MPY_BSDT
+                     , BRYY_MMDD   
 
                      , SDING_CNTR_SN 
                      , SDING_DP_TP_CD
                      , SDING_FNIT_APR_RS_CD
                      , SDING_DG_CNTR_NO
                      , SDING_BNK_NM
-                     , SDING_ACNO_ENCR
+                     , CASE WHEN SDING_ACNO_ENCR IS NULL THEN SDING_CRCDNO_ENCR ELSE SDING_ACNO_ENCR END AS SDING_ACNO_ENCR
                      , SDING_CRCDNO_ENCR
                      , SDING_OWR_KNM
                      , SDING_MPY_BSDT
+                     , SDING_BRYY_MMDD
                   FROM (
                          SELECT CST_KNM
                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = SCD.BASE_PD_CD) AS PD_NM  
@@ -67,6 +69,7 @@
                      , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.BNK_CD,3,0) = FNIT_CD) AS BNK_NM
                      , T1.OWR_KNM    
                      , T1.MPY_BSDT
+                     , CCB.BRYY_MMDD   
 
                      , T1.SUBOD_CNTR_DG_CNTR_NO AS SDING_CNTR_SN 
                      , T1.SUBOD_CNTR_DP_TP_CD AS SDING_DP_TP_CD
@@ -77,6 +80,7 @@
                      , T1.SUBOD_CNTR_CRCDNO_ENCR AS SDING_CRCDNO_ENCR
                      , T1.SUBOD_CNTR_OWR_KNM AS SDING_OWR_KNM
                      , T1.SUBOD_CNTR_MPY_BSDT AS SDING_MPY_BSDT
+                     , CCB.BRYY_MMDD AS SDING_BRYY_MMDD
                   FROM TB_SSCT_CNTR_BAS SCB
                   JOIN TB_CUBS_CST_BAS CCB
                     ON SCB.CNTR_CST_NO = CCB.CST_NO
@@ -102,7 +106,7 @@
                               , SUBOD_CNTR.FNIT_APR_RS_CD AS SUBOD_CNTR_FNIT_APR_RS_CD
                               , SUBOD_CNTR.CRCDNO_ENCR AS SUBOD_CNTR_CRCDNO_ENCR
                               , SUBOD_CNTR.FNIT_RSG_FSH_DTM AS SUBOD_CNTR_FNIT_RSG_FSH_DTM
-                              , CASE WHEN SUBOD_CNTR.BNK_CD IS NULL THEN SUBOD_CNTR.CDCO_CD ELSE DG_CNTR.BNK_CD END AS SUBOD_CNTR_SUBOD_CNTR
+                              , CASE WHEN SUBOD_CNTR.BNK_CD IS NULL THEN SUBOD_CNTR.CDCO_CD ELSE SUBOD_CNTR.BNK_CD END AS SUBOD_CNTR_SUBOD_CNTR
                               , SUBOD_CNTR.ACNO_ENCR AS SUBOD_CNTR_ACNO_ENCR
                               , SUBOD_CNTR.OWR_KNM AS SUBOD_CNTR_OWR_KNM
                               , SUBOD_CNTR.MPY_BSDT AS SUBOD_CNTR_MPY_BSDT
@@ -121,15 +125,19 @@
                                       , SCSB.ACNO_ENCR
                                       , SCSB.OWR_KNM    
                                       , SCSB.MPY_BSDT
-                                   FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
-                                   JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                     ON RIBB.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO 
-                                    AND RIBB.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN 
-                                    AND RIBB.DTA_DL_YN = 'N'
-                                    AND SCSR.DTA_DL_YN = 'N'
-                                   JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                     ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID  
+                                   FROM TB_SSCT_CNTR_STLM_BAS SCSB
+                                   JOIN TB_SSCT_CNTR_BAS SCB
+                                     ON SCSB.CST_NO = SCB.CNTR_CST_NO 
+                                    AND SCSB.CNTR_NO = SCB.CNTR_NO 
                                     AND SCSB.DTA_DL_YN = 'N'
+                                    AND SCB.DTA_DL_YN = 'N'
+                                   JOIN TB_SSCT_CNTR_DTL SCD
+                                     ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                    AND SCD.DTA_DL_YN = 'N'
+                                   JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                                     ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
+                                    AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 
+                                    AND RIBB.DTA_DL_YN = 'N'
                                   WHERE SCSB.DP_TP_CD IN ('0102','0203')
                                     AND RIBB.DG_CNTR_NO || RIBB.DG_CNTR_SN = RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN
                              ) DG_CNTR
@@ -147,15 +155,19 @@
                                       , SCSB.ACNO_ENCR
                                       , SCSB.OWR_KNM    
                                       , SCSB.MPY_BSDT
-                                   FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
-                                   JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                     ON RIBB.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO 
-                                    AND RIBB.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN 
-                                    AND RIBB.DTA_DL_YN = 'N'
-                                    AND SCSR.DTA_DL_YN = 'N'
-                                   JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                     ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+                                   FROM TB_SSCT_CNTR_STLM_BAS SCSB
+                                   JOIN TB_SSCT_CNTR_BAS SCB
+                                     ON SCSB.CST_NO = SCB.CNTR_CST_NO 
+                                    AND SCSB.CNTR_NO = SCB.CNTR_NO 
                                     AND SCSB.DTA_DL_YN = 'N'
+                                    AND SCB.DTA_DL_YN = 'N'
+                                   JOIN TB_SSCT_CNTR_DTL SCD
+                                     ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                    AND SCD.DTA_DL_YN = 'N'
+                                   JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                                     ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
+                                    AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 
+                                    AND RIBB.DTA_DL_YN = 'N'
                                   WHERE SCSB.DP_TP_CD IN ('0102','0203')
                                     AND RIBB.DG_CNTR_NO || RIBB.DG_CNTR_SN != RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN
                              ) SUBOD_CNTR
@@ -165,9 +177,8 @@
                     ON SCD.CNTR_NO = T1.DG_CNTR_NO
                    AND SCD.CNTR_SN = T1.DG_CNTR_SN
                  WHERE SCB.CNTR_CNFM_DTM >= '20200201000000' /*공유렌탈 시행 시작월 2020.02*/
-                   <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-                   AND T1.DG_CNTR_NO = #{cntrNo}
-                   AND T1.DG_CNTR_SN = #{cntrSn}
+                   <if test='@MybatisUtils@isNotEmpty(cntr)'>
+                   AND T1.DG_CNTR_NO || T1.DG_CNTR_SN LIKE '%' || #{cntr} 
                    </if> 
                    AND SCD.CNTR_PD_STRTDT >= #{cntrPdStrtdt} 
                    AND SCD.CNTR_PD_STRTDT <![CDATA[ <= ]]> #{cntrPdEnddt}
@@ -221,7 +232,7 @@
                                           , DG_CNTR.DG_CNTR_SN AS DG_CNTR_SN
                                           , DG_CNTR.DP_TP_CD
                                           , CASE WHEN DG_CNTR.BNK_CD IS NULL THEN DG_CNTR.CDCO_CD ELSE DG_CNTR.BNK_CD END AS BNK_CD
-                                          , DG_CNTR.ACNO_ENCR
+                                          , CASE WHEN DG_CNTR.ACNO_ENCR IS NULL THEN DG_CNTR.CRCDNO_ENCR ELSE DG_CNTR.ACNO_ENCR END AS ACNO_ENCR
                                           , DG_CNTR.OWR_KNM
                                           , DG_CNTR.MPY_BSDT
                                           , DG_CNTR.ITG_BIL_PRTC_DTM
@@ -233,8 +244,8 @@
                                           , SUBOD_CNTR.SUBOD_CNTR_NO AS SUBOD_CNTR_DG_CNTR_NO
                                           , SUBOD_CNTR.SUBOD_CNTR_SN AS SUBOD_CNTR_DG_CNTR_SN
                                           , SUBOD_CNTR.DP_TP_CD AS SUBOD_CNTR_DP_TP_CD
-                                          , CASE WHEN SUBOD_CNTR.BNK_CD IS NULL THEN SUBOD_CNTR.CDCO_CD ELSE DG_CNTR.BNK_CD END AS SUBOD_CNTR_SUBOD_CNTR
-                                          , SUBOD_CNTR.ACNO_ENCR AS SUBOD_CNTR_ACNO_ENCR
+                                          , CASE WHEN SUBOD_CNTR.BNK_CD IS NULL THEN SUBOD_CNTR.CDCO_CD ELSE SUBOD_CNTR.BNK_CD END AS SUBOD_CNTR_SUBOD_CNTR
+                                          , CASE WHEN SUBOD_CNTR.ACNO_ENCR IS NULL THEN SUBOD_CNTR.CRCDNO_ENCR ELSE SUBOD_CNTR.ACNO_ENCR END AS SUBOD_CNTR_ACNO_ENCR
                                           , SUBOD_CNTR.OWR_KNM AS SUBOD_CNTR_OWR_KNM
                                           , SUBOD_CNTR.MPY_BSDT AS SUBOD_CNTR_MPY_BSDT
                                           , SUBOD_CNTR.ITG_BIL_PRTC_DTM AS SUBOD_CNTR_ITG_BIL_PRTC_DTM
@@ -252,6 +263,7 @@
                                                   , SCSB.BNK_CD
                                                   , SCSB.CDCO_CD 
                                                   , SCSB.ACNO_ENCR
+                                                  , SCSB.CRCDNO_ENCR
                                                   , SCSB.OWR_KNM    
                                                   , SCSB.MPY_BSDT
                                                   , RIEI.ITG_BIL_PRTC_DTM   
@@ -259,15 +271,19 @@
                                                   , RIEI.AFTN_ITG_UNRG_RS_CD    
                                                   , RIEI.AFTN_ITG_UNRG_RSON_CD  
                                                   , RIEI.ERR_CN 
-                                               FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
-                                               JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                                 ON RIBB.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO 
-                                                AND RIBB.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN 
-                                                AND RIBB.DTA_DL_YN = 'N'
-                                                AND SCSR.DTA_DL_YN = 'N'
-                                               JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                                 ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID  
+                                               FROM TB_SSCT_CNTR_STLM_BAS SCSB
+                                               JOIN TB_SSCT_CNTR_BAS SCB
+                                                 ON SCSB.CST_NO = SCB.CNTR_CST_NO 
+                                                AND SCSB.CNTR_NO = SCB.CNTR_NO 
                                                 AND SCSB.DTA_DL_YN = 'N'
+                                                AND SCB.DTA_DL_YN = 'N'
+                                               JOIN TB_SSCT_CNTR_DTL SCD
+                                                 ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                                AND SCD.DTA_DL_YN = 'N'
+                                               JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                                                 ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
+                                                AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 
+                                                AND RIBB.DTA_DL_YN = 'N'
                                     LEFT OUTER JOIN TB_RVCL_ITG_BIL_OJ_ERR_IZ RIEI
                                                  ON RIEI.DG_CNTR_NO = RIBB.DG_CNTR_NO
                                                 AND RIEI.DG_CNTR_SN = RIBB.DG_CNTR_SN
@@ -292,6 +308,7 @@
                                                   , SCSB.BNK_CD
                                                   , SCSB.CDCO_CD 
                                                   , SCSB.ACNO_ENCR
+                                                  , SCSB.CRCDNO_ENCR
                                                   , SCSB.OWR_KNM    
                                                   , SCSB.MPY_BSDT
                                                   , RIEI.ITG_BIL_PRTC_DTM   
@@ -299,15 +316,19 @@
                                                   , RIEI.AFTN_ITG_UNRG_RS_CD    
                                                   , RIEI.AFTN_ITG_UNRG_RSON_CD  
                                                   , RIEI.ERR_CN 
-                                               FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
-                                               JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                                 ON RIBB.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO 
-                                                AND RIBB.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN 
-                                                AND RIBB.DTA_DL_YN = 'N'
-                                                AND SCSR.DTA_DL_YN = 'N'
-                                               JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                                 ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+                                               FROM TB_SSCT_CNTR_STLM_BAS SCSB
+                                               JOIN TB_SSCT_CNTR_BAS SCB
+                                                 ON SCSB.CST_NO = SCB.CNTR_CST_NO 
+                                                AND SCSB.CNTR_NO = SCB.CNTR_NO 
                                                 AND SCSB.DTA_DL_YN = 'N'
+                                                AND SCB.DTA_DL_YN = 'N'
+                                               JOIN TB_SSCT_CNTR_DTL SCD
+                                                 ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                                AND SCD.DTA_DL_YN = 'N'
+                                               JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
+                                                 ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
+                                                AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 
+                                                AND RIBB.DTA_DL_YN = 'N'
                                     LEFT OUTER JOIN TB_RVCL_ITG_BIL_OJ_ERR_IZ RIEI
                                                  ON RIEI.SUBOD_CNTR_NO = RIBB.SUBOD_CNTR_NO
                                                 AND RIEI.SUBOD_CNTR_SN = RIBB.SUBOD_CNTR_SN
@@ -329,9 +350,8 @@
                                 ON SCD.CNTR_NO = T1.DG_CNTR_NO
                                AND SCD.CNTR_SN = T1.DG_CNTR_SN
                              WHERE 1 = 1
-                               <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-                               AND T1.DG_CNTR_NO = #{cntrNo}
-                               AND T1.DG_CNTR_SN = #{cntrSn}
-                                </if>
+                               <if test='@MybatisUtils@isNotEmpty(cntr)'>
+                               AND T1.DG_CNTR_NO || T1.DG_CNTR_SN LIKE '%' || #{cntr} 
+                               </if>
     </select>
 </mapper>

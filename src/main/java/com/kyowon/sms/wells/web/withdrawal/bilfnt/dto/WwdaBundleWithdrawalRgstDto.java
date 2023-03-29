@@ -1,5 +1,9 @@
 package com.kyowon.sms.wells.web.withdrawal.bilfnt.dto;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 
 public class WwdaBundleWithdrawalRgstDto {
@@ -7,9 +11,7 @@ public class WwdaBundleWithdrawalRgstDto {
     @ApiModel("WwdaBundleWithdrawalRgstDto-SearchReq")
     public record SearchReq(
         String unrgRs, // 대상구분, 처리결과
-        String fullCntr, // 계약상세번호
-        String cntrNo, // 계약상세
-        String cntrSn, // 계약상세일련번호
+        String cntr, // 계약상세번호
         String cntrPdStrtdt, // 접수시작일
         String cntrPdEnddt // 접수종료일
 
@@ -30,6 +32,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String acnoEncr, // 이체번호
         String owrKnm, // 이체 소유주명
         String mpyBsdt, // 이체일자
+        String bryyMmdd, //이체 인증번호
 
         String sdingCntrSn, // 모종주문번호
         String sdingDpTpCd, // 이체구분
@@ -38,8 +41,15 @@ public class WwdaBundleWithdrawalRgstDto {
         String sdingBnkNm, // 이체기관명
         String sdingAcnoEncr, // 이체번호
         String sdingOwrKnm, // 이체 소유주명
-        String sdingMpyBsdt // 이체일자
-    ) {}
+        String sdingMpyBsdt, // 이체일자
+        String sdingBryyMmdd //이체 인증번호
+    ) {
+        public SearchUnrgPsRes {
+            acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr;
+            sdingAcnoEncr = StringUtils.isNotEmpty(sdingAcnoEncr) ? DbEncUtil.dec(sdingAcnoEncr) : sdingAcnoEncr;
+        }
+
+    }
 
     @ApiModel("WwdaBundleWithdrawalRgstDto-SearchRgstHistRes")
     public record SearchRgstHistRes(
@@ -69,6 +79,12 @@ public class WwdaBundleWithdrawalRgstDto {
         String sdingMpyBsdt, //이체일자
         String sdingBryyMmdd //이체 인증번호
 
-    ) {}
+    ) {
+        public SearchRgstHistRes {
+            acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr;
+            sdingAcnoEncr = StringUtils.isNotEmpty(sdingAcnoEncr) ? DbEncUtil.dec(sdingAcnoEncr) : sdingAcnoEncr;
+        }
+
+    }
 
 }
