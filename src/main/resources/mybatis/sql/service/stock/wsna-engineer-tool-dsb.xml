@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEngineerToolDsbMapper">
+    <select id="selectEngrToolDsbHist" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDsbDto$SearchRes">
+
+    </select>
+
+    <select id="selectEngineerToolParts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDsbDto$SearchPartsRes">
+        SELECT A.SVPD_SAP_CD
+             , A.SVPD_PD_CD
+             , A.SVPD_NM_ABBR1
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) A
+         WHERE A.SVPD_ITEM_KND = '10'
+           AND A.SVPD_USE_YN = 'Y'
+    </select>
+
+    <insert id="insertEngineerToolsDsb">
+        INSERT INTO TB_SVST_EGER_TOOL_DSB_IZ
+             ( OG_TP_CD
+             , EGER_PRTNR_NO
+             , TOOL_PD_CD
+             , DSB_SN
+             , TOOL_QTY
+             , PYMDT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+             )
+        <foreach collection="egerPrtnrNo" item="egerPrtnrNo" separator=" UNION ALL">
+            <foreach collection="pdCd" item="pdCd" separator=" UNION ALL">
+                SELECT 'W06'
+                     , #{egerPrtnrNo}
+                     , #{pdCd}
+                     , (SELECT NVL(MAX(T1.DSB_SN), 0) + 1
+                          FROM TB_SVST_EGER_TOOL_DSB_IZ T1
+                         WHERE T1.OG_TP_CD = 'W06'
+                           AND T1.EGER_PRTNR_NO = #{egerPrtnrNo}
+                           AND T1.TOOL_PD_CD = TO_NUMBER(#{pdCd})
+                       )
+                     , 1
+                     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                     , 'N'
+                     <include refid="COMMON.insertSystemFieldValue"/>
+                  FROM DUAL
+                </foreach>
+        </foreach>
+    </insert>
+</mapper>
