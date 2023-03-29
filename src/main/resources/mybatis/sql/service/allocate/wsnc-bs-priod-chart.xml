@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBSPeriodChartMapper">
+    <select id="selectPeriodChartBaseInfo"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBSPeriodChartDto$SearchBaseInfoRes">
+        /* -> V_AC201_BS_GB1 */
+        /* BFSVC_SPP_STP_RSON_CD != '00'일 경우 Process End! */
+        SELECT TB_1.CNTR_NO
+             , TB_1.CNTR_SN
+             , TB_2.BFSVC_SPP_STP_RSON_CD
+             , TB_3.SELL_TP_CD
+             , TB_2.SV_PD_CD
+             , TB_2.PDCT_PD_CD
+             , TB_4.IST_DT
+             , CEIL(MONTHS_BETWEEN(SUBSTR(TB_3.CNTR_PD_STRTDT,1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS
+             , (
+                 CASE WHEN TB_3.SELL_TP_CD = 3 THEN TB_3.CNTR_PD_STRTDT
+                      ELSE ''
+                      END
+               ) AS CNTR_PD_STRTDT
+          FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL TB_1
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_2
+         ON (
+                TB_1.CNTR_NO = TB_2.CNTR_NO
+            AND TB_1.CNTR_SN = TB_2.CNTR_SN
+         )
+         INNER JOIN TB_SSCT_CNTR_DTL TB_3
+         ON (
+                TB_1.CNTR_NO = TB_3.CNTR_NO
+            AND TB_1.CNTR_SN = TB_3.CNTR_SN
+         )
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL TB_4
+         ON (
+                TB_1.CNTR_NO = TB_4.CNTR_NO
+            AND TB_1.CNTR_SN = TB_4.CNTR_SN
+         )
+         WHERE 1=1
+           AND TB_1.CNTR_NO = #{cntrNo}
+           AND TB_1.CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBSPeriodChartBs03_02" resultType="java.lang.String">
+        /* 로직 미확정 */
+        /* -> CHEK_COCK_YN */
+        SELECT NVL(
+                   (SELECT 'Y'
+                      FROM LC_ALLOCATE_AC201TB
+                     WHERE 1=1
+                       AND AC201_CSMR_YR = P_CSMR_YR
+                       AND AC201_CSMR_CD = P_CSMR_CD
+                       AND AC201_CSMR_SEQ = P_CSMR_SEQ
+                       AND AC201_GDS_CD IN ('42240000000', '42251000000' , '42261000000')
+                       AND AC201_BARCODE NOT LIKE '8%'  --8로 시작하는 바코드 체계를 분석할 방법이 없음
+                       AND (CASE /*교원재발행 바코드 --47246건*/
+                                 WHEN SUBSTR(AC201_BARCODE,5,2) = 'ZZ' THEN SUBSTR(AC201_BARCODE,7,6) || LPAD(SUBSTR(AC201_BARCODE,13,4),5, '0')
+                                 /*교원재발행 바코드가 아니고 16자리인 바코드 --56401건*/
+                                 WHEN SUBSTR(AC201_BARCODE,5,2) != 'ZZ' AND LENGTH(AC201_BARCODE) = 16 THEN SUBSTR(AC201_INST_DT,3,6) || LPAD(SUBSTR(AC201_BARCODE,13,4),5,'0')
+                                 /*18자리 바코드 인데 10번째 자리(년도)가 영문이 아닌 건 --13건 */
+                                 WHEN LENGTH(AC201_BARCODE) = 18 AND SUBSTR(AC201_BARCODE,10,1) NOT IN ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z') THEN SUBSTR(AC201_INST_DT,3,6) || LPAD(SUBSTR(AC201_BARCODE,15,4),5,'0')
+                                 /*18자리 정상 바코드인건*/
+                                 WHEN LENGTH(AC201_BARCODE) = 18 THEN (CASE SUBSTR(AC201_BARCODE,LENGTH(AC201_BARCODE)-8,1) WHEN 'A' THEN '09'
+                                                                                                                            WHEN 'B' THEN '10'
+                                                                                                                            WHEN 'C' THEN '11'
+                                                                                                                            WHEN 'D' THEN '12'
+                                                                                                                            WHEN 'E' THEN '13'
+                                                                                                                            WHEN 'F' THEN '14'
+                                                                                                                            WHEN 'G' THEN '15'
+                                                                                                                            WHEN 'H' THEN '16'
+                                                                                                                            WHEN 'J' THEN '17'
+                                                                                                                            WHEN 'K' THEN '18'
+                                                                                                                            WHEN 'L' THEN '19'
+                                                                                                                            WHEN 'M' THEN '20'
+                                                                                                                            WHEN 'N' THEN '21'
+                                                                                                                            ELSE SUBSTR(AC201_BARCODE,LENGTH(AC201_BARCODE)-8,1)
+                                                                       END) ||
+                                                                               (CASE SUBSTR(AC201_BARCODE,LENGTH(AC201_BARCODE)-7,1) WHEN 'A' THEN '10'
+                                                                                                                                     WHEN 'B' THEN '11'
+                                                                                                                                     WHEN 'C' THEN '12'
+                                                                                                                                     ELSE LPAD(SUBSTR(AC201_BARCODE,LENGTH(AC201_BARCODE)-7,1),2,'0')
+                                                                                END) || SUBSTR(AC201_BARCODE,LENGTH(AC201_BARCODE)-6,7)
+                                 ELSE SUBSTR(AC201_INST_DT,3,6) || '00001'
+                            END) <![CDATA[ < ]]> (CASE WHEN AC201_GDS_CD = '42240000000' THEN '17092500068'
+                                         WHEN AC201_GDS_CD = '42251000000' THEN '18022300001'
+                                         WHEN AC201_GDS_CD = '42261000000' THEN '17101800001'
+                                    END))
+               , 'N')
+          INTO CHEK_COCK_YN
+          FROM DUAL
+    </select>
+
+    <select id="selectBSPeriodChartBs03_03" resultType="java.lang.String">
+        /* 로직 미확정 */
+        /*19.02.25 신안보건소 건이라면 강제 택배 세팅*/
+        /* -> CHEK_VST_GB_20 */
+        SELECT (CASE WHEN DB2_ICDE IN ('4401', '4403', '4036', '4046', '4016') THEN 'Y'
+                      WHEN DB2_ICDE = '4013' AND (SELECT AC201_CYCL_TYP
+                                                    FROM LC_ALLOCATE_AC201TB
+                                                   WHERE 1=1
+                                                     AND AC201_CSMR_YR = P_CSMR_YR
+                                                     AND AC201_CSMR_CD = P_CSMR_CD
+                                                     AND AC201_CSMR_SEQ = P_CSMR_SEQ) = '6M1' THEN 'Y'
+                      WHEN V_AC201_BS_GB1 = '02' THEN 'Y'
+                      WHEN (SELECT COUNT(1)
+                              FROM LC_ALLOCATE_AC201TB
+                             WHERE 1=1
+                               AND AC201_CSMR_YR = P_CSMR_YR
+                               AND AC201_CSMR_CD = P_CSMR_CD
+                               AND AC201_CSMR_SEQ = P_CSMR_SEQ
+                               AND AC201_GDS_CD IN ('43072000000')
+                               AND AC201_ZIP_NO1 = '588'
+                               AND AC201_MGT_GB = '1'
+                               ) > 0 THEN 'Y'
+                      ELSE CHEK_VST_GB_20
+                 END) AS CHEK_VST_GB_20
+           FROM DUAL
+    </select>
+
+    <select id="selectBSPeriodChartBs03_04" resultType="java.lang.Integer">
+        /* 방문기준 차월수 */
+        /* -> CHEK_CYCL_MTHS */
+        SELECT MIN(VST_NMN_N)
+          FROM TB_PDBS_RGBS_WK_BASE_DTL
+         WHERE 1=1
+           AND PDCT_PD_CD = #{pdctPdCd} /* selectBSPeriodChartBs03_01의 결과 */
+           AND SV_PD_CD = #{svPdCd} /* selectBSPeriodChartBs03_01의 결과 */
+         GROUP BY SV_PD_CD, PDCT_PD_CD
+    </select>
+
+    <select id="selectBSPeriodChartBs03_05" resultType="java.lang.String">
+        /* 주기표상 마지막 방문일자 */
+        /* 기존 주기표가 만들어진 계약건이라면 주기표상 마지막 일자를 가져옴 */
+        /* -> V_VS107_WRK_DT */
+        SELECT NVL((
+                    SELECT MAX(WK_DT) AS MAX_VS107_WRK_DT
+                      FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                     WHERE 1=1
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}), '') AS V_VS107_WRK_DT
+          FROM DUAL
+    </select>
+
+    <select id="selectBSPeriodChartBs03_06"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBSPeriodChartDto$Search06Res">
+        /* 해당 결과가 WORK_X 로 Loop를 수행한다. */
+        /* SV_PD_CD, PDCT_PD_CD는 selectBSPeriodChartBs03_01 의 결과로 수행한다. */
+        SELECT VST_NMN_N
+             , TOT_STPL_MCN
+          FROM TB_PDBS_RGBS_WK_BASE_DTL
+         WHERE 1=1
+           AND SV_PD_CD = #{svPdCd}
+           AND PDCT_PD_CD = #{pdctPdCd}
+         ORDER BY SV_PD_CD, PDCT_PD_CD, VST_NMN_N, DTL_SN
+    </select>
+
+    <select id="selectBSPeriodChartBs03_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBSPeriodChartDto$Search07Res">
+        SELECT DISTINCT *
+          FROM (
+                SELECT VST_NMN_N     AS VST_MTHS
+                     , (CASE WHEN SV_BIZ_DCLSF_CD = '2167'    /*BA04 2167 업무유형(세분류) 피팅+코크팁*/
+                              AND #{chekCockYn} = 'Y'
+                             THEN '2131'                        /*BA04  2131     업무유형(세분류)  피팅부작업*/
+                             WHEN SV_BIZ_DCLSF_CD = '2166'
+                              AND #{chekCockYn} = 'Y'
+                             THEN '9999'
+                             ELSE SV_BIZ_DCLSF_CD
+                        END)  AS WRK_TYP_DTL
+                     , FILT_CHNG_LV_CD     AS CHNG_STG
+                     , 'ITM_KND_CD'     AS ITEM_KND /* part master - SVPD_ITEM_KND */
+                     , (CASE WHEN PART_PD_CD = '43080111031' AND 'DB2_ICDE:cherro:기간계 상품코드' IN ('4401', '4403','4036','4046') THEN '43080111051'
+                             WHEN PART_PD_CD = '43080111020' AND 'DB2_ICDE:cherro:기간계 상품코드' IN ('4401', '4403','4036','4046') THEN '43080111060'
+                             ELSE PART_PD_CD
+                        END) AS PART_CD
+                     , PART_USE_QTY          AS QTY
+                     , VST_DV_CD       AS VST_GB
+                  FROM TB_PDBS_RGBS_WK_BASE_DTL
+                 WHERE 1=1
+                  /* AND 'PRD_RFLT_YN'   = 'Y' */ /* cherro ::: 주기반영여부 컬럼 없음. */
+                   AND PDCT_PD_CD = #{pdctPdCd}
+                   AND SV_PD_CD = #{svPdCd}
+               )
+         WHERE 1=1
+           AND WRK_TYP_DTL != '9999'
+         ORDER
+            BY VST_MTHS
+             , WRK_TYP_DTL DESC
+             , CHNG_STG
+    </select>
+
+    <select id="selectBSPeriodChartBs03_08" resultType="java.lang.Integer">
+        SELECT NVL((SELECT COUNT(1)
+                      FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                     WHERE CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND SV_BIZ_DCLSF_CD IN ('2120', '2138')), 0) AS WRK_TYP_DTL_CNT
+          FROM DUAL
+    </select>
+
+    <select id="selectBSPeriodChartBs03_09" resultType="java.lang.Integer">
+        SELECT NVL((
+                    SELECT COUNT(1)
+                      FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                     WHERE CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND SV_BIZ_DCLSF_CD = '2120'
+                   ),0) AS WRK_TYP_DTL_CNT
+           FROM DUAL
+    </select>
+
+    <select id="selectBSPeriodChartBs03_10" resultType="java.lang.String">
+        WITH TB_CAL AS (
+            SELECT TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD') AS TARGET_DT
+                 , SUBSTR(TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD'), 1, 4) AS BASE_Y
+                 , SUBSTR(TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD'), 5, 2) AS BASE_MM
+                 , SUBSTR(TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD'), 7, 2) AS BASE_D
+              FROM DUAL
+             WHERE 1=1
+             CONNECT BY LEVEL <![CDATA[ < ]]> 10
+        )
+        SELECT MIN(TB_1.TARGET_DT) AS TARGET_DT
+          FROM TB_CAL TB_1
+        LEFT OUTER JOIN TB_SVPD_SV_CLND_BAS TB_2
+        ON (
+               TB_1.BASE_Y = TB_2.BASE_Y
+           AND TB_1.BASE_MM = TB_2.BASE_MM
+           AND TB_1.BASE_D = TB_2.BASE_D
+        )
+         WHERE 1=1
+           AND (TB_2.DF_YN != 'Y' OR TB_2.DF_YN IS NULL)
+    </select>
+
+    <select id="selectBSPeriodChartBs03_11" resultType="java.lang.String">
+        SELECT NVL(
+                   (
+                    SELECT VST_PROM_DT
+                      FROM (
+                            SELECT CNTR_NO, CNTR_SN, VST_PROM_DT, SAVE_SN
+                                 , RANK() OVER (PARTITION BY CNTR_NO, CNTR_SN ORDER BY SAVE_SN DESC) AS RN
+                              FROM (
+                                    SELECT CNTR_NO, CNTR_SN, VST_PROM_DT, SAVE_SN
+                                      FROM TB_SVPD_BFSVC_NX_VST_PROM_IZ
+                                     WHERE 1=1
+                                       AND CNTR_NO = #{cntrNo}
+                                       AND CNTR_SN = #{cntrSn}
+                                       AND SUBSTR(VST_PROM_DT,1,6) = SUBSTR(#{chekVstDt},1,6)
+                                   )
+                           )
+                     WHERE 1=1
+                       AND RN =1
+                   ), '') AS V_VS104_CFRM_DT
+          FROM DUAL
+    </select>
+
+    <select id="selectBSPeriodChartBs03_12" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+    </select>
+
+    <select id="selectBSPeriodChartBs03_13" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ TB_1
+         INNER JOIN TB_SVPD_CNTR_PDCT_IST_LCT_DTL TB_2
+         ON (
+                TB_1.CNTR_NO = TB_2.CNTR_NO
+            AND TB_1.CNTR_SN = TB_2.CNTR_SN
+         )
+         WHERE 1=1
+           AND TB_1.CNTR_NO = #{cntrNo}
+           AND TB_1.CNTR_SN = #{cntrSn}
+           AND TB_1.SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+           /* AND NOT (AC201_GDS_CD = '49240000000' AND AC201_CYCL_TYP = '6M3') */
+           AND NOT (TB_1.PART_PD_CD = '49240000000')
+    </select>
+
+    <select id="selectBSPeriodChartBs03_14" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+               FROM TB_SVPD_CST_SV_RGBSPR_IZ
+              WHERE CNTR_NO = #{cntrNo}
+                AND CNTR_SN = #{cntrSn}
+                AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+    </select>
+
+    <select id="selectBSPeriodChartBs03_15" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS V_CHK_2178
+          FROM TB_SVST_SV_WK_OSTR_IZ
+         WHERE 1=1
+           AND ITM_PD_CD = '49280251080'   /*49280251080 CERAMIC GLASS ASSY RK1B1*/
+           AND REFRI_DV_CD = '1'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBSPeriodChartBs03_16" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+           AND #{pdctPdCd} IN ('49431000000', '49432000000', '49433000000', '49434000000', '49435000000', '49436000000')
+    </select>
+
+    <select id="selectBSPeriodChartBs03_17" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS V_CHK_2178
+          FROM TB_SVST_SV_WK_OSTR_IZ
+         WHERE 1=1
+           AND ITM_PD_CD IN ('49431812020', '49432812020', '49433812020', '49434812020', '49435812020', '49436812020')
+           AND REFRI_DV_CD = '1'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBSPeriodChartBs03_18" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+           AND #{pdctPdCd} IN ( '49401000000'      /*일반탑퍼 퀸 스프링침대*/
+                           , '49402000000'        /*일반탑퍼 슈퍼싱글 스프링침대*/
+                           , '49403000000'        /*일반탑퍼 슈퍼싱글 스프링 아동용침대*/
+                           , '49404000000'        /*에어탑퍼 퀸 스프링*/
+                           , '49406000000'        /*에어탑퍼(아동겸용) 슈퍼싱글 스프링*/
+                           , '49429000000'        /*에어탑퍼(단품판매) 퀸 스프링*/
+                           , '49430000000'        /*에어탑퍼(단품판매) 슈퍼싱글*/
+                           )
+    </select>
+
+    <select id="selectBSPeriodChartBs03_19" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS V_CHK_2178
+          FROM TB_SVST_SV_WK_OSTR_IZ
+         WHERE 1=1
+           AND ITM_PD_CD IN (
+                                 '49401812010'  /*일반탑퍼 퀸 교체용  BS*/
+                               , '49401812011'   /*일반탑퍼 퀸 교체용 탑퍼+커버  BS*/
+                               , '49402812010'   /*일반탑퍼 슈퍼싱글 교체용  BS*/
+                               , '49402812011'   /*일반탑퍼 슈퍼싱글 교체용 탑퍼+커버  BS*/
+                               , '49403812010'   /*일반탑퍼 슈퍼싱글 아동용 교체용  BS*/
+                               , '49403812011'   /*일반탑퍼 슈퍼싱글 아동용 교체용 탑퍼+커버  BS*/
+                                )
+           AND REFRI_DV_CD = '1'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBSPeriodChartBs03_20" resultType="java.lang.String">
+        SELECT (CASE WHEN (SELECT COUNT(1)
+                             FROM TB_PDBS_LVLH_CSTMW_FILT_BASE
+                            WHERE PDCT_PD_CD = #{pdctPdCd}
+                              AND SV_PD_CD = #{svPdCd}
+                              AND VST_DV_CD = #{vstGb}
+                              AND PART_PD_CD = #{partCd}
+                          ) > 0  THEN (SELECT PART_PD_CD
+                                         FROM TB_PDBS_LVLH_CSTMW_FILT_BASE
+                                        WHERE PDCT_PD_CD = #{pdctPdCd}
+                                          AND SV_PD_CD = #{svPdCd}
+                                          AND PRD_MM_VAL = SUBSTR(#{chekVstDt},5,2)
+                                          AND VST_DV_CD= #{vstGb}
+                                        )
+                     ELSE ''
+                END) AS NEW_PART_CD
+          FROM DUAL
+    </select>
+
+    <select id="selectBSPeriodChartBs03_21" resultType="java.lang.String">
+        SELECT NVL(
+                   (
+                    SELECT (
+                            SELECT MAX(PART_PD_CD)
+                              FROM TB_PDBS_LVLH_CSTMW_FILT_BASE
+                             WHERE 1=1
+                               AND PDCT_PD_CD = #{pdctPdCd}
+                               AND VST_DV_CD = #{newVstGb}
+                               AND SV_PD_CD = #{svPdCd}
+                               AND FILT_CMU_CDV =
+                                              (SELECT MAX(FILT_CMU_CDV)
+                                                 FROM TB_PDBS_LVLH_CSTMW_FILT_BASE
+                                                WHERE 1=1
+                                                  AND PART_PD_CD = CSTMW_FILT_PD_CD))
+                      FROM (
+                            SELECT CSTMW_FILT_PD_CD
+                                 , RANK() OVER (PARTITION BY CNTR_NO, CNTR_SN ORDER BY SAVE_SN DESC) AS RN
+                              FROM (
+                                    SELECT CNTR_NO, CNTR_SN, VST_PROM_DT, CSTMW_FILT_PD_CD, SAVE_SN
+                                      FROM TB_SVPD_BFSVC_NX_VST_PROM_IZ
+                                     WHERE 1=1
+                                       AND CNTR_NO = #{cntrNo}
+                                       AND CNTR_SN = #{cntrSn}
+                                       AND CSTMW_FILT_PD_CD IS NOT NULL
+                                       AND #{chekVstDt} >= TO_CHAR(ADD_MONTHS(FST_RGST_DTM,1), 'YYYYMM') || '01'  /*주기가 변경 되는 경우가 있어서*/
+                                       AND #{newPartCd} IN (SELECT PART_PD_CD
+                                                             FROM TB_PDBS_LVLH_CSTMW_FILT_BASE
+                                                            WHERE 1=1
+                                                          )
+                                   )
+                           )
+                     WHERE 1=1
+                       AND RN =1
+                   ), '') AS V_VS104_CSTM_FLTR
+          FROM DUAL
+    </select>
+
+    <insert id="insertBSPeriodChart">
+        INSERT INTO TB_SVPD_CST_SV_RGBSPR_IZ (
+              CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , VST_DUEDT
+            , SV_BIZ_DCLSF_CD
+            , FILT_CHNG_LV_CD
+            , IST_NMN_N
+            , VST_NMN_N
+            , ITM_KND_CD
+            , PART_PD_CD
+            , PART_USE_QTY
+            , VST_DV_CD
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , SUBSTR(#{newWrkTypDtl}, 1, 2)
+            , #{newWrkTypDtl}
+            , (
+                SELECT NVL(MAX(TEMP.WK_SN) + 1, 1) AS WK_SN
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.CNTR_NO = #{cntrNo}
+                   AND TEMP.CNTR_SN = #{cntrSn}
+                   AND TEMP.SV_BIZ_MCLSF_CD = SUBSTR(#{newWrkTypDtl}, 1, 2)
+                   AND TEMP.SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+              )
+            , #{chekVstDt}
+            , #{newWrkTypDtl}
+            , #{C1.chngStg}
+            , #{chekInstMths}
+            , #{chekCyclMths}          /* CHEK_VST_MTHS -> vstNmnN */
+            , #{C1.itemKnd}
+            , #{newPartCd}
+            , #{C1.qty}
+            , #{newVstGb}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , 'BS03'
+            , #{session.departmentId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , 'BS03'
+            , #{session.departmentId}
+        )
+    </insert>
+
+    <insert id="insertBSPeriodChartError">
+        INSERT INTO TB_SVPD_RGBSPR_CHT_CRT_ERR_IZ(
+              CNTR_NO
+            , CNTR_SN
+			, CRT_ERR_CN
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        ) VALUES(
+              #{cntrNo}
+            , #{cntrSn}
+            , #{crtErrCn}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , 'BS03'
+            , #{session.departmentId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , 'BS03'
+            , #{session.departmentId}
+        )
+    </insert>
+
+    <select id="selectPriorityVstDt" resultType="java.lang.String">
+        WITH TB_BASE_INFO AS (
+            SELECT CNTR_NO
+                 , CNTR_SN
+                 , SV_HSHD_NO -- 서비스가구번호 (동일한 주소인지 찾아본다.)
+                 , SV_PD_CD
+                 , PDCT_PD_CD
+              FROM TB_SVPD_CST_SV_EXCN_IZ
+             WHERE 1=1
+               AND CNTR_NO = #{cntrNo}
+               AND CNTR_SN = #{cntrSn}
+        )
+        , TB_VST_NMN_N AS (
+            SELECT MIN(VST_NMN_N) AS VST_NMN_N
+                 , #{cntrNo} AS CNTR_NO
+                 , #{cntrSn} AS CNTR_SN
+              FROM TB_PDBS_RGBS_WK_BASE_DTL TB_VST_NMN_N
+                 , TB_BASE_INFO TB_BASE_INFO
+             WHERE 1=1
+               AND TB_VST_NMN_N.SV_PD_CD = TB_BASE_INFO.SV_PD_CD
+               AND TB_VST_NMN_N.PDCT_PD_CD = TB_BASE_INFO.PDCT_PD_CD
+        )
+        , TB_VST_DT AS (
+            SELECT TB_VST_NMN_N.CNTR_NO
+                 , TB_VST_NMN_N.CNTR_SN
+                 , TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N), 'YYYYMM') AS DT
+                 , (
+                     CASE WHEN TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N - 3), 'YYYYMM') <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                          THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM')
+                          ELSE TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N - 3), 'YYYYMM')
+                          END
+                   ) AS ST_DT /* 현재월 이후(현재월은 미포함.) */
+                 , TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N + 3), 'YYYYMM') AS ED_DT
+              FROM TB_VST_NMN_N TB_VST_NMN_N
+        )
+        SELECT MIN(TB_2.VST_DUEDT) AS VST_DUEDT
+          FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+         INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ TB_2
+         ON (
+                TB_1.CNTR_NO = TB_2.CNTR_NO
+            AND TB_1.CNTR_SN = TB_2.CNTR_SN
+         )
+         INNER JOIN TB_BASE_INFO TB_3
+         ON (
+                TB_1.CNTR_NO = TB_3.CNTR_NO
+            AND TB_1.CNTR_SN = TB_3.CNTR_SN
+            AND TB_1.SV_HSHD_NO = TB_3.SV_HSHD_NO
+         )
+         INNER JOIN TB_VST_DT TB_4
+         ON (
+                TB_1.CNTR_NO = TB_4.CNTR_NO
+            AND TB_1.CNTR_SN = TB_4.CNTR_SN
+         )
+         WHERE 1=1
+           AND TB_2.VST_DUEDT BETWEEN (TB_4.ST_DT || '01') AND (TB_4.ED_DT || '32')
+    </select>
+
+    <select id="selectPriorityVstDiff" resultType="java.lang.Integer">
+        SELECT TRUNC(MONTHS_BETWEEN(SUBSTR(TO_CHAR(ADD_MONTHS(SYSDATE, #{chekCyclMths}), 'YYYYMMDD'), 1, 6) || '01', SUBSTR(#{priorityVstDt}, 1, 6) || '01')) AS PRIORITY_VST_DIFF
+          FROM DUAL
+    </select>
+
+</mapper>
