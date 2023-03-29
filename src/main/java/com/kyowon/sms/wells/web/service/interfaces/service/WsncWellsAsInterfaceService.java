@@ -1,8 +1,8 @@
-package com.kyowon.sms.wells.web.service.allocate.service;
+package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncWellsAsInterfaceConverter;
+import com.kyowon.sms.wells.web.service.interfaces.converter.WsncWellsAsInterfaceConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncWellsAsInterfaceMapper;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsncWellsAsInterfaceMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;

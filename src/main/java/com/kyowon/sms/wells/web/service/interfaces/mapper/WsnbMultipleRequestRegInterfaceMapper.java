@@ -1,4 +1,5 @@
-package com.kyowon.sms.wells.web.service.visit.mapper;
+package com.kyowon.sms.wells.web.service.interfaces.mapper;
+
 
 import org.apache.ibatis.annotations.Mapper;
 

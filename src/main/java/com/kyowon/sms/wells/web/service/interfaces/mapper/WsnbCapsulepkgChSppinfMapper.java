@@ -1,11 +1,11 @@
-package com.kyowon.sms.wells.web.service.visit.mapper;
+package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
 
 /**
  * <pre>

@@ -1,12 +1,12 @@
-package com.kyowon.sms.wells.web.service.visit.service;
+package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbCapsulepkgChSppinfMapper;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbCapsulepkgChSppinfMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
