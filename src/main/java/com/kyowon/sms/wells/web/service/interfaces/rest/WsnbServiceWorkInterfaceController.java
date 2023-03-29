@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 // TODO: API 스펙 확인 후 수정 필요
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 타시스템용 설치/AS/BS/홈케어 서비스 작업 오더 생성")
-@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "service-works")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/service-works")
 //@Api(tags = "[WSNB] 타시스템용 설치/AS/BS/홈케어 서비스 작업 오더 생성 API")
 @RequiredArgsConstructor
 @Validated
