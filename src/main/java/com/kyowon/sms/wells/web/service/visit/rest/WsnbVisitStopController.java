@@ -22,8 +22,8 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/visit-stop-inquiry")
-public class WsnbVisitStopInquiryController {
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/visit-stops")
+public class WsnbVisitStopController {
 
     private final WsnbVisitStopInquiryService service;
 
