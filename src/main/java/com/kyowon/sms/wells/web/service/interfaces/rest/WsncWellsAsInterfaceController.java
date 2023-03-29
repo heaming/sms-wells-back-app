@@ -17,8 +17,8 @@ import javax.validation.Valid;
 import java.util.List;
 
 @InterfaceController
-@RequestMapping(SnServiceConst.INTERFACE_URL_V1 + "/wells-as-interfaces")
-@Api(tags = "[WSNC] Wells 인터페이스 RESET API")
+@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/wells-as-interfaces")
 @RequiredArgsConstructor
 @Validated
 @Slf4j

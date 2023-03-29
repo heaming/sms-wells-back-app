@@ -20,8 +20,9 @@ import lombok.RequiredArgsConstructor;
 
 // TODO: API 스펙 확인 후 수정 필요
 @InterfaceController
-@RequestMapping(SnServiceConst.INTERFACE_URL_V1 + "multiple-request-registration")
-@Api(tags = "[WSNB] A/S, 분리, 재설치 및 설치정보 변경 등록 API")
+@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1+": A/S, 분리, 재설치 및 설치정보 변경 등록")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "multiple-request-registration")
+//@Api(tags = "[WSNB] A/S, 분리, 재설치 및 설치정보 변경 등록 API")
 @RequiredArgsConstructor
 @Validated
 public class WsnbMultipleRequestRegInterfaceController {
