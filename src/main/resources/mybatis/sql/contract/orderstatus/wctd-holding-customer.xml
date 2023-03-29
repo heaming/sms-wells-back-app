@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdHoldingCustomerMapper">
+
+    <select id="selectHoldingCustomerPages"
+            resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdHoldingCustomerDto$SearchRes">
+        SELECT T_CNTR_DTL.CNTR_NO
+             , T_CNTR_DTL.CNTR_SN
+             , T_CNTR.CNTR_CNFM_DTM
+             , T_PD.PD_NM
+             , T_CTT.CTT_RS_CD
+             , T_CTT.CTT_MO_CN
+             , CASE WHEN T_CTT.CTT_RS_CD IS NOT NULL THEN 'Y' WHEN T_CTT.CTT_RS_CD IS NULL THEN 'N' ELSE '' END AS T_CTT_YN
+             , T_PRTNR.OG_CD
+             , T_PRTNR.PRTNR_KNM
+             , T_CST.CST_KNM
+          FROM TB_SSCT_CNTR_DTL                                                                                           T_CNTR_DTL
+               INNER JOIN TB_SSCT_CNTR_BAS                                                                                T_CNTR
+               ON T_CNTR.CNTR_NO = T_CNTR_DTL.CNTR_NO
+              /*product FIXME: INNER*/
+               LEFT OUTER JOIN TB_PDBS_PD_BAS                                                                             T_PD
+               ON T_PD.PD_CD = T_CNTR_DTL.BASE_PD_CD
+              /*contact*/
+               LEFT OUTER JOIN TB_SSOP_CTT_DTL                                                                            T_CTT_DTL
+               ON T_CTT_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO AND T_CTT_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN AND T_CTT_DTL.CTT_OJ_ID
+                   = (SELECT MAX(CTT_OJ_ID)
+                        FROM TB_SSOP_CTT_DTL
+                       WHERE CNTR_NO = T_CTT_DTL.CNTR_NO AND CNTR_SN = T_CTT_DTL.CNTR_SN)
+               LEFT OUTER JOIN TB_SSOP_CTT_BAS                                                                            T_CTT
+               ON T_CTT.CTT_OJ_ID = T_CTT_DTL.CTT_OJ_ID
+              /*partner FIXME: INNER*/
+               LEFT OUTER JOIN TB_SSCT_CNTR_PRTNR_REL                                                                     T_PRTNR_REL /* inner */
+               ON T_PRTNR_REL.CNTR_NO = T_CNTR_DTL.CNTR_NO AND T_PRTNR_REL.CNTR_PRTNR_TP_CD = '010'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_PRTNR_REL.VL_STRT_DTM AND T_PRTNR_REL.VL_END_DTM
+               LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ                                                                        T_PRTNR /* inner */
+               ON T_PRTNR.BASE_YM = SUBSTR(T_CNTR.CNTR_RCP_FSH_DTM, 1, 6) AND T_PRTNR.OG_TP_CD = T_PRTNR_REL.OG_TP_CD
+                   AND T_PRTNR.PRTNR_NO = T_PRTNR_REL.PRTNR_NO
+              /*customer*/
+               INNER JOIN TB_CUBS_CST_BAS                                                                                 T_CST
+               ON T_CST.CST_NO = T_CNTR.CNTR_CST_NO
+         WHERE T_CNTR_DTL.SPP_DUEDT IS NULL
+           <if test="@MybatisUtils@isNotEmpty(cttYn)">
+               AND (('Y' = #{cttYn} AND T_CTT.CTT_RS_CD IS NOT NULL) OR ('N' = #{cttYn} AND T_CTT.CTT_RS_CD IS NULL)) /* 미설치, 미컨택*/
+           </if>
+           /* AND T_PRTNR.OG_CD = :부서코드  개발 시 테스트를 위하여 일시 조건 해제 */
+           <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+               AND T_CNTR.CNTR_RCP_FSH_DTM BETWEEN #{startDt} || '000000' AND #{endDt} || '235959'
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+               AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
+               AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
+           </if>
+         ORDER BY T_PRTNR.OG_CD
+                , T_PRTNR.PRTNR_NO DESC
+    </select>
+
+    <select id="imsi">
+        /*, T4.CTT_RS_CD || ' ' || F_CMZ_CD_NM(#{session.tenantId}, 'LC_CTT_RS_CD', T4.CTT_RS_CD) AS T_CTT_RS_CD_NM*/
+        /* AND T6.OG_CD = #{session.detpCd}  개발 시 테스트를 위하여 일시 조건 해제 */
+
+    </select>
+</mapper>
