@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaEngineerToolDsbDvo {
-    List<String> egerPrtnrNo;
-    List<String> pdCd;
+public class WsnaEngineerToolDvo {
+    List<String> egerPrtnrNos;
+    List<String> pdCds;
 }

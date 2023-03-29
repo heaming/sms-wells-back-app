@@ -2,9 +2,11 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
-public class WsnaEngineerToolDsbDto {
+public class WsnaEngineerToolDto {
     @ApiModel(value = "WsnaEngineerToolDsbDto-SearchReq")
     public record SearchReq(
 
@@ -24,7 +26,9 @@ public class WsnaEngineerToolDsbDto {
 
     @ApiModel(value = "WsnaEngineerToolDsbDto-CreateReq")
     public record CreateReq(
-        List<String> pdCd,
-        List<String> egerPrtnrNo
+        @NotBlank
+        List<String> pdCds,
+        @NotBlank
+        List<String> egerPrtnrNos
     ) {}
 }
