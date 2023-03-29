@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnbVisitStopInquiryDvo {
+public class WsnbVisitStopDvo {
     String cntrNo;
     int cntrSn;
     String apyDt;

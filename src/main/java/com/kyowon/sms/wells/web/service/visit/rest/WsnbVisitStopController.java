@@ -7,11 +7,11 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopInquiryDto.CreateReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopInquiryDto.SearchCodeReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopInquiryDto.SearchCodeRes;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopInquiryDto.SearchHistoryRes;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbVisitStopInquiryService;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopDto.CreateReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopDto.SearchCodeReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopDto.SearchCodeRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopDto.SearchHistoryRes;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbVisitStopService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/visit-stops")
 public class WsnbVisitStopController {
 
-    private final WsnbVisitStopInquiryService service;
+    private final WsnbVisitStopService service;
 
     @GetMapping("/{cntrNo}-{cntrSn}")
     public List<SearchCodeRes> getVisitStopCodes(

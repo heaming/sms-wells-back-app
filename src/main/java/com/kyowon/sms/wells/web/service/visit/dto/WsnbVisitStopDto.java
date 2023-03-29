@@ -4,7 +4,7 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsnbVisitStopInquiryDto {
+public class WsnbVisitStopDto {
     @ApiModel(value = "WsnbVisitStopInquiryDto-SearchCodeReq")
     public record SearchCodeReq(
         String cntrNo,
