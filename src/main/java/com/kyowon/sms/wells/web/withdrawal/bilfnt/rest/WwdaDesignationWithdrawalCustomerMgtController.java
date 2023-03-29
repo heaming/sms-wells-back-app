@@ -90,7 +90,7 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
             .build();
     }
 
-    @ApiOperation(value = "자동이체 지정 출금 고객 저장")
+    @ApiOperation(value = "자동이체 지정 출금 고객 삭제")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "W20220086004"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = false, example = "1"),
