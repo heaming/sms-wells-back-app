@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingIzDto.Product;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingIzDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingIzDto.SearchRes;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbServiceProcessingIzService;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.FindProductRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbServiceProcessingService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -24,17 +24,17 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/service-processing-itemizations")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/service-processing")
 @Api(tags = "[WSNB] 서비스처리 내역 REST API")
 @RequiredArgsConstructor
-public class WsnbServiceProcessingIzController {
+public class WsnbServiceProcessingController {
 
-    private final WsnbServiceProcessingIzService service;
+    private final WsnbServiceProcessingService service;
 
     @ApiOperation(value = "상품명 조회", notes = "특정 상품군에 속한 상품 목록을 조회한다.")
     @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "query", example = "1")
     @GetMapping("/products")
-    public List<Product> getProducts(@RequestParam
+    public List<FindProductRes> getProducts(@RequestParam
     String pdGrpCd) {
         return this.service.getProducts(pdGrpCd);
     }
@@ -55,12 +55,12 @@ public class WsnbServiceProcessingIzController {
         @ApiImplicitParam(name = "installBase", value = "설치기준", paramType = "query", example = "1"),
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getServiceProcessingItemizations(
+    public PagingResult<SearchRes> getServiceProcessings(
         SearchReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return this.service.getServiceProcessingItemizations(dto, pageInfo);
+        return this.service.getServiceProcessings(dto, pageInfo);
     }
 
 }

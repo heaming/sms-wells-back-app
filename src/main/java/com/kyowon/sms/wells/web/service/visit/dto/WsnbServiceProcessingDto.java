@@ -13,10 +13,10 @@ import io.swagger.annotations.ApiModel;
  * @author hyewon.kim
  * @since 2023.03.20
  */
-public class WsnbServiceProcessingIzDto {
+public class WsnbServiceProcessingDto {
 
-    @ApiModel("WsnbServiceProcessingIzDto-Product")
-    public record Product(
+    @ApiModel("WsnbServiceProcessingIzDto-FindProductRes")
+    public record FindProductRes(
         String codeId,
         String codeName
     ) {}
