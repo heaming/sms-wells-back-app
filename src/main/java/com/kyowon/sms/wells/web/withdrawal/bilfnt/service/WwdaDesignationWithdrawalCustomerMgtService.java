@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.bilfnt.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,6 @@ import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaDesignationWithdraw
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -73,26 +73,24 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
         int processCount = 0;
 
         for (SaveReq dto : req) {
-            int index = Integer.parseInt(dto.dataRow()) + 1;
+            String[] index = {String.valueOf(dto.dataRow() + 1)};
             WwdaDesignationWithdrawalCustomerMgtDvo dvo = converter
                 .mapSaveReqToWwdaDesignationWithdrawalCustomerMgtDvo(dto);
             // SearchContractDetailInfRes res = mapper.selectContractDetailInf(dvo); // 필요한지 모르곘음
             WwdaAutomaticFntOjYnConfDvo afyDvo = mapper.selectAutomaticFntOjYnConf(dvo); // 자동이체 대상 여부 확인
-            if (afyDvo == null) {
-                throw new BizException("계약번호를 확인해 주시기 바랍니다.");
-            }
-            if (!afyDvo.getDpTpCd().equals("0102") && !afyDvo.getDpTpCd().equals("0203")) {
-                throw new BizException(index + "번째 라인은 자동이체　대상고객이　아닙니다！");
-            }
-            if (!afyDvo.getFnitAprRsCd().equals("Y")) {
-                throw new BizException(index + " 번째 라인은  자동이체　계좌승인　고객이　아닙니다！");
-            }
+
+            BizAssert.isFalse(Objects.isNull(afyDvo), "MSG_ALT_CHK_CNTR_NO", index);
+
+            BizAssert.isFalse(
+                !afyDvo.getDpTpCd().equals("0102") && !afyDvo.getDpTpCd().equals("0203"),
+                "MSG_ALT_NOT_AFTN_OJ_CST", index
+            );
+            BizAssert.isFalse(!"Y".equals(afyDvo.getFnitAprRsCd()), "MSG_ALT_NOT_AC_FNT_APR", index);
+
             int igCount = mapper.selectItgWdrwRgstCstCk(dvo); // 통합청구 등록 고객 확인
-            if (igCount > 0) {
-                throw new BizException(index + " 번째 라인은  통합출금　등록　고객입니다！");
-            }
+            BizAssert.isFalse(igCount > 0, "MSG_ALT_ITG_WDRW_RGST_CST", index);
             WwdaAutomaticFntOjYnConfDvo bilVo = mapper.selectBilFntAkDtl(dvo);// 청구이체요청상세 조회
-            if (bilVo != null) {
+            if (!Objects.isNull(bilVo)) {
                 dvo.setBilNo(bilVo.getBilNo());
                 dvo.setBilDtlSn(bilVo.getBilDtlSn());
             }
@@ -104,11 +102,10 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
                         processCount += mapper.updateAutoFntDsnWdrwRelByPk(dvo); // 계좌이체지정출금관계 삭제된 데이터 'N'으로 변경 후 처리
                     } else {
                         int count = mapper.selectAcFntDsnWdrwBasCt(dvo); // 계좌 이체 지정 출금 기본 건수 조회
-                        if (count > 0) {
-                            throw new BizException(index + "번째 라인은 이미　등록된　고객입니다！");
-                        }
+                        BizAssert.isFalse(count > 0, "MSG_ALT_LINE_ALREADY_RGST_CST", index);
+
                         processCount += mapper.insertAutoFntDsnWdrwCstBas(dvo); // 계좌이체지정출금기본 저장
-                        if (dto.fntYn().equals("Y")) { // 신규이면서 이체구분이 'Y' 이면
+                        if ("1".equals(dto.fntYn())) { // 신규이면서 이체구분이 '1' 이면
                             int bilCount = mapper.selectBilFntAkCt(dvo); // 청구이체요청상세 , 청구이체요청기본 데이터 존재 여부
                             if (bilCount > 0) {
                                 processCount += mapper.insertAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 저장
@@ -147,12 +144,12 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
             if (bilVo != null) {
                 dvo.setBilNo(bilVo.getBilNo());
                 dvo.setBilDtlSn(bilVo.getBilDtlSn());
-                dvo.setDtaDlYn("Y");
             }
+            dvo.setDtaDlYn("Y");
             result += mapper.deleteAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 삭제
             result += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제 
             result += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
-            BizAssert.isTrue(result == 3, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
             processCount += result;
 
         }
