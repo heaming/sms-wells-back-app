@@ -1,0 +1,161 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbVisitStopMapper">
+    <select id="selectVisitStopCodes" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopDto$SearchCodeRes">
+        SELECT B.GBN_CD
+             , B.CODE
+             , B.CODE_NAME
+             , (CASE WHEN (SELECT COUNT(1)
+                             FROM TB_SVPD_CST_SV_RGBSPR_IZ RGB
+                            WHERE RGB.CNTR_NO = B.CNTR_NO
+                              AND RGB.CNTR_SN = B.CNTR_SN
+                              AND RGB.VST_DV_CD = '20') <![CDATA[>]]> 0
+                     THEN 'Y'
+                     ELSE 'N'
+                 END
+               ) AS TAKBE_YN
+             , NVL((SELECT (CASE WHEN T2.SPP_STP_DV_CD = B.GBN_CD
+                                      AND (T2.TN1_STP_YM = B.CODE
+                                           OR T2.TN2_STP_YM = B.CODE
+                                           OR T2.TN3_STP_YM = B.CODE
+                                           OR T2.TN4_STP_YM = B.CODE)
+                                 THEN 'Y'
+                                 ELSE 'N'
+                             END
+                           )
+                      FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ T2
+                     WHERE T2.CNTR_NO = B.CNTR_NO
+                       AND T2.CNTR_SN = B.CNTR_SN
+                       AND T2.AK_SN = (SELECT MAX(M.AK_SN)
+                                         FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ M
+                                        WHERE M.CNTR_NO = B.CNTR_NO
+                                          AND M.CNTR_SN = B.CNTR_SN
+                                      )
+                   ), 'N') AS CHECK_YN
+          FROM (
+                SELECT 'A' AS GBN_CD
+                     , SUBSTR(A.VST_DUEDT, 1, 6) AS CODE
+                     , SUBSTR(A.VST_DUEDT, 1, 4) || '년 '
+                       || SUBSTR(A.VST_DUEDT, 5, 2) || '월 ('
+                       || TO_CHAR(A.RN) || '회)' AS CODE_NAME
+                     , A.CNTR_NO
+                     , A.CNTR_SN
+                  FROM (
+                        SELECT T1.VST_DUEDT
+                             , T1.CNTR_NO
+                             , T1.CNTR_SN
+                             , RANK() OVER(PARTITION BY T1.CNTR_NO ORDER BY T1.VST_DUEDT ASC) AS RN
+                          FROM TB_SVPD_CST_SV_RGBSPR_IZ T1
+                         WHERE T1.CNTR_NO = #{cntrNo}
+                           AND T1.CNTR_SN = TO_NUMBER(#{cntrSn})
+                           AND T1.VST_DUEDT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMM') || '01'
+                           AND T1.VST_DV_CD = '20'
+                       ) A
+                 WHERE A.RN <![CDATA[<=]]> 4
+                 UNION ALL
+                SELECT 'B' AS GBN_CD
+                     , '999912' AS CODE
+                     , '무기한 중지' AS CODE_NAME
+                     , '' AS CNTR_NO
+                     , NULL AS CNTR_SN
+                  FROM DUAL
+                 UNION ALL
+                SELECT 'C' AS GBN_CD
+                     , '' AS CODE
+                     , '배송중지 해제' AS CODE_NAME
+                     , '' AS CNTR_NO
+                     , NULL AS CNTR_SN
+                  FROM DUAL
+                 UNION ALL
+                SELECT 'D' AS GBN_CD
+                     , '' AS CODE
+                     , '특정날짜 배송요청' AS CODE_NAME
+                     , '' AS CNTR_NO
+                     , NULL AS CNTR_SN
+                  FROM DUAL
+               ) B
+    </select>
+
+    <select id="selectVisitStopHistory" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbVisitStopDto$SearchHistoryRes">
+        SELECT SUBSTR(A.FST_RGST_DTM, 1, 8) AS AK_DT
+             , A.CNTR_NO
+             , A.SPP_STP_DV_CD
+             , (SELECT T1.PRTNR_KNM
+                  FROM TB_OGBS_MM_PRTNR_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD = A.OG_TP_CD
+                   AND T1.PRTNR_NO = A.PRTNR_NO
+               ) AS PRTNR_KNM
+             , (SELECT T1.PRTNR_NO
+                  FROM TB_OGBS_MM_PRTNR_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD = A.OG_TP_CD
+                   AND T1.PRTNR_NO = A.PRTNR_NO
+               ) AS PRTNR_NO
+             , (SELECT T1.OG_NM
+                  FROM TB_OGBS_MM_PRTNR_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD = A.OG_TP_CD
+                   AND T1.PRTNR_NO = A.PRTNR_NO
+               ) AS OG_NM
+             , (CASE WHEN A.APY_DT IS NOT NULL THEN '완료'
+                     ELSE '반영예정'
+                 END
+               ) AS STAT
+             , A.SPP_AK_SPF_DT
+             , A.APY_DT
+             , A.TN1_STP_YM
+             , A.TN2_STP_YM
+             , A.TN3_STP_YM
+             , A.TN4_STP_YM
+             , (SELECT M.PD_ABBR_NM
+                  FROM TB_PDBS_PD_BAS M
+                 WHERE M.PD_CD = (SELECT T2.BASE_PD_CD
+                                    FROM TB_SSCT_CNTR_DTL T2
+                                   WHERE A.CNTR_NO = T2.CNTR_NO
+                                     AND A.CNTR_SN = T2.CNTR_SN)
+               ) AS PD_NM
+          FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ A
+         WHERE A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = TO_NUMBER(#{cntrSn})
+         ORDER BY A.AK_SN DESC
+    </select>
+
+    <insert id="insertVisitStopHistory">
+        INSERT INTO TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ
+             ( CNTR_NO
+             , CNTR_SN
+             , AK_SN
+             , APY_DT
+             , SPP_STP_DV_CD
+             , TN1_STP_YM
+             , TN2_STP_YM
+             , TN3_STP_YM
+             , TN4_STP_YM
+             , SPP_AK_SPF_DT
+             , OG_TP_CD
+             , PRTNR_NO
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             ( #{cntrNo}
+             , #{cntrSn}
+             , (SELECT NVL(MAX(AK_SN), 0) +1
+                  FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ
+                 WHERE CNTR_NO = #{cntrNo}
+                   AND CNTR_SN = TO_NUMBER(#{cntrSn})
+               )
+             , #{apyDt}
+             , #{sppStpDvCd}
+             , #{tn1StpYm}
+             , #{tn2StpYm}
+             , #{tn3StpYm}
+             , #{tn4StpYm}
+             , #{sppAkSpfDt}
+             , #{ogTpCd}
+             , #{prtnrNo}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+</mapper>
