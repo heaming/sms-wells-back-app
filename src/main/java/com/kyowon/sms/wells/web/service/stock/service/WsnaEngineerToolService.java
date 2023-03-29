@@ -24,7 +24,7 @@ public class WsnaEngineerToolService {
     private final WsnaEngineerToolConverter converter;
 
     public List<SearchRes> getEngineerToolDsbHist(SearchReq dto) {
-        return mapper.selectEngrToolDsbHist(dto);
+        return mapper.selectEngineerToolDsbHist(dto);
     }
 
     public PagingResult<SearchPartsRes> getEngineerToolParts(PageInfo pageInfo) {
