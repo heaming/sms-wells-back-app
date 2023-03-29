@@ -17,6 +17,7 @@ public class WpdcServiceMgtDto {
         @NotBlank
         String pdCd,
         String pdGrpCd,
+        boolean isModifiedProp,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
         List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel
@@ -27,6 +28,7 @@ public class WpdcServiceMgtDto {
     public record SaveReq(
         String pdCd,
         String pdGrpCd,
+        boolean isModifiedProp,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
         List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel

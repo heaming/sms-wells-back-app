@@ -59,6 +59,7 @@ public class WpdcServiceMgtController {
                         .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
                         .tbPdbsPdRel(dto.tbPdbsPdRel())
+                        .isModifiedProp(dto.isModifiedProp())
                         .build(),
                     false
                 )

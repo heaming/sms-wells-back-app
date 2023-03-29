@@ -28,14 +28,18 @@ public class WpdcServiceMgtService {
     public ZpdcProductDto.TbPdbsPdBas saveProduct(WpdcServiceMgtDto.SaveReq dto, boolean isCreate)
         throws Exception {
         String startDtm = DateUtil.getDate(new Date());
-        ZpdcProductDvo dvo = pdService.saveProductBase(dto.tbPdbsPdBas(), isCreate, startDtm);
-        pdService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
-        if (PdProductConst.TEMP_SAVE_N.equals(dvo.getTempSaveYn()) || isCreate) {
-            // 상품 정보 이력 저장 (가격 X)
-            hisService.createProductHistory(dvo.getPdCd(), startDtm);
+        String pdCd = dto.pdCd();
+        if (isCreate || dto.isModifiedProp()) {
+            ZpdcProductDvo dvo = pdService.saveProductBase(dto.tbPdbsPdBas(), isCreate, startDtm);
+            pdCd = dvo.getPdCd();
+            pdService.saveEachCompanyPropDtl(pdCd, dto.tbPdbsPdEcomPrpDtl());
+            if (PdProductConst.TEMP_SAVE_N.equals(dvo.getTempSaveYn()) || isCreate) {
+                // 상품 정보 이력 저장 (가격 X)
+                hisService.createProductHistory(pdCd, startDtm);
+            }
         }
-        relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
-        return pdService.getDtoProduct(dvo);
+        relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
+        return pdService.getProductByPdCd(pdCd);
     }
 
     @Transactional
