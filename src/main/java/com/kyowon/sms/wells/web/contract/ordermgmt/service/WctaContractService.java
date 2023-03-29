@@ -330,4 +330,8 @@ public class WctaContractService {
     public List<SearchOnepluseoneRes> getOneplusoneContracts(SearchOnepluseoneReq dto) {
         return mapper.selectOneplusoneContracts(dto);
     }
+
+    public List<SearchConfirmMshRes> getConfirmMemberships(SearchConfirmMshReq dto) {
+        return mapper.selectConfirmMemberships(dto);
+    }
 }

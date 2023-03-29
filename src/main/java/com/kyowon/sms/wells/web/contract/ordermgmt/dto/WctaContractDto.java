@@ -168,6 +168,32 @@ public class WctaContractDto {
         String baseDtlCntrSn
     ) {}
 
+    // 확정 멤버십 조회 Search Request Dto
+    @Builder
+    @ApiModel("WctaContractDto-SearchConfirmMshReq")
+    public record SearchConfirmMshReq(
+        @NotBlank
+        @ValidDate
+        String rcpStrtDt,
+        @NotBlank
+        @ValidDate
+        String rcpEndDt,
+        String pdHclsfId,
+        String pdMclsfId,
+        String pdCd,
+        @NotBlank
+        @ValidDate
+        String cnfmStrtDt,
+        @NotBlank
+        @ValidDate
+        String cnfmEndDt,
+        String pdNm,
+        String sellOgTpCd,
+        @NotBlank
+        String frisuMshCrtYn,
+        String prtnrNo
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -366,5 +392,34 @@ public class WctaContractDto {
         String ltnAdr,
         String ltnDtlAdr,
         String oldAdrZip
+    ) {}
+
+    // 확정 멤버십 현황 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchConfirmMshRes")
+    public record SearchConfirmMshRes(
+        String cntrNo,
+        String cntrSn,
+        String cstKnm,
+        String sellTpNm,
+        String sellOgTpNm,
+        String pdHclsfNm,
+        String pdMclsfNm,
+        String basePdCd,
+        String pdNm,
+        String frisuBfsvcPtrmN,
+        String frisuMshCrtYn,
+        String nationSptYn,
+        String feeYn,
+        String prmYn,
+        String ogCd,
+        String prtnrNo,
+        String prtnrKnm,
+        String rsbDvNm,
+        String cntrRcpFshDt,
+        String cntrCnfmYn,
+        String cntrCnfmDt,
+        String cntrPdStrtdt,
+        String cntrPdEnddt,
+        String cntrCanDt
     ) {}
 }

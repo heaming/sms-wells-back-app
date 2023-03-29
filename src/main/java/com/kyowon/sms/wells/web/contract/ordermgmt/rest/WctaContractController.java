@@ -223,4 +223,25 @@ public class WctaContractController {
         // TODO W-SS-S-0022 서비스 개발완료되면 호출
         return true;
     }
+
+    @ApiOperation(value = "확정 멤버십 현황 조회", notes = "입력받은 조건에 따라 멤버십 확정 현황을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "rcpStrtDt", value = "접수기간 시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rcpEndDt", value = "접수기간 종료일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdHclsfId", value = "대분류", paramType = "query"),
+        @ApiImplicitParam(name = "pdMclsfId", value = "중분류", paramType = "query"),
+        @ApiImplicitParam(name = "basePdCd", value = "상품코드", paramType = "query"),
+        @ApiImplicitParam(name = "cnfmStrtDt", value = "확정기간 시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cnfmEndDt", value = "확정기간 종료일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdNm", value = "상품명", paramType = "query"),
+        @ApiImplicitParam(name = "sellOgTpCd", value = "판매구분", paramType = "query"),
+        @ApiImplicitParam(name = "frisuMshCrtYn", value = "자동생성제외", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너코드", paramType = "query"),
+    })
+    @GetMapping("/memberships")
+    public List<SearchConfirmMshRes> getConfirmMemberships(
+        SearchConfirmMshReq dto
+    ) {
+        return service.getConfirmMemberships(dto);
+    }
 }
