@@ -21,8 +21,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @InterfaceController
-@RequestMapping(SnServiceConst.INTERFACE_URL_V1 + "capsulepkg-ch-sppinf")
-@Api(tags = "[WSNB] Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트")
+@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "capsulepkg-ch-sppinf")
+//@Api(tags = "[WSNB] Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트")
 @RequiredArgsConstructor
 @Validated
 public class WsnbCapsulepkgChSppinfInterfaceController {
