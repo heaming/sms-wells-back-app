@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.mapper;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyRecapAsSvCsMngtDto.*;
-import com.kyowon.sms.wells.web.service.common.dvo.WsnyRecapAsSvCsMngtDvo;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.*;
+import com.kyowon.sms.wells.web.service.common.dvo.WsnyPaidAsCostMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,13 +17,13 @@ import java.util.List;
  * @since 2023.03.08
  */
 @Mapper
-public interface WsnyRecapAsSvCsMngtMapper {
+public interface WsnyPaidAsCostMgtMapper {
 
-    PagingResult<SearchRes> selectRecapAsSvCsMngts(SearchReq dto, PageInfo pageInfo);
+    PagingResult<SearchRes> selectPaidAsCostMgts(SearchReq dto, PageInfo pageInfo);
 
     List<PdRes> selectHgrPdCd(PdReq dto);
 
-    List<SearchRes> selectRecapAsSvCsMngts(SearchReq dto);
+    List<SearchRes> selectPaidAsCostMgts(SearchReq dto);
 
-    int updateRecapAsSvCsMngts(WsnyRecapAsSvCsMngtDvo dvo);
+    int updatePaidAsCostMgts(WsnyPaidAsCostMgtDvo dvo);
 }
