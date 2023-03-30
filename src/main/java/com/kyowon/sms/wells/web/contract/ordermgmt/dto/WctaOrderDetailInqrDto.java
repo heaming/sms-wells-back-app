@@ -103,7 +103,7 @@ public class WctaOrderDetailInqrDto {
         String alncmpCntrDrmVal,
         String alncmpCd,
         String alncPrtnrDrmVal,
-        String SpcOrdDv,
+        String spcOrdDv,
         String sppOrdIvcNo,
         String basePdInfo,
         String basePdCd2,

@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/contracts")
+@RequestMapping(CtContractConst.REST_URL_V1 + "/contracts/order-detail-mngt")
 public class WctaOrderDetailInqrController {
     private final WctaOrderDetailInqrService service;
 
@@ -40,7 +40,7 @@ public class WctaOrderDetailInqrController {
         @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrCanYn", value = "취소제외", paramType = "query"),
     })
-    @GetMapping("/order-detail-mngt/singlepayments/paging")
+    @GetMapping("/singlepayments/paging")
     public PagingResult<WctaOrderDetailInqrDto.SearchRes> getOrderDetailSpayCntrtPages(
         @Valid
         WctaOrderDetailInqrDto.SearchReq dto,
@@ -61,7 +61,7 @@ public class WctaOrderDetailInqrController {
         @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrCanYn", value = "취소제외", paramType = "query"),
     })
-    @GetMapping("/order-detail-mngt/singlepayments/excel-download")
+    @GetMapping("/singlepayments/excel-download")
     public List<WctaOrderDetailInqrDto.SearchRes> getOrderDetailSpayCntrtPagesExcelDownload(
         @Valid
         WctaOrderDetailInqrDto.SearchReq dto
