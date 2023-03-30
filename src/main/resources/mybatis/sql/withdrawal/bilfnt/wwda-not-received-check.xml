@@ -4,8 +4,8 @@
 
     <select id="selectAftnBilNrcvListPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnBilNrcvListRes">
         SELECT AUTO_FNT_CLSF
-             , BNK_CD
-             , BNK_NM
+             , CASE WHEN BNK_CD IS NULL THEN '은행 또는 카드 값이 없음' ELSE BNK_CD END AS BNK_CD
+             , CASE WHEN BNK_NM IS NULL THEN '은행 또는 카드 값이 없음' ELSE BNK_NM END AS BNK_NM
              , COUNT(*) AS CT
           FROM (
                         SELECT '자동이체(은행) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
@@ -14,23 +14,41 @@
                                             THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END ,3,0) = FNIT_CD)
                                             AS BNK_NM /* 은행명 */
                                   FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
-                                  JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                    ON RBFB.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                  JOIN TB_RVCL_BIL_FNT_AK_DTL RBFD
+                                    ON RBFB.BIL_NO = RBFD.BIL_NO 
                                    AND RBFB.DTA_DL_YN = 'N'
+                                   AND RBFD.DTA_DL_YN = 'N'
+                                  JOIN TB_SSCT_CNTR_DTL SCD
+                                    ON SCD.CNTR_NO = RBFD.CNTR_NO 
+                                   AND SCD.CNTR_SN = RBFD.CNTR_SN 
+                                   AND SCD.DTA_DL_YN = 'N'
+                                  JOIN TB_SSCT_CNTR_BAS SCB
+                                    ON SCD.CNTR_NO = SCB.CNTR_NO 
+                                   AND SCB.DTA_DL_YN = 'N'
+                                  JOIN TB_CUBS_CST_BAS CCB
+                                    ON CCB.CST_NO = SCB.CNTR_CST_NO
+                                   AND CCB.DTA_DL_YN = 'N'
+                                  JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                    ON SCSB.CNTR_NO = SCB.CNTR_NO 
+                                   AND SCSB.CST_NO = SCB.CNTR_CST_NO
                                    AND SCSB.DTA_DL_YN = 'N'
-                       LEFT OUTER JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
+                                  <if test='@MybatisUtils@equals(fntDvCd, "01")'>
+                                  JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
                                     ON RBFB.BIL_NO = RAFS.BIL_NO 
                                    AND RAFS.DTA_DL_YN = 'N'
-                       LEFT OUTER JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
+                                  </if>
+                                  <if test='@MybatisUtils@equals(fntDvCd, "02")'>
+                                  JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
                                     ON RBFB.BIL_NO = RCFS.BIL_NO 
                                    AND RCFS.DTA_DL_YN = 'N'
+                                  </if>
                                  WHERE RBFB.BIL_DT = #{bilDt}
                                    AND RBFB.FNT_DV_CD = #{fntDvCd}
                                    <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-                                   AND RAFS.AC_FNT_RS_CD IS NULL
+                                   AND RAFS.AC_FNT_RS_CD != '0000'
                                    </if>
                                    <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-                                   AND RCFS.CARD_FNT_RS_CD IS NULL 
+                                   AND RCFS.CARD_FNT_RS_CD != '0000'
                                    </if>
         )   
         GROUP BY AUTO_FNT_CLSF, BNK_CD,BNK_NM
@@ -38,47 +56,43 @@
     </select>
     
     <select id="selectAftnDpNcrtCheckListPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnDpNcrtCheckListRes">
-        SELECT '자동이체(은행) 수신되었으나 입금반영 안된 건' AS AFTN_CLSF
-             , RBFD.CNTR_SN 
-             , RBFB.BIL_DT  
-             , A.SELL_TP_CD 
-             , RBFD.DP_AMT  
-          FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
-          JOIN TB_RVCL_BIL_FNT_AK_DTL RBFD
-            ON RBFB.BIL_NO = RBFD.BIL_NO
-           AND RBFB.DTA_DL_YN = 'N'
-           AND RBFD.DTA_DL_YN = 'N'
-          <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-          JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
-            ON RBFB.BIL_NO = RAFS.BIL_NO 
-           AND RAFS.DTA_DL_YN = 'N'
-           AND RAFS.AC_FNT_RS_CD IS NOT NULL 
-           </if>
-          <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-          JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
-            ON RBFB.BIL_NO = RCFS.BIL_NO 
-           AND RCFS.DTA_DL_YN = 'N'
-           AND RCFS.CARD_FNT_RS_CD IS NOT NULL
-           </if>
-          INNER JOIN TB_RVDW_RVE_AK_DTL RRAD
-            ON RBFD.BIL_NO = RRAD.RVE_AK_OJ_DRM_NO1
-           AND RBFD.BIL_DTL_SN = RRAD.RVE_AK_OJ_DRM_NO2
-           AND RRAD.DTA_DL_YN = 'N'
-          INNER JOIN (
-                       SELECT SCD.CNTR_NO
-                            , SCD.CNTR_SN
-                            , SCD.SELL_TP_CD
-                         FROM TB_SSCT_CNTR_DTL SCD
-                         JOIN TB_SSCT_CNTR_BAS SCB
-                           ON SCD.CNTR_NO = SCB.CNTR_NO
-                          AND SCD.DTA_DL_YN = 'N'
-                          AND SCB.DTA_DL_YN = 'N'
-                          AND SCB.CNTR_CAN_DTM IS NULL
-                    ) A
-                  ON RBFD.CNTR_NO = A.CNTR_NO
-                 AND RBFD.CNTR_SN = A.CNTR_SN
-           WHERE RBFB.BIL_DT = #{bilDt}
-             AND RBFB.FNT_DV_CD = #{fntDvCd}
+               SELECT '자동이체(은행) 수신되었으나 입금반영 안된 건' AS AFTN_CLSF
+                     , RBFD.CNTR_NO || RBFD.CNTR_SN AS CNTR_SN
+                     , RBFB.BIL_DT  
+                     , SCD.SELL_TP_CD 
+                     , RBFD.DP_AMT  
+                  FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
+                  JOIN TB_RVCL_BIL_FNT_AK_DTL RBFD
+                    ON RBFB.BIL_NO = RBFD.BIL_NO
+                   AND RBFB.DTA_DL_YN = 'N'
+                   AND RBFD.DTA_DL_YN = 'N'
+            <if test='@MybatisUtils@equals(fntDvCd, "01")'>
+            INNER JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
+                    ON RBFB.BIL_NO = RAFS.BIL_NO 
+                   AND RAFS.DTA_DL_YN = 'N'
+                   AND RAFS.AC_FNT_RS_CD != '0000'
+            </if>
+            <if test='@MybatisUtils@equals(fntDvCd, "02")'>
+            INNER JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
+                    ON RBFB.BIL_NO = RCFS.BIL_NO 
+                   AND RCFS.DTA_DL_YN = 'N'
+                   AND RCFS.CARD_FNT_RS_CD != '0000'
+            </if>
+            INNER JOIN TB_SSCT_CNTR_DTL SCD
+                    ON RBFD.CNTR_NO = SCD.CNTR_NO
+                   AND RBFD.CNTR_SN = SCD.CNTR_SN
+                   AND SCD.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_BAS SCB
+                    ON SCD.CNTR_NO = SCB.CNTR_NO 
+                   AND SCB.DTA_DL_YN = 'N'
+                   AND SCB.CNTR_CAN_DTM IS NULL
+       LEFT OUTER JOIN TB_RVDW_RVE_AK_DTL RRAD
+                    ON RBFD.BIL_NO = RRAD.RVE_AK_OJ_DRM_NO1
+                   AND RBFD.BIL_DTL_SN = RRAD.RVE_AK_OJ_DRM_NO2
+                   AND RRAD.DTA_DL_YN = 'N'
+                 WHERE RBFB.BIL_DT = #{bilDt}
+                   AND RBFB.FNT_DV_CD = #{fntDvCd}
+              ORDER BY DP_AMT DESC
     </select>
     
     <select id="selectAftnSlPerfCheckInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnSlPerfCheckInqrRes">
@@ -109,8 +123,7 @@
                          , SUB_SELL_TP_CD
                          , SUBOD_CNTR_NO
                          , SUB_DP_TP_CD
-                         , '테스트용 오류' AS ERR_TYP
-                         <!-- , ERR_TYP -->
+                         , ERR_TYP
                       FROM (
                                 SELECT MSTR_CNTR.SELL_TP_CD AS MSTR_SELL_TP_CD
                                      , RIBB.DG_CNTR_NO
@@ -126,24 +139,28 @@
                                                  THEN (CASE WHEN #{dpTpCd} = '0102' THEN '2.은행코드상이' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D 
                                                                                                  WHERE CD_ID = UPPER('BNK_CD')
+                                                                                                   AND TENANT_ID = #{session.tenantId}
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = MSTR_CNTR.BNK_CD)
                                                                                                || '/'  
                                                                                                || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D 
                                                                                                  WHERE CD_ID = UPPER('BNK_CD')
+                                                                                                   AND TENANT_ID = #{session.tenantId}
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = SUB_CNTR.BNK_CD)
                                                                                                || ')' 
                                                             WHEN #{dpTpCd} = '0203' THEN '2.계좌구분상이' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D 
                                                                                                  WHERE CD_ID = UPPER('CDCO_CD')
+                                                                                                   AND TENANT_ID = #{session.tenantId}
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = MSTR_CNTR.CDCO_CD)
                                                                                                || '/'  
                                                                                                || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D 
                                                                                                  WHERE CD_ID = UPPER('CDCO_CD')
+                                                                                                   AND TENANT_ID = #{session.tenantId}
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = SUB_CNTR.CDCO_CD)
                                                                                                || ')'                                      
@@ -155,6 +172,7 @@
                                                                         SELECT CD_CNTN
                                                                           FROM T_CMZ_CD_D 
                                                                          WHERE CD_ID = UPPER('DP_TP_CD')
+                                                                           AND TENANT_ID = #{session.tenantId}
                                                                            AND DEL_YN = 'N'
                                                                            AND CD_VLD_VAL = MSTR_CNTR.DP_TP_CD
                                                                         )
@@ -163,6 +181,7 @@
                                                                         SELECT CD_CNTN
                                                                           FROM T_CMZ_CD_D 
                                                                          WHERE CD_ID = UPPER('DP_TP_CD')
+                                                                           AND TENANT_ID = #{session.tenantId}
                                                                            AND DEL_YN = 'N'
                                                                            AND CD_VLD_VAL = SUB_CNTR.DP_TP_CD
                                                                         )
@@ -187,15 +206,12 @@
                                            FROM TB_SSCT_CNTR_DTL SCD
                                            JOIN TB_SSCT_CNTR_BAS SCB
                                              ON SCD.CNTR_NO = SCB.CNTR_NO
-                                             AND SCB.CNTR_CAN_DTM IS NULL 
-                                           JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                             ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO  
-                                            AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN 
-                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                             ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
-                                          WHERE SCD.DTA_DL_YN = 'N'
+                                            AND SCB.CNTR_CAN_DTM IS NULL
+                                            AND SCD.DTA_DL_YN = 'N'
                                             AND SCB.DTA_DL_YN = 'N'
-                                            AND SCSR.DTA_DL_YN = 'N'
+                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                             ON SCSB.CST_NO = SCB.CNTR_CST_NO 
+                                            AND SCSB.CNTR_NO = SCB.CNTR_NO  
                                             AND SCSB.DTA_DL_YN = 'N'
                                        ) MSTR_CNTR
                                     ON RIBB.DG_CNTR_NO = MSTR_CNTR.CNTR_NO
@@ -216,15 +232,12 @@
                                            FROM TB_SSCT_CNTR_DTL SCD
                                            JOIN TB_SSCT_CNTR_BAS SCB
                                              ON SCD.CNTR_NO = SCB.CNTR_NO
-                                             AND SCB.CNTR_CAN_DTM IS NULL
-                                           JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                             ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO  
-                                            AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN 
-                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                             ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
-                                          WHERE SCD.DTA_DL_YN = 'N'
+                                            AND SCB.CNTR_CAN_DTM IS NULL
+                                            AND SCD.DTA_DL_YN = 'N'
                                             AND SCB.DTA_DL_YN = 'N'
-                                            AND SCSR.DTA_DL_YN = 'N'
+                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                             ON SCSB.CST_NO = SCB.CNTR_CST_NO 
+                                            AND SCSB.CNTR_NO = SCB.CNTR_NO  
                                             AND SCSB.DTA_DL_YN = 'N'
                                        ) SUB_CNTR
                                    ON RIBB.SUBOD_CNTR_NO = SUB_CNTR.CNTR_NO
@@ -233,6 +246,6 @@
                                 WHERE RIBB.DG_CNTR_NO != RIBB.SUBOD_CNTR_NO 
                                   AND MSTR_CNTR.DP_TP_CD = #{dpTpCd}
                            ) 
-                         WHERE ERR_TYP IS NULL <!-- 추후에 수정 IS NOT NULL 임 -->
+                         WHERE ERR_TYP IS NOT NULL
     </select>
 </mapper>
