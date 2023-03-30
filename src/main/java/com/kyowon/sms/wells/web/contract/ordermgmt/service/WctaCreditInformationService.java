@@ -14,7 +14,6 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCbboDefaultRegistDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCreditInformationDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaCreditInformationMapper;
 import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -95,7 +94,7 @@ public class WctaCreditInformationService {
         //통합정보
         CSHEAD HEADMap = niceLvo.getHEAD();
         CSDATA DATAMap = niceLvo.getDATA();
-        String name = (StringUtil.nvl(DATAMap.getFlnm())).substring(0,5);
+        String name = (StringUtils.defaultString(DATAMap.getFlnm())).substring(0, 5);
         String rplyCd = HEADMap.getRplyCd();
 
         updateMap.put("KSRCDE", rplyCd);    //응답코드
@@ -109,20 +108,20 @@ public class WctaCreditInformationService {
         int count = 1;
         for(BANK m: BANKMap){
             if(count == 6) break;
-            updateMap.put("KSB"+(count)+"01", StringUtil.nvl(m.getRsnDiv())); //채불구분
-            updateMap.put("KSB"+(count)+"02", StringUtil.nvl(m.getOvrdRsnCd())); //사유코드
-            updateMap.put("KSB"+(count)+"03", StringUtil.nvl(m.getOccrInttNm()).trim()); //발생기관명
-            updateMap.put("KSB"+(count)+"04", StringUtil.nvl(m.getOccrBrncNm()).trim()); //발생지점명
-            updateMap.put("KSB"+(count)+"05", StringUtil.nvl(m.getOccrInttBztpCd())); //발생업계코드
-            updateMap.put("KSB"+(count)+"06", StringUtil.nvl(m.getOccrInttCd())); //발생기관코드
-            updateMap.put("KSB"+(count)+"07", StringUtil.nvl(m.getOccrDt(), "0")); //발생일자
-            updateMap.put("KSB"+(count)+"08", StringUtil.nvl(m.getOffrDt(), "0")); //제공일자
-            updateMap.put("KSB"+(count)+"09", StringUtil.nvl(m.getRvctDt(), "0")); //해제일자
-            updateMap.put("KSB"+(count)+"10", StringUtil.nvl(m.getRgsnAmt(), "0")); //등록금액
-            updateMap.put("KSB"+(count)+"11", StringUtil.nvl(m.getDebtNnflAmt(), "0")); //채무불이행금액
-            updateMap.put("KSB"+(count)+"12", StringUtil.nvl(m.getRvctDiv())); //해제구분
-            updateMap.put("KSB"+(count)+"13", StringUtil.nvl(m.getCorcAskCd())); //정정청구
-            updateMap.put("KSB"+(count)+"14", StringUtil.nvl(m.getOvrdInfoDiv())); //연체공공정보
+            updateMap.put("KSB" + (count) + "01", StringUtils.defaultString(m.getRsnDiv())); //채불구분
+            updateMap.put("KSB" + (count) + "02", StringUtils.defaultString(m.getOvrdRsnCd())); //사유코드
+            updateMap.put("KSB" + (count) + "03", StringUtils.defaultString(m.getOccrInttNm()).trim()); //발생기관명
+            updateMap.put("KSB" + (count) + "04", StringUtils.defaultString(m.getOccrBrncNm()).trim()); //발생지점명
+            updateMap.put("KSB" + (count) + "05", StringUtils.defaultString(m.getOccrInttBztpCd())); //발생업계코드
+            updateMap.put("KSB" + (count) + "06", StringUtils.defaultString(m.getOccrInttCd())); //발생기관코드
+            updateMap.put("KSB" + (count) + "07", StringUtils.defaultString(m.getOccrDt(), "0")); //발생일자
+            updateMap.put("KSB" + (count) + "08", StringUtils.defaultString(m.getOffrDt(), "0")); //제공일자
+            updateMap.put("KSB" + (count) + "09", StringUtils.defaultString(m.getRvctDt(), "0")); //해제일자
+            updateMap.put("KSB" + (count) + "10", StringUtils.defaultString(m.getRgsnAmt(), "0")); //등록금액
+            updateMap.put("KSB" + (count) + "11", StringUtils.defaultString(m.getDebtNnflAmt(), "0")); //채무불이행금액
+            updateMap.put("KSB" + (count) + "12", StringUtils.defaultString(m.getRvctDiv())); //해제구분
+            updateMap.put("KSB" + (count) + "13", StringUtils.defaultString(m.getCorcAskCd())); //정정청구
+            updateMap.put("KSB" + (count) + "14", StringUtils.defaultString(m.getOvrdInfoDiv())); //연체공공정보
             count++;
         }
 
@@ -135,15 +134,17 @@ public class WctaCreditInformationService {
         for(CREDItem m: CREDMap){
             if(count == 11) break;
             updateMap.put("KSB"+(count==10?0:count)+"01",""); //채불구분
-            updateMap.put("KSB"+(count==10?0:count)+"02", StringUtil.nvl(m.getOvrdRsnCd())); //사유코드
-            updateMap.put("KSB"+(count==10?0:count)+"03", StringUtil.nvl(m.getOccrInttNm()).trim()); //발생기관명
-            updateMap.put("KSB"+(count==10?0:count)+"04", StringUtil.nvl(m.getOccrBrncNm()).trim()); //발생지점명
-            updateMap.put("KSB"+(count==10?0:count)+"05", StringUtil.nvl(m.getOccrInttBztpCd())); //발생업계코드
-            updateMap.put("KSB"+(count==10?0:count)+"06", StringUtil.nvl(m.getOccrInttCd())); //발생기관코드
-            updateMap.put("KSB"+(count==10?0:count)+"07", StringUtil.nvl(m.getOccrDt(), "0")); //발생일자
-            updateMap.put("KSB"+(count==10?0:count)+"08", StringUtil.nvl(m.getOffrDt(),"0")); //제공일자
-            updateMap.put("KSB"+(count==10?0:count)+"09", StringUtil.nvl(m.getOffrDt(),"0")); //해제일자
-            updateMap.put("KSB"+(count==10?0:count)+"10", StringUtil.nvl(m.getRgsnAmt(),"0")); //등록금액
+            updateMap.put("KSB" + (count == 10 ? 0 : count) + "02", StringUtils.defaultString(m.getOvrdRsnCd())); //사유코드
+            updateMap
+                .put("KSB" + (count == 10 ? 0 : count) + "03", StringUtils.defaultString(m.getOccrInttNm()).trim()); //발생기관명
+            updateMap
+                .put("KSB" + (count == 10 ? 0 : count) + "04", StringUtils.defaultString(m.getOccrBrncNm()).trim()); //발생지점명
+            updateMap.put("KSB" + (count == 10 ? 0 : count) + "05", StringUtils.defaultString(m.getOccrInttBztpCd())); //발생업계코드
+            updateMap.put("KSB" + (count == 10 ? 0 : count) + "06", StringUtils.defaultString(m.getOccrInttCd())); //발생기관코드
+            updateMap.put("KSB" + (count == 10 ? 0 : count) + "07", StringUtils.defaultString(m.getOccrDt(), "0")); //발생일자
+            updateMap.put("KSB" + (count == 10 ? 0 : count) + "08", StringUtils.defaultString(m.getOffrDt(), "0")); //제공일자
+            updateMap.put("KSB" + (count == 10 ? 0 : count) + "09", StringUtils.defaultString(m.getOffrDt(), "0")); //해제일자
+            updateMap.put("KSB" + (count == 10 ? 0 : count) + "10", StringUtils.defaultString(m.getRgsnAmt(), "0")); //등록금액
             updateMap.put("KSB"+(count==10?0:count)+"11","0"); //채무불이행금액
             updateMap.put("KSB"+(count==10?0:count)+"12",""); //해제구분
             updateMap.put("KSB"+(count==10?0:count)+"13",""); //정정청구
