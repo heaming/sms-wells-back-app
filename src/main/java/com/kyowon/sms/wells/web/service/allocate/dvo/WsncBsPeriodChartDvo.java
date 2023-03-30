@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsncBSPeriodChartDvo {
+public class WsncBsPeriodChartDvo {
     String cntrNo;
     String cntrSn;
     String bfsvcSppStpRsonCd;

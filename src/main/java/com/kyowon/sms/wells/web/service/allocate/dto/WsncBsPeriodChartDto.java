@@ -2,11 +2,11 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsncBSPeriodChartDto {
+public class WsncBsPeriodChartDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel(value = "WsncBSPeriodChartDto-SearchReq")
+    @ApiModel(value = "WsncBsPeriodChartDto-SearchReq")
     public record SearchReq(
         String cntrNo,
         String cntrSn
@@ -15,7 +15,7 @@ public class WsncBSPeriodChartDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel(value = "WsncBSPeriodChartDto-SearchBaseInfoRes")
+    @ApiModel(value = "WsncBsPeriodChartDto-SearchBaseInfoRes")
     public record SearchBaseInfoRes(
         String cntrNo,
         String cntrSn,
@@ -28,13 +28,13 @@ public class WsncBSPeriodChartDto {
         String cntrPdStrtdt
     ) {}
 
-    @ApiModel(value = "WsncBSPeriodChartDto-Search06Res")
+    @ApiModel(value = "WsncBsPeriodChartDto-Search06Res")
     public record Search06Res(
         int vstNmnN,
         int totStplMcn
     ) {}
 
-    @ApiModel(value = "WsncBSPeriodChartDto-Search07Res")
+    @ApiModel(value = "WsncBsPeriodChartDto-Search07Res")
     public record Search07Res(
         String vstMths,
         String wrkTypDtl,

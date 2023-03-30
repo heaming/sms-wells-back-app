@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBSPeriodChartDto;
-import com.kyowon.sms.wells.web.service.allocate.service.WsncBSPeriodChartService;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodChartDto;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncBsPeriodChartService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -19,9 +19,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/before-service-period-charts")
-public class WsncBSPeriodChartController {
+public class WsncBsPeriodChartController {
 
-    private final WsncBSPeriodChartService service;
+    private final WsncBsPeriodChartService service;
 
     @ApiOperation(value = "정기 BS주기표를 생성", notes = "조회조건에 따른 정기 BS주기표를 생성")
     @ApiImplicitParams(value = {
@@ -29,8 +29,8 @@ public class WsncBSPeriodChartController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
     @GetMapping("/paging")
-    public SaveResponse processBSPeriodChart(WsncBSPeriodChartDto.SearchReq dto) throws Exception {
-        return SaveResponse.builder().processCount(service.processBSPeriodChart(dto)).build();
+    public SaveResponse processBSPeriodChart(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+        return SaveResponse.builder().processCount(service.processBsPeriodChart(dto)).build();
     }
 
 }
