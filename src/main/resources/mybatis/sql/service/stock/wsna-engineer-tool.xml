@@ -2,16 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEngineerToolMapper">
     <select id="selectEngineerToolDsbHist" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto$SearchRes">
-        SELECT T1.EGER_PRTNR_NO
+        SELECT T1.OG_TP_CD
+             , T1.EGER_PRTNR_NO
              , T1.TOOL_PD_CD
              , T1.DSB_SN
-             , (SELECT SUM(Y.TOOL_QTY)
-                  FROM TB_SVST_EGER_TOOL_DSB_IZ Y
-                 WHERE Y.OG_TP_CD = T1.OG_TP_CD
-                   AND Y.EGER_PRTNR_NO = T1.EGER_PRTNR_NO
-                   AND Y.TOOL_PD_CD = T1.TOOL_PD_CD
-                   AND Y.DTA_DL_YN = 'N'
-               ) AS TOOL_QTY
+             , T1.TOOL_QTY
+             , T1.PYMDTS
              , T2.OG_CD
              , T2.OG_NM
              , T2.HGR_OG_NM
@@ -19,19 +15,34 @@
              , T2.PRTNR_KNM
              , T3.SVPD_NM_ABBR1
              , T3.SVPD_SAP_CD
-             , (SELECT LISTAGG(Z.PYMDT, ',') WITHIN GROUP(ORDER BY Z.PYMDT)
-                  FROM TB_SVST_EGER_TOOL_DSB_IZ Z
-                 WHERE Z.OG_TP_CD = T1.OG_TP_CD
-                   AND Z.EGER_PRTNR_NO  = T1.EGER_PRTNR_NO
-                   AND Z.TOOL_PD_CD = T1.TOOL_PD_CD
-                   AND Z.DTA_DL_YN = 'N'
-               ) AS PYMDT
-          FROM TB_SVST_EGER_TOOL_DSB_IZ T1
-             , (SELECT A.OG_ID
+             , TO_NUMBER(MAX(T1.TOOL_QTY) OVER()) AS MAX_TOOL_QTY
+          FROM (SELECT A.OG_TP_CD
+                     , A.EGER_PRTNR_NO
+                     , A.TOOL_PD_CD
+                     , (SELECT MAX(X.DSB_SN)
+                          FROM TB_SVST_EGER_TOOL_DSB_IZ X
+                         WHERE X.OG_TP_CD = A.OG_TP_CD
+                           AND X.EGER_PRTNR_NO = A.EGER_PRTNR_NO
+                           AND X.TOOL_PD_CD = A.TOOL_PD_CD
+                           AND X.DTA_DL_YN = 'N'
+                       ) DSB_SN
+                     , (SELECT SUM(Y.TOOL_QTY)
+                          FROM TB_SVST_EGER_TOOL_DSB_IZ Y
+                         WHERE Y.OG_TP_CD = A.OG_TP_CD
+                           AND Y.EGER_PRTNR_NO = A.EGER_PRTNR_NO
+                           AND Y.TOOL_PD_CD = A.TOOL_PD_CD
+                           AND Y.DTA_DL_YN = 'N'
+                       ) AS TOOL_QTY
+                     , LISTAGG(A.PYMDT, ',') WITHIN GROUP(ORDER BY A.PYMDT) AS PYMDTS
+                  FROM TB_SVST_EGER_TOOL_DSB_IZ A
+                 WHERE A.DTA_DL_YN = 'N'
+                 GROUP BY A.OG_TP_CD, A.EGER_PRTNR_NO, A.TOOL_PD_CD, A.TOOL_QTY
+               ) T1
+             , (SELECT A.BASE_YM
+                     , A.OG_ID
                      , A.OG_TP_CD
                      , A.OG_CD
-                     , A.OG_NM
-                     , A.BASE_YM
+                     , B.OG_NM
                      , B.PRTNR_KNM
                      , B.PRTNR_NO
                      , (SELECT X.OG_NM
@@ -49,33 +60,54 @@
                    AND A.OG_ID = B.OG_ID
                    AND A.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                    AND A.OG_TP_CD = 'W06'
+                   AND (A.OG_LEVL_DV_CD = '2' OR A.OG_LEVL_DV_CD = '3')
                    AND A.DTA_DL_YN = 'N'
+                   AND B.DTA_DL_YN = 'N'
                ) T2
              , (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3
          WHERE T1.OG_TP_CD = T2.OG_TP_CD
            AND T1.EGER_PRTNR_NO = T2.PRTNR_NO
            AND T1.TOOL_PD_CD = T3.SVPD_PD_CD
-           AND T1.DTA_DL_YN = 'N'
            <if test='@MybatisUtils@isNotEmpty(pymdt)'>
-           AND T1.PYMDT LIKE #{pymdt} || '%'
+           AND T1.PYMDTS LIKE #{pymdt} || '%'
            </if>
-           <if test='@MybatisUtils@isNotEmpty(ogId)'>
-           AND T2.OG_ID = #{ogId}
+           <if test='@MybatisUtils@isNotEmpty(ogCd)'>
+           AND T2.OG_CD = #{ogCd}
            </if>
            <if test='@MybatisUtils@isNotEmpty(egerPrtnrNo)'>
            AND T2.PRTNR_NO = #{egerPrtnrNo}
            </if>
            <if test='@MybatisUtils@isNotEmpty(prtnrKnm)'>
-           AND T2.PRTNR_KNM = #{prtnrKnm}
+           AND T2.PRTNR_KNM LIKE #{prtnrKnm} || '%'
            </if>
-           <if test='@MybatisUtils@isNotEmpty(toolPdCdStrt) or @MybatisUtils@isNotEmpty(toolPdCdEnd)'>
-           AND T1.TOOL_PD_CD BETWEEN #{toolPdCdStrt} AND #{toolPdCdEnd}
+           <if test='@MybatisUtils@isNotEmpty(toolPdCdStrt)'>
+           AND T1.TOOL_PD_CD <![CDATA[>=]]> #{toolPdCdStrt}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(sapMatCdStrt) or @MybatisUtils@isNotEmpty(sapMatCdEnd)'>
-           AND T3.SVPD_SAP_CD BETWEEN #{sapMatCdStrt} AND #{sapMatCdEnd}
+           <if test='@MybatisUtils@isNotEmpty(toolPdCdEnd)'>
+           AND T1.TOOL_PD_CD <![CDATA[<=]]> #{toolPdCdEnd}
            </if>
-         ORDER BY T1.DSB_SN
+           <if test='@MybatisUtils@isNotEmpty(sapMatCdStrt)'>
+           AND T3.SVPD_SAP_CD <![CDATA[>=]]> #{sapMatCdStrt}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapMatCdEnd)'>
+           AND T3.SVPD_SAP_CD <![CDATA[>=]]> #{sapMatCdEnd}
+           </if>
+         ORDER BY T1.PYMDTS DESC, T1.DSB_SN DESC
     </select>
+
+    <update id="deleteEngineerTools">
+        UPDATE TB_SVST_EGER_TOOL_DSB_IZ T1
+           SET T1.DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE T1.OG_TP_CD = #{ogTpCd}
+           AND T1.EGER_PRTNR_NO = #{egerPrtnrNo}
+           AND T1.TOOL_PD_CD = #{toolPdCd}
+           AND T1.DSB_SN = (SELECT MAX(A.DSB_SN)
+                              FROM TB_SVST_EGER_TOOL_DSB_IZ A
+                             WHERE A.OG_TP_CD = T1.OG_TP_CD
+                               AND A.EGER_PRTNR_NO = T1.EGER_PRTNR_NO
+                               AND A.TOOL_PD_CD = T1.TOOL_PD_CD)
+    </update>
 
     <select id="selectEngineerToolParts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto$SearchPartsRes">
         SELECT A.SVPD_SAP_CD
@@ -106,14 +138,14 @@
                           FROM TB_SVST_EGER_TOOL_DSB_IZ T1
                          WHERE T1.OG_TP_CD = 'W06'
                            AND T1.EGER_PRTNR_NO = #{egerPrtnrNo}
-                           AND T1.TOOL_PD_CD = TO_NUMBER(#{pdCd})
+                           AND T1.TOOL_PD_CD = #{pdCd}
                        )
                      , 1
                      , TO_CHAR(SYSDATE, 'YYYYMMDD')
                      , 'N'
                      <include refid="COMMON.insertSystemFieldValue"/>
                   FROM DUAL
-                </foreach>
+            </foreach>
         </foreach>
     </insert>
 </mapper>
