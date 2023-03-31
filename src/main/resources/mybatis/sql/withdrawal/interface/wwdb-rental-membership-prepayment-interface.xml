@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbRentalMembershipPrepaymentInterfaceMapper">
+
+    <select id="selectRentalMembershipPrepaymentInfos"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbRentalMembershipPrepaymentInterfaceDto$SearchInfoRes">
+        SELECT
+               RENTAL_TN /* 차월 */
+             , PRM_MCN /* 선납개월 */
+             , PRM_DSCR /* 선납시 할인율 */
+             , PRM_DP_AMT AS PRM_AMT /* 선납금액 */
+             , PRM_STRT_Y || PRM_STRT_MM AS PRM_STRT_YM /* 선납기간from */
+             , PRM_END_Y || PRM_END_MM AS PRM_END_YM /* 선납기간to */
+             , PRM_DP_AMT / PRM_MCN AS MM_PRM_DP_AMT /* 한달 선납액 (선납금액 / 선납개월) */
+             , PRM_DSC_AMT / PRM_MCN AS MM_PRM_DSC_AMT /* 한달 할인 금액 (선납할인금액 / 선납개월) */
+             , EOT_ATAM AS PRPD_AMT /* 선수금액 */
+             , EOT_UC_AMT AS UC_AMT /* 미수금액 */
+             , EOT_ATAM + PRM_SL_AMT - PRM_BLAM_EOT_AMT AS PY_AMT /* 납입금액 */
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+         WHERE DTA_DL_YN = 'N'
+           AND SELL_TP_CD IN (2, 3) /* 렌탈/멤버십 */
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectRentalMembershipPrepaymentExpectedInfos"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbRentalMembershipPrepaymentInterfaceDvo">
+        SELECT /* TODO: 확인 필요 */
+               T.RCNT /* 차월 */
+             , T.TOT_PRPM /* 총선납개월 */
+             , T.DSC_MM /* 할인대상선납개월 */
+             , T.DSC_RAT /* 선납시할인율 */
+             , T.DSC_AMT /* 할인대상선납금액 */
+             , T.NO_DSC_MM /* 미할인대상 선납개월 */
+             , T.NO_DSC_AMT /* 미할인대상 선납금액 */
+             , CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / T.DSC_MM), -1)
+                    ELSE ROUND(CEIL(T.NO_DSC_AMT / T.TOT_PRPM), -1)
+                END AS MM_AMT /* 월납입금액 */
+             , CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / T.DSC_MM * T.DSC_RAT), -1)
+                    ELSE ROUND(CEIL(T.NO_DSC_AMT / T.TOT_PRPM * T.DSC_RAT), -1)
+                END AS MM_DSC_AMT /* 한달할인금액 */
+             , T.ATAM /* 선수금액 */
+             , T.UC_AMT /* 미수금액 */
+             , T.DP_AMT /* 납입금액 */
+             , #{prmFromYm} AS PRM_FROM_YM /* 선납기간from */
+             , TO_CHAR(ADD_MONTHS(TO_DATE(#{prmFromYm}, 'YYYYMM'), T.DSC_MM - 1), 'YYYYMM') AS PRM_TO_YM /* 선납기간to */
+          FROM (
+               SELECT
+                      CASE WHEN B.RENTAL_TN IS NULL THEN 1
+                           ELSE B.RENTAL_TN
+                       END AS RCNT /* 차월 */
+                    , D1.SELL_AMT
+                    , D1.TOT_PRPM /* 총선납개월 */
+                    , D1.DSC_MM /* 할인 대상 선납개월 */
+                    , CASE WHEN D1.DSC_MM = 12 THEN 0.95 /* 5% 할인 */
+                           WHEN D1.DSC_MM = 24 THEN 0.93 /* 7% 할인 */
+                           WHEN D1.DSC_MM = 36 THEN 0.90 /* 10% 할인 */
+                           ELSE 0
+                       END AS DSC_RAT /* 선납시 할인율 */
+                    , CASE WHEN D1.DSC_MM = 12 THEN ROUND(TRUNC(D1.SELL_AMT * 12 / D1.TOT_PRPM, -1), -1)
+                           WHEN D1.DSC_MM = 24 THEN ROUND(TRUNC(D1.SELL_AMT * 24 / D1.TOT_PRPM, -1), -1)
+                           WHEN D1.DSC_MM = 36 THEN ROUND(TRUNC(D1.SELL_AMT * 36 / D1.TOT_PRPM, -1), -1)
+                           ELSE 0
+                       END AS DSC_AMT /* 할인대상 선납금액 */
+                    , NO_DSC_MM /* 미할인 대상 선납개월 */
+                    , ROUND(CEIL(D1.SELL_AMT * D1.NO_DSC_MM / D1.TOT_PRPM), -1) AS NO_DSC_AMT /* 미할인 대상 선납금액 */
+                    , NVL(D2.ATAM, 0) AS ATAM
+                    , NVL(D2.UC_AMT, 0) AS UC_AMT /* 미수금액 */
+                    , NVL(D2.DP_AMT, 0) AS DP_AMT
+                 FROM TB_SSCT_CNTR_DTL A /* 계약상세 */
+                 LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ B /* WELLS매출월마감내역 */
+                   ON B.SL_CL_YM = #{prmFromYm}
+                  AND B.CNTR_NO = A.CNTR_NO
+                  AND B.CNTR_SN = A.CNTR_SN
+                INNER JOIN LATERAL (
+                      SELECT
+                             M.SELL_AMT
+                           , M.TOT_PRPM /* 총선납개월 */
+                           , CASE WHEN M.TOT_PRPM <![CDATA[>=]]> 12 AND M.TOT_PRPM <![CDATA[<]]> 24 THEN 12
+                                  WHEN M.TOT_PRPM <![CDATA[>=]]> 24 AND M.TOT_PRPM <![CDATA[<]]> 36 THEN 24
+                                  WHEN M.TOT_PRPM <![CDATA[>=]]> 36 THEN 36
+                                  ELSE 0
+                              END AS DSC_MM /* 할인 대상 선납개월 */
+                           , CASE WHEN M.TOT_PRPM <![CDATA[<]]> 12 THEN M.TOT_PRPM
+                                  WHEN M.TOT_PRPM <![CDATA[>]]> 12 AND M.TOT_PRPM <![CDATA[<]]> 24 THEN M.TOT_PRPM - 12
+                                  WHEN M.TOT_PRPM <![CDATA[>]]> 24 AND M.TOT_PRPM <![CDATA[<]]> 36 THEN M.TOT_PRPM - 24
+                                  WHEN M.TOT_PRPM <![CDATA[>]]> 36 THEN M.TOT_PRPM - 36
+                                  ELSE 0
+                              END AS NO_DSC_MM /* 미할인 대상 선납개월 */
+                        FROM (
+                             SELECT
+                                    MONTHS_BETWEEN(TO_DATE(#{prmToYm},'YYYYMM'), TO_DATE(#{prmFromYm}, 'YYYYMM')) + 1  AS TOT_PRPM /* 총선납개월 */
+                                  , A.FNL_AMT AS SELL_AMT /* 최종금액 */
+                               FROM DUAL
+                             ) M
+                      ) D1
+                   ON 1 = 1
+                 LEFT OUTER JOIN LATERAL (
+                      SELECT NVL(EOT_ATAM, 0) AS ATAM /* 선수금액 */
+                           , NVL(EOT_UC_AMT, 0) AS UC_AMT /* 미수금액 */
+                           , NVL(EOT_ATAM, 0) + NVL(PRM_SL_AMT, 0) - NVL(PRM_BLAM_EOT_AMT, 0) AS DP_AMT /* 납입금액 */
+                        FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                       WHERE CNTR_NO = A.CNTR_NO
+                         AND CNTR_SN = A.CNTR_SN
+                       ORDER BY SL_CL_YM DESC
+                       FETCH FIRST ROWS ONLY
+                      ) D2
+                   ON 1 = 1
+                WHERE A.DTA_DL_YN = 'N'
+                  AND A.CNTR_NO = #{cntrNo}
+                  AND A.CNTR_SN = #{cntrSn}
+                  AND A.SELL_TP_CD = #{sellTpCd}
+               ) T
+    </select>
+</mapper>

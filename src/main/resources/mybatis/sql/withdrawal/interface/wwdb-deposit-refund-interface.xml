@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbDepositRefundInterfaceMapper">
+
+    <select id="selectDepositRefunds"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbDepositRefundInterfaceDto$SearchRes">
+        SELECT
+               A.RVE_DV_CD /* 수납구분코드: 구분(계약금, 렌탈/할부금/멤버십 등 정확하게는 모름) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', A.RVE_DV_CD) AS RVE_DV_NM
+             , A.RVE_DT /* 수납일자 */
+             , A.PERF_DT /* 실적일자 */
+             , E.RFND_FSH_DT /* 환불일자 */
+             , A.DP_AMT /* 금액 */
+             , B.RVE_PH_CD /* 수납경로코드: 입금유형(영업/가상 등) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'RVE_PH_CD', B.RVE_PH_CD) AS RVE_PH_NM
+             , C.DP_TP_CD /* 입금유형코드: 처리구분(비씨카드, 삼성카드, 가상계좌 등) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', C.DP_TP_CD) AS DP_TP_NM
+             , C.FNIT_CD /* 금융기관코드 */
+             , D.FNIT_NM /* 금융기관명 */
+             , CASE WHEN C.DP_TP_CD = '01' THEN C.CRCDNO_ENCR /* 신용카드번호암호화 */
+                    ELSE C.ACNO_ENCR /* 계좌번호암호화  */
+                END AS CNO
+             , H.ISTM_MCN /* 할부개월 */
+             , CASE WHEN NVL(F.PRM_PTRM_MCN, 0) > 0 THEN 'Y'
+                    ELSE 'N'
+               END AS PRM_YN /* 선납유무 */
+             , (SELECT G.HDWR_APR_PSB_YN
+                  FROM TB_RVDW_CRDCD_BIN_NO_BAS G
+                 WHERE G.DTA_DL_YN = 'N'
+                   AND G.KW_GRP_CO_CD = A.KW_GRP_CO_CD
+                   AND G.FNIT_CD = '366'
+                   AND ROWNUM = 1) AS HDWR_YN /* 수기여부 */
+             , 'N' AS LOCK_YN /* 자료보관 TODO: 확인필요 */
+          FROM TB_RVDW_RVE_DTL A /* 수납상세 */
+         INNER JOIN TB_RVDW_RVE_BAS B /* 수납기본 */
+            ON B.KW_GRP_CO_CD = A.KW_GRP_CO_CD
+           AND B.RVE_NO = A.RVE_NO
+         INNER JOIN TB_RVDW_ITG_DP_BAS C /* 통합입금기본 */
+            ON C.ITG_DP_NO = A.ITG_DP_NO
+         INNER JOIN TB_SSCT_CNTR_DTL H /* 계약상세 */
+            ON H.CNTR_NO = A.CNTR_NO
+           AND H.CNTR_SN = A.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /* 계약WELLS상세 */
+            ON F.CNTR_NO = A.CNTR_NO
+           AND F.CNTR_SN = A.CNTR_SN
+           LEFT OUTER JOIN TB_RVDW_FNIT_CD D /* 금융기관코드 */
+            ON D.FNIT_CD = C.FNIT_CD
+          LEFT OUTER JOIN TB_RVDW_RFND_RCP_BAS E /* 환불접수기본 */
+            ON E.CNTR_NO = A.CNTR_NO
+           AND E.CNTR_SN = A.CNTR_SN
+         WHERE A.DTA_DL_YN = 'N'
+           AND A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+    </select>
+
+</mapper>

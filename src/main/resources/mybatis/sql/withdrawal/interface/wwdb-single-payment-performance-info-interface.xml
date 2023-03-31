@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbSinglePaymentPerformanceInfoInterfaceMapper">
+
+    <select id="selectSinglePaymentPerformanceInfos"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbSinglePaymentPerformanceInfoInterfaceDto$SearchRes">
+        SELECT
+               A.PERF_DT /* 실적일자 */
+             , NVL(Q.EOT_DLQ_AMT, 0) AS DQL_AMT /*연체금액*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', A.RVE_DV_CD) AS RVE_DV_NM /* 구분(할부/매변/손료/위약금/연체가산금) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', A.DP_TP_CD) AS DP_TP_NM /* 유형(지로/간이/은행/은행이체/가상계좌/카드이체/영업부/수당/RDS/전금/수수료/대손/앱할인) */
+             , CASE WHEN A.DP_DV_CD = '2' THEN NVL(A.DP_AMT, 0) * -1
+                    ELSE NVL(A.DP_AMT, 0)
+                END AS DP_AMT /* 입금금액(환불인 경우 음수로 표시) */
+             , SUBSTR(A.PERF_DT, 1, 6) AS PERF_YM /* 실적년월 */
+          FROM TB_RVDW_RVE_DTL A /* 수납상세 */
+         LEFT OUTER JOIN TB_SSCT_CNTR_DTL B /* 계약상세 */
+            ON B.CNTR_NO = A.CNTR_NO
+           AND B.CNTR_SN = A.CNTR_SN
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS Q /*연체기본*/
+            ON Q.CNTR_NO = A.CNTR_NO
+                   AND Q.CNTR_SN = A.CNTR_SN
+                   AND Q.PERF_YM = SUBSTR(A.PERF_DT, 1, 6)
+         WHERE 1 = 1
+           AND A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+    </select>
+
+</mapper>

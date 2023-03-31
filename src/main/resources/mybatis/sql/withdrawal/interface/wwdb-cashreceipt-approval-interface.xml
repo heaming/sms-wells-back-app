@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbCashReceiptApprovalInterfaceMapper">
+
+    <select id="selectCashReceiptApprovalItemizations"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbCashReceiptApprovalInterfaceDto$SearchRes">
+        SELECT
+               A.RVE_DT /* 수납일자 */
+             , A.SELL_TP_CD /* 판매유형코드: 구분(일시불/렌탈/멤버십/회사/정기배송 등) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_NM /* 판매유형코드: 구분(일시불/렌탈/멤버십/회사/정기배송 등) */
+             , A.CNTR_NO /* 계약번호 */
+             , A.CNTR_SN /* 계약일련번호 */
+             , A.CST_NO /* 고객번호 */
+             , B.CST_KNM AS CST_NM /* 고객명 */
+             , A.CSSR_IS_DV_CD /* 신분확인구분(카드/사업자번호/휴대전화..) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CSSR_IS_DV_CD', A.CSSR_IS_DV_CD) AS CSSR_IS_DV_NM
+             , A.CSSR_IS_NO /* 신분확인(카드번호/사업자번호/휴대전화번호) */
+             , A.CSSR_APRNO /* 승인번호 */
+             , CASE WHEN A.CSSR_APR_DT IS NULL THEN 'N'
+                    ELSE 'Y'
+                END AS CSSR_APR_YN /* 승인여부 */
+             , CASE WHEN A.CSSR_TRD_AMT IS NULL THEN A.CSSR_CAN_AMT /* 현금영수증거래금액: 금액 */
+                    ELSE A.CSSR_TRD_AMT
+                END AS CSSR_AMT
+             , SUM(NVL(A.CSSR_TRD_AMT, 0) - NVL(A.CSSR_CAN_AMT, 0)) OVER (PARTITION BY A.RVE_DT, A.CNTR_NO, A.CNTR_SN, A.CSSR_APRNO) AS CSSR_APR_TAMT /* 승인합계 */
+             , A.CSSR_APR_DV_CD /* 구분(정상/오류) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CSSR_APR_DV_CD', A.CSSR_APR_DV_CD) AS CSSR_APR_DV_NM /* 구분(정상/오류) */
+          FROM TB_RVDW_CSSR_IS_OJ_DTL A
+         INNER JOIN TB_CUBS_CST_BAS B
+            ON B.CST_NO = A.CST_NO
+         WHERE A.DTA_DL_YN = 'N'
+           AND A.CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND A.CNTR_SN = #{cntrSn} /* 계약일련번호 */
+           AND A.CSSR_APRNO = #{cssrAprno} /* 승인번호 */
+           AND SUBSTR(A.RVE_DT, 1, 6) = #{rveYm} /* 수납년월 */
+    </select>
+</mapper>
