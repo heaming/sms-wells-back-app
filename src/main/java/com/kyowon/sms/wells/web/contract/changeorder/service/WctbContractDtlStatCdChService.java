@@ -40,10 +40,12 @@ public class WctbContractDtlStatCdChService {
         ValidAssert.hasText(dvo.getCntrSn());
         ValidAssert.hasText(dvo.getCntrDtlStatCd());
 
+        //계약상세상태코드가 공통코드 계약상세상태코드에 존재하지 않는 값이면 종료(Exception)
         if(!codeService.isExistCodeDetail("CNTR_DTL_STAT_CD", dvo.getCntrDtlStatCd())) {
             throw new BizException("계약상세상태코드가 존재하지 않는 값입니다.");
         }
 
+        //계약상품종료일자가 null 이 아닌 경우,  날짜형식 체크(Exception)
         if(StringUtil.isNotEmpty(dvo.getCntrPdEnddt()) && !DateUtil.isValid(dvo.getCntrPdEnddt(), "yyyyMMdd")){
             throw new BizException("계약상품종료일자가 날짜 포맷이 아닙니다.");
         }
