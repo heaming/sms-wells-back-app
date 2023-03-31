@@ -41,10 +41,8 @@ public class WpdcRoutineBsWorkMgtDto {
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchStdBaseReq")
     public record SearchStdBaseReq(
-        String svcType, /* 서비스 선택 구분 */
-        String svcValue, /* 서비스 선택 값 */
-        String prdtType, /* 제품 선택 구분 */
-        String prdtValue /* 제품 선택 값 */
+        String svPdCd, /* 서비스 코드 */
+        String pdctPdCd /* 필터 코드 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRoutineBsWorkBaseRes")
