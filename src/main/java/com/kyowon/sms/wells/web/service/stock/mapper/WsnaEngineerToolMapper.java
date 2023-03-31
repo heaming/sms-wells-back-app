@@ -15,6 +15,10 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnaEngineerToolMapper {
     List<SearchRes> selectEngineerToolDsbHist(SearchReq dto);
 
+    PagingResult<SearchRes> selectEngineerToolDsbHist(SearchReq dto, PageInfo pageInfo);
+
+    int deleteEngineerTools(WsnaEngineerToolDvo dvo);
+
     PagingResult<SearchPartsRes> selectEngineerToolParts(PageInfo pageInfo);
 
     int insertEngineerToolsDsb(WsnaEngineerToolDvo dvo);

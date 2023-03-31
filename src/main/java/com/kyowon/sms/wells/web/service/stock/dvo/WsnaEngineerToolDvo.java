@@ -10,4 +10,7 @@ import lombok.Setter;
 public class WsnaEngineerToolDvo {
     List<String> egerPrtnrNos;
     List<String> pdCds;
+    String ogTpCd;
+    String egerPrtnrNo;
+    String toolPdCd;
 }

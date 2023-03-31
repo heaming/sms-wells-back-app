@@ -3,14 +3,12 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto.CreateReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto.SearchPartsRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto.*;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaEngineerToolService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -33,6 +31,23 @@ public class WsnaEngineerToolController {
     @GetMapping
     public List<SearchRes> getEngineerToolDsbHist(SearchReq dto) {
         return service.getEngineerToolDsbHist(dto);
+    }
+
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getEngineerToolDsbHistPages(SearchReq dto, PageInfo pageInfo) {
+        return service.getEngineerToolDsbHistPages(dto, pageInfo);
+    }
+
+    @DeleteMapping
+    public SaveResponse removeEngineerTools(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<RemoveReq> dtos
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.removeEngineerTools(dtos))
+            .build();
     }
 
     @GetMapping("/parts/paging")
