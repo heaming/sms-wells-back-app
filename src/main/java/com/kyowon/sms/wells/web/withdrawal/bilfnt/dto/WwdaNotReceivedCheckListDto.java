@@ -37,15 +37,14 @@ public class WwdaNotReceivedCheckListDto {
     @ApiModel("WwdaNotReceivedCheckListDto-SearchAftnSlPerfCheckInqrRes")
     public record SearchAftnSlPerfCheckInqrRes(
         // 매출실적 입금 전용 누락건
-        String sellTpCd,
-        String baseYm,
-        String cntrNo,
+        String sellTpNm,
+        String dpClDt,
+        String cntrSn,
         String rentalNmn,
-        String intamDpAmt,
-        String intamRfndAmt,
+        String thmIntamDpAmt,
+        String thmIstmRfndAmt,
         String rveAmt,
-        String dpTpCd
-
+        String dpMesCd
     ) {}
 
     @ApiModel("WwdaNotReceivedCheckListDto-SearchResultBundleErrorRes")
