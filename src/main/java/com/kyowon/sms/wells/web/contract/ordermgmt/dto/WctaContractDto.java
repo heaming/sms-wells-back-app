@@ -21,7 +21,9 @@ public class WctaContractDto {
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String cntrCstNo
+        String cntrCstNo,
+        String cntrNo,
+        String cntrSn
     ) {
         public SearchCntrNoReq {
             mexnoEncr = DbEncUtil.enc(mexnoEncr);
