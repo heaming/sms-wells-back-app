@@ -43,7 +43,11 @@ public interface WfedWelsMngerBsFeeMapper {
         WfedWelsMngerBsFeeDvo dvo
     );
 
-    int insertFee(
+    int mergeWelsManagerFees(
+        WfedWelsMngerBsFeeDvo dvo
+    );
+
+    int insertWelsManagerFeeHistorys(
         WfedWelsMngerBsFeeDvo dvo
     );
 }

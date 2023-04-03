@@ -3,185 +3,259 @@
 
     <select id='selectHuman'
             resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedWelsMngerBsFeeDto$FindHumanRes">
-        SELECT '김교원 지점' AS COL1
-        , '2020-10-12' AS COL2
-        , '27' AS COL3
-        , '플래너' AS COL4
-        , '2020-10-23' AS COL5
-        , '-' AS COL6
-        FROM DUAL
+        SELECT A.OG_NM AS THM_BRANCH                   /*당월지점*/
+             , A.FST_CNTR_DT AS TASK_RGS               /*업무등록*/
+             , NVL(B.PERF_VAL,0) AS STMNT_NMN          /*LCCNT1 정착차월*/
+             , A.PSTN_DV_CD ||'직급 / '|| C.CD_CNTN AS THM_CRLV /*당월직책*/
+             , A.CNTR_DT AS WM_OPNG                    /*WM개시 */
+             , A.CLTN_DT AS WM_CLTN                    /*WM해약  일정조회 수정여부 가능 차후 추가예정*/
+          FROM TB_OGBS_MM_PRTNR_IZ A
+          LEFT OUTER JOIN TB_FEAM_WPTN_SV_PERF_AGRG B
+            ON A.BASE_YM = B.BASE_YM
+           AND A.OG_TP_CD = B.OG_TP_CD
+           AND A.PRTNR_NO = B.PRTNR_NO
+           AND B.CL_DV_CD = '02'
+           AND B.PRTNR_SV_PERF_ATC_CD = 'W023110101'
+          LEFT OUTER JOIN T_CMZ_CD_D C
+            ON A.RSB_DV_CD = C.CD_VLD_VAL
+           AND C.TENANT_ID = 'TNT_WELLS'
+           AND CD_ID = 'RSB_DV_CD'
+         WHERE A.BASE_YM = #{perfYm}
+           AND A.PRTNR_NO = #{no}
+           AND A.OG_TP_CD = 'W02'
     </select>
 
     <select id='selectVisits'
             resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedWelsMngerBsFeeDto$SearchVisitRes">
-        SELECT '정수기1' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
-        UNION ALL
-        SELECT '정수기2' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
-        UNION ALL
-        SELECT '정수기3' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
-        UNION ALL
-        SELECT '정수기4' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
-        UNION ALL
-        SELECT '청정기1' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
-        UNION ALL
-        SELECT '청정기2' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
-        UNION ALL
-        SELECT '아웃소싱,커피,삼성' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
-        UNION ALL
-        SELECT '비데,연수기' AS COL1
-        , 12 AS COL2
-        , 12 AS COL3
-        , 12345 AS COL4
-        , 12 AS COL5
-        , 12 AS COL6
-        , 12345 AS COL7
-        , 123450 AS COL8
-        FROM DUAL
+        SELECT CD_NM AS CD_NM
+             , MAX(CNT1) AS CNT1
+             , MAX(CNT2) AS CNT2
+             , MAX(AMT1) AS AMT1
+             , MAX(CNT3) AS CNT3
+             , MAX(CNT4) AS CNT4
+             , MAX(AMT2) AS AMT2
+             , MAX(AMT1)+MAX(AMT2) AS SUM_AMT
+        FROM   ( SELECT CD_NM
+                      , NVL(SUM(COL1),0) AS CNT1
+                      , NVL(SUM(COL2),0) AS CNT2
+                      , NVL(SUM(COL3),0) AS AMT1
+                      , 0 AS CNT3
+                      , 0 AS CNT4
+                      , 0 AS AMT2
+                   FROM ( SELECT GI.PRTNR_PERF_DTLP_ATC_CDN1 AS CD_NM
+                               , CASE WHEN GI.PERF_VAL_DV_CD = '01' THEN BS.PERF_VAL END AS COL1
+                               , CASE WHEN GI.PERF_VAL_DV_CD = '02' THEN BS.PERF_VAL END AS COL2
+                               , CASE WHEN GI.PERF_VAL_DV_CD = '04' THEN BS.PERF_VAL END AS COL3
+                            FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
+                      INNER JOIN TB_FEAM_PRTNR_SV_PERF_ATC_CD GI
+                              ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
+                             AND GI.PRTNR_SV_PERF_ATC_DV_CD = CASE WHEN BS.BASE_YM &lt; '202207' THEN '01' ELSE '08' END /*202207년 이후는 구분코드 08*/
+                             AND GI.PRTNR_PERF_DTLP_ATC_CDV2 = '01' /*일반*/
+                             AND BS.BASE_YM = #{perfYm}
+                             AND BS.PRTNR_NO = #{no}
+                             AND BS.CL_DV_CD = '02'
+                             AND BS.OG_TP_CD = 'W02'
+                         )
+                  GROUP BY CD_NM
+                 UNION
+                 SELECT CD_NM
+                      , 0 AS CNT1
+                      , 0 AS CNT2
+                      , 0 AS AMT1
+                      , CASE WHEN BASE_YM &lt; '202207' THEN 0 ELSE NVL(SUM(COL1),0) END AS CNT3   /*202007 이전은 정액 0원*/
+                      , CASE WHEN BASE_YM &lt; '202207' THEN 0 ELSE NVL(SUM(COL2),0) END AS CNT4
+                      , CASE WHEN BASE_YM &lt; '202207' THEN 0 ELSE NVL(SUM(COL3),0) END AS AMT2
+                   FROM ( SELECT GI.PRTNR_PERF_DTLP_ATC_CDN1 AS CD_NM
+                               , BS.BASE_YM
+                               , CASE WHEN GI.PERF_VAL_DV_CD = '01' THEN BS.PERF_VAL END AS COL1
+                               , CASE WHEN GI.PERF_VAL_DV_CD = '02' THEN BS.PERF_VAL END AS COL2
+                               , CASE WHEN GI.PERF_VAL_DV_CD = '04' THEN BS.PERF_VAL END AS COL3
+                            FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
+                      INNER JOIN TB_FEAM_PRTNR_SV_PERF_ATC_CD GI
+                              ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
+                             AND GI.PRTNR_SV_PERF_ATC_DV_CD = CASE WHEN BS.BASE_YM &lt; '202207' THEN '01' ELSE '08' END /*202207년 이후는 구분코드 08*/
+                             AND GI.PRTNR_PERF_DTLP_ATC_CDV2 = '02' /*정액*/
+                             AND BS.BASE_YM = #{perfYm}
+                             AND BS.PRTNR_NO = #{no}
+                             AND BS.CL_DV_CD = '02'
+                             AND BS.OG_TP_CD = 'W02'
+                         )
+                  GROUP BY CD_NM, BASE_YM
+                )
+         GROUP BY CD_NM
+         ORDER BY CD_NM
+
     </select>
 
     <select id='selectFees'
             resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedWelsMngerBsFeeDto$SearchFeeRes">
-        SELECT '관리수당' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '판매장려' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '판매미팅' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '판매소급' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '정착' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '급지' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '통신수당' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '기타수당' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '유니폼' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
-        UNION ALL
-        SELECT '사전방문' AS COL1
-        , 123450 AS COL2
-        , 550 AS COL3
-        , 10000 AS COL4
-        FROM DUAL
+        SELECT #{no} AS PRTNR_NO
+             , #{perfYm} AS BASE_YM
+             , C.OG_TP_CD
+             , C.FEE_NM
+             , C.FEE_CD
+             , NVL(D.FEE_CALC_AMT,'0') AS FEE_CALC_AMT
+             , NVL(D.FEE_CTR_CNFM_AMT,'0') AS FEE_CTR_CNFM_AMT
+             , D.FEE_CTR_RSON_CN
+          FROM TB_FEAM_FEE_CD C
+          LEFT OUTER JOIN ( SELECT A.OG_TP_CD
+                                 , B.FEE_CD
+                                 , B.FEE_CALC_AMT
+                                 , B.FEE_CTR_CNFM_AMT
+                                 , B.FEE_CTR_RSON_CN
+                              FROM TB_OGBS_MM_PRTNR_IZ A
+                              LEFT OUTER JOIN TB_FEAM_FEE_CALC_BAS B
+                                ON A.PRTNR_NO = B.PRTNR_NO
+                               AND A.OG_TP_CD = B.OG_TP_CD
+                               AND A.BASE_YM = B.BASE_YM
+                               AND B.FEE_CD IN ( 'W020084', 'W020085' ,'W020028' ,'W020027' ,'W020086'
+                                                ,'W020026' ,'W020082' ,'W020008', 'W020077')
+                             WHERE A.BASE_YM = #{perfYm}
+                               AND A.OG_TP_CD = 'W02'
+                               AND A.PRTNR_NO = #{no}
+                           )D
+           ON C.FEE_CD = D.FEE_CD
+          AND C.OG_TP_CD = D.OG_TP_CD
+        WHERE C.FEE_CD IN ('W020084', 'W020085', 'W020028', 'W020027','W020086'
+                          ,'W020026', 'W020082', 'W020008', 'W020077')
+        ORDER BY C.FEE_NM
     </select>
 
     <select id='selectVisitAgrg'
             resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedWelsMngerBsFeeDto$FindVisitAgrgRes">
-        SELECT 123 AS COL1
-        , '99.99' AS COL2
-        , 123 AS COL3
-        , 1234 AS COL4
-        , 12345 AS COL5
-        , 123456 AS COL6
-        FROM DUAL
+        SELECT NVL(VISIT_RECORD,0) AS VISIT_RECORD  /*LCCNT2 + LCCNT3 방문실적*/
+             , NVL(PROCS_RT,0) AS PROCS_RT          /*LCAMT1 처리율*/
+             , NVL(PD_ACC_CNT,0) AS PD_ACC_CNT      /*LCCNT1 BS인정건수*/
+             , NVL(W1_CNT,0) AS W1_CNT              /*LCCNT2 W1건수*/
+             , NVL(W2_CNT,0) AS W2_CNT              /*LCCNT3 W2건수*/
+             , NVL(ENVR_CNT,0) AS ENVR_CNT          /*LCCNT1 환경건수*/
+          FROM ( SELECT PRTNR_SV_PERF_ATC_CD
+                      , PERF_VAL
+                   FROM TB_FEAM_WPTN_SV_PERF_AGRG
+                  WHERE BASE_YM = '202303'
+                    AND PRTNR_NO = '930879'
+                    AND CL_DV_CD = '1'
+                    AND PRTNR_SV_PERF_ATC_CD IN ('199991','199992','199993','261','6111','6112','251')
+                )
+        PIVOT ( SUM(PERF_VAL)
+                FOR PRTNR_SV_PERF_ATC_CD IN ( '199991' AS VISIT_RECORD
+                                            , '199992' AS PROCS_RT
+                                            , '261' AS PD_ACC_CNT
+                                            , '6111' AS W1_CNT
+                                            , '6112' AS W2_CNT
+                                            , '251' AS ENVR_CNT
+                                             )
+               )
     </select>
 
     <select id='selectFeeAgrg'
             resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedWelsMngerBsFeeDto$FindFeeAgrgRes">
-        SELECT 123 AS COL1
-        , 12345 AS COL2
-        FROM DUAL
+        SELECT DDCTAM AS DDTN_SUM
+             , DSB_OJ_AMT AS DSB_SUM
+             , (DSB_OJ_AMT - DDCTAM) AS DSB_TAM
+          FROM TB_FEAM_FEE_DSB_IZ E
+         WHERE DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
+           AND ( DDCTAM > 0  OR DSB_OJ_AMT > 0 )
+           AND PRTNR_NO = #{no}
+           AND OG_TP_CD = 'W02'
     </select>
 
-    <delete id="deleteFee" parameterType="com.kyowon.sms.wells.web.fee.control.dvo.WfedWelsMngerBsFeeDvo">
-        SELECT * FROM DUAL
-    </delete>
+    <insert id="mergeWelsManagerFees" parameterType="com.kyowon.sms.wells.web.fee.control.dvo.WfedWelsMngerBsFeeDvo">
+        MERGE INTO TB_FEAM_FEE_CALC_BAS A
+        USING DUAL
+        ON( A.PRTNR_NO = #{prtnrNo}
+        AND A.BASE_YM = #{baseYm}
+        AND A.OG_TP_CD = #{ogTpCd}
+        AND A.FEE_CD = #{feeCd}
+        AND A.FEE_CALC_AMT = #{feeCalcAmt}
+           )
+        WHEN MATCHED THEN
+        UPDATE SET A.FEE_CTR_CNFM_AMT = #{feeCtrCnfmAmt}
+                 , A.FEE_CTR_RSON_CN = #{feeCtrRsonCn}
+                 , A.FNL_MDFC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                 , A.FNL_MDFC_USR_ID = #{session.userId}
+                 , A.FNL_MDFC_PRG_ID = 'KSS_WELLS'
+                 , A.FNL_MDFC_DEPT_ID = #{session.departmentId}
+        WHEN NOT MATCHED THEN
+        INSERT ( A.BASE_YM
+               , A.PERF_YM
+               , A.OJ_DSB_YM
+               , A.CO_CD
+               , A.OG_TP_CD
+               , A.PRTNR_NO
+               , A.FEE_CD
+               , A.FEE_TCNT_DV_CD
+               , A.SPMT_DSB_DV_CD
+               , A.DTA_CRT_FEE_CD
+               , A.FEE_CALC_AMT
+               , A.FEE_CTR_CNFM_AMT
+               , A.FEE_CTR_RSON_CN
+        <include refid="COMMON.insertSystemField" />
+        ) VALUES ( #{baseYm}
+                 , #{baseYm}
+                 , #{baseYm}
+                 , '2000'
+                 , #{ogTpCd}
+                 , #{prtnrNo}
+                 , #{feeCd}
+                 , '02'
+                 , '01'
+                 , #{feeCd}
+                 , 0
+                 , #{feeCtrCnfmAmt}
+                 , #{feeCtrRsonCn}
+        <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
 
-    <insert id="insertFee" parameterType="com.kyowon.sms.wells.web.fee.control.dvo.WfedWelsMngerBsFeeDvo">
-        SELECT * FROM DUAL
+    <insert id="insertWelsManagerFeeHistorys" parameterType="com.kyowon.sms.wells.web.fee.control.dvo.WfedWelsMngerBsFeeDvo">
+        INSERT INTO TB_FEAM_FEE_CALC_HIST
+        ( BASE_YM
+        , PERF_YM
+        , OJ_DSB_YM
+        , CO_CD
+        , OG_TP_CD
+        , PRTNR_NO
+        , FEE_CD
+        , FEE_TCNT_DV_CD
+        , SPMT_DSB_DV_CD
+        , HIST_CH_DTM
+        , DTA_CRT_FEE_CD
+        , FEE_CALC_AMT
+        , FEE_CTR_CNFM_AMT
+        , FEE_CTR_RSON_CN
+        , FNL_FEE_YN
+        , FST_RGST_DTM
+        , FST_RGST_USR_ID
+        , FST_RGST_PRG_ID
+        , FST_RGST_DEPT_ID
+        , FNL_MDFC_DTM
+        , FNL_MDFC_USR_ID
+        , FNL_MDFC_PRG_ID
+        , FNL_MDFC_DEPT_ID
+        )
+        SELECT BASE_YM
+             , PERF_YM
+             , OJ_DSB_YM
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , FEE_CD
+             , FEE_TCNT_DV_CD
+             , SPMT_DSB_DV_CD
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_CH_DTM
+             , DTA_CRT_FEE_CD
+             , FEE_CALC_AMT
+             , FEE_CTR_CNFM_AMT
+             , FEE_CTR_RSON_CN
+             , FNL_FEE_YN
+        <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_FEAM_FEE_CALC_BAS
+         WHERE PRTNR_NO = #{prtnrNo}
+           AND BASE_YM = #{baseYm}
+           AND OG_TP_CD = #{ogTpCd}
+           AND FEE_CD = #{feeCd}
+           AND FEE_CALC_AMT = #{feeCalcAmt}
     </insert>
 
 

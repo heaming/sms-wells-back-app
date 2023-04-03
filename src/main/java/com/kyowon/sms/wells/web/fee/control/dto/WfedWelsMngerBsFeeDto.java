@@ -27,10 +27,14 @@ public class WfedWelsMngerBsFeeDto {
 
     @ApiModel(value = "WfedWelsMngerBsFeeDto-SaveFeeReq")
     public record SaveFeeReq(
-        String col1,
-        int col2,
-        int col3,
-        int col4
+        String prtnrNo,
+        String baseYm,
+        String ogTpCd,
+        String feeNm,
+        String feeCd,
+        String feeCalcAmt,
+        String feeCtrCnfmAmt,
+        String feeCtrRsonCn
     ) {}
 
     // *********************************************************
@@ -40,45 +44,50 @@ public class WfedWelsMngerBsFeeDto {
 
     @ApiModel(value = "WfedWelsMngerBsFeeDto-FindHumanRes")
     public record FindHumanRes(
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6
+        String thmBranch,
+        String taskRgs,
+        String stmntNmn,
+        String thmCrlv,
+        String wmOpng,
+        String wmCltn
     ) {}
 
     @ApiModel(value = "WfedWelsMngerBsFeeDto-SearchVisitRes")
     public record SearchVisitRes(
-        String col1,
-        int col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6,
-        int col7,
-        int col8
+        String cdNm,
+        String cnt1,
+        String cnt2,
+        String amt1,
+        String cnt3,
+        String cnt4,
+        String amt2,
+        String sumAmt
     ) {}
     @ApiModel(value = "WfedWelsMngerBsFeeDto-SearchFeeRes")
     public record SearchFeeRes(
-        String col1,
-        int col2,
-        int col3,
-        int col4
+        String prtnrNo,
+        String baseYm,
+        String ogTpCd,
+        String feeNm,
+        String feeCd,
+        String feeCalcAmt,
+        String feeCtrCnfmAmt,
+        String feeCtrRsonCn
     ) {}
 
     @ApiModel(value = "WfedWelsMngerBsFeeDto-FindVisitAgrgRes")
     public record FindVisitAgrgRes(
-        int col1,
-        String col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6
+        String visitRecord,
+        String procsRt,
+        String pdAccCnt,
+        String w1Cnt,
+        String w2Cnt,
+        String envrCnt
     ) {}
     @ApiModel(value = "WfedWelsMngerBsFeeDto-FindFeeAgrgRes")
     public record FindFeeAgrgRes(
-        int col1,
-        int col2
+        String ddtnSum,
+        String dsbSum,
+        String dsbTam
     ) {}
 }

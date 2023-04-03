@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.fee.control.service;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 
@@ -81,24 +83,22 @@ public class WfedWelsMngerBsFeeService {
     }
 
     /**
-     * WM방문실적 수수료관리 수수료 집계 조회
+     * WM방문실적 수수료관리 수수료 조정내역 저장
      * @param dto : {
      * perfYm : 실적년월,
      * no : 번호 }
      * @return 조회결과
      */
-    public int saveFee(SaveFeeReq dto) {
+    public int saveFee(List<SaveFeeReq> info) {
+        AtomicInteger processCount = new AtomicInteger();
+        info.forEach(data -> {
+            WfedWelsMngerBsFeeDvo dvo = this.converter.mapSaveFeeReqToWfedWelsMngerBsFeeDvo(data);
+            processCount.addAndGet(this.mapper.mergeWelsManagerFees(dvo));
+            this.mapper.insertWelsManagerFeeHistorys(dvo);
+        });
+        BizAssert.isTrue(processCount.get() > 0, "MSG_ALT_CRT_FAIL");
 
-        int processCount = 0;
-
-        WfedWelsMngerBsFeeDvo dvo = converter.mapSaveFeeReqToWfedWelsMngerBsFeeDvo(dto);
-
-        mapper.deleteFee(dvo);
-        processCount = mapper.insertFee(dvo);
-
-        BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
-
-        return processCount;
+        return processCount.get();
     }
 
 }
