@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
 
-public class WwwdbIntegrationDepositNumberInquiryDto {
+public class WwdbIntegrationDepositNumberDto {
     public record SearchReq(
 
         String rveCd, /*수납일자*/

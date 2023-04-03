@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbIntegrationDepositNumberInquiryDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbIntegrationDepositNumberInquiryDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwwdbIntegrationDepositNumberInquiryService;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositNumberDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositNumberDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbIntegrationDepositNumberService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -24,10 +24,10 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 통합입금번호조회")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/integration-deposit-number-inquiry")
-public class WwwdbIntegrationDepositNumberInquiryController {
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/integration-deposit-number")
+public class WwdbIntegrationDepositNumberController {
 
-    private final WwwdbIntegrationDepositNumberInquiryService service;
+    private final WwdbIntegrationDepositNumberService service;
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "rveCd", value = "수납코드", paramType = "query", required = false),
@@ -42,7 +42,7 @@ public class WwwdbIntegrationDepositNumberInquiryController {
     @ApiOperation(value = "통합입금번호 목록 조회", notes = " 검색조건을 받아 통합입금번호 목록을 조회한다.")
     @GetMapping("/paging")
     public PagingResult<SearchRes> getIntegrationDepositNumberInquiryPages(SearchReq dto, PageInfo pageInfo) {
-        return service.getIntegrationDepositNumberInquiryPages(dto, pageInfo);
+        return service.getIntegrationDepositNumberPages(dto, pageInfo);
     }
 
     @ApiImplicitParams(value = {
@@ -58,6 +58,6 @@ public class WwwdbIntegrationDepositNumberInquiryController {
     @ApiOperation(value = "통합입금번호 목록 엑셀 다운로드", notes = " 검색조건을 받아 통합입금번호 목록을 엑셀 다운한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getIntegrationDepositNumberInquiryExcels(SearchReq dto) {
-        return service.getIntegrationDepositNumberInquiryExcels(dto);
+        return service.getIntegrationDepositNumberExcels(dto);
     }
 }
