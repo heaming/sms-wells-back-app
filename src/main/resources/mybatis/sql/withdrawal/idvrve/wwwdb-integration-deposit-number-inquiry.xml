@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwwdbIntegrationDepositNumberInquiryMapper">
+    <select id="selectIntegrationDepositNumberInquiryPages" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbIntegrationDepositNumberInquiryDto$SearchRes">
+         SELECT 
+               T1.ITG_DP_NO /*통합입금번호*/  
+             , T1.RVE_CD /*수납코드*/  
+             , T3.SELL_TP_CD /*판매유형*/
+             , T3.SELL_PRTNR_NO/*판매자번호*/
+             , T1.DP_TP_CD /*입금유형*/
+             , T1.DP_DTM /*입금일자*/
+             , T1.DPR_NM /*입금자명*/
+             , T1.DP_AMT /*입금금액*/
+             , T1.DP_BLAM /*입금잔액*/
+             , (CASE WHEN T4.FNIT_DV_CD = '1' 
+                      THEN T4.FNIT_CD 
+                      ELSE ''
+                       END) AS BANK_CD/*은행코드*/
+             , (CASE WHEN T4.FNIT_DV_CD = '1' 
+                     THEN T4.FNIT_NM 
+                     ELSE ''
+                      END) AS BANK_NM /*은행명*/
+             , T1.ACNO_ENCR /*계좌번호*/
+             , T1.CARD_KND_CD/*카드구분*/
+             , T1.CRCDNO_ENCR /*카드번호*/
+             , (CASE WHEN T4.FNIT_DV_CD = '2' 
+                     THEN T4.FNIT_NM 
+                     ELSE ''
+                      END) AS CARD_NM /*카드명*/
+             , T1.CRDCD_APR_DTM /*승인일자*/
+             , T1.CRDCD_APRNO/*승인번호*/
+             , T5.DP_CPRCNF_NO /*대사번호*/
+             , 0 AS DP_CPRCNF_AMT /*대사금액*/
+             , T5.DP_CPRCNF_DTM /*입금대사일자*/
+             , T1.DP_CPRCNF_AMT AS DP_GICPRCNF_AMT /*기대사금액*/
+             , T1.PCHS_CDCO_CD /*매입카드사*/
+             , T1.CRDCD_ISTM_MCN /*할부개월*/
+             , T1.VNCO_DV_CD /*제휴사구분코드*/
+          FROM TB_RVDW_ITG_DP_BAS T1 /*통합입금기본*/
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL T2/*수납상세*/
+            ON T2.ITG_DP_NO = T1.ITG_DP_NO 
+           AND T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (
+                            SELECT 
+                                  S2.CNTR_NO 
+                                , S2.CNTR_SN 
+                                , S2.SELL_TP_CD /*판매유형*/
+                                , S1.SELL_PRTNR_NO /*판매파트너*/
+                             FROM TB_SSCT_CNTR_BAS S1 /*계약기본*/
+                             LEFT OUTER JOIN TB_SSCT_CNTR_DTL S2 /*계약상세*/
+                               ON S2.CNTR_NO = S1.CNTR_NO
+                              AND S2.DTA_DL_YN = 'N'
+                            WHERE S1.DTA_DL_YN = 'N'
+                          ) T3
+             ON T3.CNTR_NO = T2.CNTR_NO
+            AND T3.CNTR_SN = T2.CNTR_SN
+          LEFT OUTER JOIN TB_RVDW_FNIT_CD T4 /*금융기관코드*/
+            ON T4.FNIT_CD = T1.FNIT_CD
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_RVDW_DP_CPRCNF_BAS T5
+            ON T5.ITG_DP_NO = T1.ITG_DP_NO
+           AND T5.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty(rveCd)'>
+           AND T1.RVE_CD = #{rveCd}/*수납코드*/
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(dpStartDtm)'>
+           AND T1.DP_DTM BETWEEN #{dpStartDtm} AND #{dpEndDtm} 
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(dpTpCd)'>
+           AND T1.DP_TP_CD = #{dpTpCd} /*입금유형*/
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(acnoEncr)'>
+           AND T1.ACNO_ENCR = #{acnoEncr} /*계좌번호*/
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
+           AND T3.SELL_PRTNR_NO = #{sellPrtnrNo} /*판매자번호*/
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(crcdnoEncr)'>
+           AND T1.CRCDNO_ENCR = #{crcdnoEncr} /*카드번호*/
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(crdcdAprno)'>
+           AND T1.CRDCD_APRNO = #{crdcdAprno} /*승인번호*/
+         </if>  
+         ORDER BY T1.ITG_DP_NO ASC , T1.DP_DTM
+    </select>
+</mapper>
