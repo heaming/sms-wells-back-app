@@ -25,6 +25,8 @@ public class WpdcAsPartMgtDto {
         String prdtCateLow,
         String sapMatCd,
         String asMatCd,
+        String sapItemCdFrom, /* 품목코드 */
+        String sapItemCdTo, /* 품목코드 */
         String modelNo
     ) {}
 
