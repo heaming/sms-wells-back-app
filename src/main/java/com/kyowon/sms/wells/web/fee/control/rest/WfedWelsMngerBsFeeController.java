@@ -94,10 +94,8 @@ public class WfedWelsMngerBsFeeController {
     public SaveResponse saveFee(
         @RequestBody
         @Valid
-        SaveFeeReq dto
-    ) throws Exception {
-        return SaveResponse.builder()
-            .processCount(service.saveFee(dto))
-            .build();
+        List<SaveFeeReq> info
+    ) {
+        return SaveResponse.builder().processCount(service.saveFee(info)).build();
     }
 }
