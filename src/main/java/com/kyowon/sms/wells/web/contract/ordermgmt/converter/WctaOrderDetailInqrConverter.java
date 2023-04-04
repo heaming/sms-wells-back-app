@@ -7,5 +7,5 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailInqrDvo;
 
 @Mapper(componentModel = "spring")
 public interface WctaOrderDetailInqrConverter {
-    WctaOrderDetailInqrDto.SearchRes mapSearchResToWctaOrderDetailInqrDvo(WctaOrderDetailInqrDvo dvo);
+    WctaOrderDetailInqrDto.SearchRes mapWctaOrderDetailInqrDvoToSearchRes(WctaOrderDetailInqrDvo dvo);
 }

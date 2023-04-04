@@ -28,7 +28,7 @@ public class WctaOrderDetailInqrService {
         for (int i = 0; i < dvos.size(); i++) {
             WctaOrderDetailInqrDvo dvo = dvos.get(i);
             WctaOrderDetailInqrDto.SearchRes req = null;
-            req = converter.mapSearchResToWctaOrderDetailInqrDvo(dvo);
+            req = converter.mapWctaOrderDetailInqrDvoToSearchRes(dvo);
             reqs.add(req);
         }
         return reqs;
@@ -43,7 +43,7 @@ public class WctaOrderDetailInqrService {
         for (int i = 0; i < dvos.size(); i++) {
             WctaOrderDetailInqrDvo dvo = dvos.get(i);
             WctaOrderDetailInqrDto.SearchRes req = null;
-            req = converter.mapSearchResToWctaOrderDetailInqrDvo(dvo);
+            req = converter.mapWctaOrderDetailInqrDvoToSearchRes(dvo);
             reqs.add(req);
         }
         return reqs;
