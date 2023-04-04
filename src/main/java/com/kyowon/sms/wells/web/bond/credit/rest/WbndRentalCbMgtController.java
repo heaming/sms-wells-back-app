@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(BnBondConst.REST_URL_V1 + "/rentalCB")
+@RequestMapping(BnBondConst.REST_URL_V1 + "/rental-cb")
 public class WbndRentalCbMgtController {
 
     private final WbndRentalCbMgtService service;
