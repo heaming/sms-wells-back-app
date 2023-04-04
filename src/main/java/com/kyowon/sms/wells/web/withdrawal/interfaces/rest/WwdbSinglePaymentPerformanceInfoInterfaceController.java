@@ -26,7 +26,7 @@ public class WwdbSinglePaymentPerformanceInfoInterfaceController {
 
     private final WwdbSinglePaymentPerformanceInfoInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WDEI1005] wells 입금/환불 목록 조회")
+    @ApiOperation(value = "[EAI_WDEI1005] wells 일시불(할부)- 실적 정보 조회")
     @PostMapping
     public EaiWrapper getSinglePaymentPerformanceInfos(
         @Valid
