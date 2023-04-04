@@ -2,42 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbVirtualAccountInterfaceMapper">
 
-    <resultMap id="issueInfo" type="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbVirtualAccountInterfaceDto$SearchRes">
-        <constructor>
-            <arg name="cntrNo" javaType="java.lang.String" column="CNTR_NO" />
-            <arg name="cntrSn" javaType="java.lang.String" column="CNTR_SN" />
-            <arg name="basePdCd" javaType="java.lang.String" column="BASE_PD_CD" />
-            <arg name="pdNm" javaType="java.lang.String" column="PD_NM" />
-            <arg name="vacBnkCd" javaType="java.lang.String" column="VAC_BNK_CD" />
-            <arg name="vacNo" javaType="java.lang.String" column="VAC_NO" />
-            <arg name="vacDprNm" javaType="java.lang.String" column="VAC_DPR_NM" />
-            <arg name="sellTpCd" javaType="java.lang.String" column="SELL_TP_CD" />
-            <arg name="sellTpNm" javaType="java.lang.String" column="SELL_TP_NM" />
-        </constructor>
-    </resultMap>
-
-    <select id="selectVirtualAccountIssues" resultMap="issueInfo">
-        SELECT B.CNTR_NO
-             , B.CNTR_SN
-             , C.BASE_PD_CD
-             , E.PD_NM
-             , A.VAC_BNK_CD
-             , A.VAC_NO
-             , D.VAC_DPR_NM
-             , C.SELL_TP_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C.SELL_TP_CD) AS SELL_TP_NM
-          FROM TB_RVDW_VAC_IS_IZ A
-          LEFT JOIN TB_RVDW_VAC_IS_DTL B
+    <select id="selectVirtualAccountIssues" resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbVirtualAccountInterfaceDto$SearchRes">
+        SELECT B.CNTR_NO /*계약번호*/
+             , B.CNTR_SN /*계약일련번호*/
+             , E.PD_NM /*과목*/
+             , ( SELECT F2.FNIT_NM FROM TB_RVDW_FNIT_CD F2 WHERE F2.FNIT_DV_CD = '1' AND F2.FNIT_CD = A.VAC_BNK_CD) AS VAC_BNK_NM /*은행명*/
+             , A.VAC_NO /*가상계좌번호*/
+             , D.VAC_DPR_NM /*입금자명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C.SELL_TP_CD) AS SELL_TP_NM /*구분(할부/렌탈/멤버십/회사/정기배송/필터)*/
+          FROM TB_RVDW_VAC_IS_IZ A /*가상계좌발급내역*/
+         INNER JOIN TB_RVDW_VAC_IS_DTL B /*가상계좌발급상세*/
             ON B.KW_GRP_CO_CD = A.KW_GRP_CO_CD
            AND B.VAC_IS_ID = A.VAC_IS_ID
-          LEFT JOIN TB_SSCT_CNTR_DTL C
+         INNER JOIN TB_SSCT_CNTR_DTL C /*계약상세*/
             ON C.CNTR_NO = B.CNTR_NO
            AND C.CNTR_SN = B.CNTR_SN
-          LEFT JOIN TB_RVDW_VAC_DP_IZ D
+          LEFT OUTER JOIN TB_RVDW_VAC_DP_IZ D /*가상계좌입금내역*/
             ON D.KW_GRP_CO_CD = A.KW_GRP_CO_CD
            AND D.VAC_IS_ID = A.VAC_IS_ID
-          LEFT JOIN TB_PDBS_PD_BAS E
-            ON E.PD_CD = C.BASE_PD_CD
+          LEFT OUTER JOIN TB_PDBS_PD_BAS E /*상품기본*/
+            ON E.PD_CD = B.PD_CD
          WHERE A.VAC_NO = #{vacNo}
            AND B.CNTR_NO = #{cntrNo}
            AND B.CNTR_SN = #{cntrSn}
