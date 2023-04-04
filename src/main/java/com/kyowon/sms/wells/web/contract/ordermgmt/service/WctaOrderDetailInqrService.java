@@ -31,8 +31,6 @@ public class WctaOrderDetailInqrService {
             req = converter.mapSearchResToWctaOrderDetailInqrDvo(dvo);
             reqs.add(req);
         }
-        System.out.println("장성 reqs= " + reqs);
-        System.out.println("장성 reqs1= " + reqs.get(1));
         return reqs;
     }
 
