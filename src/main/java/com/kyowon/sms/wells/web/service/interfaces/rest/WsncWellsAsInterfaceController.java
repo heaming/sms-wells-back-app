@@ -1,20 +1,25 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsncWellsAsInterfaceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
@@ -83,6 +88,18 @@ public class WsncWellsAsInterfaceController {
     ) {
         EaiWrapper<List<SearchServiceContentsRes>> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getServiceContents(reqWrapper.getBody()));
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "W-SV-I-0035 고객센터 인터페이스 특이사항 조회")
+    @PostMapping("/customer-informations")
+    public EaiWrapper getCustomerInformation(
+        @Valid
+        @RequestBody
+        EaiWrapper<SearchCustomerInformationReq> reqWrapper
+    ) {
+        EaiWrapper<SearchCustomerInformationRes> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getCustomerInformation(reqWrapper.getBody()));
         return resWrapper;
     }
 

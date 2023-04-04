@@ -262,4 +262,40 @@
         </if>
     </select>
 
+    <select id="selectCustomerInformation" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerInformationDvo">
+        SELECT T1.AS_AK_ID /* AS요청ID */
+             , T1.SYS_DV_CD /* 시스템구분코드 */
+             , C1.FST_RGST_DTM /* 최초등록일시 */
+             , C1.FST_RGST_USR_ID /* 최초등록사용자ID */
+             , O1.PRTNR_KNM /* 최초등록사용자명 */
+             , O1.OG_CD /* 조직코드 */
+             , O1.OG_NM /* 조직명 */
+             , C1.CST_UNUITM_CN /* 고객특이사항내용 */
+          FROM TB_IFIN_CST_CNR_AS_AK_RCV_ETXT T1 /* 고객센터AS요청수신전문 */
+          LEFT OUTER JOIN (SELECT V1.CNTR_NO
+                                , V1.CNTR_SN
+                                , V1.DTL_SN
+                                , V1.DTA_DL_YN
+                                , V1.OG_TP_CD
+                                , V1.WK_PRTNR_NO
+                                , V1.CST_UNUITM_CN /* 고객특이사항내용 */
+                                , V1.FST_RGST_DTM
+                                , V1.FST_RGST_USR_ID
+                             FROM TB_SVPD_CNTR_CST_UNUITM_DTL V1 /* 계약고객특이사항상세 */
+                            WHERE V1.DTL_SN = (SELECT MAX(DTL_SN)
+                                                 FROM TB_SVPD_CNTR_CST_UNUITM_DTL
+                                                WHERE CNTR_NO = V1.CNTR_NO
+                                                  AND CNTR_SN = V1.CNTR_SN
+                                                  AND DTA_DL_YN = 'N')
+             ) C1
+            ON C1.CNTR_NO = T1.CNTR_NO
+           AND C1.CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS O1 /* 파트너기본 */
+            ON O1.OG_TP_CD = C1.OG_TP_CD
+           AND O1.PRTNR_NO = C1.WK_PRTNR_NO
+         WHERE T1.AS_AK_ID = #{asAkId}
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+    </select>
+
 </mapper>
