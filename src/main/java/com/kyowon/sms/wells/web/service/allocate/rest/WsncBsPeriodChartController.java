@@ -23,14 +23,24 @@ public class WsncBsPeriodChartController {
 
     private final WsncBsPeriodChartService service;
 
-    @ApiOperation(value = "정기 BS주기표를 생성", notes = "조회조건에 따른 정기 BS주기표를 생성")
+    @ApiOperation(value = "정기 BS주기표를 생성(멤버십)", notes = "조회조건에 따른 정기 BS주기표를 생성(멤버십)")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @PostMapping
-    public SaveResponse processBSPeriodChart(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
-        return SaveResponse.builder().processCount(service.processBsPeriodChartBs03(dto)).build();
+    @PostMapping("/membership")
+    public SaveResponse processBSPeriodChartMembership(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+        return SaveResponse.builder().processCount(service.processBsPeriodChartBs03(dto, true)).build();
+    }
+
+    @ApiOperation(value = "정기 BS주기표를 생성(렌탈)", notes = "조회조건에 따른 정기 BS주기표를 생성(렌탈)")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @PostMapping("/rental")
+    public SaveResponse processBSPeriodChartRental(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+        return SaveResponse.builder().processCount(service.processBsPeriodChartBs03(dto, false)).build();
     }
 
 }

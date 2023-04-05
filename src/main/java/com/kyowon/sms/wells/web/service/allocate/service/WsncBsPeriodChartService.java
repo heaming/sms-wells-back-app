@@ -28,7 +28,7 @@ public class WsncBsPeriodChartService {
      * - 멤버십
      */
     @Transactional
-    public int processBsPeriodChartBs03(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+    public int processBsPeriodChartBs03(WsncBsPeriodChartDto.SearchReq dto, boolean isMembership) throws Exception {
         WsncBsPeriodChartResDvo baseInfoRes = mapper.selectPeriodChartBaseInfo(dto);
 
         //AC201_BS_GB1 != '00' 일 경우 아무것도 처리 하지 않는다.
@@ -223,7 +223,8 @@ public class WsncBsPeriodChartService {
                 /*23.02.20 차세대에서는 서비스내용이 다르다면 별도 주기를 생성하고 이용해서, 예외처리가 없게 해야 한다.
                  주기 생성시에 판단할지, 배정시에 제외 하고 배정 할지 판단 해야 함*/
                 /*21.10.22 매트리스 탑퍼교체 1회성 작업체크 - 박성민 매니저님 확인  */
-                if ("2186".equals(newWrkTypDtl)) {
+                //cherro ::: Memebership / Rental 분기 처리
+                if ((isMembership && "2186".equals(newWrkTypDtl)) || (!isMembership && "WP05102005".equals(newWrkTypDtl))) {
                     wrkTypDtlCnt = mapper.selectBsPeriodChartBs03_16(processParam);
                     int vChk2186 = mapper.selectBsPeriodChartBs03_17(processParam);
                     if (wrkTypDtlCnt >= 1 || vChk2186 > 0) {
