@@ -15,33 +15,33 @@ public class WsncBsPeriodChartDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel(value = "WsncBsPeriodChartDto-SearchBaseInfoRes")
-    public record SearchBaseInfoRes(
-        String cntrNo,
-        String cntrSn,
-        String bfsvcSppStpRsonCd,
-        String sellTpCd,
-        String svPdCd,
-        String pdctPdCd,
-        String istDt,
-        int chekInstMths,
-        String cntrPdStrtdt
-    ) {}
-
-    @ApiModel(value = "WsncBsPeriodChartDto-Search06Res")
-    public record Search06Res(
-        int vstNmnN,
-        int totStplMcn
-    ) {}
-
-    @ApiModel(value = "WsncBsPeriodChartDto-Search07Res")
-    public record Search07Res(
-        String vstMths,
-        String wrkTypDtl,
-        String chngStg,
-        String itemKnd,
-        String partCd,
-        int qty,
-        String vstGb
-    ) {}
+//    @ApiModel(value = "WsncBsPeriodChartDto-SearchBaseInfoRes")
+//    public record SearchBaseInfoRes(
+//        String cntrNo,
+//        String cntrSn,
+//        String bfsvcSppStpRsonCd,
+//        String sellTpCd,
+//        String svPdCd,
+//        String pdctPdCd,
+//        String istDt,
+//        int chekInstMths,
+//        String cntrPdStrtdt
+//    ) {}
+//
+//    @ApiModel(value = "WsncBsPeriodChartDto-Search06Res")
+//    public record Search06Res(
+//        int vstNmnN,
+//        int totStplMcn
+//    ) {}
+//
+//    @ApiModel(value = "WsncBsPeriodChartDto-Search07Res")
+//    public record Search07Res(
+//        String vstMths,
+//        String wrkTypDtl,
+//        String chngStg,
+//        String itemKnd,
+//        String partCd,
+//        int qty,
+//        String vstGb
+//    ) {}
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodChartMapper">
     <select id="selectPeriodChartBaseInfo"
-            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodChartDto$SearchBaseInfoRes">
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
         /* -> V_AC201_BS_GB1 */
         /* BFSVC_SPP_STP_RSON_CD != '00'일 경우 Process End! */
         SELECT TB_1.CNTR_NO
@@ -13,6 +13,7 @@
              , TB_2.PDCT_PD_CD
              , TB_4.IST_DT
              , CEIL(MONTHS_BETWEEN(SUBSTR(TB_3.CNTR_PD_STRTDT,1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS
+             , CEIL(MONTHS_BETWEEN(SUBSTR(TB_3.CNTR_PD_STRTDT,1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS_BS04
              , (
                  CASE WHEN TB_3.SELL_TP_CD = 3 THEN TB_3.CNTR_PD_STRTDT
                       ELSE ''
@@ -140,7 +141,7 @@
     </select>
 
     <select id="selectBsPeriodChartBs03_06"
-            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodChartDto$Search06Res">
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
         /* 해당 결과가 WORK_X 로 Loop를 수행한다. */
         /* SV_PD_CD, PDCT_PD_CD는 selectBsPeriodChartBs03_01 의 결과로 수행한다. */
         SELECT VST_NMN_N
@@ -153,7 +154,7 @@
     </select>
 
     <select id="selectBsPeriodChartBs03_07"
-            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodChartDto$Search07Res">
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
         SELECT DISTINCT *
           FROM (
                 SELECT VST_NMN_N     AS VST_MTHS
@@ -442,12 +443,12 @@
               )
             , #{chekVstDt}
             , #{newWrkTypDtl}
-            , #{C1.chngStg}
+            , #{chngStg}
             , #{chekInstMths}
             , #{chekCyclMths}          /* CHEK_VST_MTHS -> vstNmnN */
-            , #{C1.itemKnd}
+            , #{itemKnd}
             , #{newPartCd}
-            , #{C1.qty}
+            , #{qty}
             , #{newVstGb}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , #{session.userId}
@@ -550,4 +551,128 @@
           FROM DUAL
     </select>
 
+    <select id="selectBsPeriodChartBs04_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        SELECT DISTINCT *
+          FROM (
+                /*최소 공배수 만큼 풀어 놓은 방문 주기표 */
+                /*필터택배발송*/
+                SELECT VST_NMN_N AS VST_MTHS
+                     , SV_BIZ_DCLSF_CD  AS WRK_TYP_DTL
+                     , FILT_CHNG_LV_CD     AS CHNG_STG
+                     , 'ITM_KND_CD'     AS ITEM_KND /* part master - SVPD_ITEM_KND */
+                     , PART_PD_CD      AS PART_CD
+                     , PART_USE_QTY          AS QTY
+                     , VST_DV_CD       AS VST_GB
+                  FROM TB_PDBS_RGBS_WK_BASE_DTL
+                 WHERE 1=1
+                   /* AND 'PRD_RFLT_YN'   = 'Y' */ /* cherro ::: 주기반영여부 컬럼 없음. */
+                   AND PDCT_PD_CD = 'P_GDS_CD'
+                   AND SV_BIZ_DCLSF_CD = '2120'   /*필터교체*/
+                   AND VST_DV_CD = '20'          /*택배발송*/
+                   AND TO_CHAR(ADD_MONTHS('P_INST_DT', 2), 'YYYYMM') = SUBSTR('CHEK_VST_DT',1,6)
+                   AND 'CHEK_VST_DT' > 'P_INST_DT'
+
+                 UNION ALL
+
+                /*정기BS*/
+                SELECT VST_NMN_N AS VST_MTHS
+                     , SV_BIZ_DCLSF_CD  AS WRK_TYP_DTL
+                     , FILT_CHNG_LV_CD     AS CHNG_STG
+                     , 'ITM_KND_CD'     AS ITEM_KND /* part master - SVPD_ITEM_KND */
+                     , PART_PD_CD      AS PART_CD
+                     , (CASE WHEN TO_CHAR(ADD_MONTHS('P_INST_DT', 48), 'YYYYMMDD') <![CDATA[ < ]]> 'CHEK_VST_DT'
+                             THEN (CASE WHEN PDCT_PD_CD = '49367000000' THEN 6 ELSE 3 END)    /*백현아 파트장님 요청 마지막 방문시 수량 강제 세팅 벽결이 8개에서 6개로 스탠드는 4개에서 3개로*/
+                             ELSE PART_USE_QTY
+                        END)              AS QTY
+                     , VST_DV_CD       AS VST_GB
+                  FROM TB_PDBS_RGBS_WK_BASE_DTL
+                 WHERE 1=1
+                   /* AND 'PRD_RFLT_YN'   = 'Y' */ /* cherro ::: 주기반영여부 컬럼 없음. */
+                   AND PDCT_PD_CD = 'P_GDS_CD'
+                   AND SV_BIZ_DCLSF_CD = '2120'   /*필터교체*/
+                   AND VST_DV_CD = '13'          /*방문*/
+                   AND (CASE WHEN SUBSTR('P_INST_DT',5,2) IN ('01', '02', '12') THEN '06'
+                             WHEN SUBSTR('P_INST_DT',5,2) IN ('03', '04', '05') THEN '09'
+                             WHEN SUBSTR('P_INST_DT',5,2) IN ('06', '07', '08') THEN '12'
+                             WHEN SUBSTR('P_INST_DT',5,2) IN ('09', '10', '11') THEN '03'
+                        END) = SUBSTR('CHEK_VST_DT',5,2)
+                   AND 'CHEK_VST_DT' > 'P_INST_DT'
+
+                 UNION ALL
+
+                /*홈케어*/
+                SELECT VST_NMN_N AS VST_MTHS
+                     , SV_BIZ_DCLSF_CD  AS WRK_TYP_DTL
+                     , FILT_CHNG_LV_CD     AS CHNG_STG
+                     , 'ITM_KND_CD'     AS ITEM_KND /* part master - SVPD_ITEM_KND */
+                     , PART_PD_CD      AS PART_CD
+                     , PART_USE_QTY          AS QTY
+                     , VST_DV_CD       AS VST_GB
+                  FROM TB_PDBS_RGBS_WK_BASE_DTL
+                 WHERE 1=1
+                   /* AND 'PRD_RFLT_YN'   = 'Y' */ /* cherro ::: 주기반영여부 컬럼 없음. */
+                   AND PDCT_PD_CD = 'P_GDS_CD'
+                   AND SV_BIZ_DCLSF_CD = '2170'   /*홈케어*/
+                   AND VST_DV_CD = '13'          /*홈마스터방문*/
+                   AND (CASE WHEN 'P_GDS_CD' IN ('49342000000', '49343000000', '49344000000', '49345000000', '49346000000', '49347000000', '49348000000', '49397000000', '49398000000', '49399000000', '49349000000', '49351000000', '49352000000', '49353000000', '49354000000', '49608000000', '49609000000', '49610000000', '49611000000', '49619000000') AND SUBSTR('P_INST_DT',5,2) IN ('01', '02', '03') THEN '02'
+                             WHEN 'P_GDS_CD' IN ('49342000000', '49343000000', '49344000000', '49345000000', '49346000000', '49347000000', '49348000000', '49397000000', '49398000000', '49399000000', '49349000000', '49351000000', '49352000000', '49353000000', '49354000000', '49608000000', '49609000000', '49610000000', '49611000000', '49619000000') AND SUBSTR('P_INST_DT',5,2) IN ('04', '05', '06') THEN '04'
+                             WHEN 'P_GDS_CD' IN ('49342000000', '49343000000', '49344000000', '49345000000', '49346000000', '49347000000', '49348000000', '49397000000', '49398000000', '49399000000', '49349000000', '49351000000', '49352000000', '49353000000', '49354000000', '49608000000', '49609000000', '49610000000', '49611000000', '49619000000') AND SUBSTR('P_INST_DT',5,2) IN ('07', '08', '09') THEN '10'
+                             WHEN 'P_GDS_CD' IN ('49342000000', '49343000000', '49344000000', '49345000000', '49346000000', '49347000000', '49348000000', '49397000000', '49398000000', '49399000000', '49349000000', '49351000000', '49352000000', '49353000000', '49354000000', '49608000000', '49609000000', '49610000000', '49611000000', '49619000000') AND SUBSTR('P_INST_DT',5,2) IN ('10', '11', '12') THEN '12'
+                             WHEN SUBSTR('P_INST_DT',5,2) IN ('01', '02', '12') THEN '03'
+                             WHEN SUBSTR('P_INST_DT',5,2) IN ('03', '04', '05') THEN '05'
+                             WHEN SUBSTR('P_INST_DT',5,2) IN ('06', '07', '08') THEN '03'
+                             WHEN SUBSTR('P_INST_DT',5,2) IN ('09', '10', '11') THEN '05'
+                        END) = SUBSTR('CHEK_VST_DT',5,2)
+                   AND SUBSTR('CHEK_VST_DT',1,6) >= (CASE WHEN 'P_GDS_CD' IN ('49342000000', '49343000000', '49344000000', '49345000000', '49346000000', '49347000000', '49348000000')
+                                                         AND 'DB2_ICDE' NOT IN ('7735', '7736', '7770', '7771', '7737')
+                                                        THEN TO_NUMBER(SUBSTR('P_INST_DT',1,4))+1 || '0101'
+                                                        WHEN 'P_GDS_CD' IN ('49342000000', '49343000000', '49344000000', '49345000000', '49346000000', '49347000000', '49348000000')
+                                                         AND 'DB2_ICDE' IN ('7735', '7736', '7770', '7771', '7737')
+                                                        THEN TO_NUMBER(SUBSTR('P_INST_DT',1,4))+2 || '0101'
+                                                        WHEN 'P_GDS_CD' IN ('49397000000', '49398000000', '49399000000', '49349000000', '49351000000', '49352000000', '49353000000', '49354000000', '49608000000', '49609000000', '49610000000', '49611000000', '49619000000')
+                                                         AND 'DB2_ICDE' IN ('4112', '4113', '4114', '4101', '4102', '4103', '4152', '4153', '4853', '4854', '4855', '4856', '4134')
+                                                        THEN TO_NUMBER(SUBSTR('P_INST_DT',1,4))+2 || '0101'
+                                                        ELSE TO_CHAR(ADD_MONTHS((SUBSTR('P_INST_DT',1,6)||'01'), 12), 'YYYYMM')   /*설치월보다 12개월이 큰 경우만*/
+                                                   END)
+                   AND (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                         WHERE 1=1
+                           AND SV_BIZ_DCLSF_CD = '2170'
+                           AND CNTR_NO = 'P_CSMR_YR'
+                           AND CNTR_SN = 'P_CSMR_SEQ') <![CDATA[ < ]]> (CASE WHEN 'DB2_ICDE' IN ('7735', '7736', '7770', '7771', '4112', '4113', '4114', '4101', '4102', '4103', '4152', '4153', '4853', '4854', '4855', '4856', '7737', '4134') THEN 1 ELSE 4 END) /*백현아 파트장님 요청 홈케어서비스는 총 4회까지만*/
+                           /*
+                            7735
+                            7736
+                            7770
+                            7771
+
+                            4112
+                            4113
+                            4114
+                            4101
+                            4102
+                            4103
+
+
+                            4152    300007248   49353-000000    비스포크 무풍클래식17평 스탠드   21.08 출시
+                            4153    300007249   49354-000000    비스포크 무풍클래식19평 스탠드   21.08 출시
+
+                            B/S 요소 : 홈케어 1회 방문(4152, 4153)
+                            ▶ 설치 월에 따라 홈케어서비스 방문시기 상이
+                            - 1/2/3 월 구매 고객은 2 년 후 2 월 에어컨 분해 세척 홈케어 서비스(총 1 회)
+                            - 4/5/6 월 구매 고객은 2 년 후 4 월 에어컨 분해 세척 홈케어 서비스(총 1 회)
+                            - 7/8/9 월 구매 고객은 2 년 후 10 월 에어컨 분해 세척 홈케어 서비스(총 1 회)
+                            - 10/11/12 월 구매 고객은 2 년 후 12 월 에어컨 분해 세척 홈케어 서비스(총 1 회)
+                           */
+                   AND 'CHEK_VST_DT' > 'P_INST_DT'
+
+               )
+         WHERE 1=1
+           AND WRK_TYP_DTL != '9999'
+         ORDER
+            BY VST_MTHS
+             , WRK_TYP_DTL DESC
+             , CHNG_STG
+    </select>
 </mapper>

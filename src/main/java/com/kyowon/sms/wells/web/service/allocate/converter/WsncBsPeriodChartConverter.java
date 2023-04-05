@@ -2,10 +2,10 @@ package com.kyowon.sms.wells.web.service.allocate.converter;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodChartDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartReqDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsncBsPeriodChartConverter {
-    WsncBsPeriodChartDvo mapBaseInfoResToPeriodChartDvo(WsncBsPeriodChartDto.SearchBaseInfoRes res) throws Exception;
+    WsncBsPeriodChartReqDvo mapBaseInfoResToPeriodChartDvo(WsncBsPeriodChartResDvo res) throws Exception;
 }

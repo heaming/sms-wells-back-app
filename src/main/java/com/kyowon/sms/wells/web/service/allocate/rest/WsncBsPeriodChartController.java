@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,9 +28,9 @@ public class WsncBsPeriodChartController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @GetMapping("/paging")
+    @PostMapping
     public SaveResponse processBSPeriodChart(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
-        return SaveResponse.builder().processCount(service.processBsPeriodChart(dto)).build();
+        return SaveResponse.builder().processCount(service.processBsPeriodChartBs03(dto)).build();
     }
 
 }
