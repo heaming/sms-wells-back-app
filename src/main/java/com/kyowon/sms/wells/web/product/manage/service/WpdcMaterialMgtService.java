@@ -18,9 +18,9 @@ import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachTbPdbsPdRelDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
@@ -107,7 +107,7 @@ public class WpdcMaterialMgtService {
         }
 
         // #5. 연결상품 INSERT
-        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
+        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
 
         // #6. 이력 INSERT
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
@@ -124,7 +124,8 @@ public class WpdcMaterialMgtService {
      * @param tbPdbsPdEcomPrpDtls
      * @throws Exception
      */
-    public void editEachTbPdbsPdRel(String pdCd, List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels)
+    @Transactional
+    public void editEachTbPdbsPdRel(String pdCd, List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels, String tempSaveYn)
         throws Exception {
 
         if (CollectionUtils.isNotEmpty(tbPdbsPdRels)) {
@@ -134,14 +135,31 @@ public class WpdcMaterialMgtService {
             // #1. 화면에서 삭제된 데이터 일괄 삭제처리.
             mapper.deleteTbPdbsPdRel(pdCd, tbPdbsPdRels, "NOTALL");
 
-            // #2. 신규 추가 항목 INSERT
-            List<ZpdcEachTbPdbsPdRelDvo> dvos = converter.mapTbPdbsPdRelDvos(tbPdbsPdRels);
-            for (ZpdcEachTbPdbsPdRelDvo dvo : dvos) {
-                dvo.setBasePdCd(pdCd); /* 상품관계ID */
-                dvo.setVlStrtDtm(startDtm);
-                dvo.setVlEndDtm(endDtm);
-                mapper.mergeEachTbPdbsPdRel(dvo);
+            // 23-04-05 Converter로 Dto에서 Dvo로 변환시 모두 null로 반환함.
+            // dto로 
+            for (ZpdcMaterialMgtDto.TbPdbsPdRel relDto : tbPdbsPdRels) {
+                mapper.mergeEachTbPdbsPdRelByDto(
+                    ZpdcMaterialMgtDto.TbPdbsPdRel.builder()
+                        .ojPdCd(relDto.ojPdCd())
+                        .pdRelId(relDto.pdRelId())
+                        .basePdCd(pdCd)
+                        .vlStrtDtm(startDtm)
+                        .vlEndDtm(endDtm)
+                        .tempSaveYn(tempSaveYn)
+                        .pdRelTpCd(relDto.pdRelTpCd())
+                        .build()
+                );
+                //                System.out.println("tbPdbsPdRel.ojPdCd() >>>> " + tbPdbsPdRel.ojPdCd());
             }
+
+            // #2. 신규 추가 항목 INSERT
+            //            List<ZpdcEachTbPdbsPdRelDvo> dvos = converter.mapTbPdbsPdRelDvos(tbPdbsPdRels);
+            //            for (ZpdcEachTbPdbsPdRelDvo dvo : dvos) {
+            //                dvo.setBasePdCd(pdCd); /* 상품관계ID */
+            //                dvo.setVlStrtDtm(startDtm);
+            //                dvo.setVlEndDtm(endDtm);
+            //                mapper.mergeEachTbPdbsPdRel(dvo);
+            //            }
         } else {
             // BASE_PD_CD에 걸려있는 모든 REL 데이터 일괄 삭제처리.
             mapper.deleteTbPdbsPdRel(pdCd, tbPdbsPdRels, "ALL");
@@ -174,7 +192,7 @@ public class WpdcMaterialMgtService {
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
-        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel());
+        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
 
         if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
@@ -435,4 +453,16 @@ public class WpdcMaterialMgtService {
         }
 
     }
+
+    /**
+     * 유효성 체크 조회
+     * @param dto
+     * @return
+     */
+    public String checkValidation(
+        ValidationReq dto
+    ) {
+        return this.mapper.selectValidation(dto);
+    }
+
 }

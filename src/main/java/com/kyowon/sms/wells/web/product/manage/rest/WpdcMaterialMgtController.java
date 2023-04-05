@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.service.PdExcelReadService;
@@ -185,6 +186,13 @@ public class WpdcMaterialMgtController {
                 .build();
         }
 
+    }
+
+    @GetMapping("/check-validation")
+    public String checkValidation(
+        ValidationReq dto
+    ) {
+        return this.service.checkValidation(dto);
     }
 
 }
