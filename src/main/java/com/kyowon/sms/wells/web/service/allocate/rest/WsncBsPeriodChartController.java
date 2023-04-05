@@ -43,4 +43,14 @@ public class WsncBsPeriodChartController {
         return SaveResponse.builder().processCount(service.processBsPeriodChartBs03(dto, false)).build();
     }
 
+    @ApiOperation(value = "삼성전자 에어컨의 정기 방문 주기 생성", notes = "삼성전자 에어컨의 정기 방문 주기 생성")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @PostMapping("/samsung-air-conditioner")
+    public SaveResponse processBSPeriodChartBs04(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+        return SaveResponse.builder().processCount(service.processBsPeriodChartBs04(dto)).build();
+    }
+
 }
