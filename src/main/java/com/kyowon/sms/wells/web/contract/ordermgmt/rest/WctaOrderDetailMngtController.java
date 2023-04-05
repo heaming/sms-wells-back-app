@@ -77,12 +77,19 @@ public class WctaOrderDetailMngtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "bryyMmddEntrpNoCbno", value = "생년월일/사업자/법인등록번호", paramType = "query"),
+        @ApiImplicitParam(name = "bryyMmdd", value = "생년월일", paramType = "query"),
+        @ApiImplicitParam(name = "sexDvCd", value = "성별구분", paramType = "query"),
+        @ApiImplicitParam(name = "bzrno", value = "사업자번호/법인번호", paramType = "query"),
+        @ApiImplicitParam(name = "cstKnm", value = "계약자명", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCralTno", value = "휴대전화번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrCstNo", value = "계약고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrPdEnddt", value = "탈퇴제외", paramType = "query"),
     })
     @GetMapping("/order-detail-mngt/membership/paging")
     public PagingResult<SearchOrderDetailMshPagesRes> getOrderDetailMshPages(
         @Valid
-        SearchReq dto,
+        SearchOrderDetailMshPagesReq dto,
         @Valid
         PageInfo pageInfo
     ) {
@@ -92,8 +99,43 @@ public class WctaOrderDetailMngtController {
     @GetMapping("/order-detail-mngt/membership/excel-download")
     public List<SearchOrderDetailMshPagesRes> getOrderDetailMshExcels(
         @Valid
-        SearchReq dto
+        SearchOrderDetailMshPagesReq dto
     ) {
         return service.getOrderDetailMshExcels(dto);
+    }
+
+    @ApiOperation(value = "주문상세조회/관리", notes = "정기배송 주문상세내역을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prdEnqry", value = "기간조회", paramType = "query"),
+        @ApiImplicitParam(name = "strtDt", value = "시작일자", paramType = "query"),
+        @ApiImplicitParam(name = "endDt", value = "종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "계약고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "canYn", value = "자료구분-취소제외", paramType = "query"),
+        @ApiImplicitParam(name = "slYn", value = "자료구분-매출생성", paramType = "query"),
+        @ApiImplicitParam(name = "sellOgTpCd", value = "조직구분", paramType = "query"),
+        @ApiImplicitParam(name = "dgr1LevlOgId", value = "조직코드-총괄단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr2LevlOgId", value = "조직코드-지역단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr3LevlOgId", value = "조직코드-지점", paramType = "query"),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "파트너코드", paramType = "query"),
+        @ApiImplicitParam(name = "mchnDv", value = "기기종류", paramType = "query"),
+    })
+    @GetMapping("/order-detail-mngt/regular-shippings/paging")
+    public PagingResult<SearchOrderDetailRglrDlvrPagesRes> getOrderRegularShippingsPages(
+        @Valid
+        SearchOrderDetailRglrDlvrPagesReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getOrderRegularShippingsPages(dto, pageInfo);
+    }
+
+    @GetMapping("/order-detail-mngt/regular-shippings/excel-download")
+    public List<SearchOrderDetailRglrDlvrPagesRes> getOrderRegularShippingsExcels(
+        @Valid
+        SearchOrderDetailRglrDlvrPagesReq dto
+    ) {
+        return service.getOrderRegularShippingsExcels(dto);
     }
 }
