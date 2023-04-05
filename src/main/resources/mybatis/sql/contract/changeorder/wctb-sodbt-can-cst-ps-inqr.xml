@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbSodbtCanCstPsInqrMapper">
+    <select id="selectCancelContracts" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbSodbtCanCstPsInqrDvo">
+        WITH WT_PRTNR_LIST AS (
+    SELECT /* 입력받은 파트너번호(로그인ID)로 하위 파트너정보 SIMPLE */
+           M1.CHK_PRTNR_NO      /* 입력파트너 OR 로그인 ID */
+         , M1.GBN               /* 입력파트너의 레벨*/
+         , M1.PRTNR_NO          /* 입력파트너의 하위 파트너 정보 ↓↓↓ */
+      FROM (
+            SELECT /* 입력받은파트너정보와 전체파트너를 비교 조직장 여부 확인정보의 레벨별 파트너번호 비교 하여 구분 */
+                   K1.INPUT_DGR1_LEVL_DG_PRTNR_NO
+                 , K1.INPUT_DGR2_LEVL_DG_PRTNR_NO
+                 , K1.INPUT_DGR3_LEVL_DG_PRTNR_NO
+                 , K1.INPUT_DGR4_LEVL_DG_PRTNR_NO
+                 , K1.INPUT_BIZ_SPPT_PRTNR_NO
+                 , K1.INPUT_OG_UPBRNG_PRTNR_NO
+                 , K1.PRTNR_NO
+                 , J1.PRTNR_NO AS CHK_PRTNR_NO
+                 , CASE WHEN K1.INPUT_DGR1_LEVL_DG_PRTNR_NO = J1.PRTNR_NO THEN '1'
+                        WHEN K1.INPUT_DGR2_LEVL_DG_PRTNR_NO = J1.PRTNR_NO THEN '2'
+                        WHEN K1.INPUT_DGR3_LEVL_DG_PRTNR_NO = J1.PRTNR_NO THEN '3'
+                        WHEN K1.INPUT_DGR4_LEVL_DG_PRTNR_NO = J1.PRTNR_NO THEN '4'
+                        WHEN K1.INPUT_BIZ_SPPT_PRTNR_NO = J1.PRTNR_NO THEN '91'
+                        WHEN K1.INPUT_OG_UPBRNG_PRTNR_NO = J1.PRTNR_NO THEN '92'
+                        WHEN K1.PRTNR_NO = J1.PRTNR_NO THEN '99'
+                        ELSE ''
+                    END GBN
+              FROM (
+                    SELECT /* 1) 입력받은 파트너 정보  */
+                           H2.OG_TP_CD
+                         , H2.PRTNR_NO /* 월파트너내역.파트너번호 */
+                         , I1.DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차상위대표파트너번호 - 사업단(E), 총괄단(W) */
+                         , I1.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차상위대표파트너번호 - 총괄단(E),지역단(W) */
+                         , I1.DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차상위대표파트너번호 - 센터(E) ,지점(W) */
+                         , I1.DGR4_LEVL_DG_PRTNR_NO /* 월조직내역.4차상위대표파트너번호 - 지국(E) */
+                         , I1.BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+                         , I1.OG_UPBRNG_PRTNR_NO /* 월조직내역.영업지원파트너번호 */
+                      FROM TB_OGBS_MM_OG_IZ I1 /* 월조직내역 */
+                     INNER JOIN TB_OGBS_MM_PRTNR_IZ H2 /* 월파트너내역 */
+                        ON H2.BASE_YM = I1.BASE_YM /* 월파트너내역.기준년월 = 월조직내역.기준년월 */
+                       AND H2.OG_TP_CD = I1.OG_TP_CD
+                       AND H2.OG_ID = I1.OG_ID /* 월조직내역.조직ID = 월파트너내역.조직ID */
+                       AND H2.DTA_DL_YN = 'N'
+                       AND I1.DTA_DL_YN = 'N'
+                     WHERE 1=1
+                       AND I1.BASE_YM =TO_CHAR(SYSDATE, 'YYYYMM') /* as-is 월조직내역.기준년월 현재월로 조회-as-is동일하게 기준 맞춤 */
+                       AND H2.PRTNR_NO = #{session.userId} /* 사용자session.userId */
+                       AND H2.OG_TP_CD LIKE 'W%' /* 사용자session.조직유형코드  */
+                   ) J1
+             INNER JOIN (
+                         SELECT /* 2) 전체 파트너 정보  */
+                                I2.DGR1_LEVL_DG_PRTNR_NO AS INPUT_DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차상위대표파트너번호 - 사업단(E), 총괄단(W) */
+                              , I2.DGR2_LEVL_DG_PRTNR_NO AS INPUT_DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차상위대표파트너번호 - 총괄단(E),지역단(W) */
+                              , I2.DGR3_LEVL_DG_PRTNR_NO AS INPUT_DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차상위대표파트너번호 - 센터(E) ,지점(W) */
+                              , I2.DGR4_LEVL_DG_PRTNR_NO AS INPUT_DGR4_LEVL_DG_PRTNR_NO /* 월조직내역.4차상위대표파트너번호 - 지국(E) */
+                              , I2.BIZ_SPPT_PRTNR_NO AS INPUT_BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+                              , I2.OG_UPBRNG_PRTNR_NO AS INPUT_OG_UPBRNG_PRTNR_NO /* 월조직내역.영업지원파트너번호 */
+                              , H3.PRTNR_NO /* 월파트너내역.파트너번호 */
+                           FROM TB_OGBS_MM_OG_IZ I2 /* 월조직내역 */
+                          INNER JOIN TB_OGBS_MM_PRTNR_IZ H3 /* 월파트너내역 */
+                             ON H3.BASE_YM = I2.BASE_YM /* 월파트너내역.기준년월 = 월조직내역.기준년월 */
+                            AND H3.OG_ID = I2.OG_ID /* 월조직내역.조직ID = 월파트너내역.조직ID */
+                            AND H3.DTA_DL_YN = 'N' /* 월파트너내역.데이터삭제여부가 'Y'가 아닌 건 */
+                            AND I2.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'Y'가 아닌 건*/
+                          WHERE I2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') /* ▶as-is 월조직내역.기준년월 현재월로 조회-as-is동일하게 기준 맞춤 */
+                  ) K1
+                ON ( J1.DGR1_LEVL_DG_PRTNR_NO = K1.INPUT_DGR1_LEVL_DG_PRTNR_NO
+                  OR J1.DGR2_LEVL_DG_PRTNR_NO = K1.INPUT_DGR2_LEVL_DG_PRTNR_NO
+                  OR J1.DGR3_LEVL_DG_PRTNR_NO = K1.INPUT_DGR3_LEVL_DG_PRTNR_NO
+                  OR J1.DGR4_LEVL_DG_PRTNR_NO = K1.INPUT_DGR4_LEVL_DG_PRTNR_NO
+                  OR J1.BIZ_SPPT_PRTNR_NO = K1.INPUT_BIZ_SPPT_PRTNR_NO
+                  OR J1.OG_UPBRNG_PRTNR_NO = K1.INPUT_OG_UPBRNG_PRTNR_NO
+                  OR J1.PRTNR_NO = K1.PRTNR_NO
+                 )
+           ) M1
+     WHERE M1.GBN IS NOT NULL
+       AND (CASE WHEN M1.GBN = '1' THEN M1.INPUT_DGR1_LEVL_DG_PRTNR_NO
+                 WHEN M1.GBN = '2' THEN M1.INPUT_DGR2_LEVL_DG_PRTNR_NO
+                 WHEN M1.GBN = '3' THEN M1.INPUT_DGR3_LEVL_DG_PRTNR_NO
+                 WHEN M1.GBN = '4' THEN M1.INPUT_DGR4_LEVL_DG_PRTNR_NO
+                 WHEN M1.GBN = '91' THEN M1.INPUT_BIZ_SPPT_PRTNR_NO
+                 WHEN M1.GBN = '92' THEN M1.INPUT_OG_UPBRNG_PRTNR_NO
+                 WHEN M1.GBN = '99' THEN M1.PRTNR_NO
+                 END) = #{session.userId}
+    )
+    /* WITH : 입력받은 파트너번호(로그인ID)로 하위 파트너정보 END */
+    SELECT T30.OG_CD            /* 조직코드 본부(소속) : LC3100P.LCDDPT , hdqr */
+         , T32.HOO_PRTNR_NM     /* 조직장파트너명 사원성명 (본부장명) LC3100P@LCDBON, AK04.AKDNAM , hqldNm */
+         , T11.CNTR_NO          /* 계약번호 - 년도- 고객코드:custCd*/
+         , T11.CNTR_SN
+         , T40.CST_KNM                                          /* 계약자정보 - 고객명(LCCNAM) */
+         , T44.CRAL_LOCARA_TNO   AS IST_CRAL_LOCARA_TNO          /* 설치자 - 휴대전화번호1 LCWNO1*/
+         , T44.MEXNO_ENCR        AS IST_MEXNO_ENCR               /* 설치자 - 휴대전화번호2 */
+         , T44.CRAL_IDV_TNO      AS IST_CRAL_IDV_TNO             /* 설치자 - 휴대전화번호3 */
+         , T45.NEW_ADR_ZIP      AS IST_ADR_ZIP                  /* 설치처정보 - 우편번호 : WCZPNO */
+         , T45.RNADR            AS IST_RNADR                    /* 설치처정보 - 기준주소 : LCWAD1 + LCWAD2 +LCWAD3 */
+         , T45.RDADR            AS IST_RDADR                    /* 설치처정보 - 상세주소 : LCWAD1 + LCWAD2 +LCWAD3 */
+         , T22.PD_CLSF_NM                                       /* 구분 (중분류) */
+         , CASE WHEN T23.REF_PD_CLSF_VAL IN ('01001', '01001003', '01002002') THEN '1' /* 1.정수기 */
+                WHEN T23.REF_PD_CLSF_VAL IN ('02001001') THEN '2'   /* 2. 공기청정기 -  02001001 */
+                WHEN T23.REF_PD_CLSF_VAL IN ('03001001') THEN '3'   /* 3. 비데 - 03001001 */
+                ELSE '4' /* 기타 */
+                END AS  PD_MCLSF_RNM  /* 구분*/
+         , T20.PD_ABBR_NM       /* 상품약어명 : 약어3(상품명) LCICDE, prdtNm*/
+         , T12.IST_DT           /* 설치일자 : setDt, LCSETY*/
+         , SUBSTR(T13.HIST_STRT_DTM, 0, 8) AS CAN_DT /* 취소일자(취소상태의 변경이력일시) : cancelDt,LCCANY */
+         , T13.CNTR_DTL_STAT_CH_RSON_CD || '-' || F_CMZ_CD_NM ('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', T13.CNTR_DTL_STAT_CH_RSON_CD) AS CAN_CN /*  취소 내용*/
+         , T10.SELL_INFLW_CHNL_DTL_CD AS SELL_INFLW_CHNL_DTL_CD/*판매유입채널상세코드 : Wells영업부(1070) LC3100P@LCSALE:7(영업부)*/
+    /* 계약관련 테이블 */
+      FROM TB_SSCT_CNTR_BAS T10                     /* T.계약기본 */
+     INNER JOIN TB_SSCT_CNTR_DTL T11                /* T.계약상세 */
+        ON T11.CNTR_NO = T10.CNTR_NO                /* 계약번호  */
+       AND T11.SELL_TP_CD IN ('2')                  /* 판매유형코드 : 렌탈/리스(2)*/
+       AND T11.DTA_DL_YN = 'N'
+      LEFT OUTER  JOIN TB_SSCT_CNTR_WELLS_DTL T12   /* T.WELLS상세 */
+        ON T12.CNTR_NO = T11.CNTR_NO                /*계약번호  */
+       AND T12.CNTR_SN = T11.CNTR_SN                /*계약번호  */
+       AND T12.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN LATERAL (SELECT *
+                                 FROM (SELECT CNTR_NO       /* 계약번호 */
+                                            , CNTR_SN       /* 계약일련번호*/
+                                            , HIST_STRT_DTM /* 변경이력시작일시 (취소일)*/
+                                            , CNTR_DTL_STAT_CH_RSON_CD /* 계약상세상태변경사유코드*/
+                                            , ROW_NUMBER() OVER(ORDER BY HIST_STRT_DTM DESC) AS RN
+                                         FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST   /* T.계약상세상태변경이력 - 취소일 */
+                                        WHERE 1=1
+                                          AND CNTR_NO = T11.CNTR_NO              /*계약번호  */
+                                          AND CNTR_SN = T11.CNTR_SN              /*계약번호  */
+                                          AND CNTR_DTL_STAT_CD IN ('301','302','303')  /* 계약상세상태코드 (고객요청해약~계약취소)*/
+                                          AND DTA_DL_YN = 'N'
+                                    )
+                                WHERE RN = 1
+                              ) T13   /* 계약번호 취소일*/
+        ON T13.CNTR_NO = T11.CNTR_NO
+       AND T13.CNTR_SN = T11.CNTR_SN
+    /* 상품관련 테이블 */
+     INNER JOIN TB_PDBS_PD_BAS T20         /* T.상품기본 -  */
+        ON T20.PD_CD = T11.BASE_PD_CD             /* 상품코드 */
+       AND T20.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
+       AND T20.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
+     INNER JOIN TB_PDBS_PD_CLSF_BAS T22    /* T.상품분류기본 상품중분류ID =중분류명 */
+        ON T22.PD_CLSF_ID = T20.PD_MCLSF_ID      /* 상품분류ID */
+       AND T22.DTA_DL_YN = 'N'
+     INNER JOIN TB_PDBS_PD_CLSF_BAS T23    /* T.상품분류기본 상품중분류ID =상품분류 */
+        ON T23.PD_CLSF_ID = T20.PD_CLSF_ID      /* 상품분류ID */
+       AND T23.DTA_DL_YN = 'N'
+       /* 대분류 가전(4)이면서 중분류(6,7,8) 아닌거  ASIS : D1.KAETC1 = '4' AND D1.KAETC2 NOT IN ('6','8','9') */
+       AND T23.REF_PD_CLSF_VAL IN ('01001'
+                                   , '01001003001'
+                                   , '01002002001'
+                                   , '01003001002'
+                                   , '01004001'
+                                   , '02001001002'
+                                   , '02002001001'
+                                   , '02004001001'
+                                   , '03001001001'
+                                   , '03002002001'
+                                   , '03003002001'
+                                   , '03003003'
+                                   , '03004001'
+                                   , '04001001'
+                                   , '04002001'
+                                   , '04003001'
+                                   , '04004001'
+                                   , '04005002'
+                                   , '04006001'
+                                   , '04007001'
+                                   , '05001001001'
+                                   , '05001001002'
+                                   , '05001001003'
+                                   , '05002002001'
+                                   , '05003001001'
+                                   , '05004001001'
+                                   , '05005001002'
+                                   , '05007002'
+                                   , '06001001'
+                                   , '06001002'
+                                   , '06001003002'
+                                   , '06001005001'
+                                   , '06003001'
+                                   , '06005001001')
+    /* 파트너 테이블 */
+      LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T30         /* T.월파트너내역 - 판매자 */
+        ON T30.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+       AND T30.OG_TP_CD = T10.SELL_OG_TP_CD
+       AND T30.PRTNR_NO = T10.SELL_PRTNR_NO
+       AND T30.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T31         /* T.파트너기본  - 판매자  */
+        ON T30.OG_TP_CD = T10.SELL_OG_TP_CD
+       AND T30.PRTNR_NO = T10.SELL_PRTNR_NO
+       AND T30.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T32         /* T.월조직내역 - 지점장 (조직정보) */
+        ON T32.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+       AND T32.OG_ID = T30.OG_ID
+       AND T32.DTA_DL_YN = 'N'
+    /* 계약자 / 설치처 정보 */
+      LEFT OUTER JOIN TB_CUBS_CST_BAS T40           /* T.고객기본 - 계약자 */
+        ON T40.CST_NO = T10.CNTR_CST_NO/* 고객번호*/
+       AND T40.DTA_DL_YN = 'N'/* 데이터삭제여부 */
+      LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T43      /* T.계약주소관계 - 설치 */
+        ON T43.DTL_CNTR_NO = T11.CNTR_NO
+       AND T43.DTL_CNTR_SN = T11.CNTR_SN
+       AND T43.ADRPC_TP_CD = '3'                    /* 주소지유형코드 : 설치처(3) */
+       AND T43.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
+       AND T43.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T44    /* T.계약주소지기본 - 설치 */
+        ON T44.CNTR_ADRPC_ID = T43.CNTR_ADRPC_ID
+       AND T44.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_GBCO_ADR_BAS T45           /* T.주소기본 - 설치 */
+        ON T45.ADR_ID = T44.ADR_ID
+       AND T45.DTA_DL_YN = 'N'
+    /* 컨택코드 */
+      LEFT OUTER JOIN LATERAL (SELECT *
+                                 FROM (SELECT CNTR_NO
+                                            , T11.CNTR_SN
+                                            , CTT_RS_CD    /* 컨택결과코드 */
+                                            , ROW_NUMBER() OVER(ORDER BY CTT_FSH_DTM DESC) AS RN
+                                         FROM TB_SSOP_CTT_BAS  /* 컨택기본 */
+                                        WHERE CTT_OJ_ID IN (SELECT CTT_OJ_ID
+                                                              FROM TB_SSOP_CTT_DTL
+                                                             WHERE CNTR_NO = T11.CNTR_NO
+                                                               AND CNTR_SN = T11.CNTR_SN)
+                                       )
+                                  WHERE RN = 1
+                              ) T80             /* 컨택결과코드 최신 */
+        ON T80.CNTR_NO = T11.CNTR_NO
+       AND T80.CNTR_SN = T11.CNTR_SN
+     WHERE 1=1
+       AND T10.SELL_INFLW_CHNL_DTL_CD = '1070'          /* 판매유입채널상세코드 : Wells영업부(1070) LC3100P@LCSALE:7(영업부)*/
+       AND T10.SELL_PRTNR_NO IN (SELECT PRTNR_NO FROM WT_PRTNR_LIST)   /* 로그인한 사용자의 하위 파트너정보*/
+       AND T13.HIST_STRT_DTM IS NOT NULL /* 취소건 */
+       AND (T80.CTT_RS_CD IS NOT NULL AND T80.CTT_RS_CD != '01')  /* 01:정상컨택, 컨택이 있으면서 정상이 아닌건*/
+       AND SUBSTR(T13.HIST_STRT_DTM, 0, 8) BETWEEN #{canStrtDt} AND #{canEndDt}  /* 조건1. 취소일자 기간 */
+        <if test='@MybatisUtils@equals(pdGbn, "1")'>
+            /* 1. 정수기 -  01001, 01001003, 01002002 */
+       AND T23.REF_PD_CLSF_VAL IN ('01001', '01001003', '01002002')
+        </if>
+        <if test='@MybatisUtils@equals(pdGbn, "2")'>
+            /* 2. 공기청정기 -  02001001 */
+       AND T23.REF_PD_CLSF_VAL IN ('02001001')
+        </if>
+        <if test='@MybatisUtils@equals(pdGbn, "3")'>
+            /* 3. 비데 - 03001001 */
+       AND T23.REF_PD_CLSF_VAL IN ('03001001')
+        </if>
+        <if test='@MybatisUtils@equals(pdGbn, "4")'>
+            /* 4. 기타 (1,2,3아 아닌거) */
+       AND T23.REF_PD_CLSF_VAL NOT IN ('01001', '01001003', '01002002' /* 정수기 */
+                                     , '02001001'  /* 공기청정기 */
+                                     , '03001001')  /* 비데 */
+        </if>
+     ORDER BY T13.HIST_STRT_DTM, T40.CST_KNM DESC
+    </select>
+</mapper>
