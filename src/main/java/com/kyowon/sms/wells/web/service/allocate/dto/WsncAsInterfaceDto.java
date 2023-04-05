@@ -169,4 +169,26 @@ public class WsncAsInterfaceDto {
         String matNm
     ) {}
 
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustomerInformationReq")
+    public record SearchCustomerInformationReq(
+        @NotBlank
+        String asAkId,
+        @NotBlank
+        String cntrNo,
+        @NotNull
+        String cntrSn
+    ) {}
+
+    @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustomerInformationRes")
+    public record SearchCustomerInformationRes(
+        String asAkId,
+        String sysDvCd,
+        String fstRgstDtm,
+        String fstRgstUsrId,
+        String prtnrKnm,
+        String ogCd,
+        String ogNm,
+        String cstUnuitmCn
+    ) {}
+
 }

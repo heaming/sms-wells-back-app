@@ -97,4 +97,14 @@ public class WsncWellsAsInterfaceService {
         return converter.mapAllServiceContentsDvoToRes(mapper.selectServiceContents(req));
     }
 
+    /**
+     * 고객센터 인터페이스 특이사항 조회
+     *
+     * @programId : W-SV-I-0035
+     * @param req : 조회파라메터
+     * @return 조회결과
+     */
+    public SearchCustomerInformationRes getCustomerInformation(SearchCustomerInformationReq req) {
+        return converter.mapCustomerInformationDvoToRes(mapper.selectCustomerInformation(req));
+    }
 }

@@ -1,9 +1,12 @@
 package com.kyowon.sms.wells.web.service.interfaces.converter;
 
+import java.util.List;
+
+import org.mapstruct.Mapper;
+
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
-import org.mapstruct.Mapper;
-import java.util.List;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerInformationDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsncWellsAsInterfaceConverter {
@@ -22,8 +25,11 @@ public interface WsncWellsAsInterfaceConverter {
     List<SearchServiceHistoryRes> mapAllServiceHistoryDvoToRes(
         List<WsncAsInterfaceServHistDvo> dvos
     );
+
     List<SearchServiceContentsRes> mapAllServiceContentsDvoToRes(
         List<WsncAsInterfaceServContDvo> dvos
     );
+
+    SearchCustomerInformationRes mapCustomerInformationDvoToRes(WsniCustomerInformationDvo dvo);
 
 }

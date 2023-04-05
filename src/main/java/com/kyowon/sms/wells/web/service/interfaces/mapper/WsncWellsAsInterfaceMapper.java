@@ -1,10 +1,13 @@
 package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerInformationDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
-import org.apache.ibatis.annotations.Mapper;
-import java.util.List;
 
 /**
  *
@@ -53,12 +56,22 @@ public interface WsncWellsAsInterfaceMapper {
      */
     List<WsncAsInterfaceServHistDvo> selectServiceHistorys(SearchServiceHistoryReq req, PageInfo pageInfo);
 
-  /**
-   * Wells 인터페이스 맞춤가이드 서비스 내용 조회
-   *
-   * @programId : W-SV-I-0003
-   * @param req : 조회파라메터
-   * @return 조회결과
-   */
-   List<WsncAsInterfaceServContDvo> selectServiceContents(SearchServiceContentsReq req);
+    /**
+     * Wells 인터페이스 맞춤가이드 서비스 내용 조회
+     *
+     * @programId : W-SV-I-0003
+     * @param req : 조회파라메터
+     * @return 조회결과
+     */
+    List<WsncAsInterfaceServContDvo> selectServiceContents(SearchServiceContentsReq req);
+
+    /**
+     * 고객센터 인터페이스 특이사항 조회
+     *
+     * @programId : W-SV-I-0035
+     * @param req : 조회파라메터
+     * @return 조회결과
+     */
+    WsniCustomerInformationDvo selectCustomerInformation(SearchCustomerInformationReq req);
+
 }
