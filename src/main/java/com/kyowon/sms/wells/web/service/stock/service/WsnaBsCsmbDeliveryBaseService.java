@@ -7,8 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaBsCsmbDeliveryBaseConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.CreateReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchItemsRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryBaseDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsCsmbDeliveryBaseMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +23,31 @@ import lombok.RequiredArgsConstructor;
 public class WsnaBsCsmbDeliveryBaseService {
     private final WsnaBsCsmbDeliveryBaseMapper mapper;
     private final WsnaBsCsmbDeliveryBaseConverter converter;
+
+    public List<SearchRes> getDeliveryBases(SearchReq dto) {
+        return mapper.selectDeliveryBases(dto);
+    }
+
+    public PagingResult<SearchRes> getDeliveryBasesPages(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectDeliveryBases(dto, pageInfo);
+    }
+
+    @Transactional
+    public int createDeliveryBasesNextMonth() {
+        int processCount = 0;
+
+        int result1 = mapper.insertDeliveryBasesNextMonth();
+        processCount += result1;
+
+        int result2 = mapper.insertDeliveryBaseDtlsNextMonth();
+        processCount += result2;
+
+        return processCount;
+    }
+
+    public List<SearchItemsRes> getAllItemInformation() {
+        return mapper.selectAllItemInformation();
+    }
 
     @Transactional
     public int createDeliveryBase(List<CreateReq> dtos) {
