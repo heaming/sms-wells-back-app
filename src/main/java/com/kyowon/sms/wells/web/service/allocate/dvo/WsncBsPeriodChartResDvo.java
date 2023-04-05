@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsncBsPeriodChartDvo {
+public class WsncBsPeriodChartResDvo {
     String cntrNo;
     String cntrSn;
     String bfsvcSppStpRsonCd;
@@ -14,20 +14,15 @@ public class WsncBsPeriodChartDvo {
     String pdctPdCd;
     String istDt;
     int chekInstMths;
+    int chekInstMthsBs04;
     String cntrPdStrtdt;
-
-    //additional parameter
-    String chekCockYn;
-    String chekVstGb20;
-    String chekVstDt;
-    String newWrkTypDtl;
-    String vstGb;
-    String partCd;
-    String newPartCd;
-    String newVstGb;
-    int chekCyclMths;
+    int vstNmnN;
+    int totStplMcn;
+    int vstMths;
+    String wrkTypDtl;
     String chngStg;
     String itemKnd;
+    String partCd;
     int qty;
-    String crtErrCn;
+    String vstGb;
 }
