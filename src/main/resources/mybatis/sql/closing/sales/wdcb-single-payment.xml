@@ -1,103 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSinglePaymentMapper">
-    <!--
-    테이블 생성 전 테이블 정리되면 쿼리문 살리고 다시 테스트 진행 해야 함
-    <select id="selectBaseInformation" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSinglePaymentDto$RentalSearchRes">
-        SELECT SAP_DP_TP_CD
-          FROM TB_CBCL_SAP_DP_TP_CD_BASE
-         WHERE 1=1
-           AND CO_CD = #{coCd}
-           AND APY_STRTDT <= #{dpClDt}
-           AND APY_ENDDT >= #{dpClDt}
-           AND RVE_TP_CD = #{rveTpCd}
-           AND DP_KND_CD = #{dpKndCd}
-           AND DP_TP_CD = #{dpTpCd}
-    </select>-->
-
     <select id="selectBaseInformation" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSinglePaymentDto$BaseSearchRes">
-        SELECT '1' AS TASK_DIV   /* 업무구분 */
-             , #{cntrDtlNo} AS CNTR_DTL_NO  /* 계약상세번호 */
-             , T5.CST_KNM   /* 고객명 */
-             , T1.COPN_DV_CD    /* 개인/법인 */
-             , T1.SELL_PRTNR_NO /* 판매자정보 */
-             , T1.CNTR_CNFM_DTM /* 계약일 */
-             , T3.SL_DT /* 매출일 */
-             , '' AS SL_CAN_DT  /* 취소일 */
-             , T1.SELL_OG_TP_CD /* 조직정보 */
-             , T2.BASE_PD_CD    /* 상품정보 */
-             , T3.DSC_AMT   /* 할인가 */
-             , T2.DSC_APY_TP_CD /* 할인유형 */
-             , T1.ALNCMP_CD /* 제휴정보 */
-             , '' AS EV_INF /* 행사정보 */
-             , T2.SELL_AMT  /* 판매가격 */
-             , T4.ALNC_FEE  /* 제휴수수료 */
-             , T3.SUBSC_AMT /* 청약금액 */
-             , T3.TK_AMT    /* 인수금액 */
-             , T6.UC_AMT AS CRP_UC_AMT    /* 법인미수금액 */
-             , T6.THM_CHRAM_AMT - T6.UC_AMT AS BLAM /* 잔액 */
-             , T2.ISTM_MCN || 'X' || T2.ISTM_PCAM_AMT AS ISTM_MCN   /* 할부정보 */
-             , T2.FEE_ACKMT_BASE_AMT    /* 수수료 */
-             , T3.FULPY_DT  /* 완불일자 */
-             , '' AS FST_FULPY_DT   /* 최초완불일 */
-             , '' AS CHG_DT /* 변동일자 */
-             , '' AS ACC_DV /* 계정구분 */
-             , '' AS STAT_CH_DT /* 상변일자 */
-             , '' AS SL_CH_DT   /* 매변일자 */
-             , '' AS SL_CH_SN /* 매변일련번호 */
-             , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '1') AS DP_AMT1   /* 할부입금액 */
-             , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '2') AS DP_AMT2   /* 청약입금액 */
-             , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '3') AS DP_AMT3   /* 매변입금액 */
-             , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '4') AS DP_AMT4   /* 인수입금액 */
-             , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '5') AS DP_AMT5   /* 법인미수금액 */
-             , 0 AS DP_TAM  /* 임금총액 */
-             , T7.FNT_DV_CD /* 이체구분 */
-             , T7.RGL_FNT_D /* 이체일 */
-             , T8.DLQ_MCN   /* 연체개월 */
-             , T8.EOT_DLQ_AMT   /* 연체금액 */
-             , T6.UC_AMT    /* 미수금액 */
-             , 0 AS UC_PRNT /* 미수출력 */
-             , T9.DFA_BSDT  /* 대손일자    */
-             , T3.DFA_PROCS_AMT /* 대손금액    */
-             , T9.DFA_DP_AMT    /* 대손입금액   */
-             , T3.DFA_PROCS_AMT - T9.DFA_DP_AMT AS DFA_BLAM     /* 대손잔액    */
-             , T3.DFA_PRCSDT /* 대손처리일자 */
-             , 0 AS DFA_FULPY_AMT       /* 대손완불금액 */
-             , T6.ACTCS_DT              /*  수임일자 */
-             , T10.CLCTAM_DV_CD         /* 집금유형 */
-             , T6.CLCTAM_PRTNR_NO       /* 집금담당 */
-             , 0 AS DSB_GUR /* 지급보증 */
-             , 0 AS BU_NOTI /* 부담통보 */
-             , 0 AS REDF_DT /* 되물림일 */
-             , 0 AS ADSB_DT /* 재지급일 */
-             , 0 AS NOTI_CN /* 통보내용 */
-             , '' AS BNK_CD /* 은행명 */
-             , '' AS VT_AC /* 가상계좌 */
-          FROM TB_SSCT_CNTR_BAS T1
-         INNER JOIN TB_SSCT_CNTR_DTL T2
-            ON T1.CNTR_NO = T2.CNTR_NO
-         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3
-            ON T2.CNTR_NO = T3.CNTR_NO
-           AND T2.CNTR_SN = T3.CNTR_SN
-          LEFT OUTER JOIN TB_RVDW_RVE_DTL T4
-            ON T2.CNTR_NO = T4.CNTR_NO
-           AND T2.CNTR_SN = T4.CNTR_SN
-         INNER JOIN TB_CUBS_CST_BAS T5
-            ON T3.CST_NO = T5.CST_NO
-          LEFT OUTER JOIN TB_CBBO_BND_ASN_IZ T6
-            ON T2.CNTR_NO = T6.CNTR_NO
-           AND T2.CNTR_SN = T6.CNTR_SN
-          LEFT OUTER JOIN TB_RVCL_BIL_FNT_AK_BAS T7
-            ON T4.RVE_NO = T7.RVE_NO
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
-            ON T2.CNTR_NO = T8.CNTR_NO
-           AND T2.CNTR_SN = T8.CNTR_SN
-          LEFT OUTER JOIN TB_CBBO_DFA_DP_IZ T9
-            ON T6.BND_CNTR_ID = T9.BND_CNTR_ID
-          LEFT OUTER JOIN TB_CBBO_BND_ASN_BASE_BAS T10
-            ON T6.BZ_HDQ_DV_CD = T10.BZ_HDQ_DV_CD
-         WHERE 1=1
-           AND T2.CNTR_NO || T2.CNTR_SN = #{cntrDtlNo}
+    SELECT '일시불' AS TASK_DIV   /* 업무구분 */
+         , T2.CNTR_NO || T2.CNTR_SN AS CNTR_DTL_NO  /* 계약상세번호 */
+         , T5.CST_KNM   /* 고객명 */
+         , T1.COPN_DV_CD    /* 개인/법인 */
+         , T1.SELL_PRTNR_NO /* 판매자정보 */
+         , T1.CNTR_CNFM_DTM /* 계약일 */
+         , T3.SL_DT /* 매출일 */
+         , '' AS SL_CAN_DT  /* 취소일 */
+         , T1.SELL_OG_TP_CD /* 조직정보 */
+         , T2.BASE_PD_CD    /* 상품정보 */
+         , T3.DSC_AMT   /* 할인가 */
+         , T2.DSC_APY_TP_CD /* 할인유형 */
+         , T1.ALNCMP_CD /* 제휴정보 */
+         , '' AS EV_INF /* 행사정보 */
+         , T2.SELL_AMT  /* 판매가격 */
+         , T4.ALNC_FEE  /* 제휴수수료 */
+         , T3.SUBSC_AMT /* 청약금액 */
+         , T3.TK_AMT    /* 인수금액 */
+         , T6.UC_AMT AS CRP_UC_AMT    /* 법인미수금액 */
+         , T6.THM_CHRAM_AMT - T6.UC_AMT AS BLAM /* 잔액 */
+         , T2.ISTM_MCN || 'X' || T2.ISTM_PCAM_AMT AS ISTM_MCN   /* 할부정보 */
+         , T2.FEE_ACKMT_BASE_AMT    /* 수수료 */
+         , T3.FULPY_DT  /* 완불일자 */
+         , '' AS FST_FULPY_DT   /* 최초완불일 */
+         , '' AS CHG_DT /* 변동일자 */
+         , '' AS ACC_DV /* 계정구분 */
+         , '' AS STAT_CH_DT /* 상변일자 */
+         , '' AS SL_CH_DT   /* 매변일자 */
+         , '' AS SL_CH_SN /* 매변일련번호 */
+         , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '1') AS DP_AMT1   /* 할부입금액 */
+         , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '2') AS DP_AMT2   /* 청약입금액 */
+         , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '3') AS DP_AMT3   /* 매변입금액 */
+         , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '4') AS DP_AMT4   /* 인수입금액 */
+         , (SELECT SUM(T4.DP_AMT) FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T2.CNTR_NO AND CNTR_SN = T2.CNTR_SN AND DP_DV_CD = '1' AND RVE_DV_CD = '5') AS DP_AMT5   /* 법인미수금액 */
+         , 0 AS DP_TAM  /* 임금총액 */
+         , T7.FNT_DV_CD /* 이체구분 */
+         , T7.RGL_FNT_D /* 이체일 */
+         , T8.DLQ_MCN   /* 연체개월 */
+         , T8.EOT_DLQ_AMT   /* 연체금액 */
+         , T6.UC_AMT    /* 미수금액 */
+         , 0 AS UC_PRNT /* 미수출력 */
+         , T9.DFA_BSDT  /* 대손일자    */
+         , T3.DFA_PROCS_AMT /* 대손금액    */
+         , T9.DFA_DP_AMT    /* 대손입금액   */
+         , T3.DFA_PROCS_AMT - T9.DFA_DP_AMT AS DFA_BLAM     /* 대손잔액    */
+         , T3.DFA_PRCSDT /* 대손처리일자 */
+         , 0 AS DFA_FULPY_AMT       /* 대손완불금액 */
+         , T6.ACTCS_DT              /*  수임일자 */
+         , T10.CLCTAM_DV_CD         /* 집금유형 */
+         , T6.CLCTAM_PRTNR_NO       /* 집금담당 */
+         , 0 AS DSB_GUR /* 지급보증 */
+         , 0 AS BU_NOTI /* 부담통보 */
+         , 0 AS REDF_DT /* 되물림일 */
+         , 0 AS ADSB_DT /* 재지급일 */
+         , 0 AS NOTI_CN /* 통보내용 */
+         , '' AS BNK_CD /* 은행명 */
+         , '' AS VT_AC /* 가상계좌 */
+      FROM TB_SSCT_CNTR_BAS T1
+     INNER JOIN TB_SSCT_CNTR_DTL T2
+        ON T1.CNTR_NO = T2.CNTR_NO
+     INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3
+        ON T2.CNTR_NO = T3.CNTR_NO
+       AND T2.CNTR_SN = T3.CNTR_SN
+      LEFT OUTER JOIN TB_RVDW_RVE_DTL T4
+        ON T2.CNTR_NO = T4.CNTR_NO
+       AND T2.CNTR_SN = T4.CNTR_SN
+      LEFT OUTER JOIN TB_CUBS_CST_BAS T5
+        ON T3.CST_NO = T5.CST_NO
+      LEFT OUTER JOIN TB_CBBO_BND_ASN_IZ T6
+        ON T2.CNTR_NO = T6.CNTR_NO
+       AND T2.CNTR_SN = T6.CNTR_SN
+      LEFT OUTER JOIN TB_RVCL_BIL_FNT_AK_BAS T7
+        ON T4.RVE_NO = T7.RVE_NO
+      LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
+        ON T2.CNTR_NO = T8.CNTR_NO
+       AND T2.CNTR_SN = T8.CNTR_SN
+      LEFT OUTER JOIN TB_CBBO_DFA_DP_IZ T9
+        ON T6.BND_CNTR_ID = T9.BND_CNTR_ID
+      LEFT OUTER JOIN TB_CBBO_BND_ASN_BASE_BAS T10
+        ON T6.BZ_HDQ_DV_CD = T10.BZ_HDQ_DV_CD
+     WHERE 1=1
+       AND T2.CNTR_NO || T2.CNTR_SN = #{cntrDtlNo}
     </select>
     
     <select id="selectSalesPerformances" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSinglePaymentDto$SalesSearchRes">
@@ -115,55 +101,18 @@
      INNER JOIN TB_SSCT_CNTR_DTL T2
         ON T1.CNTR_NO = T2.CNTR_NO
      INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3
-     ON T2.CNTR_NO = T3.CNTR_NO
+        ON T2.CNTR_NO = T3.CNTR_NO
        AND T2.CNTR_SN = T3.CNTR_SN
-     INNER JOIN TB_CBCL_DLQ_BAS T4
-     ON T2.CNTR_NO = T4.CNTR_NO
+      LEFT OUTER JOIN TB_CBCL_DLQ_BAS T4
+        ON T2.CNTR_NO = T4.CNTR_NO
        AND T2.CNTR_SN = T4.CNTR_SN
-       LEFT OUTER JOIN TB_CBBO_BND_ASN_IZ T5
+      LEFT OUTER JOIN TB_CBBO_BND_ASN_IZ T5
         ON T2.CNTR_NO = T5.CNTR_NO
        AND T2.CNTR_SN = T5.CNTR_SN
-       LEFT OUTER JOIN TB_CBBO_BND_ASN_BASE_BAS T6
+      LEFT OUTER JOIN TB_CBBO_BND_ASN_BASE_BAS T6
         ON T5.BZ_HDQ_DV_CD = T6.BZ_HDQ_DV_CD
-     UNION ALL
-    SELECT '2022-02' AS SL_CL_YM
-         , 0 AS DLQ_MCN
-         , 0 AS EOT_DLQ_AMT
-         , '3.특수' AS CLCTAM_DV_CD
-         , '48911' AS CLCTAM_PRTNR_NO
-         , 120000 AS COL6
-         , 30000 AS COL7
-         , 900000 AS COL8
-         , 30000 AS SELL_AMT
-         , 0 AS ISTM_MCN
-      FROM DUAL
      WHERE 1=1
-     UNION ALL
-    SELECT '2022-02' AS SL_CL_YM
-         , 5 AS DLQ_MCN
-         , 500000 AS EOT_DLQ_AMT
-         , '3.특수' AS CLCTAM_DV_CD
-         , '48911' AS CLCTAM_PRTNR_NO
-         , 120000 AS COL6
-         , 30000 AS COL7
-         , 900000 AS COL8
-         , 30000 AS SELL_AMT
-         , 0 AS ISTM_MCN
-      FROM DUAL
-     WHERE 1=1
-     UNION ALL
-    SELECT '2022-02' AS SL_CL_YM
-         , 5 AS DLQ_MCN
-         , 500000 AS EOT_DLQ_AMT
-         , '3.특수' AS CLCTAM_DV_CD
-         , '48911' AS CLCTAM_PRTNR_NO
-         , 120000 AS COL6
-         , 30000 AS COL7
-         , 900000 AS COL8
-         , 30000 AS SELL_AMT
-         , 2000000 AS ISTM_MCN
-      FROM DUAL
-     WHERE 1=1
+       AND T2.CNTR_NO || T2.CNTR_SN = #{cntrDtlNo}
     </select>
     
     <select id="selectDepositsPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSinglePaymentDto$DepositSearchRes">
@@ -184,16 +133,8 @@
         ON T2.CNTR_NO = T4.CNTR_NO
        AND T2.CNTR_SN = T4.CNTR_SN
        /* TODO TB_CBCL_BZNS_PRPD_TD_CL에서 컬럼 가져올것*/
-     UNION ALL
-    SELECT '1' AS RVE_DV_CD
-         , '20230306' AS RVE_DT
-         , '20230401' AS PERF_DT
-         , '1' AS DP_DV_CD
-         , '1' AS DP_KND_CD
-         , '1' AS DP_TP_CD
-         , 128000 AS RVE_AMT
-      FROM DUAL
      WHERE 1=1
+       AND T2.CNTR_NO || T2.CNTR_SN = #{cntrDtlNo}
     </select>
 
 </mapper>

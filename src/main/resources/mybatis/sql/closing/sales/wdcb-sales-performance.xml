@@ -4,24 +4,29 @@
     
     <select id="selectSellTpCd" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRes">
         SELECT SELL_TP_CD
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+          FROM (
+                SELECT ROWNUM
+                     , SELL_TP_CD
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+                 WHERE 1=1
+                   AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+                 ORDER BY SL_CL_YM DESC
+               )
          WHERE 1=1
-           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+           AND ROWNUM = 1
     </select>
 
-    <!--
-    테이블 생성 전 테이블 정리되면 쿼리문 살리고 다시 테스트 진행 해야 함
     <select id="selectRental" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRentalRes">
         /* 렌탈, 리스 */
-        SELECT T2.SELL_TP_CD    
+        SELECT T1.SELL_TP_CD
              , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
              , T4.CST_KNM
              , T5.PD_NM
              , '' AS COL5
              , '' AS COL6
-             , TO_CHAR(T3.CNTR_RCP_FSH_DTM,'YYYYMMDD') AS CNTR_RCP_FSH_DTM
+             , T3.CNTR_RCP_FSH_DTM
              , T1.SL_DT
-             , TO_CHAR(T3.CNTR_CAN_DTM,'YYYYMMDD') AS CNTR_CAN_DTM
+             , T3.CNTR_CAN_DTM
              , '' AS COL10
              , T6.REDF_DT
              , T6.ADSB_DT
@@ -45,14 +50,14 @@
            AND T1.CNTR_SN = T2.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_BAS T3
             ON T2.CNTR_NO = T3.CNTR_NO
-         INNER JOIN TB_CUBS_CST_BAS T4
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T4
             ON T1.CST_NO = T4.CST_NO
-         INNER JOIN TB_PDBS_PD_BAS T5
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T5
             ON T1.PD_CD = T5.PD_CD
           LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS T6
             ON T1.CNTR_NO = T6.CNTR_NO
            AND T1.CNTR_SN = T6.CNTR_SN
-         INNER JOIN TB_SSCT_CNTR_STLM_BAS T7
+          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7
             ON T1.CNTR_NO = T7.CNTR_NO
            AND T1.CST_NO = T7.CST_NO
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
@@ -66,51 +71,18 @@
          WHERE 1=1
            AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
            AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
-    </select>-->
-    
-    <select id="selectRental" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRentalRes">
-        /* 렌탈, 리스 */
-        SELECT '리스' AS SELL_TP_CD    
-             , 'W202268329831' AS CNTR_DTL_NO
-             , '제이엔에듀' AS CST_KNM
-             , '(4175)웰스(KW-PK2W1)/3개월/일반(1)' AS PD_NM
-             , '만료유형' AS COL5
-             , '제휴구분' AS COL6
-             , '20220405' AS CNTR_RCP_FSH_DTM
-             , '20220414' AS SL_DT
-             , '20220514' AS CNTR_CAN_DTM
-             , '20220514' AS COL10
-             , '20220514' AS REDF_DT
-             , '20220521' AS ADSB_DT
-             , '법인(1)/3년 약정' AS DSC_TP_CD
-             , '은행/20/Y' AS DP_TP_CD
-             , '100,000(100,000 할인)' AS RENTAL_RGST_COST
-             , '60/23,100' AS RENTAL_PTRM
-             , 500000 AS SL_AGG_AMT
-             , 250000 AS COL18
-             , 0 AS COL19
-             , 450000 AS SL_DP_AGG_AMT
-             , 200000 AS COL21
-             , 0 AS THM_OC_DLQ_AMT /* 명세서에는 DLQ_OC_AMT */
-             , 0 AS AS COL23
-             , 0 AS EOT_DLQ_ADD_AMT
-             , 0 AS DFA_AMT
-             , 0 AS DFA_DP_AMT
-          FROM DUAL
     </select>
     
-    <!--
-    테이블 생성 전 테이블 정리되면 쿼리문 살리고 다시 테스트 진행 해야 함
     <select id="selectMembership" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchMembershipRes">
         /* 멤버십 */
-        SELECT T2.SELL_TP_CD    
+        SELECT T1.SELL_TP_CD    
              , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
              , T4.CST_KNM
              , T5.PD_NM
              , T7.DP_TP_CD || '/' || T7.MPY_BSDT AS DP_TP_CD
              , T6.CNTR_DT
              , T3.CNTR_CNFM_DTM
-             , TO_CHAR(T3.CNTR_CAN_DTM, 'YYYYMMDD') AS CNTR_CAN_DTM
+             , T3.CNTR_CAN_DTM
              , '' AS COL9
              , '' AS COL10
              , '' AS COL11
@@ -130,14 +102,14 @@
            AND T1.CNTR_SN = T2.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_BAS T3
             ON T2.CNTR_NO = T3.CNTR_NO
-         INNER JOIN TB_CUBS_CST_BAS T4
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T4
             ON T1.CST_NO = T4.CST_NO
-         INNER JOIN TB_PDBS_PD_BAS T5
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T5
             ON T1.PD_CD = T5.PD_CD
           LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T6
             ON T1.CNTR_NO = T6.CNTR_NO
            AND T1.CNTR_SN = T6.CNTR_SN
-         INNER JOIN TB_SSCT_CNTR_STLM_BAS T7
+          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7
             ON T1.CNTR_NO = T7.CNTR_NO
            AND T1.CST_NO = T7.CST_NO
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
@@ -151,40 +123,14 @@
          WHERE 1=1
            AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
            AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
-    </select>-->
-    
-    <select id="selectMembership" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchMembershipRes">
-        /* 멤버십 */
-        SELECT '멤버십' AS SELL_TP_CD    
-             , 'W202268329831' AS CNTR_DTL_NO
-             , '제이앤에' AS CST_KNM
-             , '(4175)웰스(KW-PK2W1)/3개월/일반(1)' AS PD_NM
-             , '/' AS DP_TP_CD
-             , '20230601' AS CNTR_DT
-             , '20230602' AS CNTR_CNFM_DTM
-             , '20230701' AS CNTR_CAN_DTM
-             , '20230201' AS COL9
-             , '20230901' AS COL10
-             , '20230904' AS COL11
-             , 9800 AS SELL_AMT
-             , 1200 AS DSC_AMT
-             , 5000 AS SL_AGG_AMT
-             , 2300 AS COL15
-             , 500 AS COL16
-             , 0 AS SL_DP_AGG_AMT
-             , 0 AS THM_UC_BLAM
-             , 0 AS THM_OC_DLQ_AMT
-             , 0 AS DFA_AMT
-             , 0 AS DFA_DP_AMT
-          FROM DUAL
     </select>
     
     <select id="selectRegular" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRegularRes">
         /* 정기배송 */
-        SELECT T2.SELL_TP_CD    
+        SELECT T1.SELL_TP_CD    
              , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
              , T4.CST_KNM
-             , TO_CHAR(T3.CNTR_RCP_FSH_DTM, 'YYYYMMDD') AS CNTR_RCP_FSH_DTM
+             , T3.CNTR_RCP_FSH_DTM
              , T1.SL_DT
              , '' AS COL6
              , '' AS COL7
@@ -204,9 +150,9 @@
            AND T1.CNTR_SN = T2.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_BAS T3
             ON T2.CNTR_NO = T3.CNTR_NO
-         INNER JOIN TB_CUBS_CST_BAS T4
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T4
             ON T1.CST_NO = T4.CST_NO
-         INNER JOIN TB_SSCT_CNTR_STLM_BAS T5
+          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T5
             ON T1.CNTR_NO = T5.CNTR_NO
            AND T1.CST_NO = T5.CST_NO
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T6
@@ -247,27 +193,6 @@
         WHERE 1=1
           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
-        UNION ALL
-       SELECT #{cntrDtlNo} AS CNTR_DTL_NO
-            , '202212' AS SL_DT
-            , '1' AS CNTR_DTL_STAT_CD
-            , 1 AS COL4
-            , '관리구분' AS COL5
-            , 0 AS PRM_MCN
-            , 0 AS THM_SL_SUM_AMT
-            , 0 AS COL8
-            , 0 AS COL9
-            , 0 AS EOT_ATAM
-            , 0 AS THM_UC_BLAM
-            , 0 AS THM_OC_DLQ_AMT
-            , 0 AS DLQ_MCN
-            , 0 AS BTD_DLQ_ADD_AMT
-            , 0 AS THM_OC_DLQ_ADD_AMT
-            , 0 AS THM_CTR_DLQ_ADD_AMT
-            , 0 AS THM_DLQ_DP_SUM_AMT
-            , 0 AS THM_DLQ_RFND_SUM_AMT
-            , 0 AS EOT_DLQ_ADD_AMT
-         FROM DUAL
     </select>
     
     <select id="selectMembershipPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchMembershipMonthlyRes">
@@ -292,22 +217,6 @@
         WHERE 1=1
           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
-        UNION ALL
-       SELECT #{cntrDtlNo} AS CNTR_DTL_NO
-            , '202304' AS SL_DT
-            , 0 AS COL3
-            , '관리구분' AS COL4
-            , 100000 AS THM_SL_SUM_AMT
-            , 30000 AS THM_ATAM_DP_AMT
-            , 40000 AS EOT_ATAM
-            , 30000 AS THM_OC_DLQ_AMT
-            , 0 AS BTD_DLQ_ADD_AMT   
-            , 0 AS THM_OC_DLQ_ADD_AMT
-            , 0 AS THM_CTR_DLQ_ADD_AMT   
-            , 0 AS THM_DLQ_DP_SUM_AMT    
-            , 0 AS THM_DLQ_RFND_SUM_AMT  
-            , 0 AS EOT_DLQ_ADD_AMT
-         FROM DUAL
     </select>
     
     <select id="selectRegularPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRegularMonthlyRes">
@@ -328,18 +237,6 @@
         WHERE 1=1
           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
-        UNION ALL
-       SELECT #{cntrDtlNo} AS CNTR_DTL_NO
-            , 1 AS COL2
-            , '202308' AS SL_DT
-            , '매출중지' AS COL4
-            , 0 AS THM_SL_SUM_AMT
-            , 35000 AS THM_ATAM_DP_AMT
-            , 0 AS EOT_ATAM
-            , 5000 AS THM_UC_BLAM
-            , '' AS COL8
-            , 6000 AS THM_OC_DLQ_AMT
-         FROM DUAL
     </select>
 
 </mapper>
