@@ -1,0 +1,145 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbHalfHourCallBlockingMapper">
+    <insert id="insertHalfHourCallBlocking">
+        INSERT INTO TB_IFIN_CST_CNR_AS_AK_RCV_ETXT
+             ( AS_AK_ID
+             , SYS_DV_CD
+             , CNTR_NO
+             , CNTR_SN
+             , AS_AK_CN
+             , AS_AK_RCP_CD
+             , PD_INF_CN
+             , AS_RCP_CNTC_OJ_CD
+             , CST_YN
+             , URGT_YN
+             , CMRNC_ZIP
+             , CMRNC_ADR
+             , CMRNC_DTL_ADR
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , CPHON_LOCARA_TNO
+             , CPHON_EXNO_ENCR
+             , CPHON_IDV_TNO
+             , RCST_OG_ID
+             , RCST_BLG_NM
+             , RCST_DV_CD
+             , RCP_COSLR_ID
+             , RCST_NM
+             , RCPDT
+             , RCP_HH
+             , PROCS_YN
+             , PROCS_COSLR_ID
+             , ADR_DV_CD
+             , REF_ADR
+             , PIF_DL_YN
+             , AG_YN
+             , CST_SV_ASN_NO
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        SELECT (SELECT NVL(MAX(AS_AK_ID), 0) + 1
+                  FROM TB_IFIN_CST_CNR_AS_AK_RCV_ETXT
+               )
+             , (SELECT (CASE WHEN X.FILT_SELL_TP_CD = '1' THEN 'L10'
+                            WHEN X.FILT_SELL_TP_CD = '2' THEN 'L20'
+                            WHEN X.FILT_SELL_TP_CD = '3' THEN 'L30'
+                            WHEN X.FILT_SELL_TP_CD = '4' THEN 'L40'
+                            WHEN X.FILT_SELL_TP_CD = '5' THEN 'L50'
+                            WHEN X.FILT_SELL_TP_CD = '9' THEN 'L20'
+                        END
+                       ) AS SYS_DV_CD
+                  FROM TB_SVPD_CST_SV_EXCN_DL_IZ X
+                 WHERE X.CNTR_NO = T1.CNTR_NO
+                   AND X.CNTR_SN = T1.CNTR_SN
+               )
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.CNSL_MO_CN
+             , 'AR01'
+             , T1.SVPD_NM_KOR
+             , '1'
+             , 'N'
+             , 'N'
+             , T1.ADR_ZIP
+             , T1.ADR
+             , T1.DTL_ADR
+             , T1.LOCARA_TNO
+             , T1.EXNO_ENCR
+             , T1.IDV_TNO
+             , T1.CRAL_LOCARA_TNO
+             , T1.MEXNO_ENCR
+             , T1.CRAL_IDV_TNO
+             , T1.OG_ID
+             , T1.OG_NM
+             , 'AD02'
+             , T1.FST_RGST_USR_ID
+             , T1.PRTNR_KNM
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , TO_CHAR(SYSDATE, 'HH24MISS')
+             , 'N'
+             , ''
+             , '1'
+             , ''
+             , 'N'
+             , 'Y'
+             , T1.CST_SV_ASN_NO
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM (SELECT A.CNTR_NO
+                     , A.CNTR_SN
+                     , A.CNSL_MO_CN
+                     , A.CST_SV_ASN_NO
+                     , A.FST_RGST_USR_ID
+                     , (SELECT X.NEW_ADR_ZIP
+                          FROM TB_GBCO_ADR_BAS X
+                         WHERE X.ADR_ID = D.ADR_ID
+                       ) AS ADR_ZIP
+                     , (SELECT X.LTN_ADR
+                          FROM TB_GBCO_ADR_BAS X
+                         WHERE X.ADR_ID = D.ADR_ID
+                       ) AS ADR
+                     , (SELECT X.LTN_DTL_ADR
+                          FROM TB_GBCO_ADR_BAS X
+                         WHERE X.ADR_ID = D.ADR_ID
+                       ) AS DTL_ADR
+                     , TRIM(REPLACE(SUBSTR(A.CNSL_MO_CN, 0, INSTR(A.CNSL_MO_CN, CHR(10))-1), '1. 유형:', '')) AS TYP
+                     , B.SVPD_NM_KOR
+                     , B.SVPD_ITEM_GR
+                     , C.OG_NM
+                     , C.OG_CD
+                     , C.OG_ID
+                     , C.PRTNR_KNM
+                     , D.LOCARA_TNO
+                     , D.EXNO_ENCR
+                     , D.IDV_TNO
+                     , D.CRAL_LOCARA_TNO
+                     , D.MEXNO_ENCR
+                     , D.CRAL_IDV_TNO
+                  FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A
+                     , (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) B
+                     , TB_OGBS_MM_PRTNR_IZ C
+                     , TB_SSCT_CNTR_ADRPC_BAS D
+                 WHERE 1=1
+                   AND A.IN_CHNL_DV_CD = '2'
+                   AND A.MTR_STAT_CD != '3'
+                   AND A.FST_RGST_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMMDD') || '%'
+                   AND A.PD_CD = B.SVPD_PD_CD
+                   AND A.FST_RGST_USR_ID = C.PRTNR_NO
+                   AND C.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   AND A.CNTR_NO = D.CNTR_NO
+                   AND A.CNTR_ADRPC_ID = D.CNTR_ADRPC_ID
+                   AND (A.SV_BIZ_DCLSF_CD = '3110' OR A.RCP_SV_BIZ_DCLSF_CD = '3110')
+               ) T1
+         WHERE ((T1.SVPD_ITEM_GR = '2' AND INSTR('물온도:기타:물안나옴:LED/터치불량:물량:에러코드:포트가열안됨:전원안들어옴', TYP) > 0 ) OR
+                (T1.SVPD_ITEM_GR = '1' AND INSTR('기타:노즐불량:전원안들어옴:LED/터치불량:물안나옴:시트온도', TYP) > 0 ) OR
+                (T1.SVPD_ITEM_GR = '3' AND INSTR('기타:전원안들어옴:LED/터치불량', TYP) > 0 ) OR
+                (T1.SVPD_ITEM_GR = '9' AND INSTR('기타:에러코드:물안나옴:LED/터치불량:물량:전원안들어옴', TYP) > 0 ) OR
+                (T1.SVPD_ITEM_GR = '4' AND INSTR('연수(재생)기능안됨:기타:물안나옴:전원안들어옴:전원안들어옴:LED/터치불량:물온도', TYP) > 0 ))
+           AND NOT EXISTS (SELECT 1
+                             FROM TB_IFIN_CST_CNR_AS_AK_RCV_ETXT D
+                            WHERE D.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                              AND D.CNTR_NO = T1.CNTR_NO
+                              AND D.CNTR_SN = T1.CNTR_SN)
+    </insert>
+</mapper>
