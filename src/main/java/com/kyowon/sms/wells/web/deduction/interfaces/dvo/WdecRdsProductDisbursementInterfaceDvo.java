@@ -5,8 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WdecRdsProductDisbursementDvo {
+public class WdecRdsProductDisbursementInterfaceDvo {
 
+    /*검색 및 등록용 (input)*/
     private String rdsRvUseId; /*RDS적립사용ID*/
     private String ogTpCd; /*조직유형코드*/
     private String coCd; /*회사코드*/
@@ -20,4 +21,8 @@ public class WdecRdsProductDisbursementDvo {
     private String rdsRvUseTpCd; /*RDS적립사용유형코드*/
     private String rdsSmryCd; /*RDS적요코드*/
     private String rdsSmryCn; /*RDS적요내용*/
+
+    /*결과저장용 (output)*/
+    private String count; /*검색의 카운트갯수*/
+
 }

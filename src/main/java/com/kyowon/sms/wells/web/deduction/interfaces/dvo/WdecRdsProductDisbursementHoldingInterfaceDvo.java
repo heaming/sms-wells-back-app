@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WdecRdsProductDisbursementHoldingDvo {
+public class WdecRdsProductDisbursementHoldingInterfaceDvo {
 
     private String rdsDsbDuedt; /*RDS지급예정일자*/
     private String prtnrNO; /*파트너번호*/

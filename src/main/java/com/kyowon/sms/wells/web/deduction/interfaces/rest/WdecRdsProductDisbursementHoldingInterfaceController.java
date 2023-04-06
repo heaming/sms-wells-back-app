@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingDto;
-import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingDto.FindReq;
-import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingDto.FindRes;
-import com.kyowon.sms.wells.web.deduction.interfaces.service.WdecRdsProductDisbursementHoldingService;
+import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto;
+import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.FindReq;
+import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.FindRes;
+import com.kyowon.sms.wells.web.deduction.interfaces.service.WdecRdsProductDisbursementHoldingInterfaceService;
 import com.kyowon.sms.wells.web.deduction.zcommon.constants.DeDeductionConst; //wells
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class WdecRdsProductDisbursementHoldingInterfaceController {
 
-    private final WdecRdsProductDisbursementHoldingService service;
+    private final WdecRdsProductDisbursementHoldingInterfaceService service;
 
     @ApiOperation(value = "wells RDS 상품 지급 보류 상세 조회", notes = "EDU에서 파트너 개별 RDS 상품 지급 보류 상세 조회 요청 시 wells 파트너 개별 RDS 상품 지급 보류 상세 조회을 위한 인터페이스")
     @GetMapping("/rds-product-disbursement-holdings")
@@ -51,17 +51,17 @@ public class WdecRdsProductDisbursementHoldingInterfaceController {
     public EaiWrapper createRdsProductDisbursementHoldings(
         @Valid
         @RequestBody
-        EaiWrapper<WdecRdsProductDisbursementHoldingDto.SaveReq> reqWrapper
+        EaiWrapper<WdecRdsProductDisbursementHoldingInterfaceDto.SaveReq> reqWrapper
     ) {
         //Response용 EaiWrapper 생성
-        EaiWrapper<WdecRdsProductDisbursementHoldingDto.SaveRes> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<WdecRdsProductDisbursementHoldingInterfaceDto.SaveRes> resWrapper = reqWrapper.newResInstance();
 
         //return 파라미터
         String[] returnValue = service.createRdsProductDisbursementHoldings(reqWrapper.getBody());
 
         // 서비스 메소드 호출 및 Response Body 세팅
         resWrapper.setBody(
-            WdecRdsProductDisbursementHoldingDto.SaveRes.builder()
+            WdecRdsProductDisbursementHoldingInterfaceDto.SaveRes.builder()
                 .rdsDsbDuedt(returnValue[0]) //RDS지급예정일자
                 .rsCd(returnValue[1]) //결과코드
                 .rsMsg(returnValue[2]) //결과메시지

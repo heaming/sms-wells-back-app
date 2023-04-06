@@ -9,17 +9,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-public class WdecRdsProductDisbursementHoldingDto {
+public class WdecRdsProductDisbursementHoldingInterfaceDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
     // RDS 상품 지급 보류 상세 조회,  Search Request Dto
-    @ApiModel("WdecRdsProductDisbursementHoldingDto-FindReq")
+    @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-FindReq")
     public record FindReq(
         @NotBlank
         String ogTpCd,
         @NotBlank
-        String prtnr_No,
+        String prtnrNo,
         @NotBlank
         String hdPrcsdt
 
@@ -30,7 +30,7 @@ public class WdecRdsProductDisbursementHoldingDto {
     // *********************************************************
     // RDS 상품 지급 보류 상세 조회, Result Dto
     // 조회 결과는 인터페이스 응답양식(key-value 형태)에 맞추기 위해 DTO 형식으로 선언
-    @ApiModel("WdecRdsProductDisbursementHoldingDto-FindRes")
+    @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-FindRes")
     public record FindRes(
         String rdsPdDsbHdId, /*RDS상품지급보류ID*/
         String coCd, /*회사코드*/
@@ -62,22 +62,26 @@ public class WdecRdsProductDisbursementHoldingDto {
     ) {}
 
     @Builder
-    @ApiModel("WdecRdsProductDisbursementHoldingDto-OgTp")
-    public record OgTp(
+    @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-OgTp")
+    public record OrganizationTypes(
+        @NotBlank
         @JsonProperty("OG_TP_CD_VAL")
         String ogTpCdVal, /*조직유형코드값*/
+
+        @NotBlank
         @JsonProperty("PRTNRNO")
         String prtnrNo /*파트너번호*/
     ) {}
 
-    @ApiModel("WdecRdsProductDisbursementHoldingDto-SaveReq")
+    @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-SaveReq")
     public record SaveReq(
-
+        @NotBlank
         @JsonProperty("RDS_DSB_DUEDT")
         String rdsDsbDuedt, /*RDS지급예정일자*/
 
+        @NotBlank
         @JsonProperty("ITEM")
-        List<OgTp> data /*조직정보*/
+        List<OrganizationTypes> data /*조직정보*/
 
     ) {}
 
@@ -85,7 +89,7 @@ public class WdecRdsProductDisbursementHoldingDto {
     // Result Dto
     // *********************************************************
     // RDS지급보류대상내역, Save Result Dto
-    @ApiModel("WdecRdsProductDisbursementHoldingDto-SaveRes")
+    @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-SaveRes")
     @Builder
     public record SaveRes(
 
