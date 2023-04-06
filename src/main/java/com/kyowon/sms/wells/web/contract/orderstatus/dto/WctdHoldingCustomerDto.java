@@ -16,7 +16,7 @@ public class WctdHoldingCustomerDto {
     @ApiModel("WctdHoldingCustomerDto-SearchReq")
     public record SearchReq(
         @ValidDate
-        String StartDt,
+        String startDt,
         @ValidDate
         String endDt,
 		@Pattern(regexp = "^$|[YN]")
@@ -32,16 +32,16 @@ public class WctdHoldingCustomerDto {
     // 보류고객 관리 Search Result Dto
     @ApiModel("WctdHoldingCustomerDto-SearchRes")
     public record SearchRes(
-        String cntrNo,
-        String cntrSn,
-        String cntrCnfmDtm, // cut of time in front
-        String pdNm,
-        String cttRsCd, // codes: LC_CTT_RS_CD
-        String cttMoCn,
-        String ogCd,
-        String prtnrKnm,
-        String cttYn,
-        String cstKnm
+        String cntrNo, /*계약번호*/
+        int cntrSn, /*계약일련번호*/
+        String cntrCnfmDtm, /*계약확정일시 cut of time in front*/
+        String cttYn, /*컨택여부*/
+        String pdNm, /*상품명*/
+        String cttRsCd,  /*컨택결과코드: LC_CTT_RS_CD*/
+        String cttMoCn, /* 컨택메모내용 */
+        String ogCd, /*본부장 조직코드*/
+        String prtnrKnm, /*본부장 한글명*/
+        String cstKnm /* 고객명 */
     ) {
     }
 }

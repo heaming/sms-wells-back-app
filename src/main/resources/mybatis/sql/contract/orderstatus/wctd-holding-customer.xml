@@ -10,7 +10,7 @@
              , T_PD.PD_NM
              , T_CTT.CTT_RS_CD
              , T_CTT.CTT_MO_CN
-             , CASE WHEN T_CTT.CTT_RS_CD IS NOT NULL THEN 'Y' WHEN T_CTT.CTT_RS_CD IS NULL THEN 'N' ELSE '' END AS T_CTT_YN
+             , CASE WHEN T_CTT.CTT_RS_CD IS NOT NULL THEN 'Y' WHEN T_CTT.CTT_RS_CD IS NULL THEN 'N' ELSE '' END AS CTT_YN
              , T_PRTNR.OG_CD
              , T_PRTNR.PRTNR_KNM
              , T_CST.CST_KNM
@@ -38,17 +38,22 @@
                /*customer*/
          INNER JOIN TB_CUBS_CST_BAS                                                                                     T_CST
                ON T_CST.CST_NO = T_CNTR.CNTR_CST_NO
-         WHERE T_CNTR_DTL.SPP_DUEDT IS NULL
-           <if test="@MybatisUtils@isNotEmpty(cttYn)">
-               AND (('Y' = #{cttYn} AND T_CTT.CTT_RS_CD IS NOT NULL) OR ('N' = #{cttYn} AND T_CTT.CTT_RS_CD IS NULL)) /* 미설치, 미컨택*/
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
-               AND T_CNTR.CNTR_RCP_FSH_DTM BETWEEN #{startDt} || '000000' AND #{endDt} || '235959'
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
-               AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
-               AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
-           </if>
+        <where>
+            T_CNTR_DTL.SPP_DUEDT IS NULL
+            <trim><if test="@MybatisUtils@equals(cttYn, 'Y')">
+                AND T_CTT.CTT_RS_CD IS NOT NULL
+            </if></trim>
+            <trim><if test="@MybatisUtils@equals(cttYn, 'N')">
+                AND T_CTT.CTT_RS_CD IS NULL
+            </if></trim>
+            <trim><if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+                AND T_CNTR.CNTR_RCP_FSH_DTM BETWEEN #{startDt} || '000000' AND #{endDt} || '235959'
+            </if></trim>
+            <trim><if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
+                AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
+            </if></trim>
+        </where>
          ORDER BY T_PRTNR.OG_CD
                 , T_PRTNR.PRTNR_NO DESC
     </select>
