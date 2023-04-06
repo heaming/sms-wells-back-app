@@ -66,10 +66,25 @@
           LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T6
             ON T6.DTL_CNTR_NO = T2.CNTR_NO
            AND T6.DTL_CNTR_SN = T2.CNTR_SN
+           AND T6.CNTR_UNIT_TP_CD = '020'
+           AND T6.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T6.VL_STRT_DTM AND T6.VL_END_DTM
            AND T6.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CUBS_CST_BAS I1
             ON I1.CST_NO = T3.CNTR_CST_NO
-          LEFT OUTER JOIN (SELECT * FROM TB_CUBS_CST_CTPLC_BAS WHERE CST_CTPLC_OJ_DV_CD = 1) I2
+           AND I1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (
+                          SELECT *
+                            FROM (
+                                 SELECT CTPLC.*, RANK() OVER (PARTITION BY CST_CTPLC_OJ_DV_CD, CST_CTPLC_OJ_REFK_VAL ORDER BY HIST_STRT_DTM DESC) AS RNK
+                                   FROM TB_CUBS_CST_CTPLC_BAS CTPLC
+                                  WHERE 1=1
+                                    AND CST_CTPLC_OJ_DV_CD = '01' /* 고객 */
+                                    AND CTPLC_TP_CD = '03' /* 휴대전화번호 */
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                                 )
+                           WHERE RNK = 1
+                          ) I2
             ON I2.CST_CTPLC_OJ_REFK_VAL = T3.CNTR_CST_NO
            AND I2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_GBCO_ADR_BAS I3
@@ -214,10 +229,10 @@
         <if test='dtaDlYn != orglDtaDlYn'>
             <choose>
                 <when test='dtaDlYn == "Y"'>
-             , SELL_LM_OC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , SELL_LM_OC_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
                 </when>
                 <otherwise>
-             , SELL_LM_RLS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , SELL_LM_RLS_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
                 </otherwise>
             </choose>
         </if>

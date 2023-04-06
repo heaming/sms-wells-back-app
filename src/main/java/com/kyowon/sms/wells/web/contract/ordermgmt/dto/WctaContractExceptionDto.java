@@ -41,8 +41,7 @@ public class WctaContractExceptionDto {
         String dtaDlYn,
         String exProcsDtlCn,
         String vlStrtDtm,
-        String vlEndDtm,
-        String fnlMdfcDtm
+        String vlEndDtm
     ) {}
 
     // *********************************************************
