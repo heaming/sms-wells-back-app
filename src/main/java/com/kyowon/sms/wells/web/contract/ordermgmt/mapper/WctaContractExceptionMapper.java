@@ -32,7 +32,7 @@ public interface WctaContractExceptionMapper {
 
     int deleteContractExceptionBas(String exProcsId);
 
-    int insertContractExceptionDtl(WctaContractExOjDtlDvo exProcsId);
+    int insertContractExceptionDtl(WctaContractExOjDtlDvo dvo);
 
     int deleteContractExceptionDtl(String exProcsId);
 }
