@@ -26,7 +26,9 @@ public interface WpdcMaterialMgtMapper {
         @Param("info")
         List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels,
         @Param("delMode")
-        String delMode
+        String delMode,
+        @Param("startDtm")
+        String startDtm
     );
 
     // 연결상품

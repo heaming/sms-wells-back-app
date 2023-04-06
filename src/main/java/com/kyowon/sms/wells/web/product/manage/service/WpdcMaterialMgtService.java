@@ -128,12 +128,12 @@ public class WpdcMaterialMgtService {
     public void editEachTbPdbsPdRel(String pdCd, List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels, String tempSaveYn)
         throws Exception {
 
+        String startDtm = DateUtil.getDate(new Date());
         if (CollectionUtils.isNotEmpty(tbPdbsPdRels)) {
-            String startDtm = DateUtil.getDate(new Date());
             String endDtm = PdProductConst.END_DATE_STR;
 
             // #1. 화면에서 삭제된 데이터 일괄 삭제처리.
-            mapper.deleteTbPdbsPdRel(pdCd, tbPdbsPdRels, "NOTALL");
+            mapper.deleteTbPdbsPdRel(pdCd, tbPdbsPdRels, "NOTALL", startDtm);
 
             // 23-04-05 Converter로 Dto에서 Dvo로 변환시 모두 null로 반환함.
             // dto로 
@@ -152,7 +152,7 @@ public class WpdcMaterialMgtService {
                 //                System.out.println("tbPdbsPdRel.ojPdCd() >>>> " + tbPdbsPdRel.ojPdCd());
             }
 
-            // #2. 신규 추가 항목 INSERT
+            // #2. 신규 추가 항목 INSER 
             //            List<ZpdcEachTbPdbsPdRelDvo> dvos = converter.mapTbPdbsPdRelDvos(tbPdbsPdRels);
             //            for (ZpdcEachTbPdbsPdRelDvo dvo : dvos) {
             //                dvo.setBasePdCd(pdCd); /* 상품관계ID */
@@ -162,7 +162,7 @@ public class WpdcMaterialMgtService {
             //            }
         } else {
             // BASE_PD_CD에 걸려있는 모든 REL 데이터 일괄 삭제처리.
-            mapper.deleteTbPdbsPdRel(pdCd, tbPdbsPdRels, "ALL");
+            mapper.deleteTbPdbsPdRel(pdCd, tbPdbsPdRels, "ALL", startDtm);
         }
     }
 
