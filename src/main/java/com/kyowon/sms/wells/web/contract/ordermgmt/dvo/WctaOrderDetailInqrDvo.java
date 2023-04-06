@@ -47,13 +47,15 @@ public class WctaOrderDetailInqrDvo {
     private String booSellYn;
     private String cntrTpCd;
     private String cntrTpNm;
-    private String sellPrtnrNo;
+    private String sellPrtnrNm;
     private String fstRgstUsrId;
     private String fstRgstDeptId;
     private String rveCd;
+    private String uswyDv;
     private String svPrd;
     private String frisuAsPtrmN;
     private String frisuBfsvcPtrmN;
+    private String recapMshYn;
     private String alncmpNm;
     private String sellEvCd;
     private String sellEvNm;
