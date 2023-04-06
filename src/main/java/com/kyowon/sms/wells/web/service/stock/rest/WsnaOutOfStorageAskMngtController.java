@@ -2,27 +2,24 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskRgstDto;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
+import org.springframework.web.bind.annotation.*;
+
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaOutOfStorageAskMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.Warehouse;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/out-of-storage-asks")
@@ -46,15 +43,10 @@ public class WsnaOutOfStorageAskMngtController {
         return this.service.getOutOfStorageAsks(dto);
     }
 
-    @ApiOperation(value = "출고요청관리 출고요청창고 조회", notes = "조회조건인 출고요청창고를 로그인한 사용자의 아이디로 조회.")
-    @GetMapping("/warehouses")
-    public List<Warehouse> getOutOfStorageAskWares(WsnaOutOfStorageAskMngtDto.WarehouseReq dto) {
-        return this.service.getOutOfStorageAskWares(dto);
-    }
-
     @ApiOperation(value = "출고요청등록 상단영역 조회", notes = "부모창에서 넘어온 파라미터로 출고요청 등록 상단영역을 조회.")
     @GetMapping("/out-of-storage-ask-items")
     public FindRes getOutOfStorageAskItems(FindReq dto) {
+
         return this.service.getOutOfStorageAskItems(dto);
     }
 
@@ -69,4 +61,34 @@ public class WsnaOutOfStorageAskMngtController {
         return this.service.getOutOfStorageItemPages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "출고대상창고 조회", notes = "조건에 맞는 출고대상창고들을 조회한다.")
+    @GetMapping("/ostr-object-warehouses")
+    public List<SearchOstrObjectWarehouseRes> getOstrObjectWarehouses(SearchOstrObjectWarehouseReq dto) {
+
+        return this.service.getOstrObjectWarehouses(dto);
+    }
+
+    @ApiOperation(value = "출고요청 삭제", notes = "선택한 출고요청을 삭제한다.")
+    @DeleteMapping
+    public int removeOutOfStorageAskItems(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<RemoveReq> dtos
+    ) {
+        return this.service.removeOutOfStorageAskItems(dtos);
+    }
+
+    @ApiOperation(value = "출고요청 저장", notes = "출고요청을 저장한다.")
+    @PostMapping
+    public SaveResponse saveOutOfStorageAskItems(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<SaveReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveOutOfStorageAskItems(dtos))
+            .build();
+    }
 }
