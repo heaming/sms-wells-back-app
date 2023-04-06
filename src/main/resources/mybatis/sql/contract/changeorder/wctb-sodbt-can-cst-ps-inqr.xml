@@ -30,6 +30,7 @@
                     SELECT /* 1) 입력받은 파트너 정보  */
                            H2.OG_TP_CD
                          , H2.PRTNR_NO /* 월파트너내역.파트너번호 */
+                         , I1.BASE_YM
                          , I1.DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차상위대표파트너번호 - 사업단(E), 총괄단(W) */
                          , I1.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차상위대표파트너번호 - 총괄단(E),지역단(W) */
                          , I1.DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차상위대표파트너번호 - 센터(E) ,지점(W) */
@@ -85,7 +86,11 @@
                  END) = #{session.userId}
     )
     /* WITH : 입력받은 파트너번호(로그인ID)로 하위 파트너정보 END */
-    SELECT T30.OG_CD            /* 조직코드 본부(소속) : LC3100P.LCDDPT , hdqr */
+    SELECT
+           *
+      FROM (
+    SELECT ROWNUM
+         , T30.OG_CD            /* 조직코드 본부(소속) : LC3100P.LCDDPT , hdqr */
          , T32.HOO_PRTNR_NM     /* 조직장파트너명 사원성명 (본부장명) LC3100P@LCDBON, AK04.AKDNAM , hqldNm */
          , T11.CNTR_NO          /* 계약번호 - 년도- 고객코드:custCd*/
          , T11.CNTR_SN
@@ -107,6 +112,16 @@
          , SUBSTR(T13.HIST_STRT_DTM, 0, 8) AS CAN_DT /* 취소일자(취소상태의 변경이력일시) : cancelDt,LCCANY */
          , T13.CNTR_DTL_STAT_CH_RSON_CD || '-' || F_CMZ_CD_NM ('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', T13.CNTR_DTL_STAT_CH_RSON_CD) AS CAN_CN /*  취소 내용*/
          , T10.SELL_INFLW_CHNL_DTL_CD AS SELL_INFLW_CHNL_DTL_CD/*판매유입채널상세코드 : Wells영업부(1070) LC3100P@LCSALE:7(영업부)*/
+         , T13.HIST_STRT_DTM
+         , T23.REF_PD_CLSF_VAL
+         , T10.SELL_PRTNR_NO
+         , (SELECT CTT_RS_CD    /* 컨택결과코드 */
+              FROM TB_SSOP_CTT_BAS  /* 컨택기본 */
+             WHERE CTT_OJ_ID = (SELECT MAX(CTT_OJ_ID)
+                                  FROM TB_SSOP_CTT_DTL
+                                 WHERE CNTR_NO = T11.CNTR_NO
+                                   AND CNTR_SN = T11.CNTR_SN
+                                   AND DTA_DL_YN = 'N')) AS CTT_RS_CD
     /* 계약관련 테이블 */
       FROM TB_SSCT_CNTR_BAS T10                     /* T.계약기본 */
      INNER JOIN TB_SSCT_CNTR_DTL T11                /* T.계약상세 */
@@ -209,47 +224,31 @@
        AND T44.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_GBCO_ADR_BAS T45           /* T.주소기본 - 설치 */
         ON T45.ADR_ID = T44.ADR_ID
-       AND T45.DTA_DL_YN = 'N'
-    /* 컨택코드 */
-      LEFT OUTER JOIN LATERAL (SELECT *
-                                 FROM (SELECT CNTR_NO
-                                            , T11.CNTR_SN
-                                            , CTT_RS_CD    /* 컨택결과코드 */
-                                            , ROW_NUMBER() OVER(ORDER BY CTT_FSH_DTM DESC) AS RN
-                                         FROM TB_SSOP_CTT_BAS  /* 컨택기본 */
-                                        WHERE CTT_OJ_ID IN (SELECT CTT_OJ_ID
-                                                              FROM TB_SSOP_CTT_DTL
-                                                             WHERE CNTR_NO = T11.CNTR_NO
-                                                               AND CNTR_SN = T11.CNTR_SN)
-                                       )
-                                  WHERE RN = 1
-                              ) T80             /* 컨택결과코드 최신 */
-        ON T80.CNTR_NO = T11.CNTR_NO
-       AND T80.CNTR_SN = T11.CNTR_SN
+       AND T45.DTA_DL_YN = 'N')
      WHERE 1=1
-       AND T10.SELL_INFLW_CHNL_DTL_CD = '1070'          /* 판매유입채널상세코드 : Wells영업부(1070) LC3100P@LCSALE:7(영업부)*/
-       AND T10.SELL_PRTNR_NO IN (SELECT PRTNR_NO FROM WT_PRTNR_LIST)   /* 로그인한 사용자의 하위 파트너정보*/
-       AND T13.HIST_STRT_DTM IS NOT NULL /* 취소건 */
-       AND (T80.CTT_RS_CD IS NOT NULL AND T80.CTT_RS_CD != '01')  /* 01:정상컨택, 컨택이 있으면서 정상이 아닌건*/
-       AND SUBSTR(T13.HIST_STRT_DTM, 0, 8) BETWEEN #{canStrtDt} AND #{canEndDt}  /* 조건1. 취소일자 기간 */
+       AND SELL_INFLW_CHNL_DTL_CD = '1070' /* 판매유입채널상세코드 : Wells영업부(1070) LC3100P@LCSALE:7(영업부)*/
+       AND SELL_PRTNR_NO IN (SELECT PRTNR_NO FROM WT_PRTNR_LIST) /* 로그인한 사용자의 하위 파트너정보*/
+       AND HIST_STRT_DTM IS NOT NULL /* 취소건 */
+       AND (CTT_RS_CD IS NOT NULL AND CTT_RS_CD != '01') /* 01:정상컨택, 컨택이 있으면서 정상이 아닌건*/
+       AND SUBSTR(HIST_STRT_DTM, 0, 8) BETWEEN #{canStrtDt} AND #{canEndDt}  /* 조건1. 취소일자 기간 */
         <if test='@MybatisUtils@equals(pdGbn, "1")'>
             /* 1. 정수기 -  01001, 01001003, 01002002 */
-       AND T23.REF_PD_CLSF_VAL IN ('01001', '01001003', '01002002')
+       AND REF_PD_CLSF_VAL IN ('01001', '01001003', '01002002')
         </if>
         <if test='@MybatisUtils@equals(pdGbn, "2")'>
             /* 2. 공기청정기 -  02001001 */
-       AND T23.REF_PD_CLSF_VAL IN ('02001001')
+       AND REF_PD_CLSF_VAL IN ('02001001')
         </if>
         <if test='@MybatisUtils@equals(pdGbn, "3")'>
             /* 3. 비데 - 03001001 */
-       AND T23.REF_PD_CLSF_VAL IN ('03001001')
+       AND REF_PD_CLSF_VAL IN ('03001001')
         </if>
         <if test='@MybatisUtils@equals(pdGbn, "4")'>
             /* 4. 기타 (1,2,3아 아닌거) */
-       AND T23.REF_PD_CLSF_VAL NOT IN ('01001', '01001003', '01002002' /* 정수기 */
+       AND REF_PD_CLSF_VAL NOT IN ('01001', '01001003', '01002002' /* 정수기 */
                                      , '02001001'  /* 공기청정기 */
                                      , '03001001')  /* 비데 */
         </if>
-     ORDER BY T13.HIST_STRT_DTM, T40.CST_KNM DESC
+     ORDER BY HIST_STRT_DTM, CST_KNM DESC
     </select>
 </mapper>
