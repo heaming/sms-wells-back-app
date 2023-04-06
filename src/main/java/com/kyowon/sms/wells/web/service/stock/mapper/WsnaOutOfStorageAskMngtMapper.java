@@ -1,18 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.FindReq;
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.FindRes;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.Warehouse;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.WarehouseReq;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -21,11 +14,15 @@ public interface WsnaOutOfStorageAskMngtMapper {
 
     List<SearchRes> selectOutOfStorageAsks(SearchReq dto);
 
-    List<Warehouse> selectWarehouses(WarehouseReq dto);
+    FindRes selectOutOfStorageAskItms(FindReq dto);
 
-    Optional<FindRes> selectOutOfStorageAskItms(FindReq dto);
-
-    PagingResult<WsnaOutOfStorageAskMngtDto.OutOfRes> selectOutOfStorageItms(
-        WsnaOutOfStorageAskMngtDto.SearchReq dto, PageInfo pageInfo
+    PagingResult<OutOfRes> selectOutOfStorageItms(
+        SearchReq dto, PageInfo pageInfo
     );
+
+    List<SearchOstrObjectWarehouseRes> selectOstrObjectWarehouses(
+        SearchOstrObjectWarehouseReq dto
+    );
+
+    int deleteOutOfStorageAskItems(RemoveReq dto);
 }
