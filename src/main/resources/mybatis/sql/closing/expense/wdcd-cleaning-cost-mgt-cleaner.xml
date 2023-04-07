@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdCleaningCostMgtCleanerMapper">
+
+    <select id="selectCleaningCostCleanerBusinessManager" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtCleanerDto$SearchRes">
+        SELECT FST_RGST_DTM
+             , FNL_MDFC_DTM
+             , CLINR_NM
+             , BLD_CD
+             , BLD_NM
+             , APLC_DT
+             , APLCNS_NM
+             , CNTRW_APN_FILE_ID
+             , CNTR_LRORE_APN_FILE_ID
+             , IDF_APN_FILE_ID
+             , BNKB_APN_FILE_ID
+             , FMN_CO_SPPT_AMT
+             , CLINR_FXN_AMT
+             , TAX_DDCTAM
+             , CLINR_FXN_AMT - TAX_DDCTAM AS AMT
+             , WRK_STRTDT
+             , WRK_ENDDT
+             , (CASE WHEN WRK_ENDDT > TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE 'N' END) WRK_ENDDT
+             , RRNO_ENCR
+             , LOCARA_TNO||'-'||EXNO_ENCR||'-'||IDV_TNO
+             , BAS_ADR||' '||DTL_ADR
+             , BNK_CD
+             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_CD = LPAD(CASE WHEN T1.BNK_CD IS NOT NULL
+                                            THEN T1.BNK_CD ELSE T1.CDCO_CD END ,3,0)) AS BNK_NM
+             , ACNO_ENCR
+          FROM TB_OGBS_CLINR_BAS T1 /*청소원기본*/
+         WHERE FST_RGST_DTM = #{fstRgstDtm}
+           <if test="@MybatisUtils@isNotEmpty(bnkNm)">
+           AND BLD_CD IN ( SELECT A.BLD_CD
+                                   FROM TB_OGBS_OG_BAS A /*조직기본*/
+                                   INNER JOIN TB_OGBS_BLD_BAS B /*빌딩기본*/ ON A.BLD_CD = B.BLC_CD
+                                   WHERE A.OG_TP_CD = #{session.orgTpCd}
+                                   AND B.BLD_NM LIKE #{bnkNm}||'%' )
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(bnkNm)">
+           AND CLINR_NM LIKE '%'|| #{clinrNm} ||'%'
+           </if>
+    </select>
+
+    <select id="selectCleaningCostCleanerPersonInCharge" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtCleanerDto$SearchRes">
+        SELECT CLINR_RGNO
+             , RCP_YM
+             , FST_RGST_DTM
+             , FNL_MDFC_DTM
+             , CLINR_NM
+             , BLD_CD
+             , (SELECT BLD_NM
+                  FROM TB_OGBS_BLD_BAS TT1
+                 WHERE T1.BLD_CD = TT1.BLD_CD
+                   AND ROWNUM = 1) AS BLD_NM
+             , APLC_DT
+             , APLCNS_NM
+             , CNTRW_APN_FILE_ID
+             , CNTR_LRORE_APN_FILE_ID
+             , IDF_APN_FILE_ID
+             , BNKB_APN_FILE_ID
+             , FMN_CO_SPPT_AMT
+             , CLINR_FXN_AMT
+             , TAX_DDCTAM
+             , (CLINR_FXN_AMT - TAX_DDCTAM) AS AMT
+             , WRK_STRTDT
+             , WRK_ENDDT
+             , (CASE WHEN WRK_ENDDT > TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE 'N' END) AS WORK_STATUS
+             , RRNO_ENCR
+             , LOCARA_TNO||'-'||EXNO_ENCR||'-'||IDV_TNO AS TEL_NUM
+             , BAS_ADR||' '||DTL_ADR AS ADDRESS
+             , BNK_CD
+             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.BNK_CD,3,0) = FNIT_CD) AS BNK_NM
+             , ACNO_ENCR
+          FROM TB_OGBS_CLINR_BAS T1 /*청소원기본*/
+         WHERE DTA_DL_YN = 'N'
+           AND SUBSTR(FST_RGST_DTM,1,4) = #{fstRgstDtm}
+           <if test="@MybatisUtils@isNotEmpty(bnkNm)">
+           AND BLD_CD IN ( SELECT A.BLD_CD
+                             FROM TB_OGBS_OG_BAS A /*조직기본*/
+                            INNER JOIN TB_OGBS_BLD_BAS B /*빌딩기본*/ ON A.BLD_CD = B.BLC_CD
+                            WHERE A.OG_TP_CD IN ('W01', 'W02') /*WELLS M조직, P조직*/
+                              AND B.BLD_NM LIKE #{bnkNm}||'%'
+                          )
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(bnkNm)">
+           AND CLINR_NM LIKE '%'|| #{clinrNm} ||'%'
+           </if>
+    </select>
+
+    <update id="removeCleanerCostCleanerManagement">
+        UPDATE TB_OGBS_CLINR_BAS
+           SET DTA_DL_YN = 'Y'
+         <include refid="COMMON.updateSystemField"/>
+         WHERE CLINR_RGNO = #{clinrRgno}
+    </update>
+</mapper>
