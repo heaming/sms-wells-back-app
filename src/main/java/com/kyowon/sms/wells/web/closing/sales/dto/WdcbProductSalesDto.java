@@ -26,31 +26,29 @@ public class WdcbProductSalesDto {
     // 상품별 매출 현황(일시불, 금융리스, 정기배송 / 집계) Search Result Dto
     @ApiModel("WdcbProductSalesDto-SearchSingleAgrgRes")
     public record SearchSingleAgrgRes(
+        String slDt,
+        String sellTpCd,
         String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8,
-        String col9,
-        String col10,
-        String col11,
-        String col12,
-        String col13,
-        String col14,
-        String col15,
-        String col16,
-        String col17,
-        String col18,
-        String col19,
-        String col20,
-        String col21,
-        String col22,
-        String col23,
-        String col24,
-        String col25
+        String normalSellQty,
+        String normalMpyAmt,
+        String normalMmIstmPcamAmt,
+        String normalVat,
+        String normalPurSlAmt,
+        String chgSellQty,
+        String chgMpyAmt,
+        String chgMmIstmPcamAmt,
+        String chgVat,
+        String chgPurSlAmt,
+        String canSellQty,
+        String canMpyAmt,
+        String canMmIstmPcamAmt,
+        String canVat,
+        String canPurSlAmt,
+        String sumSellQty,
+        String sumMpyAmt,
+        String sumMmIstmPcamAmt,
+        String sumVat,
+        String sumPurSlAmt
     ) {}
 
     // *********************************************************
@@ -59,31 +57,31 @@ public class WdcbProductSalesDto {
     // 상품별 매출 현황(일시불, 금융리스, 정기배송 / 상품) Search Result Dto
     @ApiModel("WdcbProductSalesDto-SearchSinglePdRes")
     public record SearchSinglePdRes(
+        String slDt,
+        String sellTpCd,
+        String pdDtlCd,
+        String pdNm,
         String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8,
-        String col9,
-        String col10,
-        String col11,
-        String col12,
-        String col13,
-        String col14,
-        String col15,
-        String col16,
-        String col17,
-        String col18,
-        String col19,
-        String col20,
-        String col21,
-        String col22,
-        String col23,
-        String col24,
-        String col25
+        String normalSellQty,
+        String normalMpyAmt,
+        String normalMmIstmPcamAmt,
+        String normalVat,
+        String normalPurSlAmt,
+        String chgSellQty,
+        String chgMpyAmt,
+        String chgMmIstmPcamAmt,
+        String chgVat,
+        String chgPurSlAmt,
+        String canSellQty,
+        String canMpyAmt,
+        String canMmIstmPcamAmt,
+        String canVat,
+        String canPurSlAmt,
+        String sumSellQty,
+        String sumMpyAmt,
+        String sumMmIstmPcamAmt,
+        String sumVat,
+        String sumPurSlAmt
     ) {}
 
     // *********************************************************
@@ -92,22 +90,20 @@ public class WdcbProductSalesDto {
     // 상품별 매출 현황 Search Result Dto
     @ApiModel("WdcbProductSalesDto-SearchRentalAgrgRes")
     public record SearchRentalAgrgRes(
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8,
-        String col9,
-        String col10,
-        String col11,
-        String col12,
-        String col13,
-        String col14,
-        String col15,
-        String col16
+        String slDt,
+        String sellTpCd,
+        String rgstQty,
+        String rgstCost,
+        String rgstVat,
+        String rgstSlAmt,
+        String rentalQty,
+        String rentalCost,
+        String rentalVat,
+        String rentalSlAmt,
+        String sumQty,
+        String sumCost,
+        String sumVat,
+        String sumSlAmt
     ) {}
 
     // *********************************************************
@@ -116,22 +112,22 @@ public class WdcbProductSalesDto {
     // 상품별 매출 현황 Search Result Dto
     @ApiModel("WdcbProductSalesDto-SearchRentalPdRes")
     public record SearchRentalPdRes(
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8,
-        String col9,
-        String col10,
-        String col11,
-        String col12,
-        String col13,
-        String col14,
-        String col15,
-        String col16
+        String slDt,
+        String sellTpCd,
+        String pdDtlCd,
+        String pdNm,
+        String rgstQty,
+        String rgstCost,
+        String rgstVat,
+        String rgstSlAmt,
+        String rentalQty,
+        String rentalCost,
+        String rentalVat,
+        String rentalSlAmt,
+        String sumQty,
+        String sumCost,
+        String sumVat,
+        String sumSlAmt
     ) {}
 
     // *********************************************************
@@ -140,19 +136,19 @@ public class WdcbProductSalesDto {
     // 상품별 매출 현황 Search Result Dto
     @ApiModel("WdcbProductSalesDto-SearchMembershipRes")
     public record SearchMembershipRes(
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8,
-        String col9,
-        String col10,
-        String col11,
-        String col12,
-        String col13,
-        String col14
+        String slDt,
+        String sellTpCd,
+        String sspcsSellQty,
+        String sspcsMpyAmt,
+        String sspcsVat,
+        String sspcsSlAmt,
+        String filtSellQty,
+        String filtMpyAmt,
+        String filtVat,
+        String filtSlAmt,
+        String sumSellQty,
+        String sumMpyAmt,
+        String sumVat,
+        String sumSlAmt
     ) {}
 }

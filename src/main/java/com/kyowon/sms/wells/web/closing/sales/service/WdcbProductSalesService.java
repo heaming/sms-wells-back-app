@@ -40,6 +40,8 @@ public class WdcbProductSalesService {
             result = mapper.selectSinglePaymentProducts(dto);
         } else if ("3".equals(dto.taskDiv())) { //금융리스
             result = mapper.selectLeaseProducts(dto);
+        } else if ("5".equals(dto.taskDiv())) { //정기배송
+            result = mapper.selectRegularShippingProducts(dto);
         }
         return result;
     }

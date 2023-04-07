@@ -4,21 +4,21 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.MembershipSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.RentalSearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.SearchMembershipRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.SearchRentalRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.SingleSearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.SearchSingleRes;
 
 @Mapper
 public interface WdcbProductSalesDetailMapper {
 
-    List<SingleSearchRes> selectProductSalesSinglePaymentDetails(SearchReq dto);
+    List<SearchSingleRes> selectProductSalesSinglePaymentDetails(SearchReq dto);
 
-    List<SingleSearchRes> selectProductSalesLeaseDetails(SearchReq dto);
+    List<SearchSingleRes> selectProductSalesLeaseDetails(SearchReq dto);
 
-    List<SingleSearchRes> selectProductSalesFarmSaleDetails(SearchReq dto);
+    List<SearchSingleRes> selectProductSalesFarmSaleDetails(SearchReq dto);
 
-    List<RentalSearchRes> selectProductSalesRentalDetails(SearchReq dto);
+    List<SearchRentalRes> selectProductSalesRentalDetails(SearchReq dto);
 
-    List<MembershipSearchRes> selectProductSalesMembershipDetails(SearchReq dto);
+    List<SearchMembershipRes> selectProductSalesMembershipDetails(SearchReq dto);
 }

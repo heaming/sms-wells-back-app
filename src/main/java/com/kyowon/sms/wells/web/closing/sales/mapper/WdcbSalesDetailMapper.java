@@ -2,17 +2,16 @@ package com.kyowon.sms.wells.web.closing.sales.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.MembershipSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.RentalSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SingleSearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchMembershipRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchRentalRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchSingleRes;
 
 @Mapper
 public interface WdcbSalesDetailMapper {
 
-    RentalSearchRes selectSalesDetailRental(SearchReq dto);
+    SearchRentalRes selectSalesDetailRental(String cntrDtlNo);
 
-    MembershipSearchRes selectSalesDetailMembership(SearchReq dto);
+    SearchMembershipRes selectSalesDetailMembership(String cntrDtlNo);
 
-    SingleSearchRes selectSalesDetailSinglePayment(SearchReq dto);
+    SearchSingleRes selectSalesDetailSinglePayment(String cntrDtlNo);
 }

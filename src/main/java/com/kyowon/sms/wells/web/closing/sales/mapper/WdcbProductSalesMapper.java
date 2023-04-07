@@ -24,9 +24,11 @@ public interface WdcbProductSalesMapper {
 
     List<SearchSinglePdRes> selectLeaseProducts(SearchReq dto); //리스, 상품
 
+    List<SearchSinglePdRes> selectRegularShippingProducts(SearchReq dto); //정기배송, 상품
+
     List<SearchRentalAgrgRes> selectRentalAgrgs(SearchReq dto); //렌탈, 집계
 
     List<SearchRentalPdRes> selectRentalProducts(SearchReq dto); //렌탈, 상품
 
-    List<SearchMembershipRes> selectMemberships(SearchReq dto);
+    List<SearchMembershipRes> selectMemberships(SearchReq dto); // 멤버십
 }
