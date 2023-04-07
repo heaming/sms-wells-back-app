@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtCleanerDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtCleanerDto.SearchRes;
-import com.kyowon.sms.wells.web.closing.expense.service.WdcdCleaningCostMgtCleanerService;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.expense.service.WdcdCleanersService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -21,10 +21,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/cleaner-management")
-public class WdcdCleaningCostMgtCleanerController {
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/cleaners")
+public class WdcdCleanersController {
 
-    private final WdcdCleaningCostMgtCleanerService searvice;
+    private final WdcdCleanersService searvice;
 
     @ApiOperation(value = "청소 용픔비 관리 - 청소원 관리", notes = "청소원 관리 조회")
     @ApiImplicitParams(value = {
@@ -33,8 +33,8 @@ public class WdcdCleaningCostMgtCleanerController {
         @ApiImplicitParam(name = "bldNm", value = "빌딩명", paramType = "query")
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getCleaningCostCleaner(@Valid SearchReq req, PageInfo pageInfo) {
-        return searvice.getCleaningCostCleaner(req, pageInfo);
+    public PagingResult<SearchRes> getCleanerPages(@Valid SearchReq req, PageInfo pageInfo) {
+        return searvice.getCleanerPages(req, pageInfo);
     }
 
     @ApiOperation(value = "청소 용픔비 관리 - 청소원 관리", notes = "청소원 관리 엑셀다운")
@@ -44,12 +44,12 @@ public class WdcdCleaningCostMgtCleanerController {
         @ApiImplicitParam(name = "bldNm", value = "빌딩명", paramType = "query")
     })
     @GetMapping("/excel-download")
-    public List<SearchRes> getCleaningCostExcelDownload(@Valid SearchReq req) {
-        return searvice.getCleaningCostExcelDownload(req);
+    public List<SearchRes> getCleanersForExcelDownload(@Valid SearchReq req) {
+        return searvice.getCleanersForExcelDownload(req);
     }
 
     @DeleteMapping
-    public int removeCleanerCostCleanerManagement(@RequestBody List<String> clinrRgnos) {
-        return searvice.removeCleanerCostCleanerManagement(clinrRgnos);
+    public int removeCleanersManagement(@RequestBody List<String> clinrRgnos) {
+        return searvice.removeCleanersManagement(clinrRgnos);
     }
 }

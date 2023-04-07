@@ -5,14 +5,14 @@ import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
 
-public class WdcdCleaningCostMgtCleanerDto {
+public class WdcdCleanersMgtDto {
 
     // *********************************************************
     // Request Dto
     // *********************************************************
     // 청소 용품비 관리
     @Builder
-    @ApiModel(value = "WwdcdMarketableSecuritiesExcdMgtDto-SearchReq")
+    @ApiModel(value = "WdcdCleanersMgtCleanerDto-SearchReq")
     public record SearchReq(
         String flag,
         @NotBlank
@@ -27,7 +27,7 @@ public class WdcdCleaningCostMgtCleanerDto {
     // *********************************************************
     // 청소 용품비 관리
     @Builder
-    @ApiModel(value = "WwdcdMarketableSecuritiesExcdMgtDto-SearchRes")
+    @ApiModel(value = "WdcdCleanersMgtCleanerDto-SearchRes")
     public record SearchRes(
         String clinrRgno, /*청소원등록번호*/
         String rcpYm, /*접수년월*/
