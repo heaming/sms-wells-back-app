@@ -1,10 +1,13 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
+
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaMovementStoreMapper {
@@ -37,4 +40,6 @@ public interface WsnaMovementStoreMapper {
     * @return 조회결과
     */
     List<MovementRes> selectMoveMentStrIzs(SearchReq dto);
+
+    PagingResult<MovementOstrRes> selectMoveMentStrOstrIzs(MovementOstrReq dto, PageInfo pageInfo);
 }

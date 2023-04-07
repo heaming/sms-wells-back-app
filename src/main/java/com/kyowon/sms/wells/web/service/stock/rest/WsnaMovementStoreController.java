@@ -1,17 +1,21 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
-
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaMovementStoreService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -94,5 +98,14 @@ public class WsnaMovementStoreController {
         SearchReq dto
     ) {
         return service.getMovementStrIzsExcelDownload(dto);
+    }
+
+    @GetMapping("/ostr")
+    public PagingResult<MovementOstrRes> getMoveMentStrOstrIzs(
+        MovementOstrReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getMoveMentStrOstrIzs(dto, pageInfo);
     }
 }
