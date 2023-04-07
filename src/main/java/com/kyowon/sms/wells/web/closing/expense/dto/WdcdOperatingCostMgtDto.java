@@ -5,7 +5,35 @@ import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
 
-public class WwdcdOperatingCostMgtDto {
+public class WdcdOperatingCostMgtDto {
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 운영비 등록관리 / 운영비 금액 현황
+    @Builder
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-CodeReq")
+    public record CodeReq(
+        String ogTpCd
+    ) {
+    }
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 운영비 등록관리 / 운영비 금액 현황
+    @Builder
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-CodeRes")
+    public record CodeRes(
+        String dgr2LevlOgId,
+        String dgr2LevlOgNm,
+        String dgr3LevlOgId,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgId,
+        String dgr4LevlOgNm
+    ) {
+    }
+
     // *********************************************************
     // Request Dto
     // *********************************************************
@@ -14,8 +42,9 @@ public class WwdcdOperatingCostMgtDto {
     @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String useYearMonth,
-        String registration
+        String baseYm,
+        String registration,
+        String entrpDvCd
     ) {
     }
 
@@ -23,11 +52,27 @@ public class WwdcdOperatingCostMgtDto {
     // Request Dto
     // *********************************************************
     // 운영비 등록관리 / 운영비 금액 현황
-    @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchRes")
-    public record SearchRes(
-        String col1,
-        String col2,
-        String col3
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-AmountRes")
+    public record AmountRes(
+        String befJanAmt,
+        String cardThmDsb,
+        String cardLimAmt,
+        String cardUseAmt,
+        String cardCanAmt,
+        String cardResAmt
+    ) {
+
+    }
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 운영비 등록관리 / 운영비 금액 현황
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-SummaryRes")
+    public record SummaryRes(
+        String aprDt,
+        String usrSmryCn,
+        String opcsWhtxCfdcApnFileId
     ) {
 
     }

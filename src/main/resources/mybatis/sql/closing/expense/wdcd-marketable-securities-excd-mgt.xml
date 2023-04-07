@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritiesExcdMgtMapper">
+
+    <select id="selectAdjustObject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritiesExcdMgtDto$AdjustObjectRes">
+        SELECT SUBSTR(T1.CRCDNO_ENCR ,1,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,5,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,9,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,13,4) AS CARD_NUM
+             , TO_CHAR(TO_DATE(T1.APVTM_MS,'YYYY-MM-DD HH24:MI'),'YYYY-MM-DD HH24:MI') AS AUTH_DATE
+             , (SELECT C2.DGR2_LEVL_OG_NM
+                  FROM TB_OGBS_MM_OG_IZ C2
+                 WHERE C2.OG_TP_CD = T3.OG_TP_CD
+                   AND ROWNUM = 1) AS OG_TP_NM
+             , T1.CARD_APRNO
+             , CASE T1.CARD_APR_STAT_CD WHEN '1' THEN '승인' WHEN '0' THEN '취소' END AS STAT_NM
+             , CASE T1.CARD_APR_STAT_CD WHEN '0' THEN T1.DOM_TRD_AMT*-1 ELSE T1.DOM_TRD_AMT END AS REQUEST_AMOUNT
+             , T1.FOR_TRD_AMT
+             , T1.CDCO_CD
+             , SUM(CASE T1.CARD_APR_STAT_CD WHEN '0' THEN T1.DOM_TRD_AMT*-1 ELSE T1.DOM_TRD_AMT END) OVER() AS USE_AMT
+             , T2.ADJ_OG_NM
+             , CASE T1.ADJ_CRCDNO_ENCR WHEN '51' THEN '시상' WHEN '52' THEN '행사/교육/회의' WHEN '53' THEN '영업활동지원' WHEN '54' THEN '비품' WHEN '03' THEN '상품권' END AS USE_CLS_NM
+             , CASE COALESCE(T1.USR_SMRY_CN,' ') WHEN ' ' THEN 'N' ELSE 'Y' END AS MEMO_YN
+             , T1.OPCS_ADJ_SMRY_DV_CD
+             , T1.ADJ_CRCDNO_ENCR
+             , T1.MRC_TOBZ_CD
+             , T1.MRC_TOBZ_NM
+             , T1.MRC_ADR_CN
+             , CASE ( SELECT COUNT(1) FROM TB_CBCL_OPCS_ADJ_USE_REL WHERE OPCS_CARD_USE_IZ_ID = OPCS_CARD_USE_IZ_ID ) WHEN 0 THEN '' ELSE '완료' END AS MRSC_ACC_YN
+             , T1.DTA_DL_YN
+             , T1.OPCS_ADJ_SMRY_DV_CD /*운영비정산적요구분코드*/
+             , T1.OJ_APY_CN /*대상적용내용*/
+             , T1.USR_SMRY_CN /*사용자적요내용*/
+             , T2.ADJ_YN
+             , T2.MSCR_WHTX_CFDC_APN_FILE_ID
+             , T1.OPCS_ADJ_EXCD_YN
+             , T1.OPCS_CARD_USE_IZ_ID
+          FROM TB_CBCL_OPCS_CARD_USE_IZ T1
+         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T2
+            ON T1.OPCS_CARD_USE_IZ_ID = T2.OPCS_CARD_ID
+           AND USE_YN = 'Y'
+           AND T1.BASE_YM = T2.BASE_YM
+           AND T2.BASE_YM = #{baseYm}
+           AND (T2.ADJ_USR_ID = #{session.userId} OR T2.BLDMR_PRTNR_NO = #{session.userId})
+         INNER JOIN TB_CBCL_OPCS_ADJ_BASE_BAS T3
+            ON T2.OG_TP_CD = T3.OG_TP_CD
+           AND T2.BASE_YM = T3.BASE_YM
+           AND T3.MSCR_YN = 'N'
+         WHERE T1.MRC_TOBZ_NM NOT LIKE '%상품권%'
+           AND T1.MRC_NM NOT LIKE '%상품권%'
+           AND T1.MRC_NM NOT LIKE '%기프티%'
+           AND T1.MRC_NM NOT LIKE '%기프트%'
+           AND T1.MRC_NM NOT LIKE '%카카오%선물%'
+         ORDER BY CASE T2.ADJ_USR_ID WHEN #{session.userId} THEN 0 ELSE 1 END, T2.CRCDNO_ENCR, T1.APR_DT
+    </select>
+
+    <select id="selectWithholdingTaxAdjust" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritiesExcdMgtDto$WithholdingTaxAdjustRes">
+        SELECT ADJ_DEPT_OG_ID
+             , T1.OG_TP_CD
+             , (SELECT USR_NM
+                  FROM T_CMP_USR_ACO_M
+                 WHERE USR_ID = ADJ_USR_ID) AS USR_NM
+             , T1.OPCS_ADJ_NO
+             , (SELECT CRLV_NM
+                  FROM T_CMP_USR_ACO_M
+                 WHERE USR_ID = ADJ_USR_ID) AS CRLV_NM
+             , T6.ADJ_CNFM_AMT
+             , T2.DST_WHTX
+             , T5.CARD_APRNO
+          FROM TB_CBCL_OPCS_CNFM_BAS T6
+         INNER JOIN TB_CBCL_OPCS_ADJ_BAS T1
+            ON T6.OG_TP_CD = T1.OG_TP_CD
+           AND T6.BASE_YM = T1.BASE_YM
+           AND T6.MSCR_YN = 'N'
+           AND T1.MSCR_YN = 'N'
+         INNER JOIN TB_CBCL_OPCS_ADJ_DTL T2
+            ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
+         INNER JOIN TB_CBCL_OPCS_ADJ_USE_REL T3
+            ON T1.OPCS_ADJ_NO = T3.OPCS_ADJ_NO
+           AND T1.BASE_YM = T3.BASE_YM
+         INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ T5
+            ON T3.OPCS_CARD_USE_IZ_ID = T5.OPCS_CARD_USE_IZ_ID
+         WHERE T1.BASE_YM = #{baseYM}
+           AND T1.ADJ_USR_ID = #{session.userId}
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND T3.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{baseYm}
+    </select>
+
+    <update id="editWithholdingTaxAdjust">
+        UPDATE TB_CBCL_OPCS_CARD_USE_IZ SET
+             , OPCS_ADJ_EXCD_YN    = #{opcsAdjExcdYn}
+             , OPCS_ADJ_SMRY_DV_CD = #{opcsAdjSmryDvCd}
+             , OJ_APY_CN   = #{ojApyCn}
+             , USR_SMRY_CN = #{usrSmryCn}
+         WHERE OPCS_CARD_USE_IZ_ID = #{opcsCardUseIzId}
+    </update>
+</mapper>
