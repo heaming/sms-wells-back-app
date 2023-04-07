@@ -25,7 +25,8 @@ public class WctzPartnerDto {
         String dgr1LevlOgCd,
         String dgr1LevlOgNm,
         String dgr1LevlDgPrtnrNo,
-        String dgr1LevlOgId
+        String dgr1LevlOgId,
+        String ogTpCd
     ) {}
     //  Search Result Dto
     @ApiModel("WctzPartnerDto-SearchRegionalDivisionsRes")
@@ -33,6 +34,20 @@ public class WctzPartnerDto {
         String dgr2LevlOgCd,
         String dgr2LevlOgNm,
         String dgr2LevlDgPrtnrNo,
-        String dgr2LevlOgId
+        String dgr2LevlOgId,
+        String ogTpCd,
+        String dgr1LevlOgCd
+    ) {}
+
+    //  Search Result Dto
+    @ApiModel("WctzPartnerDto-SearchBranchDivisionsRes")
+    public record SearchBranchDivisionsRes(
+        String dgr3LevlOgCd,
+        String dgr3LevlOgNm,
+        String dgr3LevlDgPrtnrNo,
+        String dgr3LevlOgId,
+        String ogTpCd,
+        String dgr1LevlOgCd,
+        String dgr2LevlOgCd
     ) {}
 }

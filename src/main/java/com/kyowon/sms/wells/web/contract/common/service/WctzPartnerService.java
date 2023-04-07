@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchBranchDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchEntrepreneurBaseRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchGeneralDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchRegionalDivisionsRes;
@@ -27,5 +28,9 @@ public class WctzPartnerService {
 
     public List<SearchRegionalDivisionsRes> getRegionalDivisions() {
         return mapper.selectRegionalDivisions();
+    }
+
+    public List<SearchBranchDivisionsRes> getBranchDivisions() {
+        return mapper.selectBranchDivisions();
     }
 }

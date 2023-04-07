@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchBranchDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchGeneralDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchRegionalDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.service.WctzPartnerService;
@@ -52,5 +53,11 @@ public class WctzPartnerController {
     @GetMapping("/regional-divisions")
     public List<SearchRegionalDivisionsRes> getRegionalDivisions() {
         return service.getRegionalDivisions();
+    }
+
+    @ApiOperation(value = "지점 조회", notes = "월조직내역(TB_OGBS_MM_OG_IZ)의 3차레벨 조직정보를 조회")
+    @GetMapping("/branch-divisions")
+    public List<SearchBranchDivisionsRes> getBranchDivisions() {
+        return service.getBranchDivisions();
     }
 }
