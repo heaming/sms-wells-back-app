@@ -26,6 +26,8 @@ public interface WsncBsPeriodChartMapper {
 
     List<WsncBsPeriodChartResDvo> selectBsPeriodChartBs04_07(WsncBsPeriodChartReqDvo dvo);
 
+    List<WsncBsPeriodChartResDvo> selectBsPeriodChartBs01_07(WsncBsPeriodChartReqDvo dvo);
+
     int selectBsPeriodChartBs03_08(WsncBsPeriodChartReqDvo dvo);
 
     int selectBsPeriodChartBs03_09(WsncBsPeriodChartReqDvo dvo);
@@ -61,4 +63,10 @@ public interface WsncBsPeriodChartMapper {
     String selectPriorityVstDt(WsncBsPeriodChartDto.SearchReq dto);
 
     int selectPriorityVstDiff(String priorityVstDt, int chekCyclMths);
+
+    String selectBsPeriodChartBs04_22(WsncBsPeriodChartReqDvo dvo);
+
+    String selectBsPeriodChartBs04_23(WsncBsPeriodChartReqDvo dvo);
+
+    int insertBsPeriodChartBs01(WsncBsPeriodChartReqDvo dvo);
 }

@@ -60,6 +60,7 @@ public class WsncBsPeriodChartService {
         //주기표 생성 데이터가 없을 경우, 오류 로그 처리 후 종료.
         if (CollectionUtils.isEmpty(chart06ResList)) {
             processParam.setCrtErrCn("'NO DATA NOT FOUND!'");
+            processParam.setPgrmId("BS03");
             mapper.insertBsPeriodChartError(processParam);
             return 0;
         }
@@ -86,14 +87,17 @@ public class WsncBsPeriodChartService {
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
             //SELL_TP_CD = 1 ::: 렌탈
             if ("1".equals(baseInfoRes.getSellTpCd()) && chart06Res.getVstNmnN() == 0) {
-                chekInstMths = chart06Res.getVstNmnN();
                 continue;
             }
 
+            //설치차월 계산
+            //SELL_TP_CD = 1 ::: 렌탈
+            if("1".equals(baseInfoRes.getSellTpCd())){
+                chekInstMths = chart06Res.getVstNmnN();
+            }
             //SELL_TP_CD = 3 ::: 멤버십 (AS-IS는 2)
-            if ("3".equals(baseInfoRes.getSellTpCd()) && chart06Res.getVstNmnN() == 0) {
+            else if ("3".equals(baseInfoRes.getSellTpCd())) {
                 //TB_PDBS_RGBS_WK_BASE_DTL.TOT_STPL_MCN 로 대체
-
                 chekInstMths = baseInfoRes.getChekInstMths();
                 chekInstMths = chekInstMths + chart06Res.getVstNmnN();
             }
@@ -128,6 +132,7 @@ public class WsncBsPeriodChartService {
                     }
                 }
 
+                //방문예정일자 계산
                 //멤버십 가입일자가 없는 경우 (렌탈인경우인지 확인 필요) (멤버십 ::: "3".equals(baseInfoRes.sellTpCd()))
                 if (StringUtils.isEmpty(baseInfoRes.getCntrPdStrtdt())
                     || "01".equals(baseInfoRes.getCntrPdStrtdt().substring(6, 8))) {
@@ -169,6 +174,7 @@ public class WsncBsPeriodChartService {
                 if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
                     chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
                 }
+                processParam.setChekVstDt(chekVstDt);
 
                 newWrkTypDtl = chart07Res.getWrkTypDtl();
                 processParam.setNewWrkTypDtl(newWrkTypDtl);
@@ -264,6 +270,7 @@ public class WsncBsPeriodChartService {
                 processParam.setQty(chart07Res.getQty());
 
                 //주기표 생성
+                processParam.setPgrmId("BS03");
                 mapper.insertBsPeriodChart(processParam);
             }
         }
@@ -307,6 +314,7 @@ public class WsncBsPeriodChartService {
         //주기표 생성 데이터가 없을 경우, 오류 로그 처리 후 종료.
         if (CollectionUtils.isEmpty(chart06ResList)) {
             processParam.setCrtErrCn("'NO DATA NOT FOUND!'");
+            processParam.setPgrmId("BS04");
             mapper.insertBsPeriodChartError(processParam);
             return 0;
         }
@@ -323,7 +331,7 @@ public class WsncBsPeriodChartService {
         /*******************************************************************************************************
          * 가구화 로직 (방문일자 및 차월 계산)
          *******************************************************************************************************/
-//        priorityVstDt = mapper.selectPriorityVstDt(dto);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    //        priorityVstDt = mapper.selectPriorityVstDt(dto);
 //        if (StringUtils.isNotEmpty(priorityVstDt)) {
 //            //가구화에 따른 방문월 padding 계산
 //            priorityVstDiff = mapper.selectPriorityVstDiff(priorityVstDt, chekCyclMths);
@@ -379,8 +387,159 @@ public class WsncBsPeriodChartService {
                 processParam.setQty(chart07Res.getQty());
 
                 //주기표 생성
+                processParam.setPgrmId("BS03");
                 mapper.insertBsPeriodChart(processParam);
 
+            }
+        }
+        return 1;
+    }
+
+    @Transactional
+    public int processBsPeriodChartBs01(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+
+        WsncBsPeriodChartResDvo baseInfoRes = mapper.selectPeriodChartBaseInfo(dto);
+
+        //AC201_BS_GB1 != '00' 일 경우 아무것도 처리 하지 않는다.
+        if (baseInfoRes == null || !"00".equals(baseInfoRes.getBfsvcSppStpRsonCd())) {
+            return 0;
+        }
+
+        /*******************************************************************************************************
+         * 변수 선언부
+         *******************************************************************************************************/
+        int chekInstMths = 0; //설치차월
+        int chekCyclMths; //방문기준 차월수 ::: VST_NMN_N
+        String chekVstDt; //방문예정일자
+        String vVs104CfrmDt; //고객이 요청한 방문일자
+        String newWrkTypDtl; //작업유형상세
+        String newVstGb; //방문구분 10 방문, 11 방문 매니저, 12 방문 엔지니어, 13 방문 홈케어, 20 택배
+        String vVs107WrkDt; //주기표상 마지막 방문일자
+//        String newBsMths; //제외
+        int chekVstMths;
+        String newGdsCD; //패키지 변경 요청을 적용한 패키지
+        String vVs107CnclDt; //패키지 중지 요청 일자
+
+        List<WsncBsPeriodChartResDvo> chart06ResList = mapper.selectBsPeriodChartBs03_06(baseInfoRes);
+        WsncBsPeriodChartReqDvo processParam = converter.mapBaseInfoResToPeriodChartDvo(baseInfoRes);
+
+        //주기표 생성 데이터가 없을 경우, 오류 로그 처리 후 종료.
+        if (CollectionUtils.isEmpty(chart06ResList)) {
+            processParam.setCrtErrCn("'NO DATA NOT FOUND!'");
+            processParam.setPgrmId("BS01");
+            mapper.insertBsPeriodChartError(processParam);
+            return 0;
+        }
+
+        chekCyclMths = mapper.selectBsPeriodChartBs03_04(processParam); //방문기준 차월수
+        vVs107WrkDt = mapper.selectBsPeriodChartBs03_05(processParam); //주기표상 마지막 방문일자
+
+        //AS-IS ::: WORK_X Loop(chart06Res)
+        for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
+
+            //제외
+//            if ("1".equals(baseInfoRes.getSellTpCd()) && chart06Res.getVstNmnN() == 0) {
+//                continue;
+//            }
+
+            //설치차월 계산
+            //SELL_TP_CD = 1 ::: 렌탈
+            if("1".equals(baseInfoRes.getSellTpCd())){
+                chekInstMths = chart06Res.getVstNmnN();
+            }
+            //SELL_TP_CD = 3 ::: 멤버십 (AS-IS는 2)
+            else if ("3".equals(baseInfoRes.getSellTpCd())) {
+                //TB_PDBS_RGBS_WK_BASE_DTL.TOT_STPL_MCN 로 대체
+                chekInstMths = baseInfoRes.getChekInstMths();
+                chekInstMths = chekInstMths + chart06Res.getVstNmnN();
+            }
+            processParam.setChekInstMths(chekInstMths);
+
+            //제외...?
+            chekVstMths = chart06Res.getVstNmnN() % chekCyclMths;
+            if(chekVstMths == 0){
+                //화장품은 0차월 배송 구성품이 달라서 이렇게 처리
+                if(("67".equals(baseInfoRes.getPdctPdCd().substring(0, 2)) && chekInstMths != 0) || !"67".equals(baseInfoRes.getPdctPdCd().substring(0, 2))){
+                    chekVstMths = chekCyclMths;
+                }
+            }
+
+            if(("66".equals(baseInfoRes.getPdctPdCd().substring(0, 2))
+//                    && chart06Res.getVstNmnN() == newBsMths       //newBsMths는 제외 로직
+            )){
+                continue;
+            }
+
+            //방문예정일자 계산
+            //멤버십 가입일자가 없는 경우 (렌탈인경우인지 확인 필요) (멤버십 ::: "3".equals(baseInfoRes.sellTpCd()))
+            if (StringUtils.isEmpty(baseInfoRes.getCntrPdStrtdt())
+                || "01".equals(baseInfoRes.getCntrPdStrtdt().substring(6, 8))) {
+                //기존 주기표에 데이터가 없는 경우 - 첫 계약인 경우
+                if (StringUtils.isEmpty(vVs107WrkDt) && StringUtils.isEmpty(baseInfoRes.getStvlvChngDt())) {
+                    chekVstDt = DateUtil.addMonths(baseInfoRes.getIstDt(), chekInstMths);
+                    chekVstDt = mapper.selectBsPeriodChartBs03_10(chekVstDt); //GET_HLDY_NEXTDAY
+                } else {
+                    chekVstDt = DateUtil.addMonths(baseInfoRes.getIstDt(), chekInstMths).substring(0, 6)
+                        + vVs107WrkDt.substring(6, 8);
+                }
+            } else {
+                //멤버십인 경우, 멤버십 가입일자를 가져와서 그대로 사용 (휴일체크 할 필요 없음) (cherro ::: 멤버십 조건 넣어야 할지 모르겠음.)
+                chekVstDt = DateUtil.addMonths(baseInfoRes.getIstDt(), chekInstMths).substring(0, 6)
+                    + baseInfoRes.getCntrPdStrtdt().substring(6, 8);
+            }
+
+            //제외
+//            if(StringUtils.isEmpty(chekVstDt)){
+//                chekVstDt = DateUtil.addMonths(baseInfoRes.getIstDt(), chekInstMths);
+//            }
+
+            /*******************************************************************************************************
+                 * 가구화 로직 (로직 첫 부분에서 계산한 차월 반영)
+                *******************************************************************************************************/
+//            if (StringUtils.isNotEmpty(priorityVstDt) && priorityVstDiff != 0) {
+//                chekVstDt = DateUtil.addMonths(chekVstDt, priorityVstDiff).substring(0, 6)
+//                    + priorityVstDt.substring(6, 8);
+//            }
+
+            //월에 마지막일자보다 크다면 해당월 마지막 일자라 세팅
+            if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
+                chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
+            }
+            processParam.setChekVstDt(chekVstDt);
+
+            newGdsCD = mapper.selectBsPeriodChartBs04_22(processParam);
+            vVs107CnclDt = mapper.selectBsPeriodChartBs04_23(processParam);
+
+
+            List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs01_07(processParam);
+            //AS-IS ::: C1 Loop(chart07Res)
+            for (WsncBsPeriodChartResDvo chart07Res : chart07ResList) {
+
+                newWrkTypDtl = chart07Res.getWrkTypDtl();
+                if("10".equals(chart07Res.getVstGb())){
+                    newVstGb = "20";
+                } else {
+                    newVstGb = chart07Res.getVstGb();
+                }
+
+                //고객 요청 방문일자가 있다면 그걸로 세팅, 아님 설치 차월 기준으로 계산한 일자 세팅
+                vVs104CfrmDt = mapper.selectBsPeriodChartBs03_11(processParam);
+                if(StringUtils.isNotEmpty(vVs104CfrmDt)){
+                    chekVstDt = vVs104CfrmDt;
+                }
+                processParam.setChekVstDt(chekVstDt);
+                processParam.setNewWrkTypDtl(newWrkTypDtl);
+                processParam.setNewVstGb(newVstGb);
+                processParam.setChekCyclMths(chart07Res.getVstMths()); //cherro ::: 이걸로 가구화 로직 수행해야 하나...?
+                processParam.setNewPartCd(chart07Res.getPartCd());
+                processParam.setChngStg(chart07Res.getChngStg());
+                processParam.setItemKnd(chart07Res.getItemKnd());
+                processParam.setQty(chart07Res.getQty());
+                processParam.setVVs107CnclDt(vVs107CnclDt);
+
+                //주기표 생성
+                processParam.setPgrmId("BS01");
+                mapper.insertBsPeriodChartBs01(processParam);
             }
         }
         return 1;

@@ -8,6 +8,7 @@
         SELECT TB_1.CNTR_NO
              , TB_1.CNTR_SN
              , TB_2.BFSVC_SPP_STP_RSON_CD
+             , TB_2.STVLV_CHNG_DT
              , TB_3.SELL_TP_CD
              , TB_2.SV_PD_CD
              , TB_2.PDCT_PD_CD
@@ -452,11 +453,11 @@
             , #{newVstGb}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , #{session.userId}
-            , 'BS03'
+            , #{pgrmId}
             , #{session.departmentId}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , #{session.userId}
-            , 'BS03'
+            , #{pgrmId}
             , #{session.departmentId}
         )
     </insert>
@@ -480,11 +481,11 @@
             , #{crtErrCn}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , #{session.userId}
-            , 'BS03'
+            , #{pgrmId}
             , #{session.departmentId}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , #{session.userId}
-            , 'BS03'
+            , #{pgrmId}
             , #{session.departmentId}
         )
     </insert>
@@ -675,4 +676,223 @@
              , WRK_TYP_DTL DESC
              , CHNG_STG
     </select>
+
+    <select id="selectBsPeriodChartBs04_22" resultType="java.lang.String">
+        /* 로직 미확정 */
+        /* 패키지 변경 요청을 적용한 패키지 */
+        SELECT NVL(
+                   (SELECT '65' || CS104_REQ_SALE_CD || '000000'
+                      FROM LC_CAPSULE_CS104TB T1
+                     WHERE 1=1
+                       AND CS104_CSMR_YR = P_CSMR_YR
+                       AND CS104_CSMR_CD = P_CSMR_CD
+                       AND CS104_CSMR_SEQ = P_CSMR_SEQ
+                       AND CS104_CSMR_SER = (SELECT AC201_CSMR_SER
+                                               FROM LC_ALLOCATE_AC201TB
+                                              WHERE 1=1
+                                                AND AC201_CSMR_YR = P_CSMR_YR
+                                                AND AC201_CSMR_CD = P_CSMR_CD
+                                                AND AC201_CSMR_SEQ = P_CSMR_SEQ)
+                       AND SUBSTR(CS104_REQ_DT,1,6) <![CDATA[ <= ]]> SUBSTR(CHEK_VST_DT,1,6)
+                       AND CS104_SEQ = (SELECT MAX(CS104_SEQ)
+                                          FROM LC_CAPSULE_CS104TB
+                                         WHERE 1=1
+                                           AND CS104_CSMR_YR = T1.CS104_CSMR_YR
+                                           AND CS104_CSMR_CD = T1.CS104_CSMR_CD
+                                           AND CS104_CSMR_SEQ = T1.CS104_CSMR_SEQ)
+                       AND CS104_FIX_DT IS NULL
+                       AND CS104_REQ_GB = '1'
+                       AND CS104_DATA_STUS != '3'), NVL((SELECT '65'||DECODE(TO_CHAR((CASE WHEN LCST07 != 'Y' THEN '0' ELSE TO_CHAR(LCST12) END)),'0', '100',TO_CHAR(LCST12))||'000000'
+                                                           FROM KWMART.LD3000P
+                                                          WHERE 1=1
+                                                            AND LCYEAR = TO_NUMBER(P_CSMR_YR)
+                                                            AND LCCODE = TO_NUMBER(P_CSMR_CD)
+                                                            AND LPAD(LCDEMY,4,'0')||LPAD(LCDEMM,2,'0') = SUBSTR(CHEK_VST_DT,1,6)
+                                                            AND ROWNUM =1   /*19.07.03 당월에 모종 2개 이상 구매한건 발생 해서 이렇게 처리 - 김진섭매니저에게 월 2회 구매 불가능하다고 공지 해달라고 하고 해당 건 삭제 요청 2018 6955353 */
+                                                        ),P_GDS_CD))
+          INTO NEW_GDS_CD
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs04_23" resultType="java.lang.String">
+        /*배송중지요청체크*/
+        SELECT NVL(
+                   (SELECT AK_CHDT
+                      FROM TB_SVPD_HCF_AS_AK_IZ
+                     WHERE 1=1
+                       AND CNTR_NO = 'P_CSMR_YR'
+                       AND CNTR_SN = 'P_CSMR_SEQ'
+                       AND SUBSTR(AK_CHDT,1,6) = SUBSTR('CHEK_VST_DT',1,6)
+                       AND CNFMDT IS NULL
+                       AND AS_AK_DV_CD = '4'
+                       AND MTR_PROCS_STAT_CD != '3'), '') AS V_VS107_CNCL_DT
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs01_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /* 주기표생성 작업 */
+        /* 로직 추가로 협의해서 넣어야 함. */
+        SELECT DISTINCT
+                  VST_MTHS
+                , WRK_TYP_DTL
+                , LPAD(RANK() OVER(ORDER BY ITEM_KND, PART_CD ASC),2,'0') AS CHNG_STG
+                , ITEM_KND
+                , PART_CD
+                , QTY
+                , VST_GB
+             FROM (
+                   /*최소 공배수 만큼 풀어 놓은 방문 주기표 */
+                   SELECT A.VST_NMN_N        AS VST_MTHS
+                        , A.SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+--                        , C.ST101_ITEM_CD|| C.ST101_PART_CD AS PART_CD
+                        , A.PART_PD_CD AS PART_CD
+--                        , B.LCIQTY              AS QTY
+                        , A.PART_USE_QTY AS QTY
+                        , A.VST_DV_CD          AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL A
+--                        , KWMART.LD3050P B
+--                        , LC_STOCK_ST101TB C /* Part Master, 우선 생략 */
+                    WHERE 1=1
+--                      AND B.LCICDE = C.ST101_SALE_CD
+                      AND A.PDCT_PD_CD = 'NEW_GDS_CD'
+--                      AND LCYEAR = P_CSMR_YR
+--                      AND LCCODE = P_CSMR_CD
+--                      AND LCSEQN = (SELECT MAX(AC201_CSMR_SER)
+--                                      FROM LC_ALLOCATE_AC201TB
+--                                     WHERE 1=1
+--                                       AND AC201_CSMR_YR = P_CSMR_YR
+--                                       AND AC201_CSMR_CD = P_CSMR_CD)
+--                      AND SUBSTR(CHEK_VST_DT,1,6) BETWEEN B.LCSTYM AND B.LCEDYM
+                      AND (CASE WHEN 'NEW_GDS_CD' IN ('65605000000', '65606000000', '65607000000') THEN '1' ELSE '2' END) = '1'  /*고객선택 패기지를 선택한 경우만 처리하기 위해*/
+
+                    UNION ALL
+
+                   SELECT VST_NMN_N        AS VST_MTHS
+                        , SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+--                        , C.ST101_ITEM_CD|| C.ST101_PART_CD AS PART_CD
+                        , PART_PD_CD AS PART_CD
+
+                        /*22.02.21 상품기획팀 김지혜 매니저 요청, 사은품 지급 대상이면(구독상품 일시불 구매 후 구독 연계 주문시에 본품 1박스 지급) 수량을 더해준다.*/
+--                        , B.LCIQTY + (CASE WHEN CHEK_INST_MTHS = 0 THEN (/*4.첫배송만*/
+--                                     (SELECT NVL((/*3.해당사은품이 있는 행에서 수량을 가지고 온다*/
+--                                                  SELECT SUBSTR(TXT,INSTR(TXT, ',')+1) AS QTY
+--                                                    FROM (/*2.스트링으로 만든 정보를 다시 행으로 만든다.*/
+--                                                          SELECT TRIM(REGEXP_SUBSTR(TXT, '[^|]+', 1, LEVEL)) AS TXT
+--                                                            FROM (/*1.KWMART.CW3100P 사은품 테이블에서 열로 구성된 사은품 정보를 스트링으로 만든다*/
+--                                                                  SELECT CWGC01||','||CWGQ01||'|'||CWGC02||','||CWGQ02||'|'||CWGC03||','||CWGQ03||'|'||CWGC04||','||CWGQ04||'|'||CWGC05||','||CWGQ05||'|'||CWGC06||','||CWGQ06||'|'||CWGC07||','||CWGQ07||'|'||CWGC08||','||CWGQ08||'|'||CWGC09||','||CWGQ09||'|'||CWGC10||','||CWGQ10||'|' AS TXT
+--                                                                    FROM KWMART.CW3100P
+--                                                                   WHERE 1=1
+--                                                                     AND CWYEAR = P_CSMR_YR
+--                                                                     AND CWCODE = P_CSMR_CD
+--                                                                 )
+--                                                          CONNECT
+--                                                               BY INSTR(TXT, '|', 1, LEVEL - 1) > 0
+--                                                         )
+--                                                   WHERE 1=1
+--                                                     AND TXT LIKE '%'||B.LCICDE||'%'
+--                                                 ),0) AS QTY
+--                                        FROM DUAL))
+--                                           ELSE '0'
+--                                      END)
+--
+--                                                AS QTY
+                        , PART_USE_QTY AS QTY
+                        , VST_DV_CD          AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL
+--                        , KWMART.LD1010P A
+--                        , KWMART.LD1020P B
+--                        , LC_STOCK_ST101TB C
+                    WHERE 1=1
+--                      AND B.LCICDE = C.ST101_SALE_CD
+--                      AND B.LCPKAG = A.LCPKAG
+--                      AND B.LCPSEQ = A.LCPSEQ
+--                      AND CHEK_VST_DT BETWEEN A.LCSDAY AND A.LCEDAY
+--                      AND CHEK_VST_DT BETWEEN B.LCSDAY AND B.LCEDAY /** 20220310 한상문C 요청 웰빙티캡슐 보리구성품 22.03.31 종료 적용 **/
+--                      AND A.LCPKAG = SUBSTR(CO322_GDS_CD,3,3)
+                      AND PDCT_PD_CD = 'NEW_GDS_CD'
+                      AND SV_PD_CD = 'P_CYCL_TYP'
+
+                      /*추가된 컬럼이
+                        * LD1010P - LCPGB1(상품구성유형 - 1:고정(캡슐), 2:기간별변동(모종), 3: 회차별변동(화장품)
+                        * LD1020P - LCSCNT(배송회자)
+                        이렇게 추가 되었습니다.
+
+                        보통 LD1020P에는 해당 패키지 가격 차수(LCPSEQ)에 따라서 1회분의 배송 상품이 셋팅되는 반면에 상품구성유형이
+                        3:회차별변동일 경우에는 해당 패키지 가격 차수에 계약기간 전체에 걸쳐서 배송되어야 할 상품이 전체가 등록되어집니다.*/
+
+--                      AND (CASE WHEN A.LCPGB1 = '3' THEN VST_NMN_N / SUBSTR(SV_PD_CD,1, INSTR(SV_PD_CD, 'M')-1) + 1
+--                                ELSE 0
+--                           END)  = (CASE WHEN A.LCPGB1 = '3' THEN B.LCSCNT
+--                                         ELSE 0
+--                                    END)
+                  )
+            ORDER BY VST_MTHS
+    </select>
+
+    <insert id="insertBsPeriodChartBs01">
+        INSERT INTO TB_SVPD_CST_SV_RGBSPR_IZ (
+              CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , VST_DUEDT
+            , SV_BIZ_DCLSF_CD
+            , FILT_CHNG_LV_CD
+            , IST_NMN_N
+            , VST_NMN_N
+            , ITM_KND_CD
+            , PART_PD_CD
+            , PART_USE_QTY
+            , MTR_CAN_DT
+            , MTR_CAN_RSON_CD
+            , VST_DV_CD
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , SUBSTR(#{newWrkTypDtl}, 1, 2)
+            , #{newWrkTypDtl}
+            , (
+                SELECT NVL(MAX(TEMP.WK_SN) + 1, 1) AS WK_SN
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.CNTR_NO = #{cntrNo}
+                   AND TEMP.CNTR_SN = #{cntrSn}
+                   AND TEMP.SV_BIZ_MCLSF_CD = SUBSTR(#{newWrkTypDtl}, 1, 2)
+                   AND TEMP.SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+              )
+            , #{chekVstDt}
+            , #{newWrkTypDtl}
+            , #{chngStg}
+            , #{chekInstMths}
+            , #{chekCyclMths}          /* CHEK_VST_MTHS -> vstNmnN */
+            , #{itemKnd}
+            , #{newPartCd}
+            , #{qty}
+            , #{V_VS107_CNCL_DT}
+            , (CASE WHEN #{V_VS107_CNCL_DT} IS NOT NULL THEN '10' ELSE '' END)
+            , #{newVstGb}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.departmentId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.departmentId}
+        )
+    </insert>
 </mapper>
