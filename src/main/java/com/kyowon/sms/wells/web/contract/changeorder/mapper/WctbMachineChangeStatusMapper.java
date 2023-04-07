@@ -15,6 +15,8 @@ public interface WctbMachineChangeStatusMapper {
     String selectDlqExYn(String procsCd, String drmVal);
     int selectMachineChPsbYn(String pdCd);
 
+    Optional<String> selectProductClsf(String pdCd);
+
     WctbMachineChStatBasInfDvo selectMachineInfo(WctbMachineChStatInOutDvo dvo);
 
     Optional<WctbMembershipWdwalDvo> selectMembershipWdwal(String cntrNo, String cntrSn);

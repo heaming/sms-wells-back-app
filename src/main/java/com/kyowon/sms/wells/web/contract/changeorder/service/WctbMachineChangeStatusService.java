@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbMachineChStatInOutD
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbMembershipWdwalDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbMachineChangeStatusMapper;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class WctbMachineChangeStatusService {
 
     private final WctbMachineChangeStatusMapper mapper;
+    private final MessageResourceService messageService;
 
     /**
       * 기기 변경 고객 유효성 확인
@@ -33,33 +35,44 @@ public class WctbMachineChangeStatusService {
     public WctbMachineChStatInOutDvo getMachineChangeStatus(WctbMachineChStatInOutDvo dvo) throws Exception{
         ValidAssert.hasText(dvo.getCntrNo());
         ValidAssert.hasText(dvo.getCntrSn());
+        ValidAssert.hasText(dvo.getBasePdCd());
 
         String rctDt = DateUtil.getNowDayString();
+        dvo.setRctDt(rctDt);
 
         //기본 정보 조회
         WctbMachineChStatBasInfDvo baseInfoDvo = mapper.selectContractBaseInfo(dvo);
 
         if(baseInfoDvo == null){
-            throw new BizException("해당 계약상세번호가 없습니다.");
+            throw new BizException("MSG_ALT_CHK_CNTR_SN"); // 계약일련번호를 확인해주세요.
 
         }else if(StringUtils.isEmpty(baseInfoDvo.getIstDt())){
-            throw new BizException("미설치 고객입니다.");
+            throw new BizException("MSG_ALT_UNINSTALL_CUSTOMER"); // 미설치 고객입니다.
 
         }else if("1".equals(baseInfoDvo.getSellTpCd()) && baseInfoDvo.getIstmMcn() > 0 && StringUtils.isEmpty(baseInfoDvo.getFulpyDt())){
-            throw new BizException("할부고객의 경우, 할부완납의 경우만 가능합니다.");
+            throw new BizException("MSG_ALT_FULL_PAYMENT_PSBL"); //할부고객일 때, 할부완납의 경우만 가능합니다.
 
         }else if(baseInfoDvo.getEotDlqAmt() > 0 ){
             //연체금액이 존재하는 경우, 계약예외 여부 조회
             if("N".equals(mapper.selectDlqExYn("W02", dvo.getCstNo()))){    // 02 - 렌탈 기변 상대코드 연체건 접수 허용
-                throw new BizException("연체고객은 기기변경이 불가합니다.");
+                throw new BizException("MSG_ALT_DEVICE_CH_IMP_DLQ"); //연체고객은 기기변경이 불가합니다.
             }
         }else if(baseInfoDvo.getEotUcAmt() > 0 && !dvo.getCstNo().equals(baseInfoDvo.getCntrCstNo())){
-            throw new BizException("미수고객이면서 기변 이전/이후 고객번호가 다릅니다.");
+            throw new BizException("MSG_ALT_INVALID_CST_NO_BFAF"); //미수고객이면서 기변 이전/이후 고객번호가 다릅니다.
         }
 
         //기기변경가능여부 확인
         if(mapper.selectMachineChPsbYn(baseInfoDvo.getPdCd()) <= 0){
-            throw new BizException("기기변경 가능 상품이 아닙니다.");
+            throw new BizException("MSG_ALT_DEVICE_CH_IMP_PD"); // 기기변경 가능 상품이 아닙니다.
+        }
+
+        //상품분류 확인
+        String pdClsf = mapper.selectProductClsf(dvo.getBasePdCd()).orElseGet(String::new);
+        if (!pdClsf.equals(
+            StringUtils.defaultString(baseInfoDvo.getPdHclsfId())
+                + StringUtils.defaultString(baseInfoDvo.getPdMclsfId())
+        )) {
+            throw new BizException("MSG_ALT_INVALID_CST_SAME_PD"); //동일 종류의 제품 구입 고객이 아닙니다.
         }
 
         //주요날짜 계산
@@ -82,7 +95,7 @@ public class WctbMachineChangeStatusService {
                                                         .substring(0, 6));
                 int nowYM = Integer.parseInt(DateUtil.getNowDayString().substring(0, 6));
                 if(reqd6YM <= nowYM){
-                    throw new BizException("취소 후 6개월 경과!, 기기변경이 불가합니다.");
+                    throw new BizException("MSG_ALT_DEVICE_CH_IMP_UNINSTALL_6MTH");
                 }
             }
 
@@ -128,13 +141,15 @@ public class WctbMachineChangeStatusService {
         // 의무기간 이내 기변 등록 불가(의무기간 예외처리 체크)
         if("01".equals(workFlag)) {
             if ("N".equals(mapper.selectDlqExYn("W03", dvo.getCntrNo() + dvo.getCntrSn()))) {    // 02 - 03 - 렌탈 기변 의무기간내 접수허용
-                throw new BizException("의무기간 내 기변 등록 불가!");
+                throw new BizException("MSG_ALT_DEVICE_CH_IMP_DUTY_TERM"); // 의무기간 내 기변 등록 불가!
             }
         }
 
         if("2".equals(dvo.getDscTp()) && "2".equals(dvo.getSellTpCd())){
             if(StringUtils.containsAny(workFlag, "01", "18")){
-                throw new BizException("직원구매! "+("3".equals(baseInfoDvo.getSellTpDtlCd())?"금융리스":"렌탈")+" - 57차월미만 기변 불가!");
+                String messageDetail = messageService
+                    .getMessage("3".equals(baseInfoDvo.getSellTpDtlCd()) ? "MSG_TXT_FNN_LEASE" : "MSG_TXT_RENTAL");
+                throw new BizException("MSG_ALT_DEVICE_CH_IMP_EMP_PRCHS", messageDetail); // "직원구매! (금융리스 OR 렌탈 - 57차월미만 기변 불가!"
             }
         }
 
