@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchBranchDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchEntrepreneurBaseRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchGeneralDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchRegionalDivisionsRes;
@@ -16,5 +17,7 @@ public interface WctzPartnerMapper {
     List<SearchGeneralDivisionsRes> selectGeneralDivisions();
 
     List<SearchRegionalDivisionsRes> selectRegionalDivisions();
+
+    List<SearchBranchDivisionsRes> selectBranchDivisions();
 
 }
