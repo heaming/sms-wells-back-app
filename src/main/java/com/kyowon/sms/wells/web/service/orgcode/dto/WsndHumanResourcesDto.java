@@ -59,7 +59,6 @@ public class WsndHumanResourcesDto {
         String rsbDvCd,
         String rolDvCd,
         String prtnrGdCd,
-        String paylvDvCd,
         String perfExcdOjYn,
         String rdsDsbExcdOjYn,
         String hgrOgId,
