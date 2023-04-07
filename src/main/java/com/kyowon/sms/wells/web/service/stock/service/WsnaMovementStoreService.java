@@ -1,12 +1,14 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMovementStoreMapper;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -89,5 +91,9 @@ public class WsnaMovementStoreService {
      */
     public List<MovementRes> getMovementStrIzsExcelDownload(SearchReq dto) {
         return mapper.selectMoveMentStrIzs(dto);
+    }
+
+    public PagingResult<MovementOstrRes> getMoveMentStrOstrIzs(MovementOstrReq dto, PageInfo pageInfo) {
+        return mapper.selectMoveMentStrOstrIzs(dto, pageInfo);
     }
 }

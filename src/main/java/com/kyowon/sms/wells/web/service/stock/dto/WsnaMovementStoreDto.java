@@ -54,4 +54,31 @@ public class WsnaMovementStoreDto {
         String strWareNo, /*입고창고번호*/
         String wareNm /*창고명*/
     ) {}
+
+    public record MovementOstrReq(
+        @NotBlank
+        String stOstrDt,
+        @NotBlank
+        String edOstrDt,
+        String ostrTpCd,
+        String wareDvCd,
+        String ostrWareNo,
+        String strWareNo
+    ) {}
+
+    public record MovementOstrRes(
+        String itmOstrNo,
+        String wareMngtPrtnrNo,
+        String ostrTpCd,
+        String ostrWareNo,
+        String ostrDt,
+        String strWareNo,
+        String itmStrNo,
+        String acbDt,
+        String evidDvCd,
+        String strHopDt,
+        String ostrWareNm,
+        String strWareNm,
+        String pdNm
+    ) {}
 }
