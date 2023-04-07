@@ -7,10 +7,10 @@ import com.sds.sflex.common.utils.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 
-public class WwdbEtcAtamRfndListDto {
+public class WwdbEtcAmountRefundDto {
 
-    @ApiModel(value = "WwdbEtcAtamRfndListDto-SearchEtcAtamRfndListReq")
-    public record SearchEtcAtamRfndListReq(
+    @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundReq")
+    public record SearchEtcAmountRefundReq(
         @NotBlank
         String startDay, // 처리일자 시작일
         @NotBlank
@@ -25,8 +25,8 @@ public class WwdbEtcAtamRfndListDto {
 
     }
 
-    @ApiModel(value = "WwdbEtcAtamRfndListDto-SearchEtcAtamRfndListRes")
-    public record SearchEtcAtamRfndListRes(
+    @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundRes")
+    public record SearchEtcAmountRefundRes(
         String cntrNoSn, // 계약상세번호
         String cstKnm, // 고객명
         String fnlMdfcDtm, // 처리일자
@@ -49,7 +49,7 @@ public class WwdbEtcAtamRfndListDto {
         String cardRfndCrdcdAprno // 승인번호
 
     ) {
-        public SearchEtcAtamRfndListRes {
+        public SearchEtcAmountRefundRes {
             if (!StringUtil.isEmpty(cshRfndAcnoEncr)) {
                 cshCardRfndAcnoCrcdnoEncr = DbEncUtil.dec(cshRfndAcnoEncr); // 계좌번호 복호화
             }
@@ -59,8 +59,8 @@ public class WwdbEtcAtamRfndListDto {
         }
     }
 
-    @ApiModel(value = "WwdbEtcAtamRfndListDto-SearchEtcAtamRfndListAgrgReq")
-    public record SearchEtcAtamRfndListAgrgReq(
+    @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundAggregateReq")
+    public record SearchEtcAmountRefundAggregateReq(
         @NotBlank
         String startDay, // 처리일자 시작일
         @NotBlank
@@ -75,8 +75,8 @@ public class WwdbEtcAtamRfndListDto {
 
     }
 
-    @ApiModel(value = "WwdbEtcAtamRfndListDto-SearchEtcAtamRfndListAgrgRes")
-    public record SearchEtcAtamRfndListAgrgRes(
+    @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundAggregateRes")
+    public record SearchEtcAmountRefundAggregateRes(
         String cashRfndDsbAmtSum, // 현금 환불지급금액 합
         String bcCardRfndDsbAmtSum, // BC 환불지급금액 합계
         String kbCardRfndDsbAmtSum, // KB 환불지급금액 합계
