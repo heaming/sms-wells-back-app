@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.deduction.interfaces.rest;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +29,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceController {
     private final WdecRdsProductDisbursementHoldingInterfaceService service;
 
     @ApiOperation(value = "wells RDS 상품 지급 보류 상세 조회", notes = "EDU에서 파트너 개별 RDS 상품 지급 보류 상세 조회 요청 시 wells 파트너 개별 RDS 상품 지급 보류 상세 조회을 위한 인터페이스")
-    @GetMapping("/rds-product-disbursement-holdings")
+    @PostMapping("/rds-product-disbursement-holdings/get")
     public EaiWrapper getRdsProductDisbursementHoldings(
         @Valid
         @RequestBody
@@ -47,7 +46,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceController {
     }
 
     @ApiOperation(value = "wells RDS 상품 지급 보류금액 처리", notes = "EDU에서 RDS 상품 지급 보류금액 생성 요청 시 wells RDS 상품 지급 보류금액 생성을 위한 인터페이스")
-    @PostMapping("/rds-product-disbursement-holdings")
+    @PostMapping("/rds-product-disbursement-holdings/post")
     public EaiWrapper createRdsProductDisbursementHoldings(
         @Valid
         @RequestBody
