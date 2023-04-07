@@ -9,6 +9,7 @@ public class WsncBsPeriodChartResDvo {
     String cntrNo;
     String cntrSn;
     String bfsvcSppStpRsonCd;
+    String stvlvChngDt;
     String sellTpCd;
     String svPdCd;
     String pdctPdCd;
