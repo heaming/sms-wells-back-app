@@ -16,7 +16,7 @@ public class WdcbProductSalesDetailDto {
         @NotBlank
         String baseDtmnTo,
         String taskDiv,
-        String sellTp,
+        String sellTpCd,
         String sellDv,
         String cntrDtlNo,
         String cstNo,
@@ -26,8 +26,8 @@ public class WdcbProductSalesDetailDto {
     // Result Dto
     // *********************************************************
     // 상품별 매출 현황 Search Result Dto
-    @ApiModel("WdcbProductSalesDetailDto-SingleSearchRes")
-    public record SingleSearchRes(
+    @ApiModel("WdcbProductSalesDetailDto-SearchSingleRes")
+    public record SearchSingleRes(
         String taskDiv,
         String sellTpCd,
         String pdDtlCd,
@@ -62,8 +62,8 @@ public class WdcbProductSalesDetailDto {
     // Result Dto
     // *********************************************************
     // 상품별 매출 현황 Search Result Dto
-    @ApiModel("WdcbProductSalesDetailDto-RentalSearchRes")
-    public record RentalSearchRes(
+    @ApiModel("WdcbProductSalesDetailDto-SearchRentalRes")
+    public record SearchRentalRes(
         String taskDiv,
         String sellTpCd,
         String pdDtlCd,
@@ -90,8 +90,8 @@ public class WdcbProductSalesDetailDto {
     // Result Dto
     // *********************************************************
     // 상품별 매출 현황 Search Result Dto
-    @ApiModel("WdcbProductSalesDetailDto-MembershipSearchRes")
-    public record MembershipSearchRes(
+    @ApiModel("WdcbProductSalesDetailDto-SearchMembershipRes")
+    public record SearchMembershipRes(
         String taskDiv,
         String sellTpCd,
         String pdDtlCd,

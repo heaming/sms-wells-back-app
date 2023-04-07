@@ -2,10 +2,9 @@ package com.kyowon.sms.wells.web.closing.sales.service;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.MembershipSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.RentalSearchRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SingleSearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchMembershipRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchRentalRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchSingleRes;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesDetailMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -17,16 +16,16 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbSalesDetailService {
     private final WdcbSalesDetailMapper mapper;
 
-    public RentalSearchRes getSalesDetailRental(SearchReq dto) {
-        return mapper.selectSalesDetailRental(dto);
+    public SearchRentalRes getSalesDetailRental(String cntrDtlNo) {
+        return mapper.selectSalesDetailRental(cntrDtlNo);
     }
 
-    public MembershipSearchRes getSalesDetailMembership(SearchReq dto) {
-        return mapper.selectSalesDetailMembership(dto);
+    public SearchMembershipRes getSalesDetailMembership(String cntrDtlNo) {
+        return mapper.selectSalesDetailMembership(cntrDtlNo);
     }
 
-    public SingleSearchRes getSalesDetailSinglePayment(SearchReq dto) {
-        return mapper.selectSalesDetailSinglePayment(dto);
+    public SearchSingleRes getSalesDetailSinglePayment(String cntrDtlNo) {
+        return mapper.selectSalesDetailSinglePayment(cntrDtlNo);
     }
 
 }
