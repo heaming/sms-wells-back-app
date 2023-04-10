@@ -24,11 +24,11 @@ import java.util.List;
 @Slf4j
 @RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/cleaning-cost")
 public class WdcdCleaningCostMgtController {
-    private final WdcdCleaningCostMgtSearvice searvice;
+    private final WdcdCleaningCostMgtSearvice service;
 
     @GetMapping("/code")
     public List<CodeRes> getBuilDingCd() {
-        return searvice.getBuilDingCd();
+        return service.getBuilDingCd();
     }
 
     @ApiOperation(value = "청소 용품비 관리", notes = "청소 용품비 관리 조회")
@@ -39,7 +39,7 @@ public class WdcdCleaningCostMgtController {
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getCleaningCost(@Valid SearchReq req, PageInfo pageInfo) {
-        return searvice.getCleaningCost(req, pageInfo);
+        return service.getCleaningCost(req, pageInfo);
     }
 
     @ApiOperation(value = "청소 용품비 관리", notes = "청소 용품비 관리 엑셀다운")
@@ -50,11 +50,11 @@ public class WdcdCleaningCostMgtController {
     })
     @GetMapping("/excel-download")
     public List<SearchRes> getCleaningCostExcelDownload(@Valid SearchReq req) {
-        return searvice.getCleaningCostExcelDownload(req);
+        return service.getCleaningCostExcelDownload(req);
     }
 
     @DeleteMapping
     public int removeCleanerCost(@RequestBody List<String> clingCostAdjRcpNos) {
-        return searvice.removeCleaningCost(clingCostAdjRcpNos);
+        return service.removeCleaningCost(clingCostAdjRcpNos);
     }
 }
