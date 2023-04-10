@@ -10,8 +10,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper(componentModel = "spring")
 public interface WcteRenewalCustomerConverter {
-    PagingResult<SearchRes> mapWcteRenewalCustomerDvoToSearchRes(PagingResult<WcteRenewalCustomerDvo> dvo);
+    PagingResult<SearchRes> mapAllWcteRenewalCustomerDvoToSearchRes(PagingResult<WcteRenewalCustomerDvo> dvo);
 
-    List<SearchRes> mapWcteRenewalCustomerDvoToSearchRes(List<WcteRenewalCustomerDvo> dvo);
+    List<SearchRes> mapAllWcteRenewalCustomerDvoToSearchRes(List<WcteRenewalCustomerDvo> dvo);
 
 }

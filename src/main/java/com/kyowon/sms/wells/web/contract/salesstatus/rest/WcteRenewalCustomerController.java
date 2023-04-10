@@ -49,7 +49,7 @@ public class WcteRenewalCustomerController {
         @ApiImplicitParam(name = "copnDvCd", value = "자료구분", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "cstAgYn", value = "마케팅동의여부", paramType = "query", example = "Y"),
     })
-    @GetMapping
+    @GetMapping("/paging")
     public PagingResult<WcteRenewalCustomerDto.SearchRes> getExnRstlCstContactAssigns(
         @Valid
         WcteRenewalCustomerDto.SearchReq dto,

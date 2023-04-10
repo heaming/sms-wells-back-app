@@ -35,7 +35,7 @@ public class WcteRenewalCustomerService {
             resPagingDvos = mapper.selectRstlCstContactAssigns(dto, pageInfo);
         }
 
-        return converter.mapWcteRenewalCustomerDvoToSearchRes(resPagingDvos);
+        return converter.mapAllWcteRenewalCustomerDvoToSearchRes(resPagingDvos);
     }
 
     public List<SearchRes> getExnRstlCstContactAssignsForExcelDownload(SearchReq dto) {
@@ -51,6 +51,6 @@ public class WcteRenewalCustomerService {
             resDvos = mapper.selectRstlCstContactAssigns(dto);
         }
 
-        return converter.mapWcteRenewalCustomerDvoToSearchRes(resDvos);
+        return converter.mapAllWcteRenewalCustomerDvoToSearchRes(resDvos);
     }
 }
