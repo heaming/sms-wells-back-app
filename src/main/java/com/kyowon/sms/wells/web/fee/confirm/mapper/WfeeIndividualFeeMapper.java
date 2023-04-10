@@ -17,7 +17,15 @@ import com.kyowon.sms.wells.web.fee.confirm.dvo.WfeeIndividualFeeDvo;
  */
 @Mapper
 public interface WfeeIndividualFeeMapper {
-    List<SearchRes> selectIndividualPerformanceDetails(
+    List<SearchPlarRes> selectIndividualPerformancePlarDetails(
+        SearchReq dto
+    );
+
+    List<SearchMngerRes> selectIndividualPerformanceMngerDetails(
+        SearchReq dto
+    );
+
+    List<SearchHmstRes> selectIndividualPerformanceHmstDetails(
         SearchReq dto
     );
 
