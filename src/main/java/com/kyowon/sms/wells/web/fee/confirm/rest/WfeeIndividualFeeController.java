@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.fee.confirm.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +20,6 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.validation.Valid;
-
 @RestController
 @RequestMapping(CtFeeConst.REST_URL_V1 + "/individual-fees")
 @Api(tags = "[WFEE] 수수료 개인 상세")
@@ -29,16 +29,40 @@ import javax.validation.Valid;
 public class WfeeIndividualFeeController {
     private final WfeeIndividualFeeService service;
 
-    @ApiOperation(value = "수수료 개인별 실적 상세 조회(공통)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
+    @ApiOperation(value = "수수료 개인별 실적 상세 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
-    @GetMapping("/details")
-    public List<SearchRes> getIndividualPerformanceDetails(
+    @GetMapping("/plar-details")
+    public List<SearchPlarRes> getIndividualPerformancePlarDetails(
         SearchReq dto
     ) {
-        return this.service.getIndividualPerformanceDetails(dto);
+        return service.getIndividualPerformancePlarDetails(dto);
+    }
+
+    @ApiOperation(value = "수수료 개인별 실적 상세 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+    })
+    @GetMapping("/mnger-details")
+    public List<SearchMngerRes> getIndividualPerformanceMngerDetails(
+        SearchReq dto
+    ) {
+        return service.getIndividualPerformanceMngerDetails(dto);
+    }
+
+    @ApiOperation(value = "수수료 개인별 실적 상세 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+    })
+    @GetMapping("/hmst-details")
+    public List<SearchHmstRes> getIndividualPerformanceHmstDetails(
+        SearchReq dto
+    ) {
+        return service.getIndividualPerformanceHmstDetails(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기본정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 상세 실적 기본정보 내역을 조회한다.")

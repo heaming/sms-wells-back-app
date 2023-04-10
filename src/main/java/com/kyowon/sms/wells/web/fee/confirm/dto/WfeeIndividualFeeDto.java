@@ -1,8 +1,8 @@
+
 package com.kyowon.sms.wells.web.fee.confirm.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -84,21 +84,53 @@ public class WfeeIndividualFeeDto {
     // Result Dto
     // *********************************************************
     // 수수료 개인 상세 Search Result Dto
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchRes")
-    public record SearchRes(
-        String col1, /*번호*/
-        String col2, /*성명*/
-        String col3, /*접수일자*/
-        String col4, /*매출일자*/
-        String col5, /*계약번호*/
-        String col6, /*상품내역*/
-        String col7, /*고객명*/
-        String col8, /*판매구분*/
-        int col9, /*인정건수*/
-        int col10, /*BS인정건수*/
-        int col11, /*환경가전렌탈*/
-        int col12, /*환경가전일시불*/
-        int col13 /*환경가전정액*/
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarRes")
+    public record SearchPlarRes(
+        String prtnrNo, /*파트너번호*/
+        String prtnrKnm, /*성명*/
+        String perfAtcNm, /*실적구분*/
+        String cntrwTpNm, /*상품구분*/
+        String rcpdt, /*접수일자*/
+        String slDt, /*매출일자*/
+        String cntrNo, /*계약번호*/
+        String pdNm, /*상품명*/
+        String cstKnm, /*고객명*/
+        String saleDiv, /*판매구분*/
+        int perfElhm, /*가전*/
+        int perfChng, /*기변*/
+        int perfElhmExcd /*가전외*/
+    ) {}
+
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerRes")
+    public record SearchMngerRes(
+        String prtnrNo, /*파트너번호*/
+        String prtnrKnm, /*성명*/
+        String rcpdt, /*접수일자*/
+        String slDt, /*매출일자*/
+        String cntrNo, /*계약번호*/
+        String pdNm, /*상품명*/
+        String cstKnm, /*고객명*/
+        String saleDiv, /*판매구분*/
+        String pdAccCnt, /*인정건수*/
+        int perfRental, /*환경가전렌탈*/
+        int perfSnglPmnt, /*환경가전일시불*/
+        int perfFxam, /*환경가전정액*/
+        int perfBsPdAccCnt /*BS인정건수*/
+    ) {}
+
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstRes")
+    public record SearchHmstRes(
+        String prtnrNo, /*파트너번호*/
+        String prtnrKnm, /*성명*/
+        String rcpdt, /*접수일자*/
+        String slDt, /*매출일자*/
+        String cntrNo, /*계약번호*/
+        String pdNm, /*상품명*/
+        String cstKnm, /*고객명*/
+        String saleDiv, /*판매구분*/
+        int pdAccCnt, /*인정건수*/
+        int perfRental, /*렌탈*/
+        int perfSnglPmnt /*일시불*/
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstRes")

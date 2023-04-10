@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.fee.confirm.converter.WfeeIndividualFeeConverter;
 import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
 import com.kyowon.sms.wells.web.fee.confirm.dvo.WfeeIndividualFeeDvo;
 import com.kyowon.sms.wells.web.fee.confirm.mapper.WfeeIndividualFeeMapper;
-import com.kyowon.sms.wells.web.fee.confirm.converter.WfeeIndividualFeeConverter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,16 +26,42 @@ public class WfeeIndividualFeeService {
     private final WfeeIndividualFeeConverter converter;
 
     /**
-     * 수수료 개인별 실적 상세 조회
+     * 수수료 개인별 실적 상세 조회(P조직)
      * @param dto : {
      * perfYm : 실적년월,
      * no : 번호 }
      * @return 조회결과
      */
-    public List<SearchRes> getIndividualPerformanceDetails(
+    public List<SearchPlarRes> getIndividualPerformancePlarDetails(
         SearchReq dto
     ) {
-        return this.mapper.selectIndividualPerformanceDetails(dto);
+        return this.mapper.selectIndividualPerformancePlarDetails(dto);
+    }
+
+    /**
+     * 수수료 개인별 실적 상세 조회(M조직)
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public List<SearchMngerRes> getIndividualPerformanceMngerDetails(
+        SearchReq dto
+    ) {
+        return this.mapper.selectIndividualPerformanceMngerDetails(dto);
+    }
+
+    /**
+     * 수수료 개인별 실적 상세 조회(홈마스터)
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public List<SearchHmstRes> getIndividualPerformanceHmstDetails(
+        SearchReq dto
+    ) {
+        return this.mapper.selectIndividualPerformanceHmstDetails(dto);
     }
 
     /**

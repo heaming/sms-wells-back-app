@@ -1,36 +1,322 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.fee.confirm.mapper.WfeeIndividualFeeMapper">
-    <select id='selectIndividualPerformanceDetails'
-            resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchRes">
-        SELECT '1234567' AS COL1
-        , '김교원' AS COL2
-        , '2022-10-25' AS COL3
-        , '2022-11-01' AS COL4
-        , '2022-5844568' AS COL5
-        , '공기청정기AK316ESA' AS COL6
-        , '김고객' AS COL7
-        , '신규' AS COL8
-        , 12 AS COL9
-        , 12 AS COL10
-        , 123456120 AS COL11
-        , 123456120 AS COL12
-        , 123456120 AS COL13
-        FROM DUAL
-        UNION ALL
-        SELECT '1234588' AS COL1
-        , '박교원' AS COL2
-        , '2022-10-25' AS COL3
-        , '2022-11-01' AS COL4
-        , '2022-5844589' AS COL5
-        , '공기청정기AK316ESA' AS COL6
-        , '이고객' AS COL7
-        , '신규' AS COL8
-        , 10 AS COL9
-        , 10 AS COL10
-        , 123456120 AS COL11
-        , 123456120 AS COL12
-        , 123456120 AS COL13
-        FROM DUAL
+    <select id='selectIndividualPerformancePlarDetails'
+            resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchPlarRes">
+        SELECT PRTNR_NO	/*파트너번호*/
+             , PRTNR_KNM	/*성명*/
+	         , PERF_ATC_NM	/*실적구분*/
+	         , CNTRW_TP_NM	/*상품구분*/
+	         , RCPDT	/*접수일자*/
+	         , SL_DT	/*매출일자*/
+	         , CNTR_NO	/*계약번호*/
+	         , PD_NM	/*상품명*/
+	         , CST_KNM	/*고객명*/
+	         , SALE_DIV	/*판매구분*/
+             , NVL(PERF_ELHM, 0) AS PERF_ELHM	/*가전*/
+	         , NVL(PERF_CHNG, 0) AS PERF_CHNG	/*기번*/
+	         , NVL(PERF_ELHM_EXCD, 0) AS PERF_ELHM_EXCD	/*가전외*/
+          FROM
+	         ( SELECT A1.PRTNR_NO
+                    , (SELECT C.PRTNR_KNM FROM TB_OGBS_MM_PRTNR_IZ C WHERE C.BASE_YM = #{perfYm} AND C.OG_TP_CD = 'W01' AND C.PRTNR_NO = A1.PRTNR_NO AND C.DTA_DL_YN = 'N') AS PRTNR_KNM
+                    , CASE WHEN A1.PERF_ATC_CD = 'W01P00001' THEN '가전'
+                           WHEN A1.PERF_ATC_CD = 'W01P00002' THEN '기변'
+			               WHEN A1.PERF_ATC_CD = 'W01P00004' THEN '가전 외'
+			               ELSE '' END AS PERF_ATC_NM		/*실적구분*/
+		            , F_CMZ_CD_NM('TNT_WELLS', 'CNTRW_TP_CD', A2.CNTRW_TP_CD ) AS CNTRW_TP_NM	/*상품구분*/
+		            , A1.RCPDT	/*접수일자*/
+                    , A1.SL_DT	/*매출일자*/
+                    , A1.CNTR_NO
+                    , (SELECT C.PD_NM FROM TB_PDBS_PD_BAS C WHERE C.DTA_DL_YN = 'N' AND C.PD_CD = A1.PD_CD) AS PD_NM
+                    , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = A2.CNTR_CST_NO ) AS CST_KNM
+                    , CASE WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (15, 16, 19) THEN '재렌탈'
+	            	       WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (1, 18) THEN '기변'
+	            	       ELSE '신규' END SALE_DIV		/*판매구분*/
+                    , A1.PERF_ATC_CD
+                    , NVL(A1.PERF_VAL, 0) AS PERF_VAL	/*실적값*/
+	             FROM
+		            ( SELECT B1.CNTR_NO
+                           , B1.CNTR_SN
+                           , B1.PRTNR_NO
+                           , B2.RCPDT	/*접수일자*/
+                           , B2.SL_DT	/*매출일자*/
+                           , B2.PD_CD
+                           , B2.MCHN_CH_YN	/*기기변경여부*/
+                           , B2.MCHN_CH_TP_CD	/*기기변경유형코드*/
+                           , B1.PERF_ATC_CD	/*실적항목코드*/
+                           , B1.PERF_VAL
+		                FROM TB_FEAM_NTORP_CNTR_MM_CL B1	/*순주문파트너계약월마감*/
+		               INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL B2	/*웰스순주문계약월마감*/
+		                  ON B1.BASE_YM = B2.BASE_YM
+                         AND B1.PERF_YM = B2.PERF_YM
+                         AND B1.FEE_TCNT_DV_CD = B2.FEE_TCNT_DV_CD
+                         AND B1.CNTR_NO = B2.CNTR_NO
+                         AND B1.CNTR_SN = B2.CNTR_SN
+                         AND B1.CNTR_PERF_CRT_DV_CD = B2.CNTR_PERF_CRT_DV_CD
+		               WHERE B1.DTA_DL_YN = 'N'
+                         AND B1.BASE_YM = #{perfYm}
+			             AND B1.PERF_YM = #{perfYm}
+                         AND B1.FEE_TCNT_DV_CD = '01'
+                         AND B1.CNTR_PERF_CRT_DV_CD = '01'	/*순주문집계*/
+                         AND B1.PERF_DV_CD = '0'	/*개인판매*/
+                         AND B1.PERF_AGRG_CRT_DV_CD = '101'	/*P조직순주문실적*/
+                         AND B1.CO_CD = '2000'	/*교원프라퍼티*/
+                         AND B1.OG_TP_CD = 'W01'	/*P조직*/
+                         AND B1.PRTNR_NO = #{no}
+                         AND B1.PERF_ATC_CD IN ('W01P00001', 'W01P00002', 'W01P00004')	/*가전,기변,가전외실적*/
+	                ) A1
+	             LEFT OUTER JOIN
+		            ( SELECT B1.CNTR_NO
+                           , B1.CNTR_CST_NO
+                           , B2.CNTRW_TP_CD
+                        FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
+                        LEFT OUTER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
+                          ON B1.CNTR_NO = B2.CNTR_NO
+                         AND B2.DTA_DL_YN = 'N'
+                       WHERE B1.DTA_DL_YN = 'N'
+			             AND B1.SELL_PRTNR_NO = #{no}
+	               ) A2
+	              ON A1.CNTR_NO = A2.CNTR_NO
+            )
+        PIVOT
+	        ( SUM(PERF_VAL) FOR PERF_ATC_CD IN
+                          ( 'W01P00001' AS PERF_ELHM
+                          , 'W01P00002' AS PERF_CHNG
+                          , 'W01P00004' AS PERF_ELHM_EXCD )
+            )
+    </select>
+
+    <select id='selectIndividualPerformanceMngerDetails'
+            resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchMngerRes">
+        SELECT PRTNR_NO	/*파트너번호*/
+	         , PRTNR_KNM	/*성명*/
+             , RCPDT	/*접수일자*/
+             , SL_DT	/*매출일자*/
+             , CNTR_NO	/*계약번호*/
+             , PD_NM	/*상품명*/
+             , CST_KNM	/*고객명*/
+             , SALE_DIV	/*판매구분*/
+             , NVL(PD_ACC_CNT, 0) AS PD_ACC_CNT	/*인정건수*/
+             , NVL(PERF_RENTAL, 0) AS PERF_RENTAL	/*환경가전렌탈*/
+             , NVL(PERF_SNGL_PMNT, 0) AS PERF_SNGL_PMNT	/*환경가전일시불*/
+             , NVL(PERF_FXAM, 0) AS PERF_FXAM	/*환경가전정액*/
+             , NVL(PERF_BS_PD_ACC_CNT, 0) AS PERF_BS_PD_ACC_CNT	/*BS인정건수*/
+          FROM
+	         ( SELECT A1.PRTNR_NO
+                    , (SELECT C.PRTNR_KNM FROM TB_OGBS_MM_PRTNR_IZ C WHERE C.BASE_YM = #{perfYm} AND C.OG_TP_CD = 'W02' AND C.PRTNR_NO = A1.PRTNR_NO AND C.DTA_DL_YN = 'N') AS PRTNR_KNM
+                    , A1.RCPDT	/*접수일자*/
+                    , A1.SL_DT	/*매출일자*/
+                    , A1.CNTR_NO
+                    , (SELECT C.PD_NM FROM TB_PDBS_PD_BAS C WHERE C.DTA_DL_YN = 'N' AND C.PD_CD = A1.PD_CD) AS PD_NM
+                    , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = A2.CNTR_CST_NO ) AS CST_KNM
+                    , CASE WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (15, 16, 19) THEN '재렌탈'
+                                 WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (1, 18) THEN '기변'
+                                 ELSE '신규' END SALE_DIV		/*판매구분*/
+                    , A1.PERF_ATC_CD
+                    , NVL(A1.PERF_VAL, 0) AS PERF_VAL	/*실적값*/
+                 FROM
+                    ( SELECT B1.CNTR_NO
+                           , B1.CNTR_SN
+                           , B1.PRTNR_NO
+                           , B2.RCPDT	/*접수일자*/
+                           , B2.SL_DT	/*매출일자*/
+                           , B2.PD_CD
+                           , B2.MCHN_CH_YN	/*기기변경여부*/
+                           , B2.MCHN_CH_TP_CD	/*기기변경유형코드*/
+                           , B1.PERF_ATC_CD	/*실적항목코드*/
+                           , B1.PERF_VAL
+		                FROM
+                           /*인정건수*/
+                           ( SELECT CNTR_NO
+                                  , CNTR_SN
+                                  , PRTNR_NO
+                                  , 'W00P00000' AS PERF_ATC_CD
+                                  , SUM(NVL(PERF_VAL, 0)) AS PERF_VAL
+			                   FROM TB_FEAM_NTORP_CNTR_MM_CL	/*순주문파트너계약월마감*/
+			                  WHERE DTA_DL_YN = 'N'
+                                AND BASE_YM = #{perfYm}
+                                AND PERF_YM = #{perfYm}
+                                AND FEE_TCNT_DV_CD = '01'
+                                AND CNTR_PERF_CRT_DV_CD = '01'	/*순주문집계*/
+                                AND PERF_DV_CD = '0'	/*개인판매*/
+                                AND PERF_AGRG_CRT_DV_CD = '201'	/*M조직순주문실적*/
+                                AND CO_CD = '2000'	/*교원프라퍼티*/
+                                AND OG_TP_CD = 'W02'	/*M조직*/
+                                AND PRTNR_NO = #{no}
+                                AND PERF_ATC_CD IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017')
+			                  GROUP BY CNTR_NO, CNTR_SN, PRTNR_NO
+                              UNION ALL
+                              /*환경가전렌탈,환경가전일시불,환경가전정액,BS인정건수*/
+                             SELECT CNTR_NO
+                                  , CNTR_SN
+                                  , PRTNR_NO
+                                  , PERF_ATC_CD
+                                  , NVL(PERF_VAL, 0) AS PERF_VAL
+                               FROM TB_FEAM_NTORP_CNTR_MM_CL	/*순주문파트너계약월마감*/
+                              WHERE DTA_DL_YN = 'N'
+                                AND BASE_YM = #{perfYm}
+                                AND PERF_YM = #{perfYm}
+                                AND FEE_TCNT_DV_CD = '01'
+                                AND CNTR_PERF_CRT_DV_CD = '01'	/*순주문집계*/
+                                AND PERF_DV_CD = '0'	/*개인판매*/
+                                AND PERF_AGRG_CRT_DV_CD = '201'	/*M조직순주문실적*/
+                                AND CO_CD = '2000'	/*교원프라퍼티*/
+                                AND OG_TP_CD = 'W02'	/*M조직*/
+                                AND PRTNR_NO = #{no}
+                                AND PERF_ATC_CD IN ('W00P00003', 'W00P00004', 'W00P00005', 'W00P00011')
+                           ) B1
+                       INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL B2	/*웰스순주문계약월마감*/
+                          ON B2.FEE_TCNT_DV_CD = '01'
+                         AND B1.CNTR_NO = B2.CNTR_NO
+                         AND B1.CNTR_SN = B2.CNTR_SN
+                         AND B2.CNTR_PERF_CRT_DV_CD ='01'
+                         AND B2.DTA_DL_YN = 'N'
+	                       ) A1
+                        LEFT OUTER JOIN
+                           ( SELECT B1.CNTR_NO
+                                  , B1.CNTR_CST_NO
+                                  , B2.CNTRW_TP_CD
+                               FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
+                               LEFT OUTER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
+                                 ON B1.CNTR_NO = B2.CNTR_NO
+                                AND B2.DTA_DL_YN = 'N'
+                              WHERE B1.DTA_DL_YN = 'N'
+                                AND B1.SELL_PRTNR_NO = #{no}
+                           ) A2
+                          ON A1.CNTR_NO = A2.CNTR_NO
+                )
+            PIVOT
+	            ( SUM(PERF_VAL) FOR PERF_ATC_CD IN
+                             ( 'W00P00000' AS PD_ACC_CNT
+                             , 'W00P00003' AS PERF_RENTAL
+                             , 'W00P00004' AS PERF_SNGL_PMNT
+                             , 'W00P00005' AS PERF_FXAM
+                             , 'W00P00011' AS PERF_BS_PD_ACC_CNT )
+               )
+    </select>
+
+    <select id='selectIndividualPerformanceHmstDetails'
+            resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$SearchHmstRes">
+        SELECT PRTNR_NO	/*파트너번호*/
+	         , PRTNR_KNM	/*성명*/
+             , RCPDT	/*접수일자*/
+             , SL_DT	/*매출일자*/
+             , CNTR_NO	/*계약번호*/
+             , PD_NM	/*상품명*/
+             , CST_KNM	/*고객명*/
+             , SALE_DIV	/*판매구분*/
+             , NVL(PD_ACC_CNT, 0) AS PD_ACC_CNT	/*인정건수*/
+             , NVL(PERF_RENTAL, 0) AS PERF_RENTAL	/*렌탈*/
+             , NVL(PERF_SNGL_PMNT, 0) AS PERF_SNGL_PMNT	/*일시불*/
+          FROM
+	         ( SELECT A1.PRTNR_NO
+                    , (SELECT C.PRTNR_KNM FROM TB_OGBS_MM_PRTNR_IZ C WHERE C.BASE_YM = #{perfYm} AND C.OG_TP_CD = 'W03' AND C.PRTNR_NO = A1.PRTNR_NO AND C.DTA_DL_YN = 'N') AS PRTNR_KNM
+                    , A1.RCPDT	/*접수일자*/
+                    , A1.SL_DT	/*매출일자*/
+                    , A1.CNTR_NO
+                    , (SELECT C.PD_NM FROM TB_PDBS_PD_BAS C WHERE C.DTA_DL_YN = 'N' AND C.PD_CD = A1.PD_CD) AS PD_NM
+                    , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = A2.CNTR_CST_NO ) AS CST_KNM
+                    , CASE WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (15, 16, 19) THEN '재렌탈'
+                                 WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (1, 18) THEN '기변'
+                                 ELSE '신규' END SALE_DIV		/*판매구분*/
+                    , A1.PERF_ATC_CD
+                    , NVL(A1.PERF_VAL, 0) AS PERF_VAL	/*실적값*/
+	             FROM
+		            ( SELECT B1.CNTR_NO
+                           , B1.CNTR_SN
+                           , B1.PRTNR_NO
+                           , B2.RCPDT	/*접수일자*/
+                           , B2.SL_DT	/*매출일자*/
+                           , B2.PD_CD
+                           , B2.MCHN_CH_YN	/*기기변경여부*/
+                           , B2.MCHN_CH_TP_CD	/*기기변경유형코드*/
+                           , B1.PERF_ATC_CD	/*실적항목코드*/
+                           , B1.PERF_VAL
+		                FROM
+                           /*렌탈료*/
+                           ( SELECT CNTR_NO
+                                  , CNTR_SN
+                                  , PRTNR_NO
+                                  , 'W00P00031' AS PERF_ATC_CD
+                                  , SUM(NVL(PERF_VAL, 0)) AS PERF_VAL
+			                   FROM TB_FEAM_NTORP_CNTR_MM_CL	/*순주문파트너계약월마감*/
+			                  WHERE DTA_DL_YN = 'N'
+                                AND BASE_YM = #{perfYm}
+                                AND PERF_YM = #{perfYm}
+                                AND FEE_TCNT_DV_CD = '01'
+                                AND CNTR_PERF_CRT_DV_CD = '01'	/*순주문집계*/
+                                AND PERF_DV_CD = '0'	/*개인판매*/
+                                AND PERF_AGRG_CRT_DV_CD = '201'	/*홈마스터순주문실적: 201은 M조직임*/
+                                AND CO_CD = '2000'	/*교원프라퍼티*/
+                                AND OG_TP_CD = 'W03'	/*홈마스터*/
+                                AND PRTNR_NO = #{no}
+                                AND PERF_ATC_CD IN ('W00P00031', 'W00P00003', 'W00P00005')	/*메트리스렌탈료,환경가전렌탈료,환경가전정액*/
+                              GROUP BY CNTR_NO, CNTR_SN, PRTNR_NO
+                              UNION ALL
+                                /*일시불*/
+                             SELECT CNTR_NO
+                                  , CNTR_SN
+                                  , PRTNR_NO
+                                  , 'W00P00004' AS PERF_ATC_CD
+                                  , SUM(NVL(PERF_VAL, 0)) AS PERF_VAL
+                               FROM TB_FEAM_NTORP_CNTR_MM_CL	/*순주문파트너계약월마감*/
+                              WHERE DTA_DL_YN = 'N'
+                                AND BASE_YM = #{perfYm}
+                                AND PERF_YM = #{perfYm}
+                                AND FEE_TCNT_DV_CD = '01'
+                                AND CNTR_PERF_CRT_DV_CD = '01'	/*순주문집계*/
+                                AND PERF_DV_CD = '0'	/*개인판매*/
+                                AND PERF_AGRG_CRT_DV_CD = '201'	/*홈마스터순주문실적: 201은 M조직임*/
+                                AND CO_CD = '2000'	/*교원프라퍼티*/
+                                AND OG_TP_CD = 'W03'	/*홈마스터*/
+                                AND PRTNR_NO = #{no}
+                                AND PERF_ATC_CD IN ('W00P00004', 'W00P00006')	/*환경가전일시불,환경외일시불*/
+                              GROUP BY CNTR_NO, CNTR_SN, PRTNR_NO
+			                  UNION ALL
+			                    /*인정건수*/
+                             SELECT CNTR_NO
+                                  , CNTR_SN
+                                  , PRTNR_NO
+                                  , PERF_ATC_CD
+                                  , NVL(PERF_VAL, 0) AS PERF_VAL
+			                   FROM TB_FEAM_NTORP_CNTR_MM_CL	/*순주문파트너계약월마감*/
+			                  WHERE DTA_DL_YN = 'N'
+                                AND BASE_YM = #{perfYm}
+                                AND PERF_YM = #{perfYm}
+                                AND FEE_TCNT_DV_CD = '01'
+                                AND CNTR_PERF_CRT_DV_CD = '01'	/*순주문집계*/
+                                AND PERF_DV_CD = '0'	/*개인판매*/
+                                AND PERF_AGRG_CRT_DV_CD = '201'	/*홈마스터순주문실적: 201은 M조직임*/
+                                AND CO_CD = '2000'	/*교원프라퍼티*/
+                                AND OG_TP_CD = 'W03'	/*홈마스터*/
+                                AND PRTNR_NO = #{no}
+                                AND PERF_ATC_CD = 'W02P00002'
+		                   ) B1
+		               INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL B2	/*웰스순주문계약월마감*/
+		                  ON B2.FEE_TCNT_DV_CD = '01'
+                         AND B1.CNTR_NO = B2.CNTR_NO
+                         AND B1.CNTR_SN = B2.CNTR_SN
+                         AND B2.CNTR_PERF_CRT_DV_CD ='01'
+                         AND B2.DTA_DL_YN = 'N'
+	               ) A1
+	            LEFT OUTER JOIN
+		           ( SELECT B1.CNTR_NO
+                          , B1.CNTR_CST_NO
+                          , B2.CNTRW_TP_CD
+		               FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
+		               LEFT OUTER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
+		                 ON B1.CNTR_NO = B2.CNTR_NO
+		                AND B2.DTA_DL_YN = 'N'
+		              WHERE B1.DTA_DL_YN = 'N'
+			            AND B1.SELL_PRTNR_NO = #{no}
+	               ) A2
+	              ON A1.CNTR_NO = A2.CNTR_NO
+             )
+         PIVOT
+             ( SUM(PERF_VAL) FOR PERF_ATC_CD IN
+                           ( 'W00P00031' AS PD_ACC_CNT
+                           , 'W00P00004' AS PERF_RENTAL
+                           , 'W02P00002' AS PERF_SNGL_PMNT )
+             )
     </select>
 
 
@@ -763,7 +1049,7 @@
                                         GROUP BY M.PRTNR_NO, M.PSTN_DV_CD
                                         )P
                             ON A.PRTNR_NO  = P.PRTNR_NO
-                         WHERE A.DSB_YM = '202303'
+                         WHERE A.DSB_YM = #{perfYm}
                            AND A.OG_TP_CD = 'W02'       --M조직
                            AND A.FEE_TCNT_DV_CD = '01'  --차수구분
                            AND A.PRTNR_NO = #{no}
