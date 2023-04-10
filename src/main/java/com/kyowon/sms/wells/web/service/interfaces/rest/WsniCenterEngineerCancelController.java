@@ -25,8 +25,8 @@ public class WsniCenterEngineerCancelController {
 
     @ApiOperation(value = "고객센터 엔지니어 취소 건수 조회", notes = "고객센터 엔지니어 취소 건수 조회")
     @GetMapping
-    public int getEngineerCancelInquiry(
-        @RequestParam(required = true)
+    public int getEngineerCancels(
+        @RequestParam
         String userId
     ) {
         return service.getEngineerCancelInquiry(userId);
