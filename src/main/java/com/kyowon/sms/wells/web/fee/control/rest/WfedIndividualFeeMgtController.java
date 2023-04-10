@@ -119,32 +119,6 @@ public class WfedIndividualFeeMgtController {
         return service.getPlarEntrp(dto);
     }
 
-    @ApiOperation(value = "개인별 수수료 관리 기본정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 기본정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
-    })
-    @GetMapping("/plar-basic")
-    public FindPlarBasicRes getPlarBasic(
-        @Valid
-        SearchPlarReq dto
-    ) {
-        return service.getPlarBasic(dto);
-    }
-
-    @ApiOperation(value = "개인별 수수료 관리 총계정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 총계정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
-    })
-    @GetMapping("/plar-total-sum")
-    public FindPlarTotalSumRes getPlarTotalSum(
-        @Valid
-        SearchPlarReq dto
-    ) {
-        return service.getPlarTotalSum(dto);
-    }
-
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
@@ -196,19 +170,6 @@ public class WfedIndividualFeeMgtController {
         return service.getMngerEntrp(dto);
     }
 
-    @ApiOperation(value = "개인별 수수료 관리 기본정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 기본정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
-    })
-    @GetMapping("/mnger-basic")
-    public FindMngerBasicRes getMngerBasic(
-        @Valid
-        SearchMngerReq dto
-    ) {
-        return service.getMngerBasic(dto);
-    }
-
     @ApiOperation(value = "개인별 수수료 관리 BS내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 BS내역 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
@@ -219,19 +180,6 @@ public class WfedIndividualFeeMgtController {
         SearchMngerReq dto
     ) {
         return this.service.getMngerBeforeServices(dto);
-    }
-
-    @ApiOperation(value = "개인별 수수료 관리 총계정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 총계정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
-    })
-    @GetMapping("/mnger-total-sum")
-    public FindMngerTotalSumRes getMngerTotalSum(
-        @Valid
-        SearchMngerReq dto
-    ) {
-        return service.getMngerTotalSum(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
