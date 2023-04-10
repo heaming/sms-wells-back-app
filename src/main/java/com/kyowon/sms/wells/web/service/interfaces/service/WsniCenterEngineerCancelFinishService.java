@@ -17,12 +17,6 @@ public class WsniCenterEngineerCancelFinishService {
 
         result = mapper.updateCenterEngineerCancelFinish(asIstOjNo);
 
-        if (result == 1) {
-            resultValue = "S";
-        } else {
-            resultValue = "F";
-        }
-
-        return resultValue;
+        return result == 1 ? "S" : "F";
     }
 }

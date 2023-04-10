@@ -20,13 +20,13 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/cancel-finish")
-public class WsniCenterEngineerCancelFinishController {
+public class WsniCenterEngineerCancelFinishInterfaceController {
     private final WsniCenterEngineerCancelFinishService service;
 
     @ApiOperation(value = "고객센터 엔지니어 취소 완료처리")
     @PostMapping
     public String editCenterEngineerCancelFinish(
-        @RequestParam(required = true)
+        @RequestParam
         String asIstOjNo
     ) {
         return service.editCenterEngineerCancelFinish(asIstOjNo);
