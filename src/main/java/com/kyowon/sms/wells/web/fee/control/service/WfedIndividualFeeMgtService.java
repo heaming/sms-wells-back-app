@@ -102,28 +102,6 @@ public class WfedIndividualFeeMgtService {
     }
 
     /**
-     * 개인별 수수료 관리 P조직 기본정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindPlarBasicRes getPlarBasic(SearchPlarReq dto) {
-        return mapper.selectPlarBasic(dto);
-    }
-
-    /**
-     * 개인별 수수료 관리 P조직 총계정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindPlarTotalSumRes getPlarTotalSum(SearchPlarReq dto) {
-        return mapper.selectPlarTotalSum(dto);
-    }
-
-    /**
      * 개인별 수수료 관리 P조직 공제 내역 조회
      * @param dto : {
      * perfYm : 실적년월,
@@ -170,17 +148,6 @@ public class WfedIndividualFeeMgtService {
     }
 
     /**
-     * 개인별 수수료 관리 M조직 기본정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindMngerBasicRes getMngerBasic(SearchMngerReq dto) {
-        return mapper.selectMngerBasic(dto);
-    }
-
-    /**
      * 개인별 수수료 관리 M조직 BS 목록 조회
      * @param dto : {
      * perfYm : 실적년월,
@@ -191,17 +158,6 @@ public class WfedIndividualFeeMgtService {
         SearchMngerReq dto
     ) {
         return this.mapper.selectMngerBeforeServices(dto);
-    }
-
-    /**
-     * 개인별 수수료 관리 M조직 총계정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindMngerTotalSumRes getMngerTotalSum(SearchMngerReq dto) {
-        return mapper.selectMngerTotalSum(dto);
     }
 
     /**
