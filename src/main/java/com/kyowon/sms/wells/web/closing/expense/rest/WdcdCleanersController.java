@@ -24,7 +24,7 @@ import java.util.List;
 @RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/cleaners")
 public class WdcdCleanersController {
 
-    private final WdcdCleanersService searvice;
+    private final WdcdCleanersService service;
 
     @ApiOperation(value = "청소 용픔비 관리 - 청소원 관리", notes = "청소원 관리 조회")
     @ApiImplicitParams(value = {
@@ -34,7 +34,7 @@ public class WdcdCleanersController {
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getCleanerPages(@Valid SearchReq req, PageInfo pageInfo) {
-        return searvice.getCleanerPages(req, pageInfo);
+        return service.getCleanerPages(req, pageInfo);
     }
 
     @ApiOperation(value = "청소 용픔비 관리 - 청소원 관리", notes = "청소원 관리 엑셀다운")
@@ -45,11 +45,11 @@ public class WdcdCleanersController {
     })
     @GetMapping("/excel-download")
     public List<SearchRes> getCleanersForExcelDownload(@Valid SearchReq req) {
-        return searvice.getCleanersForExcelDownload(req);
+        return service.getCleanersForExcelDownload(req);
     }
 
     @DeleteMapping
     public int removeCleanersManagement(@RequestBody List<String> clinrRgnos) {
-        return searvice.removeCleanersManagement(clinrRgnos);
+        return service.removeCleanersManagement(clinrRgnos);
     }
 }
