@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.wells.web.product.manage.dto.WpdcAsPartMgtDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -28,5 +29,12 @@ public interface WpdcAsPartMgtMapper {
      * @return
      */
     List<WpdcAsPartMgtDto.SearchRes> selectAsPartPages(WpdcAsPartMgtDto.SearchReq dto);
+
+    /**
+     * 유효성 체크 조회
+     * @param dto
+     * @return
+     */
+    String selectValidation(ValidationReq dto);
 
 }

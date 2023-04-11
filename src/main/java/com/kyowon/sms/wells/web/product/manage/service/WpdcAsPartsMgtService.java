@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyowon.sms.common.web.product.category.service.ZpdaClassificationMgtService;
 import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
@@ -288,5 +289,14 @@ public class WpdcAsPartsMgtService {
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
 
+    }
+
+    /**
+     * 유효성 체크 조회
+     * @param dto
+     * @return
+     */
+    public String checkValidation(ValidationReq dto) {
+        return this.mapper.selectValidation(dto);
     }
 }
