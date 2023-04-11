@@ -81,4 +81,41 @@ public class WsnaMovementStoreDto {
         String strWareNm,
         String pdNm
     ) {}
+
+    public record MovementOstrMngtReq(
+        String stckStdGb,
+        String itmOstrNo,
+        String ostrWareNo,
+        String strWareNo
+    ) {}
+    public record MovementOstrMngtRes(
+        String chk,
+        String flag,
+        String itmOstrNo,
+        String ostrTpCd,
+        String ostrWareNo,
+        String ostrDt,
+        String ostrSn,
+        String itmPdCd,
+        String pdNm,
+        String itemLoc,
+        String itmGdCd,
+        String onQty,
+        String mngtUnitCd,
+        String boxUnitQty,
+        String reqQTy,
+        String outRegDt,
+        String ostrQty,
+        String qty1,
+        String qty2,
+        String rmkCn,
+        String ostrCnfmCd,
+        String ser,
+        String sellRcpdt,
+        String inSum,
+        String pdPrpVal15,
+        String pdPrpVal16,
+        String sapMatCd
+
+    ) {}
 }

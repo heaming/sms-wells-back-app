@@ -41,5 +41,15 @@ public interface WsnaMovementStoreMapper {
     */
     List<MovementRes> selectMoveMentStrIzs(SearchReq dto);
 
-    PagingResult<MovementOstrRes> selectMoveMentStrOstrIzs(MovementOstrReq dto, PageInfo pageInfo);
+    PagingResult<MovementOstrRes> selectMovementStoresMngt(MovementOstrReq dto, PageInfo pageInfo);
+
+    PagingResult<MovementOstrRes> selectMovementStoresMngt(MovementOstrReq dto);
+
+    PagingResult<MovementOstrMngtRes> selectMovementStoresReg(MovementOstrMngtReq dto, PageInfo pageInfo);
+
+    List<MovementOstrMngtRes> selectMovementStoresReg(MovementOstrMngtReq dto);
+
+    int editWareHouseStandardY(String baseYm, String wareNo);
+
+    int editWareHouseStandardN(String baseYm, String wareNo);
 }
