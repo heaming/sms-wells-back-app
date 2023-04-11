@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchMembershipRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRegularRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRentalRes;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbSalesPerformanceDetailService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
@@ -62,5 +63,17 @@ public class WdcbSalesPerformanceDetailController {
         String slDt
     ) {
         return service.getRentalSalesDetail(slDt);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 정기배송매출 상세내역", notes = "조회조건에 따른 렌탈매출 상세내역을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
+    })
+    @GetMapping("/regular-shipping-detail")
+    public SearchRegularRes getRegularShippingDetail(
+        @RequestParam
+        String slDt
+    ) {
+        return service.getRegularShippingDetail(slDt);
     }
 }
