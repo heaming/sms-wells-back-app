@@ -10,6 +10,9 @@
              , CLCTAM_PRTNR_NO
              , PRTNR_KNM
              , CST_NO
+             , BND_CNTR_TP_CD
+             , BZ_HDQ_DV_CD
+             , DTA_DL_YN
              , SPP_ZIP
              , SPP_ADR
              , SPP_DTL_ADR
@@ -34,7 +37,7 @@
           FROM
              (
                SELECT T1.BND_BIZ_DV_CD    /* 채권업무구분코드 */
-                    , F_CMZ_CD_NM(#{session.tenantId}, 'BND_BIZ_DV_CD', T1.BND_BIZ_DV_CD) AS BND_BIZ_DV_NM  /* 채권업무구분코드명 */
+                    , F_CMZ_CD_NM('TNT_WELLS', 'BND_BIZ_DV_CD', T1.BND_BIZ_DV_CD) AS BND_BIZ_DV_NM  /* 채권업무구분코드명 */
                     , T1.CNTR_NO  /* 계약번호 */
                     , T1.CNTR_SN  /* 계약일련번호 */
                     , ( SELECT CST_KNM
@@ -45,6 +48,9 @@
                          FROM TB_OGBS_PRTNR_BAS
                          WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO)  AS PRTNR_KNM   /* 집급담당파트너명 */
                      , T1.CST_NO /* 고객번호 */
+                     , T1.BND_CNTR_TP_CD
+                     , T1.BZ_HDQ_DV_CD
+                     , T1.DTA_DL_YN
                      , T2.SPP_ZIP /* 계약처우편번호 */
                      , T2.SPP_ADR /* 계약처기본주소 */
                      , T2.SPP_DTL_ADR  /* 계약처상세주소 */
@@ -65,9 +71,9 @@
                          FROM TB_CUBS_CST_BAS
                          WHERE CST_NO = T1.CST_NO) AS SAFE_KEY  /* 세이프키*/
                      , T4.BND_CLCTN_PRP_DV_CD  /* 채권속성코드 */
-                     , F_CMZ_CD_NM(#{session.tenantId}, 'BND_CLCTN_PRP_DV_CD', T4.BND_CLCTN_PRP_DV_CD) AS BND_CLCTN_PRP_DV_NM  /* 채권속성명 */
+                     , F_CMZ_CD_NM('TNT_WELLS', 'BND_CLCTN_PRP_DV_CD', T4.BND_CLCTN_PRP_DV_CD) AS BND_CLCTN_PRP_DV_NM  /* 채권속성명 */
                      , T4.BND_CLCTN_PRP_RSON_CD  /* 속성사유코드 */
-                     , F_CMZ_CD_NM(#{session.tenantId}, 'BND_CLCTN_PRP_RSON_CD', T4.BND_CLCTN_PRP_RSON_CD) AS BND_CLCTN_PRP_RSON_NM  /* 속성사유명 */
+                     , F_CMZ_CD_NM('TNT_WELLS', 'BND_CLCTN_PRP_RSON_CD', T4.BND_CLCTN_PRP_RSON_CD) AS BND_CLCTN_PRP_RSON_NM  /* 속성사유명 */
                   FROM TB_CBBO_BND_CNSL_BAS_IZ T1
                   LEFT OUTER JOIN (
                                     SELECT CR.CNTR_ADRPC_ID
@@ -108,7 +114,7 @@
                                       LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB
                                         ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
                                      WHERE CR.CNTR_UNIT_TP_CD = '020'
-                                       AND CR.ADRPC_TP_CD = '2'  /* 설치주소 */
+                                       AND CR.ADRPC_TP_CD = '3'  /* 설치주소 */
                                        AND CR.DTA_DL_YN = 'N'
                                   ) T3
                     ON T3.DTL_CNTR_NO = T1.CNTR_NO
@@ -118,6 +124,8 @@
                    AND T4.CNTR_SN = T1.CNTR_SN
              )
          WHERE 1=1
+           AND BND_CNTR_TP_CD = '01'  /* 계약 */
+           AND BZ_HDQ_DV_CD = '20'  /* WELLS */
            <if test='@MybatisUtils@isNotEmpty(clctamPrtnrNo)'>
            AND CLCTAM_PRTNR_NO = #{clctamPrtnrNo}
            </if>
@@ -145,5 +153,6 @@
            <if test='@MybatisUtils@isNotEmpty(adr) '>
            AND ADR LIKE '%' || #{adr} || '%'
            </if>
+           AND DTA_DL_YN = 'N'
     </select>
 </mapper>
