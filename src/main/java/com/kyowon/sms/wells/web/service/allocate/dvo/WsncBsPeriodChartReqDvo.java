@@ -33,4 +33,6 @@ public class WsncBsPeriodChartReqDvo {
     String crtErrCn;
     String pgrmId;
     String vVs107CnclDt;
+    String newGdsCD;
+    String newPartList;
 }
