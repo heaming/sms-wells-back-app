@@ -1,17 +1,15 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
+
+import java.util.HashMap;
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto;
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchWarehouse;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
 
 @Mapper
 public interface WsnaNormalOutOfStorageMapper {
@@ -24,4 +22,14 @@ public interface WsnaNormalOutOfStorageMapper {
     PagingResult<AskRes> selectAskMaterialsHavePss(AskReq dto, PageInfo pageInfo);
 
     PagingResult<CenterRes> selectAskMaterialsCenterPresentState(AskReq dto, PageInfo pageInfo);
+
+    PagingResult<DetailRes> selectNormalOutOfStoragesDetails(DetailReq dto, PageInfo pageInfo);
+
+    int insertNormalOstrRgst(WsnaNormalOutOfStorageDvo vo);
+
+    int insertNormalStrRgst(WsnaNormalOutOfStorageDvo vo);
+
+    int selectNormalOstrRgstChecked(CheckedReq dto);
+
+    HashMap<String, String> selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
 }
