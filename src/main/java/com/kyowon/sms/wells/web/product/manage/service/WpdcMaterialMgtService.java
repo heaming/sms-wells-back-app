@@ -221,7 +221,7 @@ public class WpdcMaterialMgtService {
      * @return
      * @throws Exception
      */
-    public List<ExcelUploadErrorDvo> checkValidationForExcelUpload(
+    public List<ExcelUploadErrorDvo> checkDataValidation(
         List<Map<String, Object>> excelData,
         List<ZpdcPropertyMetaDvo> metaItems,
         List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
@@ -312,7 +312,7 @@ public class WpdcMaterialMgtService {
 
         // #2. Number Type - 숫자만 입력 가능합니다.
         if (PdProductConst.DTA_TP_NUMBER.equals(metaVo.getDtaTpCd())
-            && !compareValue.matches("[-+]?\\d*\\.?\\d+")) {
+            && !compareValue.matches("[-+]?\\d*\\.?\\d+|")) {
             ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
             errorVo.setHeaderName(metaVo.getPrpNm());
             errorVo.setErrorRow(rowIndex);

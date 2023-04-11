@@ -139,7 +139,7 @@ public class WpdcMaterialMgtController {
         List<ZpdcPropertyMetaDvo> mendatoryColumns = metaItems.stream()
             .filter(x -> PdProductConst.MNDT_Y.equals(x.getMndtYn())).toList();
         List<ExcelUploadErrorDvo> headerErrors = excelReadService
-            .readExcelHeader(file, mendatoryColumns);
+            .checkHeaderValidation(file, mendatoryColumns);
 
         // Excel Data Drm 해제 및 Data 파싱.
         List<Map<String, Object>> excelData = excelReadService.readExcel(file);
@@ -171,7 +171,7 @@ public class WpdcMaterialMgtController {
 
             // 유효성 체크
             List<ExcelUploadErrorDvo> dataErrors = service
-                .checkValidationForExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl);
+                .checkDataValidation(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl);
 
             if (dataErrors.size() > 0) {
                 uploadStatus = PdProductConst.EXCEL_UPLOAD_ERROR;
