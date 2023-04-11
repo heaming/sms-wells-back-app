@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.service.PdExcelReadService;
@@ -189,5 +190,10 @@ public class WpdcAsPartsMgtController {
                 .build();
         }
 
+    }
+
+    @GetMapping("/check-validation")
+    public String checkValidation(ValidationReq dto) {
+        return this.service.checkValidation(dto);
     }
 }
