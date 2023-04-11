@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbMachineChangeSta
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.Builder;
@@ -29,50 +30,49 @@ public class WctbMachineChangeStatusService {
     /**
       * 기기 변경 고객 유효성 확인
       * @programId  W-SS-S-0049
-      * @param  dvo
-      * @return dvo
+      * @param  inDvo
+      * @return inDvo
       */
-    public WctbMachineChStatInOutDvo getMachineChangeStatus(WctbMachineChStatInOutDvo dvo) throws Exception{
-        ValidAssert.hasText(dvo.getCntrNo());
-        ValidAssert.hasText(dvo.getCntrSn());
-        ValidAssert.hasText(dvo.getBasePdCd());
+    public WctbMachineChStatInOutDvo getMachineChangeStatus(WctbMachineChStatInOutDvo inDvo) throws Exception {
+        ValidAssert.hasText(inDvo.getCntrNo());
+        ValidAssert.hasText(inDvo.getCntrSn());
+        ValidAssert.hasText(inDvo.getCstNo());
+        ValidAssert.hasText(inDvo.getPdCd());
 
         String rctDt = DateUtil.getNowDayString();
-        dvo.setRctDt(rctDt);
+        inDvo.setRctDt(rctDt);
 
         //기본 정보 조회
-        WctbMachineChStatBasInfDvo baseInfoDvo = mapper.selectContractBaseInfo(dvo);
+        WctbMachineChStatBasInfDvo baseInfoDvo = mapper.selectContractBaseInfo(inDvo);
 
-        if(baseInfoDvo == null){
-            throw new BizException("MSG_ALT_CHK_CNTR_SN"); // 계약일련번호를 확인해주세요.
+        BizAssert.notNull(baseInfoDvo, "MSG_ALT_CHK_CNTR_SN"); // 계약일련번호를 확인해주세요.
+        BizAssert.notNull(baseInfoDvo.getIstDt(), "MSG_ALT_UNINSTALL_CUSTOMER"); // message : 미설치 고객입니다.
 
-        }else if(StringUtils.isEmpty(baseInfoDvo.getIstDt())){
-            throw new BizException("MSG_ALT_UNINSTALL_CUSTOMER"); // 미설치 고객입니다.
-
-        }else if("1".equals(baseInfoDvo.getSellTpCd()) && baseInfoDvo.getIstmMcn() > 0 && StringUtils.isEmpty(baseInfoDvo.getFulpyDt())){
-            throw new BizException("MSG_ALT_FULL_PAYMENT_PSBL"); //할부고객일 때, 할부완납의 경우만 가능합니다.
+        if ("1".equals(baseInfoDvo.getSellTpCd()) && baseInfoDvo.getIstmMcn() > 0
+            && StringUtils.isEmpty(baseInfoDvo.getFulpyDt())) {
+            throw new BizException("MSG_ALT_FULL_PAYMENT_PSBL"); // message : 할부고객일 때, 할부완납의 경우만 가능합니다.
 
         }else if(baseInfoDvo.getEotDlqAmt() > 0 ){
             //연체금액이 존재하는 경우, 계약예외 여부 조회
-            if("N".equals(mapper.selectDlqExYn("W02", dvo.getCstNo()))){    // 02 - 렌탈 기변 상대코드 연체건 접수 허용
-                throw new BizException("MSG_ALT_DEVICE_CH_IMP_DLQ"); //연체고객은 기기변경이 불가합니다.
+            if ("N".equals(mapper.selectDlqExYn("W02", inDvo.getCstNo()))) { // 02 - 렌탈 기변 상대코드 연체건 접수 허용
+                throw new BizException("MSG_ALT_DEVICE_CH_IMP_DLQ"); // message : 연체고객은 기기변경이 불가합니다.
             }
-        }else if(baseInfoDvo.getEotUcAmt() > 0 && !dvo.getCstNo().equals(baseInfoDvo.getCntrCstNo())){
-            throw new BizException("MSG_ALT_INVALID_CST_NO_BFAF"); //미수고객이면서 기변 이전/이후 고객번호가 다릅니다.
+        } else if (baseInfoDvo.getEotUcAmt() > 0 && !inDvo.getCstNo().equals(baseInfoDvo.getCntrCstNo())) {
+            throw new BizException("MSG_ALT_INVALID_CST_NO_BFAF"); // message : 미수고객이면서 기변 이전/이후 고객번호가 다릅니다.
         }
 
         //기기변경가능여부 확인
         if(mapper.selectMachineChPsbYn(baseInfoDvo.getPdCd()) <= 0){
-            throw new BizException("MSG_ALT_DEVICE_CH_IMP_PD"); // 기기변경 가능 상품이 아닙니다.
+            throw new BizException("MSG_ALT_DEVICE_CH_IMP_PD"); // message : 기기변경 가능 상품이 아닙니다.
         }
 
         //상품분류 확인
-        String pdClsf = mapper.selectProductClsf(dvo.getBasePdCd()).orElseGet(String::new);
+        String pdClsf = mapper.selectProductClsf(inDvo.getPdCd()).orElseGet(String::new);
         if (!pdClsf.equals(
             StringUtils.defaultString(baseInfoDvo.getPdHclsfId())
-                + StringUtils.defaultString(baseInfoDvo.getPdMclsfId())
+                .concat(StringUtils.defaultString(baseInfoDvo.getPdMclsfId()))
         )) {
-            throw new BizException("MSG_ALT_INVALID_CST_SAME_PD"); //동일 종류의 제품 구입 고객이 아닙니다.
+            throw new BizException("MSG_ALT_INVALID_CST_SAME_PD"); // message : 동일 종류의 제품 구입 고객이 아닙니다.
         }
 
         //주요날짜 계산
@@ -95,7 +95,7 @@ public class WctbMachineChangeStatusService {
                                                         .substring(0, 6));
                 int nowYM = Integer.parseInt(DateUtil.getNowDayString().substring(0, 6));
                 if(reqd6YM <= nowYM){
-                    throw new BizException("MSG_ALT_DEVICE_CH_IMP_UNINSTALL_6MTH");
+                    throw new BizException("MSG_ALT_DEVICE_CH_IMP_UNINSTALL_6MTH"); // message : 취소 후 6개월 경과!, 기기변경이 불가합니다.
                 }
             }
 
@@ -105,13 +105,13 @@ public class WctbMachineChangeStatusService {
         }
 
         //기기변경 관련 최종 상태 체크
-        FindRes validResult = checkValidMachindChangeStatus(dvo);
+        FindRes validResult = checkValidMachindChangeStatus(inDvo);
 
         String workFlag = validResult.workFlag();
         String msgCd = validResult.msgCd();
         int workRat1 = 0;
 
-        if("22".equals(baseInfoDvo.getAlncmpCd())){
+        if ("22".equals(inDvo.getAlncmpCd())) {
             workRat1 =  switch (workFlag){
                             case "15", "16" -> 90;
                             case "18" -> 0;
@@ -120,9 +120,16 @@ public class WctbMachineChangeStatusService {
         }else{
             workRat1 =  switch (workFlag){
                             case "15", "16" -> 80;
-                            case "18" -> "W01".equals(baseInfoDvo.getSellOgTpCd())? 10: "2".equals(baseInfoDvo.getCopnDvCd())? 50: 20;
+                            case "18" -> "W01".equals(inDvo.getOgTpCd()) ? 10 : 20;
                             default -> 0;
                         };
+        }
+
+        if ("18".equals(workFlag)
+            && "W01".equals(inDvo.getOwnrsExnDt())
+            && "2".equals(baseInfoDvo.getCopnDvCd())
+            && !"22".equals(inDvo.getAlncmpCd())) {
+            workRat1 = 50;
         }
 
         // 리턴 메시지 SET
@@ -140,37 +147,38 @@ public class WctbMachineChangeStatusService {
 
         // 의무기간 이내 기변 등록 불가(의무기간 예외처리 체크)
         if("01".equals(workFlag)) {
-            if ("N".equals(mapper.selectDlqExYn("W03", dvo.getCntrNo() + dvo.getCntrSn()))) {    // 02 - 03 - 렌탈 기변 의무기간내 접수허용
-                throw new BizException("MSG_ALT_DEVICE_CH_IMP_DUTY_TERM"); // 의무기간 내 기변 등록 불가!
+            if ("N".equals(mapper.selectDlqExYn("W03", inDvo.getCntrNo() + inDvo.getCntrSn()))) { // 02 - 03 - 렌탈 기변 의무기간내 접수허용
+                throw new BizException("MSG_ALT_DEVICE_CH_IMP_DUTY_TERM"); // message : 의무기간 내 기변 등록 불가!
             }
         }
 
-        if("2".equals(dvo.getDscTp()) && "2".equals(dvo.getSellTpCd())){
+        if ("2".equals(inDvo.getDscTp()) && "2".equals(inDvo.getSellTpCd())) {
             if(StringUtils.containsAny(workFlag, "01", "18")){
                 String messageDetail = messageService
                     .getMessage("3".equals(baseInfoDvo.getSellTpDtlCd()) ? "MSG_TXT_FNN_LEASE" : "MSG_TXT_RENTAL");
-                throw new BizException("MSG_ALT_DEVICE_CH_IMP_EMP_PRCHS", messageDetail); // "직원구매! (금융리스 OR 렌탈 - 57차월미만 기변 불가!"
+                throw new BizException("MSG_ALT_DEVICE_CH_IMP_EMP_PRCHS", messageDetail); // message : 직원구매! (금융리스 OR 렌탈 - 57차월미만 기변 불가!
             }
         }
 
         //최종 세팅
-        dvo.setWorkFlag(workFlag);
-        dvo.setResultDvCheck(msgCd);
-        dvo.setResultMessage(returnMessage);
-        dvo.setFinalPerfRt(workRat1);
-        dvo.setPtyCopnDvCd(baseInfoDvo.getCopnDvCd());
-        dvo.setPdCd(baseInfoDvo.getPdCd());
-        dvo.setRentalNmnN(baseInfoDvo.getRentalNmnN());
-        dvo.setRerntPsbDt(rental57Dt);
-        dvo.setStplDutyStrtDt(dutyPermStrtDt);
-        dvo.setStplDutyEndDt(dutyPermEndDt);
-        dvo.setRstlDutyStrtDt(baseInfoDvo.getStplStrtdt());
-        dvo.setRstlDutyEndDt(baseInfoDvo.getStplEnddt());
-        dvo.setOwnrsExnDt(rentalExpDt);
-        dvo.setDlqAmt(baseInfoDvo.getEotDlqAmt());
-        dvo.setUcAmt(baseInfoDvo.getEotUcAmt());
+        inDvo.setWorkFlag(workFlag);
+        inDvo.setResultDvCheck(msgCd);
+        inDvo.setResultMessage(returnMessage);
+        inDvo.setFinalPerfRt(workRat1);
+        inDvo.setPtyCopnDvCd(baseInfoDvo.getCopnDvCd());
+        inDvo.setPdCd(baseInfoDvo.getPdCd());
+        inDvo.setRentalNmnN(baseInfoDvo.getRentalNmnN());
+        inDvo.setRerntPsbDt(rental57Dt);
+        inDvo.setStplDutyStrtDt(dutyPermStrtDt);
+        inDvo.setStplDutyEndDt(dutyPermEndDt);
+        inDvo.setRstlDutyStrtDt(baseInfoDvo.getStplStrtdt());
+        inDvo.setRstlDutyEndDt(baseInfoDvo.getStplEnddt());
+        inDvo.setOwnrsExnDt(rentalExpDt);
+        inDvo.setDlqAmt(baseInfoDvo.getEotDlqAmt());
+        inDvo.setUcAmt(baseInfoDvo.getEotUcAmt());
+        inDvo.setRecapDutyPtrmN(baseInfoDvo.getRecapDutyPtrmN());
 
-        return dvo;
+        return inDvo;
     }
 
 
@@ -193,7 +201,6 @@ public class WctbMachineChangeStatusService {
 
         String rctDt  = DateUtil.getNowDayString();
         String sellTpCd = dvo.getSellTpCd();
-
         String workFlag = "01";
         String msgCd = "";
 

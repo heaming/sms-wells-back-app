@@ -27,6 +27,7 @@ public interface WctaMachineChangeCstConverter {
     @Mapping(source = "validDvo.ownrsExnDt", target = "ownrsExnDt")
     @Mapping(source = "validDvo.dlqAmt", target = "dlqAmt")
     @Mapping(source = "validDvo.ucAmt", target = "ucAmt")
+    @Mapping(source = "validDvo.recapDutyPtrmN", target = "recapDutyPtrmN")
     @Mapping(source = "baseInfoDvo.adr", target = "adr")
     @Mapping(source = "baseInfoDvo.sellTpCd", target = "sellTpCd")
     @Mapping(source = "baseInfoDvo.cstKnm", target = "cstKnm")
