@@ -9,8 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctaOrderDetailRentalPagesDvo {
-    private String cntrNoFull; /* 계약상세번호 */
-    private String ordrInfoView; /* 주문정보 보기 */
+    private String cntrDtlNo; /* 계약상세번호 */
     private String sellTpDtlNm; /* 판매유형 */
     private String dgr3LevlDgPrtnrNo; /* 파트너정보-지점장 사번 */
     private String dgr3LevlDgPrtnrNm; /* 파트너정보-지점장명 */
@@ -83,7 +82,7 @@ public class WctaOrderDetailRentalPagesDvo {
     private String dscApyTpCd; /* 할인유형 */
     private String dscPmotCd; /* 할인제도 */
     private String mchnChTpCd; /* 기변유형 */
-    private String ojCntrNoFull; /* 기변상대코드 */
+    private String ojCntrDtlNo; /* 기변상대코드 */
     private String ojBasePdCd; /* 기변이전상품 */
     private String ojPdNm; /* 기변이전상품명 */
     private String bogoCd; /* １＋１연계코드 */
@@ -111,7 +110,6 @@ public class WctaOrderDetailRentalPagesDvo {
     private String pmotFvrMcn; /* 프로모션 정보-할인개월 */
     private String pmotFvrAmt; /* 프로모션 정보-할인금액 */
     private String frisuBfsvcPtrmN; /* 프로모션 정보-무료개월 */
-    private String connPdView; /* 연계상품 조회 */
     private String canPdGdCd; /* 취소등급 */
     private String freExpnYn; /* 무료체험여부 */
     private String freExpnCnfmStrtdt; /* 무료체험시작일 */

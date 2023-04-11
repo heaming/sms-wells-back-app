@@ -7,6 +7,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaOrderDetailConverter;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailMembershipPagesRequestDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailRentalPagesRequestDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailSinglePaymentPagesRequestDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailMngtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,8 +25,14 @@ public class WctaOrderDetailMngtService {
     private final WctaOrderDetailConverter converter;
 
     public PagingResult<SearchRes> getOrderDetailRentalPages(SearchReq dto, PageInfo pageInfo) {
-        return converter
-            .mapWctaOrderDetailRentalPagesDvoToSearchRes(mapper.selectOrderDetailRentalPages(dto, pageInfo));
+        WctaOrderDetailRentalPagesRequestDvo dvo = converter.mapSearchReqToWctaOrderDetailRentalPagesDvo(dto);
+
+        // PagingResult<WctaOrderDetailRentalPagesDvo> pagingResultDvo = mapper.selectOrderDetailRentalPages(dvo, pageInfo);
+        PagingResult<SearchRes> pagingResultDto = converter
+            .mapWctaOrderDetailRentalPagesDvoToSearchRes(mapper.selectOrderDetailRentalPages(dvo, pageInfo));
+        pagingResultDto.setPageInfo(pageInfo);
+
+        return pagingResultDto;
     }
 
     public List<SearchRes> getOrderDtlRentalExcels(SearchReq dto) {
@@ -33,10 +42,16 @@ public class WctaOrderDetailMngtService {
     public PagingResult<SearchOrderDetailMshPagesRes> getOrderDetailMshPages(
         SearchOrderDetailMshPagesReq dto, PageInfo pageInfo
     ) {
-        return converter
+        WctaOrderDetailMembershipPagesRequestDvo dvo = converter
+            .mapSearchOrderDetailMshPagesReqToWctaOrderDetailMembershipPagesDvo(dto);
+
+        PagingResult<SearchOrderDetailMshPagesRes> pagingResultDto = converter
             .mapWctaOrderDetailMembershipPagesDvoToSearchOrderDetailMshPagesRes(
-                mapper.selectOrderDetailMshPages(dto, pageInfo)
+                mapper.selectOrderDetailMshPages(dvo, pageInfo)
             );
+        pagingResultDto.setPageInfo(pageInfo);
+
+        return pagingResultDto;
     }
 
     public List<SearchOrderDetailMshPagesRes> getOrderDetailMshExcels(SearchOrderDetailMshPagesReq dto) {
@@ -45,13 +60,39 @@ public class WctaOrderDetailMngtService {
         );
     }
 
+    public PagingResult<SearchOrderDetailSnglPmntPagesRes> getOrderDetailSpayCntrtPages(
+        SearchOrderDetailSnglPmntPagesReq dto, PageInfo pageInfo
+    ) {
+        WctaOrderDetailSinglePaymentPagesRequestDvo dvo = converter
+            .mapSearchOrderDetailSnglPmntPagesReqToWctaOrderDetailSinglePaymentPagesDvo(dto);
+
+        PagingResult<SearchOrderDetailSnglPmntPagesRes> pagingResultDto = converter
+            .mapWctaOrderDetailSinglePaymentPagesDvoToSearchOrderDetailSnglPmntPagesRes(
+                mapper.selectOrderDetailSpayCntrtPages(dvo, pageInfo)
+            );
+        pagingResultDto.setPageInfo(pageInfo);
+
+        return pagingResultDto;
+    }
+
+    public List<SearchOrderDetailSnglPmntPagesRes> getOrderDetailSpayCntrtPagesExcelDownload(
+        SearchOrderDetailSnglPmntPagesReq dto
+    ) {
+        return converter.mapWctaOrderDetailSinglePaymentPagesExcelDvoToSearchOrderDetailSnglPmntPagesRes(
+            mapper.selectOrderDetailSpayCntrtPages(dto)
+        );
+    }
+
     public PagingResult<SearchOrderDetailRglrDlvrPagesRes> getOrderRegularShippingsPages(
         SearchOrderDetailRglrDlvrPagesReq dto, PageInfo pageInfo
     ) {
-        return converter
+        PagingResult<SearchOrderDetailRglrDlvrPagesRes> pagingResultDto = converter
             .mapWctaOrderDetailRglrDlvrPagesDvoToSearchOrderDetailRglrDlvrPagesRes(
                 mapper.selectOrderRegularShippingsPages(dto, pageInfo)
             );
+        pagingResultDto.setPageInfo(pageInfo);
+
+        return pagingResultDto;
     }
 
     public List<SearchOrderDetailRglrDlvrPagesRes> getOrderRegularShippingsExcels(

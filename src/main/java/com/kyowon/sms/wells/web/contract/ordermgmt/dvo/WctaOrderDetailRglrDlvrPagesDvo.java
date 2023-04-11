@@ -10,7 +10,6 @@ import lombok.Setter;
 @Setter
 public class WctaOrderDetailRglrDlvrPagesDvo {
     private String cntrDtlNo; /* 계약상세번호 */
-    private String ordrInfoView; /* 주문정보 보기 */
     private String dgr3LevlDgPrtnrNo; /* 파트너정보-지점장 사번 */
     private String dgr3LevlDgPrtnrNm; /* 파트너정보-지점장명 */
     private String dgr3LevlOgCd; /* 파트너정보-지점코드 */
@@ -106,7 +105,6 @@ public class WctaOrderDetailRglrDlvrPagesDvo {
     private String lkIstDt; /* 연계정보-설치일 */
     private String lkIstNmnN; /* 연계정보-설치차월 */
     private String lkReqdDt; /* 연계정보-철거일자 */
-    private String connPdView; /* 연계상품 조회 */
     private String pmotNm; /* 프로모션명 */
     private String pmotTpCd; /* 프로모션유형 */
     private String pmotCd; /* 프로모션 코드 */
