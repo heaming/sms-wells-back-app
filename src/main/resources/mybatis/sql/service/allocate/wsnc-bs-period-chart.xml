@@ -14,7 +14,7 @@
              , TB_2.PDCT_PD_CD
              , TB_4.IST_DT
              , CEIL(MONTHS_BETWEEN(SUBSTR(TB_3.CNTR_PD_STRTDT,1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS
-             , CEIL(MONTHS_BETWEEN(SUBSTR(TB_3.CNTR_PD_STRTDT,1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS_BS04
+             , CEIL(MONTHS_BETWEEN(SUBSTR(TO_CHAR(SYSDATE, 'YYYYMMDD'),1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS_BS04
              , (
                  CASE WHEN TB_3.SELL_TP_CD = 3 THEN TB_3.CNTR_PD_STRTDT
                       ELSE ''
@@ -232,6 +232,7 @@
     </select>
 
     <select id="selectBsPeriodChartBs03_11" resultType="java.lang.String">
+        /*20.02.27 이영진 - 고객이 약속한 방문 예정일자가 있는지 확인*/
         SELECT NVL(
                    (
                     SELECT VST_PROM_DT
@@ -677,7 +678,7 @@
              , CHNG_STG
     </select>
 
-    <select id="selectBsPeriodChartBs04_22" resultType="java.lang.String">
+    <select id="selectBsPeriodChartBs01_22" resultType="java.lang.String">
         /* 로직 미확정 */
         /* 패키지 변경 요청을 적용한 패키지 */
         SELECT NVL(
@@ -714,7 +715,7 @@
           FROM DUAL
     </select>
 
-    <select id="selectBsPeriodChartBs04_23" resultType="java.lang.String">
+    <select id="selectBsPeriodChartBs01_23" resultType="java.lang.String">
         /*배송중지요청체크*/
         SELECT NVL(
                    (SELECT AK_CHDT
@@ -882,8 +883,8 @@
             , #{itemKnd}
             , #{newPartCd}
             , #{qty}
-            , #{V_VS107_CNCL_DT}
-            , (CASE WHEN #{V_VS107_CNCL_DT} IS NOT NULL THEN '10' ELSE '' END)
+            , #{vVs107CnclDt}
+            , (CASE WHEN #{vVs107CnclDt} IS NOT NULL THEN '10' ELSE '' END)
             , #{newVstGb}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , #{session.userId}
@@ -895,4 +896,304 @@
             , #{session.departmentId}
         )
     </insert>
+
+    <select id="selectBsPeriodChartBs05_22" resultType="java.lang.String">
+        /* NEW_GDS_CD */
+        /*패키지 변경 요청을 적용한 패키지*/
+        SELECT NVL(
+                   (SELECT '60' || AFCH_PD_CD || '000000'
+                      FROM TB_SVPD_SDING_AS_AK_IZ T1
+                     WHERE 1=1
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+        /* CST_SN 고객일련번호는 삭제된 컬럼 */
+--                       AND FA104_CSMR_SER = (SELECT CST_SN
+--                                               FROM TB_SVPD_CST_SV_EXCN_IZ
+--                                              WHERE 1=1
+--                                                AND CNTR_NO = P_CSMR_YR
+--                                                AND CNTR_SN = P_CSMR_SEQ)
+--                       AND (SUBSTR('CHEK_VST_DT',1,6) = SUBSTR(AK_CHDT,1,6) OR SUBSTR('CHEK_VST_DT',1,6) >= TO_CHAR(ADD_MONTHS(RGST_DT,1), 'YYYYMM') || '01')
+                       AND (SUBSTR(#{chekVstDt},1,6) = SUBSTR(AK_CHDT,1,6) OR SUBSTR(#{chekVstDt},1,6) >= TO_CHAR(ADD_MONTHS(TO_DATE(FST_RGST_DTM, 'YYYYMMDD'),1), 'YYYYMM') || '01')
+                       AND AK_SN = (SELECT MAX(AK_SN)
+                                          FROM TB_SVPD_SDING_AS_AK_IZ
+                                         WHERE 1=1
+                                           AND CNTR_NO = T1.CNTR_NO
+                                           AND CNTR_SN = T1.CNTR_SN)
+                       AND CNFMDT IS NULL
+                       AND AS_AK_DV_CD = '1'
+                       AND MTR_PROCS_STAT_CD != '3')
+--                       , NVL((SELECT '60'||DECODE(TO_CHAR((CASE WHEN LCST07 != 'Y' THEN '0' ELSE TO_CHAR(LCST12) END)),'0', '100',TO_CHAR(LCST12))||'000000'
+--                                                           FROM KWMART.LD3000P
+--                                                          WHERE 1=1
+--                                                            AND LCYEAR = TO_NUMBER(P_CSMR_YR)
+--                                                            AND LCCODE = TO_NUMBER(P_CSMR_CD)
+--                                                            AND LPAD(LCDEMY,4,'0')||LPAD(LCDEMM,2,'0') = SUBSTR(CHEK_VST_DT,1,6)
+--                                                            AND ROWNUM =1   /*19.07.03 당월에 모종 2개 이상 구매한건 발생 해서 이렇게 처리 - 김진섭매니저에게 월 2회 구매 불가능하다고 공지 해달라고 하고 해당 건 삭제 요청 2018 6955353 */
+--                                                        ),'P_GDS_CD'))
+                       , #{pdctPdCd})
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs05_23" resultType="java.lang.String">
+        /* V_VS107_CNCL_DT */
+        /*배송중지요청체크*/
+        SELECT NVL(
+                   (SELECT AK_CHDT
+                      FROM TB_SVPD_SDING_AS_AK_IZ
+                     WHERE 1=1
+                       AND CNTR_NO = 'P_CSMR_YR'
+                       AND CNTR_SN = 0 -- P_CSMR_SEQ
+                       /* CST_SN 고객일련번호는 삭제된 컬럼 */
+--                       AND CST_SN = (SELECT CST_SN
+--                                               FROM TB_SVPD_CST_SV_EXCN_IZ
+--                                              WHERE 1=1
+--                                                AND CNTR_NO = 'P_CSMR_YR'
+--                                                AND CNTR_SN = 0 --P_CSMR_SEQ
+--                                                )
+                       AND SUBSTR(AK_CHDT,1,6) = SUBSTR('CHEK_VST_DT',1,6)
+                       AND CNFMDT IS NULL
+                       AND AS_AK_DV_CD = '4'
+                       AND MTR_PROCS_STAT_CD != '3'), '')
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs05_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /* 주기표생성 작업 */
+        SELECT DISTINCT
+                  VST_MTHS
+                , WRK_TYP_DTL
+                , LPAD(ROW_NUMBER() OVER(ORDER BY ITEM_KND, PART_CD ASC),2,'0') AS CHNG_STG
+                , ITEM_KND
+                , PART_CD
+                , QTY
+                , VST_GB
+             FROM (
+                   /*최소 공배수 만큼 풀어 놓은 방문 주기표 */
+                   SELECT DISTINCT
+                          VST_NMN_N        AS VST_MTHS
+                        , SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+--                        , C.ST101_ITEM_CD|| C.ST101_PART_CD AS PART_CD
+                        , A.PART_PD_CD AS PART_CD
+--                        , B.LCIQTY              AS QTY
+                        , A.PART_USE_QTY AS QTY
+                        , A.VST_DV_CD AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL A
+--                        , KWMART.LD3050P B
+--                        , LC_STOCK_ST101TB C /* Part Master, 우선 생략 */
+                    WHERE 1=1
+--                      AND B.LCICDE = C.ST101_SALE_CD
+                      AND A.PDCT_PD_CD = 'NEW_GDS_CD'
+--                      AND LCYEAR = 'P_CSMR_YR'
+--                      AND LCCODE = P_CSMR_CD
+--                      AND LCSEQN = (SELECT MAX(AC201_CSMR_SER)
+--                                      FROM LC_ALLOCATE_AC201TB
+--                                     WHERE 1=1
+--                                       AND AC201_CSMR_YR = P_CSMR_YR
+--                                       AND AC201_CSMR_CD = P_CSMR_CD)
+--                      AND SUBSTR(CHEK_VST_DT,1,6) BETWEEN B.LCSTYM AND B.LCEDYM
+                      /*22.08.18 */
+                      AND (CASE WHEN 'NEW_GDS_CD' = '60100000000' THEN '1'
+                                WHEN 'NEW_GDS_CD' = '60501000000' THEN '1'
+                                WHEN 'NEW_GDS_CD' = '60502000000' THEN '1'
+                                WHEN 'NEW_GDS_CD' = '60503000000' THEN '1'
+                                WHEN 'NEW_GDS_CD' = '60504000000' THEN '1'
+                                ELSE '2'
+                           END) = '1'  /*고객선택 패기지를 선택한 경우만 처리하기 위해*/
+                     AND (CASE WHEN LENGTH('NEW_PART_LIST') > 0 THEN '2' ELSE '1' END) = '1'   /*자유패키지를 선택하여 변경 한 경우는 KSS 자료가 없는 상태라 파라미터로 받은 값을 처리하기 위해*/
+
+                    UNION ALL
+
+                   /*자유선택 패키지 일 경우 입력 받은 파라미터로 처리*/
+                   SELECT DISTINCT
+                          A.VST_NMN_N        AS VST_MTHS
+                        , A.SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+--                        , C.ST101_ITEM_CD|| C.ST101_PART_CD AS PART_CD
+                        , A.PART_PD_CD AS PART_CD
+                        , TO_NUMBER(B.PART_QTY) AS QTY
+                        , A.VST_DV_CD AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL A
+--                        , LC_STOCK_ST101TB C /* Part Master, 우선 생략 */
+                        , (SELECT /*행을 구분자에 따라 열로 변경*/
+                                  SUBSTR(PART_LIST, 1, INSTR(PART_LIST, ',',1,1)-1) AS PART_CD
+                                , SUBSTR(PART_LIST, INSTR(PART_LIST, ',',1,1)+1, (CASE WHEN INSTR(PART_LIST, ',',1,2) > 0 THEN INSTR(PART_LIST, ',',1,2) - INSTR(PART_LIST, ',',1,1)-1
+                                                                                       ELSE LENGTH(PART_LIST)
+                                                                                  END)) AS PART_QTY
+                             FROM (/*스트링을 행으로*/
+                                   SELECT TRIM(REGEXP_SUBSTR(TXT, '[^|]+', 1, LEVEL)) AS PART_LIST
+                                     FROM (SELECT 'NEW_PART_LIST' AS TXT FROM DUAL) T1
+                                  CONNECT
+                                       BY INSTR(TXT, '|', 1, LEVEL - 1) > 0)) B
+                    WHERE 1=1
+                      AND A.PDCT_PD_CD = 'NEW_GDS_CD'
+--                      AND B.PART_CD = C.ST101_SALE_CD
+                      AND (CASE WHEN LENGTH('NEW_PART_LIST') > 0 THEN '1' ELSE '2' END) = '1'   /*자유패키지를 선택하여 변경 한 경우는 KSS 자료가 없는 상태라 파라미터로 받은 값을 처리하기 위해*/
+
+                    UNION ALL
+
+                   SELECT DISTINCT
+                          D.VST_NMN_N        AS VST_MTHS
+                        , D.SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+--                        , C.ST101_ITEM_CD|| C.ST101_PART_CD AS PART_CD
+                        , D.PART_PD_CD AS PART_CD
+--                        , B.LCIQTY              AS QTY
+                        , D.PART_USE_QTY AS QTY
+                        , D.VST_DV_CD AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL D
+--                        , KWMART.LD1010P A
+--                        , KWMART.LD1020P B
+--                        , LC_STOCK_ST101TB C /* Part Master, 우선 생략 */
+                    WHERE 1=1
+--                      AND B.LCICDE = C.ST101_SALE_CD
+--                      AND B.LCPKAG = A.LCPKAG
+--                      AND B.LCPSEQ = A.LCPSEQ
+--                      AND CHEK_VST_DT BETWEEN A.LCSDAY AND A.LCEDAY
+--                      AND CHEK_VST_DT BETWEEN B.LCSDAY AND B.LCEDAY /** 20220310 한상문C 요청 웰빙티캡슐 보리구성품 22.03.31 종료 적용 **/
+--                      AND A.LCPKAG = SUBSTR(CO322_GDS_CD,3,3)
+                      AND D.PDCT_PD_CD = 'NEW_GDS_CD'
+                      AND SV_PD_CD = 'P_CYCL_TYP'
+
+                    UNION ALL
+
+                    /*배양액 20.05.01 부터*/
+                    SELECT DISTINCT
+                           A.VST_NMN_N       AS VST_MTHS
+                         , A.SV_BIZ_DCLSF_CD    AS WRK_TYP_DTL
+                         , ''                   AS CHNG_STG
+                         , '6'                  AS ITEM_KND
+--                         , ST101_ITEM_CD|| ST101_PART_CD AS PART_CD
+                         , A.PART_PD_CD AS PART_CD
+--                         , (CASE WHEN GET_ST101_SIZE('NEW_GDS_CD') = '배양액12'  THEN 12 /*22.04.28 이영진, ST101_SIZE 값을 활용해서 배양액12개 구분처리*/
+--                                 ELSE 9
+--                            END)                AS QTY
+                         , 9 AS QTY -- cherro ::: GET_ST101_SIZE가 뭔지 알아야 처리할 수 있음.
+                         , A.VST_DV_CD AS VST_GB
+                      FROM TB_PDBS_RGBS_WK_BASE_DTL A
+--                        , LC_STOCK_ST101TB C /* Part Master, 우선 생략 */
+                     WHERE 1=1
+                       AND A.PDCT_PD_CD = 'NEW_GDS_CD'
+                       AND A.SV_PD_CD = 'P_CYCL_TYP'
+--                       AND ST101_ITEM_CD || ST101_PART_CD IN ('49210300015', '49210300016', '49220300025', '49220300026')
+                       AND A.PART_PD_CD IN ('49210300015', '49210300016', '49220300025', '49220300026')
+--                       AND (CASE WHEN (SELECT MAX(LCPRD2)
+--                                         FROM KWMART.LD3000P
+--                                        WHERE 1=1
+--                                          AND LCYEAR = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_YR), 4, '0')) --모종 고객년도
+--                                          AND LCCODE = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_CD), 7, '0'))  --모종 고객번호
+--                                      ) = '1' THEN '01'    /*와이드*/
+--                                 WHEN (SELECT MAX(LCPRD2)
+--                                         FROM KWMART.LD3000P
+--                                        WHERE 1=1
+--                                          AND LCYEAR = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_YR), 4, '0')) --모종 고객년도
+--                                          AND LCCODE = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_CD), 7, '0'))  --모종 고객번호
+--                                      ) = '2' THEN '02'    /*슬림*/
+--                                 ELSE '00'
+--                            END) = (CASE WHEN ST101_ITEM_CD || ST101_PART_CD IN ('49210300015', '49210300016') THEN '01'
+--                                         WHEN ST101_ITEM_CD || ST101_PART_CD IN ('49220300025', '49220300026') THEN '02'
+--                                         ELSE '00'
+--                                    END)
+--                       AND GET_ST101_SIZE(NEW_GDS_CD) != 'FarmMini'      /*22.04.28 이영진, ST101_SIZE 값을 활용해서 팜미니 구분처리*/ -- cherro ::: GET_ST101_SIZE가 뭔지 알아야 처리할 수 있음.
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') >= '20200501'
+
+                     UNION ALL
+
+                    /*배양액 미니 패키지(471~479) 배양액 A 3ml &lt; GP106/회당 투입량 12개, 배양액 B 3ml &lt; GP106/회당 투입량 12개 2022.4.6 이수진P */
+                    SELECT DISTINCT
+                           A.VST_NMN_N       AS VST_MTHS
+                         , A.SV_BIZ_DCLSF_CD    AS WRK_TYP_DTL
+                         , ''                   AS CHNG_STG
+                         , '6'                  AS ITEM_KND
+--                         , ST101_ITEM_CD|| ST101_PART_CD AS PART_CD
+                         , A.PART_PD_CD AS PART_CD
+                         , 12                   AS QTY
+                         , A.VST_DV_CD         AS VST_GB
+                      FROM TB_PDBS_RGBS_WK_BASE_DTL A
+--                        , LC_STOCK_ST101TB C /* Part Master, 우선 생략 */
+                     WHERE 1=1
+                       AND A.PDCT_PD_CD = 'NEW_GDS_CD'
+                       AND A.SV_PD_CD = 'P_CYCL_TYP'
+--                       AND ST101_ITEM_CD || ST101_PART_CD IN ('49225300010', '49225300020')
+                       AND A.PART_PD_CD IN ('49225300010', '49225300020')
+--                       AND (CASE WHEN (SELECT MAX(LCPRD2)
+--                                         FROM KWMART.LD3000P
+--                                        WHERE 1=1
+--                                          AND LCYEAR = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_YR), 4, '0')) --모종 고객년도
+--                                          AND LCCODE = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_CD), 7, '0'))  --모종 고객번호
+--                                      ) = '1' THEN '01'    /*와이드*/
+--                                 WHEN (SELECT MAX(LCPRD2)
+--                                         FROM KWMART.LD3000P
+--                                        WHERE 1=1
+--                                          AND LCYEAR = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_YR), 4, '0')) --모종 고객년도
+--                                          AND LCCODE = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_CD), 7, '0'))  --모종 고객번호
+--                                      ) = '2' THEN '02'    /*슬림*/
+--                                 ELSE '00'
+--                            END) = (CASE WHEN ST101_ITEM_CD || ST101_PART_CD IN ('49225300010', '49225300020')  THEN '02'
+--                                         ELSE '00'
+--                                    END)
+--                       AND GET_ST101_SIZE(NEW_GDS_CD) = 'FarmMini'     /*22.04.28 이영진, ST101_SIZE 값을 활용해서 팜미니 구분처리*/  -- cherro ::: GET_ST101_SIZE가 뭔지 알아야 처리할 수 있음.
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') >= '20220401'
+
+                     UNION ALL
+
+                    /*300004129 49210-300020	POT TAG BS &lt; G01,G02*/
+                    SELECT DISTINCT
+                           T2.VST_NMN_N       AS VST_MTHS
+                         , T2.SV_BIZ_DCLSF_CD    AS WRK_TYP_DTL
+                         , ''                   AS CHNG_STG
+                         , '6'                  AS ITEM_KND
+--                         , T1.ST101_ITEM_CD|| T1.ST101_PART_CD AS PART_CD
+                         , T2.PART_PD_CD AS PART_CD
+--                         , (CASE WHEN (SELECT LPAD(MAX(LCPRD2),2,'0')
+--                                         FROM KWMART.LD3000P
+--                                        WHERE 1=1
+--                                          AND LCYEAR = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_YR), 4, '0')) --모종 고객년도
+--                                          AND LCCODE = TO_NUMBER(LPAD(TO_CHAR(P_CSMR_CD), 7, '0'))  --모종 고객번호
+--                                      ) = '01'  THEN 2
+--                                 ELSE 1
+--                            END)                AS QTY
+                         , 1 AS QTY -- cherro ::: KWMART는 안쓰기로 했으니 우선 임시 값으로 대체함
+                         , T2.VST_DV_CD AS VST_GB
+                      FROM TB_PDBS_RGBS_WK_BASE_DTL T2
+--                         , LC_STOCK_ST101TB T1 /* Part Master, 우선 생략 */
+--                         , LC_STOCK_ST101TB T3 /* Part Master, 우선 생략 */
+                     WHERE 1=1
+                       AND T2.PDCT_PD_CD = 'NEW_GDS_CD'
+                       AND T2.SV_PD_CD = 'P_CYCL_TYP'
+--                       AND T1.ST101_ITEM_CD || T1.ST101_PART_CD IN ('49210300020')
+                       AND T2.PART_PD_CD IN ('49210300020')
+--                       AND T2.PDCT_PD_CD = T3.ST101_ITEM_CD || T3.ST101_PART_CD
+--                       AND NOT (T3.ST101_ITEM_CD LIKE '6%' AND T3.ST101_NM_KOR LIKE '새싹%') /*새싹씨앗패키지가 아니고*/ -- cherro ::: 이거 처리 어떻게 하지...
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') >= '20200901'
+                  )
+    </select>
+
+    <select id="selectBsPeriodChartBs05_24" resultType="java.lang.String">
+        /*
+            17.11.16 이영진 추가
+        공기청정기 AK316ESA, AK320FSA 계절별 맞춤형 필터 적용
+        3M1
+        12 1 2 / 3 4 5 / 6 7 8 / 9 10 11 -> 43101-111080 / 43101-111060 / 43101-111070 / 43101-111090
+         1,2M1
+        12 1 / 2 3 4 5 / 6 7 / 8 9 10 11 -> 43101-111080 / 43101-111060 / 43101-111070 / 43101-111090
+        */
+        SELECT (CASE WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' = '3M1' AND SUBSTR(#{chekVstDt},5,2) IN ('12', '01', '02') THEN '43101111080'
+                     WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' = '3M1' AND SUBSTR(#{chekVstDt},5,2) IN ('03', '04', '05') THEN '43101111060'
+                     WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' = '3M1' AND SUBSTR(#{chekVstDt},5,2) IN ('06', '07', '08') THEN '43101111070'
+                     WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' = '3M1' AND SUBSTR(#{chekVstDt},5,2) IN ('09', '10', '11') THEN '43101111090'
+
+                     WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' IN ('1M1', '2M1') AND SUBSTR(#{chekVstDt},5,2) IN ('12', '01') THEN '43101111080'
+                     WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' IN ('1M1', '2M1') AND SUBSTR(#{chekVstDt},5,2) IN ('02', '03', '04', '05') THEN '43101111060'
+                     WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' IN ('1M1', '2M1') AND SUBSTR(#{chekVstDt},5,2) IN ('06', '07') THEN '43101111070'
+                     WHEN #{partCd} = '43101111080' AND 'P_CYCL_TYP' IN ('1M1', '2M1') AND SUBSTR(#{chekVstDt},5,2) IN ('08', '09', '10', '11') THEN '43101111090'
+
+                     ELSE #{partCd}
+                END) AS NEW_PART_CD
+          FROM DUAL
+    </select>
 </mapper>

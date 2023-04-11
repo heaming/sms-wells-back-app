@@ -64,9 +64,18 @@ public interface WsncBsPeriodChartMapper {
 
     int selectPriorityVstDiff(String priorityVstDt, int chekCyclMths);
 
-    String selectBsPeriodChartBs04_22(WsncBsPeriodChartReqDvo dvo);
+    String selectBsPeriodChartBs01_22(WsncBsPeriodChartReqDvo dvo);
 
-    String selectBsPeriodChartBs04_23(WsncBsPeriodChartReqDvo dvo);
+    String selectBsPeriodChartBs01_23(WsncBsPeriodChartReqDvo dvo);
 
     int insertBsPeriodChartBs01(WsncBsPeriodChartReqDvo dvo);
+
+    String selectBsPeriodChartBs05_22(WsncBsPeriodChartReqDvo dvo);
+
+    String selectBsPeriodChartBs05_23(WsncBsPeriodChartReqDvo dvo);
+
+    List<WsncBsPeriodChartResDvo> selectBsPeriodChartBs05_07(WsncBsPeriodChartReqDvo dvo);
+
+    String selectBsPeriodChartBs05_24(WsncBsPeriodChartReqDvo dvo);
+
 }
