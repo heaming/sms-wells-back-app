@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchMembershipRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRegularRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRentalRes;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesPerformanceDetailMapper;
 
@@ -26,5 +27,9 @@ public class WdcbSalesPerformanceDetailService {
 
     public SearchRentalRes getRentalSalesDetail(String slDt) {
         return mapper.selectRentalSalesDetail(slDt);
+    }
+
+    public SearchRegularRes getRegularShippingDetail(String slDt) {
+        return mapper.selectRegularShippingDetail(slDt);
     }
 }

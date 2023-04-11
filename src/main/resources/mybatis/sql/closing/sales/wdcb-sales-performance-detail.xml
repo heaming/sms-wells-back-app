@@ -257,5 +257,95 @@
         WHERE 1=1
           AND T1.SL_CL_YM  = #{slDt}
     </select>
+    
+    <select id="selectRegularShippingDetail" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto$SearchRegularRes">
+    SELECT T3.CST_KNM  /*고객명*/
+         , (T1.CNTR_NO || '-' || T1.CNTR_SN) AS CNTR_DTL_NO
+         , T1.SL_CL_YM
+         /*-------------------계약제품-----------------------------------------------------------------------------------------------------*/
+         , NULL AS LCPKYN  /*패키지여부*/
+         , NULL AS LCPKAG_T1  /*패키지번호*/
+         , NULL AS LC_PKNM  /*패키지 유형 명*/
+         , NULL AS LC_JTYP_NM   /*연계 주문 유형 명*/
+         , NULL AS LC_JCNAM     /*계약자명(기기)*/
+         , T7.PD_CD
+         , T7.PD_NM     /*연계 주문 판매 상품 명*/
+         , T1.SELL_AMT  /*판매가격*/
+         , T1.RENTAL_AMT  /*추가금액*/
+         , T1.DSC_AMT  /*할인금액*/
+         , (NVL(T1.SELL_AMT,0) + NVL(T1.RENTAL_AMT,0) - NVL(T1.DSC_AMT,0) / T1.SL_DC) AS  LC_TAM1   /*월 청구액*/
+         , T5.CNTR_PD_STRTDT   /*접수일자*/
+         , NULL AS LC_BATT /*배송일자*/
+         , T1.SL_DT   /*매출일자*/
+          /*------매출사항------------------------------------------------------------------------*/
+         , CASE WHEN T1.SL_DT IS NULL THEN 'N' ELSE 'Y' END   AS SL_DT_YN /*매출 발생월 여부*/
+         , CASE WHEN T2.SPP_PLAN_ID IS NULL THEN 'N' ELSE 'Y' END   AS SPP_YN /* 배송여부*/
+         , NULL AS LCRCNT /*진행차월 배송차월*/
+         , T1.SL_DC  /*매출일수*/
+         , T1.CAN_DT      /*취소일자*/
+         , T1.NOM_SL_AMT  /*정상매출*/
+         , T1.NOM_DSC_AMT  /*정상할인*/
+         , T1.FSH_DT      /*완료일자*/
+         , T1.SPMT_SL_AMT  /*추가매출*/
+         , T1.SPMT_DSC_AMT  /*추가할인*/
+         , T1.SL_CTR_AMT  /*매출조정*/
+         , T1.THM_SL_SUM_AMT  /*매출합계*/
+         , T1.SL_SUM_VAT  /*매출합계VAT */
+         , T1.SL_AGG_AMT  /*매출누계*/
+         , 0 AS LCAM18  /*할인누계*/
+         , 0 AS LCAM19  /*조정누계*/
+         , 0 AS SP_AMT           /*매출잔액*/
+         /*-------------------선수기초，입금，환불，대체，매출처리----------------*/
+         , T1.BTD_ATAM  /*선수기초*/
+         , T1.THM_ATAM_DP_AMT  /*선수입금*/
+         , T1.THM_ATAM_RFND_AMT  /*선수환불*/
+         , T1.PRPD_SL_AMT  /*선수매출  매출대체*/
+       --      , T1.LCAM36  /*선수기말*/
+         /*------매출입금，입금누계------*/
+         , T1.SL_BND_ALRPY_AMT  /*매출입금*/
+         , T1.SL_DP_AGG_AMT  /*입금누계*/
+         , 0 AS LCAM34  /*선수대체*/
+         , 0 AS LCAM35  /*선수잔액*/
+         , T1.THM_UC_BLAM  /*미수총액*/
+         , T6.THM_OC_DLQ_AMT /*연체금액*/
+         /*------청구미수  ------*/
+         , T1.BTD_UC_AMT  /*청구미수＿기초금액*/
+         , 0 AS LCMAM2  /*청구미수＿당월예정*/
+         , 0 AS LCMAM6  /*청구미수＿당월추가*/
+         , 0 AS LCMAM3  /*청구미수＿당월입금*/
+         , 0 AS LCMAM4  /*청구미수＿당월조정*/
+         , T1.EOT_UC_AMT  /*청구미수＿청구잔액*/
+         , 0 AS LCMAM8  /*청구미수＿차월*/
+         , 0 AS LCMAM9  /*청구미수＿차차월*/
+         /*------연체사항------*/
+         , T6.DLQ_MCN  /*연체연속개월*/
+         , T6.DLQ_ACU_MCN  /*연체누적개월*/
+         , T1.SL_STP_YN  /*매출중지*/
+         , T8.ACTCS_DT  /*수임일자*/
+         , T8.CLCTAM_PRTNR_NO  /*집금담당*/
+      FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+     INNER JOIN TB_SSSO_SPP_ORD_DTL T2   --  배송
+        ON T2.CNTR_NO = T1.CNTR_NO
+       AND T2.CNTR_SN = T1.CNTR_SN
+     INNER JOIN TB_CUBS_CST_BAS T3 
+        ON T3.CST_NO = T1.CST_NO
+      LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T4    /*WELLS 계약상세*/
+        ON T4.CNTR_NO = T2.CNTR_NO
+       AND T4.CNTR_SN = T2.CNTR_SN
+      LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5    /*계약상세*/
+        ON T5.CNTR_NO = T2.CNTR_NO
+       AND T5.CNTR_SN = T2.CNTR_SN
+      LEFT OUTER JOIN TB_CBCL_DLQ_BAS T6
+        ON T6.CNTR_NO = T1.CNTR_NO
+       AND T6.CNTR_SN = T1.CNTR_SN
+      LEFT OUTER JOIN TB_PDBS_PD_BAS T7
+        ON T5.BASE_PD_CD = T7.PD_CD
+      LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T8
+        ON T8.CNTR_NO = T1.CNTR_NO
+       AND T8.CNTR_SN = T1.CNTR_SN
+     WHERE 1=1
+       AND T1.SL_CL_YM  = #{slDt}
+     ORDER BY T1.SL_CL_YM
+    </select>
 
 </mapper>
