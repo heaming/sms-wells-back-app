@@ -11,23 +11,26 @@ public class WctaMachineChangeCstDto {
     // 기기변경 고객 Find Request Dto
     @ApiModel("WctaMachineChangeCstDto-FindReq")
     public record FindReq(
+        String baseCntrNo, // 현재 진행중인 계약번호
+        String baseCntrSn, // 현재 진행중인 계약일련번호
+        @NotBlank
+        String cstNo, // 계약자 고객번호
+        @NotBlank
+        String indvCrpDv, // 법인격구분코드(1.개인, 2.법인)
+        @NotBlank
+        String pdCd, // 기준상품코드
+        String dscDv, // 할인적용유형코드
+        String dscTp, // 할인적용상세코드
+        @NotBlank
+        String sellTpCd, // 판매유형코드
+        String alncmpCd, // 제휴사코드
         @NotBlank
         String cntrNo, // 기기변경을 수행할 계약번호
         @NotBlank
         String cntrSn, // 기기변경을 수행할 계약일련번호
-        String cstNo, // 계약자 고객번호
-        String indvCrpDv, // 법인격구분코드(1.개인, 2.법인)
-        @NotBlank
-        String basePdCd, // 기준상품코드
-        String dscDv, // 할인적용유형코드
-        String dscTp, // 할인적용상세코드
-        String sellTpCd, // 판매유형코드
-        String baseCntrNo, // 현재 진행중인 계약번호
-        String baseCntrSn, // 현재 진행중인 계약일련번호
         @NotBlank
         String rgstMdfcDv // 1.등록, 2.수정
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -53,6 +56,7 @@ public class WctaMachineChangeCstDto {
         String ownrsExnDt, // 소유권이전종료일
         int dlqAmt, // 연체금액
         int ucAmt, // 미수금액
+        int recapDutyPtrmN, // 의무기간 수(월)
         //기타 조회
         String adr, //주소 (기본주소+상세주소)
         String sellTpCd, //판매유형코드

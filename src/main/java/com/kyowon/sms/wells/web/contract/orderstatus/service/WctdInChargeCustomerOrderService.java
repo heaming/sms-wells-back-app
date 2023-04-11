@@ -22,9 +22,12 @@ public class WctdInChargeCustomerOrderService {
     private final WctdInChargeCustomerOrderConverter converter;
 
     public PagingResult<SearchRes> getInChargeCustomerOrderPages(SearchReq dto, PageInfo pageInfo) {
-        return converter.mapWctdInChargeCustomerOrderDvoToSearchRes(
-                mapper.selectInChargeCustomerOrderPages(converter.mapSearchReqToWctdInChargeCustomerOrderDvo(dto), pageInfo)
+        PagingResult<SearchRes> searchRes = converter.mapWctdInChargeCustomerOrderDvoToSearchRes(
+            mapper.selectInChargeCustomerOrderPages(converter.mapSearchReqToWctdInChargeCustomerOrderDvo(dto), pageInfo)
         );
+        searchRes.setPageInfo(pageInfo);
+
+        return searchRes;
     }
 
     public List<SearchRes> getInChargeCustomerOrdersForExcelDownload(SearchReq dto) {

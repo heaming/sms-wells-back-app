@@ -13,8 +13,6 @@ public class WctbMachineChStatBasInfDvo {
     private String pdHclsfId;
     private String pdMclsfId;
     private String copnDvCd;
-    private String alncmpCd;
-    private String sellOgTpCd;
     private String istDt;
     private int recapDutyPtrmN;
     private String reqdDt;
