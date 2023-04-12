@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.mapper;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -31,5 +30,5 @@ public interface WsnaNormalOutOfStorageMapper {
 
     int selectNormalOstrRgstChecked(CheckedReq dto);
 
-    HashMap<String, String> selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
+    String selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
 }
