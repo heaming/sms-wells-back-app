@@ -28,6 +28,7 @@ public class WwdaNotReceivedCheckListDto {
     public record SearchAftnDpNcrtCheckListRes(
         // 자동이체 입금 미생성 체크 목록
         String aftnClsf,
+        String cntrNo,
         String cntrSn,
         String bilDt,
         String sellTpCd,
@@ -39,6 +40,7 @@ public class WwdaNotReceivedCheckListDto {
         // 매출실적 입금 전용 누락건
         String sellTpNm,
         String dpClDt,
+        String cntrNo,
         String cntrSn,
         String rentalNmn,
         String thmIntamDpAmt,
