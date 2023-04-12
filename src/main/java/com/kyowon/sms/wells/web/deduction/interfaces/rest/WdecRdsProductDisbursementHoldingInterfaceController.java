@@ -51,7 +51,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceController {
         @Valid
         @RequestBody
         EaiWrapper<WdecRdsProductDisbursementHoldingInterfaceDto.SaveReq> reqWrapper
-    ) {
+    ) throws Exception {
         //Response용 EaiWrapper 생성
         EaiWrapper<WdecRdsProductDisbursementHoldingInterfaceDto.SaveRes> resWrapper = reqWrapper.newResInstance();
 
