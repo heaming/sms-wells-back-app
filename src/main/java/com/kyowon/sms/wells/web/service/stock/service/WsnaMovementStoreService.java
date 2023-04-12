@@ -93,7 +93,27 @@ public class WsnaMovementStoreService {
         return mapper.selectMoveMentStrIzs(dto);
     }
 
-    public PagingResult<MovementOstrRes> getMoveMentStrOstrIzs(MovementOstrReq dto, PageInfo pageInfo) {
-        return mapper.selectMoveMentStrOstrIzs(dto, pageInfo);
+    public PagingResult<MovementOstrRes> getMovementStoresMngt(MovementOstrReq dto, PageInfo pageInfo) {
+        return mapper.selectMovementStoresMngt(dto, pageInfo);
     }
+
+    public PagingResult<MovementOstrRes> getMovementStoresMngt(MovementOstrReq dto) {
+        return mapper.selectMovementStoresMngt(dto);
+    }
+
+    public PagingResult<MovementOstrMngtRes> getMovementStoresReg(MovementOstrMngtReq dto, PageInfo pageInfo) {
+        return mapper.selectMovementStoresReg(dto, pageInfo);
+    }
+
+    public List<MovementOstrMngtRes> getMovementStoresReg(MovementOstrMngtReq dto) {
+        return mapper.selectMovementStoresReg(dto);
+    }
+
+    public int editWareHouseStandardY(String baseYm, String wareNo) {
+        return mapper.editWareHouseStandardY(baseYm, wareNo);
+    };
+
+    public int editWareHouseStandardN(String baseYm, String wareNo) {
+        return mapper.editWareHouseStandardN(baseYm, wareNo);
+    };
 }
