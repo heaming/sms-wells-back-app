@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -63,7 +62,7 @@ public class WsnaNormalOutOfStorageService {
         int cnt = 0;
         List<WsnaNormalOutOfStorageDvo> voList = converter.mapCreateReqToWsnaNormalOutOfStorageDvo(list);
         for (WsnaNormalOutOfStorageDvo vo : voList) {
-            HashMap<String, String> resultMap = mapper.selectStrNoAndOstrNo(vo);
+            String maxSeq = mapper.selectStrNoAndOstrNo(vo);
             cnt += mapper.insertNormalOstrRgst(vo);
             cnt += mapper.insertNormalStrRgst(vo);
         }
