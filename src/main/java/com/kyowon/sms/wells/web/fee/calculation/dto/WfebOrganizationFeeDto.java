@@ -31,7 +31,7 @@ public class WfebOrganizationFeeDto {
     public record SearchPlarReq(
         String perfYm,
         String rsbTp,
-        String dv,
+        String no,
         String ogLevl1,
         String ogLevl2,
         String ogLevl3
@@ -419,150 +419,149 @@ public class WfebOrganizationFeeDto {
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarRes")
     public record SearchPlarRes(
-        String col1, /*소속*/
-        String col2, /*번호*/
-        String col3, /*성명*/
-        String col4, /*직책*/
-        String col5, /*미팅일수*/
-        String col6, /*수수료 월*/
-        String col7, /*M+1 수석플래너*/
-        String col8, /*플래너 스타트업*/
-        String col9, /*수석실전*/
-        String col10, /*등록기준월*/
-        String col11, /*최초업무등록월*/
-        String col12, /*재등록월*/
-        String col13, /*최종해약월*/
-        String col14, /*업무해약월*/
-        String col15, /*승진월*/
-        String col16, /*웰스매니저 개시일*/
-        String col17, /*정착수수료*/
-        String col18, /*가전실적*/
-        String col19, /*가전외 실적*/
-        String col20, /*기변*/
-        String col21, /*상조당월*/
-        String col22, /*상조유지*/
-        String col23, /*환경*/
-        String col24, /*환경외*/
-        String col25, /*라이브팩 건수*/
-        String col26, /*홈케어 판매가*/
-        String col27, /*관리상품 판매건수*/
-        String col28, /*정액 수수료*/
-        String col29, /*라이브팩*/
-        String col30, /*홈케어*/
-        String col31, /*가전개인비례*/
-        String col32, /*가전외 개인비례*/
-        String col33, /*판매장려*/
-        String col34, /*상조수수료*/
-        String col35, /*미팅수수료*/
-        String col36, /*정착*/
-        String col37, /*재지급*/
-        String col38, /*기타지원*/
-        String col39 /*과표합계 */
+        String ogNm,
+        String prtnrNo,
+        String prtnrKnm,
+        String rsbDvCd,
+        String akcuil,
+        String jagyuk,
+        String nJagyuk1,
+        String is11edu,
+        String is17edu,
+        String cntrDt,
+        String fstCntrDt,
+        String rcntrDt,
+        String fnlCltnDt,
+        String cltnDt,
+        String akstym,
+        String lcecaymd,
+        String bAksd05,
+        String akcda0,
+        String akcda1,
+        String akcda2,
+        String aksq01,
+        String nAksq01,
+        String akcda3,
+        String akcda4,
+        String akdeq5,
+        String ec5amt,
+        String mproduct,
+        String aksd23,
+        String aksd24,
+        String aksd25,
+        String aksd01,
+        String aksd02,
+        String aksd03,
+        String aksd21,
+        String aksd04,
+        String aksd05,
+        String aksd20,
+        String aksd30,
+        String aksd99
     ) {}
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarBrmgrRes")
     public record SearchPlarBrmgrRes(
-        String col1, /*소속*/
-        String col2, /*번호*/
-        String col3, /*성명*/
-        String col4, /*직책*/
-        String col5, /*미팅일수*/
-        String col6, /*수수료 월*/
-        String col7, /*M+1 수석플래너*/
-        String col8, /*플래너 스타트업*/
-        String col9, /*수석실전*/
-        String col10, /*등록기준월*/
-        String col11, /*최초업무등록월*/
-        String col12, /*재등록월*/
-        String col13, /*최종해약월*/
-        String col14, /*업무해약월*/
-        String col15, /*승진월*/
-        String col16, /*웰스매니저 개시일*/
-        String col17, /*정착수수료*/
-        String col18, /*가전실적*/
-        String col19, /*가전외 실적*/
-        String col20, /*기변*/
-        String col21, /*상조당월*/
-        String col22, /*상조유지*/
-        String col23, /*환경*/
-        String col24, /*환경외*/
-        String col25, /*라이브팩 건수*/
-        String col26, /*홈케어 판매가*/
-        String col27, /*관리상품 판매건수*/
-        String col28, /*정액 수수료*/
-        String col29, /*라이브팩*/
-        String col30, /*홈케어*/
-        String col31, /*가전개인비례*/
-        String col32, /*가전외 개인비례*/
-        String col33, /*판매장려*/
-        String col34, /*상조수수료*/
-        String col35, /*미팅수수료*/
-        String col36, /*정착*/
-        String col37, /*재지급*/
-        String col38, /*기타지원*/
-        String col39, /*과표합계 */
-        String col40,
-        String col41,
-        String col42,
-        String col43,
-        String col44,
-        String col45,
-        String col46
+        String ogNm,
+        String prtnrNo,
+        String prtnrKnm,
+        String rsbDvCd,
+        String jagyuk,
+        String nJagyuk1,
+        String cntrDt,
+        String fstCntrDt,
+        String fnlCltnDt,
+        String cltnDt,
+        String gadcnt,
+        String is17edu,
+        String akdriy,
+        String akstym,
+        String lcecaymd,
+        String akcda0,
+        String akcda1,
+        String akcda2,
+        String aksq01,
+        String nAksq01,
+        String akcdag0,
+        String akcdag1,
+        String aksqg02,
+        String akcda3,
+        String akcda4,
+        String akdeq5,
+        String ec5amt,
+        String mproduct,
+        String aksd23,
+        String aksd24,
+        String aksd25,
+        String aksd01,
+        String aksd02,
+        String aksd03,
+        String aksd11,
+        String aksd12,
+        String aksd13,
+        String bAksd05,
+        String aksd16,
+        String aksd17,
+        String aksd15,
+        String aksd20,
+        String aksd21,
+        String aksd22,
+        String aksd30,
+        String aksd99
     ) {}
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarTotalRes")
     public record SearchPlarTotalRes(
-        String col1, /*소속*/
-        String col2, /*번호*/
-        String col3, /*성명*/
-        String col4, /*직책*/
-        String col5, /*미팅일수*/
-        String col6, /*수수료 월*/
-        String col7, /*M+1 수석플래너*/
-        String col8, /*플래너 스타트업*/
-        String col9, /*수석실전*/
-        String col10, /*등록기준월*/
-        String col11, /*최초업무등록월*/
-        String col12, /*재등록월*/
-        String col13, /*최종해약월*/
-        String col14, /*업무해약월*/
-        String col15, /*승진월*/
-        String col16, /*웰스매니저 개시일*/
-        String col17, /*정착수수료*/
-        String col18, /*가전실적*/
-        String col19, /*가전외 실적*/
-        String col20, /*기변*/
-        String col21, /*상조당월*/
-        String col22, /*상조유지*/
-        String col23, /*환경*/
-        String col24, /*환경외*/
-        String col25, /*라이브팩 건수*/
-        String col26, /*홈케어 판매가*/
-        String col27, /*관리상품 판매건수*/
-        String col28, /*정액 수수료*/
-        String col29, /*라이브팩*/
-        String col30, /*홈케어*/
-        String col31, /*가전개인비례*/
-        String col32, /*가전외 개인비례*/
-        String col33, /*판매장려*/
-        String col34, /*상조수수료*/
-        String col35, /*미팅수수료*/
-        String col36, /*정착*/
-        String col37, /*재지급*/
-        String col38, /*기타지원*/
-        String col39, /*과표합계 */
-        String col40,
-        String col41,
-        String col42,
-        String col43,
-        String col44,
-        String col45,
-        String col46,
-        String col47,
-        String col48,
-        String col49,
-        String col50,
-        String col51,
-        String col52,
-        String col53
+        String ogNm,
+        String prtnrNo,
+        String prtnrKnm,
+        String rsbDvCd,
+        String akcuil,
+        String jagyuk,
+        String nJagyuk1,
+        String is11edu,
+        String is17edu,
+        String cntrDt,
+        String fstCntrDt,
+        String rcntrDt,
+        String fnlCltnDt,
+        String cltnDt,
+        String lcecaymd,
+        String gadcnt,
+        String akstym,
+        String akdriy,
+        String bAksd05,
+        String akcda0,
+        String akcda1,
+        String akcda2,
+        String aksq01,
+        String nAksq01,
+        String akcdag0,
+        String akcdag1,
+        String aksqg02,
+        String akcda3,
+        String akcda4,
+        String akdeq5,
+        String ec5amt,
+        String mproduct,
+        String aksd24,
+        String aksd25,
+        String aksd01,
+        String aksd02,
+        String aksd03,
+        String aksd21,
+        String aksd11,
+        String aksd12,
+        String aksd13,
+        String aksd22,
+        String aksd04,
+        String aksd05,
+        String aksd16,
+        String aksd17,
+        String aksd15,
+        String aksd20,
+        String aksd30,
+        String aksd99,
+        String ddctam,
+        String dsbOjAmt
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchWmRes")
