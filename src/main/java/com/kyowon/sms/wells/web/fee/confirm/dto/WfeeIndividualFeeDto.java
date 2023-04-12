@@ -149,42 +149,42 @@ public class WfeeIndividualFeeDto {
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstEtcRes")
     public record SearchHmstEtcRes(
-        String col1, /*서비스처리율*/
-        int col2, /*가전인정건수*/
-        int col3, /*서비스건수*/
-        String col4 /*서비스처리율*/
+        String div,
+        String elhmAckmtCt,
+        String svCnt,
+        String svRat
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstFeeRes")
     public record SearchHmstFeeRes(
-        String col1,
-        int col2,
-        String col3,
-        int col4,
-        String col5,
-        int col6
+        String item1,
+        String amt1,
+        String item2,
+        String amt2,
+        String item3,
+        String amt3
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstDeductionRes")
     public record FindHmstDeductionRes(
-        int col1,
-        int col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6,
-        int col7,
-        int col8
+        String rds,
+        String erntx,
+        String rsdntx,
+        String buDdtn,
+        String hirInsr,
+        String inddInsr,
+        String redf,
+        String dlqRedf
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstPnpyamRes")
     public record SearchHmstPnpyamRes(
-        String col1,
-        int col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6
+        String item,
+        String lstmm,
+        String thmOc,
+        String tmh,
+        String thmDdtn,
+        String thmBlam
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerRes")

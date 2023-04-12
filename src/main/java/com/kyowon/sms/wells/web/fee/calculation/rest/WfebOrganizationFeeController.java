@@ -134,6 +134,7 @@ public class WfebOrganizationFeeController {
         @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419"),
     })
 
     @GetMapping("/plars-brmgr")
@@ -151,6 +152,8 @@ public class WfebOrganizationFeeController {
         @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419"),
+
     })
 
     @GetMapping("/plars-total")
