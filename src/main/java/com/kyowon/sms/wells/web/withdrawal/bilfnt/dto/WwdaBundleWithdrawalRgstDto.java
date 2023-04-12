@@ -11,7 +11,8 @@ public class WwdaBundleWithdrawalRgstDto {
     @ApiModel("WwdaBundleWithdrawalRgstDto-SearchReq")
     public record SearchReq(
         String unrgRs, // 대상구분, 처리결과
-        String cntr, // 계약상세번호
+        String cntrNo, // 계약번호
+        String cntrSn, // 계약 일련번호
         String cntrPdStrtdt, // 접수시작일
         String cntrPdEnddt // 접수종료일
 
@@ -34,7 +35,8 @@ public class WwdaBundleWithdrawalRgstDto {
         String mpyBsdt, // 이체일자
         String bryyMmdd, //이체 인증번호
 
-        String sdingCntrSn, // 모종주문번호
+        String sdingCntrNo, // 모종주문번호
+        String sdingCntrSn, // 모종 상세번호
         String sdingDpTpCd, // 이체구분
         String sdingFnitAprRsCd, // 상태
         String sdingDgCntrNo, // 묶음대표번호
@@ -70,6 +72,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String mpyBsdt, //이체일자
         String bryyMmdd, //이체 인증번호
 
+        String sdingCntrNo, //모종주문번호
         String sdingCntrSn, //모종주문번호
         String sdingDpTpCd, //이체구분
         String sdingDgCntrSn, //묶음대표번호
