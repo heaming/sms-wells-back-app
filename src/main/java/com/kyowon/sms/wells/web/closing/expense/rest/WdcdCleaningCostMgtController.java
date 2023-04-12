@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.CodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.expense.service.WdcdCleaningCostMgtSearvice;
@@ -23,32 +24,37 @@ import java.util.List;
 @Slf4j
 @RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/cleaning-cost")
 public class WdcdCleaningCostMgtController {
-    private final WdcdCleaningCostMgtSearvice searvice;
+    private final WdcdCleaningCostMgtSearvice service;
 
-    @ApiOperation(value = "운영비 등록 관리 - 운영비 금액 현황", notes = "운영비 등록 관리 - 운영비 금액 현황")
+    @GetMapping("/code")
+    public List<CodeRes> getBuilDingCd() {
+        return service.getBuilDingCd();
+    }
+
+    @ApiOperation(value = "청소 용품비 관리", notes = "청소 용품비 관리 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "fstRgstDtm", value = "신청년월", paramType = "query"),
-        @ApiImplicitParam(name = "clinrNm", value = "청소원", paramType = "query"),
-        @ApiImplicitParam(name = "bldNm", value = "빌딩명", paramType = "query")
+        @ApiImplicitParam(name = "aplcStartDt", value = "신청년월", paramType = "query"),
+        @ApiImplicitParam(name = "aplcEndtDt", value = "신청년월", paramType = "query"),
+        @ApiImplicitParam(name = "bldCd", value = "빌딩코드", paramType = "query")
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getCleaningCost(@Valid SearchReq req, PageInfo pageInfo) {
-        return searvice.getCleaningCost(req, pageInfo);
+        return service.getCleaningCost(req, pageInfo);
     }
 
-    @ApiOperation(value = "운영비 등록 관리 - 운영비 금액 현황", notes = "운영비 등록 관리 - 운영비 금액 현황")
+    @ApiOperation(value = "청소 용품비 관리", notes = "청소 용품비 관리 엑셀다운")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "fstRgstDtm", value = "신청년월", paramType = "query"),
-        @ApiImplicitParam(name = "clinrNm", value = "청소원", paramType = "query"),
-        @ApiImplicitParam(name = "bldNm", value = "빌딩명", paramType = "query")
+        @ApiImplicitParam(name = "aplcStartDt", value = "신청년월", paramType = "query"),
+        @ApiImplicitParam(name = "aplcEndtDt", value = "신청년월", paramType = "query"),
+        @ApiImplicitParam(name = "bldCd", value = "빌딩코드", paramType = "query")
     })
     @GetMapping("/excel-download")
     public List<SearchRes> getCleaningCostExcelDownload(@Valid SearchReq req) {
-        return searvice.getCleaningCostExcelDownload(req);
+        return service.getCleaningCostExcelDownload(req);
     }
 
     @DeleteMapping
-    public int removeCleaningCost(@RequestBody List<String> clinrRgnos) {
-        return searvice.removeCleaningCost(clinrRgnos);
+    public int removeCleanerCost(@RequestBody List<String> clingCostAdjRcpNos) {
+        return service.removeCleaningCost(clingCostAdjRcpNos);
     }
 }

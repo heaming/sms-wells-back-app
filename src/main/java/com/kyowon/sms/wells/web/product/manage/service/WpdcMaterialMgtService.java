@@ -221,7 +221,7 @@ public class WpdcMaterialMgtService {
      * @return
      * @throws Exception
      */
-    public List<ExcelUploadErrorDvo> checkValidationForExcelUpload(
+    public List<ExcelUploadErrorDvo> checkDataValidation(
         List<Map<String, Object>> excelData,
         List<ZpdcPropertyMetaDvo> metaItems,
         List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
@@ -282,23 +282,42 @@ public class WpdcMaterialMgtService {
         }
 
         if (PdProductConst.VALIDATION_TARGET_DB.equals(validationTarget)) {
-            // 추후 확장성을 위해 건 By 건으로 체크하지 않고 'VALIDATION_TARGET_DB' 으로 한번 감싸서 받는다.
 
-            // 자재코드(SAP_MAT_CD) - 자재코드값({0})이 올바르지 않습니다.
-            if (PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm()) && !"".equals(compareValue)) {
-                // 넘어온 자재코드 값에 해당하는 데이터 유무를 확인.
-                ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
-                if (null == sapMatVo) {
+            if (PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm())) {
+                // DB에 실재하는 유효값인지 체크.
+                // 자재코드값({0})이 올바르지 않습니다.
+                if (!"".equals(compareValue)) {
+                    // 넘어온 자재코드 값이 I/F 테이블에 존재하는지 확인.
+                    ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
+                    if (null == sapMatVo) {
+                        ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+                        errorVo.setHeaderName(metaVo.getPrpNm());
+                        errorVo.setErrorRow(rowIndex);
+                        errorVo.setErrorData(
+                            messageResourceService
+                                .getMessage("MSG_ALT_ABNORMAL_SAP_MAT_CD", new String[] {compareValue})
+                        );
+
+                        dataErrors.add(errorVo);
+                    }
+                }
+                // 넘어온 자재코드 값이 다른 교재/자재에서 이미 사용중인지 체크.
+                // 다른 교재/제품에서 이미 사용 중인 SAP자재코드입니다. (사용 교재/제품코드: {0}/{1}) - 교재명/자재코드
+                if (!"N".equals(
+                    this.mapper.selectValidation(
+                        ZpdcMaterialMgtDto.ValidationReq.builder()
+                            .validationType(PdProductConst.SAP_MAT_CD).pdCd(null).sapMatCd(compareValue).build()
+                    )
+                )) {
                     ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
                     errorVo.setHeaderName(metaVo.getPrpNm());
                     errorVo.setErrorRow(rowIndex);
                     errorVo.setErrorData(
-                        messageResourceService.getMessage("MSG_ALT_ABNORMAL_SAP_MAT_CD", new String[] {compareValue})
+                        messageResourceService.getMessage("MSG_ALT_EXIST_SAP_MAT_CD", new String[] {compareValue})
                     );
-
-                    dataErrors.add(errorVo);
                 }
             }
+
         }
 
         // #1.Essential Value - 필수값이 누락되어 있습니다.
@@ -312,7 +331,7 @@ public class WpdcMaterialMgtService {
 
         // #2. Number Type - 숫자만 입력 가능합니다.
         if (PdProductConst.DTA_TP_NUMBER.equals(metaVo.getDtaTpCd())
-            && !compareValue.matches("[-+]?\\d*\\.?\\d+")) {
+            && !compareValue.matches("[-+]?\\d*\\.?\\d+|")) {
             ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
             errorVo.setHeaderName(metaVo.getPrpNm());
             errorVo.setErrorRow(rowIndex);
@@ -459,9 +478,7 @@ public class WpdcMaterialMgtService {
      * @param dto
      * @return
      */
-    public String checkValidation(
-        ValidationReq dto
-    ) {
+    public String checkValidation(ValidationReq dto) {
         return this.mapper.selectValidation(dto);
     }
 

@@ -244,4 +244,19 @@ public class WctaContractController {
     ) {
         return service.getConfirmMemberships(dto);
     }
+
+    @ApiOperation(value = "wells K멤버스 취소 요청 목록 조회 - K멤버스 취소 요청 목록", notes = "k멤버스몰 내 구입제품에 대한 취소현황을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrChRcpStrtDtm", value = "취소시작일자", paramType = "query"),
+        @ApiImplicitParam(name = "cntrChRcpFinsDtm", value = "취소종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "statCd", value = "상태", paramType = "query"),
+    })
+    @GetMapping("/kmembers-cancel-ask")
+    public List<SearchKMembersCancelAsksRes> getKMembersCancelAsks(
+        SearchKMembersCancelAsksReq dto
+    ) {
+        return service.getKMembersCancelAsks(dto);
+    }
 }

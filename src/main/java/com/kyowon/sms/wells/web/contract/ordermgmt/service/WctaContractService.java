@@ -334,4 +334,8 @@ public class WctaContractService {
     public List<SearchConfirmMshRes> getConfirmMemberships(SearchConfirmMshReq dto) {
         return mapper.selectConfirmMemberships(dto);
     }
+
+    public List<SearchKMembersCancelAsksRes> getKMembersCancelAsks(SearchKMembersCancelAsksReq dto) {
+        return mapper.selectKMembersCancelAsks(dto);
+    }
 }

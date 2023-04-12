@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.mapper;
 
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.CodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.SearchRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -11,13 +12,11 @@ import java.util.List;
 @Mapper
 public interface WdcdCleaningCostMgtMapper {
 
-    PagingResult<SearchRes> selectCleaningCostBusinessManager(SearchReq req, PageInfo pageInfo);
+    List<CodeRes> selectBuilDingCd();
 
-    PagingResult<SearchRes> selectCleaningCostPersonInCharge(SearchReq req, PageInfo pageInfo);
+    PagingResult<SearchRes> selectCleaningCost(SearchReq req, PageInfo pageInfo);
 
-    List<SearchRes> selectCleaningCostBusinessManager(SearchReq req);
+    List<SearchRes> selectCleaningCost(SearchReq req);
 
-    List<SearchRes> selectCleaningCostPersonInCharge(SearchReq req);
-
-    int removeCleaningCost(String clinrRgnos);
+    int removeCleaningCost(String clingCostAdjRcpNo);
 }

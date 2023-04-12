@@ -66,4 +66,8 @@ public interface WctaContractMapper {
     List<SearchOnepluseoneRes> selectOneplusoneContracts(SearchOnepluseoneReq dto);
 
     List<SearchConfirmMshRes> selectConfirmMemberships(SearchConfirmMshReq dto);
+
+    List<SearchKMembersCancelAsksRes> selectKMembersCancelAsks(
+        SearchKMembersCancelAsksReq dto
+    );
 }

@@ -8,10 +8,10 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaMovementStoreService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -44,7 +44,7 @@ public class WsnaMovementStoreController {
 
     })
     @GetMapping()
-    public List<WsnaMovementStoreDto.SearchRes> getMovementStores(
+    public List<SearchRes> getMovementStores(
         @Valid
         SearchReq dto
     ) {
@@ -100,12 +100,60 @@ public class WsnaMovementStoreController {
         return service.getMovementStrIzsExcelDownload(dto);
     }
 
-    @GetMapping("/ostr")
-    public PagingResult<MovementOstrRes> getMoveMentStrOstrIzs(
+    @GetMapping("/management") //이동입고 관리
+    public PagingResult<MovementOstrRes> getMovementStoresMngt(
         MovementOstrReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return service.getMoveMentStrOstrIzs(dto, pageInfo);
+        return service.getMovementStoresMngt(dto, pageInfo);
+    }
+
+    @GetMapping("/management/excel-download") //이동입고 관리 엑셀다운로드
+    public PagingResult<MovementOstrRes> getMngtExcelDownload(
+        MovementOstrReq dto
+    ) {
+        return service.getMovementStoresMngt(dto);
+    }
+
+    @ApiOperation(value = "이동입고 등록 조회", notes = "조회조건에 해당하는 이동입고 등록 페이지를  한다.")
+    @ApiImplicitParams(value = {
+
+    })
+    @GetMapping("/registration")
+    public PagingResult<MovementOstrMngtRes> getMovementStoresReg(
+        MovementOstrMngtReq dto,
+        PageInfo pageInfo
+    ) {
+        return service.getMovementStoresReg(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "이동입고 등록 엑셀 다운로드", notes = "조회조건에 해당하는 이동입고 등록을 엑셀다운로드 한다.")
+    @ApiImplicitParams(value = {
+
+    })
+    @GetMapping("/registration/excel-download")
+    public List<MovementOstrMngtRes> getMovementStoresRegExcelDownload(
+        MovementOstrMngtReq dto
+    ) {
+        return service.getMovementStoresReg(dto);
+    }
+
+    @ApiOperation(value = "월별 창고 표준창고사용", notes = "월별 고의 속성중 표준창고 사용여부를 Y로 수정한다.")
+    @PutMapping("/warehose/standard")
+    public int editWarehouseStandard(
+        String baseYm,
+        String wareNo
+    ) {
+        return 0;
+    }
+
+    @ApiOperation(value = "월별 창고 표준창고 비사용", notes = "월별 고의 속성중 표준창고 사용여부를 N로 수정한다.")
+    @PutMapping("/warehose/no-standard")
+    public int editWarehouseNoStandard(
+        String baseYm,
+        String wareNo
+    ) {
+        return 0;
     }
 }

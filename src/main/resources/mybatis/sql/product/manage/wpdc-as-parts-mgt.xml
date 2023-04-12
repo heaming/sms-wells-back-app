@@ -127,12 +127,36 @@
               AND DT.PD_PRP_VAL31 BETWEEN SUBSTR(#{sapItemCdFrom},6,6) AND SUBSTR(#{sapItemCdTo},6,6)
             )
            </if>
-           
-           
-           
-           
-           
            ORDER BY PB.FST_RGST_DTM DESC
+    </select>
+    
+    <!-- 
+        유효성 체크 조회
+        RETURN VAL : 중복 데이터 일때는 중복된 제품명
+                     중복 데이터 아닐시 'N' 
+    -->
+    <select id="selectValidation" resultType="java.lang.String">
+        WITH VIEW_TBL AS (
+            SELECT COUNT(1) AS CNT, MAX(PD_NM) AS PD_NM
+                  FROM TB_PDBS_PD_BAS /* 상품기본 */
+                 WHERE PD_TP_CD = 'M'
+                   AND DTA_DL_YN ='N'
+                   <choose>
+                     <when test="@MybatisUtils@isEmpty( pdCd )">
+                   AND SAP_MAT_CD = #{sapMatCd} /* Insert Data */
+                     </when>
+                     <otherwise>
+                   AND PD_CD != #{pdCd} /* 자기 자신은 중복체크 열외 - Update Data */
+                   AND SAP_MAT_CD = #{sapMatCd}
+                     </otherwise>
+                   </choose>
+                   AND ROWNUM = 1
+        )
+        SELECT 
+            CASE WHEN CNT = 0 THEN 'N'
+                 ELSE PD_NM
+            END
+        FROM VIEW_TBL
     </select>
     
 </mapper>

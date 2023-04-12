@@ -1,33 +1,28 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchWarehouse;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaNormalOutOfStorageService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import lombok.RequiredArgsConstructor;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
-
-@RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/normal-outofstorages")
 @Api(tags = "[WSNA] 정상출고 관리 REST API")
+@RestController
 @RequiredArgsConstructor
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/normal-outofstorages")
 public class WsnaNormalOutOfStorageController {
 
     private final WsnaNormalOutOfStorageService service;
@@ -100,4 +95,30 @@ public class WsnaNormalOutOfStorageController {
         return service.getAskMaterialsCenterPresentState(dto, pageInfo);
     }
 
+    @GetMapping("/detail")
+    public PagingResult<DetailRes> getNormalOutOfStoragesDetails(
+        DetailReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getNormalOutOfStoragesDetails(dto, pageInfo);
+    }
+
+    @PostMapping
+    public SaveResponse saveNormalOstrRgsts(
+        @RequestBody
+        List<CreateReq> list
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.saveNormalOstrRgsts(list))
+            .build();
+    }
+
+    @GetMapping("/checked")
+    public int getNormalOstrRgstChecked(
+        @RequestBody
+        CheckedReq dto
+    ) {
+        return service.getNormalOstrRgstChecked(dto);
+    }
 }

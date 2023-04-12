@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.service.PdExcelReadService;
@@ -142,7 +143,7 @@ public class WpdcAsPartsMgtController {
         List<ZpdcPropertyMetaDvo> mendatoryColumns = metaItems.stream()
             .filter(x -> PdProductConst.MNDT_Y.equals(x.getMndtYn())).toList();
         List<ExcelUploadErrorDvo> headerErrors = excelReadService
-            .readExcelHeader(file, mendatoryColumns);
+            .checkHeaderValidation(file, mendatoryColumns);
 
         // Excel Data Drm 해제 및 Data 파싱.
         List<Map<String, Object>> excelData = excelReadService.readExcel(file);
@@ -174,7 +175,7 @@ public class WpdcAsPartsMgtController {
 
             // 유효성 체크(현재는 '교재/자재'와 동일한 유효성 체크 이므로 함께 사용. (추후 분기 필요시 처리필요)
             List<ExcelUploadErrorDvo> dataErrors = wAsservice
-                .checkValidationForExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl);
+                .checkDataValidation(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl);
 
             if (dataErrors.size() > 0) {
                 uploadStatus = PdProductConst.EXCEL_UPLOAD_ERROR;
@@ -189,5 +190,10 @@ public class WpdcAsPartsMgtController {
                 .build();
         }
 
+    }
+
+    @GetMapping("/check-validation")
+    public String checkValidation(ValidationReq dto) {
+        return this.service.checkValidation(dto);
     }
 }

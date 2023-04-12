@@ -207,4 +207,68 @@ public class WdcbSalesPerformanceDetailDto {
         String clctamPrtnrNo,
         String col20
     ) {}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 정기배송매출 상세내역 Search Result Dto
+    @ApiModel("WdcbSalesPerformanceDetailDto-SearchRegularRes")
+    public record SearchRegularRes(
+        String cstKnm,
+        String cntrDtlNo,
+        String slClYmlcpkyn,
+        String lcpkagT1,
+        String lcPknm,
+        String lcJtypNm,
+        String lcJcnam,
+        String pdCd,
+        String pdNm,
+        String sellAmt,
+        String rentalAmt,
+        String dscAmt,
+        String lcTam1,
+        String cntrPdStrtdt,
+        String lcBatt,
+        String slDt,
+        String slDtYn,
+        String sppYn,
+        String lcrcnt,
+        String slDc,
+        String canDt,
+        String nomSlAmt,
+        String nomDscAmt,
+        String fshDt,
+        String spmtSlAmt,
+        String spmtDscAmt,
+        String slCtrAmt,
+        String thmSlSumAmt,
+        String slSumVat,
+        String slAggAmt,
+        String lcam18,
+        String lcam19,
+        String spAmt,
+        String btdAtam,
+        String thmAtamDpAmt,
+        String thmAtamRfndAmt,
+        String prpdSlAmt,
+        String slBndAlrpyAmt,
+        String slDpAggAmt,
+        String lcam34,
+        String lcam35,
+        String thmUcBlam,
+        String thmOcDlqAmt,
+        String btdUcAmt,
+        String lcmam2,
+        String lcmam6,
+        String lcmam3,
+        String lcmam4,
+        String eotUcAmt,
+        String lcmam8,
+        String lcmam9,
+        String dlqMcn,
+        String dlqAcuMcn,
+        String slStpYn,
+        String actcsDt,
+        String clctamPrtnrNo
+    ) {}
 }

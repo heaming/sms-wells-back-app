@@ -6,16 +6,14 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailMembershipPagesDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailRentalPagesDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailRglrDlvrPagesDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WctaOrderDetailMngtMapper {
     PagingResult<WctaOrderDetailRentalPagesDvo> selectOrderDetailRentalPages(
-        SearchReq dto,
+        WctaOrderDetailRentalPagesRequestDvo dvo,
         PageInfo pageInfo
     );
 
@@ -24,12 +22,20 @@ public interface WctaOrderDetailMngtMapper {
     );
 
     PagingResult<WctaOrderDetailMembershipPagesDvo> selectOrderDetailMshPages(
-        SearchOrderDetailMshPagesReq dto,
+        WctaOrderDetailMembershipPagesRequestDvo dvo,
         PageInfo pageInfo
     );
 
     List<WctaOrderDetailMembershipPagesDvo> selectOrderDetailMshPages(
         SearchOrderDetailMshPagesReq dto
+    );
+
+    PagingResult<WctaOrderDetailSinglePaymentPagesDvo> selectOrderDetailSpayCntrtPages(
+        WctaOrderDetailSinglePaymentPagesRequestDvo dvo, PageInfo pageInfo
+    );
+
+    List<WctaOrderDetailSinglePaymentPagesDvo> selectOrderDetailSpayCntrtPages(
+        SearchOrderDetailSnglPmntPagesReq dto
     );
 
     PagingResult<WctaOrderDetailRglrDlvrPagesDvo> selectOrderRegularShippingsPages(

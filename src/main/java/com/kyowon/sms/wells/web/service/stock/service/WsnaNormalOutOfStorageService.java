@@ -2,12 +2,12 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.SearchWarehouse;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaNormalOutOfStorageConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaNormalOutOfStorageMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -27,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 public class WsnaNormalOutOfStorageService {
     private final WsnaNormalOutOfStorageMapper mapper;
 
+    private final WsnaNormalOutOfStorageConverter converter;
+
     public PagingResult<SearchRes> getNormalOutOfStorage(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectNormalOutOfStorage(dto, pageInfo);
     }
@@ -39,15 +41,36 @@ public class WsnaNormalOutOfStorageService {
         return mapper.selectWarehouses(dto);
     }
 
-    public PagingResult<WsnaNormalOutOfStorageDto.AskRes> getAskMaterialsHavePss(
-        WsnaNormalOutOfStorageDto.AskReq dto, PageInfo pageInfo
+    public PagingResult<AskRes> getAskMaterialsHavePss(
+        AskReq dto, PageInfo pageInfo
     ) {
         return mapper.selectAskMaterialsHavePss(dto, pageInfo);
     }
 
-    public PagingResult<WsnaNormalOutOfStorageDto.CenterRes> getAskMaterialsCenterPresentState(
-        WsnaNormalOutOfStorageDto.AskReq dto, PageInfo pageInfo
+    public PagingResult<CenterRes> getAskMaterialsCenterPresentState(
+        AskReq dto, PageInfo pageInfo
     ) {
         return mapper.selectAskMaterialsCenterPresentState(dto, pageInfo);
+    }
+
+    public PagingResult<DetailRes> getNormalOutOfStoragesDetails(DetailReq dto, PageInfo pageInfo) {
+        return mapper.selectNormalOutOfStoragesDetails(dto, pageInfo);
+    }
+
+    @Transactional
+    public int saveNormalOstrRgsts(List<CreateReq> list) {
+        int cnt = 0;
+        List<WsnaNormalOutOfStorageDvo> voList = converter.mapCreateReqToWsnaNormalOutOfStorageDvo(list);
+        for (WsnaNormalOutOfStorageDvo vo : voList) {
+            String maxSeq = mapper.selectStrNoAndOstrNo(vo);
+            cnt += mapper.insertNormalOstrRgst(vo);
+            cnt += mapper.insertNormalStrRgst(vo);
+        }
+        return cnt;
+    }
+
+    public int getNormalOstrRgstChecked(CheckedReq dto) {
+        return mapper.selectNormalOstrRgstChecked(dto);
+
     }
 }

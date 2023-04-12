@@ -44,14 +44,6 @@ public interface WfedIndividualFeeMgtMapper {
         SearchPlarReq dto
     );
 
-    FindPlarBasicRes selectPlarBasic(
-        SearchPlarReq dto
-    );
-
-    FindPlarTotalSumRes selectPlarTotalSum(
-        SearchPlarReq dto
-    );
-
     FindPlarDeductionRes selectPlarDeduction(
         SearchPlarReq dto
     );
@@ -68,15 +60,7 @@ public interface WfedIndividualFeeMgtMapper {
         SearchMngerReq dto
     );
 
-    FindMngerBasicRes selectMngerBasic(
-        SearchMngerReq dto
-    );
-
     List<SearchMngerBeforeServiceRes> selectMngerBeforeServices(
-        SearchMngerReq dto
-    );
-
-    FindMngerTotalSumRes selectMngerTotalSum(
         SearchMngerReq dto
     );
 

@@ -29,16 +29,17 @@ public class WctaMachineChangeCstController {
 
     @ApiOperation(value = "기기변경 고객 조회", notes = "기기변경을 수행할 건 조회 / 제약 및 실적적용율 등을 계산")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrNo", value = "기기변경을 수행할 계약번호", paramType = "query", required = true),
-        @ApiImplicitParam(name = "cntrSn", value = "기기변경을 수행할 계약일련번호", paramType = "query", required = true),
-        @ApiImplicitParam(name = "cstNo", value = "계약자 고객번호", paramType = "query"),
-        @ApiImplicitParam(name = "indvCrpDv", value = "법인격구분코드(1.개인, 2.법인)", paramType = "query"),
-        @ApiImplicitParam(name = "basePdCd", value = "기준상품코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "dscDv", value = "할인적용유형코드", paramType = "query"),
-        @ApiImplicitParam(name = "dscTp", value = "할인적용유형코드", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpCd", value = "판매유형코드", paramType = "query"),
         @ApiImplicitParam(name = "baseCntrNo", value = "현재 진행중인 계약번호", paramType = "query"),
         @ApiImplicitParam(name = "baseCntrSn", value = "현재 진행중인 계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cstNo", value = "계약자 고객번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "indvCrpDv", value = "법인격구분코드(1.개인, 2.법인)", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdCd", value = "기준상품코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "dscDv", value = "할인적용유형코드", paramType = "query"),
+        @ApiImplicitParam(name = "dscTp", value = "할인적용유형코드", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "alncmpCd", value = "제휴사코드", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "기기변경을 수행할 계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "기기변경을 수행할 계약일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "rgstMdfcDv", value = "1.등록, 2.수정", paramType = "query", required = true),
     })
     @GetMapping("/machine-changes")
