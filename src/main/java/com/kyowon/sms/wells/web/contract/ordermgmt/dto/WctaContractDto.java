@@ -196,6 +196,16 @@ public class WctaContractDto {
         String prtnrNo
     ) {}
 
+    //wells K멤버스 취소 요청 목록 조회 - K멤버스 취소 요청 목록 조회 Search Request Dto
+    @ApiModel(value = "WctaContractDto-SearchKMembersCancelAsksReq")
+    public record SearchKMembersCancelAsksReq(
+        String cntrChRcpStrtDtm,
+        String cntrChRcpFinsDtm,
+        String cntrNo,
+        String cntrSn,
+        String statCd
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -423,5 +433,19 @@ public class WctaContractDto {
         String cntrPdStrtdt,
         String cntrPdEnddt,
         String cntrCanDt
+    ) {}
+
+    //wells K멤버스 취소 요청 목록 조회 - K멤버스 취소 요청 목록 조회 Search Result Dto
+    @ApiModel("WctaContractDto-SearchKMembersCancelAsksRes")
+    public record SearchKMembersCancelAsksRes(
+        String cntrNo,
+        String cstKnm,
+        String canAkDt,
+        String canDt,
+        String mlgResAmt,
+        String dlvrYn,
+        String procsBsdt,
+        String trsDt,
+        String cnfmDt
     ) {}
 }
