@@ -35,7 +35,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
 
     //등록등록처리(트랜잭션)
     @Transactional
-    public String[] createRdsProductDisbursementHoldings(SaveReq dto) {
+    public String[] createRdsProductDisbursementHoldings(SaveReq dto) throws Exception {
 
         WdecRdsProductDisbursementHoldingInterfaceDvo saveDvo = new WdecRdsProductDisbursementHoldingInterfaceDvo();
 
@@ -73,12 +73,8 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
         params.put("tenantId", tenantId); //테넌트 아이디
         batchDvo.setParams(params); // Job 실행시 필요한 파라미터
 
-        try {
-            batchRunId = batchCallService.runJob(batchDvo); //배치실행횟수를 저장
-        } catch (Exception e) {
-            //배치처리 실패
-            return new String[] {dto.rdsDsbDuedt(), "F", "배치 처리가 실패 하였습니다."}; //스트링배열로 리턴
-        }
+        //배치호출(try-catch대신, throw사용)
+        batchRunId = batchCallService.runJob(batchDvo); //배치실행횟수를 저장
 
         //모든 경우가 성공하면 처리
         return new String[] {dto.rdsDsbDuedt(), "S", "데이터 등록이 성공하였습니다."}; //스트링배열로 리턴
