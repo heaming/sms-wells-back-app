@@ -78,4 +78,50 @@ public interface WsncBsPeriodChartMapper {
 
     String selectBsPeriodChartBs05_24(WsncBsPeriodChartReqDvo dvo);
 
+    String selectBsPeriodChartBs05_25(WsncBsPeriodChartReqDvo dvo);
+
+    List<WsncBsPeriodChartResDvo> selectSpMkPlantSchedule(WsncBsPeriodChartDto.SearchReq dto);
+
+    int saveSpMkPlantSchedule01(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule02(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule03(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule04(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule05(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule06(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule07(WsncBsPeriodChartResDvo dvo);
+
+    int deleteSpMkPlantSchedule08(WsncBsPeriodChartResDvo dvo);
+
+    int deleteSpMkPlantSchedule09(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule10(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkPlantSchedule11(WsncBsPeriodChartResDvo dvo);
+
+    List<WsncBsPeriodChartResDvo> selectSpMkRedginsengSchedule(WsncBsPeriodChartDto.SearchReq dto);
+
+    int saveSpMkRedginsengSchedule01(WsncBsPeriodChartResDvo dvo);
+
+    int deleteSpMkRedginsengSchedule02(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkRedginsengSchedule03(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkRedginsengSchedule04(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkRedginsengSchedule05(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkRedginsengSchedule06(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkRedginsengSchedule07(WsncBsPeriodChartResDvo dvo);
+
+    int deleteSpMkRedginsengSchedule08(WsncBsPeriodChartResDvo dvo);
+
+    int updateSpMkRedginsengSchedule09(WsncBsPeriodChartResDvo dvo);
+
 }

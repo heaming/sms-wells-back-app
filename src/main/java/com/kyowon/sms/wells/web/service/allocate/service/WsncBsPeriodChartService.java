@@ -13,9 +13,17 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartReqDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodChartMapper;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+/*
+ * @TODO
+ *   각 주기표 로직 별 모듈화 진행할 것.
+ *
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WsncBsPeriodChartService {
@@ -158,11 +166,6 @@ public class WsncBsPeriodChartService {
                     chekVstDt = vVs104CfrmDt;
                 }
 
-                //방문예정일이 없다면 다시 설치차월에 방문차월 더해서 계산(제외)
-//                if (StringUtils.isEmpty(chekVstDt)) {
-//                    chekVstDt = DateUtil.addMonths(baseInfoRes.getIstDt(), chekInstMths);
-//                }
-
                 /*******************************************************************************************************
                  * 가구화 로직 (로직 첫 부분에서 계산한 차월 반영)
                 *******************************************************************************************************/
@@ -180,12 +183,6 @@ public class WsncBsPeriodChartService {
                 newWrkTypDtl = chart07Res.getWrkTypDtl();
                 processParam.setNewWrkTypDtl(newWrkTypDtl);
 
-                //위 로직에 포함. 제외
-//                if("Y".equals(chekVstGb20)){
-//                    newVstGb = "20";
-//                } else {
-//                    newVstGb = chart07Res.vstGb();
-//                }
                 newVstGb = chart07Res.getVstGb();
                 processParam.setNewVstGb(newVstGb);
 
@@ -295,19 +292,11 @@ public class WsncBsPeriodChartService {
          * 변수 선언부
          *******************************************************************************************************/
         int chekInstMths = 0; //설치차월
-//        int wrkTypDtlCnt; //1회성 작업 체크용 변수
-//        int chekCyclMths; //방문기준 차월수 ::: VST_NMN_N
         String chekVstDt; //방문예정일자
-//        String chekCockYn; //슬림형 정수기 품질개선(위생성 향상)을 위한 교체형 COCK TIP 적용 대상 상품이지만 생산년도가 1709 이전일 경우
-//        String vVs104CfrmDt; //고객이 요청한 방문일자
         String newWrkTypDtl; //작업유형상세
-//        String newPartCd; //주기표에 최종적으로 들어갈 자재코드(계절별맞춤형 필터 도입때문에)
-//        String vVs104CstmFltr; //고객이 마지막으로 신청한 필터가 있는지 체크
         String newVstGb; //방문구분 10 방문, 11 방문 매니저, 12 방문 엔지니어, 13 방문 홈케어, 20 택배
         String chekVstGb20 = "N"; //강제택배처리건(신안군보건소)
         String vVs107WrkDt; //주기표상 마지막 방문일자
-//        String priorityVstDt = ""; // 가구화 결과 ::: 방문예정일자(YYYYMMDD)
-//        int priorityVstDiff = 0; //가구화 결과 ::: 방문예정일자와 가구화 결과 방문예정일자와의 차월 수
 
         List<WsncBsPeriodChartResDvo> chart06ResList = mapper.selectBsPeriodChartBs03_06(baseInfoRes);
         WsncBsPeriodChartReqDvo processParam = converter.mapBaseInfoResToPeriodChartDvo(baseInfoRes);
@@ -320,23 +309,8 @@ public class WsncBsPeriodChartService {
             return 0;
         }
 
-//        chekVstGb20 = mapper.selectBsPeriodChartBs03_03(processParam); //강제택배처리건(신안군보건소)
-//        chekCyclMths = mapper.selectBsPeriodChartBs03_04(processParam); //방문기준 차월수
         vVs107WrkDt = mapper.selectBsPeriodChartBs03_05(processParam); //주기표상 마지막 방문일자
-//        chekCockYn = mapper.selectBsPeriodChartBs03_02(processParam); //슬림형 정수기 품질개선(위생성 향상)을 위한 교체형 COCK TIP 적용 대상 모델이지만 1709년 이전생산분이면 Y, Y이면 코크팁 주기에서 제거
-
-//        processParam.setChekCyclMths(chekCyclMths);
-//        processParam.setChekCockYn(chekCockYn);
         processParam.setChekVstGb20(chekVstGb20);
-
-        /*******************************************************************************************************
-         * 가구화 로직 (방문일자 및 차월 계산)
-         *******************************************************************************************************/
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    //        priorityVstDt = mapper.selectPriorityVstDt(dto);
-//        if (StringUtils.isNotEmpty(priorityVstDt)) {
-//            //가구화에 따른 방문월 padding 계산
-//            priorityVstDiff = mapper.selectPriorityVstDiff(priorityVstDt, chekCyclMths);
-//        }
 
         //AS-IS ::: WORK_X Loop(chart06Res)
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
@@ -365,6 +339,7 @@ public class WsncBsPeriodChartService {
             if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
                 chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
             }
+            processParam.setChekVstDt(chekVstDt);
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs04_07(processParam);
 
@@ -390,7 +365,6 @@ public class WsncBsPeriodChartService {
                 //주기표 생성
                 processParam.setPgrmId("BS04");
                 mapper.insertBsPeriodChart(processParam);
-
             }
         }
         return 1;
@@ -420,9 +394,8 @@ public class WsncBsPeriodChartService {
         String newWrkTypDtl; //작업유형상세
         String newVstGb; //방문구분 10 방문, 11 방문 매니저, 12 방문 엔지니어, 13 방문 홈케어, 20 택배
         String vVs107WrkDt; //주기표상 마지막 방문일자
-//        String newBsMths; //제외
-        int chekVstMths;
-        String newGdsCD; //패키지 변경 요청을 적용한 패키지
+        int chekVstMths = 0;
+        String newGdsCd; //패키지 변경 요청을 적용한 패키지
         String vVs107CnclDt; //패키지 중지 요청 일자
 
         List<WsncBsPeriodChartResDvo> chart06ResList = mapper.selectBsPeriodChartBs03_06(baseInfoRes);
@@ -441,12 +414,6 @@ public class WsncBsPeriodChartService {
 
         //AS-IS ::: WORK_X Loop(chart06Res)
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
-
-            //제외
-//            if ("1".equals(baseInfoRes.getSellTpCd()) && chart06Res.getVstNmnN() == 0) {
-//                continue;
-//            }
-
             //설치차월 계산
             //SELL_TP_CD = 1 ::: 렌탈
             if("1".equals(baseInfoRes.getSellTpCd())){
@@ -469,9 +436,7 @@ public class WsncBsPeriodChartService {
                 }
             }
 
-            if(("66".equals(baseInfoRes.getPdctPdCd().substring(0, 2))
-//                    && chart06Res.getVstNmnN() == newBsMths       //newBsMths는 제외 로직
-            )){
+            if("66".equals(baseInfoRes.getPdctPdCd().substring(0, 2))){
                 continue;
             }
 
@@ -493,28 +458,15 @@ public class WsncBsPeriodChartService {
                     + baseInfoRes.getCntrPdStrtdt().substring(6, 8);
             }
 
-            //제외
-//            if(StringUtils.isEmpty(chekVstDt)){
-//                chekVstDt = DateUtil.addMonths(baseInfoRes.getIstDt(), chekInstMths);
-//            }
-
-            /*******************************************************************************************************
-                 * 가구화 로직 (로직 첫 부분에서 계산한 차월 반영)
-                *******************************************************************************************************/
-//            if (StringUtils.isNotEmpty(priorityVstDt) && priorityVstDiff != 0) {
-//                chekVstDt = DateUtil.addMonths(chekVstDt, priorityVstDiff).substring(0, 6)
-//                    + priorityVstDt.substring(6, 8);
-//            }
-
             //월에 마지막일자보다 크다면 해당월 마지막 일자라 세팅
             if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
                 chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
             }
             processParam.setChekVstDt(chekVstDt);
 
-            newGdsCD = mapper.selectBsPeriodChartBs01_22(processParam);
+            newGdsCd = mapper.selectBsPeriodChartBs01_22(processParam);
             vVs107CnclDt = mapper.selectBsPeriodChartBs01_23(processParam);
-            processParam.setNewGdsCD(newGdsCD);
+            processParam.setNewGdsCd(newGdsCd);
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs01_07(processParam);
             //AS-IS ::: C1 Loop(chart07Res)
@@ -535,7 +487,7 @@ public class WsncBsPeriodChartService {
                 processParam.setChekVstDt(chekVstDt);
                 processParam.setNewWrkTypDtl(newWrkTypDtl);
                 processParam.setNewVstGb(newVstGb);
-                processParam.setChekCyclMths(chart07Res.getVstMths()); //cherro ::: 이걸로 가구화 로직 수행해야 하나...?
+                processParam.setChekCyclMths(chart07Res.getVstMths());
                 processParam.setNewPartCd(chart07Res.getPartCd());
                 processParam.setChngStg(chart07Res.getChngStg());
                 processParam.setItemKnd(chart07Res.getItemKnd());
@@ -576,7 +528,7 @@ public class WsncBsPeriodChartService {
         String newPartCd; //주기표에 최종적으로 들어갈 자재코드(계절별맞춤형 필터 도입때문에)
         String newVstGb; //방문구분 10 방문, 11 방문 매니저, 12 방문 엔지니어, 13 방문 홈케어, 20 택배
         String vVs107WrkDt; //주기표상 마지막 방문일자
-        String newGdsCD; //패키지 변경 요청을 적용한 패키지
+        String newGdsCd; //패키지 변경 요청을 적용한 패키지
         String vVs107CnclDt; //패키지 중지 요청 일자
         String newPartList; //모종 자유선택 패키지 구성품
 
@@ -593,15 +545,6 @@ public class WsncBsPeriodChartService {
 
         chekCyclMths = mapper.selectBsPeriodChartBs03_04(processParam); //방문기준 차월수
         vVs107WrkDt = mapper.selectBsPeriodChartBs03_05(processParam); //주기표상 마지막 방문일자
-
-        /*******************************************************************************************************
-         * 가구화 로직 (방문일자 및 차월 계산)
-         *******************************************************************************************************/
-//        priorityVstDt = mapper.selectPriorityVstDt(dto);
-//        if (StringUtils.isNotEmpty(priorityVstDt)) {
-//            //가구화에 따른 방문월 padding 계산
-//            priorityVstDiff = mapper.selectPriorityVstDiff(priorityVstDt, chekCyclMths);
-//        }
 
         //AS-IS ::: WORK_X Loop(chart06Res)
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
@@ -648,27 +591,16 @@ public class WsncBsPeriodChartService {
             }
             processParam.setChekVstDt(chekVstDt);
 
-            //방문예정일이 없다면 다시 설치차월에 방문차월 더해서 계산(제외)
-//            if (StringUtils.isEmpty(chekVstDt)) {
-//                chekVstDt = DateUtil.addMonths(baseInfoRes.getIstDt(), chekInstMths);
-//            }
-
-            /*******************************************************************************************************
-             * 가구화 로직 (로직 첫 부분에서 계산한 차월 반영)
-            *******************************************************************************************************/
-//            if (StringUtils.isNotEmpty(priorityVstDt) && priorityVstDiff != 0) {
-//                chekVstDt = DateUtil.addMonths(chekVstDt, priorityVstDiff).substring(0, 6)
-//                    + priorityVstDt.substring(6, 8);
-//            }
-
             //월에 마지막일자보다 크다면 해당월 마지막 일자라 세팅
             if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
                 chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
             }
             processParam.setChekVstDt(chekVstDt);
 
-            newPartList = mapper.selectBsPeriodChartBs05_22(processParam);
+            newGdsCd = mapper.selectBsPeriodChartBs05_22(processParam);
+            newPartList = mapper.selectBsPeriodChartBs05_25(processParam);
             vVs107CnclDt = mapper.selectBsPeriodChartBs05_23(processParam);
+            processParam.setNewGdsCd(newGdsCd);
             processParam.setNewPartList(newPartList);
             processParam.setVVs107CnclDt(vVs107CnclDt);
 
@@ -706,6 +638,12 @@ public class WsncBsPeriodChartService {
                 newPartCd = mapper.selectBsPeriodChartBs05_24(processParam);
                 processParam.setNewPartCd(newPartCd);
 
+                //맞춤형제품상품여부 Table이 데이터 확정이 되면 아래 로직으로 구현(Bs05_24 쿼리도 좀 수정)
+//                if("Y".equals(chart07Res.get맞춤형제품상품여부())){
+//                    newPartCd = mapper.selectBsPeriodChartBs05_24(processParam);
+//                    processParam.setNewPartCd(newPartCd);
+//                }
+
                 vVs104CfrmDt = mapper.selectBsPeriodChartBs03_11(processParam); //21.01.14 이영진 - 고객이 약속한 방문 예정일자가 있는지 확인
 
                 //고객 요청 방문일자가 있다면 그걸로 세팅, 아님 설치 차월 기준으로 계산한 일자 세팅
@@ -728,4 +666,123 @@ public class WsncBsPeriodChartService {
         }
         return 1;
     }
+
+    /*
+     * W-SV-S-0051
+     * 모종 일시불 구매 고객 정보 및 방문 스케쥴 인서트업데이트
+     *
+     * @TODO
+     *   해당 로직은 현재(2023.04.13) 전체 로직에 대한 로직 협의중이며, Query는 모두 AS-IS Query를 TO-BE로 변환하지 않은 상태이다.
+     *   로직 협의가 완료되면 Query를 TO-BE로 변환하고 Parameter로 처리할 조건부들을 처리해야 한다.
+     */
+    @Transactional
+    public int processSpMkPlantSchedule(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+
+        List<WsncBsPeriodChartResDvo> targetList = mapper.selectSpMkPlantSchedule(dto);
+
+        //전체 Transaction Rollback 처리를 위한 throw exception
+        if (CollectionUtils.isEmpty(targetList)) {
+            log.error("[WsncBsPeriodChartService.processSpMkPlantSchedule] NO DATA NOT FOUND");
+            throw new BizException("NO DATA NOT FOUND");
+        }
+
+        //AS-IS ::: C1 Loop
+        for(WsncBsPeriodChartResDvo target : targetList){
+
+            mapper.saveSpMkPlantSchedule01(target);
+
+            //C1.P_AC201_CSMR_SER <= C1.AC201_CSMR_SER
+            if("C1.P_AC201_CSMR_SER".compareTo("C1.AC201_CSMR_SER") <= 0){
+                /*2. 모종의 스케쥴을 생성한다.*/
+                /* 19.03.06 이영진, 일시불 12개월 구매건 적용,  -1을 하는 이유는 마지막 방문 생성 안되게 하려고 모종은 시작시점에 출고가 되는 형태이기 때문에 */
+                mapper.updateSpMkPlantSchedule02(target);
+
+                /*3. 디바이스의 스케쥴을 생성한다. */
+                mapper.updateSpMkPlantSchedule03(target);
+
+                //SUBSTR(C1.REQ_VST_DT,1,6) = TO_CHAR(SYSDATE, 'YYYYMM')
+
+                if("C1.REQ_VST_DT".substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))){
+                    mapper.updateSpMkPlantSchedule04(target);
+                    mapper.updateSpMkPlantSchedule05(target);
+                    mapper.updateSpMkPlantSchedule06(target);
+                    mapper.updateSpMkPlantSchedule07(target);
+                }
+            } else {
+                /*C1.P_AC201_CSMR_SER > C1.AC201_CSMR_SER  즉 kiwi 마스터가 순번이 크다면 모종마스터가 등록됐다고 취소된걸로 인지*/
+                /*1. 모종의 스케쥴을 삭제 한다.*/
+                mapper.deleteSpMkPlantSchedule08(target);
+
+                /*2. 디바이스의 스케쥴을 삭제한다. */
+                mapper.deleteSpMkPlantSchedule09(target);
+
+                /*3.모종의 배정을 삭제한다. */
+                mapper.updateSpMkPlantSchedule10(target);
+
+                /*4.디바이스의 배정을 삭제한다. */
+                mapper.updateSpMkPlantSchedule11(target);
+
+            }
+
+        }
+        return 1;
+    }
+
+    /*
+     * W-SV-S-0052
+     * 홍삼 캡슐 정기구매 고객 스케쥴 인서트업데이트
+     *
+     * @TODO
+     *   해당 로직은 현재(2023.04.13) 전체 로직에 대한 로직 협의중이며, Query는 모두 AS-IS Query를 TO-BE로 변환하지 않은 상태이다.
+     *   로직 협의가 완료되면 Query를 TO-BE로 변환하고 Parameter로 처리할 조건부들을 처리해야 한다.
+     */
+    @Transactional
+    public int processSpMkRedginsengSchedule(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+
+        List<WsncBsPeriodChartResDvo> targetList = mapper.selectSpMkRedginsengSchedule(dto);
+
+        //전체 Transaction Rollback 처리를 위한 throw exception
+        if (CollectionUtils.isEmpty(targetList)) {
+            log.error("[WsncBsPeriodChartService.processSpMkPlantSchedule] NO DATA NOT FOUND");
+            throw new BizException("NO DATA NOT FOUND");
+        }
+
+        //AS-IS ::: C1 Loop
+        for(WsncBsPeriodChartResDvo target : targetList){
+            mapper.saveSpMkRedginsengSchedule01(target);
+
+            //C1.AC201_CANC_DT IS NULL
+            /*당월 BS 배정*/
+            if(StringUtils.isEmpty("C1.AC201_CANC_DT")){
+
+                /* 주기표 강제 생성 */
+                /*무결성 제약 조건 오류 방지*/
+                mapper.deleteSpMkRedginsengSchedule02(target);
+
+                /*2. 스케쥴을 생성한다.*/
+                mapper.updateSpMkRedginsengSchedule03(target);
+
+                /*3. 배정을 삭제한다. */
+                mapper.updateSpMkRedginsengSchedule04(target);
+
+                /*사전방문 BS 생성*/
+                mapper.updateSpMkRedginsengSchedule05(target);
+
+                /*BS 사전생성을 위해서 강제 입력한 설치일자 삭제 */
+                mapper.updateSpMkRedginsengSchedule06(target);
+            } else {
+                /*취소일자가 있다면  취소된걸로 인지*/
+                /*취소일자 업데이트*/
+                mapper.updateSpMkRedginsengSchedule07(target);
+
+                /*1. 스케쥴을 삭제 한다.*/
+                mapper.deleteSpMkRedginsengSchedule08(target);
+
+                /*3. 배정을 삭제한다. */
+                mapper.updateSpMkRedginsengSchedule09(target);
+            }
+        }
+        return 1;
+    }
+
 }
