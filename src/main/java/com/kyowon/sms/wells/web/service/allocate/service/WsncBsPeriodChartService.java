@@ -686,6 +686,7 @@ public class WsncBsPeriodChartService {
             throw new BizException("NO DATA NOT FOUND");
         }
 
+        //AS-IS ::: C1 Loop
         for(WsncBsPeriodChartResDvo target : targetList){
 
             mapper.saveSpMkPlantSchedule01(target);
@@ -746,6 +747,7 @@ public class WsncBsPeriodChartService {
             throw new BizException("NO DATA NOT FOUND");
         }
 
+        //AS-IS ::: C1 Loop
         for(WsncBsPeriodChartResDvo target : targetList){
             mapper.saveSpMkRedginsengSchedule01(target);
 
