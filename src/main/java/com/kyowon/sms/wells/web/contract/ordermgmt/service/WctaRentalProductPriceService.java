@@ -4,18 +4,18 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalProductPrcCalcDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaRentalProductPrcCalcMapper;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalProductPriceDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaRentalProductPriceMapper;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WctaRentalProductPrcCalcService {
-    private final WctaRentalProductPrcCalcMapper mapper;
+public class WctaRentalProductPriceService {
+    private final WctaRentalProductPriceMapper mapper;
 
-    public List<WctaRentalProductPrcCalcDvo> getRentalFeeCalculation(WctaRentalProductPrcCalcDvo paramDvo) {
+    public List<WctaRentalProductPriceDvo> getRentalFeeCalculation(WctaRentalProductPriceDvo paramDvo) {
         // 파라미터 유효성 체크
         ValidAssert.hasText(paramDvo.getPdCd()); // 상품코드
         ValidAssert.hasText(paramDvo.getSellTpCd()); // 판매유형코드

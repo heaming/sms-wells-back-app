@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WctaRentalProductPrcCalcDvo {
+public class WctaRentalProductPriceDvo {
     // INPUT
     private String pdCd; /* 상품코드 */
     private String sellTpCd; /* 판매유형코드 */
