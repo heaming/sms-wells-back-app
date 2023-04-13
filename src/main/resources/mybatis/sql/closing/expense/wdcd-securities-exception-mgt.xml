@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritiesMgtMapper">
+<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdSecuritiesExceptionMgtMapper">
 
-    <select id="selectAdjustObject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritiesMgtDto$AdjustObjectRes">
+    <select id="selectAdjustObject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto$SearchAdjustObjectRes">
         SELECT SUBSTR(T1.CRCDNO_ENCR ,1,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,5,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,9,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,13,4) AS CARD_NUM
              , TO_CHAR(TO_DATE(T1.APVTM_MS,'YYYY-MM-DD HH24:MI'),'YYYY-MM-DD HH24:MI') AS AUTH_DATE
              , (SELECT C2.DGR2_LEVL_OG_NM
@@ -42,7 +42,7 @@
          INNER JOIN TB_CBCL_OPCS_ADJ_BASE_BAS T3
             ON T2.OG_TP_CD = T3.OG_TP_CD
            AND T2.BASE_YM = T3.BASE_YM
-           AND T3.MSCR_YN = 'Y'
+           AND T3.MSCR_YN = 'N'
          WHERE T1.MRC_TOBZ_NM NOT LIKE '%상품권%'
            AND T1.MRC_NM NOT LIKE '%상품권%'
            AND T1.MRC_NM NOT LIKE '%기프티%'
@@ -51,8 +51,10 @@
          ORDER BY CASE T2.ADJ_USR_ID WHEN #{session.userId} THEN 0 ELSE 1 END, T2.CRCDNO_ENCR, T1.APR_DT
     </select>
 
-    <select id="selectWithholdingTaxAdjust" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritiesMgtDto$WithholdingTaxAdjustRes">
-        SELECT ADJ_DEPT_OG_ID
+    <select id="selectWithholdingTaxAdjust" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto$SearchWithholdingTaxAdjustRes">
+        SELECT T7.DGR2_LEVL_OG_NM
+             , T7.DGR3_LEVL_OG_NM
+             , ADJ_DEPT_OG_ID
              , T1.OG_TP_CD
              , (SELECT USR_NM
                   FROM T_CMP_USR_ACO_M
@@ -68,8 +70,8 @@
          INNER JOIN TB_CBCL_OPCS_ADJ_BAS T1
             ON T6.OG_TP_CD = T1.OG_TP_CD
            AND T6.BASE_YM = T1.BASE_YM
-           AND T6.MSCR_YN = 'Y'
-           AND T1.MSCR_YN = 'Y'
+           AND T6.MSCR_YN = 'N'
+           AND T1.MSCR_YN = 'N'
          INNER JOIN TB_CBCL_OPCS_ADJ_DTL T2
             ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
          INNER JOIN TB_CBCL_OPCS_ADJ_USE_REL T3
@@ -77,12 +79,27 @@
            AND T1.BASE_YM = T3.BASE_YM
          INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ T5
             ON T3.OPCS_CARD_USE_IZ_ID = T5.OPCS_CARD_USE_IZ_ID
+         INNER JOIN TB_OGBS_OG_BAS T7 /*조직기본*/
+            ON T1.ADJ_DEPT_OG_ID = T7.OG_ID
+           AND T1.PSTN_DV_CD = T7.OG_CD
+         INNER JOIN TB_OGBS_PRTNR_DTL T8 /*파트너 상세*/
+            ON T1.PSTN_DV_CD = T8.PSTN_DV_CD
+           AND T7.OG_TP_CD = T8.OG_TP_CD
          WHERE T1.BASE_YM = #{baseYM}
            AND T1.ADJ_USR_ID = #{session.userId}
            AND T1.DTA_DL_YN = 'N'
            AND T2.DTA_DL_YN = 'N'
            AND T3.DTA_DL_YN = 'N'
            AND T1.BASE_YM = #{baseYm}
+       <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND T8.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND T8.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
+           AND T8.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
+       </if>
     </select>
 
     <update id="editWithholdingTaxAdjust">

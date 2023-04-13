@@ -2,14 +2,14 @@ package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WdcdCalculateSecuritiesExceptionMgtDto {
+public class WdcdMarketableSecuritieMgtDto {
 
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdCalculateSecuritiesExceptionMgtDto-CodeRes")
-    public record CodeRes(
+    // 운영비 원천세 정산(유가증권) / 정산대상
+    @ApiModel(value = "WdcdMarketableSecuritieMgtDto-FindCodeRes")
+    public record FindCodeRes(
         String bldCd,
         String bldNm
     ) {
@@ -18,9 +18,9 @@ public class WdcdCalculateSecuritiesExceptionMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdCalculateSecuritiesExceptionMgtDto-SubjectReq")
-    public record SubjectReq(
+    // 운영비 원천세 정산(유가증권) / 정산대상
+    @ApiModel(value = "WdcdMarketableSecuritieMgtDto-SearchSubjectReq")
+    public record SearchSubjectReq(
         String pstnDvCd,
         String dstOjpsNm,
         String dgr3LevlOgNm,
@@ -32,9 +32,9 @@ public class WdcdCalculateSecuritiesExceptionMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdCalculateSecuritiesExceptionMgtDto-SubjectRes")
-    public record SubjectRes(
+    // 운영비 원천세 정산(유가증권) / 정산대상
+    @ApiModel(value = "WdcdMarketableSecuritieMgtDto-SearchSubjectRes")
+    public record SearchSubjectRes(
         String dgr2LevlOgNm,
         String ogNm,
         String bldNm,
@@ -50,9 +50,9 @@ public class WdcdCalculateSecuritiesExceptionMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdCalculateSecuritiesExceptionMgtDto-finalWithholdingTaxSettlementReq")
-    public record finalWithholdingTaxSettlementReq(
+    // 운영비 원천세 정산(유가증권) / 정산대상
+    @ApiModel(value = "WdcdMarketableSecuritieMgtDto-SearchFinalSettlementReq")
+    public record SearchFinalSettlementReq(
         String pstnDvCd,
         String dstOjpsNm,
         String dgr3LevlOgNm,
@@ -64,9 +64,9 @@ public class WdcdCalculateSecuritiesExceptionMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdCalculateSecuritiesExceptionMgtDto-finalWithholdingTaxSettlementRes")
-    public record finalWithholdingTaxSettlementRes(
+    // 운영비 원천세 정산(유가증권) / 정산대상
+    @ApiModel(value = "WdcdMarketableSecuritieMgtDto-SearchFinalSettlementRes")
+    public record SearchFinalSettlementRes(
         String ogNm,
         String bldNm,
         String dstOjOgTpCd,  /*배분대상조직유형코드*/

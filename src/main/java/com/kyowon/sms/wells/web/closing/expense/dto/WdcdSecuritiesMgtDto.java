@@ -2,15 +2,19 @@ package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WdcdMarketableSecuritiesExcdMgtDto {
+public class WdcdSecuritiesMgtDto {
 
     // *********************************************************
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 대상자 조회결과
-    @ApiModel(value = "WdcdMarketableSecuritiesExcdMgtDto-AdjustObjectReq")
-    public record AdjustObjectReq(
-        String baseYM
+    @ApiModel(value = "WdcdSecuritiesMgtDto-SearchAdjustObjectReq")
+    public record SearchAdjustObjectReq(
+        String baseYm,
+        String entrpDvCd,
+        String dgr2LevlOgId,
+        String dgr3LevlOgId,
+        String dgr4LevlOgId
     ) {
 
     }
@@ -19,8 +23,8 @@ public class WdcdMarketableSecuritiesExcdMgtDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 대상자 조회결과
-    @ApiModel(value = "WdcdMarketableSecuritiesExcdMgtDto-AdjustObjectRes")
-    public record AdjustObjectRes(
+    @ApiModel(value = "WdcdSecuritiesMgtDto-SearchAdjustObjectRes")
+    public record SearchAdjustObjectRes(
         String cardNum,
         String authDate,
         String ogTpNm,
@@ -54,10 +58,13 @@ public class WdcdMarketableSecuritiesExcdMgtDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) /최종 원천세 정산 대상자
-    @ApiModel(value = "WdcdMarketableSecuritiesExcdMgtDto-WithholdingTaxAdjustReq")
-    public record WithholdingTaxAdjustReq(
-        String baseYM
-
+    @ApiModel(value = "WdcdSecuritiesMgtDto-SearchWithholdingTaxAdjustReq")
+    public record SearchWithholdingTaxAdjustReq(
+        String baseYm,
+        String entrpDvCd,
+        String dgr2LevlOgId,
+        String dgr3LevlOgId,
+        String dgr4LevlOgId
     ) {
 
     }
@@ -66,8 +73,8 @@ public class WdcdMarketableSecuritiesExcdMgtDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) /최종 원천세 정산 대상자
-    @ApiModel(value = "WdcdMarketableSecuritiesExcdMgtDto-WithholdingTaxAdjustRes")
-    public record WithholdingTaxAdjustRes(
+    @ApiModel(value = "WdcdSecuritiesMgtDto-SearchWithholdingTaxAdjustRes")
+    public record SearchWithholdingTaxAdjustRes(
         String cardNum,
         String authDate,
         String ogTpNm,
@@ -96,7 +103,7 @@ public class WdcdMarketableSecuritiesExcdMgtDto {
 
     }
 
-    @ApiModel(value = "WdcdMarketableSecuritiesExcdMgtDto-EditReq")
+    @ApiModel(value = "WdcdSecuritiesMgtDto-editReq")
     public record EditReq(
 
     ) {

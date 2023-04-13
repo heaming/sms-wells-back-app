@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritiesExcdMgtDto.*;
-import com.kyowon.sms.wells.web.closing.expense.service.WdcdMarketableSecuritiesExcdMgtService;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto.*;
+import com.kyowon.sms.wells.web.closing.expense.service.WdcdSecuritiesExceptionMgtService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
@@ -15,22 +15,26 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[WDCD] 운영비 원천세 정산(유가증권 제외)")
+@Api(tags = "[WDCD] 운영비 등록 관리 - 유가증권 제외")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
 @RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/marketable-securities-exclude")
-public class WdcdMarketableSecuritiesExcdMgtController {
+public class WdcdSecuritiesExceptionMgtController {
 
-    private final WdcdMarketableSecuritiesExcdMgtService service;
+    private final WdcdSecuritiesExceptionMgtService service;
 
     @ApiOperation(value = "유가증권 제외 - 정산대상", notes = "조직코드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYM", value = "사용년월", paramType = "query"),
+        @ApiImplicitParam(name = "entrpDvCd", value = "사업자 구분코드", paramType = "query"),
+        @ApiImplicitParam(name = "dgr2LevlOgId", value = "총괄단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr3LevlOgId", value = "지역단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr4LevlOgId", value = "센터단", paramType = "query"),
     })
     @GetMapping("adjust-object")
-    public List<AdjustObjectRes> getAdjustObject(@Valid
-                                                 AdjustObjectReq req) {
+    public List<SearchAdjustObjectRes> getAdjustObject(@Valid
+                                                       SearchAdjustObjectReq req) {
 
         return service.getAdjustObject(req);
     }
@@ -38,10 +42,14 @@ public class WdcdMarketableSecuritiesExcdMgtController {
     @ApiOperation(value = "유가증권 제외 - 정산대상", notes = "조직코드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYM", value = "사용년월", paramType = "query"),
+        @ApiImplicitParam(name = "entrpDvCd", value = "사업자 구분코드", paramType = "query"),
+        @ApiImplicitParam(name = "dgr2LevlOgId", value = "총괄단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr3LevlOgId", value = "지역단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr4LevlOgId", value = "센터단", paramType = "query"),
     })
     @GetMapping("withholding-tax-adjust")
-    public List<WithholdingTaxAdjustRes> getWithholdingTaxAdjust(@Valid
-                                                                 WithholdingTaxAdjustReq req) {
+    public List<SearchWithholdingTaxAdjustRes> getWithholdingTaxAdjust(@Valid
+                                                                       SearchWithholdingTaxAdjustReq req) {
 
         return service.getWithholdingTaxAdjust(req);
     }

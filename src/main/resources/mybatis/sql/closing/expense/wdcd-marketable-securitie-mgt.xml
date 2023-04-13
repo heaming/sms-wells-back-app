@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdCalculateSecuritiesExceptionMgtMapper">
+<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritieMgtMapper">
 
-    <select id="selectBuilDingCd" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCalculateSecuritiesExceptionMgtDto$CodeRes">
+    <select id="selectBuilDingCd" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto$FindCodeRes">
         SELECT DISTINCT B.BLD_CD
              , B.BLD_NM
           FROM TB_OGBS_OG_BAS A /*조직기본*/
@@ -17,27 +17,39 @@
                                      )
     </select>
 
-    <select id="selectSubject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCalculateSecuritiesExceptionMgtDto$SubjectRes">
+    <select id="selectSubject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto$SearchSubjectRes">
         SELECT T3.DGR1_LEVL_OG_NM
              , T3.OG_NM
              , T4.BLD_NM
              , DST_OJ_OG_TP_CD /*배분대상조직유형코드*/
              , DST_OJPS_NM    /*성명*/
              , SIGNR_PRTNR_NO /*번호*/
-             , PSTN_DV_CD /*직책*/
+             , RSB_DV_CD /*직책*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', T5.RSB_DV_CD) AS RSB_DV_NM /*직책*/
              , USE_AMT    /*금액*/
           FROM WSMDBS.TB_CBCL_OPCS_ADJ_BAS T1
+         INNER JOIN TB_CBCL_OPCS_CNFM_BAS T4
+            ON T1.BASE_YM    = T4.BASE_YM
+           AND T1.OG_TP_CD   = T4.OG_TP_CD
+           AND T1.MSCR_YN    = T4.MSCR_YN
+           AND T1.PSTN_DV_CD = T4.PSTN_DV_CD
          INNER JOIN WSMDBS.TB_CBCL_OPCS_ADJ_DTL T2
             ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
          INNER JOIN TB_OGBS_OG_BAS T3 /*조직기본*/
             ON T1.ADJ_DEPT_OG_ID = T3.OG_ID
            AND T1.PSTN_DV_CD = T3.OG_CD
-         INNER JOIN TB_OGBS_BLD_BAS T4 /*빌딩기본*/
-            ON T3.BLD_CD = T4.BLD_CD
+         INNER JOIN TB_OGBS_PRTNR_DTL T5      /*파트너상세*/
+            ON T1.PSTN_DV_CD = T5.PSTN_DV_CD
+           AND T3.OG_TP_CD = T5.OG_TP_CD
+         INNER JOIN TB_OGBS_BLD_BAS T5 /*빌딩기본*/
+            ON T3.BLD_CD = T5.BLD_CD
+         INNER JOIN TB_OGBS_PRTNR_DTL T6 /*파트너 상세*/
+            ON T1.PSTN_DV_CD = T6.PSTN_DV_CD
+           AND T3.OG_TP_CD = T6.OG_TP_CD
          WHERE T1.DTA_DL_YN = 'N'
-           AND T1.MSCR_YN = 'N'
-        <if test="@MybatisUtils@isNotEmpty(pstnDvCd)">
-            AND PSTN_DV_CD = #{pstnDvCd}
+           AND T1.MSCR_YN = 'Y'
+        <if test="@MybatisUtils@isNotEmpty(rsbDvCd)">
+            AND T5.RSB_DV_CD = #{rsbDvCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(ogLevlDvCd2)">
            AND T3.DGR2_LEVL_OG_NM = #{ogLevlDvCd2}
@@ -50,14 +62,15 @@
         </if>
     </select>
 
-    <select id="selectFinalWithholdingTaxSettlement" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCalculateSecuritiesExceptionMgtDto$finalWithholdingTaxSettlementReq">
+    <select id="selectFinalWithholdingTaxSettlement" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto$SearchFinalSettlementRes">
         SELECT T3.DGR2_LEVL_OG_NM
              , T3.OG_NM
              , T5.BLD_NM
              , DST_OJ_OG_TP_CD /*배분대상조직유형코드*/
              , DST_OJPS_NM     /*성명*/
              , SIGNR_PRTNR_NO /*번호*/
-             , T1.PSTN_DV_CD     /*직책*/
+             , T6.RSB_DV_CD /*직책*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', T6.RSB_DV_CD) AS RSB_DV_NM /*직책*/
              , T4.ADJ_CNFM_AMT   /*운영비 확정금액*/
              , DST_WHTX       /*원천세*/
           FROM TB_CBCL_OPCS_ADJ_BAS T1
@@ -73,13 +86,22 @@
            AND T1.PSTN_DV_CD = T3.OG_CD
          INNER JOIN TB_OGBS_BLD_BAS T5 /*빌딩기본*/
             ON T3.BLD_CD = T5.BLD_CD
+         INNER JOIN TB_OGBS_PRTNR_DTL T6 /*파트너 상세*/
+            ON T1.PSTN_DV_CD = T6.PSTN_DV_CD
+           AND T3.OG_TP_CD = T6.OG_TP_CD
          WHERE T1.DTA_DL_YN = 'N'
-           AND T1.MSCR_YN = 'N'
+           AND T1.MSCR_YN = 'Y'
         <if test="@MybatisUtils@isNotEmpty(pstnDvCd)">
             AND PSTN_DV_CD = #{pstnDvCd}
         </if>
-        <if test="@MybatisUtils@isNotEmpty(ogLevlDvCd2)">
-           AND DGR2_LEVL_OG_NM = #{ogLevlDvCd2}
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+            AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+            AND T2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
+            AND T2.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
         </if>
         <if test="@MybatisUtils@isNotEmpty(dstOjpsNm)">
            AND DST_OJPS_NM LIKE '%'|| #{dstOjpsNm} ||'%'

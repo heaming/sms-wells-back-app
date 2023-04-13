@@ -12,18 +12,14 @@ import java.util.List;
 public class WdcdOperatingCostMgtService {
 
     private final WdcdOperatingCostMgtMapper mapper;
-
-    public List<CodeRes> getOrganizationCode(CodeReq req) {
-        return mapper.selectOrganizationCode(req);
-    }
-
-    public List<AmountRes> getAmount(SearchReq req) {
+    
+    public List<SearchAmountRes> getAmount(SearchReq req) {
         //운영비 금액현황
         //운영비 적요 현황
         return mapper.selectAmount(req);
     }
 
-    public List<SummaryRes> getSummary(SearchReq req) {
+    public List<SearchSummaryRes> getSummary(SearchReq req) {
         //운영비 금액현황
         //운영비 적요 현황
         return mapper.selectSummary(req);

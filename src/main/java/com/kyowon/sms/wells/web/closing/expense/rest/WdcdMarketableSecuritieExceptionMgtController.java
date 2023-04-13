@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCalculateSecuritiesMgtDto.*;
-import com.kyowon.sms.wells.web.closing.expense.service.WdcdCalculateSecuritiesMgtService;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgttDto.*;
+import com.kyowon.sms.wells.web.closing.expense.service.WdcdMarketableSecuritieExceptionMgtService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[WDCD]원천세정산 - 유가증권")
+@Api(tags = "[WDCD]원천세정산 - 유가증권 제외")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/operating-cost/marketable-securities")
-public class WdcdCalculateSecuritiesMgtController {
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/operating-cost/marketable-securities-excd")
+public class WdcdMarketableSecuritieExceptionMgtController {
 
-    private final WdcdCalculateSecuritiesMgtService service;
+    private final WdcdMarketableSecuritieExceptionMgtService service;
 
     @GetMapping("/code")
-    public List<CodeRes> getBuilDingCd() {
+    public List<FindCodeRes> getBuilDingCd() {
         return service.getBuilDingCd();
     }
 
@@ -38,7 +38,7 @@ public class WdcdCalculateSecuritiesMgtController {
         @ApiImplicitParam(name = "bldCd", value = "빌딩명", paramType = "query")
     })
     @GetMapping("/subject")
-    public List<SubjectRes> getSubject(@Valid SubjectReq req) {
+    public List<SearchSubjectRes> getSubject(@Valid SearchSubjectReq req) {
         return service.getSubject(req);
     }
 
@@ -50,7 +50,7 @@ public class WdcdCalculateSecuritiesMgtController {
         @ApiImplicitParam(name = "bldCd", value = "빌딩명", paramType = "query")
     })
     @GetMapping("/final-withholding-tax-settlement")
-    public List<finalWithholdingTaxSettlementRes> getFinalWithholdingTaxSettlement(@Valid finalWithholdingTaxSettlementReq req) {
+    public List<SearchFinalSettlementRes> getFinalWithholdingTaxSettlement(@Valid SearchFinalSettlementReq req) {
         return service.getFinalWithholdingTaxSettlement(req);
     }
 }

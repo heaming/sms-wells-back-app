@@ -7,12 +7,10 @@ import java.util.List;
 
 @Mapper
 public interface WdcdOperatingCostMgtMapper {
+    
+    List<SearchAmountRes> selectAmount(SearchReq req);
 
-    List<CodeRes> selectOrganizationCode(CodeReq req);
-
-    List<AmountRes> selectAmount(SearchReq req);
-
-    List<SummaryRes> selectSummary(SearchReq req);
+    List<SearchSummaryRes> selectSummary(SearchReq req);
 
     void insertWithholdingTaxCfdc(FileReq req);
 
