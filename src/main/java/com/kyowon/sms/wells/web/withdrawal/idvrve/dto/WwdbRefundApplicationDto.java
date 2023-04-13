@@ -4,10 +4,10 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WwdbRefundApplicationPresentStateDto {
+public class WwdbRefundApplicationDto {
 
-    @ApiModel(value = "WwdbRefundApplicationPresentStateDto-SearchRefundApplicationPresentStateReq")
-    public record SearchRefundApplicationPresentStateReq(
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationReq")
+    public record SearchRefundApplicationReq(
         String startDay, // 접수일자 시작일
         String endDay, // 접수일자 종료일
         @NotBlank
@@ -22,8 +22,8 @@ public class WwdbRefundApplicationPresentStateDto {
 
     }
 
-    @ApiModel(value = "WwdbRefundApplicationPresentStateDto-SearchRefundApplicationPresentStateRes")
-    public record SearchRefundApplicationPresentStateRes(
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationRes")
+    public record SearchRefundApplicationRes(
         String rfndStatCd, // 환불상태
         //        String    상세 버튼, // 환불상세
         String fnlMdfcDtm, // 접수일자

@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationPresentStateDto.SearchRefundApplicationPresentStateReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationPresentStateDto.SearchRefundApplicationPresentStateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbRefundApplicationPresentStateService;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbRefundApplicationService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -26,28 +26,28 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/refund-applications")
-public class WwdbRefundApplicationPresentStateController {
+public class WwdbRefundApplicationController {
 
-    private final WwdbRefundApplicationPresentStateService service;
+    private final WwdbRefundApplicationService service;
 
     @ApiOperation(value = "환불 신청 현황 목록", notes = "환불 신청 현황 목록 조회")
     @GetMapping("/paging")
-    public PagingResult<SearchRefundApplicationPresentStateRes> getRefundApplicationPresentStatePages(
+    public PagingResult<SearchRefundApplicationRes> getRefundApplicationPages(
         @ApiParam
         @Valid
-        SearchRefundApplicationPresentStateReq req,
+        SearchRefundApplicationReq req,
         @Valid
         PageInfo pageInfo
     ) {
-        return service.getRefundApplicationPresentStatePages(req, pageInfo);
+        return service.getRefundApplicationPages(req, pageInfo);
     }
 
     @ApiOperation(value = "환불 신청 현황 목록 엑셀 다운로드", notes = "환불 신청 현황 목록 엑셀 다운로드")
     @GetMapping("/excel-download")
-    public List<SearchRefundApplicationPresentStateRes> getRefundApplicationPresentStateExcels(
-        SearchRefundApplicationPresentStateReq req
+    public List<SearchRefundApplicationRes> getRefundApplicationExcels(
+        SearchRefundApplicationReq req
     ) {
-        return service.getRefundApplicationPresentStateExcels(req);
+        return service.getRefundApplicationExcels(req);
     }
 
 }
