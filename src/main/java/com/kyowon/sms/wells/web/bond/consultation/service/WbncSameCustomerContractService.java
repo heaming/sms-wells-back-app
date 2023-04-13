@@ -4,11 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -18,20 +14,16 @@ import lombok.RequiredArgsConstructor;
 public class WbncSameCustomerContractService {
     private final WbncSameCustomerContractMapper mapper;
 
-    public List<FindContractRes> getContracts(
-        String cstNo, String safeKey, String clctamPrtnrNo
-    ) {
-        return mapper.selectContracts(cstNo, safeKey, clctamPrtnrNo);
+    public List<FindContractRes> getContracts(String cstNo) {
+        return mapper.selectContracts(cstNo);
     }
 
-    public List<FindDepositRes> getContractDeposits(
-        String bndCntrRefId
-    ) {
-        return mapper.selectContractDeposits(bndCntrRefId);
+    public List<FindDepositRes> getContractDeposits(String bndBizDvCd, String cntrNo, int cntrSn) {
+        return mapper.selectContractDeposits(bndBizDvCd, cntrNo, cntrSn);
     }
 
-    public FindDepositDtlRes getContractDeposit(String bndCntrRefId) {
-        return mapper.selectContractDeposit(bndCntrRefId);
+    public FindDepositDtlRes getContractDeposit(String bndBizDvCd, String cntrNo, int cntrSn) {
+        return mapper.selectContractDeposit(bndBizDvCd, cntrNo, cntrSn);
     }
 
     public FindBreachOfPromiseRes getBreachOfPromise(String bndCntrRefId) {

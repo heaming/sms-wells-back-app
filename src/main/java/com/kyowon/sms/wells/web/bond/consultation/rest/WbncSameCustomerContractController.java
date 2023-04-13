@@ -2,16 +2,9 @@ package com.kyowon.sms.wells.web.bond.consultation.rest;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
 import com.kyowon.sms.wells.web.bond.consultation.service.WbncSameCustomerContractService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 
@@ -27,26 +20,28 @@ public class WbncSameCustomerContractController {
     private final WbncSameCustomerContractService service;
 
     @ApiOperation(value = "동일고객 계약내역 조회", notes = "동일고객 계약내역을 조회한다.")
-    @GetMapping("/{cstNo}-{safeKey}-{clctamPrtnrNo}")
-    public List<FindContractRes> getContracts(@PathVariable
-    String cstNo, @PathVariable
-    String safeKey, @PathVariable
-    String clctamPrtnrNo) {
-        return service.getContracts(cstNo, safeKey, clctamPrtnrNo);
+    @GetMapping
+    public List<FindContractRes> getContracts(@RequestParam
+    String cstNo) {
+        return service.getContracts(cstNo);
     }
 
     @ApiOperation(value = "동일고객 계약 입금정보 조회", notes = "동일고객 계약번호에 대한 입금정보를 조회한다.")
-    @GetMapping("/{bndCntrRefId}/deposits")
-    public List<FindDepositRes> getContractDeposits(@PathVariable
-    String bndCntrRefId) {
-        return service.getContractDeposits(bndCntrRefId);
+    @GetMapping("/deposits")
+    public List<FindDepositRes> getContractDeposits(@RequestParam
+    String bndBizDvCd, @RequestParam
+    String cntrNo, @RequestParam
+    int cntrSn) {
+        return service.getContractDeposits(bndBizDvCd, cntrNo, cntrSn);
     }
 
     @ApiOperation(value = "동일고객 계약 입금정보 상세조회", notes = "동일고객 계약번호에 대한 입금 상세정보를 조회한다.")
-    @GetMapping("/{bndCntrRefId}/deposit")
-    public FindDepositDtlRes getContractDeposit(@PathVariable
-    String bndCntrRefId) {
-        return service.getContractDeposit(bndCntrRefId);
+    @GetMapping("/deposit")
+    public FindDepositDtlRes getContractDeposit(@RequestParam
+    String bndBizDvCd, @RequestParam
+    String cntrNo, @RequestParam
+    int cntrSn) {
+        return service.getContractDeposit(bndBizDvCd, cntrNo, cntrSn);
     }
 
     @ApiOperation(value = "동일고객 계약 위약정보 조회", notes = "동일고객 계약번호에 대한 위약정보를 조회한다.")
