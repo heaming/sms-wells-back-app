@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbServiceRefundMapper">
+   <select id="selectServiceRefundCustomer" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto$SearchServiceRefundRes">
+        SELECT RRRB.CST_NO /* 고객번호 */
+             , CCB.CST_KNM/* 고객성명 */
+             , CCB.CRAL_LOCARA_TNO      /* 휴대전화번호 앞자리 */
+             , CCB.MEXNO_ENCR /* 휴대전화번호 중간자리 */
+             , CCB.CRAL_IDV_TNO         /* 휴대전화번호 끝자리 */
+             , '' AS MPNO           /* 휴대전화번호 */
+             , '' AS TNO /* 전화번호*/
+             , ( SELECT GAB.RNADR || ' ' || GAB.RDADR
+                   FROM TB_GBCO_ADR_BAS GAB
+                  WHERE GAB.ADR_ID = CCB.ADR_ID
+               ) AS ADR_ID /* 설치주소 */
+             , PPB.PD_NM/* 계약상품 */
+             , SCD.SELL_TP_CD/* 유형용도 */
+             , TO_CHAR(TO_DATE(SCB.CNTR_CNFM_DTM, 'YYYYMMDD'), 'YYYY-MM-DD') AS CNTR_CNFM_DTM /* 계약일자 */
+             , TO_CHAR(TO_DATE(SCWD.IST_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS IST_DT /* 설치일자 */
+             , SCWD.FRISU_AS_PTRM_N/* 무상A/S 개월수 */
+             , SCWD.FRISU_BFSVC_PTRM_N/* 무상B/S 개월수 */
+             , TO_CHAR(ADD_MONTHS(SCWD.IST_DT, SCWD.FRISU_AS_PTRM_N), 'YYYY-MM-DD') AS TMP1/* 무상A/S 일자 */
+             , TO_CHAR(ADD_MONTHS(SCWD.IST_DT, SCWD.FRISU_BFSVC_PTRM_N), 'YYYY-MM-DD') AS TMP2/* 무상B/S 일자 */
+             , RRRB.RFND_RQDT/* 환불일자 */
+             , RRRB.RFND_DSB_DT/* 지급일 */
+             , RRD.DP_AMT/* 결제금액 */
+             , RRRD.RFND_SLPNO/* 전표 */
+             , RRRD.RFND_DDTN_AMT/* 공제금액 */
+             , RRRD.RFND_AK_AMT/* 실지급액 */
+             , RRRD.RFND_DSB_DV_CD/* 지급구분 */
+             , RRRD.CARD_RFND_FNIT_CD/* 카드구분 */
+             , RRRD.CARD_RFND_CRCDONR_NM/* 카드주명 */
+             , RRRD.CARD_RFND_FEE/* 수수료액 */
+             , RRRD.CARD_RFND_CRCDNO_ENCR/* 카드번호 */
+             , RRRD.CARD_RFND_CRDCD_APRNO/* 승인번호 */
+             , '' AS TMP3/* 유효기간(년월) (RRRD.환불카드유효기간 필드추가필요) */
+             , RRRD.CARD_RFND_CRDCD_ISTM_MCN/* 할부(개월) */
+             , RRRD.CSH_RFND_FNIT_CD/* 지급은행 */
+             , RRRD.CSH_RFND_ACNO_ENCR/* 계좌번호 */
+             , RRRD.RFND_RSON_CN/* 환불사유 */
+          FROM TB_RVDW_RFND_RCP_BAS RRRB /* 환불접수기본 */
+         INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
+            ON RRRB.DTA_DL_YN = 'N'
+           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 = 교원그룹회사코드 */
+           AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 = 환불접수번호 */
+         INNER JOIN TB_SSCT_CNTR_BAS SCB                /* 계약기본 */  
+            ON SCB.DTA_DL_YN = 'N'
+           AND RRRB.CNTR_NO = SCB.CNTR_NO               /* 계약번호 = 계약번호 */
+         INNER JOIN TB_SSCT_CNTR_DTL SCD                /* 계약상세 */
+            ON SCD.DTA_DL_YN = 'N'
+           AND RRRB.CNTR_NO = SCD.CNTR_NO               /* 계약번호 = 계약번호 */
+           AND RRRB.CNTR_SN = SCD.CNTR_SN               /* 계약상세번호 = 계약상세번호 */
+         INNER JOIN TB_PDBS_PD_BAS PPB                  /* 상품기본 */
+            ON PPB.DTA_DL_YN = 'N'
+           AND SCD.BASE_PD_CD = PPB.PD_CD
+         INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */
+            ON CCB.DTA_DL_YN = 'N'
+           AND RRRB.CST_NO = CCB.CST_NO                 /* 고객번호 = 고객번호 */
+         INNER JOIN TB_RVDW_RVE_DTL RRD                 /* 수납상세 */
+            ON RRD.DTA_DL_YN = 'N'
+           AND RRRB.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD     /* 교원그룹회사코드 = 교원그룹회사코드 */
+           AND RRRB.CNTR_NO = RRD.CNTR_NO               /* 계약번호 = 계약번호 */
+           AND RRRB.CNTR_SN = RRD.CNTR_SN               /* 계약일련번호 = 계약일련번호 */
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL SCWD         /* 계약WELLS상세 */
+            ON SCWD.DTA_DL_YN = 'N'
+           AND RRRB.CNTR_NO = SCWD.CNTR_NO               /* 계약번호 = 계약번호 */
+           AND RRRB.CNTR_SN = SCWD.CNTR_SN               /* 계약일련번호 = 계약일련번호 */
+         WHERE 1 = 1
+         /* MAIN에서 어떻게 파라미터 던저줄지 몰라서 둘다 만듬 */
+         /* AND RRRB.CNTR_NO = {cntrNo} */
+         /* AND RRRB.CNTR_SN = {cntrSn} */
+           AND RRRB.CNTR_NO = SUBSTR(#{cntrNoSn}, 1, INSTR(#{cntrNoSn}, '-') - 1)          
+           AND RRRB.CNTR_SN = SUBSTR(#{cntrNoSn}, INSTR(#{cntrNoSn}, '-') + 1, LENGTH(#{cntrNoSn})) 
+    </select>
+   <select id="selectServiceRefundCard" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto$SearchCardRes">
+        SELECT FNIT_NM /* 금융기관명 */
+             , FNIT_CD /* 금융기관코드 */
+          FROM TB_RVDW_FNIT_CD /* 금융기관코드 */
+         WHERE FNIT_DV_CD = '2' /* 카드 */
+    </select>
+   <select id="selectServiceRefundBank" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto$SearchBankRes">
+        SELECT FNIT_NM /* 금융기관명 */
+             , FNIT_CD /* 금융기관코드 */
+          FROM TB_RVDW_FNIT_CD /* 금융기관코드 */
+         WHERE FNIT_DV_CD = '1' /* 은행 */
+    </select>
+    <update id="updateServiceRefundCustomer">
+        UPDATE TB_RVDW_RFND_RCP_DTL     /* 환불접수상세 */
+           SET RFND_DDTN_AMT = #{rfndDdtnAmt}           /* 공제금액 */
+             , RFND_AK_AMT = #{rfndAkAmt}             /* 실지급액 */
+             , RFND_DSB_DV_CD = #{rfndDsbDvCd}          /* 지급구분 */
+             , CARD_RFND_FNIT_CD = #{cardRfndFnitCd}       /* 카드구분 */
+             , CARD_RFND_CRCDONR_NM = #{cardRfndCrcdonrNm}    /* 카드주명 */
+             , CARD_RFND_FEE = #{cardRfndFee}           /* 수수료액 */
+             , CARD_RFND_CRCDNO_ENCR = #{cardRfndCrcdnoEncr}   /* 카드번호 */
+             , CARD_RFND_CRDCD_APRNO = #{cardRfndCrdcdAprno}   /* 승인번호 */
+             /*, '' AS TMP3 유효기간(년월) (RRRD.환불카드유효기간 필드추가필요) */
+             , CARD_RFND_CRDCD_ISTM_MCN = #{cardRfndCrdcdIstmMcn} /* 할부(개월) */
+             , CSH_RFND_FNIT_CD = #{cshRfndFnitCd}        /* 지급은행 */
+             , CSH_RFND_ACNO_ENCR = #{cshRfndAcnoEncr}      /* 계좌번호 */
+             , RFND_RSON_CN = #{rfndRsonCn}            /* 환불사유 */
+             <include refid="COMMON.updateSystemField"/>
+         WHERE RFND_RCP_NO = (
+                        SELECT RRRB.RFND_RCP_NO /* 환불접수번호*/
+                          FROM TB_RVDW_RFND_RCP_BAS RRRB /* 환불접수기본 */
+                         WHERE 1 = 1
+                           AND RRRB.CNTR_NO = SUBSTR(#{cntrNoSn}, 1, INSTR(#{cntrNoSn}, '-') - 1)
+                           AND RRRB.CNTR_SN = SUBSTR(#{cntrNoSn}, INSTR(#{cntrNoSn}, '-') + 1, LENGTH(#{cntrNoSn})) 
+                                /* MAIN에서 어떻게 파라미터 던저줄지 몰라서 둘다 만듬 */
+                                /* AND RRRB.CNTR_NO = {cntrNo} */
+                                /* AND RRRB.CNTR_SN = {cntrSn} */
+                             )
+    </update>
+</mapper>
