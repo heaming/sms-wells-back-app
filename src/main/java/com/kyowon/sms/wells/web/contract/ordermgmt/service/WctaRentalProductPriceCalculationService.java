@@ -20,7 +20,7 @@ public class WctaRentalProductPriceCalculationService {
     ) {
         // 파라미터 유효성 체크
         ValidAssert.hasText(paramDvo.getPdCd()); // 상품코드
-        //ValidAssert.hasText(paramDvo.getSellTpCd()); // 판매유형코드
+        ValidAssert.hasText(paramDvo.getSellTpCd()); // 판매유형코드
         ValidAssert.hasText(paramDvo.getSellChnlCd()); // 판매채널코드
 
         return mapper.selectRentalFeeCalculation(paramDvo);
