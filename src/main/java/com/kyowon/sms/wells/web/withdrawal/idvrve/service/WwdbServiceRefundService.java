@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbServiceRefundConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto.SaveReq;
@@ -55,12 +56,9 @@ public class WwdbServiceRefundService {
      * @param SearchServiceRefundReq
      * @return saveRes
      */
+    @Transactional
     public int saveServiceRefund(SaveReq req) throws Exception {
-        int processCount = 0;
-
         WwdbServiceRefundDvo dvo = converter.mapSaveWwdbServiceRefundDvo(req);
-        processCount = mapper.updateServiceRefundCustomer(dvo);
-
-        return processCount;
+        return mapper.updateServiceRefundCustomer(dvo);
     }
 }
