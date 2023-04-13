@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundApplicationMapper">
+    
+    <select id="selectRefundApplication" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationRes">
+        SELECT 
+               RRRB.RFND_STAT_CD                                /* 환불상태 */
+                                                                /* 환불상세(버튼) */
+             , RRRB.FNL_MDFC_DTM                                /* 접수일자 */
+             , SCD.CNTRW_TP_CD                                  /* 계약유형. 그리드 정의 없음. 리스, 렌탈, 멤버십, 정기배송 */
+             , ( RRRB.CNTR_NO || '-' || RRRB.CNTR_SN ) AS CNTR_NO_SN   /* 계약상세번호 */
+             , CCB.CST_KNM                                      /* 계약자 */
+             , SCB.CNTR_CNFM_DTM                                /* 계약일자 */
+             , RRD.RVE_DV_CD                                    /* 입금유형 */
+             , RRD.RVE_DT                                       /* 매출일자 */
+             , SCB.CNTR_CAN_DTM                                 /* 취소일자 */
+             , PPB.PD_NM                                        /* 상품명 */
+             , RRRD.RFND_AK_AMT                                 /* 환불요청금액(원) */
+             , ( SELECT OEB.FNM
+                   FROM TB_OGBS_EMP_BAS OEB
+                  WHERE OEB.SAP_EMPNO = RRRD.FNL_MDFC_USR_ID
+               ) AS FNM                                         /* 신청자 */
+             , RRRD.FNL_MDFC_USR_ID                             /* 번호 */
+             , RRRD.RFND_FSH_DT                                 /* 승인일자 */
+             , RRRB.EX_RFND_RSON_CN                             /* 처리내용 */
+             , RRRB.RFND_FSH_DT AS RFND_FSH_DT_TMP                 /* 지급일자 */
+             , CASE WHEN RRRD.RFND_DSB_DV_CD = '01' THEN ( CASE WHEN RRRD.CSH_RFND_DV_CD = '01' THEN '5'       /* 5. 선환불 */
+                                                                WHEN RRRD.CSH_RFND_DV_CD = '02' THEN '4'     /* 4. 현금환불 */
+                                                                WHEN RRRD.CSH_RFND_DV_CD = '03' THEN '6'     /* 6. 카드현금 */
+                                                            END
+                                                         )
+                    WHEN RRRD.RFND_DSB_DV_CD = '02' THEN '3'                                                 /* 3. 카드환불 */
+                    WHEN RRRD.RFND_DSB_DV_CD = '03' THEN ( CASE WHEN RRRD.BLTF_RFND_DV_CD = '01' THEN '2'    /* 2. 현금전금 */
+                                                                WHEN RRRD.BLTF_RFND_DV_CD = '02' THEN '1'    /* 1. 카드전금 */
+                                                            END 
+                                                         )                                                         
+                END AS RFND_DSB_DV_CD_CSH_BLTF                  /* 처리구분 */
+             , RRRD.RFND_RSON_CD                                /* 환불사유 */
+             , RRRD.RFND_RSON_CN                                /* 환불내용 */
+             , RRRD.RFND_EVID_MTR_FILE_ID                       /* 첨부파일 */
+          FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
+         INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
+            ON RRRB.DTA_DL_YN = 'N'
+           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
+           AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
+         INNER JOIN TB_SSCT_CNTR_BAS SCB                /* 계약기본 */  
+            ON SCB.DTA_DL_YN = 'N'
+           AND RRRB.CNTR_NO = SCB.CNTR_NO               /* 계약번호 */
+         INNER JOIN TB_SSCT_CNTR_DTL SCD                /* 계약상세 */
+            ON SCD.DTA_DL_YN = 'N'
+           AND RRRB.CNTR_NO = SCD.CNTR_NO               /* 계약번호 */
+           AND RRRB.CNTR_SN = SCD.CNTR_SN               /* 계약상세번호 */
+         INNER JOIN TB_PDBS_PD_BAS PPB                  /* 상품기본 */
+            ON SCD.BASE_PD_CD = PPB.PD_CD
+         INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */
+            ON CCB.DTA_DL_YN = 'N'
+           AND RRRB.CST_NO = CCB.CST_NO                 /* 고객번호 */
+         INNER JOIN TB_RVDW_RVE_DTL RRD                 /* 수납상세 */ 
+            ON RRD.DTA_DL_YN = 'N'
+           AND RRRB.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD     /* 교원그룹회사코드 */
+           AND RRRB.CNTR_NO = RRD.CNTR_NO               /* 계약번호 */
+           AND RRRB.CNTR_SN = RRD.CNTR_SN               /* 계약일련번호 */
+         WHERE 1 = 1
+           <if test="@MybatisUtils@isNotEmpty(startDay) or @MybatisUtils@isNotEmpty(endDay)">
+           AND RRRB.FNL_MDFC_DTM BETWEEN #{startDay} AND #{endDay} /* 접수일자 */
+           </if>
+           AND RRRB.RFND_STAT_CD = #{rfndStatCd}         /* 환불상태 : 접수(01.환불접수완료), 진행중(05.환불진행중), 반려(04.환불반려), 승인(03.환불처리완료) */
+           /* AND ( RRD.DP_DV_CD = '1' AND RRD.RVE_DV_CD = {rveDvCd} ) 입금유형 : 입금구분코드(DP_DV_CD)가 입금(1), 환불(2), 전금(3)이므로 조건에서 제외. 수납구분코드(RVE_DV_CD)는 01.계약금, 15.기타선수금만 조회 */
+           /* AND RRD.RVE_DV_CD = {rveDvCd}   수납상세 테이블 데이터 수정 가능할때까지 주석. 입금유형 : 입금구분코드(DP_DV_CD)가 입금(1), 환불(2), 전금(3)이므로 조건에서 제외. 수납구분코드(RVE_DV_CD)가 01.계약금, 15.기타선수금 */
+           <if test="@MybatisUtils@isNotEmpty(rfndDsbDvCdCshBltf)">
+           /* 처리구분   : 환불지급구분코드 (RFND_DSB_DV_CD), 현금환불구분코드 (CSH_RFND_DV_CD), 전금환불구분코드(BLTF_RFND_DV_CD) 조합으로 표시 */
+           AND CASE WHEN #{rfndDsbDvCdCshBltf} = '1' THEN ( RRRD.RFND_DSB_DV_CD = '03' AND RRRD.BLTF_RFND_DV_CD = '02' ) /* 1. 카드전금 : 환불지급구분코드 (RFND_DSB_DV_CD) :  03(전금) AND 전금할분구분코드 (BLTF_RFND_DV_CD) : 02(카드전금) */
+                    WHEN #{rfndDsbDvCdCshBltf} = '2' THEN ( RRRD.RFND_DSB_DV_CD = '03' AND RRRD.BLTF_RFND_DV_CD = '01' ) /* 2. 현금전금 : 환불지급구분코드 (RFND_DSB_DV_CD) :  03(전금) AND 전금할분구분코드 (BLTF_RFND_DV_CD) : 01(현금전금) */
+                    WHEN #{rfndDsbDvCdCshBltf} = '3' THEN ( RRRD.RFND_DSB_DV_CD = '02' )                                 /* 3. 카드환불 : 환불지급구분코드 (RFND_DSB_DV_CD) :  02(카드환불) */
+                    WHEN #{rfndDsbDvCdCshBltf} = '4' THEN ( RRRD.RFND_DSB_DV_CD = '01' AND RRRD.BLTF_RFND_DV_CD = '02' ) /* 4. 현금환불 : 환불지급구분코드 (RFND_DSB_DV_CD) :  01(현금환불) AND 현금환불구분코드(CSH_RFND_DV_CD) : 02(일반환불) */
+                    WHEN #{rfndDsbDvCdCshBltf} = '5' THEN ( RRRD.RFND_DSB_DV_CD = '01' AND RRRD.CSH_RFND_DV_CD = '01' )  /* 5. 선환불 : 환불지급구분코드 (RFND_DSB_DV_CD) :  01(현금환불) AND 현금환불구분코드(CSH_RFND_DV_CD) : 01(선환불) */
+                    WHEN #{rfndDsbDvCdCshBltf} = '6' THEN ( RRRD.RFND_DSB_DV_CD = '01' AND RRRD.CSH_RFND_DV_CD = '03' )  /* 6. 카드현금 : 환불지급구분코드 (RFND_DSB_DV_CD) :  01(현금환불) AND 현금환불구분코드(CSH_RFND_DV_CD) : 03(카드현금)*/
+                END
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrNoSn)">
+           AND ( RRRB.CNTR_NO || RRRB.CNTR_SN ) LIKE  #{cntrNoSn} /* 계약상세번호 = 계약번호 || 계약일련번호 */
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cstNo)">
+           AND RRRB.CST_NO = #{cstNo}                    /* 고객번호 */
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(bzrno)">
+           AND CCB.BZRNO = #{bzrno}                      /* 사업자등록번호 */
+           </if>
+    </select>
+</mapper>
