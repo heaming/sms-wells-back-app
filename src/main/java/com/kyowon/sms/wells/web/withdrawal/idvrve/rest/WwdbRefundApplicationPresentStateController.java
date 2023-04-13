@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[입금관리 - 개별수납] 환불 신청 현황")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/refund-application-present-state")
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/refund-applications")
 public class WwdbRefundApplicationPresentStateController {
 
     private final WwdbRefundApplicationPresentStateService service;
