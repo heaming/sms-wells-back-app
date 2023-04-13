@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailCssrMapper">
+    <select id="selectContractBaseInformation" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto$FindBaseRcpRes">
+        SELECT T1.CSSR_IS_DV_CD    /* 현금영수증발급구분코드 */
+             , T1.CSSR_IS_NO       /* 현금영수증발급번호 */
+             , (SELECT CH_RSON_CN
+                 FROM (SELECT CNTR_NO
+                            , CNTR_SN
+                            , CST_NO
+                            , CH_RSON_CN
+                            , ROW_NUMBER() OVER(ORDER BY CH_SN DESC) AS RN
+                         FROM TB_RVDW_CSSR_IS_INF_BAS_HIST  /* 현금영수증발급정보기본이력 */
+                        WHERE 1=1
+                          AND KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                          AND CNTR_NO = T1.CNTR_NO
+                          AND CNTR_SN = T1.CNTR_SN
+                          AND CST_NO = T1.CST_NO
+                       )
+                  WHERE RN = 1) AS CH_RSON_CN   /* 마지막 변경사유 */
+          FROM TB_RVDW_CSSR_IS_INF_BAS  T1/* 현금영수증발급정보기본 */
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND T1.CNTR_SN = #{cntrSn} /* 계약일련번호 */
+           AND T1.KW_GRP_CO_CD = '1000'/* 교원 */
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+    <select id="selectCashSalesReceipts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto$SearchRcpRes">
+        SELECT T1.RVE_DT               /* 수납일자 */
+           /* 현금영수증발급변경여부 : 'N' 인경우는 변경전에 넣음 'Y' : 원정보*/
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN T1.CSSR_IS_DV_CD   ELSE T2.BFCH_CSSR_IS_DV_CD END ORCSSR_IS_DV_CD  /* 발행구분 */
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN T1.CSSR_IS_NO      ELSE T2.BFCH_CSSR_IS_NO END ORCSSR_IS_NO        /* 변경전 발생번호 */
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN T1.CSSR_TRD_AMT    ELSE T2.BFCH_CSSR_TRD_AMT END ORCSSR_TRD_AMT    /* 변경전 금액 */
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN T1.CSSR_APR_RS_CD  ELSE T2.BFCH_CSSR_APR_RS_CD END ORCSSR_APR_RS_CD /* 변경전 승인결과 */
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN '' ELSE T1.CSSR_IS_NO  END CSSR_IS_NO              /* 변경 후 발행번호*/
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN '' ELSE T2.CH_RSON_CN  END CH_RSON_CN           /* 변경사유*/
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN '' ELSE T2.FNL_MDFC_DTM  END FNL_MDFC_DTM          /* 등록일*/
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN '' ELSE T3.USR_NM  END FNL_MDFC_USR_NM    /* 등록자(이름)*/
+             , CASE WHEN T1.CSSR_IS_CH_YN = 'N' THEN '' ELSE T2.FNL_MDFC_USR_ID  END FNL_MDFC_USR_ID    /* 번호(등록자사번)*/
+          FROM TB_RVDW_CSSR_IS_OJ_DTL T1            /* 현금영수증발급대상상세 (전체)*/
+          LEFT OUTER JOIN TB_RVDW_CSSR_IS_CH_IZ T2   /* 현금영수증발급변경내역 (변경전) 전체의 원정보값으로 비표하여 원정보 */
+            ON T2.KW_GRP_CO_CD   = T1.ORKW_GRP_CO_CD
+           AND T2.RVE_DT         = T1.ORRVE_DT
+           AND T2.DP_DV_CD       = T1.ORDP_DV_CD
+           AND T2.CSSR_AGRG_SN   = T1.ORCSSR_AGRG_SN
+           AND T2.CSSR_DTL_SN    = T1.ORCSSR_DTL_SN
+           AND T2.SELL_TP_CD     = T1.ORSELL_TP_CD
+          LEFT OUTER JOIN T_CMP_USR_ACO_M T3
+            ON T3.USR_ID = T2.FST_RGST_USR_ID
+           AND T3.DEL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND T1.CNTR_SN = #{cntrSn} /* 계약일련번호 */
+           AND T1.KW_GRP_CO_CD = '1000'/* 교원 */
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>
