@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdMarketableSecuritiesMgtConverter;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritiesMgtDto.*;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritiesDvo;
-import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritiesMgtMapper;
+import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdSecuritiesMgtMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,17 +11,17 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class WdcdMarketableSecuritiesMgtService {
+public class WdcdSecuritiesMgtService {
 
-    private final WdcdMarketableSecuritiesMgtMapper mapper;
+    private final WdcdSecuritiesMgtMapper mapper;
     private final WdcdMarketableSecuritiesMgtConverter converter;
 
-    public List<AdjustObjectRes> getAdjustObject(AdjustObjectReq req) {
+    public List<SearchAdjustObjectRes> getAdjustObject(SearchAdjustObjectReq req) {
 
         return mapper.selectAdjustObject(req);
     }
 
-    public List<WithholdingTaxAdjustRes> getWithholdingTaxAdjust(WithholdingTaxAdjustReq req) {
+    public List<SearchWithholdingTaxAdjustRes> getWithholdingTaxAdjust(SearchWithholdingTaxAdjustReq req) {
 
         return mapper.selectWithholdingTaxAdjust(req);
     }
