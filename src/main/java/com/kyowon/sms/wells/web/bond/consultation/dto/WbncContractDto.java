@@ -39,6 +39,7 @@ public class WbncContractDto {
         String prdf,
         String pdctNm,
         String cntrNo,
+        String cntrSn,
         String cstNm,
         String dlqMcnt,
         String ojAmt,
