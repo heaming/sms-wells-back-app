@@ -29,6 +29,7 @@ public class WctbSodbtCanCstPsInqrService {
             req = converter.mapWctbSodbtCanCstPsInqrDvoToSearchRes(dvo);
             reqs.add(req);
         }
+        reqs.setPageInfo(pageInfo);
         return reqs;
     }
 }
