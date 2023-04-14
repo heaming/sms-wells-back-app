@@ -52,7 +52,9 @@ public class WsnaMovementStoreDto {
         String itmPdNm, /*품목상품명*/
         String strSn, /*입고일련번호*/
         String strWareNo, /*입고창고번호*/
-        String wareNm /*창고명*/
+        String wareNm, /*입고창고명*/
+        String ostrWareNo, /*출고창고번호*/
+        String ostrWareNm/*출고창고명*/
     ) {}
 
     public record MovementOstrReq(
@@ -84,38 +86,49 @@ public class WsnaMovementStoreDto {
 
     public record MovementOstrMngtReq(
         String stckStdGb,
-        String itmOstrNo,
+        String itmStrNo,
+        String itmPdNo,
+        String strRgstDt,
+        String strDt,
+        String strHopDt,
+        String strTpCd,
         String ostrWareNo,
         String strWareNo
     ) {}
+
     public record MovementOstrMngtRes(
-        String chk,
-        String flag,
-        String itmOstrNo,
-        String ostrTpCd,
-        String ostrWareNo,
-        String ostrDt,
-        String ostrSn,
+        String itmStrNo,
+        String sapMatCd,
         String itmPdCd,
-        String pdNm,
+        String itmPdNm,
         String itemLoc,
-        String itmGdCd,
         String onQty,
         String mngtUnitCd,
+        String mngtUnitNm,
+        String itmGdCd,
         String boxUnitQty,
-        String reqQTy,
-        String outRegDt,
+        String ostrAkQty,
         String ostrQty,
-        String qty1,
-        String qty2,
-        String rmkCn,
+        String strQty,
+        String OstrCnfmAggQty,
+        String strRgstDt,
+        String strWareNo,
+        String ostrWareNo,
+        String baseGb,
+        String baseColorGb,
+        String strHopDt,
         String ostrCnfmCd,
-        String ser,
-        String sellRcpdt,
         String inSum,
-        String pdPrpVal15,
-        String pdPrpVal16,
-        String sapMatCd
+        String strConfDt,
+        String rmkCn
+    ) {}
 
+    public record MovementStrSaveReq(
+        String itmStrNo,
+        int strSn,
+        String strWareNo,
+        String itmGdCd,
+        String itmPdCd,
+        int strQty
     ) {}
 }
