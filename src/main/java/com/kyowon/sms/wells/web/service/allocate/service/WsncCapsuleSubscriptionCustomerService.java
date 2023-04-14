@@ -26,7 +26,7 @@ public class WsncCapsuleSubscriptionCustomerService {
 
     private final WsncCapsuleSubscriptionCustomerMapper mapper;
 
-    public int saveCapsuleRglrPrchsCsts() {
+    public int saveCapsuleSubscriptionCustomer() {
 
         int updateCount = 0;
 

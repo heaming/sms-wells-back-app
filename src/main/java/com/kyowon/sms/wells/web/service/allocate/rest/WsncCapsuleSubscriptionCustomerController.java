@@ -24,8 +24,8 @@ public class WsncCapsuleSubscriptionCustomerController {
 
     @ApiOperation(value = "홈카페 캡슐 정기구매 고객의 스케쥴 정보를 insert/update한다.")
     @PostMapping
-    public SaveResponse saveCapsuleRglrPrchsCsts() {
-        return SaveResponse.builder().processCount(service.saveCapsuleRglrPrchsCsts()).build();
+    public SaveResponse saveCapsuleSubscriptionCustomer() {
+        return SaveResponse.builder().processCount(service.saveCapsuleSubscriptionCustomer()).build();
     }
 
 }
