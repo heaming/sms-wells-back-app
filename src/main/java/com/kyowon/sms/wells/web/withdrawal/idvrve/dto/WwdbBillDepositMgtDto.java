@@ -9,7 +9,8 @@ public class WwdbBillDepositMgtDto {
         String rcpStartDt,
         String rcpEndDt,
         String cntrNo,
-        String billExprDt
+        String billExprDt,
+        String cntr
     ) {
 
     }
