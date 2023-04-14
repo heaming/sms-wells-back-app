@@ -65,8 +65,8 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
     @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-OgTp")
     public record OrganizationTypes(
         @NotBlank
-        @JsonProperty("OG_TP_CD_VAL")
-        String ogTpCdVal, /*조직유형코드값*/
+        @JsonProperty("OG_TP_CD_ARY_VAL")
+        String ogTpCdAryVal, /*조직유형코드값*/
 
         @NotBlank
         @JsonProperty("PRTNRNO")
