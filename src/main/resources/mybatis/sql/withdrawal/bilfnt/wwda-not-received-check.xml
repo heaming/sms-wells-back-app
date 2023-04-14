@@ -126,24 +126,15 @@
                              , 0 AS THM_INTAM_DP_AMT
                              , 0 AS THM_ISTM_RFND_AMT
                              , SUM(RRD.RVE_AMT) AS RVE_AMT
+                             , SUM(CBAB.RVE_AMT) AS CBAB_RVE_AMT
                           FROM TB_CBCL_BZNS_ATAM_BAS CBAB
                           JOIN TB_RVDW_RVE_DTL RRD
                             ON CBAB.RVE_NO = RRD.RVE_NO 
                            AND CBAB.RVE_SN = RRD.RVE_SN 
                            AND CBAB.DTA_DL_YN = 'N'
                            AND RRD.DTA_DL_YN = 'N'
-                         WHERE EXISTS ( SELECT 1
-                                         FROM TB_CBCL_BZNS_ATAM_BAS CBAB
-                                         JOIN TB_RVDW_RVE_DTL RRD
-                                           ON CBAB.RVE_NO = RRD.RVE_NO 
-                                          AND CBAB.RVE_SN = RRD.RVE_SN 
-                                          AND CBAB.DTA_DL_YN = 'N'
-                                          AND RRD.DTA_DL_YN = 'N'
-                                        WHERE 1 = 1
-                                          AND SUBSTR(CBAB.DP_CL_DT,1 , 6) = #{baseYm}
-                                     GROUP BY CBAB.RVE_AMT , RRD.RVE_AMT
-                                       HAVING SUM(CBAB.RVE_AMT) != SUM(RRD.RVE_AMT)
-                                     )
+                         WHERE SUBSTR(CBAB.DP_CL_DT,1 , 6) = #{baseYm}
+                         <!-- TB_RVDW_RVE_DTL.RVE_AK_TP_CD(수납요청유형코드) = '07'(환불금) 은 - 처리 RVE_AK_TP_CD 컬럼 삭제 -->
                       GROUP BY CBAB.CNTR_NO, CBAB.CNTR_SN
                       ) T1
                 JOIN (
@@ -173,6 +164,7 @@
                         ) T2
                        ON T1.CNTR_NO = T2.CNTR_NO
                       AND T1.CNTR_SN = T2.CNTR_SN
+                      AND T1.CBAB_RVE_AMT != T1.RVE_AMT
               UNION ALL
               /* 기준년월 <![CDATA[ > ]]> 당월(계약실적월마감) */
               SELECT '매출실적 입금반영 누락건(' || (SELECT CD_CNTN
@@ -202,6 +194,8 @@
                          , SUM(CWSM.THM_INTAM_DP_AMT) AS THM_INTAM_DP_AMT
                          , SUM(CWSM.THM_ISTM_RFND_AMT) AS THM_ISTM_RFND_AMT
                          , SUM(RRD.RVE_AMT) AS RVE_AMT
+                         , CWSM.THM_INTAM_DP_AMT AS CTHM_INTAM_DP_AMT
+                         , CWSM.THM_ISTM_RFND_AMT AS CTHM_ISTM_RFND_AMT
                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ CWSM
                       JOIN TB_SSCT_CNTR_DTL SCD
                         ON SCD.CNTR_NO = CWSM.CNTR_NO
@@ -216,22 +210,12 @@
                         ON SCD.CNTR_NO = RRD.RVE_OJ_DRM_NO1 
                        AND SCD.CNTR_SN = RRD.RVE_OJ_DRM_NO2 
                        AND RRD.DTA_DL_YN = 'N'
-                     WHERE EXISTS ( SELECT 1
-                                     FROM TB_CBCL_WELLS_SL_MM_CL_IZ CWSM
-                                     JOIN TB_SSCT_CNTR_DTL SCD
-                                       ON SCD.CNTR_NO = CWSM.CNTR_NO
-                                      AND SCD.CNTR_SN = CWSM.CNTR_SN
-                                      AND CWSM.DTA_DL_YN = 'N'
-                                     JOIN TB_RVDW_RVE_DTL RRD
-                                       ON CWSM.CNTR_NO = RRD.RVE_NO 
-                                      AND CWSM.CNTR_SN = RRD.RVE_SN 
-                                      AND CWSM.DTA_DL_YN = 'N'
-                                      AND RRD.DTA_DL_YN = 'N'
-                                    WHERE CWSM.SL_CL_YM = #{baseYm}
-                                 GROUP BY CWSM.THM_INTAM_DP_AMT, CWSM.THM_ISTM_RFND_AMT, RRD.RVE_AMT
-                                   HAVING CWSM.THM_INTAM_DP_AMT - CWSM.THM_ISTM_RFND_AMT != SUM(RVE_AMT) 
-                                 )
-                  GROUP BY CWSM.CNTR_NO, CWSM.CNTR_SN
+                     WHERE CWSM.SL_CL_YM = #{baseYm}
+                      <!-- TB_RVDW_RVE_DTL.RVE_AK_TP_CD(수납요청유형코드) = '07'(환불금) 은 - 처리 RVE_AK_TP_CD 컬럼 삭제 -->
+                  GROUP BY CWSM.CNTR_NO
+                         , CWSM.CNTR_SN
+                         , CWSM.THM_INTAM_DP_AMT
+                         , CWSM.THM_ISTM_RFND_AMT
                    ) T3
               JOIN (
                     SELECT CWSM.SL_CL_DT AS DP_CL_DT
@@ -260,6 +244,7 @@
                    ) T4
                 ON T3.CNTR_NO = T4.CNTR_NO
                AND T3.CNTR_SN = T4.CNTR_SN
+               AND T3.CTHM_INTAM_DP_AMT - T3.CTHM_ISTM_RFND_AMT != T3.RVE_AMT
     </select>
     
     <select id="selectAftnRsBndlErrInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchResultBundleErrorRes">
