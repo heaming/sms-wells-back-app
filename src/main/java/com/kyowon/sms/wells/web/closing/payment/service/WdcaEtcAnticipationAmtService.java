@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.closing.payment.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaEtcAnticipationAmtDvo;
 import com.kyowon.sms.wells.web.closing.payment.mapper.WdcaEtcAnticipationAmtMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -24,14 +25,35 @@ public class WdcaEtcAnticipationAmtService {
 
     @Transactional
     public int createEtcAnticipationAmt(
-        com.kyowon.sms.wells.web.closing.payment.dvo.WdcaEtcAnticipationAmtDvo dvo
+        WdcaEtcAnticipationAmtDvo dvo
     ) {
-        // TODO - 현재 임시 작업함. 테이블이 확정되면 추후 재작업
+        // TODO - 현재 임시 작업함. 설계서 확정되면 추후 재작업
 
-        // 1. 기타선수금번호 채번
-        dvo = mapper.selectMaxEtcAnticipationAmtNo();
+        // 1. 기타선수금번호가 넘어오는지 확인
+        if (dvo.getEtcAtamNo().isEmpty()) {
+            // 1-1 통합입금번호 중심으로 채번
+            // 기타선수금 번호
+            dvo.setEtcAtamNo(
+                mapper.selectMaxEtcAnticipationNo(
+                    dvo.getItgDpNo()
+                )
+            );
 
-        // 2. 기타선수금 테이블 저장
+            mapper.insertEtcBasic(dvo);
+
+        } else {
+            // 1-2 기타선수금 잔액 수정
+            mapper.updateEtcBasic(dvo.getEtcAtamNo());
+        }
+
+        // 기타선수금 일련번호
+        dvo.setEtcAtamSn(
+            mapper.selectMaxEtcAnticipationSn(
+                dvo.getEtcAtamNo()
+            )
+        );
+
+        mapper.insertEtcProcess(dvo);
 
         return 1;
     }
