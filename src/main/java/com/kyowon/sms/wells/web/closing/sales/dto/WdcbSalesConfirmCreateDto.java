@@ -156,7 +156,6 @@ public class WdcbSalesConfirmCreateDto {
         String istDtm,
         String reqdDtm,
         String svDt,
-        String dtaDlYn,
-        String fnlMdfcDtm
+        String dtaDlYn
     ) {}
 }

@@ -164,5 +164,4 @@ public class WdcbSalesConfirmCreateDvo {
     private String reqdDtm;
     private String svDt;
     private String dtaDlYn;
-    private String orglFnlMdfcDtm;
 }
