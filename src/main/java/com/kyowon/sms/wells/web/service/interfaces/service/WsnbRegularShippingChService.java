@@ -35,6 +35,7 @@ public class WsnbRegularShippingChService {
         boolean step2 = false;
         String msg = "";
 
+        //@TODO 이진성 프로 작업 예정
         //String result = LC_ASREGN_API_I04_T; --> 이진성 프로 작업 예정
         String result = "S001";
 
