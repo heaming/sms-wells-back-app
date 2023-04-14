@@ -1,10 +1,9 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleRglrPrchsCstDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCapsuleRglrPrchsCstMapper;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncCapsuleSubscriptionCustomerDvo;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCapsuleSubscriptionCustomerMapper;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sds.sflex.common.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,53 +22,54 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsncCapsuleRglrPrchsCstService {
+public class WsncCapsuleSubscriptionCustomerService {
 
-    private final WsncCapsuleRglrPrchsCstMapper mapper;
+    private final WsncCapsuleSubscriptionCustomerMapper mapper;
 
     public int saveCapsuleRglrPrchsCsts() {
 
-        AtomicInteger updateCount = new AtomicInteger();
-        List<SearchRes> res = mapper.selectCapsuleRglrPrchsCsts();
-        for (SearchRes row : res) {
+        int updateCount = 0;
+
+        List<WsncCapsuleSubscriptionCustomerDvo> res = mapper.selectCapsuleRglrPrchsCsts();
+        for (WsncCapsuleSubscriptionCustomerDvo row : res) {
 
             /*1. 고객마스터(LC_ALLOCATE_AC201TB) 인서트 또는 업데이트*/
             // AS-IS에서는 DB2의 데이터를 오라클로 옮기는 merge into를 진행하는데..
             // TO-BE에서는 필요없는 행위로고 판단됨.
 
             /*당월 BS 배정*/
-            if (StringUtil.isEmpty(row.ac201CancDt())) { /* 주기표 강제 생성 */
+            if (StringUtil.isEmpty(row.getAc201CancDt())) { /* 주기표 강제 생성 */
 
                 /*무결성 제약 조건 오류 방지*/
-                updateCount.addAndGet(mapper.deleteBfsvcPrd(row.cntrNo(), row.ac201CsmrSeq()));
+                updateCount += mapper.deleteBfsvcPrd(row.getCntrNo(), row.getAc201CsmrSeq());
 
-                /*2. 스케쥴을 생성한다.*/
+                /*@TODO 2. 스케쥴을 생성한다.*/
                 //SP_LC_SERVICEVISIT_482_LST_I06 -> 이진성프로 작업 예정
 
-                /*3. 배정을 삭제한다. */
+                /*@TODO 3. 배정을 삭제한다. */
                 //SP_LC_SERVICEVISIT_482_LST_I07 -> 이진성프로 작업 예정
 
-                /*사전방문 BS 생성*/
+                /*@TODO 사전방문 BS 생성*/
                 //SP_LC_SERVICEVISIT_482_LST_I03 -> 이진성프로 작업 예정
 
-                updateCount.addAndGet(mapper.updateIstDt(row.cntrNo(), row.ac201CsmrSeq()));
+                updateCount += mapper.updateIstDt(row.getCntrNo(), row.getAc201CsmrSeq());
 
             }
             /*취소일자가 있다면  취소된걸로 인지*/
             else {
 
                 /*취소일자 업데이트*/
-                updateCount.addAndGet(mapper.updateCanDt(row.cntrNo(), row.ac201CsmrSeq(), row.ac201CancDt()));
+                updateCount += mapper.updateCancelDate(row.getCntrNo(), row.getAc201CsmrSeq(), row.getAc201CancDt());
                 /*1. 스케쥴을 삭제 한다.*/
-                updateCount.addAndGet(mapper.deleteSchd(row.cntrNo()));
+                updateCount += mapper.deleteSchd(row.getCntrNo());
 
-                /*3. 배정을 삭제한다. */
+                /*@TODO 3. 배정을 삭제한다. */
                 //SP_LC_SERVICEVISIT_482_LST_I07 -> 이진성프로 작업 예정
             }
 
         }
 
-        return updateCount.get();
+        return updateCount;
     }
 
 }

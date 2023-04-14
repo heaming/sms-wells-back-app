@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncCapsuleRglrPrchsCstDvo {
+public class WsncCapsuleSubscriptionCustomerDvo {
     String cntrNo;
     String ac201CsmrSeq;
     String ac201CsmrSer;

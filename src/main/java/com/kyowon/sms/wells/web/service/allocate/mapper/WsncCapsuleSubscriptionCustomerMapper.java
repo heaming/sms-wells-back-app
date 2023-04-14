@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncCapsuleSubscriptionCustomerDvo;
 import org.apache.ibatis.annotations.Mapper;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleRglrPrchsCstDto.SearchRes;
 
 import java.util.List;
 
@@ -15,14 +15,15 @@ import java.util.List;
  * @since 2023-04-13
  */
 @Mapper
-public interface WsncCapsuleRglrPrchsCstMapper {
-    List<SearchRes> selectCapsuleRglrPrchsCsts();
+public interface WsncCapsuleSubscriptionCustomerMapper {
+    List<WsncCapsuleSubscriptionCustomerDvo> selectCapsuleRglrPrchsCsts();
 
     int deleteBfsvcPrd(String cntrNo, String cntrSn);
 
-    int updateCanDt(String cntrNo, String cntrSn, String canDt);
+    int updateCancelDate(String cntrNo, String cntrSn, String canDt);
 
     int updateIstDt(String cntrNo, String cntrSn);
 
     int deleteSchd(String cntrNo);
 }
+
