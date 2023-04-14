@@ -2,12 +2,10 @@ package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.annotations.ApiModel;
 
-/**
- * EAI INTERFACE 통신용 DTO
- * request/response의 body에 정의된 key 형식(snake case) 사용
- */
 public class WctiContractDetailDto {
     // *********************************************************
     // Request Dto
@@ -15,10 +13,13 @@ public class WctiContractDetailDto {
     // 계약상세 목록 Search Request Dto
     @ApiModel("WctiContractDetailDto-SearchReq")
     public record SearchReq(
+        @JsonProperty("CST_NO")
         @NotBlank
-        String CST_NO,
-        String PD_NM,
-        String SELL_TP_CD
+        String cstNo,
+        @JsonProperty("PD_NM")
+        String pdNm,
+        @JsonProperty("SELL_TP_CD")
+        String sellTpCd
     ) {}
 
     // *********************************************************
@@ -27,31 +28,79 @@ public class WctiContractDetailDto {
     // 계약상세 목록 Search Response Dto
     @ApiModel("WctiContractDetailDto-SearchRes")
     public record SearchRes(
-        String CNTR_NO, //계약번호
-        int CNTR_SN, //계약일련번호
-        String CNTR_DTL_STAT_CD, //계약상세상태코드
-        String CNTR_DTL_STAT_NM, //계약상세상태코드명
-        String PD_HCLSF_ID, //상품대분류ID
-        String PD_HCLSF_NM, //상품대분류명
-        String PD_MCLSF_ID, //상품중분류ID
-        String PD_MCLSF_NM, //상품중분류명
-        String PD_LCLSF_ID, //상품소분류ID
-        String PD_LCLSF_NM, //상품소분류명
-        String BASE_PD_CD, //기준상품코드
-        String BASE_PD_NM, //기준상품명
-        String CNTRT_NM, //계약자명
-        String CNTR_DT, //계약일자
-        String CRAL_LOCARA_TNO, //휴대지역전화번호
-        String MEXNO, //휴대전화국번호
-        String CRAL_IDV_TNO, //휴대개별전화번호
-        String LOCARA_TNO, //지역전화번호
-        String EXNO, //전화국번호
-        String IDV_TNO, //개별전화번호
-        String CNTR_ADRPC_ID, //계약주소지ID
-        String CNTR_ADR, //계약주소
-        String CNTR_DTL_ADR, //계약상세주소
-        String BRYY_MMDD, //생년월일
-        String SEX_DV_CD, //성별구분코드
-        String ISTLL_NM //설지차명
+        @JsonProperty("CNTR_NO")
+        String cntrNo, // 계약번호
+        @JsonProperty("CNTR_SN")
+        int cntrSn, // 계약일련번호
+        @JsonProperty("CNTR_DTL_STAT_CD")
+        String cntrDtlStatCd, // 계약상세상태코드
+        @JsonProperty("CNTR_DTL_STAT_NM")
+        String cntrDtlStatNm, // 계약상세상태코드명
+        @JsonProperty("PD_HCLSF_ID")
+        String pdHclsfId, // 상품대분류ID
+        @JsonProperty("PD_HCLSF_NM")
+        String pdHclsfNm, // 상품대분류명
+        @JsonProperty("PD_MCLSF_ID")
+        String pdMclsfId, // 상품중분류ID
+        @JsonProperty("PD_MCLSF_NM")
+        String pdMclsfNm, // 상품중분류명
+        @JsonProperty("PD_LCLSF_ID")
+        String pdLclsfId, // 상품소분류ID
+        @JsonProperty("PD_LCLSF_NM")
+        String pdLclsfNm, // 상품소분류명
+        @JsonProperty("BASE_PD_CD")
+        String basePdCd, // 기준상품코드
+        @JsonProperty("BASE_PD_NM")
+        String basePdNm, // 기준상품명
+        @JsonProperty("CNTRT_NM")
+        String cntrtNm, // 계약자명
+        @JsonProperty("CNTR_DT")
+        String cntrDt, // 계약일자
+        @JsonProperty("CNTR_SELL_TP_CD")
+        String cntrSellTpCd, // 판매유형코드
+        @JsonProperty("CNTR_SELL_TP_NM")
+        String cntrSellTpNm, // 판매유형코드명
+        @JsonProperty("CNTR_CRAL_LOCARA_TNO")
+        String cntrCralLocaraTno, // 휴대지역전화번호
+        @JsonProperty("CNTR_MEXNO")
+        String cntrMexno, // 휴대전화국번호
+        @JsonProperty("CNTR_CRAL_IDV_TNO")
+        String cntrCralIdvTno, // 휴대개별전화번호
+        @JsonProperty("CNTR_LOCARA_TNO")
+        String cntrLocaraTno, // 지역전화번호
+        @JsonProperty("CNTR_EXNO")
+        String cntrExno, // 전화국번호
+        @JsonProperty("CNTR_IDV_TNO")
+        String cntrIdvTno, // 개별전화번호
+        @JsonProperty("CNTR_ADRPC_ID")
+        String cntrAdrpcId, // 계약주소지ID
+        @JsonProperty("CNTR_ADR")
+        String cntrAdr, // 계약주소
+        @JsonProperty("CNTR_DTL_ADR")
+        String cntrDtlAdr, // 계약상세주소
+        @JsonProperty("CRAL_LOCARA_TNO")
+        String cralLocaraTno, // 휴대지역전화번호
+        @JsonProperty("MEXNO")
+        String mexno, // 휴대전화국번호
+        @JsonProperty("CRAL_IDV_TNO")
+        String cralIdvTno, // 휴대개별전화번호
+        @JsonProperty("LOCARA_TNO")
+        String locaraTno, // 지역전화번호
+        @JsonProperty("EXNO")
+        String exno, // 전화국번호
+        @JsonProperty("IDV_TNO")
+        String idvTno, // 개별전화번호
+        @JsonProperty("ADRPC_ID")
+        String adrpcId, // 계약주소지ID
+        @JsonProperty("ADR")
+        String adr, // 계약주소
+        @JsonProperty("DTL_ADR")
+        String dtlAdr, // 계약상세주소
+        @JsonProperty("BRYY_MMDD")
+        String bryyMmdd, // 생년월일
+        @JsonProperty("SEX_DV_CD")
+        String sexDvCd, // 성별구분코드
+        @JsonProperty("ISTLL_NM")
+        String istllNm // 설지차명
     ) {}
 }

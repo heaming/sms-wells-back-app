@@ -2,37 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdOperatingCostMgtMapper">
 
-    <select id="selectOrganizationCode" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$CodeRes">
-        SELECT DISTINCT C2.DGR2_LEVL_OG_ID    /*총괄단(월조직)*/
-             , C2.DGR2_LEVL_OG_NM    /*총괄단(월조직)*/
-             , C2.DGR3_LEVL_OG_ID    /*센터(월조직)*/
-             , C2.DGR3_LEVL_OG_NM    /*센터(월조직)*/
-             , C2.DGR4_LEVL_OG_ID    /*소속(월조직)*/
-             , C2.DGR4_LEVL_OG_NM    /*소속(월조직)*/
-          FROM TB_OGBS_MM_PRTNR_IZ C1 /*월파트너내역*/
-         INNER JOIN TB_OGBS_MM_OG_IZ C2 /*월조직내역*/
-            ON C1.BASE_YM = C2.BASE_YM
-           AND C1.OG_ID = C2.OG_ID
-           AND C1.OG_TP_CD = C2.OG_TP_CD
-           AND C1.DTA_DL_YN = 'N'
-           AND C2.DTA_DL_YN = 'N'
-         WHERE 1=1
-         <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
-           AND C2.OG_TP_CD = #{ogTpCd}
-         </if>
-           AND C2.OG_TP_CD = 'W02'
-           AND C2.DGR2_LEVL_OG_ID IS NOT NULL
-           AND C2.DGR3_LEVL_OG_ID IS NOT NULL
-    </select>
-
-    <select id="selectAmount" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$AmountRes">
+    <select id="selectAmount" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$SearchAmountRes">
         SELECT SUM(COALESCE(BEF_JAN_AMT,0))  AS BEF_JAN_AMT /*이월*/
              , SUM(COALESCE(CARD_LIM_AMT,0)) AS CARD_THM_DSB  /*당월지급*/
              , SUM(COALESCE(CARD_LIM_AMT,0)) AS CARD_LIM_AMT /*사용가능*/
              , SUM(COALESCE(CARD_USE_AMT,0)) AS CARD_USE_AMT /*사용*/
              , SUM(COALESCE(CARD_CAN_AMT,0)) AS CARD_CAN_AMT/*취소*/
              , SUM(COALESCE(CARD_RES_AMT,0)) AS CARD_RES_AMT /*잔액*/
-          FROM ( SELECT CASE WHEN SUBSTR('${baseYM}',5,2) != '01'
+          FROM ( SELECT CASE WHEN SUBSTR(#{baseYM},5,2) != '01'
                         THEN (SELECT CARD_RES_AMT
                                 FROM WSMDBS.TB_CBCL_OPCS_ADJ_CARD_IZ AA
                                WHERE AA.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM || '01','YYYYMMDD'),-1),'YYYYMM')
@@ -49,54 +26,91 @@
                                           AND CARD_STAT_CHDT IS NOT NULL)) CARD_CAN_AMT
                      , A.CARD_RES_AMT AS CARD_RES_AMT
                   FROM TB_CBCL_OPCS_ADJ_CARD_IZ A
-                 WHERE A.BASE_YM = '${baseYM}'
+                 INNER JOIN TB_OGBS_OG_BAS T2 /*조직기본*/
+                    ON A.ADJ_OG_ID = T2.OG_ID
+                 WHERE A.BASE_YM = #{baseYM}
                    AND A.USE_YN = 'Y'
-                <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-                   AND T1.ADJ_OG_ID = #{dgr2LevlOgId}
-                </if>
+               <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                   AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                   AND T2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
+                   AND T2.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
+               </if>
                    AND A.ADJ_USR_ID != 0
             )
         <if test="@MybatisUtils@isNotEmpty(pstnDvCd)">
-            AND A.PSTN_DV_CD = '${pstnDvCd}'
+            AND A.PSTN_DV_CD = #{pstnDvCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(pstnDvCd)">
             AND A.PSTN_DV_CD != '91' /* 육성팀장 제외 영업부 전체 */
         </if>
         <if test="@MybatisUtils@isNotEmpty(adjOgId)">
-            AND SUBSTR(A.ADJ_OG_ID, 1,1) = '${adjOgId}'
+            AND SUBSTR(A.ADJ_OG_ID, 1,1) = #{adjOgId}
         </if>
     </select>
 
-    <select id="selectSummary" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$SummaryRes">
+    <select id="selectSummary" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$SearchSummaryRes">
         SELECT COUNT(APR_DT) AS APR_DT/*승인일시*/
              , COUNT('') AS USR_SMRY_CN
              , OPCS_WHTX_CFDC_APN_FILE_ID
-          FROM WSMDBS.TB_CBCL_OPCS_CARD_USE_IZ T1
-         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T2
-            ON T1.ADJ_CRCDNO_ENCR = T2.CRCDNO_ENCR
-        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-           AND T1.ADJ_OG_ID = #{dgr2LevlOgId}
-        </if>
-           AND T2.USE_YN = 'Y'
+          FROM TB_CBCL_OPCS_ADJ_BAS T1
+         INNER JOIN TB_CBCL_OPCS_ADJ_USE_REL T2
+            ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
            AND T1.BASE_YM = T2.BASE_YM
-           AND T2.BASE_YM = #{baseYm}
-           AND (T2.ADJ_USR_ID = #{session.userId} OR T2.BLDMR_PRTNR_NO = #{session.userId})
+         INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ T3
+            ON T2.OPCS_CARD_USE_IZ_ID = T3.OPCS_CARD_USE_IZ_ID
+           AND T2.BASE_YM = T3.BASE_YM
+         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T4
+            ON T1.ADJ_USR_ID = T4.ADJ_USR_ID
+           AND T1.BASE_YM = T4.BASE_YM
+        INNER JOIN TB_OGBS_OG_BAS T5 /*조직기본*/
+            ON T4.ADJ_OG_ID = T5.OG_ID
+           AND T4.USE_YN = 'Y'
+           AND (T4.ADJ_USR_ID = #{session.userId} OR T4.BLDMR_PRTNR_NO = #{session.userId})
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{baseYm}
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND T5.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND T5.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
+           AND T5.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
+        </if>
          GROUP BY OPCS_WHTX_CFDC_APN_FILE_ID
          UNION
         SELECT COUNT('') AS APR_DT /*승인일시*/
              , COUNT(USR_SMRY_CN) AS USR_SMRY_CN
              , OPCS_WHTX_CFDC_APN_FILE_ID
-          FROM TB_CBCL_OPCS_CARD_USE_IZ T1
-         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T2
-            ON T1.ADJ_CRCDNO_ENCR = T2.CRCDNO_ENCR
-        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-           AND T1.ADJ_OG_ID = #{dgr2LevlOgId}
-        </if>
-           AND T2.USE_YN = 'Y'
+          FROM TB_CBCL_OPCS_ADJ_BAS T1
+         INNER JOIN TB_CBCL_OPCS_ADJ_USE_REL T2
+            ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
            AND T1.BASE_YM = T2.BASE_YM
-           AND T2.BASE_YM = #{baseYm}
-           AND (T2.ADJ_USR_ID = #{session.userId} OR T2.BLDMR_PRTNR_NO = #{session.userId})
-         WHERE USR_SMRY_CN = 'N'
+         INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ T3
+            ON T2.OPCS_CARD_USE_IZ_ID = T3.OPCS_CARD_USE_IZ_ID
+           AND T2.BASE_YM = T3.BASE_YM
+         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T4
+            ON T1.ADJ_USR_ID = T4.ADJ_USR_ID
+           AND T1.BASE_YM = T4.BASE_YM
+         INNER JOIN TB_OGBS_OG_BAS T5 /*조직기본*/
+            ON T4.ADJ_OG_ID = T5.OG_ID
+           AND T4.USE_YN = 'Y'
+           AND (T4.ADJ_USR_ID = #{session.userId} OR T4.BLDMR_PRTNR_NO = #{session.userId})
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{baseYm}
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND T5.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND T5.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
+           AND T5.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
+        </if>
          GROUP BY OPCS_WHTX_CFDC_APN_FILE_ID
     </select>
 

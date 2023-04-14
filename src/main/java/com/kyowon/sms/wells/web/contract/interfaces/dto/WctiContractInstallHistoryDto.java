@@ -2,13 +2,12 @@ package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
 
-/**
- * EAI INTERFACE 통신용 DTO
- * request/response의 body에 정의된 key 형식(snake case) 사용
- */
 public class WctiContractInstallHistoryDto {
 
     // *********************************************************
@@ -17,12 +16,16 @@ public class WctiContractInstallHistoryDto {
     // 계약처, 설치처 정보 변경 이력 Search Request Dto
     @ApiModel("WctiContractInstallHistoryDto-SearchReq")
     public record SearchReq(
+        @JsonProperty("CNTR_NO")
         @NotBlank
-        String CNTR_NO,
+        String cntrNo,
+        @JsonProperty("CNTR_SN")
         @NotNull
-        int CNTR_SN,
+        int cntrSn,
+        @JsonProperty("INQR_DV_CD")
         @NotBlank
-        String INQR_DV_CD
+        @Pattern(regexp = "2")
+        String inqrDvCd
     ) {}
 
     // *********************************************************
@@ -31,16 +34,33 @@ public class WctiContractInstallHistoryDto {
     // 계약처, 설치처 정보 변경 이력 Search Response Dto
     @ApiModel("WctiContractInstallHistoryDto-SearchRes")
     public record SearchRes(
-        String CNTR_NO, //계약번호
-        int CNTR_SN, //계약일련번호
-        String CRAL_LOCARA_TNO, //휴대지역전화번호
-        String MEXNO, //휴대전화국번호
-        String CRAL_IDV_TNO, //휴대개별전화번호
-        String LOCARA_TNO, //지역전화번호
-        String EXNO, //전화국번호
-        String IDV_TNO, //개별전화번호
-        String CH_DTM, //변경일시
-        String FNL_MDFC_USR_ID, //최종수정사용자ID
-        String FNL_MDFC_USR_NM //최종수정사용자명
+        @JsonProperty("CNTR_NO")
+        String cntrNo, //계약번호
+        @JsonProperty("CNTR_SN")
+        int cntrSn, //계약일련번호
+        @JsonProperty("CRAL_LOCARA_TNO")
+        String cralLocaraTno, //휴대지역전화번호
+        @JsonProperty("MEXNO")
+        String mexno, //휴대전화국번호
+        @JsonProperty("CRAL_IDV_TNO")
+        String cralIdvTno, //휴대개별전화번호
+        @JsonProperty("LOCARA_TNO")
+        String locaraTno, //지역전화번호
+        @JsonProperty("EXNO")
+        String exno, //전화국번호
+        @JsonProperty("IDV_TNO")
+        String idvTno, //개별전화번호
+        @JsonProperty("ADDR_ID")
+        String addrId, // 주소ID
+        @JsonProperty("ADDR")
+        String addr, // 주소
+        @JsonProperty("DTL_ADDR")
+        String dtlAddr, // 상세주소
+        @JsonProperty("CH_DTM")
+        String chDtm, //변경일시
+        @JsonProperty("FNL_MDFC_USR_ID")
+        String fnlMdfcUsrId, //최종수정사용자ID
+        @JsonProperty("FNL_MDFC_USR_NM")
+        String fnlMdfcUsrNm //최종수정사용자명
     ) {}
 }

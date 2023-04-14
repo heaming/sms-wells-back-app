@@ -22,6 +22,19 @@ public class WctiContractDetailDvo {
     private String basePdNm;
     private String cntrtNm;
     private String cntrDt;
+    private String cntrSellTpCd;
+    private String cntrSellTpNm;
+    private String cntrCralLocaraTno;
+    @DBDecField
+    private String cntrMexno;
+    private String cntrCralIdvTno;
+    private String cntrLocaraTno;
+    @DBDecField
+    private String cntrExno;
+    private String cntrIdvTno;
+    private String cntrAdrpcId;
+    private String cntrAdr;
+    private String cntrDtlAdr;
     private String cralLocaraTno;
     @DBDecField
     private String mexno;
@@ -30,9 +43,9 @@ public class WctiContractDetailDvo {
     @DBDecField
     private String exno;
     private String idvTno;
-    private String cntrAdrpcId;
-    private String cntrAdr;
-    private String cntrDtlAdr;
+    private String adrpcId;
+    private String adr;
+    private String dtlAdr;
     private String bryyMmdd;
     private String sexDvCd;
     private String istllNm;

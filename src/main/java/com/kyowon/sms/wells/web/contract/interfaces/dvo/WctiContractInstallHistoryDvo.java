@@ -18,6 +18,9 @@ public class WctiContractInstallHistoryDvo {
     @DBDecField
     private String exno;
     private String idvTno;
+    private String addrId;
+    private String addr;
+    private String dtlAddr;
     private String chDtm;
     private String fnlMdfcUsrId;
     private String fnlMdfcUsrNm;

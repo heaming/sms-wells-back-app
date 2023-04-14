@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbAdvanceRefundAccountMapper">
+    
+    <select id="selectAdvanceRefundAccount" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAdvanceRefundAccountDto$SearchAdvanceRefundAccountRes">
+        SELECT 
+               SCD.STLM_TP_CD                           /* 대상구분 */
+             , ( SCD.CNTR_NO || '-' || SCD.CNTR_SN ) AS CNTR_NO_SN /*계약상세번호 */
+             , CCB.CST_KNM                              /* 고객명 */
+             , RRRB.FNL_MDFC_DTM                        /* 처리일자 */
+             , RRRD.RFND_DSB_AMT                        /* 금액(원) */
+             , ( SELECT FNIT_NM
+                   FROM TB_RVDW_FNIT_CD                 /* 금융기관코드 FNIT_CD=1은행, 2카드 */
+                  WHERE FNIT_CD = ( 
+                                    CASE WHEN RRRD.CSH_RFND_FNIT_CD IS NULL 
+                                         THEN RRRD.CARD_RFND_FNIT_CD 
+                                         ELSE RRRD.CSH_RFND_FNIT_CD 
+                                     END
+                                  )
+             ) AS CSH_RFND_FNIT_CD                      /* 은행명 */
+             , RRRD.CSH_RFND_ACNO_ENCR                  /* 계좌번호 */
+             , RRRD.CSH_RFND_ACOWN_NM                   /* 예금주 */
+             , RRRD.BLTF_OJ_CNTR_SN                     /* 전금코드 */
+             , RRRD.FNL_MDFC_USR_ID                     /* 요청자 */
+             , RRRB.EX_RFND_RSON_CN                     /* 예외환불사유 */
+             , RRRD.RFND_EVID_MTR_FILE_ID               /* 증빙첨부 */
+          FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
+         INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
+            ON RRRB.DTA_DL_YN = 'N'
+           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
+           AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
+         INNER JOIN TB_SSCT_CNTR_DTL SCD                /* 계약상세 */
+            ON SCD.DTA_DL_YN = 'N'
+           AND RRRB.CNTR_NO = SCD.CNTR_NO               /* 계약번호 */
+           AND RRRB.CNTR_SN = SCD.CNTR_SN               /* 계약상세번호 */
+         INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */
+            ON CCB.DTA_DL_YN = 'N'
+           AND RRRB.CST_NO = CCB.CST_NO                 /* 고객번호 */
+         WHERE 1 = 1
+           AND RRRD.CSH_RFND_DV_CD = #{cshRfndDvCd}     /* 업무구분 = 현금환불구분코드 :  01.선환불, 02.일반환불, 03.카드현금 */
+           <if test='@MybatisUtils@isNotEmpty(stlmTpCd)'>
+           AND SCD.STLM_TP_CD = #{stlmTpCd}             /* 대상구분 */ /* 대상구분을 판매유형(SELL_TP_CD)에서 결제유형코드(STLM_TP_CD)로 변경 */
+           </if>
+           AND RRRB.FNL_MDFC_DTM BETWEEN #{startDay} AND #{endDay}        /* 처리일자 */ /* 1. 처리일자는 환불접수기본.최종수정일시로 판단 */           
+    </select>
+</mapper>

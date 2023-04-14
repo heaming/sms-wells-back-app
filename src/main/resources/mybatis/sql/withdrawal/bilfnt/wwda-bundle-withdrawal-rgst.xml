@@ -21,6 +21,7 @@
                      , MPY_BSDT
                      , BRYY_MMDD   
 
+                     , SDING_CNTR_NO
                      , SDING_CNTR_SN 
                      , SDING_DP_TP_CD
                      , SDING_FNIT_APR_RS_CD
@@ -65,16 +66,17 @@
                      , T1.ACNO_ENCR
                      , T1.CRCDNO_ENCR
                      , T1.FNIT_RSG_FSH_DTM
-                     , T1.DG_CNTR_NO || T1.DG_CNTR_SN AS DG_CNTR_NO 
+                     , T1.DG_CNTR_NO
                      , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.BNK_CD,3,0) = FNIT_CD) AS BNK_NM
                      , T1.OWR_KNM    
                      , T1.MPY_BSDT
                      , CCB.BRYY_MMDD   
 
-                     , T1.SUBOD_CNTR_DG_CNTR_NO AS SDING_CNTR_SN 
+                     , T1.SUBOD_CNTR_DG_CNTR_NO AS SDING_CNTR_NO 
+                     , T1.SUBOD_CNTR_DG_CNTR_SN AS SDING_CNTR_SN
                      , T1.SUBOD_CNTR_DP_TP_CD AS SDING_DP_TP_CD
                      , T1.SUBOD_CNTR_FNIT_APR_RS_CD AS SDING_FNIT_APR_RS_CD
-                     , T1.BNDL_DG_CNTR_NO || T1.BNDL_DG_CNTR_SN AS SDING_DG_CNTR_NO
+                     , T1.BNDL_DG_CNTR_NO AS SDING_DG_CNTR_NO
                      , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.SUBOD_CNTR_SUBOD_CNTR,3,0) = FNIT_CD) AS SDING_BNK_NM
                      , T1.SUBOD_CNTR_ACNO_ENCR AS SDING_ACNO_ENCR
                      , T1.SUBOD_CNTR_CRCDNO_ENCR AS SDING_CRCDNO_ENCR
@@ -125,15 +127,18 @@
                                       , SCSB.ACNO_ENCR
                                       , SCSB.OWR_KNM    
                                       , SCSB.MPY_BSDT
-                                   FROM TB_SSCT_CNTR_STLM_BAS SCSB
+                                   FROM TB_SSCT_CNTR_DTL SCD
                                    JOIN TB_SSCT_CNTR_BAS SCB
-                                     ON SCSB.CST_NO = SCB.CNTR_CST_NO 
-                                    AND SCSB.CNTR_NO = SCB.CNTR_NO 
-                                    AND SCSB.DTA_DL_YN = 'N'
-                                    AND SCB.DTA_DL_YN = 'N'
-                                   JOIN TB_SSCT_CNTR_DTL SCD
                                      ON SCB.CNTR_NO = SCD.CNTR_NO 
                                     AND SCD.DTA_DL_YN = 'N'
+                                    AND SCB.DTA_DL_YN = 'N'
+                                   JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                                     ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
+                                    AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
+                                    AND SCSR.DTA_DL_YN = 'N'
+                                   JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                     ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID 
+                                    AND SCSB.DTA_DL_YN = 'N'
                                    JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
                                      ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
                                     AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 
@@ -155,15 +160,18 @@
                                       , SCSB.ACNO_ENCR
                                       , SCSB.OWR_KNM    
                                       , SCSB.MPY_BSDT
-                                   FROM TB_SSCT_CNTR_STLM_BAS SCSB
+                                   FROM TB_SSCT_CNTR_DTL SCD
                                    JOIN TB_SSCT_CNTR_BAS SCB
-                                     ON SCSB.CST_NO = SCB.CNTR_CST_NO 
-                                    AND SCSB.CNTR_NO = SCB.CNTR_NO 
-                                    AND SCSB.DTA_DL_YN = 'N'
-                                    AND SCB.DTA_DL_YN = 'N'
-                                   JOIN TB_SSCT_CNTR_DTL SCD
                                      ON SCB.CNTR_NO = SCD.CNTR_NO 
                                     AND SCD.DTA_DL_YN = 'N'
+                                    AND SCB.DTA_DL_YN = 'N'
+                                   JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                                     ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
+                                    AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
+                                    AND SCSR.DTA_DL_YN = 'N'
+                                   JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                     ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID 
+                                    AND SCSB.DTA_DL_YN = 'N'
                                    JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
                                      ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
                                     AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 
@@ -177,11 +185,17 @@
                     ON SCD.CNTR_NO = T1.DG_CNTR_NO
                    AND SCD.CNTR_SN = T1.DG_CNTR_SN
                  WHERE SCB.CNTR_CNFM_DTM >= '20200201000000' /*공유렌탈 시행 시작월 2020.02*/
-                   <if test='@MybatisUtils@isNotEmpty(cntr)'>
-                   AND T1.DG_CNTR_NO || T1.DG_CNTR_SN LIKE '%' || #{cntr} 
+                   <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                   AND T1.DG_CNTR_NO = #{cntrNo} 
+                   AND T1.DG_CNTR_SN = #{cntrSn} 
                    </if> 
+                   <if test='@MybatisUtils@isNotEmpty(cntrPdStrtdt)'>
                    AND SCD.CNTR_PD_STRTDT >= #{cntrPdStrtdt} 
+                   </if>
+                   <if test='@MybatisUtils@isNotEmpty(cntrPdEnddt)'>
                    AND SCD.CNTR_PD_STRTDT <![CDATA[ <= ]]> #{cntrPdEnddt}
+                   </if>
+                   
                   )
                 WHERE 1 = 1
                 <if test='@MybatisUtils@isNotEmpty(unrgRs)'>
@@ -205,18 +219,19 @@
                                   , SCB.CNTR_CNFM_DTM AS CNTR_PD_STRTDT 
                                   , T1.AFTN_ITG_UNRG_RSON_CD 
                                   
-                                  , T1.DG_CNTR_NO || T1.DG_CNTR_SN AS CNTR_SN
+                                  , T1.DG_CNTR_NO AS CNTR_SN
                                   , T1.DP_TP_CD 
-                                  , T1.DG_CNTR_NO || T1.DG_CNTR_SN AS DG_CNTR_SN
+                                  , T1.DG_CNTR_NO AS DG_CNTR_SN
                                   , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.BNK_CD,3,0) = FNIT_CD) AS BNK_CD 
                                   , T1.ACNO_ENCR  
                                   , T1.OWR_KNM    
                                   , T1.MPY_BSDT   
                                   , CCB.BRYY_MMDD   
                                   
-                                  , T1.SUBOD_CNTR_DG_CNTR_NO || T1.SUBOD_CNTR_DG_CNTR_SN AS SDING_CNTR_SN
+                                  , T1.SUBOD_CNTR_DG_CNTR_NO AS SDING_CNTR_NO
+                                  , T1.SUBOD_CNTR_DG_CNTR_SN AS SDING_CNTR_SN
                                   , T1.DP_TP_CD AS SDING_DP_TP_CD
-                                  , T1.DG_CNTR_NO || T1.DG_CNTR_SN AS SDING_DG_CNTR_SN
+                                  , T1.DG_CNTR_NO AS SDING_DG_CNTR_SN
                                   , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.SUBOD_CNTR_SUBOD_CNTR,3,0) = FNIT_CD) AS SDING_BNK_CD
                                   , T1.SUBOD_CNTR_ACNO_ENCR AS SDING_ACNO_ENCR   
                                   , T1.SUBOD_CNTR_OWR_KNM  AS SDING_OWR_KNM  
@@ -288,16 +303,20 @@
                                                  ON RIEI.DG_CNTR_NO = RIBB.DG_CNTR_NO
                                                 AND RIEI.DG_CNTR_SN = RIBB.DG_CNTR_SN
                                                 AND RIEI.DTA_DL_YN = 'N'
+                                              WHERE RIBB.FNT_DV_CD IN ('01','02')
+                                                AND RIBB.DG_CNTR_NO || RIBB.DG_CNTR_SN = RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN
                                                 <if test='@MybatisUtils@equals(unrgRs, "01")'>
                                                 AND AFTN_ITG_UNRG_RS_CD = '00'
                                                 </if>
                                                 <if test='@MybatisUtils@equals(unrgRs, "02")'>
                                                 AND AFTN_ITG_UNRG_RS_CD != '00'
                                                 </if>
+                                                <if test='@MybatisUtils@isNotEmpty(cntrPdStrtdt)'>
                                                 AND ITG_BIL_PRTC_DTM >= #{cntrPdStrtdt} || '000000' 
+                                                </if>
+                                                <if test='@MybatisUtils@isNotEmpty(cntrPdEnddt)'>
                                                 AND ITG_BIL_PRTC_DTM <![CDATA[ <= ]]> #{cntrPdEnddt} || '000000'
-                                              WHERE RIBB.FNT_DV_CD IN ('01','02')
-                                                AND RIBB.DG_CNTR_NO || RIBB.DG_CNTR_SN = RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN
+                                                </if>
                                          ) DG_CNTR
                                        JOIN (
                                              SELECT RIBB.DG_CNTR_NO
@@ -333,16 +352,20 @@
                                                  ON RIEI.SUBOD_CNTR_NO = RIBB.SUBOD_CNTR_NO
                                                 AND RIEI.SUBOD_CNTR_SN = RIBB.SUBOD_CNTR_SN
                                                 AND RIEI.DTA_DL_YN = 'N'
-                                                <if test='@MybatisUtils@equals(unrgRs, "01")'>
-                                                AND AFTN_ITG_UNRG_RS_CD = '00'
-                                               </if>
-                                               <if test='@MybatisUtils@equals(unrgRs, "02")'>
-                                                AND AFTN_ITG_UNRG_RS_CD != '00'
-                                               </if>
-                                                AND ITG_BIL_PRTC_DTM >= #{cntrPdStrtdt} || '000000' 
-                                                AND ITG_BIL_PRTC_DTM <![CDATA[ <= ]]> #{cntrPdEnddt} || '000000'
                                               WHERE RIBB.FNT_DV_CD IN ('01','02')
                                                 AND RIBB.DG_CNTR_NO || RIBB.DG_CNTR_SN != RIBB.SUBOD_CNTR_NO || RIBB.SUBOD_CNTR_SN
+                                                <if test='@MybatisUtils@equals(unrgRs, "01")'>
+                                                AND AFTN_ITG_UNRG_RS_CD = '00'
+                                                </if>
+                                                <if test='@MybatisUtils@equals(unrgRs, "02")'>
+                                                AND AFTN_ITG_UNRG_RS_CD != '00'
+                                                </if>
+                                                <if test='@MybatisUtils@isNotEmpty(cntrPdStrtdt)'>
+                                                AND ITG_BIL_PRTC_DTM >= #{cntrPdStrtdt} || '000000' 
+                                                </if>
+                                                <if test='@MybatisUtils@isNotEmpty(cntrPdEnddt)'>
+                                                AND ITG_BIL_PRTC_DTM <![CDATA[ <= ]]> #{cntrPdEnddt} || '000000'
+                                                </if>
                                          ) SUBOD_CNTR
                                          ON DG_CNTR.DG_CNTR_NO = SUBOD_CNTR.DG_CNTR_NO
                                         AND DG_CNTR.DG_CNTR_SN = SUBOD_CNTR.DG_CNTR_SN
@@ -350,8 +373,9 @@
                                 ON SCD.CNTR_NO = T1.DG_CNTR_NO
                                AND SCD.CNTR_SN = T1.DG_CNTR_SN
                              WHERE 1 = 1
-                               <if test='@MybatisUtils@isNotEmpty(cntr)'>
-                               AND T1.DG_CNTR_NO || T1.DG_CNTR_SN LIKE '%' || #{cntr} 
+                               <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                               AND T1.DG_CNTR_NO = #{cntrNo}
+                               AND T1.DG_CNTR_SN = #{cntrSn}
                                </if>
     </select>
 </mapper>
