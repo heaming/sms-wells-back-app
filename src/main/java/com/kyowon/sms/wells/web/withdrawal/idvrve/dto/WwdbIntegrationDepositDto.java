@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
+
 public class WwdbIntegrationDepositDto {
     public record SearchReq(
         String rveCd, // 수납코드
@@ -12,7 +15,14 @@ public class WwdbIntegrationDepositDto {
         String crcdnoEncr, /*신용카드번호암호화 - 카드번호*/
         String itgDpNo /*통합입금번호*/
     ) {
-
+        public SearchReq {
+            if (!StringUtil.isEmpty(acnoEncr)) {
+                acnoEncr = DbEncUtil.dec(acnoEncr); // 계좌번호 복호화
+            }
+            if (!StringUtil.isEmpty(crcdnoEncr)) {
+                crcdnoEncr = DbEncUtil.dec(crcdnoEncr); // 카드번호 복호화
+            }
+        }
     }
 
     public record SearchRes(
@@ -28,14 +38,14 @@ public class WwdbIntegrationDepositDto {
         String pextBnkCd, /*은행코드*/
         String bankNm, /*은행명*/
         String acnoEncr, /*계좌번호암호화*/
-        /* 카드구분 */
+        String cardKndCd, /* 카드구분 */
         String crcdnoEncr, /*신용카드번호암호화 - 카드번호*/
         String cardNm, /*카드명*/
         String aprDtm, /*승인일시*/
         String cardAprno, /*카드승인번호*/
-        /* 대사번호 */
-        /* 대사금액 */
-        /*입금대사일자*/
+        String dpCprcnfNo, /* 대사번호 */
+        String dpCprcnfProcsAmt, /* 대사금액 */
+        String dpCprcnfDtm, /*입금대사일자*/
         String dpCprcnfAmt, /*기대사금액(입금대사금액)*/
         String pchsCdcoCd, /*매입카드사코드*/
         String istmMcn, /* 할부개월 */
