@@ -1,0 +1,297 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbRegularShippingChangeMapper">
+
+    <insert id="insertRegularShippingChangeHist">
+        INSERT INTO TB_SSSO_SPP_CH_RCCH_HIST /*LD3300H*/
+               (  CNTR_NO
+--                 , LCCSEQ
+--                 , LCCHSQ
+                , CH_RCP_DTM
+                , SPP_CH_TP_CD
+--                 , LCPKYN
+--                 , LCPKAG
+--                 , LCTAMT
+--                 , LCNAMT
+--                 , LCIVAT
+--                 , LCAMT1
+--                 , LCIVA1
+--                 , LCAMT2
+--                 , LCIVA2
+--                 , LCRAMT
+--                 , LCRAM1
+--                 , LCQAMT
+--                 , LCIAMT
+--                 , LCDDAY
+                , CH_APY_STRTDT /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+--                 , LCCFLG
+--                 , LCLOCK
+--                 , LCFIXY
+--                 , LCFIXM
+--                 , LCFIXD
+--                 , LCMSYS
+--                 , LCETC1
+--                 , LCETC2
+--                 , LCETC3
+--                 , LCEYMD
+--                 , LCEHMS
+--                 , LCECDE
+--                 , LCEPGM
+--                 , LCMCDE
+--                 , LCMPGM
+--                 , LCDELT
+                   , DTA_DL_YN
+                   <include refid="COMMON.insertSystemField"/>
+               )
+        SELECT CNTR_NO
+--              , LCCSEQ
+--              , (CASE WHEN #P_DATA_STUS# = '3' THEN
+--                                                    (SELECT MAX(LCCHSQ)+1
+--                                                       FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+--                                                      WHERE CNTR_NO = #{cntrNo}
+--                                                        AND SPP_CH_TP_CD = #{reqGb} -- P_REQ_GB
+--                                                        AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+----                                                        AND LCFIXY = 0
+--                                                        )
+--                      ELSE LCCHSQ
+--                 END) AS LCCHSQ
+             , CH_RCP_DTM
+             , SPP_CH_TP_CD
+--              , LCPKYN
+--              , LCPKAG
+--              , LCTAMT
+--              , LCNAMT
+--              , LCIVAT
+--              , LCAMT1
+--              , LCIVA1
+--              , LCAMT2
+--              , LCIVA2
+--              , LCRAMT
+--              , LCRAM1
+--              , LCQAMT
+--              , LCIAMT
+--              , LCDDAY
+             , CH_APY_STRTDT /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+--              , LCCFLG
+--              , LCLOCK
+--              , LCFIXY
+--              , LCFIXM
+--              , LCFIXD
+--              , LCMSYS
+--              , LCETC1
+--              , LCETC2
+--              , LCETC3
+--              , LCEYMD
+--              , LCEHMS
+--              , LCECDE
+--              , LCEPGM
+--              , LCMCDE
+--              , LCMPGM
+             , 'Y' -- 삭제여부
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+         WHERE CNTR_NO = #{cntrNo}
+           AND SPP_CH_TP_CD = #{reqGb}
+           AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+--            AND LCFIXY = 0
+    </insert>
+
+    <delete id="deleteRegularShippingChangeDtl">
+    /*배송변경접수상세 삭제*/
+        DELETE FROM TB_SSSO_SPP_CH_RCP_DTL
+         WHERE SPP_CH_RCP_ID = (SELECT SPP_CH_RCP_ID FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/ WHERE CNTR_NO = #{cntrNo})
+    --        AND SPP_CH_SN = (SELECT LCCSEQ
+    --                        FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+    --                       WHERE CNTR_NO = #{cntrNo}
+    --                         AND SPP_CH_TP_CD = #{reqGb}
+    --                         AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+    -- --                         AND LCFIXY = 0
+    --                     )
+    </delete>
+
+    <delete id="deleteRegularShippingChangeBase">
+        /*배송변경접수기본 삭제*/
+        DELETE FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+         WHERE CNTR_NO = #{cntrNo}
+           AND SPP_CH_TP_CD = #{reqGb} -- P_REQ_GB
+           AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+    --        AND LCFIXY = 0
+    </delete>
+
+    <select id="selectRegularShippingChangeCount" resultType="Integer">
+        /* 배송변경접수기본(TB_SSSO_SPP_CH_RCP_BAS)에 처리되지 않은 동일 요청이 있는지 체크*/
+        SELECT COUNT(1) AS CNT
+          FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+         WHERE CNTR_NO = #{cntrNo}
+           AND SPP_CH_TP_CD = #{reqGb}
+           AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+    --        AND LCFIXY = 0
+    </select>
+
+    <select id="selectRegularShippingChangeMaxSn" resultType="Integer">
+
+        /*SELECT COALESCE((SELECT LCISEQ+1
+                           FROM LC0200P
+                          WHERE LCGUBN = '21'
+                            AND LCYEAR = #LCYEAR#
+                            AND LCCODE = #LCCODE#
+                            AND LCSEQN = #LCSEQN#
+                            AND LCJOBY = 0
+                            AND LCJOBM = 0
+                            AND LCJOBD = 0), 1) AS SEQ
+          FROM SYSDUMMY1*/
+
+        SELECT NVL(MAX(SPP_CH_SN), 0) + 1 AS SEQ
+        FROM TB_SSSO_SPP_CH_RCP_DTL
+        WHERE SPP_CH_RCP_ID = (SELECT SPP_CH_RCP_ID FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/ WHERE CNTR_NO = #{cntrNo})
+    </select>
+
+    <insert id="insertRegularShippingChangeBase">
+    /*배송변경접수기본*/
+        INSERT INTO TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+               (  CNTR_NO
+    --             , LCCSEQ
+    --             , LCCHSQ
+                , CH_RCP_DTM
+                , SPP_CH_TP_CD
+    --             , LCPKYN
+    --             , LCPKAG
+    --             , LCTAMT
+    --             , LCNAMT
+    --             , LCIVAT
+    --             , LCAMT1
+    --             , LCIVA1
+    --             , LCAMT2
+    --             , LCIVA2
+    --             , LCRAMT
+    --             , LCRAM1
+    --             , LCQAMT
+    --             , LCIAMT
+    --             , LCDDAY
+                , CH_APY_STRTDT /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+    --             , LCCFLG
+    --             , LCLOCK
+    --             , LCFIXY
+    --             , LCFIXM
+    --             , LCFIXD
+    --             , LCMSYS
+    --             , LCETC1
+    --             , LCETC2
+    --             , LCETC3
+    --             , LCEYMD
+    --             , LCEHMS
+    --             , LCECDE
+    --             , LCEPGM
+    --             , LCMCDE
+    --             , LCMPGM
+                   <include refid="COMMON.insertSystemField"/>
+               )
+        SELECT #{cntrNo} AS CNTR_NO
+    --          , (SELECT COALESCE(MAX(LCCSEQ),0)+1 FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/WHERE CNTR_NO = #{cntrNo}) AS LCCSEQ
+    --          , 1 AS LCCHSQ    /*최초 등록시 1로 설정하며, 이후 변경시마다 1씩 증가*/
+             , TO_CHAR(SYSDATE, 'yyyyMMdd') AS CH_RCP_DTM
+             , #{reqGb} AS SPP_CH_TP_CD
+    --          , 'Y' AS LCPKYN    /*변경 요청 구분 1=제품변경, 2=배송주기일 변경, 3=배송일 변경(1회), 4=미배송 요청*/
+    --          , CAST(#LCPKAG# AS INTEGER) AS LCPKAG
+    --          , 0 AS LCTAMT
+    --          , 0 AS LCNAMT
+    --          , 0 AS LCIVAT
+    --          , 0 AS LCAMT1
+    --          , 0 AS LCIVA1
+    --          , 0 AS LCAMT2
+    --          , 0 AS LCIVA2
+    --          , 0 AS LCRAMT
+    --          , 0 AS LCRAM1
+    --          , 0 AS LCQAMT
+    --          , 0 AS LCIAMT
+    --          , 0 AS LCDDAY
+             , #{reqDt} AS CH_APY_STRTDT /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+    --          , '' AS LCCFLG
+    --          , '' AS LCLOCK
+    -- --          , 0 AS LCFIXY
+    --          , 0 AS LCFIXM
+    --          , 0 AS LCFIXD
+    --          , 'KIWI' AS LCMSYS
+    --          , '' AS LCETC1
+    --          , '' AS LCETC2
+    --          , '' AS LCETC3
+    --          , REPLACE(CHAR(DATE(CURRENT DATE),ISO), '-', '') AS LCEYMD
+    --          , REPLACE(CHAR(TIME(CURRENT TIME),ISO), '.', '') AS LCEHMS
+    --          , CAST(#LCECDE# AS INTEGER) AS LCECDE
+    --          , 'KIWI' AS LCEPGM
+    --          , 0 AS LCMCDE
+    --          , 'KIWI' AS LCMPGM
+                <include refid="COMMON.insertSystemFieldValue"/>
+          FROM DUAL
+    </insert>
+
+    <insert id="insertRegularShippingChangeDtl">
+        /*배송변경접수상세*/
+        INSERT INTO TB_SSSO_SPP_CH_RCP_DTL
+               (  SPP_CH_RCP_ID
+    --             , LCCSEQ
+    --             , LCISEQ
+    --             , LCCHSQ
+    --             , LCICDE
+    --             , LCIQTY
+    --             , LCTAMT
+    --             , LCNAMT
+    --             , LCIVAT
+    --             , LCRAMT
+    --             , LCIAMT
+    -- --             , LCPKAG
+    --             , LCPSEQ
+    --             , LCPAMT
+    --             , LCEAMT
+    --             , LCECDE
+    --             , LCEPGM
+    --             , LCMCDE
+    --             , LCMPGM
+                   <include refid="COMMON.insertSystemField"/>
+               )
+        SELECT SPP_CH_RCP_ID
+    --          , LCCSEQ
+    --          , CAST(#LCISEQ# AS INTEGER) AS LCISEQ
+    --          , LCCHSQ
+    --          , #LCICDE#||'' AS LCICDE
+    --          , CAST(#LCIQTY# AS INTEGER) AS LCIQTY
+    --          , LCTAMT
+    --          , LCNAMT
+    --          , LCIVAT
+    --          , LCRAMT
+    --          , LCIAMT
+    -- --          , LCPKAG
+    --          , 0 AS LCPSEQ
+    --          , 0 AS LCPAMT
+    --          , 0 AS LCEAMT
+    --          , CAST(COALESCE(#LCECDE#,0) AS INTEGER) AS LCECDE
+    --          , 'KIWI' AS LCEPGM
+    --          , 0 AS LCMCDE
+    --          , '' AS LCMPGM
+                <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+         WHERE CNTR_NO = #{cntrNo}
+           AND SPP_CH_TP_CD = #{reqGb}
+           AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+    --        AND LCFIXY = 0
+    </insert>
+
+    <update id="updateRegularShippingChangeBase">
+        UPDATE TB_SSSO_SPP_CH_RCP_BAS /*배송변경접수기본 LD3200P*/
+           SET CH_RCP_DTM = TO_CHAR(SYSDATE, 'yyyyMMdd')
+    --          , LCCHSQ = (SELECT MAX(LCCHSQ)+1
+    --                        FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+    --                       WHERE CNTR_NO = #{cntrNo}
+    --                         AND SPP_CH_TP_CD = #{reqGb}
+    --                         AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+    -- --                         AND LCFIXY = 0
+    --                         )
+    --          , LCPKAG = #{reqSaleCd}
+             <include refid="COMMON.updateSystemField"/>
+
+         WHERE CNTR_NO = #{cntrNo}
+           AND SPP_CH_TP_CD = #{reqGb}
+           AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
+           --AND LCFIXY = 0
+    </update>
+</mapper>
+

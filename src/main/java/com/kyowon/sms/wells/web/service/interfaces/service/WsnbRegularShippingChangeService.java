@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChDto;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChDto.*;
-import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbRegularShippingChMapper;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.*;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbRegularShippingChangeMapper;
+import com.sds.sflex.common.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,17 +19,16 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbRegularShippingChService {
+public class WsnbRegularShippingChangeService {
 
-    private final WsnbRegularShippingChMapper mapper;
-    //    private final WsnbRegularShippingChConverter converter;
+    private final WsnbRegularShippingChangeMapper mapper;
 
     /**
      * 정기배송 변경처리
      *
      * @programId W-SV-I-0016
      */
-    public SaveRes saveRegularShippingChs(SaveReq req) {
+    public SaveRes saveRegularShippingChange(SaveReq req) {
 
         boolean step1 = false;
         boolean step2 = false;
@@ -57,23 +56,24 @@ public class WsnbRegularShippingChService {
             String dataStus = req.dataStus();
             //String P_USER_ID = req.userId();
 
-            SaveSppChRcpHistReq saveSppChRcpHistReq = new SaveSppChRcpHistReq(
+            SaveRegularShippingChangeHistReq historyReq = new SaveRegularShippingChangeHistReq(
                 cntrNo, cntrSn, dataStus, reqGb, reqDt
             );
-            SaveSppChRcpBasReq saveSppChRcpBasReq = new SaveSppChRcpBasReq(
+            SaveRegularShippingChangeBaseReq baseReq = new SaveRegularShippingChangeBaseReq(
                 cntrNo, cntrSn, reqGb, reqDt
             );
 
-            if (dataStus.equals("3")) {
+
+            if (StringUtil.nvl2(dataStus,"").equals("3")) {
 
                 //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-                mapper.insertSppChRcpHist(saveSppChRcpHistReq);
+                mapper.insertRegularShippingChangeHist(historyReq);
 
                 //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D02", params);
-                mapper.deleteSppChRcpDtl(new SaveSppChRcpDtlReq(cntrNo, cntrSn, reqGb, reqDt, 0));
+                mapper.deleteRegularShippingChangeDtl(new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, reqGb, reqDt, 0));
 
                 //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D01", params);
-                mapper.deleteSppChRcpBas(saveSppChRcpBasReq);
+                mapper.deleteRegularShippingChangeBase(baseReq);
 
                 step2 = true;
 
@@ -81,14 +81,14 @@ public class WsnbRegularShippingChService {
 
                 /*1.먼저 LCLIB.LD3200P 에 미처리 된 같은 요청이 존재하는지 체크*/
                 //int LD3200_CNT = LC_ASREGN_API_S09(request, response);
-                if (mapper.selectSppChRcpBasCnt(new SearchSppChRcpBasReq(cntrNo, cntrSn, reqGb, reqDt)) == 0) {
+                if (mapper.selectRegularShippingChangeCount(new SearchRegularShippingChangeBaseReq(cntrNo, cntrSn, reqGb, reqDt)) == 0) {
 
                     /*요청일련번호 - LC0200P에서 채번 (별도 시트 참고)*/
                     //ArrayList chk1 = (ArrayList)Database.getInstanceDB2().queryForList("environment.LC_ASREGN_API_S08", params01);
-                    int seq = mapper.selectMaxSppChSn(cntrNo);
+                    int seq = mapper.selectRegularShippingChangeMaxSn(cntrNo);
 
                     // Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I04", params);
-                    mapper.insertSppChRcpBas(saveSppChRcpBasReq);
+                    mapper.insertRegularShippingChangeBase(baseReq);
 
                     if (partList.length() > 0) {
 
@@ -103,12 +103,12 @@ public class WsnbRegularShippingChService {
 
                             //LC3220P 인서트
                             //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
-                            mapper.insertSppChRcpDtl(new SaveSppChRcpDtlReq(cntrNo, cntrSn, reqGb, reqDt, seq));
+                            mapper.insertRegularShippingChangeDtl(new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, reqGb, reqDt, seq));
                         }
 
                         //LC3300H 인서트
                         //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-                        mapper.insertSppChRcpHist(saveSppChRcpHistReq);
+                        mapper.insertRegularShippingChangeHist(historyReq);
 
                     }
 
@@ -116,11 +116,11 @@ public class WsnbRegularShippingChService {
                 } else {
                     //LC3220P 삭제 처리
                     //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D02", params);
-                    mapper.deleteSppChRcpDtl(new SaveSppChRcpDtlReq(cntrNo, cntrSn, reqGb, reqDt, 0));
+                    mapper.deleteRegularShippingChangeDtl(new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, reqGb, reqDt, 0));
 
                     //LC3200P 업데이트
                     //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_U05", params);
-                    mapper.updateSppChRcpBas(new SaveSppChRcpBasReq(cntrNo, cntrSn, reqGb, reqDt));
+                    mapper.updateRegularShippingChangeBase(new SaveRegularShippingChangeBaseReq(cntrNo, cntrSn, reqGb, reqDt));
 
                     //LC3220P 인서트
                     if (partList.length() > 0) {
@@ -136,13 +136,13 @@ public class WsnbRegularShippingChService {
 
                             //LC3220P 인서트
                             //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
-                            mapper.insertSppChRcpDtl(new SaveSppChRcpDtlReq(cntrNo, cntrSn, reqGb, reqDt, 0));
+                            mapper.insertRegularShippingChangeDtl(new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, reqGb, reqDt, 0));
                         }
                     }
 
                     //LC3300H 인서트
                     //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-                    mapper.insertSppChRcpHist(saveSppChRcpHistReq);
+                    mapper.insertRegularShippingChangeHist(historyReq);
 
                     step2 = true;
                 }
