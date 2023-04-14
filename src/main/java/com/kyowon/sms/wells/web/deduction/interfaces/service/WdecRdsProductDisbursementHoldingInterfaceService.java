@@ -42,7 +42,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
         //리스트로 넘어온 데이터 처리
         for (OrganizationTypes organizationTypes : dto.data()) {
 
-            saveDvo.setOgTpCdVal(organizationTypes.ogTpCdVal()); //조직유형코드값
+            saveDvo.setOgTpCdAryVal(organizationTypes.ogTpCdAryVal()); //조직유형코드값
             saveDvo.setPrtnrNO(organizationTypes.prtnrNo()); //파트너번호 셋팅
             saveDvo.setRdsDsbDuedt(dto.rdsDsbDuedt()); //RDS지급예정일자 셋팅
 
