@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaMovementStoreConfirmConverter;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMovementStoreConfirmDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMovementStoreMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class WsnaMovementStoreService {
 
     private final WsnaMovementStoreMapper mapper;
+    private final WsnaMovementStoreConfirmConverter converter;
 
     /**
      * 이동입고현황 조회
@@ -69,12 +72,13 @@ public class WsnaMovementStoreService {
      *            stStrDt : 입고시작일자
      *            edStrDt : 입고종료일자
      *            strTpCd : 입고유형코드
+     *            pageInfo : 페이징정보
      *            }
      *
      * @return 조회결과
      */
-    public List<MovementRes> getMovementStrIzs(SearchReq dto) {
-        return mapper.selectMoveMentStrIzs(dto);
+    public PagingResult<MovementRes> getMovementStrIzs(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectMoveMentStrIzs(dto, pageInfo);
     }
 
     /**
@@ -93,14 +97,6 @@ public class WsnaMovementStoreService {
         return mapper.selectMoveMentStrIzs(dto);
     }
 
-    public PagingResult<MovementOstrRes> getMovementStoresMngt(MovementOstrReq dto, PageInfo pageInfo) {
-        return mapper.selectMovementStoresMngt(dto, pageInfo);
-    }
-
-    public PagingResult<MovementOstrRes> getMovementStoresMngt(MovementOstrReq dto) {
-        return mapper.selectMovementStoresMngt(dto);
-    }
-
     public PagingResult<MovementOstrMngtRes> getMovementStoresReg(MovementOstrMngtReq dto, PageInfo pageInfo) {
         return mapper.selectMovementStoresReg(dto, pageInfo);
     }
@@ -116,4 +112,14 @@ public class WsnaMovementStoreService {
     public int editWareHouseStandardN(String baseYm, String wareNo) {
         return mapper.editWareHouseStandardN(baseYm, wareNo);
     };
+
+    public int saveStrMovementConfrim(MovementStrSaveReq dto) {
+        int cnt = 0;
+        WsnaMovementStoreConfirmDvo dvo = this.converter.mapDtoToWsnaMovementStoreConfirmDvo(dto);
+        cnt += mapper.saveStrConfirm(dvo);
+        cnt += mapper.saveOstrConfirm(dvo);
+        cnt += mapper.saveItemQtyConfirm(dvo);
+
+        return cnt;
+    }
 }

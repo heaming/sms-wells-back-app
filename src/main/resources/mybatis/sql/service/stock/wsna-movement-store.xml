@@ -64,11 +64,16 @@
             , T1.STR_SN
             , T1.STR_WARE_NO /*입고창고번호*/
             , T2.WARE_NM  /*창고번호*/
+            , T1.OSTR_WARE_NO
+            , T4.WARE_NM AS OSTR_WARE_NM
          FROM TB_SVST_ITM_STR_IZ T1 /* 품목입고내역 */
-       LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T2
+         LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T2
            ON T1.STR_WARE_NO = T2.WARE_NO
-       INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3
+        INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3
            ON T3.SVPD_PD_CD = T1.ITM_PD_CD
+         LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T4
+           ON T1.OSTR_WARE_NO = T4.WARE_NO
+          AND T2.APY_YM = T4.APY_YM
         WHERE 1 = 1
           AND T1.STR_WARE_NO = #{strOjWareNo}
         <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
@@ -81,7 +86,8 @@
           AND T1.STR_TP_CD IN ('121','122','123','162','161')
         </if>
           AND T2.APY_YM BETWEEN SUBSTR(#{stStrDt},1,6) AND SUBSTR(#{edStrDt},1,6)
-          AND T1.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}
+<!--  TODO: 이동입고 등록 작업후 주석해제      -->
+<!--          AND T1.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}-->
           AND T1.STR_CONF_DT IS NULL
          ORDER BY STR_TP_CD, ITM_STR_NO ,STR_SN
     </select>
@@ -132,29 +138,23 @@
     </select>
 
     <select id="selectMovementStoresReg"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto$MovementOstrMngtRes">
-        SELECT '1' AS CHK
-             , 'I' AS FLAG
-             , T1.ITM_OSTR_NO
-             , T1.OSTR_TP_CD
-             , T1.OSTR_WARE_NO
-             , T1.OSTR_DT
-             , T1.OSTR_SN
+        resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto$MovementOstrMngtRes">
+        SELECT T1.ITM_STR_NO
+             , J1.SAP_MAT_CD
              , T1.ITM_PD_CD
-             , T3.PD_NM
+             , J1.PD_ABBR_NM AS ITM_PD_NM
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', S2.ITM_LCT_ANGLE_VAL) || ' '
-                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', S2.ITM_LCT_COF_VAL) || ' '
-                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', S2.ITM_LCT_FLOR_NO_VAL) || ' '
-                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', S2.ITM_LCT_MAT_GRP_CD)
+                    || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', S2.ITM_LCT_COF_VAL) || ' '
+                    || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', S2.ITM_LCT_FLOR_NO_VAL) || ' '
+                    || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', S2.ITM_LCT_MAT_GRP_CD)
                   FROM TB_SVST_CST_SV_ITM_LCT_IZ S2
-                 WHERE S2.WARE_NO = CASE WHEN SUBSTR(T1.OSTR_AK_NO,1,1) = '2'
-                                              AND #{stckStdGb} != '1'
-                                         THEN '200012'
-                                         ELSE T1.OSTR_AK_NO
-                                     END
+                 WHERE S2.WARE_NO = (CASE WHEN SUBSTR(T1.OSTR_TP_CD,1,1) = '2'
+                                           AND #{stckStdGb} != '1'
+                                          THEN '200012'
+                                          ELSE T1.OSTR_AK_NO
+                                      END)
                    AND S2.ITM_PD_CD = T1.ITM_PD_CD
                ) AS ITEM_LOC /* 위치정보 */
-             , T1.ITM_GD_CD
              , NVL((SELECT (CASE T1.ITM_GD_CD
                                  WHEN 'A' THEN S3.PITM_STOC_A_GD_QTY - S3.MMT_STOC_A_GD_QTY
                                  WHEN 'B' THEN S3.PITM_STOC_B_GD_QTY - S3.MMT_STOC_B_GD_QTY
@@ -167,37 +167,98 @@
                        AND S3.ITM_PD_CD = T1.ITM_PD_CD)
                ,0) AS ON_QTY
              , T1.MNGT_UNIT_CD
-             , T1.BOX_UNIT_QTY
-             , NVL(T2.OSTR_AK_QTY,T1.OSTR_QTY) AS REQ_QTY
-             , T1.OSTR_DT AS OUT_REG_DT
-             , T1.OSTR_QTY
-             , T1.OSTR_QTY AS QTY1/* QTY1, QTY2 */
-             , T1.OSTR_QTY AS QTY2
-             , T1.RMK_CN
-             , NVL(T2.OSTR_CNFM_CD,0) AS OSTR_CNFM_CD
-             , T1.OSTR_SN AS SER
-             , T1.SELL_RCPDT
+             , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', T1.MNGT_UNIT_CD) AS MNGT_UNIT_NM
+             , T1.ITM_GD_CD
+             , J2.PD_PRP_VAL12 AS BOX_UNIT_QTY
+             , T2.OSTR_AK_QTY
+             , T3.OSTR_QTY
+             , T1.STR_QTY
+             , (NVL(T2.OSTR_CNFM_QTY,0) - NVL(T2.OSTR_AGG_QTY,0)) AS OSTR_CNFM_AGG_QTY /* COUNT_OSTR_QTY */
+             , T1.STR_RGST_DT
+             , T1.STR_WARE_NO
+             , T1.OSTR_WARE_NO
+             , J2.PD_PRP_VAL15 AS BASE_GB /* ST101_BASE_GB */
+             , J2.PD_PRP_VAL16 AS BASE_COLOR_GB/* ST101_BASE_COLOR_GB */
+             , T2.STR_HOP_DT
+             , T2.OSTR_CNFM_CD
              , (SELECT NVL(SUM(S1.OSTR_QTY),0)
                   FROM TB_SVST_ITM_OSTR_IZ S1
                  WHERE S1.OSTR_AK_NO = T1.OSTR_AK_NO
+                   AND S1.OSTR_AK_NO LIKE '360%'
                    AND S1.SELL_RCPDT IS NOT NULL
              ) IN_SUM
-             , T4.PD_PRP_VAL15 /* ST101_BASE_GB */
-             , T4.PD_PRP_VAL16 /* ST101_BASE_COLOR_GB */
-             , T3.SAP_MAT_CD
-          FROM TB_SVST_ITM_OSTR_IZ T1
+             , T1.STR_CONF_DT
+             , T3.RMK_CN
+          FROM TB_SVST_ITM_STR_IZ T1
           LEFT OUTER JOIN TB_SVST_ITM_OSTR_AK_IZ T2
             ON T1.OSTR_AK_NO = T2.OSTR_AK_NO
-          INNER JOIN TB_PDBS_PD_BAS T3
-            ON T1.ITM_PD_CD = T3.PD_CD
-          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
-            ON T3.PD_CD = T4.PD_CD AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
-         WHERE T1.ITM_OSTR_NO = #{itmOstrNo}
-           AND T1.OSTR_WARE_NO = #{ostrWareNo}
+          LEFT OUTER JOIN TB_SVST_ITM_OSTR_IZ T3
+            ON T1.ITM_OSTR_NO = T3.ITM_OSTR_NO
+           AND T1.ITM_PD_CD = T3.ITM_PD_CD
+          LEFT OUTER JOIN TB_PDBS_PD_BAS J1
+            ON T1.ITM_PD_CD = J1.PD_CD
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL J2
+            ON T1.ITM_PD_CD = J2.PD_CD
+           AND J2.PD_EXTS_PRP_GRP_CD = 'PART'
+         WHERE T1.ITM_STR_NO = #{itmStrNo}
            AND T1.STR_WARE_NO = #{strWareNo}
-           AND T1.STR_CONF_DT IS NULL
-         ORDER BY T1.OSTR_SN
+           AND T1.OSTR_WARE_NO = #{ostrWareNo}
+           AND T1.STR_TP_CD = #{strTpCd}
     </select>
+    <update id="saveStrConfirm">
+        UPDATE TB_SVST_ITM_STR_IZ T1
+           SET T1.STR_CONF_DT = TO_CHAR(SYSDATE,'YYYYMMDD'),
+               T1.STR_CONF_HH = TO_CHAR(SYSDATE,'HH24MISS'),
+               T1.STR_CONF_PRTNR_NO = '36680', /* TODO: 사용자계정으로 변환해야함 */
+               T1.STR_CONF_PRTNR_OG_TP_CD = 'W06' /* TODO: 사용자계정이 속한 조직유형코드로 변환 */
+               <!-- /* 조직유형코드 가져오는 쿼리 */
+                     SELECT P1.OG_TP_CD
+                       FROM TB_OGBS_MM_PRTNR_IZ P1 /* 월파트너내역 */
+                      WHERE P1.BASE_YM = SUBSTR(#{ostrDt}, 1, 6)
+                        AND P1.PRTNR_NO = #{prtnrNo}
+                        -->
+             <include refid="COMMON.updateSystemField"/>
+         WHERE T1.ITM_STR_NO = #{itmStrNo}
+           AND T1.STR_SN = #{strSn}
+    </update>
+    <update id="saveOstrConfirm">
+        UPDATE TB_SVST_ITM_OSTR_IZ
+           SET STR_CONF_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , STR_CONF_HH = TO_CHAR(SYSDATE,'HH24MISS'),
+             , STR_CONF_PRTNR_NO = '36680', /* TODO: 사용자계정으로 변환해야함 */
+             , STR_CONF_PRTNR_OG_TP_CD = 'W06' /* TODO: 사용자계정이 속한 조직유형코드로 변환 */
+               <!-- /* 조직유형코드 가져오는 쿼리 */
+                     SELECT P1.OG_TP_CD
+                       FROM TB_OGBS_MM_PRTNR_IZ P1 /* 월파트너내역 */
+                      WHERE P1.BASE_YM = SUBSTR(#{ostrDt}, 1, 6)
+                        AND P1.PRTNR_NO = #{prtnrNo}
+                        -->
+             <include refid="COMMON.updateSystemField"/>
+         WHERE T1.ITM_STR_NO = #{itmStrNo}
+           AND T1.STR_SN = #{strSn}
+    </update>
+    <update id="saveItemQtyConfirm">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ T1
+           SET T1.MMT_STOC_A_GD_QTY = CASE WHEN (T1.MMT_STOC_A_GD_QTY - DECODE( #{itmGdCd}, 'A', #{strQty},0)) <![CDATA[<]]> 0
+                                           THEN 0
+                                           ELSE
+                                       END
+             , T1.MMT_STOC_B_GD_QTY = CASE WHEN (T1.MMT_STOC_B_GD_QTY - DECODE( #{itmGdCd}, 'B', #{strQty},0)) <![CDATA[<]]> 0
+                                           THEN 0
+                                           ELSE
+                                       END
+             , T1.MMT_STOC_E_GD_QTY = CASE WHEN (T1.MMT_STOC_E_GD_QTY - DECODE( #{itmGdCd}, 'E', #{strQty},0)) <![CDATA[<]]> 0
+                                           THEN 0
+                                           ELSE
+                                       END
+             , T1.MMT_STOC_R_GD_QTY = CASE WHEN (T1.MMT_STOC_R_GD_QTY - DECODE( #{itmGdCd}, 'R', #{strQty},0)) <![CDATA[<]]> 0
+                                           THEN 0
+                                           ELSE
+                                       END
+             <include refid="COMMON.updateSystemField"/>
+         WHERE T1.WARE_NO = #{strWareNo}
+           AND T1.ITM_PD_CD = #{itmPdCd}
+    </update>
 
     <update id="editWareHouseStandardY" parameterType="String">
         UPDATE TB_SVST_MCBY_WARE_IZ
