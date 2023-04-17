@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
 
 @Mapper(componentModel = "spring")
 public interface WctzHistoryConverter {
@@ -14,5 +15,12 @@ public interface WctzHistoryConverter {
         WctzCntrDetailChangeHistDvo source,
         @MappingTarget
         WctzCntrDetailChangeHistDvo target
+    );
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    WctzTxinvRcpBaseChangeHistDvo convertTaxInvoiceReceiptBaseToChangeHist(
+        WctzTxinvRcpBaseChangeHistDvo source,
+        @MappingTarget
+        WctzTxinvRcpBaseChangeHistDvo target
     );
 }
