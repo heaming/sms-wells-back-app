@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.kyowon.sms.wells.web.contract.common.converter.WctzHistoryConverter;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.mapper.WctzHistoryMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
@@ -95,5 +96,22 @@ public class WctzHistoryService {
         }
         dvo.setHistEndDtm(HIST_END_DTM);
         mapper.insertCntrDetailStatChangeHist(dvo);
+    }
+
+    /**
+    * 세금계산서접수기준변경이력 생성
+    * @param dvo 계약정보 (계약번호, 계약일련번호)
+    */
+    public void createTaxInvoiceReceiptBaseChangeHistory(WctzTxinvRcpBaseChangeHistDvo dvo) {
+        BizAssert.hasText(dvo.getCntrNo(), "MSG_ALT_CHK_CNTR_NO");
+        if (0 == dvo.getCntrSn()) {
+            throw new BizException("MSG_ALT_CHK_CNTR_SN");
+        }
+
+        WctzTxinvRcpBaseChangeHistDvo newHist = converter
+            .convertTaxInvoiceReceiptBaseToChangeHist(
+                dvo, mapper.selectTaxInvoiceReceiptBase(dvo.getCntrNo(), dvo.getCntrSn())
+            );
+        mapper.insertTaxInvoiceReceiptBaseHist(newHist);
     }
 }

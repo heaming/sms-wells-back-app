@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
 
 @Mapper
 public interface WctzHistoryMapper {
@@ -25,5 +26,9 @@ public interface WctzHistoryMapper {
     int updateCntrDetailStatChangeHist(WctzCntrDtlStatChangeHistDvo dvo);
 
     int deleteCntrDetailStatChangeHist(WctzCntrDtlStatChangeHistDvo dvo);
+
+    WctzTxinvRcpBaseChangeHistDvo selectTaxInvoiceReceiptBase(String cntrNo, int cntrSn);
+
+    int insertTaxInvoiceReceiptBaseHist(WctzTxinvRcpBaseChangeHistDvo dvo);
 
 }
