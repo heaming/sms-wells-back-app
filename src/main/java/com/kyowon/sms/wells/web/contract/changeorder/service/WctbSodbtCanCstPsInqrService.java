@@ -25,8 +25,7 @@ public class WctbSodbtCanCstPsInqrService {
 
         for (int i = 0; i < dvos.size(); i++) {
             WctbSodbtCanCstPsInqrDvo dvo = dvos.get(i);
-            WctbSodbtCanCstPsInqrDto.SearchRes req = null;
-            req = converter.mapWctbSodbtCanCstPsInqrDvoToSearchRes(dvo);
+            WctbSodbtCanCstPsInqrDto.SearchRes req = converter.mapWctbSodbtCanCstPsInqrDvoToSearchRes(dvo);
             reqs.add(req);
         }
         reqs.setPageInfo(pageInfo);
