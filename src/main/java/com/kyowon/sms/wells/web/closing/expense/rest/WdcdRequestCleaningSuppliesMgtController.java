@@ -38,7 +38,7 @@ public class WdcdRequestCleaningSuppliesMgtController {
         @ApiImplicitParam(name = "clingCostAdjRcpNo", value = "청소비정산접수번호", paramType = "query"),
     })
     @GetMapping
-    public FindRes getRequestCleaningSupplies(@Valid FindReq req) {
+    public FindRes getRequestCleaningSupplies(@Valid @PathVariable FindReq req) {
         return service.getRequestCleaningSupplies(req);
     }
 
