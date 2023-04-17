@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccProductAccountMapper">
+    <select id="selectProductAccountTotals" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto$SearchTotalRes">
+    SELECT BASE_YM
+         , SELL_TP_CD
+         , SELL_TP_DTL_CD
+         , SUM(AGRG_CT1) AS AGRG_CT1
+         , SUM(AGRG_CT2) AS AGRG_CT2
+         , SUM(AGRG_CT3) AS AGRG_CT3
+         , SUM(AGRG_CT4) AS AGRG_CT4
+         , SUM(AGRG_CT5) AS AGRG_CT5
+         , SUM(AGRG_CT6) AS AGRG_CT6
+      FROM (SELECT BASE_YM
+                 , SELL_TP_CD
+                 , SELL_TP_DTL_CD
+                 , PD_HCLSF_ID
+                 , PD_MCLSF_ID
+                 , PD_CD
+                 , PD_NM
+                 , AGRG_CT1
+                 , AGRG_CT2
+                 , AGRG_CT3
+                 , AGRG_CT4
+                 , (AGRG_CT2 - AGRG_CT3 - AGRG_CT4 ) AS AGRG_CT5  /*순증*/
+                 , (AGRG_CT1 + (AGRG_CT2 - AGRG_CT3 - AGRG_CT4 )) AS AGRG_CT6 /*합계*/
+              FROM (
+                    SELECT S1.BASE_YM
+                         , S1.SELL_TP_CD
+                         , S1.SELL_TP_DTL_CD
+                         , S1.PD_HCLSF_ID
+                         , S1.PD_MCLSF_ID
+                         , S1.PD_CD
+                         , S1.PD_NM
+                         , (
+                             SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
+                              WHERE TO_CHAR(CH_DTM, 'YYYYMM') = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMMDDHH24MISS'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
+                                AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
+                           ) AS AGRG_CT1   /*이월*/ 
+                         , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
+                         , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
+                         , SUM(S1.AGRG_CT4) AS AGRG_CT4  /*만료*/
+                      FROM (
+                            SELECT TO_CHAR(T1.CH_DTM, 'YYYYMM') AS BASE_YM  /*기준년월*/
+                                 , T1.SELL_TP_CD   /*판매유형*/
+                                 , T1.SELL_TP_DTL_CD   /*판매유형상세*/
+                                 , T1.PD_HCLSF_ID     /*상품대분류*/
+                                 , T1.PD_MCLSF_ID     /*상품중분류*/      
+                                 , '' AS PD_CD           /*상품코드 - 테이블추가필요*/
+                                 , '' AS PD_NM
+                                    --(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM   /*상품명*/
+                                  /*이월은 따로조회 */
+                                 ,(CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
+                                        THEN 1 
+                                        ELSE 0 END) AS AGRG_CT2  /*유입*/
+                                 ,(CASE WHEN T1.CNTR_DTL_STAT_CD IN ('301','302','303')
+                                        THEN 1 
+                                        ELSE 0 END) AS AGRG_CT3  /*해지*/      
+                                 ,(CASE WHEN T1.CNTR_DTL_STAT_CD IN ('401','402')
+                                        THEN 1 
+                                        ELSE 0 END) AS AGRG_CT4  /*만료*/      
+                                 /*순증, 합계따로계산*/
+                              FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS T1  /*WELLS계약상태변경기본 - 현재 유효분을 다들고 오려면 계약상세를 들고오는게 맞을꺼 같은데..일단은이렇게*/
+                             WHERE 1=1
+                               AND TO_CHAR(T1.CH_DTM, 'YYYYMM') BETWEEN #{baseYmFrom} AND #{baseYmTo}
+                               <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
+                               AND T1.SELL_TP_CD = #{sellTpCd}
+                               </if>
+                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                               AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                               </if>
+                               <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+                               AND T1.OG_TP_CD = #{ogTpCd}
+                               </if>
+                               <if test="@MybatisUtils@isNotEmpty(prdtCateHigh) and !@MybatisUtils@equals(prdtCateHigh, 'ALL')">
+                               AND T1.PD_HCLSF_ID = #{prdtCateHigh}
+                                   <if test="@MybatisUtils@isNotEmpty(prdtCateMid) and !@MybatisUtils@equals(prdtCateMid, 'ALL')">
+                                   AND T1.PD_MCLSF_ID = #{prdtCateMid}
+                                   </if>
+                               </if>
+                             ) S1 
+                    GROUP BY BASE_YM
+                           , SELL_TP_CD
+                           , SELL_TP_DTL_CD
+                           , PD_HCLSF_ID
+                           , PD_MCLSF_ID
+                           , PD_CD
+                           , PD_NM
+                   )
+           )
+     GROUP BY BASE_YM
+         , SELL_TP_CD
+         , SELL_TP_DTL_CD
+    </select>
+    
+    <select id="selectProductAccounts" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto$SearchProductRes">
+    SELECT BASE_YM
+         , SELL_TP_CD
+         , SELL_TP_DTL_CD
+         , PD_HCLSF_ID
+         , PD_MCLSF_ID
+         , PD_CD
+         , PD_NM
+         , AGRG_CT1
+         , AGRG_CT2
+         , AGRG_CT3
+         , AGRG_CT4
+         , (AGRG_CT2 - AGRG_CT3 - AGRG_CT4 ) AS AGRG_CT5  /*순증*/
+         , (AGRG_CT1 + (AGRG_CT2 - AGRG_CT3 - AGRG_CT4 )) AS AGRG_CT6 /*합계*/
+      FROM (
+            SELECT S1.BASE_YM
+                 , S1.SELL_TP_CD
+                 , S1.SELL_TP_DTL_CD
+                 , S1.PD_HCLSF_ID
+                 , S1.PD_MCLSF_ID
+                 , S1.PD_CD
+                 , S1.PD_NM
+                 , (SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
+                     WHERE TO_CHAR(CH_DTM, 'YYYYMM') = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMMDDHH24MISS'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
+                       AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
+                   ) AS AGRG_CT1   /*이월*/ 
+                 , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
+                 , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
+                 , SUM(S1.AGRG_CT4) AS AGRG_CT4  /*만료*/
+              FROM (
+                    SELECT TO_CHAR(T1.CH_DTM, 'YYYYMM') AS BASE_YM  /*기준년월*/
+                         , T1.SELL_TP_CD   /*판매유형*/
+                         , T1.SELL_TP_DTL_CD   /*판매유형상세*/
+                         , T1.PD_HCLSF_ID     /*상품대분류*/
+                         , T1.PD_MCLSF_ID     /*상품중분류*/      
+                         , '' AS PD_CD           /*상품코드 - 테이블추가필요*/
+                         , '' AS PD_NM
+                         --(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM   /*상품명*/
+                         /*이월은 따로조회 */
+                         , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
+                                 THEN 1 
+                                 ELSE 0 END) AS AGRG_CT2  /*유입*/
+                         , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('301','302','303')
+                                 THEN 1 
+                                 ELSE 0 END) AS AGRG_CT3  /*해지*/      
+                         , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('401','402')
+                                 THEN 1 
+                                 ELSE 0 END) AS AGRG_CT4  /*만료*/      
+                         /*순증, 합계따로계산*/
+                      FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS T1  /*WELLS계약상태변경기본 - 현재 유효분을 다들고 오려면 계약상세를 들고오는게 맞을꺼 같은데..일단은이렇게*/
+                     WHERE 1=1
+                       AND TO_CHAR(T1.CH_DTM, 'YYYYMM') BETWEEN #{baseYmFrom} AND #{baseYmTo}
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
+                       AND T1.SELL_TP_CD = #{sellTpCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+                       AND T1.OG_TP_CD = #{ogTpCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(prdtCateHigh) and !@MybatisUtils@equals(prdtCateHigh, 'ALL')">
+                       AND T1.PD_HCLSF_ID = #{prdtCateHigh}
+                           <if test="@MybatisUtils@isNotEmpty(prdtCateMid) and !@MybatisUtils@equals(prdtCateMid, 'ALL')">
+                           AND T1.PD_MCLSF_ID = #{prdtCateMid}
+                           </if>
+                       </if>
+                   ) S1 
+               GROUP BY BASE_YM
+                      , SELL_TP_CD
+                      , SELL_TP_DTL_CD
+                      , PD_HCLSF_ID
+                      , PD_MCLSF_ID
+                      , PD_CD
+                      , PD_NM
+           )
+    </select>
+    
+    <select id="selectProductAccountsExcelDownload" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto$SearchExcelRes">
+    SELECT BASE_YM
+         , SELL_TP_CD
+         , SELL_TP_DTL_CD
+         , PD_HCLSF_ID
+         , PD_MCLSF_ID
+         , PD_CD
+         , PD_NM
+         , AGRG_CT1
+         , AGRG_CT2
+         , AGRG_CT3
+         , AGRG_CT4
+         , (AGRG_CT2 - AGRG_CT3 - AGRG_CT4 ) AS AGRG_CT5  /*순증*/
+         , (AGRG_CT1 + (AGRG_CT2 - AGRG_CT3 - AGRG_CT4 )) AS AGRG_CT6 /*합계*/
+      FROM (
+            SELECT S1.BASE_YM
+                 , S1.SELL_TP_CD
+                 , S1.SELL_TP_DTL_CD
+                 , S1.PD_HCLSF_ID
+                 , S1.PD_MCLSF_ID
+                 , S1.PD_CD
+                 , S1.PD_NM
+                 , (SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
+                     WHERE TO_CHAR(CH_DTM, 'YYYYMM') = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMMDDHH24MISS'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
+                       AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
+                   ) AS AGRG_CT1   /*이월*/ 
+                 , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
+                 , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
+                 , SUM(S1.AGRG_CT4) AS AGRG_CT4  /*만료*/
+              FROM (
+                    SELECT TO_CHAR(T1.CH_DTM, 'YYYYMM') AS BASE_YM  /*기준년월*/
+                         , T1.SELL_TP_CD   /*판매유형*/
+                         , T1.SELL_TP_DTL_CD   /*판매유형상세*/
+                         , T1.PD_HCLSF_ID     /*상품대분류*/
+                         , T1.PD_MCLSF_ID     /*상품중분류*/      
+                         , '' AS PD_CD           /*상품코드 - 테이블추가필요*/
+                         , '' AS PD_NM
+                         --(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM   /*상품명*/
+                         /*이월은 따로조회 */
+                         , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
+                                 THEN 1 
+                                 ELSE 0 END) AS AGRG_CT2  /*유입*/
+                         , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('301','302','303')
+                                 THEN 1 
+                                 ELSE 0 END) AS AGRG_CT3  /*해지*/      
+                         , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('401','402')
+                                 THEN 1 
+                                 ELSE 0 END) AS AGRG_CT4  /*만료*/      
+                         /*순증, 합계따로계산*/
+                      FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS T1  /*WELLS계약상태변경기본 - 현재 유효분을 다들고 오려면 계약상세를 들고오는게 맞을꺼 같은데..일단은이렇게*/
+                     WHERE 1=1
+                       AND TO_CHAR(T1.CH_DTM, 'YYYYMM') BETWEEN #{baseYmFrom} AND #{baseYmTo}
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
+                       AND T1.SELL_TP_CD = #{sellTpCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+                       AND T1.OG_TP_CD = #{ogTpCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(prdtCateHigh) and !@MybatisUtils@equals(prdtCateHigh, 'ALL')">
+                       AND T1.PD_HCLSF_ID = #{prdtCateHigh}
+                           <if test="@MybatisUtils@isNotEmpty(prdtCateMid) and !@MybatisUtils@equals(prdtCateMid, 'ALL')">
+                           AND T1.PD_MCLSF_ID = #{prdtCateMid}
+                           </if>
+                       </if>
+                   ) S1 
+               GROUP BY BASE_YM
+                      , SELL_TP_CD
+                      , SELL_TP_DTL_CD
+                      , PD_HCLSF_ID
+                      , PD_MCLSF_ID
+                      , PD_CD
+                      , PD_NM
+           )
+    </select>
+
+</mapper>
