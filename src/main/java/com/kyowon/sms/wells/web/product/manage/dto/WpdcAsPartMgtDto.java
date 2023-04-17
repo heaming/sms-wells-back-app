@@ -42,6 +42,7 @@ public class WpdcAsPartMgtDto {
         String channelId,
         String sellDurtion,
         String sapMatCd,
+        String sapMatTpVal,
         String pdAbbrNm,
         String modelNo,
         String ostrCnrCd,
