@@ -1,22 +1,18 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CreateReq;
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.FindRes;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.WareDtlDvCd.BUSINESS_CENTER_ORGANIZATION;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.WareDtlDvCd.SERVICE_CENTER_ORGANIZATION;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SaveReq;
-import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaWarehouseOrganizationConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CountReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaWarehouseOrganizationMapper;
+import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -110,6 +106,27 @@ public class WsnaWarehouseOrganizationService {
         }
 
         return processCount;
+    }
+
+    public List<SearchWarehouseRes> getHighRankWarehouses(SearchWarehouseReq dto) {
+        List<SearchWarehouseRes> dtos;
+
+        if (isOrgWarehouse(dto.wareDtlDvCd())) {
+            dtos = this.mapper.selectLogisticsCenters(); // 물류센터 조회
+        } else {
+            dtos = this.mapper.selectIndvIndpWarehouses(dto); // 동일 조직의 개인/독립창고 조회
+
+            if (dtos.size() == 0) {
+                dtos = this.mapper.selectOrganizationWarehouses(dto); // 동일 조직의 조직창고 조회
+            }
+        }
+
+        return dtos;
+    }
+
+    private boolean isOrgWarehouse(String wareDtlDvCd) {
+        return SERVICE_CENTER_ORGANIZATION.getCode().equals(wareDtlDvCd)
+            || BUSINESS_CENTER_ORGANIZATION.getCode().equals(wareDtlDvCd);
     }
 
 }
