@@ -59,8 +59,8 @@ public class WwdbGiroOcrForwardingMgtService {
      * @return List<SearchRes>
      */
     @Transactional
-    public List<SearchRes> getGiroOcrForwardingObjects() {
-        return mapper.selectGiroOcrForwardingObjects();
+    public List<SearchRes> getGiroOcrForwardingObjects(String cntr) {
+        return mapper.selectGiroOcrForwardingObjects(cntr);
     }
 
     @Transactional
