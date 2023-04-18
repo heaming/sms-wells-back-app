@@ -156,4 +156,68 @@ public class WctaOrderDetailRentalPagesDvo {
     private String fgpt5PdNm; /* 사은품정보-사은품명5 */
     private String fgpt5PdCd; /* 사은품정보-사은품코드5 */
     private String fgpt5Qty; /* 사은품정보-사은품수량5 */
+    private String fgpt6PdNm; /* 사은품정보-사은품명6 */
+    private String fgpt6PdCd; /* 사은품정보-사은품코드6 */
+    private String fgpt6Qty; /* 사은품정보-사은품수량56*/
+    private String fgpt7PdNm; /* 사은품정보-사은품명7 */
+    private String fgpt7PdCd; /* 사은품정보-사은품코드7 */
+    private String fgpt7Qty; /* 사은품정보-사은품수량7 */
+    private String fgpt8PdNm; /* 사은품정보-사은품명8 */
+    private String fgpt8PdCd; /* 사은품정보-사은품코드8 */
+    private String fgpt8Qty; /* 사은품정보-사은품수량8 */
+    private String lcet15; /* 포인트몰 지급금액 */
+    private String lcrpmn; /* 빨간펜포인트 적용일 */
+    private String lcrpam; /* 빨간펜포인트 적용금액 */
+    private String lcetc6; /* 백점이 여부 */
+    private String istAkArtcMoCn; /* 참고사항 */
+    private String sconCn; /* 특약내용 */
+    private String useElectTpCd; /* 사용전력 */
+    private String lcrept; /* 송장출력일 */
+    private String lcck06; /* 선물선택 코드 */
+    private String lcck06Nm; /* 선물선택 코드명 */
+    private String levels; /* 등급구분 */
+    private String safekey; /* 세이프키(SAFE-KEY) */
+    private String alncPrtnrDrmDvCd; /* 조직구분 */
+    private String alncPrtnrDrmDvNm; /* 조직구분명 */
+    private String cntrtRelNm; /* 관계구분 */
+    private String lcck07; /* 주문입력구분 */
+    private String bryyBzrno; /* 사업자등록/주민번호 */
+    private String ftfDvCd; /* 총판대면 */
+    private String lcet10; /* 직원 판매유형 */
+    private String fnlAmt; /* 계약 총금액(원) */
+    private String rentalAmt; /* 렌탈 총금액(원) */
+    private String fnlPdCd; /* 총판매제품 */
+    private String fnlPdNm; /* 최종판매제품 명 */
+    private String rentalPtrm; /* 렌탈기간1(개월) */
+    private String rentalPtrm2; /* 렌탈기간2(개월) */
+    private String leaseDvNm; /* 렌탈/리스 구분 */
+    private String pmotTpNm; /* 프로모션유형 */
+    private String mchnChTpNm; /* 기변유형코드명 */
+    private String dscApyDtlCdNm; /* 할인유형-코드명 */
+    private String svPrdInfo; /* 관리/방문/택배 주기 */
+    private String lcflg3; /* 설치월 면제 */
+    private String cntrChDtlRsonCd; /* 명의변경구분 */
+    private String rstlYn; /* 재약정 여부 */
+    private String pdChBfNmnN; /* 제품교체이전 차월 */
+    private String adnSvYn; /* 부가서비스 여부 */
+    private String prmApyDvCd; /* 선납 적용구분 */
+    private String mpyBsdt; /* 이체일 */
+    private String stlmFnit; /* 이체정보-결제금융기관 */
+    private String vstRqdt; /* 의뢰일 */
+    private String pdctReqdRqdt; /* 철거요청일 */
+    private String lcremy; /* 철거일 */
+    private String lccany; /* 취소일 */
+    private String frisuYn; /* 무료체험 여부 */
+    private String lcpgubNm; /* 컨택업체 */
+    private String sppMthdTpNm; /* 의뢰구분 */
+    private String wprsItstTpNm; /* 수압유무 */
+    private String srcwtTpNm; /* 수질구분 */
+    private String wtqltyTstYn; /* 수질검사 */
+    private String lcchk8; /* 설치장소 */
+    private String wrfrIstMthNm; /* 설치옵션 */
+    private String frisuRcvryTpNm; /* 무상복구사용 */
+    private String dgr3LevlOgId; /* 조직코드 */
+    private String pdQty; /* 수량 */
+    private String highPdClsfNm; /* 상품 분류(대분류) */
+    private String middlePdClsfNm; /* 상품 분류(중분류) */
 }
