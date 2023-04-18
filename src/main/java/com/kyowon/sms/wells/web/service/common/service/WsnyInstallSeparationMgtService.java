@@ -50,9 +50,9 @@ public class WsnyInstallSeparationMgtService {
     }
 
     @Transactional
-    public int removeInstallSeparationCosts(List<DeleteReq> dtos) throws Exception{
+    public int removeInstallSeparationCosts(List<RemoveReq> dtos) throws Exception{
         int processCnt = 0;
-        for(DeleteReq dto: dtos){
+        for(RemoveReq dto: dtos){
             WsnyInstallSeparationMgtDvo dvo = converter.mapDeleteReqToInstallSeparationMgtDvo(dto);
             processCnt += mapper.deleteInstallSeparationCosts(dvo);
         }

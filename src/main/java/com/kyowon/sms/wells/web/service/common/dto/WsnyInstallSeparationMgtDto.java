@@ -53,8 +53,8 @@ public class WsnyInstallSeparationMgtDto {
         String rmkCn
     ){}
 
-    @ApiModel(value = "WsnyInstallSeparationMgtDto-DeleteReq")
-    public record DeleteReq(
+    @ApiModel(value = "WsnyInstallSeparationMgtDto-RemoveReq")
+    public record RemoveReq(
         @NotBlank
         String sellTpCd,
         @NotBlank

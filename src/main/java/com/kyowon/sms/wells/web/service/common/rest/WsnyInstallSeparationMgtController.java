@@ -66,7 +66,7 @@ public class WsnyInstallSeparationMgtController {
         @Valid
         @RequestBody
         @NotEmpty
-        List<DeleteReq> dtos
+        List<RemoveReq> dtos
     )throws Exception{
         return SaveResponse.builder().processCount(service.removeInstallSeparationCosts(dtos)).build();
     }

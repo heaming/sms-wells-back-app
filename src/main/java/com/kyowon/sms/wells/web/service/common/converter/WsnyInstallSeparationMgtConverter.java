@@ -8,5 +8,5 @@ import org.mapstruct.Mapper;
 public interface WsnyInstallSeparationMgtConverter {
     WsnyInstallSeparationMgtDvo mapSaveReqToInstallSeparationMgtDvo(WsnyInstallSeparationMgtDto.SaveReq dto) throws Exception;
 
-    WsnyInstallSeparationMgtDvo mapDeleteReqToInstallSeparationMgtDvo(WsnyInstallSeparationMgtDto.DeleteReq dto) throws Exception;
+    WsnyInstallSeparationMgtDvo mapDeleteReqToInstallSeparationMgtDvo(WsnyInstallSeparationMgtDto.RemoveReq dto) throws Exception;
 }
