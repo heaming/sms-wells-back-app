@@ -6,12 +6,11 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 
-public class WsniRegistrationBarCodeDto {
-
+public class WsniRegistrationBarcodeInterfaceDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel(value = "WsniRegistrationBarCodeDto-SearchReq")
+    @ApiModel(value = "WsniRegistrationBarcodeInterfaceDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String qrcd
@@ -20,14 +19,15 @@ public class WsniRegistrationBarCodeDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel(value = "WsniRegistrationBarCodeDto-SearchRes")
+    @ApiModel(value = "WsniRegistrationBarcodeInterfaceDto-SearchRes")
     public record SearchRes(
-        String lcncde,
-        String lciuse,
-        String gdsCd,
+        String basePdCd,
+        String uswyDvCd,
+        String pdctPdCd,
         String farmYn,
         String itemNm,
-        String custCd,
+        String cntrNo,
+        String cntrSn,
         String custNm,
         String hnoNo,
         String locaraTno,
@@ -59,4 +59,45 @@ public class WsniRegistrationBarCodeDto {
         }
     }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    @ApiModel(value = "WsniRegistrationBarcodeInterfaceDto-SearchJsonRes")
+    public record SearchJsonRes(
+        String lcncde,
+        String lciuse,
+        String gdsCd,
+        String farmYn,
+        String itemNm,
+        String custCd,
+        String custNm,
+        String hnoNo,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String csmrYr,
+        String csmrCd,
+        String addr,
+        String zipno,
+        String empId,
+        String empNm,
+        String deptNm,
+        String mngHpNo,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String vstDt,
+        String mngTyp,
+        String mngCyc,
+        String dbldNm,
+        String filterYn,
+        String rnk
+    ) {
+        public SearchJsonRes {
+            hnoNo = locaraTno + (StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr)
+                + idvTno;
+            mngHpNo = cralLocaraTno + (StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr)
+                + cralIdvTno;
+        }
+    }
 }
