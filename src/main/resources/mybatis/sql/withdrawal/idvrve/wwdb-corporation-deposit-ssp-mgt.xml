@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbCorporationDepositSspMgtMapper">
+    
+    <select id="selectCorporationDepositSspMgt" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbCorporationDepositSspMgtDto$SearchRes">
+     SELECT A.ITG_DP_NO -- 통합입금번호
+          , A.ALNCMP_SUSC_ORD_NO -- 구독주문번호(제휴사구독주문번호)
+          , A.CNTR_NO -- 계약번호
+          , A.CNTR_SN -- 계약일련번호
+          , A.CNTR_NO || A.CNTR_SN AS CNTR_DTL_NO -- 계약상세번호
+          , A.SELL_TP_CD -- 판매유형(판매유형코드)
+          <!-- , A.CRP_ACNO 계좌번호 -->
+          <!-- , A.ALNCMP_DPR_NM 입금자명(제휴사입금자명) -->
+          , A.ALNCMP_DP_AMT -- 기본금액(제휴사입금금액)
+          , A.ALNCMP_FEE -- 수수료(제휴사수수료)
+          , (A.ALNCMP_DP_AMT + A.ALNCMP_FEE) AS SUM_AMT -- 합계금액
+       FROM TB_RVDW_CRP_DP_EXP_ALNCMP_BAS A --법인입금예정제휴사기본
+       LEFT OUTER JOIN TB_RVDW_RVE_DTL B --수납상세
+         ON A.KW_GRP_CO_CD = B.KW_GRP_CO_CD
+        AND A.ITG_DP_NO = B.ITG_DP_NO
+        AND B.DTA_DL_YN = 'N'
+      WHERE 1 = 1
+        <if test="@MybatisUtils@isNotEmpty(perfDt)">
+           AND B.PERF_DT = #{perfDt} -- 실적일자 [수납상세]
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(rveDt)">
+           AND B.RVE_DT = #{rveDt} -- 수납일자 [수납상세]
+        </if>
+        <!-- <if test="@MybatisUtils@isNotEmpty(crpAcno)">
+           AND C.CRP_ACNO = #{crpAcno} 계좌번호 [법인계좌관리기본]
+        </if> -->
+        <!-- <if test="@MybatisUtils@isNotEmpty(alncmpDprNm)">
+           AND A.ALNCMP_DPR_NM = #{alncmpDprNm}  입금자명 [법인입금예정제휴사기본]
+        </if> -->
+           <if test="@MybatisUtils@isNotEmpty(rveCd)">
+           AND B.RVE_CD = #{rveCd} -- 수납코드 [수납상세]
+          </if>
+           AND A.DTA_DL_YN = 'N'
+    </select>
+    
+    <insert id="insertCorporationDepositSspMgt">
+        INSERT INTO TB_RVDW_CRP_DP_EXP_ALNCMP_BAS(
+               ITG_DP_NO 
+             , KW_GRP_CO_CD
+             , ALNCMP_SUSC_ORD_NO 
+             , CNTR_NO 
+             , CNTR_SN 
+             , SELL_TP_CD 
+             , ALNCMP_DP_AMT 
+             , ALNCMP_FEE
+             <include refid="COMMON.insertSystemField"/>
+           )VALUES(
+                  #{itgDpNo}
+                , #{session.companyCode}
+                , #{alncmpSuscOrdNo}
+                , #{cntrNo}
+                , #{cntrSn}
+                , #{sellTpCd}
+                , #{alncmpDpAmt}
+                , #{alncmpFee}
+             <include refid="COMMON.insertSystemFieldValue"/>
+           )
+    </insert>
+      
+</mapper>
