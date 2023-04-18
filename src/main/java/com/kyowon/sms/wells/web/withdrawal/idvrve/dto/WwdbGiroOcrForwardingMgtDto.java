@@ -20,7 +20,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String cntr, //계약일련번호
         String cstFnm, // 고객성명
         String slDt, //매출일자
-        //현재차월
+        String rentalTn, //현재차월
         String recapDutyPtrmN, //약정개월
         String strtGiroTn, //시작지로회차
         String endGiroTn, //종료지로회차
