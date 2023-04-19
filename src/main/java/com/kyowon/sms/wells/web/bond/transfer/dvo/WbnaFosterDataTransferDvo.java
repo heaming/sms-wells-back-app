@@ -78,7 +78,7 @@ public class WbnaFosterDataTransferDvo {
     private String sfkVal; /* LCSKEY 세이프키값 */
 
     public String toTransmissionContent() {
-        StringBuffer transmissionContent = new StringBuffer();
+        StringBuilder transmissionContent = new StringBuilder();
         transmissionContent.append(clcoCd);
         transmissionContent.append("|");
         transmissionContent.append(clcoTfDt);
