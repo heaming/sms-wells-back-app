@@ -10,20 +10,20 @@ public class WbnaBondPartTransferDto {
      * @param baseYm 기준년월
      * @param bzHdqDvCd 사업부코드
      * @param clctamDvCd 집금구분코드
-     * @param cstKnm 고객명
+     * @param cstNm 고객명
      * @param cstNo 고객번호
-     * @param nwYn 신규여부
+     * @param bndNwDvCd 채권신규구분코드
      */
     @ApiModel("WbnaBondPartTransferDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String baseYm,
-        @NotBlank
         String bzHdqDvCd,
         String clctamDvCd,
-        String cstKnm,
+        String cstNm,
         String cstNo,
-        String nwYn
+        String phoneNumber,
+        String bndNwDvCd
     ) {}
 
     /**
@@ -152,8 +152,23 @@ public class WbnaBondPartTransferDto {
         @NotBlank
         String baseYm,
         @NotBlank
+        String bzHdqDvCd,
         String clctamDvCd,
-        String bzHdqDvCd
+        String cstNm,
+        String cstNo,
+        String bndNwDvCd
+    ) {}
+
+    @ApiModel("WbnaPartTransferDto-SearchDetailSummaryRes")
+    public record SearchDetailSummaryRes(
+        String baseYm,
+        String bzHdqDvCd,
+        String clctamDvCd,
+        String objAmt,
+        String dlqAmt,
+        String thmChramAmt,
+        String dlqAddDpAmt,
+        String rsgBorAmt
     ) {}
 
     /**
@@ -162,11 +177,11 @@ public class WbnaBondPartTransferDto {
      * @param bzHdqDvCd 사업부구분코드
      * @param cntrNo 계약번호
      * @param clctamDvCd 집금구분코드
-     * @param prtnrKnm 전월담당자
+     * @param bfPrtnrKnm 전월담당자
      * @param cntrSn 계약일련번호
-     * @param cstKnm 고객명
+     * @param cstNm 고객명
      * @param cstNo 고객번호
-     * @param pdDvCd 상품구분코드
+     * @param bndBizDvCd 상품구분코드
      * @param dlqMcn 연체개월
      * @param objAmt 대상금액
      * @param dlqAmt 연체금액
@@ -185,11 +200,11 @@ public class WbnaBondPartTransferDto {
         String bzHdqDvCd,
         String cntrNo,
         String clctamDvCd,
-        String prtnrKnm,
+        String bfPrtnrKnm,
         String cntrSn,
-        String cstKnm,
+        String cstNm,
         String cstNo,
-        String pdDvCd,
+        String bndBizDvCd,
         String dlqMcn,
         String objAmt,
         String dlqAmt,
