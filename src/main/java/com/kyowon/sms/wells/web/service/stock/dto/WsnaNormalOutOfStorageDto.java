@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -76,8 +78,8 @@ public class WsnaNormalOutOfStorageDto {
         String ostrAkRgstDt,
         String ostrAkNo,
         String itmPdCd,
-        String strOjWareNo,
-        String ostrOjWareNo,
+        String strWareNo,
+        String ostrWareNo,
         String ostrOjWareNm,
         String strOjWareNm,
         String stckStdGb
@@ -88,7 +90,7 @@ public class WsnaNormalOutOfStorageDto {
         String chk,
         String ostrAkTpCd,
         String ostrTpCd,
-        String strOjWareNo,
+        String strWareNo,
         String ostrAkRgstDt,
         String ostrAkSn,
         String ostrAkNo,
@@ -104,7 +106,7 @@ public class WsnaNormalOutOfStorageDto {
         String wareMngtPrtnrNo,
         String itmGdCd,
         String reqStckQty,
-        String ostrOjWareNo,
+        String ostrWareNo,
         String ostrWareMngtPrtnrNo,
         String mngtUnitCd,
         String mgtUntNm,
@@ -128,16 +130,64 @@ public class WsnaNormalOutOfStorageDto {
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CreqteReq")
     public record CreateReq(
+        String todayStr,
+        String itmOstrNo,
+        String itmStrNo,
+        String ostrAkTpCd,
+        String ostrTpCd,
+        String strTpCd,
+        String strWareNo,
+        String ostrAkRgstDt,
+        String qty,
+        String ostrAkSn,
         String ostrAkNo,
-        String qty
+        String strHopDt,
+        String pdPrpVal19,
+        String itmPdCd,
+        String itmCd,
+        String pdNm,
+        String sapMatCd,
+        String itemLoc,
+        String pajuLoc,
+        String ostrAkWareDvCd,
+        String wareMngtPrtnrNo,
+        String itmGdCd,
+        String reqStckQty,
+        String ostrWareNo,
+        String ostrWareMngtPrtnrNo,
+        String mngtUnitCd,
+        String mgtUntNm,
+        String boxUnitQty,
+        String ostrAkQty,
+        String ostrCnfmQty,
+        String rmkCn,
+        String ostrCnfmCd,
+        String rectOstrDt,
+        String ostrAggQty,
+        String outQty,
+        String outQtyOrg,
+        String strConfDt,
+        String pdPrpVal15,
+        String pdPrpVal16,
+        String pdPrpVal02,
+        String cfrmCnt,
+        String avgOu
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckedReq")
     public record CheckedReq(
         String ostrAkNo,
-        String[] ostrAkSns
+        List ostrAkSns
     ) {}
 
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-StrNoAndOstrNoRes")
+    public record StrNoAndOstrNoRes(
+        String itmOstrNo,
+        String itmStrNo,
+        String ostrTpCd,
+        String strTpCd,
+        String todayStr
+    ) {}
     public record NomalOutOfStorageReq() {
 
     }
