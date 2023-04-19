@@ -111,16 +111,16 @@
              , T14.OWR_KNM AS AFTN_OWR_KNM                                                      /* 계좌정보-예금／카드주명 (ACCNM) */
              , T12.SELL_EV_CD                                                                   /* 판매행사코드 (행사코드:LCETC9)*/
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_EV_CD', T12.SELL_EV_CD) AS SELL_EV_NM             /* 판매행사명- 행사코드명(LCET9N) */
-             , T10.ALNCMP_CD                                                                    /* 제휴사코드 (제휴코드:LCETC8)*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T10.ALNCMP_CD) AS ALNCMP_NM                /* 제휴코드명- 제휴코드명(LCET8N) */
+             , T11.ALNCMP_CD                                                                    /* 제휴사코드 (제휴코드:LCETC8)*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T11.ALNCMP_CD) AS ALNCMP_NM                /* 제휴코드명- 제휴코드명(LCET8N) */
              , F_CMZ_CD_NM('TNT_WELLS', 'ALNC_STAT_TP_CD', T74.ALNC_STAT_TP_CD) AS ALNC_STAT_TP_NM /* 제휴상태유형코드- 제휴상태(LCET2N:LC3100P.LCETC2) TODO.확인필요 */
-             , T10.ALNCMP_CNTR_DRM_VAL   /* 제휴사계약식별값(LCCK11+LCCK12+LCCK13)*/
-               || CASE WHEN T10.ALNCMP_CD = '70' /*상조*/
+             , T11.ALNCMP_CNTR_DRM_VAL   /* 제휴사계약식별값(LCCK11+LCCK12+LCCK13)*/
+               || CASE WHEN T11.ALNCMP_CD = '70' /*상조*/
                        THEN (SELECT BASE_DTL_CNTR_NO || BASE_DTL_CNTR_SN
                                FROM TB_SSCT_CNTR_REL
                               WHERE 1=1
                                AND CNTR_REL_DTL_CD = '22L' /* 계약관계상세코드 : 플래너상조제휴22L) */
-                               AND OTSD_LK_DRM_VAL = T10.ALNCMP_CNTR_DRM_VAL /* 계약관계@외부연계식별값 = 계약기본@제휴사계약식별값*/
+                               AND OTSD_LK_DRM_VAL = T11.ALNCMP_CNTR_DRM_VAL /* 계약관계@외부연계식별값 = 계약기본@제휴사계약식별값*/
                                AND DTA_DL_YN = 'N'
                            )
                        ELSE '' END AS ALNCMP_CST_CD                                             /* 제휴고객코드 (제휴고객코드:LCCK11) TODO.확인필요*/
@@ -893,7 +893,7 @@
            AND T20.PD_NM LIKE '%' || #{pdNm} || '%'
         </if>
         <if test="@MybatisUtils@isNotEmpty(alncmpCd)">
-           AND T10.ALNCMP_CD = #{alncmpCd}
+           AND T11.ALNCMP_CD = #{alncmpCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(sellEvCd)">
            AND T12.SELL_EV_CD = #{sellEvCd}
@@ -1640,7 +1640,7 @@
              , F1.FRISU_AS_PTRM_N /* 계약WELLS상세.무상AS기간수 [무상AS기간] */
              , F1.FRISU_BFSVC_PTRM_N /* 계약WELLS상세.무상BS기간수 [무상멤버십개월] */
              , '' AS RECAP_MSH_YN  /* TODO : 즉시유상멤버십여부 매핑정보 확인 이후 진행 - AS-IS:LC3000P.LCCK05 */
-             , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', B1.ALNCMP_CD) AS ALNCMP_NM /* 제휴사코드명 [제휴코드명] */
+             , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', A1.ALNCMP_CD) AS ALNCMP_NM /* 제휴사코드명 [제휴코드명] */
              , F1.SELL_EV_CD /* 계약WELLS상세.판매행사코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_EV_CD', F1.SELL_EV_CD) AS SELL_EV_NM /* 판매행사코드명 [행사코드명] */
              , A1.FNL_AMT /* 계약상세.최종금액 [총판매금] */
@@ -1684,7 +1684,7 @@
                    AND S1.DTA_DL_YN = 'N'
                    AND S1.CNTR_REL_DTL_CD IN ( '216', '219', '221' ) /* 216(모종결합), 219(홈케어), 221(홈페이멤버십)  */
                  )) AS CNTR_REL_DTL_NM /* 계약관계상세코드명 [결합구분]*/
-             , B1.ALNCMP_CNTR_DRM_VAL   /* 제휴사계약식별값(LCCK11+LCCK12+LCCK13) MKN*/
+             , A1.ALNCMP_CNTR_DRM_VAL   /* 제휴사계약식별값(LCCK11+LCCK12+LCCK13) MKN*/
              , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T1.ALNCMP_CD) AS ALNCMP_CD /* 제휴사코드명 [제휴코드] */
              , (SELECT MAX(U1.ALNC_PRTNR_DRM_VAL) KEEP (DENSE_RANK FIRST ORDER BY U1.VL_END_DTM DESC NULLS LAST) AS ALNC_PRTNR_DRM_VAL /* 제휴파트너 식별값  */
                   FROM TB_SSCT_CNTR_PRTNR_REL U1 /* 계약파트너관계 */
@@ -1891,10 +1891,10 @@
           AND B1.CNTR_CAN_DTM IS NULL
         </if>
         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-           AND A1.CNTR_NO = #{cntrNo}
+          AND A1.CNTR_NO = #{cntrNo}
         </if>
         <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-           AND A1.CNTR_SN = #{cntrSn}
+          AND A1.CNTR_SN = #{cntrSn}
         </if>
         <if test="@MybatisUtils@isNotEmpty(prdEnqry)">
             <choose>
@@ -1919,7 +1919,7 @@
            AND A1.BASE_PD_CD LIKE '01001%'
         </if>
         <if test="@MybatisUtils@isNotEmpty(pdNm)"> /* 상품명 */
-           AND D1.PD_NM LIKE '%' || #{pdNm} || '%'
+           AND T20.PD_NM LIKE '%' || #{pdNm} || '%'
         </if>
         <if test="@MybatisUtils@isNotEmpty(alncmpCd)"> /* 제휴코드 */
            AND T1.ALNCMP_CD = #{alncmpCd}
