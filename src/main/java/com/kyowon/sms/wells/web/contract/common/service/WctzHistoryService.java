@@ -4,6 +4,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.common.converter.WctzHistoryConverter;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
@@ -113,5 +114,38 @@ public class WctzHistoryService {
                 dvo, mapper.selectTaxInvoiceReceiptBase(dvo.getCntrNo(), dvo.getCntrSn())
             );
         mapper.insertTaxInvoiceReceiptBaseHist(newHist);
+    }
+
+    /**
+     * 계약변경접수변경이력(최신) 조회
+     * @param cntrChRcpId 계약변경접수ID
+     * @return
+     */
+    public WctzCntrChRcchStatChangeHistDvo getContractChangeRcchStatChangeHistory(String cntrChRcpId) {
+        return mapper.selectCntrChRcchStatChangeHist(cntrChRcpId);
+    }
+
+    /**
+     * 계약변경접수변경이력 생성
+     * @param dvo 이력정보 (계약변경요청내용, 계약변경진행상태코드, 계약변경진행메모내용)
+     */
+    public void createContractChangeRcchStatChangeHistory(WctzCntrChRcchStatChangeHistDvo dvo) {
+        BizAssert.hasText(dvo.getCntrChRcpId(), "MSG_ALT_CHK_CNTR_CH_RCP_ID");
+        BizAssert.hasText(dvo.getCntrChPrgsStatCd(), "MSG_ALT_CHK_CNTR_CH_PRGS_STAT_CD");
+
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+        WctzCntrChRcchStatChangeHistDvo befHist = getContractChangeRcchStatChangeHistory(dvo.getCntrChRcpId());
+        if (ObjectUtils.isEmpty(befHist)) {
+            // 최초변경
+            dvo.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateCntrChRcchStatChangeHist(befHist);
+        }
+        dvo.setHistEndDtm(HIST_END_DTM);
+        mapper.insertCntrChRcchStatChangeHist(dvo);
     }
 }

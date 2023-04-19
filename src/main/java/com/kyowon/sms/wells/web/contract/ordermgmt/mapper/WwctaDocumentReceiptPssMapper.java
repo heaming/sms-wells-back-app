@@ -5,11 +5,14 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WwctaDocumentReceiptPssDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WwctaDocumentReceiptPssDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WwctaDocumentReceiptPssDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WwctaDocumentReceiptPssRequestDvo;
 
 @Mapper
 public interface WwctaDocumentReceiptPssMapper {
 
-    List<SearchRes> selectDocumentReceipts(SearchReq dto);
+    List<WwctaDocumentReceiptPssDvo> selectDocumentReceipts(WwctaDocumentReceiptPssRequestDvo dvo);
+
+    int updateDocumentRcpCnfm(SearchReq dto);
 
 }
