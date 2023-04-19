@@ -26,7 +26,8 @@ public class WsnyPaidAsCostMgtDto {
         int tcfeeAmt, // 기술료금액
         int sumAmt, // 합계(소비자단가금액+기술료금액)
         int izSn,
-        String basePdCd
+        String basePdCd,
+        String useMatPdCd
     ){}
 
     @ApiModel(value = "WsnyPaidAsCostMgtDto-PdReq")
@@ -37,14 +38,13 @@ public class WsnyPaidAsCostMgtDto {
     @ApiModel(value = "WsnyPaidAsCostMgtDto-PdRes")
     public record PdRes(
         String codeId,
-        String codeName,
-        String abbrName
+        String codeName
     ){}
 
     @ApiModel(value = "WsnyPaidAsCostMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String pdCd, // 상품코드
+        String useMatPdCd, // 상품코드
         @NotBlank
         String basePdCd, // 기준상품코드
         @NotBlank

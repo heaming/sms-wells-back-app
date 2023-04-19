@@ -6,7 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsnyPaidAsCostMgtDvo {
-    private String pdCd; // 상품코드
+    private String useMatPdCd; // 상품코드
     private String basePdCd; // 기준상품코드
     String apyStrtdt; // 적용시작일자
     String apyEnddt; // 적용종료일자
