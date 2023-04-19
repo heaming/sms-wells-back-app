@@ -29,7 +29,7 @@ public class WwctaDocumentReceiptPssController {
 
     private final WwctaDocumentReceiptPssService service;
 
-    @ApiOperation(value = "wells 서류접수현황(추가) 조회", notes = "계약번호와 계약구분별로 카카오톡 발송내역을 조회한다.")
+    @ApiOperation(value = "wells 서류접수현황(추가) 조회", notes = "업무요청시 증빙서류가 필요한 건에 대한 접수현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrChRcpStrtDtm", value = "접수시작일자", paramType = "query"),
         @ApiImplicitParam(name = "cntrChRcpFinsDtm", value = "접수종료일자", paramType = "query"),
@@ -37,7 +37,9 @@ public class WwctaDocumentReceiptPssController {
         @ApiImplicitParam(name = "cntrChTypeCd", value = "접수유형", paramType = "query"),
         @ApiImplicitParam(name = "cntrChRcpId", value = "접수번호", paramType = "query"),
         @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
-        @ApiImplicitParam(name = "cralLocapaMexnoIdvTno", value = "휴대전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
     })
     @GetMapping("/document-receipts")
     public List<SearchRes> getDocumentReceipts(
@@ -53,5 +55,21 @@ public class WwctaDocumentReceiptPssController {
         SearchReq dto
     ) {
         return service.getDocumentReceiptsExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "wells 서류 접수 기타 종료 선택", notes = "서류 접수 기타 종료 선택 후 확정 처리를 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrChRcpId", value = "접수번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrChPrgsStatCd", value = "계약변경진행상태코드", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
+    })
+    @GetMapping("/document-receipts/confirms")
+    public int saveDocumentRcpCnfm(
+        @Valid
+        SearchReq dto
+    ) throws Exception {
+        return service.saveDocumentRcpCnfm(dto);
     }
 }
