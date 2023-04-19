@@ -22,61 +22,50 @@ public class WsnaItemBaseInformationDto {
         @NotBlank
         String itmKndCd,
         String itmPdCd,
-        String pdNm
+        String itmPdNm
     ) {}
 
     @ApiModel("WsnaItemBaseInformationDto-SearchRes")
     public record SearchRes(
-        String chk,
-        String itmPdCd, /*품목상품콛,*/
-        String itmNm, /*품목명*/
-        String pdPrpVal19, /*품목종류*/
-        String mngtUnitCd, /*관리단위*/
-        String pdPrpVal06, /*Lead Time*/
-        String pdPrpVal11, /*출고단위*/
-        String svStrtDt, /*적용시작일자*/
-        String svEndDt, /*적용종료일자*/
-        String boxQty, /*OutBox내 수량*/
-        String sapMatCd, /*SAP코드*/
-        String sapMatGrpVal, /*SAP_자재그룹*/
-        String pdPrpVal16, /*기초자재색상여부*/
-        String pdAbbrNm, /*품목명(약어(1))*/
-        String mulQty, /*물류수량*/
-        String centerQty, /*센터수량*/
-        String onQty, /*조직창고수량*/
+        String sapCd, /*SAP코드*/
+        String sapGrp, /*자재그룹*/
+        String itmPdCd, /*품목상품코드*/
+        String itmPdNm, /*품목상품명*/
+        String itmPdAbbr1, /*품목상품명1*/
+        String lgstQty, /*물류수량*/
+        String centerQty, /*센터A등급재고*/
+        String myCenterQty, /*조직창고 수량*/
         String indiStckQty, /*개인창고수량*/
-        String lQty
+        String lQty,
+        String itmKnd, /*품목종류*/
+        String itmKndNm, /*품목종류명*/
+        String delUnt, /*출고단위*/
+        String delUntNm, /*출고단위명*/
+        String imgUrl, /*이미지URL*/
+        String apldFr, /*사용시작일*/
+        String apldTo, /*사용중지일*/
+        String boxQty, /*박스수량*/
+        String leadTime /*leadTime*/
+
     ) {}
 
     @ApiModel("WsnaItemBaseInformationDto-OstrRes")
     public record OstrRes(
-        String itmPdCd,
-        String pdNm,
-        String pdPrpVal19,
-        String imgApnFileId,
-        String pdPrpVal05,
-        String pdPrpVal02,
-        String pdPrpVal01,
-        String pdPrpVal06,
-        String pdPrpVal31,
-        String pdPrpVal11,
-        String useQty,
-        String svStrtDt,
-        String svEndDt,
-        String pdPrpVal12,
-        String sapMatCd,
-        String sapMatGrpVal,
-        String pdPrpVal16,
-        String pdAbbrNm,
-        String mulQty,
-        String centerQty,
-        String myCenterQty,
-        String indiStckQty,
-        String warehouseBQty,
-        String useQtyY,
-        String useQtyP,
-        String indiQty,
-        String shortSupplty,
-        String totalQty
+        String itmPdCd, /*품목상품코드*/
+        String itmPdNm, /*품목상품명*/
+        String sapCd, /*SAP코드*/
+        String itmPdNm1, /*품목상품명1*/
+        String imgUrl, /*이미지URL*/
+        String itemKnd, /*품목종류*/
+        String lgstQty, /*물류재고*/
+        String centerQty, /*현재센터A등급재고(조직)*/
+        String centerBqty, /*현재센터B등급재고(조직)*/
+        String indiQty, /*개인수량*/
+        String useQty, /*당월사용수량*/
+        String useQtyP, /*전월기준재고*/
+        String useQtyY, /*전년도*/
+        String shortSupply, /*신청 예상수량*/
+        String totalQty /*총재고*/
+
     ) {}
 }
