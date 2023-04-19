@@ -5,9 +5,7 @@ import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.CountReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
 
 @Mapper
@@ -25,5 +23,11 @@ public interface WsnaWarehouseOrganizationMapper {
     int updateWarehouseOg(WsnaWarehouseOrganizationDvo dvo);
 
     int insertWarehouseOg(WsnaWarehouseOrganizationDvo dvo);
+
+    List<SearchWarehouseRes> selectIndvIndpWarehouses(SearchWarehouseReq dto);
+
+    List<SearchWarehouseRes> selectOrganizationWarehouses(SearchWarehouseReq dto);
+
+    List<SearchWarehouseRes> selectLogisticsCenters();
 
 }
