@@ -22,4 +22,6 @@ public interface WsnyAsCodeMgtMapper {
     List<WsnyAsCodeMgtDvo> selectAsCodePages(
         WsnyAsCodeMgtDto.SearchReq dto, PageInfo pageInfo
     );
+
+    int saveAsCode(WsnyAsCodeMgtDvo dvo);
 }
