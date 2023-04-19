@@ -47,14 +47,14 @@ public class WctaSpectxBlkPrntService {
     @Transactional
     public int saveSpectxBlkPrnts(List<SaveReq> dtos) {
         int res = 0;
-        String SpectxGrpNoCheck = "";
+        String spectxGrpNoCheck = "";
         for (SaveReq dto : dtos) {
             WctaSpectxBlkPrntDvo dvo = converter.mapSaveReqToWctaSpectxBlkPrntDvo(dto);
 
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
-                    if (dvo.getSpectxGrpNo() != SpectxGrpNoCheck) {
-                        SpectxGrpNoCheck = dvo.getSpectxGrpNo();
+                    if (dvo.getSpectxGrpNo() != spectxGrpNoCheck) {
+                        spectxGrpNoCheck = dvo.getSpectxGrpNo();
                         mapper.updateSsctSpectxIsBasFirst(dvo);
                         mapper.insertSsctSpectxIsChHist(dvo.getSpectxGrpNo());
                     }
@@ -63,8 +63,8 @@ public class WctaSpectxBlkPrntService {
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
-                    if (dvo.getSpectxGrpNo() != SpectxGrpNoCheck) {
-                        SpectxGrpNoCheck = dvo.getSpectxGrpNo();
+                    if (dvo.getSpectxGrpNo() != spectxGrpNoCheck) {
+                        spectxGrpNoCheck = dvo.getSpectxGrpNo();
                         mapper.insertSsctSpectxIsChHist(dvo.getSpectxGrpNo());
                         mapper.updateSsctSpectxIsBas(dvo);
                     }
@@ -79,11 +79,11 @@ public class WctaSpectxBlkPrntService {
     @Transactional
     public int removeSpectxBlkPrnts(List<SaveReq> dtos) {
         int res = 0;
-        String SpectxGrpNoCheck = "";
+        String spectxGrpNoCheck = "";
         for (SaveReq dto : dtos) {
             WctaSpectxBlkPrntDvo dvo = converter.mapSaveReqToWctaSpectxBlkPrntDvo(dto);
-            if (dvo.getSpectxGrpNo() != SpectxGrpNoCheck) {
-                SpectxGrpNoCheck = dvo.getSpectxGrpNo();
+            if (dvo.getSpectxGrpNo() != spectxGrpNoCheck) {
+                spectxGrpNoCheck = dvo.getSpectxGrpNo();
                 mapper.insertSsctSpectxIsChHist(dvo.getSpectxGrpNo());
                 mapper.deleteSsctSpectxIsBas(dvo.getSpectxGrpNo());
                 mapper.insertSsctSpectxIsChHist(dvo.getSpectxGrpNo());
