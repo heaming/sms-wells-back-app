@@ -22,15 +22,15 @@ public class WctzPartnerService {
         return mapper.selectEntrepreneurBases(bzrno);
     }
 
-    public List<SearchGeneralDivisionsRes> getGeneralDivisions() {
-        return mapper.selectGeneralDivisions();
+    public List<SearchGeneralDivisionsRes> getGeneralDivisions(String baseYm) {
+        return mapper.selectGeneralDivisions(baseYm);
     }
 
-    public List<SearchRegionalDivisionsRes> getRegionalDivisions() {
-        return mapper.selectRegionalDivisions();
+    public List<SearchRegionalDivisionsRes> getRegionalDivisions(String baseYm) {
+        return mapper.selectRegionalDivisions(baseYm);
     }
 
-    public List<SearchBranchDivisionsRes> getBranchDivisions() {
-        return mapper.selectBranchDivisions();
+    public List<SearchBranchDivisionsRes> getBranchDivisions(String baseYm) {
+        return mapper.selectBranchDivisions(baseYm);
     }
 }
