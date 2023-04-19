@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.transfer.mapper.WbnaFosterDataTransferMapper">
+    <select id="selectFosterData" resultType="com.kyowon.sms.wells.web.bond.transfer.dvo.WbnaFosterDataTransferDvo">
+        SELECT SUBSTR(T1.CNTR_NO, 2) || LPAD(T1.CNTR_SN, 3, '0') AS CST_NO	    /* LCUSER	고객번호 */
+             , 'N' AS CLCO_CD	                                                /* LCGUB1	추심사구분 Wells는 Default Value = 'N'*/
+             , TO_CHAR(SYSDATE, 'yyyymmdd') as TRF_DT						    /* LCTRDT	이관일자 */
+             , CASE WHEN T2.COPN_DV_CD = '01' THEN T2.BRYY_MMDD
+                    WHEN T2.COPN_DV_CD = '02' THEN T2.BZRNO
+                END as RRNO		                                                /* LCCINO	주민번호 or 사업자등록번호 */
+             , T1.CST_NM			                                            /* LCCNAM	고객명  */
+             , T3.VAC_BNK_CD		                                            /* LCBANK	가상계좌은행코드 	가상은행   */
+             , T3.VAC_NO			                                            /* LCBNNO	가상계좌번호 		가상계좌   */
+             , T1.DLQ_MCN		                                                /* LCDCNT	연체개월수 		연체개월   */
+             , T4.NEW_ADR_ZIP AS CST_ZIP		                                /* LCHZIP	고객우편번호   */
+             , T4.RNADR AS CST_BAS_ADR			                                /* LCADD1	고객기본주소 	주소1   */
+             , T4.RDADR AS CST_DTL_ADR			                                /* LCADD2	고객상세주소 	주소2   */
+             , T17.RNADR AS CST_ETC_ADR					                        /* LCADD3	고객기타주소 	주소3-설치   */
+             , T17.LOCARA_TNO AS IST_PLC_LOCARA_TNO		                        /* LCHTEL 설치장소지역전화번호 		설치처집전화-TB_SSCT_CNTR_BAS */
+             , T17.EXNO_ENCR AS IST_PLC_EXNO_ENCR			                    /* LCHTEL 설치장소전화국번호암호화 	설치처집전화-TB_SSCT_CNTR_BAS */
+             , T17.IDV_TNO AS IST_PLC_IDV_TNO			                        /* LCHTEL 설치장소개별전화번호  	설치처집전화-TB_SSCT_CNTR_BAS */
+             , T17.CRAL_LOCARA_TNO AS IST_CST_CRAL_LOCARA_TNO 	                /* LCBTEL 설치고객휴대지역전화번호 	설치고객휴대전화번호-TB_SSCT_CNTR_BAS */
+             , T17.MEXNO_ENCR AS IST_CST_MEXNO_ENCR      	                    /* LCBTEL 설치고객휴대전화국번호암호화 설치고객휴대전화번호-TB_SSCT_CNTR_BAS */
+             , T17.CRAL_IDV_TNO AS IST_CST_CRAL_IDV_TNO    	                    /* LCBTEL 설치고객휴대개별전화번호 	설치고객휴대전화번호-TB_SSCT_CNTR_BAS */
+             , T13.OG_ID AS MNGT_AOFFCE_OG_ID		                            /* LCDDPT 관리사무소    */
+             , T14.OG_NM AS CNR_NM				                                /* LCCENT 센터명          */
+             , T14.LOCARA_TNO AS CNR_LOCARA_TNO    	                            /* LCCTEL 센터지역전화번호 센터전화 */
+             , T14.EXNO_ENCR AS CNR_MEXNO_ENCR    	                            /* LCCTEL 센터전화국번호암호화 센터전화 */
+             , T14.IDV_TNO AS CNR_IDV_TNO       	                            /* LCCTEL 센터개별전화번호 센터전화 */
+             , T12.BASE_PD_CD AS PD_CD                                          /* LCICDE 상품코드 */
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T12.BASE_PD_CD) AS PD_NM  /* LCINAM 상품명  */
+             , T12.PD_QTY                                                       /* LCIQTY 상품수량 */
+             , T11.IST_DT				                                        /* LCSETT 설치일자 */
+             , T11.REQD_DT			                                            /* LCCANT	반환일자                   */
+             , T1.UC_AMT			                                            /* LCAMT1	미수금액                   */
+             , T1.DLQ_AMT			                                            /* LCAMT2	연체금액                   */
+             , T1.THM_CHRAM_AMT		                                            /* LCAMT3	당월요금금액			당월요금   */
+             , '' AS RSG_BOR_AMT		                                        /* LCAMT4	해지위약금		위약금 */
+             , '' AS LS_RNTF			                                        /* LCAMT5	분실손료			분실료 */
+             , '' AS NADV_AMT			                                        /* LCAMT6	미도래금액 */
+             , T1.BND_BIZ_DV_CD	                                                /* LCTYPE	채권업무구분코드		업무유형 */
+             , '' AS RCP_AOFFCE_CD                                              /* LCTJOB	접수사무소코드-지역구분 */
+             , T1.DLQ_RCK_DT		                                            /* LCDDAT	연체기산일자			연체시작월 */
+             , '' AS MPY_MTHD_TP_CD                                             /* LCCHK1	납부방식유형코드		이체유형(T10.MPY_MTHD_TP_CD DB항목 정리 안된상태) */
+             , T10.BIL_DT			                                            /* LCTRDD	청구일자-이체일자 */
+             , T1.DLQ_ADD_AMT	                                                /* LCAM82	연체가산금 */
+             , T9.SPMT_SL_AMT AS SPMT_SL			                            /* LCADAM	추가매출 */
+             , T3.VAC_BNK_CD AS BNK_CD			                                /* LCBKNO	은행코드 */
+             , T1.CST_NO			                                            /* LCKKEY	고객코드			교원키 */
+             , T16.NEW_ADR_ZIP AS CNTRT_ZIP			                            /* LCCZIP	계약자우편번호 */
+             , T16.RNADR AS CNTRT_BAS_ADR		                                /* LCCAD1	계약자기본주소 */
+             , T16.RDADR AS CNTRT_DTL_ADR		                                /* LCCAD2	계약자상세주소 */
+             , T17.RNADR AS CNTRT_ETC_ADR		                                /* LCCAD3	계약자기타주소(설치주소) */
+             , '' AS CNTRLC_TNO		                                            /* LCHNO1	계약처집전화(LOCARA_TNO~IDV_TNO)  */
+             , T16.LOCARA_TNO                                                   /* LCHNO1 계약자지역전화번호 */
+             , T16.EXNO_ENCR                                                    /* LCHNO1 계약자전화국번호암호화 */
+             , T16.IDV_TNO                                                      /* LCHNO1 계약자개별전화번호 */
+             , T16.CRAL_LOCARA_TNO AS CNTRT_CRAL_LOCARA_TNO                     /* LCBNO1 계약자휴대지역전화번호 */
+             , T16.MEXNO_ENCR AS CNTRT_MEXNO_ENCR                               /* LCBNO1 계약자휴대전화국번호암호화 */
+             , T16.CRAL_IDV_TNO AS CNTRT_CRAL_IDV_TNO                           /* LCBNO1 계약자휴대개별전화번호 */
+             , T5.ALNCMP_CD			                                            /* LCETC8 제휴사코드 제휴코드 */
+             , F_CMZ_CD_NM('TNT_BASE', 'ALNCMP_CD', T5.ALNCMP_CD) AS ALNC_NM			            /* LCENAM	제휴명 */
+             , F_CMZ_CD_NM('TNT_BASE', 'ALNC_STAT_TP_CD', T5.ALNC_STAT_TP_CD) AS ALNC_STAT_NM		/* LCJNAM	제휴상태명 		제휴상태 */
+             , T2.SFK_VAL		                                                /* LCSKEY	세이프키 */
+          FROM TB_CBBO_BND_CNTR_BAS T1                  /* 채권계약기본 Table */
+          LEFT JOIN TB_CUBS_CST_BAS T2	                /* 고객기본 Table */
+            ON T2.CST_NO = T1.CST_NO
+          LEFT JOIN TB_RVDW_VAC_IS_IZ T3	            /* 가상계좌발급내역 Table*/
+            ON T3.VAC_IS_CST_NO = T1.CST_NO
+           AND T3.VAC_IS_DV_CD = '5'	                /* 가상계좌발급구분코드 5.연체집금용*/
+          LEFT JOIN TB_GBCO_ADR_BAS T4                  /* 주소기본 Table */
+            ON T4.ADR_ID = T1.BND_CST_ADR_ID            /* 채권고객주소ID */
+          LEFT JOIN TB_SSCT_ACMPAL_CNTR_IZ T5           /*관계사제휴계약내역*/
+            ON T1.CNTR_NO = T5.BASE_CNTR_NO
+           AND T1.CNTR_SN = T5.BASE_CNTR_SN
+          LEFT JOIN TB_SSCT_CNTR_BAS T6
+            ON T1.CNTR_NO = T6.CNTR_NO
+          LEFT JOIN ( SELECT T18.CNTR_NO
+                           , T8.ADRPC_TP_CD
+                           , T15.RNADR
+                           , T15.RDADR
+                           , T15.NEW_ADR_ZIP
+                           , T7.CRAL_LOCARA_TNO
+                           , T7.MEXNO_ENCR
+                           , T7.CRAL_IDV_TNO
+                           , T7.LOCARA_TNO
+                           , T7.EXNO_ENCR
+                           , T7.IDV_TNO
+                        FROM TB_SSCT_CNTR_BAS T18
+                        LEFT JOIN TB_SSCT_CNTR_ADRPC_BAS T7
+                          ON T18.CNTR_NO = T7.CNTR_NO
+                         AND T18.CNTR_CST_NO = T7.CNTR_CST_NO
+                        LEFT JOIN TB_SSCT_CNTR_ADR_REL T8
+                          ON T7.CNTR_NO = T8.CNTR_NO
+                         AND T8.ADRPC_TP_CD = '1'
+                        LEFT JOIN TB_GBCO_ADR_BAS T15
+                          ON T8.CNTR_ADRPC_ID = T15.ADR_ID
+                     ) T16                          /*계약주소*/
+            ON T1.CNTR_NO = T16.CNTR_NO
+          LEFT JOIN ( SELECT T18.CNTR_NO
+                           , T8.ADRPC_TP_CD
+                           , T15.RNADR
+                           , T15.RDADR
+                           , T15.NEW_ADR_ZIP
+                           , T7.CRAL_LOCARA_TNO
+                           , T7.MEXNO_ENCR
+                           , T7.CRAL_IDV_TNO
+                           , T7.LOCARA_TNO
+                           , T7.EXNO_ENCR
+                           , T7.IDV_TNO
+                        FROM TB_SSCT_CNTR_BAS T18
+                        LEFT JOIN TB_SSCT_CNTR_ADRPC_BAS T7
+                          ON T18.CNTR_NO = T7.CNTR_NO
+                         AND T18.CNTR_CST_NO = T7.CNTR_CST_NO
+                        LEFT JOIN TB_SSCT_CNTR_ADR_REL T8
+                          ON T7.CNTR_NO = T8.CNTR_NO
+                         AND T8.ADRPC_TP_CD = '3'
+                        LEFT JOIN TB_GBCO_ADR_BAS T15
+                          ON T8.CNTR_ADRPC_ID = T15.ADR_ID
+                     ) T17                              /*설치주소*/
+            ON T1.CNTR_NO = T17.CNTR_NO
+          LEFT JOIN TB_OGBS_PRTNR_OG_REL T13            /*파트너조직관계*/
+            ON T6.SELL_PRTNR_NO = T13.PRTNR_NO
+           AND T13.DG_YN = 'Y'
+           AND (SYSDATE BETWEEN T13.VL_STRT_DTM AND T13.VL_END_DTM)
+          LEFT JOIN TB_OGBS_OG_BAS T14                  /*조직기본*/
+            ON T13.OG_ID = T14.OG_ID
+          LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T9
+            ON T1.BASE_YM = T9.SL_CL_YM                 /*기준년월-매출마감년월 조건 확인 필요*/
+           AND T1.CNTR_NO = T9.CNTR_NO
+           AND T1.CNTR_SN = T9.CNTR_SN
+          LEFT JOIN TB_RVCL_BIL_PLAN_BAS T10            /*청구계획기본*/
+            ON T1.BASE_YM = T10.BIL_YM
+           AND T1.CNTR_NO = T10.CNTR_NO
+           AND T1.CNTR_SN = T10.CNTR_SN
+          LEFT JOIN TB_SSCT_CNTR_WELLS_DTL T11          /*계약WELLS상세*/
+            ON T1.CNTR_NO = T11.CNTR_NO
+           AND T1.CNTR_SN = T11.CNTR_SN
+          LEFT JOIN TB_SSCT_CNTR_DTL T12                /*계약상세*/
+            ON T1.CNTR_NO = T12.CNTR_NO
+           AND T1.CNTR_SN = T12.CNTR_SN
+         WHERE T1.BASE_YM = #{baseYm}
+           AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd}
+           AND T1.BND_CLCTN_PRP_DV_CD = #{bndClctnPrpDvCd}
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.CST_NO = #{cstNo}
+    </select>
+    <!-- TODO 위탁이관 화면 작업 후 해당 영역 마무리 필요 -->
+    <!--<insert id="insertBondConsignmentTransfer">
+        INSERT INTO TB_CBBO_BND_FSTR_TF_IZ (
+              BND_CNTR_ID
+            , BASE_YM
+            , FSTR_TF_FW_TCNT
+            , CNTR_NO
+            , CNTR_SN
+            , CNTR_DTL_STAT_CD
+            , JBF_CNTR_DTL_STAT_CD
+            , CO_CD
+            , BZ_HDQ_DV_CD
+            , BND_BIZ_DV_CD
+            , BND_CLCTN_PRP_DV_CD
+            , BND_CLCTN_PRP_RSON_CD
+            , BND_CLCTN_PRP_CHDT
+            , BND_TF_DT
+            , CLCTAM_PA_CD
+            , BND_ASN_DT
+            , CLCTAM_PRTNR_NO
+            , BF_CLCTAM_PRTNR_NO
+            , ACTCS_DT
+            , CST_NO
+            , CST_NM
+            , BND_CST_ZIP
+            , BND_CST_ADR_ID
+            , PRTNR_NO
+            , CLCTAM_DV_CD
+            , DLQ_RCK_DT
+            , DLQ_MCN
+            , DLQ_AMT
+            , DLQ_ADD_AMT
+            , RSG_BOR_AMT
+            , THM_CHRAM_AMT
+            , UC_AMT
+            , BND_NW_DV_CD
+            , BND_ASN_STAT_CD
+            , BND_CLN_RS_CD
+            , BND_ASN_MTH_CD
+            , CLCO_CD
+            , CLCO_TF_DT
+            , CLCTN_OJ_PRTNR_NO
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{bndCntrId}
+            , #{baseYm}
+            , #{fstrTfFwTcnt}
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{cntrDtlStatCd}
+            , #{jbfCntrDtlStatCd}
+            , #{coCd}
+            , #{bzHdqDvCd}
+            , #{bndBizDvCd}
+            , #{bndClctnPrpDvCd}
+            , #{bndClctnPrpRsonCd}
+            , #{bndClctnPrpChdt}
+            , #{bndTfDt}
+            , #{clctamPaCd}
+            , #{bndAsnDt}
+            , #{clctamPrtnrNo}
+            , #{bfClctamPrtnrNo}
+            , #{actcsDt}
+            , #{cstNo}
+            , #{cstNm}
+            , #{bndCstZip}
+            , #{bndCstAdrId}
+            , #{prtnrNo}
+            , #{clctamDvCd}
+            , #{dlqRckDt}
+            , #{dlqMcn}
+            , #{dlqAmt}
+            , #{dlqAddAmt}
+            , #{rsgBorAmt}
+            , #{thmChramAmt}
+            , #{ucAmt}
+            , #{bndNwDvCd}
+            , #{bndAsnStatCd}
+            , #{bndClnRsCd}
+            , #{bndAsnMthCd}
+            , #{clcoCd}
+            , #{clcoTfDt}
+            , #{clctnOjPrtnrNo}
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    <insert id="insertBondCollectionSend">
+        INSERT INTO TB_CBBO_WELLS_BND_CLCO_SEND_IZ (
+              BASE_YM
+            , BZ_HDQ_DV_CD
+            , SEND_SN
+            , CST_NO
+            , CLCO_CD
+            , CLCO_TF_DT
+            , CST_BRYY_MMDD
+            , CST_NM
+            , VAC_BNK_CD
+            , VAC_NO
+            , DLQ_MCN
+            , CST_ZIP
+            , CST_BAS_ADR
+            , CST_DTL_ADR
+            , CST_ETC_ADR
+            , IST_PLC_LOCARA_TNO
+            , IST_PLC_EXNO_ENCR
+            , IST_PLC_IDV_TNO
+            , IST_CST_CRAL_LOCARA_TNO
+            , IST_CST_MEXNO_ENCR
+            , IST_CST_CRAL_IDV_TNO
+            , MNGT_AOFFCE_OG_ID
+            , CNR_NM
+            , CNR_LOCARA_TNO
+            , CNR_EXNO_ENCR
+            , CNR_IDV_TNO
+            , PD_CD
+            , PD_NM
+            , PD_QTY
+            , IST_DT
+            , RTRN_DT
+            , UC_AMT
+            , DLQ_AMT
+            , THM_CHRAM_AMT
+            , RSG_BOR_AMT
+            , LS_RNTF
+            , NADV_AMT
+            , BND_BIZ_DV_CD
+            , RCP_AOFFCE_CD
+            , DLQ_RCK_DT
+            , MPY_MTHD_TP_CD
+            , BIL_DT
+            , DLQ_ADD_AMT
+            , SPMT_SL_AMT
+            , BNK_CD
+            , CNTRT_ZIP
+            , CNTRT_BAS_ADR
+            , CNTRT_DTL_ADR
+            , CNTRT_ETC_ADR
+            , CNTRT_LOCARA_TNO
+            , CNTRT_EXNO_ENCR
+            , CNTRT_IDV_TNO
+            , CNTRT_CRAL_LOCARA_TNO
+            , CNTRT_MEXNO_ENCR
+            , CNTRT_CRAL_IDV_TNO
+            , ALNCMP_CD
+            , ALNC_NM
+            , ALNC_STAT_NM
+            , SFK_VAL
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{baseYm}
+            , #{bzHdqDvCd}
+            , #{sendSn}
+            , #{cstNo}
+            , #{clcoCd}
+            , #{clcoTfDt}
+            , #{cstBryyMmdd}
+            , #{cstNm}
+            , #{vacBnkCd}
+            , #{vacNo}
+            , #{dlqMcn}
+            , #{cstZip}
+            , #{cstBasAdr}
+            , #{cstDtlAdr}
+            , #{cstEtcAdr}
+            , #{istPlcLocaraTno}
+            , #{istPlcExnoEncr}
+            , #{istPlcIdvTno}
+            , #{istCstCralLocaraTno}
+            , #{istCstMexnoEncr}
+            , #{istCstCralIdvTno}
+            , #{mngtAoffceOgId}
+            , #{cnrNm}
+            , #{cnrLocaraTno}
+            , #{cnrExnoEncr}
+            , #{cnrIdvTno}
+            , #{pdCd}
+            , #{pdNm}
+            , #{pdQty}
+            , #{istDt}
+            , #{rtrnDt}
+            , #{ucAmt}
+            , #{dlqAmt}
+            , #{thmChramAmt}
+            , #{rsgBorAmt}
+            , #{lsRntf}
+            , #{nadvAmt}
+            , #{bndBizDvCd}
+            , #{rcpAoffceCd}
+            , #{dlqRckDt}
+            , #{mpyMthdTpCd}
+            , #{bilDt}
+            , #{dlqAddAmt}
+            , #{spmtSlAmt}
+            , #{bnkCd}
+            , #{cntrtZip}
+            , #{cntrtBasAdr}
+            , #{cntrtDtlAdr}
+            , #{cntrtEtcAdr}
+            , #{cntrtLocaraTno}
+            , #{cntrtExnoEncr}
+            , #{cntrtIdvTno}
+            , #{cntrtCralLocaraTno}
+            , #{cntrtMexnoEncr}
+            , #{cntrtCralIdvTno}
+            , #{alncmpCd}
+            , #{alncNm}
+            , #{alncStatNm}
+            , #{sfkVal}
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>-->
+</mapper>
