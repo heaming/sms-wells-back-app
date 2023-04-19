@@ -4,7 +4,7 @@
 
     <select id="selectNewChangeMachinePerfPages" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdNewChangeMachinePerfDto$SearchRes">
         WITH TB AS (
-            SELECT CD.CNTR_NO, CD.CNTR_SN, CD.CNTR_PD_STRTDT, CD.CNTR_PD_ENDDT, CD.SELL_TP_CD, CD.FNL_AMT, CD.PD_QTY, CD.SELL_TP_DTL_CD, CD.FEE_ACKMT_CT, CD.ACKMT_PERF_AMT, CD.BOO_SELL_TP_CD
+            SELECT CD.CNTR_NO, CD.CNTR_SN, CD.CNTR_PD_STRTDT, CD.CNTR_PD_ENDDT, CD.SELL_TP_CD, CD.FNL_AMT, CD.PD_QTY, CD.SELL_TP_DTL_CD, CD.FEE_ACKMT_CT, CD.ACKMT_PERF_AMT, CD.BOO_SELL_TP_CD, CD.CNTR_DTL_STAT_CD
                  , PR.PRTNR_NO, PR.OG_TP_CD
                  , WS.CNTR_NO AS MM_CNTR_NO
                  , WS.SL_DT
@@ -26,26 +26,26 @@
                AND WS.CNTR_SN = CD.CNTR_SN
              WHERE CD.DTA_DL_YN = 'N'
         )
-        SELECT TB.OG_TP_CD
+        SELECT T0.OG_TP_CD
              , OP.PRTNR_KNM AS PRTNR_NM
              , OO.OG_NM
-             , TB.PRTNR_NO
+             , T0.PRTNR_NO
              , OP.RSB_DV_CD
              , OO.DGR1_LEVL_OG_NM
              , OO.DGR2_LEVL_OG_NM
              , OO.DGR3_LEVL_OG_NM
-             , CASE WHEN TB.ACKMT_PERF_AMT > 0 AND TB.RNTL_TOT_CNT > 0 THEN 'O' ELSE 'N' END AS OPTN_DV
-             , TB.NEW_CNT
-             , TB.RE_RNTL_CNT
-             , TB.REFORM_CNT
-             , TB.MCHN_CH_1_CNT
-             , TB.MCHN_CH_2_CNT
-             , TB.RNTL_TOT_CNT
-             , TB.RNTL_ACKMT_CNT
-             , TB.SPAY_TOT_CNT
-             , TB.SPAY_ACKMT_CNT
-             , (TB.SPAY_TOT_CNT + TB.RNTL_TOT_CNT) AS TOT_CNT
-             , (TB.SPAY_ACKMT_CNT + TB.RNTL_ACKMT_CNT) AS TOT_ACKMT_CNT
+             , CASE WHEN T0.ACKMT_PERF_AMT > 0 AND T0.RNTL_TOT_CNT > 0 THEN 'O' ELSE 'N' END AS OPTN_DV
+             , T0.NEW_CNT
+             , T0.RE_RNTL_CNT
+             , T0.REFORM_CNT
+             , T0.MCHN_CH_1_CNT
+             , T0.MCHN_CH_2_CNT
+             , T0.RNTL_TOT_CNT
+             , T0.RNTL_ACKMT_CNT
+             , T0.SPAY_TOT_CNT
+             , T0.SPAY_ACKMT_CNT
+             , (T0.SPAY_TOT_CNT + T0.RNTL_TOT_CNT) AS TOT_CNT
+             , (T0.SPAY_ACKMT_CNT + T0.RNTL_ACKMT_CNT) AS TOT_ACKMT_CNT
           FROM (SELECT OP.OG_TP_CD
                    <choose>
                        <when test='@MybatisUtils@equals(inqrDv, "2")'>
@@ -132,7 +132,7 @@
                                     WHERE TB.SELL_TP_CD IN ('1', '6')   /* 일시불/할부 , 정기배송 */
                                     <choose>
                                        <when test='@MybatisUtils@equals(perfDv, "T")'>AND TB.CNTR_PD_STRTDT BETWEEN #{perfStrtDt} AND #{perfEndDt}</when>
-                                       <when test='@MybatisUtils@equals(perfDv, "S")'>AND TB (SUBSTR(TB.SL_DT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)</when>
+                                       <when test='@MybatisUtils@equals(perfDv, "S")'>AND SUBSTR(TB.SL_DT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)</when>
                                    </choose>
                        ) DT
                     ON DT.OG_TP_CD = OP.OG_TP_CD
@@ -159,11 +159,11 @@
                        <when test='@MybatisUtils@equals(inqrDv, "4")'>, OP.OG_ID, OP.PRTNR_NO</when>
                        <otherwise>,  OO.DGR1_LEVL_OG_ID, OO.DGR1_LEVL_DG_PRTNR_NO</otherwise>
                    </choose>
-            ) TB
+            ) T0
          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ OP /* 최종 파트너, 조직 조회용 */
-           ON OP.PRTNR_NO = TB.PRTNR_NO
+           ON OP.PRTNR_NO = T0.PRTNR_NO
           AND OP.BASE_YM = SUBSTR(#{perfStrtDt}, 1, 6)
-          AND OP.OG_TP_CD = TB.OG_TP_CD
+          AND OP.OG_TP_CD = T0.OG_TP_CD
           AND OP.DTA_DL_YN = 'N'
          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OO    /* 최종 파트너, 조직 조회용 */
            ON OO.OG_ID = OP.OG_ID
@@ -172,12 +172,12 @@
         WHERE 1=1
         <choose>
            <when test='@MybatisUtils@equals(optnDv, "O")'>
-               AND TB.ACKMT_PERF_AMT > 0
-               AND TB.RNTL_TOT_CNT > 0
+               AND T0.ACKMT_PERF_AMT > 0
+               AND T0.RNTL_TOT_CNT > 0
            </when>
            <when test='@MybatisUtils@equals(optnDv, "N")'>
-               AND TB.ACKMT_PERF_AMT = 0
-               AND TB.RNTL_TOT_CNT = 0
+               AND T0.ACKMT_PERF_AMT = 0
+               AND T0.RNTL_TOT_CNT = 0
            </when>
        </choose>
 
@@ -186,7 +186,7 @@
 
     <select id="selectNewChangeMachinePerfSumm" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdNewChangeMachinePerfDto$SearchRes">
         WITH TB AS (
-            SELECT CD.CNTR_NO, CD.CNTR_SN, CD.CNTR_PD_STRTDT, CD.CNTR_PD_ENDDT, CD.SELL_TP_CD, CD.FNL_AMT, CD.PD_QTY, CD.SELL_TP_DTL_CD, CD.FEE_ACKMT_CT, CD.ACKMT_PERF_AMT, CD.BOO_SELL_TP_CD
+            SELECT CD.CNTR_NO, CD.CNTR_SN, CD.CNTR_PD_STRTDT, CD.CNTR_PD_ENDDT, CD.SELL_TP_CD, CD.FNL_AMT, CD.PD_QTY, CD.SELL_TP_DTL_CD, CD.FEE_ACKMT_CT, CD.ACKMT_PERF_AMT, CD.BOO_SELL_TP_CD, CD.CNTR_DTL_STAT_CD
                  , PR.PRTNR_NO, PR.OG_TP_CD
                  , WS.CNTR_NO AS MM_CNTR_NO
                  , WS.SL_DT
@@ -209,17 +209,17 @@
              WHERE CD.DTA_DL_YN = 'N'
         )
         SELECT '' AS ogTpCd, '' AS prtnrNm, '' AS ogNm, '' AS prtnrNo, '' AS rsbDvCd, '' AS dgr1LevlOgNm, '' AS dgr2LevlOgNm, '' AS dgr3LevlOgNm, '' AS optnDv, '' AS ackmtPerfAmt
-             , SUM(TB.NEW_CNT) AS NEW_CNT
-             , SUM(TB.RE_RNTL_CNT) AS RE_RNTL_CNT
-             , SUM(TB.REFORM_CNT) AS REFORM_CNT
-             , SUM(TB.MCHN_CH_1_CNT) AS MCHN_CH_1_CNT
-             , SUM(TB.MCHN_CH_2_CNT) AS MCHN_CH_2_CNT
-             , SUM(TB.RNTL_TOT_CNT) AS RNTL_TOT_CNT
-             , SUM(TB.RNTL_ACKMT_CNT) AS RNTL_ACKMT_CNT
-             , SUM(TB.SPAY_TOT_CNT) AS SPAY_TOT_CNT
-             , SUM(TB.SPAY_ACKMT_CNT) AS SPAY_ACKMT_CNT
-             , SUM((TB.SPAY_TOT_CNT + TB.RNTL_TOT_CNT)) AS TOT_CNT
-             , SUM((TB.SPAY_ACKMT_CNT + TB.RNTL_ACKMT_CNT)) AS TOT_ACKMT_CNT
+             , SUM(T0.NEW_CNT) AS NEW_CNT
+             , SUM(T0.RE_RNTL_CNT) AS RE_RNTL_CNT
+             , SUM(T0.REFORM_CNT) AS REFORM_CNT
+             , SUM(T0.MCHN_CH_1_CNT) AS MCHN_CH_1_CNT
+             , SUM(T0.MCHN_CH_2_CNT) AS MCHN_CH_2_CNT
+             , SUM(T0.RNTL_TOT_CNT) AS RNTL_TOT_CNT
+             , SUM(T0.RNTL_ACKMT_CNT) AS RNTL_ACKMT_CNT
+             , SUM(T0.SPAY_TOT_CNT) AS SPAY_TOT_CNT
+             , SUM(T0.SPAY_ACKMT_CNT) AS SPAY_ACKMT_CNT
+             , SUM((T0.SPAY_TOT_CNT + T0.RNTL_TOT_CNT)) AS TOT_CNT
+             , SUM((T0.SPAY_ACKMT_CNT + T0.RNTL_ACKMT_CNT)) AS TOT_ACKMT_CNT
           FROM (SELECT OP.OG_TP_CD
                    <choose>
                        <when test='@MybatisUtils@equals(inqrDv, "2")'>
@@ -306,7 +306,7 @@
                                     WHERE TB.SELL_TP_CD IN ('1', '6')   /* 일시불/할부 , 정기배송 */
                                     <choose>
                                        <when test='@MybatisUtils@equals(perfDv, "T")'>AND TB.CNTR_PD_STRTDT BETWEEN #{perfStrtDt} AND #{perfEndDt}</when>
-                                       <when test='@MybatisUtils@equals(perfDv, "S")'>AND TB (SUBSTR(TB.SL_DT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)</when>
+                                       <when test='@MybatisUtils@equals(perfDv, "S")'>AND SUBSTR(TB.SL_DT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)</when>
                                    </choose>
                        ) DT
                     ON DT.OG_TP_CD = OP.OG_TP_CD
@@ -333,21 +333,18 @@
                        <when test='@MybatisUtils@equals(inqrDv, "4")'>, OP.OG_ID, OP.PRTNR_NO</when>
                        <otherwise>,  OO.DGR1_LEVL_OG_ID, OO.DGR1_LEVL_DG_PRTNR_NO</otherwise>
                    </choose>
-            ) TB
+            ) T0
         WHERE 1=1
         <choose>
            <when test='@MybatisUtils@equals(optnDv, "O")'>
-               AND TB.ACKMT_PERF_AMT > 0
-               AND TB.RNTL_TOT_CNT > 0
+               AND T0.ACKMT_PERF_AMT > 0
+               AND T0.RNTL_TOT_CNT > 0
            </when>
            <when test='@MybatisUtils@equals(optnDv, "N")'>
-               AND TB.ACKMT_PERF_AMT = 0
-               AND TB.RNTL_TOT_CNT = 0
+               AND T0.ACKMT_PERF_AMT = 0
+               AND T0.RNTL_TOT_CNT = 0
            </when>
        </choose>
 
     </select>
 </mapper>
-
-
-
