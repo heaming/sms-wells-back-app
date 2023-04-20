@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeRes;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.closing.expense.service.WdcdRequestCleaningSuppliesMgtService;
@@ -37,9 +36,9 @@ public class WdcdRequestCleaningSuppliesMgtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "clingCostAdjRcpNo", value = "청소비정산접수번호", paramType = "query"),
     })
-    @GetMapping
-    public FindRes getRequestCleaningSupplies(@Valid @PathVariable FindReq req) {
-        return service.getRequestCleaningSupplies(req);
+    @GetMapping("/{clingCostAdjRcpNo}")
+    public FindRes getRequestCleaningSupplies(@PathVariable String clingCostAdjRcpNo) {
+        return service.getRequestCleaningSupplies(clingCostAdjRcpNo);
     }
 
     @ApiOperation(value = "청소 용품비 관리", notes = "용품비 등록")

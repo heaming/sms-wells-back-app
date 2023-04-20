@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.closing.expense.service;
 
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdRequestCleaningSuppliesMgtConverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeRes;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdRequestCleaningSuppliesDvo;
@@ -62,7 +61,7 @@ public class WdcdRequestCleaningSuppliesMgtService {
         return count;
     }
 
-    public FindRes getRequestCleaningSupplies(FindReq req) {
-        return mapper.selectRequestCleaningSupplies(req);
+    public FindRes getRequestCleaningSupplies(String clingCostAdjRcpNo) {
+        return mapper.selectRequestCleaningSupplies(clingCostAdjRcpNo);
     }
 }
