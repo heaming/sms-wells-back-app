@@ -5,8 +5,6 @@ import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Performance;
 import com.kyowon.sms.wells.web.fee.calculation.service.WfebSoleDistributorFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -37,8 +35,8 @@ public class WfebSoleDistributorFeeMgtController {
         @ApiImplicitParam(name = "cancelEndYm", value = "취소년월 종료월", paramType = "query"),
     })
     @GetMapping("/performance")
-    public PagingResult<Performance> getDistributorPerformance(@Valid BaseReq req, @Valid PageInfo pageInfo) throws Exception {
-        return service.getDistributorPerformance(req, pageInfo);
+    public List<Performance> getDistributorPerformance(@Valid BaseReq req) throws Exception {
+        return service.getDistributorPerformance(req);
     }
 
     @ApiOperation(value = "총판수수료 생성관리 - 조회(수수료 실적)", notes = "총판수수료 생성관리의 수수료 실적을 조회한다.")
@@ -50,8 +48,8 @@ public class WfebSoleDistributorFeeMgtController {
         @ApiImplicitParam(name = "cancelEndYm", value = "취소년월 종료월", paramType = "query"),
     })
     @GetMapping("/fee")
-    public PagingResult<Fee> getDistributorFee(@Valid BaseReq req, @Valid PageInfo pageInfo) throws Exception {
-        return service.getDistributorFee(req, pageInfo);
+    public List<Fee> getDistributorFee(@Valid BaseReq req) throws Exception {
+        return service.getDistributorFee(req);
     }
 
     @ApiOperation(value = "총판수수료 생성관리 - 저장(수수료)", notes = "총판수수료 생성관리의 수수료 실적을 수정한다.")

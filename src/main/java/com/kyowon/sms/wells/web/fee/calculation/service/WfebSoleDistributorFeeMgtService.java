@@ -4,8 +4,6 @@ import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Fee;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Performance;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,8 +29,8 @@ public class WfebSoleDistributorFeeMgtService {
      * @param req
      * @return
      */
-    public PagingResult<Performance> getDistributorPerformance(BaseReq req, PageInfo pageInfo) {
-         return mapper.selectDistributorPerformance(req, pageInfo);
+    public List<Performance> getDistributorPerformance(BaseReq req) {
+         return mapper.selectDistributorPerformance(req);
     }
 
     /**
@@ -40,8 +38,8 @@ public class WfebSoleDistributorFeeMgtService {
      * @param req
      * @return
      */
-    public PagingResult<Fee> getDistributorFee(BaseReq req, PageInfo pageInfo) {
-         return mapper.selectDistributorFee(req, pageInfo);
+    public List<Fee> getDistributorFee(BaseReq req) {
+         return mapper.selectDistributorFee(req);
     }
 
     /**
