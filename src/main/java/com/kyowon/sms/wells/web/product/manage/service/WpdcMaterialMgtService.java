@@ -174,6 +174,8 @@ public class WpdcMaterialMgtService {
 
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
 
+        dvo = clsfService.getClassifcationHierarchy(dvo);
+
         int processCount = 0;
         processCount = productMapper.updateProduct(dvo);
 
