@@ -26,14 +26,14 @@ public interface WbnaCollectorAssignMapper {
     );
 
     PagingResult<SearchDetailRes> selectCollectorAssignDetailPages(
-        SearchDetailReq dto, PageInfo pageInfo
+        SearchReq dto, PageInfo pageInfo
     );
 
     List<SearchDetailRes> selectCollectorAssignDetailPages(
-        SearchDetailReq dto
+        SearchReq dto
     );
 
-    Integer selectHasCollectorAssing(
+    SearchSummaryRes selectCollectorAssignDetailsSummary(
         SearchReq dto
     );
 

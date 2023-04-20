@@ -1,18 +1,19 @@
 package com.kyowon.sms.wells.web.bond.transfer.service;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
+import com.kyowon.sms.common.web.bond.transfer.dvo.ZbnaBondContractBasicHistReqDvo;
+import com.kyowon.sms.common.web.bond.transfer.dvo.ZbnaBondTransferAssignDvo;
+import com.kyowon.sms.common.web.bond.transfer.service.ZbnaBondContractBasicHistService;
+import com.kyowon.sms.common.web.bond.transfer.service.ZbnaBondTransferAssignMgtService;
+import com.kyowon.sms.common.web.bond.zcommon.constants.BnBondConst;
 import com.kyowon.sms.wells.web.bond.transfer.converter.WbnaBondPartTransferConverter;
 import com.kyowon.sms.wells.web.bond.transfer.dvo.WbnaBondPartTransferDvo;
 import com.kyowon.sms.wells.web.bond.transfer.mapper.WbnaBondPartTransferMapper;
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaBondPartTransferDto.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -36,6 +37,8 @@ public class WbnaBondPartTransferService {
 
     private final WbnaBondPartTransferMapper mapper;
     private final WbnaBondPartTransferConverter converter;
+    private final ZbnaBondTransferAssignMgtService bondTransferAssignMgtService;
+    private final ZbnaBondContractBasicHistService bondContractBasicHistService;
 
     /**
      * 파트이관 집계 정보 조회
@@ -56,6 +59,12 @@ public class WbnaBondPartTransferService {
         SearchDetailReq dto, PageInfo pageInfo
     ) {
         return mapper.selectPartTransferDetailPages(dto, pageInfo);
+    }
+
+    public SearchDetailSummaryRes getPartTransferDetailSummary(
+        SearchDetailReq dto
+    ) {
+        return mapper.selectPartTransferDetailSummary(dto);
     }
 
     /**
@@ -79,14 +88,40 @@ public class WbnaBondPartTransferService {
         CreateReq dto
     ) {
 
-        // TODO 테이블 및 쿼리문 정의가 완료 되지 않아 mapper 호출은 하지 않은 상태 DB완료 후 작업 예정
-        int processCount = 1;
         WbnaBondPartTransferDvo dvo = converter.mapCreateReqToWbnaBondPartTransferDvo(dto);
-        log.debug("dvo: " + dvo);
-        // 1. createPartTransfers - TB_CBBO_BND_ASN_IZ 수행(파트이관 생성 조건 참조)
-        // 2. createPartTransferItemization - TB_CBBO_BND_TF_ASN_EXCN_IZ 수행
-        // 3. createBondContractHistories - TB_CBBO_BND_CNTR_HIST 테이블에 이력 추가
-        // 4. 이력 저장 후 updateBondContractBase - TB_CBBO_BND_CNTR_BAS 정보 수정
+
+        //기존에 등록된 파트이관 있는 경우 우선 삭제
+        mapper.deletePartTransfers(dvo);
+        // TODO processCount 이 정보 활용 할 수 없을거 같음... 마무리 전 확인 후 가망 없으면 삭제
+        int processCount = mapper.insertPartTransfers(dvo); //생성은 기준년월, 사업본부기준
+
+        // 배정에 저장은 기준년월, 사업본부기준, 집금구분 기준
+        ZbnaBondTransferAssignDvo bondTransferAssignDvo = converter.mapCreateReqToZbnaBondTransferAssignDvo(dto);
+        // TODO 코드 유틸 찾지 못해서 상수로 작업 코드 유틸 확인 하면 추가 작업 예정
+        bondTransferAssignDvo.setTfBizDvCd(BnBondConst.TfBizDvCd.PART_TRANSFER.getValue()); // 파트이관:01
+
+        bondTransferAssignDvo.setClctamDvCd(BnBondConst.ClctamDvCd.SHORT_TERM.getValue()); // 단기
+        bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+        bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+
+        bondTransferAssignDvo.setClctamDvCd(BnBondConst.ClctamDvCd.MID_TERM.getValue()); // 중기
+        bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+        bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+
+        bondTransferAssignDvo.setClctamDvCd(BnBondConst.ClctamDvCd.LAWSUIT.getValue()); // 소송
+        bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+        bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+
+        bondTransferAssignDvo.setClctamDvCd(BnBondConst.ClctamDvCd.EXECUTION.getValue()); // 집행
+        bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+        bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+
+        ZbnaBondContractBasicHistReqDvo bondContractBasicHistReqDvo = converter
+            .mapCreateReqToZbnaBondContractBasicHistReqDvo(dto); // TODO ZbnaBondContractBasicHistReqDvo 공통으로 사용할 dvo를 만들어서 교체 할지 정의
+        bondContractBasicHistService.createBondContractHistorys(bondContractBasicHistReqDvo); // 배정기본 내역 저장
+
+        mapper.updateCollectionPartForBndCntrBas(dvo); // 집금파트 정보 수정
+
         return processCount;
     }
 
@@ -101,14 +136,17 @@ public class WbnaBondPartTransferService {
     ) {
         int processCount = 0;
         for (EditReq dto : dtos) {
-
-            // TODO 테이블 및 쿼리문 정의가 완료 되지 않아 mapper 호출은 하지 않은 상태 DB완료 후 작업 예정
+            // TODO 명세서 아직 갱신 중 계속 수정 되는 영역 에러 날 수 있음 에러시 명세서 맞춰 현행화 필요한 상태
             log.debug(dto.cntrNo());
             WbnaBondPartTransferDvo dvo = converter.mapEditReqToWbnaBondPartTransferDvo(dto);
-            log.debug("dvo display information on service page: " + dvo);
-            processCount += 1;
-            // 1. updateBondContractBase - TB_CBBO_BND_CNTR_BAS 정보 수정
-            // 2. updateBondAssignItemization - TB_CBBO_BND_ASN_IZ 정보 수정
+
+            int result = mapper.updateBondContractBase(dvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+
+            result = mapper.updateBondAssignItemization(dvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+
+            processCount += result;
         }
         return processCount;
     }
@@ -147,41 +185,5 @@ public class WbnaBondPartTransferService {
             case 0 -> false;
             default -> throw new BizException("MSG_ALT_ERR_CONTACT_ADMIN");
         };
-    }
-
-    // TODO: 데이터 없는 경우 화면 테스트가 어려워 임시 데이터 생성용 메소드 추후 삭제 예정
-    public List<HashMap<String, String>> getDumyData() {
-        // TODO: 데이터 없는 상태로 작업 하기 때문에 임시 데이터 작업 진행
-        String tempJson = "[";
-        tempJson += "{ bzHdqDvCd: '01', clctamDvCd: '01', totCstCt: '40', totCntrCt: '10', woCstCt: '40', woCntrCt: '10', woObjAmt: '30', woDlqAmt: '7', woThmChramAmt: '18,160,000', woDlqAddAmt: '3,367,000', woRsgBorAmt: '770,000', rentalCstCt: '40', rentalCntrCt: '10', rentalObjAmt: '30', rentalDlqAmt: '7', rentalThmChramAmt: '18,160,000', rentalDlqAddAmt: '3,367,000', rentalRsgBorAmt: '770,000', leaseCstCt: '40', leaseCntrCt: '10', leaseObjAmt: '30', leaseDlqAmt: '7', leaseThmChramAmt: '18,160,000', leaseDlqAddAmt: '3,367,000', leaseRsgBorAmt: '770,000', mshCstCt: '40', mshCntrCt: '10', mshObjAmt: '30', mshDlqAmt: '7', mshThmChramAmt: '18,160,000', mshDlqAddAmt: '3,367,000', mshRsgBorAmt: '770,000', rglrSppCstCt: '40', rglrSppCntrCt: '10', rglrSppObjAmt: '30', rglrSppDlqAmt: '7', rglrSppThmChramAmt: '18,160,000', rglrSppDlqAddAmt: '3,367,000', rglrSppRsgBorAmt: '770,000', hcrCstCt: '40', hcrCntrCt: '10', hcrObjAmt: '30', hcrDlqAmt: '7', hcrThmChramAmt: '18,160,000', hcrDlqAddAmt: '3,367,000', hcrRsgBorAmt: '770,000', spayCstCt: '40', spayCntrCt: '10', spayObjAmt: '30', spayDlqAmt: '7', spayThmChramAmt: '18,160,000', spayDlqAddAmt: '3,367,000', spayRsgBorAmt: '770,000'  },";
-        tempJson += "{ bzHdqDvCd: '01', clctamDvCd: '01', totCstCt: '40', totCntrCt: '10', woCstCt: '40', woCntrCt: '10', woObjAmt: '30', woDlqAmt: '7', woThmChramAmt: '18,160,000', woDlqAddAmt: '3,367,000', woRsgBorAmt: '770,000', rentalCstCt: '40', rentalCntrCt: '10', rentalObjAmt: '30', rentalDlqAmt: '7', rentalThmChramAmt: '18,160,000', rentalDlqAddAmt: '3,367,000', rentalRsgBorAmt: '770,000', leaseCstCt: '40', leaseCntrCt: '10', leaseObjAmt: '30', leaseDlqAmt: '7', leaseThmChramAmt: '18,160,000', leaseDlqAddAmt: '3,367,000', leaseRsgBorAmt: '770,000', mshCstCt: '40', mshCntrCt: '10', mshObjAmt: '30', mshDlqAmt: '7', mshThmChramAmt: '18,160,000', mshDlqAddAmt: '3,367,000', mshRsgBorAmt: '770,000', rglrSppCstCt: '40', rglrSppCntrCt: '10', rglrSppObjAmt: '30', rglrSppDlqAmt: '7', rglrSppThmChramAmt: '18,160,000', rglrSppDlqAddAmt: '3,367,000', rglrSppRsgBorAmt: '770,000', hcrCstCt: '40', hcrCntrCt: '10', hcrObjAmt: '30', hcrDlqAmt: '7', hcrThmChramAmt: '18,160,000', hcrDlqAddAmt: '3,367,000', hcrRsgBorAmt: '770,000', spayCstCt: '40', spayCntrCt: '10', spayObjAmt: '30', spayDlqAmt: '7', spayThmChramAmt: '18,160,000', spayDlqAddAmt: '3,367,000', spayRsgBorAmt: '770,000'  },";
-        tempJson += "{ bzHdqDvCd: '01', clctamDvCd: '01', totCstCt: '40', totCntrCt: '10', woCstCt: '40', woCntrCt: '10', woObjAmt: '30', woDlqAmt: '7', woThmChramAmt: '18,160,000', woDlqAddAmt: '3,367,000', woRsgBorAmt: '770,000', rentalCstCt: '40', rentalCntrCt: '10', rentalObjAmt: '30', rentalDlqAmt: '7', rentalThmChramAmt: '18,160,000', rentalDlqAddAmt: '3,367,000', rentalRsgBorAmt: '770,000', leaseCstCt: '40', leaseCntrCt: '10', leaseObjAmt: '30', leaseDlqAmt: '7', leaseThmChramAmt: '18,160,000', leaseDlqAddAmt: '3,367,000', leaseRsgBorAmt: '770,000', mshCstCt: '40', mshCntrCt: '10', mshObjAmt: '30', mshDlqAmt: '7', mshThmChramAmt: '18,160,000', mshDlqAddAmt: '3,367,000', mshRsgBorAmt: '770,000', rglrSppCstCt: '40', rglrSppCntrCt: '10', rglrSppObjAmt: '30', rglrSppDlqAmt: '7', rglrSppThmChramAmt: '18,160,000', rglrSppDlqAddAmt: '3,367,000', rglrSppRsgBorAmt: '770,000', hcrCstCt: '40', hcrCntrCt: '10', hcrObjAmt: '30', hcrDlqAmt: '7', hcrThmChramAmt: '18,160,000', hcrDlqAddAmt: '3,367,000', hcrRsgBorAmt: '770,000', spayCstCt: '40', spayCntrCt: '10', spayObjAmt: '30', spayDlqAmt: '7', spayThmChramAmt: '18,160,000', spayDlqAddAmt: '3,367,000', spayRsgBorAmt: '770,000'  },";
-        tempJson += "{ bzHdqDvCd: '01', clctamDvCd: '01', totCstCt: '40', totCntrCt: '10', woCstCt: '40', woCntrCt: '10', woObjAmt: '30', woDlqAmt: '7', woThmChramAmt: '18,160,000', woDlqAddAmt: '3,367,000', woRsgBorAmt: '770,000', rentalCstCt: '40', rentalCntrCt: '10', rentalObjAmt: '30', rentalDlqAmt: '7', rentalThmChramAmt: '18,160,000', rentalDlqAddAmt: '3,367,000', rentalRsgBorAmt: '770,000', leaseCstCt: '40', leaseCntrCt: '10', leaseObjAmt: '30', leaseDlqAmt: '7', leaseThmChramAmt: '18,160,000', leaseDlqAddAmt: '3,367,000', leaseRsgBorAmt: '770,000', mshCstCt: '40', mshCntrCt: '10', mshObjAmt: '30', mshDlqAmt: '7', mshThmChramAmt: '18,160,000', mshDlqAddAmt: '3,367,000', mshRsgBorAmt: '770,000', rglrSppCstCt: '40', rglrSppCntrCt: '10', rglrSppObjAmt: '30', rglrSppDlqAmt: '7', rglrSppThmChramAmt: '18,160,000', rglrSppDlqAddAmt: '3,367,000', rglrSppRsgBorAmt: '770,000', hcrCstCt: '40', hcrCntrCt: '10', hcrObjAmt: '30', hcrDlqAmt: '7', hcrThmChramAmt: '18,160,000', hcrDlqAddAmt: '3,367,000', hcrRsgBorAmt: '770,000', spayCstCt: '40', spayCntrCt: '10', spayObjAmt: '30', spayDlqAmt: '7', spayThmChramAmt: '18,160,000', spayDlqAddAmt: '3,367,000', spayRsgBorAmt: '770,000'  }";
-        tempJson += "]";
-        Gson gson = new Gson();
-        Type type = new TypeToken<List<HashMap<String, String>>>() {}.getType();
-        return gson.fromJson(tempJson, type);
-    }
-
-    // TODO: 데이터 없는 경우 화면 테스트가 어려워 임시 데이터 생성용 메소드 추후 삭제 예정
-    public PagingResult<HashMap<String, String>> getDumyData2() {
-        String tempJson = "[";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'111', clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'222',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'333',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'444',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'555',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'666',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'777',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'888',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'999',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' },";
-        tempJson += "{ baseYm:'202302', bzHdqDvCd:'01', cntrNo:'101',clctamDvCd: '01', cntrSn: '2022-1234567-01', prtnrKnm: '김교원', cstNo: '123456789', pdDvCd: '전집', dlqMcn: '1', objAmt: '1,500,000', dlqAmt: '345,000', thmChramAmt: '55,000', dlqAddDpAmt: '34,500', rsgBorAmt: '17,250', lwmTpCd: '속성값 필요', lwmDtlTpCd: '속성값 필요', lwmDt:'20230213', dumy1:'20230213', dumy2:'을지로입구' }";
-        tempJson += "]";
-        Gson gson = new Gson();
-        Type type = new TypeToken<ArrayList<HashMap<String, String>>>() {}.getType();
-        ArrayList<HashMap<String, String>> dumyDatas = gson.fromJson(tempJson, type);
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setTotalCount(18L); // 페이징 테스트용 설정
-        return new PagingResult<>(dumyDatas, pageInfo);
     }
 }

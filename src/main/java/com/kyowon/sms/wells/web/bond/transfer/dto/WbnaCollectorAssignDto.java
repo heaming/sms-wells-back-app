@@ -11,7 +11,7 @@ public class WbnaCollectorAssignDto {
      * @param bzHdqDvCd 사업부코드
      * @param clctamDvCd 집금구분코드
      * @param cstNo 고객번호
-     * @param nwYn 신규여부
+     * @param bndNwDvCd 신규구분코드
      * @param clctamPrtnrNo 집금담당자
      */
     @ApiModel("WbnaCollectorAssignDto-SearchReq")
@@ -22,7 +22,7 @@ public class WbnaCollectorAssignDto {
         @NotBlank
         String clctamDvCd,
         String cstNo,
-        String nwYn,
+        String bndNwDvCd,
         String clctamPrtnrNo
     ) {}
 
@@ -95,29 +95,44 @@ public class WbnaCollectorAssignDto {
 
     @ApiModel("WbnaCollectorAssignDto-SearchDetailRes")
     public record SearchDetailRes(
-        String baseYm, /* 기준년도 */
-        String bzHdqDvCd, /* 사업부 구분 */
+        String bndCntrId, /* 계약ID		*/
+        String baseYm, /* 기준년월		*/
+        String bzHdqDvCd, /*사업본부구분코드*/
+        String cntrSn, /* 계약일련번호      */
         String clctamPrtnrNo, /* 담당자번호		*/
         String clctamPrtnrKnm, /* 담당자명		*/
         String lstmmClctamDvCd, /* 전월담당집금구분   */
-        String lstmmClctamPrtnrNo, /* 전월담당자 번호      */
-        String lstmmClctamPrtnrKnm, /* 전월담당자       */
+        String bfClctamPrtnrNo, /* 전월담당자 번호      */
+        String bfClctamPrtnrKnm, /* 전월담당자       */
         String cntrNo, /* 계약번호        */
-        String cntrSn, /* 계약일련번호      */
         String cstKnm, /* 고객명         */
         String cstNo, /* 고객번호        */
-        String pdNm, /* 상품구분        */
+        String pdDvKnm, /* 상품구분 명        */
+        String pdDvCd, /* 상품구분        */
         Integer dlqMcn, /* 연체개월        */
-        Long trgAmt, /* 대상금액        */
+        Long objAmt, /* 대상금액        */
         Long dlqAmt, /* 연체금액        */
         Long thmChramAmt, /* 당월요금        */
-        Long dlqAddAmt, /* 연체가산금       */
+        Long dlqAddDpAmt, /* 연체가산금       */
         Long rsgBorAmt, /* 위약금액        */
         String lwmTpCd, /* 법조치유형       */
         String lwmDtlTpCd, /* 법조치상세       */
         String lwmDt, /* 법조치일자       */
         String dfltDt, /* 채불등록일자      */
         String addr /* 주소           */
+    ) {}
+
+    @ApiModel("WbnaCollectorAssignDto-SearchSummaryRes")
+    public record SearchSummaryRes(
+        String baseYm, /* 기준년월		*/
+        String bzHdqDvCd, /*사업본부구분코드*/
+        String clctamDvCd, /*집금구분코드*/
+        String clctamPrtnrNo, /* 담당자번호		*/
+        String objAmt, /* 대상금액        */
+        String dlqAmt, /* 연체금액        */
+        String thmChramAmt, /* 당월요금        */
+        String dlqAddDpAmt, /* 연체가산금       */
+        String rsgBorAmt /* 위약금액        */
     ) {}
 
     /**
@@ -131,6 +146,7 @@ public class WbnaCollectorAssignDto {
      */
     @ApiModel("WbnaCollectorAssignDto-EditReq")
     public record EditReq(
+        String bndCntrId, // TODO bndCntrId, baseYm 기본키가 2개 항목으로 변경 되었음 이거 기준으로 작업 가능하면 나머지 조건 삭제
         @NotBlank
         String baseYm,
         @NotBlank
