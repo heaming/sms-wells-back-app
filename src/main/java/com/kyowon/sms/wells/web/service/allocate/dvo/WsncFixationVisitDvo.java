@@ -25,7 +25,7 @@ public class WsncFixationVisitDvo {
     String pdPrpVal01; /* 상품정보-용도 */
     String pdPrpVal01Nm; /* 상품정보-용도명 */
     String apyStrtYm; /* 적용기간 */
-    String chRqrDvCd; /* 변경구분 */
+    String chMngrDvCd; /* 변경구분 */
     String fnlMdfcDtm; /* 변경등록일자 */
     String fxnPrtnrDvCd; /* 지정대상 */
     String fxnPrtnrNo; /* 방문담당 */
