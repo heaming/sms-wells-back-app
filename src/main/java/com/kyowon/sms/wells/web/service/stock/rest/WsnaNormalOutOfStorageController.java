@@ -104,7 +104,7 @@ public class WsnaNormalOutOfStorageController {
         return service.getNormalOutOfStoragesDetails(dto, pageInfo);
     }
 
-    @PostMapping
+    @PutMapping("/detail")
     public SaveResponse saveNormalOstrRgsts(
         @RequestBody
         List<CreateReq> list

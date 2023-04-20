@@ -9,6 +9,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsnaNormalOutOfStorageConverter {
-    List<WsnaNormalOutOfStorageDvo> mapCreateReqToWsnaNormalOutOfStorageDvo(List<CreateReq> list);
+    List<WsnaNormalOutOfStorageDvo> mapAllWsnaNormalOutOfStorageDvos(List<CreateReq> list);
+    //    List<WsnaNormalOutOfStorageDvo> mapAllCreateReqToWsnaNormalOutOfStorageDvo(List<CreateReq> list);
 
 }

@@ -60,11 +60,16 @@ public class WsnaNormalOutOfStorageService {
     @Transactional
     public int saveNormalOstrRgsts(List<CreateReq> list) {
         int cnt = 0;
-        List<WsnaNormalOutOfStorageDvo> voList = converter.mapCreateReqToWsnaNormalOutOfStorageDvo(list);
+        List<WsnaNormalOutOfStorageDvo> voList = converter.mapAllWsnaNormalOutOfStorageDvos(list);
         for (WsnaNormalOutOfStorageDvo vo : voList) {
-            String maxSeq = mapper.selectStrNoAndOstrNo(vo);
+            StrNoAndOstrNoRes res = mapper.selectStrNoAndOstrNo(vo);
+            vo.setItmOstrNo(res.itmOstrNo());
+            vo.setItmStrNo(res.itmStrNo());
+            vo.setStrTpCd(res.strTpCd());
+            vo.setTodayStr(res.todayStr());
             cnt += mapper.insertNormalOstrRgst(vo);
             cnt += mapper.insertNormalStrRgst(vo);
+            cnt += mapper.updateOstrAkIz(vo);
         }
         return cnt;
     }

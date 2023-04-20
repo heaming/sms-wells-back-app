@@ -30,5 +30,7 @@ public interface WsnaNormalOutOfStorageMapper {
 
     int selectNormalOstrRgstChecked(CheckedReq dto);
 
-    String selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
+    int updateOstrAkIz(WsnaNormalOutOfStorageDvo vo);
+
+    StrNoAndOstrNoRes selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
 }
