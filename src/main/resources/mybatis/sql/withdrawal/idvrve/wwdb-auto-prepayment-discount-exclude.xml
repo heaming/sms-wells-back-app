@@ -32,9 +32,11 @@
                     AND SL_CTR_STRT_YM BETWEEN PRM_DSC_EXCD_STRT_YM AND PRM_DSC_EXCD_END_YM
                 ) AS SL_CTR_AMT --조정값
              , T01.FST_RGST_DTM --등록일시
-             , T01.FST_RGST_USR_ID --등록자 ID
+             , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE PRTNR_NO = T01.FST_RGST_USR_ID) AS FST_RGST_USR_NM --등록자 ID
+             , T01.FST_RGST_USR_ID
              , T01.FNL_MDFC_DTM --수정일시
-             , T01.FNL_MDFC_USR_ID --수정자 ID       
+             , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE PRTNR_NO = T01.FNL_MDFC_USR_ID) AS FNL_MDFC_USR_NM --수정자 ID    
+             , T01.FNL_MDFC_USR_ID    
           FROM(
                     SELECT
                            T1.CNTR_NO --계약번호
@@ -62,18 +64,13 @@
                         ON T5.PD_CD = T2.BASE_PD_CD     
                      WHERE 1 = 1
                        AND T1.DTA_DL_YN = 'N'
-                     <if test='@MybatisUtils@isNotEmpty(prmDscExcdStrtYm)'>
+                     <if test='@MybatisUtils@isNotEmpty(prmDscExcdStrtYm) and @MybatisUtils@isNotEmpty(prmDscExcdEndYm)'>                     
                        AND T1.PRM_DSC_EXCD_STRT_YM = #{prmDscExcdStrtYm}
+                       AND T1.PRM_DSC_EXCD_END_YM = #{prmDscExcdEndYm}     
                      </if>                            
-                     <if test='@MybatisUtils@isNotEmpty(prmDscExcdEndYm)'>
-                       AND T1.PRM_DSC_EXCD_END_YM = #{prmDscExcdEndYm}          
-                     </if>                            
-                     <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-                       AND T1.CNTR_NO = #{cntrNo}
+                     <if test='@MybatisUtils@isNotEmpty(cntr)'>
+                       AND T1.CNTR_NO||T1.CNTR_SN LIKE '%'||#{cntr}
                      </if>                     
-                     <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
-                       AND T1.CNTR_SN = #{cntrSn}
-                     </if>
                        AND EXISTS (   
                                     SELECT 1 
                                       FROM TB_RVDW_PRM_DSC_EXCD_BAS S1

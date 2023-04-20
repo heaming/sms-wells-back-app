@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchObjectRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchReq;
@@ -25,7 +26,7 @@ public interface WwdbGiroOcrForwardingMgtMapper {
     public List<SearchRes> selectGiroOcrForwardings(SearchReq dto);
 
     /* 지로OCR발송관리 대상 조회 */
-    public List<SearchRes> selectGiroOcrForwardingObjects(String cntr);
+    public List<SearchObjectRes> selectGiroOcrForwardingObjects(String cntr);
 
     /* 지로OCR발송관리 등록 */
     public int insertGiroOcrForwardings(WwdbGiroOcrForwardingMgtDvo dvo);
