@@ -7,12 +7,14 @@ import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtDto.SaveTalkReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtDto.SearchTalkReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtDto.SearchTalkRes;
 import com.kyowon.sms.wells.web.bond.credit.service.WbndRentalCbMgtService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
+import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -72,9 +74,20 @@ public class WbndRentalCbMgtController {
     @ApiOperation(value = "렌탈CB 알림톡 발송 제외 자료 삭제", notes = "선택한 알림톡 발송 제외 내역을 일괄 삭제한다.")
     @DeleteMapping("/notification-talks")
     public SaveResponse removeNotificationTalks(
+        @Valid
         @RequestBody
+        @NotEmpty
         List<String> bndCntcExcdOjIds
     ) throws Exception {
         return SaveResponse.builder().processCount(this.service.removeNotificationTalks(bndCntcExcdOjIds)).build();
+    }
+
+    @ApiOperation(value = "렌탈CB 알림톡 발송 제외 엑셀 업로드", notes = "엑셀 업로드")
+    @PostMapping("/notification-talks/excel-upload")
+    public UploadRes saveNotificationTalksExcelUpload(
+        @RequestParam("file")
+        MultipartFile file
+    ) throws Exception {
+        return service.saveNotificationTalksExcelUpload(file);
     }
 }
