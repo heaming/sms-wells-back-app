@@ -82,7 +82,7 @@
                          , T1.CNTR_SN /*계약일련번호*/
                          , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*계약상세번호*/
                          , T4.CST_KNM     
-                         , T1.SL_DT /*매출일자*/
+                         , T1.SL_CL_DT AS SL_DT /*매출일자*/
                          , T1.RENTAL_TN/*현재차월*/
                          , T2.RECAP_DUTY_PTRM_N /*약정개월*/
                          , CASE WHEN T1.RENTAL_TN = 1 
@@ -107,16 +107,16 @@
                                 ELSE 0
                                  END AS PY_AMT /*청규렌탈료*/                         
                          , 'N' AS LTPAY_YN/*후납여부*/   
-                         , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T1.SL_DT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
+                         , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T1.SL_CL_DT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
                          , T1.ISTM_MCN 
-                         , SUBSTR(T1.SL_DT , -2) AS LCSLED
+                         , SUBSTR(T1.SL_CL_DT , -2) AS LCSLED
                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1 /*월마감테이블*/
                       LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세*/
                         ON T2.CNTR_NO = T1.CNTR_NO 
                        AND T2.CNTR_SN = T1.CNTR_SN 
                        AND T2.DTA_DL_YN = 'N'
                       LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3 /*월마감테이블*/ 
-                        ON T3.SL_CL_YM = SUBSTR(T1.SL_DT,0,6)  /*매출마감년월    매출일자*/
+                        ON T3.SL_CL_YM = SUBSTR(T1.SL_CL_DT,0,6)  /*매출마감년월    매출일자*/
                        AND T3.CNTR_NO = T1.CNTR_NO 
                        AND T3.CNTR_SN = T1.CNTR_SN 
                        AND T3.DTA_DL_YN = 'N'
@@ -125,11 +125,11 @@
                        AND T4.DTA_DL_YN = 'N'
                      WHERE 1 = 1
             <choose>
-                <when test="@MybatisUtils@isNotEmpty(cntr)">
-                       AND T1.CNTR_NO||T1.CNTR_SN LIKE '%'||#{cntr} /*계약일련번호*/
+                <when test="@MybatisUtils@equals(cntr, 'null')">
+                       AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') 
                 </when>
                 <otherwise>
-                   AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') 
+                       AND T1.CNTR_NO||T1.CNTR_SN LIKE '%'||#{cntr} /*계약일련번호*/                   
                 </otherwise>
             </choose>           
                        AND (T1.RENTAL_TN = 1 OR MOD(T1.RENTAL_TN,12)=0)
@@ -137,7 +137,7 @@
                        AND T1.RENTAL_TN <![CDATA[<]]> T1.ISTM_MCN
                        AND T1.PRM_MCN = 0
                        AND T1.SL_STP_YN = 'N'
-                       AND T1.SL_DT > 0
+                       AND T1.SL_CL_DT > 0
                        AND T1.CAN_DT IS NULL 
                        AND T1.DTA_DL_YN = 'N'                              
                )
@@ -377,7 +377,7 @@
                              , CWUSR1 AS ELC_MPY_NO -- 전자납부번호
                              , HOECHA AS GIRO_TN -- 지로회차
                              , CASE WHEN CWHMO1 = SAVE_INSM THEN SAVE_INSY02 || LPAD(CWHMO1, 2, '0') ELSE (SAVE_INSY02 - 1) || LPAD(CWHMO1, 2, '0') END AS GIRO_PY_YM    --지로납입년월
-                             , HOECHA || '회차(' ||  CWHMO1 || '월)' AS GIRO_TN_CN --지로회차내용
+                             , HOECHA || ' 회차(' ||  CWHMO1 || '월)' AS GIRO_TN_CN --지로회차내용
                              , ADR_ID
                              /*, ZIP --우편번호
                              , BAS_ADR --기본주소
