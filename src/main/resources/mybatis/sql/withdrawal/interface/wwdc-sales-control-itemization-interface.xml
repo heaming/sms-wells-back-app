@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdcSalesControlItemizationInterfaceMapper">
+
+    <select id="selectSalesControlItemizations"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdcSalesControlItemizationInterfaceDto$SearchRes">
+        SELECT
+               A.CNTR_NO /*계약번호*/
+             , A.CNTR_SN /*계약일련번호*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SL_CTR_DV_CD', A.SL_CTR_DV_CD) AS SL_CTR_DV_NM /*구분(매출조정)*/
+             , ( SELECT CST_KNM
+                   FROM TB_CUBS_CST_BAS F
+                  WHERE F.CST_NO = B.CNTR_CST_NO
+               ) AS CST_NM /*고객명*/
+             , A.SL_CTR_AMT /*금액(매출조정금액)*/
+             , CASE WHEN C.DP_TP_CD = '0102' OR C.DP_TP_CD = '0203' THEN ( /*자동이체-은행,카드*/
+                        SELECT F_CMZ_CD_NM('TNT_WELLS', 'FNIT_DV_CD', D.FNIT_DV_CD)
+                          FROM TB_RVDW_FNIT_CD D /*금융기관코드*/
+                         WHERE D.FNIT_CD = C.BNK_CD
+                    )
+                    ELSE F_CMZ_CD_NM('TNT_WELLS', 'FNIT_DV_CD', '9') /*기타*/
+                END AS ATTN_NM /*자동이체정보(카드/은행/기타)*/
+          FROM TB_RVDW_SL_CTR_BAS A /*매출조정기본*/
+         INNER JOIN TB_SSCT_CNTR_BAS B /*계약기본*/
+            ON B.CNTR_NO = A.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_STLM_BAS C /*계약결제기본*/
+            ON C.CNTR_NO = B.CNTR_NO
+         WHERE A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+           AND A.SL_CTR_END_YM = #{slCtrYm}
+    </select>
+
+</mapper>
