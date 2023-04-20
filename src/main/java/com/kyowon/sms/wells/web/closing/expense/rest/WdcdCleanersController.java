@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[WDCD] 청소원 관리")
+@Api(tags = "[WDCD] 청소용품비 관리-청소원관리")
 @RequiredArgsConstructor
 @RestController
 @Slf4j

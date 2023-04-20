@@ -1,13 +1,17 @@
 package com.kyowon.sms.wells.web.closing.expense.dvo;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 @Getter
 @Setter
+@ToString
 public class WdcdRequestCleaningSuppliesDvo {
 
     private String clingCostAdjRcpNo;
@@ -20,4 +24,9 @@ public class WdcdRequestCleaningSuppliesDvo {
     private String dtaDlYn;
     private String contact;
     private String bilAmt;
+    private String locaraTno; // 지역번호
+    @DBEncField
+    @DBDecField
+    private String exnoEncr; // 전화국별
+    private String idvTno; // 개별전화번호
 }

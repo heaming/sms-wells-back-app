@@ -47,6 +47,10 @@ public class WdcdCleanerReqeustMgtService {
             dvo.setCntrwApnFileId(fileId);
             dvo.setCntrLroreApnFileId(fileId);
 
+            // TODO. 주민번호 풀 암호화 했을때 자릿수 부족 뒷자리만 했을때 암호화가 안됨 확인 필!
+            String rrnoEncr = dvo.getFrontRrnoEncr() + '-' + dvo.getBackRrnoEncr();
+            dvo.setRrnoEncr(rrnoEncr);
+
             count += mapper.insertCleanerReqeust(dvo);
             if (Objects.nonNull(dvo.getAttachFiles1())) {
 

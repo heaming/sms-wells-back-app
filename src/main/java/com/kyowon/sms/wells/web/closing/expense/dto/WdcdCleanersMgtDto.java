@@ -1,7 +1,12 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 
@@ -12,11 +17,11 @@ public class WdcdCleanersMgtDto {
     // *********************************************************
     // 청소 용품비 관리
     @Builder
-    @ApiModel(value = "WdcdCleanersMgtCleanerDto-SearchReq")
+    @ApiModel(value = "WdcdCleanersMgtDto-SearchReq")
     public record SearchReq(
         String flag,
         @NotBlank
-        String fstRgstDtm,
+        String aplcDt,
         String clinrNm,
         String bldNm
     ) {
@@ -27,16 +32,18 @@ public class WdcdCleanersMgtDto {
     // *********************************************************
     // 청소 용품비 관리
     @Builder
-    @ApiModel(value = "WdcdCleanersMgtCleanerDto-SearchRes")
+    @ApiModel(value = "WdcdCleanersMgtDto-SearchRes")
     public record SearchRes(
         String clinrRgno, /*청소원등록번호*/
         String rcpYm, /*접수년월*/
         String fstRgstDtm, /*등록일시*/
         String fnlMdfcDtm, /*변경일시*/
+        @MaskRequired(type = MaskingType.NAME)
         String clinrNm, /*청소원*/
         String bldCd, /*빌딩코드*/
         String bldNm, /*빌딩 명*/
         String aplcDt, /*신청일*/
+        @MaskRequired(type = MaskingType.NAME)
         String aplcnsNm, /*신청자*/
         String cntrwApnFileId, /*계약서*/
         String cntrLroreApnFileId, /*계약해지원*/
@@ -50,11 +57,27 @@ public class WdcdCleanersMgtDto {
         String wrkEnddt, /*근무종료일자*/
         String workStatus, /*근무여부*/
         String rrnoEncr, /*주민등록번호*/
-        String telNum, /*연락처*/
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        @MaskRequired(type = MaskingType.PHONE)
+        String telNum,
         String address, /*주민등록상의주소*/
         String bnkCd, /*은행코드*/
         String bnkNm, /*은행명*/
         String acnoEncr /*계좌번호*/
     ) {
+        public SearchRes {
+
+            if (!StringUtil.isEmpty(exnoEncr)) { // 전화번호 복호화
+                exnoEncr = DbEncUtil.dec(exnoEncr);
+            }
+            if (!StringUtil.isEmpty(locaraTno) || !StringUtil.isEmpty(exnoEncr)
+                || !StringUtil.isEmpty(idvTno)) {
+                telNum = locaraTno + "-" + exnoEncr + "-" + idvTno;
+            }
+            acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr; // 계좌번호 복호화
+            rrnoEncr = StringUtils.isNotEmpty(rrnoEncr) ? DbEncUtil.dec(rrnoEncr) : rrnoEncr; // 주민등록번 복호화
+        }
     }
 }

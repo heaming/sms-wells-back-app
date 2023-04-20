@@ -36,7 +36,7 @@ public class WdcdCleanerReqeustMgtController {
         return SaveResponse.builder().processCount(service.saveCleanerReqeust(req)).build();
     }
 
-    @ApiOperation(value = "청소원 등록(신규변경)", notes = "청소원 등록 및 수정")
+    @ApiOperation(value = "청소원 등록(신규변경)", notes = "청소원 등록 조회")
     @GetMapping("/{clinrRgno}")
     public FindRes getCleanerReqeust(@PathVariable String clinrRgno) {
         return service.getCleanerReqeust(clinrRgno);
