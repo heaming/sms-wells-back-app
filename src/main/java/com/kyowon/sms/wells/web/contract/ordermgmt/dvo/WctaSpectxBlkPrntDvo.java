@@ -19,4 +19,6 @@ public class WctaSpectxBlkPrntDvo {
     private String faxExno;
     private String faxIdvTno;
     private String lstmmYn;
+    private String slClYm;
+    private String dpTpCd;
 }

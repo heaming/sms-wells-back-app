@@ -2,9 +2,13 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto.SearchCntrRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto.SearchReq;
@@ -18,9 +22,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 @Api(tags = "wells 거래명세서 일괄출력")
 @Validated
@@ -106,5 +107,35 @@ public class WctaSpectxBlkPrntController {
         List<SaveReq> dtos
     ) {
         return SaveResponse.builder().processCount(this.service.removeSpectxBlkPrnts(dtos)).build();
+    }
+
+    @ApiOperation(value = "거래명세서 발송 조회", notes = "거래명세서 발송 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "fromDate", value = "기간조회from", paramType = "query"),
+        @ApiImplicitParam(name = "toDate", value = "기간조회to", paramType = "query"),
+        @ApiImplicitParam(name = "spectxPblDDvCd", value = "발행일", paramType = "query"),
+        @ApiImplicitParam(name = "fromGrpNo", value = "그룹번호from", paramType = "query"),
+        @ApiImplicitParam(name = "toGrpNo", value = "그룹번호to", paramType = "query"),
+        @ApiImplicitParam(name = "isYn", value = "발급여부", paramType = "query"),
+    })
+    @GetMapping("/send-trade-specification-sheets")
+    public List<WctaSpectxBlkPrntDto.SpectxFwRes> getTradeSpcshFwInqrs(WctaSpectxBlkPrntDto.SpectxFwReq dto) {
+        return service.getTradeSpcshFwInqrs(dto);
+    }
+
+    @ApiOperation(value = "거래명세서 발송", notes = "거래명세서 발송")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "spectxGrpNo", value = "그룹번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @PostMapping("/send-trade-specification-sheets")
+    public int saveTradeSpcshFws(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<WctaSpectxBlkPrntDto.SaveTradeSpcshFwReq> dtos
+    ) throws Exception {
+        return service.saveTradeSpcshFws(dtos);
     }
 }
