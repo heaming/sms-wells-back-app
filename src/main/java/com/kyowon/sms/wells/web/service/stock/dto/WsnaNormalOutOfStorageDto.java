@@ -125,7 +125,9 @@ public class WsnaNormalOutOfStorageDto {
         String pdPrpVal16,
         String pdPrpVal02,
         String cfrmCnt,
-        String avgOut
+        String avgOut,
+        String ostrWareDvCd,
+        String strWareDvCd
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CreqteReq")
@@ -171,7 +173,9 @@ public class WsnaNormalOutOfStorageDto {
         String pdPrpVal16,
         String pdPrpVal02,
         String cfrmCnt,
-        String avgOu
+        String avgOu,
+        String ostrWareDvCd,
+        String strWareDvCd
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckedReq")
