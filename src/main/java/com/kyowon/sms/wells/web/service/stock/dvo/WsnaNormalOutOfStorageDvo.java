@@ -47,6 +47,7 @@ public class WsnaNormalOutOfStorageDvo {
     String pdPrpVal16;
     String pdPrpVal02;
     String cfrmCnt;
-    String avgO;
-
+    String avgOut;
+    String ostrWareDvCd;
+    String strWareDvCd;
 }

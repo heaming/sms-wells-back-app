@@ -108,7 +108,7 @@ public class WsnaNormalOutOfStorageController {
     public SaveResponse saveNormalOstrRgsts(
         @RequestBody
         List<CreateReq> list
-    ) {
+    ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveNormalOstrRgsts(list))
             .build();
