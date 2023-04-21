@@ -6,9 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAlwncMgtConverter;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.Allowance;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.*;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAlwncDvo;
 import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAlwncMgtMapper;
 
@@ -31,6 +29,18 @@ public class WsndRegionLevelAlwncMgtService {
     private final WsndRegionLevelAlwncMgtMapper mapper;
 
     private final WsndRegionLevelAlwncMgtConverter converter;
+
+    /**
+     * 급지 기본 정보 조회
+     *
+     * @param applyDate 적용일자
+     * @return
+     */
+    public SearchBaseRes getAllowanceBases(String applyDate) {
+        AllowanceBase movementBases = this.mapper.selectMovementBases(applyDate);
+        AllowanceBase bizBases = this.mapper.selectBizBases(applyDate);
+        return new SearchBaseRes(movementBases, bizBases);
+    }
 
     /**
      * 급지 수당 조회
@@ -63,4 +73,5 @@ public class WsndRegionLevelAlwncMgtService {
 
         return processCount;
     }
+
 }
