@@ -12,7 +12,10 @@ public interface WctePartnerAggregationMapper {
     String selectBmno();
 
     List<SearchRes> selectPartnerAggregations(
-        SearchReq dto,
+        SearchReq dto
+    );
+
+    List<SearchRes> selectPartnerAggregationsWithBmno(
         String bmno
     );
 }
