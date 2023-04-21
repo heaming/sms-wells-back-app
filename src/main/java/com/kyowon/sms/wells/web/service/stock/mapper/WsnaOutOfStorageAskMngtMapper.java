@@ -4,6 +4,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngt
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -25,4 +26,10 @@ public interface WsnaOutOfStorageAskMngtMapper {
     );
 
     int deleteOutOfStorageAskItems(RemoveReq dto);
+
+    String selectNewOstrAkNo(FindOstrAkNoReq findOstrAkNoReq);
+
+    int insertOutOfStorageAskItems(WsnaOutOfStorageAskMngtDvo dvo);
+
+    int updateOutOfStorageAskItmes(WsnaOutOfStorageAskMngtDvo dvo);
 }
