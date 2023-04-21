@@ -126,8 +126,6 @@ public class WctaSpectxBlkPrntService {
                 + sysDate.substring(4, 6) + "월";
             String pdfUrl = "http://wellsorder.kyowon.co.kr/specView/" + encStr;
 
-            String receiveEmail = dvo.getEmadr();
-
             EmailSendReqDvo sendDvo = EmailSendReqDvo.builder()
                 .title(templateService.getTemplateByTemplateId(templateId).getSendTemplateTitle())
                 .content(
