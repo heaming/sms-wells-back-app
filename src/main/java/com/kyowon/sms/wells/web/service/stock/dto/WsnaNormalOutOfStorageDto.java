@@ -82,7 +82,8 @@ public class WsnaNormalOutOfStorageDto {
         String ostrWareNo,
         String ostrOjWareNm,
         String strOjWareNm,
-        String stckStdGb
+        String stckStdGb,
+        String rgstDt
     ) {}
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRes")
     public record DetailRes(
@@ -127,7 +128,9 @@ public class WsnaNormalOutOfStorageDto {
         String cfrmCnt,
         String avgOut,
         String ostrWareDvCd,
-        String strWareDvCd
+        String strWareDvCd,
+        String strWareNm,
+        String ostrWareNm
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CreqteReq")
