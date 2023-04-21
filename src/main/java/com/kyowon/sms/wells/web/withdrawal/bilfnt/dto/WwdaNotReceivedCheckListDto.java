@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.bilfnt.dto;
 
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import io.swagger.annotations.ApiModel;
 
 public class WwdaNotReceivedCheckListDto {
@@ -39,15 +41,22 @@ public class WwdaNotReceivedCheckListDto {
     public record SearchAftnSlPerfCheckInqrRes(
         // 매출실적 입금 전용 누락건
         String sellTpNm,
-        String dpClDt,
+        String baseYm,
         String cntrNo,
         String cntrSn,
+        String cntr,
         String rentalNmn,
         String thmIntamDpAmt,
         String thmIstmRfndAmt,
         String rveAmt,
         String dpMesCd
-    ) {}
+    ) {
+        public SearchAftnSlPerfCheckInqrRes {
+            if (!StringUtil.isEmpty(cntrNo) && !StringUtil.isEmpty(cntrSn)) {
+                cntr = cntrNo + "-" + cntrSn;
+            }
+        }
+    }
 
     @ApiModel("WwdaNotReceivedCheckListDto-SearchResultBundleErrorRes")
     public record SearchResultBundleErrorRes(
