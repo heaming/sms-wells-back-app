@@ -12,7 +12,8 @@ public class WsnyCalendarDto {
     public record SearchReq(
         @NotBlank
         String baseYm,
-        String serviceCenterCd
+        String serviceCenterCd,
+        String serviceCenterOgId
     ) {}
 
     @ApiModel(value = "WsnyCalendarDto-FineRegReq")
@@ -59,7 +60,8 @@ public class WsnyCalendarDto {
         String restHh,
         String wrkHh,
         String bndtWrkPsicNo,
-        String svCnrOgId
+        String svCnrOgId,
+        String svCnrOgCd
     ) {}
 
     @ApiModel(value = "WsnyCalendarDto-FindRegRes")
