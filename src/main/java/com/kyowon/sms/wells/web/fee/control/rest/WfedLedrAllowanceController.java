@@ -28,16 +28,28 @@ public class WfedLedrAllowanceController {
 
     private final WfedLedrAllowanceService service;
 
-    @ApiOperation(value = "단장 수당 목록 조회", notes = "조회조건에 일치하는 실적년월에 생성된 단장 수당 내역을 조회한다.")
+    @ApiOperation(value = "단장 수당 목록 조회(개인별)", notes = "조회조건에 일치하는 실적년월에 생성된 단장 수당 내역을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", example = "총괄단장"),
-        @ApiImplicitParam(name = "inqrDv", value = "조회구분", paramType = "query", example = "개인별"),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책유형", paramType = "query", example = "총괄단장"),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "123456"),
     })
-    @GetMapping
-    public List<WfedLedrAllowanceDto.SearchRes> getLeaderAllowances(WfedLedrAllowanceDto.SearchReq dto) {
-        return this.service.getLeaderAllowances(dto);
+    @GetMapping("/indv")
+    public List<WfedLedrAllowanceDto.SearchIndividualRes> getIndividualLeaderAllowances(
+        WfedLedrAllowanceDto.SearchReq dto
+    ) {
+        return service.getIndividualLeaderAllowances(dto);
+    }
+
+    @ApiOperation(value = "단장 수당 목록 조회(합계)", notes = "조회조건에 일치하는 실적년월에 생성된 단장 수당 내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책유형", paramType = "query", example = "총괄단장"),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "123456"),
+    })
+    @GetMapping("/sum")
+    public List<WfedLedrAllowanceDto.SearchSumRes> getSumLeaderAllowances(WfedLedrAllowanceDto.SearchReq dto) {
+        return service.getSumLeaderAllowances(dto);
     }
 
 }
