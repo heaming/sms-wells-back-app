@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.visit.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Center;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Engineer;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallLocationMgtConverter;
@@ -111,4 +113,11 @@ public class WsnbInstallLocationMgtService {
         return mapper.selectProducts();
     }
 
+    public List<Engineer> getEngineers() {
+        return mapper.selectEngineers();
+    }
+
+    public List<Center> getCenterss() {
+        return mapper.selectCenters();
+    }
 }

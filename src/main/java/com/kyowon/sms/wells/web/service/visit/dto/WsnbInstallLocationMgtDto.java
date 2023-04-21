@@ -74,4 +74,24 @@ public class WsnbInstallLocationMgtDto {
         String pdGrpCd
     ) {}
 
+    @ApiModel(value = "WsnbIstLctDtlMngtDto-Engineer")
+    public record Engineer(
+        String ogTpCd,
+        String prtnrNo,
+        String prtnrKnm,
+        String cltnDt,
+        String ogId,
+        String ogCd,
+        String ogNm
+    ) {}
+
+    @ApiModel(value = "WsnbIstLctDtlMngtDto-Center")
+    public record Center(
+        String ogTpCd,
+        String ogId,
+        String ogCd,
+        String ogNm,
+        String hgrOgId
+    ) {}
+
 }
