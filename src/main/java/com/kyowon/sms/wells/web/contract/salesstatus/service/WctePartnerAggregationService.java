@@ -20,9 +20,9 @@ public class WctePartnerAggregationService {
 
     public List<SearchRes> getPartnerAggregations(SearchReq dto) {
         if (StringUtils.isAllEmpty(dto.prtnrNo(), dto.ogCd())) {
-            return mapper.selectPartnerAggregations(dto);
-        } else {
             return mapper.selectPartnerAggregationsWithBmno(mapper.selectBmno());
+        } else {
+            return mapper.selectPartnerAggregations(dto);
         }
     }
 }
