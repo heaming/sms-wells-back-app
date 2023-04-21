@@ -14,6 +14,7 @@ public class WctaOrderDetailRentalPagesRequestDvo {
     private String prdEnqry; /* 기간조회 */
     private String strtDt; /* 시작일자 */
     private String endDt; /* 종료일자 */
+    private String rentalNmn; /* 렌탈차월 */
     private String hcsfVal; /* 상품분류(대분류) */
     private String hcsfMcsfVal; /* 상품분류(소분류) */
     private String pdCd; /* 상품코드 */

@@ -23,7 +23,7 @@
              , T31.CRAL_LOCARA_TNO  /* 판매자-휴대지역전화번호 (AKDBTL) */
              , T31.MEXNO_ENCR       /* 판매자-휴대전화국번호암호화 (AKDBTL) */
              , T31.CRAL_IDV_TNO     /* 판매자-휴대개별전화번호 (AKDBTL) */
-             , T31.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T31.MEXNO_ENCR,10,'AES256') || '-' || T31.CRAL_IDV_TNO  AS SELL_PRTNR_CRAL_TNO /* 판매자 - 휴대전화번호(파라미터) */
+             , T31.CRAL_LOCARA_TNO || '-' || T31.MEXNO_ENCR || '-' || T31.CRAL_IDV_TNO  AS SELL_PRTNR_CRAL_TNO /* 판매자 - 휴대전화번호(파라미터) */
              , T30.CNTR_DT          /* 판매자-계약일자 (업무개시일:AKDSTT) */
              , T30.CLTN_DT          /* 판매자-해약일자 (업무해약일:AKDCAT) */
              , T40.CST_KNM                                          /* 계약자정보 - 고객명(LCCNAM) */
@@ -38,7 +38,7 @@
              , T44.CRAL_LOCARA_TNO   AS IST_CRAL_LOCARA_TNO          /* 설치자 - 휴대전화번호1 */
              , T44.MEXNO_ENCR        AS IST_MEXNO_ENCR               /* 설치자 - 휴대전화번호2 */
              , T44.CRAL_IDV_TNO      AS IST_CRAL_IDV_TNO             /* 설치자 - 휴대전화번호3 */
-             , T44.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T44.MEXNO_ENCR,10,'AES256') || '-' || T44.CRAL_IDV_TNO  AS IST_CRAL_TNO /* 설치자 - 휴대전화번호(파라미터) */
+             , T44.CRAL_LOCARA_TNO || '-' || T44.MEXNO_ENCR || '-' || T44.CRAL_IDV_TNO  AS IST_CRAL_TNO /* 설치자 - 휴대전화번호(파라미터) */
              , T45.NEW_ADR_ZIP      AS IST_ADR_ZIP                  /* 설치처정보 - 우편번호 : LCWZIP */
              , T45.RNADR            AS IST_RNADR                    /* 설치처정보 - 기준주소 : LCWAD1 + LCWAD2 +LCWAD3 */
              , T45.RDADR            AS IST_RDADR                    /* 설치처정보 - 상세주소 : LCWAD1 + LCWAD2 +LCWAD3 */
@@ -63,18 +63,18 @@
              , SUBSTR(T10.CNTR_RCP_FSH_DTM, 0, 8) AS CNTR_RCP_FSH_DT    /* 계약접수완료일시(접수일:LCCRTT.LCCRTY) */
              , T11.SPP_DUEDT                                            /* 배송예정일자   (예정일:LCDEMT.LCDEMY) */
              , T12.IST_DT                                               /* 설치일자     (설치일:LCSETT.LCSETY) */
-             , T50.SL_DT                                                /* 매출일자 (매출일:LCSLET.LCSLEY) */
+             , T50.SL_RCOG_DT AS SL_DT                                                /* 매출일자 (매출일:LCSLET.LCSLEY) */
              , T11.ISTM_MCN                                             /* 할부개월수 (계약기간:LCMONT)*/
              , T11.CNTR_PD_ENDDT                                        /* 계약상품종료일자 (만료일:LCMANT.LCMANY)*/
              , SUBSTR(T13.HIST_STRT_DTM, 0, 8) AS CAN_DT                /* 취소일(LCCANT.LCCANY, LCCANT) */
              , T12.REQD_DT                                              /* 철거일 (LCCANT.LCREMY, LCREMT) */
-             , CASE WHEN T12.REQD_DT IS NOT NULL  AND T50.SL_DT IS NOT NULL
+             , CASE WHEN T12.REQD_DT IS NOT NULL  AND T50.SL_RCOG_DT IS NOT NULL
                      AND (T12.REQD_DT <![CDATA[ > ]]> (CASE WHEN T11.STPL_PTRM_UNIT_CD = '20' /* 약정기간단위코드:월  -- WELL는 월만 */
-                                              THEN TO_CHAR(ADD_MONTHS(TO_DATE(T50.SL_DT, 'YYYYMMDD'), T11.STPL_PTRM),'YYYYMMDD')
+                                              THEN TO_CHAR(ADD_MONTHS(TO_DATE(T50.SL_RCOG_DT, 'YYYYMMDD'), T11.STPL_PTRM),'YYYYMMDD')
                                               ELSE '' END))
                     THEN SUBSTR(T11.CNTR_PD_ENDDT, 0, 8)
-                    ELSE '' END AS EXN_REQD_DT                         /* 회수일 (만료철거일:LCENDT.LCENDY) TODO없음 --> '철거일' 이 만료일(설치일+약정기간) 이후인 경우 종료일로 대체 (https://kyowon.atlassian.net/wiki/spaces/ForKUS/pages/95420433)*/
-             , T12.RECAP_DUTY_PTRM_N                                   /* 유상의무기간수 (의무기간:LCGUB3)*/
+                    ELSE '' END AS EXN_REQD_DT                          /* 회수일 (만료철거일:LCENDT.LCENDY) TODO없음 --> '철거일' 이 만료일(설치일+약정기간) 이후인 경우 종료일로 대체 (https://kyowon.atlassian.net/wiki/spaces/ForKUS/pages/95420433)*/
+             , T12.RECAP_DUTY_PTRM_N                                    /* 유상의무기간수 (의무기간:LCGUB3)*/
              , T11.CNTR_AMT                                             /* 계약금액 (등록비:LCTAMT)*/
              , T60.CTR_VAL AS CNTR_CTR_AMT                              /* 조정값 (등록할인:LCRAMT)*/
              , T11.PD_BASE_AMT                                          /* 렌탈료-상품기준금액 (렌탈료１:LCAMT1) */
@@ -82,7 +82,7 @@
              , 0 AS RENTAL_AMT2                                         /* 렌탈료2-렌탈금액(매출) (렌탈료１:LCAMT2) - 가격최종상세 에서 가져오거나 비거나*/
              , 0 AS RENTAL_DSC_AMT2                                     /* 렌탈할인금액2 (렌탈할인１:LCRAM2)*/
              , 0 AS RENTAL_DSC_DFAM                                     /* 헨탈할인차액 (할인차액:LCRAM5) - 가격최종상세 에서 할인 가져온 다음 처리  정상렌탈료할인차액 (렌탈로 - 렌탈할인 계산아님 )*/
-             --, T50.RENTAL_AMT - T50.RENTAL_DSC_AMT AS RENTAL_DSC_DFAM   /* 헨탈할인차액 (할인차액:LCRAM5) */
+             --, T50.RENTAL_AMT - T50.RENTAL_DSC_AMT AS RENTAL_DSC_DFAM /* 헨탈할인차액 (할인차액:LCRAM5) */
              , CASE WHEN T11.BOO_SELL_TP_CD = '2' THEN 'Y'
                     ELSE 'N' END AS BOO_SELL_YN                         /* 예약판매유형코드 예약(LCCHK2) - 상품예약(1), 배송예약(2), 배송예약인경우 예약으로 표시함.*/
              , CASE WHEN T70.MCHN_CH_SN IS NOT NULL THEN 'Y' ELSE 'N' END AS MCHN_CH_YN   /* 기변여부/기기변경여부 (기변:LCETC7) */
@@ -152,10 +152,10 @@
              , T86.Z13_YN                                                                       /* 마케팅동의　동의 : KW3100P@KWFLG3 */
              , T86.Z15_YN                                                                       /* 제3자동의　동의 : KW3100P@KWFLG4 */
              , T86.W22_YN                                                                       /* 피버 바이크 플러스 이용 동의 LC3490P.LCHGU4 */
-             , T42.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO                                    /* 계약자　휴대폰번호1 LCCNOT. LCCNO1 */
-             , T42.MEXNO_ENCR AS CNTR_MEXNO_ENCR                                              /* 계약자　휴대폰번호2 LCCNOT. LCCNO2 */
-             , T42.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO                                          /* 계약자　휴대폰번호3 LCCNOT. LCCNO3 */
-             , T42.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T42.MEXNO_ENCR,10,'AES256') || '-' || T42.CRAL_IDV_TNO  AS CNTR_CRAL_TNO /* 계약자 - 휴대전화번호(파라미터) */
+             , T42.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO                                      /* 계약자　휴대폰번호1 LCCNOT. LCCNO1 */
+             , T42.MEXNO_ENCR AS CNTR_MEXNO_ENCR                                                /* 계약자　휴대폰번호2 LCCNOT. LCCNO2 */
+             , T42.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO                                            /* 계약자　휴대폰번호3 LCCNOT. LCCNO3 */
+             , T42.CRAL_LOCARA_TNO || '-' || T42.MEXNO_ENCR || '-' || T42.CRAL_IDV_TNO  AS CNTR_CRAL_TNO /* 계약자 - 휴대전화번호(파라미터) */
              , (SELECT CASE WHEN COUNT(1) <![CDATA[ > ]]> 0 THEN 'Y' ELSE 'N'END
                   FROM TB_BCBC_FW_IMP_NO_IZ    /* 발송불가번호내역 */
                  WHERE 1=1
@@ -474,7 +474,7 @@
            AND T48.CNTR_CST_REL_TP_CD = '10' /*계약자관계코드 : 계약자(10)*/
            AND T48.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
            AND T48.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T50  /*WELLS매출월마감내역 */
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T50  /* WELLS매출월마감내역 */
             ON T50.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')    /* 매출마감년월 */
            AND T50.CNTR_NO = T11.CNTR_NO
            AND T50.CNTR_SN = T11.CNTR_SN
@@ -613,7 +613,7 @@
                                         , T770.BASE_CNTR_NO   /* 기준 계약번호 (이후) */
                                         , T770.BASE_CNTR_SN   /* 기준 계약번호 (이후) */
                                         , T770.MCHN_CH_TP_CD  /* 기기변경유형코드 */
-                                        , T773.SL_DT          /* 매출일 (기준) */
+                                        , T12.IST_DT          /* 매출일 (기준) */
                                         , T773.RENTAL_AMT     /* 렌탈료 */
                                         , T772.PD_NM          /* 상품명 */
                                         , T771.SV_PRD         /* 서비스주기 */
@@ -861,7 +861,7 @@
                     AND SUBSTR(T10.CNTR_RCP_FSH_DTM, 0, 8) BETWEEN #{strtDt} AND #{endDt}
                 </when>
                 <when test='@MybatisUtils@equals(prdEnqry, "2")'> /* 매출일 */
-                    AND T50.SL_DT BETWEEN #{strtDt} AND #{endDt}
+                    AND T50.SL_RCOG_DT BETWEEN #{strtDt} AND #{endDt}
                 </when>
                 <when test='@MybatisUtils@equals(prdEnqry, "3")'> /* 취소일 */
                     AND SUBSTR(T13.HIST_STRT_DTM, 0, 8) BETWEEN #{strtDt} AND #{endDt}
@@ -873,7 +873,7 @@
                     AND T11.CNTR_PD_ENDDT BETWEEN #{strtDt} AND #{endDt}
                 </when>
                 <when test='@MybatisUtils@equals(prdEnqry, "6")'> /* 렌탈차월 */
-                    AND T50.RENTAL_TN BETWEEN #{strtDt} AND #{endDt}
+                    AND T50.RENTAL_TN = #{rentalNmn}
                 </when>
                 <when test='@MybatisUtils@equals(prdEnqry, "7")'> /* 예정일 */
                     AND T11.SPP_DUEDT BETWEEN #{strtDt} AND #{endDt}
@@ -952,7 +952,7 @@
            AND T11.CNTR_DTL_STAT_CD NOT IN ('302','303')
         </if>
         <if test='@MybatisUtils@equals(slYn,"Y")'>
-           AND T50.SL_DT IS NOT NULL
+           AND T50.SL_RCOG_DT IS NOT NULL
         </if>
         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
            AND T11.CNTR_NO = #{cntrNo}
@@ -1044,7 +1044,7 @@
              , SUBSTR(T10.CNTR_TEMP_SAVE_DTM, 0, 8) AS CNTR_TEMP_SAVE_DT                    /* 계약임시저장일시 - 가입일(LCENYMD,LCENTY,LCENTT) */
              , CASE WHEN T11.CNTRW_TP_CD = '5' THEN  T11.SPP_DUEDT ELSE '' END AS HCR_DUEDT /* 홈케어예정일 (홈케어예정일자:LCDEYMD, LCDEMY) 계약서유형이 홈케이일때 예정일*/
              , T12.IST_DT                                                                   /* 설치일자    (설치일: SETYMD, LCSETY  ASIS에서 목록에서는 매출일을 설치일자로 상세팝업에서는 설치일자를 보고 있었음 전부 설치일로 변경함*/
-             , T50.SL_DT                                                                    /* 매출일자 (매출일:SLDT.LCSLEY) */
+             , T50.SL_RCOG_DT AS SL_DT                                                                    /* 매출일자 (매출일:SLDT.LCSLEY) */
              , CASE WHEN T10.CNTR_TEMP_SAVE_DTM IS NOT NULL AND T12.FRISU_BFSVC_PTRM_N IS NOT NULL
                     THEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(T10.CNTR_CNFM_DTM, 0, 8), 'YYYYMMDD'), T12.FRISU_BFSVC_PTRM_N) -1,'YYYYMMDD')
                     ELSE NULL END AS DUTY_EXN_DT_FRISU    /* 의무만료일자(무상) DUT1YMD  접수일자 + 무상기간 -1일 */
@@ -1090,14 +1090,14 @@
                     ELSE '' END AS AFTN_INF                                            /* 계좌정보-카드／계좌번호(LCCARD-할부이체번호)*/
              , T16.MPY_BSDT                                         /* 납부기준일자 - 이체일자(LCTRDD) */
              , T10.CNTR_CST_NO                                      /* 계약자정보 - 고객번호(교원키:LCKKEY) */
-             , T42.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T42.MEXNO_ENCR,10,'AES256') || '-' || T42.CRAL_IDV_TNO  AS CNTR_CRAL_TNO /* 계약자 - 휴대전화번호(파라미터) */
+             , T42.CRAL_LOCARA_TNO || '-' || T42.MEXNO_ENCR || '-' || T42.CRAL_IDV_TNO  AS CNTR_CRAL_TNO /* 계약자 - 휴대전화번호(파라미터) */
              , T42.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO          /* 계약자　휴대폰번호1 LCCNOT. LCCNO1 */
              , T42.MEXNO_ENCR AS CNTR_MEXNO_ENCR                    /* 계약자　휴대폰번호2 LCCNOT. LCCNO2 */
              , T42.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO                /* 계약자　휴대폰번호3 LCCNOT. LCCNO3 */
              , T41.NEW_ADR_ZIP AS ADR_ZIP                           /* 계약자정보 - 우편번호 : LCZPNO */
              , T41.RNADR  AS CNTR_CST_RNADR                         /* 계약자정보 - 기준주소 : LCCAD1*/
              , T41.RDADR  AS CNTR_CST_RDADR                         /* 계약자정보 - 상세주소 : LCCAD2 LCCAD3*/
-             , T44.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T44.MEXNO_ENCR,10,'AES256') || '-' || T44.CRAL_IDV_TNO  AS IST_CRAL_TNO /* 설치자 - 휴대전화번호(파라미터) */
+             , T44.CRAL_LOCARA_TNO || '-' || T44.MEXNO_ENCR || '-' || T44.CRAL_IDV_TNO  AS IST_CRAL_TNO /* 설치자 - 휴대전화번호(파라미터) */
              , T44.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO           /* 설치처정보　휴대폰번호1 LCCNOT. LCCNO1 */
              , T44.MEXNO_ENCR AS IST_MEXNO_ENCR                     /* 설치처정보　휴대폰번호2 LCCNOT. LCCNO2 */
              , T44.CRAL_IDV_TNO AS IST_CRAL_IDV_TNO                 /* 설치처정보　휴대폰번호3 LCCNOT. LCCNO3 */
@@ -1423,7 +1423,7 @@
                     AND T10.CNTR_CNFM_DT BETWEEN #{choStrtDt} AND #{choEndDt}
                 </when>
                 <when test='@MybatisUtils@equals(dateSeltDv, "7")'> /* 매출일 */
-                    AND T50.SL_DT BETWEEN #{choStrtDt} AND #{choEndDt}
+                    AND T50.SL_RCOG_DT BETWEEN #{choStrtDt} AND #{choEndDt}
                 </when>
                 <when test='@MybatisUtils@equals(dateSeltDv, "8")'> /* 취소일 */
                     AND SUBSTR(T17.HIST_STRT_DTM, 0, 8) BETWEEN #{choStrtDt} AND #{choEndDt}
@@ -1548,7 +1548,7 @@
                            , A1.SELL_DSCR_CD) AS DSC_APY_DTL_NM
              , B1.CNTR_RCP_FSH_DTM /* 계약기본.계약접수완료일시 [접수일] */
              , A1.SPP_DUEDT /* 계약상세.배송예정일자 [예정일] */
-             , (SELECT MAX(E1.SL_DT)
+             , (SELECT MAX(E1.SL_RCOG_DT)
                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ E1 /* WELLS매출월마감내역 */
                  WHERE E1.CNTR_NO = A1.CNTR_NO
                    AND E1.CNTR_SN = A1.CNTR_SN
@@ -1902,7 +1902,7 @@
                     AND SUBSTR(B1.CNTR_RCP_FSH_DTM, 0, 8) BETWEEN #{strtDt} AND #{endDt}
                 </when>
                 <when test='@MybatisUtils@equals(prdEnqry, "2")'> /* 매출일 */
-                    AND E1.SL_DT BETWEEN #{strtDt} AND #{endDt}
+                    AND F1.IST_DT BETWEEN #{strtDt} AND #{endDt}
                 </when>
                 <when test='@MybatisUtils@equals(prdEnqry, "3")'> /* 취소일 */
                     AND SUBSTR(B1.CNTR_CAN_DTM, 0, 8) BETWEEN #{strtDt} AND #{endDt}
@@ -1984,7 +1984,7 @@
              , T10.SELL_OG_TP_CD                    /* 조직구분 : 계약기본@판매조직유형코드 P,M, 전체 라디오 */
              , T10.SELL_PRTNR_NO                    /* 판매자사번 (LCDCDE) 파트너 사번 */
              , T30.PRTNR_KNM                        /* 판매자명(LCDNAM) 파트너 명 */
-             , T31.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T31.MEXNO_ENCR,10,'AES256') || '-' || T31.CRAL_IDV_TNO  AS SELL_PRTNR_CRAL_TNO /* 배송지 - 휴대전화번호(파라미터) */
+             , T31.CRAL_LOCARA_TNO || '-' || T31.MEXNO_ENCR || '-' || T31.CRAL_IDV_TNO  AS SELL_PRTNR_CRAL_TNO /* 배송지 - 휴대전화번호(파라미터) */
              , T31.CRAL_LOCARA_TNO                  /* 판매자-휴대지역전화번호 (LCDTEL) - ASIS는 구매부테이블(TL0000P)에서도 참고함(TL0000P/AK0400P/AK0100P 파트너   휴대전화번호 */
              , T31.MEXNO_ENCR                       /* 판매자-휴대전화국번호암호화 (LCDTEL) */
              , T31.CRAL_IDV_TNO                     /* 판매자-휴대개별전화번호 (LCDTEL) */
@@ -1994,7 +1994,7 @@
              , T41.RNADR  AS CNTR_CST_RNADR                          /* 계약자정보 - 기준주소 : LCCAD1 */
              , T41.RDADR  AS CNTR_CST_RDADR                          /* 계약자정보 - 상세주소 : LCCAD1 LCCAD1 */
              , T44.RCGVP_KNM                                         /* 수령자한글명 - 설치처정보 - 설치자　명(LCWNAM) */
-             , T44.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T44.MEXNO_ENCR,10,'AES256') || '-' || T44.CRAL_IDV_TNO  AS SHPADR_CRAL_TNO /* 배송지 - 휴대전화번호(파라미터) */
+             , T44.CRAL_LOCARA_TNO || '-' || T44.MEXNO_ENCR || '-' || T44.CRAL_IDV_TNO  AS SHPADR_CRAL_TNO /* 배송지 - 휴대전화번호(파라미터) */
              , T44.CRAL_LOCARA_TNO   AS SHPADR_CRAL_LOCARA_TNO      /* 배송지 - 휴대전화번호1 LCWNOT */
              , T44.EXNO_ENCR        AS SHPADR_MEXNO_ENCR           /* 배송지 - 휴대전화번호2 */
              --, T44.MEXNO_ENCR        AS SHPADR_MEXNO_ENCR           /* 배송지 - 휴대전화번호2 */
@@ -2065,7 +2065,7 @@
              , SUBSTR(T46.FST_SPP_FSH_DTM, 0, 8) AS FST_SPP_FSH_DT                          /* 최초배송일자 - 배송일자(LCDLVT,LCDLVY) */
              , T12.IST_DT                                                                   /* 설치일자 - 매출일자 (매출일:LCSLET.LCSLEY) TOBE맵핑이 설치일자*/
              --, T50.SL_DT                                                                  /* 매출일자 (매출일:LCSLET.LCSLEY) */
-             ,  T11.CNTR_PD_ENDDT                                                           /* 계약상품종료일자 - 만료일자(LCMANT = LCSLEY + LCMONT ) */
+             , T11.CNTR_PD_ENDDT                                                           /* 계약상품종료일자 - 만료일자(LCMANT = LCSLEY + LCMONT ) */
              , T17.HIST_STRT_DTM AS CLTN_RQDT                                               /* 해약요청일자:LCREQT,LCREQY - 고객쵸엉해약(301) 의 이력시작일자*/
              , T12.REQD_DT                                                                  /* 철거일자 - (해약일:LCCANT,LCCANY)*/
              , SUBSTR(T46.SPP_FSH_DTM, 5, 2) AS SPP_FSH_M                                   /* 배송완료월 - 배송기준년월(LCSCHM) */
@@ -2105,7 +2105,7 @@
              --, T42.CRAL_LOCARA_TNO  AS CNTR_CRAL_LOCARA_TNO                                       /* 계약자　휴대폰번호1 LCCNOT. LCCNO1*/
              --, T42.MEXNO_ENCR       AS CNTR_MEXNO_ENCR                                            /* 계약자　휴대폰번호2 LCCNOT. LCCNO2*/
              --, T42.CRAL_IDV_TNO     AS CNTR_CRAL_IDV_TNO                                          /* 계약자　휴대폰번호3 LCCNOT. LCCNO3*/
-             , T42.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T42.MEXNO_ENCR,10,'AES256') || '-' || T42.CRAL_IDV_TNO  AS CNTR_CRAL_TNO /* 계약자 - 휴대전화번호(LCCNOT) */
+             , T42.CRAL_LOCARA_TNO || '-' || T42.MEXNO_ENCR || '-' || T42.CRAL_IDV_TNO  AS CNTR_CRAL_TNO /* 계약자 - 휴대전화번호(LCCNOT) */
              , F_CMZ_CD_NM('TNT_WELLS', 'CNTRT_REL_CD', T44.CNTRT_REL_CD) AS CNTRT_REL_NM         /* 계약자 기준 배송처 관계 - LCST11_NM, LCST11) */
              , '' AS LCMMDC                                                                       /* 최초 배송월 무료 - LD3000P@LCMMDC TODO.맵핑없음 값이 0또는 빈값만 있음. 화면 삭제요청*/
              , T80.ALNC_STAT_TP_CD                                                                  /* 제휴상태유형명 -제휴상태:LCCK08*/
@@ -2417,16 +2417,17 @@
           AND T50.CNTR_SN = T11.CNTR_SN
           AND T50.DTA_DL_YN = 'N'
          LEFT OUTER JOIN LATERAL (SELECT * /* 최근 일매출일자 */
-                                     FROM (SELECT CNTR_NO
-                                                , CNTR_SN
-                                                , SL_DT
-                                                , SUBSTR(FNL_MDFC_DTM, 9,6)   AS SL_TM  /* 최종 수정일시 (매출일 있는 날짜)*/
-                                                , ROW_NUMBER() OVER(ORDER BY SL_DT DESC) AS RN
-                                            FROM TB_CBCL_SL_CNFM_BAS /* 매출확정기본 (일매출)*/
+                                     FROM (SELECT MAX(T510.CNTR_NO) KEEP(DENSE_RANK FIRST ORDER BY T510.FNL_MDFC_DTM DESC) AS CNTR_NO
+                                                , MAX(T510.CNTR_SN) KEEP(DENSE_RANK FIRST ORDER BY T510.FNL_MDFC_DTM DESC) AS CNTR_SN
+                                                , MAX(T510.SL_RCOG_DT) KEEP(DENSE_RANK FIRST ORDER BY T510.FNL_MDFC_DTM DESC) AS SL_DT
+                                                , MAX(SUBSTR(T510.FNL_MDFC_DTM, 9,6))  KEEP(DENSE_RANK FIRST ORDER BY T510.FNL_MDFC_DTM DESC) AS SL_TM  /* 최종 수정일시 (매출일 있는 날짜) */
+                                                , ROW_NUMBER() OVER(ORDER BY MAX(T510.SL_RCOG_DT) DESC) AS RN
+                                            FROM TB_CBCL_WELLS_SL_CNFM_BAS T510 /* T.매출확정기본 (일매출) */
                                           WHERE 1=1
-                                            AND CNTR_NO = T11.CNTR_NO
-                                            AND CNTR_SN = T11.CNTR_SN
-                                            AND DTA_DL_YN = 'N'
+                                            AND T510.CNTR_NO = T11.CNTR_NO
+                                            AND T510.CNTR_SN = T11.CNTR_SN
+                                            AND T510.SL_CNFM_SN = 1
+                                            AND T510.DTA_DL_YN = 'N'
                                           )
                                     WHERE RN = 1
                                   ) T51
