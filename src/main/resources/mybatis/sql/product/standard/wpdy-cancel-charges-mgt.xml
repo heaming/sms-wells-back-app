@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.standard.mapper.WpdcRentalLeasePenaltyMgtMapper">
+    <sql id="selectRentalLeasePenaltySql">
+        SELECT
+             PB. PD_NM /* 상품명 */
+             , T1.CCAM_ID          /* 위약금ID */
+             , T1.HIST_STRT_DTM    /* 이력시작일시 */
+             , T1.HIST_END_DTM     /* 이력종료일시 */
+             , T1.VL_STRT_DTM      /* 유효시작일시 */
+             , T1.VL_END_DTM       /* 유효종료일시 */
+             , T1.PD_CD            /* 상품코드 */
+             , T1.CSMB_CS          /* 소모품비용 */
+             , T1.REQD_CS          /* 철거비용 */
+             , T1.RENTAL_RNTF      /* 렌탈손료 */
+             , T1.SPAY_RNTF        /* 일시불손료 */
+             , T1.RES_CCAM_RAT     /* 잔여위약금비율 */
+             , T1.TEMP_SAVE_YN     /* 임시저장여부 */
+             , T1.DTA_DL_YN        /* 데이터삭제여부 */
+             , T1.FST_RGST_DTM
+             , T1.FST_RGST_USR_ID
+             , RU.USR_NM AS FST_RGST_USR_NM              /* 등록자 */ 
+             , T1.FNL_MDFC_DTM
+             , T1.FNL_MDFC_USR_ID  
+             , MU.USR_NM AS FNL_MDFC_USR_NM              /* 최종수정자 */
+          FROM TB_PDBS_CCAM_BAS T1 /* 위약금기본 */
+          LEFT JOIN TB_PDBS_PD_BAS PB                     /* 상품기본마스터 */
+            ON PB.PD_CD = T1.PD_CD
+           AND PB.DTA_DL_YN = 'N'
+          LEFT JOIN T_CMP_USR_ACO_M RU
+            ON RU.USR_ID = T1.FST_RGST_USR_ID 
+          LEFT JOIN T_CMP_USR_ACO_M MU
+            ON MU.USR_ID = T1.FNL_MDFC_USR_ID
+         WHERE T1.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty( prdtCateHigh )'>
+           AND PB.PD_HCLSF_ID = #{prdtCateHigh}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( prdtCateMid )'>
+           AND PB.PD_MCLSF_ID = #{prdtCateMid}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdNm )'>
+             <bind name="pdNm" value="'%'+ pdNm +'%'"/>
+           AND UPPER(PB.PD_NM) LIKE UPPER(#{pdNm})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdCd )'>
+             <bind name="pdCd" value="'%'+ pdCd +'%'"/>
+           AND UPPER(PB.PD_CD) LIKE UPPER(#{pdCd})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( svcStartDt )'>
+           AND T1.VL_STRT_DTM <![CDATA[<=]]> #{svcStartDt}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( svcEndDt )'>
+           AND ( T1.VL_END_DTM IS NULL OR T1.VL_END_DTM <![CDATA[>=]]> #{svcEndDt} )
+           </if>
+    </sql>
+
+    <select id="selectRentalLeasePenalties" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdyRentalLeasePenaltyMgtDto$SearchRes">
+        <include refid="selectRentalLeasePenaltySql"/>
+    </select>
+    
+    <select id="selectRentalLeasePenaltyPages" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdyRentalLeasePenaltyMgtDto$SearchRes">
+        <include refid="selectRentalLeasePenaltySql"/>
+    </select>
+    
+    <select id="selectRentalLeasePenaltyId" resultType="String">
+        SELECT 'PDA' || LPAD(  SQ_PDBS_CCAM_BAS$CCAM_ID.NEXTVAL  , 12, 0) FROM DUAL
+    </select>
+    
+    <update id="mergeRentalLeasePenaltyBase">
+        MERGE INTO TB_PDBS_CCAM_BAS T1  /* 위약금기본 */
+             USING ( SELECT #{ccamId} AS CCAM_ID          /* 위약금ID */
+                          , #{histStrtDtm} AS HIST_STRT_DTM    /* 이력시작일시 */
+                          , #{histEndDtm} AS HIST_END_DTM     /* 이력종료일시 */
+                          , #{vlStrtDtm} AS VL_STRT_DTM      /* 유효시작일시 */
+                          , #{vlEndDtm} AS VL_END_DTM       /* 유효종료일시 */
+                          , #{pdCd} AS PD_CD            /* 상품코드 */
+                          , #{csmbCs} AS CSMB_CS          /* 소모품비용 */
+                          , #{reqdCs} AS REQD_CS          /* 철거비용 */
+                          , #{rentalRntf} AS RENTAL_RNTF      /* 렌탈손료 */
+                          , #{spayRntf} AS SPAY_RNTF        /* 일시불손료 */
+                          , #{resCcamRat} AS RES_CCAM_RAT     /* 잔여위약금비율 */
+                          , #{tempSaveYn} AS TEMP_SAVE_YN     /* 임시저장여부 */
+                          , NVL(#{dtaDlYn}, 'N') AS DTA_DL_YN        /* 데이터삭제여부 */
+                       FROM DUAL  ) T2
+                ON (T1.CCAM_ID = T2.CCAM_ID          /* 위약금ID */
+                AND T1.HIST_STRT_DTM = T2.HIST_STRT_DTM    /* 이력시작일시 */
+                   )
+        WHEN MATCHED THEN
+          UPDATE
+             SET HIST_END_DTM = T2.HIST_END_DTM
+               , VL_STRT_DTM = T2.VL_STRT_DTM
+               , VL_END_DTM = T2.VL_END_DTM
+               , PD_CD = T2.PD_CD
+               , CSMB_CS = T2.CSMB_CS
+               , REQD_CS = T2.REQD_CS
+               , RENTAL_RNTF = T2.RENTAL_RNTF
+               , SPAY_RNTF = T2.SPAY_RNTF
+               , RES_CCAM_RAT = T2.RES_CCAM_RAT
+               , TEMP_SAVE_YN = T2.TEMP_SAVE_YN
+               , DTA_DL_YN = T2.DTA_DL_YN
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                 CCAM_ID
+               , HIST_STRT_DTM
+               , HIST_END_DTM
+               , VL_STRT_DTM
+               , VL_END_DTM
+               , PD_CD
+               , CSMB_CS
+               , REQD_CS
+               , RENTAL_RNTF
+               , SPAY_RNTF
+               , RES_CCAM_RAT
+               , TEMP_SAVE_YN
+               , DTA_DL_YN
+               , FST_RGST_DTM
+               , FST_RGST_USR_ID
+               , FST_RGST_PRG_ID
+               , FST_RGST_DEPT_ID
+               , FNL_MDFC_DTM
+               , FNL_MDFC_USR_ID
+               , FNL_MDFC_PRG_ID
+               , FNL_MDFC_DEPT_ID
+          ) VALUES (
+                 T2.CCAM_ID
+               , T2.HIST_STRT_DTM
+               , T2.HIST_END_DTM
+               , T2.VL_STRT_DTM
+               , T2.VL_END_DTM
+               , T2.PD_CD
+               , T2.CSMB_CS
+               , T2.REQD_CS
+               , T2.RENTAL_RNTF
+               , T2.SPAY_RNTF
+               , T2.RES_CCAM_RAT
+               , T2.TEMP_SAVE_YN
+               , T2.DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />  )
+    </update>
+    
+    <update id="deleteRentalLeasePenaltyBase">
+        UPDATE TB_PDBS_CCAM_BAS
+           SET DTA_DL_YN = 'Y'
+             , HIST_END_DTM = #{histEndDtm}
+           <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND CCAM_ID = #{ccamId}
+           AND HIST_STRT_DTM = #{histStrtDtm}
+    </update>
+</mapper>
