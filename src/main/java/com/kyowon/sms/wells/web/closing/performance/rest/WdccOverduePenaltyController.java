@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.*;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccOverduePenaltyService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import io.swagger.annotations.Api;
@@ -27,73 +26,80 @@ public class WdccOverduePenaltyController {
     private final WdccOverduePenaltyService service;
 
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(집계)", notes = "매출채권/선수금 현황 - 연체가산금")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
-        @ApiImplicitParam(name = "agrgDv", value = "집계구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
-        @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query"),
-    })
-    @GetMapping("/aggregate")
-    public List<SearchRes> getSalesBondAdditionalChargesAggregate(
-        @Valid SearchReq req
-    ) {
-        return service.getSalesBondAdditionalChargesAggregate(req);
+    @GetMapping("/code")
+    public List<FindCodeRes> getCode() {
+        return service.getCode();
     }
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(mainGrid 집계)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
-        @ApiImplicitParam(name = "agrgDv", value = "집계구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
-        @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
     })
-    @GetMapping("/dates")
-    public List<SearchRes> getSalesBondAdditionalChargesDates(
+    @GetMapping("/mainAggregate")
+    public List<SearchMainGridRes> getMainGridAggregate(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAdditionalChargesDates(req);
+        return service.getMainGridAggregate(req);
     }
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(mainGrid 일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
-        @ApiImplicitParam(name = "agrgDv", value = "집계구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
-        @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
     })
-    @GetMapping("/orders")
-    public List<SearchRes> getSalesBondAdditionalChargesOrders(
+    @GetMapping("/mainDates")
+    public List<SearchMainGridRes> getMainGridDates(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAdditionalChargesOrders(req);
+        return service.getMainGridDates(req);
     }
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(가로계산식 틀린회원)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(subGrid주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
-        @ApiImplicitParam(name = "agrgDv", value = "집계구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "cntr", value = "계약상세번호", paramType = "query"),
-        @ApiImplicitParam(name = "mlgBtdPrpdAmt", value = "포인트 조회", paramType = "query")
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
     })
-    @GetMapping("/members")
-    public List<SearchRes> getSalesBondAdditionalChargesMembers(
+    @GetMapping("/subOrder")
+    public List<SearchSubGridRes> getSubGridOrder(
         @Valid SearchReq req
     ) {
-        return service.getSalesBondAdditionalChargesMembers(req);
+        return service.getSubGridOrder(req);
     }
 
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(thirdGrid집계)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
+    })
+    @GetMapping("/thirdAggregate")
+    public List<SearchThirdGridRes> getThirdGridAggregate(
+        @Valid SearchReq req
+    ) {
+        return service.getThirdGridAggregate(req);
+    }
+
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(fourthGrid집계)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
+    })
+    @GetMapping("/fourthOrder")
+    public List<SearchFourthGridRes> getFourthGridOrder(
+        @Valid SearchReq req
+    ) {
+        return service.getFourthGridOrder(req);
+    }
 }
 
 
