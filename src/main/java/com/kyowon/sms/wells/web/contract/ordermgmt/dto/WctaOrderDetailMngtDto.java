@@ -14,6 +14,7 @@ public class WctaOrderDetailMngtDto {
         String prdEnqry,
         String strtDt,
         String endDt,
+        String rentalNmn,
         String hcsfVal,
         String hcsfMcsfVal,
         String pdCd,
