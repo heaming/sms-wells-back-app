@@ -20,46 +20,67 @@
         AND A.ITG_DP_NO = B.ITG_DP_NO
         AND B.DTA_DL_YN = 'N'
       WHERE 1 = 1
-        <if test="@MybatisUtils@isNotEmpty(perfDt)">
-           AND B.PERF_DT = #{perfDt} -- 실적일자 [수납상세]
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(rveDt)">
-           AND B.RVE_DT = #{rveDt} -- 수납일자 [수납상세]
-        </if>
-        <!-- <if test="@MybatisUtils@isNotEmpty(crpAcno)">
-           AND C.CRP_ACNO = #{crpAcno} 계좌번호 [법인계좌관리기본]
-        </if> -->
-        <!-- <if test="@MybatisUtils@isNotEmpty(alncmpDprNm)">
-           AND A.ALNCMP_DPR_NM = #{alncmpDprNm}  입금자명 [법인입금예정제휴사기본]
-        </if> -->
-           <if test="@MybatisUtils@isNotEmpty(rveCd)">
-           AND B.RVE_CD = #{rveCd} -- 수납코드 [수납상세]
-          </if>
+        <choose>
+            <when test='@MybatisUtils@isNotEmpty(itgDpNo)'>                                
+           AND A.ITG_DP_NO = #{itgDpNo} -- 통합입금번호
+            </when>
+            <otherwise>
+            <if test="@MybatisUtils@isNotEmpty(perfDt)">
+               AND B.PERF_DT = #{perfDt} -- 실적일자 [수납상세]
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(rveDt)">
+               AND B.RVE_DT = #{rveDt} -- 수납일자 [수납상세]
+            </if>
+            <!-- <if test="@MybatisUtils@isNotEmpty(crpAcno)">
+               AND C.CRP_ACNO = #{crpAcno} 계좌번호 [법인계좌관리기본]
+            </if> -->
+            <!-- <if test="@MybatisUtils@isNotEmpty(alncmpDprNm)">
+               AND A.ALNCMP_DPR_NM = #{alncmpDprNm}  입금자명 [법인입금예정제휴사기본]
+            </if> -->
+               <if test="@MybatisUtils@isNotEmpty(rveCd)">
+               AND B.RVE_CD = #{rveCd} -- 수납코드 [수납상세]
+              </if>
+            </otherwise>
+        </choose>
            AND A.DTA_DL_YN = 'N'
     </select>
     
     <insert id="insertCorporationDepositSspMgt">
-        INSERT INTO TB_RVDW_CRP_DP_EXP_ALNCMP_BAS(
-               ITG_DP_NO 
-             , KW_GRP_CO_CD
-             , ALNCMP_SUSC_ORD_NO 
-             , CNTR_NO 
-             , CNTR_SN 
-             , SELL_TP_CD 
-             , ALNCMP_DP_AMT 
-             , ALNCMP_FEE
-             <include refid="COMMON.insertSystemField"/>
-           )VALUES(
-                  #{itgDpNo}
-                , #{session.companyCode}
-                , #{alncmpSuscOrdNo}
-                , #{cntrNo}
-                , #{cntrSn}
-                , #{sellTpCd}
-                , #{alncmpDpAmt}
-                , #{alncmpFee}
-             <include refid="COMMON.insertSystemFieldValue"/>
-           )
+      MERGE 
+       INTO TB_RVDW_CRP_DP_EXP_ALNCMP_BAS A
+      USING dual
+         ON (    A.KW_GRP_CO_CD = #{session.companyCode}
+             AND A.CNTR_NO = #{cntrNo}
+             AND A.CNTR_SN = #{cntrSn})
+        WHEN MATCHED THEN
+      UPDATE SET ITG_DP_NO = #{itgDpNo}
+           , ALNCMP_SUSC_ORD_NO = #{alncmpSuscOrdNo}
+           , SELL_TP_CD = #{sellTpCd}
+           , ALNCMP_DP_AMT = #{alncmpDpAmt}
+           , ALNCMP_FEE = #{alncmpFee}
+           <include refid="COMMON.updateSystemField"/>    
+        WHEN NOT MATCHED THEN
+      INSERT (
+             ITG_DP_NO 
+           , KW_GRP_CO_CD
+           , ALNCMP_SUSC_ORD_NO 
+           , CNTR_NO 
+           , CNTR_SN 
+           , SELL_TP_CD 
+           , ALNCMP_DP_AMT 
+           , ALNCMP_FEE
+            <include refid="COMMON.insertSystemField"/>
+       ) VALUES (
+             #{itgDpNo}
+           , #{session.companyCode}
+           , #{alncmpSuscOrdNo}
+           , #{cntrNo}
+           , #{cntrSn}
+           , #{sellTpCd}
+           , #{alncmpDpAmt}
+           , #{alncmpFee}
+           <include refid="COMMON.insertSystemFieldValue"/>
+        )
     </insert>
       
 </mapper>

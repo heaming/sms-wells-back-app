@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[수납입출금 - 개별수납] 법인입금 예정관리/대사처리 -SSP제휴")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/corporation-dp-ssp")
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/corporation-deposit-ssp")
 @Slf4j
 public class WwdbCorporationDepositSspMgtMController {
 
