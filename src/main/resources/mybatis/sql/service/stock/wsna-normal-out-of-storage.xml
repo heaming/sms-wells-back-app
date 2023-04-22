@@ -482,17 +482,26 @@
            SET RECT_OSTR_DT = #{todayStr}
              , OSTR_AGG_QTY = NVL(OSTR_AGG_QTY,0) + #{outQty}
              , OSTR_CNFM_CD = 0
+             , RMK_CN = #{rmkCn}
              <include refid="COMMON.updateSystemField"/>
          WHERE OSTR_AK_NO = #{ostrAkNo}
            AND OSTR_AK_SN = #{ostrAkSn}
-           AND OSTR_AK_TP_CD = #{ostrTpCd}
-           AND OSTR_AK_RGST_DT = #{ostrAkRgstDt}
+    </update>
+    <update id="updateOstrAkIzAfter">
+        UPDATE TB_SVST_ITM_OSTR_AK_IZ
+           SET OSTR_AK_QTY = #{ostrAkQty}
+             , OSTR_CNFM_QTY = #{ostrCnfmQty}
+             , RMK_CN = #{rmkCn}
+             , BOX_UNIT_QTY = #{boxUnitQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE OSTR_AK_NO = #{ostrAkNo}
+           AND OSTR_AK_SN = #{ostrAkSn}
     </update>
 
     <select id="selectNormalOstrRgstChecked"
         resultType="int">
         SELECT (CASE WHEN #{ostrAkNo} > '20190700'
-                    THEN COUNT(CASE WHEN (T1.OSTR_CNFM_QTY - T1.OSTR_AGG_QTY) != 0 THEN 1 END)
+                    THEN COUNT(CASE WHEN (T1.OSTR_CNFM_QTY - T1.STR_AGG_QTY) != 0 THEN 1 END)
                     ELSE COUNT(CASE WHEN T1.RECT_OSTR_DT IS NULL THEN 1 END)
                 END) AS CNT
           FROM TB_SVST_ITM_OSTR_AK_IZ T1
@@ -506,4 +515,20 @@
         </where>
     </select>
 
+    <update id="updateStandardWareHouse">
+        UPDATE TB_SVST_MCBY_WARE_IZ
+           SET STD_WARE_USE_YN = #{stckStdGb}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{ostrWareNo}
+           AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+    </update>
+
+    <select id="selectStandardWareHouse"
+        resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$StandardWareRes">
+        SELECT NVL(STD_WARE_USE_YN,'Y') AS STCK_STD_GB
+             , WARE_NO AS OSTR_WARE_NO
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND WARE_NO = #{ostrWareNo}
+    </select>
 </mapper>

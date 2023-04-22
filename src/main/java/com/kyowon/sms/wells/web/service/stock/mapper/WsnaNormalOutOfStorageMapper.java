@@ -32,5 +32,11 @@ public interface WsnaNormalOutOfStorageMapper {
 
     int updateOstrAkIz(WsnaNormalOutOfStorageDvo vo);
 
+    int updateOstrAkIzAfter(WsnaNormalOutOfStorageDvo vo);
+
     StrNoAndOstrNoRes selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
+
+    int updateStandardWareHouse(StandardWareReq dto);
+
+    StandardWareRes selectStandardWareHouse(StandardWareReq dto);
 }
