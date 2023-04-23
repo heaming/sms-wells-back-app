@@ -121,4 +121,14 @@ public class WsnaNormalOutOfStorageController {
     ) {
         return service.getNormalOstrRgstChecked(dto);
     }
+
+    @PutMapping("/standard-ware")
+    public int saveStandardWareHouse(StandardWareReq dto) {
+        return service.saveStandardWareHouse(dto);
+    }
+
+    @GetMapping("/standard-ware")
+    public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
+        return service.getStandardWareHouse(dto);
+    }
 }

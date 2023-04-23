@@ -71,9 +71,9 @@ public class WsnaNormalOutOfStorageService {
             vo.setItmStrNo(res.itmStrNo());
             vo.setStrTpCd(res.strTpCd());
             vo.setTodayStr(res.todayStr());
+            cnt += mapper.updateOstrAkIz(vo);
             cnt += mapper.insertNormalOstrRgst(vo);
             cnt += mapper.insertNormalStrRgst(vo);
-            cnt += mapper.updateOstrAkIz(vo);
 
             WsnaItemStockItemizationDto.SaveReq ostrDto = setOstrWsnaItemStockItemizationDtoSaveReq(vo);
             cnt += itemStockservice.createStock(ostrDto);
@@ -84,6 +84,7 @@ public class WsnaNormalOutOfStorageService {
             WsnaItemStockItemizationDto.SaveReq strDto = setStrWsnaItemStockItemizationDtoSaveReq(vo);
             itemStockservice.saveStockMovement(strDto);
 
+            cnt += mapper.updateOstrAkIzAfter(vo);
         }
         return cnt;
     }
@@ -156,5 +157,13 @@ public class WsnaNormalOutOfStorageService {
             null
         );
         return reqDto;
+    }
+
+    public int saveStandardWareHouse(StandardWareReq dto) {
+        return mapper.updateStandardWareHouse(dto);
+    }
+
+    public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
+        return mapper.selectStandardWareHouse(dto);
     }
 }
