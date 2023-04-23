@@ -122,9 +122,16 @@ public class WsnaNormalOutOfStorageController {
         return service.getNormalOstrRgstChecked(dto);
     }
 
-    @PutMapping("/standard-ware")
-    public int saveStandardWareHouse(StandardWareReq dto) {
-        return service.saveStandardWareHouse(dto);
+    @PutMapping("/standard-ware/{ostrWareNo}/{stchStdGb}")
+    public int saveStandardWareHouse(
+        @Valid
+        @PathVariable
+        String ostrWareNo,
+        @Valid
+        @PathVariable
+        String stchStdGb
+    ) {
+        return service.saveStandardWareHouse(ostrWareNo, stchStdGb);
     }
 
     @GetMapping("/standard-ware")

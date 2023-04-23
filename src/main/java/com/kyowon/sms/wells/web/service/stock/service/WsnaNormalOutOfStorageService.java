@@ -159,8 +159,8 @@ public class WsnaNormalOutOfStorageService {
         return reqDto;
     }
 
-    public int saveStandardWareHouse(StandardWareReq dto) {
-        return mapper.updateStandardWareHouse(dto);
+    public int saveStandardWareHouse(String ostrWareNo, String stckStdGb) {
+        return mapper.updateStandardWareHouse(ostrWareNo, stckStdGb);
     }
 
     public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
