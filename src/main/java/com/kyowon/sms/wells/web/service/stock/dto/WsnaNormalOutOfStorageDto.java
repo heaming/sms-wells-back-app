@@ -58,7 +58,7 @@ public class WsnaNormalOutOfStorageDto {
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskRes")
     public record AskRes(
-        String wareMngtPrtrnNo, /*창고파트너번호*/
+        String wareMngtPrtnrNo, /*창고파트너번호*/
         String wareNm, /*창고명*/
         String itmPdCd, /*품목상품코드*/
         String wareNo, /*창고번호*/
