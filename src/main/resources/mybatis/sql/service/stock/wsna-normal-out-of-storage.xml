@@ -150,42 +150,7 @@
                                   AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                                   AND WARE_DTL_DV_CD = '20')
     </select>
-    <select id="detailParamNm">
-        SELECT T1.OSTR_AK_NO
-             , T1.OSTR_AK_SN
-             , T1.OSTR_AK_TP_CD
-             , DECODE(OSTR_AK_TP_CD,'310','221','320','223') AS OSTR_TP_CD
-             , T1.OSTR_AK_RGST_DT
-             , TO_CHAR(SYSDATE,'YYYYMMDD') AS OSTR_DT
-             , T1.OSTR_OJ_WARE_NO
-             , T2.WARE_NM AS OSTR_WARE_NM
-             , T2.WARE_MNGT_PRTNR_NO AS OSTR_WARE_MNGT_PRTNR_NO
-             , T1.OSTR_AK_TP_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'OSTR_AK_TP_CD', T1.OSTR_AK_TP_CD) AS OSTR_AK_TP_NM
-             , T1.STR_HOP_DT
-             , T1.STR_OJ_WARE_NO
-             , T3.WARE_NM AS STR_WARE_NM
-             , T3.WARE_MNGT_PRTNR_NO AS STR_WARE_MNGT_PRTNR_NO
-             , '' AS TR_GB
-             , '' AS TR_CO
-             , '' AS TR_TONS
-             , '' AS ST161_ACC_DT
-             , '' AS ST161_EVDC_GB
-             , T1.OSTR_OJ_WARE_NO
-             , T3.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
-          FROM TB_SVST_ITM_OSTR_AK_IZ T1
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
-            ON T2.APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
-           AND T2.WARE_NO = T1.OSTR_OJ_WARE_NO
-           AND T2.DTA_DL_YN = 'N'
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T3
-            ON T3.APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
-           AND T3.WARE_NO = T1.STR_OJ_WARE_NO
-           AND T3.DTA_DL_YN = 'N'
-         WHERE T1.OSTR_AK_NO = #{ostrAkNo}
-           AND T1.STR_OJ_WARE_NO = #{strOjWareNo}
-           AND T1.OSTR_AK_RGST_DT = #{ostrAkRgstDt}
-    </select>
+
     <select id="selectNormalOutOfStoragesDetails"
         resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$DetailRes">
         SELECT 'I' AS FLAG
@@ -371,8 +336,8 @@
 
     <select id="selectStrNoAndOstrNo"
         resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$StrNoAndOstrNoRes">
-        SELECT T2.OSTR_TP_CD || T2.TODAY_STR || LPAD(T2.OSTR_SEQ, 7, 0) AS ITM_OSTR_NO
-             , T2.STR_TP_CD || T2.TODAY_STR || LPAD(T2.STR_SEQ, 7, 0) AS ITM_STR_NO
+        SELECT T2.OSTR_TP_CD || T2.TODAY_STR || LPAD(SQ_SVST_ITM_OSTR_IZ$ITM_OSTR_NO.NEXTVAL, 7, 0) AS ITM_OSTR_NO
+             , T2.STR_TP_CD || T2.TODAY_STR || LPAD(SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL, 7, 0) AS ITM_STR_NO
              , T2.OSTR_TP_CD
              , T2.STR_TP_CD
              , T2.TODAY_STR
@@ -381,16 +346,6 @@
             SELECT T1.TODAY_STR
                  , T1.OSTR_TP_CD
                  , T1.STR_TP_CD
-                 , (SELECT (SELECT SQ_SVST_ITM_OSTR_IZ$ITM_OSTR_NO.NEXTVAL FROM DUAL) AS SEQ
-                      FROM TB_SVST_ITM_OSTR_IZ S1
-                     WHERE S1.OSTR_TP_CD = T1.OSTR_TP_CD
-                       AND S1.OSTR_DT = T1.TODAY_STR
-                   ) AS OSTR_SEQ
-                 , (SELECT (SELECT SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL FROM DUAL) AS SEQ
-                      FROM TB_SVST_ITM_STR_IZ S2
-                     WHERE S2.STR_TP_CD = T1.OSTR_TP_CD
-                       AND S2.STR_RGST_DT = T1.TODAY_STR
-                   ) AS STR_SEQ
               FROM (SELECT TO_CHAR(SYSDATE,'YYYYMMDD') AS TODAY_STR
                          , '221' AS OSTR_TP_CD
                          , DECODE('221' ,'221','121','222','122','223','123','261','161','262','162') AS STR_TP_CD
@@ -552,8 +507,8 @@
         UPDATE TB_SVST_MCBY_WARE_IZ
            SET STD_WARE_USE_YN = #{stckStdGb}
              <include refid="COMMON.updateSystemField"/>
-         WHERE WARE_NO = #{ostrWareNo}
-           AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+         WHERE WARE_NO = #{wareNo}
+           AND APY_YM = #{apyYm}
     </update>
 
     <select id="selectStandardWareHouse"
@@ -564,4 +519,5 @@
          WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND WARE_NO = #{ostrWareNo}
     </select>
+
 </mapper>

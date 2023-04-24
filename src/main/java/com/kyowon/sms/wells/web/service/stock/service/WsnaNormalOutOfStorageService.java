@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.service.stock.converter.WsnaNormalOutOfStorageCo
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageStdgbDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaNormalOutOfStorageMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -159,8 +160,9 @@ public class WsnaNormalOutOfStorageService {
         return reqDto;
     }
 
-    public int saveStandardWareHouse(String ostrWareNo, String stckStdGb) {
-        return mapper.updateStandardWareHouse(ostrWareNo, stckStdGb);
+    public int saveStandardWareHouse(MonthlyWarehouseReq dto) {
+        WsnaNormalOutOfStorageStdgbDvo dvo = converter.mapToWsnaNormalOutOfStorageStdgbDvo(dto);
+        return mapper.updateStandardWareHouse(dvo);
     }
 
     public StandardWareRes getStandardWareHouse(StandardWareReq dto) {

@@ -210,4 +210,10 @@ public class WsnaNormalOutOfStorageDto {
         String ostrWareNo,
         String stckStdGb
     ) {}
+
+    public record MonthlyWarehouseReq(
+        String apyYm,
+        String wareNo,
+        String stckStdGb
+    ) {}
 }
