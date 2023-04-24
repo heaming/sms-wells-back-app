@@ -44,4 +44,10 @@ public interface WsncRpbAreaChargeMgtMapper {
      */
     int insertPersonInCharge(WsncRpbAreaChargeDvo dvo);
 
+    /**
+     * 책임지역 담당자 관리 - 수정
+     * @param dvo
+     */
+    void updatePersonInCharge(WsncRpbAreaChargeDvo dvo);
+
 }

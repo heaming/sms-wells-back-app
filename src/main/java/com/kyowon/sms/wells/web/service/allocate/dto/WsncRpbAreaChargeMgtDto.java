@@ -16,13 +16,13 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsncRpbAreaChargeMgtDto {
 
-    @ApiModel(value = "WsncRpbLocaraPsicMngtDto-SearchReq")
+    @ApiModel(value = "WsncRpbAreaChargeMgtDto-SearchReq")
     public record SearchReq(
         String zipFrom, // 우편번호 From
         String zipTo, // 우편번호 To
         String ctpvNm, // 시도명
         String ctctyNm, // 시군구명
-        String ogId, // 서비스센터(조직ID)
+        String ogCd, // 서비스센터
         @NotBlank
         String wkGrpCd, // 작업그룹코드
         @NotBlank
@@ -31,7 +31,7 @@ public class WsncRpbAreaChargeMgtDto {
         String rpbLocaraCdTo // 지역코드 To
     ) {}
 
-    @ApiModel(value = "WsncRpbLocaraPsicMngtDto-SearchRes")
+    @ApiModel(value = "WsncRpbAreaChargeMgtDto-SearchRes")
     public record SearchRes(
         String zipList, // 우편번호 리스트
         String hemdList, // 행정동 리스트
@@ -42,8 +42,10 @@ public class WsncRpbAreaChargeMgtDto {
         Integer izSn, // 내역일련번호
         String apyStrtdt, // 적용시작일자
         String apyEnddt, // 적용종료일자
+        String ogTpCd, // 담당파트너조직유형코드
         String ichrPrtnrNo, // 담당파트너번호
         String prtnrKnm, // 파트너한글명
+        String pprnIchrPrtnrOgTpCd, // 예비담당파트너조직유형코드
         String pprnIchrPrtnrNo1, // 예비담당파트너번호1
         String pprnIchrPrtnrKnm1, // 예비담당파트너번호1
         String pprnIchrPrtnrNo2, // 예비담당파트너번호2
@@ -60,11 +62,11 @@ public class WsncRpbAreaChargeMgtDto {
         String vstDowVal, // 방문요일값
         Long mmtAvLdtm, // 이동평균소요시간
         String locaraCenStruAdr, // 지역중심건물주소
-        String w1W3SatWrkYn, // 1주3주토요일근무여부
+        String satWrkYn, // 토요일근무여부
         String ogNm // 조직명
     ) {}
 
-    @ApiModel(value = "WsncRpbLocaraPsicMngtDto-SearchZipsReq")
+    @ApiModel(value = "WsncRpbAreaChargeMgtDto-SearchZipsReq")
     public record SearchZipsReq(
         @NotBlank
         String applyDate, // 적용일자
@@ -72,15 +74,17 @@ public class WsncRpbAreaChargeMgtDto {
         String rpbLocaraCd // 지역코드
     ) {}
 
-    @ApiModel(value = "WsncRpbLocaraPsicMngtDto-CreateReq")
+    @ApiModel(value = "WsncRpbAreaChargeMgtDto-CreateReq")
     public record CreateReq(
         @NotBlank
         String wkGrpCd, // 작업그룹코드
         @NotBlank
         String rpbLocaraCd, // 책임지역코드
         Integer izSn, // 내역일련번호
+        String ogTpCd, // 담당파트너조직유형코드
         @NotBlank
         String ichrPrtnrNo, // 담당파트너번호
+        String pprnIchrPrtnrOgTpCd, // 예비담당파트너조직유형코드
         String pprnIchrPrtnrNo1, // 예비담당파트너번호1
         String pprnIchrPrtnrNo2, // 예비담당파트너번호2
         String pprnIchrPrtnrNo3, // 예비담당파트너번호3
@@ -91,7 +95,7 @@ public class WsncRpbAreaChargeMgtDto {
         String rstrCndtUseYn, // 제약조건사용여부
         String udsnUseYn, // 미지정사용여부
         String locaraCenStruAdr, // 지역중심건물주소
-        String w1W3SatWrkYn, // 1주3주토요일근무여부 0
+        String satWrkYn, // 토요일근무여부
         String rpbLocaraGrpCd, // 책임지역그룹코드
         @NotBlank
         String apyStrtdt, // 적용시작일자
@@ -101,7 +105,7 @@ public class WsncRpbAreaChargeMgtDto {
         public CreateReq {
             rstrCndtUseYn = StringUtil.nvl(rstrCndtUseYn, "N");
             udsnUseYn = StringUtil.nvl(udsnUseYn, "N");
-            w1W3SatWrkYn = StringUtil.nvl(w1W3SatWrkYn, "N");
+            satWrkYn = StringUtil.nvl(satWrkYn, "N");
         }
     }
 

@@ -11,12 +11,12 @@ import lombok.Builder;
  * W-SV-U-0036M01 책임지역 우편번호 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim 김혜원
  * @since 2022.11.17
  */
 public class WsncRpbAreaZipMgtDto {
 
-    @ApiModel(value = "WsncRpbLocaraZipMngtDto-SearchReq")
+    @ApiModel(value = "WsncRpbAreaZipMgtDto-SearchReq")
     public record SearchReq(
         String zipFrom, // 우편번호 From
         String zipTo, // 우편번호 To
@@ -28,7 +28,7 @@ public class WsncRpbAreaZipMgtDto {
         String applyDate // 적용일자
     ) {}
 
-    @ApiModel(value = "WsncRpbLocaraZipMngtDto-SearchRes")
+    @ApiModel(value = "WsncRpbAreaZipMgtDto-SearchRes")
     public record SearchRes(
         String newAdrZip, // 신주소우편번호
         String mgtCnt, // 지역별 서비스 계정 수
@@ -48,12 +48,10 @@ public class WsncRpbAreaZipMgtDto {
         String fr2pLgldCd, // 앞2자리법정동코드
         String kynorLocaraYn, // 경북지역여부
         String ildYn, // 섬여부
-        String pdlvNo, // 출고지번호
-        String dtaDlYn, // 데이터삭제여부
-        String applyDate
+        String pdlvNo // 출고지번호
     ) {}
 
-    @ApiModel(value = "WsncRpbLocaraZipMngtDto-District")
+    @ApiModel(value = "WsncRpbAreaZipMgtDto-District")
     public record District(
         String fr2pLgldCd, // 앞2자리법정동코드
         String ctpvNm, // 시도명
@@ -63,7 +61,7 @@ public class WsncRpbAreaZipMgtDto {
         String mngtAmtd // 관리행정동
     ) {}
 
-    @ApiModel("WsncRpbLocaraZipMngtDto-CreateReq")
+    @ApiModel("WsncRpbAreaZipMgtDto-CreateReq")
     @Builder
     public record CreateReq(
         @NotBlank
@@ -78,8 +76,7 @@ public class WsncRpbAreaZipMgtDto {
         @NotBlank
         String kynorLocaraYn, // 경북지역여부
         String ildYn, // 섬여부
-        String pdlvNo, // 출고지번호
-        String dtaDlYn // 데이터삭제여부
+        String pdlvNo // 출고지번호
     ) {}
 
 }
