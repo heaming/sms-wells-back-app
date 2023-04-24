@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaEmployeePrchsGcfMngtService;
@@ -53,5 +54,18 @@ public class WctaEmployeePrchsGcfMngtController {
         SearchReq dto
     ) {
         return service.getEmployeePurchaseGcfsExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "직원구매 계약 목록 조회", notes = "메인화면에서 넘어온 파라미터(귀속년도, 사번)에 해당하는 직원구매 계약리스트 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "stYy", value = "적용기간 시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "colDv", value = "적용기간 종료일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "empno", value = "판매자사번", paramType = "query"),
+    })
+    @GetMapping("/contracts/employee-purchases")
+    public List<WctaEmployeePrchsGcfMngtDto.SearchCntrRes> getEmployeePurchases(
+        String stYy, String colDv, String empno
+    ) {
+        return service.getEmployeePurchases(stYy, colDv, empno);
     }
 }
