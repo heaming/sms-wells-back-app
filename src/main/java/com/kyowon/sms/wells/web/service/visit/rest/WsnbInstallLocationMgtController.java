@@ -79,7 +79,7 @@ public class WsnbInstallLocationMgtController {
 
     @ApiOperation(value = "엔지니어 조회", notes = "엔지니어 리스르를 조회한다.")
     @GetMapping("/engineers")
-    public List<Engineer> getEngineers() {
+    public List<FindEngineerRes> getEngineers() {
         return service.getEngineers();
     }
 

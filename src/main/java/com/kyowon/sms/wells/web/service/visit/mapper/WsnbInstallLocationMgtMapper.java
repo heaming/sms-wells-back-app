@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Center;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Engineer;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.FindEngineerRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Product;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo;
@@ -41,7 +41,7 @@ public interface WsnbInstallLocationMgtMapper {
 
     List<Product> selectProducts();
 
-    List<Engineer> selectEngineers();
+    List<FindEngineerRes> selectEngineers();
 
     List<Center> selectCenters();
 }
