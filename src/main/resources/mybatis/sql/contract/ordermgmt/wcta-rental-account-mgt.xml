@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaRentalAccountMgtMapper">
     <select id="selectBpdRentalAccount" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto$SearchBpdRentalAccountRes">
         SELECT
-           MAX(T1.PD_MCLSF_ID) AS PDGRP_NM /* [상품군]  */
+           MAX(T1.PD_CLSF_NM) AS PDGRP_NM /* [상품군]  */
          , MAX(T1.PD_NM) AS PD_NM /* [상품명]  */
          , MAX(T1.BASE_PD_CD) AS BASE_PD_CD /* [상품코드]  */
          , T1.IST_MT       AS IST_DT /* [설치년월] */
@@ -17,7 +17,7 @@
          , SUM(T1.CNT6)    AS SPR_REQD_CNT /* [이탈(철거-후속계약X)] */
          , ROUND((SUM(T1.CNT5) + SUM(T1.CNT6)) * 100 / SUM(T1.TOT_CNT),1) SPR_RAT  /* [이탈율] */
         FROM (
-            SELECT D.PD_MCLSF_ID /* 상품기본.상품중분류ID */
+            SELECT H.PD_CLSF_NM /* 상품기본.상품중분류ID */
                  , D.PD_NM /* 상품기본.상품명 */
                  , A.BASE_PD_CD /* 계약상세.기준상품코드 */
                  , SUBSTR(C.IST_DT,1,6) AS IST_MT  /* 설치년월 */
@@ -29,13 +29,13 @@
                  , CASE WHEN A.SELL_TP_CD = 3 THEN 1 ELSE 0 END AS CNT3 /* 멤버십건수 */
                  , CASE WHEN A.CNTR_DTL_STAT_CD = '101' /*계약상세 상태코드가 정상(101) 이면서 */
                              AND A.CNTR_PD_ENDDT IS NOT NULL
-                             AND TO_DATE(A.CNTR_PD_ENDDT, 'YYYYMMDD') <![CDATA[ < ]]> SYSDATE /* 계약 종료일이 현재일보다 작은 경우 */
+                             AND A.CNTR_PD_ENDDT <![CDATA[ < ]]>  TO_CHAR(SYSDATE,'YYYYMMDD')/* 계약 종료일이 현재일보다 작은 경우 */
                              THEN 1
                         ELSE 0
                    END AS CNT4 /* 렌탈유지건수 */
                  , CASE WHEN A.CNTR_DTL_STAT_CD = '101'/*계약상세 상태코드가 정상(101) 이면서 */
                               AND A.CNTR_PD_ENDDT IS NOT NULL
-                              AND TO_DATE(A.CNTR_PD_ENDDT, 'YYYYMMDD') >= SYSDATE /* 계약 종료일이 현재일보다 크거나 같은 경우 */
+                              AND A.CNTR_PD_ENDDT <![CDATA[ >= ]]>  TO_CHAR(SYSDATE,'YYYYMMDD') /* 계약 종료일이 현재일보다 크거나 같은 경우 */
                              THEN 1
                         WHEN A.CNTR_DTL_STAT_CD = '402' /*계약상세 상태코드가 계약기간종료(402)인 경우 */
                              THEN 1
@@ -83,8 +83,10 @@
                    ) G
                 ON G.CNTR_NO = A.CNTR_NO /* 기준계약번호 */
                AND G.CNTR_SN = A.CNTR_SN /* 기준계약일련번호 */
+              LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS H /* 상품분류기본 */
+                ON H.PD_CLSF_ID = D.PD_MCLSF_ID /* 상품분류기본.상품분류ID = 상품기본.상품중분류ID */
              WHERE 1=1
-               AND B.CNTR_PRGS_STAT_CD = '50' /* 계약진행 상태 코드(50 : 계약확정) */
+               AND B.CNTR_PRGS_STAT_CD = '60' /* 계약진행 상태 코드(60 : 계약확정) */
                AND A.SELL_TP_CD IN ('2','3') /* 판매유형코드(2 : 렌탈/리스, 3 : 멤버십) */
                 <if test='@MybatisUtils@isNotEmpty(copnDvCd)'>
                     AND B.COPN_DV_CD = #{copnDvCd}
@@ -100,7 +102,7 @@
         <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
             AND T1.BASE_PD_CD = #{basePdCd}
         </if>
-        GROUP BY T1.PD_MCLSF_ID, T1.PD_NM, T1.BASE_PD_CD, T1.IST_MT
+        GROUP BY T1.PD_CLSF_NM, T1.PD_NM, T1.BASE_PD_CD, T1.IST_MT
     </select>
     <select id="selectByoRentalAccount" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto$SearchByoRentalAccountRes">
         SELECT
@@ -130,13 +132,13 @@
                  , CASE WHEN A.SELL_TP_CD = 3 THEN 1 ELSE 0 END AS CNT3 /* 멤버십건수 */
                  , CASE WHEN A.CNTR_DTL_STAT_CD = '101' /*계약상세 상태코드가 정상(101) 이면서 */
                              AND A.CNTR_PD_ENDDT IS NOT NULL
-                             AND TO_DATE(A.CNTR_PD_ENDDT, 'YYYYMMDD') <![CDATA[ < ]]> SYSDATE /* 계약 종료일이 현재일보다 작은 경우 */
+                             AND AND A.CNTR_PD_ENDDT <![CDATA[ < ]]>  TO_CHAR(SYSDATE,'YYYYMMDD') /* 계약 종료일이 현재일보다 작은 경우 */
                              THEN 1
                         ELSE 0
                    END AS CNT4 /* 렌탈유지건수 */
                  , CASE WHEN A.CNTR_DTL_STAT_CD = '101'/*계약상세 상태코드가 정상(101) 이면서 */
                               AND A.CNTR_PD_ENDDT IS NOT NULL
-                              AND TO_DATE(A.CNTR_PD_ENDDT, 'YYYYMMDD') >= SYSDATE /* 계약 종료일이 현재일보다 크거나 같은 경우 */
+                              AND AND A.CNTR_PD_ENDDT <![CDATA[ >= ]]>  TO_CHAR(SYSDATE,'YYYYMMDD') /* 계약 종료일이 현재일보다 크거나 같은 경우 */
                              THEN 1
                         WHEN A.CNTR_DTL_STAT_CD = '402' /*계약상세 상태코드가 계약기간종료(402)인 경우 */
                              THEN 1
@@ -188,7 +190,7 @@
                 ON G.CNTR_NO = A.CNTR_NO /* 기준계약번호 */
                 AND G.CNTR_SN = A.CNTR_SN /* 기준계약일련번호 */
             WHERE 1=1
-                AND B.CNTR_PRGS_STAT_CD = '50' /* 계약진행 상태 코드(50 : 계약확정) */
+                AND B.CNTR_PRGS_STAT_CD = '60' /* 계약진행 상태 코드(60 : 계약확정) */
                 AND A.SELL_TP_CD IN ('2','3') /* 판매유형코드(2 : 렌탈/리스, 3 : 멤버십) */
                 <if test='@MybatisUtils@isNotEmpty(copnDvCd)'>
                     AND B.COPN_DV_CD = #{copnDvCd}
