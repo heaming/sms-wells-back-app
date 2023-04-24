@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
@@ -47,6 +48,7 @@ public class WpdyRentalLeasePenaltyMgtDto {
 
     @ApiModel(value = "WpdyRentalLeasePenaltyMgtDto-SaveReq")
     public record SaveReq(
+        @NotEmpty
         List<WpdyRentalLeasePenaltyMgtDto.CancelChargeBase> bases
     ) {}
 

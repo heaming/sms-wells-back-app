@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.standard.dto;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
@@ -50,6 +51,7 @@ public class WpdyHealthAllianceMgtDto {
 
     @ApiModel(value = "WpdyHealthAllianceMgtDto-SaveReq")
     public record SaveReq(
+        @NotEmpty
         List<WpdyHealthAllianceMgtDto.AllianceBase> bases
     ) {}
 
