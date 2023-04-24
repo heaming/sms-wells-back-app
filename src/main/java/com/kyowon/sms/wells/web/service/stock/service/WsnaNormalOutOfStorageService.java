@@ -65,6 +65,7 @@ public class WsnaNormalOutOfStorageService {
     @Transactional
     public int saveNormalOstrRgsts(List<CreateReq> list) throws ParseException {
         int cnt = 0;
+        int itmSeq = 1;
         List<WsnaNormalOutOfStorageDvo> voList = converter.mapAllWsnaNormalOutOfStorageDvos(list);
         for (WsnaNormalOutOfStorageDvo vo : voList) {
             StrNoAndOstrNoRes res = mapper.selectStrNoAndOstrNo(vo);
@@ -72,6 +73,8 @@ public class WsnaNormalOutOfStorageService {
             vo.setItmStrNo(res.itmStrNo());
             vo.setStrTpCd(res.strTpCd());
             vo.setTodayStr(res.todayStr());
+            vo.setOstrSn(itmSeq);
+            vo.setStrSn(itmSeq);
             cnt += mapper.updateOstrAkIz(vo);
             cnt += mapper.insertNormalOstrRgst(vo);
             cnt += mapper.insertNormalStrRgst(vo);
@@ -86,6 +89,7 @@ public class WsnaNormalOutOfStorageService {
             itemStockservice.saveStockMovement(strDto);
 
             cnt += mapper.updateOstrAkIzAfter(vo);
+            itmSeq++;
         }
         return cnt;
     }
