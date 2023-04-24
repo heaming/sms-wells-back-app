@@ -75,6 +75,7 @@ public class WsnaNormalOutOfStorageService {
             vo.setTodayStr(res.todayStr());
             vo.setOstrSn(itmSeq);
             vo.setStrSn(itmSeq);
+            vo.setQty(vo.getOutQty());
             cnt += mapper.updateOstrAkIz(vo);
             cnt += mapper.insertNormalOstrRgst(vo);
             cnt += mapper.insertNormalStrRgst(vo);
