@@ -79,7 +79,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
         @JsonProperty("RDS_DSB_DUEDT")
         String rdsDsbDuedt, /*RDS지급예정일자*/
 
-        @JsonProperty("ITEM")
+        @JsonProperty("LIST")
         List<OrganizationTypes> data /*조직정보*/
 
     ) {}
