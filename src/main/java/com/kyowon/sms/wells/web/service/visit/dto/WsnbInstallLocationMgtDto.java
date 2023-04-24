@@ -66,8 +66,8 @@ public class WsnbInstallLocationMgtDto {
         String wkPrtnrNo /* 작업파트너번호 */
     ) {}
 
-    @ApiModel(value = "WsnbIstLctDtlMngtDto-Product")
-    public record Product(
+    @ApiModel(value = "WsnbIstLctDtlMngtDto-FindProductRes")
+    public record FindProductRes(
         String codeId,
         String codeName,
         String abbrName,
@@ -85,8 +85,8 @@ public class WsnbInstallLocationMgtDto {
         String ogNm
     ) {}
 
-    @ApiModel(value = "WsnbIstLctDtlMngtDto-Center")
-    public record Center(
+    @ApiModel(value = "WsnbIstLctDtlMngtDto-FindCenterRes")
+    public record FindCenterRes(
         String ogTpCd,
         String ogId,
         String ogCd,

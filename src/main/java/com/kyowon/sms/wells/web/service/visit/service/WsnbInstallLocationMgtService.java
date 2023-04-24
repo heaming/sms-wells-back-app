@@ -104,7 +104,7 @@ public class WsnbInstallLocationMgtService {
     /**
      * 검색조건 용 상품내역 조회 (임시)
      */
-    public List<Product> getProducts() {
+    public List<FindProductRes> getProducts() {
         return mapper.selectProducts();
     }
 
@@ -112,7 +112,7 @@ public class WsnbInstallLocationMgtService {
         return mapper.selectEngineers();
     }
 
-    public List<Center> getCenterss() {
+    public List<FindCenterRes> getCenterss() {
         return mapper.selectCenters();
     }
 }

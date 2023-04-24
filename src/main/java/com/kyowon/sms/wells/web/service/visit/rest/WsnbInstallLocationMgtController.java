@@ -73,7 +73,7 @@ public class WsnbInstallLocationMgtController {
 
     @ApiOperation(value = "상품 조회", notes = "상품 리스르를 조회한다.")
     @GetMapping("/products")
-    public List<Product> getProducts() {
+    public List<FindProductRes> getProducts() {
         return service.getProducts();
     }
 
@@ -85,7 +85,7 @@ public class WsnbInstallLocationMgtController {
 
     @ApiOperation(value = "서비스센터 조회", notes = "서비스센터 리스르를 조회한다.")
     @GetMapping("/centers")
-    public List<Center> getCenters() {
+    public List<FindCenterRes> getCenters() {
         return service.getCenterss();
     }
 }
