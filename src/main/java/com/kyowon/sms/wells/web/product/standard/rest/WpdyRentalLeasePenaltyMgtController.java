@@ -8,7 +8,7 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,7 +67,7 @@ public class WpdyRentalLeasePenaltyMgtController {
     }
 
     @ApiOperation(value = "렌탈/리스 위약금 수정", notes = "수정된 렌탈/리스 위약금 정보를 반영한다.")
-    @PutMapping
+    @PostMapping
     public SaveResponse saveRentalLeasePenalties(
         @Valid
         @RequestBody

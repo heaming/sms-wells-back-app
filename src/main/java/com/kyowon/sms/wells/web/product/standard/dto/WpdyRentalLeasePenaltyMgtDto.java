@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.product.standard.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WpdyRentalLeasePenaltyMgtDto {
@@ -55,6 +57,7 @@ public class WpdyRentalLeasePenaltyMgtDto {
         String histEndDtm, /* 이력종료일시 */
         String vlStrtDtm, /* 유효시작일시 */
         String vlEndDtm, /* 유효종료일시 */
+        @NotBlank
         String pdCd, /* 상품코드 */
         Long csmbCs, /* 소모품비용 */
         Long reqdCs, /* 철거비용 */

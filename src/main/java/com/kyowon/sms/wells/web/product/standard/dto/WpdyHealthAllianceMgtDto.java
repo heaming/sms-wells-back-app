@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.product.standard.dto;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WpdyHealthAllianceMgtDto {
@@ -54,7 +56,9 @@ public class WpdyHealthAllianceMgtDto {
     @ApiModel(value = "WpdyHealthAllianceMgtDto-AllianceBase")
     public record AllianceBase(
         String pdAlncmpBaseId, /* 상품제휴사기준ID */
+        @NotBlank
         String alncmpCd, /* 제휴사코드 */
+        @NotBlank
         String sellTpCd, /* 판매유형코드 */
         String pdCd, /* 상품코드 */
         String svPdCd, /* 서비스상품코드 */
