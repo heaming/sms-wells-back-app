@@ -60,6 +60,7 @@ public class WsnyCalendarDto {
         String restHh,
         String wrkHh,
         String bndtWrkPsicNo,
+        String bndtWrkPsicNm,
         String svCnrOgId,
         String svCnrOgCd
     ) {}
