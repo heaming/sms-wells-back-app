@@ -30,7 +30,8 @@ public class WfebSoleDistributorFeeMgtService {
      * @return
      */
     public List<Performance> getDistributorPerformance(BaseReq req) {
-         return mapper.selectDistributorPerformance(req);
+        // todo 실적테이블로 변경후 쿼리 수정
+        return mapper.selectDistributorPerformance(req);
     }
 
     /**
@@ -43,13 +44,53 @@ public class WfebSoleDistributorFeeMgtService {
     }
 
     /**
-     * 총판수수료 생성관리 저장 - 수수료
+     * 총판수수료 생성관리 저장(수수료)
      * @param listFees
      * @return
      */
     @Transactional
-    public String editDistributorFee(List<Fee> listFees) {
+    public int editDistributorFee(List<Fee> listFees) {
         int processCount = 0;
-        return "";
+        // todo 미정의
+        return processCount;
     }
+   /**
+     * 총판수수료 생성관리 - 재시작
+     * @param perfYm
+     * @return
+     */
+    @Transactional
+    public int editDistributorRetry(String perfYm) {
+        int processCount = 0;
+        // todo 미정의
+        return processCount;
+    }
+
+    /**
+     * 총판수수료 생성관리 - 집계
+     * @param perfYm
+     * @return
+     */
+    @Transactional
+    public int editDistributorAggregate(String perfYm) {
+        int processCount = 0;
+        // 01. 순주문월마감 삭제
+        processCount += mapper.deleteAggregateNtorMmCl(perfYm);
+        // 02. 웰스순주문계약월마감 삭제
+        processCount += mapper.deleteAggregateNtorMmCl(perfYm);
+        // 03. 순주문파트너실적월마감 삭제
+        processCount += mapper.deleteAggregatePerfMmCl(perfYm);
+        // 04. 순주문파트너월마감 등록
+        processCount += mapper.insertAggregateNtorMmCl(perfYm);
+        // 05. 순주문파트너계약월마감 등록
+        processCount += mapper.insertAggregateCntrMmCl(perfYm);
+        // 06. 순주문파트너계약월마감 개인판매 등록
+        processCount += mapper.insertAggregatePerfMmCl1(perfYm);
+        // 07. 순주문파트너계약월마감 지점(지국)판매 등록
+        processCount += mapper.insertAggregatePerfMmCl2(perfYm);
+        // 08. 순주문파트너월마감 상태 변경
+        processCount += mapper.updateAggregateNtorMmCl(perfYm);
+        return processCount;
+    }
+
 }

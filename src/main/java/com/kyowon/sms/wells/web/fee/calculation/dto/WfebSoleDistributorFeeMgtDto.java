@@ -31,7 +31,7 @@ public class WfebSoleDistributorFeeMgtDto {
         String slDt,
         String canDt,
         Integer ackmtPerfAmt,
-        String ackmtPerfCt,
+        Integer ackmtPerfCt,
         Integer feeAmt
     ) {}
 
@@ -52,4 +52,7 @@ public class WfebSoleDistributorFeeMgtDto {
         Integer acpyAmt
     ) {}
 
+    public record CreateReq(
+        String perfYm /* 실적년월 */
+    ) {};
 }

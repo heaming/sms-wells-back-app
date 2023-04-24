@@ -11,4 +11,13 @@ import java.util.List;
 public interface WfebSoleDistributorFeeMgtMapper {
     List<Performance> selectDistributorPerformance(BaseReq req);
     List<Fee> selectDistributorFee(BaseReq req);
+
+    int deleteAggregateNtorMmCl(String perfYm);
+    int deleteAggregateCntrMmCl(String perfYm);
+    int deleteAggregatePerfMmCl(String perfYm);
+    int insertAggregateNtorMmCl(String perfYm);
+    int insertAggregateCntrMmCl(String perfYm);
+    int insertAggregatePerfMmCl1(String perfYm);
+    int insertAggregatePerfMmCl2(String perfYm);
+    int updateAggregateNtorMmCl(String perfYm);
 }

@@ -55,12 +55,26 @@ public class WfebSoleDistributorFeeMgtController {
     @ApiOperation(value = "총판수수료 생성관리 - 저장(수수료)", notes = "총판수수료 생성관리의 수수료 실적을 수정한다.")
     @PostMapping("/fee")
     public SaveResponse editDistributorFee(@RequestBody @Valid List<Fee> listFees) throws Exception {
-        return SaveResponse.builder().processCount(1).key(service.editDistributorFee(listFees)).build();
+        return SaveResponse.builder().processCount(service.editDistributorFee(listFees)).build();
+    }
+
+    @ApiOperation(value = "총판수수료 생성관리 - 재시작", notes = "총판수수료 생성관리의 데이터를 재시작한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "path", example = ""),
+    })
+    @PostMapping("/retry/{perfYm}")
+    public SaveResponse editDistributorRetry(@PathVariable("perfYm") String perfYm) throws Exception {
+        return SaveResponse.builder().processCount(service.editDistributorRetry(perfYm)).build();
     }
 
     @ApiOperation(value = "총판수수료 생성관리 - 집계", notes = "총판수수료 생성관리의 데이터를 집계한다.")
-    @PostMapping("/aggregate")
-    public SaveResponse editDistributorAggregate(@RequestBody @Valid List<Fee> listFees) throws Exception {
-        return SaveResponse.builder().processCount(1).key(service.editDistributorFee(listFees)).build();
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "path", example = ""),
+    })
+    @PostMapping("/aggregate/{perfYm}")
+    public SaveResponse editDistributorAggregate(@PathVariable("perfYm") String perfYm) throws Exception {
+        return SaveResponse.builder().processCount(service.editDistributorAggregate(perfYm)).build();
     }
+
+
 }
