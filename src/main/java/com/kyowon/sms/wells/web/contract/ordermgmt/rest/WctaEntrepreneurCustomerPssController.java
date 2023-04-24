@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEntrepreneurCustomerP
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaEntrepreneurCustomerPssService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -52,7 +53,7 @@ public class WctaEntrepreneurCustomerPssController {
         @ApiImplicitParam(name = "dlpnrBzclNm", value = "업태", paramType = "query"),
     })
     @GetMapping("/paging")
-    public List<SearchRes> getEntrepreneurCustomerPssPages(
+    public PagingResult<SearchRes> getEntrepreneurCustomerPssPages(
         @Valid
         SearchReq dto,
         @Valid
