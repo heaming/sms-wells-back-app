@@ -3,81 +3,82 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncQuickResponseRpblMapper">
     <select id="selectQuickResponseRpbl"
             resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncQuickResponseRpblDto$SearchRes">
-        SELECT TB_1.MNGR_DV_CD
-             , TB_7.OG_NM
-             , TB_1.PRTNR_NO
-             , TB_7.PRTNR_KNM
-             , TB_2.BASE_PD_CD
-             , TB_3.SVPD_NM_KOR AS PD_NM
-             , TB_1.CNTR_NO
-             , TB_1.CNTR_SN
-             , TB_5.RCGVP_KNM
-             , TB_6.NEW_ADR_ZIP
-             , TB_6.RNADR
-             , TB_6.RDADR
-             , TB_1.VST_YM
-             , TB_1.BC_NO
-             , TB_1.FNL_MDFC_DTM
-             , TB_8.VST_FSH_DT
-             , TB_8.VST_FSH_HH
-             , TB_8.BC_IN_MTHD_CD
-        /*     , TB_8.USE_MPNO */
-             , '' AS USE_MPNO
-             , TB_8.CST_SIGN_CN
-             , TB_7.OG_NM || ' ' || TB_7.PRTNR_KNM || '(' || TB_1.PRTNR_NO || ')' AS PUBLISH_INFO
-          FROM TB_SVPD_BC_RPBL_AK_CST_IZ TB_1
-         INNER JOIN TB_SSCT_CNTR_DTL TB_2
-         ON (
-               TB_1.CNTR_NO = TB_2.CNTR_NO
-           AND TB_1.CNTR_SN = TB_2.CNTR_SN
-         )
-         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB_3
-         ON (
-               TB_2.BASE_PD_CD = TB_3.SVPD_PD_CD
-         )
-         INNER JOIN TB_SSCT_CNTR_ADR_REL TB_4
-         ON (
-               TB_1.CNTR_NO = TB_4.DTL_CNTR_NO
-           AND TB_1.CNTR_SN = TB_4.DTL_CNTR_SN
-           AND TB_4.ADRPC_TP_CD = '3' /* 2:배송지 3:설치지 */
-         )
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_5
-         ON (
-               TB_4.CNTR_ADRPC_ID = TB_5.CNTR_ADRPC_ID
-         )
-         INNER JOIN TB_GBCO_ADR_BAS TB_6
-         ON (
-               TB_5.ADR_ID = TB_6.ADR_ID
-         )
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ TB_7
-         ON (
-               TB_7.BASE_YM = #{baseYm}
-           AND TB_1.RPBL_PRTNR_OG_TP_CD = TB_7.OG_TP_CD
-           AND TB_1.RPBL_PRTNR_NO = TB_7.PRTNR_NO
-         )
-         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ TB_8
-         ON (
-               TB_1.CST_SV_ASN_NO = TB_8.CST_SV_ASN_NO
-           AND TB_8.CST_SV_EXCN_SN = (
-               SELECT MAX(TEMP.CST_SV_EXCN_SN) AS CST_SV_EXCN_SN
-                 FROM TB_SVPD_CST_SV_WK_RS_IZ TEMP
-                WHERE 1=1
-                  AND TEMP.CST_SV_ASN_NO = TB_1.CST_SV_ASN_NO
-           )
-         )
+        SELECT TB.*
+          FROM (
+            SELECT TB_1.MNGR_DV_CD
+                 , TB_7.OG_NM
+                 , TB_1.PRTNR_NO
+                 , TB_7.PRTNR_KNM
+                 , TB_2.BASE_PD_CD
+                 , TB_3.SVPD_NM_KOR AS PD_NM
+                 , TB_1.CNTR_NO
+                 , TB_1.CNTR_SN
+                 , TB_5.RCGVP_KNM
+                 , TB_6.NEW_ADR_ZIP
+                 , TB_6.RNADR
+                 , TB_6.RDADR
+                 , TB_1.VST_YM
+                 , TB_1.BC_NO
+                 , TB_1.FNL_MDFC_DTM
+                 , TB_8.VST_FSH_DT
+                 , TB_8.VST_FSH_HH
+                 , TB_8.BC_IN_MTHD_CD
+            /*     , TB_8.USE_MPNO */
+                 , '' AS USE_MPNO
+                 , TB_8.CST_SIGN_CN
+                 , TB_7.OG_NM || ' ' || TB_7.PRTNR_KNM || '(' || TB_1.PRTNR_NO || ')' AS PUBLISH_INFO
+                 , RANK() OVER (PARTITION BY TB_8.CNTR_NO, TB_8.CNTR_SN ORDER BY TB_8.CST_SV_ASN_NO DESC, TB_8.CST_SV_EXCN_SN DESC) AS RNK
+              FROM TB_SVPD_BC_RPBL_AK_CST_IZ TB_1
+             INNER JOIN TB_SSCT_CNTR_DTL TB_2
+             ON (
+                   TB_1.CNTR_NO = TB_2.CNTR_NO
+               AND TB_1.CNTR_SN = TB_2.CNTR_SN
+             )
+             INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB_3
+             ON (
+                   TB_2.BASE_PD_CD = TB_3.SVPD_PD_CD
+             )
+             INNER JOIN TB_SSCT_CNTR_ADR_REL TB_4
+             ON (
+                   TB_1.CNTR_NO = TB_4.DTL_CNTR_NO
+               AND TB_1.CNTR_SN = TB_4.DTL_CNTR_SN
+               AND TB_4.ADRPC_TP_CD = '3' /* 2:배송지 3:설치지 */
+             )
+             INNER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_5
+             ON (
+                   TB_4.CNTR_ADRPC_ID = TB_5.CNTR_ADRPC_ID
+             )
+             INNER JOIN TB_GBCO_ADR_BAS TB_6
+             ON (
+                   TB_5.ADR_ID = TB_6.ADR_ID
+             )
+             INNER JOIN TB_OGBS_MM_PRTNR_IZ TB_7
+             ON (
+                   TB_7.BASE_YM = #{baseYm}
+               AND TB_1.RPBL_PRTNR_OG_TP_CD = TB_7.OG_TP_CD
+               AND TB_1.RPBL_PRTNR_NO = TB_7.PRTNR_NO
+             )
+             INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ TB_8
+             ON (
+                   TB_1.CNTR_NO = TB_8.CNTR_NO
+               AND TB_1.CNTR_SN = TB_8.CNTR_SN
+             )
+             WHERE 1=1
+             <if test='@MybatisUtils@isNotEmpty(mngrDvCd)'>
+               AND TB_1.MNGR_DV_CD = #{mngrDvCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(pdPrpVal20)'>
+               AND TB_3.SVPD_ITEM_GR = #{pdPrpVal20}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+               AND TB_1.CNTR_NO = #{cntrNo}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+               AND TB_1.PRTNR_NO = #{prtnrNo}
+             </if>
+               ) TB
          WHERE 1=1
-         <if test='@MybatisUtils@isNotEmpty(mngrDvCd)'>
-           AND TB_1.MNGR_DV_CD = #{mngrDvCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(pdPrpVal20)'>
-           AND TB_3.SVPD_ITEM_GR = #{pdPrpVal20}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-           AND TB_1.CNTR_NO = #{cntrNo}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-           AND TB_1.PRTNR_NO = #{prtnrNo}
-         </if>
+          AND RNK = 1
     </select>
 
 </mapper>
