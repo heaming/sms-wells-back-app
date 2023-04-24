@@ -5,10 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallLocationMgtConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Product;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallLocationMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -107,8 +104,15 @@ public class WsnbInstallLocationMgtService {
     /**
      * 검색조건 용 상품내역 조회 (임시)
      */
-    public List<Product> getProducts() {
+    public List<FindProductRes> getProducts() {
         return mapper.selectProducts();
     }
 
+    public List<FindEngineerRes> getEngineers() {
+        return mapper.selectEngineers();
+    }
+
+    public List<FindCenterRes> getCenterss() {
+        return mapper.selectCenters();
+    }
 }
