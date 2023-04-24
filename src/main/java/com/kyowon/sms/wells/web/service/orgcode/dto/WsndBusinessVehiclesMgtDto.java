@@ -10,8 +10,7 @@ import io.swagger.annotations.ApiModel;
 public class WsndBusinessVehiclesMgtDto {
     @ApiModel(value = "WsndBusinessVehiclesMgtDto-SearchReq")
     public record SearchReq(
-        String hgrOgId,
-        String ogCd,
+        String ogId,
         String prtnrNo,
         String findGb
     ) {}
@@ -32,7 +31,7 @@ public class WsndBusinessVehiclesMgtDto {
         String rflngCdnoEncr,
         String hipsCdnoEncr,
         String vhcDsbRmkCn,
-        String ogCd,
+        String ogId,
         String vhcMngtNo,
         String vhcMngtSn,
         String vhcMngtPrtnrNo,
