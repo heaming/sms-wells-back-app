@@ -5,6 +5,7 @@ import static com.kyowon.sms.wells.web.contract.salesstatus.dto.WctePartnerAggre
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.salesstatus.mapper.WctePartnerAggregationMapper;
@@ -18,6 +19,10 @@ public class WctePartnerAggregationService {
     private final WctePartnerAggregationMapper mapper;
 
     public List<SearchRes> getPartnerAggregations(SearchReq dto) {
-        return mapper.selectPartnerAggregations(dto, mapper.selectBmno());
+        if (StringUtils.isAllEmpty(dto.prtnrNo(), dto.ogCd())) {
+            return mapper.selectPartnerAggregationsWithBmno(mapper.selectBmno());
+        } else {
+            return mapper.selectPartnerAggregations(dto);
+        }
     }
 }

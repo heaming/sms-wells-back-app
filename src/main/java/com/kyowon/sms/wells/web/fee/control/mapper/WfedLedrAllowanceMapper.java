@@ -17,6 +17,8 @@ import com.kyowon.sms.wells.web.fee.control.dto.WfedLedrAllowanceDto;
 @Mapper
 public interface WfedLedrAllowanceMapper {
 
-    List<WfedLedrAllowanceDto.SearchRes> selelctLeaderAllowances(WfedLedrAllowanceDto.SearchReq dto);
+    List<WfedLedrAllowanceDto.SearchIndividualRes> selectIndividualLeaderAllowances(WfedLedrAllowanceDto.SearchReq dto);
+
+    List<WfedLedrAllowanceDto.SearchSumRes> selectSumLeaderAllowances(WfedLedrAllowanceDto.SearchReq dto);
 
 }

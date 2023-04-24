@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto.SearchCntrRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto.SearchRes;
@@ -20,6 +21,7 @@ public interface WctaSpectxBlkPrntMapper {
     WctaSpectxBlkPrntDvo dvo);
 
     int updateSsctSpectxIsBas(WctaSpectxBlkPrntDvo dvo);
+
     int updateSsctSpectxIsBasFirst(WctaSpectxBlkPrntDvo dvo);
 
     int insertSsctSpectxIsDtl(WctaSpectxBlkPrntDvo dvo);
@@ -29,8 +31,15 @@ public interface WctaSpectxBlkPrntMapper {
     int insertSsctSpectxIsChHist(String spectxGrpNo);
 
     int insertSsctSpectxPblHist(String spectxGrpNo, String cntrNo, String cntrSn);
+
     int deleteSsctSpectxIsBas(String spectxGrpNo);
 
     int deleteSsctSpectxIsDtl(String spectxGrpNo, String cntrNo, String cntrSn);
+
+    List<WctaSpectxBlkPrntDto.SpectxFwRes> selectTradeSpcshFwInqrs(WctaSpectxBlkPrntDto.SpectxFwReq dto);
+
+    int insertSsctSpectxPblHistSend(String spectxGrpNo, String cntrNo, String cntrSn);
+
+    int updateSsctSpectxIsDtlChSn(String spectxGrpNo, String cntrNo, String cntrSn);
 
 }

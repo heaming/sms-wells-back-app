@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SearchBaseRes;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.service.WsndRegionLevelAlwncMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -27,6 +28,17 @@ import lombok.RequiredArgsConstructor;
 public class WsndRegionLevelAlwncMgtController {
 
     private final WsndRegionLevelAlwncMgtService service;
+
+    @ApiOperation(value = "급지 기본 정보 조회", notes = "이동급지, 업무급지 기본 정보를 조회한다.")
+    @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", example = "20230421", required = true)
+    @GetMapping("/base-information")
+    public SearchBaseRes getAllowanceBases(
+        @NotEmpty
+        @RequestParam
+        String applyDate
+    ) {
+        return this.service.getAllowanceBases(applyDate);
+    }
 
     @ApiOperation(value = "급지 수당 조회", notes = "급지 정보에 일치하는 엔지니어 수당 정보를 조회한다.")
     @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", example = "20221214", required = true)

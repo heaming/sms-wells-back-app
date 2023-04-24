@@ -44,7 +44,12 @@ public class WsnbInstallLocationMgtService {
     public PagingResult<SearchRes> getInstallLocationPages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectInstallLocationPages(dto, pageInfo);
+
+        PagingResult<SearchRes> pagingResult = converter.mapWsnbInstallLocationDvoToSearchRes(
+            mapper.selectInstallLocationPages(dto, pageInfo)
+        );
+        pagingResult.setPageInfo(pageInfo);
+        return pagingResult;
     }
 
     /**
@@ -55,7 +60,8 @@ public class WsnbInstallLocationMgtService {
      * @return 조회결과
      */
     public List<SearchRes> getInstallLocationPagesExcelDownload(SearchReq dto) {
-        return mapper.selectInstallLocationPages(dto);
+
+        return converter.mapWsnbInstallLocationDvoToSearchRes(mapper.selectInstallLocationPages(dto));
     }
 
     /**

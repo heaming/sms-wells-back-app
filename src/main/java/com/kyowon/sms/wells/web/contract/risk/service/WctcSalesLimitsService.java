@@ -1,19 +1,10 @@
 package com.kyowon.sms.wells.web.contract.risk.service;
 
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.FindBlacklistRes;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SaveBlacklistReq;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SaveEntrpJLmOjReq;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchBlacklistReq;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchBlacklistRes;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchEntrpJLmOjReq;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.SearchEntrpJLmOjRes;
+import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto.*;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -107,7 +98,9 @@ public class WctcSalesLimitsService {
             String sellLmDv = dvo.getSellLmDv();
             String sellLmRlsDtm = dvo.getSellLmRlsDtm(); //해제일자
             String sellLmOcDtm = dvo.getSellLmOcDtm(); //발생일자
-            String[] param = {dvo.getDataRow()};
+            String[] param = {Integer.toString(dvo.getDataRow())};
+
+            System.out.println("sellLmOcDtm: " + sellLmOcDtm);
 
             processCount += switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_UPDATED -> {
@@ -165,18 +158,23 @@ public class WctcSalesLimitsService {
         headerTitle.put("sellLmOcDtm", messageResourceService.getMessage("MSG_TXT_OCCUR_DATE"));
         headerTitle.put("sellLmRlsDtm", messageResourceService.getMessage("MSG_TXT_CNC_DT"));
         headerTitle.put("sellLmRson", messageResourceService.getMessage("MSG_TXT_OCC_RSN"));
-        headerTitle.put("sellLmPsicNm", messageResourceService.getMessage("MSG_TXT_RGST_ICHR"));
-        headerTitle.put("sellLmRlsPsicNm", messageResourceService.getMessage("MSG_TXT_CNC_INCHR"));
 
         // 업로드 엑셀 파일 DRM 복호화
         List<WctcSellLimitOjIzDvo> dvos = excelReadService
-            .readExcel(file, new ExcelMetaDvo(1), WctcSellLimitOjIzDvo.class);
+            .readExcel(file, new ExcelMetaDvo(1, headerTitle), WctcSellLimitOjIzDvo.class);
         List<SaveEntrpJLmOjReq> result = new LinkedList<>();
 
         int processCount = 0;
         int row = 1;
+        int dataRow = 1;
         for (WctcSellLimitOjIzDvo dvo : dvos) {
+            if (StringUtils.isEmpty(dvo.getSellLmRlsDtm())) {
+                dvo.setSellLmRlsDtm(null);
+            }
+            dvo.setDataRow(dataRow);
+            dvo.setRowState(CommConst.ROW_STATE_CREATED);
             result.add(converter.mapSaveEntrpJLmOjReqToDvoToSaveEntrpJLmOjReq(dvo));
+            dataRow++;
         }
         // 업로드 엑셀 파일 DRM 복호화
         Map<String, String> kvForValidation;
@@ -185,11 +183,7 @@ public class WctcSalesLimitsService {
                 "sellLmDv", req.getSellLmDv(),
                 "sellLmBzrno", req.getSellLmBzrno(),
                 "sellLmRsonCd", req.getSellLmRsonCd(),
-                "sellLmOcDtm", req.getSellLmOcDtm(),
-                "sellLmRlsDtm", req.getSellLmRlsDtm(),
-                "sellLmRson", req.getSellLmRson(),
-                "sellLmPsicNm", req.getSellLmPsicNm(),
-                "sellLmRlsPsicNm", req.getSellLmRlsPsicNm()
+                "sellLmOcDtm", req.getSellLmOcDtm()
             );
 
             // 유효성검사
@@ -200,6 +194,7 @@ public class WctcSalesLimitsService {
                 );
             }
         }
+        System.out.println("result: " + result.toString());
         return result;
     }
 }

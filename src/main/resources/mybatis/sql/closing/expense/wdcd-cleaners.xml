@@ -3,8 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdCleanersMapper">
 
     <select id="selectCleanersBusinessManager" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto$SearchRes">
-        SELECT FST_RGST_DTM
-             , FNL_MDFC_DTM
+        SELECT TO_CHAR(TO_DATE(FST_RGST_DTM, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS FST_RGST_DTM
+             , TO_CHAR(TO_DATE(FNL_MDFC_DTM, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS FNL_MDFC_DTM
              , CLINR_NM
              , BLD_CD
              , BLD_NM
@@ -22,14 +22,17 @@
              , WRK_ENDDT
              , (CASE WHEN WRK_ENDDT > TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE 'N' END) WRK_ENDDT
              , RRNO_ENCR
-             , LOCARA_TNO||'-'||EXNO_ENCR||'-'||IDV_TNO
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , '' AS TEL_NUM
              , BAS_ADR||' '||DTL_ADR
              , BNK_CD
              , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_CD = LPAD(CASE WHEN T1.BNK_CD IS NOT NULL
                                             THEN T1.BNK_CD ELSE T1.CDCO_CD END ,3,0)) AS BNK_NM
              , ACNO_ENCR
           FROM TB_OGBS_CLINR_BAS T1 /*청소원기본*/
-         WHERE FST_RGST_DTM = #{fstRgstDtm}
+         WHERE APLC_DT = #{aplcDt}
            <if test="@MybatisUtils@isNotEmpty(bnkNm)">
            AND BLD_CD IN ( SELECT A.BLD_CD
                                    FROM TB_OGBS_OG_BAS A /*조직기본*/
@@ -67,14 +70,17 @@
              , WRK_ENDDT
              , (CASE WHEN WRK_ENDDT > TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE 'N' END) AS WORK_STATUS
              , RRNO_ENCR
-             , LOCARA_TNO||'-'||EXNO_ENCR||'-'||IDV_TNO AS TEL_NUM
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , '' AS TEL_NUM
              , BAS_ADR||' '||DTL_ADR AS ADDRESS
              , BNK_CD
              , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.BNK_CD,3,0) = FNIT_CD) AS BNK_NM
              , ACNO_ENCR
           FROM TB_OGBS_CLINR_BAS T1 /*청소원기본*/
          WHERE DTA_DL_YN = 'N'
-           AND SUBSTR(FST_RGST_DTM,1,4) = #{fstRgstDtm}
+           AND SUBSTR(APLC_DT,1,6) = #{aplcDt}
            <if test="@MybatisUtils@isNotEmpty(bnkNm)">
            AND BLD_CD IN ( SELECT A.BLD_CD
                              FROM TB_OGBS_OG_BAS A /*조직기본*/

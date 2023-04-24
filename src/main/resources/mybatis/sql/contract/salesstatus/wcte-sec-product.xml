@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.salesstatus.mapper.WcteSecProductMapper">
+
+    <select id="selectReservationPages"
+            resultType="com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto$SearchRes">
+        SELECT T_BZS_IVC_HIST_BY_CNTR.CNTR_NO        AS CNTR_NO /*계약번호*/
+             , T_BZS_IVC_HIST_BY_CNTR.CNTR_SN        AS CNTR_SN /*계약일련번호*/
+             , T_BZS_IVC_PROCS_HIST_RES.BSDT         AS RES_DT /* 예약일시 */
+             , T_BZS_IVC_PROCS_HIST_STOC_STR.BSDT    AS STOC_STR_DT /* 재입고일시 */
+             , T_BZS_IVC_HIST_BY_CNTR.SPP_BZS_ORD_ID AS SPP_BZS_ORD_ID /*배송업체주문ID*/
+             , T_BZS_IVC_HIST_BY_CNTR.FST_RGST_DTM   AS FST_RGST_DTM /*최초등록일시*/
+             , T_CNTR_DTL.SELL_TP_CD                 AS SELL_TP_CD /*판매유형코드*/
+             , T_CNTR_DTL.BASE_PD_CD                 AS PD_CD /*기준상품코드*/
+             , T_PD_BAS.PD_NM                        AS PD_NM /*기준상품명*/
+             , T_CNTR_ADRPC_BAS.RCGVP_KNM            AS RCGVP_KNM /*수령자한글명*/
+             , T_CNTR_BAS.SELL_PRTNR_NO              AS SELL_PRTNR_NO /*판매파트너번호*/
+             , T_CNTR_BAS.CNTR_CNFM_DTM              AS CNTR_CNFM_DTM /*계약확정일시*/
+             , T_CNTR_PRTNR_REL.OG_TP_CD             AS OG_TP_CD /*조직유형코드*/
+             , T_MM_OG_IZ.OG_ID                      AS OG_ID /*조직ID*/
+             , T_MM_OG_IZ.OG_CD                      AS OG_CD /*조직코드*/
+             , T_MM_OG_IZ.HOO_PRTNR_NO               AS HOO_PRTNR_NO /*조직장파트너번호*/
+             , T_MM_PRTNR_IZ.PRTNR_KNM               AS PRTNR_KNM /*파트너한글명*/
+          FROM (SELECT SUB_T_BZS_IVC_PROCS_HIST.CNTR_NO             AS CNTR_NO
+                     , SUB_T_BZS_IVC_PROCS_HIST.CNTR_SN             AS CNTR_SN
+                     , MAX(SUB_T_BZS_IVC_PROCS_HIST.FST_RGST_DTM)   AS FST_RGST_DTM
+                     , MAX(SUB_T_BZS_IVC_PROCS_HIST.SPP_BZS_ORD_ID) AS SPP_BZS_ORD_ID
+                  FROM TB_SSSO_SPP_BZS_IVC_PROCS_HIST SUB_T_BZS_IVC_PROCS_HIST /*배송업체송장처리이력*/
+                 WHERE SUB_T_BZS_IVC_PROCS_HIST.DTA_DL_YN = 'N'
+                   AND SUB_T_BZS_IVC_PROCS_HIST.SPP_PROCS_BZS_CD = '20' /* 삼성전자 */
+                   AND SUB_T_BZS_IVC_PROCS_HIST.OTSD_LK_DRM_VAL IN ('1000001', '1000002')
+                 GROUP BY SUB_T_BZS_IVC_PROCS_HIST.CNTR_NO
+                        , SUB_T_BZS_IVC_PROCS_HIST.CNTR_SN)   T_BZS_IVC_HIST_BY_CNTR /*계약 최신 이력*/
+               LEFT OUTER JOIN TB_SSSO_SPP_BZS_IVC_PROCS_HIST T_BZS_IVC_PROCS_HIST_RES /*예약 이력*/
+               ON T_BZS_IVC_PROCS_HIST_RES.DTA_DL_YN = 'N'
+                   AND T_BZS_IVC_PROCS_HIST_RES.CNTR_NO = T_BZS_IVC_HIST_BY_CNTR.CNTR_NO
+                   AND T_BZS_IVC_PROCS_HIST_RES.CNTR_SN = T_BZS_IVC_HIST_BY_CNTR.CNTR_SN
+                   AND T_BZS_IVC_PROCS_HIST_RES.SPP_PROCS_BZS_CD = '20'
+                   AND T_BZS_IVC_PROCS_HIST_RES.OTSD_LK_DRM_VAL = '1000001'
+               LEFT OUTER JOIN TB_SSSO_SPP_BZS_IVC_PROCS_HIST T_BZS_IVC_PROCS_HIST_STOC_STR /*재고 입고 이력*/
+               ON T_BZS_IVC_PROCS_HIST_RES.DTA_DL_YN = 'N'
+                   AND T_BZS_IVC_PROCS_HIST_RES.CNTR_NO = T_BZS_IVC_HIST_BY_CNTR.CNTR_NO
+                   AND T_BZS_IVC_PROCS_HIST_RES.CNTR_SN = T_BZS_IVC_HIST_BY_CNTR.CNTR_SN
+                   AND T_BZS_IVC_PROCS_HIST_RES.SPP_PROCS_BZS_CD = '20'
+                   AND T_BZS_IVC_PROCS_HIST_RES.OTSD_LK_DRM_VAL = '1000002'
+               INNER JOIN TB_SSCT_CNTR_DTL                    T_CNTR_DTL /*계약상세*/
+               ON T_CNTR_DTL.DTA_DL_YN = 'N'
+                   AND T_CNTR_DTL.CNTR_NO = T_BZS_IVC_HIST_BY_CNTR.CNTR_NO
+                   AND T_CNTR_DTL.CNTR_SN = T_BZS_IVC_HIST_BY_CNTR.CNTR_SN
+                   AND T_CNTR_DTL.SELL_TP_CD IN ('1', '2')
+               INNER JOIN TB_SSCT_CNTR_BAS                    T_CNTR_BAS /*계약기본*/
+               ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+               INNER JOIN TB_SSCT_CNTR_ADR_REL                T_ADR_REL /*계약주소관계*/
+               ON T_ADR_REL.DTA_DL_YN = 'N'
+                   AND T_ADR_REL.DTL_CNTR_NO = T_BZS_IVC_HIST_BY_CNTR.CNTR_NO
+                   AND T_ADR_REL.DTL_CNTR_SN = T_BZS_IVC_HIST_BY_CNTR.CNTR_SN
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_ADR_REL.VL_STRT_DTM AND T_ADR_REL.VL_END_DTM
+               INNER JOIN TB_SSCT_CNTR_ADRPC_BAS              T_CNTR_ADRPC_BAS /*계약주소지기본*/
+               ON T_CNTR_ADRPC_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_ADRPC_BAS.CNTR_ADRPC_ID = T_ADR_REL.CNTR_ADRPC_ID
+               LEFT OUTER JOIN TB_SSCT_CNTR_PRTNR_REL         T_CNTR_PRTNR_REL /*계약파트너관계 FIXME INNER*/
+               ON T_CNTR_PRTNR_REL.DTA_DL_YN = 'N'
+                   AND T_CNTR_PRTNR_REL.CNTR_PRTNR_TP_CD = '010' /*판매자*/
+                   AND T_CNTR_PRTNR_REL.CNTR_NO = T_CNTR_BAS.CNTR_NO
+                   AND T_CNTR_PRTNR_REL.PRTNR_NO = T_CNTR_BAS.SELL_PRTNR_NO
+               INNER JOIN TB_PDBS_PD_BAS                      T_PD_BAS /*상품기본*/
+               ON T_PD_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
+               LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ            T_MM_PRTNR_IZ /*월파트너내역*/
+               ON T_MM_PRTNR_IZ.DTA_DL_YN = 'N'
+                   AND T_MM_PRTNR_IZ.OG_TP_CD = T_CNTR_PRTNR_REL.OG_TP_CD
+                   AND T_MM_PRTNR_IZ.BASE_YM = SUBSTR(T_CNTR_BAS.CNTR_CNFM_DTM, 1, 6)
+                   AND T_MM_PRTNR_IZ.PRTNR_NO = T_CNTR_BAS.SELL_PRTNR_NO
+               LEFT OUTER JOIN TB_OGBS_MM_OG_IZ               T_MM_OG_IZ /*월조직내역*/
+               ON T_MM_OG_IZ.DTA_DL_YN = 'N'
+                   AND T_MM_OG_IZ.BASE_YM = SUBSTR(T_CNTR_BAS.CNTR_CNFM_DTM, 1, 6)
+                   AND T_MM_PRTNR_IZ.OG_ID = T_MM_OG_IZ.OG_ID
+         WHERE T_CNTR_DTL.SELL_TP_CD = #{sellTpCd}
+           AND ((T_BZS_IVC_PROCS_HIST_RES.BSDT BETWEEN #{strtdt} AND #{enddt}) OR
+             (T_BZS_IVC_PROCS_HIST_STOC_STR.BSDT BETWEEN #{strtdt} AND #{enddt}))
+         ORDER BY T_BZS_IVC_HIST_BY_CNTR.FST_RGST_DTM
+    </select>
+</mapper>

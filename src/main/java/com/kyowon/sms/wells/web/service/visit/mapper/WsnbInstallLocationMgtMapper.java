@@ -6,7 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Product;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -14,11 +13,11 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnbInstallLocationMgtMapper {
 
-    PagingResult<SearchRes> selectInstallLocationPages(
+    PagingResult<WsnbInstallLocationDvo> selectInstallLocationPages(
         SearchReq dto, PageInfo pageInfo
     );
 
-    List<SearchRes> selectInstallLocationPages(
+    List<WsnbInstallLocationDvo> selectInstallLocationPages(
         SearchReq dto
     );
 

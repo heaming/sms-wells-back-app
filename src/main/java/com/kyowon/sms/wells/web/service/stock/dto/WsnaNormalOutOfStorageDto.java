@@ -58,7 +58,7 @@ public class WsnaNormalOutOfStorageDto {
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskRes")
     public record AskRes(
-        String wareMngtPrtrnNo, /*창고파트너번호*/
+        String wareMngtPrtnrNo, /*창고파트너번호*/
         String wareNm, /*창고명*/
         String itmPdCd, /*품목상품코드*/
         String wareNo, /*창고번호*/
@@ -82,7 +82,8 @@ public class WsnaNormalOutOfStorageDto {
         String ostrWareNo,
         String ostrOjWareNm,
         String strOjWareNm,
-        String stckStdGb
+        String stckStdGb,
+        String rgstDt
     ) {}
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRes")
     public record DetailRes(
@@ -125,7 +126,11 @@ public class WsnaNormalOutOfStorageDto {
         String pdPrpVal16,
         String pdPrpVal02,
         String cfrmCnt,
-        String avgOut
+        String avgOut,
+        String ostrWareDvCd,
+        String strWareDvCd,
+        String strWareNm,
+        String ostrWareNm
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CreqteReq")
@@ -171,7 +176,9 @@ public class WsnaNormalOutOfStorageDto {
         String pdPrpVal16,
         String pdPrpVal02,
         String cfrmCnt,
-        String avgOu
+        String avgOu,
+        String ostrWareDvCd,
+        String strWareDvCd
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckedReq")
@@ -191,4 +198,22 @@ public class WsnaNormalOutOfStorageDto {
     public record NomalOutOfStorageReq() {
 
     }
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
+    public record StandardWareReq(
+        String ostrWareNo,
+        String stckStdGb
+    ) {}
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareRes")
+    public record StandardWareRes(
+        String ostrWareNo,
+        String stckStdGb
+    ) {}
+
+    public record MonthlyWarehouseReq(
+        String apyYm,
+        String wareNo,
+        String stckStdGb
+    ) {}
 }

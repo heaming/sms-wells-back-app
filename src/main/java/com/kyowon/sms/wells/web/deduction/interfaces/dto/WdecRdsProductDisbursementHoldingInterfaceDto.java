@@ -69,7 +69,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
         String ogTpCdAryVal, /*조직유형코드값*/
 
         @NotBlank
-        @JsonProperty("PRTNRNO")
+        @JsonProperty("PRTNR_NO")
         String prtnrNo /*파트너번호*/
     ) {}
 
@@ -79,7 +79,6 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
         @JsonProperty("RDS_DSB_DUEDT")
         String rdsDsbDuedt, /*RDS지급예정일자*/
 
-        @NotBlank
         @JsonProperty("ITEM")
         List<OrganizationTypes> data /*조직정보*/
 

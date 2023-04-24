@@ -30,7 +30,7 @@ public class WctcSellLimitOjIzDvo {
     private String dlgpsNm;
     private String bryyMmdd;
     private String rowState;
-    private String dataRow;
+    private int dataRow;
     private String sellRson;
     private String sellLmPsic;
     private String sellLmRlsPsic;

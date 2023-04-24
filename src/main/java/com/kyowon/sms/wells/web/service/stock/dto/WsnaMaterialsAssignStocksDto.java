@@ -53,8 +53,8 @@ public class WsnaMaterialsAssignStocksDto {
         String didyDvNm, /*독립매니저여부*/
         String adrUseYn, /*지정주소여부*/
         String wareAdrId, /*창고주소ID*/
-        String rdadr, /*주소*/
-        String newAdrZip, /*우편번호*/
+        /*String rdadr,
+        String newAdrZip, */
         String rmkCn /*비고*/
     ) {}
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-CreateReq")

@@ -136,11 +136,11 @@ public class WpdcAsPartsMgtService {
     public ZpdcProductDto.TbPdbsPdBas editAsParts(WpdcAsPartMgtDto.EditReq dto)
         throws Exception {
 
-        ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
-
+        int processCount = 0;
         String startDtm = DateUtil.getDate(new Date());
 
-        int processCount = 0;
+        ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
+        dvo = clsfService.getClassifcationHierarchy(dvo);
         processCount = productMapper.updateProduct(dvo);
 
         // #3-0 상세

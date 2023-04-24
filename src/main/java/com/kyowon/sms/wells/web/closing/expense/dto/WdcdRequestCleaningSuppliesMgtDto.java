@@ -1,6 +1,10 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -35,7 +39,10 @@ public class WdcdRequestCleaningSuppliesMgtDto {
         String cardPsrNm,
         String claimNm,
         List<AttachFile> attachFiles,
-        String clingCostSignApnFileId
+        String clingCostSignApnFileId,
+        String locaraTno, // 지역번호
+        String exnoEncr,
+        String idvTno
     ) {
     }
 
@@ -64,9 +71,16 @@ public class WdcdRequestCleaningSuppliesMgtDto {
         String claimNm,
         String bldCd,
         String bilAmt,
-        String contact,
-        String clingCostSignApnFileId
+        String locaraTno,
+        @MaskRequired(type = MaskingType.PHONE)
+        String exnoEncr,
+        String idvTno,
+        String clingCostSrcpApnFileId
     ) {
-
+        public FindRes {
+            if (!StringUtil.isEmpty(exnoEncr)) { // 전화번호 중간자리 복호화
+                exnoEncr = DbEncUtil.dec(exnoEncr);
+            }
+        }
     }
 }

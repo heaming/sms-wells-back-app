@@ -33,11 +33,11 @@
                      , SUM(CASE WHEN A.WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS MY_CENTER_QTY
                      , SUM(CASE WHEN B.HGR_WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS INDI_STCK_QTY
                      , SUM(NVL(USE_QTY,0)) AS L_QTY
-                  FROM TB_SVST_CST_SV_ITM_STOC_IZ A --고객서비스품목재고내역
+                  FROM TB_SVST_CST_SV_ITM_STOC_IZ A /*고객서비스품목재고내역*/
                  INNER JOIN TB_SVST_MCBY_WARE_IZ B
                     ON A.WARE_NO = B.WARE_NO
-        --	         INNER JOIN TB_IFIN_ITM_STOC_IZ_RCV_ETXT C
-        --	            ON C.PD_CD = A.ITM_PD_CD
+        	         <!--INNER JOIN TB_IFIN_ITM_STOC_IZ_RCV_ETXT C
+        	            ON C.PD_CD = A.ITM_PD_CD -->
                   LEFT OUTER JOIN (
                                     SELECT MIN(HGR_WARE_NO) AS HGR_WARE_NO
                                       FROM TB_SVST_MCBY_WARE_IZ
@@ -45,9 +45,8 @@
                                        AND WARE_MNGT_PRTNR_NO = '36680' -- 파라미터
                                        AND WARE_USE_YN = 'Y'
                                        AND SUBSTR(HGR_WARE_NO,1,1) != '1'
-        --								   AND WARE_DTL_DV_CD != '10'
                                  ) C
-                    ON B.HGR_WARE_NO = C.HGR_WARE_NO
+                    ON B.WARE_NO = C.HGR_WARE_NO
                   LEFT OUTER JOIN (
                                     SELECT WK_WARE_NO
                                          , ITM_PD_CD
@@ -117,14 +116,14 @@
              , A1.ITM_PD_NM1 /*품목상품명1*/
              , A1.IMG_URL /*이미지URL*/
              , A1.ITEM_KND /*품목종류*/
-             , NVL(A1.LGST_QTY, 0) AS LGST_QTY /*물류재고*/
+             , NVL(A1.WAREHOUSE_QTY, 0) AS WAREHOUSE_QTY /* 현재출고창고재고 */
              , NVL(A1.CENTER_QTY,0) AS CENTER_QTY /* 현재센터A등급재고(조직) */
              , NVL(A1.CENTER_B_QTY,0) AS CENTER_B_QTY /* 현재센터B등급재고(조직) */
              , NVL(A1.INDI_QTY, 0) AS INDI_QTY /*개인수량*/
              , NVL(A1.USE_QTY,0) AS USE_QTY /*당월사용수량*/
              , NVL(A1.USE_QTY_P,0) AS USE_QTY_P /*전월기준재고*/
              , NVL(A1.USE_QTY_Y,0) AS USE_QTY_Y /*전년도*/
-             , (CASE WHEN A1.USE_QTY > A1.CENTER_QTY THEN  (A1.USE_QTY - A1.CENTER_QTY)
+             , (CASE WHEN A1.USE_QTY<![CDATA[ > ]]> A1.CENTER_QTY THEN  (A1.USE_QTY - A1.CENTER_QTY)
                      ELSE 0
                 END)  AS SHORT_SUPPLY /* 신청 예상수량 (전월-센터) */
              , NVL(A1.TOTAL_QTY,0) AS TOTAL_QTY /*총재고*/
@@ -166,7 +165,7 @@
                       , T1.IMG_APN_FILE_ID          AS IMG_URL
                       , T2.PD_PRP_VAL19             AS ITEM_KND
                       , T2.PD_PRP_VAL20             AS ITEM_GR
-                      , T3.LGST_QTY AS LGST_QTY
+                      , T3.WAREHOUSE_QTY AS WAREHOUSE_QTY
                       , T3.CENTER_QTY AS CENTER_QTY
                       , T3.CENTER_B_QTY AS CENTER_B_QTY
                       , IQTY.INDI_QTY AS INDI_QTY
@@ -181,13 +180,12 @@
                     AND T2.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN (SELECT STOC_IZ.ITM_PD_CD
                                         /*TODO : 물류재고정보 인터페이스 데이터 및 추가시 물류재고 변경예정*/
-                                         , SUM(0) AS LGST_QTY
-                --                    , SUM(DECODE(STOC_IZ.WARE_NO, '100002' , STOC_IZ.PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
-                                         , SUM(DECODE(STOC_IZ.WARE_NO, '201698' , STOC_IZ.PITM_STOC_A_GD_QTY)) AS CENTER_QTY
-                --                              , SUM(DECODE(STOC_IZ.WARE_NO, '100002' , STOC_IZ.PITM_STOC_B_GD_QTY)) AS WAREHOUSE_B_QTY
+                                         , SUM(DECODE(STOC_IZ.WARE_NO, #{ostrWareNo} , STOC_IZ.PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
+                                         , SUM(DECODE(STOC_IZ.WARE_NO, #{wareNo} , STOC_IZ.PITM_STOC_A_GD_QTY)) AS CENTER_QTY
+                                             /*, SUM(DECODE(STOC_IZ.WARE_NO, '100002' , STOC_IZ.PITM_STOC_B_GD_QTY)) AS WAREHOUSE_B_QTY*/
                                          , SUM(DECODE(STOC_IZ.WARE_NO, '200001' , STOC_IZ.PITM_STOC_B_GD_QTY)) AS CENTER_B_QTY
                                       FROM TB_SVST_CST_SV_ITM_STOC_IZ STOC_IZ
-                                     WHERE STOC_IZ.WARE_NO = '201698'
+                                     WHERE STOC_IZ.WARE_NO IN (#{ostrWareNo}, #{wareNo})
                                      GROUP BY  ITM_PD_CD ) T3
                      ON T1.PD_CD = T3.ITM_PD_CD
                    LEFT OUTER JOIN (SELECT /*+ LEADING(IB IA) */
@@ -199,9 +197,9 @@
                                      WHERE 1=1
                                        AND IA.WARE_NO = IB.WARE_NO
                                        AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
-                                       AND IB.HGR_WARE_NO = '201698'
+                                       AND IB.HGR_WARE_NO = #{wareNo}
                                        AND IB.WARE_DV_CD = '2' --'3'
-                                       AND IB.WARE_ICHR_NO != '000'
+                                       AND IB.WARE_DTL_DV_CD = '21'
                                      GROUP BY IA.ITM_PD_CD
                                    ) IQTY
                      ON T1.PD_CD = IQTY.ITM_PD_CD
@@ -214,8 +212,8 @@
                                        AND IA.FNL_VST_FSH_DT LIKE TO_CHAR(SYSDATE , 'YYYYMM')||'%'
                                        AND IA.WK_WARE_NO = IB.WARE_NO
                                        AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
-                                       AND IB.HGR_WARE_NO = '201698'
-                                       AND IB.WARE_DV_CD = '2' --'3'
+                                       AND IB.HGR_WARE_NO = #{wareNo}
+                                       AND IB.WARE_DV_CD = '2'
                                      GROUP BY IA.ITM_PD_CD
                                    )UQTY
                      ON T1.PD_CD = UQTY.ITM_PD_CD
@@ -228,8 +226,8 @@
                                         AND IA.FNL_VST_FSH_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1) , 'YYYYMM')||'%'
                                         AND IA.WK_WARE_NO = IB.WARE_NO
                                         AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
-                                        AND IB.HGR_WARE_NO = '201698'
-                                        AND IB.WARE_DV_CD = '2' --'3'
+                                        AND IB.HGR_WARE_NO = #{wareNo}
+                                        AND IB.WARE_DV_CD = '2'
                                       GROUP BY IA.ITM_PD_CD
                                     ) UQTY_P
                      ON T1.PD_CD = UQTY_P.ITM_PD_CD
@@ -242,8 +240,8 @@
                                         AND IA.FNL_VST_FSH_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -12) , 'YYYYMM')||'%'
                                         AND WK_WARE_NO = IB.WARE_NO
                                         AND IB.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
-                                        AND IB.HGR_WARE_NO = '201698'
-                                        AND IB.WARE_DV_CD = '2' --'3'
+                                        AND IB.HGR_WARE_NO = #{wareNo}
+                                        AND IB.WARE_DV_CD = '2'
                                       GROUP BY IA.ITM_PD_CD
                                     ) UQTY_Y
                      ON T1.PD_CD = UQTY_Y.ITM_PD_CD

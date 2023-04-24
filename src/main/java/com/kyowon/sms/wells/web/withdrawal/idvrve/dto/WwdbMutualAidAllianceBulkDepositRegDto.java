@@ -20,6 +20,7 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
         String lifAlncDvCd, /*라이프제휴구분코드*/
         String fstRgstDtm, /*입력일자*/
         String fstRgstUsrId, /*입력담당자id*/
+        String fstRgstUsrNm, /*입력담당자id*/
         long sumAmt /*합계*/
     ) {
 

@@ -60,6 +60,30 @@ public class WwdbGiroOcrForwardingMgtDto {
 
     }
 
+    public record SearchObjectRes(
+        String cntrNo,
+        String cntrSn,
+        String cntr,
+        String cstFnm,
+        String slDt,
+        String rentalTn,
+        String recapDutyPtrmN,
+        String strtGiroTn,
+        String endGiroTn,
+        String istmMcn,
+        String thm0Amt,
+        String istmAmt,
+        String istmDscAmt,
+        String pyAmt,
+        String stplNmnAmt,
+        String exnNmnAmt,
+        String ltpayYn,
+        String giroBizDvCd,
+        String giroBizTpCd
+    ) {
+
+    }
+
     public record RemoveReq(
         @NotBlank
         String wkDt,

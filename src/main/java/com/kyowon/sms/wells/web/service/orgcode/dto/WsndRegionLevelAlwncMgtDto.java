@@ -18,10 +18,23 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsndRegionLevelAlwncMgtDto {
 
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-SearchBaseRes")
+    public record SearchBaseRes(
+        AllowanceBase movementBases, // 이동급지 리스트
+        AllowanceBase bizBases // 업무급지 리스트
+    ) {}
+
     @ApiModel(value = "WsndRegionLevelAlwncMgtDto-SearchRes")
     public record SearchRes(
         List<Allowance> movementAllowances, // 이동급지 리스트
         List<Allowance> bizAllowances // 업무급지 리스트
+    ) {}
+
+    @ApiModel(value = "WsndRegionLevelAlwncMgtDto-AllowanceBase")
+    public record AllowanceBase(
+        Integer minPerManho, // 분당공수
+        Integer rglvlWeit, // 급지비중
+        Integer avVe // 평균속도
     ) {}
 
     @ApiModel(value = "WsndRegionLevelAlwncMgtDto-Allowance")

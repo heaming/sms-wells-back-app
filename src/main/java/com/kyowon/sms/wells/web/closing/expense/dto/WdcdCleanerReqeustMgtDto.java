@@ -1,8 +1,12 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
@@ -37,7 +41,8 @@ public class WdcdCleanerReqeustMgtDto {
         String clinrNm, // 청소원 명
         String wrkStrtdt, // 근무시작일자
         String wrkEnddt, // 근무종료일자
-        String rrnoEncr, // 주민등록번호
+        String frontRrnoEncr, // 주민등록번호 앞자리
+        String backRrnoEncr, // 주민등록번호 뒷자리
         String locaraTno, // 지역번호
         String exnoEncr, // 전화국별
         String idvTno, // 개별전화번호
@@ -55,6 +60,10 @@ public class WdcdCleanerReqeustMgtDto {
         List<AttachFile> attachFiles3, // 계약서 첨부파일
         List<AttachFile> attachFiles4 // 계약해지 첨부파일
     ) {
+        public SaveReq {
+
+            backRrnoEncr = StringUtils.isNotEmpty(backRrnoEncr) ? DbEncUtil.dec(backRrnoEncr) : backRrnoEncr; // 계좌번호 암호화
+        }
     }
 
     // *********************************************************
@@ -68,17 +77,20 @@ public class WdcdCleanerReqeustMgtDto {
         String rcpYm,
         String bldCd,
         String aplcDt,
-        String aplcnsNm,
+        @MaskRequired(type = MaskingType.NAME)
+        String aplcnsNm,/*신청자*/
         String clinrFxnAmt,
         String taxDdctam,
         String dsbAmt,
-        String clinrNm,
+        @MaskRequired(type = MaskingType.NAME)
+        String clinrNm, /*청소원*/
         String wrkStrtdt,
         String wrkEnddt,
         String bryyMmdd,
-        String frontRrnoEncr,
-        String backRrnoEncr,
+        String frontRrnoEncr, // 주민번호 앞자리
+        String backRrnoEncr, // 주민번호 뒷자리
         String locaraTno,
+        @MaskRequired(type = MaskingType.PHONE)
         String exnoEncr,
         String idvTno,
         String zip,
@@ -91,5 +103,8 @@ public class WdcdCleanerReqeustMgtDto {
         String cntrwApnFileId,
         String cntrLroreApnFileId
     ) {
+        public FindRes {
+            exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr; // 전화국번호 복호화
+        }
     }
 }

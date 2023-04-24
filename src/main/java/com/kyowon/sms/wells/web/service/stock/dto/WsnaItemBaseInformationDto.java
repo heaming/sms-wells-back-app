@@ -22,7 +22,9 @@ public class WsnaItemBaseInformationDto {
         @NotBlank
         String itmKndCd,
         String itmPdCd,
-        String itmPdNm
+        String itmPdNm,
+        String wareNo,
+        String ostrWareNo
     ) {}
 
     @ApiModel("WsnaItemBaseInformationDto-SearchRes")
@@ -57,7 +59,7 @@ public class WsnaItemBaseInformationDto {
         String itmPdNm1, /*품목상품명1*/
         String imgUrl, /*이미지URL*/
         String itemKnd, /*품목종류*/
-        String lgstQty, /*물류재고*/
+        String warehouseQty, /* 현재출고창고재고 */
         String centerQty, /*현재센터A등급재고(조직)*/
         String centerBqty, /*현재센터B등급재고(조직)*/
         String indiQty, /*개인수량*/

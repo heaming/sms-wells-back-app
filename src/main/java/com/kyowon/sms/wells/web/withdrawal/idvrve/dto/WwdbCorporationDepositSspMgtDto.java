@@ -11,7 +11,8 @@ public class WwdbCorporationDepositSspMgtDto {
         String rveDt, // 수납일자
         //        String crpAcno, // 계좌번호
         //        String alncmpDprNm, // 입금자명
-        String rveCd // 수납코드
+        String rveCd, // 수납코드\
+        String itgDpNo
     ) {}
 
     @ApiModel(value = "WwdbCorporationDepositSspMgtDto-SearchRes")
