@@ -68,11 +68,13 @@
            AND T7.PERF_DV_CD        = '0'    -- 개인판매
            AND T7.PERF_ATC_CD       = 'W05P00001'   -- 총판기본수수료
            AND T7.DTA_DL_YN         = 'N'
-         WHERE T1.BASE_YM             = '202212' -- 조회조건 : UI실적년월
+         WHERE T1.BASE_YM             = #{perfYm} -- 조회조건 : UI실적년월
            AND T1.FEE_TCNT_DV_CD      = '01'  -- 1차
            AND T1.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문생성
-           AND T1.RCPDT         BETWEEN  '202210'||'01'  AND '202212'||'30'   -- 조회조건 : 접수년월 (입력년월 뒤에 일자(DD)를 붙여준다.)
-        -- AND T1.CAN_DT        BETWEEN  '202202'||'01'  AND '202212'||'30'   -- 조회조건 : 취소년월 (입력년월 뒤에 일자(DD)를 붙여준다.)
+           AND T1.RCPDT         BETWEEN  #{strtdt} || '01'  AND #{enddt} || '30'   -- 조회조건 : 접수년월 (입력년월 뒤에 일자(DD)를 붙여준다.)
+        <if test='@MybatisUtils@isNotEmpty(cancelStrtdt) and @MybatisUtils@isNotEmpty(cancelEnddt)'>
+           AND T1.CAN_DT        BETWEEN  #{cancelStrtdt} || '01'  AND #{cancelEnddt} || '31'   -- 조회조건 : 취소년월 (입력년월 뒤에 일자(DD)를 붙여준다.)
+        </if>
            AND T1.DTA_DL_YN           = 'N'
     </select>
 
@@ -97,8 +99,8 @@
                      , T1.FEE_CD
                      , T1.FEE_CTR_CNFM_AMT
                   FROM TB_FEAM_FEE_CALC_BAS T1
-                 WHERE T1.BASE_YM = '202211'    -- 조회조건 : UI실적년월
-                   AND T1.PERF_YM = '202211'    -- 조회조건 : UI실적년월
+                 WHERE T1.BASE_YM = #{perfYm}    -- 조회조건 : UI실적년월
+                   AND T1.PERF_YM = #{perfYm}   -- 조회조건 : UI실적년월
                    AND T1.FEE_CD        IN ('W050001', 'W050002', 'W050003', 'W050004', 'W050005')
         --           AND T1.CO_CD          = 'P0'   -- 교원프라퍼티
                    AND T1.FEE_TCNT_DV_CD = '01'   -- 1차
@@ -112,7 +114,7 @@
                      , T1.FEE_DDTN_TP_CD
                      , T1.FEE_DDCTAM
                   FROM TB_FEAM_FEE_DDTN_IZ T1
-                 WHERE T1.DDTN_YM = '202211'  -- 조회조건 : UI실적년월
+                 WHERE T1.DDTN_YM = #{perfYm}  -- 조회조건 : UI실적년월
                    AND T1.FEE_DDTN_TP_CD IN ('01', '08') -- 보증예치금, 환수되물림
         --           AND T1.CO_CD          = 'P0'   -- 교원프라퍼티
                    AND T1.FEE_TCNT_DV_CD = '01'   -- 1차
@@ -125,5 +127,196 @@
            AND T2.PRTNR_NO  = T1.PRTNR_NO
            AND T2.DTA_DL_YN = 'N'
     </select>
+
+    <delete id="deleteAggregateNtorMmCl">
+        DELETE FROM TB_FEAM_NTOR_MM_CL T1         -- 순주문월마감
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'  -- 총판수수료실적생성
+        --   AND T1.CO_CD               = '2000'  -- (주)교원프라퍼티
+    </delete>
+
+    <delete id="deleteAggregateCntrMmCl">
+        DELETE FROM TB_FEAM_NTORP_CNTR_MM_CL T1   -- 웰스순주문계약월마감
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'  -- 총판수수료실적생성
+        --   AND T1.CO_CD               = '2000'  -- (주)교원프라퍼티
+    </delete>
+
+    <delete id="deleteAggregatePerfMmCl">
+        DELETE FROM TB_FEAM_NTORP_PERF_MM_CL T1   -- 순주문파트너실적월마감
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'  -- 총판수수료실적생성
+        --   AND T1.CO_CD               = '2000'  -- (주)교원프라퍼티
+    </delete>
+
+    <insert id="insertAggregateNtorMmCl">
+        INSERT INTO TB_FEAM_NTOR_MM_CL (  -- 순주문파트너월마감
+               BASE_YM
+             , FEE_TCNT_DV_CD
+             , PERF_AGRG_CRT_DV_CD
+             , NTOR_CNFM_STAT_CD
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        )
+        SELECT #{perfYm}          AS BASE_YM
+             , '01'               AS FEE_TCNT_DV_CD    -- 1차
+             , '501'              AS PERF_AGRG_CRT_DV_CD  -- 총판수수료실적생성
+             , '01'               AS NTOR_CNFM_STAT_CD    -- 임시저장
+             , 'N'                AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM DUAL
+    </insert>
+
+    <insert id="insertAggregateCntrMmCl">
+        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL (  -- 순주문파트너계약월마감
+               BASE_YM
+             , PERF_YM
+             , FEE_TCNT_DV_CD
+             , PERF_AGRG_CRT_DV_CD
+             , PERF_ATC_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , PERF_DV_CD
+             , CNTR_NO
+             , CNTR_SN
+             , CNTR_PERF_CRT_DV_CD
+             , PERF_VAL
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        )
+        SELECT T1.BASE_YM
+             , T1.PERF_YM
+             , T1.FEE_TCNT_DV_CD
+             , '501'                AS PERF_AGRG_CRT_DV_CD  -- 총판수수료실적생성
+             , 'W05P00001'          AS PERF_ATC_CD    -- 총판기본수수료
+             , '2000'               AS CO_CD          -- 교원프라퍼티
+             , T1.OG_TP_CD
+             , T1.PRTNR_NO
+             , '0'                  AS PERF_DV_CD     -- 개인판매
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , '01'                 AS CNTR_PERF_CRT_DV_CD  -- 순주문집계
+             , T1.ACKMT_PERF_AMT    AS PERF_VAL
+             , 'N'                  AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_FEAM_WELS_NRCTR_MM_CL T1
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.OG_TP_CD            = 'W05'     -- 온라인총판
+    </insert>
+
+    <insert id="insertAggregatePerfMmCl1">
+        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너실적월마감
+               BASE_YM
+             , PERF_YM
+             , FEE_TCNT_DV_CD
+             , PERF_AGRG_CRT_DV_CD
+             , PERF_ATC_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , PERF_DV_CD
+             , PERF_VAL
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        )
+        SELECT T1.BASE_YM
+             , T1.PERF_YM
+             , T1.FEE_TCNT_DV_CD
+             , T1.PERF_AGRG_CRT_DV_CD
+             , T1.PERF_ATC_CD
+             , T1.CO_CD
+             , T1.OG_TP_CD
+             , T1.PRTNR_NO
+             , T1.PERF_DV_CD
+             , SUM(T1.PERF_VAL)     AS PERF_VAL
+             , 'N'                  AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_FEAM_NTORP_CNTR_MM_CL T1
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'      -- 총판수수료실적생성
+           AND T1.PERF_ATC_CD         = 'W05P00001'   -- 총판기본수수료
+           AND T1.OG_TP_CD            = 'W05'     -- 온라인총판
+           AND T1.PERF_DV_CD          = '0'       -- 개인판매
+        --   AND T1.CO_CD               = '2000'   -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
+         GROUP BY T1.BASE_YM
+                , T1.PERF_YM
+                , T1.FEE_TCNT_DV_CD
+                , T1.PERF_AGRG_CRT_DV_CD
+                , T1.PERF_ATC_CD
+                , T1.CO_CD
+                , T1.OG_TP_CD
+                , T1.PRTNR_NO
+                , T1.PERF_DV_CD
+    </insert>
+
+    <insert id="insertAggregatePerfMmCl2">
+        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너실적월마감
+               BASE_YM
+             , PERF_YM
+             , FEE_TCNT_DV_CD
+             , PERF_AGRG_CRT_DV_CD
+             , PERF_ATC_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , PERF_DV_CD
+             , PERF_VAL
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        )
+        SELECT T1.BASE_YM
+             , T1.PERF_YM
+             , T1.FEE_TCNT_DV_CD
+             , T1.PERF_AGRG_CRT_DV_CD
+             , T1.PERF_ATC_CD
+             , T1.CO_CD
+             , T1.OG_TP_CD
+             , T3.DGR1_LEVL_DG_PRTNR_NO
+             , '2'                  AS PERF_DV_CD
+             , SUM(T1.PERF_VAL)     AS PERF_VAL
+             , 'N'                  AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_FEAM_NTORP_PERF_MM_CL T1
+         INNER JOIN
+               TB_OGBS_MM_PRTNR_IZ T2
+            ON T2.BASE_YM  = T1.BASE_YM
+           AND T2.OG_TP_CD = T1.OG_TP_CD
+           AND T2.PRTNR_NO = T1.PRTNR_NO
+        -- INNER JOIN   -- 월조직내역 들어오면 주석 풀자.
+          LEFT OUTER JOIN
+               TB_OGBS_MM_OG_IZ T3
+            ON T3.BASE_YM  = T2.BASE_YM
+           AND T3.OG_ID    = T2.OG_ID
+         WHERE T1.BASE_YM             =  #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'      -- 총판수수료실적생성
+           AND T1.PERF_ATC_CD         = 'W05P00001'   -- 총판기본수수료
+           AND T1.OG_TP_CD            = 'W05'     -- 온라인총판
+           AND T1.PERF_DV_CD          = '0'       -- 개인판매
+        --   AND T1.CO_CD               = '2000'   -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
+         GROUP BY T1.BASE_YM
+                , T1.PERF_YM
+                , T1.FEE_TCNT_DV_CD
+                , T1.PERF_AGRG_CRT_DV_CD
+                , T1.PERF_ATC_CD
+                , T1.CO_CD
+                , T1.OG_TP_CD
+                , T3.DGR1_LEVL_DG_PRTNR_NO
+    </insert>
+
+    <update id="updateAggregateNtorMmCl">
+        UPDATE TB_FEAM_NTOR_MM_CL T1   -- 순주문파트너월마감
+           SET T1.NTOR_CNFM_STAT_CD = '02'    -- 확정
+               <include refid="COMMON.updateSystemField"/>
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'      -- 총판수수료실적생성
+    </update>
 
 </mapper>

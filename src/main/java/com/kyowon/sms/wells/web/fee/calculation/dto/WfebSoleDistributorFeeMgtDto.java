@@ -1,10 +1,13 @@
 package com.kyowon.sms.wells.web.fee.calculation.dto;
 
+import javax.validation.constraints.NotBlank;
+
 public class WfebSoleDistributorFeeMgtDto {
-    public record BaseReq(
+    public record SearchBaseReq(
+        @NotBlank
+        String perfYm,
         String strtYm,
         String endYm,
-        String perfYm,
         String cancelStrtYm,
         String cancelEndYm
     ) {}
@@ -31,7 +34,7 @@ public class WfebSoleDistributorFeeMgtDto {
         String slDt,
         String canDt,
         Integer ackmtPerfAmt,
-        String ackmtPerfCt,
+        Integer ackmtPerfCt,
         Integer feeAmt
     ) {}
 
@@ -52,4 +55,8 @@ public class WfebSoleDistributorFeeMgtDto {
         Integer acpyAmt
     ) {}
 
+    public record CreateReq(
+        @NotBlank
+        String perfYm /* 실적년월 */
+    ) {};
 }
