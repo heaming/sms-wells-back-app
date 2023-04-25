@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Api(tags = "[WOGC] 플래너 관리 REST API")
 @Validated
 @RequiredArgsConstructor
-@RequestMapping(OgConst.REST_URL_V1 + OgConst.REST_URL_PARTNER)
+@RequestMapping(OgConst.REST_PREFIX_SMS_WELLS + "/partner")
 public class WogcPartnerPlannerController {
 
     private final WogcPartnerPlannerService service;
@@ -46,6 +46,7 @@ public class WogcPartnerPlannerController {
         PageInfo pageinfo) {
         return service.getPlannerLicensePages(dto, pageinfo);
     }
+
     @ApiOperation(value = "플래너자격관리 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 플래너 자격관리를 조회한다.")
     @GetMapping("/planner-license/excel-download")
     public List<SearchLicenseRes> getPlannerLicenseForExcelDownload(SearchLicenseReq dto) {
