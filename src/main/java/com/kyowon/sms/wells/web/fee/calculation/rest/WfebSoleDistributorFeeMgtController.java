@@ -1,8 +1,9 @@
 package com.kyowon.sms.wells.web.fee.calculation.rest;
 
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.BaseReq;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.CreateReq;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Fee;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Performance;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SearchBaseReq;
 import com.kyowon.sms.wells.web.fee.calculation.service.WfebSoleDistributorFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -28,27 +29,27 @@ public class WfebSoleDistributorFeeMgtController {
 
     @ApiOperation(value = "총판수수료 생성관리 - 조회(수수료 실적)", notes = "총판수수료 생성관리의 수수료 실적을 조회한다.")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "strtYm", value = "접수년월 시작월", paramType = "query"),
         @ApiImplicitParam(name = "endYm", value = "접수년월 종료월", paramType = "query"),
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
         @ApiImplicitParam(name = "cancelStrtYm", value = "취소년월 시작월", paramType = "query"),
         @ApiImplicitParam(name = "cancelEndYm", value = "취소년월 종료월", paramType = "query"),
     })
     @GetMapping("/performance")
-    public List<Performance> getDistributorPerformance(@Valid BaseReq req) throws Exception {
+    public List<Performance> getDistributorPerformance(@Valid SearchBaseReq req) throws Exception {
         return service.getDistributorPerformance(req);
     }
 
     @ApiOperation(value = "총판수수료 생성관리 - 조회(수수료 실적)", notes = "총판수수료 생성관리의 수수료 실적을 조회한다.")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "strtYm", value = "접수년월 시작월", paramType = "query"),
         @ApiImplicitParam(name = "endYm", value = "접수년월 종료월", paramType = "query"),
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
         @ApiImplicitParam(name = "cancelStrtYm", value = "취소년월 시작월", paramType = "query"),
         @ApiImplicitParam(name = "cancelEndYm", value = "취소년월 종료월", paramType = "query"),
     })
     @GetMapping("/fee")
-    public List<Fee> getDistributorFee(@Valid BaseReq req) throws Exception {
+    public List<Fee> getDistributorFee(@Valid SearchBaseReq req) throws Exception {
         return service.getDistributorFee(req);
     }
 
@@ -59,21 +60,15 @@ public class WfebSoleDistributorFeeMgtController {
     }
 
     @ApiOperation(value = "총판수수료 생성관리 - 재시작", notes = "총판수수료 생성관리의 데이터를 재시작한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "path", example = ""),
-    })
-    @PostMapping("/retry/{perfYm}")
-    public SaveResponse editDistributorRetry(@PathVariable("perfYm") String perfYm) throws Exception {
-        return SaveResponse.builder().processCount(service.editDistributorRetry(perfYm)).build();
+    @PostMapping("/retry")
+    public SaveResponse retryDistributorPerformance(@RequestBody @Valid CreateReq req) throws Exception {
+        return SaveResponse.builder().processCount(service.retryDistributorPerformance(req)).build();
     }
 
     @ApiOperation(value = "총판수수료 생성관리 - 집계", notes = "총판수수료 생성관리의 데이터를 집계한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "path", example = ""),
-    })
-    @PostMapping("/aggregate/{perfYm}")
-    public SaveResponse editDistributorAggregate(@PathVariable("perfYm") String perfYm) throws Exception {
-        return SaveResponse.builder().processCount(service.editDistributorAggregate(perfYm)).build();
+    @PostMapping("/aggregate")
+    public SaveResponse aggregateDistributorPerformance(@RequestBody @Valid CreateReq req) throws Exception {
+        return SaveResponse.builder().processCount(service.aggregateDistributorPerformance(req)).build();
     }
 
 

@@ -1,8 +1,9 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.BaseReq;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.CreateReq;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Fee;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Performance;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SearchBaseReq;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class WfebSoleDistributorFeeMgtService {
      * @param req
      * @return
      */
-    public List<Performance> getDistributorPerformance(BaseReq req) {
+    public List<Performance> getDistributorPerformance(SearchBaseReq req) {
         // todo 실적테이블로 변경후 쿼리 수정
         return mapper.selectDistributorPerformance(req);
     }
@@ -39,7 +40,7 @@ public class WfebSoleDistributorFeeMgtService {
      * @param req
      * @return
      */
-    public List<Fee> getDistributorFee(BaseReq req) {
+    public List<Fee> getDistributorFee(SearchBaseReq req) {
          return mapper.selectDistributorFee(req);
     }
 
@@ -56,11 +57,11 @@ public class WfebSoleDistributorFeeMgtService {
     }
    /**
      * 총판수수료 생성관리 - 재시작
-     * @param perfYm
+     * @param req
      * @return
      */
     @Transactional
-    public int editDistributorRetry(String perfYm) {
+    public int retryDistributorPerformance(CreateReq req) {
         int processCount = 0;
         // todo 미정의
         return processCount;
@@ -68,28 +69,28 @@ public class WfebSoleDistributorFeeMgtService {
 
     /**
      * 총판수수료 생성관리 - 집계
-     * @param perfYm
+     * @param req
      * @return
      */
     @Transactional
-    public int editDistributorAggregate(String perfYm) {
+    public int aggregateDistributorPerformance(CreateReq req) {
         int processCount = 0;
         // 01. 순주문월마감 삭제
-        processCount += mapper.deleteAggregateNtorMmCl(perfYm);
+        processCount += mapper.deleteAggregateNtorMmCl(req);
         // 02. 웰스순주문계약월마감 삭제
-        processCount += mapper.deleteAggregateNtorMmCl(perfYm);
+        processCount += mapper.deleteAggregateNtorMmCl(req);
         // 03. 순주문파트너실적월마감 삭제
-        processCount += mapper.deleteAggregatePerfMmCl(perfYm);
+        processCount += mapper.deleteAggregatePerfMmCl(req);
         // 04. 순주문파트너월마감 등록
-        processCount += mapper.insertAggregateNtorMmCl(perfYm);
+        processCount += mapper.insertAggregateNtorMmCl(req);
         // 05. 순주문파트너계약월마감 등록
-        processCount += mapper.insertAggregateCntrMmCl(perfYm);
+        processCount += mapper.insertAggregateCntrMmCl(req);
         // 06. 순주문파트너계약월마감 개인판매 등록
-        processCount += mapper.insertAggregatePerfMmCl1(perfYm);
+        processCount += mapper.insertAggregatePerfMmCl1(req);
         // 07. 순주문파트너계약월마감 지점(지국)판매 등록
-        processCount += mapper.insertAggregatePerfMmCl2(perfYm);
+        processCount += mapper.insertAggregatePerfMmCl2(req);
         // 08. 순주문파트너월마감 상태 변경
-        processCount += mapper.updateAggregateNtorMmCl(perfYm);
+        processCount += mapper.updateAggregateNtorMmCl(req);
         return processCount;
     }
 
