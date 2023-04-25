@@ -17,10 +17,13 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
     @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-FindReq")
     public record FindReq(
         @NotBlank
+        @JsonProperty("OG_TP_CD")
         String ogTpCd,
         @NotBlank
+        @JsonProperty("PRTNR_NO")
         String prtnrNo,
         @NotBlank
+        @JsonProperty("HD_PRCSDT")
         String hdPrcsdt
 
     ) {}
