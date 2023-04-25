@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveIntegrationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveErrosReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
@@ -69,7 +70,11 @@ public class WwdbGiroDepositMgtController {
 
     @ApiOperation(value = "지로 입금관리 생성")
     @PostMapping("/create")
-    public SaveResponse saveBillingCreateDocument(SearchReq dto) throws Exception {
+    public SaveResponse saveBillingCreateDocument(
+        @RequestBody
+        @Valid
+        SaveIntegrationReq dto
+    ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveBillingCreateDocument(dto))
             .build();
