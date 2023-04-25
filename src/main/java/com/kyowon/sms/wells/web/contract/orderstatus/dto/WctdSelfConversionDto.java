@@ -1,8 +1,10 @@
 package com.kyowon.sms.wells.web.contract.orderstatus.dto;
 
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst.PeriodType;
+import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
+import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 
@@ -54,24 +56,28 @@ public class WctdSelfConversionDto {
         String pdCd,
         String pdNm,
         String sdingPdNm,
-        int fnlAmt,
-        int recapDutyPtrmN,
+        Integer fnlAmt,
+        Integer recapDutyPtrmN,
         String lastBsDt,
-        int eotUcAmt,
-        int eotDlqAmt,
-        int dlqAcuMcn,
+        Integer eotUcAmt,
+        Integer eotDlqAmt,
+        Integer dlqAcuMcn,
         String cntrPdStrtdt,
         String cntrPdEnddt,
         String mchnChYn,
         String reRetalYn,
         String mchnChTpCd,
         String chCntrNo,
-        int chCntrSn,
+        Integer chCntrSn,
         String chPdCd,
         String chPdNm,
         String stplRcpDtm,
         String stplStrtdt,
         String stplCanDtm
         ) {
+        public SearchRes {
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
+            rcgvpMexnoEncr = StringUtils.isNotEmpty(rcgvpMexnoEncr) ? DbEncUtil.dec(rcgvpMexnoEncr) : rcgvpMexnoEncr;
+        }
     }
 }
