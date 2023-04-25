@@ -7,8 +7,8 @@ import java.util.List;
 
 @Mapper
 public interface WfebMutualAidFeeMgtMapper {
-    List<AidIndividual> selectMutualAidIndividual(AidReq req);
-    List<AidGroup> selectMutualAidGroup(AidReq req);
-    int updateMutualAid(String baseYm);
-    List<AidOrder> selectMutualAidOrder(AidOrderReq req);
+    List<AidIndividual> selectMutualAidIndividual(SearchAidReq req);
+    List<AidGroup> selectMutualAidGroup(SearchAidReq req);
+    int updateMutualAid(SaveReq req);
+    List<AidOrder> selectMutualAidOrder(SearchAidOrderReq req);
 }

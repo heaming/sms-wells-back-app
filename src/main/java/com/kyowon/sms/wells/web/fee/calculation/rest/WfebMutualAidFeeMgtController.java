@@ -32,7 +32,7 @@ public class WfebMutualAidFeeMgtController {
         @ApiImplicitParam(name = "pdCd", value = "상품명", paramType = "query"),
     })
     @GetMapping("/individual")
-    public List<AidIndividual> getMutualAidIndividual(@Valid AidReq req) throws Exception {
+    public List<AidIndividual> getMutualAidIndividual(@Valid SearchAidReq req) throws Exception {
         return service.getMutualAidIndividual(req);
     }
 
@@ -44,14 +44,14 @@ public class WfebMutualAidFeeMgtController {
         @ApiImplicitParam(name = "pdCd", value = "상품명", paramType = "query")
     })
     @GetMapping("/group")
-    public List<AidGroup> getMutualAidGroup(@Valid AidReq req) throws Exception {
+    public List<AidGroup> getMutualAidGroup(@Valid SearchAidReq req) throws Exception {
         return service.getMutualAidGroup(req);
     }
 
     @ApiOperation(value = "상조 수수료 - 생성", notes = "상조 수수료 해당일자로 생성한다.")
-    @PostMapping("/create/{baseYm}")
-    public SaveResponse editMutualAid(@PathVariable String baseYm) throws Exception {
-        return SaveResponse.builder().processCount(service.editMutualAid(baseYm)).build();
+    @PostMapping("/create")
+    public SaveResponse createMutualAid(@Valid SaveReq req) throws Exception {
+        return SaveResponse.builder().processCount(service.createMutualAid(req)).build();
     }
 
     @ApiOperation(value = "상조 수수료 제휴주문 - 조회", notes = "상조 수수료 제휴주문을 조회한다.")
@@ -63,7 +63,7 @@ public class WfebMutualAidFeeMgtController {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너 번호", paramType = "query"),
     })
     @GetMapping("/order")
-    public List<AidOrder> getMutualAidOrder(@Valid AidOrderReq req) throws Exception {
+    public List<AidOrder> getMutualAidOrder(@Valid SearchAidOrderReq req) throws Exception {
         return service.getMutualAidOrder(req);
     }
 }

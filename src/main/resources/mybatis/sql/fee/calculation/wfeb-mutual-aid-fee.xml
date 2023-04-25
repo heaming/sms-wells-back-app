@@ -43,15 +43,15 @@
                     ELSE T1.FEE_REDF_YM END FEE_REDF_YM            /* 수수료 되물림월           */
          FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
         INNER JOIN TB_SSCT_CNTR_BAS         T2  /* 계약기본                 */
-           ON ( T1.WELS_CNTR_NO = T2.CNTR_NO )
+           ON T1.WELS_CNTR_NO = T2.CNTR_NO
         INNER JOIN TB_OGBS_MM_PRTNR_IZ      T3  /* 월파트너                 */
-           ON ( T1.BASE_YM = T3.BASE_YM
-            AND T1.PRTNR_NO = T3.PRTNR_NO )
+           ON T1.BASE_YM = T3.BASE_YM
+          AND T1.PRTNR_NO = T3.PRTNR_NO
         INNER JOIN TB_SSCT_CNTR_DTL         T4  /* 계약상세                 */
-           ON ( T1.WELS_CNTR_NO = T4.CNTR_NO
-            AND T1.WELS_CNTR_SN = T4.CNTR_SN )
+           ON T1.WELS_CNTR_NO = T4.CNTR_NO
+           ND T1.WELS_CNTR_SN = T4.CNTR_SN
         INNER JOIN TB_PDBS_PD_BAS           T5  /* 상품기본                 */
-           ON ( T4.BASE_PD_CD    = T5.PD_CD )
+           ON T4.BASE_PD_CD    = T5.PD_CD
          LEFT OUTER JOIN (SELECT LIF_CNTR_NO    --라이프계약번호
                          , PRTNR_NO       --파트너 번호
                          , COUNT(1) CNT   --COUNT
@@ -60,17 +60,16 @@
                       AND LIF_CNTR_STAT_CD = '0'         --수수료 : 라이프계약상태코드
                       AND CAN_DT           = '0'         --취소일 : 인터페이스에서 NULL인 경우 0으로 넘기고 있음
                     GROUP BY LIF_CNTR_NO, PRTNR_NO ) T7   /* 기지급을 구하기 위한 지급회수 COUNT */
-           ON ( T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
-            AND T1.PRTNR_NO    = T7.PRTNR_NO )
+           ON T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
+          AND T1.PRTNR_NO    = T7.PRTNR_NO
         INNER JOIN T_CMZ_CD_D                T9      /* 공통코드 - 직책          */
-           ON ( T9.TENANT_ID   = #{session.tenantId}
-            AND T9.CD_ID       = 'RSB_DV_CD'
-            AND T3.RSB_DV_CD   = T9.CD_VLD_VAL )
+           ON T9.TENANT_ID   = #{session.tenantId}
+          AND T9.CD_ID       = 'RSB_DV_CD'
+          AND T3.RSB_DV_CD   = T9.CD_VLD_VAL
         INNER JOIN (SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
                       FROM TB_FEAM_FEE_BASE_DTL
                      WHERE FEE_CD = 'W010021' /* W010021(15직급개인), W010022(조직) */
                        AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM) TF /* 상조 FEE 기준금액 */
-           ON ( 1=1 )
         WHERE 1=1
           AND T1.BASE_YM            = #{baseYm}
          <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
@@ -102,17 +101,16 @@
              , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
           FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ        T1  /* 라이프제휴수수료계약내역 */
          INNER JOIN TB_OGBS_MM_PRTNR_IZ            T3  /* 월파트너                 */
-            ON ( T1.BASE_YM = T3.BASE_YM
-             AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO )
+            ON T1.BASE_YM = T3.BASE_YM
+           AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO
          INNER JOIN T_CMZ_CD_D                     T9  /* 공통코드 - 직책          */
-            ON ( T9.TENANT_ID  = #{session.tenantId}
-             AND T9.CD_ID      = 'RSB_DV_CD'
-             AND T3.RSB_DV_CD  = T9.CD_VLD_VAL  )
+            ON T9.TENANT_ID  = #{session.tenantId}
+           AND T9.CD_ID      = 'RSB_DV_CD'
+           AND T3.RSB_DV_CD  = T9.CD_VLD_VAL
          INNER JOIN (SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
                        FROM TB_FEAM_FEE_BASE_DTL
                       WHERE FEE_CD = 'W010022' /* W010021(15직급개인), W010022(조직) */
                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM) TF /* 상조 FEE 기준금액 */
-            ON ( 1=1 )
          WHERE 1=1
            AND T1.BASE_YM            = #{baseYm}
            AND T1.LIF_CNTR_STAT_CD   = '0'               /* 수수료 : 라이프계약상태코드 */
@@ -177,21 +175,21 @@
                      END CNTR_STAT --실적구분
          FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ T1   /* 라이프제휴수수료계약내역 */
         INNER JOIN TB_SSCT_CNTR_BAS             T2   /* 계약기본                 */
-           ON ( T1.WELS_CNTR_NO = T2.CNTR_NO )
+           ON T1.WELS_CNTR_NO = T2.CNTR_NO
         INNER JOIN TB_OGBS_MM_PRTNR_IZ          T3   /* 월파트너                 */
-           ON ( T1.BASE_YM  = T3.BASE_YM
-            AND T1.PRTNR_NO = T3.PRTNR_NO )
+           ON T1.BASE_YM  = T3.BASE_YM
+          AND T1.PRTNR_NO = T3.PRTNR_NO
         INNER JOIN TB_CUBS_CST_BAS              T4   /* 고객기본                 */
-           ON ( T2.CNTR_CST_NO = T4.CST_NO )
+           ON T2.CNTR_CST_NO = T4.CST_NO
         INNER JOIN T_CMZ_CD_D                   T9   /* 공통코드 - 직책          */
-           ON ( T9.TENANT_ID       = #{session.tenantId}
-            AND T9.CD_ID           = 'RSB_DV_CD'
-            AND T9.CD_VLD_VAL      = T3.RSB_DV_CD )
+           ON T9.TENANT_ID       = #{session.tenantId}
+          AND T9.CD_ID           = 'RSB_DV_CD'
+          AND T9.CD_VLD_VAL      = T3.RSB_DV_CD
         INNER JOIN TB_OGBS_OG_BAS               TT   /* 조직기본                 */
-           ON ( T3.OG_ID = TT.OG_ID )
+           ON T3.OG_ID = TT.OG_ID
          LEFT OUTER JOIN TB_IFIN_LIF_ORD_RCV_ETXT     TU   /* ZA_라이프주문수신전문    */
-           ON ( SUBSTR(T1.WELS_CNTR_NO, 2, 4) = TU.KLFLG8
-            AND SUBSTR(T1.WELS_CNTR_NO, 6, 7) = TU.KLFLG9 )
+           ON SUBSTR(T1.WELS_CNTR_NO, 2, 4) = TU.KLFLG8
+          AND SUBSTR(T1.WELS_CNTR_NO, 6, 7) = TU.KLFLG9
         WHERE 1=1
           AND T1.CNFM_YN         = 'Y'
           AND T1.DTA_DL_YN       = 'N'

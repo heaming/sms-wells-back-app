@@ -27,27 +27,27 @@ public class WfebMutualAidFeeMgtService {
      * @param req
      * @return
      */
-    public List<AidIndividual> getMutualAidIndividual(AidReq req) {
+    public List<AidIndividual> getMutualAidIndividual(SearchAidReq req) {
         return mapper.selectMutualAidIndividual(req);
     }
-    public List<AidGroup> getMutualAidGroup(AidReq req) {
+    public List<AidGroup> getMutualAidGroup(SearchAidReq req) {
         return mapper.selectMutualAidGroup(req);
     }
     /**
      * 상조 수수료 - 생성
-     * @param baseYm
+     * @param req
      * @return
      */
     @Transactional
-    public int editMutualAid(String baseYm) {
-        return mapper.updateMutualAid(baseYm);
+    public int createMutualAid(SaveReq req) {
+        return mapper.updateMutualAid(req);
     }
     /**
      * 상조 수수료 제휴주문 - 조회
      * @param req
      * @return
      */
-    public List<AidOrder> getMutualAidOrder(AidOrderReq req) {
+    public List<AidOrder> getMutualAidOrder(SearchAidOrderReq req) {
          return mapper.selectMutualAidOrder(req);
     }
 

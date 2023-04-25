@@ -1,12 +1,17 @@
 package com.kyowon.sms.wells.web.fee.calculation.dto;
 
 public class WfebMutualAidFeeMgtDto {
-    public record AidReq(
+    public record SearchAidReq(
         String baseYm,
         String strtDt,
         String endDt,
         String pdCd
     ) {}
+
+    public record SaveReq(
+        String baseYm
+    ) {}
+
 
     public record AidIndividual(
         String baseYm,
@@ -31,7 +36,7 @@ public class WfebMutualAidFeeMgtDto {
         Integer dpAcuAmt,
         String flpymTn,
         Integer preAmtSum,
-        Integer curAnt,
+        Integer curAmt,
         String cnfmYn,
         String feeDsbYm,
         String feeRedfYm
@@ -50,7 +55,7 @@ public class WfebMutualAidFeeMgtDto {
         String feeRedfYm
     ) {}
 
-    public record AidOrderReq(
+    public record SearchAidOrderReq(
         String baseYm,
         String ogId3,
         String ogId2,
