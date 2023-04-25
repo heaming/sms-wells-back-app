@@ -26,31 +26,31 @@ public class WfebMutualAidFeeMgtController {
 
     @ApiOperation(value = "상조 수수료 - 조회(개인)", notes = "상조 수수료를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query"),
+        @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "strtDt", value = "계약시작일자", paramType = "query"),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
         @ApiImplicitParam(name = "pdCd", value = "상품명", paramType = "query"),
     })
     @GetMapping("/individual")
-    public List<AidIndividual> getMutualAidIndividual(@Valid SearchAidReq req) throws Exception {
+    public List<AidIndividual> getMutualAidIndividual(@RequestBody @Valid SearchAidReq req) throws Exception {
         return service.getMutualAidIndividual(req);
     }
 
     @ApiOperation(value = "상조 수수료 - 조회(조직)", notes = "상조 수수료를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query"),
+        @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "strtDt", value = "계약시작일자", paramType = "query"),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
         @ApiImplicitParam(name = "pdCd", value = "상품명", paramType = "query")
     })
     @GetMapping("/group")
-    public List<AidGroup> getMutualAidGroup(@Valid SearchAidReq req) throws Exception {
+    public List<AidGroup> getMutualAidGroup(@RequestBody @Valid SearchAidReq req) throws Exception {
         return service.getMutualAidGroup(req);
     }
 
     @ApiOperation(value = "상조 수수료 - 생성", notes = "상조 수수료 해당일자로 생성한다.")
     @PostMapping("/create")
-    public SaveResponse createMutualAid(@Valid SaveReq req) throws Exception {
+    public SaveResponse createMutualAid(@RequestBody @Valid SaveReq req) throws Exception {
         return SaveResponse.builder().processCount(service.createMutualAid(req)).build();
     }
 
@@ -63,7 +63,7 @@ public class WfebMutualAidFeeMgtController {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너 번호", paramType = "query"),
     })
     @GetMapping("/order")
-    public List<AidOrder> getMutualAidOrder(@Valid SearchAidOrderReq req) throws Exception {
+    public List<AidOrder> getMutualAidOrder(@RequestBody @Valid SearchAidOrderReq req) throws Exception {
         return service.getMutualAidOrder(req);
     }
 }

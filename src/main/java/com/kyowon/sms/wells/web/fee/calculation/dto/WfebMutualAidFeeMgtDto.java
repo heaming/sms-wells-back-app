@@ -1,7 +1,10 @@
 package com.kyowon.sms.wells.web.fee.calculation.dto;
 
+import javax.validation.constraints.NotBlank;
+
 public class WfebMutualAidFeeMgtDto {
     public record SearchAidReq(
+        @NotBlank
         String baseYm,
         String strtDt,
         String endDt,
@@ -9,6 +12,7 @@ public class WfebMutualAidFeeMgtDto {
     ) {}
 
     public record SaveReq(
+        @NotBlank
         String baseYm
     ) {}
 
@@ -56,6 +60,7 @@ public class WfebMutualAidFeeMgtDto {
     ) {}
 
     public record SearchAidOrderReq(
+        @NotBlank
         String baseYm,
         String ogId3,
         String ogId2,
