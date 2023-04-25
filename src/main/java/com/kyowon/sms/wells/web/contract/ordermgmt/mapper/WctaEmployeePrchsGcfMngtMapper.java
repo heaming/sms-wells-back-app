@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaEmployeePrchsGcfMngtDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaEmployeePrchsGcfMngtRequestDvo;
 
@@ -12,4 +13,5 @@ public interface WctaEmployeePrchsGcfMngtMapper {
 
     List<WctaEmployeePrchsGcfMngtDvo> selectEmployeePurchaseGcfs(WctaEmployeePrchsGcfMngtRequestDvo dvo);
 
+    List<WctaEmployeePrchsGcfMngtDto.SearchCntrRes> selectEmployeePurchases(String stYy, String colDv, String empno);
 }
