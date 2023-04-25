@@ -47,7 +47,7 @@ public class WfebMutualAidFeeMgtDto {
         String cntrStat,
         String ogCd,
         String brmgrPrtnrNo,
-        String PrtnrKnm,
+        String prtnrKnm,
         String cdCntn,
         Integer brchCt,
         Integer brchAmt,
