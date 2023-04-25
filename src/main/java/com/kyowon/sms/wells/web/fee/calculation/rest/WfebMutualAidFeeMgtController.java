@@ -49,14 +49,17 @@ public class WfebMutualAidFeeMgtController {
     }
 
     @ApiOperation(value = "상조 수수료 - 생성", notes = "상조 수수료 해당일자로 생성한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query", required = true),
+    })
     @PostMapping("/create")
-    public SaveResponse createMutualAid(@RequestBody @Valid SaveReq req) throws Exception {
+    public SaveResponse createMutualAid(@RequestBody @Valid CreateAidReq req) throws Exception {
         return SaveResponse.builder().processCount(service.createMutualAid(req)).build();
     }
 
     @ApiOperation(value = "상조 수수료 제휴주문 - 조회", notes = "상조 수수료 제휴주문을 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogId3", value = "조직 3레벨", paramType = "query"),
         @ApiImplicitParam(name = "ogId2", value = "조직 2레벨", paramType = "query"),
         @ApiImplicitParam(name = "ogId1", value = "조직 1레벨", paramType = "query"),

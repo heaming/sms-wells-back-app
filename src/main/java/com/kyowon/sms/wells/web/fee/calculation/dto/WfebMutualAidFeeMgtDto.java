@@ -11,7 +11,7 @@ public class WfebMutualAidFeeMgtDto {
         String pdCd
     ) {}
 
-    public record SaveReq(
+    public record CreateAidReq(
         @NotBlank
         String baseYm
     ) {}

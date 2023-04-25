@@ -9,6 +9,6 @@ import java.util.List;
 public interface WfebMutualAidFeeMgtMapper {
     List<AidIndividual> selectMutualAidIndividual(SearchAidReq req);
     List<AidGroup> selectMutualAidGroup(SearchAidReq req);
-    int updateMutualAid(SaveReq req);
+    int updateMutualAid(CreateAidReq req);
     List<AidOrder> selectMutualAidOrder(SearchAidOrderReq req);
 }

@@ -39,7 +39,7 @@ public class WfebMutualAidFeeMgtService {
      * @return
      */
     @Transactional
-    public int createMutualAid(SaveReq req) {
+    public int createMutualAid(CreateAidReq req) {
         return mapper.updateMutualAid(req);
     }
     /**
