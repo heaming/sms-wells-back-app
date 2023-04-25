@@ -9,7 +9,7 @@
                  , TB_7.OG_NM
                  , TB_1.PRTNR_NO
                  , TB_7.PRTNR_KNM
-                 , TB_2.BASE_PD_CD
+                 , TB_2.PDCT_PD_CD
                  , TB_3.SVPD_NM_KOR AS PD_NM
                  , TB_1.CNTR_NO
                  , TB_1.CNTR_SN
@@ -26,17 +26,22 @@
             /*     , TB_8.USE_MPNO */
                  , '' AS USE_MPNO
                  , TB_8.CST_SIGN_CN
-                 , TB_7.OG_NM || ' ' || TB_7.PRTNR_KNM || '(' || TB_1.PRTNR_NO || ')' AS PUBLISH_INFO
+                /* , TB_7.OG_NM || ' ' || TB_7.PRTNR_KNM || '(' || NVL(TB_7.PRTNR_NO, ' ') || ')' AS PUBLISH_INFO */
+                 , (
+                    CASE WHEN TB_7.PRTNR_NO IS NULL THEN ''
+                         ELSE TB_7.OG_NM || ' ' || TB_7.PRTNR_KNM || '(' || TB_7.PRTNR_NO || ')'
+                         END
+                   ) AS PUBLISH_INFO
                  , RANK() OVER (PARTITION BY TB_8.CNTR_NO, TB_8.CNTR_SN ORDER BY TB_8.CST_SV_ASN_NO DESC, TB_8.CST_SV_EXCN_SN DESC) AS RNK
               FROM TB_SVPD_BC_RPBL_AK_CST_IZ TB_1
-             INNER JOIN TB_SSCT_CNTR_DTL TB_2
+             INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_2
              ON (
                    TB_1.CNTR_NO = TB_2.CNTR_NO
                AND TB_1.CNTR_SN = TB_2.CNTR_SN
              )
              INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB_3
              ON (
-                   TB_2.BASE_PD_CD = TB_3.SVPD_PD_CD
+                   TB_2.PDCT_PD_CD = TB_3.SVPD_PD_CD
              )
              INNER JOIN TB_SSCT_CNTR_ADR_REL TB_4
              ON (
@@ -52,13 +57,13 @@
              ON (
                    TB_5.ADR_ID = TB_6.ADR_ID
              )
-             INNER JOIN TB_OGBS_MM_PRTNR_IZ TB_7
+             LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TB_7
              ON (
                    TB_7.BASE_YM = #{baseYm}
                AND TB_1.RPBL_PRTNR_OG_TP_CD = TB_7.OG_TP_CD
                AND TB_1.RPBL_PRTNR_NO = TB_7.PRTNR_NO
              )
-             INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ TB_8
+             LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ TB_8
              ON (
                    TB_1.CNTR_NO = TB_8.CNTR_NO
                AND TB_1.CNTR_SN = TB_8.CNTR_SN

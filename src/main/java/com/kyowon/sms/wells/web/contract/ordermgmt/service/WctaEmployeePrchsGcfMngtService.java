@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaEmployeePrchsGcfMngtConverter;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaEmployeePrchsGcfMngtRequestDvo;
@@ -29,5 +30,11 @@ public class WctaEmployeePrchsGcfMngtService {
     public List<SearchRes> getEmployeePurchaseGcfsExcelDownload(SearchReq dto) {
         WctaEmployeePrchsGcfMngtRequestDvo dvo = converter.mapSearchReqToWctaEmployeePrchsGcfMngtDvo(dto);
         return converter.mapWctaEmployeePrchsGcfMngtDvoToSearchRes(mapper.selectEmployeePurchaseGcfs(dvo));
+    }
+
+    public List<WctaEmployeePrchsGcfMngtDto.SearchCntrRes> getEmployeePurchases(
+        String stYy, String colDv, String empno
+    ) {
+        return mapper.selectEmployeePurchases(stYy, colDv, empno);
     }
 }

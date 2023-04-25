@@ -25,9 +25,11 @@ public class WwdbBillDepositMgtDto {
         String billBndAmt, /* 채권금액 */
         String billExprDt, /* 만기일자 */
         String cntrCount, /* 계약수 */
-        String itgDpNo /* 통합입금번호 */
+        String itgDpNo, /* 통합입금번호 */
         /* 입금전표번호 */
         /* 대체전표번호 */
+        String sellBzsBzrno,
+        String pblBzsBzrno
     ) {
 
     }
@@ -88,7 +90,9 @@ public class WwdbBillDepositMgtDto {
         String itgDpNo, /* 통합입금번호 */
         String cntrNo,
         String cntrSn,
-        String billDpAmt /* 금액 */
+        String billDpAmt, /* 금액 */
+        String sellBzsBzrno,
+        String pblBzsBzrno
     ) {
 
     }
@@ -111,6 +115,17 @@ public class WwdbBillDepositMgtDto {
         String cntrSn, /* 일련번호 */
         String cntr, /* 일련번호 */
         String billDpAmt /* 입금금액 */
+    ) {
+
+    }
+
+    public record SaveIntegrationReq(
+        String itgDpNo, /*통합입금번호*/
+        String kwGrpCoCd, /*교원그룹번호*/
+        String dpDtm, /*입금일시*/
+        @NotBlank
+        String fntDt, /*실적일자*/
+        String pyAmt /*입금금액*/
     ) {
 
     }
