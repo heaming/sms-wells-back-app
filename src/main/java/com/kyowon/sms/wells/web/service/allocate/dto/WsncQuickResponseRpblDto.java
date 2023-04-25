@@ -37,7 +37,7 @@ public class WsncQuickResponseRpblDto {
         String ogNm,
         String prtnrNo,
         String prtnrKnm,
-        String basePdCd,
+        String pdctPdCd,
         String pdNm,
         String cntrNo,
         String cntrSn,
@@ -52,6 +52,8 @@ public class WsncQuickResponseRpblDto {
         String vstFshHh,
         String bcInMthdCd,
         String useMpno,
-        String publishInfo
+        byte[] cstSignCn,
+        String publishInfo,
+        String rnk
     ) {}
 }
