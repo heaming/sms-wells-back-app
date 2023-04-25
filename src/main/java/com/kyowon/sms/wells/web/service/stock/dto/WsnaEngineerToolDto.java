@@ -11,7 +11,7 @@ public class WsnaEngineerToolDto {
     @ApiModel(value = "WsnaEngineerToolDto-SearchReq")
     public record SearchReq(
         String pymdt,
-        String ogCd,
+        String ogId,
         String egerPrtnrNo,
         String prtnrKnm,
         String toolPdCdStrt,
@@ -27,7 +27,7 @@ public class WsnaEngineerToolDto {
         String toolPdCd,
         String dsbSn,
         String toolQty,
-        String ogCd,
+        String ogId,
         String ogNm,
         String hgrOgNm,
         String prtnrNo,
