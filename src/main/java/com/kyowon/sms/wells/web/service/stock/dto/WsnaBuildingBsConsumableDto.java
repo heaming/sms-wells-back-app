@@ -6,7 +6,7 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsnaBldBfsvcCsmbDdlvDto {
+public class WsnaBuildingBsConsumableDto {
     @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-SearchReq")
     public record SearchReq(
         String mngtYm,

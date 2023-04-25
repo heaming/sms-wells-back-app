@@ -7,8 +7,8 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBldBfsvcCsmbDdlvDto.*;
-import com.kyowon.sms.wells.web.service.stock.service.WsnaBldBfsvcCsmbDdlvService;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.*;
+import com.kyowon.sms.wells.web.service.stock.service.WsnaBuildingBsConsumableService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,17 +22,17 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/building-bsconsumables")
-public class WsnaBldBfsvcCsmbDdlvController {
-    private final WsnaBldBfsvcCsmbDdlvService service;
+public class WsnaBuildingBsConsumableController {
+    private final WsnaBuildingBsConsumableService service;
 
     @GetMapping
-    public List<SearchRes> getBldCsmbDeliveries(SearchReq dto) {
+    public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
         return null;
     }
 
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getBldCsmbDeliveryPages(SearchReq dto, PageInfo pageInfo) {
-        return service.getBldCsmbDeliveryPages(dto, pageInfo);
+    public PagingResult<SearchRes> getBuildingBsConsumablPages(SearchReq dto, PageInfo pageInfo) {
+        return service.getBuildingBsConsumablePages(dto, pageInfo);
     }
 
     @GetMapping("/items/{mngtYm}")
@@ -44,21 +44,21 @@ public class WsnaBldBfsvcCsmbDdlvController {
     }
 
     @GetMapping("/time-limit/{mngtYm}")
-    public FindTmlmRes getBldCsmbAplcClose(
+    public FindTmlmRes getBuildingBsConsumableAplcClose(
         @PathVariable
         String mngtYm
     ) {
-        return service.getBldCsmbAplcClose(mngtYm);
+        return service.getBuildingBsConsumableAplcClose(mngtYm);
     }
 
     @PostMapping("/period-term")
-    public SaveResponse createBldCsmbAplcClose(
+    public SaveResponse createBuildingBsConsumableAplcClose(
         @RequestBody
         @Valid
         CreateTmlmReq dto
     ) {
         return SaveResponse.builder()
-            .processCount(service.createBldCsmbAplcClose(dto))
+            .processCount(service.createBuildingBsConsumableAplcClose(dto))
             .build();
     }
 
@@ -67,17 +67,17 @@ public class WsnaBldBfsvcCsmbDdlvController {
         @PathVariable
         String mngtYm
     ) {
-        return service.selectBuildings(mngtYm);
+        return service.getBuildingList(mngtYm);
     }
 
     @PostMapping
-    public SaveResponse createBldCsmbDeliveries(
+    public SaveResponse createBuildingBsConsumables(
         @RequestBody
         @Valid
         List<CreateReq> dtos
     ) {
         return SaveResponse.builder()
-            .processCount(service.createBldCsmbDeliveries(dtos))
+            .processCount(service.createBuildingBsConsumables(dtos))
             .build();
     }
 }

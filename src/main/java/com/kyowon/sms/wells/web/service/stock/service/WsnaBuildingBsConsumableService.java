@@ -9,10 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaBldBfsvcCsmbDdlvConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBldBfsvcCsmbDdlvDto.*;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBldBfsvcCsmbDdlvDvo;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBldBfsvcCsmbDdlvMapper;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaBuildingBsConsumableConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBuildingBsConsumableMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -20,24 +20,24 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WsnaBldBfsvcCsmbDdlvService {
-    private final WsnaBldBfsvcCsmbDdlvMapper mapper;
-    private final WsnaBldBfsvcCsmbDdlvConverter converter;
+public class WsnaBuildingBsConsumableService {
+    private final WsnaBuildingBsConsumableMapper mapper;
+    private final WsnaBuildingBsConsumableConverter converter;
 
-    public List<SearchRes> getBldCsmbDeliveries(SearchReq dto) {
+    public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
         return null;
     }
 
-    public PagingResult<SearchRes> getBldCsmbDeliveryPages(SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRes> getBuildingBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
         // 빌딩정보 조회
-        PagingResult<WsnaBldBfsvcCsmbDdlvDvo> bldInfos = mapper.selectBuildingInfos(dto, pageInfo);
-        List<WsnaBldBfsvcCsmbDdlvDvo> bldAndItemsInfos = new ArrayList<>();
-        Iterator<WsnaBldBfsvcCsmbDdlvDvo> it = bldInfos.iterator();
+        PagingResult<WsnaBuildingBsConsumableDvo> bldInfos = mapper.selectBuildings(dto, pageInfo);
+        List<WsnaBuildingBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
+        Iterator<WsnaBuildingBsConsumableDvo> it = bldInfos.iterator();
 
         while (it.hasNext()) {
-            WsnaBldBfsvcCsmbDdlvDvo bftBldInfo = it.next();
-            WsnaBldBfsvcCsmbDdlvDvo aftBldInfo = new WsnaBldBfsvcCsmbDdlvDvo();
-            List<WsnaBldBfsvcCsmbDdlvDvo> itemInfos = new ArrayList<>();
+            WsnaBuildingBsConsumableDvo bftBldInfo = it.next();
+            WsnaBuildingBsConsumableDvo aftBldInfo = new WsnaBuildingBsConsumableDvo();
+            List<WsnaBuildingBsConsumableDvo> itemInfos = new ArrayList<>();
 
             aftBldInfo = bftBldInfo;
 
@@ -51,7 +51,7 @@ public class WsnaBldBfsvcCsmbDdlvService {
                 // 빌딩 별 미등록 품목 계산 수량 조회
                 itemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bftBldInfo.getStrWareNo());
 
-                for (WsnaBldBfsvcCsmbDdlvDvo itemInfo : itemInfos) {
+                for (WsnaBuildingBsConsumableDvo itemInfo : itemInfos) {
                     switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
                         case "1" -> {
                             fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
@@ -68,7 +68,7 @@ public class WsnaBldBfsvcCsmbDdlvService {
                 aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
                 bldAndItemsInfos.add(aftBldInfo);
             } else {
-                for (WsnaBldBfsvcCsmbDdlvDvo itemInfo : itemInfos) {
+                for (WsnaBuildingBsConsumableDvo itemInfo : itemInfos) {
                     switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
                         case "1" -> {
                             fxnItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
@@ -97,29 +97,29 @@ public class WsnaBldBfsvcCsmbDdlvService {
         return mapper.selectItems(mngtYm);
     }
 
-    public FindTmlmRes getBldCsmbAplcClose(String mngtYm) {
-        FindTmlmRes res = mapper.selectBldCsmbAplcClose(mngtYm);
+    public FindTmlmRes getBuildingBsConsumableAplcClose(String mngtYm) {
+        FindTmlmRes res = mapper.selectBuildingBsConsumableAplcClose(mngtYm);
 
         if (ObjectUtils.isEmpty(res)) {
-            res = mapper.selectBldCsmbAplcFirstClose(mngtYm);
+            res = mapper.selectBuildingBsConsumableAplcFirstClose(mngtYm);
         }
 
         return res;
     }
 
     @Transactional
-    public int createBldCsmbAplcClose(CreateTmlmReq dto) {
-        WsnaBldBfsvcCsmbDdlvDvo dvo = converter.mapCreateTmlmReqToCsmbDblv(dto);
+    public int createBuildingBsConsumableAplcClose(CreateTmlmReq dto) {
+        WsnaBuildingBsConsumableDvo dvo = converter.mapCreateTmlmReqToCsmbDblv(dto);
 
-        return mapper.mergeBldCsmbAplcClose(dvo);
+        return mapper.mergeBuildingBsConsumableAplcClose(dvo);
     }
 
-    public List<SearchBldRes> selectBuildings(String mngtYm) {
-        return mapper.selectBuildings(mngtYm);
+    public List<SearchBldRes> getBuildingList(String mngtYm) {
+        return mapper.selectBuildingList(mngtYm);
     }
 
     @Transactional
-    public int createBldCsmbDeliveries(List<CreateReq> dtos) {
-        return mapper.mergeBldCsmbDeliveries(dtos);
+    public int createBuildingBsConsumables(List<CreateReq> dtos) {
+        return mapper.mergeBuildingBsConsumables(dtos);
     }
 }

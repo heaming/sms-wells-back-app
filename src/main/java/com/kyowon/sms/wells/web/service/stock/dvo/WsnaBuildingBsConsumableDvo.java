@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaBldBfsvcCsmbDdlvDvo {
+public class WsnaBuildingBsConsumableDvo {
     String reqYn;
     String bldCd;
     String bldNm;
