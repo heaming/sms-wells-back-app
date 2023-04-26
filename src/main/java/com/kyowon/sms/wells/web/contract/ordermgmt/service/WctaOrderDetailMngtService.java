@@ -2,15 +2,22 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto.*;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrBasicChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaOrderDetailConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailMembershipPagesRequestDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailRentalPagesRequestDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailSinglePaymentPagesRequestDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailMngtMapper;
+import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -23,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WctaOrderDetailMngtService {
     private final WctaOrderDetailMngtMapper mapper;
     private final WctaOrderDetailConverter converter;
+    private final WctzHistoryService historyService;
 
     public PagingResult<SearchRes> getOrderDetailRentalPages(SearchReq dto, PageInfo pageInfo) {
         WctaOrderDetailRentalPagesRequestDvo dvo = converter.mapSearchReqToWctaOrderDetailRentalPagesDvo(dto);
@@ -101,5 +109,36 @@ public class WctaOrderDetailMngtService {
         return converter.mapWctaOrderDetailRglrDlvrPagesExcelDvoToSearchOrderDetailRglrDlvrPagesRes(
             mapper.selectOrderRegularShippingsPages(dto)
         );
+    }
+
+    @Transactional
+    public int saveMembershipConfirms(List<SaveMembershipConfirmsReq> dtos) {
+        int processCount = 0;
+        Iterator<SaveMembershipConfirmsReq> iterator = dtos.iterator();
+        while (iterator.hasNext()) {
+            SaveMembershipConfirmsReq dto = iterator.next();
+            String histStrtDtm = DateUtil.getNowString();
+
+            if (StringUtil.isNotEmpty(dto.cntrCnfmYn())) {
+                processCount = mapper.updateMembershipConfirmsCntrBas(dto);
+                historyService.createContractBasicChangeHistory(
+                    WctzCntrBasicChangeHistDvo.builder()
+                        .cntrNo(dto.cntrNo())
+                        .cntrCnfmDtm(dto.cntrCnfmDt())
+                        .histStrtDtm(histStrtDtm)
+                        .build()
+                );
+                processCount += mapper.updateMembershipConfirmsCntrDtl(dto);
+                historyService.createContractDetailChangeHistory(
+                    WctzCntrDetailChangeHistDvo.builder()
+                        .cntrNo(dto.cntrNo())
+                        .cntrSn(dto.cntrSn())
+                        .cntrPdStrtdt(dto.cntrPdStrtdt())
+                        .histStrtDtm(histStrtDtm)
+                        .build()
+                );
+            }
+        }
+        return processCount;
     }
 }

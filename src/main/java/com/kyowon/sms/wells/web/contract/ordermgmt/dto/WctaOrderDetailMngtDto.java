@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WctaOrderDetailMngtDto {
@@ -122,6 +124,19 @@ public class WctaOrderDetailMngtDto {
         List<String> dgr3LevlOgId,
         String sellPrtnrNo,
         List<String> mchnDv
+    ) {}
+
+    //멤버쉽 확정관리 - 멤버쉽 확정관리(멤버쉽-일반/계약번호/게인정보조회) Search Request Dto
+    @ApiModel(value = "WctaOrderDetailMngtDto-SaveMembershipConfirmsReq")
+    public record SaveMembershipConfirmsReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        int cntrSn,
+        @NotBlank
+        String cntrCnfmYn,
+        String cntrCnfmDt,
+        String cntrPdStrtdt
     ) {}
 
     // *********************************************************

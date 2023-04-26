@@ -2,10 +2,7 @@ package com.kyowon.sms.wells.web.contract.common.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.*;
 
 @Mapper
 public interface WctzHistoryMapper {
@@ -39,4 +36,12 @@ public interface WctzHistoryMapper {
     int updateCntrChRcchStatChangeHist(WctzCntrChRcchStatChangeHistDvo dvo);
 
     int deleteCntrChRcchStatChangeHist(WctzCntrChRcchStatChangeHistDvo dvo);
+
+    WctzCntrBasicChangeHistDvo selectCntrBasicChangeHist(String cntrNo);
+
+    int insertCntrBasicChangeHist(WctzCntrBasicChangeHistDvo dvo);
+
+    int updateCntrBasicChangeHist(WctzCntrBasicChangeHistDvo dvo);
+
+    int deleteCntrBasicChangeHist(WctzCntrBasicChangeHistDvo dvo);
 }

@@ -4,10 +4,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.common.converter.WctzHistoryConverter;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.*;
 import com.kyowon.sms.wells.web.contract.common.mapper.WctzHistoryMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
@@ -147,5 +144,42 @@ public class WctzHistoryService {
         }
         dvo.setHistEndDtm(HIST_END_DTM);
         mapper.insertCntrChRcchStatChangeHist(dvo);
+    }
+
+    /**
+     * 계약기본변경이력(최신) 조회
+     * @param cntrNo 계약번호
+     * @return
+     */
+    public WctzCntrBasicChangeHistDvo getContractBasicChangeHistory(String cntrNo) {
+        return mapper.selectCntrBasicChangeHist(cntrNo);
+    }
+
+    /**
+     * 계약기본변경이력 생성
+     * @param dvo 이력정보
+     */
+    public void createContractBasicChangeHistory(WctzCntrBasicChangeHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzCntrBasicChangeHistDvo newHist = converter.convertCntrBasicToChangeHist(
+            dvo,
+            mapper.selectCntrBasicChangeHist(dvo.getCntrNo())
+        );
+
+        WctzCntrBasicChangeHistDvo befHist = getContractBasicChangeHistory(dvo.getCntrNo());
+        if (ObjectUtils.isEmpty(befHist)) {
+            // 최초변경
+            newHist.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateCntrBasicChangeHist(befHist);
+        }
+
+        newHist.setHistEndDtm(HIST_END_DTM);
+        mapper.insertCntrBasicChangeHist(newHist);
     }
 }

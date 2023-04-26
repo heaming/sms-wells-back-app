@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
@@ -44,6 +45,7 @@ public class WwctaDocumentReceiptPssService {
         return converter.mapWwctaDocumentReceiptPssDvoToSearchRes(mapper.selectDocumentReceipts(dvo));
     }
 
+    @Transactional
     public int saveDocumentRcpCnfm(SearchReq dto) throws Exception {
         int processCount = 0;
         String histStrtDtm = DateUtil.getNowString();
