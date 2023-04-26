@@ -5,6 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrBasicChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
 
@@ -22,5 +23,12 @@ public interface WctzHistoryConverter {
         WctzTxinvRcpBaseChangeHistDvo source,
         @MappingTarget
         WctzTxinvRcpBaseChangeHistDvo target
+    );
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    WctzCntrBasicChangeHistDvo convertCntrBasicToChangeHist(
+        WctzCntrBasicChangeHistDvo source,
+        @MappingTarget
+        WctzCntrBasicChangeHistDvo target
     );
 }
