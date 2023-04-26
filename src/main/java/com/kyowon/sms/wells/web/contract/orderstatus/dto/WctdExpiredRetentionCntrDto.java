@@ -57,7 +57,7 @@ public class WctdExpiredRetentionCntrDto {
         String recapDutyPtrmN,
         String canDt,
         String canCstDutyUseExprYn,
-        String slDt,
+        String slClDt,
         String dutyUseDt,
         String mshCntrNo,
         String mshCntrSn,
