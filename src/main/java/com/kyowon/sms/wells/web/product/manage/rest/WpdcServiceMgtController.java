@@ -39,7 +39,6 @@ public class WpdcServiceMgtController {
     String pdCd) throws Exception {
         ZpdcProductDto.TbPdbsPdBas pdBas = pdService.getProductByPdCd(pdCd);
         return WpdcServiceMgtDto.ProductInfoRes.builder().tbPdbsPdBas(pdBas)
-            .groupCodes(pdService.getPropertyGroupCodes(pdBas.pdTpCd(), "", null))
             .tbPdbsPdEcomPrpDtl(pdService.getEachCompanyProps(pdCd))
             .relProducts(relService.getRelationProducts(pdCd, null))
             .build();
@@ -60,6 +59,7 @@ public class WpdcServiceMgtController {
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
                         .tbPdbsPdRel(dto.tbPdbsPdRel())
                         .isModifiedProp(dto.isModifiedProp())
+                        .isOnlyFileModified(dto.isOnlyFileModified())
                         .build(),
                     false
                 )

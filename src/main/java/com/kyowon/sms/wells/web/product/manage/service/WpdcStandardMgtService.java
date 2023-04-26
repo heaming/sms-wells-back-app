@@ -39,7 +39,8 @@ public class WpdcStandardMgtService {
             pdCd = prd.getPdCd();
             pdService.saveProductDetail(prd.getPdCd(), dto.tbPdbsPdDtl(), isCreate, startDtm);
             pdService.saveEachCompanyPropDtl(prd.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
-            if (PdProductConst.TEMP_SAVE_N.equals(prd.getTempSaveYn()) || isCreate) {
+            if ((!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(prd.getTempSaveYn()))
+                || isCreate) {
                 // 상품 정보 이력 저장 (가격 X)
                 hisService.createProductHistory(pdCd, startDtm);
             }
