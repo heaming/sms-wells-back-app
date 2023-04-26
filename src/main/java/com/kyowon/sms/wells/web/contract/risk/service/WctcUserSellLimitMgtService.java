@@ -14,8 +14,6 @@ import com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto.Search
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcUserSellLimitDvo;
 import com.kyowon.sms.wells.web.contract.risk.mapper.WctcUserSellLimitMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -27,11 +25,7 @@ public class WctcUserSellLimitMgtService {
     private final WctcUserSellLimitMgtMapper mapper;
     private final WctcUserSellLimitMgtConverter converter;
 
-    public PagingResult<SearchRes> getSellLimitLists(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectSellLimitLists(dto, pageInfo);
-    }
-
-    public List<SearchRes> getSellLimitListsExcelDownload(SearchReq dto) {
+    public List<SearchRes> getSellLimitLists(SearchReq dto) {
         return mapper.selectSellLimitLists(dto);
     }
 
@@ -104,65 +98,146 @@ public class WctcUserSellLimitMgtService {
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     int result = mapper.updateSellBaseBas(userSellLimit);
-                    if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                    String sellBaseSn = "";
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "11");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("11");
                         userSellLimit.setSellBaseChval(dto.sellBaseChnl());
                         userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "11"));
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("11");
+                            userSellLimit.setSellBaseChval(dto.sellBaseChnl());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.deptCd())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "12");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("12");
                         userSellLimit.setSellBaseChval(dto.deptCd());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "12"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("12");
+                            userSellLimit.setSellBaseChval(dto.deptCd());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.sellBaseUsr())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "13");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("13");
                         userSellLimit.setSellBaseChval(dto.sellBaseUsr());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "13"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("13");
+                            userSellLimit.setSellBaseChval(dto.sellBaseUsr());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.copnDvCd())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "31");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("31");
                         userSellLimit.setSellBaseChval(dto.copnDvCd());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "31"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("31");
+                            userSellLimit.setSellBaseChval(dto.copnDvCd());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.zip())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "32");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("32");
                         userSellLimit.setSellBaseChval(dto.zip());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "32"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("32");
+                            userSellLimit.setSellBaseChval(dto.zip());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.pdCd())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "25");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("25");
                         userSellLimit.setSellBaseChval(dto.pdCd());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "25"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("25");
+                            userSellLimit.setSellBaseChval(dto.pdCd());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.pdMclsfId())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "22");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("22");
                         userSellLimit.setSellBaseChval(dto.pdMclsfId());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "22"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("22");
+                            userSellLimit.setSellBaseChval(dto.pdMclsfId());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.pdLclsfId())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "23");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("23");
                         userSellLimit.setSellBaseChval(dto.pdLclsfId());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "23"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("23");
+                            userSellLimit.setSellBaseChval(dto.pdLclsfId());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.sellBasePrd())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "27");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("27");
                         userSellLimit.setSellBaseChval(dto.sellBasePrd());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "27"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("27");
+                            userSellLimit.setSellBaseChval(dto.sellBasePrd());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
-                    if (StringUtils.isNotEmpty(dto.sellBaseSellTp())) {
+                    sellBaseSn = mapper.selecSellBaseSn(dto.sellBaseId(), "28");
+                    if (StringUtils.isNotEmpty(sellBaseSn)) {
                         userSellLimit.setSellBaseCd("28");
                         userSellLimit.setSellBaseChval(dto.sellBaseSellTp());
-                        userSellLimit.setSellBaseSn(mapper.selecSellBaseSn(dto.sellBaseId(), "28"));
+                        userSellLimit.setSellBaseSn(sellBaseSn);
                         mapper.updateSellBaseDtl(userSellLimit);
+                    } else {
+                        if (StringUtils.isNotEmpty(dto.sellBaseChnl())) {
+                            userSellLimit.setSellBaseCd("28");
+                            userSellLimit.setSellBaseChval(dto.sellBaseSellTp());
+                            userSellLimit.setSellBaseSn(sellBaseSn);
+                            mapper.insertSellBaseDtl(userSellLimit);
+                        }
                     }
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     yield result;
