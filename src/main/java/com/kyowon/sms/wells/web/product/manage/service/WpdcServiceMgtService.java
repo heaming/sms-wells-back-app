@@ -30,10 +30,11 @@ public class WpdcServiceMgtService {
         String startDtm = DateUtil.getDate(new Date());
         String pdCd = dto.pdCd();
         if (isCreate || dto.isModifiedProp()) {
-            ZpdcProductDvo dvo = pdService.saveProductBase(dto.tbPdbsPdBas(), isCreate, startDtm);
-            pdCd = dvo.getPdCd();
+            ZpdcProductDvo prd = pdService.saveProductBase(dto.tbPdbsPdBas(), isCreate, startDtm);
+            pdCd = prd.getPdCd();
             pdService.saveEachCompanyPropDtl(pdCd, dto.tbPdbsPdEcomPrpDtl());
-            if (PdProductConst.TEMP_SAVE_N.equals(dvo.getTempSaveYn()) || isCreate) {
+            if ((!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(prd.getTempSaveYn()))
+                || isCreate) {
                 // 상품 정보 이력 저장 (가격 X)
                 hisService.createProductHistory(pdCd, startDtm);
             }

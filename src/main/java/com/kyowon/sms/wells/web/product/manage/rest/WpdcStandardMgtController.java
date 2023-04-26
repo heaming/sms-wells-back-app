@@ -46,7 +46,6 @@ public class WpdcStandardMgtController {
             .tbPdbsPdPrcDtl(priceService.getPriceDetailProps(pdCd))
             .tbPdbsPdPrcFnlDtl(priceService.getPriceFinalDetailProps(pdCd))
             .tbPdbsPdDscPrumDtl(priceService.getDiscountPremiumDtls(pdCd))
-            .groupCodes(pdService.getPropertyGroupCodes(pdBas.pdTpCd(), "", null))
             .relProducts(relService.getRelationProducts(pdCd, null))
             .build();
     }
@@ -72,6 +71,7 @@ public class WpdcStandardMgtController {
                         .tbPdbsPdDscPrumDtl(dto.tbPdbsPdDscPrumDtl())
                         .isModifiedProp(dto.isModifiedProp())
                         .isModifiedPrice(dto.isModifiedPrice())
+                        .isOnlyFileModified(dto.isOnlyFileModified())
                         .build(),
                     false
                 )

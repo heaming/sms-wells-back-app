@@ -19,6 +19,7 @@ public class WpdcCompositionMgtDto {
         String pdTpCd,
         boolean isModifiedProp,
         boolean isModifiedPrice,
+        boolean isOnlyFileModified,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
@@ -35,6 +36,7 @@ public class WpdcCompositionMgtDto {
         String pdTpCd,
         boolean isModifiedProp,
         boolean isModifiedPrice,
+        boolean isOnlyFileModified,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
