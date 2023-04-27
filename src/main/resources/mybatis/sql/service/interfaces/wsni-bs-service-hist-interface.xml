@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniBsServiceHistInterfaceMapper">
+    <select id="selectBsServiceHistory"
+            resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniBsServiceHistInterfaceDto$SearchRes">
+        SELECT COUNT(*) OVER() AS TC
+             , ROWNUM AS RN
+             , CEIL(COUNT(1) over() / #{rownum}) AS TPG
+             , #{page} AS CURPAGE
+             , TB.*
+          FROM (
+                SELECT T4.RCGVP_KNM AS CUST_NM
+                     , T1.CNTR_NO || '-' || T1.CNTR_SN AS CUST_CD
+                     , T4.LOCARA_TNO AS TEL_AR
+                     , T4.EXNO_ENCR AS TEL_NO1
+                     , T4.IDV_TNO AS TEL_NO2
+                     , T4.CRAL_LOCARA_TNO AS TEL_CO
+                     , T4.MEXNO_ENCR AS HP_NO1
+                     , T4.CRAL_IDV_TNO AS HP_NO2
+                     , T5.WK_EXCN_DT AS JOB_DATE
+                     , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', SUBSTR(T5.SV_BIZ_DCLSF_CD, 1, 1)) JOB_GB
+                     , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', T5.SV_BIZ_DCLSF_CD) JOB_GB2
+                     , T6.SV_PROCS_CN AS PROC_TXT
+                     , T5.CST_SV_ASN_NO AS CST_SV_ASN_NO
+                     , SUBSTR(T5.SV_BIZ_DCLSF_CD, 1, 1) AS WRK_GB
+                     , T7.PRTNR_KNM AS EMP_NM
+                  FROM TB_SSCT_CNTR_DTL T1
+                 INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+                 ON (
+                        T1.CNTR_NO = T3.DTL_CNTR_NO
+                    AND T1.CNTR_SN = T3.DTL_CNTR_SN
+                    AND T3.ADRPC_TP_CD = '3'
+                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+                 )
+                 INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+                 ON (
+                    T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
+                 )
+                 INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T5
+                 ON(
+                        T1.CNTR_NO = T5.CNTR_NO
+                    AND T1.CNTR_SN = T5.CNTR_SN
+                    AND T5.WK_EXCN_DT BETWEEN #{jobDateFrom} AND #{jobDateTo}
+                    AND T5.VST_PRGS_STAT_CD IN ('20', '92')
+                    AND T5.CNTR_NO = #{cntrNo}
+                    AND T5.CNTR_SN = #{cntrSn}
+                 )
+                 LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ T6
+                 ON(
+                    T5.CST_SV_ASN_NO = T6.CST_SV_ASN_NO
+                 )
+                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T7
+                 ON(
+                        SUBSTR(T6.VST_FSH_DT, 1, 6) = T7.BASE_YM
+                    AND T6.OG_TP_CD = T7.OG_TP_CD
+                    AND T6.PRTNR_NO = T7.PRTNR_NO
+                 )
+                 WHERE 1=1
+                 ORDER BY T5.WK_EXCN_DT DESC
+               ) TB
+         WHERE 1=1
+           AND ROWNUM BETWEEN 1 AND (((#{page} - 1) * #{rownum} ) + #{rownum})
+    </select>
+</mapper>
