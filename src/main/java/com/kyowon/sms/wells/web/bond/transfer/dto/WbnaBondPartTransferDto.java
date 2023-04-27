@@ -28,7 +28,6 @@ public class WbnaBondPartTransferDto {
 
     /**
      * 파트 이관(집계) 검색 결과
-     * @param baseYm 기준년월
      * @param bzHdqDvCd 사업본부코드
      * @param clctamDvCd 직금구분코드
      * @param totCstCt 전체 고객수
@@ -85,7 +84,6 @@ public class WbnaBondPartTransferDto {
      */
     @ApiModel("WbnaBondPartTransferDto-SearchRes")
     public record SearchRes(
-        String baseYm,
         String bzHdqDvCd,
         String clctamDvCd,
         String totCstCt,
@@ -230,7 +228,6 @@ public class WbnaBondPartTransferDto {
         String baseYm,
         @NotBlank
         String bzHdqDvCd,
-        @NotBlank
         String clctamDvCd
     ) {}
 
