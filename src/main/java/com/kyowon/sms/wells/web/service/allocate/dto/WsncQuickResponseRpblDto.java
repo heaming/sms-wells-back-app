@@ -53,6 +53,7 @@ public class WsncQuickResponseRpblDto {
         String bcInMthdCd,
         String useMpno,
         byte[] cstSignCn,
+        String dnldPrtnrKnm,
         String publishInfo,
         String rnk
     ) {}
