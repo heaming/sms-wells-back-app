@@ -55,7 +55,7 @@ public class WctaEntrepreneurCustomerPssDto {
         String basePdCd,
         String pdAbbrNm,
         String pdMclsfNm,
-        String pdNm,
+        String pdNm, /* 상품명 */
         String svPrd,
         String fnlPdUswyCd,
         String bznsSpptOgCd,
