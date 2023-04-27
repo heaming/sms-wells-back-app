@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SaveReq;
@@ -28,8 +29,8 @@ public class WdcdRequestCleaningSuppliesMgtController {
 
     @ApiOperation(value = "청소 용품비 관리", notes = "빌딩 코드 조회")
     @GetMapping("/code")
-    public List<CodeRes> getBuilDingCd() {
-        return service.getBuilDingCd();
+    public List<CodeRes> getBuilDingCd(CodeReq req) {
+        return service.getBuilDingCd(req);
     }
 
     @ApiOperation(value = "청소 용품비 관리", notes = "청소 용품비 관리 조회")

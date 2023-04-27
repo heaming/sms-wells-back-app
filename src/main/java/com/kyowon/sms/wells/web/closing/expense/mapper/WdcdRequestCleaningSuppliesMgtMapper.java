@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.mapper;
 
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SaveReq;
@@ -11,7 +12,7 @@ import java.util.List;
 @Mapper
 public interface WdcdRequestCleaningSuppliesMgtMapper {
 
-    List<CodeRes> selectBuilDingCd();
+    List<CodeRes> selectBuilDingCd(CodeReq req);
 
     String selectClingCostAdjRcpNo(SaveReq req);
 

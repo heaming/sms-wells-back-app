@@ -1,12 +1,9 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
-import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.masking.MaskRequired;
 import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 
@@ -56,6 +53,7 @@ public class WdcdCleanersMgtDto {
         String wrkStrtdt, /*근무시작일자*/
         String wrkEnddt, /*근무종료일자*/
         String workStatus, /*근무여부*/
+        // TODO. 머스킹 필요
         String rrnoEncr, /*주민등록번호*/
         String locaraTno,
         String exnoEncr,
@@ -68,16 +66,7 @@ public class WdcdCleanersMgtDto {
         String acnoEncr /*계좌번호*/
     ) {
         public SearchRes {
-
-            if (!StringUtil.isEmpty(exnoEncr)) { // 전화번호 복호화
-                exnoEncr = DbEncUtil.dec(exnoEncr);
-            }
-            if (!StringUtil.isEmpty(locaraTno) || !StringUtil.isEmpty(exnoEncr)
-                || !StringUtil.isEmpty(idvTno)) {
-                telNum = locaraTno + "-" + exnoEncr + "-" + idvTno;
-            }
-            acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr; // 계좌번호 복호화
-            rrnoEncr = StringUtils.isNotEmpty(rrnoEncr) ? DbEncUtil.dec(rrnoEncr) : rrnoEncr; // 주민등록번 복호화
+            telNum = locaraTno + '-' + exnoEncr + '-' + idvTno;
         }
     }
 }

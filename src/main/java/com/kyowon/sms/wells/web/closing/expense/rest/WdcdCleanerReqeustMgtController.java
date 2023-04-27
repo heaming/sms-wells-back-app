@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto.CodeRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto.FindCodeReq;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto.FindCodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.closing.expense.service.WdcdCleanerReqeustMgtService;
@@ -26,8 +27,8 @@ public class WdcdCleanerReqeustMgtController {
 
     @ApiOperation(value = "청소원 등록(신규변경)", notes = "빌딩 코드 조회")
     @GetMapping("/code")
-    public List<CodeRes> getBuilDingCd() {
-        return service.getBuilDingCd();
+    public List<FindCodeRes> getBuilDingCd(FindCodeReq req) {
+        return service.getBuilDingCd(req);
     }
 
     @ApiOperation(value = "청소원 등록(신규변경)", notes = "청소원 등록 및 수정")
