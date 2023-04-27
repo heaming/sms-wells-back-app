@@ -4,9 +4,12 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.common.dto.WctzProductDto.SearchMiddleClassesRes;
+import com.kyowon.sms.wells.web.contract.common.dto.WctzProductDto.SearchRes;
 
 @Mapper
 public interface WctzProductMapper {
-    List<SearchMiddleClassesRes> selectMiddleClasses();
+
+    List<SearchRes> selectHighClasses();
+
+    List<SearchRes> selectMiddleClasses();
 }
