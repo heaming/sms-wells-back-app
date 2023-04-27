@@ -4,6 +4,7 @@ import com.kyowon.sms.wells.web.closing.standard.converter.WdcyCloseHourBulkRegC
 import com.kyowon.sms.wells.web.closing.standard.dto.WdcyCloseHourBulkRegDto.CreateReq;
 import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyCloseHourBulkRegDvo;
 import com.kyowon.sms.wells.web.closing.standard.mapper.WdcyCloseHourBulkRegMapper;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,9 @@ public class WdcyCloseHourBulkRegService {
 
             WdcyCloseHourBulkRegDvo dvo = converter.mapCreateReqToWdcyCloseHourBulkRegDvo(dto);
             int hourBulkCount = mapper.selectHourBulkCount(dto);
-            if (hourBulkCount > 0) {
-                BizAssert.isFalse(false, "MSG_TXT_COUNT_GREA_THAN_PRE_REGI_DEA_INFO_EXIST_PLE_WORK_AFTER_DELE");
-            }
+            BizAssert.isFalse(hourBulkCount == 0, "MSG_TXT_COUNT_GREA_THAN_PRE_REGI_DEA_INFO_EXIST_PLE_WORK_AFTER_DELE");
 
-            int diffDay = this.DateConut(dto.crtDt(), dto.clDt());
+            int diffDay = this.dateConut(dto.crtDt(), dto.clDt());
 
             Calendar cal = Calendar.getInstance();
             String addDay = dto.crtDt();
@@ -52,7 +51,7 @@ public class WdcyCloseHourBulkRegService {
                     if ("1".equals(dto.crtDtPerfDtDvVal())) {
                         dvo.setPerfDt(dto.clDt());
                     } else {
-                        String clDt = this.AddDate(dto.clDt(), 0, 1, 0);
+                        String clDt = DateUtil.addMonths(dto.clDt(), 1);
                         dvo.setPerfDt(clDt.substring(0, 6) + "01");
                     }
                     count += mapper.insertCloseHour(dvo);
@@ -76,7 +75,7 @@ public class WdcyCloseHourBulkRegService {
                         if ("1".equals(dto.rentalRcpClDdPerfDtDvVal())) {
                             dvo.setPerfDt(dto.clDt());
                         } else {
-                            String clDt = this.AddDate(dto.clDt(), 0, 1, 0);
+                            String clDt = DateUtil.addMonths(dto.clDt(), 1);
                             dvo.setPerfDt(clDt.substring(0, 6) + "01");
                         }
                         count += mapper.insertCloseHour(dvo);
@@ -97,7 +96,7 @@ public class WdcyCloseHourBulkRegService {
                         if ("1".equals(dto.ddClPerfDtDvVal())) {
                             dvo.setPerfDt(dto.clDt());
                         } else {
-                            String clDt = this.AddDate(dto.clDt(), 0, 1, 0);
+                            String clDt = DateUtil.addMonths(dto.clDt(), 1);
                             dvo.setPerfDt(clDt.substring(0, 6) + "01");
                         }
                         count += mapper.insertCloseHour(dvo);
@@ -108,18 +107,18 @@ public class WdcyCloseHourBulkRegService {
                     }
                 }
 
-                addDay = this.AddDate(addDay, 0, 0, 1);
+                addDay = DateUtil.addDays(addDay, 1);
             }
 
             // 막날 구하기
             String endDt = this.getLastDateOfMonth(dto.clDt());
 
-            diffDay = this.DateConut(dto.clDt(), endDt);
+            diffDay = this.dateConut(dto.clDt(), endDt);
             addDay = dto.clDt();
 
             for (int i = 0; i < diffDay; i++) {
 
-                addDay = this.AddDate(addDay, 0, 0, 1);
+                addDay = DateUtil.addDays(addDay, 1);
 
                 dvo.setClBizTpCd("11");
                 dvo.setStrtdt(addDay); // 생성일자 +1
@@ -131,7 +130,7 @@ public class WdcyCloseHourBulkRegService {
                 if ("1".equals(dto.spayRcpClDdPerfDtDvVal())) {
                     dvo.setPerfDt(dto.clDt());
                 } else {
-                    String clDt = this.AddDate(dto.clDt(), 0, 1, 0);
+                    String clDt = DateUtil.addMonths(dto.clDt(), 1);
                     dvo.setPerfDt(clDt.substring(0, 6) + "01");
                 }
 
@@ -160,7 +159,7 @@ public class WdcyCloseHourBulkRegService {
         return lastDay;
     }
 
-    private int DateConut(String crtDt, String clDt) {
+    private int dateConut(String crtDt, String clDt) {
 
         long diffDay = 0L;
 
@@ -178,23 +177,6 @@ public class WdcyCloseHourBulkRegService {
 
 
         return Long.valueOf(Optional.ofNullable(diffDay * -1).orElse(0L)).intValue();
-    }
-
-    private String AddDate(String strDate, int year, int month, int day) throws Exception {
-
-        SimpleDateFormat dtFormat = new SimpleDateFormat("yyyyMMdd");
-
-        Calendar cal = Calendar.getInstance();
-
-        Date dt = dtFormat.parse(strDate);
-
-        cal.setTime(dt);
-
-        cal.add(Calendar.YEAR, year);
-        cal.add(Calendar.MONTH, month);
-        cal.add(Calendar.DATE, day);
-
-        return dtFormat.format(cal.getTime());
     }
 
 }
