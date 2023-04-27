@@ -4,15 +4,26 @@
 
     <select id="selectAftnBilNrcvListPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnBilNrcvListRes">
         SELECT AUTO_FNT_CLSF
-             , CASE WHEN BNK_CD IS NULL THEN '은행 또는 카드 값이 없음' ELSE BNK_CD END AS BNK_CD
+             , CASE WHEN BNK_CD IS NULL THEN '은행 또는 카드 값이 없음' ELSE BNK_CD END AS BNK_CD 
              , CASE WHEN BNK_NM IS NULL THEN '은행 또는 카드 값이 없음' ELSE BNK_NM END AS BNK_NM
+             <!-- , CASE WHEN BNK_CD IS NULL THEN F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_BNK_CARD_VAL_NTHNG' , #{session.langId}) ELSE BNK_CD END AS BNK_CD
+             , CASE WHEN BNK_NM IS NULL THEN F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_BNK_CARD_VAL_NTHNG' , #{session.langId}) ELSE BNK_NM END AS BNK_NM -->
              , COUNT(*) AS CT
           FROM (
-                        SELECT '자동이체(은행) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
-                                     , CASE WHEN SCSB.DP_TP_CD = '0102' THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END AS BNK_CD
-                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN SCSB.DP_TP_CD = '0102'
-                                            THEN SCSB.BNK_CD ELSE SCSB.CDCO_CD END ,3,0) = FNIT_CD)
+                        SELECT     <if test='@MybatisUtils@equals(fntDvCd, "01")'>
+                                     <!-- F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_AFTN_BNK_NRCV_CT' , #{session.langId}) AS AUTO_FNT_CLSF -->
+                                       '자동이체(은행) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
+                                     , LPAD(RAFS.BNK_CD, 3, 0) AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(RAFS.BNK_CD, 3, 0) = FNIT_CD)
                                             AS BNK_NM /* 은행명 */
+                                    </if>
+                                    <if test='@MybatisUtils@equals(fntDvCd, "02")'>
+                                    <!-- F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_AFTN_CARD_NRCV_CT' , #{session.langId}) AS AUTO_FNT_CLSF -->
+                                       '자동이체(카드) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
+                                     , LPAD(RCFS.CDCO_CD, 3, 0) AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(RCFS.CDCO_CD, 3, 0) = FNIT_CD)
+                                            AS BNK_NM /* 은행명 */
+                                    </if>
                                   FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
                                   JOIN TB_RVCL_BIL_FNT_AK_DTL RBFD
                                     ON RBFB.BIL_NO = RBFD.BIL_NO
