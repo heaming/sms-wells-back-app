@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
 import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -57,6 +56,7 @@ public class WsnaWarehouseOrganizationDto {
         //        String sortDvVal, /* 정렬구분값 */
         String wareStocMgr, /*관리자*/
         String wareAdrId, /* 창고주소ID */
+        String adrNm,
         //        String bldCd, /* 빌딩코드 */
         String bldNm, /* 빌딩명 */
         //        String ogCd, /* 조직코드 */
