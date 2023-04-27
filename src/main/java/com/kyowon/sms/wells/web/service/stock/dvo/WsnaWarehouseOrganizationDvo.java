@@ -9,6 +9,7 @@ package com.kyowon.sms.wells.web.service.stock.dvo;
  * @author songTaeSung
  * @since 2022.12.08
  */
+import com.sds.sflex.system.config.annotation.DBDecField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +31,7 @@ public class WsnaWarehouseOrganizationDvo {
     private String ogTpCd; /* 조직유형코드 */
     private String didyDvCd; /* 직배구분코드 */
     private String sortDvVal; /* 정렬구분값 */
+    @DBDecField
     private String wareAdrId; /* 창고주소ID */
     private String bldCd; /* 빌딩코드 */
     private String wareUseYn; /* 창고사용여부 */
