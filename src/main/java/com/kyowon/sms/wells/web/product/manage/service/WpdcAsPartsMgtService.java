@@ -123,7 +123,7 @@ public class WpdcAsPartsMgtService {
         // #4. 이력 INSERT
         // TODO - 확인필요 POINT
         // AS부품은 'CMM'과 'PART' 만 이력을 쌓는 게 맞으면 createAsPartHistory() 아니라면 createProductHistory
-        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+        if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             //  hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
@@ -158,7 +158,7 @@ public class WpdcAsPartsMgtService {
             }
         }
 
-        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+        if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }

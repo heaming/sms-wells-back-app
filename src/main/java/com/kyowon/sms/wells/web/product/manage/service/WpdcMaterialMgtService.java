@@ -110,7 +110,7 @@ public class WpdcMaterialMgtService {
         this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
 
         // #6. 이력 INSERT
-        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+        if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
@@ -196,7 +196,7 @@ public class WpdcMaterialMgtService {
 
         this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
 
-        if (PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
+        if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
