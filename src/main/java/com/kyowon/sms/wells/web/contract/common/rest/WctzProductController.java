@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.contract.common.dto.WctzProductDto.SearchMiddleClassesRes;
+import com.kyowon.sms.wells.web.contract.common.dto.WctzProductDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.common.service.WctzProductService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
@@ -23,9 +23,15 @@ import lombok.RequiredArgsConstructor;
 public class WctzProductController {
     private final WctzProductService service;
 
-    @ApiOperation(value = "상품분류 조회", notes = "상품분류 기본(TB_PDBS_PD_CLSF_BAS)의 중분류를 조회하여 상품분류 목록 조회\n")
+    @ApiOperation(value = "상품대분류 조회", notes = "상품분류 기본(TB_PDBS_PD_CLSF_BAS)의 대분류를 조회하여 상품분류 목록 조회")
+    @GetMapping("/high-classes")
+    public List<SearchRes> getHighClasses() {
+        return service.getHighClasses();
+    }
+
+    @ApiOperation(value = "상품중분류 조회", notes = "상품분류 기본(TB_PDBS_PD_CLSF_BAS)의 중분류를 조회하여 상품분류 목록 조회")
     @GetMapping("/middle-classes")
-    public List<SearchMiddleClassesRes> getMiddleClasses() {
+    public List<SearchRes> getMiddleClasses() {
         return service.getMiddleClasses();
     }
 }
