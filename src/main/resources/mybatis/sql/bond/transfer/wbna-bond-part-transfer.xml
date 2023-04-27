@@ -3,7 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.bond.transfer.mapper.WbnaBondPartTransferMapper">
     <!-- TODO 테이블 구조 정의 되면 맞춰서 쿼리문 수정 필요 -->
     <sql id ="selectAssignableBonds">
-    SELECT BASE_YM				/* 기준년월			*/
+    SELECT BND_CNTR_ID
+         , BASE_YM				/* 기준년월			*/
          , CNTR_NO				/* 계약번호			*/
 		 , CNTR_SN				/* 계약일련번호			*/
 		 , CO_CD					/* 회사코드			*/
@@ -25,12 +26,13 @@
 		 , RSG_BOR_AMT			/* 해지위약금액          */
 		 , THM_CHRAM_AMT			/* 당월요금금액          */
 		 , UC_AMT				/* 미수금액            */
-		 , BND_ASN_MTH_CD					/* 신규여부            */
+		 , BND_NW_DV_CD					/* 신규여부            */
 		 , BND_ASN_STAT_CD		/* 채권배정상태코드       */
 		 , BND_CLN_RS_CD			/* 채권회수결과코드       */
 		 , BND_ASN_MTH_CD		/* 채권배정형태코드       */
+         , BND_CLCTN_PRP_DV_CD /*채권추심속성구분코드*/
       FROM TB_CBBO_BND_CNTR_BAS    /* 채권계약기본 Table */
-     WHERE BASE_YM = #{baseYn}
+     WHERE BASE_YM = #{baseYm}
        AND BZ_HDQ_DV_CD = #{bzHdqDvCd}
        AND BND_CLCTN_PRP_DV_CD = '02'  /* 02:연체만 나오게 제한 */
     </sql>
@@ -50,31 +52,31 @@
     <select id="selectPartTransferAggregation" resultType="com.kyowon.sms.wells.web.bond.transfer.dto.WbnaBondPartTransferDto$SearchRes">
         SELECT BZ_HDQ_DV_CD
              , CLCTAM_DV_CD
-             , COUNT(WO_CST_CT) AS TOT_CST_CT
-             , COUNT(WO_CNTR_CT) AS TOT_CNTR_CT
-             , COUNT(WO_CST_CT) AS WO_CST_CT
-             , COUNT(WO_CNTR_CT) AS WO_CNTR_CT
+             , SUM(WO_CST_CT) AS TOT_CST_CT
+             , SUM(WO_CNTR_CT) AS TOT_CNTR_CT
+             , SUM(WO_CST_CT) AS WO_CST_CT
+             , SUM(WO_CNTR_CT) AS WO_CNTR_CT
              , SUM(WO_OBJ_AMT) AS WO_OBJ_AMT
              , SUM(WO_DLQ_AMT) AS WO_DLQ_AMT
              , SUM(WO_THM_CHRAM_AMT) AS WO_THM_CHRAM_AMT
              , SUM(WO_DLQ_ADD_AMT) AS WO_DLQ_ADD_AMT
              , SUM(WO_RSG_BOR_AMT) AS WO_RSG_BOR_AMT
-             , COUNT(RENTAL_CST_CT) AS RENTAL_CST_CT
-             , COUNT(RENTAL_CNTR_CT) AS RENTAL_CNTR_CT
+             , SUM(RENTAL_CST_CT) AS RENTAL_CST_CT
+             , SUM(RENTAL_CNTR_CT) AS RENTAL_CNTR_CT
              , SUM(RENTAL_OBJ_AMT) AS RENTAL_OBJ_AMT
              , SUM(RENTAL_DLQ_AMT) AS RENTAL_DLQ_AMT
              , SUM(RENTAL_THM_CHRAM_AMT) AS RENTAL_THM_CHRAM_AMT
              , SUM(RENTAL_DLQ_ADD_AMT) AS RENTAL_DLQ_ADD_AMT
              , SUM(RENTAL_RSG_BOR_AMT) AS RENTAL_RSG_BOR_AMT
-             , COUNT(LEASE_CST_CT) AS LEASE_CST_CT
-             , COUNT(LEASE_CNTR_CT) AS LEASE_CNTR_CT
+             , SUM(LEASE_CST_CT) AS LEASE_CST_CT
+             , SUM(LEASE_CNTR_CT) AS LEASE_CNTR_CT
              , SUM(LEASE_OBJ_AMT) AS LEASE_OBJ_AMT
              , SUM(LEASE_DLQ_AMT) AS LEASE_DLQ_AMT
              , SUM(LEASE_THM_CHRAM_AMT) AS LEASE_THM_CHRAM_AMT
              , SUM(LEASE_DLQ_ADD_AMT) AS LEASE_DLQ_ADD_AMT
              , SUM(LEASE_RSG_BOR_AMT) AS LEASE_RSG_BOR_AMT
-             , COUNT(MSH_CST_CT) AS MSH_CST_CT
-             , COUNT(MSH_CNTR_CT) AS MSH_CNTR_CT
+             , SUM(MSH_CST_CT) AS MSH_CST_CT
+             , SUM(MSH_CNTR_CT) AS MSH_CNTR_CT
              , SUM(MSH_OBJ_AMT) AS MSH_OBJ_AMT
              , SUM(MSH_DLQ_AMT) AS MSH_DLQ_AMT
              , SUM(MSH_THM_CHRAM_AMT) AS MSH_THM_CHRAM_AMT
@@ -87,8 +89,8 @@
              , SUM(RGLR_SPP_THM_CHRAM_AMT) AS RGLR_SPP_THM_CHRAM_AMT
              , SUM(RGLR_SPP_DLQ_ADD_AMT) AS RGLR_SPP_DLQ_ADD_AMT
              , SUM(RGLR_SPP_RSG_BOR_AMT) AS RGLR_SPP_RSG_BOR_AMT
-             , COUNT(HCR_CST_CT) AS HCR_CST_CT
-             , COUNT(HCR_CNTR_CT) AS HCR_CNTR_CT
+             , SUM(HCR_CST_CT) AS HCR_CST_CT
+             , SUM(HCR_CNTR_CT) AS HCR_CNTR_CT
              , SUM(HCR_OBJ_AMT) AS HCR_OBJ_AMT
              , SUM(HCR_DLQ_AMT) AS HCR_DLQ_AMT
              , SUM(HCR_THM_CHRAM_AMT) AS HCR_THM_CHRAM_AMT
@@ -298,6 +300,7 @@
         , BND_ASN_STAT_CD  /* 채권배정상태코드 : 파트이관 실행 시 02 부여.. */
         , BND_CLN_RS_CD			/* 채권회수결과코드       */
         , BND_ASN_MTH_CD		/* 채권배정형태코드       */
+        , BND_CLCTN_PRP_DV_CD
         <include refid="COMMON.insertSystemField"/>
     )
     SELECT BND_CNTR_ID
@@ -325,6 +328,7 @@
          , '02' AS BND_ASN_STAT_CD  /* 채권배정상태코드 : 파트이관 실행 시 02 부여.. */
          , BND_CLN_RS_CD			/* 채권회수결과코드       */
          , BND_ASN_MTH_CD		/* 채권배정형태코드       */
+         , BND_CLCTN_PRP_DV_CD
          <include refid="COMMON.insertSystemFieldValue"/>
       FROM (<include refid="selectAssignableBonds" />) T1
     </insert>
