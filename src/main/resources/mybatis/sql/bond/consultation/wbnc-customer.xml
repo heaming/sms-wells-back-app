@@ -3,7 +3,7 @@
     <select id="selectCustomers" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$SearchRes"> 
         SELECT CTT /* 컨택 */
 		     , BIL_DT /* 이체일자 */
-		     , MPY_MTHD_TP_CD /* 납부방식유형코드*/
+		     , DP_TP_CD /* 입금유형코드*/
 		     , FNT /* 이체 */
 		     , CST_NO /* 고객번호 */
 		     , CST_NM /* 고객명 */
@@ -37,8 +37,12 @@
 		     , RTLFE_ISTM2 /* 렌탈료2할 */  
 		     , CLCTAM_PRTNR_NO /* 집금번호 */
 		     , CLCTAM_ICHR   /* 집급담당 */
-		     , CNTR_MPNO /* 계약휴대전화번호 */
-		     , IST_MPNO /* 설치휴대전화번호 */
+		     , CRAL_LOCARA_TNO /* 계약휴대전화번호1 */ 
+			 , MEXNO_ENCR /* 계약휴대전화번호2 */ 
+			 , CRAL_IDV_TNO  /* 계약휴대전화번호3 */
+			 , CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO /* 설치휴대전화번호1 */ 
+			 , MEXNO_ENCR AS IST_MEXNO_ENCR /* 설치휴대전화번호2 */ 
+			 , CRAL_IDV_TNO AS IST_CRAL_IDV_TNO /* 설치휴대전화번호3 */
 		     , VT_AC_BNK /* 가상계좌은행 */ 
 		     , VT_AC_NO /* 가상계좌번호 */  
 		     , SFK /* 세이프키*/
@@ -49,15 +53,15 @@
 		     , UNUSL_ARTC /* 특이사항*/
 		     , CNTR_TP_CD /* 고객구분*/
 		     , CNTR_NO /* 계약번호 */
-             , CNTR_SN /* 계약일련번호 */
+		     , CNTR_SN /* 계약일련번호 */
 		  FROM (
 		         SELECT CASE WHEN T1.BND_ASN_DT > T2.FST_RGST_DTM AND SUBSTR( T2.TEL_CNSL_RS_CD , 1 ,1 ) = 1 THEN '○'
 		                     WHEN T1.BND_ASN_DT > T2.FST_RGST_DTM AND SUBSTR( T2.TEL_CNSL_RS_CD , 1 ,1 ) = 2 THEN '△'
 		                     ELSE 'Ｘ'
 		                 END AS CTT /* 컨택 */
 		              , T3.BIL_DT /* 이체일자 */
-		              , T3.MPY_MTHD_TP_CD /* 납부방식유형코드*/
-		              , T3.BIL_DT || T3.MPY_MTHD_TP_CD AS FNT /* 이체 */
+		              , T11.DP_TP_CD /* 입금유형코드*/
+		              , T3.BIL_DT || T11.DP_TP_CD AS FNT /* 이체 */
 		              , T1.CST_NO AS CST_NO /* 고객번호 */
 		              , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_NM /* 고객명 */
 		              , T4.DLQ_MCN AS DLQ_MCNT   /* 연체개월 */  
@@ -93,8 +97,12 @@
 		                    FROM TB_OGBS_PRTNR_BAS
 		                   WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO
 		                ) AS CLCTAM_ICHR   /* 집급담당 */
-		              , T5.CRAL_LOCARA_TNO || T5.MEXNO_ENCR || T5.CRAL_IDV_TNO AS CNTR_MPNO /* 계약휴대전화번호 */
-		              , T9.CRAL_LOCARA_TNO || T9.MEXNO_ENCR || T9.CRAL_IDV_TNO AS IST_MPNO /* 설치휴대전화번호 */
+		              , T5.CRAL_LOCARA_TNO /* 계약휴대전화번호1 */ 
+		              , T5.MEXNO_ENCR /* 계약휴대전화번호2 */ 
+		              , T5.CRAL_IDV_TNO  /* 계약휴대전화번호3 */
+		              , T9.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO /* 설치휴대전화번호1 */ 
+		              , T9.MEXNO_ENCR AS IST_MEXNO_ENCR /* 설치휴대전화번호2 */ 
+		              , T9.CRAL_IDV_TNO AS IST_CRAL_IDV_TNO /* 설치휴대전화번호3 */
 		              , T6.VAC_BNK_CD AS VT_AC_BNK /* 가상계좌은행 */ 
 		              , T6.VAC_NO AS VT_AC_NO /* 가상계좌번호 */  
 		              , T7.SFK_VAL AS SFK /* 세이프키*/
@@ -107,12 +115,12 @@
 		              , T1.CNTR_NO /* 계약번호 */
 		              , T1.CNTR_SN /* 계약일련번호 */
 		           FROM TB_CBBO_BND_CNSL_BAS_IZ T1 /* 채권상담기본내역 */
-		          INNER JOIN TB_CBBO_BND_TEL_CNSL_IZ T2 /* 채권전화상담내역 */
+		           LEFT OUTER JOIN TB_CBBO_BND_TEL_CNSL_IZ T2 /* 채권전화상담내역 */
 		             ON T1.CST_NO = T2.CST_NO
-		          INNER JOIN TB_RVCL_BIL_PLAN_BAS T3 /* 청구계획기본 */
+		           LEFT OUTER JOIN TB_RVCL_BIL_PLAN_BAS T3 /* 청구계획기본 */
 		             ON T1.CNTR_NO = T3.CNTR_NO
 		            AND T1.BASE_YM = T3.BIL_YM
-		          INNER JOIN TB_CBBO_BND_CNTR_BAS T4 /* 채권계약기본 */
+		           LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T4 /* 채권계약기본 */
 		             ON T1.CNTR_NO = T4.CNTR_NO
 		            AND T1.CNTR_SN = T4.CNTR_SN  
 		           LEFT OUTER JOIN 
@@ -144,11 +152,11 @@
 		           LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T4
 		             ON T4.CNTR_NO = T1.CNTR_NO
 		            AND T4.CNTR_SN = T1.CNTR_SN
-		          INNER JOIN TB_RVDW_VAC_IS_IZ T6 /* 가상계좌발급내역 */
+		           LEFT OUTER JOIN TB_RVDW_VAC_IS_IZ T6 /* 가상계좌발급내역 */
 		             ON T1.CST_NO = T6.ICHR_PRTNR_NO
-		          INNER JOIN TB_CUBS_CST_BAS T7 /* 고객기본 */
+		           LEFT OUTER JOIN TB_CUBS_CST_BAS T7 /* 고객기본 */
 		             ON T1.CST_NO = T7.CST_NO
-		          INNER JOIN TB_CBBO_BND_UNUITM_CVCP_DTL T8 /* 채권특이사항민원상세 */
+		           LEFT OUTER JOIN TB_CBBO_BND_UNUITM_CVCP_DTL T8 /* 채권특이사항민원상세 */
 		             ON T1.CST_NO = T8.CST_NO
 		           LEFT OUTER JOIN 
 		                         (
@@ -172,6 +180,9 @@
 		            AND T1.CNTR_SN = T9.DTL_CNTR_SN
 		          INNER JOIN TB_SSCT_CNTR_BAS T10 /* 계약기본 */
 		             ON T4.CNTR_NO = T10.CNTR_NO
+		           LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T11 /* 계약결제기본 */
+		             ON T1.CST_NO = T11.CST_NO 
+		            AND T1.CNTR_NO = T11.CNTR_NO
 		     ) 
 		 WHERE 1=1
 		   AND CLCTAM_PRTNR_NO = #{schClctamNo}
@@ -216,528 +227,6 @@
 		     AND CNTR_TP_CD IN ('01', '02')
 		   </if>
 		 </if>
-        
-		   
-	<!-- 	   
-        SELECT DV
-		     , CTT
-		     , FNT
-		     , CST_NO
-		     , CST_NM
-		     , DLQ_MCNT
-		     , FNL_CNSL_D
-		     , OJ_AMT
-		     , OJ_DP
-		     , OJ_BLAM
-		     , TOT_DLQ_AMT
-		     , TOT_DLQ_DP
-		     , TOT_DLQ_BLAM
-		     , DLQ_AMT
-		     , DLQ_DP
-		     , DLQ_BLAM
-		     , MM_CHRAM_AMT
-		     , MM_CHRAM_DP
-		     , MM_CHRAM_BLAM
-		     , DLQ_ADD_AMT
-		     , DLQ_ADD_DP
-		     , DLQ_ADD_BLAM
-		     , UC_AMT
-		     , UC_DP
-		     , UC_BLAM
-		     , TOT_DP_AMT
-		     , SPMT_SL
-		     , CCAM
-		     , LSFE
-		     , RTLFE1
-		     , RTLFE_ISTM1
-		     , RTLFE2
-		     , RTLFE_ISTM2
-		     , CLCTAM_ICHR
-		     , CNTR_MPNO
-		     , IST_MPNO
-		     , VT_AC_BNK
-		     , VT_AC_NO
-		     , SFK
-		     , CLN_PSBL
-		     , CLN_PRCS
-		     , CST_STAT
-		     , CVCP_INF
-		     , UNUSL_ARTC
-		  FROM 
-		     ( SELECT '1'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 170697  AS OJ_AMT
-		            , 0  AS OJ_DP
-		            , 170697  AS OJ_BLAM
-		            , 170697  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 170697  AS TOT_DLQ_BLAM
-		            , 170697  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 170697  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 0  AS MM_CHRAM_DP
-		            , 0  AS MM_CHRAM_BLAM
-		            , 0  AS DLQ_ADD_AMT
-		            , 0  AS DLQ_ADD_DP
-		            , 0  AS DLQ_ADD_BLAM
-		            , 170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 0  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION 
-		       SELECT '2'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 170697  AS OJ_AMT
-		            , 0  AS OJ_DP
-		            , 170697  AS OJ_BLAM
-		            , 170697  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 170697  AS TOT_DLQ_BLAM
-		            , 170697  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 170697  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 0  AS MM_CHRAM_DP
-		            , 0  AS MM_CHRAM_BLAM
-		            , 0  AS DLQ_ADD_AMT
-		            , 0  AS DLQ_ADD_DP
-		            , 0  AS DLQ_ADD_BLAM
-		            , 170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 0  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '2'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 30000  AS OJ_AMT
-		            , 1000  AS OJ_DP
-		            , 17697  AS OJ_BLAM
-		            , 17097  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 17697  AS TOT_DLQ_BLAM
-		            , 17697  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 17697  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 1221230  AS MM_CHRAM_DP
-		            , 0  AS MM_CHRAM_BLAM
-		            , 0  AS DLQ_ADD_AMT
-		            , 1213210  AS DLQ_ADD_DP
-		            , 0  AS DLQ_ADD_BLAM
-		            , 170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 0  AS CCAM
-		            , 453370  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 78520  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '3'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 453121323  AS OJ_AMT
-		            , 757870  AS OJ_DP
-		            , 13243242  AS OJ_BLAM
-		            , 170697  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 75785  AS TOT_DLQ_BLAM
-		            , 170697  AS DLQ_AMT
-		            , 7555730  AS DLQ_DP
-		            , 170697  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 78850  AS MM_CHRAM_DP
-		            , 0  AS MM_CHRAM_BLAM
-		            , 0  AS DLQ_ADD_AMT
-		            , 0  AS DLQ_ADD_DP
-		            , 77550  AS DLQ_ADD_BLAM
-		            , 170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 32150  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 7541220  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '3'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 43123778  AS OJ_AMT
-		            , 0  AS OJ_DP
-		            , 737373  AS OJ_BLAM
-		            , 73735  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 170697  AS TOT_DLQ_BLAM
-		            , 170697  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 726386  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 63760  AS MM_CHRAM_DP
-		            , 0  AS MM_CHRAM_BLAM
-		            , 3730  AS DLQ_ADD_AMT
-		            , 0  AS DLQ_ADD_DP
-		            , 736380  AS DLQ_ADD_BLAM
-		            , 731136163  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 173330697  AS UC_BLAM
-		            , 6630  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 136330  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '3'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 170697  AS OJ_AMT
-		            , 0  AS OJ_DP
-		            , 525533  AS OJ_BLAM
-		            , 170697  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 3353555  AS TOT_DLQ_BLAM
-		            , 768768  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 4242242  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 4350  AS MM_CHRAM_DP
-		            , 0  AS MM_CHRAM_BLAM
-		            , 354430  AS DLQ_ADD_AMT
-		            , 4530  AS DLQ_ADD_DP
-		            , 0  AS DLQ_ADD_BLAM
-		            , 170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 4353450  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 7890  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '4'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 53635  AS OJ_AMT
-		            , 0  AS OJ_DP
-		            , 53355  AS OJ_BLAM
-		            , 453354  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 170697  AS TOT_DLQ_BLAM
-		            , 45345  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 170697  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 0  AS MM_CHRAM_DP
-		            , 4354350  AS MM_CHRAM_BLAM
-		            , 0  AS DLQ_ADD_AMT
-		            , 78830  AS DLQ_ADD_DP
-		            , 0  AS DLQ_ADD_BLAM
-		            , 170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 21120  AS SPMT_SL
-		            , 22220  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '4'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 1254356  AS OJ_AMT
-		            , 0  AS OJ_DP
-		            , 456445  AS OJ_BLAM
-		            , 454533  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 17062497  AS TOT_DLQ_BLAM
-		            , 422  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 424224  AS DLQ_BLAM
-		            , 44520  AS MM_CHRAM_AMT
-		            , 0  AS MM_CHRAM_DP
-		            , 4450  AS MM_CHRAM_BLAM
-		            , 0  AS DLQ_ADD_AMT
-		            , 4240  AS DLQ_ADD_DP
-		            , 0  AS DLQ_ADD_BLAM
-		            , 424545  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 78680  AS CCAM
-		            , 0  AS LSFE
-		            , 76876 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '4'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 784545  AS OJ_AMT
-		            , 432320  AS OJ_DP
-		            , 4543  AS OJ_BLAM
-		            , 121321  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 177860697  AS TOT_DLQ_BLAM
-		            , 1770697  AS DLQ_AMT
-		            , 837540  AS DLQ_DP
-		            , 6853170697  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 0  AS MM_CHRAM_DP
-		            , 4320  AS MM_CHRAM_BLAM
-		            , 0  AS DLQ_ADD_AMT
-		            , 1320  AS DLQ_ADD_DP
-		            , 0  AS DLQ_ADD_BLAM
-		            , 170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 170697  AS UC_BLAM
-		            , 850  AS TOT_DP_AMT
-		            , 0  AS SPMT_SL
-		            , 780  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 0  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		        UNION
-		       SELECT '4'  AS DV
-		            , '○'  AS CTT
-		            , '27'  AS FNT
-		            , '111111111'  AS CST_NO
-		            , '아토러브'  AS CST_NM
-		            , '7'  AS DLQ_MCNT
-		            , '2022-03-03' AS FNL_CNSL_D
-		            , 783235  AS OJ_AMT
-		            , 0  AS OJ_DP
-		            , 17061297  AS OJ_BLAM
-		            , 173540697  AS TOT_DLQ_AMT
-		            , 0  AS TOT_DLQ_DP
-		            , 17012697  AS TOT_DLQ_BLAM
-		            , 17012697  AS DLQ_AMT
-		            , 0  AS DLQ_DP
-		            , 174350697  AS DLQ_BLAM
-		            , 0  AS MM_CHRAM_AMT
-		            , 0  AS MM_CHRAM_DP
-		            , 0  AS MM_CHRAM_BLAM
-		            , 450  AS DLQ_ADD_AMT
-		            , 0  AS DLQ_ADD_DP
-		            , 350  AS DLQ_ADD_BLAM
-		            , 435170697  AS UC_AMT
-		            , 0  AS UC_DP
-		            , 143570697  AS UC_BLAM
-		            , 0  AS TOT_DP_AMT
-		            , 4350  AS SPMT_SL
-		            , 0  AS CCAM
-		            , 0  AS LSFE
-		            , 27900 AS RTLFE1
-		            , 0  AS RTLFE_ISTM1
-		            , 350  AS RTLFE2
-		            , 0  AS RTLFE_ISTM2
-		            , '홍종호'  AS CLCTAM_ICHR
-		            , '010-1234-4567' AS CNTR_MPNO
-		            , '010-1234-4567' AS IST_MPNO
-		            , '농협은행'  AS VT_AC_BNK
-		            , '1111111111'  AS VT_AC_NO
-		            , '11111'  AS SFK
-		            , '하'  AS CLN_PSBL
-		            , '전화문자'  AS CLN_PRCS
-		            , '컨택불가'  AS CST_STAT
-		            , '입력'  AS CVCP_INF
-		            , '입력'  AS UNUSL_ARTC
-		         FROM DUAL
-		        WHERE 1=1
-		     ) A
-		 WHERE 1=1
-		   AND A.DV = #{schDv}
-		
-		     -->	   
     </select>
     
     <select id="selectCustomerDetail" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindRes">
@@ -1160,98 +649,6 @@
            AND T1.CST_NO = #{schCstNo}
            AND T1.CNTR_NO = #{schCntrNo} 
            AND T1.CNTR_SN = #{schCntrSn}    
-           
-           
-		<!--     
-        SELECT '10' AS FNT              
-		     , '렌탈' AS TASK_DIV         
-		     , '정수기' AS PRD_GRP         
-		     , '웰스 정수기(WM171UWA)' AS GOODS_NM           
-		     , '2022-1111111-1' AS CNTR_DTL_NO      
-		     , '서미옥' AS CST_NM          
-		     , '4' AS DLQ_MCNT          
-		     , '2022-06-15' AS AUTH_RSG_DT      
-		     , 157910 AS OJ_AMT         
-		     , 157910 AS OJ_DP          
-		     , 0 AS OJ_BLAM         
-		     , 119010 AS TOT_DLQ_AMT        
-		     , 119010 AS TOT_DLQ_DP     
-		     , 0 AS TOT_DLQ_BLAM        
-		     , 38900 AS MM_CHRAM_AMT        
-		     , 38900 AS MM_CHRAM_DP     
-		     , 0 AS MM_CHRAM_BLAM   
-		     , 770 AS DLQ_ADD_AMT       
-		     , 2310 AS DLQ_ADD_DP       
-		     , 0 AS DLQ_ADD_BLAM        
-		     , 30000 AS SV_CS           
-		     , 25000 AS SV_DP           
-		     , 5000 AS SV_BLAM          
-		     , 157910 AS UC_AMT         
-		     , 157910 AS UC_DP          
-		     , 0 AS UC_BLAM         
-		     , 157910 AS TOT_DP_AMT     
-		     , 0 AS SPMT_SL         
-		     , 0 AS PD_LENT_LOST_LOG    
-		     , '' AS VT_AC_DV           
-		     , '' AS VT_AC_BNK      
-		     , '' AS VT_AC_NO           
-		     , 0 AS CCAM                
-		     , 0 AS LSFE                
-		     , 38900 AS RTLFE1          
-		     , 0 AS RTLFE_ISTM1     
-		     , 0 AS RTLFE2          
-		     , 0 AS RTLFE_ISTM2     
-		     , '' AS DPR                
-		     , '윤경숙' AS CLCTAM_ICHR     
-		     , '2022-06-15' AS TF_DT            
-		     , '11111' AS SFK
-		  FROM DUAL
-		 WHERE 1=1
-		 UNION 
-		SELECT '10' AS FNT              
-		     , '렌탈' AS TASK_DIV         
-		     , '공기청정기' AS PRD_GRP           
-		     , '공기청정기 (WM171UWA)' AS GOODS_NM           
-		     , '2022-1111111-1' AS CNTR_DTL_NO      
-		     , '서미옥' AS CST_NM          
-		     , '4' AS DLQ_MCNT          
-		     , '2022-06-15' AS AUTH_RSG_DT      
-		     , 257910 AS OJ_AMT         
-		     , 257910 AS OJ_DP          
-		     , 22220 AS OJ_BLAM         
-		     , 1219010 AS TOT_DLQ_AMT       
-		     , 1219010 AS TOT_DLQ_DP        
-		     , 2220 AS TOT_DLQ_BLAM     
-		     , 2328900 AS MM_CHRAM_AMT      
-		     , 318900 AS MM_CHRAM_DP        
-		     , 2220 AS MM_CHRAM_BLAM    
-		     , 1770 AS DLQ_ADD_AMT      
-		     , 12310 AS DLQ_ADD_DP      
-		     , 2220 AS DLQ_ADD_BLAM     
-		     , 230000 AS SV_CS          
-		     , 125000 AS SV_DP          
-		     , 25000 AS SV_BLAM         
-		     , 2157910 AS UC_AMT            
-		     , 2157910 AS UC_DP         
-		     , 1000 AS UC_BLAM          
-		     , 2157910 AS TOT_DP_AMT        
-		     , 2220 AS SPMT_SL          
-		     , 2220 AS PD_LENT_LOST_LOG 
-		     , '' AS VT_AC_DV           
-		     , '' AS VT_AC_BNK      
-		     , '' AS VT_AC_NO           
-		     , 33330 AS CCAM                
-		     , 33320 AS LSFE                
-		     , 38900 AS RTLFE1          
-		     , 1232130 AS RTLFE_ISTM1       
-		     , 32230 AS RTLFE2          
-		     , 44450 AS RTLFE_ISTM2     
-		     , '' AS DPR                
-		     , '윤경숙' AS CLCTAM_ICHR     
-		     , '2022-06-15' AS TF_DT            
-		     , '11111' AS SFK
-		  FROM DUAL
-		 WHERE 1=1 -->
     </select>
     
     <insert id="mergeUnuitmCn">

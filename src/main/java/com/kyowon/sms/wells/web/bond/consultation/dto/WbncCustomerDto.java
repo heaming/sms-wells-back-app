@@ -26,51 +26,59 @@ public class WbncCustomerDto {
 
     @ApiModel(value = "WbncCustomerDto-SearchRes")
     public record SearchRes(
-        String ctt,
-        String fnt,
-        String cstNo,
-        String cstNm,
-        String dlqMcnt,
-        String fnlCnslD,
-        String ojAmt,
-        String ojDp,
-        String ojBlam,
-        String totDlqAmt,
-        String totDlqDp,
-        String totDlqBlam,
-        String dlqAmt,
-        String dlqDp,
-        String dlqBlam,
-        String mmChramAmt,
-        String mmChramDp,
-        String mmChramBlam,
-        String dlqAddAmt,
-        String dlqAddDp,
-        String dlqAddBlam,
-        String ucAmt,
-        String ucDp,
-        String ucBlam,
-        String totDpAmt,
-        String spmtSl,
-        String ccam,
-        String lsfe,
-        String rtlfe1,
-        String rtlfeIstm1,
-        String rtlfe2,
-        String rtlfeIstm2,
-        String clctamIchr,
-        String cntrMpno,
-        String istMpno,
-        String vtAcBnk,
-        String vtAcNo,
-        String sfk,
-        String clnPsbl,
-        String clnPrcs,
-        String cstStat,
-        String cvcpInf,
-        String unuslArtc,
-        String cntrNo,
-        String cntrSn
+        String ctt, /* 컨택 */
+        String bilDt, /* 이체일자 */
+        String dpTpCd, /* 입금유형코드*/
+        String fnt, /* 이체 */
+        String cstNo, /* 고객번호 */
+        String cstNm, /* 고객명 */
+        String dlqMcnt, /* 연체개월 */
+        String fnlCnslD, /* 최종상담일 */
+        String ojAmt, /* 대상금액 */
+        String ojDp, /* 대상입금 */
+        String ojBlam, /* 대상금액 - 대상입금 = 대상잔액 */
+        String totDlqAmt, /* 연체금액 + 연체가산금 = 총연체금 */
+        String totDlqDp, /* 연체입금금액 + 연체가산금입금금액 = 총연체입금 */
+        String totDlqBlam, /* 총연체금 - 총연체입금 = 총연체잔액 */
+        String dlqAmt, /* 연체금액 */
+        String dlqDp, /* 연체입금 */
+        String dlqBlam, /* 연체금액 - 연체입금 = 연체잔액 */
+        String mmChramAmt, /* 월요금액 */
+        String mmChramDp, /* 월요금입금 */
+        String mmChramBlam, /* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */
+        String dlqAddAmt, /* 연체가산금액 */
+        String dlqAddDp, /* 연체가산입금 */
+        String dlqAdamtBlam, /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */
+        String ucAmt, /* 미수금액 */
+        String ucDp, /* 미수입금 */
+        String ucBlam, /* 미수금 - 총입금액 = 미수잔액 */
+        String totDpAmt, /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */
+        String spmtSl, /* 추가매출 */
+        String ccam, /* 위약금 */
+        String lsfe, /* 분실료 */
+        String rtlfe1, /* 렌탈료1 */
+        String rtlfeIstm1, /* 렌탈료1할 */
+        String rtlfe2, /* 렌탈료2 */
+        String rtlfeIstm2, /* 렌탈료2할 */
+        String clctamPrtnrNo, /* 집금번호 */
+        String clctamIchr, /* 집급담당 */
+        String cralLocaraTno, /* 계약휴대전화번호1 */
+        String mexnoEncr, /* 계약휴대전화번호2 */
+        String cralIdvTno, /* 계약휴대전화번호3 */
+        String istCralLocaraTno, /* 설치휴대전화번호1 */
+        String istMexnoEncr, /* 설치휴대전화번호2 */
+        String istCralIdvTno, /* 설치휴대전화번호3 */
+        String vtAcBnk, /* 가상계좌은행 */
+        String vtAcNo, /* 가상계좌번호 */
+        String sfk, /* 세이프키*/
+        String clnPsbl, /* 회수가능성*/
+        String clnPrcs, /* 회수절차*/
+        String cstStat, /* 고객상태*/
+        String cvcpInf, /* 민원정보*/
+        String unuslArtc, /* 특이사항*/
+        String cntrTpCd, /* 고객구분*/
+        String cntrNo, /* 계약번호 */
+        String cntrSn /* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WbncCustomerDetailDto-FindReq")
