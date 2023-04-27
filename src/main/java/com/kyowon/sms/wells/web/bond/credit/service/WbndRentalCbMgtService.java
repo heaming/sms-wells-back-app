@@ -29,7 +29,9 @@ import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WbndRentalCbMgtService {
@@ -97,7 +99,7 @@ public class WbndRentalCbMgtService {
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
 
         // 엑셀데이터 유효성체크
-        int row = 2;
+        int row = 1;
         int processCount = 0;
         for (WbndBondContactExcludeIzDvo dvo : list) {
             Map<String, String> headerTitleValidation = Map.of(
@@ -149,26 +151,19 @@ public class WbndRentalCbMgtService {
                     }
                 }
             }
-            dvo.setCtntExcdBndBizCd("02"); // 렌탈CB
-            dvo.setCtntExcdOjTpCd("01"); // 고객번호
-            dvo.setCtntExcdMediTpCd("03"); // 알림톡
-            if (excelUploadErrorDvos.size() == 0) {
-                int result = this.mapper.insertNotificationTalk(dvo);
-                if (result != 1) {
-                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
-                    errorDvo.setErrorRow(row);
-                    errorDvo.setErrorData(
-                        messageResourceService.getMessage(
-                            "MSG_ALT_SVE_ERR"
-                        )
-                    );
-                    excelUploadErrorDvos.add(errorDvo);
-                }
-                processCount += result;
-            }
             row++;
         }
+        if (excelUploadErrorDvos.size() == 0) {
+            for (WbndBondContactExcludeIzDvo dvo : list) {
+                dvo.setCtntExcdBndBizCd("02"); // 렌탈CB
+                dvo.setCtntExcdOjTpCd("01"); // 고객번호
+                dvo.setCtntExcdMediTpCd("03"); // 알림톡
 
+                int result = this.mapper.insertNotificationTalk(dvo);
+                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+                processCount += result;
+            }
+        }
         return UploadRes.builder()
             .status(excelUploadErrorDvos.isEmpty() ? "S" : "E").errorInfo(excelUploadErrorDvos).excelData(list).build();
 
