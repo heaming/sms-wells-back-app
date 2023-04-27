@@ -20,6 +20,7 @@ public class WsnaBuildingBsConsumableDto {
         String rsppPrtnrNo,
         String vstCstN,
         String reqYn,
+        String bfsvcCsmbDdlvStatCd,
         List<String> fxnQtys,
         List<String> aplcQtys
     ) {}
