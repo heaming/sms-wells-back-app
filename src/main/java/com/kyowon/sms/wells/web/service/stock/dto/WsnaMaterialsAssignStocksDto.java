@@ -60,7 +60,8 @@ public class WsnaMaterialsAssignStocksDto {
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-CreateReq")
     public record CreateReq(
         String prtnrNo, /* 파트너번호 */
-        String qomAsnApyYn /* 물량배정적용여부 */
+        String qomAsnApyYn, /* 물량배정적용여부 */
+        String ogTpCd /* 조직유형코드 */
     ) {}
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-prtnrsReq")
     public record PrtnrReq(
