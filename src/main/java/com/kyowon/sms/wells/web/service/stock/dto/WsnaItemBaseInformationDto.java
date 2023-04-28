@@ -59,6 +59,9 @@ public class WsnaItemBaseInformationDto {
         String itmPdNm1, /*품목상품명1*/
         String imgUrl, /*이미지URL*/
         String itemKnd, /*품목종류*/
+        String boxUnitQty, /*박스단위수량*/
+        String mngtUnitCd, /*신청단위코드*/
+        String delUnt, /*관리단위*/
         String warehouseQty, /* 현재출고창고재고 */
         String centerQty, /*현재센터A등급재고(조직)*/
         String centerBqty, /*현재센터B등급재고(조직)*/

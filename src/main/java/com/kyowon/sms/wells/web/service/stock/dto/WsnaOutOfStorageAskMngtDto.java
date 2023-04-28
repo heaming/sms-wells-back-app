@@ -88,7 +88,7 @@ public class WsnaOutOfStorageAskMngtDto {
         String ostrAkTpCd, /*출고요청유형코드*/
         String strHopDt, /*입고희망일자*/
         String mngtUnitCd, /*관리단위코드*/
-        String boxUnitgQty, /*박스단위수량*/
+        String boxUnitQty, /*박스단위수량*/
         String itmGdCd, /*품목등급코드*/
         String ostrAkQty, /*출고요청수량*/
         String ostrCnfmQty, /*출고확정수량*/
