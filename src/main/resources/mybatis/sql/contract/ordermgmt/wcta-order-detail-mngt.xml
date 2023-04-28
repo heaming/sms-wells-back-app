@@ -21,6 +21,16 @@
                             , T12.FRISU_RCVRY_TP_CD
                             , T12.SRCWT_TP_CD
                             , T13.HIST_STRT_DTM
+		                    , T43.VST_RQDT                                                                                   /* 방문요청일자 - 의뢰일자(LCTRUT,LCTRUY) */
+		                    , F_CMZ_CD_NM('TNT_WELLS', 'SPP_MTHD_TP_CD' ,T43.SPP_MTHD_TP_CD) AS SPP_MTHD_TP_NM               /* 배송방식유형코드 - 의뢰구분(LCTGUB, LCTGUB_NM) */
+		                    , T44.RCGVP_KNM                                        /* 수령자한글명 - 설치처정보 - 설치자　명(LCWNAM)*/
+		                    , T44.CRAL_LOCARA_TNO   AS IST_CRAL_LOCARA_TNO          /* 설치자 - 휴대전화번호1 */
+		                    , T44.MEXNO_ENCR        AS IST_MEXNO_ENCR               /* 설치자 - 휴대전화번호2 */
+		                    , T44.CRAL_IDV_TNO      AS IST_CRAL_IDV_TNO             /* 설치자 - 휴대전화번호3 */
+		                    , T44.CRAL_LOCARA_TNO || '-' || T44.MEXNO_ENCR || '-' || T44.CRAL_IDV_TNO  AS IST_CRAL_TNO /* 설치자 - 휴대전화번호(파라미터) */
+		                    , T45.NEW_ADR_ZIP      AS IST_ADR_ZIP                  /* 설치처정보 - 우편번호 : LCWZIP */
+		                    , T45.RNADR            AS IST_RNADR                    /* 설치처정보 - 기준주소 : LCWAD1 + LCWAD2 +LCWAD3 */
+		                    , T45.RDADR            AS IST_RDADR                    /* 설치처정보 - 상세주소 : LCWAD1 + LCWAD2 +LCWAD3 */
                             , T50.SL_RCOG_DT
                             , T50.RENTAL_TN
                             , T50.RENTAL_PTRM
@@ -47,6 +57,19 @@
                                               ) T13             /* 운송장번호(계약일련번호별) */
                         ON T13.CNTR_NO = T11.CNTR_NO
                        AND T13.CNTR_SN = T11.CNTR_SN
+	                  LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T43      /* T.계약주소관계 - 설치 */
+	                    ON T43.DTL_CNTR_NO = T11.CNTR_NO
+	                   AND T43.DTL_CNTR_SN = T11.CNTR_SN
+	                   AND T43.ADRPC_TP_CD = '3'                    /* 주소지유형코드 : 설치처(3) */
+	                   AND T43.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
+	                   AND T43.DTA_DL_YN = 'N'
+	                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T43.DTL_CNTR_NO AND T11.CNTR_SN = T43.DTL_CNTR_SN)
+	                  LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T44    /* T.계약주소지기본 - 설치 */
+	                    ON T44.CNTR_ADRPC_ID = T43.CNTR_ADRPC_ID
+	                   AND T44.DTA_DL_YN = 'N'
+	                  LEFT OUTER JOIN TB_GBCO_ADR_BAS T45           /* T.주소기본 - 설치 */
+	                    ON T45.ADR_ID = T44.ADR_ID
+	                   AND T45.DTA_DL_YN = 'N'
                       LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T50  /* WELLS매출월마감내역 */
                         ON T50.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')    /* 매출마감년월 */
                        AND T50.CNTR_NO = T11.CNTR_NO
@@ -116,6 +139,18 @@
                     <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
                        AND T10.CNTR_CST_NO = #{cntrCstNo}
                     </if>
+                    <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+                        AND T44.CRAL_LOCARA_TNO = #{cralLocaraTno}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+                        AND T44.MEXNO_ENCR = #{mexnoEncr}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+                        AND T44.CRAL_IDV_TNO = #{cralIdvTno}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(rcgvpKnm)">
+                        AND T44.RCGVP_KNM LIKE '%'||#{rcgvpKnm}||'%'
+                    </if>
         )
         , T85 AS (
         SELECT *
@@ -173,14 +208,6 @@
                      , T41.NEW_ADR_ZIP AS ADR_ZIP                           /* 계약자정보 - 우편번호 : LCCZIP */
                      , T41.RNADR  AS CNTR_CST_RNADR                         /* 계약자정보 - 기준주소 : LCCAD1*/
                      , T41.RDADR  AS CNTR_CST_RDADR                         /* 계약자정보 - 상세주소 : LCCAD1*/
-                     , T44.RCGVP_KNM                                        /* 수령자한글명 - 설치처정보 - 설치자　명(LCWNAM)*/
-                     , T44.CRAL_LOCARA_TNO   AS IST_CRAL_LOCARA_TNO          /* 설치자 - 휴대전화번호1 */
-                     , T44.MEXNO_ENCR        AS IST_MEXNO_ENCR               /* 설치자 - 휴대전화번호2 */
-                     , T44.CRAL_IDV_TNO      AS IST_CRAL_IDV_TNO             /* 설치자 - 휴대전화번호3 */
-                     , T44.CRAL_LOCARA_TNO || '-' || T44.MEXNO_ENCR || '-' || T44.CRAL_IDV_TNO  AS IST_CRAL_TNO /* 설치자 - 휴대전화번호(파라미터) */
-                     , T45.NEW_ADR_ZIP      AS IST_ADR_ZIP                  /* 설치처정보 - 우편번호 : LCWZIP */
-                     , T45.RNADR            AS IST_RNADR                    /* 설치처정보 - 기준주소 : LCWAD1 + LCWAD2 +LCWAD3 */
-                     , T45.RDADR            AS IST_RDADR                    /* 설치처정보 - 상세주소 : LCWAD1 + LCWAD2 +LCWAD3 */
                      , T46.SPP_ORD_NO                                       /* 설치처정보 - 운송장번호 : WBLNUM */
                      , (SELECT MAX(PDCT_IDNO) KEEP(DENSE_RANK FIRST ORDER BY OSTR_SN DESC)
                          FROM TB_SSSO_PDCT_IDNO_OSTR_IZ  /* T.제품고유번호출고내역 */
@@ -430,7 +457,6 @@
                             WHEN T14.DP_TP_CD = '120' THEN F_CMZ_CD_NM('TNT_WELLS', 'CDCO_CD', T14.CDCO_CD) /* 카드사 */
                             ELSE '' END AS STLM_FNIT                                                                  /* 결제금융기관 -(은행/카드사(LCCARD)) */
                      , T14.MPY_BSDT                                                                                   /* 납부기준일자 - 이체일자(LCTRDD) */
-                     , T43.VST_RQDT                                                                                   /* 방문요청일자 - 의뢰일자(LCTRUT,LCTRUY) */
                      , (SELECT MAX(PDCT_REQD_RQDT) KEEP(DENSE_RANK FIRST ORDER BY CH_SN DESC)
                          FROM TB_SSCT_RTAS_STAT_IZ  /* T.렌탈자산상태내역 */
                         WHERE 1=1
@@ -440,7 +466,6 @@
                           AND DTA_DL_YN = 'N') AS PDCT_REQD_RQDT                                                      /* 제품철거요청일자 - 철거요청일자(LCREQT,LCREQY) */
                      , T11.FRISU_YN                                                                                   /* 무상여부 (무료체험여부:LCEGUB) */
                      , '' AS LCPGUB_NM                                                                                /* 컨택업체 (컨택업체:LCPGUB_NM) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'SPP_MTHD_TP_CD' ,T43.SPP_MTHD_TP_CD) AS SPP_MTHD_TP_NM               /* 배송방식유형코드 - 의뢰구분(LCTGUB, LCTGUB_NM) */
                      , F_CMZ_CD_NM('TNT_WELLS', 'PWSUP_WPRS_ITST_TP_CDEYN' ,T11.WPRS_ITST_TP_CD) AS WPRS_ITST_TP_NM   /* 수압강도유형코드(수압유무-LCCHK5) */
                      , T11.WTQLTY_TST_YN                                                                              /* 수질검사여부 - 수질검사(LCCHK7) */
                      , '' AS LCCHK8                                                                                   /* 설치장소(설치장소:LCCHK8 1자택2사무실3업소4학교)) */
@@ -1008,18 +1033,6 @@
                 <if test="@MybatisUtils@isNotEmpty(cndtSellTpCd)">
                     AND T20.SELL_TP_DTL_CD = #{cndtSellTpCd}
                 </if>
-                <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-                    AND T44.CRAL_LOCARA_TNO = #{cralLocaraTno}
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-                    AND T44.MEXNO_ENCR = #{mexnoEncr}
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-                    AND T44.CRAL_IDV_TNO = #{cralIdvTno}
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(rcgvpKnm)">
-                    AND T44.RCGVP_KNM = #{rcgvpKnm}
-                </if>
     </select>
 
     <select id="selectOrderDetailMshPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailMembershipPagesDvo">
@@ -1520,7 +1533,7 @@
            AND T40.BZRNO  = #{bzrno}
         </if>
         <if test="@MybatisUtils@isNotEmpty(cstKnm)">
-           AND T40.CST_KNM = #{cstKnm}
+           AND T40.CST_KNM LIKE '%'||#{cstKnm}||'%'
         </if>
         <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
            AND T40.CRAL_LOCARA_TNO = #{cralLocaraTno}
@@ -1960,7 +1973,7 @@
            AND T21.REF_PD_CLSF_VAL LIKE #{hcsfMcsfVal} || '%'
         </if>
         <if test="@MybatisUtils@isNotEmpty(pdCd)"> /* 상품코드 */
-           AND A1.BASE_PD_CD LIKE '01001%'
+           AND A1.BASE_PD_CD LIKE '%' || #{pdCd} || '%'
         </if>
         <if test="@MybatisUtils@isNotEmpty(pdNm)"> /* 상품명 */
            AND T20.PD_NM LIKE '%' || #{pdNm} || '%'
@@ -2426,7 +2439,7 @@
                                    INNER JOIN TB_SSSO_SPP_ORD_DTL T461           /* T.배송주문상세 */
                                       ON T460.SPP_ORD_NO = T461.SPP_ORD_NO
                                      AND T461.CNTR_NO = T11.CNTR_NO
-                                     AND T461.CNTR_SN = T11.CNTR_NO
+                                     AND T461.CNTR_SN = T11.CNTR_SN
                                      AND T461.DTA_DL_YN = 'N'
                                    WHERE 1=1
                                      AND T460.IOST_TP_CD = '10'    /* 입출고유형코드 : 출고(10) */
