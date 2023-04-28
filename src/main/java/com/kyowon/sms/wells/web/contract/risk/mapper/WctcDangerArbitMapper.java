@@ -9,13 +9,9 @@ import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchOrgan
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WctcDangerArbitMapper {
-    PagingResult<SearchRes> selectDangerArbitManagerial(SearchReq dto, PageInfo pageInfo);
-
     List<SearchRes> selectDangerArbitManagerial(SearchReq dto);
 
     String selectDangChkId(String dangMngtPrtnrNo, String dangOcStrtdt, String dangMngtPstnDvCd, String dangOjPrtnrNo);
