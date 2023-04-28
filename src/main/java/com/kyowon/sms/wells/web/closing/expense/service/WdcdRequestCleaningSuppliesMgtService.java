@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdRequestCleaningSuppliesMgtConverter;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SaveReq;
@@ -23,10 +24,10 @@ public class WdcdRequestCleaningSuppliesMgtService {
     private final WdcdRequestCleaningSuppliesMgtMapper mapper;
     private final WdcdRequestCleaningSuppliesMgtConverter converter;
     private final AttachFileService attachFileService;
-    private final String groupId = "ATG_DCD_CLING_COST_MGT";
+    private final String groupId = "ATG_DCD_CLING_COST";
 
-    public List<CodeRes> getBuilDingCd() {
-        return mapper.selectBuilDingCd();
+    public List<CodeRes> getBuilDingCd(CodeReq req) {
+        return mapper.selectBuilDingCd(req);
     }
 
     @Transactional
@@ -40,7 +41,7 @@ public class WdcdRequestCleaningSuppliesMgtService {
 
             String clingCostAdjRcpNo = mapper.selectClingCostAdjRcpNo(req);
             dvo.setClingCostAdjRcpNo(clingCostAdjRcpNo);
-            String clingCostSignApnFileId = groupId + clingCostAdjRcpNo;
+            String clingCostSignApnFileId = groupId + "_ADJ" + clingCostAdjRcpNo;
             dvo.setClingCostSignApnFileId(clingCostSignApnFileId);
             dvo.setDtaDlYn("N");
 

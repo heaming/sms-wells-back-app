@@ -25,9 +25,9 @@ public class WdcdCleanerReqeustDvo {
     private String wrkStrtdt; // 근무시작일자
     private String wrkEnddt; // 근무종료일자
     private String frontRrnoEncr; // 주민등록번호 앞자리
+    private String backRrnoEncr; // 주민등록번호 앞자리
     @DBEncField
     @DBDecField
-    private String backRrnoEncr; // 주민등록번호 뒷자리
     private String rrnoEncr; // 주민등록번호 암호화
     private String locaraTno; // 지역번호
     @DBEncField

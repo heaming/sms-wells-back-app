@@ -15,7 +15,19 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 청소 용품비 관리 - 청소(용품)비 신청
+    // 청소 용품비 관리 - 청소(용품)비 신청 / 빌딩 조회
+    @Builder
+    @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-CodeReq")
+    public record CodeReq(
+        String ogTpCd,
+        String prtnrNo
+    ) {
+    }
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 청소 용품비 관리 - 청소(용품)비 신청 / 빌딩 조회
     @Builder
     @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-CodeRes")
     public record CodeRes(
