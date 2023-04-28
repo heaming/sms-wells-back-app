@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -30,9 +27,9 @@ public class WdcyCloseHourBulkRegService {
 
             WdcyCloseHourBulkRegDvo dvo = converter.mapCreateReqToWdcyCloseHourBulkRegDvo(dto);
             int hourBulkCount = mapper.selectHourBulkCount(dto);
-            BizAssert.isFalse(hourBulkCount == 0, "MSG_TXT_COUNT_GREA_THAN_PRE_REGI_DEA_INFO_EXIST_PLE_WORK_AFTER_DELE");
+            BizAssert.isTrue(hourBulkCount <= 0, "MSG_TXT_COUNT_GREA_THAN_PRE_REGI_DEA_INFO_EXIST_PLE_WORK_AFTER_DELE");
 
-            int diffDay = this.dateConut(dto.crtDt(), dto.clDt());
+            int diffDay = DateUtil.getDays(dto.crtDt(), dto.clDt());
 
             Calendar cal = Calendar.getInstance();
             String addDay = dto.crtDt();
@@ -113,7 +110,7 @@ public class WdcyCloseHourBulkRegService {
             // 막날 구하기
             String endDt = this.getLastDateOfMonth(dto.clDt());
 
-            diffDay = this.dateConut(dto.clDt(), endDt);
+            diffDay = DateUtil.getDays(dto.clDt(), endDt);
             addDay = dto.clDt();
 
             for (int i = 0; i < diffDay; i++) {
@@ -158,25 +155,4 @@ public class WdcyCloseHourBulkRegService {
 
         return lastDay;
     }
-
-    private int dateConut(String crtDt, String clDt) {
-
-        long diffDay = 0L;
-
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-            Date startDate = sdf.parse(crtDt);
-            Date endDate = sdf.parse(clDt);
-
-            //두날짜 사이의 시간 차이(ms)를 하루 동안의 ms(24시*60분*60초*1000밀리초) 로 나눈다.
-            diffDay = (startDate.getTime() - endDate.getTime()) / (24 * 60 * 60 * 1000);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        return Long.valueOf(Optional.ofNullable(diffDay * -1).orElse(0L)).intValue();
-    }
-
 }
