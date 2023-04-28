@@ -15,8 +15,6 @@ import com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
 import com.kyowon.sms.wells.web.contract.risk.mapper.WctcDangerArbitMapper;
 import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -28,11 +26,7 @@ public class WctcDangerArbitService {
     private final WctcDangerArbitMapper mapper;
     private final WctcDangerArbitConverter converter;
 
-    public PagingResult<SearchRes> getDangerArbitManagerial(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectDangerArbitManagerial(dto, pageInfo);
-    }
-
-    public List<SearchRes> getDangerArbitManagerialExcelDownload(SearchReq dto) {
+    public List<SearchRes> getDangerArbitManagerial(SearchReq dto) {
         return mapper.selectDangerArbitManagerial(dto);
     }
 
