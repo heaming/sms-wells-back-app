@@ -37,8 +37,8 @@
                    , (CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN '일시불'
                            ELSE F_CMZ_CD_NM('TNT_WELLS', 'BND_BIZ_DV_CD', T1.BND_BIZ_DV_CD)
                     END) BND_BIZ_DV_NM /* 채권업무구분명 */
-                   , CASE WHEN T8.DEPTH1 = '07' THEN T8.DEPTH3
-                          ELSE T8.DEPTH2
+                   , CASE WHEN T8.PD_HCLSF_CD = '07' THEN T8.PD_LCLSF_NM
+                          ELSE T8.PD_MCLSF_NM
                      END AS PD_CLSF_NM  /* 수정필요 : 상품군 */
                    , T8.PD_CD  /* 상픔코드 */
                    , T8.PD_NM  /* 상품명 */
@@ -101,24 +101,26 @@
                   ON T7.CNTR_NO = T1.CNTR_NO
                  AND T7.CNTR_SN = T1.CNTR_SN
                 LEFT OUTER JOIN (
-                                 SELECT PB.PD_CD
-                                      , PB.PD_NM
-                                      , M1.PD_TP_CD
-                                      , REGEXP_SUBSTR(SYS_CONNECT_BY_PATH(M1.PD_CLSF_NM,'^^'), '[^^]+'  ,1  ,1) AS DEPTH1
-                                      , REGEXP_SUBSTR(SYS_CONNECT_BY_PATH(M1.PD_CLSF_CD,'^^'), '[^^]+'  ,1  ,1) AS DEPTH1_CD
-                                      , REGEXP_SUBSTR(SYS_CONNECT_BY_PATH(M1.PD_CLSF_NM,'^^'), '[^^]+'  ,1  ,2) AS DEPTH2
-                                      , REGEXP_SUBSTR(SYS_CONNECT_BY_PATH(M1.PD_CLSF_CD,'^^'), '[^^]+'  ,1  ,2) AS DEPTH2_CD
-                                      , REGEXP_SUBSTR(SYS_CONNECT_BY_PATH(M1.PD_CLSF_NM,'^^'), '[^^]+'  ,1  ,3) AS DEPTH3
-                                      , REGEXP_SUBSTR(SYS_CONNECT_BY_PATH(M1.PD_CLSF_CD,'^^'), '[^^]+'  ,1  ,3) AS DEPTH3_CD
-                                      , M1.PD_CLSF_NM
-                                      , M1.PD_CLSF_CD
-                                      , M1.PD_CLSF_ID
+                                 SELECT PB.PD_TP_CD                               /* 상품구분 */
+                                      , NVL2(C2.PD_CLSF_NM, C2.PD_CLSF_NM, '')
+                                        || NVL2(C3.PD_CLSF_NM, '>' || C3.PD_CLSF_NM, '')
+                                        || NVL2(C4.PD_CLSF_NM, '>' || C4.PD_CLSF_NM, '') AS PD_CLSF_NM  /* 상품분류 */
+                                      , C1.PD_CLSF_CD AS PD_HCLSF_CD            /* 대분류코드 */
+                                      , C1.PD_CLSF_NM AS PD_HCLSF_NM            /* 대분류명 */
+                                      , C2.PD_CLSF_NM AS PD_MCLSF_NM            /* 중분류명 */
+                                      , C3.PD_CLSF_NM AS PD_LCLSF_NM            /* 소분류명 */
+                                      , PB.PD_NM                                  /* 상품명 */
+                                      , PB.PD_CD                                  /* 상품코드 */
                                    FROM TB_PDBS_PD_BAS PB
-                                   LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS M1
-                                     ON M1.PD_CLSF_ID = PB.PD_CLSF_ID
-                                  START WITH M1.HGR_PD_CLSF_ID IS NULL
-                                CONNECT BY PRIOR M1.PD_CLSF_ID = M1.HGR_PD_CLSF_ID
-                                  ORDER SIBLINGS BY M1.SORT_ODR
+                                   LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS C1          /* 분류 대 */
+                                     ON PB.PD_HCLSF_ID  = C1.PD_CLSF_ID
+                                   LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C2         /* 분류 중 */
+                                     ON PB.PD_MCLSF_ID  = C2.PD_CLSF_ID
+                                   LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C3         /* 분류 소 */
+                                     ON PB.PD_LCLSF_ID  = C3.PD_CLSF_ID
+                                   LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C4         /* 분류 세 */
+                                     ON PB.PD_DCLSF_ID  = C4.PD_CLSF_ID
+                                  WHERE PB.DTA_DL_YN = 'N'
                                 ) T8
                   ON T8.PD_CD = T3.BASE_PD_CD
                 LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ T9
