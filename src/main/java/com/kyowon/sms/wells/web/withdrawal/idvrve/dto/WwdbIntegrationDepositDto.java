@@ -17,10 +17,10 @@ public class WwdbIntegrationDepositDto {
     ) {
         public SearchReq {
             if (!StringUtil.isEmpty(acnoEncr)) {
-                acnoEncr = DbEncUtil.dec(acnoEncr); // 계좌번호 복호화
+                acnoEncr = DbEncUtil.enc(acnoEncr); // 계좌번호 복호화
             }
             if (!StringUtil.isEmpty(crcdnoEncr)) {
-                crcdnoEncr = DbEncUtil.dec(crcdnoEncr); // 카드번호 복호화
+                crcdnoEncr = DbEncUtil.enc(crcdnoEncr); // 카드번호 복호화
             }
         }
     }
