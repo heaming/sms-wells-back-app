@@ -44,4 +44,21 @@ public interface WctzHistoryMapper {
     int updateCntrBasicChangeHist(WctzCntrBasicChangeHistDvo dvo);
 
     int deleteCntrBasicChangeHist(WctzCntrBasicChangeHistDvo dvo);
+
+    WctzContractWellsDetailHistDvo selectContractWellsDetailHist(String cntrNo, int cntrSn);
+
+    WctzContractWellsDetailHistDvo selectContractWellsDetailForHist(String cntrNo, int cntrSn);
+
+    int updateContractWellsDetailHist(WctzContractWellsDetailHistDvo dvo);
+
+    int insertContractWellsDetailHist(WctzContractWellsDetailHistDvo dvo);
+
+    WctzAcmpalContractIzHistDvo selectAcmpalContractIzForHist(String acmpalCntrId);
+
+    WctzAcmpalContractIzHistDvo selectAcmpalContractIzHist(String acmpalCntrId);
+
+    int updateAcmpalContractIzChangeHist(WctzAcmpalContractIzHistDvo dvo);
+
+    int insertAcmpalContractIzChangeHist(WctzAcmpalContractIzHistDvo dvo);
+
 }
