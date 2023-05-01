@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbMutualAidAllianceBulkDepositRegConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveUploadReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchDepositRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumReq;
@@ -238,42 +237,50 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         int processCount = 0;
 
         //통합입금 조회
-        SearchDepositRes selectIntegrationDeposit = depositMapper.selectIntegrationDeposit(dto);
+        com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto.SearchRes selectIntegrationDeposit = depositMapper
+            .selectIntegrationDeposit(dto);
 
         //통합입금 조회 결과가 없을경우
-        if (StringUtil.isEmpty(selectIntegrationDeposit.itgDpNo())) {
-            throw new BizException("통합입금 데이타가 존재하지 않습니다. [통합입금번호 오류]");
-        }
+        BizAssert.hasText(selectIntegrationDeposit.itgDpNo(), "MSG_ALT_ITG_DP_DTA_NOT_EXST"); // ("통합입금 데이터가 존재하지 않습니다. [통합입금번호 오류]");
 
         //오늘 날짜
         String sysDate = DateUtil.getNowString();
         String sysDateYm = sysDate.substring(0, 6);
+        String sysDateYmd = sysDate.substring(0, 8);
         //한달전
-        String prevSysDate = DateUtil.addMonths(sysDateYm, -1);
+        String prevSysDate = DateUtil.addMonths(sysDateYmd, -1);
         String prevSysDateYm = prevSysDate.substring(0, 6);
 
         //한달전 날짜와 라이프지원년월이 다르면 예외 발생
-        if (!prevSysDate.contentEquals(dto.lifSpptYm())) {
-            throw new BizException("상조입금생성은 전월만 가능합니다.");
+        if (!prevSysDateYm.contentEquals(dto.lifSpptYm())) {
+            throw new BizException("MSG_ALT_MUTU_DP_CRT_LSTMM_PSB");
+            //            throw new BizException("상조입금생성은 전월만 가능합니다.");
         }
 
-        int diffDay = DateUtil.getDays(sysDateYm, dto.rveDt());
+        int diffDay = DateUtil.getDays(sysDateYmd, dto.rveDt());
+
+        log.info("======123=====");
+        System.out.println(diffDay > 0);
+        log.info("======123=====");
 
         //이전만 가능하기에 0보다 크면 예외 발생
-        BizAssert.isTrue(diffDay > 0, "수납일자는 현재일 과 이전만 가능 합니다.");
+        BizAssert.isFalse(diffDay > 0, "MSG_ALT_RVE_DT_CRTL_D_BF_PSB");
+        //        BizAssert.isTrue(diffDay > 0, "수납일자는 현재일 과 이전만 가능 합니다.");
 
         //수납일자가 같은 월이 아니면 예외 발생
         if (!sysDateYm.contentEquals(dto.rveDt().substring(0, 6))) {
-            throw new BizException("수납일자 는 현재월 만 가능합니다.");
+            throw new BizException("MSG_ALT_RVE_DT_CRTL_PSB");
+            //            throw new BizException("수납일자 는 현재월 만 가능합니다.");
         }
 
-        diffDay = DateUtil.getDays(sysDateYm, dto.perfDt());
+        diffDay = DateUtil.getDays(sysDateYmd, dto.perfDt());
 
         //오늘 날짜와 실적일자사이가 0보다 클 경우 예외 발생
-        BizAssert.isTrue(diffDay > 0, "수납일자는 현재일 과 이전만 가능 합니다.");
+        BizAssert.isFalse(diffDay > 0, "MSG_ALT_PERF_DT_CRTL_D_BF_PSB");
+        //        BizAssert.isTrue(diffDay > 0, "실적일자는 현재일 과 이전만 가능 합니다.");
 
         if (!sysDateYm.contentEquals(dto.perfDt().substring(0, 6))) {
-            throw new BizException("실적일자 는 현재월 만 가능합니다.");
+            throw new BizException("MSG_ALT_PERF_DT_CRTL_PSB");
         }
 
         //수납마감 체크 테이블 여쭤보기
@@ -281,20 +288,18 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         List<SearchRes> selectMutualAidAllianceBulkDepositRegs = mapper.selectMutualAidAllianceBulkDepositRegs(chkDto);
 
-        if (selectMutualAidAllianceBulkDepositRegs.size() == 0) {
-            throw new BizException("일괄일금등록 생성할 데이타가 존재하지 않습니다.");
-        }
+        BizAssert.notEmpty(selectMutualAidAllianceBulkDepositRegs, "MSG_ALT_BLK_DP_RGST_CRT_DTA_EXST");
 
         if (!prevSysDateYm.contentEquals(selectMutualAidAllianceBulkDepositRegs.get(0).lifSpptYm())) {
-            throw new BizException("상조입금생성은 전월만 가능합니다.");
+            throw new BizException("MSG_ALT_MUTU_DP_CRT_LSTMM_PSB"); //상조입금생성은 전월만 가능합니다.
         }
 
-        long dpBlam = selectIntegrationDeposit.dpBlam();
+        long dpBlam = Long.parseLong(selectIntegrationDeposit.dpBlam());
         long sumAmt = selectMutualAidAllianceBulkDepositRegs.get(0).sumAmt();
 
-        BizAssert.isTrue(dpBlam == 0, "대사 할 입금잔액이 없습니다. 입금잔액을 확인하세요.");
+        BizAssert.isFalse(dpBlam == 0, "MSG_ALT_CPRCNF_NOT_DP_BLAM"); //대사 할 입금잔액이 없습니다. 입금잔액을 확인하세요.
 
-        BizAssert.isTrue(dpBlam != sumAmt, "통합 입금잔액 과 총 대사금액 이 일치하지 않습니다.");
+        BizAssert.isFalse(dpBlam != sumAmt, "MSG_ALT_CPRCNF_NOT_DP_BLAM"); //통합 입금잔액 과 총 대사금액 이 일치하지 않습니다.
 
         /* 아직 테스트 중이라 미완성*/
 
