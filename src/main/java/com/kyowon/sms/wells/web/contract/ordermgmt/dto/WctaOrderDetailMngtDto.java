@@ -139,6 +139,14 @@ public class WctaOrderDetailMngtDto {
         String cntrPdStrtdt
     ) {}
 
+    //주문상세조회/관리(정기배송) - 복합상품목록 Search Request Dto
+    @ApiModel(value = "WctaOrderDetailMngtDto-SearchCompositionProductsReq")
+    public record SearchCompositionProductsReq(
+        String cntrNo,
+
+        String cntrSn
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -696,5 +704,17 @@ public class WctaOrderDetailMngtDto {
         String dgr2LevlOgId,
         String dgr3LevlOgId,
         String mchnPdPrpVal01
+    ) {}
+
+    //주문상세조회/관리(정기배송) - 주문상세조회(정기배송-복합상품목록) Search Result Dto
+    @ApiModel("WctaOrderDetailMngtDto-SearchOrderDetailRglrDlvrPagesRes")
+    public record SearchCompositionProductsRes(
+        String basePdCd,
+        String pdNm,
+        String pdQty,
+        String fnlVal,
+        String ctrVal,
+        String ojPdCd,
+        String verSn
     ) {}
 }

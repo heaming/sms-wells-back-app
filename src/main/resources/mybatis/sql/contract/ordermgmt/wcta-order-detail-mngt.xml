@@ -2122,7 +2122,7 @@
              , SUBSTR(T46.FST_SPP_FSH_DTM, 0, 8) AS FST_SPP_FSH_DT                          /* 최초배송일자 - 배송일자(LCDLVT,LCDLVY) */
              , T12.IST_DT                                                                   /* 설치일자 - 매출일자 (매출일:LCSLET.LCSLEY) TOBE맵핑이 설치일자*/
              --, T50.SL_DT                                                                  /* 매출일자 (매출일:LCSLET.LCSLEY) */
-             , T11.CNTR_PD_ENDDT                                                           /* 계약상품종료일자 - 만료일자(LCMANT = LCSLEY + LCMONT ) */
+             , T11.CNTR_PD_ENDDT                                                            /* 계약상품종료일자 - 만료일자(LCMANT = LCSLEY + LCMONT ) */
              , T17.HIST_STRT_DTM AS CLTN_RQDT                                               /* 해약요청일자:LCREQT,LCREQY - 고객쵸엉해약(301) 의 이력시작일자*/
              , T12.REQD_DT                                                                  /* 철거일자 - (해약일:LCCANT,LCCANY)*/
              , SUBSTR(T46.SPP_FSH_DTM, 5, 2) AS SPP_FSH_M                                   /* 배송완료월 - 배송기준년월(LCSCHM) */
@@ -2520,7 +2520,7 @@
         <if test="@MybatisUtils@isNotEmpty(prdEnqry)">
             <choose>
                 <when test='@MybatisUtils@equals(prdEnqry, "1")'> /* 접수일 */
-                    AND SUBSTR(T10.CNTR_RCP_FSH_DTM, 0, 8) BETWEEN #{strtDt} AND #{endDt}
+                    AND T10.CNTR_RCP_FSH_DTM BETWEEN #{strtDt}||'000000' AND #{endDt}||'235959'
                 </when>
                 <when test='@MybatisUtils@equals(prdEnqry, "2")'> /* 취소일 */
                     AND T12.REQD_DT BETWEEN #{strtDt} AND #{endDt}
@@ -2625,4 +2625,63 @@
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </update>
+
+    <select id="selectCompositionProducts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtDto$SearchCompositionProductsRes">
+        SELECT MIN(BASE_PD_CD) AS BASE_PD_CD
+             , MIN(PD_NM) AS PD_NM
+             , SUM(PD_QTY) AS PD_QTY
+             , SUM(FNL_VAL) AS FNL_VAL
+             , SUM(CTR_VAL) AS CTR_VAL
+             , MIN(OJ_PD_CD) AS OJ_PD_CD
+             , MAX(VER_SN) AS VER_SN
+          FROM (SELECT /* 정기배송 상품 목록*/
+                       T1.BASE_PD_CD    /* 기준상품코드*/
+                     , T2.PD_NM         /* 상품명 */
+                     , T1.PD_QTY        /* 수량 */
+                     , T3.FNL_VAL       /* 단가 LD3050P@LCTAMT */
+                     , T3.CTR_VAL       /* 할인 LD3050P@LCRAMT */
+                     , T1.OJ_PD_CD      /* 대상상품코드(계약상세의상위상품코드) 패키지코드 LD3050P@LCPKAG */
+                     , T3.VER_SN        /* 패키지가격차수  LD3050P@LCPSEQ 맵핑이 없음. 패키지가격차수를 가격산출내역의@버전일련번호로 대체*/
+                --     , /* 인정실적금액, 인정금액 LD3050P@LCPAMT TOBE_미사용 (ASIS도 값이 없음 TODO.화면에서 삭제 )*/
+                  FROM TB_SSCT_CNTR_PD_REL T1           /* T.계약상품관계 */
+                  LEFT OUTER JOIN TB_PDBS_PD_BAS T2          /* T.상품기본 -  */
+                   ON T2.PD_CD = T1.BASE_PD_CD               /* 상품코드 */
+                  AND T2.TEMP_SAVE_YN = 'N'                   /* 임시저장여부 */
+                  AND T2.DTA_DL_YN = 'N'                      /* 데이터삭제여부 */
+                LEFT OUTER JOIN LATERAL (SELECT *
+                                          FROM (SELECT CNTR_NO
+                                                     , CNTR_SN
+                                                     , CTR_VAL  --조정값
+                                                     , FNL_VAL  --최종값
+                                                     , VER_SN   --버전일련번호
+                                                     , ROW_NUMBER() OVER(ORDER BY VER_SN DESC) AS RN
+                                                  FROM TB_SSCT_CNTR_PRC_CMPT_IZ  /* 계약가격산출내역 */
+                                                 WHERE 1=1
+                                                   AND CNTR_SN = T1.CNTR_SN
+                                                   AND PD_CD   = T1.BASE_PD_CD
+                                                   AND DTA_DL_YN = 'N'
+                                                )
+                                          WHERE RN = 1
+                                          ) T3             /* 계약가격산출내역 최신() */
+                    ON T3.CNTR_NO = T1.CNTR_NO
+                   AND T3.CNTR_SN = T1.CNTR_SN
+                --  LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T3   /*계약가격산출내역 - 할인가  */
+                --    ON T3.CNTR_NO = T1.CNTR_NO
+                --   AND T3.CNTR_SN = T1.CNTR_SN
+                --   AND T3.DTA_DL_YN = 'N'
+                --   AND T60.PD_PRC_FNL_DTL_ID = 'TODO...' /*상품가격최종상세ID*/
+                --   AND T60.PRC_ID = 'TODO.가격ID'
+                 WHERE 1=1
+                <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                   AND T1.CNTR_NO = #{cntrNo}
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                   AND T1.CNTR_SN = #{cntrSn}
+                </if>
+                   AND T1.PD_REL_TP_CD IN ('01','08')   /* 상품관계유형코드 : 복합-기준(01), 패키지(Package):08 */
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                   AND T1.VL_END_DTM = '99991231235959' /* 유효종료일시 */
+               )
+         GROUP BY BASE_PD_CD
+    </select>
 </mapper>
