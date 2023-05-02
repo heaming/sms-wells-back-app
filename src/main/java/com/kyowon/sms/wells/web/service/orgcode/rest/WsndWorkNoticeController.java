@@ -70,11 +70,11 @@ public class WsndWorkNoticeController {
 
     @ApiOperation(value = "상품코드 조회", notes = "상품그룹코드에 따른 상품코드 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "path", required = true),
+        @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "path"),
     })
-    @GetMapping("/products/{pdGrpCd}")
+    @GetMapping("/products")
     public List<SearchProductRes> getProductsByProductGroup(
-        @PathVariable
+        @RequestParam
         String pdGrpCd
     ) {
         return service.getProductsByProductGroup(pdGrpCd);

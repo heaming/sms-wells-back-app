@@ -30,7 +30,6 @@ public class WsndWorkNoticeDto {
     // 작업공지 Create Request Dto
     @ApiModel(value = "WsndWorkNoticeDto-CreateReq")
     public record CreateReq(
-        @NotBlank
         String pdGrpCd,
         String pdCd,
         String istWkYn,
@@ -55,7 +54,6 @@ public class WsndWorkNoticeDto {
         String ntcId,
         @NotBlank
         String ntcSn,
-        @NotBlank
         String pdGrpCd,
         String pdCd,
         String istWkYn,
@@ -118,7 +116,9 @@ public class WsndWorkNoticeDto {
     @ApiModel(value = "WsndWorkNoticeDto-SearchProductRes")
     public record SearchProductRes(
         String pdCd,
-        String pdNm
+        String pdNm,
+        String pdAbbrNm,
+        String pdGrpCd
     ) {}
 
 }
