@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Validate;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
@@ -16,9 +18,11 @@ public class WctiRestipulationDto {
     @ApiModel("WctiRestipulationDto-SearchReq")
     public record SearchReq(
         @JsonProperty("STPL_RCP_DT_FR")
+        @Validate
         @NotBlank
         String stplRcpDtFr, // 재계약일자 FROM
         @JsonProperty("STPL_RCP_DT_TO")
+        @Validate
         @NotBlank
         String stplRcpDtTo, ///재계약일자 TO
         @JsonProperty("CTT_PSIC_ID")
@@ -31,7 +35,6 @@ public class WctiRestipulationDto {
     //  Search Result Dto
     @ApiModel("WctiRestipulationDto-SearchRes")
     public record SearchRes(
-
         @JsonProperty("STPL_RCP_DT")
         String stplRcpDt, // 약정접수일자
         @JsonProperty("CNTR_NO")
@@ -44,8 +47,8 @@ public class WctiRestipulationDto {
         String pdNm, // 상품명
         @JsonProperty("RCP_PRTNR_NO")
         String rcpPrtnrNo, // 접수파트너번호
-        @JsonProperty("RCP_OG_TP_CD")
-        String rcpOgTpCd, // 접수파트너명
+        @JsonProperty("RCP_PRTNR_NM")
+        String rcpPrtnrNm, // 접수파트너명
         @JsonProperty("CNTR_TAM")
         int cntrTam, // 계약총액
         @JsonProperty("ACKMT_PERF_RT")

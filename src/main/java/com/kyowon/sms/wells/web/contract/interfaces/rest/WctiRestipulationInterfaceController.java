@@ -11,21 +11,21 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiRestipulationService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+@InterfaceController
 @Api(tags = "[WCTI] 고객센터I/F")
-@Validated
-@RequiredArgsConstructor
-@RestController
 @RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
+@RequiredArgsConstructor
+@Validated
 public class WctiRestipulationInterfaceController {
 
     private final WctiRestipulationService service;
@@ -46,6 +46,6 @@ public class WctiRestipulationInterfaceController {
         // Response Body 세팅
         resWrapper.setBody(res);
 
-        return reqWrapper;
+        return resWrapper;
     }
 }
