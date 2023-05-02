@@ -108,8 +108,8 @@ public class WsnbInstallLocationMgtService {
         return mapper.selectProducts();
     }
 
-    public List<FindEngineerRes> getEngineers() {
-        return mapper.selectEngineers();
+    public List<FindEngineerRes> getEngineers(String ogId) {
+        return mapper.selectEngineers(ogId);
     }
 
     public List<FindCenterRes> getCenterss() {

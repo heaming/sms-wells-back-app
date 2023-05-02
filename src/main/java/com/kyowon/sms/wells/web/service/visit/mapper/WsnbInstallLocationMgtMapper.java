@@ -41,7 +41,7 @@ public interface WsnbInstallLocationMgtMapper {
 
     List<FindProductRes> selectProducts();
 
-    List<FindEngineerRes> selectEngineers();
+    List<FindEngineerRes> selectEngineers(String ogId);
 
     List<FindCenterRes> selectCenters();
 }
