@@ -14,7 +14,7 @@ public class WwdeaMutualAidFeeMgtDto {
     @ApiModel("WwdeaMutualAidFeeMgtDto-SearchMutualAidFeeReq")
     public record SearchMutualAidFeeReq(
         String prtnrNo,
-        String baseYm,
+        String ocYm,
         String dvCd,
         String redfAdsbTpCd
     ) {}

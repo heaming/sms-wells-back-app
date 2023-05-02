@@ -31,7 +31,7 @@ public class WdeaMutualAidFeeMgtController {
     @ApiOperation(value = "상조 되물림생성 조회", notes = "상조 되물림생성을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = true),
-        @ApiImplicitParam(name = "baseYm", value = "발생년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ocYm", value = "발생년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "dvCd", value = "구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "redfAdsbTpCd", value = "처리유형", paramType = "query", required = true),
     })
@@ -47,7 +47,7 @@ public class WdeaMutualAidFeeMgtController {
     @ApiOperation(value = "상조 되물림생성 조회 엑셀다운로드", notes = "상조 되물림생성을 조회하고 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = true),
-        @ApiImplicitParam(name = "baseYm", value = "발생년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ocYm", value = "발생년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "dvCd", value = "구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "redfAdsbTpCd", value = "처리유형", paramType = "query", required = true),
     })
