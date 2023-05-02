@@ -6,20 +6,20 @@
         SELECT I1.CNTR_NO
              , I1.CNTR_SN
              , I1.IST_DT
-             , B1.RCGVP_KNM AS CUST_NM
-        	 , F_CMZ_CD_NM(#{session.tenantId}, 'PRD_MNGT_TP_CD', D2.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
-             , D2.BASE_PD_CD
+             , B1.CUST_NM AS CUST_NM
+        	 , F_CMZ_CD_NM(#{session.tenantId}, 'PRD_MNGT_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
+             , D1.BASE_PD_CD
              , (SELECT SAP_MAT_CD
                   FROM TB_PDBS_PD_BAS
                  WHERE 1=1
                    AND DTA_DL_YN = 'N'
-                   AND PD_CD = D2.BASE_PD_CD
+                   AND PD_CD = D1.BASE_PD_CD
                ) AS SAP_MAP_CD
-             , (SELECT PD_ABBR_NM
+             , (SELECT PD_NM
                   FROM TB_PDBS_PD_BAS
                  WHERE 1=1
                    AND DTA_DL_YN = 'N'
-                   AND PD_CD = D2.BASE_PD_CD
+                   AND PD_CD = D1.BASE_PD_CD
                ) AS PD_NM
              , B1.LOCARA_TNO /* 지역전화번호 */
              , B1.EXNO_ENCR /* 전화국번호암호화 (복호화필요) */
@@ -34,75 +34,80 @@
              , D4.WK_PRTNR_NO /* 작업파트너번호 */
              , P1.PRTNR_KNM
              , TO_CHAR(TO_DATE(D4.FST_RGST_DTM, 'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS REG_DTM
-          FROM TB_SVPD_CST_SV_EXCN_IZ I1
-         INNER JOIN (SELECT D1.CNTR_NO AS CNTR_NO
-                                , D1.CNTR_SN AS CNTR_SN
-                                , D1.SELL_TP_CD AS SELL_TP_CD
-                                , D1.BASE_PD_CD AS BASE_PD_CD
-                            FROM TB_SSCT_CNTR_DTL D1
-                           WHERE D1.CNTR_SN = (SELECT MAX(CNTR_SN)
-                                               FROM TB_SSCT_CNTR_DTL
-                                              WHERE D1.CNTR_NO = CNTR_NO
-                                                AND DTA_DL_YN = 'N'
-                                            )
-                              AND D1.DTA_DL_YN = 'N'
-                           ) D2
-            ON I1.CNTR_NO = D2.CNTR_NO
-           AND I1.CNTR_SN = D2.CNTR_SN
-          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD1
-            ON D2.BASE_PD_CD = PD1.PD_CD
-           AND PD1.PD_EXTS_PRP_GRP_CD = 'PART'
-           AND PD1.DTA_DL_YN = 'N'
-           AND PD1.PD_PRP_VAL19 = '4'
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS B1 /* 계약주소지 기본 */
-            ON I1.CNTR_NO = B1.CNTR_NO
-           AND B1.DTA_DL_YN = 'N'
-         INNER JOIN TB_GBCO_ADR_BAS B2
-            ON B1.ADR_ID = B2.ADR_ID
-           AND B2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN (SELECT D3.CNTR_NO AS CNTR_NO
-                                , D3.CNTR_SN AS CNTR_SN
-                                , D3.IST_LCT_DTL_CN AS IST_LCT_DTL_CN
-                                , D3.WK_PRTNR_NO AS WK_PRTNR_NO
-                                , D3.FST_RGST_DTM
-                             FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL D3
-                            WHERE D3.DTL_SN = (SELECT MAX(DTL_SN)
-                                                  FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL
-                                                 WHERE D3.CNTR_NO = CNTR_NO
-                                                   AND DTA_DL_YN = 'N'
-                                            )
-                          ) D4
-            ON I1.CNTR_NO = D4.CNTR_NO
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
-            ON P1.DTA_DL_YN = 'N'
-           AND P1.BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND P1.OG_TP_CD  = I1.MNGT_PRTNR_OG_TP_CD
-           AND P1.PRTNR_NO  = I1.MNGT_PRTNR_NO
-         WHERE I1.IST_DT IS NOT NULL
-           AND I1.DTA_DL_YN = 'N'
+             FROM TB_SVPD_CST_SV_EXCN_IZ I1
+            INNER JOIN (SELECT T1.DTL_CNTR_NO
+                             , T1.DTL_CNTR_SN
+                             , TRIM(T2.RCGVP_KNM) AS CUST_NM
+                             , T2.ADR_ID
+                             , T2.LOCARA_TNO
+                             , T2.EXNO_ENCR
+                             , T2.IDV_TNO
+                             , T2.CRAL_LOCARA_TNO
+                             , T2.MEXNO_ENCR
+                             , T2.CRAL_IDV_TNO
+                         FROM TB_SSCT_CNTR_ADR_REL T1
+                        INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+                           ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+                          AND T2.DTA_DL_YN = 'N'
+                        WHERE 1=1
+                          AND T1.DTA_DL_YN = 'N'
+                          AND T1.ADRPC_TP_CD = '3'        /* 설치처 */
+                          AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                          AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                       ) B1
+               ON I1.CNTR_NO = B1.DTL_CNTR_NO
+              AND I1.CNTR_SN = B1.DTL_CNTR_SN
+            INNER JOIN TB_SSCT_CNTR_DTL D1
+               ON I1.CNTR_NO = D1.CNTR_NO
+              AND I1.CNTR_SN = D1.CNTR_SN
+              AND D1.DTA_DL_YN = 'N'
+            INNER JOIN TB_GBCO_ADR_BAS B2
+               ON B1.ADR_ID = B2.ADR_ID
+              AND B2.DTA_DL_YN     = 'N'
+             LEFT OUTER JOIN (SELECT D3.CNTR_NO AS CNTR_NO
+                                   , D3.CNTR_SN AS CNTR_SN
+                                   , D3.IST_LCT_DTL_CN AS IST_LCT_DTL_CN
+                                   , D3.WK_PRTNR_NO AS WK_PRTNR_NO
+                                   , D3.FST_RGST_DTM
+                                FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL D3
+                               WHERE D3.DTL_SN = (SELECT MAX(DTL_SN)
+                                                    FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL
+                                                   WHERE D3.CNTR_NO = CNTR_NO
+                                                     AND DTA_DL_YN = 'N'
+                                                 )
+                             ) D4
+               ON I1.CNTR_NO = D4.CNTR_NO
+            INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
+               ON P1.DTA_DL_YN = 'N'
+              AND P1.BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
+              AND P1.OG_TP_CD  = I1.MNGT_PRTNR_OG_TP_CD
+              AND P1.PRTNR_NO  = I1.MNGT_PRTNR_NO
+              AND P1.OG_TP_CD IN ('W03','W06')
+            WHERE I1.IST_DT IS NOT NULL
+              AND I1.DTA_DL_YN = 'N'
          <if test="@MybatisUtils@isNotEmpty(ogId)">
-           AND P1.OG_ID = #{ogId}
+              AND P1.OG_ID = #{ogId}
          </if>
          <if test="@MybatisUtils@isNotEmpty(egerId)">
-           AND P1.PRTNR_NO = #{egerId}
+              AND P1.PRTNR_NO = #{egerId}
          </if>
          <if test="@MybatisUtils@isNotEmpty(istDtFrom)">
-           AND I1.IST_DT <![CDATA[>=]]> #{istDtFrom}
+              AND I1.IST_DT <![CDATA[>=]]> #{istDtFrom}
          </if>
          <if test="@MybatisUtils@isNotEmpty(istDtTo)">
-           AND I1.IST_DT <![CDATA[<=]]> #{istDtTo}
+              AND I1.IST_DT <![CDATA[<=]]> #{istDtTo}
          </if>
          <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
-           AND PD1.PD_PRP_VAL20 = #{pdGrpCd}
+              AND PD1.PD_PRP_VAL20 = #{pdGrpCd}
          </if>
          <if test="@MybatisUtils@isNotEmpty(pdCd)">
-           AND D2.BASE_PD_CD = #{pdCd}
+              AND D1.BASE_PD_CD = #{pdCd}
          </if>
          <if test="@MybatisUtils@isNotEmpty(cstNm)">
-           AND B1.RCGVP_KNM = #{cstNm}
+              AND B1.RCGVP_KNM = #{cstNm}
          </if>
          <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-           AND I1.CNTR_NO LIKE '%'||#{cntrNo}||'%'
+              AND I1.CNTR_NO LIKE '%'||#{cntrNo}||'%'
          </if>
     </select>
 
@@ -198,9 +203,12 @@
              , T1.CLTN_DT
         FROM TB_OGBS_MM_PRTNR_IZ T1
        WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-         AND T1.OG_TP_CD LIKE 'W%'
+         AND T1.OG_TP_CD IN ('W03', 'W06')
          AND T1.BZ_STAT_CD = '1'
          AND T1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(ogId)'>
+           AND T1.OG_ID = #{ogId}
+        </if>
        ORDER BY T1.PRTNR_KNM
     </select>
 
