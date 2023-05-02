@@ -27,6 +27,7 @@ public class WwctaDocumentReceiptPssDto {
     @ApiModel("WwctaDocumentReceiptPssDto-SearchRes")
     public record SearchRes(
         String cntrChRcpId,
+        String reCntrChRcpId,
         String cntrChRcpD,
         String cntrChRcpTm,
         String cntrChPrgsStatCd,

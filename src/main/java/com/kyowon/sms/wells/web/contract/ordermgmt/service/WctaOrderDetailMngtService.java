@@ -141,4 +141,8 @@ public class WctaOrderDetailMngtService {
         }
         return processCount;
     }
+
+    public List<SearchCompositionProductsRes> getCompositionProducts(SearchCompositionProductsReq dto) {
+        return mapper.selectCompositionProducts(dto);
+    }
 }

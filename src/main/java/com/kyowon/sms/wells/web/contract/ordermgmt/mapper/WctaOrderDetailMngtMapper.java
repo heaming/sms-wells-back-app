@@ -50,4 +50,6 @@ public interface WctaOrderDetailMngtMapper {
     int updateMembershipConfirmsCntrBas(SaveMembershipConfirmsReq dto);
 
     int updateMembershipConfirmsCntrDtl(SaveMembershipConfirmsReq dto);
+
+    List<SearchCompositionProductsRes> selectCompositionProducts(SearchCompositionProductsReq dto);
 }

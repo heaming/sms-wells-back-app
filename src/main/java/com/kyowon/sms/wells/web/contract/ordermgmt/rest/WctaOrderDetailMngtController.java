@@ -333,4 +333,17 @@ public class WctaOrderDetailMngtController {
     ) {
         return SaveResponse.builder().processCount(service.saveMembershipConfirms(dtos)).build();
     }
+
+    @ApiOperation(value = "주문상세조회/관리", notes = "주문상세조회/관리(정기배송) -복합상품목록")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @GetMapping("/order-detail-mngt/regular-shippings/composition-products")
+    public List<SearchCompositionProductsRes> getCompositionProducts(
+        @Valid
+        SearchCompositionProductsReq dto
+    ) {
+        return service.getCompositionProducts(dto);
+    }
 }

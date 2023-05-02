@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class WwctaDocumentReceiptPssDvo {
     private String cntrChRcpId; /* 접수번호 */
+    private String reCntrChRcpId; /* 재접수번호 */
     private String cntrChRcpD; /* 접수일 */
     private String cntrChRcpTm; /* 접수시간 */
     private String cntrChPrgsStatCd; /* 접수현황코드 */
