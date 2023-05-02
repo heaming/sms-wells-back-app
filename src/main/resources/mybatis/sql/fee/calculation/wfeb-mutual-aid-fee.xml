@@ -155,7 +155,7 @@
 
     <!-- 상조제휴주문 -->
     <select id='selectMutualAidOrder' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeMgtDto$AidOrder">
-        SELECT CASE WHEN T1.WELS_CNTR_NO = NULL THEN '비제휴' ELSE '제휴' END ALNC_NM --제휴구분
+        SELECT CASE WHEN T1.WELS_CNTR_NO IS NULL THEN '비제휴' ELSE '제휴' END ALNC_NM --제휴구분
              , T1.WELS_CNTR_NO    --웰스계약번호
              , T1.LIF_CNTR_NO     --상조계약번호
              , T4.CST_KNM         --고객명
@@ -196,20 +196,50 @@
           AND T1.CNFM_YN         = 'Y'
           AND T1.DTA_DL_YN       = 'N'
           AND T1.BASE_YM         = #{baseYm}
-          <choose>
-            <when test='@MybatisUtils@isNotEmpty(ogId3)'>
-              AND TT.OG_ID = #{ogId3}     /* 조직 - 3레벨 선택 */
-            </when>
-            <when test='@MybatisUtils@isNotEmpty(ogId2)'>
-              AND TT.DGR2_LEVL_OG_ID = #{ogId2}     /* 조직 - 2레벨 선택 */
-            </when>
-            <when test='@MybatisUtils@isNotEmpty(ogId1)'>
-              AND TT.DGR1_LEVL_OG_ID = #{ogId1}     /* 조직 - 1레벨 선택 */
-            </when>
-          </choose>
+          <if test='@MybatisUtils@isNotEmpty(dgr4LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+              <choose>
+                <when test='@MybatisUtils@isNotEmpty(dgr4LevlOgId)'>
+                  AND TT.OG_ID = #{dgr4LevlOgId}     /* 조직 - 3레벨 선택 */
+                </when>
+                <when test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+                  AND TT.DGR2_LEVL_OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
+                </when>
+                <when test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                  AND TT.DGR1_LEVL_OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
+                </when>
+              </choose>
+          </if>
           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
             AND T1.PRTNR_NO = #{prtnrNo}
           </if>
+          <choose>
+            <when test='"0".equals(cntrStat)'>
+            AND T1.RCPDT   IS NOT NULL
+            AND T1.CNTR_DT IS NULL
+            AND T1.CAN_DT = '0'
+            </when>
+            <when test='"1".equals(cntrStat)'>
+            AND T1.CNTR_DT IS NOT NULL
+            AND T1.CAN_DT   = '0'
+            </when>
+            <when test='"2".equals(cntrStat)'>
+            AND T1.CAN_DT  != '0'
+            </when>
+          </choose>
+          <if test='@MybatisUtils@isNotEmpty(alncCd)'>
+              <choose>
+                <when test='"1".equals(alncCd)'>
+                AND T1.WELS_CNTR_NO IS NULL
+                </when>
+                <when test='"2".equals(alncCd)'>
+                AND T1.WELS_CNTR_NO IS NOT NULL
+                </when>
+              </choose>
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
+            AND T3.RSB_DV_CD = #{rsbDvCd}
+          </if>
+
     </select>
 
 </mapper>

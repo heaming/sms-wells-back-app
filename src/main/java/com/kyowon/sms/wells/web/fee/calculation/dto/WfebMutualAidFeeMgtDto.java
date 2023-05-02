@@ -62,9 +62,9 @@ public class WfebMutualAidFeeMgtDto {
     public record SearchAidOrderReq(
         @NotBlank
         String baseYm,
-        String ogId3,
-        String ogId2,
-        String ogId1,
+        String dgr2LevlOgId,
+        String dgr3LevlOgId,
+        String dgr4LevlOgId,
         String prtnrNo
     ) {}
     public record AidOrder(
