@@ -1,11 +1,13 @@
 package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsniBsServiceHistInterfaceDto;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniBsServiceHistInterfaceDto;
 
 @Mapper
 public interface WsniBsServiceHistInterfaceMapper {
-    List<WsniBsServiceHistInterfaceDto.SearchRes> selectBsServiceHistory(WsniBsServiceHistInterfaceDto.SearchReq dto);
+    Optional<List<WsniBsServiceHistInterfaceDto.SearchRes>> selectBsServiceHistory(WsniBsServiceHistInterfaceDto.SearchReq dto);
 }
