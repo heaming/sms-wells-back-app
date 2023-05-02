@@ -57,7 +57,7 @@ public class WctcDangerArbitController {
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query"),
     })
     @GetMapping("/Organizations")
-    public List<SearchOrganizationRes> getOrganizationInfInqr(
+    public SearchOrganizationRes getOrganizationInfInqr(
         String baseYm,
         @NotEmpty
         String pntnrNo,

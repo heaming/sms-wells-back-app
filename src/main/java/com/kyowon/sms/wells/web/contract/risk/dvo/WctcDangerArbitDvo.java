@@ -9,6 +9,7 @@ public class WctcDangerArbitDvo {
     private String dangChkId; /* 위험점검ID */
     private String dangOjOgTpCd; /* 위험대상조직유형코드 */
     private String dangOjPrtnrNo; /* 위험대상파트너번호 */
+    private String dangOcStrtmm; /* 발생년월 */
     private String dangMngtOgTpCd; /* 위험관리조직유형코드 */
     private String dangMngtPrtnrNo; /* 위험관리파트너번호 */
     private String dangOjOgId; /* 위험대상조직ID */
@@ -18,7 +19,6 @@ public class WctcDangerArbitDvo {
     private Long dangUncvrCt; /* 위험적발건수 */
     private String dangChkNm; /* 위험점검명 */
     private String dangChkDt; /* 위험점검일자 */
-    private String dangUncvrCn; /* 위험적발내용 */
     private String dangOcStrtdt; /* 위험발생시작일자 */
     private String dangOcEnddt; /* 위험발생종료일자 */
     private String dangArbitDt; /* 위험조치일자 */
