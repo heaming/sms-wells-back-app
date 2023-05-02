@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WogdInddInsrDvo {
+public class WogdIndustrialDisasterInsuranceDvo {
     String prtnrNo;//파트너번호
     String ogTpCd;//조직유형코드
     String dsbYm; //지급년월

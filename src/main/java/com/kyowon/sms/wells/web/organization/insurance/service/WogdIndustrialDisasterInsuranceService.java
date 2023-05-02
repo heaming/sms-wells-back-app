@@ -1,13 +1,13 @@
 package com.kyowon.sms.wells.web.organization.insurance.service;
 
-import com.kyowon.sms.wells.web.organization.insurance.converter.WogdInddInsrConverter;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.SearchReq;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.SearchRes;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.SearchPrtnrReq;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.EditReq;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.RemoveReq;
-import com.kyowon.sms.wells.web.organization.insurance.dvo.WogdInddInsrDvo;
-import com.kyowon.sms.wells.web.organization.insurance.mapper.WogdInddInsrMapper;
+import com.kyowon.sms.wells.web.organization.insurance.converter.WogdIndustrialDisasterInsuranceConverter;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.SearchReq;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.SearchRes;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.SearchPrtnrReq;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.EditReq;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.RemoveReq;
+import com.kyowon.sms.wells.web.organization.insurance.dvo.WogdIndustrialDisasterInsuranceDvo;
+import com.kyowon.sms.wells.web.organization.insurance.mapper.WogdIndustrialDisasterInsuranceMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
@@ -36,10 +36,10 @@ import java.util.regex.Pattern;
  */
 @Service
 @RequiredArgsConstructor
-public class WogdInddInsrService {
+public class WogdIndustrialDisasterInsuranceService {
 
-    private final WogdInddInsrMapper mapper;
-    private final WogdInddInsrConverter converter;
+    private final WogdIndustrialDisasterInsuranceMapper mapper;
+    private final WogdIndustrialDisasterInsuranceConverter converter;
     private final MessageResourceService messageService;
     private final ExcelReadService excelReadService;
 
@@ -53,9 +53,9 @@ public class WogdInddInsrService {
 
     @Transactional
     public int editIndustrialDisasterInsurances(List<EditReq> dtos) {
-        List<WogdInddInsrDvo> dvos = converter.mapAllEditReqToWogdInddInsrDvo(dtos);
+        List<WogdIndustrialDisasterInsuranceDvo> dvos = converter.mapAllEditReqToWogdInddInsrDvo(dtos);
         int processCnt = 0;
-        for (WogdInddInsrDvo dvo : dvos) {
+        for (WogdIndustrialDisasterInsuranceDvo dvo : dvos) {
             mapper.updateIndustrialDisasterInsurances(dvo);
         }
         return processCnt;
@@ -63,9 +63,9 @@ public class WogdInddInsrService {
 
     @Transactional
     public int removeIndustrialDisasterInsurances(List<RemoveReq> dtos) {
-        List<WogdInddInsrDvo> dvos = converter.mapAllRemoveReqToWogdInddInsrDvo(dtos);
+        List<WogdIndustrialDisasterInsuranceDvo> dvos = converter.mapAllRemoveReqToWogdInddInsrDvo(dtos);
         int processCnt = 0;
-        for (WogdInddInsrDvo dvo : dvos) {
+        for (WogdIndustrialDisasterInsuranceDvo dvo : dvos) {
             dvo.setDtaDlYn("Y");
             processCnt = mapper.updateIndustrialDisasterInsurances(dvo);
         }
@@ -84,10 +84,10 @@ public class WogdInddInsrService {
         int row = 2;
         List<Map<String, Object>> checks = new ArrayList<>();
         ExcelMetaDvo meta = new ExcelMetaDvo(1, headerTitle);
-        List<WogdInddInsrDvo> lists = excelReadService.readExcel(file, meta, WogdInddInsrDvo.class);
+        List<WogdIndustrialDisasterInsuranceDvo> lists = excelReadService.readExcel(file, meta, WogdIndustrialDisasterInsuranceDvo.class);
         List<ExcelUploadErrorDvo> errorDvos = new ArrayList<>();
 
-        for (WogdInddInsrDvo list : lists) {
+        for (WogdIndustrialDisasterInsuranceDvo list : lists) {
             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
             int finalRow = row;
             int existCnt = 0;

@@ -1,11 +1,11 @@
 package com.kyowon.sms.wells.web.organization.insurance.rest;
 
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.SearchReq;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.SearchRes;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.EditReq;
-import com.kyowon.sms.wells.web.organization.insurance.dto.WogdInddInsrDto.RemoveReq;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.SearchReq;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.SearchRes;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.EditReq;
+import com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto.RemoveReq;
 
-import com.kyowon.sms.wells.web.organization.insurance.service.WogdInddInsrService;
+import com.kyowon.sms.wells.web.organization.insurance.service.WogdIndustrialDisasterInsuranceService;
 import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -21,17 +21,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 
 @RestController
-@Api(tags = "[OGD] 산재보험 REST API")
+@Api(tags = "[WOGD] 산재보험 REST API")
 @RequestMapping(OgConst.REST_PREFIX_SMS_WELLS + "/insurance/industrial-disaster")
 @RequiredArgsConstructor
 @Validated
-public class WogdInddInsrController {
+public class WogdIndustrialDisasterInsuranceController {
 
-    private final WogdInddInsrService service;
+    private final WogdIndustrialDisasterInsuranceService service;
 
     @ApiOperation(value = "산재보험 조회 ", notes = "검색조건을 입력 받아 산재보험 목록을 조회한다.")
     @ApiImplicitParams(value = {
@@ -60,6 +61,7 @@ public class WogdInddInsrController {
     SaveResponse editIndustrialDisasterInsurances(
         @RequestBody
         @Valid
+        @NotEmpty
         List<EditReq> dtos
     ) {
         return SaveResponse.builder().processCount(service.editIndustrialDisasterInsurances(dtos)).build();
@@ -70,6 +72,7 @@ public class WogdInddInsrController {
     SaveResponse removeIndustrialDisasterInsurances(
         @RequestBody
         @Valid
+        @NotEmpty
         List<RemoveReq> dtos
     ) {
         return SaveResponse.builder().processCount(service.removeIndustrialDisasterInsurances(dtos)).build();

@@ -13,8 +13,8 @@ import javax.validation.constraints.NotBlank;
  * @author 이한울
  * @since 2023-04-27
  */
-public class WogdInddInsrDto {
-    @ApiModel("WogdInddInsrDto-SearchReq")
+public class WogdIndustrialDisasterInsuranceDto {
+    @ApiModel("WogdIndustrialDisasterInsuranceDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String baseYm,
@@ -35,7 +35,7 @@ public class WogdInddInsrDto {
      * @param inddInsrUcamAmt
      * @param inddInsrFnlCnfmYn 확정여부
      */
-    @ApiModel("WogdInddInsrDto-SearchRes")
+    @ApiModel("WogdIndustrialDisasterInsuranceDto-SearchRes")
     public record SearchRes(
         String level2Nm,
         String ogCd,
@@ -51,7 +51,7 @@ public class WogdInddInsrDto {
     ) {
     }
 
-    @ApiModel("WogdInddInsrDto-EditReq")
+    @ApiModel("WogdIndustrialDisasterInsuranceDto-EditReq")
     public record EditReq(
         @NotBlank
         String prtnrNo,
@@ -65,7 +65,7 @@ public class WogdInddInsrDto {
     ) {
     }
 
-    @ApiModel("WogdInddInsrDto-RemoveReq")
+    @ApiModel("WogdIndustrialDisasterInsuranceDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
         String prtnrNo,
@@ -77,6 +77,7 @@ public class WogdInddInsrDto {
     }
 
     @Builder
+    @ApiModel("WogdIndustrialDisasterInsuranceDto-SearchPrtnrReq")
     public record SearchPrtnrReq(
         String prtnrNo,
         String ogTpCd,
