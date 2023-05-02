@@ -14,17 +14,20 @@ import com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo;
 public interface WctcDangerArbitMapper {
     List<SearchRes> selectDangerArbitManagerial(SearchReq dto);
 
-    String selectDangChkId(String dangMngtPrtnrNo, String dangOcStrtdt, String dangMngtPstnDvCd, String dangOjPrtnrNo);
+    String selectDuplicationCheck(
+        String dangOjPrtnrNo,
+        String dangOcStrtdt
+    );
 
-    List<SearchOrganizationRes> selectOrganizationInfInqr(String baseYm, String pntnrNo, String ogTpCd);
+    SearchOrganizationRes selectOrganizationInfInqr(String baseYm, String prtnrNo, String ogTpCd);
 
-    int updateDangerCheckIzDlYn(String dangChkId);
+    int updateDangerCheckIzDlYn(String dangOjPrtnrNo, String dangOcStrtdt);
 
-    int updateDangerCheckChHist(String dangChkId);
+    int updateDangerCheckChHist(String dangOjPrtnrNo, String dangOcStrtdt);
 
-    int insertDangerCheckChHistY(String dangChkId);
+    int insertDangerCheckChHistY(String dangOjPrtnrNo, String dangOcStrtdt);
 
-    int insertDangerCheckChHistN(String dangChkId);
+    int insertDangerCheckChHistN(String dangOjPrtnrNo, String dangOcStrtdt);
 
     int insertDangerCheckIz(@Param("item")
     WctcDangerArbitDvo dvo);

@@ -53,17 +53,17 @@ public class WctcDangerArbitController {
     @ApiOperation(value = "조직정보조회(비정도 영업 조치사항)", notes = "행위자사번을 통해 조직정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "발생년월", paramType = "query"),
-        @ApiImplicitParam(name = "pntnrNo", value = "행위자사번", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "행위자사번", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query"),
     })
-    @GetMapping("/Organizations")
-    public List<SearchOrganizationRes> getOrganizationInfInqr(
+    @GetMapping("/organizations")
+    public SearchOrganizationRes getOrganizationInfInqr(
         String baseYm,
         @NotEmpty
-        String pntnrNo,
+        String prtnrNo,
         String ogTpCd
     ) {
-        return service.getOrganizationInfInqr(baseYm, pntnrNo, ogTpCd);
+        return service.getOrganizationInfInqr(baseYm, prtnrNo, ogTpCd);
     }
 
     @ApiOperation(value = "비정도 영업 조치 사항 관리 삭제", notes = "비정도 영업 조치 사항 관리 삭제")
