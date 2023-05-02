@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -13,7 +15,9 @@ import io.swagger.annotations.ApiModel;
 public class WsnaItemLocationDto {
     @ApiModel("WsnaItemLocationDto-SearchReq")
     public record SearchReq(
+        @NotBlank
         String itmPdCd,
+        @NotBlank
         String wareNo
 
     ) {}
@@ -35,7 +39,9 @@ public class WsnaItemLocationDto {
     ) {}
     @ApiModel("WsnaItemLocationDto-CreateReq")
     public record CreateReq(
+        @NotBlank
         String wareNo,
+        @NotBlank
         String itmPdCd,
         String itmLctAngleVal,
         String itmLctCofVal,
