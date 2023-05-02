@@ -62,10 +62,14 @@ public class WfebMutualAidFeeMgtDto {
     public record SearchAidOrderReq(
         @NotBlank
         String baseYm,
-        String dgr2LevlOgId,
+        String cntrStat, // 실적구분
+        String alncCd, // 제휴구분
+        String rsbDvCd, // 직책유행
+        String dgr2LevlOgId, // 조직레벨 1~3
         String dgr3LevlOgId,
         String dgr4LevlOgId,
-        String prtnrNo
+        String prtnrNo, // 번호
+        String prtnrNm
     ) {}
     public record AidOrder(
         String alncNm,
