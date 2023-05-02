@@ -215,10 +215,18 @@ public class WctaContractDto {
         String cntrCnfmDtm,
         String cntrNo,
         String cntrSn,
+        String sellTpCd,
         String cntrCstKnm,
         String istCstKnm,
-        String pdNm
-    ) {}
+        String pdNm,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno
+    ) {
+        public SearchCntrNoRes {
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+        }
+    }
 
     // 홈케어 계약 Search Result Dto
     @ApiModel("WctaContractDto-SearchHomecareContractsRes")
