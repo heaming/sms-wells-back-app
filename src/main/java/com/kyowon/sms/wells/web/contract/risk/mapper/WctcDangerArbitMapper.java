@@ -19,7 +19,7 @@ public interface WctcDangerArbitMapper {
         String dangOcStrtdt
     );
 
-    SearchOrganizationRes selectOrganizationInfInqr(String baseYm, String pntnrNo, String ogTpCd);
+    SearchOrganizationRes selectOrganizationInfInqr(String baseYm, String prtnrNo, String ogTpCd);
 
     int updateDangerCheckIzDlYn(String dangOjPrtnrNo, String dangOcStrtdt);
 

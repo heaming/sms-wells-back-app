@@ -36,7 +36,7 @@ public class WctcDangerArbitDto {
         String dangOjPrtnrNo,
         String dangOcStrtmm,
         String dangOjOgId,
-        String dangOjPntnrNm,
+        String dangOjPrtnrNm,
         String dangOjPstnDvCd,
         String dgr1LevlDgPrtnrNo,
         String dgr1LevlDgPrtnrNm,
@@ -113,7 +113,7 @@ public class WctcDangerArbitDto {
         @NotBlank
         String dangOcStrtmm, /* 발생년월(행위자) */
         String dangOjOgId, /* 소속(행위자) */
-        String dangOjPntnrNm, /* 성명(행위자) */
+        String dangOjPrtnrNm, /* 성명(행위자) */
         String dangOjPstnDvCd, /* 직급(행위자) */
         String dgr1LevlDgPrtnrNo, /* 총괄단(소속) */
         String dgr1LevlDgPrtnrNm, /* 총괄단(소속)명 */

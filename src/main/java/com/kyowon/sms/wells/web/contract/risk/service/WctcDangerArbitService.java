@@ -28,11 +28,11 @@ public class WctcDangerArbitService {
         return mapper.selectDangerArbitManagerial(dto);
     }
 
-    public SearchOrganizationRes getOrganizationInfInqr(String baseYm, String pntnrNo, String ogTpCd) {
-        if (StringUtils.isNotEmpty(mapper.selectDuplicationCheck(pntnrNo, baseYm))) {
-            throw new BizException("MSG_ALT_DUP_PRTNR_NO_STRT_MM", pntnrNo, baseYm);
+    public SearchOrganizationRes getOrganizationInfInqr(String baseYm, String prtnrNo, String ogTpCd) {
+        if (StringUtils.isNotEmpty(mapper.selectDuplicationCheck(prtnrNo, baseYm))) {
+            throw new BizException("MSG_ALT_DUP_PRTNR_NO_STRT_MM", prtnrNo, baseYm);
         }
-        return mapper.selectOrganizationInfInqr(baseYm, pntnrNo, ogTpCd);
+        return mapper.selectOrganizationInfInqr(baseYm, prtnrNo, ogTpCd);
     }
 
     @Transactional
