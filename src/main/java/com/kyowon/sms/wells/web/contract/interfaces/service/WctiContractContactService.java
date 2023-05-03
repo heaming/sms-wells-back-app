@@ -27,17 +27,14 @@ public class WctiContractContactService {
     public List<SearchRes> getContractContacts(SearchReq dto) {
         if (StringUtils.isEmpty(dto.cntrCnfmDtFr()) && StringUtils.isEmpty(dto.slDtFr())
             && StringUtils.isEmpty(dto.cntrCnfmDtFr())) {
-            System.out.println("모두 널");
             return null;
         }
         if ((StringUtils.isEmpty(dto.cntrCnfmDtFr()) && StringUtils.isNotEmpty(dto.cntrCnfmDtTo()))
             || (StringUtils.isNotEmpty(dto.cntrCnfmDtFr()) && StringUtils.isEmpty(dto.cntrCnfmDtTo()))) {
-            System.out.println("하나만 cntrCnfmDtFr널");
             return null;
         }
         if ((StringUtils.isEmpty(dto.slDtFr()) && StringUtils.isNotEmpty(dto.slDtTo()))
             || (StringUtils.isNotEmpty(dto.slDtFr()) && StringUtils.isEmpty(dto.slDtTo()))) {
-            System.out.println("하나만 slDtFr널");
             return null;
         }
         return mapper.selectContractContacts(dto);
