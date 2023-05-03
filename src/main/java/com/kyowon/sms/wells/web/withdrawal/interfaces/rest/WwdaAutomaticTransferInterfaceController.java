@@ -30,7 +30,7 @@ public class WwdaAutomaticTransferInterfaceController {
 
     private final WwdaAutomaticTransferInterfaceService service;
 
-    @ApiOperation(value = "[EAI_EWDI1018] WELLS 자동이체 출금내역 조회")
+    @ApiOperation(value = "[EAI_WWDI1007] WELLS 자동이체 출금내역 조회")
     @PostMapping("/payment-withdrawal-itemizations")
     public EaiWrapper getPaymentAndWithdrawalItemizations(
         @Valid
@@ -50,7 +50,7 @@ public class WwdaAutomaticTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_EWDI1019] WELLS 자동이체 변경내역 조회")
+    @ApiOperation(value = "[EAI_WWDI1008] WELLS 자동이체 변경내역 조회")
     @PostMapping("/change-itemizations")
     public EaiWrapper getChangeItemizations(
         @Valid
@@ -69,7 +69,7 @@ public class WwdaAutomaticTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_EWDI1020] WELLS 자동이체 대상목록 조회")
+    @ApiOperation(value = "[EAI_WWDI1009] WELLS 자동이체 대상목록 조회")
     @PostMapping("/object-itemizations")
     public EaiWrapper getObjectItemizations(
         @Valid
@@ -88,7 +88,7 @@ public class WwdaAutomaticTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_EWDI1021] WELLS 자동이체 정보 조회")
+    @ApiOperation(value = "[EAI_WWDI1010] WELLS 자동이체 정보 조회")
     @PostMapping
     public EaiWrapper getInfos(
         @Valid
