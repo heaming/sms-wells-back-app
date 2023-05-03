@@ -1,10 +1,10 @@
-package com.kyowon.sms.wells.web.service.stock.dto;
+package com.kyowon.sms.wells.web.service.common.dto;
 
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsnyCustomerBaseInformationDto {
+public class WsnyCustomersDto {
     @ApiModel(value = "WsnyCustomerBaseInformationDto-SearchReq")
     public record SearchReq(
         String cstNm,
