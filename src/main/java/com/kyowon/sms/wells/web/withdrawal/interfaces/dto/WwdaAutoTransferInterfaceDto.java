@@ -9,10 +9,10 @@ import com.sds.sflex.system.config.annotation.DBDecField;
 import io.swagger.annotations.ApiModel;
 import org.apache.commons.lang.StringUtils;
 
-public class WwdaAutomaticTransferInterfaceDto {
+public class WwdaAutoTransferInterfaceDto {
 
     /* EDU 자동이체 출금,변경내역, 정보 조회 Request Dto */
-    @ApiModel("WwdaAutomaticTransferInterfaceDto-SearchReq")
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchReq")
     public record SearchReq(
         @NotBlank
         @JsonProperty("CNTR_NO")
@@ -33,7 +33,7 @@ public class WwdaAutomaticTransferInterfaceDto {
     }
 
     /* EDU 자동이체 대상목록 조회 Request Dto */
-    @ApiModel("WwdaAutomaticTransferInterfaceDto-SearchObjectReq")
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchObjectReq")
     public record SearchObjectReq(
         @NotBlank
         @JsonProperty("CST_NO")
@@ -64,7 +64,7 @@ public class WwdaAutomaticTransferInterfaceDto {
     ) {}
 
     /* EDU 자동이체 출금내역 조회 Response Dto */
-    @ApiModel("WwdaAutomaticTransferInterfaceDto-SearchPaymentAndWithdrawalRes")
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchPaymentAndWithdrawalRes")
     public record SearchPaymentAndWithdrawalRes(
         @JsonProperty("SELL_TP_CD")
         String sellTpCd, /*판매유형코드*/
@@ -96,7 +96,7 @@ public class WwdaAutomaticTransferInterfaceDto {
     ) {}
 
     /* EDU 자동이체 변경내역 조회 Response Dto */
-    @ApiModel("WwdaAutomaticTransferInterfaceDto-SearchChangeRes")
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchChangeRes")
     public record SearchChangeRes(
 
         @JsonProperty("SELL_TP_CD")
@@ -124,7 +124,7 @@ public class WwdaAutomaticTransferInterfaceDto {
     ) {}
 
     /* EDU 자동이체 대상 목록 Response Dto */
-    @ApiModel("WwdaAutomaticTransferInterfaceDto-SearchObjectRes")
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchObjectRes")
     public record SearchObjectRes(
         @JsonProperty("CST_NO")
         String cstNo, /*고객번호*/
@@ -166,7 +166,7 @@ public class WwdaAutomaticTransferInterfaceDto {
     ) {}
 
     /* EDU 자동이체 정보 조회 Response Dto */
-    @ApiModel("WwdaAutomaticTransferInterfaceDto-SearchRes")
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchRes")
     public record SearchRes(
         @JsonProperty("FNT_DV_CD")
         String fntDvCd, /*이체구분코드*/

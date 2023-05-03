@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutomaticTransferInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdaAutomaticTransferInterfaceService;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdaAutoTransferInterfaceService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -26,22 +26,22 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class WwdaAutomaticTransferInterfaceController {
+public class WwdaAutoTransferInterfaceController {
 
-    private final WwdaAutomaticTransferInterfaceService service;
+    private final WwdaAutoTransferInterfaceService service;
 
     @ApiOperation(value = "[EAI_WWDI1007] WELLS 자동이체 출금내역 조회")
     @PostMapping("/payment-withdrawal-itemizations")
     public EaiWrapper getPaymentAndWithdrawalItemizations(
         @Valid
         @RequestBody
-        EaiWrapper<WwdaAutomaticTransferInterfaceDto.SearchReq> reqWrapper
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdaAutomaticTransferInterfaceDto.SearchPaymentAndWithdrawalRes>> resWrapper = reqWrapper
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchPaymentAndWithdrawalRes>> resWrapper = reqWrapper
             .newResInstance();
         // 서비스 메소드 호출
-        List<WwdaAutomaticTransferInterfaceDto.SearchPaymentAndWithdrawalRes> res = service
+        List<WwdaAutoTransferInterfaceDto.SearchPaymentAndWithdrawalRes> res = service
             .getPaymentAndWithdrawalItemizations(reqWrapper.getBody());
 
         // Response Body 세팅
@@ -55,12 +55,12 @@ public class WwdaAutomaticTransferInterfaceController {
     public EaiWrapper getChangeItemizations(
         @Valid
         @RequestBody
-        EaiWrapper<WwdaAutomaticTransferInterfaceDto.SearchReq> reqWrapper
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdaAutomaticTransferInterfaceDto.SearchChangeRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchChangeRes>> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출
-        List<WwdaAutomaticTransferInterfaceDto.SearchChangeRes> res = service
+        List<WwdaAutoTransferInterfaceDto.SearchChangeRes> res = service
             .getChangeItemizations(reqWrapper.getBody());
 
         // Response Body 세팅
@@ -74,12 +74,12 @@ public class WwdaAutomaticTransferInterfaceController {
     public EaiWrapper getObjectItemizations(
         @Valid
         @RequestBody
-        EaiWrapper<WwdaAutomaticTransferInterfaceDto.SearchObjectReq> reqWrapper
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchObjectReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdaAutomaticTransferInterfaceDto.SearchObjectRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchObjectRes>> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출
-        List<WwdaAutomaticTransferInterfaceDto.SearchObjectRes> res = service
+        List<WwdaAutoTransferInterfaceDto.SearchObjectRes> res = service
             .getObjectItemizations(reqWrapper.getBody());
 
         // Response Body 세팅
@@ -93,12 +93,12 @@ public class WwdaAutomaticTransferInterfaceController {
     public EaiWrapper getInfos(
         @Valid
         @RequestBody
-        EaiWrapper<WwdaAutomaticTransferInterfaceDto.SearchReq> reqWrapper
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdaAutomaticTransferInterfaceDto.SearchRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchRes>> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출
-        List<WwdaAutomaticTransferInterfaceDto.SearchRes> res = service
+        List<WwdaAutoTransferInterfaceDto.SearchRes> res = service
             .getInfos(reqWrapper.getBody());
 
         // Response Body 세팅
