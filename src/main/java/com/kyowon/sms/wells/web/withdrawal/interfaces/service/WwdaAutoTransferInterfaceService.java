@@ -79,4 +79,26 @@ public class WwdaAutoTransferInterfaceService {
         return results;
     }
 
+    /**
+     * 자동이체 구분(개인/법인) 조회
+     * @param dto
+     * @return
+     */
+    public List<WwdaAutoTransferInterfaceDto.SearchCorporatePersonalityDivisionRes> getCorporatePersonalityDivisions(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    ) {
+        return mapper.selectCorporatePersonalityDivisions(dto);
+    }
+
+    /**
+     * 자동이체 은행 목록 조회
+     * @param dto
+     * @return
+     */
+    public List<WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes> getFinancialInstitutionCodes(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    ) {
+        return mapper.selectFinancialInstitutionCodes(dto);
+    }
+
 }

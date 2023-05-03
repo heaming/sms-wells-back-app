@@ -11,13 +11,13 @@ import org.apache.commons.lang.StringUtils;
 
 public class WwdaAutoTransferInterfaceDto {
 
-    /* EDU 자동이체 출금,변경내역, 정보 조회 Request Dto */
+    /* WELLS 자동이체 출금,변경내역, 정보 조회 Request Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchReq")
     public record SearchReq(
-        @NotBlank
+
         @JsonProperty("CNTR_NO")
         String cntrNo, // 계약번호
-        @NotBlank
+
         @JsonProperty("CNTR_SN")
         String cntrSn, // 계약일련번호
 
@@ -25,14 +25,17 @@ public class WwdaAutoTransferInterfaceDto {
         String fntDvCd, // 이체구분코드
 
         @JsonProperty("ACNO_CDNO")
-        String acnoCdno // 계좌카드번호
+        String acnoCdno, // 계좌카드번호
+
+        @JsonProperty("FNIT_CD")
+        String fnitCd // 금융기관코드
     ) {
         public SearchReq {
             acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.enc(acnoCdno) : acnoCdno;
         }
     }
 
-    /* EDU 자동이체 대상목록 조회 Request Dto */
+    /* WELLS 자동이체 대상목록 조회 Request Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchObjectReq")
     public record SearchObjectReq(
         @NotBlank
@@ -63,7 +66,7 @@ public class WwdaAutoTransferInterfaceDto {
 
     ) {}
 
-    /* EDU 자동이체 출금내역 조회 Response Dto */
+    /* WELLS 자동이체 출금내역 조회 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchPaymentAndWithdrawalRes")
     public record SearchPaymentAndWithdrawalRes(
         @JsonProperty("SELL_TP_CD")
@@ -95,7 +98,7 @@ public class WwdaAutoTransferInterfaceDto {
         String aftnRsNm /*자동이체결과명*/
     ) {}
 
-    /* EDU 자동이체 변경내역 조회 Response Dto */
+    /* WELLS 자동이체 변경내역 조회 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchChangeRes")
     public record SearchChangeRes(
 
@@ -123,7 +126,7 @@ public class WwdaAutoTransferInterfaceDto {
 
     ) {}
 
-    /* EDU 자동이체 대상 목록 Response Dto */
+    /* WELLS 자동이체 대상 목록 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchObjectRes")
     public record SearchObjectRes(
         @JsonProperty("CST_NO")
@@ -165,7 +168,7 @@ public class WwdaAutoTransferInterfaceDto {
         String incmdcYn /*소득공제여부*/
     ) {}
 
-    /* EDU 자동이체 정보 조회 Response Dto */
+    /* WELLS 자동이체 정보 조회 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchRes")
     public record SearchRes(
         @JsonProperty("FNT_DV_CD")
@@ -196,5 +199,23 @@ public class WwdaAutoTransferInterfaceDto {
         @JsonProperty("AFTN_RS_NM")
         String aftnRsNm /*자동이체결과명*/
 
+    ) {}
+
+    /* WELLS 자동이체 구분(개인/법인) 조회 Response Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchCorporatePersonalityDivisionRes")
+    public record SearchCorporatePersonalityDivisionRes(
+        @JsonProperty("COPN_DV_CD")
+        String copnDvCd, /*법인격구분코드*/
+        @JsonProperty("COPN_DV_CD_NM")
+        String copnDvCdNm /*법인격구분코드명*/
+    ) {}
+
+    /* WELLS 자동이체 은행 목록 조회 Response Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchFinancialInstitutionCodeRes")
+    public record SearchFinancialInstitutionCodeRes(
+        @JsonProperty("FNIT_CD")
+        String fnitCd, /*금융기관코드*/
+        @JsonProperty("FNIT_NM")
+        String fnitNm /*금융기관코드명*/
     ) {}
 }
