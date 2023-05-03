@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -23,17 +22,10 @@ public class WsniCenterFilterShpadrInterfaceService {
     private final MessageResourceService messageService;
 
     public List<SearchRes> getFilterShpadrs(SearchReq dto) {
-        List<SearchRes> searchRes = new ArrayList<>();
+        List<SearchRes> searchRes = mapper.selectFilterShpadrs(dto);
 
-        try {
-            searchRes = mapper.selectFilterShpadrs(dto);
-
-            if (ObjectUtils.isEmpty(searchRes)) {
-                throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new BizException(messageService.getMessage("MSG_ALT_ADR_INQR_ERR"));
+        if (ObjectUtils.isEmpty(searchRes)) {
+            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
         }
 
         return searchRes;
