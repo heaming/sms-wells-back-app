@@ -6,13 +6,13 @@ import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-public class WctiContractContactListsDto {
+public class WctiContractContactDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
     // 계약 컨택 현황 조회 Search Request Dto
     @Builder
-    @ApiModel("WctiContractContactListsDto-SearchReq")
+    @ApiModel("WctiContractContactDto-SearchReq")
     public record SearchReq(
         @JsonProperty("CNTR_CNFM_DT_FR")
         @ValidDate
@@ -42,7 +42,7 @@ public class WctiContractContactListsDto {
     // Result Dto
     // *********************************************************
     // 계약 컨택 현황 조회 Search Result Dto
-    @ApiModel("WctiContractContactListsDto-SearchRes")
+    @ApiModel("WctiContractContactDto-SearchRes")
     public record SearchRes(
         @JsonProperty("CNTR_NO")
         String cntrNo,
