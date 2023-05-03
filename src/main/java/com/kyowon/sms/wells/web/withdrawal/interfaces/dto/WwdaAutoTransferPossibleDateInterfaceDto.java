@@ -6,12 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
 
-public class WwdaAutomaticTransferPossibleDateInterfaceDto {
+public class WwdaAutoTransferPossibleDateInterfaceDto {
 
     /*
         wells 자동이체 가능일자 조회 Req Dto
      */
-    @ApiModel("WwdaAutomaticTransferPossibleDateInterfaceDto-SearchReq")
+    @ApiModel("WwdaAutoTransferPossibleDateInterfaceDto-SearchReq")
     public record SearchReq(
         @NotBlank
         @JsonProperty("BIL_YM")
@@ -21,7 +21,7 @@ public class WwdaAutomaticTransferPossibleDateInterfaceDto {
     /*
         wells 자동이체 가능일자 조회 Res Dto
      */
-    @ApiModel("WwdaAutomaticTransferPossibleDateInterfaceDto-SearchRes")
+    @ApiModel("WwdaAutoTransferPossibleDateInterfaceDto-SearchRes")
     public record SearchRes(
         @JsonProperty("RGL_FNT_D")
         String rglFntD, // 정규이체일
