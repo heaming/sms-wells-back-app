@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyCustomersMapper">
+    <select id="selectCustomers" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyCustomersDto$SearchRes">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.CNTR_NO || '-' ||T1.CNTR_SN AS CNTR_DTL_NO
+             , T4.RCGVP_KNM AS CST_NM
+             , T11.PDCT_PD_CD AS PD_CD
+             , T12.PD_NM
+             , T1.SELL_TP_CD -- 판매유형코드
+             , F_CMZ_CD_NM('TNT_WELLS','SELL_TP_CD', T1.SELL_TP_CD, 'ko') AS SELL_TP_NM
+             , T16.RECAP_DUTY_PTRM_N
+             , T16.FRISU_BFSVC_PTRM_N
+             , T16.FRISU_AS_PTRM_N
+             , T4.ADR_ID
+             , T13.NEW_ADR_ZIP
+             , T13.RNADR
+             , T13.RDADR
+             , T13.RNADR || T13.RDADR AS ADR_NM
+             , T4.CRAL_LOCARA_TNO
+             , T4.MEXNO_ENCR
+             , T4.CRAL_IDV_TNO
+             , T4.LOCARA_TNO
+             , T4.EXNO_ENCR
+             , T4.IDV_TNO
+             , T11.IST_DT
+             , T11.REQD_DT
+             , TO_CHAR(T15.HIST_STRT_DTM,'YYYYMMDD') AS SV_STP_DT
+             , T11.BC_NO
+             , T8.OG_NM
+             , T8.OG_CD
+             , T17.CYCLE_CODE
+             , T17.CYCLE_NM
+             , T18.BZRNO
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T1.CNTR_NO = T2.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+            ON T1.CNTR_NO = T3.DTL_CNTR_NO
+           AND T1.CNTR_SN = T3.DTL_CNTR_SN
+           AND T3.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+            ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL T6 /* 계약파트너 관계 */
+            ON T6.CNTR_NO = T2.CNTR_NO
+           AND T6.CNTR_PRTNR_TP_CD = '010'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T6.VL_STRT_DTM AND T6.VL_END_DTM
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T7
+            ON T7.BASE_YM = SUBSTR(T2.CNTR_RCP_FSH_DTM,1,6)
+           AND T7.OG_TP_CD = T6.OG_TP_CD
+           AND T7.PRTNR_NO = T6.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ T8
+            ON T8.BASE_YM = T7.BASE_YM
+           AND T8.OG_ID = T7.OG_ID
+         INNER JOIN TB_OGBS_PRTNR_BAS T9
+            ON T9.OG_TP_CD = T6.OG_TP_CD
+           AND T9.PRTNR_NO = T6.PRTNR_NO
+         INNER JOIN TB_OGBS_PRTNR_BAS T10
+            ON T10.OG_TP_CD = T8.HOO_OG_TP_CD
+           AND T10.PRTNR_NO = T8.HOO_PRTNR_NO
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T11
+            ON T1.CNTR_NO = T11.CNTR_NO
+           AND T1.CNTR_SN = T11.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS T12
+            ON T11.PDCT_PD_CD = T12.PD_CD
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T13
+            ON T4.ADR_ID = T13.ADR_ID
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T15
+            ON T1.CNTR_NO = T15.CNTR_NO
+           AND T1.CNTR_SN = T15.CNTR_SN
+           AND T15.CNTR_DTL_STAT_CD = '202'
+           AND T15.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T16
+            ON T1.CNTR_NO = T16.CNTR_NO
+           AND T1.CNTR_SN = T16.CNTR_SN
+<!--      @TODO: TEMP_CODE :: 상품데이터 정비 후 inner join으로 변경해야함    -->
+          LEFT OUTER JOIN (SELECT X.PD_CD
+                                , X.PD_NM
+                                , X.CYCLE_CODE
+                                , F_CMZ_CD_NM('TNT_WELLS','SV_VST_PRD_CD', X.CYCLE_CODE, 'ko') AS CYCLE_NM
+                             FROM (SELECT A.PD_CD
+                                        , A.PD_NM
+                                        , CASE WHEN A.SV_PD_TP_CD = '1' OR A.SV_PD_TP_CD = '4' OR A.SV_PD_TP_CD = '5'
+                                               THEN B.PD_PRP_VAL02 ELSE B.PD_PRP_VAL03
+                                           END AS CYCLE_CODE /* 방문주기코드 */
+                                     FROM TB_PDBS_PD_BAS A
+                                    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL B
+                                       ON A.PD_CD = B.PD_CD
+                                    WHERE A.PD_TP_CD = 'S'
+                                  ) X
+                          ) T17
+            ON T11.SV_PD_CD = T17.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T18
+            ON T2.CNTR_CST_NO = T18.CST_NO
+         WHERE T1.DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty(cstNm)'>
+           AND T4.RCGVP_KNM LIKE #{cstNm} || '%'
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(mpNo)'>
+           AND T4.CRAL_LOCARA_TNO = #{cralLocaraTno}
+           AND T4.MEXNO_ENCR = #{mexnoEncr}
+           AND T4.CRAL_IDV_TNO = #{cralIdvTno}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(telNo)'>
+           AND T4.LOCARA_TNO = #{locaraTno}
+           AND T4.EXNO_ENCR = #{exnoEncr}
+           AND T4.IDV_TNO = #{idvTno}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(bcNo)'>
+           AND T11.BC_NO = #{bcNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(bzrno)'>
+           AND T18.BZRNO = #{bzrno}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(canCtIncYn) and @MybatisUtils@equals(canCtIncYn, "1")'>
+           AND T15.HIST_STRT_DTM IS NULL
+           AND T11.REQD_DT IS NULL
+           AND T11.CPS_DT IS NULL
+           AND T11.IST_DT IS NOT NULL
+        </if>
+    </select>
+</mapper>
