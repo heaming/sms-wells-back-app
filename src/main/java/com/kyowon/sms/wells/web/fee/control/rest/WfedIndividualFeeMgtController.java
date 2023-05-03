@@ -42,32 +42,6 @@ public class WfedIndividualFeeMgtController {
         return service.getHmstEntrp(dto);
     }
 
-    @ApiOperation(value = "개인별 수수료 관리 기본정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 기본정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
-    })
-    @GetMapping("/home-master/basic")
-    public FindHmstBasicRes getHmstBasic(
-        @Valid
-        SearchHmstReq dto
-    ) {
-        return service.getHmstBasic(dto);
-    }
-
-    @ApiOperation(value = "개인별 수수료 관리 총계정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 총계정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
-    })
-    @GetMapping("/home-master/total-sum")
-    public FindHmstTotalSumRes getHmstTotalSum(
-        @Valid
-        SearchHmstReq dto
-    ) {
-        return service.getHmstTotalSum(dto);
-    }
-
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),

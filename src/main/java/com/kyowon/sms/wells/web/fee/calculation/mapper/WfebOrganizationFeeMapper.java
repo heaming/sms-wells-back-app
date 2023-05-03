@@ -41,5 +41,9 @@ public interface WfebOrganizationFeeMapper {
         SearchPlarReq dto
     );
 
+    SearchPlarStepRes selectPlannerStep(
+        SearchPlarReq dto
+    );
+
     List<SearchWmRes> selectWmFees(SearchWmReq dto);
 }

@@ -46,80 +46,73 @@ public class WfedIndividualFeeMgtDto {
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstEntrpRes")
     public record FindHmstEntrpRes(
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        String col7,
-        String col8
-    ) {}
-
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstBasicRes")
-    public record FindHmstBasicRes(
-        int col1,
-        int col2,
-        String col3,
-        int col4,
-        int col5,
-        int col6,
-        int col7,
-        int col8
-    ) {}
-
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstTotalSumRes")
-    public record FindHmstTotalSumRes(
-        int col1,
-        int col2,
-        int col3
+        String emplNm, /* 성명 */
+        String blg, /* 소속 */
+        String rsb, /* 직책 */
+        String akdcha, /* 차월 */
+        String prtnrGdCd, /* 급수 */
+        String atcnt1, /* 집합교육참여일수 */
+        String atcnt2, /* 동행교육참여일수 */
+        String akdsym, /* 업무등록월 */
+        String akdeq0, /* 총판매건수 */
+        String sercnt, /* 서비스건수 */
+        String serryl, /* 서비스처리율 */
+        String akcda19, /* 홈케어멤버십 */
+        String akcda10, /* 매트리스 렌탈료 */
+        String akcda12, /* 매트리스 외 렌탈료 */
+        String akcda13, /* 환경가전 일시불 */
+        String akcda15, /* 환경가전 외 일시불 */
+        String intbsSum, /* 과표계 */
+        String ddtnSum, /* 공제계 */
+        String aclDdbAmt /* 실지급액 */
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstFeeRes")
     public record FindHmstFeeRes(
-        int col1,
-        int col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6,
-        int col7,
-        int col8,
-        int col9,
-        int col10,
-        int col11,
-        int col12,
-        int col13,
-        int col14,
-        int col15,
-        int col16,
-        int col17,
-        int col18,
-        int col19,
-        int col20
+        String aksd01,
+        String aksd02,
+        String aksd03,
+        String aksd04,
+        String aksd05,
+        String aksd06,
+        String aksd07,
+        String aksd08,
+        String aksd09,
+        String aksd10,
+        String aksd13,
+        String aksd14,
+        String aksd11,
+        String aksd15,
+        String aksd51,
+        String aksd52,
+        String aksd53,
+        String aksd54,
+        String aksd55,
+        String aksd56
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstDeductionRes")
     public record FindHmstDeductionRes(
-        int col1,
-        int col2,
-        int col3,
-        int col4,
-        int col5,
-        int col6,
-        int col7,
-        int col8
+        String erntx,
+        String rsdntx,
+        String rds,
+        String hirInsr,
+        String inddInsr,
+        String buDdtn,
+        String pnpyam,
+        String ddtnSum
+
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchHmstControlRes")
     public record SearchHmstControlRes(
-        String col1,
-        String col2,
-        int col3,
-        int col4,
-        String col5,
-        String col6,
-        String col7
+        String div,
+        String item,
+        String ctrBf,
+        String ctrAf,
+        String rsn,
+        String ctrDtm,
+        String ctrr
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindPlarEntrpRes")

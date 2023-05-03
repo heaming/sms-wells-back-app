@@ -156,6 +156,14 @@ public class WfebOrganizationFeeController {
 
     })
 
+    @GetMapping("/plars-step")
+    public SearchPlarStepRes getPlannerStep(
+        @Valid
+        SearchPlarReq dto
+    ) {
+        return this.service.getPlannerStep(dto);
+    }
+
     @GetMapping("/plars-total")
     public List<SearchPlarTotalRes> getPlannerTotalFees(
         @Valid
