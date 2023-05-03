@@ -7,12 +7,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WwdaAutomaticTransferInfoInterfaceDvo {
+public class WwdaAutoTransferInfoInterfaceDvo {
 
     private String fntDvCd; /*이체구분코드*/
     private String fntDvCdNm; /*이체구분코드명*/
     private String fnitCd; /*금융기관코드*/
     private String fnitNm; /*금융기관명*/
+    @DBDecField
     private String acnoCdno; /*계좌카드번호*/
     private String owrKnm; /*소유자한글명*/
     private String fntStplD; /*이체약정일*/

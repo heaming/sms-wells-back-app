@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WwdaAutomaticTransferObjectItemizationInterfaceDvo {
+public class WwdaAutoTransferObjectItemizationInterfaceDvo {
 
     private String cstNo; /*고객번호*/
     private String sellTpCd; /*판매유형코드*/
