@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsniCenterUnuitmSaveInterfaceDvo {
+public class WsniCenterUnusualItemInterfaceDvo {
     String cntrNo;
     int cntrSn;
     String ogTpCd;
