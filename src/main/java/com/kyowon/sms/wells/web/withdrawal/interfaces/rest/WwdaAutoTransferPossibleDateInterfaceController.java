@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutomaticTransferPossibleDateInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdaAutomaticTransferPossibleDateInterfaceService;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferPossibleDateInterfaceDto;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdaAutoTransferPossibleDateInterfaceService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -26,22 +26,22 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class WwdaAutomaticTransferPossibleDateInterfaceController {
+public class WwdaAutoTransferPossibleDateInterfaceController {
 
-    private final WwdaAutomaticTransferPossibleDateInterfaceService service;
+    private final WwdaAutoTransferPossibleDateInterfaceService service;
 
     @ApiOperation(value = "[EAI_WWDI1011] wells 카드 자동이체 가능일자 조회")
     @PostMapping("/cards")
     public EaiWrapper getPassibleDatesByCard(
         @Valid
         @RequestBody
-        EaiWrapper<WwdaAutomaticTransferPossibleDateInterfaceDto.SearchReq> reqWrapper
+        EaiWrapper<WwdaAutoTransferPossibleDateInterfaceDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdaAutomaticTransferPossibleDateInterfaceDto.SearchRes>> resWrapper = reqWrapper
+        EaiWrapper<List<WwdaAutoTransferPossibleDateInterfaceDto.SearchRes>> resWrapper = reqWrapper
             .newResInstance();
         // 서비스 메소드 호출
-        List<WwdaAutomaticTransferPossibleDateInterfaceDto.SearchRes> res = service
+        List<WwdaAutoTransferPossibleDateInterfaceDto.SearchRes> res = service
             .getPassibleDatesByCard(reqWrapper.getBody());
 
         // Response Body 세팅
@@ -55,13 +55,13 @@ public class WwdaAutomaticTransferPossibleDateInterfaceController {
     public EaiWrapper getPassibleDatesByAcount(
         @Valid
         @RequestBody
-        EaiWrapper<WwdaAutomaticTransferPossibleDateInterfaceDto.SearchReq> reqWrapper
+        EaiWrapper<WwdaAutoTransferPossibleDateInterfaceDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdaAutomaticTransferPossibleDateInterfaceDto.SearchRes>> resWrapper = reqWrapper
+        EaiWrapper<List<WwdaAutoTransferPossibleDateInterfaceDto.SearchRes>> resWrapper = reqWrapper
             .newResInstance();
         // 서비스 메소드 호출
-        List<WwdaAutomaticTransferPossibleDateInterfaceDto.SearchRes> res = service
+        List<WwdaAutoTransferPossibleDateInterfaceDto.SearchRes> res = service
             .getPassibleDatesByAcount(reqWrapper.getBody());
 
         // Response Body 세팅
