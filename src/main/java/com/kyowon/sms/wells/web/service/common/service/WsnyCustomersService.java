@@ -18,10 +18,10 @@ public class WsnyCustomersService {
     private final WsnyCustomersMapper mapper;
 
     public List<SearchRes> getCustomers(SearchReq dto) {
-        return mapper.selectCustomerBases(dto);
+        return mapper.selectCustomers(dto);
     }
 
-    public PagingResult<SearchRes> getCustomerBases(SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRes> getCustomers(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectCustomers(dto, pageInfo);
     }
 }
