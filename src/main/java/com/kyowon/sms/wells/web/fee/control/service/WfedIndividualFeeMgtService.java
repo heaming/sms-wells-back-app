@@ -34,28 +34,6 @@ public class WfedIndividualFeeMgtService {
     }
 
     /**
-     * 개인별 수수료 관리 홈마스터 기본정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindHmstBasicRes getHmstBasic(SearchHmstReq dto) {
-        return mapper.selectHmstBasic(dto);
-    }
-
-    /**
-     * 개인별 수수료 관리 홈마스터 총계정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindHmstTotalSumRes getHmstTotalSum(SearchHmstReq dto) {
-        return mapper.selectHmstTotalSum(dto);
-    }
-
-    /**
      * 개인별 수수료 관리 홈마스터 공제 내역 조회
      * @param dto : {
      * perfYm : 실적년월,

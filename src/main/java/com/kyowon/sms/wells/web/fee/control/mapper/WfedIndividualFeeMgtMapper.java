@@ -20,14 +20,6 @@ public interface WfedIndividualFeeMgtMapper {
         SearchHmstReq dto
     );
 
-    FindHmstBasicRes selectHmstBasic(
-        SearchHmstReq dto
-    );
-
-    FindHmstTotalSumRes selectHmstTotalSum(
-        SearchHmstReq dto
-    );
-
     FindHmstDeductionRes selectHmstDeduction(
         SearchHmstReq dto
     );
