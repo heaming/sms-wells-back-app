@@ -113,4 +113,64 @@ public class WsnaBsCsmbDeliveryBaseDto {
         String pdNm,
         String pdAbbrNm
     ) {}
+
+    @ApiModel(value = "WsnaBsCsmbDeliveryBaseDto-FindRes")
+    public record FindRes(
+        String mngtYm,
+        String csmbPdCd,
+        String itmKnm,
+        String mngtUnitCd,
+        String goDvCd,
+        String goUprc,
+        String boxUnitQty,
+        String rmkCn,
+        String nwcmrOrtYn,
+        String nwcmrTpCd,
+        String nwcmrCmptBase,
+        String nwcmrOjPdGrpCd,
+        String nwcmrOjAccTpCd,
+        String nwcmrUnitAccN,
+        String nwcmrUnitQty,
+        String nwcmrAplcLmQty,
+        String nwcmrSortOdr,
+        String indvOrtYn,
+        String indvTpCd,
+        String indvCmptBase,
+        String indvOjPdGrpCd,
+        String indvOjAccTpCd,
+        String indvUnitAccN,
+        String indvUnitQty,
+        String indvAplcLmQty,
+        String indvSortOdr,
+        String bldOrtYn,
+        String bldvTpCd,
+        String bldCmptBase,
+        String bldOjPdGrpCd,
+        String bldOjAccTpCd,
+        String bldUnitAccN,
+        String bldUnitQty,
+        String bldAplcLmQty,
+        String bldSortOdr
+    ) {}
+
+    @ApiModel(value = "WsnaBsCsmbDeliveryBaseDto-CreateReq")
+    public record EditReq(
+        String mngtYm,
+        String csmbPdCd,
+        String mngtUnitCd,
+        String goDvCd,
+        String boxUnitQty,
+        String goUprc,
+        String rmkCn,
+        String bfsvcCsmbDdlvOjCd,
+        String bfsvcCsmbDdlvOrtYn,
+        String bfsvcCsmbDdlvTpCd,
+        String bfsvcCsmbDdlvCmptBaseCd,
+        String bfsvcCsmbDdlvOjPdGrpCd,
+        String bfsvcCsmbDdlvOjAccTpCd,
+        String bfsvcCsmbDdlvUnitAccN,
+        String bfsvcCsmbDdlvUnitQty,
+        String bfsvcCsmbAplcLmQty,
+        String sortOdr
+    ) {}
 }
