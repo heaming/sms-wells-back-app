@@ -47,4 +47,22 @@ public interface WwdaAutoTransferInterfaceMapper {
         WwdaAutoTransferInterfaceDto.SearchReq dto
     );
 
+    /**
+     * 자동이체 구분(개인/법인) 조회
+     * @param dto
+     * @return
+     */
+    List<WwdaAutoTransferInterfaceDto.SearchCorporatePersonalityDivisionRes> selectCorporatePersonalityDivisions(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    );
+
+    /**
+     * 자동이체 은행 목록 조회
+     * @param dto
+     * @return
+     */
+    List<WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes> selectFinancialInstitutionCodes(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    );
+
 }

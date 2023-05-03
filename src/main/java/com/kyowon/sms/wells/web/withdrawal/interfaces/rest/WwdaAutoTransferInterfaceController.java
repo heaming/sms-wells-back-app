@@ -106,4 +106,44 @@ public class WwdaAutoTransferInterfaceController {
 
         return resWrapper;
     }
+
+    @ApiOperation(value = "[EAI_WWDI1014] WELLS 자동이체 구분(개인/법인) 조회")
+    @PostMapping("/corporate-personal-divisions")
+    public EaiWrapper getCorporatePersonalityDivisions(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchReq> reqWrapper
+    ) {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchCorporatePersonalityDivisionRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SearchCorporatePersonalityDivisionRes> res = service
+            .getCorporatePersonalityDivisions(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "[EAI_WWDI1015] WELLS 자동이체 은행 목록 조회")
+    @PostMapping("/financial-institutions")
+    public EaiWrapper getFinancialInstitutionCodes(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchReq> reqWrapper
+    ) {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes> res = service
+            .getFinancialInstitutionCodes(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
 }
