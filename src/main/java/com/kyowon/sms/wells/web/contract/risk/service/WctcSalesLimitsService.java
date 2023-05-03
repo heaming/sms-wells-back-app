@@ -100,8 +100,6 @@ public class WctcSalesLimitsService {
             String sellLmOcDtm = dvo.getSellLmOcDtm(); //발생일자
             String[] param = {Integer.toString(dvo.getDataRow())};
 
-            System.out.println("sellLmOcDtm: " + sellLmOcDtm);
-
             processCount += switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_UPDATED -> {
                     if ("3".equals(sellLmDv))
@@ -123,6 +121,10 @@ public class WctcSalesLimitsService {
                         BizAssert.isNull(sellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
 
                     BizAssert.isTrue(sellLmOcDtm.length() == 8, "MSG_ALT_BAD_OC_DT_ERR");
+
+                    String sellLmBzrno = dvo.getSellLmBzrno();
+                    BizAssert
+                        .isFalse(sellLmBzrno.length() > 10, "MSG_ALT_INVALID_BZRNO");
 
                     int result = mapper.insertEntrepreneurJoinLmOjss(dvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
@@ -164,7 +166,6 @@ public class WctcSalesLimitsService {
             .readExcel(file, new ExcelMetaDvo(1, headerTitle), WctcSellLimitOjIzDvo.class);
         List<SaveEntrpJLmOjReq> result = new LinkedList<>();
 
-        int processCount = 0;
         int row = 1;
         int dataRow = 1;
         for (WctcSellLimitOjIzDvo dvo : dvos) {
@@ -194,7 +195,6 @@ public class WctcSalesLimitsService {
                 );
             }
         }
-        System.out.println("result: " + result.toString());
         return result;
     }
 }
