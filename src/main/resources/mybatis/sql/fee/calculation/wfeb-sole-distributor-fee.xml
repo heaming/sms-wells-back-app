@@ -2,154 +2,255 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper">
 
     <select id='selectDistributorPerformance' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto$Performance">
-        SELECT T3.OG_ID            AS HDQ_OG_ID    -- 지점ID
-             , T3.OG_NM            AS HDQ_OG_NM    -- 지점명
-             , T2.SELL_PRTNR_NO    -- 판매자사원번호
-             , T3.PRTNR_KNM        AS SELL_PRTNR_NM  -- 판매자명
-             , T1.CNTR_NO          -- 계약번호
-             , T1.CNTR_SN          -- 계약일련번호
-             , T1.PD_CD            -- 상품코드
-             , T4.PD_NM            -- 상품명
-             , T2.CNTR_CST_NO      -- 계약고객번호
-             , T6.CST_KNM          AS CNTR_CST_NM    -- 계약고객성명
-             , T1.DSC_DV_CD        -- 할인구분
-             , T1.DSC_TP_CD        -- 할인유형
-             , T1.PMOT_CD          -- 프로모션 : TO-DO NOT NULL 필드가 맞는건가?
-             , (SELECT MAX('1')
-                      FROM TB_SSCT_CNTR_REL X
-                     WHERE X.BASE_CNTR_NO    = T1.CNTR_NO
-                       AND X.CNTR_UNIT_TP_CD = '10'    -- 계약
-                       AND X.CNTR_REL_TP_CD  = '20'     -- 연계상품
-                       AND X.CNTR_REL_DTL_CD = '214'   -- 원주문-정기배송
-               )                   AS REL_PD_CD    -- 결합상품여부
-             , ''                  AS USWY_DV_CD   -- 용도구분 : TO-DO
-             , ''                  AS MNGT_TP_CD   -- 관리유형 : TO-DO
-             , T1.BFSVC_PRD_CD     -- 방문주기
-             , T1.RCPDT            AS RCP_DT       -- 접수일자
-             , T1.SL_DT            -- 매출일자
-             , T1.CAN_DT           -- 취소일자
-             , T1.ACKMT_PERF_AMT   -- 수수료
-             , T1.ACKMT_PERF_CT    -- 인정건수(신규건수?)
-             , T7.PERF_VAL         AS FEE_AMT   -- 수수료금액
-          FROM TB_FEAM_WELS_NRCTR_MM_CL T1   -- 웰스순주문계약월마감
-          LEFT OUTER JOIN
-               TB_SSCT_CNTR_BAS T2    -- 계약기본
-            ON T2.CNTR_NO   = T1.CNTR_NO
-           AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN
-               TB_OGBS_MM_PRTNR_IZ T3   -- 월파트너
-            ON T3.BASE_YM   = T1.BASE_YM
-           AND T3.PRTNR_NO  = T2.SELL_PRTNR_NO
-           AND T3.DTA_DL_YN = 'N'
-         LEFT OUTER JOIN
-               TB_PDBS_PD_BAS T4   -- 상품기본
-            ON T4.PD_CD     = T1.PD_CD
-           AND T4.DTA_DL_YN = 'N'
-        /*
-          LEFT OUTER JOIN
-               TB_OGBS_MM_OG_IZ T5   -- 월조직
-            ON T5.BASE_YM   = T1.BASE_YM
-           AND T5.OG_ID     = T1.HDQ_OG_ID
-           AND T5.DTA_DL_YN = 'N'
-         */
-          LEFT OUTER JOIN
-               TB_CUBS_CST_BAS T6
-            ON T6.CST_NO    = T2.CNTR_CST_NO
-           AND T6.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN
-               TB_FEAM_NTORP_CNTR_MM_CL T7
-            ON T7.BASE_YM           = T1.BASE_YM
-           AND T7.PERF_YM           = T1.PERF_YM
-           AND T7.CNTR_NO           = T1.CNTR_NO
-           AND T7.CNTR_SN           = T1.CNTR_SN
-           AND T7.FEE_TCNT_DV_CD    = T1.FEE_TCNT_DV_CD
-        --   AND T7.CO_CD             = '2000'   -- (주)교원 프라퍼티
-           AND T7.OG_TP_CD          = 'W05'  -- 온라인총판
-           AND T7.PERF_DV_CD        = '0'    -- 개인판매
-           AND T7.PERF_ATC_CD       = 'W05P00001'   -- 총판기본수수료
-           AND T7.DTA_DL_YN         = 'N'
-         WHERE T1.BASE_YM             = #{perfYm} -- 조회조건 : UI실적년월
-           AND T1.FEE_TCNT_DV_CD      = '01'  -- 1차
-           AND T1.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문생성
-           AND T1.RCPDT         BETWEEN  #{strtdt} || '01'  AND #{enddt} || '30'   -- 조회조건 : 접수년월 (입력년월 뒤에 일자(DD)를 붙여준다.)
-        <if test='@MybatisUtils@isNotEmpty(cancelStrtdt) and @MybatisUtils@isNotEmpty(cancelEnddt)'>
-           AND T1.CAN_DT        BETWEEN  #{cancelStrtdt} || '01'  AND #{cancelEnddt} || '31'   -- 조회조건 : 취소년월 (입력년월 뒤에 일자(DD)를 붙여준다.)
+        SELECT
+             T1.BASE_YM
+           , NVL(C0.CD_CNTN, T1.CO_CD) CO_CD_NM                     /* 업체명 - T1.CO_CD */
+           , T2.PRTNR_KNM                                           /* 핀매자            */
+           , T1.PRTNR_NO                                            /* 번호              */
+           , T1.CNTR_NO                                             /* 계약상세번호      */
+           , T4.CST_KNM                                             /* 고객성명          */
+           , T5.BASE_PD_CD                                          /* 상품코드          */
+           , T6.PD_NM                                               /* 상품명            */
+           , NVL(C1.CD_CNTN, T7.SELL_DSC_DV_CD) SELL_DSC_DV_CD_NM   /* 할인구분 - T7.DSC_DV_CD  => SELL_DSC_DV_CD ??? */
+           , CASE WHEN T7.SELL_DSC_DV_CD = '5'
+                  THEN NVL(C2.CD_CNTN, T7.SELL_DSCR_CD) --판매할인율코드
+                  ELSE TO_CHAR(T7.RECAP_DUTY_PTRM_N)    --유상의무기간수
+                   END SELL_DSCR_CD_NM                              /* 할인유형 - T7.DSC_TP_CD  => SELL_DSCR_CD RECAP_DUTY_PTRM_N ??? */
+           , NVL(C3.CD_CNTN, T7.SELL_DSC_TP_CD) AS SELL_DSC_TP_CD_NM   /* 할인제도 - T7.PMOT_CD    => SELL_DSC_TP_CD ???       */
+           , (SELECT MAX('1')
+                FROM TB_SSCT_CNTR_REL X
+               WHERE X.BASE_CNTR_NO    = T1.CNTR_NO
+                 AND X.CNTR_UNIT_TP_CD = '10'  -- 계약
+                 AND X.CNTR_REL_TP_CD  = '20'  -- 연계상품
+                 AND X.CNTR_REL_DTL_CD = '214' -- 원주문-정기배송
+             ) AS REL_PD_CD_NM                                      /* 결합구분          */
+           , NVL(C5.CD_CNTN, T7.PMOT_USWY_DV_CD) AS PMOT_USWY_DV_CD_NM /* 용도구분 - T7.PMOT_USWY_DV_CD ???       */
+           , CASE WHEN T7.PMOT_USWY_DV_CD = '1' THEN '1-일반'
+                  WHEN T7.PMOT_USWY_DV_CD = '2' THEN '2-업소'
+                  ELSE ''
+                  END MG_NM                                         /* 관리유형 - ???    */
+           , NVL(C4.CD_CNTN, T7.BFSVC_PRD_CD) BFSVC_PRD_CD_NM       /* 방문주기 - T7.BFSVC_PRD_CD */
+           , T7.RCPDT                                               /* 접수일자          */
+           , T7.SL_DT                                               /* 매출일자          */
+           , T7.CAN_DT                                              /* 취소일자          */
+           , T1.PERF_VAL                                            /* 실적항목코드(W05P00001-기본수수료금액)의 금액 */
+           , CASE WHEN T7.ACKMT_PERF_CT IS NULL AND T7.ACKMT_PERF_AMT > 0 THEN 1
+                  ELSE T7.ACKMT_PERF_CT
+                   END ACKMT_PERF_CT                                 /* 신규건수 -> 인정건수(Null인 경우 인정실적이 있으면 1로 치환) */
+           , T7.ACKMT_PERF_AMT                                      /* 인정실적           */
+       FROM TB_FEAM_NTORP_CNTR_MM_CL T1          /* 순주문파트너계약월마감 */
+      INNER JOIN TB_OGBS_MM_PRTNR_IZ T2          /* 월파트너               */
+         ON  T2.BASE_YM        = T1.BASE_YM
+         AND T2.PRTNR_NO       = T1.PRTNR_NO
+         AND T2.OG_TP_CD       = T1.OG_TP_CD         /* 2023.05.02 조건 추가 */
+       INNER JOIN TB_SSCT_CNTR_BAS T3            /* 계약기본               */
+          ON T3.CNTR_NO        = T1.CNTR_NO
+       INNER JOIN TB_CUBS_CST_BAS T4             /* 고객기본               */
+          ON T4.CST_NO         = T3.CNTR_CST_NO
+       INNER JOIN TB_SSCT_CNTR_DTL T5            /* 계약상세               */
+          ON T5.CNTR_NO        = T1.CNTR_NO
+         AND T5.CNTR_SN        = T1.CNTR_SN
+       INNER JOIN TB_PDBS_PD_BAS T6              /* 상품기본               */
+          ON T6.PD_CD          = T5.BASE_PD_CD
+        LEFT OUTER JOIN TB_FEAM_WELS_NRCTR_MM_CL T7      /* 웰스순주문계약월마감   */
+          ON T7.BASE_YM        = T1.BASE_YM
+         AND T7.PERF_YM        = T1.PERF_YM
+         AND T7.FEE_TCNT_DV_CD = T1.FEE_TCNT_DV_CD
+         AND T7.CNTR_NO        = T1.CNTR_NO
+         AND T7.CNTR_SN        = T1.CNTR_SN
+         AND T7.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
+        <if test='@MybatisUtils@isNotEmpty(strtYm) and @MybatisUtils@isNotEmpty(endYm)'>
+         AND T7.RCPDT BETWEEN #{strtYm} AND #{endYm}
         </if>
-           AND T1.DTA_DL_YN           = 'N'
+        <if test='@MybatisUtils@isNotEmpty(cancelStrtYm) and @MybatisUtils@isNotEmpty(cancelEndYm)'>
+         AND T7.CAN_DT BETWEEN #{cancelStrtYm} AND #{cancelEndYm}
+        </if>
+        LEFT OUTER JOIN T_CMZ_CD_D C0      /* 공통코드 - 업체명      */
+          ON C0.TENANT_ID      = #{session.tenantId}
+         AND C0.CD_ID          = 'CO_CD'                --업체명
+         AND C0.CD_VLD_VAL     = T1.CO_CD
+        LEFT OUTER JOIN T_CMZ_CD_D C1      /* 공통코드 - 할인구분    */
+          ON C1.TENANT_ID      = #{session.tenantId}
+         AND C1.CD_ID          = 'SELL_DSC_DV_CD'       --할인구분
+         AND C1.CD_VLD_VAL     = T7.SELL_DSC_DV_CD
+        LEFT OUTER JOIN T_CMZ_CD_D C2      /* 공통코드 - 할인유형    */
+          ON C2.TENANT_ID      = #{session.tenantId}
+         AND C2.CD_ID          = 'SELL_DSCR_CD'         --할인유형
+         AND C2.CD_VLD_VAL     = T7.SELL_DSCR_CD
+        LEFT OUTER JOIN T_CMZ_CD_D C3      /* 공통코드 - 할인제도    */
+          ON C3.TENANT_ID      = #{session.tenantId}
+         AND C3.CD_ID          = 'SELL_DSC_TP_CD'       --할인제도
+         AND C3.CD_VLD_VAL     = T7.SELL_DSC_TP_CD
+        LEFT OUTER JOIN T_CMZ_CD_D C4      /* 공통코드 - 방문주기    */
+          ON C4.TENANT_ID      = #{session.tenantId}
+         AND C4.CD_ID          = 'BFSVC_PRD_CD'         --방문주기
+         AND C4.CD_VLD_VAL     = T7.BFSVC_PRD_CD
+        LEFT OUTER JOIN T_CMZ_CD_D C5      /* 공통코드 - 용도구분    */
+          ON C5.TENANT_ID      = #{session.tenantId}
+         AND C5.CD_ID          = 'PMOT_USWY_DV_CD'      --용도구분
+         AND C5.CD_VLD_VAL     = T7.PMOT_USWY_DV_CD
+       WHERE T1.BASE_YM             = #{perfYm}
+         AND T1.PERF_AGRG_CRT_DV_CD = '501'               /* 실적집계생성구분코드 :501-총판수수료실적생성   */
+         AND T1.OG_TP_CD            = 'W05'               /* 조직유형코드       :W05-온라인총판           */
+         AND T1.PERF_ATC_CD         = 'W05P00001'         /* 실적항목코드       :W05P00001-기본수수료금액 */
+         AND T1.PERF_DV_CD          = '0'                 /* 실적구분코드       :0-개인판매               */
+         AND T1.CNTR_PERF_CRT_DV_CD = '01'                /* 계약실적생성구분코드 :01-순주문집계            */
+         AND T1.DTA_DL_YN           = 'N'
     </select>
 
     <select id='selectDistributorFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto$Fee">
-        SELECT T2.OG_ID        -- 소속(조직ID)
-             , T2.OG_NM        -- 업체명(조직명)
-             , T1.PRTNR_NO     -- 파트너사원번호
-             , T2.PRTNR_KNM      AS PRTNR_NM   -- 파트너명
-             , T1.W050001_AMT  -- 기본수수료
-             , T1.W050002_AMT  -- 장려수수료
-             , T1.W050003_AMT  -- 인센티브
-             , T1.W050004_AMT  -- 분기성과
-             , T1.W050005_AMT  -- 재지급
-             , COALESCE(T1.W050001_AMT, 0) + COALESCE(T1.W050002_AMT, 0) + COALESCE(T1.W050003_AMT, 0) + COALESCE(T1.W050004_AMT, 0) + COALESCE(T1.W050005_AMT, 0) AS FEE_SUM_AMT   -- 수수료계
-             , T1.D01_AMT      -- 보증예치금
-             , T1.D08_AMT      -- 환수되물림
-             , COALESCE(T1.D01_AMT, 0) + COALESCE(T1.D08_AMT, 0)   AS DDTN_SUM_AMT  -- 공제계 : 보증예치금 + 환수되물림
-             , COALESCE(T1.W050001_AMT, 0) + COALESCE(T1.W050002_AMT, 0) + COALESCE(T1.W050003_AMT, 0) + COALESCE(T1.W050004_AMT, 0) + COALESCE(T1.W050005_AMT, 0) - COALESCE(T1.D01_AMT, 0) - COALESCE(T1.D08_AMT, 0)  AS ACPY_AMT  -- 실지급액
-          FROM (--수수료
-                SELECT T1.BASE_YM
-                     , T1.PRTNR_NO
-                     , T1.FEE_CD
-                     , T1.FEE_CTR_CNFM_AMT
-                  FROM TB_FEAM_FEE_CALC_BAS T1
-                 WHERE T1.BASE_YM = #{perfYm}    -- 조회조건 : UI실적년월
-                   AND T1.PERF_YM = #{perfYm}   -- 조회조건 : UI실적년월
-                   AND T1.FEE_CD        IN ('W050001', 'W050002', 'W050003', 'W050004', 'W050005')
-        --           AND T1.CO_CD          = 'P0'   -- 교원프라퍼티
-                   AND T1.FEE_TCNT_DV_CD = '01'   -- 1차
-                   AND T1.OG_TP_CD       = 'W05'  -- 온라인총판
-                   AND T1.FNL_FEE_YN     = 'Y'
-                   AND T1.DTA_DL_YN      = 'N'
-                 UNION ALL
-                -- 공제
-                SELECT T1.DDTN_YM
-                     , T1.PRTNR_NO
-                     , T1.FEE_DDTN_TP_CD
-                     , T1.FEE_DDCTAM
-                  FROM TB_FEAM_FEE_DDTN_IZ T1
-                 WHERE T1.DDTN_YM = #{perfYm}  -- 조회조건 : UI실적년월
-                   AND T1.FEE_DDTN_TP_CD IN ('01', '08') -- 보증예치금, 환수되물림
-        --           AND T1.CO_CD          = 'P0'   -- 교원프라퍼티
-                   AND T1.FEE_TCNT_DV_CD = '01'   -- 1차
-                   AND T1.OG_TP_CD       = 'W05'  -- 온라인총판
-                   AND T1.DTA_DL_YN      = 'N'
-               ) PIVOT (SUM(FEE_CTR_CNFM_AMT) FOR FEE_CD IN ('W050001' AS W050001_AMT, 'W050002' AS W050002_AMT, 'W050003' AS W050003_AMT, 'W050004' AS W050004_AMT, 'W050005' AS W050005_AMT, '01' AS D01_AMT, '08' AS D08_AMT)) T1
-          LEFT OUTER JOIN
-               TB_OGBS_MM_PRTNR_IZ T2   -- 월파트너
-            ON T2.BASE_YM   = T1.BASE_YM
-           AND T2.PRTNR_NO  = T1.PRTNR_NO
-           AND T2.DTA_DL_YN = 'N'
+       SELECT
+             T1.BASE_YM
+           , T1.CO_CD                             /* 업체코드          */
+           , NVL(C0.CD_CNTN, T1.CO_CD) CO_CD_NM   /* 업체명 - T1.CO_CD */
+           , T3.OG_CD                             /* 소속(지점CD)      */
+           , T1.PRTNR_NO                          /* 번호              */
+           , SUM(NVL(T9.CNT, 0)) CNT              /* 실적(계약건수)    */
+           , SUM(CASE WHEN T1.FEE_CD = 'W050001' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050001  /* 수수료-기본수수료 */
+           , SUM(CASE WHEN T1.FEE_CD = 'W050002' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050002  /* 수수료-장려수수료 */
+           , SUM(CASE WHEN T1.FEE_CD = 'W050003' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050003  /* 수수료-인센티브   */
+           , SUM(CASE WHEN T1.FEE_CD = 'W050020' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050020  /* 수수료-재지급     */
+           , SUM(CASE WHEN T1.FEE_CD = 'W050004' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050004  /* 수수료-분기성과   */
+           , SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '01' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END)  AS AMT_01  /* 공제-보증예치금   */
+           , SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '08' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END)  AS AMT_08  /* 공제-환수되물림   */
+       FROM TB_FEAM_FEE_CALC_BAS T1         /* 수수료계산기본    */
+       LEFT OUTER JOIN  TB_FEAM_FEE_DDTN_IZ  T2         /* 수수료공제내역    */
+         ON T2.DDTN_YM    = T1.BASE_YM
+        AND T2.CO_CD      = T1.CO_CD
+        AND T2.OG_TP_CD   = T1.OG_TP_CD
+        AND T2.PRTNR_NO   = T1.PRTNR_NO
+      INNER JOIN       TB_OGBS_MM_PRTNR_IZ  T3         /* 월파트너          */
+         ON T3.BASE_YM    = T1.BASE_YM
+        AND T3.OG_TP_CD   = T1.OG_TP_CD
+        AND T3.PRTNR_NO   = T1.PRTNR_NO
+       LEFT OUTER JOIN  AFMDBS.T_CMZ_CD_D    C0         /* 공통코드 - 업체명 */
+         ON C0.TENANT_ID  = #{session.tenantId}
+        AND C0.CD_ID      = 'CO_CD'    /* 업체명 */
+        AND C0.CD_VLD_VAL = T1.CO_CD
+       LEFT OUTER JOIN  (SELECT BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO, 'W050001' AS FEE_CD, COUNT(1) CNT
+                           FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ /* 수수료계산계약상세내역 */
+                          WHERE BASE_YM        = #{perfYm}
+                            AND OG_TP_CD       = 'W05'
+                            AND FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
+                            AND DTA_DL_YN      = 'N'
+                          GROUP BY BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO) T9 /* 계약건수(판매자)  */
+         ON T9.BASE_YM    = T1.BASE_YM
+        AND T9.CO_CD      = T1.CO_CD
+        AND T9.OG_TP_CD   = T1.OG_TP_CD
+        AND T9.PRTNR_NO   = T1.PRTNR_NO
+        AND T9.FEE_CD     = T1.FEE_CD
+      WHERE T1.BASE_YM    = #{perfYm}
+        AND T1.OG_TP_CD   = 'W05'
+        AND T1.DTA_DL_YN  = 'N'
+        AND T1.FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
+      GROUP BY T1.CO_CD, NVL(C0.CD_CNTN, T1.CO_CD), T3.OG_CD, T1.PRTNR_NO
     </select>
 
+
+    <update id="updateCalcFee">
+        MERGE INTO TB_FEAM_FEE_CALC_BAS T1  /* 수수료계산기본 */
+        USING ( SELECT #{baseYm}          AS BASE_YM           /* 기준년월 */
+                     , #{perfYm}         AS PERF_YM           /* 실적년월 */
+                     , #{ojDsbYm}        AS OJ_DSB_YM         /* 대상지급년월 */
+                     , #{coCd}           AS CO_CD             /* 회사코드 */
+                     , #{ogTpCd}         AS OG_TP_CD          /* 조직유형코드 */
+                     , #{prtnrNo}        AS PRTNR_NO          /* 파트너번호 */
+                     , #{feeCd}          AS FEE_CD            /* 수수료코드 */
+                     , #{dtaCrtFeeCd}    AS DTA_CRT_FEE_CD    /* 데이터생성수수료코드 */
+                     , #{feeTcntDvCd}    AS FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
+                     , #{spmtDsbDvCd}    AS SPMT_DSB_DV_CD    /* 추가지급구분코드 */
+                     , #{feeCalcTpCd}    AS FEE_CALC_TP_CD    /* 수수료계산유형코드 */
+                     , #{feeCalcAmt}     AS FEE_CALC_AMT      /* 수수료계산금액 */
+                     , #{feeCtrCnfmAmt}  AS FEE_CTR_CNFM_AMT  /* 수수료조정확정금액 */
+                     , #{feeCtrRsonCn}   AS FEE_CTR_RSON_CN   /* 수수료조정사유내용 */
+                     , #{feeCtrOgTpCd}   AS FEE_CTR_OG_TP_CD  /* 수수료조정조직유형코드 */
+                     , #{feeCtrPrtnrNo}  AS FEE_CTR_PRTNR_NO  /* 수수료조정파트너번호 */
+                     , #{feeCalcVarbVal} AS FEE_CALC_VARB_VAL /* 수수료계산변수값 */
+                     , #{fnlFeeYn}       AS FNL_FEE_YN        /* 최종수수료여부 */
+                     , #{dtaDlYn}        AS DTA_DL_YN         /* 데이터삭제여부 */
+                  FROM DUAL ) T2
+           ON (   T1.BASE_YM = T2.BASE_YM           /* 기준년월 */
+              AND T1.PERF_YM = T2.PERF_YM           /* 실적년월 */
+              AND T1.OJ_DSB_YM = T2.OJ_DSB_YM         /* 대상지급년월 */
+              AND T1.CO_CD = T2.CO_CD             /* 회사코드 */
+              AND T1.OG_TP_CD = T2.OG_TP_CD          /* 조직유형코드 */
+              AND T1.PRTNR_NO = T2.PRTNR_NO          /* 파트너번호 */
+              AND T1.FEE_CD = T2.FEE_CD            /* 수수료코드 */
+              AND T1.DTA_CRT_FEE_CD = T2.DTA_CRT_FEE_CD    /* 데이터생성수수료코드 */
+              AND T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
+              AND T1.SPMT_DSB_DV_CD = T2.SPMT_DSB_DV_CD    /* 추가지급구분코드 */
+              AND T1.FEE_CALC_TP_CD = T2.FEE_CALC_TP_CD    /* 수수료계산유형코드 */
+           )
+         WHEN MATCHED THEN
+       UPDATE
+          SET FEE_CALC_AMT = T2.FEE_CALC_AMT
+            , FEE_CTR_CNFM_AMT = T2.FEE_CTR_CNFM_AMT
+              <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+      INSERT (
+             BASE_YM
+           , PERF_YM
+           , OJ_DSB_YM
+           , CO_CD
+           , OG_TP_CD
+           , PRTNR_NO
+           , FEE_CD
+           , DTA_CRT_FEE_CD
+           , FEE_TCNT_DV_CD
+           , SPMT_DSB_DV_CD
+           , FEE_CALC_TP_CD
+           , FEE_CALC_AMT
+           , FEE_CTR_CNFM_AMT
+           , FEE_CTR_RSON_CN
+           , FEE_CTR_OG_TP_CD
+           , FEE_CTR_PRTNR_NO
+           , FEE_CALC_VARB_VAL
+           , FNL_FEE_YN
+           , DTA_DL_YN
+           <include refid="COMMON.insertSystemField" />
+      ) VALUES (
+             T2.BASE_YM
+           , T2.PERF_YM
+           , T2.OJ_DSB_YM
+           , T2.CO_CD
+           , T2.OG_TP_CD
+           , T2.PRTNR_NO
+           , T2.FEE_CD
+           , T2.DTA_CRT_FEE_CD
+           , T2.FEE_TCNT_DV_CD
+           , T2.SPMT_DSB_DV_CD
+           , T2.FEE_CALC_TP_CD
+           , T2.FEE_CALC_AMT
+           , T2.FEE_CTR_CNFM_AMT
+           , T2.FEE_CTR_RSON_CN
+           , T2.FEE_CTR_OG_TP_CD
+           , T2.FEE_CTR_PRTNR_NO
+           , T2.FEE_CALC_VARB_VAL
+           , T2.FNL_FEE_YN
+           , T2.DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+      )
+    </update>
+
     <delete id="deleteAggregateNtorMmCl">
-        DELETE FROM TB_FEAM_NTOR_MM_CL T1         -- 순주문월마감
+        DELETE FROM TB_FEAM_NTOR_MM_CL T1         -- 순주문파트너 월마감
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
-           AND T1.PERF_AGRG_CRT_DV_CD = '501'  -- 총판수수료실적생성
-        --   AND T1.CO_CD               = '2000'  -- (주)교원프라퍼티
+           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'     -- 총판수수료실적생성
     </delete>
 
-    <delete id="deleteAggregateCntrMmCl">
-        DELETE FROM TB_FEAM_NTORP_CNTR_MM_CL T1   -- 웰스순주문계약월마감
+    <delete id="deleteAggregateNtorCntrMmCl">
+        DELETE FROM TB_FEAM_NTORP_CNTR_MM_CL T1   -- 순주문파트너 계약월마감
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
-           AND T1.PERF_AGRG_CRT_DV_CD = '501'  -- 총판수수료실적생성
-        --   AND T1.CO_CD               = '2000'  -- (주)교원프라퍼티
+           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'     -- 총판수수료실적생성
     </delete>
 
-    <delete id="deleteAggregatePerfMmCl">
-        DELETE FROM TB_FEAM_NTORP_PERF_MM_CL T1   -- 순주문파트너실적월마감
+    <delete id="deleteAggregateNtorPerfMmCl">
+        DELETE FROM TB_FEAM_NTORP_PERF_MM_CL T1   -- 순주문파트너 실적월마감
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
-           AND T1.PERF_AGRG_CRT_DV_CD = '501'  -- 총판수수료실적생성
-        --   AND T1.CO_CD               = '2000'  -- (주)교원프라퍼티
+           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'     -- 총판수수료실적생성
     </delete>
 
     <insert id="insertAggregateNtorMmCl">
@@ -161,8 +262,8 @@
              , DTA_DL_YN
              <include refid="COMMON.insertSystemField" />
         )
-        SELECT #{perfYm}          AS BASE_YM
-             , '01'               AS FEE_TCNT_DV_CD    -- 1차
+        SELECT #{perfYm}          AS BASE_YM              -- 실행조건 : UI실적년월
+             , '02'               AS FEE_TCNT_DV_CD       -- 2차
              , '501'              AS PERF_AGRG_CRT_DV_CD  -- 총판수수료실적생성
              , '01'               AS NTOR_CNFM_STAT_CD    -- 임시저장
              , 'N'                AS DTA_DL_YN
@@ -170,8 +271,8 @@
           FROM DUAL
     </insert>
 
-    <insert id="insertAggregateCntrMmCl">
-        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL (  -- 순주문파트너계약월마감
+    <insert id="insertAggregateNtorCntrMmCl">
+        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL (  -- 순주문파트너 계약월마감
                BASE_YM
              , PERF_YM
              , FEE_TCNT_DV_CD
@@ -186,31 +287,31 @@
              , CNTR_PERF_CRT_DV_CD
              , PERF_VAL
              , DTA_DL_YN
-             <include refid="COMMON.insertSystemField" />
+              <include refid="COMMON.insertSystemField" />
         )
         SELECT T1.BASE_YM
              , T1.PERF_YM
              , T1.FEE_TCNT_DV_CD
              , '501'                AS PERF_AGRG_CRT_DV_CD  -- 총판수수료실적생성
-             , 'W05P00001'          AS PERF_ATC_CD    -- 총판기본수수료
-             , '2000'               AS CO_CD          -- 교원프라퍼티
+             , 'W05P00001'          AS PERF_ATC_CD          -- 총판기본수수료
+             , '2000'               AS CO_CD                -- 교원프라퍼티 ???
              , T1.OG_TP_CD
              , T1.PRTNR_NO
-             , '0'                  AS PERF_DV_CD     -- 개인판매
+             , '0'                  AS PERF_DV_CD           -- 개인판매
              , T1.CNTR_NO
              , T1.CNTR_SN
-             , '01'                 AS CNTR_PERF_CRT_DV_CD  -- 순주문집계
+             , '01'                 AS CNTR_PERF_CRT_DV_CD  -- 순주문집계 (01:순주문집계, 02:되물림생성, 03:재지급생성)
              , T1.ACKMT_PERF_AMT    AS PERF_VAL
              , 'N'                  AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
           FROM TB_FEAM_WELS_NRCTR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
+           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
            AND T1.OG_TP_CD            = 'W05'     -- 온라인총판
     </insert>
 
-    <insert id="insertAggregatePerfMmCl1">
-        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너실적월마감
+    <insert id="insertAggregateNtorPerfMmCl">
+        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너 실적월마감
                BASE_YM
              , PERF_YM
              , FEE_TCNT_DV_CD
@@ -222,7 +323,7 @@
              , PERF_DV_CD
              , PERF_VAL
              , DTA_DL_YN
-             <include refid="COMMON.insertSystemField" />
+            <include refid="COMMON.insertSystemField" />
         )
         SELECT T1.BASE_YM
              , T1.PERF_YM
@@ -234,16 +335,16 @@
              , T1.PRTNR_NO
              , T1.PERF_DV_CD
              , SUM(T1.PERF_VAL)     AS PERF_VAL
-             , 'N'                  AS DTA_DL_YN
+             , 'N'                                     AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
           FROM TB_FEAM_NTORP_CNTR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
-           AND T1.PERF_AGRG_CRT_DV_CD = '501'      -- 총판수수료실적생성
-           AND T1.PERF_ATC_CD         = 'W05P00001'   -- 총판기본수수료
-           AND T1.OG_TP_CD            = 'W05'     -- 온라인총판
-           AND T1.PERF_DV_CD          = '0'       -- 개인판매
-        --   AND T1.CO_CD               = '2000'   -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
+           AND T1.FEE_TCNT_DV_CD      = '02'        -- 2차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'       -- 총판수수료실적생성
+           AND T1.PERF_ATC_CD         = 'W05P00001' -- 총판기본수수료
+        -- AND T1.CO_CD               = '2000'      -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
+           AND T1.OG_TP_CD            = 'W05'       -- 온라인총판
+           AND T1.PERF_DV_CD          = '0'         -- 개인판매
          GROUP BY T1.BASE_YM
                 , T1.PERF_YM
                 , T1.FEE_TCNT_DV_CD
@@ -255,8 +356,8 @@
                 , T1.PERF_DV_CD
     </insert>
 
-    <insert id="insertAggregatePerfMmCl2">
-        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너실적월마감
+    <insert id="insertAggregateNtorPerfPointMmCl">
+        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너 실적월마감
                BASE_YM
              , PERF_YM
              , FEE_TCNT_DV_CD
@@ -278,9 +379,9 @@
              , T1.CO_CD
              , T1.OG_TP_CD
              , T3.DGR1_LEVL_DG_PRTNR_NO
-             , '2'                  AS PERF_DV_CD
+             , '2'                  AS PERF_DV_CD     /* 지국(지점)실적 */
              , SUM(T1.PERF_VAL)     AS PERF_VAL
-             , 'N'                  AS DTA_DL_YN
+             , 'N'                                     AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
           FROM TB_FEAM_NTORP_PERF_MM_CL T1
          INNER JOIN
@@ -293,13 +394,13 @@
                TB_OGBS_MM_OG_IZ T3
             ON T3.BASE_YM  = T2.BASE_YM
            AND T3.OG_ID    = T2.OG_ID
-         WHERE T1.BASE_YM             =  #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
-           AND T1.PERF_AGRG_CRT_DV_CD = '501'      -- 총판수수료실적생성
-           AND T1.PERF_ATC_CD         = 'W05P00001'   -- 총판기본수수료
-           AND T1.OG_TP_CD            = 'W05'     -- 온라인총판
-           AND T1.PERF_DV_CD          = '0'       -- 개인판매
-        --   AND T1.CO_CD               = '2000'   -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = '02'         -- 2차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'        -- 총판수수료실적생성
+           AND T1.PERF_ATC_CD         = 'W05P00001'  -- 총판기본수수료
+        -- AND T1.CO_CD               = '2000'       -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
+           AND T1.OG_TP_CD            = 'W05'        -- 온라인총판
+           AND T1.PERF_DV_CD          = '0'          -- 개인판매
          GROUP BY T1.BASE_YM
                 , T1.PERF_YM
                 , T1.FEE_TCNT_DV_CD
@@ -311,12 +412,11 @@
     </insert>
 
     <update id="updateAggregateNtorMmCl">
-        UPDATE TB_FEAM_NTOR_MM_CL T1   -- 순주문파트너월마감
-           SET T1.NTOR_CNFM_STAT_CD = '02'    -- 확정
+        UPDATE TB_FEAM_NTOR_MM_CL T1   -- 순주문파트너 월마감
+           SET T1.NTOR_CNFM_STAT_CD = '02'              -- 확정
                <include refid="COMMON.updateSystemField"/>
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '01'      -- 1차
-           AND T1.PERF_AGRG_CRT_DV_CD = '501'      -- 총판수수료실적생성
+           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'     -- 총판수수료실적생성
     </update>
-
 </mapper>

@@ -3,56 +3,59 @@ package com.kyowon.sms.wells.web.fee.calculation.dto;
 import javax.validation.constraints.NotBlank;
 
 public class WfebSoleDistributorFeeMgtDto {
-    public record SearchBaseReq(
+    public record SearchPerformanceReq(
         @NotBlank
         String perfYm,
+        @NotBlank
         String strtYm,
+        @NotBlank
         String endYm,
         String cancelStrtYm,
         String cancelEndYm
     ) {}
 
     public record Performance(
-        String hdqOgId,
-        String hdqOgNm,
-        String sellPrtnrNo,
-        String sellPrtnrNm,
-        String cntrNo,
-        String cntrSn,
-        String pdCd,
-        String pdNm,
-        String cntrCstNo,
-        String cntrCstNm,
-        String dscDvCd,
-        String dscTpCd,
-        String pmotCd,
-        String relPdCd,
-        String uswyDvCd,
-        String mngtTpCd,
-        String bfsvcPrdCd,
-        String rcpDt,
-        String slDt,
-        String canDt,
-        Integer ackmtPerfAmt,
-        Integer ackmtPerfCt,
-        Integer feeAmt
+        String baseYm,
+        String coCdNm, // 업체명
+        String prtnrKnm, // 판매자
+        String prtnrNo, // 번호
+        String cntrNo, // 계약상세번호
+        String cstKnm, // 고객성명
+        String basePdCd, // 상품코드
+        String pdNm, // 상품명
+        String sellDscDvCdNm, // 할인구분
+        String sellDscrCdNm, // 할인유형
+        String sellDscTpCdNm, // 할인제도
+        String relPdCdNm, // 결합구분
+        String pmotUswyDvCdNm, // 용도구분
+        String mgNm, // 관리유형
+        String bfsvcPrdCdNm, // 방문주기
+        String rcpdt, // 접수일자
+        String slDt, // 매출일자
+        String canDt, // 취소일자
+        Integer perfVal, // 수수료
+        Integer ackmtPerfCt, // 신규건수
+        Integer ackmtPerfAmt // 인정실적
     ) {}
 
+     public record SearchFeeReq(
+        @NotBlank
+        String perfYm
+    ) {}
     public record Fee(
-        String ogId,
-        String ogNm,
+        String baseYm,
+        String coCd,
+        String coCdNm,
+        String ogCd,
         String prtnrNo,
-        String prtnrNm,
-        Integer w050001Amt,
-        Integer w050002Amt,
-        Integer w050003Amt,
-        Integer w050004Amt,
-        Integer w050005Amt,
-        Integer feeSumAmt,
-        Integer d01Amt,
-        Integer d08Amt,
-        Integer ddtnSumAmt,
-        Integer acpyAmt
+        Integer cnt,
+        Long amtW050001,
+        Long amtW050002,
+        Long amtW050003,
+        Long amtW050020,
+        Long amtW050004,
+        Long amt01,
+        Long amt08
     ) {}
 
     public record CreateReq(
