@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyowon.sms.common.web.product.category.service.ZpdaClassificationMgtService;
-import com.kyowon.sms.common.web.product.manage.converter.ZpdcMaterialConverter;
 import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
@@ -36,8 +35,6 @@ import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -55,7 +52,7 @@ public class WpdcMaterialMgtService {
     private final ZpdcProductMapper productMapper;
     private final ZpdcProductService productService;
     private final ZpdcHistoryMgtService hisService;
-    private final ZpdcMaterialConverter converter;
+    //    private final ZpdcMaterialConverter converter;
 
     private final AttachFileService fileService;
 
@@ -377,8 +374,6 @@ public class WpdcMaterialMgtService {
         ArrayList<String> prgGrpDves
     ) throws Exception {
 
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
-
         String startDtm = DateUtil.getDate(new Date());
         // 단계그룹구분코드(공통 코드값), 예외적으로 해당 컬럼만 CODE_NM으로 받고 JAVA에서 mapping처리.
         List<CodeComponent> lrnnLvGrpDvCds = codeService.getCodesByCodeId(PdProductConst.LRNN_LV_GRP_DV_CD, null);
@@ -423,6 +418,7 @@ public class WpdcMaterialMgtService {
              * TB_PDBS_PD_PRP_META_BAS.PD_PRP_GRP_DV_CD(=상품속성그룹구분코드) Lv INSERT
              */
             for (String pdPrpGrpDtlDvCd : prgGrpDves) {
+                StringBuffer colsSb = new StringBuffer();
                 List<ZpdcPropertyMetaDvo> eachPdPrpGrpDtlDvCd = tbPdbsPdEcomPrpDtl.stream()
                     .filter(x -> pdPrpGrpDtlDvCd.equals(x.getPdPrpGrpDtlDvCd())).toList();
 
@@ -435,6 +431,7 @@ public class WpdcMaterialMgtService {
                             if (entry.getValue().toString().split("\\|").length > 1) {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1]);
+                                colsSb.append(metaVo.getColId()).append(",");
                             } else {
                                 // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스
                                 // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.
@@ -444,11 +441,13 @@ public class WpdcMaterialMgtService {
                                     for (CodeComponent codeVo : lrnnLvGrpDvCds) {
                                         if (entry.getValue().equals(codeVo.codeName())) {
                                             propertyMap.put(metaVo.getColId(), codeVo.codeId());
+                                            colsSb.append(metaVo.getColId()).append(",");
                                         }
                                     }
 
                                 } else {
                                     propertyMap.put(metaVo.getColId(), entry.getValue());
+                                    colsSb.append(metaVo.getColId()).append(",");
                                 }
 
                             }
@@ -457,6 +456,8 @@ public class WpdcMaterialMgtService {
                     }
 
                 }
+                propertyMap.put("cols", colsSb.toString());
+
                 objectMapper = new ObjectMapper();
                 ZpdcEachCompanyPropDtlDvo propertyVo = objectMapper
                     .convertValue(propertyMap, ZpdcEachCompanyPropDtlDvo.class);

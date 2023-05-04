@@ -1,0 +1,109 @@
+package com.kyowon.sms.wells.web.product.standard.dto;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+
+import com.sds.sflex.common.utils.StringUtil;
+
+import io.swagger.annotations.ApiModel;
+
+public class WpdyRestipulationMgtDto {
+
+    @ApiModel("WpdyRestipulationMgtDto-SearchReq")
+    public record SearchReq(
+        String pdNm, /* 상품명 */
+        String pdCd, /* 상품코드 */
+        String startDate, /* 적용기간 시작일 */
+        String endDate /* 적용기간 종료일 */
+    ) {
+        public SearchReq {
+            if (StringUtil.isNotEmpty(startDate))
+                startDate = startDate.replaceAll("-", "");
+            if (StringUtil.isNotEmpty(endDate))
+                endDate = endDate.replaceAll("-", "");
+        }
+    }
+
+    @ApiModel("WpdyRestipulationMgtDto-SearchRes")
+    public record SearchRes(
+        String pdCd, /* 상품코드 */
+        String pdNm, /* 상품코드 */
+        String rstlBaseTpCd, /* 재약정기준유형코드 */
+        Integer stplTn, /* 약정회차 */
+        String rstlSellChnlDvCd, /* 재약정판매채널구분코드 */
+        String apyStrtdt, /* 적용시작일자 */
+        String apyEnddt, /* 적용종료일자 */
+        Integer rstlMcn, /* 재약정개월수 */
+        Long minRentalAmt, /* 최소렌탈금액 */
+        Long stplDscAmt, /* 약정할인금액 */
+        Integer rcpStrtMcn, /* 접수시작개월수 */
+        Integer rcpEndMcn, /* 접수종료개월수 */
+        Integer rstlDutyMcn, /* 재약정의무개월수 */
+
+        // Default UserInfo Suit
+        String fstRgstDtm, /* 최초등록일시 */
+        String fstRgstUsrId, /* 최초등록사용자id */
+        String fstRgstUsrNm, /* 최초등록사용자명 */
+        String fnlMdfcDtm, /* 최종수정일시 */
+        String fnlMdfcUsrId, /* 최종수정사용자id  */
+        String fnlMdfcUsrNm /* 최종수정사용자명  */
+    ) {}
+
+    @ApiModel("WpdyRestipulationMgtDto-SaveReq")
+    public record SaveReq(
+        String rowState, /* 그리드 Row 상태 */
+        @NotBlank
+        String pdCd, /* 상품코드 */
+        @NotBlank
+        String rstlBaseTpCd, /* 재약정기준유형코드 */
+        @Positive
+        Integer stplTn, /* 약정회차 */
+        @NotBlank
+        String rstlSellChnlDvCd, /* 재약정판매채널구분코드 */
+        @NotBlank
+        String apyStrtdt, /* 적용시작일자 */
+        @NotBlank
+        String apyEnddt, /* 적용종료일자 */
+        Integer rstlMcn, /* 재약정개월수 */
+        Long minRentalAmt, /* 최소렌탈금액 */
+        Long stplDscAmt, /* 약정할인금액 */
+        Integer rcpStrtMcn, /* 접수시작개월수 */
+        Integer rcpEndMcn, /* 접수종료개월수 */
+        Integer rstlDutyMcn, /* 재약정의무개월수 - 의무기간 */
+
+        String fnlMdfcDtm
+    ) {
+        public SaveReq {
+            if (StringUtil.isNotEmpty(apyStrtdt))
+                apyStrtdt = apyStrtdt.replaceAll("-", "");
+            if (StringUtil.isNotEmpty(apyEnddt))
+                apyEnddt = apyEnddt.replaceAll("-", "");
+        }
+    }
+
+    @ApiModel("WpdyRestipulationMgtDto-DuplicationRes")
+    public record DuplicationRes(
+        String pdNm, /* 상품명 */
+        String dupliYn /* 중복여부 */
+    ) {}
+
+    @ApiModel("WpdyRestipulationMgtDto-DelReq")
+    public record DelReq(
+        @NotBlank
+        String pdCd, /* 상품코드 */
+        @NotBlank
+        String rstlBaseTpCd, /* 재약정기준유형코드 */
+        @NotBlank
+        String rstlSellChnlDvCd, /* 재약정판매채널구분코드 */
+        @NotBlank
+        String apyStrtdt, /* 적용시작일자 */
+        @Positive
+        Integer stplTn, /* 약정회차 */
+        String fnlMdfcDtm
+    ) {
+        public DelReq {
+            apyStrtdt = apyStrtdt.replaceAll("-", "");
+        }
+    }
+
+}
