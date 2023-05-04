@@ -235,7 +235,8 @@ public class WpdcMaterialMgtService {
             for (Entry<String, Object> entry : excelDataMap.entrySet()) {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
 
-                    if (PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm())) {
+                    if (entry.getKey().equals(PdProductConst.SAP_MAT_CD)
+                        && PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm())) {
                         this.checkExcelValidation(
                             entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_DB
                         );
@@ -287,8 +288,10 @@ public class WpdcMaterialMgtService {
                 // 자재코드값({0})이 올바르지 않습니다.
                 if (!"".equals(compareValue)) {
                     // 넘어온 자재코드 값이 I/F 테이블에 존재하는지 확인.
-                    ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
-                    if (null == sapMatVo) {
+                    //                    ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
+                    List<ZpdcGbcoSapMatDvo> sapMatVos = mapper.selectMaterialSaps(compareValue);
+
+                    if (sapMatVos.isEmpty()) {
                         ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
                         errorVo.setHeaderName(metaVo.getPrpNm());
                         errorVo.setErrorRow(rowIndex);
@@ -296,9 +299,22 @@ public class WpdcMaterialMgtService {
                             messageResourceService
                                 .getMessage("MSG_ALT_ABNORMAL_SAP_MAT_CD", new String[] {compareValue})
                         );
-
+                        dataErrors.add(errorVo);
+                    } else if (sapMatVos.size() > 1) {
+                        ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+                        errorVo.setHeaderName(metaVo.getPrpNm());
+                        errorVo.setErrorRow(rowIndex);
+                        errorVo.setErrorData(
+                            // {0} 결과값이 2건 이상 존재합니다.
+                            messageResourceService
+                                .getMessage(
+                                    "MSG_ALT_ABNORMAL_TO_MUCH_RESULT",
+                                    new String[] {messageResourceService.getMessage("MSG_TXT_MATI_CD")}
+                                )
+                        );
                         dataErrors.add(errorVo);
                     }
+
                 }
                 // 넘어온 자재코드 값이 다른 교재/자재에서 이미 사용중인지 체크.
                 // 다른 교재/제품에서 이미 사용 중인 SAP자재코드입니다. (사용 교재/제품코드: {0}/{1}) - 교재명/자재코드
@@ -410,6 +426,7 @@ public class WpdcMaterialMgtService {
 
             // #1. 상품 마스터 INSERT
             dvo.setPdTpCd(PdProductConst.PD_TP_CD_MATERIAL);
+            dvo.setPdTpDtlCd(PdProductConst.PD_TP_DTL_CD_M);
             dvo.setTempSaveYn(PdProductConst.TEMP_SAVE_N);
             dvo = productService.saveProductBase(dvo, startDtm);
 
