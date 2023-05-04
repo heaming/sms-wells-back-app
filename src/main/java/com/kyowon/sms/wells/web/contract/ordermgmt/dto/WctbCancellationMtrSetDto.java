@@ -4,20 +4,27 @@ import io.swagger.annotations.ApiModel;
 
 public class WctbCancellationMtrSetDto {
     // *********************************************************
-    // Request Dto
-    // *********************************************************
-    @ApiModel(value = "WctbCancellationMtrSetDto-SearchReq")
-    public record SearchReq(
-        String businessType,
-        String performanceYm
-    ) {}
-    // *********************************************************
     // Response Dto
     // *********************************************************
     @ApiModel(value = "WctbCancellationMtrSetDto-SearchRes")
     public record SearchRes(
+        String cntrChRcpId,
+        String cntrChSn,
+        String cntrUnitTpCd,
+        String procsDuedt,
+        String procsFshDtm,
+        String cntrChPrgsStatCd,
+        String cntrChRcpDtm,
+        String cntrChFshDtm,
         String cntrNo,
         String cntrSn,
-        String cntrCanDtm
+        String cntrCanDtm,
+        String cntrCanDtmNchk,
+        String cntrChFshDtmNchk
+    ) {}
+    @ApiModel(value = "WctbCancellationMtrSetDto-SearchAcmpalCntrIzRes")
+    public record SearchAcmpalCntrIzRes(
+        String acmpalCntrId,
+        String ojCntrNo
     ) {}
 }
