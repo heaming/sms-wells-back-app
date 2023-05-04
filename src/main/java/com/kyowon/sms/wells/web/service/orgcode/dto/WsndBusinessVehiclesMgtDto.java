@@ -25,6 +25,7 @@ public class WsndBusinessVehiclesMgtDto {
         String cntrDt,
         String carno,
         String vhcMngtTpCd,
+        String vhcMngtTpNm,
         String vhcPymdt,
         String dsbEnddt,
         String insrAgeCd,
@@ -118,7 +119,8 @@ public class WsndBusinessVehiclesMgtDto {
         String vhcDsbRmkCn,
         String fnlMdfcDtm,
         String fnlMdfcUsrNmSet,
-        String fnlMdfcDeptNm
+        String fnlMdfcDeptNm,
+        String prtnrChYn
     ) {
         public EditReq {
             rflngCdnoEncr = DbEncUtil.enc(rflngCdnoEncr);
