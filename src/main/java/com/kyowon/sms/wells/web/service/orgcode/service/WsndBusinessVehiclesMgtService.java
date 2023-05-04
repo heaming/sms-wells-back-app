@@ -38,16 +38,23 @@ public class WsndBusinessVehiclesMgtService {
 
     @Transactional
     public int createBusinessVehicle(CreateReq dto) {
-        String vehicleDupYn = mapper.selectVehicleDupYn(dto);
+        WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
+
+        String vehicleDupYn = mapper.selectVehicleDupYn(dvo);
         BizAssert.isNull(vehicleDupYn, "MSG_ALT_SMD_PSIC_VHC_DSB");
 
-        WsndBusinessVehiclesMgtDvo dvo = converter.mapCreateReqToBusinessVehiclesMgtDvo(dto);
         return mapper.mergeBusinessVehicle(dvo);
     }
 
     @Transactional
     public int editBusinessVehicle(EditReq dto) {
         WsndBusinessVehiclesMgtDvo dvo = converter.mapEditReqToBusinessVehiclesMgtDvo(dto);
+
+        if ("1".equals(dto.prtnrChYn())) {
+            String vehicleDupYn = mapper.selectVehicleDupYn(dvo);
+            BizAssert.isNull(vehicleDupYn, "MSG_ALT_SMD_PSIC_VHC_DSB");
+        }
+
         return mapper.mergeBusinessVehicle(dvo);
     }
 
