@@ -13,7 +13,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctbCancellationMtrSetDto
 public interface WctbCancellationMtrSetMapper {
     List<SearchRes> selectContractBase(String businessType, String performanceYm);
 
-    List<WctbCancellationMtrSetDto.SearchAcmpalCntrIzRes> selectOjCntrNos(String cntrNo, String cntrSn);
+    List<WctbCancellationMtrSetDto.SearchAcmpalCntrIzRes> selectAcmpalCntrIzs(String cntrNo, String cntrSn);
 
     int updateContractBas(String cntrCanDtm, String cntrNo);
 

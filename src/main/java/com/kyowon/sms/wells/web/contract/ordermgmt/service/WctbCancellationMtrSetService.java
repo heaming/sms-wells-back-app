@@ -24,36 +24,33 @@ public class WctbCancellationMtrSetService {
     public int cancellationMtrClSe(String businessType, String performanceYm) {
         int result = 0;
         String canDtm = "";
-        if (StringUtils.isEmpty(performanceYm)) {
+        if (StringUtils.isEmpty(performanceYm) && performanceYm.length() != 6) {
             return result;
         }
-        if (businessType != "2" || businessType != "3" || businessType != "6" || businessType != "9") {
+        if (businessType != "2" && businessType != "3" && businessType != "6" && businessType != "9") {
             return result;
         }
         List<SearchRes> dtos = mapper.selectContractBase(businessType, performanceYm);
 
         for (SearchRes dto : dtos) {
-
             WctbCancellationMtrSetDvo dvo = converter.mapSearchResToWctbCancellationMtrSetDvo(dto);
-            if (dvo.getCntrChFshDtmNchk() == "0" && dvo.getCntrCanDtmNchk() == "1") {
+            if (dvo.getCntrChFshDtmNchk().equals("0") && dvo.getCntrCanDtmNchk().equals("1")) {
                 canDtm = dvo.getCntrChFshDtm();
-                mapper.updateContractBas(canDtm, dvo.getCntrNo());
+                result += mapper.updateContractBas(canDtm, dvo.getCntrNo());
             }
-            if (dvo.getCntrChFshDtmNchk() == "1" && dvo.getCntrCanDtmNchk() == "0") {
+            if (dvo.getCntrChFshDtmNchk().equals("1") && dvo.getCntrCanDtmNchk().equals("0")) {
                 canDtm = dvo.getCntrCanDtm();
-                mapper.updateCntrChRcpBas(canDtm, dvo.getCntrChRcpId());
+                result += mapper.updateCntrChRcpBas(canDtm, dvo.getCntrChRcpId());
             }
 
             List<WctbCancellationMtrSetDto.SearchAcmpalCntrIzRes> acmpalCntrIzdtos = mapper
-                .selectOjCntrNos(dvo.getCntrNo(), dvo.getCntrSn());
+                .selectAcmpalCntrIzs(dvo.getCntrNo(), dvo.getCntrSn());
             for (WctbCancellationMtrSetDto.SearchAcmpalCntrIzRes acmpalCntrIzdto : acmpalCntrIzdtos) {
                 mapper.updateContractBas(canDtm, acmpalCntrIzdto.ojCntrNo());
                 mapper.updateAcmpalCntrIz(acmpalCntrIzdto.acmpalCntrId());
                 mapper.updateAcmpalCntrChHist(acmpalCntrIzdto.acmpalCntrId());
                 mapper.insertAcmpalCntrChHist(acmpalCntrIzdto.acmpalCntrId());
             }
-
-            result += mapper.updateCntrChRcpBas(canDtm, dvo.getCntrChRcpId());
         }
         return result;
     }
