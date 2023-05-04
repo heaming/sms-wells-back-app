@@ -154,8 +154,8 @@ public class WwdbBillingDocumentMgtService {
     }
 
     @Transactional
-    public List<SearchDtlsRes> getBillingDocumentDetails(SearchDtlsReq dto) {
-        return mapper.selectBillingDocumentDetails(dto);
+    public PagingResult<SearchDtlsRes> getBillingDocumentDetails(SearchDtlsReq dto, PageInfo pageInfo) {
+        return mapper.selectBillingDocumentDetails(dto, pageInfo);
     }
 
     @Transactional

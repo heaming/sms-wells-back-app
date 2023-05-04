@@ -66,8 +66,8 @@ public class WwdbBillingDocumentMgtController {
 
     @ApiOperation(value = "청구서 관리 목록 조회", notes = "청구서 관리 목록을 조회한다.")
     @GetMapping("/details")
-    public List<SearchDtlsRes> getBillingDocumentDetails(SearchDtlsReq dto) {
-        return service.getBillingDocumentDetails(dto);
+    public PagingResult<SearchDtlsRes> getBillingDocumentDetails(SearchDtlsReq dto, PageInfo pageInfo) {
+        return service.getBillingDocumentDetails(dto, pageInfo);
     }
 
     @ApiOperation(value = "청구서 관리 목록 저장", notes = "RDS 적요 청구서 관리 등록한다.")

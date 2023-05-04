@@ -57,7 +57,7 @@ public interface WwdbBillingDocumentMgtMapper {
     String selectBillingDocumentPk();
 
     /* 청구서 관리 상세 조회 */
-    List<SearchDtlsRes> selectBillingDocumentDetails(SearchDtlsReq dto);
+    PagingResult<SearchDtlsRes> selectBillingDocumentDetails(SearchDtlsReq dto, PageInfo pageInfo);
 
     //    /* 청구서 발송 목록 조회 */
     //    public List<WwwdbBillingDocumentForwardingDvo> selectBillingDocuments(SaveFwReq dto);
