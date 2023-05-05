@@ -9,11 +9,13 @@ import lombok.*;
 @AllArgsConstructor
 public class WctzCntrDetailChangeHistDvo {
     private String cntrNo; /* 계약번호 */
+    private String histStrtDtm; /* 이력시작일시 */
     private Integer cntrSn; /* 계약일련번호 */
+    private String histEndDtm; /* 이력종료일시 */
     private String basePdCd; /* 기준상품코드 */
     private String hgrPdCd; /* 상위상품코드 */
     private Long pdQty; /* 상품수량 */
-    private String sellTpCd; /* 판매유형코드 */
+    private String sellTpCd;
     private String sellTpDtlCd; /* 판매유형상세코드 */
     private String cntrDtlStatCd; /* 계약상세상태코드 */
     private String cntrPtrmUnitCd; /* 계약기간단위코드 */
@@ -28,7 +30,7 @@ public class WctzCntrDetailChangeHistDvo {
     private String blgCrpCd; /* 소속법인코드 */
     private String rveCrpCd; /* 수납법인코드 */
     private String coCd; /* 회사코드 */
-    private String booSellTpCd; /* 예약판매유형코드 */
+    private String booSellTpCd;
     private String pdGdCd; /* 상품등급코드 */
     private String pdHclsfId; /* 상품대분류ID */
     private String pdMclsfId; /* 상품중분류ID */
