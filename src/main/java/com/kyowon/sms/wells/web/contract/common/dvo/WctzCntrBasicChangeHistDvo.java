@@ -19,7 +19,7 @@ public class WctzCntrBasicChangeHistDvo {
     private String cntrTpCd; /* 계약유형코드 */
     private String cntrNatCd; /* 계약국가코드 */
     private String cntrPrgsStatCd; /* 계약진행상태코드 */
-    private String ftfDvCd; /* 대면구분코드 */
+    private String cstStlmInMthCd; /* 고객결제입력방법코드 */
     private String prrRcpCntrYn; /* 사전접수계약여부 */
     private String cntrTempSaveDtm; /* 계약임시저장일시 */
     private String cntrRcpFshDtm; /* 계약접수완료일시 */
@@ -31,6 +31,7 @@ public class WctzCntrBasicChangeHistDvo {
     private String cntrCanRsonCd; /* 계약취소사유코드 */
     private String cntrPrgsStatMoCn; /* 계약진행상태메모내용 */
     private String dsbGurTpCd; /* 지급보증유형코드 */
+    private String cntrInflwPhDvCd; /* 계약유입경로구분코드 */
     private String pspcCstId; /* 가망고객ID */
     private String cntrChRcpId; /* 계약변경접수ID */
     private String dcevdnDocId; /* 증빙서류문서ID */

@@ -12,8 +12,6 @@ public class WctzContractWellsDetailHistDvo {
     private Integer cntrSn; /* 계약일련번호 */
     private String histStrtDtm; /* 이력시작일시 */
     private String histEndDtm; /* 이력종료일시 */
-    private String recapDutyPtrmUnitCd; /* 유상의무기간단위코드 */
-    private Integer recapDutyPtrmN; /* 유상의무기간수 */
     private String frisuBfsvcPtrmUnitCd; /* 무상BS기간단위코드 */
     private Long frisuBfsvcPtrmN; /* 무상BS기간수 */
     private String frisuAsPtrmUnitCd; /* 무상AS기간단위코드 */
