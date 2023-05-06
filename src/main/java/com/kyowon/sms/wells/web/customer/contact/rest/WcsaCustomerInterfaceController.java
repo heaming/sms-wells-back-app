@@ -39,4 +39,18 @@ public class WcsaCustomerInterfaceController {
         return resWrapper;
     }
 
+    @ApiOperation(value = "고객센터 Wells 계약고객 정보 변경 처리 서비스. 연관 I/F : EAI_ECUI1017", notes = "고객번호에 해당하는 고객 기본/상세 변경")
+    @PostMapping("/contract-customers")
+    public EaiWrapper editCustomerByCc(
+        @Valid
+        @RequestBody
+        EaiWrapper<WcsaCustomerInterfaceDto.SearchCustomerInfoEditReq> reqWrapper
+    ) {
+        EaiWrapper<WcsaCustomerInterfaceDto.SearchCustomerInfoEditRes> resWrapper = reqWrapper.newResInstance();
+
+        resWrapper.setBody(wcsaCustomerInterfaceService.editCustomerByCc(reqWrapper.getBody()));
+
+        return resWrapper;
+    }
+
 }
