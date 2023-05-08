@@ -1,9 +1,10 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
 import com.kyowon.sms.common.web.fee.schedule.service.ZfeyFeeScheduleMgtService;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.*;
-import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebSoleDistributorFeeDvo;
-import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebB2bFeeMgtDto.*;
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebB2bDtlFeeDvo;
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebB2bFeeDvo;
+import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebB2bFeeMgtMapper;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import lombok.RequiredArgsConstructor;
@@ -14,100 +15,116 @@ import java.util.List;
 
 /**
  * <pre>
- * 총판 수수료 생성관리
+ * B2B 수수료 생성관리
  * </pre>
  *
  * @author mj
- * @since 2023.04.20
+ * @since 2023.05.08
  */
 @Service
 @RequiredArgsConstructor
-public class WfebSoleDistributorFeeMgtService {
+public class WfebB2bFeeMgtService {
 
-    private final WfebSoleDistributorFeeMgtMapper mapper;
+    private final WfebB2bFeeMgtMapper mapper;
 
     private final ZfeyFeeScheduleMgtService service;
 
     /**
-     * 총판수수료 생성관리 조회 - 수수료 실적
+     * B2b수수료 생성관리 조회 - 수수료 실적
      * @param req
      * @return
      */
-    public List<Performance> getDistributorPerformance(SearchPerformanceReq req) {
-        // todo 실적테이블로 변경후 쿼리 수정
-        return mapper.selectDistributorPerformance(req);
+    public List<Performance> getB2bPerformance(SearchPerformanceReq req) {
+        return mapper.selectB2bPerformance(req);
     }
 
     /**
-     * 총판수수료 생성관리 조회 - 수수료
+     * B2b수수료 생성관리 조회 - 수수료
      * @param req
      * @return
      */
-    public List<Fee> getDistributorFee(SearchFeeReq req) {
-         return mapper.selectDistributorFee(req);
+    public List<Fee> getB2bFee(SearchFeeReq req) {
+         return mapper.selectB2bFee(req);
     }
 
     /**
-     * 총판수수료 생성관리 저장(수수료)
+     * B2b수수료 생성관리 저장(수수료)
      * @param dtos
      * @return
      */
     @Transactional
-    public int editDistributorFee(SaveReq dtos) {
+    public int editB2bFee(SaveReq dtos) {
         int processCount = 0;
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         for (Fee row : dtos.changedRows()) {
-            WfebSoleDistributorFeeDvo dvo = new WfebSoleDistributorFeeDvo();
+            WfebB2bFeeDvo dvo = new WfebB2bFeeDvo();
             dvo.setBaseYm(row.baseYm());
             dvo.setPerfYm(row.baseYm());
             dvo.setOjDsbYm(row.baseYm());
             dvo.setCoCd(row.coCd());
-            dvo.setOgTpCd("W05"); // 수수료 총판
+            dvo.setOgTpCd("W04"); // 수수료 B2B
             dvo.setPrtnrNo(row.prtnrNo());
             dvo.setFeeTcntDvCd("02"); // 2차
             dvo.setSpmtDsbDvCd("01"); // 정상지급
             dvo.setFeeCalcTpCd("01"); // 수수료 계산
             dvo.setDtaDlYn("N");
-            /* W050002:장려수수료, W050003:인센티브, W050004:분기성과수수료, W050020:재지급수수료 */
-            if (row.amtW050002() != null) { // 장려수수료
-                dvo.setFeeCalcAmt(row.amtW050002());
-                dvo.setFeeCtrCnfmAmt(row.amtW050002());
-                dvo.setFeeCd("W050002");
-                dvo.setDtaCrtFeeCd("W050002");
+            /* W040005:알선수수료, W040004:프로모션, W040020:재지급, W040003:인센티브 */
+            if (row.amtW040005() != null) { // 알선수수료
+                 dvo.setFeeCalcAmt(row.amtW040005());
+                dvo.setFeeCtrCnfmAmt(row.amtW040005());
+                dvo.setFeeCd("W040005");
+                dvo.setDtaCrtFeeCd("W040005");
                 processCount += mapper.updateCalcFee(dvo);
             }
-            if (row.amtW050003() != null) { // 인센티브
-                dvo.setFeeCalcAmt(row.amtW050003());
-                dvo.setFeeCtrCnfmAmt(row.amtW050003());
-                dvo.setFeeCd("W050003");
-                dvo.setDtaCrtFeeCd("W050003");
+            if (row.amtW040004() != null) { // 프로모션
+                dvo.setFeeCalcAmt(row.amtW040004());
+                dvo.setFeeCtrCnfmAmt(row.amtW040004());
+                dvo.setFeeCd("W040004");
+                dvo.setDtaCrtFeeCd("W040004");
                 processCount += mapper.updateCalcFee(dvo);
             }
-            if (row.amtW050004() != null) { // 분기성과
-                dvo.setFeeCalcAmt(row.amtW050004());
-                dvo.setFeeCtrCnfmAmt(row.amtW050004());
-                dvo.setFeeCd("W050004");
-                dvo.setDtaCrtFeeCd("W050004");
+            if (row.amtW040020() != null) { // 재지급
+                dvo.setFeeCalcAmt(row.amtW040020());
+                dvo.setFeeCtrCnfmAmt(row.amtW040020());
+                dvo.setFeeCd("W040020");
+                dvo.setDtaCrtFeeCd("W040020");
                 processCount += mapper.updateCalcFee(dvo);
             }
-            if (row.amtW050020() != null) { // 재지급
-                dvo.setFeeCalcAmt(row.amtW050020());
-                dvo.setFeeCtrCnfmAmt(row.amtW050020());
-                dvo.setFeeCd("W050020");
-                dvo.setDtaCrtFeeCd("W050020");
+            if (row.amtW040003() != null) { // 인센티브
+                dvo.setFeeCalcAmt(row.amtW040003());
+                dvo.setFeeCtrCnfmAmt(row.amtW040003());
+                dvo.setFeeCd("W040003");
+                dvo.setDtaCrtFeeCd("W040003");
                 processCount += mapper.updateCalcFee(dvo);
+            }
+            // 공제
+            if (row.amt01() != null) { // 공제 보증예치금
+                WfebB2bDtlFeeDvo dtlDvo = new WfebB2bDtlFeeDvo();
+                dtlDvo.setDdtnYm(row.baseYm());
+                dtlDvo.setCoCd(row.coCd());
+                dtlDvo.setOgTpCd("W04");
+                dtlDvo.setFeeDdtnTpCd("01"); // 수수료공제유형코드 : 공제-보증예치금
+                dtlDvo.setFeeTcntDvCd("02"); // 2차
+                dtlDvo.setSpmtDsbDvCd("01"); // 정상지급
+                dtlDvo.setFeeDdtnCrtCd("01"); // 수수료공제유형코드 : 공제-보증예치금
+                dtlDvo.setFeeCtrOgTpCd(session.getOgTpCd());
+                dtlDvo.setFeeCtrPrtnrNo(row.prtnrNo());
+                dtlDvo.setFeeDdctam(row.amt01());
+                dtlDvo.setFeeDdtnCnfmAmt(row.amt01());
+                dtlDvo.setFeeCtrRsonCn(row.amt01Cn());
+                processCount += mapper.updateCalcDtlFee(dtlDvo);
             }
         }
         return processCount;
     }
 
     /**
-     * 총판수수료 생성관리 - 집계
+     * B2b수수료 생성관리 - 집계
      * @param req
      * @return
      */
     @Transactional
-    public int aggregateDistributorPerformance(CreateReq req) throws Exception {
+    public int aggregateB2bPerformance(CreateReq req) throws Exception {
         int processCount = 0;
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         // 01. 기존 월마감 삭제
@@ -135,8 +152,8 @@ public class WfebSoleDistributorFeeMgtService {
         processCount += mapper.updateAggregateNtorMmCl(req);
 
         // 06. 수수료일정 갱신 API 호출 공통모듈
-        String feeSchdId = req.perfYm() + "501" + "02" + session.getCompanyCode(); // 기준일+총판+2차수+회사코드
-        service.editStepLevelStatus(feeSchdId, "W0501", "03");
+        String feeSchdId = req.perfYm() + "401" + "02" + session.getCompanyCode(); // 기준일+B2b+2차수+회사코드
+        service.editStepLevelStatus(feeSchdId, "W0401", "03");
         return processCount;
     }
 
