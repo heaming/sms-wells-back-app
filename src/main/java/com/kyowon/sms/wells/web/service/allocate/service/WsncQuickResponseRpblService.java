@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncQuickResponseRpblDto;
@@ -19,5 +21,10 @@ public class WsncQuickResponseRpblService {
         WsncQuickResponseRpblDto.SearchReq dto, PageInfo pageInfo
     ) {
         return mapper.selectQuickResponseRpbl(dto, pageInfo);
+    }
+    public List<WsncQuickResponseRpblDto.SearchRes> getQuickResponseRpblsExcelDownload(
+        WsncQuickResponseRpblDto.SearchReq dto
+    ) {
+        return mapper.selectQuickResponseRpbl(dto);
     }
 }
