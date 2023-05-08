@@ -18,8 +18,8 @@ public class WsnyInstallSeparationMgtDto {
     public record SearchRes(
         String sellTpCd, /*판매유형코드*/
         String pdCd, /*상품코드*/
-        String svBizMclsfCd, /*서비스업무중분류코드*/
-        String svBizDclsfCd, /*서비스업무세분류코드*/
+        String sepIstCsAtcCd, /*분리설치비용항목코드*/
+        String sepIstCsDtlCd, /*분리설치비용상세코드*/
         String izSn, /*내역일련번호*/
         String apyStrtdt, /*적용시작일자*/
         String apyEnddt, /*적용종료일자*/
@@ -41,9 +41,9 @@ public class WsnyInstallSeparationMgtDto {
         @NotBlank
         String pdCd,
         @NotBlank
-        String svBizMclsfCd,
+        String sepIstCsAtcCd,
         @NotBlank
-        String svBizDclsfCd,
+        String sepIstCsDtlCd,
         @NotBlank
         String izSn,
         String apyStrtdt,
@@ -60,9 +60,9 @@ public class WsnyInstallSeparationMgtDto {
         @NotBlank
         String pdCd,
         @NotBlank
-        String svBizMclsfCd,
+        String sepIstCsAtcCd,
         @NotBlank
-        String svBizDclsfCd,
+        String sepIstCsDtlCd,
         @NotBlank
         String izSn
     ){}

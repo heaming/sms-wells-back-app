@@ -8,8 +8,8 @@ import lombok.Setter;
 public class WsnyInstallSeparationMgtDvo {
     String sellTpCd;
     String pdCd;
-    String svBizMclsfCd;
-    String svBizDclsfCd;
+    String sepIstCsAtcCd;
+    String sepIstCsDtlCd;
     int izSn;
     String apyStrtdt;
     String apyEnddt;
