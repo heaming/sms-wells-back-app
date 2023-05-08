@@ -70,8 +70,10 @@ public interface WcsaCustomerInterfaceConverter {
     SearchCustomerRes mapCreateCustomerDtlToCustomerRes(ZcsaCustomerInfoDvo dvo, WcsaInterfaceResultDvo dvo2);
 
     @BeanMapping(ignoreByDefault = true)
+    @Mapping(source = "dvo.cstNo", target = "CST_NO")
     @Mapping(source = "dvo.rsCd", target = "RS_CD")
     @Mapping(source = "dvo.rsMsg", target = "RS_MSG")
+
     WcsaCustomerInterfaceDto.SearchCustomerInfoEditRes mapCustomerInfoEditToInterfaceResultRes(
         WcsaInterfaceResultDvo dvo
     );
