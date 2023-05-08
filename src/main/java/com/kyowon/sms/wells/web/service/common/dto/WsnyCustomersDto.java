@@ -54,7 +54,7 @@ public class WsnyCustomersDto {
         String sellTpCd,
         String sellTpNm,
         String svStpDt,
-        String recapDutyPtrmN,
+        //        String recapDutyPtrmN,
         String frisuBfsvcPtrmN,
         String frisuAsPtrmN,
         String cycleCode,
