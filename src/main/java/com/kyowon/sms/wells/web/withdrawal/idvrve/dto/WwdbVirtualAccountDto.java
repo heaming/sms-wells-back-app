@@ -1,9 +1,6 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
-import javax.validation.constraints.NotBlank;
-
-import com.sds.sflex.common.utils.DbEncUtil;
-import com.sds.sflex.common.utils.StringUtil;
+import org.thymeleaf.util.StringUtils;
 
 import io.swagger.annotations.ApiModel;
 
@@ -16,7 +13,14 @@ public class WwdbVirtualAccountDto {
         String strtdt, // 시작일
         String enddt // 종료일
     ) {
-
+        public SearchReq {
+            if (!StringUtils.isEmpty(strtdt)) {
+                strtdt = strtdt + "000000";
+            }
+            if (!StringUtils.isEmpty(enddt)) {
+                enddt = enddt + "235959";
+            }
+        }
     }
 
     @ApiModel(value = "WwdbVirtualAccountDto-SearchRes")
