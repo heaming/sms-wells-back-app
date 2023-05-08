@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.customer.contact.rest;
 
 import javax.validation.Valid;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(CstCommonConstant.INTERFACE_URL_V2 + "/customers")
 @RequiredArgsConstructor
 @Validated
+@Transactional
 public class WcsaCustomerInterfaceController {
     private final WcsaCustomerInterfaceService wcsaCustomerInterfaceService;
 

@@ -110,6 +110,7 @@ public class WcsaCustomerInterfaceService {
         log.info("dto.RGST_MDFC_USR_ID" + dto.RGST_MDFC_USR_ID());
 
         WcsaInterfaceResultDvo ifResDvo = new WcsaInterfaceResultDvo();
+        ifResDvo.setCstNo("");
         ifResDvo.setRsCd("");
         ifResDvo.setRsMsg(null);
         String cstNo = dto.CST_NO();
@@ -152,6 +153,7 @@ public class WcsaCustomerInterfaceService {
         List<ZcsaCustomerInfoResDvo> pextCustomer = zcsaCustomerInfoService.getCustomers(indvDvo);
 
         if (pextCustomer.isEmpty()) {
+            ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("S");
             ifResDvo.setRsMsg("계약자 정보가 없습니다!");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
@@ -162,18 +164,20 @@ public class WcsaCustomerInterfaceService {
         int response = editCustomerInfoByEcc(dvo);
 
         if (response == 1) {
+            ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("S");
             ifResDvo.setRsMsg("정상 처리되었습니다");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
         } else {
+            ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("F");
-            ifResDvo.setRsMsg("업데이트에 실패하였습니다.");
+            ifResDvo.setRsMsg("고객정보 변경처리에 실패했습니다.");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
 
         }
     }
 
-    private int editCustomerInfoByEcc(ZcsaCustomerInfoByEccDvo dvo) {
+    public int editCustomerInfoByEcc(ZcsaCustomerInfoByEccDvo dvo) {
         //휴대폰 번호, 주소, 변경요청확인여부, 변경요청서 확인일자, 특이사항내용, 등록수정사용자ID
         log.info("dto.CALNG_DV_CD" + dvo.getCalngDvCd());
         log.info("dto.COPN_DV_CD" + dvo.getCopnDvCd());
@@ -250,6 +254,7 @@ public class WcsaCustomerInterfaceService {
         if ("1".equals(dvo.getCopnDvCd())) {
             itgCstNo = zcsaCustomersMapper.selectItgCstNo(cstNo);
             // 통합고객 존재시
+            dvo.setItgCstNo(itgCstNo);
             if (StringUtil.isNotEmpty(itgCstNo)) {
                 int resultItg = mapper.updateItgCstBasEai(dvo);
                 BizAssert.isTrue(resultItg > 0, "MSG_ALT_SVE_ERR");
