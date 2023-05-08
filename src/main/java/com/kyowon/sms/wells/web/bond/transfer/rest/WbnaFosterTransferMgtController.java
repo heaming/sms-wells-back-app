@@ -23,7 +23,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[Wbna] 위탁 이관 관리")
+@Api(tags = "[WBNA] 위탁 이관 관리")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -62,7 +62,7 @@ public class WbnaFosterTransferMgtController {
         @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
         @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
     })
-    @GetMapping("detail/paging")
+    @GetMapping("/detail/paging")
     public PagingResult<SearchDetailRes> getFosterTransferDetails(
         @Valid
         SearchReq dto,
@@ -96,7 +96,7 @@ public class WbnaFosterTransferMgtController {
     }
 
     @ApiOperation(value = "위탁 이관 관리 상세 조회 엑셀 다운로드", notes = "엑셀다운로드 클릭(위탁이관 조회결과 상세 엑셀다운로드)")
-    @GetMapping("detail/excel-download")
+    @GetMapping("/detail/excel-download")
     public List<SearchDetailRes> getFosterTransferDetailsExcelDownload(
         @Valid
         SearchReq dto
