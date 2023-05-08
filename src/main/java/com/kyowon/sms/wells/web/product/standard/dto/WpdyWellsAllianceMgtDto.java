@@ -7,9 +7,9 @@ import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
-public class WpdyHealthAllianceMgtDto {
+public class WpdyWellsAllianceMgtDto {
 
-    @ApiModel(value = "WpdyHealthAllianceMgtDto-SearchReq")
+    @ApiModel(value = "WpdyWellsAllianceMgtDto-SearchReq")
     public record SearchReq(
         String alncmpCd, /* 제휴코드 */
         String sellTpCd, /* 판매유형 */
@@ -21,7 +21,7 @@ public class WpdyHealthAllianceMgtDto {
         String svcEndDt /* 적용 종료일 */
     ) {}
 
-    @ApiModel(value = "WpdyHealthAllianceMgtDto-SearchRes")
+    @ApiModel(value = "WpdyWellsAllianceMgtDto-SearchRes")
     public record SearchRes(
         String pdNm, /* 상품명 */
         String svcDurtion, /* 약정기간 */
@@ -49,13 +49,13 @@ public class WpdyHealthAllianceMgtDto {
         String dtaDlYn /* 데이터삭제여부 */
     ) {}
 
-    @ApiModel(value = "WpdyHealthAllianceMgtDto-SaveReq")
+    @ApiModel(value = "WpdyWellsAllianceMgtDto-SaveReq")
     public record SaveReq(
         @NotEmpty
-        List<WpdyHealthAllianceMgtDto.AllianceBase> bases
+        List<WpdyWellsAllianceMgtDto.AllianceBase> bases
     ) {}
 
-    @ApiModel(value = "WpdyHealthAllianceMgtDto-AllianceBase")
+    @ApiModel(value = "WpdyWellsAllianceMgtDto-AllianceBase")
     public record AllianceBase(
         String pdAlncmpBaseId, /* 상품제휴사기준ID */
         @NotBlank

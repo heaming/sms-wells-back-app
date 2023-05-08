@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyHealthAllianceMgtDto;
-import com.kyowon.sms.wells.web.product.standard.service.WpdyHealthAllianceMgtService;
+import com.kyowon.sms.wells.web.product.standard.dto.WpdyWellsAllianceMgtDto;
+import com.kyowon.sms.wells.web.product.standard.service.WpdyWellsAllianceMgtService;
 import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductWellsConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -31,9 +31,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/alliances")
 @RequiredArgsConstructor
 @Validated
-public class WpdyHealthAllianceMgtController {
+public class WpdyWellsAllianceMgtController {
 
-    private final WpdyHealthAllianceMgtService service;
+    private final WpdyWellsAllianceMgtService service;
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "alncmpCd", value = "제휴코드", paramType = "query", example = "ABC"),
@@ -47,10 +47,10 @@ public class WpdyHealthAllianceMgtController {
     })
     @ApiOperation(value = "헬스 제휴 조회", notes = "헬스 제휴 정보 목록을 조회한다.")
     @GetMapping
-    public List<WpdyHealthAllianceMgtDto.SearchRes> getHealthAlliances(
-        WpdyHealthAllianceMgtDto.SearchReq dto
+    public List<WpdyWellsAllianceMgtDto.SearchRes> getWellsAlliances(
+        WpdyWellsAllianceMgtDto.SearchReq dto
     ) {
-        return service.getHealthAlliances(dto);
+        return service.getWellsAlliances(dto);
     }
 
     @ApiImplicitParams(value = {
@@ -61,34 +61,34 @@ public class WpdyHealthAllianceMgtController {
     })
     @ApiOperation(value = "헬스 제휴 페이징 조회", notes = "검색조건을 입력 받아 Paging된 헬스 제휴 목록을 조회한다.")
     @GetMapping("/paging")
-    public PagingResult<WpdyHealthAllianceMgtDto.SearchRes> getHealthAlliancePages(
-        WpdyHealthAllianceMgtDto.SearchReq dto, @Valid
+    public PagingResult<WpdyWellsAllianceMgtDto.SearchRes> getWellsAlliancePages(
+        WpdyWellsAllianceMgtDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.getHealthAlliancePages(dto, pageInfo);
+        return service.getWellsAlliancePages(dto, pageInfo);
     }
 
     @ApiOperation(value = "헬스 제휴 수정", notes = "수정된 헬스 제휴 정보를 반영한다.")
     @PostMapping
-    public SaveResponse saveHealthAlliances(
+    public SaveResponse saveWellsAlliances(
         @Valid
         @RequestBody
-        WpdyHealthAllianceMgtDto.SaveReq dto
+        WpdyWellsAllianceMgtDto.SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveHealthAlliances(dto))
+            .processCount(service.saveWellsAlliances(dto))
             .build();
     }
 
     @ApiOperation(value = "헬스 제휴 삭제")
     @DeleteMapping
-    public SaveResponse removeHealthAlliances(
+    public SaveResponse removeWellsAlliances(
         @RequestBody
         @NotEmpty
-        List<WpdyHealthAllianceMgtDto.AllianceBase> dtos
+        List<WpdyWellsAllianceMgtDto.AllianceBase> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.removeHealthAlliances(dtos))
+            .processCount(service.removeWellsAlliances(dtos))
             .build();
     }
 }
