@@ -529,10 +529,16 @@ public class WctaOrderDetailMngtDto {
         String alncmpNm,
         String sellEvCd,
         String sellEvNm,
+        String pkgOrdNo,
+        String pmotTpNm,
         String fnlAmt,
         String sellAmt,
         String vat,
         String cntrAmt,
+        String tkAmt,
+        String crpUcAmt,
+        String alncFee,
+        String lcjAmt,
         String istmIntAmt,
         String feeAckmtBaseAmt,
         String crpUc,
@@ -707,7 +713,7 @@ public class WctaOrderDetailMngtDto {
     ) {}
 
     //주문상세조회/관리(정기배송) - 주문상세조회(정기배송-복합상품목록) Search Result Dto
-    @ApiModel("WctaOrderDetailMngtDto-SearchOrderDetailRglrDlvrPagesRes")
+    @ApiModel("WctaOrderDetailMngtDto-SearchCompositionProductsRes")
     public record SearchCompositionProductsRes(
         String basePdCd,
         String pdNm,
@@ -715,6 +721,16 @@ public class WctaOrderDetailMngtDto {
         String fnlVal,
         String ctrVal,
         String ojPdCd,
-        String verSn
+        String verSn,
+        String pdClsfNm
+    ) {}
+
+    //주문상세조회/관리(일시불) - 주문상세조회(일시불-사은품정보) Search Result Dto
+    @ApiModel("WctaOrderDetailMngtDto-SearchFreeGiftInformationRes")
+    public record SearchFreeGiftInformationRes(
+        String fgptPdCd,
+        String fgptPdNm,
+        String fgptQty,
+        String sppFshRgstDtm
     ) {}
 }

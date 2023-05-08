@@ -145,4 +145,8 @@ public class WctaOrderDetailMngtService {
     public List<SearchCompositionProductsRes> getCompositionProducts(SearchCompositionProductsReq dto) {
         return mapper.selectCompositionProducts(dto);
     }
+
+    public List<SearchFreeGiftInformationRes> getFreeGiftInformation(SearchCompositionProductsReq dto) {
+        return mapper.selectFreeGiftInformation(dto);
+    }
 }
