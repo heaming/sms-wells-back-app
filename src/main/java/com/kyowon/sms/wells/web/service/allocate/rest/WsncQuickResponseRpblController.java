@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,5 +50,12 @@ public class WsncQuickResponseRpblController {
         PageInfo pageInfo
     ) {
         return service.getQuickResponseRpbls(dto, pageInfo);
+    }
+
+    @GetMapping("/excel-download")
+    public List<WsncQuickResponseRpblDto.SearchRes> getQuickResponseRpblsExcelDownload(
+        WsncQuickResponseRpblDto.SearchReq dto
+    ) {
+        return service.getQuickResponseRpblsExcelDownload(dto);
     }
 }
