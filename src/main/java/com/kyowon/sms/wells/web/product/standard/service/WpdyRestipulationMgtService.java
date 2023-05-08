@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.product.standard.converter.WpdyRestipulationMgtConverter;
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.DelReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.DuplicationRes;
+import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SearchRes;
@@ -93,9 +93,9 @@ public class WpdyRestipulationMgtService {
      * @return
      */
     @Transactional
-    public int removeRestipulations(List<DelReq> dtos) {
+    public int removeRestipulations(List<RemoveReq> dtos) {
         int processCount = 0;
-        for (DelReq dto : dtos) {
+        for (RemoveReq dto : dtos) {
             WpdyRestipulationDvo vo = converter.mapDelReqToWpdyRestipulationDvo(dto);
             int result = mapper.deleteRestipulation(vo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");

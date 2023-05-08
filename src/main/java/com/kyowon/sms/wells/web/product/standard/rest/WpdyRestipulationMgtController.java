@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.DelReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.DuplicationRes;
+import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SearchRes;
@@ -96,7 +96,7 @@ public class WpdyRestipulationMgtController {
     public SaveResponse removeRestipulations(
         @RequestBody
         @Valid
-        List<DelReq> dtos
+        List<RemoveReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.removeRestipulations(dtos))

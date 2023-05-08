@@ -87,8 +87,8 @@ public class WpdyRestipulationMgtDto {
         String dupliYn /* 중복여부 */
     ) {}
 
-    @ApiModel("WpdyRestipulationMgtDto-DelReq")
-    public record DelReq(
+    @ApiModel("WpdyRestipulationMgtDto-RemoveReq")
+    public record RemoveReq(
         @NotBlank
         String pdCd, /* 상품코드 */
         @NotBlank
@@ -101,7 +101,7 @@ public class WpdyRestipulationMgtDto {
         Integer stplTn, /* 약정회차 */
         String fnlMdfcDtm
     ) {
-        public DelReq {
+        public RemoveReq {
             apyStrtdt = apyStrtdt.replaceAll("-", "");
         }
     }
