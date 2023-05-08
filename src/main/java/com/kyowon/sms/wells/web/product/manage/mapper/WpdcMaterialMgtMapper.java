@@ -41,6 +41,8 @@ public interface WpdcMaterialMgtMapper {
 
     ZpdcGbcoSapMatDvo selectMaterialSap(String sapMatCd);
 
+    List<ZpdcGbcoSapMatDvo> selectMaterialSaps(String sapMatCd);
+
     /**
      * 유효성 체크 조회
      * @param dto
