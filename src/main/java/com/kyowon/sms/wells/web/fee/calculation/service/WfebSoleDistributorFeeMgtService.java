@@ -62,7 +62,7 @@ public class WfebSoleDistributorFeeMgtService {
             dvo.setPerfYm(row.baseYm());
             dvo.setOjDsbYm(row.baseYm());
             dvo.setCoCd(session.getCompanyCode());
-            dvo.setOgTpCd("w05"); // 수수료 총판
+            dvo.setOgTpCd("W05"); // 수수료 총판
             dvo.setPrtnrNo(row.prtnrNo());
             dvo.setFeeTcntDvCd("02"); // 2차
             dvo.setSpmtDsbDvCd("01"); // 정상지급
