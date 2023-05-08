@@ -346,4 +346,17 @@ public class WctaOrderDetailMngtController {
     ) {
         return service.getCompositionProducts(dto);
     }
+
+    @ApiOperation(value = "주문상세조회/관리", notes = "주문상세조회/관리(일시불) -사은품정보")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @GetMapping("/order-detail-mngt/singlepayments/free-gift-information")
+    public List<SearchFreeGiftInformationRes> getFreeGiftInformation(
+        @Valid
+        SearchCompositionProductsReq dto
+    ) {
+        return service.getFreeGiftInformation(dto);
+    }
 }
