@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbVirtualAccountMapper">
+
+    <select id="selectVirtualAccounts" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbVirtualAccountDto$SearchRes">
+            SELECT A1.VAC_BNK_CD
+                 , (
+                    SELECT A2.FNIT_NM
+                      FROM TB_RVDW_FNIT_CD A2
+                     WHERE A2.FNIT_DV_CD = '1'
+                       AND A2.FNIT_CD = A1.VAC_BNK_CD
+                   ) VAC_BNK_NM
+                 , A1.VAC_NO
+                 , A1.ICHR_PRTNR_NO
+                 , A1.ICHR_PRTNR_NM
+                 , (
+                    SELECT B2.DP_DTM
+                      FROM TB_RVDW_ITG_DP_BAS B2
+                     WHERE B2.DTA_DL_YN = 'N'
+                       AND B2.VAC_IS_ID = A1.VAC_IS_ID
+                       AND B2.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+                                 ORDER BY B2.ITG_DP_NO  DESC
+                                 FETCH FIRST 1 ROW ONLY
+                   ) FNL_DP_DTM
+                 , (
+                    SELECT B2.DP_AMT
+                      FROM TB_RVDW_ITG_DP_BAS B2
+                     WHERE B2.DTA_DL_YN = 'N'
+                       AND B2.VAC_IS_ID = A1.VAC_IS_ID
+                       AND B2.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+                                 ORDER BY B2.ITG_DP_NO  DESC
+                                 FETCH FIRST 1 ROW ONLY
+                   ) FNL_DP_AMT
+                 , (
+                    SELECT SUM(B2.DP_BLAM)
+                      FROM TB_RVDW_ITG_DP_BAS B2
+                     WHERE B2.DTA_DL_YN = 'N'
+                       AND B2.VAC_IS_ID = A1.VAC_IS_ID
+                       AND B2.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+                   ) TOT_DP_BLAM
+              FROM TB_RVDW_VAC_BAS A1
+             WHERE A1.VAC_STAT_CD = '01' <!-- 01 할당 -->
+               AND A1.KW_GRP_CO_CD = '2000' <!-- 2000 교원프라퍼티 -->
+               AND A1.VAC_IS_DV_CD = '1' <!-- 1 판매 -->
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+               AND A1.ICHR_PRTNR_NO = #{prtnrNo} /*조회조건*/
+        </if>
+    </select>
+
+    <select id="selectVirtualAccountDepositItemizations" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbVirtualAccountDto$SearchDtlRes">
+    SELECT TO_CHAR(TO_DATE(A1.DP_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD') DP_DT /*입금일*/
+         , TO_CHAR(TO_DATE(A1.DP_DTM, 'YYYYMMDDHH24MISS'), 'HH24MI') DP_HM /*입금시분*/
+         , TO_CHAR(TO_DATE(A1.DP_DTM, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI') DP_DTM /*입금일*/
+         , A1.DPR_NM /*입금자*/
+         , A1.DP_AMT /*입금금액*/
+         , (A1.DP_CPRCNF_AMT + A1.CAN_AMT + A1.RFND_AMT) USE_AMT /*사용금액*/
+         , A1.DP_BLAM /*입금잔액*/
+         , B1.VAC_NO /*가상계좌번호*/
+      FROM TB_RVDW_ITG_DP_BAS A1
+      JOIN TB_RVDW_VAC_IS_IZ B1
+        ON B1.DTA_DL_YN = 'N'
+       AND B1.VAC_IS_ID = A1.VAC_IS_ID
+     WHERE A1.DTA_DL_YN = 'N'
+       AND A1.KW_GRP_CO_CD = '2000'
+       AND A1.DP_DV_CD = '1' /*1 : 입금*/
+       AND A1.DP_TP_CD = '0101' /*0101 : 개별수납(가상계좌)*/
+        <if test='@MybatisUtils@isNotEmpty(strtdt) and @MybatisUtils@isNotEmpty(enddt)'>
+       AND A1.DP_DTM BETWEEN #{strtdt} AND #{enddt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+       AND A1.PRTNR_NO = #{prtnrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(bnkCd)'>
+       AND B1.VAC_BNK_CD = #{bnkCd}
+        </if>
+    </select>
+</mapper>
