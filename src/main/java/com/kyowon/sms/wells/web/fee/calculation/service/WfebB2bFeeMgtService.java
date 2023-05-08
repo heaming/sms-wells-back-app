@@ -152,7 +152,8 @@ public class WfebB2bFeeMgtService {
         processCount += mapper.updateAggregateNtorMmCl(req);
 
         // 06. 수수료일정 갱신 API 호출 공통모듈
-        String feeSchdId = req.perfYm() + "401" + "02" + session.getCompanyCode(); // 기준일+B2b+2차수+회사코드
+        // @TODO 세션 coCd[session.getCompanyCode()] 관련해서 업무별로 말이 다달라서 하드코딩함 -_-;
+        String feeSchdId = req.perfYm() + "401" + "02" + "2000"; // 기준일+B2b+2차수+회사코드
         service.editStepLevelStatus(feeSchdId, "W0401", "03");
         return processCount;
     }
