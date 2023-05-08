@@ -216,6 +216,11 @@ public class WcsaCustomerInterfaceService {
             indvCstAdrDvo.setHistStrtDtm(strDate);
             indvCstAdrDvo.setCstCtplcOjRefkVal(cstNo);
             indvCstAdrDvo.setDtaDlYn("N");
+            if ("2".equals(dvo.getCopnDvCd())) {
+                indvCstAdrDvo.setCopnDvCd("2");
+                indvCstAdrDvo.setCstCtplcOjDvCd("03");
+                indvCstAdrDvo.setCtplcTpCd("02");
+            }
             result = zcsaCustomerMapper.insertIndvCstAdrInfo(indvCstAdrDvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         }
@@ -231,6 +236,11 @@ public class WcsaCustomerInterfaceService {
             indvCstHpnoDvo.setLocaraTno(dvo.getCralLocaraTno());
             indvCstHpnoDvo.setExnoEncr(dvo.getMexno());
             indvCstHpnoDvo.setIdvTno(dvo.getCralIdvTno());
+            if ("2".equals(dvo.getCopnDvCd())) {
+                indvCstHpnoDvo.setCopnDvCd("2");
+                indvCstHpnoDvo.setCstCtplcOjDvCd("03");
+                indvCstHpnoDvo.setCtplcTpCd("03");
+            }
             result = zcsaCustomerMapper.insertIndvCstMpnoInfo(indvCstHpnoDvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         }
