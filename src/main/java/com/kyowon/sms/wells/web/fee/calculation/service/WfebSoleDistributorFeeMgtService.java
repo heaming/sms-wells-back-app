@@ -49,14 +49,14 @@ public class WfebSoleDistributorFeeMgtService {
 
     /**
      * 총판수수료 생성관리 저장(수수료)
-     * @param listFees
+     * @param dtos
      * @return
      */
     @Transactional
-    public int editDistributorFee(List<Fee> listFees) {
+    public int editDistributorFee(SaveReq dtos) {
         int processCount = 0;
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        for (Fee row : listFees) {
+        for (Fee row : dtos.changedRows()) {
             WfebSoleDistributorFeeDvo dvo = new WfebSoleDistributorFeeDvo();
             dvo.setBaseYm(row.baseYm());
             dvo.setPerfYm(row.baseYm());

@@ -48,7 +48,7 @@ public class WfebSoleDistributorFeeMgtController {
 
     @ApiOperation(value = "총판수수료 생성관리 - 저장(수수료)", notes = "총판수수료 생성관리의 수수료 실적을 수정한다.")
     @PostMapping("/fee")
-    public SaveResponse editDistributorFee(@RequestBody @Valid List<Fee> listFees) throws Exception {
+    public SaveResponse editDistributorFee(@RequestBody @Valid SaveReq listFees) throws Exception {
         return SaveResponse.builder().processCount(service.editDistributorFee(listFees)).build();
     }
 

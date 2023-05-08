@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.fee.calculation.dto;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 public class WfebSoleDistributorFeeMgtDto {
     public record SearchPerformanceReq(
@@ -58,6 +59,9 @@ public class WfebSoleDistributorFeeMgtDto {
         Long amt08
     ) {}
 
+    public record SaveReq(
+        List<Fee> changedRows
+    ) {};
     public record CreateReq(
         @NotBlank
         String perfYm /* 실적년월 */
