@@ -33,15 +33,15 @@ public class WfefEstimateFeeMgtDto {
     ) {}
 
     public record EstimateP(
-        Long amtSumPr01, /* 개인-가전비례 */
-        Long amtSumPr02, /* 개인-가전외비례 */
-        Long amtSumPr03, /* 개인-판매장려 */
-        Long amtSumPr04, /* 개인-정착 */
-        Long amtSumPr05, /* 개인-상조 */
-        Long amtSumOg01, /* 조직-가전비례 */
-        Long amtSumOg02, /* 조직-가전외비례 */
-        Long amtSumOg03, /* 조직-판매장려 */
-        Long amtSumOg04 /* 조직-상조 */
+        Long amtSumElhmPrpn, /* 개인-가전비례 */
+        Long amtSumElhmExcpPrpn, /* 개인-가전외비례 */
+        Long amtSumSalIntv, /* 개인-판매장려 */
+        Long amtSumStmnt, /* 개인-정착 */
+        Long amtSumMutu, /* 개인-상조 */
+        Long amtSumOgElhmPrpn, /* 조직-가전비례 */
+        Long amtSumOgElhmExcpPrpn, /* 조직-가전외비례 */
+        Long amtSumOgSalIntv, /* 조직-판매장려 */
+        Long amtSumOgMutu /* 조직-상조 */
     ) {}
 
     public record SaleP(
