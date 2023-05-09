@@ -17,19 +17,19 @@ public class WfefEstimateFeeMgtDto {
         String prtnrKnm,
         String ogCd, // 조직코드
         String rsbDvCd, // 직책구분코드
-        Long w010003Sum, // 예상판매수수료 - 개인
-        Long w010021Sum, // 예상상조수수료 - 개인
+        Long amtEstSalFee, // 예상판매수수료 - 개인
+        Long amtMutAidFee, // 예상상조수수료 - 개인
         Long feeSum // 예상수수료합계 - 개인
     ) {}
 
     public record PerformanceP(
         String type, // 구분
-        Long w01P00030, // 가전
-        Long w01P00031, // 가전외
-        Long w01P00010Lif429, // 상조-429
-        Long w01P00010Lif599, // 상조-599
-        String w02P00090, // 교육수료-플래너스타트업
-        String w02P00089 // 교육수료-플래너실전
+        Long amtElhm, // 가전
+        Long amtExceptElhm, // 가전외
+        Long amtMutu429, // 상조-429
+        Long amtMutu599, // 상조-599
+        String eduCertSrtupYn, // 교육수료-플래너스타트업
+        String eduCertPlarPriticYn // 교육수료-플래너실전
     ) {}
 
     public record EstimateP(
