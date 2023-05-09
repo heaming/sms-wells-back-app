@@ -1,10 +1,9 @@
 package com.kyowon.sms.common.web.promotion.common.service;
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Assertions;
@@ -13,8 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionAtcDvo;
 import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionInfoDvo;
-import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionInputCndtDvo;
 import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionInputPdDvo;
 import com.kyowon.sms.common.web.promotion.common.mapper.ZpmzPromotionApplyMapper;
 import com.kyowon.sms.common.web.promotion.zcommon.constants.PmPromotionConst;
@@ -33,6 +32,8 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
     private static final String FILTER_KEY_PROMOTION = "PMOT_CD";
     private static final String FILTER_KEY_PRODUCT = "basepdcd";
     private static final String FILTER_KEY_PRODUCT_PRICE = "basepdprcdtlcd";
+    private static final String SYS_CMPP_NM_BASE_PRODUCT_PRICE = "basePdUprc";
+    private static final String SYS_CMPP_NM_LINK_ORDER_RECEIPT_DATE = "lkOrdRcpdt";
     private static final String NO_DATA = "NODATA";
 
     private final ZpmzPromotionApplyService service;
@@ -131,17 +132,17 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
     void getPromotionsByConditionsNormal() throws NoSuchFieldException, IllegalAccessException {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 기준상품판매가(basePdUprc)가 포함된 프로모션 발췌하여 입력값으로 사용
-        ZpmzPromotionInputCndtDvo paramDvo = getTestData(new String[]{"basePdCd", "basePdUprc"});
-        if (paramDvo == null) {
+        List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "basePdUprc"});
+        if (paramDvos == null && paramDvos.isEmpty()) {
             log.info("▶▶▶ Test data don't exists.");
             return;
         }
 
         // when
-        List<ZpmzPromotionInfoDvo> result = service.getPromotionsByConditions(paramDvo);
+        List<ZpmzPromotionInfoDvo> result = service.getPromotionsByConditions(paramDvos);
 
         // then
-        log.info("▶▶▶ INPUT : {}", paramDvo.toString());
+        log.info("▶▶▶ INPUT : {}", paramDvos.toString());
         log.info("▶▶▶ OUTPUT : {} 건", result.size());
         for (ZpmzPromotionInfoDvo dvo : result) {
             log.info("▶▶▶ OUTPUT : {}", dvo.toString());
@@ -154,19 +155,20 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
     void getPromotionsByConditionsPriceError() throws NoSuchFieldException, IllegalAccessException {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 기준상품판매가(basePdUprc)가 포함된 프로모션 발췌하여 입력값으로 사용
-        ZpmzPromotionInputCndtDvo paramDvo = getTestData(new String[]{"basePdCd", "basePdUprc"});
-        if (paramDvo == null) {
+        List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "basePdUprc"});
+        if (paramDvos == null && paramDvos.isEmpty()) {
             log.info("▶▶▶ Test data don't exists.");
             return;
         }
 
-        paramDvo.setBasePdUprc(String.valueOf(Integer.parseInt(paramDvo.getBasePdUprc()) - 1)); // 임의로 가격 변경
+        ZpmzPromotionAtcDvo changeDvo = paramDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(),SYS_CMPP_NM_BASE_PRODUCT_PRICE)).findAny().get();
+        changeDvo.setVarbBasVal(String.valueOf(Integer.parseInt(changeDvo.getVarbBasVal()) - 1)); // 임의로 가격 변경
 
         // when
-        List<ZpmzPromotionInfoDvo> result = service.getPromotionsByConditions(paramDvo);
+        List<ZpmzPromotionInfoDvo> result = service.getPromotionsByConditions(paramDvos);
 
         // then
-        log.info("▶▶▶ INPUT : {}", paramDvo.toString());
+        log.info("▶▶▶ INPUT : {}", changeDvo.toString());
         log.info("▶▶▶ OUTPUT : {}", result.toString());
 
         Assertions.assertThat(result.size()).isEqualTo(0);
@@ -177,19 +179,20 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
     void getPromotionsByConditionsDateError() throws NoSuchFieldException, IllegalAccessException {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 연계상품접수일(lkOrdRcpdt)가 포함된 프로모션 발췌하여 입력값으로 사용
-        ZpmzPromotionInputCndtDvo paramDvo = getTestData(new String[]{"basePdCd", "lkOrdRcpdt"});
-        if (paramDvo == null) {
+        List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "lkOrdRcpdt"});
+        if (paramDvos == null && paramDvos.isEmpty()) {
             log.info("▶▶▶ Test data don't exists.");
             return;
         }
 
-        paramDvo.setLkOrdRcpdt(String.valueOf(Integer.parseInt(paramDvo.getLkOrdRcpdt()) + 1)); // 임의로 일자 변경
+        ZpmzPromotionAtcDvo changeDvo = paramDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(),SYS_CMPP_NM_LINK_ORDER_RECEIPT_DATE)).findAny().get();
+        changeDvo.setVarbBasVal(String.valueOf(Integer.parseInt(changeDvo.getVarbBasVal()) + 1)); // 임의로 일자 변경
 
         // when
-        List<ZpmzPromotionInfoDvo> result = service.getPromotionsByConditions(paramDvo);
+        List<ZpmzPromotionInfoDvo> result = service.getPromotionsByConditions(paramDvos);
 
         // then
-        log.info("▶▶▶ INPUT : {}", paramDvo.toString());
+        log.info("▶▶▶ INPUT : {}", paramDvos.toString());
         log.info("▶▶▶ OUTPUT : {}", result.toString());
 
         Assertions.assertThat(result.size()).isEqualTo(0);
@@ -230,15 +233,15 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
         return result;
     }
 
-    private ZpmzPromotionInputCndtDvo getTestData(String[] filterKey) throws NoSuchFieldException, IllegalAccessException {
+    private List<ZpmzPromotionAtcDvo> getTestData(String[] filterKey) throws NoSuchFieldException, IllegalAccessException {
 
-        ZpmzPromotionInputCndtDvo resultDvo = null;
+        List<ZpmzPromotionAtcDvo> resultAtcs = new ArrayList<>();
 
         if (testData.isEmpty()) {
             log.info("▶▶▶ Test data don't exists.");
         } else {
             // filter에 모두 충족하는 데이터 찾기
-            List<HashMap<String, Object>> params = testData.stream().filter(item -> {
+            HashMap<String, Object> paramMap = testData.stream().filter(item -> {
                 String sysCmppNm = Objects.toString(item.get(FILTER_KEY_NMS), "");
                 for (String key : filterKey) {
                     if (!sysCmppNm.contains(key)) {
@@ -246,28 +249,24 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
                     }
                 }
                 return true;
-            }).collect(Collectors.toList());
-            if (params != null && params.isEmpty()) {
+            }).findAny().get();
+            if (paramMap != null && paramMap.isEmpty()) {
                 log.info("▶▶▶ Test data don't exists.");
             } else {
                 // ZpmzPromotionInputCndtDvo 데이터 설정
-                HashMap<String, Object> param = params.get(0);
-                resultDvo = new ZpmzPromotionInputCndtDvo();
-                for (String item : Objects.toString(param.get(FILTER_KEY_NMS), "").split(",")) {
-                    Field field = resultDvo.getClass().getDeclaredField(item.split("\\|")[0]);
-                    field.setAccessible(true);
+                for (String item : Objects.toString(paramMap.get(FILTER_KEY_NMS), "").split(",")) {
                     String value = item.split("\\|")[1];
                     if (StringUtils.equals(item.split("\\|")[2], PmPromotionConst.VAL_CMPR_DV_LEFT)) {
                         value = String.valueOf(Integer.parseInt(value) + 1);
                     } else if (StringUtils.equals(item.split("\\|")[2], PmPromotionConst.VAL_CMPR_DV_RIGHT)) {
                         value = String.valueOf(Integer.parseInt(value) - 1);
                     }
-                    field.set(resultDvo, value);
+                    resultAtcs.add(new ZpmzPromotionAtcDvo(item.split("\\|")[0], value));
                 }
             }
         }
 
-        return resultDvo;
+        return resultAtcs;
     }
 
 }
