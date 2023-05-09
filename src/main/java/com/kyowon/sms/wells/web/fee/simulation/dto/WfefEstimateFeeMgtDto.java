@@ -19,7 +19,7 @@ public class WfefEstimateFeeMgtDto {
         String rsbDvCd, // 직책구분코드
         Long amtEstSalFee, // 예상판매수수료 - 개인
         Long amtMutAidFee, // 예상상조수수료 - 개인
-        Long feeSum // 예상수수료합계 - 개인
+        Long amtFeeSum // 예상수수료합계 - 개인
     ) {}
 
     public record PerformanceP(
@@ -33,15 +33,15 @@ public class WfefEstimateFeeMgtDto {
     ) {}
 
     public record EstimateP(
-        Long sumPr01, /* 개인-가전비례 */
-        Long sumPr02, /* 개인-가전외비례 */
-        Long sumPr03, /* 개인-판매장려 */
-        Long sumPr04, /* 개인-정착 */
-        Long sumPr05, /* 개인-상조 */
-        Long sumOg01, /* 조직-가전비례 */
-        Long sumOg02, /* 조직-가전외비례 */
-        Long sumOg03, /* 조직-판매장려 */
-        Long sumOg04 /* 조직-상조 */
+        Long amtSumPr01, /* 개인-가전비례 */
+        Long amtSumPr02, /* 개인-가전외비례 */
+        Long amtSumPr03, /* 개인-판매장려 */
+        Long amtSumPr04, /* 개인-정착 */
+        Long amtSumPr05, /* 개인-상조 */
+        Long amtSumOg01, /* 조직-가전비례 */
+        Long amtSumOg02, /* 조직-가전외비례 */
+        Long amtSumOg03, /* 조직-판매장려 */
+        Long amtSumOg04 /* 조직-상조 */
     ) {}
 
     public record SaleP(
@@ -55,9 +55,9 @@ public class WfefEstimateFeeMgtDto {
         String pdNm,
         String cstKnm,
         String sellDvCd,
-        Long sumAmt01,
-        Long sumAmt04,
-        Long sumAmt28
+        Long amtSumElhm,
+        Long amtSumExceptElhm,
+        Long amtSumChng
     ) {}
 
     public record SearchOgPRes(
