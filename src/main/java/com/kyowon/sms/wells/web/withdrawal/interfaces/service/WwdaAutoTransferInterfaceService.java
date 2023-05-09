@@ -184,21 +184,21 @@ public class WwdaAutoTransferInterfaceService {
             } else {
                 // 대표계약번호, 대표계약일련번호 존재하고 계약번호와 계약일련번호도 존재하는 경우
                 // 1. 중복되는 대표계약번호, 대표계약일련번호가 동일한 경우 삭제 하지 않음.
-                if ("S".equals(reslCd)) {
-                    if (!StringUtils.equals(dgcntrNo, req.getDgCntrNo())
-                        || !StringUtils.equals(dgcntrSn, req.getDgCntrSn())) {
-                        try {
-                            // 통합청구대상기본 데이터 삭제 처리(DAT_DL_YN = 'Y' 처리)
-                            zwdaBundleMapper.deleteItgBilOjAllUseDelegate(zwdaDvo);
-                            // 통합청구대상기본이력 생성(대표계약번호, 대표계약일련번호)
-                            zwdaBundleMapper.deleteItgBilOjUseDelegate(zwdaDvo);
-                        } catch (Exception e) {
-                            reslCd = "E";
-                            reslCntn = messageResourceService.getMessage("MSG_ALT_ERR_BNDL_IF");
-                        }
-                        dgcntrNo = req.getDgCntrNo();
-                        dgcntrSn = req.getDgCntrSn();
+                if (!StringUtils.equals(dgcntrNo, req.getDgCntrNo())
+                    || !StringUtils.equals(dgcntrSn, req.getDgCntrSn())) {
+                    try {
+                        // 통합청구대상기본 데이터 삭제 처리(DAT_DL_YN = 'Y' 처리)
+                        zwdaBundleMapper.deleteItgBilOjAllUseDelegate(zwdaDvo);
+                        // 통합청구대상기본이력 생성(대표계약번호, 대표계약일련번호)
+                        zwdaBundleMapper.deleteItgBilOjUseDelegate(zwdaDvo);
+                    } catch (Exception e) {
+                        reslCd = "E";
+                        reslCntn = messageResourceService.getMessage("MSG_ALT_ERR_BNDL_IF");
                     }
+                    dgcntrNo = req.getDgCntrNo();
+                    dgcntrSn = req.getDgCntrSn();
+                }
+                if ("S".equals(reslCd)) {
                     ZwdaBundleWithdrawalMgtDvo saveDvo = new ZwdaBundleWithdrawalMgtDvo();
 
                     String ItgBilOjPk = zwdaBundleMapper.selectItgBilPk(); // 통합청구대상 SEQ SQ_RVCL_ITG_BIL_OJ_BAS$ITG_BIL_OJ_ID
