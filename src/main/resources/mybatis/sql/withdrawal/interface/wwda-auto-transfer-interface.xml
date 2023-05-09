@@ -363,4 +363,226 @@
              AND A1.FNIT_CD = #{fnitCd} /*입력값-금융기관코드*/
              AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN A1.VL_STRTDT ||'000000' AND A1.VL_ENDDT ||'235959'
     </select>
+
+    <select id="selectBundleInfos"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto$SearchBundleInfoRes">
+          SELECT A1.CNTR_CST_NO CST_NO /*고객번호*/
+               , B1.CNTR_NO /*계약번호*/
+               , B1.CNTR_SN /*계약일련번호*/
+               , (
+                  SELECT A2.CST_KNM
+                    FROM TB_CUBS_CST_BAS A2
+                   WHERE A2.CST_NO = A1.CNTR_CST_NO
+                 ) CNTRT_NM /*계약자명*/
+               , (
+                  SELECT A2.PD_NM
+                    FROM TB_PDBS_PD_BAS A2
+                   WHERE A2.PD_CD = B1.BASE_PD_CD
+                 ) PD_NM /*상품명*/
+               , '' ISTLL_KNM /*설치자한글명*/
+               , C1.FNT_DV_CD /*이체구분코드*/
+               , F_CMZ_CD_NM('TNT_BASE', 'FNT_DV_CD', C1.FNT_DV_CD) FNT_DV_CD_NM /*이체구분코드명*/
+               , (
+                  SELECT A2.FNIT_NM
+                    FROM TB_RVDW_FNIT_CD A2
+                   WHERE A2.FNIT_CD = CASE WHEN D1.DP_TP_CD = '0102' THEN D1.BNK_CD
+                                           WHEN D1.DP_TP_CD = '0203' THEN D1.CDCO_CD
+                                       END
+                     AND A2.FNIT_DV_CD = CASE WHEN D1.DP_TP_CD = '0102' THEN '1'
+                                              WHEN D1.DP_TP_CD = '0203' THEN '2'
+                                         END
+                 ) FNIT_NM /*금융기관명*/
+               , CASE WHEN D1.DP_TP_CD = '0102' THEN D1.ACNO_ENCR
+                      WHEN D1.DP_TP_CD = '0203' THEN D1.CRCDNO_ENCR
+                  END ACNO_CDNO /*계좌카드번호*/
+               , D1.OWR_KNM /*소유자한글명*/
+               , D1.MPY_BSDT FNT_STPL_D /*이체약정일*/
+               , C1.DG_YN /*대표여부*/
+               , 'Y' BNDL_YN /*묶음여부*/
+               , C1.DG_CNTR_NO /*대표계약번호*/
+               , C1.DG_CNTR_SN /*대표계약일련번호*/
+               , '' IST_DT /*설치일자*/
+               , C1.FNL_MDFC_DTM MDFC_DT /*수정일자*/
+               , C1.FNL_MDFC_USR_ID /*수정담당자ID*/
+               , (
+                  SELECT A2.CST_KNM
+                    FROM TB_CUBS_CST_BAS A2
+                   WHERE A2.CST_NO = C1.FNL_MDFC_USR_ID
+                 ) MDFC_PSIC_NM /*수정담당자명*/
+            FROM TB_SSCT_CNTR_BAS A1 /*계약기본*/
+            JOIN TB_SSCT_CNTR_DTL B1 /*계약상세*/
+              ON B1.DTA_DL_YN = 'N'
+             AND B1.CNTR_NO = A1.CNTR_NO
+            JOIN TB_RVCL_ITG_BIL_OJ_BAS C1 /*통합청구대상기본*/
+              ON C1.DTA_DL_YN = 'N'
+             AND C1.SUBOD_CNTR_NO = B1.CNTR_NO
+             AND C1.SUBOD_CNTR_SN = B1.CNTR_SN
+            JOIN TB_SSCT_CNTR_STLM_BAS D1 /*계약결제기본*/
+              ON D1.DTA_DL_YN = 'N'
+             AND D1.CNTR_NO = A1.CNTR_NO
+           WHERE A1.DTA_DL_YN = 'N'
+             AND A1.CNTR_CAN_DTM IS NULL
+             AND A1.CNTR_CST_NO = #{cstNo}
+             AND C1.FNT_DV_CD = CASE WHEN #{fntDvCd} = '01' THEN '0102'
+                                     WHEN #{fntDvCd} = '02' THEN '0203'
+                                END
+    </select>
+
+    <select id="selectEvidenceInfos"
+            resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo">
+           SELECT TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD') RCT_DT /*접수일자*/
+                , TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'HH24MISS') RCT_TM /*접수시간*/
+                , A1.CH_RCP_USR_ID /*변경접수사용자ID*/
+                , (
+                   SELECT MAX(A2.PRTNR_KNM)
+                     FROM TB_OGBS_PRTNR_BAS A2
+                    WHERE A2.PRTNR_NO = A1.CH_RCP_USR_ID
+                  ) PSIC_NM /*담당자명*/
+                , B1.DTL_CNTR_NO CNTR_NO /*계약번호*/
+                , B1.DTL_CNTR_SN CNTR_SN /*계약일련번호*/
+                , (
+                   SELECT A2.SELL_TP_CD
+                     FROM TB_SSCT_CNTR_DTL A2
+                    WHERE A2.DTA_DL_YN = 'N'
+                      AND A2.CNTR_NO = B1.DTL_CNTR_NO
+                      AND A2.CNTR_SN = B1.DTL_CNTR_SN
+                  ) SELL_TP_CD /*판매유형코드*/
+                , (
+                   SELECT B2.PD_NM
+                     FROM TB_SSCT_CNTR_DTL A2
+                     JOIN TB_PDBS_PD_BAS B2
+                       ON B2.PD_CD = A2.BASE_PD_CD
+                    WHERE A2.DTA_DL_YN = 'N'
+                      AND A2.CNTR_NO = B1.DTL_CNTR_NO
+                      AND A2.CNTR_SN = B1.DTL_CNTR_SN
+                  ) PD_NM /*상품명*/
+                , (
+                   SELECT B2.CRAL_LOCARA_TNO
+                     FROM TB_SSCT_CNTR_BAS A2
+                     JOIN TB_CUBS_CST_BAS B2
+                       ON B2.CST_NO = A2.CNTR_CST_NO
+                    WHERE A2.DTA_DL_YN = 'N'
+                      AND A2.CNTR_NO = B1.DTL_CNTR_NO
+                  ) CRAL_LOCARA_TNO /*휴대지역전화번호*/
+                , (
+                   SELECT B2.MEXNO_ENCR
+                     FROM TB_SSCT_CNTR_BAS A2
+                     JOIN TB_CUBS_CST_BAS B2
+                       ON B2.CST_NO = A2.CNTR_CST_NO
+                    WHERE A2.DTA_DL_YN = 'N'
+                      AND A2.CNTR_NO = B1.DTL_CNTR_NO
+                  ) MEXNO_ENCR /*휴대전화국번호암호화*/
+                , (
+                   SELECT B2.CRAL_IDV_TNO
+                     FROM TB_SSCT_CNTR_BAS A2
+                     JOIN TB_CUBS_CST_BAS B2
+                       ON B2.CST_NO = A2.CNTR_CST_NO
+                    WHERE A2.DTA_DL_YN = 'N'
+                      AND A2.CNTR_NO = B1.DTL_CNTR_NO
+                  ) CRAL_IDV_TNO /*휴대개별전화번호*/
+                , '' MPNO /*휴대전화번호*/
+                , (
+                   SELECT A2.FNIT_NM
+                     FROM TB_RVDW_FNIT_CD A2
+                     JOIN TB_SSCT_CNTR_STLM_BAS B2
+                       ON B2.DTA_DL_YN = 'N'
+                      AND B2.CNTR_STLM_ID = D1.BF_CNTR_STLM_ID
+                    WHERE A2.FNIT_CD = CASE WHEN B2.DP_TP_CD = '0102' THEN B2.BNK_CD
+                                            WHEN B2.DP_TP_CD = '0203' THEN B2.CDCO_CD
+                                        END
+                      AND A2.FNIT_DV_CD = CASE WHEN B2.DP_TP_CD = '0102' THEN '1'
+                                               WHEN B2.DP_TP_CD = '0203' THEN '2'
+                                           END
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A2.VL_STRTDT AND A2.VL_ENDDT
+                  ) BFCH_FNIT_NM /*변경전금융기관명*/
+                , (
+                   SELECT CASE WHEN B2.DP_TP_CD = '0102' THEN B2.ACNO_ENCR
+                               WHEN B2.DP_TP_CD = '0203' THEN B2.CRCDNO_ENCR
+                           END
+                     FROM TB_SSCT_CNTR_STLM_BAS B2
+                    WHERE B2.DTA_DL_YN = 'N'
+                      AND B2.CNTR_STLM_ID = D1.BF_CNTR_STLM_ID
+                  ) BFCH_ACNO_CDNO /*변경전계좌카드번호*/
+                , (
+                   SELECT B2.OWR_KNM
+                     FROM TB_SSCT_CNTR_STLM_BAS B2
+                    WHERE B2.DTA_DL_YN = 'N'
+                      AND B2.CNTR_STLM_ID = D1.BF_CNTR_STLM_ID
+                  ) BFCH_OWR_KNM /*변경전소유자한글명*/
+                , (
+                   SELECT A2.FNIT_NM
+                     FROM TB_RVDW_FNIT_CD A2
+                    WHERE A2.FNIT_CD = CASE WHEN D1.DP_TP_CD = '0102' THEN D1.BNK_CD
+                                            WHEN D1.DP_TP_CD = '0203' THEN D1.CDCO_CD
+                                        END
+                      AND A2.FNIT_DV_CD = CASE WHEN D1.DP_TP_CD = '0102' THEN '1'
+                                               WHEN D1.DP_TP_CD = '0203' THEN '2'
+                                           END
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A2.VL_STRTDT AND A2.VL_ENDDT
+                  ) AFCH_FNIT_NM /*변경후금융기관명*/
+                , CASE WHEN D1.DP_TP_CD = '0102' THEN D1.ACNO_ENCR
+                       WHEN D1.DP_TP_CD = '0203' THEN D1.CRCDNO_ENCR
+                   END AFCH_ACNO_CDNO /*변경후계좌카드번호*/
+                , D1.OWR_KNM AFCH_OWR_KNM /*변경후소유자한글명*/
+                , D1.MPY_BSDT FNT_STPL_D /*이체약정일*/
+                , F1.TRS_DTM AFTN_EVID_FSH_DT /*자동이체증빙완료일자*/
+                , CASE WHEN F1.TRS_DTM IS NOT NULL THEN 'Y' ELSE 'N' END AFTN_EVID_FSH_YN /*자동이체증빙완료여부*/
+                , D1.FNIT_APR_RS_CD /*금융기관승인결과코드*/
+                , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', (
+                                                                  SELECT A2.SELL_TP_CD
+                                                                    FROM TB_SSCT_CNTR_DTL A2
+                                                                   WHERE A2.DTA_DL_YN = 'N'
+                                                                     AND A2.CNTR_NO = B1.DTL_CNTR_NO
+                                                                     AND A2.CNTR_SN = B1.DTL_CNTR_SN
+                                                                 )
+                  ) SELL_TP_CD_NM /*판매유형코드명*/
+             FROM TB_SSCT_CNTR_CH_RCP_BAS A1 /*계약변경접수기본*/
+             JOIN TB_SSCT_CNTR_CH_RCP_DTL B1 /*계약변경접수상세*/
+               ON B1.DTA_DL_YN = 'N'
+              AND B1.CNTR_CH_RCP_ID = A1.CNTR_CH_RCP_ID
+             JOIN TB_RVCL_AFTN_CH_APLC_IZ C1 /*자동이체변경신청내역*/
+               ON C1.DTA_DL_YN = 'N'
+              AND C1.CNTR_CH_RCP_ID = A1.CNTR_CH_RCP_ID
+             JOIN TB_SSCT_CNTR_STLM_BAS D1 /*계약결제기본*/
+               ON D1.DTA_DL_YN = 'N'
+              AND D1.CNTR_STLM_ID = C1.CNTR_STLM_ID
+           LEFT OUTER JOIN (
+                   SELECT E1.CNTR_NO
+                        , E1.CNTR_SN
+                        , E1.APR_DT
+                        , E1.BNK_CD
+                        , E1.TRS_DTM
+                        , ROW_NUMBER() OVER ( PARTITION BY E1.CNTR_NO, E1.CNTR_SN ORDER BY E1.APR_DT DESC ) RN
+                     FROM TB_RVCL_AC_FNT_EVID_MTRS_IZ E1
+                    WHERE E1.DTA_DL_YN = 'N'
+                  ) F1
+               ON F1.RN = 1
+              AND F1.CNTR_NO = B1.DTL_CNTR_NO
+              AND F1.CNTR_SN = B1.DTL_CNTR_SN
+              AND F1.APR_DT = TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD')
+              AND F1.BNK_CD = D1.BNK_CD
+           WHERE A1.DTA_DL_YN = 'N'
+             AND A1.CNTR_CH_TP_CD = '301' /*자동이체변경*/
+        <if test='@MybatisUtils@isNotEmpty(rctDt)'>
+             AND A1.CNTR_CH_RCP_DTM LIKE #{rctDt}||'%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+             AND B1.DTL_CNTR_NO = #{cntrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+             AND B1.DTL_CNTR_SN = #{cntrSn}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(chRcpUsrId)'>
+             AND A1.CH_RCP_USR_ID = #{chRcpUsrId}
+        </if>
+        <if test='@MybatisUtils@equals(evidFshYn, "Y")'>
+             AND F1.TRS_DTM IS NOT NULL
+        </if>
+        <if test='@MybatisUtils@equals(evidFshYn, "N")'>
+             AND F1.TRS_DTM IS NULL
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(owrKnm)'>
+             AND D1.OWR_KNM LIKE '%'||#{owrKnm}||'%'
+        </if>
+    </select>
 </mapper>

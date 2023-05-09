@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransferConverter;
@@ -99,6 +100,36 @@ public class WwdaAutoTransferInterfaceService {
         WwdaAutoTransferInterfaceDto.SearchReq dto
     ) {
         return mapper.selectFinancialInstitutionCodes(dto);
+    }
+
+    /**
+     * 자동이체 묶음 등록 정보 조회
+     * @param dto
+     * @return
+     */
+    public List<WwdaAutoTransferInterfaceDto.SearchBundleInfoRes> getBundleInfos(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    ) {
+        return mapper.selectBundleInfos(dto);
+    }
+
+    /**
+     * 자동이체 증빙 정보 목록 조회
+     * @param dto
+     * @return
+     */
+    public List<WwdaAutoTransferInterfaceDto.SearchEvidenceInfoRes> getEvidenceInfos(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    ) {
+        List<WwdaAutoTransferInfoEvidenceInfoInterfaceDvo> selectResults = mapper.selectEvidenceInfos(dto);
+        for (WwdaAutoTransferInfoEvidenceInfoInterfaceDvo selectResult : selectResults) {
+            selectResult
+                .setMpno(selectResult.getCralLocaraTno() + selectResult.getMexnoEncr() + selectResult.getCralIdvTno());
+        }
+        List<WwdaAutoTransferInterfaceDto.SearchEvidenceInfoRes> results = converter
+            .mapWwdaAutoTransferDvoToSearcEvidenceInfohRes(selectResults);
+
+        return results;
     }
 
 }
