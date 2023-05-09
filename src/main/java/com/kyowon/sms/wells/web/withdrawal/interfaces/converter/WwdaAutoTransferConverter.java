@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.interfaces.converter;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo;
 import org.apache.commons.lang.StringUtils;
 import org.mapstruct.Mapper;
 
@@ -18,5 +19,9 @@ public interface WwdaAutoTransferConverter {
 
     List<WwdaAutoTransferInterfaceDto.SearchRes> mapWwdaAutoTransferDvoToSearchRes(
         List<WwdaAutoTransferInfoInterfaceDvo> dvo
+    );
+
+    List<WwdaAutoTransferInterfaceDto.SearchEvidenceInfoRes> mapWwdaAutoTransferDvoToSearcEvidenceInfohRes(
+        List<WwdaAutoTransferInfoEvidenceInfoInterfaceDvo> dvo
     );
 }

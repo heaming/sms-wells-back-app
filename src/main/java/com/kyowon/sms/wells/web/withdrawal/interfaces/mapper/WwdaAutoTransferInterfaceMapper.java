@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.interfaces.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
@@ -62,6 +63,24 @@ public interface WwdaAutoTransferInterfaceMapper {
      * @return
      */
     List<WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes> selectFinancialInstitutionCodes(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    );
+
+    /**
+     * 자동이체 묶음 등록 정보 조회
+     * @param dto
+     * @return
+     */
+    List<WwdaAutoTransferInterfaceDto.SearchBundleInfoRes> selectBundleInfos(
+        WwdaAutoTransferInterfaceDto.SearchReq dto
+    );
+
+    /**
+     * 자동이체 증빙 정보 목록 조회
+     * @param dto
+     * @return
+     */
+    List<WwdaAutoTransferInfoEvidenceInfoInterfaceDvo> selectEvidenceInfos(
         WwdaAutoTransferInterfaceDto.SearchReq dto
     );
 

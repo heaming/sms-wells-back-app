@@ -146,4 +146,44 @@ public class WwdaAutoTransferInterfaceController {
 
         return resWrapper;
     }
+
+    @ApiOperation(value = "[EAI_WWDI1018] wells 자동이체 묶음 등록 정보 조회")
+    @PostMapping("/bundle-infos")
+    public EaiWrapper getBundleInfos(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchReq> reqWrapper
+    ) {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchBundleInfoRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SearchBundleInfoRes> res = service
+            .getBundleInfos(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "[EAI_WWDI1020] wells 자동이체 증빙 정보 목록 조회")
+    @PostMapping("/evidence-infos")
+    public EaiWrapper getEvidenceInfos(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchReq> reqWrapper
+    ) {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchEvidenceInfoRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SearchEvidenceInfoRes> res = service
+            .getEvidenceInfos(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
 }
