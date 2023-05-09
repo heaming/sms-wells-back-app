@@ -94,7 +94,7 @@ public class WdcdCleanerReqeustMgtDto {
         String bryyMmdd,
         String frontRrnoEncr, // 주민번호 앞자리
         String backRrnoEncr, // 주민번호 뒷자리
-        // TODO. 머스킹 필요
+        @MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, // 주민등록번호
         String locaraTno,
         @MaskRequired(type = MaskingType.ALL)
@@ -105,15 +105,15 @@ public class WdcdCleanerReqeustMgtDto {
         @MaskRequired(type = MaskingType.ALL)
         String dtlAdr,
         String bnkCd,
-        String acnoEncr,
+        @MaskRequired(type = MaskingType.ACCOUNT)
+        String acnoEncr,    // 계좌번호
         String idfApnFileId,
         String bnkbApnFileId,
         String cntrwApnFileId,
         String cntrLroreApnFileId
     ) {
         public FindRes {
-            frontRrnoEncr = rrnoEncr.substring(0, 7);
-            backRrnoEncr = rrnoEncr.substring(7, 15);
+            rrnoEncr = frontRrnoEncr + backRrnoEncr;
         }
     }
 }

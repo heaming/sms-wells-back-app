@@ -2,71 +2,1696 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesBondMapper">
 
-    <select id="selectSalesBondAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6) PERF_YM       /*실적년월*/
-             , T1.PERF_DT /*실적일자*/
-             , T2.CNTR_NO || T2.CNTR_SN AS CNTR /*계약상세번호*/
-           /*, T3.CST_KNM 고객명*/
-             , T1.PD_CD /*상품명*/
-             , T1.RVE_AMT /*기초영업선수금*/
-             , T2.BZNS_ATAM_BLAM /*(-)잡이익 */
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-         INNER JOIN TB_SSCT_CNTR_DTL T4
-            ON T2.CNTR_NO = T4.CNTR_NO
-         WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
-           <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-           AND T4.SELL_TP_CD = #{sellTpCd}
+    <select id="selectSalesBondAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchlumpSumAggregationRes">
+        SELECT SL_CL_YM
+             , SUM(NVL(CWPREP,0)) AS CWPREP /*전기이월*/
+               /*--------매출 ------------------*/
+             , SUM(NVL(CWWA11_1,0)) AS CWWA11_1 /*정상매출*/
+             , SUM(NVL(CWWA12_1,0)) AS CWWA12_1 /*취소매출*/
+             , SUM(NVL(CWWA14,0))   AS CWWA14 /*수수료매출*/
+             , SUM(NVL(CWWA11_2,0)) AS CWWA11_2 /*상품권_정상매출*/
+             , SUM(NVL(CWWA12_2_1,0)) AS CWWA12_2_1 /*상품권_취소*/
+               /*   ,SUM(NVL(CWWA12_2_2,0)) AS CWWA12_2_2 상품권_만료*/
+             , SUM(NVL(CWWA11_1,0)+NVL(CWWA12_1,0)+NVL(CWWA14,0)+NVL(CWWA11_2,0)-NVL(CWWA12_2_1,0)-NVL(CWWA12_2_2,0)) AS SUM_ME_AMT /*매출합계*/
+
+               /*---------매출대사 -----------------*/
+             , SUM(NVL(CWWA16_1,0)) AS CWWA16_1 /*계약금입금*/
+             , SUM(NVL(CWWA18_1,0)) AS CWWA18_1 /*할부금입금*/
+             , SUM(NVL(CWWA16_1,0)+NVL(CWWA18_1,0)) AS SUM_IN_AMT /*입금합계*/
+
+               /*--------기말미수 -------------------*/
+             , SUM(NVL(CWPROP,0)) AS CWPROP /*기말미수*/
+
+               /*--------법인미수 -------------------*/
+             , SUM(NVL(CWWA20_1,0)) AS CWWA20_1 /*법인미수입금*/
+
+               /*--------상품권 입금 -----------------*/
+             , SUM(NVL(CWWA18_2,0)) AS CWWA18_2 /*상품권입금*/
+
+               /*--------기타선수대체 -----------------*/
+             , SUM(NVL(CWWA18_3,0)) AS CWWA18_3 /*기타선수대체*/
+
+               /*--------사간거래 --------------------*/
+
+             , SUM(NVL(CWWA11_3,0)) AS CWWA11_3 /*사간거래_정상매출*/
+             , SUM(NVL(CWWA12_3,0)) AS CWWA12_3 /*사간거래_취소매출*/
+
+              /*---------사간거래 입금 ----------------*/
+
+             , SUM(NVL(CWWA16_4,0)+NVL(CWWA18_4,0)) AS CWWA16_4 /*사간거래_입금*/
+          FROM ( SELECT A.SL_CL_YM
+                      , A.CNTR_NO
+                      , A.CNTR_SN
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE NVL(LAG(A.EOT_UC_AMT) OVER(PARTITION BY A.CNTR_NO, A.CNTR_SN ORDER BY A.SL_CL_YM),0) END AS CWPREP /*전기이월 --51 사간거래*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE A.NOM_SL_AMT END AS CWWA11_1 /*정상매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE A.SL_CAN_AMT END AS CWWA12_1 /*취소매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE A.THM_OC_FEE_AMT END AS CWWA14 /*수수료매출*/
+                      , 0 AS CWWA11_2   /*상품권_정상매출*/
+                      , 0 AS CWWA12_2_1 /*상품권_취소*/
+                      , 0 AS CWWA12_2_2 /*상품권_만료*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE A.CNTRAM_DP_AMT END AS CWWA16_1 /*계약금입금*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE A.THM_INTAM_DP_AMT END AS CWWA18_1 /*할부금입금*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE A.EOT_UC_AMT END AS CWPROP /*기말미수*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE 0 END AS CWWA20_1 /*법인미수입금*/    /*--추가필요 CWWA20(법인미수금액)   CWAMT1(당월공제금액) */
+                      , 0 AS CWWA18_2 /*상품권입금*/
+                      , 0 AS CWWA18_3 /*기타선수대체*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN A.NOM_SL_AMT ELSE 0 END AS CWWA11_3 /*사간거래_정상매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN A.SL_CAN_AMT ELSE 0 END AS CWWA12_3 /*사간거래_취소매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN A.CNTRAM_DP_AMT ELSE 0 END AS CWWA16_4 /*사간거래_계약금입금*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN A.THM_INTAM_DP_AMT ELSE 0 END AS CWWA18_4 /*사간거래_할부금입금*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+                  INNER JOIN TB_SSCT_CNTR_DTL B
+                     ON B.CNTR_NO=A.CNTR_NO
+                    AND B.CNTR_SN=A.CNTR_SN
+                    AND B.SELL_TP_CD=A.SELL_TP_CD
+                  WHERE A.SL_CL_YM  >=  SUBSTR(#{slClYm},1,4)
+                    AND A.SL_CL_YM  = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd}
+                    AND A.SAP_PD_DV_CD = 'A1'
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                    </if>
+                    UNION ALL
+                 SELECT LC30.SL_CL_YM
+                      , LC30.CNTR_NO
+                      , LC30.CNTR_SN
+                      , 0 AS CWPREP
+                      , 0 AS CWWA11_1
+                      , 0 AS CWWA12_1
+                        ,0 AS CWWA14
+                      , 0 AS CWWA11_2
+                      , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN 0 ELSE DP30.CAN_AMT END AS CWWA12_2_1 /*상품권_취소  -- 21 취소사유가 만료소멸   취소금액*/
+                      , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN DP30.CAN_AMT ELSE 0 END AS CWWA12_2_2 /*상품권_만료*/
+                      , 0 AS CWWA16_1
+                      , 0 AS CWWA18_1
+                      , 0 AS CWPROP
+                      , 0 AS CWWA20_1
+                      , 0 AS CWWA18_2
+                      , 0 AS CWWA18_3 /*기타선수대체*/
+                      , 0 AS CWWA11_3
+                      , 0 AS CWWA12_3
+                      , 0 AS CWWA16_4
+                      , 0 AS CWWA18_4
+                   FROM TB_RVDW_ITG_DP_BAS DP30 /*--  TB_RVDW_ITG_DP_BAS    TB_GBMI_ITG_ACAM_BAS*/
+                  INNER JOIN TB_RVDW_RVE_DTL DP37
+                          ON DP30.ITG_DP_NO = DP37.ITG_DP_NO
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                          ON DP37.CNTR_NO = LC30.CNTR_NO
+                         AND DP37.CNTR_SN = LC30.CNTR_SN
+                  WHERE DP30.RVE_CO_CD = '20'   /*--(주) 교원*/
+                    AND DP30.DP_TP_CD = '0802'  /*--k머니    DP_TP_CD*/
+                    AND LC30.SELL_TP_CD = #{sellTpCd}
+                    <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                    AND LC30.SAP_PD_DV_CD = #{sapPdDvCd}
+                    </if>
+                    AND SUBSTR(DP30.ITG_DP_CAN_DTM,1,6) = LC30.SL_CL_YM
+                    AND LC30.SL_CL_YM = #{slClYm}
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                    </if>
+                  UNION ALL
+                  SELECT LC30.SL_CL_YM
+                       , LC30.CNTR_NO
+                       , LC30.CNTR_SN
+                       , 0 AS CWPREP
+                       , 0 AS CWWA11_1
+                       , 0 AS CWWA12_1
+                       , 0 AS CWWA14
+                       , 0 AS CWWA11_2
+                       , 0 AS CWWA12_2_1
+                       , 0 AS CWWA12_2_2
+                       , 0 AS CWWA16_1
+                       , 0 AS CWWA18_1
+                       , 0 AS CWPROP
+                       , 0 AS CWWA20_1
+                       , SUM(CASE WHEN CW51.DP_DV_CD = '1' THEN CW51.RVE_AMT ELSE -CW51.RVE_AMT END) CWWA18_2   /*-- 입금이면 cwamt1 아니면 환불이나 전금이면 -*/
+                       , 0 AS CWWA18_3 /*기타선수대체*/
+                       , 0 AS CWWA11_3
+                       , 0 AS CWWA12_3
+                       , 0 AS CWWA16_4
+                       , 0 AS CWWA18_4
+                    FROM TB_RVDW_RVE_DTL  CW51   /*-- 할부금*/
+                    INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                       ON LC30.CNTR_NO = CW51.CNTR_NO
+                      AND LC30.CNTR_SN = CW51.CNTR_SN
+                    WHERE 1=1
+                      AND LC30.SELL_TP_CD = #{sellTpCd}
+                      AND LC30.SAP_PD_DV_CD = 'A1'
+                      AND LC30.SL_CL_YM  = #{slClYm}
+                      <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                      AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                      </if>
+                      AND CW51.RVE_DV_CD NOT IN ('02','06', '09','10','13')  /*-- 매변, 손료, 연체가산금*/
+                      AND NOT (CW51.PROCS_DV_CD = '2' AND CW51.RVE_DV_CD = '06' AND CW51.DP_TP_CD = '0501') /*-- 정상대체 여부 1정상, 2대체 / 입금종류 1. 할부금 2.매변 3.손료 4.위약금 5.연체가산금 / 대체, 매변, / 입금유형 : 전금*/
+                      AND CW51.DP_TP_CD = '0802'  /* 수수료, 대손     입금유형 : 수수료, 대손 */
+                      <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                      AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                      </if>
+                    GROUP BY LC30.SL_CL_YM, LC30.CNTR_NO, LC30.CNTR_SN
+                    UNION ALL
+                   SELECT LC30.SL_CL_YM
+                        , LC30.CNTR_NO
+                        , LC30.CNTR_SN
+                        , 0 AS CWPREP
+                        , 0 AS CWWA11_1
+                        , 0 AS CWWA12_1
+                        , 0 AS CWWA14
+                        , 0 AS CWWA11_2
+                        , 0 AS CWWA12_2_1
+                        , 0 AS CWWA12_2_2
+                        , 0 AS CWWA16_1
+                        , 0 AS CWWA18_1
+                        , 0 AS CWPROP
+                        , 0 AS CWWA20_1
+                        , 0 AS CWWA18_2
+                        , SUM(CW52.RVE_AMT) CWWA18_3 /*기타선수대체*/
+                        , 0 AS CWWA11_3
+                        , 0 AS CWWA12_3
+                        , 0 AS CWWA16_4
+                        , 0 AS CWWA18_4
+                     FROM TB_RVDW_RVE_DTL  CW52   /*--기타선수금*/
+                    INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                       ON LC30.CNTR_NO = CW52.CNTR_NO
+                      AND LC30.CNTR_SN = CW52.CNTR_SN
+                    WHERE 1=1
+                      AND LC30.SELL_TP_CD = #{sellTpCd}
+                      AND LC30.SAP_PD_DV_CD = 'A1'
+                      AND LC30.SL_CL_YM  = #{slClYm}
+                      <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                      AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                      </if>
+                      AND CW52.DP_DV_CD = '1' /*1.입금     2.환불    3.전금*/
+                      AND CW52.RVE_DV_CD IN ('02', '06')  /* 매변, 연체가산금     1:할부금  2:매변, 3:손료 4:위약금 5:연체가산금*/
+                      AND CW52.DP_TP_CD = '0501'   /*-- 전금 */
+                    GROUP BY LC30.SL_CL_YM, LC30.CNTR_NO, LC30.CNTR_SN
+                ) T1
+         GROUP BY SL_CL_YM
+    </select>
+
+    <select id="selectSalesBondDates" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchLumpSumPaymentByDateRes">
+        SELECT T.PERF_DT
+             , T.SELL_TP_CD
+             , T.SELL_TP_DTL_CD
+             , T.SAP_PD_DV_CD
+             , T.CNTR_NO
+             , T.CST_KNM
+             , T.BASE_PD_CD
+             , T.PD_NM
+             , T.SL_RCOG_DT
+             , SUM(NVL(T.CWPREP,0))
+             , SUM(NVL(T.CWWA11_1,0)) /*정상매출*/
+             , SUM(NVL(T.CWWA12_1,0)) /*취소매출*/
+             , SUM(NVL(T.CWWA14,0))  /*수수료매출*/
+             , SUM(NVL(T.CWWA11_2,0)) /*상품권_정상매출*/
+             , SUM(NVL(T.CWWA12_2_1,0)) /*상품권_취소*/
+             , SUM(NVL(CWWA11_1,0)+NVL(CWWA12_1,0)+NVL(CWWA14,0)+NVL(CWWA11_2,0)-NVL(CWWA12_2_1,0)-NVL(CWWA12_2_2,0)) AS SUM_ME_AMT /*매출합계*/
+             , SUM(NVL(CWWA16_1,0)) AS CWWA16_1 /*계약금입금*/
+             , SUM(NVL(CWWA18_1,0)) AS CWWA18_1 /*할부금입금*/
+             , SUM(NVL(CWWA16_1,0)+NVL(CWWA18_1,0)) AS SUM_IN_AMT /*입금합계*/
+             , SUM(NVL(CWPROP,0)) AS CWPROP /*기말미수*/
+             , SUM(NVL(CWWA20_1,0)) AS CWWA20_1 /*법인미수입금*/
+             , SUM(NVL(CWWA18_2,0)) AS CWWA18_2 /*상품권입금*/
+             , SUM(NVL(CWWA18_3,0)) AS CWWA18_3 /*기타선수대체*/
+             , SUM(NVL(CWWA11_3,0)) AS CWWA11_3 /*사간거래_정상매출*/
+             , SUM(NVL(CWWA12_3,0)) AS CWWA12_3 /*사간거래_취소매출*/
+             , SUM(NVL(CWWA16_4,0)+NVL(CWWA18_4,0)) AS CWWA16_4 /*사간거래_입금*/
+          FROM ( SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                      , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                      , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM  /*-- 상품명*/
+                      , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자 */
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE NVL(LAG(LC30.EOT_UC_AMT) OVER(PARTITION BY LC30.CNTR_NO, LC30.CNTR_SN ORDER BY LC30.SL_CL_YM),0) END AS CWPREP /*전기이월 --51 사간거래*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.NOM_SL_AMT END AS CWWA11_1 /*정상매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.SL_CAN_AMT END AS CWWA12_1 /*취소매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.THM_OC_FEE_AMT END AS CWWA14 /*수수료매출*/
+                      , 0 AS CWWA11_2 /*상품권_정상매출*/
+                      , 0 AS CWWA12_2_1 /*상품권_취소*/
+                      , 0 AS CWWA12_2_2 /*상품권_만료*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.CNTRAM_DP_AMT END AS CWWA16_1 /*계약금입금*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.THM_INTAM_DP_AMT END AS CWWA18_1 /*할부금입금*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.EOT_UC_AMT END AS CWPROP /*기말미수*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE 0 END AS CWWA20_1 /*법인미수입금 추가필요 CWWA20(법인미수금액)   CWAMT1(당월공제금액) */
+                      , 0 AS CWWA18_2 /*상품권입금*/
+                      , 0 AS CWWA18_3 /*기타선수대체*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.NOM_SL_AMT ELSE 0 END AS CWWA11_3 /*사간거래_정상매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.SL_CAN_AMT ELSE 0 END AS CWWA12_3 /*사간거래_취소매출*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.CNTRAM_DP_AMT ELSE 0 END AS CWWA16_4 /*사간거래_계약금입금*/
+                      , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.THM_INTAM_DP_AMT ELSE 0 END AS CWWA18_4 /*사간거래_할부금입금*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                     ON B.CNTR_NO = LC30.CNTR_NO
+                    AND B.CNTR_SN = LC30.CNTR_SN
+                    AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                    AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C   /*-- 수납상세*/
+                     ON LC30.CNTR_NO = C.CNTR_NO
+                    AND LC30.CNTR_SN = C.CNTR_SN
+                    AND LC30.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON B.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON LC30.CST_NO = E.CST_NO
+                  WHERE LC30.SL_CL_YM  = #{slClYm}
+                    AND LC30.SELL_TP_CD = #{sellTpCd}
+                    AND LC30.SAP_PD_DV_CD = 'A1'
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                    </if>
+                  UNION ALL
+                 SELECT C.PERF_DT AS PERF_DT /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                      , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                      , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM  /*-- 상품명*/
+                      , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자 */
+                      , 0 AS CWPREP
+                      , 0 AS CWWA11_1
+                      , 0 AS CWWA12_1
+                      , 0 AS CWWA14
+                      , 0 AS CWWA11_2
+                      , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN 0 ELSE DP30.CAN_AMT END AS CWWA12_2_1 /*상품권_취소  -- 21 취소사유가 만료소멸   취소금액*/
+                      , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN DP30.CAN_AMT ELSE 0 END AS CWWA12_2_2 /*상품권_만료*/
+                      , 0 AS CWWA16_1
+                      , 0 AS CWWA18_1
+                      , 0 AS CWPROP
+                      , 0 AS CWWA20_1
+                      , 0 AS CWWA18_2
+                      , 0 AS CWWA18_3 /*기타선수대체*/
+                      , 0 AS CWWA11_3
+                      , 0 AS CWWA12_3
+                      , 0 AS CWWA16_4
+                      , 0 AS CWWA18_4
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                     ON B.CNTR_NO = LC30.CNTR_NO
+                    AND B.CNTR_SN = LC30.CNTR_SN
+                    AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                    AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C   /*-- 수납상세  TB_RVDW_ITG_DP_BAS    TB_GBMI_ITG_ACAM_BAS   TB_RVDW_ITG_DP_BAS DP30*/
+                     ON C.CNTR_NO = LC30.CNTR_NO
+                    AND C.CNTR_SN = LC30.CNTR_SN
+                    AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON B.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON LC30.CST_NO = E.CST_NO
+                   LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS DP30 /*-- 통합입금*/
+                     ON DP30.ITG_DP_NO = C.ITG_DP_NO
+                  WHERE DP30.RVE_CO_CD = '20'   /*--(주) 교원*/
+                    AND DP30.DP_TP_CD = '0802'  /*--k머니    DP_TP_CD*/
+                    AND SUBSTR(DP30.ITG_DP_CAN_DTM,1,6) = LC30.SL_CL_YM
+                    AND LC30.SL_CL_YM = #{slClYm}
+                    AND LC30.SELL_TP_CD = #{sellTpCd}
+                    AND LC30.SAP_PD_DV_CD = 'A1'
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                    </if>
+                  UNION ALL
+                 SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                      , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                      , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM  /*-- 상품명*/
+                      , LC30.SL_RCOG_DT AS SL_RCOG_DT  /*-- 매출인식일자*/
+                      , 0 AS CWPREP
+                      , 0 AS CWWA11_1
+                      , 0 AS CWWA12_1
+                      , 0 AS CWWA14
+                      , 0 AS CWWA11_2
+                      , 0 AS CWWA12_2_1
+                      , 0 AS CWWA12_2_2
+                      , 0 AS CWWA16_1
+                      , 0 AS CWWA18_1
+                      , 0 AS CWPROP
+                      , 0 AS CWWA20_1
+                      , CASE WHEN C.DP_DV_CD = '1' THEN C.RVE_AMT ELSE -C.RVE_AMT END CWWA18_2   /*-- 입금이면 cwamt1 아니면 환불이나 전금이면 -*/
+                      , 0 AS CWWA18_3  /*기타선수대체*/
+                      , 0 AS CWWA11_3
+                      , 0 AS CWWA12_3
+                      , 0 AS CWWA16_4
+                      , 0 AS CWWA18_4
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                     ON B.CNTR_NO = LC30.CNTR_NO
+                    AND B.CNTR_SN = LC30.CNTR_SN
+                    AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                    AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL  C     /*--수납상세*/
+                     ON LC30.CNTR_NO = C.CNTR_NO
+                    AND LC30.CNTR_SN = C.CNTR_SN
+                    AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON B.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON LC30.CST_NO = E.CST_NO
+                  WHERE LC30.SELL_TP_CD = #{sellTpCd}
+                    AND LC30.SAP_PD_DV_CD = 'A1'
+                    AND LC30.SL_CL_YM  = #{slClYm}
+                    AND C.RVE_DV_CD NOT IN ('02','06', '09','10','13')  /*-- 매변, 손료, 연체가산금*/
+                    AND NOT (C.PROCS_DV_CD = '2' AND C.RVE_DV_CD = '06' AND C.DP_TP_CD = '0501') /*-- 정상대체 여부 1정상, 2대체 / 입금종류 1. 할부금 2.매변 3.손료 4.위약금 5.연체가산금 / 대체, 매변, / 입금유형 : 전금*/
+                    AND C.DP_TP_CD = '0802'  /*-- 수수료, 대손     입금유형 : 수수료, 대손*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                   </if>
+                  UNION ALL
+                 SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD      /* -- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD     /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                      , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO   /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM    /*-- 고객명*/
+                      , B.BASE_PD_CD AS BASE_PD_CD   /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM    /*-- 상품명*/
+                      , LC30.SL_RCOG_DT AS SL_RCOG_DT    /*-- 매출인식일자*/
+                      , 0 AS CWPREP
+                      , 0 AS CWWA11_1
+                      , 0 AS CWWA12_1
+                      , 0 AS CWWA14
+                      , 0 AS CWWA11_2
+                      , 0 AS CWWA12_2_1
+                      , 0 AS CWWA12_2_2
+                      , 0 AS CWWA16_1
+                      , 0 AS CWWA18_1
+                      , 0 AS CWPROP
+                      , 0 AS CWWA20_1
+                      , 0 AS CWWA18_2
+                      , C.RVE_AMT CWWA18_3 /*기타선수대체*/
+                      , 0 AS CWWA11_3
+                      , 0 AS CWWA12_3
+                      , 0 AS CWWA16_4
+                      , 0 AS CWWA18_4
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                     ON B.CNTR_NO = LC30.CNTR_NO
+                    AND B.CNTR_SN = LC30.CNTR_SN
+                    AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                    AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C     /*--수납상세*/
+                     ON LC30.CNTR_NO = C.CNTR_NO
+                    AND LC30.CNTR_SN = C.CNTR_SN
+                    AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON B.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON LC30.CST_NO = E.CST_NO
+                  WHERE LC30.SELL_TP_CD = #{sellTpCd}
+                    AND LC30.SAP_PD_DV_CD = 'A1'
+                    AND LC30.SL_CL_YM  = #{slClYm}
+                    AND C.DP_DV_CD = '1' /*--1.입금     2.환불    3.전금*/
+                    AND C.RVE_DV_CD IN ('02', '06')  /*-- 매변, 연체가산금     1:할부금  2:매변, 3:손료 4:위약금 5:연체가산금*/
+                    AND C.DP_TP_CD = '0501'   /*-- 전금 */
+                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                   AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+                   </if>
+               ) T
+         WHERE 1=1
+           AND T.CNTR_NO = #{agrgDv} /*-- 주문별*/
+         GROUP BY T.PERF_DT, T.SELL_TP_CD,T.SELL_TP_DTL_CD,T.SAP_PD_DV_CD,T.CNTR_NO,T.CST_KNM,T.BASE_PD_CD,T.PD_NM,T.SL_RCOG_DT
+    </select>
+
+    <select id="selectAggregateOrderDate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchLumpSumPaymentByDateRes">
+        SELECT T.PERF_DT
+             , T.SELL_TP_CD
+             , T.SELL_TP_DTL_CD
+             , T.SAP_PD_DV_CD
+             , T.CNTR_NO
+             , T.CST_KNM
+             , T.BASE_PD_CD
+             , T.PD_NM
+             , T.SL_RCOG_DT
+             , SUM(NVL(T.CWPREP,0))
+             , SUM(NVL(T.CWWA11_1,0)) /*정상매출*/
+             , SUM(NVL(T.CWWA12_1,0)) /*취소매출*/
+             , SUM(NVL(T.CWWA14,0))  /*수수료매출*/
+             , SUM(NVL(T.CWWA11_2,0)) /*상품권_정상매출*/
+             , SUM(NVL(T.CWWA12_2_1,0)) /*상품권_취소*/
+             , SUM(NVL(CWWA11_1,0)+NVL(CWWA12_1,0)+NVL(CWWA14,0)+NVL(CWWA11_2,0)-NVL(CWWA12_2_1,0)-NVL(CWWA12_2_2,0)) AS SUM_ME_AMT /*매출합계*/
+             , SUM(NVL(CWWA16_1,0)) AS CWWA16_1 /*계약금입금*/
+             , SUM(NVL(CWWA18_1,0)) AS CWWA18_1 /*할부금입금*/
+             , SUM(NVL(CWWA16_1,0)+NVL(CWWA18_1,0)) AS SUM_IN_AMT /*입금합계*/
+             , SUM(NVL(CWPROP,0)) AS CWPROP /*기말미수*/
+             , SUM(NVL(CWWA20_1,0)) AS CWWA20_1 /*법인미수입금*/
+             , SUM(NVL(CWWA18_2,0)) AS CWWA18_2 /*상품권입금*/
+             , SUM(NVL(CWWA18_3,0)) AS CWWA18_3 /*기타선수대체*/
+             , SUM(NVL(CWWA11_3,0)) AS CWWA11_3 /*사간거래_정상매출*/
+             , SUM(NVL(CWWA12_3,0)) AS CWWA12_3 /*사간거래_취소매출*/
+             , SUM(NVL(CWWA16_4,0)+NVL(CWWA18_4,0)) AS CWWA16_4 /*사간거래_입금*/
+          FROM (
+        SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+             , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+             , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+             , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+             , F.PD_NM AS PD_NM     /*-- 상품명*/
+             , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자 */
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE NVL(LAG(LC30.EOT_UC_AMT) OVER(PARTITION BY LC30.CNTR_NO, LC30.CNTR_SN ORDER BY LC30.SL_CL_YM),0) END AS CWPREP /*전기이월 --51 사간거래*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.NOM_SL_AMT END AS CWWA11_1 /*정상매출*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.SL_CAN_AMT END AS CWWA12_1 /*취소매출*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.THM_OC_FEE_AMT END AS CWWA14 /*수수료매출*/
+             , 0 AS CWWA11_2    /*상품권_정상매출*/
+             , 0 AS CWWA12_2_1 /*상품권_취소*/
+             , 0 AS CWWA12_2_2 /*상품권_만료*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.CNTRAM_DP_AMT END AS CWWA16_1 /*계약금입금*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.THM_INTAM_DP_AMT END AS CWWA18_1 /*할부금입금*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.EOT_UC_AMT END AS CWPROP /*기말미수*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE 0 END AS CWWA20_1 /*법인미수입금 추가필요 CWWA20(법인미수금액)   CWAMT1(당월공제금액) */
+             , 0 AS CWWA18_2 /*상품권입금*/
+             , 0 AS CWWA18_3 /*기타선수대체*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.NOM_SL_AMT ELSE 0 END AS CWWA11_3 /*사간거래_정상매출*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.SL_CAN_AMT ELSE 0 END AS CWWA12_3 /*사간거래_취소매출*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.CNTRAM_DP_AMT ELSE 0 END AS CWWA16_4 /*사간거래_계약금입금*/
+             , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.THM_INTAM_DP_AMT ELSE 0 END AS CWWA18_4 /*사간거래_할부금입금*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+            ON B.CNTR_NO = LC30.CNTR_NO
+           AND B.CNTR_SN = LC30.CNTR_SN
+           AND B.SELL_TP_CD = LC30.SELL_TP_CD
+           AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL C   /*-- 수납상세*/
+            ON LC30.CNTR_NO = C.CNTR_NO
+           AND LC30.CNTR_SN = C.CNTR_SN
+           AND LC30.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+            ON B.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+            ON LC30.CST_NO = E.CST_NO
+         WHERE LC30.SL_CL_YM  = #{slClYm}
+           AND LC30.SELL_TP_CD = #{sellTpCd}
+           AND LC30.SAP_PD_DV_CD = 'A1'
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
            </if>
-    </select>
-
-    <select id="selectSalesBondDates" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6) PERF_YM       /*실적년월*/
-             , T1.PERF_DT /*실적일자*/
-             , T2.CNTR_NO || T2.CNTR_SN AS CNTR /*계약상세번호*/
-             /*, T3.CST_KNM 고객명*/
-             , T1.PD_CD /*상품명*/
-             , T1.RVE_AMT /*기초영업선수금*/
-             , T2.BZNS_ATAM_BLAM /*(-)잡이익 */
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-         INNER JOIN TB_SSCT_CNTR_DTL T4
-            ON T2.CNTR_NO = T4.CNTR_NO
-         WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
-           <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-           AND T4.SELL_TP_CD = #{sellTpCd}
+         UNION ALL
+        SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+             , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+             , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+             , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+             , F.PD_NM AS PD_NM  /*-- 상품명*/
+             , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자 */
+             , 0 AS CWPREP
+             , 0 AS CWWA11_1
+             , 0 AS CWWA12_1
+             , 0 AS CWWA14
+             , 0 AS CWWA11_2
+             , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN 0 ELSE DP30.CAN_AMT END AS CWWA12_2_1 /*상품권_취소  -- 21 취소사유가 만료소멸   취소금액*/
+             , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN DP30.CAN_AMT ELSE 0 END AS CWWA12_2_2 /*상품권_만료*/
+             , 0 AS CWWA16_1
+             , 0 AS CWWA18_1
+             , 0 AS CWPROP
+             , 0 AS CWWA20_1
+             , 0 AS CWWA18_2
+             , 0 AS CWWA18_3 /*기타선수대체*/
+             , 0 AS CWWA11_3
+             , 0 AS CWWA12_3
+             , 0 AS CWWA16_4
+             , 0 AS CWWA18_4
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+            ON B.CNTR_NO = LC30.CNTR_NO
+           AND B.CNTR_SN = LC30.CNTR_SN
+           AND B.SELL_TP_CD = LC30.SELL_TP_CD
+           AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*-- 수납상세  TB_RVDW_ITG_DP_BAS    TB_GBMI_ITG_ACAM_BAS   TB_RVDW_ITG_DP_BAS DP30*/
+            ON C.CNTR_NO = LC30.CNTR_NO
+           AND C.CNTR_SN = LC30.CNTR_SN
+           AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+            ON B.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+            ON LC30.CST_NO = E.CST_NO
+          LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS DP30 /*-- 통합입금*/
+            ON DP30.ITG_DP_NO = C.ITG_DP_NO
+         WHERE DP30.RVE_CO_CD = '20'   /*--(주) 교원*/
+           AND DP30.DP_TP_CD = '0802'  /*--k머니    DP_TP_CD*/
+           AND SUBSTR(DP30.ITG_DP_CAN_DTM,1,6) = LC30.SL_CL_YM
+           AND LC30.SL_CL_YM = #{slClYm}
+           AND LC30.SELL_TP_CD = #{sellTpCd}
+           AND LC30.SAP_PD_DV_CD = 'A1'
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
            </if>
+         UNION ALL
+            SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                 , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                 , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                 , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                 , F.PD_NM AS PD_NM  /*-- 상품명*/
+                 , LC30.SL_RCOG_DT AS SL_RCOG_DT  /*-- 매출인식일자*/
+                 , 0 AS CWPREP
+                 , 0 AS CWWA11_1
+                 , 0 AS CWWA12_1
+                 , 0 AS CWWA14
+                 , 0 AS CWWA11_2
+                 , 0 AS CWWA12_2_1
+                 , 0 AS CWWA12_2_2
+                 , 0 AS CWWA16_1
+                 , 0 AS CWWA18_1
+                 , 0 AS CWPROP
+                 , 0 AS CWWA20_1
+                 , CASE WHEN C.DP_DV_CD = '1' THEN C.RVE_AMT ELSE -C.RVE_AMT END CWWA18_2   /*-- 입금이면 cwamt1 아니면 환불이나 전금이면 -*/
+                 , 0 AS CWWA18_3  /*기타선수대체*/
+                 , 0 AS CWWA11_3
+                 , 0 AS CWWA12_3
+                 , 0 AS CWWA16_4
+                 , 0 AS CWWA18_4
+              FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+              LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                ON B.CNTR_NO = LC30.CNTR_NO
+               AND B.CNTR_SN = LC30.CNTR_SN
+               AND B.SELL_TP_CD = LC30.SELL_TP_CD
+               AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+              LEFT OUTER JOIN TB_RVDW_RVE_DTL  C     /*--수납상세*/
+                ON LC30.CNTR_NO = C.CNTR_NO
+               AND LC30.CNTR_SN = C.CNTR_SN
+               AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+              LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                ON B.BASE_PD_CD = F.PD_CD
+              LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                ON LC30.CST_NO = E.CST_NO
+             WHERE LC30.SELL_TP_CD = #{sellTpCd}
+               AND LC30.SAP_PD_DV_CD = 'A1'
+               AND LC30.SL_CL_YM  = #{slClYm}
+               AND C.RVE_DV_CD NOT IN ('02','06', '09','10','13')  /*-- 매변, 손료, 연체가산금*/
+               AND NOT (C.PROCS_DV_CD = '2' AND C.RVE_DV_CD = '06' AND C.DP_TP_CD = '0501') /*-- 정상대체 여부 1정상, 2대체 / 입금종류 1. 할부금 2.매변 3.손료 4.위약금 5.연체가산금 / 대체, 매변, / 입금유형 : 전금*/
+               AND C.DP_TP_CD = '0802'  /*-- 수수료, 대손     입금유형 : 수수료, 대손*/
+               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+               AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+               </if>
+             UNION ALL
+            SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD      /* -- 판매유형*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD     /*-- 판매유형상세코드*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                 , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO   /*-- 계약상세번호*/
+                 , E.CST_KNM AS CST_KNM    /*-- 고객명*/
+                 , B.BASE_PD_CD AS BASE_PD_CD   /*-- 상품코드*/
+                 , F.PD_NM AS PD_NM    /*-- 상품명*/
+                 , LC30.SL_RCOG_DT AS SL_RCOG_DT    /*-- 매출인식일자*/
+                 , 0 AS CWPREP
+                 , 0 AS CWWA11_1
+                 , 0 AS CWWA12_1
+                 , 0 AS CWWA14
+                 , 0 AS CWWA11_2
+                 , 0 AS CWWA12_2_1
+                 , 0 AS CWWA12_2_2
+                 , 0 AS CWWA16_1
+                 , 0 AS CWWA18_1
+                 , 0 AS CWPROP
+                 , 0 AS CWWA20_1
+                 , 0 AS CWWA18_2
+                 , C.RVE_AMT CWWA18_3 /*기타선수대체*/
+                 , 0 AS CWWA11_3
+                 , 0 AS CWWA12_3
+                 , 0 AS CWWA16_4
+                 , 0 AS CWWA18_4
+              FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+              LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                ON B.CNTR_NO = LC30.CNTR_NO
+               AND B.CNTR_SN = LC30.CNTR_SN
+               AND B.SELL_TP_CD = LC30.SELL_TP_CD
+               AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+              LEFT OUTER JOIN TB_RVDW_RVE_DTL C     /*--수납상세*/
+                ON LC30.CNTR_NO = C.CNTR_NO
+               AND LC30.CNTR_SN = C.CNTR_SN
+               AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+              LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                ON B.BASE_PD_CD = F.PD_CD
+              LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                ON LC30.CST_NO = E.CST_NO
+             WHERE LC30.SELL_TP_CD = #{sellTpCd}
+               AND LC30.SAP_PD_DV_CD = 'A1'
+               AND LC30.SL_CL_YM  = #{slClYm}
+               AND C.DP_DV_CD = '1' /*--1.입금     2.환불    3.전금*/
+               AND C.RVE_DV_CD IN ('02', '06')  /*-- 매변, 연체가산금     1:할부금  2:매변, 3:손료 4:위약금 5:연체가산금*/
+               AND C.DP_TP_CD = '0501'   /*-- 전금 */
+               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+               AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형 상세*/
+               </if>
+             ) T
+         WHERE 1=1
+           AND T.CNTR_NO = #{agrgDv} /*-- 주문별*/
+         GROUP BY T.PERF_DT, T.SELL_TP_CD,T.SELL_TP_DTL_CD,T.SAP_PD_DV_CD,T.CNTR_NO,T.CST_KNM,T.BASE_PD_CD,T.PD_NM,T.SL_RCOG_DT
     </select>
 
-    <select id="selectSalesBondrders" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6)/*실적년월*/
-           /*, CST_KNM 고객명*/
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*입금상세 실적년월*/
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-        INNER JOIN TB_SSCT_CNTR_DTL T4
-           ON T2.CNTR_NO = T4.CNTR_NO
-        WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
-          <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-          AND T4.SELL_TP_CD = #{sellTpCd}
-          </if>
+    <select id="selectHorizontalCalculationExpression" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchLumpSumPaymentByDateRes">
+        SELECT T.PERF_DT
+             , T.SELL_TP_CD
+             , T.SELL_TP_DTL_CD
+             , T.SAP_PD_DV_CD
+             , T.CNTR_NO
+             , T.CST_KNM
+             , T.BASE_PD_CD
+             , T.PD_NM
+             , T.SL_RCOG_DT
+             , SUM(NVL(T.CWPREP,0))               AS CWPREP
+             , SUM(NVL(T.CWWA11_1,0)) /*정상매출*/  AS CWWA11_1
+             , SUM(NVL(T.CWWA12_1,0)) /*취소매출*/  AS CWWA12_1
+             , SUM(NVL(T.CWWA14,0))  /*수수료매출*/  AS CWWA14
+             , SUM(NVL(T.CWWA11_2,0)) /*상품권_정상매출*/ AS CWWA11_2
+             , SUM(NVL(T.CWWA12_2_1,0)) /*상품권_취소*/  AS CWWA12_2_1
+             , SUM(NVL(CWWA11_1,0)+NVL(CWWA12_1,0)+NVL(CWWA14,0)+NVL(CWWA11_2,0)-NVL(CWWA12_2_1,0)-NVL(CWWA12_2_2,0)) AS SUM_ME_AMT /*매출합계*/
+             , SUM(NVL(CWWA16_1,0)) AS CWWA16_1 /*계약금입금*/
+             , SUM(NVL(CWWA18_1,0)) AS CWWA18_1 /*할부금입금*/
+             , SUM(NVL(CWWA16_1,0)+NVL(CWWA18_1,0)) AS SUM_IN_AMT /*입금합계*/
+             , SUM(NVL(CWPROP,0)) AS CWPROP /*기말미수*/
+             , SUM(NVL(CWWA20_1,0)) AS CWWA20_1 /*법인미수입금*/
+             , SUM(NVL(CWWA18_2,0)) AS CWWA18_2 /*상품권입금*/
+             , SUM(NVL(CWWA18_3,0)) AS CWWA18_3 /*기타선수대체*/
+             , SUM(NVL(CWWA11_3,0)) AS CWWA11_3 /*사간거래_정상매출*/
+             , SUM(NVL(CWWA12_3,0)) AS CWWA12_3 /*사간거래_취소매출*/
+             , SUM(NVL(CWWA16_4,0)+NVL(CWWA18_4,0)) AS CWWA16_4 /*사간거래_입금*/
+          FROM (  SELECT C.PERF_DT AS PERF_DT   /*-- 실적일자*/
+                       , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD   /*-- 판매유형*/
+                       , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD  /*-- 판매유형상세코드*/
+                       , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD -- SAP상품구분코드명
+                       , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO-- 계약상세번호
+                       , E.CST_KNM AS CST_KNM /*-- 고객명*/
+                       , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                       , F.PD_NM AS PD_NM  /*-- 상품명*/
+                       , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자 */
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE NVL(LAG(LC30.EOT_UC_AMT) OVER(PARTITION BY LC30.CNTR_NO, LC30.CNTR_SN ORDER BY LC30.SL_CL_YM),0) END AS CWPREP /*전기이월*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.NOM_SL_AMT END AS CWWA11_1 /*정상매출*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.SL_CAN_AMT END AS CWWA12_1 /*취소매출*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.THM_OC_FEE_AMT END AS CWWA14 /*수수료매출*/
+                       , 0 AS CWWA11_2 /*상품권_정상매출*/
+                       , 0 AS CWWA12_2_1 /*상품권_취소*/
+                       , 0 AS CWWA12_2_2 /*상품권_만료*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.CNTRAM_DP_AMT END AS CWWA16_1 /*계약금입금*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.THM_INTAM_DP_AMT END AS CWWA18_1 /*할부금입금*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE LC30.EOT_UC_AMT END AS CWPROP /*기말미수*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN 0 ELSE 0 END AS CWWA20_1 /*법인미수입금 --추가필요 CWWA20(법인미수금액)   CWAMT1(당월공제금액) */
+                       , 0 AS CWWA18_2 /*상품권입금*/
+                       , 0 AS CWWA18_3   /*기타선수대체*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.NOM_SL_AMT ELSE 0 END AS CWWA11_3 /*사간거래_정상매출*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.SL_CAN_AMT ELSE 0 END AS CWWA12_3 /*사간거래_취소매출*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.CNTRAM_DP_AMT ELSE 0 END AS CWWA16_4 /*사간거래_계약금입금*/
+                       , CASE WHEN B.ALNCMP_CD = '51' THEN LC30.THM_INTAM_DP_AMT ELSE 0 END AS CWWA18_4 /*사간거래_할부금입금*/
+                    FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                    LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                      ON B.CNTR_NO = LC30.CNTR_NO
+                     AND B.CNTR_SN = LC30.CNTR_SN
+                     AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                     AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                    LEFT OUTER JOIN TB_RVDW_RVE_DTL C  /* -- 수납상세*/
+                      ON LC30.CNTR_NO = C.CNTR_NO
+                     AND LC30.CNTR_SN = C.CNTR_SN
+                     AND LC30.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+                    LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                      ON B.BASE_PD_CD = F.PD_CD
+                    LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                      ON LC30.CST_NO = E.CST_NO
+                   WHERE LC30.SL_CL_YM  = #{slClYm}
+                     AND LC30.SELL_TP_CD = #{sellTpCd}
+                     AND LC30.SAP_PD_DV_CD = 'A1'
+                     <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                     AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd} /*판매유형상세*/
+                     </if>
+                   UNION ALL
+                  SELECT C.PERF_DT AS PERF_DT   /*-- 실적일자*/
+                       , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD  /*-- 판매유형*/
+                       , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD  /*-- 판매유형상세코드*/
+                       , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                       , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO   /*-- 계약상세번호*/
+                       , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                       , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                       , F.PD_NM AS PD_NM  /*-- 상품명*/
+                       , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자 */
+                       , 0 AS CWPREP
+                       , 0 AS CWWA11_1
+                       , 0 AS CWWA12_1
+                       , 0 AS CWWA14
+                       , 0 AS CWWA11_2
+                       , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN 0 ELSE DP30.CAN_AMT END AS CWWA12_2_1 /*상품권_취소  -- 21 취소사유가 만료소멸   취소금액*/
+                       , CASE WHEN DP30.ITG_DP_CAN_RSON_CD='21' THEN DP30.CAN_AMT ELSE 0 END AS CWWA12_2_2 /*상품권_만료*/
+                       , 0 AS CWWA16_1
+                       , 0 AS CWWA18_1
+                       , 0 AS CWPROP
+                       , 0 AS CWWA20_1
+                       , 0 AS CWWA18_2
+                       , 0 AS CWWA18_3 /*기타선수대체*/
+                       , 0 AS CWWA11_3
+                       , 0 AS CWWA12_3
+                       , 0 AS CWWA16_4
+                       , 0 AS CWWA18_4
+                    FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                    LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                     ON B.CNTR_NO = LC30.CNTR_NO
+                    AND B.CNTR_SN = LC30.CNTR_SN
+                    AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                    AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C  /*-- 수납상세  TB_RVDW_ITG_DP_BAS    TB_GBMI_ITG_ACAM_BAS   TB_RVDW_ITG_DP_BAS DP30*/
+                     ON C.CNTR_NO = LC30.CNTR_NO
+                    AND C.CNTR_SN = LC30.CNTR_SN
+                    AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON B.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON LC30.CST_NO = E.CST_NO
+                   LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS DP30 /*-- 통합입금*/
+                     ON DP30.ITG_DP_NO = C.ITG_DP_NO
+                  WHERE DP30.RVE_CO_CD = '20'   /*--(주) 교원*/
+                    AND DP30.DP_TP_CD = '0802'  /*--k머니    DP_TP_CD*/
+                    AND SUBSTR(DP30.ITG_DP_CAN_DTM,1,6) = LC30.SL_CL_YM
+                    AND LC30.SL_CL_YM = #{slClYm}
+                    AND LC30.SELL_TP_CD = #{sellTpCd}
+                    AND LC30.SAP_PD_DV_CD = 'A1'
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                    </if>
+                  UNION ALL
+                 SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                      , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                      , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM  /*-- 상품명*/
+                      , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자*/
+                      , 0 AS CWPREP
+                      , 0 AS CWWA11_1
+                      , 0 AS CWWA12_1
+                      , 0 AS CWWA14
+                      , 0 AS CWWA11_2
+                      , 0 AS CWWA12_2_1
+                      , 0 AS CWWA12_2_2
+                      , 0 AS CWWA16_1
+                      , 0 AS CWWA18_1
+                      , 0 AS CWPROP
+                      , 0 AS CWWA20_1
+                      , CASE WHEN C.DP_DV_CD = '1' THEN C.RVE_AMT ELSE -C.RVE_AMT END CWWA18_2   /*-- 입금이면 cwamt1 아니면 환불이나 전금이면 */
+                      , 0 AS CWWA18_3  /*기타선수대체*/
+                      , 0 AS CWWA11_3
+                      , 0 AS CWWA12_3
+                      , 0 AS CWWA16_4
+                      , 0 AS CWWA18_4
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                     ON B.CNTR_NO = LC30.CNTR_NO
+                    AND B.CNTR_SN = LC30.CNTR_SN
+                    AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                    AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C     /*--수납상세*/
+                     ON LC30.CNTR_NO = C.CNTR_NO
+                    AND LC30.CNTR_SN = C.CNTR_SN
+                    AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON B.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON LC30.CST_NO = E.CST_NO
+                  WHERE LC30.SELL_TP_CD = #{sellTpCd}
+                    AND LC30.SAP_PD_DV_CD = 'A1'
+                    AND LC30.SL_CL_YM  = #{slClYm}
+                    AND C.RVE_DV_CD NOT IN ('02','06', '09','10','13')  /*-- 매변, 손료, 연체가산금*/
+                    AND NOT (C.PROCS_DV_CD = '2' AND C.RVE_DV_CD = '06' AND C.DP_TP_CD = '0501') /*-- 정상대체 여부 1정상, 2대체 / 입금종류 1. 할부금 2.매변 3.손료 4.위약금 5.연체가산금 / 대체, 매변, / 입금유형 : 전금*/
+                    AND C.DP_TP_CD = '0802'  /*-- 수수료, 대손     입금유형 : 수수료, 대손*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                    </if>
+                  UNION ALL
+                 SELECT C.PERF_DT AS PERF_DT /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', LC30.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', LC30.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', LC30.SAP_PD_DV_CD) AS SAP_PD_DV_CD /* -- SAP상품구분코드명*/
+                      , LC30.CNTR_NO || LC30.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                      , B.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM  /*-- 상품명*/
+                      , LC30.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자*/
+                      , 0 AS CWPREP
+                      , 0 AS CWWA11_1
+                      , 0 AS CWWA12_1
+                      , 0 AS CWWA14
+                      , 0 AS CWWA11_2
+                      , 0 AS CWWA12_2_1
+                      , 0 AS CWWA12_2_2
+                      , 0 AS CWWA16_1
+                      , 0 AS CWWA18_1
+                      , 0 AS CWPROP
+                      , 0 AS CWWA20_1
+                      , 0 AS CWWA18_2
+                      , C.RVE_AMT CWWA18_3 /*기타선수대체*/
+                      , 0 AS CWWA11_3
+                      , 0 AS CWWA12_3
+                      , 0 AS CWWA16_4
+                      , 0 AS CWWA18_4
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ LC30
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL B   /*-- 계약상세*/
+                     ON B.CNTR_NO = LC30.CNTR_NO
+                    AND B.CNTR_SN = LC30.CNTR_SN
+                    AND B.SELL_TP_CD = LC30.SELL_TP_CD
+                    AND B.SELL_TP_DTL_CD = LC30.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C     /*--수납상세*/
+                     ON LC30.CNTR_NO = C.CNTR_NO
+                    AND LC30.CNTR_SN = C.CNTR_SN
+                    AND SUBSTR(C.PERF_DT,1,6) = LC30.SL_CL_YM
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON B.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON LC30.CST_NO = E.CST_NO
+                  WHERE LC30.SELL_TP_CD = #{sellTpCd}
+                    AND LC30.SAP_PD_DV_CD = 'A1'
+                    AND LC30.SL_CL_YM  = #{slClYm}
+                    AND C.DP_DV_CD = '1' /*--1.입금     2.환불    3.전금*/
+                    AND C.RVE_DV_CD IN ('02', '06')  /*-- 매변, 연체가산금     1:할부금  2:매변, 3:손료 4:위약금 5:연체가산금*/
+                    AND C.DP_TP_CD = '0501'   /*-- 전금 */
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND LC30.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                    </if>
+             ) T
+         WHERE 1=1
+           AND NVL(T.CWPROP,0) != NVL(T.CWPREP,0) + NVL(T.CWWA11_1,0) + NVL(T.CWWA12_1,0) + NVL(T.CWWA14,0) - NVL(T.CWWA16_1,0) - NVL(T.CWWA18_1,0)
+         GROUP BY T.PERF_DT, T.SELL_TP_CD,T.SELL_TP_DTL_CD,T.SAP_PD_DV_CD,T.CNTR_NO,T.CST_KNM,T.BASE_PD_CD,T.PD_NM,T.SL_RCOG_DT
     </select>
 
-    <select id="selectSalesBondMembers" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6)/*실적년월*/
-           /*, CST_KNM 고객명*/
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*입금상세 실적년월*/
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-        INNER JOIN TB_SSCT_CNTR_DTL T4
-           ON T2.CNTR_NO = T4.CNTR_NO
-        WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
-          <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-          AND T4.SELL_TP_CD = #{sellTpCd}
-          </if>
+    <select id="selectRentalAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRentalAggregateRes">
+        SELECT T.SL_CL_YM      /*--실적년월*/
+             , SUM(T.W1_AM01) AS W1_AM01 /*--전기이월*/
+             , SUM(T.W1_AM02) AS W1_AM02 /*--등록비 */
+             , SUM(T.W1_AM05) AS W1_AM05 /*--정상매출*/
+             , SUM(T.W1_AM06) AS W1_AM06 /*--매출취소   */
+             , SUM(T.W1_AM08) AS W1_AM08 /*--매출합계 (등록비+정상매출-매출취소)*/
+             , SUM(T.W1_AM11) AS W1_AM11 /*--매출대사 */
+             , SUM(T.W1_AM13) AS W1_AM13 /*--위약잔역*/
+             , SUM(T.W1_AM14) AS W1_AM14 /*--위약조정*/
+             , SUM(T.W1_CM34) AS W1_AM34 /*--선수전환*/
+             , SUM(T.W1_AM15) AS W1_AM15 /*--대손*/
+             , SUM(T.W1_AM16) AS W1_AM16 /*--기말미수*/
+          FROM ( SELECT A.SL_CL_YM      /*-- 실적년월*/
+                      , NVL(G.THM_UC_BLAM,0)-NVL(G.EOT_DLQ_ADD_AMT,0) AS W1_AM01 /*-- 전기이월  AS     W1_AM01            --     전기이월*/
+                      , NVL(A.RENTAL_RGST_COST,0) -NVL(A.DSC_AMT,0) +NVL(A.RENTAL_RGST_COST_DFAM,0)  AS W1_AM02     /*--등록비-- + A.LCTCHA(등록차액)    AS W1_AM02*/
+                      , CASE WHEN (RENTAL_TN >=0 AND CAN_DT IS NULL) THEN  THM_SL_SUM_AMT ELSE 0 END     AS     W1_AM05
+                      , CASE WHEN (RENTAL_TN > 0  AND CAN_DT = '202301') THEN  THM_SL_SUM_AMT ELSE 0 END AS     W1_AM06
+                      , NVL(A.RENTAL_RGST_COST,0) -NVL(A.DSC_AMT,0) +NVL(A.RENTAL_RGST_COST_DFAM,0) + CASE WHEN (RENTAL_TN >=0 AND CAN_DT IS NULL) THEN  THM_SL_SUM_AMT ELSE 0 END
+                                                                    + CASE WHEN (RENTAL_TN > 0  AND CAN_DT = '202301') THEN  THM_SL_SUM_AMT ELSE 0 END    AS    W1_AM08
+                      , NVL(A.RENTAL_RGST_COST,0) - NVL(A.DSC_AMT,0) + NVL(A.SL_BND_ALRPY_AMT,0)    AS    W1_AM11 /*--A.LCAM43 + A.LCTCHA + A.SL_BND_ALRPY_AMT    AS    W1_AM11*/
+                      , 0 AS W1_AM13 /*-- 위약잔여*/
+                      , 0 AS W1_AM14 /*-- 위약조정*/
+                      , NVL(DFA_PROCS_AMT,0)  AS W1_AM15  /*-- 대손*/
+                      , NVL(A.OVR_CTR_DP_AMT,0)   AS  W1_CM34
+                      , (NVL(A.THM_UC_BLAM,0)-NVL(B.EOT_DLQ_ADD_AMT,0)) AS W1_AM16
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS B /*--연체기본*/
+                     ON A.CNTR_NO = B.CNTR_NO
+                    AND A.CNTR_SN = B.CNTR_SN
+                    AND A.SL_CL_YM = B.PERF_YM
+                   LEFT OUTER JOIN ( SELECT V1.CNTR_NO, V1.CNTR_SN, V1.SL_CL_YM, NVL(V1.THM_UC_BLAM,0) AS THM_UC_BLAM
+                                          , V2.PERF_YM, NVL(V2.EOT_DLQ_ADD_AMT,0) AS EOT_DLQ_ADD_AMT
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1  /*--월마감*/
+                                       LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /* --연체기본*/
+                                         ON V1.CNTR_NO = V2.CNTR_NO
+                                        AND V1.CNTR_SN = V2.CNTR_SN
+                                        AND V1.SL_CL_YM = V2.PERF_YM
+                                      WHERE 1 = 1
+                                        AND V1.SELL_TP_CD = #{sellTpCd}          /*-- 렌탈/리스 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                                        </if>
+                                        AND V1.SAP_PD_DV_CD = 'B1'
+                                        AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                       ) G
+                      ON A.CNTR_NO = G.CNTR_NO
+                     AND A.CNTR_SN = G.CNTR_SN
+                   WHERE A.SL_CL_YM   = #{slClYm}
+                     AND A.SELL_TP_CD = #{sellTpCd}         /*-- 렌탈/리스 (판매유형)*/
+                     <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                     AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+                     </if>
+                     AND A.SAP_PD_DV_CD   = 'B1'  /*--SAP 상품구분코드*/
+               ) T
+         GROUP BY T.SL_CL_YM
+    </select>
+
+    <select id="selectRentalDayPerOrder" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRentalDayPerOrderRes">
+        SELECT C.PERF_DT AS PERF_DT /*-- 실적일자*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+             , A.CNTR_NO || A.CNTR_SN AS CNTR_NO  /*-- 계약상세번호*/
+             , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+             , D.BASE_PD_CD AS BASE_PD_CD /*-- 상품코드*/
+             , F.PD_NM AS PD_NM /*-- 상품명*/
+             , A.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자*/
+             , NVL(G.THM_UC_BLAM, 0) - NVL(G.EOT_DLQ_ADD_AMT, 0) AS W1_AM01  /*-- 전기이월*/
+             , NVL(A.RENTAL_RGST_COST,0) - NVL(A.DSC_AMT, 0) + NVL(A.RENTAL_RGST_COST_DFAM, 0) AS W1_AM02 /*--등록비합계--(- LC505.LCAM43(환불차액) + A.LCTCHA(등록차액))*/
+             , CASE WHEN (RENTAL_TN <![CDATA[ >= ]]> 0 AND CAN_DT IS NULL) THEN THM_SL_SUM_AMT ELSE 0 END AS W1_AM05 /*-- 정상매출*/
+             , CASE WHEN (RENTAL_TN <![CDATA[ > ]]> 0 AND CAN_DT = #{slClYm}) THEN THM_SL_SUM_AMT ELSE 0 END AS W1_AM06 /*-- 취소매출*/
+             , NVL(A.RENTAL_RGST_COST, 0) - NVL(A.DSC_AMT, 0) + NVL(A.RENTAL_RGST_COST_DFAM, 0) + CASE WHEN (RENTAL_TN <![CDATA[ >= ]]> 0 AND CAN_DT IS NULL) THEN THM_SL_SUM_AMT ELSE 0 END
+               + CASE WHEN (RENTAL_TN <![CDATA[ > ]]> 0 AND CAN_DT = #{slClYm}) THEN THM_SL_SUM_AMT ELSE 0 END AS W1_AM08 /*-- 매출합계 + NVL(A.RENTAL_RGST_COST_DFAM,0) --등록비합계--(- LC505.LCAM43(환불차액) + A.LCTCHA(등록차액))*/
+             , NVL(A.RENTAL_RGST_COST, 0) - NVL(A.DSC_AMT, 0) + NVL(A.SL_BND_ALRPY_AMT, 0) AS W1_AM11 /*-- 매출대사 A.LCAM43 + A.LCTCHA + A.SL_BND_ALRPY_AMTASW1_AM11*/
+             , 0 W1_AM13 /*-- 위약잔여*/
+             , 0 W1_AM14 /*-- 위약조정*/
+             , DFA_PROCS_AMT AS W1_AM15 /*-- 대손*/
+             , NVL(A.OVR_CTR_DP_AMT,0) AS W1_CM34 /*-- 선수전환*/
+             , (NVL(A.THM_UC_BLAM,0) - NVL(B.EOT_DLQ_ADD_AMT,0)) AS W1_AM16 /*-- 당월미수금액*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ A /*--월마감*/
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS B /*--연체기본*/
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.SL_CL_YM = B.PERF_YM
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+           AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SELL_TP_CD = D.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+            ON D.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN (SELECT V1.CNTR_NO
+                                , V1.THM_UC_BLAM
+                                , V1.CNTR_SN
+                                , V1.SL_CL_YM
+                                , V2.EOT_DLQ_ADD_AMT
+                             FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1 /*--월마감*/
+                             LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /*--연체기본*/
+                               ON V1.CNTR_NO = V2.CNTR_NO
+                              AND V1.CNTR_SN = V2.CNTR_SN
+                              AND V1.SL_CL_YM = V2.PERF_YM
+                             WHERE 1 = 1
+                               AND V1.SELL_TP_CD = #{sellTpCd} /*-- 렌탈/리스 (판매유형)*/
+                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                               AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                               </if>
+                               AND V1.SAP_PD_DV_CD = 'B1'
+                               AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                           ) G
+            ON A.CNTR_NO = G.CNTR_NO
+           AND A.CNTR_SN = G.CNTR_SN
+         WHERE 1=1
+           AND A.SL_CL_YM = #{slClYm}
+           AND A.SELL_TP_CD = #{sellTpCd} /* -- 렌탈/리스 (판매유형)*/
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND A.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+           </if>
+           AND A.SAP_PD_DV_CD = 'B1'
+           AND A.CNTR_NO || A.CNTR_SN = #{agrgDv}  /*-- 주문별인 경우*/
+    </select>
+
+    <select id="selectRentalHorizontalFormula" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRentalDayPerOrderRes">
+        SELECT T.PERF_DT
+             , T.SELL_TP_CD
+             , T.SELL_TP_DTL_CD
+             , T.SAP_PD_DV_CD
+             , T.CNTR_NO
+             , T.CST_KNM
+             , T.BASE_PD_CD
+             , T.PD_NM
+             , T.SL_RCOG_DT
+             , T.W1_AM01
+             , T.W1_AM02
+             , T.W1_AM05
+             , T.W1_AM06
+             , T.W1_AM08
+             , T.W1_AM11
+             , T.W1_AM13
+             , T.W1_AM14
+             , T.W1_AM15
+             , T.W1_CM34
+             , T.W1_AM16
+          FROM ( SELECT C.PERF_DT AS PERF_DT /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD   /*-- SAP상품구분코드명*/
+                      , A.CNTR_NO || A.CNTR_SN AS CNTR_NO  /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM /*-- 고객명*/
+                      , D.BASE_PD_CD AS BASE_PD_CD /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM /*-- 상품명*/
+                      , A.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자*/
+                      , NVL(G.THM_UC_BLAM, 0) - NVL(G.EOT_DLQ_ADD_AMT, 0) AS W1_AM01  /*-- 전기이월*/
+                      , NVL(A.RENTAL_RGST_COST, 0) - NVL(A.DSC_AMT, 0) + NVL(A.RENTAL_RGST_COST_DFAM, 0) AS W1_AM02 /*--등록비합계--(- LC505.LCAM43(환불차액) + A.LCTCHA(등록차액))*/
+                      , CASE WHEN (RENTAL_TN <![CDATA[ >= ]]> 0 AND CAN_DT IS NULL) THEN THM_SL_SUM_AMT ELSE 0 END AS W1_AM05 /*-- 정상매출*/
+                      , CASE WHEN (RENTAL_TN <![CDATA[ > ]]> 0 AND CAN_DT = #{slClYm}) THEN THM_SL_SUM_AMT ELSE 0 END AS W1_AM06 /*-- 취소매출*/
+                      , NVL(A.RENTAL_RGST_COST, 0) -NVL(A.DSC_AMT, 0) + NVL(A.RENTAL_RGST_COST_DFAM, 0) + CASE WHEN (RENTAL_TN >=0 AND CAN_DT IS NULL) THEN THM_SL_SUM_AMT ELSE 0 END
+                        + CASE WHEN (RENTAL_TN <![CDATA[ > ]]> 0 AND CAN_DT = #{slClYm}) THEN THM_SL_SUM_AMT ELSE 0 END AS W1_AM08 /*-- 매출합계 +NVL(A.RENTAL_RGST_COST_DFAM,0) --등록비합계--(- LC505.LCAM43(환불차액) + A.LCTCHA(등록차액))*/
+                      , NVL(A.RENTAL_RGST_COST, 0) - NVL(A.DSC_AMT, 0) + NVL(A.SL_BND_ALRPY_AMT, 0) AS W1_AM11 /*-- 매출대사 A.LCAM43 + A.LCTCHA + A.SL_BND_ALRPY_AMTASW1_AM11*/
+                      , 0 W1_AM13 /*-- 위약잔여*/
+                      , 0 W1_AM14 /*-- 위약조정*/
+                      , DFA_PROCS_AMT AS W1_AM15 /*-- 대손*/
+                      , NVL(A.OVR_CTR_DP_AMT, 0) AS W1_CM34 /*-- 선수전환*/
+                      , (NVL(A.THM_UC_BLAM, 0) - NVL(B.EOT_DLQ_ADD_AMT, 0)) AS W1_AM16 /*-- 당월미수금액*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ A /*--월마감*/
+                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS B /*--연체기본*/
+                     ON A.CNTR_NO = B.CNTR_NO
+                    AND A.CNTR_SN = B.CNTR_SN
+                    AND A.SL_CL_YM = B.PERF_YM
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+                     ON A.CNTR_NO = C.CNTR_NO
+                    AND A.CNTR_SN = C.CNTR_SN
+                    AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+                     ON A.CNTR_NO = D.CNTR_NO
+                    AND A.CNTR_SN = D.CNTR_SN
+                    AND A.SELL_TP_CD = D.SELL_TP_CD
+                    AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON D.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON A.CST_NO = E.CST_NO
+                   LEFT OUTER JOIN ( SELECT V1.CNTR_NO
+                                          , V1.THM_UC_BLAM
+                                          , V1.CNTR_SN
+                                          , V1.SL_CL_YM
+                                          , V2.EOT_DLQ_ADD_AMT
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1 /*--월마감*/
+                                       LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /*--연체기본*/
+                                         ON V1.CNTR_NO = V2.CNTR_NO
+                                        AND V1.CNTR_SN = V2.CNTR_SN
+                                        AND V1.SL_CL_YM = V2.PERF_YM
+                                      WHERE 1 = 1
+                                        AND V1.SELL_TP_CD = #{sellTpCd} /*-- 렌탈/리스 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                                        </if>
+                                        AND V1.SAP_PD_DV_CD = 'B1'
+                                        AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                   ) G
+                     ON A.CNTR_NO = G.CNTR_NO
+                    AND A.CNTR_SN = G.CNTR_SN
+                  WHERE 1=1
+                    AND A.SL_CL_YM = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd} /*-- 렌탈/리스 (판매유형)*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                    </if>
+                    AND A.SAP_PD_DV_CD = 'B1'
+             ) T
+         WHERE T.W1_AM16 != T.W1_AM01 + T.W1_AM08-T.W1_AM11-T.W1_CM34+T.W1_AM13+T.W1_AM14
+    </select>
+
+    <select id="selectLeaseAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchLeaseAggregateRes">
+        SELECT T.SL_CL_YM      /*--실적년월*/
+             , SUM(T.W1_AM01) AS W1_AM01  /*--전기이월*/
+             , SUM(T.W1_AM04) AS W1_AM04  /*--원금매출*/
+             , SUM(T.W1_AM07) AS W1_AM07  /*--이자매출*/
+             , SUM(T.W1_AM58) AS W1_AM58  /*--서비스매출*/
+             , SUM(T.W1_AM59) AS W1_AM59  /*--합계*/
+             , SUM(T.W1_AM08) AS W1_AM08  /*--매출조정*/
+             , SUM(T.W1_AM11) AS W1_AM11  /*--매출대사 */
+             , SUM(T.W1_AM15) AS W1_AM15  /*--대손*/
+             , SUM(T.W1_AM12) AS W1_AM12  /*--미수금액*/
+          FROM ( SELECT A.SL_CL_YM    AS SL_CL_YM  /*-- 실적년월*/
+                      , G.W1_AM01     AS W1_AM01      /*--    전기이월*/
+                      , CASE WHEN (A.RENTAL_TN <![CDATA[ >= ]]> 0 AND A.CAN_DT IS NULL) THEN  A.THM_SL_SUM_AMT ELSE 0 END  AS    W1_AM04  /*--원금합계*/
+                      , NVL(A.INT_SUM_AMT,0)                                                          AS    W1_AM07  /*--이자합계*/
+                      , NVL(A.THM_OC_SV_SL_AMT,0)                                                     AS W1_AM58  /*--서비스매출*/
+                      , (CASE WHEN (A.RENTAL_TN <![CDATA[ >= ]]> 0 AND A.CAN_DT IS NULL) THEN  A.THM_SL_SUM_AMT ELSE 0 END + NVL(A.INT_SUM_AMT,0) + NVL(A.THM_OC_SV_SL_AMT,0)) AS W1_AM59
+                      , NVL(A.LEASE_SL_CTR_AMT,0) + NVL(A.LEASE_SL_CAN_AMT,0)                           AS W1_AM08  /*--매출조정*/
+                      , NVL(A.SL_BND_ALRPY_AMT,0)+NVL(A.INT_DP_AMT, 0) + NVL(A.SV_DP_AMT, 0)              AS W1_AM11  /*--매출대사*/
+                      , NVL(DFA_PROCS_AMT,0)                                                          AS W1_AM15  /*--대손*/
+                      , A.TOT_PCAM_UC_AMT + A.TOT_INT_UC_AMT + A.EOT_SV_AMT                           AS W1_AM12  /*--미수금액*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN ( SELECT CNTR_NO, CNTR_SN, SL_CL_YM, (NVL(TOT_PCAM_UC_AMT,0) + NVL(TOT_INT_UC_AMT,0) + NVL(EOT_SV_AMT,0)) AS W1_AM01
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ  /*-- 월마감*/
+                                      WHERE SELL_TP_CD = #{sellTpCd}           /*-- 렌탈/리스 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND SELL_TP_DTL_CD = #{sellTpDtlCd}      /*-- 판매유형상세*/
+                                        </if>
+                                        AND SAP_PD_DV_CD = 'B3'
+                                        AND SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                   ) G
+                     ON A.CNTR_NO = G.CNTR_NO
+                    AND A.CNTR_SN = G.CNTR_SN
+                  WHERE 1=1
+                    AND A.SL_CL_YM   = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd}     /*-- 렌탈/리스 (판매유형)*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+                    </if>
+                    AND A.SAP_PD_DV_CD   = 'B3' /*--SAP 상품구분코드*/
+               ) T
+        GROUP BY T.SL_CL_YM
+    </select>
+
+    <select id="selectLeaseDayPerOrder" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchLeaseDayPerOrderRes">
+        SELECT C.PERF_DT AS PERF_DT                                                           /*-- 실적일자*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD             /*-- 판매유형*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD       /*-- SAP상품구분코드명*/
+             , A.CNTR_NO || A.CNTR_SN AS CNTR_NO                                              /*-- 계약상세번호*/
+             , E.CST_KNM     AS CST_KNM     /*-- 고객명*/
+             , D.BASE_PD_CD  AS BASE_PD_CD  /*-- 상품코드*/
+             , F.PD_NM       AS PD_NM       /*-- 상품명*/
+             , A.SL_RCOG_DT  AS SL_RCOG_DT  /*-- 매출인식일자*/
+             , G.W1_AM01       AS W1_AM01        /*--    전기이월*/
+             , CASE WHEN (A.RENTAL_TN <![CDATA[ >= ]]> 0 AND A.CAN_DT IS NULL) THEN  A.THM_SL_SUM_AMT ELSE 0 END  AS W1_AM04  /*--원금합계*/
+             , NVL(A.INT_SUM_AMT,0)                                                          AS W1_AM07  /*--이자합계*/
+             , NVL(A.THM_OC_SV_SL_AMT,0)                                                     AS W1_AM58  /*--서비스매출*/
+             , (CASE WHEN (A.RENTAL_TN <![CDATA[ >= ]]> 0 AND A.CAN_DT IS NULL) THEN  A.THM_SL_SUM_AMT ELSE 0 END + NVL(A.INT_SUM_AMT,0) + NVL(A.THM_OC_SV_SL_AMT,0)) AS W1_AM59
+             , NVL(A.LEASE_SL_CTR_AMT,0)+NVL(A.LEASE_SL_CAN_AMT,0)                           AS W1_AM08  /*--매출조정*/
+             , NVL(A.SL_BND_ALRPY_AMT,0)+NVL(A.INT_DP_AMT,0)+NVL(A.SV_DP_AMT,0)              AS W1_AM11  /*--매출대사*/
+             , NVL(DFA_PROCS_AMT,0)                                                          AS W1_AM15  /*--대손      */
+             , A.TOT_PCAM_UC_AMT + A.TOT_INT_UC_AMT + A.EOT_SV_AMT                           AS W1_AM12  /*--미수금액*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+           AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SELL_TP_CD = D.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F   /*--상품기본*/
+            ON D.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN ( SELECT CNTR_NO
+                                 , CNTR_SN, SL_CL_YM
+                                 , (NVL(TOT_PCAM_UC_AMT,0) + NVL(TOT_INT_UC_AMT,0) + NVL(EOT_SV_AMT,0)) AS W1_AM01
+                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ  /*--월마감*/
+                             WHERE SELL_TP_CD = #{sellTpCd}  /*-- 렌탈/리스 (판매유형)*/
+                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                               AND SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                               </if>
+                               AND SAP_PD_DV_CD = 'B3'
+                               AND SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                           ) G
+            ON A.CNTR_NO = G.CNTR_NO
+           AND A.CNTR_SN = G.CNTR_SN
+         WHERE 1=1
+           AND A.SL_CL_YM   = #{slClYm}
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND A.SELL_TP_CD = #{sellTpCd}     /*-- 렌탈/리스 (판매유형)*/
+           </if>
+           AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+           AND A.SAP_PD_DV_CD   = 'B3' /*--SAP 상품구분코드*/
+           AND A.CNTR_NO || A.CNTR_SN = #{agrgDv}  /*-- 주문별인 경우       */
+    </select>
+
+    <select id="selectLeaseHorizontalFormula" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchLeaseDayPerOrderRes">
+        SELECT T.PERF_DT
+             , T.SELL_TP_CD
+             , T.SELL_TP_DTL_CD
+             , T.SAP_PD_DV_CD
+             , T.CNTR_NO
+             , T.CST_KNM
+             , T.BASE_PD_CD
+             , T.PD_NM
+             , T.SL_RCOG_DT
+             , T.W1_AM01
+             , T.W1_AM04
+             , T.W1_AM07
+             , T.W1_AM58
+             , T.W1_AM59
+             , T.W1_AM11
+             , T.W1_AM15
+             , T.W1_AM12
+          FROM ( SELECT C.PERF_DT AS PERF_DT                                                           /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD             /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD       /*-- SAP상품구분코드명*/
+                      , A.CNTR_NO || A.CNTR_SN AS CNTR_NO                                              /*-- 계약상세번호*/
+                      , E.CST_KNM     AS CST_KNM   /*-- 고객명*/
+                      , D.BASE_PD_CD  AS BASE_PD_CD    /*-- 상품코드*/
+                      , F.PD_NM       AS PD_NM   /*-- 상품명*/
+                      , A.SL_RCOG_DT  AS SL_RCOG_DT    /*-- 매출인식일자*/
+                      , G.W1_AM01       AS W1_AM01        /*--    전기이월*/
+                      , CASE WHEN (A.RENTAL_TN <![CDATA[ >= ]]> 0 AND A.CAN_DT IS NULL) THEN  A.THM_SL_SUM_AMT ELSE 0 END  AS    W1_AM04  /*--원금합계*/
+                      , NVL(A.INT_SUM_AMT,0)                                                          AS W1_AM07  /*--이자합계*/
+                      , NVL(A.THM_OC_SV_SL_AMT,0)                                                     AS W1_AM58  /*--서비스매출*/
+                      , (CASE WHEN (A.RENTAL_TN <![CDATA[ >= ]]> 0 AND A.CAN_DT IS NULL) THEN  A.THM_SL_SUM_AMT ELSE 0 END + NVL(A.INT_SUM_AMT,0) + NVL(A.THM_OC_SV_SL_AMT,0)) AS W1_AM59
+                      , NVL(A.LEASE_SL_CTR_AMT,0)+NVL(A.LEASE_SL_CAN_AMT,0)                           AS W1_AM08  /*--매출조정*/
+                      , NVL(A.SL_BND_ALRPY_AMT,0)+NVL(A.INT_DP_AMT,0)+NVL(A.SV_DP_AMT,0)              AS W1_AM11  /*--매출대사*/
+                      , NVL(DFA_PROCS_AMT,0)                                                          AS W1_AM15  /*--대손      */
+                      , A.TOT_PCAM_UC_AMT + A.TOT_INT_UC_AMT + A.EOT_SV_AMT                           AS W1_AM12  /*--미수금액*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+                     ON A.CNTR_NO = C.CNTR_NO
+                    AND A.CNTR_SN = C.CNTR_SN
+                    AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+                     ON A.CNTR_NO = D.CNTR_NO
+                    AND A.CNTR_SN = D.CNTR_SN
+                    AND A.SELL_TP_CD = D.SELL_TP_CD
+                    AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON D.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON A.CST_NO = E.CST_NO
+                   LEFT OUTER JOIN ( SELECT CNTR_NO
+                                          , CNTR_SN
+                                          , SL_CL_YM
+                                          , (NVL(TOT_PCAM_UC_AMT,0) + NVL(TOT_INT_UC_AMT,0) + NVL(EOT_SV_AMT,0)) AS W1_AM01
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ  /*--월마감*/
+                                      WHERE SELL_TP_CD = #{sellTpCd} /*-- 렌탈/리스 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                                        </if>
+                                        AND SAP_PD_DV_CD = 'B3'
+                                        AND SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                    ) G
+                     ON A.CNTR_NO = G.CNTR_NO
+                    AND A.CNTR_SN = G.CNTR_SN
+                  WHERE 1=1
+                    AND A.SL_CL_YM   = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd}     /*-- 렌탈/리스 (판매유형)*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+                    </if>
+                    AND A.SAP_PD_DV_CD   = 'B3' /*--SAP 상품구분코드*/
+             ) T
+         WHERE T.W1_AM12 != T.W1_AM01 + T.W1_AM04 + T.W1_AM07 + T.W1_AM58 - T.W1_AM08 - T.W1_AM11
+    </select>
+
+    <select id="selectMemberAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchMemberAggregateRes">
+        SELECT T.SL_CL_YM      /*--실적년월*/
+             , SUM(T.W1_AM01) AS W1_AM01  /*--전기이월*/
+             , SUM(T.W1_AM02) AS W1_AM02  /*--정상매출*/
+             , SUM(T.W1_AM03) AS W1_AM03  /*--취소매출*/
+             , SUM(T.W1_AM06) AS W1_AM06  /*--합계   */
+             , SUM(T.W1_AM09) AS W1_AM09  /*--매출대사*/
+             , SUM(T.W1_AM15) AS W1_AM15  /*--대손*/
+             , SUM(T.W1_AM12) AS W1_AM12  /*--미수금액*/
+          FROM ( SELECT A.SL_CL_YM       /*-- 실적년월*/
+                      , NVL(G.THM_UC_BLAM,0)+NVL(G.DSC_UC_AMT,0)-NVL(G.EOT_DLQ_ADD_AMT,0)          AS W1_AM01 /*-- 전기이월  AS     W1_AM01*/
+                        /*----------------------------------------------------------------------------------*/
+                        /*-- 매출*/
+                        /*-----------------------------------------------------------------------------------*/
+                        /*--    ,(CASE WHEN (A.RENTAL_TN <![CDATA[ >= ]]> 0 AND A.CAN_DT IS NULL) THEN  A.THM_SL_SUM_AMT ELSE 0 END + NVL(A.INT_SUM_AMT,0) + NVL(A.THM_OC_SV_SL_AMT,0)) AS W1_AM59*/
+                      , NVL(A.THM_SL_SUM_AMT,0) - NVL(A.SL_CAN_AMT,0)                                 AS    W1_AM02 /*-- 회비매출(정상매출)  (THM_SL_SUM_AMT - SL_CAN_AMT 매출합계(취소)*/
+                      , NVL(A.SL_CAN_AMT,0)                                                         AS    W1_AM03  /*-- 취소매출    LCENTY > 0 ,  LCOUNTY 매출월  LCOUTM 매출월*/
+                      , NVL(A.THM_SL_SUM_AMT,0) + NVL(A.DSC_SL_AMT,0)                                 AS    W1_AM06  /*--매출합계 (매출합계+할인매출)*/
+                        /*-----------------------------------------------------------------------------------*/
+                        /*-- 매출대사*/
+                        /*-----------------------------------------------------------------------------------*/
+                      , NVL(A.SL_BND_ALRPY_AMT,0) + NVL(A.DSC_DP_AMT,0)                                 AS    W1_AM09
+                        /*-----------------------------------------------------------------------------------*/
+                      , NVL(DFA_PROCS_AMT,0)                                                        AS W1_AM15 /*-- 대손*/
+                        /*-----------------------------------------------------------------------------------*/
+                        /*-----------------------------------------------------------------------------------*/
+                        /*-- 미수금액*/
+                        /*-----------------------------------------------------------------------------------*/
+                      , NVL(G.THM_UC_BLAM,0)+NVL(G.DSC_UC_AMT,0)-NVL(G.EOT_DLQ_ADD_AMT,0)    /*--전기이월금 + 현재월 매출금액-매출입금+할인매출-할인입금*/
+                        + NVL(A.THM_SL_SUM_AMT,0)
+                        - NVL(A.SL_BND_ALRPY_AMT,0)
+                        + NVL(A.DSC_SL_AMT,0)
+                        - NVL(A.DSC_DP_AMT,0) AS W1_AM12
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN ( SELECT V1.CNTR_NO, V1.CNTR_SN, V1.SL_CL_YM, NVL(V1.THM_UC_BLAM,0) AS THM_UC_BLAM
+                                          , NVL(V1.DSC_UC_AMT,0) AS DSC_UC_AMT
+                                          , V2.PERF_YM, NVL(V2.EOT_DLQ_ADD_AMT,0) AS EOT_DLQ_ADD_AMT
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1  /*--월마감*/
+                                       LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /*--연체기본*/
+                                         ON V1.CNTR_NO = V2.CNTR_NO
+                                        AND V1.CNTR_SN = V2.CNTR_SN
+                                        AND V1.SL_CL_YM = V2.PERF_YM
+                                      WHERE 1 = 1
+                                        AND V1.SELL_TP_CD = #{sellTpCd}      /*-- 렌탈/리스 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd}      /*-- 판매유형상세*/
+                                        </if>
+                                        AND V1.SAP_PD_DV_CD = 'B2'
+                                        AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                    ) G
+                     ON A.CNTR_NO = G.CNTR_NO
+                    AND A.CNTR_SN = G.CNTR_SN
+                  WHERE 1=1
+                    AND A.SL_CL_YM = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd}     /*-- 렌탈/리스 (판매유형)*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+                    </if>
+                    AND A.SAP_PD_DV_CD   = 'B2' /*--SAP 상품구분코드 */
+            ) T
+        GROUP BY T.SL_CL_YM
+    </select>
+
+    <select id="selectMemberDayPerOrder" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchMemberDayPerOrderRes">
+        SELECT C.PERF_DT AS PERF_DT /*-- 실적일자*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD  /*-- 판매유형*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD  /*-- 판매유형상세코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD  /*-- SAP상품구분코드명*/
+             , A.CNTR_NO || A.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+             , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+             , D.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+             , F.PD_NM AS PD_NM      /*-- 상품명*/
+             , A.SL_RCOG_DT AS SL_RCOG_DT  /*-- 매출인식일자*/
+             , NVL(G.THM_UC_BLAM,0) + NVL(G.DSC_UC_AMT,0) - NVL(G.EOT_DLQ_ADD_AMT,0)          AS W1_AM01 /*-- 전기이월  AS     W1_AM01*/
+             , NVL(A.THM_SL_SUM_AMT,0) - NVL(A.SL_CAN_AMT,0)                                 AS W1_AM02 /*-- 회비매출(정상매출)  (THM_SL_SUM_AMT - SL_CAN_AMT 매출합계(취소)*/
+             , NVL(A.SL_CAN_AMT,0)                                                           AS W1_AM03  /*-- 취소매출    LCENTY > 0 ,  LCOUNTY 매출월  LCOUTM 매출월*/
+             , NVL(A.THM_SL_SUM_AMT,0) + NVL(A.DSC_SL_AMT,0)                                 AS    W1_AM06  /*--매출합계 (매출합계+할인매출)*/
+               /*-----------------------------------------------------------------------------------*/
+               /*-- 매출대사*/
+               /*-----------------------------------------------------------------------------------*/
+             , NVL(A.SL_BND_ALRPY_AMT,0) + NVL(A.DSC_DP_AMT,0)                                 AS    W1_AM09
+               /*-----------------------------------------------------------------------------------*/
+             , NVL(DFA_PROCS_AMT,0)                                                        AS W1_AM15 /*-- 대손*/
+               /*----------------------------------------------------------------------------------*/
+               /*-- 미수금액*/
+               /*-----------------------------------------------------------------------------------*/
+             , NVL(G.THM_UC_BLAM,0) + NVL(G.DSC_UC_AMT,0) - NVL(G.EOT_DLQ_ADD_AMT,0)    /*--전기이월금 + 현재월 매출금액-매출입금+할인매출-할인입금*/
+               + NVL(A.THM_SL_SUM_AMT,0)
+               - NVL(A.SL_BND_ALRPY_AMT,0)
+               + NVL(A.DSC_SL_AMT,0)
+               - NVL(A.DSC_DP_AMT,0)  AS W1_AM12
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+           AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SELL_TP_CD = D.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+            ON D.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN ( SELECT V1.CNTR_NO
+                                 , V1.CNTR_SN
+                                 , V1.SL_CL_YM
+                                 , NVL(V1.THM_UC_BLAM,0) AS THM_UC_BLAM
+                                 , NVL(V1.DSC_UC_AMT,0) AS DSC_UC_AMT
+                                 , V2.PERF_YM
+                                 , NVL(V2.EOT_DLQ_ADD_AMT,0) AS EOT_DLQ_ADD_AMT
+                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1   /*--월마감*/
+                              LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2  /*--연체기본*/
+                                ON V1.CNTR_NO = V2.CNTR_NO
+                               AND V1.CNTR_SN = V2.CNTR_SN
+                               AND V1.SL_CL_YM = V2.PERF_YM
+                             WHERE 1 = 1
+                               AND V1.SELL_TP_CD = #{sellTpCd}        /* -- 렌탈/리스 (판매유형)*/
+                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                               AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                               </if>
+                               AND V1.SAP_PD_DV_CD = 'B2'
+                               AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                           ) G
+            ON A.CNTR_NO = G.CNTR_NO
+           AND A.CNTR_SN = G.CNTR_SN
+         WHERE 1=1
+           AND A.SL_CL_YM   = #{slClYm}
+           AND A.SELL_TP_CD = #{sellTpCd}     /*-- 렌탈/리스 (판매유형)*/
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+           </if>
+           AND A.SAP_PD_DV_CD   = 'B2' /*--SAP 상품구분코드      */
+           AND  A.CNTR_NO || A.CNTR_SN = #{agrgDv}  /*-- 주문별인 경우*/
+    </select>
+
+    <select id="selectMemberHorizontalFormula" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchMemberDayPerOrderRes">
+        SELECT T.PERF_DT
+             , T.SELL_TP_CD
+             , T.SELL_TP_DTL_CD
+             , T.SAP_PD_DV_CD
+             , T.CNTR_NO
+             , T.CST_KNM
+             , T.BASE_PD_CD
+             , T.PD_NM
+             , T.SL_RCOG_DT
+             , T.W1_AM01   /*-- 전기이월*/
+             , T.W1_AM02   /*-- 정상매출*/
+             , T.W1_AM03   /*-- 취소매출 */
+             , T.W1_AM06   /*-- 매출합계*/
+             , T.W1_AM09   /*-- 매출대사*/
+             , T.W1_AM15   /*-- 대손*/
+             , T.W1_AM12   /*-- 미수*/
+        FROM ( SELECT C.PERF_DT AS PERF_DT-- 실적일자
+                    , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD  /*-- 판매유형*/
+                    , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD  /*-- 판매유형상세코드*/
+                    , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD /*-- SAP상품구분코드명*/
+                    , A.CNTR_NO || A.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                    , E.CST_KNM AS CST_KNM  /*-- 고객명*/
+                    , D.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                    , F.PD_NM AS PD_NM  /*-- 상품명*/
+                    , A.SL_RCOG_DT AS SL_RCOG_DT  /*-- 매출인식일자*/
+                    , NVL(G.THM_UC_BLAM,0)+NVL(G.DSC_UC_AMT,0)-NVL(G.EOT_DLQ_ADD_AMT,0)          AS W1_AM01 /*-- 전기이월  AS     W1_AM01*/
+                    , NVL(A.THM_SL_SUM_AMT,0) - NVL(A.SL_CAN_AMT,0)                               AS W1_AM02 /*-- 회비매출(정상매출)  (THM_SL_SUM_AMT - SL_CAN_AMT 매출합계(취소)*/
+                    , NVL(A.SL_CAN_AMT,0)                                                           AS W1_AM03  /*-- 취소매출    LCENTY > 0 ,  LCOUNTY 매출월  LCOUTM 매출월*/
+                    , NVL(A.THM_SL_SUM_AMT,0) + NVL(A.DSC_SL_AMT,0)                               AS W1_AM06  /*--매출합계 (매출합계+할인매출)*/
+                      /*-----------------------------------------------------------------------------------*/
+                      /*-- 매출대사*/
+                      /*-----------------------------------------------------------------------------------*/
+                    , NVL(A.SL_BND_ALRPY_AMT,0)+NVL(A.DSC_DP_AMT,0)                                AS W1_AM09
+                      /*-----------------------------------------------------------------------------------*/
+                    , NVL(DFA_PROCS_AMT,0)                                                        AS W1_AM15 /*-- 대손*/
+                      /*----------------------------------------------------------------------------------*/
+                      /*-- 미수금액*/
+                      /*-----------------------------------------------------------------------------------*/
+                       ,NVL(G.THM_UC_BLAM,0)+NVL(G.DSC_UC_AMT,0)-NVL(G.EOT_DLQ_ADD_AMT,0)    /*--전기이월금 + 현재월 매출금액-매출입금+할인매출-할인입금*/
+                      + NVL(A.THM_SL_SUM_AMT,0)
+                      - NVL(A.SL_BND_ALRPY_AMT,0)
+                      + NVL(A.DSC_SL_AMT,0)
+                      - NVL(A.DSC_DP_AMT,0) AS    W1_AM12
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+                     ON A.CNTR_NO = C.CNTR_NO
+                    AND A.CNTR_SN = C.CNTR_SN
+                    AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+                     ON A.CNTR_NO = D.CNTR_NO
+                    AND A.CNTR_SN = D.CNTR_SN
+                    AND A.SELL_TP_CD = D.SELL_TP_CD
+                    AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                     ON D.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                     ON A.CST_NO = E.CST_NO
+                   LEFT OUTER JOIN ( SELECT V1.CNTR_NO
+                                          , V1.CNTR_SN
+                                          , V1.SL_CL_YM
+                                          , NVL(V1.THM_UC_BLAM,0) AS THM_UC_BLAM, NVL(V1.DSC_UC_AMT,0) AS DSC_UC_AMT
+                                          , V2.PERF_YM, NVL(V2.EOT_DLQ_ADD_AMT,0) AS EOT_DLQ_ADD_AMT
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1 /*--월마감*/
+                                       LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /*--연체기본*/
+                                         ON V1.CNTR_NO = V2.CNTR_NO
+                                        AND V1.CNTR_SN = V2.CNTR_SN
+                                        AND V1.SL_CL_YM = V2.PERF_YM
+                                      WHERE 1 = 1
+                                        AND V1.SELL_TP_CD = #{sellTpCd} /*-- 렌탈/리스 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                                        </if>
+                                        AND V1.SAP_PD_DV_CD = 'B2'
+                                        AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                    ) G
+                     ON A.CNTR_NO = G.CNTR_NO
+                    AND A.CNTR_SN = G.CNTR_SN
+                  WHERE 1=1
+                    AND A.SL_CL_YM   = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd}     /*-- 렌탈/리스 (판매유형)*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+                    </if>
+                    AND A.SAP_PD_DV_CD   = 'B2' /*--SAP 상품구분코드      */
+               ) T
+         WHERE T.W1_AM12 != T.W1_AM01 + T.W1_AM06-T.W1_AM09
+    </select>
+
+    <select id="selectRegularDeliveryAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRegularDeliveryAggregateRes">
+        SELECT T.SL_CL_YM      /*--실적년월*/
+             , SUM(T.W1_AM00) AS W1_AM00 /*--전기이월*/
+             , SUM(T.W1_AM19) AS W1_AM19 /*--매출*/
+             , SUM(T.W1_AM29) AS W1_AM29 /*--매출대사*/
+             , SUM(T.W1_AM15) AS W1_AM15 /*--대손*/
+             , SUM(T.W1_AM99) AS W1_AM99 /*--미수금액*/
+          FROM ( SELECT A.SL_CL_YM       /*-- 실적년월*/
+                      , NVL(G.THM_UC_BLAM,0)-NVL(G.EOT_DLQ_ADD_AMT,0) AS W1_AM00 /*-- 전기이월  LD505.LCMAMT(판매미수)-LD505.LCAM84(가산기말)-LD505.LCA106(위약미수기말)*/
+                      , NVL(A.THM_SL_SUM_AMT,0)                       AS    W1_AM19 /*-- 매출     LCAM16 (매출합계)*/
+                      , NVL(A.SL_BND_ALRPY_AMT,0)                     AS    W1_AM29 /*-- 매출대사  LCAM38 (매출입금)*/
+                      , NVL(A.DFA_PROCS_AMT,0)                        AS W1_AM15 /*-- 대손*/
+                      , NVL(A.THM_UC_BLAM,0)-NVL(B.EOT_DLQ_ADD_AMT,0) AS    W1_AM99 /*-- 미수금액  LD505.LCMAMT-LD505.LCAM84-LD505.LCA106  */
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS B /*--연체기본*/
+                     ON A.CNTR_NO = B.CNTR_NO
+                    AND A.CNTR_SN = B.CNTR_SN
+                    AND A.SL_CL_YM = B.PERF_YM
+                   LEFT OUTER JOIN ( SELECT V1.CNTR_NO
+                                          , V1.CNTR_SN
+                                          , V1.SL_CL_YM
+                                          , NVL(V1.THM_UC_BLAM,0) AS THM_UC_BLAM
+                                          , V2.PERF_YM
+                                          , NVL(V2.EOT_DLQ_ADD_AMT,0) AS EOT_DLQ_ADD_AMT
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1 /*--월마감*/
+                                       LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /*--연체기본*/
+                                         ON V1.CNTR_NO = V2.CNTR_NO
+                                        AND V1.CNTR_SN = V2.CNTR_SN
+                                        AND V1.SL_CL_YM = V2.PERF_YM
+                                      WHERE 1 = 1
+                                        AND V1.SELL_TP_CD = #{sellTpCd} /*-- 정기배송 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                                        </if>
+                                        AND V1.SAP_PD_DV_CD = 'C1'
+                                        AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                   ) G
+                     ON A.CNTR_NO = G.CNTR_NO
+                    AND A.CNTR_SN = G.CNTR_SN
+                  WHERE 1=1
+                    AND A.SL_CL_YM   = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd}        /*-- 정기배송 (판매유형)*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+                    </if>
+                    AND A.SAP_PD_DV_CD   = 'C1' /*--SAP 상품구분코드*/
+            ) T
+        GROUP BY T.SL_CL_YM
+    </select>
+
+    <select id="selectRegularDeliveryDayPerOrder" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRegularDeliveryDayPerOrdereRes">
+        SELECT C.PERF_DT AS PERF_DT /*-- 실적일자*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD  /*-- 판매유형*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD  /*-- 판매유형상세코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD /*-- SAP상품구분코드명*/
+             , A.CNTR_NO || A.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+             , E.CST_KNM AS CST_KNM /*-- 고객명*/
+             , D.BASE_PD_CD AS BASE_PD_CD /*-- 상품코드*/
+             , F.PD_NM AS PD_NM           /*-- 상품명*/
+             , A.SL_RCOG_DT AS SL_RCOG_DT /*-- 매출인식일자*/
+             , NVL(G.THM_UC_BLAM,0)-NVL(G.EOT_DLQ_ADD_AMT,0) AS W1_AM00 /*-- 전기이월  LD505.LCMAMT(판매미수)-LD505.LCAM84(가산기말)-LD505.LCA106(위약미수기말)*/
+             , NVL(A.THM_SL_SUM_AMT,0)                       AS W1_AM19 /*-- 매출     LCAM16 (매출합계)*/
+             , NVL(A.SL_BND_ALRPY_AMT,0)                     AS W1_AM29 /*-- 매출대사  LCAM38 (매출입금)*/
+             , NVL(A.DFA_PROCS_AMT,0)                        AS W1_AM15 /*-- 대손*/
+             , NVL(A.THM_UC_BLAM,0)-NVL(B.EOT_DLQ_ADD_AMT,0) AS W1_AM99 /*-- 미수금액  LD505.LCMAMT-LD505.LCAM84-LD505.LCA106  */
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS B /*--연체기본*/
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.SL_CL_YM = B.PERF_YM
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+           AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SELL_TP_CD = D.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+            ON D.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN ( SELECT V1.CNTR_NO
+                                 , V1.CNTR_SN
+                                 , V1.SL_CL_YM
+                                 , NVL(V1.THM_UC_BLAM,0) AS THM_UC_BLAM
+                                 , V2.PERF_YM
+                                 , NVL(V2.EOT_DLQ_ADD_AMT,0) AS EOT_DLQ_ADD_AMT
+                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1 /*--월마감*/
+                              LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /*--연체기본*/
+                                ON V1.CNTR_NO = V2.CNTR_NO
+                               AND V1.CNTR_SN = V2.CNTR_SN
+                               AND V1.SL_CL_YM = V2.PERF_YM
+                             WHERE 1 = 1
+                               AND V1.SELL_TP_CD = #{sellTpCd} /*-- 정기배송 (판매유형)*/
+                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                               AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                               </if>
+                               AND V1.SAP_PD_DV_CD = 'C1'
+                               AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                            ) G
+            ON A.CNTR_NO = G.CNTR_NO
+           AND A.CNTR_SN = G.CNTR_SN
+         WHERE 1=1
+           AND A.SL_CL_YM   = #{slClYm}
+           AND A.SELL_TP_CD = #{sellTpCd} /*-- 정기배송 (판매유형)*/
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+           </if>
+           AND A.SAP_PD_DV_CD = 'C1' /*--SAP 상품구분코드*/
+           AND A.CNTR_NO || A.CNTR_SN = #{agrgDv}  /*-- 주문별인 경우*/
+    </select>
+
+    <select id="selectRegularDeliveryHorizontalFormula" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto$SearchRegularDeliveryDayPerOrdereRes">
+        SELECT T.PERF_DT
+             , T.SELL_TP_CD
+             , T.SELL_TP_DTL_CD
+             , T.SAP_PD_DV_CD
+             , T.CNTR_NO
+             , T.CST_KNM
+             , T.BASE_PD_CD
+             , T.PD_NM
+             , T.SL_RCOG_DT
+             , T.W1_AM00   /*-- 전기이월*/
+             , T.W1_AM19   /*-- 매출*/
+             , T.W1_AM29   /*-- 매출대사 */
+             , T.W1_AM15   /*-- 대손*/
+             , T.W1_AM99   /*-- 미수금액*/
+          FROM ( SELECT C.PERF_DT AS PERF_DT  /*-- 실적일자*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_CD  /*-- 판매유형*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD  /*-- 판매유형상세코드*/
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_CD  /*-- SAP상품구분코드명*/
+                      , A.CNTR_NO || A.CNTR_SN AS CNTR_NO /*-- 계약상세번호*/
+                      , E.CST_KNM AS CST_KNM /*-- 고객명*/
+                      , D.BASE_PD_CD AS BASE_PD_CD  /*-- 상품코드*/
+                      , F.PD_NM AS PD_NM  /*-- 상품명*/
+                      , A.SL_RCOG_DT AS SL_RCOG_DT  /*-- 매출인식일자*/
+                      , NVL(G.THM_UC_BLAM,0)-NVL(G.EOT_DLQ_ADD_AMT,0) AS W1_AM00 /*-- 전기이월  LD505.LCMAMT(판매미수)-LD505.LCAM84(가산기말)-LD505.LCA106(위약미수기말)*/
+                      , NVL(A.THM_SL_SUM_AMT,0)                       AS W1_AM19 /*-- 매출     LCAM16 (매출합계)*/
+                      , NVL(A.SL_BND_ALRPY_AMT,0)                     AS W1_AM29 /*-- 매출대사  LCAM38 (매출입금)*/
+                      , NVL(A.DFA_PROCS_AMT,0)                        AS W1_AM15 /*-- 대손*/
+                      , NVL(A.THM_UC_BLAM,0)-NVL(B.EOT_DLQ_ADD_AMT,0) AS W1_AM99 /*-- 미수금액  LD505.LCMAMT-LD505.LCAM84-LD505.LCA106  */
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS B /*--연체기본*/
+                              ON A.CNTR_NO = B.CNTR_NO
+                             AND A.CNTR_SN = B.CNTR_SN
+                             AND A.SL_CL_YM = B.PERF_YM
+                   LEFT OUTER JOIN TB_RVDW_RVE_DTL C /*--수납상세*/
+                              ON A.CNTR_NO = C.CNTR_NO
+                             AND A.CNTR_SN = C.CNTR_SN
+                             AND A.SL_CL_YM = SUBSTR(C.PERF_DT,1,6)
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL D /*--계약상세*/
+                              ON A.CNTR_NO = D.CNTR_NO
+                             AND A.CNTR_SN = D.CNTR_SN
+                             AND A.SELL_TP_CD = D.SELL_TP_CD
+                             AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS F /*--상품기본*/
+                              ON D.BASE_PD_CD = F.PD_CD
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS E /*--고객기본*/
+                              ON A.CST_NO = E.CST_NO
+                   LEFT OUTER JOIN ( SELECT V1.CNTR_NO
+                                          , V1.CNTR_SN
+                                          , V1.SL_CL_YM
+                                          , NVL(V1.THM_UC_BLAM,0) AS THM_UC_BLAM
+                                          , V2.PERF_YM
+                                          , NVL(V2.EOT_DLQ_ADD_AMT,0) AS EOT_DLQ_ADD_AMT
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ V1 /*--월마감*/
+                                       LEFT OUTER JOIN TB_CBCL_DLQ_BAS V2 /*--연체기본*/
+                                         ON V1.CNTR_NO = V2.CNTR_NO
+                                        AND V1.CNTR_SN = V2.CNTR_SN
+                                        AND V1.SL_CL_YM = V2.PERF_YM
+                                      WHERE 1 = 1
+                                        AND V1.SELL_TP_CD = #{sellTpCd}      /*-- 정기배송 (판매유형)*/
+                                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                                        AND V1.SELL_TP_DTL_CD = #{sellTpDtlCd} /*-- 판매유형상세*/
+                                        </if>
+                                        AND V1.SAP_PD_DV_CD = 'C1'
+                                        AND V1.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                    ) G
+                     ON A.CNTR_NO = G.CNTR_NO
+                    AND A.CNTR_SN = G.CNTR_SN
+                  WHERE 1=1
+                    AND A.SL_CL_YM   = #{slClYm}
+                    AND A.SELL_TP_CD = #{sellTpCd}     /*-- 정기배송 (판매유형)*/
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}  /*-- 판매유형상세*/
+                    </if>
+                    AND A.SAP_PD_DV_CD   = 'C1' /*--SAP 상품구분코드*/
+             ) T
+         WHERE T.W1_AM99 != T.W1_AM00 + T.W1_AM19-T.W1_AM29
     </select>
 </mapper>
