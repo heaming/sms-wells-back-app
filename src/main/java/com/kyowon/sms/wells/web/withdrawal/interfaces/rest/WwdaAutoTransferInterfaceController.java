@@ -186,4 +186,24 @@ public class WwdaAutoTransferInterfaceController {
 
         return resWrapper;
     }
+
+    @ApiOperation(value = "[EAI_WWDI1019] wells 자동이체 일괄 묶음 등록/해제")
+    @PostMapping("/bundles")
+    public EaiWrapper saveBundleRegistrationReleases(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SaveReq> reqWrapper
+    ) {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes> res = service
+            .saveBundleRegistrationReleases(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
 }

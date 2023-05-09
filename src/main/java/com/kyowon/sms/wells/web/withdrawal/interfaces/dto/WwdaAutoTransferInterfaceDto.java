@@ -9,6 +9,8 @@ import com.sds.sflex.system.config.annotation.DBDecField;
 import io.swagger.annotations.ApiModel;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.List;
+
 public class WwdaAutoTransferInterfaceDto {
 
     /* WELLS 자동이체 출금,변경내역, 정보 조회 Request Dto */
@@ -313,5 +315,44 @@ public class WwdaAutoTransferInterfaceDto {
         String aftnEvidFshYn, /*자동이체증빙완료여부*/
         @JsonProperty("FNIT_APR_RS_CD")
         String fnitAprRsCd /*금융기관승인결과코드*/
+    ) {}
+
+    /* Wells 자동이체 일괄 묶음 등록/해제 Request Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SaveReq")
+    public record SaveReq(
+        @JsonProperty("AFTN_BNDL")
+        List<SaveBundleRegistrationReleaseReq> bundles
+    ) {}
+
+    /* Wells 자동이체 일괄 묶음 등록/해제 Request Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SaveBundleRegistrationReleaseReq")
+    public record SaveBundleRegistrationReleaseReq(
+        @JsonProperty("FNT_DV_CD")
+        String fntDvCd, /*이체구분코드(카드/은행)*/
+        @JsonProperty("DG_YN")
+        String dgYn, /*대표여부(Y/N)*/
+        @JsonProperty("DG_CNTR_NO")
+        String dgCntrNo, /*대표계약번호*/
+        @JsonProperty("DG_CNTR_SN")
+        String dgCntrSn, /*대표계약일련번호*/
+        @JsonProperty("DG_SELL_TP_CD")
+        String dgSellTpCd, /*대표판매유형코드(일시불/렌탈/멤버십/회사/정기배송)*/
+        @JsonProperty("CNTR_NO")
+        String cntrNo, /*계약번호*/
+        @JsonProperty("CNTR_SN")
+        String cntrSn, /*계약일련번호*/
+        @JsonProperty("CNTRT_NM")
+        String cntrtNm, /*계약자명*/
+        @JsonProperty("SELL_TP_CD")
+        String sellTpCd /*판매유형코드(일시불/렌탈/멤버십/회사/정기배송)*/
+    ) {}
+
+    /* Wells 자동이체 일괄 묶음 등록/해제 Response Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SaveBundleRegistrationReleaseRes")
+    public record SaveBundleRegistrationReleaseRes(
+        @JsonProperty("RESL_CD")
+        String reslCd, /*(결과코드)(E : 에러, F : 실패, S : 정상)*/
+        @JsonProperty("PCS_RSLT_CN")
+        String pcsRsltCn /*처리결과내용*/
     ) {}
 }
