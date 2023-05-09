@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WcsaInterfaceResultDvo {
+    private String cstNo; /* 고객번호 */
     private String rsCd; /* 결과코드 */
     private String rsMsg; /* 결과메시지 */
 }

@@ -110,6 +110,7 @@ public class WcsaCustomerInterfaceService {
         log.info("dto.RGST_MDFC_USR_ID" + dto.RGST_MDFC_USR_ID());
 
         WcsaInterfaceResultDvo ifResDvo = new WcsaInterfaceResultDvo();
+        ifResDvo.setCstNo("");
         ifResDvo.setRsCd("");
         ifResDvo.setRsMsg(null);
         String cstNo = dto.CST_NO();
@@ -152,6 +153,7 @@ public class WcsaCustomerInterfaceService {
         List<ZcsaCustomerInfoResDvo> pextCustomer = zcsaCustomerInfoService.getCustomers(indvDvo);
 
         if (pextCustomer.isEmpty()) {
+            ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("S");
             ifResDvo.setRsMsg("계약자 정보가 없습니다!");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
@@ -162,18 +164,20 @@ public class WcsaCustomerInterfaceService {
         int response = editCustomerInfoByEcc(dvo);
 
         if (response == 1) {
+            ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("S");
             ifResDvo.setRsMsg("정상 처리되었습니다");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
         } else {
+            ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("F");
-            ifResDvo.setRsMsg("업데이트에 실패하였습니다.");
+            ifResDvo.setRsMsg("고객정보 변경처리에 실패했습니다.");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
 
         }
     }
 
-    private int editCustomerInfoByEcc(ZcsaCustomerInfoByEccDvo dvo) {
+    public int editCustomerInfoByEcc(ZcsaCustomerInfoByEccDvo dvo) {
         //휴대폰 번호, 주소, 변경요청확인여부, 변경요청서 확인일자, 특이사항내용, 등록수정사용자ID
         log.info("dto.CALNG_DV_CD" + dvo.getCalngDvCd());
         log.info("dto.COPN_DV_CD" + dvo.getCopnDvCd());
@@ -196,22 +200,28 @@ public class WcsaCustomerInterfaceService {
         String cstNo = dvo.getCstNo();
         String dtaDlYn = "Y";
         String itgCstNo;
+        String rgstMdfcUsrId = dvo.getRgstMdfcUsrId();
         int result;
         // 고객정보변경
         result = mapper.updateIndvCstBasEai(dvo);
         BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
         // 고객기본이력 업데이트
-        result = zcsaCustomerMapper.updateLastIndvCstBasInfoHistory(cstNo, endDate); // 고객기본이력 업데이트
+        result = zcsaCustomerMapper.updateLastIndvCstBasInfoHistory(cstNo, endDate, rgstMdfcUsrId); // 고객기본이력 업데이트
         BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
         result = zcsaCustomerMapper.insertIndvCstBasInfoHistory(cstNo, strDate); // 고객정보변경이력 생성
         BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         // 연락처-주소
         if (StringUtils.isNotEmpty(dvo.getAdrId())) {
-            zcsaCustomerMapper.updateLastIndvCstAdrInfo(cstNo, endDate, dtaDlYn);
+            zcsaCustomerMapper.updateLastIndvCstAdrInfo(cstNo, endDate, dtaDlYn, rgstMdfcUsrId);
             ZcsaCstCtplcBasDvo indvCstAdrDvo = converter.mapCstCtplcBasToCustomerInfoByEcc(dvo);
             indvCstAdrDvo.setHistStrtDtm(strDate);
             indvCstAdrDvo.setCstCtplcOjRefkVal(cstNo);
             indvCstAdrDvo.setDtaDlYn("N");
+            if ("2".equals(dvo.getCopnDvCd())) {
+                indvCstAdrDvo.setCopnDvCd("2");
+                indvCstAdrDvo.setCstCtplcOjDvCd("03");
+                indvCstAdrDvo.setCtplcTpCd("02");
+            }
             result = zcsaCustomerMapper.insertIndvCstAdrInfo(indvCstAdrDvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         }
@@ -219,7 +229,7 @@ public class WcsaCustomerInterfaceService {
         if (StringUtils.isNotEmpty(dvo.getCralLocaraTno())
             && StringUtils.isNotEmpty(dvo.getMexno())
             && StringUtils.isNotEmpty(dvo.getCralIdvTno())) {
-            zcsaCustomerMapper.updateLastIndvCstMpnoInfo(cstNo, endDate, dtaDlYn);
+            zcsaCustomerMapper.updateLastIndvCstMpnoInfo(cstNo, endDate, dtaDlYn, rgstMdfcUsrId);
             ZcsaCstCtplcBasDvo indvCstHpnoDvo = converter.mapCstCtplcBasToCustomerInfoByEcc(dvo);
             indvCstHpnoDvo.setHistStrtDtm(strDate);
             indvCstHpnoDvo.setCstCtplcOjRefkVal(cstNo);
@@ -227,6 +237,11 @@ public class WcsaCustomerInterfaceService {
             indvCstHpnoDvo.setLocaraTno(dvo.getCralLocaraTno());
             indvCstHpnoDvo.setExnoEncr(dvo.getMexno());
             indvCstHpnoDvo.setIdvTno(dvo.getCralIdvTno());
+            if ("2".equals(dvo.getCopnDvCd())) {
+                indvCstHpnoDvo.setCopnDvCd("2");
+                indvCstHpnoDvo.setCstCtplcOjDvCd("03");
+                indvCstHpnoDvo.setCtplcTpCd("03");
+            }
             result = zcsaCustomerMapper.insertIndvCstMpnoInfo(indvCstHpnoDvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         }
@@ -236,13 +251,14 @@ public class WcsaCustomerInterfaceService {
             && StringUtils.isNotEmpty(dvo.getIdvTno())
             && "2".equals(dvo.getCopnDvCd())) {
             ZcsaCstCtplcBasDvo indvCrpHpnoDvo = converter.mapCstCtplcBasToCustomerInfoByEcc(dvo);
-            mapper.updateLastCrpCstMpnoInfo(cstNo, endDate, dtaDlYn);
+            mapper.updateLastCrpCstMpnoInfo(cstNo, endDate, dtaDlYn, rgstMdfcUsrId);
             indvCrpHpnoDvo.setLocaraTno(dvo.getLocaraTno());
             indvCrpHpnoDvo.setExnoEncr(dvo.getExno());
             indvCrpHpnoDvo.setIdvTno(dvo.getIdvTno());
             indvCrpHpnoDvo.setHistStrtDtm(strDate);
             indvCrpHpnoDvo.setCstCtplcOjRefkVal(cstNo);
             indvCrpHpnoDvo.setDtaDlYn("N");
+            indvCrpHpnoDvo.setRgstMdfcUsrId(rgstMdfcUsrId);
 
             result = mapper.insertCrpCstMpnoInfo(indvCrpHpnoDvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
@@ -250,10 +266,12 @@ public class WcsaCustomerInterfaceService {
         if ("1".equals(dvo.getCopnDvCd())) {
             itgCstNo = zcsaCustomersMapper.selectItgCstNo(cstNo);
             // 통합고객 존재시
+            dvo.setItgCstNo(itgCstNo);
             if (StringUtil.isNotEmpty(itgCstNo)) {
                 int resultItg = mapper.updateItgCstBasEai(dvo);
                 BizAssert.isTrue(resultItg > 0, "MSG_ALT_SVE_ERR");
-                int resultItgHis = zcscTermsMapper.updateIntegratedCustomerInfoHistory(itgCstNo, endDate);
+                int resultItgHis = zcscTermsMapper
+                    .updateIntegratedCustomerInfoHistory(itgCstNo, endDate, rgstMdfcUsrId);
                 BizAssert.isTrue(resultItgHis > 0, "MSG_ALT_SVE_ERR");
                 int resultInsItgHis = zcscTermsMapper.insertIntegratedCustomerInfoHistory(itgCstNo, strDate);
                 BizAssert.isTrue(resultInsItgHis > 0, "MSG_ALT_SVE_ERR");
