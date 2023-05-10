@@ -9,5 +9,5 @@ public interface WdcyCloseHourBulkRegMapper {
 
     int insertCloseHour(WdcyCloseHourBulkRegDvo dvo);
 
-    int selectHourBulkCount(CreateReq dto);
+    int deleteHourBulk(CreateReq dto);
 }
