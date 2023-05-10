@@ -5,7 +5,6 @@ import com.kyowon.sms.wells.web.closing.standard.dto.WdcyCloseHourBulkRegDto.Cre
 import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyCloseHourBulkRegDvo;
 import com.kyowon.sms.wells.web.closing.standard.mapper.WdcyCloseHourBulkRegMapper;
 import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +22,7 @@ public class WdcyCloseHourBulkRegService {
     public int createCloseHour(CreateReq dto) {
 
         int count = 0;
-        int hourBulkCount = mapper.selectHourBulkCount(dto);
-        BizAssert.isTrue(hourBulkCount <= 0, "MSG_TXT_COUNT_GREA_THAN_PRE_REGI_DEA_INFO_EXIST_PLE_WORK_AFTER_DELE");
+        mapper.deleteHourBulk(dto);
 
         try {
 
