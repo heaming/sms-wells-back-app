@@ -133,7 +133,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 기준상품판매가(basePdUprc)가 포함된 프로모션 발췌하여 입력값으로 사용
         List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "basePdUprc"});
-        if (paramDvos == null && paramDvos.isEmpty()) {
+        if (paramDvos == null || paramDvos.isEmpty()) {
             log.info("▶▶▶ Test data don't exists.");
             return;
         }
@@ -156,7 +156,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 기준상품판매가(basePdUprc)가 포함된 프로모션 발췌하여 입력값으로 사용
         List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "basePdUprc"});
-        if (paramDvos == null && paramDvos.isEmpty()) {
+        if (paramDvos == null || paramDvos.isEmpty()) {
             log.info("▶▶▶ Test data don't exists.");
             return;
         }
@@ -180,7 +180,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 연계상품접수일(lkOrdRcpdt)가 포함된 프로모션 발췌하여 입력값으로 사용
         List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "lkOrdRcpdt"});
-        if (paramDvos == null && paramDvos.isEmpty()) {
+        if (paramDvos == null || paramDvos.isEmpty()) {
             log.info("▶▶▶ Test data don't exists.");
             return;
         }
@@ -233,7 +233,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
         return result;
     }
 
-    private List<ZpmzPromotionAtcDvo> getTestData(String[] filterKey) throws NoSuchFieldException, IllegalAccessException {
+    private List<ZpmzPromotionAtcDvo> getTestData(String[] filterKey) {
 
         List<ZpmzPromotionAtcDvo> resultAtcs = new ArrayList<>();
 
@@ -250,7 +250,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
                 }
                 return true;
             }).findAny().get();
-            if (paramMap != null && paramMap.isEmpty()) {
+            if (paramMap == null || paramMap.isEmpty()) {
                 log.info("▶▶▶ Test data don't exists.");
             } else {
                 // ZpmzPromotionInputCndtDvo 데이터 설정
