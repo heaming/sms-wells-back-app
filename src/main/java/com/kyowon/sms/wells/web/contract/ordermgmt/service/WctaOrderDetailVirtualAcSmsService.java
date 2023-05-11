@@ -4,7 +4,6 @@ import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailVir
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailVirtualAcSmsDto.SearchReq;
 
 import java.util.Map;
-import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -31,11 +30,11 @@ public class WctaOrderDetailVirtualAcSmsService {
         String templateId = "TMP_CTA_VIRTUAL_ACCOUNT_GUIDE";
         WctaOrderDetailVirtualAcSmsDvo dvo = mapper.selectVirtualAcCustomer(dto);
 
-        String cstNm = StringUtils.isEmpty(dvo.getCstNm()) ? "" : dvo.getCstNm();
-        String cntrNo = StringUtils.isEmpty(dvo.getCntrNo()) ? "" : dvo.getCntrNo();
-        int cntrSn = Objects.isNull(dvo.getCntrSn()) ? 0 : dvo.getCntrSn();
-        String vacBnkNm = StringUtils.isEmpty(dvo.getVacBnkNm()) ? "" : dvo.getVacBnkNm();
-        String vacNo = StringUtils.isEmpty(dvo.getVacNo()) ? "" : dvo.getVacNo();
+        String cstNm = StringUtils.defaultString(dvo.getCstNm());
+        String cntrNo = StringUtils.defaultString(dvo.getCntrNo());
+        int cntrSn = dvo.getCntrSn();
+        String vacBnkNm = StringUtils.defaultString(dvo.getVacBnkNm());
+        String vacNo = StringUtils.defaultString(dvo.getVacNo());
 
         String template = templateService.getTemplateContent(
             templateId, Map.of(
