@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
+import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 
@@ -56,4 +58,153 @@ public class WogcPartnerEngineerDto {
     ) {
     }
 
+    /**
+     * 서비스 조 관리 조회 Request dto
+     */
+    @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementReq")
+    @Builder
+    public record FindJoeManagementReq(
+        String ogLevlDvCd1,
+        String ogLevlDvCd2,
+        String wkGrpCd,
+        String egerRsbCd,
+        String prtnrNo,
+        String vlDt
+    ) {
+    }
+
+    /**
+     * 서비스 조 관리 조회 Response dto
+     */
+    @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementRes")
+    @Builder
+    public record FindJoeManagementRes(
+        String baseYm,
+        String ogTpCd,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgNm,
+        String dgr5LevlOgNm,
+        String apySeqn,
+        String prtnrNo,
+        String prtnrKnm,
+        String wkGrpCd,
+        String wkGrpCdNm,
+        String egerRsbCd,
+        String egerRsbCdNm,
+        String wkcrCd,
+        String wkcrCdNm,
+        String cntrDt,
+        String vlStrtdt,
+        String vlEnddt,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String dtaDlYn,
+        String telNumber
+    ) {
+        public FindJoeManagementRes {
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
+        }
+    }
+
+    /**
+     * 서비스 조 관리 저장 Request dto
+     */
+    @ApiModel(value = "WogcPartnerEngineerDto-SaveJoeManagementReq")
+    @Builder
+    public record SaveJoeManagementReq(
+        String baseYm,
+        String ogTpCd,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
+        String apySeqn,
+        String prtnrNo,
+        String prtnrKnm,
+        String wkGrpCd,
+        String wkGrpCdNm,
+        String egerRsbCd,
+        String egerRsbCdNm,
+        String wkcrCd,
+        String wkcrCdNm,
+        String cntrDt,
+        String vlStrtdt,
+        String vlEnddt,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String dtaDlYn
+    ) {
+    }
+
+    /**
+     * 엔지니어 등급 관리 조회 Request dto
+     */
+    @ApiModel(value = "WogcPartnerEngineerDto-FindEngineerGradeReq")
+    @Builder
+    public record FindEngineerGradeReq(
+        String ogLevlDvCd1,
+        String ogLevlDvCd2,
+        String wkGrpCd,
+        String egerRsbCd,
+        String prtnrNo,
+        String vlDt
+    ) {
+    }
+
+    /**
+     * 엔지니어 등급 관리 조회 Request dto
+     */
+    @ApiModel(value = "WogcPartnerEngineerDto-FindEngineerGradeRes")
+    @Builder
+    public record FindEngineerGradeRes(
+
+        String baseYm,
+        String ogTpCd,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgNm,
+        String dgr5LevlOgNm,
+        String apySeqn,
+        String prtnrNo,
+        String prtnrKnm,
+        String rsbDvCd,
+        String rolDvCd,
+        String cntrDt,
+        String prtnrGdCd,
+        String apyStrtDt,
+        String apyEnddt,
+        String rmkCn,
+        String dtaDlYn
+    ) {
+    }
+
+    /**
+     * 엔지니어 등급 관리 저장 Request dto
+     */
+    @ApiModel(value = "WogcPartnerEngineerDto-SaveEngineerGradeReq")
+    @Builder
+    public record SaveEngineerGradeReq(
+        String baseYm,
+        String ogTpCd,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgNm,
+        String dgr5LevlOgNm,
+        String apySeqn,
+        String prtnrNo,
+        String prtnrKnm,
+        String rsbDvCd,
+        String rolDvCd,
+        String cntrDt,
+        String prtnrGdCd,
+        String apyStrtDt,
+        String apytEnddt,
+        String rmkCn,
+        String dtaDlYn
+    ) {
+    }
 }

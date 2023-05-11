@@ -1,21 +1,29 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.rest;
 
+import com.kyowon.sms.common.web.organization.attachment.dto.ZogeSeizureDto;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.service.WogcPartnerEngineerService;
 import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveJoeManagementReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
 
+
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -50,5 +58,87 @@ public class WogcPartnerEngineerController {
     @GetMapping("/attend/excel-download")
     List<SearchEngineerRes> getEngineerAttendsForExcelDownload(SearchEngineerReq dto) {
         return service.getEngineerAttendsForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "서비스센터 조 관리 조회", notes = "조회 조건에 일치하는 서비스센터 조관리 목록을 페이징 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
+        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "vlDt", value = "적용기준일", paramType = "query", required = false),
+
+    })
+    @GetMapping("/joe-management/paging")
+    PagingResult<FindJoeManagementRes> getJoeManagementPages(FindJoeManagementReq dto, PageInfo pageInfo) {
+        return service.getJoeManagementPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "서비스센터 조 관리 엑셀다운로드", notes = "조회 조건에 일치하는 서비스센터 조관리 목록을 엑셀로 저장한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
+        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "vlDt", value = "적용기준일", paramType = "query", required = false),
+
+    })
+    @GetMapping("/joe-management/excel-download")
+    List<FindJoeManagementRes> getJoeManagementForExcelDownload(FindJoeManagementReq dto) {
+        return service.getJoeManagementForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "서비스센터 조 저장", notes = "서비스센터 조 저장한다.")
+    @PostMapping("/joe-management")
+    public SaveResponse saveJoeManagement(
+        @Valid
+        @RequestBody
+        List<WogcPartnerEngineerDto.SaveJoeManagementReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveJoeManagement(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "엔지니어 등급 관리 조회", notes = "조회 조건에 일치하는 엔지니어 등급 관리 조회목록을 페이징 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
+        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
+    })
+    @GetMapping("/engineer-grdage/paging")
+    PagingResult<FindEngineerGradeRes> getEngineerGradePages(FindEngineerGradeReq dto, PageInfo pageInfo) {
+        return service.getEngineerGradePages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "엔지니어 등급 관리 엑셀다운로드", notes = "조회 조건에 일치하는 엔지니어 등급 관리 목록을 엑셀로 저장한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
+        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "vlDt", value = "적용기준일", paramType = "query", required = false),
+    })
+    @GetMapping("/engineer-grdage/excel-download")
+    List<FindEngineerGradeRes> getEngineerGradeForExcelDownload(FindEngineerGradeReq dto) {
+        return service.getEngineerGradeForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "엔지니어 등급관리 저장", notes = "엔지니어 등급 관리 저장한다.")
+    @PostMapping("/engineer-grdage")
+    public SaveResponse saveEngineerGrade(
+        @Valid
+        @RequestBody
+        List<WogcPartnerEngineerDto.SaveEngineerGradeReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveEngineerGrade(dtos))
+            .build();
     }
 }
