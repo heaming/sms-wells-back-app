@@ -120,28 +120,19 @@ public class WcsaCustomerInterfaceService {
         //  1. 필수값 체크(호출구분코드 → 필수값 체크)
         if (cstNo.isEmpty()) {
             ifResDvo.setRsCd("F");
-            Arrays.stream(dto.getClass().getDeclaredFields()).forEach(data -> {
-                ifResDvo.setRsMsg(data.getName() + "가(이) 없습니다 !");
-            });
-            log.info("필수값 고객번호가 없습니다.");
+            ifResDvo.setRsMsg("CST_NO 가(이) 없습니다 !");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
         }
         //  2. 필수값 체크(법인격구분코드 → 필수값 체크)
         if (copnDvCd.isEmpty()) {
             ifResDvo.setRsCd("F");
-            Arrays.stream(dto.getClass().getDeclaredFields()).forEach(data -> {
-                ifResDvo.setRsMsg(data.getName() + "가(이) 없습니다 !");
-            });
-            log.info("필수값 법인격구분코드가 없습니다.");
+            ifResDvo.setRsMsg("COPN_DV_CD 가(이) 없습니다 !");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
         }
-        //  3. 필수값 체크(고객번호 → 필수값 체크)
+        //  3. 필수값 체크(호출구분코드 → 필수값 체크)
         if (calngDvCd.isEmpty()) {
             ifResDvo.setRsCd("F");
-            Arrays.stream(dto.getClass().getDeclaredFields()).forEach(data -> {
-                ifResDvo.setRsMsg(data.getName() + "가(이) 없습니다 !");
-            });
-            log.info("호출구분코드가 없거나 업데이트 코드값이 아닙니다.");
+            ifResDvo.setRsMsg("CALNG_DV_CD 가(이) 없습니다 !");
             return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
         }
 
