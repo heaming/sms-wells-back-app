@@ -122,14 +122,17 @@ public class WctcSalesLimitsService {
 
                     BizAssert.isTrue(sellLmOcDtm.length() == 8, "MSG_ALT_BAD_OC_DT_ERR");
 
-                    String sellLmBzrno = dvo.getSellLmBzrno();
+                    String sellLmBzrno = dvo.getSellLmBzrno().replaceAll("-", "");
+
                     BizAssert
-                        .isFalse(
-                            sellLmBzrno.length() > 10, "MSG_ALT_ROW_IS_WRONG",
+                        .isTrue(
+                            sellLmBzrno.length() == 10, "MSG_ALT_ROW_IS_WRONG",
                             new String[] {param[0],
-                                messageResourceService.getMessage("MSG_TXT_ENTRP_NO") + "[" + sellLmBzrno + "]"}
+                                messageResourceService.getMessage("MSG_TXT_ENTRP_NO") + "[" + dvo.getSellLmBzrno()
+                                    + "]"}
                         );
 
+                    dvo.setSellLmBzrno(sellLmBzrno);
                     int result = mapper.insertEntrepreneurJoinLmOjss(dvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
