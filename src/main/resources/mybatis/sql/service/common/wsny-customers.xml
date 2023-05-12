@@ -28,11 +28,54 @@
              , T11.REQD_DT
              , TO_CHAR(T15.HIST_STRT_DTM,'YYYYMMDD') AS SV_STP_DT
              , T11.BC_NO
-             , T8.OG_NM
-             , T8.OG_CD
              , T17.CYCLE_CODE
              , T17.CYCLE_NM
              , T18.BZRNO
+             , (SELECT Y.OG_CD
+                  FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ X
+                 INNER JOIN TB_OGBS_MM_OG_IZ Y
+                    ON X.BRCH_OG_ID = Y.OG_ID
+                   AND Y.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND Y.DTA_DL_YN = 'N'
+                 WHERE X.NEW_ADR_ZIP = T13.NEW_ADR_ZIP
+               ) AS BZNS_CNR /* 영업센터 */
+             , (SELECT /*+ ORDERED */ T5.OG_NM
+                  FROM (SELECT T3.ICHR_PRTNR_OG_TP_CD AS OG_TP_CD
+                             , T3.ICHR_PRTNR_NO AS PRTNR_NO
+                          FROM TB_SVPD_EGER_ASN_ADR_IZ T1
+                         INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
+                            ON T2.LOCARA_SN = ( SELECT MAX(LOCARA_SN)
+                                                  FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ
+                                                 WHERE FR2P_LGLD_CD = T1.FR2P_LGLD_CD
+                                                   AND CTPV_NM = T1.CTPV_NM
+                                                   AND CTCTY_NM = T1.CTCTY_NM
+                                                   AND LAWC_EMD_NM = T1.LAWC_EMD_NM
+                                                   AND AMTD_NM = T1.AMTD_NM
+                                                   AND APY_STRTDT <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                   AND APY_ENDDT >= TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                   AND DTA_DL_YN = 'N'
+                                               )
+                         INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T3
+                            ON T2.RPB_LOCARA_CD = T3.RPB_LOCARA_CD
+                           AND T3.WK_GRP_CD = '10'
+                           AND T3.IZ_SN = 1
+                           AND T3.DTA_DL_YN = 'N'
+                         WHERE T1.NEW_ADR_ZIP = T13.NEW_ADR_ZIP
+                           AND T1.EMD_SN = (SELECT MAX(T3.EMD_SN)
+                                              FROM TB_SVPD_EGER_ASN_ADR_IZ T3
+                                             WHERE T3.NEW_ADR_ZIP = T13.NEW_ADR_ZIP)
+                           AND T1.DTA_DL_YN = 'N'
+                       ) TV1
+                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
+                    ON TV1.OG_TP_CD = T4.OG_TP_CD
+                   AND TV1.PRTNR_NO = T4.PRTNR_NO
+                   AND T4.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND T4.DTA_DL_YN = 'N'
+                 INNER JOIN TB_OGBS_MM_OG_IZ T5
+                    ON T4.OG_ID = T5.OG_ID
+                   AND T5.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND T5.DTA_DL_YN = 'N'
+               ) AS SV_CNR /* 서비스센터 */
           FROM TB_SSCT_CNTR_DTL T1
          INNER JOIN TB_SSCT_CNTR_BAS T2
             ON T1.CNTR_NO = T2.CNTR_NO
