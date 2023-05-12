@@ -40,8 +40,6 @@ public class WsnyCustomersDto {
         String rnadr,
         String rdadr,
         String adrNm,
-        String ogCd,
-        String ogNm,
         String locaraTno,
         String exnoEncr,
         String idvTno,
@@ -54,12 +52,14 @@ public class WsnyCustomersDto {
         String sellTpCd,
         String sellTpNm,
         String svStpDt,
-        //        String recapDutyPtrmN,
+        String recapDutyPtrmN,
         String frisuBfsvcPtrmN,
         String frisuAsPtrmN,
         String cycleCode,
         String cycleNm,
-        String bzrno
+        String bzrno,
+        String bznsCnr,
+        String svCnr
     ) {
         public SearchRes {
             exnoEncr = DbEncUtil.dec(exnoEncr);
