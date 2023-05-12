@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 public class WogcPartnerEngineerDvo {
 
-    String baseYm;
     String ogTpCd;
     String dgr1LevlOgNm;
     String dgr2LevlOgNm;
@@ -23,6 +22,8 @@ public class WogcPartnerEngineerDvo {
     String wkGrpCdNm;
     String egerRsbCd;
     String egerRsbCdNm;
+    String rsbDvCd;
+    String rsbDvCdNm;
     String wkcrCd;
     String wkcrCdNm;
     String cntrDt;
@@ -35,4 +36,13 @@ public class WogcPartnerEngineerDvo {
     String cralIdvTno;
     String dtaDlYn;
     String telNumber;
+
+
+    String rolDvCd;
+    String rolDvCdNm;
+    String prtnrGdCd;
+    String apyStrtDt;
+    String apyEnddt;
+    String rmkCn;
+    String cltnDt;
 }

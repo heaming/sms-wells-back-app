@@ -4,6 +4,7 @@ import com.kyowon.sms.common.web.organization.attachment.dto.ZogeSeizureDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.service.WogcPartnerEngineerService;
 import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst;
+import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -21,6 +22,7 @@ import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.F
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveJoeManagementReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import javax.validation.Valid;
@@ -106,12 +108,11 @@ public class WogcPartnerEngineerController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
-        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
-        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "egerEvlGdCd", value = "직무", paramType = "query", required = false),
+        @ApiImplicitParam(name = "searchYm", value = "관리년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
     })
-    @GetMapping("/engineer-grdage/paging")
+    @GetMapping("/engineer-grade/paging")
     PagingResult<FindEngineerGradeRes> getEngineerGradePages(FindEngineerGradeReq dto, PageInfo pageInfo) {
         return service.getEngineerGradePages(dto, pageInfo);
     }
@@ -120,18 +121,17 @@ public class WogcPartnerEngineerController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
-        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
-        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
-        @ApiImplicitParam(name = "vlDt", value = "적용기준일", paramType = "query", required = false),
+        @ApiImplicitParam(name = "egerEvlGdCd", value = "직무", paramType = "query", required = false),
+        @ApiImplicitParam(name = "searchYm", value = "관리년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
     })
-    @GetMapping("/engineer-grdage/excel-download")
+    @GetMapping("/engineer-grade/excel-download")
     List<FindEngineerGradeRes> getEngineerGradeForExcelDownload(FindEngineerGradeReq dto) {
         return service.getEngineerGradeForExcelDownload(dto);
     }
 
     @ApiOperation(value = "엔지니어 등급관리 저장", notes = "엔지니어 등급 관리 저장한다.")
-    @PostMapping("/engineer-grdage")
+    @PostMapping("/engineer-grade")
     public SaveResponse saveEngineerGrade(
         @Valid
         @RequestBody
@@ -140,5 +140,16 @@ public class WogcPartnerEngineerController {
         return SaveResponse.builder()
             .processCount(service.saveEngineerGrade(dtos))
             .build();
+    }
+
+    @ApiOperation(value = "엔지니어 등급관리 엑셀업로드", notes = "엔제니어 등급정보를 엑셀업로드한다. ")
+    @PostMapping("/engineer-grade/excel-upload/{baseYm}")
+    public ExcelUploadDto.UploadRes saveEngineerGradeForDirectExcelUpload(
+        @RequestParam("file")
+        MultipartFile file,
+        @PathVariable(name = "baseYm")
+        String baseYm
+    ) throws Exception {
+        return service.saveEngineerGradeForDirectExcelUpload(file, baseYm);
     }
 }

@@ -39,4 +39,16 @@ public interface WogcPartnerEngineerMapper {
     PagingResult<FindEngineerGradeRes> selectEngineerGrades(WogcPartnerEngineerDto.FindEngineerGradeReq dto, PageInfo pageInfo);
 
     List<FindEngineerGradeRes> selectEngineerGrades(WogcPartnerEngineerDto.FindEngineerGradeReq dto);
+
+    int insertEgerGdRgst(WogcPartnerEngineerDvo dvo);
+
+    void insertEgerGdRgsts(WogcPartnerEngineerDvo dvo);
+
+    String selectEngineerPartner(WogcPartnerEngineerDvo list);
+
+    void updateMonthPrtnrRolDvCd(WogcPartnerEngineerDvo dvo);
+
+    void updatePrtnrRolDvCd(WogcPartnerEngineerDvo dvo);
+
+    void insertPrtnrHist(WogcPartnerEngineerDvo dvo);
 }

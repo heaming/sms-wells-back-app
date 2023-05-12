@@ -67,7 +67,7 @@ public class WogcPartnerEngineerDto {
         String ogLevlDvCd1,
         String ogLevlDvCd2,
         String wkGrpCd,
-        String egerRsbCd,
+        String rsbDvCd,
         String prtnrNo,
         String vlDt
     ) {
@@ -79,7 +79,6 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementRes")
     @Builder
     public record FindJoeManagementRes(
-        String baseYm,
         String ogTpCd,
         String dgr1LevlOgNm,
         String dgr2LevlOgNm,
@@ -93,10 +92,12 @@ public class WogcPartnerEngineerDto {
         String wkGrpCdNm,
         String egerRsbCd,
         String egerRsbCdNm,
+        String rsbDvCd,
+        String rsbDvCdNm,
         String wkcrCd,
         String wkcrCdNm,
         String cntrDt,
-        String vlStrtdt,
+        String vlStrtDt,
         String vlEnddt,
         String cralLocaraTno,
         String mexnoEncr,
@@ -115,10 +116,12 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-SaveJoeManagementReq")
     @Builder
     public record SaveJoeManagementReq(
-        String baseYm,
         String ogTpCd,
         String dgr1LevlOgNm,
         String dgr2LevlOgNm,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgNm,
+        String dgr5LevlOgNm,
         String apySeqn,
         String prtnrNo,
         String prtnrKnm,
@@ -126,6 +129,8 @@ public class WogcPartnerEngineerDto {
         String wkGrpCdNm,
         String egerRsbCd,
         String egerRsbCdNm,
+        String rsbDvCd,
+        String rsbDvCdNm,
         String wkcrCd,
         String wkcrCdNm,
         String cntrDt,
@@ -134,7 +139,8 @@ public class WogcPartnerEngineerDto {
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String dtaDlYn
+        String dtaDlYn,
+        String telNumber
     ) {
     }
 
@@ -146,10 +152,9 @@ public class WogcPartnerEngineerDto {
     public record FindEngineerGradeReq(
         String ogLevlDvCd1,
         String ogLevlDvCd2,
-        String wkGrpCd,
-        String egerRsbCd,
-        String prtnrNo,
-        String vlDt
+        String rolDvCd,
+        String searchYm,
+        String chk
     ) {
     }
 
@@ -160,23 +165,25 @@ public class WogcPartnerEngineerDto {
     @Builder
     public record FindEngineerGradeRes(
 
-        String baseYm,
         String ogTpCd,
         String dgr1LevlOgNm,
         String dgr2LevlOgNm,
         String dgr3LevlOgNm,
         String dgr4LevlOgNm,
         String dgr5LevlOgNm,
-        String apySeqn,
+
         String prtnrNo,
         String prtnrKnm,
-        String rsbDvCd,
         String rolDvCd,
-        String cntrDt,
+        String rolDvCdNm,
         String prtnrGdCd,
+        String prtnrGdCdNm,
         String apyStrtDt,
         String apyEnddt,
         String rmkCn,
+        String cntrDt,
+        String cltnDt,
+        String apySeqn,
         String dtaDlYn
     ) {
     }
@@ -187,23 +194,25 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-SaveEngineerGradeReq")
     @Builder
     public record SaveEngineerGradeReq(
-        String baseYm,
         String ogTpCd,
         String dgr1LevlOgNm,
         String dgr2LevlOgNm,
         String dgr3LevlOgNm,
         String dgr4LevlOgNm,
         String dgr5LevlOgNm,
-        String apySeqn,
+
         String prtnrNo,
         String prtnrKnm,
-        String rsbDvCd,
         String rolDvCd,
-        String cntrDt,
+        String rolDvCdNm,
         String prtnrGdCd,
+        String prtnrGdCdNm,
         String apyStrtDt,
-        String apytEnddt,
+        String apyEnddt,
         String rmkCn,
+        String cntrDt,
+        String cltnDt,
+        String apySeqn,
         String dtaDlYn
     ) {
     }
