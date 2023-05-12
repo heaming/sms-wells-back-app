@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchLeaseMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipMonthlyRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRegularMonthlyRes;
@@ -40,7 +42,8 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 기본정보", notes = "조회조건에 따른 매출 실적 현황을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -52,9 +55,10 @@ public class WdcbSalesPerformanceController {
         return service.getBaseInformation(dto);
     }
 
-    @ApiOperation(value = "매출 실적 현황 - 기본정보(렌탈, 리스)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiOperation(value = "매출 실적 현황 - 기본정보(렌탈)", notes = "조회조건에 따른 매출 실적 현황을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -66,9 +70,25 @@ public class WdcbSalesPerformanceController {
         return service.getRental(dto);
     }
 
+    @ApiOperation(value = "매출 실적 현황 - 기본정보(리스)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/lease")
+    public SearchLeaseRes getLease(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getLease(dto);
+    }
+
     @ApiOperation(value = "매출 실적 현황 - 기본정보(멤버십)", notes = "조회조건에 따른 매출 실적 현황을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -82,7 +102,8 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 기본정보(정기배송)", notes = "조회조건에 따른 매출 실적 현황을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -96,7 +117,8 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별)", notes = "조회조건에 따른 매출 실적 현황을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -111,7 +133,8 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적을 엑셀 다운로드")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -125,7 +148,39 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별)", notes = "조회조건에 따른 매출 실적 현황을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/lease/paging")
+    public PagingResult<SearchLeaseMonthlyRes> getLeasePages(
+        @Valid
+        SearchReq dto,
+        PageInfo pageInfo
+    ) {
+        return service.getLeasePages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 매출실적(월별) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적을 엑셀 다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
+        @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
+    })
+    @GetMapping("/lease/excel-download")
+    public List<SearchLeaseMonthlyRes> getLeaseExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getLeaseExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "매출 실적 현황 - 매출실적(월별)", notes = "조회조건에 따른 매출 실적 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -140,7 +195,8 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적을 엑셀 다운로드")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -154,7 +210,8 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별)", notes = "조회조건에 따른 매출 실적 현황을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
@@ -169,7 +226,8 @@ public class WdcbSalesPerformanceController {
 
     @ApiOperation(value = "매출 실적 현황 - 매출실적(월별) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적을 엑셀 다운로드")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "baseYearFrom", value = "매출시작년도", paramType = "query"),
         @ApiImplicitParam(name = "baseYearTo", value = "매출종료년도", paramType = "query"),
     })
