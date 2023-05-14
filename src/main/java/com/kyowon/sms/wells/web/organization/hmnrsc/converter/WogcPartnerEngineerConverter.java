@@ -11,4 +11,6 @@ public interface WogcPartnerEngineerConverter {
     WogcPartnerEngineerDvo mapSaveJoeManagementReqToWogcPartnerEngineerDvo(WogcPartnerEngineerDto.SaveJoeManagementReq dto);
 
     List<WogcPartnerEngineerDto.FindJoeManagementRes> mapWogcPartnerEngineerDvoToFindJoeManagementRes(List<WogcPartnerEngineerDvo> dvos);
+
+    WogcPartnerEngineerDvo mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(WogcPartnerEngineerDto.SaveEngineerGradeReq dto);
 }
