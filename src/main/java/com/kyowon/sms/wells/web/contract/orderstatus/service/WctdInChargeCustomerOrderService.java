@@ -9,6 +9,8 @@ import com.kyowon.sms.wells.web.contract.orderstatus.converter.WctdInChargeCusto
 import com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdInChargeCustomerOrderDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdInChargeCustomerOrderDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdInChargeCustomerOrderMapper;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -22,6 +24,10 @@ public class WctdInChargeCustomerOrderService {
     private final WctdInChargeCustomerOrderConverter converter;
 
     public PagingResult<SearchRes> getInChargeCustomerOrderPages(SearchReq dto, PageInfo pageInfo) {
+        //세션 조회
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        System.out.println(session.toString());
+
         PagingResult<SearchRes> searchRes = converter.mapWctdInChargeCustomerOrderDvoToSearchRes(
             mapper.selectInChargeCustomerOrderPages(converter.mapSearchReqToWctdInChargeCustomerOrderDvo(dto), pageInfo)
         );

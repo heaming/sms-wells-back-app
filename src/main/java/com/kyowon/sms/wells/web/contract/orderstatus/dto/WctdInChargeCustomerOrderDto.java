@@ -12,6 +12,7 @@ public class WctdInChargeCustomerOrderDto {
     @ApiModel("WctdInChargeCustomerOrderDto-SearchReq")
     public record SearchReq(
         String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
         String cstKnm, /* 계약자명 */
         String cstNo, /* 고객번호 */
         String cralLocaraTno, /* 휴대지역전화번호 */

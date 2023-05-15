@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.mapper;
 
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailInfoDto.FindClctamRes;
@@ -10,7 +12,7 @@ import com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractDetailInfoDv
 
 @Mapper
 public interface WctiContractDetailInfoMapper {
-    WctiContractDetailInfoDvo selectContractDetail(FindReq dto);
+    Optional<WctiContractDetailInfoDvo> selectContractDetail(FindReq dto);
 
     FindStlmRes selectContractDetailStlm(FindReq dto);
 
