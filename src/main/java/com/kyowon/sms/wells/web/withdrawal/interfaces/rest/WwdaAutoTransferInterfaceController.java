@@ -206,4 +206,64 @@ public class WwdaAutoTransferInterfaceController {
 
         return resWrapper;
     }
+
+    @ApiOperation(value = "[EAI_WWDI1019] wells 자동이체 일괄 등록/해제")
+    @PostMapping("/bulk")
+    public EaiWrapper saveBulkRegistrationReleases(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SaveReq> reqWrapper
+    ) throws Exception {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes> res = service
+            .saveBulkRegistrationReleases(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "[EAI_WWDI1017] wells 자동이체 계좌 실명인증")
+    @PostMapping("/real-name-certification")
+    public EaiWrapper getRealNameCertification(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq> reqWrapper
+    ) throws Exception {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> res = service
+            .getRealNameCertification(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "[EAI_WWDI1016] wells 자동이체 카드 유효성 체크")
+    @PostMapping("/card-effectiveness-check")
+    public EaiWrapper getCardEffectivenessCheck(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchCardEffectivenessCheckReq> reqWrapper
+    ) throws Exception {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SearchCardEffectivenessCheckRes>> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        List<WwdaAutoTransferInterfaceDto.SearchCardEffectivenessCheckRes> res = service
+            .getCardEffectivenessCheck(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
 }
