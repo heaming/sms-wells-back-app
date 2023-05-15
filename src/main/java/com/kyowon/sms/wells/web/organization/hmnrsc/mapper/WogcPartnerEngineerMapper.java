@@ -1,17 +1,14 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.mapper;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.*;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import org.apache.ibatis.annotations.Mapper;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
-import java.util.List;
 
 /**
  * <pre>
@@ -28,6 +25,8 @@ public interface WogcPartnerEngineerMapper {
 
     List<SearchEngineerRes> selectEngineerAttends(SearchEngineerReq dto);
 
+    int updateEngineer(WogcPartnerEngineerDvo engineer);
+
     PagingResult<FindJoeManagementRes> selectJoeManagements(FindJoeManagementReq dto, PageInfo pageInfo);
 
     List<WogcPartnerEngineerDvo> selectJoeManagementForExcelDownload(FindJoeManagementReq dto);
@@ -36,7 +35,9 @@ public interface WogcPartnerEngineerMapper {
 
     void updatePrtnrGrpCd(WogcPartnerEngineerDvo dvo);
 
-    PagingResult<FindEngineerGradeRes> selectEngineerGrades(WogcPartnerEngineerDto.FindEngineerGradeReq dto, PageInfo pageInfo);
+    PagingResult<FindEngineerGradeRes> selectEngineerGrades(
+        WogcPartnerEngineerDto.FindEngineerGradeReq dto, PageInfo pageInfo
+    );
 
     List<FindEngineerGradeRes> selectEngineerGrades(WogcPartnerEngineerDto.FindEngineerGradeReq dto);
 
