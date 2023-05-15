@@ -50,7 +50,9 @@ public class WsncAssignPsicTfService {
 
     @Transactional
     public int processAssignPsicTf(WsncAssignPsicTfDto.SearchReq dto) throws Exception {
-        return this.processAssignPsicTf(converter.mapReqToAssignPsicTfDvo(dto));
+        WsncAssignPsicTfDvo dvo = converter.mapReqToAssignPsicTfDvo(dto);
+        dvo.setCstSvAsnNo(""); // 고객서비스배정번호 없이 전체 대상
+        return this.processAssignPsicTf(dvo);
     }
 
     /*
