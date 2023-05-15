@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncAssignPsicTfMapper">
+    <select id="selectAssignPsicTf"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAssignPsicTfDvo">
+        SELECT T1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+             , T1.OG_TP_CD
+             , T1.PRTNR_NO /* 기존파트너번호 */
+             , T1.NEW_OG_TP_CD /* cherro ::: 변경파트너번호의 조직코드 */
+             , NEW_PRTNR_NO /* 변경파트너번호 */
+             , RPB_LOCARA_CD /* RPB_LOCARA_CD (책임지역코드) */
+             , T2.OG_ID AS OG_ID /* 변경파트너의조직ID */
+          FROM (
+                /* AS배정내역 테이블 에서 내역 조회 */
+                SELECT TB_1.CST_SV_ASN_NO AS CST_SV_ASN_NO /* CST_SV_ASN_NO (고객서비스배정번호) */
+                     , TB_2.SV_BIZ_DCLSF_CD AS AC211_WRK_TYP_DTL /* SV_BIZ_DCLSF_CD */
+                     , TB_1.WK_ACPTE_DT AS AC221_CFRM_DT /* WK_ACPTE_DT */
+                     , TB_1.ICHR_OG_TP_CD AS OG_TP_CD
+                     , TB_1.ICHR_PRTNR_NO AS PRTNR_NO /* ICHR_OG_TP_CD, ICHR_PRTNR_NO */
+    --                 , GET_LOCAL_EMP_ID_MINE(TRIM(AC211_ZIP_NO1||AC211_ZIP_NO2), AC211_GDS_CD, AC211_WRK_TYP_DTL, AC221_CFRM_DT) AS NEW_EMP_ID
+                     , (
+                        SELECT TEMP.OG_TP_CD
+                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
+                         WHERE 1=1
+                           AND TEMP.SV_CNR_OG_ID = TB_1.SV_CNR_OG_ID
+                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
+                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
+                       ) AS NEW_OG_TP_CD /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+                     , (
+                        SELECT TEMP.BNDT_WRK_PSIC_NO
+                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
+                         WHERE 1=1
+                           AND TEMP.SV_CNR_OG_ID = TB_1.SV_CNR_OG_ID
+                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
+                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
+                       ) AS NEW_PRTNR_NO /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+    --                 , GET_LOCAL_GB(TRIM(AC211_ZIP_NO1||AC211_ZIP_NO2), AC221_CFRM_DT) AS NEW_LOCAL_GB
+                     , (
+                        SELECT TEMP3.NEW_ADR_ZIP
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ TEMP1
+                             , TB_SSCT_CNTR_ADRPC_BAS TEMP2
+                             , TB_GBCO_ADR_BAS TEMP3
+                         WHERE 1=1
+                           AND TEMP1.CST_SV_ASN_NO = TB_1.CST_SV_ASN_NO
+                           AND TEMP1.CNTR_NO = TEMP2.CNTR_NO
+                           AND TEMP2.ADR_ID = TEMP3.ADR_ID
+                           AND ROWNUM = 1
+                       ) AS RPB_LOCARA_CD
+                  FROM TB_SVPD_CST_SVAS_IST_ASN_IZ TB_1
+                     , TB_SVPD_CST_SVAS_IST_OJ_IZ TB_2
+    --                 , TB_SVPD_CST_SV_BFSVC_ASN_IZ TB_3 /* cherro ::: 이 테이블 말고 다른거 조인해야함. */
+                 WHERE 1=1
+                   AND TB_1.CST_SV_ASN_NO = TB_2.CST_SV_ASN_NO /* cherro ::: 일단 조인 조건 넣어둠. */
+    --               AND TB_1.CST_SV_ASN_NO = TB_3.CST_SV_ASN_NO /* cherro ::: TB_3은 내가 임의로 넣은거. 맞는건지 확인 해봐야 한다. */
+                   AND TB_1.VST_CNFMDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   AND TB_1.VST_CNFMDT >= '20191010'
+                   AND TB_1.WK_PRGS_STAT_CD IN ('00', '10')
+    --               AND (TB_1.ASN_TF_DV_CD IS NULL
+    --                 OR TB_1.ASN_TF_DV_CD = '411')
+    --               AND (TB_3.ASN_TF_DV_CD IS NULL
+    --                 OR TB_3.ASN_TF_DV_CD = '411')
+                   AND TB_1.CST_SV_ASN_NO = #{cstSvAsnNo}
+                 UNION ALL
+                 /* BS배정내역 테이블 에서 내역 조회 */
+                SELECT TB_1.CST_SV_ASN_NO AS CST_SV_ASN_NO /* 고객서비스배정번호 */
+                     , TB_1.SV_BIZ_DCLSF_CD AS AC211_WRK_TYP_DTL /* TB_SVPD_CST_SV_BFSVC_ASN_IZ - SV_BIZ_DCLSF_CD */
+                     , VST_CNFMDT AS AC221_CFRM_DT /* TB_SVPD_CST_SV_BFSVC_ASN_IZ - VST_CNFMDT */
+                     , TB_1.CNFM_PSIC_PRTNR_OG_TP_CD AS OG_TP_CD
+                     , TB_1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO /* TB_SVPD_CST_SV_BFSVC_ASN_IZ - CNFM_PSIC_PRTNR_OG_TP_CD, CNFM_PSIC_PRTNR_NO */
+    --                 , GET_LOCAL_EMP_ID_BS(TRIM(AC251_ZIP_NO1||AC251_ZIP_NO2), AC251_GDS_CD, AC251_WRK_TYP_DTL, AC261_RES_DT, AC251_VST_GB) AS NEW_EMP_ID
+                     , (
+                        SELECT TEMP.OG_TP_CD
+                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
+                             , TB_OGBS_MM_PRTNR_IZ TEMP2
+                         WHERE 1=1
+                           AND TEMP2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                           AND TEMP2.OG_TP_CD = TB_1.CNFM_PSIC_PRTNR_OG_TP_CD
+                           AND TEMP2.PRTNR_NO = TB_1.CNFM_PSIC_PRTNR_NO
+                           AND TEMP2.OG_ID = TEMP.SV_CNR_OG_ID
+                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
+                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
+                       ) AS NEW_OG_TP_CD /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+                     , (
+                        SELECT TEMP.BNDT_WRK_PSIC_NO
+                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
+                             , TB_OGBS_MM_PRTNR_IZ TEMP2
+                         WHERE 1=1
+                           AND TEMP2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                           AND TEMP2.OG_TP_CD = TB_1.CNFM_PSIC_PRTNR_OG_TP_CD
+                           AND TEMP2.PRTNR_NO = TB_1.CNFM_PSIC_PRTNR_NO
+                           AND TEMP2.OG_ID = TEMP.SV_CNR_OG_ID
+                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
+                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
+                       ) AS NEW_PRTNR_NO /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+    --                 , GET_LOCAL_GB(TRIM(AC251_ZIP_NO1||AC251_ZIP_NO2), AC261_RES_DT) AS NEW_LOCAL_GB
+                     , (
+                        SELECT TEMP3.NEW_ADR_ZIP
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ TEMP1
+                             , TB_SSCT_CNTR_ADRPC_BAS TEMP2
+                             , TB_GBCO_ADR_BAS TEMP3
+                         WHERE 1=1
+                           AND TEMP1.CST_SV_ASN_NO = TB_1.CST_SV_ASN_NO
+                           AND TEMP1.CNTR_NO = TEMP2.CNTR_NO
+                           AND TEMP2.ADR_ID = TEMP3.ADR_ID
+                           AND ROWNUM = 1
+                       ) AS RPB_LOCARA_CD
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ TB_1
+                 WHERE 1=1
+                   AND TB_1.CNFM_PSIC_DV_CD = '2'
+                   AND TB_1.ASN_OJ_YM = TO_CHAR(SYSDATE,'YYYYMM')||'00'
+                   AND TB_1.VST_CNFMDT IS NOT NULL
+                   AND TB_1.VST_PRGS_STAT_CD IN ('00', '10')
+                   AND (TB_1.ASN_TF_DV_CD IS NULL --이관기록이 없고
+                     OR TB_1.ASN_TF_DV_CD = '411')
+                   AND TB_1.VST_CNFMDT >= '20191010'
+                   AND TB_1.CST_SV_ASN_NO = #{cstSvAsnNo} /* 고객서비스배정번호 */
+               ) T1
+             , TB_OGBS_MM_PRTNR_IZ T2
+         WHERE 1=1
+           AND T2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T2.OG_TP_CD = T1.NEW_OG_TP_CD
+           AND T2.PRTNR_NO = T1.NEW_PRTNR_NO
+           AND PRTNR_NO != NEW_PRTNR_NO
+    </select>
+
+    <update id="updateAssignPsicTfAs">
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+           SET SV_CNR_OG_ID = #{ogId}
+             , RPB_LOCARA_CD = #{rpbLocaraCd}
+             , ICHR_OG_TP_CD = #{newOgTpCd}
+             , ICHR_PRTNR_NO = #{newPrtnrNo}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+    </update>
+
+    <update id="updateAssignPsicTfBs">
+        /* cherro ::: AC261_BIZ_CD_A 컬럼 매핑이 안됨. OG_ID 매핑해야되는데... */
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+           SET ICHR_LOCARA_DV_CD = #{rpbLocaraCd}
+             , CNFM_PSIC_PRTNR_OG_TP_CD = #{newOgTpCd}
+             , CNFM_PSIC_PRTNR_NO = #{newPrtnrNo}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+    </update>
+
+    <insert id="insertAssignPsicTf">
+        INSERT INTO TB_SVPD_ASN_RS_TF_IZ (
+              CST_SV_ASN_NO
+            , ASN_TF_DV_CD
+            , TF_SN
+            , TF_STAT_CD
+            , TF_RQDT
+            , TF_AK_RSON_CD
+            , TF_AK_PRTNR_OG_TP_CD
+            , TF_AK_PRTNR_NO
+            , TF_CNFMDT
+            , TF_CNFM_PRTNR_OG_TP_CD
+            , TF_CNFM_PRTNR_NO
+            , TF_AK_RMK_CN
+            , BFCH_TOPMR_BRMGR_OG_TP_CD
+            , BFCH_TOPMR_BRMGR_PRTNR_NO
+            , BFCH_ICHR_BRCH_OG_ID
+            , BFCH_MNGR_DV_CD
+            , BFCH_ICHR_PRTNR_OG_TP_CD
+            , BFCH_ICHR_PRTNR_NO
+            , AFCH_TOPMR_BRMGR_OG_TP_CD
+            , AFCH_TOPMR_BRMGR_PRTNR_NO
+            , AFCH_ICHR_BRCH_OG_ID
+            , AFCH_MNGR_DV_CD
+            , AFCH_ICHR_PRTNR_OG_TP_CD
+            , AFCH_ICHR_PRTNR_NO
+            , MNGER_RGLVL_DV_CD
+              <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT #{cstSvAsnNo} AS CST_SV_ASN_NO
+             , '411' AS ASN_TF_DV_CD
+             , (
+                SELECT NVL(MAX(TEMP.TF_SN) + 1, 1) AS TF_SN
+                  FROM TB_SVPD_ASN_RS_TF_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.CST_SV_ASN_NO = #{cstSvAsnNo} /* CST_SV_ASN_NO */
+                   AND TEMP.ASN_TF_DV_CD = '411'
+               ) AS TF_SN
+             , '' AS TF_STAT_CD
+             , TO_CHAR(SYSDATE,'YYYYMMDD') AS TF_RQDT
+             , '13' AS TF_AK_RSON_CD /* BR01 13 담당지역이관사유 자동조정 */
+             , #{ogTpCd} AS TF_AK_PRTNR_OG_TP_CD
+             , #{prtnrNo} AS TF_AK_PRTNR_NO
+             , TO_CHAR(SYSDATE,'YYYYMMDD') AS TF_CNFMDT
+             , #{newOgTpCd} AS TF_CNFM_PRTNR_OG_TP_CD
+             , #{newPrtnrNo} AS TF_CNFM_PRTNR_NO
+             , '자동이관' AS TF_AK_RMK_CN
+             , '' AS BFCH_TOPMR_BRMGR_OG_TP_CD
+             , '' AS BFCH_TOPMR_BRMGR_PRTNR_NO
+             , '' AS BFCH_ICHR_BRCH_OG_ID
+             , '2' AS BFCH_MNGR_DV_CD
+             , #{ogTpCd} AS BFCH_ICHR_PRTNR_OG_TP_CD
+             , #{prtnrNo} AS BFCH_ICHR_PRTNR_NO
+             , '' AS AFCH_TOPMR_BRMGR_OG_TP_CD
+             , '' AS AFCH_TOPMR_BRMGR_PRTNR_NO
+             , '' AS AFCH_ICHR_BRCH_OG_ID
+             , '2' AS AFCH_MNGR_DV_CD
+             , #{newOgTpCd} AS AFCH_ICHR_PRTNR_OG_TP_CD
+             , #{newPrtnrNo} AS AFCH_ICHR_PRTNR_NO
+             , '' AS MNGER_RGLVL_DV_CD
+             , 'N' AS DTA_DL_YN
+               <include refid="COMMON.insertSystemFieldValue"/>
+          FROM DUAL
+    </insert>
+</mapper>
