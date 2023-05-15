@@ -64,8 +64,8 @@ public class WogcPartnerEngineerController {
 
     @ApiOperation(value = "서비스센터 조 관리 조회", notes = "조회 조건에 일치하는 서비스센터 조관리 목록을 페이징 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd3", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
         @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
@@ -79,8 +79,8 @@ public class WogcPartnerEngineerController {
 
     @ApiOperation(value = "서비스센터 조 관리 엑셀다운로드", notes = "조회 조건에 일치하는 서비스센터 조관리 목록을 엑셀로 저장한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd3", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
         @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
@@ -106,8 +106,8 @@ public class WogcPartnerEngineerController {
 
     @ApiOperation(value = "엔지니어 등급 관리 조회", notes = "조회 조건에 일치하는 엔지니어 등급 관리 조회목록을 페이징 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd3", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "egerEvlGdCd", value = "직무", paramType = "query", required = false),
         @ApiImplicitParam(name = "searchYm", value = "관리년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
@@ -119,8 +119,8 @@ public class WogcPartnerEngineerController {
 
     @ApiOperation(value = "엔지니어 등급 관리 엑셀다운로드", notes = "조회 조건에 일치하는 엔지니어 등급 관리 목록을 엑셀로 저장한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "1레벨 조직코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd3", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "egerEvlGdCd", value = "직무", paramType = "query", required = false),
         @ApiImplicitParam(name = "searchYm", value = "관리년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
