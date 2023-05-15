@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbRefundApplicationConverter;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
@@ -15,6 +15,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.S
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDetailDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundApplicationMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -115,26 +116,24 @@ public class WwdbRefundApplicationService {
      * @return processCount
      */
     @Transactional
-    public int createRefundApplication(SaveReq req) throws Exception {
+    public int createRefundApplication(SaveRefundReq req) throws Exception {
 
+        log.info("Service SaveReq: " + req);
         int processCount = 0;
 
         WwdbRefundApplicationDvo vo = converter.mapSaveWwdbRefundApplicationDvo(req);
 
         // 환불접수번호 seq 때문에 상세 입력 후 상세히스토리, 기본 입력 후 기본히스토리 입력함.
-        // 환불접수기본은 1번만, 환불접수상세는 req.saveList의 길이 만큼 반복한다.
-        log.info("===========================vo.getSaveList()=================================");
-        log.info("vo.getSaveList()", vo.getSaveList());
+        // 환불접수기본은 1번만, 환불접수상세는 vo.getDetails의 길이 만큼 반복한다.
 
-        log.info("===========================vo.getSaveList()=================================");
-
-        for (WwdbRefundApplicationDvo.saveList saveList : vo.getSaveList()) {
+        for (WwdbRefundApplicationDetailDvo details : vo.getDetails()) {
             log.info("===========================WwdbRefundApplicationDvo.saveList=================================");
-            log.info("WwdbRefundApplicationDvo.saveList", saveList);
+            log.info("WwdbRefundApplicationDvo.saveList", details);
             log.info("===========================WwdbRefundApplicationDvo.saveList=================================");
-            processCount += mapper.insertRefundApplicationDetail(saveList);
-            processCount += mapper.insertRefundApplicationDetailHistory(saveList);
+            processCount += mapper.insertRefundApplicationDetail(details);
+            processCount += mapper.insertRefundApplicationDetailHistory(details);
         }
+
         processCount += mapper.insertRefundApplication(vo);
         processCount += mapper.insertRefundApplicationHistory(vo);
 

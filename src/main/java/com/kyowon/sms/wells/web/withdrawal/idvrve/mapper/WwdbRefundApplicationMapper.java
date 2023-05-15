@@ -12,8 +12,8 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.S
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDetailDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDvo.saveList;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -47,10 +47,10 @@ public interface WwdbRefundApplicationMapper {
     List<SearchBankRes> selectRefundApplicationBank();
 
     //    int insertRefundApplicationDetail(WwdbRefundApplicationDvo vo);
-    int insertRefundApplicationDetail(saveList saveList);
+    int insertRefundApplicationDetail(WwdbRefundApplicationDetailDvo details);
 
     //    int insertRefundApplicationDetailHistory(WwdbRefundApplicationDvo vo);
-    int insertRefundApplicationDetailHistory(saveList saveList);
+    int insertRefundApplicationDetailHistory(WwdbRefundApplicationDetailDvo details);
 
     int insertRefundApplication(WwdbRefundApplicationDvo vo);
 

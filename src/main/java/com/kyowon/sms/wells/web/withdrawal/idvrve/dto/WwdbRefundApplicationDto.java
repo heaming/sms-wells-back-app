@@ -128,21 +128,22 @@ public class WwdbRefundApplicationDto {
 
     ) {}
 
-    @ApiModel(value = "WwdbRefundApplicationDto-SaveReq")
-    public record SaveReq(
+    @ApiModel(value = "WwdbRefundApplicationDto-SaveRefundReq")
+    public record SaveRefundReq(
         String cntrNo, // 계약번호 
         String cntrSn,
         String cstNo, // 고객번호
-        List<saveList> saveList, // 추가 버튼 누르면 추가로 생성되는 부분
         String exRfndRsonCn, // 예외환불 사유
         String rfndCshAmt, // 현금 환불금액
         String rfndCardAmt, // 카드 환불금액
         String rfndBltfAmt, // 전금 금액
         String rfndPsbResAmt, // 환불가능 잔액
-        String totRfndEtAmt // 총환불가능 잔액
+        String totRfndEtAmt, // 총환불가능 잔액
+        List<RefundDetail> details // 추가 버튼 누르면 추가로 생성되는 부분
     ) {}
 
-    public record saveList(
+    @ApiModel(value = "WwdbRefundApplicationDto-RefundDetail")
+    public record RefundDetail(
         String rveNo, // 수납상세.수납번호
         String rfndDvCd, // 환불구분. 01.전체 환불, 02.부분 환불
         String rfndDsbDvCd, // 환불구분. 환불지급구분코드 01.현금환불, 02.카드환불, 03.전금
@@ -171,7 +172,7 @@ public class WwdbRefundApplicationDto {
         String bltfAfVacNoEncr, // 전금후 가상계좌
         String rfndEvidMtrFileId // 증빙자료 파일첨부
     ) {
-        public saveList {
+        public RefundDetail {
             if (!StringUtil.isEmpty(cshRfndAcnoEncr)) {
                 cshRfndAcnoEncr = DbEncUtil.enc(cshRfndAcnoEncr); // 계좌번호 암호화
             }
@@ -182,4 +183,58 @@ public class WwdbRefundApplicationDto {
 
     }
 
+    //    @ApiModel(value = "WwdbRefundApplicationDto-SaveReq")
+    //    public record SaveReq(
+    //        String cntrNo, // 계약번호 
+    //        String cntrSn,
+    //        String cstNo, // 고객번호
+    //        String exRfndRsonCn, // 예외환불 사유
+    //        String rfndCshAmt, // 현금 환불금액
+    //        String rfndCardAmt, // 카드 환불금액
+    //        String rfndBltfAmt, // 전금 금액
+    //        String rfndPsbResAmt, // 환불가능 잔액
+    //        String totRfndEtAmt, // 총환불가능 잔액
+    //        List<RefundDetail> details // 추가 버튼 누르면 추가로 생성되는 부분
+    //    ) {}
+    //
+    //    @ApiModel(value = "WwdbRefundApplicationDto-RefundDetail")
+    //    public record RefundDetail(
+    //        String rveNo, // 수납상세.수납번호
+    //        String rfndDvCd, // 환불구분. 01.전체 환불, 02.부분 환불
+    //        String rfndDsbDvCd, // 환불구분. 환불지급구분코드 01.현금환불, 02.카드환불, 03.전금
+    //        String cshRfndDvCd, // 현금환불 구분. 현금환불구분코드 01.선환불, 02.일반환불, 03.카드현금
+    //        String rfndAcDvCd, // 환불계좌 구분. 환불계좌구분코드 01.기입금 계좌, 02.신규 계좌
+    //        String cshRfndFnitCd, // 지급은행
+    //        String cshRfndAcnoEncr, // 계좌번호
+    //        String cshRfndAcownNm, // 예금주
+    //        String cshRfndAdrsDvCd, // 수취인
+    //        String cshRfndDlgpsNm, // 대표자 확인
+    //        String startDay, // 승인일 시작
+    //        String endDay, // 승인일 종료
+    //        String rfndAkAmt, // 환불신청금액
+    //        String rfndDsbAmt, // 실지급액 (원)
+    //        String rfndAkAmt2, // 전금 요청금액(원)
+    //
+    //        String cardRfndFnitCd, // 카드구분
+    //        String cardRfndCrcdnoEncr, // 카드번호
+    //        String cardRfndFer, // 카드 공제액
+    //        String rfndRsonCn, // 기타 환불사유 입력란
+    //
+    //        String bltfRfndDvCd, // 전금구분
+    //        String bltfRfndMbDvCd, // 회원구분
+    //        String cntrCstNo, // 고객번호
+    //        String bltfBfVacNoEncr, // 전금전 가상계좌
+    //        String bltfAfVacNoEncr, // 전금후 가상계좌
+    //        String rfndEvidMtrFileId // 증빙자료 파일첨부
+    //    ) {
+    //        public RefundDetail {
+    //            if (!StringUtil.isEmpty(cshRfndAcnoEncr)) {
+    //                cshRfndAcnoEncr = DbEncUtil.enc(cshRfndAcnoEncr); // 계좌번호 암호화
+    //            }
+    //            if (!StringUtil.isEmpty(cardRfndCrcdnoEncr)) {
+    //                cardRfndCrcdnoEncr = DbEncUtil.enc(cardRfndCrcdnoEncr); // 카드번호 암호화
+    //            }
+    //        }
+    //
+    //    }
 }
