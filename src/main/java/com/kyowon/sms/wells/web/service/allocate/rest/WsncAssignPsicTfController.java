@@ -33,7 +33,7 @@ public class WsncAssignPsicTfController {
     @PostMapping
     public SaveResponse processAssignPsicTf(
         @RequestBody
-        WsncAssignPsicTfDto.SearchReq dto
+        WsncAssignPsicTfDto.SearchProcessReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.processAssignPsicTf(dto)).build();
     }
@@ -46,7 +46,7 @@ public class WsncAssignPsicTfController {
     public SaveResponse processAssignPsicTfByPk(
         @Valid
         @RequestBody
-        WsncAssignPsicTfDto.SearchPkReq dto
+        WsncAssignPsicTfDto.SearchProcessPkReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.processAssignPsicTfByPk(dto)).build();
     }

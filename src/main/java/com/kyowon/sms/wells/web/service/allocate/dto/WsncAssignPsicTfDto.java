@@ -8,14 +8,14 @@ public class WsncAssignPsicTfDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel(value = "WsncAssignPsicTfDto-SearchPkReq")
-    public record SearchPkReq(
+    @ApiModel(value = "WsncAssignPsicTfDto-SearchProcessPkReq")
+    public record SearchProcessPkReq(
         @NotBlank
         String cstSvAsnNo
     ) {}
 
-    @ApiModel(value = "WsncAssignPsicTfDto-SearchReq")
-    public record SearchReq(
+    @ApiModel(value = "WsncAssignPsicTfDto-SearchProcessReq")
+    public record SearchProcessReq(
         String cstSvAsnNo
     ) {}
 }
