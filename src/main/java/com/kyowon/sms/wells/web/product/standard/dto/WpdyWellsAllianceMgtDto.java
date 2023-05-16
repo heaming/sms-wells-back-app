@@ -38,7 +38,8 @@ public class WpdyWellsAllianceMgtDto {
         String alncmpCd, /* 제휴사코드 */
         String sellTpCd, /* 판매유형코드 */
         String pdCd, /* 상품코드 */
-        String svPdCd, /* 서비스상품코드 */
+        String svPdCd, /* 서비스코드 */
+        String svPdNm, /* 서비스명 */
         String stplPrdCd, /* 약정주기코드 */
         String rentalDscDvCd, /* 렌탈할인구분코드 */
         String rentalDscTpCd, /* 렌탈할인유형코드 */
