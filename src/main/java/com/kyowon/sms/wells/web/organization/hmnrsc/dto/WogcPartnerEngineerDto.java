@@ -64,8 +64,8 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementReq")
     @Builder
     public record FindJoeManagementReq(
-        String ogLevlDvCd1,
         String ogLevlDvCd2,
+        String ogLevlDvCd3,
         String wkGrpCd,
         String rsbDvCd,
         String prtnrNo,
@@ -150,8 +150,8 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-FindEngineerGradeReq")
     @Builder
     public record FindEngineerGradeReq(
-        String ogLevlDvCd1,
         String ogLevlDvCd2,
+        String ogLevlDvCd3,
         String rolDvCd,
         String searchYm,
         String chk
