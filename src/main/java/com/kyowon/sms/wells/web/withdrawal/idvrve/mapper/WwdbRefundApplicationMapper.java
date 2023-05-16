@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.R
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundDetail;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailReq;
@@ -73,4 +74,14 @@ public interface WwdbRefundApplicationMapper {
     int insertRefundApplicationHistory(String rfndRcpNo);
 
     int deleteRefundApplication(String rfndRcpNo);
+
+    PagingResult<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
+        String cntrNo,
+        PageInfo pageInfo
+    );
+
+    List<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
+        String cntrNo
+    );
+
 }

@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.R
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationInfoRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
@@ -204,5 +205,32 @@ public class WwdbRefundApplicationService {
         processCount += mapper.deleteRefundApplication(rfndRcpNo);
 
         return processCount;
+    }
+
+    /**
+     * 환불 신청 컨텍 이력 사항
+     * @param List 
+     * @param SearchRefundApplicationConnectHistoryReq 
+     * @return PagingResult<SearchRefundApplicationConnectHistoryRes> 
+     */
+    public PagingResult<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryPages(
+
+        //        SearchRefundApplicationConnectHistoryReq req, PageInfo pageInfo
+
+        String cntrNo, PageInfo pageInfo
+    ) {
+        return mapper.selectRefundApplicationConnectHistory(cntrNo, pageInfo);
+    }
+
+    /**
+     * 환불 신청 컨텍 이력 사항
+     * @param List 
+     * @param SearchRefundApplicationConnectHistoryReq
+     * @return PagingResult<SearchRefundApplicationConnectHistoryRes> 
+     */
+    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryExcels(
+        String cntrNo
+    ) {
+        return mapper.selectRefundApplicationConnectHistory(cntrNo);
     }
 }
