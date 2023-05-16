@@ -240,6 +240,10 @@
                          , SUBOD_CNTR_NO
                          , SUB_DP_TP_CD
                          , ERR_TYP
+                         , M_ACNO_ENCR
+                         , S_ACNO_ENCR
+                         , M_CRCDNO_ENCR
+                         , S_CRCDNO_ENCR
                       FROM (
                                 SELECT MSTR_CNTR.SELL_TP_CD AS MSTR_SELL_TP_CD
                                      , RIBB.DG_CNTR_NO
@@ -247,36 +251,40 @@
                                      , SUB_CNTR.SELL_TP_CD AS SUB_SELL_TP_CD
                                      , RIBB.SUBOD_CNTR_NO
                                      , SUB_CNTR.DP_TP_CD AS SUB_DP_TP_CD
+                                     , MSTR_CNTR.ACNO_ENCR AS M_ACNO_ENCR
+                                     , SUB_CNTR.ACNO_ENCR AS S_ACNO_ENCR
+                                     , MSTR_CNTR.CRCDNO_ENCR AS M_CRCDNO_ENCR
+                                     , SUB_CNTR.CRCDNO_ENCR AS S_CRCDNO_ENCR
                                      , CASE WHEN MSTR_CNTR.ACNO_ENCR != SUB_CNTR.ACNO_ENCR OR MSTR_CNTR.CRCDNO_ENCR != SUB_CNTR.CRCDNO_ENCR
-                                                 THEN (CASE WHEN #{dpTpCd} = '0102' THEN '2.계좌번호상이' || MSTR_CNTR.ACNO_ENCR || '/' || SUB_CNTR.ACNO_ENCR || ')'
-                                                            WHEN #{dpTpCd} = '0203' THEN '2.카드번호상이' || MSTR_CNTR.CRCDNO_ENCR || '/' || SUB_CNTR.CRCDNO_ENCR || ')'
+                                                 THEN (CASE WHEN #{dpTpCd} = '0102' THEN '01'
+                                                            WHEN #{dpTpCd} = '0203' THEN '02'
                                                        END)
                                             WHEN MSTR_CNTR.BNK_CD != SUB_CNTR.BNK_CD OR MSTR_CNTR.CDCO_CD != SUB_CNTR.CDCO_CD
                                                  THEN (CASE WHEN #{dpTpCd} = '0102' THEN '2.은행코드상이' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D
                                                                                                  WHERE CD_ID = UPPER('BNK_CD')
-                                                                                                   AND TENANT_ID = #{session.tenantId}
+                                                                                                   AND TENANT_ID = 'TNT_WELLS'
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = MSTR_CNTR.BNK_CD)
                                                                                                || '/'
                                                                                                || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D
                                                                                                  WHERE CD_ID = UPPER('BNK_CD')
-                                                                                                   AND TENANT_ID = #{session.tenantId}
+                                                                                                   AND TENANT_ID = 'TNT_WELLS'
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = SUB_CNTR.BNK_CD)
                                                                                                || ')'
                                                             WHEN #{dpTpCd} = '0203' THEN '2.계좌구분상이' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D
                                                                                                  WHERE CD_ID = UPPER('CDCO_CD')
-                                                                                                   AND TENANT_ID = #{session.tenantId}
+                                                                                                   AND TENANT_ID = 'TNT_WELLS'
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = MSTR_CNTR.CDCO_CD)
                                                                                                || '/'
                                                                                                || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D
                                                                                                  WHERE CD_ID = UPPER('CDCO_CD')
-                                                                                                   AND TENANT_ID = #{session.tenantId}
+                                                                                                   AND TENANT_ID = 'TNT_WELLS'
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = SUB_CNTR.CDCO_CD)
                                                                                                || ')'
@@ -288,7 +296,7 @@
                                                                         SELECT CD_CNTN
                                                                           FROM T_CMZ_CD_D
                                                                          WHERE CD_ID = UPPER('DP_TP_CD')
-                                                                           AND TENANT_ID = #{session.tenantId}
+                                                                           AND TENANT_ID = 'TNT_WELLS'
                                                                            AND DEL_YN = 'N'
                                                                            AND CD_VLD_VAL = MSTR_CNTR.DP_TP_CD
                                                                         )
@@ -297,7 +305,7 @@
                                                                         SELECT CD_CNTN
                                                                           FROM T_CMZ_CD_D
                                                                          WHERE CD_ID = UPPER('DP_TP_CD')
-                                                                           AND TENANT_ID = #{session.tenantId}
+                                                                           AND TENANT_ID = 'TNT_WELLS'
                                                                            AND DEL_YN = 'N'
                                                                            AND CD_VLD_VAL = SUB_CNTR.DP_TP_CD
                                                                         )
@@ -308,7 +316,7 @@
                                        END AS ERR_TYP
                                   FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
                                   JOIN (
-                                         SELECT SCD.CNTR_NO
+                                                SELECT SCD.CNTR_NO
                                               , SCD.CNTR_SN
                                               , SCD.SELL_TP_CD
                                               , SCSB.DP_TP_CD
@@ -332,12 +340,13 @@
                                            JOIN TB_SSCT_CNTR_STLM_BAS SCSB
                                              ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID
                                             AND SCSB.DTA_DL_YN = 'N'
+                                          WHERE SCSB.DP_TP_CD = #{dpTpCd}
                                        ) MSTR_CNTR
                                     ON RIBB.DG_CNTR_NO = MSTR_CNTR.CNTR_NO
                                    AND RIBB.DG_CNTR_SN = MSTR_CNTR.CNTR_SN
                                    AND RIBB.DTA_DL_YN ='N'
                         JOIN (
-                                         SELECT SCD.CNTR_NO
+                                                SELECT SCD.CNTR_NO
                                               , SCD.CNTR_SN
                                               , SCD.SELL_TP_CD
                                               , SCSB.DP_TP_CD
@@ -361,12 +370,12 @@
                                            JOIN TB_SSCT_CNTR_STLM_BAS SCSB
                                              ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID
                                             AND SCSB.DTA_DL_YN = 'N'
+                                          WHERE SCSB.DP_TP_CD = #{dpTpCd}
                                        ) SUB_CNTR
                                    ON RIBB.SUBOD_CNTR_NO = SUB_CNTR.CNTR_NO
                                   AND RIBB.SUBOD_CNTR_SN = SUB_CNTR.CNTR_SN
                                   AND RIBB.DTA_DL_YN ='N'
-                                WHERE RIBB.DG_CNTR_NO != RIBB.SUBOD_CNTR_NO
-                                  AND MSTR_CNTR.DP_TP_CD = #{dpTpCd}
+                                  
                            )
                          WHERE ERR_TYP IS NOT NULL
     </select>
