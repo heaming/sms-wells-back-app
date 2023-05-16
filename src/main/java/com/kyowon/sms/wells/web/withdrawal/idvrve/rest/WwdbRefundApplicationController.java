@@ -4,15 +4,19 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.EditRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationInfoRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailReq;
@@ -115,4 +119,40 @@ public class WwdbRefundApplicationController {
             .processCount(service.createRefundApplication(req))
             .build();
     }
+
+    @ApiOperation(value = "환불 신청 팝업 환불신청, 예외환불사유, 환불접수총액, 처리정보 조회", notes = "환불 신청 팝업 환불신청, 예외환불사유, 환불접수총액, 처리정보 조회")
+    @GetMapping("/status/refund-application-info")
+    public SearchRefundApplicationInfoRes getRefundApplicationInfo(
+        @RequestParam
+        String rfndRcpNo
+    ) {
+        return service.getRefundApplicationInfo(rfndRcpNo);
+    }
+
+    @ApiOperation(value = "환불 신청 팝업 환불 수정", notes = "환불 신청 팝업 환불 수정")
+    @PostMapping("/status/refund-application-info")
+    public SaveResponse editRefundApplication(
+        @RequestBody
+        @Valid
+        EditRefundReq req
+    ) throws Exception {
+        log.info("EditRefundReq:" + req);
+        return SaveResponse
+            .builder()
+            .processCount(service.editRefundApplication(req))
+            .build();
+    }
+
+    @ApiOperation(value = "환불 신청 팝업 환불 삭제   ", notes = "환불 신청 팝업 환불 삭제")
+    @DeleteMapping("/status/refund-application-info")
+    public SaveResponse removeRefundApplication(
+        @RequestParam
+        String rfndRcpNo
+    ) throws Exception {
+        return SaveResponse
+            .builder()
+            .processCount(service.removeRefundApplication(rfndRcpNo))
+            .build();
+    }
+
 }

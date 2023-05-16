@@ -6,9 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbRefundApplicationConverter;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.EditRefundReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundBasic;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundDetail;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationInfoRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailReq;
@@ -17,6 +21,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.S
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDetailDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundApplicationMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -127,9 +132,9 @@ public class WwdbRefundApplicationService {
         // 환불접수기본은 1번만, 환불접수상세는 vo.getDetails의 길이 만큼 반복한다.
 
         for (WwdbRefundApplicationDetailDvo details : vo.getDetails()) {
-            log.info("===========================WwdbRefundApplicationDvo.saveList=================================");
-            log.info("WwdbRefundApplicationDvo.saveList", details);
-            log.info("===========================WwdbRefundApplicationDvo.saveList=================================");
+            log.info("===========================WwdbRefundApplicationDvo.details=================================");
+            log.info("WwdbRefundApplicationDvo.details", details);
+            log.info("===========================WwdbRefundApplicationDvo.details=================================");
             processCount += mapper.insertRefundApplicationDetail(details);
             processCount += mapper.insertRefundApplicationDetailHistory(details);
         }
@@ -142,4 +147,62 @@ public class WwdbRefundApplicationService {
         return processCount;
     }
 
+    /**
+     * 환불 신청 팝업 환불신청, 예외환불사유, 환불접수총액, 처리정보 조회
+     * @param String rfndRcpNo
+     * @return List<SearchRefundApplicationInfoRes>
+     */
+    public SearchRefundApplicationInfoRes getRefundApplicationInfo(
+        String rfndRcpNo
+    ) {
+        //    RefundDetail 에 조회된 내용을 저장
+        List<RefundDetail> RefundDetail = mapper.selectRefundApplicationDetailInfo(rfndRcpNo);
+        RefundBasic basic = mapper.selectRefundApplicationInfo(rfndRcpNo);
+        log.info("====================================================20230515basic=====");
+        log.info("RefundDetail", RefundDetail);
+        log.info("basic", basic);
+        log.info("====================================================20230515basic=====");
+        return new SearchRefundApplicationInfoRes(basic, RefundDetail);
+    }
+
+    /**
+     * 환불 신청 팝업 환불 수정
+     * @param SaveReq req
+     * @return processCount
+     */
+    @Transactional
+    public int editRefundApplication(EditRefundReq req) throws Exception {
+
+        int processCount = 0;
+
+        WwdbRefundApplicationInfoDvo vo = converter.mapEditWwdbRefundApplicationDvo(req);
+
+        for (WwdbRefundApplicationDetailDvo details : vo.getDetails()) {
+
+            processCount += mapper.updateRefundApplicationDetail(details);
+            processCount += mapper.insertRefundApplicationDetailHistory(details);
+
+        }
+
+        processCount += mapper.updateRefundApplication(vo.getBasic());
+        processCount += mapper.insertRefundApplicationHistory(vo);
+
+        return processCount;
+    }
+
+    /**
+     * 환불 신청 팝업 환불 삭제
+     * @param SaveReq req
+     * @return processCount
+     */
+    @Transactional
+    public int removeRefundApplication(String rfndRcpNo) throws Exception {
+
+        int processCount = 0;
+
+        processCount += mapper.insertRefundApplicationHistory(rfndRcpNo);
+        processCount += mapper.deleteRefundApplication(rfndRcpNo);
+
+        return processCount;
+    }
 }
