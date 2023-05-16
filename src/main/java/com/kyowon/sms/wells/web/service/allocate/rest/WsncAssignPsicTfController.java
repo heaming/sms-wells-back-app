@@ -1,6 +1,9 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import javax.validation.Valid;
+
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +31,10 @@ public class WsncAssignPsicTfController {
         @ApiImplicitParam(name = "cstSvAsnNo", value = "고객서비스배정번호", paramType = "query", required = false),
     })
     @PostMapping
-    public SaveResponse processAssignPsicTf(WsncAssignPsicTfDto.SearchReq dto) throws Exception {
+    public SaveResponse processAssignPsicTf(
+        @RequestBody
+        WsncAssignPsicTfDto.SearchReq dto
+    ) throws Exception {
         return SaveResponse.builder().processCount(service.processAssignPsicTf(dto)).build();
     }
 
@@ -37,7 +43,11 @@ public class WsncAssignPsicTfController {
         @ApiImplicitParam(name = "cstSvAsnNo", value = "고객서비스배정번호", paramType = "query", required = true),
     })
     @PostMapping("/cst-sv-asn-no")
-    public SaveResponse processAssignPsicTfByPk(WsncAssignPsicTfDto.SearchPkReq dto) throws Exception {
+    public SaveResponse processAssignPsicTfByPk(
+        @Valid
+        @RequestBody
+        WsncAssignPsicTfDto.SearchPkReq dto
+    ) throws Exception {
         return SaveResponse.builder().processCount(service.processAssignPsicTfByPk(dto)).build();
     }
 }
