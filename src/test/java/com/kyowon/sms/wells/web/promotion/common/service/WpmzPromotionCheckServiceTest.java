@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class WpmzPromotionCheckServiceTest extends SpringTestSupport {
+class WpmzPromotionCheckServiceTest extends SpringTestSupport {
 
     private static final String FILTER_KEY_NMS = "SYS_CMPP_NM";
     private static final String FILTER_FVR_KEY_NMS = "FVR_SYS_CMPP_NM";
