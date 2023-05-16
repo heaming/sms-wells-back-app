@@ -42,7 +42,7 @@ public class WfeaOrganizationNetOrderDto {
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchHmstReq")
     public record SearchHmstReq(
         @NotBlank
-        String schBizDv,
+        String schTcnt,
         @NotBlank
         String schDv,
         String schPdctTp,
@@ -81,12 +81,15 @@ public class WfeaOrganizationNetOrderDto {
         String schDv,
         @NotBlank
         String schPdctTp,
-        @NotBlank
-        String schSlDtStrt,
-        @NotBlank
-        String schSlDtEnd,
         String schPdCdStrt,
-        String schPdCdEnd
+        String schPdCdEnd,
+        String schSlDtStrt,
+        String schSlDtEnd,
+        String schRcpDtStrt,
+        String schRcpDtEnd,
+        String schRsvDtStrt,
+        String schRsvDtEnd,
+        String perfYm
 
     ) {}
 
@@ -143,41 +146,20 @@ public class WfeaOrganizationNetOrderDto {
     ) {}
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchHmstSellFeeRes")
     public record SearchHmstSellFeeRes(
-        String col1, /*소속*/
-        String col2, /*번호*/
-        String col3, /*성명*/
-        String col4, /*직책*/
-        String col5, /*미팅일수*/
-        String col6, /*수수료 월*/
-        String col7, /*M+1 수석플래너*/
-        String col8, /*플래너 스타트업*/
-        String col9, /*수석실전*/
-        String col10, /*등록기준월*/
-        String col11, /*최초업무등록월*/
-        String col12, /*재등록월*/
-        String col13, /*최종해약월*/
-        String col14 /*업무해약월*/
-    ) {}
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchHmstBsRes")
-    public record SearchHmstBsRes(
-        String col1, /*소속*/
-        String col2, /*번호*/
-        String col3, /*성명*/
-        String col4, /*직책*/
-        String col5, /*미팅일수*/
-        String col6, /*수수료 월*/
-        String col7, /*M+1 수석플래너*/
-        String col8, /*플래너 스타트업*/
-        String col9, /*수석실전*/
-        String col10, /*등록기준월*/
-        String col11, /*최초업무등록월*/
-        String col12, /*재등록월*/
-        String col13, /*최종해약월*/
-        String col14, /*업무해약월*/
-        String col15, /*승진월*/
-        String col16, /*웰스매니저 개시일*/
-        String col17, /*정착수수료*/
-        String col18 /*가전실적*/
+        String og2Nm, /* 지역단 */
+        String og3Nm, /* 지점 */
+        String prtnrNo, /* 번호 */
+        String prtnrKnm, /* 성명 */
+        String cntrNo, /*계약상세번호*/
+        String rcpDt, /*접수일자*/
+        String slDt, /*매출일자*/
+        String canDt, /*취소일자*/
+        String prdtyp, /*제품유형*/
+        String pdCd, /*상품코드*/
+        String prdgrp, /*상품그룹*/
+        String pdNm, /*상품명*/
+        String ackmtPerfCt, /*인정건수*/
+        String mchnChTpCd /*기변유형*/
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerRes")

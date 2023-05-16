@@ -31,10 +31,6 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchHmstReq dto
     );
 
-    List<SearchHmstBsRes> selectHomeMasterBeforeServices(
-        SearchHmstReq dto
-    );
-
     List<SearchMngerRes> selectManagers(
         SearchMngerReq dto
     );

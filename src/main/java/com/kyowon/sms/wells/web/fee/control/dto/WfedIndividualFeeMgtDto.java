@@ -64,7 +64,7 @@ public class WfedIndividualFeeMgtDto {
         String akcda15, /* 환경가전 외 일시불 */
         String intbsSum, /* 과표계 */
         String ddtnSum, /* 공제계 */
-        String aclDdbAmt /* 실지급액 */
+        String aclDsbAmt /* 실지급액 */
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstFeeRes")

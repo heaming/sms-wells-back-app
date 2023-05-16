@@ -22,6 +22,7 @@ public class WfebOrganizationFeeDto {
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerReq")
     public record SearchMngerReq(
         String perfYm,
+        String schOrdr,
         String rsbTp,
         String no,
         String blgCd
@@ -569,11 +570,6 @@ public class WfebOrganizationFeeDto {
         String ddctam,
         String dsbOjAmt
     ) {}
-    @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarStepRes")
-    public record SearchPlarStepRes(
-        String nowStep
-    ) {}
-
     @ApiModel(value = "WfebOrganizationFeeDto-SearchWmRes")
     public record SearchWmRes(
         String col1, /*총괄단*/
