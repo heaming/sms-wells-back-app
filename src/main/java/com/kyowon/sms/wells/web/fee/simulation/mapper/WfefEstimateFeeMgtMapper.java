@@ -12,4 +12,11 @@ public interface WfefEstimateFeeMgtMapper {
     List<EstimateP> selectEstimateP(SearchOgPReq req);
     List<SaleP> selectSaleP(SearchOgPReq req);
 
+    BaseM selectBaseM(SearchOgPReq req);
+    List<PerformanceM> selectPerformanceM(SearchOgPReq req);
+    List<BsM> selectBsM(SearchOgPReq req);
+    List<EstimateM> selectEstimateM(SearchOgPReq req);
+    List<SaleM> selectSaleM(SearchOgPReq req);
+
+
 }

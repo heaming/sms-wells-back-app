@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.fee.simulation.rest;
 
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto;
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgMRes;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPReq;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPRes;
 import com.kyowon.sms.wells.web.fee.simulation.service.WfefEstimateFeeMgtService;
@@ -36,6 +38,15 @@ public class WfefEstimateFeeMgtController {
         return service.getEstimateFeeOgP(req);
     }
 
-
+    @ApiOperation(value = "예상수수료 - 조회(m조직)", notes = "예상수수료 m조직을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perType", value = "실적조회", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
+    })
+    @GetMapping("/m-og")
+    public SearchOgMRes getEstimateFeeOgM(@Valid SearchOgPReq req) throws Exception {
+        return service.getEstimateFeeOgM(req);
+    }
 
 }
