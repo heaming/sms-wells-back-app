@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.fee.simulation.service;
 
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto;
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgMRes;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPReq;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPRes;
 import com.kyowon.sms.wells.web.fee.simulation.mapper.WfefEstimateFeeMgtMapper;
@@ -27,6 +29,15 @@ public class WfefEstimateFeeMgtService {
      */
     public SearchOgPRes getEstimateFeeOgP(SearchOgPReq req) {
         return new SearchOgPRes(mapper.selectBaseP(req),  mapper.selectPerformanceP(req), mapper.selectEstimateP(req), mapper.selectSaleP(req));
+    }
+
+     /**
+     * 예상 수수료 조회 - M조직
+     * @param req
+     * @return
+     */
+    public SearchOgMRes getEstimateFeeOgM(SearchOgPReq req) {
+        return new SearchOgMRes(mapper.selectBaseM(req),  mapper.selectPerformanceM(req), mapper.selectBsM(req), mapper.selectEstimateM(req), mapper.selectSaleM(req));
     }
 
 }
