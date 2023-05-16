@@ -109,16 +109,6 @@ public class WfebOrganizationFeeService {
         return this.mapper.selectPlannerTotalFees(dto);
     }
 
-    /**
-     * WELLS P조직 수수료 생성관리 상태 조회
-     * @param 'SearchPlarReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-
-    public SearchPlarStepRes getPlannerStep(SearchPlarReq dto) {
-        return this.mapper.selectPlannerStep(dto);
-    }
-
     /** WM수수료 내역 - 조회
      * @param dto : {
      * perfYm : 실적년월,
