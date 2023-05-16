@@ -320,6 +320,8 @@ public class WwdaAutoTransferInterfaceDto {
     /* Wells 자동이체 일괄 묶음 등록/해제 Request Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SaveReq")
     public record SaveReq(
+        @JsonProperty("AFTN_BLK")
+        List<SaveBulkRegistrationReleaseReq> bulks, // 일괄등록
         @JsonProperty("AFTN_BNDL")
         List<SaveBundleRegistrationReleaseReq> bundles
     ) {}
@@ -347,6 +349,34 @@ public class WwdaAutoTransferInterfaceDto {
         String sellTpCd /*판매유형코드(일시불/렌탈/멤버십/회사/정기배송)*/
     ) {}
 
+    /* EDU 자동이체 일괄 등록/해제 Request Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SaveBulkRegistrationReleaseReq")
+    public record SaveBulkRegistrationReleaseReq(
+        @JsonProperty("CNTR_NO")
+        String cntrNo, /*계약번호*/
+        @JsonProperty("CNTR_SN")
+        String cntrSn, /*계약일련번호*/
+        @JsonProperty("FNT_DV_CD")
+        String fntDvCd, /*이체구분코드*/
+        @JsonProperty("FNIT_CD")
+        String fnitCd, /*금융기관코드*/
+        @JsonProperty("ACNO_CDNO")
+        String acnoCdno, /*계좌카드번호*/
+        @JsonProperty("OWR_KNM")
+        String owrKnm, /*소유자한글명*/
+        @JsonProperty("MPY_BSDT")
+        String mpyBsdt, /*납부기준일자*/
+        @JsonProperty("CARD_EXPDT_YM")
+        String cardExpdtYm, /*카드유효기간년월*/
+        @JsonProperty("COPN_DV_CD")
+        String copnDvCd, /*법인격구분코드*/
+        @JsonProperty("CRP_SPMT_DRM_NM")
+        String crpSpmtDrmNm, /*법인추가식별명*/
+        @JsonProperty("MPNO")
+        String mpno /*휴대전화번호*/
+
+    ) {}
+
     /* Wells 자동이체 일괄 묶음 등록/해제 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SaveBundleRegistrationReleaseRes")
     public record SaveBundleRegistrationReleaseRes(
@@ -354,5 +384,57 @@ public class WwdaAutoTransferInterfaceDto {
         String reslCd, /*(결과코드)(E : 에러, F : 실패, S : 정상)*/
         @JsonProperty("PCS_RSLT_CN")
         String pcsRsltCn /*처리결과내용*/
+    ) {}
+
+    /* wells 자동이체 계좌 실명인증 Request Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchRealNameCertificationReq")
+    public record SearchRealNameCertificationReq(
+        @JsonProperty("BNK_CD")
+        String bnkCd, /*은행코드*/
+        @JsonProperty("ACNO")
+        String acno, /*계좌번호*/
+        @JsonProperty("CNTRT_NM")
+        String cntrtNm, /*계약자명*/
+        @JsonProperty("BRYY_MMDD")
+        String bryyMmdd /*생년월일*/
+
+    ) {}
+
+    /* wells 자동이체 계좌 실명인증 Response Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchRealNameCertificationRes")
+    public record SearchRealNameCertificationRes(
+        @JsonProperty("AC_FNT_RS_CD")
+        String acFntRsCd, /*계좌이체결과코드*/
+        @JsonProperty("AC_FNT_RS_CD_NM")
+        String acFntRsCdNm, /*계좌이체결과코드명*/
+        @JsonProperty("OWR_KNM")
+        String owrKnm /*소유자한글명*/
+    ) {}
+
+    /* wells 자동이체 카드 유효성 검사 Request Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchCardEffectivenessCheckReq")
+    public record SearchCardEffectivenessCheckReq(
+        @JsonProperty("CRDCD_NO")
+        String crdcdNo, /*신용카드번호*/
+        @JsonProperty("CARD_EXPDT_YM")
+        String cardExpdtYm, /*카드유효기간년월*/
+        @JsonProperty("CNTRT_NM")
+        String cntrtNm, /*계약자명*/
+        @JsonProperty("BRYY_MMDD")
+        String bryyMmdd /*생년월일*/
+
+    ) {}
+
+    /* wells 자동이체 카드 유효성 검사 Response Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchCardEffectivenessCheckRes")
+    public record SearchCardEffectivenessCheckRes(
+        @JsonProperty("CARD_FNT_RS_CD")
+        String cardFntRsCd, /*카드이체결과코드*/
+        @JsonProperty("CARD_FNT_RS_CD_NM")
+        String cardFntRsCdNm, /*카드이체결과코드명*/
+        @JsonProperty("CDCO_CD")
+        String cdcoCd, /*카드사코드*/
+        @JsonProperty("CDCO_NM")
+        String cdcoNm /*카드사코드명*/
     ) {}
 }

@@ -2,14 +2,11 @@ package com.kyowon.sms.wells.web.withdrawal.interfaces.converter;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.*;
 import org.apache.commons.lang.StringUtils;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferObjectItemizationInterfaceDvo;
 
 @Mapper(componentModel = "spring", imports = {StringUtils.class})
 public interface WwdaAutoTransferConverter {
@@ -32,5 +29,21 @@ public interface WwdaAutoTransferConverter {
 
     List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes> mapSaveBundleRegistrationReleasesResToWwdaAutoTransferDvo(
         List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> dvo
+    );
+
+    List<WwdaAutoTransferInfoBulkRegistrationReleasesInterfaceDvo> mapWwdaAutoTransferDvoToSaveBulkRegistrationReleasesReq(
+        List<WwdaAutoTransferInterfaceDto.SaveBulkRegistrationReleaseReq> dvo
+    );
+
+    List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes> mapSaveBulkRegistrationReleasesResToWwdaAutoTransferDvo(
+        List<WwdaAutoTransferInfoBulkRegistrationReleasesInterfaceDvo> dvo
+    );
+
+    List<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> mapRealNameCertificationDvoToWwdaAutoTransferRealNameCertificationRes(
+        List<WwdaAutoTransferRealNameCertificationInterfaceDvo> dvo
+    );
+
+    List<WwdaAutoTransferInterfaceDto.SearchCardEffectivenessCheckRes> mapCardEffectivenessCheckDvoToWwdaAutoTransferRealNameCertificationRes(
+        List<WwdaAutoTransferCardEffectivenessCheckInterfaceDvo> dvo
     );
 }
