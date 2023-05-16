@@ -37,7 +37,6 @@ public class WogcPartnerEngineerDvo {
     String dtaDlYn;
     String telNumber;
 
-
     String rolDvCd;
     String rolDvCdNm;
     String prtnrGdCd;
@@ -45,4 +44,22 @@ public class WogcPartnerEngineerDvo {
     String apyEnddt;
     String rmkCn;
     String cltnDt;
+
+    String ogCd;
+    String ogNm;
+    String rolDvNm;
+    String wkGrpNm;
+    String bizAgntYn;
+    String wrkDt;
+    String wrkNm;
+    String egerWrkStatCd;
+    String dnlStrtdt;
+    String dnlEnddt;
+    String bizAgntPrtnrNo;
+    String agntPrtnrKnm;
+    String pcpPrtnrNo;
+    String pcpPrtnrKnm;
+    String procsDtm;
+    String employeeIDNumber;
+
 }

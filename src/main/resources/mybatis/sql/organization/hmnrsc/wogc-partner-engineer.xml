@@ -2,49 +2,88 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper">
     <select id="selectEngineerAttends" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$SearchEngineerRes">
-        SELECT B.OG_CD
-             , B.OG_NM
-             , A.PRTNR_NO
-             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_ROL_CD', A.ROL_DV_CD) AS ROL_DV_NM
-             , A.PRTNR_KNM
-             , CASE WHEN C.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'Y'
-                                                         ELSE 'N'
+        SELECT MOG.OG_CD                    /*조직코드*/
+             , MOG.OG_NM                    /*조직명*/
+             , EAI.OG_TP_CD                 /*조직유형코드*/
+             , EAI.PRTNR_NO                 /*파트너번호*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_ROL_CD', MPI.ROL_DV_CD) AS ROL_DV_NM
+             , MPI.PRTNR_KNM                /*파트너명*/
+             , WGB.WK_GRP_CD                /*작업그룹코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'WK_GRP_CD', WGB.WK_GRP_CD) AS WK_GRP_NM
+             , CASE WHEN EAI.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'Y'
+                                                           ELSE 'N'
                END BIZ_AGNT_YN
-             , #{baseDt} AS WRK_DT
-             , TO_CHAR(TO_DATE(#{baseDt},'YYYYMMDD') ,'DY') AS WRK_DY
-             , NVL(F_CMZ_CD_NM('TNT_WELLS','DNL_RSON_CD',C.DNL_RSON_CD),'정상') AS DNL_RSON_NM
-             , C.RMK_CN
-             , C.VCN_STRT_DT
-             , C.VCN_END_DT
-             , E.PRTNR_NO AS BIZ_AGNT_PRTNR_NO
-             , E.PRTNR_KNM AS BIZ_AGNT_PRTNR_KNM
-             , F_CMZ_CD_NM('TNT_WELLS','WK_GRP_CD',D.WK_GRP_CD) AS WK_GRP_NM
-          FROM TB_OGBS_MM_PRTNR_IZ A
-         INNER JOIN TB_OGBS_MM_OG_IZ B
-            ON A.OG_ID = B.OG_ID
-           AND A.OG_TP_CD = B.OG_TP_CD
-           AND A.BASE_YM = B.BASE_YM
-           AND A.BASE_YM = #{baseYm}
-           AND A.OG_TP_CD='W06'
-          LEFT OUTER JOIN TB_OGPS_EGER_ATDC_IZ C
-            ON A.PRTNR_NO = C.PRTNR_NO
-           AND A.OG_TP_CD = C.OG_TP_CD
-           AND C.WRK_DT = #{baseDt}
-          LEFT OUTER JOIN TB_OGBS_WK_GRP_BLG_DTL D
-            ON A.PRTNR_NO = D.PRTNR_NO
-           AND A.OG_TP_CD = D.OG_TP_CD
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ E
-            ON C.BIZ_AGNT_PRTNR_NO = E.PRTNR_NO
-           AND C.OG_TP_CD = E.OG_TP_CD
-           AND A.BASE_YM = E.BASE_YM
+             , EAI.WRK_DT                   /*근무일자*/
+             , (SELECT CASE WHEN PHLD_YN='Y'
+                        THEN TO_CHAR(TO_DATE(BASE_Y||BASE_MM||BASE_D, 'YYYY-MM-DD'), 'DY','NLS_DATE_LANGUAGE=KOREAN')  ||'(공휴일)'
+                        ELSE TO_CHAR(TO_DATE(BASE_Y||BASE_MM||BASE_D, 'YYYY-MM-DD'), 'DY','NLS_DATE_LANGUAGE=KOREAN')
+                      END AS DOW_DV
+                 FROM TB_SVPD_SV_CLND_BAS A
+                WHERE 1=1
+                  AND BASE_Y  = SUBSTR(EAI.WRK_DT, 1, 4)
+                  AND BASE_MM = SUBSTR(EAI.WRK_DT, 5, 2)
+                  AND BASE_D  = SUBSTR(EAI.WRK_DT, 7, 2)) AS WRK_NM
+             , EAI.EGER_WRK_STAT_CD            /*근태사유코드*/
+             , EAI.RMK_CN                      /*비고내용*/
+             , EAI.DNL_STRTDT                  /*근태시작일자*/
+             , EAI.DNL_ENDDT                   /*근태종료일자*/
+             , EAI.BIZ_AGNT_PRTNR_NO           /*업무대행파트너번호*/
+             , MPI2.PRTNR_KNM AS AGNT_PRTNR_KNM            /*파트너명*/
+             , EAI.PCP_PRTNR_NO                            /*처리자파트너번호*/
+             , MPI3.PRTNR_KNM AS PCP_PRTNR_KNM             /*파트너명*/
+             , EAI.PROCS_DTM                               /*처리일자*/
+          FROM TB_OGPS_EGER_ATDC_IZ EAI
+          LEFT OUTER JOIN (SELECT OG_TP_CD, PRTNR_NO, APY_SEQN, WK_GRP_CD
+                             FROM TB_OGBS_WK_GRP_BLG_DTL WGB1
+                            WHERE APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                FROM TB_OGBS_WK_GRP_BLG_DTL
+                                               WHERE OG_TP_CD = WGB1.OG_TP_CD
+                                                 AND PRTNR_NO = WGB1.PRTNR_NO
+                                                 AND DTA_DL_YN = 'N')
+                          ) WGB /*작업그룹소속상세*/
+            ON EAI.PRTNR_NO = WGB.PRTNR_NO
+           AND EAI.OG_TP_CD = WGB.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI
+            ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MPI.PRTNR_NO = EAI.PRTNR_NO
+           AND MPI.OG_TP_CD = EAI.OG_TP_CD
+           AND MPI.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI2
+            ON MPI2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MPI2.PRTNR_NO = EAI.BIZ_AGNT_PRTNR_NO
+           AND MPI2.OG_TP_CD = EAI.OG_TP_CD
+           AND MPI2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI3
+            ON MPI3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MPI3.PRTNR_NO = EAI.PCP_PRTNR_NO
+           AND MPI3.OG_TP_CD = EAI.PCP_OG_TP_CD
+           AND MPI3.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ MOG
+            ON MOG.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MOG.OG_ID = MPI.OG_ID
+           AND MOG.DTA_DL_YN = 'N'
          WHERE 1=1
-           <if test="@MybatisUtils@isNotEmpty(ogLevlDvCd1)">
-           AND OG_ID = #{ogLevlDvCd1}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(ogLevlDvCd2)">
-           AND OG_ID = #{ogLevlDvCd2}
-           </if>
+           AND EAI.DTA_DL_YN = 'N'
+           AND EAI.OG_TP_CD = 'W06'
+           AND EAI.WRK_DT = #{baseDt}
     </select>
+
+     <!--엔지니어 출근 관리 목록 저장 -->
+    <update id="updateEngineer">
+        UPDATE TB_OGPS_EGER_ATDC_IZ
+           SET EGER_WRK_STAT_CD = #{egerWrkStatCd}              /*엔지니어근무상태코드*/
+             , RMK_CN = #{rmkCn}                  			    /*비고내용*/
+             , DNL_STRTDT = #{dnlStrtdt}              		    /*근태시작일자*/
+             , DNL_ENDDT = #{dnlEnddt}                          /*근태종료일자*/
+             , BIZ_AGNT_PRTNR_NO = #{bizAgntPrtnrNo}            /*업무대행파트너번호*/
+             , PCP_PRTNR_NO = #{session.employeeIDNumber}       /*처리자사번*/
+             , PROCS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /*처리일시*/
+             <include refid="COMMON.updateSystemField" />
+        WHERE 1=1
+          AND OG_TP_CD = 'W06'
+          AND PRTNR_NO = #{prtnrNo}
+          AND WRK_DT = #{wrkDt}
+    </update>
 
     <!-- 서비스센터 조 관리 -->
     <select id="selectJoeManagements" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$FindJoeManagementRes">
@@ -553,4 +592,6 @@
                , #{dtaDlYn}
             <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
+
 </mapper>
+

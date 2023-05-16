@@ -17,29 +17,38 @@ public class WogcPartnerEngineerDto {
         @NotBlank
         String baseYm,
         @NotBlank
-        String baseDt
-    ) {
-    }
+        String baseDt,
+        @NotBlank
+        String ogTpCd
+    ) {}
 
-    /**
-     * @param ogCd            조직코드
-     * @param ogNm            조직명
-     * @param prtnrNo         파트너번호
-     * @param rolDvNm         직무명
-     * @param prtnrKnm        파트너성명
-     * @param wkGrpNm         작업그룹
-     * @param bizAgntYn       업무대행여부
-     * @param wrkDt           근무일자
-     * @param wrkDy           근무요일
-     * @param dnlRsonNm       근무상태
-     * @param rmkCn           비고사항
-     * @param vcnStrtDt       휴가시작일자
-     * @param vcnEndDt        휴가종료일자
-     * @param bizAgntPrtnrNo  업무대행자 파트너번호
-     * @param bizAgntPrtnrKnm 업무대행자 성명
-     */
     @ApiModel(value = "WogcPartnerEngineerDto-SearchEngineerRes")
     public record SearchEngineerRes(
+        String ogCd,
+        String ogNm,
+        String ogTpCd,
+        String prtnrNo,
+        String rolDvNm,
+        String wkGrpNm,
+        String bizAgntYn,
+        String prtnrKnm,
+        String wkGrpCd,
+        String wrkDt,
+        String wrkNm,
+        String egerWrkStatCd,
+        String rmkCn,
+        String dnlStrtdt,
+        String dnlEnddt,
+        String bizAgntPrtnrNo,
+        String agntPrtnrKnm,
+        String pcpPrtnrNo,
+        String pcpPrtnrKnm,
+        String procsDtm
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SaveEngineerAttendReq")
+    public record SaveEngineerAttendReq(
         String ogCd,
         String ogNm,
         String prtnrNo,
@@ -48,15 +57,19 @@ public class WogcPartnerEngineerDto {
         String wkGrpNm,
         String bizAgntYn,
         String wrkDt,
-        String wrkDy,
-        String dnlRsonNm,
+        String wrkNm,
+        String egerWrkStatCd,
         String rmkCn,
-        String vcnStrtDt,
-        String vcnEndDt,
+        String dnlStrtdt,
+        String dnlEnddt,
         String bizAgntPrtnrNo,
-        String bizAgntPrtnrKnm
-    ) {
-    }
+        String agntPrtnrKnm,
+        String pcpPrtnrNo,
+        String pcpPrtnrKnm,
+        String employeeIDNumber,
+        String procsDtm
+
+    ) {}
 
     /**
      * 서비스 조 관리 조회 Request dto
@@ -70,8 +83,7 @@ public class WogcPartnerEngineerDto {
         String rsbDvCd,
         String prtnrNo,
         String vlDt
-    ) {
-    }
+    ) {}
 
     /**
      * 서비스 조 관리 조회 Response dto
@@ -141,8 +153,7 @@ public class WogcPartnerEngineerDto {
         String cralIdvTno,
         String dtaDlYn,
         String telNumber
-    ) {
-    }
+    ) {}
 
     /**
      * 엔지니어 등급 관리 조회 Request dto
@@ -155,8 +166,7 @@ public class WogcPartnerEngineerDto {
         String rolDvCd,
         String searchYm,
         String chk
-    ) {
-    }
+    ) {}
 
     /**
      * 엔지니어 등급 관리 조회 Request dto
@@ -185,8 +195,7 @@ public class WogcPartnerEngineerDto {
         String cltnDt,
         String apySeqn,
         String dtaDlYn
-    ) {
-    }
+    ) {}
 
     /**
      * 엔지니어 등급 관리 저장 Request dto
@@ -214,6 +223,5 @@ public class WogcPartnerEngineerDto {
         String cltnDt,
         String apySeqn,
         String dtaDlYn
-    ) {
-    }
+    ) {}
 }

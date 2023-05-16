@@ -1,12 +1,20 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
-import com.kyowon.sms.common.web.organization.attachment.dvo.ZogeSeizureMgtDvo;
-import com.kyowon.sms.common.web.organization.mprcntr.dto.ZogbRecruitingMgtDto;
-import com.kyowon.sms.common.web.organization.mprcntr.dvo.ZogbRecruitingMgtDvo;
-import com.kyowon.sms.common.web.organization.organization.dto.ZogaSupportOrganizationDto;
-import com.kyowon.sms.common.web.organization.organization.dvo.ZogaSupportOrganizationDvo;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerEngineerConverter;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
@@ -17,21 +25,8 @@ import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Service;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
@@ -57,11 +52,34 @@ public class WogcPartnerEngineerService {
         return mapper.selectEngineerAttends(dto);
     }
 
-    public PagingResult<WogcPartnerEngineerDto.FindJoeManagementRes> getJoeManagementPages(FindJoeManagementReq dto, PageInfo pageInfo) {
+    /**
+     * 엔지니어 출근 관리 목록 저장
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int saveEngineerAttends(List<WogcPartnerEngineerDto.SaveEngineerAttendReq> dtos, String prtnrNo) {
+        int processCount = 0;
+
+        for (WogcPartnerEngineerDto.SaveEngineerAttendReq dto : dtos) {
+            WogcPartnerEngineerDvo engineer = this.wogcPartnerEngineerConverter
+                .mapSaveEngineerAttendReqToWogcPartnerEngineerDvo(dto);
+            engineer.setPrtnrNo(prtnrNo);
+
+            processCount += this.mapper.updateEngineer(engineer);
+        }
+        return processCount;
+    }
+
+    public PagingResult<WogcPartnerEngineerDto.FindJoeManagementRes> getJoeManagementPages(
+        FindJoeManagementReq dto, PageInfo pageInfo
+    ) {
         return this.mapper.selectJoeManagements(dto, pageInfo);
     }
 
-    public List<WogcPartnerEngineerDto.FindJoeManagementRes> getJoeManagementForExcelDownload(FindJoeManagementReq dto) {
+    public List<WogcPartnerEngineerDto.FindJoeManagementRes> getJoeManagementForExcelDownload(
+        FindJoeManagementReq dto
+    ) {
         List<WogcPartnerEngineerDto.FindJoeManagementRes> result = null;
         List<WogcPartnerEngineerDvo> dvos = this.mapper.selectJoeManagementForExcelDownload(dto);
         for (WogcPartnerEngineerDvo dvo : dvos) {
@@ -79,9 +97,10 @@ public class WogcPartnerEngineerService {
         int processCnt = 0;
 
         for (WogcPartnerEngineerDto.SaveJoeManagementReq dto : dtos) {
-            WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter.mapSaveJoeManagementReqToWogcPartnerEngineerDvo(dto);
+            WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
+                .mapSaveJoeManagementReqToWogcPartnerEngineerDvo(dto);
             processCnt += this.mapper.insertWkGrpBlgDtl(dvo);
-            if(dvo.getVlStrtdt().substring(0,6).equals(DateUtil.getNowDayString().substring(0,6))) {
+            if (dvo.getVlStrtdt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
                 this.mapper.updatePrtnrGrpCd(dvo); //직책업데이트
             }
         }
@@ -89,11 +108,15 @@ public class WogcPartnerEngineerService {
         return processCnt;
     }
 
-    public PagingResult<WogcPartnerEngineerDto.FindEngineerGradeRes> getEngineerGradePages(FindEngineerGradeReq dto, PageInfo pageInfo) {
+    public PagingResult<WogcPartnerEngineerDto.FindEngineerGradeRes> getEngineerGradePages(
+        FindEngineerGradeReq dto, PageInfo pageInfo
+    ) {
         return this.mapper.selectEngineerGrades(dto, pageInfo);
     }
 
-    public List<WogcPartnerEngineerDto.FindEngineerGradeRes> getEngineerGradeForExcelDownload(FindEngineerGradeReq dto) {
+    public List<WogcPartnerEngineerDto.FindEngineerGradeRes> getEngineerGradeForExcelDownload(
+        FindEngineerGradeReq dto
+    ) {
         return this.mapper.selectEngineerGrades(dto);
     }
 
@@ -102,9 +125,10 @@ public class WogcPartnerEngineerService {
         int processCnt = 0;
 
         for (WogcPartnerEngineerDto.SaveEngineerGradeReq dto : dtos) {
-            WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter.mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(dto);
+            WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
+                .mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(dto);
             processCnt += this.mapper.insertEgerGdRgst(dvo);
-            if(dvo.getApyStrtDt().substring(0,6).equals(DateUtil.getNowDayString().substring(0,6))) {
+            if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
                 this.mapper.updateMonthPrtnrRolDvCd(dvo); //월파트너직무업데이트
                 this.mapper.updatePrtnrRolDvCd(dvo); //직무업데이트
                 this.mapper.insertPrtnrHist(dvo); //파트너상세이력인서트
@@ -113,7 +137,8 @@ public class WogcPartnerEngineerService {
         return processCnt;
     }
 
-    public ExcelUploadDto.UploadRes saveEngineerGradeForDirectExcelUpload(MultipartFile file, String baseYm) throws Exception {
+    public ExcelUploadDto.UploadRes saveEngineerGradeForDirectExcelUpload(MultipartFile file, String baseYm)
+        throws Exception {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("prtnrNo", messageService.getMessage("MSG_TXT_PRTNR_NUM"));
         headerTitle.put("prtnrGdCd", messageService.getMessage("MSG_TXT_GRD_DV"));
@@ -198,10 +223,10 @@ public class WogcPartnerEngineerService {
         }
 
         if (status.equals("S")) {
-            for(WogcPartnerEngineerDvo dvo : lists) {
+            for (WogcPartnerEngineerDvo dvo : lists) {
                 dvo.setDtaDlYn("Y");
                 this.mapper.insertEgerGdRgst(dvo);
-                if(dvo.getApyStrtDt().substring(0,6).equals(DateUtil.getNowDayString().substring(0,6))) {
+                if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
                     this.mapper.updateMonthPrtnrRolDvCd(dvo); //월파트너직무업데이트
                     this.mapper.updatePrtnrRolDvCd(dvo); //직무업데이트
                     this.mapper.insertPrtnrHist(dvo); //파트너상세이력인서트
@@ -216,4 +241,5 @@ public class WogcPartnerEngineerService {
             .build();
         return result;
     }
+
 }
