@@ -28,8 +28,8 @@ public class WwdaDesignationWithdrawalCustomerMgtDto {
         String ucAmt, // 잔액
         String dsnWdrwFntPrdCd, // 이체주기
         String prtnrKnm, // 등록담당자
-        String fnlMdfcUsrId, // 등록자 사번
-        String fnlMdfcDtm // 등록일시
+        String fstRgstUsrId, // 등록자 사번
+        String fstRgstDtm // 등록일시
     ) {}
 
     @Builder
