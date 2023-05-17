@@ -39,7 +39,7 @@ public class WsnaReturningGoodsStoreController {
         @ApiImplicitParam(name = "stFnlVstFshDtFrom", value = "처리일자From", paramType = "query", example = "20230109"),
         @ApiImplicitParam(name = "edFnlVstFshDtTo", value = "처리일자To", paramType = "query", example = "20230109")
     })
-    @GetMapping()
+    @GetMapping
     public List<SearchRes> getReturningGoodsStores(
         @Valid
         SearchReq dto
@@ -57,6 +57,14 @@ public class WsnaReturningGoodsStoreController {
 
     ) throws ParseException {
         return SaveResponse.builder().processCount(this.service.saveReturningGoodsStores(dtos)).build();
+    }
+
+    @ApiOperation(value = "반품입고 관리 엑셀다운로드", notes = "검색조건을 받아 엑셀다운로드용 반품입고 관리를 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getReturningGoodsStoresExcelDownload(
+        SearchReq dto
+    ) {
+        return service.getReturningGoodsStoresExcelDownload(dto);
     }
 
 }
