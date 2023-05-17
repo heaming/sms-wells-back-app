@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
+import com.sds.sflex.common.utils.DateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -48,10 +49,8 @@ public class WsnaReturningGoodsStoreService {
     public int saveReturningGoodsStores(List<SaveReq> dtos) throws ParseException {
         int processCount = 0;
         int serialNumber = 0;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        Calendar calendar = Calendar.getInstance();
-        String ostrDt = dateFormat.format(calendar.getTime());
-        String cfrmDt = dateFormat.format(calendar.getTime());
+        String ostrDt = DateUtil.getNowDayString();
+        String cfrmDt = DateUtil.getNowDayString();
         String itmOstrNo = null;
         String itmStrNo = null;
         String ostrAkNo = null;
