@@ -1,0 +1,786 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsStoreMapper">
+
+    <select id="selectReturningGoodsStores" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto$SearchRes">
+        SELECT A.CST_SV_ASN_NO /*고객서비스배정내역*/
+             , F.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
+        <!--      , (CASE WHEN (LCREQY IS NULL OR LCREQY=0) THEN (TO_DATE(A.FNL_VST_FSH_DT) - TO_DATE(D.IST_DT)) -->
+        <!--       ELSE (TO_DATE(LPAD(LCREQY,4,'0')|| LPAD(LCREQM,2,'0')|| LPAD(LCREQD,2,'0')) - TO_DATE(D.IST_DT)) -->
+        <!-- END) AS USE_DAYS  -->
+             , A.ITM_PD_CD /*품목상품코드*/
+             , F.SVPD_NM_KOR AS ITM_PD_NM /*품목상품명*/
+             , (CASE WHEN F.SVPD_ITEM_GR IN ('1', '3', '4', '92', '11', '10', '93', '95', '91') THEN F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', F.SVPD_ITEM_GR)
+                     WHEN F.SVPD_ITEM_GR = '2' AND F.SVPD_ITEM_CD = '42990' THEN '커피머신'
+                     WHEN F.SVPD_ITEM_CD IN ('49010', '49020') THEN '커피머신'
+                     WHEN F.SVPD_ITEM_GR IN ('5', '7', '8') THEN '기타'
+                     WHEN F.SVPD_ITEM_GR IN ('9') AND F.SVPD_ITEM_CD IN ('49200', '49060', '49070', '49080') THEN '기타'
+                     ELSE F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', F.SVPD_ITEM_GR)
+                 END ) AS ITEM_GR_NM
+             , F.SVPD_ITEM_GR AS ITEM_GR
+             , A.STKR_PRNT_YN /*스티커출력여부*/
+             , D.IST_DT /*설치일자*/
+             , (SELECT A1.REQD_DT
+                  FROM TB_SSCT_CNTR_WELLS_DTL A1
+                 WHERE 1 = 1
+                   AND A1.CNTR_NO = T1.CNTR_NO) AS REQD_DT /*철거일자*/
+             , TO_CHAR(TO_DATE(E.VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(E.VST_FSH_HH,'HH24MISS'),'HH24:MI:SS') AS VST_FSH_DT /*작업일자*/
+             , A.RTNGD_CONF_YN /*반품확인여부*/
+             , CEIL(MONTHS_BETWEEN(A.FNL_VST_FSH_DT, D.IST_DT)) AS USE_MTHS /*사용개월*/
+             , (CASE WHEN MONTHS_BETWEEN(A.FNL_VST_FSH_DT, IST_DT) <![CDATA[ <= ]]> 1 THEN 'Y'
+                         ELSE 'N'
+                    END) AS REFURBISH_YN    --리퍼여부
+             , A.FNL_ITM_GD_CD /*최종품목등급코드*/
+             , A.USE_QTY /*사용수량*/
+             , CASE WHEN REFR_AS_RCP_YN = '1' THEN '접수완료'
+                       ELSE ''
+                   END REFR_AS_RCP_YN /*리퍼접수*/
+             , A.CNTR_NO || '-' ||A.CNTR_SN AS CNTR_DTL_NO /*고객번호*/
+             /*고객명*/
+             , T4.RCGVP_KNM  /*고객명*/
+             , T2.SELL_TP_CD /*판매유형코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD) AS SELL_TP_NM /*판매유형명*/
+             /*판매유형*/
+             /*관리유형*/
+             , (CASE WHEN T2.FRISU_YN = 'Y' THEN '무료체험'
+                     WHEN T2.ALNCMP_CD = '45' THEN F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T2.ALNCMP_CD)
+                     ELSE ''
+                END) AS REFER_ARTC /*참고사항*/
+             , A.SV_BIZ_DCLSF_CD /*서비스업무세분류코드 BA04*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', A.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM /*업무유형*/
+             , A.OSTR_CONF_DT /*확인일자*/
+             , A.OSTR_CONF_DT AS OSTR_CONF_DT1 /*확인일자*/
+             , A.OSTR_DT /*전산반품*/
+             , A.RTNGD_PROCS_TP_CD /*반품처리유형코드*/
+             , A.RTNGD_PROCS_TP_CD AS RTNGD_PROCS_TP_CD1 /*반품처리유형코드*/
+             , A.RMK_CN /*특이사항*/
+             , (CASE WHEN SUBSTR(A.CST_SV_ASN_NO,1,1) = '9' THEN C.CNTR_NO
+                     ELSE ''
+                 END) AS CNTR_NO_NEW /*신규 고객번호*/
+             , CASE WHEN A.FNL_ITM_GD_CD = 'E'
+                     AND A.SV_BIZ_DCLSF_CD = '3210'
+                    THEN A.FST_BC_NO
+                    ELSE E.BC_NO
+                END AS BAR_CD /*제조번호*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', E.AS_LCT_CD) AS AS_LCT_NM /*AS위치코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', E.AS_PHN_CD) AS AS_PHN_NM /*AS현상코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', E.AS_CAUS_CD) AS AS_CAUS_NM /*AS원인코드*/
+             , E.SV_PROCS_CN /*서비스처리내용*/
+             , A.ICHR_PRTNR_NO /*담당엔지니어사번*/
+             , (SELECT FNM
+                  FROM TB_OGBS_EMP_BAS
+                 WHERE 1 = 1
+                   AND SAP_EMPNO = A.ICHR_PRTNR_NO) AS EMP_NM /*담당엔지니어명*/
+             , C.FST_RGST_USR_ID /*철거요청사번*/
+             , (SELECT A.PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS A
+                 WHERE 1 = 1
+                   AND PRTNR_NO = C.FST_RGST_USR_ID) AS FST_RGST_USER_NM /*철거요청자명*/
+        	 <!--, CASE WHEN SUBSTR(AC021_DEPT_CD ,1,1)  BETWEEN 'A' AND 'H' THEN '방판' -->
+             <!--WHEN SUBSTR(AC021_DEPT_CD ,1,1)  BETWEEN 'Y' AND 'Z'  OR AC021_DEPT_CD = '75050' THEN '신규채널' -->
+             <!--     ELSE '기타' -->
+             <!-- END AS CHANNEL_NM /*접수자구분*/ -->
+             , C.CNSL_MO_CN /*접수내역*/
+             /*접수자소속*/
+             , T3.PRTNR_KNM /*접수자명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'BAD_DV_CD', E.BAD_DV_CD) AS BAD_DV_NM /*불량구분*/
+             , A.WK_OSTR_SN /*작업출고일련번호*/
+             , A.SV_BIZ_HCLSF_CD /*서비스대분류코드*/
+             , A.WK_WARE_NO /*작업창고번호*/
+             , B.WARE_NM /*창고명*/
+             , A.MNGR_DV_CD /*관리자 구분코드*/
+             , A.ITM_OSTR_NO /*품목출고번호*/
+             , A.STKR_R_PRNT_YN /*스티거R출력여부*/
+        --     , (SELECT A1.DEPT_NM2
+        --          FROM TB_OGBS_DEPT_BAS A1
+        --         WHERE 1 = 1
+        --           AND A1.DEPT_CD = A.BIZ_CD) AS DEPT_NM
+             , DECODE(A.RTNGD_RVPY_PROCS_YN, 'Y','Y','N') AS RTNGD_RVPY_PROCS_YN
+             , F.SVPD_ITEM_KND AS ITEM_KND
+             , F.SVPD_MGT_UNT AS MGT_UNT
+             , A.CNTR_NO
+             , A.CNTR_SN
+          FROM TB_SVST_SV_WK_OSTR_IZ A
+         INNER JOIN (SELECT WARE_NO
+                          , MAX(WARE_NM) AS WARE_NM
+                          , HGR_WARE_NO
+                          , WARE_DV_CD
+                       FROM TB_SVST_MCBY_WARE_IZ
+                      WHERE 1 = 1
+                        AND APY_YM BETWEEN SUBSTR('20230101',1,6) AND SUBSTR('20230508',1,6)
+                        AND HGR_WARE_NO = '201698'
+                      GROUP BY WARE_NO
+                             , HGR_WARE_NO
+                             , WARE_DV_CD
+                     ) B
+            ON B.WARE_NO = A.WK_WARE_NO
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ C /*고객서비스AS설치대상내역*/
+            ON C.CST_SV_ASN_NO = DECODE(SUBSTR(A.CST_SV_ASN_NO,1,1),'9', '1', A.CST_SV_ASN_NO)
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D
+            ON D.CNTR_NO = A.CNTR_NO
+           AND D.CNTR_SN = A.CNTR_SN
+         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ E
+            ON E.CST_SV_ASN_NO = A.CST_SV_ASN_NO
+           AND E.CNTR_NO = A.CNTR_NO
+           AND E.CNTR_SN = A.CNTR_SN
+         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) F
+            ON F.SVPD_PD_CD = A.ITM_PD_CD
+         LEFT OUTER JOIN (SELECT A.*
+                            FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A
+                           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ B
+                              ON A.CST_SV_ASN_NO = B.CST_SV_ASN_NO
+                           WHERE 1 = 1
+                             AND A.SV_BIZ_DCLSF_CD LIKE '11%'
+                             AND A.MTR_STAT_CD != '3'
+                             AND B.WK_PRGS_STAT_CD = '20'
+                             AND ROWNUM = 1) G
+            ON G.CNTR_NO = A.CNTR_NO
+           AND G.CNTR_SN = A.CNTR_SN
+         LEFT OUTER JOIN TB_SSCT_CNTR_BAS /*계약기본*/ T1
+            ON T1.CNTR_NO = D.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_DTL /*계약상세*/ T2
+            ON T1.CNTR_NO = T2.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T5
+            ON T2.CNTR_NO = T5.DTL_CNTR_NO
+           AND T2.CNTR_SN = T5.DTL_CNTR_SN
+           AND T5.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T5.VL_STRT_DTM AND T5.VL_END_DTM
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+            ON T5.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
+         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T3
+            ON T3.PRTNR_NO = G.FST_RGST_USR_ID
+          WHERE 1 = 1
+            AND A.SV_BIZ_HCLSF_CD = '6'
+        <if test="@MybatisUtils@isNotEmpty(fnlItmGdCd)">
+            AND A.FNL_ITM_GD_CD = #{fnlItmGdCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+            AND F.SVPD_PD_CD = #{itmPdCd}
+        </if>
+        <if test="@MybatisUtils@isEmpty(rtngdProcsTpCd)">
+            AND A.FNL_VST_FSH_DT BETWEEN #{stFnlVstFshDtFrom} AND #{edFnlVstFshDtTo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(rtngdProcsTpCd)">
+            AND A.RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}
+            AND A.OSTR_CONF_DT BETWEEN #{stFnlVstFshDtFrom} AND #{edFnlVstFshDtTo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
+            AND B.WARE_DV_CD = #{strWareDvCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
+            AND B.HGR_WARE_NO = #{strWareNoM}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
+            AND B.WARE_DV_CD = #{strWareNoD}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
+            AND A.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strConfYnCd) and @MybatisUtils@equals(strConfYnCd, '1')">
+            AND A.OSTR_CONF_DT IS NOT NULL
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strConfYnCd) and @MybatisUtils@equals(strConfYnCd, '2')">
+            AND A.OSTR_CONF_DT IS NULL
+        </if>
+
+    </select>
+
+    <select id="selectNextItmOstrNo" resultType="java.lang.String">
+        SELECT #{ostrTpCd} ||#{ostrDt} || LPAD(SQ_SVST_ITM_OSTR_IZ$ITM_OSTR_NO.NEXTVAL,7,'0') AS ITM_OSTR_NO
+          FROM DUAL
+    </select>
+
+    <select id="selectNextItmStrNo" resultType="java.lang.String">
+    <!-- 반품인 경우 입고번호 채번 261 -> 161 itmStrNo (161 + 등록일자8 + 일련번호7) -->
+        SELECT (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '281' THEN '161' WHEN '123' THEN '123' ELSE '' END) || #{ostrDt} || LPAD(SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL,7,'0') AS ITM_STR_NO
+          FROM DUAL
+    </select>
+
+    <select id="selectNextOstrAkNo" resultType="java.lang.String">
+        SELECT #{ostrAkTpCd} || #{strToday} || LPAD(SQ_SVST_ITM_OSTR_AK_IZ$OSTR_AK_NO.NEXTVAL,7,'0') AS OSTR_AK_NO
+          FROM DUAL
+    </select>
+
+    <select id="selectHgrWareNo" resultType="java.lang.String">
+        SELECT A.HGR_WARE_NO
+          FROM TB_SVST_MCBY_WARE_IZ A
+         WHERE 1 = 1
+           AND APY_YM = SUBSTR(#{cfrmDt}, 1, 6)
+           AND WARE_NO = #{wkWareNo};
+    </select>
+
+    <select id="selectUpHgrWareNo" resultType="java.lang.String">
+        SELECT A.HGR_WARE_NO
+          FROM TB_SVST_MCBY_WARE_IZ A
+         WHERE 1 = 1
+           AND APY_YM = SUBSTR(#{cfrmDt}, 1, 6)
+           AND WARE_NO = #{hgrWareNo};
+    </select>
+
+    <insert id="insertItmOstrIz">
+        INSERT INTO TB_SVST_ITM_OSTR_IZ (  /* 품목출고내역 */
+              ITM_OSTR_NO              /* 품목출고번호 */
+            , OSTR_SN                  /* 출고일련번호 */
+            , OSTR_TP_CD               /* 출고유형코드 */
+            , OSTR_WARE_NO             /* 출고창고번호 */
+            , OSTR_DT                  /* 출고일자 */
+            , ITM_KND_CD               /* 품목종류코드 */
+            , ITM_PD_CD                /* 품목상품코드 */
+            , ITM_CD                   /* 품목코드 */
+            , OSTR_WARE_DV_CD          /* 출고창고구분코드 */
+            , MNGT_UNIT_CD             /* 관리단위코드 */
+            , BOX_UNIT_QTY             /* 박스단위수량 */
+            , ITM_GD_CD                /* 품목등급코드 */
+            , OSTR_QTY                 /* 출고수량 */
+            , OSTR_AK_NO               /* 출고요청번호 */
+            , OSTR_AK_SN               /* 출고요청일련번호 */
+            , STR_AK_WARE_DV_CD        /* 입고요청창고구분코드 */
+            , WARE_MNGT_PRTNR_NO       /* 창고관리파트너번호 */
+            , WARE_MNGT_PRTNR_OG_TP_CD /* 창고관리파트너조직유형코드 */
+            , STR_HOP_DT               /* 입고희망일자 */
+            , OSTR_RSON_CD             /* 출고사유코드 */
+            , ACB_DT                   /* 회계일자 */
+            , EVID_DV_CD               /* 증빙구분코드 */
+            , SELL_AK_RCP_NO           /* 판매요청접수번호 */
+            , SELL_RCPDT               /* 판매접수일자 */
+            , STR_TP_CD                /* 입고유형코드 */
+            , STR_WARE_NO              /* 입고창고번호 */
+            , COTP_ADJ_DT              /* 운송비정산일자 */
+            , ITM_STR_NO               /* 품목입고번호 */
+            , STR_SN                   /* 입고일련번호 */
+            , STR_CONF_DT              /* 입고확인일자 */
+            , STR_CONF_HH              /* 입고확인시간 */
+            , STR_CONF_PRTNR_NO        /* 입고확인파트너번호 */
+            , STR_CONF_PRTNR_OG_TP_CD  /* 입고확인파트너조직유형코드 */
+            , DIDY_DV_CD               /* 직배구분코드 */
+            , DTA_DL_YN                /* 데이터삭제여부 */
+            , RMK_CN                   /* 비고내용 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{itmOstrNo}
+            , #{ostrSn}
+            , '261'
+            , #{hgrWareNo}
+            , #{cfrmDt}
+            , #{itmKndCd}
+            , #{itmPdCd}
+            , #{itmCd}
+            , (SELECT WARE_DV_CD
+                 FROM TB_SVST_MCBY_WARE_IZ
+                 WHERE 1 = 1
+                  AND WARE_NO = #{hgrWareNo}
+                  AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+            , #{mgtUnt}
+            , 0
+            , #{fnlItmGdCd}
+            , #{useQty}
+            , #{ostrAkNo}
+            , #{ostrAkSn}
+            , #{strAkWareDvCd}
+            , ( SELECT WARE_MNGT_PRTNR_NO
+                  FROM TB_SVST_MCBY_WARE_IZ
+                 WHERE 1 = 1
+                   AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+                   AND WARE_NO = {hgrWareNo})
+            , (SELECT OG_TP_CD
+                 FROM TB_SVST_MCBY_WARE_IZ
+                WHERE 1 = 1
+                  AND WARE_NO = #{hgrWareNo}
+                  AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+            , #{strHopDt}
+            , '10'
+            , #{cfrmDt}
+            , #{evidDvCd}
+            , #{sellAkRcpNo}
+            , #{sellRcpdt}
+            , '161'
+            , #{upHgrWareNo}
+            , #{cotpAdjDt}
+            , #{itmStrNo}
+            , #{strSn}
+            , #{cfrmDt}
+            , TO_CHAR(SYSDATE, 'HH24MISS')
+            , 'SYS'
+            , #{strConfPrtnrOgTpCd}
+            , #{didyDvCd}
+            , 'N'
+            , #{rmkCn}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+
+    </insert>
+
+    <insert id="insertItmStrIz">
+        INSERT INTO TB_SVST_ITM_STR_IZ (  /* 품목입고내역 */
+                  ITM_STR_NO                /* 품목입고번호 */
+                , STR_SN                    /* 입고일련번호 */
+                , STR_TP_CD                 /* 입고유형코드 */
+                , STR_RGST_DT               /* 입고등록일자 */
+                , STR_WARE_NO               /* 입고창고번호 */
+                , WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
+                , WARE_MNGT_PRTNR_OG_TP_CD  /* 창고관리파트너조직유형코드 */
+                , STR_WARE_DV_CD            /* 입고창고구분코드 */
+                , DRT_STR_YN                /* 직접입고여부 */
+                , DLVG_DLPNR_NO             /* 납품거래처번호 */
+                , ITM_PD_CD                 /* 품목상품코드 */
+                , ITM_CD                    /* 품목코드 */
+                , ITM_GD_CD                 /* 품목등급코드 */
+                , MNGT_UNIT_CD              /* 관리단위코드 */
+                , STR_QTY                   /* 입고수량 */
+                , STR_UPRC_AMT              /* 입고단가금액 */
+                , STR_LOT_NO                /* 입고LOT번호 */
+                , ACB_DT                    /* 회계일자 */
+                , EVID_DV_CD                /* 증빙구분코드 */
+                , OSTR_AK_NO                /* 출고요청번호 */
+                , OSTR_AK_SN                /* 출고요청일련번호 */
+                , ITM_OSTR_NO               /* 품목출고번호 */
+                , OSTR_SN                   /* 출고일련번호 */
+                , OSTR_TP_CD                /* 출고유형코드 */
+                , OSTR_WARE_NO              /* 출고창고번호 */
+                , OSTR_DT                   /* 출고일자 */
+                , COTP_ADJ_DT               /* 운송비정산일자 */
+                , ITM_GD_CTR_DT             /* 품목등급조정일자 */
+                , ITM_GD_CTR_PRTNR_NO       /* 품목등급조정파트너번호 */
+                , ITM_GD_CTR_PRTNR_OG_TP_CD /* 품목등급조정파트너조직유형코드 */
+                , BFCT_ITM_GD_CD            /* 조정전품목등급코드 */
+                , STR_CONF_DT               /* 입고확인일자 */
+                , STR_CONF_HH               /* 입고확인시간 */
+                , STR_CONF_PRTNR_NO         /* 입고확인파트너번호 */
+                , STR_CONF_PRTNR_OG_TP_CD   /* 입고확인파트너조직유형코드 */
+                , OJ_ORD_NO                 /* 대상주문번호 */
+                , ORD_ITM_CD                /* 주문품목코드 */
+                , STR_RSON_CD               /* 입고사유코드 */
+                , RMK_CN                    /* 비고내용 */
+                , DTA_DL_YN                 /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemField" />)
+            VALUES (
+                  #{itmStrNo}
+                , #{strSn}
+                , '161'
+                , #{cfrmDt}
+                , #{upHgrWareNo}
+                , ( SELECT WARE_MNGT_PRTNR_NO
+                      FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                       AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+                       AND WARE_NO = {upHgrWareNo})
+                , ( SELECT OG_TP_CD
+                      FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                       AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+                       AND WARE_NO = {upHgrWareNo})
+                , (SELECT WARE_DV_CD
+                     FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                      AND WARE_NO = #{upHgrWareNo}
+                      AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+                , 'N'
+                , #{hgrWareNo}
+                , #{itmPdCd}
+                , #{itmCd}
+                , #{fnlItmGdCd}
+                , #{mgtUnt}
+                , #{useQty}
+                , 0
+                , #{strLotNo}
+                , #{cfrmDt}
+                , '1'
+                , #{ostrAkNo}
+                , #{ostrAkSn}
+                , #{itmOstrNo}
+                , #{ostrSn}
+                , '261'
+                , #{hgrWareNo}
+                , #{cfrmDt}
+                , #{cotpAdjDt}
+                , #{itmGdCtrDt}
+                , #{itmGdCtrPrtnrNo}
+                , #{itmGdCtrPrtnrOgTpCd}
+                , #{bfctItmGdCd}
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , TO_CHAR(SYSDATE, 'HH24MISS')
+                , #{strConfPrtnrNo}
+                , #{strConfPrtnrOgTpCd}
+                , #{ojOrdNo}
+                , #{ordItmCd}
+                , #{strRsonCd}
+                , #{rmkCn}
+                , 'N'
+                <include refid="COMMON.insertSystemFieldValue" /> )
+
+    </insert>
+
+    <update id="updateSvItmStocIz">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_A_GD_QTY = CASE WHEN MMT_STOC_A_GD_QTY - DECODE(#{fnlItmGdCd}, 'A', #{useQty},0) <![CDATA[ < ]]> 0
+                                     THEN 0
+                                     ELSE MMT_STOC_A_GD_QTY - DECODE(#{fnlItmGdCd}, 'A', #{useQty},0)
+                                    END
+             , MMT_STOC_B_GD_QTY = CASE WHEN MMT_STOC_B_GD_QTY - DECODE(#{fnlItmGdCd}, 'B', #{useQty},0) <![CDATA[ < ]]> 0
+                                     THEN 0
+                                     ELSE MMT_STOC_B_GD_QTY - DECODE(#{fnlItmGdCd}, 'B', #{useQty},0)
+                                    END
+             , MMT_STOC_E_GD_QTY = CASE WHEN MMT_STOC_E_GD_QTY - DECODE(#{fnlItmGdCd}, 'E', #{useQty},0) <![CDATA[ < ]]> 0
+                                     THEN 0
+                                     ELSE MMT_STOC_E_GD_QTY - DECODE(#{fnlItmGdCd}, 'E', #{useQty},0)
+                                    END
+             , MMT_STOC_R_GD_QTY = CASE WHEN MMT_STOC_R_GD_QTY - DECODE(#{fnlItmGdCd}, 'R', #{useQty},0) <![CDATA[ < ]]> 0
+                                     THEN 0
+                                     ELSE MMT_STOC_R_GD_QTY - DECODE(#{fnlItmGdCd}, 'R', #{useQty},0)
+                                    END
+            <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{upHgrWareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <insert id="insertQuantityItmOstrIz" >
+
+        INSERT INTO TB_SVST_ITM_OSTR_IZ (  /* 품목출고내역 */
+                  ITM_OSTR_NO              /* 품목출고번호 */
+                , OSTR_SN                  /* 출고일련번호 */
+                , OSTR_TP_CD               /* 출고유형코드 */
+                , OSTR_WARE_NO             /* 출고창고번호 */
+                , OSTR_DT                  /* 출고일자 */
+                , ITM_KND_CD               /* 품목종류코드 */
+                , ITM_PD_CD                /* 품목상품코드 */
+                , ITM_CD                   /* 품목코드 */
+                , OSTR_WARE_DV_CD          /* 출고창고구분코드 */
+                , MNGT_UNIT_CD             /* 관리단위코드 */
+                , BOX_UNIT_QTY             /* 박스단위수량 */
+                , ITM_GD_CD                /* 품목등급코드 */
+                , OSTR_QTY                 /* 출고수량 */
+                , OSTR_AK_NO               /* 출고요청번호 */
+                , OSTR_AK_SN               /* 출고요청일련번호 */
+                , STR_AK_WARE_DV_CD        /* 입고요청창고구분코드 */
+                , WARE_MNGT_PRTNR_NO       /* 창고관리파트너번호 */
+                , WARE_MNGT_PRTNR_OG_TP_CD /* 창고관리파트너조직유형코드 */
+                , STR_HOP_DT               /* 입고희망일자 */
+                , OSTR_RSON_CD             /* 출고사유코드 */
+                , ACB_DT                   /* 회계일자 */
+                , EVID_DV_CD               /* 증빙구분코드 */
+                , SELL_AK_RCP_NO           /* 판매요청접수번호 */
+                , SELL_RCPDT               /* 판매접수일자 */
+                , STR_TP_CD                /* 입고유형코드 */
+                , STR_WARE_NO              /* 입고창고번호 */
+                , COTP_ADJ_DT              /* 운송비정산일자 */
+                , ITM_STR_NO               /* 품목입고번호 */
+                , STR_SN                   /* 입고일련번호 */
+                , STR_CONF_DT              /* 입고확인일자 */
+                , STR_CONF_HH              /* 입고확인시간 */
+                , STR_CONF_PRTNR_NO        /* 입고확인파트너번호 */
+                , STR_CONF_PRTNR_OG_TP_CD  /* 입고확인파트너조직유형코드 */
+                , DIDY_DV_CD               /* 직배구분코드 */
+                , DTA_DL_YN                /* 데이터삭제여부 */
+                , RMK_CN                   /* 비고내용 */
+                <include refid="COMMON.insertSystemField" />)
+            VALUES (
+                  #{quantityItmOstrNo}
+                , #{ostrSn}
+                , #{ostrTpCd}
+                , #{hgrWareNo}
+                , #{cfrmDt}
+                , #{itmKndCd}
+                , #{itmPdCd}
+                , #{itmCd}
+                , (SELECT WARE_DV_CD
+                     FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                      AND WARE_NO = #{hgrWareNo}
+                      AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+                , #{mgtUnt}
+                , 0
+                , #{fnlItmGdCd}
+                , #{useQty}
+                , #{ostrAkNo}
+                , #{ostrAkSn}
+                , #{strAkWareDvCd}
+                , ( SELECT WARE_MNGT_PRTNR_NO
+                      FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                       AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+                       AND WARE_NO = {hgrWareNo})
+                , (SELECT OG_TP_CD
+                     FROM TB_SVST_MCBY_WARE_IZ
+                    WHERE 1 = 1
+                      AND WARE_NO = #{hgrWareNo}
+                      AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+                , #{strHopDt}
+                , #{ostrRsonCd}
+                , #{acbDt}
+                , #{evidDvCd}
+                , #{sellAkRcpNo}
+                , #{sellRcpdt}
+                , '161'
+                , '100010'
+                , #{cotpAdjDt}
+                , #{strQuantityItmStrNo}
+                , #{strSn}
+                , #{cfrmDt}
+                , TO_CHAR(SYSDATE, 'HH24MISS')
+                , #{strConfPrtnrNo}
+                , #{strConfPrtnrOgTpCd}
+                , #{didyDvCd}
+                , 'N'
+                , '내부반품으로 인청공장으로 출고'
+                <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertQuantityItmStrIz">
+
+            INSERT INTO TB_SVST_ITM_STR_IZ (  /* 품목입고내역 */
+                  ITM_STR_NO                /* 품목입고번호 */
+                , STR_SN                    /* 입고일련번호 */
+                , STR_TP_CD                 /* 입고유형코드 */
+                , STR_RGST_DT               /* 입고등록일자 */
+                , STR_WARE_NO               /* 입고창고번호 */
+                , WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
+                , WARE_MNGT_PRTNR_OG_TP_CD  /* 창고관리파트너조직유형코드 */
+                , STR_WARE_DV_CD            /* 입고창고구분코드 */
+                , DRT_STR_YN                /* 직접입고여부 */
+                , DLVG_DLPNR_NO             /* 납품거래처번호 */
+                , ITM_PD_CD                 /* 품목상품코드 */
+                , ITM_CD                    /* 품목코드 */
+                , ITM_GD_CD                 /* 품목등급코드 */
+                , MNGT_UNIT_CD              /* 관리단위코드 */
+                , STR_QTY                   /* 입고수량 */
+                , STR_UPRC_AMT              /* 입고단가금액 */
+                , STR_LOT_NO                /* 입고LOT번호 */
+                , ACB_DT                    /* 회계일자 */
+                , EVID_DV_CD                /* 증빙구분코드 */
+                , OSTR_AK_NO                /* 출고요청번호 */
+                , OSTR_AK_SN                /* 출고요청일련번호 */
+                , ITM_OSTR_NO               /* 품목출고번호 */
+                , OSTR_SN                   /* 출고일련번호 */
+                , OSTR_TP_CD                /* 출고유형코드 */
+                , OSTR_WARE_NO              /* 출고창고번호 */
+                , OSTR_DT                   /* 출고일자 */
+                , COTP_ADJ_DT               /* 운송비정산일자 */
+                , ITM_GD_CTR_DT             /* 품목등급조정일자 */
+                , ITM_GD_CTR_PRTNR_NO       /* 품목등급조정파트너번호 */
+                , ITM_GD_CTR_PRTNR_OG_TP_CD /* 품목등급조정파트너조직유형코드 */
+                , BFCT_ITM_GD_CD            /* 조정전품목등급코드 */
+                , STR_CONF_DT               /* 입고확인일자 */
+                , STR_CONF_HH               /* 입고확인시간 */
+                , STR_CONF_PRTNR_NO         /* 입고확인파트너번호 */
+                , STR_CONF_PRTNR_OG_TP_CD   /* 입고확인파트너조직유형코드 */
+                , OJ_ORD_NO                 /* 대상주문번호 */
+                , ORD_ITM_CD                /* 주문품목코드 */
+                , STR_RSON_CD               /* 입고사유코드 */
+                , RMK_CN                    /* 비고내용 */
+                , DTA_DL_YN                 /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemField" />)
+            VALUES (
+                  #{itmStrNo}
+                , #{strSn}
+                , '161'
+                , #{cfrmDt}
+                , '100010'
+                , ( SELECT WARE_MNGT_PRTNR_NO
+                      FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                       AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+                       AND WARE_NO = {upHgrWareNo})
+                , ( SELECT OG_TP_CD
+                      FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                       AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+                       AND WARE_NO = {upHgrWareNo})
+                , (SELECT WARE_DV_CD
+                     FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                      AND WARE_NO = #{upHgrWareNo}
+                      AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+                , 'N'
+                , #{hgrWareNo}
+                , #{itmPdCd}
+                , #{itmCd}
+                , #{fnlItmGdCd}
+                , #{mgtUnt}
+                , #{useQty}
+                , 0
+                , #{strLotNo}
+                , #{cfrmDt}
+                , '1'
+                , #{ostrAkNo}
+                , #{ostrAkSn}
+                , #{quantityItmOstrNo}
+                , #{ostrSn}
+                , '161'
+                , #{upHgrWareNo}
+                , #{cfrmDt}
+                , #{cotpAdjDt}
+                , #{itmGdCtrDt}
+                , #{itmGdCtrPrtnrNo}
+                , #{itmGdCtrPrtnrOgTpCd}
+                , #{bfctItmGdCd}
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , TO_CHAR(SYSDATE, 'HH24MISS')
+                , #{strConfPrtnrNo}
+                , #{strConfPrtnrOgTpCd}
+                , #{ojOrdNo}
+                , #{ordItmCd}
+                , #{strRsonCd}
+                , '입고창고는 인천공장생산팀(100010) 출고창고는 엔지니어 창고의 상위센터'
+                , 'N'
+                <include refid="COMMON.insertSystemFieldValue" /> )
+
+    </insert>
+
+    <insert id="insertRefrOstrFinish">
+        INSERT INTO TB_SVST_ITM_OSTR_IZ (  /* 품목출고내역 */
+              ITM_OSTR_NO              /* 품목출고번호 */
+            , OSTR_SN                  /* 출고일련번호 */
+            , OSTR_TP_CD               /* 출고유형코드 */
+            , OSTR_WARE_NO             /* 출고창고번호 */
+            , OSTR_DT                  /* 출고일자 */
+            , ITM_KND_CD               /* 품목종류코드 */
+            , ITM_PD_CD                /* 품목상품코드 */
+            , ITM_CD                   /* 품목코드 */
+            , OSTR_WARE_DV_CD          /* 출고창고구분코드 */
+            , MNGT_UNIT_CD             /* 관리단위코드 */
+            , BOX_UNIT_QTY             /* 박스단위수량 */
+            , ITM_GD_CD                /* 품목등급코드 */
+            , OSTR_QTY                 /* 출고수량 */
+            , OSTR_AK_NO               /* 출고요청번호 */
+            , OSTR_AK_SN               /* 출고요청일련번호 */
+            , STR_AK_WARE_DV_CD        /* 입고요청창고구분코드 */
+            , WARE_MNGT_PRTNR_NO       /* 창고관리파트너번호 */
+            , WARE_MNGT_PRTNR_OG_TP_CD /* 창고관리파트너조직유형코드 */
+            , STR_HOP_DT               /* 입고희망일자 */
+            , OSTR_RSON_CD             /* 출고사유코드 */
+            , ACB_DT                   /* 회계일자 */
+            , EVID_DV_CD               /* 증빙구분코드 */
+            , SELL_AK_RCP_NO           /* 판매요청접수번호 */
+            , SELL_RCPDT               /* 판매접수일자 */
+            , STR_TP_CD                /* 입고유형코드 */
+            , STR_WARE_NO              /* 입고창고번호 */
+            , COTP_ADJ_DT              /* 운송비정산일자 */
+            , ITM_STR_NO               /* 품목입고번호 */
+            , STR_SN                   /* 입고일련번호 */
+            , STR_CONF_DT              /* 입고확인일자 */
+            , STR_CONF_HH              /* 입고확인시간 */
+            , STR_CONF_PRTNR_NO        /* 입고확인파트너번호 */
+            , STR_CONF_PRTNR_OG_TP_CD  /* 입고확인파트너조직유형코드 */
+            , DIDY_DV_CD               /* 직배구분코드 */
+            , DTA_DL_YN                /* 데이터삭제여부 */
+            , RMK_CN                   /* 비고내용 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{itmOstrNo}
+            , #{ostrSn}
+            , #{ostrTpCd}
+            , #{hgrWareNo}
+            , #{cfrmDt}
+            , #{itmKndCd}
+            , #{itmPdCd}
+            , #{itmCd}
+            , (SELECT WARE_DV_CD
+                 FROM TB_SVST_MCBY_WARE_IZ
+                 WHERE 1 = 1
+                  AND WARE_NO = #{hgrWareNo}
+                  AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+            , #{mgtUnt}
+            , 0
+            , #{fnlItmGdCd}
+            , #{useQty}
+            , #{ostrAkNo}
+            , #{ostrAkSn}
+            , #{strAkWareDvCd}
+            , ( SELECT WARE_MNGT_PRTNR_NO
+                  FROM TB_SVST_MCBY_WARE_IZ
+                 WHERE 1 = 1
+                   AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+                   AND WARE_NO = {hgrWareNo})
+            , (SELECT OG_TP_CD
+                 FROM TB_SVST_MCBY_WARE_IZ
+                WHERE 1 = 1
+                  AND WARE_NO = #{hgrWareNo}
+                  AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+            , #{strHopDt}
+            , #{ostrRsonCd}
+            , #{cfrmDt}
+            , '1'
+            , #{sellAkRcpNo}
+            , #{sellRcpdt}
+            , #{strTpCd}
+            , '71314'
+            , #{cotpAdjDt}
+            , ''
+            , ''
+            , TO_CHAR(SYSDATE, 'YYYYMMDD')
+            , TO_CHAR(SYSDATE, 'HH24MISS')
+            , #{session.userId}
+            , #{strConfPrtnrOgTpCd}
+            , #{didyDvCd}
+            , 'N'
+            , #{rmkCn}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateWkOstrIz">
+	    UPDATE TB_SVST_SV_WK_OSTR_IZ
+	       SET OSTR_CONF_DT = #{ostrConfDt}
+	         , STKR_PRNT_YN = #{stkrPrntYn}
+	         , RMK_CN = #{rmkCn}
+	         , RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}
+	         , RTNGD_RVPY_PROCS_YN = 'Y'
+	         , OSTR_TP_CD = '261'
+	         , OSTR_WARE_NO = #{hgrWareNo}
+	         , OSTR_DT = #{cfrmDt}
+	         , ITM_OSTR_NO = #{itmOstrNo}
+	         , OSTR_SN = #{ostrSn}
+	     WHERE 1 = 1
+	       AND CST_SV_ASN_NO = #{cstSvAsnNo}
+	       AND CNTR_NO = #{cntrNo}
+	       AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <update id="updateRefrOstrFinish">
+	    UPDATE TB_SVST_SV_WK_OSTR_IZ
+	       SET OSTR_CONF_DT = #{ostrConfDt}
+	         , STKR_PRNT_YN = #{stkrPrntYn}
+	         , RMK_CN = #{rmkCn}
+	         , RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}
+	         , RTNGD_RVPY_PROCS_YN = 'Y'
+	         , OSTR_TP_CD = '218'
+	         , OSTR_WARE_NO = #{hgrWareNo}
+	         , OSTR_DT = #{cfrmDt}
+	         , ITM_OSTR_NO = #{itmOstrNo}
+	         , OSTR_SN = #{ostrSn}
+	     WHERE 1 = 1
+	       AND CST_SV_ASN_NO = #{cstSvAsnNo}
+	       AND CNTR_NO = #{cntrNo}
+	       AND CNTR_SN = #{cntrSn}
+
+
+    </update>
+
+    <update id="updateNotOstrConfDt">
+		UPDATE TB_SVST_SV_WK_OSTR_IZ
+	       SET OSTR_CONF_DT = #{ostrConfDt}
+	         , STKR_PRNT_YN = #{stkrPrntYn}
+	         , RMK_CN = #{rmkCn}
+	         , RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}
+	     WHERE 1 = 1
+	       AND CST_SV_ASN_NO = #{cstSvAsnNo}
+	       AND CNTR_NO = #{cntrNo}
+	       AND CNTR_SN = #{cntrSn}
+    </update>
+
+
+    <select id="selectHgrWarePrtnrNo" resultType="java.lang.String">
+        SELECT WARE_MNGT_PRTNR_NO
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE 1 = 1
+           AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+           AND WARE_NO = {hgrWareNo}
+
+    </select>
+
+    <select id="selectUpHgrWarePrtnrNo" resultType="java.lang.String">
+        SELECT WARE_MNGT_PRTNR_NO
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE 1 = 1
+           AND APY_YM =  SUBSTR(#{cfrmDt},1,6)
+           AND WARE_NO = {upHgrWareNo}
+    </select>
+
+</mapper>
