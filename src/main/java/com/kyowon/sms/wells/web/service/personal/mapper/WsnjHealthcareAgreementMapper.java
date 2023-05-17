@@ -11,4 +11,6 @@ public interface WsnjHealthcareAgreementMapper {
     WsnjHealthcareAgreementDvo selectHealthcareAgreement(SearchReq dto);
 
     int mergeHealthcareAgreement(WsnjHealthcareAgreementDvo dvo);
+
+    int updateHealthcareAgreementAgreementImageContent(WsnjHealthcareAgreementDvo dvo);
 }

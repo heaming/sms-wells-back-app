@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.service.personal.dvo.WsnjHealthcareAgreementDvo;
 import com.kyowon.sms.wells.web.service.personal.mapper.WsnjHealthcareAgreementMapper;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +29,13 @@ public class WsnjHealthcareAgreementService {
         return converter.mapWsnjHealthcareAgreementDvoToSearchRes(wsnjHealthcareAgreementDvo);
     }
 
+    @Transactional
     public int mergeHealthcareAgreement(MergeReq dto) {
         WsnjHealthcareAgreementDvo dvo = converter.mapMergeReqToWsnjHealthcareAgreementDvo(dto);
 
-        return mapper.mergeHealthcareAgreement(dvo);
+        if (mapper.mergeHealthcareAgreement(dvo) == 1) {
+            return mapper.updateHealthcareAgreementAgreementImageContent(dvo);
+        }
+        return 0;
     }
 }
