@@ -136,11 +136,6 @@
             ON M.BASE_YM = B.BASE_YM 
            AND M.CNTR_NO = B.CNTR_NO 
            AND M.CNTR_SN = B.CNTR_SN 
-         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본*/
-            ON C.CNTR_NO = M.CNTR_NO
-           AND C.SELL_OG_TP_CD = M.OG_TP_CD
-          LEFT OUTER JOIN TB_CUBS_CST_BAS D /*고객기본*/
-            ON D.CST_NO = C.CNTR_CST_NO
           LEFT OUTER JOIN (SELECT BASE_CNTR_NO
                           , BASE_CNTR_SN
                           , MCHN_CH_TP_CD
@@ -165,13 +160,22 @@
                                  ON D1.CNTR_NO = D2.CNTR_NO
                               INNER JOIN TB_CUBS_CST_BAS D3 /*고객기본*/
                                  ON D2.CNTR_CST_NO = D3.CST_NO 
-                                AND D2.SELL_PRTNR_NO = D3.PRTNR_NO 
-                                AND D2.SELL_OG_TP_CD = D3.OG_TP_CD
                                LEFT OUTER JOIN TB_PDBS_PD_BAS D4 /*상품기본*/
                                  ON D1.PD_CD = D4.PD_CD 
                                LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS D5 /*상품분류기본*/
-                                  ON D4.PD_MCLSF_ID = D5.PD_CLSF_ID /*상품기본.중분류ID = 상품분류기본.상품분류ID*/
-                                 AND D5.PD_TP_CD = 'P'  /* 상품유형코드 = 'P'(기준상품) */
+                                 ON D4.PD_MCLSF_ID = D5.PD_CLSF_ID /*상품기본.중분류ID = 상품분류기본.상품분류ID*/
+                                AND D5.PD_TP_CD = 'P'  /* 상품유형코드 = 'P'(기준상품) */
+                              WHERE D1.DTA_DL_YN = 'N'
+                                AND D1.OG_TP_CD = #{ogTpCd} /*조직유형*/
+                                <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
+                                AND D1.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*발생년월*/
+                                </if>
+                                <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
+                                AND D1.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmFrom} /*실적년월*/
+                                </if>
+                                <if test='@MybatisUtils@isNotEmpty(ogCdFrom) and @MybatisUtils@isNotEmpty(ogCdTo)'>
+                                AND D1.HDQ_OG_ID BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
+                                </if>
                             ) D /*고객 및 상품 정보*/
             ON M.CNTR_NO = D.CNTR_NO
            AND M.CNTR_SN = D.CNTR_SN
@@ -207,11 +211,11 @@
                      , A.OG_CD /*소속코드*/
                      , A.OG_NM /*업체명*/
                      , M.PRTNR_NO /*판매자번호(파트너번호)*/
-                     , NVL((CASE WHEN M.BASE_YM BETWEEN '202205' AND '202305'
+                     , NVL((CASE WHEN M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo}
                                  AND M.PERF_ATC_CD = 'W04P00010'
                                 THEN SUM(M.PERF_VAL) END), 0) AS OC_PERF_CN /*발생월(발생 실적 총건수)*/
                      , NVL(SUM(B.ACKMT_PERF_CT), 0) AS ACKMT_PERF_CT /*당월 되물림(되물림 발생된 인정실적건수)*/
-                     , NVL((CASE WHEN M.BASE_YM BETWEEN '202205' AND '202305'
+                     , NVL((CASE WHEN M.BASE_YM BETWEEN  #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo}
                                  AND M.PERF_ATC_CD = 'W04P00001'
                                 THEN SUM(M.PERF_VAL) END), 0) AS FEE_BASE /*수수료(원)*/
                   FROM TB_FEAM_NTORP_PERF_MM_CL M /*순주문파트너실적월마감*/
