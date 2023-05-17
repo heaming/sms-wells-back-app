@@ -353,4 +353,8 @@ public class WsnaReturningGoodsStoreService {
         }
 
     }
+
+    public List<SearchRes> getReturningGoodsStoresExcelDownload(SearchReq dto) {
+        return mapper.selectReturningGoodsStores(dto);
+    }
 }
