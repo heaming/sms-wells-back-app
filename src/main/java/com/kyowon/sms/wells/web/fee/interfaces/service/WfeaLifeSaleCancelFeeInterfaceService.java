@@ -4,6 +4,7 @@ import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfac
 import com.kyowon.sms.wells.web.fee.interfaces.dvo.WfeaLifeSaleCancelFeenterfaceDvo;
 
 import com.kyowon.sms.wells.web.fee.interfaces.mapper.WfeaLifeSaleCancelFeeInterfaceMapper;
+import com.sds.sflex.system.config.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,15 +52,15 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
         saveDvo.setFnlMdfcPrgId(dto.akupgm());
         saveDvo.setFnlMdfcDeptId(dto.itm08());
 
-        String endYn = mapper.selectLifeFeeValidKey(saveDvo);
-        // 1.1 마감여부? 체크 후 마감이면 에러, @TODO 로직 확정후 추후 구현
-        if ("Y".equals(endYn)) {
-            return new String[] { "F", "해당 데이터는 마감되었습니다."};
+        String cnfmYn = mapper.selectLifeFeeValidKey(saveDvo);
+        // 1.1 마감여부? 체크 후 마감이면 에러 CNFM_YN = 'Y'면 에러
+        if ("Y".equals(cnfmYn)) {
+            throw new BizException("MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱인이 불가능합니다.
         } else {
             // 1.2 그외 처리한다.
             int resultCnt = mapper.updateLifeFeeSync(saveDvo);
             if (resultCnt <= 0) {
-                return new String[] { "F", "데이터 등록이 실패하였습니다." };
+                throw new BizException("MSG_ALT_SVE_ERR"); // 응 서버에러
             } else {
                 return new String[] { "S", "데이터 등록이 성공하였습니다." };
             }
