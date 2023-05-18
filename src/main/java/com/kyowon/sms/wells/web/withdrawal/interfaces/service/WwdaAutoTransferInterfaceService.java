@@ -1,27 +1,44 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.*;
-import com.sds.sflex.common.utils.DateUtil;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Service;
-
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaBundleWithdrawalMgtDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaIntegrationBillingIzDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.mapper.ZwdaBundleWithdrawalMgtMapper;
+import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
+import com.kyowon.sms.wells.web.withdrawal.common.dvo.WwdaAutoTransferRealTimeAccountCheckDvo;
+import com.kyowon.sms.wells.web.withdrawal.common.service.WwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransferConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferCardEffectivenessCheckInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoBulkRegistrationReleasesInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferObjectItemizationInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferRealNameCertificationInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaBillingScheduleReceiveInterfaceDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdaAutoTransferInterfaceMapper;
+import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.ObjectUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +50,7 @@ public class WwdaAutoTransferInterfaceService {
     private final MessageResourceService messageResourceService;
     private final KakaoMessageService kakaoMessageService;
     private final WwdaAutoTransferConverter converter;
+    private final WwdaAutoTransferRealTimeAccountService realTimeAccountService;
 
     /**
      * 자동이체 출금내역 조회
@@ -542,27 +560,40 @@ public class WwdaAutoTransferInterfaceService {
         // 1. 계좌 유효성 검사 호출을 위한 파라미터 설정
         String cstNo = "9999999999"; /*임시고객번호*/
         String bnkCd = dto.bnkCd(); /*은행코드*/
-        String VacNo = dto.acno(); /*계좌번호*/
-        String vacCopnDvCd = "1"; /*법인격구분코드*/
-        String bryyMm = dto.bryyMmdd(); /*생년월일*/
-        String cntrtNm = dto.cntrtNm(); /*계약자명*/
-        String fntEvidBizDvCd = ""; /*이체증빙업무구분코드*/
-        String systemDvCd = "E"; /*시스템구분코드*/
-        String psicId = "9999999999"; /*담장자ID*/
+        String acNo = dto.acno(); /*계좌번호*/
+        String copnDvCd = "1"; /*법인격구분코드*/
+        String copnDvDrmVal = dto.bryyMmdd(); /*법인격구분코드식별값*/
+        String achldrNm = dto.cntrtNm(); /*예금주명*/
+        String systemDvCd = "1"; /*시스템구분코드 1 : EDU, 2: WELLS*/
+        String picId = "9999999999"; /*담장자ID*/
         String deptId = ""; /*부서ID*/
 
+        Map<String, Object> reqParam = new HashMap<String, Object>();
+        reqParam.put("cstNo", cstNo);
+        reqParam.put("bnkCd", bnkCd);
+        reqParam.put("acNo", acNo);
+        reqParam.put("copnDvCd", copnDvCd);
+        reqParam.put("copnDvDrmVal", copnDvDrmVal);
+        reqParam.put("achldrNm", achldrNm);
+        reqParam.put("systemDvCd", systemDvCd);
+        reqParam.put("picId", picId);
+        reqParam.put("deptId", deptId);
+
         // 2. 은행계좌 유효성검사 서비스 호출(Z-WD-S-0027)
-        // TODO : 은행계좌유효성체크_SB(세틀뱅크) 서비스 개발 이후 호출 필요
+        WwdaAutoTransferRealTimeAccountCheckDvo resultDvo = realTimeAccountService.saveAftnAcEftnChecks(reqParam);
+
+        // 청구생성코드가 1이 아닐때 에러 발생
+        // (1 : 정상처리, 2 : 오류, 3 : 자료없음)
+        BizAssert.isTrue(resultDvo.getBilCrtStatCd() == "1", resultDvo.getErrCn());
 
         // 3. 수신결과 및 리턴 설정
-        String acFntRsCd = "0000";
+        // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
+        String acFntRsCd = StringUtil.isNotEmpty(resultDvo.getAcFntRsCd()) ? resultDvo.getAcFntRsCd() : "0000";
 
         // 3.1 리턴받은 계좌이체불능코드 셋팅
-        // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
         result.setAcFntRsCd(acFntRsCd);
 
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
-        // 3.2.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
         result.setAcFntRsCdNm(mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd));
 
         resultDtos.add(result);
