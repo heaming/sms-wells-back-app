@@ -102,7 +102,6 @@ public class WfebEgerAllowanceService {
     @Transactional
     public int confirmEgerAllowances(List<WfebEgerAllowanceDto.ConfirmReq> dtos) {
         int processCnt = 0;
-        String msg = "";
 
         for (WfebEgerAllowanceDto.ConfirmReq dto : dtos) {
             WfebEgerAllowanceDvo dvo = converter.mapConfirmReqToWfebEgerAllowanceDvo(dto);
@@ -111,33 +110,30 @@ public class WfebEgerAllowanceService {
             // 확정취소는 type 이 본사인 경우에만 해당
             switch (dto.type()) {
                 case "C" -> { // 센터
-                    if ("Y".equals(dto.confirm())) { // 확정
-                        msg = "MSG_ALT_CNFM_FAIL";
-                        int cnt = mapper.selectConfirmYnCheck(dvo);
-                        BizAssert.isFalse(cnt > 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
+                    BizAssert.isTrue("Y".equals(dto.confirm()), "MSG_ALT_CNFM_FAIL");
 
-                        processCnt = mapper.insertEgerAllowanceConfirm(dvo);
-                    } else
-                        throw new BizException("MSG_ALT_CNFM_FAIL");
+                    int cnt = mapper.selectConfirmYnCheck(dvo);
+                    BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
+
+                    processCnt = mapper.insertEgerAllowanceConfirm(dvo);
+                    BizAssert.isTrue(processCnt > 0, "MSG_ALT_CNFM_FAIL");
                 }
                 case "H" -> { // 본사
                     dvo.setHdof("Y");
                     int cnt = mapper.selectConfirmYnCheck(dvo);
-                    BizAssert.isFalse(cnt > 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
+                    BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
 
                     if ("Y".equals(dto.confirm())) { // 확정
-                        msg = "MSG_ALT_CNFM_FAIL";
                         processCnt = mapper.updateEgerAllowanceConfirm(dvo);
+                        BizAssert.isTrue(processCnt > 0, "MSG_ALT_CNFM_FAIL");
                     } else if ("N".equals(dto.confirm())) { //센터확정취소
-                        msg = "MSG_ALT_CNFM_CANCEL_FAIL"; // 확정취소를 실패하였습니다.
                         processCnt = mapper.updateEgerAllowanceConfirmCancel(dvo);
+                        BizAssert.isTrue(processCnt > 0, "MSG_ALT_CNFM_CANCEL_FAIL");
                     }
                 }
                 default -> throw new BizException("MSG_ALT_CNFM_FAIL");
             }
         }
-
-        BizAssert.isTrue(processCnt > 0, msg);
 
         return processCnt;
     }
