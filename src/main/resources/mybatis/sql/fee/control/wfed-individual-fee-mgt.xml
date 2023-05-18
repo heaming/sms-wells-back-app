@@ -11,8 +11,8 @@
              , '' AS ATCNT2 /* 동행교육참여일수 */
              , OG.CNTR_DT AS AKDSYM /* 업무등록월 */
              , AK17.AKDEQ0 AS AKDEQ0 /* 총판매건수 */
-             , BS.SERCNT /* 서비스건수 */
-             , BS.SERRYL /* 서비스처리율 */
+             , AK17.SERCNT /* 서비스건수 */
+             , AK17.SERRYL /* 서비스처리율 */
              , AK17.AKCDA19 AS AKCDA19 /* 홈케어멤버십 */
              , AK17.AKCDA10 AS AKCDA10 /* 매트리스 렌탈료 */
              , AK17.AKCDA12 AS AKCDA12 /* 매트리스 외 렌탈료 */
@@ -46,13 +46,17 @@
                                , SUM(AKCDA12) AS AKCDA12
                                , SUM(AKCDA13) AS AKCDA13
                                , SUM(AKCDA15) AS AKCDA15
+                               , SUM(SERCNT) AS SERCNT
+                               , SUM(SERRYL) AS SERRYL
                             FROM ( SELECT AK17.PRTNR_NO
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00001' THEN PERF_VAL ELSE 0 END AS AKDEQ0   /* 홈마스터 코드 미정으로 임시처리 */
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00002' THEN PERF_VAL ELSE 0 END AS AKCDA19   /* 홈마스터 코드 미정으로 임시처리 */
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00003' THEN PERF_VAL ELSE 0 END AS AKCDA10   /* 홈마스터 코드 미정으로 임시처리 */
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00004' THEN PERF_VAL ELSE 0 END AS AKCDA12   /* 홈마스터 코드 미정으로 임시처리 */
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00005' THEN PERF_VAL ELSE 0 END AS AKCDA13   /* 홈마스터 코드 미정으로 임시처리 */
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00006' THEN PERF_VAL ELSE 0 END AS AKCDA15   /* 홈마스터 코드 미정으로 임시처리 */
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00002' THEN PERF_VAL ELSE 0 END AS AKDEQ0
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00123' THEN PERF_VAL ELSE 0 END AS AKCDA19
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00122' THEN PERF_VAL ELSE 0 END AS AKCDA10
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS AKCDA12
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS AKCDA13
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W00P00006' THEN PERF_VAL ELSE 0 END AS AKCDA15
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00085' THEN PERF_VAL ELSE 0 END AS SERCNT
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00095' THEN PERF_VAL ELSE 0 END AS SERRYL
                                      FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
                                     WHERE AK17.FEE_TCNT_DV_CD = '01'
                                       AND AK17.BASE_YM = #{perfYm}
@@ -63,22 +67,6 @@
                            GROUP BY M.PRTNR_NO
                         ) AK17
           ON OG.PRTNR_NO = AK17.PRTNR_NO
-        LEFT OUTER JOIN ( SELECT PRTNR_NO
-                               , SUM(LCCNT2) + SUM(LCCNT3) AS SERCNT
-                               , SUM(LCRAT1) AS SERRYL
-                            FROM ( SELECT PRTNR_NO
-                                        , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999902' THEN PERF_VAL END AS LCCNT2
-                                        , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999903' THEN PERF_VAL END AS LCCNT3
-                                        , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999906' THEN PERF_VAL END AS LCRAT1
-                                     FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                    WHERE BASE_YM = #{perfYm}
-                                      AND PRTNR_NO = #{no}
-                                      AND CL_DV_CD = '02'
-                                      AND OG_TP_CD = 'W03'
-                                 )
-                           GROUP BY PRTNR_NO
-                        )BS
-          ON OG.PRTNR_NO = BS.PRTNR_NO
        WHERE OG.BASE_YM = #{perfYm}
          AND OG.OG_TP_CD = 'W03'
          AND OG.PRTNR_NO = #{no}
@@ -107,35 +95,39 @@
              , SUM(AKSD55) AS AKSD55
              , SUM(AKSD56) AS AKSD56
           FROM ( SELECT A.FEE_CD
-                      , CASE WHEN A.FEE_CD = 'W030001' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD01 /*비례수수료 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030002' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD02 /*장려1수수료 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030003' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD03 /*장려2수수료 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030004' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD04 /*일시불수수료 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030005' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD05 /*홈케어멤버십 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030006' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD06 /*서비스현장 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030007' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD07 /*서비스활동1 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030008' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD08 /*서비스활동2 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030009' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD09 /*서비스누적 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030010' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD10 /*교육수수료 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030011' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD13 /*기타지원 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030012' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD14 /*재지급 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030013' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD11 /*급지수수료 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030014' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD15 /*기변수수료 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030015' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD51 /*조직실적렌탈 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030016' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD52 /*조직실적일시불 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030017' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD53 /*조직판매연계 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030018' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD54 /*조직관리 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030019' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD55 /*조직신규판매 임시 홈마스터 수수료 코드 */
-                      , CASE WHEN A.FEE_CD = 'W030020' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD56 /*조직서비스연계 임시 홈마스터 수수료 코드 */
+                      , CASE WHEN A.FEE_CD IN ('W030001', 'W030051') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD01 /*비례수수료 */
+                      , CASE WHEN A.FEE_CD IN ('W030002', 'W030052') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD02 /*장려1수수료 */
+                      , CASE WHEN A.FEE_CD IN ('W030003', 'W030053') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD03 /*장려2수수료 */
+                      , CASE WHEN A.FEE_CD IN ('W030004', 'W030054')  THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD04 /*일시불수수료 */
+                      , CASE WHEN A.FEE_CD IN ('W030006', 'W030056') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD05 /*홈케어멤버십 */
+                      , CASE WHEN A.FEE_CD IN ('W030007', 'W030057') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD06 /*서비스현장 */
+                      , CASE WHEN A.FEE_CD IN ('W030008', 'W030058') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD07 /*서비스활동1 */
+                      , CASE WHEN A.FEE_CD IN ('W030009', 'W030059') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD08 /*서비스활동2 */
+                      , CASE WHEN A.FEE_CD IN ('W030010', 'W030060') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD09 /*서비스누적 */
+                      , CASE WHEN A.FEE_CD IN ('W030011', 'W030061') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD10 /*교육수수료 */
+                      , CASE WHEN A.FEE_CD IN ('W030014', 'W030064') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD13 /*기타지원 */
+                      , CASE WHEN A.FEE_CD IN ('W030015', 'W030065') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD14 /*재지급 */
+                      , CASE WHEN A.FEE_CD IN ('W030012', 'W030062') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD11 /*급지수수료 */
+                      , CASE WHEN A.FEE_CD IN ('W030005', 'W030055') THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD15 /*기변수수료 */
+                      , CASE WHEN A.FEE_CD = 'W030071' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD51 /*조직실적렌탈 */
+                      , CASE WHEN A.FEE_CD = 'W030072' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD52 /*조직실적일시불 */
+                      , CASE WHEN A.FEE_CD = 'W030073' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD53 /*조직판매연계 */
+                      , CASE WHEN A.FEE_CD = 'W030075' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD54 /*조직관리 */
+                      , CASE WHEN A.FEE_CD = 'W030074' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD55 /*조직신규판매 */
+                      , CASE WHEN A.FEE_CD = 'W030076' THEN A.FEE_ATC_VAL ELSE 0 END AS AKSD56 /*조직서비스연계 */
                    FROM TB_FEAM_FEE_DSB_DTL_IZ A
                       WHERE A.DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
                       AND A.OG_TP_CD = 'W03'
                       AND A.FEE_TCNT_DV_CD = '01'  /*차수구분*/
                       AND A.PRTNR_NO = #{no}
-                      AND A.FEE_CD IN ( 'W030001', 'W030002', 'W030003', 'W030004', 'W030005'
-                                      , 'W030006', 'W030007', 'W030008', 'W030009', 'W030010'
-                                      , 'W030011', 'W030012', 'W030013', 'W030014', 'W030015'
-                                      , 'W030016', 'W030017', 'W030018', 'W030019', 'W030020' )
+                      AND A.FEE_CD IN ( 'W030001', 'W030051', 'W030002', 'W030052', 'W030003'
+                                      , 'W030053', 'W030004', 'W030054', 'W030006', 'W030056'
+                                      , 'W030007', 'W030057', 'W030008', 'W030058', 'W030009'
+                                      , 'W030059', 'W030010', 'W030060', 'W030011', 'W030061'
+                                      , 'W030014', 'W030064', 'W030015', 'W030065', 'W030012'
+                                      , 'W030062', 'W030005', 'W030055', 'W030071', 'W030072'
+                                      , 'W030073', 'W030075', 'W030074', 'W030076'
+                                      )
                )M
          GROUP BY M.FEE_CD
     </select>
