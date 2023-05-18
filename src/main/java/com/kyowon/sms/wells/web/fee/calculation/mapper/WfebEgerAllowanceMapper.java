@@ -24,6 +24,20 @@ public interface WfebEgerAllowanceMapper {
         WfebEgerAllowanceDto.SearchReq dto
     );
 
+    int insertEgerAllowanceHist(WfebEgerAllowanceDvo dvo);
+
+    int updateEgerAllowanceControl(WfebEgerAllowanceDvo dvo);
+
+    int selectConfirmYnCheck(WfebEgerAllowanceDvo dvo);
+
+    int insertEgerAllowanceConfirm(WfebEgerAllowanceDvo dvo);
+
+    int updateEgerAllowanceConfirm(WfebEgerAllowanceDvo dvo);
+
+    int updateEgerAllowanceConfirmCancel(WfebEgerAllowanceDvo dvo);
+
+    List<WfebEgerAllowanceDto.SearchConfirmRes> selectEgerAllowanceConfirms(String perfYm);
+
     int deleteEgerAllowances(WfebEgerAllowanceDvo dvo);
 
     int insertEgerAllowances(WfebEgerAllowanceDvo dvo);
