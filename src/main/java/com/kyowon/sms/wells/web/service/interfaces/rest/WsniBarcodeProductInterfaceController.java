@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -29,7 +29,7 @@ public class WsniBarcodeProductInterfaceController {
     private final WsniBarcodeProductInterfaceService service;
 
     @ApiOperation(value = "W-SV-I-0011 바코드를 입력받아 등록된 바코드인지 확인 API")
-    @GetMapping
+    @PostMapping
     public EaiWrapper getBarcodeProducts(
         @Valid
         @RequestBody
@@ -41,7 +41,7 @@ public class WsniBarcodeProductInterfaceController {
     }
 
     @ApiOperation(value = "W-SV-I-0012 바코드로 렌탈고객정보를 검색")
-    @GetMapping("/search-customers")
+    @PostMapping("/search-customers")
     public EaiWrapper getBarcodeSearchCustomers(
         @Valid
         @RequestBody

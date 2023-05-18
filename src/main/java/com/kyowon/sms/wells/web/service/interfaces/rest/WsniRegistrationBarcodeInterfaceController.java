@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -29,7 +29,7 @@ public class WsniRegistrationBarcodeInterfaceController {
     private final WsniRegistrationBarcodeInterfaceService service;
 
     @ApiOperation(value = "W-SV-I-0010 QR코드별 상품정보 조회 팝업")
-    @GetMapping
+    @PostMapping
     public EaiWrapper getBarcodeProducts(
         @Valid
         @RequestBody
