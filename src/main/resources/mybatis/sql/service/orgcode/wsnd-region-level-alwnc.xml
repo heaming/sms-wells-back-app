@@ -1,43 +1,21 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAlwncMgtMapper">
 
-    <select id="selectMovementBases" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto$AllowanceBase">
-        SELECT M_PER_MANHO AS MIN_PER_MANHO /* 분당공수 */
+    <select id="selectBases" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto$AllowanceBase">
+        SELECT MIN_PER_MANHO /* 분당공수 */
              , RGLVL_WEIT /* 급지비중 */
              , AV_VE /* 평균속도 */
-          FROM TB_SVPD_RGLVL_AW_BASE_IZ M1 /* 급지수당기준내역 */
-         WHERE 1 = 1
-           AND #{applyDate} BETWEEN APY_STRTDT AND APY_ENDDT
-           AND M1.IZ_SN = (
-                           SELECT MAX(V1.IZ_SN)
-                             FROM TB_SVPD_RGLVL_AW_BASE_IZ V1
-                            WHERE TRIM(V1.BIZ_RGLVL_CD) = TRIM(M1.BIZ_RGLVL_CD)
-                              AND V1.RGLVL_DV_CD = '1'
-                              AND V1.DTA_DL_YN = 'N'
-                              AND #{applyDate} BETWEEN V1.APY_STRTDT AND V1.APY_ENDDT
-                           )
-           AND M1.RGLVL_DV_CD = '1' /* 1: 이동급지, 2: 업무급지 */
-           AND ROWNUM = 1
+          FROM (SELECT M_PER_MANHO AS MIN_PER_MANHO /* 분당공수 */
+                     , RGLVL_WEIT /* 급지비중 */
+                     , AV_VE /* 평균속도 */
+                     , ROW_NUMBER() OVER (ORDER BY M1.FNL_MDFC_DTM DESC) RN
+                  FROM TB_SVPD_RGLVL_AW_BASE_IZ M1 /* 급지수당기준내역 */
+                 WHERE M1.RGLVL_DV_CD = #{rglvlDvCd} /* 1: 이동급지, 2: 업무급지 */
+                   AND M1.FST_RGST_DTM = M1.FNL_MDFC_DTM
+                   AND M1.DTA_DL_YN = 'N'
+             )
+         WHERE RN = 1
     </select>
-
-    <select id="selectBizBases" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto$AllowanceBase">
-            SELECT M_PER_MANHO AS MIN_PER_MANHO /* 분당공수 */
-                 , RGLVL_WEIT /* 급지비중 */
-                 , AV_VE /* 평균속도 */
-              FROM TB_SVPD_RGLVL_AW_BASE_IZ M1 /* 급지수당기준내역 */
-             WHERE 1 = 1
-               AND #{applyDate} BETWEEN APY_STRTDT AND APY_ENDDT
-               AND M1.IZ_SN = (
-                               SELECT MAX(V1.IZ_SN)
-                                 FROM TB_SVPD_RGLVL_AW_BASE_IZ V1
-                                WHERE TRIM(V1.BIZ_RGLVL_CD) = TRIM(M1.BIZ_RGLVL_CD)
-                                  AND V1.RGLVL_DV_CD = '2'
-                                  AND V1.DTA_DL_YN = 'N'
-                                  AND #{applyDate} BETWEEN V1.APY_STRTDT AND V1.APY_ENDDT
-                               )
-               AND M1.RGLVL_DV_CD = '2' /* 1: 이동급지, 2: 업무급지 */
-               AND ROWNUM = 1
-        </select>
 
     <select id="selectMovementAllowances" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto$Allowance">
         SELECT CH_AW_AMT        /* 변경수당금액 */

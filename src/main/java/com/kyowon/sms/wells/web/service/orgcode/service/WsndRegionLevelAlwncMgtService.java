@@ -9,6 +9,7 @@ import com.kyowon.sms.wells.web.service.orgcode.converter.WsndRegionLevelAlwncMg
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelAlwncMgtDto.*;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAlwncDvo;
 import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelAlwncMgtMapper;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,12 +34,11 @@ public class WsndRegionLevelAlwncMgtService {
     /**
      * 급지 기본 정보 조회
      *
-     * @param applyDate 적용일자
      * @return
      */
-    public SearchBaseRes getAllowanceBases(String applyDate) {
-        AllowanceBase movementBases = this.mapper.selectMovementBases(applyDate);
-        AllowanceBase bizBases = this.mapper.selectBizBases(applyDate);
+    public SearchBaseRes getAllowanceBases() {
+        AllowanceBase movementBases = this.mapper.selectBases(SnServiceConst.RglvlDvCd.REGION_LEVEL1.getCode());
+        AllowanceBase bizBases = this.mapper.selectBases(SnServiceConst.RglvlDvCd.REGION_LEVEL2.getCode());
         return new SearchBaseRes(movementBases, bizBases);
     }
 

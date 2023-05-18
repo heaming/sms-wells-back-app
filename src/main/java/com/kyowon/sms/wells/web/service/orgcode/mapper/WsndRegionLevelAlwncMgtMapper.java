@@ -19,9 +19,7 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndRegionLevelAlwncDvo;
 @Mapper
 public interface WsndRegionLevelAlwncMgtMapper {
 
-    AllowanceBase selectMovementBases(String applyDate);
-
-    AllowanceBase selectBizBases(String applyDate);
+    AllowanceBase selectBases(String rglvlDvCd);
 
     List<Allowance> selectMovementAllowances(String applyDate);
 
