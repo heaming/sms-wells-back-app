@@ -22,7 +22,7 @@ public class WfebEgerAllowanceDto {
         @NotBlank
         String perfYm,
         String awDv,
-        String ogId,
+        String ogLevlDvCd1,
         String rsbDvCd,
         String prtnrNo
     ) {}
@@ -62,6 +62,9 @@ public class WfebEgerAllowanceDto {
     @ApiModel(value = "WfebEngineerAwCrtMgtDto-SearchEngineerRes")
     public record SearchEngineerRes(
         String baseYm, /*실적년월*/
+        String dgr2LevlOgId, /*센터조직id*/
+        String dgr2LevlOgNm, /*센터조직명*/
+        String dgr2LevlOgCd, /*센터조직코드*/
         String ogId, /*조직ID*/
         String ogNm, /*조직명*/
         String ogCd, /*조직코드*/
@@ -120,16 +123,18 @@ public class WfebEgerAllowanceDto {
         Integer feeW060023Cnt, /*토요근무수당 건수*/
         String editYn, /*수정가능여부*/
         String cnrAwCnfmDtm, /*확정일자*/
-        String note, /*비고*/
-        Integer empCnt /*직원수*/
+        String note /*비고*/
     ) {}
 
     @ApiModel(value = "WfebEngineerAwCrtMgtDto-SearchEngineerManagerRes")
     public record SearchEngineerManagerRes(
+        String dgr2LevlOgId, /*센터조직id*/
+        String dgr2LevlOgNm, /*센터조직명*/
+        String dgr2LevlOgCd, /*센터조직코드*/
         String ogId, /*조직id*/
         String ogNm,
         String ogCd,
-        String perfYm,
+        String baseYm,
         String prtnrKnm,
         String prtnrNo,
         String pstnDvCd,

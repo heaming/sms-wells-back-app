@@ -6,9 +6,12 @@
          * TODO
          * 지급대상금액- 조정후수당합계+부가수당합계(메모)
          * 권한 추가되면 수정가능여부 쿼리 추가
-         * 수수료차수구분코드 01 맞는지 확인
+         * 수수료차수구분코드 02 맞는지 확인
          * */
-        SELECT OG_ID
+        SELECT DGR2_LEVL_OG_ID	/*센터조직ID*/
+             , DGR2_LEVL_OG_NM	/*센터조직명*/
+             , DGR2_LEVL_OG_CD	/*센터조직코드*/
+             , OG_ID
              , OG_NM
              , OG_CD
              , BASE_YM
@@ -78,189 +81,125 @@
             */
              , CNR_AW_CNFM_DTM /*센터확정일시*/
              , NVL(FEE_CTR_RSON_CN, '-') AS NOTE
-             , (SELECT COUNT(DISTINCT PRTNR_NO) FROM TB_OGBS_MM_PRTNR_IZ WHERE BASE_YM = #{perfYm} AND OG_TP_CD = 'W06' AND OG_ID = #{ogId} AND TRIM(ROL_DV_CD) = '37' ) AS EMP_CNT
-         FROM
-            ( SELECT OG_ID
-                    , OG_NM
-                    , OG_CD
-                    , BASE_YM
-                    , PRTNR_KNM
-                    , PRTNR_NO
-                    , PSTN_DV_CD
-                    , RSB_DV_CD
-                    , PERF_W06P00001
-                    , PERF_W06P00004
-                    , PERF_W06P00005
-                    , PERF_W06P00006
-                    , PERF_W06P00007
-                    , PERF_W06P00008
-                    , PERF_W06P00009
-                    , PERF_W06P00010
-                    , PERF_W06P00025
-                    , PERF_W06P00015
-                    , PERF_W06P00018
-                    , FEE_CD
-                    , FEE_CALC_AMT
-                    , CNR_AW_CNFM_DTM
-                    , FEE_CTR_RSON_CN
-                FROM
-                   ( SELECT A.OG_ID
-                          , A.OG_NM
-                          , A.OG_CD
-                          , A.BASE_YM
-                          , A.PRTNR_KNM
-                          , A.PRTNR_NO
-                          , A.PSTN_DV_CD
-                          , A.RSB_DV_CD
-                          , B.PERF_ATC_CD
-                          , B.PERF_VAL
-                          , C.FEE_CD
-                          , C.FEE_CALC_AMT
-                          , D.CNR_AW_CNFM_DTM
-                          , C.FEE_CTR_RSON_CN
-                      FROM
-                         ( SELECT T1.OG_ID
-                                , T1.OG_NM
-                                , T1.OG_CD
-                                , T1.OG_TP_CD
-                                , T1.BASE_YM
-                                , T2.PRTNR_KNM
-                                , T2.PRTNR_NO
-                                , T2.PSTN_DV_CD
-                                , T2.RSB_DV_CD
-                                , T1.HGR_OG_ID
-                            FROM TB_OGBS_MM_OG_IZ T1 /* 월조직내역 */
-                           INNER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
-                              ON T1.BASE_YM = T2.BASE_YM
-                             AND T1.OG_TP_CD = T2.OG_TP_CD
-                             AND T1.OG_ID = T2.OG_ID
-                             AND T2.DTA_DL_YN = 'N'
-                           WHERE T1.DTA_DL_YN = 'N'
-                             AND T1.BASE_YM = #{perfYm}
-                             AND T1.OG_TP_CD = 'W06'
-                             AND T2.CLTN_DT IS NULL /*해약하지 않은 사람*/
-                        ) A	/*월파트너내역*/
-                      LEFT OUTER JOIN
-                         ( SELECT BASE_YM
-                                , PERF_YM
-                                , PERF_ATC_CD
-                                , OG_TP_CD
-                                , PRTNR_NO
-                                , OG_CD
-                                , PERF_VAL
-                             FROM TB_FEAM_EGER_PERF_MM_CL
-                            WHERE DTA_DL_YN = 'N'
-                              AND BASE_YM = #{perfYm}
-                              AND PERF_YM = #{perfYm}
-                              AND FEE_TCNT_DV_CD = '01'
-                              AND PERF_AGRG_CRT_DV_CD = '601'/*실적집계생성구분코드 601-엔지니어실적*/
-                              AND PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
-                              AND CO_CD = '2000'
-                              AND OG_TP_CD = 'W06'
-                         ) B	/*엔지니어실적월마감*/
-                        ON A.BASE_YM = B.BASE_YM
-                       AND A.BASE_YM = B.PERF_YM
-                       AND A.OG_TP_CD = B.OG_TP_CD
-                       AND A.PRTNR_NO = B.PRTNR_NO
-                      LEFT OUTER JOIN
-                         ( SELECT BASE_YM
-                                , PERF_YM
-                                , OJ_DSB_YM
-                                , OG_TP_CD
-                                , PRTNR_NO
-                                , OG_CD
-                                , FEE_CD
-                                , FEE_CALC_AMT
-                                , FEE_CTR_RSON_CN
-                             FROM TB_FEAM_EGER_AW_CALC_BAS
-                            WHERE DTA_DL_YN = 'N'
-                              AND BASE_YM = #{perfYm}
-                              AND PERF_YM = #{perfYm}
-                              AND OJ_DSB_YM = #{perfYm}
-                              AND CO_CD = '2000'
-                              AND OG_TP_CD = 'W06'
-                              AND FEE_CD IN ('W060001', 'W060002', 'W060003', 'W060004', 'W060005', 'W060006', 'W060007', 'W060008', 'W060009', 'W060010'
-                                    , 'W060011', 'W060012', 'W060017', 'W060018', 'W060019', 'W060020', 'W060021', 'W060022'
-                                    , 'W060023', 'W060024', 'W060025', 'W060026', 'W060027', 'W060028')
-                              AND FEE_TCNT_DV_CD = '01'
-                              AND SPMT_DSB_DV_CD = '01'
-                         ) C
-                        ON A.BASE_YM = C.BASE_YM
-                       AND A.BASE_YM = C.PERF_YM
-                       AND A.BASE_YM = C.OJ_DSB_YM
-                       AND A.OG_TP_CD = C.OG_TP_CD
-                       AND A.PRTNR_NO = C.PRTNR_NO
-                      LEFT OUTER JOIN
-                         ( SELECT BASE_YM
-                                , PERF_YM
-                                , OJ_DSB_YM
-                                , OG_TP_CD
-                                , PRTNR_NO
-                                , OG_CD
-                                , CNR_AW_CNFM_DTM
-                                , HDOF_AW_CNFM_DTM
-                            FROM TB_FEAM_EGER_AW_CNFM_BAS	/*엔지니어수당확정기본*/
-                            WHERE DTA_DL_YN = 'N'
-                              AND BASE_YM = #{perfYm}
-                              AND PERF_YM = #{perfYm}
-                              AND OJ_DSB_YM = #{perfYm}
-                              AND CO_CD = '2000'
-                              AND OG_TP_CD = 'W06'
-                         ) D
-                        ON A.BASE_YM = D.BASE_YM
-                       AND A.BASE_YM = D.PERF_YM
-                       AND A.BASE_YM = D.OJ_DSB_YM
-                       AND A.OG_TP_CD = D.OG_TP_CD
-                       AND A.PRTNR_NO = D.PRTNR_NO
-                       AND A.OG_CD = D.OG_CD
-                     WHERE 1=1
-                     <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                       AND A.PRTNR_NO = #{prtnrNo}
-                     </if>
-                     <if test='@MybatisUtils@isNotEmpty(ogId)'>
-                     <if test='@MybatisUtils@equals(ogId, "OGO201800003425")'>
-                       /*AS-IS 부서코드 71507 홈케어서비스센터*/
-                       /*71507 포함한 71507 센터 산하 조직ID*/
-                       AND (A.OG_ID = 'OGO201800003425' OR A.HGR_OG_ID = 'OGO201800003425')
-                     </if>
-                     <if test='@MybatisUtils@notEquals(ogId, "OGO202300240576")'>
-                       /*AS-IS 부서코드 71507 홈케어서비스센터가 아닌 경우*/
-                       AND A.OG_ID = #{ogId}
-                     </if>
-                     </if>
-                     <if test='@MybatisUtils@equals(awDv, "perf")'>
-                       /*수당구분 실적수당*/
-                     <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                       /* AND A.RSB_DV_CD IN ('W0601', 'W0602', 'W0603') */
-                     </if>
-                     <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                       AND A.RSB_DV_CD = #{rsbDvCd}
-                     </if>
-                     </if>
-                     <if test='@MybatisUtils@equals(awDv, "rsb")'>
-                       /*수당구분 직책수당*/
-                     <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                       AND A.RSB_DV_CD IN ('W0603', 'W0604')
-                     </if>
-                     <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                       AND A.RSB_DV_CD = #{rsbDvCd}
-                     </if>
-                     </if>
-                  )
-              PIVOT
-                  ( SUM(PERF_VAL) FOR PERF_ATC_CD IN (
-                        'W06P00001' AS PERF_W06P00001
-                        , 'W06P00004' AS PERF_W06P00004
-                        , 'W06P00005' AS PERF_W06P00005
-                        , 'W06P00006' AS PERF_W06P00006
-                        , 'W06P00007' AS PERF_W06P00007
-                        , 'W06P00008' AS PERF_W06P00008
-                        , 'W06P00009' AS PERF_W06P00009
-                        , 'W06P00010' AS PERF_W06P00010
-                        , 'W06P00025' AS PERF_W06P00025
-                        , 'W06P00015' AS PERF_W06P00015
-                        , 'W06P00018' AS PERF_W06P00018 )
-                  )
+        FROM (
+            SELECT DGR2_LEVL_OG_ID
+                , DGR2_LEVL_OG_NM
+                , DGR2_LEVL_OG_CD
+                , OG_ID
+                , OG_NM
+                , OG_CD
+                , BASE_YM
+                , PRTNR_KNM
+                , PRTNR_NO
+                , PSTN_DV_CD
+                , RSB_DV_CD
+                , PERF_W06P00001
+                , PERF_W06P00004
+                , PERF_W06P00005
+                , PERF_W06P00006
+                , PERF_W06P00007
+                , PERF_W06P00008
+                , PERF_W06P00009
+                , PERF_W06P00010
+                , PERF_W06P00025
+                , PERF_W06P00015
+                , PERF_W06P00018
+                , FEE_CD
+                , FEE_CALC_AMT
+                , CNR_AW_CNFM_DTM
+                , FEE_CTR_RSON_CN
+            FROM (
+                SELECT T2.DGR2_LEVL_OG_ID
+                      , T2.DGR2_LEVL_OG_NM
+                      , T2.DGR2_LEVL_OG_CD
+                      , T2.OG_ID
+                      , T2.OG_NM
+                      , T2.OG_CD
+                      , T2.BASE_YM
+                      , T1.PRTNR_KNM
+                      , T1.PRTNR_NO
+                      , T1.PSTN_DV_CD
+                      , T1.RSB_DV_CD
+                      , T3.PERF_ATC_CD
+                      , T3.PERF_VAL
+                      , T4.FEE_CD
+                      , T4.FEE_CALC_AMT
+                      , T5.CNR_AW_CNFM_DTM
+                      , T4.FEE_CTR_RSON_CN
+                FROM TB_OGBS_MM_PRTNR_IZ T1	/*월파트너내역*/
+                INNER JOIN TB_OGBS_MM_OG_IZ T2	/*월조직내역*/
+                    ON T1.BASE_YM = T2.BASE_YM
+                    AND T1.OG_TP_CD = T2.OG_TP_CD
+                    AND T1.OG_ID = T2.OG_ID
+                    AND T1.DTA_DL_YN = 'N'
+                    AND T2.DTA_DL_YN = 'N'
+                    AND T1.OG_TP_CD = 'W06'
+                    AND T1.HMNRSC_EMPNO IS NULL	/*인사사원번호가 없는 사람만 엔지니어로 함*/
+                    AND T2.OG_LEVL_DV_CD = '3'	/*지점*/
+                    AND T2.CLO_YN = 'N'	/*조직폐쇄여부*/
+                LEFT OUTER JOIN TB_FEAM_EGER_PERF_MM_CL	T3	/*엔지니어실적월마감*/
+                    ON T1.BASE_YM = T3.BASE_YM
+                    AND T1.BASE_YM = T3.PERF_YM
+                    AND T1.PRTNR_NO = T3.PRTNR_NO
+                    AND T3.FEE_TCNT_DV_CD = '02'
+                    AND T3.PERF_AGRG_CRT_DV_CD = '601'/*실적집계생성구분코드 601-엔지니어실적*/
+                    AND T3.PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
+                    AND T3.CO_CD = '2000'
+                    AND T3.OG_TP_CD = 'W06'
+                LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T4	/*엔지니어수당기본*/
+                    ON T4.DTA_DL_YN = 'N'
+                    AND T1.BASE_YM = T4.BASE_YM
+                    AND T1.BASE_YM = T4.PERF_YM
+                    AND T1.BASE_YM = T4.OJ_DSB_YM
+                    AND T1.OG_TP_CD = T4.OG_TP_CD
+                    AND T1.PRTNR_NO = T4.PRTNR_NO
+                    AND T4.CO_CD = '2000'
+                    AND T4.OG_TP_CD = 'W06'
+                    AND T4.FEE_CD IN ('W060001', 'W060002', 'W060003', 'W060004', 'W060005', 'W060006', 'W060007', 'W060008', 'W060009', 'W060010'
+                            , 'W060011', 'W060012', 'W060017', 'W060018', 'W060019', 'W060020', 'W060021', 'W060022'
+                            , 'W060023', 'W060024', 'W060025', 'W060026', 'W060027', 'W060028')
+                    AND T4.FEE_TCNT_DV_CD = '02'
+                    AND T4.SPMT_DSB_DV_CD = '01'
+                LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS T5	/*엔지니어수당확정기본*/
+                    ON T5.DTA_DL_YN = 'N'
+                    AND T1.BASE_YM = T5.BASE_YM
+                    AND T1.BASE_YM = T5.PERF_YM
+                    AND T1.BASE_YM = T5.OJ_DSB_YM
+                    AND T1.OG_TP_CD = T5.OG_TP_CD
+                    AND T1.PRTNR_NO = T5.PRTNR_NO
+                    AND T5.CO_CD = '2000'
+                    AND T5.OG_TP_CD = 'W06'
+                WHERE T1.BASE_YM = #{perfYm}
+                <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                  AND T1.PRTNR_NO = #{prtnrNo}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+                  AND T2.DGR2_LEVL_OG_ID = #{ogLevlDvCd1}
+                </if>
+                <if test='@MybatisUtils@equals(awDv, "perf")'>
+                  /*수당구분 실적수당*/
+                <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
+                  AND T1.RSB_DV_CD IN ('W0601', 'W0602', 'W0603')
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
+                  AND T1.RSB_DV_CD = #{rsbDvCd}
+                </if>
+                </if>
+            )
+            PIVOT
+              ( SUM(PERF_VAL) FOR PERF_ATC_CD IN (
+                    'W06P00001' AS PERF_W06P00001
+                    , 'W06P00004' AS PERF_W06P00004
+                    , 'W06P00005' AS PERF_W06P00005
+                    , 'W06P00006' AS PERF_W06P00006
+                    , 'W06P00007' AS PERF_W06P00007
+                    , 'W06P00008' AS PERF_W06P00008
+                    , 'W06P00009' AS PERF_W06P00009
+                    , 'W06P00010' AS PERF_W06P00010
+                    , 'W06P00025' AS PERF_W06P00025
+                    , 'W06P00015' AS PERF_W06P00015
+                    , 'W06P00018' AS PERF_W06P00018 )
+              )
         )
         PIVOT
             ( SUM(FEE_CALC_AMT) FOR FEE_CD IN (
@@ -290,18 +229,21 @@
                 , 'W060028' AS FEE_W060028
             )
         )
+        ORDER BY DGR2_LEVL_OG_NM, OG_NM, PRTNR_KNM
     </select>
 
     <select id='selectEngineerManagerAllowances' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchEngineerManagerRes">
         /*
          * TODO
-         * 조직 추가
-         * 수수료차수구분코드 01 맞는지 확인
+         * 수수료차수구분코드 02 맞는지 확인
          * */
-        SELECT OG_ID
+        SELECT DGR2_LEVL_OG_ID	/*센터조직ID*/
+             , DGR2_LEVL_OG_NM	/*센터조직명*/
+             , DGR2_LEVL_OG_CD	/*센터조직코드*/
+             , OG_ID
              , OG_NM
              , OG_CD
-             , PERF_YM
+             , BASE_YM
              , PRTNR_KNM
              , PRTNR_NO
              , PSTN_DV_CD
@@ -311,55 +253,66 @@
              , NVL(FEE_W060031, 0) AS FEE_W060031  /*업적수당*/
              , NVL(FEE_W060032, 0) AS FEE_W060032  /*자격수당*/
              , NVL(FEE_W060031 + FEE_W060032, 0) AS TOT_FEE
-          FROM
-             ( SELECT A.OG_ID
-                    , A.OG_NM
-                    , A.OG_CD
-                    , B.PERF_YM
-                    , A.PRTNR_KNM
-                    , A.PRTNR_NO
-                    , A.PSTN_DV_CD
-                    , A.RSB_DV_CD
-                    , B.FEE_CD
-                    , B.FEE_CALC_AMT
-                 FROM TB_OGBS_MM_PRTNR_IZ A	/*월파트너내역*/
-                 LEFT OUTER JOIN
-                    ( SELECT BASE_YM
-                           , PERF_YM
-                           , OJ_DSB_YM
-                           , OG_TP_CD
-                           , PRTNR_NO
-                           , OG_ID
-                           , FEE_CD
-                           , FEE_CALC_AMT
-                        FROM TB_FEAM_EGER_AW_CALC_BAS
-                       WHERE DTA_DL_YN = 'N'
-                         AND BASE_YM = #{perfYm}
-                         AND PERF_YM = #{perfYm}
-                         AND OJ_DSB_YM = #{perfYm}
-                         AND CO_CD = '2000'
-                         AND OG_TP_CD = 'W06'
-                         AND FEE_CD IN ('W060031', 'W060032')
-                         AND FEE_TCNT_DV_CD = '01'
-                         AND SPMT_DSB_DV_CD = '01'
-                    ) B
-                  ON A.BASE_YM = B.BASE_YM
-                 AND A.BASE_YM = B.PERF_YM
-                 AND A.BASE_YM = B.OJ_DSB_YM
-                 AND A.OG_TP_CD = B.OG_TP_CD
-                 AND A.PRTNR_NO = B.PRTNR_NO
-               WHERE A.DTA_DL_YN = 'N'
-                 AND A.BASE_YM = #{perfYm}
-                 AND A.OG_TP_CD = 'W06'
-                <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                 AND A.PRTNR_NO = #{prtnrNo}
-                </if>
-             )
-         PIVOT
+        FROM
+           ( SELECT T2.DGR2_LEVL_OG_ID
+                  , T2.DGR2_LEVL_OG_NM
+                  , T2.DGR2_LEVL_OG_CD
+                  , T2.OG_ID
+                  , T2.OG_NM
+                  , T2.OG_CD
+                  , T2.BASE_YM
+                  , T1.PRTNR_KNM
+                  , T1.PRTNR_NO
+                  , T1.PSTN_DV_CD
+                  , T1.RSB_DV_CD
+                  , T3.FEE_CD
+                  , T3.FEE_CALC_AMT
+               FROM TB_OGBS_MM_PRTNR_IZ T1	/*월파트너내역*/
+              INNER JOIN TB_OGBS_MM_OG_IZ T2	/*월조직내역*/
+                 ON T1.BASE_YM = T2.BASE_YM
+                AND T1.OG_TP_CD = T2.OG_TP_CD
+                AND T1.OG_ID = T2.OG_ID
+                AND T1.DTA_DL_YN = 'N'
+                AND T2.DTA_DL_YN = 'N'
+                AND T1.OG_TP_CD = 'W06'
+                AND T1.HMNRSC_EMPNO IS NULL	/*인사사원번호가 없는 사람만 엔지니어로 함*/
+                AND T2.OG_LEVL_DV_CD = '3'	/*지점*/
+                AND T2.CLO_YN = 'N'	/*조직폐쇄여부*/
+               LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T3	/*엔지니어수당기본*/
+                 ON T3.DTA_DL_YN = 'N'
+                AND T1.BASE_YM = T3.BASE_YM
+                AND T1.BASE_YM = T3.PERF_YM
+                AND T1.BASE_YM = T3.OJ_DSB_YM
+                AND T1.OG_TP_CD = T3.OG_TP_CD
+                AND T1.PRTNR_NO = T3.PRTNR_NO
+                AND T3.CO_CD = '2000'
+                AND T3.OG_TP_CD = 'W06'
+                AND T3.FEE_CD IN ('W060031', 'W060032')
+                AND T3.FEE_TCNT_DV_CD = '02'
+                AND T3.SPMT_DSB_DV_CD = '01'
+              WHERE T1.BASE_YM = #{perfYm}
+              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                AND T1.PRTNR_NO = #{prtnrNo}
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+                AND T2.DGR2_LEVL_OG_ID = #{ogLevlDvCd1}
+              </if>
+              <if test='@MybatisUtils@equals(awDv, "rsb")'>
+                /*수당구분 직책수당*/
+              <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
+                AND T1.RSB_DV_CD IN ('W0603', 'W0604')
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
+                AND T1.RSB_DV_CD = #{rsbDvCd}
+              </if>
+              </if>
+            )
+        PIVOT
              ( SUM(FEE_CALC_AMT) FOR FEE_CD IN (
                 'W060031' AS FEE_W060031
                 , 'W060032' AS FEE_W060032 )
              )
+        ORDER BY DGR2_LEVL_OG_NM, PRTNR_KNM
     </select>
 
     <select id="selectEgerAllowanceConfirms" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchConfirmRes">
@@ -458,7 +411,7 @@
          AND OG_TP_CD = 'W06'            /* 조직유형코드 */
          AND PRTNR_NO = #{prtnrNo}           /* 파트너번호 */
          AND FEE_CD IN ('W060023', 'W060024', 'W060025', 'W060026', 'W060019', 'W060020', 'W060021', 'W060022')             /* 수수료코드 */
-         AND FEE_TCNT_DV_CD = '01'       /* 수수료차수구분코드 */
+         AND FEE_TCNT_DV_CD = '02'       /* 수수료차수구분코드 */
          AND SPMT_DSB_DV_CD = '01'       /* 추가지급구분코드 */
     </insert>
 
@@ -474,7 +427,7 @@
                  , #{ogCd} AS OG_CD
                  , #{feeCd} AS FEE_CD            /* 수수료코드 */
                  , #{feeCd} AS DTA_CRT_FEE_CD   /*데이터생성수수료코드*/
-                 , '01' AS FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
+                 , '02' AS FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
                  , #{feeAmt} AS FEE_CALC_AMT      /* 수수료계산금액 */
                  , NVL(#{feeCtrCnfmAmt}, #{feeAmt}) AS FEE_CTR_CNFM_AMT  /* 수수료조정확정금액 */
                  , '엔지니어 수당 조정' AS FEE_CTR_RSON_CN   /* 수수료조정사유내용 */
