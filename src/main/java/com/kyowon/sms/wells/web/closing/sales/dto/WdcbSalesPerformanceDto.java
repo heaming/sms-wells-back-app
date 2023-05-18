@@ -236,6 +236,7 @@ public class WdcbSalesPerformanceDto {
     @ApiModel("WdcbSalesPerformanceDto-SearchRegularMonthlyRes")
     public record SearchRegularMonthlyRes(
         String cntrDtlNo,
+        String slClYm,
         String rentalTn,
         String slStpYn,
         String thmSlSumAmt,

@@ -17,19 +17,19 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbSalesPerformanceDetailService {
     private final WdcbSalesPerformanceDetailMapper mapper;
 
-    public SearchMembershipRes getMembershipSalesDetail(String slDt) {
-        return mapper.selectMembershipSalesDetail(slDt);
+    public SearchMembershipRes getMembershipSalesDetail(String cntrDtlNo, String slClYm) {
+        return mapper.selectMembershipSalesDetail(cntrDtlNo, slClYm);
     }
 
-    public SearchLeaseRes getLeaseSalesDetail(String slDt) {
-        return mapper.selectLeaseSalesDetail(slDt);
+    public SearchLeaseRes getLeaseSalesDetail(String cntrDtlNo, String slClYm) {
+        return mapper.selectLeaseSalesDetail(cntrDtlNo, slClYm);
     }
 
-    public SearchRentalRes getRentalSalesDetail(String slDt) {
-        return mapper.selectRentalSalesDetail(slDt);
+    public SearchRentalRes getRentalSalesDetail(String cntrDtlNo, String slClYm) {
+        return mapper.selectRentalSalesDetail(cntrDtlNo, slClYm);
     }
 
-    public SearchRegularRes getRegularShippingDetail(String slDt) {
-        return mapper.selectRegularShippingDetail(slDt);
+    public SearchRegularRes getRegularShippingDetail(String cntrDtlNo, String slClYm) {
+        return mapper.selectRegularShippingDetail(cntrDtlNo, slClYm);
     }
 }
