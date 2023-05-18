@@ -2,24 +2,127 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbIotProductIstBiztalkMapper">
 
     <select id="selectBiztalkTargets" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbIotProductIstBiztalkDvo">
-        SELECT V1.WK_EXCN_DT
-             , V1.DEST_INFO
-             , V1.SUBJECT
-             , V1.NOW_DATE
-             , V1.SEND_DATE
-             , V1.USER_ID
-             , V1.CALLBACK
-             , V1.T_CODE
-             , V1.ISTLL_KNM
-             , V1.PD_NM
-          FROM (SELECT '20230106' AS WK_EXCN_DT, '01027880061' AS DEST_INFO, '[IoT 서비스 안내]' AS SUBJECT, '20230111134944' AS NOW_DATE, '20230111134944' AS SEND_DATE, 'SP~iot~' AS USER_ID, '15884113' AS CALLBACK, 'Wells18182' AS T_CODE, '고길동' AS ISTLL_KNM, '웨이브매트리스 SS_금융리스' AS PD_NM FROM DUAL UNION ALL
-                SELECT '20230111','01027880243','[IoT 서비스 안내]','20230111134944','20230111134944','SP~iot~','15884113','Wells18182','경원종합','청정기(AN106IWA) IoT' FROM DUAL UNION ALL
-                SELECT '20230102','01027880263','[IoT 서비스 안내]','20230111134944','20230111134944','SP~iot~','15884113','Wells18182','하시온','청정기(AN318ISA) IoT' FROM DUAL UNION ALL
-                SELECT '20230102','01027880317','[IoT 서비스 안내]','20230111134944','20230111134944','SP~iot~','15884113','Wells18182','조혜숙','청정기(AN106IWA) IoT' FROM DUAL UNION ALL
-                SELECT '20230105','01027880414','[IoT 서비스 안내]','20230111134944','20230111134944','SP~iot~','15884113','Wells18182','남상순','웨이브매트리스 SS_금융리스' FROM DUAL UNION ALL
-                SELECT '20230104','01027880607','[IoT 서비스 안내]','20230111134944','20230111134944','SP~iot~','15884113','Wells18182','강슬우','웨이브매트리스 Q_금융리스' FROM DUAL UNION ALL
-                SELECT '20230105','01027880653','[IoT 서비스 안내]','20230111134944','20230111134944','SP~iot~','15884113','Wells18182','염민아','청정기(AN318ISA) IoT' FROM DUAL
-               ) V1
+        WITH TEMP1 AS (
+            SELECT V2.WK_EXCN_DT
+                 , V2.WK_EXCN_HH
+                 , V2.ISTLL_KNM
+                 , V2.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+                 , V2.MEXNO_ENCR /* 휴대전화국번호암호화 */
+                 , V2.CRAL_IDV_TNO /* 휴대개별전화번호 */
+                 , V2.PD_NM
+                 , V2.T_CODE
+                 , V2.RK_NUM
+              FROM (SELECT V1.WK_EXCN_DT
+                         , V1.WK_EXCN_HH
+                         , V1.ISTLL_KNM
+                         , V1.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+                         , V1.MEXNO_ENCR /* 휴대전화국번호암호화 */
+                         , V1.CRAL_IDV_TNO /* 휴대개별전화번호 */
+                         , V1.PD_NM
+                         , V1.T_CODE
+                         , RANK() OVER (PARTITION BY (V1.CRAL_LOCARA_TNO || V1.MEXNO_ENCR || V1.CRAL_IDV_TNO) ORDER BY CNTR_NO) AS RK_NUM
+                      FROM (SELECT T2.WK_EXCN_DT
+                                 , T2.WK_EXCN_HH
+                                 , (CASE WHEN T1.ISTLL_KNM IS NULL THEN C1.RCGVP_KNM
+                                         ELSE T1.ISTLL_KNM
+                                    END) AS ISTLL_KNM /* 설치자한글명 */
+                                 , C1.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+                                 , C1.MEXNO_ENCR /* 휴대전화국번호암호화 */
+                                 , C1.CRAL_IDV_TNO /* 휴대개별전화번호 */
+                                 , P1.PD_ABBR_NM AS PD_NM
+                                 , 'Wells18182' AS T_CODE
+                                 , T2.CNTR_NO
+                              FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1 /* 고객서비스AS설치대상내역 */
+                             INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
+                                ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                               AND T2.DTA_DL_YN = 'N'
+                             INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /* 고객서비스수행내역 */
+                                ON T3.CNTR_NO = T2.CNTR_NO
+                               AND T3.CNTR_SN = T2.CNTR_SN
+                               AND T3.DTA_DL_YN = 'N'
+                             INNER JOIN (SELECT V1.DTL_CNTR_NO, V1.DTL_CNTR_SN, TRIM(V2.RCGVP_KNM) AS RCGVP_KNM, V2.CRAL_LOCARA_TNO, V2.MEXNO_ENCR, V2.CRAL_IDV_TNO
+                                           FROM TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
+                                          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
+                                             ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
+                                            AND V2.DTA_DL_YN = 'N'
+                                          WHERE V1.DTA_DL_YN = 'N'
+                                            AND V1.ADRPC_TP_CD = '3' /* 설치처 */
+                                            AND V1.VL_STRT_DTM <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                            AND V1.VL_END_DTM <![CDATA[ >= ]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                 ) C1
+                                ON C1.DTL_CNTR_NO = T2.CNTR_NO
+                               AND C1.DTL_CNTR_SN = T2.CNTR_SN
+                             INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+                                ON P1.PD_CD = T3.PDCT_PD_CD
+                               AND P1.DTA_DL_YN = 'N'
+                             WHERE T1.SV_BIZ_DCLSF_CD LIKE '11%' /* 설치작업 */
+                               AND T2.WK_PRGS_STAT_CD = '20' /* 완료작업 */
+                               AND T3.DTA_DL_YN = 'N'
+                               AND T3.IST_DT IS NOT NULL
+                               AND T3.REQD_DT IS NULL
+                               AND T3.CNTR_DTL_STAT_CD != '303' /* 상태코드 != 계약취소 */
+                               AND T3.CPS_DT IS NULL
+                               AND C1.CRAL_LOCARA_TNO IS NOT NULL
+                               AND C1.MEXNO_ENCR IS NOT NULL
+                               AND C1.CRAL_IDV_TNO IS NOT NULL
+                               /* 10일 이전부터 현재완료건에서 익일(토요일포함, 휴일제외한 다음 영업일)발송 */
+                               AND T2.WK_EXCN_DT BETWEEN TO_CHAR(SYSDATE - 10, 'YYYYMMDD') AND TO_CHAR(SYSDATE, 'YYYYMMDD')
+                               AND (SELECT B1.YMD
+                                      FROM (SELECT A1.YMD
+                                                 , S1.DF_YN
+                                                 , S1.PHLD_YN
+                                                 , S1.DOW_DV_CD
+                                              FROM (SELECT TO_CHAR(X1.YMD_DATE - 1 + LEVEL, 'YYYYMMDD') AS YMD
+                                                      FROM (SELECT TO_DATE(T2.WK_EXCN_DT) + 1 AS YMD_DATE FROM DUAL) X1
+                                                     WHERE (X1.YMD_DATE - 1 + LEVEL) <![CDATA[ <= ]]> LAST_DAY(X1.YMD_DATE)
+                                                   CONNECT BY LEVEL <![CDATA[ <= ]]> 15
+                                                 ) A1
+                                             INNER JOIN TB_SVPD_SV_CLND_BAS S1
+                                                ON S1.BASE_Y || S1.BASE_MM || S1.BASE_D = A1.YMD
+                                               AND S1.DTA_DL_YN = 'N'
+                                             ORDER BY A1.YMD
+                                        ) B1
+                                    WHERE B1.PHLD_YN IS NULL /* 공휴일 여부 */
+                                      AND B1.DF_YN IS NULL /* 휴무 여부 */
+                                      AND B1.DOW_DV_CD != '7' /* 토요일 제외 */
+                                      AND ROWNUM = 1) = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                               AND T3.PDCT_PD_CD IN ('WM02100251' /* 공기청정기AN318ISA */
+                                                   , 'WM02100250' /* 공기청정기AN106IWA */
+                                                   , 'WM04100663' /* 매트 하이브리드+(SS) */
+                                                   , 'WM04100664' /* 매트 하이브리드+(퀸) */
+                                                   , 'WM04100665' /* 매트 하이브리드+(K) */
+                                                   , 'WM04100666' /* 매트 하이브리드 (SS) */
+                                                   , 'WM04100667' /* 매트 하이브리드 (Q) */
+                                                   , 'WM04100668' /* 매트 하이브리드 (K) */
+                                                   , 'WM04100678' /* 매트(SS)웨이브IoT */
+                                                   , 'WM04100679' /* 매트(Q)웨이브IoT */
+                                                   , 'WM04100677' /* 매트(SS)-폼매트리스 */
+                                                   , 'WM04100681' /* 네이처 매트리스(SS) */
+                                                   , 'WM04100680' /* 네이처 매트리스(Q) */
+                                                   , 'WM04100676' /* 네이처 매트리스(K) */
+                                                   , 'WM04100684' /* 웰스 코지슬립(SS) */
+                                                   , 'WM04100683' /* 웰스 코지슬립(Q) */
+                                                   , 'WM04100682' /* 웰스 코지슬립(K) */)
+                            /* TODO: DB2 코드 조건 확인 필요 */
+                           ) V1
+                   ) V2
+             WHERE V2.RK_NUM = 1
+        )
+        SELECT DISTINCT
+               P1.WK_EXCN_DT
+             , P1.ISTLL_KNM
+             , P1.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+             , P1.MEXNO_ENCR /* 휴대전화국번호암호화 */
+             , P1.CRAL_IDV_TNO /* 휴대개별전화번호 */
+             , P1.PD_NM
+             , '[IoT 서비스 안내]' AS SUBJECT
+             , P1.T_CODE
+             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS NOW_DATE
+             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS SEND_DATE
+             , 'SP~iot~' AS USER_ID
+             , '15884113' AS CALLBACK
+          FROM TEMP1 P1
+         WHERE 1 = 1
     </select>
 
 </mapper>

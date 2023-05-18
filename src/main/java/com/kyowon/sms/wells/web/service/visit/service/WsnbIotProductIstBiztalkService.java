@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sds.sflex.common.utils.StringUtil;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
@@ -44,7 +45,10 @@ public class WsnbIotProductIstBiztalkService {
             KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
                 .templateCode(dvo.getTCode())
                 .templateParamMap(paramMap)
-                .destInfo(dvo.getIstllKnm() + "^" + dvo.getDestInfo())
+                .destInfo(
+                    dvo.getIstllKnm() + "^"
+                        + this.getDestPhoneNo(dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralIdvTno())
+                )
                 .callback(dvo.getCallback())
                 .build();
 
@@ -52,6 +56,13 @@ public class WsnbIotProductIstBiztalkService {
         }
 
         return processCount;
+    }
+
+    private String getDestPhoneNo(String cralLocaraTno, String mexnoEncr, String cralIdvTno) {
+        if (StringUtil.isBlank(cralLocaraTno) || StringUtil.isBlank(mexnoEncr) || StringUtil.isBlank(cralIdvTno)) {
+            return "";
+        }
+        return cralLocaraTno + mexnoEncr + cralLocaraTno;
     }
 
 }
