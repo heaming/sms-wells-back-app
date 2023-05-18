@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = "[WCSA] 고객센터 WELLS 고객정보 조회")
-@RequestMapping(CstCommonConstant.INTERFACE_URL_V2 + "/customers")
+@RequestMapping(CstCommonConstant.INTERFACE_URL_V1 + "/customers")
 @RequiredArgsConstructor
 @Validated
 @Transactional
