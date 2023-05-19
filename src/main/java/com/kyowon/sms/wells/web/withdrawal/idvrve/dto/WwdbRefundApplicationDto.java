@@ -195,6 +195,7 @@ public class WwdbRefundApplicationDto {
         String cntrSn,
         String cstNo, // 고객번호
         String exRfndRsonCn, // 예외환불 사유
+
         String rfndCshAmt, // 현금 환불금액
         String rfndCardAmt, // 카드 환불금액
         String rfndBltfAmt, // 전금 금액
@@ -265,13 +266,148 @@ public class WwdbRefundApplicationDto {
         List<RefundDetail> details // 추가 버튼 누르면 추가로 생성되는 부분
     ) {}
 
-    @ApiModel("WwdbRefundApplicationDto-SearchRefundApplicationConnectHistoryRes")
-    public record SearchRefundApplicationConnectHistoryRes(
-        String cttRcpDtm, // 컨택일시
-        String cttChnlTpCd, // 상담경로
-        String prtnrKnm, // 상담자
-        String cttPsicId, // 번호
-        String cttMoCn // 상담내용
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailReq")
+    public record SearchRefundApplicationDetailReq(
+        String rfndStatCd, // 환불상태코드
+        String cntrNo, // 계약번호
+        String cntrSn, // 계약일련번호
+        String rfndRcpNo, // 환불접수번호
+        String rfndRcpDtlSn // 환불접수일련번호
+    ) {}
 
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailPartnerRes")
+    public record SearchRefundApplicationDetailPartnerRes(
+        String prtnrKnm, // 신청자
+        String rfndRcpPrtnrNo, // 번호
+        String rfndRqdt, // 신청일시
+        String rfndStatCd // 처리상태
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-Ctract")
+    public record Ctract(
+        String cntrNo, // 계약번호
+        String sellTpCd, // 주문유형
+        String cstKnm, // 고객명
+        String istllKnm, // 설치자명
+        String pdNm, // 상품명
+        String cntrCstNo, // 고객번호
+        String bryyMmdd, // 생년월일
+        String dpTpCd, // 이체구분
+        String mpyBsdt, // 이체일
+        String cttRsCd, // 컨텍코드
+        String rentalAmt, // 렌탈(개월)
+        String rentalPtrm, // 개월
+        String alncmpCd, // 제휴
+        String rentalRgstCost, // 등록비용
+        String dutyUseMcn, // 의무약정
+        String istDt, // 설치일자
+        String slDt, // 매출일자 (EDU 시, WELLS 테이블 다름)
+        String cntrCanDtm, // 취소일자
+        String cntrCnfmDtm // 완료일자
+
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailPossibleReq")
+    public record SearchRefundApplicationDetailPossibleReq(
+        String cntrNo, // 계약번호 
+        String cntrSn
+    ) {}
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailPossibleRes")
+    public record SearchRefundApplicationDetailPossibleRes(
+        String dpAggAmt, // 총입금 누계금액, 
+        String dpAggAmt2, // 입금누계금액
+        String lstmmDlqAmt, // 전월 연체금액
+        String thmPrpdAmt, // 당월 선수금액
+        String thmDlqAmt, // 당월 연체금액
+        String thmDpAmt, // 당월 입금액
+        String rfndPsbAmt // 환불가능금액
+
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailDepositReq")
+    public record SearchRefundApplicationDetailDepositReq(
+        String cntrNo, // 계약번호 
+        String cntrSn
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailDepositRes")
+    public record SearchRefundApplicationDetailDepositRes(
+        String rveSn, // 입금일련번호
+        String dpDt, // 입금일자
+        String perfDt, // 실적일자
+        String rfndFshDt, // 지급일자
+        String dpDvCd, // 입금구분
+        String dpAmt, // 처리금액
+        String dpTpCd, // 입금유형
+        String cshCrd, // 카드현금구분
+        String fnitNm, // 카드사, 은행
+        String crcdnoEncr, // 카드번호
+        String crdcdAprno, // 승인번호
+        String crdcdIstmMcn, // 할부개월수
+        String acnoEncr, // 계좌번호
+        String dprNm // 입금자
+
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailPerformanceRes")
+    public record SearchRefundApplicationDetailPerformanceRes(
+        String cntrNo, // 계약번호
+        String slStpYn, // 매출중지
+        String slClYm, // 매출년월
+        String tmp1, // 리스차월
+        String nomSlAmt, // 청구금액
+        String borAmt, // 위약금액
+        String fnnLeasePcamTam, // 리스입금액
+        String prpdSlAmt, // 선수금액
+        String totPcamUcAmt, // 미수금액
+        String thmDlqRfndSumAmt, // 연체금액
+        String dlqMcn, // 연체개월
+        String btdDlqAmt, // 기초금액
+        String thmOcDlqAmt, // 발생금액
+        String tmp2, // 공제금액
+        String thmIstmTotDpAmt, // 입금액
+        String thmIstmRfndAmt, // 환불금액
+        String eotPcamBlam // 기말금액
+
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailPerformanceReq")
+    public record SearchRefundApplicationDetailPerformanceReq(
+        String cntrNo, // 계약번호 
+        String cntrSn
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-App")
+    public record App(
+        String rfndRcpNo, // 환불접수번호
+        String rfndRcpDtlSn, // 환불접수일련번호
+        String rfndDsbDvCd, // 환불구분
+        String rfndDsbDvCdCshBltf, // 전금구분
+        String bltfRfndMbDvCd, // 전금환불회원구분코드
+        String pdNm, // 상품명
+        String bltfBfVacNoEncr, // 전금이전가상계좌번호암호화
+        String bltfAfVacNoEncr, // 전금이후가상계좌번호암호화
+        String rfndAkAmt, // 환불요청금액
+        String rfndRsonCn // 전금사유
+
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailReceiptRes")
+    public record SearchRefundApplicationDetailReceiptRes(
+        // 환불접수총액
+        String rfndCshAmt, // 현금 환불금액
+        String rfndCardAmt, // 카드 환불금액
+        String rfndBltfAmt, // 전금금액
+        String rfndPsbResAmt, // 환불가능 잔액
+        String totRfndEtAmt // 총 환불 예상 금액
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailRes")
+    public record SearchRefundApplicationDetailRes(
+        // 계약정보
+        Ctract ctract,
+        App app,
+        RefundBasic basic,
+        List<RefundDetail> refundDetail // 추가 버튼 누르면 추가로 생성되는 부분
     ) {}
 }
