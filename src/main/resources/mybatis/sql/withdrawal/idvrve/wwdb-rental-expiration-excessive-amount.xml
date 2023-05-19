@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRentalExpirationExcessiveAmountListMapper">
+   <select id="selectRentalExpirationExcessiveAmount" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRentalExpirationExcessiveAmountListDto$SearchRes">
+       SELECT  
+               SCD.CNTR_NO /* 계약번호 */
+             , CCB.CST_KNM  /* 고객명 */
+             , PPB.PD_NM /* 제품명 */
+             , RRD.DP_AMT /* 선수금 */
+             , RIDB.FNIT_CD /* 은행명 */
+             , RIDB.ACNO_ENCR /* 계좌번호 */
+             , RIDB.DPR_NM /* 예금주 */
+             , SCB.COPN_DV_CD /* 구분 */
+             , ( 
+                SELECT MAX(COUNT(1)) 
+                  FROM TB_RVDW_RVE_DTL
+                 WHERE RVE_DT <![CDATA[ <= ]]> #{dpDt}
+                   AND DTA_DL_YN = 'N'
+                   AND RVE_DT IS NOT NULL
+                 GROUP BY CNTR_NO, CNTR_SN
+               ) AS NMN /* 차월 */  
+             , SUBSTR(SCD.CNTR_PD_ENDDT,1,6) AS CNTR_PD_ENDDT  /* 만료취소년월 */
+             , SCD.CNTR_DTL_STAT_CD /* 종료구분 */
+          FROM TB_SSCT_CNTR_BAS SCB                     /* 계약기본 */
+         INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */
+            ON CCB.DTA_DL_YN = 'N'
+           AND SCB.CNTR_CST_NO = CCB.CST_NO  
+          JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
+            ON SCB.DTA_DL_YN = 'N'
+           AND SCD.DTA_DL_YN = 'N' 
+           AND SCB.CNTR_NO = SCD.CNTR_NO   
+         INNER JOIN TB_PDBS_PD_BAS PPB                  /* 상품기본 */
+            ON PPB.DTA_DL_YN = 'N'
+           AND PPB.PD_CD = SCD.BASE_PD_CD
+          JOIN TB_RVDW_RVE_DTL RRD                      /* 수납상세 */
+            ON RRD.DTA_DL_YN = 'N'
+           AND SCB.CNTR_NO = RRD.CNTR_NO
+           AND SCD.CNTR_SN = RRD.CNTR_SN
+          JOIN TB_RVDW_ITG_DP_BAS RIDB                  /* 통합입금기본 */
+            ON RIDB.DTA_DL_YN = 'N'
+           AND RRD.ITG_DP_NO = RIDB.ITG_DP_NO
+         WHERE 1 = 1
+           AND RRD.DP_DV_CD = '1'                       /* 입금구분코드  1.입금 */
+           AND RRD.RVE_DV_CD IN ('97', '98')            /* 수납구분코드  97.영업선수, 98.기타선수 */
+           AND RRD.DP_DT LIKE #{dpDt} || '%'                      /* 선수년월 */
+          <if test='@MybatisUtils@isNotEmpty(copnDvCd) and copnDvCd != "ALL" and copnDvCd != "all"'>
+           AND SCB.COPN_DV_CD = #{copnDvCd}             /* 계약구분 1.개인, 2.법인 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(cntrPdEnddt)'>
+           AND SCD.CNTR_PD_ENDDT LIKE #{cntrPdEnddt} || '%'       /* 만료취소년월 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(cntrDtlStatCd) and cntrDtlStatCd != "ALL" and cntrDtlStatCd != "all"'>
+           AND SCD.CNTR_DTL_STAT_CD = #{cntrDtlStatCd}  /* 종료구분 전체, 402.만료, 303.취소, */
+          </if>
+         ORDER BY SCB.CNTR_NO ASC
+    </select>
+</mapper>
