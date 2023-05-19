@@ -2,9 +2,9 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WwdbRentalExpirationExcessiveAmountListDto {
+public class WwdbRentalExpirationExcessiveAmountDto {
 
-    @ApiModel(value = "WwdbRentalExpirationExcessiveAmountListDto-SearchReq")
+    @ApiModel(value = "WwdbRentalExpirationExcessiveAmountDto-SearchReq")
     public record SearchReq(
         String dpDt, /* 선수년월 */
         String copnDvCd, /* 계약구분코드 */
@@ -12,7 +12,7 @@ public class WwdbRentalExpirationExcessiveAmountListDto {
         String cntrDtlStatCd /* 종료구분코드 */
     ) {}
 
-    @ApiModel(value = "WwdbRentalExpirationExcessiveAmountListDto-SearchRes")
+    @ApiModel(value = "WwdbRentalExpirationExcessiveAmountDto-SearchRes")
     public record SearchRes(
         String cntrNo, /* 주문번호 */
         String cstKnm, /* 고객명-고객번호 */

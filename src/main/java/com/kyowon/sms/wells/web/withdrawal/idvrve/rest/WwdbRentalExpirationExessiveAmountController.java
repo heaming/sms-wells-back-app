@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRentalExpirationExcessiveAmountListDto;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbRentalExpirationExcessiveAmountListService;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRentalExpirationExcessiveAmountDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbRentalExpirationExcessiveAmountService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -26,10 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "[WDB] 렌탈만료초과금현황")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/rental-exn-examt-inqrs")
-public class WwdbRentalExpirationExessiveAmountListController {
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/rental-exn-examt")
+public class WwdbRentalExpirationExessiveAmountController {
 
-    private final WwdbRentalExpirationExcessiveAmountListService service;
+    private final WwdbRentalExpirationExcessiveAmountService service;
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "dpDt", value = "입금일자", paramType = "query", required = false),
@@ -39,10 +39,10 @@ public class WwdbRentalExpirationExessiveAmountListController {
     })
     @ApiOperation(value = "렌탈만료초과금현황 조회", notes = "렌탈 상품이 만료되어 초과금이 발생되는 정보를 검색한다.")
     @GetMapping("/paging")
-    public PagingResult<WwdbRentalExpirationExcessiveAmountListDto.SearchRes> getRentalExpirationExcessiveAmountPage(
+    public PagingResult<WwdbRentalExpirationExcessiveAmountDto.SearchRes> getRentalExpirationExcessiveAmountPage(
         @ApiParam
         @Valid
-        WwdbRentalExpirationExcessiveAmountListDto.SearchReq req, PageInfo pageInfo
+        WwdbRentalExpirationExcessiveAmountDto.SearchReq req, PageInfo pageInfo
     ) {
         return service.getRentalExpirationExcessiveAmountPage(req, pageInfo);
     }
@@ -55,10 +55,10 @@ public class WwdbRentalExpirationExessiveAmountListController {
     })
     @ApiOperation(value = "렌탈만료초과금현황 엑셀다운로드", notes = "렌탈 상품이 만료되어 초과금이 발생되는 정보를 검색하여 엑셀다운로드한다.")
     @GetMapping("/excel-download")
-    public List<WwdbRentalExpirationExcessiveAmountListDto.SearchRes> getRentalExpirationExcessiveForExcelDownload(
+    public List<WwdbRentalExpirationExcessiveAmountDto.SearchRes> getRentalExpirationExcessiveForExcelDownload(
         @ApiParam
         @Valid
-        WwdbRentalExpirationExcessiveAmountListDto.SearchReq req
+        WwdbRentalExpirationExcessiveAmountDto.SearchReq req
     ) {
         return service.getRentalExpirationExcessiveForExcelDownload(req);
     }
