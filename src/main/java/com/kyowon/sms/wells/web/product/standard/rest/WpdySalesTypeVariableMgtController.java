@@ -48,10 +48,8 @@ public class WpdySalesTypeVariableMgtController {
     }
 
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "svcType", value = "서비스 선택 구분", paramType = "query", example = "WS01200001"),
-        @ApiImplicitParam(name = "svcValue", value = "서비스 선택 값", paramType = "query", example = "WM01200001"),
-        @ApiImplicitParam(name = "prdtType", value = "제품 선택 구분", paramType = "query", example = "WS01200001"),
-        @ApiImplicitParam(name = "prdtValue", value = "제품 선택 값", paramType = "query", example = "WM01200001"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query", example = "01"),
+        @ApiImplicitParam(name = "rgltnVarbNm", value = "변수명", paramType = "query", example = "등록비"),
     })
     @ApiOperation(value = "판매유형별 변수 페이징 조회", notes = "검색조건을 입력 받아 Paging된 판매유형별 변수 목록을 조회한다.")
     @GetMapping("/paging")

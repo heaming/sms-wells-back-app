@@ -52,10 +52,12 @@ public class WpdyRentalLeasePenaltyMgtController {
     }
 
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "svcType", value = "서비스 선택 구분", paramType = "query", example = "WS01200001"),
-        @ApiImplicitParam(name = "svcValue", value = "서비스 선택 값", paramType = "query", example = "WM01200001"),
-        @ApiImplicitParam(name = "prdtType", value = "제품 선택 구분", paramType = "query", example = "WS01200001"),
-        @ApiImplicitParam(name = "prdtValue", value = "제품 선택 값", paramType = "query", example = "WM01200001"),
+        @ApiImplicitParam(name = "prdtCateHigh", value = "대분류", paramType = "query", example = "PDC000000000001"),
+        @ApiImplicitParam(name = "prdtCateMid", value = "중분류", paramType = "query", example = "PDC000000000012"),
+        @ApiImplicitParam(name = "pdNm", value = "상품명", paramType = "query", example = "서비스"),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "WS02"),
+        @ApiImplicitParam(name = "svcStartDt", value = "적용 시작일", paramType = "query", example = "20230421"),
+        @ApiImplicitParam(name = "svcEndDt", value = "적용 종료일", paramType = "query", example = "20230431"),
     })
     @ApiOperation(value = "렌탈/리스 위약금 페이징 조회", notes = "검색조건을 입력 받아 Paging된 렌탈/리스 위약금 목록을 조회한다.")
     @GetMapping("/paging")
