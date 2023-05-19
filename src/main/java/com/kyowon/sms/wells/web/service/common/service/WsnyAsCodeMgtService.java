@@ -3,7 +3,7 @@ package com.kyowon.sms.wells.web.service.common.service;
 import com.kyowon.sms.common.web.closing.mileage.dvo.ZdceSmartMileageExcelDvo;
 import com.kyowon.sms.common.web.closing.mileage.util.ZdceMileageUtil;
 import com.kyowon.sms.wells.web.service.common.converter.WsnyAsCodeMgtConverter;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.*;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnyAsCodeMgtMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
@@ -44,12 +44,18 @@ public class WsnyAsCodeMgtService {
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
 
-    public PagingResult<WsnyAsCodeMgtDto.SearchRes> getAsCodePages(
-        WsnyAsCodeMgtDto.SearchReq dto, PageInfo pageInfo
+    public PagingResult<SearchRes> getAsCodePages(
+        SearchReq dto, PageInfo pageInfo
     ) {
         return new PagingResult<>(
-            converter.mapAllSearchResToDvo(mapper.selectAsCodePages(dto, pageInfo)), pageInfo
+            converter.mapAllSearchResToDvo(mapper.selectAsCodes(dto, pageInfo)), pageInfo
         );
+    }
+
+    public List<SearchRes> getAsCodes(
+        SearchReq dto
+    ) {
+        return converter.mapAllSearchResToDvo(mapper.selectAsCodes(dto));
     }
 
     public ExcelUploadDto.UploadRes uploadExcel(

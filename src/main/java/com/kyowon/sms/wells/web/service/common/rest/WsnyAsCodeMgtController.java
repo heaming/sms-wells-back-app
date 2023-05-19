@@ -1,12 +1,10 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.common.service.WsnyAsCodeMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
-import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
-import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
-import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import io.swagger.annotations.Api;
@@ -14,6 +12,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.List;
 import javax.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -21,10 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/as-codes")
@@ -47,8 +42,8 @@ public class WsnyAsCodeMgtController {
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101")
     })
     @GetMapping("/paging")
-    public PagingResult<WsnyAsCodeMgtDto.SearchRes> getAsCodePages(
-        WsnyAsCodeMgtDto.SearchReq dto, @Valid
+    public PagingResult<SearchRes> getAsCodePages(
+        SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
         return service.getAsCodePages(dto, pageInfo);
@@ -64,11 +59,10 @@ public class WsnyAsCodeMgtController {
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101")
     })
     @GetMapping("/excel-download")
-    public PagingResult<WsnyAsCodeMgtDto.SearchRes> getAsCodeExcelDownload(
-        WsnyAsCodeMgtDto.SearchReq dto, @Valid
-        PageInfo pageInfo
+    public List<SearchRes> getAsCodeExcelDownload(
+        SearchReq dto
     ) {
-        return service.getAsCodePages(dto, pageInfo);
+        return service.getAsCodes(dto);
     }
 
     @PostMapping("/excel-upload")
