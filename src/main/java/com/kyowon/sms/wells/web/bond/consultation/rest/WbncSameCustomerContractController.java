@@ -37,7 +37,7 @@ public class WbncSameCustomerContractController {
 
     @ApiOperation(value = "동일고객 계약 입금정보 상세조회", notes = "동일고객 계약번호에 대한 입금 상세정보를 조회한다.")
     @GetMapping("/deposit")
-    public FindDepositDtlRes getContractDeposit(@RequestParam
+    public FindDepositInfoRes getContractDeposit(@RequestParam
     String bndBizDvCd, @RequestParam
     String cntrNo, @RequestParam
     int cntrSn) {
@@ -56,5 +56,13 @@ public class WbncSameCustomerContractController {
     public FindSalesRes getContractSales(@PathVariable
     String bndCntrRefId) {
         return service.getContractSales(bndCntrRefId);
+    }
+
+    @ApiOperation(value = "동일고객 계약 입금 상세조회", notes = "동일고객 계약번호에 대한 입금 상세정보를 조회한다.")
+    @GetMapping("/deposit-details")
+    public List<FindDepositDtlRes> getDeposits(@RequestParam
+    String cntrNo, @RequestParam
+    int cntrSn) {
+        return service.getDeposits(cntrNo, cntrSn);
     }
 }

@@ -7,6 +7,8 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,10 +18,13 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustom
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
 import com.kyowon.sms.wells.web.bond.consultation.service.WbncCustomerService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -97,6 +102,30 @@ public class WbncCustomerController {
     })
     public List<FindCounselHistoryRes> getCounselHistorys(FindCounselHistoryReq dto) throws Exception {
         return service.getCounselHistorys(dto);
+    }
+
+    @ApiOperation(value = "고객상세 특이상항 내용 저장", notes = "고객상세 특이상항 내용을 저장한다.")
+    @PostMapping("/customer-detail/unuitmCn")
+    public SaveResponse saveUnuitmCn(
+        @RequestBody
+        @Valid
+        SaveUnuitmCnReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveUnuitmCn(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "고객상세 상담/약속 내용 저장", notes = "고객상세 상담/약속 내용을 저장한다.")
+    @PostMapping("/customer-detail/counsel")
+    public SaveResponse saveCounsel(
+        @RequestBody
+        @Valid
+        SaveCounselReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveCounsel(dto))
+            .build();
     }
 
 }

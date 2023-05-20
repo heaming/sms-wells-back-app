@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbGiroDepositMgtConverter;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveIntegrationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveErrosReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDtlStateRes;
@@ -119,7 +120,14 @@ public class WwdbGiroDepositMgtService {
     }
 
     @Transactional
-    public int saveBillingCreateDocument(SearchReq dto) throws Exception {
+    public int saveBillingCreateDocument(SaveIntegrationReq dto) throws Exception {
+
+        int processCount = 0;
+
+        WwdbGiroDepositSaveInfoDvo dvo = convert.mapSaveGiroDepositSaveDvo(dto);
+
+        processCount += mapper.inertIntegrationItemization(dvo);
+        processCount += mapper.updateIntegrationItemization(dvo);
         //        
         //        int tcnt = 0; // 자료　건수
         //        int rcnt = 0; // 제외　건수
@@ -270,6 +278,7 @@ public class WwdbGiroDepositMgtService {
         //
         //        }
         return 0;
+
     }
 
     @Transactional

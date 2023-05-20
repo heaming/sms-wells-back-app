@@ -21,7 +21,38 @@ public class WfebEgerAllowanceDto {
     public record SearchReq(
         @NotBlank
         String perfYm,
-        String no
+        String awDv,
+        String ogLevlDvCd1,
+        String rsbDvCd,
+        String prtnrNo
+    ) {}
+
+    @ApiModel(value = "WfebEngineerAwCrtMgtDto-EditReq")
+    public record EditReq(
+        @NotBlank
+        String perfYm,
+        @NotBlank
+        String ogId,
+        String ogCd,
+        String rsbDvCd,
+        @NotBlank
+        String prtnrNo,
+        String feeCd,
+        int feeAmt
+    ) {}
+
+    @ApiModel(value = "WfebEngineerAwCrtMgtDto-ConfirmReq")
+    public record ConfirmReq(
+        @NotBlank
+        String baseYm,
+        @NotBlank
+        String ogCd,
+        @NotBlank
+        String prtnrNo,
+        @NotBlank
+        String type,
+        @NotBlank
+        String confirm
     ) {}
 
     // *********************************************************
@@ -30,73 +61,101 @@ public class WfebEgerAllowanceDto {
     // 엔지니어 수당 생성관리 Search Result Dto
     @ApiModel(value = "WfebEngineerAwCrtMgtDto-SearchEngineerRes")
     public record SearchEngineerRes(
-        String col1, /*센터*/
-        String col2, /*지점*/
-        String col3, /*성명*/
-        String col4, /*번호*/
-        String col5, /*직급*/
-        String col6, /*직책*/
-        int col7, /*설치작업-작업실적*/
-        int col8, /*설치작업-수당*/
-        int col9, /*설치작업-급지수당*/
-        int col10, /*정기B/S작업-작업실적*/
-        int col11, /*정기B/S작업-수당*/
-        int col12, /*정기B/S작업-급지수당*/
-        int col13, /*일반A/S-작업실적*/
-        int col14, /*일반A/S-수당*/
-        int col15, /*일반A/S-급지수당*/
-        int col16, /*동행처리-작업실적*/
-        int col17, /*동행처리-수당*/
-        int col18, /*동행처리-급지수당*/
-        int col19, /*합계-작업실적*/
-        int col20, /*합계-수당*/
-        int col21, /*합계-급지수당*/
-        int col22, /*생산성인센티브-작업실적*/
-        int col23, /*생산성인센티브-지급금액*/
-        int col24, /*스케일링-작업실적*/
-        int col25, /*스케일링-수당*/
-        int col26, /*일반수리-작업실적*/
-        int col27, /*일반수리-수당*/
-        int col28, /*경수리-작업실적*/
-        int col29, /*경수리-수당*/
-        int col30, /*중수리-작업실적*/
-        int col31, /*중수리-수당*/
-        int col32, /*아웃소싱-작업실적*/
-        int col33, /*아웃소싱-수당*/
-        int col34, /*합계-작업실적*/
-        int col35, /*합계-수당*/
-        int col36, /*조정전수당합계*/
-        int col37, /*조정후수당합계*/
-        int col38, /*지원수당*/
-        int col39, /*기타수당*/
-        int col40, /*철거/철회수당*/
-        int col41, /*판매권유수당*/
-        int col42, /*토요근무수당-출동건*/
-        int col43, /*토요근무수당-수당*/
-        int col44, /*휴무당직수당-출동건*/
-        int col45, /*휴무당직수당-수당*/
-        int col46, /*강의수당-강의시간*/
-        int col47, /*강의수당-수당*/
-        int col48, /*도서방문수당-방문일수*/
-        int col49, /*도서방문수당-수당*/
-        int col50, /*기술숙련수당*/
-        int col51, /*조장수당*/
-        int col52, /*부가수당합계*/
-        int col53, /*지급대상수당금액*/
-        String col54, /*센터확정일자*/
-        String col55 /*비고*/
+        String baseYm, /*실적년월*/
+        String dgr2LevlOgId, /*센터조직id*/
+        String dgr2LevlOgNm, /*센터조직명*/
+        String dgr2LevlOgCd, /*센터조직코드*/
+        String ogId, /*조직ID*/
+        String ogNm, /*조직명*/
+        String ogCd, /*조직코드*/
+        String prtnrKnm, /*성명*/
+        String prtnrNo, /*파트너번호*/
+        String pstnDvNm, /*직급*/
+        String rsbDvNm, /*직책*/
+        Integer perfW06p00001, /*설치작업 건수*/
+        Integer perfW06p00004, /*bs작업 건수*/
+        Integer perfW06p00005, /*as작업 건수*/
+        Integer perfW06p00006, /*동행작업 건수*/
+        Integer totPerfVisit, /*방문처리실적 합계*/
+        Integer perfW06p00007, /*책임지역 건수*/
+        Integer perfW06p00008, /*스케일링 건수*/
+        Integer perfW06p00009, /*일반수리 건수*/
+        Integer perfW06p00010, /*경수리 건수*/
+        Integer perfW06p00025, /*중수리 건수*/
+        Integer perfW06p00015, /*아웃소싱 건수*/
+        Integer perfW06P00018, /*토요근무 건수*/
+        Integer totPerfRpr, /*입고수리실적 합계*/
+        Integer feeW060001, /*설지작업 실적수당*/
+        Integer feeW060002, /*설치작업 급지수당*/
+        Integer feeW060003, /*b/s작업 실적수당*/
+        Integer feeW060004, /*b/s작업 급지수당*/
+        Integer feeW060005, /*a/s 실적수당*/
+        Integer feeW060006, /*a/s 급지수당*/
+        Integer feeW060007, /*동행처리 실적수당*/
+        Integer feeW060008, /*동행처리 급지수당*/
+        Integer totFeeVisit, /*방문처리실적 수당 합계*/
+        Integer totRglvlFeeVisit, /*방문처리실적 급지수당 합계*/
+        Integer feeW060009, /*생산성인센티브*/
+        Integer feeW060010, /*스케일링 수당*/
+        Integer feeW060011, /*일반수리 수당*/
+        Integer feeW060012, /*경수리 수당*/
+        Integer feeW060017, /*중수리 수당*/
+        Integer feeW060018, /*아웃소싱 수당*/
+        Integer totFeeRpr, /*입고수리수당 합계*/
+        Integer feeW060019, /*지원 수당*/
+        Integer feeW060020, /*기타 수당*/
+        Integer feeW060021, /*철거/철회 수당*/
+        Integer feeW060022, /*판매권유 수당*/
+        Integer feeW060023, /*토요근무 수당*/
+        Integer feeW060024, /*휴무당직 수당*/
+        Integer feeW060025, /*강의 수당*/
+        Integer feeW060026, /*도서방문수당*/
+        Integer feeW060027, /*기술숙련수당*/
+        Integer feeW060028, /*조장 수당*/
+        Integer totFee, /*조정전수당합계*/
+        Integer totAfFee, /*조정후수당합계*/
+        Integer totFeeEtc, /*부가수당합계*/
+        Integer dsbOjAmt, /*지급대상금액*/
+        Integer feeW060022Cnt, /*판매권유수당 건수*/
+        Integer feeW060024Cnt, /*휴무당직수당 건수*/
+        Integer feeW060025Cnt, /*강의수당 건수*/
+        Integer feeW060026Cnt, /*도서방문수당 건수*/
+        Integer feeW060023Cnt, /*토요근무수당 건수*/
+        String editYn, /*수정가능여부*/
+        String cnrAwCnfmDtm, /*확정일자*/
+        String note /*비고*/
     ) {}
 
     @ApiModel(value = "WfebEngineerAwCrtMgtDto-SearchEngineerManagerRes")
     public record SearchEngineerManagerRes(
-        String col1, /*센터*/
-        String col2, /*번호*/
-        String col3, /*성명*/
-        String col4, /*직책*/
-        String col5, /*직급*/
-        int col6, /*업적수당*/
-        int col7, /*자격수당*/
-        int col8 /*수당합계*/
+        String dgr2LevlOgId, /*센터조직id*/
+        String dgr2LevlOgNm, /*센터조직명*/
+        String dgr2LevlOgCd, /*센터조직코드*/
+        String ogId, /*조직id*/
+        String ogNm,
+        String ogCd,
+        String baseYm,
+        String prtnrKnm,
+        String prtnrNo,
+        String pstnDvCd,
+        String pstnDvNm,
+        String rsbDvCd,
+        String rsbDvNm,
+        int feeW060031, /*업적수당*/
+        int feeW060032, /*자격수당*/
+        int totFee
+    ) {}
+
+    @ApiModel("WfebEngineerAwCrtMgtDto - SearchConfirmRes")
+    public record SearchConfirmRes(
+        String baseYm,
+        String ogId,
+        String ogNm,
+        String ogCd,
+        String cnrAwCnfmDtm, /*센터확정일시*/
+        String cnfmBtnYn, /*확정취소 버튼 활성화 여부*/
+        int totCnt, /*전체 개수*/
+        int cnfmBtnCnt /*확정된 센터 개수*/
     ) {}
 
     // *********************************************************

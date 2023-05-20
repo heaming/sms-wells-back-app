@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyInstallSeparationMgtMapper">
+    <select id="selectInstallSeparationCosts" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyInstallSeparationMgtDto$SearchRes">
+        SELECT SELL_TP_CD /*판매유형코드*/
+             , PD_CD /*상품코드*/
+             , SEP_IST_CS_ATC_CD /*분리설치비용항목코드*/
+             , SEP_IST_CS_DTL_CD /*분리설치비용상세코드*/
+             , IZ_SN /*내역일련번호*/
+             , APY_STRTDT /*적용시작일자*/
+             , APY_ENDDT /*적용종료일자*/
+             , WK_CS_AMT /*작업비용금액*/
+             , RECAP_SV_YN /*유상서비스여부*/
+             , RMK_CN /*비고내용*/
+          FROM TB_SVPD_RCAS_BAS_CS_BASE_IZ
+         WHERE 1=1
+        <if test="@MybatisUtils@isNotEmpty(pdCd)">
+           AND PD_CD = #{pdCd}
+        </if>
+        /* 현재적용자료 체크시 */
+        <if test='@MybatisUtils@isNotEmpty(apyMtrChk) and @MybatisUtils@equals(apyMtrChk,"Y")'>
+           AND TO_CHAR( SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
+        </if>
+           AND DTA_DL_YN = 'N'
+         ORDER BY SELL_TP_CD, PD_CD, SEP_IST_CS_ATC_CD, SEP_IST_CS_DTL_CD, APY_STRTDT ASC
+    </select>
+    <select id="selectPdCd" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyInstallSeparationMgtDto$FindProductsRes">
+        SELECT T1.SVPD_PD_CD AS CODE_ID
+             , T1.SVPD_NM_ABBR1 || '(' || T1.SVPD_PD_CD || ')' AS CODE_NAME
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
+         WHERE T1.SVPD_ITEM_KND = '4'
+           AND T1.SVPD_ITEM_GR = #{pdGr}
+         ORDER BY T1.SVPD_ITEM_CD, T1.SVPD_PART_CD
+    </select>
+
+    <insert id="insertInstallSeparationCosts">
+        INSERT INTO TB_SVPD_RCAS_BAS_CS_BASE_IZ (
+               SELL_TP_CD /*판매유형코드*/
+             , PD_CD /*상품코드*/
+             , SEP_IST_CS_ATC_CD /*분리설치비용항목코드*/
+             , SEP_IST_CS_DTL_CD /*분리설치비용상세코드*/
+             , IZ_SN /*내역일련번호*/
+             , APY_STRTDT /*적용시작일자*/
+             , APY_ENDDT /*적용종료일자*/
+             , WK_CS_AMT /*작업비용금액*/
+             , RECAP_SV_YN /*유상서비스여부*/
+             , RMK_CN /*비고내용*/
+             <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+                 #{sellTpCd}
+               , #{pdCd} /*상품코드*/
+               , #{sepIstCsAtcCd} /*서비스업무중분류코드*/
+               , #{sepIstCsDtlCd} /*서비스업무세분류코드*/
+               , NVL((SELECT MAX(IZ_SN) + 1 FROM TB_SVPD_RCAS_BAS_CS_BASE_IZ),1) /*내역일련번호*/
+               , #{apyStrtdt} /*적용시작일자*/
+               , #{apyEnddt}/*적용종료일자*/
+               , #{wkCsAmt} /*작업비용금액*/
+               , #{recapSvYn} /*유상서비스여부*/
+               , #{rmkCn} /*비고내용*/
+               <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <update id="deleteInstallSeparationCosts">
+        UPDATE TB_SVPD_RCAS_BAS_CS_BASE_IZ
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE SELL_TP_CD = #{sellTpCd}
+           AND PD_CD = #{pdCd}
+           AND SEP_IST_CS_ATC_CD = #{sepIstCsAtcCd}
+           AND SEP_IST_CS_DTL_CD = #{sepIstCsDtlCd}
+           AND IZ_SN = ${izSn}
+    </update>
+</mapper>

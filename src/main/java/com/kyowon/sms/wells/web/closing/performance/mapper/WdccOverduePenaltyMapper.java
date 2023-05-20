@@ -1,18 +1,22 @@
 package com.kyowon.sms.wells.web.closing.performance.mapper;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 @Mapper
 public interface WdccOverduePenaltyMapper {
-    List<SearchRes> selectSalesBondAdditionalChargesAggregate(SearchReq req);
 
-    List<SearchRes> selectSalesBondAdditionalChargesDates(SearchReq req);
+    List<FindCodeRes> selectCode();
 
-    List<SearchRes> selectSalesBondAdditionalChargesOrders(SearchReq req);
+    List<SearchMainGridRes> selectMainGridAggregate(SearchReq req);
 
-    List<SearchRes> selectSalesBondAdditionalChargesMembers(SearchReq req);
+    List<SearchMainGridRes> selectMainGridDates(SearchReq req);
+
+    List<SearchSubGridRes> selectSubGridOrder(SearchReq req);
+
+    List<SearchThirdGridRes> selectThirdGridAggregate(SearchReq req);
+
+    List<SearchFourthGridRes> selectFourthGridOrder(SearchReq req);
 }

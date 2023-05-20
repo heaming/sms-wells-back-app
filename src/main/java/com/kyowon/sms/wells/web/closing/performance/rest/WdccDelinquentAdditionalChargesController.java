@@ -1,7 +1,8 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchAggregateRes;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchOrderUnitRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccDelinquentAdditionalChargesService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import io.swagger.annotations.Api;
@@ -26,18 +27,31 @@ public class WdccDelinquentAdditionalChargesController {
 
     private final WdccDelinquentAdditionalChargesService service;
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(집계)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "기준년월", paramType = "query"),
-        @ApiImplicitParam(name = "cntrNo", value = "계약상세번호", paramType = "query"),
-        @ApiImplicitParam(name = "btdDlqAddAmt", value = "전기이월", paramType = "query"),
-        @ApiImplicitParam(name = "thmOcDlqAddAmt", value = "당월발생", paramType = "query"),
-        @ApiImplicitParam(name = "thmDlqRfndSumAmt", value = "당월환불", paramType = "query"),
-        @ApiImplicitParam(name = "eotDlqAddAmt", value = "기말잔액", paramType = "query"),
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtlCd", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드", paramType = "query"),
     })
-    @GetMapping
-    public List<SearchRes> getDelinquentAdditionalCharges(
+    @GetMapping("/aggregate")
+    public List<SearchAggregateRes> getDelinquentAdditionalChargesAggregate(
+        @Valid SearchReq req
+    ) {
+        return service.getDelinquentAdditionalChargesAggregate(req);
+    }
 
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtlCd", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드", paramType = "query"),
+    })
+    @GetMapping("/orderUnit")
+    public List<SearchOrderUnitRes> getDelinquentAdditionalCharges(
         @Valid SearchReq req
     ) {
         return service.getDelinquentAdditionalCharges(req);

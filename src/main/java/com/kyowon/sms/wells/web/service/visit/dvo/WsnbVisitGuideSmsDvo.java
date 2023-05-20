@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,11 +21,15 @@ public class WsnbVisitGuideSmsDvo {
     String vstCnfmHh;
     String istllKnm;
     String pdNm;
-    String destInfo;
+    String cralLocaraTno;
+    @DBDecField
+    String mexnoEncr;
+    String cralIdvTno;
     String nowDate;
     String sendDatetime;
     String userId;
     String callback;
     String templateId;
+    String subject;
 
 }

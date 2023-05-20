@@ -59,10 +59,44 @@ public class WfebEgerAllowanceController {
         return this.service.getEngineerManagerAllowances(dto);
     }
 
+    @ApiOperation(value = "엔지니어 수당 조정", notes = "해당 실적년월의 엔지니어 수당을 조정한다.")
+    @PutMapping("/controls")
+    public SaveResponse editEgerAllowances(
+        @RequestBody
+        @Valid
+        List<WfebEgerAllowanceDto.EditReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.service.editEgerAllowances(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "엔지니어 수당 확정 현황 조회", notes = "해당 실적년월의 엔지니어 수당 확정 현황을 조회한다.")
+    @GetMapping("/confirm/{perfYm}")
+    public List<WfebEgerAllowanceDto.SearchConfirmRes> getEgerAllowanceConfirms(
+        @PathVariable
+        String perfYm
+    ) {
+        return this.service.getEgerAllowanceConfirms(perfYm);
+    }
+
+    @ApiOperation(value = "엔지니어 수당 확정", notes = "해당 실적년월의 엔지니어 수당을 확정한다.")
+    @PutMapping("/confirm")
+    public SaveResponse confirmEgerAllowances(
+        @RequestBody
+        @Valid
+        List<WfebEgerAllowanceDto.ConfirmReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.service.confirmEgerAllowances(dtos))
+            .build();
+    }
+
     @ApiOperation(value = "엔지니어 수당 생성", notes = "해당 실적년월의 엔지니어 수당를 생성한다.")
     @PostMapping
     public SaveResponse saveEgerAllowances(
-        @RequestBody @Valid
+        @RequestBody
+        @Valid
         WfebEgerAllowanceDto.SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()

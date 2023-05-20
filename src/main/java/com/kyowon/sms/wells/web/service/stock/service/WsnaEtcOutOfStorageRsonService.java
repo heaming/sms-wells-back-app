@@ -10,7 +10,6 @@ import java.util.List;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.*;
 
 /**
- *
  * <pre>
  * W-SV-U-0274M01 기타출고 사유내역
  * </pre>
@@ -26,15 +25,16 @@ public class WsnaEtcOutOfStorageRsonService {
 
     /**
      * 기타출고 사유내역 - 조회
+     *
      * @param dto : {
-     * stOstrDt : 시작출고일자,
-     * edOstrDt : 종료출고일자,
-     * bilRsonCd : 청구사유코드,
-     * pdGdCd : 등급코드,
-     * itmKndCd : 품목구분코드,
-     * startItemCd : 시작품목코드,
-     * endItemCd : 종료품목코드,
-     * ostrWareNo : 서비스센터 }
+     *            stOstrDt : 시작출고일자,
+     *            edOstrDt : 종료출고일자,
+     *            bilRsonCd : 청구사유코드,
+     *            pdGdCd : 등급코드,
+     *            itmKndCd : 품목구분코드,
+     *            startItemCd : 시작품목코드,
+     *            endItemCd : 종료품목코드,
+     *            ostrWareNo : 서비스센터 }
      * @return 조회결과
      */
     public List<SearchRes> getEtcOutOfStorageRsons(SearchReq dto) {
@@ -43,6 +43,7 @@ public class WsnaEtcOutOfStorageRsonService {
 
     /**
      * 기타출고 사유내역 - 조회
+     *
      * @param dto : {stOstrDt : 시작출고일자}
      * @return 조회결과
      */
@@ -52,6 +53,7 @@ public class WsnaEtcOutOfStorageRsonService {
 
     /**
      * 기타출고 사유내역 - 조회
+     *
      * @param dto : {}
      * @return 조회결과
      */
@@ -61,18 +63,42 @@ public class WsnaEtcOutOfStorageRsonService {
 
     /**
      * 기타출고 사유내역 (영업센터)- 조회
+     *
      * @param dto : {
-     * stOstrDt : 시작출고일자,
-     * edOstrDt : 종료출고일자,
-     * bilRsonCd : 청구사유코드,
-     * pdGdCd : 등급코드,
-     * itmKndCd : 품목구분코드,
-     * startItemCd : 시작품목코드,
-     * endItemCd : 종료품목코드,
-     * ostrWareNo : 서비스센터 }
+     *            stOstrDt : 시작출고일자,
+     *            edOstrDt : 종료출고일자,
+     *            bilRsonCd : 청구사유코드,
+     *            pdGdCd : 등급코드,
+     *            itmKndCd : 품목구분코드,
+     *            startItemCd : 시작품목코드,
+     *            endItemCd : 종료품목코드,
+     *            ostrWareNo : 서비스센터 }
      * @return 조회결과
      */
     public List<SearchRes> getEtcOutOfStorageRsonBusiness(SearchReq dto) {
         return this.mapper.selectEtcOutOfStorageRsonBusiness(dto);
+    }
+
+    /**
+     * 기타출고 사유내역 - 엑셀다운로드
+     *
+     * @param dto : {
+     *            stOstrDt : 시작출고일자,
+     *            edOstrDt : 종료출고일자,
+     *            bilRsonCd : 청구사유코드,
+     *            pdGdCd : 등급코드,
+     *            itmKndCd : 품목구분코드,
+     *            startItemCd : 시작품목코드,
+     *            endItemCd : 종료품목코드,
+     *            ostrWareNo : 서비스센터 }
+     * @return 조회결과
+     */
+    public List<SearchRes> getEtcOutOfStorageRsonsForExcelDownload(SearchReq dto) {
+        return this.mapper.selectEtcOutOfStorageRsons(dto);
+    }
+
+    public List<SearchRes> getEtcOutOfStorageRsonsBusinessForExcelDownload(SearchReq dto) {
+        return this.mapper.selectEtcOutOfStorageRsonBusiness(dto);
+
     }
 }

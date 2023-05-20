@@ -46,4 +46,12 @@ public interface WctaOrderDetailMngtMapper {
     List<WctaOrderDetailRglrDlvrPagesDvo> selectOrderRegularShippingsPages(
         SearchOrderDetailRglrDlvrPagesReq dto
     );
+
+    int updateMembershipConfirmsCntrBas(SaveMembershipConfirmsReq dto);
+
+    int updateMembershipConfirmsCntrDtl(SaveMembershipConfirmsReq dto);
+
+    List<SearchCompositionProductsRes> selectCompositionProducts(SearchCompositionProductsReq dto);
+
+    List<SearchFreeGiftInformationRes> selectFreeGiftInformation(SearchCompositionProductsReq dto);
 }

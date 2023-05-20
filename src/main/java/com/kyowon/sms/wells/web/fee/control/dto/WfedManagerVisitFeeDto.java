@@ -18,9 +18,9 @@ public class WfedManagerVisitFeeDto {
         @NotBlank
         String inqrDv,
 
-        String ogLevl1,
-        String ogLevl2,
-        String ogLevl3,
+        String ogLevlDvCd1,
+        String ogLevlDvCd2,
+        String ogLevlDvCd3,
         String no
     ) {}
 
@@ -31,17 +31,22 @@ public class WfedManagerVisitFeeDto {
     @ApiModel("WfedManagerVisitFeeDto-SearchRes")
     public record SearchRes(
 
-        String col1,
-        String col2,
-        String col3,
-        String col4,
-        String col5,
-        String col6,
-        int col7,
-        int col8,
-        String col9,
-        String col10,
-        String col11
+        String dgr1LevlOgId, /*총괄단*/
+        String dgr2LevlOgId, /*지역단*/
+        String dgr3LevlOgId, /*지점*/
+        String prtnrNo,
+        String prtnrKnm,
+        String cntrNo, /*계약번호*/
+        String basePdCd, /*상품코드*/
+        String pdNm, /*상품명*/
+        String svFeePdDvCd, /*bs상품군*/
+        String svFeePdDvNm, /*bs상품군*/
+        int svFeeBaseAmt, /*bs기본수수료*/
+        int feeCalcAmt, /*방문수수료*/
+        String vstRglvlGdCd, /*방문급지*/
+        String vstRglvlGdNm, /*방문급지*/
+        String wkExcnDt, /*방문일자*/
+        String canYn
 
     ) {}
 }

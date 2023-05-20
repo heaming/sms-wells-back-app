@@ -7,10 +7,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.CreateReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchItemsRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.*;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaBsCsmbDeliveryBaseService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -64,6 +61,29 @@ public class WsnaBsCsmbDeliveryBaseController {
     ) {
         return SaveResponse.builder()
             .processCount(service.createDeliveryBase(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "BS소모품 배부기준 조회", notes = "BS소모품 배부기준 단건 조회")
+    @GetMapping("/{mngtYm}-{csmbPdCd}")
+    public FindRes getDeliveryBase(
+        @PathVariable
+        String mngtYm,
+        @PathVariable
+        String csmbPdCd
+    ) {
+        return service.getDeliveryBase(mngtYm, csmbPdCd);
+    }
+
+    @ApiOperation(value = "BS소모품 배부기준 등록", notes = "입력된 데이터에 따른 BS소모품 배부기준 등록")
+    @PutMapping
+    public SaveResponse editDeliveryBase(
+        @RequestBody
+        @Valid
+        List<EditReq> dtos
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.editDeliveryBase(dtos))
             .build();
     }
 }

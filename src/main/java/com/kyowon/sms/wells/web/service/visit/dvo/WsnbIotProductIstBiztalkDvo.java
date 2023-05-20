@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,14 +18,17 @@ import lombok.Setter;
 public class WsnbIotProductIstBiztalkDvo {
 
     String wkExcnDt;
-    String destInfo;
+    String istllKnm;
+    String cralLocaraTno;
+    @DBDecField
+    String mexnoEncr;
+    String cralIdvTno;
+    String pdNm;
     String subject;
+    String tCode;
     String nowDate;
     String sendDate;
     String userId;
     String callback;
-    String tCode; // 템플릿코드
-    String istllKnm; // 설치자한글명
-    String pdNm; // 상품명
 
 }

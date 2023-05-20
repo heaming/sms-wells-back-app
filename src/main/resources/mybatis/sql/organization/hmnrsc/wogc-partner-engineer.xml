@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper">
+    <select id="selectEngineerAttends" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$SearchEngineerRes">
+        SELECT MOG.OG_CD                    /*조직코드*/
+             , MOG.OG_NM                    /*조직명*/
+             , EAI.OG_TP_CD                 /*조직유형코드*/
+             , EAI.PRTNR_NO                 /*파트너번호*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_ROL_CD', MPI.ROL_DV_CD) AS ROL_DV_NM
+             , MPI.PRTNR_KNM                /*파트너명*/
+             , WGB.WK_GRP_CD                /*작업그룹코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'WK_GRP_CD', WGB.WK_GRP_CD) AS WK_GRP_NM
+             , CASE WHEN EAI.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'Y'
+                                                           ELSE 'N'
+               END BIZ_AGNT_YN
+             , EAI.WRK_DT                   /*근무일자*/
+             , (SELECT CASE WHEN PHLD_YN='Y'
+                        THEN TO_CHAR(TO_DATE(BASE_Y||BASE_MM||BASE_D, 'YYYY-MM-DD'), 'DY','NLS_DATE_LANGUAGE=KOREAN')  ||'(공휴일)'
+                        ELSE TO_CHAR(TO_DATE(BASE_Y||BASE_MM||BASE_D, 'YYYY-MM-DD'), 'DY','NLS_DATE_LANGUAGE=KOREAN')
+                      END AS DOW_DV
+                 FROM TB_SVPD_SV_CLND_BAS A
+                WHERE 1=1
+                  AND BASE_Y  = SUBSTR(EAI.WRK_DT, 1, 4)
+                  AND BASE_MM = SUBSTR(EAI.WRK_DT, 5, 2)
+                  AND BASE_D  = SUBSTR(EAI.WRK_DT, 7, 2)) AS WRK_NM
+             , EAI.EGER_WRK_STAT_CD            /*근태사유코드*/
+             , EAI.RMK_CN                      /*비고내용*/
+             , EAI.DNL_STRTDT                  /*근태시작일자*/
+             , EAI.DNL_ENDDT                   /*근태종료일자*/
+             , EAI.BIZ_AGNT_PRTNR_NO           /*업무대행파트너번호*/
+             , MPI2.PRTNR_KNM AS AGNT_PRTNR_KNM            /*파트너명*/
+             , EAI.PCP_PRTNR_NO                            /*처리자파트너번호*/
+             , MPI3.PRTNR_KNM AS PCP_PRTNR_KNM             /*파트너명*/
+             , EAI.PROCS_DTM                               /*처리일자*/
+          FROM TB_OGPS_EGER_ATDC_IZ EAI
+          LEFT OUTER JOIN (SELECT OG_TP_CD, PRTNR_NO, APY_SEQN, WK_GRP_CD
+                             FROM TB_OGBS_WK_GRP_BLG_DTL WGB1
+                            WHERE APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                FROM TB_OGBS_WK_GRP_BLG_DTL
+                                               WHERE OG_TP_CD = WGB1.OG_TP_CD
+                                                 AND PRTNR_NO = WGB1.PRTNR_NO
+                                                 AND DTA_DL_YN = 'N')
+                          ) WGB /*작업그룹소속상세*/
+            ON EAI.PRTNR_NO = WGB.PRTNR_NO
+           AND EAI.OG_TP_CD = WGB.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI
+            ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MPI.PRTNR_NO = EAI.PRTNR_NO
+           AND MPI.OG_TP_CD = EAI.OG_TP_CD
+           AND MPI.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI2
+            ON MPI2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MPI2.PRTNR_NO = EAI.BIZ_AGNT_PRTNR_NO
+           AND MPI2.OG_TP_CD = EAI.OG_TP_CD
+           AND MPI2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI3
+            ON MPI3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MPI3.PRTNR_NO = EAI.PCP_PRTNR_NO
+           AND MPI3.OG_TP_CD = EAI.PCP_OG_TP_CD
+           AND MPI3.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ MOG
+            ON MOG.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MOG.OG_ID = MPI.OG_ID
+           AND MOG.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND EAI.DTA_DL_YN = 'N'
+           AND EAI.OG_TP_CD = 'W06'
+           AND EAI.WRK_DT = #{baseDt}
+    </select>
+
+     <!--엔지니어 출근 관리 목록 저장 -->
+    <update id="updateEngineer">
+        UPDATE TB_OGPS_EGER_ATDC_IZ
+           SET EGER_WRK_STAT_CD = #{egerWrkStatCd}              /*엔지니어근무상태코드*/
+             , RMK_CN = #{rmkCn}                  			    /*비고내용*/
+             , DNL_STRTDT = #{dnlStrtdt}              		    /*근태시작일자*/
+             , DNL_ENDDT = #{dnlEnddt}                          /*근태종료일자*/
+             , BIZ_AGNT_PRTNR_NO = #{bizAgntPrtnrNo}            /*업무대행파트너번호*/
+             , PCP_PRTNR_NO = #{session.employeeIDNumber}       /*처리자사번*/
+             , PROCS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /*처리일시*/
+             <include refid="COMMON.updateSystemField" />
+        WHERE 1=1
+          AND OG_TP_CD = 'W06'
+          AND PRTNR_NO = #{prtnrNo}
+          AND WRK_DT = #{wrkDt}
+    </update>
+
+    <!-- 서비스센터 조 관리 -->
+    <select id="selectJoeManagements" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$FindJoeManagementRes">
+        WITH WK_GRP_BLG_DTL AS (
+      SELECT
+             T.OG_TP_CD 	-- 조직유형코드 PK - TEST 자료 에러라서 고정값 부여함.
+           , T.PRTNR_NO
+           , T.APY_SEQN 		-- 일련번호 PK
+           , T.VL_STRTDT 		-- 적용일자
+           , T.VL_ENDDT 		-- 종료일자
+           , T.WK_GRP_CD 	-- 작업그룹
+           , T.WK_GRP_CD_NM
+           , T.EGER_RSB_CD  -- 직책
+           , T.EGER_RSB_CD_NM
+           , T.WKCR_CD 		-- 조 A.WKCR_CD 로 변경예정임.
+           , T.WKCR_CD_NM
+           , T.RMK_CN
+           , T.CRAL_LOCARA_TNO 	-- 업무용전화번호1
+           , T.MEXNO_ENCR 	-- 업무용전화번호2
+           , T.CRAL_IDV_TNO 	-- 업무용전화번호3
+           , T.RNO
+           , T.DTA_DL_YN
+        FROM (
+              SELECT
+                     'W06' AS OG_TP_CD 	-- 조직유형코드 PK - TEST 자료 에러라서 고정값 부여함.
+                    , A.PRTNR_NO 		-- 사번 PK
+                    , A.APY_SEQN 		-- 일련번호 PK
+                    , A.VL_STRTDT
+                    , A.VL_ENDDT
+                    , A.WK_GRP_CD 	-- 작업그룹
+                    , F_CMZ_CD_NM(#{session.tenantId}, 'WK_GRP_CD', A.WK_GRP_CD) AS WK_GRP_CD_NM
+                    , A.EGER_RSB_CD     -- 직책
+                    , F_CMZ_CD_NM(#{session.tenantId}, 'EGER_RSB_CD', A.EGER_RSB_CD) AS EGER_RSB_CD_NM
+                    , A.WKCR_CD 		-- 조
+                    , F_CMZ_CD_NM(#{session.tenantId}, 'WKCR_CD', A.WKCR_CD) AS WKCR_CD_NM
+                    , A.RMK_CN
+                    , A.CRAL_LOCARA_TNO  -- 업무용전화번호1
+                    , A.MEXNO_ENCR 	-- 업무용전화번호2
+                    , A.CRAL_IDV_TNO 	-- 업무용전화번호3
+                    , A.DTA_DL_YN
+                    , RANK() OVER (PARTITION BY A.OG_TP_CD, A.PRTNR_NO ORDER BY A.APY_SEQN DESC) AS RNO
+                FROM TB_OGBS_WK_GRP_BLG_DTL A		-- [작업그룹소속상세 테이블]
+               WHERE 1=1
+                 AND A.OG_TP_CD = 'W06'						-- 웰스-엔지니어 고정
+                 <if test='@MybatisUtils@isNotEmpty(vlDt)'>
+                 AND #{vlDt} BETWEEN A.VL_STRTDT AND A.VL_ENDDT 				-- 적용일기준조회 (여기서 처리)
+                 </if>
+                 AND A.DTA_DL_YN = 'N'
+             ) T
+       WHERE T.RNO = 1
+      )
+      SELECT
+             A.OG_TP_CD 		-- 조직유형코드 PK
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR1_LEVL_OG_ID) AS DGR1_LEVL_OG_NM  -- 1단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR2_LEVL_OG_ID) AS DGR2_LEVL_OG_NM  -- 2단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR3_LEVL_OG_ID) AS DGR3_LEVL_OG_NM  -- 3단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR4_LEVL_OG_ID) AS DGR4_LEVL_OG_NM  -- 4단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR5_LEVL_OG_ID) AS DGR5_LEVL_OG_NM  -- 5단계명
+           , A.PRTNR_NO 		-- 사번 PK
+           , A.PRTNR_KNM 		-- 성명
+           , B.RSB_DV_CD
+           , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', B.RSB_DV_CD) AS RSB_DV_CD_NM
+           , C.WK_GRP_CD 	-- 작업그룹
+           , C.WK_GRP_CD_NM
+           , C.EGER_RSB_CD		-- 직책
+           , C.EGER_RSB_CD_NM
+           , C.WKCR_CD
+           , C.WKCR_CD_NM
+           , B.CNTR_DT		-- 입사일자
+           , C.VL_STRTDT 		-- 적용일자
+           , C.VL_ENDDT 		-- 종료일자
+           , C.CRAL_LOCARA_TNO
+           , C.MEXNO_ENCR
+           , C.CRAL_IDV_TNO
+           , C.CRAL_LOCARA_TNO||C.MEXNO_ENCR||C.CRAL_IDV_TNO AS TEL_NUMBER
+           , A.DTA_DL_YN
+           , C.APY_SEQN
+        FROM TB_OGBS_PRTNR_BAS A
+        LEFT OUTER JOIN TB_OGBS_PRTNR_DTL B
+          ON A.OG_TP_CD = B.OG_TP_CD
+         AND A.PRTNR_NO = B.PRTNR_NO
+        LEFT OUTER JOIN WK_GRP_BLG_DTL C
+          ON B.OG_TP_CD = C.OG_TP_CD
+         AND B.PRTNR_NO = C.PRTNR_NO
+        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D
+          ON A.OG_ID = D.OG_ID
+         AND D.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+       WHERE 1=1
+         AND A.OG_TP_CD = 'W06'					-- 엔지니어
+         AND A.DTA_DL_YN = 'N'
+         AND B.CLTN_DT IS NULL
+         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+         AND D.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+         AND D.DGR3_LEVL_OG_ID = #{ogLevlDvCd3} 						-- 조직레벨 (여기서 추가 처리 필요함)
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(wkGrpCd)'>
+         AND C.WK_GRP_CD = #{wkGrpCd}						-- 작업그룹(여기서 처리)					--AND							-- 직책 (아래서 처리예정)
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+         AND A.PRTNR_NO  = #{prtnrNo} 						-- 검색조건 : 번호 (여기서 처리)
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
+         AND B.RSB_DV_CD = #{rsbDvCd} 					-- 직책 (여기서 추가처리 필요함)
+         </if>
+       ORDER BY A.PRTNR_NO DESC
+    </select>
+
+    <select id="selectJoeManagementForExcelDownload" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo">
+        WITH WK_GRP_BLG_DTL AS (
+      SELECT
+             T.OG_TP_CD 	-- 조직유형코드 PK - TEST 자료 에러라서 고정값 부여함.
+           , T.PRTNR_NO
+           , T.APY_SEQN 		-- 일련번호 PK
+           , T.VL_STRTDT 		-- 적용일자
+           , T.VL_ENDDT 		-- 종료일자
+           , T.WK_GRP_CD 	-- 작업그룹
+           , T.WK_GRP_CD_NM
+           , T.EGER_RSB_CD  -- 직책
+           , T.EGER_RSB_CD_NM
+           , T.WKCR_CD 		-- 조 A.WKCR_CD 로 변경예정임.
+           , T.WKCR_CD_NM
+           , T.RMK_CN
+           , T.CRAL_LOCARA_TNO 	-- 업무용전화번호1
+           , T.MEXNO_ENCR 	-- 업무용전화번호2
+           , T.CRAL_IDV_TNO 	-- 업무용전화번호3
+           , T.RNO
+           , T.DTA_DL_YN
+        FROM (
+              SELECT
+                     'W06' AS OG_TP_CD 	-- 조직유형코드 PK - TEST 자료 에러라서 고정값 부여함.
+                   , A.PRTNR_NO 		-- 사번 PK
+                   , A.APY_SEQN 		-- 일련번호 PK
+                   , A.VL_STRTDT
+                   , A.VL_ENDDT
+                   , A.WK_GRP_CD 	-- 작업그룹
+                   , F_CMZ_CD_NM(#{session.tenantId}, 'WK_GRP_CD', A.WK_GRP_CD) AS WK_GRP_CD_NM
+                   , A.EGER_RSB_CD     -- 직책
+                   , F_CMZ_CD_NM(#{session.tenantId}, 'EGER_RSB_CD', A.EGER_RSB_CD) AS EGER_RSB_CD_NM
+                   , A.WKCR_CD 		-- 조
+                   , F_CMZ_CD_NM(#{session.tenantId}, 'WKCR_CD', A.WKCR_CD) AS WKCR_CD_NM
+                   , A.RMK_CN
+                   , A.CRAL_LOCARA_TNO  -- 업무용전화번호1
+                   , A.MEXNO_ENCR 	-- 업무용전화번호2
+                   , A.CRAL_IDV_TNO 	-- 업무용전화번호3
+                   , A.DTA_DL_YN
+                   , RANK() OVER (PARTITION BY A.OG_TP_CD, A.PRTNR_NO ORDER BY A.APY_SEQN DESC) AS RNO
+               FROM TB_OGBS_WK_GRP_BLG_DTL A		-- [작업그룹소속상세 테이블]
+              WHERE 1=1
+                AND A.OG_TP_CD = 'W06'						-- 웰스-엔지니어 고정
+                <if test='@MybatisUtils@isNotEmpty(vlDt)'>
+                AND #{vlDt} BETWEEN A.VL_STRTDT AND A.VL_ENDDT 				-- 적용일기준조회 (여기서 처리)
+                </if>
+                AND A.DTA_DL_YN = 'N'
+            ) T
+        WHERE T.RNO = 1
+        )
+        SELECT
+               A.OG_TP_CD 		-- 조직유형코드 PK
+             , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR1_LEVL_OG_ID) AS DGR1_LEVL_OG_NM  -- 1단계명
+             , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR2_LEVL_OG_ID) AS DGR2_LEVL_OG_NM  -- 2단계명
+             , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR3_LEVL_OG_ID) AS DGR3_LEVL_OG_NM  -- 3단계명
+             , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR4_LEVL_OG_ID) AS DGR4_LEVL_OG_NM  -- 4단계명
+             , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR5_LEVL_OG_ID) AS DGR5_LEVL_OG_NM  -- 5단계명
+             , A.PRTNR_NO 		-- 사번 PK
+             , A.PRTNR_KNM 		-- 성명
+             , B.RSB_DV_CD
+             , C.WK_GRP_CD 	-- 작업그룹
+             , C.WK_GRP_CD_NM
+             , C.EGER_RSB_CD		-- 직책
+             , C.EGER_RSB_CD_NM
+             , C.WKCR_CD
+             , C.WKCR_CD_NM
+             , B.CNTR_DT		-- 입사일자
+             , C.VL_STRTDT 		-- 적용일자
+             , C.VL_ENDDT 		-- 종료일자
+             , C.CRAL_LOCARA_TNO
+             , C.MEXNO_ENCR
+             , C.CRAL_IDV_TNO
+             , C.CRAL_LOCARA_TNO||C.MEXNO_ENCR||C.CRAL_IDV_TNO AS TEL_NUMBER
+             , A.DTA_DL_YN
+             , C.APY_SEQN
+             , C.DTA_DL_YN
+         FROM TB_OGBS_PRTNR_BAS A
+         LEFT OUTER JOIN TB_OGBS_PRTNR_DTL B
+           ON A.OG_TP_CD = B.OG_TP_CD
+          AND A.PRTNR_NO = B.PRTNR_NO
+         LEFT OUTER JOIN WK_GRP_BLG_DTL C
+           ON B.OG_TP_CD = C.OG_TP_CD
+          AND B.PRTNR_NO = C.PRTNR_NO
+         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D
+           ON A.OG_ID = D.OG_ID
+          AND D.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+        WHERE 1=1
+          AND A.OG_TP_CD = 'W06'					-- 엔지니어
+          AND A.DTA_DL_YN = 'N'
+          AND B.CLTN_DT IS NULL
+          <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+          AND D.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+          AND D.DGR3_LEVL_OG_ID = #{ogLevlDvCd3} 						-- 조직레벨 (여기서 추가 처리 필요함)
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(wkGrpCd)'>
+          AND C.WK_GRP_CD = #{wkGrpCd}						-- 작업그룹(여기서 처리)					--AND							-- 직책 (아래서 처리예정)
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+          AND A.PRTNR_NO  = #{prtnrNo} 						-- 검색조건 : 번호 (여기서 처리)
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
+          AND B.RSB_DV_CD = #{rsbDvCd} 					-- 직책 (여기서 추가처리 필요함)
+          </if>
+        ORDER BY A.PRTNR_NO DESC
+    </select>
+
+    <insert id="insertWkGrpBlgDtl">
+        INSERT INTO TB_OGBS_WK_GRP_BLG_DTL (  /* 작업그룹소속상세 */
+               OG_TP_CD
+             , PRTNR_NO
+             , APY_SEQN
+             , VL_STRTDT
+             , VL_ENDDT
+             , WK_GRP_CD
+             , EGER_RSB_CD
+             , WKCR_CD
+             , RMK_CN
+             , CRAL_LOCARA_TNO
+             , MEXNO_ENCR
+             , CRAL_IDV_TNO
+             , AV_CPBLT_DV_CD
+             , THEO_EVL_TP_CD
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />)
+      VALUES (
+              #{ogTpCd}
+            , #{prtnrNo}
+            , (SELECT NVL(MAX(APY_SEQN), 0) +1
+                 FROM TB_OGBS_WK_GRP_BLG_DTL
+                WHERE OG_TP_CD = #{ogTpCd}
+                  AND PRTNR_NO = #{prtnrNo}
+              )
+            , #{vlStrtdt}
+            , #{vlEnddt}
+            , #{wkGrpCd}
+            , #{egerRsbCd}
+            , #{wkcrCd}
+            , #{rmkCn}
+            , #{cralLocaraTno}
+            , #{mexnoEncr}
+            , #{cralIdvTno}
+            , #{avCpbltDvCd}
+            , #{theoEvlTpCd}
+            , #{dtaDlYn}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <!-- 월파트너 작업조업데이트 -->
+    <update id="updatePrtnrGrpCd">
+        UPDATE TB_OGBS_MM_PRTNR_IZ
+           SET WK_GRP_CD = #{wkGrpCd}
+             , WK_GRP_NM = #{wkGrpCdNm}
+             , WKCR_NO = #{wkcrCd}
+         <include refid="COMMON.updateSystemField" />
+         WHERE 1=1
+           AND OG_TP_CD = #{ogTpCd}
+           AND PRTNR_NO = #{prtnrNo}
+           AND BASE_YM = SUBSTR(#{vlStrtdt},0,6)
+    </update>
+
+    <!--엔지니어 등급관리 -->
+    <select id="selectEngineerGrades" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$FindEngineerGradeRes">
+        -- 등급정보
+        WITH EGER_GD_RGST_IZ AS (
+             SELECT
+                    T.OG_TP_CD
+                  , T.PRTNR_NO
+                  , T.APY_SEQN
+                  , T.PRTNR_GD_CD
+                  , T.APY_STRTDT
+                  , T.APY_ENDDT
+                  , T.RMK_CN
+                  , T.DTA_DL_YN
+                  , T.RNO
+              FROM (
+                    SELECT
+                           A.OG_TP_CD 		-- 조직유형코드 PK
+                         , A.PRTNR_NO		-- 파트너번호 PK
+                         , A.APY_SEQN		-- 적용순번 PK
+                         , A.PRTNR_GD_CD	-- 등급
+                         , A.APY_STRTDT		-- 적용시작일자
+                         , A.APY_ENDDT 		-- 적용종료일자
+                         , A.RMK_CN		-- 비고
+                         , A.DTA_DL_YN
+                         , RANK() OVER (PARTITION BY A.OG_TP_CD, A.PRTNR_NO ORDER BY A.APY_SEQN DESC) AS RNO
+                      FROM TB_OGPS_EGER_GD_RGST_IZ A
+                     WHERE 1=1
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.APY_STRTDT AND A.APY_ENDDT		-- 현재시점
+                       AND A.DTA_DL_YN = 'N'
+                   ) T
+             WHERE T.RNO = 1
+      )
+      SELECT
+             A.OG_TP_CD 		-- 조직유형코드 PK
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR1_LEVL_OG_ID) AS DGR1_LEVL_OG_NM  -- 1단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR2_LEVL_OG_ID) AS DGR2_LEVL_OG_NM  -- 2단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR3_LEVL_OG_ID) AS DGR3_LEVL_OG_NM  -- 3단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR4_LEVL_OG_ID) AS DGR4_LEVL_OG_NM  -- 4단계명
+           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR5_LEVL_OG_ID) AS DGR5_LEVL_OG_NM  -- 5단계명
+           , A.PRTNR_NO 		-- 사번 PK
+           , A.PRTNR_KNM 		-- 성명
+           , B.ROL_DV_CD
+           , F_CMZ_CD_NM(#{session.tenantId}, 'ROL_DV_CD', B.ROL_DV_CD) AS ROL_DV_CD_NM
+           , C.PRTNR_GD_CD	-- 등급
+           , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', C.PRTNR_GD_CD) AS PRTNR_GD_CD_NM
+           , C.APY_STRTDT		-- 적용시작일자
+           , C.APY_ENDDT 		-- 적용종료일자
+           , C.RMK_CN		-- 비고
+           , B.CNTR_DT
+           , B.CLTN_DT
+           , C.APY_SEQN
+           , C.DTA_DL_YN
+       FROM TB_OGBS_PRTNR_BAS A    					-- [월 조직 스냅샷 테이블]
+       LEFT OUTER JOIN TB_OGBS_PRTNR_DTL B
+         ON A.OG_TP_CD = B.OG_TP_CD
+        AND A.PRTNR_NO = B.PRTNR_NO
+       LEFT OUTER JOIN EGER_GD_RGST_IZ C
+         ON A.OG_TP_CD = C.OG_TP_CD
+        AND A.PRTNR_NO = C.PRTNR_NO
+       LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D
+         ON A.OG_ID = D.OG_ID
+        AND D.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+       LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ E
+         ON A.OG_TP_CD = E.OG_TP_CD
+        AND A.PRTNR_NO = E.PRTNR_NO
+        AND E.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+      WHERE 1=1
+        AND A.OG_TP_CD = 'W06'
+        AND B.CLTN_DT IS NULL		-- 해약일자 있는 엔지니어 제외. 퇴사했으니...일단 제외
+        <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+        AND D.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+        AND D.DGR3_LEVL_OG_ID = #{ogLevlDvCd3} 						-- 조직레벨 (여기서 추가 처리 필요함)
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(rolDvCd)'>
+        AND B.ROL_DV_CD = #{rolDvCd}
+        </if>
+        AND A.DTA_DL_YN = 'N'
+        AND B.DTA_DL_YN = 'N'
+        AND C.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@equals(chk, 'Y')">
+        AND E.WKCR_NO IS NULL
+        </if>
+      ORDER BY A.PRTNR_NO DESC
+    </select>
+
+    <insert id="insertEgerGdRgst">
+        INSERT INTO TB_OGPS_EGER_GD_RGST_IZ(
+              OG_TP_CD
+            , PRTNR_NO
+            , APY_SEQN
+            , PRTNR_GD_CD
+            , APY_STRTDT
+            , APY_ENDDT
+            , RMK_CN
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />)
+      VALUES (
+              #{ogTpCd}
+            , #{prtnrNo}
+            , (SELECT NVL(MAX(APY_SEQN), 0) +1
+                 FROM TB_OGPS_EGER_GD_RGST_IZ
+                WHERE OG_TP_CD = #{ogTpCd}
+                  AND PRTNR_NO = #{prtnrNo}
+              )
+            , #{prtnrGdCd}
+            , #{apyStrtDt}
+            , #{apyEnddt}
+            , #{rmkCn}
+            , #{dtaDlYn}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <select id="selectEngineerPartner" resultType="String">
+        SELECT PRTNR_KNM
+          FROM TB_OGBS_PRTNR_BAS
+         WHERE OG_TP_CD = 'W06'
+           AND PRTNR_NO = #{prtnrNo}
+           AND NVL(DTA_DL_YN, 'N') = 'N'
+    </select>
+
+    <insert id="insertEgerGdRgsts">
+        MERGE INTO TB_OGPS_EGER_GD_RGST_IZ A
+        USING (
+        <foreach collection="list" item="item" open="" close="" index="index" separator="UNION ALL">
+            SELECT   #{item.ogTpCd}     AS OG_TP_CD
+            , #{item.prtnrNo}    AS PRTNR_NO
+            , NULL               AS APY_SEQN
+            , #{item.prtnrGdCd}  AS PRTNR_GD_CD
+            , #{item.apyStrtDt}  AS APY_STRTDT
+            , #{item.apyEnddt}  AS APY_ENDDT
+            , NULL  AS RMK_CN
+            , 'N'   AS DTA_DL_YN
+            FROM DUAL
+        </foreach>
+        )T1
+           ON (A.PRTNR_NO = T1.PRTNR_NO AND A.OG_TP_CD = T1.OG_TP_CD AND A.APY_STRTDT = #{apyStrtDt})
+         WHEN MATCHED THEN
+       UPDATE SET APY_ENDDT = #{apyEnddt}
+                , PRTNR_GD_CD = #{prtnrGdCd}
+                , RMK_CN = #{rmkCn}
+                , DTA_DL_YN = #{dtaDlYn}
+                <include refid="COMMON.updateSystemField" />
+         WHEN NOT MATCHED THEN
+       INSERT (
+               OG_TP_CD
+             , PRTNR_NO
+             , APY_SEQN
+             , PRTNR_GD_CD
+             , APY_STRTDT
+             , APY_ENDDT
+             , RMK_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />)
+       VALUES (
+                T1.OG_TP_CD
+              , T1.PRTNR_NO
+              , (SELECT NVL(MAX(APY_SEQN), 0) +1
+                   FROM TB_OGPS_EGER_GD_RGST_IZ
+                  WHERE OG_TP_CD = #{ogTpCd}
+                    AND PRTNR_NO = #{prtnrNo}
+                )
+              , T1.PRTNR_GD_CD
+              , T1.APY_STRTDT
+              , T1.APY_ENDDT
+              , T1.RMK_CN
+              , T1.DTA_DL_YN
+              <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <!-- 월파트너 직무업데이트 -->
+    <update id="updateMonthPrtnrRolDvCd">
+        UPDATE TB_OGBS_MM_PRTNR_IZ
+        SET ROL_DV_CD = #{prtnrGdCd}
+        <include refid="COMMON.updateSystemField" />
+        WHERE 1=1
+        AND OG_TP_CD = #{ogTpCd}
+        AND PRTNR_NO = #{prtnrNo}
+        AND BASE_YM = SUBSTR(#{apyStrtDt},0,6)
+    </update>
+
+    <!-- 파트너상세 직무업데이트 -->
+    <update id="updatePrtnrRolDvCd">
+        UPDATE TB_OGBS_PRTNR_DTL
+        SET ROL_DV_CD = #{prtnrGdCd}
+        <include refid="COMMON.updateSystemField" />
+        WHERE 1=1
+        AND OG_TP_CD = #{ogTpCd}
+        AND PRTNR_NO = #{prtnrNo}
+    </update>
+
+    <insert id="insertPrtnrHist">
+        INSERT INTO TB_OGBS_PRTNR_DCH_HIST (  /* 파트너상세변경이력 */
+               OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , HIST_STRT_DTM      /* 이력시작일시 */
+             , HIST_END_DTM       /* 이력종료일시 */
+             , CNTR_DT            /* 계약일자 */
+             , CLTN_DT            /* 해약일자 */
+             , RSB_DV_CD          /* 직책구분코드 */
+             , PSTN_DV_CD         /* 직급구분코드 */
+             , ROL_DV_CD          /* 직무구분코드 */
+             , PRTNR_GD_CD        /* 파트너등급코드 */
+             , QLF_DV_CD          /* 자격구분코드 */
+             , HIR_FOM_CD         /* 고용형태코드 */
+             , BZ_STAT_CD         /* 사업상태코드 */
+             , CRWK_OCCC_DV_CD    /* 계약직직종구분코드 */
+             , PRTNR_ACTI_STAT_CD /* 파트너활동상태코드 */
+             , RETR_LM_YN         /* 재등록제한여부 */
+             , RDS_DSB_EXCD_OJ_YN /* RDS지급제외대상여부 */
+             , CCPS_YN            /* 겸직여부 */
+             , RVE_CD             /* 수납코드 */
+             , DTA_DL_YN          /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+                 #{ogTpCd}
+               , #{prtnrNo}
+               , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               , '99991231235959'
+               , #{cntrDt}
+               , #{cltnDt}
+               , ''
+               , ''
+               , #{prtnrGdCd}
+               , ''
+               , ''
+               , ''
+               , ''
+               , ''
+               , ''
+               , ''
+               , ''
+               , ''
+               , ''
+               , #{dtaDlYn}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+</mapper>
+

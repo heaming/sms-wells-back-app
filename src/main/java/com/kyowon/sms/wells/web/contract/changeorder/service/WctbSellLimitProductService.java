@@ -33,10 +33,18 @@ public class WctbSellLimitProductService {
         // TODO : 상품코드 맵핑 필요
         // return new WctbSellLimitProductOutDvo();
 
+        // 립력값 확인  - workDiv
+        if (!("1".equals(workDiv) || "4".equals(workDiv))) {
+            return WctbSellLimitProductOutDvo.builder()
+                .rtnMessag("작업구분을 확인해주세요.")
+                .rtnFlag("N")
+                .build();
+        }
+
         //접수수량(PARM-IQ)이 0 이면 오류셋팅후 종료
         if (inQty == 0) {
             return WctbSellLimitProductOutDvo.builder()
-                .rtnMessag("주문가능 수량이 없습니다！")
+                .rtnMessag("접수수량을 확인해주세요.")
                 .rtnFlag("N")
                 .build();
         }

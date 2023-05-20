@@ -20,11 +20,13 @@ import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductWellsConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@Api(tags = "[WPDC] 상품 - 상품운영관리 - 기준상품 관리")
+@Api(tags = "[WPDC] 상품(Wells) - 상품운영관리 - 기준상품 관리")
 @RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/standards")
 @RequiredArgsConstructor
 @Validated
@@ -35,6 +37,9 @@ public class WpdcStandardMgtController {
     private final ZpdcPriceMgtService priceService;
     private final ZpdcRelationMgtService relService;
 
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WP04103177"),
+    })
     @ApiOperation(value = "기준상품 상품 단건 조회")
     @GetMapping("/{pdCd}")
     public WpdcStandardMgtDto.ProductInfoRes getProductInfo(@PathVariable
@@ -46,11 +51,13 @@ public class WpdcStandardMgtController {
             .tbPdbsPdPrcDtl(priceService.getPriceDetailProps(pdCd))
             .tbPdbsPdPrcFnlDtl(priceService.getPriceFinalDetailProps(pdCd))
             .tbPdbsPdDscPrumDtl(priceService.getDiscountPremiumDtls(pdCd))
-            .groupCodes(pdService.getPropertyGroupCodes(pdBas.pdTpCd(), "", null))
             .relProducts(relService.getRelationProducts(pdCd, null))
             .build();
     }
 
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WP04103177"),
+    })
     @ApiOperation(value = "기준상품 상품 수정", notes = "수정된 상품정보를 반영한다.")
     @PutMapping("/{pdCd}")
     public SaveResponse editProduct(
@@ -72,6 +79,7 @@ public class WpdcStandardMgtController {
                         .tbPdbsPdDscPrumDtl(dto.tbPdbsPdDscPrumDtl())
                         .isModifiedProp(dto.isModifiedProp())
                         .isModifiedPrice(dto.isModifiedPrice())
+                        .isOnlyFileModified(dto.isOnlyFileModified())
                         .build(),
                     false
                 )
@@ -90,6 +98,9 @@ public class WpdcStandardMgtController {
             .build();
     }
 
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WP04103177"),
+    })
     @ApiOperation(value = "기준상품 상품 삭제")
     @DeleteMapping("/{pdCd}")
     public SaveResponse removeProduct(@PathVariable("pdCd")

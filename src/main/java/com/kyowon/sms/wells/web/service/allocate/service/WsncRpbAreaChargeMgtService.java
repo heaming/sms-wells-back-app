@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncRpbAreaChargeMgtConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto.CreateReq;
@@ -59,11 +60,13 @@ public class WsncRpbAreaChargeMgtService {
      * @return
      * @throws Exception
      */
+    @Transactional
     public int createAreaCharges(List<CreateReq> dtos) throws Exception {
         int processCount = 0;
 
         for (CreateReq dto : dtos) {
             WsncRpbAreaChargeDvo rpbLocaraPsic = this.converter.mapCreateReqToWsncRpbAreaChargeDvo(dto);
+            this.mapper.updatePersonInCharge(rpbLocaraPsic);
             processCount += this.mapper.insertPersonInCharge(rpbLocaraPsic);
         }
 

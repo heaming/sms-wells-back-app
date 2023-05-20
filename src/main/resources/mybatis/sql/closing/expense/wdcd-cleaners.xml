@@ -2,13 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdCleanersMapper">
 
-    <select id="selectCleanersBusinessManager" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto$SearchRes">
-        SELECT FST_RGST_DTM
-             , FNL_MDFC_DTM
+    <select id="selectCleanersBusinessManager" resultType="com.kyowon.sms.wells.web.closing.expense.dvo.WdcdCleanersDvo">
+        SELECT TO_CHAR(TO_DATE(FST_RGST_DTM, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS FST_RGST_DTM
+             , TO_CHAR(TO_DATE(FNL_MDFC_DTM, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS FNL_MDFC_DTM
+             , CLINR_RGNO
+             , RCP_YM
              , CLINR_NM
              , BLD_CD
-             , BLD_NM
-             , APLC_DT
+             , (SELECT BLD_NM
+                  FROM TB_OGBS_BLD_BAS T1
+                 WHERE BLD_CD = T1.BLD_CD
+                   AND ROWNUM = 1) AS BLD_NM
+             , TO_CHAR(TO_DATE(APLC_DT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS APLC_DT
              , APLCNS_NM
              , CNTRW_APN_FILE_ID
              , CNTR_LRORE_APN_FILE_ID
@@ -18,18 +23,20 @@
              , CLINR_FXN_AMT
              , TAX_DDCTAM
              , CLINR_FXN_AMT - TAX_DDCTAM AS AMT
-             , WRK_STRTDT
-             , WRK_ENDDT
-             , (CASE WHEN WRK_ENDDT > TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE 'N' END) WRK_ENDDT
+             , TO_CHAR(TO_DATE(WRK_STRTDT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS WRK_STRTDT
+             , TO_CHAR(TO_DATE(WRK_ENDDT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS WRK_ENDDT
+             , (CASE WHEN WRK_ENDDT > TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE 'N' END) WORK_STATUS
              , RRNO_ENCR
-             , LOCARA_TNO||'-'||EXNO_ENCR||'-'||IDV_TNO
-             , BAS_ADR||' '||DTL_ADR
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , '' AS TEL_NUM
+             , ZIP ||' '|| BAS_ADR AS ADDRESS
              , BNK_CD
-             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_CD = LPAD(CASE WHEN T1.BNK_CD IS NOT NULL
-                                            THEN T1.BNK_CD ELSE T1.CDCO_CD END ,3,0)) AS BNK_NM
+             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(BNK_CD,3,0) = FNIT_CD) AS BNK_NM
              , ACNO_ENCR
-          FROM TB_OGBS_CLINR_BAS T1 /*청소원기본*/
-         WHERE FST_RGST_DTM = #{fstRgstDtm}
+          FROM TB_OGBS_CLINR_BAS /*청소원기본*/
+         WHERE SUBSTR(APLC_DT,1,6) = #{aplcDt}
            <if test="@MybatisUtils@isNotEmpty(bnkNm)">
            AND BLD_CD IN ( SELECT A.BLD_CD
                                    FROM TB_OGBS_OG_BAS A /*조직기본*/
@@ -40,20 +47,21 @@
            <if test="@MybatisUtils@isNotEmpty(bnkNm)">
            AND CLINR_NM LIKE '%'|| #{clinrNm} ||'%'
            </if>
+         ORDER BY FST_RGST_DTM DESC
     </select>
 
-    <select id="selectCleanersPersonInCharge" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto$SearchRes">
-        SELECT CLINR_RGNO
+    <select id="selectCleanersPersonInCharge" resultType="com.kyowon.sms.wells.web.closing.expense.dvo.WdcdCleanersDvo">
+        SELECT TO_CHAR(TO_DATE(FST_RGST_DTM, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS FST_RGST_DTM
+             , TO_CHAR(TO_DATE(FNL_MDFC_DTM, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS FNL_MDFC_DTM
+             , CLINR_RGNO
              , RCP_YM
-             , FST_RGST_DTM
-             , FNL_MDFC_DTM
              , CLINR_NM
              , BLD_CD
              , (SELECT BLD_NM
-                  FROM TB_OGBS_BLD_BAS TT1
-                 WHERE T1.BLD_CD = TT1.BLD_CD
+                  FROM TB_OGBS_BLD_BAS T1
+                 WHERE BLD_CD = T1.BLD_CD
                    AND ROWNUM = 1) AS BLD_NM
-             , APLC_DT
+             , TO_CHAR(TO_DATE(APLC_DT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS APLC_DT
              , APLCNS_NM
              , CNTRW_APN_FILE_ID
              , CNTR_LRORE_APN_FILE_ID
@@ -63,18 +71,21 @@
              , CLINR_FXN_AMT
              , TAX_DDCTAM
              , (CLINR_FXN_AMT - TAX_DDCTAM) AS AMT
-             , WRK_STRTDT
-             , WRK_ENDDT
+             , TO_CHAR(TO_DATE(WRK_STRTDT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS WRK_STRTDT
+             , TO_CHAR(TO_DATE(WRK_ENDDT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS WRK_ENDDT
              , (CASE WHEN WRK_ENDDT > TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE 'N' END) AS WORK_STATUS
              , RRNO_ENCR
-             , LOCARA_TNO||'-'||EXNO_ENCR||'-'||IDV_TNO AS TEL_NUM
-             , BAS_ADR||' '||DTL_ADR AS ADDRESS
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , '' AS TEL_NUM
+             , ZIP ||' '|| BAS_ADR AS ADDRESS
              , BNK_CD
-             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(T1.BNK_CD,3,0) = FNIT_CD) AS BNK_NM
+             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(BNK_CD,3,0) = FNIT_CD) AS BNK_NM
              , ACNO_ENCR
-          FROM TB_OGBS_CLINR_BAS T1 /*청소원기본*/
+          FROM TB_OGBS_CLINR_BAS /*청소원기본*/
          WHERE DTA_DL_YN = 'N'
-           AND SUBSTR(FST_RGST_DTM,1,4) = #{fstRgstDtm}
+           AND SUBSTR(APLC_DT,1,6) = #{aplcDt}
            <if test="@MybatisUtils@isNotEmpty(bnkNm)">
            AND BLD_CD IN ( SELECT A.BLD_CD
                              FROM TB_OGBS_OG_BAS A /*조직기본*/
@@ -86,6 +97,7 @@
            <if test="@MybatisUtils@isNotEmpty(bnkNm)">
            AND CLINR_NM LIKE '%'|| #{clinrNm} ||'%'
            </if>
+        ORDER BY FST_RGST_DTM DESC
     </select>
 
     <update id="deleteCleanersManagement">

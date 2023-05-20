@@ -48,10 +48,8 @@ public class WpdcRoutineBsWorkMgtController {
     }
 
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "svcType", value = "서비스 선택 구분", paramType = "query", example = "WS01200001"),
-        @ApiImplicitParam(name = "svcValue", value = "서비스 선택 값", paramType = "query", example = "WM01200001"),
-        @ApiImplicitParam(name = "prdtType", value = "제품 선택 구분", paramType = "query", example = "WS01200001"),
-        @ApiImplicitParam(name = "prdtValue", value = "제품 선택 값", paramType = "query", example = "WM01200001"),
+        @ApiImplicitParam(name = "svPdCd", value = "서비스 상품코드", paramType = "query", example = "WS01200001"),
+        @ApiImplicitParam(name = "pdctPdCd", value = "제품코드", paramType = "query", example = "WM01200001"),
     })
     @ApiOperation(value = "정기 B/S 투입 방문 작업 기준 불러오기 페이징 조회", notes = "검색조건을 입력 받아 Paging된 정기 B/S 투입 기준 목록을 조회한다.")
     @GetMapping("/standards/paging")
@@ -77,6 +75,7 @@ public class WpdcRoutineBsWorkMgtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "svPdCd", value = "서비스 상품코드", paramType = "query", example = "WS01200001"),
         @ApiImplicitParam(name = "pdctPdCd", value = "제품코드", paramType = "query", example = "WM01200001"),
+        @ApiImplicitParam(name = "partPdCd", value = "부품코드", paramType = "query", example = "WM07104689"),
     })
     @ApiOperation(value = "정기 B/S 투입 방문 작업 기준 조회", notes = "정기 B/S 투입 기준 정보 목록을 조회한다.")
     @GetMapping("/life-filters")

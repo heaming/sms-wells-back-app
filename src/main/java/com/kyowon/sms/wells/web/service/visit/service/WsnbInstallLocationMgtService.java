@@ -5,10 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallLocationMgtConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.CreateReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.Product;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallLocationMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -44,7 +41,12 @@ public class WsnbInstallLocationMgtService {
     public PagingResult<SearchRes> getInstallLocationPages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectInstallLocationPages(dto, pageInfo);
+
+        PagingResult<SearchRes> pagingResult = converter.mapWsnbInstallLocationDvoToSearchRes(
+            mapper.selectInstallLocationPages(dto, pageInfo)
+        );
+        pagingResult.setPageInfo(pageInfo);
+        return pagingResult;
     }
 
     /**
@@ -55,7 +57,8 @@ public class WsnbInstallLocationMgtService {
      * @return 조회결과
      */
     public List<SearchRes> getInstallLocationPagesExcelDownload(SearchReq dto) {
-        return mapper.selectInstallLocationPages(dto);
+
+        return converter.mapWsnbInstallLocationDvoToSearchRes(mapper.selectInstallLocationPages(dto));
     }
 
     /**
@@ -101,8 +104,15 @@ public class WsnbInstallLocationMgtService {
     /**
      * 검색조건 용 상품내역 조회 (임시)
      */
-    public List<Product> getProducts() {
+    public List<FindProductRes> getProducts() {
         return mapper.selectProducts();
     }
 
+    public List<FindEngineerRes> getEngineers(String ogId) {
+        return mapper.selectEngineers(ogId);
+    }
+
+    public List<FindCenterRes> getCenterss() {
+        return mapper.selectCenters();
+    }
 }

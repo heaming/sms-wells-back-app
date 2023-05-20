@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.deduction.redf.mapper.WwdeaMutualAidFeeMgtMapper">
+    <select id="selectMutalAids" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WwdeaMutualAidFeeMgtDto$SearchMutualAidFeeRes">
+        SELECT #{dvCd} AS DV_CD
+             , C.PERF_YM /*실적년월*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'REDF_ADSB_TP_CD', G.REDF_ADSB_TP_CD, #{session.langId}) AS SELL_DV_CD /*구분TODO: 컬럼 확인 필요, 매변 연체 취소*/
+             , E.OG_CD /*소속(조직코드)*/
+             , E.PRTNR_NO /*파트너번호*/
+             , E.PRTNR_KNM /*판매자명(파트너한글명)*/
+             , E.RSB_DV_CD /*직급(직책구분코드)*/
+             , A.BRMGR_PRTNR_NO /*지점장(지점장파트너번호)*/
+             , B.CNTR_NO || '-' || B.CNTR_SN AS CNTR_NO_SN /*계약번호(계약번호+계약일련번호)*/
+             , F.PD_CLSF_NM AS PD_NM /*상품명*/
+             , D.IST_DT /*설치일자*/
+             , A.LIF_CNTR_NO /*상조계약번호(라이프계약번호)*/             
+             , A.LIF_PD_NM /*상조상품명(라이프상품명)*/
+             , A.RCPDT /*접수일(접수일자)*/
+             , A.CNTR_DT /*계약일(계약일자)*/
+             , A.CAN_DT /*취소일(취소일자)*/
+             , NVL(B.SELL_FEE, 0) AS SELL_FEE /*판매자수수료(판매수수료) TODO: 컬럼 확인 필요*/
+             , A.TOT_DSB_OJ_DV_CD /*총지급대상(총지급대상구분코드)*/
+             , A.LIF_CNTR_OC_TN /*회차(라이프계약발생회차)*/
+             , NVL(A.SL_OC_ACU_AMT, 0) AS SL_OC_ACU_AMT /*누적발생매출(매출발생누적금액)*/
+             , NVL(A.DP_ACU_AMT, 0) AS DP_ACU_AMT /*누적입금(입금누적금액)*/
+             , A.FLPYM_TN /*완납회차*/
+             , 50000 AS PRDSB
+             , A.CNFM_YN /*라이프확정(확정여부)*/
+             , A.FEE_DSB_YM /*수수료지급월(수수료지급년월)*/
+             , A.FEE_REDF_YM /*수수료되물림월(수수료되물림년월)*/
+         FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A /*라이프제휴수수료계약내역*/
+        INNER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+           ON A.WELS_CNTR_NO = B.CNTR_NO /*라이프제휴수수료계약내역.웰스계약번호 = 계약상세.계약번호*/
+          AND A.WELS_CNTR_SN = B.CNTR_SN /*라이프제휴수수료계약내역.웰스계약일련번호 = 계약상세.계약일련번호*/
+        INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL C /*웰스순주문계약월마감*/
+           ON A.WELS_CNTR_NO = C.CNTR_NO /*라이프제휴수수료계약내역.웰스계약번호 = 웰스순주문계약월마감.계약번호*/
+          AND A.WELS_CNTR_SN = C.CNTR_SN /*라이프제휴수수료계약내역.웰스계약일련번호 = 웰스순주문계약월마감.계약일련번호*/
+        INNER JOIN TB_SSCT_CNTR_WELLS_DTL D /*계약WELLS상세*/
+           ON A.WELS_CNTR_NO = D.CNTR_NO /*라이프제휴수수료계약내역.웰스계약번호 = 웰스순주문계약월마감.계약번호*/
+          AND A.WELS_CNTR_SN = D.CNTR_SN /*라이프제휴수수료계약내역.웰스계약일련번호 = 웰스순주문계약월마감.계약일련번호*/
+        INNER JOIN TB_OGBS_MM_PRTNR_IZ E /*월파트너내역*/
+           ON A.BASE_YM = E.BASE_YM /*기준년월*/
+          AND A.PRTNR_NO = E.PRTNR_NO /*파트너번호*/
+        LEFT OUTER JOIN (
+                         SELECT F1.CNTR_NO
+                                 , F1.CNTR_SN
+                                 , F2.CST_NO
+                                 , F2.CST_KNM /*고객명*/
+                                 , F4.PD_CLSF_NM /*상품분류명*/
+                           FROM TB_CBCL_WELLS_SL_MM_CL_IZ F1 /*WELLS매출월마감내역*/
+                           INNER JOIN TB_CUBS_CST_BAS F2 /*고객기본*/
+                             ON F1.CST_NO = F2.CST_NO 
+                            AND F1.PRTNR_NO = F2.PRTNR_NO 
+                            AND F1.OG_TP_CD = F2.OG_TP_CD
+                           LEFT OUTER JOIN TB_PDBS_PD_BAS F3 /*상품기본*/
+                             ON F1.PD_CD = F3.PD_CD 
+                           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS F4 /*상품분류기본*/
+                              ON F3.PD_MCLSF_ID = F4.PD_CLSF_ID /*상품기본.중분류ID = 상품분류기본.상품분류ID*/
+                             AND F4.PD_TP_CD = 'P'  /* 상품유형코드 = 'P'(기준상품) */
+                        ) F /*고객 및 상품 정보*/
+            ON A.WELS_CNTR_NO = F.CNTR_NO
+           AND A.WELS_CNTR_SN = F.CNTR_SN
+        LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_DTL G /*수수료되물림재지급상세*/
+            ON A.WELS_CNTR_NO = G.CNTR_NO 
+           AND A.WELS_CNTR_SN = G.CNTR_SN     
+         WHERE 1=1
+           <if test='@MybatisUtils@isNotEmpty(ocYm)'>
+           AND A.BASE_YM = #{ocYm}
+           </if>  
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND  E.PRTNR_NO = #{prtnrNo} 
+           </if> 
+           <if test='@MybatisUtils@isNotEmpty(redfAdsbTpCd)'>
+           AND  SELL_DV_CD = #{redfAdsbTpCd} 
+           </if> 
+        ORDER BY C.PERF_YM ASC 
+               , E.OG_CD ASC 
+               , E.PRTNR_NO ASC     
+    </select>
+    
+    <select id="selectMutalAidsSub" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WwdeaMutualAidFeeMgtDto$SearchMutualAidFeeSubRes">
+        SELECT DISTINCT  #{dvCd} AS DV_CD 
+             , A.BASE_YM /*발생년월(기준년월)*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'REDF_ADSB_TP_CD', D.REDF_ADSB_TP_CD, #{session.langId}) AS SELL_DV_CD /*구분TODO: 컬럼 확인 필요, 매변 연체 취소*/
+             , B.OG_CD /*소속코드*/
+             , A.PRTNR_NO /*파트너번호*/
+             , B.PRTNR_KNM /*파트너성명*/
+             , B.RSB_DV_CD /*직책명*/
+             , NVL(C.ACKMT_PERF_CT, 0) AS ACKMT_PERF_CT /*인정실적건수 TODO: 확인필요*/
+             , NVL(C.ACKMT_PERF_AMT, 0) AS ACKMT_PERF_AMT /*인정실적금액 TODO: 확인필요*/
+          FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A /*라이프제휴수수료계약내역*/
+         INNER JOIN (SELECT B1.PRTNR_NO 
+                          , B1.PRTNR_KNM 
+                          , B1.OG_TP_CD 
+                          , B1.OG_CD 
+                          , B1.BASE_YM
+                          , B1.RSB_DV_CD
+                          , B1.PSTN_DV_CD
+                          , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', B1.RSB_DV_CD, #{session.langId}) AS RSB_DV_NM
+                       FROM TB_OGBS_MM_PRTNR_IZ B1
+                       LEFT OUTER JOIN TB_OGBS_MM_OG_IZ B2
+                         ON B1.OG_CD = B2.OG_CD
+                        AND B1.OG_ID = B2.OG_ID
+                        AND B1.BASE_YM = B2.BASE_YM
+                    ) B
+            ON A.PRTNR_NO = B.PRTNR_NO
+           AND A.BASE_YM = B.BASE_YM
+          LEFT OUTER JOIN TB_FEAM_WELS_NRCTR_MM_CL C /*웰스순주문계약월마감*/
+            ON A.WELS_CNTR_NO = C.CNTR_NO /*라이프제휴수수료계약내역.웰스계약번호 = 웰스순주문계약월마감.계약번호*/
+           AND A.WELS_CNTR_SN = C.CNTR_SN /*라이프제휴수수료계약내역.웰스계약일련번호 = 웰스순주문계약월마감.계약일련번호*/
+           AND A.BASE_YM = C.BASE_YM /*라이프제휴수수료계약내역.기준년월 = 웰스순주문계약월마감.기준년월*/
+          LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_DTL D /*수수료되물림재지급상세*/
+            ON A.WELS_CNTR_NO = D.CNTR_NO 
+           AND A.WELS_CNTR_SN = D.CNTR_SN  
+         WHERE 1=1
+           <if test='@MybatisUtils@isNotEmpty(ocYm)'>
+           AND A.BASE_YM = #{ocYm}
+           </if>  
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND  E.PRTNR_NO = #{prtnrNo} 
+           </if> 
+           <if test='@MybatisUtils@isNotEmpty(redfAdsbTpCd)'>
+           AND  SELL_DV_CD = #{redfAdsbTpCd} 
+           </if>  
+    </select>
+</mapper>
+  

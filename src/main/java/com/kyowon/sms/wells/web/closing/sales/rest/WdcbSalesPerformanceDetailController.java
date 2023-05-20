@@ -31,49 +31,61 @@ public class WdcbSalesPerformanceDetailController {
 
     @ApiOperation(value = "매출 실적 현황 - 멤버십매출 상세내역", notes = "조회조건에 따른 멤버십매출 상세내역을 조회")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
     })
     @GetMapping("/membership-sales-detail")
     public SearchMembershipRes getMembershipSalesDetail(
         @RequestParam
-        String slDt
+        String cntrDtlNo,
+        @RequestParam
+        String slClYm
     ) {
-        return service.getMembershipSalesDetail(slDt);
+        return service.getMembershipSalesDetail(cntrDtlNo, slClYm);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 리스매출 상세내역", notes = "조회조건에 따른 리스매출 상세내역을 조회")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
     })
     @GetMapping("/lease-sales-detail")
     public SearchLeaseRes getLeaseSalesDetail(
         @RequestParam
-        String slDt
+        String cntrDtlNo,
+        @RequestParam
+        String slClYm
     ) {
-        return service.getLeaseSalesDetail(slDt);
+        return service.getLeaseSalesDetail(cntrDtlNo, slClYm);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 렌탈매출 상세내역", notes = "조회조건에 따른 렌탈매출 상세내역을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "slClYm", value = "매출년월", paramType = "query"),
     })
     @GetMapping("/rental-sales-detail")
     public SearchRentalRes getRentalSalesDetail(
         @RequestParam
-        String slDt
+        String cntrDtlNo,
+        @RequestParam
+        String slClYm
     ) {
-        return service.getRentalSalesDetail(slDt);
+        return service.getRentalSalesDetail(cntrDtlNo, slClYm);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 정기배송매출 상세내역", notes = "조회조건에 따른 렌탈매출 상세내역을 조회")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
     })
     @GetMapping("/regular-shipping-detail")
     public SearchRegularRes getRegularShippingDetail(
         @RequestParam
-        String slDt
+        String cntrDtlNo,
+        @RequestParam
+        String slClYm
     ) {
-        return service.getRegularShippingDetail(slDt);
+        return service.getRegularShippingDetail(cntrDtlNo, slClYm);
     }
 }

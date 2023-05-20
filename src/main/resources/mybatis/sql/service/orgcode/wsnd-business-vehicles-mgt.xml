@@ -2,19 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesMgtMapper">
     <select id="selectBusinessVehicles" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesMgtDto$SearchRes">
-        SELECT T2.OG_CD
+        SELECT T2.OG_ID
              , T2.OG_TP_CD
              , T2.OG_NM
              , T2.PRTNR_NO
              , T2.PRTNR_KNM
-             , T2.ROL_DV_CD
+             , (CASE WHEN T2.ROL_DV_CD = '37' THEN '엔지니어'
+                     WHEN T2.ROL_DV_CD = '55' THEN '센터소장'
+                     WHEN T2.ROL_DV_CD = '56' THEN '자재실장'
+                     ELSE ''
+                 END
+               ) AS ROL_DV_CD
              , T2.CNTR_DT
              , T1.CARNO
              , (SELECT A.CARNM
                   FROM TB_IFIN_SAP_EGBVC_DSB_RCV_ETXT A
                  WHERE A.CARSEQ = T1.VHC_MNGT_NO
+                   AND TRIM(A.CARNO) = TRIM(T1.CARNO)
                ) AS CARNM
              , T1.VHC_MNGT_TP_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'VHC_MNGT_TP_CD', T1.VHC_MNGT_TP_CD, 'ko') AS VHC_MNGT_TP_NM
              , T1.VHC_PYMDT
              , T1.DSB_ENDDT
              , T1.INSR_AGE_CD
@@ -34,14 +41,11 @@
            AND T2.OG_TP_CD = T3.OG_TP_CD
            AND T2.OG_ID = T3.OG_ID
            AND T1.DTA_DL_YN = 'N'
-           <if test='@MybatisUtils@isNotEmpty(ogCd)'>
-           AND T2.OG_CD = #{ogCd}
+           <if test='@MybatisUtils@isNotEmpty(ogId)'>
+           AND T2.OG_ID = #{ogId}
            </if>
            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
            AND T2.PRTNR_NO = #{prtnrNo}
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(hgrOgId)'>
-           AND T3.HGR_OG_ID = #{hgrOgId}
            </if>
            <if test='@MybatisUtils@isNotEmpty(findGb) and findGb == "1"'>
            AND T1.VHC_MNGT_NO IS NULL
@@ -65,7 +69,9 @@
              , T1.VHC_DSB_RMK_CN
              , (SELECT A.CARNM
                   FROM TB_IFIN_SAP_EGBVC_DSB_RCV_ETXT A
-                 WHERE A.CARSEQ = T1.VHC_MNGT_NO) AS CARNM
+                 WHERE A.CARSEQ = T1.VHC_MNGT_NO
+                   AND TRIM(A.CARNO) = TRIM(T1.CARNO)
+               ) AS CARNM
           FROM TB_SVPD_VHC_DSB_IZ T1
          WHERE T1.VHC_MNGT_NO = #{vhcMngtNo}
            AND T1.VHC_MNGT_SN = (CASE WHEN T1.VHC_MNGT_SN = 00 THEN (SELECT TO_NUMBER(MAX(T2.VHC_MNGT_SN))
@@ -105,6 +111,8 @@
         WHEN MATCHED THEN
       UPDATE
          SET T1.CARNO = T2.CARNO
+           , T1.VHC_MNGT_OG_TP_CD = T2.VHC_MNGT_OG_TP_CD
+           , T1.VHC_MNGT_PRTNR_NO = T2.VHC_MNGT_PRTNR_NO
            , T1.VHC_PYMDT = T2.VHC_PYMDT
            , T1.DSB_ENDDT = T2.DSB_ENDDT
            , T1.VHC_MNGT_TP_CD = T2.VHC_MNGT_TP_CD

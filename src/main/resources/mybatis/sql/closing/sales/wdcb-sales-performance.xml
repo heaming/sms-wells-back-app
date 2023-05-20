@@ -4,239 +4,609 @@
     
     <select id="selectSellTpCd" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRes">
         SELECT SELL_TP_CD
+             , SELL_TP_DTL_CD
           FROM (
                 SELECT ROWNUM
                      , SELL_TP_CD
+                     , SELL_TP_DTL_CD
                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
                  WHERE 1=1
-                   AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-                 ORDER BY SL_CL_YM DESC
+                   AND T1.CNTR_NO = #{cntrNo}          /*계약번호*/
+                   AND T1.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+                   AND SUBSTR(T1.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
                )
          WHERE 1=1
            AND ROWNUM = 1
     </select>
 
     <select id="selectRental" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRentalRes">
-        /* 렌탈, 리스 */
-        SELECT T1.SELL_TP_CD
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-             , T4.CST_KNM
-             , T5.PD_NM
-             , '' AS COL5
-             , '' AS COL6
-             , T3.CNTR_RCP_FSH_DTM
-             , T1.SL_DT
-             , T3.CNTR_CAN_DTM
-             , '' AS COL10
-             , T6.REDF_DT
-             , T6.ADSB_DT
-             , T5.DSC_TP_CD
-             , T7.DP_TP_CD || '/' || T7.MPY_BSDT AS DP_TP_CD
-             , T1.RENTAL_RGST_COST || '/' || T1.DSC_AMT AS RENTAL_RGST_COST
-             , T1.RENTAL_PTRM || '/' || T1.RENTAL_AMT AS RENTAL_PTRM
-             , T1.SL_AGG_AMT
-             , '' AS COL18
-             , '' AS COL19
-             , T1.SL_DP_AGG_AMT
-             , '' AS COL21
-             , T8.THM_OC_DLQ_AMT /* 명세서에는 DLQ_OC_AMT */
-             , '' AS COL23
-             , T8.EOT_DLQ_ADD_AMT
-             , T9.DFA_AMT
-             , T10.DFA_DP_AMT
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_SSCT_CNTR_DTL T2
-            ON T1.CNTR_NO = T2.CNTR_NO
-           AND T1.CNTR_SN = T2.CNTR_SN
-         INNER JOIN TB_SSCT_CNTR_BAS T3
-            ON T2.CNTR_NO = T3.CNTR_NO
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T4
-            ON T1.CST_NO = T4.CST_NO
-          LEFT OUTER JOIN TB_PDBS_PD_BAS T5
-            ON T1.PD_CD = T5.PD_CD
-          LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS T6
-            ON T1.CNTR_NO = T6.CNTR_NO
-           AND T1.CNTR_SN = T6.CNTR_SN
-          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7
-            ON T1.CNTR_NO = T7.CNTR_NO
-           AND T1.CST_NO = T7.CST_NO
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
-            ON T1.CNTR_NO = T8.CNTR_NO
-           AND T1.CNTR_SN = T8.CNTR_SN
-          LEFT OUTER JOIN TB_CBBO_DFA_IZ T9
-            ON T1.CNTR_NO = T9.CNTR_NO
-           AND T1.CNTR_SN = T9.CNTR_SN
-          LEFT OUTER JOIN TB_CBBO_DFA_DP_IZ T10
-            ON T9.DFA_TP_CD = T10.DFA_TP_CD
+        /* 렌탈 */
+        SELECT CASE WHEN A.SELL_TP_DTL_CD IN ('21','23') THEN '렌탈'
+                    WHEN A.SELL_TP_DTL_CD IN ('22','24','25','26') THEN '리스'
+                    WHEN A.SELL_TP_DTL_CD IN ('31', '32' ,'33') THEN '멤버십'
+                    WHEN A.SELL_TP_DTL_CD IN ('61','62','63') THEN '정기배송' END SELL_TP_DTL_CD
+             , A.CNTR_NO||'-'||A.CNTR_SN                            AS CNTR_DTL_NO
+             , E.CST_KNM                                            AS CST_KNM             --E.TB_CUBS_CST_BAS (고객기본)
+             , '(' ||F.PD_CD||')'|| F.PD_NM ||'/'|| B.SV_PRD ||'개월' || '/'          AS PD_NM --B.TB_SSCT_CNTR_DTL (계약상세)  F.TB_PDBS_PD_BAS (상품기본)
+                /********************************상품정보************************************************/
+                /* CASE WHEN LC50.LCICDE = '4350' THEN                                                */
+                /*                        CASE WHEN LC50.LCIUSE IN (1,3) THEN '황사필터('||LC50.LCIUSE||')'     */
+                /*                             WHEN LC50.LCIUSE = 2 THEN '항바이러스('||LC50.LCIUSE||')'         */
+                /*                             ELSE                       '일반('||LC50.LCIUSE||')'            */
+                /*                         END                                                                */
+                /*                    WHEN LC50.LCICDE = '4415' THEN                                          */
+                /*                        CASE WHEN LC50.LCIUSE = 0 THEN '구분없음('||LC50.LCIUSE||')'          */
+                /*                             WHEN LC50.LCIUSE IN (1,3) THEN '일반('||LC50.LCIUSE||')'        */
+                /*                             WHEN LC50.LCIUSE IN (2) THEN '대형법인('||LC50.LCIUSE||')'       */
+                /*                             WHEN LC50.LCIUSE IN (4) THEN '대형법인2('||LC50.LCIUSE||')'      */
+                /*                             WHEN LC50.LCIUSE IN (5) THEN '홈케어('||LC50.LCIUSE||')'         */
+                /*                             ELSE (SELECT LCTEXT                                            */
+                /*                                     FROM LCLIB.LB8000P                                     */
+                /*                                    WHERE LCGROP = '1000000035'                             */
+                /*                                      AND LCGUB1 = LC50.LCIUSE                              */
+                /*                                  )                                                         */
+                /*                         END                                                                */
+                /*                    WHEN KA11.KAETC2 = '4' /* 4:연수기  THEN                                  */
+                /*                        CASE WHEN LC50.LCIUSE = 0 THEN '일반('||LC50.LCIUSE||')'              */
+                /*                             WHEN LC50.LCIUSE = 1 THEN '특별('||LC50.LCIUSE||')'              */
+                /*                             ELSE                       '특특별('||LC50.LCIUSE||')'           */
+                /*                         END                                                                 */
+                /*                    WHEN KA11.KAETC2 = 'F' /* F:안마의자  THEN                                 */
+                /*                        CASE WHEN LC50.LCIUSE = 1 THEN '일반('||LC50.LCIUSE||')'              */
+                /*                             WHEN LC50.LCIUSE = 2 THEN '특별('||LC50.LCIUSE||')'              */
+                /*                             ELSE                       ''                                    */
+                /*                         END                                                                  */
+                /*                    ELSE                                                                      */
+                /*                        CASE WHEN LC50.LCIUSE = 0 THEN '구분없음('||LC50.LCIUSE||')'            */
+                /*                             WHEN LC50.LCIUSE IN (1,3) THEN '일반('||LC50.LCIUSE||')'          */
+                /*                             WHEN LC50.LCIUSE IN (2,4) THEN '업소용('||LC50.LCIUSE||')'        */
+                /*                             WHEN LC50.LCIUSE IN (5) THEN '홈케어('||LC50.LCIUSE||')'          */
+                /*                             ELSE (SELECT LCTEXT                                              */
+                /*                                     FROM LCLIB.LB8000P                                       */
+                /*                                    WHERE LCGROP = '1000000035'                               */
+                /*                                      AND LCGUB1 = LC50.LCIUSE                                */
+                /*                                  )                                                           */
+                /*                         END                                                                  */
+                /*          END /*상품코드* /*상품명*/ /*서비스 주기*/ /*용도                     AS LCIUSE_NM          */
+                /********************************상품정보 끝***********************************************/
+                /*  , LC31.LCMGU2     -- 만료유형코드  EXN_TP_ACD
+                     , CASE WHEN LC50.LCRCNT > LC50.LCMONT THEN
+                            COALESCE((SELECT LCTEXT FROM LCLIB.LB8000P WHERE LCGROP = '1000000177' AND LCGUB1 = LC31.LCMGU2),'****')
+                       ELSE ''
+                        END             AS LCMGU2_NM  */  /*만료유형명*/    -- 1.멤버십, 2:만료유지 3:자가 4 철거 5 보류 6 기기변경
+             , '' AS LCMGU2_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'ALNCMP_CD', B.ALNCMP_CD) AS LCETC8_NM    --제휴명
+             , A.CNTR_DT                                          AS CNTR_DT      --접수일자
+             , A.SL_RCOG_DT                                       AS SL_RCOG_DT   --매출일자
+             , A.CAN_DT                                           AS CAN_DT       --취소일자
+             , A.FSH_DT                                           AS FSH_DT       --완료일자
+             , C.REDF_DT                                          AS REDF_DT      --되물림일자               -- C.TB_CBCL_REDF_ADSB_BAS
+             , C.ADSB_DT                                          AS ADSB_DT      --재지급일자
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_DSC_DV_CD', B.SELL_DSC_DV_CD) ||'/'||B.STPL_PTRM || '년 약정' AS LCGUB3  --할인구분/약정기간
+             , CASE WHEN G.DP_DV_CD='1' THEN F_CMZ_CD_NM(#{session.tenantId}, 'DP_TP_CD', G.DP_TP_CD) ||'/'|| SUBSTR(G.DP_DT,7,2)||'/'||G.RVE_PROCS_YN  
+               ELSE ''  END                                  AS SELL_DSC_DV_CD --이체정보          --G.TB_RVDW_RVE_DTL --수납상세
+             , TO_CHAR(A.RENTAL_RGST_COST, '999,999')||'원'||'('||TO_CHAR(A.DSC_AMT, '999,999')||'원 할인'||')' AS RENTAL_RGST_COST            --등록비
+             , A.RENTAL_PTRM||'개월'||'/'||TO_CHAR(A.RENTAL_AMT, '999,999')||'원'       AS RENTAL_PTRM                --렌탈/리스기간  -- span으로 1구간, 2구간 필요
+             , A.SL_AGG_AMT                                       AS SL_AGG_AMT   --매출누계
+             , A.DSC_AGG_AMT                                      AS DSC_AGG_AMT  --할인누계
+             , A.CTR_AGG_AMT                                      AS CTR_AGG_AMT  --조정누계
+             , A.SL_DP_AGG_AMT                                    AS SL_DP_AGG_AMT --매출입금누계
+             , A.THM_UC_BLAM                                      AS THM_UC_BLAM   --미수금액
+             , D.THM_OC_DLQ_AMT                                   AS THM_OC_DLQ_AMT    --연체금액            D.TB_CBCL_DLQ_BAS
+             , TRUNC(A.SL_STP_AMT * 0.3,-1)                       AS SL_STP_AMT    --매출 중지금액
+             , D.EOT_DLQ_ADD_AMT                                  AS EOT_DLQ_ADD_AMT --가산금기말
+             , 0                                                  AS DFA_PROCS_AMT   --대손금액
+             , CASE WHEN G.RVE_DV_CD='09' THEN  G.DP_AMT
+               ELSE 0 END                                         AS DFA_AMT      --대손입금금액      RVE_DV_CD = '09'
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL B --계약상세
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.SELL_TP_CD = B.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS C --되물림
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS D --연체기본
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SL_CL_YM = D.PERF_YM
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E --고객기본
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F --상품기본
+            ON B.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL G -- 수납상세
+            ON G.KW_GRP_CO_CD = '2000'
+           AND A.CNTR_NO = G.CNTR_NO 
+           AND A.CNTR_SN = G.CNTR_SN
          WHERE 1=1
-           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+           AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+           AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+           AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+           AND A.SELL_TP_CD = '2' 
+           AND A.SELL_TP_DTL_CD IN ('21','23')
+         ORDER BY SUBSTR(A.SL_CL_YM,1,4) DESC,SUBSTR(A.SL_CL_YM,5,2) DESC
+         FETCH FIRST 1 ROWS ONLY
+    </select>
+    
+    <select id="selectLease" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchLeaseRes">
+        /* 리스 */
+        SELECT CASE WHEN A.SELL_TP_DTL_CD IN ('21','23') THEN '렌탈'
+                    WHEN A.SELL_TP_DTL_CD IN ('22','24','25','26') THEN '리스'
+                    WHEN A.SELL_TP_DTL_CD IN ('31', '32' ,'33') THEN '멤버십'
+                    WHEN A.SELL_TP_DTL_CD IN ('61','62','63') THEN '정기배송' END SELL_TP_DTL_CD
+             , A.CNTR_NO||'-'||A.CNTR_SN                            AS CNTR_DTL_NO  
+             , E.CST_KNM                                            AS CST_KNM             --E.TB_CUBS_CST_BAS (고객기본)
+             , '(' ||F.PD_CD||')'|| F.PD_NM ||'/'|| B.SV_PRD ||'개월' || '/'          AS PD_NM --B.TB_SSCT_CNTR_DTL (계약상세)  F.TB_PDBS_PD_BAS (상품기본)
+                /********************************상품정보************************************************/
+                /* CASE WHEN LC50.LCICDE = '4350' THEN                                                */
+                /*                        CASE WHEN LC50.LCIUSE IN (1,3) THEN '황사필터('||LC50.LCIUSE||')'     */
+                /*                             WHEN LC50.LCIUSE = 2 THEN '항바이러스('||LC50.LCIUSE||')'         */
+                /*                             ELSE                       '일반('||LC50.LCIUSE||')'            */
+                /*                         END                                                                */
+                /*                    WHEN LC50.LCICDE = '4415' THEN                                          */
+                /*                        CASE WHEN LC50.LCIUSE = 0 THEN '구분없음('||LC50.LCIUSE||')'          */
+                /*                             WHEN LC50.LCIUSE IN (1,3) THEN '일반('||LC50.LCIUSE||')'        */
+                /*                             WHEN LC50.LCIUSE IN (2) THEN '대형법인('||LC50.LCIUSE||')'       */
+                /*                             WHEN LC50.LCIUSE IN (4) THEN '대형법인2('||LC50.LCIUSE||')'      */
+                /*                             WHEN LC50.LCIUSE IN (5) THEN '홈케어('||LC50.LCIUSE||')'         */
+                /*                             ELSE (SELECT LCTEXT                                            */
+                /*                                     FROM LCLIB.LB8000P                                     */
+                /*                                    WHERE LCGROP = '1000000035'                             */
+                /*                                      AND LCGUB1 = LC50.LCIUSE                              */
+                /*                                  )                                                         */
+                /*                         END                                                                */
+                /*                    WHEN KA11.KAETC2 = '4' /* 4:연수기  THEN                                  */
+                /*                        CASE WHEN LC50.LCIUSE = 0 THEN '일반('||LC50.LCIUSE||')'              */
+                /*                             WHEN LC50.LCIUSE = 1 THEN '특별('||LC50.LCIUSE||')'              */
+                /*                             ELSE                       '특특별('||LC50.LCIUSE||')'           */
+                /*                         END                                                                 */
+                /*                    WHEN KA11.KAETC2 = 'F' /* F:안마의자  THEN                                 */
+                /*                        CASE WHEN LC50.LCIUSE = 1 THEN '일반('||LC50.LCIUSE||')'              */
+                /*                             WHEN LC50.LCIUSE = 2 THEN '특별('||LC50.LCIUSE||')'              */
+                /*                             ELSE                       ''                                    */
+                /*                         END                                                                  */
+                /*                    ELSE                                                                      */
+                /*                        CASE WHEN LC50.LCIUSE = 0 THEN '구분없음('||LC50.LCIUSE||')'            */
+                /*                             WHEN LC50.LCIUSE IN (1,3) THEN '일반('||LC50.LCIUSE||')'          */
+                /*                             WHEN LC50.LCIUSE IN (2,4) THEN '업소용('||LC50.LCIUSE||')'        */
+                /*                             WHEN LC50.LCIUSE IN (5) THEN '홈케어('||LC50.LCIUSE||')'          */
+                /*                             ELSE (SELECT LCTEXT                                              */
+                /*                                     FROM LCLIB.LB8000P                                       */
+                /*                                    WHERE LCGROP = '1000000035'                               */
+                /*                                      AND LCGUB1 = LC50.LCIUSE                                */
+                /*                                  )                                                           */
+                /*                         END                                                                  */
+                /*          END /*상품코드* /*상품명*/ /*서비스 주기*/ /*용도                     AS LCIUSE_NM          */
+                /********************************상품정보 끝***********************************************/
+                /*  , LC31.LCMGU2     -- 만료유형코드  EXN_TP_ACD
+                     , CASE WHEN LC50.LCRCNT > LC50.LCMONT THEN
+                            COALESCE((SELECT LCTEXT FROM LCLIB.LB8000P WHERE LCGROP = '1000000177' AND LCGUB1 = LC31.LCMGU2),'****')
+                       ELSE ''
+                        END             AS LCMGU2_NM  */  /*만료유형명*/    -- 1.멤버십, 2:만료유지 3:자가 4 철거 5 보류 6 기기변경
+             , '' AS LCMGU2_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'ALNCMP_CD', B.ALNCMP_CD) AS LCETC8_NM    --제휴명
+             , A.CNTR_DT                                          AS CNTR_DT      --접수일자
+             , A.SL_RCOG_DT                                       AS SL_RCOG_DT   --매출일자
+             , A.CAN_DT                                           AS CAN_DT       --취소일자
+             , A.FSH_DT                                           AS FSH_DT       --완료일자
+             , C.REDF_DT                                          AS REDF_DT      --되물림일자               -- C.TB_CBCL_REDF_ADSB_BAS
+             , C.ADSB_DT                                          AS ADSB_DT      --재지급일자
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_DSC_DV_CD', B.SELL_DSC_DV_CD) ||'/'||B.STPL_PTRM || '년 약정' AS LCGUB3  --할인구분/약정기간
+             , CASE WHEN G.DP_DV_CD='1' THEN F_CMZ_CD_NM(#{session.tenantId}, 'DP_TP_CD', G.DP_TP_CD) ||'/'|| SUBSTR(G.DP_DT,7,2)||'/'||G.RVE_PROCS_YN  
+               ELSE ''  END                                  AS SELL_DSC_DV_CD --이체정보          --G.TB_RVDW_RVE_DTL --수납상세
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.RENTAL_RGST_COST)), '(\d{3})','\1,')), '^,','')||'원'||'('||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.DSC_AMT)), '(\d{3})','\1,')), '^,','')||'원 할인'||')' AS RENTAL_RGST_COST            --등록비
+             , A.RENTAL_PTRM||'개월'||'/'||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.RENTAL_AMT)), '(\d{3})','\1,')), '^,','')||'원' AS RENTAL_PTRM                      --렌탈/리스기간  -- span으로 1구간, 2구간 필요
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.SL_AGG_AMT+A.FNN_LEASE_INT_TAM)), '(\d{3})','\1,')), '^,','')
+               ||'원'||'('||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.SL_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'/'||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.FNN_LEASE_INT_TAM)), '(\d{3})','\1,')), '^,','')||')'   AS SL_AGG_AMT   --매출누계(원금/이자)
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.DSC_AGG_AMT+A.INT_DSC_AGG_AMT)), '(\d{3})','\1,')), '^,','')
+               ||'원'||'('||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.DSC_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'/'||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.INT_DSC_AGG_AMT)), '(\d{3})','\1,')), '^,','')||')'     AS DSC_AGG_AMT  --할인누계(원금/이자)
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.CTR_AGG_AMT+A.INT_CTR_AGG_AMT)), '(\d{3})','\1,')), '^,','')
+               ||'원'||'('||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.CTR_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'/'||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.INT_CTR_AGG_AMT)), '(\d{3})','\1,')), '^,','')||')'     AS CTR_AGG_AMT  --조정누계(원금/이자)
+             --, REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.SL_DP_AGG_AMT+A.INT_DP_AGG_AMT)), '(\d{3})','\1,')), '^,','')
+             --  ||'원'||'('||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.CTR_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'/'||REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.INT_DP_AGG_AMT)), '(\d{3})','\1,')), '^,','')||')'    AS SL_DP_AGG_AMT --매출입금누계(원금/이자)
+             , 0 AS SL_DP_AGG_AMT
+             , A.THM_UC_BLAM                                      AS THM_UC_BLAM   --미수금액
+             , D.THM_OC_DLQ_AMT                                   AS THM_OC_DLQ_AMT    --연체금액            D.TB_CBCL_DLQ_BAS
+             , TRUNC(A.SL_STP_AMT * 0.3,-1)                       AS SL_STP_AMT    --매출 중지금액
+             , D.EOT_DLQ_ADD_AMT                                  AS EOT_DLQ_ADD_AMT --가산금기말
+             , 0                                                  AS DFA_PROCS_AMT   --대손금액         
+             , CASE WHEN G.RVE_DV_CD='09' THEN  G.DP_AMT  
+               ELSE 0 END                                    AS DFA_AMT      --대손입금금액      RVE_DV_CD = '09'
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL B --계약상세
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.SELL_TP_CD = B.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS C --되물림
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS D --연체기본
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SL_CL_YM = D.PERF_YM
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E --고객기본
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F --상품기본
+            ON B.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL G -- 수납상세
+            ON G.KW_GRP_CO_CD = '2000'
+           AND A.CNTR_NO = G.CNTR_NO 
+           AND A.CNTR_SN = G.CNTR_SN
+         WHERE 1=1
+           AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+           AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+           AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/ -- 'W202210144681'
+           AND A.SELL_TP_CD = '2' 
+           AND A.SELL_TP_DTL_CD IN ('22','24','25','26')
+         ORDER BY SUBSTR(A.SL_CL_YM,1,4) DESC,SUBSTR(A.SL_CL_YM,5,2) DESC
+         FETCH FIRST 1 ROWS ONLY
     </select>
     
     <select id="selectMembership" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchMembershipRes">
         /* 멤버십 */
-        SELECT T1.SELL_TP_CD    
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-             , T4.CST_KNM
-             , T5.PD_NM
-             , T7.DP_TP_CD || '/' || T7.MPY_BSDT AS DP_TP_CD
-             , T6.CNTR_DT
-             , T3.CNTR_CNFM_DTM
-             , T3.CNTR_CAN_DTM
-             , '' AS COL9
-             , '' AS COL10
-             , '' AS COL11
-             , T1.SELL_AMT
-             , T1.DSC_AMT
-             , T1.SL_AGG_AMT
-             , 0 AS COL15
-             , 0 AS COL16
-             , T1.SL_DP_AGG_AMT
-             , T1.THM_UC_BLAM
-             , T8.THM_OC_DLQ_AMT / T8.EOT_DLQ_ADD_AMT AS THM_OC_DLQ_AMT
-             , T9.DFA_AMT
-             , T10.DFA_DP_AMT
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_SSCT_CNTR_DTL T2
-            ON T1.CNTR_NO = T2.CNTR_NO
-           AND T1.CNTR_SN = T2.CNTR_SN
-         INNER JOIN TB_SSCT_CNTR_BAS T3
-            ON T2.CNTR_NO = T3.CNTR_NO
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T4
-            ON T1.CST_NO = T4.CST_NO
-          LEFT OUTER JOIN TB_PDBS_PD_BAS T5
-            ON T1.PD_CD = T5.PD_CD
-          LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T6
-            ON T1.CNTR_NO = T6.CNTR_NO
-           AND T1.CNTR_SN = T6.CNTR_SN
-          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7
-            ON T1.CNTR_NO = T7.CNTR_NO
-           AND T1.CST_NO = T7.CST_NO
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T8
-            ON T1.CNTR_NO = T8.CNTR_NO
-           AND T1.CNTR_SN = T8.CNTR_SN
-          LEFT OUTER JOIN TB_CBBO_DFA_IZ T9
-            ON T1.CNTR_NO = T9.CNTR_NO
-           AND T1.CNTR_SN = T9.CNTR_SN
-          LEFT OUTER JOIN TB_CBBO_DFA_DP_IZ T10
-            ON T9.DFA_TP_CD = T10.DFA_TP_CD
+        SELECT CASE WHEN A.SELL_TP_DTL_CD IN ('21','23') THEN '렌탈'
+                    WHEN A.SELL_TP_DTL_CD IN ('22','24','25','26') THEN '리스'
+                    WHEN A.SELL_TP_DTL_CD IN ('31', '32' ,'33') THEN '멤버십'
+                    WHEN A.SELL_TP_DTL_CD IN ('61','62','63') THEN '정기배송' END SELL_TP_DTL_CD
+             , (A.CNTR_NO||'-'||A.CNTR_SN)||'('|| 
+                CASE A.SELL_TP_DTL_CD  WHEN '31' THEN '일시불' 
+                                       WHEN '32' THEN '렌탈'
+                                       WHEN '33' THEN '홈케어'
+                 END || ')'                                           AS CNTR_DTL_NO
+             , E.CST_KNM                                            AS CST_KNM             --E.TB_CUBS_CST_BAS (고객기본)
+             , '(' ||F.PD_CD||')'|| F.PD_NM ||'/'|| B.SV_PRD ||'개월' || '/'          AS PD_NM --B.TB_SSCT_CNTR_DTL (계약상세)  F.TB_PDBS_PD_BAS (상품기본)
+                    /********************************상품정보************************************************/
+                    /* CASE WHEN LC50.LCICDE = '4350' THEN                                                */
+                    /*                        CASE WHEN LC50.LCIUSE IN (1,3) THEN '황사필터('||LC50.LCIUSE||')'     */
+                    /*                             WHEN LC50.LCIUSE = 2 THEN '항바이러스('||LC50.LCIUSE||')'         */
+                    /*                             ELSE                       '일반('||LC50.LCIUSE||')'            */
+                    /*                         END                                                                */
+                    /*                    WHEN LC50.LCICDE = '4415' THEN                                          */
+                    /*                        CASE WHEN LC50.LCIUSE = 0 THEN '구분없음('||LC50.LCIUSE||')'          */
+                    /*                             WHEN LC50.LCIUSE IN (1,3) THEN '일반('||LC50.LCIUSE||')'        */
+                    /*                             WHEN LC50.LCIUSE IN (2) THEN '대형법인('||LC50.LCIUSE||')'       */
+                    /*                             WHEN LC50.LCIUSE IN (4) THEN '대형법인2('||LC50.LCIUSE||')'      */
+                    /*                             WHEN LC50.LCIUSE IN (5) THEN '홈케어('||LC50.LCIUSE||')'         */
+                    /*                             ELSE (SELECT LCTEXT                                            */
+                    /*                                     FROM LCLIB.LB8000P                                     */
+                    /*                                    WHERE LCGROP = '1000000035'                             */
+                    /*                                      AND LCGUB1 = LC50.LCIUSE                              */
+                    /*                                  )                                                         */
+                    /*                         END                                                                */
+                    /*                    WHEN KA11.KAETC2 = '4' /* 4:연수기  THEN                                  */
+                    /*                        CASE WHEN LC50.LCIUSE = 0 THEN '일반('||LC50.LCIUSE||')'              */
+                    /*                             WHEN LC50.LCIUSE = 1 THEN '특별('||LC50.LCIUSE||')'              */
+                    /*                             ELSE                       '특특별('||LC50.LCIUSE||')'           */
+                    /*                         END                                                                 */
+                    /*                    WHEN KA11.KAETC2 = 'F' /* F:안마의자  THEN                                 */
+                    /*                        CASE WHEN LC50.LCIUSE = 1 THEN '일반('||LC50.LCIUSE||')'              */
+                    /*                             WHEN LC50.LCIUSE = 2 THEN '특별('||LC50.LCIUSE||')'              */
+                    /*                             ELSE                       ''                                    */
+                    /*                         END                                                                  */
+                    /*                    ELSE                                                                      */
+                    /*                        CASE WHEN LC50.LCIUSE = 0 THEN '구분없음('||LC50.LCIUSE||')'            */
+                    /*                             WHEN LC50.LCIUSE IN (1,3) THEN '일반('||LC50.LCIUSE||')'          */
+                    /*                             WHEN LC50.LCIUSE IN (2,4) THEN '업소용('||LC50.LCIUSE||')'        */
+                    /*                             WHEN LC50.LCIUSE IN (5) THEN '홈케어('||LC50.LCIUSE||')'          */
+                    /*                             ELSE (SELECT LCTEXT                                              */
+                    /*                                     FROM LCLIB.LB8000P                                       */
+                    /*                                    WHERE LCGROP = '1000000035'                               */
+                    /*                                      AND LCGUB1 = LC50.LCIUSE                                */
+                    /*                                  )                                                           */
+                    /*                         END                                                                  */
+                    /*          END /*상품코드* /*상품명*/ /*서비스 주기*/ /*용도                     AS LCIUSE_NM          */
+                    /********************************상품정보 끝***********************************************/
+             , CASE WHEN G.DP_DV_CD='1' THEN F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', G.DP_TP_CD) ||'/'|| SUBSTR(G.DP_DT,7,2)||'/'||G.RVE_PROCS_YN  
+                    ELSE ''  END                                  AS SELL_DSC_DV_CD --이체정보          --G.TB_RVDW_RVE_DTL --수납상세
+             , SUBSTR(C.CNTR_STLM_FSH_DTM,1,8)                    AS CNTR_DT      --계약일자  TB_SSCT_CNTR_BAS(계약기본)
+             , SUBSTR(C.CNTR_CNFM_DTM,1,8)                        AS SL_RCOG_DT   --확정일자  TB_SSCT_CNTR_BAS(계약기본)
+             , SUBSTR(C.CNTR_CAN_DTM,1,8)                         AS CAN_DT       --취소일자  TB_SSCT_CNTR_BAS(계약기본)
+             , SUBSTR(C.CNTR_RCP_FSH_DTM,1,8)                     AS FSH_DT       --가입일자
+           --    , C.REDF_DT                                          AS REDF_DT      --탈퇴일자    
+           --    , C.ADSB_DT                                          AS ADSB_DT      --완료일자
+             , ''                                                AS REDF_DT      --탈퇴일자    
+             , ''                                                AS ADSB_DT      --완료일자
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.RENTAL_RGST_COST)), '(\d{3})','\1,')), '^,','')||'원'                         AS RENTAL_RGST_COST --월회비
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.DSC_AMT)), '(\d{3})','\1,')), '^,','')||'원'                                  AS DSC_AMT          --할인금액                                                                          
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.SL_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'원'                               AS SL_AGG_AMT       --매출누계
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.DSC_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'원'                              AS DSC_AGG_AMT      ---할인누계
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.CTR_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'원'                              AS CTR_AGG_AMT      --조정누계
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.SL_DP_AGG_AMT)), '(\d{3})','\1,')), '^,','')||'원'                            AS SL_DP_AGG_AMT --매출입금누계
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.THM_UC_BLAM)), '(\d{3})','\1,')), '^,','')||'원'                              AS THM_UC_BLAM   --미수금액
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(D.THM_OC_DLQ_AMT)), '(\d{3})','\1,')), '^,','')||'원'                           AS THM_OC_DLQ_AMT    --연체금액/가산금            D.TB_CBCL_DLQ_BAS
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.DFA_PROCS_AMT)), '(\d{3})','\1,')), '^,','')||'원'                            AS DFA_PROCS_AMT   --대손금액         
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(CASE WHEN G.RVE_DV_CD='09' THEN G.DP_AMT
+                 ELSE 0 END )), '(\d{3})','\1,')), '^,','')||'원'                                   AS DFA_AMT      --대손입금금액      RVE_DV_CD = '09'
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL B --계약상세
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.SELL_TP_CD = B.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_SSCT_CNTR_BAS C --계약기본
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CST_NO  = C.CNTR_CST_NO
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS D --연체기본
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SL_CL_YM = D.PERF_YM
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E --고객기본
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F --상품기본
+            ON B.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL G -- 수납상세
+            ON G.KW_GRP_CO_CD = '2000'
+           AND A.CNTR_NO = G.CNTR_NO 
+           AND A.CNTR_SN = G.CNTR_SN
          WHERE 1=1
-           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+           AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+           AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+           AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+           AND A.SELL_TP_CD = '3' 
+           AND A.SELL_TP_DTL_CD IN ('31','32','33','34')
+         ORDER BY SUBSTR(A.SL_CL_YM,1,4) DESC,SUBSTR(A.SL_CL_YM,5,2) DESC
+         FETCH FIRST 1 ROWS ONLY
     </select>
     
     <select id="selectRegular" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRegularRes">
         /* 정기배송 */
-        SELECT T1.SELL_TP_CD    
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-             , T4.CST_KNM
-             , T3.CNTR_RCP_FSH_DTM
-             , T1.SL_DT
-             , '' AS COL6
-             , '' AS COL7
-             , '' AS COL8
-             , T1.SPP_DTM
-             , T5.DP_TP_CD || '/' || T5.MPY_BSDT AS DP_TP_CD
-             , T1.SL_AGG_AMT
-             , 0 AS COL12
-             , 0 AS COL13
-             , T1.SL_DP_AGG_AMT
-             , T1.THM_UC_BLAM
-             , 0 AS COL16
-             , T6.THM_OC_DLQ_AMT
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_SSCT_CNTR_DTL T2
-            ON T1.CNTR_NO = T2.CNTR_NO
-           AND T1.CNTR_SN = T2.CNTR_SN
-         INNER JOIN TB_SSCT_CNTR_BAS T3
-            ON T2.CNTR_NO = T3.CNTR_NO
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T4
-            ON T1.CST_NO = T4.CST_NO
-          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T5
-            ON T1.CNTR_NO = T5.CNTR_NO
-           AND T1.CST_NO = T5.CST_NO
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T6
-            ON T1.CNTR_NO = T6.CNTR_NO
-           AND T1.CNTR_SN = T6.CNTR_SN
+        SELECT CASE WHEN A.SELL_TP_DTL_CD IN ('21','23') THEN '렌탈'
+                    WHEN A.SELL_TP_DTL_CD IN ('22','24','25','26') THEN '리스'
+                    WHEN A.SELL_TP_DTL_CD IN ('31', '32' ,'33') THEN '멤버십'
+                    WHEN A.SELL_TP_DTL_CD IN ('61','62','63') THEN '정기배송' END SELL_TP_DTL_CD
+             , A.CNTR_NO||'-'||A.CNTR_SN                            AS CNTR_DTL_NO
+             , E.CST_KNM                                            AS CST_KNM             --E.TB_CUBS_CST_BAS (고객기본)
+             , SUBSTR(H.CNTR_STLM_FSH_DTM,1,8)                      AS CNTR_DT 
+             , A.SL_RCOG_DT                                         AS SL_RCOG_DT   /*매출일자*/
+             ,'(' ||F.PD_CD||')'|| F.PD_NM                          AS PD_NM        /*패키지정보 */
+                /*-------------------주문(원장)정보----------------*/
+                /*          , CASE WHEN LD30.LCST05 = '1' THEN '결합형'                                                                                                   */
+                /*               WHEN LD30.LCST05 = '2' THEN '분리형'                                                                                                     */
+                /*            END                                                            AS LC_ST05  /*판매유형                                                     */
+                /*                                                                                                                                                        */
+                /*          ,LD30.LCPKAG                                                               /*패키지코드(접수시 패키지)                                      */
+                /*          ,(SELECT LCPNAM FROM LCLIB.LD1010P WHERE LCPKAG = LD50.LCPKAG AND LCPSEQ = 0)    AS LC_PNAM /*패키지명                                      */
+                /*          ,CASE WHEN LD50.LCPKYN = 'Y' THEN '패키지'                                                                                                    */
+                /*               WHEN LD50.LCPKYN = 'N' AND LD50.LCPKAG > 0 THEN '패키지개별'                                                                             */
+                /*               ELSE '개별'                                                                                                                              */
+                /*               END                                                                                 AS LC_PKNM  /*패키지 유형 명                       */
+                /*        , LD30.OJ_DTL_CNTR_NO || '-' || DIGITS(LD30.LCJCOD) || (CASE WHEN LD30.LCJSEQ = 0 THEN '' ELSE '-' || LD30.LCJSEQ END) AS LC_JORDR_NO           */
+                /*        , CASE LD30.LCJTYP WHEN '1' THEN LC30.LCCNAM                                                                                                    */
+                /*                           WHEN '2' THEN LC31.LCCNAM                                                                                                    */
+                /*                           WHEN '3' THEN LC35.LCCNAM                                                                                                    */
+                /*                           WHEN '4' THEN LC95.LCCNAM                                                                                                    */
+                /*                           ELSE '알수없음'                                                                                                              */
+                /*           END                                                                                 AS LC_JCNAM     /*계약자명(기기)                       */
+                /*        , CASE LD30.LCJTYP WHEN '1' THEN '일시불'                                                                                                       */
+                /*                           WHEN '2' THEN '렌탈'                                                                                                         */
+                /*                           WHEN '3' THEN '멤버십'                                                                                                       */
+                /*                           WHEN '4' THEN '회사설치'                                                                                                     */
+                /*                           ELSE '알수없음'                                                                                                              */
+                /*           END                                                                                 AS LC_JTYP_NM   /*연계 주문 유형 명                    */
+                /*        , CASE LD30.LCJTYP WHEN '1' THEN LC30.LCIC01                                                                                                    */
+                /*                           WHEN '2' THEN LC31.LCICDE                                                                                                    */
+                /*                           WHEN '3' THEN LC35.LCICDE                                                                                                    */
+                /*                           WHEN '4' THEN LC95.LCICDE                                                                                                    */
+                /*                           ELSE '알수없음'                                                                                                              */
+                /*           END                                                                                 AS LCICDE       /*연계 주문 판매 상품 코드             */
+                /*        , KA11_J.KAINAM                                                                        AS LCINAM       /*연계 주문 판매 상품 명*/
+                /*        , CASE WHEN LD30.LCCK04 = 'Y' THEN '스페셜' ELSE '' END LCCK04  /*스페셜여부*/
+                /*-------------------주문(매출)정보----------------*/
+             , ''                                       AS LCCK04 /*기기정보*/
+             , A.CAN_DT                                 AS CAN_DT       --취소일자  TB_SSCT_CNTR_BAS(계약기본)             
+             , A.SPP_DTM                                               AS SPP_DTM       /*최초배송일자*/
+             , CASE WHEN G.DP_DV_CD='1' THEN F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', G.DP_TP_CD) ||'/'|| SUBSTR(G.DP_DT,7,2)||'/'||G.RVE_PROCS_YN  
+               ELSE ''  END                                                                            AS SELL_DSC_DV_CD --이체정보       --G.TB_RVDW_RVE_DTL --수납상세
+             /*------매출사항------*/
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.SL_AGG_AMT)), '(\d{3})','\1,')), '^,','') AS SL_AGG_AMT  /*매출누계*/
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.DSC_AGG_AMT)), '(\d{3})','\1,')), '^,','') AS DSC_AGG_AMT  /*할인누계*/
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.CTR_AGG_AMT)), '(\d{3})','\1,')), '^,','') AS CTR_AGG_AMT  /*조정누계*/
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.SL_DP_AGG_AMT)), '(\d{3})','\1,')), '^,','') AS SL_DP_AGG_AMT  /*매출입금누계*/
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.THM_UC_BLAM)), '(\d{3})','\1,')), '^,','') AS THM_UC_BLAM  /*판매미수금액*/
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.EOT_UC_AMT)), '(\d{3})','\1,')), '^,','') AS EOT_UC_AMT  /*미수＿기말(청구미수)*/
+             , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(D.THM_OC_DLQ_AMT)), '(\d{3})','\1,')), '^,','') AS THM_OC_DLQ_AMT  /*연체금액*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL B --계약상세
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.SELL_TP_CD = B.SELL_TP_CD
+           AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_SSCT_CNTR_BAS H --계약기본
+            ON A.CNTR_NO = H.CNTR_NO
+           AND A.CST_NO  = H.CNTR_CST_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL C   --계약관계
+            ON B.CNTR_NO = C.OJ_DTL_CNTR_NO
+           AND B.CNTR_SN = C.OJ_DTL_CNTR_SN
+           AND C.CNTR_REL_DTL_CD = '214'
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS D --연체기본
+            ON A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SL_CL_YM = D.PERF_YM
+          LEFT OUTER JOIN TB_CUBS_CST_BAS E --고객기본
+            ON A.CST_NO = E.CST_NO
+          LEFT OUTER JOIN TB_PDBS_PD_BAS F --상품기본
+            ON B.BASE_PD_CD = F.PD_CD
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL G -- 수납상세
+            ON G.KW_GRP_CO_CD = '2000'
+           AND A.CNTR_NO = G.CNTR_NO 
+           AND A.CNTR_SN = G.CNTR_SN
          WHERE 1=1
-           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-           AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+           AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+           AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+           AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+           AND A.SELL_TP_CD = '6'     -- 멤버십
+           AND A.SELL_TP_DTL_CD = '61'  -- 판매유형상세
+         ORDER BY SUBSTR(A.SL_CL_YM,1,4) DESC,SUBSTR(A.SL_CL_YM,5,2) DESC
+         FETCH FIRST 1 ROWS ONLY
     </select>
     
     <select id="selectRentalPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRentalMonthlyRes">
-       SELECT T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-            , SUBSTR(SL_DT, 1, 6) AS SL_DT
-            , T2.CNTR_DTL_STAT_CD
-            , 0 AS COL4
-            , '' AS COL5
-            , T1.PRM_MCN
-            , T1.THM_SL_SUM_AMT
-            , 0 AS COL8
-            , 0 AS COL9
-            , T1.EOT_ATAM
-            , T1.THM_UC_BLAM
-            , T3.THM_OC_DLQ_AMT
-            , T3.DLQ_MCN
-            , T3.BTD_DLQ_ADD_AMT
-            , T3.THM_OC_DLQ_ADD_AMT
-            , T3.THM_CTR_DLQ_ADD_AMT
-            , T3.THM_DLQ_DP_SUM_AMT
-            , T3.THM_DLQ_RFND_SUM_AMT
-            , T3.EOT_DLQ_ADD_AMT
-         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-        INNER JOIN TB_SSCT_CNTR_DTL T2
-           ON T1.CNTR_NO = T2.CNTR_NO
-          AND T1.CNTR_SN = T2.CNTR_SN
-         LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
-           ON T1.CNTR_NO = T3.CNTR_NO
-          AND T1.CNTR_SN = T3.CNTR_SN
-        WHERE 1=1
-          AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-          AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+       SELECT A.CNTR_NO || A.CNTR_SN                           AS CNTR_DTL_NO   -- 계약상세번호
+            , A.SL_CL_YM AS SL_CL_YM  -- 매출년월
+            , CASE WHEN A.SL_STP_YN='Y' THEN '매출중지'
+                   ELSE ''
+               END                                                AS SL_STP_YN -- 매출중지
+            , A.RENTAL_TN                                             AS RENTAL_TN -- 렌탈차월
+            , A.PRM_MCN                                               AS PRM_MCN   -- 선납개월
+            , A.THM_SL_SUM_AMT                                        AS LCAM16    -- 렌탈 매출
+            , 0                                                       AS LCAM4446  -- 위약금(A.LCAM44 + A.LCAM46)                    
+            , A.THM_ATAM_DP_AMT - A.THM_ATAM_RFND_AMT + A.MLG_DP_AMT - A.MLG_RFND_AMT 
+              + CASE WHEN A.RENTAL_TN = 0 AND A.SL_RCOG_DT IS NOT NULL THEN A.RENTAL_RGST_COST*-1 + A.DSC_AMT
+                     WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN C.THM_DLQ_ADD_DP_SUM_AMT - C.THM_DLQ_ADD_RFND_SUM_AMT
+                     ELSE 0
+                      END                                              AS LCIAMT    --렌탈입금
+            , A.EOT_ATAM + MLG_EOT_PRPD_AMT                           AS LCAM3T    --선수금액
+            , A.THM_UC_BLAM                                           AS THM_UC_BLAM  -- 미수금액
+            , C.THM_OC_DLQ_AMT                                        AS THM_OC_DLQ_AMT  -- 연체금액
+            , C.DLQ_MCN                                               AS DLQ_MCN   -- 연체개월수
+            /*------연체가산금------*/
+            , C.BTD_DLQ_ADD_AMT  /*가산금기초*/
+            , C.THM_OC_DLQ_ADD_AMT  /*가산금발생*/
+            , C.THM_CTR_DLQ_ADD_AMT  /*가산금공제*/
+            , C.THM_DLQ_DP_SUM_AMT  /*가산금입금*/
+            , C.THM_DLQ_RFND_SUM_AMT  /*가산금환불*/
+            , C.EOT_DLQ_ADD_AMT  /*가산금기말*/
+            , TRUNC(A.SL_STP_AMT * 0.3,-1) AS LCAM96                    -- 매출중지금액
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+        INNER JOIN TB_SSCT_CNTR_DTL B
+           ON A.CNTR_NO = B.CNTR_NO
+          AND A.CNTR_SN = B.CNTR_SN
+          AND A.SELL_TP_CD = B.SELL_TP_CD 
+          AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS C 
+           ON A.CNTR_NO  = C.CNTR_NO
+          AND A.CNTR_SN  = C.CNTR_SN
+          AND A.SL_CL_YM = C.PERF_YM
+        WHERE SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+          AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+          AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+          AND A.SELL_TP_CD = '2' 
+          AND A.SELL_TP_DTL_CD IN ('21','23')
+        ORDER BY A.SL_CL_YM
+    </select>
+    
+    <select id="selectLeasePages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchLeaseMonthlyRes">
+       SELECT A.CNTR_NO || A.CNTR_SN                           AS CNTR_DTL_NO   -- 계약상세번호
+            , A.SL_CL_YM AS SL_CL_YM  -- 매출년월
+            , CASE WHEN A.SL_STP_YN='Y' THEN '매출중지'
+                   ELSE ''
+                   END                                                AS SL_STP_YN -- 매출중지
+            , A.RENTAL_TN                                             AS RENTAL_TN -- 렌탈차월
+            , A.PRM_MCN                                               AS PRM_MCN   -- 선납개월
+            , D.FNL_BIL_AMT                                           AS LCAM16    -- 리스 청구금액
+            , 0                                                       AS LCAM4446  -- 위약금(A.LCAM44 + A.LCAM46)                    
+            , A.THM_ATAM_DP_AMT - A.THM_ATAM_RFND_AMT + A.MLG_DP_AMT - A.MLG_RFND_AMT 
+              + CASE WHEN A.RENTAL_TN = 0 AND A.SL_RCOG_DT IS NOT NULL THEN A.RENTAL_RGST_COST*-1 + A.DSC_AMT
+                     WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN C.THM_DLQ_ADD_DP_SUM_AMT - C.THM_DLQ_ADD_RFND_SUM_AMT
+                     ELSE 0
+                      END                                              AS LCIAMT    --렌탈입금
+            , A.EOT_ATAM + MLG_EOT_PRPD_AMT                           AS LCAM3T    --선수금액
+            , A.THM_UC_BLAM                                           AS THM_UC_BLAM  -- 미수금엑
+            , C.THM_OC_DLQ_AMT                                        AS THM_OC_DLQ_AMT  -- 연체금액
+            , C.DLQ_MCN                                               AS DLQ_MCN   -- 연체개월수
+              /*------연체가산금------*/
+            , C.BTD_DLQ_ADD_AMT  /*가산금기초*/
+            , C.THM_OC_DLQ_ADD_AMT  /*가산금발생*/
+            , C.THM_CTR_DLQ_ADD_AMT  /*가산금공제*/
+            , C.THM_DLQ_DP_SUM_AMT  /*가산금입금*/
+            , C.THM_DLQ_RFND_SUM_AMT  /*가산금환불*/
+            , C.EOT_DLQ_ADD_AMT  /*가산금기말*/
+            , TRUNC(A.SL_STP_AMT * 0.3,-1) AS LCAM96                    -- 매출중지금액
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+        INNER JOIN TB_SSCT_CNTR_DTL B
+           ON A.CNTR_NO = B.CNTR_NO
+          AND A.CNTR_SN = B.CNTR_SN
+          AND A.SELL_TP_CD = B.SELL_TP_CD 
+          AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS C
+           ON A.CNTR_NO  = C.CNTR_NO
+          AND A.CNTR_SN  = C.CNTR_SN
+          AND A.SL_CL_YM = C.PERF_YM
+         LEFT OUTER JOIN TB_RVCL_BIL_PLAN_BAS D 
+           ON A.CNTR_NO  = D.CNTR_NO
+          AND A.CNTR_SN  = D.CNTR_SN
+          AND A.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(BIL_YM, 'YYYYMM'), -1), 'YYYYMM')
+        WHERE SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+          AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+          AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+          AND A.SELL_TP_CD = '2' 
+          AND A.SELL_TP_DTL_CD IN ('22','24','25','26')
+        ORDER BY A.SL_CL_YM
     </select>
     
     <select id="selectMembershipPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchMembershipMonthlyRes">
-       SELECT T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-            , SUBSTR(SL_DT, 1, 6) AS SL_DT
-            , 0 AS COL3
-            , '' AS COL4
-            , T1.THM_SL_SUM_AMT
-            , T1.THM_ATAM_DP_AMT - T1.THM_ATAM_RFND_AMT AS THM_ATAM_DP_AMT
-            , T1.EOT_ATAM
-            , T2.THM_OC_DLQ_AMT
-            , T2.BTD_DLQ_ADD_AMT   
-            , T2.THM_OC_DLQ_ADD_AMT
-            , T2.THM_CTR_DLQ_ADD_AMT   
-            , T2.THM_DLQ_DP_SUM_AMT    
-            , T2.THM_DLQ_RFND_SUM_AMT  
-            , T2.EOT_DLQ_ADD_AMT
-         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         LEFT OUTER JOIN TB_CBCL_DLQ_BAS T2
-           ON T1.CNTR_NO = T2.CNTR_NO
-          AND T1.CNTR_SN = T2.CNTR_SN
+       SELECT A.CNTR_NO || A.CNTR_SN                           AS CNTR_DTL_NO   -- 계약상세번호
+            , A.SL_CL_YM AS SL_CL_YM  -- 매출년월
+            , A.RENTAL_TN                                             AS RENTAL_TN -- 가입차월
+            , NULL                                                    AS LCMGUB    -- 관리구분
+                --      ,CASE LC55.LCMGUB WHEN '1' THEN 'L'
+                --                        WHEN '2' THEN 'M'
+                --                        ELSE ''
+                --        END LCMGUB                                           /*관리구분*/
+            , A.THM_SL_SUM_AMT                                         AS THM_SL_SUM_AMT -- 멤버십매출
+            , A.THM_ATAM_DP_AMT - THM_ATAM_RFND_AMT
+              + CASE WHEN  (A.SL_CL_YM <![CDATA[<]]> '201605') THEN C.THM_DLQ_ADD_DP_SUM_AMT - A.SELL_AMT
+                     ELSE 0
+                 END                                                    AS LCIAMT      --멤버십입금
+            , A.EOT_ATAM                                               AS EOT_ATAM    --선수금액      
+            , C.THM_OC_DLQ_AMT                                         AS THM_OC_DLQ_AMT  -- 연체금액  
+              /*------연체가산금------*/
+            , C.BTD_DLQ_ADD_AMT  /*가산금기초*/
+            , C.THM_OC_DLQ_ADD_AMT  /*가산금발생*/
+            , C.THM_CTR_DLQ_ADD_AMT  /*가산금공제*/
+            , C.THM_DLQ_DP_SUM_AMT  /*가산금입금*/
+            , C.THM_DLQ_RFND_SUM_AMT  /*가산금환불*/
+            , C.EOT_DLQ_ADD_AMT  /*가산금기말*/
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+        INNER JOIN TB_SSCT_CNTR_DTL B
+           ON A.CNTR_NO = B.CNTR_NO
+          AND A.CNTR_SN = B.CNTR_SN
+          AND A.SELL_TP_CD = B.SELL_TP_CD 
+          AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS C
+           ON A.CNTR_NO  = C.CNTR_NO
+          AND A.CNTR_SN  = C.CNTR_SN
+          AND A.SL_CL_YM = C.PERF_YM
         WHERE 1=1
-          AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-          AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+          AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+          AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+          AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+          AND A.SELL_TP_CD = '3' 
+          AND A.SELL_TP_DTL_CD IN ('31','32','33','34')
+        ORDER BY A.SL_CL_YM
     </select>
     
     <select id="selectRegularPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto$SearchRegularMonthlyRes">
-       SELECT T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-            , 0 AS COL2
-            , SUBSTR(SL_DT, 1, 6) AS SL_DT
-            , '' AS COL4
-            , T1.THM_SL_SUM_AMT
-            , T1.THM_ATAM_DP_AMT - T1.THM_ATAM_RFND_AMT AS THM_ATAM_DP_AMT
-            , T1.EOT_ATAM
-            , T1.THM_UC_BLAM
-            , '' AS COL8
-            , T2.THM_OC_DLQ_AMT
-         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         LEFT OUTER JOIN TB_CBCL_DLQ_BAS T2
-           ON T1.CNTR_NO = T2.CNTR_NO
-          AND T1.CNTR_SN = T2.CNTR_SN
-        WHERE 1=1
-          AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-          AND SUBSTR(T1.SL_DT, 1, 4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+       SELECT A.CNTR_NO || A.CNTR_SN                           AS CNTR_DTL_NO          --주문번호
+            , A.SL_CL_YM AS SL_CL_YM  -- 매출년월
+            , A.RENTAL_TN                                             AS RENTAL_TN        --진행차월
+            , CASE WHEN A.SL_STP_YN='Y' THEN '매출중지'
+              ELSE ''
+               END                                                    AS SL_STP_YN        --매출중지
+            , A.THM_SL_SUM_AMT                                        AS THM_SL_SUM_AMT   --매출합계
+            , A.THM_ATAM_DP_AMT - A.THM_ATAM_RFND_AMT                 AS THM_ATAM_DP_AMT  --입금금액
+            , A.EOT_ATAM                                              AS EOT_ATAM         --선수금액
+            , A.THM_UC_BLAM                                           AS THM_UC_BLAM      --미수금액
+            , C.THM_OC_DLQ_AMT                                        AS THM_OC_DLQ_AMT   --청구미수
+            , C.EOT_DLQ_AMT                                           AS EOT_DLQ_AMT      --연체금액
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+         LEFT OUTER JOIN TB_SSCT_CNTR_DTL B
+           ON A.CNTR_NO = B.CNTR_NO
+          AND A.CNTR_SN = B.CNTR_SN
+          AND A.SELL_TP_CD = B.SELL_TP_CD 
+          AND A.SELL_TP_DTL_CD = B.SELL_TP_DTL_CD
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS C 
+           ON A.CNTR_NO  = C.CNTR_NO
+          AND A.CNTR_SN  = C.CNTR_SN
+          AND A.SL_CL_YM = C.PERF_YM
+        WHERE SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{baseYearFrom} AND #{baseYearTo}
+          AND A.CNTR_NO = #{cntrNo}          /*계약번호*/
+          AND A.CNTR_SN = #{cntrSn}          /*계약상세번호*/
+          AND A.SELL_TP_CD = '6'    -- 멤버십
+          AND A.SELL_TP_DTL_CD = '61'  -- 판매유형상세
+        ORDER BY A.SL_CL_YM
     </select>
 
 </mapper>

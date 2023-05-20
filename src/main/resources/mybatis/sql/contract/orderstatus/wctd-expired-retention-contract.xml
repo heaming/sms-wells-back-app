@@ -7,17 +7,20 @@
              , T1.CNTR_SN
              , T2.CNTR_CST_NO
              , T3.CST_KNM
-             , (
+             , CASE WHEN T4.PD_HCLSF_ID IS NOT NULL AND T4.PD_MCLSF_ID IS NOT NULL
+               THEN (
                SELECT PD_CLSF_NM
                  FROM TB_PDBS_PD_CLSF_BAS
                 WHERE DTA_DL_YN = 'N'
-                  AND PD_CLSF_ID = T1.PD_HCLSF_ID
+                  AND PD_CLSF_ID = T4.PD_HCLSF_ID
                ) || ' > ' || (
                SELECT PD_CLSF_NM
                  FROM TB_PDBS_PD_CLSF_BAS
                 WHERE DTA_DL_YN = 'N'
-                  AND PD_CLSF_ID = T1.PD_MCLSF_ID
-               ) AS PD_CLSF
+                  AND PD_CLSF_ID = T4.PD_MCLSF_ID
+               )
+               ELSE ''
+               END AS PD_CLSF
              , T1.BASE_PD_CD
              , T4.PD_NM
              , T1.ISTM_MCN
@@ -39,7 +42,7 @@
                                END
                     ELSE ''
                      END AS CAN_CST_DUTY_USE_EXPR_YN
-             , T7.SL_DT
+             , T7.SL_CL_DT
              , T1.CNTR_PD_STRTDT + T5.RECAP_DUTY_PTRM_N AS DUTY_USE_DT
              , T11.CNTR_NO AS MSH_CNTR_NO
              , T11.CNTR_SN AS MSH_CNTR_SN
@@ -107,8 +110,13 @@
           LEFT OUTER JOIN TB_CUBS_CST_BAS T13
             ON T13.CST_NO = T12.CNTR_CST_NO
            AND T13.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL TA
+            ON TA.DTL_CNTR_NO = T10.OJ_DTL_CNTR_NO
+           AND TA.DTL_CNTR_SN = T10.OJ_DTL_CNTR_SN
+           AND TA.CNTR_ADRPC_ID = '3'
+           AND TA.VL_END_DTM = '99991231235959'
           LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T14
-            ON T14.CNTR_NO = T10.OJ_DTL_CNTR_NO
+            ON T14.CNTR_ADRPC_ID = TA.CNTR_ADRPC_ID
            AND T14.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T15
             ON T15.CNTR_NO = T10.OJ_DTL_CNTR_NO
@@ -123,12 +131,12 @@
          WHERE 1 = 1
            AND T1.DTA_DL_YN = 'N'
            /* 계약상세 테이블 계약상품시작일자 + 할부개월수가 입력파라미터의 시작일 ~ 종료일 */
-           AND TO_CHAR(ADD_MONTHS(TO_DATE(T1.CNTR_PD_STRTDT, 'YYYYMMDD'), T1.ISTM_MCN), 'YYYYMMDD') BETWEEN #{cntrPdEnddtStrtdt} AND #{cntrPdEnddtEnddt}
+           AND TO_CHAR(ADD_MONTHS(TO_DATE(NVL(T1.CNTR_PD_STRTDT,'10000101'), 'YYYYMMDD'), NVL(T1.ISTM_MCN,'0')), 'YYYYMMDD') BETWEEN #{cntrPdEnddtStrtdt} AND #{cntrPdEnddtEnddt}
         <if test='@MybatisUtils@isNotEmpty(pdHclsfId)'>
-           AND T1.PD_HCLSF_ID = #{pdHclsfId}
+           AND T4.PD_HCLSF_ID = #{pdHclsfId}
         </if>
         <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
-           AND T1.PD_MCLSF_ID = #{pdMclsfId}
+           AND T4.PD_MCLSF_ID = #{pdMclsfId}
         </if>
         <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
            AND T1.BASE_PD_CD = #{basePdCd}

@@ -14,10 +14,10 @@ public interface WctzPartnerMapper {
 
     List<SearchEntrepreneurBaseRes> selectEntrepreneurBases(String bzrno);
 
-    List<SearchGeneralDivisionsRes> selectGeneralDivisions();
+    List<SearchGeneralDivisionsRes> selectGeneralDivisions(String baseYm);
 
-    List<SearchRegionalDivisionsRes> selectRegionalDivisions();
+    List<SearchRegionalDivisionsRes> selectRegionalDivisions(String baseYm);
 
-    List<SearchBranchDivisionsRes> selectBranchDivisions();
+    List<SearchBranchDivisionsRes> selectBranchDivisions(String baseYm);
 
 }

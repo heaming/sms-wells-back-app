@@ -97,13 +97,6 @@ public class WwdbBillingDocumentMgtService {
 
         WwdbBillingDocumentDvo dvo = convert.mapSaveWwwdbBillingDocumentDvo(dto.saveMainReq());
 
-        log.info("==============ser===============");
-        log.info(dto.saveMainReq().bildcPblNo());
-        log.info(dto.saveMainReq().bildcPblSn());
-        log.info(dvo.getBildcPblSn());
-        log.info(dvo.getBildcPblNo());
-        log.info("=============================");
-
         switch (dto.saveMainReq().state()) {
             case CommConst.ROW_STATE_CREATED -> {
                 String pk = mapper.selectBillingDocumentPk();
@@ -133,19 +126,10 @@ public class WwdbBillingDocumentMgtService {
     @Transactional
     private int saveBillingDtails(SaveReq dto, int processCount, WwdbBillingDocumentDvo dvo) throws Exception {
         for (SaveDtlsReq dtlDto : dto.saveDtlsReq()) {
-            log.info("==============");
-            log.info(dtlDto.bildcPblNo());
-            log.info(dtlDto.bildcPblSn());
-            log.info("==============");
             WwdbBillingDocumentDetailDvo dtlDvo = convert.mapSaveWwwdbBillingDocumentDetailDvo(dtlDto);
 
             dtlDvo.setBildcPblNo(dtlDto.bildcPblNo());
             dtlDvo.setBildcPblSn(dtlDto.bildcPblSn());
-
-            log.info("=====DVO=====");
-            log.info(dtlDvo.getBildcPblSn());
-            log.info(dtlDvo.getBildcPblNo());
-            log.info("=====DVO=====");
 
             switch (dtlDto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
@@ -170,8 +154,8 @@ public class WwdbBillingDocumentMgtService {
     }
 
     @Transactional
-    public List<SearchDtlsRes> getBillingDocumentDetails(SearchDtlsReq dto) {
-        return mapper.selectBillingDocumentDetails(dto);
+    public PagingResult<SearchDtlsRes> getBillingDocumentDetails(SearchDtlsReq dto, PageInfo pageInfo) {
+        return mapper.selectBillingDocumentDetails(dto, pageInfo);
     }
 
     @Transactional

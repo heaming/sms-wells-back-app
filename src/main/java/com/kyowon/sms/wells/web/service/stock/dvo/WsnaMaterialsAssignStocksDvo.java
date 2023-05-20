@@ -16,4 +16,5 @@ import lombok.Setter;
 public class WsnaMaterialsAssignStocksDvo {
     String prtnrNo; /* 파트너번호 */
     String qomAsnApyYn; /* 물량배정적용여부 */
+    String ogTpCd; /* 조직유형코드 */
 }

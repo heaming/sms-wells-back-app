@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.standard.mapper.WpdyWellsAllianceMgtMapper">
+    <sql id="selectWellsAllianceSql">
+        SELECT 
+             PB.PD_NM /* 상품명 */
+             , CASE WHEN S1.SV_STRTDT IS NOT NULL 
+                    THEN SUBSTR(S1.SV_STRTDT, 1, 4) || '-' || SUBSTR(S1.SV_STRTDT, 5, 2) || '-' || SUBSTR(S1.SV_STRTDT, 7, 2)
+                            || ' ~ ' || SUBSTR(S1.SV_ENDDT, 1, 4) || '-' || SUBSTR(S1.SV_ENDDT, 5, 2) || '-' || SUBSTR(S1.SV_ENDDT, 7, 2)
+                    ELSE NULL
+                  END SVC_DURTION                          /* 약정기간 */
+              ,  (
+                    SELECT 
+                            LISTAGG(Z.AVL_CHNL_ID,',') WITHIN GROUP (ORDER BY Z.AVL_CHNL_ID ASC) AS CHN_ID
+                      FROM TB_PDBS_PD_DTL Z             /* 상품상세 */
+                     WHERE Z.PD_CD = PB.PD_CD
+                       AND DTA_DL_YN = 'N'
+                  ) AS SELL_CHNL_CDS    
+             , T1.PD_ALNCMP_BASE_ID  /* 상품제휴사기준ID */
+             , T1.ALNCMP_CD          /* 제휴사코드 */
+             , T1.SELL_TP_CD         /* 판매유형코드 */
+             , T1.PD_CD              /* 상품코드 */
+             , T1.SV_PD_CD           /* 서비스상품코드 */
+             , S1.PD_NM AS SV_PD_NM  /* 서비스상품코드 */
+             , T1.STPL_PRD_CD        /* 약정주기코드 */
+             , T1.RENTAL_DSC_DV_CD   /* 렌탈할인구분코드 */
+             , T1.RENTAL_DSC_TP_CD   /* 렌탈할인유형코드 */
+             , T1.RENTAL_CRP_DSCR_CD /* 렌탈법인할인율코드 */
+             , T1.APY_STRTDT         /* 적용시작일자 */
+             , T1.APY_ENDDT          /* 적용종료일자 */
+             , T1.OG_TP_CD           /* 조직유형코드 */
+             , T1.DTA_DL_YN          /* 데이터삭제여부 */
+             , T1.FST_RGST_DTM
+             , T1.FST_RGST_USR_ID
+             , RU.USR_NM AS FST_RGST_USR_NM              /* 등록자 */ 
+             , T1.FNL_MDFC_DTM
+             , T1.FNL_MDFC_USR_ID  
+             , MU.USR_NM AS FNL_MDFC_USR_NM              /* 최종수정자 */
+          FROM TB_PDBS_PD_ALNCMP_BAS T1 /* 상품제휴사기준 */
+          LEFT JOIN TB_PDBS_PD_BAS PB                     /* 상품기본마스터 */
+            ON PB.PD_CD = T1.PD_CD
+           AND PB.DTA_DL_YN = 'N'
+          LEFT JOIN TB_PDBS_PD_BAS S1                     /* 서비스 상품 */
+            ON S1.PD_CD = T1.SV_PD_CD
+           AND S1.DTA_DL_YN = 'N'
+          LEFT JOIN T_CMP_USR_ACO_M RU
+            ON RU.USR_ID = T1.FST_RGST_USR_ID 
+          LEFT JOIN T_CMP_USR_ACO_M MU
+            ON MU.USR_ID = T1.FNL_MDFC_USR_ID
+         WHERE T1.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty( alncmpCd )'>
+             <bind name="alncmpCd" value="'%'+ alncmpCd +'%'"/>
+           AND UPPER(T1.ALNCMP_CD) LIKE UPPER(#{alncmpCd})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( sellTpCd )'>
+           AND T1.SELL_TP_CD     = #{sellTpCd}         /* 판매유형 */
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdNm )'>
+             <bind name="pdNm" value="'%'+ pdNm +'%'"/>
+           AND UPPER(PB.PD_NM) LIKE UPPER(#{pdNm})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdCd )'>
+             <bind name="pdCd" value="'%'+ pdCd +'%'"/>
+           AND UPPER(PB.PD_CD) LIKE UPPER(#{pdCd})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( prdtCateHigh )'>
+           AND PB.PD_HCLSF_ID = #{prdtCateHigh}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( prdtCateMid )'>
+           AND PB.PD_MCLSF_ID = #{prdtCateMid}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( svcStartDt )'>
+           AND S1.SV_STRTDT <![CDATA[<=]]> #{svcStartDt}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( svcEndDt )'>
+           AND ( S1.SV_ENDDT IS NULL OR S1.SV_ENDDT <![CDATA[>=]]> #{svcEndDt} )
+           </if>
+    </sql>
+
+    <select id="selectWellsAlliances" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdyWellsAllianceMgtDto$SearchRes">
+        <include refid="selectWellsAllianceSql"/>
+        ORDER BY T1.FNL_MDFC_DTM DESC
+    </select>
+    
+    <select id="selectWellsAlliancePages" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdyWellsAllianceMgtDto$SearchRes">
+        <include refid="selectWellsAllianceSql"/>
+        ORDER BY T1.FNL_MDFC_DTM DESC
+    </select>
+    
+    <select id="selectWellsAllianceId" resultType="String">
+        SELECT 'PDR' || LPAD(  SQ_PDBS_PD_ALNCMP_BAS$PD_ALNCMP_BASE_ID.NEXTVAL  , 12, 0) FROM DUAL
+    </select>
+    
+    <update id="mergeWellsAllianceBase">
+        MERGE INTO TB_PDBS_PD_ALNCMP_BAS T1  /* 상품제휴사기준 */
+             USING ( SELECT #{pdAlncmpBaseId} AS PD_ALNCMP_BASE_ID  /* 상품제휴사기준ID */
+                          , #{alncmpCd} AS ALNCMP_CD          /* 제휴사코드 */
+                          , #{sellTpCd} AS SELL_TP_CD         /* 판매유형코드 */
+                          , #{pdCd} AS PD_CD              /* 상품코드 */
+                          , #{svPdCd} AS SV_PD_CD           /* 서비스상품코드 */
+                          , #{stplPrdCd} AS STPL_PRD_CD        /* 약정주기코드 */
+                          , #{rentalDscDvCd} AS RENTAL_DSC_DV_CD   /* 렌탈할인구분코드 */
+                          , #{rentalDscTpCd} AS RENTAL_DSC_TP_CD   /* 렌탈할인유형코드 */
+                          , #{rentalCrpDscrCd} AS RENTAL_CRP_DSCR_CD /* 렌탈법인할인율코드 */
+                          , #{apyStrtdt} AS APY_STRTDT         /* 적용시작일자 */
+                          , #{apyEnddt} AS APY_ENDDT          /* 적용종료일자 */
+                          , #{ogTpCd} AS OG_TP_CD           /* 조직유형코드 */
+                          , NVL(#{dtaDlYn}, 'N')  AS DTA_DL_YN          /* 데이터삭제여부 */
+                       FROM DUAL  ) T2
+                ON (T1.PD_ALNCMP_BASE_ID = T2.PD_ALNCMP_BASE_ID  /* 상품제휴사기준ID */
+                   )
+        WHEN MATCHED THEN
+          UPDATE
+             SET ALNCMP_CD = T2.ALNCMP_CD
+               , SELL_TP_CD = T2.SELL_TP_CD
+               , PD_CD = T2.PD_CD
+               , SV_PD_CD = T2.SV_PD_CD
+               , STPL_PRD_CD = T2.STPL_PRD_CD
+               , RENTAL_DSC_DV_CD = T2.RENTAL_DSC_DV_CD
+               , RENTAL_DSC_TP_CD = T2.RENTAL_DSC_TP_CD
+               , RENTAL_CRP_DSCR_CD = T2.RENTAL_CRP_DSCR_CD
+               , APY_STRTDT = T2.APY_STRTDT
+               , APY_ENDDT = T2.APY_ENDDT
+               , OG_TP_CD = T2.OG_TP_CD
+               , DTA_DL_YN = T2.DTA_DL_YN
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                 PD_ALNCMP_BASE_ID
+               , ALNCMP_CD
+               , SELL_TP_CD
+               , PD_CD
+               , SV_PD_CD
+               , STPL_PRD_CD
+               , RENTAL_DSC_DV_CD
+               , RENTAL_DSC_TP_CD
+               , RENTAL_CRP_DSCR_CD
+               , APY_STRTDT
+               , APY_ENDDT
+               , OG_TP_CD
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                 T2.PD_ALNCMP_BASE_ID
+               , T2.ALNCMP_CD
+               , T2.SELL_TP_CD
+               , T2.PD_CD
+               , T2.SV_PD_CD
+               , T2.STPL_PRD_CD
+               , T2.RENTAL_DSC_DV_CD
+               , T2.RENTAL_DSC_TP_CD
+               , T2.RENTAL_CRP_DSCR_CD
+               , T2.APY_STRTDT
+               , T2.APY_ENDDT
+               , T2.OG_TP_CD
+               , T2.DTA_DL_YN
+                <include refid="COMMON.insertSystemFieldValue" />  
+           )
+    </update>
+    
+    <update id="deleteWellsAllianceBase">
+        UPDATE TB_PDBS_PD_ALNCMP_BAS
+           SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND PD_ALNCMP_BASE_ID = #{pdAlncmpBaseId}
+    </update>
+</mapper>

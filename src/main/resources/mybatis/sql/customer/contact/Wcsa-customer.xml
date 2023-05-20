@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.customer.contact.mapper.WcsaCustomerMapper">
+    <update id="updateIndvCstBasEai">
+        UPDATE TB_CUBS_CST_BAS
+           SET CRAL_LOCARA_TNO = #{cralLocaraTno}
+             , MEXNO_ENCR = #{mexno}
+             , CRAL_IDV_TNO = #{cralIdvTno}
+             , ADR_ID = #{adrId}
+             , CH_LTRQ_CONF_YN = #{chLtrqConfYn}
+             , CH_LTRQ_CONF_DT = #{chLtrqConfDt}
+             , UNUITM_CN = #{unuitmCn}
+             , FNL_MDFC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , FNL_MDFC_USR_ID = #{rgstMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{session.pageId}
+             , FNL_MDFC_DEPT_ID = #{session.departmentId}
+         WHERE CST_NO = #{cstNo}
+    </update>
+    <update id="updateItgCstBasEai">
+        UPDATE TB_GBIC_ITG_CST_BAS
+           SET CRAL_LOCARA_TNO = #{cralLocaraTno}
+             , MEXNO_GBENCR = #{mexno}
+             , CRAL_IDV_TNO = #{cralIdvTno}
+             , ADR_ID = #{adrId}
+             , ADR_DV_CD = #{adrDvCd}
+             , FNL_MDFC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , FNL_MDFC_USR_ID = #{rgstMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{session.pageId}
+             , FNL_MDFC_DEPT_ID = #{session.departmentId}
+         WHERE ITG_CST_NO = #{itgCstNo}
+    </update>
+    <update id="updateCrpCstBasEai">
+        UPDATE TB_CUBS_CRP_CST_RLPPL_DTL
+           SET CRAL_LOCARA_TNO    = #{cralLocaraTno}    /* 휴대지역전화번호 */
+             , MEXNO_ENCR         = #{mexno}        /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO       = #{cralIdvTno}       /* 휴대개별전화번호 */
+             , FNL_MDFC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , FNL_MDFC_USR_ID = #{rgstMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{session.pageId}
+             , FNL_MDFC_DEPT_ID = #{session.departmentId}
+         WHERE CRP_RLPPL_DV_CD = '01'
+           AND CST_NO = #{cstNo}
+    </update>
+    <update id="updateLastCrpCstMpnoInfo">
+        UPDATE TB_CUBS_CST_CTPLC_BAS
+           SET HIST_END_DTM = #{endDate}
+             , DTA_DL_YN = #{dtaDlYn}
+             , FNL_MDFC_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , FNL_MDFC_USR_ID = #{rgstMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{session.pageId}
+             , FNL_MDFC_DEPT_ID = #{session.departmentId}
+         WHERE CST_CTPLC_OJ_REFK_VAL = #{cstNo}
+           AND CTPLC_TP_CD = '05'
+           AND HIST_END_DTM = '99991231235959'
+           AND HIST_END_DTM IS NOT NULL
+    </update>
+    <insert id="insertCrpCstMpnoInfo" parameterType="com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstCtplcBasDvo">
+        <selectKey keyProperty="item.cstCtplcId" resultType="java.lang.String" order="BEFORE">
+            SELECT 'CUC' || LPAD(SQ_CUBS_CST_CTPLC_BAS$CST_CTPLC_ID.NEXTVAL,12,0)
+              FROM DUAL
+        </selectKey>
+        INSERT INTO TB_CUBS_CST_CTPLC_BAS (
+              CST_CTPLC_ID /* 고객연락처ID */
+            , HIST_STRT_DTM /* 이력시작일시 */
+            , HIST_END_DTM /* 이력종료일시 */
+            , CST_CTPLC_OJ_DV_CD /* 고객연락처대상구분코드 */
+            , CST_CTPLC_OJ_REFK_VAL /* 고객연락처대상참조키값 */
+            , OWR_CST_NO /* 소유자고객번호 */
+            , CTPLC_TP_CD /* 연락처유형코드 */
+            , LOCARA_TNO /* 지역전화번호 */
+            , EXNO_ENCR /* 전화국번호암호화 */
+            , IDV_TNO /* 개별전화번호 */
+            , DTA_DL_YN /* 데이터삭제여부 */
+            , CST_CTPLC_RGST_DT /* 고객연락처등록일자 */
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{item.cstCtplcId} /* CST_CTPLC_ID */
+            , #{item.histStrtDtm} /* HIST_STRT_DTM */
+            , '99991231235959' /* HIST_END_DTM */
+            , '03' /* CST_CTPLC_OJ_DV_CD */
+            , #{item.cstCtplcOjRefkVal} /* CST_CTPLC_OJ_REFK_VAL */
+            , NULL /* OWR_CST_NO */
+            , '05' /* CTPLC_TP_CD */
+            , #{item.locaraTno} /* LOCARA_TNO */
+            , #{item.exnoEncr} /* EXNO_ENCR */
+            , #{item.idvTno} /* IDV_TNO */
+            , #{item.dtaDlYn} /* DTA_DL_YN */
+            , TO_CHAR(sysdate, 'yyyymmdd') /* CST_CTPLC_RGST_DT */
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{item.rgstMdfcUsrId}
+            , #{session.pageId}
+            , #{session.departmentId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{item.rgstMdfcUsrId}
+            , #{session.pageId}
+            , #{session.departmentId}
+        )
+    </insert>
+</mapper>

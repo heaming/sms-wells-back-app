@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.standard.mapper.WpdySalesTypeVariableMgtMapper">
+    <sql id="selectSalesTypeVariableSql">
+        SELECT
+             M1.UI_LBL_CDV AS RGLTN_VARB_NM  /* 변수명 */ 
+        
+             , T1.SELL_TP_CD       /* 판매유형코드 */
+             , T1.VARB_SN          /* 변수일련번호 */
+             , T1.CHO_FXN_DV_CD    /* 선택고정구분코드 */
+             , T1.RGLTN_VARB_ID    /* 규칙변수ID */
+             , T1.SORT_ODR         /* 정렬순서 */
+             , T1.TEMP_SAVE_YN     /* 임시저장여부 */
+             , T1.DTA_DL_YN        /* 데이터삭제여부 */
+             , T1.FST_RGST_DTM
+             , T1.FST_RGST_USR_ID
+             , RU.USR_NM AS FST_RGST_USR_NM              /* 등록자 */ 
+             , T1.FNL_MDFC_DTM
+             , T1.FNL_MDFC_USR_ID  
+             , MU.USR_NM AS FNL_MDFC_USR_NM              /* 최종수정자 */
+          FROM TB_PDBS_PD_BYTP_VARB_BAS T1 /* 상품유형별변수기본 */
+          LEFT JOIN TB_PDBS_PD_PRP_META_BAS M1
+            ON T1.RGLTN_VARB_ID = M1.PD_PRP_META_ID
+           AND M1.DTA_DL_YN = 'N'
+          LEFT JOIN T_CMP_USR_ACO_M RU
+            ON RU.USR_ID = T1.FST_RGST_USR_ID 
+          LEFT JOIN T_CMP_USR_ACO_M MU
+            ON MU.USR_ID = T1.FNL_MDFC_USR_ID
+         WHERE T1.DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty( sellTpCd )'>
+           AND T1.SELL_TP_CD     = #{sellTpCd}         /* 판매유형 */
+         </if>
+         <if test='@MybatisUtils@isNotEmpty( rgltnVarbNm )'>
+           <bind name="rgltnVarbNm" value="'%'+ rgltnVarbNm +'%'"/>
+           AND EXISTS (
+                    SELECT 1
+                      FROM T_CMZ_MLNG_D 
+                     WHERE DEL_YN = 'N'
+                       AND M1.UI_LBL_CDV = MLNG_ID
+                       AND UPPER(MLNG_CNTN) LIKE UPPER(#{rgltnVarbNm})
+               )
+         </if>
+    </sql>
+
+    <select id="selectSalesTypeVariables" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdySalesTypeVariableMgtDto$SearchRes">
+        <include refid="selectSalesTypeVariableSql"/>
+        ORDER BY T1.FNL_MDFC_DTM DESC
+    </select>
+    
+    <select id="selectSalesTypeVariablePages" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdySalesTypeVariableMgtDto$SearchRes">
+        <include refid="selectSalesTypeVariableSql"/>
+        ORDER BY T1.FNL_MDFC_DTM DESC
+    </select>
+    
+    <update id="mergeSalesTypeVariableBase">
+        MERGE INTO TB_PDBS_PD_BYTP_VARB_BAS T1  /* 상품유형별변수기본 */
+             USING ( SELECT #{sellTpCd} AS SELL_TP_CD       /* 판매유형코드 */
+                          , #{varbSn} AS VARB_SN          /* 변수일련번호 */
+                          , #{choFxnDvCd} AS CHO_FXN_DV_CD    /* 선택고정구분코드 */
+                          , #{rgltnVarbId} AS RGLTN_VARB_ID    /* 규칙변수ID */
+                          , #{sortOdr} AS SORT_ODR         /* 정렬순서 */
+                          , NVL(#{tempSaveYn}, 'N') AS TEMP_SAVE_YN     /* 임시저장여부 */
+                          , NVL(#{dtaDlYn}, 'N') AS DTA_DL_YN        /* 데이터삭제여부 */
+                       FROM DUAL  ) T2
+                ON (T1.SELL_TP_CD = T2.SELL_TP_CD       /* 판매유형코드 */
+                AND T1.VARB_SN = T2.VARB_SN          /* 변수일련번호 */
+                   )
+        WHEN MATCHED THEN
+          UPDATE
+             SET CHO_FXN_DV_CD = T2.CHO_FXN_DV_CD
+               , RGLTN_VARB_ID = T2.RGLTN_VARB_ID
+               , SORT_ODR = T2.SORT_ODR
+               , TEMP_SAVE_YN = T2.TEMP_SAVE_YN
+               , DTA_DL_YN = T2.DTA_DL_YN
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                 SELL_TP_CD
+               , VARB_SN
+               , CHO_FXN_DV_CD
+               , RGLTN_VARB_ID
+               , SORT_ODR
+               , TEMP_SAVE_YN
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                 T2.SELL_TP_CD
+               , T2.VARB_SN
+               , T2.CHO_FXN_DV_CD
+               , T2.RGLTN_VARB_ID
+               , T2.SORT_ODR
+               , T2.TEMP_SAVE_YN
+               , T2.DTA_DL_YN
+                <include refid="COMMON.insertSystemFieldValue" />  
+          )
+    </update>
+    
+    <update id="deleteSalesTypeVariableBase">
+        UPDATE TB_PDBS_PD_BYTP_VARB_BAS
+           SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND SELL_TP_CD = #{sellTpCd}
+           AND VARB_SN = #{varbSn}
+    </update>
+</mapper>

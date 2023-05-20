@@ -5,11 +5,15 @@
         SELECT SUBSTR(T2.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DTM
              , T1.CNTR_NO
              , T1.CNTR_SN
+             , T1.SELL_TP_CD
              , T2.SELL_PRTNR_NO AS PRTNR_NO
              , T7.PRTNR_KNM
              , T5.CST_KNM AS CNTR_CST_KNM
              , T4.RCGVP_KNM AS IST_CST_KNM
              , T6.PD_NM
+             , T5.CRAL_LOCARA_TNO
+             , T5.MEXNO_ENCR
+             , T5.CRAL_IDV_TNO
           FROM TB_SSCT_CNTR_DTL T1
          INNER JOIN TB_SSCT_CNTR_BAS T2
             ON T2.CNTR_NO = T1.CNTR_NO
@@ -18,6 +22,7 @@
             ON T3.DTL_CNTR_NO = T1.CNTR_NO
            AND T3.DTL_CNTR_SN = T1.CNTR_SN
            AND T3.VL_END_DTM = '99991231235959'
+           AND T3.ADRPC_TP_CD = '3'
            AND T3.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
             ON T4.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
@@ -28,9 +33,10 @@
          INNER JOIN TB_PDBS_PD_BAS T6
             ON T6.PD_CD = T1.BASE_PD_CD
            AND T6.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ T7
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
             ON T7.BASE_YM = SUBSTR(T2.CNTR_CNFM_DTM, 0, 6)
            AND T7.PRTNR_NO = T2.SELL_PRTNR_NO
+           AND T7.OG_TP_CD = T2.SELL_OG_TP_CD
            AND T7.DTA_DL_YN = 'N'
          WHERE 1 = 1
            AND T1.DTA_DL_YN = 'N'
@@ -76,6 +82,7 @@
             ON T3.DTL_CNTR_NO = T1.CNTR_NO
            AND T3.DTL_CNTR_SN = T1.CNTR_SN
            AND T3.VL_END_DTM = '99991231235959'
+           AND T3.ADRPC_TP_CD = '3'
            AND T3.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
             ON T4.CNTR_ADRPC_ID = T3.CNTR_ADR_REL_ID
@@ -286,7 +293,7 @@
              , T1.CNTR_APR_CHNL_DV_VAL
              , T1.CNTR_APR_ICHR_DV_CD
              , T1.ICHR_USR_ID
-             , CASE WHEN T1.PSIC_NM = '0' THEN '' ELSE T1.PSIC_NM END PSIC_NM
+             , T1.PSIC_NM
              , T1.VL_STRT_DTM
              , T1.VL_END_DTM
              , T1.NOTY_FW_OJ_YN
@@ -301,19 +308,14 @@
            AND #{standardDt} BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
          </if>
            AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectCountConfirmApprovalBases" resultType="int">
          SELECT COUNT(1) AS "CNT"
            FROM TB_SSCT_CNTR_APR_BASE_BAS
           WHERE 1=1
-            AND CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
          <if test='@MybatisUtils@equals(checkType,"U")'>    <!-- Unique : 삭제시 존재 여부 체크, 수정시 변경하려는 자료의 값이 존재하는지 체크 -->
-            AND CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
-            AND CNTR_APR_CHNL_DV_VAL = #{cntrAprChnlDvVal}
-            AND CNTR_APR_ICHR_DV_CD = #{cntrAprIchrDvCd}
-            AND ICHR_USR_ID = #{ichrUsrId}
-            AND VL_STRT_DTM = #{vlStrtDtm}
             AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
          </if>
           <if test='@MybatisUtils@equals(checkType,"A")'>    <!-- Area : 수정시 기존 자료와 기간 중복 체크-->

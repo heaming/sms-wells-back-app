@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdCleanerReqeustMgtMapper">
+
+    <select id="selectBuilDingCd" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto$FindCodeRes">
+        SELECT DISTINCT B.BLD_CD
+             , B.BLD_NM
+          FROM TB_OGBS_OG_BAS A /*조직기본*/
+         INNER JOIN TB_OGBS_BLD_BAS B /*빌딩기본*/
+            ON A.BLD_CD = B.BLD_CD
+         WHERE 1=1
+           AND A.DGR2_LEVL_OG_CD IN (SELECT W1.OG_CD
+                                       FROM TB_OGBS_PRTNR_BAS W1 /*파트너기본*/
+                                      WHERE 1=1
+                                        AND W1.OG_TP_CD = #{ogTpCd}
+                                        /*AND W1.PRTNR_NO*/
+                                     )
+    </select>
+
+    <select id="selectClinrRgno" resultType="String">
+        SELECT TO_CHAR(TO_DATE(#{aplcDt}),'YYYYMM')||LPAD(NVL(MAX(SUBSTR(CLINR_RGNO,7,4)),0)+1,4,'0')
+          FROM TB_OGBS_CLINR_BAS
+         WHERE RCP_YM LIKE SUBSTR(#{aplcDt},1,6)||'%'
+    </select>
+
+    <insert id="insertCleanerReqeust">
+        INSERT INTO TB_OGBS_CLINR_BAS (
+               CLINR_RGNO
+             , RCP_YM
+             , BLD_CD
+             , APLC_DT
+             , APLCNS_NM
+             , CLINR_FXN_AMT
+             , TAX_DDCTAM
+             , CLINR_NM
+             , WRK_STRTDT
+             , WRK_ENDDT
+             , RRNO_ENCR
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , ZIP
+             , BAS_ADR
+             , DTL_ADR
+             , BNK_CD
+             , ACNO_ENCR
+             , IDF_APN_FILE_ID
+             , BNKB_APN_FILE_ID
+             , CNTRW_APN_FILE_ID
+             , CNTR_LRORE_APN_FILE_ID
+             , DTA_DL_YN
+        <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+               #{clinrRgno}           /* 청소원등록번호 */
+             , SUBSTR(#{aplcDt},1,6)  /* 접수년월*/
+             , #{bldCd}               /* 빌딩코드*/
+             , #{aplcDt}              /* 신청일자*/
+             , #{aplcnsNm}            /* 신청자 명 */
+             , #{clinrFxnAmt}         /* 청소원고정금액 */
+             , #{taxDdctam}           /* 세금공제금액 */
+             , #{clinrNm}             /* 청소원 명 */
+             , #{wrkStrtdt}           /* 근무시작일자 */
+             , #{wrkEnddt}            /* 근무종료일자 */
+             , #{rrnoEncr}            /* 주민등록번호 */
+             , #{locaraTno}           /* 지역번호 */
+             , #{exnoEncr}            /* 전화국별 */
+             , #{idvTno}              /* 개별전화번호 */
+             , #{zip}                 /* 우편번호 */
+             , #{basAdr}              /* 기본주소 */
+             , #{dtlAdr}              /* 상세주소 */
+             , #{bnkCd}               /* 은행코드 */
+             , #{acnoEncr}            /* 계좌번호 */
+             , #{idfApnFileId}        /* 신분증 첨부파일 */
+             , #{bnkbApnFileId}       /* 통장사본 첨부파일 */
+             , #{cntrwApnFileId}      /* 계약서 첨부파일 */
+             , #{cntrLroreApnFileId}  /* 계약해지 첨부파일*/
+             , #{dtaDlYn}             /* 삭제여부*/
+         <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <select id="selectCleanerReqeust" resultType="com.kyowon.sms.wells.web.closing.expense.dvo.WdcdCleanerReqeustDvo">
+        SELECT CLINR_RGNO
+             , RCP_YM
+             , BLD_CD
+             , APLC_DT
+             , APLCNS_NM
+             , CLINR_FXN_AMT
+             , TAX_DDCTAM
+             , (CLINR_FXN_AMT - TAX_DDCTAM) AS DSB_AMT
+             , CLINR_NM
+             , WRK_STRTDT
+             , WRK_ENDDT
+             , BRYY_MMDD
+             , RRNO_ENCR
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , ZIP
+             , BAS_ADR
+             , DTL_ADR
+             , BNK_CD
+             , ACNO_ENCR
+             , IDF_APN_FILE_ID
+             , BNKB_APN_FILE_ID
+             , CNTRW_APN_FILE_ID
+             , CNTR_LRORE_APN_FILE_ID
+        <include refid="COMMON.updateSystemField"/>
+          FROM TB_OGBS_CLINR_BAS
+         WHERE CLINR_RGNO = #{clinrRgno}
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <update id="updateCleanerReqeust">
+        UPDATE TB_OGBS_CLINR_BAS
+           SET BLD_CD                  = #{bldCd}
+             , APLCNS_NM               = #{aplcnsNm}
+             , CLINR_FXN_AMT           = #{clinrFxnAmt}
+             , TAX_DDCTAM              = #{taxDdctam}
+        <if test="@MybatisUtils@isNotEmpty(clinrNm)">
+             , CLINR_NM                = #{clinrNm}
+        </if>
+             , WRK_STRTDT              = #{wrkStrtdt}
+             , WRK_ENDDT               = #{wrkEnddt}
+             , BRYY_MMDD               = #{bryyMmdd}
+        <if test="@MybatisUtils@isNotEmpty(rrnoEncr)">
+             , RRNO_ENCR               = #{rrnoEncr}
+        </if>
+             , LOCARA_TNO              = #{locaraTno}
+        <if test="@MybatisUtils@isNotEmpty(exnoEncr)">
+             , EXNO_ENCR               = #{exnoEncr}
+        </if>
+             , IDV_TNO                 = #{idvTno}
+             , ZIP                     = #{zip}
+             , BAS_ADR                 = #{basAdr}
+        <if test="@MybatisUtils@isNotEmpty(dtlAdr)">
+             , DTL_ADR                 = #{dtlAdr}
+        </if>
+             , BNK_CD                  = #{bnkCd}
+             , ACNO_ENCR               = #{acnoEncr}
+             , IDF_APN_FILE_ID         = #{idfApnFileId}
+             , BNKB_APN_FILE_ID        = #{bnkbApnFileId}
+             , CNTRW_APN_FILE_ID       = #{cntrwApnFileId}
+             , CNTR_LRORE_APN_FILE_ID  = #{cntrLroreApnFileId}
+         WHERE CLINR_RGNO = #{clinrRgno}
+    </update>
+
+    <resultMap id="dataInfo" type="java.util.HashMap">
+            <result property="idfApnFileId" javaType="java.lang.String" column="IDF_APN_FILE_ID" />
+            <result property="bnkbApnFileId" javaType="java.lang.String" column="BNKB_APN_FILE_ID" />
+            <result property="cntrwApnFileId" javaType="java.lang.String" column="CNTRW_APN_FILE_ID" />
+            <result property="cntrLroreApnFileId" javaType="java.lang.String" column="CNTR_LRORE_APN_FILE_ID" />
+    </resultMap>
+    <select id="selectFileId" resultMap="dataInfo">
+        SELECT IDF_APN_FILE_ID
+             , BNKB_APN_FILE_ID
+             , CNTRW_APN_FILE_ID
+             , CNTR_LRORE_APN_FILE_ID
+          FROM TB_OGBS_CLINR_BAS
+         WHERE CLINR_RGNO = #{clinrRgno}
+    </select>
+</mapper>

@@ -28,11 +28,23 @@
                  , TB_SSCT_CNTR_DTL TB_2
                  , TB_SSCT_CNTR_ADRPC_BAS TB_3
                  , TB_GBCO_ADR_BAS TB_4
+                 , TB_OGBS_MM_PRTNR_IZ TB_5
+                 , TB_OGBS_MM_OG_IZ TB_6
+                 , TB_SSCT_CNTR_ADR_REL TB_7
              WHERE 1=1
                AND TB_1.CNTR_NO = TB_2.CNTR_NO
                AND TB_1.CNTR_SN = TB_2.CNTR_SN
                AND TB_1.CNTR_NO = TB_3.CNTR_NO
-               AND TB_3.ADR_ID = TB_4.ADR_ID
+               AND TB_5.BASE_YM = #{baseYm}
+               AND TB_1.FXN_PRTNR_OG_TP_CD = TB_5.OG_TP_CD
+               AND TB_1.FXN_PRTNR_NO = TB_5.PRTNR_NO
+               AND TB_5.BASE_YM = TB_6.BASE_YM
+               AND TB_5.OG_ID = TB_6.OG_ID
+               AND TB_1.APY_STRT_YM >= #{baseYm}
+               AND TB_1.CNTR_NO = TB_7.DTL_CNTR_NO
+               AND TB_1.CNTR_SN = TB_7.DTL_CNTR_SN
+               AND TB_7.ADRPC_TP_CD = '3' /* 설치주소 */
+               AND TB_7.CNTR_ADRPC_ID = TB_4.ADR_ID
             <if test='@MybatisUtils@isNotEmpty(fxnPrtnrDvCd)'>
                 AND TB_1.FXN_PRTNR_DV_CD = #{fxnPrtnrDvCd}
             </if>
@@ -41,6 +53,12 @@
             </if>
             <if test='@MybatisUtils@isNotEmpty(fxnPrtnrNo)'>
                 AND TB_1.FXN_PRTNR_NO = #{fxnPrtnrNo}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+                AND TB_6.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                AND TB_6.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
             </if>
              ) TB
          WHERE 1=1
@@ -75,18 +93,35 @@
              , TB.PD_NM                               /* 상품정보-상품 */
              , TB.PD_PRP_VAL01                        /* 상품정보-용도 */
              , TB.APY_STRT_YM                         /* 적용기간 */
-             , TB.CH_RQR_DV_CD                        /* 변경구분 */
+             , TB.CH_MNGR_DV_CD                       /* 변경구분 */
              , TB.FNL_MDFC_DTM                        /* 변경등록일자 */
              , TB.FXN_PRTNR_DV_CD                     /* 지정대상 */
              , TB.FXN_PRTNR_NO                        /* 방문담당 */
+             , (
+                SELECT TEMP.PRTNR_KNM
+                  FROM TB_OGBS_MM_PRTNR_IZ TEMP
+                 WHERE 1=1
+                   AND (TEMP.BASE_YM, TEMP.OG_TP_CD, TEMP.PRTNR_NO) = (
+                                        SELECT TO_CHAR(SYSDATE, 'YYYYMM')
+                                             , SUB_TEMP.FXN_PRTNR_OG_TP_CD
+                                             , SUB_TEMP.FXN_PRTNR_NO
+                                          FROM TB_SVPD_CNTR_FXN_PRTNR_IZ SUB_TEMP
+                                         WHERE 1=1
+                                           AND SUB_TEMP.CNTR_NO = TB.CNTR_NO
+                                           AND SUB_TEMP.CNTR_SN = TB.CNTR_SN
+                                           AND SUB_TEMP.CH_SN = TB.CH_SN
+                                        )
+               ) AS FXN_PRTNR_KNM                         /* 방문담당자 */
              , TB.CH_RSON_CN                          /* 변경사유 */
              , TB.DTA_DL_YN                           /* 삭제여부 */
              , (
                 SELECT TEMP.PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS TEMP
+                  FROM TB_OGBS_MM_PRTNR_IZ TEMP
                  WHERE 1=1
-                   AND TEMP.PRTNR_NO = (
-                                        SELECT SUB_TEMP.FXN_PRTNR_NO
+                   AND (TEMP.BASE_YM, TEMP.OG_TP_CD, TEMP.PRTNR_NO) = (
+                                        SELECT TO_CHAR(SYSDATE, 'YYYYMM')
+                                             , SUB_TEMP.FXN_PRTNR_OG_TP_CD
+                                             , SUB_TEMP.FXN_PRTNR_NO
                                           FROM TB_SVPD_CNTR_FXN_PRTNR_IZ SUB_TEMP
                                          WHERE 1=1
                                            AND SUB_TEMP.CNTR_NO = TB.CNTR_NO
@@ -95,18 +130,20 @@
                                         )
                ) AS PRTNR_KNM                         /* 기존담당-담당자 */
              , (
-                SELECT TEMP.RSGN_DT
-                  FROM TB_OGBS_PRTNR_DTL TEMP
+                SELECT TEMP.CLTN_DT
+                  FROM TB_OGBS_MM_PRTNR_IZ TEMP
                  WHERE 1=1
-                   AND TEMP.PRTNR_NO = (
-                                        SELECT SUB_TEMP.FXN_PRTNR_NO
+                   AND (TEMP.BASE_YM, TEMP.OG_TP_CD, TEMP.PRTNR_NO) = (
+                                        SELECT TO_CHAR(SYSDATE, 'YYYYMM')
+                                             , SUB_TEMP.FXN_PRTNR_OG_TP_CD
+                                             , SUB_TEMP.FXN_PRTNR_NO
                                           FROM TB_SVPD_CNTR_FXN_PRTNR_IZ SUB_TEMP
                                          WHERE 1=1
                                            AND SUB_TEMP.CNTR_NO = TB.CNTR_NO
                                            AND SUB_TEMP.CNTR_SN = TB.CNTR_SN
                                            AND SUB_TEMP.CH_SN = (TB.CH_SN - 1)
                                         )
-               ) AS RSGN_DT                           /* 기존담당-활동중지일 */
+               ) AS CLTN_DT                           /* 기존담당-활동중지일 */
           FROM (
                 SELECT TB_1.CNTR_NO AS CNTR_NO
                      , TB_1.CNTR_SN AS CNTR_SN
@@ -132,12 +169,12 @@
                          WHERE 1=1
                            AND TEMP_1.TENANT_ID = TEMP_2.TENANT_ID
                            AND TEMP_1.CD_ID = TEMP_2.CD_ID
-                           AND TEMP_1.TENANT_ID = 'TNT_WELLS'
+                           AND TEMP_1.TENANT_ID = #{session.tenantId}
                            AND TEMP_1.CD_ID = 'PD_USWY_CD'
                            AND TEMP_2.CD_VLD_VAL = TB_8.PD_PRP_VAL01
                        ) AS PD_PRP_VAL01_NM
                      , TB_9.APY_STRT_YM
-                     , TB_9.CH_RQR_DV_CD
+                     , TB_9.CH_MNGR_DV_CD
                      , TB_9.FNL_MDFC_DTM
                      , TB_9.FXN_PRTNR_DV_CD
                      , TB_9.FXN_PRTNR_NO
@@ -193,7 +230,7 @@
             , CH_SN
             , FXN_PRTNR_DV_CD
             , FXN_PRTNR_NO
-            , CH_RQR_DV_CD
+            , CH_MNGR_DV_CD
             , CH_RSON_CN
             , APY_STRT_YM
             , DTA_DL_YN
@@ -210,7 +247,7 @@
               )
             , #{fxnPrtnrDvCd}
             , #{fxnPrtnrNo}
-            , #{chRqrDvCd}
+            , #{chMngrDvCd}
             , #{chRsonCn}
             , #{apyStrtYm}
             , 'N'

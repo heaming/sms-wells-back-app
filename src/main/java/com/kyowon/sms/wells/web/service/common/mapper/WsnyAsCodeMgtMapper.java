@@ -19,7 +19,9 @@ import java.util.List;
 @Mapper
 public interface WsnyAsCodeMgtMapper {
 
-    List<WsnyAsCodeMgtDvo> selectAsCodePages(
-        WsnyAsCodeMgtDto.SearchReq dto, PageInfo pageInfo
-    );
+    List<WsnyAsCodeMgtDvo> selectAsCodes(WsnyAsCodeMgtDto.SearchReq dto, PageInfo pageInfo);
+
+    List<WsnyAsCodeMgtDvo> selectAsCodes(WsnyAsCodeMgtDto.SearchReq dto);
+
+    int saveAsCode(WsnyAsCodeMgtDvo dvo);
 }

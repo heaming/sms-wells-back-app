@@ -2,71 +2,348 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccOverduePenaltyMapper">
 
-    <select id="selectSalesBondAdditionalChargesAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6) PERF_YM       /*실적년월*/
-             , T1.PERF_DT /*실적일자*/
-             , T2.CNTR_NO || T2.CNTR_SN AS CNTR /*계약상세번호*/
-           /*, T3.CST_KNM 고객명*/
-             , T1.PD_CD /*상품명*/
-             , T1.RVE_AMT /*기초영업선수금*/
-             , T2.BZNS_ATAM_BLAM /*(-)잡이익 */
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-         INNER JOIN TB_SSCT_CNTR_DTL T4
-            ON T2.CNTR_NO = T4.CNTR_NO
-         WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
-           <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-           AND SELL_TP_CD = #{sellTpCd}
+    <select id="selectCode" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$FindCodeRes">
+        SELECT DISTINCT SAP_PD_DV_CD
+             , SAP_PD_DV_NM
+          FROM TB_CBCL_SAP_PD_DV_CD
+         WHERE SAP_BZ_TERY_CD = '1210'
+    </select>
+
+    <select id="selectMainGridAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchMainGridRes">
+        SELECT A.SL_CL_YM                    /* 실적년월 */
+             , '' AS PERF_DT
+             , A.SELL_TP_CD                  /* 판매유형 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_NM
+             , A.SELL_TP_DTL_CD              /* 판매유형상세 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , A.SAP_PD_DV_CD                /* SAP상품구분코드명 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_NM
+             , NVL(SUM(A.W1_AM01),0)    AS    W1_AM01  /* 기초영업선수금*/
+             , NVL(SUM(A.W1_AM02),0)    AS    W1_AM02  /* 영업선수입금*/
+             , NVL(SUM(A.W1_AM03),0)    AS    W1_AM03  /* 선수환불*/
+             , NVL(SUM(A.W1_AM04),0)    AS    W1_AM04  /* 합계*/
+             , NVL(SUM(A.W1_AM05),0)    AS    W1_AM05  /* 매출대사*/
+             , NVL(SUM(A.W1_AM06),0)    AS    W1_AM06  /* 위약금*/
+             , NVL(SUM(A.W1_AM07),0)    AS    W1_AM07  /* 매출조정금액*/
+             , NVL(SUM(A.W1_AM08),0)    AS    W1_AM08  /* 잡이익*/
+             , NVL(SUM(A.W1_AM09),0)    AS    W1_AM09       /* 기말영업선수*/
+          FROM ( SELECT SUBSTR(A.SL_CL_YM,1,4) ||'-'|| SUBSTR(A.SL_CL_YM,5,2) SL_CL_YM
+                      , A.SELL_TP_CD      AS SELL_TP_CD
+                      , A.SELL_TP_DTL_CD  AS SELL_TP_DTL_CD
+                      , A.SAP_PD_DV_CD    AS SAP_PD_DV_CD
+                        /* ------------------------------------------------------------------------------------- */
+                        /* -- 렌탈 선수금 */
+                        /* -------------------------------------------------------------------------------------- */
+                      , A.BTD_ATAM                         AS W1_AM01                       /* 기초영업선수금*/
+                      , A.THM_ATAM_DP_AMT - ( CASE WHEN A.SL_CL_YM <![CDATA[ < ]]> '201605' THEN 0
+                                              ELSE NVL(C.THM_OC_DLQ_ADD_AMT,0)                 /* 당월발생연체가산금*/
+                                                   END )  AS W1_AM02                       /* 영업선수입금*/
+                      -------------------------------------------- ------------------------------------------
+                      , A.THM_ATAM_RFND_AMT                AS    W1_AM03                      /* 선수환불*/
+                      --------------------------------------------------------------------------------------
+                      , A.THM_ATAM_DP_AMT - A.THM_ATAM_RFND_AMT - (
+                                                         CASE WHEN A.SL_CL_YM <![CDATA[ < ]]> '201605' THEN 0
+                                                              ELSE NVL(C.THM_OC_DLQ_ADD_AMT,0)
+                                                         END )    AS   W1_AM04        /* 합계*/
+                      , A.SL_BND_ALRPY_AMT                 AS   W1_AM05       /* 매출대사(매출채권반제금액)*/
+                      , 0                                  AS   W1_AM06       /* 위약금*/
+                      , A.SL_CTR_AMT                       AS   W1_AM07       /* 매출조정금액*/
+                      , B.BZNS_ATAM_BLAM                   AS   W1_AM08       /* 잡이익*/
+                      , A.EOT_ATAM                            AS     W1_AM09  /* 기말영업선수*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN TB_CBCL_BZNS_ATAM_BAS B
+                     ON TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM,'YYYYMM'),1),'YYYYMM')  = SUBSTR(B.DP_CL_DT,1,6)
+                    AND A.CNTR_NO = B.CNTR_NO
+                    AND A.CNTR_SN = B.CNTR_SN
+                    AND B.PTYPF_PRCSDT IS NOT NULL
+                    AND B.PTYPF_DP_SLIP_TRS_NO IS NOT NULL
+                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS C
+                     ON A.SL_CL_YM = C.PERF_YM
+                    AND A.CNTR_NO  = C.CNTR_NO
+                    AND A.CNTR_SN  = C.CNTR_SN
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS D
+                     ON A.PD_CD      = D.PD_CD
+                    AND A.SELL_TP_CD = D.SELL_TP_CD
+                    AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+                  WHERE 1=1
+                    <if test='@MybatisUtils@isNotEmpty(slClYm)'>
+                    AND A.SL_CL_YM  =  #{slClYm}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                    AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+                    AND A.SELL_TP_CD = #{sellTpCd}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(cntr)'>
+                    AND A.CNTR_NO || A.CNTR_SN = #{cntr}
+                    </if>
+               ) A
+         GROUP BY A.SL_CL_YM, A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD
+    </select>
+
+    <select id="selectMainGridDates" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchMainGridRes">
+        SELECT '' AS SL_CL_YM
+             , A.PERF_DT                     /*-- 실적일자*/
+             , A.SELL_TP_CD                  /*-- 판매유형*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_NM
+             , A.SELL_TP_DTL_CD              /*-- 판매유형상세*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , A.SAP_PD_DV_CD                /*-- SAP상품구분코드명*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_NM
+             , NVL(SUM(A.W1_AM01),0)    AS    W1_AM01  /*-- 기초영업선수금*/
+             , NVL(SUM(A.W1_AM02),0)    AS    W1_AM02  /*-- 영업선수입금*/
+             , NVL(SUM(A.W1_AM03),0)    AS    W1_AM03  /*-- 선수환불*/
+             , NVL(SUM(A.W1_AM04),0)    AS    W1_AM04  /*-- 합계*/
+             , NVL(SUM(A.W1_AM05),0)    AS    W1_AM05  /*-- 매출대사*/
+             , NVL(SUM(A.W1_AM06),0)    AS    W1_AM06  /*-- 위약금*/
+             , NVL(SUM(A.W1_AM07),0)    AS    W1_AM07  /*-- 매출조정금액*/
+             , NVL(SUM(A.W1_AM08),0)    AS    W1_AM08  /*-- 잡이익*/
+             , NVL(SUM(A.W1_AM09),0)    AS    W1_AM09       /*-- 기말영업선수*/
+        FROM ( SELECT SUBSTR(B.PERF_DT,1,4) ||'-'|| SUBSTR(B.PERF_DT,5,2) ||'-'||SUBSTR(B.PERF_DT,7,2)  PERF_DT
+                    , A.SELL_TP_CD      AS SELL_TP_CD
+                    , A.SELL_TP_DTL_CD  AS SELL_TP_DTL_CD
+                    , A.SAP_PD_DV_CD    AS SAP_PD_DV_CD
+                    /*-------------------------------------------------------------------------------------*/
+                    /*-- 렌탈 선수금 */
+                    /*--------------------------------------------------------------------------------------*/
+                    , A.BTD_ATAM                         AS W1_AM01                       /*-- 기초영업선수금*/
+                    , A.THM_ATAM_DP_AMT - ( CASE WHEN A.SL_CL_YM <![CDATA[ < ]]> '201605' THEN 0
+                                            ELSE NVL(C.THM_OC_DLQ_ADD_AMT,0)                    /*-- 당월발생연체가산금*/
+                                                 END
+                                          ) AS W1_AM02                                  /*-- 영업선수입금*/
+                    /*-------------------------------------------- ------------------------------------------*/
+                    , A.THM_ATAM_RFND_AMT                AS    W1_AM03                      /*-- 선수환불*/
+                    /*--------------------------------------------------------------------------------------*/
+                    , A.THM_ATAM_DP_AMT - A.THM_ATAM_RFND_AMT - ( CASE WHEN A.SL_CL_YM <![CDATA[ < ]]> '201605' THEN 0
+                                                                      ELSE NVL(C.THM_OC_DLQ_ADD_AMT,0)
+                                                                      END)   AS   W1_AM04   --합계
+                    , A.SL_BND_ALRPY_AMT                 AS   W1_AM05   /*--매출대사(매출채권반제금액)*/
+                    , 0                                  AS   W1_AM06   /*--위약금*/
+                    , A.SL_CTR_AMT                       AS   W1_AM07   /*--매출조정금액*/
+                    , B.BZNS_ATAM_BLAM                   AS   W1_AM08   /*--잡이익*/
+                    , A.EOT_ATAM                         AS   W1_AM09   /*-- 기말영업선수*/
+                 FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                 LEFT OUTER JOIN TB_CBCL_BZNS_ATAM_BAS B
+                   ON TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM,'YYYYMM'),1),'YYYYMM') = SUBSTR(B.DP_CL_DT,1,6)
+                  AND A.CNTR_NO = B.CNTR_NO
+                  AND A.CNTR_SN = B.CNTR_SN
+                  AND B.PTYPF_PRCSDT IS NOT NULL
+                  AND B.PTYPF_DP_SLIP_TRS_NO IS NOT NULL
+                 LEFT OUTER JOIN TB_CBCL_DLQ_BAS C
+                   ON A.SL_CL_YM = C.PERF_YM
+                  AND A.CNTR_NO  = C.CNTR_NO
+                  AND A.CNTR_SN  = C.CNTR_SN
+                 LEFT OUTER JOIN TB_PDBS_PD_BAS D
+                   ON A.PD_CD      = D.PD_CD
+                  AND A.SELL_TP_CD = D.SELL_TP_CD
+                  AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+                WHERE 1=1
+                  <if test='@MybatisUtils@isNotEmpty(slClYm)'>
+                  AND A.SL_CL_YM = #{slClYm}
+                  </if>
+                  <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                  AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+                  </if>
+                  <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+                  AND A.SELL_TP_CD = #{sellTpCd}
+                  </if>
+                  <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                  AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                  </if>
+                  <if test='@MybatisUtils@isNotEmpty(cntr)'>
+                  AND A.CNTR_NO || A.CNTR_SN = #{cntr}
+                  </if>
+             ) A
+       GROUP BY A.PERF_DT, A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD
+    </select>
+
+    <select id="selectSubGridOrder" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchSubGridRes">
+        SELECT A.SL_CL_YM                       /* 실적년월*/
+             , A.SELL_TP_CD                     /* 판매유형*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_NM
+             , A.SELL_TP_DTL_CD                 /* 판매유형상세*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , A.CNTR_NO                        /* 계약상세번호*/
+             , A.CST_KNM                        /* 고객명*/
+             , A.PD_CD                          /* 상품코드*/
+             , A.PD_NM                          /* 상품코드명*/
+             , A.SAP_PD_DV_CD                   /* SAP상품구분코드명*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_NM
+             , NVL(SUM(A.W1_AM01),0)    AS    W1_AM01  /* 기초영업선수금*/
+             , NVL(SUM(A.W1_AM02),0)    AS    W1_AM02  /* 영업선수입금*/
+             , NVL(SUM(A.W1_AM03),0)    AS    W1_AM03  /* 선수환불*/
+             , NVL(SUM(A.W1_AM04),0)    AS    W1_AM04  /* 합계*/
+             , NVL(SUM(A.W1_AM05),0)    AS    W1_AM05  /* 매출대사*/
+             , NVL(SUM(A.W1_AM06),0)    AS    W1_AM06  /* 위약금*/
+             , NVL(SUM(A.W1_AM07),0)    AS    W1_AM07  /* 매출조정금액*/
+             , NVL(SUM(A.W1_AM08),0)    AS    W1_AM08  /* 잡이익*/
+             , NVL(SUM(A.W1_AM09),0)    AS    W1_AM09  /* 기말영업선수*/
+          FROM ( SELECT SUBSTR(A.SL_CL_YM,1,4) ||'-'|| SUBSTR(A.SL_CL_YM,5,2) AS  SL_CL_YM
+                      , A.SELL_TP_CD           AS SELL_TP_CD
+                      , A.SELL_TP_DTL_CD       AS SELL_TP_DTL_CD
+                      , A.CNTR_NO||A.CNTR_SN   AS CNTR_NO
+                      , T3.CST_KNM             AS CST_KNM
+                      , D.PD_CD                AS PD_CD
+                      , D.PD_NM                AS PD_NM
+                      , A.SAP_PD_DV_CD         AS SAP_PD_DV_CD
+                      /*-------------------------------------------------------------------------------------*/
+                      /*-- 렌탈 선수금*/
+                      /*--------------------------------------------------------------------------------------*/
+                      , A.BTD_ATAM                         AS W1_AM01                             /*-- 기초영업선수금*/
+                      , A.THM_ATAM_DP_AMT - (CASE WHEN A.SL_CL_YM <![CDATA[ < ]]> '201605' THEN 0
+                                                ELSE NVL(C.THM_OC_DLQ_ADD_AMT,0)                          /*-- 당월발생연체가산금*/
+                                                END)                AS W1_AM02                           /*-- 영업선수입금*/
+                     /*--------------------------------------------------------------------------------------*/
+                      , A.THM_ATAM_RFND_AMT                AS    W1_AM03                      /*-- 선수환불 */
+                     /*--------------------------------------------------------------------------------------*/
+                      , A.THM_ATAM_DP_AMT - A.THM_ATAM_RFND_AMT - ( CASE WHEN A.SL_CL_YM <![CDATA[ < ]]> '201605' THEN 0
+                                                                         ELSE NVL(C.THM_OC_DLQ_ADD_AMT,0)
+                                                                         END )    AS   W1_AM04      /*--합계*/
+                      , A.SL_BND_ALRPY_AMT                 AS   W1_AM05       /*--매출대사(매출채권반제금액)*/
+                      , 0                                  AS   W1_AM06       /*--위약금*/
+                      , A.SL_CTR_AMT                       AS   W1_AM07       /*--매출조정금액*/
+                      , B.BZNS_ATAM_BLAM                   AS   W1_AM08       /*--잡이익*/
+                      , A.EOT_ATAM                         AS   W1_AM09       /*-- 기말영업선수*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                   LEFT OUTER JOIN TB_CBCL_BZNS_ATAM_BAS B
+                     ON TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM,'YYYYMM'),1),'YYYYMM')  = SUBSTR(B.DP_CL_DT,1,6)
+                    AND A.CNTR_NO = B.CNTR_NO
+                    AND A.CNTR_SN = B.CNTR_SN
+                    AND B.PTYPF_PRCSDT IS NOT NULL
+                    AND B.PTYPF_DP_SLIP_TRS_NO IS NOT NULL
+                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS C
+                     ON A.SL_CL_YM = C.PERF_YM
+                    AND A.CNTR_NO  = C.CNTR_NO
+                    AND A.CNTR_SN  = C.CNTR_SN
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2
+                     ON T2.CNTR_NO  = A.CNTR_NO
+                    AND T2.CNTR_SN  = A.CNTR_SN
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS T3
+                     ON T3.CST_NO = A.CST_NO
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS D
+                     ON T2.BASE_PD_CD  = D.PD_CD
+                    AND T2.SELL_TP_CD = D.SELL_TP_CD
+                    AND T2.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+                  WHERE 1=1
+                    <if test='@MybatisUtils@isNotEmpty(slClYm)'>
+                    AND A.SL_CL_YM = #{slClYm}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                    AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+                    AND A.SELL_TP_CD = #{sellTpCd}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(cntr)'>
+                    AND A.CNTR_NO || A.CNTR_SN = #{cntr}
+                    </if>
+                    <if test='@MybatisUtils@equals(agrgDv, "4")'>
+                    AND A.BTD_ATAM + A.THM_ATAM_DP_AMT - ( CASE WHEN A.SL_CL_YM <![CDATA[ < ]]> '201605' THEN 0
+                                                                ELSE NVL(C.THM_OC_DLQ_ADD_AMT,0)
+                                                                END ) - A.THM_ATAM_RFND_AMT - A.THM_ATAM_RFND_AMT <![CDATA[ <> ]]> A.EOT_ATAM   /* 가로계산 틀린인 경우만 해당*/
+                    </if>
+                ) A
+          GROUP BY A.SL_CL_YM, A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.CNTR_NO, A.CST_KNM, A.PD_CD, A.PD_NM, A.SAP_PD_DV_CD, A.SAP_PD_DV_CD /*-- 고객명 --*/
+    </select>
+
+    <select id="selectThirdGridAggregate" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchThirdGridRes">
+        SELECT A.SL_CL_YM                       /* 실적년월*/
+             , A.SELL_TP_CD                  /*-- 판매유형*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_NM
+             , A.SELL_TP_DTL_CD              /*-- 판매유형상세*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , A.SAP_PD_DV_CD                /*-- SAP상품구분코드명*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_NM
+             , NVL(SUM(A.WP_AM01),0)    AS    WP_AM01  /* 선수기초*/
+             , NVL(SUM(A.WP_AM02),0)    AS    WP_AM02  /* 선수입금*/
+             , NVL(SUM(A.WP_AM03),0)    AS    WP_AM03  /* 선수환불*/
+             , NVL(SUM(A.WP_AM04),0)    AS    WP_AM04  /* 합계*/
+             , NVL(SUM(A.WP_AM05),0)    AS    WP_AM05  /* 매출*/
+             , NVL(SUM(A.WP_AM06),0)    AS    WP_AM06  /* 기말잔액*/
+          FROM ( SELECT SUBSTR(A.SL_CL_YM,1,4) ||'-'|| SUBSTR(A.SL_CL_YM,5,2)   AS SL_CL_YM
+                      , A.SELL_TP_CD      AS SELL_TP_CD
+                      , A.SELL_TP_DTL_CD  AS SELL_TP_DTL_CD
+                      , A.SAP_PD_DV_CD    AS SAP_PD_DV_CD
+                      , A.MLG_BTD_PRPD_AMT    AS    WP_AM01
+                      , A.MLG_DP_AMT    AS    WP_AM02
+                      , A.MLG_RFND_AMT    AS    WP_AM03
+                      , (A.MLG_DP_AMT - A.MLG_RFND_AMT)    AS    WP_AM04
+                      , A.MLG_SL_AMT    AS    WP_AM05
+                      , A.MLG_EOT_PRPD_AMT    AS    WP_AM06
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ  A
+                  WHERE 1=1
+                    <if test='@MybatisUtils@isNotEmpty(slClYm)'>
+                    AND A.SL_CL_YM = #{slClYm}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                    AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+                    AND A.SELL_TP_CD = #{sellTpCd}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                    AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(cntr)'>
+                    AND A.CNTR_NO || A.CNTR_SN = #{cntr}
+                    </if>
+               ) A
+         GROUP BY A.SL_CL_YM, A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD
+    </select>
+
+    <select id="selectFourthGridOrder" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchFourthGridRes">
+        SELECT A.SL_CL_YM                                                                                     /* 실적년월*/
+             , A.SELL_TP_CD                                                                                   /* 판매유형*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', A.SELL_TP_CD) AS SELL_TP_NM
+             , A.SELL_TP_DTL_CD                                                                               /* 판매유형상세*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', A.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , A.CNTR_NO || A.CNTR_SN AS CNTR                                                                    /* 계약상세번호*/
+             , T3.CST_KNM                                                                                     /* 고객명*/
+             , A.SAP_PD_DV_CD                                                                                 /* SAP상품구분코드명*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SAP_PD_DV_CD', A.SAP_PD_DV_CD) AS SAP_PD_DV_NM
+             , A.SL_RCOG_DT                                                                                   /* 매출인식일자*/
+             , A.MLG_BTD_PRPD_AMT                                                                             /*기초금액*/
+             , CASE WHEN C.DP_TP_CD='0605' THEN A.MLG_DP_AMT-A.MLG_RFND_AMT ELSE 0 END LCIAM1                 /*유상입금*/
+             , CASE WHEN C.DP_TP_CD='0606' THEN A.MLG_DP_AMT-A.MLG_RFND_AMT ELSE 0 END LCIAM2                 /*무상입금*/
+             , CASE WHEN C.DP_TP_CD NOT IN ('0605','0606') THEN A.MLG_DP_AMT-A.MLG_RFND_AMT ELSE 0 END LCIAM3 /*기타입금*/
+             , CASE WHEN C.DP_TP_CD='0605' THEN A.MLG_SL_AMT ELSE 0 END LCSAM1                                /*유상매출*/
+             , CASE WHEN C.DP_TP_CD='0606' THEN A.MLG_SL_AMT ELSE 0 END LCSAM2                                /*무상매출*/
+             , CASE WHEN C.DP_TP_CD NOT IN ('0605','0606') THEN A.MLG_SL_AMT ELSE 0 END LCSAM3 /*기타매출*/
+             , A.MLG_EOT_PRPD_AMT /* 기말잔액*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+         INNER JOIN TB_RVDW_RVE_DTL B
+            ON B.CNTR_NO = A.CNTR_NO
+           AND B.CNTR_SN = A.CNTR_SN
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3
+            ON T3.CST_NO = A.CST_NO
+          LEFT OUTER JOIN LATERAL ( SELECT DP_TP_CD
+                                      FROM TB_RVDW_RVE_DTL
+                                     WHERE CNTR_NO = A.CNTR_NO
+                                       AND CNTR_SN = A.CNTR_SN
+                                       AND DP_TP_CD IN  ('0605','0606','0703')  /*무상M, 유상N, k포인트*/ ) C ON 1=1
+         WHERE 1=1
+           <if test='@MybatisUtils@isNotEmpty(slClYm)'>
+           AND A.SL_CL_YM = #{slClYm}
            </if>
-    </select>
-
-    <select id="selectSalesBondAdditionalChargesDates" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6) PERF_YM       /*실적년월*/
-             , T1.PERF_DT /*실적일자*/
-             , T2.CNTR_NO || T2.CNTR_SN AS CNTR /*계약상세번호*/
-           /*, T3.CST_KNM 고객명*/
-             , T1.PD_CD /*상품명*/
-             , T1.RVE_AMT /*기초영업선수금*/
-             , T2.BZNS_ATAM_BLAM /*(-)잡이익 */
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-         INNER JOIN TB_SSCT_CNTR_DTL T4
-            ON T2.CNTR_NO = T4.CNTR_NO
-         WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
-           <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-           AND SELL_TP_CD = #{sellTpCd}
+           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+           AND A.SAP_PD_DV_CD = #{sapPdDvCd}
            </if>
-    </select>
-
-    <select id="selectSalesBondAdditionalChargesOrders" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6)/*실적년월*/
-           /*, CST_KNM 고객명*/
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*입금상세 실적년월*/
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-         INNER JOIN TB_SSCT_CNTR_DTL T4
-            ON T2.CNTR_NO = T4.CNTR_NO
-         WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
            <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-           AND T4.SELL_TP_CD = #{sellTpCd}
-          </if>
-    </select>
-
-    <select id="selectSalesBondAdditionalChargesMembers" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$SearchRes">
-        SELECT SUBSTR(T1.PERF_DT,1,6)/*실적년월*/
-           /*, CST_KNM 고객명*/
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*입금상세 실적년월*/
-          FROM TB_RVDW_RVE_DTL T1
-         INNER JOIN TB_CBCL_BZNS_ATAM_BAS T2
-            ON T1.RVE_NO = T2.RVE_NO
-         INNER JOIN TB_SSCT_CNTR_DTL T4
-            ON T2.CNTR_NO = T4.CNTR_NO
-         WHERE SUBSTR(T1.PERF_DT,1,6) = #{perfYm}
-           <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-           AND T4.SELL_TP_CD = #{sellTpCd}
-          </if>
+           AND A.SELL_TP_CD = #{sellTpCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntr)'>
+           AND A.CNTR_NO || A.CNTR_SN = #{cntr}
+           </if>
+           AND A.MLG_DP_AMT + A.MLG_RFND_AMT + A.MLG_SL_AMT + A.MLG_EOT_PRPD_AMT != 0
     </select>
 </mapper>

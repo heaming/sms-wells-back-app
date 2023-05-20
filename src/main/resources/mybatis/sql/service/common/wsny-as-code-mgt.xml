@@ -15,44 +15,114 @@
 -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyAsCodeMgtMapper">
-    <select id="selectAsCodePages" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo">
-        SELECT A.SV_TP_CD, /*서비스유형코드*/
-               A.AS_LCT_CD, /*AS위치코드*/
-               A.AS_LCT_CD AS AS_LCT_NM, /*AS위치코드*/
-               A.AS_PHN_CD, /*AS현상코드*/
-               A.AS_PHN_CD AS AS_PHN_NM, /*AS현상코드*/
-               A.AS_CAUS_CD, /*AS원인코드*/
-               A.AS_CAUS_CD AS AS_CAUS_NM, /*AS원인코드*/
-               A.SITE_AW_ATC_CD, /*현장수당항목코드*/
-               A.SITE_AW_ATC_CD AS SITE_AW_ATC_NM, /*현장수당항목코드*/
-               B.FULEY_AW_AMT, /*정직원수당금액*/
-               A.SV_ANA_HCLSF_CD, /*서비스분석대분류코드*/
-               A.SV_ANA_HCLSF_CD AS SV_ANA_HCLSF_NM /*서비스분석대분류코드*/
-        FROM TB_SVPD_AS_TP_CD A
-        LEFT OUTER JOIN TB_FEAM_SITE_AW_DSB_BASE_BAS B
-          ON A.SITE_AW_ATC_CD = B.SITE_AW_ATC_CD
-         AND B.RGLVL_DV_CD = '1'
-         AND A.PD_GRP_CD = B.PD_GRP_CD
-         AND A.SV_TP_CD = B.SV_TP_CD
-        WHERE 1=1
-        <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
-          AND A.PD_GRP_CD = #{pdGrpCd}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-          AND A.PD_CD = #{pdCd}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
-          AND A.SV_TP_CD = #{svTpCd}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(asLctCd)'>
-          AND A.AS_LCT_CD = #{asLctCd}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(apyChk) and apyChk != "0" '>
-          AND A.APY_STRTDT &lt;= ${applyDate}
-          AND A.APY_ENDDT &gt;= ${applyDate}
-          AND B.APY_STRTDT &lt;= ${applyDate}
-          AND B.APY_ENDDT &gt;= ${applyDate}
-        </if>
-        ORDER BY SV_TP_CD , AS_LCT_CD , AS_PHN_CD , AS_CAUS_CD
+    <select id="selectAsCodes" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo">
+        SELECT A.SV_TP_CD                                                           AS SV_TP_CD        /*서비스유형코드*/
+             , A.AS_LCT_CD                                                          AS AS_LCT_CD       /*AS위치코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', A.AS_LCT_CD, 'ko')             AS AS_LCT_NM       /*AS위치코드*/
+             , A.AS_PHN_CD                                                          AS AS_PHN_CD       /*AS현상코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', A.AS_PHN_CD, 'ko')             AS AS_PHN_NM       /*AS현상코드*/
+             , A.AS_CAUS_CD                                                         AS AS_CAUS_CD      /*AS원인코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', A.AS_CAUS_CD, 'ko')           AS AS_CAUS_NM      /*AS원인코드*/
+             , A.SITE_AW_ATC_CD                                                     AS SITE_AW_ATC_CD  /*현장수당항목코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', A.SITE_AW_ATC_CD, 'ko')   AS SITE_AW_ATC_NM  /*현장수당항목코드*/
+             , A.SV_ANA_HCLSF_CD                                                    AS SV_ANA_HCLSF_CD /*서비스분석대분류코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', A.SV_ANA_HCLSF_CD, 'ko') AS SV_ANA_HCLSF_NM /*서비스분석대분류코드*/
+             , B.FULEY_AW_AMT                                                       AS FULEY_AW_AMT    /*정직원수당금액*/
+          FROM TB_SVPD_AS_TP_CD A
+          LEFT OUTER JOIN TB_FEAM_SITE_AW_DSB_BASE_BAS B
+            ON A.SITE_AW_ATC_CD = B.SITE_AW_ATC_CD
+           AND B.RGLVL_DV_CD = '1' /*급지구분코드 1:1급지, 2:2급지, 3:3급지*/
+           AND A.PD_GRP_CD = B.PD_GRP_CD
+           AND A.SV_TP_CD = B.SV_TP_CD
+         WHERE 1=1
+         <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+           AND A.PD_GRP_CD = #{pdGrpCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND A.PD_CD = #{pdCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
+           AND A.SV_TP_CD = #{svTpCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(asLctCd)'>
+           AND A.AS_LCT_CD = #{asLctCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(apyChk) and apyChk != "0" '>
+           AND A.APY_STRTDT &lt;= ${applyDate}
+           AND A.APY_ENDDT &gt;= ${applyDate}
+           AND B.APY_STRTDT &lt;= ${applyDate}
+           AND B.APY_ENDDT &gt;= ${applyDate}
+         </if>
+         ORDER BY SV_TP_CD , AS_LCT_CD , AS_PHN_CD , AS_CAUS_CD
     </select>
+
+    <update id="saveAsCode">
+        MERGE
+         INTO TB_SVPD_AS_TP_CD T1
+        USING (
+            SELECT #{pdGrpCd} AS PD_GRP_CD
+                 , #{pdCd} AS PD_CD
+                 , #{svTpCd} AS SV_TP_CD
+                 , #{asLctCd} AS AS_LCT_CD
+                 , #{asPhnCd} AS AS_PHN_CD
+                 , #{asCausCd} AS AS_CAUS_CD
+                 , #{siteAwAtcDsnDt} AS SITE_AW_ATC_DSN_DT
+                 , #{svAnaHclsfCd} AS SV_ANA_HCLSF_CD
+              FROM DUAL
+        ) T2
+          ON ( T1.PD_GRP_CD=T2.PD_GRP_CD
+           AND T1.PD_CD=T2.PD_CD
+           AND T1.SV_TP_CD=T2.SV_TP_CD
+           AND T1.AS_LCT_CD=T2.AS_LCT_CD
+           AND T1.AS_PHN_CD=T2.AS_PHN_CD
+           AND T1.AS_CAUS_CD=T2.AS_CAUS_CD
+           AND T1.SITE_AW_ATC_DSN_DT=T2.SITE_AW_ATC_DSN_DT
+           AND T1.SV_ANA_HCLSF_CD=T2.SV_ANA_HCLSF_CD
+          )
+        WHEN MATCHED THEN
+      UPDATE
+         SET SITE_AW_ATC_CD = #{siteAwAtcCd}
+           , SV_ANA_MCLSF_CD = #{svAnaMclsfCd}
+           , SV_ANA_LCLSF_CD = #{svAnaLclsfCd}
+           , SV_ANA_DSN_DT = #{svAnaDsnDt}
+           , APY_STRTDT = #{apyStrtdt}
+           , APY_ENDDT = #{apyEnddt}
+           <include refid="COMMON.updateSystemField" />
+          WHEN NOT MATCHED THEN
+        INSERT (
+               PD_GRP_CD
+             , PD_CD
+             , SV_TP_CD
+             , AS_LCT_CD
+             , AS_PHN_CD
+             , AS_CAUS_CD
+             , SITE_AW_ATC_DSN_DT
+             , SV_ANA_HCLSF_CD
+             , SITE_AW_ATC_CD
+             , SV_ANA_MCLSF_CD
+             , SV_ANA_LCLSF_CD
+             , SV_ANA_DSN_DT
+             , APY_STRTDT
+             , APY_ENDDT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+               #{pdGrpCd}
+             , #{pdCd}
+             , #{svTpCd}
+             , #{asLctCd}
+             , #{asPhnCd}
+             , #{asCausCd}
+             , #{siteAwAtcDsnDt}
+             , #{svAnaHclsfCd}
+             , #{siteAwAtcCd}
+             , #{svAnaMclsfCd}
+             , #{svAnaLclsfCd}
+             , #{svAnaDsnDt}
+             , #{apyStrtdt}
+             , #{apyEnddt}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </update>
 </mapper>

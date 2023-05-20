@@ -18,6 +18,7 @@ public class WpdcServiceMgtDto {
         String pdCd,
         String pdGrpCd,
         boolean isModifiedProp,
+        boolean isOnlyFileModified,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
         List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel
@@ -29,6 +30,7 @@ public class WpdcServiceMgtDto {
         String pdCd,
         String pdGrpCd,
         boolean isModifiedProp,
+        boolean isOnlyFileModified,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
         List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel

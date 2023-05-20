@@ -9,6 +9,7 @@ import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
 import com.kyowon.sflex.common.message.service.SmsMessageService;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbVisitGuideSmsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbVisitGuideSmsMapper;
+import com.sds.sflex.common.utils.StringUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,7 +45,10 @@ public class WsnbVisitGuideSmsService {
                         "pdNm", dvo.getPdNm()
                     )
                 )
-                .destInfo(dvo.getUserId() + "^" + dvo.getDestInfo())
+                .destInfo(
+                    dvo.getUserId() + "^"
+                        + this.getDestPhoneNo(dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralIdvTno())
+                )
                 .callback(dvo.getCallback())
                 .build();
 
@@ -52,6 +56,13 @@ public class WsnbVisitGuideSmsService {
         }
 
         return processCount;
+    }
+
+    private String getDestPhoneNo(String cralLocaraTno, String mexnoEncr, String cralIdvTno) {
+        if (StringUtil.isBlank(cralLocaraTno) || StringUtil.isBlank(mexnoEncr) || StringUtil.isBlank(cralIdvTno)) {
+            return "";
+        }
+        return cralLocaraTno + mexnoEncr + cralLocaraTno;
     }
 
 }

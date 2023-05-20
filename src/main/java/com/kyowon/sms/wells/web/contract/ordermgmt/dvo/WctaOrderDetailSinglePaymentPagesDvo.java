@@ -59,10 +59,16 @@ public class WctaOrderDetailSinglePaymentPagesDvo {
     private String alncmpNm;
     private String sellEvCd;
     private String sellEvNm;
+    private String pkgOrdNo;
+    private String pmotTpNm;
     private String fnlAmt;
     private String sellAmt;
     private String vat;
     private String cntrAmt;
+    private String tkAmt;
+    private String crpUcAmt;
+    private String alncFee;
+    private String lcjAmt;
     private String istmIntAmt;
     private String feeAckmtBaseAmt;
     private String crpUc;

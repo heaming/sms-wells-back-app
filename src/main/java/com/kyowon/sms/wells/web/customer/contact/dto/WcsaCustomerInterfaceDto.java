@@ -107,4 +107,41 @@ public class WcsaCustomerInterfaceDto {
         }
     }
 
+    /**
+     * 고객번호 기준으로 고객정보를 변경 (서비스) Search Request Dto
+     * @param CST_NO 고객번호
+     * @param CALNG_DV_CD 호출구분코드
+     */
+    @ApiModel(value = "WcsaCustomerInterfaceDto-SearchCustomerInfoEditReq")
+    public record SearchCustomerInfoEditReq(
+        String CALNG_DV_CD, /*호출구분코드*/
+        String COPN_DV_CD, /*법인격구분코드*/
+        String CST_NO, /*고객번호 */
+        String LOCARA_TNO, /*지역전화번호*/
+        String EXNO, /*전화국번호*/
+        String IDV_TNO, /*개별전화번호*/
+        String CRAL_LOCARA_TNO, /*휴대전화지역*/
+        String MEXNO, /*휴대전화국번호*/
+        String CRAL_IDV_TNO, /*휴대전화번호*/
+        String ADR_ID, /*주소ID*/
+        String ADR_DV_CD, /*주소구분코드*/
+        String CH_LTRQ_CONF_YN, /*변경요청서확인여부*/
+        String CH_LTRQ_CONF_DT, /*변경요청서확인일자*/
+        String UNUITM_CN, /*특이사항내용*/
+        String RGST_MDFC_USR_ID /*등록수정사용자ID*/
+    ) {}
+
+    /**
+     * 고객번호 기준으로 고객정보를 조회 (IF정보 : EAI_ECUI1038_EDU 고객정보 조회) Search Result Dto
+     * @param CST_NO 고객번호
+     * @param RS_CD 결과코드
+     * @param RS_MSG 결과메시지
+     */
+    @ApiModel(value = "WcsaCustomerInterfaceDto-SearchCustomerInfoEditRes")
+    public record SearchCustomerInfoEditRes(
+        String CST_NO,
+        String RS_CD,
+        String RS_MSG
+    ) {}
+
 }

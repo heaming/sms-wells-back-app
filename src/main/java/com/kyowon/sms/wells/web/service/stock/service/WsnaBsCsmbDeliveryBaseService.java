@@ -6,14 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaBsCsmbDeliveryBaseConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.CreateReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchItemsRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryBaseDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsCsmbDeliveryBaseMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -59,6 +57,25 @@ public class WsnaBsCsmbDeliveryBaseService {
 
             WsnaBsCsmbDeliveryBaseDvo dvo = converter.mapCreateReqToDeliveryBaseDto(dto);
             int result = mapper.insertDeliveryBase(dvo);
+
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            processCount += result;
+        }
+
+        return processCount;
+    }
+
+    public FindRes getDeliveryBase(String mngtYm, String csmbPdCd) {
+        return mapper.selectDeliveryBase(mngtYm, csmbPdCd).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
+    }
+
+    @Transactional
+    public int editDeliveryBase(List<EditReq> dtos) {
+        int processCount = 0;
+
+        for (EditReq dto : dtos) {
+            WsnaBsCsmbDeliveryBaseDvo dvo = converter.mapEditReqToDeliveryBaseDto(dto);
+            int result = mapper.updateDeliveryBase(dvo);
 
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             processCount += result;

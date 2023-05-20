@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.deduction.redf.mapper.WdeaAllowanceDelinquentRedemptionFeeMapper">
+
+    <!-- 수당/연체 되물림 (팝업) -->
+    <select id="selectAllowanceDelinquentRedemptionFees" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceDelinquentRedemptionFeeDto$SearchRes">
+        SELECT A.REDF_ADSB_OC_YM 
+             , A.FEE_REDF_ADSB_DTL_ID
+             , B.FEE_CPSN_REDF_ID
+             , A.PERF_DV_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PERF_DV_CD', A.PERF_DV_CD) AS PERF_DV_NM   /* TODO 구분 확인해야함 */
+             , (SELECT F_CMZ_CD_NM(#{session.tenantId}, 'REDF_INQR_TP_CD', B1.USER_DFN_03)
+                  FROM T_CMZ_CD_M A1 
+                 INNER JOIN T_CMZ_CD_D B1
+                    ON A1.TENANT_ID = B1.TENANT_ID 
+                   AND A1.CD_ID = B1.CD_ID
+                 WHERE A1.CD_ID = 'REDF_ADSB_TP_CD'
+                   AND A1.TENANT_ID = #{session.tenantId}
+                   AND B1.CD_VLD_VAL = A.REDF_ADSB_TP_CD
+               ) AS WHTX_REP_DV_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'REDF_ADSB_TP_CD', A.REDF_ADSB_TP_CD) AS REDF_ADSB_TP_NM
+             , A.CNTR_NO || '-' || A.CNTR_SN AS CNTR_NO
+             , A.PRTNR_NO 
+             , P.PRTNR_KNM
+             , F.CST_KNM
+             , A.OG_TP_CD 
+             , A.CO_CD 
+             , A.PERF_YM 
+             , A.REDF_ADSB_OC_AMT
+             , D.PD_NM
+             , D.ENV_YN
+             , C.CNTR_CAN_RSON_CD   /* TODO 취소유형 공통코드 필요 */
+             , C.CNTR_PRGS_STAT_MO_CN
+             , E.MCHN_CH_YN
+             , E.MCHN_CH_TP_CD      /* TODO 기기변경유형 공통코드 없음 */
+             , CASE WHEN B.FEE_CPSN_REDF_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS FEE_CPSN_REDF_YN
+          FROM TB_FEDD_FEE_REDF_ADSB_DTL A
+         INNER JOIN TB_OGBS_PRTNR_BAS P 
+            ON A.PRTNR_NO = P.PRTNR_NO 
+           AND A.OG_TP_CD = P.OG_TP_CD
+           AND P.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (SELECT G.FEE_REDF_ADSB_ID
+                                , S.WHTX_REP_DV_CD
+                             FROM TB_FEDD_FEE_REDF_ADSB_BAS G
+                             LEFT OUTER JOIN TB_FEDD_WHTX_REP_SLIP_BAS S 
+                               ON S.WHTX_REP_SLIP_TRS_NO = G.WHTX_REP_SLIP_TRS_NO
+                              AND S.DTA_DL_YN = 'N'
+                            WHERE G.DTA_DL_YN = 'N'
+                          ) G
+            ON A.FEE_REDF_ADSB_ID = G.FEE_REDF_ADSB_ID
+          LEFT OUTER JOIN TB_FEDD_FEE_CPSN_REDF_OJ_IZ B 
+            ON A.CNTR_NO = B.CNTR_NO 
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.PRTNR_NO = B.PRTNR_NO 
+           AND A.OG_TP_CD = B.OG_TP_CD
+           AND A.CO_CD = B.CO_CD 
+           AND A.PERF_YM = B.PERF_YM 
+           AND B.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_BAS C 
+            ON C.CNTR_NO = A.CNTR_NO 
+           AND C.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS F 
+            ON C.CNTR_CST_NO = F.CST_NO
+           AND F.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (SELECT C.CNTR_NO 
+                                , C.CNTR_SN 
+                                , C.BASE_PD_CD 
+                                , P.PD_CLSF_CD
+                                , P.PD_NM 
+                                , P.PD_CD 
+                                , CASE WHEN P.REF_PD_CLSF_VAL IN ('01001','03001','02001','05002','05001') THEN 'Y' ELSE 'N' END ENV_YN     /* 환경가전 공통코드가 없어서 하드코딩 */
+                             FROM TB_SSCT_CNTR_DTL C 
+                             LEFT OUTER JOIN (SELECT B.PD_CLSF_CD
+                                                   , P.PD_CD 
+                                                   , P.PD_NM
+                                                   , SUBSTR(B.REF_PD_CLSF_VAL,1,5) AS REF_PD_CLSF_VAL
+                                                FROM TB_PDBS_PD_BAS P 
+                                               INNER JOIN TB_PDBS_PD_CLSF_BAS B 
+                                                  ON B.PD_CLSF_ID = P.PD_MCLSF_ID 
+                                                 AND B.DTA_DL_YN = 'N'
+                                               WHERE P.DTA_DL_YN = 'N'
+                                             ) P
+                               ON C.BASE_PD_CD = P.PD_CD 
+                            WHERE C.DTA_DL_YN = 'N' 
+                          ) D
+            ON D.CNTR_NO = A.CNTR_NO
+           AND D.CNTR_SN = A.CNTR_SN
+          LEFT OUTER JOIN TB_FEAM_WELS_NRCTR_MM_CL E 
+            ON A.PERF_YM = E.PERF_YM 
+           AND A.CNTR_NO = E.CNTR_NO 
+           AND A.CNTR_SN = E.CNTR_SN 
+           AND A.CO_CD = E.CO_CD 
+           AND A.OG_TP_CD = E.OG_TP_CD 
+           AND A.PRTNR_NO = E.PRTNR_NO 
+           AND E.DTA_DL_YN = 'N'
+         WHERE A.DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND A.PRTNR_NO = #{prtnrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(perfDvCd) and perfDvCd != "ALL"'>
+           AND A.PERF_DV_CD = #{perfDvCd}
+         </if>
+           AND EXISTS (SELECT 1
+                         FROM T_CMZ_CD_M A1 
+                        INNER JOIN T_CMZ_CD_D B1
+                           ON A1.TENANT_ID = B1.TENANT_ID 
+                          AND A1.CD_ID = B1.CD_ID
+                        WHERE A1.CD_ID = 'REDF_ADSB_TP_CD'
+                          AND A1.TENANT_ID = #{session.tenantId}
+                          AND B1.PRTS_CD_VLD_VAL = '02'
+                          AND B1.CD_VLD_VAL = A.REDF_ADSB_TP_CD
+                        <if test='@MybatisUtils@isNotEmpty(whtxRepDvCd) and whtxRepDvCd != "ALL"'>
+                          AND B1.USER_DFN_03 = #{whtxRepDvCd}
+                        </if>
+                      )
+         ORDER BY A.REDF_ADSB_OC_YM, A.REDF_ADSB_TP_CD, A.PERF_YM, F.CST_NO
+    </select>
+</mapper>

@@ -46,7 +46,9 @@ public class WctaRentalAccountMgtDto {
     @ApiModel("WctaRentalAccountMgtDto-SearchByoRentalAccountRes")
     public record SearchByoRentalAccountRes(
         String dgr1LevlOgNm,
+        String dgr1LevlOgCd,
         String dgr2LevlOgNm,
+        String dgr2LevlOgCd,
         String istDt,
         String rstlYn,
         String jCnt,

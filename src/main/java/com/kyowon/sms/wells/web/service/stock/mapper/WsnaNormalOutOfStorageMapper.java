@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageStdgbDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -30,5 +31,13 @@ public interface WsnaNormalOutOfStorageMapper {
 
     int selectNormalOstrRgstChecked(CheckedReq dto);
 
-    String selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
+    int updateOstrAkIz(WsnaNormalOutOfStorageDvo vo);
+
+    int updateOstrAkIzAfter(WsnaNormalOutOfStorageDvo vo);
+
+    StrNoAndOstrNoRes selectStrNoAndOstrNo(WsnaNormalOutOfStorageDvo vo);
+
+    int updateStandardWareHouse(WsnaNormalOutOfStorageStdgbDvo dvo);
+
+    StandardWareRes selectStandardWareHouse(StandardWareReq dto);
 }

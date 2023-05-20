@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdRequestCleaningSuppliesMgtMapper">
+
+    <select id="selectBuilDingCd" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto$CodeRes">
+        SELECT DISTINCT B.BLD_CD
+             , B.BLD_NM
+          FROM TB_OGBS_OG_BAS A /*조직기본*/
+         INNER JOIN TB_OGBS_BLD_BAS B /*빌딩기본*/
+            ON A.BLD_CD = B.BLD_CD
+         WHERE 1=1
+           AND A.DGR2_LEVL_OG_CD IN (SELECT W1.OG_CD
+                                       FROM TB_OGBS_PRTNR_BAS W1 /*파트너기본*/
+                                      WHERE 1=1
+                                        AND W1.OG_TP_CD = #{session.ogTpCd}
+                                        /*AND W1.PRTNR_NO*/
+                                     )
+    </select>
+
+    <select id="selectClingCostAdjRcpNo" resultType="String">
+        SELECT TO_CHAR(TO_DATE(#{aplcDt}),'YYYYMM')||LPAD(NVL(MAX(SUBSTR(CLING_COST_ADJ_RCP_NO,7,4)),0)+1,4,'0')
+          FROM TB_CBCL_CLING_COST_ADJ_IZ
+         WHERE RCP_YM LIKE SUBSTR(#{aplcDt},1,6)||'%'
+    </select>
+
+    <insert id="insertRequestCleaningSupplies">
+        INSERT INTO TB_CBCL_CLING_COST_ADJ_IZ(
+               CLING_COST_ADJ_RCP_NO
+             , RCP_YM
+             , APLC_DT
+             , CLAIM_NM
+             , BLD_CD
+             , BIL_AMT
+             , CARD_PSR_NM
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , CLING_COST_SRCP_APN_FILE_ID
+             , CLING_COST_DV_CD
+             , DTA_DL_YN
+          <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+               #{clingCostAdjRcpNo}
+             , SUBSTR(#{aplcDt},1,6) /* 신청일자 yyyymm */
+             , #{aplcDt}
+             , #{claimNm}
+             , #{bldCd}
+             , #{bilAmt}
+             , #{cardPsrNm}
+             , #{locaraTno}
+             , #{exnoEncr}
+             , #{idvTno}
+             , #{clingCostSignApnFileId}
+             , '02'
+             , #{dtaDlYn}
+          <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <select id="selectRequestCleaningSupplies" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto$FindRes">
+        SELECT CLING_COST_ADJ_RCP_NO
+             , CARD_PSR_NM
+             , APLC_DT
+             , CLAIM_NM
+             , BLD_CD
+             , BIL_AMT
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , CLING_COST_SRCP_APN_FILE_ID
+          FROM TB_CBCL_CLING_COST_ADJ_IZ
+         WHERE CLING_COST_ADJ_RCP_NO = #{clingCostAdjRcpNo}
+    </select>
+
+    <update id="editselectRequestCleaningSupplies">
+        UPDATE TB_CBCL_CLING_COST_ADJ_IZ
+           SET BIL_AMT = #{bilAmt}
+             , CLAIM_NM = #{claimNm}
+             , BLD_CD = #{bldCd}
+             , BIL_AMT = #{bilAmt}
+             , CARD_PSR_NM = #{cardPsrNm}
+             , LOCARA_TNO = #{locaraTno}
+             , EXNO_ENCR = #{exnoEncr}
+             , IDV_TNO = #{idvTno}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE CLING_COST_ADJ_RCP_NO = #{clingCostAdjRcpNo}
+    </update>
+</mapper>

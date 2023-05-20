@@ -10,8 +10,7 @@ import io.swagger.annotations.ApiModel;
 public class WsndBusinessVehiclesMgtDto {
     @ApiModel(value = "WsndBusinessVehiclesMgtDto-SearchReq")
     public record SearchReq(
-        String hgrOgId,
-        String ogCd,
+        String ogId,
         String prtnrNo,
         String findGb
     ) {}
@@ -26,13 +25,14 @@ public class WsndBusinessVehiclesMgtDto {
         String cntrDt,
         String carno,
         String vhcMngtTpCd,
+        String vhcMngtTpNm,
         String vhcPymdt,
         String dsbEnddt,
         String insrAgeCd,
         String rflngCdnoEncr,
         String hipsCdnoEncr,
         String vhcDsbRmkCn,
-        String ogCd,
+        String ogId,
         String vhcMngtNo,
         String vhcMngtSn,
         String vhcMngtPrtnrNo,
@@ -119,7 +119,8 @@ public class WsndBusinessVehiclesMgtDto {
         String vhcDsbRmkCn,
         String fnlMdfcDtm,
         String fnlMdfcUsrNmSet,
-        String fnlMdfcDeptNm
+        String fnlMdfcDeptNm,
+        String prtnrChYn
     ) {
         public EditReq {
             rflngCdnoEncr = DbEncUtil.enc(rflngCdnoEncr);

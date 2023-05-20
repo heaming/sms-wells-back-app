@@ -3,108 +3,148 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroOcrForwardingMgtMapper">
     <select id="selectGiroOcrForwardings" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchRes">
         SELECT
-               A.WK_DT --작업일자
-             , A.WK_SN --작업일련번호
-             , A.GIRO_BIZ_DV_CD --지로업무구분코드
-             , A.GIRO_BIZ_TP_CD --지로업무유형코드
-             , A.CNTR_NO ||A.CNTR_SN AS CNTR --계약번호
-             , A.CNTR_NO --계약번호
-             , A.CNTR_SN --계약일련번호
-             , A.CST_FNM -- 고객성명
-             , A.SL_DT --매출일자
-              --현재차월
-             , B.RECAP_DUTY_PTRM_N--약정개월
-             , A.STRT_GIRO_TN --시작지로회차
-             , A.END_GIRO_TN --종료지로회차
-             , A.THM0_AMT --0차월금액
-             , A.ISTM_MCN --할부개월수
-             , A.ISTM_AMT --할부금액
-             , A.ISTM_DSC_AMT --할부할인금액
-             , A.PY_AMT --납입금액
-             , A.STPL_NMN_AMT --약정차월금액
-             , A.EXN_NMN_AMT --만료차월금액
-             , A.LTPAY_YN --후납여부
-             , A.GIRO_RGLR_DV_CD --정기구분  
-          FROM TB_RVDW_GIRO_OCR_MNGT_BAS A
-          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B ON A.CNTR_NO = B.CNTR_NO AND A.CNTR_SN = B.CNTR_SN
-         WHERE 1 = 1 --AND B.RECAP_DUTY_PTRM_UNIT_CD = '20'           
+               T1.WK_DT --작업일자
+             , T1.WK_SN --작업일련번호
+             , T1.GIRO_BIZ_DV_CD --지로업무구분코드
+             , T1.GIRO_BIZ_TP_CD --지로업무유형코드
+             , T1.CNTR_NO ||T1.CNTR_SN AS CNTR --계약번호
+             , T1.CNTR_NO --계약번호
+             , T1.CNTR_SN --계약일련번호
+             , T1.CST_FNM -- 고객성명
+             , T1.SL_DT --매출일자
+             , NVL(T2.RENTAL_TN,T3.RENTAL_TN) AS RENTAL_TN --  1.현재차월
+             , T4.STPL_PTRM AS RECAP_DUTY_PTRM_N --약정개월
+             , T1.STRT_GIRO_TN --시작지로회차
+             , T1.END_GIRO_TN --종료지로회차
+             , T1.THM0_AMT --0차월금액
+             , T1.ISTM_MCN --할부개월수
+             , T1.ISTM_AMT --할부금액
+             , T1.ISTM_DSC_AMT --할부할인금액
+             , T1.PY_AMT --납입금액
+             , T1.STPL_NMN_AMT --약정차월금액
+             , T1.EXN_NMN_AMT --만료차월금액
+             , T1.LTPAY_YN --후납여부
+             , T1.GIRO_RGLR_DV_CD --정기구분  
+          FROM TB_RVDW_GIRO_OCR_MNGT_BAS T1          
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T2
+            ON T2.CNTR_NO = T1.CNTR_NO 
+           AND T2.CNTR_SN = T1.CNTR_SN 
+           AND T2.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') 
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3
+            ON T3.CNTR_NO = T1.CNTR_NO 
+           AND T3.CNTR_SN = T1.CNTR_SN 
+           AND T3.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE ,-1),'YYYYMM')
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T4 
+            ON T4.CNTR_NO = T1.CNTR_NO 
+           AND T4.CNTR_SN = T1.CNTR_SN
+         WHERE 1 = 1            
          <if test='@MybatisUtils@isNotEmpty(wkDt)'>
-           AND A.WK_DT = #{wkDt}
+           AND T1.WK_DT = #{wkDt}
          </if>  
          <if test='@MybatisUtils@isNotEmpty(giroRglrDvCd)'>
-           AND A.GIRO_RGLR_DV_CD = #{giroRglrDvCd}
+           AND T1.GIRO_RGLR_DV_CD = #{giroRglrDvCd}
          </if>
-           AND A.DTA_DL_YN = 'N'                  
+           AND T1.DTA_DL_YN = 'N'  
+         ORDER BY T1.WK_DT
+                , T1.WK_SN                
     </select>
     
-    <select id="selectGiroOcrForwardingObjects" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchRes">
-        SELECT 
-               WK_DT
-             , GIRO_BIZ_DV_CD --지로업무구분코드
-             , GIRO_BIZ_TP_CD --지로업무유형코드
-             , CNTR_NO -- 계약번호
-             , CNTR_SN -- 계약일련번호
-             , CST_FNM -- 고객명
-        --     , STRT_GIRO_TN --시작지로회차
-        --     , END_GIRO_TN --종료지로회차
-             , SL_DT --매출일자 
-             , ISTM_MCN --렌탈기간
-             , ISTM_AMT--렌탈료
-             , ISTM_DSC_AMT--렌탈할인
-             , PY_AMT --청구 렌탈료
-        --     , THM0_AMT -- 0차월금액
-             , PY_AMT AS STPL_NMN_AMT --약정차월
-        --     , EXN_NMN_AMT --만료차월
-             , LTPAY_YN --후납여부
-             , GIRO_RGLR_DV_CD --지로정기구분
-             --, --현재차월
-             , RECAP_DUTY_PTRM_N --약정개월
-          FROM(
-                SELECT 
-                       TO_CHAR(to_date(sysdate),'YYYYMMDD') AS WK_DT
-                     , '2' AS GIRO_BIZ_DV_CD
-                     , '2' AS GIRO_BIZ_TP_CD
-                     , A.CNTR_NO -- 계약번호  
-                     , B.CNTR_SN -- 계약일련번호
-                     , A.CST_NO -- 고객번호
-                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS E WHERE E.CST_NO = A.CST_NO) AS CST_FNM
-                     , B.SL_DT -- 매출일자
-                       --현재차월 아직 컬럼이없음 
-                     , C.RECAP_DUTY_PTRM_N --약정개월
-                --     , AS STRT_GIRO_TN --시작   CASE WHEN 현재차월 = 1 THEN 0 ELSE 현재차월 END AS STRT_GIRO_TN
-                --     , AS 시작지로회차 CASE WHEN 현재차월 = 1 THEN 11 ELSE 현재차월 END --종료
-                --       , CASE WHEN 현재차월 = 1 THEN 11
-                --              WHEN 현재차월 + 12 >=T1.LCMONT THEN T1.LCMONT
-                --              ELSE T1.현재차월 + 11 END
-                --         AS END_GIRO_TN
-                     
-                --     , AS THM0_AMT --0차월
-                     , TRUNC(MONTHS_BETWEEN(TO_DATE(D.APY_STRT_TN,'YYYY-MM-DD'),TO_DATE(D.APY_END_TN,'YYYY-MM-DD'))) AS ISTM_MCN --렌탈기간
-                     , D.FNL_VAL AS ISTM_AMT--렌탈료
-                     , D.CTR_VAL AS ISTM_DSC_AMT--렌탈할인
-                     , D.FNL_VAL - D.CTR_VAL AS PY_AMT --청구 렌탈료
-                --     , AS EXN_NMN_AMT --만료차월
-                     , '' AS LTPAY_YN --후납여부
-                     , '01'AS GIRO_RGLR_DV_CD --정기구분(정기)
-                  FROM TB_SSCT_CNTR_STLM_BAS A --계약결제기본
-                     , TB_CBCL_CNTR_PERF_MM_CL B --계약실적월마감
-                     , TB_SSCT_CNTR_WELLS_DTL C--계약WELLS상세
-                     , TB_SSCT_CNTR_PRC_CMPT_IZ D  --계약가격산출내역
-                 WHERE A.CNTR_NO = CNTR_NO
-                   AND A.CNTR_NO = C.CNTR_NO
-                   AND A.CNTR_NO = D.CNTR_NO
-                   AND B.CNTR_NO = C.CNTR_NO
-                   AND B.CNTR_NO = D.CNTR_NO
-                   AND C.CNTR_NO = D.CNTR_NO
-                   AND C.CNTR_SN = D.CNTR_SN
-                   AND A.MPY_MTHD_TP_CD = '170' --지로 170   
-                   AND B.BASE_YM = to_char(to_date(sysdate),'YYYYMM')   
-                   AND C.RECAP_DUTY_PTRM_UNIT_CD = '20' --년10 , 월20 , 주30 , 일40    
-                   AND A.DTA_DL_YN = 'N'
-                   AND B.DTA_DL_YN = 'N'
-                   AND C.DTA_DL_YN = 'N'
-                   AND D.DTA_DL_YN = 'N'
-          )
+    <select id="selectGiroOcrForwardingObjects" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchObjectRes">
+        SELECT
+               CNTR_NO /*계약번호*/       
+             , CNTR_SN /*계약일련번호*/
+             , CNTR_NO || CNTR_SN AS CNTR /*계약상세번호*/    
+             , CST_KNM AS CST_FNM
+             , SL_DT /*매출일자*/
+             , RENTAL_TN/*현재차월*/
+             , RECAP_DUTY_PTRM_N /*약정개월*/
+             , START_SL_DT AS STRT_GIRO_TN/*시작*/
+             , END_SL_DT AS END_GIRO_TN/*종료*/
+             , RENTAL_PTRM AS ISTM_MCN/*렌탈기간*/
+             , THM0_AMT /*0차월*/
+             , RENTAL_AMT AS ISTM_AMT /*렌탈료*/
+             , RENTAL_DSC_AMT AS ISTM_DSC_AMT/*렌탈할인*/ 
+             , PY_AMT /*청규렌탈료*/
+             , PY_AMT AS STPL_NMN_AMT /*약정차월*/
+             , CASE WHEN RENTAL_TN + 12 <![CDATA[<]]> ISTM_MCN THEN 0
+                    WHEN RENTAL_TN <![CDATA[<=]]> RENTAL_PTRM AND LCSLED = LST_DD OR LCSLED >= 30 THEN RENTAL_AMT - RENTAL_DSC_AMT /* - 재약정할인*/  /*만료차월*/     
+                    WHEN RENTAL_TN <![CDATA[<=]]> RENTAL_PTRM THEN FLOOR((RENTAL_AMT - RENTAL_DSC_AMT) / 30 * LCSLED / 10) * 10 
+                    ELSE 0
+                     END AS EXN_NMN_AMT
+             , LTPAY_YN  /*후납여부*/
+             , '2' AS GIRO_BIZ_DV_CD
+             , '2' AS GIRO_BIZ_TP_CD
+          FROM (
+                    SELECT 
+                           T1.CNTR_NO /*계약번호*/       
+                         , T1.CNTR_SN /*계약일련번호*/
+                         , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*계약상세번호*/
+                         , T4.CST_KNM     
+                         , T1.SL_CL_DT AS SL_DT /*매출일자*/
+                         , T1.RENTAL_TN/*현재차월*/
+                         , T5.STPL_PTRM AS RECAP_DUTY_PTRM_N /*약정개월*/
+                         , CASE WHEN T1.RENTAL_TN = 1 
+                                THEN 0 
+                                ELSE T1.RENTAL_TN
+                                 END AS START_SL_DT /*시작*/
+                         , CASE WHEN T1.RENTAL_TN = 1
+                                THEN 11 
+                                WHEN T1.RENTAL_TN + 12 >= T1.ISTM_MCN 
+                                THEN T1.ISTM_MCN 
+                                ELSE T1.RENTAL_TN + 11 
+                                 END AS END_SL_DT/*종료*/
+                         , T1.RENTAL_PTRM /*렌탈기간*/
+                         , CASE WHEN T3.CNTR_NO IS NULL THEN 0 
+                    --            WHEN 
+                                ELSE T3.THM_SL_SUM_AMT 
+                                 END AS THM0_AMT /*0차월*/
+                         , T1.RENTAL_AMT /*렌탈료*/
+                         , T1.RENTAL_DSC_AMT/*렌탈할인*/
+                         , CASE WHEN T1.RENTAL_TN <![CDATA[<=]]> T1.RENTAL_PTRM 
+                                THEN T1.RENTAL_AMT - T1.RENTAL_DSC_AMT /* - 재약정할인*/  
+                                ELSE 0
+                                 END AS PY_AMT /*청규렌탈료*/                         
+                         , 'N' AS LTPAY_YN/*후납여부*/   
+                         , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T1.SL_CL_DT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
+                         , T1.ISTM_MCN 
+                         , SUBSTR(T1.SL_CL_DT , -2) AS LCSLED
+                      FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1 /*월마감테이블*/
+                      LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세*/
+                        ON T2.CNTR_NO = T1.CNTR_NO 
+                       AND T2.CNTR_SN = T1.CNTR_SN 
+                       AND T2.DTA_DL_YN = 'N'
+                      LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3 /*월마감테이블*/ 
+                        ON T3.SL_CL_YM = SUBSTR(T1.SL_CL_DT,0,6)  /*매출마감년월    매출일자*/
+                       AND T3.CNTR_NO = T1.CNTR_NO 
+                       AND T3.CNTR_SN = T1.CNTR_SN 
+                       AND T3.DTA_DL_YN = 'N'
+                      LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+                        ON T4.CST_NO = T1.CST_NO  
+                       AND T4.DTA_DL_YN = 'N'
+                      LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5
+                        ON T5.CNTR_NO = T1.CNTR_NO 
+                       AND T5.CNTR_SN = T1.CNTR_SN
+                       AND T5.DTA_DL_YN = 'N' 
+                     WHERE 1 = 1
+            <choose>
+                <when test="@MybatisUtils@equals(cntr, 'null')">
+                       AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') 
+                </when>
+                <otherwise>
+                       AND T1.CNTR_NO||T1.CNTR_SN LIKE '%'||#{cntr} /*계약일련번호*/                   
+                </otherwise>
+            </choose>           
+                       AND (T1.RENTAL_TN = 1 OR MOD(T1.RENTAL_TN,12)=0)
+                       AND T1.RENTAL_TN > 0 
+                       AND T1.RENTAL_TN <![CDATA[<]]> T1.ISTM_MCN
+                       AND T1.PRM_MCN = 0
+                       AND (T1.SL_STP_YN = 'N' OR T1.SL_STP_YN IS NULL)
+                       AND T1.SL_CL_DT IS NOT NULL
+                       AND T1.CAN_DT IS NULL  
+                       AND T1.DTA_DL_YN = 'N'                              
+               )
     </select>
     
     <insert id="insertGiroOcrForwardings">
@@ -341,7 +381,7 @@
                              , CWUSR1 AS ELC_MPY_NO -- 전자납부번호
                              , HOECHA AS GIRO_TN -- 지로회차
                              , CASE WHEN CWHMO1 = SAVE_INSM THEN SAVE_INSY02 || LPAD(CWHMO1, 2, '0') ELSE (SAVE_INSY02 - 1) || LPAD(CWHMO1, 2, '0') END AS GIRO_PY_YM    --지로납입년월
-                             , HOECHA || '회차(' ||  CWHMO1 || '월)' AS GIRO_TN_CN --지로회차내용
+                             , HOECHA || ' 회차(' ||  CWHMO1 || '월)' AS GIRO_TN_CN --지로회차내용
                              , ADR_ID
                              /*, ZIP --우편번호
                              , BAS_ADR --기본주소

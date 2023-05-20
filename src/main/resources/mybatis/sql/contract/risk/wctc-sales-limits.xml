@@ -210,11 +210,11 @@
              , #{item.sellLmCntrSn}
              , #{item.sellLmRsonCn}
              , CASE WHEN #{item.dtaDlYn} = 'Y'
-                    THEN TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                    THEN TO_CHAR(SYSDATE, 'YYYYMMDD')
                     ELSE ''
                      END
              , CASE WHEN #{item.dtaDlYn} = 'N'
-                    THEN TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                    THEN TO_CHAR(SYSDATE, 'YYYYMMDD')
                     ELSE ''
                      END
              , #{item.dtaDlYn}
@@ -266,13 +266,11 @@
                                               , T20.DLPNR_NM             /* 거래처명 */
                                               , T20.DLGPS_NM             /* 대표자명*/
                                               , T20.BRYY_MMDD            /* 생년월일 */
-                                              , ROW_NUMBER () OVER(ORDER BY T20.FNL_MDFC_PRG_ID DESC) AS RN /* 최종 한건만*/
+                                              , ROW_NUMBER () OVER(ORDER BY T20.FNL_MDFC_DTM DESC) AS RN /* 최종 한건만*/
                                   FROM TB_GBCO_DLPNR_BAS T20    /* 거래처 기본*/
                                  WHERE 1=1
                                    AND T20.DTA_DL_YN = 'N'
-                                   AND T20.BZRNO_VD_YN = 'Y'     /* 사업자등록번호검증여부 */
-                                   AND T20.SOCBZ_DV_CD IS NULL   /* 휴폐업구분코드 빈값*/
-                                   AND T20.BZRNO = T1.SELL_LM_BZRNO   /*사업자번호*/
+                                   AND T20.BZRNO = T1.SELL_LM_BZRNO
                              )
                             WHERE RN = 1
                           ) T2
@@ -293,7 +291,7 @@
            AND T2.DLPNR_NM LIKE '%'||#{dlpnrNm}||'%'
         </if>
          <if test='@MybatisUtils@isNotEmpty(sellLmOcStm) and @MybatisUtils@isNotEmpty(sellLmOcDtm)'>
-           AND SUBSTR(T1.VL_STRT_DTM, 0,8) BETWEEN #{sellLmOcStm} AND #{sellLmOcDtm}
+           AND T1.SELL_LM_OC_DT BETWEEN #{sellLmOcStm} AND #{sellLmOcDtm}
          </if>
     </select>
 
@@ -336,7 +334,7 @@
             , #{sellLmRsonCd}
             , #{sellLmOcDtm}
             , #{sellLmRson}
-            , #{sellLmOcDtm}
+            , #{sellLmRlsDtm}
             , #{sellLmCntrSn}
             , '7'
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24mmSS')
@@ -349,7 +347,7 @@
         UPDATE TB_SSCT_SELL_LM_OJ_IZ
            SET SELL_LM_BZRNO =  #{sellLmBzrno}                                          /* 사업자번호 */
              , SELL_LM_RSON_CD = #{sellLmRsonCd}                                        /* 불량코드 */
-             , SELL_LM_OC_DT = NVL2(#{sellLmOcDtm},#{sellLmOcDtm}||'000000','')        /* 발생일자 */
+             , SELL_LM_OC_DT = NVL2(#{sellLmOcDtm},#{sellLmOcDtm},'')        /* 발생일자 */
             <choose>
                 <when test="@MybatisUtils@equals(sellLmDv, '3')">
                     , SELL_LM_RSON_CN = #{sellLmRson} /* 판매제한사유내용 */
@@ -358,7 +356,7 @@
                     , SELL_LM_RLS_CN = #{sellLmRson}  /* 판매제한해제내용 */
                 </otherwise>
             </choose>
-             , SELL_LM_RLS_DT =  NVL2(#{sellLmRlsDtm},#{sellLmRlsDtm}||'000000',#{sellLmRlsDtm})    /* 판매제한해제일시 */
+             , SELL_LM_RLS_DT =  NVL2(#{sellLmRlsDtm},#{sellLmRlsDtm},'')    /* 판매제한해제일시 */
              , SELL_LM_CNTR_SN = #{sellLmCntrSn}                                        /* 판매제한계약일련번호 */
         <include refid="COMMON.updateSystemField"/>
          WHERE SELL_LM_ID = #{sellLmId}

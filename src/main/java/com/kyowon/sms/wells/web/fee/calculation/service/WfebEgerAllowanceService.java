@@ -9,9 +9,11 @@ import com.kyowon.sms.wells.web.fee.calculation.converter.WfebEgerAllowanceConve
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto;
 import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebEgerAllowanceDvo;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebEgerAllowanceMapper;
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <pre>
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WfebEgerAllowanceService {
 
     private final WfebEgerAllowanceMapper mapper;
@@ -58,6 +61,81 @@ public class WfebEgerAllowanceService {
         WfebEgerAllowanceDto.SearchReq dto
     ) {
         return this.mapper.selectEngineerManagerAllowances(dto);
+    }
+
+    /**
+     * 엔지니어 수당 조정
+     * @param dtos
+     * @return 처리건수
+     */
+    @Transactional
+    public int editEgerAllowances(List<WfebEgerAllowanceDto.EditReq> dtos) {
+        int processCnt = 0;
+
+        for (WfebEgerAllowanceDto.EditReq dto : dtos) {
+            WfebEgerAllowanceDvo dvo = converter.mapEditReqToWfebEgerAllowanceDvo(dto);
+            mapper.insertEgerAllowanceHist(dvo);
+            processCnt = mapper.updateEgerAllowanceControl(dvo);
+        }
+
+        BizAssert.isTrue(processCnt > 0, "MSG_ALT_SVE_ERR");
+
+        return processCnt;
+    }
+
+    /**
+     * 엔지니어 수당 확정 내역 조회
+     * @param perfYm
+     * @return 조회결과
+     */
+    public List<WfebEgerAllowanceDto.SearchConfirmRes> getEgerAllowanceConfirms(
+        String perfYm
+    ) {
+        return this.mapper.selectEgerAllowanceConfirms(perfYm);
+    }
+
+    /**
+     * 엔지니어 수당 확정/확정취소
+     * @param dtos
+     * @return 처리건수
+     */
+    @Transactional
+    public int confirmEgerAllowances(List<WfebEgerAllowanceDto.ConfirmReq> dtos) {
+        int processCnt = 0;
+
+        for (WfebEgerAllowanceDto.ConfirmReq dto : dtos) {
+            WfebEgerAllowanceDvo dvo = converter.mapConfirmReqToWfebEgerAllowanceDvo(dto);
+            // type: 본사(H) / 센터(C) 구분
+            // confirm: 확정(Y) / 확정취소(N) 구분
+            // 확정취소는 type 이 본사인 경우에만 해당
+            switch (dto.type()) {
+                case "C" -> { // 센터
+                    BizAssert.isTrue("Y".equals(dto.confirm()), "MSG_ALT_CNFM_FAIL");
+
+                    int cnt = mapper.selectConfirmYnCheck(dvo);
+                    BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
+
+                    processCnt = mapper.insertEgerAllowanceConfirm(dvo);
+                    BizAssert.isTrue(processCnt > 0, "MSG_ALT_CNFM_FAIL");
+                }
+                case "H" -> { // 본사
+                    dvo.setHdof("Y");
+                    int cnt = mapper.selectConfirmYnCheck(dvo);
+                    BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
+
+                    if ("Y".equals(dto.confirm())) { // 확정
+                        processCnt = mapper.updateEgerAllowanceConfirm(dvo);
+                        BizAssert.isTrue(processCnt > 0, "MSG_ALT_CNFM_FAIL");
+                    } else if ("N".equals(dto.confirm())) { //센터확정취소
+                        processCnt = mapper.updateEgerAllowanceConfirmCancel(dvo);
+                        BizAssert.isTrue(processCnt > 0, "MSG_ALT_CNFM_CANCEL_FAIL");
+                    }
+                }
+                default -> throw new BizException("MSG_ALT_CNFM_FAIL");
+            }
+        }
+
+        return processCnt;
     }
 
     /**

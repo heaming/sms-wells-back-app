@@ -104,11 +104,11 @@ public class WsnaNormalOutOfStorageController {
         return service.getNormalOutOfStoragesDetails(dto, pageInfo);
     }
 
-    @PostMapping
+    @PutMapping("/detail")
     public SaveResponse saveNormalOstrRgsts(
         @RequestBody
         List<CreateReq> list
-    ) {
+    ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveNormalOstrRgsts(list))
             .build();
@@ -120,5 +120,18 @@ public class WsnaNormalOutOfStorageController {
         CheckedReq dto
     ) {
         return service.getNormalOstrRgstChecked(dto);
+    }
+
+    @PutMapping("/monthly-warehouse")
+    public int saveStandardWareHouse(
+        @RequestBody
+        MonthlyWarehouseReq dto
+    ) {
+        return service.saveStandardWareHouse(dto);
+    }
+
+    @GetMapping("/standard-ware")
+    public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
+        return service.getStandardWareHouse(dto);
     }
 }

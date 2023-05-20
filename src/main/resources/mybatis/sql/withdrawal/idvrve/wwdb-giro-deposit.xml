@@ -13,10 +13,10 @@
              , T1.RVE_DT AS PERF_DT --실적일자
              , T1.PY_AMT AS RVE_AMT--입금금액
              , T1.GIRO_FEE --수수료금액     
-             , '06' AS DP_MES_CD --입금유형
-             , '렌탈' AS SELL_TP_CD --판매유형
+             , T2.DP_TP_CD AS DP_MES_CD --입금유형
+             , T4.SELL_TP_CD AS SELL_TP_CD --판매유형
              , T1.PROCS_ERR_TP_CD --처리오류유형코드                    
-             , T3.DG_CNTR_NO --대표번호
+             , T3.DG_CNTR_NO||T3.DG_CNTR_SN AS DG_CNTR_NO
           FROM TB_RVDW_GIRO_DP_IZ T1 --입금내역
           LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 --수납상세
            /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/ 
@@ -35,6 +35,10 @@
            AND T3.CNTR_SN = T1.CNTR_SN 
            AND T3.GIRO_OCR_BNDL_YM = SUBSTR(T1.FNT_DT,0,6)             
            AND T3.DTA_DL_YN = 'N' 
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T4 /*계약상세*/
+            ON T4.CNTR_NO = T1.CNTR_NO 
+           AND T4.CNTR_SN = T1.CNTR_SN 
+           AND T4.DTA_DL_YN = 'N' 
          WHERE 1 = 1
           /* AND KW_GRP_CO_CD = {session.companyCode}*/
            AND T1.DTA_DL_YN = 'N'
@@ -172,7 +176,7 @@
                 <include refid="COMMON.insertSystemField"/>
                 )VALUES
                 (
-                  #{itgDpNo}
+                  #{session.companyCode}||TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_RVDW_ITG_DP_BAS$ITG_DP_NO.NEXTVAL,8,0)
                 , #{giroNo}
                 , #{giroDpMtrDvCd}
                 , #{dpSn} 
@@ -208,23 +212,79 @@
            </foreach>           
     </delete>
             
+    <insert id="inertIntegrationItemizationTest">
+        INSERT INTO TB_RVDW_ITG_DP_BAS(
+                    ITG_DP_NO /*통합입금번호*/
+                  , KW_GRP_CO_CD /*교원그룹번호*/
+                  , RVE_CO_CD /*수납회사코드*/
+                  , RVE_CD /*수납코드*/
+                  , OG_TP_CD /*조직유형코드*/
+                  , PRTNR_NO /*파트너번호*/
+                  , CST_NO /*고객번호*/       
+                  , DP_DV_CD /*입금구분코드*/
+                  , DP_MES_CD /*입금수단코드*/
+                  , DP_TP_CD /*입금유형코드*/
+                  , DP_DTM /*입금일시*/
+                  , PERF_DT /*실적일자*/      
+              /*  , DPR_NM 입금자명*/
+                  , DP_AMT /*입금금액*/                               
+                  , RVE_AK_NO /*수납요청번호*/
+                  , ITG_DP_CH_RSON_CD /*통합입금변경사유코드*/
+                  <include refid="COMMON.insertSystemField"/>
+         )   SELECT
+                    T1.ITG_DP_NO /*통합입금번호*/
+                  , T1.RVE_CO_CD  /*수납회사코드*/
+                  , T1.RVE_CD /*수납코드*/  
+                  , T1.OG_TP_CD /*조직유형코드*/
+                  , T1.PRTNR_NO /*파트너번호*/
+                  , T2.CNTR_CST_NO/*고객번호*/    
+                  , T1.DP_DV_CD /*입금구분코드*/
+                  , T1.DP_MES_CD /*입금수단코드*/
+                  , T1.DP_TP_CD /*입금유형코드*/
+                  , T1.DP_DT /*입금일*/
+                  , T1.PERF_DT /*실적일자*/
+                 /*입금자명*/
+                  , T1.DP_AMT  /*입금금액*/
+                  , T1.RVE_AK_NO /*수납요청번호*/  
+                  <include refid="COMMON.insertSystemFieldValue" /> 
+               FROM TB_RVDW_RVE_DTL T1
+               LEFT OUTER JOIN TB_SSCT_CNTR_BAS T2
+                 ON T2.CNTR_NO = T1.CNTR_NO 
+                AND T2.DTA_DL_YN = 'N'
+              WHERE 1 = 1
+                AND T1.CNTR_NO = #{cntrNo}
+                AND T1.CNTR_SN = #{cntrSn}
+                AND T1.DTA_DL_YN = 'N'                
+    </insert>
+    
     <insert id="inertIntegrationItemization">
         INSERT INTO TB_RVDW_ITG_DP_BAS(
-                    ITG_DP_NO --통합입금번호
-                  , ITG_DP_CAN_YN --통합입금취소여부 
-                  , INCMDC_YN --소득공제여부
-                  , DTA_DL_YN
-                 /* , KW_GRP_CO_CD*/
+                    ITG_DP_NO /*통합입금번호*/
+                  , KW_GRP_CO_CD /*교원그룹번호*/
+                  , DP_DTM /*입금일시*/
+                  , PERF_DT /*실적일자*/      
+                  , DP_AMT /*입금금액*/                               
                   <include refid="COMMON.insertSystemField"/>
-                  )VALUES(
-                    #{itgDpNo}
-                  , 'N'
-                  , 'N'
-                  , #{dtaDlYn}  
-                 /* , {session.companyCode}*/
-                  <include refid="COMMON.insertSystemFieldValue" />                 
-                  )                  
+         )   SELECT
+                    ITG_DP_NO
+                  , #{session.companyCode}
+                  , FNT_DT
+                  , RVE_DT
+                  , PY_AMT  
+                  <include refid="COMMON.insertSystemFieldValue" />
+               FROM TB_RVDW_GIRO_DP_IZ
+              WHERE ITG_DP_PROCS_YN = 'N'
+                AND DTA_DL_YN = 'N'                                          
     </insert>
+    
+    <update id="updateIntegrationItemization">
+        UPDATE TB_RVDW_GIRO_DP_IZ
+           SET ITG_DP_PROCS_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ITG_DP_PROCS_YN = 'N'
+           AND DTA_DL_YN = 'N'                                            
+    </update>
 
     <insert id="inertIntegrationItemizationHistory">
         INSERT INTO TB_RVDW_ITG_DP_BAS_HIST (
@@ -245,9 +305,8 @@
     </insert>
     
     <select id="selectGiroDepositItemizationInfo" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveInfoDvo">
-                SELECT 
-                       ITG_DP_NO + ROWNUM AS ITG_DP_NO
-                     , GIRO_NO  
+                SELECT                        
+                       GIRO_NO  
                      , GIRO_DP_MTR_DV_CD
                      , DP_SN -- 일련번호
                      , FNT_DT --이체일자
@@ -269,8 +328,8 @@
                        <include refid="COMMON.insertSystemFieldValue"/>
                   FROM(
                             SELECT
-                                   #{session.companyCode}||TO_CHAR(SYSDATE,'YYYYMMDD') || (SELECT LPAD(substr(max(ITG_DP_NO),-8)+1,8,0) FROM TB_RVDW_GIRO_DP_IZ) AS ITG_DP_NO
-                                 , (
+                                   
+                                   (
                                           SELECT SUBSTR(DP_SN,3,5) ||  SUBSTR(RVE_DT,1,2)
                                         FROM TB_RVDW_GIRO_DP_LEDG_IZ  /* 지로입금　원시파일 */
                                        WHERE GIRO_DP_MTR_DV_CD = '11'   /* 구분코드 */

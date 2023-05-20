@@ -93,17 +93,6 @@ public class WfeaOrganizationNetOrderService {
     }
 
     /**
-     * WELLS 홈마스터 수수료 순주문 관리(판매수수료) 목록 조회
-     * @param 'SearchHmstReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-    public List<WfeaOrganizationNetOrderDto.SearchHmstBsRes> getHomeMasterBeforeServices(
-        WfeaOrganizationNetOrderDto.SearchHmstReq dto
-    ) {
-        return this.mapper.selectHomeMasterBeforeServices(dto);
-    }
-
-    /**
      * WELLS M조직 수수료 순주문 관리 목록 조회
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터

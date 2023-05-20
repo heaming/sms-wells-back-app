@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.standard.mapper.WpdyRestipulationMgtMapper">
+    <!-- wpdy-restipulation-mgt.xml -->
+    
+    <!-- 재약정 목록 조회 -->
+    <select id="selectRestipulationPages" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto$SearchRes">
+        SELECT T1.PD_CD                /* 상품코드 */
+             , T2.PD_NM                /* 상품명 */
+             , T1.RSTL_BASE_TP_CD      /* 재약정기준유형코드 */
+             , T1.STPL_TN              /* 약정회차 */
+             , T1.RSTL_SELL_CHNL_DV_CD /* 재약정판매채널구분코드 */
+             , T1.APY_STRTDT           /* 적용시작일자 */
+             , T1.APY_ENDDT            /* 적용종료일자 */
+             , T1.RSTL_MCN             /* 재약정개월수 */
+             , T1.MIN_RENTAL_AMT       /* 최소렌탈금액 */
+             , T1.STPL_DSC_AMT         /* 약정할인금액 */
+             , T1.RCP_STRT_MCN         /* 접수시작개월수 */
+             , T1.RCP_END_MCN          /* 접수종료개월수 */
+             , T1.RSTL_DUTY_MCN        /* 재약정의무개월수 */
+             , T1.DTA_DL_YN            /* 데이터삭제여부 */
+             , T1.FST_RGST_DTM         /* 최초등록일시 */
+             , T1.FST_RGST_USR_ID      /* 최초등록사용자ID */
+             , T1.FNL_MDFC_DTM         /* 최종수정일시 */
+             , T1.FNL_MDFC_USR_ID      /* 최종수정사용자ID */
+             , U1.USR_NM FST_RGST_USR_NM
+             , U2.USR_NM FNL_MDFC_USR_NM
+          FROM TB_PDBS_PD_RSTL_BAS T1  /* 재약정기준 TBL */
+          JOIN TB_PDBS_PD_BAS T2
+             ON T2.PD_CD = T1.PD_CD
+          LEFT JOIN T_CMP_USR_ACO_M U1
+            ON T1.FST_RGST_USR_ID = U1.USR_ID
+          LEFT JOIN T_CMP_USR_ACO_M U2
+            ON T1.FNL_MDFC_USR_ID = U2.USR_ID
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.VL_END_DTM = '99991231235959'
+        <if test="@MybatisUtils@isNotEmpty(pdNm)">
+           AND UPPER(T2.PD_NM) LIKE '%' || UPPER(#{pdNm}) || '%' /* 상품명 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(pdCd)">
+           AND T1.PD_CD                = #{pdCd}                 /* 상품코드 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty( startDate ) and @MybatisUtils@isNotEmpty( endDate ) ">
+           AND T1.APY_STRTDT BETWEEN #{startDate} AND #{endDate} /* 적용시작일자 */
+        </if>
+      ORDER BY T1.FNL_MDFC_DTM DESC, FNL_MDFC_DTM DESC
+    </select>
+    
+    <!-- 재약정 입력시 데이터 중복검사 -->
+    <select id="selectDuplicationByPk" resultType = "int">
+        SELECT COUNT(1)
+          FROM TB_PDBS_PD_RSTL_BAS M
+         WHERE M.DTA_DL_YN = 'N'
+           AND M.PD_CD                = #{pdCd}                /* 상품코드 */
+           AND M.RSTL_BASE_TP_CD      = #{rstlBaseTpCd}        /* 재약정기준유형코드 */
+           AND M.STPL_TN              = #{stplTn}              /* 약정회차 */
+           AND M.RSTL_SELL_CHNL_DV_CD = #{rstlSellChnlDvCd}    /* 재약정판매채널구분코드 */
+           AND M.APY_STRTDT           = #{apyStrtdt}           /* 적용시작일자 */
+    </select>
+
+    <!-- 재약정 목록 저장 - 추가 -->
+    <insert id="insertRestipulation">
+        INSERT INTO TB_PDBS_PD_RSTL_BAS (  /* 재약정기준 TBL */
+              PD_CD                        /* 상품코드 */
+            , RSTL_BASE_TP_CD              /* 재약정기준유형코드 */
+            , STPL_TN                      /* 약정회차 */
+            , RSTL_SELL_CHNL_DV_CD         /* 재약정판매채널구분코드 */
+            , APY_STRTDT                   /* 적용시작일자 */
+            , APY_ENDDT                    /* 적용종료일자 */
+            , RSTL_MCN                     /* 재약정개월수 */
+            , MIN_RENTAL_AMT               /* 최소렌탈금액 */
+            , STPL_DSC_AMT                 /* 약정할인금액 */
+            , RCP_STRT_MCN                 /* 접수시작개월수 */
+            , RCP_END_MCN                  /* 접수종료개월수 */
+            , RSTL_DUTY_MCN                /* 재약정의무개월수 */
+            , DTA_DL_YN                    /* 데이터삭제여부 */
+            , VL_STRT_DTM
+            , VL_END_DTM
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+              #{pdCd}
+            , #{rstlBaseTpCd}
+            , #{stplTn}
+            , #{rstlSellChnlDvCd}
+            , #{apyStrtdt}
+            , #{apyEnddt}
+            , #{rstlMcn}
+            , #{minRentalAmt}
+            , #{stplDscAmt}
+            , #{rcpStrtMcn}
+            , #{rcpEndMcn}
+            , #{rstlDutyMcn}
+            , 'N'
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , '99991231235959'
+            <include refid="COMMON.insertSystemFieldValue" /> 
+        )
+    </insert>
+
+    <!-- 재약정 목록 저장 -수정 -->
+    <update id="updateRestipulation">
+        UPDATE TB_PDBS_PD_RSTL_BAS                           /* 재약정기준 TBL */
+           SET APY_ENDDT            = #{apyEnddt}            /* 적용종료일자 */
+             , RSTL_MCN             = #{rstlMcn}             /* 재약정개월수 */
+             , MIN_RENTAL_AMT       = #{minRentalAmt}        /* 최소렌탈금액 */
+             , STPL_DSC_AMT         = #{stplDscAmt}          /* 약정할인금액 */
+             , RCP_STRT_MCN         = #{rcpStrtMcn}          /* 접수시작개월수 */
+             , RCP_END_MCN          = #{rcpEndMcn}           /* 접수종료개월수 */
+             , RSTL_DUTY_MCN        = #{rstlDutyMcn}         /* 재약정의무개월수 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND PD_CD                = #{pdCd}                /* 상품코드 */
+           AND RSTL_BASE_TP_CD      = #{rstlBaseTpCd}        /* 재약정기준유형코드 */
+           AND STPL_TN              = #{stplTn}              /* 약정회차 */
+           AND RSTL_SELL_CHNL_DV_CD = #{rstlSellChnlDvCd}    /* 재약정판매채널구분코드 */
+           AND APY_STRTDT           = #{apyStrtdt}           /* 적용시작일자 */
+    </update>
+
+    <!-- 재약정 삭제 -->
+    <update id="deleteRestipulation">
+        UPDATE TB_PDBS_PD_RSTL_BAS T1                        /* 재약정기준 TBL */
+           SET T1.DTA_DL_YN = 'Y'
+             , T1.VL_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               <include refid="COMMON.updateSystemField" />
+         WHERE PD_CD                = #{pdCd}                /* 상품코드 */
+           AND RSTL_BASE_TP_CD      = #{rstlBaseTpCd}        /* 재약정기준유형코드 */
+           AND STPL_TN              = #{stplTn}              /* 약정회차 */
+           AND RSTL_SELL_CHNL_DV_CD = #{rstlSellChnlDvCd}    /* 재약정판매채널구분코드 */
+           AND APY_STRTDT           = #{apyStrtdt}           /* 적용시작일자 */
+    </update>
+    
+</mapper>

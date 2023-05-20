@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.pchssl.mapper.WwdcPrepaymentEstimateAmountMapper">
+
+    <select id="selectPrepaymentEstimateAmount"
+            resultType="com.kyowon.sms.wells.web.withdrawal.pchssl.dto.WwdcPrepaymentEstimateDto$SearchPrepaymentEstimateRes">
+      WITH T0  AS  
+      (  SELECT  (  SUM ( LC33.RENTAL_AMT  ) ) TOT_DP_AMT   /*  실제납입예정금액  */
+              , LC33.CNTR_NO
+              , LC33.CNTR_SN
+              , LC33.PRM_MCN
+           FROM   TB_CBCL_WELLS_SL_CNFM_BAS LC33 /*  WELLS매출확정기본 */
+          WHERE 1=1
+           AND LC33.DTA_DL_YN = 'N'
+          <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND LC33.CNTR_NO  =   #{cntrNo}
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND LC33.CNTR_SN = TO_NUMBER(#{cntrSn})
+          </if>
+           AND LC33.PRM_MCN = #{prmMcn}
+          GROUP BY LC33.RENTAL_AMT , LC33.CNTR_NO, LC33.CNTR_SN , PRM_MCN
+          
+       ) 
+        SELECT 
+               T0.TOT_DP_AMT /* 실납예정금액 */
+             , T_1.PRM_EXP_AMT /* 선납예정 금액 : 월/년 확인하여 계산식 추가바람. */
+             , T_1.PRM_STRT_Y /* 선납기간 FROM 년도 */
+             , T_1.PRM_STRT_MM /* 선납기간 FROM 월 */
+             , T_1.PRM_END_Y  /* 선납기간 TO 년도 */
+             , T_1.PRM_END_MM /* 선납기간 TO 월 */
+             , ( T_1.PRM_STRT_Y || '-' || PRM_STRT_MM || '~' ||  PRM_END_Y || '-' ||PRM_END_MM ) AS PRM_STRT_AND_END_YM
+             , ( T_1.RENTAL_AMT / T_1.ISTM_MCN ) AS MM_RENTAL_AMT  /* (렌탈료 / 할부개월) 월렌탈료  */
+             ,  CASE WHEN T_1.PRM_MCN = 12 THEN T_1.m12nrmlDcAmt01 - T_1.m12dcAmt01
+                     WHEN T_1.PRM_MCN = 24 THEN T_1.m24nrmlDcAmt02 - T_1.m24dcAmt02
+                     ELSE T_1.m36nrmlDcAmt03 - T_1.m36dcAmt03
+                      END dcAmt /* 할인금액 */
+             ,  CASE WHEN T_1.PRM_MCN = 12 THEN T_1.m12dcAmt01
+                           WHEN T_1.PRM_MCN = 24 THEN T_1.m24dcAmt02
+                           ELSE T_1.m36dcAmt03
+                            END dcData /* 할인데이터 */
+             
+             , T_1.CNTR_CH_DTL_AK_CN /* 선납 불가 사유 */
+             --------------------------------------------------------------------------------------------------------------------------------
+             , T_1.m12nrmlDcAmt01  /* 정상할인 = 렌탈료1 - ( 렌탈료2 * 0.95 )   */
+             , T_1.m12dcAmt01      /* ＤＣ할인 = 렌탈할인1 * 0.95      */
+             , T_1.m12prmtDcAmt    /* 프로모션할인 = 할인금액 * 0.95      */
+             --------------------------------------------------------------------------------------------------------------------------------
+             , T_1.m24nrmlDcAmt02  /* 정상할인 = 렌탈료2 - ( 렌탈료2 * 0.93 )   */
+             , T_1.m24dcAmt02      /* ＤＣ할인 = 렌탈할인2 * 0.93      */
+             , T_1.m24prmtDcAmt    /* 프로모션할인 = 할인금액 * 0.93      */
+             , T_1.m36nrmlDcAmt03  /* 정상할인 = 렌탈료3 - ( 렌탈료2 * 0.9 )   */
+             , T_1.m36dcAmt03      /* ＤＣ할인 = 렌탈할인3 * 0.9      */
+             , T_1.m36prmtDcAmt    /* 프로모션할인 = 할인금액 * 0.9      */
+             --------------------------------------------------------------------------------------------------------------------------------
+                  --------------------------------------------------------------------------------------------------------------------------------
+         FROM
+             (
+               SELECT
+                      LC50.RENTAL_NMN    RENTAL_NMN  /* 렌탈차월 */
+                    , CASE WHEN LC50.PRM_END_Y || LC50.PRM_END_MM > TO_CHAR(SYSDATE, 'YYYYMM')
+                           THEN LC50.PRM_DP_AMT + LC50.PRM_SL_AMT 
+                           ELSE COALESCE( LC501.PRM_DP_AMT, 0 )
+                            END AS PRM_DP_AMT   /* 납입금액 */
+                    , LC50.PRM_STRT_Y PRM_STRT_Y /* 선납시작년 */
+                    , LC50.PRM_STRT_MM PRM_STRT_MM /* 선납시작월 */
+                    , LC50.PRM_END_Y  PRM_END_Y /* 선납종료년 */
+                    , LC50.PRM_END_MM  PRM_END_MM /* 선납종료월 */
+                    , LC50.RENTAL_AMT  RENTAL_AMT /* 렌탈료１ */
+                    , LC50.RENTAL_DSC_AMT  RENTAL_DSC_AMT /*렌탈할인１= */
+                    , LC50.PRM_MCN /* 선납개월수 */
+                    , LC50.ISTM_MCN /* 할부개월수 */
+                    , LC50.RSTL_YN /* 재계약 여부 Y/N */
+                    , LC50.CNTR_CH_DTL_AK_CN /* 계약변경상세요청내용 : 선납 불가사유 */
+                    , LC50.PRM_EXP_AMT /* 선납예정금액 */
+                    , LC50.RENTAL_AMT -  TRUNC( LC50.RENTAL_AMT * 0.95 , -1  )       AS m12nrmlDcAmt       /* 정상할인 = 렌탈료１ - ( 렌탈료１ * 0.95 )   */
+                    ,                                                     0       AS m12dcAmt           /* ＤＣ할인 = 렌탈할인１ * 0.95      */
+                    , TRUNC( LC50.RENTAL_AMT * 0.95 , -1)                            AS m12prmtDcAmt       /* 프로모션할인 = 할인금액 * 0.95      */
+                    , LC50.RENTAL_AMT -  TRUNC( (LC50.RENTAL_AMT) * 0.93 , -1  )     AS m24nrmlDcAmt       /* 정상할인 = 렌탈료１ - ( 렌탈료１ * 0.93 )   */
+                    ,                                                     0       AS m24dcAmt           /* ＤＣ할인 = 렌탈할인１ * 0.93      */
+                    , TRUNC( LC50.RENTAL_DSC_AMT * 0.93 , -1)                            AS m24prmtDcAmt       /* 프로모션할인 = 할인금액 * 0.93      */
+                    , LC50.RENTAL_AMT -  TRUNC( (LC50.RENTAL_AMT) * 0.9 , -1  )      AS m36nrmlDcAmt       /* 정상할인 = 렌탈료１ - ( 렌탈료１ * 0.9 )   */
+                    ,                                                     0       AS m36dcAmt           /* ＤＣ할인 = 렌탈할인１ * 0.9      */
+                    , TRUNC( LC50.RENTAL_DSC_AMT * 0.9 , -1)                           AS m36prmtDcAmt       /* 프로모션할인 = 할인금액 * 0.9      */
+                    --------------------------------------------------------------------------------------------------------------------------------
+                    , LC50.RENTAL_AMT - TRUNC( (LC50.RENTAL_AMT * 0.95)  , -1)    AS m12nrmlDcAmt01     /* 정상할인 = 렌탈료2 - ( 렌탈료2 * 0.95 )   */
+                    ,                                                      0      AS m12dcAmt01         /* ＤＣ할인 = 렌탈할인2 * 0.95      */
+                    , LC50.RENTAL_AMT - TRUNC( (LC50.RENTAL_AMT * 0.93)  , -1)    AS m24nrmlDcAmt02     /* 정상할인 = 렌탈료2 - ( 렌탈료2 * 0.93 )   */
+                    ,                                                      0      AS m24dcAmt02         /* ＤＣ할인 = 렌탈할인2 * 0.93      */
+                    , LC50.RENTAL_AMT - TRUNC( (LC50.RENTAL_AMT * 0.9 )  , -1)     AS m36nrmlDcAmt03     /* 정상할인 = 렌탈료2 - ( 렌탈료2 * 0.9 )   */
+                    ,                                                       0      AS m36dcAmt03         /* ＤＣ할인 = 렌탈할인2 * 0.9      */
+                    ------------------------------------------------------------------------------------------------------------------------------
+                    , LC50.CNTR_NO
+                    , LC50.CNTR_SN
+                FROM
+                    (
+                      SELECT
+                             LC50.CNTR_NO
+                           , LC50.CNTR_SN
+                           , CASE WHEN LC50.PRM_END_Y || LC50.PRM_END_MM > TO_CHAR(SYSDATE, 'YYYYMM') THEN 0
+                                  ELSE TRUNC(MONTHS_BETWEEN (ADD_MONTHS(TO_DATE( LC50.PRM_END_Y|| LC50.PRM_END_MM || '01' ,'YYYYMMDD'),1) ,
+                                                          TO_DATE(  LC50.PRM_STRT_Y || LC50.PRM_STRT_MM  || '01' , 'YYYYMMDD')),0) /* 선납차월 */
+                                  END  RENTAL_NMN   /*렌탈차월 : LCRCNT*/
+                           , LC50.PRM_STRT_Y  /*선납시작년 */
+                           , LC50.PRM_STRT_MM  /*선납시작월 */
+                           , LC50.PRM_END_Y  /*선납종료년 */
+                           , LC50.PRM_END_MM  /*선납종료월 */
+                           , LC50.PRM_DP_AMT /*납입금액 */
+                           , LC50.PRM_SL_AMT  /*선납매출 */
+                           , LC50.SELL_TP_CD /* 판매유형코드 */
+                           , LC50.SELL_TP_DTL_CD /* 판매유형상세코드 */
+                           , LC50.ISTM_MCN /* 할부개월수 */
+                           , LC50.PRM_MCN /* 선납개월수 */
+                           , LC50.RENTAL_AMT /* 렌탈금액 */
+                           , LC50.RENTAL_DSC_AMT /* 렌탈할인 */
+                           , LC52.RSTL_YN /* 재약정여부 */
+                           , LC50.PRM_EXP_AMT /* 선납예정금액 */
+                           , LC52.CNTR_CH_DTL_AK_CN /* 계약변경상세요청내용 */
+                        FROM TB_CBCL_WELLS_SL_CNFM_BAS  LC50  /* Wells매출확정 */
+                       INNER JOIN TB_SSCT_CNTR_DTL LC52 /* 계약상세 */
+                          ON LC50.CNTR_NO = LC52.CNTR_NO 
+                         AND LC50.CNTR_SN = LC52.CNTR_SN 
+                        WHERE 1=1
+                          AND LC50.DTA_DL_YN = 'N'
+                          AND LC50.CNTR_NO = #{cntrNo}    /* 년도*/
+                          AND LC50.CNTR_SN = TO_NUMBER(#{cntrSn})     /* 고객코드*/
+                          AND LC50.PRM_MCN = #{prmMcn}
+                     ) LC50
+                LEFT OUTER JOIN  TB_CBCL_WELLS_SL_CNFM_BAS LC501  /* Ｌ＆Ｃ렌탈실적（월） File */
+                  ON   LC501.CNTR_NO = LC50.CNTR_NO        /* 계약코드 */
+                 AND  LC501.CNTR_SN = LC50.CNTR_SN        /* 계약상세코드 */
+               WHERE 1=1
+              ) T_1
+              INNER JOIN T0
+                 ON T0.CNTR_NO = T_1.CNTR_NO
+                AND T0.CNTR_SN = T_1.CNTR_SN
+    </select>
+</mapper>

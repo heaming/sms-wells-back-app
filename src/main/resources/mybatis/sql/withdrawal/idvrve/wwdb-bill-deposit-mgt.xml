@@ -16,6 +16,8 @@
              , T1.ITG_DP_NO /* 통합입금번호 */
              /* 입금전표번호 */
              /* 대체전표번호 */
+             , MAX(SELL_BZS_BZRNO) AS SELL_BZS_BZRNO      
+             , MAX(PBL_BZS_BZRNO) AS PBL_BZS_BZRNO
           FROM TB_RVDW_BILL_DP_IZ T1/* 어음입금내역 */
           LEFT JOIN TB_RVDW_BILL_DP_CNTR_REL_IZ T2/* 어음입금계약관계내역 */            
             ON T2.ITG_DP_NO = T1.ITG_DP_NO /* 통합입금번호 */
@@ -26,7 +28,10 @@
            AND T4.COPN_DV_CD = '2'  
          WHERE 1 = 1         
          <if test='@MybatisUtils@isNotEmpty(rcpStartDt)'>
-           AND T1.BILL_RCP_DT BETWEEN #{rcpStartDt} AND #{rcpEndDt}
+           AND T1.BILL_RCP_DT >= #{rcpStartDt} 
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rcpEndDt)'>
+           AND T1.BILL_RCP_DT <![CDATA[<=]]> #{rcpEndDt} 
          </if>
          <if test='@MybatisUtils@isNotEmpty(billExprDt)'>
              <choose>
@@ -98,34 +103,37 @@
              <include refid="COMMON.insertSystemField"/>
         )VALUES (
                #{itgDpNo} /* 통합입금번호 o */
-             , #{fnitCd} /* 금융기관코드 x*/
-             , #{billBndNo} /* 어음채권번호 o */
-             , #{billBndAmt} /* 어음채권금액 x*/
-             , #{billRcpDt} /* 어음접수일자 o */
-             , #{billExprDt} /* 어음만기일자 o */
-             , #{billLnPsbDt} /* 어음대출가능일자 x*/
-             , #{billBndHndovDt} /* 어음채권양도일자 x*/
-             , #{billLnPsbAmt} /* 어음대출가능금액 x*/
-             , #{billDlpnrNm} /* 어음거래처명 o*/
-             , #{sellBzsBzrno} /* 판매업체사업자등록번호 o*/
-             , #{pblBzsBzrno} /* 발행업체사업자등록번호 o*/ 
-             , #{billRmkCn} /* 어음비고내용 o*/                          
+             , #{fnitCd} /* 금융기관코드 */
+             , #{billBndNo} /* 어음채권번호  */
+             , #{billBndAmt} /* 어음채권금액 */
+             , #{billRcpDt} /* 어음접수일자  */
+             , #{billExprDt} /* 어음만기일자  */
+             , #{billLnPsbDt} /* 어음대출가능일자 */
+             , #{billBndHndovDt} /* 어음채권양도일자 */
+             , #{billLnPsbAmt} /* 어음대출가능금액 */
+             , #{billDlpnrNm} /* 어음거래처명 */
+             , #{sellBzsBzrno} /* 판매업체사업자등록번호 */
+             , #{pblBzsBzrno} /* 발행업체사업자등록번호 */ 
+             , #{billRmkCn} /* 어음비고내용 */                          
              , #{rveAkNo} /* 수납요청번호 x*/
              , 'N' /* 삭제여부 */        
              <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
     
-    <insert id="updateRegistrationMainElectronics">
+    <update id="updateRegistrationMainElectronics">
         UPDATE TB_RVDW_BILL_DP_IZ
            SET BILL_BND_NO = #{billBndNo} /* 어음채권번호 */
              , BILL_RMK_CN = #{billRmkCn} /* 어음비고내용 */
              , BILL_RCP_DT = #{billRcpDt} /* 어음접수일자 o */             
              , BILL_EXPR_DT = #{billExprDt} /* 어음만기일자 */
+             , SELL_BZS_BZRNO = #{sellBzsBzrno} /* 판매업체사업자등록번호 */
+             , PBL_BZS_BZRNO = #{pblBzsBzrno}/* 발행업체사업자등록번호 */ 
+             
              <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND ITG_DP_NO = #{itgDpNo}
-    </insert>
+    </update>
     
     <delete id="deleteRegistrationSubElectronics">
         DELETE 
@@ -139,14 +147,14 @@
                ITG_DP_NO
              , CNTR_NO
              , CNTR_SN
-             , BILL_DP_AMT
+             , BILL_DP_AMT             
              <include refid="COMMON.insertSystemField"/>
         )
         VALUES (
                #{itgDpNo} /* 통합입금번호 */
              , #{cntrNo}
              , #{cntrSn}
-             , #{billDpAmt} /* 금액 */
+             , #{billDpAmt} /* 금액 */             
              <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
@@ -191,7 +199,7 @@
     
     
     <select id="selectRegistrationPk" resultType="String">
-        SELECT #{session.companyCode}||TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') || COUNT(ITG_DP_NO)+1 AS ITG_DP_NO FROM TB_RVDW_BILL_DP_IZ       
+        SELECT #{session.companyCode}||TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_RVDW_ITG_DP_BAS$ITG_DP_NO.NEXTVAL,8,0) AS ITG_DP_NO FROM DUAL       
     </select>
     
     

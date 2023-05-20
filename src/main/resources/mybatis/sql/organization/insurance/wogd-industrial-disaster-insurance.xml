@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.organization.insurance.mapper.WogdIndustrialDisasterInsuranceMapper">
+    <select id="selectIndustrialDisasterInsurances" resultType="com.kyowon.sms.wells.web.organization.insurance.dto.WogdIndustrialDisasterInsuranceDto$SearchRes">
+        SELECT T.LEVEL2_NM
+             , T.OG_CD
+             , T.PRTNR_KNM
+             , T.PRTNR_NO
+             , T.PSTN_DV_CD
+             , T.CLTN_DT
+             , T.INDD_INSR_DDCTAM
+             , T.INDD_INSR_UCAM_AMT
+             , NVL(T.INDD_INSR_FNL_CNFM_YN,'N') INDD_INSR_FNL_CNFM_YN
+             , T.OG_TP_CD
+             , T.DSB_YM
+          FROM (SELECT  (SELECT OG_ABBR_NM
+                          FROM TB_OGBS_MM_OG_IZ
+                         WHERE OG_ID = B.DGR2_LEVL_OG_ID
+                           AND BASE_YM = B.BASE_YM
+                       ) AS LEVEL2_NM
+                     , B.OG_CD
+                     , A.PRTNR_KNM
+                     , A.PRTNR_NO
+                     , A.PSTN_DV_CD
+                     , A.CLTN_DT
+                     , C.INDD_INSR_DDCTAM
+                     , NVL(C.INDD_INSR_UCAM_AMT,(SELECT SUM(PNPYAM_OC_AMT) AS PNPYAM_OC_AMT
+                                                  FROM TB_FEDD_PNPY_OC_BAS
+                                                 WHERE 1 =1
+                                                   AND PNPYAM_OC_YM = A.BASE_YM
+                                                   AND OG_TP_CD = A.OG_TP_CD
+                                                   AND PNPY_OC_TP_CD = 1 /* 정상구분 2020.09.23 추가 */
+                                                   AND CO_CD IN ('01','P0') /* 2022.05 P조직 추가 */
+                                                   AND PNPYAM_ATC_CD = 20 /* 산재보험 */
+                                                   AND PRTNR_NO =A.PRTNR_NO)) INDD_INSR_UCAM_AMT
+                     , C.INDD_INSR_FNL_CNFM_YN
+                     , A.OG_TP_CD
+                     , C.DSB_YM
+                  FROM TB_OGBS_MM_PRTNR_IZ A
+                 INNER JOIN TB_OGBS_MM_OG_IZ B
+                    ON A.OG_ID = B.OG_ID
+                   AND A.OG_TP_CD = B.OG_TP_CD
+                   AND A.BASE_YM = B.BASE_YM
+                   AND A.OG_TP_CD IN('W01','W02','W03')
+                   AND A.PERF_EXCD_OJ_YN = 'N'
+                   AND A.DTA_DL_YN = 'N'
+                   AND B.DTA_DL_YN = 'N'
+                   AND A.PSTN_DV_CD <![CDATA[>=]]> 5
+                   AND A.BASE_YM = #{baseYm}
+                   <if test='@MybatisUtils@isNotEmpty(bzStatCd) and @MybatisUtils@equals(bzStatCd,"1") '>
+                   AND A.BZ_STAT_CD IN (1,3)
+                   </if>
+                   <if test='@MybatisUtils@isNotEmpty(bzStatCd) and @MybatisUtils@equals(bzStatCd,"2") '>
+                   AND A.BZ_STAT_CD ='2'
+                   </if>
+                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                   AND A.PRTNR_NO = #{prtnrNo}
+                   </if>
+                 INNER JOIN TB_OGPS_MM_INDD_INSR_IZ C
+                    ON A.PRTNR_NO = C.PRTNR_NO
+                   AND A.OG_TP_CD = C.OG_TP_CD
+                   AND A.BASE_YM = C.DSB_YM
+                   AND C.DTA_DL_YN ='N'
+               ) T
+    </select>
+
+   <select id="selectCountIndustrialDisasterInsurances" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_OGPS_MM_INDD_INSR_IZ
+         WHERE INDD_INSR_FNL_CNFM_YN = 'N'
+           AND DSB_YM = #{dsbYm}
+           AND OG_TP_CD = #{ogTpCd}
+           AND PRTNR_NO = #{prtnrNo}
+    </select>
+
+    <update id="updateIndustrialDisasterInsurances">
+            UPDATE TB_OGPS_MM_INDD_INSR_IZ
+               SET
+                   <if test='@MybatisUtils@isNotEmpty(dtaDlYn)'>
+                     DTA_DL_YN = #{dtaDlYn}
+                   </if>
+                   <if test='@MybatisUtils@isEmpty(dtaDlYn)'>
+                     INDD_INSR_FNL_CNFM_YN = 'Y'
+                   , INDD_INSR_FNL_CNFM_DTM  =  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                   , INDD_INSR_FNL_CNFMPS_OG_TP_CD = #{session.orgTpCd}
+                   , INDD_INSR_FNL_CNFMPS_PRTNR_NO = #{session.employeeIDNumber}
+                   , INDD_INSR_FEE_AMT = #{inddInsrFeeAmt}
+                   , INDD_INSR_UCAM_AMT = #{inddInsrUcamAmt}
+                   </if>
+                  <include refid="COMMON.updateSystemField" />
+             WHERE PRTNR_NO = #{prtnrNo}
+               AND OG_TP_CD = #{ogTpCd}
+               AND DSB_YM = #{dsbYm}
+    </update>
+
+    <update id="updateIndustrialDisasterInsurancesForExcelupload">
+        UPDATE TB_OGPS_MM_INDD_INSR_IZ T1
+               SET INDD_INSR_DDCTAM = (
+            <foreach collection="list" index="index" item="item" open="" close="" separator=" UNION ALL">
+                SELECT #{item.inddInsrDdctam} FROM DUAL T2
+                WHERE T1.DSB_YM = #{item.dsbYm}
+                  AND T1.OG_TP_CD = #{item.ogTpCd}
+                  AND T1.PRTNR_NO = #{item.prtnrNo}
+            </foreach>
+            )
+    </update>
+</mapper>

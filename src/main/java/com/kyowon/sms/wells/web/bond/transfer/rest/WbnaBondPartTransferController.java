@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.bond.transfer.rest;
 
-import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -40,41 +39,49 @@ public class WbnaBondPartTransferController {
         @ApiImplicitParam(name = "bzHdqDvCd", value = "사업본부구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
-        @ApiImplicitParam(name = "cstKnm", value = "고객명-(임시)", paramType = "query"),
-        @ApiImplicitParam(name = "phoneNumber", value = "핸드폰번호-(임시)", paramType = "query")
-    }) // TODO List<HashMap<String, String>> 임시로 데이터 작업 List<SearchRes>로 변경 필요
-    public List<HashMap<String, String>> getPartTransferAggregation(
+        @ApiImplicitParam(name = "cstNm", value = "고객명", paramType = "query"),
+        @ApiImplicitParam(name = "phoneNumber", value = "핸드폰번호", paramType = "query")
+    })
+    public List<SearchRes> getPartTransferAggregation(
         @Valid
         SearchReq reqDto,
         PageInfo pageInfo
     ) {
         log.debug("call getAggregateParts");
         log.debug("reqDto: " + reqDto.toString());
-        List<SearchRes> partTransferAggregations = service.getPartTransferAggregation(reqDto);
-        log.debug("partTransferAggregations: " + partTransferAggregations);
-        // TODO: 데이터 없는 상태로 작업 하기 때문에 임시 데이터 작업 진행
-        return service.getDumyData();
+        return service.getPartTransferAggregation(reqDto);
     }
 
     @ApiOperation(value = "채권 파트이관 파트별 상세", notes = "검색 조건을 입력 받아 파트별 집계 상세 정보를 조회 한다.")
     @GetMapping("/details/paging")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "bzHdqDvCd", value = "사업부구분코드", paramType = "query")
-    }) // TODO HashMap<String, String> 임시로 데이터 작업 PagingResult<SearchDetailRes>로 변경 필요
-    public PagingResult<HashMap<String, String>> getPartAggregationDetails(
+        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true)
+    })
+    public PagingResult<SearchDetailRes> getPartAggregationDetails(
         @Valid
         SearchDetailReq reqDto,
         PageInfo pageInfo
     ) {
         log.debug("call getPartAggregationDetails");
         log.debug("reqDto: " + reqDto.toString());
+        return service.getPartTransferDetails(reqDto, pageInfo);
+    }
 
-        PagingResult<SearchDetailRes> searchDetailRes = service.getPartTransferDetails(reqDto, pageInfo);
-        log.debug("searchDetailRes: " + searchDetailRes);
-        // TODO: 데이터 없는 상태로 작업 하기 때문에 임시 데이터 작업 진행
-        return service.getDumyData2();
+    @ApiOperation(value = "채권 파트이관 파트별 상세 합계", notes = "검색 조건을 입력 받아 파트별 집계 상세 합계 정보를 조회 한다.")
+    @GetMapping("/details/summary")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true)
+    })
+    public SearchDetailSummaryRes getPartAggregationDetailSummary(
+        @Valid
+        SearchDetailReq reqDto
+    ) {
+        log.debug("call getPartAggregationDetailSummary");
+        log.debug("reqDto: " + reqDto.toString());
+
+        return service.getPartTransferDetailSummary(reqDto);
     }
 
     @ApiOperation(value = "채권 파트이관 파트별 상세 엑셀다운로드 정보 조회", notes = "검색 조건을 입력 받아 파트별 집계 상세 정보를 조회")
@@ -83,15 +90,12 @@ public class WbnaBondPartTransferController {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "bzHdqDvCd", value = "사업부구분코드", paramType = "query")
-    }) // TODO HashMap<String, String> 임시로 데이터 작업 List<SearchDetailRes>로 변경 필요
-    public List<HashMap<String, String>> getPartAggregationDetailsForExcelDownload(
+    })
+    public List<SearchDetailRes> getPartAggregationDetailsForExcelDownload(
         @Valid
         SearchDetailReq reqDto
     ) {
-        List<SearchDetailRes> searchDetailRes = service.getExcelDownload(reqDto);
-        log.debug("searchDetailRes: " + searchDetailRes); // 쿼리 동작 확인을 위한 임시 소스
-        // TODO: 데이터 없는 상태로 작업 하기 때문에 임시 데이터 작업 진행
-        return service.getDumyData2();
+        return service.getExcelDownload(reqDto);
     }
 
     @ApiOperation(value = "파트 이관 정보 생성", notes = "집금(추심)대상 채권을 집금구분(단기, 중기, 소송, 집행)별로 사업부 파트로 채권을 이관한다. 이관 후 파트별 집계 상세에서 집금구분 수정건에 대하여 저장한다.")
@@ -99,7 +103,7 @@ public class WbnaBondPartTransferController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "body", required = true),
         @ApiImplicitParam(name = "bzHdqDvCd", value = "기준년월", paramType = "body", required = true),
-        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "body", required = true)
+        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "body")
     })
     public SaveResponse createPartTransfer(
         @Valid

@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WctaOrderDetailMngtDto {
@@ -14,6 +16,7 @@ public class WctaOrderDetailMngtDto {
         String prdEnqry,
         String strtDt,
         String endDt,
+        String rentalNmn,
         String hcsfVal,
         String hcsfMcsfVal,
         String pdCd,
@@ -121,6 +124,27 @@ public class WctaOrderDetailMngtDto {
         List<String> dgr3LevlOgId,
         String sellPrtnrNo,
         List<String> mchnDv
+    ) {}
+
+    //멤버쉽 확정관리 - 멤버쉽 확정관리(멤버쉽-일반/계약번호/게인정보조회) Search Request Dto
+    @ApiModel(value = "WctaOrderDetailMngtDto-SaveMembershipConfirmsReq")
+    public record SaveMembershipConfirmsReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        int cntrSn,
+        @NotBlank
+        String cntrCnfmYn,
+        String cntrCnfmDt,
+        String cntrPdStrtdt
+    ) {}
+
+    //주문상세조회/관리(정기배송) - 복합상품목록 Search Request Dto
+    @ApiModel(value = "WctaOrderDetailMngtDto-SearchCompositionProductsReq")
+    public record SearchCompositionProductsReq(
+        String cntrNo,
+
+        String cntrSn
     ) {}
 
     // *********************************************************
@@ -269,7 +293,70 @@ public class WctaOrderDetailMngtDto {
         String fgpt4Qty,
         String fgpt5PdNm,
         String fgpt5PdCd,
-        String fgpt5Qty
+        String fgpt5Qty,
+        String fgpt6PdNm,
+        String fgpt6PdCd,
+        String fgpt6Qty,
+        String fgpt7PdNm,
+        String fgpt7PdCd,
+        String fgpt7Qty,
+        String fgpt8PdNm,
+        String fgpt8PdCd,
+        String fgpt8Qty,
+        String lcet15,
+        String lcrpmn,
+        String lcrpam,
+        String lcetc6,
+        String istAkArtcMoCn,
+        String sconCn,
+        String useElectTpCd,
+        String lcrept,
+        String lcck06,
+        String levels,
+        String safekey,
+        String alncPrtnrDrmDvCd,
+        String alncPrtnrDrmDvNm,
+        String cntrtRelNm,
+        String lcck07,
+        String bryyBzrno,
+        String ftfDvCd,
+        String lcet10,
+        String fnlAmt,
+        String rentalAmt,
+        String fnlPdCd,
+        String fnlPdNm,
+        String rentalPtrm,
+        String rentalPtrm2,
+        String leaseDvNm,
+        String pmotTpNm,
+        String mchnChTpNm,
+        String dscApyDtlCdNm,
+        String svPrdInfo,
+        String lcflg3,
+        String cntrChDtlRsonCd,
+        String rstlYn,
+        String pdChBfNmnN,
+        String adnSvYn,
+        String prmApyDvCd,
+        String mpyBsdt,
+        String stlmFnit,
+        String vstRqdt,
+        String pdctReqdRqdt,
+        String lcremy,
+        String lccany,
+        String frisuYn,
+        String lcpgubNm,
+        String sppMthdTpNm,
+        String wprsItstTpNm,
+        String srcwtTpNm,
+        String wtqltyTstYn,
+        String lcchk8,
+        String wrfrIstMthNm,
+        String frisuRcvryTpNm,
+        String dgr3LevlOgId,
+        String pdQty,
+        String highPdClsfNm,
+        String middlePdClsfNm
     ) {}
 
     //주문상세조회/관리(멤버쉽) - 주문상세조회(멤버쉽-일반/계약번호/게인정보조회) Search Result Dto
@@ -383,7 +470,10 @@ public class WctaOrderDetailMngtDto {
         String ojSellTpCd,
         String mshDvCd,
         String sellInflwChnlDtlCd,
-        String refPdClsfVal
+        String refPdClsfVal,
+        String dgr3LevlOgId,
+
+        String dgr3LevlDgPrtnrNm
     ) {}
 
     //주문상세조회/관리(일시불) - 주문상세조회(일시불-일반/계약번호조회) Search Result Dto
@@ -439,10 +529,16 @@ public class WctaOrderDetailMngtDto {
         String alncmpNm,
         String sellEvCd,
         String sellEvNm,
+        String pkgOrdNo,
+        String pmotTpNm,
         String fnlAmt,
         String sellAmt,
         String vat,
         String cntrAmt,
+        String tkAmt,
+        String crpUcAmt,
+        String alncFee,
+        String lcjAmt,
         String istmIntAmt,
         String feeAckmtBaseAmt,
         String crpUc,
@@ -614,5 +710,27 @@ public class WctaOrderDetailMngtDto {
         String dgr2LevlOgId,
         String dgr3LevlOgId,
         String mchnPdPrpVal01
+    ) {}
+
+    //주문상세조회/관리(정기배송) - 주문상세조회(정기배송-복합상품목록) Search Result Dto
+    @ApiModel("WctaOrderDetailMngtDto-SearchCompositionProductsRes")
+    public record SearchCompositionProductsRes(
+        String basePdCd,
+        String pdNm,
+        String pdQty,
+        String fnlVal,
+        String ctrVal,
+        String ojPdCd,
+        String verSn,
+        String pdClsfNm
+    ) {}
+
+    //주문상세조회/관리(일시불) - 주문상세조회(일시불-사은품정보) Search Result Dto
+    @ApiModel("WctaOrderDetailMngtDto-SearchFreeGiftInformationRes")
+    public record SearchFreeGiftInformationRes(
+        String fgptPdCd,
+        String fgptPdNm,
+        String fgptQty,
+        String sppFshRgstDtm
     ) {}
 }

@@ -34,6 +34,7 @@ public class WctdInChargeCustomerOrderController {
     @ApiOperation(value = "담당 고객 및 주문 조회 페이징 조회", notes = "파트너 본인 담당의 고객 및 주문정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstKnm", value = "계약자명", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
@@ -53,6 +54,7 @@ public class WctdInChargeCustomerOrderController {
     @ApiOperation(value = "담당 고객 및 주문 조회 페이징 조회 엑셀 다운로드", notes = "파트너 본인 담당의 고객 및 주문정보를 엑셀 다운로드한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstKnm", value = "계약자명", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),

@@ -22,7 +22,7 @@ public class WbncSameCustomerContractService {
         return mapper.selectContractDeposits(bndBizDvCd, cntrNo, cntrSn);
     }
 
-    public FindDepositDtlRes getContractDeposit(String bndBizDvCd, String cntrNo, int cntrSn) {
+    public FindDepositInfoRes getContractDeposit(String bndBizDvCd, String cntrNo, int cntrSn) {
         return mapper.selectContractDeposit(bndBizDvCd, cntrNo, cntrSn);
     }
 
@@ -32,5 +32,9 @@ public class WbncSameCustomerContractService {
 
     public FindSalesRes getContractSales(String bndCntrRefId) {
         return mapper.selectContractSales(bndCntrRefId);
+    }
+
+    public List<FindDepositDtlRes> getDeposits(String cntrNo, int cntrSn) {
+        return mapper.selectDeposits(cntrNo, cntrSn);
     }
 }

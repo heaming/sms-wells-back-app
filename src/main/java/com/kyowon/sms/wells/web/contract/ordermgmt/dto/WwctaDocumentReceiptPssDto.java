@@ -15,7 +15,9 @@ public class WwctaDocumentReceiptPssDto {
         String cntrChTpCd,
         String cntrChRcpId,
         String cstKnm,
-        String cralLocapaMexnoIdvTno
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno
     ) {}
 
     // *********************************************************
@@ -25,15 +27,19 @@ public class WwctaDocumentReceiptPssDto {
     @ApiModel("WwctaDocumentReceiptPssDto-SearchRes")
     public record SearchRes(
         String cntrChRcpId,
+        String reCntrChRcpId,
         String cntrChRcpD,
         String cntrChRcpTm,
         String cntrChPrgsStatCd,
+        String cntrChPrgsStatNm,
         String cntrChPrgsStatCdEnd,
+        String cntrChPrgsStatNmEnd,
         String cstKnm,
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String cntrChTypeCd,
+        String cntrChTpCd,
+        String cntrChTpNm,
         String fnlMdfcDtm
     ) {}
 }

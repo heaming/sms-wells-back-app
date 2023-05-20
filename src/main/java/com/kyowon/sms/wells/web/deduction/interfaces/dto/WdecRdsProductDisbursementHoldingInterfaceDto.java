@@ -17,10 +17,13 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
     @ApiModel("WdecRdsProductDisbursementHoldingInterfaceDto-FindReq")
     public record FindReq(
         @NotBlank
+        @JsonProperty("OG_TP_CD")
         String ogTpCd,
         @NotBlank
+        @JsonProperty("PRTNR_NO")
         String prtnrNo,
         @NotBlank
+        @JsonProperty("HD_PRCSDT")
         String hdPrcsdt
 
     ) {}
@@ -69,7 +72,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
         String ogTpCdAryVal, /*조직유형코드값*/
 
         @NotBlank
-        @JsonProperty("PRTNRNO")
+        @JsonProperty("PRTNR_NO")
         String prtnrNo /*파트너번호*/
     ) {}
 
@@ -79,8 +82,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceDto {
         @JsonProperty("RDS_DSB_DUEDT")
         String rdsDsbDuedt, /*RDS지급예정일자*/
 
-        @NotBlank
-        @JsonProperty("ITEM")
+        @JsonProperty("LIST")
         List<OrganizationTypes> data /*조직정보*/
 
     ) {}

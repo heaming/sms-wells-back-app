@@ -53,14 +53,15 @@ public class WsnaMaterialsAssignStocksDto {
         String didyDvNm, /*독립매니저여부*/
         String adrUseYn, /*지정주소여부*/
         String wareAdrId, /*창고주소ID*/
-        String rdadr, /*주소*/
-        String newAdrZip, /*우편번호*/
+        /*String rdadr,
+        String newAdrZip, */
         String rmkCn /*비고*/
     ) {}
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-CreateReq")
     public record CreateReq(
         String prtnrNo, /* 파트너번호 */
-        String qomAsnApyYn /* 물량배정적용여부 */
+        String qomAsnApyYn, /* 물량배정적용여부 */
+        String ogTpCd /* 조직유형코드 */
     ) {}
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-prtnrsReq")
     public record PrtnrReq(

@@ -13,7 +13,7 @@ public class CtContractConst {
 
     public enum PeriodType {
         RCT_DT, /*접수일자*/
-        SL_DT,/*매출일자*/
+        SL_RCOG_DT,/*매출일자*/
         CAN_DT, /*취소일자*/
         IST_DT, /*설치일자*/
         EXN_DT /*만료일자*/

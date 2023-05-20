@@ -4,8 +4,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.common.converter.WctzHistoryConverter;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.*;
 import com.kyowon.sms.wells.web.contract.common.mapper.WctzHistoryMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
@@ -95,5 +94,167 @@ public class WctzHistoryService {
         }
         dvo.setHistEndDtm(HIST_END_DTM);
         mapper.insertCntrDetailStatChangeHist(dvo);
+    }
+
+    /**
+    * 세금계산서접수기준변경이력 생성
+    * @param dvo 계약정보 (계약번호, 계약일련번호)
+    */
+    public void createTaxInvoiceReceiptBaseChangeHistory(WctzTxinvRcpBaseChangeHistDvo dvo) {
+        BizAssert.hasText(dvo.getCntrNo(), "MSG_ALT_CHK_CNTR_NO");
+        if (0 == dvo.getCntrSn()) {
+            throw new BizException("MSG_ALT_CHK_CNTR_SN");
+        }
+
+        WctzTxinvRcpBaseChangeHistDvo newHist = converter
+            .convertTaxInvoiceReceiptBaseToChangeHist(
+                dvo, mapper.selectTaxInvoiceReceiptBase(dvo.getCntrNo(), dvo.getCntrSn())
+            );
+        mapper.insertTaxInvoiceReceiptBaseHist(newHist);
+    }
+
+    /**
+     * 계약변경접수변경이력(최신) 조회
+     * @param cntrChRcpId 계약변경접수ID
+     * @return
+     */
+    public WctzCntrChRcchStatChangeHistDvo getContractChangeRcchStatChangeHistory(String cntrChRcpId) {
+        return mapper.selectCntrChRcchStatChangeHist(cntrChRcpId);
+    }
+
+    /**
+     * 계약변경접수변경이력 생성
+     * @param dvo 이력정보 (계약변경요청내용, 계약변경진행상태코드, 계약변경진행메모내용)
+     */
+    public void createContractChangeRcchStatChangeHistory(WctzCntrChRcchStatChangeHistDvo dvo) {
+        BizAssert.hasText(dvo.getCntrChRcpId(), "MSG_ALT_CHK_CNTR_CH_RCP_ID");
+        BizAssert.hasText(dvo.getCntrChPrgsStatCd(), "MSG_ALT_CHK_CNTR_CH_PRGS_STAT_CD");
+
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+        WctzCntrChRcchStatChangeHistDvo befHist = getContractChangeRcchStatChangeHistory(dvo.getCntrChRcpId());
+        if (ObjectUtils.isEmpty(befHist)) {
+            // 최초변경
+            dvo.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateCntrChRcchStatChangeHist(befHist);
+        }
+        dvo.setHistEndDtm(HIST_END_DTM);
+        mapper.insertCntrChRcchStatChangeHist(dvo);
+    }
+
+    /**
+     * 계약기본변경이력(최신) 조회
+     * @param cntrNo 계약번호
+     * @return
+     */
+    public WctzCntrBasicChangeHistDvo getContractBasicChangeHistory(String cntrNo) {
+        return mapper.selectCntrBasicChangeHist(cntrNo);
+    }
+
+    /**
+     * 계약기본변경이력 생성
+     * @param dvo 이력정보
+     */
+    public void createContractBasicChangeHistory(WctzCntrBasicChangeHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzCntrBasicChangeHistDvo newHist = converter.convertCntrBasicToChangeHist(
+            dvo,
+            mapper.selectCntrBasicChangeHist(dvo.getCntrNo())
+        );
+
+        WctzCntrBasicChangeHistDvo befHist = getContractBasicChangeHistory(dvo.getCntrNo());
+        if (ObjectUtils.isEmpty(befHist)) {
+            // 최초변경
+            newHist.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateCntrBasicChangeHist(befHist);
+        }
+
+        newHist.setHistEndDtm(HIST_END_DTM);
+        mapper.insertCntrBasicChangeHist(newHist);
+    }
+
+    /**
+    * 관계사제휴계약(최신) 조회
+    * @param acmpalCntrId 관계사제휴계약ID
+    * @return
+    */
+    public WctzAcmpalContractIzHistDvo getAcmpalContractIzChangeHistory(String acmpalCntrId) {
+        return mapper.selectAcmpalContractIzHist(acmpalCntrId);
+    }
+
+    /**
+     * 관계사제휴계약내역 생성
+     * @param dvo 이력정보
+     */
+    public void createAcmpalContractIzChangeHistory(WctzAcmpalContractIzHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzAcmpalContractIzHistDvo newHist = converter.convertAcmpalCntrIzToChangeHist(
+            dvo,
+            mapper.selectAcmpalContractIzForHist(dvo.getAcmpalCntrId())
+        );
+
+        WctzAcmpalContractIzHistDvo befHist = getAcmpalContractIzChangeHistory(dvo.getAcmpalCntrId());
+        if (ObjectUtils.isEmpty(befHist)) {
+            // 최초변경
+            newHist.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateAcmpalContractIzChangeHist(befHist);
+        }
+
+        newHist.setHistEndDtm(HIST_END_DTM);
+        mapper.insertAcmpalContractIzChangeHist(newHist);
+    }
+
+    /**
+    * 계약WELLS상세(최신) 조회
+    * @param cntrNo 계약번호
+    * @param cntrSn 계약일련번호
+    * @return
+    */
+    public WctzContractWellsDetailHistDvo getContractWellsDetailChangeHistory(String cntrNo, int cntrSn) {
+        return mapper.selectContractWellsDetailHist(cntrNo, cntrSn);
+    }
+
+    /**
+     * 계약WELLS상세이력 생성
+     * @param dvo 이력정보
+     */
+    public void createContractWellsDetailChangeHistory(WctzContractWellsDetailHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzContractWellsDetailHistDvo newHist = converter.convertCntrWellsDetailToChangeHist(
+            dvo,
+            mapper.selectContractWellsDetailForHist(dvo.getCntrNo(), dvo.getCntrSn())
+        );
+
+        WctzContractWellsDetailHistDvo befHist = getContractWellsDetailChangeHistory(dvo.getCntrNo(), dvo.getCntrSn());
+        if (ObjectUtils.isEmpty(befHist)) {
+            // 최초변경
+            newHist.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateContractWellsDetailHist(befHist);
+        }
+
+        newHist.setHistEndDtm(HIST_END_DTM);
+        mapper.insertContractWellsDetailHist(newHist);
     }
 }

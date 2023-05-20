@@ -32,6 +32,18 @@ public class WsncAsAssignPsController {
         return service.getTotalCustomers(dto);
     }
 
+    @ApiOperation(value = "총 관리고객 집계(W-SV-U-0228M01) Excel Download")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "year", value = "년도", paramType = "query", example = "2022"),
+        @ApiImplicitParam(name = "pdGdCd", value = "상품등급코드", paramType = "query", example = "A"),
+    })
+    @GetMapping("/total-customers/excel-download")
+    public List<WsncAsAssignPsDto.SearchTotalCustomerRes> getTotalCustomersExcelDownload(
+        WsncAsAssignPsDto.SearchTotalCustomerReq dto
+    ) {
+        return service.getTotalCustomers(dto);
+    }
+
     @ApiOperation(value = "제품 서비스 현황(W-SV-U-0229M01)")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "wkExcnDt", value = "작업수행일자", paramType = "query"),

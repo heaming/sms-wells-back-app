@@ -36,7 +36,7 @@ public class WctcDangerArbitDto {
         String dangOjPrtnrNo,
         String dangOcStrtmm,
         String dangOjOgId,
-        String dangOjPntnrNm,
+        String dangOjPrtnrNm,
         String dangOjPstnDvCd,
         String dgr1LevlDgPrtnrNo,
         String dgr1LevlDgPrtnrNm,
@@ -116,9 +116,13 @@ public class WctcDangerArbitDto {
         String dangOjPrtnrNm, /* 성명(행위자) */
         String dangOjPstnDvCd, /* 직급(행위자) */
         String dgr1LevlDgPrtnrNo, /* 총괄단(소속) */
+        String dgr1LevlDgPrtnrNm, /* 총괄단(소속)명 */
         String dgr2LevlDgPrtnrNo, /* 지역단(소속) */
+        String dgr2LevlDgPrtnrNm, /* 지역단(소속)명 */
         String bznsSpptPrtnrNo, /* 영업지원파트너(BM)(소속) */
+        String bznsSpptPrtnrNm, /* 영업지원파트너(BM)(소속) */
         String dgr3LevlDgPrtnrNo, /* 지점(소속) */
+        String dgr3LevlDgPrtnrNm, /* 지점(소속) */
         @NotBlank
         String dangChkNm, /* 부과내역(벌점) */
         String dangArbitCd, /* 조치항목(벌점) */
@@ -129,6 +133,7 @@ public class WctcDangerArbitDto {
         @NotBlank
         String dangArbitOgId, /* 조치부서(벌점) */
         String fstRgstUsrId, /* 등록자 */
-        String fstRgstDtm /* 등록일자 */
+        String fstRgstDt, /* 등록일자 */
+        String ogTpCd
     ) {}
 }

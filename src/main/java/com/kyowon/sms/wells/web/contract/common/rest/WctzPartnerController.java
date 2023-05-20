@@ -4,6 +4,7 @@ import static com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.Search
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchGeneral
 import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchRegionalDivisionsRes;
 import com.kyowon.sms.wells.web.contract.common.service.WctzPartnerService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.utils.DateUtil;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -44,20 +46,44 @@ public class WctzPartnerController {
     }
 
     @ApiOperation(value = "총괄단 조회", notes = "월조직내역(TB_OGBS_MM_OG_IZ)의 1차레벨 조직정보를 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+    })
     @GetMapping("/general-divisions")
-    public List<SearchGeneralDivisionsRes> getGeneralDivisions() {
-        return service.getGeneralDivisions();
+    public List<SearchGeneralDivisionsRes> getGeneralDivisions(
+        @RequestParam(required = false)
+        String baseYm
+    ) {
+        // 조회조건 : 기준년월 (기본값 : 현재년월)
+        String paramDt = StringUtils.defaultString(baseYm, DateUtil.getNowDayString());
+        return service.getGeneralDivisions(paramDt);
     }
 
     @ApiOperation(value = "지역단 조회", notes = "월조직내역(TB_OGBS_MM_OG_IZ)의 2차레벨 조직정보를 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+    })
     @GetMapping("/regional-divisions")
-    public List<SearchRegionalDivisionsRes> getRegionalDivisions() {
-        return service.getRegionalDivisions();
+    public List<SearchRegionalDivisionsRes> getRegionalDivisions(
+        @RequestParam(required = false)
+        String baseYm
+    ) {
+        // 조회조건 : 기준년월 (기본값 : 현재년월)
+        String paramDt = StringUtils.defaultString(baseYm, DateUtil.getNowDayString());
+        return service.getRegionalDivisions(paramDt);
     }
 
     @ApiOperation(value = "지점 조회", notes = "월조직내역(TB_OGBS_MM_OG_IZ)의 3차레벨 조직정보를 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+    })
     @GetMapping("/branch-divisions")
-    public List<SearchBranchDivisionsRes> getBranchDivisions() {
-        return service.getBranchDivisions();
+    public List<SearchBranchDivisionsRes> getBranchDivisions(
+        @RequestParam(required = false)
+        String baseYm
+    ) {
+        // 조회조건 : 기준년월 (기본값 : 현재년월)
+        String paramDt = StringUtils.defaultString(baseYm, DateUtil.getNowDayString());
+        return service.getBranchDivisions(paramDt);
     }
 }

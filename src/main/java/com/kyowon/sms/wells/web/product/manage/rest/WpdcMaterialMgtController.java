@@ -132,7 +132,11 @@ public class WpdcMaterialMgtController {
         // Excel Column들의 실제 Physical Table 및 column 정보들을 가진 객체.
         List<ZpdcPropertyMetaDvo> metaItems = cmnService
             .getPropertyMetas(
-                ZpdcProductDto.SearchPropMetaReq.builder().pdTpCd(PdProductConst.PD_TP_CD_MATERIAL).build(), true
+                ZpdcProductDto.SearchPropMetaReq.builder()
+                    .pdTpCd(PdProductConst.PD_TP_CD_MATERIAL) /* 교재/자재 */
+                    .pdTpDtlCd(PdProductConst.PD_TP_DTL_CD_M) /* 제품 */
+                    .build(),
+                true
             );
 
         // META DB에 반드시 들어가야할(=엑셀에서 반드시 입력받아야할) 입력필수 항목

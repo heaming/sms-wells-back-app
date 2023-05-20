@@ -11,9 +11,12 @@ public class WsncFixationVisitDto {
 
     @ApiModel(value = "WsncFixationVisitDto-SearchReq")
     public record SearchReq(
+        String baseYm,
         String fxnPrtnrDvCd,
         String sellTpCd,
-        String fxnPrtnrNo
+        String fxnPrtnrNo,
+        String dgr1LevlOgId,
+        String dgr2LevlOgId
     ) {}
 
     @ApiModel(value = "WsncFixationVisitDto-SearchRegReq")
@@ -48,14 +51,14 @@ public class WsncFixationVisitDto {
         String pdPrpVal01, /* 상품정보-용도 */
         String pdPrpVal01Nm, /* 상품정보-용도명 */
         String apyStrtYm, /* 적용기간 */
-        String chRqrDvCd, /* 변경구분 */
+        String chMngrDvCd, /* 변경구분 */
         String fnlMdfcDtm, /* 변경등록일자 */
         String fxnPrtnrDvCd, /* 지정대상 */
         String fxnPrtnrNo, /* 방문담당 */
         String chRsonCn, /* 변경사유 */
         String dtaDlYn, /* 삭제여부 */
         String prtnrKnm, /* 기존담당-담당자 */
-        String rsgnDt /* 기존담당-활동중지일 */
+        String cltnDt /* 기존담당-활동중지일 */
     ) {}
 
     // *********************************************************
@@ -104,13 +107,13 @@ public class WsncFixationVisitDto {
         String pdPrpVal01, /* 상품정보-용도 */
         String pdPrpVal01Nm, /* 상품정보-용도명 */
         String apyStrtYm, /* 적용기간 */
-        String chRqrDvCd, /* 변경구분 */
+        String chMngrDvCd, /* 변경구분 */
         String fnlMdfcDtm, /* 변경등록일자 */
         String fxnPrtnrDvCd, /* 지정대상 */
         String fxnPrtnrNo, /* 방문담당 */
         String chRsonCn, /* 변경사유 */
         String dtaDlYn, /* 삭제여부 */
         String prtnrKnm, /* 기존담당-담당자 */
-        String rsgnDt /* 기존담당-활동중지일 */
+        String cltnDt /* 기존담당-활동중지일 */
     ) {}
 }

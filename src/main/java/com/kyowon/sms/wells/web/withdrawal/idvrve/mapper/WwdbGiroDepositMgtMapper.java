@@ -51,6 +51,10 @@ public interface WwdbGiroDepositMgtMapper {
     /* 지로 입금 등록 - 통합내역 */
     int inertIntegrationItemization(WwdbGiroDepositSaveInfoDvo dvo);
 
+    int updateIntegrationItemization(WwdbGiroDepositSaveInfoDvo dvo);
+
+    int inertIntegrationItemizationTest(WwdbGiroDepositSaveInfoDvo dvo);
+
     /* 지로 입금 등록 - 통합내역 히스토리 */
     int inertIntegrationItemizationHistory(WwdbGiroDepositSaveInfoDvo dvo);
 

@@ -11,6 +11,7 @@ import lombok.Setter;
 public class WctdInChargeCustomerOrderDvo {
     //request param
     private String cntrNo; /* 계약번호 */
+    private String cntrSn; /* 계약일련번호 */
     private String cstKnm; /* 계약자명 */
     private String cstNo; /* 고객번호 */
     private String cralLocaraTno; /* 휴대지역전화번호 */
@@ -20,7 +21,6 @@ public class WctdInChargeCustomerOrderDvo {
     private String cralIdvTno; /* 휴대개별전화번호 */
 
     //response param
-    private String cntrSn; /* 계약일련번호 */
     private String mpNo; /* 휴대전화번호 */
     private String sellTpNm; /* 계약구분 */
     private String cntrDtlStatNm; /* 상태 */
@@ -28,6 +28,7 @@ public class WctdInChargeCustomerOrderDvo {
     private String adr; /* 기준주소 */
     private String dtlAdr; /* 상세주소 */
     //private String cntrNo; /* 계약번호 */
+    //private String cntrSn; /* 계약일련번호 */
     //private String cstKnm; /* 계약자명 */
     //private String cstNo; /* 고객번호 */
 

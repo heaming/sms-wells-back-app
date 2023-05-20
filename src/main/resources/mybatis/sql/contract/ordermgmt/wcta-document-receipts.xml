@@ -1,37 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WwctaDocumentReceiptPssMapper">
-    <select id="selectDocumentReceipts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WwctaDocumentReceiptPssDto$SearchRes">
+    <select id="selectDocumentReceipts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WwctaDocumentReceiptPssDvo">
         SELECT
-               A.CNTR_CH_RCP_ID                                     /* 접수일자 */
-             , SUBSTR(A.CNTR_CH_RCP_DTM, 0,8) AS CNTR_CH_RCP_D      /* 접수일자 */
-             , SUBSTR(A.CNTR_CH_RCP_DTM,9)    AS CNTR_CH_RCP_TM     /* 접수시간 */
-             , CASE WHEN A.CNTR_CH_PRGS_STAT_CD = '60' THEN  '55'
-                    WHEN A.CNTR_CH_PRGS_STAT_CD = '70' THEN  '55'
-                    ELSE CNTR_CH_PRGS_STAT_CD END CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 축약) */
-             , A.CNTR_CH_PRGS_STAT_CD AS CNTR_CH_PRGS_STAT_CD_END   /* 계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 상세) */
-             , B.CST_KNM                        /* 고객명*/
-             , B.CRAL_LOCARA_TNO                /* 휴대지역전화번호 */
-             --, B.MEXNO_ENCR                     /* 휴대전화국번호암호화 - TODO:복호화 */
-             , XX1.DEC_VARCHAR2_SEL(B.MEXNO_ENCR,10,'AES256') AS MEXNO_ENCR
-             , B.CRAL_IDV_TNO                   /* 휴대개별전화번호 */
-             , A.CNTR_CH_TP_CD                  /* 계약변경유형코드 */
-             , A.FNL_MDFC_DTM                   /* 수정일자 */
-          FROM TB_SSCT_CNTR_CH_RCP_BAS A        /* T.계약변경접수기본 */
-          LEFT OUTER JOIN TB_CUBS_CST_BAS B     /* T.고객기본 */
-            ON A.CST_NO = B.CST_NO
+               T1.CNTR_CH_RCP_ID AS CNTR_CH_RCP_ID                   /* 접수번호(수정용) 시퀀스 */
+             , TO_NUMBER(T1.CNTR_CH_RCP_ID) AS RE_CNTR_CH_RCP_ID     /* 접수번호(표시용) 시퀀스 */
+             , SUBSTR(T1.CNTR_CH_RCP_DTM, 0,8) AS CNTR_CH_RCP_D      /* 접수일자 */
+             , SUBSTR(T1.CNTR_CH_RCP_DTM,9)    AS CNTR_CH_RCP_TM     /* 접수시간 */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70')THEN  '99'   /* 기타종료 */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '10' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '19' /* 재접수 */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '20' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '29' /* 재접수 완료 */
+                    ELSE T1.CNTR_CH_PRGS_STAT_CD END CNTR_CH_PRGS_STAT_CD  /*계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 축약) */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70')THEN  '기타종료'   /* 기타종료 (99) */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '10' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '재접수'    /* 재접수(19) */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '20' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '재접수완료' /* 재접수 완료(29) */
+                    ELSE F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_PRGS_STAT_CD', T1.CNTR_CH_PRGS_STAT_CD) END CNTR_CH_PRGS_STAT_NM  /* 계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 축약) */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70') THEN  F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_PRGS_STAT_CD', T1.CNTR_CH_PRGS_STAT_CD)
+                    ELSE '' END CNTR_CH_PRGS_STAT_NM_END   /* 계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 상세) */
+             , T2.CST_KNM                        /* 계약자명 */
+             , T2.CRAL_LOCARA_TNO                /* 휴대지역전화번호 */
+             , T2.MEXNO_ENCR                     /* 휴대전화국번호암호화 */
+             , T2.CRAL_IDV_TNO                   /* 휴대개별전화번호 */
+             , T1.CNTR_CH_TP_CD                  /* 계약변경유형코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_TP_CD', T1.CNTR_CH_TP_CD) AS CNTR_CH_TP_NM    /* 계약변경유형코드*/
+             , T1.FNL_MDFC_DTM                   /* 수정일자 */
+          FROM TB_SSCT_CNTR_CH_RCP_BAS T1        /* T.계약변경접수기본 */
+         INNER JOIN TB_CUBS_CST_BAS T2     /* T.고객기본 */
+            ON T2.CST_NO = T1.CST_NO
+           AND T2.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN LATERAL(SELECT MAX(HST.CNTR_CH_RCP_ID) AS CNTR_CH_RCP_ID
+                                   FROM TB_SSCT_CNTR_CH_RCCH_HIST HST   /* T.계약변경접수변경이력 */
+                                  WHERE 1=1
+                                    AND HST.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
+                                    AND HST.CNTR_CH_PRGS_STAT_CD IN ('10','20') /* 접수대기(10), 접수완료(20) */
+                                    AND HST.HIST_END_DTM != '99991231235959' /* 현재건(99991231235959) 제외 */
+                                    AND HST.DTA_DL_YN = 'N'
+                            ) T3 /* 이전 접수,접수완료건을 확인하여 재접수여부 확인 */
+            ON T3.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
          WHERE 1=1
-           AND A.CNTR_CH_RCP_DTM <![CDATA[ >= ]]> #{cntrChRcpStrtDtm}
-           AND A.CNTR_CH_RCP_DTM <![CDATA[ <= ]]> #{cntrChRcpFinsDtm}
+           AND T1.CNTR_CH_TP_CD IN ('103','104','301','401')    /* 계약변경유형코드 TOBE:ASIS 명의변경(103:3), 개명신청(104:1), 자동이체변경(301:2), 계약해약신청(401:4)  */
+           AND T1.CNTR_CH_RCP_DTM BETWEEN #{cntrChRcpStrtDtm}||'000000' AND #{cntrChRcpFinsDtm}||'235959'
         <if test="@MybatisUtils@isNotEmpty(cntrChPrgsStatCd)">
-           AND A.CNTR_CH_PRGS_STAT_CD = #{cntrChPrgsStatCd}
+            <choose>
+                <when test='@MybatisUtils@equals(cntrChPrgsStatCd, "99")'> /* 기타종료 */
+                    AND T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70')
+                </when>
+                <when test='@MybatisUtils@equals(cntrChPrgsStatCd, "19")'> /* 재접수 */
+                    AND T1.CNTR_CH_PRGS_STAT_CD = '10' AND T3.CNTR_CH_RCP_ID IS NOT NULL
+                </when>
+                <when test='@MybatisUtils@equals(cntrChPrgsStatCd, "29")'> /* 재접수 완료 */
+                    AND T1.CNTR_CH_PRGS_STAT_CD = '20' AND T3.CNTR_CH_RCP_ID IS NOT NULL
+                </when>
+                <otherwise>
+                    AND T1.CNTR_CH_PRGS_STAT_CD = #{cntrChPrgsStatCd}
+                </otherwise>
+            </choose>
         </if>
-           AND A.CNTR_CH_PRGS_STAT_CD IN ('55','60','70')
         <if test="@MybatisUtils@isNotEmpty(cntrChTpCd)">
-           AND A.CNTR_CH_TP_CD = #{cntrChTpCd}
+           AND T1.CNTR_CH_TP_CD = #{cntrChTpCd}
         </if>
-           AND A.CNTR_CH_RCP_ID = #{cntrChRcpId}
-           AND B.CST_KNM LIKE '%' || #{cstKnm} || '%'
-           AND B.CRAL_LOCARA_TNO||XX1.DEC_VARCHAR2_SEL(B.MEXNO_ENCR,10,'AES256')||B.CRAL_IDV_TNO LIKE '%' || #{cralLocapaMexnoIdvTno} || '%'
+        <if test="@MybatisUtils@isNotEmpty(cntrChRcpId)">
+           AND TO_NUMBER(T1.CNTR_CH_RCP_ID) = #{cntrChRcpId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cstKnm)">
+           AND T2.CST_KNM LIKE '%' || #{cstKnm} || '%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+           AND T2.CRAL_LOCARA_TNO = #{cralLocaraTno}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+           AND T2.MEXNO_ENCR = #{mexnoEncr}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+           AND T2.CRAL_IDV_TNO = #{cralIdvTno}
+        </if>
     </select>
+
+    <update id="updateDocumentRcpCnfm">
+        UPDATE TB_SSCT_CNTR_CH_RCP_BAS
+           SET CNTR_CH_PRGS_STAT_CD = #{cntrChPrgsStatCd}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_CH_RCP_ID = #{cntrChRcpId}
+    </update>
 </mapper>

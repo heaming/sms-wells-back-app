@@ -10,4 +10,6 @@ public class WwdbBillDepositMgtSubDvo {
     String cntrNo;
     String cntrSn;
     String billDpAmt; /* 금액 */
+    String sellBzsBzrno;
+    String pblBzsBzrno;
 }

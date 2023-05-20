@@ -9,6 +9,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbGiroOcrForwardin
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchObjectRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchReq;
@@ -59,8 +60,8 @@ public class WwdbGiroOcrForwardingMgtService {
      * @return List<SearchRes>
      */
     @Transactional
-    public List<SearchRes> getGiroOcrForwardingObjects() {
-        return mapper.selectGiroOcrForwardingObjects();
+    public List<SearchObjectRes> getGiroOcrForwardingObjects(String cntr) {
+        return mapper.selectGiroOcrForwardingObjects(cntr);
     }
 
     @Transactional

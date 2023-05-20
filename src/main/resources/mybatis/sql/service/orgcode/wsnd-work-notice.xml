@@ -19,40 +19,22 @@
              , T1.FST_RGST_DTM
              , T1.FST_RGST_USR_ID
              , T1.FST_RGST_USR_ID AS FST_RGST_USR_NM
-          FROM
-             ( SELECT *
-                 FROM
-                    ( SELECT MNGT_YM
-                           , NTC_ID
-                           , NTC_SN
-                           , PD_GRP_CD
-                           , PD_CD
-                           , IST_WK_YN
-                           , AS_WK_YN
-                           , BFSVC_WK_YN
-                           , MNGR_DV_CD
-                           , NTCCN_TIT_NM
-                           , NTCCN_CN
-                           , VL_STRTDT
-                           , VL_ENDDT
-                           , FST_RGST_DTM
-                           , FST_RGST_USR_ID
-                           , RANK() OVER (PARTITION BY MNGT_YM, NTC_ID ORDER BY NTC_SN DESC) AS RNK
-                        FROM TB_SVPD_EGER_WK_NTC_IZ
-                       WHERE 1=1
-                         AND DTA_DL_YN = 'N'
-                    <if test='@MybatisUtils@isNotEmpty(stRgstDt) and @MybatisUtils@isNotEmpty(edRgstDt)'>
-                         AND SUBSTR(FST_RGST_DTM, 0, 8) BETWEEN #{stRgstDt} || '000000' AND #{edRgstDt} || '235959'
-                    </if>
-                    <if test='@MybatisUtils@isNotEmpty(ntccnTitNm)'>
-                         AND NTCCN_TIT_NM LIKE '%' || #{ntccnTitNm} || '%'
-                    </if>
-                    <if test='@MybatisUtils@isNotEmpty(mngrDvCd)'>
-                         AND MNGR_DV_CD = #{mngrDvCd}
-                    </if>
-                    )
-                WHERE RNK = 1
-             ) T1
+          FROM (SELECT *
+                  FROM (SELECT TT1.*
+                             , RANK() OVER (PARTITION BY MNGT_YM, NTC_ID ORDER BY NTC_SN DESC) AS RNK
+                          FROM TB_SVPD_EGER_WK_NTC_IZ TT1)
+                 WHERE RNK = 1) T1
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(stRgstDt) and @MybatisUtils@isNotEmpty(edRgstDt)'>
+           AND SUBSTR(FST_RGST_DTM, 0, 8) BETWEEN #{stRgstDt} || '000000' AND #{edRgstDt} || '235959'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(ntccnTitNm)'>
+           AND NTCCN_TIT_NM LIKE '%' || #{ntccnTitNm} || '%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(mngrDvCd)'>
+           AND MNGR_DV_CD = #{mngrDvCd}
+        </if>
          ORDER BY T1.FST_RGST_DTM DESC
     </select>
 
@@ -81,9 +63,15 @@
     <select id="selectProductsByProductGroup" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndWorkNoticeDto$SearchProductRes">
         SELECT SVPD_PD_CD AS PD_CD
              , SVPD_NM_KOR AS PD_NM
+             , SVPD_NM_ABBR1 AS PD_ABBR_NM
              , SVPD_ITEM_GR AS PD_GRP_CD
           FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>)
-         WHERE SVPD_ITEM_GR = #{pdGrpCd}
+         WHERE 1=1
+           AND SVPD_ITEM_GR IS NOT NULL
+           AND SVPD_ITEM_KND = '4'
+        <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+           AND SVPD_ITEM_GR = #{pdGrpCd}
+        </if>
     </select>
 
     <insert id="insertWorkNotice">

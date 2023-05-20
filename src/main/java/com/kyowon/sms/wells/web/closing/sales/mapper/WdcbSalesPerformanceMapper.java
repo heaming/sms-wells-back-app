@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchLeaseMonthlyRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipMonthlyRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDto.SearchRegularMonthlyRes;
@@ -22,6 +24,8 @@ public interface WdcbSalesPerformanceMapper {
 
     SearchRentalRes selectRental(SearchReq dto);
 
+    SearchLeaseRes selectLease(SearchReq dto);
+
     SearchMembershipRes selectMembership(SearchReq dto);
 
     SearchRegularRes selectRegular(SearchReq dto);
@@ -29,6 +33,10 @@ public interface WdcbSalesPerformanceMapper {
     PagingResult<SearchRentalMonthlyRes> selectRentalPages(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRentalMonthlyRes> selectRentalPages(SearchReq dto);
+
+    PagingResult<SearchLeaseMonthlyRes> selectLeasePages(SearchReq dto, PageInfo pageInfo);
+
+    List<SearchLeaseMonthlyRes> selectLeasePages(SearchReq dto);
 
     PagingResult<SearchMembershipMonthlyRes> selectMembershipPages(SearchReq dto, PageInfo pageInfo);
 

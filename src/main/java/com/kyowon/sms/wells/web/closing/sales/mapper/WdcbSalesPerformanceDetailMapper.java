@@ -10,11 +10,11 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.
 @Mapper
 public interface WdcbSalesPerformanceDetailMapper {
 
-    SearchMembershipRes selectMembershipSalesDetail(String slDt);
+    SearchMembershipRes selectMembershipSalesDetail(String cntrDtlNo, String slClYm);
 
-    SearchLeaseRes selectLeaseSalesDetail(String slDt);
+    SearchLeaseRes selectLeaseSalesDetail(String cntrDtlNo, String slClYm);
 
-    SearchRentalRes selectRentalSalesDetail(String slDt);
+    SearchRentalRes selectRentalSalesDetail(String cntrDtlNo, String slClYm);
 
-    SearchRegularRes selectRegularShippingDetail(String slDt);
+    SearchRegularRes selectRegularShippingDetail(String cntrDtlNo, String slClYm);
 }

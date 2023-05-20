@@ -42,6 +42,7 @@ public class WpdcAsPartMgtDto {
         String channelId,
         String sellDurtion,
         String sapMatCd,
+        String sapMatTpVal,
         String pdAbbrNm,
         String modelNo,
         String ostrCnrCd,
@@ -60,6 +61,8 @@ public class WpdcAsPartMgtDto {
     public record SaveReq(
         String pdCd,
         String pdGrpCd,
+        boolean isModifiedProp,
+        boolean isOnlyFileModified,
         @NotNull
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas,
         List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
@@ -69,7 +72,11 @@ public class WpdcAsPartMgtDto {
     @ApiModel(value = "WpdcAsPartMgtDto-EditReq")
     public record EditReq(
         @NotBlank
-        String pdCd, String pdGrpCd, @NotNull
+        String pdCd,
+        String pdGrpCd,
+        boolean isModifiedProp,
+        boolean isOnlyFileModified,
+        @NotNull
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas,
         List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl

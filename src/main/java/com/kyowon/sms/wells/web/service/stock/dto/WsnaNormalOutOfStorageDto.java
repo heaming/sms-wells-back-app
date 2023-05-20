@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -56,7 +58,7 @@ public class WsnaNormalOutOfStorageDto {
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskRes")
     public record AskRes(
-        String wareMngtPrtrnNo, /*창고파트너번호*/
+        String wareMngtPrtnrNo, /*창고파트너번호*/
         String wareNm, /*창고명*/
         String itmPdCd, /*품목상품코드*/
         String wareNo, /*창고번호*/
@@ -76,11 +78,12 @@ public class WsnaNormalOutOfStorageDto {
         String ostrAkRgstDt,
         String ostrAkNo,
         String itmPdCd,
-        String strOjWareNo,
-        String ostrOjWareNo,
+        String strWareNo,
+        String ostrWareNo,
         String ostrOjWareNm,
         String strOjWareNm,
-        String stckStdGb
+        String stckStdGb,
+        String rgstDt
     ) {}
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRes")
     public record DetailRes(
@@ -88,7 +91,7 @@ public class WsnaNormalOutOfStorageDto {
         String chk,
         String ostrAkTpCd,
         String ostrTpCd,
-        String strOjWareNo,
+        String strWareNo,
         String ostrAkRgstDt,
         String ostrAkSn,
         String ostrAkNo,
@@ -104,7 +107,7 @@ public class WsnaNormalOutOfStorageDto {
         String wareMngtPrtnrNo,
         String itmGdCd,
         String reqStckQty,
-        String ostrOjWareNo,
+        String ostrWareNo,
         String ostrWareMngtPrtnrNo,
         String mngtUnitCd,
         String mgtUntNm,
@@ -123,22 +126,94 @@ public class WsnaNormalOutOfStorageDto {
         String pdPrpVal16,
         String pdPrpVal02,
         String cfrmCnt,
-        String avgOut
+        String avgOut,
+        String ostrWareDvCd,
+        String strWareDvCd,
+        String strWareNm,
+        String ostrWareNm
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CreqteReq")
     public record CreateReq(
+        String todayStr,
+        String itmOstrNo,
+        String itmStrNo,
+        String ostrAkTpCd,
+        String ostrTpCd,
+        String strTpCd,
+        String strWareNo,
+        String ostrAkRgstDt,
+        String qty,
+        String ostrAkSn,
         String ostrAkNo,
-        String qty
+        String strHopDt,
+        String pdPrpVal19,
+        String itmPdCd,
+        String itmCd,
+        String pdNm,
+        String sapMatCd,
+        String itemLoc,
+        String pajuLoc,
+        String ostrAkWareDvCd,
+        String wareMngtPrtnrNo,
+        String itmGdCd,
+        String reqStckQty,
+        String ostrWareNo,
+        String ostrWareMngtPrtnrNo,
+        String mngtUnitCd,
+        String mgtUntNm,
+        String boxUnitQty,
+        String ostrAkQty,
+        String ostrCnfmQty,
+        String rmkCn,
+        String ostrCnfmCd,
+        String rectOstrDt,
+        String ostrAggQty,
+        String outQty,
+        String outQtyOrg,
+        String strConfDt,
+        String pdPrpVal15,
+        String pdPrpVal16,
+        String pdPrpVal02,
+        String cfrmCnt,
+        String avgOu,
+        String ostrWareDvCd,
+        String strWareDvCd
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckedReq")
     public record CheckedReq(
         String ostrAkNo,
-        String[] ostrAkSns
+        List ostrAkSns
     ) {}
 
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-StrNoAndOstrNoRes")
+    public record StrNoAndOstrNoRes(
+        String itmOstrNo,
+        String itmStrNo,
+        String ostrTpCd,
+        String strTpCd,
+        String todayStr
+    ) {}
     public record NomalOutOfStorageReq() {
 
     }
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
+    public record StandardWareReq(
+        String ostrWareNo,
+        String stckStdGb
+    ) {}
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareRes")
+    public record StandardWareRes(
+        String ostrWareNo,
+        String stckStdGb
+    ) {}
+
+    public record MonthlyWarehouseReq(
+        String apyYm,
+        String wareNo,
+        String stckStdGb
+    ) {}
 }

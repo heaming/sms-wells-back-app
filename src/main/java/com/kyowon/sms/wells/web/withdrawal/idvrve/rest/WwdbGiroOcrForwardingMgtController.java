@@ -6,6 +6,7 @@ import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchObjectRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchPrintRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SearchReq;
@@ -54,13 +56,25 @@ public class WwdbGiroOcrForwardingMgtController {
     @ApiOperation(value = "지로OCR발송관리 목록 조회", notes = " 검색조건을 받아 지로OCR발송관리 코드관리 목록을 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getGiroOcrForwardingExcels(SearchReq dto) {
-        return service.getGiroOcrForwardingExcels(dto);
+        List<SearchRes> test = service.getGiroOcrForwardingExcels(dto);
+        log.info("===============");
+        for (SearchRes searchRes : test) {
+            log.info(searchRes.toString());
+        }
+        log.info("===============");
+        return test;
     }
 
     @ApiOperation(value = "지로OCR발송관리 대상 조회", notes = "지로OCR발송관리 대상 목록을 조회한다.")
-    @GetMapping("/objects")
-    public List<SearchRes> getGiroOcrForwardingObjects() {
-        return service.getGiroOcrForwardingObjects();
+    @GetMapping("/objects/{cntr}")
+    public List<SearchObjectRes> getGiroOcrForwardingObjects(
+        @PathVariable("cntr")
+        String cntr
+    ) {
+        log.info("==================");
+        log.info(cntr);
+        log.info("==================");
+        return service.getGiroOcrForwardingObjects(cntr);
     }
 
     @ApiOperation(value = "지로OCR발송관리 저장", notes = "지로OCR발송관리 등록 및 수정한다.")

@@ -5,16 +5,16 @@ import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMng
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaOrderDetailMngtService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -315,5 +315,48 @@ public class WctaOrderDetailMngtController {
         SearchOrderDetailRglrDlvrPagesReq dto
     ) {
         return service.getOrderRegularShippingsExcels(dto);
+    }
+
+    @ApiOperation(value = "멤버쉽 확정관리", notes = "선택한 멤버쉽 계약의 확정일자와 가입일자를 수정")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCnfmYn", value = "확정유무", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCnfmDt", value = "확정일", paramType = "query"),
+        @ApiImplicitParam(name = "cntrPdStrtdt", value = "가입일", paramType = "query"),
+    })
+    @PutMapping("/order-detail-mngt/membership-confirm")
+    public SaveResponse saveMembershipConfirms(
+        @RequestBody
+        @NotEmpty
+        List<SaveMembershipConfirmsReq> dtos
+    ) {
+        return SaveResponse.builder().processCount(service.saveMembershipConfirms(dtos)).build();
+    }
+
+    @ApiOperation(value = "주문상세조회/관리", notes = "주문상세조회/관리(정기배송) -복합상품목록")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @GetMapping("/order-detail-mngt/regular-shippings/composition-products")
+    public List<SearchCompositionProductsRes> getCompositionProducts(
+        @Valid
+        SearchCompositionProductsReq dto
+    ) {
+        return service.getCompositionProducts(dto);
+    }
+
+    @ApiOperation(value = "주문상세조회/관리", notes = "주문상세조회/관리(일시불) -사은품정보")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @GetMapping("/order-detail-mngt/singlepayments/free-gift-information")
+    public List<SearchFreeGiftInformationRes> getFreeGiftInformation(
+        @Valid
+        SearchCompositionProductsReq dto
+    ) {
+        return service.getFreeGiftInformation(dto);
     }
 }

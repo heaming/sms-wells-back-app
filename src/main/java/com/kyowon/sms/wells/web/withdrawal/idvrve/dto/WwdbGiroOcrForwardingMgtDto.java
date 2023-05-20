@@ -20,7 +20,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String cntr, //계약일련번호
         String cstFnm, // 고객성명
         String slDt, //매출일자
-        //현재차월
+        String rentalTn, //현재차월
         String recapDutyPtrmN, //약정개월
         String strtGiroTn, //시작지로회차
         String endGiroTn, //종료지로회차
@@ -56,6 +56,30 @@ public class WwdbGiroOcrForwardingMgtDto {
         String exnNmnAmt, //--만료차월
         String ltpayYn, //--후납여부
         String giroRglrDvCd //--후납여부
+    ) {
+
+    }
+
+    public record SearchObjectRes(
+        String cntrNo,
+        String cntrSn,
+        String cntr,
+        String cstFnm,
+        String slDt,
+        String rentalTn,
+        String recapDutyPtrmN,
+        String strtGiroTn,
+        String endGiroTn,
+        String istmMcn,
+        String thm0Amt,
+        String istmAmt,
+        String istmDscAmt,
+        String pyAmt,
+        String stplNmnAmt,
+        String exnNmnAmt,
+        String ltpayYn,
+        String giroBizDvCd,
+        String giroBizTpCd
     ) {
 
     }

@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,8 +13,6 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto.S
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto.SearchByoRentalAccountRes;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaRentalAccountMgtService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -41,29 +37,11 @@ public class WctaRentalAccountMgtController {
         @ApiImplicitParam(name = "basePdCd", value = "상품코드", paramType = "query", example = "WM07104845"),
         @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
     })
-    @GetMapping("/products/paging")
-    public PagingResult<SearchBpdRentalAccountRes> getBpdRentalAccount(
-        SearchBpdRentalAccountReq dto,
-        @Valid
-        PageInfo pageInfo
-    ) {
-        return service.getBpdRentalAccount(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "렌탈 계정 관리 현황 - 상품별 조회", notes = "렌탈 계정 관리 현황 - 상품별 조회 후 엑셀 다운로드 한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "202201"),
-        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "202212"),
-        @ApiImplicitParam(name = "pdMclsfId", value = "상품군", paramType = "query", example = "PDC000000000165"),
-        @ApiImplicitParam(name = "basePdCd", value = "상품코드", paramType = "query", example = "WM07104845"),
-        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
-    })
-    @GetMapping("/products/excel-download")
-    public List<SearchBpdRentalAccountRes> getBpdRentalAccountExcelDownload(
+    @GetMapping("/products")
+    public List<SearchBpdRentalAccountRes> getBpdRentalAccount(
         SearchBpdRentalAccountReq dto
     ) {
-        return service.getBpdRentalAccountExcelDownload(dto);
+        return service.getBpdRentalAccount(dto);
     }
 
     @ApiOperation(value = "렌탈 계정 관리 현황 - 조직별 조회", notes = "렌탈 계정 관리 현황 - 조직별 조회")
@@ -75,28 +53,10 @@ public class WctaRentalAccountMgtController {
         @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
     })
-    @GetMapping("/organizations/paging")
-    public PagingResult<SearchByoRentalAccountRes> getByoRentalAccount(
-        SearchByoRentalAccountReq dto,
-        @Valid
-        PageInfo pageInfo
-    ) {
-        return service.getByoRentalAccount(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "렌탈 계정 관리 현황 - 조직별 조회", notes = "렌탈 계정 관리 현황 - 조직별 조회 후 엑셀 다운로드 한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "srchGbn", value = "조회구분", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "istStartDt", value = "설치시작년월", paramType = "query", example = "202201"),
-        @ApiImplicitParam(name = "istEndDt", value = "설치끝년월", paramType = "query", example = "202212"),
-        @ApiImplicitParam(name = "dgr1LevlOgCd", value = "총괄단", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "copnDvCd", value = "고객구분", paramType = "query", example = "1"),
-    })
-    @GetMapping("/organizations/excel-download")
-    public List<SearchByoRentalAccountRes> getByoRentalAccountExcelDownload(
+    @GetMapping("/organizations")
+    public List<SearchByoRentalAccountRes> getByoRentalAccount(
         SearchByoRentalAccountReq dto
     ) {
-        return service.getByoRentalAccountExcelDownload(dto);
+        return service.getByoRentalAccount(dto);
     }
 }

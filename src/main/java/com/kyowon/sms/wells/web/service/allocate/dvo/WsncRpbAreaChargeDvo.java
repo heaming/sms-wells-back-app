@@ -24,8 +24,10 @@ public class WsncRpbAreaChargeDvo {
     private Integer izSn; // 내역일련번호
     private String apyStrtdt; // 적용시작일자
     private String apyEnddt; // 적용종료일자
+    private String ogTpCd; // 담당파트너조직유형코드
     private String ichrPrtnrNo; // 담당파트너번호
     private String prtnrKnm; // 파트너한글명
+    private String pprnIchrPrtnrOgTpCd; // 예비담당파트너조직유형코드
     private String pprnIchrPrtnrNo1; // 예비담당파트너번호1
     private String pprnIchrPrtnrKnm1; // 예비담당파트너번호1
     private String pprnIchrPrtnrNo2; // 예비담당파트너번호2
@@ -42,7 +44,7 @@ public class WsncRpbAreaChargeDvo {
     private String vstDowVal; // 방문요일값
     private Long mmtAvLdtm; // 이동평균소요시간
     private String locaraCenStruAdr; // 지역중심건물주소
-    private String w1W3SatWrkYn; // 1주3주토요일근무여부
+    private String satWrkYn; // 토요일근무여부
     private String ogNm; // 조직명
 
 }
