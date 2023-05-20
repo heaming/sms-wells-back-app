@@ -1,0 +1,774 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep2Mapper">
+    <select id="selectPdClsfs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdClsfDvo">
+        SELECT PD_CLSF_ID
+             , PD_CLSF_NM
+             , PD_CLSF_CD
+          FROM TB_PDBS_PD_CLSF_BAS
+         WHERE 1 = 1
+           AND PD_CLSF_LEVL_DV_CD = '2'
+           AND BZ_HDQ_DV_CD = 'E'
+           AND PD_TP_CD = 'P'
+           AND USE_YN = 'Y'
+           AND DTA_DL_YN = 'N'
+         ORDER BY SORT_ODR
+    </select>
+
+    <select id="selectProducts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdDvo">
+        SELECT T7.REF_PD_CLSF_VAL AS MCLSF_VAL
+             , T8.REF_PD_CLSF_VAL AS LCLSF_VAL
+             , T1.PD_CD  -- 상품코드
+             , T1.PD_NM  -- 상품명
+             , T1.PD_HCLSF_ID -- 대분류
+             , T1.PD_MCLSF_ID -- 중분류
+             , T1.PD_LCLSF_ID -- 소분류
+             , T1.PD_DCLSF_ID -- 세분류
+             , T1.PD_ABBR_NM  -- 약어1
+             , T1.CST_BASE_PD_ABBR_NM -- 고객약어
+             , T1.PD_EPL_CN -- 상품설명
+             , T1.SELL_TP_CD -- 판매유형코드
+             , T1.SELL_TP_DTL_CD -- 판매유형상세코드
+             , T1.PD_TP_CD      -- 상품유형코드
+             , T1.PD_TP_DTL_CD -- 상품유형상세코드
+             , T1.BASE_PD_CHO_YN -- 기준상품선택여부
+             , T1.CRNCY_DV_CD -- 통화구분코드
+             , T1.SPAY_SELL_PSB_YN -- 일시불 판매가능여부
+             , T1.VAT_TP_CD -- 부가가치세 유형
+             , T1.PDCT_UPRC_USE_YN -- 제품단가 사용여부 (?)
+             , T1.FGPT_YN -- 사은품 여부
+
+             , T2.PD_DTL_PRP_VAL01 AS LRNN_AGE_UNIT_CD -- 대상연령단위
+             , T2.PD_DTL_PRP_VAL02 AS MIN_LRNN_AGE     -- 대상최소연령
+             , T2.PD_DTL_PRP_VAL03 AS MAX_LRNN_AGE     -- 대상최대연령
+             , T2.AVL_CHNL_ID AS SELL_CHNL_ID -- 판매채널상세코드
+
+             , T3.PD_PRP_VAL01 AS ALRPY_DV_CD -- 반제품구분코드
+             , T3.PD_PRP_VAL02 AS PD_WGT -- 상품중량
+
+             , T4.PD_PRP_VAL01 AS PRR_CNTR_PD_OJ_YN -- 사전계약대상
+             , T4.PD_PRP_VAL11 AS RCP_BASE_STRTDT   -- 사전계약접수시작일자
+             , T4.PD_PRP_VAL12 AS RCP_BASE_ENDDT   -- 사전계약접수시작일자
+             , T4.PD_PRP_VAL13 AS CNFM_BASE_STRTDT   -- 사전계약접수확정시작일자
+             , T4.PD_PRP_VAL14 AS CNFM_BASE_ENDDT   -- 사전계약접수확정종료일자
+             , T4.PD_PRP_VAL10 AS LRNN_LV_GRP_DV_CD -- 학습단계그룹구분코드
+             , T4.PD_PRP_VAL04 AS SMT_CHG_YN        -- 스마트체인지여부
+             , T4.PD_PRP_VAL05 AS CHDVC_PRMIT_YN    -- 기변허용구분
+
+             , T5.PD_PRP_VAL01 AS ISLND_INCMDC_YN     -- 소득공제여부 Y: 공제대상 N: 비대상
+             , T5.PD_PRP_VAL02 AS ISTM_MCN            -- 할부기간
+             , T5.PD_PRP_VAL03 AS SMT_MLG_USE_YN    -- 스마트마일리지 사용여부
+
+             , T6.PD_PRP_VAL07 AS SPP_DV_CD      -- 배송구분
+             , T6.PD_PRP_VAL04 AS MISU_DV_CD     -- 월호구분 코드
+
+             /* chips */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
+             , CASE WHEN T7.REF_PD_CLSF_VAL = '01001'
+                    THEN CASE WHEN T5.PD_PRP_VAL01 = 'Y' THEN '소득'
+                                                         ELSE '비소득' END
+                    ELSE NULL END AS PD_CHIP2
+             /* 상품 수량 초기값 1 세팅 */
+             , 1 AS PD_QTY
+          FROM TB_PDBS_PD_BAS T1
+          LEFT OUTER JOIN TB_PDBS_PD_DTL T2 -- 상품상세
+            ON T2.PD_CD = T1.PD_CD
+           AND T2.VL_END_DTM = '99991231235959'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3 -- 공통
+            ON T3.PD_CD = T1.PD_CD
+           AND T3.PD_EXTS_PRP_GRP_CD = 'CMN'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4 -- 계약
+            ON T4.PD_CD = T1.PD_CD
+           AND T4.PD_EXTS_PRP_GRP_CD = 'CNTR'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5 --결제
+            ON T5.PD_CD = T1.PD_CD
+           AND T5.PD_EXTS_PRP_GRP_CD = 'STLM'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T6 -- 배송
+            ON T6.PD_CD = T1.PD_CD
+           AND T6.PD_EXTS_PRP_GRP_CD = 'SPP'
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T7
+            ON T7.PD_CLSF_ID = T1.PD_MCLSF_ID
+           AND T7.PD_TP_CD = 'P'
+           AND T7.USE_YN = 'Y'
+           AND T7.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T8
+            ON T8.PD_CLSF_ID = T1.PD_LCLSF_ID
+           AND T8.PD_TP_CD = 'P'
+           AND T8.USE_YN = 'Y'
+           AND T8.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.SELL_YN = 'Y'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.SELL_STRTDT AND T1.SELL_ENDDT
+           AND T1.SELL_TP_CD IN ('1','2','3','4')
+           AND T1.PD_TP_CD = 'P' -- 기준상품단위
+           AND T1.BASE_PD_CHO_YN = 'N'
+           AND T2.AVL_CHNL_ID = #{avlChnlId}
+       <if test='@MybatisUtils@isNotEmpty(pdFilter)'>
+           AND T1.PD_NM LIKE '%' || #{pdFilter} || '%'
+       </if>
+           /*
+           AND T2.PD_DTL_PRP_VAL01 = '02' -- 대상연령단위 - 상품조회 시 '세' 로만 설정
+           and 'age' BETWEEN t2.PD_DTL_PRP_VAL02 AND t2.PD_DTL_PRP_VAL03 -- 대상연령최소 ~ 대상연령최대
+            */
+    </select>
+
+    <select id="selectContractDtlWithPdInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractDtlDvo">
+        SELECT T1.CNTR_NO             /* 계약번호 */
+             , T1.CNTR_SN             /* 계약일련번호 */
+             , T1.BASE_PD_CD          /* 기준상품코드 */
+             , T1.HGR_PD_CD           /* 상위상품코드 */
+             , T1.PD_QTY              /* 상품수량 */
+             , T1.SELL_TP_CD          /* 판매유형코드 */
+             , T1.SELL_TP_DTL_CD      /* 판매유형상세코드 */
+             , T1.CNTR_DTL_STAT_CD    /* 계약상세상태코드 */
+             , T1.CNTR_PTRM_UNIT_CD   /* 계약기간단위코드 */
+             , T1.CNTR_PTRM           /* 계약기간 */
+             , T1.CNTR_PD_STRTDT      /* 계약상품시작일자 */
+             , T1.CNTR_PD_ENDDT       /* 계약상품종료일자 */
+             , T1.STPL_PTRM_UNIT_CD   /* 약정기간단위코드 */
+             , T1.STPL_PTRM           /* 약정기간 */
+             , T1.SV_PTRM_UNIT_CD     /* 서비스기간단위코드 */
+             , T1.SV_PRD              /* 서비스주기 */
+             , T1.CNTRW_TP_CD         /* 계약서유형코드 */
+             , T1.BLG_CRP_CD          /* 소속법인코드 */
+             , T1.RVE_CRP_CD          /* 수납법인코드 */
+             , T1.CO_CD               /* 회사코드 */
+             , T1.BOO_SELL_TP_CD      /* 예약판매유형코드 */
+             , T1.PD_GD_CD            /* 상품등급코드 */
+             , T1.PD_HCLSF_ID         /* 상품대분류ID */
+             , T1.PD_MCLSF_ID         /* 상품중분류ID */
+             , T1.PD_LCLSF_ID         /* 상품소분류ID */
+             , T1.PD_DCLSF_ID         /* 상품세분류ID */
+             , T1.SELL_DSC_DV_CD      /* 판매할인구분코드 */
+             , T1.SELL_DSCR_CD        /* 판매할인율코드 */
+             , T1.SELL_DSC_CTR_AMT    /* 판매할인조정금액 */
+             , T1.SELL_DSC_TP_CD      /* 판매할인유형코드 */
+             , T1.STLM_TP_CD          /* 결제유형코드 */
+             , T1.CRNCY_DV_CD         /* 통화구분코드 */
+             , T1.APY_EXCR            /* 적용환율 */
+             , T1.PD_BASE_AMT         /* 상품기준금액 */
+             , T1.SELL_AMT            /* 판매금액 */
+             , T1.DSC_AMT             /* 할인금액 */
+             , T1.FNL_AMT             /* 최종금액 */
+             , T1.VAT                 /* 부가가치세 */
+             , T1.CNTR_AMT            /* 계약금액 */
+             , T1.CNTRAM_DSC_AMT      /* 계약금할인금액 */
+             , T1.ISTM_MCN            /* 할부개월수 */
+             , T1.ISTM_PCAM_AMT       /* 할부원금금액 */
+             , T1.ISTM_INT_AMT        /* 할부이자금액 */
+             , T1.MM_ISTM_AMT         /* 월할부금액 */
+             , T1.CRP_UC_AMT          /* 법인미수금액 */
+             , T1.SELL_FEE            /* 판매수수료 */
+             , T1.CNTR_TAM            /* 계약총액 */
+             , T1.ACKMT_PERF_RT       /* 인정실적율 */
+             , T1.ACKMT_PERF_AMT      /* 인정실적금액 */
+             , T1.CVT_PERF_AMT        /* 환산실적금액 */
+             , T1.FEE_ACKMT_CT        /* 수수료인정건수 */
+             , T1.FEE_ACKMT_BASE_AMT  /* 수수료인정기준금액 */
+             , T1.FEE_FXAM_YN         /* 수수료정액여부 */
+             , T1.SPP_DUEDT           /* 배송예정일자 */
+             , T1.RESUB_YN            /* 재구독여부 */
+             , T1.RSTL_YN             /* 재약정여부 */
+             , T1.FRISU_YN            /* 무상여부 */
+             , T1.FRISU_DSB_TP_CD     /* 무상지급유형코드 */
+             , T1.TXINV_PBL_OJ_YN     /* 세금계산서발행대상여부 */
+             , T1.ALNCMP_CD           /* 제휴사코드 */
+             , T1.ALNCMP_CNTR_DRM_VAL /* 제휴사계약식별값 */
+             , T1.SMTPL_ID            /* 스마트플랜ID */
+             , T1.SMTPL_SN            /* 스마트플랜일련번호 */
+             , T1.CTT_RS_CD           /* 컨택결과코드 */
+             , T1.CTT_PSIC_ID         /* 컨택담당자ID */
+             , T1.BF_ORD_NO           /* 이전주문번호 */
+             , T1.CNTR_CH_RCP_ID      /* 계약변경접수ID */
+             , T1.CNTR_CH_SN          /* 계약변경일련번호 */
+             , T1.CNTR_CH_DTL_AK_CN   /* 계약변경상세요청내용 */
+             , T1.DTA_DL_YN           /* 데이터삭제여부 */
+             , T1.FST_RGST_DTM        /* 최초등록일시 */
+             , T1.FST_RGST_USR_ID     /* 최초등록사용자ID */
+             , T1.FST_RGST_PRG_ID     /* 최초등록프로그램ID */
+             , T1.FST_RGST_DEPT_ID    /* 최초등록부서ID */
+             , T1.FNL_MDFC_DTM        /* 최종수정일시 */
+             , T1.FNL_MDFC_USR_ID     /* 최종수정사용자ID */
+             , T1.FNL_MDFC_PRG_ID     /* 최종수정프로그램ID */
+             , T1.FNL_MDFC_DEPT_ID    /* 최종수정부서ID */
+             , T2.PD_NM
+             , T3.REF_PD_CLSF_VAL AS MCLSF_VAL
+             , T4.REF_PD_CLSF_VAL AS LCLSF_VAL
+             , T5.PD_CLSF_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
+             , CASE WHEN T3.REF_PD_CLSF_VAL = '01001'
+                    THEN CASE WHEN T6.PD_PRP_VAL01 = 'Y' THEN '소득'
+                                                         ELSE '비소득' END
+                    ELSE NULL END AS PD_CHIP2
+             , T7.PD_PRP_VAL10 AS LRNN_LV_GRP_DV_CD
+          FROM TB_SSCT_CNTR_DTL T1 /* 계약상세 */
+         INNER JOIN TB_PDBS_PD_BAS T2
+            ON T2.PD_CD = T1.BASE_PD_CD
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T3
+            ON T3.PD_CLSF_ID = T1.PD_MCLSF_ID
+           AND T3.PD_TP_CD = 'P'
+           AND T3.USE_YN = 'Y'
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T4
+            ON T4.PD_CLSF_ID = T1.PD_LCLSF_ID
+           AND T4.PD_TP_CD = 'P'
+           AND T4.USE_YN = 'Y'
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T5
+            ON T5.PD_CLSF_ID = T1.PD_HCLSF_ID
+           AND T5.PD_CLSF_LEVL_DV_CD = '2'
+           AND T5.BZ_HDQ_DV_CD = 'E'
+           AND T5.PD_TP_CD = 'P'
+           AND T5.USE_YN = 'Y'
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T6 -- 공통
+            ON T6.PD_CD = T1.BASE_PD_CD
+           AND T6.PD_EXTS_PRP_GRP_CD = 'CMN'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T7 -- 계약
+            ON T7.PD_CD = T1.BASE_PD_CD
+           AND T7.PD_EXTS_PRP_GRP_CD = 'CNTR'
+         WHERE 1 = 1
+           AND T1.CNTR_NO = #{cntrNo}              /* 계약번호 */
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectProductSuscMms" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdDetailDvo">
+        SELECT DISTINCT T2.STPL_PRD_CD AS CODE_ID
+             , T2.STPL_PRD_CD AS CODE_NAME
+          FROM TB_PDBS_PD_PRC_FNL_DTL T1
+         INNER JOIN TB_PDBS_PD_PRC_DTL T2
+            ON T2.PD_PRC_DTL_ID = T1.PD_PRC_DTL_ID
+           AND T2.VER_SN = T1.VER_SN
+         WHERE 1=1
+           AND T1.PD_CD = #{pdCd} -- 기준상품코드
+           AND T1.SELL_CHNL_CD = #{sellChnlCd}         -- 판매채널코드
+           AND T1.SELL_TP_CD = #{sellTpCd}             -- 판매유형코드
+           AND T1.PD_PRC_CNDT_CHRC_VAL03 = #{lrnnLvGrpDvCd} -- 학습단계구분코드 (학습지 시 when test)
+           AND T1.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+           AND T1.VER_SN = (SELECT MAX(VER_SN)
+                              FROM TB_PDBS_PD_PRC_FNL_DTL
+                             WHERE PD_PRC_FNL_DTL_ID = T1.PD_PRC_FNL_DTL_ID
+                             )
+         ORDER BY T2.STPL_PRD_CD
+    </select>
+
+    <select id="selectProductLrnnLvs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdDetailDvo">
+        SELECT DISTINCT
+               C1.CD_CNTN AS CODE_NAME
+             -- , T5.PD_PRP_VAL11 AS LRNN_LV_GRP_CD
+             , T5.PD_PRP_VAL12 AS CODE_ID
+          FROM TB_PDBS_PD_BAS T1
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T6
+            ON T1.PD_CD  = T6.PD_CD
+           AND T6.PD_EXTS_PRP_GRP_CD = 'CNTR'
+         INNER JOIN TB_PDBS_PD_REL T2
+            ON T1.PD_CD = T2.BASE_PD_CD
+           AND T2.PD_REL_TP_CD  ='05'
+         INNER JOIN TB_PDBS_PD_BAS T3  /* 제품코드 */
+            ON T2.OJ_PD_CD  = T3.PD_CD
+         INNER JOIN TB_PDBS_PD_BAS T4  /* 제품의 하위책 */
+            ON T3.PD_CD  = T4.HGR_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5  /* 하위책의 학습속성 */
+            ON T4.PD_CD  = T5.PD_CD
+           AND T5.PD_EXTS_PRP_GRP_CD = 'LRNN'
+         INNER JOIN T_CMZ_CD_D C1  /* 학습단계공통코드 */
+            ON C1.CD_ID = T6.PD_PRP_VAL10   /*  학습단계구분코드 */
+           AND T5.PD_PRP_VAL11 = T6.PD_PRP_VAL10   /* 기준상품의 학습단계구분코드와 제품의 학습단계구분코드가 동일한지 확인 */
+           AND C1.CD_VLD_VAL = T5.PD_PRP_VAL12  /* 하위책의 단계코드 */
+         WHERE 1=1
+           AND T1.PD_CD = #{pdCd}
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T5.PD_PRP_VAL12
+    </select>
+
+    <select id="selectProductStrtLvs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdDetailDvo">
+        SELECT DISTINCT
+               C1.CD_CNTN AS CODE_NAME
+             -- , T5.PD_PRP_VAL11 AS LRNN_LV_GRP_CD
+             , T5.PD_PRP_VAL12 AS CODE_ID
+          FROM TB_PDBS_PD_BAS T1
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T6
+            ON T1.PD_CD  = T6.PD_CD
+           AND T6.PD_EXTS_PRP_GRP_CD = 'CNTR'
+         INNER JOIN TB_PDBS_PD_REL T2
+            ON T1.PD_CD = T2.BASE_PD_CD
+           AND T2.PD_REL_TP_CD  ='05'
+         INNER JOIN TB_PDBS_PD_BAS T3  /* 제품코드 */
+            ON T2.OJ_PD_CD  = T3.PD_CD
+         INNER JOIN TB_PDBS_PD_BAS T4  /* 제품의 하위책 */
+            ON T3.PD_CD  = T4.HGR_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5  /* 하위책의 학습속성 */
+            ON T4.PD_CD  = T5.PD_CD
+           AND T5.PD_EXTS_PRP_GRP_CD = 'LRNN'
+         INNER JOIN T_CMZ_CD_D C1  /* 학습단계공통코드 */
+            ON C1.CD_ID = T6.PD_PRP_VAL10   /*  학습단계구분코드 */
+           AND T5.PD_PRP_VAL11 = T6.PD_PRP_VAL10   /* 기준상품의 학습단계구분코드와 제품의 학습단계구분코드가 동일한지 확인 */
+           AND C1.CD_VLD_VAL = T5.PD_PRP_VAL12  /* 하위책의 단계코드 */
+         WHERE 1=1
+           AND T1.PD_CD = #{pdCd}
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T5.PD_PRP_VAL12
+    </select>
+
+    <select id="selectProductPrices" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdAmtDvo">
+        SELECT T1.FNL_VAL AS FNL_AMT
+             , T1.VAT
+             , T1.ACKMT_AMT AS ACKMT_PERF_AMT
+             , T1.PD_PRC_FNL_PRP_VAL01 AS ACKMT_PERF_RT
+             , T1.PD_PRC_FNL_PRP_VAL02 AS CVT_PERF_AMT
+             , T1.PD_PRC_FNL_DTL_ID -- 상품가격최종상세ID
+             , T1.FXAM_FXRT_DV_CD
+             , T1.VER_SN -- 버전일련번호
+             , T1.CTR_VAL -- 조정값
+             , T1.PD_PRC_ID -- 상품가격ID
+          FROM TB_PDBS_PD_PRC_FNL_DTL T1
+         WHERE 1 = 1
+           AND T1.PD_CD = #{pdCd}        -- 기준/복합상품코드
+           AND T1.SELL_TP_CD = #{sellTpCd}             -- 판매유형코드
+           AND T1.SELL_CHNL_CD = #{sellChnlCd}         -- 판매채널코드
+       <if test='@MybatisUtils@isNotEmpty(suscMm)'>
+           AND T1.STPL_PRD_CD = #{suscMm}            -- 약정주기코드 (구독개월이 있으면 구독개월 )
+       </if>
+       <if test='!@MybatisUtils@equals(sellTpCd, "1")'>
+           AND T1.PD_PRC_CNDT_CHRC_VAL03 = #{lrnnStrtLvCd} -- 학습단계구분코드 (학습지 시)
+       </if>
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.VER_SN = (SELECT MAX(T2.VER_SN)
+                              FROM TB_PDBS_PD_PRC_FNL_DTL T2
+                             WHERE 1 = 1
+                               AND T2.PD_PRC_FNL_DTL_ID = T1.PD_PRC_FNL_DTL_ID
+         )
+    </select>
+
+    <select id="selectProductdServiceInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdSvcDvo">
+        SELECT T1.PD_NM
+             , T1.PD_CD
+             , T2.PD_PRP_VAL11 -- 학습단계그룹구분코드
+             , T2.PD_PRP_VAL12 -- 학습단계구분코드
+             , T3.PD_REL_ID -- 상품관계ID
+             , T3.BASE_PD_CD -- 기준상품코드
+             , T3.OJ_PD_CD   -- 대상상품코드
+             , T3.PD_REL_TP_CD -- 상품관계유형코드
+          FROM TB_PDBS_PD_BAS T1
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+            ON T2.PD_CD = T1.PD_CD
+           AND T2.PD_EXTS_PRP_GRP_CD = 'LRNN'
+          LEFT OUTER JOIN TB_PDBS_PD_REL T3
+            ON T3.OJ_PD_CD = T1.PD_CD
+           AND T3.PD_REL_TP_CD = '05'
+          WHERE T1.PD_CD IN (
+            SELECT OJ_PD_CD
+            FROM TB_PDBS_PD_REL
+            WHERE 1 = 1
+              AND PD_REL_TP_CD = '05' -- 기준-제품
+              AND DTA_DL_YN = 'N'
+              AND TEMP_SAVE_YN = 'N'
+              AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VL_STRT_DTM AND VL_END_DTM
+              AND BASE_PD_CD = #{pdCd}
+            )
+    </select>
+
+    <!-- STEP2 저장 -->
+    <insert id="insertCntrDtlStep2">
+        INSERT INTO TB_SSCT_CNTR_DTL (  /* 계약상세 */
+               CNTR_NO             /* 계약번호 */
+             , CNTR_SN             /* 계약일련번호 */
+             , BASE_PD_CD          /* 기준상품코드 */
+             , HGR_PD_CD           /* 상위상품코드 */
+             , PD_QTY              /* 상품수량 */
+             , SELL_TP_CD          /* 판매유형코드 */
+             , SELL_TP_DTL_CD      /* 판매유형상세코드 */
+             , CNTR_DTL_STAT_CD    /* 계약상세상태코드 */
+             , CNTR_PTRM_UNIT_CD   /* 계약기간단위코드 */
+             , CNTR_PTRM           /* 계약기간 */
+             , CNTR_PD_STRTDT      /* 계약상품시작일자 */
+             , CNTR_PD_ENDDT       /* 계약상품종료일자 */
+             , STPL_PTRM_UNIT_CD   /* 약정기간단위코드 */
+             , STPL_PTRM           /* 약정기간 */
+             , SV_PTRM_UNIT_CD     /* 서비스기간단위코드 */
+             , SV_PRD              /* 서비스주기 */
+             , CNTRW_TP_CD         /* 계약서유형코드 */
+             , BLG_CRP_CD          /* 소속법인코드 */
+             , RVE_CRP_CD          /* 수납법인코드 */
+             , CO_CD               /* 회사코드 */
+             , BOO_SELL_TP_CD      /* 예약판매유형코드 */
+             , PD_GD_CD            /* 상품등급코드 */
+             , PD_HCLSF_ID         /* 상품대분류ID */
+             , PD_MCLSF_ID         /* 상품중분류ID */
+             , PD_LCLSF_ID         /* 상품소분류ID */
+             , PD_DCLSF_ID         /* 상품세분류ID */
+             , SELL_DSC_DV_CD      /* 판매할인구분코드 */
+             , SELL_DSCR_CD        /* 판매할인율코드 */
+             , SELL_DSC_CTR_AMT    /* 판매할인조정금액 */
+             , SELL_DSC_TP_CD      /* 판매할인유형코드 */
+             , STLM_TP_CD          /* 결제유형코드 */
+             , CRNCY_DV_CD         /* 통화구분코드 */
+             , APY_EXCR            /* 적용환율 */
+             , PD_BASE_AMT         /* 상품기준금액 */
+             , SELL_AMT            /* 판매금액 */
+             , DSC_AMT             /* 할인금액 */
+             , FNL_AMT             /* 최종금액 */
+             , VAT                 /* 부가가치세 */
+             , CNTR_AMT            /* 계약금액 */
+             , CNTRAM_DSC_AMT      /* 계약금할인금액 */
+             , ISTM_MCN            /* 할부개월수 */
+             , ISTM_PCAM_AMT       /* 할부원금금액 */
+             , ISTM_INT_AMT        /* 할부이자금액 */
+             , MM_ISTM_AMT         /* 월할부금액 */
+             , CRP_UC_AMT          /* 법인미수금액 */
+             , SELL_FEE            /* 판매수수료 */
+             , CNTR_TAM            /* 계약총액 */
+             , ACKMT_PERF_RT       /* 인정실적율 */
+             , ACKMT_PERF_AMT      /* 인정실적금액 */
+             , CVT_PERF_AMT        /* 환산실적금액 */
+             , FEE_ACKMT_CT        /* 수수료인정건수 */
+             , FEE_ACKMT_BASE_AMT  /* 수수료인정기준금액 */
+             , FEE_FXAM_YN         /* 수수료정액여부 */
+             , SPP_DUEDT           /* 배송예정일자 */
+             , RESUB_YN            /* 재구독여부 */
+             , RSTL_YN             /* 재약정여부 */
+             , FRISU_YN            /* 무상여부 */
+             , FRISU_DSB_TP_CD     /* 무상지급유형코드 */
+             , TXINV_PBL_OJ_YN     /* 세금계산서발행대상여부 */
+             , ALNCMP_CD           /* 제휴사코드 */
+             , ALNCMP_CNTR_DRM_VAL /* 제휴사계약식별값 */
+             , SMTPL_ID            /* 스마트플랜ID */
+             , SMTPL_SN            /* 스마트플랜일련번호 */
+             , CTT_RS_CD           /* 컨택결과코드 */
+             , CTT_PSIC_ID         /* 컨택담당자ID */
+             , BF_ORD_NO           /* 이전주문번호 */
+             , CNTR_CH_RCP_ID      /* 계약변경접수ID */
+             , CNTR_CH_SN          /* 계약변경일련번호 */
+             , CNTR_CH_DTL_AK_CN   /* 계약변경상세요청내용 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{cntrNo}
+             , #{cntrSn}
+             , #{basePdCd}
+             , #{hgrPdCd}
+             , #{pdQty}
+             , #{sellTpCd}
+             , #{sellTpDtlCd}
+             , #{cntrDtlStatCd}
+             , #{cntrPtrmUnitCd}
+             , #{cntrPtrm}
+             , #{cntrPdStrtdt}
+             , #{cntrPdEnddt}
+             , #{stplPtrmUnitCd}
+             , #{stplPtrm}
+             , #{svPtrmUnitCd}
+             , #{svPrd}
+             , #{cntrwTpCd}
+             , #{blgCrpCd}
+             , #{rveCrpCd}
+             , #{coCd}
+             , #{booSellTpCd}
+             , #{pdGdCd}
+             , #{pdHclsfId}
+             , #{pdMclsfId}
+             , #{pdLclsfId}
+             , #{pdDclsfId}
+             , #{sellDscDvCd}
+             , #{sellDscrCd}
+             , #{sellDscCtrAmt}
+             , #{sellDscTpCd}
+             , #{stlmTpCd}
+             , #{crncyDvCd}
+             , #{apyExcr}
+             , #{pdBaseAmt}
+             , #{sellAmt}
+             , #{dscAmt}
+             , #{fnlAmt}
+             , #{vat}
+             , #{cntrAmt}
+             , #{cntramDscAmt}
+             , #{istmMcn}
+             , #{istmPcamAmt}
+             , #{istmIntAmt}
+             , #{mmIstmAmt}
+             , #{crpUcAmt}
+             , #{sellFee}
+             , #{cntrTam}
+             , #{ackmtPerfRt}
+             , #{ackmtPerfAmt}
+             , #{cvtPerfAmt}
+             , #{feeAckmtCt}
+             , #{feeAckmtBaseAmt}
+             , #{feeFxamYn}
+             , #{sppDuedt}
+             , #{resubYn}
+             , #{rstlYn}
+             , #{frisuYn}
+             , #{frisuDsbTpCd}
+             , #{txinvPblOjYn}
+             , #{alncmpCd}
+             , #{alncmpCntrDrmVal}
+             , #{smtplId}
+             , #{smtplSn}
+             , #{cttRsCd}
+             , #{cttPsicId}
+             , #{bfOrdNo}
+             , #{cntrChRcpId}
+             , #{cntrChSn}
+             , #{cntrChDtlAkCn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrHsmtrlDtlStep2">
+        INSERT INTO TB_SSCT_CNTR_HSMTRL_DTL (  /* 계약학습지상세 */
+               CNTR_NO               /* 계약번호 */
+             , CNTR_SN               /* 계약일련번호 */
+             , LRNN_GRY_CD           /* 학습학년코드 */
+             , LRNN_STRT_LV_CD       /* 학습시작단계코드 */
+             , LRNN_STRT_RQDT        /* 학습시작요청일자 */
+             , LRNN_DOW_CD           /* 학습요일코드 */
+             , LRNN_HM               /* 학습시분 */
+             , LRNN_CRSE_SERIS_CD    /* 학습과정시리즈코드 */
+             , LRNN_TCHMT_UNIT_TP_CD /* 학습교재단위유형코드 */
+             , TOT_LRNN_CIRN         /* 총학습부수 */
+             , RGL_TCHMT_STRT_ISN    /* 정규교재시작호수 */
+             , RGL_TCHMT_END_ISN     /* 정규교재종료호수 */
+             , RETT_TCHMT_STRT_ISN   /* 소급교재시작호수 */
+             , RETT_TCHMT_END_ISN    /* 소급교재종료호수 */
+             , LRNN_TCHMT_BASE_YM    /* 학습교재기준년월 */
+             , LRNN_STRTDT           /* 학습시작일자 */
+             , LRNN_ENDDT            /* 학습종료일자 */
+             , BORR_LRNN_ISN         /* 차주학습호수 */
+             , RES_LRNN_CIRN         /* 잔여학습부수 */
+             , BIL_STRTDT            /* 청구시작일자 */
+             , BIL_ENDDT             /* 청구종료일자 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{cntrNo}
+             , #{cntrSn}
+             , #{lrnnGryCd}
+             , #{lrnnStrtLvCd}
+             , #{lrnnStrtRqdt}
+             , #{lrnnDowCd}
+             , #{lrnnHm}
+             , #{lrnnCrseSerisCd}
+             , #{lrnnTchmtUnitTpCd}
+             , #{totLrnnCirn}
+             , #{rglTchmtStrtIsn}
+             , #{rglTchmtEndIsn}
+             , #{rettTchmtStrtIsn}
+             , #{rettTchmtEndIsn}
+             , #{lrnnTchmtBaseYm}
+             , #{lrnnStrtdt}
+             , #{lrnnEnddt}
+             , #{borrLrnnIsn}
+             , #{resLrnnCirn}
+             , #{bilStrtdt}
+             , #{bilEnddt}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrPdRelStep2">
+        <selectKey keyProperty="item.cntrPdRelId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_PD_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_PD_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_PD_REL (  /* 계약상품관계 */
+               CNTR_PD_REL_ID   /* 계약상품관계ID */
+             , VL_STRT_DTM      /* 유효시작일시 */
+             , VL_END_DTM       /* 유효종료일시 */
+             , CNTR_NO          /* 계약번호 */
+             , CNTR_SN          /* 계약일련번호 */
+             , PD_REL_ID        /* 상품관계ID */
+             , BASE_PD_CD       /* 기준상품코드 */
+             , OJ_PD_CD         /* 대상상품코드 */
+             , PD_REL_TP_CD     /* 상품관계유형코드 */
+             , RLTG_SPP_OJ_YN   /* 실물배송대상여부 */
+             , PD_QTY           /* 상품수량 */
+             , CNTR_CH_RCP_ID   /* 계약변경접수ID */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrPdRelId}
+             , #{item.vlStrtDtm}
+             , #{item.vlEndDtm}
+             , #{item.cntrNo}
+             , #{item.cntrSn}
+             , #{item.pdRelId}
+             , #{item.basePdCd}
+             , #{item.ojPdCd}
+             , #{item.pdRelTpCd}
+             , #{item.rltgSppOjYn}
+             , #{item.pdQty}
+             , #{item.cntrChRcpId}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+     </insert>
+
+    <insert id="insertCntrPmotIzStep2">
+        <selectKey keyProperty="item.cntrPmotId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_PMOT_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_PMOT_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_PMOT_IZ (  /* 계약프로모션내역 */
+               CNTR_PMOT_ID     /* 계약프로모션ID */
+             , PD_CD            /* 상품코드 */
+             , CNTR_UNIT_TP_CD  /* 계약단위유형코드 */
+             , CNTR_NO          /* 계약번호 */
+             , DTL_CNTR_NO      /* 상세계약번호 */
+             , DTL_CNTR_SN      /* 상세계약일련번호 */
+             , PMOT_CD          /* 프로모션코드 */
+             , PMOT_FVR_DTL_ID  /* 프로모션혜택상세ID */
+             , PMOT_FVR_QTY     /* 프로모션혜택수량 */
+             , PMOT_FVR_AMT     /* 프로모션혜택금액 */
+             , FXAM_FXRT_DV_CD  /* 정액정률구분코드 */
+             , PMOT_TP_CD       /* 프로모션유형코드 */
+             , BF_PMOT_NO       /* 이전프로모션번호 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrPmotId}
+             , #{item.pdCd}
+             , #{item.cntrUnitTpCd}
+             , #{item.cntrNo}
+             , #{item.dtlCntrNo}
+             , #{item.dtlCntrSn}
+             , #{item.pmotCd}
+             , #{item.pmotFvrDtlId}
+             , #{item.pmotFvrQty}
+             , #{item.pmotFvrAmt}
+             , #{item.fxamFxrtDvCd}
+             , #{item.pmotTpCd}
+             , #{item.bfPmotNo}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertFgptRcpIzStep2">
+        <selectKey keyProperty="item.fgptRcpId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(FGPT_RCP_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_FGPT_RCP_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_FGPT_RCP_IZ (  /* 사은품접수내역 */
+               FGPT_RCP_ID      /* 사은품접수ID */
+             , CNTR_UNIT_TP_CD  /* 계약단위유형코드 */
+             , CNTR_NO          /* 계약번호 */
+             , DTL_CNTR_NO      /* 상세계약번호 */
+             , DTL_CNTR_SN      /* 상세계약일련번호 */
+             , PSPC_CST_ID      /* 가망고객ID */
+             , FGPT_RCPDT       /* 사은품접수일자 */
+             , FGPT_OC_TP_CD    /* 사은품발생유형코드 */
+             , PMOT_FVR_DTL_ID  /* 프로모션혜택상세ID */
+             , FGPT_PD_CD       /* 사은품상품코드 */
+             , FGPT_QTY         /* 사은품수량 */
+             , FGPT_BASE_UPRC   /* 사은품기준단가 */
+             , FGPT_FNL_AMT     /* 사은품최종금액 */
+             , FGPT_FRISU_DV_CD /* 사은품무상구분코드 */
+             , SPP_MTHD_CD      /* 배송방식코드 */
+             , FGPT_SPP_PLAN_DT /* 사은품배송계획일자 */
+             , FGPT_AWD_TP_CD   /* 사은품시상유형코드 */
+             , SPP_FSH_DTM      /* 배송완료일시 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.fgptRcpId}
+             , #{item.cntrUnitTpCd}
+             , #{item.cntrNo}
+             , #{item.dtlCntrNo}
+             , #{item.dtlCntrSn}
+             , #{item.pspcCstId}
+             , #{item.fgptRcpdt}
+             , #{item.fgptOcTpCd}
+             , #{item.pmotFvrDtlId}
+             , #{item.fgptPdCd}
+             , #{item.fgptQty}
+             , #{item.fgptBaseUprc}
+             , #{item.fgptFnlAmt}
+             , #{item.fgptFrisuDvCd}
+             , #{item.sppMthdCd}
+             , #{item.fgptSppPlanDt}
+             , #{item.fgptAwdTpCd}
+             , #{item.sppFshDtm}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrPrcCmptIzStep2">
+        <selectKey keyProperty="item.cntrPrcCmptId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_PRC_CMPT_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_PRC_CMPT_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_PRC_CMPT_IZ (  /* 계약가격산출내역 */
+               CNTR_PRC_CMPT_ID  /* 계약가격산출ID */
+             , CNTR_NO           /* 계약번호 */
+             , CNTR_SN           /* 계약일련번호 */
+             , PD_CD             /* 상품코드 */
+             , PD_PRC_FNL_DTL_ID /* 상품가격최종상세ID */
+             , VER_SN            /* 버전일련번호 */
+             , PD_PRP_META_ID    /* 상품속성메타ID */
+             , PRP_NM            /* 속성명 */
+             , PD_PRC_PRP_VAL    /* 상품가격속성값 */
+             , APY_STRT_TN       /* 적용시작회차 */
+             , APY_END_TN        /* 적용종료회차 */
+             , FXAM_FXRT_DV_CD   /* 정액정률구분코드 */
+             , CTR_VAL           /* 조정값 */
+             , FNL_VAL           /* 최종값 */
+             , PD_PRC_ID         /* 상품가격ID */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrPrcCmptId}
+             , #{item.cntrNo}
+             , #{item.cntrSn}
+             , #{item.pdCd}
+             , #{item.pdPrcFnlDtlId}
+             , #{item.verSn}
+             , #{item.pdPrpMetaId}
+             , #{item.prpNm}
+             , #{item.pdPrcPrpVal}
+             , #{item.apyStrtTn}
+             , #{item.apyEndTn}
+             , #{item.fxamFxrtDvCd}
+             , #{item.ctrVal}
+             , #{item.fnlVal}
+             , #{item.pdPrcId}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <delete id="deleteCntrDtlStep2">
+        DELETE TB_SSCT_CNTR_DTL
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteContractDetailHistory">
+        DELETE TB_SSCT_CNTR_DCH_HIST
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrHsmtrlDtlStep2">
+        DELETE TB_SSCT_CNTR_HSMTRL_DTL
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrHsmtrDchHistory">
+        DELETE TB_SSCT_CNTR_HSMTRL_DCH_HIST
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrPdRelStep2">
+        DELETE TB_SSCT_CNTR_PD_REL
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrPmotIzStep2">
+        DELETE TB_SSCT_CNTR_PMOT_IZ
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteFgptRcpIzStep2">
+        DELETE TB_SSCT_FGPT_RCP_IZ
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrPrcCmptIzStep2">
+        DELETE TB_SSCT_CNTR_PRC_CMPT_IZ
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrPrccchHistory">
+        DELETE TB_SSCT_CNTR_PRCCCH_HIST
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+</mapper>

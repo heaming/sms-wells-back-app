@@ -206,6 +206,42 @@ public class WctaContractDto {
         String statCd
     ) {}
 
+    // 고객 Search Request Dto
+    @Builder
+    @ApiModel("EctaContractDto-SearchCntrtInfoReq")
+    public record SearchCntrtInfoReq(
+        String cntrTpCd,
+        String cntrCstRelTpCd,
+        String cstKnm,
+        String bzrno,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String cntrCstNo,
+        String bryyMmdd,
+        String sexDvCd,
+        String cntrtDv
+    ) {
+        public SearchCntrtInfoReq {
+            mexnoEncr = DbEncUtil.enc(mexnoEncr);
+            exnoEncr = DbEncUtil.enc(exnoEncr);
+        }
+    }
+
+    // 상품 금액 조회 Dto
+    @Builder
+    @ApiModel("WctaContractDto-SearchPdAmtReq")
+    public record SearchPdAmtReq(
+        String sellChnlCd,
+        String pdCd,
+        String sellTpCd,
+        String suscMm,
+        String lrnnStrtLvCd
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************

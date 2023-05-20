@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchBranchDivisionsRes;
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchEntrepreneurBaseRes;
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchGeneralDivisionsRes;
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchRegionalDivisionsRes;
+import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.*;
 
 @Mapper
 public interface WctzPartnerMapper {
@@ -20,4 +17,7 @@ public interface WctzPartnerMapper {
 
     List<SearchBranchDivisionsRes> selectBranchDivisions(String baseYm);
 
+    boolean isPartnerStpa(String prtnrNo, String ogTpCd);
+
+    FindPrtnrRes selectPrtnrInfo(String prtnrNo, String ogTpCd);
 }

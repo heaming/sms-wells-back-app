@@ -16,10 +16,13 @@ import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.constant.CommConst;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
@@ -337,5 +340,56 @@ public class WctaContractService {
 
     public List<SearchKMembersCancelAsksRes> getKMembersCancelAsks(SearchKMembersCancelAsksReq dto) {
         return mapper.selectKMembersCancelAsks(dto);
+    }
+
+    /**
+     * 판매유입채널상세코드
+     * IF 계약유형코드 == 03 (임직원)
+     * return '9020' 직원구매
+     * ELSE IF 계약유형코드 == 04 (지국비치)
+     * return '9010' 지국비치
+     * ELSE {
+     * IF 세션정보.사용자유형코드 == 'P'
+     * IF 세션정보.조직유형코드 = 'E02'
+     * return 3010 (TM)
+     * ELSE
+     * return 1010 (파트너)
+     * ELSE IF 세션정보.사용자유형코드 == 'E'
+     * return 1030 (정규직원)
+     * ELSE IF 세션정보.사용자유형코드 == 'C'
+     * return 1040 (계약직원)
+     * ELSE   return 9999 (오류) - 이후에 오류생성해야함.
+     * }
+     *
+     * @param cntrTpCd
+     * @return sellInflwChnlDtlCd
+     */
+    public String getSaleInflowChnlDtlCd(String cntrTpCd) {
+        if (CtContractConst.CNTR_TP_CD_ENSM.equals(cntrTpCd)) {
+            return "9020";
+            //} else if (CtContractConst.CNTR_TP_CD_DTRC.equals(cntrTpCd)) {
+            //    return "9010";
+        } else {
+            UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+            String userTypeCode = session.getUserTypeCode();
+            if (org.apache.commons.lang.StringUtils.isEmpty(userTypeCode)) {
+                return "1010"; // FIXME 테스트용, 추후 9999로 수정
+                // return "9999";
+            }
+            String ogTpCd = session.getOgTpCd();
+            if (userTypeCode.equals("P")) {
+                if (ogTpCd.equals("E02")) {
+                    return "3010";
+                } else {
+                    return "1010";
+                }
+            } else if (userTypeCode.equals("E")) {
+                return "1030";
+            } else if (userTypeCode.equals("C")) {
+                return "1040";
+            } else {
+                return "9999";
+            }
+        }
     }
 }

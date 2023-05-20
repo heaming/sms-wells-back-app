@@ -10,10 +10,13 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaContractService;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.*;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -30,6 +33,10 @@ import lombok.RequiredArgsConstructor;
 public class WctaContractController {
 
     private final WctaContractService service;
+    private final WctaContractRegStep1Service step1Service;
+    private final WctaContractRegStep2Service step2Service;
+    private final WctaContractRegStep3Service step3Service;
+    private final WctaContractRegStep4Service step4Service;
 
     @ApiOperation(value = "계약번호 페이징 조회", notes = "계약자명, 학습자명, 휴대전화번호, 고객번호를 입력받아 계약번호를 조회한다.")
     @ApiImplicitParams(value = {
@@ -258,5 +265,86 @@ public class WctaContractController {
         SearchKMembersCancelAsksReq dto
     ) {
         return service.getKMembersCancelAsks(dto);
+    }
+
+    @ApiOperation(value = "통합계약정보 조회", notes = "저장된 통합계약 정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "step", value = "step", paramType = "query", required = true),
+    })
+    @GetMapping("/cntr-info")
+    public WctaContractRegDvo selectContractInfo(
+        @RequestParam(required = false)
+        String cstNo,
+        @RequestParam(required = false)
+        String cntrNo,
+        @RequestParam
+        int step
+    ) {
+        return switch (step) {
+            case 1 -> step1Service.selectStepInfo(cstNo, cntrNo);
+            case 2 -> step2Service.selectStepInfo(cntrNo);
+            case 3 -> step3Service.selectStepInfo(cntrNo);
+            case 4 -> step4Service.selectStepInfo(cntrNo);
+            default -> throw new BizException("MSG_ALT_ERR_CONTACT_ADMIN");
+        };
+    }
+
+    @ApiOperation(value = "팝업 출력 전 고객 조회", notes = "고객이 없는 경우 신규등록 안내를 위해 팝업 출력 전 조회한다.(getUnfcCustInfo)")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrTpCd", value = "계약유형", paramType = "query"),
+        @ApiImplicitParam(name = "copnDvCd", value = "법인격구분", paramType = "query"),
+        @ApiImplicitParam(name = "cstKnm", value = "이름", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대전화번호", paramType = "query"),
+    })
+    @GetMapping("/is-exist-cntrt-info")
+    public boolean isExistCntrtInfo(
+        @Valid
+        WctaContractDto.SearchCntrtInfoReq dto
+    ) {
+        return step1Service.isExistCntrtInfo(dto);
+    }
+
+    @ApiOperation(value = "Step1 저장", notes = "Step1 정보를 신규 등록하거나 기존 정보를 수정한다.")
+    @PostMapping("save-cntr-step1")
+    public SaveResponse saveContractStep1(
+        @RequestBody
+        @Valid
+        WctaContractRegStep1Dvo dvo
+    ) {
+        return SaveResponse.builder().key(step1Service.saveContractStep1(dvo)).build();
+    }
+
+    @ApiOperation(value = "Step2 저장", notes = "Step2 정보를 신규 등록하거나 기존 정보를 수정한다.")
+    @PostMapping("save-cntr-step2")
+    public SaveResponse saveContractSte2(
+        @RequestBody
+        @Valid
+        WctaContractRegStep2Dvo dvo
+    ) {
+        return SaveResponse.builder().key(step2Service.saveContractStep2(dvo)).build();
+    }
+
+    @ApiOperation(value = "Step3 저장", notes = "Step3 정보를 신규 등록하거나 기존 정보를 수정한다.")
+    @PostMapping("save-cntr-step3")
+    public SaveResponse saveContractSte3(
+        @RequestBody
+        @Valid
+        WctaContractRegStep3Dvo dvo
+    ) {
+        return SaveResponse.builder().key(step3Service.saveContractStep3(dvo)).build();
+    }
+
+    @ApiOperation(value = "Step4 저장", notes = "Step4 정보를 신규 등록하거나 기존 정보를 수정한다.")
+    @PostMapping("save-cntr-step4")
+    public SaveResponse saveContractSte3(
+        @RequestBody
+        @Valid
+        WctaContractRegStep4Dvo dvo
+    ) {
+        return SaveResponse.builder().key(step4Service.saveContractStep4(dvo)).build();
     }
 }
