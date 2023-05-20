@@ -43,4 +43,11 @@ public interface WctzHistoryConverter {
         @MappingTarget
         WctzContractWellsDetailHistDvo target
     );
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    WctzCntrPrccchHistDvo convertPrcCmptToHist(
+        WctzCntrPrccchHistDvo source,
+        @MappingTarget
+        WctzCntrPrccchHistDvo target
+    );
 }

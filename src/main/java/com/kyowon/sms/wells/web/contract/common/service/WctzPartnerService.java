@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchBranchDivisionsRes;
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchEntrepreneurBaseRes;
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchGeneralDivisionsRes;
-import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.SearchRegionalDivisionsRes;
+import com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto.*;
 import com.kyowon.sms.wells.web.contract.common.mapper.WctzPartnerMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -32,5 +29,13 @@ public class WctzPartnerService {
 
     public List<SearchBranchDivisionsRes> getBranchDivisions(String baseYm) {
         return mapper.selectBranchDivisions(baseYm);
+    }
+
+    public boolean isPartnerStpa(String prtnrNo, String ogTpCd) {
+        return mapper.isPartnerStpa(prtnrNo, ogTpCd);
+    }
+
+    public FindPrtnrRes selectPrtnrInfo(String prtnrNo, String ogTpCd) {
+        return mapper.selectPrtnrInfo(prtnrNo, ogTpCd);
     }
 }
