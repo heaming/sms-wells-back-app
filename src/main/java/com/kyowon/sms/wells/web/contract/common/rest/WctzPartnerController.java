@@ -86,4 +86,18 @@ public class WctzPartnerController {
         String paramDt = StringUtils.defaultString(baseYm, DateUtil.getNowDayString());
         return service.getBranchDivisions(paramDt);
     }
+
+    @ApiOperation(value = "파트너 휴업 여부 검사", notes = "통합계약 파트너 휴업여부를 검사한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+    })
+    @GetMapping("/business-closes")
+    public boolean isPartnerStpa(
+        @RequestParam
+        String prtnrNo,
+        @RequestParam
+        String ogTpCd
+    ) {
+        return service.isPartnerStpa(prtnrNo, ogTpCd);
+    }
 }

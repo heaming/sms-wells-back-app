@@ -61,4 +61,13 @@ public interface WctzHistoryMapper {
 
     int insertAcmpalContractIzChangeHist(WctzAcmpalContractIzHistDvo dvo);
 
+    // 계약가격산출변경이력
+    WctzCntrPrccchHistDvo selectCntrPrccchHistory(String cntrNo, int cntrSn);
+
+    WctzCntrPrccchHistDvo selectCntrPrcCmptForHist(String cntrNo, int cntrSn);
+
+    int updateCntrPrccchHistory(WctzCntrPrccchHistDvo dvo);
+
+    int insertCntrPrccchHistory(WctzCntrPrccchHistDvo dvo);
+
 }

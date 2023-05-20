@@ -2,7 +2,9 @@ package com.kyowon.sms.wells.web.contract.common.service;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.common.web.contract.zcommon.constants.CtContractConst;
 import com.kyowon.sms.wells.web.contract.common.converter.WctzHistoryConverter;
 import com.kyowon.sms.wells.web.contract.common.dvo.*;
 import com.kyowon.sms.wells.web.contract.common.mapper.WctzHistoryMapper;
@@ -16,8 +18,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WctzHistoryService {
-    private final String HIST_STRT_DTM = "00000101000000";
-    private final String HIST_END_DTM = "99991231235959";
     private final WctzHistoryMapper mapper;
     private final WctzHistoryConverter converter;
 
@@ -55,7 +55,7 @@ public class WctzHistoryService {
             mapper.updateCntrDetailChangeHist(befHist);
         }
 
-        newHist.setHistEndDtm(HIST_END_DTM);
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertCntrDetailChangeHist(newHist);
     }
 
@@ -92,7 +92,7 @@ public class WctzHistoryService {
             befHist.setHistEndDtm(dvo.getHistStrtDtm());
             mapper.updateCntrDetailStatChangeHist(befHist);
         }
-        dvo.setHistEndDtm(HIST_END_DTM);
+        dvo.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertCntrDetailStatChangeHist(dvo);
     }
 
@@ -142,7 +142,7 @@ public class WctzHistoryService {
             befHist.setHistEndDtm(dvo.getHistStrtDtm());
             mapper.updateCntrChRcchStatChangeHist(befHist);
         }
-        dvo.setHistEndDtm(HIST_END_DTM);
+        dvo.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertCntrChRcchStatChangeHist(dvo);
     }
 
@@ -179,7 +179,7 @@ public class WctzHistoryService {
             mapper.updateCntrBasicChangeHist(befHist);
         }
 
-        newHist.setHistEndDtm(HIST_END_DTM);
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertCntrBasicChangeHist(newHist);
     }
 
@@ -216,7 +216,7 @@ public class WctzHistoryService {
             mapper.updateAcmpalContractIzChangeHist(befHist);
         }
 
-        newHist.setHistEndDtm(HIST_END_DTM);
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertAcmpalContractIzChangeHist(newHist);
     }
 
@@ -254,7 +254,47 @@ public class WctzHistoryService {
             mapper.updateContractWellsDetailHist(befHist);
         }
 
-        newHist.setHistEndDtm(HIST_END_DTM);
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertContractWellsDetailHist(newHist);
+    }
+
+    /**
+     * 계약가격산출변경이력 조회
+     *
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @return dvo
+     */
+    public WctzCntrPrccchHistDvo getCntrPrccchHistory(String cntrNo, int cntrSn) {
+        return mapper.selectCntrPrccchHistory(cntrNo, cntrSn);
+    }
+
+    /**
+     * 계약가격산출변경이력 생성
+     *
+     * @param dvo
+     */
+    @Transactional
+    public void createCntrPrccchHistory(WctzCntrPrccchHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzCntrPrccchHistDvo newHist = converter.convertPrcCmptToHist(
+            dvo,
+            mapper.selectCntrPrcCmptForHist(dvo.getCntrNo(), dvo.getCntrSn())
+        );
+
+        WctzCntrPrccchHistDvo befHist = getCntrPrccchHistory(dvo.getCntrNo(), dvo.getCntrSn());
+        if (ObjectUtils.isEmpty(befHist)) {
+            dvo.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateCntrPrccchHistory(befHist);
+        }
+
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
+        mapper.insertCntrPrccchHistory(newHist);
     }
 }
