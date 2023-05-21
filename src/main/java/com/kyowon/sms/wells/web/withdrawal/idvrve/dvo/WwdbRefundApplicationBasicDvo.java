@@ -17,4 +17,9 @@ public class WwdbRefundApplicationBasicDvo {
     private String rfndPsbResAmt; // 환불가능 잔액
     private String totRfndEtAmt; // 총환불가능 잔액
 
+    private String rfndRveDt; // 수납일자
+    private String rfndPerfDt; // 실적일자
+    private String rfndDsbDt; // 지급일자 rfndDsbDt rfndFshDt
+    private String rfndProcsCn; // 처리내용
+
 }

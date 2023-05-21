@@ -16,7 +16,16 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.E
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPartnerRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReceiptRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationInfoRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
@@ -156,23 +165,82 @@ public class WwdbRefundApplicationController {
             .build();
     }
 
-    @ApiOperation(value = "환불 신청 컨텍 이력 사항", notes = "환불 신청 컨텍 이력 사항 조회")
-    @GetMapping("/connect-history/paging")
-    public PagingResult<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryPages(
+    @ApiOperation(value = "환불 신청 상세 내역 신청정보 조회", notes = "환불 신청 상세 내역 신청정보 조회")
+    @GetMapping("/detail/partner")
+    public List<SearchRefundApplicationDetailPartnerRes> getRefundApplicationDetailPartner(
         @RequestParam
-        String cntrNo,
-        PageInfo pageInfo
+        String rfndRcpNo
     ) {
-        return service.getRefundApplicationConnectHistoryPages(cntrNo, pageInfo);
+        return service.getRefundApplicationDetailPartner(rfndRcpNo);
     }
 
-    @ApiOperation(value = "환불 신청 컨텍 이력 사항 엑셀 다운로드", notes = "환불 신청 컨텍 이력 사항 엑셀 다운로드")
-    @GetMapping("/connect-history/excel-download")
-    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryExcels(
-        @RequestParam
-        String cntrNo
+    @ApiOperation(value = "계약정보, 환불신청, 처리정보", notes = "계약정보, 환불신청, 처리정보")
+    @GetMapping("/detail/basic")
+    public SearchRefundApplicationDetailRes getRefundApplicationDetail(
+        @ApiParam
+        @Valid
+        SearchRefundApplicationDetailReq req
     ) {
-        return service.getRefundApplicationConnectHistoryExcels(cntrNo);
+        return service.getRefundApplicationDetail(req);
+    }
+
+    @ApiOperation(value = "환불 신청 상세 내역 환불가능금액 조회", notes = "환불 신청 상세 내역 환불가능금액 조회")
+    @GetMapping("/detail/possible")
+    public List<SearchRefundApplicationDetailPossibleRes> getRefundApplicationDetailPossible(
+        @ApiParam
+        @Valid
+        SearchRefundApplicationDetailPossibleReq req
+    ) {
+        return service.getRefundApplicationDetailPossible(req);
+    }
+
+    @ApiOperation(value = "환불 신청 상세 내역 상세입금 조회", notes = "환불 신청 상세 내역 상세입금 조회")
+    @GetMapping("/detail/deposit")
+    public PagingResult<SearchRefundApplicationDetailDepositRes> getRefundApplicationDetailDepositPages(
+        @ApiParam
+        @Valid
+        SearchRefundApplicationDetailDepositReq req,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getRefundApplicationDetailDepositPages(req, pageInfo);
+    }
+
+    @ApiOperation(value = "환불 신청 상세 내역 상세입금 조회 엑셀 다운로드", notes = "환불 신청 상세 내역 상세입금 조회 엑셀 다운로드")
+    @GetMapping("/detail/deposit/excel-download")
+    public List<SearchRefundApplicationDetailDepositRes> getRefundApplicationDetailDepositExcels(
+        SearchRefundApplicationDetailDepositReq req
+    ) {
+        return service.getRefundApplicationDetailDepositExcels(req);
+    }
+
+    @ApiOperation(value = "환불 신청 상세 내역 매출실적조회", notes = "환불 신청 상세 내역 매출실적조회")
+    @GetMapping("/detail/performance")
+    public PagingResult<SearchRefundApplicationDetailPerformanceRes> getRefundApplicationDetailPerformancePages(
+        @ApiParam
+        @Valid
+        SearchRefundApplicationDetailPerformanceReq req,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getRefundApplicationDetailPerformancePages(req, pageInfo);
+    }
+
+    @ApiOperation(value = "환불 신청 상세 내역 매출실적조회 엑셀 다운로드", notes = "환불 신청 상세 내역 매출실적조회 엑셀 다운로드")
+    @GetMapping("/detail/performance/excel-download")
+    public List<SearchRefundApplicationDetailPerformanceRes> getRefundApplicationDetailPerformanceExcels(
+        SearchRefundApplicationDetailPerformanceReq req
+    ) {
+        return service.getRefundApplicationDetailPerformanceExcels(req);
+    }
+
+    @ApiOperation(value = "환불 신청 상세 내역 환불접수총액 조회", notes = "환불 신청 상세 내역 환불접수총액 조회")
+    @GetMapping("/detail/receipt")
+    public List<SearchRefundApplicationDetailReceiptRes> getRefundApplicationDetailReceipt(
+        @RequestParam
+        String rfndRcpNo
+    ) {
+        return service.getRefundApplicationDetailReceipt(rfndRcpNo);
     }
 
 }
