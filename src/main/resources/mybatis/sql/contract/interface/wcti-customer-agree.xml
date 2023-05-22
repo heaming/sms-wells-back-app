@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiCustomerAgreeMapper">
+    <select id="selectCustomerAgree" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto$SearchRes">
+        SELECT T1.AG_DRM_REFK_VAL AS CNTR_NO /* 고객동의내역.동의식별참조키값 */
+             , T3.CNTR_CST_NO /* 계약기본.계약고객번호 */
+             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T3.CNTR_CST_NO AND DTA_DL_YN = 'N') AS CNTR_CST_NM /* 계약기본.계약고객명 */
+             , T3.SELL_PRTNR_NO /* 계약기본.판매파트너번호 */
+             , T1.AG_PROCS_DTM /* 고객동의내역.동의처리일시 */
+             , T2.AG_ATC_DV_CD /* 고객동의내역상세.동의항목구분코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AG_ATC_DV_CD', T2.AG_ATC_DV_CD ) AS AG_ATC_DV_NM /* 고객동의내역상세.동의항목구분명 */
+             , T2.AG_STAT_CD /* 고객동의내역상세.동의상태코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AG_STAT_CD', T2.AG_STAT_CD ) AS AG_STAT_NM /* 고객동의내역상세.동의상태명 */
+             , T2.PRV_DOC_ID /* 고객동의내역상세.약관문서ID */
+          FROM TB_CUBS_CST_AG_IZ T1 /* 고객동의내역 */
+         INNER JOIN TB_CUBS_CST_AG_IZ_DTL T2 /* 고객동의내역상세 */
+            ON T2.CST_AG_ID = T1.CST_AG_ID /* 고객동의내역상세.고객동의ID */
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T3 /* 계약기본 */
+            ON T3.CNTR_NO = T1.AG_DRM_REFK_VAL
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+            /* 고객번호 조건일 경우 */
+           AND T3.CNTR_CST_NO = #{cstNo} /* 조회조건 계약기본.계약고객번호 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+            /* 계약번호 조건일 경우 */
+           AND T3.CNTR_NO = #{cntrNo} /* 조회조건 계약기본.계약번호 */
+        </if>
+    </select>
+</mapper>
