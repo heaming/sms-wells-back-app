@@ -1,14 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
-import javax.validation.constraints.NotBlank;
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
 import java.util.List;
 
-public class WsnaReceiptsAndPaymentsDto {
+public class WsnaItemReceivingAndPayingDto {
     // *********************************************************
     // Request Dto
     // *********************************************************

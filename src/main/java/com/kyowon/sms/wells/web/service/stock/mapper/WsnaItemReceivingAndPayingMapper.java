@@ -4,14 +4,13 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReceiptsAndPaymentsDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemReceivingAndPayingDto.*;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSampleDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
-public interface WsnaReceiptsAndPaymentsMapper {
+public interface WsnaItemReceivingAndPayingMapper {
 
     PagingResult<SearchRes> selectReceiptsAndPaymentsPages(
         SearchReq dto,

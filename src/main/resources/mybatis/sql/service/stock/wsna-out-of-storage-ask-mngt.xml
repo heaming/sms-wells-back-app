@@ -156,9 +156,10 @@
             LEFT OUTER JOIN TB_SVST_MCITM_BASE_SFT_STOC_IZ T4
               ON B.SVPD_PD_CD  = T4.PD_CD
              AND T4.APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
+             AND T4.WARE_NO = #{strOjWareNo}
            WHERE 1=1
              AND A.OSTR_AK_NO = #{ostrAkNo}
-             AND T4.WARE_NO = #{strOjWareNo}
+             AND A.DTA_DL_YN = 'N'
             ORDER BY A.OSTR_AK_SN
     </select>
     <select id="selectOstrObjectWarehouses"
@@ -181,11 +182,11 @@
 
     </select>
     <delete id="deleteOutOfStorageAskItems">
-        SELECT 1 FROM DUAL
-<!--        DELETE FROM TB_SVST_ITM_OSTR_AK_IZ-->
-<!--           WHERE 1=1-->
-<!--             AND OSTR_AK_NO = #{ostrAkNo}-->
-<!--             AND OSTR_AK_SN = #{ostrAkSn}-->
+        UPDATE TB_SVST_ITM_OSTR_AK_IZ
+           SET DTA_DL_YN = 'Y'
+         WHERE 1 = 1
+           AND OSTR_AK_NO = #{ostrAkNo}
+           AND OSTR_AK_SN = #{ostrAkSn}
     </delete>
 
     <select id="selectNewOstrAkNo" resultType="java.lang.String">
@@ -224,7 +225,10 @@
                 <include refid="COMMON.insertSystemField" />)
             VALUES (
                   #{ostrAkNo}
-                , #{ostrAkSn}
+                , (SELECT NVL(MAX(OSTR_AK_SN), 0) +1
+                     FROM TB_SVST_ITM_OSTR_AK_IZ
+                    WHERE 1 = 1
+                      AND OSTR_AK_NO = #{ostrAkNo})
                 , #{ostrAkTpCd}
                 , #{strOjWareNo}
                 , #{ostrOjWareNo}
