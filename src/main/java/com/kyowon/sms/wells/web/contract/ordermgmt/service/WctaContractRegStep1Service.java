@@ -65,7 +65,7 @@ public class WctaContractRegStep1Service {
             .selectPrtnrInfo(loginPrtnrno, session.getOgTpCd());
 
         // 3-3-2. 로그인 사용자 = 파트너, 사전업무 등록기간 체크
-        // XXX 로그인 사용자는 반드시 파트너임을 가정함, 세션변경 필요(E03, 9000021)
+        // XXX 로그인 사용자는 반드시 파트너임을 가정함, 세션변경 필요(W01, 1002934)
         WctaContractPrtnrRelDvo prtnrInfo = converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(loginPrtnrInfo);
         if ("7".equals(prtnrInfo.getPstnDvCd())) {
             // 로그인한 파트너가 지국장인 경우
@@ -169,6 +169,7 @@ public class WctaContractRegStep1Service {
             basDvo.setCntrCstNo(dvo.getCntrt().getCstNo());
             basDvo.setCopnDvCd(dvo.getCntrt().getCopnDvCd());
             basDvo.setSellPrtnrNo(dvo.getPrtnr().getPrtnrNo());
+            basDvo.setSellOgTpCd(dvo.getPrtnr().getOgTpCd());
             basDvo.setCntrNatCd("KR");
             basDvo.setCntrPrgsStatCd("10");
             mapper.insertCntrBasStep1(basDvo);

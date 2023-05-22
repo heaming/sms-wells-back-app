@@ -318,6 +318,31 @@ public class WctaContractController {
         return SaveResponse.builder().key(step1Service.saveContractStep1(dvo)).build();
     }
 
+    @ApiOperation(value = "상품 조회", notes = "학습자에 적용 가능한 상품을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/reg-products")
+    public WctaContractRegStep2Dvo selectProducts(
+        @RequestParam
+        String cntrNo,
+        @RequestParam(required = false)
+        String pdFilter
+    ) {
+        return step2Service.selectProducts(cntrNo, pdFilter);
+    }
+
+    @ApiOperation(value = "상품 금액 조회", notes = "선택한 상품의 금액을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/product-prices")
+    public WctaContractRegStep2Dvo.PdAmtDvo selectProductPrices(
+        SearchPdAmtReq dto
+    ) {
+        return step2Service.selectProductPrices(dto);
+    }
+
     @ApiOperation(value = "Step2 저장", notes = "Step2 정보를 신규 등록하거나 기존 정보를 수정한다.")
     @PostMapping("save-cntr-step2")
     public SaveResponse saveContractSte2(

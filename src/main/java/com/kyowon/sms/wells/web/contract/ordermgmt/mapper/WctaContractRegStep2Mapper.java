@@ -43,7 +43,7 @@ public interface WctaContractRegStep2Mapper {
 
     WctaContractRegStep2Dvo.PdAmtDvo selectProductPrices(WctaContractDto.SearchPdAmtReq dto);
 
-    List<WctaContractRegStep2Dvo.PdSvcDvo> selectProductdServiceInfo(String pdCd);
+    List<WctaContractRegStep2Dvo.PdSvcDvo> selectProductServiceInfo(String pdCd);
 
     int deleteCntrDtlStep2(String cntrNo);
 
