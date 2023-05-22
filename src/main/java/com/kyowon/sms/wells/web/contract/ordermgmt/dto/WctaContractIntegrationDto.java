@@ -17,7 +17,6 @@ public class WctaContractIntegrationDto {
         String prtnrDv,
         String hmnrscEmpno,
         String ogTpCd,
-        String prtnrKnm,
         String ogCd,
         String cntrCstSeltDv,
         String cntrCstNo,

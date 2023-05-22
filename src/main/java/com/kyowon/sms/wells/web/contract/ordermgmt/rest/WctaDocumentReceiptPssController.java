@@ -9,9 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WwctaDocumentReceiptPssDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WwctaDocumentReceiptPssDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.service.WwctaDocumentReceiptPssService;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaDocumentReceiptPssDto;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaDocumentReceiptPssDto.SaveReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaDocumentReceiptPssDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaDocumentReceiptPssDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaDocumentReceiptPssService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
 import io.swagger.annotations.Api;
@@ -25,9 +27,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CtContractConst.REST_URL_V1)
-public class WwctaDocumentReceiptPssController {
+public class WctaDocumentReceiptPssController {
 
-    private final WwctaDocumentReceiptPssService service;
+    private final WctaDocumentReceiptPssService service;
 
     @ApiOperation(value = "wells 서류접수현황(추가) 조회", notes = "업무요청시 증빙서류가 필요한 건에 대한 접수현황을 조회한다.")
     @ApiImplicitParams(value = {
@@ -61,6 +63,8 @@ public class WwctaDocumentReceiptPssController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrChRcpId", value = "접수번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrChPrgsStatCd", value = "계약변경진행상태코드", paramType = "query"),
+        @ApiImplicitParam(name = "cntrChAkCn", value = "재접수 사유", paramType = "query"),
+        @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
         @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
         @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
@@ -68,8 +72,20 @@ public class WwctaDocumentReceiptPssController {
     @GetMapping("/document-receipts/confirms")
     public int saveDocumentRcpCnfm(
         @Valid
-        SearchReq dto
+        SaveReq dto
     ) throws Exception {
         return service.saveDocumentRcpCnfm(dto);
+    }
+
+    @ApiOperation(value = "wells 서류접수상세 조회", notes = "전자 업무 요청에 대한 처리 현황(개명/명의변경/ 해지신청 등 증빙서류 첨부 건에 대한 최종 확정)")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrChRcpId", value = "접수번호", paramType = "query"),
+    })
+    @GetMapping("/document-receipts/details")
+    public WctaDocumentReceiptPssDto.SearchDocumentRcpDtlRes getDocumentRcpDtlInqrs(
+        @Valid
+        String cntrChRcpId
+    ) {
+        return service.getDocumentRcpDtlInqrs(cntrChRcpId);
     }
 }

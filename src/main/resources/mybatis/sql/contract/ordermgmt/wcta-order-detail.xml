@@ -170,16 +170,19 @@
          WHERE 1=1
     </select>
 
-    <select id="selectOrderDetailCustomerBase" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchCustomerBaseRes">
+    <select id="selectOrderDetailCustomerBase" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailCustomerBaseDvo">
         SELECT /* WELLS주문상세 - 고객기본정보 조회 */
-               T2.CNTR_NO || ' - ' || T2.CNTR_SN AS CNTR_NO_FULL /* 계약번호+계약일련번호 */
+               CONCAT(CONCAT(T2.CNTR_NO, '-'), T2.CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
+             , T2.CNTR_NO  /* 계약번호 */
+             , T2.CNTR_SN  /* 계약일련번호 */
              , T8.PD_NM /* 상품명 */
              , T3.CST_KNM /* 고객명 */
              , T1.CNTR_CST_NO   /* 고객번호(교원키) */
-             , T2.CNTR_NO  /* 계약번호 */
-             , T2.CNTR_SN  /* 계약일련번호 */
              , DECODE(T1.COPN_DV_CD, '1', T3.BRYY_MMDD, T3.BZRNO ) AS CST_NO2 /* 개인:생년월일, 법인:사업자번호 */
-             , T41.CRAL_LOCARA_TNO || XX1.DEC_VARCHAR2_SEL(T41.MEXNO_ENCR,10,'AES256')  || T41.CRAL_IDV_TNO AS CRAL_TNO /* 계약자 휴대전화번호 */
+             , T3.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO
+             , T3.MEXNO_ENCR AS CNTR_MEXNO_ENCR
+             , T3.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO
+             , T3.CRAL_LOCARA_TNO || '-' || T3.MEXNO_ENCR || '-' || T3.CRAL_IDV_TNO AS CRAL_TNO /* 계약자 휴대전화번호 */
              , CASE WHEN T2.SELL_TP_CD = '1' OR T2.SELL_TP_CD = '6'    /* 할부(1) 정기배송(6) */
                     THEN '일반'
                     WHEN T2.SELL_TP_CD = '2' AND T2.ALNCMP_CD IN ('17','54','55') /* 렌탈에서 제휴사코드:상조 = 상조 */
@@ -192,33 +195,37 @@
                                    WHERE 1=1
                                      AND T10.CST_NO = T1.CNTR_CST_NO       /* 고객번호 */
                                      AND T10.VL_END_DTM = '99991231235959' /* 유효종료일시 */
-                                     AND T10.DTA_DL_YN = 'N'               /* 데이터삭제여부 */
                                      AND T10.ESTM_BASE_STRTDT <![CDATA[ <= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')  /* 산정기준시작일자 */
-                                     AND T10.ESTM_BASE_ENDDT  <![CDATA[ >= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')  /* 산정기준종료일자 */
+                                     AND T10.ESTM_BASE_ENDDT <![CDATA[ >= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')  /* 산정기준종료일자 */
+                                     AND T10.DTA_DL_YN = 'N'               /* 데이터삭제여부 */
                                  )
                               WHERE RN=1 )
                     ELSE '' END AS CST_GD                       /* 고객등급 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', T3.SEX_DV_CD) AS SEX_DV_NM
              , CASE /* 계좌자동이체 상세정보 */
                     WHEN T6.DP_TP_CD = '0102'
-                    THEN (F_CMZ_CD_NM('TNT_WELLS', 'BNK_CD', T6.BNK_CD) || ' ' ||   /* 은행코드 */
+                    THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '1' AND FNIT_CD = T6.BNK_CD) || ' ' ||   /* 은행코드 */
                           T6.OWR_KNM || ' ' ||  /* 예금주명 */
-                          XX1.DEC_VARCHAR2_SEL(T6.ACNO_ENCR,10,'AES256') || ' ' ||  /* 계좌번호 */
-                          '이 체 일 ' || T6.MPY_BSDT || '일' /* 계좌이체일자 */
-                          )
+                          T6.ACNO_ENCR || ' ' ||  /* 계좌번호 */
+                          '이체일:' || T6.MPY_BSDT  /* 계좌이체일자 */
                     /* 카드자동이체 상세정보 */
-                    WHEN T6.DP_TP_CD = '0201'
-                    THEN (F_CMZ_CD_NM('TNT_WELLS', 'CDCO_CD', T6.CDCO_CD) || ' ' ||     /* 카드사코드 */
+                    WHEN T6.DP_TP_CD = '0203'
+                    THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '2' AND FNIT_CD = T6.CDCO_CD) || ' ' ||     /* 카드사코드 */
                           T6.OWR_KNM || ' ' ||  /* 카드주명 */
-                          XX1.DEC_VARCHAR2_SEL(T6.CRCDNO_ENCR,10,'AES256') || ' ' ||    /* 카드번호:TODO MASK적용여부 확인 */
-                          '이 체 일 ' || T6.MPY_BSDT || '일' /* 카드이체일자 */
-                          )
+                          T6.CRCDNO_ENCR || ' ' ||    /* 카드번호:TODO MASK적용여부 확인 */
+                          '이체일:' || T6.MPY_BSDT /* 카드이체일자 */
                     ELSE '' END AS AFTN_INFO
+             , T6.DP_TP_CD
+             , T6.ACNO_ENCR
+             , T6.CRCDNO_ENCR
              , T3.SFK_VAL /* 세이프키값 */
-             , F_CMZ_CD_NM('TNT_WELLS', 'BNK_CD', T7.VAC_BNK_CD) || ' ' || T7.VAC_NO || NVL2(T7.VAC_DP_DT, ' 입금일 : ' || T7.VAC_DP_DT, '') AS VAC_INFO
+             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '1' AND FNIT_CD = T7.VAC_BNK_CD) || ' ' || T7.VAC_NO || NVL2(T7.VAC_DP_DT, ' 입금일 : ' || T7.VAC_DP_DT, '') AS VAC_INFO
              , T42.RNADR || T42.RDADR AS CNTRT_ADR /* 계약자 주소 */
              , T51.RCGVP_KNM    /* 수령자한글명 */
-             , T51.CRAL_LOCARA_TNO || XX1.DEC_VARCHAR2_SEL(T51.MEXNO_ENCR,10,'AES256')  || T51.CRAL_IDV_TNO AS RCGVP_TNO /* 수령자 휴대전화번호 */
+             , T51.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO
+             , T51.MEXNO_ENCR AS IST_MEXNO_ENCR
+             , T51.CRAL_IDV_TNO AS IST_CRAL_IDV_TNO
+             , T51.CRAL_LOCARA_TNO || '-' || T51.MEXNO_ENCR || '-' || T51.CRAL_IDV_TNO AS RCGVP_TNO /* 수령자 휴대전화번호 */
              , T52.RNADR || T52.RDADR  AS RCGVP_ADR/* 수령자 주소 */
           FROM TB_SSCT_CNTR_BAS T1                  /* T.계약기본 */
          INNER JOIN TB_SSCT_CNTR_DTL T2             /* T.계약상세 */
@@ -226,6 +233,7 @@
            AND T2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CUBS_CST_BAS T3            /* T.고객기본 */
             ON T3.CST_NO = T1.CNTR_CST_NO
+           AND T3.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T4       /* T.계약주소관계 - 계약 */
             ON T4.DTA_DL_YN = 'N'
            AND T4.VL_END_DTM = '99991231235959'         /* 유효종료일시 */
