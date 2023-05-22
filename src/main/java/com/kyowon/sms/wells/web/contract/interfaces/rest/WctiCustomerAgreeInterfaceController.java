@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SaveReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SaveRes;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiCustomerAgreeService;
@@ -41,6 +43,24 @@ public class WctiCustomerAgreeInterfaceController {
         // 서비스 메소드 호출 및 Response Body 세팅
         resWrapper.setBody(service.getCustomerAgree(reqWrapper.getBody()));
 
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "[EAI_WCUI1015] 개인정보 동의 내역 저장", notes = "계약번호, 동의항목구분코드에 따른 개인정보 동의 저장/변경")
+    @PostMapping("/customer-agree-saves")
+    public EaiWrapper saveCustomerAgrees(
+        @Valid
+        @RequestBody
+        EaiWrapper<List<SaveReq>> reqWrapper
+    ) {
+        // 응답용 EaiWrapper
+        EaiWrapper<SaveRes> resWrapper = reqWrapper.newResInstance();
+        // 서비스 메소드 호출
+        String scnYn = service.saveCustomerAgrees(reqWrapper.getBody());
+
+        // 바디 설정
+        resWrapper.setBody(new SaveRes(scnYn));
+        // 리턴
         return resWrapper;
     }
 }

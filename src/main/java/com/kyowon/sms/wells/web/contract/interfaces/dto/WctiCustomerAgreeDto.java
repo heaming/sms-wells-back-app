@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.interfaces.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
@@ -9,7 +11,7 @@ public class WctiCustomerAgreeDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 계약 컨택 현황 조회 Search Request Dto
+    // 개인정보 동의 현황 조회 Search Request Dto
     @Builder
     @ApiModel("WctiCustomerAgreeDto-SearchReq")
     public record SearchReq(
@@ -22,8 +24,8 @@ public class WctiCustomerAgreeDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 계약 컨택 현황 조회 Search Result Dto
-    @ApiModel("WctiContractContactDto-SearchRes")
+    // 개인정보 동의 현황 조회 Search Result Dto
+    @ApiModel("WctiCustomerAgreeDto-SearchRes")
     public record SearchRes(
         @JsonProperty("CNTR_NO")
         String cntrNo,
@@ -45,5 +47,33 @@ public class WctiCustomerAgreeDto {
         String agStatNm,
         @JsonProperty("PRV_DOC_ID")
         String prvDocId
+    ) {}
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 개인정보 동의 내역 저장 Save Request Dto
+    @Builder
+    @ApiModel("WctiCustomerAgreeDto-SaveReq")
+    public record SaveReq(
+        @JsonProperty("CNTR_NO")
+        @NotBlank
+        String cntrNo,
+        @JsonProperty("AG_ATC_DV_CD")
+        @NotBlank
+        String agAtcDvCd,
+        @JsonProperty("AG_STAT_CD")
+        String agStatCd,
+        @JsonProperty("AZ_PSIC_ID")
+        String azPsicId
+    ) {}
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 개인정보 동의 내역 저장 Save Result Dto
+    @ApiModel("WctiCustomerAgreeDto-SaveRes")
+    public record SaveRes(
+        @JsonProperty("SCS_YN")
+        @NotBlank
+        String scsYn
     ) {}
 }
