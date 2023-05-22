@@ -79,13 +79,4 @@ public interface WctzHistoryMapper {
 
     int insertMachineChangeHistory(WctzMachineChangeHistoryDvo dvo);
 
-    // 관계사제휴계약변경이력
-    WctzAcmpalCntrChHistDvo selectAcmpalCntrChHistory(String cntrNo, int cntrSn);
-
-    WctzAcmpalCntrChHistDvo selectAcmpalCntrForHist(String cntrNo, int cntrSn);
-
-    int updateAcmpalCntrChHistory(WctzAcmpalCntrChHistDvo dvo);
-
-    int insertAcmpalCntrChHistory(WctzAcmpalCntrChHistDvo dvo);
-
 }
