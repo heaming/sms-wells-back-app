@@ -115,17 +115,6 @@ public class WfeaOrganizationNetOrderService {
     }
 
     /**
-     * WELLS M조직 수수료 순주문 관리(판매수수료) 목록 조회
-     * @param 'SearchMngerReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-    public List<WfeaOrganizationNetOrderDto.SearchMngerBsRes> getManagerBeforeServices(
-        WfeaOrganizationNetOrderDto.SearchMngerReq dto
-    ) {
-        return this.mapper.selectManagerBeforeServices(dto);
-    }
-
-    /**
      * WELLS P조직 수수료 순주문 관리 목록 조회
      * @param 'SearchPlarReq' 검색조건 정보
      * @return 조회된 데이터
