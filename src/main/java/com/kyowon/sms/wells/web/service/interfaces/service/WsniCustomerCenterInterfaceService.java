@@ -22,7 +22,8 @@ public class WsniCustomerCenterInterfaceService {
         List<SearchContactRes> searchRes = mapper.selectEngineerContactPs(dto);
 
         if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            //throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            throw new BizException("MSG_TXT_NO_DATA_RM");
         }
 
         return searchRes;
@@ -32,7 +33,8 @@ public class WsniCustomerCenterInterfaceService {
         List<SearchPromChRes> searchRes = mapper.selectEngineerPromChHist(dto);
 
         if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            //throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            throw new BizException("MSG_TXT_NO_DATA_RM");
         }
 
         return searchRes;
@@ -42,7 +44,8 @@ public class WsniCustomerCenterInterfaceService {
         List<SearchCancelRes> searchRes = mapper.selectEngineerCancels(dto);
 
         if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+//            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            throw new BizException("MSG_TXT_NO_DATA_RM");
         }
 
         return searchRes;
@@ -52,7 +55,8 @@ public class WsniCustomerCenterInterfaceService {
         List<SearchSppPdctRes> searchRes = mapper.selectSeedingRegularShippingPdct(dto);
 
         if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+//            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            throw new BizException("MSG_TXT_NO_DATA_RM");
         }
 
         return searchRes;
@@ -62,7 +66,8 @@ public class WsniCustomerCenterInterfaceService {
         List<SearchSppVstRes> searchRes = mapper.selectSeedingRegularShippingVst(dto);
 
         if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+//            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            throw new BizException("MSG_TXT_NO_DATA_RM");
         }
 
         return searchRes;
@@ -72,7 +77,8 @@ public class WsniCustomerCenterInterfaceService {
         List<SearchAsRes> searchRes = mapper.selectAfterServiceBusinessInf(dto);
 
         if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+//            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            throw new BizException("MSG_TXT_NO_DATA_RM");
         }
 
         return searchRes;

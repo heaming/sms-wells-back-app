@@ -17,7 +17,6 @@ public class WctaContractIntegrationPagesRequestDvo {
     private String prtnrDv; /* 파트너내역구분(사번/성명/부서코드) */
     private String hmnrscEmpno; /* 인사사원번호 */
     private String ogTpCd; /* 조직유형코드 */
-    private String prtnrKnm; /* 성명 */
     private String ogCd; /* 부서코드(조직코드) */
     private String cntrCstSeltDv; /* 고객선택구분 */
     private String cntrCstNo; /* 고객번호(세이프키) */

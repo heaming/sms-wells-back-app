@@ -65,21 +65,30 @@ public class WctaOrderDetailDto {
     //wells 주문 상세 조회 - WELLS 주문 상세(고객기본정보) Search Result Dto
     @ApiModel("WctaOrderDetailDto-SearchCustomerBaseRes")
     public record SearchCustomerBaseRes(
-        String cntrNoFull,
+        String cntrDtlNo,
+        String cntrNo,
+        String cntrSn,
         String pdNm,
         String cstKnm,
         String cntrCstNo,
-        String cntrNo,
-        String cntrSn,
         String cstNo2,
+        String cntrCralLocaraTno,
+        String cntrMexnoEncr,
+        String cntrCralIdvTno,
         String cralTno,
         String cstGd,
         String sexDvNm,
         String aftnInfo,
+        String dpTpCd,
+        String acnoEncr,
+        String crcdnoEncr,
         String sfkVal,
         String vacInfo,
         String cntrtAdr,
         String rcgvpKnm,
+        String istCralLocaraTno,
+        String istMexnoEncr,
+        String istCralIdvTno,
         String rcgvpTno,
         String rcgvpAdr
     ) {}

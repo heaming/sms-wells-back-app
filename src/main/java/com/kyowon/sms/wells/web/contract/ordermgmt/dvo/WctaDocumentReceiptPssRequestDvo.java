@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WwctaDocumentReceiptPssRequestDvo {
+public class WctaDocumentReceiptPssRequestDvo {
     private String cntrChRcpStrtDtm; /* 접수시작일자 */
     private String cntrChRcpFinsDtm; /* 접수종료일자 */
     private String cntrChPrgsStatCd; /* 접수현황 */

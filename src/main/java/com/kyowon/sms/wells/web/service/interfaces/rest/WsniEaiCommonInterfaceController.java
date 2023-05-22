@@ -17,7 +17,7 @@ import java.util.Map;
 
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
-@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/sn-eai-commons")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/batch-call-services")
 @RequiredArgsConstructor
 @Validated
 public class WsniEaiCommonInterfaceController {

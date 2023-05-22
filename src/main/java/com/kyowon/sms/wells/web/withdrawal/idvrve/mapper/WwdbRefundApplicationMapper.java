@@ -4,11 +4,21 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.App;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.Ctract;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundBasic;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundDetail;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPartnerRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReceiptRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailReq;
@@ -75,13 +85,44 @@ public interface WwdbRefundApplicationMapper {
 
     int deleteRefundApplication(String rfndRcpNo);
 
-    PagingResult<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
-        String cntrNo,
+    List<RefundDetail> selectRefundApplicationDetailInfo(SearchRefundApplicationDetailReq req);
+
+    RefundBasic selectRefundApplicationInfo(SearchRefundApplicationDetailReq req);
+
+    List<SearchRefundApplicationDetailPartnerRes> selectRefundApplicationDetailPartner(
+        String rfndRcpNo
+    );
+
+    List<SearchRefundApplicationDetailPossibleRes> selectRefundApplicationDetailPossible(
+        SearchRefundApplicationDetailPossibleReq req
+    );
+
+    Ctract selectRefundApplicationDetailContract(SearchRefundApplicationDetailReq req);
+
+    PagingResult<SearchRefundApplicationDetailDepositRes> selectRefundApplicationDetailDeposit(
+        SearchRefundApplicationDetailDepositReq req,
         PageInfo pageInfo
     );
 
-    List<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
-        String cntrNo
+    List<SearchRefundApplicationDetailDepositRes> selectRefundApplicationDetailDeposit(
+        SearchRefundApplicationDetailDepositReq req
+    );
+
+    PagingResult<SearchRefundApplicationDetailPerformanceRes> selectRefundApplicationDetailPerformance(
+        SearchRefundApplicationDetailPerformanceReq req,
+        PageInfo pageInfo
+    );
+
+    App selectRefundApplicationDetailApplication(SearchRefundApplicationDetailReq req);
+
+    List<RefundDetail> selectRefundApplicationDetailInfo2(SearchRefundApplicationDetailReq req);
+
+    List<SearchRefundApplicationDetailReceiptRes> selectRefundApplicationDetailReceipt(
+        String rfndRcpNo
+    );
+
+    List<SearchRefundApplicationDetailPerformanceRes> selectRefundApplicationDetailPerformance(
+        SearchRefundApplicationDetailPerformanceReq req
     );
 
 }

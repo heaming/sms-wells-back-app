@@ -225,30 +225,6 @@ public class WfeaOrganizationNetOrderDto {
         String col15, /*승진월*/
         String col16 /*웰스매니저 개시일*/
     ) {}
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerBsRes")
-    public record SearchMngerBsRes(
-        String col1, /*소속*/
-        String col2, /*번호*/
-        String col3, /*성명*/
-        String col4, /*직책*/
-        String col5, /*미팅일수*/
-        String col6, /*수수료 월*/
-        String col7, /*M+1 수석플래너*/
-        String col8, /*플래너 스타트업*/
-        String col9, /*수석실전*/
-        String col10, /*등록기준월*/
-        String col11, /*최초업무등록월*/
-        String col12, /*재등록월*/
-        String col13, /*최종해약월*/
-        String col14, /*업무해약월*/
-        String col15, /*승진월*/
-        String col16, /*웰스매니저 개시일*/
-        String col17, /*정착수수료*/
-        String col18, /*가전실적*/
-        String col19, /*가전외 실적*/
-        String col20, /*기변*/
-        String col21 /*상조당월*/
-    ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarRes")
     public record SearchPlarRes(

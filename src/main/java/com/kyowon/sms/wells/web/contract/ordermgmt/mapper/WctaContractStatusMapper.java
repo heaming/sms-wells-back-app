@@ -21,6 +21,8 @@ public interface WctaContractStatusMapper {
 
     Optional<FindSummaryRes> selectContractStatusSummary(SearchReq dto);
 
+    String selectContractPrgsStatCd(String cntrNo);
+
     int updateDtaDlYnCntrBas(String cntrNo);
     int updateDtaDlYnCntrDtl(String cntrNo);
     int updateDtaDlYnCntrCstRel(String cntrNo);

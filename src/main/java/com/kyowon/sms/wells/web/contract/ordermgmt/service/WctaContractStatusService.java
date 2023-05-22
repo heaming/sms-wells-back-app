@@ -32,6 +32,10 @@ public class WctaContractStatusService {
                         .build());
     }
 
+    public String getContractPrgsStatCd(String cntrNo) {
+        return mapper.selectContractPrgsStatCd(cntrNo);
+    }
+
     @Transactional
     public int removeContract(String cntrNo){
         /*

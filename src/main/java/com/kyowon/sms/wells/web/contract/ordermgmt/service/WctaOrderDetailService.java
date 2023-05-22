@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaOrderDetailCustomerBaseConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailMapper;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WctaOrderDetailService {
     private final WctaOrderDetailMapper mapper;
+    private final WctaOrderDetailCustomerBaseConverter converter;
 
     public WctaOrderDetailDto.SearchRes getRelatedContracts(SearchReq dto) {
         // 기존 고객정보
@@ -27,7 +29,8 @@ public class WctaOrderDetailService {
     }
 
     public List<SearchCustomerBaseRes> getCustomerBase(SearchReq dto) {
-        return mapper.selectOrderDetailCustomerBase(dto);
+        return converter
+            .mapWctaOrderDetailCustomerBaseDvoToSearchCustomerBaseRes(mapper.selectOrderDetailCustomerBase(dto));
     }
 
     public List<SearchContractListsRes> getContractLists(SearchReq dto) {

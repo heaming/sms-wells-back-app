@@ -39,10 +39,6 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchMngerReq dto
     );
 
-    List<SearchMngerBsRes> selectManagerBeforeServices(
-        SearchMngerReq dto
-    );
-
     List<SearchPlarRes> selectPlanners(
         SearchPlarReq dto
     );

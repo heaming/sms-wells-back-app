@@ -10,9 +10,9 @@ public class WwdbServiceRefundDto {
     @ApiModel(value = "WwdbServiceRefundDto-SearchServiceRefundReq")
     public record SearchServiceRefundReq(
         // MAIN에서 어떻게 파라미터 던저줄지 몰라서 둘다 만듬
-        String cntrNo, // 계약번호
-        String cntrSn // 계약일련번호
-    //        String cntrNoSn // 계약상세번호 
+        //        String cntrNo, // 계약번호
+        //        String cntrSn, // 계약일련번호
+        String cntrNoSn // 계약상세번호 
     ) {}
 
     @ApiModel(value = "WwdbServiceRefundDto-SearchServiceRefundRes")

@@ -6,13 +6,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbRefundApplicationConverter;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.App;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.Ctract;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.EditRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundBasic;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundDetail;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPartnerRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReceiptRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationInfoRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
@@ -208,29 +219,99 @@ public class WwdbRefundApplicationService {
     }
 
     /**
-     * 환불 신청 컨텍 이력 사항
-     * @param List 
-     * @param SearchRefundApplicationConnectHistoryReq 
-     * @return PagingResult<SearchRefundApplicationConnectHistoryRes> 
+     * 환불 신청 상세 내역 신청정보 조회 
+     * @param pageInfo 
+     * @param String rfndRcpNo,
+     * @return PagingResult<SearchRefundApplicationDetailPartnerRes>
      */
-    public PagingResult<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryPages(
-
-        //        SearchRefundApplicationConnectHistoryReq req, PageInfo pageInfo
-
-        String cntrNo, PageInfo pageInfo
+    public List<SearchRefundApplicationDetailPartnerRes> getRefundApplicationDetailPartner(
+        String rfndRcpNo
     ) {
-        return mapper.selectRefundApplicationConnectHistory(cntrNo, pageInfo);
+        return mapper.selectRefundApplicationDetailPartner(rfndRcpNo);
     }
 
     /**
-     * 환불 신청 컨텍 이력 사항
-     * @param List 
-     * @param SearchRefundApplicationConnectHistoryReq
-     * @return PagingResult<SearchRefundApplicationConnectHistoryRes> 
+     * 환불 신청 상세 내역 환불가능금액 조회 
+     * @param pageInfo 
+     * @param SearchRefundApplicationDetailPossibleReq req,
+     * @return PagingResult<SearchRefundApplicationDetailPartnerRes>
      */
-    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryExcels(
-        String cntrNo
+    public List<SearchRefundApplicationDetailPossibleRes> getRefundApplicationDetailPossible(
+        SearchRefundApplicationDetailPossibleReq req
     ) {
-        return mapper.selectRefundApplicationConnectHistory(cntrNo);
+        return mapper.selectRefundApplicationDetailPossible(req);
     }
+
+    /**
+     * 환불 신청 상세 내역 상세입금 조회 
+     * @param pageInfo 
+     * @param SearchRefundApplicationDetailPossibleReq req,
+     * @return PagingResult<SearchRefundApplicationDetailPartnerRes>
+     */
+    public PagingResult<SearchRefundApplicationDetailDepositRes> getRefundApplicationDetailDepositPages(
+        SearchRefundApplicationDetailDepositReq req,
+        PageInfo pageInfo
+    ) {
+        return mapper.selectRefundApplicationDetailDeposit(req, pageInfo);
+    }
+
+    public List<SearchRefundApplicationDetailDepositRes> getRefundApplicationDetailDepositExcels(
+        SearchRefundApplicationDetailDepositReq req
+    ) {
+        return mapper.selectRefundApplicationDetailDeposit(req);
+    }
+
+    /**
+     * 환불 신청 상세 내역 매출실적조회 
+     * @param pageInfo 
+     * @param SearchRefundApplicationDetailPossibleReq req,
+     * @return PagingResult<SearchRefundApplicationDetailPartnerRes>
+     */
+    public PagingResult<SearchRefundApplicationDetailPerformanceRes> getRefundApplicationDetailPerformancePages(
+        SearchRefundApplicationDetailPerformanceReq req,
+        PageInfo pageInfo
+    ) {
+        return mapper.selectRefundApplicationDetailPerformance(req, pageInfo);
+    }
+
+    public List<SearchRefundApplicationDetailPerformanceRes> getRefundApplicationDetailPerformanceExcels(
+        SearchRefundApplicationDetailPerformanceReq req
+    ) {
+        return mapper.selectRefundApplicationDetailPerformance(req);
+    }
+
+    /**
+     * 환불 신청 팝업 환불신청, 예외환불사유, 환불접수총액, 처리정보 조회
+     * @param String rfndRcpNo
+     * @return List<SearchRefundApplicationInfoRes>
+     */
+    public SearchRefundApplicationDetailRes getRefundApplicationDetail(
+        SearchRefundApplicationDetailReq req
+    ) {
+        // 계약정보
+        Ctract ctract = mapper.selectRefundApplicationDetailContract(req);
+
+        // 환불신청 테이블
+        App app = mapper.selectRefundApplicationDetailApplication(req);
+
+        // 환불신청 // 추가 버튼 누르면 추가로 생성되는 부분
+        List<RefundDetail> refundDetail = mapper.selectRefundApplicationDetailInfo2(req);
+
+        // 예외사유, 환불접수총액, 처리정보 출력
+        RefundBasic basic = mapper.selectRefundApplicationInfo(req);
+
+        return new SearchRefundApplicationDetailRes(
+            ctract, // 계약정보
+            app, // 환불신청
+            basic, // 예외사유, 환불접수총액, 처리정보 출력
+            refundDetail // 환불신청 // 추가 버튼 누르면 추가로 생성되는 부분
+        );
+    }
+
+    public List<SearchRefundApplicationDetailReceiptRes> getRefundApplicationDetailReceipt(
+        String rfndRcpNo
+    ) {
+        return mapper.selectRefundApplicationDetailReceipt(rfndRcpNo);
+    }
+
 }

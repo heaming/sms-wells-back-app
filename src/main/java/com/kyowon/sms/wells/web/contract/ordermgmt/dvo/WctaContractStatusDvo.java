@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,6 +34,7 @@ public class WctaContractStatusDvo {
     private String pymnSkipYn;
     private String cstStlmInMthCd;
     private String cralLocaraTno;
+    @DBDecField
     private String mexnoEncr;
     private String cralIdvTno;
     private String mobileTelNo;
