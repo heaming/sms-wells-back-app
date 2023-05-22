@@ -73,6 +73,7 @@
                        AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM) TF /* 상조 FEE 기준금액 */
            ON 1=1
         WHERE 1=1
+          AND T1.ET_CNFM_DV_CD    = '00'
           AND T1.BASE_YM            = #{baseYm}
          <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
           AND T1.CNTR_DT >= #{strtDt}
@@ -101,6 +102,7 @@
              , TF.BASE_FEE * COUNT(1) AS  BRCH_AMT                 /* 금액 - 지점 (40000 * CNT) */
              , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
              , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
+             , T1.CNFM_YN
           FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ        T1  /* 라이프제휴수수료계약내역 */
          INNER JOIN TB_SSCT_CNTR_BAS               T2  /* 계약기본 20230502 - 조건절을 위해 태이블 추가 */
             ON T2.CNTR_NO            = T1.WELS_CNTR_NO   /* 20230502 - 조건절 추가        */
@@ -118,6 +120,7 @@
                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM) TF /* 상조 FEE 기준금액 */
             ON 1=1
          WHERE 1=1
+           AND T1.ET_CNFM_DV_CD    = '00'
            AND T1.BASE_YM            = #{baseYm}
            AND T1.LIF_CNTR_STAT_CD   = '0'               /* 수수료 : 라이프계약상태코드 */
            AND T1.LIF_CNTR_OC_TN     = 1                 /* 라이프계약발생회차          */
@@ -139,16 +142,19 @@
                 , T1.FEE_DSB_YM
                 , T1.FEE_REDF_YM
                 , TF.BASE_FEE
+                , T1.CNFM_YN
     </select>
 
     <update id="updateMutualAid">
         UPDATE TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A
            SET A.FEE_DSB_YM        = #{baseYm}
+             , A.CNFM_YN           = 'Y'
                <include refid="COMMON.updateSystemField"/>
          WHERE A.BASE_YM           = #{baseYm}
            AND A.LIF_CNTR_STAT_CD  = '0'                 /* 수수료(라이프계약상태코드) */
            AND A.CAN_DT            = '0'                 /* 취소일                     */
-           AND A.CNFM_YN           = 'Y'                 /* 확정여부                   */
+           AND A.ET_CNFM_DV_CD    = '00'                 -- 예상확정구분:확정
+           AND A.CNFM_YN          = 'N'                  --확정여부:미확정
            AND A.FLPYM_TN <![CDATA[<=]]> A.TOT_DSB_OJ_DV_CD /* 완납회차  총지급대상     */
            AND 0 = (SELECT MOD(COUNT(1), 2)   -- 연체가 있을 경우 연체 완납 되기 전까지는 수수료 지급에서 제외
                       FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ B
@@ -198,7 +204,8 @@
            ON SUBSTR(T1.WELS_CNTR_NO, 2, 4) = TU.KLFLG8
           AND SUBSTR(T1.WELS_CNTR_NO, 6, 7) = TU.KLFLG9
         WHERE 1=1
-          AND T1.CNFM_YN         = 'Y'
+          -- AND T1.CNFM_YN         = 'Y'
+          AND T1.ET_CNFM_DV_CD   = '00'
           AND T1.DTA_DL_YN       = 'N'
           AND T1.BASE_YM         = #{baseYm}
           <if test='@MybatisUtils@isNotEmpty(dgr4LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
@@ -207,10 +214,10 @@
                   AND TT.OG_ID = #{dgr4LevlOgId}     /* 조직 - 3레벨 선택 */
                 </when>
                 <when test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
-                  AND TT.DGR2_LEVL_OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
+                  AND TT.OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
                 </when>
                 <when test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
-                  AND TT.DGR1_LEVL_OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
+                  AND TT.OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
                 </when>
               </choose>
           </if>
