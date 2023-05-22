@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 import com.sds.sflex.system.config.constant.CommConst;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAskMngtMapper;
@@ -93,30 +94,31 @@ public class WsnaOutOfStorageAskMngtService {
 
     public int saveOutOfStorageAskItems(List<SaveReq> dtos) {
         int processCount = 0;
-        int serialNumber = 0;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         Calendar calendar = Calendar.getInstance();
         String strToday = dateFormat.format(calendar.getTime());
+        String strOstrAkNo = null;
 
         SaveReq saveReq = dtos.get(0);
 
         log.info("saveReq --->>" + saveReq);
         log.info("saveReq.ostrAkRgstDt ---->" + saveReq.ostrAkRgstDt());
 
-        String strOstrAkNo = this.mapper.selectNewOstrAkNo(
-            new FindOstrAkNoReq(saveReq.ostrAkRgstDt(), saveReq.ostrAkTpCd(), saveReq.strOjWareNo())
-        );
+        if (StringUtils.isEmpty(saveReq.ostrAkNo())) {
+            strOstrAkNo = this.mapper.selectNewOstrAkNo(
+                new FindOstrAkNoReq(saveReq.ostrAkRgstDt(), saveReq.ostrAkTpCd(), saveReq.strOjWareNo())
+            );
+
+        }
 
         for (SaveReq dto : dtos) {
-            serialNumber += 1;
             WsnaOutOfStorageAskMngtDvo dvo = this.converter.mapSaveReqToOutOfStorageAskMngtDvo(dto);
 
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
-                    dvo.setOstrAkNo(strOstrAkNo);
-                    //                    String strOstrAkSn = this.mapper.selectNewOstrAkSn(dvo);
-                    dvo.setOstrAkSn(String.valueOf(serialNumber));
-
+                    if (!StringUtils.isEmpty(strOstrAkNo)) {
+                        dvo.setOstrAkNo(strOstrAkNo);
+                    }
                     processCount += mapper.insertOutOfStorageAskItems(dvo);
 
                 }
