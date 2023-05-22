@@ -4,11 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSampleDvo;
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaReceiptsAndPaymentsConverter;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReceiptsAndPaymentsMapper;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemReceivingAndPayingMapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReceiptsAndPaymentsDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemReceivingAndPayingDto.*;
 
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -17,10 +15,9 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WsnaReceiptsAndPaymentsService {
+public class WsnaItemReceivingAndPayingService {
 
-    private final WsnaReceiptsAndPaymentsMapper mapper;
-    private final WsnaReceiptsAndPaymentsConverter converter;
+    private final WsnaItemReceivingAndPayingMapper mapper;
 
     public PagingResult<SearchRes> getReceiptsAndPaymentsPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectReceiptsAndPaymentsPages(dto, pageInfo);
