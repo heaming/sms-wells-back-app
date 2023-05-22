@@ -149,24 +149,6 @@ public class WfeaOrganizationNetOrderController {
         return this.service.getManagerSellFees(dto);
     }
 
-    @ApiOperation(value = "M조직 수수료 순주문 관리(BS) 목록 조회", notes = "조회조건에 따른 M조직 수수료 순주문 관리(BS) 목록 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "schBizDv", value = "업무구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schPdCdStrt", value = "상품코드시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schPdCdEnd", value = "상품코드종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schVstDtStrt", value = "방문일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schVstDtEnd", value = "방문일자종료", paramType = "query", required = false),
-    })
-    @GetMapping("mnger-before-services")
-    public List<WfeaOrganizationNetOrderDto.SearchMngerBsRes> getManagerBeforeServices(
-        @Valid
-        WfeaOrganizationNetOrderDto.SearchMngerReq dto
-    ) {
-        return this.service.getManagerBeforeServices(dto);
-    }
-
     @ApiOperation(value = "P조직 수수료 순주문 관리 목록 조회", notes = "조회조건에 따른 P조직 수수료 순주문 관리 목록 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
