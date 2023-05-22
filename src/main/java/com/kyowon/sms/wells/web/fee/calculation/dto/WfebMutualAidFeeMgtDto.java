@@ -56,7 +56,8 @@ public class WfebMutualAidFeeMgtDto {
         Integer brchCt,
         Integer brchAmt,
         String feeDsbYm,
-        String feeRedfYm
+        String feeRedfYm,
+        String cnfmYn
     ) {}
 
     public record SearchAidOrderReq(
