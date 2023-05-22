@@ -68,6 +68,16 @@ public class WctaContractStatusController {
         return service.getContractStatusSummary(dto);
     }
 
+    @ApiOperation(value = "계약현황 - 계약진행상태코드", notes = "계약번호로 현재 계약진행상태코드를 조회한다.")
+    @GetMapping("/{cntrNo}")
+    public String getContractStatusPages(
+        @NotEmpty
+        @PathVariable("cntrNo")
+        String cntrNo
+    ) {
+        return service.getContractPrgsStatCd(cntrNo);
+    }
+
     @ApiOperation(value = "계약현황 - 삭제", notes = "")
     @DeleteMapping("/{cntrNo}")
     public SaveResponse removeContract(
