@@ -292,8 +292,8 @@
                                    )
                                ELSE '' END AS ALNCMP_CST_CD                                             /* 제휴고객코드 (제휴고객코드:LCCK11) TODO.확인필요*/
                      , T75.ALNC_PRTNR_DRM_VAL AS ALNCMP_PRTNR_NO                                        /* 제휴판매자(LCCK14) LC3100P.LCCK14 계약파트너관계@파트너번호 가 제휴파트너식별값 처리함 */
-                     , T80.CTT_RS_CD                                                                    /* 컨택결과코드 (컨택코드:LCCCDE) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'CTT_RS_CD', T80.CTT_RS_CD) AS CTT_RS_NM                /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) */
+                     , T11.CTT_RS_CD                                                                    /* 컨택결과코드 (컨택코드:LCCCDE) */
+                     , F_CMZ_CD_NM('TNT_WELLS', 'CTT_RS_CD', T11.CTT_RS_CD) AS CTT_RS_NM                /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) */
                      , T11.FST_RGST_PRG_ID                                                              /* 최초등록프로그램ID (등록프로그램:LCEPGM)*/
                      , T11.FST_RGST_USR_ID                                                              /* 최초등록사용자ID (업무담당:LCECDE)*/
                      , T33.USR_NM AS FST_RGST_USR_NM                                                    /* 등록자(LCECNM 업무담당명 AK0200P@AKNAME) */
@@ -799,8 +799,8 @@
                     ON T76.OJ_DTL_CNTR_NO = T11.CNTR_NO
                    AND T76.OJ_DTL_CNTR_SN = T11.CNTR_SN
                    AND T76.CNTR_REL_DTL_CD IN ('214') /* 계약관계상세코드 : 정기배송(216)*/
-                   AND T76.DTA_DL_YN = 'N'
                    AND T76.VL_END_DTM = '99991231235959'    /*유효종료일시*/
+                   AND T76.DTA_DL_YN = 'N'
                    AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T76.OJ_DTL_CNTR_NO AND T11.CNTR_SN = T76.OJ_DTL_CNTR_SN)
                   LEFT OUTER JOIN LATERAL (SELECT T770.OJ_CNTR_NO
                                                 , T770.OJ_CNTR_SN
@@ -929,22 +929,6 @@
                                           ) T90             /*계약관계 -- 1+1 이전 계약정보.*/
                     ON T90.BASE_CNTR_NO = T11.CNTR_NO
                    AND T90.BASE_DTL_CNTR_SN = T11.CNTR_SN
-                LEFT OUTER JOIN LATERAL (SELECT /*+ LEADING(CT2,CT1) INDEX(CT2 IX_SSOP_CTT_DTL_01)  */
-                                                CT2.CNTR_NO
-                                              , CT2.CNTR_SN
-                                              , MAX(CTT_RS_CD) KEEP(DENSE_RANK FIRST ORDER BY CTT_FSH_DTM DESC NULLS LAST) AS CTT_RS_CD
-                                           FROM TB_SSOP_CTT_BAS CT1 /* 컨택기본 */
-                                          INNER JOIN TB_SSOP_CTT_DTL CT2 /* 컨택상세 */
-                                             ON CT2.CTT_OJ_ID = CT1.CTT_OJ_ID
-                                            AND CT2.DTA_DL_YN = 'N'
-                                            AND CT1.DTA_DL_YN = 'N'
-                                          WHERE CT2.CNTR_NO = T11.CNTR_NO
-                                            AND CT2.CNTR_SN = T11.CNTR_SN
-                                            AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = CT2.CNTR_NO AND T11.CNTR_SN = CT2.CNTR_SN)
-                                          GROUP BY CT2.CNTR_NO, CT2.CNTR_SN
-                                        ) T80             /* 컨택결과코드 최신 */
-                    ON T80.CNTR_NO = T11.CNTR_NO
-                   AND T80.CNTR_SN = T11.CNTR_SN
                 LEFT OUTER JOIN LATERAL (
                                          SELECT --/*+ INDEX (T81 PK_CBCL_DLQ_BAS) */
                                                 T81.CNTR_NO
@@ -1112,7 +1096,11 @@
              , T11.CNTR_PD_ENDDT                                                              /* 계약상품종료일자 - 탈퇴일자(LCOUYMD, LCOUTY) */
              , SUBSTR(T17.HIST_STRT_DTM, 0, 8) AS CAN_DT                                     /* 취소일(LCCAYMD.LCCANY) */
              , CASE WHEN T11.CNTRW_TP_CD != '5' THEN  T11.SPP_DUEDT ELSE '' END AS VST_DUEDT /* 방문 예정일 (방문일자:VIDT, LCDEMY) 계약서유형이 홈케어가 아닐때 예정일*/
-             , SUBSTR(T80.CTT_FSH_DTM, 0, 8) AS CTT_FSH_DT                                  /* 컨택완료일시 (컨택일자:CONT, LCCONY)*/
+             , (SELECT SUBSTR(CTT_FSH_DTM, 0, 8)
+             	  FROM TB_SSOP_CTT_BAS
+             	 WHERE CTT_OJ_ID = T11.CTT_OJ_ID
+             	   AND CTT_PRGS_STAT_CD = '20'
+             	   AND DTA_DL_YN = 'N') AS CTT_FSH_DT                                  		/* 컨택완료일시 (컨택일자:CONT, LCCONY)*/
              , T10.CNTR_CAN_RSON_CD                                                         /* 계약취소사유코드 (탈퇴유형코드:LCCFLG) */
              , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CAN_RSON_CD', T10.CNTR_CAN_RSON_CD) AS CNTR_CAN_RSON_NM     /* 계약취소사유코드 명 - (취소유형 , 탈퇴유형코드:LCCFLG,LCCFNM) */
              , CASE WHEN T11.CNTRW_TP_CD = '5' AND T46.SPP_ORD_NO IS NOT NULL THEN '정상출고'
@@ -1128,9 +1116,13 @@
                                                          THEN SUBSTR(T14.CNTR_PD_ENDDT, 0, 8)
                                                          ELSE '' END)   /*  (만료철거일:LCENDT.LCENDY) TODO없음 --> '철거일' 이 만료일(설치일+약정기간) 이후인 경우 종료일로 대체 (https://kyowon.atlassian.net/wiki/spaces/ForKUS/pages/95420433)*/
                     WHEN T14.SELL_TP_CD = '3' THEN '홈케어멤버십' END AS OJ_ENDDT          /* 원주문보상/종료일- 원주문취소일자(WLCCADT) 판매유형코드(할부:1,렌탈:2,멤버십:3) */
-             , T80.CTT_RS_CD                                                             /* 컨택결과코드 (컨택코드:LCCCDE) */
-             , F_CMZ_CD_NM('TNT_WELLS', 'CTT_RS_CD', T80.CTT_RS_CD) AS CTT_RS_NM         /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) LCCCDENM */
-             , T80.FNL_MDFC_USR_ID AS CTT_RS_NM_USR_ID                                   /* 컨택기본@최종수정사용자ID - (컨택사번:LCCMAN)*/
+             , T11.CTT_RS_CD                                                             /* 컨택결과코드 (컨택코드:LCCCDE) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CTT_RS_CD', T11.CTT_RS_CD) AS CTT_RS_NM         /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) LCCCDENM */
+             , (SELECT FNL_MDFC_USR_ID
+             	  FROM TB_SSOP_CTT_BAS
+             	 WHERE CTT_OJ_ID = T11.CTT_OJ_ID
+             	   AND CTT_PRGS_STAT_CD = '20'
+             	   AND DTA_DL_YN = 'N') AS CTT_RS_NM_USR_ID                                   /* 컨택기본@최종수정사용자ID - (컨택사번:LCCMAN)*/
              , T10.SELL_INFLW_CHNL_DTL_CD ||'.'|| F_CMZ_CD_NM('TNT_WELLS', 'SELL_INFLW_CHNL_DTL_CD', T10.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_NM /*판매유입채널상세코드 - 판매유형(LCSALE) */
              , T10.SELL_PRTNR_NO                                                        /* 판매파트너번호 - (판매자코드:LCDCDE) */
              , T30.PRTNR_KNM                                                            /* 판매자명(LCDCDENM) */
@@ -1423,20 +1415,6 @@
            AND T61.DTA_DL_YN = 'N'
            AND T61.PD_PRC_FNL_DTL_ID = 'TODO...' /* 상품가격최종상세ID */
            --AND T61.PRC_ID = 'TODO.가격ID'
-        LEFT OUTER JOIN LATERAL (SELECT *
-                                  FROM (SELECT CNTR_NO
-                                             , CTT_RS_CD    /* 컨택결과코드 */
-                                             , CTT_FSH_DTM  /* 컨택완료일시 */
-                                             , FNL_MDFC_USR_ID /* 최종수정사용자ID - 컨택사번*/
-                                             , ROW_NUMBER() OVER(ORDER BY CTT_FSH_DTM DESC) AS RN
-                                          FROM TB_SSOP_CTT_BAS  /* 컨택기본 */
-                                         WHERE CNTR_NO = T10.CNTR_NO
-                                           AND CTT_PRGS_STAT_CD = '20' /*컨택진행상태코드 : 컨택완료(20) */
-                                           AND DTA_DL_YN = 'N'
-                                        )
-                                  WHERE RN = 1
-                                  ) T80             /* 컨택기본 - 최신 */
-            ON T80.CNTR_NO = T10.CNTR_NO
          WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(rcpDateDv)">
             <choose>
@@ -2191,8 +2169,8 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T80.ALNCMP_CD) AS ALNCMP_NM                    /* 제휴상태유형명 -제휴업체명:LCCK08*/
              , CASE WHEN REGEXP_LIKE(T11.CNTR_DTL_STAT_CD, '^2|^3') THEN F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', T11.CNTR_DTL_STAT_CD)
                     ELSE '' END AS CLTN_CNTR_DTL_STAT_NM                                            /*계약상세상태코드(해약) -  해약유형:LCCFLG*/
-             --, T81.CTT_RS_CD                                                             /* 컨택결과코드 (컨택코드:LCCCDE) */
-             --, F_CMZ_CD_NM('TNT_WELLS', 'CTT_RS_CD', T81.CTT_RS_CD) AS CTT_RS_NM         /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) LCCCDE_NM */
+             , T11.CTT_RS_CD                                                             /* 컨택결과코드 (컨택코드:LCCCDE) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CTT_RS_CD', T11.CTT_RS_CD) AS CTT_RS_NM         /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) LCCCDE_NM */
              , T12.SCON_CN                                                               /* 특약내용(특약:LCSCAL) */
              , T10.CNTR_CST_NO          /* 계약자정보 - 고객번호(교원키:LCKKEY) */
              , T21.REF_PD_CLSF_VAL      /* 상품분류코드 참조키(대분류+중분류가 포함되어 있음 EX) 02001 */
@@ -2521,21 +2499,6 @@
            AND T80.BASE_CNTR_SN = T11.CNTR_SN
            AND T80.SELL_TP_CD = '6' /*판매유형코드 : 정기배송(6)*/
            AND T80.DTA_DL_YN = 'N'
---        LEFT OUTER JOIN LATERAL (SELECT *
---                                  FROM (SELECT CNTR_NO
---                                             , T11.CNTR_SN
---                                             , CTT_RS_CD    /* 컨택결과코드 */
---                                             , ROW_NUMBER() OVER(ORDER BY CTT_FSH_DTM DESC) AS RN
---                                          FROM TB_SSOP_CTT_BAS  /* 컨택기본 */
---                                         WHERE CTT_OJ_ID IN (SELECT CTT_OJ_ID
---                                                               FROM TB_SSOP_CTT_DTL
---                                                              WHERE CNTR_NO = T11.CNTR_NO
---                                                                AND CNTR_SN = T11.CNTR_SN)
---                                        )
---                                  WHERE RN = 1
---                                  ) T81             /* 컨택결과코드 최신 */
---            ON T81.CNTR_NO = T11.CNTR_NO
---           AND T81.CNTR_SN = T11.CNTR_SN
          WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(prdEnqry)">
             <choose>

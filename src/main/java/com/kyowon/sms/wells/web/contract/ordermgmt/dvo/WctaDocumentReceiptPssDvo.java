@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WwctaDocumentReceiptPssDvo {
+public class WctaDocumentReceiptPssDvo {
     private String cntrChRcpId; /* 접수번호 */
     private String reCntrChRcpId; /* 재접수번호 */
     private String cntrChRcpD; /* 접수일 */

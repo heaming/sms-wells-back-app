@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailCustomerBaseDvo;
 
 @Mapper
 public interface WctaOrderDetailMapper {
@@ -13,7 +14,7 @@ public interface WctaOrderDetailMapper {
 
     List<SearchNewCstInfoRes> selectRelatedContractsNewCstInfo(SearchReq dto);
 
-    List<SearchCustomerBaseRes> selectOrderDetailCustomerBase(SearchReq dto);
+    List<WctaOrderDetailCustomerBaseDvo> selectOrderDetailCustomerBase(SearchReq dto);
 
     List<SearchContractListsRes> selectOrderDetailContractLists(SearchReq dto);
 
