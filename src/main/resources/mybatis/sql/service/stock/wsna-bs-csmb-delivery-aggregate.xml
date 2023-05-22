@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsCsmbDeliveryAggregateMapper">
+    <select id="selectDeliveryAggregate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo">
+        SELECT T1.CSMB_PD_CD
+             , T1.STR_WARE_NO
+             , T1.SAP_MAT_CD
+             , CASE WHEN T1.STR_WARE_NO = T2.PRTNR_NO THEN T2.BLD_NM
+                    WHEN T1.STR_WARE_NO = T3.PRTNR_NO THEN T3.BLD_NM
+                    WHEN T1.STR_WARE_NO = T4.BLD_CD THEN T4.BLD_NM
+                END BLD_NM
+             , CASE WHEN T1.STR_WARE_NO = T2.PRTNR_NO THEN T2.BLD_CD
+                    WHEN T1.STR_WARE_NO = T3.PRTNR_NO THEN T3.BLD_CD
+                    WHEN T1.STR_WARE_NO = T4.BLD_CD THEN T4.BLD_CD
+                END BLD_CD
+             , CASE WHEN T1.STR_WARE_NO = T2.PRTNR_NO THEN T2.BLD_CD
+                    WHEN T1.STR_WARE_NO = T3.PRTNR_NO THEN T3.BLD_CD
+                    WHEN T1.STR_WARE_NO = T4.BLD_CD THEN T4.BLD_CD
+                END ACL_BLD_CD
+             , (SELECT DISTINCT X.ITM_KNM
+                  FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
+                 WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
+               ) PD_NM
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', X.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS BFSVC_CSMB_DDLV_TP_NM
+                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
+                 WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
+                   AND X.BFSVC_CSMB_DDLV_OJ_CD = '1'
+                   AND X.MNGT_YM = (SELECT MAX(Y.MNGT_YM)
+                                      FROM TB_SVST_BFSVC_CSMB_BASE_DTL Y
+                                   )
+               ) NWCMR
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', X.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS BFSVC_CSMB_DDLV_TP_NM
+                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
+                 WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
+                   AND X.BFSVC_CSMB_DDLV_OJ_CD = '2'
+                   AND X.MNGT_YM = (SELECT MAX(Y.MNGT_YM)
+                                      FROM TB_SVST_BFSVC_CSMB_BASE_DTL Y
+                                   )
+               ) INDV
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', X.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS BFSVC_CSMB_DDLV_TP_NM
+                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
+                 WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
+                   AND X.BFSVC_CSMB_DDLV_OJ_CD = '3'
+                   AND X.MNGT_YM = (SELECT MAX(Y.MNGT_YM)
+                                      FROM TB_SVST_BFSVC_CSMB_BASE_DTL Y
+                                   )
+               ) BLD
+             , SUM(NVL(T2.BFSVC_CSMB_DDLV_QTY, 0) + NVL(T3.BFSVC_CSMB_DDLV_QTY, 0) + NVL(T4.BFSVC_CSMB_DDLV_QTY, 0)) BFSVC_CSMB_DDLV_SUM
+             , NVL(T5.VST_ACC_SUM, 0) VST_ACC_SUM
+             , NVL(T5.BDT_INDV, 0) BDT_INDV
+             , NVL(T5.BDT_CRP, 0) BDT_CRP
+             , NVL(T5.WRFR, 0) WRFR
+             , NVL(T5.ARCLE_INDV, 0) ARCLE_INDV
+             , NVL(T5.ARCLE_CRP, 0) ARCLE_CRP
+             , NVL(T5.WTR_SFTNR, 0) WTR_SFTNR
+             , NVL(T5.MSGCR, 0) MSGCR
+             , NVL(T5.CFF_MCHN, 0) CFF_MCHN
+             , NVL(T5.DRYR, 0) DRYR
+             , NVL(T5.WASH, 0) WASH
+             , NVL(T5.ARDRSSR, 0) ARDRSSR
+             , NVL(T5.SSCLING, 0) SSCLING
+          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+          LEFT OUTER JOIN (SELECT T1.MNGT_YM
+                                , T1.STR_WARE_NO
+                                , T1.BFSVC_CSMB_DDLV_OJ_CD
+                                , T2.PRTNR_NO
+                                , T3.BLD_CD
+                                , T3.BLD_NM
+                                , T1.CSMB_PD_CD
+                                , SUM(T1.BFSVC_CSMB_DDLV_QTY) AS BFSVC_CSMB_DDLV_QTY
+                             FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+                            INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
+                               ON T1.MNGT_YM = T2.BASE_YM
+                              AND T2.OG_TP_CD = 'W02'
+                              AND T1.STR_WARE_NO = T2.PRTNR_NO
+                            INNER JOIN TB_OGBS_MM_OG_IZ T3
+                               ON T2.BASE_YM = T3.BASE_YM
+                              AND T2.OG_ID = T3.OG_ID
+                            WHERE T1.BFSVC_CSMB_DDLV_OJ_CD = '1'
+                            <!--  TODO: 데이터 정비 후 주석 해제      -->
+                            <!--  AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30' -->
+                            GROUP BY T1.MNGT_YM, T1.STR_WARE_NO, T1.BFSVC_CSMB_DDLV_OJ_CD, T2.PRTNR_NO, T3.BLD_CD, T3.BLD_NM, T1.CSMB_PD_CD
+                          ) T2
+            ON T2.MNGT_YM = T1.MNGT_YM
+           AND T2.STR_WARE_NO = T1.STR_WARE_NO
+           AND T2.CSMB_PD_CD = T1.CSMB_PD_CD
+           AND T2.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
+           LEFT OUTER JOIN (SELECT T1.MNGT_YM
+                                 , T1.STR_WARE_NO
+                                 , T1.BFSVC_CSMB_DDLV_OJ_CD
+                                 , T2.PRTNR_NO
+                                 , T3.BLD_CD
+                                 , T3.BLD_NM
+                                 , T1.CSMB_PD_CD
+                                 , SUM(T1.BFSVC_CSMB_DDLV_QTY) AS BFSVC_CSMB_DDLV_QTY
+                              FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+                             INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
+                                ON T1.MNGT_YM = T2.BASE_YM
+                               AND T2.OG_TP_CD = 'W02'
+                               AND T1.STR_WARE_NO = T2.PRTNR_NO
+                             INNER JOIN TB_OGBS_MM_OG_IZ T3
+                                ON T2.BASE_YM = T3.BASE_YM
+                               AND T2.OG_ID = T3.OG_ID
+                             WHERE T1.BFSVC_CSMB_DDLV_OJ_CD = '2'
+                             <!--  TODO: 데이터 정비 후 주석 해제      -->
+                             <!--  AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30' -->
+                             GROUP BY T1.MNGT_YM, T1.STR_WARE_NO, T1.BFSVC_CSMB_DDLV_OJ_CD, T2.PRTNR_NO, T3.BLD_CD, T3.BLD_NM, T1.CSMB_PD_CD
+                           ) T3
+            ON T3.MNGT_YM = T1.MNGT_YM
+           AND T3.STR_WARE_NO = T1.STR_WARE_NO
+           AND T3.CSMB_PD_CD = T1.CSMB_PD_CD
+           AND T3.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
+          LEFT OUTER JOIN (SELECT T1.MNGT_YM
+                                , T1.STR_WARE_NO
+                                , T1.BFSVC_CSMB_DDLV_OJ_CD
+                                , T2.BLD_CD
+                                , T2.BLD_NM
+                                , T1.CSMB_PD_CD
+                                , SUM(T1.BFSVC_CSMB_DDLV_QTY) AS BFSVC_CSMB_DDLV_QTY
+                             FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+                            INNER JOIN TB_OGBS_BLD_BAS T2
+                               ON T2.OG_TP_CD = 'W02'
+                              AND T1.STR_WARE_NO = T2.BLD_CD
+                            WHERE T1.BFSVC_CSMB_DDLV_OJ_CD = '3'
+                            <!--   TODO: 데이터 정비 후 주석 해제      -->
+                            <!--   AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30' -->
+                            GROUP BY T1.MNGT_YM, T1.STR_WARE_NO, T1.BFSVC_CSMB_DDLV_OJ_CD, T2.BLD_CD, T2.BLD_NM, T1.CSMB_PD_CD
+                          ) T4
+            ON T4.MNGT_YM = T1.MNGT_YM
+           AND T4.STR_WARE_NO = T1.STR_WARE_NO
+           AND T4.CSMB_PD_CD = T1.CSMB_PD_CD
+           AND T4.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
+         INNER JOIN (SELECT T4.BLD_CD
+                          , COUNT(T1.CST_SV_ASN_NO) AS VST_ACC_SUM
+                          , SUM(CASE WHEN T5.ITEM_GR = '1' AND T6.COPN_DV_CD = '1' THEN 1 ELSE 0 END) AS BDT_INDV /* 비데개인 */
+                          , SUM(CASE WHEN T5.ITEM_GR = '1' AND T6.COPN_DV_CD = '2' THEN 1 ELSE 0 END) AS BDT_CRP /* 비데법인 */
+                          , SUM(CASE WHEN T5.ITEM_GR = '2' THEN 1 ELSE 0 END) AS WRFR /* 정수기 */
+                          , SUM(CASE WHEN T5.ITEM_GR = '3' AND T6.COPN_DV_CD = '1' THEN 1 ELSE 0 END) AS ARCLE_INDV /* 공기청정기개인 */
+                          , SUM(CASE WHEN T5.ITEM_GR = '3' AND T6.COPN_DV_CD = '2' THEN 1 ELSE 0 END) AS ARCLE_CRP /* 공기청정기법인 */
+                          , SUM(CASE WHEN T5.ITEM_GR = '4' THEN 1 ELSE 0 END) AS WTR_SFTNR /* 연수기 */
+                          , SUM(CASE WHEN T5.ITEM_GR = '93' THEN 1 ELSE 0 END) AS MSGCR /* 안마의자 */
+                          , SUM(CASE WHEN T5.ITEM_GR = '96' THEN 1 ELSE 0 END) AS CFF_MCHN /* 커피머신 */
+                          , 0 AS DRYR /* 건조기 */
+                          , 0 AS WASH /* 세탁기 */
+                          , 0 AS ARDRSSR /* 에어드레서 */
+                          , 0 AS SSCLING /* 삼성청소기 */
+<!--                 @TODO TEMP_CODE :: 아래 상품코드 추적 불가.. 해당 제품군 갯수 0개로 임시 처리  -->
+<!--                     , SUM(CASE WHEN T2.PDCT_PD_CD IN ('49320000000' , '49321000000' , '49310000000') THEN 1 ELSE 0 END) AS DRYR건조기-->
+<!--                     , SUM(CASE WHEN T2.PDCT_PD_CD IN ('49330000000' , '49341000000' , '49340000000') THEN 1 ELSE 0 END) AS WASH세탁기-->
+<!--                     , SUM(CASE WHEN T2.PDCT_PD_CD IN ('49387000000' , '49378000000' , '49361000000', '49360000000', '49350000000', '49368000000') THEN 1 ELSE 0 END) AS ARDRSSR에어드레서-->
+<!--                     , SUM(CASE WHEN T2.PDCT_PD_CD IN ('49394000000' , '49392000000' , '49393000000') THEN 1 ELSE 0 END) AS SSCLING삼성청소기-->
+                       FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                      INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2
+                         ON T1.CNTR_NO = T2.CNTR_NO
+                        AND T1.CNTR_SN = T2.CNTR_SN
+                        AND T2.REQD_DT IS NULL
+                        AND T2.CPS_DT IS NULL
+                        AND T2.CNTR_DTL_STAT_CD = '101'
+                      INNER JOIN TB_OGBS_MM_PRTNR_IZ T3
+                         ON T1.ASN_OJ_YM = T3.BASE_YM
+                        AND T1.CNFM_PSIC_PRTNR_OG_TP_CD = T3.OG_TP_CD
+                        AND T1.CNFM_PSIC_PRTNR_NO = T3.PRTNR_NO
+                      INNER JOIN TB_OGBS_MM_OG_IZ T4
+                         ON T3.BASE_YM = T4.BASE_YM
+                        AND T3.OG_ID = T4.OG_ID
+                      INNER JOIN (SELECT X.PD_CD
+                                       , Y.PD_PRP_VAL20 AS ITEM_GR
+                                       , F_CMZ_CD_NM('TNT_WELLS','PD_GRP_CD', Y.PD_PRP_VAL20, 'ko') AS ITEM_GR_NM
+                                    FROM TB_PDBS_PD_BAS X
+                                   INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL Y
+                                      ON Y.PD_CD = X.PD_CD
+                                     AND Y.PD_EXTS_PRP_GRP_CD = 'PART'
+                                     AND Y.PD_PRP_VAL20 <![CDATA[<>]]> '11'
+                                 ) T5
+                         ON T5.PD_CD = T2.PDCT_PD_CD
+                      INNER JOIN TB_SSCT_CNTR_BAS T6
+                         ON T6.CNTR_NO = T1.CNTR_NO
+                      WHERE T1.ASN_OJ_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+                        AND T1.SV_BIZ_DCLSF_CD <![CDATA[<>]]> '2140'
+                        AND T1.CNFM_PSIC_PRTNR_OG_TP_CD = 'W02'
+                      GROUP BY T4.BLD_CD
+                    ) T5
+            ON (T5.BLD_CD = T2.BLD_CD OR T5.BLD_CD = T3.BLD_CD OR T5.BLD_CD = T4.BLD_CD)
+         INNER JOIN TB_OGBS_BLD_BAS T6
+            ON T6.OG_TP_CD = 'W02'
+           AND (T6.BLD_CD = T1.STR_WARE_NO OR T6.BLD_CD = T2.BLD_CD
+               OR T6.BLD_CD = T3.BLD_CD OR T6.BLD_CD = T4.BLD_CD)
+         WHERE 1=1
+           AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+         <if test='@MybatisUtils@isNotEmpty(bldCds)'>
+           AND T6.BLD_CD IN (
+                            <foreach collection="bldCds" item="bldCd" separator=", ">
+                             #{bldCd}
+                            </foreach>
+                            )
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(bfsvcCsmbDdlvOjCd)'>
+           AND T1.BFSVC_CSMB_DDLV_OJ_CD = #{bfsvcCsmbDdlvOjCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(itmCds)'>
+           AND T1.CSMB_PD_CD IN (
+                                <foreach collection="bldCds" item="bldCd" separator=", ">
+                                 #{itmCd}
+                                </foreach>
+                                )
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(sapCdFrom)'>
+           AND T1.SAP_MAT_CD <![CDATA[>=]]> #{sapCdFrom}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>
+           AND T1.SAP_MAT_CD <![CDATA[<=]]> #{sapCdTo}
+         </if>
+         GROUP BY T1.CSMB_PD_CD, T1.SAP_MAT_CD, T1.STR_WARE_NO, T2.PRTNR_NO, T2.BLD_CD,
+                  T2.BLD_NM, T3.PRTNR_NO, T3.BLD_CD, T3.BLD_NM, T4.BLD_CD, T4.BLD_NM,
+                  T5.VST_ACC_SUM, T5.BDT_INDV, T5.BDT_CRP, T5.WRFR, T5.ARCLE_INDV, T5.ARCLE_CRP,
+                  T5.WTR_SFTNR, T5.MSGCR, T5.CFF_MCHN, T5.DRYR, T5.WASH, T5.ARDRSSR, T5.SSCLING
+         ORDER BY BLD_NM
+    </select>
+
+    <select id="selectItemQtys" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryAggregateDto$SearchQtysRes">
+        SELECT T1.MNGT_YM
+             , T1.CSMB_PD_CD
+             , T1.STR_WARE_NO
+<!--             , T1.BFSVC_CSMB_DDLV_QTY-->
+             , CASE WHEN T1.BFSVC_CSMB_DDLV_QTY = 0 THEN NULL
+                    ELSE T1.BFSVC_CSMB_DDLV_QTY
+                END BFSVC_CSMB_DDLV_QTY
+             , O3.BLD_CD
+             , O3.BLD_NM
+          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS O1
+            ON O1.OG_TP_CD = 'W02'
+           AND O1.PRTNR_NO = T1.STR_WARE_NO
+          LEFT OUTER JOIN TB_OGBS_OG_BAS O2
+            ON O2.OG_TP_CD = 'W02'
+           AND O2.OG_ID = O1.OG_ID
+         INNER JOIN TB_OGBS_BLD_BAS O3
+            ON O3.OG_TP_CD = 'W02'
+           AND (O3.BLD_CD = T1.STR_WARE_NO OR O3.BLD_CD = O2.BLD_CD)
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+    </select>
+</mapper>
