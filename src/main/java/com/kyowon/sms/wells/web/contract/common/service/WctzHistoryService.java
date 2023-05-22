@@ -184,7 +184,7 @@ public class WctzHistoryService {
     }
 
     /**
-    * 관계사제휴계약(최신) 조회
+    * 관계사제휴계약변경이력(최신) 조회
     * @param acmpalCntrId 관계사제휴계약ID
     * @return
     */
@@ -193,7 +193,7 @@ public class WctzHistoryService {
     }
 
     /**
-     * 관계사제휴계약내역 생성
+     * 관계사제휴계약변경이력 생성
      * @param dvo 이력정보
      */
     public void createAcmpalContractIzChangeHistory(WctzAcmpalContractIzHistDvo dvo) {
@@ -296,5 +296,45 @@ public class WctzHistoryService {
 
         newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertCntrPrccchHistory(newHist);
+    }
+
+    /**
+     * 기기변경이력 조회
+     *
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @return dvo
+     */
+    public WctzMachineChangeHistoryDvo getMachineChangeHistory(String cntrNo, int cntrSn) {
+        return mapper.selectMachineChangeHistory(cntrNo, cntrSn);
+    }
+
+    /**
+     * 기기변경이력 생성
+     *
+     * @param dvo
+     */
+    @Transactional
+    public void createMachineChangeHistory(WctzMachineChangeHistoryDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzMachineChangeHistoryDvo newHist = converter.convertMachineHistoryToHist(
+            dvo,
+            mapper.selectMachineChangeForHist(dvo.getBaseCntrNo(), dvo.getBaseCntrSn())
+        );
+
+        WctzMachineChangeHistoryDvo befHist = getMachineChangeHistory(dvo.getBaseCntrNo(), dvo.getBaseCntrSn());
+        if (ObjectUtils.isEmpty(befHist)) {
+            dvo.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateMachineChangeHistory(befHist);
+        }
+
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
+        mapper.insertMachineChangeHistory(newHist);
     }
 }

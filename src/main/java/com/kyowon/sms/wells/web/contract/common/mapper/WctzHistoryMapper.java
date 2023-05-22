@@ -70,4 +70,22 @@ public interface WctzHistoryMapper {
 
     int insertCntrPrccchHistory(WctzCntrPrccchHistDvo dvo);
 
+    // 기기변경이력
+    WctzMachineChangeHistoryDvo selectMachineChangeHistory(String cntrNo, int cntrSn);
+
+    WctzMachineChangeHistoryDvo selectMachineChangeForHist(String cntrNo, int cntrSn);
+
+    int updateMachineChangeHistory(WctzMachineChangeHistoryDvo dvo);
+
+    int insertMachineChangeHistory(WctzMachineChangeHistoryDvo dvo);
+
+    // 관계사제휴계약변경이력
+    WctzAcmpalCntrChHistDvo selectAcmpalCntrChHistory(String cntrNo, int cntrSn);
+
+    WctzAcmpalCntrChHistDvo selectAcmpalCntrForHist(String cntrNo, int cntrSn);
+
+    int updateAcmpalCntrChHistory(WctzAcmpalCntrChHistDvo dvo);
+
+    int insertAcmpalCntrChHistory(WctzAcmpalCntrChHistDvo dvo);
+
 }
