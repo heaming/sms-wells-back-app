@@ -57,7 +57,6 @@ public class WctiCustomerAgreeInterfaceController {
         EaiWrapper<SaveRes> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출
         String scnYn = service.saveCustomerAgrees(reqWrapper.getBody());
-
         // 바디 설정
         resWrapper.setBody(new SaveRes(scnYn));
         // 리턴
