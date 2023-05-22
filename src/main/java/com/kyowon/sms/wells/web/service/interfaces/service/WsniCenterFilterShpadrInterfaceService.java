@@ -25,7 +25,8 @@ public class WsniCenterFilterShpadrInterfaceService {
         List<SearchRes> searchRes = mapper.selectFilterShpadrs(dto);
 
         if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            //throw new BizException(messageService.getMessage("MSG_TXT_NO_DATA_RM"));
+            throw new BizException("MSG_TXT_NO_DATA_RM");
         }
 
         return searchRes;
