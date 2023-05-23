@@ -19,7 +19,7 @@ public class WctaInterestFreeIstmYnService {
     private final WctaInterestFreeIstmYnConverter converter;
 
     public WctaInterestFreeIstmYnDvo getInterestFreeIstmYn(SearchReq dto) {
-        WctaInterestFreeIstmYnDvo dvo = converter.mapSearchReqToWctaInterestFreeIstmYnDvo(dto); // 파라미터 변환
+        WctaInterestFreeIstmYnDvo dvo = converter.mapSearchReqToWctaInterestDvo(dto); // 파라미터 변환
 
         // 파라미터 세팅
         String sellTpCd = mapper.selectSellTypeCode(dto);
