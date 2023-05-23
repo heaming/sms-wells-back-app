@@ -36,8 +36,17 @@ public class WfeeFeeSpecificationController {
         @ApiImplicitParam(name = "ogLevel2", value = "", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogLevel3", value = "", paramType = "query", required = true),
     })
+    // 수수료코드 가져옴
+    @GetMapping("/fee-codes")
+    public List<SearchFeeCdRes> getFeeCodes(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getFeeCodes(dto);
+    }
+
     @GetMapping
-    public List<SearchRes> getFeeSpecifications(
+    public List<?> getFeeSpecifications(
         @Valid
         SearchReq dto
     ) {
