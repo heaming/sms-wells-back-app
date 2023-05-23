@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto.*;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerCenterInterfaceDvo;
 
 @Mapper
 public interface WsniCustomerCenterInterfaceMapper {
@@ -19,4 +20,8 @@ public interface WsniCustomerCenterInterfaceMapper {
     List<SearchSppVstRes> selectSeedingRegularShippingVst(SearchReq dto);
 
     List<SearchAsRes> selectAfterServiceBusinessInf(SearchReq dto);
+
+    int insertFilterShippingAddress(WsniCustomerCenterInterfaceDvo dvo);
+
+    int updateFilterShippingAddress(WsniCustomerCenterInterfaceDvo dvo);
 }

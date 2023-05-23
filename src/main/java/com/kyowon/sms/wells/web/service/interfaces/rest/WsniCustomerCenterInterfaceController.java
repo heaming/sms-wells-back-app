@@ -6,9 +6,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsniCustomerCenterInterfaceService;
@@ -134,4 +132,55 @@ public class WsniCustomerCenterInterfaceController {
 
         return resWrapper;
     }
+
+    @ApiOperation(value = "필터 배송지 등록", notes = "고객센터에서 고객에게 배송할 필터 배송지 정보를 등록하는 인터페이스")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sppTcnt", value = "배송차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "locaraTno", value = "지역전화번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "exnoEncr", value = "전화국번호암호화", paramType = "query", required = true),
+        @ApiImplicitParam(name = "idvTno", value = "개별전화번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sppZip", value = "배송우편번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sppBasAdr", value = "배송기본주소", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sppDtlAdr", value = "배송상세주소", paramType = "query", required = true),
+        @ApiImplicitParam(name = "refAdr", value = "참조주소", paramType = "query", required = true),
+        @ApiImplicitParam(name = "adrDvCd", value = "주소구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sppDptuDt", value = "배송출발일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sppFshDt", value = "배송완료일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", required = true),
+    })
+    @PostMapping("/filter-shpadr-rgst")
+    public EaiWrapper<CreateShpadrRes> createFilterShippingAddress(
+        @Valid
+        @RequestBody
+        EaiWrapper<CreateShpadrReq> reqWrapper
+    ) throws IOException, Exception {
+        EaiWrapper<CreateShpadrRes> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.createFilterShippingAddress(reqWrapper.getBody()));
+
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "필터 배송지 수정", notes = "고객센터에서 고객에게 배송할 필터 배송지 정보를 수정하는 인터페이스")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sppFshDt", value = "배송완료일자", paramType = "query", required = true),
+    })
+    @PutMapping("/filter-shpadr-edit")
+    public EaiWrapper<EditShpadrRes> editFilterShippingAddress(
+        @Valid
+        @RequestBody
+        EaiWrapper<EditShpadrReq> reqWrapper
+    ) throws IOException, Exception {
+        EaiWrapper<EditShpadrRes> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.editFilterShippingAddress(reqWrapper.getBody()));
+
+        return resWrapper;
+    }
+
 }
