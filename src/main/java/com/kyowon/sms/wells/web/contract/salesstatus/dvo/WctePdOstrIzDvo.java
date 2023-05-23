@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.contract.salesstatus.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 삼성전자 확정일 엑셀 업로드 시, TB_SSSO_PDCT_IDNO_OSTR_IZ(제품고유번호출고내역) 데이터 생성 객체
+ * </pre>
+ *
+ * @author joobro
+ * @since 2023-05-23
+ */
 @Getter
 @Setter
 public class WctePdOstrIzDvo {
