@@ -28,4 +28,7 @@ public interface WdeaAllowanceRedfMgtMapper {
 
     /* 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회 */
     PagingResult<SearchRedfBizdRes> selectRedfBizdMgts(SearchRedfBizdReq dto, PageInfo pageInfo);
+
+    /* 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회 - 엑셀다운로드*/
+    List<SearchRedfBizdRes> selectRedfBizdMgts(SearchRedfBizdReq dto);
 }
