@@ -1,5 +1,9 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
+import javax.validation.constraints.NotBlank;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 
 public class WsniCustomerCenterInterfaceDto {
@@ -162,5 +166,54 @@ public class WsniCustomerCenterInterfaceDto {
         String wkGrpNm2,
         String wkGrpCd3,
         String wkGrpNm3
+    ) {}
+
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-CreateShpadrReq")
+    public record CreateShpadrReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        String sppTcnt,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String sppZip,
+        String sppBasAdr,
+        String sppDtlAdr,
+        String refAdr,
+        String adrDvCd,
+        String sppDptuDt,
+        String sppFshDt,
+        String useYn
+    ) {
+        public CreateShpadrReq {
+            mexnoEncr = DbEncUtil.enc(mexnoEncr);
+            exnoEncr = DbEncUtil.enc(exnoEncr);
+        }
+    }
+
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-CreateShpadrRes")
+    public record CreateShpadrRes(
+        String msg,
+        String result
+    ) {}
+
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrReq")
+    public record EditShpadrReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        String sppFshDt
+    ) {}
+
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrRes")
+    public record EditShpadrRes(
+        String msg,
+        String result
     ) {}
 }
