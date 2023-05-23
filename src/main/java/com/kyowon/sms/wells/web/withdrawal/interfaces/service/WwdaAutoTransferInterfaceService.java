@@ -15,13 +15,13 @@ import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaBundleWithdrawalMgtDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaIntegrationBillingIzDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.mapper.ZwdaBundleWithdrawalMgtMapper;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
-import com.kyowon.sms.wells.web.withdrawal.common.dvo.WwdaAutoTransferRealTimeAccountCheckDvo;
-import com.kyowon.sms.wells.web.withdrawal.common.service.WwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransferConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferCardEffectivenessCheckInterfaceDvo;
@@ -50,7 +50,7 @@ public class WwdaAutoTransferInterfaceService {
     private final MessageResourceService messageResourceService;
     private final KakaoMessageService kakaoMessageService;
     private final WwdaAutoTransferConverter converter;
-    private final WwdaAutoTransferRealTimeAccountService realTimeAccountService;
+    private final ZwdaAutoTransferRealTimeAccountService realTimeAccountService;
 
     /**
      * 자동이체 출금내역 조회
@@ -580,7 +580,7 @@ public class WwdaAutoTransferInterfaceService {
         reqParam.put("deptId", deptId);
 
         // 2. 은행계좌 유효성검사 서비스 호출(Z-WD-S-0027)
-        WwdaAutoTransferRealTimeAccountCheckDvo resultDvo = realTimeAccountService.saveAftnAcEftnChecks(reqParam);
+        ZwdaAutoTransferRealTimeAccountCheckDvo resultDvo = realTimeAccountService.saveAftnAcEftnChecks(reqParam);
 
         // 청구생성코드가 1이 아닐때 에러 발생
         // (1 : 정상처리, 2 : 오류, 3 : 자료없음)
