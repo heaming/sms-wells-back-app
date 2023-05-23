@@ -525,6 +525,106 @@
     </insert>
     <!-- endregion 확정일 -->
 
+    <!-- region 미설치 -->
+    <select id="selectNotInstalledIzs"
+            resultType="com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto$SearchNotInstalledRes">
+        SELECT T_CNTR_DTL.CNTR_NO
+             , T_CNTR_DTL.CNTR_SN
+             , T_CNTR_CST_BAS.CST_KNM AS CNTR_CST_KNM
+             , (SELECT MAX(SPP_BZS_ORD_ID)
+                  FROM TB_SSOP_SPP_BZS_ULD_HIST
+                 WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND SPP_BZS_ORD_ID IS NOT NULL
+                   AND FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM)
+                                         FROM TB_SSOP_SPP_BZS_ULD_HIST
+                                        WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                                          AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                                          AND SPP_BZS_ORD_ID IS NOT NULL)) AS SPP_BZS_ORD_ID
+             , T_PD_HCLSF_BAS.PD_CLSF_NM                                   AS PD_HCLSF_NM
+             , T_PD_MCLSF_BAS.PD_CLSF_NM                                   AS PD_MCLSF_NM
+             , T_CNTR_BAS.CNTR_CNFM_DTM
+             , (SELECT BSDT
+                  FROM TB_SSOP_SPP_BZS_ULD_HIST
+                 WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND SPP_BZS_MNGT_ATC_CD = '10'
+                   AND FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM)
+                                         FROM TB_SSOP_SPP_BZS_ULD_HIST
+                                        WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                                          AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                                          AND SPP_BZS_MNGT_ATC_CD = '10')) AS DUEDT
+             , T_MM_PRTNR_IZ.OG_CD AS PRTNR_OG_CD
+             , T_MM_PRTNR_IZ.PRTNR_NO
+             , T_MM_PRTNR_IZ.PRTNR_KNM
+             , (SELECT SPP_MO_CN
+                  FROM TB_SSOP_SPP_BZS_ULD_HIST
+                 WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND SPP_BZS_MNGT_ATC_CD = '30'
+                   AND FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM)
+                                         FROM TB_SSOP_SPP_BZS_ULD_HIST
+                                        WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                                          AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                                          AND SPP_BZS_MNGT_ATC_CD = '30')) AS CAN_RSON
+          FROM TB_SSCT_CNTR_DTL                       T_CNTR_DTL
+               INNER JOIN TB_SSCT_CNTR_BAS            T_CNTR_BAS
+               ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+               INNER JOIN TB_PDBS_PD_BAS              T_PD_BAS
+               ON T_PD_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
+               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL     T_PD_ECOM_PRP_DTL
+               ON T_PD_ECOM_PRP_DTL.DTA_DL_YN = 'N'
+                   AND T_PD_ECOM_PRP_DTL.PD_CD = T_PD_BAS.PD_CD
+                   AND T_PD_ECOM_PRP_DTL.PD_EXTS_PRP_GRP_CD = 'SPP'
+                   AND T_PD_ECOM_PRP_DTL.PD_PRP_VAL02 = 'S' /* 삼성전자제품 */
+               INNER JOIN TB_PDBS_PD_CLSF_BAS         T_PD_HCLSF_BAS
+               ON T_PD_HCLSF_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_HCLSF_BAS.PD_CLSF_ID = T_PD_BAS.PD_HCLSF_ID
+               INNER JOIN TB_PDBS_PD_CLSF_BAS         T_PD_MCLSF_BAS
+               ON T_PD_MCLSF_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_MCLSF_BAS.PD_CLSF_ID = T_PD_BAS.PD_MCLSF_ID
+               INNER JOIN TB_OGBS_MM_PRTNR_IZ         T_MM_PRTNR_IZ
+               ON T_MM_PRTNR_IZ.DTA_DL_YN = 'N'
+                   AND T_MM_PRTNR_IZ.BASE_YM = SUBSTR(T_CNTR_BAS.CNTR_RCP_FSH_DTM, 1, 6)
+                   AND T_MM_PRTNR_IZ.OG_TP_CD = T_CNTR_BAS.SELL_OG_TP_CD
+                   AND T_MM_PRTNR_IZ.PRTNR_NO = T_CNTR_BAS.SELL_PRTNR_NO
+               INNER JOIN TB_CUBS_CST_BAS             T_CNTR_CST_BAS
+               ON T_CNTR_CST_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+               LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T_CNTR_WELLS_DTL
+               ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
+                   AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+         WHERE T_CNTR_DTL.DTA_DL_YN = 'N'
+           AND T_CNTR_DTL.CTT_RS_CD NOT IN ('93', '94', '95', '96', '97', '98')
+           AND T_CNTR_DTL.CNTR_PD_ENDDT IS NULL
+           AND T_CNTR_WELLS_DTL.CPS_DT IS NULL
+           AND NOT EXISTS(SELECT 1
+                            FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                           WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                             AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                             AND DTA_DL_YN = 'N'
+             )
+           <if test="@MybatisUtils@isNotEmpty(strtdt) and @MybatisUtils@isNotEmpty(enddt)"><trim>
+               AND T_CNTR_BAS.CNTR_CNFM_DTM BETWEEN #{strtdt} || '000000' AND #{enddt} || '235959'
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(cntrNo)"><trim>
+               AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(cntrSn)"><trim>
+               AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(cntrCstKnm)"><trim>
+               AND T_CNTR_CST_BAS.CST_KNM = #{cntrCstKnm}
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(strtOgCd) and @MybatisUtils@isNotEmpty(endOgCd)"><trim>
+               AND T_MM_PRTNR_IZ.OG_CD BETWEEN #{strtOgCd} AND #{endOgCd}
+           </trim></if>
+
+    </select>
+    <!-- endregion 미설치 -->
 
     <sql id="forTemplate">
     </sql>

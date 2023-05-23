@@ -107,4 +107,15 @@ public class WcteSecProductService {
         }
         return processCount;
     }
+
+    /**
+     * 삼성전자 미설치 페이지 조회 서비스
+     *
+     * @param dto 조회조건
+     * @param pageInfo 페이지 정보
+     * @return 삼성전자  미설치 정보 list
+     */
+    public PagingResult<SearchNotInstalledRes> getNotInstalledPages(SearchNotInstalledReq dto, PageInfo pageInfo) {
+        return mapper.selectNotInstalledIzs(dto, pageInfo);
+    }
 }

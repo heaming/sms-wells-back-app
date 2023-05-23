@@ -45,4 +45,6 @@ public interface WcteSecProductMapper {
     String selectInvoiceProcessIzPk(WcteInvoiceProcessIzDvo invoiceProcessIz);
 
     int insertInvoiceProcessHistory(String sppBzsProcsId);
+
+    PagingResult<SearchNotInstalledRes> selectNotInstalledIzs(SearchNotInstalledReq dto, PageInfo pageInfo);
 }
