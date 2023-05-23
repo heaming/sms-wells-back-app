@@ -6,11 +6,14 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsncAsInterfaceUsingPdutDvo {
-    String cstNm;
     String cntrNo;
-    String pdCd;
+    String cntrCstNo;
+    String rcgvpKnm;
+    String pdctPdCd;
+    String pdAbbrNm;
     String bcNo;
-    String mpno;
+    String cralLocaraTno;
+    String mexnoEncr;
+    String cralIdvTno;
     String adr;
-    String pdNm;
 }
