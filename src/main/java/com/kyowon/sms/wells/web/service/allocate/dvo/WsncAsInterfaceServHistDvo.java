@@ -6,17 +6,22 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsncAsInterfaceServHistDvo {
-    String svTpNm;
     String cntrNo;
-    String wkExcnDt;
-    String rgstDt;
-    String asIstOjNo;
+    String cntrSn;
     String cstSvAsnNo;
+    String asIstOjNo;
+    String wkExcnDt;
+    String wkPrtnrKnm;
+    String rgstDt;
+    String rcpdt;
+    String rcpHh;
+    String pdCd;
+    String pdNm;
     String svProcsCn;
     String cnslMoCn;
+    String svBizHclsfCd;
+    String svBizHclsfNm;
     String svBizDclsfCd;
     String svBizDclsfNm;
-    String rcpDtm;
     String istNmnN;
-    String wkpNm;
 }
