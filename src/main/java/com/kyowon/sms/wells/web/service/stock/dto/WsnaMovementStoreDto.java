@@ -54,7 +54,9 @@ public class WsnaMovementStoreDto {
         String strWareNo, /*입고창고번호*/
         String wareNm, /*입고창고명*/
         String ostrWareNo, /*출고창고번호*/
-        String ostrWareNm/*출고창고명*/
+        String ostrWareNm, /*출고창고명*/
+        String ostrSn, /*출고일련번호*/
+        String strHopDt
     ) {}
 
     public record MovementOstrReq(
@@ -93,7 +95,8 @@ public class WsnaMovementStoreDto {
         String strHopDt,
         String strTpCd,
         String ostrWareNo,
-        String strWareNo
+        String strWareNo,
+        String ostrSn
     ) {}
 
     public record MovementOstrMngtRes(
