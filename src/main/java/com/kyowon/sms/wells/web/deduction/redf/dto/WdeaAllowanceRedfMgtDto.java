@@ -258,18 +258,18 @@ public class WdeaAllowanceRedfMgtDto {
         String aNwSellCntJo, /*신규판매 건수(조직).되물림후실적*/
 
         /*신규판매 건수(개인)*/
-        String tbSellCntPr, /*신규판매 건수(개인).귀속전월실적*/
-        String tSellCntPr, /*신규판매 건수(개인).귀속월실적*/
-        String bSellCntPr, /*신규판매 건수(개인).되물림전실적*/
-        String sellCntPr, /*신규판매 건수(개인).되물림실적*/
-        String aSellCntPr, /*신규판매 건수(개인).되물림후실적*/
+        String tbNwSellCntPr, /*신규판매 건수(개인).귀속전월실적*/
+        String tNwSellCntPr, /*신규판매 건수(개인).귀속월실적*/
+        String bNwSellCntPr, /*신규판매 건수(개인).되물림전실적*/
+        String nwSellCntPr, /*신규판매 건수(개인).되물림실적*/
+        String aNwSellCntPr, /*신규판매 건수(개인).되물림후실적*/
 
         /*환경가전 정액(개인)*/
-        String tbNwSellCntPr, /*환경가전 정액(개인).귀속전월실적*/
-        String tNwSellCntPr, /*환경가전 정액(개인).귀속월실적*/
-        String bNwSellCntPr, /*환경가전 정액(개인).되물림전실적*/
-        String nwSellCntPr, /*환경가전 정액(개인).되물림실적*/
-        String aNwSellCntPr, /*환경가전 정액(개인).되물림후실적*/
+        String tbEnvrElhmFxamPr, /*환경가전 정액(개인).귀속전월실적*/
+        String tEnvrElhmFxamPr, /*환경가전 정액(개인).귀속월실적*/
+        String bEnvrElhmFxamPr, /*환경가전 정액(개인).되물림전실적*/
+        String envrElhmFxamPr, /*환경가전 정액(개인).되물림실적*/
+        String aEnvrElhmFxamPr, /*환경가전 정액(개인).되물림후실적*/
 
         /*조직관리 실활동(명)*/
         String tbOgMgtPpl, /*조직관리 실활동(명).전월대비*/
