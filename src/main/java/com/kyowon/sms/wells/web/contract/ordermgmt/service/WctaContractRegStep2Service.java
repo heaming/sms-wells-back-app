@@ -92,39 +92,58 @@ public class WctaContractRegStep2Service {
         );
     }
 
-    public List<WctaContractRegStep2Dvo.PdSvcDvo> selectProductdServiceInfo(String pdCd) {
-        return mapper.selectProductdServiceInfo(pdCd);
+    public List<WctaContractRegStep2Dvo.PdSvcDvo> selectProductServiceInfo(String pdCd) {
+        return mapper.selectProductServiceInfo(pdCd);
     }
 
     public WctaContractRegStep2Dvo.PdAmtDvo selectProductPrices(WctaContractDto.SearchPdAmtReq dto) {
         return mapper.selectProductPrices(dto);
     }
 
-    public WctaContractRegStep2Dvo selectLrnrPds(String cntrNo, String pdFilter) {
+    public WctaContractRegStep2Dvo selectProducts(String cntrNo, String pdFilter) {
         WctaContractBasDvo bas = regService.selectContractBas(cntrNo);
-        WctaContractCstRelDvo lrnr = regService.selectContractCstRel(cntrNo).stream()
-            .filter((cst) -> cst.getCntrCstRelTpCd().equals("20")).findFirst().orElseThrow();
 
         WctaContractRegStep2Dvo pdDvo = new WctaContractRegStep2Dvo();
 
-        pdDvo.setPdClsf(mapper.selectPdClsfs());
-        int lrnrAge = regService.calcAge(regService.getBryyMmdd(lrnr.getCstNo()));
+        pdDvo.setPdClsf(
+            List.of(
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfNm("정수기")
+                    .pdClsfId("1")
+                    .build(),
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfNm("청정기")
+                    .pdClsfId("2")
+                    .build(),
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfNm("비데")
+                    .pdClsfId("3")
+                    .build(),
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfNm("삼성가전")
+                    .pdClsfId("4")
+                    .build(),
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfNm("정기배송")
+                    .pdClsfId("5")
+                    .build(),
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfNm("기타")
+                    .pdClsfId("6")
+                    .build(),
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfNm("복합상품")
+                    .pdClsfId("7")
+                    .build()
+            )
+        );
 
         String sellChnlCd = bas.getSellInflwChnlDtlCd();
         // FIXME 판매유입채널상세코드 1010 세팅
         sellChnlCd = "1010";
         List<WctaContractRegStep2Dvo.PdDvo> pds = mapper.selectProducts(sellChnlCd, pdFilter);
-        // 필터링 후 상품별로 구독개월, 시작단계 목록 조회
         for (WctaContractRegStep2Dvo.PdDvo pd : pds) {
-            String pdCd = pd.getPdCd(); // 기준상품코드
-            String sellTpCd = pd.getSellTpCd(); // 판매유형코드
-            String lrnnLvGrpDvCd = pd.getLrnnLvGrpDvCd(); // 학습단계구분코드
-            if (isContainSuscMm(pd.getMclsfVal(), pd.getLclsfVal()))
-                pd.setSuscMms(mapper.selectProductSuscMms(pdCd, sellTpCd, sellChnlCd, lrnnLvGrpDvCd));
-            if (isContainLrnnLv(pd.getMclsfVal(), pd.getLclsfVal()))
-                pd.setLrnnLvs(mapper.selectProductLrnnLvs(pdCd));
-            if (isContainStrtLv(pd.getMclsfVal(), pd.getLclsfVal()))
-                pd.setStrtLvs(mapper.selectProductStrtLvs(pdCd));
+            // TODO 로직 추가
         }
 
         pdDvo.setProducts(pds);
@@ -184,7 +203,7 @@ public class WctaContractRegStep2Service {
             );
 
             // 기준상품에 서비스가 있는경우
-            List<WctaContractRegStep2Dvo.PdSvcDvo> pdSvcs = selectProductdServiceInfo(dtl.getBasePdCd());
+            List<WctaContractRegStep2Dvo.PdSvcDvo> pdSvcs = selectProductServiceInfo(dtl.getBasePdCd());
             for (WctaContractRegStep2Dvo.PdSvcDvo pdSvc : pdSvcs) {
                 // 4. 계약상품관계
                 mapper.insertCntrPdRelStep2(
@@ -213,7 +232,15 @@ public class WctaContractRegStep2Service {
                     .build()
             );
              */
-            // 7-1. 계약가격산출내역
+            // wells는 edu의 정보 + 계약관계, 기기변경내역, 기기변경이력, 관계사제휴계약내역, 관계사제휴계약변경이력, 계약WELLS상세, 계약WELLS상세이력
+
+            // 7. 계약관계 - 1+1, 다건구매할인, 복합상품구매, 법인다건구매(기기변경 제외)
+
+            // 8. 기기변경내역
+
+            // 9. 관계사제휴계약내역
+
+            // 10-1. 계약가격산출내역
             mapper.insertCntrPrcCmptIzStep2(
                 WctaContractPrcCmptIzDvo.builder()
                     .cntrNo(cntrNo)
@@ -227,7 +254,7 @@ public class WctaContractRegStep2Service {
                     .pdPrcId(dtl.getPdPrcId())
                     .build()
             );
-            // 7-2. 계약가격산출변경이력
+            // 10-2. 계약가격산출변경이력
             historyService.createCntrPrccchHistory(
                 WctzCntrPrccchHistDvo.builder()
                     .cntrNo(cntrNo)
@@ -235,6 +262,8 @@ public class WctaContractRegStep2Service {
                     .histStrtDtm(now)
                     .build()
             );
+
+            // 11. 계약WELLS상세
         }
 
         return cntrNo;

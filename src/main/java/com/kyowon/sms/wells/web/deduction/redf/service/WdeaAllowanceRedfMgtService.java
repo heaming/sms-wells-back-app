@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchAwRedfRes;
+import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchRedfBizdReq;
+import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchRedfBizdRes;
 import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchRedfRes;
 import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.deduction.redf.mapper.WdeaAllowanceRedfMgtMapper;
@@ -53,6 +55,15 @@ public class WdeaAllowanceRedfMgtService {
      */
     public List<SearchRedfRes> getRedfMgtForExcelDownload(SearchReq dto) throws Exception {
         return mapper.selectRedfMgts(dto);
+    }
+
+    /**
+     * 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회
+     * @param dto
+     * @return PagingResult<SearchRedfBizdRes>
+     */
+    public PagingResult<SearchRedfBizdRes> getRedfBizdMgt(SearchRedfBizdReq dto, PageInfo pageInfo) {
+        return mapper.selectRedfBizdMgts(dto, pageInfo);
     }
 
 }

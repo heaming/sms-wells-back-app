@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 import java.math.BigDecimal;
 import java.util.List;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +18,7 @@ public class WctaContractRegStep2Dvo {
 
     @Getter
     @Setter
+    @Builder
     public static class PdClsfDvo {
         String pdClsfId;
         String pdClsfNm;
@@ -26,6 +28,7 @@ public class WctaContractRegStep2Dvo {
     @Getter
     @Setter
     public static class PdDvo {
+        String pdClsf;
         String mclsfVal;
         String lclsfVal;
         String pdCd;
@@ -38,40 +41,56 @@ public class WctaContractRegStep2Dvo {
         String cstBasePdAbbrNm;
         String pdEplCn;
         String sellTpCd;
+        String sellTpNm;
         String sellTpDtlCd;
+        String sellTpDtlNm;
         String pdTpCd;
         String pdTpDtlCd;
         String basePdChoYn;
         String crncyDvCd;
         String spaySellPsbYn;
         String vatTpCd;
+        String vatTpNm;
         String pdctUprcUseYn;
         String fgptYn;
-        String lrnnAgeUnitCd;
-        String minLrnnAge;
-        String maxLrnnAge;
-        String sellChnlId;
-        String alrpyDvCd;
-        String pdWgt;
-        String prrCntrPdOjYn;
-        String rcpBaseStrtdt;
-        String rcpBaseEnddt;
-        String cnfmBaseStrtdt;
-        String cnfmBaseEnddt;
-        String lrnnLvGrpDvCd;
-        String smtChgYn;
+        String filtEnddt;
+        String otscPdYn;
+        String rfbshYn;
+        String istPcsvTpCd;
+        String mpactYn;
+        String istBzsCd;
+        String stocMngtOjYn;
+        String pcsvBzsCd;
+        String svAlncBzsCd;
+        String ordPrmitYm;
+        String bzsSppYn;
+        String bfPdCd;
+        String cntrPtrmDvCd;
+        String dutyUsePtrmDvCd;
+        String rglrSppCntrDvCd;
+        String rglrSppDutyPtrmDvCd;
+        String rglrSppPrmMcn;
+        String rglrSppBilDvCd;
+        String rglrSppConsTpcd;
+        String rglrSppPdctConsQty;
+        String pdChoLmYn;
+        String pdChoQty;
+        String laboEuYn;
         String chdvcPrmitYn;
-        String islndIncmdcYn;
-        String istmMcn;
-        String smtMlgUseYn;
-        String sppDvCd;
-        String misuDvCd;
-        String pdChip1;
-        String pdChip2;
-        String pdQty;
-        List<PdDetailDvo> suscMms;
-        List<PdDetailDvo> lrnnLvs;
-        List<PdDetailDvo> strtLvs;
+        String fgptTpYn;
+        String asRcpPrmitYn;
+        String frisuAsYn;
+        String rntf;
+        String ackmtPerfRt;
+        String ackmtCt;
+        String feeAmt;
+        String hdCndtCd;
+        String rdsYn;
+        String redfYn;
+        String anaFactVal1;
+        String anaFactVal2;
+        String pvdaYn;
+        String hcrMshTpCd;
     }
 
     @Getter

@@ -70,4 +70,13 @@ public interface WctzHistoryMapper {
 
     int insertCntrPrccchHistory(WctzCntrPrccchHistDvo dvo);
 
+    // 기기변경이력
+    WctzMachineChangeHistoryDvo selectMachineChangeHistory(String cntrNo, int cntrSn);
+
+    WctzMachineChangeHistoryDvo selectMachineChangeForHist(String cntrNo, int cntrSn);
+
+    int updateMachineChangeHistory(WctzMachineChangeHistoryDvo dvo);
+
+    int insertMachineChangeHistory(WctzMachineChangeHistoryDvo dvo);
+
 }

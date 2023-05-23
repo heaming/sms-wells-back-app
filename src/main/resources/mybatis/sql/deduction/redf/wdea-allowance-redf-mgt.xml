@@ -481,5 +481,735 @@
             </if>
     </select>
     
+    <select id="selectRedfBizdMgts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto$SearchRedfBizdRes">
+        /*수당(실적) 되물림 관리 - 파트너 되물림 대상 집계 현황 조회 (통합) 목록 조회*/
+        SELECT M.PERF_YM /*실적년월*/
+             , M.BASE_YM /*발생년월*/
+             , AK05.OG_CD /*소속코드*/
+             , AK05.PRTNR_KNM /*성명*/
+             , M.PRTNR_NO /*파트너번호*/
+             , AK05.PSTN_DV_CD /*직급*/
+             , AK05.OG_TP_CD /*조직유형*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'OG_TP_CD', AK05.OG_TP_CD, #{session.langId}) AS OG_TP_NM  /*조직유형*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', AK05.QLF_DV_CD, #{session.langId}) AS QLF_DV_NM /*자격*/
+             , (CASE WHEN AK55.PSTN_DV_CD = '7' THEN '지점장'
+                     WHEN AK55.BZ_STAT_CD = '2' THEN '해약'
+                     ELSE F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', AK55.QLF_DV_CD, #{session.langId})
+                 END) AS QLF_DV_NM_1 /*자격(M+1)*/
+             , (CASE WHEN AK05.PSTN_DV_CD = '10' AND M.PERF_YM >= '201801' /*2018 개편기준(ASIS기준)*/
+                     THEN (SELECT X.QLF_DV_CD FROM TB_OGBS_MM_PRTNR_IZ X WHERE X.OG_TP_CD = 'W02' AND X.BASE_YM = M.PERF_YM AND X.PRTNR_NO = M.PRTNR_NO)
+                     ELSE ''
+                 END) AS DSTRC_GD /*지구등급*/
+             , M.ATDC_DC AS ATDC_DC /*미팅(해당 실적년월의 출근일수)*/
+             , M.PERF_DV_CD /*구분*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PERF_DV_CD', M.PERF_DV_CD, #{session.langId}) AS PERF_DV_NM /*실적구분*/
+             , '' AS BRCH_DEC /*지점순감, TODO: AB7750P.지역단장 성과관리 매핑 테이블을 찾지못했음*/
+             , (SELECT CASE WHEN X.PSTN_DV_CD = '10' THEN 'Y' ELSE 'N' END
+                  FROM TB_OGBS_MM_PRTNR_IZ X /*월파트너내역*/
+                 WHERE X.DTA_DL_YN = 'N'
+                   AND X.BASE_YM = '201903'
+                   AND X.OG_TP_CD = M.PRTNR_NO
+                   AND X.PRTNR_NO = M.PRTNR_NO) AS MARCH_DSTRC_YN /*3월지구장*/
+             , AK06.CH_YM /*수석승급기준월(파트너신청기본.변경년월)*/
+             , AK06.CH_YM AS WP_CH_YM /*승급년월(WELLS-P)*/
+             , (SELECT CASE WHEN X.EDUC_CPC_ACKMT_YN = 'Y' THEN X.AGRG_YM ELSE '' END
+                  FROM TB_PSCA_MCPTN_EDUC_AGRG X /*월별파트너교육집계*/
+                 WHERE X.PRTNR_NO = M.PRTNR_NO
+                   <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "02")'>
+                   AND X.ENTRP_DV_CD = '7' /*WELLS-M*/
+                   </if>
+                   <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "01")'>
+                   AND X.ENTRP_DV_CD = '2' /*WELLS-P*/
+                   </if>>
+               ) AS EDUC_CPC_MM /*수석정착 수료월*/
+             , M.AKSD48_YN /*정착 지급여부*/
+             , (SELECT X.EDUC_CPC_ACKMT_YN
+                  FROM TB_PSCA_MCPTN_EDUC_AGRG X /*월별파트너교육집계*/
+                 WHERE X.PRTNR_NO = M.PRTNR_NO
+                   <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "02")'>
+                   AND X.ENTRP_DV_CD = '7' /*WELLS-M*/
+                   </if>
+                   <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "01")'>
+                   AND X.ENTRP_DV_CD = '2' /*WELLS-P*/
+                   </if>>
+                ) AS EDU17_YN /*플래너실전 수료여부*/
+             , NVL(C.SELL_AMT, 0) AS SELL_AMT /*귀속월매출*/
+             , C.ACKMT_PERF_RT || '%' /*지급율*/
+             , (CASE WHEN AK05.PSTN_DV_CD = '10'
+                     THEN (SELECT CASE WHEN COUNT(1) > 1 THEN '' ELSE 'Y' END
+                             FROM TB_OGBS_OG_BAS A
+                            WHERE A.OG_CD = AK05.OG_CD
+                              AND A.OG_TP_CD = AK05.OG_TP_CD) END) AS ONETEAM_YN /*단독지구*/
+             , NVL(M.HOME_CARE, 0) AS HOME_CARE /*홈케어실적*/
+             , NVL(M.MC_PERF, 0) AS MC_PERF /*기변실적*/
+             /*환경가전*/
+             , NVL(M.TB_ENVR_ELHM, 0) AS TB_ENVR_ELHM /*환경가전.귀속월실적*/
+             , NVL(M.T_ENVR_ELHM, 0) AS T_ENVR_ELHM /*환경가전.귀속월실적*/
+             , NVL(M.B_ENVR_ELHM, 0) AS B_ENVR_ELHM/*환경가전.되물림전실적*/
+             , NVL((M.B_ENVR_ELHM - M.A_ENVR_ELHM), 0) AS ENVR_ELHM /*환경가전.되물림실적*/
+             , NVL(M.A_ENVR_ELHM, 0) AS A_ENVR_ELHM/*환경가전.되물림후실적*/
+             /*환경가전(건수)*/
+             , NVL(M.TB_ENVR_ELHM_CNT, 0) AS TB_ENVR_ELHM_CNT/*환경가전(건수).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_CNT, 0) AS T_ENVR_ELHM_CNT/*환경가전(건수).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_CNT, 0) AS B_ENVR_ELHM_CNT/*환경가전(건수).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_CNT - M.A_ENVR_ELHM_CNT), 0) AS ENVR_ELHM_CNT /*환경가전(건수).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_CNT, 0) AS A_ENVR_ELHM_CNT/*환경가전(건수).되물림후실적*/
+             /*환경가전 건수(개인)*/
+             , NVL(M.TB_ENVR_ELHM_CNT_PR, 0) AS TB_ENVR_ELHM_CNT_PR/*환경가전(개인).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_CNT_PR, 0) AS T_ENVR_ELHM_CNT_PR/*환경가전(개인).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_CNT_PR, 0) AS B_ENVR_ELHM_CNT_PR/*환경가전(개인).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_CNT_PR - M.A_ENVR_ELHM_CNT_PR), 0) AS TB_ENVR_ELHM_CNT_PR /*환경가전(개인).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_CNT_PR, 0) AS A_ENVR_ELHM_CNT_PR/*환경가전(개인).되물림후실적*/
+             /*환경가전 건수(조직)*/
+             , NVL(M.TB_ENVR_ELHM_CNT_JO, 0) AS TB_ENVR_ELHM_CNT_JO/*환경가전(조직).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_CNT_JO, 0) AS T_ENVR_ELHM_CNT_JO/*환경가전(조직).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_CNT_JO, 0) AS TB_ENVR_ELHM_CNT_JO/*환경가전(조직).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_CNT_JO - M.A_ENVR_ELHM_CNT_JO), 0) AS ENVR_ELHM_CNT /*환경가전(조직).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_CNT_JO, 0) AS A_ENVR_ELHM_CNT_JO/*환경가전(조직).되물림후실적*/
+             /*환경가전(기준가격)*/
+             , NVL(M.T_ENVR_ELHM_BASE_AMT, 0) AS T_ENVR_ELHM_BASE_AMT/*환경가전(기준가격).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_BASE_AMT, 0) AS B_ENVR_ELHM_BASE_AMT/*환경가전(기준가격).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_BASE_AMT -  M.A_ENVR_ELHM_BASE_AMT), 0) AS ENVR_ELHM_BASE_AMT /*환경가전(기준가격).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_BASE_AMT, 0) AS A_ENVR_ELHM_BASE_AMT/*환경가전(기준가격).되물림후실적*/
+             /*환경가전 렌탈*/
+             , NVL(M.TB_ENVR_ELHM_RENTAL, 0) AS TB_ENVR_ELHM_RENTAL/*환경가전 렌탈.귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_RENTAL, 0) AS T_ENVR_ELHM_RENTAL/*환경가전 렌탈.귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_RENTAL, 0) AS B_ENVR_ELHM_RENTAL/*환경가전 렌탈.되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_RENTAL - M.A_ENVR_ELHM_RENTAL), 0) AS ENVR_ELHM_RENTAL /*환경가전 렌탈.되물림실적*/
+             , NVL(M.A_ENVR_ELHM_RENTAL, 0) AS A_ENVR_ELHM_RENTAL/*환경가전 렌탈.되물림후실적*/
+             /*환경가전 렌탈(조직)*/
+             , NVL(M.TB_ENVR_ELHM_RENTAL_JO, 0) AS TB_ENVR_ELHM_RENTAL_JO/*환경가전 렌탈(조직).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_RENTAL_JO, 0) AS T_ENVR_ELHM_RENTAL_JO/*환경가전 렌탈(조직).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_RENTAL_JO, 0) AS B_ENVR_ELHM_RENTAL_JO/*환경가전 렌탈(조직).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_RENTAL_JO - M.A_ENVR_ELHM_RENTAL_JO), 0) AS ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_RENTAL_JO, 0) AS A_ENVR_ELHM_RENTAL_JO/*환경가전 렌탈(조직).되물림후실적*/
+             /*환경가전 렌탈(개인)*/
+             , NVL(M.TB_ENVR_ELHM_RENTAL_PR, 0) AS TB_ENVR_ELHM_RENTAL_PR/*환경가전 렌탈(개인).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_RENTAL_PR, 0) AS T_ENVR_ELHM_RENTAL_PR/*환경가전 렌탈(개인).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_RENTAL_PR, 0) AS B_ENVR_ELHM_RENTAL_PR/*환경가전 렌탈(개인).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_RENTAL_PR - M.A_ENVR_ELHM_RENTAL_PR), 0) AS ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_RENTAL_PR, 0) AS A_ENVR_ELHM_RENTAL_PR/*환경가전 렌탈(개인).되물림후실적*/
+             /*환경가전 일시불*/
+             , NVL(M.T_ENVR_ELHM_SPAY, 0) AS T_ENVR_ELHM_SPAY/*환경가전 일시불.귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_SPAY, 0) AS B_ENVR_ELHM_SPAY/*환경가전 일시불.되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_SPAY - M.A_ENVR_ELHM_SPAY), 0) AS ENVR_ELHM_SPAY /*환경가전 일시불.되물림실적*/
+             , NVL(M.A_ENVR_ELHM_SPAY, 0) AS A_ENVR_ELHM_SPAY/*환경가전 일시불.되물림후실적*/
+             /*환경가전 일시불(조직)*/
+             , NVL(M.TB_ENVR_ELHM_SPAY_JO, 0) AS TB_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_SPAY_JO, 0) AS T_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_SPAY_JO, 0) AS B_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_SPAY_JO - M.A_ENVR_ELHM_SPAY_JO), 0) AS ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_SPAY_JO, 0) AS A_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림후실적*/
+             /*환경가전 일시불(개인)*/
+             , NVL(M.TB_ENVR_ELHM_SPAY_PR, 0) AS TB_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_SPAY_PR, 0) AS T_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_SPAY_PR, 0) AS B_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_SPAY_PR - M.A_ENVR_ELHM_SPAY_PR), 0) AS ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_SPAY_PR, 0) AS A_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림후실적*/
+             /*환경가전외 일시불(개인)*/
+             , NVL(M.TB_ENVR_ELHM_EXCP_PR, 0) AS TB_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_EXCP_PR, 0) AS T_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_EXCP_PR, 0) AS B_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_EXCP_PR - M.A_ENVR_ELHM_EXCP_PR), 0) AS ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_EXCP_PR, 0) AS A_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림후실적*/
+             /*환경가전외 일시불(조직)*/
+             , NVL(M.TB_ENVR_ELHM_EXCP_JO, 0) AS TB_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_EXCP_JO, 0) AS T_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_EXCP_JO, 0) AS B_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_EXCP_JO - M.A_ENVR_ELHM_EXCP_JO), 0) AS ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_EXCP_JO, 0) AS A_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림후실적*/
+             /*환경가전외*/
+             , NVL(M.TB_ENVR_ELHM_EXCP, 0) AS TB_ENVR_ELHM_EXCP/*환경가전외.귀속전월실적*/
+             , NVL(M.T_ENVR_ELHM_EXCP, 0) AS T_ENVR_ELHM_EXCP/*환경가전외.귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_EXCP, 0) AS B_ENVR_ELHM_EXCP/*환경가전외.되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_EXCP - A_ENVR_ELHM_EXCP), 0) AS ENVR_ELHM_EXCP /*환경가전외.되물림실적*/
+             , NVL(M.A_ENVR_ELHM_EXCP, 0) AS A_ENVR_ELHM_EXCP/*환경가전외.되물림후실적*/
+             /*환경가전외 정액*/
+             , NVL(M.T_ENVR_ELHM_EXCP_FXAM, 0) AS T_ENVR_ELHM_EXCP_FXAM/*환경가전외 정액.귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_EXCP_FXAM, 0) AS B_ENVR_ELHM_EXCP_FXAM/*환경가전외 정액.되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_EXCP_FXAM - M.A_ENVR_ELHM_EXCP_FXAM), 0) AS ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.되물림실적*/
+             , NVL(M.A_ENVR_ELHM_EXCP_FXAM, 0) AS A_ENVR_ELHM_EXCP_FXAM/*환경가전외 정액.되물림후실적*/
+             /*환경가전외 정액(개인)*/
+             , NVL(M.TB_ENVR_ELHM_EXCP_FXAM_PR, 0) AS TB_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).귀속월실적*/
+             , NVL(M.T_ENVR_ELHM_EXCP_FXAM_PR, 0) AS T_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).귀속월실적*/
+             , NVL(M.B_ENVR_ELHM_EXCP_FXAM_PR, 0) AS B_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).되물림전실적*/
+             , NVL((M.B_ENVR_ELHM_EXCP_FXAM_PR - M.A_ENVR_ELHM_EXCP_FXAM_PR), 0) AS ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).되물림실적*/
+             , NVL(M.A_ENVR_ELHM_EXCP_FXAM_PR, 0) AS A_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).되물림후실적*/
+             /*신규판매 건수(조직)*/
+             , NVL(M.TB_NW_SELL_CNT_JO, 0) AS TB_NW_SELL_CNT_JO /*신규판매 건수(조직).귀속전월실적*/
+             , NVL(M.T_NW_SELL_CNT_JO, 0) AS T_NW_SELL_CNT_JO /*신규판매 건수(조직).귀속월실적*/
+             , NVL(M.B_NW_SELL_CNT_JO, 0) AS B_NW_SELL_CNT_JO /*신규판매 건수(조직).되물림전실적*/
+             , NVL((M.B_NW_SELL_CNT_JO - A_NW_SELL_CNT_JO), 0) AS NW_SELL_CNT_JO /*신규판매 건수(조직).되물림실적*/
+             , NVL(M.A_NW_SELL_CNT_JO, 0) AS A_NW_SELL_CNT_JO /*신규판매 건수(조직).되물림후실적*/
+             /*신규판매 건수(개인)*/
+             , NVL(M.TB_NW_SELL_CNT_PR, 0) AS TB_NW_SELL_CNT_PR /*신규판매 건수(개인).귀속전월실적*/
+             , NVL(M.T_NW_SELL_CNT_PR, 0) AS T_NW_SELL_CNT_PR /*신규판매 건수(개인).귀속월실적*/
+             , NVL(M.B_NW_SELL_CNT_PR, 0) AS B_NW_SELL_CNT_PR/*신규판매 건수(개인).되물림전실적*/
+             , NVL((M.B_NW_SELL_CNT_PR - A_NW_SELL_CNT_PR), 0) AS NW_SELL_CNT_PR /*신규판매 건수(개인).되물림실적*/
+             , NVL(M.A_NW_SELL_CNT_PR, 0) AS A_NW_SELL_CNT_PR/*신규판매 건수(개인).되물림후실적*/
+             /*환경가전 정액(개인)*/
+             , NVL(M.TB_NW_SELL_CNT_PR, 0) AS TB_NW_SELL_CNT_PR /*환경가전 정액(개인).귀속전월실적*/
+             , NVL(M.T_NW_SELL_CNT_PR, 0) AS T_NW_SELL_CNT_PR /*환경가전 정액(개인).귀속월실적*/
+             , NVL(M.B_NW_SELL_CNT_PR, 0) AS B_NW_SELL_CNT_PR/*환경가전 정액(개인).되물림전실적*/
+             , NVL((M.B_NW_SELL_CNT_PR - A_NW_SELL_CNT_PR), 0) AS NW_SELL_CNT_PR /*환경가전 정액(개인).되물림실적*/
+             , NVL(M.A_NW_SELL_CNT_PR, 0) AS A_NW_SELL_CNT_PR/*환경가전 정액(개인).되물림후실적*/
+             /*조직관리 실활동(명)*/
+             , NVL(M.TB_OG_MGT_PPL, 0) AS TB_OG_MGT_PPL /*조직관리 실활동(명).전월대비*/
+             , NVL(M.T_OG_MGT_PPL, 0) AS T_OG_MGT_PPL /*조직관리 실활동(명).귀속월실적*/
+             , NVL(M.B_OG_MGT_PPL, 0) AS B_OG_MGT_PPL/*조직관리 실활동(명).되물림전실적*/
+             , NVL((M.B_OG_MGT_PPL - A_OG_MGT_PPL), 0) AS OG_MGT_PPL /*조직관리 실활동(명).되물림실적*/
+             , NVL(M.A_OG_MGT_PPL, 0) AS A_OG_MGT_PPL/*조직관리 실활동(명).되물림후실적*/
+             /*기변(WELLS-P)*/
+             , NVL(M.TB_MC, 0) AS TB_MC /*환경가전 정액(개인).귀속전월실적*/
+             , NVL(M.T_MC, 0) AS T_MC /*환경가전 정액(개인).귀속월실적*/
+             , NVL(M.B_MC, 0) AS B_MC/*환경가전 정액(개인).되물림전실적*/
+             , NVL((M.B_MC - A_MC), 0) AS MC /*환경가전 정액(개인).되물림실적*/
+             , NVL(M.A_MC, 0) AS A_MC /*환경가전 정액(개인).되물림후실적*/
+             /*정액(WELLS-P)*/
+             , NVL(M.TB_FXAM, 0) AS TB_FXAM /*환경가전 정액(개인).귀속전월실적*/
+             , NVL(M.T_FXAM, 0) AS T_FXAM /*환경가전 정액(개인).귀속월실적*/
+             , NVL(M.B_FXAM, 0) AS B_FXAM/*환경가전 정액(개인).되물림전실적*/
+             , NVL((M.B_FXAM - A_FXAM), 0) AS FXAM /*환경가전 정액(개인).되물림실적*/
+             , NVL(M.A_FXAM, 0) AS A_FXAM /*환경가전 정액(개인).되물림후실적*/
+             /*되물림 수수료*/
+             , NVL(D.MCHN_CH_REDF201903, 0) AS MCHN_CH_REDF201903 /*기변수당*/
+             , NVL(D.MCHN_CH_REDF201904, 0) AS MCHN_CH_REDF201904 /*기기변경*/
+             , NVL(D.SP_REDF, 0) AS SP_REDF /*수석플래너*/
+             , NVL(D.HOME_CARE_REDF, 0) AS HOME_CARE_REDF /*홈케어*/
+             , NVL(D.SELL_ENCRG_REDF, 0) AS SELL_ENCRG_REDF /*판매장려*/
+             , NVL(D.EDU_REDF, 0) AS EDU_REDF /*교육*/
+             , NVL(D.SETTLE_REDF, 0) AS SETTLE_REDF /*정착*/
+             , NVL(D.SELL_ENCRG_RETT_REDF, 0) AS SELL_ENCRG_RETT_REDF /*판매장려 소급*/
+             , NVL(D.ENVR_TRG_REDF, 0) AS ENVR_TRG_REDF /*환경가전 목표달성*/
+             , NVL(D.ENVR_BZNS_REDF201903, 0) AS ENVR_BZNS_REDF201903 /*환경가전 영업*/
+             , NVL(D.ENVR_BZNS_REDF201904, 0) AS ENVR_BZNS_REDF201904 /*환경가전 비례*/
+             , NVL(D.ENVR_EXCP_BZNS_REDF201903, 0) AS ENVR_EXCP_BZNS_REDF201903 /*환경가전외 영업*/
+             , NVL(D.ENVR_EXCP_BZNS_REDF201904, 0) AS ENVR_EXCP_BZNS_REDF201904 /*환경가전외 비례*/
+             , NVL(D.ENVR_METG_REDF, 0) AS ENVR_METG_REDF /*환경가전 미팅*/
+             , NVL(D.ENVR_EXCP_METG_REDF, 0) AS ENVR_EXCP_METG_REDF /*환경가전외 미팅*/
+             , NVL(D.ENVR_OG_REDF, 0) AS ENVR_OG_REDF /*환경가전 조직*/
+             , NVL(D.ENVR_EXCP_OG_REDF201904, 0) AS ENVR_EXCP_OG_REDF201904 /*환경가전외 조직*/
+             , NVL(D.ENVR_EXCP_OG_REDF201903, 0) AS ENVR_EXCP_OG_REDF201903 /*환경가전외 조직비례*/
+             , NVL(D.ENVR_OG_METG, 0) AS ENVR_OG_METG /*환경가전 조직미팅*/
+             , NVL(D.ENVR_EXCP_OG_METG_REDF, 0) AS ENVR_EXCP_OG_METG_REDF /*환경가전외 조직미팅*/
+             , NVL(D.OG_SELL_ENCRG_REDF, 0) AS OG_SELL_ENCRG_REDF /*조직판매 장려*/
+             , NVL(D.NW_SELL_REDF, 0) AS NW_SELL_REDF /*신규판매*/
+             , NVL(D.OG_MGT_REDF, 0) AS OG_MGT_REDF /*조직관리*/
+             /*WELLS-P 되물림 수수료*/
+             , NVL(D.WP_FXAM_REDF_DSTRC ,0) AS WP_FXAM_REDF_DSTRC /*정액(지구장이하)*/
+             , NVL(D.WP_FXAM_REDF_BRCH ,0) AS WP_FXAM_REDF_BRCH /*정액(지점장이상)*/
+             , NVL(D.WP_ENVR_EXCP_PR_REDF ,0) AS WP_ENVR_EXCP_PR_REDF /*가전외 개인비례*/
+             , NVL(D.WP_ENVR_PR_REDF ,0) AS WP_ENVR_PR_REDF /*가전 개인비례*/
+             , NVL(D.WP_PR_SELL_ENCRG_REDF ,0) AS WP_PR_SELL_ENCRG_REDF /*개인 판매장려*/
+             , NVL(D.WP_METG_REDF ,0) AS WP_METG_REDF /*미팅*/
+             , NVL(D.WP_SETTLE_REDF_DSTRC ,0) AS WP_SETTLE_REDF_DSTRC /*정착(지구장이하)*/
+             , NVL(D.WP_SETTLE_REDF_BRCH ,0) AS WP_SETTLE_REDF_BRCH /*정착(지점장이상)*/
+             , NVL(D.WP_ENVR_OG_REDF ,0) AS WP_ENVR_OG_REDF /*가전 조직비례*/
+             , NVL(D.WP_ENVR_EXCP_OG_REDF ,0) AS WP_ENVR_EXCP_OG_REDF /*가전외 조직비례*/
+             , NVL(D.WP_OG_SELL_ENCRG_REDF ,0) AS WP_OG_SELL_ENCRG_REDF /*조직 판매장려*/
+             , NVL(D.DLQ_REDF_AMT, 0) AS DLQ_REDF_AMT /*연체되물림*/
+             /*되물림 수수료.되물림 합계금액*/
+             , NVL(D.MCHN_CH_REDF201903, 0)+NVL(D.SP_REDF, 0)+NVL(D.HOME_CARE_REDF, 0)+NVL(D.ENVR_TRG_REDF, 0)+NVL(D.ENVR_BZNS_REDF201903, 0)
+              +NVL(D.ENVR_METG_REDF, 0)+NVL(D.ENVR_EXCP_BZNS_REDF201903, 0)+NVL(D.ENVR_EXCP_METG_REDF, 0)+NVL(D.ENVR_OG_REDF, 0)+NVL(D.ENVR_OG_METG, 0)
+              +NVL(D.ENVR_EXCP_OG_REDF201903, 0)+NVL(D.ENVR_EXCP_OG_METG_REDF, 0) AS SUM_PERF_LAST_201903_REDF_DSTRC /*2019.03 이전 + 지구장이하 그리드 되물림 합계금액*/
+              
+             , NVL(D.HOME_CARE_REDF ,0)+NVL(D.MCHN_CH_REDF201904 ,0)+NVL(D.ENVR_BZNS_REDF201904 ,0)+NVL(D.ENVR_EXCP_BZNS_REDF201904 ,0)
+              +NVL(D.EDU_REDF ,0)+NVL(D.SETTLE_REDF ,0)+NVL(D.SELL_ENCRG_RETT_REDF ,0) AS SUM_PERF_201904_BETWEEN_202012_REDF_DSTRC /*2019.04 ~ 2020.12 + 지구장이하 그리드 되물림 합계금액*/
+            
+             , NVL(D.HOME_CARE_REDF ,0)+NVL(D.MCHN_CH_REDF201904 ,0)+NVL(D.ENVR_BZNS_REDF201904 ,0)+NVL(D.ENVR_EXCP_BZNS_REDF201904 ,0)
+              +NVL(D.SELL_ENCRG_REDF ,0)+NVL(D.EDU_REDF ,0)+NVL(D.SETTLE_REDF ,0)+NVL(D.SELL_ENCRG_RETT_REDF ,0) AS SUM_PERF_202101_REDF_DSTRC /*2021.01 이후 + 지구장이하 그리드 되물림 합계금액*/
+            
+             , NVL(D.MCHN_CH_REDF201903 ,0)+NVL(D.MCHN_CH_REDF201904 ,0)+NVL(D.SP_REDF ,0)+NVL(D.HOME_CARE_REDF ,0)+NVL(D.ENVR_TRG_REDF ,0)+NVL(D.ENVR_BZNS_REDF201903 ,0)
+              +NVL(D.ENVR_METG_REDF ,0)+NVL(D.ENVR_BZNS_REDF201904 ,0)+NVL(D.ENVR_EXCP_BZNS_REDF201903 ,0)+NVL(D.ENVR_EXCP_METG_REDF ,0)+NVL(D.ENVR_EXCP_BZNS_REDF201904 ,0)
+              +NVL(D.SELL_ENCRG_REDF ,0)+NVL(D.EDU_REDF ,0)+NVL(D.SETTLE_REDF ,0)+NVL(D.SELL_ENCRG_RETT_REDF ,0)+NVL(D.ENVR_OG_REDF ,0)+NVL(D.ENVR_OG_METG ,0)
+              +NVL(D.ENVR_EXCP_OG_REDF201903 ,0)+NVL(D.ENVR_EXCP_OG_METG_REDF ,0) AS SUM_PERF_ALL_REDF_DSTRC /*실적년월 전기간 + 지구장이하 그리드 되물림 합계금액*/
+            
+             , NVL(D.MCHN_CH_REDF201903 ,0)+NVL(D.SP_REDF ,0)+NVL(D.HOME_CARE_REDF ,0)+NVL(D.ENVR_TRG_REDF ,0)+NVL(D.ENVR_BZNS_REDF201903 ,0)+NVL(D.ENVR_METG_REDF ,0)
+              +NVL(D.ENVR_EXCP_BZNS_REDF201903 ,0)+NVL(D.ENVR_EXCP_METG_REDF ,0)+NVL(D.ENVR_OG_REDF ,0)+NVL(D.ENVR_OG_METG ,0)
+              +NVL(D.ENVR_EXCP_OG_REDF201903 ,0)+NVL(D.ENVR_EXCP_OG_METG_REDF ,0) AS SUM_PERF_LAST_201903_REDF_BRCH /* 2019.03 이전 + 지점장 이상 그리드 되물림 합계금액*/
+           
+             , NVL(D.HOME_CARE_REDF ,0)+NVL(D.MCHN_CH_REDF201904 ,0)+NVL(D.ENVR_BZNS_REDF201904 ,0)+NVL(D.SELL_ENCRG_REDF ,0)+NVL(D.EDU_REDF ,0)+NVL(D.SETTLE_REDF ,0)
+              +NVL(D.ENVR_OG_REDF ,0)+NVL(D.ENVR_EXCP_OG_REDF201904 ,0)+NVL(D.OG_SELL_ENCRG_REDF ,0)+NVL(D.NW_SELL_REDF ,0)
+              +NVL(D.OG_MGT_REDF ,0) AS SUM_PERF_201904_BETWEEN_202012_REDF_BRCH /* 2019.04 ~ 2020.12 + 지점장 이상 그리드 되물림 합계금액*/
+            
+             , NVL(D.HOME_CARE_REDF ,0)+NVL(D.MCHN_CH_REDF201904 ,0)+NVL(D.ENVR_BZNS_REDF201904 ,0)+NVL(D.SELL_ENCRG_REDF ,0)+NVL(D.EDU_REDF ,0)+NVL(D.SETTLE_REDF ,0)
+              +NVL(D.ENVR_OG_REDF ,0)+NVL(D.ENVR_EXCP_OG_REDF201904 ,0)+NVL(D.OG_SELL_ENCRG_REDF ,0)+NVL(D.NW_SELL_REDF ,0)
+              +NVL(D.OG_MGT_REDF ,0) AS SUM_PERF_202101_REDF_BRCH /* 2021.01 이후 + 지점장 이상 그리드 되물림 합계 금액*/
+            
+             , NVL(D.MCHN_CH_REDF201903 ,0)+NVL(D.SP_REDF ,0)+NVL(D.HOME_CARE_REDF ,0)+NVL(D.MCHN_CH_REDF201904 ,0)+NVL(D.SELL_ENCRG_REDF ,0)+NVL(D.EDU_REDF ,0)
+              +NVL(D.SETTLE_REDF ,0)+NVL(D.ENVR_TRG_REDF ,0)+NVL(D.ENVR_BZNS_REDF201903 ,0)+NVL(D.ENVR_EXCP_BZNS_REDF201903 ,0)+NVL(D.ENVR_BZNS_REDF201904 ,0)
+              +NVL(D.ENVR_EXCP_BZNS_REDF201904 ,0)+NVL(D.ENVR_METG_REDF ,0)+NVL(D.ENVR_EXCP_METG_REDF ,0)+NVL(D.ENVR_OG_REDF ,0)+NVL(D.ENVR_EXCP_OG_REDF201904 ,0)
+              +NVL(D.ENVR_EXCP_OG_REDF201903 ,0)+NVL(D.ENVR_OG_METG ,0)+NVL(D.ENVR_EXCP_OG_METG_REDF ,0)+NVL(D.OG_SELL_ENCRG_REDF ,0)+NVL(D.NW_SELL_REDF ,0)
+              +NVL(D.OG_MGT_REDF ,0) AS SUM_PERF_ALL_REDF_BRCH
+            
+             , NVL(D.WP_ENVR_PR_REDF ,0)+NVL(D.WP_ENVR_EXCP_PR_REDF ,0)+NVL(D.WP_PR_SELL_ENCRG_REDF ,0)+NVL(D.WP_METG_REDF ,0)+NVL(D.WP_SETTLE_REDF_DSTRC ,0)
+              +NVL(D.WP_FXAM_REDF_DSTRC ,0) AS SUM_WP_REDF_DSTRC /*WELLS-P + 지구장 이하 되물림 합계금액*/
+            
+             , NVL(D.WP_ENVR_PR_REDF ,0)+NVL(D.WP_ENVR_EXCP_PR_REDF ,0)+NVL(D.WP_PR_SELL_ENCRG_REDF ,0)+NVL(D.WP_ENVR_OG_REDF ,0)+NVL(D.WP_ENVR_EXCP_OG_REDF ,0)
+              +NVL(D.WP_OG_SELL_ENCRG_REDF ,0)+NVL(D.WP_SETTLE_REDF_BRCH ,0)+NVL(D.WP_FXAM_REDF_BRCH ,0) AS SUM_WP_REDF_BRCH /*WELLS-P + 지점장 이상 되물림 합계 금액*/
+             , '' AS T_REDF_PPL /*적채용.귀속월인원*/
+             , '' AS B_REDF_PPL /*적채용.되물림전 인원*/
+             , '' AS REDF_PPL /*적채용.되물림 인원*/
+             , '' AS A_REDF_PPL /*적채용.되물림후 인원*/
+             , (CASE WHEN (SELECT COUNT(1)
+                             FROM TB_FEDD_FEE_CPSN_REDF_OJ_IZ C2 /*수수료강제되물림대상내역*/
+                            WHERE C2.DTA_DL_YN = 'N'
+                              AND C.BASE_YM = C2.OC_YM 
+                              AND C.PERF_YM = C2.PERF_YM
+                              AND C.PRTNR_NO = C2.PRTNR_NO
+                              AND C.OG_TP_CD = C2.OG_TP_CD
+                              AND C.CNTR_NO = C2.CNTR_NO
+                              AND C.CNTR_SN = C2.CNTR_SN) > 1 THEN 'Y' ELSE '' 
+                 END) AS CPSN_REDF_YN /*강제되물림포함여부*/
+          FROM (
+                SELECT A.BASE_YM
+                     , A.PERF_YM
+                     , TO_CHAR(ADD_MONTHS(A.PERF_YM || '01', 1), 'YYYYMM') AS PERF_YM_1
+                     , A.OG_TP_CD
+                     , A.PRTNR_NO
+                     , B.PERF_DV_CD
+                     , A.AKSD48_YN
+                     , NVL(B.HOME_CARE, 0) AS HOME_CARE /*홈케어실적*/
+                     , NVL(B.MC_PERF, 0) AS MC_PERF /*기변실적*/
+                     , NVL(B.ATDC_DC, 0) AS ATDC_DC /*미팅(출근일수)*/
+                     , NVL(A.T_ENVR_ELHM, 0) AS T_ENVR_ELHM /*환경가전.귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_CNT, 0) AS T_ENVR_ELHM_CNT /*환경가전(건수).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_CNT_PR, 0) AS T_ENVR_ELHM_CNT_PR /*환경가전 건수(개인).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_CNT_JO, 0) AS T_ENVR_ELHM_CNT_JO /*환경가전 건수(조직).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_BASE_AMT, 0) AS T_ENVR_ELHM_BASE_AMT /*환경가전(기준금액).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_RENTAL, 0) AS T_ENVR_ELHM_RENTAL /*환경가전 렌탈.귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_RENTAL_PR, 0) AS T_ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_RENTAL_JO, 0) AS T_ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_SPAY, 0) AS T_ENVR_ELHM_SPAY /*환경가전 일시불.귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_SPAY_PR, 0) AS T_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_SPAY_JO, 0) AS T_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_EXCP, 0) AS T_ENVR_ELHM_EXCP /*환경가전외.귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_EXCP_PR, 0) AS T_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_EXCP_JO, 0) AS T_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_EXCP_FXAM, 0) AS T_ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_FXAM_PR, 0) AS T_ENVR_ELHM_FXAM_PR /*환경가전 정액(개인).귀속월실적*/
+                     , NVL(A.T_ENVR_ELHM_EXCP_FXAM_PR, 0) AS T_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).귀속월실적*/
+                     , NVL(A.T_NW_SELL_CNT_PR, 0) AS T_NW_SELL_CNT_PR /*신규판매건수(개인).귀속월실적*/
+                     , NVL(A.T_NW_SELL_CNT_JO, 0) AS T_NW_SELL_CNT_JO /*신규판매건수(개인).귀속월실적*/
+                     , NVL(A.T_OG_MGT_PPL, 0) AS T_OG_MGT_PPL /*조직관리 실활동(명).귀속월실적*/
+                     , NVL(A.T_MC, 0) AS T_MC /*기변(WELLS-P).귀속월실적*/
+                     , NVL(A.T_FXAM, 0) AS T_FXAM /*정액(WELLS-P).귀속월실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM, 0) END) AS A_ENVR_ELHM /*환경가전.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_CNT, 0) END) AS A_ENVR_ELHM_CNT /*환경가전(건수).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_CNT_PR, 0) END) AS A_ENVR_ELHM_CNT_PR /*환경가전 건수(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_CNT_JO, 0) END) AS A_ENVR_ELHM_CNT_JO /*환경가전 건수(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_BASE_AMT, 0) END) AS A_ENVR_ELHM_BASE_AMT /*환경가전(기준금액).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_RENTAL, 0) END) AS A_ENVR_ELHM_RENTAL /*환경가전 렌탈.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_RENTAL_PR, 0) END) AS A_ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_RENTAL_JO, 0) END) AS A_ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_SPAY, 0) END) AS A_ENVR_ELHM_SPAY /*환경가전 일시불.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP, 0) END) AS A_ENVR_ELHM_EXCP /*환경가전외.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_PR, 0) END) AS A_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_JO, 0) END) AS A_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_FXAM_PR, 0) END) AS A_ENVR_ELHM_FXAM_PR /*환경가전 정액(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM_PR, 0) END) AS A_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM, 0) END) AS A_ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_NW_SELL_CNT_PR, 0) END) AS A_NW_SELL_CNT_PR /*신규판매건수(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_NW_SELL_CNT_JO, 0) END) AS A_NW_SELL_CNT_JO /*신규판매건수(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_SPAY_PR, 0) END) AS A_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_SPAY_JO, 0) END) AS A_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_OG_MGT_PPL, 0) END) AS A_OG_MGT_PPL /*조직관리 실활동(명).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_MC, 0) END) AS A_MC /*기변(WELLS-P).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_FXAM, 0) END) AS A_FXAM /*정액(WELLS-P).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM, 0) END) AS B_ENVR_ELHM /*환경가전.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_CNT_PR, 0) END) AS B_ENVR_ELHM_CNT_PR /*환경가전 건수(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_CNT_JO, 0) END) AS B_ENVR_ELHM_CNT_JO /*환경가전 건수(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_CNT, 0) END) AS B_ENVR_ELHM_CNT /*환경가전(건수).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_BASE_AMT, 0) END) AS B_ENVR_ELHM_BASE_AMT /*환경가전(기준금액).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_RENTAL, 0) END) AS B_ENVR_ELHM_RENTAL /*환경가전 렌탈.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_RENTAL_PR, 0) END) AS B_ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_RENTAL_JO, 0) END) AS B_ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_SPAY, 0) END) AS B_ENVR_ELHM_SPAY /*환경가전 일시불.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP, 0) END) AS B_ENVR_ELHM_EXCP /*환경가전외.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_PR, 0) END) AS B_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_JO, 0) END) AS B_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM_PR, 0) END) AS B_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM, 0) END) AS B_ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_NW_SELL_CNT_PR, 0) END) AS B_NW_SELL_CNT_PR /*신규판매건수(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_NW_SELL_CNT_JO, 0) END) AS B_NW_SELL_CNT_JO /*신규판매건수(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_SPAY_PR, 0) END) AS B_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_SPAY_JO, 0) END) AS B_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_OG_MGT_PPL, 0) END) AS B_OG_MGT_PPL /*조직관리 실활동(명).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_MC, 0) END) AS B_MC /*기변(WELLS-P).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_FXAM, 0) END) AS B_FXAM /*정액(WELLS-P).되물림전실적*/
+                     , NVL(C.TB_ENVR_ELHM, 0) AS TB_ENVR_ELHM /*환경가전.귀속전월실적(T_BEFORE TB)*/
+                     , NVL(C.TB_ENVR_ELHM_CNT, 0) AS TB_ENVR_ELHM_CNT /*환경가전(건수).귀속전월실적(T_BEFORE TB)*/
+                     , NVL(C.TB_ENVR_ELHM_CNT_PR, 0) AS TB_ENVR_ELHM_CNT_PR /*귀속전월실적 환경가전 건수(개인)*/
+                     , NVL(C.TB_ENVR_ELHM_CNT_JO, 0) AS TB_ENVR_ELHM_CNT_JO /*귀속전월실적 환경가전 건수(조직)*/
+                     , NVL(C.TB_ENVR_ELHM_RENTAL, 0) AS TB_ENVR_ELHM_RENTAL /*환경가전 렌탈.귀속전월실적(T_BEFROE TB)*/
+                     , NVL(C.TB_ENVR_ELHM_RENTAL_PR, 0) AS TB_ENVR_ELHM_RENTAL_PR /*귀속전월실적 환경가전 렌탈(개인)*/
+                     , NVL(C.TB_ENVR_ELHM_RENTAL_JO, 0) AS TB_ENVR_ELHM_RENTAL_JO /*귀속전월실적 환경가전 렌탈(조직)*/
+                     , NVL(C.TB_NW_SELL_CNT_PR, 0) AS TB_NW_SELL_CNT_PR /*귀속전월실적 신규판매 건수(개인)*/
+                     , NVL(C.TB_NW_SELL_CNT_JO, 0) AS TB_NW_SELL_CNT_JO /*귀속전월실적 신규판매 건수(조직)*/
+                     , NVL(C.TB_ENVR_ELHM_SPAY_PR, 0) AS TB_ENVR_ELHM_SPAY_PR /*귀속전월실적 환경가전 일시불(개인)*/
+                     , NVL(C.TB_ENVR_ELHM_SPAY_JO, 0) AS TB_ENVR_ELHM_SPAY_JO /*귀속전월실적 환경가전 일시불(조직)*/
+                     , NVL(C.TB_ENVR_ELHM_EXCP_PR, 0) AS TB_ENVR_ELHM_EXCP /*귀속전월실적 환경가전외 일시불(개인)*/
+                     , NVL(C.TB_ENVR_ELHM_EXCP_PR, 0) AS TB_ENVR_ELHM_EXCP_PR /*귀속전월실적 환경가전외 일시불(개인)*/
+                     , NVL(C.TB_ENVR_ELHM_EXCP_JO, 0) AS TB_ENVR_ELHM_EXCP_JO /*귀속전월실적 환경가전외 일시불(조직)*/
+                     , NVL(C.TB_ENVR_ELHM_EXCP_FXAM_PR, 0) AS TB_ENVR_ELHM_EXCP_FXAM_PR /*귀속전월실적 환경가전외 정액(개인)*/
+                     , NVL(C.TB_OG_MGT_PPL, 0) AS TB_OG_MGT_PPL /*귀속전월실적 조직관리 실활동(명)*/
+                     , NVL(C.TB_MC, 0) AS TB_MC /*귀속전월실적 기변(WELLS-P)*/
+                     , NVL(C.TB_FXAM, 0) AS TB_FXAM /*귀속전월실적 기변(WELLS-P)*/
+                  FROM (
+                         SELECT BASE_YM
+                              , PERF_YM
+                              , OG_TP_CD
+                              , PRTNR_NO
+                              , NVL(MAX((CASE WHEN (CASE WHEN PERF_ATC_CD = 'W020080' THEN PERF_VAL END) IS NOT NULL THEN 'Y' ELSE '' END)), 0) AS AKSD48_YN
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W020001' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM /*귀속월실적(TOTAL T) 환경가전*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_CNT /*귀속월실적 환경가전(건수) */
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W01P00002' THEN PERF_VAL END)), 0) AS T_MC /*귀속월실적 기변*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W01P00014' THEN PERF_VAL END)), 0) AS T_FXAM /*귀속월실적 기변*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W02P00002' AND PERF_DV_CD = '0' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_CNT_PR /*귀속월실적 환경가전 건수(개인)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W02P00002' AND PERF_DV_CD = '2' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_CNT_JO /*귀속월실적 환경가전 건수(조직)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00010' AND PERF_DV_CD = '0' THEN PERF_VAL END)), 0) AS T_NW_SELL_CNT_PR /*귀속월실적 신규판매 건수(개인)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00010' AND PERF_DV_CD = '2' THEN PERF_VAL END)), 0) AS T_NW_SELL_CNT_JO /*귀속월실적 신규판매 건수(조직)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD IN ('W00P00003','W00P00004', 'W00P00005') THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_BASE_AMT /*귀속월실적 환경가전(기준금액)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_RENTAL /*귀속월실적 환경가전 렌탈*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00003' AND PERF_DV_CD = '0' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_RENTAL_PR /*귀속월실적 환경가전 렌탈(개인)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00003' AND PERF_DV_CD = '2' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_RENTAL_JO /*귀속월실적 환경가전 렌탈(조직)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00005' AND PERF_DV_CD = '0' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_FXAM_PR /*귀속월실적 환경가전 정액(개인)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_SPAY /*귀속월실적 환경가전 일시불*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00004' AND PERF_DV_CD = '0' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_SPAY_PR /*귀속월실적 환경가전 일시불(개인)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00004' AND PERF_DV_CD = '2' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_SPAY_JO /*귀속월실적 환경가전 일시불(조직)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00006' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_EXCP /*귀속월실적 환경가전외*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00006' AND PERF_DV_CD = '0' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_EXCP_PR /*귀속월실적 환경가전외 일시불(개인)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00006' AND PERF_DV_CD = '2' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_EXCP_JO /*귀속월실적 환경가전외 일시불(조직)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00007' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_EXCP_FXAM /*귀속월실적 환경가전외 정액*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W00P00007' AND PERF_DV_CD = '0' THEN PERF_VAL END)), 0) AS T_ENVR_ELHM_EXCP_FXAM_PR /*귀속월실적 환경가전외 정액(개인)*/
+                              , NVL(MAX((CASE WHEN PERF_ATC_CD = 'W02P00111' THEN PERF_VAL END)), 0) AS T_OG_MGT_PPL /*귀속월실적 조직관리 실활동(명)*/
+                           FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감(ASIS: AK1700P) */
+                          WHERE DTA_DL_YN = 'N'
+                            AND FEE_TCNT_DV_CD = '02'
+                            AND BASE_YM = PERF_YM
+                            AND PERF_AGRG_CRT_DV_CD = '201' /*귀속월실적(순주문집계)*/
+                            AND OG_TP_CD = 'W02' /* M조직 집계 */
+                            AND PERF_YM BETWEEN '200004' AND '202312'
+                          GROUP BY BASE_YM , PERF_YM, OG_TP_CD, PRTNR_NO
+                       ) A /*귀속월실적(기준년월===실적년월이 같은 최초 실적)*/
+                 LEFT OUTER JOIN (
+                                  SELECT BASE_YM 
+                                       , PERF_YM
+                                       , OG_TP_CD
+                                       , PRTNR_NO
+                                       , PERF_DV_CD
+                                       , ROW_NUMBER() OVER(PARTITION BY PRTNR_NO ORDER BY PERF_YM DESC) AS RN
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00035' THEN PERF_VAL END), 0) AS HOME_CARE /*홈케어실적*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00008' THEN PERF_VAL END), 0) AS MC_PERF /*기변실적*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W02P00001' THEN PERF_VAL END), 0) AS ATDC_DC /*미팅(출근일수)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W020001' THEN PERF_VAL END), 0) AS A_ENVR_ELHM /*되물림전후실적(AFTER A) 환경가전*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W01P00002' THEN PERF_VAL END), 0) AS A_MC /*되물림전후실적 기변*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W01P00014' THEN PERF_VAL END), 0) AS A_FXAM /*되물림전후실적 기변*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00010' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS A_NW_SELL_CNT_PR /*되물림전후실적 신규판매 건수(개인)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00010' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS A_NW_SELL_CNT_JO /*되물림전후실적 신규판매 건수(조직)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_CNT /*되물림전후실적 환경가전(건수)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W02P00002' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_CNT_PR /*되물림전후실적 환경가전 건수(개인)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W02P00002' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_CNT_JO /*되물림전후실적 환경가전 건수(조직)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD IN ('W00P00003','W00P00004', 'W00P00005') THEN PERF_VAL END), 0) AS A_ENVR_ELHM_BASE_AMT /*되물림전후실적 환경가전(기준금액)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_RENTAL /*되물림전후실적 환경가전 렌탈*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00003' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_RENTAL_PR /*되물림전후실적 환경가전 렌탈(개인)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00003' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_RENTAL_JO /*되물림전후실적 환경가전 렌탈(조직)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_SPAY /*되물림전후실적 환경가전 일시불*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00004' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_SPAY_PR /*되물림전후실적 환경가전 일시불(개인)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00004' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_SPAY_JO /*되물림전후실적 환경가전 일시불(조직)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00006' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_EXCP /*되물림전후실적 환경가전외*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00006' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_EXCP_PR /*되물림전후실적 환경가전외 일시불(개인)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00006' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_EXCP_JO /*되물림전후실적 환경가전외 일시불(조직)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00007' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_EXCP_FXAM /*되물림전후실적 환경가전외 정액*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00005' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_FXAM_PR /*되물림전후실적 환경가전 정액(개인)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W00P00007' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS A_ENVR_ELHM_EXCP_FXAM_PR /*되물림전후실적 환경가전외 정액(개인)*/
+                                       , NVL((CASE WHEN PERF_ATC_CD = 'W02P00111' THEN PERF_VAL END), 0) AS A_OG_MGT_PPL /*되물림전후실적 조직관리 실활동(명)*/
+                                    FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감(ASIS: AK1700P) */
+                                   WHERE DTA_DL_YN = 'N'
+                                     AND FEE_TCNT_DV_CD = '02' 
+        --                           AND PERF_AGRG_CRT_DV_CD = '202' /*되물림후실적(되물림집계), TODO: 현재 데이터없음*/
+                                     AND OG_TP_CD = 'W02' /* M조직 집계 */
+                                     AND PERF_YM BETWEEN '200004' AND '202312'
+                                 ) B /*되물림후실적*/
+                    ON A.BASE_YM = B.BASE_YM
+                   AND A.PERF_YM = B.PERF_YM
+                   AND A.OG_TP_CD = B.OG_TP_CD
+                   AND A.PRTNR_NO = B.PRTNR_NO
+                  LEFT OUTER JOIN (
+                                   SELECT BASE_YM
+                                        , PERF_YM
+                                        , OG_TP_CD
+                                        , PRTNR_NO
+                                        , ROW_NUMBER() OVER(PARTITION BY PRTNR_NO ORDER BY PERF_YM DESC) AS RN
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W020001' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM /*귀속전월실적(BEFORE B) 환경가전*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W01P00002' THEN PERF_VAL END), 0) AS TB_MC /*되물림전후실적 기변*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W01P00014' THEN PERF_VAL END), 0) AS TB_FXAM /*되물림전후실적 정액*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_CNT /*귀속전월실적 환경가전(건수)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W02P00002' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_CNT_PR /*귀속전월실적 환경가전 건수(개인)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W02P00002' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_CNT_JO /*귀속전월실적 환경가전 건수(조직)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_RENTAL /*귀속전월실적 환경가전 렌탈*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00003' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_RENTAL_PR /*귀속전월실적 환경가전 렌탈(개인)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00003' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_RENTAL_JO /*귀속전월실적 환경가전 렌탈(조직)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00010' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS TB_NW_SELL_CNT_PR /*귀속전월실적 신규판매 건수(개인)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00010' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS TB_NW_SELL_CNT_JO /*귀속전월실적 신규판매 건수(조직)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00004' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_SPAY_PR /*귀속전월실적 환경가전 일시불(개인)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00004' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_SPAY_JO /*귀속전월실적 환경가전 일시불(조직)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00006' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP_PR /*귀속전월실적 환경가전외 일시불(개인)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00006' AND PERF_DV_CD = '2' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP_JO /*귀속전월실적 환경가전외 일시불(조직)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00007' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP_FXAM /*귀속전월실적 환경가전외 정액*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00007' AND PERF_DV_CD = '0' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP_FXAM_PR /*귀속전월실적 환경가전외 정액(개인)*/
+                                        , NVL((CASE WHEN PERF_ATC_CD = 'W02P00111' THEN PERF_VAL END), 0) AS TB_OG_MGT_PPL /*귀속전월실적 조직관리 실활동(명)*/
+                                     FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감(ASIS: AK1700P) */
+                                    WHERE DTA_DL_YN = 'N'
+                                      AND FEE_TCNT_DV_CD = '02' 
+                                      AND PERF_AGRG_CRT_DV_CD = '201' /*귀속전월실적(순주문집계)*/
+                                      AND OG_TP_CD = 'W02' /* M조직 집계 */
+                                      AND PERF_YM = TO_CHAR(ADD_MONTHS(PERF_YM||'01', -1), 'YYYYMM')
+                                  ) C /*귀속전월실적*/
+                    ON A.BASE_YM = C.BASE_YM
+                   AND A.PERF_YM = C.PERF_YM
+                   AND A.OG_TP_CD = C.OG_TP_CD
+                   AND A.PRTNR_NO = C.PRTNR_NO
+                 WHERE 1=1 
+                   AND B.RN IN ('1', '2')
+--                 AND C.RN = '1'
+                 GROUP BY A.BASE_YM, A.PERF_YM, A.OG_TP_CD, A.PRTNR_NO, B.PERF_DV_CD, A.AKSD48_YN,B.HOME_CARE, B.ATDC_DC, B.MC_PERF
+                        , A.T_ENVR_ELHM, A.T_ENVR_ELHM_CNT, A.T_ENVR_ELHM_BASE_AMT, A.T_ENVR_ELHM_RENTAL, A.T_ENVR_ELHM_SPAY
+                        , A.T_ENVR_ELHM_EXCP, A.T_ENVR_ELHM_EXCP_FXAM, C.TB_ENVR_ELHM, C.TB_ENVR_ELHM_CNT, C.TB_ENVR_ELHM_RENTAL
+                        , A.T_ENVR_ELHM_CNT_PR, A.T_ENVR_ELHM_CNT_JO, A.T_ENVR_ELHM_RENTAL_PR, A.T_ENVR_ELHM_RENTAL_JO, A.T_ENVR_ELHM_SPAY_PR
+                        , A.T_ENVR_ELHM_SPAY_JO, A.T_ENVR_ELHM_EXCP_PR, A.T_ENVR_ELHM_EXCP_JO, A.T_ENVR_ELHM_EXCP_FXAM_PR, C.TB_ENVR_ELHM_CNT_PR
+                        , C.TB_ENVR_ELHM_CNT_JO, C.TB_ENVR_ELHM_RENTAL, C.TB_ENVR_ELHM_RENTAL_PR, C.TB_ENVR_ELHM_RENTAL_JO, C.TB_NW_SELL_CNT_PR
+                        , C.TB_NW_SELL_CNT_JO, C.TB_ENVR_ELHM_SPAY_PR, C.TB_ENVR_ELHM_SPAY_JO, C.TB_ENVR_ELHM_EXCP_PR, C.TB_ENVR_ELHM_EXCP_JO
+                        , C.TB_ENVR_ELHM_EXCP_FXAM, A.T_NW_SELL_CNT_PR, A.T_NW_SELL_CNT_JO, A.T_ENVR_ELHM_EXCP_FXAM_PR, A.T_ENVR_ELHM_FXAM_PR
+                        , A.T_OG_MGT_PPL, C.TB_OG_MGT_PPL, A.T_MC, C.TB_MC, A.T_FXAM, C.TB_FXAM
+              ) M
+          LEFT OUTER JOIN (
+                           SELECT REDF_ADSB_OC_YM
+                                , PERF_YM
+                                , OG_TP_CD
+                                , PRTNR_NO 
+                                , NVL((CASE WHEN FEE_CD = 'W020005'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS MCHN_CH_REDF201903 /*기변수당(TODO: ASIS기준 2019년 03월 이전엔 기변수당, 코드는 같음)*/
+                                , NVL((CASE WHEN FEE_CD = 'W020005'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS MCHN_CH_REDF201904 /*기기변경(TODO: ASIS기준 2019년 04월 이후엔 기기변경, 코드는 같음)*/
+                                , NVL((CASE WHEN FEE_CD = 'W020081'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS SP_REDF /*수석플래너*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020078', 'W020079')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS HOME_CARE_REDF /*홈케어*/
+                                , NVL((CASE WHEN FEE_CD = 'W020051' 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_TRG_REDF /*환경가전 목표달성*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020001', 'W020002')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_BZNS_REDF201903 /*환경가전영업 TODO: 201903까지 환경가전영업, 201904부터 환경가전 비례*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020001', 'W020002') 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_BZNS_REDF201904 /*환경가전 비례 TODO: 201903까지 환경가전영업, 201904부터 환경가전 비례*/
+                                , NVL((CASE WHEN FEE_CD = 'W020062' 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_METG_REDF /*환경가전 미팅*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020003', 'W020004')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_EXCP_BZNS_REDF201903 /*환경가전외 영업 TODO: 201903까지 환경가전외 영업, 201904부터 환경가전외 비례*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020003', 'W020004')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_EXCP_BZNS_REDF201904 /*환경가전외 비례 TODO: 201903까지 환경가전외 영업, 201904부터 환경가전외 비례*/
+                                , NVL((CASE WHEN FEE_CD = 'W020063' 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_EXCP_METG_REDF /*환경가전외 미팅*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020012', 'W020008', 'W020009', 'W020010' )
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS SELL_ENCRG_REDF /*판매장려*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020077', 'W020076', 'W020075', 'W020074')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS EDU_REDF /*교육*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020082', 'W020081', 'W020080')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS SETTLE_REDF /*정착*/
+                                , NVL((CASE WHEN FEE_CD = 'W020083' 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS SELL_ENCRG_RETT_REDF /*판매장려 소급*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020019', 'W020020', 'W020021' ) 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_OG_REDF /*환경가전 조직*/
+                                , NVL((CASE WHEN FEE_CD = 'W020065' 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_OG_METG /*환경가전 조직미팅*/
+                                , NVL((CASE WHEN FEE_CD = 'W020024'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_EXCP_OG_REDF201903 /*환경가전외 조직비례(~2019.03)*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020022', 'W020023')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_EXCP_OG_REDF201904 /*환경가전외 조직(2019.04~)*/
+                                , NVL((CASE WHEN FEE_CD = 'W020066' 
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS ENVR_EXCP_OG_METG_REDF /*환경가전외 조직미팅*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020017', 'W020046', 'W020044', 'W020045', 'W020043')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS OG_SELL_ENCRG_REDF /*조직판매 장려*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020039', 'W020013', 'W020040')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS NW_SELL_REDF /*신규판매*/
+                                , NVL((CASE WHEN FEE_CD IN ('W020018', 'W020047', 'W020048')
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS OG_MGT_REDF /*조직관리*/
+                                , NVL((CASE WHEN FEE_CD = 'W010023'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_FXAM_REDF_DSTRC /*정액(지구장이하)*/
+                                , NVL((CASE WHEN FEE_CD = 'W010123'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_FXAM_REDF_BRCH /*정액(지점장이상)*/
+                                , NVL((CASE WHEN FEE_CD = 'W010002'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_ENVR_EXCP_PR_REDF /*가전외 개인비례*/
+                                , NVL((CASE WHEN FEE_CD = 'W010003'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_PR_SELL_ENCRG_REDF /*개인판매장려*/
+                                , NVL((CASE WHEN FEE_CD = 'W010001'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_ENVR_PR_REDF /*가전개인비례*/
+                                , NVL((CASE WHEN FEE_CD = 'W010011'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_ENVR_OG_REDF /*가전 조직비례*/
+                                , NVL((CASE WHEN FEE_CD = 'W010012'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_ENVR_EXCP_OG_REDF /*가전외 조직비례*/
+                                , NVL((CASE WHEN FEE_CD = 'W010013'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_OG_SELL_ENCRG_REDF /*조직 판매장려*/
+                                , NVL((CASE WHEN FEE_CD = 'W010004'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_METG_REDF /*미팅수수료*/
+                                , NVL((CASE WHEN FEE_CD = 'W010005'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_SETTLE_REDF_DSTRC /*정착수수료(지구장이하)*/
+                                , NVL((CASE WHEN FEE_CD = 'W010105'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS WP_SETTLE_REDF_BRCH /*정착수수료(지점장이상)*/
+                                , NVL((CASE WHEN REDF_ADSB_TP_CD = '0203'
+                                        THEN (CASE WHEN REDF_ADSB_CTR_CNFM_AMT IS NULL 
+                                                   THEN REDF_ADSB_OC_AMT
+                                                   ELSE REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0) AS DLQ_REDF_AMT /*연체되물림*/
+                             FROM TB_FEDD_FEE_REDF_ADSB_BAS /*수수료되물림재지급기본*/
+                            WHERE DTA_DL_YN = 'N'
+                              AND PERF_DV_CD = '0'
+                          ) D /*되물림 수수료*/
+            ON M.BASE_YM = D.REDF_ADSB_OC_YM 
+           AND M.PERF_YM = D.PERF_YM 
+           AND M.OG_TP_CD = D.OG_TP_CD 
+           AND M.PRTNR_NO = D.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ AK05 /*월파트너내역*/
+            ON M.PERF_YM = AK05.BASE_YM 
+           AND M.OG_TP_CD = AK05.OG_TP_CD 
+           AND M.PRTNR_NO = AK05.PRTNR_NO 
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ AK55 /*월파트너내역(실적년월+1)*/
+            ON M.PERF_YM_1 = AK55.BASE_YM
+           AND M.OG_TP_CD = AK55.OG_TP_CD
+           AND M.PRTNR_NO = AK55.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_APLC_BAS AK06 /*파트너신청기본*/
+            ON M.PERF_YM = AK06.CH_YM
+           AND M.OG_TP_CD = AK06.OJ_OG_TP_CD
+           AND M.PRTNR_NO = AK06.OJ_PRTNR_NO
+          LEFT OUTER JOIN (
+                            SELECT C1.BASE_YM
+                                 , C1.PERF_YM
+                                 , C1.PRTNR_NO 
+                                 , C1.OG_TP_CD 
+                                 , C1.CNTR_NO
+                                 , C1.CNTR_SN
+                                 , NVL(SUM(C1.SELL_AMT), 0) AS SELL_AMT
+                                 , C1.ACKMT_PERF_RT
+                              FROM TB_FEAM_WELS_NRCTR_MM_CL C1 /*웰스순주문계약월마감*/
+                             WHERE C1.DTA_DL_YN = 'N'
+                               AND C1.FEE_TCNT_DV_CD = '02'
+                             GROUP BY C1.BASE_YM, C1.PERF_YM, C1.PRTNR_NO, C1.OG_TP_CD, C1.ACKMT_PERF_RT, C1.CNTR_NO
+                                    , C1.CNTR_SN
+                          ) C
+            ON M.BASE_YM = C.BASE_YM
+           AND M.PERF_YM = C.PERF_YM
+           AND M.PRTNR_NO = C.PRTNR_NO
+           AND M.OG_TP_CD = C.OG_TP_CD
+         WHERE 1=1
+           <if test='@MybatisUtils@equals(rsbDvCd, "01")'>
+           AND TO_NUMBER(AK05.PSTN_DV_CD) <![CDATA[>=]]> '10' /*지구장 이하*/
+           </if>
+           <if test='@MybatisUtils@equals(rsbDvCd, "02")'>
+           AND TO_NUMBER(AK05.PSTN_DV_CD) <![CDATA[<=]]> '7' /*지점장 이상*/
+           </if>
+    </select>
+    
     
 </mapper>

@@ -113,12 +113,14 @@ public class WsnaMovementStoreService {
         return mapper.editWareHouseStandardN(baseYm, wareNo);
     };
 
-    public int saveStrMovementConfrim(MovementStrSaveReq dto) {
+    public int saveStrMovementConfrim(List<MovementStrSaveReq> list) {
         int cnt = 0;
-        WsnaMovementStoreConfirmDvo dvo = this.converter.mapDtoToWsnaMovementStoreConfirmDvo(dto);
-        cnt += mapper.saveStrConfirm(dvo);
-        cnt += mapper.saveOstrConfirm(dvo);
-        cnt += mapper.saveItemQtyConfirm(dvo);
+        for(MovementStrSaveReq dto : list){
+            WsnaMovementStoreConfirmDvo dvo = this.converter.mapDtoToWsnaMovementStoreConfirmDvo(dto);
+            cnt += mapper.saveStrConfirm(dvo);
+            cnt += mapper.saveOstrConfirm(dvo);
+            cnt += mapper.saveItemQtyConfirm(dvo);
+        }
 
         return cnt;
     }
