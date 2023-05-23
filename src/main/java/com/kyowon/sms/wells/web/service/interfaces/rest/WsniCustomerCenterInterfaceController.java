@@ -153,7 +153,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "sppFshDt", value = "배송완료일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", required = true),
     })
-    @PostMapping("/filter-shpadr-rgst")
+    @PostMapping("/filter-shpadr")
     public EaiWrapper<CreateShpadrRes> createFilterShippingAddress(
         @Valid
         @RequestBody
@@ -171,7 +171,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "sppFshDt", value = "배송완료일자", paramType = "query", required = true),
     })
-    @PutMapping("/filter-shpadr-edit")
+    @PutMapping("/filter-shpadr")
     public EaiWrapper<EditShpadrRes> editFilterShippingAddress(
         @Valid
         @RequestBody
