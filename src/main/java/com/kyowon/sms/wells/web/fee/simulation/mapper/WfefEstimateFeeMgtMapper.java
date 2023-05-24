@@ -7,16 +7,20 @@ import java.util.List;
 
 @Mapper
 public interface WfefEstimateFeeMgtMapper {
-    BaseP selectBaseP(SearchOgPReq req);
-    List<PerformanceP> selectPerformanceP(SearchOgPReq req);
-    List<EstimateP> selectEstimateP(SearchOgPReq req);
-    List<SaleP> selectSaleP(SearchOgPReq req);
+    BaseP selectBaseP(SearchEstimateReq req);
+    List<PerformanceP> selectPerformanceP(SearchEstimateReq req);
+    List<EstimateP> selectEstimateP(SearchEstimateReq req);
+    List<SaleP> selectSaleP(SearchEstimateReq req);
 
-    BaseM selectBaseM(SearchOgPReq req);
-    List<PerformanceM> selectPerformanceM(SearchOgPReq req);
-    List<BsM> selectBsM(SearchOgPReq req);
-    List<EstimateM> selectEstimateM(SearchOgPReq req);
-    List<SaleM> selectSaleM(SearchOgPReq req);
+    BaseM selectBaseM(SearchEstimateReq req);
+    List<PerformanceM> selectPerformanceM(SearchEstimateReq req);
+    List<BsM> selectBsM(SearchEstimateReq req);
+    List<EstimateM> selectEstimateM(SearchEstimateReq req);
+    List<SaleM> selectSaleM(SearchEstimateReq req);
 
+    BaseHome selectBaseHome(SearchEstimateReq req);
+    List<PerformanceHome> selectPerformanceHome(SearchEstimateReq req);
+    List<EstimateHome> selectEstimateHome(SearchEstimateReq req);
+    List<SaleHome> selectSaleHome(SearchEstimateReq req);
 
 }
