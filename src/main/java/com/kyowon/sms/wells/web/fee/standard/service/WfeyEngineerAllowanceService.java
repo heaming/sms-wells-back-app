@@ -95,9 +95,8 @@ public class WfeyEngineerAllowanceService {
      */
     private String getStringDate(String date, int differDays) {
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Integer.parseInt(date.substring(0, 2)), Integer.parseInt(date.substring(2, 6)) - 1, Integer.parseInt(date.substring(6, 8)));
+        calendar.set(Integer.parseInt(date.substring(0, 4)), Integer.parseInt(date.substring(4, 6)) - 1, Integer.parseInt(date.substring(6, 8)));
         calendar.add(Calendar.DATE, differDays);
-        calendar.add(Calendar.DATE, -1);
         return new SimpleDateFormat("yyyyMMdd").format(calendar.getTime());
     }
 
