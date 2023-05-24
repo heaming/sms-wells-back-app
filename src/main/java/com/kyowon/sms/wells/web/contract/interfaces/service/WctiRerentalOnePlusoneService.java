@@ -16,9 +16,9 @@ public class WctiRerentalOnePlusoneService {
     private final WctiRerentalOnplusoneMapper mapper;
 
     /**
-     * 세금계산서 담당자 정보 조회
      *
-     * @programid EAI_WSSI1089
+     *
+     * @programid EAI_WSSI1058 wells 재렌탈, 1+1 정보 조회
      * @param  req
      * @return list
      */
