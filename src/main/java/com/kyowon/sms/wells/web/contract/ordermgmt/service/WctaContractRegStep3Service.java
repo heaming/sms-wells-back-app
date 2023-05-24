@@ -87,7 +87,7 @@ public class WctaContractRegStep3Service {
                 (dtl) -> {
                     // 금액: 계약결제관계 세팅
                     List<WctaContractStlmRelDvo> stlms = regService
-                        .selectContractStlmRels(dtl.getCntrNo(), dtl.getCntrSn());
+                        .selectContractStlmRel(dtl.getCntrNo(), dtl.getCntrSn());
                     stlmRels
                         .addAll(stlms.stream().filter((stlm) -> "01".equals(stlm.getRveDvCd())).toList());
                     // 상세 하위의 결제관계에서 마일리지를 사용하는 데이터가 있다면

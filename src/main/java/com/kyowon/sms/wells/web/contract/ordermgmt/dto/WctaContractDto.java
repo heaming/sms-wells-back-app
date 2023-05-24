@@ -235,11 +235,26 @@ public class WctaContractDto {
     @Builder
     @ApiModel("WctaContractDto-SearchPdAmtReq")
     public record SearchPdAmtReq(
-        String sellChnlCd,
         String pdCd,
+        String svPdCd,
         String sellTpCd,
-        String suscMm,
-        String lrnnStrtLvCd
+        String sellInflwChnlDtlCd,
+        Long frisuBfsvcPtrmN,
+        String sellDscrCd,
+        Long stplPtrm,
+        String sellDscDvCd,
+        String sellDscTpCd,
+        Long cntrAmt,
+        Long cntrPtrm
+    ) {}
+
+    // 상품 속성목록 조회 Dto
+    @Builder
+    @ApiModel("EctaContractDto-SearchPdSelReq")
+    public record SearchPdSelReq(
+        String sellInflwChnlDtlCd,
+        String pdCd,
+        String sellTpCd
     ) {}
 
     // *********************************************************

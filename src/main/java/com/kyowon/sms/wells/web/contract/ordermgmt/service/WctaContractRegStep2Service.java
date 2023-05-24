@@ -6,10 +6,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
+import com.google.api.client.util.Lists;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrBasicChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrPrccchHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractWellsDetailHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
@@ -34,11 +37,72 @@ public class WctaContractRegStep2Service {
         step2Dvo.setBas(bas);
         List<WctaContractDtlDvo> dtls = mapper.selectContractDtlWithPdInfo(cntrNo);
         for (WctaContractDtlDvo dtl : dtls) {
+            int cntrSn = dtl.getCntrSn();
+
             dtl.setPdCd(dtl.getBasePdCd());
-            dtl.setSuscMm(dtl.getCntrPtrm()); // 계약기간 혹은 약정기간
+            // 판매유형코드 등에 따라 select option 조회
+            String sellTpCd = dtl.getSellTpCd();
+            WctaContractDtlDvo sels = selectProductSelects(
+                WctaContractDto.SearchPdSelReq.builder()
+                    .sellInflwChnlDtlCd(bas.getSellInflwChnlDtlCd())
+                    .pdCd(dtl.getBasePdCd())
+                    .sellTpCd(sellTpCd)
+                    .build()
+            );
+            if ("1".equals(sellTpCd)) {
+                dtl.setAlncmpCntrDrmVals(null);
+                dtl.setSellDscrCds(sels.getSellDscrCds());
+                dtl.setSellDscDvCds(sels.getSellDscDvCds());
+                dtl.setFrisuBfsvcPtrmNs(sels.getFrisuBfsvcPtrmNs());
+            } else if ("2".equals(sellTpCd)) {
+                dtl.setStplPtrms(sels.getStplPtrms());
+                dtl.setCntrPtrms(sels.getCntrPtrms());
+                dtl.setRgstCss(sels.getRgstCss());
+                dtl.setSellDscTpCds(sels.getSellDscTpCds());
+                dtl.setSellDscrCds(sels.getSellDscrCds());
+                dtl.setSellDscDvCds(sels.getSellDscDvCds());
+            }
+            // 제휴상품 노출판단
+            boolean existAlncPds = false;
+            if ("2".equals(sellTpCd)) {
+                if ("02".equals(bas.getCntrTpCd())) {
+                    existAlncPds = mapper.isExistAlncPds(
+                        WctaContractDto.SearchPdAmtReq.builder()
+                            .pdCd(dtl.getBasePdCd())
+                            .sellTpCd(sellTpCd)
+                            .svPdCd("") // TODO ???
+                            .stplPtrm(dtl.getStplPtrm())
+                            .sellDscTpCd(dtl.getSellDscTpCd())
+                            .sellDscDvCd(dtl.getSellDscDvCd())
+                            .sellDscrCd(dtl.getSellDscrCd())
+                            .build()
+                    );
+                } else {
+                    existAlncPds = mapper.isExistAlncPds(
+                        WctaContractDto.SearchPdAmtReq.builder()
+                            .pdCd(dtl.getBasePdCd())
+                            .sellTpCd(sellTpCd)
+                            .svPdCd("") // TODO ???
+                            .stplPtrm(dtl.getStplPtrm())
+                            .sellDscTpCd(dtl.getSellDscTpCd())
+                            .sellDscDvCd(dtl.getSellDscDvCd())
+                            .build()
+                    );
+                }
+            } else {
+                existAlncPds = mapper.isExistAlncPds(
+                    WctaContractDto.SearchPdAmtReq.builder()
+                        .pdCd(dtl.getBasePdCd())
+                        .sellTpCd(sellTpCd)
+                        .svPdCd("") // TODO ???
+                        .build()
+                );
+            }
+            dtl.setExistAlncPds(existAlncPds);
+
             // 계약가격산출내역 조회
             List<WctaContractPrcCmptIzDvo> prcCmptIzDvos = regService
-                .selectContractPrcCmptIz(dtl.getCntrNo(), dtl.getCntrSn());
+                .selectContractPrcCmptIz(dtl.getCntrNo(), cntrSn);
             if (CollectionUtils.isNotEmpty(prcCmptIzDvos)) {
                 WctaContractPrcCmptIzDvo prcCmptIz = prcCmptIzDvos.get(0);
                 dtl.setPdPrcFnlDtlId(prcCmptIz.getPdPrcFnlDtlId());
@@ -47,27 +111,10 @@ public class WctaContractRegStep2Service {
                 dtl.setCtrVal(prcCmptIz.getCtrVal());
                 dtl.setPdPrcId(prcCmptIz.getPdPrcId());
             }
-            // 학습지라면(전집 1이 아닌 경우) 계약학습지상세 조회
-            if (!dtl.getSellTpCd().equals("1")) {
-                List<WctaContractHsmtrlDtlDvo> hsmtrlDtlDvos = regService
-                    .selectCntrHsmtrlDtl(dtl.getCntrNo(), dtl.getCntrSn());
-                if (CollectionUtils.isNotEmpty(hsmtrlDtlDvos)) {
-                    WctaContractHsmtrlDtlDvo hsmtrlDtl = hsmtrlDtlDvos.get(0);
-                    dtl.setLrnnStrtRqdt(hsmtrlDtl.getLrnnStrtRqdt());
-                }
-            }
-            // 상품 유형에 따라 select option 조회
-            String pdCd = dtl.getBasePdCd();
-            if (isContainSuscMm(dtl.getMclsfVal(), dtl.getLclsfVal()))
-                dtl.setSuscMms(
-                    mapper.selectProductSuscMms(
-                        pdCd, dtl.getSellTpCd(), bas.getSellInflwChnlDtlCd(), dtl.getLrnnLvGrpDvCd()
-                    )
-                );
-            if (isContainLrnnLv(dtl.getMclsfVal(), dtl.getLclsfVal()))
-                dtl.setLrnnLvs(mapper.selectProductLrnnLvs(pdCd));
-            if (isContainStrtLv(dtl.getMclsfVal(), dtl.getLclsfVal()))
-                dtl.setStrtLvs(mapper.selectProductStrtLvs(pdCd));
+            // 계약WELLS상세 조회
+            WctaContractWellsDtlDvo wellsDtlDvo = regService.selectContractWellsDtl(cntrNo, cntrSn);
+            dtl.setFrisuBfsvcPtrmN(wellsDtlDvo.getFrisuBfsvcPtrmN());
+            dtl.setFrisuAsPtrmN(wellsDtlDvo.getFrisuAsPtrmN());
         }
         step2Dvo.setDtls(dtls);
         return WctaContractRegDvo.builder()
@@ -92,56 +139,76 @@ public class WctaContractRegStep2Service {
         );
     }
 
-    public List<WctaContractRegStep2Dvo.PdSvcDvo> selectProductServiceInfo(String pdCd) {
+    public List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductServiceInfo(String pdCd) {
         return mapper.selectProductServiceInfo(pdCd);
     }
 
     public WctaContractRegStep2Dvo.PdAmtDvo selectProductPrices(WctaContractDto.SearchPdAmtReq dto) {
-        return mapper.selectProductPrices(dto);
+        WctaContractRegStep2Dvo.PdAmtDvo pdAmts = mapper.selectProductPrices(dto);
+        // 제휴상품 노출여부 판단
+        if (ObjectUtils.isEmpty(pdAmts)) {
+            pdAmts = new WctaContractRegStep2Dvo.PdAmtDvo();
+        }
+        pdAmts.setExistAlncPds(mapper.isExistAlncPds(dto));
+        return pdAmts;
+    }
+
+    public WctaContractDtlDvo selectProductSelects(WctaContractDto.SearchPdSelReq dto) {
+        String pdCd = dto.pdCd();
+        String sellTpCd = dto.sellTpCd();
+        String sellInflwChnlDtlCd = dto.sellInflwChnlDtlCd();
+        WctaContractDtlDvo dvo = WctaContractDtlDvo.builder()
+            .svPdCds(mapper.selectProductServiceInfo(pdCd))
+            .build();
+        if ("1".equals(sellTpCd)) {
+            // 일시불인 경우 제휴상품목록(렌탈은 화면에서 select 변경될 때마다 실시간 체크)
+            dvo.setAlncmpCntrDrmVals(null);
+            dvo.setSellDscrCds(mapper.selectProductDsrtsSpay(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setSellDscDvCds(mapper.selectProductDsdvsSpay(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setFrisuBfsvcPtrmNs(mapper.selectProductFrisuMshPtrms(pdCd, sellTpCd, sellInflwChnlDtlCd));
+        } else if ("2".equals(sellTpCd)) {
+            dvo.setStplPtrms(mapper.selectProductStplPtrms(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setCntrPtrms(mapper.selectProductCntrPtrms(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setRgstCss(mapper.selectProductRgstCss(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setSellDscTpCds(mapper.selectProductDstps(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setSellDscrCds(mapper.selectProductDsrtsRntl(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setSellDscDvCds(mapper.selectProductDsdvsRntl(pdCd, sellTpCd, sellInflwChnlDtlCd));
+        }
+        return dvo;
+    }
+
+    private List<WctaContractRegStep2Dvo.PdClsfDvo> buildPdClsfs(String... kv) {
+        List<WctaContractRegStep2Dvo.PdClsfDvo> pdClsfs = Lists.newArrayList();
+        for (int i = 0; i < kv.length; i += 2) {
+            pdClsfs.add(
+                WctaContractRegStep2Dvo.PdClsfDvo.builder()
+                    .pdClsfId(kv[i])
+                    .pdClsfNm(kv[i + 1])
+                    .build()
+            );
+        }
+        return pdClsfs;
     }
 
     public WctaContractRegStep2Dvo selectProducts(String cntrNo, String pdFilter) {
         WctaContractBasDvo bas = regService.selectContractBas(cntrNo);
 
         WctaContractRegStep2Dvo pdDvo = new WctaContractRegStep2Dvo();
-
         pdDvo.setPdClsf(
-            List.of(
-                WctaContractRegStep2Dvo.PdClsfDvo.builder()
-                    .pdClsfNm("정수기")
-                    .pdClsfId("1")
-                    .build(),
-                WctaContractRegStep2Dvo.PdClsfDvo.builder()
-                    .pdClsfNm("청정기")
-                    .pdClsfId("2")
-                    .build(),
-                WctaContractRegStep2Dvo.PdClsfDvo.builder()
-                    .pdClsfNm("비데")
-                    .pdClsfId("3")
-                    .build(),
-                WctaContractRegStep2Dvo.PdClsfDvo.builder()
-                    .pdClsfNm("삼성가전")
-                    .pdClsfId("4")
-                    .build(),
-                WctaContractRegStep2Dvo.PdClsfDvo.builder()
-                    .pdClsfNm("정기배송")
-                    .pdClsfId("5")
-                    .build(),
-                WctaContractRegStep2Dvo.PdClsfDvo.builder()
-                    .pdClsfNm("기타")
-                    .pdClsfId("6")
-                    .build(),
-                WctaContractRegStep2Dvo.PdClsfDvo.builder()
-                    .pdClsfNm("복합상품")
-                    .pdClsfId("7")
-                    .build()
+            buildPdClsfs(
+                "1", "정수기",
+                "2", "청정기",
+                "3", "비데",
+                "4", "삼성가전",
+                "5", "정기배송",
+                "6", "기타"
             )
         );
 
-        String sellChnlCd = bas.getSellInflwChnlDtlCd();
+        String sellInflwChnlDtlCd = bas.getSellInflwChnlDtlCd();
         // FIXME 판매유입채널상세코드 1010 세팅
-        sellChnlCd = "1010";
-        List<WctaContractRegStep2Dvo.PdDvo> pds = mapper.selectProducts(sellChnlCd, pdFilter);
+        sellInflwChnlDtlCd = "1010";
+        List<WctaContractRegStep2Dvo.PdDvo> pds = mapper.selectProducts(sellInflwChnlDtlCd, pdFilter);
         for (WctaContractRegStep2Dvo.PdDvo pd : pds) {
             // TODO 로직 추가
         }
@@ -169,27 +236,20 @@ public class WctaContractRegStep2Service {
         regService.removeStep4Data(cntrNo);
 
         for (WctaContractDtlDvo dtl : dvo.getDtls()) {
+            int cntrSn = dtl.getCntrSn();
+
             dtl.setCntrNo(cntrNo);
             dtl.setBasePdCd(dtl.getPdCd());
-            dtl.setCntrPtrmUnitCd("20"); // 계약기간단위코드
-            dtl.setCntrPtrm(dtl.getSuscMm());
-            dtl.setStplPtrmUnitCd("20"); // 약정기간단위코드
-            dtl.setStplPtrm(dtl.getSuscMm());
-            dtl.setBlgCrpCd("J0");
-            dtl.setRveCrpCd("J0");
-            dtl.setCoCd("J0");
-            dtl.setBooSellTpCd(""); // TODO
-            dtl.setSellDscDvCd("");
-            dtl.setSellDscrCd("");
-            dtl.setSellDscCtrAmt(0l);
-            dtl.setSellDscTpCd("");
+            dtl.setSvPrd(0l); // TODO 서비스 주기 조회해서 저장해야 할듯(콤보에 주기 정보 없으므로)
+            dtl.setCntrwTpCd(""); // TODO 계약서유형코드
+            dtl.setBlgCrpCd("D0");
+            dtl.setRveCrpCd("D0");
+            dtl.setCoCd("D0");
             dtl.setPdBaseAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
             dtl.setSellAmt(dtl.getFnlAmt());
-            dtl.setDscAmt(0l);
-            dtl.setSellFee(0l);
-            dtl.setCntrTam(dtl.getFnlAmt());
-            dtl.setResubYn("N"); // TODO
-            dtl.setAlncmpCd(""); // TODO
+            dtl.setSppDuedt(""); // TODO 배송예정일자
+            dtl.setRstlYn(""); // TODO 재약정여부
+            dtl.setTxinvPblOjYn("02".equals(dvo.getBas().getCntrTpCd()) ? "Y" : "N"); // 세금계산서발행대상여부, 법인인 경우만 Y
 
             // 2-1. 계약상세
             mapper.insertCntrDtlStep2(dtl);
@@ -197,55 +257,51 @@ public class WctaContractRegStep2Service {
             historyService.createContractDetailChangeHistory(
                 WctzCntrDetailChangeHistDvo.builder()
                     .cntrNo(cntrNo)
-                    .cntrSn(dtl.getCntrSn())
+                    .cntrSn(cntrSn)
                     .histStrtDtm(now)
                     .build()
             );
 
-            // 기준상품에 서비스가 있는경우
-            List<WctaContractRegStep2Dvo.PdSvcDvo> pdSvcs = selectProductServiceInfo(dtl.getBasePdCd());
-            for (WctaContractRegStep2Dvo.PdSvcDvo pdSvc : pdSvcs) {
-                // 4. 계약상품관계
-                mapper.insertCntrPdRelStep2(
-                    WctaContractPdRelDvo.builder()
-                        .cntrNo(cntrNo)
-                        .cntrSn(dtl.getCntrSn())
-                        .vlStrtDtm(now)
-                        .vlEndDtm(CtContractConst.END_DTM)
-                        .pdRelId(pdSvc.getPdRelId())
-                        .basePdCd(pdSvc.getBasePdCd())
-                        .ojPdCd(pdSvc.getOjPdCd())
-                        .pdRelTpCd(pdSvc.getPdRelTpCd())
-                        .pdQty(dtl.getPdQty())
-                        .build()
-                );
+            // 3. 계약상품관계 (기준상품에 서비스가 있는경우)
+            if (StringUtils.isNotEmpty(dtl.getSvPdCd())) {
+                mapper.selectPdSvcsInBasePd(dtl.getBasePdCd()).stream()
+                    .forEach(
+                        (pdRel) -> {
+                            pdRel.setCntrNo(cntrNo);
+                            pdRel.setCntrSn(cntrSn);
+                            pdRel.setVlStrtDtm(now);
+                            pdRel.setVlEndDtm(CtContractConst.END_DTM);
+                            pdRel.setPdQty(1l);
+                            mapper.insertCntrPdRelStep2(pdRel);
+                        }
+                    );
             }
+
+            // 4. 계약관계 - 1+1, 다건구매할인, 복합상품구매, 법인다건구매(기기변경 제외)
+
+            // 5. 기기변경내역
+
             /* TODO 프로모션, 사은품 정의되면 처리
-            // 5. 계약프로모션내역(프로모션을 선택한 경우)
+            // 6. 계약프로모션내역(프로모션을 선택한 경우)
             mapper.insertCntrPmotIzStep2(
                 WctaContractPmotIzDvo.builder()
                     .build()
             );
-            // 6. 사은품접수내역(사은품이 있는 경우)
+            // 7. 사은품접수내역(사은품이 있는 경우)
             mapper.insertFgptRcpIzStep2(
                 WctaFgptRcpIzDvo.builder()
                     .build()
             );
              */
-            // wells는 edu의 정보 + 계약관계, 기기변경내역, 기기변경이력, 관계사제휴계약내역, 관계사제휴계약변경이력, 계약WELLS상세, 계약WELLS상세이력
 
-            // 7. 계약관계 - 1+1, 다건구매할인, 복합상품구매, 법인다건구매(기기변경 제외)
+            // 8. 관계사제휴계약내역
 
-            // 8. 기기변경내역
-
-            // 9. 관계사제휴계약내역
-
-            // 10-1. 계약가격산출내역
+            // 9-1. 계약가격산출내역
             mapper.insertCntrPrcCmptIzStep2(
                 WctaContractPrcCmptIzDvo.builder()
                     .cntrNo(cntrNo)
-                    .cntrSn(dtl.getCntrSn())
-                    .pdCd(dtl.getPdCd())
+                    .cntrSn(cntrSn)
+                    .pdCd(dtl.getBasePdCd())
                     .pdPrcFnlDtlId(dtl.getPdPrcFnlDtlId())
                     .verSn(dtl.getVerSn())
                     .fxamFxrtDvCd(dtl.getFxamFxrtDvCd())
@@ -254,16 +310,33 @@ public class WctaContractRegStep2Service {
                     .pdPrcId(dtl.getPdPrcId())
                     .build()
             );
-            // 10-2. 계약가격산출변경이력
+            // 9-2. 계약가격산출변경이력
             historyService.createCntrPrccchHistory(
                 WctzCntrPrccchHistDvo.builder()
                     .cntrNo(cntrNo)
-                    .cntrSn(dtl.getCntrSn())
+                    .cntrSn(cntrSn)
                     .histStrtDtm(now)
                     .build()
             );
 
-            // 11. 계약WELLS상세
+            // 10. 계약WELLS상세
+            mapper.insertCntrWellsDtlStep2(
+                WctaContractWellsDtlDvo.builder()
+                    .cntrNo(cntrNo)
+                    .cntrSn(cntrSn)
+                    .frisuBfsvcPtrmN(dtl.getFrisuBfsvcPtrmN())
+                    .frisuAsPtrmN(dtl.getFrisuAsPtrmN())
+                    .sellEvCd("") // TODO 판매행사코드
+                    .ocoCpsBzsDvCd("") // TODO 타사보상업체코드
+                    .build()
+            );
+            historyService.createContractWellsDetailChangeHistory(
+                WctzContractWellsDetailHistDvo.builder()
+                    .cntrNo(cntrNo)
+                    .cntrSn(cntrSn)
+                    .histStrtDtm(now)
+                    .build()
+            );
         }
 
         return cntrNo;
