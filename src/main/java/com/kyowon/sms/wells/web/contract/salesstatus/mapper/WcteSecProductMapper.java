@@ -49,4 +49,6 @@ public interface WcteSecProductMapper {
     Optional<WcteSecNistlValidationDvo> selectSecNistlValidation(String cntrNo, int cntrSn);
 
     int insertNotInstalledIz(WcteSecNistlDvo dvo);
+
+    List<WcteSecPdBycfDvo> selectSecPdBycfs();
 }

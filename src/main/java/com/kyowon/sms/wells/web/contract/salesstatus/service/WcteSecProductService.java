@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto.*;
 
@@ -220,5 +221,16 @@ public class WcteSecProductService {
             processCount += createNotInstalledIz(dvo);
         }
         return processCount;
+    }
+
+    /**
+     * 중분류 된 상품 목록 조회
+     *
+     * @return List<SearchSecPdBycfRes>
+     */
+    public List<SearchSecPdBycfRes> getSecPdBycfs() {
+        return mapper.selectSecPdBycfs().stream()
+                .map(converter::mapWcteSecPdBycfDvoToSearchSecPdBycfRes)
+                .collect(Collectors.toList());
     }
 }

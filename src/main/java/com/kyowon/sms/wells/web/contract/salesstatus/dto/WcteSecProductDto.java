@@ -96,7 +96,7 @@ public class WcteSecProductDto {
 
     @ApiModel(
         value = "WcteSecProductDto-SearchNotInstalledRes",
-        description= "삼성전자 주문 정보 미설치 Response Dto"
+        description = "삼성전자 주문 정보 미설치 Response Dto"
     )
     public record SearchNotInstalledRes(
         String cntrNo,
@@ -116,7 +116,7 @@ public class WcteSecProductDto {
 
     @ApiModel(
         value = "WcteSecProductDto-SearchReservationRes",
-        description= "삼성전자 주문 정보 예약일 Response Dto"
+        description = "삼성전자 주문 정보 예약일 Response Dto"
     )
     public record SearchReservationRes(
         String ogCd,
@@ -138,7 +138,7 @@ public class WcteSecProductDto {
 
     @ApiModel(
         value = "WcteSecProductDto-SearchConfirmRes",
-        description= "삼성전자 주문 정보 확정일 Response Dto"
+        description = "삼성전자 주문 정보 확정일 Response Dto"
     )
     public record SearchConfirmRes(
         String cntrNo,
@@ -158,6 +158,17 @@ public class WcteSecProductDto {
         String pdctIdno,
         String sppBzsModelId,
         String rgstFeeFlpymYn
+    ) {
+    }
+
+    // Search Sec Pd Bycf Res Dto
+    @Builder
+    @ApiModel("WcteSecProductDto-SearchSecPdBycfRes")
+    public record SearchSecPdBycfRes(
+        String pdMclsfId,
+        String pdMclsfNm,
+        String pdCd,
+        String pdNm
     ) {
     }
 }
