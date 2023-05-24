@@ -20,6 +20,9 @@ public class CtContractConst {
     public static final String CNTR_TP_CD_RSTL = "08";
     public static final String CNTR_TP_CD_QUOT = "09";
 
+    public static final String SELL_TP_CD_SPAY = "1";
+    public static final String SELL_TP_CD_RNTL = "2";
+
     public enum PeriodType {
         RCT_DT, /*접수일자*/
         SL_RCOG_DT, /*매출일자*/

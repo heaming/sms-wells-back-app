@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.contract.salesstatus.service;
 
 import com.kyowon.sms.wells.web.contract.salesstatus.converter.WcteSecProductConverter;
-import com.kyowon.sms.wells.web.contract.salesstatus.dvo.WcteConfirmValidationDvo;
-import com.kyowon.sms.wells.web.contract.salesstatus.dvo.WcteInvoiceProcessIzDvo;
-import com.kyowon.sms.wells.web.contract.salesstatus.dvo.WctePdOstrIzDvo;
+import com.kyowon.sms.wells.web.contract.salesstatus.dvo.*;
 import com.kyowon.sms.wells.web.contract.salesstatus.mapper.WcteSecProductMapper;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
@@ -12,8 +13,12 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto.*;
 
@@ -23,6 +28,8 @@ public class WcteSecProductService {
 
     private final WcteSecProductMapper mapper;
     private final WcteSecProductConverter converter;
+
+    private final MessageResourceService messageResourceService;
 
     public PagingResult<SearchReservationRes> getReservationPages(SearchReservationReq dto, PageInfo pageInfo) {
         return mapper.selectReservationPages(dto, pageInfo);
@@ -50,6 +57,7 @@ public class WcteSecProductService {
      * @param dto 확정일 생성 요청 객체
      * @return 업데이트 건수
      */
+    @Transactional
     public int createConfirm(CreateConfirmReq dto) {
         WcteConfirmValidationDvo validationObject = mapper.selectConfirmValidation(dto.cntrNo(), dto.cntrSn()).orElseThrow(
             () -> new BizException("해당 계약 번호를 가진 계약은 존재하지 않습니다.")
@@ -100,10 +108,116 @@ public class WcteSecProductService {
         return processCount;
     }
 
+    @Transactional
     public int createConfirms(List<CreateConfirmReq> list) {
         int processCount = 0;
         for (CreateConfirmReq req : list) {
             processCount += createConfirm(req);
+        }
+        return processCount;
+    }
+
+    /**
+     * 삼성전자 미설치 페이지 조회 서비스
+     *
+     * @param dto 조회조건
+     * @param pageInfo 페이지 정보
+     * @return 삼성전자  미설치 정보 list
+     */
+    public PagingResult<SearchNotInstalledRes> getNotInstalledPages(SearchNotInstalledReq dto, PageInfo pageInfo) {
+        return mapper.selectNotInstalledIzs(dto, pageInfo);
+    }
+
+
+    /**
+     * 미설치 엑셀 데이터 검증
+     * @param excelData 엑셀 데이터 리스트
+     * @return 에러 정보 목록
+`     */
+    public WcteValidateListDvo<WcteSecNistlDvo> validateNotInstalledIzs(List<WcteSecNistlDvo> excelData) {
+        List<ExcelUploadErrorDvo> errList = new LinkedList<>();
+        List<WcteSecNistlDvo> modifiedList = new ArrayList<>();
+        for (int idx = 0; idx < excelData.size(); idx++) {
+            WcteSecNistlDvo row = new WcteSecNistlDvo(excelData.get(idx));
+            Optional<WcteSecNistlValidationDvo> optional =  mapper.selectSecNistlValidation(row.getCntrNo(), Integer.parseInt(row.getCntrSn()));
+
+            boolean valid = true;
+
+            if (optional.isEmpty()) {
+                ExcelUploadErrorDvo eueDvo = new ExcelUploadErrorDvo();
+                eueDvo.setHeaderName(messageResourceService.getMessage("계약번호"));
+                eueDvo.setErrorRow(idx + 1);
+                eueDvo.setErrorData(messageResourceService.getMessage("해당 계약 번호를 가진 계약이 존재하지 않습니다.(계약번호 : {0}-{1})", row.getCntrNo(), row.getCntrSn()));
+                eueDvo.setHeaderName("계약번호");
+                eueDvo.setErrorData("해당 계약 번호를 가진 진행중인 계약이 존재하지 않습니다.(계약번호 : {0}-{1})");
+                errList.add(eueDvo);
+
+                continue;
+            }
+            WcteSecNistlValidationDvo validationDvo = optional.get();
+            if (!CtContractConst.SELL_TP_CD_SPAY.equals(validationDvo.getSellTpCd()) &&
+                !CtContractConst.SELL_TP_CD_RNTL.equals(validationDvo.getSellTpCd())) {
+                ExcelUploadErrorDvo eueDvo = new ExcelUploadErrorDvo();
+                eueDvo.setHeaderName(messageResourceService.getMessage("계약번호"));
+                eueDvo.setErrorRow(idx + 1);
+                eueDvo.setErrorData(messageResourceService.getMessage("렌탈, 일시불만 가능합니다.(계약번호 : {0}-{1})", row.getCntrNo(), row.getCntrSn()));
+                eueDvo.setHeaderName("계약번호");
+                eueDvo.setErrorData("렌탈, 일시불만 가능합니다.(계약번호 : {0}-{1})");
+                errList.add(eueDvo);
+
+                valid = false;
+            }
+            if (!"Y".equals(validationDvo.getSecPdYn())) {
+                ExcelUploadErrorDvo eueDvo = new ExcelUploadErrorDvo();
+                eueDvo.setHeaderName(messageResourceService.getMessage("계약번호"));
+                eueDvo.setErrorRow(idx + 1);
+                eueDvo.setErrorData(messageResourceService.getMessage("삼성전자 제품에 대한 계약이 맞는지 확인해주세요..(계약번호 : {0}-{1})", row.getCntrNo(), row.getCntrSn()));
+                eueDvo.setHeaderName("계약번호");
+                eueDvo.setErrorData("삼성전자 제품에 대한 계약이 맞는지 확인해주세요.");
+                errList.add(eueDvo);
+
+                valid = false;
+            }
+            if ("Y".equals(validationDvo.getCanOrRejYn())) {
+                ExcelUploadErrorDvo eueDvo = new ExcelUploadErrorDvo();
+                eueDvo.setHeaderName(messageResourceService.getMessage("계약번호"));
+                eueDvo.setErrorRow(idx + 1);
+                eueDvo.setErrorData(messageResourceService.getMessage("취소되거나 방문을 거절한 계약입니다. (계약번호 : {0}-{1})", row.getCntrNo(), row.getCntrSn()));
+                eueDvo.setHeaderName("계약번호");
+                eueDvo.setErrorData("취소되거나 방문을 거절한 계약입니다.");
+
+                valid = false;
+            }
+
+            if (valid) {
+                row.setSellTpCd(validationDvo.getSellTpCd());
+                modifiedList.add(row);
+            }
+        }
+        boolean valid = errList.isEmpty();
+
+        return WcteValidateListDvo.<WcteSecNistlDvo>builder()
+            .valid(valid)
+            .errList(errList)
+            .cleansingList(modifiedList)
+            .build();
+    }
+
+    @Transactional
+    int createNotInstalledIz(WcteSecNistlDvo dvo) {
+        return mapper.insertNotInstalledIz(dvo);
+    }
+
+    /**
+     * 삼성전자 미설치 생성
+     * @param list 정보 객체
+     * @return 업데이트 건수
+     */
+    @Transactional
+    public int createNotInstalledIzs(List<WcteSecNistlDvo> list) {
+        int processCount = 0;
+        for (WcteSecNistlDvo dvo : list) {
+            processCount += createNotInstalledIz(dvo);
         }
         return processCount;
     }

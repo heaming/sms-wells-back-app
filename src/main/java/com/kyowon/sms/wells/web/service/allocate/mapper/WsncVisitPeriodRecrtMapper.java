@@ -8,4 +8,6 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncVisitPeriodRecrtDvo;
 @Mapper
 public interface WsncVisitPeriodRecrtMapper {
     WsncVisitPeriodRecrtDvo selectTempQuery(WsncVisitPeriodRecrtDto.SaveReq dto);
+
+    WsncVisitPeriodRecrtDvo selectTempQuery(WsncVisitPeriodRecrtDvo dvo);
 }

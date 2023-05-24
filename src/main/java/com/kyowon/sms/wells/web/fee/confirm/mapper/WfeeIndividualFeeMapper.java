@@ -41,7 +41,7 @@ public interface WfeeIndividualFeeMapper {
         SearchHmstReq dto
     );
 
-    FindHmstDeductionRes selectHmstDeduction(
+    List<FindHmstDeductionRes> selectHmstDeductions(
         SearchHmstReq dto
     );
 

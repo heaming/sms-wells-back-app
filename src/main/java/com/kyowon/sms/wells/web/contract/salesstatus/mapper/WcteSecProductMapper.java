@@ -3,9 +3,7 @@ package com.kyowon.sms.wells.web.contract.salesstatus.mapper;
 import java.util.List;
 import java.util.Optional;
 
-import com.kyowon.sms.wells.web.contract.salesstatus.dvo.WcteConfirmValidationDvo;
-import com.kyowon.sms.wells.web.contract.salesstatus.dvo.WcteInvoiceProcessIzDvo;
-import com.kyowon.sms.wells.web.contract.salesstatus.dvo.WctePdOstrIzDvo;
+import com.kyowon.sms.wells.web.contract.salesstatus.dvo.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import static com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto.*;
@@ -45,4 +43,10 @@ public interface WcteSecProductMapper {
     String selectInvoiceProcessIzPk(WcteInvoiceProcessIzDvo invoiceProcessIz);
 
     int insertInvoiceProcessHistory(String sppBzsProcsId);
+
+    PagingResult<SearchNotInstalledRes> selectNotInstalledIzs(SearchNotInstalledReq dto, PageInfo pageInfo);
+
+    Optional<WcteSecNistlValidationDvo> selectSecNistlValidation(String cntrNo, int cntrSn);
+
+    int insertNotInstalledIz(WcteSecNistlDvo dvo);
 }

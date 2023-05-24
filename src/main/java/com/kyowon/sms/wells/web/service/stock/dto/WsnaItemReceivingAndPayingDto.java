@@ -67,4 +67,44 @@ public class WsnaItemReceivingAndPayingDto {
         String mmtStocQty
 
     ) {}
+
+    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchDateReq")
+    public record SearchDateReq(
+        String itmPdCd,
+        String wareNo,
+        String strRgstFrom,
+        String strRgstTo
+    ) {}
+
+    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchDateRes")
+    public record SearchDateRes(
+        String ymd,
+        String basStocQty,
+        String prchsStrQty,
+        String nomStrQty,
+        String qomAsnStrQty,
+        String qomMmtStrQty,
+        String rtngdStrInsdQty,
+        String rtngdStrOtsdQty,
+        String etcStrQty,
+        String strCtrQty,
+        String cnfmPitmStrGapQty,
+        String nomOstrQty,
+        String svcNomOstrQty,
+        String sellNomOstrQty,
+        String qomAsnOstrQty,
+        String qomMmtOstrQty,
+        String rtngdOstrInsdQty,
+        String rtngdOstrOtsdQty,
+        String useQty,
+        String refrOstrQty,
+        String sellOstrQty,
+        String dsuOstrQty,
+        String etcOstrQty,
+        String ostrCtrQty,
+        String cnfmPitmOstrGapQty,
+        String eotStocQty,
+        String mmtStocQty
+
+    ) {}
 }

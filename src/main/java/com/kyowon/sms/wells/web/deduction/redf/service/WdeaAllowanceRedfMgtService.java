@@ -66,4 +66,12 @@ public class WdeaAllowanceRedfMgtService {
         return mapper.selectRedfBizdMgts(dto, pageInfo);
     }
 
+    /**
+     * 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 엑셀다운로드
+     * @param dto
+     * @return SXSSFWorkbook
+     */
+    public List<SearchRedfBizdRes> getRedfBizdMgtForExcelDownload(SearchRedfBizdReq dto) throws Exception {
+        return mapper.selectRedfBizdMgts(dto);
+    }
 }

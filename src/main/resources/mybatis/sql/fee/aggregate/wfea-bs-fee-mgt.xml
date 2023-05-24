@@ -1,0 +1,82 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaBsFeeMgtMapper">
+
+    <select id="selectBsFees" resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaBsFeeMgtDto$SearchRes">
+        SELECT T1.PRTNR_NO
+             , T4.OG_CD
+             , T4.PRTNR_KNM
+             , T1.CNTR_NO	/*계약번호*/
+             , T1.BASE_PD_CD	/*상품코드*/
+             , T2.PD_NM /*상품명*/
+             , BAS.SV_FEE_PD_DV_CD	/*BS상품군*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_FEE_PD_DV_CD', BAS.SV_FEE_PD_DV_CD) AS SV_FEE_PD_DV_NM	/*BS상품군*/
+             , NVL(BAS.SV_FEE_BASE_AMT, 0) AS SV_FEE_BASE_AMT	/*BS기본수수료*/
+             , NVL(T1.FEE_CALC_AMT, 0) AS FEE_CALC_AMT	/*방문수수료*/
+             , T1.SV_BIZ_DCLSF_CD	/*작업유형코드*/
+             , T1.VST_RGLVL_GD_CD	/*방문급지*/
+             , CASE T1.VST_RGLVL_GD_CD WHEN '1' THEN
+                    CASE T4.OG_TP_CD WHEN 'W02' THEN 'N' ELSE 'A' END
+               WHEN '2' THEN
+                    CASE T4.OG_TP_CD WHEN 'W02' THEN 'G' ELSE 'B' END
+               WHEN '3' THEN
+                    CASE T4.OG_TP_CD WHEN 'W02' THEN 'W1' ELSE 'C' END
+               WHEN '4' THEN
+                    CASE T4.OG_TP_CD WHEN 'W02' THEN 'W2' ELSE 'D' END
+               WHEN '5' THEN 'W3'
+               WHEN '6' THEN 'S1'
+               WHEN '7' THEN 'S2'
+               ELSE '*' END AS VST_RGLVL_GD_NM /*방문급지*/
+             , CASE T1.FILT_SELL_TP_CD WHEN '1' THEN ' 할부'
+               WHEN '2' THEN ' 렌탈'
+               WHEN '3' THEN ' 멤버십'
+               WHEN '4' THEN ' 회사'
+               ELSE ' ****'
+               END  AS SELL_TP_NM	/*판매구분*/
+             , T1.PD_USWY_CD || '-' || F_CMZ_CD_NM('TNT_WELLS', 'PD_USWY_CD', T1.PD_USWY_CD) AS USWY_NM	/*용도구분*/
+             , CASE WHEN T1.SV_BIZ_DCLSF_CD = '2240' THEN 'Y' ELSE 'N' END AS PRR_VST_YN	/*사전방문여부*/
+             , T1.VST_DUEDT	/*방문예정일자*/
+             , T1.WK_EXCN_DT	/*방문일자*/
+             , CASE WHEN T1.VST_TP_DV_CD = '2' THEN	'Y'
+               ELSE 'N' END AS CAN_YN	/*취소여부*/
+         FROM TB_FEAM_WELS_SV_PERF_IZ T1	/*웰스서비스실적내역*/
+         LEFT OUTER JOIN TB_PDBS_PD_BAS T2
+           ON T1.BASE_PD_CD = T2.PD_CD
+         LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3	/*계약상세*/
+           ON T1.CNTR_NO = T3.CNTR_NO
+          AND T1.CNTR_SN = T3.CNTR_SN
+          AND T3.SELL_TP_CD IN ('1', '2', '3', '6')	/*판매유형코드-일시불,렌탈,멤버십,정기배송*/
+         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /* 월파트너내역 */
+           ON T1.BASE_YM = T4.BASE_YM
+          AND T1.OG_TP_CD = T4.OG_TP_CD
+          AND T1.PRTNR_NO = T4.PRTNR_NO
+          AND T4.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN LATERAL
+            ( SELECT SV_FEE_BASE_AMT	/*BS기본수수료*/
+                   , SV_FEE_PD_DV_CD	/*BS상품그룹*/
+                FROM TB_FEAM_WELS_SV_FEE_BAS C	/*웰스서비스수수료기본*/
+               WHERE BASE_PD_CD = T1.BASE_PD_CD
+                 AND VST_MCN = 0
+                 AND SV_FEE_DV_CD = CASE WHEN T4.OG_TP_CD = 'W03' THEN '2' ELSE '1' END
+                 AND #{perfYm} BETWEEN APY_STRT_YM AND APY_END_YM
+               ORDER BY BASE_PD_CD , VST_MCN , SV_FEE_DV_CD , HCR_DV_CD, BASE_CH_TCNT
+            ) BAS ON 1=1
+        WHERE T1.DTA_DL_YN = 'N'
+          AND T1.BASE_YM = #{perfYm}
+          AND T1.CL_DV_CD = #{feeTcntDvCd}
+          AND T1.OG_TP_CD = #{ogTpCd}
+          AND (T1.WK_EXCN_DT IS NOT NULL AND T1.WK_EXCN_DT != '0')	/*작업수행일자*/
+        <if test='@MybatisUtils@isNotEmpty(strtPdCd)'>
+          AND T1.BASE_PD_CD <![CDATA[>=]]> #{strtPdCd}	/*상품코드*/
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(endPdCd)'>
+          AND T1.BASE_PD_CD <![CDATA[<=]]> #{endPdCd}	/*상품코드*/
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(strtVstDt) and @MybatisUtils@isNotEmpty(endVstDt)'>
+          AND T1.WK_EXCN_DT BETWEEN #{strtVstDt} AND #{endVstDt}	/*방문일자*/
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+          AND T1.PRTNR_NO = #{prtnrNo}
+        </if>
+    </select>
+
+</mapper>

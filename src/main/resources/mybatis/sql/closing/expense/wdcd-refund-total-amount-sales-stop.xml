@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdRefundTotalAmountSalesStopMapper">
+
+    <select id="selectSalesControl" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto$FindSalesControlRes">
+        SELECT CNTR_NO   /*계약번호*/
+             , CNTR_SN   /*계약일련번호*/
+             , '1'  AS GUBUN_CODE  /*자료구분*/
+             , CST_NO
+             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM  /*고객명*/
+             , SUM(SL_CTR_AMT) AS SUM_AMT /*매출조정금액*/
+          FROM ( SELECT CNTR_NO   /*계약번호*/
+                      , CNTR_SN   /*계약일련번호*/
+                      , CST_NO
+                      , SL_CTR_AMT  /*매출조정금액*/
+                   FROM TB_CBCL_WELLS_SL_CNFM_BAS
+                  WHERE 1=1
+                    AND SUBSTR(SL_RCOG_DT,1,8) = #{bsdt}
+                    AND SL_CTR_AMT > 0
+                )  T1
+         GROUP BY CNTR_NO, CNTR_SN, CST_NO
+    </select>
+
+    <select id="selectRefund" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto$FindRefundRes">
+        SELECT CNTR_NO   /*계약번호*/
+             , CNTR_SN   /*계약일련번호*/
+             , '2'  AS GUBUN_CODE  /*자료구분 - 환불*/
+             , CST_NO
+             , (SELECT CST_KNM
+                  FROM TB_CUBS_CST_BAS
+                 WHERE CST_NO = T1.CST_NO
+               ) AS CST_KNM  /*고객명*/
+             , SUM(THM_ISTM_RFND_AMT) AS SUM_AMT /*당월환불금액*/
+          FROM ( SELECT T1.CNTR_NO   /*계약번호*/
+                      , T1.CNTR_SN   /*계약일련번호*/
+                      , T1.CST_NO
+                      , T2.THM_ISTM_RFND_AMT  /*당월환불금액*/
+                   FROM TB_CBCL_WELLS_SL_CNFM_BAS T1
+                   LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T2
+                     ON T1.CNTR_NO = T2.CNTR_NO
+                    AND T1.CNTR_SN = T2.CNTR_SN
+                  WHERE 1=1
+                    AND SUBSTR(T1.SL_RCOG_DT,1,8) = #{bsdt}
+                    AND T2.THM_ISTM_RFND_AMT > 0
+               ) T1
+         GROUP BY CNTR_NO, CNTR_SN, CST_NO
+    </select>
+
+    <select id="selectSalesStop" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto$FindSalesStopRes">
+        SELECT CNTR_NO   /*계약번호*/
+             , CNTR_SN   /*계약일련번호*/
+             , '3'  AS GUBUN_CODE  /*자료구분 - 환불*/
+             , CST_NO
+             , (SELECT CST_KNM
+                  FROM TB_CUBS_CST_BAS
+                 WHERE CST_NO = T1.CST_NO) AS CST_KNM  /*고객명*/
+             , SUM(SL_STP_AMT) AS SUM_AMT /*당월환불금액*/
+         FROM ( SELECT T1.CNTR_NO   /*계약번호*/
+                     , T1.CNTR_SN   /*계약일련번호*/
+                     , T1.CST_NO
+                     , T2.SL_STP_AMT  /*매출중지금액*/
+                  FROM TB_CBCL_WELLS_SL_CNFM_BAS T1
+                  LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T2
+                    ON T1.CNTR_NO = T2.CNTR_NO
+                   AND T1.CNTR_SN = T2.CNTR_SN
+                 WHERE 1=1
+                   AND SUBSTR(T1.SL_RCOG_DT,1,8) = #{bsdt}
+                   AND T2.SL_STP_YN = 'Y'
+              ) T1
+        GROUP BY CNTR_NO, CNTR_SN, CST_NO
+    </select>
+</mapper>

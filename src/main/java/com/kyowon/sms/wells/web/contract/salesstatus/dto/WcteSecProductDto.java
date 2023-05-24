@@ -10,7 +10,29 @@ public class WcteSecProductDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 삼성전자 주문 정보 예약일 관리 Search Request Dto
+
+    @Builder
+    @ApiModel(
+        value = "WcteSecProductDto-SearchNotInstalledReq",
+        description = "삼성전자 주문 정보 미설치 Search Request Dto"
+    )
+    public record SearchNotInstalledReq(
+        @NotBlank
+        @ValidDate
+        String strtdt,
+
+        @NotBlank
+        @ValidDate
+        String enddt,
+
+        String cntrNo,
+        Integer cntrSn,
+        String cntrCstKnm,
+        String strtOgCd,
+        String endOgCd
+    ) {
+    }
+
     @Builder
     @ApiModel(
         value = "WcteSecProductDto-SearchReservationReq",
@@ -71,8 +93,31 @@ public class WcteSecProductDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 삼성전자 주문 정보 관리 Search Result Dto
-    @ApiModel("WcteSecProductDto-SearchReservationRes")
+
+    @ApiModel(
+        value = "WcteSecProductDto-SearchNotInstalledRes",
+        description= "삼성전자 주문 정보 미설치 Response Dto"
+    )
+    public record SearchNotInstalledRes(
+        String cntrNo,
+        int cntrSn,
+        String cntrCstKnm,
+        String sppBzsOrdId,
+        String pdHclsfNm,
+        String pdMclsfNm,
+        String cntrCnfmDtm,
+        String duedt,
+        String prtnrNo,
+        String prtnrKnm,
+        String prtnrOgCd,
+        String canRson
+    ) {
+    }
+
+    @ApiModel(
+        value = "WcteSecProductDto-SearchReservationRes",
+        description= "삼성전자 주문 정보 예약일 Response Dto"
+    )
     public record SearchReservationRes(
         String ogCd,
         String hooPrtnrNo,

@@ -28,13 +28,23 @@ public class WfeaNetOrderService {
     private final WfeaNetOrderConverter converter;;
 
     /**
-     * WELLS 월순주문 집계 목록 조회
+     * WELLS 월순주문 집계 기본 조회
      * @param 'SearchReq' 검색조건 정보
      * @return 조회된 데이터
      */
 
     public List<SearchRes> getNetOrders(SearchReq dto) {
         return this.mapper.selectNetOrders(dto);
+    }
+
+    /**
+     * WELLS 월순주문 수수료실적 집계대상 목록 조회
+     * @param 'SearchReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchFeeRes> getNetOrderFees(SearchReq dto) {
+        return this.mapper.selectNetOrderFees(dto);
     }
 
     /**

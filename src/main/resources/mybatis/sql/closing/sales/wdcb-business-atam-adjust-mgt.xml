@@ -20,16 +20,17 @@
                   FROM TB_CBCL_SAP_PD_DV_CD WHERE SAP_PD_DV_CD = T1.SAP_PD_DV_CD) AS SAP_PD_DV_NM  /*SAP상품구분코드명*/
              , BASE_YM              /*기준년월*/
              , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT   /*채권반제금액*/
-             , SL_BND_ALRPY_SLIP_TRS_NO    /*매출채권반제전표전송번호*/
-             , SAP_ALRPY_SLPNO             /*SAP반제전표번호*/
-             , SUM(DP_BLAM)  AS DP_BLAM          /*반제 후 입금잔액*/
-             , SUM(SL_BND_BLAM) AS SL_BND_BLAM   /*매출채권잔액*/
-          FROM TB_CBCL_SL_BND_ALRPY_BAS T1 /*채권반제기본*/
+             , SL_BND_ALRPY_SLIP_TRS_NO                    /*매출채권반제전표전송번호*/
+             , SAP_ALRPY_SLPNO                             /*SAP반제전표번호*/
+             , SUM(DP_BLAM)  AS DP_BLAM                    /*반제 후 입금잔액*/
+             , SUM(UC_AMT) AS UC_AMT                       /*매출채권잔액*/
+          FROM TB_CBCL_SL_BND_ALRPY_BAS T1                 /*채권반제기본*/
          WHERE 1=1
            AND KW_GRP_CO_CD = '2000'  /*교원그룹회사코드 - 프라퍼티 고정*/ 
            AND BASE_YM = #{baseYm}          /*기준년월*/
-           AND ((#{dpKndCd} = '2' AND DP_KND_CD IN ('2','3','4') )
-               OR (#{dpKndCd} IN ('1','5') AND  DP_KND_CD = #{dpKndCd} ) ) /*조회구분 : 입금종류코드 1.일시불(할부금) 2,3,4 일시불 외  5.연체가산금 */
+           AND ((#{dpKndCd} = '1' AND SELL_TP_CD = '1' )    /*일시불*/
+                   OR (#{dpKndCd} = '5' AND RVE_DV_CD = '02')   /*연체가산금*/
+                   OR (#{dpKndCd} = '2' AND  SELL_TP_CD <![CDATA[<>]]> '1' AND RVE_DV_CD <![CDATA[<>]]> '02' )) /*일시불도 아니고 연체가산금도 아닌거 */
            <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
            AND CNTR_NO = #{cntrNo}          /*계약번호*/
            AND CNTR_SN = #{cntrSn}          /*계약상세번호*/
@@ -66,12 +67,13 @@
              , SL_RCOG_DT                  /*채권발생일자*/
              , SL_BND_OC_AMT               /*채권발생금액*/
              , SAP_SL_SLPNO                /*SAP매출전표번호*/
-             , SL_BND_BLAM                 /*매출채권잔액*/
+             , UC_AMT                      /*매출채권잔액*/
           FROM TB_CBCL_SL_BND_ALRPY_BAS T1 /*채권반제기본*/
          WHERE KW_GRP_CO_CD = '2000'  /*교원그룹회사코드 - 프라퍼티 고정*/
            AND BASE_YM = #{baseYm}          /*기준년월*/
-           AND ((#{dpKndCd} = '2' AND DP_KND_CD IN ('2','3','4') )
-               OR (#{dpKndCd} IN ('1','5') AND  DP_KND_CD = #{dpKndCd} ) ) /*조회구분 : 입금종류코드 1.일시불(할부금) 2,3,4 일시불 외  5.연체가산금 */
+           AND ((#{dpKndCd} = '1' AND SELL_TP_CD = '1' )    /*일시불*/
+                   OR (#{dpKndCd} = '5' AND RVE_DV_CD = '02')   /*연체가산금*/
+                   OR (#{dpKndCd} = '2' AND  SELL_TP_CD <![CDATA[<>]]> '1' AND RVE_DV_CD <![CDATA[<>]]> '02' )) /*일시불도 아니고 연체가산금도 아닌거 */
            <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
            AND CNTR_NO = #{cntrNo}          /*계약번호*/
            AND CNTR_SN = #{cntrSn}          /*계약상세번호*/
