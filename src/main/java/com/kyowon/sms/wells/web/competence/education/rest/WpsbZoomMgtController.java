@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
 import com.kyowon.sms.wells.web.competence.education.service.WpsbZoomMgtService;
 import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -33,66 +31,52 @@ public class WpsbZoomMgtController {
 
     private final WpsbZoomMgtService service;
 
-    @ApiOperation(value = " wells 교육관리 알려zoom 관리 페이징 조회", notes = "")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
-    })
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getZoomMgtPages(
-        @Valid
-        SearchReq dto,
-        @Valid
-        PageInfo pageInfo
-    ) {
-        return service.getZoomMgtPages(dto, pageInfo);
-    }
-
     @ApiOperation(value = " wells 교육관리 알려zoom menu 조회", notes = "wells 교육관리 알려zoom menu를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbDvCd", value = "", paramType = "query", required = true),
     })
-    @GetMapping("/tree-list")
-    public List<SearchRes> getZoomMgts(
+    @GetMapping("/trees")
+    public List<SearchRes> getZooms(
         @Valid
         SearchReq dto
     ) {
-        return service.selectZoomMgtPages(dto);
+        return service.selectZooms(dto);
     }
 
     @ApiOperation(value = "wells 교육관리 알려zoom menu 저장", notes = "wells 교육관리 알려zoom menu를 저장한다.")
     @PostMapping
-    public SaveResponse saveZoomMgt(
+    public SaveResponse saveZoom(
         @RequestBody
         @Valid
         WpsbZoomMgtDto.SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveZoomMgt(dto))
+            .processCount(service.saveZoom(dto))
             .build();
     }
 
     @ApiOperation(value = "wells 교육관리 알려zoom menu 저장", notes = "wells 교육관리 알려zoom menu를 저장한다.")
-    @PostMapping("/treeSave")
-    public SaveResponse pageSaveZoomMgt(
+    @PostMapping("/zooms")
+    public SaveResponse saveAllZoom(
         @RequestBody
         @Valid
         @NotEmpty
         List<WpsbZoomMgtDto.SaveReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveAllZoomMgt(dtos))
+            .processCount(service.saveAllZoom(dtos))
             .build();
     }
 
     @ApiOperation(value = "wells 교육관리 알려zoom menu 삭제", notes = "wells 교육관리 알려zoom menu를 삭제한다.")
     @DeleteMapping
-    public SaveResponse removeZoomMgt(
+    public SaveResponse removeZoom(
         @RequestBody
         @Valid
         WpsbZoomMgtDto.RemoveReq dto
     ) {
 
-        return SaveResponse.builder().processCount(service.removeZoomMgt(dto)).build();
+        return SaveResponse.builder().processCount(service.removeZoom(dto)).build();
 
     }
 }

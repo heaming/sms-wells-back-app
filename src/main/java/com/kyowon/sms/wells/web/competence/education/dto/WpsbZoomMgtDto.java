@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.competence.education.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -37,22 +39,30 @@ public class WpsbZoomMgtDto {
 
         String rowState
     ) {}
-
+    @Builder
     @ApiModel("WpsbZoomMgtDto-SaveReq")
     public record SaveReq(
+        @NotBlank
         String svEducMnalId, /* 서비스교육매뉴얼ID */
+        @NotBlank
         String hgrSvEducMnalId, /* 상위서비스교육매뉴얼ID */
+        @NotBlank
         String svEducMnalNm, /* 서비스교육매뉴얼명 */
+
         Integer inqrLvTcnt, /* 조회단계차수 */
+
         Long expsrOdr, /* 노출순서 */
+
         String svEducCtgNm, /* 서비스교육카테고리명 */
         String svEducMnalCn, /* 서비스교육매뉴얼내용 */
+        @NotBlank
         String rsbDvCd, /* 직책구분코드 */
         String dtaDlYn, /* 데이터삭제여부 */
         String rowState
     ) {}
     @ApiModel("WpsbZoomMgtDto-RemoveReq")
     public record RemoveReq(
+        @NotBlank
         String svEducMnalId /* 서비스교육매뉴얼ID */
     ) {}
 

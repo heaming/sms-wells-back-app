@@ -14,8 +14,6 @@ import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
 import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
 import com.kyowon.sms.wells.web.competence.education.mapper.WpsbZoomMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,12 +24,8 @@ public class WpsbZoomMgtService {
     private final WpsbZoomMgtMapper mapper;
     private final WpsbZoomMgtConverter converter;
 
-    public PagingResult<SearchRes> getZoomMgtPages(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectZoomMgtPages(dto, pageInfo);
-    }
-
-    public List<SearchRes> selectZoomMgtPages(SearchReq dto) {
-        return mapper.selectZoomMgtPages(dto);
+    public List<SearchRes> selectZooms(SearchReq dto) {
+        return mapper.selectZooms(dto);
     }
 
     /**
@@ -41,15 +35,15 @@ public class WpsbZoomMgtService {
      * @return processCount
      */
     @Transactional
-    public int saveAllZoomMgt(List<WpsbZoomMgtDto.SaveReq> dtos) {
+    public int saveAllZoom(List<WpsbZoomMgtDto.SaveReq> dtos) {
         int processCount = 0;
 
-        int delCnt = mapper.deleteZoomMgt();
+        int delCnt = mapper.deleteZoom();
 
         for (WpsbZoomMgtDto.SaveReq dto : dtos) {
             WpsbZoomMgtDvo dvo = converter.mapSaveReq(dto);
             dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
-            processCount = mapper.insertZoomMgt(dvo);
+            processCount = mapper.insertZoom(dvo);
         }
         return processCount;
     }
@@ -61,23 +55,23 @@ public class WpsbZoomMgtService {
     * @return processCount
     */
     @Transactional
-    public int saveZoomMgt(WpsbZoomMgtDto.SaveReq dto) {
+    public int saveZoom(WpsbZoomMgtDto.SaveReq dto) {
         int processCount = 0;
         WpsbZoomMgtDvo dvo = converter.mapSaveReq(dto);
         dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
         if (dto.rowState().equals(CommConst.ROW_STATE_CREATED)) {
-            processCount = mapper.insertZoomMgt(dvo);
+            processCount = mapper.insertZoom(dvo);
         } else {
-            processCount = mapper.updateZoomMgt(dvo);
+            processCount = mapper.updateZoom(dvo);
         }
         return processCount;
     }
 
-    public int removeZoomMgt(WpsbZoomMgtDto.RemoveReq dto) {
+    public int removeZoom(WpsbZoomMgtDto.RemoveReq dto) {
         int processCount = 0;
         WpsbZoomMgtDvo dvo = converter.mapRemoveReq(dto);
         dvo.setDtaDlYn(DeDeductionConst.DELETE_Y);
-        processCount = mapper.removeZoomMgt(dvo);
+        processCount = mapper.removeZoom(dvo);
         return processCount;
     }
 }

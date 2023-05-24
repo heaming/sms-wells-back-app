@@ -7,32 +7,22 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
 import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WpsbZoomMgtMapper {
-    PagingResult<SearchRes> selectZoomMgtPages(
-        SearchReq dto,
-        PageInfo pageInfo
-    );
-
-    List<SearchRes> selectZoomMgtPages(
+    List<SearchRes> selectZooms(
         SearchReq dto
     );
 
-    int insertZoomMgt(WpsbZoomMgtDvo dvo);
+    int insertZoom(WpsbZoomMgtDvo dvo);
 
-    int updateZoomMgt(WpsbZoomMgtDvo dvo);
+    int updateZoom(WpsbZoomMgtDvo dvo);
 
-    String selectZoomMgtMnalId(WpsbZoomMgtDto.SaveReq dto);
+    int removeZoom(WpsbZoomMgtDvo dvo);
 
-    int removeZoomMgt(WpsbZoomMgtDvo dvo);
+    int removeAllZoom();
 
-    int removeAllZoomMgt();
-
-    int deleteZoomMgt();
+    int deleteZoom();
 
 }
