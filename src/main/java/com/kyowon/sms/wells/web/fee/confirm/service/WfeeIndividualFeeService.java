@@ -108,8 +108,8 @@ public class WfeeIndividualFeeService {
      * no : 번호 }
      * @return 조회결과
      */
-    public FindHmstDeductionRes getHmstDeductions(SearchHmstReq dto) {
-        return mapper.selectHmstDeduction(dto);
+    public List<FindHmstDeductionRes> getHmstDeductions(SearchHmstReq dto) {
+        return mapper.selectHmstDeductions(dto);
     }
 
     /**
