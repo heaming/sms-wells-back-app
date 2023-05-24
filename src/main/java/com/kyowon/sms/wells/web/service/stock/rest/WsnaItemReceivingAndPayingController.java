@@ -49,9 +49,9 @@ public class WsnaItemReceivingAndPayingController {
 
     @ApiOperation(value = "일자별수불현황 페이징 조회", notes = "파라미터로 넘어온 데이터로 일자별 수불현황을 조회한다.")
     @GetMapping("/date/paging")
-    public PagingResult<DateSearchRes> getDateReceivingAndPayings(
+    public PagingResult<SearchDateRes> getDateReceivingAndPayings(
         @Valid
-        DateSearchReq dto,
+        SearchDateReq dto,
         @Valid
         PageInfo pageInfo
     ) {
@@ -60,9 +60,9 @@ public class WsnaItemReceivingAndPayingController {
 
     @ApiOperation(value = "일자별수불현황 엑셀 다운로드", notes = "파라미터로 넘어온 데이터로 일자별 수불현황을 엑셀다운로드한다.")
     @GetMapping("/date/excel-download")
-    public List<DateSearchRes> getDateReceivingAndPayingsForExcelDownload(
+    public List<SearchDateRes> getDateReceivingAndPayingsForExcelDownload(
         @Valid
-        DateSearchReq dto
+        SearchDateReq dto
     ) {
         return service.getDateReceivingAndPayingsForExcelDownload(dto);
     }

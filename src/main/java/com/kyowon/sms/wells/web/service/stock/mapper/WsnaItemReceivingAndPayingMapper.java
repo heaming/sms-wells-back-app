@@ -21,7 +21,7 @@ public interface WsnaItemReceivingAndPayingMapper {
         SearchReq dto
     );
 
-    PagingResult<DateSearchRes> selectDateReceivingAndPayings(DateSearchReq dto, PageInfo pageInfo);
+    PagingResult<SearchDateRes> selectDateReceivingAndPayings(SearchDateReq dto, PageInfo pageInfo);
 
-    List<DateSearchRes> selectDateReceivingAndPayings(DateSearchReq dto);
+    List<SearchDateRes> selectDateReceivingAndPayings(SearchDateReq dto);
 }

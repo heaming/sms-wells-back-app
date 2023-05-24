@@ -68,16 +68,16 @@ public class WsnaItemReceivingAndPayingDto {
 
     ) {}
 
-    @ApiModel("WsnaReceiptsAndPaymentsDto-DateSearchReq")
-    public record DateSearchReq(
+    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchDateReq")
+    public record SearchDateReq(
         String itmPdCd,
         String wareNo,
         String strRgstFrom,
         String strRgstTo
     ) {}
 
-    @ApiModel("WsnaReceiptsAndPaymentsDto-DateSearchRes")
-    public record DateSearchRes(
+    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchDateRes")
+    public record SearchDateRes(
         String ymd,
         String basStocQty,
         String prchsStrQty,
