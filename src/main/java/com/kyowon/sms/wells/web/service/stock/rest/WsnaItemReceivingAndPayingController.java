@@ -6,6 +6,8 @@ import javax.validation.Valid;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaItemReceivingAndPayingService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,5 +45,25 @@ public class WsnaItemReceivingAndPayingController {
         SearchReq dto
     ) {
         return service.getReceiptsAndPaymentssForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "일자별수불현황 페이징 조회", notes = "파라미터로 넘어온 데이터로 일자별 수불현황을 조회한다.")
+    @GetMapping("/date/paging")
+    public PagingResult<DateSearchRes> getDateReceivingAndPayings(
+        @Valid
+        DateSearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getDateReceivingAndPayings(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "일자별수불현황 엑셀 다운로드", notes = "파라미터로 넘어온 데이터로 일자별 수불현황을 엑셀다운로드한다.")
+    @GetMapping("/date/excel-download")
+    public List<DateSearchRes> getDateReceivingAndPayingsForExcelDownload(
+        @Valid
+        DateSearchReq dto
+    ) {
+        return service.getDateReceivingAndPayingsForExcelDownload(dto);
     }
 }

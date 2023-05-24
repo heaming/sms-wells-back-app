@@ -26,4 +26,14 @@ public class WsnaItemReceivingAndPayingService {
     public List<SearchRes> getReceiptsAndPaymentssForExcelDownload(SearchReq dto) {
         return mapper.selectReceiptsAndPaymentsPages(dto);
     }
+
+    public PagingResult<DateSearchRes> getDateReceivingAndPayings(
+        DateSearchReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectDateReceivingAndPayings(dto, pageInfo);
+    }
+
+    public List<DateSearchRes> getDateReceivingAndPayingsForExcelDownload(DateSearchReq dto) {
+        return mapper.selectDateReceivingAndPayings(dto);
+    }
 }
