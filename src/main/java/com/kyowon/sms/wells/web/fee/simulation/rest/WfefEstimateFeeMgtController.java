@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.fee.simulation.rest;
 
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto;
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchEstimateReq;
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchHomeRes;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgMRes;
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPReq;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPRes;
 import com.kyowon.sms.wells.web.fee.simulation.service.WfefEstimateFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
@@ -34,7 +34,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/p-og")
-    public SearchOgPRes getEstimateFeeOgP(@Valid SearchOgPReq req) throws Exception {
+    public SearchOgPRes getEstimateFeeOgP(@Valid SearchEstimateReq req) throws Exception {
         return service.getEstimateFeeOgP(req);
     }
 
@@ -45,8 +45,19 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/m-og")
-    public SearchOgMRes getEstimateFeeOgM(@Valid SearchOgPReq req) throws Exception {
+    public SearchOgMRes getEstimateFeeOgM(@Valid SearchEstimateReq req) throws Exception {
         return service.getEstimateFeeOgM(req);
+    }
+
+    @ApiOperation(value = "예상수수료 - 조회(홈마스터)", notes = "예상수수료 흄마스터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perType", value = "실적조회", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
+    })
+    @GetMapping("/home")
+    public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req) throws Exception {
+        return service.getEstimateFeeHome(req);
     }
 
 }
