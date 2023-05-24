@@ -10,6 +10,8 @@ public interface WfeyEngineerAllowanceMapper {
     List<SearchAllowanceUnitPriceRes> selectEngienerAwUprcs(SearchAllowanceUnitPriceReq req);
 
     Integer selectNextDsbBaseSn(CreateAllowanceUnitPriceReq req);
+
+    Integer selectProgressStandardData(String pdGrpCd, String svTpCd, String siteAwAtcCd, String rglvlDvCd, Integer dsbBaseSn);
     Integer insertEngineerAwUprcs(CreateAllowanceUnitPriceReq req, Integer nextDsbBaseSn);
     Integer updateEnginnerAwUprcs(EditAllowanceUnitPriceReq req);
     Integer deleteEnginnerAwUprcs(RemoveAllowanceUnitPriceReq req);

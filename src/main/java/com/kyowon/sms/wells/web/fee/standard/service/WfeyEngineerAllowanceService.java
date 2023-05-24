@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.fee.standard.service;
 
 import com.kyowon.sms.wells.web.fee.standard.dto.WfeyEngineerAllowanceDto.*;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyEngineerAllowanceMapper;
+import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +60,7 @@ public class WfeyEngineerAllowanceService {
      */
     public Integer editEngineerAwUprcs(EditAllowanceUnitPriceReq req) {
         /* 수정가능 Validation 체크, 수정하려는 데이터가 현재 진행중이면 삭제 불가 */
+        BizAssert.isFalse(isProgressStandardData(req.pdGrpCd(), req.svTpCd(), req.siteAwAtcCd(), req.rglvlDvCd(), req.dsbBaseSn()), "MSG_ALT_NOT_UPDATE_PRGS_ITEM");
 
         Integer response = engineerAllowanceMapper.updateEnginnerAwUprcs(req);
 
@@ -76,6 +79,7 @@ public class WfeyEngineerAllowanceService {
      */
     public Integer removeEngineerAwUprcs(RemoveAllowanceUnitPriceReq req) {
         /* 삭제가능 Validation 체크, 삭제하려는 데이터가 현재 진행중이면 삭제 불가 */
+        BizAssert.isFalse(isProgressStandardData(req.pdGrpCd(), req.svTpCd(), req.siteAwAtcCd(), req.rglvlDvCd(), req.dsbBaseSn()), "MSG_ALT_NOT_UPDATE_PRGS_ITEM");
 
         Integer response = engineerAllowanceMapper.deleteEnginnerAwUprcs(req);
 
@@ -100,4 +104,7 @@ public class WfeyEngineerAllowanceService {
         return new SimpleDateFormat("yyyyMMdd").format(calendar.getTime());
     }
 
+    private Boolean isProgressStandardData(String pdGrpCd, String svTpCd, String siteAwAtcCd, String rglvlDvCd, Integer dsbBaseSn) {
+        return engineerAllowanceMapper.selectProgressStandardData(pdGrpCd, svTpCd, siteAwAtcCd, rglvlDvCd, dsbBaseSn) > 0;
+    }
 }
