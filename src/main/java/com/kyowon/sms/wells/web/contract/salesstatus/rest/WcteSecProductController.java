@@ -165,4 +165,11 @@ public class WcteSecProductController {
             .status(CtContractConst.EXCEL_UPLOAD_SUCCESS)
             .build();
     }
+
+    @ApiOperation(value = "중분류 된 삼성전자 상품 목록 조회", notes = "중분류 된 삼성전자 상품 목록 조회")
+    @GetMapping("/medium-clsfs")
+    public List<SearchSecPdBycfRes> getSecPdBycfs(
+    ) {
+        return service.getSecPdBycfs();
+    }
 }
