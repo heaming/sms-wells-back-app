@@ -4,7 +4,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 public class WfefEstimateFeeMgtDto {
-    public record SearchOgPReq(
+    public record SearchEstimateReq(
         @NotBlank
         String perfYm,
         @NotBlank
@@ -143,5 +143,56 @@ public class WfefEstimateFeeMgtDto {
         List<BsM> bses,
         List<EstimateM> estimates,
         List<SaleM> sales
+    ) {}
+
+    public record BaseHome(
+        String prtnrKnm,
+        String ogCd, // 조직코드
+        String rsbDvCd, // 직책구분코드
+        Long amtEstSalFee, // 예상판매수수료
+        Long amtEstSerFee // 예상서비스수수료
+    ) {}
+
+    public record PerformanceHome(
+        String type, // 구분
+        Integer elhmAckmtCt,
+        Long amtSpayHcr,
+        Integer allProcCt,
+        Integer elhmProcCt,
+        String nwcmrEducYn,
+        String acpnEducYn
+    ) {}
+
+    public record EstimateHome(
+        Long amtEstSalPrpn,
+        Long amtEstSalEarlySttlmnt,
+        Long amtEstSalEnrg,
+        Long amtEstSvcScene,
+        Long amtEstSvcActi1,
+        Long amtEstSvcActi2,
+        Long amtEstSvcAcml,
+        Long amtEstSvcEdu
+    ) {}
+
+    public record SaleHome(
+        String cntrRcpFshDtm,
+        String cntrCnfmDtm,
+        String cntrNo,
+        String cstKnm,
+        String pdNm,
+        String pdCd,
+        String cntrwTpCd,
+        String cntrTpCd,
+        Long sumAckmtCt,
+        Long sumRentalAmt,
+        Long sumHomeCare,
+        Long sumEtc
+    ) {}
+
+    public record SearchHomeRes(
+        BaseHome base,
+        List<PerformanceHome> performances,
+        List<EstimateHome> estimates,
+        List<SaleHome> sales
     ) {}
 }
