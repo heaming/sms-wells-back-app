@@ -46,7 +46,7 @@ public class WdcbBusinessAtamAdjustMgtDto {
         String slBndAlrpySlipTrsNo,
         String sapAlrpySlpno,
         String dpBlam,
-        String slBndBlam
+        String ucAmt
     ) {}
 
     // *********************************************************
@@ -75,7 +75,7 @@ public class WdcbBusinessAtamAdjustMgtDto {
         String slRcogDt,
         String slBndOcAmt,
         String sapSlSlpno,
-        String slBndBlam
+        String ucAmt
     ) {}
 
     // *********************************************************
