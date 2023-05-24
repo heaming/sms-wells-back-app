@@ -167,14 +167,10 @@ public class WfeeIndividualFeeDto {
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstDeductionRes")
     public record FindHmstDeductionRes(
-        String rds,
-        String erntx,
-        String rsdntx,
-        String buDdtn,
-        String hirInsr,
-        String inddInsr,
-        String redf,
-        String dlqRedf
+        String item1,
+        String amt1,
+        String item2,
+        String amt2
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstPnpyamRes")

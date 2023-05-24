@@ -108,11 +108,11 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/hmst-deductions")
-    public FindHmstDeductionRes getHmstDeductions(
+    public List<FindHmstDeductionRes> getHmstDeductions(
         @Valid
         SearchHmstReq dto
     ) {
-        return service.getHmstDeductions(dto);
+        return this.service.getHmstDeductions(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 가지급금 세부내역 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 상세 실적 가지급금 세부 내역을 조회한다.")
