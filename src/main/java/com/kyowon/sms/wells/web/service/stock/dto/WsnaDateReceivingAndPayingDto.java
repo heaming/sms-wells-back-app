@@ -61,6 +61,7 @@ public class WsnaDateReceivingAndPayingDto {
         String etcOstrQty,
         String ostrCtrQty,
         String cnfmPitmOstrGapQty,
+        String eotStocQty,
         String mmtStocQty
     ) {}
 }
