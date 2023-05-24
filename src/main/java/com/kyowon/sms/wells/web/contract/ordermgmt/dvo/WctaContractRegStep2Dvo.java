@@ -33,6 +33,7 @@ public class WctaContractRegStep2Dvo {
         String lclsfVal;
         String pdCd;
         String pdNm;
+        String pdQty;
         String pdHclsfId;
         String pdMclsfId;
         String pdLclsfId;
@@ -79,7 +80,7 @@ public class WctaContractRegStep2Dvo {
         String chdvcPrmitYn;
         String fgptTpYn;
         String asRcpPrmitYn;
-        String frisuAsYn;
+        String frisuAsPtrmN;
         String rntf;
         String ackmtPerfRt;
         String ackmtCt;
@@ -113,18 +114,28 @@ public class WctaContractRegStep2Dvo {
         Integer verSn;
         Long ctrVal;
         String pdPrcId;
+        boolean isExistAlncPds; // 제휴상품노출여부(금액조회 시 함께 판단)
     }
 
     @Getter
     @Setter
     public static class PdSvcDvo {
+        String codeId;
+        String codeName;
         String pdNm;
         String pdCd;
-        String pdPrpVal11;
-        String pdPrpVal12;
-        String pdRelId;
-        String basePdCd;
-        String ojPdCd;
-        String pdRelTpCd;
+        String pdHclsfId;
+        String pdMclsfId;
+        String pdAbbrNm;
+        String svStrtdt;
+        String svEnddt;
+        String mndtSvYn;
+        String svTpCd;
+        String cstBasePdAbbrNm;
+        String pdEplCn;
+        String asPtrmCd;
+        String svPrdUnitCd;
+        String svVstPrdCd;
+        String pcsvPrdCd;
     }
 }

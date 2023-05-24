@@ -66,6 +66,7 @@ public class WctaContractRegStep1Service {
 
         // 3-3-2. 로그인 사용자 = 파트너, 사전업무 등록기간 체크
         // XXX 로그인 사용자는 반드시 파트너임을 가정함, 세션변경 필요(W01, 1002934)
+        BizAssert.notNull(loginPrtnrInfo, "존재하지 않는 파트너입니다.");
         WctaContractPrtnrRelDvo prtnrInfo = converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(loginPrtnrInfo);
         if ("7".equals(prtnrInfo.getPstnDvCd())) {
             // 로그인한 파트너가 지국장인 경우
