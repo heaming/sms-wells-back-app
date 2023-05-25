@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Mapper;
  *
  * </pre>
  *
- * @author 김동석
+ * @author hyh
  * @since 2023-05-24
  */
 @Mapper
