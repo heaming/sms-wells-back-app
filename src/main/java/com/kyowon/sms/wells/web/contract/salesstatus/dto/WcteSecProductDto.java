@@ -1,11 +1,21 @@
 package com.kyowon.sms.wells.web.contract.salesstatus.dto;
 
+import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
+/**
+ * <pre>
+ * 삼성전자 상품관리 DTO
+ * </pre>
+ *
+ * @author SAVEMEGOAT
+ * @since 2023-05-24
+ */
 public class WcteSecProductDto {
     // *********************************************************
     // Request Dto
@@ -90,6 +100,22 @@ public class WcteSecProductDto {
     ) {
     }
 
+    @Builder
+    @ApiModel(
+        value = "WcteSecProductDto-SearchShippingReq",
+        description = "삼성전자 주문 정보 배송일 Request Dto"
+    )
+    public record SearchShippingReq(
+        @NotBlank
+        @ValidDate
+        String strtdt,
+        @NotBlank
+        @ValidDate
+        String enddt,
+        List<String> pdMclsfIds,
+        List<String> pdCds
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -161,9 +187,11 @@ public class WcteSecProductDto {
     ) {
     }
 
-    // Search Sec Pd Bycf Res Dto
     @Builder
-    @ApiModel("WcteSecProductDto-SearchSecPdBycfRes")
+    @ApiModel(
+        value = "WcteSecProductDto-SearchSecPdBycfRes",
+        description = "삼성전자 주문 정보 배송 중분류된 상품 Response Dto"
+    )
     public record SearchSecPdBycfRes(
         String pdMclsfId,
         String pdMclsfNm,
@@ -171,4 +199,38 @@ public class WcteSecProductDto {
         String pdNm
     ) {
     }
+
+    @Builder
+    @ApiModel(
+        value="WcteSecProductDto-SearchShippingRes",
+        description = "삼성전자 배송 조회 응답 객체"
+    )
+    public record SearchShippingRes(
+        String blkList,
+        String cttOrCnfmDtm,
+        String cntrNo,
+        int cntrSn,
+        String sppBzsOrdId,
+        String rcgvpKnm,
+        String zip,
+        String adr,
+        String dtlAdr,
+        String pdMclsfId,
+        String pdMclsfNm,
+        String pdCd,
+        String pdNm,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String prtnrCralLocaraTno,
+        String prtnrMexnoEncr,
+        String prtnrCralIdvTno,
+        String sellTpCd
+    ) {
+        public SearchShippingRes {
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            prtnrMexnoEncr = DbEncUtil.dec(prtnrMexnoEncr);
+        }
+    }
+
 }
