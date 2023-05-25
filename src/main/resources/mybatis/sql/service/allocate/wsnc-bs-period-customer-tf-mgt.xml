@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodCustomerTfMgtMapper">
+
+    <select id="selectBsPeriodCustomerPages" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$SearchRes">
+			 SELECT T1.ASN_OJ_YM									  -- 배정대상년월
+			 	  , T2.TF_STAT_CD 									  -- 이관상태
+				  , T1.CNTR_NO    									  -- 계약번호
+				  , T1.CNTR_SN    									  -- 계약번호
+				  , T7.RCGVP_KNM  									  -- 고객명
+				  , DECODE(T3.DTA_DL_YN, 'Y', '강제배정', '') AS ASSIGN -- 강제/고정
+			      , T14.SVPD_SAP_CD                                   -- SAP코드
+				  , T4.PDCT_PD_CD      								  -- 품목코드
+                  , T14.SVPD_NM_ABBR1                                 -- 상품명
+				  , T1.SV_BIZ_DCLSF_CD 								  -- 업무유형
+				  -- 모종패키지
+				  -- 모종고객번호
+				  -- 모종고객명
+				  , T5.CTPV_NM    	   -- 시도명
+				  , T5.CTCTY_NM   	   -- 시군구명
+				  , T5.EMD_NM     	   -- 행정동명
+				  , T6.IST_NMN_N  	   -- 설치차월수
+				  , T7.LOCARA_TNO 	   -- 전화번호
+				  , T7.EXNO_ENCR  	   -- 전화번호
+				  , T7.IDV_TNO    	   -- 전화번호
+				  , T7.CRAL_LOCARA_TNO -- 휴대전화번호
+				  , T7.MEXNO_ENCR      -- 휴대전화번호
+				  , T7.CRAL_IDV_TNO    -- 휴대전화번호
+				  , T5.NEW_ADR_ZIP     -- 우편번호
+				  , T5.RNADR           -- 주소
+				  , T1.VST_CNFMDT      -- 방문일자
+				  , T1.VST_CNFM_HH     -- 방문시간
+				  , T2.TF_AK_RMK_CN    -- 메모
+				  , T8.OG_NM              AS BFCH_ICHR_OG_NM 	 -- 이관전담당자-소속
+				  , T2.BFCH_ICHR_PRTNR_NO 					 	 -- 이관전담당자-사번
+				  , T10.PRTNR_KNM         AS BFCH_ICHR_PRTNR_KNM -- 이관전담당자-성명
+				  , T9.OG_NM              AS AFCH_ICHR_OG_NM 	 -- 이관후담당자-소속
+				  , T2.AFCH_ICHR_PRTNR_NO 						 -- 이관후담당자-사번
+				  , T11.PRTNR_KNM         AS AFCH_ICHR_PRTNR_KNM -- 이관후담당자-성명
+				  , T2.TF_RQDT 									 -- 이관요청정보-이관일자
+				  , T2.TF_AK_RSON_CD 							 -- 이관요청정보-이관사유
+				  , T12.OG_NM             AS TF_OG_NM 		     -- 이관요청정보-소속
+				  , T12.PRTNR_KNM         AS TF_PRTNR_KNM 		 -- 이관요청정보-성명
+				  , T2.TF_CNFMDT          AS TF_FN_CNFMDT		 -- 이관확정정보-이관일자
+				  , T13.OG_NM             AS TF_FN_OG_NM 		 -- 이관확정정보-소속
+				  , T13.PRTNR_KNM         AS TF_FN_PRTNR_KNM 	 -- 이관확정정보-성명
+			   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+		 	  INNER JOIN TB_SVPD_ASN_RS_TF_IZ T2
+				 ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+				AND T2.DTA_DL_YN = 'N'
+	  	 LEFT OUTER JOIN TB_SVPD_CNTR_FXN_PRTNR_IZ T3
+				 ON T3.CNTR_NO = T1.CNTR_NO
+				AND T3.CNTR_SN = T1.CNTR_SN
+				AND T3.DTA_DL_YN = 'N'
+			  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4
+				 ON T4.CNTR_NO = T1.CNTR_NO
+				AND T4.CNTR_SN = T1.CNTR_SN
+				AND T4.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN (
+					SELECT T1.DTL_CNTR_NO
+						 , T1.DTL_CNTR_SN
+						 , T4.CTPV_NM
+						 , T4.CTCTY_NM
+						 , T4.EMD_NM
+						 , T3.NEW_ADR_ZIP
+						 , T3.RNADR
+					  FROM TB_SSCT_CNTR_ADR_REL T1
+					     , TB_SSCT_CNTR_ADRPC_BAS T2
+					     , TB_GBCO_ADR_BAS T3
+					     , TB_GBCO_RNADR_BAS T4
+					 WHERE T1.ADRPC_TP_CD = '3'
+					   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+					   AND T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
+					   AND T2.ADR_ID = T3.ADR_ID
+					   AND T4.RNADR_ID = T3.NEW_ADR_ZIP
+					   AND T1.DTA_DL_YN = 'N'
+					   AND T2.DTA_DL_YN = 'N'
+					   AND T3.DTA_DL_YN = 'N'
+					   AND T4.DTA_DL_YN = 'N'
+			  		) T5
+			  	 ON T5.DTL_CNTR_NO = T1.CNTR_NO
+			  	AND T5.DTL_CNTR_SN = T1.CNTR_SN
+			  INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T6
+			  	 ON T6.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+			  	AND T6.DTA_DL_YN = 'N'
+			  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T7
+			  	 ON T7.CNTR_NO = T1.CNTR_NO
+			  	AND T7.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T8
+			  	 ON T8.OG_ID = T2.BFCH_ICHR_BRCH_OG_ID
+			  	AND T8.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T9
+			  	 ON T9.OG_ID = T2.AFCH_ICHR_BRCH_OG_ID
+			  	AND T9.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T10
+		 		 ON T10.OG_TP_CD = T2.BFCH_ICHR_PRTNR_OG_TP_CD
+		 		AND T10.PRTNR_NO = T2.BFCH_ICHR_PRTNR_NO
+		 		AND T10.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T11
+		 		 ON T11.OG_TP_CD = T2.AFCH_ICHR_PRTNR_OG_TP_CD
+		 		AND T11.PRTNR_NO = T2.AFCH_ICHR_PRTNR_NO
+		 		AND T11.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T12
+		 		 ON T12.OG_TP_CD = T2.TF_AK_PRTNR_OG_TP_CD
+		 		AND T12.PRTNR_NO = T2.TF_AK_PRTNR_NO
+		 		AND T12.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T13
+		 		 ON T13.OG_TP_CD = T2.TF_CNFM_PRTNR_OG_TP_CD
+		 		AND T13.PRTNR_NO = T2.TF_CNFM_PRTNR_NO
+		 		AND T13.DTA_DL_YN = 'N'
+		 LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T14
+			     ON T14.SVPD_PD_CD = T4.PDCT_PD_CD
+		 	  WHERE T1.DTA_DL_YN = 'N'
+                AND T1.ASN_OJ_YM = #{assignYm}
+            <if test="@MybatisUtils@isNotEmpty(organizationId) and !@MybatisUtils@equals(organizationId, 'ALL')">
+                AND ( T2.BFCH_ICHR_BRCH_OG_ID = #{organizationId}
+                   OR T2.AFCH_ICHR_BRCH_OG_ID = #{organizationId}
+                    )
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(partnerNo) and !@MybatisUtils@equals(partnerNo, 'ALL')">
+                AND ( T2.BFCH_ICHR_PRTNR_NO = #{partnerNo}
+                   OR T2.AFCH_ICHR_PRTNR_NO = #{partnerNo}
+                    )
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(partnerNoInput)">
+                AND ( T2.BFCH_ICHR_PRTNR_NO = #{partnerNoInput}
+                   OR T2.AFCH_ICHR_PRTNR_NO = #{partnerNoInput}
+                    )
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(transferStatusCode) and !@MybatisUtils@equals(transferStatusCode, 'ALL')">
+                AND T2.TF_STAT_CD = #{transferStatusCode}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(emdName)'>
+		 	    <bind name="emdName" value="'%'+emdName+'%'" />
+                AND T5.EMD_NM = #{emdName}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(addressZip)'>
+                AND T5.NEW_ADR_ZIP = #{addressZip}
+            </if>
+    </select>
+
+    <select id="selectBranchsAndServiceCenters" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$BranchsAndServiceCentersRes">
+        SELECT T3.*
+        FROM (
+                SELECT T1.OG_ID
+                     , T1.OG_TP_CD
+                     , T1.OG_CD
+                     , T1.OG_NM
+                     , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+                     , T1.HGR_OG_ID
+                  FROM TB_OGBS_MM_OG_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD IN ('W02', 'ALC')
+                   AND T1.OG_LEVL_DV_CD = '3'
+                   AND T1.DTA_DL_YN = 'N'
+                 UNION
+                SELECT T2.OG_ID
+                     , T2.OG_TP_CD
+                     , T2.OG_CD
+                     , T2.OG_NM
+                     , T2.OG_NM || ' (' || T2.OG_CD || ')' AS OG_CD_NM
+                     , T2.HGR_OG_ID
+                  FROM TB_OGBS_MM_OG_IZ T2
+                 WHERE T2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T2.OG_TP_CD IN ('W03', 'W06')
+                   AND T2.CLO_DT IS NULL
+                   AND T2.DTA_DL_YN = 'N'
+              ) T3
+        ORDER BY T3.OG_CD
+    </select>
+
+    <select id="selectManagersAndEngineers" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$ManagersAndEngineersRes">
+        SELECT T3.*
+          FROM (
+                SELECT T1.OG_TP_CD
+                     , T1.PRTNR_NO
+                     , T1.PRTNR_KNM AS PRTNR_NM
+                     , T1.PRTNR_KNM || ' (' || T1.PRTNR_NO || ')' AS PRTNR_NO_NM
+                     , T1.CNTR_DT
+                     , T1.CLTN_DT
+                  FROM TB_OGBS_MM_PRTNR_IZ T1
+                  LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T2
+                    ON T2.BASE_YM = T1.BASE_YM
+                   AND T2.OG_ID = T1.OG_ID
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T2.DTA_DL_YN = 'N'
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD = 'W02'
+                   AND (T1.BZ_STAT_CD = '1' OR T1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')||'%')
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T2.DGR3_LEVL_OG_ID = #{ogId}
+                 UNION
+                SELECT T1.OG_TP_CD
+                     , T1.PRTNR_NO
+                     , T1.PRTNR_KNM AS PRTNR_NM
+                     , T1.PRTNR_KNM || ' (' || T1.PRTNR_NO || ')' AS PRTNR_NO_NM
+                     , T1.CNTR_DT
+                     , T1.CLTN_DT
+                  FROM TB_OGBS_MM_PRTNR_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD IN ('W03', 'W06')
+                   AND T1.BZ_STAT_CD = '1'
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T1.OG_ID = #{ogId}
+                ) T3
+         ORDER BY T3.PRTNR_NM, T3.PRTNR_NO
+    </select>
+
+</mapper>
