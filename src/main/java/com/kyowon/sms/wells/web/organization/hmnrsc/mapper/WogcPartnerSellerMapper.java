@@ -2,7 +2,10 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.mapper;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerDvo;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 /**
  * <pre>
@@ -15,5 +18,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface WogcPartnerSellerMapper {
 
-    SearchInformationConfirmRes selectInformationConfirm(SearchInformationConfirmReq dto);
+    List<WogcPartnerSellerDvo> selectInformationConfirms(SearchInformationConfirmReq dto);
 }

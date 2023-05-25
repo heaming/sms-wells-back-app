@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @Api(tags = "[WOGC] 판매자 정보 관리 REST API")
 @Validated
@@ -33,9 +35,9 @@ public class WogcPartnerSellerController {
 
     })
     @GetMapping("/information-confirm")
-    public SearchInformationConfirmRes getInformationConfirm(
+    public List<SearchInformationConfirmRes> getInformationConfirms(
         SearchInformationConfirmReq dto) {
-        return service.getInformationConfirm(dto);
+        return service.getInformationConfirms(dto);
     }
 
 }

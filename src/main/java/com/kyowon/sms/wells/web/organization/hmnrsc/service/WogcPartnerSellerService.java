@@ -1,11 +1,17 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
+import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerSellerConverter;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerSellerMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -20,28 +26,37 @@ import org.springframework.stereotype.Service;
 public class WogcPartnerSellerService {
 
     private final WogcPartnerSellerMapper mapper;
+    private final WogcPartnerSellerConverter converter;
 
-    public SearchInformationConfirmRes getInformationConfirm(
+    public List<SearchInformationConfirmRes> getInformationConfirms(
         SearchInformationConfirmReq dto
     ) {
-        SearchInformationConfirmRes res = null;
+        List<SearchInformationConfirmRes> res = null;
+        List<WogcPartnerSellerDvo> dvos = new ArrayList<WogcPartnerSellerDvo>();
+        WogcPartnerSellerDvo dvo = new WogcPartnerSellerDvo();
         if (StringUtils.isEmpty(dto.ogTpCd()) || StringUtils.isEmpty(dto.prtnrKnm())
             || StringUtils.isEmpty(dto.bryyMmdd()) || StringUtils.isEmpty(dto.sexDvCd())
             || (StringUtils.isEmpty(dto.ymd()))) {
-            res = SearchInformationConfirmRes.builder().chk("X").build();
+            dvo.setChk("X");
+            dvos.add(dvo);
+            res = converter.mapAllWogcPartnerSellerDvoToSearchInformationConfirmRes(dvos);
             return res;
         }
 
         if(dto.ymd().length() != 8 || dto.bryyMmdd().length() != 8) {
-            res = SearchInformationConfirmRes.builder().chk("X").build();
+            dvo.setChk("X");
+            dvos.add(dvo);
+            res = converter.mapAllWogcPartnerSellerDvoToSearchInformationConfirmRes(dvos);
             return res;
         }
 
-        res = mapper.selectInformationConfirm(dto);
+        dvos = mapper.selectInformationConfirms(dto);
 
-        if (res == null) {
-            res = SearchInformationConfirmRes.builder().chk("E").build();
+        if (CollectionUtils.isEmpty(dvos)) {
+            dvo.setChk("E");
+            dvos.add(dvo);
         }
+        res = converter.mapAllWogcPartnerSellerDvoToSearchInformationConfirmRes(dvos);
 
         return res;
     }
