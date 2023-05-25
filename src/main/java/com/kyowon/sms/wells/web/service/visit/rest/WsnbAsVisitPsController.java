@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -13,6 +11,8 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbAsVisitPsDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbAsVisitPsDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbAsVisitPsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -36,10 +36,14 @@ public class WsnbAsVisitPsController {
         @ApiImplicitParam(name = "처리일자 To", value = "wkExcnDtTo", paramType = "query", example = "20221230", required = true),
         @ApiImplicitParam(name = "유/무상구분", value = "refriDvCd", paramType = "query", example = "1")
     })
-    @GetMapping("/product-services")
-    public List<SearchRes> getProductServices(@Valid
-    SearchReq dto) {
-        return this.service.getProductServices(dto);
+    @GetMapping("/product-services/paging")
+    public PagingResult<SearchRes> getProductServices(
+        @Valid
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return this.service.getProductServices(dto, pageInfo);
     }
 
 }

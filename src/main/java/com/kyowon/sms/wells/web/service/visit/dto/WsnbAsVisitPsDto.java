@@ -14,7 +14,7 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsnbAsVisitPsDto {
 
-    @ApiModel(value = "WsnbBpdSvProcsAgrgPsDto-SearchReq")
+    @ApiModel(value = "WsnbAsVisitPsDto-SearchReq")
     public record SearchReq(
         String ogId, // 서비스센터
         @NotBlank
@@ -24,12 +24,12 @@ public class WsnbAsVisitPsDto {
         String refriDvCd // 유/무상 구분
     ) {}
 
-    @ApiModel(value = "WsnbBpdSvProcsAgrgPsDto-SearchRes")
+    @ApiModel(value = "WsnbAsVisitPsDto-SearchRes")
     public record SearchRes(
         String sapMatCd, // SAP코드
         String pdCd, // 상품코드
         String pdNm, // 상품약어명
-        String siteAwPdGrpCd, // 현장수당상품그룹코드
+        String svpdItemGr, // 상품군
         String cnt1110, // 신규설치
         String cnt1111, // 설치철거
         String cnt1121, // 자사회수

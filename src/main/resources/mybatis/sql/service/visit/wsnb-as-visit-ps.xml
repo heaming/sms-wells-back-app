@@ -3,15 +3,9 @@
 
     <select id="selectProductServices" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbAsVisitPsDto$SearchRes">
         SELECT T1.PD_CD /* 상품코드 */
-             , (SELECT P1.SAP_MAT_CD
-                  FROM TB_PDBS_PD_BAS P1
-                 WHERE P1.PD_CD = T1.PD_CD
-                   AND P1.DTA_DL_YN = 'N') AS SAP_MAT_CD /* SAP코드 */
-             , (SELECT P1.PD_ABBR_NM
-                  FROM TB_PDBS_PD_BAS P1
-                 WHERE P1.PD_CD = T1.PD_CD
-                   AND P1.DTA_DL_YN = 'N') AS PD_NM /* 상품약어명 */
-             , T1.SITE_AW_PD_GRP_CD /* 현장수당상품그룹코드 */
+             , T1.PD_NM /* 상품약어명 */
+             , T1.SAP_MAT_CD /* SAP코드 */
+             , T1.SVPD_ITEM_GR /* 상품군 */
              , SUM(T1.CNT_1110) AS CNT_1110 /* 신규설치 */
              , SUM(T1.CNT_1111) AS CNT_1111 /* 설치철거 */
              , SUM(T1.CNT_1121) AS CNT_1121 /* 자사회수 */
@@ -74,11 +68,25 @@
                 + SUM(T1.CNT_3320) + SUM(T1.CNT_3210) + SUM(T1.CNT_3230) + SUM(T1.CNT_3110) + SUM(T1.CNT_3112)
                 + SUM(T1.CNT_3121) + SUM(T1.CNT_3122) + SUM(T1.CNT_3130) + SUM(T1.CNT_3440) + SUM(T1.CNT_3200)
                 + SUM(T1.CNT_3220) + SUM(T1.CNT_3330) + SUM(T1.CNT_3430) + SUM(T1.CNT_3100) + SUM(T1.CNT_3460) AS CNT_3100 /* A/S */
-             , SUM(T1.CNTT) AS CNTT
+             /* , SUM(T1.CNTT) AS CNTT */
+             , SUM(T1.CNT_1310) + SUM(T1.CNT_1320)
+                + SUM(T1.CNT_2110) + SUM(T1.CNT_2111) + SUM(T1.CNT_2120) + SUM(T1.CNT_2131) + SUM(T1.CNT_2132)
+                + SUM(T1.CNT_2133) + SUM(T1.CNT_2134) + SUM(T1.CNT_2135) + SUM(T1.CNT_2136) + SUM(T1.CNT_2137)
+                + SUM(T1.CNT_2138) + SUM(T1.CNT_2139) + SUM(T1.CNT_2141) + SUM(T1.CNT_2142) + SUM(T1.CNT_2143)
+                + SUM(T1.CNT_2144) + SUM(T1.CNT_2149) + SUM(T1.CNT_2150) + SUM(T1.CNT_2151) + SUM(T1.CNT_2153)
+                + SUM(T1.CNT_2154) + SUM(T1.CNT_2158) + SUM(T1.CNT_2159) + SUM(T1.CNT_2160) + SUM(T1.CNT_2210)
+                + SUM(T1.CNT_2220) + SUM(T1.CNT_2230)
+                + SUM(T1.CNT_1110) + SUM(T1.CNT_1111) + SUM(T1.CNT_1121) + SUM(T1.CNT_1122) + SUM(T1.CNT_1123) + SUM(T1.CNT_1124) + SUM(T1.CNT_1125)
+                + SUM(T1.CNT_3420) + SUM(T1.CNT_3410) + SUM(T1.CNT_3420_R) + SUM(T1.CNT_3410_R) + SUM(T1.CNT_3310)
+                + SUM(T1.CNT_3320) + SUM(T1.CNT_3210) + SUM(T1.CNT_3230) + SUM(T1.CNT_3110) + SUM(T1.CNT_3112)
+                + SUM(T1.CNT_3121) + SUM(T1.CNT_3122) + SUM(T1.CNT_3130) + SUM(T1.CNT_3440) + SUM(T1.CNT_3200)
+                + SUM(T1.CNT_3220) + SUM(T1.CNT_3330) + SUM(T1.CNT_3430) + SUM(T1.CNT_3100) + SUM(T1.CNT_3460) AS CNTT
           FROM (SELECT V1.PD_CD
+                     , V1.PD_ABBR_NM AS PD_NM
+                     , V1.SAP_MAT_CD
                      , V1.CST_SV_ASN_NO
                      , V1.SV_BIZ_DCLSF_CD
-                     , V1.SITE_AW_PD_GRP_CD
+                     , V1.SVPD_ITEM_GR
                      , CASE WHEN V1.SV_BIZ_DCLSF_CD = '1110' THEN COUNT(1) ELSE 0 END CNT_1110
                      , CASE WHEN V1.SV_BIZ_DCLSF_CD = '1111' THEN COUNT(1) ELSE 0 END CNT_1111
                      , CASE WHEN V1.SV_BIZ_DCLSF_CD = '1121' THEN COUNT(1) ELSE 0 END CNT_1121
@@ -137,17 +145,19 @@
                      , CASE WHEN V1.SV_BIZ_DCLSF_CD = '3460' THEN COUNT(1) ELSE 0 END CNT_3460
                      , COUNT(1) CNTT
                   FROM (SELECT A1.CST_SV_ASN_NO /* 고객서비스배정번호 */
-                             , A1.PD_CD /* 상품코드 */
+                             , E1.PDCT_PD_CD AS PD_CD /* 상품코드 */
+                             , P1.PD_ABBR_NM /* 상품약어명 */
+                             , P1.SAP_MAT_CD /* SAP코드 */
                              , A1.SV_BIZ_DCLSF_CD /* 서비스업무세분류코드 */
-                             , B1.SITE_AW_PD_GRP_CD /* 현장수당상품그룹코드 */
-                             , (CASE WHEN TO_DATE(B1.WK_EXCN_DT, 'YYYYMMDD') - TO_DATE(E1.IST_DT, 'YYYYMMDD') <![CDATA[ <= ]]>  90 THEN '1'
+                             , P2.PD_PRP_VAL20 AS SVPD_ITEM_GR /* 상품군 */
+                             , (CASE WHEN TO_DATE(B1.WK_EXCN_DT, 'YYYYMMDD') - TO_DATE(E1.IST_DT, 'YYYYMMDD') <![CDATA[ <= ]]> 90 THEN '1'
                                      ELSE '2'
                                 END) AS REFURBISH_YN /* 리퍼여부 */
                           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A1 /* 고객서비스AS설치대상내역 */
                          INNER JOIN (SELECT E1.CST_SV_ASN_NO, E1.CNTR_NO, E1.CNTR_SN, E1.SV_BIZ_DCLSF_CD, E1.WK_PRGS_STAT_CD, E1.WK_EXCN_DT, E1.SITE_AW_PD_GRP_CD, M1.OG_ID
                                       FROM TB_SVPD_CST_SVAS_IST_ASN_IZ E1 /* 고객서비스AS설치배정내역 */
-                                      LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ M1 /* 월파트너내역 */
-                                        ON M1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                     INNER JOIN TB_OGBS_MM_PRTNR_IZ M1 /* 월파트너내역 */
+                                        ON M1.BASE_YM = SUBSTR(E1.WK_EXCN_DT, 1, 6)
                                        AND M1.OG_TP_CD = E1.WK_PRTNR_OG_TP_CD
                                        AND M1.PRTNR_NO = E1.WK_PRTNR_NO
                                      WHERE E1.DTA_DL_YN = 'N') B1
@@ -156,24 +166,16 @@
                             ON E1.CNTR_NO = A1.CNTR_NO
                            AND E1.CNTR_SN = A1.CNTR_SN
                            AND E1.DTA_DL_YN = 'N'
-                         INNER JOIN (SELECT V1.CST_SV_ASN_NO
-                                          , V1.CST_SV_EXCN_SN
-                                          , V1.CNTR_NO
-                                          , V1.CNTR_SN
-                                          , V1.PRTNR_NO
-                                          , V1.OG_TP_CD
-                                          , V1.VST_FSH_DT
-                                          , V1.VST_FSH_HH
-                                          , V1.REFRI_DV_CD
-                                          , V1.SV_PROCS_CN
-                                          , V1.BC_NO
-                                       FROM TB_SVPD_CST_SV_WK_RS_IZ V1
-                                      WHERE V1.CST_SV_EXCN_SN = (SELECT MAX(CST_SV_EXCN_SN)
-                                                                   FROM TB_SVPD_CST_SV_WK_RS_IZ
-                                                                  WHERE CST_SV_ASN_NO = V1.CST_SV_ASN_NO
-                                                                    AND DTA_DL_YN = 'N')
-                             ) W1 /* 고객서비스작업결과내역 */
+                         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ W1 /* 고객서비스작업결과내역 */
                             ON W1.CST_SV_ASN_NO = A1.CST_SV_ASN_NO
+                           AND W1.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+                            ON P1.PD_CD = E1.PDCT_PD_CD
+                           AND P1.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
+                            ON P2.PD_CD = P1.PD_CD
+                           AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+                           AND P2.DTA_DL_YN = 'N'
                          WHERE B1.WK_PRGS_STAT_CD = '20'
                        <if test="@MybatisUtils@isNotEmpty(ogId)">
                            AND B1.OG_ID = #{ogId} /* 서비스센터 */
@@ -187,14 +189,16 @@
                          UNION ALL
                         SELECT B1.CST_SV_ASN_NO /* 고객서비스배정번호 */
                              , E2.PDCT_PD_CD AS PD_CD /* 상품코드 */
+                             , P1.PD_ABBR_NM /* 상품약어명 */
+                             , P1.SAP_MAT_CD /* SAP코드 */
                              , B1.SV_BIZ_DCLSF_CD /* 서비스업무세분류코드 */
-                             , B1.SITE_AW_PD_GRP_CD /* 현장수당상품그룹코드 */
+                             , P2.PD_PRP_VAL20 AS SVPD_ITEM_GR /* 상품군 */
                              , '2' AS REFURBISH_YN /* 리퍼여부 */
                           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ O1 /* 고객서비스BS대상내역 */
                          INNER JOIN (SELECT E1.CST_SV_ASN_NO, E1.CNTR_NO, E1.CNTR_SN, E1.SV_BIZ_DCLSF_CD, E1.VST_PRGS_STAT_CD, E1.CNFM_PSIC_DV_CD, E1.WK_EXCN_DT, E1.SITE_AW_PD_GRP_CD, M1.OG_ID
                                       FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ E1 /* 고객서비스BS배정내역 */
-                                      LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ M1 /* 월파트너내역 */
-                                        ON M1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                     INNER JOIN TB_OGBS_MM_PRTNR_IZ M1 /* 월파트너내역 */
+                                        ON M1.BASE_YM = SUBSTR(E1.CNFM_PSIC_ASN_DT, 1, 6)
                                        AND M1.OG_TP_CD = E1.CNFM_PSIC_PRTNR_OG_TP_CD
                                        AND M1.PRTNR_NO = E1.CNFM_PSIC_PRTNR_NO
                                      WHERE E1.DTA_DL_YN = 'N') B1
@@ -203,26 +207,16 @@
                             ON E2.CNTR_NO = B1.CNTR_NO
                            AND E2.CNTR_SN = B1.CNTR_SN
                            AND E2.DTA_DL_YN = 'N'
-                         INNER JOIN (SELECT V1.CST_SV_ASN_NO
-                                          , V1.CST_SV_EXCN_SN
-                                          , V1.CNTR_NO
-                                          , V1.CNTR_SN
-                                          , V1.PRTNR_NO
-                                          , V1.OG_TP_CD
-                                          , V1.VST_FSH_DT
-                                          , V1.VST_FSH_HH
-                                          , V1.REFRI_DV_CD
-                                          , V1.SV_PROCS_CN
-                                          , V1.BC_NO
-                                       FROM TB_SVPD_CST_SV_WK_RS_IZ V1
-                                      WHERE V1.CST_SV_EXCN_SN = (SELECT MAX(CST_SV_EXCN_SN)
-                                                                   FROM TB_SVPD_CST_SV_WK_RS_IZ
-                                                                  WHERE CST_SV_ASN_NO = V1.CST_SV_ASN_NO
-                                                                    AND DTA_DL_YN = 'N')
-                             ) W1 /* 고객서비스작업결과내역 */
+                         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ W1 /* 고객서비스작업결과내역 */
                             ON W1.CST_SV_ASN_NO = B1.CST_SV_ASN_NO
-                           AND W1.CNTR_NO = B1.CNTR_NO
-                           AND W1.CNTR_SN = B1.CNTR_SN
+                           AND W1.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+                            ON P1.PD_CD = E2.PDCT_PD_CD
+                           AND P1.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
+                            ON P2.PD_CD = P1.PD_CD
+                           AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+                           AND P2.DTA_DL_YN = 'N'
                          WHERE B1.VST_PRGS_STAT_CD = '20'
                            AND B1.CNFM_PSIC_DV_CD = '2' /* 엔지니어 */
                            AND E2.BFSVC_SPP_STP_RSON_CD = '00'
@@ -238,13 +232,15 @@
                        </if>
                        ) V1
                    GROUP BY V1.PD_CD
+                       , V1.PD_ABBR_NM
+                       , V1.SAP_MAT_CD
                        , V1.CST_SV_ASN_NO
                        , V1.SV_BIZ_DCLSF_CD
-                       , V1.SITE_AW_PD_GRP_CD
+                       , V1.SVPD_ITEM_GR
                        , V1.REFURBISH_YN
                ) T1
-         GROUP BY T1.PD_CD, T1.SITE_AW_PD_GRP_CD
-         ORDER BY T1.PD_CD, T1.SITE_AW_PD_GRP_CD
+         GROUP BY T1.PD_CD, T1.PD_NM, T1.SAP_MAT_CD, T1.SVPD_ITEM_GR
+         ORDER BY T1.PD_CD, T1.PD_NM, T1.SAP_MAT_CD, T1.SVPD_ITEM_GR
     </select>
 
 </mapper>
