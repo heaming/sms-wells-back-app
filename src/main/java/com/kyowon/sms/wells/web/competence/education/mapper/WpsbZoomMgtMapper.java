@@ -23,6 +23,6 @@ public interface WpsbZoomMgtMapper {
 
     int removeAllZoom();
 
-    int deleteZoom();
+    int deleteZoom(String hgrSvEducMnalId);
 
 }

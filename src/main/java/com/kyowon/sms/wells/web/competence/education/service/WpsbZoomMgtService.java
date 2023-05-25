@@ -31,19 +31,28 @@ public class WpsbZoomMgtService {
     /**
      * 미팅기준관리등록
      *
-     * @param dtos
+     * @param dto
      * @return processCount
      */
     @Transactional
-    public int saveAllZoom(List<WpsbZoomMgtDto.SaveReq> dtos) {
+    public int saveAllZoom(WpsbZoomMgtDto.EditReq dto) {
         int processCount = 0;
+        int delCnt = mapper.deleteZoom(dto.hgrSvEducMnalId());
+        for (WpsbZoomMgtDto.SaveReq zoomDto : dto.treeList()) {
+            boolean inSave = false;
+            if (dto.hgrSvEducMnalId().equals("WELS0000000000")) {
+                inSave = true;
+            } else {
+                if (zoomDto.hgrSvEducMnalId().contains(dto.hgrSvEducMnalId())) {
+                    inSave = true;
+                }
+            }
+            if (inSave) {
+                WpsbZoomMgtDvo dvo = converter.mapSaveReq(zoomDto);
+                dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
+                processCount = mapper.insertZoom(dvo);
+            }
 
-        int delCnt = mapper.deleteZoom();
-
-        for (WpsbZoomMgtDto.SaveReq dto : dtos) {
-            WpsbZoomMgtDvo dvo = converter.mapSaveReq(dto);
-            dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
-            processCount = mapper.insertZoom(dvo);
         }
         return processCount;
     }

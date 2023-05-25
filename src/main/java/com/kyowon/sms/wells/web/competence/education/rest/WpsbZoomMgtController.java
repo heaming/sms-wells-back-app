@@ -6,7 +6,6 @@ import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.S
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -60,11 +59,10 @@ public class WpsbZoomMgtController {
     public SaveResponse saveAllZoom(
         @RequestBody
         @Valid
-        @NotEmpty
-        List<WpsbZoomMgtDto.SaveReq> dtos
+        WpsbZoomMgtDto.EditReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveAllZoom(dtos))
+            .processCount(service.saveAllZoom(dto))
             .build();
     }
 
