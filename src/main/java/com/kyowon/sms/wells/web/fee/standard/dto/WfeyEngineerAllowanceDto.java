@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.fee.standard.dto;
 
 import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 public class WfeyEngineerAllowanceDto {
     @ApiModel(value = "WfeyEngineerAllowanceDto-SearchAllowanceUnitPriceReq")
@@ -45,8 +45,9 @@ public class WfeyEngineerAllowanceDto {
     public record CreateAllowanceUnitPriceReq(
             @NotBlank String svTpCd,              /* 서비스유형코드  */
             @NotBlank String siteAwAtcCd,         /* 현장수당항목코드 */
-            String siteAwGrpCd,         /* 현장수당그룹코드 */
+            @NotBlank String siteAwGrpCd,         /* 현장수당그룹코드 */
             @NotBlank String pdGrpCd,             /* 상품그룹코드 */
+            @NotBlank String pdGrpDtlCd,             /* 상품그룹상세코드 */
             @NotBlank String rglvlDvCd,           /* 급지구분코드 */
             @NotBlank String apyStrtdt,           /* 적용시작일자 */
             @NotBlank String apyEnddt,            /* 적용종료일자 */
@@ -71,11 +72,12 @@ public class WfeyEngineerAllowanceDto {
     public record EditAllowanceUnitPriceReq(
             @NotBlank String svTpCd,              /* 서비스유형코드  */
             @NotBlank String siteAwAtcCd,         /* 현장수당항목코드 */
-            String siteAwGrpCd,         /* 현장수당그룹코드 */
+            @NotBlank String siteAwGrpCd,         /* 현장수당그룹코드 */
             @NotBlank String pdGrpCd,             /* 상품그룹코드 */
+            @NotBlank String pdGrpDtlCd,             /* 상품그룹상세코드 */
             @NotBlank String rglvlDvCd,           /* 급지구분코드 */
-            String apyStrtdt,           /* 적용시작일자 */
-            String apyEnddt,            /* 적용종료일자 */
+            @NotBlank String apyStrtdt,           /* 적용시작일자 */
+            @NotBlank String apyEnddt,            /* 적용종료일자 */
             Integer fuleyAwAmt,          /* 정직원수당금액 */
             Integer rolLyr1TopmrAwAmt,   /* 직무1급수석수당금액 */
             Integer rolLyr1UplrAwAmt,    /* 직무1급상급수당금액 */
@@ -88,7 +90,7 @@ public class WfeyEngineerAllowanceDto {
             Integer crwkAwAmt,           /* 계약직수당금액 */
             Integer indvEntrpAwAmt,      /* 개인사업자수당금액 */
             Integer mngerWkUprc,         /* 매니저작업단가 */
-            @NotBlank Integer dsbBaseSn,           /* 지급기준일련번호 */
+            @NotNull Integer dsbBaseSn,           /* 지급기준일련번호 */
             String rmkCn,                /* 비고내용 */
             String useYn                 /* 사용여부 */
     ) {
@@ -100,7 +102,7 @@ public class WfeyEngineerAllowanceDto {
             @NotBlank String siteAwAtcCd,         /* 현장수당항목코드 */
             @NotBlank String pdGrpCd,             /* 상품그룹코드 */
             @NotBlank String rglvlDvCd,           /* 급지구분코드 */
-            @NotBlank Integer dsbBaseSn           /* 지급기준일련번호 */
+            @NotNull Integer dsbBaseSn           /* 지급기준일련번호 */
     ) {
     }
 }
