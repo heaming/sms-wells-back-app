@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto;
+import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto.SearchDetailRes;
 import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.b2b.dvo.WcteB2bBznsActiDvo;
 
@@ -47,4 +48,17 @@ public interface WcteB2bBznsActiMapper {
     int insertSsopOpptChHist(String opptId);
 
     int deleteSsopOpptBas(String opptId);
+
+    List<SearchDetailRes> selectB2bBoMngtDtlIzs(String opptId);
+
+    int insertSsopOpptDtl(@Param("item")
+    WcteB2bBznsActiDvo dvo);
+
+    int updateSsopOpptDtl(WcteB2bBznsActiDvo dvo);
+
+    int updateSsopOpptDchHist(String opptId, String opptSn);
+
+    int insertSsopOpptDchHist(String opptId, String opptSn);
+
+    int deleteSsopOpptDtl(String opptId, String opptSn);
 }

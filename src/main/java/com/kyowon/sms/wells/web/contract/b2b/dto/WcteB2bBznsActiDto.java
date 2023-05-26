@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.b2b.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
@@ -131,4 +133,30 @@ public class WcteB2bBznsActiDto {
             mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.enc(mexnoEncr) : mexnoEncr; // 암호화
         }
     }
+    @ApiModel("WcteB2bBznsActiDto-SearchDetailRes")
+    public record SearchDetailRes(
+        String opptId,
+        String opptSn,
+        String pdClsfNm,
+        String pdNm,
+        String basePdCd,
+        String pdQty,
+        String fnlAmt,
+        String unuitmCn
+
+    ) {}
+    @ApiModel("WcteB2bBznsActiDto-SaveDetailReq")
+    public record SaveDetailReq(
+        @NotBlank
+        String rowState,
+        @NotBlank
+        String opptId,
+        String opptSn,
+        String pdClsfNm,
+        String pdNm,
+        String basePdCd,
+        String pdQty,
+        String fnlAmt,
+        String unuitmCn
+    ) {}
 }

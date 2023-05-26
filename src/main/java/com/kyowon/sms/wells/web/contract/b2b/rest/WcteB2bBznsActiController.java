@@ -75,4 +75,51 @@ public class WcteB2bBznsActiController {
     ) {
         return SaveResponse.builder().processCount(service.removeBusinessToBusinessDls(dtos)).build();
     }
+
+    @ApiOperation(value = "B2B BO관리 상세내역(팝업) 조회", notes = "B2B BO관리 상세내역(팝업) 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "opptId", value = "기회ID", paramType = "query"),
+    })
+    @GetMapping("/business-opportunities/details")
+    public List<WcteB2bBznsActiDto.SearchDetailRes> getB2bBoMngtDtlIzs(
+        @RequestParam
+        @Valid
+        @NotEmpty
+        String opptId
+    ) {
+        return service.getB2bBoMngtDtlIzs(opptId);
+    }
+
+    @ApiOperation(value = "B2B BO관리 상세내역(팝업) 저장", notes = "추가 / 수정한 B2B BO관리를 저장한다.")
+    @PostMapping("/business-opportunities/details")
+    public SaveResponse saveB2bBoMngtDtlSaves(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<WcteB2bBznsActiDto.SaveDetailReq> dtos
+    ) {
+        return SaveResponse.builder().processCount(service.saveB2bBoMngtDtlSaves(dtos)).build();
+    }
+
+    @ApiOperation(value = "B2B BO관리 상세내역(팝업) 삭제", notes = "B2B BO관리 삭제")
+    @DeleteMapping("/business-opportunities/details")
+    public SaveResponse removeB2bBoMngtDtlIzDls(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<WcteB2bBznsActiDto.SaveDetailReq> dtos
+    ) {
+        return SaveResponse.builder().processCount(service.removeB2bBoMngtDtlIzDls(dtos)).build();
+    }
+
+    @ApiOperation(value = "B2B BO관리 상세내역(팝업) 삭제", notes = "B2B BO관리 삭제")
+    @DeleteMapping("/business-opportunities/details/excel-download")
+    public SaveResponse removeB2bBoMngtDtlIzDlsExcel(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<WcteB2bBznsActiDto.SaveDetailReq> dtos
+    ) {
+        return SaveResponse.builder().processCount(service.removeB2bBoMngtDtlIzDls(dtos)).build();
+    }
 }

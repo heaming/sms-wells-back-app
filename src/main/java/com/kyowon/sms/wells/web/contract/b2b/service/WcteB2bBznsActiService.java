@@ -7,12 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.b2b.converter.WcteB2bBznsActiConverter;
 import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto;
+import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto.SaveDetailReq;
 import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto.SearchRes;
 import com.kyowon.sms.wells.web.contract.b2b.dvo.WcteB2bBznsActiDvo;
 import com.kyowon.sms.wells.web.contract.b2b.mapper.WcteB2bBznsActiMapper;
-import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.exception.BizException;
 
@@ -37,7 +37,6 @@ public class WcteB2bBznsActiService {
         int res = 0;
         for (SaveReq dto : dtos) {
             WcteB2bBznsActiDvo dvo = converter.mapSaveReqToWcteB2bBznsActiDvo(dto);
-            String encTno = DbEncUtil.enc(dto.exnoEncr());
 
             switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
@@ -70,11 +69,52 @@ public class WcteB2bBznsActiService {
         int result = 0;
         for (SaveReq dto : dtos) {
             mapper.deleteSsopLeadCstBas(dto.leadCstId());
+            mapper.updateSsopLeadCstChHist(dto.leadCstId());
+            mapper.insertSsopLeadCstChHist(dto.leadCstId());
             mapper.deleteSsopLeadCstRlpplDtl(dto.leadCstRlpplId());
+            mapper.updateSsopLeadCstRlpplChHist(dto.leadCstId());
+            mapper.insertSsopLeadCstRlpplChHist(dto.leadCstId());
             result += mapper.deleteSsopOpptBas(dto.opptId());
-
+            mapper.updateSsopOpptChHist(dto.leadCstId());
+            mapper.insertSsopOpptChHist(dto.leadCstId());
         }
         return result;
     }
 
+    public List<WcteB2bBznsActiDto.SearchDetailRes> getB2bBoMngtDtlIzs(String opptId) {
+        return mapper.selectB2bBoMngtDtlIzs(opptId);
+    }
+
+    @Transactional
+    public int saveB2bBoMngtDtlSaves(List<SaveDetailReq> dtos) {
+        int res = 0;
+        for (SaveDetailReq dto : dtos) {
+            WcteB2bBznsActiDvo dvo = converter.mapSaveDetailReqToWcteB2bBznsActiDvo(dto);
+
+            switch (dvo.getRowState()) {
+                case CommConst.ROW_STATE_CREATED -> {
+                    mapper.insertSsopOpptDtl(dvo);
+                    res += mapper.insertSsopOpptDchHist(dvo.getOpptId(), dvo.getOpptSn());
+                }
+                case CommConst.ROW_STATE_UPDATED -> {
+                    mapper.updateSsopOpptDtl(dvo);
+                    mapper.updateSsopOpptDchHist(dvo.getOpptId(), dvo.getOpptSn());
+                    res += mapper.insertSsopOpptDchHist(dvo.getOpptId(), dvo.getOpptSn());
+                }
+                default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
+            }
+        }
+        return res;
+    }
+
+    @Transactional
+    public int removeB2bBoMngtDtlIzDls(List<SaveDetailReq> dtos) {
+        int result = 0;
+        for (SaveDetailReq dto : dtos) {
+            result += mapper.deleteSsopOpptDtl(dto.opptId(), dto.opptSn());
+            mapper.updateSsopOpptDchHist(dto.opptId(), dto.opptSn());
+            mapper.insertSsopOpptDchHist(dto.opptId(), dto.opptSn());
+        }
+        return result;
+    }
 }
