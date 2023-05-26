@@ -410,4 +410,14 @@ public class WwdbRefundApplicationDto {
         RefundBasic basic,
         List<RefundDetail> refundDetail // 추가 버튼 누르면 추가로 생성되는 부분
     ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationConnectHistoryRes")
+    public record SearchRefundApplicationConnectHistoryRes(
+        String cttRcpDtm, // 컨택일시
+        String cttChnlTpCd, // 상담경로
+        String prtnrKnm, // 상담자
+        String cttPsicId, // 번호
+        String cttMoCn // 상담내용
+
+    ) {}
 }
