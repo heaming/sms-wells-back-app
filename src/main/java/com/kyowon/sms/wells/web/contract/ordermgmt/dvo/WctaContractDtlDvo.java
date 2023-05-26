@@ -89,8 +89,9 @@ public class WctaContractDtlDvo {
     private List<WctaFgptRcpIzDvo> fgptRcpIzs;
     private List<WctaContractPrcCmptIzDvo> prcCmptIzs;
     private List<WctaContractStlmRelDvo> stlmRels;
-    private List<WctaContractWellsDtlDvo> wellsDtls;
-    private WctaContractAdrRelDvo adrRels;
+    private WctaContractWellsDtlDvo wellsDtl;
+    private WctaContractAdrpcBasDvo adrpc;
+    private WctaContractAdrRelDvo adrRel;
 
     /*STEP2*/
     private String mclsfVal;
@@ -106,6 +107,7 @@ public class WctaContractDtlDvo {
     private Integer frisuAsPtrmN;
     private String sellInflwChnlDtlCd;
     private boolean isExistAlncPds; /* 제휴상품 콤보 노출여부 */
+    private String adrType; /* 주소유형(1: 기본, 2: 새로운주소) */
 
     private Long ackmtAmt;
     private BigDecimal ackmtRt;

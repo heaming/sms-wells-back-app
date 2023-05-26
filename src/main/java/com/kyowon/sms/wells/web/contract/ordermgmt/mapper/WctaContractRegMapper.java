@@ -43,7 +43,7 @@ public interface WctaContractRegMapper {
 
     WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn);
 
-    WctaContractAdrpcBasDvo selectContractAdrpcBas(String cntrNo);
+    List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo);
 
     WctaContractAdrRelDvo selectContractAdrRel(String cntrNo, int cntrSn);
 }
