@@ -60,7 +60,10 @@ public class WsncVisitPeriodRecrtService {
                 //모종
                 case "11"
                     -> wsncBsPeriodChartService.processBsPeriodChartBs05(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
-                //삼성전자 에어컨, 멤버십, 기타
+                //삼성전자 에어컨
+                case "삼성전자 에어컨"
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs04(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
+                //멤버십, 기타
                 default
                     -> wsncBsPeriodChartService.processBsPeriodChartBs03(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), true);
             }
