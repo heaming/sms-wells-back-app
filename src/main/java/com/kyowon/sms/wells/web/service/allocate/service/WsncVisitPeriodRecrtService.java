@@ -9,7 +9,6 @@ import com.kyowon.sms.wells.web.service.allocate.converter.WsncVisitPeriodRecrtC
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitPeriodRecrtDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncVisitPeriodRecrtDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncVisitPeriodRecrtMapper;
-import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
@@ -25,8 +24,6 @@ public class WsncVisitPeriodRecrtService {
     private final WsncVisitPeriodRecrtConverter converter;
 
     private final WsncBsPeriodChartService wsncBsPeriodChartService;
-
-    private final MessageResourceService messageService;
 
     public int saveVisitPeriodRecrt(Map<String, Object> param) throws Exception {
         WsncVisitPeriodRecrtDvo dvo = new WsncVisitPeriodRecrtDvo();
@@ -68,7 +65,7 @@ public class WsncVisitPeriodRecrtService {
                     -> wsncBsPeriodChartService.processBsPeriodChartBs03(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), true);
             }
         } catch (Exception e) {
-            throw new BizException(messageService.getMessage("MSG_TXT_PERIOD_CHART_ERROR"));    //주기표 생성 오류가 발생하였습니다.
+            throw new BizException("MSG_TXT_PERIOD_CHART_ERROR");    //주기표 생성 오류가 발생하였습니다.
         }
 
         return 1;
