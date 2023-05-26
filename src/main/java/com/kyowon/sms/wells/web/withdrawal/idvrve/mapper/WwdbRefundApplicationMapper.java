@@ -29,6 +29,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.S
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationBasicDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDetailDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationExcelUploadDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationInfoDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -134,5 +135,13 @@ public interface WwdbRefundApplicationMapper {
     List<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
         String cntrNo
     );
+
+    void insertRefundApplicationDetail(WwdbRefundApplicationExcelUploadDvo refundApplication);
+
+    void insertRefundApplicationDetailHistory(WwdbRefundApplicationExcelUploadDvo refundApplication);
+
+    void insertRefundApplication(WwdbRefundApplicationExcelUploadDvo refundApplication);
+
+    void insertRefundApplicationHistory(WwdbRefundApplicationExcelUploadDvo refundApplication);
 
 }
