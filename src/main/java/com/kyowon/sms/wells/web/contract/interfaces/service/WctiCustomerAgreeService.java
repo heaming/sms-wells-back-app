@@ -47,30 +47,31 @@ public class WctiCustomerAgreeService {
     * @return      String
     */
     @Transactional
-    public String saveCustomerAgrees(List<SaveReq> dtos) {
-        for (SaveReq dto : dtos) {
-            WctiCustomerAgreeDvo dvo = converter.mapSaveReqToWctiCustomerAgreeDvo(dto);
-            List<String> cstAgIds = mapper.selectCstAgIdBas(dvo);
+    public String saveCustomerAgrees(SaveReq dto) {
+
+        WctiCustomerAgreeDvo dvo = converter.mapSaveReqToWctiCustomerAgreeDvo(dto);
+        List<String> cstAgIds = mapper.selectCstAgIdBas(dvo);
+        if (cstAgIds.size() > 0) {
+            for (String cstAgId : cstAgIds) {
+                dvo.setCstAgId(cstAgId);
+                mapper.updateCubsCstAgIz(dvo);
+                mapper.updateCubsCstAgIzDtl(dvo);
+            }
+            return "Y";
+        } else {
+            cstAgIds = mapper.selectCstAgId(dvo);
             if (cstAgIds.size() > 0) {
                 for (String cstAgId : cstAgIds) {
                     dvo.setCstAgId(cstAgId);
                     mapper.updateCubsCstAgIz(dvo);
-                    mapper.updateCubsCstAgIzDtl(dvo);
-                }
-            } else {
-                cstAgIds = mapper.selectCstAgId(dvo);
-                if (cstAgIds.size() > 0) {
-                    for (String cstAgId : cstAgIds) {
-                        dvo.setCstAgId(cstAgId);
-                        mapper.updateCubsCstAgIz(dvo);
-                        mapper.insertCubsCstAgIzDtl(dvo);
-                    }
-                } else {
-                    mapper.insertCubsCstAgIz(dvo);
                     mapper.insertCubsCstAgIzDtl(dvo);
                 }
+            } else {
+                mapper.insertCubsCstAgIz(dvo);
+                mapper.insertCubsCstAgIzDtl(dvo);
+
             }
+            return "Y";
         }
-        return "Y";
     }
 }
