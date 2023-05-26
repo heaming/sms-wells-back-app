@@ -47,4 +47,10 @@ public class WcteB2bBznsActiDvo {
     private String biddBzsNm;
     private String unuitmCn;
     private String fnlMdfcDt;
+    private String opptSn;
+    private String pdClsfNm;
+    private String pdNm;
+    private String basePdCd;
+    private String pdQty;
+    private String fnlAmt;
 }

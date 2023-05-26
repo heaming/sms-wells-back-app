@@ -182,10 +182,10 @@
            AND E1.BZRNO = #{bzrno}
         </if>
         <if test='@MybatisUtils@isNotEmpty(leadCstNm)'>
-           AND E1.LEAD_CST_NM = #{leadCstNm}
+           AND E1.LEAD_CST_NM LIKE '%'||#{leadCstNm}||'%'
         </if>
         <if test='@MybatisUtils@isNotEmpty(prjNm)'>
-           AND A1.PRJ_NM = #{prjNm}
+           AND A1.PRJ_NM LIKE '%'||#{prjNm}||'%'
         </if>
     </select>
     <select id="selectKeyMan" resultType="com.kyowon.sms.wells.web.contract.b2b.dvo.WcteB2bBznsActiDvo">
@@ -609,6 +609,173 @@
             <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <select id="selectB2bBoMngtDtlIzs" resultType="com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto$SearchDetailRes">
+        SELECT G2.OPPT_ID /* 기회ID [고유번호] */
+             , G2.OPPT_SN /* 기회일련번호 */
+             , (SELECT MAX(I4.PD_CLSF_NM) /* 상품분류명 */
+                  FROM TB_PDBS_PD_CLSF_BAS I4/* 상품분류기본 */
+                 WHERE I4.PD_CLSF_ID = H2.PD_MCLSF_ID /* 상품분류기본.상품분류ID = 상품기본.상품중분류ID */
+                   AND I4.DTA_DL_YN = 'N'
+                   AND I4.TEMP_SAVE_YN = 'N'
+               ) AS PD_CLSF_NM /* 상품분류명 [상품분류] */
+             , H2.PD_NM /* 상품명 [상품명] */
+             , G2.BASE_PD_CD /* 기준상품코드 [상품코드] */
+             , G2.PD_QTY /* 상품수량 [수량] */
+             , G2.FNL_AMT /* 최종금액 [입찰가격] */
+             , G2.UNUITM_CN /* [특이사항] */
+          FROM TB_SSOP_OPPT_DTL G2 /* 기회상세 */
+         INNER JOIN TB_PDBS_PD_BAS H2 /* 상품기본 */
+            ON H2.PD_CD = G2.BASE_PD_CD /* 상품기본.상품코드 = 기회상세.기준상품코드 */
+           AND H2.DTA_DL_YN = 'N'
+           AND H2.TEMP_SAVE_YN = 'N' /* 임시저장여부 = 'N' */
+           AND G2.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND OPPT_ID = #{opptId}
+    </select>
+    <insert id="insertSsopOpptDtl">
+        <selectKey keyProperty="item.opptSn" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(OPPT_SN)),0) +1,15,'0') FROM TB_SSOP_OPPT_DTL WHERE OPPT_ID = #{item.opptId}
+        </selectKey>
+        INSERT INTO TB_SSOP_OPPT_DTL (  /* 기회상세 */
+              OPPT_ID           /* 기회ID */
+            , OPPT_SN           /* 기회일련번호 */
+            , BASE_PD_CD        /* 기준상품코드 */
+            , PD_QTY            /* 상품수량 */
+            , FNL_AMT           /* 최종금액 */
+            , UNUITM_CN         /* 특이사항내용 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.opptId}
+            , #{item.opptSn}
+            , #{item.basePdCd}
+            , #{item.pdQty}
+            , #{item.fnlAmt}
+            , #{item.unuitmCn}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateSsopOpptDtl">
+        UPDATE TB_SSOP_OPPT_DTL /* 기회상세 */
+           SET BASE_PD_CD        = #{basePdCd}          /* 기준상품코드 */
+             , PD_QTY            = #{pdQty}             /* 상품수량 */
+             , FNL_AMT           = #{fnlAmt}            /* 최종금액 */
+             , UNUITM_CN         = #{unuitmCn}          /* 특이사항내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID           = #{opptId}            /* 기회ID */
+           AND OPPT_SN           = #{opptSn}            /* 기회일련번호 */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateSsopOpptDchHist">
+        UPDATE TB_SSOP_OPPT_DCH_HIST /* 기회상세변경이력 */
+           SET HIST_END_DTM       = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')         /* 이력종료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND OPPT_SN            = #{opptSn}             /* 기회일련번호 */
+           AND HIST_END_DTM      = '99991231235959'        /* 이력종료일시 */
+    </update>
+    <insert id="insertSsopOpptDchHist">
+        INSERT INTO TB_SSOP_OPPT_DCH_HIST (  /* 기회상세변경이력 */
+              OPPT_ID           /* 기회ID */
+            , HIST_STRT_DTM     /* 이력시작일시 */
+            , OPPT_SN           /* 기회일련번호 */
+            , HIST_END_DTM      /* 이력종료일시 */
+            , BASE_PD_CD        /* 기준상품코드 */
+            , HGR_PD_CD         /* 상위상품코드 */
+            , PD_QTY            /* 상품수량 */
+            , STPL_PTRM_UNIT_CD /* 약정기간단위코드 */
+            , STPL_PTRM         /* 약정기간 */
+            , ISTM_MCN          /* 할부개월수 */
+            , CNTR_PD_STRTDT    /* 계약상품시작일자 */
+            , CNTR_PD_ENDDT     /* 계약상품종료일자 */
+            , SELL_DSC_DV_CD    /* 판매할인구분코드 */
+            , SELL_DSCR_CD      /* 판매할인율코드 */
+            , SELL_DSC_CTR_AMT  /* 판매할인조정금액 */
+            , SELL_DSC_TP_CD    /* 판매할인유형코드 */
+            , SV_PTRM_UNIT_CD   /* 서비스기간단위코드 */
+            , SV_PRD            /* 서비스주기 */
+            , BLG_CRP_CD        /* 소속법인코드 */
+            , RVE_CRP_CD        /* 수납법인코드 */
+            , PD_GD_CD          /* 상품등급코드 */
+            , PD_HCLSF_ID       /* 상품대분류ID */
+            , PD_MCLSF_ID       /* 상품중분류ID */
+            , PD_LCLSF_ID       /* 상품소분류ID */
+            , PD_DCLSF_ID       /* 상품세분류ID */
+            , STLM_TP_CD        /* 결제유형코드 */
+            , CRNCY_DV_CD       /* 통화구분코드 */
+            , APY_EXCR          /* 적용환율 */
+            , FNL_AMT           /* 최종금액 */
+            , SELL_AMT          /* 판매금액 */
+            , VAT               /* 부가가치세 */
+            , DSC_AMT           /* 할인금액 */
+            , UNUITM_CN         /* 특이사항내용 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            , FST_RGST_DTM      /* 최초등록일시 */
+            , FST_RGST_USR_ID   /* 최초등록사용자ID */
+            , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+            , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+            , FNL_MDFC_DTM      /* 최종수정일시 */
+            , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+            , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+            , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */)
+        SELECT OPPT_ID           /* 기회ID */
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')     /* 이력시작일시 */
+             , OPPT_SN           /* 기회일련번호 */
+             , '99991231235959'      /* 이력종료일시 */
+             , BASE_PD_CD        /* 기준상품코드 */
+             , HGR_PD_CD         /* 상위상품코드 */
+             , PD_QTY            /* 상품수량 */
+             , STPL_PTRM_UNIT_CD /* 약정기간단위코드 */
+             , STPL_PTRM         /* 약정기간 */
+             , ISTM_MCN          /* 할부개월수 */
+             , CNTR_PD_STRTDT    /* 계약상품시작일자 */
+             , CNTR_PD_ENDDT     /* 계약상품종료일자 */
+             , SELL_DSC_DV_CD    /* 판매할인구분코드 */
+             , SELL_DSCR_CD      /* 판매할인율코드 */
+             , SELL_DSC_CTR_AMT  /* 판매할인조정금액 */
+             , SELL_DSC_TP_CD    /* 판매할인유형코드 */
+             , SV_PTRM_UNIT_CD   /* 서비스기간단위코드 */
+             , SV_PRD            /* 서비스주기 */
+             , BLG_CRP_CD        /* 소속법인코드 */
+             , RVE_CRP_CD        /* 수납법인코드 */
+             , PD_GD_CD          /* 상품등급코드 */
+             , PD_HCLSF_ID       /* 상품대분류ID */
+             , PD_MCLSF_ID       /* 상품중분류ID */
+             , PD_LCLSF_ID       /* 상품소분류ID */
+             , PD_DCLSF_ID       /* 상품세분류ID */
+             , STLM_TP_CD        /* 결제유형코드 */
+             , CRNCY_DV_CD       /* 통화구분코드 */
+             , APY_EXCR          /* 적용환율 */
+             , FNL_AMT           /* 최종금액 */
+             , SELL_AMT          /* 판매금액 */
+             , VAT               /* 부가가치세 */
+             , DSC_AMT           /* 할인금액 */
+             , UNUITM_CN         /* 특이사항내용 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             , FST_RGST_DTM      /* 최초등록일시 */
+             , FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , FNL_MDFC_DTM      /* 최종수정일시 */
+             , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+          FROM TB_SSOP_OPPT_DTL /* 기회상세 */
+         WHERE 1 = 1
+           AND OPPT_ID           = #{opptId}            /* 기회ID */
+           AND OPPT_SN           = #{opptSn}            /* 기회일련번호 */
+    </insert>
+    <update id="deleteSsopOpptDtl">
+        UPDATE TB_SSOP_OPPT_DTL /* 기회상세 */
+           SET DTA_DL_YN             = 'Y'              /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND OPPT_SN            = #{opptSn}             /* 기회일련번호 */
            AND DTA_DL_YN = 'N'
     </update>
 </mapper>
