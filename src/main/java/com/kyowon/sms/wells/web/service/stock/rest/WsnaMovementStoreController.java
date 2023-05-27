@@ -7,10 +7,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaMovementStoreService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -119,9 +116,9 @@ public class WsnaMovementStoreController {
     @ApiOperation(value = "이관입고등록 confirm", notes = "품목입고내역,품목출고내역,고객서비스품목재고내역 data를 update 한다.")
     @PutMapping("/registration")
     public int saveStrMovementConfrim(
-        MovementStrSaveReq dto
+        @RequestBody List<MovementStrSaveReq> list
     ) {
-        return service.saveStrMovementConfrim(dto);
+        return service.saveStrMovementConfrim(list);
     }
 
     @ApiOperation(value = "이동입고 등록 엑셀 다운로드", notes = "조회조건에 해당하는 이동입고 등록을 엑셀다운로드 한다.")

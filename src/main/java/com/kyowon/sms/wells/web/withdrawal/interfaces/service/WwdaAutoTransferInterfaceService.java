@@ -15,13 +15,13 @@ import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaBundleWithdrawalMgtDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaIntegrationBillingIzDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.mapper.ZwdaBundleWithdrawalMgtMapper;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
-import com.kyowon.sms.wells.web.withdrawal.common.dvo.WwdaAutoTransferRealTimeAccountCheckDvo;
-import com.kyowon.sms.wells.web.withdrawal.common.service.WwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransferConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferCardEffectivenessCheckInterfaceDvo;
@@ -50,7 +50,7 @@ public class WwdaAutoTransferInterfaceService {
     private final MessageResourceService messageResourceService;
     private final KakaoMessageService kakaoMessageService;
     private final WwdaAutoTransferConverter converter;
-    private final WwdaAutoTransferRealTimeAccountService realTimeAccountService;
+    private final ZwdaAutoTransferRealTimeAccountService realTimeAccountService;
 
     /**
      * 자동이체 출금내역 조회
@@ -558,33 +558,35 @@ public class WwdaAutoTransferInterfaceService {
         WwdaAutoTransferRealNameCertificationInterfaceDvo result = new WwdaAutoTransferRealNameCertificationInterfaceDvo();
 
         // 1. 계좌 유효성 검사 호출을 위한 파라미터 설정
-        String cstNo = "9999999999"; /*임시고객번호*/
+        String cntrNo = "W20220042279"; /*임시계약번호*/
+        String cntrSn = "1"; /*임시계약일련번호*/
         String bnkCd = dto.bnkCd(); /*은행코드*/
         String acNo = dto.acno(); /*계좌번호*/
         String copnDvCd = "1"; /*법인격구분코드*/
         String copnDvDrmVal = dto.bryyMmdd(); /*법인격구분코드식별값*/
         String achldrNm = dto.cntrtNm(); /*예금주명*/
         String systemDvCd = "1"; /*시스템구분코드 1 : EDU, 2: WELLS*/
-        String picId = "9999999999"; /*담장자ID*/
+        String psicId = "9999999999"; /*담장자ID*/
         String deptId = ""; /*부서ID*/
 
         Map<String, Object> reqParam = new HashMap<String, Object>();
-        reqParam.put("cstNo", cstNo);
+        reqParam.put("cntrNo", cntrNo);
+        reqParam.put("cntrSn", cntrSn);
         reqParam.put("bnkCd", bnkCd);
         reqParam.put("acNo", acNo);
         reqParam.put("copnDvCd", copnDvCd);
         reqParam.put("copnDvDrmVal", copnDvDrmVal);
         reqParam.put("achldrNm", achldrNm);
         reqParam.put("systemDvCd", systemDvCd);
-        reqParam.put("picId", picId);
+        reqParam.put("psicId", psicId);
         reqParam.put("deptId", deptId);
 
         // 2. 은행계좌 유효성검사 서비스 호출(Z-WD-S-0027)
-        WwdaAutoTransferRealTimeAccountCheckDvo resultDvo = realTimeAccountService.saveAftnAcEftnChecks(reqParam);
+        ZwdaAutoTransferRealTimeAccountCheckDvo resultDvo = realTimeAccountService.saveAftnAcEftnChecks(reqParam);
 
         // 청구생성코드가 1이 아닐때 에러 발생
         // (1 : 정상처리, 2 : 오류, 3 : 자료없음)
-        BizAssert.isTrue(resultDvo.getBilCrtStatCd() == "1", resultDvo.getErrCn());
+        BizAssert.isTrue("1".equals(resultDvo.getBilCrtStatCd()), resultDvo.getErrCn());
 
         // 3. 수신결과 및 리턴 설정
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅

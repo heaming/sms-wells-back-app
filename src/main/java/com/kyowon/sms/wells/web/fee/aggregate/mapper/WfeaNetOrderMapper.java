@@ -13,6 +13,10 @@ public interface WfeaNetOrderMapper {
         SearchReq dto
     );
 
+    List<SearchFeeRes> selectNetOrderFees(
+        SearchReq dto
+    );
+
     int deleteNetOrders(
         WfeaNetOrderDvo dvo
     );

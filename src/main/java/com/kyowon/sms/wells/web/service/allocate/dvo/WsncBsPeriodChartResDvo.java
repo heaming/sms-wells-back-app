@@ -26,4 +26,5 @@ public class WsncBsPeriodChartResDvo {
     String partCd;
     int qty;
     String vstGb;
+    String cstmwPdctYn;
 }

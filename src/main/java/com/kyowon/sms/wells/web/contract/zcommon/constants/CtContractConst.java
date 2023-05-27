@@ -35,6 +35,9 @@ public class CtContractConst {
     public static final String CNTR_PRGS_STAT_CD_CNFM = "60";
     public static final String CNTR_PRGS_STAT_CD_DEL = "99";
 
+    public static final String SELL_TP_CD_SPAY = "1";
+    public static final String SELL_TP_CD_RNTL = "2";
+
     public enum PeriodType {
         RCT_DT, /*접수일자*/
         SL_RCOG_DT, /*매출일자*/

@@ -1,8 +1,11 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncVisitPeriodRecrtConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitPeriodRecrtDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncVisitPeriodRecrtDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncVisitPeriodRecrtMapper;
@@ -18,8 +21,24 @@ public class WsncVisitPeriodRecrtService {
 
     private final WsncVisitPeriodRecrtMapper mapper;
 
+    private final WsncVisitPeriodRecrtConverter converter;
+
+    private final WsncBsPeriodChartService wsncBsPeriodChartService;
+
+    public int saveVisitPeriodRecrt(Map<String, Object> param) throws Exception {
+        WsncVisitPeriodRecrtDvo dvo = new WsncVisitPeriodRecrtDvo();
+        dvo.setCntrNo(valueOfEmptyStr(param.get("PARAM1")));
+        dvo.setCntrSn(valueOfEmptyStr(param.get("PARAM2")));
+        return saveVisitPeriodRecrt(dvo);
+    }
+
     @Transactional
     public int saveVisitPeriodRecrt(WsncVisitPeriodRecrtDto.SaveReq dto) throws Exception {
+        return saveVisitPeriodRecrt(converter.mapPeriodRecrtSaveReqToDvo(dto));
+    }
+
+    @Transactional
+    public int saveVisitPeriodRecrt(WsncVisitPeriodRecrtDvo req) throws Exception {
         /*
          *  1. 해당 계약건의 방문주기 삭제
          *  2. 해당 계약건의 주기표유형에 따라 분기하여 주기표 생성 (if 처리. 위쪽이 우선순위)
@@ -33,24 +52,36 @@ public class WsncVisitPeriodRecrtService {
          *   3-2 에러 발생 시 : "주기표 생성 오류가 발생하였습니다." 메시지 전달
          */
         try {
-            WsncVisitPeriodRecrtDvo dvo = mapper.selectTempQuery(dto);
-
-            if ("배송".equals(dvo.getCntrNo())) {
-                log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] Case 1");
-            } else if ("모종".equals(dvo.getCntrNo())) {
-                log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] Case 2");
-            } else if ("삼성전자 에어컨".equals(dvo.getCntrNo())) {
-                log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] Case 3");
-            } else if ("멤버십".equals(dvo.getCntrNo())) {
-                log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] Case 4");
-            } else {
-                log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] Case 5");
+            WsncVisitPeriodRecrtDvo dvo = mapper.selectPeriodPdInfo(req);
+            switch (dvo.getSvpdItemGr()) {
+                //배송
+                case  "12", "13", "14", "15", "16"
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs01(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
+                //모종
+                case "11"
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs05(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
+                //삼성전자 에어컨
+                case "삼성전자 에어컨"
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs04(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
+                //멤버십, 기타
+                default
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs03(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), true);
             }
         } catch (Exception e) {
-            throw new BizException("주기표 생성 오류가 발생하였습니다.");
+            throw new BizException("MSG_TXT_PERIOD_CHART_ERROR");    //주기표 생성 오류가 발생하였습니다.
         }
 
         return 1;
+    }
+
+    /*
+     * String.valueOf() - Null일 경우 Empty String return
+     */
+    public String valueOfEmptyStr(Object obj){
+        if(obj == null){
+            return "";
+        }
+        return String.valueOf(obj);
     }
 
 }

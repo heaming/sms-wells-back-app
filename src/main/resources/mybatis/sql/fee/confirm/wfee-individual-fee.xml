@@ -503,50 +503,64 @@
           GROUP BY RNUM
           ORDER BY RNUM
     </select>
-    <select id='selectHmstDeduction'
+    <select id='selectHmstDeductions'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto$FindHmstDeductionRes">
-        SELECT MAX(M.AMT02) AS ERNTX
-             , MAX(M.AMT03) AS RSDNTX
-             , MAX(M.AMT01) AS RDS
-             , MAX(M.AMT05) AS HIR_INSR
-             , MAX(M.AMT06) AS INDD_INSR
-             , MAX(M.AMT07) AS BU_DDTN
-             , MAX(M.AMT041) AS REDF
-             , MAX(M.AMT042) AS DLQ_REDF
-          FROM ( SELECT NVL(CASE WHEN FEE_DDTN_TP_CD = '02' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT02
-                      , NVL(CASE WHEN FEE_DDTN_TP_CD = '03' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT03
-                      , NVL(CASE WHEN FEE_DDTN_TP_CD = '01' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT01
-                      , NVL(CASE WHEN FEE_DDTN_TP_CD = '05' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT05
-                      , NVL(CASE WHEN FEE_DDTN_TP_CD = '06' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT06
-                      , NVL(CASE WHEN FEE_DDTN_TP_CD = '07' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT07
-                      , 0 AS AMT041
-                      , 0 AS AMT042
-                   FROM TB_FEAM_FEE_DDTN_IZ A
-                  WHERE A.FEE_DDTN_TP_CD IN ('01','02','03','05','06','07')
-                    AND A.DDTN_YM = #{perfYm}
-                    AND A.PRTNR_NO = #{no}
-                    AND A.OG_TP_CD = 'W03'
-                    AND A.FEE_DDTN_CNFM_AMT > 0
-                  GROUP BY FEE_DDTN_TP_CD
-                  UNION
-                 SELECT 0 AS AMT02
-                      , 0 AS AMT03
-                      , 0 AS AMT01
-                      , 0 AS AMT05
-                      , 0 AS AMT06
-                      , 0 AS AMT07
-                      , NVL(CASE WHEN C.REDF_ADSB_TP_CD = '2' THEN SUM(C.REDF_ADSB_OC_AMT) END,0) AS AMT041
-                      , NVL(CASE WHEN C.REDF_ADSB_TP_CD = '3' THEN SUM(C.REDF_ADSB_OC_AMT) END,0) AS AMT042
-                   FROM TB_FEDD_FEE_REDF_ADSB_BAS B
-                  INNER JOIN TB_FEDD_FEE_REDF_ADSB_DTL C
-                     ON B.FEE_REDF_ADSB_ID = C.FEE_REDF_ADSB_ID
-                    AND C.REDF_ADSB_TP_CD IN ('2','3')  /*되물림, 연체되물림*/
-                  WHERE B.PERF_YM = #{perfYm}
+        SELECT MAX(FEE_NM1) AS ITEM1
+             , MAX(FEE_VAL1) AS AMT1
+             , MAX(FEE_NM2) AS ITEM2
+             , MAX(FEE_VAL2) AS AMT2
+          FROM ( SELECT TO_NUMBER(SUBSTR(A.CD_VLD_VAL,2,1)) AS RNUM
+                      , A.CD_CNTN AS FEE_NM1
+                      , NVL(SUM(B.FEE_DDTN_CNFM_AMT),0) AS FEE_VAL1
+                      , '' AS FEE_NM2
+                      , 0 AS FEE_VAL2
+                   FROM T_CMZ_CD_D A
+                   LEFT OUTER JOIN TB_FEAM_FEE_DDTN_IZ B
+                     ON A.CD_VLD_VAL = B.FEE_DDTN_TP_CD
+                    AND B.DDTN_YM = #{perfYm}
                     AND B.PRTNR_NO = #{no}
                     AND B.OG_TP_CD = 'W03'
-                    AND C.REDF_ADSB_OC_AMT > 0
-                  GROUP BY C.REDF_ADSB_TP_CD
-                )M
+                    AND B.FEE_DDTN_CNFM_AMT > 0
+                  WHERE A.CD_ID = 'FEE_DDTN_TP_CD'
+                    AND A.CD_VLD_VAL IN ('01','02','03','04')
+                    AND A.TENANT_ID = 'TNT_WELLS'
+                  GROUP BY A.CD_VLD_VAL, A.CD_CNTN
+                  UNION ALL
+                 SELECT TO_NUMBER(SUBSTR(A.CD_VLD_VAL,2,1)-4) AS RNUM
+                      , '' AS FEE_NM1
+                      , 0 AS FEE_VAL1
+                      , A.CD_CNTN AS FEE_NM2
+                      , NVL(SUM(B.FEE_DDTN_CNFM_AMT),0) AS FEE_VAL2
+                   FROM T_CMZ_CD_D A
+                   LEFT OUTER JOIN TB_FEAM_FEE_DDTN_IZ B
+                     ON A.CD_VLD_VAL = B.FEE_DDTN_TP_CD
+                    AND B.DDTN_YM = #{perfYm}
+                    AND B.PRTNR_NO = #{no}
+                    AND B.OG_TP_CD = 'W03'
+                    AND B.FEE_DDTN_CNFM_AMT > 0
+                  WHERE A.CD_ID = 'FEE_DDTN_TP_CD'
+                    AND A.CD_VLD_VAL IN ('05','06','07')
+                    AND A.TENANT_ID = 'TNT_WELLS'
+                  GROUP BY A.CD_VLD_VAL, A.CD_CNTN
+                  UNION ALL
+                 SELECT 4 AS RNUM
+                      , '' AS FEE_NM1
+                      , 0 AS FEE_VAL1
+                      , '공제계' AS FEE_NM2
+                      , NVL(SUM(B.FEE_DDTN_CNFM_AMT),0) AS FEE_VAL2
+                   FROM T_CMZ_CD_D A
+                   LEFT OUTER JOIN TB_FEAM_FEE_DDTN_IZ B
+                     ON A.CD_VLD_VAL = B.FEE_DDTN_TP_CD
+                    AND B.DDTN_YM = #{perfYm}
+                    AND B.PRTNR_NO = #{no}
+                    AND B.OG_TP_CD = 'W03'
+                    AND B.FEE_DDTN_CNFM_AMT > 0
+                  WHERE A.CD_ID = 'FEE_DDTN_TP_CD'
+                    AND A.CD_VLD_VAL IN ('01','02','03','04','05','06','07')
+                    AND A.TENANT_ID = 'TNT_WELLS'
+               )
+         GROUP BY RNUM
+         ORDER BY RNUM
     </select>
 
     <select id='selectHmstPnpyams'
@@ -616,6 +630,7 @@
          WHERE A.OG_TP_CD = 'W03'
            AND A.PRTNR_NO = #{no}
            AND A.BASE_YM = #{perfYm}
+           AND F.PNPYAM_NM IS NOT NULL
 
     </select>
 
@@ -943,6 +958,7 @@
                          WHERE A.OG_TP_CD = 'W01'
                            AND A.PRTNR_NO = #{no}
                            AND A.BASE_YM = #{perfYm}
+                           AND F.PNPYAM_NM IS NOT NULL
     </select>
 
 
@@ -1317,7 +1333,7 @@
                    FROM TB_FEDD_FEE_REDF_ADSB_BAS B
                   INNER JOIN TB_FEDD_FEE_REDF_ADSB_DTL C
                      ON B.FEE_REDF_ADSB_ID = C.FEE_REDF_ADSB_ID
-                    AND C.REDF_ADSB_TP_CD IN ('2','3')  /*되물림, 연체되물림*/
+                    AND C.REDF_ADSB_TP_CD IN ('0202','0203')  /*되물림, 연체되물림*/
                   WHERE 1=1
                     AND B.PERF_YM = #{perfYm}
                     AND B.PRTNR_NO = #{no}
@@ -1394,6 +1410,7 @@
          WHERE A.OG_TP_CD = 'W02'
            AND A.PRTNR_NO = #{no}
            AND A.BASE_YM = #{perfYm}
+           AND F.PNPYAM_NM IS NOT NULL
 
     </select>
 

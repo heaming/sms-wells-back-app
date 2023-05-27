@@ -1,8 +1,7 @@
 package com.kyowon.sms.wells.web.service.orgcode.rest;
 
-import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto.*;
-
-import java.util.List;
+import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto.SearchRes;
 
 import javax.validation.Valid;
 
@@ -45,11 +44,4 @@ public class WsndHumanResourcesController {
     ) {
         return service.getHumanResourcesPages(dto, pageInfo);
     }
-
-    @ApiOperation(value = "조직 조회", notes = "조직 조회")
-    @GetMapping("/organizations")
-    public List<SearchOrganizationRes> getOrganizations() {
-        return service.getOrganizations();
-    }
-
 }

@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -33,16 +34,21 @@ public class WctiRerentalOnePlusoneInterfaceController {
     public EaiWrapper getRerentalOneplusones(
         @Valid
         @RequestBody
-        EaiWrapper<SearchReq> reqWrapper
+        EaiWrapper<List<SearchReq>> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
         EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
 
+        List<SearchRes> resList = new ArrayList<>();
+
         // 서비스 메소드 호출
-        List<SearchRes> res = service.getRerentalOneplusones(reqWrapper.getBody());
+        for (SearchReq req : reqWrapper.getBody()) {
+            List<SearchRes> res = service.getRerentalOneplusones(req);
+            resList.addAll(res);
+        }
 
         // Response Body 세팅
-        resWrapper.setBody(res);
+        resWrapper.setBody(resList);
 
         return resWrapper;
     }

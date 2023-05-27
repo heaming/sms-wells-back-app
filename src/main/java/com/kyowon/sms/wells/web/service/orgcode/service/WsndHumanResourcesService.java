@@ -1,8 +1,7 @@
 package com.kyowon.sms.wells.web.service.orgcode.service;
 
-import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto.*;
-
-import java.util.List;
+import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto.SearchRes;
 
 import org.springframework.stereotype.Service;
 
@@ -21,9 +20,5 @@ public class WsndHumanResourcesService {
         SearchReq dto, PageInfo pageInfo
     ) {
         return mapper.selectHumanResources(dto, pageInfo);
-    }
-
-    public List<SearchOrganizationRes> getOrganizations() {
-        return mapper.selectOrganizations();
     }
 }
