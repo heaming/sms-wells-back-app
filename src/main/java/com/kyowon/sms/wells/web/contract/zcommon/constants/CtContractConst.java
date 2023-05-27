@@ -20,6 +20,19 @@ public class CtContractConst {
     public static final String CNTR_TP_CD_RSTL = "08";
     public static final String CNTR_TP_CD_QUOT = "09";
 
+    /* 계약진행상태코드 */
+    public static final String CNTR_PRGS_STAT_CD_TEMP_STEP1 = "10";
+    public static final String CNTR_PRGS_STAT_CD_TEMP_STEP2 = "12";
+    public static final String CNTR_PRGS_STAT_CD_TEMP_STEP3 = "14";
+    public static final String CNTR_PRGS_STAT_CD_TEMP_STEP4 = "16";
+    public static final String CNTR_PRGS_STAT_CD_TEMP_STEP5 = "18";
+    public static final String CNTR_PRGS_STAT_CD_WRTE_FSH = "20";
+    public static final String CNTR_PRGS_STAT_CD_STLM_STNB = "30";
+    public static final String CNTR_PRGS_STAT_CD_STLM_ING = "40";
+    public static final String CNTR_PRGS_STAT_CD_STLM_FSH = "50";
+    public static final String CNTR_PRGS_STAT_CD_CNFM = "60";
+    public static final String CNTR_PRGS_STAT_CD_DEL = "99";
+
     public static final String SELL_TP_CD_SPAY = "1";
     public static final String SELL_TP_CD_RNTL = "2";
 
