@@ -13,6 +13,8 @@ public class CtContractConst {
     public static final String END_DTM = "99991231235959";
     public static final String EXCEL_UPLOAD_SUCCESS = "S";
     public static final String EXCEL_UPLOAD_ERROR = "E";
+
+    /* 계약유형코드 */
     public static final String CNTR_TP_CD_INDV = "01";
     public static final String CNTR_TP_CD_CRP = "02";
     public static final String CNTR_TP_CD_ENSM = "03";

@@ -23,12 +23,14 @@ public class WctaContractRegStep2Dvo {
         String pdClsfId;
         String pdClsfNm;
         String pdClsfCd;
+        List<PdDvo> products; /* wells는 server에서 상품 분류 */
     }
 
     @Getter
     @Setter
     public static class PdDvo {
         String pdClsf;
+        String pdClsfNm;
         String mclsfVal;
         String lclsfVal;
         String pdCd;

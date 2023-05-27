@@ -56,7 +56,6 @@ public class WctzPartnerDto {
         String baseYm, /* 기준년월 */
         String ogTpCd, /* 조직유형코드 */
         String prtnrNo, /* 파트너번호 */
-        String sellChnlDvCd, /* 판매채널구분코드 */
         String prtnrClsfCd, /* 파트너분류코드 */
         String cikVal, /* CI키값 */
         String sfkVal, /* 세이프키값 */
@@ -75,7 +74,6 @@ public class WctzPartnerDto {
         String sapDlpnrDtlIzRfltDt, /* SAP거래처상세내역반영일자 */
         String wkGrpCd, /* 작업그룹코드 */
         String wkGrpNm, /* 작업그룹명 */
-        String wkcrNo, /* 작업조번호 */
         String rcrtWrteDt, /* 리쿠르팅작성일자 */
         String fstCntrDt, /* 최초계약일자 */
         String fnlCltnDt, /* 최종해약일자 */
