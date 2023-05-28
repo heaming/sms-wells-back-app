@@ -322,31 +322,12 @@ public class WsncBsPeriodChartService {
 
         //AS-IS ::: WORK_X Loop(chart06Res)
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
-            //설치차월 계산
-            //SELL_TP_CD = 1 ::: 렌탈
-            if("1".equals(baseInfoRes.getSellTpCd())){
-                chekInstMths = chart06Res.getVstNmnN();
-            }
-            //SELL_TP_CD = 3 ::: 멤버십 (AS-IS는 2)
-            else if ("3".equals(baseInfoRes.getSellTpCd())) {
-                //TB_PDBS_RGBS_WK_BASE_DTL.TOT_STPL_MCN 로 대체
-                chekInstMths = baseInfoRes.getChekInstMths();
-                chekInstMths = chekInstMths + chart06Res.getVstNmnN();
-            }
-            processParam.setChekInstMths(chekInstMths);
-
-            //제외...?
-            chekVstMths = chart06Res.getVstNmnN() % chekCyclMths;
-            if(chekVstMths == 0){
-                //화장품은 0차월 배송 구성품이 달라서 이렇게 처리
-                if(("67".equals(baseInfoRes.getPdctPdCd().substring(0, 2)) && chekInstMths != 0) || !"67".equals(baseInfoRes.getPdctPdCd().substring(0, 2))){
-                    chekVstMths = chekCyclMths;
-                }
-            }
 
             if("66".equals(baseInfoRes.getPdctPdCd().substring(0, 2))){
                 continue;
             }
+
+            chekInstMths = chart06Res.getVstNmnN();
 
             //방문예정일자 계산
             //멤버십 가입일자가 없는 경우 (렌탈인경우인지 확인 필요) (멤버십 ::: "3".equals(baseInfoRes.sellTpCd()))
@@ -381,11 +362,7 @@ public class WsncBsPeriodChartService {
             for (WsncBsPeriodChartResDvo chart07Res : chart07ResList) {
 
                 newWrkTypDtl = chart07Res.getWrkTypDtl();
-                if("10".equals(chart07Res.getVstGb())){
-                    newVstGb = "20";
-                } else {
-                    newVstGb = chart07Res.getVstGb();
-                }
+                newVstGb = chart07Res.getVstGb();
 
                 //고객 요청 방문일자가 있다면 그걸로 세팅, 아님 설치 차월 기준으로 계산한 일자 세팅
                 vVs104CfrmDt = mapper.selectBsPeriodChartBs03_11(processParam);
@@ -396,6 +373,7 @@ public class WsncBsPeriodChartService {
                 processParam.setNewWrkTypDtl(newWrkTypDtl);
                 processParam.setNewVstGb(newVstGb);
                 processParam.setChekCyclMths(chart07Res.getVstMths());
+                processParam.setChekInstMths(chart07Res.getVstMths());
                 processParam.setNewPartCd(chart07Res.getPartCd());
                 processParam.setChngStg(chart07Res.getChngStg());
                 processParam.setItemKnd(chart07Res.getItemKnd());
@@ -433,7 +411,7 @@ public class WsncBsPeriodChartService {
         String chekVstDt; //방문예정일자
         String vVs104CfrmDt; //고객이 요청한 방문일자
         String newWrkTypDtl; //작업유형상세
-        String newPartCd; //주기표에 최종적으로 들어갈 자재코드(계절별맞춤형 필터 도입때문에)
+//        String newPartCd; //주기표에 최종적으로 들어갈 자재코드(계절별맞춤형 필터 도입때문에)
         String newVstGb; //방문구분 10 방문, 11 방문 매니저, 12 방문 엔지니어, 13 방문 홈케어, 20 택배
         String vVs107WrkDt; //주기표상 마지막 방문일자
         String newGdsCd; //패키지 변경 요청을 적용한 패키지
@@ -454,6 +432,7 @@ public class WsncBsPeriodChartService {
         chekCyclMths = mapper.selectBsPeriodChartBs03_04(processParam); //방문기준 차월수
         vVs107WrkDt = mapper.selectBsPeriodChartBs03_05(processParam); //주기표상 마지막 방문일자
 
+
         //AS-IS ::: WORK_X Loop(chart06Res)
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
 
@@ -463,22 +442,7 @@ public class WsncBsPeriodChartService {
                 continue;
             }
 
-            //설치차월 계산
-            //SELL_TP_CD = 1 ::: 렌탈
-            if("1".equals(baseInfoRes.getSellTpCd())){
-                chekInstMths = chart06Res.getVstNmnN();
-            }
-            //SELL_TP_CD = 3 ::: 멤버십 (AS-IS는 2)
-            else if ("3".equals(baseInfoRes.getSellTpCd())) {
-                //TB_PDBS_RGBS_WK_BASE_DTL.TOT_STPL_MCN 로 대체
-                chekInstMths = baseInfoRes.getChekInstMths();
-                chekInstMths = chekInstMths + chart06Res.getVstNmnN();
-            }
-            processParam.setChekInstMths(chekInstMths);
-
-            if (chekInstMths == 0) {
-                continue;
-            }
+            chekInstMths = chart06Res.getVstNmnN();
 
             //방문예정일자 계산
             //멤버십 가입일자가 없는 경우 (렌탈인경우인지 확인 필요) (멤버십 ::: "3".equals(baseInfoRes.sellTpCd()))
@@ -526,25 +490,25 @@ public class WsncBsPeriodChartService {
                 }
 
                 //비데 1회성 작업 체크 2172 살균전극모듈
-                if ("2172".equals(newWrkTypDtl)) {
-                    wrkTypDtlCnt = mapper.selectBsPeriodChartBs03_12(processParam);
-                    //3M4 일 경우 18, 36 두번 교체 / 3M4 가 아닌 경우 18, 36 중 1번 교체 (P_CYCL_TYP 조건은 삭제되었으므로 로직 다시 생각해야 함) (BS03과 로직은 거의 비슷하지만, 등호가 차이남.)
-                    if (wrkTypDtlCnt > 2 || wrkTypDtlCnt > 1) {
-                        continue;
-                    }
-                }
+//                if ("2172".equals(newWrkTypDtl)) {
+//                    wrkTypDtlCnt = mapper.selectBsPeriodChartBs03_12(processParam);
+//                    //3M4 일 경우 18, 36 두번 교체 / 3M4 가 아닌 경우 18, 36 중 1번 교체 (P_CYCL_TYP 조건은 삭제되었으므로 로직 다시 생각해야 함) (BS03과 로직은 거의 비슷하지만, 등호가 차이남.)
+//                    if (wrkTypDtlCnt > 2 || wrkTypDtlCnt > 1) {
+//                        continue;
+//                    }
+//                }
 
                 /*안마의자 1회성 작업 체크 2163 주요패드교체 */
-                if ("2163".equals(newWrkTypDtl)) {
-                    wrkTypDtlCnt = mapper.selectBsPeriodChartBs03_12(processParam);
-                    if (wrkTypDtlCnt > 1) {
-                        continue;
-                    }
-                }
+//                if ("2163".equals(newWrkTypDtl)) {
+//                    wrkTypDtlCnt = mapper.selectBsPeriodChartBs03_12(processParam);
+//                    if (wrkTypDtlCnt > 1) {
+//                        continue;
+//                    }
+//                }
 
                 processParam.setPartCd(chart07Res.getPartCd());
-                newPartCd = mapper.selectBsPeriodChartBs05_24(processParam);
-                processParam.setNewPartCd(newPartCd);
+//                newPartCd = mapper.selectBsPeriodChartBs05_24(processParam);
+                processParam.setNewPartCd(chart07Res.getPartCd());
 
                 //맞춤형제품상품여부 Table이 데이터 확정이 되면 아래 로직으로 구현(Bs05_24 쿼리도 좀 수정)
 //                if("Y".equals(chart07Res.get맞춤형제품상품여부())){
@@ -563,6 +527,7 @@ public class WsncBsPeriodChartService {
                 processParam.setChekVstDt(chekVstDt);
                 processParam.setNewVstGb(newVstGb);
                 processParam.setChekCyclMths(chart07Res.getVstMths());
+                processParam.setChekInstMths(chart07Res.getVstMths());
                 processParam.setChngStg(chart07Res.getChngStg());
                 processParam.setItemKnd(chart07Res.getItemKnd());
                 processParam.setQty(chart07Res.getQty());
