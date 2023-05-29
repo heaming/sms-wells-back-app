@@ -253,4 +253,12 @@ public class WcteSecProductService {
     public List<SearchShippingRes> getShippings(SearchShippingReq dto) {
         return mapper.selectShippings(dto);
     }
+
+    public PagingResult<SearchFreeAsRes> getFreeASPages(SearchFreeAsReq dto, PageInfo pageInfo) {
+        return mapper.selectFreeASs(dto, pageInfo);
+    }
+
+    public List<SearchFreeAsRes> getFreeASs(SearchFreeAsReq dto) {
+        return mapper.selectFreeASs(dto);
+    }
 }

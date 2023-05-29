@@ -2,10 +2,12 @@ package com.kyowon.sms.wells.web.contract.salesstatus.dto;
 
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
+import com.sds.sflex.system.config.validation.validator.ValidMonth;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.util.List;
 
 /**
@@ -114,6 +116,28 @@ public class WcteSecProductDto {
         String enddt,
         List<String> pdMclsfIds,
         List<String> pdCds
+    ) {}
+
+    @Builder
+    @ApiModel(
+        value="WcteSecProductDto-SearchFreeAsRes",
+        description="Search Free As Res Dto"
+    )
+    public record SearchFreeAsReq(
+        @ValidDate String cntrCnfmStrtdt,
+        @ValidDate String cntrCnfmEnddt,
+        @ValidDate String istStrtdt,
+        @ValidDate String istEnddt,
+        String cntrDtlStatCd,
+        String cntrNo,
+        Integer cntrSn,
+        String cntrCstKnm,
+        String pdCd,
+        String pdNm,
+        String pdctIdno,
+        @Pattern(regexp = "[YN]|^$") String slStpYn,
+        @Pattern(regexp = "[YN]|^$") String afterTgYn,
+        @ValidMonth String afterTgBaseYm
     ) {}
 
     // *********************************************************
@@ -233,4 +257,33 @@ public class WcteSecProductDto {
         }
     }
 
+    @Builder
+    @ApiModel(
+        value="WcteSecProductDto-SearchFreeAsReq",
+        description="Search Free As Req Dto"
+    )
+    public record SearchFreeAsRes(
+        String cntrNo,
+        int cntrSn,
+        String cntrCstKnm,
+        String pdCd,
+        String pdNm,
+        String pdctIdno,
+        String cntrCnfmDtm,
+        String istDt,
+        String cntrPdEnddt,
+        String canPdEnddt,
+        String cntrDtlStatCd,
+        Integer frisuAsMcn,
+        Integer ssFrisuAsMcn,
+        Integer kwFrisuAsMcn,
+        String frisuEndDt,
+        String slStpYn,
+        String cntrPdStrtdt,
+        String afterTgYn,
+        String afterTgStDt,
+        String afterTgEdDt,
+        String dlqYn,
+        Integer eotDlqAmt
+    ) {}
 }
