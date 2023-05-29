@@ -65,7 +65,7 @@ public class WwdbDepositService {
 
             // 판매유형코드가 렌탈/리스, 멤버십 인 경우
             List<WwdbIntegrationDepositInfoDvo> itgDeposits = mapper.selectIntegrationDepositInfos(
-                WwdbDepositDto.SearchReq.builder().cntrNo(dto.cntrNo()).build()
+                dto.cntrNo()
             );
 
             for (WwdbIntegrationDepositInfoDvo itgDeposit : itgDeposits) {

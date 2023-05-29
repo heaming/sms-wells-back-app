@@ -10,7 +10,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbIntegrationDepositInfo
 
 @Mapper
 public interface WwdbDepositMapper {
-    List<WwdbIntegrationDepositInfoDvo> selectIntegrationDepositInfos(WwdbDepositDto.SearchReq dto);
+    List<WwdbIntegrationDepositInfoDvo> selectIntegrationDepositInfos(String cntrNo);
 
     List<WwdbIntegrationDepositInfoDvo> selectReceiveAskDetailInfos(String itgDpNo);
 
