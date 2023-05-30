@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/cleaning-cost/request-cleaning-supplies")
+@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/expense/cleaning-cost/교통지역총괄단장조직CD")
 public class WdcdRequestCleaningSuppliesMgtController {
 
     private final WdcdRequestCleaningSuppliesMgtService service;
