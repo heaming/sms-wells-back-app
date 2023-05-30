@@ -1,7 +1,8 @@
 package com.kyowon.sms.wells.web.contract.risk.rest;
 
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.*;
+
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -54,4 +55,25 @@ public class WctcSiteAuditSellController {
         return service.getSiteAuditSellPages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "현장감사 판매리스트 페이징 조회", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "dgr1LevlOgCd", value = "총괄단조건(1차레벨조직코드)", paramType = "query"),
+        @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단조건(2차레벨조직코드)", paramType = "query"),
+        @ApiImplicitParam(name = "dgr3LevlOgCd", value = "지점조건(3차레벨조직코드)", paramType = "query"),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "판매파트너", paramType = "query"),
+        @ApiImplicitParam(name = "ptrmDv", value = "접수일자/설치일자 구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "dtStrt", value = "시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "dtEnd", value = "종료일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrStatCd", value = "상태구분(계약상세상태코드)", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매구분조건(판매유형코드)", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형조건(판매유형상세코드)", paramType = "query"),
+        @ApiImplicitParam(name = "pdMclsfId", value = "제품군조건(상품중분류ID)", paramType = "query"),
+    })
+    @GetMapping("/sells/excel-download")
+    public List<SearchDetailRes> getSiteAuditSellsForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getSiteAuditSellsForExcelDownload(dto);
+    }
 }
