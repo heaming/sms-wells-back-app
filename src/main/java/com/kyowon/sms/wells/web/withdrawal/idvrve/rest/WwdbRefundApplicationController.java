@@ -11,11 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.EditRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SaveRefundReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPartnerRes;
@@ -35,6 +37,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.S
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbRefundApplicationService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
+import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -72,6 +75,15 @@ public class WwdbRefundApplicationController {
         SearchRefundApplicationReq req
     ) {
         return service.getRefundApplicationExcels(req);
+    }
+
+    @ApiOperation(value = "환불 신청 현황 목록 엑셀 업로드", notes = "환불 신청 현황 목록 엑셀 업로드")
+    @PostMapping("/excel-upload")
+    public UploadRes saveRefundApplicationExcelUpload(
+        @RequestParam("file")
+        MultipartFile file
+    ) throws Exception {
+        return service.saveRefundApplicationExcelUpload(file);
     }
 
     @ApiOperation(value = "환불 신청 팝업 (계약상세)", notes = "환불 신청 팝업 (계약상세) 목록 조회")
@@ -241,6 +253,25 @@ public class WwdbRefundApplicationController {
         String rfndRcpNo
     ) {
         return service.getRefundApplicationDetailReceipt(rfndRcpNo);
+    }
+
+    @ApiOperation(value = "환불 신청 컨텍 이력 사항", notes = "환불 신청 컨텍 이력 사항 조회")
+    @GetMapping("/connect-history/paging")
+    public PagingResult<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryPages(
+        @RequestParam
+        String cntrNo,
+        PageInfo pageInfo
+    ) {
+        return service.getRefundApplicationConnectHistoryPages(cntrNo, pageInfo);
+    }
+
+    @ApiOperation(value = "환불 신청 컨텍 이력 사항 엑셀 다운로드", notes = "환불 신청 컨텍 이력 사항 엑셀 다운로드")
+    @GetMapping("/connect-history/excel-download")
+    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistorysForExcelDownload(
+        @RequestParam
+        String cntrNo
+    ) {
+        return service.getRefundApplicationConnectHistorysForExcelDownload(cntrNo);
     }
 
 }
