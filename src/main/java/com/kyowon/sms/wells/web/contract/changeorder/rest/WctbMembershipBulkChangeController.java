@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbMembershipBulkChangeDto;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbMembershipBulkChangeService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -35,7 +36,7 @@ public class WctbMembershipBulkChangeController {
     public List<WctbMembershipBulkChangeDto.SearchRes> getMembershipBulkChanges(
         String cntrNo,
         String cntrSn,
-        @Validated
+        @ValidDate
         String rfdt
     ) {
         return service.getMembershipBulkChanges(cntrNo, cntrSn, rfdt);

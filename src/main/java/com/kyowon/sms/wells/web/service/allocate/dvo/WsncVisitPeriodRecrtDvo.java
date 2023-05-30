@@ -8,4 +8,6 @@ import lombok.Setter;
 public class WsncVisitPeriodRecrtDvo {
     String cntrNo;
     String cntrSn;
+    String pdctPdCd;
+    String svpdItemGr;
 }

@@ -114,6 +114,12 @@ public class WpdcRoutineBsWorkMgtDto {
         List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> details
     ) {}
 
+    @ApiModel(value = "WpdcRoutineBsWorkMgtDto-EditDetailReq")
+    public record EditDetailReq(
+        @NotEmpty
+        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> details
+    ) {}
+
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-EditLifeCustomFilterReq")
     public record EditLifeFilterReq(
         @NotBlank

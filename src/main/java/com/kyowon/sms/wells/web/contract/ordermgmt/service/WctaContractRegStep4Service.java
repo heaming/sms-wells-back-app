@@ -43,7 +43,7 @@ public class WctaContractRegStep4Service {
         WctaContractCstRelDvo lrnrInfo = regService.selectCntrtInfoByCstNo(l.getCstNo());
         step4Dvo.setLrnr(converter.mergeContractCstRelDvo(l, lrnrInfo));
 
-        step4Dvo.setAdrpc(regService.selectContractAdrpcBas(cntrNo));
+        // step4Dvo.setAdrpc(regService.selectContractAdrpcBas(cntrNo));
         List<WctaContractPrtnrRelDvo> prtnrRels = regService.selectContractPrtnrRel(cntrNo);
         if (prtnrRels.size() > 1) {
             // 파트너관계가 2건 이상인 경우, 계약파트너유형코드 010인 건

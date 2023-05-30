@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.contract.interfaces.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.interfaces.converter.WctiCustomerAgreeConverter;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SearchRes;
@@ -47,7 +49,8 @@ public class WctiCustomerAgreeService {
     * @return      String
     */
     @Transactional
-    public String saveCustomerAgrees(List<SaveReq> dtos) {
+    public List<WctiCustomerAgreeDto.SaveRes> saveCustomerAgrees(List<SaveReq> dtos) {
+        List<WctiCustomerAgreeDto.SaveRes> result = new ArrayList<>();
         for (SaveReq dto : dtos) {
             WctiCustomerAgreeDvo dvo = converter.mapSaveReqToWctiCustomerAgreeDvo(dto);
             List<String> cstAgIds = mapper.selectCstAgIdBas(dvo);
@@ -57,6 +60,8 @@ public class WctiCustomerAgreeService {
                     mapper.updateCubsCstAgIz(dvo);
                     mapper.updateCubsCstAgIzDtl(dvo);
                 }
+                WctiCustomerAgreeDto.SaveRes res = new WctiCustomerAgreeDto.SaveRes("Y");
+                result.add(res);
             } else {
                 cstAgIds = mapper.selectCstAgId(dvo);
                 if (cstAgIds.size() > 0) {
@@ -68,9 +73,12 @@ public class WctiCustomerAgreeService {
                 } else {
                     mapper.insertCubsCstAgIz(dvo);
                     mapper.insertCubsCstAgIzDtl(dvo);
+
                 }
+                WctiCustomerAgreeDto.SaveRes res = new WctiCustomerAgreeDto.SaveRes("Y");
+                result.add(res);
             }
         }
-        return "Y";
+        return result;
     }
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
-import com.kyowon.sms.wells.web.competence.education.converter.WpsbZoomMgtConverter;
+import com.kyowon.sms.wells.web.competence.education.converter.WpsbZoomMngtConverter;
 import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
 import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
 import com.kyowon.sms.wells.web.competence.education.mapper.WpsbZoomMgtMapper;
@@ -22,10 +22,10 @@ import lombok.RequiredArgsConstructor;
 public class WpsbZoomMgtService {
 
     private final WpsbZoomMgtMapper mapper;
-    private final WpsbZoomMgtConverter converter;
+    private final WpsbZoomMngtConverter converter;
 
-    public List<SearchRes> selectZooms(SearchReq dto) {
-        return mapper.selectZooms(dto);
+    public List<SearchRes> getZooms(SearchReq dto) {
+        return mapper.getZooms(dto);
     }
 
     /**

@@ -5,6 +5,8 @@ import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto.SearchReq
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdCleanersDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdCleanersMapper;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +25,14 @@ public class WdcdCleanersService {
     public PagingResult<SearchRes> getCleanerPages(SearchReq req, PageInfo pageInfo) {
 
         PagingResult<WdcdCleanersDvo> dvos = new PagingResult<>();
-
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+        
         // TODO. 본사 영업담당자, 본사 담당자 구분 해야함
         if ("".equals(req.flag())) {
 
             dvos = mapper.selectCleanersBusinessManager(req, pageInfo);
         } else {
-            dvos = mapper.selectCleanersBusinessManager(req, pageInfo);
+            dvos = mapper.selectCleanersPersonInCharge(req, pageInfo);
         }
 
         List<SearchRes> serchResList = new ArrayList<>();

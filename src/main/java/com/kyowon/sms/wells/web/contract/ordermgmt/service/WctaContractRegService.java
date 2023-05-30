@@ -20,6 +20,10 @@ public class WctaContractRegService {
     private final WctaContractRegStep3Mapper step3Mapper;
     private final WctaContractRegStep4Mapper step4Mapper;
 
+    public boolean isNewCntr(String curCntrPrgsStatCd, String cntrPrgsStatCd) {
+        return Integer.valueOf(curCntrPrgsStatCd) < Integer.valueOf(cntrPrgsStatCd);
+    }
+
     public String getBryyMmdd(String cstNo) {
         return mapper.selectBryyMmdd(cstNo);
     }
@@ -57,12 +61,20 @@ public class WctaContractRegService {
         return mapper.selectContractPrcCmptIz(cntrNo, cntrSn);
     }
 
+    List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn) {
+        return mapper.selectContractPdRel(cntrNo, cntrSn);
+    }
+
     WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn) {
         return mapper.selectContractWellsDtl(cntrNo, cntrSn);
     }
 
-    public WctaContractAdrpcBasDvo selectContractAdrpcBas(String cntrNo) {
+    public List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo) {
         return mapper.selectContractAdrpcBas(cntrNo);
+    };
+
+    public WctaContractAdrRelDvo selectContractAdrRel(String cntrNo, int cntrSn) {
+        return mapper.selectContractAdrRel(cntrNo, cntrSn);
     };
 
     public List<WctaContractStlmRelDvo> selectContractStlmRel(String cntrNo, int cntrSn) {
@@ -86,6 +98,7 @@ public class WctaContractRegService {
         step2Mapper.deleteFgptRcpIzStep2(cntrNo);
         step2Mapper.deleteCntrPrcCmptIzStep2(cntrNo);
         step2Mapper.deleteCntrPrccchHistory(cntrNo);
+        step2Mapper.deleteCntrWellsDtlStep2(cntrNo);
     }
 
     @Transactional

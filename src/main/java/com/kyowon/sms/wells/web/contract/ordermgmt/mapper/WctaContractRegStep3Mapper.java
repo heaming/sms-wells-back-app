@@ -3,7 +3,10 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrpcBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractDtlDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmRelDvo;
 
 @Mapper
 public interface WctaContractRegStep3Mapper {
@@ -18,7 +21,7 @@ public interface WctaContractRegStep3Mapper {
     int insertCntrAdrRelStep3(@Param("item")
     WctaContractAdrRelDvo dvo);
 
-    WctaContractRegStep3Dvo selectAdrInfoByCntrCstNo(String cntrCstNo);
+    WctaContractAdrpcBasDvo selectAdrInfoByCntrCstNo(String cntrCstNo);
 
     int deleteStlmRelsStep3(String cntrNo);
 
