@@ -55,4 +55,8 @@ public interface WcteSecProductMapper {
     PagingResult<SearchShippingRes> selectShippings(SearchShippingReq dto, PageInfo pageInfo);
 
     List<SearchShippingRes> selectShippings(SearchShippingReq dto);
+
+    PagingResult<SearchFreeAsRes> selectFreeASs(SearchFreeAsReq dto, PageInfo pageInfo);
+
+    List<SearchFreeAsRes> selectFreeASs(SearchFreeAsReq dto);
 }

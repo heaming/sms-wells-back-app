@@ -830,6 +830,189 @@
         </trim></if>
         ORDER BY T_CNTR_BAS.CNTR_CNFM_DTM DESC
     </select>
+
+    <select id="selectFreeASs"
+            resultType="com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto$SearchFreeAsRes">
+        SELECT T.CNTR_NO /* 계약번호 */
+             , T.CNTR_SN /* 계약일련번호 */
+             , T.CNTR_CST_KNM /* 계약자명 */
+             , T.BASE_PD_CD                                                               AS PD_CD/* 상품코드 */
+             , T.PD_NM /* 상품명 */
+             , T.PDCT_IDNO /* 제조번호 */
+             , T.CNTR_CNFM_DTM /* 계약일 */
+             , T.IST_DT /* 설치일 */
+             , T.CNTR_PD_ENDDT /* 렌탈만료일 */
+             , T.CAN_PD_ENDDT /* 취소일 */
+             , T.CNTR_DTL_STAT_CD /* 계약상태코드 */
+             , T.FRISU_AS_MCN /* 무상A/S기간 */
+             , T.SS_FRISU_AS_MCN /* 삼성 부담 무상A/S기간 */
+             , (T.FRISU_AS_MCN - T.SS_FRISU_AS_MCN)                                       AS KW_FRISU_AS_MCN /* 교원 부담 무상A/S기간 */
+             , TO_CHAR(ADD_MONTHS(TO_DATE(T.CNTR_PD_STRTDT), T.FRISU_AS_MCN),
+                       'YYYYMMDD')                                                        AS FRISU_END_DT /* 무상A/S 종료일 */
+             , T.SL_STP_YN /* 매출중지여부 */
+             , T.CNTR_PD_STRTDT /* 계약상품시작일자 */
+             , CASE
+                   WHEN T.FRISU_AS_MCN > T.SS_FRISU_AS_MCN THEN 'Y'
+                                                           ELSE 'N'
+               END                                                                        AS AFTER_TG_YN /* 사후정산 대상여부 */
+             , CASE
+                   WHEN T.FRISU_AS_MCN > T.SS_FRISU_AS_MCN
+                       THEN TO_CHAR(ADD_MONTHS(TO_DATE(T.CNTR_PD_STRTDT), T.SS_FRISU_AS_MCN + 1), 'YYYYMMDD')
+               END                                                                        AS AFTER_TG_ST_DT /* 사후정산 시작일 */
+             , CASE
+                   WHEN T.FRISU_AS_MCN > T.SS_FRISU_AS_MCN
+                       THEN TO_CHAR(ADD_MONTHS(TO_DATE(T.CNTR_PD_STRTDT), T.FRISU_AS_MCN + 1) - 1, 'YYYYMMDD')
+               END                                                                        AS AFTER_TG_ED_DT /* 사후정산 종료월 */
+             , T.DLQ_YN /* 연체여부 */
+             , T.EOT_DLQ_AMT /* 연체금액 */
+          FROM (SELECT T_PDCT_IDNO_OSTR_IZ.CNTR_NO
+                     , T_PDCT_IDNO_OSTR_IZ.CNTR_SN
+                     , T_CNTR_CST_BAS.CST_KNM AS CNTR_CST_KNM
+                     , T_CNTR_DTL.BASE_PD_CD
+                     , T_PD_BAS.PD_NM
+                     , T_PDCT_IDNO_OSTR_IZ.PDCT_IDNO
+                     , T_CNTR_BAS.CNTR_CNFM_DTM
+                     , T_CNTR_WELLS_DTL.IST_DT
+                     , T_CNTR_DTL.CNTR_PD_STRTDT
+                     , CASE
+                           WHEN T_CNTR_DTL.CNTR_DTL_STAT_CD = '401' THEN T_CNTR_DTL.CNTR_PD_ENDDT
+                                                                    ELSE ''
+                       END                    AS CNTR_PD_ENDDT
+                     , CASE
+                           WHEN T_CNTR_DTL.CNTR_DTL_STAT_CD = '303' THEN T_CNTR_DTL.CNTR_PD_ENDDT
+                                                                    ELSE ''
+                       END                    AS CAN_PD_ENDDT
+                     , T_CNTR_DTL.CNTR_DTL_STAT_CD
+                     , CASE
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20220417000000'
+                               OR T_CNTR_EX_OJ_BAS.EX_PROCS_ID IS NOT NULL
+                                                                            THEN T_CNTR_DTL.CNTR_PTRM
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210902000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '02002' /* AS-IS 'N' 에어컨 */
+                                                                            THEN 24
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210902000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL <![CDATA[<>]]> '02002'
+                                                                            THEN 12
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210315000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL IN ('02002', '04006', '04003') /* AS-IS 'N','S','J' */
+                                                                            THEN 36
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210315000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL IN ('04004', '04005', '05004', '05005') /* AS-IS 'I', 'H', 'O', 'P' */
+                                                                            THEN 12
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20180531000000' THEN 60
+                                                                            ELSE 0
+                       END                    AS FRISU_AS_MCN /*무상 AS 기간*/
+                     , CASE
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20220417000000'
+                               OR T_CNTR_EX_OJ_BAS.EX_PROCS_ID IS NOT NULL
+                               THEN T_CNTR_DTL.CNTR_PTRM
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210902000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '02002' /* AS-IS 'N' 에어컨 */
+                               THEN 24
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210902000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL <![CDATA[<>]]> '02002'
+                               THEN 12
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210315000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '02002'
+                               THEN 24
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20210315000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL
+                                   IN ('04006', '04003', '04004', '04005', '05004', '05005') /* AS-IS 'S','J','I','H','O','P' */
+                               THEN 12
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20180531000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '02002'
+                               THEN 24
+                           WHEN T_CNTR_BAS.CNTR_CNFM_DTM > '20180531000000'
+                               AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL <![CDATA[<>]]> '02002'
+                               THEN 12
+                               ELSE 0
+                       END                    AS SS_FRISU_AS_MCN /*삼성 부담 무상 AS 기간*/
+                     , T_LSTMM_WELLS_SL_MM_CL_IZ.SL_STP_YN
+                     , CASE
+                           WHEN T_LSTMM_DLQ_BAS.EOT_DLQ_AMT > 0 THEN 'Y'
+                                                                ELSE 'N'
+                       END                    AS DLQ_YN
+                     , T_LSTMM_DLQ_BAS.EOT_DLQ_AMT
+                  FROM TB_SSSO_PDCT_IDNO_OSTR_IZ                 T_PDCT_IDNO_OSTR_IZ /* 제품고유번호출고내역  CNTR_NO, CNTR_SN, OSTR_SN*/
+                       INNER JOIN TB_SSCT_CNTR_DTL               T_CNTR_DTL /* 계약상세 */
+                       ON T_CNTR_DTL.DTA_DL_YN = 'N'
+                           AND T_CNTR_DTL.CNTR_NO = T_PDCT_IDNO_OSTR_IZ.CNTR_NO
+                           AND T_CNTR_DTL.CNTR_SN = T_PDCT_IDNO_OSTR_IZ.CNTR_SN
+                       INNER JOIN TB_SSCT_CNTR_BAS               T_CNTR_BAS /* 계약기본 */
+                       ON T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                           AND T_CNTR_BAS.DTA_DL_YN = 'N'
+                       INNER JOIN TB_CUBS_CST_BAS                T_CNTR_CST_BAS /* 고객기본 */
+                       ON T_CNTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+                           AND T_CNTR_CST_BAS.DTA_DL_YN = 'N'
+                       INNER JOIN TB_PDBS_PD_BAS                 T_PD_BAS /* 상품기본 */
+                       ON T_PD_BAS.DTA_DL_YN = 'N'
+                           AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
+                       INNER JOIN TB_PDBS_PD_CLSF_BAS            T_PD_CLSF_BAS /* 상품분류기본 PD_CLSF_ID */
+                       ON T_PD_CLSF_BAS.DTA_DL_YN = 'N'
+                           AND T_PD_CLSF_BAS.PD_CLSF_ID = T_PD_BAS.PD_MCLSF_ID
+                       INNER JOIN TB_SSCT_CNTR_WELLS_DTL         T_CNTR_WELLS_DTL /* 계약WELLS상세 */
+                       ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
+                           AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                           AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+                       LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T_LSTMM_WELLS_SL_MM_CL_IZ /* WELLS매출월마감내역 SL_CL_YM, CNTR_NO, CNTR_SN*/
+                       ON T_LSTMM_WELLS_SL_MM_CL_IZ.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                           AND T_LSTMM_WELLS_SL_MM_CL_IZ.CNTR_SN = T_CNTR_DTL.CNTR_SN
+                           AND T_LSTMM_WELLS_SL_MM_CL_IZ.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+                       LEFT OUTER JOIN TB_CBCL_DLQ_BAS           T_LSTMM_DLQ_BAS /* 연체기본 PERF_YM, CNTR_NO, CNTR_SN */
+                       ON T_LSTMM_DLQ_BAS.DTA_DL_YN = 'N'
+                           AND T_LSTMM_DLQ_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                           AND T_LSTMM_DLQ_BAS.CNTR_SN = T_CNTR_DTL.CNTR_SN
+                           AND T_LSTMM_DLQ_BAS.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+                       LEFT OUTER JOIN TB_SSCT_CNTR_EX_OJ_BAS    T_CNTR_EX_OJ_BAS /* 계약예외대상기본 */
+                       ON T_CNTR_EX_OJ_BAS.DTA_DL_YN = 'N'
+                           AND T_CNTR_EX_OJ_BAS.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                           AND T_CNTR_EX_OJ_BAS.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                           AND T_CNTR_EX_OJ_BAS.EX_PROCS_CD = 'W05'
+                           AND T_CNTR_EX_OJ_BAS.EX_PROCS_OJ_DRM_VAL = T_CNTR_DTL.CNTR_NO || T_CNTR_DTL.CNTR_SN
+                 WHERE T_PDCT_IDNO_OSTR_IZ.DTA_DL_YN = 'N'
+                   AND T_PDCT_IDNO_OSTR_IZ.SELL_TP_CD = '2' /* 판매유형코드: 렌탈/리스 */
+                   AND T_PDCT_IDNO_OSTR_IZ.SPP_PROCS_BZS_CD = '3' /* 배송처리업체코드: 삼성 */
+                   <if test="@MybatisUtils@isNotEmpty(cntrCnfmStrtdt) and @MybatisUtils@isNotEmpty(cntrCnfmEnddt)"><trim>
+                       AND T_CNTR_BAS.CNTR_CNFM_DTM <![CDATA[>=]]> #{cntrCnfmStrtdt} || '000000'
+                       AND T_CNTR_BAS.CNTR_CNFM_DTM <![CDATA[<=]]> #{cntrCnfmEnddt} || '235959'
+                   </trim></if>
+                   <if test="@MybatisUtils@isNotEmpty(istStrtdt) and @MybatisUtils@isNotEmpty(istEnddt)"><trim>
+                       AND T_CNTR_WELLS_DTL.IST_DT <![CDATA[>=]]> #{istStrtdt}
+                       AND T_CNTR_WELLS_DTL.IST_DT <![CDATA[<=]]> #{istEnddt}
+                   </trim></if>
+                   <if test="@MybatisUtils@isNotEmpty(cntrDtlStatCd)"><trim>
+                       AND T_CNTR_DTL.CNTR_DTL_STAT_CD = #{cntrDtlStatCd}
+                   </trim></if>
+                   <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)"><trim>
+                       AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
+                       AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
+                   </trim></if>
+                   <if test="@MybatisUtils@isNotEmpty(cntrCstKnm)"><trim>
+                       AND T_CNTR_CST_BAS.CST_KNM = #{cntrCstKnm}
+                   </trim></if>
+                   <if test="@MybatisUtils@isNotEmpty(pdCd)"><trim>
+                       AND T_CNTR_DTL.BASE_PD_CD = #{pdCd}
+                   </trim></if>
+                   <if test="@MybatisUtils@isNotEmpty(pdNm)"><trim>
+                       AND T_PD_BAS.PD_NM LIKE '%' || #{pdNm} || '%'
+                   </trim></if>
+                   <if test="@MybatisUtils@isNotEmpty(pdctIdno)"><trim>
+                       AND T_PDCT_IDNO_OSTR_IZ.PDCT_IDNO = #{pdctIdno}
+                   </trim></if>
+                 ) T
+         <where>
+             <if test="@MybatisUtils@equals(afterTgYn, 'Y')"><trim>
+                 AND T.FRISU_AS_MCN <![CDATA[>]]> T.SS_FRISU_AS_MCN
+                <if test="@MybatisUtils@isNotEmpty(afterTgBaseYm)"><trim>
+                 AND ADD_MONTHS(TO_DATE(T.CNTR_PD_STRTDT), T.SS_FRISU_AS_MCN + 1) <![CDATA[<=]]> TO_DATE(#{afterTgBaseYm}, 'YYYYMM')
+                 AND ADD_MONTHS(TO_DATE(T.CNTR_PD_STRTDT), T.FRISU_AS_MCN + 1) - 1 <![CDATA[>=]]> TO_DATE(#{afterTgBaseYm}, 'YYYYMM')
+                </trim></if>
+             </trim></if>
+             <if test="@MybatisUtils@equals(afterTgYn, 'N')">
+                 AND T.FRISU_AS_MCN <![CDATA[<=]]> T.SS_FRISU_AS_MCN
+             </if>
+         </where>
+    </select>
     <!-- endregion 배송 -->
 
     <sql id="forTemplate">
