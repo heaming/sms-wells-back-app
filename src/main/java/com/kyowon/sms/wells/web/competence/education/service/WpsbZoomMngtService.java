@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.competence.education.service;
 
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchRes;
+import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMngtDto.SearchReq;
+import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMngtDto.SearchRes;
 
 import java.util.List;
 
@@ -9,20 +9,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
-import com.kyowon.sms.wells.web.competence.education.converter.WpsbZoomMgtConverter;
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
-import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
-import com.kyowon.sms.wells.web.competence.education.mapper.WpsbZoomMgtMapper;
+import com.kyowon.sms.wells.web.competence.education.converter.WpsbZoomMngtConverter;
+import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMngtDto;
+import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMngtDvo;
+import com.kyowon.sms.wells.web.competence.education.mapper.WpsbZoomMngtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WpsbZoomMgtService {
+public class WpsbZoomMngtService {
 
-    private final WpsbZoomMgtMapper mapper;
-    private final WpsbZoomMgtConverter converter;
+    private final WpsbZoomMngtMapper mapper;
+    private final WpsbZoomMngtConverter converter;
 
     public List<SearchRes> selectZooms(SearchReq dto) {
         return mapper.selectZooms(dto);
@@ -35,10 +35,10 @@ public class WpsbZoomMgtService {
      * @return processCount
      */
     @Transactional
-    public int saveAllZoom(WpsbZoomMgtDto.EditReq dto) {
+    public int saveAllZoom(WpsbZoomMngtDto.EditReq dto) {
         int processCount = 0;
         int delCnt = mapper.deleteZoom(dto.hgrSvEducMnalId());
-        for (WpsbZoomMgtDto.SaveReq zoomDto : dto.treeList()) {
+        for (WpsbZoomMngtDto.SaveReq zoomDto : dto.treeList()) {
             boolean inSave = false;
             if (dto.hgrSvEducMnalId().equals("WELS0000000000")) {
                 inSave = true;
@@ -48,7 +48,7 @@ public class WpsbZoomMgtService {
                 }
             }
             if (inSave) {
-                WpsbZoomMgtDvo dvo = converter.mapSaveReq(zoomDto);
+                WpsbZoomMngtDvo dvo = converter.mapSaveReq(zoomDto);
                 dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
                 processCount = mapper.insertZoom(dvo);
             }
@@ -64,9 +64,9 @@ public class WpsbZoomMgtService {
     * @return processCount
     */
     @Transactional
-    public int saveZoom(WpsbZoomMgtDto.SaveReq dto) {
+    public int saveZoom(WpsbZoomMngtDto.SaveReq dto) {
         int processCount = 0;
-        WpsbZoomMgtDvo dvo = converter.mapSaveReq(dto);
+        WpsbZoomMngtDvo dvo = converter.mapSaveReq(dto);
         dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
         if (dto.rowState().equals(CommConst.ROW_STATE_CREATED)) {
             processCount = mapper.insertZoom(dvo);
@@ -76,9 +76,9 @@ public class WpsbZoomMgtService {
         return processCount;
     }
 
-    public int removeZoom(WpsbZoomMgtDto.RemoveReq dto) {
+    public int removeZoom(WpsbZoomMngtDto.RemoveReq dto) {
         int processCount = 0;
-        WpsbZoomMgtDvo dvo = converter.mapRemoveReq(dto);
+        WpsbZoomMngtDvo dvo = converter.mapRemoveReq(dto);
         dvo.setDtaDlYn(DeDeductionConst.DELETE_Y);
         processCount = mapper.removeZoom(dvo);
         return processCount;

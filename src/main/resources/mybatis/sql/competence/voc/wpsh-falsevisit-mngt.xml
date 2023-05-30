@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.voc.mapper.WpshFalseVisitMngtMapper">
+
+    <select id="selectFalsehoodMgtPages" resultType = "com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMngtDto$SearchRes">
+        SELECT T1.OC_YM            /* 발생년월 */
+            ,T1.RGST_SN          /* 등록일련번호 */
+            ,T1.PRTNR_NO         /* 파트너번호 */
+            ,T1.OG_ID            /* 조직ID */
+            ,T1.FS_VST_YM        /* 허위방문년월 */
+            ,T1.CNTR_NO          /* 계약번호 */
+            ,T1.CNTR_SN          /* 계약일련번호 */
+            ,T1.HOO_PRTNR_NO     /* 조직장파트너번호 */
+            ,T1.HOO_PRTNR_NM     /* 조직장파트너명 */
+            ,T1.OC_RSON_CN       /* 발생사유내용 */
+            ,T1.DTA_DL_YN        /* 데이터삭제여부 */
+            ,T2.PRTNR_KNM
+            ,T2.OG_TP_CD
+            ,T1.CNTR_NO||'-'||T1.CNTR_SN AS CNTR_NO_SN
+            ,(SELECT T4.CST_KNM FROM TB_SSCT_CNTR_BAS T3, TB_CUBS_CST_BAS T4 WHERE T3.CNTR_NO = T1.CNTR_NO AND T4.CST_NO = T3.CNTR_CST_NO AND T4.DTA_DL_YN = 'N' AND ROWNUM = 1) CST_KNM /* 고객명 */
+        FROM TB_PSEV_WPTN_FS_VST_MNGT_BAS T1 /* 웰스파트너허위방문관리기본 */INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+            ON T2.OG_ID = T1.OG_ID
+            AND T2.PRTNR_NO = T1.PRTNR_NO
+        WHERE T1.DTA_DL_YN  = 'N'
+            <if test='@MybatisUtils@isNotEmpty(ocYm)'>
+                AND T1.OC_YM            = #{ocYm}             /* 발생년월 */
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                AND T1.PRTNR_NO          = #{prtnrNo}           /* 파트너번호 */
+            </if>
+        ORDER BY T1.RGST_SN DESC
+    </select>
+
+
+    <insert id="insertFalsevisit">
+        <selectKey keyProperty="rgstSn" resultType="String" order="BEFORE">
+            SELECT NVL(MAX(RGST_SN), 0)+1 FROM TB_PSEV_WPTN_FS_VST_MNGT_BAS
+        </selectKey>
+        INSERT INTO TB_PSEV_WPTN_FS_VST_MNGT_BAS /* 웰스파트너허위방문관리기본 */
+             (
+              OC_YM            /* 발생년월 */
+             , RGST_SN          /* 등록일련번호 */
+             , PRTNR_NO         /* 파트너번호 */
+             , OG_ID            /* 조직ID */
+             , FS_VST_YM        /* 허위방문년월 */
+             , CNTR_NO          /* 계약번호 */
+             , CNTR_SN          /* 계약일련번호 */
+             , HOO_PRTNR_NO     /* 조직장파트너번호 */
+             , HOO_PRTNR_NM     /* 조직장파트너명 */
+             , OC_RSON_CN       /* 발생사유내용 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{ocYm}
+            , ${rgstSn}
+            , #{prtnrNo}
+            ,  (SELECT OG_ID FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = #{ogTpCd} AND PRTNR_NO = #{prtnrNo})
+            , #{fsVstYm}
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{hooPrtnrNo}
+            , #{hooPrtnrNm}
+            , #{ocRsonCn}
+            , #{dtaDlYn}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateFalsevisit">
+        UPDATE TB_PSEV_WPTN_FS_VST_MNGT_BAS /* 웰스파트너허위방문관리기본 */
+           SET   OC_YM    = #{ocYm}       /* 발생년월 */
+             , PRTNR_NO    = #{prtnrNo}     /* 파트너번호 */
+             , OG_ID  = (SELECT OG_ID FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = #{ogTpCd} AND PRTNR_NO = #{prtnrNo})     /* 조직ID */
+             , FS_VST_YM  = #{fsVstYm}      /* 허위방문년월 */
+             , CNTR_NO     = #{cntrNo}     /* 계약번호 */
+             , CNTR_SN    = #{cntrSn}      /* 계약일련번호 */
+             , HOO_PRTNR_NO = #{hooPrtnrNo}    /* 조직장파트너번호 */
+             , HOO_PRTNR_NM  = #{hooPrtnrNm}   /* 조직장파트너명 */
+             , OC_RSON_CN    = #{ocRsonCn}   /* 발생사유내용 */
+             , DTA_DL_YN     = #{dtaDlYn}   /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE RGST_SN     = #{rgstSn}        /* 등록일련번호 */
+    </update>
+
+    <update id="removeFalsevisit">
+        UPDATE TB_PSEV_WPTN_FS_VST_MNGT_BAS /* 웰스파트너허위방문관리기본 */
+            SET   DTA_DL_YN     = 'Y'  /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE RGST_SN     = #{rgstSn}        /* 등록일련번호 */
+    </update>
+
+
+</mapper>
