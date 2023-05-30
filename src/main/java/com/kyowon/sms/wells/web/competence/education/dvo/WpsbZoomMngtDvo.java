@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WpsbZoomMgtDvo {
+public class WpsbZoomMngtDvo {
     private String svEducMnalId; /* 서비스교육매뉴얼ID */
     private String hgrSvEducMnalId; /* 상위서비스교육매뉴얼ID */
     private String svEducMnalNm; /* 서비스교육매뉴얼명 */

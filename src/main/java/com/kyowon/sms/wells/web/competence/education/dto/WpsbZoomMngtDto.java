@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-public class WpsbZoomMgtDto {
+public class WpsbZoomMngtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
