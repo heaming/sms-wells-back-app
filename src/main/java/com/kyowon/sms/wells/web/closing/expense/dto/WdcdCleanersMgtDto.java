@@ -54,6 +54,7 @@ public class WdcdCleanersMgtDto {
         String wrkEnddt, /*근무종료일자*/
         String workStatus, /*근무여부*/
         // TODO. 머스킹 필요
+        @MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, /*주민등록번호*/
         String locaraTno,
         String exnoEncr,
@@ -63,6 +64,7 @@ public class WdcdCleanersMgtDto {
         String address, /*주민등록상의주소*/
         String bnkCd, /*은행코드*/
         String bnkNm, /*은행명*/
+        @MaskRequired(type = MaskingType.ACCOUNT)
         String acnoEncr /*계좌번호*/
     ) {
         public SearchRes {

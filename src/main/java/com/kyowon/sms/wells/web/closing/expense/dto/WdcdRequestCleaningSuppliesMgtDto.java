@@ -76,8 +76,10 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-FindRes")
     public record FindRes(
         String clingCostAdjRcpNo,
+        @MaskRequired(type = MaskingType.NAME)
         String cardPsrNm,
         String aplcDt,
+        @MaskRequired(type = MaskingType.NAME)
         String claimNm,
         String bldCd,
         String bilAmt,

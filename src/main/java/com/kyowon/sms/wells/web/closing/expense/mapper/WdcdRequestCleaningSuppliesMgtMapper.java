@@ -18,5 +18,7 @@ public interface WdcdRequestCleaningSuppliesMgtMapper {
 
     int insertRequestCleaningSupplies(WdcdRequestCleaningSuppliesDvo dvo);
 
+    int updateRequestCleaningSupplies(WdcdRequestCleaningSuppliesDvo dvo);
+
     FindRes selectRequestCleaningSupplies(String clingCostAdjRcpNo);
 }

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -35,28 +34,45 @@ public class WdcdRequestCleaningSuppliesMgtService {
 
         int count = 0;
 
-        WdcdRequestCleaningSuppliesDvo dvo = converter.mapSaveReqToWdcdRequestCleaningSuppliesDvo(req);
-
         if (StringUtil.isEmpty(req.clingCostAdjRcpNo())) {
 
+            WdcdRequestCleaningSuppliesDvo dvo = converter.mapSaveReqToWdcdRequestCleaningSuppliesDvo(req);
             String clingCostAdjRcpNo = mapper.selectClingCostAdjRcpNo(req);
             dvo.setClingCostAdjRcpNo(clingCostAdjRcpNo);
             String clingCostSignApnFileId = groupId + "_ADJ" + clingCostAdjRcpNo;
-            dvo.setClingCostSignApnFileId(clingCostSignApnFileId);
+
             dvo.setDtaDlYn("N");
 
-            if (Objects.nonNull(dvo.getAttachFiles())) {
-                count += mapper.insertRequestCleaningSupplies(dvo);
-                attachFileService.saveAttachFiles(groupId, clingCostSignApnFileId, dvo.getAttachFiles());
-                BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
-            }
+            BizAssert.isTrue(dvo.getAttachFiles().size() > 0, "MSG_ALT_APN_FILE_RGST");
+
+            attachFileService.saveAttachFiles(groupId, clingCostSignApnFileId, dvo.getAttachFiles());
+            dvo.setClingCostSignApnFileId(clingCostSignApnFileId);
+            count += mapper.insertRequestCleaningSupplies(dvo);
+            BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
+
         } else {
 
-            if (Objects.nonNull(dvo.getAttachFiles())) {
-                attachFileService.saveAttachFiles(groupId, dvo.getClingCostAdjRcpNo(), dvo.getAttachFiles());
-                count += mapper.insertRequestCleaningSupplies(dvo);
-                BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
+
+            FindRes res = mapper.selectRequestCleaningSupplies(req.clingCostAdjRcpNo());
+
+            boolean isMaskedClaimNm = req.claimNm().matches("^[가-힣]*$");
+            boolean isMaskedCardPsrNm = req.cardPsrNm().matches("^[가-힣]*$");
+
+            WdcdRequestCleaningSuppliesDvo saveDvo = converter.mapSaveReqToWdcdRequestCleaningSuppliesDvo(req);
+            BizAssert.isTrue(saveDvo.getAttachFiles().size() > 0, "MSG_ALT_APN_FILE_RGST");
+
+            if (isMaskedClaimNm) {
+                saveDvo.setClaimNm(String.valueOf(res.claimNm()));
             }
+
+            if (!isMaskedCardPsrNm) {
+                saveDvo.setCardPsrNm(String.valueOf(res.cardPsrNm()));
+            }
+
+            attachFileService.saveAttachFiles(groupId, saveDvo.getClingCostAdjRcpNo(), saveDvo.getAttachFiles());
+            count += mapper.updateRequestCleaningSupplies(saveDvo);
+            BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
+
         }
 
         return count;
