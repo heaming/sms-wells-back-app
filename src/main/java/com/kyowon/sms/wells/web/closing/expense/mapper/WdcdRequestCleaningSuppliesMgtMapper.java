@@ -21,4 +21,6 @@ public interface WdcdRequestCleaningSuppliesMgtMapper {
     int updateRequestCleaningSupplies(WdcdRequestCleaningSuppliesDvo dvo);
 
     FindRes selectRequestCleaningSupplies(String clingCostAdjRcpNo);
+
+    WdcdRequestCleaningSuppliesDvo selectRequestCleaningSuppliesDetail(String clingCostAdjRcpNo);
 }

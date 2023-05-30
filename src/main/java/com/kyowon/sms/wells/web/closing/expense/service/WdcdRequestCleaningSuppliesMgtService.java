@@ -57,6 +57,7 @@ public class WdcdRequestCleaningSuppliesMgtService {
 
             boolean isMaskedClaimNm = req.claimNm().matches("^[가-힣]*$");
             boolean isMaskedCardPsrNm = req.cardPsrNm().matches("^[가-힣]*$");
+            boolean isMaskedexnoEncr = req.exnoEncr().matches("^[*]*$");
 
             WdcdRequestCleaningSuppliesDvo saveDvo = converter.mapSaveReqToWdcdRequestCleaningSuppliesDvo(req);
             BizAssert.isTrue(saveDvo.getAttachFiles().size() > 0, "MSG_ALT_APN_FILE_RGST");
@@ -69,6 +70,10 @@ public class WdcdRequestCleaningSuppliesMgtService {
                 saveDvo.setCardPsrNm(String.valueOf(res.cardPsrNm()));
             }
 
+            if (!isMaskedexnoEncr) {
+                saveDvo.setExnoEncr(String.valueOf(res.exnoEncr()));
+            }
+
             attachFileService.saveAttachFiles(groupId, saveDvo.getClingCostAdjRcpNo(), saveDvo.getAttachFiles());
             count += mapper.updateRequestCleaningSupplies(saveDvo);
             BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
@@ -79,6 +84,8 @@ public class WdcdRequestCleaningSuppliesMgtService {
     }
 
     public FindRes getRequestCleaningSupplies(String clingCostAdjRcpNo) {
-        return mapper.selectRequestCleaningSupplies(clingCostAdjRcpNo);
+        WdcdRequestCleaningSuppliesDvo saveDvo = mapper.selectRequestCleaningSuppliesDetail(clingCostAdjRcpNo);
+        FindRes res = converter.mapWdcdRequestCleaningSuppliesDvoToFindRes(saveDvo);
+        return res;
     }
 }
