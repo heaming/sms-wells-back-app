@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.competence.voc.service;
 
-import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMngtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMngtDto.SearchRes;
+import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchReq;
+import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchRes;
 
 import java.util.List;
 
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
-import com.kyowon.sms.wells.web.competence.voc.converter.WpshFalsehoodMngtConverter;
-import com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMngtDto;
-import com.kyowon.sms.wells.web.competence.voc.dvo.WpshFalseVisitMngtDvo;
-import com.kyowon.sms.wells.web.competence.voc.mapper.WpshFalseVisitMngtMapper;
+import com.kyowon.sms.wells.web.competence.voc.converter.WpshFalsehoodMgtConverter;
+import com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto;
+import com.kyowon.sms.wells.web.competence.voc.dvo.WpshFalseVisitMgtDvo;
+import com.kyowon.sms.wells.web.competence.voc.mapper.WpshFalseVisitMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -23,10 +23,10 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WpshFalsehoodMngtService {
+public class WpshFalsehoodMgtService {
 
-    private final WpshFalseVisitMngtMapper mapper;
-    private final WpshFalsehoodMngtConverter converter;
+    private final WpshFalseVisitMgtMapper mapper;
+    private final WpshFalsehoodMgtConverter converter;
 
     private final static int LENGTH_12_INT_RADIX = 11;
 
@@ -37,12 +37,12 @@ public class WpshFalsehoodMngtService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<SearchRes> getFalsehoodMgtPages(SearchReq req, PageInfo pageInfo) {
-        return mapper.selectFalsehoodMgtPages(req, pageInfo);
+    public PagingResult<SearchRes> getFalsehoodPages(SearchReq req, PageInfo pageInfo) {
+        return mapper.selectFalsehoodPages(req, pageInfo);
     }
 
-    public List<SearchRes> getFalsehoodMgtsForExcelDownload(SearchReq dto) {
-        return mapper.selectFalsehoodMgtPages(dto);
+    public List<SearchRes> getFalsehoodsForExcelDownload(SearchReq dto) {
+        return mapper.selectFalsehoodPages(dto);
     }
 
     /**
@@ -52,10 +52,10 @@ public class WpshFalsehoodMngtService {
      * @return processCount
      */
     @Transactional
-    public int saveFalsevisit(List<WpshFalseVisitMngtDto.SaveReq> dtos) {
+    public int saveFalsevisit(List<WpshFalseVisitMgtDto.SaveReq> dtos) {
         int processCount = 0;
-        for (WpshFalseVisitMngtDto.SaveReq dto : dtos) {
-            WpshFalseVisitMngtDvo dvo = this.converter.mapSaveReq(dto);
+        for (WpshFalseVisitMgtDto.SaveReq dto : dtos) {
+            WpshFalseVisitMgtDvo dvo = this.converter.mapSaveReq(dto);
             dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
@@ -82,10 +82,10 @@ public class WpshFalsehoodMngtService {
      * @param dtos
      * @return processCount
      */
-    public int removeFalsevisit(List<WpshFalseVisitMngtDto.RemoveReq> dtos) {
+    public int removeFalsevisit(List<WpshFalseVisitMgtDto.RemoveReq> dtos) {
         int processCount = 0;
-        for (WpshFalseVisitMngtDto.RemoveReq dto : dtos) {
-            WpshFalseVisitMngtDvo dvo = this.converter.mapRemoveReq(dto);
+        for (WpshFalseVisitMgtDto.RemoveReq dto : dtos) {
+            WpshFalseVisitMgtDvo dvo = this.converter.mapRemoveReq(dto);
             dvo.setDtaDlYn(DeDeductionConst.DELETE_Y);
             processCount = mapper.removeFalsevisit(dvo);
         }

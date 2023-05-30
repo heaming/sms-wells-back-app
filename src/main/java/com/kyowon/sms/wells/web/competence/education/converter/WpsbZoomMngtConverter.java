@@ -2,12 +2,12 @@ package com.kyowon.sms.wells.web.competence.education.converter;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMngtDto;
-import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMngtDvo;
+import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
+import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
 
 @Mapper(componentModel = "spring")
 public interface WpsbZoomMngtConverter {
-    WpsbZoomMngtDvo mapSaveReq(WpsbZoomMngtDto.SaveReq dto);
+    WpsbZoomMgtDvo mapSaveReq(WpsbZoomMgtDto.SaveReq dto);
 
-    WpsbZoomMngtDvo mapRemoveReq(WpsbZoomMngtDto.RemoveReq dto);
+    WpsbZoomMgtDvo mapRemoveReq(WpsbZoomMgtDto.RemoveReq dto);
 }

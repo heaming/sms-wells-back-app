@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WpshFalseVisitMngtDvo {
+public class WpshFalseVisitMgtDvo {
     private String ocYm; /* 발생년월 */
     private Integer rgstSn; /* 등록일련번호 */
     private String prtnrNo; /* 파트너번호 */

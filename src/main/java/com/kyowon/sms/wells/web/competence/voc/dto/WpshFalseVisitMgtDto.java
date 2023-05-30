@@ -5,7 +5,7 @@ import javax.validation.constraints.NotBlank;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-public class WpshFalseVisitMngtDto {
+public class WpshFalseVisitMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
@@ -50,10 +50,14 @@ public class WpshFalseVisitMngtDto {
     public record SaveReq(
         String ocYm, /* 발생년월 */
         Integer rgstSn, /* 등록일련번호 */
+        @NotBlank
         String prtnrNo, /* 파트너번호 */
         String ogId, /* 조직ID */
+        @NotBlank
         String fsVstYm, /* 허위방문년월 */
+        @NotBlank
         String cntrNo, /* 계약번호 */
+        @NotBlank
         Integer cntrSn, /* 계약일련번호 */
         String hooPrtnrNo, /* 조직장파트너번호 */
         String hooPrtnrNm, /* 조직장파트너명 */

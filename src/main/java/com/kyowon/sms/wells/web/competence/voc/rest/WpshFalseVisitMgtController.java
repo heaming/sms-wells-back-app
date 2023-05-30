@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.competence.voc.rest;
 
-import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMngtDto.*;
+import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.*;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.competence.voc.service.WpshFalsehoodMngtService;
+import com.kyowon.sms.wells.web.competence.voc.service.WpshFalsehoodMgtService;
 import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -25,10 +25,10 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/voc-falsevisit")
-public class WpshFalseVisitMngtController {
+@RequestMapping(psCompetenceConst.REST_URL_V1 + "/falsevisit")
+public class WpshFalseVisitMgtController {
 
-    private final WpshFalsehoodMngtService service;
+    private final WpshFalsehoodMgtService service;
 
     @ApiOperation(value = "wells 허위방문관리 페이징 조회", notes = "")
     @ApiImplicitParams(value = {
@@ -36,13 +36,13 @@ public class WpshFalseVisitMngtController {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = true),
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getFalsehoodMgtPages(
+    public PagingResult<SearchRes> getFalsehoodPages(
         @Valid
         SearchReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return service.getFalsehoodMgtPages(dto, pageInfo);
+        return service.getFalsehoodPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "wells 허위방문관리 저장", notes = "허위방문 목록을 저장한다.")
@@ -72,11 +72,11 @@ public class WpshFalseVisitMngtController {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
     @GetMapping("/excel-download")
-    public List<SearchRes> getFalsehoodMgtsForExcelDownload(
+    public List<SearchRes> getFalsehoodsForExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getFalsehoodMgtsForExcelDownload(dto);
+        return service.getFalsehoodsForExcelDownload(dto);
     }
 
 }
