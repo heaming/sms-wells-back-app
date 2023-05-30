@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.competence.education.rest;
 
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMngtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMngtDto.SearchRes;
+import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchReq;
+import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchRes;
 
 import java.util.List;
 
@@ -10,8 +10,8 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMngtDto;
-import com.kyowon.sms.wells.web.competence.education.service.WpsbZoomMngtService;
+import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
+import com.kyowon.sms.wells.web.competence.education.service.WpsbZoomMgtService;
 import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -26,9 +26,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(psCompetenceConst.REST_URL_V1 + "/zoom-counsel")
-public class WpsbZoomMngtController {
+public class WpsbZoomMgtController {
 
-    private final WpsbZoomMngtService service;
+    private final WpsbZoomMgtService service;
 
     @ApiOperation(value = " wells 교육관리 알려zoom menu 조회", notes = "wells 교육관리 알려zoom menu를 조회한다.")
     @ApiImplicitParams(value = {
@@ -47,7 +47,7 @@ public class WpsbZoomMngtController {
     public SaveResponse saveZoom(
         @RequestBody
         @Valid
-        WpsbZoomMngtDto.SaveReq dto
+        WpsbZoomMgtDto.SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveZoom(dto))
@@ -59,7 +59,7 @@ public class WpsbZoomMngtController {
     public SaveResponse saveAllZoom(
         @RequestBody
         @Valid
-        WpsbZoomMngtDto.EditReq dto
+        WpsbZoomMgtDto.EditReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveAllZoom(dto))
@@ -71,7 +71,7 @@ public class WpsbZoomMngtController {
     public SaveResponse removeZoom(
         @RequestBody
         @Valid
-        WpsbZoomMngtDto.RemoveReq dto
+        WpsbZoomMgtDto.RemoveReq dto
     ) {
 
         return SaveResponse.builder().processCount(service.removeZoom(dto)).build();
