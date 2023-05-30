@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -58,14 +57,9 @@ public class WctiCustomerAgreeInterfaceController {
         // 응답용 EaiWrapper
         EaiWrapper<List<SaveRes>> resWrapper = reqWrapper.newResInstance();
 
-        List<SaveRes> resList = new ArrayList<>();
-
         // 서비스 메소드 호출
-        for (SaveReq req : reqWrapper.getBody()) {
-            String scnYn = service.saveCustomerAgrees(req);
-            SaveRes res = new SaveRes(scnYn);
-            resList.add(res);
-        }
+        List<SaveRes> resList = service.saveCustomerAgrees(reqWrapper.getBody());
+
         // 바디 설정
         resWrapper.setBody(resList);
 
