@@ -6,7 +6,7 @@ import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
 import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
 
 @Mapper(componentModel = "spring")
-public interface WpsbZoomMgtConverter {
+public interface WpsbZoomMngtConverter {
     WpsbZoomMgtDvo mapSaveReq(WpsbZoomMgtDto.SaveReq dto);
 
     WpsbZoomMgtDvo mapRemoveReq(WpsbZoomMgtDto.RemoveReq dto);

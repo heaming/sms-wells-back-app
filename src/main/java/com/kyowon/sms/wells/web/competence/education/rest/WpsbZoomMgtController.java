@@ -39,7 +39,7 @@ public class WpsbZoomMgtController {
         @Valid
         SearchReq dto
     ) {
-        return service.selectZooms(dto);
+        return service.getZooms(dto);
     }
 
     @ApiOperation(value = "wells 교육관리 알려zoom menu 저장", notes = "wells 교육관리 알려zoom menu를 저장한다.")
