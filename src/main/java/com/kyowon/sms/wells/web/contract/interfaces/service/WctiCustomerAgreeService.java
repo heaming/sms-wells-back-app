@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.contract.interfaces.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.interfaces.converter.WctiCustomerAgreeConverter;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SearchReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto.SearchRes;
@@ -47,31 +49,36 @@ public class WctiCustomerAgreeService {
     * @return      String
     */
     @Transactional
-    public String saveCustomerAgrees(SaveReq dto) {
-
-        WctiCustomerAgreeDvo dvo = converter.mapSaveReqToWctiCustomerAgreeDvo(dto);
-        List<String> cstAgIds = mapper.selectCstAgIdBas(dvo);
-        if (cstAgIds.size() > 0) {
-            for (String cstAgId : cstAgIds) {
-                dvo.setCstAgId(cstAgId);
-                mapper.updateCubsCstAgIz(dvo);
-                mapper.updateCubsCstAgIzDtl(dvo);
-            }
-            return "Y";
-        } else {
-            cstAgIds = mapper.selectCstAgId(dvo);
+    public List<WctiCustomerAgreeDto.SaveRes> saveCustomerAgrees(List<SaveReq> dtos) {
+        List<WctiCustomerAgreeDto.SaveRes> result = new ArrayList<>();
+        for (SaveReq dto : dtos) {
+            WctiCustomerAgreeDvo dvo = converter.mapSaveReqToWctiCustomerAgreeDvo(dto);
+            List<String> cstAgIds = mapper.selectCstAgIdBas(dvo);
             if (cstAgIds.size() > 0) {
                 for (String cstAgId : cstAgIds) {
                     dvo.setCstAgId(cstAgId);
                     mapper.updateCubsCstAgIz(dvo);
-                    mapper.insertCubsCstAgIzDtl(dvo);
+                    mapper.updateCubsCstAgIzDtl(dvo);
                 }
+                WctiCustomerAgreeDto.SaveRes res = new WctiCustomerAgreeDto.SaveRes("Y");
+                result.add(res);
             } else {
-                mapper.insertCubsCstAgIz(dvo);
-                mapper.insertCubsCstAgIzDtl(dvo);
+                cstAgIds = mapper.selectCstAgId(dvo);
+                if (cstAgIds.size() > 0) {
+                    for (String cstAgId : cstAgIds) {
+                        dvo.setCstAgId(cstAgId);
+                        mapper.updateCubsCstAgIz(dvo);
+                        mapper.insertCubsCstAgIzDtl(dvo);
+                    }
+                } else {
+                    mapper.insertCubsCstAgIz(dvo);
+                    mapper.insertCubsCstAgIzDtl(dvo);
 
+                }
+                WctiCustomerAgreeDto.SaveRes res = new WctiCustomerAgreeDto.SaveRes("Y");
+                result.add(res);
             }
-            return "Y";
         }
+        return result;
     }
 }
