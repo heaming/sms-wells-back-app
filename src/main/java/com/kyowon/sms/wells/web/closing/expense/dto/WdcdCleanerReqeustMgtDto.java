@@ -18,7 +18,7 @@ public class WdcdCleanerReqeustMgtDto {
     @ApiModel(value = "WdcdCleanerReqeustMgtDto-FindCodeReq")
     public record FindCodeReq(
         String ogTpCd,
-        String bldNm
+        String prtnrNo
     ) {
     }
 
@@ -113,7 +113,8 @@ public class WdcdCleanerReqeustMgtDto {
         String cntrLroreApnFileId
     ) {
         public FindRes {
-            rrnoEncr = frontRrnoEncr + backRrnoEncr;
+            frontRrnoEncr = rrnoEncr.substring(0, 6);
+            backRrnoEncr = rrnoEncr.substring(6, 13);
         }
     }
 }
