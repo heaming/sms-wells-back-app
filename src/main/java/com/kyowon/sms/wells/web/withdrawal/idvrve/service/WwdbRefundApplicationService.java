@@ -191,7 +191,7 @@ public class WwdbRefundApplicationService {
         }
 
         // 엑셀 업로드 값 입력
-        if (status.equals("S")) {
+        if ("S".equals(status)) {
             for (WwdbRefundApplicationExcelUploadDvo refundApplication : refundApplications) {
 
                 mapper.insertRefundApplicationDetail(refundApplication);
@@ -470,7 +470,7 @@ public class WwdbRefundApplicationService {
      * @param SearchRefundApplicationConnectHistoryReq
      * @return PagingResult<SearchRefundApplicationConnectHistoryRes> 
      */
-    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryExcels(
+    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistorysForExcelDownload(
         String cntrNo
     ) {
         return mapper.selectRefundApplicationConnectHistory(cntrNo);

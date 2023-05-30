@@ -267,11 +267,11 @@ public class WwdbRefundApplicationController {
 
     @ApiOperation(value = "환불 신청 컨텍 이력 사항 엑셀 다운로드", notes = "환불 신청 컨텍 이력 사항 엑셀 다운로드")
     @GetMapping("/connect-history/excel-download")
-    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryExcels(
+    public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistorysForExcelDownload(
         @RequestParam
         String cntrNo
     ) {
-        return service.getRefundApplicationConnectHistoryExcels(cntrNo);
+        return service.getRefundApplicationConnectHistorysForExcelDownload(cntrNo);
     }
 
 }
