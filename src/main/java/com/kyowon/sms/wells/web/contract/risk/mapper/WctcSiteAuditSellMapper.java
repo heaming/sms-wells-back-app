@@ -1,7 +1,8 @@
 package com.kyowon.sms.wells.web.contract.risk.mapper;
 
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.*;
+
+import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
@@ -16,4 +17,5 @@ public interface WctcSiteAuditSellMapper {
         PageInfo pageInfo
     );
 
+    List<SearchDetailRes> selectSiteAuditSellsForExcelDownload(SearchReq dto);
 }

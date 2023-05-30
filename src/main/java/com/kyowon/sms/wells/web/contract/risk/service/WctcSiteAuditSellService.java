@@ -1,7 +1,8 @@
 package com.kyowon.sms.wells.web.contract.risk.service;
 
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.SearchReq;
-import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.risk.dto.WctcSiteAuditSellDto.*;
+
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,12 @@ public class WctcSiteAuditSellService {
 
     public PagingResult<SearchRes> getSiteAuditSellPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectSiteAuditSellPages(dto, pageInfo);
+    }
+
+    public List<SearchDetailRes> getSiteAuditSellsForExcelDownload(
+        SearchReq dto
+    ) {
+        return mapper.selectSiteAuditSellsForExcelDownload(dto);
     }
 
 }
