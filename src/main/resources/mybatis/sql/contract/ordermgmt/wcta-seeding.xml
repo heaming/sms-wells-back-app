@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaSeedingMapper">
+
+    <select id="selectMachinery"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSeedingDto$SearchMachineRes">
+        SELECT T_CNTR_DTL.CNTR_NO
+             , T_CNTR_DTL.CNTR_SN
+             , T_PD_BAS.PD_CD
+             , T_PD_BAS.PD_NM
+             , T_CNTR_WELLS_DTL.IST_DT
+             , CASE
+                   WHEN T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003001' THEN '12구'
+                   WHEN T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003002' THEN '6구'
+                                                                      ELSE ''
+               END AS POS_QTY
+          FROM TB_SSCT_CNTR_DTL                  T_CNTR_DTL
+               INNER JOIN TB_SSCT_CNTR_BAS       T_CNTR_BAS
+               ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+               INNER JOIN TB_PDBS_PD_BAS         T_PD_BAS
+               ON T_PD_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
+               INNER JOIN TB_PDBS_PD_CLSF_BAS    T_PD_CLSF_BAS
+               ON T_PD_CLSF_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_CLSF_BAS.PD_CLSF_ID = T_PD_BAS.PD_DCLSF_ID
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL LIKE '05001003%'
+               INNER JOIN TB_SSCT_CNTR_WELLS_DTL T_CNTR_WELLS_DTL
+               ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
+                   AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+         WHERE T_CNTR_DTL.DTA_DL_YN = 'N'
+           AND T_CNTR_DTL.SELL_TP_CD IN ('1', '2')
+           AND NOT EXISTS(
+             SELECT 1
+               FROM TB_SSCT_CNTR_REL
+              WHERE DTA_DL_YN = 'N'
+                AND OJ_DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO
+                AND OJ_DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+                AND CNTR_REL_DTL_CD = '216' /*모종결합*/
+                AND VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                AND VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             )
+           AND T_CNTR_BAS.CNTR_CST_NO = #{cntrCstNo}
+           <choose>
+               <when test="@MybatisUtils@equals(rglrSppMchnTpCd, '1')"><trim>
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003001'
+               </trim></when>
+               <when test="@MybatisUtils@equals(rglrSppMchnTpCd, '2')"><trim>
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003002'
+               </trim></when>
+               <when test="@MybatisUtils@equals(rglrSppMchnTpCd, '3')"><trim>
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003003'
+               </trim></when>
+           </choose>
+    </select>
+</mapper>
