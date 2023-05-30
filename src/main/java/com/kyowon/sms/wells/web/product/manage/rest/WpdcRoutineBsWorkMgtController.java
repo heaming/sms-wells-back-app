@@ -97,6 +97,30 @@ public class WpdcRoutineBsWorkMgtController {
             .build();
     }
 
+    @ApiOperation(value = "정기 B/S 투입 상세 수정", notes = "수정된 정기 B/S 투입 상세 정보를 반영한다.")
+    @PutMapping("/details")
+    public SaveResponse editBsWorkDetail(
+        @Valid
+        @RequestBody
+        WpdcRoutineBsWorkMgtDto.EditDetailReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveRoutineBsWorkDetails(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "정기 B/S 투입 상세 삭제")
+    @DeleteMapping("/details")
+    public SaveResponse removeBsWorkDetail(
+        @RequestBody
+        @NotEmpty
+        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.removeRoutineBsWorkDetails(dtos))
+            .build();
+    }
+
     @ApiOperation(value = "생활맞춤형필터 수정", notes = "수정된 생활맞춤형필터 정보를 반영한다.")
     @PutMapping("/life-filters")
     public SaveResponse editLifeCustomFilters(

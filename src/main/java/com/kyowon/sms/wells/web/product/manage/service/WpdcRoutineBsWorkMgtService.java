@@ -60,11 +60,29 @@ public class WpdcRoutineBsWorkMgtService {
         return cnt;
     }
 
+    public int saveRoutineBsWorkDetails(WpdcRoutineBsWorkMgtDto.EditDetailReq dto) throws Exception {
+        int cnt = 0;
+        List<WpdcRoutineBsWorkDetailDvo> details = converter.mapAllBsWorkDetailDtoToBsWorkDetailDvo(dto.details());
+        for (WpdcRoutineBsWorkDetailDvo detail : details) {
+            cnt += mapper.updateRoutineBsWorkDetail(detail);
+        }
+        return cnt;
+    }
+
     public int saveLifeFilters(WpdcRoutineBsWorkMgtDto.EditLifeFilterReq dto) throws Exception {
         int cnt = 0;
         List<WpdcLifeCustomFilterBaseDvo> filters = converter.mapAllLifeFltBaseDtoToLifeFltBaseDvo(dto.bases());
         for (WpdcLifeCustomFilterBaseDvo filter : filters) {
             cnt += mapper.mergeLifeCustomFilterBase(filter);
+        }
+        return cnt;
+    }
+
+    public int removeRoutineBsWorkDetails(List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> dtos) {
+        int cnt = 0;
+        List<WpdcRoutineBsWorkDetailDvo> details = converter.mapAllBsWorkDetailDtoToBsWorkDetailDvo(dtos);
+        for (WpdcRoutineBsWorkDetailDvo detail : details) {
+            cnt += mapper.deleteRoutineBsWorkDetail(detail);
         }
         return cnt;
     }
