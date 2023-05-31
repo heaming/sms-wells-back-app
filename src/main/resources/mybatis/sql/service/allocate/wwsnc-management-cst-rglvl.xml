@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncManagementCstRglvlMapper">
+
+    <select id="selectManagementCustomerRglvlPages" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto$SearchRes">
+	SELECT T0.*
+    FROM ( SELECT DISTINCT T1.CNTR_NO 																	-- 계약번호
+						 , T1.CNTR_SN 																	-- 계약번호
+			  			 , T2.RCGVP_KNM 																-- 고객명
+						 , T11.SVPD_SAP_CD	                                                            -- SAP코드
+						 , T1.PDCT_PD_CD 																-- 품목코드
+						 , T11.SVPD_NM_ABBR1	                                                        -- 상품명
+						 , T1.IST_DT 																	-- 설치일자
+						 , T3.NEW_ADR_ZIP 																-- 우편번호
+						 , T3.RNADR || ' ' || T3.RDADR AS ADR 											-- 주소
+						 , T3.CTCTY_NM || ' ' || T3.CTCTY_NM || ' ' || T3.EMD_NM AS ADR_EMD				-- 주소(읍면동)
+						 , CASE
+							 WHEN ( T4.WK_SN = 1 AND T4.VST_DUEDT = #{manageYm} ) 		  THEN '01' --'신규'
+							 WHEN ( T4.ASN_OJ_YM = #{manageYm} AND T4.VST_PRGS_STAT_CD = '00' ) THEN '02' --'작업대기'
+							 WHEN ( T4.ASN_OJ_YM = #{manageYm} AND T4.VST_PRGS_STAT_CD = '20' ) THEN '03' --'작업완료'
+						   	 ELSE '00' -- '예정'
+						   END AS RCGVP_DIV 															-- 고객구분
+						 , DECODE(T6.DTA_DL_YN, 'Y', '고정', '') AS FIX									-- 고정
+						 , T5.VST_DUEDT																	-- 차기방문월
+						 , T9.DGR2_LEVL_OG_CD   AS MNG_STD_DGR2_LEVL_OG_CD								-- 관리기준(관리계정) - 지역단
+						 , T9.DGR3_LEVL_OG_CD   AS MNG_STD_DGR3_LEVL_OG_CD								-- 관리기준(관리계정) - 지점
+						 , T7.PRTNR_KNM	        AS MNG_STD_PRTNR_KNM									-- 관리기준(관리계정) - 매니저
+						 , T1.MNGER_RGLVL_DV_CD AS MNG_STD_MNGER_RGLVL_DV_CD							-- 관리기준(관리계정) - 관리기준급지
+						 , T10.DGR2_LEVL_OG_CD  AS CUR_MNTH_ALCTN_DGR2_LEVL_OG_CD						-- 당월배정 - 지역단
+						 , T10.DGR3_LEVL_OG_CD  AS CUR_MNTH_ALCTN_DGR3_LEVL_OG_CD						-- 당월배정 - 지점
+						 , T8.PRTNR_KNM         AS CUR_MNTH_ALCTN_PRTNR_KNM								-- 당월배정 - 매니저
+						 , T4.MNGER_RGLVL_DV_CD AS CUR_MNTH_ALCTN_MNGER_RGLVL_DV_CD						-- 당월배정 - 관리기준급지
+		                 , T4.CST_SV_ASN_NO
+					  FROM TB_SVPD_CST_SV_EXCN_IZ T1
+				INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+						ON T2.CNTR_NO = T1.CNTR_NO
+					   AND T2.DTA_DL_YN = 'N'
+		   LEFT OUTER JOIN (
+						SELECT T1.DTL_CNTR_NO
+							 , T1.DTL_CNTR_SN
+							 , T4.CTPV_NM
+							 , T4.CTCTY_NM
+							 , T4.EMD_NM
+							 , T3.NEW_ADR_ZIP
+							 , T3.RNADR
+							 , T3.RDADR
+						  FROM TB_SSCT_CNTR_ADR_REL T1
+						     , TB_SSCT_CNTR_ADRPC_BAS T2
+						     , TB_GBCO_ADR_BAS T3
+						     , TB_GBCO_RNADR_BAS T4
+						 WHERE T1.ADRPC_TP_CD = '3'
+						   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+						   AND T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
+						   AND T2.ADR_ID = T3.ADR_ID
+						   AND T4.RNADR_ID = T3.NEW_ADR_ZIP
+						   AND T1.DTA_DL_YN = 'N'
+						   AND T2.DTA_DL_YN = 'N'
+						   AND T3.DTA_DL_YN = 'N'
+						   AND T4.DTA_DL_YN = 'N'
+			  			   ) T3
+					  	ON T3.DTL_CNTR_NO = T1.CNTR_NO
+					   AND T3.DTL_CNTR_SN = T1.CNTR_SN
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T4
+		   				ON T4.CNTR_NO = T1.CNTR_NO
+		   			   AND T4.CNTR_SN = T1.CNTR_SN
+					   AND T4.DTA_DL_YN = 'N'
+		   LEFT OUTER JOIN (
+			   			SELECT T1.CNTR_NO
+			   				 , T1.CNTR_SN
+			   				 , MIN(T1.VST_DUEDT) AS VST_DUEDT
+			   			  FROM TB_SVPD_CST_SV_RGBSPR_IZ T1
+			   			 WHERE T1.VST_DUEDT > #{manageYm}
+			   			   AND T1.DTA_DL_YN = 'N'
+			   			 GROUP BY T1.CNTR_NO, T1.CNTR_SN
+			   			   ) T5
+		   				ON T5.CNTR_NO = T1.CNTR_NO
+		   			   AND T5.CNTR_SN = T1.CNTR_SN
+		   LEFT OUTER JOIN (
+			   			SELECT T01.CNTR_NO
+			   				 , T01.CNTR_SN
+			   				 , T01.DTA_DL_YN
+			   			  FROM TB_SVPD_CNTR_FXN_PRTNR_IZ T01
+			   			 WHERE T01.CH_SN = (
+			   			 				SELECT MAX(T02.CH_SN)
+			   			  				  FROM TB_SVPD_CNTR_FXN_PRTNR_IZ T02
+			   			  				 WHERE T02.CNTR_NO = T01.CNTR_NO
+			   			  				   AND T02.CNTR_SN = T01.CNTR_SN
+			   			  				   AND T02.DTA_DL_YN = 'N'
+			   			  				  )
+			   			   AND T01.DTA_DL_YN = 'N'
+			   			   ) T6
+		   				ON T6.CNTR_NO = T1.CNTR_NO
+		   			   AND T6.CNTR_SN = T1.CNTR_SN
+		   LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+		   				ON T7.OG_TP_CD = T1.MNGT_PRTNR_OG_TP_CD
+		   			   AND T7.PRTNR_NO = T1.MNGT_PRTNR_NO
+		   			   AND T7.BASE_YM = #{manageYm}
+					   AND T7.DTA_DL_YN = 'N'
+		   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T9
+		   				ON T9.BASE_YM = T7.BASE_YM
+		   			   AND T9.OG_ID = T7.OG_ID
+					   AND T9.DTA_DL_YN = 'N'
+		   LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T8
+		   				ON T8.OG_TP_CD = T4.CNFM_PSIC_PRTNR_OG_TP_CD
+		   			   AND T8.PRTNR_NO = T4.CNFM_PSIC_PRTNR_NO
+		   			   AND T8.BASE_YM = T4.ASN_OJ_YM
+					   AND T8.DTA_DL_YN = 'N'
+		   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T10
+		   				ON T10.BASE_YM = T8.BASE_YM
+		   			   AND T10.OG_ID = T8.OG_ID
+					   AND T10.DTA_DL_YN = 'N'
+		   LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T11
+			            ON T11.SVPD_PD_CD = T1.PDCT_PD_CD
+                     WHERE T4.ASN_OJ_YM = #{manageYm}
+                       AND T1.DTA_DL_YN = 'N'
+                       AND ( T9.DGR2_LEVL_OG_CD = #{localGroupCd}
+                          OR T10.DGR2_LEVL_OG_CD = #{localGroupCd}
+                           )
+                    <if test="@MybatisUtils@equals(exceptWellsManagerYn, 'Y')">
+                       AND T1.WK_PSIC_DV_CD = '1'
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(addressZipFrom)">
+                       AND T3.NEW_ADR_ZIP >= #{addressZipFrom}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(addressZipTo)">
+                       <![CDATA[ AND T3.NEW_ADR_ZIP <= #{addressZipTo} ]]>
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(branchOfficeCd) and !@MybatisUtils@equals(branchOfficeCd, 'ALL')">
+                       AND ( T9.DGR3_LEVL_OG_CD = #{branchOfficeCd}
+                           OR T10.DGR3_LEVL_OG_CD = #{branchOfficeCd}
+                           )
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(partnerNo) and !@MybatisUtils@equals(partnerNo, 'ALL')">
+                       AND ( T1.MNGT_PRTNR_NO = #{partnerNo}
+                           OR T4.CNFM_PSIC_PRTNR_NO = #{partnerNo}
+                           )
+                    </if>
+                     ORDER BY T1.CNTR_NO DESC, T1.CNTR_SN DESC ) T0
+    <if test="@MybatisUtils@isNotEmpty(rcgvpDiv) and !@MybatisUtils@equals(rcgvpDiv, 'ALL')">
+       WHERE T0.RCGVP_DIV = #{rcgvpDiv}
+    </if>
+
+    </select>
+
+
+    <update id="updateClientServiceExchangeInfo">
+        UPDATE TB_SVPD_CST_SV_EXCN_IZ
+           SET MNGT_PRTNR_OG_TP_CD = 'W02'
+             , MNGT_PRTNR_NO = #{mngtPrtnrNo}
+             , MNGER_RGLVL_DV_CD = #{mngStdMngerRglvlDvCd}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
+    </update>
+
+    <update id="updateClientServiceBsAssignInfo">
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+           SET ASN_PSIC_PRTNR_OG_TP_CD = 'W02'
+             , ASN_PSIC_PRTNR_NO = #{asnPsicPrtnrNo}
+             , CNFM_PSIC_PRTNR_OG_TP_CD = 'W02'
+             , CNFM_PSIC_PRTNR_NO = #{cnfmPsicPrtnrNo}
+             , MNGER_RGLVL_DV_CD = #{curMnthAlctnMngerRglvlDvCd}
+         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+
+
+    <select id="selectOrganizationInfo" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto$OrganizationRes">
+        SELECT DISTINCT DGR1_LEVL_OG_ID  -- 총괄단
+             , DGR2_LEVL_OG_ID  -- 지역단
+             , DGR3_LEVL_OG_ID  -- 지점
+          FROM TB_OGBS_MM_OG_IZ
+         WHERE DTA_DL_YN = 'N'
+           AND OG_TP_CD = 'W02' -- 매니저
+           AND OG_ID = 'OGO200800000185'
+    </select>
+
+</mapper>
