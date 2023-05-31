@@ -24,6 +24,6 @@ public class WsniServiceHistoryInterfaceService {
 
     public List<SearchRes> getServiceHistory(SearchReq dto) {
         List<WsniServiceHistoryInterfaceDvo> dvos = mapper.selectServiceHistory(dto);
-        return converter.mapServiceHistoryInterfaceDvoToSearchRes(dvos);
+        return converter.mapAllServiceHistoryInterfaceDvoToSearchRes(dvos);
     }
 }

@@ -90,7 +90,7 @@ public interface WsniServiceHistoryInterfaceConverter {
     @Mapping(target = "FS_VST_CNT", source = "fsVstCnt")
     SearchRes mapServiceHistoryInterfaceDvoToSearchRes(WsniServiceHistoryInterfaceDvo dvo);
 
-    List<SearchRes> mapServiceHistoryInterfaceDvoToSearchRes(
+    List<SearchRes> mapAllServiceHistoryInterfaceDvoToSearchRes(
         List<WsniServiceHistoryInterfaceDvo> dvos
     );
 }
