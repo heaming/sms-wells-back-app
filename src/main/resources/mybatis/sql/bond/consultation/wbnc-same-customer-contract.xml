@@ -56,7 +56,7 @@
                           ELSE NVL(T9.DP_AMT, 0)
                      END AS TOT_DP_AMT /* 총입금액 */
                    , T1.CLCTAM_PRTNR_NO
-                   , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO AND DTA_DL_YN = 'N') AS PRTNR_KNM  /* 집금파트너명 */
+                   , (SELECT PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE OG_TP_CD = T1.CLCTAM_OG_TP_CD AND PRTNR_NO = T1.CLCTAM_PRTNR_NO AND CLCTAM_DV_CD = T1.CLCTAM_DV_CD AND (SYSDATE BETWEEN BIZ_STRTDT AND BIZ_ENDDT) AND DTA_DL_YN = 'N' AND CLCTAM_MNGT_YN = 'Y' AND ROWNUM = 1) AS PRTNR_KNM
                    , T11.AUTH_RSG_CNFMDT /* 직권해지확정일자 */
                 FROM TB_CBBO_BND_CNSL_BAS_IZ T1
                 LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T2
@@ -74,6 +74,7 @@
                 LEFT OUTER JOIN TB_RVCL_BIL_PLAN_BAS T5
                   ON T5.CNTR_NO = T1.CNTR_NO
                  AND T5.CNTR_SN = T1.CNTR_SN
+                 AND T5.BIL_YM = T1.BASE_YM
                  AND T5.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T6
                   ON T6.CNTR_STLM_REL_ID = T5.CNTR_STLM_REL_ID
@@ -102,7 +103,9 @@
                                       , CNTR_NO
                                       , CNTR_SN
                                   FROM TB_RVDW_RVE_DTL
-                                 WHERE SUBSTR(PERF_DT, 0, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
+                                 WHERE 1=1
+                                   AND SUBSTR(PERF_DT, 0, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
+                                   AND DTA_DL_YN = 'N'
                                  GROUP BY CNTR_NO, CNTR_SN
                                 ) T9
                   ON T9.CNTR_NO = T1.CNTR_NO
@@ -136,7 +139,6 @@
                  AND T11.DTA_DL_YN = 'N'
                WHERE 1=1
                  AND T1.BND_CNTR_TP_CD = '01'  /* 계약 */
-                 AND T1.BZ_HDQ_DV_CD = '20' /* WELLS */
                  AND T1.DTA_DL_YN = 'N'
              )
          WHERE 1=1
@@ -175,14 +177,17 @@
             ON T2.CNTR_NO = T1.CNTR_NO
            AND T2.CNTR_SN = T1.CNTR_SN
            AND T2.BASE_YM = T1.BASE_YM
+           AND T2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
             ON T3.CNTR_NO = T2.CNTR_NO
            AND T3.CNTR_SN = T2.CNTR_SN
            AND T3.PERF_YM = T2.BASE_YM
+           AND T3.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4
             ON T4.SL_CL_YM = T1.BASE_YM
            AND T4.CNTR_NO = T1.CNTR_NO
            AND T4.CNTR_SN = T1.CNTR_SN
+           AND T4.DTA_DL_YN = 'N'
          WHERE 1=1
            AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}
            AND T1.CNTR_NO = #{cntrNo}
@@ -264,14 +269,17 @@
                   ON T2.CNTR_NO = T1.CNTR_NO
                  AND T2.CNTR_SN = T1.CNTR_SN
                  AND T2.BASE_YM = T1.BASE_YM
+                 AND T2.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
                   ON T3.CNTR_NO = T2.CNTR_NO
                  AND T3.CNTR_SN = T2.CNTR_SN
                  AND T3.PERF_YM = T2.BASE_YM
+                 AND T3.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4
                   ON T4.SL_CL_YM = T1.BASE_YM
                  AND T4.CNTR_NO = T1.CNTR_NO
                  AND T4.CNTR_SN = T1.CNTR_SN
+                 AND T4.DTA_DL_YN = 'N'
                WHERE 1=1
                  AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}
                  AND T1.CNTR_NO = #{cntrNo}
