@@ -18,4 +18,7 @@ public class WogcPartnerSellerInterfaceDvo {
     private String cralIdvTno;
     private String dgr3LevlOgCd;
     private String dgr3LevlOgNm;
+
+    private String ogCd;
+    private String ogNm;
 }
