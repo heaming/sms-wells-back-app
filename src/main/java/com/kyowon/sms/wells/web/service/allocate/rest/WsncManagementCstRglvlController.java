@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Api(tags = "[WSNC] 관리고객 급지관리")
@@ -28,13 +27,11 @@ public class WsncManagementCstRglvlController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "manageYm", value = "관리년월", paramType = "query", example = "202201"),
         @ApiImplicitParam(name = "rcgvpDiv", value = "고객구분", paramType = "query", example = "ALL"),
-        @ApiImplicitParam(name = "selectDiv", value = "조회구분", paramType = "query", example = "ALL"),
         @ApiImplicitParam(name = "exceptWellsManagerYn", value = "웰스매니저 미관리 제외", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "addressZipFrom", value = "우편번호", paramType = "query", example = ""),
         @ApiImplicitParam(name = "addressZipTo", value = "우편번호", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "executiveGroup", value = "총괄단", paramType = "query", example = "ALL"),
-        @ApiImplicitParam(name = "localGroup", value = "지역단", paramType = "query", example = "ALL"),
-        @ApiImplicitParam(name = "branchOffice", value = "지점", paramType = "query", example = "ALL"),
+        @ApiImplicitParam(name = "localGroupCd", value = "지역단", paramType = "query", example = "ALL"),
+        @ApiImplicitParam(name = "branchOfficeCd", value = "지점", paramType = "query", example = "ALL"),
         @ApiImplicitParam(name = "partnerNo", value = "매니저", paramType = "query", example = "ALL"),
     })
     @GetMapping("/paging")
@@ -50,7 +47,6 @@ public class WsncManagementCstRglvlController {
     public SaveResponse savePartnerInfoAndMngerRglvlDvCd(
         @Valid
         @RequestBody
-        @NotEmpty
         List<WsncManagementCstRglvlDto.SavePartnerReq> dtos
     ) {
         return SaveResponse.builder()

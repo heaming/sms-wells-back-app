@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
@@ -12,7 +11,6 @@ public class WsncManagementCstRglvlDto {
         @NotBlank
         String manageYm,
         String rcgvpDiv,
-        String selectDiv,
         String exceptWellsManagerYn,
         @PositiveOrZero
         String addressZipFrom,
@@ -30,23 +28,12 @@ public class WsncManagementCstRglvlDto {
         String cntrNo,
         @NotBlank
         String cntrSn,
-        @NotBlank
-        String mngtPrtnrOgTpCd,
-        @NotBlank
         String mngtPrtnrNo,
-        @NotBlank
         String mngStdMngerRglvlDvCd,
         @NotBlank
         String cstSvAsnNo,
-        @NotBlank
-        String asnPsicPrtnrOgTpCd,
-        @NotBlank
         String asnPsicPrtnrNo,
-        @NotBlank
-        String cnfmPsicPrtnrOgTpCd,
-        @NotBlank
         String cnfmPsicPrtnrNo,
-        @NotBlank
         String curMnthAlctnMngerRglvlDvCd
     ) {}
     @ApiModel(value = "WsncManagementCstRglvlDto-SearchRes")
