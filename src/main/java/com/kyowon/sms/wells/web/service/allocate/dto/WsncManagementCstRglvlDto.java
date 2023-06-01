@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
