@@ -5,8 +5,11 @@ import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmRes;
 
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchWMReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchWMRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchRecentContractReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchRecentContractRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerInterfaceDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerSellerMapper;
@@ -86,6 +89,23 @@ public class WogcPartnerSellerService {
             }
         }
         list = converter.mapAllWogcPartnerSellerInterfaceDvoToSearchWMRes(dvos);
+        return list;
+    }
+
+    public List<SearchRecentContractRes> getSearchRecentContracts(SearchRecentContractReq dto) {
+        List<SearchRecentContractRes> list = null;
+        List<WogcPartnerSellerInterfaceDvo> dvos = mapper.selectRecentContracts(dto);
+        WogcPartnerSellerInterfaceDvo emptyDvo = new WogcPartnerSellerInterfaceDvo();
+        if (CollectionUtils.isEmpty(dvos)) {
+            emptyDvo.setErrCd("0011");
+            emptyDvo.setErrNm("계약정보가 없습니다");
+            dvos.add(emptyDvo);
+        } else {
+            for (WogcPartnerSellerInterfaceDvo dvo : dvos) {
+                dvo.setCralTno(dvo.getCralLocaraTno()+"-"+dvo.getMexnoEncr()+"-"+dvo.getCralTno());
+            }
+        }
+        list = converter.mapAllWogcPartnerSellerInterfaceDvoToSearchRecentContractRes(dvos);
         return list;
     }
 }

@@ -21,8 +21,22 @@ public interface WogcPartnerSellerConverter {
     @Mapping(source = "dvo.errNm", target = "errNm")
     @Mapping(source = "dvo.prtnrNo", target = "prtnrNo")
     @Mapping(source = "dvo.prtnrKnm", target = "prtnrKnm")
+    @Mapping(source = "dvo.cralLocaraTno", target = "cralLocaraTno")
+    @Mapping(source = "dvo.mexnoEncr", target = "mexnoEncr")
     @Mapping(source = "dvo.cralTno", target = "cralTno")
     @Mapping(source = "dvo.dgr3LevlOgCd", target = "dgr3LevlOgCd")
     @Mapping(source = "dvo.dgr3LevlOgNm", target = "dgr3LevlOgNm")
     List<WogcPartnerSellerInterfaceDto.SearchWMRes> mapAllWogcPartnerSellerInterfaceDvoToSearchWMRes(List<WogcPartnerSellerInterfaceDvo> dvos);
+
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(source = "dvo.errCd", target = "errCd")
+    @Mapping(source = "dvo.errNm", target = "errNm")
+    @Mapping(source = "dvo.prtnrNo", target = "prtnrNo")
+    @Mapping(source = "dvo.prtnrKnm", target = "prtnrKnm")
+    @Mapping(source = "dvo.cralLocaraTno", target = "cralLocaraTno")
+    @Mapping(source = "dvo.mexnoEncr", target = "mexnoEncr")
+    @Mapping(source = "dvo.cralTno", target = "cralTno")
+    @Mapping(source = "dvo.ogCd", target = "ogCd")
+    @Mapping(source = "dvo.ogNm", target = "ogNm")
+    List<WogcPartnerSellerInterfaceDto.SearchRecentContractRes> mapAllWogcPartnerSellerInterfaceDvoToSearchRecentContractRes(List<WogcPartnerSellerInterfaceDvo> dvos);
 }
