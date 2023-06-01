@@ -6,10 +6,10 @@
             resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdSelfConversionDto$SearchRes">
         SELECT T_CNTR_DTL.CNTR_NO
              , T_CNTR_DTL.CNTR_SN
-             , T_CNTR_CST_BAS.COPN_DV_CD /*법인격구분코드 ?= 자료구분 code*/
+             , T_CNTR_CST_BAS.COPN_DV_CD /*법인격구분코드 maybe 자료구분 code*/
              , T_CNTR_WELLS_DTL.IST_DT /*설치일자*/
-             , T_CNTR_BAS.CNTR_CST_NO /*계약고객번호 ?= 고객코드 ? 교원키?*/
-             , T_CNTR_CST_BAS.CST_KNM /*고객한글명 ?= 계약자명*/
+             , T_CNTR_BAS.CNTR_CST_NO /*계약고객번호 maybe 고객코드 maybe 교원키*/
+             , T_CNTR_CST_BAS.CST_KNM /*고객한글명 maybe 계약자명*/
              , T_CNTR_CST_BAS.CRAL_LOCARA_TNO /* 계약자휴대전화번호1 */
              , T_CNTR_CST_BAS.MEXNO_ENCR /* 계약자휴대전화번호2 - 암호화 */
              , T_CNTR_CST_BAS.CRAL_IDV_TNO /* 계약자휴대전화번호3 */
@@ -27,7 +27,8 @@
              , T_PD_BAS.PD_NM /*상품명 상품명*/
              , T_SDING_CNTR.PD_NM                                             AS SDING_PD_NM /*모종상품명 웰스팜모종(사용중인)*/
              , T_CNTR_DTL.FNL_AMT /* 렌탈료 */
-             , T_CNTR_WELLS_DTL.RECAP_DUTY_PTRM_N /* 의무사용기간 */
+             , T_CNTR_DTL.STPL_PTRM /* 의무사용기간(T_CNTR_WELLS_DTL.RECAP_DUTY_PTRM_N) -> 약정기간 (T_CNTR_DTL.STPL_PTRM) */
+             , T_CNTR_DTL.STPL_PTRM_UNIT_CD /* 의무사용기간단위코드 */
              , (SELECT MAX(WK_EXCN_DT)
                   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
                  WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
@@ -53,10 +54,10 @@
                        ELSE ''
                END                                                            AS RE_RETAL_YN /*재렌탈여부*/
              , T_MCHN_CH_IZ.MCHN_CH_TP_CD /* 기변유형코드 */
-             , T_MCHN_CH_IZ.BASE_CNTR_NO                                      AS CH_CNTR_NO /*기변상대계약번호?*/
-             , T_MCHN_CH_IZ.BASE_CNTR_SN                                      AS CH_CNTR_SN /*기변상대일계약련번호?*/
-             , T_MCHN_CH_CNTR_DTL.BASE_PD_CD                                  AS CH_PD_CD /*기변상품코드?*/
-             , T_MCHN_CH_PD_BAS.PD_NM                                         AS CH_PD_NM/*기변상품명?*/
+             , T_MCHN_CH_IZ.BASE_CNTR_NO                                      AS CH_CNTR_NO /*기변상대계약번호 maybe*/
+             , T_MCHN_CH_IZ.BASE_CNTR_SN                                      AS CH_CNTR_SN /*기변상대일계약련번호 maybe*/
+             , T_MCHN_CH_CNTR_DTL.BASE_PD_CD                                  AS CH_PD_CD /*기변상품코드 maybe*/
+             , T_MCHN_CH_PD_BAS.PD_NM                                         AS CH_PD_NM/*기변상품명 maybe*/
              , T_RENTAL_RSTL_IZ.STPL_RCP_DTM /*재렌탈 약정접수일시*/
              , SUBSTR(T_RENTAL_RSTL_IZ.STPL_RCP_DTM, 1, 8)                    AS STPL_RCP_DT
              , T_RENTAL_RSTL_IZ.STPL_STRTDT /*재렌탈 약정시작일자*/
@@ -167,8 +168,10 @@
                     </when>
                 </choose></trim>
             </trim></if>
-            <if test="@MybatisUtils@isNotEmpty(ogCd)"><trim>
-                AND T_MM_PRTNR_IZ.OG_CD = #{ogCd}
+
+            <if test="@MybatisUtils@isNotEmpty(strtOgCd) and @MybatisUtils@isNotEmpty(endOgCd)"><trim>
+                AND T_MM_PRTNR_IZ.OG_CD <![CDATA[>=]]> #{strtOgCd}
+                AND T_MM_PRTNR_IZ.OG_CD <![CDATA[<=]]> #{endOgCd}
             </trim></if>
             <if test="@MybatisUtils@isNotEmpty(pdHclsfId)"><trim>
                 AND T_PD_BAS.PD_HCLSF_ID = #{pdHclsfId}

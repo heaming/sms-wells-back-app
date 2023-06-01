@@ -36,7 +36,8 @@ public class WctdSelfConversionController {
         @ApiImplicitParam(name = "pdMclsfId", value = "상품대분류", paramType = "query"),
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query"),
         @ApiImplicitParam(name = "pdNm", value = "상품명", paramType = "query"),
-        @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query"),
+        @ApiImplicitParam(name = "strtOgCd", value = "시작조직코드", paramType = "query"),
+        @ApiImplicitParam(name = "endOgCd", value = "끝조직코드", paramType = "query"),
         @ApiImplicitParam(name = "copnDvCd", value = "자료구분", paramType = "query"),
     })
     @GetMapping("/paging")
