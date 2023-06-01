@@ -10,30 +10,33 @@ import lombok.Setter;
 @Setter
 public class WctaKMembersWellsOrdInqrDvo {
     private String cmnSfkVal;
+    private String cntrNo;
+    private String cntrSn;
     private String basePdCd;
     private String pdNm;
-    private String prchsPath;
+    private String prchsPh;
     private String sellTpCd;
     private String sellTpDtlCd;
-    private String sellAmt;
-    private String cntrCnfmDtm;
-    private String stplPtrm;
-    private String amt1;
-    private String adr;
-    private String cntrDtlStatCd;
+    private String fnlAmt;
+    private String cntrPdStrtdt;
+    private String recapDutyPtrmN;
+    private String mmIstmAmt;
+    private String istRnadr;
+    private String istRdadr;
+    private String cntrDtlStat;
     private String istDt;
-    private String svDt;
-    private String prtnrNo;
-    private String cralLocaraTno;
+    private String rentalTn;
+    private String welsMnger;
+    private String welsMngerCralLocaraTno;
     @DBEncField
     @DBDecField
-    private String mexnoEncr;
-    private String cralIdvTno;
-    private String dpTpCd;
-    private String bnkCdcoCd;
+    private String welsMngerMexnoEncr;
+    private String welsMngerCralIdvTno;
+    private String mpyMthdTp;
+    private String fnitNm;
     @DBEncField
     @DBDecField
-    private String acnoCrcdnoEncr;
+    private String acnoCrdcdEncr;
     private String owrKnm;
     private String mpyBsdt;
 }
