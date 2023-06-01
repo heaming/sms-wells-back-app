@@ -1,25 +1,24 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
-import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerSellerConverter;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmRes;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchWMReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchWMRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchRecentContractReq;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchRecentContractRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerDvo;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerInterfaceDvo;
-import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerSellerMapper;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerSellerConverter;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerDto.SearchInformationConfirmRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchRecentContractReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchRecentContractRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchWMReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchWMRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerDvo;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerInterfaceDvo;
+import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerSellerMapper;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
@@ -76,36 +75,31 @@ public class WogcPartnerSellerService {
      * @return
      */
     public List<SearchWMRes> getWM(SearchWMReq dto) {
-        List<SearchWMRes> list = null;
         List<WogcPartnerSellerInterfaceDvo> dvos = mapper.selectWMs(dto);
-        WogcPartnerSellerInterfaceDvo emptyDvo = new WogcPartnerSellerInterfaceDvo();
-        if (CollectionUtils.isEmpty(dvos)) {
-            emptyDvo.setErrCd("0011");
-            emptyDvo.setErrNm("계약정보가 없습니다");
-            dvos.add(emptyDvo);
-        } else {
-            for (WogcPartnerSellerInterfaceDvo dvo : dvos) {
-                dvo.setCralTno(dvo.getCralLocaraTno()+"-"+dvo.getMexnoEncr()+"-"+dvo.getCralTno());
-            }
-        }
-        list = converter.mapAllWogcPartnerSellerInterfaceDvoToSearchWMRes(dvos);
-        return list;
+        dvos = convertDefaultMapping(dvos);
+
+        return converter.mapAllWogcPartnerSellerInterfaceDvoToSearchWMRes(dvos);
     }
 
     public List<SearchRecentContractRes> getSearchRecentContracts(SearchRecentContractReq dto) {
-        List<SearchRecentContractRes> list = null;
         List<WogcPartnerSellerInterfaceDvo> dvos = mapper.selectRecentContracts(dto);
-        WogcPartnerSellerInterfaceDvo emptyDvo = new WogcPartnerSellerInterfaceDvo();
+        dvos = convertDefaultMapping(dvos);
+
+        return converter.mapAllWogcPartnerSellerInterfaceDvoToSearchRecentContractRes(dvos);
+    }
+
+    private List<WogcPartnerSellerInterfaceDvo> convertDefaultMapping(
+        List<WogcPartnerSellerInterfaceDvo> dvos
+    ) {
         if (CollectionUtils.isEmpty(dvos)) {
-            emptyDvo.setErrCd("0011");
-            emptyDvo.setErrNm("계약정보가 없습니다");
-            dvos.add(emptyDvo);
+            dvos = List.of(new WogcPartnerSellerInterfaceDvo("0011", "계약정보가 없습니다"));
         } else {
-            for (WogcPartnerSellerInterfaceDvo dvo : dvos) {
-                dvo.setCralTno(dvo.getCralLocaraTno()+"-"+dvo.getMexnoEncr()+"-"+dvo.getCralTno());
-            }
+            dvos.forEach(
+                dvo -> dvo.setCralTno(
+                    String.format("%s-%s-%s", dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralTno())
+                )
+            );
         }
-        list = converter.mapAllWogcPartnerSellerInterfaceDvoToSearchRecentContractRes(dvos);
-        return list;
+        return dvos;
     }
 }
