@@ -38,6 +38,8 @@
          , T7.PRTNR_NO
          , SUBSTR(T7.OG_CD, 0, 3) AS LOCARA_CD
          , T7.OG_CD
+         , C3.DGR2_LEVL_OG_CD
+         , C3.DGR3_LEVL_OG_CD
          , CASE WHEN C2.BASE_CNTR_NO IS NOT NULL
                  AND (SELECT COUNT(1)
                         FROM TB_SSCT_CNTR_DTL
@@ -63,30 +65,30 @@
       LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2
         ON T2.CNTR_NO = T1.BASE_CNTR_NO
        AND T2.CNTR_SN = T1.BASE_CNTR_SN
-       AND T2.DTA_DL_YN != 'Y'
+       AND T2.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3
         ON T3.CNTR_NO = T1.OJ_CNTR_NO
        AND T3.CNTR_SN = T1.OJ_CNTR_SN
-       AND T3.DTA_DL_YN != 'Y'
+       AND T3.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T4
         ON T4.CNTR_NO = T1.BASE_CNTR_NO
        AND T4.CNTR_SN = T1.BASE_CNTR_SN
-       AND T4.DTA_DL_YN != 'Y'
+       AND T4.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T5
         ON T5.CNTR_NO = T1.OJ_CNTR_NO
        AND T5.CNTR_SN = T1.OJ_CNTR_SN
-       AND T5.DTA_DL_YN != 'Y'
+       AND T5.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6
         ON T6.CNTR_NO = T1.BASE_CNTR_NO
        AND T6.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
         ON T7.PRTNR_NO = T6.SELL_PRTNR_NO
        AND T7.BASE_YM = SUBSTR(T6.CNTR_CNFM_DTM, 0, 6)
-       AND T7.DTA_DL_YN != 'Y'
+       AND T7.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ C1
         ON C1.BASE_CNTR_NO = T1.BASE_CNTR_NO
        AND C1.BASE_CNTR_SN = T1.BASE_CNTR_SN
-       AND C1.DTA_DL_YN != 'Y'
+       AND C1.DTA_DL_YN = 'N'
        AND C1.MCHN_CH_SN = (
                            SELECT MAX(MCHN_CH_SN)
                              FROM TB_SSCT_MCHN_CH_IZ
@@ -96,7 +98,7 @@
       LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ C2
         ON C2.BASE_CNTR_NO = T1.OJ_CNTR_NO
        AND C2.BASE_CNTR_SN = T1.OJ_CNTR_SN
-       AND C2.DTA_DL_YN != 'Y'
+       AND C2.DTA_DL_YN = 'N'
        AND C2.MCHN_CH_SN = (
                            SELECT MAX(MCHN_CH_SN)
                              FROM TB_SSCT_MCHN_CH_IZ
@@ -111,6 +113,7 @@
       LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL I1
         ON I1.DTL_CNTR_NO = T1.BASE_CNTR_NO
        AND I1.DTL_CNTR_SN = T1.BASE_CNTR_SN
+       AND I1.ADRPC_TP_CD = '3'
        AND I1.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS I2
         ON I2.CNTR_ADRPC_ID = I1.CNTR_ADRPC_ID
@@ -121,6 +124,7 @@
       LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL I4
         ON I4.DTL_CNTR_NO = T1.OJ_CNTR_NO
        AND I4.DTL_CNTR_SN = T1.OJ_CNTR_SN
+       AND I4.ADRPC_TP_CD = '3'
        AND I4.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS I5
         ON I5.CNTR_ADRPC_ID = I4.CNTR_ADRPC_ID
@@ -175,10 +179,10 @@
           FROM TB_SSCT_ICPT_SELL_IZ T1
              <include refid="incompletenessSalesFromClause" />
          WHERE 1=1
-           AND T1.DTA_DL_YN != 'Y'
+           AND T1.DTA_DL_YN = 'N'
            AND T1.ICPT_SELL_TP_CD = '030'
         <if test='@MybatisUtils@equals(apyCls, "1")'>
-           AND T1.ICPT_SELL_EXR_DT BETWEEN #{strtDt} AND #{endDt}
+           AND T1.ICPT_SELL_EXR_DT BETWEEN #{strtYm} || '00' AND #{endYm} || '31'
         </if>
         <if test='@MybatisUtils@equals(apyCls, "2")'>
            AND C1.BASE_CNTR_RCPDT BETWEEN #{strtYm} || '00' AND #{endYm} || '31'
@@ -186,11 +190,11 @@
         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
            AND (T1.BASE_CNTR_NO = #{cntrNo} OR T1.OJ_CNTR_NO = #{cntrNo})
         </if>
-        <if test='@MybatisUtils@isNotEmpty(dgr1HgrOgCd)'>
-           AND C3.DGR1_HGR_OG_CD = #{dgr1HgrOgCd}
+        <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
+           AND C3.DGR2_LEVL_OG_CD = #{dgr2LevlOgCd}
         </if>
-        <if test='@MybatisUtils@isNotEmpty(dgr2HgrOgCd)'>
-           AND C3.DGR2_HGR_OG_CD = #{dgr2HgrOgCd}
+        <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgCd)'>
+           AND C3.DGR3_LEVL_OG_CD = #{dgr3LevlOgCd}
         </if>
         <if test='@MybatisUtils@isNotEmpty(prtnrKnm)'>
            AND T7.PRTNR_KNM = #{prtnrKnm}
@@ -249,7 +253,7 @@
 
     <update id="updateIncompletenessSales">
         UPDATE TB_SSCT_ICPT_SELL_IZ
-           SET ICPT_SELL_EXR_DT = #{icptSellExrDt}
+           SET ICPT_SELL_EXR_DT = #{icptSellExrDt} || '01'
              , BASE_CNTR_NO = #{baseCntrNo}
              , BASE_CNTR_SN = #{baseCntrSn}
              , CNTR_DTL_STAT_CD = (
