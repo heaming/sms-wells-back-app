@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaKMembersWellsOrdInqrMapper">
+    <select id="selectKMembersWellsOrdInqrs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaKMembersWellsOrdInqrDvo">
+        SELECT B2.CMN_SFK_VAL                   AS CMN_SFK_VAL /*고객기본.공통세이프티키*/
+             , A1.BASE_PD_CD                     AS BASE_PD_CD /*계약상세.기준상품코드*/
+             , A2.PD_NM              AS PD_NM /*상품기본.상품명*/
+             , CASE WHEN A1.SELL_TP_CD = '3' THEN '1'
+                    WHEN A1.SELL_TP_CD = '6' AND A1.ALNCMP_CD='45' THEN '2'
+                    ELSE '1' END                AS PRCHS_PATH /*구매경로(1:방판,2:K멤버스)*/
+             , A1.SELL_TP_CD                     AS SELL_TP_CD /*계약상세.판매유형코드**/
+             , A1.SELL_TP_DTL_CD  AS SELL_TP_DTL_CD /*계약상세.판매유형상세코드 [판매유형상세(1:멤버십,2:홈케어)]*/
+             , CASE WHEN A1.SELL_TP_CD = '3' THEN 0
+                    WHEN A1.SELL_TP_CD = '6' THEN A1.SELL_AMT
+                    ELSE 0 END                  AS SELL_AMT /*판매금액*/
+             , B1.CNTR_CNFM_DTM AS CNTR_CNFM_DTM /*계약확정일시*/
+             , CASE WHEN A1.SELL_TP_CD='3' THEN 0
+                    WHEN A1.SELL_TP_CD='6' THEN A1.STPL_PTRM
+                    ELSE 0 END                  AS STPL_PTRM /*의무기간*/
+             , NVL(A3.FNL_VAL,0) - NVL(A3.CTR_VAL,0)  AS AMT1 /*월회비**/
+             , B4.RNADR||' '||B4.RDADR AS ADR /*설치주소(도로명주소+도로명상세주소)*/
+             , CASE WHEN A1.CNTR_DTL_STAT_CD IN ('101') THEN '1'
+                    WHEN A1.CNTR_DTL_STAT_CD IN ('201','202','203') THEN '2'
+                    WHEN A1.CNTR_DTL_STAT_CD IN ('301','302','303') THEN '3'
+                    WHEN A1.CNTR_DTL_STAT_CD IN ('401','402') THEN '4'
+                    ELSE '' END                 AS CNTR_DTL_STAT_CD /*계약상세상태코드(1:유지,2:종료,3:정지,4:해약)*/
+             , C1.IST_DT AS IST_DT /*계약WELLS상세.설치일자*/
+             , A4.SV_DT     AS SV_DT /*WELLS매출월마감내역.서비스일자 [사용개월]*/
+             , B6.CNFM_PSIC_PRTNR_NO AS PRTNR_NO                     /*월별고객서비스대상내역.관리파트너번호 [관리WM]*/
+             , B7.CRAL_LOCARA_TNO
+             , B7.MEXNO_ENCR
+             , B7.CRAL_IDV_TNO /*[WM휴대전화]*/
+             , B5.DP_TP_CD                AS DP_TP_CD /*계약결제기본.입금유형코드 [납부방법]*/
+             , CASE
+                WHEN B5.DP_TP_CD IN ('110','160') AND B5.BNK_CD IS NOT NULL
+                     THEN F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', B5.BNK_CD)
+                WHEN B5.DP_TP_CD IN ('120','140') AND B5.CDCO_CD IS NOT NULL
+                     THEN F_CMZ_CD_NM(#{session.tenantId}, 'CRDCD_KND_CD', B5.CDCO_CD)
+                ELSE '' END                     AS BNK_CDCO_CD /*은행명/카드사*/
+             , CASE
+                WHEN B5.DP_TP_CD IN ('110','160') AND B5.ACNO_ENCR IS NOT NULL
+                    THEN B5.ACNO_ENCR
+                WHEN B5.DP_TP_CD IN ('120','140') AND B5.CRCDNO_ENCR IS NOT NULL
+                    THEN B5.CRCDNO_ENCR
+                ELSE '' END       AS ACNO_CRCDNO_ENCR /*계좌번호/카드번호*/
+             , B5.OWR_KNM                       AS OWR_KNM /*예금주*/
+             , B5.MPY_BSDT                      AS MPY_BSDT /*이체일자*/
+          FROM TB_SSCT_CNTR_DTL A1 /*계약상세*/
+               LEFT OUTER JOIN TB_PDBS_PD_BAS A2 /*상품기본*/
+                 ON A1.BASE_PD_CD=A2.PD_CD /* 계약상세.기준상품코드 = 상품기본.상품코드 */
+                AND A2.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+               LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ A3 /*계약가격산출내역*/
+                 ON A1.CNTR_NO=A3.CNTR_NO /* 계약번호 */
+                AND A1.CNTR_SN=A3.CNTR_SN /* 계약일련번호 */
+                AND A3.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+               LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ A4 /*WELLS매출월마감내역*/
+                 ON A1.CNTR_NO=A4.CNTR_NO /* 계약번호 */
+                AND A1.CNTR_SN=A4.CNTR_SN /* 계약일련번호 */
+                AND A4.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+         INNER JOIN TB_SSCT_CNTR_BAS B1 /*계약기본*/
+            ON A1.CNTR_NO=B1.CNTR_NO /* 계약번호 */
+           AND B1.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+               LEFT OUTER JOIN TB_CUBS_CST_BAS B2 /*고객기본*/
+                 ON B1.CNTR_CST_NO=B2.CST_NO /* 고객번호 */
+                AND B2.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+               LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS B3 /*계약주소지기본*/
+                 ON B1.CNTR_NO=B3.CNTR_NO /* 계약번호 */
+                AND B1.CNTR_CST_NO=B3.CNTR_CST_NO /* 고객번호 */
+                AND B3.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+                    LEFT OUTER JOIN TB_GBCO_ADR_BAS B4 /*주소기본*/
+                      ON B3.ADR_ID=B4.ADR_ID /* 주소ID */
+                     AND B4.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+               LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS B5 /*계약결제기본*/
+                 ON B1.CNTR_NO=B5.CNTR_NO /* 계약번호 */
+                AND B5.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+               LEFT OUTER JOIN (SELECT D1.CNFM_PSIC_PRTNR_OG_TP_CD
+                                     , D1.CNFM_PSIC_PRTNR_NO
+                                     , D1.CNTR_NO
+                                     , D1.CNTR_SN
+                                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1 /* 고객서비스BS배정내역 */
+                                 INNER JOIN TB_OGBS_MM_PRTNR_IZ E1 /* 월파트너내역 */
+                                    ON E1.BASE_YM = SUBSTR(D1.CNFM_PSIC_ASN_DT, 1, 6)
+                                   AND E1.OG_TP_CD = D1.CNFM_PSIC_PRTNR_OG_TP_CD
+                                   AND E1.PRTNR_NO = D1.CNFM_PSIC_PRTNR_NO
+                                 WHERE D1.DTA_DL_YN = 'N'
+                                   AND E1.DTA_DL_YN = 'N') B6
+                 ON B1.CNTR_NO=B6.CNTR_NO /* 계약번호 */
+                AND A1.CNTR_SN=B6.CNTR_SN /* 계약일련번호 */
+               LEFT OUTER JOIN TB_OGBS_PRTNR_BAS B7 /* 파트너 기본 */
+                 ON B7.OG_TP_CD = B6.CNFM_PSIC_PRTNR_OG_TP_CD
+                AND B7.PRTNR_NO = B6.CNFM_PSIC_PRTNR_NO
+                AND B7.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL C1 /*계약WELLS상세*/
+            ON A1.CNTR_NO=C1.CNTR_NO /* 계약번호 */
+           AND A4.SL_CL_YM = (
+               SELECT MAX(SL_CL_YM)
+                 FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                WHERE CNTR_NO = #{cntrNo}
+                  AND CNTR_SN = #{cntrSn})
+           AND A1.CNTR_SN=C1.CNTR_SN /* 계약일련번호 */
+           AND C1.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+         WHERE 1 = 1
+           AND A1.SELL_TP_CD IN ('3','6') /*판매유형코드, 3:멤버십, 6:정기배송 */
+           AND A1.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+           AND A1.CNTR_NO = #{cntrNo} /* 조회조건:계약번호 */
+           AND A1.CNTR_SN = #{cntrSn} /* 조회조건:계약일련번호 */
+        <if test="@MybatisUtils@isNotEmpty(cmnSfkVal)">
+           AND B2.CMN_SFK_VAL = #{cmnSfkVal} /*고객기본.공통세이프티키*/
+        </if>
+    </select>
+</mapper>
