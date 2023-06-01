@@ -10,6 +10,7 @@ import lombok.Setter;
 @Setter
 public class WctaOrderDetailRglrDlvrPagesDvo {
     private String cntrDtlNo; /* 계약상세번호 */
+    private String sellTpCd; /* 판매유형코드 */
     private String dgr3LevlDgPrtnrNo; /* 파트너정보-지점장 사번 */
     private String dgr3LevlDgPrtnrNm; /* 파트너정보-지점장명 */
     private String dgr3LevlOgCd; /* 파트너정보-지점코드 */
