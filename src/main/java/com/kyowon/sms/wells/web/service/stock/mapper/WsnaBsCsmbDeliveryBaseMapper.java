@@ -16,6 +16,10 @@ public interface WsnaBsCsmbDeliveryBaseMapper {
 
     PagingResult<SearchRes> selectDeliveryBases(SearchReq dto, PageInfo pageInfo);
 
+    int insertDeliveryBasesNowMonth();
+
+    int insertDeliveryBaseDtlsNowMonth();
+
     int insertDeliveryBasesNextMonth();
 
     int insertDeliveryBaseDtlsNextMonth();
@@ -29,4 +33,8 @@ public interface WsnaBsCsmbDeliveryBaseMapper {
     Optional<FindRes> selectDeliveryBase(String mngtYm, String csmbPdCd);
 
     int updateDeliveryBase(WsnaBsCsmbDeliveryBaseDvo dvo);
+
+    int selectExistNowMonthDeliveryBase();
+
+    int selectExistNowMonthDeliveryDtl();
 }

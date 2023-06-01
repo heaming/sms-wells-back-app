@@ -34,11 +34,23 @@ public class WsnaBsCsmbDeliveryBaseService {
     public int createDeliveryBasesNextMonth() {
         int processCount = 0;
 
-        int result1 = mapper.insertDeliveryBasesNextMonth();
-        processCount += result1;
+        // 당월 적용 대상 데이터 존재 여부 확인
+        int nowMonthBas = mapper.selectExistNowMonthDeliveryBase();
+        int nowMonthDtl = mapper.selectExistNowMonthDeliveryDtl();
 
-        int result2 = mapper.insertDeliveryBaseDtlsNextMonth();
-        processCount += result2;
+        if (nowMonthBas > 0 && nowMonthDtl > 0) { // 당월 적용 대상 데이터가 있을경우 당월에만 insert
+            int result1 = mapper.insertDeliveryBasesNowMonth();
+            processCount += result1;
+
+            int result2 = mapper.insertDeliveryBaseDtlsNowMonth();
+            processCount += result2;
+        } else { // 없을 경우 당월 이후 월에 계속하여 insert
+            int result1 = mapper.insertDeliveryBasesNextMonth();
+            processCount += result1;
+
+            int result2 = mapper.insertDeliveryBaseDtlsNextMonth();
+            processCount += result2;
+        }
 
         return processCount;
     }

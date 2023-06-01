@@ -146,7 +146,7 @@
            </if>
     </select>
 
-    <insert id="insertDeliveryBasesNextMonth">
+    <insert id="insertDeliveryBasesNowMonth">
         INSERT INTO TB_SVST_BFSVC_CSMB_BASE_BAS
              ( MNGT_YM
              , CSMB_PD_CD
@@ -183,7 +183,7 @@
                           )
     </insert>
 
-    <insert id="insertDeliveryBaseDtlsNextMonth">
+    <insert id="insertDeliveryBaseDtlsNowMonth">
         INSERT INTO TB_SVST_BFSVC_CSMB_BASE_DTL
              ( MNGT_YM
              , CSMB_PD_CD
@@ -217,7 +217,7 @@
           FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.MNGT_YM = (SELECT TO_CHAR(MAX(TO_NUMBER(X.MNGT_YM)))
-                               FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
+                               FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
                               WHERE X.MNGT_YM <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')
                             )
            AND NOT EXISTS (SELECT 1
@@ -452,4 +452,126 @@
             </otherwise>
         </choose>
     </update>
+
+    <select id="selectExistNowMonthDeliveryBase" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_SVST_BFSVC_CSMB_BASE_BAS T1
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.MNGT_YM = (SELECT TO_CHAR(MAX(TO_NUMBER(X.MNGT_YM)))
+                               FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
+                              WHERE X.MNGT_YM <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                            )
+           AND NOT EXISTS (SELECT 1
+                             FROM TB_SVST_BFSVC_CSMB_BASE_BAS Y
+                            WHERE Y.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                              AND Y.DTA_DL_YN = 'N'
+                              AND Y.CSMB_PD_CD = T1.CSMB_PD_CD
+                          )
+    </select>
+
+    <select id="selectExistNowMonthDeliveryDtl" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.MNGT_YM = (SELECT TO_CHAR(MAX(TO_NUMBER(X.MNGT_YM)))
+                               FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
+                              WHERE X.MNGT_YM <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                            )
+           AND NOT EXISTS (SELECT 1
+                             FROM TB_SVST_BFSVC_CSMB_BASE_DTL Y
+                            WHERE Y.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                              AND Y.DTA_DL_YN = 'N'
+                              AND Y.CSMB_PD_CD = T1.CSMB_PD_CD
+                              AND Y.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
+                          )
+    </select>
+
+    <insert id="insertDeliveryBasesNextMonth">
+        INSERT INTO TB_SVST_BFSVC_CSMB_BASE_BAS
+             ( MNGT_YM
+             , CSMB_PD_CD
+             , ITM_KNM
+             , MNGT_UNIT_CD
+             , GO_DV_CD
+             , GO_UPRC
+             , BOX_UNIT_QTY
+             , RMK_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        SELECT TO_CHAR(ADD_MONTHS(TO_DATE(T1.MNGT_YM, 'YYYYMM'), 1), 'YYYYMM')
+             , T1.CSMB_PD_CD
+             , T1.ITM_KNM
+             , T1.MNGT_UNIT_CD
+             , T1.GO_DV_CD
+             , T1.GO_UPRC
+             , T1.BOX_UNIT_QTY
+             , T1.RMK_CN
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVST_BFSVC_CSMB_BASE_BAS T1
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.MNGT_YM = (SELECT TO_CHAR(MAX(TO_NUMBER(X.MNGT_YM)))
+                               FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
+                              WHERE X.MNGT_YM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                            )
+<!--           AND NOT EXISTS (SELECT 1-->
+<!--                             FROM TB_SVST_BFSVC_CSMB_BASE_BAS Y-->
+<!--                            WHERE Y.MNGT_YM = (SELECT TO_CHAR(MAX(TO_NUMBER(X.MNGT_YM)))-->
+<!--                                                 FROM TB_SVST_BFSVC_CSMB_BASE_BAS X-->
+<!--                                                WHERE X.MNGT_YM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMM')-->
+<!--                                              )-->
+<!--                              AND Y.DTA_DL_YN = 'N'-->
+<!--                              AND Y.CSMB_PD_CD = T1.CSMB_PD_CD-->
+<!--                          )-->
+    </insert>
+
+    <insert id="insertDeliveryBaseDtlsNextMonth">
+        INSERT INTO TB_SVST_BFSVC_CSMB_BASE_DTL
+             ( MNGT_YM
+             , CSMB_PD_CD
+             , BFSVC_CSMB_DDLV_OJ_CD
+             , BFSVC_CSMB_DDLV_ORT_YN
+             , BFSVC_CSMB_DDLV_TP_CD
+             , BFSVC_CSMB_DDLV_CMPT_BASE_CD
+             , BFSVC_CSMB_DDLV_OJ_PD_GRP_CD
+             , BFSVC_CSMB_DDLV_OJ_ACC_TP_CD
+             , BFSVC_CSMB_DDLV_UNIT_ACC_N
+             , BFSVC_CSMB_DDLV_UNIT_QTY
+             , BFSVC_CSMB_APLC_LM_QTY
+             , SORT_ODR
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        SELECT TO_CHAR(ADD_MONTHS(TO_DATE(T1.MNGT_YM, 'YYYYMM'), 1), 'YYYYMM')
+             , T1.CSMB_PD_CD
+             , T1.BFSVC_CSMB_DDLV_OJ_CD
+             , T1.BFSVC_CSMB_DDLV_ORT_YN
+             , T1.BFSVC_CSMB_DDLV_TP_CD
+             , T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD
+             , T1.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD
+             , T1.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD
+             , T1.BFSVC_CSMB_DDLV_UNIT_ACC_N
+             , T1.BFSVC_CSMB_DDLV_UNIT_QTY
+             , T1.BFSVC_CSMB_APLC_LM_QTY
+             , T1.SORT_ODR
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.MNGT_YM = (SELECT TO_CHAR(MAX(TO_NUMBER(X.MNGT_YM)))
+                               FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
+                              WHERE X.MNGT_YM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                            )
+<!--           AND NOT EXISTS (SELECT 1-->
+<!--                             FROM TB_SVST_BFSVC_CSMB_BASE_DTL Y-->
+<!--                            WHERE Y.MNGT_YM = (SELECT TO_CHAR(MAX(TO_NUMBER(X.MNGT_YM)))-->
+<!--                                                 FROM TB_SVST_BFSVC_CSMB_BASE_DTL X-->
+<!--                                                WHERE X.MNGT_YM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMM')-->
+<!--                                              )-->
+<!--                              AND Y.DTA_DL_YN = 'N'-->
+<!--                              AND Y.CSMB_PD_CD = T1.CSMB_PD_CD-->
+<!--                              AND Y.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD-->
+<!--                          )-->
+    </insert>
 </mapper>
