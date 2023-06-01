@@ -28,9 +28,9 @@ public class WctdSelfConversionDto {
         String pdMclsfId,
         String pdCd,
         String pdNm,
-        String ogCd,
+        String strtOgCd,
+        String endOgCd,
         String copnDvCd
-
     ) {
     }
 
@@ -57,7 +57,8 @@ public class WctdSelfConversionDto {
         String pdNm,
         String sdingPdNm,
         Integer fnlAmt,
-        Integer recapDutyPtrmN,
+        Integer stplPtrm,
+        String stplPtrmUnitCd,
         String lastBsDt,
         Integer eotUcAmt,
         Integer eotDlqAmt,
