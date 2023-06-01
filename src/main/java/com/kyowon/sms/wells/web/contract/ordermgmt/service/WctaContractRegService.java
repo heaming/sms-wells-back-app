@@ -32,6 +32,19 @@ public class WctaContractRegService {
         return Year.now().compareTo(Year.parse(bryyMmdd.substring(0, 4)));
     }
 
+    public String getRveDvCd(String sellTpCd) {
+        return switch (sellTpCd) {
+            case "2" -> "03";
+            case "3" -> "04";
+            case "6" -> "05";
+            default -> "03";
+        };
+    }
+
+    public List<WctaContractDtlDvo> selectProductInfos(String cntrNo) {
+        return step2Mapper.selectContractDtlWithPdInfo(cntrNo);
+    }
+
     @Transactional
     public int updateCntrPrgsStatCd(String cntrNo, String cntrPrgsStatCd) {
         return mapper.updateCntrPrgsStatCd(cntrNo, cntrPrgsStatCd);
@@ -81,6 +94,7 @@ public class WctaContractRegService {
         return mapper.selectContractStlmRel(cntrNo, cntrSn);
     }
 
+    @Transactional
     public void removeStep1Data(String cntrNo) {
         step1Mapper.deleteCntrPrtnrRelStep1(cntrNo);
         step1Mapper.deleteCntrCstRelStep1(cntrNo);
@@ -103,9 +117,10 @@ public class WctaContractRegService {
 
     @Transactional
     public void removeStep3Data(String cntrNo) {
-        step3Mapper.deleteStlmRelsStep3(cntrNo);
-        step3Mapper.deleteAdrpcBasStep3(cntrNo);
-        step3Mapper.deleteAdrRelsStep3(cntrNo);
+        step3Mapper.deleteCntrStlmBasStep3(cntrNo);
+        step3Mapper.deleteCntrStlmRelsStep3(cntrNo);
+        step3Mapper.deleteCntrAdrpcBasStep3(cntrNo);
+        step3Mapper.deleteCntrAdrRelsStep3(cntrNo);
     }
 
     @Transactional

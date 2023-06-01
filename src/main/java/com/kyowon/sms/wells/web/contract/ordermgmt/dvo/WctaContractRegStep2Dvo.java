@@ -10,7 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctaContractRegStep2Dvo {
-    String cntrNo;
     WctaContractBasDvo bas;
     List<WctaContractDtlDvo> dtls;
     List<PdClsfDvo> pdClsf;
@@ -117,6 +116,7 @@ public class WctaContractRegStep2Dvo {
         Long ctrVal;
         String pdPrcId;
         boolean isExistAlncPds; // 제휴상품노출여부(금액조회 시 함께 판단)
+        Integer recapMshPtrm;
     }
 
     @Getter

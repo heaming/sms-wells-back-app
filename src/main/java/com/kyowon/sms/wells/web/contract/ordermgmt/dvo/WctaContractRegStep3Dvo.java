@@ -8,7 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctaContractRegStep3Dvo {
-    private String cntrNo;
     private WctaContractBasDvo bas; /*계약기본*/
     private List<WctaContractDtlDvo> dtls; /*계약상세*/
     private WctaContractAdrpcBasDvo basAdrpc; /*기본주소지(계약자기준)*/

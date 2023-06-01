@@ -117,20 +117,29 @@ public class WctaContractDtlDvo {
     private Long ctrVal;
     private String pdPrcId;
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
-    List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */
-    List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscDvCds; /* 판매할인구분코드 */
-    List<WctaContractRegStep2Dvo.PdDetailDvo> alncmpCntrDrmVals; /* 제휴상품 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscDvCds; /* 판매할인구분코드 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> alncmpCntrDrmVals; /* 제휴상품 */
     // TODO 구좌수
     /*STEP2 일시불*/
-    List<WctaContractRegStep2Dvo.PdDetailDvo> frisuBfsvcPtrmNs; /* 무상BS기간수 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> frisuBfsvcPtrmNs; /* 무상BS기간수 */
     /*STEP2 렌탈*/
-    List<WctaContractRegStep2Dvo.PdDetailDvo> stplPtrms; /* 약정기간 */
-    List<WctaContractRegStep2Dvo.PdDetailDvo> cntrPtrms; /* 소유권이전기간(계약기간) */
-    List<WctaContractRegStep2Dvo.PdDetailDvo> rgstCss; /* 등록비(계약금액 cntrAmt) */
-    List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscTpCds; /* 판매할인유형코드 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> stplPtrms; /* 약정기간 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> cntrPtrms; /* 소유권이전기간(계약기간) */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> rgstCss; /* 등록비(계약금액 cntrAmt) */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscTpCds; /* 판매할인유형코드 */
 
     /*STEP3*/
-    private String mlgYn; /*마일리지 사용여부*/
-    private Long cntram; /*계약금결제금액*/
+    private String blkApy; /* 조건 일괄적용 */
+    private Integer recapMshPtrm; /* 유상멤버십기간 */
+    private String sodbtNftfCntrYn; /* 총판 비대면 계약여부 */
+
+    private Long pdAmt; /* 결제정보 Type A, B 상품금액(신용카드) */
+    private String dpTpCdMsh; /* 결제정보 Type A 멤버십 자동이체 방식 */
+    private Long mshAmt; /* 결제정보 Type A 멤버십 금액 */
+
+    private String dpTpCdAftn; /* 결제정보 Type C 자동이체방식 */
+    private Long aftnAmt; /* 결제정보 Type C 등록비 */
+    private String dpTpCdIdrv; /* 결제정보 Type C 등록비(계약금)결제유형 */
 }
