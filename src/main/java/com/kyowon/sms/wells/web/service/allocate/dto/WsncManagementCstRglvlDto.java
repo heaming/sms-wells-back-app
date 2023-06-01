@@ -12,7 +12,6 @@ public class WsncManagementCstRglvlDto {
         @NotBlank
         String manageYm,
         String rcgvpDiv,
-        String selectDiv,
         String exceptWellsManagerYn,
         @PositiveOrZero
         String addressZipFrom,
@@ -30,23 +29,12 @@ public class WsncManagementCstRglvlDto {
         String cntrNo,
         @NotBlank
         String cntrSn,
-        @NotBlank
-        String mngtPrtnrOgTpCd,
-        @NotBlank
         String mngtPrtnrNo,
-        @NotBlank
         String mngStdMngerRglvlDvCd,
         @NotBlank
         String cstSvAsnNo,
-        @NotBlank
-        String asnPsicPrtnrOgTpCd,
-        @NotBlank
         String asnPsicPrtnrNo,
-        @NotBlank
-        String cnfmPsicPrtnrOgTpCd,
-        @NotBlank
         String cnfmPsicPrtnrNo,
-        @NotBlank
         String curMnthAlctnMngerRglvlDvCd
     ) {}
     @ApiModel(value = "WsncManagementCstRglvlDto-SearchRes")
