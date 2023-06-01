@@ -1,0 +1,986 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniServiceHistoryInterfaceMapper">
+    <select id="selectServiceHistory" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniServiceHistoryInterfaceDto$SearchRes">
+        WITH PART_MASTER AS (
+            <include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>
+        )
+        SELECT TS1.ISTLL_KNM AS CUST_NM
+             , TS1.IN_CHNL_DV_CD AS IN_GB
+             , F_CMZ_CD_NM('TNT_WELLS', 'IN_CHNL_DV_CD', TS1.IN_CHNL_DV_CD, 'ko') AS IN_GB_NM
+             , TC1.SELL_TP_CD AS SELL_TP_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', TC1.SELL_TP_CD, 'ko') AS SELL_TP_CD_NM
+             , TS1.CNTR_NO AS CNTR_NO
+             , TS1.CNTR_SN AS CNTR_SN
+             , TS3.PDCT_PD_CD AS PD_CD
+             , TP1.SVPD_NM_ABBR1 AS PD_CD_NM
+             , TP1.SVPD_ITEM_GR AS GDS_GR
+             , TS1.SV_BIZ_HCLSF_CD AS GUBUN
+             , TS1.SV_BIZ_HCLSF_CD AS SV_BIZ_HCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', TS1.SV_BIZ_HCLSF_CD, 'ko') AS SV_BIZ_HCLSF_CD_NM
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 2) AS SV_BIZ_MCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 2), 'ko') AS SV_BIZ_MCLSF_CD_NM
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3) AS SV_BIZ_LCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_LCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3), 'ko') AS SV_BIZ_LCLSF_CD_NM
+             , TS1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TS1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_CD_NM
+             , TS1.RCP_ICHR_PRTNR_NO AS REG_ID
+             , TO1.PRTNR_KNM AS REG_KNM
+             , TS1.CNSL_MO_CN AS REG_MEMO
+             , CASE WHEN TS1.VST_RQDT IS NOT NULL THEN TS1.VST_RQDT || TS1.VST_AK_HH END AS VST_SCH_DT_TM
+             , CASE WHEN TS1.FNL_RCPDT IS NOT NULL THEN TS1.FNL_RCPDT || TS1.FNL_RCP_HH END AS RECD_DT_TM
+             , CASE WHEN TS2.WK_ACPTE_DT IS NOT NULL THEN TS2.WK_ACPTE_DT || TS2.WK_ACPTE_HH END AS ACC_DT_TM
+             , CASE WHEN TS2.ARV_DT IS NOT NULL THEN TS2.ARV_DT || TS2.ARV_HH END AS ARR_DT_TM
+             , CASE WHEN TS2.VST_CNFMDT IS NOT NULL THEN TS2.VST_CNFMDT || TS2.VST_CNFM_HH END AS CFRM_DT_TM
+             , CASE WHEN TS2.WK_EXCN_DT IS NOT NULL THEN TS2.WK_EXCN_DT || TS2.WK_EXCN_HH END AS WRK_DT_TM
+             , TO2.OG_TP_CD AS PRTNR_OG_TP_CD
+             , TO2.PRTNR_NO AS PRTNR_NO
+             , TO2.PRTNR_KNM AS PRTNR_KNM
+             , CASE WHEN TO2.OG_CD = '71321' THEN '031' ELSE TO3.CRAL_LOCARA_TNO END AS TEL_NO1
+             , CASE WHEN TO2.OG_CD = '71321' THEN '953' ELSE TO3.MEXNO_ENCR END AS TEL_NO2
+             , CASE WHEN TO2.OG_CD = '71321' THEN '0816' ELSE TO3.CRAL_IDV_TNO END AS TEL_NO3
+             , TO5.OG_CD AS OG_CD
+             , CASE WHEN TO2.OG_TP_CD = 'W02' THEN SUBSTR(TO4.OG_CD, 1, 3) || TO4.BLD_NM ELSE TO4.OG_NM END AS OG_NAME
+             , CASE WHEN TO2.OG_TP_CD = 'W02' THEN SUBSTR(TO4.OG_CD, 1, 3) || '-' || TO4.BLD_NM ELSE TO4.OG_NM END AS JURISDICTION_OG_NM
+             , TS4.REFRI_DV_CD AS CHAG_GB
+             , TS4.CLN_YN AS RET_YN
+             , NVL(TS4.BC_NO, TS3.BC_NO) AS BC_NO
+             , TS4.SV_PROCS_CN AS PROC_TXT
+             , TS2.WK_CAN_RSON_CD AS CANC_NM
+             , TS2.WK_CAN_MO_CN AS CANC_MEMO
+             , CASE WHEN (SELECT COUNT(1)
+                            FROM TB_SVST_SV_WK_OSTR_IZ
+                           WHERE CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+                             AND CNTR_NO = TS1.CNTR_NO
+                             AND CNTR_SN = TS1.CNTR_SN
+                             AND DTA_DL_YN = 'N') <![CDATA[>]]> 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
+             , '' AS FILTER_CD_1
+             , '' AS FILTER_CD_2
+             , '' AS FILTER_CD_3
+             , '' AS FILTER_CD_4
+             , '' AS FILTER_CD_5
+             , '' AS FILTER_CD_6
+             , '' AS FILTER_CD_1_NM
+             , '' AS FILTER_CD_2_NM
+             , '' AS FILTER_CD_3_NM
+             , '' AS FILTER_CD_4_NM
+             , '' AS FILTER_CD_5_NM
+             , '' AS FILTER_CD_6_NM
+             , '' AS PART_CD_1
+             , '' AS PART_CD_2
+             , '' AS PART_CD_3
+             , '' AS CHULGO_C
+             , '' AS CHULGO_C_YN
+             , '' AS CHULGO_U
+             , '' AS CHULGO_U_YN
+             , TS5.BIL_OJ_AMT AS REQ_AMT_TOT
+             , CASE WHEN TP1.SVPD_ITEM_GR = '11' THEN TS6.RECAP_CS_AMT ELSE TS5.BIL_CTR_SUM_AMT END AS ACC_TOT
+             , CASE WHEN TC2.CNTR_DTL_STAT_CD = '202' THEN TC2.HIST_STRT_DTM END AS STOP_DT
+             , TS1.MTR_STAT_CD AS RCP_STAT_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'MTR_STAT_CD', TS1.MTR_STAT_CD, 'ko') AS RCP_STAT_CD_NM
+             , TO2.CLTN_DT AS CLTN_DT
+             , CASE WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '10' THEN TC3.FRISU_AS_PTRM_N * 12
+                    WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '30' THEN CEIL(TC3.FRISU_AS_PTRM_N * 7 / 30)
+                    WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '40' THEN CEIL(TC3.FRISU_AS_PTRM_N / 30)
+                    ELSE TC3.FRISU_AS_PTRM_N
+               END AS AS_MTHS
+             , CASE WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '10' THEN TC3.FRISU_BFSVC_PTRM_N / 12
+                    WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '30' THEN CEIL(TC3.FRISU_BFSVC_PTRM_N * 7 / 30)
+                    WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '40' THEN CEIL(TC3.FRISU_BFSVC_PTRM_N / 30)
+                    ELSE TC3.FRISU_BFSVC_PTRM_N
+               END AS BS_MTHS
+             , TS7.SPP_PROCS_BZS_CD AS IN_DLV_COMP
+             , TS7.SPP_ORD_IVC_NO AS IN_INVOICE
+             , TS8.SPP_PROCS_BZS_CD AS OUT_DLV_COMP
+             , TS8.SPP_ORD_IVC_NO AS OUT_INVOICE
+             , TS1.AS_IST_OJ_NO AS CST_SV_ASN_NO_1
+             , '' AS CST_SV_ASN_NO_2
+             , 0 AS FS_VST_CNT
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ TS1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ TS2
+            ON TS2.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+           AND TS2.CNTR_NO = TS1.CNTR_NO
+           AND TS2.CNTR_SN = TS1.CNTR_SN
+           AND TS1.DTA_DL_YN = 'N'
+           AND TS2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TS3
+            ON TS3.CNTR_NO = TS1.CNTR_NO
+           AND TS3.CNTR_SN = TS1.CNTR_SN
+           AND TS3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ TS4
+            ON TS4.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+           AND TS4.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL TC1
+            ON TC1.CNTR_NO = TS1.CNTR_NO
+           AND TC1.CNTR_SN = TS1.CNTR_SN
+           AND TC1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST TC2
+            ON TC2.CNTR_NO = TS1.CNTR_NO
+           AND TC2.CNTR_SN = TS1.CNTR_SN
+           AND TC2.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TC2.HIST_STRT_DTM AND TC2.HIST_END_DTM
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL TC3
+            ON TC3.CNTR_NO = TS1.CNTR_NO
+           AND TC3.CNTR_SN = TS1.CNTR_SN
+           AND TC3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_IZ TS5
+            ON TS5.CNTR_NO = TS1.CNTR_NO
+           AND TS5.CNTR_SN = TS1.CNTR_SN
+           AND TS5.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+           AND TS5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_SDING_SPP_PLAN_IZ TS6
+            ON TS6.CNTR_NO = TS1.CNTR_NO
+           AND TS6.CNTR_SN = TS1.CNTR_SN
+           AND TS6.SV_BIZ_HCLSF_CD = TS1.SV_BIZ_HCLSF_CD
+           AND TS6.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TS6.SPP_ORD_NO = TS1.AS_IST_OJ_NO
+           AND TS6.SPP_PLAN_SN = (SELECT MAX(SPP_PLAN_SN)
+                                    FROM TB_SVPD_SDING_SPP_PLAN_IZ
+                                   WHERE CNTR_NO = TS6.CNTR_NO
+                                     AND CNTR_SN = TS6.CNTR_SN
+                                     AND SV_BIZ_HCLSF_CD = TS6.SV_BIZ_HCLSF_CD
+                                     AND SV_BIZ_DCLSF_CD = TS6.SV_BIZ_DCLSF_CD
+                                     AND SPP_ORD_NO = TS6.SPP_ORD_NO
+                                     AND DTA_DL_YN = 'N')
+          LEFT OUTER JOIN TB_SVST_OTSC_PDCT_IOST_IZ TS7
+            ON TS7.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+           AND TS7.ITM_IOST_DV_CD = '1'
+           AND TS7.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVST_OTSC_PDCT_IOST_IZ TS8
+            ON TS8.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+           AND TS8.ITM_IOST_DV_CD = '2'
+           AND TS8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN PART_MASTER TP1
+            ON TP1.SVPD_PD_CD = TS3.PDCT_PD_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TO1
+            ON TO1.OG_TP_CD = TS1.RCP_OG_TP_CD
+           AND TO1.PRTNR_NO = TS1.RCP_ICHR_PRTNR_NO
+           AND TO1.BASE_YM = SUBSTR(TS1.FNL_RCPDT, 1, 6)
+           AND TO1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TO2
+            ON TO2.OG_TP_CD = (CASE WHEN TS4.OG_TP_CD IS NOT NULL AND TS4.PRTNR_NO IS NOT NULL THEN TS4.OG_TP_CD
+                                    WHEN TS2.WK_PRTNR_OG_TP_CD IS NOT NULL AND TS2.WK_PRTNR_NO IS NOT NULL THEN TS2.WK_PRTNR_OG_TP_CD
+                                    WHEN TS2.ICHR_OG_TP_CD IS NOT NULL AND TS2.ICHR_PRTNR_NO IS NOT NULL THEN TS2.ICHR_OG_TP_CD
+                               END)
+           AND TO2.PRTNR_NO = (CASE WHEN TS4.OG_TP_CD IS NOT NULL AND TS4.PRTNR_NO IS NOT NULL THEN TS4.PRTNR_NO
+                                    WHEN TS2.WK_PRTNR_OG_TP_CD IS NOT NULL AND TS2.WK_PRTNR_NO IS NOT NULL THEN TS2.WK_PRTNR_NO
+                                    WHEN TS2.ICHR_OG_TP_CD IS NOT NULL AND TS2.ICHR_PRTNR_NO IS NOT NULL THEN TS2.ICHR_PRTNR_NO
+                               END)
+           AND TO2.BASE_YM = (CASE WHEN TS4.OG_TP_CD IS NOT NULL AND TS4.PRTNR_NO IS NOT NULL THEN SUBSTR(TS4.VST_FSH_DT, 1, 6)
+                                   WHEN TS2.WK_PRTNR_OG_TP_CD IS NOT NULL AND TS2.WK_PRTNR_NO IS NOT NULL THEN SUBSTR(TS2.ASN_DT, 1, 6)
+                                   WHEN TS2.ICHR_OG_TP_CD IS NOT NULL AND TS2.ICHR_PRTNR_NO IS NOT NULL THEN SUBSTR(TS2.ASN_DT, 1, 6)
+                              END)
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS TO3
+            ON TO3.OG_TP_CD = TO2.OG_TP_CD
+           AND TO3.PRTNR_NO = TO2.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ TO4
+            ON TO4.OG_ID = TO2.OG_ID
+           AND TO4.BASE_YM = TO2.BASE_YM
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ TO5
+            ON TO5.OG_ID = NVL(TS4.OG_ID, TS2.SV_CNR_OG_ID)
+           AND TO5.BASE_YM = (CASE WHEN TS4.OG_ID IS NOT NULL THEN SUBSTR(TS4.VST_FSH_DT, 1, 6)
+                                   ELSE SUBSTR(TS2.ASN_DT, 1, 6)
+                              END)
+         WHERE 1=1
+           AND TS1.CNTR_NO = #{CNTR_NO}
+           AND TS1.CNTR_SN = #{CNTR_SN}
+           AND TS1.SV_BIZ_HCLSF_CD = #{GUBUN}
+        <if test="@MybatisUtils@equals(WORK_END_YN, 'Y')">
+           AND TS2.WK_EXCN_DT IS NOT NULL
+        </if>
+        <if test="@MybatisUtils@equals(WORK_END_YN, 'N')">
+           AND TS2.WK_EXCN_DT IS NULL
+        </if>
+         UNION ALL
+        SELECT TC5.RCGVP_KNM AS CUST_NM
+             , '' AS IN_GB
+             , '' AS IN_GB_NM
+             , TC1.SELL_TP_CD AS SELL_TP_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', TC1.SELL_TP_CD, 'ko') AS SELL_TP_CD_NM
+             , TS1.CNTR_NO AS CNTR_NO
+             , TS1.CNTR_SN AS CNTR_SN
+             , TS3.PDCT_PD_CD AS PD_CD
+             , TP1.SVPD_NM_ABBR1 AS PD_CD_NM
+             , TP1.SVPD_ITEM_GR AS GDS_GR
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1) AS GUBUN
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1) AS SV_BIZ_HCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1), 'ko') AS SV_BIZ_HCLSF_CD_NM
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 2) AS SV_BIZ_MCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 2), 'ko') AS SV_BIZ_MCLSF_CD_NM
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3) AS SV_BIZ_LCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_LCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3), 'ko') AS SV_BIZ_LCLSF_CD_NM
+             , TS1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TS1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_CD_NM
+             , 'BS' AS REG_ID
+             , '' AS REG_KNM
+             , '' AS REG_MEMO
+             , CASE WHEN TS2.VST_CNFMDT IS NOT NULL THEN TS2.VST_CNFMDT || TS2.VST_CNFM_HH END AS VST_SCH_DT_TM
+             , CASE WHEN TS1.VST_DUEDT IS NOT NULL THEN TS1.VST_DUEDT || '000000' END AS RECD_DT_TM
+             , '' AS ACC_DT_TM
+             , '' AS ARR_DT_TM
+             , CASE WHEN TS2.VST_CNFMDT IS NOT NULL THEN TS2.VST_CNFMDT || TS2.VST_CNFM_HH END AS CFRM_DT_TM
+             , CASE WHEN TS4.VST_FSH_DT IS NOT NULL THEN TS4.VST_FSH_DT || TS4.VST_FSH_HH END AS WRK_DT_TM
+             , TO1.OG_TP_CD AS PRTNR_OG_TP_CD
+             , TO1.PRTNR_NO AS PRTNR_NO
+             , TO1.PRTNR_KNM AS PRTNR_KNM
+             , CASE WHEN TO1.OG_CD = '71321' THEN '031' ELSE TO2.CRAL_LOCARA_TNO END AS TEL_NO1
+             , CASE WHEN TO1.OG_CD = '71321' THEN '953' ELSE TO2.MEXNO_ENCR END AS TEL_NO2
+             , CASE WHEN TO1.OG_CD = '71321' THEN '0816' ELSE TO2.CRAL_IDV_TNO END AS TEL_NO3
+             , TO3.OG_CD AS OG_CD
+             , CASE WHEN TO1.OG_TP_CD = 'W02' AND TO3.BLD_NM IS NOT NULL THEN TO3.BLD_NM ELSE TO3.OG_NM END AS OG_NAME
+             , CASE WHEN TO1.OG_TP_CD = 'W02' THEN SUBSTR(TO3.OG_CD, 1, 3) || '-' || TO3.BLD_NM ELSE TO3.OG_NM END AS JURISDICTION_OG_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'REFRI_DV_CD', TS4.REFRI_DV_CD, 'ko') AS CHAG_GB
+             , TS4.CLN_YN AS RET_YN
+             , NVL(TS4.BC_NO, TS3.BC_NO) AS BC_NO
+             , TS4.SV_PROCS_CN AS PROC_TXT
+             , TS2.WK_CAN_RSON_CD AS CANC_NM
+             , '' AS CANC_MEMO
+             , CASE WHEN (SELECT COUNT(1)
+                            FROM TB_SVST_SV_WK_OSTR_IZ
+                           WHERE CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+                             AND CNTR_NO = TS1.CNTR_NO
+                             AND CNTR_SN = TS1.CNTR_SN
+                             AND DTA_DL_YN = 'N') <![CDATA[>]]> 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
+             , TF1.PU_PART_PD_CD AS FILTER_CD_1
+             , TF2.PU_PART_PD_CD AS FILTER_CD_2
+             , TF3.PU_PART_PD_CD AS FILTER_CD_3
+             , TF4.PU_PART_PD_CD AS FILTER_CD_4
+             , TF5.PU_PART_PD_CD AS FILTER_CD_5
+             , TF6.PU_PART_PD_CD AS FILTER_CD_6
+             , TF1.PU_PART_PD_ABBR_NM AS FILTER_CD_1_NM
+             , TF2.PU_PART_PD_ABBR_NM AS FILTER_CD_2_NM
+             , TF3.PU_PART_PD_ABBR_NM AS FILTER_CD_3_NM
+             , TF4.PU_PART_PD_ABBR_NM AS FILTER_CD_4_NM
+             , TF5.PU_PART_PD_ABBR_NM AS FILTER_CD_5_NM
+             , TF6.PU_PART_PD_ABBR_NM AS FILTER_CD_6_NM
+             , TF7.PU_PART_PD_CD AS PART_CD_1
+             , TF8.PU_PART_PD_CD AS PART_CD_2
+             , TF9.PU_PART_PD_CD AS PART_CD_3
+             , TS5.ITM_PD_CD AS CHULGO_C
+             , CASE WHEN TS5.ITM_PD_CD IS NOT NULL THEN 'Y' ELSE 'N' END AS CHULGO_C_YN
+             , TS6.ITM_PD_CD AS CHULGO_U
+             , CASE WHEN TS6.ITM_PD_CD IS NOT NULL THEN 'Y' ELSE 'N' END AS CHULGO_U_YN
+             , 0 AS REQ_AMT_TOT
+             , 0 AS ACC_TOT
+             , CASE WHEN TC2.CNTR_DTL_STAT_CD = '202' THEN TC2.HIST_STRT_DTM END AS STOP_DT
+             , '1' AS RCP_STAT_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'MTR_STAT_CD', '1', 'ko') AS RCP_STAT_CD_NM
+             , TO1.CLTN_DT AS CLTN_DT
+             , CASE WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '10' THEN TC3.FRISU_AS_PTRM_N * 12
+                    WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '30' THEN CEIL(TC3.FRISU_AS_PTRM_N * 7 / 30)
+                    WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '40' THEN CEIL(TC3.FRISU_AS_PTRM_N / 30)
+                    ELSE TC3.FRISU_AS_PTRM_N
+               END AS AS_MTHS
+             , CASE WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '10' THEN TC3.FRISU_BFSVC_PTRM_N / 12
+                    WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '30' THEN CEIL(TC3.FRISU_BFSVC_PTRM_N * 7 / 30)
+                    WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '40' THEN CEIL(TC3.FRISU_BFSVC_PTRM_N / 30)
+                    ELSE TC3.FRISU_BFSVC_PTRM_N
+               END AS BS_MTHS
+             , '' AS IN_DLV_COMP
+             , '' AS IN_INVOICE
+             , '' AS OUT_DLV_COMP
+             , '' AS OUT_INVOICE
+             , TS1.CST_SV_ASN_NO AS CST_SV_ASN_NO_1
+             , TS2.CST_SV_ASN_NO AS CST_SV_ASN_NO_2
+             , (SELECT COUNT(1)
+                  FROM TB_SVPD_BFSVC_FS_VST_RGST_IZ
+                 WHERE CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+                   AND DTA_DL_YN = 'N') AS FS_VST_CNT
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TS1
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ TS2
+            ON TS2.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+           AND TS2.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TS2.CNTR_NO = TS1.CNTR_NO
+           AND TS2.CNTR_SN = TS1.CNTR_SN
+           AND TS2.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TS2.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TS2.WK_SN = TS1.WK_SN
+           AND TS1.DTA_DL_YN = 'N'
+           AND TS2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TS3
+            ON TS3.CNTR_NO = TS1.CNTR_NO
+           AND TS3.CNTR_SN = TS1.CNTR_SN
+           AND TS3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ TS4
+            ON TS4.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+           AND TS4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (SELECT CNTR_NO
+                                , CNTR_SN
+                                , FNL_VST_FSH_YM
+                                , MAX(ITM_PD_CD) AS ITM_PD_CD
+                             FROM (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , SUBSTR(FNL_VST_FSH_DT, 1, 6) AS FNL_VST_FSH_YM
+                                        , ITM_PD_CD
+                                     FROM TB_SVST_SV_WK_OSTR_IZ
+                                    WHERE ITM_PD_CD = 'WM07102914'
+                                      AND DTA_DL_YN = 'N')
+                            GROUP BY CNTR_NO, CNTR_SN, FNL_VST_FSH_YM) TS5
+            ON TS5.CNTR_NO = TS1.CNTR_NO
+           AND TS5.CNTR_SN = TS1.CNTR_SN
+           AND TS5.FNL_VST_FSH_YM = TS1.ASN_OJ_YM
+          LEFT OUTER JOIN (SELECT CNTR_NO
+                                , CNTR_SN
+                                , FNL_VST_FSH_YM
+                                , MAX(ITM_PD_CD) AS ITM_PD_CD
+                             FROM (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , SUBSTR(FNL_VST_FSH_DT, 1, 6) AS FNL_VST_FSH_YM
+                                        , ITM_PD_CD AS ITM_PD_CD
+                                     FROM TB_SVST_SV_WK_OSTR_IZ
+                                    WHERE ITM_PD_CD IN ('WM07102401', 'WM07102402')
+                                      AND DTA_DL_YN = 'N')
+                            GROUP BY CNTR_NO, CNTR_SN, FNL_VST_FSH_YM) TS6
+            ON TS6.CNTR_NO = TS1.CNTR_NO
+           AND TS6.CNTR_SN = TS1.CNTR_SN
+           AND TS6.FNL_VST_FSH_YM = TS1.ASN_OJ_YM
+         INNER JOIN TB_SSCT_CNTR_DTL TC1
+            ON TC1.CNTR_NO = TS1.CNTR_NO
+           AND TC1.CNTR_SN = TS1.CNTR_SN
+           AND TC1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST TC2
+            ON TC2.CNTR_NO = TS1.CNTR_NO
+           AND TC2.CNTR_SN = TS1.CNTR_SN
+           AND TC2.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TC2.HIST_STRT_DTM AND TC2.HIST_END_DTM
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL TC3
+            ON TC3.CNTR_NO = TS1.CNTR_NO
+           AND TC3.CNTR_SN = TS1.CNTR_SN
+           AND TC3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL TC4
+            ON TC4.DTL_CNTR_NO = TS1.CNTR_NO
+           AND TC4.DTL_CNTR_SN = TS1.CNTR_SN
+           AND TC4.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TC4.VL_STRT_DTM AND TC4.VL_END_DTM
+           AND TC4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS TC5
+            ON TC5.CNTR_ADRPC_ID = TC4.CNTR_ADRPC_ID
+           AND TC5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN PART_MASTER TP1
+            ON TP1.SVPD_PD_CD = TS3.PDCT_PD_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TO1
+            ON TO1.OG_TP_CD = (CASE WHEN TS4.OG_TP_CD IS NOT NULL AND TS4.PRTNR_NO IS NOT NULL THEN TS4.OG_TP_CD
+                                    WHEN TS2.CNFM_PSIC_PRTNR_OG_TP_CD IS NOT NULL AND TS2.CNFM_PSIC_PRTNR_NO IS NOT NULL THEN TS2.CNFM_PSIC_PRTNR_OG_TP_CD
+                               END)
+           AND TO1.PRTNR_NO = (CASE WHEN TS4.OG_TP_CD IS NOT NULL AND TS4.PRTNR_NO IS NOT NULL THEN TS4.PRTNR_NO
+                                    WHEN TS2.CNFM_PSIC_PRTNR_OG_TP_CD IS NOT NULL AND TS2.CNFM_PSIC_PRTNR_NO IS NOT NULL THEN TS2.CNFM_PSIC_PRTNR_NO
+                               END)
+           AND TO1.BASE_YM = (CASE WHEN TS4.OG_TP_CD IS NOT NULL AND TS4.PRTNR_NO IS NOT NULL THEN SUBSTR(TS4.VST_FSH_DT, 1, 6)
+                                   WHEN TS2.CNFM_PSIC_PRTNR_OG_TP_CD IS NOT NULL AND TS2.CNFM_PSIC_PRTNR_NO IS NOT NULL THEN TS2.ASN_OJ_YM
+                              END)
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS TO2
+            ON TO2.OG_TP_CD = TO1.OG_TP_CD
+           AND TO2.PRTNR_NO = TO1.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ TO3
+            ON TO3.OG_ID = TO1.OG_ID
+           AND TO3.BASE_YM = TO1.BASE_YM
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM TB_SVPD_RGBS_PU_ITM_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '01'
+                              AND X.ITM_KND_CD = '5') TF1
+            ON TF1.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF1.CNTR_NO = TS1.CNTR_NO
+           AND TF1.CNTR_SN = TS1.CNTR_SN
+           AND TF1.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF1.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF1.WK_SN = TS1.WK_SN
+           AND TF1.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF1.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM TB_SVPD_RGBS_PU_ITM_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '02'
+                              AND X.ITM_KND_CD = '5') TF2
+            ON TF2.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF2.CNTR_NO = TS1.CNTR_NO
+           AND TF2.CNTR_SN = TS1.CNTR_SN
+           AND TF2.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF2.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF2.WK_SN = TS1.WK_SN
+           AND TF2.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF2.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM TB_SVPD_RGBS_PU_ITM_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '03'
+                              AND X.ITM_KND_CD = '5') TF3
+            ON TF3.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF3.CNTR_NO = TS1.CNTR_NO
+           AND TF3.CNTR_SN = TS1.CNTR_SN
+           AND TF3.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF3.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF3.WK_SN = TS1.WK_SN
+           AND TF3.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF3.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM TB_SVPD_RGBS_PU_ITM_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '04'
+                              AND X.ITM_KND_CD = '5') TF4
+            ON TF4.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF4.CNTR_NO = TS1.CNTR_NO
+           AND TF4.CNTR_SN = TS1.CNTR_SN
+           AND TF4.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF4.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF4.WK_SN = TS1.WK_SN
+           AND TF4.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF4.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM TB_SVPD_RGBS_PU_ITM_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '05'
+                              AND X.ITM_KND_CD = '5') TF5
+            ON TF5.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF5.CNTR_NO = TS1.CNTR_NO
+           AND TF5.CNTR_SN = TS1.CNTR_SN
+           AND TF5.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF5.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF5.WK_SN = TS1.WK_SN
+           AND TF5.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF5.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM TB_SVPD_RGBS_PU_ITM_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '06'
+                              AND X.ITM_KND_CD = '5') TF6
+            ON TF6.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF6.CNTR_NO = TS1.CNTR_NO
+           AND TF6.CNTR_SN = TS1.CNTR_SN
+           AND TF6.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF6.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF6.WK_SN = TS1.WK_SN
+           AND TF6.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF6.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM (SELECT ASN_OJ_YM
+                                        , CNTR_NO
+                                        , CNTR_SN
+                                        , SV_BIZ_MCLSF_CD
+                                        , SV_BIZ_DCLSF_CD
+                                        , WK_SN
+                                        , PDCT_PD_CD
+                                        , IST_NMN_N
+                                        , PU_PART_PD_CD
+                                        , RANK() OVER(
+                                            PARTITION BY ASN_OJ_YM
+                                                       , CNTR_NO
+                                                       , CNTR_SN
+                                                       , SV_BIZ_MCLSF_CD
+                                                       , SV_BIZ_DCLSF_CD
+                                                       , WK_SN
+                                                       , PDCT_PD_CD
+                                                       , IST_NMN_N
+                                            ORDER BY PU_PART_PD_CD
+                                          ) AS RN
+                                     FROM TB_SVPD_RGBS_PU_ITM_IZ
+                                    WHERE FILT_CHNG_LV_CD = '00'
+                                      AND ITM_KND_CD = '6'
+                                      AND DTA_DL_YN = 'N') X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.RN = 1) TF7
+            ON TF7.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF7.CNTR_NO = TS1.CNTR_NO
+           AND TF7.CNTR_SN = TS1.CNTR_SN
+           AND TF7.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF7.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF7.WK_SN = TS1.WK_SN
+           AND TF7.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF7.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM (SELECT ASN_OJ_YM
+                                        , CNTR_NO
+                                        , CNTR_SN
+                                        , SV_BIZ_MCLSF_CD
+                                        , SV_BIZ_DCLSF_CD
+                                        , WK_SN
+                                        , PDCT_PD_CD
+                                        , IST_NMN_N
+                                        , PU_PART_PD_CD
+                                        , RANK() OVER(
+                                            PARTITION BY ASN_OJ_YM
+                                                       , CNTR_NO
+                                                       , CNTR_SN
+                                                       , SV_BIZ_MCLSF_CD
+                                                       , SV_BIZ_DCLSF_CD
+                                                       , WK_SN
+                                                       , PDCT_PD_CD
+                                                       , IST_NMN_N
+                                            ORDER BY PU_PART_PD_CD
+                                          ) AS RN
+                                     FROM TB_SVPD_RGBS_PU_ITM_IZ
+                                    WHERE FILT_CHNG_LV_CD = '00'
+                                      AND ITM_KND_CD = '6'
+                                      AND DTA_DL_YN = 'N') X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.RN = 2) TF8
+            ON TF8.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF8.CNTR_NO = TS1.CNTR_NO
+           AND TF8.CNTR_SN = TS1.CNTR_SN
+           AND TF8.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF8.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF8.WK_SN = TS1.WK_SN
+           AND TF8.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF8.IST_NMN_N = TS1.IST_NMN_N
+          LEFT OUTER JOIN (SELECT X.ASN_OJ_YM
+                                , X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.SV_BIZ_MCLSF_CD
+                                , X.SV_BIZ_DCLSF_CD
+                                , X.WK_SN
+                                , X.PDCT_PD_CD
+                                , X.IST_NMN_N
+                                , X.PU_PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM (SELECT ASN_OJ_YM
+                                        , CNTR_NO
+                                        , CNTR_SN
+                                        , SV_BIZ_MCLSF_CD
+                                        , SV_BIZ_DCLSF_CD
+                                        , WK_SN
+                                        , PDCT_PD_CD
+                                        , IST_NMN_N
+                                        , PU_PART_PD_CD
+                                        , RANK() OVER(
+                                            PARTITION BY ASN_OJ_YM
+                                                       , CNTR_NO
+                                                       , CNTR_SN
+                                                       , SV_BIZ_MCLSF_CD
+                                                       , SV_BIZ_DCLSF_CD
+                                                       , WK_SN
+                                                       , PDCT_PD_CD
+                                                       , IST_NMN_N
+                                            ORDER BY PU_PART_PD_CD
+                                          ) AS RN
+                                     FROM TB_SVPD_RGBS_PU_ITM_IZ
+                                    WHERE FILT_CHNG_LV_CD = '00'
+                                      AND ITM_KND_CD = '6'
+                                      AND DTA_DL_YN = 'N') X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PU_PART_PD_CD
+                              AND X.RN = 3) TF9
+            ON TF9.ASN_OJ_YM = TS1.ASN_OJ_YM
+           AND TF9.CNTR_NO = TS1.CNTR_NO
+           AND TF9.CNTR_SN = TS1.CNTR_SN
+           AND TF9.SV_BIZ_MCLSF_CD = TS1.SV_BIZ_MCLSF_CD
+           AND TF9.SV_BIZ_DCLSF_CD = TS1.SV_BIZ_DCLSF_CD
+           AND TF9.WK_SN = TS1.WK_SN
+           AND TF9.PDCT_PD_CD = TS1.PDCT_PD_CD
+           AND TF9.IST_NMN_N = TS1.IST_NMN_N
+         WHERE 1=1
+           AND TS1.CNTR_NO = #{CNTR_NO}
+           AND TS1.CNTR_SN = #{CNTR_SN}
+           AND SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1) = #{GUBUN}
+        <if test="@MybatisUtils@equals(WORK_END_YN, 'Y')">
+           AND TS2.WK_EXCN_DT IS NOT NULL
+        </if>
+        <if test="@MybatisUtils@equals(WORK_END_YN, 'N')">
+           AND TS2.WK_EXCN_DT IS NULL
+        </if>
+        <if test="@MybatisUtils@equals(BS_CUR_DT_YN, 'Y')">
+           AND TS2.VST_CNFMDT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+        </if>
+         UNION ALL
+        SELECT TC5.RCGVP_KNM AS CUST_NM
+             , '' AS IN_GB
+             , '' AS IN_GB_NM
+             , TC1.SELL_TP_CD AS SELL_TP_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', TC1.SELL_TP_CD, 'ko') AS SELL_TP_CD_NM
+             , TS1.CNTR_NO AS CNTR_NO
+             , TS1.CNTR_SN AS CNTR_SN
+             , TS3.PDCT_PD_CD AS PD_CD
+             , TP1.SVPD_NM_ABBR1 AS PD_CD_NM
+             , TP1.SVPD_ITEM_GR AS GDS_GR
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1) AS GUBUN
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1) AS SV_BIZ_HCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1), 'ko') AS SV_BIZ_HCLSF_CD_NM
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 2) AS SV_BIZ_MCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 2), 'ko') AS SV_BIZ_MCLSF_CD_NM
+             , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3) AS SV_BIZ_LCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_LCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3), 'ko') AS SV_BIZ_LCLSF_CD_NM
+             , TS1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TS1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_CD_NM
+             , 'BS' AS REG_ID
+             , '' AS REG_KNM
+             , '' AS REG_MEMO
+             , CASE WHEN TS1.VST_DUEDT IS NOT NULL THEN TS1.VST_DUEDT || '000000' END AS VST_SCH_DT_TM
+             , CASE WHEN TS1.VST_DUEDT IS NOT NULL THEN TS1.VST_DUEDT || '000000' END AS RECD_DT_TM
+             , '' AS ACC_DT_TM
+             , '' AS ARR_DT_TM
+             , CASE WHEN TS1.VST_DUEDT IS NOT NULL THEN TS1.VST_DUEDT || '000000' END AS CFRM_DT_TM
+             , '' AS WRK_DT_TM
+             , TO1.OG_TP_CD AS PRTNR_OG_TP_CD
+             , TO1.PRTNR_NO AS PRTNR_NO
+             , TO1.PRTNR_KNM AS PRTNR_KNM
+             , CASE WHEN TO1.OG_CD = '71321' THEN '031' ELSE TO2.CRAL_LOCARA_TNO END AS TEL_NO1
+             , CASE WHEN TO1.OG_CD = '71321' THEN '953' ELSE TO2.MEXNO_ENCR END AS TEL_NO2
+             , CASE WHEN TO1.OG_CD = '71321' THEN '0816' ELSE TO2.CRAL_IDV_TNO END AS TEL_NO3
+             , TO3.OG_CD AS OG_CD
+             , CASE WHEN TO1.OG_TP_CD = 'W02' AND TO3.BLD_NM IS NOT NULL THEN TO3.BLD_NM ELSE TO3.OG_NM END AS OG_NAME
+             , CASE WHEN TO1.OG_TP_CD = 'W02' THEN SUBSTR(TO3.OG_CD, 1, 3) || '-' || TO3.BLD_NM ELSE TO3.OG_NM END AS JURISDICTION_OG_NM
+             , '' AS CHAG_GB
+             , 'N' AS RET_YN
+             , TS3.BC_NO AS BC_NO
+             , '' AS PROC_TXT
+             , '' AS CANC_NM
+             , '' AS CANC_MEMO
+             , CASE WHEN (SELECT COUNT(1)
+                            FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                           WHERE CNTR_NO = TS1.CNTR_NO
+                             AND CNTR_SN = TS1.CNTR_SN
+                             AND VST_DUEDT = TS1.VST_DUEDT
+                             AND DTA_DL_YN = 'N') <![CDATA[>]]> 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
+             , TF1.PART_PD_CD AS FILTER_CD_1
+             , TF2.PART_PD_CD AS FILTER_CD_2
+             , TF3.PART_PD_CD AS FILTER_CD_3
+             , TF4.PART_PD_CD AS FILTER_CD_4
+             , TF5.PART_PD_CD AS FILTER_CD_5
+             , TF6.PART_PD_CD AS FILTER_CD_6
+             , TF1.PART_PD_ABBR_NM AS FILTER_CD_1_NM
+             , TF2.PART_PD_ABBR_NM AS FILTER_CD_2_NM
+             , TF3.PART_PD_ABBR_NM AS FILTER_CD_3_NM
+             , TF4.PART_PD_ABBR_NM AS FILTER_CD_4_NM
+             , TF5.PART_PD_ABBR_NM AS FILTER_CD_5_NM
+             , TF6.PART_PD_ABBR_NM AS FILTER_CD_6_NM
+             , TF7.PART_PD_CD AS PART_CD_1
+             , TF8.PART_PD_CD AS PART_CD_2
+             , TF9.PART_PD_CD AS PART_CD_3
+             , '' AS CHULGO_C
+             , '' AS CHULGO_C_YN
+             , '' AS CHULGO_U
+             , '' AS CHULGO_U_YN
+             , 0 AS REQ_AMT_TOT
+             , 0 AS ACC_TOT
+             , CASE WHEN TC2.CNTR_DTL_STAT_CD = '202' THEN TC2.HIST_STRT_DTM END AS STOP_DT
+             , '' AS RCP_STAT_CD
+             , '예정' AS RCP_STAT_CD_NM
+             , TO1.CLTN_DT AS CLTN_DT
+             , CASE WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '10' THEN TC3.FRISU_AS_PTRM_N * 12
+                    WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '30' THEN CEIL(TC3.FRISU_AS_PTRM_N * 7 / 30)
+                    WHEN TC3.FRISU_AS_PTRM_UNIT_CD = '40' THEN CEIL(TC3.FRISU_AS_PTRM_N / 30)
+                    ELSE TC3.FRISU_AS_PTRM_N
+               END AS AS_MTHS
+             , CASE WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '10' THEN TC3.FRISU_BFSVC_PTRM_N / 12
+                    WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '30' THEN CEIL(TC3.FRISU_BFSVC_PTRM_N * 7 / 30)
+                    WHEN TC3.FRISU_BFSVC_PTRM_UNIT_CD = '40' THEN CEIL(TC3.FRISU_BFSVC_PTRM_N / 30)
+                    ELSE TC3.FRISU_BFSVC_PTRM_N
+               END AS BS_MTHS
+             , '' AS IN_DLV_COMP
+             , '' AS IN_INVOICE
+             , '' AS OUT_DLV_COMP
+             , '' AS OUT_INVOICE
+             , '' AS CST_SV_ASN_NO_1
+             , '' AS CST_SV_ASN_NO_2
+             , 0 AS FS_VST_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ TS1
+         INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ TS2
+            ON TS2.CNTR_NO = TS1.CNTR_NO
+           AND TS2.CNTR_SN = TS1.CNTR_SN
+           AND TS1.DTA_DL_YN = 'N'
+           AND TS2.DTA_DL_YN = 'N'
+           AND TS2.MNGT_YM = (SELECT MAX(MNGT_YM)
+                                FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
+                               WHERE CNTR_NO = TS2.CNTR_NO
+                                 AND CNTR_SN = TS2.CNTR_SN
+                                 AND DTA_DL_YN = 'N')
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TS3
+            ON TS3.CNTR_NO = TS1.CNTR_NO
+           AND TS3.CNTR_SN = TS1.CNTR_SN
+           AND TS3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL TC1
+            ON TC1.CNTR_NO = TS1.CNTR_NO
+           AND TC1.CNTR_SN = TS1.CNTR_SN
+           AND TC1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST TC2
+            ON TC2.CNTR_NO = TS1.CNTR_NO
+           AND TC2.CNTR_SN = TS1.CNTR_SN
+           AND TC2.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TC2.HIST_STRT_DTM AND TC2.HIST_END_DTM
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL TC3
+            ON TC3.CNTR_NO = TS1.CNTR_NO
+           AND TC3.CNTR_SN = TS1.CNTR_SN
+           AND TC3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL TC4
+            ON TC4.DTL_CNTR_NO = TS1.CNTR_NO
+           AND TC4.DTL_CNTR_SN = TS1.CNTR_SN
+           AND TC4.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TC4.VL_STRT_DTM AND TC4.VL_END_DTM
+           AND TC4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS TC5
+            ON TC5.CNTR_ADRPC_ID = TC4.CNTR_ADRPC_ID
+           AND TC5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN PART_MASTER TP1
+            ON TP1.SVPD_PD_CD = TS3.PDCT_PD_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TO1
+            ON TO1.OG_TP_CD = (CASE WHEN TS2.FXN_PRTNR_OG_TP_CD IS NOT NULL AND TS2.FXN_PRTNR_NO IS NOT NULL THEN TS2.FXN_PRTNR_OG_TP_CD
+                                    ELSE TS2.MNGT_PRTNR_OG_TP_CD
+                               END)
+           AND TO1.PRTNR_NO = (CASE WHEN TS2.FXN_PRTNR_OG_TP_CD IS NOT NULL AND TS2.FXN_PRTNR_NO IS NOT NULL THEN TS2.FXN_PRTNR_NO
+                                    ELSE TS2.MNGT_PRTNR_NO
+                               END)
+           AND TO1.BASE_YM = TS2.MNGT_YM
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS TO2
+            ON TO2.OG_TP_CD = TO1.OG_TP_CD
+           AND TO2.PRTNR_NO = TO1.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ TO3
+            ON TO3.OG_ID = TO1.OG_ID
+           AND TO3.BASE_YM = TO1.BASE_YM
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PART_PD_ABBR_NM
+                             FROM TB_SVPD_CST_SV_RGBSPR_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '01'
+                              AND X.ITM_KND_CD = '5') TF1
+            ON TF1.CNTR_NO = TS1.CNTR_NO
+           AND TF1.CNTR_SN = TS1.CNTR_SN
+           AND TF1.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PART_PD_ABBR_NM
+                             FROM TB_SVPD_CST_SV_RGBSPR_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '02'
+                              AND X.ITM_KND_CD = '5') TF2
+            ON TF2.CNTR_NO = TS1.CNTR_NO
+           AND TF2.CNTR_SN = TS1.CNTR_SN
+           AND TF2.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PART_PD_ABBR_NM
+                             FROM TB_SVPD_CST_SV_RGBSPR_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '03'
+                              AND X.ITM_KND_CD = '5') TF3
+            ON TF3.CNTR_NO = TS1.CNTR_NO
+           AND TF3.CNTR_SN = TS1.CNTR_SN
+           AND TF3.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PART_PD_ABBR_NM
+                             FROM TB_SVPD_CST_SV_RGBSPR_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '04'
+                              AND X.ITM_KND_CD = '5') TF4
+            ON TF4.CNTR_NO = TS1.CNTR_NO
+           AND TF4.CNTR_SN = TS1.CNTR_SN
+           AND TF4.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PART_PD_ABBR_NM
+                             FROM TB_SVPD_CST_SV_RGBSPR_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '05'
+                              AND X.ITM_KND_CD = '5') TF5
+            ON TF5.CNTR_NO = TS1.CNTR_NO
+           AND TF5.CNTR_SN = TS1.CNTR_SN
+           AND TF5.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PART_PD_ABBR_NM
+                             FROM TB_SVPD_CST_SV_RGBSPR_IZ X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.DTA_DL_YN = 'N'
+                            WHERE X.FILT_CHNG_LV_CD = '06'
+                              AND X.ITM_KND_CD = '5') TF6
+            ON TF6.CNTR_NO = TS1.CNTR_NO
+           AND TF6.CNTR_SN = TS1.CNTR_SN
+           AND TF6.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , VST_DUEDT
+                                        , PART_PD_CD
+                                        , RANK() OVER(
+                                            PARTITION BY CNTR_NO
+                                                       , CNTR_SN
+                                                       , VST_DUEDT
+                                            ORDER BY PART_PD_CD
+                                          ) AS RN
+                                     FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                                    WHERE FILT_CHNG_LV_CD = '00'
+                                      AND ITM_KND_CD = '6'
+                                      AND DTA_DL_YN = 'N') X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.RN = 1) TF7
+            ON TF7.CNTR_NO = TS1.CNTR_NO
+           AND TF7.CNTR_SN = TS1.CNTR_SN
+           AND TF7.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , VST_DUEDT
+                                        , PART_PD_CD
+                                        , RANK() OVER(
+                                            PARTITION BY CNTR_NO
+                                                       , CNTR_SN
+                                                       , VST_DUEDT
+                                            ORDER BY PART_PD_CD
+                                          ) AS RN
+                                     FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                                    WHERE FILT_CHNG_LV_CD = '00'
+                                      AND ITM_KND_CD = '6'
+                                      AND DTA_DL_YN = 'N') X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.RN = 2) TF8
+            ON TF8.CNTR_NO = TS1.CNTR_NO
+           AND TF8.CNTR_SN = TS1.CNTR_SN
+           AND TF8.VST_DUEDT = TS1.VST_DUEDT
+          LEFT OUTER JOIN (SELECT X.CNTR_NO
+                                , X.CNTR_SN
+                                , X.VST_DUEDT
+                                , X.PART_PD_CD
+                                , Y.SVPD_NM_ABBR1 AS PU_PART_PD_ABBR_NM
+                             FROM (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , VST_DUEDT
+                                        , PART_PD_CD
+                                        , RANK() OVER(
+                                            PARTITION BY CNTR_NO
+                                                       , CNTR_SN
+                                                       , VST_DUEDT
+                                            ORDER BY PART_PD_CD
+                                          ) AS RN
+                                     FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                                    WHERE FILT_CHNG_LV_CD = '00'
+                                      AND ITM_KND_CD = '6'
+                                      AND DTA_DL_YN = 'N') X
+                             LEFT OUTER JOIN PART_MASTER Y
+                               ON Y.SVPD_PD_CD = X.PART_PD_CD
+                              AND X.RN = 3) TF9
+            ON TF9.CNTR_NO = TS1.CNTR_NO
+           AND TF9.CNTR_SN = TS1.CNTR_SN
+           AND TF9.VST_DUEDT = TS1.VST_DUEDT
+         WHERE 1=1
+           AND TS1.CNTR_NO = #{CNTR_NO}
+           AND TS1.CNTR_SN = #{CNTR_SN}
+           AND SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 1) = #{GUBUN}
+        <if test="@MybatisUtils@equals(WORK_END_YN, 'Y')">
+           AND TS1.WK_DT IS NOT NULL
+        </if>
+        <if test="@MybatisUtils@equals(WORK_END_YN, 'N')">
+           AND TS1.WK_DT IS NULL
+        </if>
+        <if test="@MybatisUtils@equals(BS_CUR_DT_YN, 'Y')">
+           AND TS1.VST_DUEDT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+        </if>
+    </select>
+</mapper>
