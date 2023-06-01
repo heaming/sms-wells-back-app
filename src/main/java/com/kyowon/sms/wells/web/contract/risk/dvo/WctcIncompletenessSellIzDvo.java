@@ -21,5 +21,4 @@ public class WctcIncompletenessSellIzDvo {
     private int icptSellProcsTn;
     private String rfndProcsTpCd;
     private String dtaDlYn;
-    private String orglFnlMdfcDtm;
 }

@@ -32,8 +32,8 @@ public class WctcIncompletenessSalesDto {
         String strtYm,
         String endYm,
         String cntrNo,
-        String dgr1HgrOgCd,
-        String dgr2HgrOgCd,
+        String dgr2LevlOgCd,
+        String dgr3LevlOgCd,
         String prtnrKnm
     ) {}
 
@@ -84,8 +84,8 @@ public class WctcIncompletenessSalesDto {
         String baseAdr,
         String prtnrKnm,
         String prtnrNo,
-        String locaraCd,
-        String ogCd,
+        String dgr2LevlOgCd,
+        String dgr3LevlOgCd,
         String ojChdvcRerntYn,
         String ojRcgvpKnm,
         String ojIstDt,
