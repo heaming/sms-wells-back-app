@@ -3,30 +3,38 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrRelDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrpcBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractDtlDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 
 @Mapper
 public interface WctaContractRegStep3Mapper {
     int updateCntrDtlStep3(WctaContractDtlDvo dtl);
 
-    int insertCntrAdrpcBasStep3(@Param("item")
-    WctaContractAdrpcBasDvo dvo);
+    int insertCntrStlmBasStep3(@Param("item")
+    WctaContractStlmBasDvo dvo);
 
     int insertCntrStlmRelStep3(@Param("item")
     WctaContractStlmRelDvo dvo);
 
+    int insertCntrAdrpcBasStep3(@Param("item")
+    WctaContractAdrpcBasDvo dvo);
+
     int insertCntrAdrRelStep3(@Param("item")
     WctaContractAdrRelDvo dvo);
 
+    int updateCntrWellsDtlStep3(WctaContractWellsDtlDvo dvo);
+
     WctaContractAdrpcBasDvo selectAdrInfoByCntrCstNo(String cntrCstNo);
 
-    int deleteStlmRelsStep3(String cntrNo);
+    int updateCstStlmInMthCd(String cntrNo, String cstStlmInMthCd);
 
-    int deleteAdrpcBasStep3(String cntrNo);
+    int deleteCntrStlmBasStep3(String cntrNo);
 
-    int deleteAdrRelsStep3(String cntrNo);
+    int deleteCntrStlmRelsStep3(String cntrNo);
+
+    int deleteCntrAdrpcBasStep3(String cntrNo);
+
+    int deleteCntrAdrRelsStep3(String cntrNo);
+
+    int deleteWellsDtlStep3(String cntrNo);
 
 }

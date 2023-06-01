@@ -32,10 +32,9 @@ public class WctaContractRegStep2Service {
 
     public WctaContractRegDvo selectStepInfo(String cntrNo) {
         WctaContractRegStep2Dvo step2Dvo = new WctaContractRegStep2Dvo();
-        step2Dvo.setCntrNo(cntrNo);
         WctaContractBasDvo bas = regService.selectContractBas(cntrNo);
         step2Dvo.setBas(bas);
-        List<WctaContractDtlDvo> dtls = mapper.selectContractDtlWithPdInfo(cntrNo);
+        List<WctaContractDtlDvo> dtls = regService.selectProductInfos(cntrNo);
         for (WctaContractDtlDvo dtl : dtls) {
             int cntrSn = dtl.getCntrSn();
 
@@ -65,6 +64,14 @@ public class WctaContractRegStep2Service {
                 dtl.setSellDscrCds(sels.getSellDscrCds());
                 dtl.setSellDscDvCds(sels.getSellDscDvCds());
             }
+
+            // 계약상품관계 조회, 상품관계 유형코드가 기준-서비스("03")인 데이터가 있다면(서비스상품) 세팅
+            WctaContractPdRelDvo svPdRel = regService.selectContractPdRel(cntrNo, cntrSn).stream()
+                .filter((pdRel) -> pdRel.getPdRelTpCd().equals("03")).findFirst().orElse(null);
+            if (ObjectUtils.isNotEmpty(svPdRel)) {
+                dtl.setSvPdCd(svPdRel.getBasePdCd());
+            }
+
             // 제휴상품 노출판단, dto가 record 라서...
             boolean existAlncPds = false;
             if ("2".equals(sellTpCd)) {
@@ -73,7 +80,7 @@ public class WctaContractRegStep2Service {
                         WctaContractDto.SearchPdAmtReq.builder()
                             .pdCd(dtl.getBasePdCd())
                             .sellTpCd(sellTpCd)
-                            .svPdCd("") // TODO ???
+                            .svPdCd(dtl.getSvPdCd())
                             .stplPtrm(dtl.getStplPtrm())
                             .sellDscTpCd(dtl.getSellDscTpCd())
                             .sellDscDvCd(dtl.getSellDscDvCd())
@@ -85,7 +92,7 @@ public class WctaContractRegStep2Service {
                         WctaContractDto.SearchPdAmtReq.builder()
                             .pdCd(dtl.getBasePdCd())
                             .sellTpCd(sellTpCd)
-                            .svPdCd("") // TODO ???
+                            .svPdCd(dtl.getSvPdCd())
                             .stplPtrm(dtl.getStplPtrm())
                             .sellDscTpCd(dtl.getSellDscTpCd())
                             .sellDscDvCd(dtl.getSellDscDvCd())
@@ -97,7 +104,7 @@ public class WctaContractRegStep2Service {
                     WctaContractDto.SearchPdAmtReq.builder()
                         .pdCd(dtl.getBasePdCd())
                         .sellTpCd(sellTpCd)
-                        .svPdCd("") // TODO ???
+                        .svPdCd(dtl.getSvPdCd())
                         .build()
                 );
             }
@@ -113,13 +120,6 @@ public class WctaContractRegStep2Service {
                 dtl.setFxamFxrtDvCd(prcCmptIz.getFxamFxrtDvCd());
                 dtl.setCtrVal(prcCmptIz.getCtrVal());
                 dtl.setPdPrcId(prcCmptIz.getPdPrcId());
-            }
-
-            // 계약상품관계 조회, 상품관계 유형코드가 기준-서비스("03")인 데이터가 있다면(서비스상품) 세팅
-            WctaContractPdRelDvo svPdRel = regService.selectContractPdRel(cntrNo, cntrSn).stream()
-                .filter((pdRel) -> pdRel.getPdRelTpCd().equals("03")).findFirst().orElse(null);
-            if (ObjectUtils.isNotEmpty(svPdRel)) {
-                dtl.setSvPdCd(svPdRel.getBasePdCd());
             }
 
             // 계약WELLS상세 조회
@@ -218,7 +218,7 @@ public class WctaContractRegStep2Service {
         String now = DateUtil.todayNnow();
         String cntrNo = dvo.getBas().getCntrNo();
         // 0. 계약기본
-        regService.updateCntrPrgsStatCd(cntrNo, "12");
+        regService.updateCntrPrgsStatCd(cntrNo, CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP2);
 
         historyService.createContractBasicChangeHistory(
             WctzCntrBasicChangeHistDvo.builder()
@@ -233,6 +233,7 @@ public class WctaContractRegStep2Service {
 
         for (WctaContractDtlDvo dtl : dvo.getDtls()) {
             int cntrSn = dtl.getCntrSn();
+            String sellTpCd = dtl.getSellTpCd();
 
             dtl.setCntrNo(cntrNo);
             dtl.setBasePdCd(dtl.getPdCd());
@@ -245,7 +246,11 @@ public class WctaContractRegStep2Service {
             dtl.setSellAmt(dtl.getFnlAmt());
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
-            dtl.setTxinvPblOjYn("02".equals(dvo.getBas().getCntrTpCd()) ? "Y" : "N"); // 세금계산서발행대상여부, 법인인 경우만 Y
+
+            if (sellTpCd.equals("1")) {
+                // 일시불인 경우 계약금 없음
+                dtl.setCntrAmt(null);
+            }
 
             // 2-1. 계약상세
             mapper.insertCntrDtlStep2(dtl);

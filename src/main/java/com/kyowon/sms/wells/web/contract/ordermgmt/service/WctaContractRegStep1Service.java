@@ -147,7 +147,7 @@ public class WctaContractRegStep1Service {
 
         // 계약번호 없으면, 신규 채번
         WctaContractBasDvo basDvo = dvo.getBas();
-        boolean isNewCntr = StringUtils.isEmpty(dvo.getCntrNo()) && StringUtils.isEmpty(basDvo.getCntrNo());
+        boolean isNewCntr = StringUtils.isEmpty(basDvo.getCntrNo());
         String cntrNo = isNewCntr ? cntrNoService.getContractNumber("").cntrNo() : basDvo.getCntrNo();
 
         if (!isNewCntr) {
@@ -172,7 +172,7 @@ public class WctaContractRegStep1Service {
             basDvo.setSellPrtnrNo(dvo.getPrtnr().getPrtnrNo());
             basDvo.setSellOgTpCd(dvo.getPrtnr().getOgTpCd());
             basDvo.setCntrNatCd("KR");
-            basDvo.setCntrPrgsStatCd("10");
+            basDvo.setCntrPrgsStatCd(CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP1);
             mapper.insertCntrBasStep1(basDvo);
         } else {
             mapper.updateCntrBasStep1(basDvo);

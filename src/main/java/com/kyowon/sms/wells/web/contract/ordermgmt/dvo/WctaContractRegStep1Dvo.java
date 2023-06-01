@@ -10,7 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctaContractRegStep1Dvo {
-    private String cntrNo;
     private WctaContractBasDvo bas;
     private WctaContractPrtnrRelDvo prtnr;
     private WctaContractPrtnrRelDvo prtnr7;
