@@ -105,7 +105,7 @@ public class WdcdCleanerReqeustMgtService {
                 dvo.setAcnoEncr(String.valueOf(res.acnoEncr()));
             }
 
-            if (Objects.nonNull(fileIdList.get("bnkbApnFileId"))) {
+            if (dvo.getAttachFiles1().size() > 0) {
                 if (Objects.nonNull(dvo.getAttachFiles1())) {
 
                     attachFileService.saveAttachFiles(groupId, fileId + "1", dvo.getAttachFiles1());
@@ -114,7 +114,7 @@ public class WdcdCleanerReqeustMgtService {
                 }
             }
 
-            if (Objects.nonNull(fileIdList.get("idfApnFileId"))) {
+            if (dvo.getAttachFiles2().size() > 0) {
                 if (Objects.nonNull(dvo.getAttachFiles2())) {
 
                     attachFileService.saveAttachFiles(groupId, fileId + "2", dvo.getAttachFiles2());
@@ -123,7 +123,7 @@ public class WdcdCleanerReqeustMgtService {
                 }
             }
 
-            if (Objects.nonNull(fileIdList.get("cntrwApnFileId"))) {
+            if (dvo.getAttachFiles3().size() > 0) {
                 if (Objects.nonNull(dvo.getAttachFiles3())) {
 
                     attachFileService.saveAttachFiles(groupId, fileId + "3", dvo.getAttachFiles3());
@@ -133,7 +133,7 @@ public class WdcdCleanerReqeustMgtService {
             }
 
 
-            if (Objects.nonNull(fileIdList.get("cntrLroreApnFileId"))) {
+            if (dvo.getAttachFiles4().size() > 0) {
                 if (Objects.nonNull(dvo.getAttachFiles4())) {
 
                     attachFileService.saveAttachFiles(groupId, fileId + "4", dvo.getAttachFiles4());
