@@ -7,12 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.bond.consultation.converter.WbncCustomerConverter;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindBaseYmRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
@@ -37,6 +40,15 @@ public class WbncCustomerService {
 
     private final WbncCustomerMapper mapper;
     private final WbncCustomerConverter converter;
+
+    /**
+     * 기준년월 조회
+     * @param dto 검색 조건
+     * @return 기준년월 정보조회 결과
+     */
+    public FindBaseYmRes getBaseYm() {
+        return mapper.selectBaseYm();
+    }
 
     /**
      * 채권상담 고객리스트 조회
@@ -66,6 +78,15 @@ public class WbncCustomerService {
     }
 
     /**
+     * 고객상세 특이사항 조회
+     * @param dto 검색 조건
+     * @return 고객상세 특이사항 정보조회 결과
+     */
+    public FindUnusualArticlesRes getUnusualArticles(FindUnusualArticlesReq dto) {
+        return mapper.selectUnusualArticles(dto);
+    }
+
+    /**
      * 채권상담 고객상세 상담이력 조회
      * @param dto 검색 조건
      * @return 채권상담 고객상세 상담이력 조회 결과
@@ -82,7 +103,7 @@ public class WbncCustomerService {
     @Transactional
     public int saveUnuitmCn(SaveUnuitmCnReq dto) throws Exception {
         int processCount = 0;
-        WbncCustomerDvo dvo = converter.mapSaveReqToEbncUnuitmCnDvo(dto);
+        WbncCustomerDvo dvo = converter.mapSaveReqToWbncUnuitmCnDvo(dto);
         processCount = mapper.mergeUnuitmCn(dvo);
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
@@ -97,7 +118,7 @@ public class WbncCustomerService {
     @Transactional
     public int saveCounsel(SaveCounselReq dto) throws Exception {
         int processCount = 0;
-        WbncCustomerDvo dvo = converter.mapSaveReqToEbncCounselDvo(dto);
+        WbncCustomerDvo dvo = converter.mapSaveReqToWbncCounselDvo(dto);
         processCount = mapper.insertCounsel(dvo);
 
         processCount = mapper.insertPromise(dvo);
