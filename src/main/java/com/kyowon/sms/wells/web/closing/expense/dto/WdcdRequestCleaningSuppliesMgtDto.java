@@ -88,7 +88,8 @@ public class WdcdRequestCleaningSuppliesMgtDto {
         @MaskRequired(type = MaskingType.ALL)
         String exnoEncr,
         String idvTno,
-        String clingCostSrcpApnFileId
+        String clingCostSrcpApnFileId,
+        String ogTpCd
     ) {
     }
 }
