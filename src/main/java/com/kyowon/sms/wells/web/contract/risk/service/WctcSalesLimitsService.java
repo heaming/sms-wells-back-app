@@ -98,15 +98,16 @@ public class WctcSalesLimitsService {
             String sellLmDv = dvo.getSellLmDv();
             String sellLmRlsDtm = dvo.getSellLmRlsDtm(); //해제일자
             String sellLmOcDtm = dvo.getSellLmOcDtm(); //발생일자
-            String[] param = {Integer.toString(dvo.getDataRow())};
+            String[] param = {Integer.toString(dvo.getDataRow() + 1)};
+            boolean hasSellLmRlsDtm = StringUtils.isEmpty(sellLmRlsDtm); // 해제일자 존재여부
 
             processCount += switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_UPDATED -> {
                     if ("3".equals(sellLmDv))
-                        BizAssert.isNull(sellLmRlsDtm, "MSG_ALT_BAD_RLS_ERR", param);
+                        BizAssert.isTrue(hasSellLmRlsDtm, "MSG_ALT_BAD_RLS_ERR", param);
 
                     if ("4".equals(sellLmDv))
-                        BizAssert.hasText(sellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
+                        BizAssert.isFalse(hasSellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
 
                     String sellLmBzrno = mapper.selectEntrepreneurJoinLmOjssCheck(dvo.getSellLmId());
                     BizAssert.isTrue(dvo.getSellLmBzrno().equals(sellLmBzrno), "MSG_ALT_LM_BZRNO_ERR");
@@ -116,9 +117,10 @@ public class WctcSalesLimitsService {
 
                     yield result;
                 }
+
                 case CommConst.ROW_STATE_CREATED -> {
                     if ("3".equals(sellLmDv))
-                        BizAssert.isNull(sellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
+                        BizAssert.isTrue(hasSellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
 
                     BizAssert.isTrue(sellLmOcDtm.length() == 8, "MSG_ALT_BAD_OC_DT_ERR");
 
@@ -174,7 +176,7 @@ public class WctcSalesLimitsService {
         List<SaveEntrpJLmOjReq> result = new LinkedList<>();
 
         int row = 1;
-        int dataRow = 1;
+        int dataRow = 0;
         for (WctcSellLimitOjIzDvo dvo : dvos) {
             if (StringUtils.isEmpty(dvo.getSellLmRlsDtm())) {
                 dvo.setSellLmRlsDtm(null);
