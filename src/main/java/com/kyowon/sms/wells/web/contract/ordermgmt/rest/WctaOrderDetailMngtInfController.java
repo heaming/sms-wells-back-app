@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/contracts/order-details/management-information")
+@RequestMapping(CtContractConst.REST_URL_V1 + "/contracts")
 public class WctaOrderDetailMngtInfController {
 
     private final WctaOrderDetailMngtInfService service;
@@ -33,7 +33,7 @@ public class WctaOrderDetailMngtInfController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형코드", paramType = "query"),
     })
-    @GetMapping
+    @GetMapping("/order-details/management-information")
     public List<WctaOrderDetailMngtInfDto.SearchRes> getOrderDetailMngtInqr(
         @RequestParam
         String cntrNo,
@@ -43,5 +43,20 @@ public class WctaOrderDetailMngtInfController {
         String sellTpCd
     ) {
         return service.getOrderDetailMngtInqr(cntrNo, cntrSn, sellTpCd);
+    }
+
+    @ApiOperation(value = "관리정보(프로모션) 조회", notes = "입력한 계약건에 대한 관리정보 프로모션 목록을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @GetMapping("/order-details/apply-promotions")
+    public WctaOrderDetailMngtInfDto.SearchPmotFgptRes getPromotions(
+        @RequestParam
+        String cntrNo,
+        @RequestParam
+        String cntrSn
+    ) {
+        return service.getPromotions(cntrNo, cntrSn);
     }
 }
