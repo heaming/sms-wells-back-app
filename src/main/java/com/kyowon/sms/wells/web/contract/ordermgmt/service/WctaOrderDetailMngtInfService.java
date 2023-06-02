@@ -29,4 +29,18 @@ public class WctaOrderDetailMngtInfService {
         }
         return null;
     }
+
+    public WctaOrderDetailMngtInfDto.SearchPmotFgptRes getPromotions(
+        String cntrNo, String cntrSn
+    ) {
+        List<WctaOrderDetailMngtInfDto.SearchCntrPmotRes> searchCntrPmotResList = null;
+        List<WctaOrderDetailMngtInfDto.SearchFgptCntrRes> searchFgptCntrResList = null;
+
+        searchCntrPmotResList = mapper.selectCntrPmotList(cntrNo, cntrSn);
+        searchFgptCntrResList = mapper.selectFgptCntrList(cntrNo, cntrSn);
+
+        return new WctaOrderDetailMngtInfDto.SearchPmotFgptRes(
+            searchCntrPmotResList, searchFgptCntrResList
+        );
+    }
 }

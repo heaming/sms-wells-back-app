@@ -16,4 +16,8 @@ public interface WctaOrderDetailMngtInfMapper {
 
     List<WctaOrderDetailMngtInfDto.SearchRes> selectOrderDetailRegularShippingsMngtInqr(String cntrNo, String cntrSn);
 
+    List<WctaOrderDetailMngtInfDto.SearchCntrPmotRes> selectCntrPmotList(String cntrNo, String cntrSn);
+
+    List<WctaOrderDetailMngtInfDto.SearchFgptCntrRes> selectFgptCntrList(String cntrNo, String cntrSn);
+
 }
