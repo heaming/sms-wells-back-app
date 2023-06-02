@@ -10,8 +10,8 @@ import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncCustomerDvo;
 @Mapper(componentModel = "spring", imports = {StringUtils.class})
 public interface WbncCustomerConverter {
 
-    WbncCustomerDvo mapSaveReqToEbncUnuitmCnDvo(SaveUnuitmCnReq dto);
+    WbncCustomerDvo mapSaveReqToWbncUnuitmCnDvo(SaveUnuitmCnReq dto);
 
-    WbncCustomerDvo mapSaveReqToEbncCounselDvo(SaveCounselReq dto);
+    WbncCustomerDvo mapSaveReqToWbncCounselDvo(SaveCounselReq dto);
 
 }

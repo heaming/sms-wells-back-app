@@ -1,18 +1,31 @@
 package com.kyowon.sms.wells.web.bond.consultation.dto;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 
 public class WbncCustomerDto {
+
+    @ApiModel(value = "WbncCustomerDto-FindBaseYmRes")
+    public static record FindBaseYmRes(
+        String baseYm /* 기준년월 */
+    ) {}
 
     @ApiModel(value = "WbncCustomerDto-SearchReq")
     public record SearchReq(
         String schClctamNo,
         String schCstNo,
-        String schCntrMpno,
+        String schCralLocaraTno, /* 계약휴대전화번호1 */
+        String schMexnoEncr, /* 계약휴대전화번호2 */
+        String schCralIdvTno, /* 계약휴대전화번호3 */
         String schCstNm,
         String schClctamPsic,
         String schSfK,
-        String schIstMpno,
+        String schIstCralLocaraTno, /* 설치휴대전화번호1 */
+        String schIstMexnoEncr, /* 설치휴대전화번호2 */
+        String schIstCralIdvTno, /* 설치휴대전화번호3 */
         String schDlqMcntStrt,
         String schDlqMcntEnd,
         String schFntDtStrt,
@@ -22,7 +35,14 @@ public class WbncCustomerDto {
         String schCstDv,
         String schCpsnRsgYn,
         String schDv
-    ) {}
+    ) {
+        public SearchReq {
+            schMexnoEncr = StringUtils.isNotEmpty(schMexnoEncr) ? DbEncUtil.enc(schMexnoEncr)
+                : schMexnoEncr;
+            schIstMexnoEncr = StringUtils.isNotEmpty(schIstMexnoEncr) ? DbEncUtil.enc(schIstMexnoEncr)
+                : schIstMexnoEncr;
+        }
+    }
 
     @ApiModel(value = "WbncCustomerDto-SearchRes")
     public record SearchRes(
@@ -79,9 +99,15 @@ public class WbncCustomerDto {
         String cntrTpCd, /* 고객구분*/
         String cntrNo, /* 계약번호 */
         String cntrSn /* 계약일련번호 */
-    ) {}
+    ) {
+        public SearchRes {
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
+            istMexnoEncr = StringUtils.isNotEmpty(istMexnoEncr) ? DbEncUtil.dec(istMexnoEncr) : istMexnoEncr;
+        }
 
-    @ApiModel(value = "WbncCustomerDetailDto-FindReq")
+    }
+
+    @ApiModel(value = "WbncCustomerDto-FindReq")
     public static record FindReq(
         String schBaseYm,
         String schCstNo,
@@ -89,7 +115,7 @@ public class WbncCustomerDto {
         String schCntrSn
     ) {}
 
-    @ApiModel(value = "WbncCustomerDetailDto-FindRes")
+    @ApiModel(value = "WbncCustomerDto-FindRes")
     public static record FindRes(
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
@@ -131,8 +157,12 @@ public class WbncCustomerDto {
         String plarMpno, /* 플래너 휴대전화번호 */
         String cltnDt, /* 해약일 */
         String dsmn, /* 지국장 */
-        String dsmnMpno, /* 지국장 휴대전화번호 */
-        String dsmnTno, /* 지국장 전화번호 */
+        String dsmnCralLocaraTno,
+        String dsmnMexnoEncr,
+        String dsmnCralIdvTno, /* 지국장 휴대전화번호 */
+        String dsmnLocaraTno,
+        String dsmnExnoEncr,
+        String dsmnIdvTno, /* 지국장 전화번호 */
         String bldCd, /* 소속빌딩코드 */
         String bldNm, /* 소속빌딩명 */
         String dtrcTno, /* 지국 전화번호 */
@@ -159,9 +189,19 @@ public class WbncCustomerDto {
         String slStp, /* 매출중지 */
         String bndClnPsblDvCd, /* 회수가능성 */
         String bndClnPrcsDvCd /* 회수절차 */
-    ) {}
+    ) {
+        public FindRes {
+            cntrExnoEncr = StringUtils.isNotEmpty(cntrExnoEncr) ? DbEncUtil.dec(cntrExnoEncr) : cntrExnoEncr;
+            cntrMexnoEncr = StringUtils.isNotEmpty(cntrMexnoEncr) ? DbEncUtil.dec(cntrMexnoEncr) : cntrMexnoEncr;
+            istExnoEncr = StringUtils.isNotEmpty(istExnoEncr) ? DbEncUtil.dec(istExnoEncr) : istExnoEncr;
+            istMexnoEncr = StringUtils.isNotEmpty(istMexnoEncr) ? DbEncUtil.dec(istMexnoEncr) : istMexnoEncr;
+            dsmnMexnoEncr = StringUtils.isNotEmpty(dsmnMexnoEncr) ? DbEncUtil.dec(dsmnMexnoEncr) : dsmnMexnoEncr;
+            dsmnExnoEncr = StringUtils.isNotEmpty(dsmnExnoEncr) ? DbEncUtil.dec(dsmnExnoEncr) : dsmnExnoEncr;
+        }
 
-    @ApiModel(value = "WbncCustomerDetailDto-FindCustomerDetailReq")
+    }
+
+    @ApiModel(value = "WbncCustomerDto-FindCustomerDetailReq")
     public static record FindCustomerDetailReq(
         String schBaseYm,
         String schCstNo,
@@ -169,15 +209,13 @@ public class WbncCustomerDto {
         String schCntrSn
     ) {}
 
-    @ApiModel(value = "WbncCustomerDetailDto-FindCustomerDetailRes")
+    @ApiModel(value = "WbncCustomerDto-FindCustomerDetailRes")
     public static record FindCustomerDetailRes(
         String mpyBsdt, /* 이체 */
         String sellTpCd, /* 업무구분 */
         String prdf, /* 제품군 */
         String pdNm, /* 상품명 */
         String cntrNo, /* 계약번호 */
-        String cntrSn, /* 계약일련번호 */
-        String cntrDtlNo, /* 계약상세번호 */
         String cstNo, /* 고객번호 */
         String cstKnm, /* 고객명 */
         String dlqMcn, /* 연체개월 */
@@ -191,7 +229,7 @@ public class WbncCustomerDto {
         String mmChramAmt, /* 월요금액 */
         String mmChramDp, /* 월요금입금 */
         String mmChramBlam, /* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */
-        String dlqAddWmt, /* 연체가산금액 */
+        String dlqAddAmt, /* 연체가산금액 */
         String dlqAddDp, /* 연체가산입금 */
         String dlqAdamtBlam, /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */
         String svCs, /* 서비스비용 */
@@ -216,7 +254,21 @@ public class WbncCustomerDto {
         String clctamPrtnrNo, /* 집금번호 */
         String clctamIchr, /* 집급담당 */
         String tfDt, /* 이관일자 */
-        String sfk /* 세이프키 */
+        String sfk, /* 세이프키 */
+        String bndBizDvCd
+    ) {}
+
+    @ApiModel(value = "WbncCustomertDetailDto-FindUnusualArticlesReq")
+    public static record FindUnusualArticlesReq(
+        String schBaseYm,
+        String schCstNo,
+        String schCntrNo,
+        String schCntrSn
+    ) {}
+
+    @ApiModel(value = "WbncCustomertDetailDto-FindUnusualArticlesRes")
+    public static record FindUnusualArticlesRes(
+        String cnslUnuitmCn
     ) {}
 
     @ApiModel(value = "WbncCustomertDetailDto-FindCounselHistoryReq")
@@ -227,8 +279,9 @@ public class WbncCustomerDto {
         String schCntrSn
     ) {}
 
-    @ApiModel(value = "WbncCustomerDetailDto-FindCounselHistoryRes")
+    @ApiModel(value = "WbncCustomerDto-FindCounselHistoryRes")
     public static record FindCounselHistoryRes(
+        String telCnslId,
         String inDt,
         String inIchr,
         String inIchrNm,
@@ -278,8 +331,8 @@ public class WbncCustomerDto {
         String promBooId,
         String promDt,
         String promHh,
-        String clctamPromTpCd,
-        String clnPromAmt,
+        String promTp,
+        String promAmt,
         String promCn,
         String promFshYn
     ) {}
