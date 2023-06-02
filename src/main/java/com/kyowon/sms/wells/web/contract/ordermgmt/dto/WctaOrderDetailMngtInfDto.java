@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -41,5 +43,26 @@ public class WctaOrderDetailMngtInfDto {
         String rgstCs, /* 등록비용 */
         String rentalTam, /* 렌탈총액 */
         String ackmtPerfAmt /* 인정실적금액 */
+    ) {}
+
+    @ApiModel("WctaOrderDetailMngtInfDto-SearchCntrPmotRes")
+    public record SearchCntrPmotRes(
+        String pmotCd, /* 프로모션코드 */
+        String pmotNm, /* 프로모션코드명 */
+        String pmotTpCd, /* 프로모션유형코드 */
+        String pmotTpNm /* 프로모션유형코드명 */
+    ) {}
+
+    @ApiModel("WctaOrderDetailMngtInfDto-SearchFgptCntrRes")
+    public record SearchFgptCntrRes(
+        String fgptPdCd, /* 사은품상품코드 */
+        String pdNm, /* 상품명 */
+        String fgptQty /* 사은품수량 */
+    ) {}
+
+    @ApiModel("WctaOrderDetailMngtInfDto-SearchPmotFgptRes")
+    public record SearchPmotFgptRes(
+        List<WctaOrderDetailMngtInfDto.SearchCntrPmotRes> searchCntrPmotResList,
+        List<WctaOrderDetailMngtInfDto.SearchFgptCntrRes> searchFgptCntrResList
     ) {}
 }
