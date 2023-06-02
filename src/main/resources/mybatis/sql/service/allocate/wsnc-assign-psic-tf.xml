@@ -6,125 +6,112 @@
         SELECT T1.CST_SV_ASN_NO /* 고객서비스배정번호 */
              , T1.OG_TP_CD
              , T1.PRTNR_NO /* 기존파트너번호 */
-             , T1.NEW_OG_TP_CD /* cherro ::: 변경파트너번호의 조직코드 */
-             , T1.NEW_PRTNR_NO /* 변경파트너번호 */
-             , T1.RPB_LOCARA_CD /* RPB_LOCARA_CD (책임지역코드) */
+--             , T1.NEW_OG_TP_CD /* cherro ::: 변경파트너번호의 조직코드 */
+             , NVL(NVL(T1.NEW_OG_TP_CD, T8.OG_TP_CD), T6.ICHR_PRTNR_OG_TP_CD) AS NEW_OG_TP_CD
+--             , T1.NEW_PRTNR_NO /* 변경파트너번호 */
+             , NVL(NVL(T1.NEW_PRTNR_NO, T8.BIZ_AGNT_PRTNR_NO), T6.ICHR_PRTNR_NO) AS NEW_PRTNR_NO
+--             , T1.RPB_LOCARA_CD /* RPB_LOCARA_CD (책임지역코드) */
+             , NVL(T1.RPB_LOCARA_CD, T4.RPB_LOCARA_CD) AS RPB_LOCARA_CD
              , T2.OG_ID AS OG_ID /* 변경파트너의조직ID */
+             , T1.PDCT_PD_CD
+             , T1.SV_BIZ_DCLSF_CD
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T4.RPB_LOCARA_CD AS RPB_LOCARA_CD_3 /* 지역구분코드 */
+             , T6.ICHR_PRTNR_OG_TP_CD AS NEW_OG_TP_CD_3 /* 지역책임자조직유형코드 */
+             , T6.ICHR_PRTNR_NO AS NEW_PRTNR_NO_3 /* 지역책임자파트너번호 */
+             , T8.OG_TP_CD AS NEW_OG_TP_CD_2 /* 대체근무자 *//* 업무대행파트너와 기존파트너는 무조건 업무유형코드가 동일하다고 가이드 받음 */
+             , T8.BIZ_AGNT_PRTNR_NO AS NEW_PRTNR_NO_2 /* 대체근무자 *//* 조직파트에서 정상이 아닌 경우 반드시 업무대행 파트너를 등록하며 일자도 정확히 입력해서 반드시 한건만 나온다라고 보장함 */
           FROM (
                 /* AS배정내역 테이블 에서 내역 조회 */
                 SELECT TB_1.CST_SV_ASN_NO AS CST_SV_ASN_NO /* CST_SV_ASN_NO (고객서비스배정번호) */
-                     , TB_2.SV_BIZ_DCLSF_CD AS AC211_WRK_TYP_DTL /* SV_BIZ_DCLSF_CD */
+                     , TB_2.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD /* SV_BIZ_DCLSF_CD */
                      , TB_1.WK_ACPTE_DT AS AC221_CFRM_DT /* WK_ACPTE_DT */
                      , TB_1.ICHR_OG_TP_CD AS OG_TP_CD
                      , TB_1.ICHR_PRTNR_NO AS PRTNR_NO /* ICHR_OG_TP_CD, ICHR_PRTNR_NO */
-    --                 , GET_LOCAL_EMP_ID_MINE(TRIM(AC211_ZIP_NO1||AC211_ZIP_NO2), AC211_GDS_CD, AC211_WRK_TYP_DTL, AC221_CFRM_DT) AS NEW_EMP_ID
-                     , (
-                        SELECT TEMP.OG_TP_CD
-                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
-                         WHERE 1=1
-                           AND TEMP.SV_CNR_OG_ID = TB_1.SV_CNR_OG_ID
-                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
-                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
-                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
-                       ) AS NEW_OG_TP_CD /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
-                     , (
-                        SELECT TEMP.BNDT_WRK_PSIC_NO
-                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
-                         WHERE 1=1
-                           AND TEMP.SV_CNR_OG_ID = TB_1.SV_CNR_OG_ID
-                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
-                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
-                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
-                       ) AS NEW_PRTNR_NO /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
-    --                 , GET_LOCAL_GB(TRIM(AC211_ZIP_NO1||AC211_ZIP_NO2), AC221_CFRM_DT) AS NEW_LOCAL_GB
-                     , (
-                        SELECT TEMP3.NEW_ADR_ZIP
-                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ TEMP1
-                         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS TEMP2
-                         ON (
-                             TEMP1.CNTR_NO = TEMP2.CNTR_NO
-                         )
-                         INNER JOIN TB_GBCO_ADR_BAS TEMP3
-                         ON (
-                             TEMP2.ADR_ID = TEMP3.ADR_ID
-                         )
-                         WHERE 1=1
-                           AND TEMP1.CST_SV_ASN_NO = TB_1.CST_SV_ASN_NO
-                           AND ROWNUM = 1
-                       ) AS RPB_LOCARA_CD
+                     , TB_3.OG_TP_CD AS NEW_OG_TP_CD /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+                     , TB_3.BNDT_WRK_PSIC_NO AS NEW_PRTNR_NO /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+                     , TB_5.NEW_ADR_ZIP AS RPB_LOCARA_CD
+                     , TB_6.PDCT_PD_CD
+                     , TB_1.CNTR_NO
+                     , TB_1.CNTR_SN
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ TB_1
                  INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ TB_2
                  ON (
                     TB_1.CST_SV_ASN_NO = TB_2.CST_SV_ASN_NO
                  )
-    --                 , TB_SVPD_CST_SV_BFSVC_ASN_IZ TB_3 /* cherro ::: 이 테이블 말고 다른거 조인해야함. */
+                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_6
+                 ON (
+                 		TB_6.CNTR_NO = TB_1.CNTR_NO
+                 	AND TB_6.CNTR_SN = TB_1.CNTR_SN
+                 )
+                 LEFT OUTER JOIN TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TB_3
+                 ON (
+                 		TB_3.SV_CNR_OG_ID = TB_1.SV_CNR_OG_ID
+                 	AND TB_3.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
+                 	AND TB_3.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+                 	AND TB_3.BASE_D = TO_CHAR(SYSDATE, 'DD')
+                 )
+                 LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_4
+                 ON (
+                 	TB_4.CNTR_ADRPC_ID = (
+                 		SELECT MAX(TEMP.CNTR_ADRPC_ID) AS CNTR_ADRPC_ID
+                 		  FROM TB_SSCT_CNTR_ADRPC_BAS TEMP
+                 		 WHERE 1=1
+                 		   AND TEMP.CNTR_NO = TB_1.CNTR_NO
+                 	)
+                 )
+                 LEFT OUTER JOIN TB_GBCO_ADR_BAS TB_5
+                 ON (
+                 	TB_4.ADR_ID = TB_5.ADR_ID
+                 )
                  WHERE 1=1
-    --               AND TB_1.CST_SV_ASN_NO = TB_3.CST_SV_ASN_NO /* cherro ::: TB_3은 내가 임의로 넣은거. 맞는건지 확인 해봐야 한다. */
                    AND TB_1.VST_CNFMDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                    AND TB_1.VST_CNFMDT >= '20191010'
                    AND TB_1.WK_PRGS_STAT_CD IN ('00', '10')
-    --               AND (TB_1.ASN_TF_DV_CD IS NULL
-    --                 OR TB_1.ASN_TF_DV_CD = '411')
-    --               AND (TB_3.ASN_TF_DV_CD IS NULL
-    --                 OR TB_3.ASN_TF_DV_CD = '411')
                  <if test='@MybatisUtils@isNotEmpty(cstSvAsnNo)'>
                    AND TB_1.CST_SV_ASN_NO = #{cstSvAsnNo}
                  </if>
                  UNION ALL
                  /* BS배정내역 테이블 에서 내역 조회 */
                 SELECT TB_1.CST_SV_ASN_NO AS CST_SV_ASN_NO /* 고객서비스배정번호 */
-                     , TB_1.SV_BIZ_DCLSF_CD AS AC211_WRK_TYP_DTL /* TB_SVPD_CST_SV_BFSVC_ASN_IZ - SV_BIZ_DCLSF_CD */
+                     , TB_1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD /* TB_SVPD_CST_SV_BFSVC_ASN_IZ - SV_BIZ_DCLSF_CD */
                      , VST_CNFMDT AS AC221_CFRM_DT /* TB_SVPD_CST_SV_BFSVC_ASN_IZ - VST_CNFMDT */
                      , TB_1.CNFM_PSIC_PRTNR_OG_TP_CD AS OG_TP_CD
                      , TB_1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO /* TB_SVPD_CST_SV_BFSVC_ASN_IZ - CNFM_PSIC_PRTNR_OG_TP_CD, CNFM_PSIC_PRTNR_NO */
-    --                 , GET_LOCAL_EMP_ID_BS(TRIM(AC251_ZIP_NO1||AC251_ZIP_NO2), AC251_GDS_CD, AC251_WRK_TYP_DTL, AC261_RES_DT, AC251_VST_GB) AS NEW_EMP_ID
-                     , (
-                        SELECT TEMP.OG_TP_CD
-                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
-                         INNER JOIN TB_OGBS_MM_PRTNR_IZ TEMP2
-                         ON (
-                               TEMP2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                           AND TEMP2.OG_TP_CD = TB_1.CNFM_PSIC_PRTNR_OG_TP_CD
-                           AND TEMP2.PRTNR_NO = TB_1.CNFM_PSIC_PRTNR_NO
-                           AND TEMP2.OG_ID = TEMP.SV_CNR_OG_ID
-                         )
-                         WHERE 1=1
-                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
-                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
-                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
-                       ) AS NEW_OG_TP_CD /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
-                     , (
-                        SELECT TEMP.BNDT_WRK_PSIC_NO
-                          FROM TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TEMP
-                         INNER JOIN TB_OGBS_MM_PRTNR_IZ TEMP2
-                         ON (
-                               TEMP2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                           AND TEMP2.OG_TP_CD = TB_1.CNFM_PSIC_PRTNR_OG_TP_CD
-                           AND TEMP2.PRTNR_NO = TB_1.CNFM_PSIC_PRTNR_NO
-                           AND TEMP2.OG_ID = TEMP.SV_CNR_OG_ID
-                         )
-                         WHERE 1=1
-                           AND TEMP.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
-                           AND TEMP.BASE_MM = TO_CHAR(SYSDATE, 'MM')
-                           AND TEMP.BASE_D = TO_CHAR(SYSDATE, 'DD')
-                       ) AS NEW_PRTNR_NO /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
-    --                 , GET_LOCAL_GB(TRIM(AC251_ZIP_NO1||AC251_ZIP_NO2), AC261_RES_DT) AS NEW_LOCAL_GB
-                     , (
-                        SELECT TEMP3.NEW_ADR_ZIP
-                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ TEMP1
-                         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS TEMP2
-                         ON (
-                             TEMP1.CNTR_NO = TEMP2.CNTR_NO
-                         )
-                         INNER JOIN TB_GBCO_ADR_BAS TEMP3
-                         ON (
-                             TEMP2.ADR_ID = TEMP3.ADR_ID
-                         )
-                         WHERE 1=1
-                           AND TEMP1.CST_SV_ASN_NO = TB_1.CST_SV_ASN_NO
-                           AND ROWNUM = 1
-                       ) AS RPB_LOCARA_CD
+                     , TB_3.OG_TP_CD AS NEW_OG_TP_CD /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+                     , TB_3.BNDT_WRK_PSIC_NO AS NEW_PRTNR_NO /* cherro ::: 대체근무자랑 지역책임자 어케 넣는건지 모르겠음. */
+                     , TB_5.NEW_ADR_ZIP AS RPB_LOCARA_CD
+                     , TB_6.PDCT_PD_CD
+                     , TB_1.CNTR_NO
+                     , TB_1.CNTR_SN
                   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ TB_1
+                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_6
+                 ON (
+                 		TB_6.CNTR_NO = TB_1.CNTR_NO
+                 	AND TB_6.CNTR_SN = TB_1.CNTR_SN
+                 )
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TB_2
+                 ON (
+                  		TB_2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  	AND TB_2.OG_TP_CD = TB_1.CNFM_PSIC_PRTNR_OG_TP_CD
+                  	AND TB_2.PRTNR_NO = TB_1.CNFM_PSIC_PRTNR_NO
+                 )
+                 LEFT OUTER JOIN TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TB_3
+                 ON (
+                  		TB_3.SV_CNR_OG_ID = TB_2.OG_ID
+                  	AND TB_3.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
+                  	AND TB_3.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+                  	AND TB_3.BASE_D = TO_CHAR(SYSDATE, 'DD')
+                 )
+                 LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_4
+                 ON (
+                  	TB_4.CNTR_NO = TB_1.CNTR_NO
+                  )
+                 LEFT OUTER JOIN TB_GBCO_ADR_BAS TB_5
+                 ON (
+                  	TB_4.ADR_ID = TB_5.ADR_ID
+                 )
                  WHERE 1=1
                    AND TB_1.CNFM_PSIC_DV_CD = '2'
                    AND TB_1.ASN_OJ_YM = TO_CHAR(SYSDATE,'YYYYMM')||'00'
@@ -142,6 +129,75 @@
                T2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T2.OG_TP_CD = T1.NEW_OG_TP_CD
            AND T2.PRTNR_NO = T1.NEW_PRTNR_NO
+         )
+         INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ T3
+         ON (
+         	(T3.NEW_ADR_ZIP, T3.EMD_SN) = (
+         		SELECT TEMP.NEW_ADR_ZIP
+         		     , MAX(TEMP.EMD_SN) AS EMD_SN
+         		  FROM TB_SVPD_EGER_ASN_ADR_IZ TEMP
+         		 WHERE 1=1
+         		   AND TEMP.NEW_ADR_ZIP = T1.RPB_LOCARA_CD
+         		 GROUP BY TEMP.NEW_ADR_ZIP
+         	)
+         )
+         INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T4
+         ON (
+         	(T4.FR2P_LGLD_CD, T4.CTPV_NM, T4.CTCTY_NM, T4.LAWC_EMD_NM, T4.AMTD_NM, T4.ADR_ODR_NO) = (
+         		SELECT TEMP.FR2P_LGLD_CD
+         		     , TEMP.CTPV_NM
+         		     , TEMP.CTCTY_NM
+         		     , TEMP.LAWC_EMD_NM
+         		     , TEMP.AMTD_NM
+         		     , MAX(TEMP.ADR_ODR_NO) AS ADR_ODR_NO
+         		  FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TEMP
+         		 WHERE 1=1
+         		   AND TEMP.FR2P_LGLD_CD = T3.FR2P_LGLD_CD
+         		   AND TEMP.CTPV_NM = T3.CTPV_NM
+         		   AND TEMP.CTCTY_NM = T3.CTCTY_NM
+         		   AND TEMP.LAWC_EMD_NM = T3.LAWC_EMD_NM
+         		   AND TEMP.AMTD_NM = T3.AMTD_NM
+         		 GROUP BY TEMP.FR2P_LGLD_CD, TEMP.CTPV_NM, TEMP.CTCTY_NM, TEMP.LAWC_EMD_NM, TEMP.AMTD_NM
+         	)
+         )
+         INNER JOIN TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ T5
+         ON (
+         	(T5.PD_CD, T5.SV_BIZ_DCLSF_CD, T5.IZ_SN) = (
+         		SELECT TEMP.PD_CD
+         		     , TEMP.SV_BIZ_DCLSF_CD
+         		     , MAX(TEMP.IZ_SN) AS IZ_SN
+         		  FROM TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ TEMP
+         		 WHERE 1=1
+         		   AND TEMP.PD_CD = T1.PDCT_PD_CD
+         		   AND TEMP.SV_BIZ_DCLSF_CD = T1.SV_BIZ_DCLSF_CD
+         		 GROUP BY TEMP.PD_CD, TEMP.SV_BIZ_DCLSF_CD
+         	)
+         )
+         INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T6
+         ON (
+         	(T6.WK_GRP_CD, T6.RPB_LOCARA_CD, T6.IZ_SN) = (
+         		SELECT TEMP.WK_GRP_CD
+         		     , TEMP.RPB_LOCARA_CD
+         		     , MAX(TEMP.IZ_SN) AS IZ_SN
+         		  FROM TB_SVPD_RPB_LOCARA_PSIC_IZ TEMP
+         		 WHERE 1=1
+         		   AND TEMP.WK_GRP_CD = T5.WK_GRP_CD
+         		   AND TEMP.RPB_LOCARA_CD = T4.RPB_LOCARA_CD
+         		 GROUP BY TEMP.WK_GRP_CD, TEMP.RPB_LOCARA_CD
+         	)
+         )
+         LEFT OUTER JOIN TB_OGPS_EGER_ATDC_IZ T7
+         ON (
+         		T7.WRK_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+         	AND T7.OG_TP_CD = T1.OG_TP_CD
+         	AND T7.PRTNR_NO = T1.PRTNR_NO
+         	AND T7.EGER_WRK_STAT_CD <![CDATA[ <> ]]> '000' /* 정상이 아니면 */
+         )
+         LEFT OUTER JOIN TB_OGPS_EGER_VCN_IZ T8
+         ON (
+         		T8.OG_TP_CD = T7.OG_TP_CD
+         	AND T8.PRTNR_NO = T7.PRTNR_NO
+         	AND T7.WRK_DT BETWEEN T8.VCN_STRT_DT AND T8.VCN_END_DT
          )
          WHERE 1=1
            AND T1.PRTNR_NO != T1.NEW_PRTNR_NO
