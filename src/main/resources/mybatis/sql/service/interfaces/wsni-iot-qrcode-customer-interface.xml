@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniIotQrcodeCustomerInterfaceMapper">
+    <select id="selectContractInfoByIotQrcode" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniIotQrcodeCustomerInterfaceDto$SearchRes">
+            SELECT T1.CNTR_NO
+                  ,T1.CNTR_SN
+                  ,T3.RCGVP_KNM AS CUST_NM
+              FROM TB_SVPD_CST_SV_EXCN_IZ T1
+        INNER JOIN TB_SSCT_CNTR_ADR_REL T2
+                ON T1.CNTR_NO = T2.DTL_CNTR_NO
+               AND T1.CNTR_SN = T2.DTL_CNTR_SN
+               AND T2.ADRPC_TP_CD = '3'
+               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+        INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T3
+                ON T2.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+             WHERE T1.BC_NO = #{bcNo}
+               AND ROWNUM = 1
+         UNION ALL
+              /* 수면기어 정보 추가 */
+            SELECT T5.CNTR_NO
+                 , T5.CNTR_SN
+                 , T7.RCGVP_KNM AS CUST_NM
+              FROM TB_SVST_SV_WK_OSTR_IZ T4
+        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T5
+                ON T4.CNTR_NO = T5.CNTR_NO
+               AND T4.CNTR_SN = T5.CNTR_SN
+        INNER JOIN TB_SSCT_CNTR_ADR_REL T6
+                ON T4.CNTR_NO = T6.DTL_CNTR_NO
+               AND T4.CNTR_SN = T6.DTL_CNTR_SN
+               AND T6.ADRPC_TP_CD = '3'
+               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T6.VL_STRT_DTM AND T6.VL_END_DTM
+        INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T7
+                ON T6.CNTR_ADRPC_ID = T7.CNTR_ADRPC_ID
+             WHERE T4.FNL_BC_NO = #{bcNo}
+               AND T4.FNL_PD_CD IN (
+                                    SELECT RSTR_CNDT_VAL1
+                                      FROM TB_SVPD_SV_RSTR_CNDT_BAS
+                                     WHERE RSTR_CNDT_ID = 'TC034'
+                                   )
+               AND ROWNUM = 1
+    </select>
+</mapper>
