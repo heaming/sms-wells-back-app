@@ -11,21 +11,19 @@ public class WbnaFosterTransferMgtDto {
     // *********************************************************
     // 위탁 이관 관리 Search Request Dto
     @Builder
-    @ApiModel("EbnaFosterTransferMgtDto-SearchReq")
+    @ApiModel("WbnaFosterTransferMgtDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String baseYm, /* 기준년월 */
         @NotBlank
         String bzHdqDvCd, /* 사업부 구분 */
+        String clcoCd, /* 추심사코드 */
         String bndNwDvCd, /* 신규구분 */
         String cstNo, /* 고객번호 */
         String cstNm, /* 고객명 */
         String cralLocaraTno, /* 휴대지역전화번호 */
         String mexnoEncr, /* 휴대전화국번호암호화 */
-        String cralIdvTno, /* 휴대개별전화번호 */
-        String bndClctnPrpDvCd, /* 채권추심속성구분코드 */
-        String cntrNo, /* 계약번호 */
-        Integer cntrSn /* 계약일련번호 */
+        String cralIdvTno /* 휴대개별전화번호 */
     ) {}
 
     // *********************************************************
@@ -33,7 +31,7 @@ public class WbnaFosterTransferMgtDto {
     // *********************************************************
     // 위탁 이관 관리 Search Result Dto
     @Builder
-    @ApiModel("EbnaFosterTransferMgtDto-SearchRes")
+    @ApiModel("WbnaFosterTransferMgtDto-SearchRes")
     public record SearchRes(
         String bzHdqDvCd,
         String baseYm,
@@ -91,7 +89,7 @@ public class WbnaFosterTransferMgtDto {
         Double spayRsgBorAmt
     ) {}
     @Builder
-    @ApiModel("EbnaFosterTransferMgtDto-SearchDetailRes")
+    @ApiModel("WbnaFosterTransferMgtDto-SearchDetailRes")
     public record SearchDetailRes(
         String fstrCoNm, /* 위탁사명 */
         String clctnOjPrtnrNo, /* 담당자명 */
