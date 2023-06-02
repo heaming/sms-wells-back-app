@@ -18,30 +18,40 @@
 
     <select id="selectOutOfStorageAsks"
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$SearchRes">
-        SELECT OSTR_AK_TP_CD AS OSTR_AK_TP_CD /*출고요청번호*/
-             , STR_OJ_WARE_NO AS STR_OJ_WARE_NO /*입고대상창고번호*/
-             , OSTR_AK_NO AS OSTR_AK_NO /*출고요청번호*/
-             , OSTR_AK_RGST_DT AS OSTR_AK_RGST_DT /*출고요청등록일자*/
-             , STR_HOP_DT AS STR_HOP_DT /*입고희망일자*/
-             , MAX(RECT_OSTR_DT) AS RECT_OSTR_DT /*최근출고일자*/
-             , WARE_NM AS WARE_NM /*창고명*/
-             , OSTR_OJ_WARE_NO /*출고대상창고번호*/
-          FROM TB_SVST_ITM_OSTR_AK_IZ
-             , TB_SVST_MCBY_WARE_IZ
-         WHERE STR_OJ_WARE_NO = #{strOjWareNo} /*입고대상창고번호*/
-           AND WARE_USE_YN='Y'
+        SELECT T1.STR_HOP_DT /*입고희망일*/
+             , T1.STR_OJ_WARE_NO /*입고대상창고번호*/
+             , T1.OSTR_AK_NO /*출고요청번호*/
+             , T1.OSTR_AK_RGST_DT /*출고요청등록일자*/
+             , T1.OSTR_AK_TP_CD /*출고요청유형코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'OSTR_AK_TP_CD', T1.OSTR_AK_TP_CD) AS OSTR_AK_TP_NM /*출고요청유형명*/
+             , MAX(T1.RECT_OSTR_DT) AS RECT_OSTR_DT /*최근출고일자*/
+             , T2.WARE_NM /*창고명*/
+             , T1.OSTR_OJ_WARE_NO /*출고대상창고번호*/
+          FROM TB_SVST_ITM_OSTR_AK_IZ T1
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+            ON T1.OSTR_OJ_WARE_NO = T2.WARE_NO
+         WHERE 1 = 1
+           AND T1.STR_OJ_WARE_NO = #{strOjWareNo} /*입고대상창고번호*/
         <if test="@MybatisUtils@isEmpty(ostrAkTpCd)">
-           AND OSTR_AK_TP_CD IN ('310','320','330')
+           AND T1.OSTR_AK_TP_CD IN ('310','320','330')
         </if>
         <if test="@MybatisUtils@isNotEmpty(ostrAkTpCd)">
-           AND OSTR_AK_TP_CD = #{ostrAkTpCd}
+           AND T1.OSTR_AK_TP_CD = #{ostrAkTpCd}
         </if>
-           AND STR_HOP_DT BETWEEN #{startStrHopDt} AND #{endStrHopDt}
-           AND OSTR_OJ_WARE_NO = WARE_NO
-           AND APY_YM = SUBSTR(#{startStrHopDt},1,6)
-           AND WARE_DV_CD = #{wareDvCd}
-         GROUP BY OSTR_AK_TP_CD,STR_OJ_WARE_NO,OSTR_AK_RGST_DT,OSTR_AK_NO,STR_HOP_DT,OSTR_OJ_WARE_NO,WARE_NM
-         ORDER BY OSTR_AK_TP_CD,STR_OJ_WARE_NO,OSTR_AK_RGST_DT,OSTR_AK_NO ASC
+           AND T1.STR_HOP_DT BETWEEN #{startStrHopDt} AND #{endStrHopDt}
+           AND T2.APY_YM = SUBSTR(#{startStrHopDt},1,6)
+           AND T2.WARE_DV_CD = #{wareDvCd}
+           AND T2.WARE_USE_YN='Y'
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+      GROUP BY T1.OSTR_AK_TP_CD
+             , T1.STR_OJ_WARE_NO
+             , T1.OSTR_AK_RGST_DT
+             , T1.OSTR_AK_NO
+             , T1.STR_HOP_DT
+             , T1.OSTR_OJ_WARE_NO
+             , T2.WARE_NM
+      ORDER BY T1.OSTR_AK_TP_CD,T1.STR_OJ_WARE_NO,T1.OSTR_AK_RGST_DT,T1.OSTR_AK_NO ASC
     </select>
 
     <select id="selectOutOfStorageAskItms"

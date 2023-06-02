@@ -13,7 +13,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnaOutOfStorageAskMngtMapper {
 
-    List<SearchRes> selectOutOfStorageAsks(SearchReq dto);
+    PagingResult<SearchRes> selectOutOfStorageAsks(SearchReq dto, PageInfo pageInfo);
 
     FindRes selectOutOfStorageAskItms(FindReq dto);
 

@@ -6,6 +6,8 @@ import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.
 
 import java.util.List;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaWarehouseOrganizationConverter;
@@ -40,8 +42,8 @@ public class WsnaWarehouseOrganizationService {
      * @return 조회결과
      */
 
-    public List<SearchRes> getWarehouseOgs(SearchReq dto) {
-        return this.mapper.selectWarehouseOgs(dto);
+    public PagingResult<SearchRes> getWarehouseOgs(SearchReq dto, PageInfo pageInfo) {
+        return this.mapper.selectWarehouseOgs(dto, pageInfo);
     }
 
     /**
