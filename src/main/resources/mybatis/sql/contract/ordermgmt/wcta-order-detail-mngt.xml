@@ -219,6 +219,7 @@
                           AND DTA_DL_YN = 'N') AS PDCT_IDNO     /* 제품고유번호설치처정보 - SN번호 LCSRN1, LCSRNO */
                      , T11.IST_DT AS IST_AK_DT                               /* 설치요청일 - 설치일(LCSETY, LCSLRT) - ASIS에서 설치요청=설치일 */
                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_INFLW_CHNL_DTL_CD', T10.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_NM /* 판매유입채널상세코드 - 판매구분(LCSALE) */
+                     , T10.COPN_DV_CD /* 법인격구분코드(계약자 고객구분 ) 1:개인, 2:법인 */
                      , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T10.COPN_DV_CD) AS COPN_DV_NM /* 법인격구분코드 - 고객구분(LCCGUB) */
                      , T22.PD_CLSF_NM || ' > ' ||T21.PD_CLSF_NM AS PD_CLSF_NM   /* 대분류 + 중분류 - 상품분류명 (상품유형:KAETC1 + KAETC2)*/
                      , T11.BASE_PD_CD AS BASE_PD_CD                             /* 상품코드 (LCICDE) */
@@ -615,7 +616,7 @@
                   LEFT OUTER JOIN LATERAL (SELECT MAX(T431.CNTR_NO) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS CNTR_NO
                                                 , MAX(T431.CNTR_SN) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS CNTR_SN
                                                 , MAX(T430.SPP_ORD_NO) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS SPP_ORD_NO
-                                                , MAX(T430.SPP_PROCS_BZS_CD) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS SPP_PROCS_BZS_CD /* 배송처리업체코드 */
+                                                , MAX(T431.SPP_PROCS_BZS_CD) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS SPP_PROCS_BZS_CD /* 배송처리업체코드 */
                                              FROM TB_SSSO_SPP_ORD_BAS T430  /* 배송주문기본 */
                                             INNER JOIN TB_SSSO_SPP_ORD_DTL T431           /* T.배송주문상세 */
                                                ON T431.SPP_ORD_NO = T430.SPP_ORD_NO
@@ -624,9 +625,9 @@
                                               AND T431.DTA_DL_YN = 'N'
                                             WHERE 1=1
                                               AND T430.IOST_TP_CD = '10'    /* 입출고유형코드 : 출고(10) */
-                                              AND T430.IOST_DTL_CD = '13'    /* 입출고유형코드 : 정상출고(13) RPCOID */
-                                              AND T430.SPP_ORD_RGST_TP_CD = '10'    /* 배송주문등록유형코드 : 정상(10) */
-                                              AND T430.SPP_PRGS_STAT_CD IN ('40','50','60','70')    /* 배송진행상태코드 : 출고요청~배송완료*/
+                                              AND T431.IOST_DTL_CD = '13'    /* 입출고유형코드 : 정상출고(13) RPCOID */
+                                              AND T431.SPP_ORD_RGST_TP_CD = '10'    /* 배송주문등록유형코드 : 정상(10) */
+                                              AND T431.SPP_PRGS_STAT_CD IN ('40','50','60','70')    /* 배송진행상태코드 : 출고요청~배송완료*/
                                               AND T430.DTA_DL_YN = 'N'
                                               AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T431.CNTR_NO AND T11.CNTR_SN = T431.CNTR_SN)
                                           ) T46             /* 운송장번호(계약일련번호별) */
@@ -1029,6 +1030,7 @@
              , T11.CNTR_SN                                          /* 계약번호 일련번호 (LCSEQN) */
              , CONCAT(CONCAT(T11.CNTR_NO, '-'), T11.CNTR_SN) AS CNTR_DTL_NO /* 계약번호 - 계약일련번호 [계약상세번호] */
              , T11.SELL_TP_CD                                       /* 판매유형코드 */
+             , T10.COPN_DV_CD /* 법인격구분코드(계약자 고객구분 ) 1:개인, 2:법인 */
              , T40.CST_KNM                                          /* 계약자정보 - 고객명(LCCNAM) */
              , T44.RCGVP_KNM                                        /* 수령자한글명 - 설치처정보 - 설치자　명(LCWNAM)*/
              , T14.SELL_TP_CD ||'.' || F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T14.SELL_TP_CD ) AS OJ_SELL_TP_NM /* 판매유형(원주문) (업무구분:LCTYPE,LCTYPENM) */
@@ -2068,6 +2070,7 @@
                           WHERE SAP_EMPNO = T10.SELL_PRTNR_NO
                             AND DTA_DL_YN = 'N')
                     ELSE '' END AS EMP_DV_VAL /* (직원구분:LCST08_NM) 직원구매,직원판매(ASIS:LCSALE-8,9) 경우 직원구분을 표시 */
+             , T10.COPN_DV_CD /* 법인격구분코드(계약자 고객구분 ) 1:개인, 2:법인 */
              , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T40.COPN_DV_CD) AS COPN_DV_NM     /* 계약자구분-법인격구분코드 - (고객구분:LCCGUB)*/
              , T14.SELL_TP_CD ||'.' || F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T14.SELL_TP_CD ) AS MCHN_SELL_TP_NM /* 기기정보-판매유형(원주문) (업무구분:LCJTYP,LCJTYP_NM) */
              , T14.CNTR_NO      AS MCHN_CNTR_NO             /* 기기정보-계약번호  ORYRCD*/
