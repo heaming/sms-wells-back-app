@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCenterHouseholdInterfaceMapper">
+    <select id="selectCustomerHouseholds" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCenterHouseholdInterfaceDto$SearchRes">
+		 SELECT T2.CNTR_NO                     			/* 계약번호 */
+	          , T2.CNTR_SN                     			/* 계약일련번호 */
+	          , T5.PRTNR_NO 		AS SALE_PRTNR_NO    /* 판매자 사번 */
+	          , T6.CRAL_LOCARA_TNO  AS SALE_HP_TEL1     /* 판매자 휴대지역번호 */
+	          , T6.MEXNO_ENCR 		AS SALE_HP_TEL2     /* 판매자 휴대전화국번호 */
+	          , T6.CRAL_IDV_TNO 	AS SALE_HP_TEL3     /* 판매자 휴대전화번호 */
+	          , T8.RCGVP_KNM 		AS CUST_NM          /* 고객명 */
+	          , T9.BZRNO 			AS CUST_BIZNO       /* 법인고객 사업자 번호 */
+	          , T8.CRAL_LOCARA_TNO  AS CUST_HP_TEL1     /* 고객 휴대지역번호 */
+	          , T8.MEXNO_ENCR 		AS CUST_HP_TEL2     /* 고객 휴대전화국번호 */
+	          , T8.CRAL_IDV_TNO 	AS CUST_HP_TEL3     /* 고객 휴대전화번호 */
+	          , T8.LOCARA_TNO 		AS CUST_AR_TEL1     /* 고객 지역전화번호 */
+	          , T8.EXNO_ENCR 		AS CUST_AR_TEL2     /* 고객 전화국번호 */
+	          , T8.IDV_TNO 			AS CUST_AR_TEL3     /* 고객 개별전화번호 */
+	          , T10.NEW_ADR_ZIP 	AS CUST_ZIP         /* 고객 신우편번호 */
+	          , T10.RNADR 			AS CUST_ADDR1       /* 고객 도로명주소 */
+	          , T10.RDADR 			AS CUST_ADDR2       /* 고객 도로명상세주소 */
+	          , T2.PDCT_PD_CD                  			/* 설치 제품코드 */
+	          , T11.SELL_TP_CD                 			/* 판매유형코드 */
+	          , T2.SV_HSHD_NO                  			/* 가구코드 */
+	          , T3.FXN_PRTNR_NO                			/* 고정파트너번호 */
+	          , T3.VST_NMN_N                   												/* 방푼차월수 */
+	          , T12.PD_ABBR_NM 		AS PD_ABBR_NM                 							/* 제품약어 */
+	          , F_CMZ_CD_NM('TNT_WELLS','SELL_TP_CD', T11.SELL_TP_CD, 'ko') AS SELL_TP_NM 	/* 판매유형명 */
+	          , T4.PRTNR_KNM 		AS FXN_PRTNR_NM                   						/* 고정파트너명 */
+		   FROM TB_SVPD_CST_SV_EXCN_IZ T2
+	 LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T3
+			 ON T2.CNTR_NO = T3.CNTR_NO
+		    AND T2.CNTR_SN = T3.CNTR_SN
+		    AND T2.SV_HSHD_NO = T3.SV_HSHD_NO
+		    AND T3.MNGT_YM = TO_CHAR(SYSDATE,'YYYYMM')
+	 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
+  			 ON T3.MNGT_YM = T4.BASE_YM
+		    AND T3.FXN_PRTNR_OG_TP_CD = T4.OG_TP_CD
+		    AND T3.FXN_PRTNR_NO = T4.PRTNR_NO
+     	  INNER JOIN TB_SSCT_CNTR_PRTNR_REL T5
+  			 ON T2.CNTR_NO = T5.CNTR_NO
+		    AND T5.CNTR_PRTNR_TP_CD = '010'
+		    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T5.VL_STRT_DTM AND T5.VL_END_DTM
+     	  INNER JOIN TB_OGBS_PRTNR_BAS T6
+			 ON T5.OG_TP_CD = T6.OG_TP_CD
+		    AND T5.PRTNR_NO = T6.PRTNR_NO
+     	  INNER JOIN TB_SSCT_CNTR_ADR_REL T7
+			 ON T2.CNTR_NO = T7.DTL_CNTR_NO
+		    AND T2.CNTR_SN = T7.DTL_CNTR_SN
+  			AND T7.ADRPC_TP_CD = '3'
+  			AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T7.VL_STRT_DTM AND T7.VL_END_DTM
+  		  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T8
+  			 ON T7.CNTR_ADRPC_ID = T8.CNTR_ADRPC_ID
+	 LEFT OUTER JOIN TB_CUBS_CST_BAS T9
+  			 ON T8.CNTR_CST_NO = T9.CST_NO
+  	 	  INNER JOIN TB_GBCO_ADR_BAS T10
+  			 ON T8.ADR_ID = T10.ADR_ID
+  	 	  INNER JOIN TB_SSCT_CNTR_DTL T11
+  			 ON T2.CNTR_NO = T11.CNTR_NO
+  			AND T2.CNTR_SN  = T11.CNTR_SN
+  	 	  INNER JOIN TB_PDBS_PD_BAS T12
+  			 ON T2.PDCT_PD_CD = T12.PD_CD
+		  WHERE T2.CNTR_NO = #{cntrNo}
+		    AND T2.CNTR_SN = #{cntrSn}
+		    AND ROWNUM <![CDATA[ < ]]> 100
+	   ORDER BY T2.CNTR_NO, T2.CNTR_SN, T3.VST_NMN_N
+    </select>
+</mapper>
