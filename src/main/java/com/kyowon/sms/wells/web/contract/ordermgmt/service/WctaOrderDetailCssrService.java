@@ -6,10 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaOrderDetailCssrConverter;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.FindBaseRcpReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.FindBaseRcpRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.SaveRcpReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.SearchRcpRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailCssrDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailCssrMapper;
 
@@ -48,4 +45,17 @@ public class WctaOrderDetailCssrService {
         return processCount;
     }
 
+    @Transactional
+    public int saveCashSalesReceiptRpbls(List<SaveRpblsReq> dtos) {
+        List<WctaOrderDetailCssrDvo> dvos = converter.mapSaveRpblsReqToWctaOrderDetailCssrDvo(dtos);
+        int processCount = 0;
+
+        for (WctaOrderDetailCssrDvo dvo : dvos) {
+
+            processCount += mapper.insertCashSalesReceiptChangeHistory(dvo);
+            // processCount += mapper.updateCashSalesReceiptRegistration(dvo);
+        }
+
+        return processCount;
+    }
 }

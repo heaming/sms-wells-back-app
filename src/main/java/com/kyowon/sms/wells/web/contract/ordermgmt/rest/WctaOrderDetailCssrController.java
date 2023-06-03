@@ -7,10 +7,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.FindBaseRcpReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.FindBaseRcpRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.SaveRcpReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.SearchRcpRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaOrderDetailCssrService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -67,6 +64,18 @@ public class WctaOrderDetailCssrController {
     ) {
         return SaveResponse.builder()
             .processCount(service.saveCashSalesReceipt(dto))
+            .build();
+
+    }
+
+    @ApiOperation(value = "주문상세페이지 내부 팝업 현금영수증 재발행", notes = "1회용 현금영수증을 재발행한다.")
+    @PostMapping("/order-details/cash-sales-receipt-rpbls")
+    public SaveResponse saveCashSalesReceiptRpbls(
+        @RequestBody
+        List<SaveRpblsReq> dto
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.saveCashSalesReceiptRpbls(dto))
             .build();
 
     }
