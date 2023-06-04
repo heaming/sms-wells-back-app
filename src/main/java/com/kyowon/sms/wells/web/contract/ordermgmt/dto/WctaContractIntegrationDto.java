@@ -65,6 +65,7 @@ public class WctaContractIntegrationDto {
         String istCralLocaraTno,
         String istMexnoEncr,
         String istCralIdvTno,
+        String copnDvCd,
         String dpTpCd,
         String dpTpNm,
         String mpyBsdt,
