@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.payment.mapper.WdcaDelinquentDepositRefundMapper">
+    <select id="selectDepositRefundProcessingAmount" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDelinquentDepositRefundDvo">
+        SELECT CNTR_NO /*계약번호*/
+             , CNTR_SN /*계약일련번호*/
+             , NVL( CASE WHEN #{dpDvCd} = '1'  /*[1:입금]*/
+                          AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
+                          AND THM_DLQ_DP_SUM_AMT = 0 /*당월연체입금합계금액*/
+                          AND #{rveAmt} >= EOT_DLQ_AMT /*기말연체금액*/
+                              THEN EOT_DLQ_AMT /*기말연체금액*/
+                         WHEN #{dpDvCd} = '1'  /*[1:입금]*/
+                          AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
+                          AND THM_DLQ_DP_SUM_AMT > 0 /*당월연체입금합계금액*/
+                          AND #{rveAmt} >= EOT_DLQ_AMT /*기말연체금액*/
+                              THEN EOT_DLQ_AMT /*기말연체금액*/ + THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+                         ELSE #{rveAmt} + THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+                    END, 0 ) AS THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+             , NVL( CASE WHEN #{dpDvCd} = '1'  /*[1:입금]*/
+                          AND #{rveDvCd} = '02' /*[02:연체가산금]*/
+                          AND THM_DLQ_DP_SUM_AMT = 0 /*당월연체입금합계금액*/
+                          AND #{rveAmt} >= EOT_DLQ_ADD_AMT /*기말연체가산금액*/
+                              THEN EOT_DLQ_ADD_AMT
+                         WHEN #{dpDvCd} = '1'  /*[1:입금]*/
+                          AND #{rveDvCd} = '02' /*[02:연체가산금]*/
+                          AND THM_DLQ_DP_SUM_AMT > 0 /*당월연체입금합계금액*/
+                          AND #{rveAmt} >= EOT_DLQ_ADD_AMT /*기말연체가산금액*/
+                              THEN EOT_DLQ_ADD_AMT
+                         ELSE #{rveAmt}
+                    END, 0 ) AS THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
+             , NVL( CASE WHEN #{dpDvCd} = '2'  /*[2:환불]*/
+                          AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
+                          AND THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/ + #{rveAmt} >= THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+                              THEN THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+                         ELSE #{rveAmt} + THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/
+                    END, 0 ) AS THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/
+             , NVL( CASE WHEN #{dpDvCd} = '2'  /*[2:환불]*/
+                          AND #{rveDvCd} = '02' /*[02:연체가산금]*/
+                          AND THM_DLQ_RFND_SUM_AMT /*당월연체가산환불합계금액*/ + #{rveAmt} >= THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
+                              THEN THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
+                         ELSE #{rveAmt} + THM_DLQ_RFND_SUM_AMT /*당월연체가산환불합계금액*/
+                    END, 0 ) AS THM_DLQ_ADD_RFND_SUM_AMT /*당월연체가산환불합계금액*/
+          FROM TB_CBCL_DLQ_BAS /*연체기본*/
+         WHERE DTA_DL_YN = 'N'                                        /*데이터삭제여부*/
+           AND PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+           AND CNTR_NO   = #{cntrNo}
+           AND CNTR_SN   = #{cntrSn}
+    </select>
+    
+    <update id="updateDlqBas">
+        UPDATE TB_CBCL_DLQ_BAS /*연체기본*/
+           SET THM_DLQ_DP_SUM_AMT       = CASE WHEN #{dpDvCd} = '1'
+                                                AND #{rveDvCd} = '03'
+                                                    THEN #{thmDlqDpSumAmt}
+                                               ELSE THM_DLQ_DP_SUM_AMT END /*당월연체입금합계금액*/
+             , THM_DLQ_RFND_SUM_AMT     = CASE WHEN #{dpDvCd} = '2'
+                                                AND #{rveDvCd} = '03'
+                                                    THEN #{thmDlqRfndSumAmt}
+                                               ELSE THM_DLQ_RFND_SUM_AMT END /*당월연체환불합계금액*/
+             , EOT_DLQ_AMT              = CASE WHEN #{dpDvCd} = '1'
+                                                AND #{rveDvCd} = '02'
+                                                    THEN EOT_DLQ_ADD_AMT - #{thmDlqAddDpSumAmt}
+                                               WHEN #{dpDvCd} = '2'
+                                                AND #{rveDvCd} = '02'
+                                                    THEN EOT_DLQ_ADD_AMT + #{thmDlqRfndSumAmt}
+                                               ELSE EOT_DLQ_ADD_AMT END /*기말연체금액*/
+             , THM_DLQ_ADD_DP_SUM_AMT   = CASE WHEN #{dpDvCd} = '1'
+                                                AND #{rveDvCd} = '02'
+                                                    THEN #{thmDlqAddDpSumAmt}
+                                               ELSE THM_DLQ_ADD_DP_SUM_AMT END /*당월연체가산입금합계금액*/
+             , THM_DLQ_ADD_RFND_SUM_AMT = CASE WHEN #{dpDvCd} = '2'
+                                                AND #{rveDvCd} = '02'
+                                                    THEN #{thmDlqAddRfndSumAmt}
+                                               ELSE THM_DLQ_ADD_RFND_SUM_AMT END /*당월연체가산환불합계금액*/
+             , EOT_DLQ_ADD_AMT          = CASE WHEN #{dpDvCd} = '1'
+                                                AND #{rveDvCd} = '02'
+                                                    THEN EOT_DLQ_ADD_AMT - #{thmDlqAddDpSumAmt}
+                                               WHEN #{dpDvCd} = '2'
+                                                AND #{rveDvCd} = '02'
+                                                    THEN EOT_DLQ_ADD_AMT + #{thmDlqAddRfndSumAmt}
+                                               ELSE EOT_DLQ_ADD_AMT END /*기말연체가산금액*/
+             <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+           AND CNTR_NO   = #{cntrNo}    /*계약번호*/
+           AND CNTR_SN   = #{cntrSn}    /*계약일련번호*/
+    </update>
+    
+    <insert id="insertDlqBasHist">
+        INSERT INTO TB_CBCL_DLQ_BAS_HIST ( /*연체기본이력*/
+              PERF_YM                  /*실적년월*/
+            , CNTR_NO                  /*계약번호*/
+            , CNTR_SN                  /*계약일련번호*/
+            , DLQ_SN                   /*연체일련번호*/
+            , BTD_DLQ_AMT              /*기초연체금액*/
+            , THM_OC_DLQ_AMT           /*당월발생연체금액*/
+            , THM_DLQ_DP_SUM_AMT       /*당월연체입금합계금액*/
+            , THM_DLQ_RFND_SUM_AMT     /*당월연체환불합계금액*/
+            , EOT_DLQ_AMT              /*기말연체금액*/
+            , BTD_DLQ_ADD_AMT          /*기초연체가산금액*/
+            , THM_OC_DLQ_ADD_AMT       /*당월발생연체가산금액*/
+            , THM_CTR_DLQ_ADD_AMT      /*당월조정연체가산금액*/
+            , THM_DLQ_ADD_DP_SUM_AMT   /*당월연체가산입금합계금액*/
+            , THM_DLQ_ADD_RFND_SUM_AMT /*당월연체가산환불합계금액*/
+            , EOT_DLQ_ADD_AMT          /*기말연체가산금액*/
+            , KW_GRP_CO_CD             /*교원그룹회사코드*/
+            , RVE_NO                   /*수납번호*/
+            , RVE_SN                   /*수납일련번호*/
+            , DP_DV_CD                 /*입금구분코드*/
+            , DP_MES_CD                /*입금수단코드*/
+            , DP_TP_CD                 /*입금유형코드*/
+            , RVE_DV_CD                /*수납구분코드*/
+            , RVE_CD                   /*수납코드*/
+            , RVE_DT                   /*수납일자*/
+            , PERF_DT                  /*실적일자*/
+            , RVE_AMT                  /*수납금액*/
+            , DLQ_MCN                  /*연체개월수*/
+            , DLQ_ACU_MCN              /*연체누적개월수*/
+            , DG_CNTR_NO               /*대표계약번호*/
+            , DG_CNTR_SN               /*대표계약일련번호*/
+            , DTA_DL_YN                /*데이터삭제여부*/
+            <include refid="COMMON.insertSystemField"/>
+            )
+            SELECT PERF_YM                                                  /*실적년월*/
+                 , CNTR_NO                                                  /*계약번호*/
+                 , CNTR_SN                                                  /*계약일련번호*/
+                 , (SELECT MAX(DLQ_SN) + 1
+                      FROM TB_CBCL_DLQ_BAS_HIST /*연체기본이력*/
+                     WHERE DTA_DL_YN = 'N'       /*데이터삭제여부*/
+                       AND PERF_YM   = A.PERF_YM /*실적년월*/
+                       AND CNTR_NO   = A.CNTR_NO
+                       AND CNTR_SN   = A.CNTR_SN)       AS DLQ_SN           /*연체일련번호*/
+                 , BTD_DLQ_AMT                                              /*기초연체금액*/
+                 , THM_OC_DLQ_AMT                                           /*당월발생연체금액*/
+                 , THM_DLQ_DP_SUM_AMT                                       /*당월연체입금합계금액*/
+                 , THM_DLQ_RFND_SUM_AMT                                     /*당월연체환불합계금액*/
+                 , EOT_DLQ_AMT                                              /*기말연체금액*/
+                 , BTD_DLQ_ADD_AMT                                          /*기초연체가산금액*/
+                 , THM_OC_DLQ_ADD_AMT                                       /*당월발생연체가산금액*/
+                 , THM_CTR_DLQ_ADD_AMT                                      /*당월조정연체가산금액*/
+                 , THM_DLQ_ADD_DP_SUM_AMT                                   /*당월연체가산입금합계금액*/
+                 , THM_DLQ_ADD_RFND_SUM_AMT                                 /*당월연체가산환불합계금액*/
+                 , EOT_DLQ_ADD_AMT                                          /*기말연체가산금액*/
+                 , #{kwGrpCoCd}              AS KW_GRP_CO_CD     /*교원그룹회사코드*/
+                 , #{rveNo}                  AS RVE_NO           /*수납번호*/
+                 , #{rveSn}                  AS RVE_SN           /*수납일련번호*/
+                 , #{dpDvCd}                 AS DP_DV_CD         /*입금구분코드*/
+                 , #{dpMesCd}                AS DP_MES_CD        /*입금수단코드*/
+                 , #{dpTpCd}                 AS DP_TP_CD         /*입금유형코드*/
+                 , #{rveDvCd}                AS RVE_DV_CD        /*수납구분코드*/
+                 , #{rveCd}                  AS RVE_CD           /*수납코드*/
+                 , #{rveDt}                  AS RVE_DT           /*수납일자*/
+                 , #{perfDt}                 AS PERF_DT          /*실적일자*/
+                 , #{rveAmt}                 AS RVE_AMT          /*수납금액*/
+                 , DLQ_MCN                                                  /*연체개월수*/
+                 , DLQ_ACU_MCN                                              /*연체누적개월수*/
+                 , DG_CNTR_NO                                               /*대표계약번호*/
+                 , DG_CNTR_SN                                               /*대표계약일련번호*/
+                 , DTA_DL_YN                                                /*데이터삭제여부*/
+                 <include refid="COMMON.insertSystemFieldValue"/>
+              FROM TB_CBCL_DLQ_BAS A /*연체기본*/
+             WHERE DTA_DL_YN = 'N'                                        /*데이터삭제여부*/
+               AND PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+               AND CNTR_NO   = #{cntrNo}
+               AND CNTR_SN   = #{cntrSn}
+    </insert>
+    
+    <update id="updateBndCntrBas">
+        UPDATE TB_CBBO_BND_CNTR_BAS /*채권계약기본*/
+           SET DLQ_DP_AMT       = CASE WHEN 입력값_입금구분코드 = '1'
+                                        AND 입력값_수납구분코드 = '03'
+                                            THEN #{thmDlqDpSumAmt}
+                                       ELSE DLQ_DP_AMT END /*연체입금금액*/
+             , DLQ_ADD_DP_AMT   = CASE WHEN 입력값_입금구분코드 = '1'
+                                        AND 입력값_수납구분코드 = '02'
+                                            THEN #{thmDlqAddDpSumAmt}
+                                       ELSE DLQ_ADD_DP_AMT END /*연체가산입금금액*/
+             <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') /*기준년월*/
+           AND CNTR_NO = #{cntrNo}    /*계약번호*/
+           AND CNTR_SN = #{cntrSn}    /*계약일련번호*/
+    </update>
+
+</mapper>
