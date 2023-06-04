@@ -61,6 +61,14 @@ public class WsnaOutOfStorageAskMngtController {
         return this.service.getOutOfStorageItemPages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "출고요청등록 엑셀다운로드", notes = "출고요청등록 엑셀다운로드를 한다")
+    @GetMapping("/out-of-storage-items/excel-download")
+    public List<OutOfRes> getOutOfStorageItemExcelDownload(
+        WsnaOutOfStorageAskMngtDto.SearchReq dto
+    ) {
+        return this.service.getOutOfStorageItemExcelDownload(dto);
+    }
+
     @ApiOperation(value = "출고대상창고 조회", notes = "조건에 맞는 출고대상창고들을 조회한다.")
     @GetMapping("/ostr-object-warehouses")
     public List<SearchOstrObjectWarehouseRes> getOstrObjectWarehouses(SearchOstrObjectWarehouseReq dto) {
