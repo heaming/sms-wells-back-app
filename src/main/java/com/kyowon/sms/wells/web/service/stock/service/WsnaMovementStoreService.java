@@ -13,6 +13,7 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <pre>
@@ -105,14 +106,17 @@ public class WsnaMovementStoreService {
         return mapper.selectMovementStoresReg(dto);
     }
 
+    @Transactional
     public int editWareHouseStandardY(String baseYm, String wareNo) {
         return mapper.editWareHouseStandardY(baseYm, wareNo);
     };
 
+    @Transactional
     public int editWareHouseStandardN(String baseYm, String wareNo) {
         return mapper.editWareHouseStandardN(baseYm, wareNo);
     };
 
+    @Transactional
     public int saveStrMovementConfrim(List<MovementStrSaveReq> list) {
         int cnt = 0;
         for(MovementStrSaveReq dto : list){

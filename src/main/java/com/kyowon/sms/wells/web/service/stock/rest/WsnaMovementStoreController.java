@@ -110,6 +110,7 @@ public class WsnaMovementStoreController {
         MovementOstrMngtReq dto,
         PageInfo pageInfo
     ) {
+
         return service.getMovementStoresReg(dto, pageInfo);
     }
 
