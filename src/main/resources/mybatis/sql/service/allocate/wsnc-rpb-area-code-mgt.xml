@@ -27,35 +27,34 @@
                , B3.LAWC_EMD_NM
                , B3.AMTD_NM
                , SUM(MGT_CNT) AS MGT_CNT
-            FROM (SELECT V3.NEW_ADR_ZIP
-                     , COUNT(1) AS MGT_CNT
-                  FROM TB_SVPD_MCBY_CST_SV_OJ_IZ B1 /* 월별고객서비스대상내역 */
-                 INNER JOIN TB_SSCT_CNTR_DTL B2 /* 계약상세 */
-                    ON B2.CNTR_NO = B1.CNTR_NO
-                   AND B2.CNTR_SN = B1.CNTR_SN
-                   AND B2.DTA_DL_YN = 'N'
-                 INNER JOIN TEMP01 P1
-                    ON P1.PD_CD = B2.BASE_PD_CD
-                 INNER JOIN (SELECT V1.DTL_CNTR_NO, V1.DTL_CNTR_SN, V2.ADR_ID
-                               FROM TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
-                              INNER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
-                                 ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
-                                AND V2.DTA_DL_YN = 'N'
-                              WHERE V1.DTA_DL_YN = 'N'
-                                AND V1.ADRPC_TP_CD = '3' /* 설치처 */
-                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
-                     ) V2
-                    ON V2.DTL_CNTR_NO = B2.CNTR_NO
-                   AND V2.DTL_CNTR_SN = B2.CNTR_SN
-                 INNER JOIN TB_GBCO_ADR_BAS V3 /* 주소지기본 */
-                    ON V3.ADR_ID = V2.ADR_ID
-                   AND V3.DTA_DL_YN = 'N'
-                 WHERE B1.DTA_DL_YN = 'N'
-                   AND B1.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                   AND (B1.REQD_DT IS NULL OR B1.CAN_DT IS NULL OR B1.CPS_DT IS NULL)
-                 GROUP BY V3.NEW_ADR_ZIP
-                 ORDER BY V3.NEW_ADR_ZIP
-                 ) V4
+            FROM (SELECT NEW_ADR_ZIP
+                       , SUM(MGT_CNT) AS MGT_CNT
+                    FROM (SELECT NEW_ADR_ZIP
+                               , MGT_CNT
+                            FROM (SELECT A1.NEW_ADR_ZIP
+                                       , M1.PDCT_PD_CD
+                                       , COUNT(1) AS MGT_CNT
+                                    FROM (SELECT CNTR_NO, CNTR_SN, PDCT_PD_CD, ADR_ID
+                                            FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
+                                           WHERE DTA_DL_YN = 'N'
+                                             AND MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                         ) M1 /* 월별고객서비스대상내역 */
+                                   INNER JOIN TB_SVPD_CST_SV_EXCN_DL_IZ M2 /* 고객서비스수행삭제내역 */
+                                      ON M2.CNTR_NO = M1.CNTR_NO
+                                     AND M2.CNTR_SN = M1.CNTR_SN
+                                     AND M2.DTA_DL_YN = 'N'
+                                   INNER JOIN TB_GBCO_ADR_BAS A1 /* 주소지기본 */
+                                      ON A1.ADR_ID = M1.ADR_ID
+                                     AND A1.DTA_DL_YN = 'N'
+                                   WHERE 1 = 1
+                                     AND (M2.REQD_DT IS NULL OR M2.CAN_DT IS NULL OR M2.CPS_DT IS NULL)
+                                  GROUP BY A1.NEW_ADR_ZIP, M1.PDCT_PD_CD
+                                 ) V1
+                           INNER JOIN TEMP01 P1
+                              ON P1.PD_CD = V1.PDCT_PD_CD
+                      )
+                      GROUP BY NEW_ADR_ZIP
+                  ) V4
             INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ B3
                ON B3.NEW_ADR_ZIP = V4.NEW_ADR_ZIP
               AND B3.EMD_SN      = (SELECT MAX(EMD_SN)
@@ -73,42 +72,50 @@
 	           , E2.AMTD_NM
 	           , ROUND(SUM(V2.WRK_CNT)/3,2) AS WRK_CNT
 	        FROM (SELECT NEW_ADR_ZIP
-	                 , SUM(WRK_CNT) AS WRK_CNT
-	              FROM (SELECT T4.NEW_ADR_ZIP
-	                         , COUNT(1) AS WRK_CNT
-	                      FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1 /* 고객서비스AS설치배정내역 */
-	                     INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2 /* 고객서비스AS설치대상내역 */
-	                        ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
-	                       AND T2.DTA_DL_YN = 'N'
-	                      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T3 /* 계약주소지기본 */
-	                        ON T3.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
-	                       AND T3.DTA_DL_YN = 'N'
-	                      LEFT OUTER JOIN TB_GBCO_ADR_BAS T4 /* 주소지기본 */
-	                        ON T4.ADR_ID = T3.ADR_ID
-	                       AND T4.DTA_DL_YN = 'N'
-	                     WHERE T1.DTA_DL_YN = 'N'
-	                       AND T1.WK_PRGS_STAT_CD = '20' /* 작업진행상태 = '작업완료' */
-	                       AND T1.WK_EXCN_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD') || '01' AND TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '31'
-	                       AND T1.WK_GRP_CD = #{wkGrpCd}
-	                     GROUP BY T4.NEW_ADR_ZIP
-	                     UNION ALL
-	                    SELECT T3.NEW_ADR_ZIP
-	                         , COUNT(1) AS WRK_CNT
-	                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1 /* 고객서비스BS배정내역 */
-	                     INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 */
-	                        ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
-	                       AND T2.DTA_DL_YN = 'N'
-	                     INNER JOIN TB_GBCO_ADR_BAS T3 /* 주소지기본 */
-	                        ON T3.ADR_ID = T2.ADR_ID
-	                       AND T3.DTA_DL_YN = 'N'
-	                     WHERE T1.DTA_DL_YN = 'N'
-	                       AND T1.VST_PRGS_STAT_CD = '20' /* 작업진행상태 = '작업완료' */
-	                       AND T1.CNFM_PSIC_DV_CD = '2'
-	                       AND T1.WK_EXCN_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD') || '01' AND TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '31'
-	                       AND T1.WK_GRP_CD = #{wkGrpCd}
-	                     GROUP BY T3.NEW_ADR_ZIP
-	                    )
-	             GROUP BY NEW_ADR_ZIP
+                     , SUM(WRK_CNT) AS WRK_CNT
+        		  FROM (SELECT V3.NEW_ADR_ZIP
+                             , COUNT(1) AS WRK_CNT
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1 /* 고객서비스AS설치배정내역 */
+                         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2 /* 고객서비스AS설치대상내역 */
+                            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                           AND T2.DTA_DL_YN = 'N'
+                         INNER JOIN (SELECT V1.DTL_CNTR_NO, V1.DTL_CNTR_SN, V2.ADR_ID
+                             FROM TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
+                            INNER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
+                               ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
+                              AND V2.DTA_DL_YN = 'N'
+                            WHERE V1.DTA_DL_YN = 'N'
+                              AND V1.ADRPC_TP_CD = '3' /* 설치처 */
+                              AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
+                             ) T3
+                            ON T3.DTL_CNTR_NO = T1.CNTR_NO
+                           AND T3.DTL_CNTR_SN = T1.CNTR_SN
+                         INNER JOIN TB_GBCO_ADR_BAS V3 /* 주소지기본 */
+                            ON V3.ADR_ID = T3.ADR_ID
+                           AND V3.DTA_DL_YN = 'N'
+                         WHERE T1.DTA_DL_YN = 'N'
+                           AND T1.WK_PRGS_STAT_CD = '20' /* 작업진행상태 = '작업완료' */
+                           AND T1.WK_EXCN_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD') || '01' AND TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '31'
+                           AND T1.WK_GRP_CD = #{wkGrpCd}
+                         GROUP BY V3.NEW_ADR_ZIP
+        				 UNION ALL
+        				SELECT T3.NEW_ADR_ZIP
+        				     , COUNT(1) AS WRK_CNT
+        				  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1 /* 고객서비스BS배정내역 */
+        				 INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 */
+        				    ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+        				   AND T2.DTA_DL_YN = 'N'
+        				 INNER JOIN TB_GBCO_ADR_BAS T3 /* 주소지기본 */
+        				    ON T3.ADR_ID = T2.ADR_ID
+        				   AND T3.DTA_DL_YN = 'N'
+        				 WHERE T1.DTA_DL_YN = 'N'
+        				   AND T1.VST_PRGS_STAT_CD = '20' /* 작업진행상태 = '작업완료' */
+        				   AND T1.CNFM_PSIC_DV_CD = '2'
+        				   AND T1.WK_EXCN_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD') || '01' AND TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '31'
+        				   AND T1.WK_GRP_CD = #{wkGrpCd}
+        				 GROUP BY T3.NEW_ADR_ZIP
+        		 		)
+        		 GROUP BY NEW_ADR_ZIP
 	             ) V2
 	       INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ E2
 	          ON V2.NEW_ADR_ZIP = E2.NEW_ADR_ZIP
@@ -121,7 +128,7 @@
 	    ),
 	    TEMP3 AS (
 	      SELECT DISTINCT '' AS CHK
-               , D1.FR2P_LGLD_CD
+	           , D1.FR2P_LGLD_CD
 	           , D1.CTPV_NM
 	           , D1.CTCTY_NM
 	           , D1.LAWC_EMD_NM
@@ -158,7 +165,7 @@
 	         AND D1.CTCTY_NM     = D2.CTCTY_NM
 	         AND D1.LAWC_EMD_NM  = D2.LAWC_EMD_NM
 	         AND D1.AMTD_NM      = D2.AMTD_NM
-	         AND D2.LOCARA_SN     = (SELECT MAX(L1.LOCARA_SN)
+	         AND D2.ADR_ODR_NO     = (SELECT MAX(L1.ADR_ODR_NO)
 	                                   FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ L1
 	                                  WHERE 1=1
 	                                    AND L1.FR2P_LGLD_CD = D2.FR2P_LGLD_CD
@@ -191,12 +198,12 @@
 		     AND #{applyDate} BETWEEN D3.APY_STRTDT AND D3.APY_ENDDT
 		     AND D3.WK_GRP_CD = #{wkGrpCd}
 		     <if test="@MybatisUtils@isNotEmpty(ogId)">
-               AND D4.OG_ID #{ogId}
+               AND D4.OG_ID = #{ogId}
            </if>
            <if test="@MybatisUtils@isNotEmpty(locaraCdFrom)">
                AND D2.RPB_LOCARA_CD <![CDATA[ >= ]]> #{locaraCdFrom}
            </if>
-           <if test="@MybatisUtils@isNotEmpty(zipTo)">
+           <if test="@MybatisUtils@isNotEmpty(locaraCdTo)">
                AND D2.RPB_LOCARA_CD <![CDATA[ <= ]]> #{locaraCdTo}
            </if>
          <if test="@MybatisUtils@isNotEmpty(zipFrom)">
@@ -251,100 +258,114 @@
     </select>
 
     <select id="selectCountAreaCodePsic" resultType="int">
-        SELECT COUNT(WK_GRP_CD)
+        SELECT COUNT(1)
           FROM TB_SVPD_RPB_LOCARA_PSIC_IZ
-         WHERE RPB_LOCARA_CD = #{prbLocaraCd}
+         WHERE RPB_LOCARA_CD = #{chLocaraCd}
     </select>
 
     <insert id="insertAreaCode">
-        SELECT 1 FROM DUAL
-<!--        INSERT INTO TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ-->
-<!--             ( RPB_LOCARA_CD-->
-<!--             , LOCARA_SN-->
-<!--             , APY_STRTDT-->
-<!--             , APY_ENDDT-->
-<!--             , FR2P_LGLD_CD-->
-<!--             , CTPV_NM-->
-<!--             , CTCTY_NM-->
-<!--             , LAWC_EMD_NM-->
-<!--             , AMTD_NM-->
-<!--             , DTA_DL_YN-->
-<!--              <include refid="COMMON.insertSystemField"/>-->
-<!--             )-->
-<!--        VALUES-->
-<!--             ( #{prbLocaraCd}-->
-<!--             , NVL(SELECT LPAD(MAX(LOCARA_SN)+1, 3, '0')-->
-<!--                     FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ-->
-<!--                    WHERE FR2P_LGLD_CD = #{fr2pLgldCd}-->
-<!--                      AND CTPV_NM      = #{ctpvNm}-->
-<!--                      AND CTCTY_NM     = #{ctctyNm}-->
-<!--                      AND LAWC_EMD_NM  = #{lawcEmdNm}-->
-<!--                      AND AMTD_NM      = #{atmdNm}, '001')-->
-<!--             , #{apyStrdt}-->
-<!--             , #{apyEnddt}-->
-<!--             , #{fr2pLgldCd}-->
-<!--             , #{ctpvNm} AS CTPV_NM-->
-<!--             , #{ctctyNm} AS CTCTY_NM-->
-<!--             , #{lawcEmdNm} AS LAWC_EMD_NM-->
-<!--             , #{atmdNm} AS AMTD_NM-->
-<!--             , 'N'-->
-<!--              <include refid="COMMON.insertSystemFieldValue"/>-->
-<!--             )-->
+        INSERT INTO TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ
+             ( RPB_LOCARA_CD
+             , LOCARA_SN
+             , APY_STRTDT
+             , APY_ENDDT
+             , FR2P_LGLD_CD
+             , CTPV_NM
+             , CTCTY_NM
+             , LAWC_EMD_NM
+             , AMTD_NM
+             , ADR_ODR_NO
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             ( #{chLocaraCd}
+             , (SELECT MAX(LOCARA_SN) + 1
+                 FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ
+               )
+             , #{apyStrtdt}
+             , #{apyEnddt}
+             , #{fr2pLgldCd}
+             , #{ctpvNm}
+             , #{ctctyNm}
+             , #{lawcEmdNm}
+             , #{amtdNm}
+             , NVL((SELECT LPAD(MAX(ADR_ODR_NO)+1, 3, '0')
+                      FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ
+                     WHERE FR2P_LGLD_CD = #{fr2pLgldCd}
+                       AND CTPV_NM      = #{ctpvNm}
+                       AND CTCTY_NM     = #{ctctyNm}
+                       AND LAWC_EMD_NM  = #{lawcEmdNm}
+                       AND AMTD_NM      = #{amtdNm}), '001')
+             , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+             )
     </insert>
 
     <insert id="insertAreaCodePsic">
-        SELECT 1 FROM DUAL
-<!--        INSERT INTO TB_SVPD_RPB_LOCARA_PSIC_IZ-->
-<!--             ( WK_GRP_CD-->
-<!--             , RPB_LOCARA_CD-->
-<!--             , IZ_SN-->
-<!--             , ICHR_PRTNR_NO-->
-<!--             , PPRN_ICHR_PRTNR_NO1-->
-<!--             , PPRN_ICHR_PRTNR_NO2-->
-<!--             , PPRN_ICHR_PRTNR_NO3-->
-<!--             , PPRN_ICHR_PRTNR_NO4-->
-<!--             , PPRN_ICHR_PRTNR_NO5-->
-<!--             , VST_DOW_VAL-->
-<!--             , MMT_AV_LDTM-->
-<!--             , RSTR_CNDT_USE_YN-->
-<!--             , UDSN_USE_YN-->
-<!--             , LOCARA_CEN_STRU_ADR-->
-<!--             , W1_W3_SAT_WRK_YN-->
-<!--             , RPB_LOCARA_GRP_CD-->
-<!--             , VL_STRT_DTM-->
-<!--             , VL_END_DTM-->
-<!--             , DTA_DL_YN-->
-<!--              <include refid="COMMON.insertSystemField"/>-->
-<!--             )-->
-<!--        SELECT WK_GRP_CD-->
-<!--             , #{prbLocaraCd} AS PRB_LOCARA_CD-->
-<!--             , '001' AS IZ_SN-->
-<!--             , ICHR_PRTNR_NO-->
-<!--             , PPRN_ICHR_PRTNR_NO1-->
-<!--             , PPRN_ICHR_PRTNR_NO2-->
-<!--             , PPRN_ICHR_PRTNR_NO3-->
-<!--             , PPRN_ICHR_PRTNR_NO4-->
-<!--             , PPRN_ICHR_PRTNR_NO5-->
-<!--             , VST_DOW_VAL-->
-<!--             , MMT_AV_LDTM-->
-<!--             , RSTR_CNDT_USE_YN-->
-<!--             , UDSN_USE_YN-->
-<!--             , LOCARA_CEN_STRU_ADR-->
-<!--             , W1_W3_SAT_WRK_YN-->
-<!--             , RPB_LOCARA_GRP_CD-->
-<!--             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS VL_STRT_DTM-->
-<!--             , '99991231' AS VL_END_DTM-->
-<!--             , 'N'-->
-<!--              <include refid="COMMON.insertSystemFieldValue"/>-->
-<!--         FROM TB_SVPD_RPB_LOCARA_PSIC_IZ I1-->
-<!--        WHERE RPB_LOCARA_CD = #{prbLocaraCd}-->
-<!--          AND IZ_SN         = (SELECT MAX(IZ_SN)-->
-<!--                                 FROM TB_SVPD_RPB_LOCARA_PSIC_IZ I2-->
-<!--                                WHERE RPB_LOCARA_CD = I1.RPB_LOCARA_CD-->
-<!--                                  AND WK_GRP_CD     = I1.WK_GRP_CD-->
-<!--                                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN I2.VL_STRT_DTM AND I2.VL_END_DTM-->
-<!--                              )-->
-<!--        ORDER BY RPB_LOCARA_CD, WK_GRP_CD-->
+        INSERT INTO TB_SVPD_RPB_LOCARA_PSIC_IZ
+             ( WK_GRP_CD
+             , RPB_LOCARA_CD
+             , IZ_SN
+             , ICHR_PRTNR_OG_TP_CD
+             , ICHR_PRTNR_NO
+             , PPRN_ICHR_PRTNR_OG_TP_CD
+             , PPRN_ICHR_PRTNR_NO1
+             , PPRN_ICHR_PRTNR_NO2
+             , PPRN_ICHR_PRTNR_NO3
+             , PPRN_ICHR_PRTNR_NO4
+             , PPRN_ICHR_PRTNR_NO5
+             , VST_DOW_VAL
+             , MMT_AV_LDTM
+             , RSTR_CNDT_USE_YN
+             , UDSN_USE_YN
+             , LOCARA_CEN_STRU_ADR
+             , SAT_WRK_YN
+             , RPB_LOCARA_GRP_CD
+             , APY_STRTDT
+             , APY_ENDDT
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT WK_GRP_CD
+             , #{chLocaraCd}
+             , '001' AS IZ_SN
+             , ICHR_PRTNR_OG_TP_CD
+             , ICHR_PRTNR_NO
+             , PPRN_ICHR_PRTNR_OG_TP_CD
+             , PPRN_ICHR_PRTNR_NO1
+             , PPRN_ICHR_PRTNR_NO2
+             , PPRN_ICHR_PRTNR_NO3
+             , PPRN_ICHR_PRTNR_NO4
+             , PPRN_ICHR_PRTNR_NO5
+             , VST_DOW_VAL
+             , MMT_AV_LDTM
+             , RSTR_CNDT_USE_YN
+             , UDSN_USE_YN
+             , LOCARA_CEN_STRU_ADR
+             , SAT_WRK_YN
+             , RPB_LOCARA_GRP_CD
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , '99991231'
+             , 'N'
+             , ''
+             , '145AUTO'
+             , ''
+             , ''
+             , ''
+             , '145AUTO'
+             , ''
+             , ''
+         FROM TB_SVPD_RPB_LOCARA_PSIC_IZ I1
+        WHERE 1=1
+          AND RPB_LOCARA_CD = #{prbLocaraCd}
+          AND IZ_SN         = (SELECT MAX(IZ_SN)
+                                 FROM TB_SVPD_RPB_LOCARA_PSIC_IZ I2
+                                WHERE RPB_LOCARA_CD = I1.RPB_LOCARA_CD
+                                  AND WK_GRP_CD     = I1.WK_GRP_CD
+                                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN I2.APY_STRTDT AND I2.APY_ENDDT
+                              )
+         ORDER BY RPB_LOCARA_CD, WK_GRP_CD
     </insert>
 
 </mapper>
