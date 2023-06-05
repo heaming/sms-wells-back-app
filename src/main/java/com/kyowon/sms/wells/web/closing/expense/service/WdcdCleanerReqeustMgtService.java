@@ -13,10 +13,10 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Service
@@ -46,25 +46,25 @@ public class WdcdCleanerReqeustMgtService {
             String fileId = groupId + "_BAS" + clinrRgno;
             dvo.setDtaDlYn("N");
 
-            if (dvo.getAttachFiles1().size() > 0) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles1())) {
 
                 attachFileService.saveAttachFiles(groupId, fileId + "1", dvo.getAttachFiles1());
                 //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
                 dvo.setIdfApnFileId(fileId + "1");
             }
-            if (dvo.getAttachFiles2().size() > 0) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles2())) {
 
                 attachFileService.saveAttachFiles(groupId, fileId + "2", dvo.getAttachFiles2());
                 //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
                 dvo.setBnkbApnFileId(fileId + "2");
             }
-            if (dvo.getAttachFiles3().size() > 0) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles3())) {
 
                 attachFileService.saveAttachFiles(groupId, fileId + "3", dvo.getAttachFiles3());
                 //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
                 dvo.setCntrwApnFileId(fileId + "3");
             }
-            if (dvo.getAttachFiles4().size() > 0) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles4())) {
 
                 attachFileService.saveAttachFiles(groupId, fileId + "4", dvo.getAttachFiles4());
                 //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
@@ -105,41 +105,33 @@ public class WdcdCleanerReqeustMgtService {
                 dvo.setAcnoEncr(String.valueOf(res.acnoEncr()));
             }
 
-            if (dvo.getAttachFiles1().size() > 0) {
-                if (Objects.nonNull(dvo.getAttachFiles1())) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles1())) {
 
-                    attachFileService.saveAttachFiles(groupId, fileId + "1", dvo.getAttachFiles1());
-                    //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
-                    dvo.setIdfApnFileId(fileId + "1");
-                }
+                attachFileService.saveAttachFiles(groupId, fileId + "1", dvo.getAttachFiles1());
+                //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
+                dvo.setIdfApnFileId(fileId + "1");
             }
 
-            if (dvo.getAttachFiles2().size() > 0) {
-                if (Objects.nonNull(dvo.getAttachFiles2())) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles2())) {
 
-                    attachFileService.saveAttachFiles(groupId, fileId + "2", dvo.getAttachFiles2());
-                    //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
-                    dvo.setBnkbApnFileId(fileId + "2");
-                }
+                attachFileService.saveAttachFiles(groupId, fileId + "2", dvo.getAttachFiles2());
+                //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
+                dvo.setBnkbApnFileId(fileId + "2");
             }
 
-            if (dvo.getAttachFiles3().size() > 0) {
-                if (Objects.nonNull(dvo.getAttachFiles3())) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles3())) {
 
-                    attachFileService.saveAttachFiles(groupId, fileId + "3", dvo.getAttachFiles3());
-                    //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
-                    dvo.setCntrwApnFileId(fileId + "3");
-                }
+                attachFileService.saveAttachFiles(groupId, fileId + "3", dvo.getAttachFiles3());
+                //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
+                dvo.setCntrwApnFileId(fileId + "3");
             }
 
 
-            if (dvo.getAttachFiles4().size() > 0) {
-                if (Objects.nonNull(dvo.getAttachFiles4())) {
+            if (CollectionUtils.isEmpty(dvo.getAttachFiles4())) {
 
-                    attachFileService.saveAttachFiles(groupId, fileId + "4", dvo.getAttachFiles4());
-                    //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
-                    dvo.setCntrLroreApnFileId(fileId + "4");
-                }
+                attachFileService.saveAttachFiles(groupId, fileId + "4", dvo.getAttachFiles4());
+                //BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
+                dvo.setCntrLroreApnFileId(fileId + "4");
             }
 
             count += mapper.updateCleanerReqeust(dvo);
