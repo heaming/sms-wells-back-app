@@ -72,7 +72,7 @@ public class WdeaHomeMasterRedfCreateController {
         @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query", required = false),
     })
     @ApiOperation(value = "홈마스터 되물림생성 - 연체", notes = "홈마스터 되물림생성 - 연체 데이터를 조회한다.")
-    @GetMapping("/delinquent-paging")
+    @GetMapping("/delinquent/paging")
     public PagingResult<SearchDlqRes> getHomeMasterDelinquentRedfPages(
         SearchReq dto, PageInfo pageInfo
     ) {
@@ -89,7 +89,7 @@ public class WdeaHomeMasterRedfCreateController {
         @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query", required = false),
     })
     @ApiOperation(value = "홈마스터 되물림생성 - 연체 엑셀 다운로드", notes = "홈마스터 되물림생성 - 연체 엑셀 다운로드")
-    @GetMapping("/delinquent-excel-download")
+    @GetMapping("/delinquent/excel-download")
     public List<SearchDlqRes> getHomeMasterDelinquentRedfForExcelDownload(SearchReq dto) throws Exception {
 
         return service.getHomeMasterDelinquentRedfForExcelDownload(dto);
