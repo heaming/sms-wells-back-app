@@ -41,7 +41,7 @@ public class WsndHumanResourcesDto {
         String sapDlpnrDtlIzRfltDt,
         String wkGrpCd,
         String wkGrpNm,
-        String wkcrNo,
+        String wkcrCd,
         String rcrtWrteDt,
         String fstCntrDt,
         String fnlCltnDt,
