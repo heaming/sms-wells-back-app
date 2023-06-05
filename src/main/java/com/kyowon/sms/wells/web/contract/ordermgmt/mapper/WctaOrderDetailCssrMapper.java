@@ -22,5 +22,9 @@ public interface WctaOrderDetailCssrMapper {
 
     int insertCashSalesReceiptApprovalPresentState(WctaOrderDetailCssrDvo dvo);
 
+    int insertCashSalesReceiptChangeHistory(WctaOrderDetailCssrDvo dvo);
+
     int updateCashSalesReceiptApprovalPresentState(WctaOrderDetailCssrDvo dvo);
+
+    int updateCashSalesReceiptRegistration(WctaOrderDetailCssrDvo dvo);
 }
