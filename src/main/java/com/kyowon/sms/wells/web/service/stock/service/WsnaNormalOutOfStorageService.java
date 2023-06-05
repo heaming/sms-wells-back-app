@@ -179,4 +179,8 @@ public class WsnaNormalOutOfStorageService {
     public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
         return mapper.selectStandardWareHouse(dto);
     }
+
+    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto){
+        return mapper.selectItmOstrAk(dto);
+    }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageIzDtlDto;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaNormalOutOfStorageService;
@@ -133,5 +134,10 @@ public class WsnaNormalOutOfStorageController {
     @GetMapping("/standard-ware")
     public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
         return service.getStandardWareHouse(dto);
+    }
+
+    @GetMapping("/itm-ostr-ak")
+    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto){
+        return service.getItmOstrAk(dto);
     }
 }
