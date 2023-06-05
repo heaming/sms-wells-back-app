@@ -25,26 +25,21 @@
              , T2.LEAD_TIME /*LEADTIME*/
           FROM (
                 SELECT A.ITM_PD_CD
-                <!--TODO: 물류재고정보 인터페이스 정의 완료시 주석해제 및 쿼리정리-->
-        	         <!--, SUM(NVL(C.PITM_STOC_QTY,0)) AS LGST_QTY
-                     , SUM(0) AS LGST_QTY -->
-                     , SUM(DECODE(A.WARE_NO , '100002', A.PITM_STOC_A_GD_QTY,0)) AS LGST_QTY
-                     , SUM(CASE WHEN A.WARE_NO != '100002' AND B.WARE_ICHR_NO = '000' AND B.WARE_DV_CD = '2' THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS CENTER_QTY
+                     , SUM(CASE WHEN A.WARE_NO = '100002' THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS LGST_QTY
+                     , SUM(CASE WHEN A.WARE_NO <![CDATA[<>]]>'100002' AND B.WARE_ICHR_NO = '000' AND B.WARE_DV_CD = '2' THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS CENTER_QTY
                      , SUM(CASE WHEN A.WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS MY_CENTER_QTY
                      , SUM(CASE WHEN B.HGR_WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS INDI_STCK_QTY
-                     , SUM(NVL(USE_QTY,0)) AS L_QTY
+                     , NVL(SUM(D.USE_QTY), 0) AS L_QTY
                   FROM TB_SVST_CST_SV_ITM_STOC_IZ A /*고객서비스품목재고내역*/
                  INNER JOIN TB_SVST_MCBY_WARE_IZ B
                     ON A.WARE_NO = B.WARE_NO
-        	         <!--INNER JOIN TB_IFIN_ITM_STOC_IZ_RCV_ETXT C
-        	            ON C.PD_CD = A.ITM_PD_CD -->
                   LEFT OUTER JOIN (
                                     SELECT MIN(HGR_WARE_NO) AS HGR_WARE_NO
                                       FROM TB_SVST_MCBY_WARE_IZ
                                      WHERE APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
-                                       AND WARE_MNGT_PRTNR_NO = '36680' -- 파라미터
+                                       AND WARE_MNGT_PRTNR_NO = #{session.employeeIDNumber}
                                        AND WARE_USE_YN = 'Y'
-                                       AND SUBSTR(HGR_WARE_NO,1,1) != '1'
+                                       AND HGR_WARE_NO NOT LIKE '1%'
                                  ) C
                     ON B.WARE_NO = C.HGR_WARE_NO
                   LEFT OUTER JOIN (
@@ -52,8 +47,8 @@
                                          , ITM_PD_CD
                                          , SUM(USE_QTY) USE_QTY
                                       FROM TB_SVST_SV_WK_OSTR_IZ
-                                     WHERE SUBSTR(FNL_VST_FSH_DT,1,6) = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
-                                       AND ICHR_PRTNR_NO = '36680' --파라미터
+                                     WHERE FNL_VST_FSH_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE,-1), 'MM'),'YYYYMMDD') AND TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE,-1)),'YYYYMMDD')
+                                       AND ICHR_PRTNR_NO = #{session.employeeIDNumber} --파라미터
                                      GROUP BY WK_WARE_NO, ITM_PD_CD
                                   ) D
             ON A.WARE_NO  = D.WK_WARE_NO
@@ -85,7 +80,7 @@
                   AND A.SVPD_NM_KOR LIKE '%' || #{itmPdNm} || '%'
                </if>
                <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
-                  AND ((A.SVPD_PD_CD LIKE #{itmPdCd}||'%') OR (A.SVPD_PD_CD LIKE #{itmPdCd}||'%'))
+                  AND A.SVPD_PD_CD LIKE #{itmPdCd}||'%'
                </if>
                 GROUP BY A.SVPD_SAP_CD
                        , A.SVPD_SAP_GRP
@@ -275,6 +270,26 @@
                 ) A1
              WHERE 1=1
              ORDER BY A1.ITM_PD_CD
+    </select>
+
+    <select id="selectItemBaseInformationAplcLists" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto$SearchAplcRes">
+
+        SELECT T1.PD_CD AS ITM_PD_CD
+          FROM TB_SVST_ITM_APLC_IZ T1
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+            ON T1.WARE_NO = T2.HGR_WARE_NO
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T3
+            ON T2.WARE_MNGT_PRTNR_NO = T3.PRTNR_NO
+           AND T2.APY_YM = T3.BASE_YM
+           AND T2.OG_TP_CD = T3.OG_TP_CD
+         WHERE 1 = 1
+           AND T3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T2.APY_YM =  TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T2.WARE_DTL_DV_CD IN ('21', '31', '32')
+           AND T3.PRTNR_NO = #{session.employeeIDNumber}
+           AND T1.ITM_KND_CD = #{itmKndCd}
+           AND T1.APLC_SN = #{aplcList}
+
     </select>
 
 
