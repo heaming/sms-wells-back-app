@@ -26,14 +26,17 @@
                          , V2.RPB_LOCARA_CD, V2.LOCARA_SN
                          , V3.WK_GRP_CD, V3.IZ_SN, V3.APY_STRTDT, V3.APY_ENDDT, V3.SAT_WRK_YN, V3.RSTR_CNDT_USE_YN, V3.UDSN_USE_YN, V3.RPB_LOCARA_GRP_CD, V3.VST_DOW_VAL, V3.MMT_AV_LDTM, V3.LOCARA_CEN_STRU_ADR, V3.ICHR_PRTNR_OG_TP_CD, V3.ICHR_PRTNR_NO, V3.PPRN_ICHR_PRTNR_OG_TP_CD, V3.PPRN_ICHR_PRTNR_NO1, V3.PPRN_ICHR_PRTNR_NO2, V3.PPRN_ICHR_PRTNR_NO3, V3.PPRN_ICHR_PRTNR_NO4, V3.PPRN_ICHR_PRTNR_NO5
                       FROM TB_SVPD_EGER_ASN_ADR_IZ V1 /* 엔지니어배정용주소내역 */
-                     INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ V2 /* 책임지역별관리주소내역 */
+                     INNER JOIN (SELECT M2.RPB_LOCARA_CD, M2.LOCARA_SN, M2.FR2P_LGLD_CD, M2.CTPV_NM, M2.CTCTY_NM, M2.LAWC_EMD_NM, M2.AMTD_NM
+                                      , ROW_NUMBER() OVER(PARTITION BY M2.FR2P_LGLD_CD, M2.CTPV_NM, M2.CTCTY_NM, M2.LAWC_EMD_NM, M2.AMTD_NM ORDER BY M2.ADR_ODR_NO DESC) AS RN
+                                   FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ M2
+                                  WHERE ${applyDate} BETWEEN M2.APY_STRTDT AND M2.APY_ENDDT
+                                    AND DTA_DL_YN = 'N') V2 /* 책임지역별관리주소내역 */
                         ON V2.FR2P_LGLD_CD = V1.FR2P_LGLD_CD
                        AND V2.CTPV_NM = V1.CTPV_NM
                        AND V2.CTCTY_NM = V1.CTCTY_NM
                        AND V2.LAWC_EMD_NM = V1.LAWC_EMD_NM
                        AND V2.AMTD_NM = V1.AMTD_NM
-                       AND V2.DTA_DL_YN = 'N'
-                       AND #{applyDate} BETWEEN V2.APY_STRTDT AND V2.APY_ENDDT
+                       AND V2.RN = 1
                      INNER JOIN (SELECT M3.WK_GRP_CD, M3.RPB_LOCARA_CD, M3.IZ_SN, M3.APY_STRTDT, M3.APY_ENDDT, M3.SAT_WRK_YN, M3.RSTR_CNDT_USE_YN, M3.UDSN_USE_YN, M3.RPB_LOCARA_GRP_CD, M3.VST_DOW_VAL, M3.MMT_AV_LDTM, M3.LOCARA_CEN_STRU_ADR, M3.ICHR_PRTNR_OG_TP_CD, M3.ICHR_PRTNR_NO, M3.PPRN_ICHR_PRTNR_OG_TP_CD, M3.PPRN_ICHR_PRTNR_NO1, M3.PPRN_ICHR_PRTNR_NO2, M3.PPRN_ICHR_PRTNR_NO3, M3.PPRN_ICHR_PRTNR_NO4, M3.PPRN_ICHR_PRTNR_NO5
                                       , ROW_NUMBER() OVER(PARTITION BY M3.WK_GRP_CD, M3.RPB_LOCARA_CD ORDER BY M3.IZ_SN DESC) AS RN
                                    FROM TB_SVPD_RPB_LOCARA_PSIC_IZ M3
@@ -43,6 +46,7 @@
                         ON V3.RN = 1
                        AND V3.RPB_LOCARA_CD = V2.RPB_LOCARA_CD
                        AND V3.WK_GRP_CD = #{wkGrpCd}
+                     WHERE V1.DTA_DL_YN = 'N'
                  ) T1
              WHERE T1.V1_RN = 1
                AND T1.WK_GRP_CD = #{wkGrpCd}
@@ -61,34 +65,30 @@
         ), TEMP1 AS ( /* 지역별 계정 수 */
         	SELECT RPB_LOCARA_CD
         	     , SUM(MGT_CNT) AS MGT_CNT
-        	  FROM (SELECT V3.NEW_ADR_ZIP
-                         , COUNT(1) AS MGT_CNT
-                      FROM TB_SVPD_MCBY_CST_SV_OJ_IZ M1 /* 월별고객서비스대상내역 */
-                     INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
-                        ON C1.CNTR_NO = M1.CNTR_NO
-                       AND C1.CNTR_SN = M1.CNTR_SN
-                       AND C1.DTA_DL_YN = 'N'
-                     INNER JOIN TEMP01 P1
-                        ON P1.PD_CD = C1.BASE_PD_CD
-                     INNER JOIN (SELECT V1.DTL_CNTR_NO, V1.DTL_CNTR_SN, V2.ADR_ID
-                                   FROM TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
-                                  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
-                                     ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
-                                    AND V2.DTA_DL_YN = 'N'
-                                  WHERE V1.DTA_DL_YN = 'N'
-                                    AND V1.ADRPC_TP_CD = '3' /* 설치처 */
-                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
-                         ) V2
-                        ON V2.DTL_CNTR_NO = C1.CNTR_NO
-                       AND V2.DTL_CNTR_SN = C1.CNTR_SN
-                     INNER JOIN TB_GBCO_ADR_BAS V3 /* 주소지기본 */
-                        ON V3.ADR_ID = V2.ADR_ID
-                       AND V3.DTA_DL_YN = 'N'
-                     WHERE M1.DTA_DL_YN = 'N'
-                       AND M1.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                       AND (M1.REQD_DT IS NULL OR M1.CAN_DT IS NULL OR M1.CPS_DT IS NULL)
-                     GROUP BY V3.NEW_ADR_ZIP
-                     ORDER BY V3.NEW_ADR_ZIP
+        	  FROM (SELECT NEW_ADR_ZIP
+                         , PDCT_PD_CD
+                         , MGT_CNT
+                      FROM (SELECT A1.NEW_ADR_ZIP
+                                 , M1.PDCT_PD_CD
+                                 , COUNT(1) AS MGT_CNT
+                              FROM (SELECT CNTR_NO, CNTR_SN, PDCT_PD_CD, ADR_ID
+                                      FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
+                                     WHERE DTA_DL_YN = 'N'
+                                       AND MNGT_YM = '202305' --TO_CHAR(SYSDATE, 'YYYYMM')
+                                 ) M1 /* 월별고객서비스대상내역 */
+                             INNER JOIN TB_SVPD_CST_SV_EXCN_DL_IZ M2 /* 고객서비스수행삭제내역 */
+                                ON M2.CNTR_NO = M1.CNTR_NO
+                               AND M2.CNTR_SN = M1.CNTR_SN
+                               AND M2.DTA_DL_YN = 'N'
+                             INNER JOIN TB_GBCO_ADR_BAS A1 /* 주소지기본 */
+                                ON A1.ADR_ID = M1.ADR_ID
+                               AND A1.DTA_DL_YN = 'N'
+                             WHERE 1 = 1
+                               AND (M2.REQD_DT IS NULL OR M2.CAN_DT IS NULL OR M2.CPS_DT IS NULL)
+                             GROUP BY A1.NEW_ADR_ZIP, M1.PDCT_PD_CD
+                           ) V1
+                       INNER JOIN TEMP01 P1
+                          ON P1.PD_CD = V1.PDCT_PD_CD
         		   ) V1
         	 INNER JOIN TEMP0 T0
         	    ON T0.NEW_ADR_ZIP = V1.NEW_ADR_ZIP
@@ -171,66 +171,66 @@
         		 , T0.PPRN_ICHR_PRTNR_OG_TP_CD /* 예비담당파트너 조직유형코드 */
         		 , (SELECT OG_NM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO1
                        AND DTA_DL_YN = 'N') AS OG_NM1 /* 예비담당파트너조직명1 */
         		 , T0.PPRN_ICHR_PRTNR_NO1 /* 예비담당파트너번호1 */
         		 , (SELECT PRTNR_KNM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO1
                        AND DTA_DL_YN = 'N') AS PPRN_ICHR_PRTNR_KNM1
                  , (SELECT OG_NM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO2
                        AND DTA_DL_YN = 'N') AS OG_NM2 /* 예비담당파트너조직명2 */
                  , T0.PPRN_ICHR_PRTNR_NO2 /* 예비담당파트너번호2 */
                  , (SELECT PRTNR_KNM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO2
                        AND DTA_DL_YN = 'N') AS PPRN_ICHR_PRTNR_KNM2
                  , (SELECT OG_NM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO3
                        AND DTA_DL_YN = 'N') AS OG_NM3 /* 예비담당파트너조직명3 */
                  , T0.PPRN_ICHR_PRTNR_NO3 /* 예비담당파트너번호3 */
                  , (SELECT PRTNR_KNM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO3
                        AND DTA_DL_YN = 'N') AS PPRN_ICHR_PRTNR_KNM3
                  , (SELECT OG_NM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO4
                        AND DTA_DL_YN = 'N') AS OG_NM4 /* 예비담당파트너조직명4 */
                  , T0.PPRN_ICHR_PRTNR_NO4 /* 예비담당파트너번호4 */
                  , (SELECT PRTNR_KNM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO4
                        AND DTA_DL_YN = 'N') AS PPRN_ICHR_PRTNR_KNM4
                  , (SELECT OG_NM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO5
                        AND DTA_DL_YN = 'N') AS OG_NM5 /* 예비담당파트너조직명5 */
                  , T0.PPRN_ICHR_PRTNR_NO5 /* 예비담당파트너번호5 */
                  , (SELECT PRTNR_KNM
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                        AND OG_TP_CD = T0.PPRN_ICHR_PRTNR_OG_TP_CD
                        AND PRTNR_NO = T0.PPRN_ICHR_PRTNR_NO5
                        AND DTA_DL_YN = 'N') AS PPRN_ICHR_PRTNR_KNM5
@@ -247,7 +247,7 @@
                AND T3.WK_GRP_CD = T0.WK_GRP_CD /* 작업그룹코드 */
                AND T3.IZ_SN = T0.IZ_SN /* 책임지역담당자내역일련번호 */
         	  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /* 월파트너내역 */
-        	    ON T4.BASE_YM = SUBSTR(T0.APY_STRTDT, 1, 6)
+        	    ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
         	   AND T4.OG_TP_CD = T0.ICHR_PRTNR_OG_TP_CD
         	   AND T4.PRTNR_NO = T0.ICHR_PRTNR_NO
         	 WHERE 1 = 1

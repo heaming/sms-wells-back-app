@@ -51,4 +51,11 @@ public interface WsncRpbAreaZipMgtMapper {
      */
     int insertZipNo(WsncRpbAreaZipNoDvo rpbLocaraZip);
 
+    /**
+     * 책임지역 우편번호 관리 - 삭제
+     * @param rpbLocaraZip
+     * @return
+     */
+    int deleteZipNo(WsncRpbAreaZipNoDvo rpbLocaraZip);
+
 }
