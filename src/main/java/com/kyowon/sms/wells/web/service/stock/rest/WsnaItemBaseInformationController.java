@@ -41,11 +41,18 @@ public class WsnaItemBaseInformationController {
         return service.getItemBaseInformations(dto);
     }
 
-    @GetMapping("out-of")
+    @GetMapping("/out-of")
     public List<OstrRes> getItemBaseInformationsOutOf(
         SearchReq dto
     ) {
         return service.getItemBaseInformationsOutOf(dto);
+    }
+
+    @GetMapping("/aplclists")
+    public List<SearchAplcRes> getItemBaseInformationAplcLists(
+        SearchAplcReq dto
+    ) {
+        return service.getItemBaseInformationAplcLists(dto);
     }
 
 }

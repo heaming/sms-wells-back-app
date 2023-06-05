@@ -25,4 +25,8 @@ public class WsnaItemBaseInformationService {
     public List<OstrRes> getItemBaseInformationsOutOf(SearchReq dto) {
         return this.mapper.selectItemBaseInformationsOutOf(dto);
     }
+
+    public List<SearchAplcRes> getItemBaseInformationAplcLists(SearchAplcReq dto) {
+        return this.mapper.selectItemBaseInformationAplcLists(dto);
+    }
 }
