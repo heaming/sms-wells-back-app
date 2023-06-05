@@ -18,6 +18,8 @@ public interface WctaOrderDetailCssrMapper {
 
     List<SearchRcpRes> selectCashSalesReceipts(String cntrNo, String cntrSn);
 
+    String selectCustomerNumber(String cntrNo);
+
     int insertCashSalesReceipt(WctaOrderDetailCssrDvo dvo);
 
     int insertCashSalesReceiptApprovalPresentState(WctaOrderDetailCssrDvo dvo);
