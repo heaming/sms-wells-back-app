@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniFilterChangeExpectedInterfaceMapper">
+    <select id="selectFilterChangeExpectedInfos" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniFilterChangeExpectedInterfaceDto$SearchRes">
+		 SELECT CNTR_NO
+              , CNTR_SN
+              , CUST_NM
+              , PART_PD_CD
+              , PART_NM -- (selectPartMaster 에서 SVPD_NM_KOR)
+              , LAST_USE_DT -- 해당 필터 마지막 교체 일자
+              , TO_CHAR(ADD_MONTHS(LAST_USE_DT, WRK_CYCL),'YYYYMMDD') AS NEXT_VST_DT -- 교체예정일자
+              , CASE WHEN MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM')||'01', SUBSTR(LAST_USE_DT,1,6)||'01') >= WRK_CYCL THEN 'Y'
+                     ELSE 'N'
+                END AS CHAGE_YN -- 교체대상여부
+          FROM (
+                 SELECT T1.CNTR_NO AS CNTR_NO
+                      , T1.CNTR_SN AS CNTR_SN
+                      , T3.RCGVP_KNM AS CUST_NM
+                      , T1.IST_DT AS IST_DT
+                      , T4.SELL_TP_CD AS SELL_TP_CD
+                      , T1.PDCT_PD_CD AS PDCT_PD_CD
+                      , T5.FRISU_BFSVC_PTRM_N AS FRISU_BFSVC_PTRM_N
+                      , CASE WHEN T4.STPL_PTRM = '999' THEN 0
+                             ELSE T4.STPL_PTRM
+                        END AS VST_CYCL
+                      , MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM')||'01', SUBSTR(T1.IST_DT,1,6)||'01') AS INST_MTH
+                      , CASE WHEN T4.STPL_PTRM = '999' THEN 0
+                             ELSE MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM')||'01', SUBSTR(T1.IST_DT,1,6)||'01')
+                        END AS VST_MTHS
+                      , T6.PART_PD_CD AS PART_PD_CD
+                      -- 해당 상품/방문주기/필터 교체 주기
+                      , ( SELECT MIN(VST_NMN_N)
+                            FROM TB_PDBS_RGBS_WK_BASE_DTL
+                           WHERE SV_PD_CD = T1.SV_PD_CD
+                             AND PDCT_PD_CD = T1.PDCT_PD_CD
+                             AND PART_PD_CD = T6.PART_PD_CD
+                             AND VST_DV_CD != '20' )			AS WRK_CYCL
+                      -- 해당 필터 마직막 교체 일자
+                      , NVL(( SELECT MAX(FNL_VST_FSH_DT)
+                                FROM TB_SVST_SV_WK_OSTR_IZ
+                               WHERE CNTR_NO = T1.CNTR_NO
+                                 AND CNTR_SN = T1.CNTR_SN
+                                 AND ITM_PD_CD = T6.PART_PD_CD)
+                           , T1.IST_DT ) 						AS LAST_USE_DT
+                      , ( SELECT NVL(MAX(VST_DUEDT), T1.IST_DT)
+                            FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                           WHERE VST_NMN_N != '0'
+                             AND CNTR_NO = T1.CNTR_NO
+                             AND CNTR_SN = T1.CNTR_SN
+                             AND VST_DUEDT <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')||'01' ) AS LAST_VST_DT  -- 주기표상 마지막 방문일자
+                      , T7.SVPD_NM_KOR AS PART_NM
+                   FROM TB_SVPD_CST_SV_EXCN_IZ T1
+                  INNER JOIN TB_SSCT_CNTR_ADR_REL T2
+                     ON T1.CNTR_NO = T2.DTL_CNTR_NO
+                    AND T1.CNTR_SN = T2.DTL_CNTR_SN
+                    AND T2.ADRPC_TP_CD = '3'
+                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T3
+                     ON T2.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+                  INNER JOIN TB_SSCT_CNTR_DTL T4
+                     ON T1.CNTR_NO = T4.CNTR_NO
+                    AND T1.CNTR_SN = T4.CNTR_SN
+                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL T5
+                     ON T1.CNTR_NO = T5.CNTR_NO
+                    AND T1.CNTR_SN = T5.CNTR_SN
+                  INNER JOIN TB_PDBS_RGBS_WK_BASE_DTL T6
+                     ON T1.PDCT_PD_CD = T6.PDCT_PD_CD
+                    AND T1.SV_PD_CD = T6.SV_PD_CD
+                    AND T6.VST_DV_CD != '20'
+                    AND T6.PART_PD_CD IS NOT NULL
+                    AND T6.VST_NMN_N = ( SELECT MIN (VST_NMN_N)
+                                           FROM TB_PDBS_RGBS_WK_BASE_DTL
+                                          WHERE SV_PD_CD = T6.SV_PD_CD
+                                            AND PDCT_PD_CD = T6.PDCT_PD_CD
+                                            AND PART_PD_CD = T6.PART_PD_CD
+                                            AND VST_DV_CD != '20'
+                                            AND PART_PD_CD IS NOT NULL )
+                  INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T7
+                     ON T7.SVPD_PD_CD = T6.PDCT_PD_CD
+                  WHERE T1.IST_DT IS NOT NULL
+                    AND T1.CNTR_NO = #{cntrNo}
+                    AND T1.CNTR_SN = #{cntrSn}
+                    AND MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM') || '01', SUBSTR(T1.IST_DT, 1, 6) || '01') >= T5.FRISU_BFSVC_PTRM_N    --무상B/S 기간을 넘겼고
+                  ORDER BY T6.PART_PD_CD
+               )
+    </select>
+</mapper>
