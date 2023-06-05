@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaOutOfStorageItemizationService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -31,9 +33,9 @@ public class WsnaOutOfStorageItemizationController {
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2"),
 
     })
-    @GetMapping
-    public List<SearchRes> getOutOfStorageItemizations(SearchReq dto) {
-        return this.service.getOutOfStorageItemizations(dto);
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getOutOfStorageItemizations(SearchReq dto, PageInfo pageInfo) {
+        return this.service.getOutOfStorageItemizations(dto, pageInfo);
     }
 
     @ApiOperation(value = "출고관리 목록 엑셀 다운로드", notes = "조회조건에 일치하는 출고관리 데이터를 엑셀다운로드 한다.")
