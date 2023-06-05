@@ -133,4 +133,8 @@ public class WsnaOutOfStorageAskMngtService {
         //TODO: 시쿼스 정의 및 인터페이스(W-SV-I-0027) 개발 후 로직추가.
         return processCount;
     }
+
+    public List<OutOfRes> getOutOfStorageItemExcelDownload(SearchReq dto) {
+        return mapper.selectOutOfStorageItms(dto);
+    }
 }
