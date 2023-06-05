@@ -100,6 +100,8 @@ public class WctcSalesLimitsService {
             String sellLmOcDtm = dvo.getSellLmOcDtm(); //발생일자
             String[] param = {Integer.toString(dvo.getDataRow() + 1)};
             boolean hasSellLmRlsDtm = StringUtils.isEmpty(sellLmRlsDtm); // 해제일자 존재여부
+            int parsedSellRlsDtm = !hasSellLmRlsDtm ? Integer.parseInt(sellLmRlsDtm) : 0;
+            int parsedSellLmDtm = Integer.parseInt(sellLmOcDtm);
 
             processCount += switch (dvo.getRowState()) {
                 case CommConst.ROW_STATE_UPDATED -> {
@@ -107,7 +109,9 @@ public class WctcSalesLimitsService {
                         BizAssert.isTrue(hasSellLmRlsDtm, "MSG_ALT_BAD_RLS_ERR", param);
 
                     if ("4".equals(sellLmDv))
-                        BizAssert.isFalse(hasSellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
+                        BizAssert.isFalse(
+                            (hasSellLmRlsDtm || parsedSellRlsDtm < parsedSellLmDtm), "MSG_ALT_RLS_DT_ERR", param
+                        );
 
                     String sellLmBzrno = mapper.selectEntrepreneurJoinLmOjssCheck(dvo.getSellLmId());
                     BizAssert.isTrue(dvo.getSellLmBzrno().equals(sellLmBzrno), "MSG_ALT_LM_BZRNO_ERR");
@@ -121,6 +125,11 @@ public class WctcSalesLimitsService {
                 case CommConst.ROW_STATE_CREATED -> {
                     if ("3".equals(sellLmDv))
                         BizAssert.isTrue(hasSellLmRlsDtm, "MSG_ALT_RLS_DT_ERR", param);
+
+                    if ("4".equals(sellLmDv))
+                        BizAssert.isFalse(
+                            (hasSellLmRlsDtm || parsedSellRlsDtm < parsedSellLmDtm), "MSG_ALT_RLS_DT_ERR", param
+                        );
 
                     BizAssert.isTrue(sellLmOcDtm.length() == 8, "MSG_ALT_BAD_OC_DT_ERR");
 
