@@ -40,6 +40,7 @@ public class WsnaNormalOutOfStorageDto {
         String ostrDtrnYn,
         String itmPdCd,
         String pdNm,
+        String ostrAkSn,
         String rmkCn
 
     ) {}
@@ -211,9 +212,30 @@ public class WsnaNormalOutOfStorageDto {
         String stckStdGb
     ) {}
 
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
     public record MonthlyWarehouseReq(
         String apyYm,
         String wareNo,
         String stckStdGb
     ) {}
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkReq")
+    public record SearchItmOstrAkReq(
+        String ostrAkNo,
+        String ostrAkSn
+    ){}
+
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkRes")
+    public record SearchItmOstrAkRes(
+        String ostrAkNo,
+        String ostrAkSn,
+        String ostrAkTpCd,
+        String strHopDt,
+        String ostrAkRgstDt,
+        String ostrOjWareNo,
+        String strOjWareNo,
+        String ostrOjWareNm,
+        String strOjWareNm,
+        String ostrAkTpNm,
+        String itmPdCd
+    ){}
 }
