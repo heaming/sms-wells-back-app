@@ -8,8 +8,8 @@ public class WsncBsMngtSchdInqrDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    @ApiModel(value = "WsncBsMngtSchdInqrDto-SaveReq")
-    public record SaveReq(
+    @ApiModel(value = "WsncBsMngtSchdInqrDto-SearchRes")
+    public record SearchRes(
         @NotBlank
         String fxnPrtnrNo,
         @NotBlank
