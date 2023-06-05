@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,10 @@ public class WctaOrderDetailCssrService {
         int processCount = 0;
         int checkCount = mapper.selectContractBaseCheck(dvo);
 
+        if (StringUtils.isEmpty(dvo.getCstNo())) {
+            dvo.setCstNo(mapper.selectCustomerNumber(dvo.getCntrNo()));
+        }
+
         if (checkCount <= 0) {
             processCount += mapper.insertCashSalesReceipt(dvo);
             processCount += mapper.insertCashSalesReceiptApprovalPresentState(dvo);
@@ -51,6 +56,10 @@ public class WctaOrderDetailCssrService {
         int processCount = 0;
 
         for (WctaOrderDetailCssrDvo dvo : dvos) {
+
+            if (StringUtils.isEmpty(dvo.getCstNo())) {
+                dvo.setCstNo(mapper.selectCustomerNumber(dvo.getCntrNo()));
+            }
 
             processCount += mapper.insertCashSalesReceiptChangeHistory(dvo);
             // processCount += mapper.updateCashSalesReceiptRegistration(dvo);
