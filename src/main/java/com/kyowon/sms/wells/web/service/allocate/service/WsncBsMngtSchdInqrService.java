@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsMngtSchdInqrDto;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsMngtSchdInqrMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,9 +31,10 @@ public class WsncBsMngtSchdInqrService {
         return mapper.selectBsMngtSchdInqrAgrg(dto);
     }
 
-    public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrDtl(
-        WsncBsMngtSchdInqrDto.SearchReq dto
+    public PagingResult<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrPages(
+        WsncBsMngtSchdInqrDto.SearchReq dto,
+        PageInfo pageInfo
     ) {
-        return mapper.selectBsMngtSchdInqrDtl(dto);
+        return mapper.selectBsMngtSchdInqrPages(dto, pageInfo);
     }
 }

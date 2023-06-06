@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsMngtSchdInqrDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncBsMngtSchdInqrService;
 import com.sds.sflex.system.config.constant.CommConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -49,8 +52,9 @@ public class WsncBsMngtSchdInqrController {
     })
     @PostMapping("/detail")
     public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrDtl(
-        WsncBsMngtSchdInqrDto.SearchReq dto
+        WsncBsMngtSchdInqrDto.SearchReq dto, @Valid
+        PageInfo pageInfo
     ) {
-        return service.getBsMngtSchdInqrDtl(dto);
+        return service.getBsMngtSchdInqrDtl(dto, pageInfo);
     }
 }
