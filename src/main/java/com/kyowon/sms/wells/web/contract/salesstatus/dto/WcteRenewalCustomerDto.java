@@ -49,7 +49,7 @@ public class WcteRenewalCustomerDto {
         String pdNm, // [상품명] 상품명
         String ogCd, // [조직코드] 조직코드(판매자의조직코드)
         String cstAgYn, // [마케팅동의여부] 마케팅동의여부
-        String slDt, // [매출일] 매출일자
+        String slRcogDt, // [매출일] 매출인식일자
         String asnDvCd, // [배정구분] 배정구분
         String asnDvNm, // [배정구분명] 배정구분명
         String asnDt, // [배정일] 배정일자

@@ -16,6 +16,7 @@ import lombok.Setter;
 public class WsncRpbAreaCodeDvo {
 
     String chLocaraCd; /* 변경 책임지역코드 */
+    String rpbLocaraCd; /* 변경 전 책임지역코드 */
     String fr2pLgldCd; /* 법정동코드 앞2자리 */
     String ctpvNm; /* 시도명 */
     String ctctyNm; /* 시군구명 */

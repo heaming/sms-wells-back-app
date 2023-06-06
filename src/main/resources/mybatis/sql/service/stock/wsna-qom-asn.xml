@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnMapper">
+    <select id="selectCountQomAsn">
+        SELECT COUNT(1) AS CNT
+          FROM TB_SVST_ITM_QOM_ASN_IZ
+         WHERE ASN_OJ_YM = #{asnOjYm}
+           AND ASN_TN_N = #{asnTnN}
+           AND WARE_DTL_DV_CD = #{wareDtlDvCd}
+    </select>
+
+    <select id="selectIndependenceQomAsns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$SearchRes">
+        SELECT #{asnOjYm} AS ASN_OJ_YM
+             , '100008' AS OSTR_WARE_NO
+             , T4.STR_WARE_DV_CD
+             , T4.STR_WARE_NO
+             , T2.WARE_NM AS STR_WARE_NM
+             , T4.PU_PART_PD_CD AS ITEM_CD
+             , T4.PU_PART_PD_CD AS ITEM_CODE
+             , T1.SVPD_SELL_TP_CD AS SALE_CD
+             , T1.SVPD_NM_ABBR1 AS NM_ABBR1
+             , T1.SVPD_MGT_UNT_NM AS MGT_UNT_NM
+             , 'A' AS DEG
+             , T4.ON_QTY
+             , CASE WHEN T4.PU_QTY <![CDATA[<]]> T4.ON_QTY THEN 0
+                    WHEN T2.WARE_DTL_DV_CD NOT IN ('10','20','30') THEN T4.PU_QTY - T4.ON_QTY
+                    WHEN T4.PU_QTY = T4.ON_QTY THEN 1
+                    ELSE T4.PU_QTY - T4.ON_QTY
+                END AS USE_QTY
+             , 0 AS ACC_QTY
+             /* 조직창고가 아니라면, 개인창고는 센터로 뭉쳐서 CHG_CD=000, 직배는 CHG_CD !=000(가중치 영향안받음) */
+             , CASE WHEN T2.WARE_DTL_DV_CD NOT IN ('10','20','30')
+                                        /** 필요수량에서 재고수량을 뺀 부족수량 요청 **/
+                         THEN CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>]]> 0
+                                        THEN (T4.FULL_PU_QTY - T4.ON_QTY)
+                                   ELSE 0
+                               END
+                    ELSE CASE WHEN NVL(T4.BOX_QTY) <![CDATA[>]]> 0
+                                   THEN CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[<]]> -3 THEN 0
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN -3 AND -1
+                                                  THEN T4.BOX_QTY * CEIL((1) * (300/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) = 0
+                                                  THEN T4.BOX_QTY * CEIL((1) * (300/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 1 AND 3
+                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (300/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 4 AND 9
+                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (200/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 10 AND 19
+                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (150/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 20 AND 49
+                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (140/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 50 AND 99
+                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (130/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 100 AND 199
+                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (120/100) /  T4.BOX_QTY)
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>=]]> 200
+                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (110/100) /  T4.BOX_QTY)
+                                         END
+                                   ELSE CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[<]]> -3 THEN 0
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN -3 AND -1
+                                                  THEN T4.BOX_QTY * CEIL((1) * (300/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) = 0 THEN CEIL((1) * (300/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 1 AND 3
+                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (300/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 4 AND 9
+                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (200/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 10 AND 19
+                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (150/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 20 AND 49
+                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (140/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 50 AND 99
+                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (130/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 100 AND 199
+                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (120/100))
+                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>=]]> 200
+                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (110/100))
+                                         END
+                          END
+                END AS CNFRM_QTY
+           , T1.SVPD_BOX_QTY S BOX_CNT
+        FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
+             , TB_SVST_MCBY_WARE_IZ T2
+             , TB_SVST_MCITM_STOC_IZ T3
+             , (<include refid="groupBy01"/>) T4
+         WHERE T1.SVPD_PD_CD = T4.PU_PART_PD_CD
+    </select>
+
+    <select id="selectIndividualWareQomAsns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$SearchRes">
+
+    </select>
+
+    <update id="updateWareHouse">
+        MERGE INTO TB_SVPD_RGBS_PU_ITM_IZ M1 USING
+            (SELECT T3.ASN_OJ_YM
+                  , T3.CNTR_NO
+                  , T3.CNTR_SN
+                  , T3.PDCT_PD_CD
+                  , T3.SV_BIZ_DCLSF_CD
+                  , T3.IST_NMN_N
+                  , T3.FILT_CHNG_LV_CD
+                  , T3.PU_PART_PD_CD
+                  , T3.QOM_ASN_WARE_NO
+                  , T3.STR_WARE_DV_CD
+                  , T3.STR_WARE_NO
+                  , CASE WHEN T6.DIDY_DV_CD = '1' AND T6.WARE_DV_CD = '2' THEN '1'
+                         WHEN T6.DIDY_DV_CD = '1' AND T6.WARE_DV_CD = '3' THEN '2'
+                         WHEN T6.DIDY_DV_CD = '2' THEN '3'
+                         ELSE '9'
+                     END MCBY_WARE_DV_CD /* STCK_GB */
+                  , CASE WHEN T6.DIDY_DV_CD = '2' THEN T6.WARE_DV_CD
+                         ELSE T6.HGR_WARE_NO
+                     END MCBY_STR_WARE_NO /* STCK_CD_RECD */
+                  , T6.WARE_DV_CD
+                  , T6.DIDY_DV_CD
+                  , T6.WARE_NO
+                  , T6.HGR_WARE_NO
+               FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1        /* 월별고객서비스대상내역 : 202 */
+              INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2  /* 고객서비스BS대상내역 : 251 */
+                 ON T2.CNTR_NO = T1.CNTR_NO
+                AND T2.CNTR_SN = T1.CNTR_SN
+              INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3      /* 고객서비스정기BS투입품목상세 : 252 */
+                 ON T3.ASN_OJ_YM = T2.ASN_OJ_YM
+                AND T3.CNTR_NO = T1.CNTR_NO
+                AND T3.CNTR_SN = T1.CNTR_SN
+              INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4      /* 고객서비스수행내역 : 201 */
+                 ON T4.CNTR_NO = T1.CNTR_NO
+                AND T4.CNTR_SN = T1.CNTR_SN
+               LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T5 /* 고객서비스BS배정내역 : 261 */
+                 ON T5.ASN_OJ_YM = T2.ASN_OJ_YM
+                AND T5.CST_SV_ASN_NO = T1.CNTR_NO
+                AND T5.CNTR_SN = T1.CNTR_SN
+              INNER JOIN TB_SVST_MCBY_WARE_IZ T6
+                 ON T6.APY_YM = T1.MNGT_YM
+                AND T6.WARE_DTL_DV_CD NOT IN ('10','20','30')
+                AND T6.WARE_USE_YN = 'Y'
+                AND T6.WARE_MNGT_PRTNR_NO = DECODE(T1.MNGT_YM, T2.ASN_OJ_YM, NVL(T5.CNFM_PSIC_PRTNR_NO, T1.FXN_PRTNR_NO), T1.MNGT_PRTNR_NO)
+              WHERE T1.MNGT_YM = #{apyYm}/* PARAM_APLD_YM */
+                AND T2.ASN_OJ_YM = #{asnOjYm} /* RARAM_ORD_OBJ_YM */
+                AND T2.VST_DV_CD LIKE '1%'
+                AND T1.DTA_DL_YN = 'N'
+                AND T2.DTA_DL_YN = 'N'
+                AND T3.DTA_DL_YN = 'N'
+                AND T4.DTA_DL_YN = 'N'
+                AND T5.DTA_DL_YN = 'N'
+                AND T6.DTA_DL_YN = 'N'
+            ) M2
+           ON (M1.ASN_OJ_YM = M2.ASN_OJ_YM
+               AND M1.CNTR_NO = M2.CNTR_NO
+               AND M1.CNTR_SN = M2.CNTR_SN
+               AND M1.PDCT_PD_CD = M2.PDCT_PD_CD
+               AND M1.SV_BIZ_DCLSF_CD = M2.SV_BIZ_DCLSF_CD
+               AND M1.IST_NMN_N = M2.IST_NMN_N
+               AND M1.FILT_CHNG_LV_CD = M2.FILT_CHNG_LV_CD
+               AND M1.PU_PART_PD_CD = M2.PU_PART_PD_CD
+              )
+         WHEN MATCHED THEN
+              UPDATE SET
+                     M1.QOM_ASN_WARE_NO = '100008'
+                   , M1.STR_WARE_DV_CD = M2.MCBY_WARE_DV_CD
+                   , M1.STR_WARE_NO = M2.STR_WARE_NO
+                   <include refid="COMMON.updateSystemField" />
+    </update>
+
+    <insert id="insertIndependenceWareQomAsns">
+        /* TODO : 확정 쿼리 작성 해야함. */
+    </insert>
+
+    <insert id="insertIndividualWareQomAsns">
+        /* TODO : 확정 쿼리 작성 해야함. */
+    </insert>
+    <sql id="groupBy01">
+        /* TB_SVPD_RGBS_PU_ITM_IZ */
+        SELECT G1.STR_WARE_NO
+             , G1.PU_PART_PD_CD
+             , SUM(G1.PU_QTY) AS PU_QTY
+             , SUM(G1.FULL_PU_QTY) AS FULL_PU_QTY
+             , MAX(G1.BOX_QTY) AS BOX_QTY
+             , NVL((SELECT NVL(SUM(K01.PITM_STOC_A_GD_QTY),0)
+                      FROM TB_SVST_MCITM_STOC_IZ K01
+                         , TB_SVST_MCBY_WARE_IZ K02
+                     WHERE K01.BASE_YM = #{apyYm}
+                       AND K01.ITM_PD_CD = G1.PU_PART_PD_CD
+                       AND K01.WARE_NO = K02.WARE_NO
+                       AND K02.WARE_USE_YN = 'Y'
+                       AND K02.APY_YM = #{apyYm}
+                       <if test='!@MybatisUtils@equals(cnt,"1")'>
+                       AND (G1.STR_WARE_NO = K02.WARE_NO OR  G1.STR_WARE_NO = K02.HGR_WARE_NO)
+                       </if>
+                       <if test='@MybatisUtils@equals(cnt,"1")'>
+                       AND G1.STR_WARE_NO = K02.WARE_NO
+                       </if>
+               ), 0) AS ON_QTY
+             , T1.STR_WARE_DV_CD
+          FROM (SELECT S01.ASN_OJ_YM
+                     , S01.CNTR_NO
+                     , S01.CNTR_SN
+                     , S01.PU_PART_PD_CD
+                     , S01.STR_WARE_DV_CD
+                     , S01.PU_QTY AS FULL_PU_QTY
+                     , CASE WHEN S01.QOM_ASN_WARE_NO = '100008' THEN S01.PU_QTY ELSE 0 END AS PU_QTY
+                     , CASE WHEN S03.DIDY_DV_CD = '2' THEN S03.WARE_NO ELSE S03.HGR_WARE_NO END AS STR_WARE_NO
+                     , CASE WHEN S03.DIDY_DV_CD = '1' AND S03.WARE_DV_CD = '2' THEN '1'
+                            WHEN S03.DIDY_DV_CD = '1' AND S03.WARE_DV_CD = '3' THEN '2'
+                            WHEN S03.DIDY_DV_CD = '2' THEN '3'
+                            ELSE '9'
+                        END STCK_GB
+                     , S03.WARE_NO
+                     , S03.HGR_WARE_NO
+                     , (SELECT S12.SVPD_BOX_QTY
+                          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) S12
+                         WHERE S12.SVPD_PD_CD =  S01.PU_PART_PD_CD
+                       ) AS BOX_QTY
+                  FROM TB_SVPD_RGBS_PU_ITM_IZ S01    /* LC_ALLOCATE_AC252TB */
+                     , TB_SVPD_MCBY_CST_SV_OJ_IZ S02 /* LC_ALLOCATE_AC202TB */
+                     , TB_SVST_MCBY_WARE_IZ S03      /* LC_STOCK_ST102TB */
+                     <if test='!@MybatisUtils@equals(cnt,"1")'>
+                     , TB_SVPD_CST_SV_BFSVC_ASN_IZ S11  /* LC_ALLOCATE_AC261TB */
+                     </if>
+                 WHERE S02.MNGT_YM = #{apyYm}
+                   AND S02.CNTR_NO = S01.CNTR_NO
+                   AND S02.CNTR_SN = S01.CNTR_SN
+                   AND S02.PDCT_PD_CD = S01.PDCT_PD_CD
+                   AND S03.APY_YM = #{apyYm}
+                   AND S03.WARE_MNGT_PRTNR_NO = DECODE(#{cnt}, '1', S02.MNGT_PRTNR_NO, S02.FXN_PRTNR_NO) /* cnt : 회차 */
+                   AND S02.BFSVC_TP_CD = '1' /* BS 유형(1:방문 2:배송) */
+                   AND S03.WARE_DTL_DV_CD NOT IN ('10','20','30')
+                   AND S03.WARE_USE_YN = 'Y'
+                   AND S03.ASN_OJ_YM = #{asnOjYm}
+                   AND S03.QOM_ASN_WARE_NO = '100008' /* 교원성수물류센터 */
+                   AND NOT EXISTS (SELECT 1
+                                     FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ S04
+                                    WHERE S04.CNTR_NO = S01.CNTR_NO
+                                      AND S04.CNTR_SN = S01.CNTR_SN
+                                      AND S04.AK_SN = (SELECT MAX(S05.AK_SN)
+                                                         FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ S05
+                                                        WHERE S05.CNTR_NO = S01.CNTR_NO
+                                                          AND S05.CNTR_SN = S01.CNTR_SN
+                                                      )
+                                      AND S04.SPP_STP_DV_CD = 'B'
+                                  )
+                   AND NOT EXISTS (SELECT 1
+                                     FROM (SELECT S07.PRTNR_NO
+                                                , S07.QOM_ASN_APY_YN
+                                             FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S07
+                                            WHERE S07.APY_SN = (SELECT MAX(S08.APY_SN)
+                                                                  FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S08
+                                                                 WHERE S08.PRTNR_NO = S07.PRTNR_NO
+                                                               )
+                                              AND S07.QOM_ASN_APY_YN = 'N'
+                                          ) S06
+                                    WHERE S06.PRTNR_NO = S03.WARE_MNGT_PRTNR_NO
+                                  )
+                   AND S03.WARE_MNGT_PRTNR_NO NOT IN (SELECT S09.PRTNR_NO
+                                                        FROM TB_OGBS_MM_PRTNR_IZ S09
+                                                           , TB_SVST_MCBY_WARE_IZ S10
+                                                       WHERE S09.BASE_YM = #{apyYm}
+                                                         AND S10.APY_YM  = #{apyYm}
+                                                         AND S10.WARE_MNGT_PRTNR_NO = S09.PRTNR_NO
+                                                         AND S10.WARE_USE_YN = 'Y'
+                                                         AND S10.DIDY_DV_CD != '2'
+                                                         AND S10.WARE_DTL_DV_CD NOT IN ('10','20','30')
+                                                         /* AND (AC022_DEPT_CD1 IN ('D940000', 'H930000') OR AC022_DBLD IN ('679','955','670','859','650','953','665','739','647','705','786','838','680','685','797','809','682','708','681','690','654','815','1024','1095','1037','1036','648','885','646','723','421','1085','878','649','877','867','738','858','692','726','697','818','850','698','1071','715','746','683','847','1039','835','844','1038','684','786') ) */
+                                                         /* AND AC022_DEG != '4' */
+                                                     )
+                   <if test='!@MybatisUtils@equals(cnt,"1")'>
+                   AND S01.CNTR_NO = S11.CNTR_NO
+                   AND S01.CNTR_SN = S11.CNTR_SN
+                   AND S11.ASN_OJ_YM = #{asnOjYm}
+                   AND S11.VST_PRGS_STAT_CD IN ('00', '10')
+                   </if>
+               ) G1
+         GROUP BY G1.STR_WARE_NO, G1.PU_PART_PD_CD, G1.STR_WARE_DV_CD
+    </sql>
+</mapper>

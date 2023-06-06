@@ -5,15 +5,18 @@
     <select id="selectBuilDingCd" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto$CodeRes">
         SELECT DISTINCT B.BLD_CD
              , B.BLD_NM
-          FROM TB_OGBS_OG_BAS A /*조직기본*/
+          FROM TB_OGBS_MM_OG_IZ A /*월조직내역*/
          INNER JOIN TB_OGBS_BLD_BAS B /*빌딩기본*/
             ON A.BLD_CD = B.BLD_CD
+           AND A.BASE_YM = SUBSTR(B.OP_DT, 1,6)
          WHERE 1=1
            AND A.DGR2_LEVL_OG_CD IN (SELECT W1.OG_CD
                                        FROM TB_OGBS_PRTNR_BAS W1 /*파트너기본*/
                                       WHERE 1=1
-                                        AND W1.OG_TP_CD = #{session.ogTpCd}
-                                        /*AND W1.PRTNR_NO*/
+                                        AND W1.OG_TP_CD = #{ogTpCd}
+                                        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                                        AND W1.PRTNR_NO = #{prtnrNo}
+                                        </if>
                                      )
     </select>
 
@@ -38,6 +41,7 @@
              , CLING_COST_SRCP_APN_FILE_ID
              , CLING_COST_DV_CD
              , DTA_DL_YN
+             , OG_TP_CD
           <include refid="COMMON.insertSystemField" />
         ) VALUES (
                #{clingCostAdjRcpNo}
@@ -53,6 +57,7 @@
              , #{clingCostSignApnFileId}
              , '02'
              , #{dtaDlYn}
+             , #{ogTpCd}
           <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
@@ -68,6 +73,23 @@
              , EXNO_ENCR
              , IDV_TNO
              , CLING_COST_SRCP_APN_FILE_ID
+             , OG_TP_CD
+          FROM TB_CBCL_CLING_COST_ADJ_IZ
+         WHERE CLING_COST_ADJ_RCP_NO = #{clingCostAdjRcpNo}
+    </select>
+
+    <select id="selectRequestCleaningSuppliesDetail" resultType="com.kyowon.sms.wells.web.closing.expense.dvo.WdcdRequestCleaningSuppliesDvo">
+        SELECT CLING_COST_ADJ_RCP_NO
+             , CARD_PSR_NM
+             , APLC_DT
+             , CLAIM_NM
+             , BLD_CD
+             , BIL_AMT
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , CLING_COST_SRCP_APN_FILE_ID
+             , OG_TP_CD
           FROM TB_CBCL_CLING_COST_ADJ_IZ
          WHERE CLING_COST_ADJ_RCP_NO = #{clingCostAdjRcpNo}
     </select>

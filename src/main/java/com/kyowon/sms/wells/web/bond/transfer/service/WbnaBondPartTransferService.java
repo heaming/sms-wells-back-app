@@ -91,8 +91,8 @@ public class WbnaBondPartTransferService {
 
         //기존에 등록된 파트이관 있는 경우 우선 삭제
         mapper.deletePartTransfers(dvo);
-        // TODO processCount 이 정보 활용 할 수 없을거 같음... 마무리 전 확인 후 가망 없으면 삭제
         int processCount = mapper.insertPartTransfers(dvo); //생성은 기준년월, 사업본부기준
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_PA_TF_DTA_EXST"); // 파트이관 대상이 없는 경우 추가 작업 필요 없이 알림
 
         // 배정에 저장은 기준년월, 사업본부기준, 집금구분 기준
         ZbnaBondTransferAssignDvo bondTransferAssignDvo = converter.mapCreateReqToZbnaBondTransferAssignDvo(dto);

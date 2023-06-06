@@ -32,8 +32,8 @@ public class WbncCustomerDvo {
     String promBooId;
     String promDt;
     String promHh;
-    String clctamPromTpCd;
-    String clnPromAmt;
+    String promTp;
+    String promAmt;
     String promCn;
     String promFshYn;
 }

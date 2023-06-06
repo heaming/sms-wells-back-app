@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto.*;
 
@@ -220,5 +221,44 @@ public class WcteSecProductService {
             processCount += createNotInstalledIz(dvo);
         }
         return processCount;
+    }
+
+    /**
+     * 중분류 된 상품 목록 조회
+     *
+     * @return List<SearchSecPdBycfRes>
+     */
+    public List<SearchSecPdBycfRes> getSecPdBycfs() {
+        return mapper.selectSecPdBycfs().stream()
+                .map(converter::mapWcteSecPdBycfDvoToSearchSecPdBycfRes)
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * 삼성전자 상품관리 배송 페이지 조회
+     * @param dto 조회조건
+     * @param pageInfo 페이지정보
+     * @return 페이징 된 배송 목록
+     */
+    public PagingResult<SearchShippingRes> getShippingPages(SearchShippingReq dto, PageInfo pageInfo) {
+        return mapper.selectShippings(dto, pageInfo);
+    }
+
+    /**
+     * 삼성전자 상품관리 배송 다건조회
+     * @param dto 조회조건
+     * @return 배송 목록
+     */
+    public List<SearchShippingRes> getShippings(SearchShippingReq dto) {
+        return mapper.selectShippings(dto);
+    }
+
+    public PagingResult<SearchFreeAsRes> getFreeASPages(SearchFreeAsReq dto, PageInfo pageInfo) {
+        return mapper.selectFreeASs(dto, pageInfo);
+    }
+
+    public List<SearchFreeAsRes> getFreeASs(SearchFreeAsReq dto) {
+        return mapper.selectFreeASs(dto);
     }
 }

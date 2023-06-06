@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.competence.education.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
@@ -60,6 +62,14 @@ public class WpsbZoomMgtDto {
         String dtaDlYn, /* 데이터삭제여부 */
         String rowState
     ) {}
+
+    @ApiModel(value = "WpsbZoomMgtDto-EditReq")
+    public record EditReq(
+        @NotBlank
+        String hgrSvEducMnalId, /* 상위서비스교육매뉴얼ID */
+        List<SaveReq> treeList
+    ) {}
+
     @ApiModel("WpsbZoomMgtDto-RemoveReq")
     public record RemoveReq(
         @NotBlank

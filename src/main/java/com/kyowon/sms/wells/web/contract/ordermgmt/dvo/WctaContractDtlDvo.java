@@ -3,8 +3,6 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-
 import lombok.*;
 
 @Getter
@@ -86,28 +84,31 @@ public class WctaContractDtlDvo {
 
     private List<WctaContractPrtnrRelDvo> prtnrRels;
     private List<WctaContractCstRelDvo> cstRels;
-    private List<WctaContractHsmtrlDtlDvo> hsmtrlDtls;
     private List<WctaContractPdRelDvo> pdRels;
     private List<WctaContractPmotIzDvo> pmotIzs;
     private List<WctaFgptRcpIzDvo> fgptRcpIzs;
     private List<WctaContractPrcCmptIzDvo> prcCmptIzs;
     private List<WctaContractStlmRelDvo> stlmRels;
-    private WctaContractAdrRelDvo adrRels;
+    private WctaContractWellsDtlDvo wellsDtl;
+    private WctaContractAdrpcBasDvo adrpc;
+    private WctaContractAdrRelDvo adrRel;
 
     /*STEP2*/
     private String mclsfVal;
     private String lclsfVal;
     private String pdCd;
+    private String pdClsf;
     private String pdClsfNm;
     private String pdNm;
     private String pdChip1;
     private String pdChip2;
-    private String lrnnLvGrpDvCd;
-    @Setter(AccessLevel.NONE)
-    private String lrnnStrtRqdt;
-    private Long suscMm;
-    private String lrnnStrtLvCd;
-    private String lrnnEnddt;
+    private String svPdCd;
+    private Long frisuBfsvcPtrmN;
+    private Integer frisuAsPtrmN;
+    private String sellInflwChnlDtlCd;
+    private boolean isExistAlncPds; /* 제휴상품 콤보 노출여부 */
+    private String adrType; /* 주소유형(1: 기본, 2: 새로운주소) */
+
     private Long ackmtAmt;
     private BigDecimal ackmtRt;
     private String pdPrcFnlDtlId;
@@ -115,17 +116,30 @@ public class WctaContractDtlDvo {
     private Integer verSn;
     private Long ctrVal;
     private String pdPrcId;
-    List<WctaContractRegStep2Dvo.PdDetailDvo> suscMms;
-    List<WctaContractRegStep2Dvo.PdDetailDvo> lrnnLvs;
-    List<WctaContractRegStep2Dvo.PdDetailDvo> strtLvs;
+
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscDvCds; /* 판매할인구분코드 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> alncmpCntrDrmVals; /* 제휴상품 */
+    // TODO 구좌수
+    /*STEP2 일시불*/
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> frisuBfsvcPtrmNs; /* 무상BS기간수 */
+    /*STEP2 렌탈*/
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> stplPtrms; /* 약정기간 */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> cntrPtrms; /* 소유권이전기간(계약기간) */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> rgstCss; /* 등록비(계약금액 cntrAmt) */
+    private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscTpCds; /* 판매할인유형코드 */
 
     /*STEP3*/
-    private String mlgYn; /*마일리지 사용여부*/
-    private Long cntram; /*계약금결제금액*/
+    private String blkApy; /* 조건 일괄적용 */
+    private Integer recapMshPtrm; /* 유상멤버십기간 */
+    private String sodbtNftfCntrYn; /* 총판 비대면 계약여부 */
 
-    public void setLrnnStrtRqdt(String lrnnStrtRqdt) {
-        if (StringUtils.isNotEmpty(lrnnStrtRqdt)) {
-            this.lrnnStrtRqdt = 6 == lrnnStrtRqdt.length() ? lrnnStrtRqdt.concat("01") : lrnnStrtRqdt;
-        }
-    }
+    private Long pdAmt; /* 결제정보 Type A, B 상품금액(신용카드) */
+    private String dpTpCdMsh; /* 결제정보 Type A 멤버십 자동이체 방식 */
+    private Long mshAmt; /* 결제정보 Type A 멤버십 금액 */
+
+    private String dpTpCdAftn; /* 결제정보 Type C 자동이체방식 */
+    private Long aftnAmt; /* 결제정보 Type C 등록비 */
+    private String dpTpCdIdrv; /* 결제정보 Type C 등록비(계약금)결제유형 */
 }

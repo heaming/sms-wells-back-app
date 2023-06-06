@@ -38,9 +38,9 @@ public class WsnaOutOfStorageAskMngtController {
         @ApiImplicitParam(name = "wareDvCd", value = "출고요청 접수창고", paramType = "query", example = "", required = true),
         @ApiImplicitParam(name = "wareLocaraCd", value = "창고지역코드", paramType = "query", example = "")
     })
-    @GetMapping
-    public List<SearchRes> getOutOfStorageAsks(WsnaOutOfStorageAskMngtDto.SearchReq dto) {
-        return this.service.getOutOfStorageAsks(dto);
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getOutOfStorageAsks(WsnaOutOfStorageAskMngtDto.SearchReq dto, PageInfo pageInfo) {
+        return this.service.getOutOfStorageAsks(dto, pageInfo);
     }
 
     @ApiOperation(value = "출고요청등록 상단영역 조회", notes = "부모창에서 넘어온 파라미터로 출고요청 등록 상단영역을 조회.")
@@ -59,6 +59,14 @@ public class WsnaOutOfStorageAskMngtController {
     ) {
 
         return this.service.getOutOfStorageItemPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "출고요청등록 엑셀다운로드", notes = "출고요청등록 엑셀다운로드를 한다")
+    @GetMapping("/out-of-storage-items/excel-download")
+    public List<OutOfRes> getOutOfStorageItemExcelDownload(
+        WsnaOutOfStorageAskMngtDto.SearchReq dto
+    ) {
+        return this.service.getOutOfStorageItemExcelDownload(dto);
     }
 
     @ApiOperation(value = "출고대상창고 조회", notes = "조건에 맞는 출고대상창고들을 조회한다.")

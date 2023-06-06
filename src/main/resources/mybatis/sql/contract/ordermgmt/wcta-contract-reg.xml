@@ -13,8 +13,9 @@
     <update id="updateCntrPrgsStatCd">
         UPDATE TB_SSCT_CNTR_BAS
            SET CNTR_PRGS_STAT_CD = #{cntrPrgsStatCd}
+             , CNTR_TEMP_SAVE_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            <include refid="COMMON.updateSystemField"/>
          WHERE CNTR_NO = #{cntrNo}
-           AND DTA_DL_YN = 'N'
     </update>
 
     <select id="selectHddmInf" resultType = "String">
@@ -194,6 +195,7 @@
              , T3.DGR4_LEVL_OG_NM
              , T3.DGR5_LEVL_OG_CD
              , T3.DGR5_LEVL_OG_NM
+             , T3.HOO_PRTNR_NM
              , CASE WHEN T5.RNADR IS NOT NULL THEN T5.RNADR
                     WHEN T5.LTN_ADR IS NOT NULL THEN T5.LTN_ADR
                     ELSE ''
@@ -292,46 +294,6 @@
           FROM TB_SSCT_CNTR_REL /* 계약관계 */
          WHERE 1 = 1
            AND BASE_CNTR_NO = #{cntrNo}
-    </select>
-
-    <select id="selectContractHsmtrlDtl" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractHsmtrlDtlDvo">
-        SELECT CNTR_NO               /* 계약번호 */
-             , CNTR_SN               /* 계약일련번호 */
-             , LRNN_GRY_CD           /* 학습학년코드 */
-             , LRNN_STRT_LV_CD       /* 학습시작단계코드 */
-             , LRNN_STRT_RQDT        /* 학습시작요청일자 */
-             , LRNN_DOW_CD           /* 학습요일코드 */
-             , LRNN_HM               /* 학습시분 */
-             , LRNN_CRSE_SERIS_CD    /* 학습과정시리즈코드 */
-             , LRNN_TCHMT_UNIT_TP_CD /* 학습교재단위유형코드 */
-             , TOT_LRNN_CIRN         /* 총학습부수 */
-             , RGL_TCHMT_STRT_ISN    /* 정규교재시작호수 */
-             , RGL_TCHMT_END_ISN     /* 정규교재종료호수 */
-             , RETT_TCHMT_STRT_ISN   /* 소급교재시작호수 */
-             , RETT_TCHMT_END_ISN    /* 소급교재종료호수 */
-             , LRNN_TCHMT_BASE_YM    /* 학습교재기준년월 */
-             , LRNN_STRTDT           /* 학습시작일자 */
-             , LRNN_ENDDT            /* 학습종료일자 */
-             , BORR_LRNN_ISN         /* 차주학습호수 */
-             , RES_LRNN_CIRN         /* 잔여학습부수 */
-             , BIL_STRTDT            /* 청구시작일자 */
-             , BIL_ENDDT             /* 청구종료일자 */
-             , DTA_DL_YN             /* 데이터삭제여부 */
-             , FST_RGST_DTM          /* 최초등록일시 */
-             , FST_RGST_USR_ID       /* 최초등록사용자ID */
-             , FST_RGST_PRG_ID       /* 최초등록프로그램ID */
-             , FST_RGST_DEPT_ID      /* 최초등록부서ID */
-             , FNL_MDFC_DTM          /* 최종수정일시 */
-             , FNL_MDFC_USR_ID       /* 최종수정사용자ID */
-             , FNL_MDFC_PRG_ID       /* 최종수정프로그램ID */
-             , FNL_MDFC_DEPT_ID      /* 최종수정부서ID */
-          FROM TB_SSCT_CNTR_HSMTRL_DTL /* 계약학습지상세 */
-         WHERE 1 = 1
-           AND CNTR_NO = #{cntrNo}               /* 계약번호 */
-       <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
-           AND CNTR_SN = #{cntrSn}              /* 계약일련번호 */
-       </if>
-           AND DTA_DL_YN = 'N'
     </select>
 
     <select id="selectContractPdRel" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractPdRelDvo">
@@ -469,7 +431,58 @@
            AND DTA_DL_YN = 'N'
     </select>
 
-    <select id="selectContractStlmRels" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmRelDvo">
+    <select id="selectContractStlmBas" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmBasDvo">
+        SELECT CNTR_STLM_ID            /* 계약결제ID */
+             , CST_NO                  /* 고객번호 */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTRT_REL_CD            /* 계약자관계코드 */
+             , OWR_KNM                 /* 소유자한글명 */
+             , OWR_ENM                 /* 소유자영문명 */
+             , BRYY_MMDD               /* 생년월일 */
+             , BZRNO                   /* 사업자등록번호 */
+             , DP_TP_CD                /* 입금유형코드 */
+             , BNK_CD                  /* 은행코드 */
+             , CDCO_CD                 /* 카드사코드 */
+             , ACNO_ENCR               /* 계좌번호암호화 */
+             , CRCDNO_ENCR             /* 신용카드번호암호화 */
+             , CARD_EXPDT_YM           /* 카드유효기간년월 */
+             , MLG_TP_CD               /* 마일리지유형코드 */
+             , MLG_DRM_VAL             /* 마일리지식별값 */
+             , MPY_BSDT                /* 납부기준일자 */
+             , HS_CTF_YN               /* 본인인증여부 */
+             , DCEVDN_DOC_ID           /* 증빙서류문서ID */
+             , PYER_NO                 /* 납부자번호 */
+             , VNCO_DV_CD              /* VAN사구분코드 */
+             , FNIT_APR_RS_CD          /* 금융기관승인결과코드 */
+             , FNIT_APR_FSH_DTM        /* 금융기관승인완료일시 */
+             , FNIT_RSG_FSH_DTM        /* 금융기관해지완료일시 */
+             , AC_FNT_IMPS_CD          /* 계좌이체불능코드 */
+             , CARD_FNT_IMPS_CD        /* 카드이체불능코드 */
+             , AC_CH_AK_DV_CD          /* 계좌변경요청구분코드 */
+             , RVE_CRP_CD              /* 수납법인코드 */
+             , FNT_EVID_DRM_VAL        /* 이체증빙식별값 */
+             , REUSE_OJ_YN             /* 재사용대상여부 */
+             , SIGN_FILE_ID            /* 서명파일ID */
+             , BF_CNTR_STLM_ID         /* 이전계약결제ID */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             , DTA_DL_YN               /* 데이터삭제여부 */
+             , FST_RGST_DTM            /* 최초등록일시 */
+             , FST_RGST_USR_ID         /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID         /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID        /* 최초등록부서ID */
+             , FNL_MDFC_DTM            /* 최종수정일시 */
+             , FNL_MDFC_USR_ID         /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID         /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID        /* 최종수정부서ID */
+          FROM TB_SSCT_CNTR_STLM_BAS   /* 계약결제기본 */
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}               /* 계약번호 */
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectContractStlmRel" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmRelDvo">
         SELECT CNTR_STLM_REL_ID   /* 계약결제관계ID */
              , VL_STRT_DTM        /* 유효시작일시 */
              , VL_END_DTM         /* 유효종료일시 */
@@ -498,6 +511,60 @@
            AND DTL_CNTR_SN = #{cntrSn}              /* 계약일련번호 */
        </if>
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectContractWellsDtl" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractWellsDtlDvo">
+        SELECT CNTR_NO                  /* 계약번호 */
+             , CNTR_SN                  /* 계약일련번호 */
+             , FRISU_BFSVC_PTRM_UNIT_CD /* 무상BS기간단위코드 */
+             , FRISU_BFSVC_PTRM_N       /* 무상BS기간수 */
+             , FRISU_AS_PTRM_UNIT_CD    /* 무상AS기간단위코드 */
+             , FRISU_AS_PTRM_N          /* 무상AS기간수 */
+             , IST_DT                   /* 설치일자 */
+             , REQD_DT                  /* 철거일자 */
+             , CPS_DT                   /* 보상일자 */
+             , PRM_APY_DV_CD            /* 선납적용구분코드 */
+             , PRM_PTRM_MCN             /* 선납기간개월수 */
+             , SELL_EV_CD               /* 판매행사코드 */
+             , BFSVC_BZS_DV_CD          /* BS업체구분코드 */
+             , SPLY_BZS_DV_CD           /* 조달업체구분코드 */
+             , OCO_CPS_BZS_DV_CD        /* 타사보상업체구분코드 */
+             , HCR_DV_CD                /* 홈케어구분코드 */
+             , FMMB_N                   /* 가구원수 */
+             , FRISU_RCVRY_TP_CD        /* 무상복구유형코드 */
+             , IST_PLC_TP_CD            /* 설치장소유형코드 */
+             , WRFR_IST_MTH_CD          /* 정수기설치방법코드 */
+             , WTQLTY_TST_YN            /* 수질검사여부 */
+             , SRCWT_TP_CD              /* 상수원유형코드 */
+             , WPRS_ITST_TP_CD          /* 수압강도유형코드 */
+             , USE_ELECT_TP_CD          /* 사용전력유형코드 */
+             , TBHS_EYN                 /* 튜빙호수유무 */
+             , STVLV_EYN                /* 지수전유무 */
+             , KUMON_ITRDT_DV_CD        /* 구몬소개구분코드 */
+             , KUMON_CST_IDK_VAL        /* 구몬고객식별키값 */
+             , KUMON_RCOMR_IDK_VAL      /* 구몬소개자식별키값 */
+             , OTSD_LK_DRM_VAL          /* 외부연계식별값 */
+             , FRISU_MSH_CRT_YN         /* 무상멤버십생성여부 */
+             , IST_MM_BIL_MTHD_TP_CD    /* 설치월청구방식유형코드 */
+             , CO_IST_DV_CD             /* 회사설치구분코드 */
+             , CO_IST_MNGT_DV_CD        /* 회사설치관리구분코드 */
+             , CO_IST_USWY_CD           /* 회사설치용도코드 */
+             , IST_AK_ARTC_MO_CN        /* 설치요청사항메모내용 */
+             , SCON_CN                  /* 특약내용 */
+             , DTA_DL_YN                /* 데이터삭제여부 */
+             , FST_RGST_DTM             /* 최초등록일시 */
+             , FST_RGST_USR_ID          /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID          /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID         /* 최초등록부서ID */
+             , FNL_MDFC_DTM             /* 최종수정일시 */
+             , FNL_MDFC_USR_ID          /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID          /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID         /* 최종수정부서ID */
+          FROM TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}               /* 계약번호 */
+           AND CNTR_SN = #{cntrSn}              /* 계약일련번호 */
            AND DTA_DL_YN = 'N'
     </select>
 
@@ -556,7 +623,7 @@
            AND T1.DTA_DL_YN = 'N'
     </select>
 
-    <select id="selectContractAdrRels" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrRelDvo">
+    <select id="selectContractAdrRel" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrRelDvo">
         SELECT CNTR_ADR_REL_ID    /* 계약주소관계ID */
              , VL_STRT_DTM        /* 유효시작일시 */
              , VL_END_DTM         /* 유효종료일시 */

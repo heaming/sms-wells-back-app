@@ -154,6 +154,7 @@ public class WctaOrderDetailMngtDto {
     @ApiModel("WctaOrderDetailMngtDto-SearchRes")
     public record SearchRes(
         String cntrDtlNo,
+        String sellTpCd,
         String sellTpDtlNm,
         String dgr3LevlDgPrtnrNo,
         String dgr3LevlDgPrtnrNm,
@@ -186,6 +187,7 @@ public class WctaOrderDetailMngtDto {
         String pdctIdno,
         String istAkDt,
         String sellInflwChnlDtlNm,
+        String copnDvCd,
         String copnDvNm,
         String pdClsfNm,
         String pdNm,
@@ -365,6 +367,8 @@ public class WctaOrderDetailMngtDto {
         String cntrNo,
         String cntrSn,
         String cntrDtlNo,
+        String sellTpCd,
+        String copnDvCd,
         String cstKnm,
         String rcgvpKnm,
         String ojSellTpNm,
@@ -482,6 +486,7 @@ public class WctaOrderDetailMngtDto {
         String cntrDtlNo,
         String cntrNo,
         String cntrSn,
+        String sellTpCd,
         String cstKnm,
         String copnDvCd,
         String copnDvNm,
@@ -590,6 +595,7 @@ public class WctaOrderDetailMngtDto {
     @ApiModel("WctaOrderDetailMngtDto-SearchOrderDetailRglrDlvrPagesRes")
     public record SearchOrderDetailRglrDlvrPagesRes(
         String cntrDtlNo,
+        String sellTpCd,
         String dgr3LevlDgPrtnrNo,
         String dgr3LevlDgPrtnrNm,
         String dgr3LevlOgCd,
@@ -614,6 +620,7 @@ public class WctaOrderDetailMngtDto {
         String shpadrRdadr,
         String sellInflwChnlDtlNm,
         String empDvVal,
+        String copnDvCd,
         String copnDvNm,
         String mchnSellTpNm,
         String mchnCntrNo,

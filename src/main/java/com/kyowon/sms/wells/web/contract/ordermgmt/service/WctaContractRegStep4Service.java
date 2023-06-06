@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
+import com.google.api.client.util.Lists;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrBasicChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractRegConverter;
@@ -18,8 +19,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WctaContractRegStep4Service {
     private final WctaContractRegStep4Mapper mapper;
-
     private final WctaContractRegConverter converter;
+
+    private final WctaContractRegStep3Service regStep3Service;
     private final WctaContractRegService regService;
     private final WctzHistoryService historyService;
 
@@ -34,16 +36,16 @@ public class WctaContractRegStep4Service {
             bas.setCstStlmInMthCd("10");
         }
 
+        List<WctaContractDtlDvo> dtls = regService.selectProductInfos(cntrNo);
+        List<WctaContractAdrpcBasDvo> adrpcs = regService.selectContractAdrpcBas(cntrNo);
+        regStep3Service.selectExistedDtls(cntrNo, bas, dtls, adrpcs);
+        step4Dvo.setDtls(dtls);
+
         List<WctaContractCstRelDvo> cstRels = regService.selectContractCstRel(cntrNo);
         WctaContractCstRelDvo c = cstRels.stream().filter((v) -> "10".equals(v.getCntrCstRelTpCd())).findFirst().get();
         WctaContractCstRelDvo cntrtInfo = regService.selectCntrtInfoByCstNo(c.getCstNo());
         step4Dvo.setCntrt(converter.mergeContractCstRelDvo(c, cntrtInfo));
 
-        WctaContractCstRelDvo l = cstRels.stream().filter((v) -> "20".equals(v.getCntrCstRelTpCd())).findFirst().get();
-        WctaContractCstRelDvo lrnrInfo = regService.selectCntrtInfoByCstNo(l.getCstNo());
-        step4Dvo.setLrnr(converter.mergeContractCstRelDvo(l, lrnrInfo));
-
-        step4Dvo.setAdrpc(regService.selectContractAdrpcBas(cntrNo));
         List<WctaContractPrtnrRelDvo> prtnrRels = regService.selectContractPrtnrRel(cntrNo);
         if (prtnrRels.size() > 1) {
             // 파트너관계가 2건 이상인 경우, 계약파트너유형코드 010인 건
@@ -52,7 +54,23 @@ public class WctaContractRegStep4Service {
             step4Dvo.setPrtnr(prtnrRels.get(0));
         }
 
+        // 법인이고, 계약자의 주소ID와 설치지 주소ID가 다른 경우가 존재한다면 첨부파일 노
+        String cntrtAdrId = cntrtInfo.getAdrId();
+        List<WctaContractAdrRelDvo> adrRels = Lists.newArrayList();
+        dtls.stream().forEach((dtl) -> adrRels.add(dtl.getAdrRel()));
+        step4Dvo.setIsUseAttach(
+            adrRels.stream()
+                .anyMatch(
+                    (adrRel) -> !cntrtAdrId.equals(
+                        adrpcs.stream().filter((adrpc) -> adrpc.getCntrAdrpcId().equals(adrRel.getCntrAdrpcId()))
+                            .findFirst().orElse(new WctaContractAdrpcBasDvo()).getAdrId()
+                    )
+                ) ? "Y" : "N"
+        );
+
+        step4Dvo.setCntrDtls(mapper.selectCntrDtls(cntrNo));
         step4Dvo.setStlmDtls(mapper.selectStlmDtls(cntrNo));
+
         return WctaContractRegDvo.builder()
             .step4(step4Dvo)
             .build();

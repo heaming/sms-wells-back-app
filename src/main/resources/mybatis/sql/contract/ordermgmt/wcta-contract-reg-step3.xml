@@ -24,7 +24,7 @@
            AND T1.DTA_DL_YN = 'N'
     </select>
 
-    <select id="selectAdrInfoByCntrCstNo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep3Dvo">
+    <select id="selectAdrInfoByCntrCstNo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrpcBasDvo">
         SELECT T1.CST_KNM AS RCGVP_KNM
              , T1.CRAL_LOCARA_TNO
              , T1.MEXNO_ENCR
@@ -105,6 +105,87 @@
              , #{item.rveDvCd}
              , #{item.islndIncmdcTpCd}
              , #{item.stlmAmt}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrStlmBasStep3">
+        <selectKey keyProperty="item.cntrStlmId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_STLM_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_STLM_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_STLM_BAS (  /* 계약결제기본 */
+               CNTR_STLM_ID            /* 계약결제ID */
+             , CST_NO                  /* 고객번호 */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTRT_REL_CD            /* 계약자관계코드 */
+             , OWR_KNM                 /* 소유자한글명 */
+             , OWR_ENM                 /* 소유자영문명 */
+             , BRYY_MMDD               /* 생년월일 */
+             , BZRNO                   /* 사업자등록번호 */
+             , DP_TP_CD                /* 입금유형코드 */
+             , BNK_CD                  /* 은행코드 */
+             , CDCO_CD                 /* 카드사코드 */
+             , ACNO_ENCR               /* 계좌번호암호화 */
+             , CRCDNO_ENCR             /* 신용카드번호암호화 */
+             , CARD_EXPDT_YM           /* 카드유효기간년월 */
+             , MLG_TP_CD               /* 마일리지유형코드 */
+             , MLG_DRM_VAL             /* 마일리지식별값 */
+             , MPY_BSDT                /* 납부기준일자 */
+             , HS_CTF_YN               /* 본인인증여부 */
+             , DCEVDN_DOC_ID           /* 증빙서류문서ID */
+             , PYER_NO                 /* 납부자번호 */
+             , VNCO_DV_CD              /* VAN사구분코드 */
+             , FNIT_APR_RS_CD          /* 금융기관승인결과코드 */
+             , FNIT_APR_FSH_DTM        /* 금융기관승인완료일시 */
+             , FNIT_RSG_FSH_DTM        /* 금융기관해지완료일시 */
+             , AC_FNT_IMPS_CD          /* 계좌이체불능코드 */
+             , CARD_FNT_IMPS_CD        /* 카드이체불능코드 */
+             , AC_CH_AK_DV_CD          /* 계좌변경요청구분코드 */
+             , RVE_CRP_CD              /* 수납법인코드 */
+             , FNT_EVID_DRM_VAL        /* 이체증빙식별값 */
+             , REUSE_OJ_YN             /* 재사용대상여부 */
+             , SIGN_FILE_ID            /* 서명파일ID */
+             , BF_CNTR_STLM_ID         /* 이전계약결제ID */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrStlmId}
+             , #{item.cstNo}
+             , #{item.cntrNo}
+             , #{item.cntrtRelCd}
+             , #{item.owrKnm}
+             , #{item.owrEnm}
+             , #{item.bryyMmdd}
+             , #{item.bzrno}
+             , #{item.dpTpCd}
+             , #{item.bnkCd}
+             , #{item.cdcoCd}
+             , #{item.acnoEncr}
+             , #{item.crcdnoEncr}
+             , #{item.cardExpdtYm}
+             , #{item.mlgTpCd}
+             , #{item.mlgDrmVal}
+             , #{item.mpyBsdt}
+             , #{item.hsCtfYn}
+             , #{item.dcevdnDocId}
+             , #{item.pyerNo}
+             , #{item.vncoDvCd}
+             , #{item.fnitAprRsCd}
+             , #{item.fnitAprFshDtm}
+             , #{item.fnitRsgFshDtm}
+             , #{item.acFntImpsCd}
+             , #{item.cardFntImpsCd}
+             , #{item.acChAkDvCd}
+             , #{item.rveCrpCd}
+             , #{item.fntEvidDrmVal}
+             , #{item.reuseOjYn}
+             , #{item.signFileId}
+             , #{item.bfCntrStlmId}
+             , #{item.mvsDstcRcvryBaseDtm}
+             , #{item.mvsDstcRcvryDvCd}
+             , #{item.mvsDstcRcvryDtm}
              <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
@@ -214,23 +295,45 @@
              <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
-    <delete id="deleteStlmRelsStep3">
+    <update id="updateCntrWellsDtlStep3">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+           SET IST_PLC_TP_CD            = #{istPlcTpCd}              /* 설치장소유형코드 */
+             , FMMB_N                   = #{fmmbN}                   /* 가구원수 */
+             , USE_ELECT_TP_CD          = #{useElectTpCd}            /* 사용전력유형코드 */
+             , SRCWT_TP_CD              = #{srcwtTpCd}               /* 상수원유형코드 */
+             , WPRS_ITST_TP_CD          = #{wprsItstTpCd}            /* 수압강도유형코드 */
+             , IST_AK_ARTC_MO_CN        = #{istAkArtcMoCn}           /* 설치요청사항메모내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO                  = #{cntrNo}                  /* 계약번호 */
+           AND CNTR_SN                  = #{cntrSn}                  /* 계약일련번호 */
+    </update>
+
+    <update id="updateCstStlmInMthCd">
+        UPDATE TB_SSCT_CNTR_BAS /* 계약기본 */
+           SET CST_STLM_IN_MTH_CD     = #{cstStlmInMthCd}        /* 고객결제입력방법코드 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO                = #{cntrNo}                /* 계약번호 */
+    </update>
+
+    <delete id="deleteCntrStlmBasStep3">
+        DELETE TB_SSCT_CNTR_STLM_BAS
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrStlmRelsStep3">
         DELETE TB_SSCT_CNTR_STLM_REL
          WHERE DTL_CNTR_NO = #{cntrNo}
     </delete>
 
-    <delete id="deleteAdrpcBasStep3">
+    <delete id="deleteCntrAdrpcBasStep3">
         DELETE TB_SSCT_CNTR_ADRPC_BAS
          WHERE CNTR_NO = #{cntrNo}
     </delete>
 
-    <delete id="deleteAdrRelsStep3">
+    <delete id="deleteCntrAdrRelsStep3">
         DELETE TB_SSCT_CNTR_ADR_REL
          WHERE DTL_CNTR_NO = #{cntrNo}
-    </delete>
-
-    <delete id="deleteCntrPrccchHistory">
-        DELETE TB_SSCT_CNTR_PRCCCH_HIST
-         WHERE CNTR_NO = #{cntrNo}
     </delete>
 </mapper>

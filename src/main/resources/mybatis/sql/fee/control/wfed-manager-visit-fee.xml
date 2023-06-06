@@ -6,6 +6,7 @@
         /*
          * TODO
          * 상품 추가(KA1100P KAETC2='E')
+         * 마감구분코드 CL_DV_CD '01' 인지 '02' 인지 확인필요
          * */
         SELECT OG.DGR1_LEVL_OG_ID	/*총괄단*/
              , OG.DGR2_LEVL_OG_ID	/*지역단*/
@@ -14,7 +15,7 @@
              , OG.PRTNR_KNM
              , T1.CNTR_NO	/*계약번호*/
              , T1.BASE_PD_CD	/*상품코드*/
-             , T2.PD_NM	/*상품명*/
+             , (SELECT A.PD_NM FROM TB_PDBS_PD_BAS A WHERE A.PD_CD = T1.BASE_PD_CD) AS PD_NM	/*상품명*/
              , BAS.SV_FEE_PD_DV_CD	/*BS상품군*/
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_FEE_PD_DV_CD', BAS.SV_FEE_PD_DV_CD) AS SV_FEE_PD_DV_NM	/*BS상품군*/
              , NVL(BAS.SV_FEE_BASE_AMT, 0) AS SV_FEE_BASE_AMT	/*BS기본수수료*/
@@ -40,8 +41,6 @@
                  ELSE '' END
                ELSE '' END AS CAN_YN	/*취소여부*/
          FROM TB_FEAM_WELS_SV_PERF_IZ T1	/*웰스서비스실적내역*/
-         LEFT OUTER JOIN TB_PDBS_PD_BAS T2
-           ON T1.BASE_PD_CD = T2.PD_CD
          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3	/*계약상세*/
            ON T1.CNTR_NO = T3.CNTR_NO
           AND T1.CNTR_SN = T3.CNTR_SN
@@ -61,7 +60,7 @@
                  AND A.OG_ID = B.OG_ID
                  AND B.DTA_DL_YN = 'N'
                WHERE A.DTA_DL_YN = 'N'
-                 AND A.BASE_YM = #{perfYm}
+                 AND A.BASE_YM = #{baseYm}
                  AND A.OG_TP_CD IN ('W02', 'W03')	/*M조직, 홈마스터*/
             ) OG
            ON T1.BASE_YM = OG.BASE_YM
@@ -74,12 +73,12 @@
                WHERE BASE_PD_CD = T1.BASE_PD_CD
                  AND VST_MCN = 0
                  AND SV_FEE_DV_CD = CASE WHEN OG.OG_TP_CD = 'W03' THEN '2' ELSE '1' END
-                 AND #{perfYm}  BETWEEN APY_STRT_YM AND APY_END_YM
+                 AND #{baseYm}  BETWEEN APY_STRT_YM AND APY_END_YM
                ORDER BY BASE_PD_CD , VST_MCN , SV_FEE_DV_CD , HCR_DV_CD, BASE_CH_TCNT
             ) BAS ON 1=1
         WHERE T1.DTA_DL_YN = 'N'
-          AND T1.BASE_YM = #{perfYm}
-          AND T1.CL_DV_CD = '02'
+          AND T1.BASE_YM = #{baseYm}
+          AND T1.CL_DV_CD = '01'
           AND T1.OG_TP_CD IN ('W02', 'W03')	/*M조직, 홈마스터*/
           AND (T1.WK_EXCN_DT IS NOT NULL AND T1.WK_EXCN_DT != '0')	/*작업수행일자*/
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
@@ -91,8 +90,9 @@
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
           AND OG.DGR3_LEVL_OG_ID = #{ogLevlDvCd3}
         </if>
-        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-          AND OG.PRTNR_NO = #{prtnrNo}
+        <if test='@MybatisUtils@isNotEmpty(no)'>
+          AND OG.PRTNR_NO = #{no}
         </if>
+        ORDER BY OG.PRTNR_NO, T1.CNTR_NO
     </select>
 </mapper>

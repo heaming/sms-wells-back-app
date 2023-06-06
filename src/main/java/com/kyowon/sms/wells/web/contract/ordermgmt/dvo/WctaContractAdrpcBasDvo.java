@@ -40,6 +40,8 @@ public class WctaContractAdrpcBasDvo {
     private String mvsDstcRcvryDvCd; /* 소산파기복구구분코드 */
     private String mvsDstcRcvryDtm; /* 소산파기복구일시 */
     private String dtaDlYn; /* 데이터삭제여부 */
+
+    /* STEP3 */
     private String adr;
     private String adrDtl;
     private String zip;

@@ -29,8 +29,6 @@ public interface WctaContractRegMapper {
 
     List<WctaContractRelDvo> selectContractRel(String cntrNo);
 
-    List<WctaContractHsmtrlDtlDvo> selectContractHsmtrlDtl(String cntrNo, int cntrSn);
-
     List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn);
 
     List<WctaContractPmotIzDvo> selectContractPmotIz(String cntrNo, int cntrSn);
@@ -39,11 +37,13 @@ public interface WctaContractRegMapper {
 
     List<WctaContractPrcCmptIzDvo> selectContractPrcCmptIz(String cntrNo, int cntrSn);
 
-    List<WctaContractStlmRelDvo> selectContractStlmRels(String cntrNo);
+    List<WctaContractStlmRelDvo> selectContractStlmRel(String cntrNo);
 
-    List<WctaContractStlmRelDvo> selectContractStlmRels(String cntrNo, int cntrSn);
+    List<WctaContractStlmRelDvo> selectContractStlmRel(String cntrNo, int cntrSn);
 
-    WctaContractAdrpcBasDvo selectContractAdrpcBas(String cntrNo);
+    WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn);
 
-    WctaContractAdrRelDvo selectContractAdrRels(String cntrNo, int cntrSn);
+    List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo);
+
+    WctaContractAdrRelDvo selectContractAdrRel(String cntrNo, int cntrSn);
 }

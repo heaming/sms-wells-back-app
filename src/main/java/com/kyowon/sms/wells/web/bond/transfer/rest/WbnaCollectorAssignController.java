@@ -2,11 +2,7 @@ package com.kyowon.sms.wells.web.bond.transfer.rest;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchSummaryRes;
-import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.EditReq;
-import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchRes;
-import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchReq;
-import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.SearchDetailRes;
+import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.*;
 import com.kyowon.sms.wells.web.bond.transfer.service.WbnaCollectorAssignService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -105,6 +101,18 @@ public class WbnaCollectorAssignController {
         SearchReq reqDto
     ) {
         return service.getExcelDownload(reqDto);
+    }
+
+    @ApiOperation(value = "집금자 배정 정보 생성", notes = "집금자 배정 정보를 생성")
+    @PostMapping
+    public String createCollectorAssigns(
+        @Valid
+        @RequestBody
+        CreateReq dto
+    ) throws Exception {
+        // TODO 배치 호출 관련 서비스 계속 테스트 하면서 수정 필요
+        log.debug("call createCollectorAssigns");
+        return service.createCollectorAssigns(dto);
     }
 
     @ApiOperation(value = "집금자 배정 정보 수정", notes = "집금자 배정 정보를 수정")

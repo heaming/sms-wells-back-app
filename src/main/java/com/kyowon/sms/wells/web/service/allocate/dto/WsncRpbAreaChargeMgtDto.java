@@ -63,7 +63,12 @@ public class WsncRpbAreaChargeMgtDto {
         Long mmtAvLdtm, // 이동평균소요시간
         String locaraCenStruAdr, // 지역중심건물주소
         String satWrkYn, // 토요일근무여부
-        String ogNm // 조직명
+        String ogNm, // 조직명
+        String ogNm1,
+        String ogNm2,
+        String ogNm3,
+        String ogNm4,
+        String ogNm5
     ) {}
 
     @ApiModel(value = "WsncRpbAreaChargeMgtDto-SearchZipsReq")

@@ -10,7 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctaContractRegStep2Dvo {
-    String cntrNo;
     WctaContractBasDvo bas;
     List<WctaContractDtlDvo> dtls;
     List<PdClsfDvo> pdClsf;
@@ -23,16 +22,19 @@ public class WctaContractRegStep2Dvo {
         String pdClsfId;
         String pdClsfNm;
         String pdClsfCd;
+        List<PdDvo> products; /* wells는 server에서 상품 분류 */
     }
 
     @Getter
     @Setter
     public static class PdDvo {
         String pdClsf;
+        String pdClsfNm;
         String mclsfVal;
         String lclsfVal;
         String pdCd;
         String pdNm;
+        String pdQty;
         String pdHclsfId;
         String pdMclsfId;
         String pdLclsfId;
@@ -79,7 +81,7 @@ public class WctaContractRegStep2Dvo {
         String chdvcPrmitYn;
         String fgptTpYn;
         String asRcpPrmitYn;
-        String frisuAsYn;
+        String frisuAsPtrmN;
         String rntf;
         String ackmtPerfRt;
         String ackmtCt;
@@ -113,18 +115,29 @@ public class WctaContractRegStep2Dvo {
         Integer verSn;
         Long ctrVal;
         String pdPrcId;
+        boolean isExistAlncPds; // 제휴상품노출여부(금액조회 시 함께 판단)
+        Integer recapMshPtrm;
     }
 
     @Getter
     @Setter
     public static class PdSvcDvo {
+        String codeId;
+        String codeName;
         String pdNm;
         String pdCd;
-        String pdPrpVal11;
-        String pdPrpVal12;
-        String pdRelId;
-        String basePdCd;
-        String ojPdCd;
-        String pdRelTpCd;
+        String pdHclsfId;
+        String pdMclsfId;
+        String pdAbbrNm;
+        String svStrtdt;
+        String svEnddt;
+        String mndtSvYn;
+        String svTpCd;
+        String cstBasePdAbbrNm;
+        String pdEplCn;
+        String asPtrmCd;
+        String svPrdUnitCd;
+        String svVstPrdCd;
+        String pcsvPrdCd;
     }
 }

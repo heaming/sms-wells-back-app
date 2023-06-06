@@ -41,12 +41,15 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
     }
 
     public record SaveReq(
+        String kwGrpCoCd,
         String lifSpptYm, /*라이프지원년월*/
         String lifAlncDvCd, /*라이프제휴구분코드*/
+        String dpTpCd, /*입금유형*/
         String perfDt, /*실적일자*/
         String rveDt, /*수납일자*/
         String rveCd, /*수납코드*/
-        String itgDpNo /*통합입금번호*/
+        String itgDpNo, /*통합입금번호*/
+        String dpObjAmtSum /*입금대사금액*/
 
     ) {
 

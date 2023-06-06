@@ -4,7 +4,7 @@
     <select id="selectDangerArbitManagerial" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto$SearchRes">
         SELECT G.DANG_OJ_PRTNR_NO /* 행위자사번 - 행위자사번 */
              , G.DANG_OC_STRTMM /* 행위자사번 - 발생년월 */
-             , G.DANG_OJ_OG_ID /* 행위자사번 - 소속 */
+             , G.OG_CD AS DANG_OJ_OG_ID /* 행위자사번 - 소속 */
              , G.DANG_OJ_PRTNR_NM /* 행위자사번 - 성명 */
              , G.DANG_OJ_PSTN_DV_CD /* 행위자사번 - 직급 */
              , G.DGR1_LEVL_DG_PRTNR_NO /* 소속 - 총괄단 */
@@ -74,7 +74,7 @@
            )
             SELECT A.DANG_OJ_PRTNR_NO /* 위험점검내역.위험대상파트너번호 */
                  , SUBSTR(A.DANG_OC_STRTDT, 1, 6) AS DANG_OC_STRTMM /* SUBSTR(위험점검내역.위험발생시작일자,1,6) */
-                 , A.DANG_OJ_OG_ID  /* 위험점검내역.위험관리조직유형코드 */
+                 , T2.OG_CD  /* 위험점검내역.위험관리조직유형코드 */
                  , (
                     SELECT MAX(PRTNR_KNM) /* 월파트너내역.파트너한글명 */
                       FROM TB_OGBS_MM_PRTNR_IZ T /* 월파트너내역 */
@@ -102,7 +102,8 @@
             INNER JOIN W1
             ON W1.DANG_CHK_ID = A.DANG_CHK_ID
             LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T2
-            ON T2.OG_CD = A.DANG_OJ_OG_TP_CD
+            ON T2.OG_ID = A.DANG_OJ_OG_ID
+           AND T2.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6)
              WHERE 1=1
              AND A.DTA_DL_YN = 'N'
             /* 조회조건 - 적용기간(등록일자 또는 발생년월) FROM~TO */
@@ -123,15 +124,15 @@
                             </if>
                         </if>
                         <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
-                            AND TRIM(T2.DGR1_LEVL_OG_CD) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
+                            AND TRIM(T2.OG_CD) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
                         </if>
                         <if test='@MybatisUtils@isNotEmpty(rgrp)'>
-                            AND TRIM(T2.DGR2_LEVL_OG_CD) LIKE #{rgrp}||'%' /* 조회조건 - 지역단 - 2차레벨조직 */
+                            AND TRIM(T2.OG_CD) LIKE SUBSTR(#{rgrp},1,3) ||'%' /* 조회조건 - 지역단 - 2차레벨조직 */
                         </if>
                         <if test='@MybatisUtils@isNotEmpty(brch)'>
-                            AND TRIM(T2.DGR3_LEVL_OG_CD) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
+                            AND TRIM(T2.OG_CD) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
                         </if>
-            GROUP BY A.DANG_OJ_PRTNR_NO, A.DANG_OC_STRTDT, A.DANG_OJ_OG_ID, A.DANG_CHK_NM, A.DANG_ARBIT_CD, A.DANG_UNCVR_CT, A.FST_RGST_USR_ID, A.FST_RGST_DTM, DANG_ARBIT_OG_ID, DANG_ARBIT_LVY_PC, A.DANG_OJ_PSTN_DV_CD, A.DANG_OJ_OG_TP_CD
+            GROUP BY A.DANG_OJ_PRTNR_NO, A.DANG_OC_STRTDT, T2.OG_CD, A.DANG_CHK_NM, A.DANG_ARBIT_CD, A.DANG_UNCVR_CT, A.FST_RGST_USR_ID, A.FST_RGST_DTM, DANG_ARBIT_OG_ID, DANG_ARBIT_LVY_PC, A.DANG_OJ_PSTN_DV_CD, A.DANG_OJ_OG_TP_CD
                 ) G
             WHERE 1=1
             <if test='@MybatisUtils@isNotEmpty(dangOjPrtnrNo)'>

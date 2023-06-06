@@ -66,6 +66,7 @@ public class WctaContractRegStep1Service {
 
         // 3-3-2. 로그인 사용자 = 파트너, 사전업무 등록기간 체크
         // XXX 로그인 사용자는 반드시 파트너임을 가정함, 세션변경 필요(W01, 1002934)
+        BizAssert.notNull(loginPrtnrInfo, "존재하지 않는 파트너입니다.");
         WctaContractPrtnrRelDvo prtnrInfo = converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(loginPrtnrInfo);
         if ("7".equals(prtnrInfo.getPstnDvCd())) {
             // 로그인한 파트너가 지국장인 경우
@@ -146,7 +147,7 @@ public class WctaContractRegStep1Service {
 
         // 계약번호 없으면, 신규 채번
         WctaContractBasDvo basDvo = dvo.getBas();
-        boolean isNewCntr = StringUtils.isEmpty(dvo.getCntrNo()) && StringUtils.isEmpty(basDvo.getCntrNo());
+        boolean isNewCntr = StringUtils.isEmpty(basDvo.getCntrNo());
         String cntrNo = isNewCntr ? cntrNoService.getContractNumber("").cntrNo() : basDvo.getCntrNo();
 
         if (!isNewCntr) {
@@ -171,7 +172,7 @@ public class WctaContractRegStep1Service {
             basDvo.setSellPrtnrNo(dvo.getPrtnr().getPrtnrNo());
             basDvo.setSellOgTpCd(dvo.getPrtnr().getOgTpCd());
             basDvo.setCntrNatCd("KR");
-            basDvo.setCntrPrgsStatCd("10");
+            basDvo.setCntrPrgsStatCd(CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP1);
             mapper.insertCntrBasStep1(basDvo);
         } else {
             mapper.updateCntrBasStep1(basDvo);

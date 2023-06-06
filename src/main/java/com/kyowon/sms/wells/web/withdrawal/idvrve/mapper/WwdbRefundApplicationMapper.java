@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.R
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundDetail;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPartnerRes;
@@ -28,6 +29,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.S
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationBasicDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDetailDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationExcelUploadDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationInfoDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -124,5 +126,22 @@ public interface WwdbRefundApplicationMapper {
     List<SearchRefundApplicationDetailPerformanceRes> selectRefundApplicationDetailPerformance(
         SearchRefundApplicationDetailPerformanceReq req
     );
+
+    PagingResult<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
+        String cntrNo,
+        PageInfo pageInfo
+    );
+
+    List<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
+        String cntrNo
+    );
+
+    void insertRefundApplicationDetail(WwdbRefundApplicationExcelUploadDvo refundApplication);
+
+    void insertRefundApplicationDetailHistory(WwdbRefundApplicationExcelUploadDvo refundApplication);
+
+    void insertRefundApplication(WwdbRefundApplicationExcelUploadDvo refundApplication);
+
+    void insertRefundApplicationHistory(WwdbRefundApplicationExcelUploadDvo refundApplication);
 
 }

@@ -52,7 +52,8 @@ public class WdcdRequestCleaningSuppliesMgtDto {
         String clingCostSignApnFileId,
         String locaraTno, // 지역번호
         String exnoEncr,
-        String idvTno
+        String idvTno,
+        String ogTpCd
     ) {
     }
 
@@ -76,16 +77,19 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-FindRes")
     public record FindRes(
         String clingCostAdjRcpNo,
+        @MaskRequired(type = MaskingType.NAME)
         String cardPsrNm,
         String aplcDt,
+        @MaskRequired(type = MaskingType.NAME)
         String claimNm,
         String bldCd,
         String bilAmt,
         String locaraTno,
-        @MaskRequired(type = MaskingType.PHONE)
+        @MaskRequired(type = MaskingType.ALL)
         String exnoEncr,
         String idvTno,
-        String clingCostSrcpApnFileId
+        String clingCostSrcpApnFileId,
+        String ogTpCd
     ) {
     }
 }

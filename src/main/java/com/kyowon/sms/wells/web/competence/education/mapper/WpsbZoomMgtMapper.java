@@ -11,7 +11,7 @@ import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
 
 @Mapper
 public interface WpsbZoomMgtMapper {
-    List<SearchRes> selectZooms(
+    List<SearchRes> getZooms(
         SearchReq dto
     );
 
@@ -23,6 +23,6 @@ public interface WpsbZoomMgtMapper {
 
     int removeAllZoom();
 
-    int deleteZoom();
+    int deleteZoom(String hgrSvEducMnalId);
 
 }

@@ -40,4 +40,6 @@ public interface WsnaNormalOutOfStorageMapper {
     int updateStandardWareHouse(WsnaNormalOutOfStorageStdgbDvo dvo);
 
     StandardWareRes selectStandardWareHouse(StandardWareReq dto);
+
+    SearchItmOstrAkRes selectItmOstrAk(SearchItmOstrAkReq dto);
 }

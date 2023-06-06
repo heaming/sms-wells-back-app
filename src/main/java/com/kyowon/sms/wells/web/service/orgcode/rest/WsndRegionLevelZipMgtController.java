@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.orgcode.rest;
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +43,7 @@ public class WsndRegionLevelZipMgtController {
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getZipNoPages(
+        @Valid
         SearchReq dto,
         @Valid
         PageInfo pageInfo
@@ -61,7 +61,8 @@ public class WsndRegionLevelZipMgtController {
         @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query", example = "011"),
     })
     @GetMapping("/excel-download")
-    public List<SearchExcelRes> getZipNosForExcelDownload(SearchReq dto) {
+    public List<SearchExcelRes> getZipNosForExcelDownload(@Valid
+    SearchReq dto) {
         return this.service.getZipNosForExcelDownload(dto);
     }
 
@@ -70,7 +71,6 @@ public class WsndRegionLevelZipMgtController {
     public SaveResponse editZipNos(
         @Valid
         @RequestBody
-        @NotEmpty
         List<EditReq> dtos
     ) throws Exception {
         return SaveResponse.builder()

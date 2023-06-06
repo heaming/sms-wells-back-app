@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
-import java.time.Year;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -20,12 +19,24 @@ public class WctaContractRegService {
     private final WctaContractRegStep3Mapper step3Mapper;
     private final WctaContractRegStep4Mapper step4Mapper;
 
+    public boolean isNewCntr(String curCntrPrgsStatCd, String cntrPrgsStatCd) {
+        return Integer.valueOf(curCntrPrgsStatCd) < Integer.valueOf(cntrPrgsStatCd);
+    }
+
     public String getBryyMmdd(String cstNo) {
         return mapper.selectBryyMmdd(cstNo);
     }
 
-    public int calcAge(String bryyMmdd) {
-        return Year.now().compareTo(Year.parse(bryyMmdd.substring(0, 4)));
+    public String getRveDvCd(String sellTpCd) {
+        return switch (sellTpCd) {
+            case "3" -> "04";
+            case "6" -> "05";
+            default -> "03";
+        };
+    }
+
+    public List<WctaContractDtlDvo> selectProductInfos(String cntrNo) {
+        return step2Mapper.selectContractDtlWithPdInfo(cntrNo);
     }
 
     @Transactional
@@ -53,32 +64,38 @@ public class WctaContractRegService {
         return mapper.selectContractPrtnrRel(cntrNo);
     }
 
-    List<WctaContractHsmtrlDtlDvo> selectCntrHsmtrlDtl(String cntrNo, int cntrSn) {
-        return mapper.selectContractHsmtrlDtl(cntrNo, cntrSn);
-    }
-
     List<WctaContractPrcCmptIzDvo> selectContractPrcCmptIz(String cntrNo, int cntrSn) {
         return mapper.selectContractPrcCmptIz(cntrNo, cntrSn);
     }
 
-    public String selectHddmInf(String cntrNo) {
-        return mapper.selectHddmInf(cntrNo);
+    List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn) {
+        return mapper.selectContractPdRel(cntrNo, cntrSn);
     }
 
-    public WctaContractAdrpcBasDvo selectContractAdrpcBas(String cntrNo) {
+    WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn) {
+        return mapper.selectContractWellsDtl(cntrNo, cntrSn);
+    }
+
+    public List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo) {
         return mapper.selectContractAdrpcBas(cntrNo);
     };
 
-    public List<WctaContractStlmRelDvo> selectContractStlmRels(String cntrNo, int cntrSn) {
-        return mapper.selectContractStlmRels(cntrNo, cntrSn);
+    public WctaContractAdrRelDvo selectContractAdrRel(String cntrNo, int cntrSn) {
+        return mapper.selectContractAdrRel(cntrNo, cntrSn);
+    };
+
+    public List<WctaContractStlmRelDvo> selectContractStlmRel(String cntrNo, int cntrSn) {
+        return mapper.selectContractStlmRel(cntrNo, cntrSn);
     }
 
+    @Transactional
     public void removeStep1Data(String cntrNo) {
         step1Mapper.deleteCntrPrtnrRelStep1(cntrNo);
         step1Mapper.deleteCntrCstRelStep1(cntrNo);
         step1Mapper.deleteCntrRelStep1(cntrNo);
     }
 
+    @Transactional
     public void removeStep2Data(String cntrNo) {
         step2Mapper.deleteCntrDtlStep2(cntrNo);
         step2Mapper.deleteContractDetailHistory(cntrNo);
@@ -89,14 +106,18 @@ public class WctaContractRegService {
         step2Mapper.deleteFgptRcpIzStep2(cntrNo);
         step2Mapper.deleteCntrPrcCmptIzStep2(cntrNo);
         step2Mapper.deleteCntrPrccchHistory(cntrNo);
+        step2Mapper.deleteCntrWellsDtlStep2(cntrNo);
     }
 
+    @Transactional
     public void removeStep3Data(String cntrNo) {
-        step3Mapper.deleteStlmRelsStep3(cntrNo);
-        step3Mapper.deleteAdrpcBasStep3(cntrNo);
-        step3Mapper.deleteAdrRelsStep3(cntrNo);
+        step3Mapper.deleteCntrStlmBasStep3(cntrNo);
+        step3Mapper.deleteCntrStlmRelsStep3(cntrNo);
+        step3Mapper.deleteCntrAdrpcBasStep3(cntrNo);
+        step3Mapper.deleteCntrAdrRelsStep3(cntrNo);
     }
 
+    @Transactional
     public void removeStep4Data(String cntrNo) {
         step4Mapper.updateCntrBasStep4(cntrNo, "");
     }

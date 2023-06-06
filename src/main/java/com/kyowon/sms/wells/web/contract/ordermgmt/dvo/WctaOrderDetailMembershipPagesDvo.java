@@ -12,6 +12,8 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String cntrNo; /* 계약번호 */
     private String cntrSn; /* 계약순번 */
     private String cntrDtlNo; /* 계약상세번호 */
+    private String sellTpCd; /* 판매유형코드 */
+    private String copnDvCd; /* 고객구분코드 */
     private String cstKnm; /* 계약자명 */
     private String rcgvpKnm; /* 설치자명 */
     private String ojSellTpNm; /* 계약구분*/

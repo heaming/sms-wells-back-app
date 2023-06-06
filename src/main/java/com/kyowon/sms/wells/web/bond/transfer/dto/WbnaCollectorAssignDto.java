@@ -106,7 +106,7 @@ public class WbnaCollectorAssignDto {
         String bfClctamPrtnrNo, /* 전월담당자 번호      */
         String bfClctamPrtnrKnm, /* 전월담당자       */
         String cntrNo, /* 계약번호        */
-        String cstKnm, /* 고객명         */
+        String cstNm, /* 고객명         */
         String cstNo, /* 고객번호        */
         String pdDvKnm, /* 상품구분 명        */
         String pdDvCd, /* 상품구분        */
@@ -138,6 +138,7 @@ public class WbnaCollectorAssignDto {
 
     /**
      * 집금자 정보 수정
+     * @param bndCntrId 계약ID
      * @param baseYm 기준년월
      * @param bzHdqDvCd 사업부구분코드
      * @param cntrNo 계약번호
@@ -160,5 +161,21 @@ public class WbnaCollectorAssignDto {
         String cstNo,
         @NotBlank
         String clctamPrtnrNo
+    ) {}
+
+    /**
+     * 집금담당자 배정 생성
+     * @param baseYm 기준년월
+     * @param bzHdqDvCd 사업부
+     * @param clctamDvCd 집금구분
+     */
+    @ApiModel("WbnaCollectorAssignDto-CreateReq")
+    public record CreateReq(
+        @NotBlank
+        String baseYm,
+        @NotBlank
+        String bzHdqDvCd,
+        @NotBlank
+        String clctamDvCd
     ) {}
 }

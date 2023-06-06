@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @Api(tags = "[WDCD] 청소원 등록(신규변경)")
@@ -33,7 +32,7 @@ public class WdcdCleanerReqeustMgtController {
 
     @ApiOperation(value = "청소원 등록(신규변경)", notes = "청소원 등록 및 수정")
     @PostMapping
-    public SaveResponse saveCleanerReqeust(@Valid @RequestBody SaveReq req) throws Exception {
+    public SaveResponse saveCleanerReqeust(@RequestBody SaveReq req) throws Exception {
         return SaveResponse.builder().processCount(service.saveCleanerReqeust(req)).build();
     }
 

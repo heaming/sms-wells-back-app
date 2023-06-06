@@ -49,4 +49,14 @@ public interface WcteSecProductMapper {
     Optional<WcteSecNistlValidationDvo> selectSecNistlValidation(String cntrNo, int cntrSn);
 
     int insertNotInstalledIz(WcteSecNistlDvo dvo);
+
+    List<WcteSecPdBycfDvo> selectSecPdBycfs();
+
+    PagingResult<SearchShippingRes> selectShippings(SearchShippingReq dto, PageInfo pageInfo);
+
+    List<SearchShippingRes> selectShippings(SearchShippingReq dto);
+
+    PagingResult<SearchFreeAsRes> selectFreeASs(SearchFreeAsReq dto, PageInfo pageInfo);
+
+    List<SearchFreeAsRes> selectFreeASs(SearchFreeAsReq dto);
 }

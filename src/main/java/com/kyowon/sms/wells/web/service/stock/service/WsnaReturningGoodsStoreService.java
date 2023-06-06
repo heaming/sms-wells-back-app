@@ -8,6 +8,8 @@ import java.util.List;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +43,8 @@ public class WsnaReturningGoodsStoreService {
 
     private final WsnaItemStockItemizationService itemStockservice;
 
-    public List<SearchRes> getReturningGoodsStores(SearchReq dto) {
-        return mapper.selectReturningGoodsStores(dto);
+    public PagingResult<SearchRes> getReturningGoodsStores(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectReturningGoodsStores(dto, pageInfo);
     }
 
     @Transactional
