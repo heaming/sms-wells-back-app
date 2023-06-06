@@ -134,13 +134,13 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
     public Map<String, String> setLifAlncDvCdHeader(String lifAlncDvCd) {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         if (lifAlncDvCd.equals("30")) { //웰스399
-            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); // 순번 
+            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); // 순번
             headerTitle.put("welsCntrNo", messageResourceService.getMessage("MSG_TXT_CST_CD"));//고객코드
-            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); // 고객성명 
+            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); // 고객성명
             headerTitle.put("lifAlncPdCd", messageResourceService.getMessage("MSG_TXT_PRDT"));// 상품
             headerTitle.put("lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM"));// 상품명
-            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); //계약일자 
-            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); //해지일자 
+            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); //계약일자
+            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); //해지일자
             headerTitle.put("test2", messageResourceService.getMessage("MSG_TXT_EV_DT")); //행사일자
             headerTitle.put("test3", messageResourceService.getMessage("MSG_TXT_MPY"));// 납부
             headerTitle.put("test4", messageResourceService.getMessage("MSG_TXT_AGGS"));// 누계
@@ -354,7 +354,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber); //수납요청번호
         zwdzWithdrawalReceiveDvo.setRveDt(sysDateYmd); //수납일자
         zwdzWithdrawalReceiveDvo.setRveAmt(depositCprDvo.getDpCprcnfAmt()); //수납금액
-        zwdzWithdrawalReceiveDvo.setDpdvCd(depositCprDvo.getDpDvCd()); //입금구분코드
+        zwdzWithdrawalReceiveDvo.setDpDvCd(depositCprDvo.getDpDvCd()); //입금구분코드
         zwdzWithdrawalReceiveDvo.setItgDpNo(depositCprDvo.getItgDpNo());
 
         //수납기본 데이터 생성
