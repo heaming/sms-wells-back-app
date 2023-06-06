@@ -12,4 +12,8 @@ public interface WsncBsMngtSchdInqrMapper {
         WsncBsMngtSchdInqrDto.SearchReq dto
     );
 
+    List<WsncBsMngtSchdInqrDto.SearchRes> selectBsMngtSchdInqrDtl(
+        WsncBsMngtSchdInqrDto.SearchReq dto
+    );
+
 }
