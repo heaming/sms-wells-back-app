@@ -51,10 +51,10 @@ public class WsncBsMngtSchdInqrController {
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
     @PostMapping("/detail")
-    public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrDtl(
+    public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrPages(
         WsncBsMngtSchdInqrDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.getBsMngtSchdInqrDtl(dto, pageInfo);
+        return service.getBsMngtSchdInqrPages(dto, pageInfo);
     }
 }
