@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,19 +17,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 /**
- *
- *
  * W-SV-U-0089M01 BS관리일정조회
- *
- *
- * @author 37615 홍세기
+ * @author segi33 홍세기
  * @since 2023-06-06
  */
-
 @Api(tags = "[WSNC] BS관리일정 조회")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/bsmanagerschedule-aggregate")
+@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/bs-manager-schedule")
 public class WsncBsMngtSchdInqrController {
     private final WsncBsMngtSchdInqrService service;
 
@@ -39,7 +34,7 @@ public class WsncBsMngtSchdInqrController {
         @ApiImplicitParam(name = "baseDateFrom", value = "관리년월From", paramType = "query", required = true),
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
-    @GetMapping
+    @PostMapping("/aggregate")
     public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrAgrg(
         WsncBsMngtSchdInqrDto.SearchReq dto
     ) {
@@ -52,7 +47,7 @@ public class WsncBsMngtSchdInqrController {
         @ApiImplicitParam(name = "baseDateFrom", value = "관리년월From", paramType = "query", required = true),
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
-    @GetMapping
+    @PostMapping("/detail")
     public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrDtl(
         WsncBsMngtSchdInqrDto.SearchReq dto
     ) {
