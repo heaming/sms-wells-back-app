@@ -16,6 +16,16 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ *
+ *
+ * W-SV-U-0089M01 BS관리일정조회
+ *
+ *
+ * @author 37615 홍세기
+ * @since 2023-06-06
+ */
+
 @Api(tags = "[WSNC] BS관리일정 조회")
 @RequiredArgsConstructor
 @RestController

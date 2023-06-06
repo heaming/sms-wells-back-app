@@ -9,6 +9,15 @@ import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsMngtSchdInqrMapper
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ *
+ *
+ * W-SV-U-0089M01 BS관리일정조회
+ *
+ *
+ * @author 37615 홍세기
+ * @since 2023-06-06
+ */
 @Service
 @RequiredArgsConstructor
 public class WsncBsMngtSchdInqrService {

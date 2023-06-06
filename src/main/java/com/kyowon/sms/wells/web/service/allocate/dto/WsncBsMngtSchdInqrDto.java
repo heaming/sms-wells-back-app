@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModel;
 public class WsncBsMngtSchdInqrDto {
     // *********************************************************
     // Request Dto
+    // 2023.06.06  BS관리일정조회 홍세기 생성
     // *********************************************************
     @ApiModel(value = "WsncBsMngtSchdInqrDto-SearchReq")
     public record SearchReq(
