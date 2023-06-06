@@ -50,7 +50,7 @@ public class WsncBsMngtSchdInqrController {
         @ApiImplicitParam(name = "baseDateFrom", value = "관리년월From", paramType = "query", required = true),
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
-    @PostMapping("/detail")
+    @PostMapping("/paging")
     public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrPages(
         WsncBsMngtSchdInqrDto.SearchReq dto, @Valid
         PageInfo pageInfo
