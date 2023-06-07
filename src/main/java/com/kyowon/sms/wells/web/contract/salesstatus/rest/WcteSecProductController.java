@@ -62,7 +62,7 @@ public class WcteSecProductController {
         @ApiImplicitParam(name = "enddt", value = "종료일", paramType = "query", required = true),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
     })
-    @GetMapping("/reservation-days/excel-download")
+    @GetMapping("/reservation-days")
     public List<SearchReservationRes> getReservationsForExcelDownload(
         @Valid
         WcteSecProductDto.SearchReservationReq dto
@@ -96,7 +96,7 @@ public class WcteSecProductController {
         @ApiImplicitParam(name = "sppBzsOrdId", value = "삼성주문번호", paramType = "query"),
         @ApiImplicitParam(name = "pdctIdno", value = "시리얼넘버", paramType = "query"),
     })
-    @GetMapping("/confirm-days/excel-download")
+    @GetMapping("/confirm-days")
     public List<SearchConfirmRes> getConfirms(
         @Valid
         SearchConfirmReq dto
