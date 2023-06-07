@@ -144,50 +144,51 @@
 		          , T24.CRAL_LOCARA_TNO AS BS_CRAL_LOCARA_TNO   /* 휴대지역전화번호 */
 		          , T24.MEXNO_ENCR AS BS_MEXNO_ENCR             /* 휴대전화국번호암호화 */
 		          , T24.CRAL_IDV_TNO AS BS_CRAL_IDV_TNO         /* 휴대개별전화번호 */
-                  , CASE WHEN T10.SELL_TP_CD = '1' THEN
-                             (CASE WHEN
-                                        (SELECT COUNT(*)	-- 컨택완료정보
-                                           FROM TB_SSOP_CTT_BAS
-                                          WHERE 1=1
-                                            AND CTT_TP_CD = '20' /* 컨택유형코드 20:배송일정확인 */
-                                            AND CTT_PRGS_STAT_CD = '20' /* 컨택진행상태코드 20:컨택완료 */
-                                            AND DTA_DL_YN = 'N'
-                                            AND CTT_OJ_ID IN (
-                                                   SELECT CTT_OJ_ID
-                                                     FROM TB_SSOP_CTT_DTL
-                                                    WHERE 1=1
-                                                      AND CNTR_NO = T10.CNTR_NO
-                                                      AND CNTR_SN = T10.CNTR_SN
-                                                      AND DTA_DL_YN = 'N'
-                                            )
-                                        ) > 0 THEN (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SPP_PRGS_STAT_CD', SPP_PRGS_STAT_CD)
-                                                      FROM TB_SSSO_SPP_ORD_DTL
-                                                     WHERE 1=1
-                                                       AND CNTR_NO = T10.CNTR_NO
-                                                       AND CNTR_SN = T10.CNTR_SN
-                                                       AND DTA_DL_YN = 'N' --배송상태
-                                                   )
-                             END )
-                        ELSE
-                            CASE WHEN T10.SELL_TP_CD = '2' THEN	-- 렌탈일때
-                                CASE WHEN NVL(T12.REQD_DT, '0') <![CDATA[ <> ]]> '0' OR NVL(T13.PDCT_REQD_RQDT, '0') <![CDATA[ <> ]]> '0' THEN '탈퇴'	--철거일자, 철거요청일자
-                                     WHEN (SELECT COUNT(*)
-                                             FROM TB_SSCT_MCHN_CH_IZ
-                                            WHERE 1=1
-                                              AND OJ_CNTR_NO = T10.CNTR_NO
-                                              AND OJ_CNTR_SN = T10.CNTR_SN
-                                              AND DTA_DL_YN = 'N') > 0
-                                     THEN '만료(기기변경)'
-                                     WHEN T14.CNTR_DTL_STAT_CD = '402' THEN '만료'
-                                     WHEN T14.CNTR_DTL_STAT_CD = '101' THEN '관리'
-                                     ELSE ''
-                                END
-                            ELSE
-                                CASE WHEN T14.CNTR_DTL_STAT_CD = '303' THEN '탈퇴'
-                                     ELSE '관리'
-                                END
-                            END
-                    END AS CNTR_STAT
+--                  , CASE WHEN T10.SELL_TP_CD = '1' THEN
+--                             (CASE WHEN
+--                                        (SELECT COUNT(*)	-- 컨택완료정보
+--                                           FROM TB_SSOP_CTT_BAS
+--                                          WHERE 1=1
+--                                            AND CTT_TP_CD = '20' /* 컨택유형코드 20:배송일정확인 */
+--                                            AND CTT_PRGS_STAT_CD = '20' /* 컨택진행상태코드 20:컨택완료 */
+--                                            AND DTA_DL_YN = 'N'
+--                                            AND CTT_OJ_ID IN (
+--                                                   SELECT CTT_OJ_ID
+--                                                     FROM TB_SSOP_CTT_DTL
+--                                                    WHERE 1=1
+--                                                      AND CNTR_NO = T10.CNTR_NO
+--                                                      AND CNTR_SN = T10.CNTR_SN
+--                                                      AND DTA_DL_YN = 'N'
+--                                            )
+--                                        ) > 0 THEN (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SPP_PRGS_STAT_CD', SPP_PRGS_STAT_CD)
+--                                                      FROM TB_SSSO_SPP_ORD_DTL
+--                                                     WHERE 1=1
+--                                                       AND CNTR_NO = T10.CNTR_NO
+--                                                       AND CNTR_SN = T10.CNTR_SN
+--                                                       AND DTA_DL_YN = 'N' --배송상태
+--                                                   )
+--                             END )
+--                        ELSE
+--                            CASE WHEN T10.SELL_TP_CD = '2' THEN	-- 렌탈일때
+--                                CASE WHEN NVL(T12.REQD_DT, '0') <![CDATA[ <> ]]> '0' OR NVL(T13.PDCT_REQD_RQDT, '0') <![CDATA[ <> ]]> '0' THEN '탈퇴'	--철거일자, 철거요청일자
+--                                     WHEN (SELECT COUNT(*)
+--                                             FROM TB_SSCT_MCHN_CH_IZ
+--                                            WHERE 1=1
+--                                              AND OJ_CNTR_NO = T10.CNTR_NO
+--                                              AND OJ_CNTR_SN = T10.CNTR_SN
+--                                              AND DTA_DL_YN = 'N') > 0
+--                                     THEN '만료(기기변경)'
+--                                     WHEN T14.CNTR_DTL_STAT_CD = '402' THEN '만료'
+--                                     WHEN T14.CNTR_DTL_STAT_CD = '101' THEN '관리'
+--                                     ELSE ''
+--                                END
+--                            ELSE
+--                                CASE WHEN T14.CNTR_DTL_STAT_CD = '303' THEN '탈퇴'
+--                                     ELSE '관리'
+--                                END
+--                            END
+--                    END AS CNTR_STAT
+                  , '' AS CNTR_STAT
 		          , T26.DP_TP_CD	 /* 입금유형코드 */
                   , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T26.DP_TP_CD) AS DP_TP_NM /* 납부방식유형코드명 */
 		          , T26.MPY_BSDT	 /* 납부기준일자 - 이체일 */
@@ -308,24 +309,24 @@
                         </if>
                      </when>
                      <when test='@MybatisUtils@equals(cntrCstSeltDv, "4")'> /* 고객명(설치자) */
-                         AND T19.RCGVP_KNM LIKE '%'||#{cntrCstNm}||'%'
+                         AND T18.RCGVP_KNM LIKE '%'||#{cntrCstNm}||'%'
                      </when>
                      <when test='@MybatisUtils@equals(cntrCstSeltDv, "5")'> /* 휴대전화번호(설치자) */
                         <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-                            AND T19.CRAL_LOCARA_TNO = #{cralLocaraTno}
+                            AND T18.CRAL_LOCARA_TNO = #{cralLocaraTno}
                         </if>
                         <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-                            AND T19.MEXNO_ENCR = #{mexnoEncr}
+                            AND T18.MEXNO_ENCR = #{mexnoEncr}
                         </if>
                         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-                            AND T19.CRAL_IDV_TNO = #{cralIdvTno}
+                            AND T18.CRAL_IDV_TNO = #{cralIdvTno}
                         </if>
                      </when>
                      <when test='@MybatisUtils@equals(cntrCstSeltDv, "6")'> /* 사업자번호 */
                          AND T15.BZRNO = #{bzrno}
                      </when>
                      <when test='@MybatisUtils@equals(cntrCstSeltDv, "7")'> /* 세이프키 */
-                         AND T11.CNTR_CST_NO = #{cntrCstNo}
+                         AND T15.SFK_VAL = #{sfkVal}
                      </when>
                  </choose>
              </if>
@@ -373,7 +374,9 @@
                                  WHERE 1=1
                                 <if test="@MybatisUtils@isNotEmpty(hmnrscEmpno)">
                                    AND T2.PRTNR_NO = #{hmnrscEmpno}
-                                   AND T2.OG_TP_CD = #{ogTpCd}
+                                    <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
+                                       AND T2.OG_TP_CD = #{ogTpCd}
+                                    </if>
                                 </if>
                                 <if test="@MybatisUtils@isNotEmpty(ogCd)">
                                    AND T2.OG_CD = #{ogCd}
@@ -425,7 +428,9 @@
                                                  WHERE 1=1
                                                 <if test="@MybatisUtils@isNotEmpty(hmnrscEmpno)">
                                                    AND T10.PRTNR_NO = #{hmnrscEmpno}
-                                                   AND T10.OG_TP_CD = #{ogTpCd}
+                                                   <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
+                                                      AND T10.OG_TP_CD = #{ogTpCd}
+                                                   </if>
                                                 </if>
                                                 <if test="@MybatisUtils@isNotEmpty(ogCd)">
                                                    AND T10.OG_CD = #{ogCd}
@@ -477,7 +482,9 @@
                                      WHERE 1=1
                                     <if test="@MybatisUtils@isNotEmpty(hmnrscEmpno)">
                                        AND T2.PRTNR_NO = #{hmnrscEmpno}
-                                       AND T2.OG_TP_CD = #{ogTpCd}
+                                       <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
+                                          AND T2.OG_TP_CD = #{ogTpCd}
+                                       </if>
                                     </if>
                                     <if test="@MybatisUtils@isNotEmpty(ogCd)">
                                        AND T2.OG_CD = #{ogCd}
@@ -531,7 +538,9 @@
                                                  WHERE 1=1
                                                 <if test="@MybatisUtils@isNotEmpty(hmnrscEmpno)">
                                                    AND T10.PRTNR_NO = #{hmnrscEmpno}
-                                                   AND T10.OG_TP_CD = #{ogTpCd}
+                                                   <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
+                                                      AND T10.OG_TP_CD = #{ogTpCd}
+                                                   </if>
                                                 </if>
                                                 <if test="@MybatisUtils@isNotEmpty(ogCd)">
                                                    AND T10.OG_CD = #{ogCd}
