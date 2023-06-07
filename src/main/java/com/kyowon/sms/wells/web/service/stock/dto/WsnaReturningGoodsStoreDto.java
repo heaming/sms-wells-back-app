@@ -67,6 +67,9 @@ public class WsnaReturningGoodsStoreDto {
         String ostrDt,
         String rtngdProcsTpCd,
         String rtngdProcsTpCd1,
+        String rtngdRvpyProcsYn,
+        String wkWareNo,
+
         String rmkCn,
         String cntrNoNew,
         String barCd,
