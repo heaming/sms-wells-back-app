@@ -26,6 +26,7 @@ public class WctaContractIntegrationDto {
         String mexnoEncr,
         String cralIdvTno,
         String bzrno,
+        String sfkVal,
         List<String> sellTpCd
     ) {}
 
