@@ -217,7 +217,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getHgrWareNo(),
@@ -240,7 +240,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getUpHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getUpHgrWareNo(),
@@ -263,7 +263,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getUpHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getUpHgrWareNo(),
@@ -286,7 +286,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getHgrWareNo(),
@@ -309,7 +309,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             "1", /*창고구분*/
             "100010",
@@ -332,7 +332,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getHgrWareNo(),
