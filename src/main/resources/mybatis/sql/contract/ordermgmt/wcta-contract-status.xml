@@ -3,8 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractStatusMapper">
     <sql id="sqlWhereContraceStatus">
             AND T1.CNTR_PRGS_STAT_CD <![CDATA[<=]]> '60'
-        <if test='@MybatisUtils@isNotEmpty(rcpStrtDt)'>AND T1.CNTR_RCP_FSH_DTM >= #{rcpStrtDt}||'000000'</if>
-        <if test='@MybatisUtils@isNotEmpty(rcpEndDt)'>AND T1.CNTR_RCP_FSH_DTM <![CDATA[<=]]> #{rcpEndDt}||'235959'</if>
+        <if test='@MybatisUtils@isNotEmpty(rcpStrtDt)'>AND #{rcpStrtDt}||'000000' <![CDATA[<=]]> CASE WHEN T1.CNTR_PRGS_STAT_CD <![CDATA[<]]> '60' THEN T1.CNTR_TEMP_SAVE_DTM ELSE T1.CNTR_RCP_FSH_DTM END</if>
+        <if test='@MybatisUtils@isNotEmpty(rcpEndDt)'>AND #{rcpEndDt}||'235959' <![CDATA[>=]]> CASE WHEN T1.CNTR_PRGS_STAT_CD <![CDATA[<]]> '60' THEN T1.CNTR_TEMP_SAVE_DTM ELSE T1.CNTR_RCP_FSH_DTM END</if>
         <if test='@MybatisUtils@isNotEmpty(cntrPrgsStatCd)'>
             <choose>
                 <when test='@MybatisUtils@equals(cntrPrgsStatCd, "10")'>AND T1.CNTR_PRGS_STAT_CD <![CDATA[<]]> '20'</when>
@@ -65,6 +65,7 @@
              , T3.MEXNO_ENCR
              , T3.CRAL_IDV_TNO
              , SUBSTR(T1.CNTR_RCP_FSH_DTM, 1, 8) AS CNTR_RCP_FSH_DTM
+             , SUBSTR(T1.CNTR_TEMP_SAVE_DTM, 1, 8) AS CNTR_TEMP_SAVE_DTM
              , T1.CNTR_CNFM_DTM
              , T5.PD_CD
              , T5.PD_NM         /* 대표상품명 */
@@ -75,8 +76,9 @@
                    AND DTA_DL_YN = 'N') AS NUMPRDS  /* 상세계약 건수 */
              , (SELECT SUM(STLM_AMT)
                   FROM TB_SSCT_CNTR_STLM_REL
-                 WHERE CNTR_NO = T1.CNTR_NO
-                   AND DTA_DL_YN = 'N') AS PYMNAMT /* 입금대상금액 */
+                 WHERE DTL_CNTR_NO = T1.CNTR_NO
+                   AND DTA_DL_YN = 'N'
+                   AND DP_TP_CD IN ('0101', '0201')) AS PYMNAMT /* 입금대상금액 */
              , (SELECT COUNT(1)
                   FROM TB_SSCT_CNTR_APR_IZ
                  WHERE CNTR_NO = T1.CNTR_NO
@@ -101,17 +103,14 @@
                  WHERE T14.CNTR_NO = T1.CNTR_NO
                    AND T14.DTA_DL_YN = 'N') AS INTL_CMP_PRD_CNT /* 설치요청완료 상품 개수 */
            FROM TB_SSCT_CNTR_BAS T1
-          INNER JOIN TB_SSCT_CNTR_DTL T2
+           LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2
              ON T2.CNTR_NO = T1.CNTR_NO
-            AND T2.CNTR_SN = (SELECT MIN(CNTR_SN)
-                                FROM TB_SSCT_CNTR_DTL
-                               WHERE DTA_DL_YN = 'N'
-                                 AND CNTR_NO = T2.CNTR_NO)
+            AND T2.CNTR_SN = 1
             AND T2.DTA_DL_YN = 'N'
           INNER JOIN TB_CUBS_CST_BAS T3
              ON T3.CST_NO = T1.CNTR_CST_NO
             AND T3.DTA_DL_YN = 'N'
-          INNER JOIN TB_PDBS_PD_BAS T5
+           LEFT OUTER JOIN TB_PDBS_PD_BAS T5
              ON T5.PD_CD = T2.BASE_PD_CD
             AND T5.DTA_DL_YN = 'N'
             AND T5.TEMP_SAVE_YN = 'N'
