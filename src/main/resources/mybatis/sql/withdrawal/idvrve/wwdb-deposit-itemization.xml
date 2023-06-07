@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbDepositItemizationMapper">
+
+    <select id="selectDepositItemizations"
+            resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositItemizationDto$SearchRes">
+        SELECT A1.DP_MES_CD /*입금수단코드*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'DP_MES_CD', A1.DP_MES_CD) DP_MES_CD_NM /*입금수단코드명*/
+             , A1.DP_TP_CD /*입금유형코드*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'DP_TP_CD', A1.DP_TP_CD) DP_TP_CD_NM /*입금유형코드명*/
+             , A1.RVE_DV_CD /*수납구분코드*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RVE_DV_CD', A1.RVE_DV_CD) RVE_DV_CD_NM /*수납구분코드명*/
+             , A1.RVE_CD /*수납코드*/
+             , (SELECT A2.RVE_NM FROM TB_RVDW_RVE_CD A2 WHERE A2.DTA_DL_YN = 'N' AND A2.RVE_CD = A1.RVE_CD AND A2.KW_GRP_CO_CD = A1. KW_GRP_CO_CD) RVE_CD_NM /*수납코드명*/
+             , TO_CHAR(TO_DATE(A1.DP_DT, 'YYYYMMDD'), 'YYYY-MM-DD') DP_DT
+             , A1.DP_AMT
+             , A1.CNTR_NO
+             , A1.CNTR_SN
+             , A1.PD_CD
+             , (SELECT A2.PD_NM FROM TB_PDBS_PD_BAS A2 WHERE A2.DTA_DL_YN = 'N' AND A2.PD_CD = A1.PD_CD) PD_NM
+          FROM TB_RVDW_RVE_DTL A1
+          JOIN TB_SSCT_CNTR_CST_REL B1
+            ON B1.DTA_DL_YN = 'N'
+           AND B1.DTL_CNTR_NO = A1.CNTR_NO /* 계약고객관계.상세계약번호 = 계약상세.계약번호 */
+           AND B1.DTL_CNTR_SN = A1.CNTR_SN /* 계약고객관계.상세계약일련번호 = 계약상세.계약일련번호 */
+           AND B1.CNTR_CST_REL_TP_CD = '10' /* 계약고객관계.계약고객관계유형코드 = 20(학습자) */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN B1.VL_STRT_DTM AND B1.VL_END_DTM
+         WHERE A1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(finishDt)'>
+           AND A1.DP_DT BETWEEN #{startDt} AND #{finishDt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+           AND B1.CST_NO = #{cstNo}
+        </if>
+    </select>
+</mapper>
