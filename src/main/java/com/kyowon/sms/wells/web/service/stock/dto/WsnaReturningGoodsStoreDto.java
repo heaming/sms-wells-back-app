@@ -26,8 +26,8 @@ public class WsnaReturningGoodsStoreDto {
         String itmKndCd, /*품목종류코드*/
         String svBizDclsfCd, /*서비스업무세분류코드*/
         String strConfYnCd, /*입고확인여부코드*/
-        String rtngdProcsTpCd, /*반품처리유형코드*/
-        String ostrConfDt /*확인일자*/
+        String stRtngdProcsTpCd, /*반품처리유형코드*/
+        String stOstrConfDt /*확인일자*/
 
     ) {}
 
@@ -109,6 +109,7 @@ public class WsnaReturningGoodsStoreDto {
     public record SaveReq(
         @NotBlank
         String rowState,
+        String cstSvAsnNo,
         String itmPdCd,
         String itmKndCd,
         String stFnlVstFshDtFrom,

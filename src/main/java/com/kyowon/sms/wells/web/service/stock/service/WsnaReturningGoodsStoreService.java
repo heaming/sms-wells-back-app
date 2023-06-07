@@ -107,6 +107,20 @@ public class WsnaReturningGoodsStoreService {
 
             log.info("ostrTpCd ------>", dvo.getOstrTpCd());
 
+            String strHgrWareNo = this.mapper.selectHgrWareNo(dvo);
+            dvo.setHgrWareNo(strHgrWareNo);
+            log.info("strHgrWareNo -------> ", strHgrWareNo);
+            String strUpHgrWareNo = this.mapper.selectUpHgrWareNo(dvo);
+            dvo.setUpHgrWareNo(strUpHgrWareNo);
+            log.info("strUpHgrWareNo -------> ", strUpHgrWareNo);
+
+            String strHgrWareMngtPrtnrNo = this.mapper.selectHgrWarePrtnrNo(dvo);
+            String strUpHgrWareMngtPrtnrNo = this.mapper.selectUpHgrWarePrtnrNo(dvo);
+            dvo.setHgrWarePrtnrNo(strHgrWareMngtPrtnrNo);
+            log.info("strHgrWareMngtPrtnrNo -------> ", strHgrWareMngtPrtnrNo);
+            dvo.setUpHgrWarePrtnrNo(strUpHgrWareMngtPrtnrNo);
+            log.info("strUpHgrWareMngtPrtnrNo -------> ", strUpHgrWareMngtPrtnrNo);
+
             if (StringUtils.isNotEmpty(dvo.getOstrConfDt())) {
                 if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())
                     || "12".equals(dvo.getRtngdProcsTpCd()) || "20".equals(dvo.getRtngdProcsTpCd())
@@ -114,16 +128,6 @@ public class WsnaReturningGoodsStoreService {
 
                     if (StringUtils.isEmpty(dvo.getRtngdRvpyProcsYn()) || !"Y".equals(dvo.getRtngdRvpyProcsYn())) {
                         if (!"X".equals(dvo.getFnlItmGdCd())) {
-
-                            String strHgrWareNo = this.mapper.selectHgrWareNo(dvo);
-                            dvo.setHgrWareNo(strHgrWareNo);
-                            String strUpHgrWareNo = this.mapper.selectUpHgrWareNo(dvo);
-                            dvo.setUpHgrWareNo(strUpHgrWareNo);
-
-                            String strHgrWareMngtPrtnrNo = this.mapper.selectHgrWarePrtnrNo(dvo);
-                            String strUpHgrWareMngtPrtnrNo = this.mapper.selectUpHgrWarePrtnrNo(dvo);
-                            dvo.setHgrWarePrtnrNo(strHgrWareMngtPrtnrNo);
-                            dvo.setUpHgrWarePrtnrNo(strUpHgrWareMngtPrtnrNo);
 
                             /*서비스센터에서 물류센터로 내부반품 출고 처리한 내역을 만든다*/
                             result += this.mapper.insertItmOstrIz(dvo);
