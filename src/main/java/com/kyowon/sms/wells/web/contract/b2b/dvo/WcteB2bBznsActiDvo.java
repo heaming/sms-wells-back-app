@@ -53,4 +53,5 @@ public class WcteB2bBznsActiDvo {
     private String basePdCd;
     private String pdQty;
     private String fnlAmt;
+    private String ogTpCd;
 }
