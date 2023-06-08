@@ -70,8 +70,8 @@ public class WbncCustomerController {
         @ApiImplicitParam(name = "schFntDv", value = "이체구분", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schFntDtStrt", value = "from 이체일자", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schFntDtEnd", value = "to 이체일자", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "seachOjBlamStrt", value = "from 대상잔액", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "seachOjBlamEnd", value = "to 대상잔액", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schOjBlamStrt", value = "from 대상잔액", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schOjBlamEnd", value = "to 대상잔액", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schCstDv", value = "고객구분", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schCpsnRsgYn", value = "강제해지여부", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", example = "")
