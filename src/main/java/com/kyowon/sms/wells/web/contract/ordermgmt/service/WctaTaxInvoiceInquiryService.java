@@ -19,6 +19,7 @@ import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,7 @@ public class WctaTaxInvoiceInquiryService {
         String now = DateUtil.todayNnow();
         String nowDate = DateUtil.getNowDayString(); // 현재일자
         String nowYm = nowDate.substring(0, 6); // 현재년월
+        String dlpnrPsicNm = dvo.getDlpnrPsicNm();
         int nowDay = Integer.parseInt(nowDate.substring(4, 6));// 현재일
         int txinvPblD = Integer.parseInt(dvo.getTxinvPblD()); // 발행일자
         String rtnMsg = ""; // 반환 메세지
@@ -78,21 +80,27 @@ public class WctaTaxInvoiceInquiryService {
         String cntrCnfmDtm = compInvoice.getCntrCnfmDtm();
         String cntrCnfmYm = StringUtils.isEmpty(cntrCnfmDtm) ? "" : cntrCnfmDtm.substring(0, 6);
         String dpTpCd = compInvoice.getDpTpCd();
+        String dlpnrPsicNmComp = compInvoice.getDlpnrPsicNm();
+
         int txinvPblDComp = Integer.parseInt(compInvoice.getTxinvPblD());
 
         // 파라미터와 일치한 지 확인하는 구간
-        if (txinvPblOjYn.equals(txinvPblOjYnComp)
-            && emadrComp.equals(emadr)
-            && cralIdvTnoComp.equals(cralIdvTno)
-            && mexnoComp.equals(mexno)
-            && cralLocaraTnoComp.equals(cralLocaraTno)) {
+        if (txinvPblOjYn.equals(txinvPblOjYnComp) /// 발행정보 변경 여부
+            && emadr.equals(emadrComp)
+            && cralIdvTno.equals(cralIdvTnoComp)
+            && mexno.equals(mexnoComp)
+            && cralLocaraTno.equals(cralLocaraTnoComp)
+            && dlpnrPsicNm.equals(dlpnrPsicNmComp)
+            && txinvPblD == txinvPblDComp) {
             txinvPblOjInfoCheck = false;
         }
-        if (txinvPblOjYn.equals(txinvPblOjYnComp)) {
+        if (txinvPblOjYn.equals(txinvPblOjYnComp)) { /// 발행여부 변경 여부
             txinvPblOjCheck = false;
         }
 
-        BizAssert.isTrue(txinvPblOjCheck && txinvPblOjInfoCheck, "MSG_ALT_NO_CHG_CNTN"); // 변경된 내용이 없습니다.
+        if (!txinvPblOjCheck && !txinvPblOjInfoCheck) {
+            throw new BizException(messageResourceService.getMessage("MSG_ALT_NO_CHG_CNTN")); // 변경된 내용이 없습니다.
+        }
 
         if (txinvPblOjInfoCheck && "Y".equals(txinvPblOjYn)) {
             if (nowYm.equals(cntrCnfmYm)) {
