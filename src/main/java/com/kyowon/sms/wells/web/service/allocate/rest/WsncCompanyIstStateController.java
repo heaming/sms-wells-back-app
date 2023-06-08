@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto;
-import com.kyowon.sms.wells.web.service.allocate.rest.service.WsncCompanyIstStateService;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncCompanyIstStateService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
