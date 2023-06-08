@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.allocate.rest.service;
+package com.kyowon.sms.wells.web.service.allocate.service;
 
 import org.springframework.stereotype.Service;
 
