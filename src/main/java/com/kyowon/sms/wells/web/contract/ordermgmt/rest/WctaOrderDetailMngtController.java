@@ -322,7 +322,7 @@ public class WctaOrderDetailMngtController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrCnfmYn", value = "확정유무", paramType = "query"),
-        @ApiImplicitParam(name = "cntrCnfmDt", value = "확정일", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCnfmDtm", value = "확정일", paramType = "query"),
         @ApiImplicitParam(name = "cntrPdStrtdt", value = "가입일", paramType = "query"),
     })
     @PutMapping("/order-detail-mngt/membership-confirm")
