@@ -3,64 +3,50 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncSpecCustAsnMapper">
     <select id="selectSpecCustAsn"
             resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustAsnDvo">
-        /* cherro ::: 완성2 */
-        /* 방문건 */
+        /* cherro ::: 완성4 */
+        WITH TB_VST_20 AS (
+                SELECT zz.CNTR_NO
+                     , zz.CNTR_SN
+                     , MAX(zz.SV_BIZ_DCLSF_CD) AS MAX_SV_BIZ_DCLSF_CD
+                     , LISTAGG(zz.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) AS LIST_SV_BIZ_DCLSF_CD
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
+                     , T_CMZ_CD_D xx
+                 WHERE zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
+                   AND zz.MTR_CAN_DT IS NULL
+                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
+                   AND zz.VST_DV_CD = '20'-- 배송건
+                   AND xx.TENANT_ID = 'TNT_WELLS'
+                   AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
+                   AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD
+                 GROUP BY zz.CNTR_NO, zz.CNTR_SN
+        )
+        , TB_VST_NOT_20 AS (
+                SELECT zz.CNTR_NO
+                     , zz.CNTR_SN
+                     , MAX(zz.SV_BIZ_DCLSF_CD) AS MAX_SV_BIZ_DCLSF_CD
+                     , LISTAGG(zz.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) AS LIST_SV_BIZ_DCLSF_CD
+                     , MAX(zz.VST_DV_CD) AS VST_DV_CD
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
+                     , T_CMZ_CD_D xx
+                 WHERE zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
+                   AND zz.MTR_CAN_DT IS NULL
+                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
+                   AND zz.VST_DV_CD <![CDATA[ <> ]]> '20'-- 배송건
+                   AND xx.TENANT_ID = 'TNT_WELLS'
+                   AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
+                   AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD
+                 GROUP BY zz.CNTR_NO, zz.CNTR_SN
+        )
         SELECT DISTINCT
                '202305' AS ASN_OJ_YM -- #{배정년월}
              , t1.CNTR_NO AS CNTR_NO
              , t1.CNTR_SN AS CNTR_SN
              , t1.SV_BIZ_MCLSF_CD AS SV_BIZ_MCLSF_CD
-             , (
-                SELECT MAX(zz.SV_BIZ_DCLSF_CD)
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-                 WHERE zz.CNTR_NO = t1.CNTR_NO
-                   AND zz.CNTR_SN = t1.CNTR_SN
-                   AND zz.VST_DUEDT LIKE '202305%'
-                   AND zz.MTR_CAN_DT IS NULL
-                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
-                   AND zz.VST_DV_CD <![CDATA[ <> ]]> '20'-- 배송 이외 (방문)
-               ) AS SV_BIZ_DCLSF_CD
+             , t5.MAX_SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
              , t2.WK_PSIC_DV_CD AS MNGR_DV_CD
-        --     LISTAGG(zz.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.CNTR_NO, zz.CNTR_SN) AS SV_BIZ_DCLSF_CD
-        --     , (
-        --     	SELECT LISTAGG(temp1.SV_BIZ_DCLSF_CD,',')
-        --          FROM (
-        --          		SELECT zz.SV_BIZ_DCLSF_CD
-        --  				  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-        --				 WHERE zz.CNTR_NO = t1.CNTR_NO
-        --   				   AND zz.CNTR_SN = t1.CNTR_SN
-        --   				   AND zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
-        --				 ORDER BY zz.SV_BIZ_DCLSF_CD ASC
-        --			   ) temp1
-        --	   ) AS RLTD_SV_BIZ_DCLSF_CD
+             , t5.LIST_SV_BIZ_DCLSF_CD AS RLTD_SV_BIZ_DCLSF_CD
              , (
-                SELECT LISTAGG(zz.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.CNTR_NO, zz.CNTR_SN) AS SV_BIZ_DCLSF_CD
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-                 WHERE zz.CNTR_NO = t1.CNTR_NO
-                   AND zz.CNTR_SN = t1.CNTR_SN
-                   AND zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
-                   AND zz.MTR_CAN_DT IS NULL
-                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
-                   AND zz.VST_DV_CD <![CDATA[ <> ]]> '20'-- 배송 이외 (방문)
-               ) AS RLTD_SV_BIZ_DCLSF_CD
-        --     , (
-        --     	SELECT LISTAGG(temp2.CD_CNTN,'/')
-        --  		  FROM (
-        --  		  		SELECT DISTINCT zz.SV_BIZ_DCLSF_CD, xx.CD_CNTN
-        --  				  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-        --     				 , T_CMZ_CD_D xx
-        --				 WHERE zz.CNTR_NO = t1.CNTR_NO
-        --   				   AND zz.CNTR_SN = t1.CNTR_SN
-        --   				   AND zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
-        --   				   AND xx.TENANT_ID = 'TNT_WELLS'
-        --      			   AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
-        --      			   AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD
-        --				 ORDER BY zz.SV_BIZ_DCLSF_CD ASC
-        --			   ) temp2
-        --	   ) AS CLSF_CD_SRN_PRNT_CN
-             , (
-                SELECT -- DISTINCT zz.SV_BIZ_DCLSF_CD, xx.CD_CNTN
-                       LISTAGG(xx.CD_CNTN, '/') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.SV_BIZ_DCLSF_CD, xx.CD_CNTN) AS CLSF_CD_SRN_PRNT_CN
+                SELECT LISTAGG(xx.CD_CNTN, '/') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.SV_BIZ_DCLSF_CD, xx.CD_CNTN) AS CLSF_CD_SRN_PRNT_CN
                   FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
                      , T_CMZ_CD_D xx
                  WHERE zz.CNTR_NO = t1.CNTR_NO
@@ -84,7 +70,7 @@
              , (CASE WHEN '202305' > TO_CHAR(ADD_MONTHS(TO_DATE(t2.IST_DT,'YYYYMMDD'),FRISU_AS_PTRM_N),'YYYYMMDD')-- #{배정년월}
                 THEN '2' ELSE '1'  END)AS AS_REFRI_DV_CD
              , '1' AS BFSVC_REFRI_DV_CD
-             , t1.VST_DV_CD AS VST_DV_CD
+             , t5.VST_DV_CD AS VST_DV_CD
              , '' AS SPC_AS_TP_CD
              , '' AS CST_SV_ASN_NO
              , 'N' AS DTA_DL_YN
@@ -92,6 +78,7 @@
              , TB_SVPD_CST_SV_EXCN_IZ t2
              , TB_SVPD_SV_HSHD_NO_OJ_IZ t3
              , TB_SSCT_CNTR_WELLS_DTL t4
+             , TB_VST_NOT_20 t5
          WHERE 1=1
            AND t1.CNTR_NO = t2.CNTR_NO
            AND t1.CNTR_SN = t2.CNTR_SN
@@ -99,6 +86,8 @@
            AND t1.CNTR_SN = t3.CNTR_SN
            AND t1.CNTR_NO = t4.CNTR_NO
            AND t1.CNTR_SN = t4.CNTR_SN
+           AND t1.CNTR_NO = t5.CNTR_NO
+           AND t1.CNTR_SN = t5.CNTR_SN
            AND t2.CNTR_DTL_STAT_CD = '101'
            AND t2.BFSVC_SPP_STP_RSON_CD IN ('00','01')
            AND t1.VST_DUEDT LIKE '202305%' -- #{파라미터} + '%' 처리. 해당 컬럼 인덱스 예정
@@ -122,54 +111,9 @@
              , t1.CNTR_NO AS CNTR_NO
              , t1.CNTR_SN AS CNTR_SN
              , t1.SV_BIZ_MCLSF_CD AS SV_BIZ_MCLSF_CD
-             , (
-                SELECT MAX(zz.SV_BIZ_DCLSF_CD)
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-                 WHERE zz.CNTR_NO = t1.CNTR_NO
-                   AND zz.CNTR_SN = t1.CNTR_SN
-                   AND zz.VST_DUEDT LIKE '202305%'
-                   AND zz.MTR_CAN_DT IS NULL
-                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
-                   AND zz.VST_DV_CD = '20'-- 배송건
-               ) AS SV_BIZ_DCLSF_CD
-        --     , NVL(MAX(WK_SN),0)+1 AS WK_SN -- WK_SN은 INSERT 할때 max+1 처리
+             , t5.MAX_SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
              , t2.WK_PSIC_DV_CD AS MNGR_DV_CD
-        --     , (
-        --     	SELECT LISTAGG(SV_BIZ_DCLSF_CD,',')
-        --  		  FROM (
-        --  		  		SELECT SV_BIZ_DCLSF_CD
-        --  				  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-        --				 WHERE zz.CNTR_NO = t1.CNTR_NO
-        --   				   AND zz.CNTR_SN = t1.CNTR_SN
-        --   				   AND zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
-        --				 ORDER BY SV_BIZ_DCLSF_CD ASC
-        --			   )
-        --	   ) AS RLTD_SV_BIZ_DCLSF_CD
-        --     , (
-        --     	SELECT LISTAGG(CD_CNTN,',')
-        --  		  FROM (
-        --  		  		SELECT DISTINCT SV_BIZ_DCLSF_CD, CD_CNTN
-        --  				  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-        --     				 , T_CMZ_CD_D xx
-        --				 WHERE zz.CNTR_NO = t1.CNTR_NO
-        --   				   AND zz.CNTR_SN = t1.CNTR_SN
-        --   				   AND zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
-        --   				   AND xx.TENANT_ID = 'TNT_WELLS'
-        --      			   AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
-        --      			   AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD
-        --				 ORDER BY SV_BIZ_DCLSF_CD ASC
-        --			   )
-        --	   ) AS CLSF_CD_SRN_PRNT_CN
-             , (
-                SELECT LISTAGG(zz.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.CNTR_NO, zz.CNTR_SN) AS SV_BIZ_DCLSF_CD
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-                 WHERE zz.CNTR_NO = t1.CNTR_NO
-                   AND zz.CNTR_SN = t1.CNTR_SN
-                   AND zz.VST_DUEDT LIKE '202305%' -- #{배정년월} + '%' 처리. 해당 컬럼 인덱스 예정
-                   AND zz.MTR_CAN_DT IS NULL
-                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
-                   AND zz.VST_DV_CD = '20'-- 배송건
-               ) AS RLTD_SV_BIZ_DCLSF_CD
+             , t5.LIST_SV_BIZ_DCLSF_CD AS RLTD_SV_BIZ_DCLSF_CD
              , (
                 SELECT LISTAGG(xx.CD_CNTN, '/') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.SV_BIZ_DCLSF_CD, xx.CD_CNTN) AS CLSF_CD_SRN_PRNT_CN
                   FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
@@ -203,6 +147,7 @@
              , TB_SVPD_CST_SV_EXCN_IZ t2
              , TB_SVPD_SV_HSHD_NO_OJ_IZ t3
              , TB_SSCT_CNTR_WELLS_DTL t4
+             , TB_VST_20 t5
          WHERE 1=1
            AND t1.CNTR_NO = t2.CNTR_NO
            AND t1.CNTR_SN = t2.CNTR_SN
@@ -210,6 +155,8 @@
            AND t1.CNTR_SN = t3.CNTR_SN
            AND t1.CNTR_NO = t4.CNTR_NO
            AND t1.CNTR_SN = t4.CNTR_SN
+           AND t1.CNTR_NO = t5.CNTR_NO
+           AND t1.CNTR_SN = t5.CNTR_SN
            AND t2.CNTR_DTL_STAT_CD = '101'
            AND t2.BFSVC_SPP_STP_RSON_CD IN ('00','01')
            AND t1.VST_DUEDT LIKE '202305%' -- #{파라미터} + '%' 처리. 해당 컬럼 인덱스 예정
