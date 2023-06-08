@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaWelsMngerSettlementAwMapper">
+
+    <select id='selectWelsMngers'
+            resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto$SearchRes">
+        SELECT T2.DGR1_LEVL_OG_NM AS OG1_NM /* 총괄단 */
+             , T2.DGR2_LEVL_OG_NM AS OG2_NM  /* 지역단 */
+             , T1.OG_ID  /* 소속 */
+             , T2.BLD_NM     /* 빌딩명 */
+             , T1.PRTNR_NO  /* 번호 */
+             , T1.PRTNR_KNM  /* 성명 */
+             , CD.CD_CNTN AS RSB_DV_CD  /* 직책 */
+             , CASE WHEN T1.QLF_DV_CD = '2' THEN '프리매니저'
+                    WHEN T1.QLF_DV_CD = '3' THEN '웰스매니저'
+                    WHEN T1.QLF_DV_CD = '6' THEN 'BS프리매니저'
+               END AS QLF_DV_CD
+             , CASE WHEN T4.QLF_DV_CD = '2' THEN '프리매니저'
+                    WHEN T4.QLF_DV_CD = '3' THEN '웰스매니저'
+                    WHEN T4.QLF_DV_CD = '6' THEN 'BS프리매니저'
+               END AS NEXT_QLF_DV_CD /* M+1자격 */
+             , T3.PYM AS PROCS_DTM   /* WM전환월 */
+             , T5.EDU096  AS SRTUP /* 스타트업 */
+             , T5.EDU143  AS FREE_SRTUP /* 프리스타트업 */
+             , CASE WHEN T1.BZ_STAT_CD = '1' THEN 'Y' /* 사업상태코드 = 1 사업 */
+                    ELSE 'N'                          /* 사업상태코드 = (2,3) 해약, 휴업 */
+               END AS BZ_STAT_CD  /* 활동여부 */
+             , T1.CNTR_DT /* 계약일 */
+             , T1.CLTN_DT/* 해약일 */
+             , T1.FST_CNTR_DT /* 최초계약일 */
+             , T1.FNL_CLTN_DT/* 최종해약일 */
+             , NVL(T6.OPNG_CD,'5') AS OPNG_CD
+             , T1.BASE_YM
+             , T6.TCNT_DV_CD
+             , NVL(T6.CNFM_STAT_YN,'Y') AS CNFM_STAT_YN
+          FROM TB_OGBS_MM_PRTNR_IZ T1  /* 월 파트너*/
+         INNER JOIN TB_OGBS_MM_OG_IZ T2  /* 월 조직 */
+            ON T1.OG_ID = T2.OG_ID
+           AND T1.OG_TP_CD = T2.OG_TP_CD
+           AND T1.BASE_YM = T2.BASE_YM
+        INNER JOIN T_CMZ_CD_D CD
+           ON T1.RSB_DV_CD = CD.CD_VLD_VAL
+          AND CD.CD_ID = 'RSB_DV_CD'
+          AND CD.TENANT_ID = 'TNT_WELLS'
+        LEFT OUTER JOIN LATERAL ( SELECT ROW_NUMBER() OVER (PARTITION BY PRTNR_NO ORDER BY PYMDT DESC) AS RANK
+                                       , SUBSTR(PYMDT,0,6) AS PYM
+                                    FROM TB_OGPS_PLAR_QLF_CH_IZ T3 /*플래너 자격 변경내역*/
+                                     WHERE OG_TP_CD = T1.OG_TP_CD
+                                       AND PRTNR_NO = T1.PRTNR_NO
+                                       AND QLF_DV_CD = '3'  /* 웰스매니저 */
+                                       AND QLF_APLC_DV_CD = '1'  /* 승급 */
+                                       AND DTA_DL_YN = 'N'
+                                )T3
+            ON 1 = 1
+           AND T3.RANK = 1
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
+            ON T1.PRTNR_NO = T4.PRTNR_NO
+           AND T1.OG_TP_CD = T4.OG_TP_CD
+           AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM')
+          LEFT OUTER JOIN LATERAL ( SELECT B.PRTNR_NO
+                                         , MAX(B.EDU096) AS EDU096
+                                         , MAX(B.EDU143) AS EDU143
+                                    FROM ( SELECT A.PRTNR_NO
+                                                , CASE WHEN A.EDUC_CRSE_NO = '96' THEN A.AGRG_YM END AS EDU096
+                                                , CASE WHEN A.EDUC_CRSE_NO = '143' THEN A.AGRG_YM END AS EDU143
+                                             FROM TB_PSCA_MCPTN_EDUC_AGRG A
+                                            WHERE A.AGRG_YM = T1.BASE_YM
+                                              AND A.PRTNR_NO = T1.PRTNR_NO
+                                              AND A.EDUC_CRSE_NO IN ('96','143')
+                                              AND A.EDUC_CPC_ACKMT_YN = 'Y'
+                                         ) B
+                                     GROUP BY B.PRTNR_NO
+                                  ) T5
+            ON 1 = 1
+          LEFT OUTER JOIN TB_FEAM_WELS_MNGER_OPNG_BAS T6
+            ON T1.BASE_YM  = T6.BASE_YM
+           AND T1.OG_TP_CD = T6.OG_TP_CD
+           AND T1.PRTNR_NO = T6.PRTNR_NO
+           AND T6.TCNT_DV_CD = #{tcntDvCd}
+         WHERE T1.BASE_YM = #{baseYm}
+           AND T1.OG_TP_CD = 'W02'
+           AND T1.QLF_DV_CD IN ('2','6','3')  /* 프리매니저, BS프리매니저, 웰스매니저 */
+      <if test="prtnrNo != null and prtnrNo != ''">
+           AND T1.PRTNR_NO = #{prtnrNo}
+      </if>
+      <if test="schRsbDvCd != null and schRsbDvCd != ''">
+           AND T1.RSB_DV_CD = #{schRsbDvCd}
+      </if>
+      <if test="prtnrKnm != null and prtnrKnm != ''">
+           AND T1.PRTNR_KNM LIKE '%'||#{prtnrKnm}||'%'
+      </if>
+      <if test="schRsbDvCd != null and schRsbDvCd != ''">
+           <if test="schRsbDvCd == '01'">
+           AND T6.BASE_YM IS NOT NULL  /* 해당월 개시자 */
+           </if>
+           <if test="schRsbDvCd == '02'">
+           AND SUBSTR(T1.CLTN_DT,0,6) = #{baseYm}  /* 해약자 */
+           </if>
+           <if test="schRsbDvCd == '03'">
+           AND SUBSTR(T1.CLTN_DT,0,6) IS NULL /* 해약자 제외 */
+           </if>
+      </if>
+         ORDER BY T2.DGR1_LEVL_OG_NM
+                , T2.DGR2_LEVL_OG_NM
+                , T1.OG_ID
+                , T1.PRTNR_KNM
+    </select>
+
+    <select id="selectCheckWelsMngerOpng" resultType="integer">
+        SELECT COUNT(*)
+          FROM TB_FEAM_WELS_MNGER_OPNG_BAS
+         WHERE BASE_YM = #{baseYm}
+           AND TCNT_DV_CD = #{tcntDvCd}
+    </select>
+
+    <insert id="insertWelsMngerOpng">
+        INSERT INTO TB_FEAM_WELS_MNGER_OPNG_BAS
+        ( BASE_YM
+        , OG_TP_CD
+        , PRTNR_NO
+        , TCNT_DV_CD
+        , OPNG_CD
+        , CNFM_STAT_YN
+        <include refid="COMMON.insertSystemField" />
+        )
+        SELECT BASE_YM
+             , OG_TP_CD
+             , PRTNR_NO
+             , #{tcntDvCd}
+             , '5'
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_OGBS_MM_PRTNR_IZ  /* 월 파트너*/
+         WHERE BASE_YM = #{baseYm}
+           AND OG_TP_CD = 'W02'
+           AND QLF_DV_CD IN ('2','6','3')  /* 프리매니저, BS프리매니저, 웰스매니저 */
+
+    </insert>
+
+    <update id="updateWelsMnger">
+        UPDATE TB_FEAM_WELS_MNGER_OPNG_BAS
+        SET OPNG_CD = #{opngCd}
+        <include refid="COMMON.updateSystemField"/>
+        WHERE BASE_YM = #{baseYm}
+          AND TCNT_DV_CD = #{tcntDvCd}
+          AND PRTNR_NO = #{prtnrNo}
+    </update>
+
+    <update id="updateWelsMngerConfirm">
+        UPDATE TB_FEAM_WELS_MNGER_OPNG_BAS
+           SET CNFM_STAT_YN = #{cnfmStatYn}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE BASE_YM = #{baseYm}
+           AND TCNT_DV_CD = #{tcntDvCd}
+    </update>
+
+</mapper>
