@@ -58,5 +58,7 @@ public interface WsnaReturningGoodsStoreMapper {
 
     String selectUpHgrWarePrtnrNo(WsnaReturningGoodsStoreDvo dvo);
 
+    int updateReturningGoodsStoreConfirmations(WsnaReturningGoodsStoreDvo dvo);
+
     //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
 }
