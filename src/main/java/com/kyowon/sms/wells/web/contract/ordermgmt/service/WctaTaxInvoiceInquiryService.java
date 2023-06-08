@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +30,9 @@ public class WctaTaxInvoiceInquiryService {
     private final WctaTaxInvoiceInquiryMapper mapper;
     private final WctaTaxInvoiceInquiryConverter converter;
     private final WctzHistoryService historyService;
-
     private final MessageResourceService messageResourceService;
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     public WctaTaxInvoiceInquiryDvo getTaxInvoiceInquiry(String cntrNo, int cntrSn) {
         return mapper.selectTaxInvoiceInquiry(cntrNo, cntrSn);
@@ -73,7 +76,7 @@ public class WctaTaxInvoiceInquiryService {
         String mexnoComp = compInvoice.getMexno();
         String cralLocaraTnoComp = compInvoice.getCralLocaraTno();
         String cntrCnfmDtm = compInvoice.getCntrCnfmDtm();
-        String cntrCnfmYm = StringUtils.isEmpty(cntrCnfmDtm) ? " " : cntrCnfmDtm.substring(0, 6);
+        String cntrCnfmYm = StringUtils.isEmpty(cntrCnfmDtm) ? "" : cntrCnfmDtm.substring(0, 6);
         String dpTpCd = compInvoice.getDpTpCd();
         int txinvPblDComp = Integer.parseInt(compInvoice.getTxinvPblD());
 
@@ -98,11 +101,14 @@ public class WctaTaxInvoiceInquiryService {
                 rtnMsg = "변경사항은 익월부터 반영됩니다.\\n※당월부터 반영되길 희망하는 건은 담당자에게 문의 하세요.";
             }
         }
-
-        BizAssert.isFalse(
-            dpTpCd.startsWith("02") && "Y".equals(txinvPblOjYn), "MSG_ALT_CARD_FNT_CST_NOT_PBL",
-            new String[] {messageResourceService.getMessage("MSG_TXT_TXINV")}
-        ); // 카드이체 고객은 세금계산서 발행이 불가합니다.
+        if (StringUtils.isNotEmpty(dpTpCd)) {
+            BizAssert.isFalse(
+                dpTpCd.startsWith("02") && "Y".equals(txinvPblOjYn), "MSG_ALT_CARD_FNT_CST_NOT_PBL",
+                new String[] {messageResourceService.getMessage("MSG_TXT_TXINV")}
+            ); // 카드이체 고객은 세금계산서 발행이 불가합니다.
+        } else {
+            log.debug("입금유형코드: {}", dpTpCd);
+        }
 
         if (txinvPblOjCheck) {
 
