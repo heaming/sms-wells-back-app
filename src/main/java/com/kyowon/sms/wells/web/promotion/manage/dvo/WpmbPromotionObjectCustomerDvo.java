@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WpmbPromotionObjectCustomerMgtDvo {
+public class WpmbPromotionObjectCustomerDvo {
     private String pmotOjRelId;                     /* 계약번호 */
     private String histStrtDtm;                     /* 이력시작일시 */
     private String histEndDtm;                      /* 이력종료일시 */

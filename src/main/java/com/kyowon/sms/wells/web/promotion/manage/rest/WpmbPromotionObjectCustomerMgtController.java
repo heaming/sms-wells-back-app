@@ -60,7 +60,7 @@ public class WpmbPromotionObjectCustomerMgtController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
-    @GetMapping("/contract-info")
+    @GetMapping("/contracts")
     public ContractRes getContractInfo(
         @RequestParam
         String cntrNo,

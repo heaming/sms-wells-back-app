@@ -5,9 +5,9 @@ import static com.kyowon.sms.wells.web.promotion.manage.dto.WpmbPromotionObjectC
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.promotion.manage.dvo.WpmbPromotionObjectCustomerDvo;
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.promotion.manage.dvo.WpmbPromotionObjectCustomerMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -18,11 +18,11 @@ public interface WpmbPromotionObjectCustomerMgtMapper {
 
     List<SearchRes> selectPromotionObjectCustomerPages(SearchReq dto);
 
-    int insertPromotionObjectCustomer(WpmbPromotionObjectCustomerMgtDvo dvo);
+    int insertPromotionObjectCustomer(WpmbPromotionObjectCustomerDvo dvo);
 
-    int updatePromotionObjectCustomer(WpmbPromotionObjectCustomerMgtDvo dvo);
+    int updatePromotionObjectCustomer(WpmbPromotionObjectCustomerDvo dvo);
 
-    WpmbPromotionObjectCustomerMgtDvo selectObjectCustomerContractInfo(WpmbPromotionObjectCustomerMgtDvo dvo);
+    WpmbPromotionObjectCustomerDvo selectObjectCustomerContractInfo(WpmbPromotionObjectCustomerDvo dvo);
 
-    int deletePromotionObjectCustomer(WpmbPromotionObjectCustomerMgtDvo dvo);
+    int deletePromotionObjectCustomer(WpmbPromotionObjectCustomerDvo dvo);
 }

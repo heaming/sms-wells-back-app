@@ -107,12 +107,16 @@ public class WpmbPromotionObjectCustomerMgtDto {
         String pmotOjRelId,                     /* 프로모션대상관계ID */
         String histStrtDtm,                     /* 이력시작일시 */
         String histEndDtm,                      /* 이력종료일시 */
+        @NotBlank
         String cntrNo,                          /* 계약번호 */
+        @NotBlank
         String cntrSn,                          /* 계약일련번호 */
         String vlStrtDtm,                       /* 유효시작일시 */
         String vlEndDtm,                        /* 유효종료일시 */
+        @NotBlank
         String pmotOjSpcDscDvCd,                /* 특별할인코드 */
         String pdCd,                            /* 상품코드 */
+        @NotBlank
         String sellTpCd,                        /* 판매유형코드 */
         String dtaDlYn,                         /* 데이터삭제여부 */
         String fstRgstDtm,                      /* 최초등록일 */

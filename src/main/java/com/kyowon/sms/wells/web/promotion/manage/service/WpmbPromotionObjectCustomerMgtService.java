@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import com.kyowon.sms.wells.web.promotion.manage.dvo.WpmbPromotionObjectCustomerDvo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,6 @@ import com.kyowon.sms.wells.web.promotion.manage.converter.WpmbPromotionObjectCu
 import com.kyowon.sms.wells.web.promotion.manage.dto.WpmbPromotionObjectCustomerMgtDto.ContractRes;
 import com.kyowon.sms.wells.web.promotion.manage.dto.WpmbPromotionObjectCustomerMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.promotion.manage.dto.WpmbPromotionObjectCustomerMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.promotion.manage.dvo.WpmbPromotionObjectCustomerMgtDvo;
 import com.kyowon.sms.wells.web.promotion.manage.mapper.WpmbPromotionObjectCustomerMgtMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.common.common.dvo.CodeDetailDvo;
@@ -79,7 +79,7 @@ public class WpmbPromotionObjectCustomerMgtService {
     public int savePromotionObjectCustomers(@Valid @NotEmpty List<SaveReq> dtos) {
         int processCount = 0;
         for (SaveReq dto : dtos) {
-            WpmbPromotionObjectCustomerMgtDvo dvo = converter.mapSaveReqToWpmbPromotionObjectCustomerMgtDvo(dto);
+            WpmbPromotionObjectCustomerDvo dvo = converter.mapSaveReqToWpmbPromotionObjectCustomerDvo(dto);
             int result = 0;
             if (StringUtils.isBlank(dvo.getPmotOjRelId())) {
                 result = mapper.insertPromotionObjectCustomer(dvo);
@@ -99,14 +99,14 @@ public class WpmbPromotionObjectCustomerMgtService {
         Map<String, String> headerTitle = getHeaderTitle();
 
         // 2. File 데이터 Read
-        List<WpmbPromotionObjectCustomerMgtDvo> readExcel = excelReadService.readExcel(file, new ExcelMetaDvo(EXCEL_DATA_START_ROW_INDEX, headerTitle), WpmbPromotionObjectCustomerMgtDvo.class);
+        List<WpmbPromotionObjectCustomerDvo> readExcel = excelReadService.readExcel(file, new ExcelMetaDvo(EXCEL_DATA_START_ROW_INDEX, headerTitle), WpmbPromotionObjectCustomerDvo.class);
 
         // 3. Validation Check
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = validateExcelDatas(headerTitle, readExcel);
 
         // 4. Data 저장
         if (excelUploadErrorDvos.isEmpty()) {
-            for (WpmbPromotionObjectCustomerMgtDvo dvo : readExcel) {
+            for (WpmbPromotionObjectCustomerDvo dvo : readExcel) {
                 int result = mapper.insertPromotionObjectCustomer(dvo);
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             }
@@ -132,7 +132,7 @@ public class WpmbPromotionObjectCustomerMgtService {
         return headerTitle;
     }
 
-    private List<ExcelUploadErrorDvo> validateExcelDatas(Map<String, String> headerTitle, List<WpmbPromotionObjectCustomerMgtDvo> readExcel) {
+    private List<ExcelUploadErrorDvo> validateExcelDatas(Map<String, String> headerTitle, List<WpmbPromotionObjectCustomerDvo> readExcel) {
 
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
 
@@ -141,7 +141,7 @@ public class WpmbPromotionObjectCustomerMgtService {
             List<CodeDetailDvo> spcDscCommonCds = codeMapper.selectDetails(SPC_DSC_COMMON_CODE_ID);
 
             for (int i = 0; i < readExcel.size(); i++) {
-                WpmbPromotionObjectCustomerMgtDvo excelRow = readExcel.get(i);
+                WpmbPromotionObjectCustomerDvo excelRow = readExcel.get(i);
 
                 // 1. 계약번호 체크
                 if (StringUtils.isBlank(excelRow.getCntrNo())) {    // 필수값 체크
@@ -153,7 +153,7 @@ public class WpmbPromotionObjectCustomerMgtService {
                 }
                 // 3. 존재하는 계약인지 체크
                 if (StringUtils.isNotBlank(excelRow.getCntrNo()) && StringUtils.isNotBlank(excelRow.getCntrSn())) {
-                    WpmbPromotionObjectCustomerMgtDvo checkDvo = mapper.selectObjectCustomerContractInfo(excelRow);
+                    WpmbPromotionObjectCustomerDvo checkDvo = mapper.selectObjectCustomerContractInfo(excelRow);
                     // 3.1. 계약이 존재하는지 체크
                     if (checkDvo == null || StringUtils.isBlank(checkDvo.getCntrNo())) {
                         excelUploadErrorDvos.add(getErrorDvo(i, headerTitle.get("cntrNo"), messageResourceService.getMessage("MSG_ALT_INVALID_ANYTHING", headerTitle.get("cntrNo"), excelRow.getCntrNo())));
@@ -207,16 +207,16 @@ public class WpmbPromotionObjectCustomerMgtService {
     }
 
     public ContractRes getContractInfo(String cntrNo, int cntrSn) {
-        WpmbPromotionObjectCustomerMgtDvo paramDvo = new WpmbPromotionObjectCustomerMgtDvo();
+        WpmbPromotionObjectCustomerDvo paramDvo = new WpmbPromotionObjectCustomerDvo();
         paramDvo.setCntrNo(cntrNo);
         paramDvo.setCntrSn(String.valueOf(cntrSn));
-        return converter.mapWpmbPromotionObjectCustomerMgtDvoToContractRes(mapper.selectObjectCustomerContractInfo(paramDvo));
+        return converter.mapWpmbPromotionObjectCustomerDvoToContractRes(mapper.selectObjectCustomerContractInfo(paramDvo));
     }
 
     public int removePromotionObjectCustomers(List<RemoveReq> dtos) {
         int processCount = 0;
         for (RemoveReq dto : dtos) {
-            WpmbPromotionObjectCustomerMgtDvo dvo = converter.mapRemoveReqToWpmbPromotionObjectCustomerMgtDvo(dto);
+            WpmbPromotionObjectCustomerDvo dvo = converter.mapRemoveReqToWpmbPromotionObjectCustomerDvo(dto);
             int result = mapper.deletePromotionObjectCustomer(dvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             processCount += result;
