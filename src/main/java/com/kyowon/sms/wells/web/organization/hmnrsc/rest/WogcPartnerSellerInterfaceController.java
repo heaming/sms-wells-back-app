@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Api(tags = "[WOGC] 판매자 정보 관리 REST API")
+@Api(tags = "[WOGC] 판매자 정보 관리 EAI INTERFACE API")
 @Validated
 @RequiredArgsConstructor
 @RequestMapping(OgConst.REST_PREFIX_INTERFACE_SMS_WELLS + "/partner-seller")
