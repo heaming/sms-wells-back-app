@@ -4,7 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositItemizationDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbDepositItemizationDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbDepositItemizationResultDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbDepositItemizationMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -17,12 +18,12 @@ public class WwdbDepositItemizationService {
 
     /**
      * 입금내역조회(모바일) - W-WD-S-0041
-     * @param dto
+     * @param dvo
      * @return
      */
-    public List<WwdbDepositItemizationDto.SearchRes> getDepositItemizations(
-        WwdbDepositItemizationDto.SearchReq dto
+    public List<WwdbDepositItemizationResultDvo> getDepositItemizations(
+        WwdbDepositItemizationDvo dvo
     ) {
-        return mapper.selectDepositItemizations(dto);
+        return mapper.selectDepositItemizations(dvo);
     }
 }
