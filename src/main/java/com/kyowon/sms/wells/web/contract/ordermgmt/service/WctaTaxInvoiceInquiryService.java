@@ -100,7 +100,7 @@ public class WctaTaxInvoiceInquiryService {
         }
 
         BizAssert.isFalse(
-            "02".equals(dpTpCd.substring(0, 2)) && "Y".equals(txinvPblOjYn), "MSG_ALT_CARD_FNT_CST_NOT_PBL",
+            dpTpCd.startsWith("02") && "Y".equals(txinvPblOjYn), "MSG_ALT_CARD_FNT_CST_NOT_PBL",
             new String[] {messageResourceService.getMessage("MSG_TXT_TXINV")}
         ); // 카드이체 고객은 세금계산서 발행이 불가합니다.
 
