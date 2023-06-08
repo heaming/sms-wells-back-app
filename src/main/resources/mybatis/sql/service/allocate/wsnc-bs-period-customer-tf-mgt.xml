@@ -46,16 +46,28 @@
 				  , T13.PRTNR_KNM         AS TF_FN_PRTNR_KNM 	 -- 이관확정정보-성명
 			      , T1.CST_SV_ASN_NO
 			   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
-		 	  INNER JOIN TB_SVPD_ASN_RS_TF_IZ T2
+		 	  INNER JOIN (
+                       SELECT T1.*
+                         FROM TB_SVPD_ASN_RS_TF_IZ T1
+                        WHERE T1.DTA_DL_YN = 'N'
+                          AND T1.TF_SN = (
+                                        SELECT MAX(T2.TF_SN)
+                                          FROM TB_SVPD_ASN_RS_TF_IZ T2
+                                         WHERE T2.DTA_DL_YN = 'N'
+                                           AND T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                                           AND T2.ASN_TF_DV_CD = T1.ASN_TF_DV_CD
+                                        )
+                  ) T2
 				 ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
 				AND T2.ASN_TF_DV_CD = T1.ASN_TF_DV_CD
-				AND T2.TF_SN = T1.WK_SN
-				AND T2.DTA_DL_YN = 'N'
-	  	 LEFT OUTER JOIN TB_SVPD_CNTR_FXN_PRTNR_IZ T3
+	  	 LEFT OUTER JOIN (
+                        SELECT MAX(CH_SN), CNTR_NO, CNTR_SN, DTA_DL_YN
+                          FROM TB_SVPD_CNTR_FXN_PRTNR_IZ
+                         WHERE DTA_DL_YN = 'Y'
+                      GROUP BY CNTR_NO, CNTR_SN, DTA_DL_YN
+                  ) T3
 				 ON T3.CNTR_NO = T1.CNTR_NO
 				AND T3.CNTR_SN = T1.CNTR_SN
-				AND T3.CH_SN = T1.WK_SN
-				AND T3.DTA_DL_YN = 'N'
 			  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4
 				 ON T4.CNTR_NO = T1.CNTR_NO
 				AND T4.CNTR_SN = T1.CNTR_SN
