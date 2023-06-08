@@ -34,21 +34,20 @@
                          , S1.PD_NM
                          , (
                              SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
-                              WHERE TO_CHAR(CH_DTM, 'YYYYMM') = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMMDDHH24MISS'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
+                              WHERE SUBSTR(CH_DTM, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMM'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
                                 AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
                            ) AS AGRG_CT1   /*이월*/ 
                          , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
                          , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
                          , SUM(S1.AGRG_CT4) AS AGRG_CT4  /*만료*/
                       FROM (
-                            SELECT TO_CHAR(T1.CH_DTM, 'YYYYMM') AS BASE_YM  /*기준년월*/
+                            SELECT SUBSTR(T1.CH_DTM, 0, 6) AS BASE_YM  /*기준년월*/
                                  , T1.SELL_TP_CD   /*판매유형*/
                                  , T1.SELL_TP_DTL_CD   /*판매유형상세*/
                                  , T1.PD_HCLSF_ID     /*상품대분류*/
                                  , T1.PD_MCLSF_ID     /*상품중분류*/      
-                                 , '' AS PD_CD           /*상품코드 - 테이블추가필요*/
-                                 , '' AS PD_NM
-                                    --(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM   /*상품명*/
+                                 , T1.BASE_PD_CD AS PD_CD           /*상품코드 - 테이블추가필요*/
+                                 , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.BASE_PD_CD) AS PD_NM   /*상품명*/
                                   /*이월은 따로조회 */
                                  ,(CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
                                         THEN 1 
@@ -62,7 +61,7 @@
                                  /*순증, 합계따로계산*/
                               FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS T1  /*WELLS계약상태변경기본 - 현재 유효분을 다들고 오려면 계약상세를 들고오는게 맞을꺼 같은데..일단은이렇게*/
                              WHERE 1=1
-                               AND TO_CHAR(T1.CH_DTM, 'YYYYMM') BETWEEN #{baseYmFrom} AND #{baseYmTo}
+                               AND SUBSTR(T1.CH_DTM, 0, 6) BETWEEN #{baseYmFrom} AND #{baseYmTo}
                                <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                                AND T1.SELL_TP_CD = #{sellTpCd}
                                </if>
@@ -116,21 +115,20 @@
                  , S1.PD_CD
                  , S1.PD_NM
                  , (SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
-                     WHERE TO_CHAR(CH_DTM, 'YYYYMM') = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMMDDHH24MISS'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
+                     WHERE SUBSTR(CH_DTM, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMM'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
                        AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
                    ) AS AGRG_CT1   /*이월*/ 
                  , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
                  , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
                  , SUM(S1.AGRG_CT4) AS AGRG_CT4  /*만료*/
               FROM (
-                    SELECT TO_CHAR(T1.CH_DTM, 'YYYYMM') AS BASE_YM  /*기준년월*/
+                    SELECT SUBSTR(T1.CH_DTM, 0, 6) AS BASE_YM  /*기준년월*/
                          , T1.SELL_TP_CD   /*판매유형*/
                          , T1.SELL_TP_DTL_CD   /*판매유형상세*/
                          , T1.PD_HCLSF_ID     /*상품대분류*/
                          , T1.PD_MCLSF_ID     /*상품중분류*/      
-                         , '' AS PD_CD           /*상품코드 - 테이블추가필요*/
-                         , '' AS PD_NM
-                         --(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM   /*상품명*/
+                         , T1.BASE_PD_CD AS PD_CD           /*상품코드 - 테이블추가필요*/
+                         , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.BASE_PD_CD) AS PD_NM   /*상품명*/
                          /*이월은 따로조회 */
                          , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
                                  THEN 1 
@@ -144,7 +142,7 @@
                          /*순증, 합계따로계산*/
                       FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS T1  /*WELLS계약상태변경기본 - 현재 유효분을 다들고 오려면 계약상세를 들고오는게 맞을꺼 같은데..일단은이렇게*/
                      WHERE 1=1
-                       AND TO_CHAR(T1.CH_DTM, 'YYYYMM') BETWEEN #{baseYmFrom} AND #{baseYmTo}
+                       AND SUBSTR(T1.CH_DTM, 0, 6) BETWEEN #{baseYmFrom} AND #{baseYmTo}
                        <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                        AND T1.SELL_TP_CD = #{sellTpCd}
                        </if>
@@ -194,21 +192,20 @@
                  , S1.PD_CD
                  , S1.PD_NM
                  , (SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
-                     WHERE TO_CHAR(CH_DTM, 'YYYYMM') = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMMDDHH24MISS'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
+                     WHERE SUBSTR(CH_DTM, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMM'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
                        AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
                    ) AS AGRG_CT1   /*이월*/ 
                  , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
                  , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
                  , SUM(S1.AGRG_CT4) AS AGRG_CT4  /*만료*/
               FROM (
-                    SELECT TO_CHAR(T1.CH_DTM, 'YYYYMM') AS BASE_YM  /*기준년월*/
+                    SELECT SUBSTR(T1.CH_DTM, 0, 6) AS BASE_YM  /*기준년월*/
                          , T1.SELL_TP_CD   /*판매유형*/
                          , T1.SELL_TP_DTL_CD   /*판매유형상세*/
                          , T1.PD_HCLSF_ID     /*상품대분류*/
                          , T1.PD_MCLSF_ID     /*상품중분류*/      
-                         , '' AS PD_CD           /*상품코드 - 테이블추가필요*/
-                         , '' AS PD_NM
-                         --(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM   /*상품명*/
+                         , T1.BASE_PD_CD AS PD_CD           /*상품코드 - 테이블추가필요*/
+                         , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.BASE_PD_CD) AS PD_NM   /*상품명*/
                          /*이월은 따로조회 */
                          , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
                                  THEN 1 
@@ -222,7 +219,7 @@
                          /*순증, 합계따로계산*/
                       FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS T1  /*WELLS계약상태변경기본 - 현재 유효분을 다들고 오려면 계약상세를 들고오는게 맞을꺼 같은데..일단은이렇게*/
                      WHERE 1=1
-                       AND TO_CHAR(T1.CH_DTM, 'YYYYMM') BETWEEN #{baseYmFrom} AND #{baseYmTo}
+                       AND SUBSTR(T1.CH_DTM, 0, 6) BETWEEN #{baseYmFrom} AND #{baseYmTo}
                        <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                        AND T1.SELL_TP_CD = #{sellTpCd}
                        </if>
