@@ -219,7 +219,8 @@
              , T6.ACNO_ENCR
              , T6.CRCDNO_ENCR
              , T3.SFK_VAL /* 세이프키값 */
-             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '1' AND FNIT_CD = T7.VAC_BNK_CD) || T7.VAC_NO || NVL2(T7.VAC_DP_DT, ' 입금일 : ' || T7.VAC_DP_DT, '') AS VAC_INFO
+             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '1' AND FNIT_CD = T7.VAC_BNK_CD) || '$' ||
+             	T7.VAC_NO || '$' || NVL2(T7.VAC_DP_DT, ' 입금일 : ' || T7.VAC_DP_DT, '') AS VAC_INFO
              , T42.RNADR || T42.RDADR AS CNTRT_ADR /* 계약자 주소 */
              , T51.RCGVP_KNM    /* 수령자한글명 */
              , T51.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO
@@ -270,18 +271,20 @@
                                 , T10.VAC_IS_ID    /* 가상계좌발급ID */
                                 , T20.VAC_BNK_CD   /* 가상계좌은행코드 */
                                 , T20.VAC_NO       /* 가상계좌번호 */
-                                , (SELECT VAC_DP_DTM
-                                     FROM (SELECT VAC_DP_DTM
-                                                , ROW_NUMBER () OVER(ORDER BY VAC_DP_SN DESC) AS RN
-                                             FROM TB_RVDW_VAC_DP_IZ  /* T.가상계좌입금내역 */
-                                             WHERE 1=1
-                                               AND DTA_DL_YN = 'N'
-                                               AND KW_GRP_CO_CD = T10.KW_GRP_CO_CD
-                                               AND VAC_IS_ID = T10.VAC_IS_ID
-                                              )
-                                              WHERE RN = 1) AS VAC_DP_DT
+							    , (SELECT FNIT_NM
+							         FROM TB_RVDW_FNIT_CD
+							        WHERE FNIT_DV_CD = '1'
+							      	  AND FNIT_CD = T20.VAC_BNK_CD) AS VAC_BNK_NM /* 가상계좌명 */
+							    , SUBSTR((SELECT MAX(VAC_DP_DTM) KEEP(DENSE_RANK FIRST ORDER BY VAC_DP_SN DESC)
+							         		FROM TB_RVDW_VAC_DP_IZ /* T.가상계좌입금내역 */
+									        WHERE 1 = 1
+									          AND KW_GRP_CO_CD = T10.KW_GRP_CO_CD
+									          AND VAC_IS_ID = T10.VAC_IS_ID
+									          AND VAC_DP_DV_CD = '1' /* 가상계좌입금구분코드 : 입금(1)*/
+									          AND DTA_DL_YN = 'N'
+							       		 ), 1, 8) AS VAC_DP_DT /* 거래일 */
                                FROM TB_RVDW_VAC_IS_DTL T10               /* T.가상계좌발급상세 */
-                              INNER JOIN TB_RVDW_VAC_IS_IZ T20           /* T.가상계좌발급내역 */
+                              INNER JOIN TB_RVDW_VAC_BAS T20           	 /* T.가상계좌기본 */
                                  ON T20.KW_GRP_CO_CD = T10.KW_GRP_CO_CD   /* 교원그룹회사코드  */
                                 AND T20.VAC_IS_ID = T10.VAC_IS_ID         /* 가상계좌발급ID  */
                                 AND T20.DTA_DL_YN = 'N'

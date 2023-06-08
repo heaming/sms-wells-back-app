@@ -135,7 +135,7 @@ public class WctaOrderDetailMngtDto {
         int cntrSn,
         @NotBlank
         String cntrCnfmYn,
-        String cntrCnfmDt,
+        String cntrCnfmDtm,
         String cntrPdStrtdt
     ) {}
 
