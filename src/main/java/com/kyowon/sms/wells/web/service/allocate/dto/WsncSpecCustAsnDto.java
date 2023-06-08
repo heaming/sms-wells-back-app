@@ -2,16 +2,18 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsncBeforeServiceAsnBatDto {
+public class WsncSpecCustAsnDto {
 
     // *********************************************************
     // Request Dto
     // *********************************************************
 
-    @ApiModel(value = "WsncBeforeServiceAsnBatDto-SaveProcessReq")
+    @ApiModel(value = "WsncSpecCustAsnDto-SaveProcessReq")
     public record SaveProcessReq(
         String asnOjYm,
-        String prtnrNo
+        String prtnrNo,
+        String cntrNo,
+        String cntrSn
     ) {}
 
     // *********************************************************

@@ -15,7 +15,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WSNC] 특정고객 배정 인서트")
+@Api(tags = "[WSNC] BS 배정 배치")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/before-service-asn-bats")
@@ -23,9 +23,9 @@ public class WsncBeforeServiceAsnBatController {
 
     private final WsncBeforeServiceAsnBatService service;
 
-    @ApiOperation(value = "특정고객 배정 인서트", notes = "특정고객 배정 인서트")
+    @ApiOperation(value = "BS 배정 배치", notes = "BS 배정 배치")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm", value = "배정년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "작업담당자사번", paramType = "query", required = false),
     })
     @PostMapping
