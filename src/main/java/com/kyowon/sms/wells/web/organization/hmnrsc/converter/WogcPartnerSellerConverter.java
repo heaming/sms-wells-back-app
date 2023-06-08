@@ -23,7 +23,7 @@ public interface WogcPartnerSellerConverter {
     @Mapping(source = "dvo.prtnrKnm", target = "prtnrKnm")
     @Mapping(source = "dvo.cralLocaraTno", target = "cralLocaraTno")
     @Mapping(source = "dvo.mexnoEncr", target = "mexnoEncr")
-    @Mapping(source = "dvo.cralTno", target = "cralTno")
+    @Mapping(source = "dvo.cralIdvTno", target = "cralIdvTno")
     @Mapping(source = "dvo.dgr3LevlOgCd", target = "dgr3LevlOgCd")
     @Mapping(source = "dvo.dgr3LevlOgNm", target = "dgr3LevlOgNm")
     List<WogcPartnerSellerInterfaceDto.SearchWMRes> mapAllWogcPartnerSellerInterfaceDvoToSearchWMRes(List<WogcPartnerSellerInterfaceDvo> dvos);
@@ -35,7 +35,7 @@ public interface WogcPartnerSellerConverter {
     @Mapping(source = "dvo.prtnrKnm", target = "prtnrKnm")
     @Mapping(source = "dvo.cralLocaraTno", target = "cralLocaraTno")
     @Mapping(source = "dvo.mexnoEncr", target = "mexnoEncr")
-    @Mapping(source = "dvo.cralTno", target = "cralTno")
+    @Mapping(source = "dvo.cralIdvTno", target = "cralIdvTno")
     @Mapping(source = "dvo.ogCd", target = "ogCd")
     @Mapping(source = "dvo.ogNm", target = "ogNm")
     List<WogcPartnerSellerInterfaceDto.SearchRecentContractRes> mapAllWogcPartnerSellerInterfaceDvoToSearchRecentContractRes(List<WogcPartnerSellerInterfaceDvo> dvos);
