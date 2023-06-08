@@ -3,71 +3,99 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncOtherRegionMgtStateMapper">
     <select id="selectOtherRegionMgtState"
             resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncOtherRegionMgtStateDto$SearchRes">
-        SELECT (SELECT OG_CD
-                FROM TB_OGBS_OG_BAS
-                WHERE TB_OGBS_OG_BAS.OG_ID = T2.BRCH_OG_ID) AS RGNL_GRP -- 관리지역단
-             , T1.CNTR_NO||'-'||T1.CNTR_SN AS CNTR_NO
-             , C1.CST_KNM                                               -- 고객명
-             , A2.NEW_ADR_ZIP                                           -- 우편번호
-             , A2.RNADR || ' ' || A2.RDADR                  AS CST_ADR  -- 주소
-             , A2.LTN_ADR                                               -- 읍면동
-             , C1.CRAL_LOCARA_TNO                                       -- 폰번호
-             , C1.MEXNO_ENCR
-             , C1.CRAL_IDV_TNO
-             , M1.OG_CD                                                 -- 방문지역단
-             , M1.OG_NM                                                 -- 지점
-             , T1.MNGT_PRTNR_NO                                         -- 사번
-             , M1.PRTNR_KNM                                             -- 매니저명
-             , (SELECT BLD_NM
-                FROM TB_OGBS_OG_BAS
-                   , TB_OGBS_BLD_BAS
-                WHERE TB_OGBS_OG_BAS.OG_TP_CD = TB_OGBS_BLD_BAS.OG_TP_CD
-                  AND TB_OGBS_OG_BAS.BLD_CD = TB_OGBS_BLD_BAS.BLD_CD
-                  AND TB_OGBS_OG_BAS.OG_TP_CD = M1.OG_TP_CD
-                  AND OG_ID = M1.OG_ID) AS BLD_NM                       -- 빌딩명
-             , T1.FXN_PRTNR_YN                                          -- 구분
-             , T1.MNGER_RGLVL_DV_CD                                     -- 급지
-             , T1.MNGT_YM
+        SELECT MAIN.*
+        FROM (
+        SELECT (SELECT OG_NM
+        FROM TB_OGBS_OG_BAS
+        WHERE TB_OGBS_OG_BAS.OG_ID = T2.BRCH_OG_ID) AS RGNL_GRP -- 관리지역단
+        , T1.CNTR_NO||'-'||T1.CNTR_SN AS CNTR_NO
+        , C1.CST_KNM -- 고객명
+        , A2.NEW_ADR_ZIP -- 우편번호
+        , A2.RNADR || ' ' || A2.RDADR AS CST_ADR -- 주소
+        , A2.LTN_ADR -- 읍면동
+        , C1.CRAL_LOCARA_TNO -- 폰번호
+        , C1.MEXNO_ENCR
+        , C1.CRAL_IDV_TNO
+        , ( SELECT HGR_OG_ID
+        FROM TB_OGBS_OG_BAS
+        WHERE TB_OGBS_OG_BAS.OG_ID = (SELECT HGR_OG_ID FROM TB_OGBS_OG_BAS WHERE TB_OGBS_OG_BAS.OG_ID = M1.OG_ID)
+        ) AS MGT_DEPT_CD
+        , ( SELECT OG_ID
+        FROM TB_OGBS_OG_BAS
+        WHERE TB_OGBS_OG_BAS.OG_ID = (SELECT HGR_OG_ID FROM TB_OGBS_OG_BAS WHERE TB_OGBS_OG_BAS.OG_ID = M1.OG_ID)
+        ) AS HGR_OG_CD
+        , ( SELECT OG_NM
+        FROM TB_OGBS_OG_BAS
+        WHERE TB_OGBS_OG_BAS.OG_ID = (SELECT HGR_OG_ID FROM TB_OGBS_OG_BAS WHERE TB_OGBS_OG_BAS.OG_ID = M1.OG_ID)
+        ) AS HGR_OG_NM -- 방문지역단
+        , M1.OG_CD
+        , M1.OG_NM -- 지점
+        , T1.MNGT_PRTNR_NO -- 사번
+        , M1.PRTNR_KNM -- 매니저명
+        , (SELECT BLD_NM
+        FROM TB_OGBS_OG_BAS
+        , TB_OGBS_BLD_BAS
+        WHERE TB_OGBS_OG_BAS.OG_TP_CD = TB_OGBS_BLD_BAS.OG_TP_CD
+        AND TB_OGBS_OG_BAS.BLD_CD = TB_OGBS_BLD_BAS.BLD_CD
+        AND TB_OGBS_OG_BAS.OG_TP_CD = M1.OG_TP_CD
+        AND OG_ID = M1.OG_ID) AS BLD_NM -- 빌딩명
+        , T1.FXN_PRTNR_YN -- 구분
+        , T1.MNGER_RGLVL_DV_CD -- 급지
+        , T2.BRCH_OG_ID
         FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1 -- 월별고객서비스대상내역
-                 INNER JOIN TB_CUBS_CST_BAS C1
-                            ON T1.CNTR_CST_NO = C1.CST_NO
-                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ M1
-                                 ON T1.MNGT_YM = M1.BASE_YM
---AND T1.MNGT_PRTNR_OG_TP_CD = M1.OG_TP_CD
-                                     AND T1.MNGT_PRTNR_NO = M1.PRTNR_NO
-                 INNER JOIN (SELECT TB_GBCO_ADR_BAS.ADR_ID
-                                  , TB_GBCO_ADR_BAS.NEW_ADR_ZIP
-                                  , TB_GBCO_ADR_BAS.RNADR
-                                  , TB_GBCO_ADR_BAS.RDADR
-                                  , TB_GBCO_ADR_BAS.LTN_ADR
-                             FROM TB_GBCO_ADR_BAS
-                                      INNER JOIN TB_GBCO_ZIP_BAS
-                                                 ON TB_GBCO_ADR_BAS.NEW_ADR_ZIP = TB_GBCO_ZIP_BAS.NEW_ADR_ZIP) A2-- 주소 기본
-                            ON T1.ADR_ID = A2.ADR_ID
-                 INNER JOIN TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T2 -- 지역BS조직매니저내역
-                            ON T2.NEW_ADR_ZIP = A2.NEW_ADR_ZIP
-                 INNER JOIN (SELECT AA.CNTR_ADRPC_ID
-                                  , BB.CNTR_ADR_REL_ID
-                                  , AA.CNTR_NO
-                                  , AA.CNTR_CST_NO
-                                  , AA.ADR_ID
-                                  , CNTRT_REL_CD
-                             FROM TB_SSCT_CNTR_ADRPC_BAS AA
-                                      INNER JOIN TB_SSCT_CNTR_ADR_REL BB
-                                                 ON AA.CNTR_ADRPC_ID = BB.CNTR_ADRPC_ID) T3 -- 계약주소기본
-                            ON T1.CNTR_NO = T3.CNTR_NO
-                                AND T1.CNTR_CST_NO = T3.CNTR_CST_NO
-                                AND T1.ADR_ID = T3.ADR_ID
-                                AND T3.CNTRT_REL_CD IS NOT NULL -- 조우섭프로님께 문의할 건
-                 INNER JOIN TB_SSCT_CNTR_CST_REL A3 -- 계약고객관계
-                            ON A3.DTL_CNTR_NO = T1.CNTR_NO
-                                AND A3.DTL_CNTR_SN = T1.CNTR_SN
-                                AND A3.CST_NO = T3.CNTR_CST_NO
---AND TO_NUMBER(A3.CNTRT_REL_CD) = TO_NUMBER(T3.CNTRT_REL_CD) -- 조우섭프로님께 문의할 건
+        INNER JOIN TB_CUBS_CST_BAS C1
+        ON T1.CNTR_CST_NO = C1.CST_NO
+        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ M1
+        ON T1.MNGT_YM = M1.BASE_YM
+        --AND T1.MNGT_PRTNR_OG_TP_CD = M1.OG_TP_CD
+        AND T1.MNGT_PRTNR_NO = M1.PRTNR_NO
+        INNER JOIN (SELECT TB_GBCO_ADR_BAS.ADR_ID
+        , TB_GBCO_ADR_BAS.NEW_ADR_ZIP
+        , TB_GBCO_ADR_BAS.RNADR
+        , TB_GBCO_ADR_BAS.RDADR
+        , TB_GBCO_ADR_BAS.LTN_ADR
+        FROM TB_GBCO_ADR_BAS
+        INNER JOIN TB_GBCO_ZIP_BAS
+        ON TB_GBCO_ADR_BAS.NEW_ADR_ZIP = TB_GBCO_ZIP_BAS.NEW_ADR_ZIP) A2-- 주소 기본
+        ON T1.ADR_ID = A2.ADR_ID
+        INNER JOIN TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T2 -- 지역BS조직매니저내역
+        ON T2.NEW_ADR_ZIP = A2.NEW_ADR_ZIP
+        INNER JOIN (SELECT AA.CNTR_ADRPC_ID
+        , BB.CNTR_ADR_REL_ID
+        , AA.CNTR_NO
+        , AA.CNTR_CST_NO
+        , AA.ADR_ID
+        , CNTRT_REL_CD
+        FROM TB_SSCT_CNTR_ADRPC_BAS AA
+        INNER JOIN TB_SSCT_CNTR_ADR_REL BB
+        ON AA.CNTR_ADRPC_ID = BB.CNTR_ADRPC_ID) T3 -- 계약주소기본
+        ON T1.CNTR_NO = T3.CNTR_NO
+        AND T1.CNTR_CST_NO = T3.CNTR_CST_NO
+        AND T1.ADR_ID = T3.ADR_ID
+        AND T3.CNTRT_REL_CD IS NOT NULL -- 조우섭프로님께 문의할 건
+        INNER JOIN TB_SSCT_CNTR_CST_REL A3 -- 계약고객관계
+        ON A3.DTL_CNTR_NO = T1.CNTR_NO
+        AND A3.DTL_CNTR_SN = T1.CNTR_SN
+        AND A3.CST_NO = T3.CNTR_CST_NO
+        --AND TO_NUMBER(A3.CNTRT_REL_CD) = TO_NUMBER(T3.CNTRT_REL_CD) -- 조우섭프로님께 문의할 건
         WHERE 1 = 1
-        AND T1.CNTR_NO = 'W20225102028';
-        AND T1.MNGT_YM = #{mgtYm}
-        AND
-</select>
+        AND T1.MNGT_YM = #{mgtYnm}
+        ) MAIN
+        WHERE 1=1
+        AND MAIN.MGT_DEPT_CD != MAIN.BRCH_OG_ID
+        <if test="@MybatisUtils@isNotEmpty(mgtDept)">
+            AND MAIN.MGT_DEPT_CD = (SELECT OG_ID FROM TB_OGBS_OG_BAS WHERE OG_CD = #{mgtDept} AND OG_TP_CD = 'W02')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(rgnlGrp)">
+            AND MAIN.HGR_OG_CD = (SELECT OG_ID FROM TB_OGBS_OG_BAS WHERE OG_CD = #{rgnlGrp} AND OG_TP_CD = 'W02')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(branch)">
+            AND MAIN.OG_CD = #{branch}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(zipFrom) or @MybatisUtils@isNotEmpty(zipTo)">
+            AND MAIN.NEW_ADR_ZIP BETWEEN LPAD(SUBSTR(NVL(#{zipFrom}, '00000'), 1, 5), 5, '0') AND
+            LPAD(SUBSTR(NVL(#{zipTo}, '99999'), 1, 5), 5, '0')
+        </if>
+    </select>
 
 </mapper>

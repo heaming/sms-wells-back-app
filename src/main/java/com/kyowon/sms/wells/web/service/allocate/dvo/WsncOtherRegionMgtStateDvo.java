@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
-//import com.sds.sflex.system.config.annotation.DBDecField;
-//import com.sds.sflex.system.config.annotation.DBEncField;
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -19,22 +19,22 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsncOtherRegionMgtStateDvo {
-    String rglnGrp;
+    String rgnlGrp;
     String cntrNo;
     String cstKnm;
     String newAdrZip;
     String cstAdr;
     String ltnAdr;
     String cralLocaraTno;
-    //        @DBEncField
-    //    @DBDecField
+    @DBEncField
+    @DBDecField
     String mexnoEncr;
     String cralIdvTno;
-    String ogCd;
+    String hgrOgNm;
     String ogNm;
     String mngtPrtnrNo;
     String prtnrKnm;
     String bldNm;
     String fxnPrtnrYn;
-    String mngerRglvDvCd;
+    String mngerRglvlDvCd;
 }

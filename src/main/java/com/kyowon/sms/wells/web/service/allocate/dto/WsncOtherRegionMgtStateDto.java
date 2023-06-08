@@ -2,6 +2,10 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -24,7 +28,8 @@ public class WsncOtherRegionMgtStateDto {
         String mgtDept,
         String rgnlGrp,
         String branch,
-        String adrZip
+        String zipFrom,
+        String zipTo
     ) {}
 
     // *********************************************************
@@ -32,7 +37,7 @@ public class WsncOtherRegionMgtStateDto {
     // *********************************************************
     @ApiModel(value = "WsncOtherRegionMgtStateDto-SearchRes")
     public record SearchRes(
-        String rglnGrp,
+        String rgnlGrp,
         String cntrNo,
         String cstKnm,
         String newAdrZip,
@@ -41,13 +46,17 @@ public class WsncOtherRegionMgtStateDto {
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String ogCd,
+        String hgrOgNm,
         String ogNm,
         String mngtPrtnrNo,
         String prtnrKnm,
         String bldNm,
         String fxnPrtnrYn,
-        String mngerRglvDvCd
-    ) {}
+        String mngerRglvlDvCd
+    ) {
+        public SearchRes {
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr; // 암호화
+        }
+    }
 
 }
