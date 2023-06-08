@@ -154,7 +154,9 @@ public class WbncCustomerDto {
         String vtAc, /* 자동이체 */
         String fntDt, /* 이체일자 */
         String plar, /* 플래너 */
-        String plarMpno, /* 플래너 휴대전화번호 */
+        String plarCralLocaraTno,
+        String plarMexnoEncr,
+        String plarCralIdvTno, /* 플래너 휴대전화번호 */
         String cltnDt, /* 해약일 */
         String dsmn, /* 지국장 */
         String dsmnCralLocaraTno,
@@ -197,6 +199,7 @@ public class WbncCustomerDto {
             istMexnoEncr = StringUtils.isNotEmpty(istMexnoEncr) ? DbEncUtil.dec(istMexnoEncr) : istMexnoEncr;
             dsmnMexnoEncr = StringUtils.isNotEmpty(dsmnMexnoEncr) ? DbEncUtil.dec(dsmnMexnoEncr) : dsmnMexnoEncr;
             dsmnExnoEncr = StringUtils.isNotEmpty(dsmnExnoEncr) ? DbEncUtil.dec(dsmnExnoEncr) : dsmnExnoEncr;
+            plarMexnoEncr = StringUtils.isNotEmpty(plarMexnoEncr) ? DbEncUtil.dec(plarMexnoEncr) : plarMexnoEncr;
         }
 
     }
@@ -216,6 +219,7 @@ public class WbncCustomerDto {
         String prdf, /* 제품군 */
         String pdNm, /* 상품명 */
         String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
         String cstNo, /* 고객번호 */
         String cstKnm, /* 고객명 */
         String dlqMcn, /* 연체개월 */

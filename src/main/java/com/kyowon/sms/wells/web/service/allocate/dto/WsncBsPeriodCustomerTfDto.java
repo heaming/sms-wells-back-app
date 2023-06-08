@@ -58,7 +58,8 @@ public class WsncBsPeriodCustomerTfDto {
         String tfPrtnrKnm,
         String tfFnCnfmdt,
         String tfFnOgNm,
-        String tfFnPrtnrKnm
+        String tfFnPrtnrKnm,
+        String cstSvAsnNo
 
     ) {
         public SearchRes {

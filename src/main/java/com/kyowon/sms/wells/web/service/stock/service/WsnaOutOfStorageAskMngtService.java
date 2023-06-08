@@ -45,8 +45,8 @@ public class WsnaOutOfStorageAskMngtService {
      * @param dto : { strOjWareNo: 출고요청창고, ostrAkTpCd: 출고요청유형코드, startStrHopDt: 입고희망일자 시작일, endStrHopDt: 입고희망일자 종료일, wareDvCd: 출고요청 접수창고, wareLocaraCd: 창고지역코드 }
      * @return 조회결과
      */
-    public List<SearchRes> getOutOfStorageAsks(SearchReq dto) {
-        return this.mapper.selectOutOfStorageAsks(dto);
+    public PagingResult<SearchRes> getOutOfStorageAsks(SearchReq dto, PageInfo pageInfo) {
+        return this.mapper.selectOutOfStorageAsks(dto, pageInfo);
     }
 
     /**
@@ -132,5 +132,9 @@ public class WsnaOutOfStorageAskMngtService {
 
         //TODO: 시쿼스 정의 및 인터페이스(W-SV-I-0027) 개발 후 로직추가.
         return processCount;
+    }
+
+    public List<OutOfRes> getOutOfStorageItemExcelDownload(SearchReq dto) {
+        return mapper.selectOutOfStorageItms(dto);
     }
 }

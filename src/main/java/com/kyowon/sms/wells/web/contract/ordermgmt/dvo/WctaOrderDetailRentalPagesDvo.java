@@ -47,7 +47,8 @@ public class WctaOrderDetailRentalPagesDvo {
     private String pdctIdno; /* 설치정보-S N 번호 */
     private String istAkDt; /* 설치요청일 */
     private String sellInflwChnlDtlNm; /* 판매구분 */
-    private String copnDvNm; /* 고객구분 */
+    private String copnDvCd; /* 고객구분코드 */
+    private String copnDvNm; /* 고객구분명 */
     private String pdClsfNm; /* 상품 정보-상품분류 */
     private String pdNm; /* 상품 정보-상품명 */
     private String basePdCd; /* 상품 정보-상품코드 */

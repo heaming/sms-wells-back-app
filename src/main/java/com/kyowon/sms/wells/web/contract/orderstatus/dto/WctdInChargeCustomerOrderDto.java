@@ -38,7 +38,8 @@ public class WctdInChargeCustomerOrderDto {
         String cntrDtlStatNm, /* 상태 */
         String pdNm, /* 상품명 */
         String adr, /* 기준주소 */
-        String dtlAdr /* 상세주소 */
+        String dtlAdr, /* 상세주소 */
+        String cntrPrgsStatCd /* 계약진행상태코드 */
     ) {
         public SearchRes{
             mpNo =  CtContractUtils.buildTno(cralLocaraTno, mexno, cralIdvTno);

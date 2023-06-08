@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebRedemptionFeeMapper">
+<sql id="dlqRedemptionTargetCondition">
+        WHERE REDF_ADSB_OC_YM = #{baseYm}
+           AND REDF_ADSB_TP_CD ='02'    /* 되물림 */
+           AND REDF_ADSB_TP_CD = '0203' /* 연체 */
+           AND OG_TP_CD LIKE '%' || (SELECT MAX(USER_DFN_03)
+                                       FROM AFMDBS.T_CMZ_CD_D
+                                      WHERE TENANT_ID = #{session.tenantId}
+                                        AND CD_ID = 'CNTR_PERF_CRT_DV_CD'
+                                        AND CD_VLD_VAL = #{cntrPerfCrtDvCd}) || '%'
+    </sql>
+    <delete id='deleteCommonDlqRedemptionOfFees'>
+        DELETE ${tableName}
+        <include refid="dlqRedemptionTargetCondition"/>
+    </delete>
+
+    <insert id='insertContractDlqRedemptionOfFees'>
+        INSERT INTO TB_FEDD_FEE_REDF_ADSB_DTL (  /* 수수료되물림재지급상세 */
+                  FEE_REDF_ADSB_DTL_ID   /* 수수료되물림재지급상세ID */
+                , REDF_ADSB_OC_YM        /* 되물림재지급발생년월 */
+                , PERF_YM                /* 실적년월 */
+                , PERF_DV_CD             /* 실적구분코드 */
+                , CO_CD                  /* 회사코드 */
+                , OG_TP_CD               /* 조직유형코드 */
+                , PRTNR_NO               /* 파트너번호 */
+                , CNTR_NO                /* 계약번호 */
+                , CNTR_SN                /* 계약일련번호 */
+                , FEE_CD                 /* 수수료코드 */
+                , DTA_CRT_FEE_CD         /* 데이터생성수수료코드 */
+                , REDF_ADSB_DV_CD        /* 되물림재지급구분코드 */
+                , REDF_ADSB_TP_CD        /* 되물림재지급유형코드 */
+                , REDF_ADSB_OC_AMT       /* 되물림재지급발생금액 */
+                , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+                <include refid="COMMON.insertSystemField" />)
+        SELECT ${feeRedfAdsbDtlId} AS FEE_REDF_ADSB_DTL_ID
+             , #{baseYm} AS REDF_ADSB_OC_YM
+             , T1.PERF_YM
+             , '0' AS PERF_DV_CD
+             , T1.CO_CD
+             , T1.OG_TP_CD
+             , T1.PRTNR_NO
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.OG_TP_CD || '0000' AS FEE_CD
+             , T1.OG_TP_CD || '0000' AS DTA_CRT_FEE_CD
+             , '02' AS REDF_ADSB_DV_CD /* 되물림 */
+             , '0203' AS REDF_ADSB_TP_CD /* 연체되물림 */
+             , T2.FEE_ACKMT_BASE_AMT  AS REDF_ADSB_OC_AMT /* 최초수수료율 * 대물림대상금액 */
+             , T2.FEE_ACKMT_BASE_AMT  AS REDF_ADSB_CTR_CNFM_AMT /* 최초수수료율 * 대물림대상금액 */
+          FROM TB_FEAM_WELS_NRCTR_MM_CL T1
+               INNER JOIN TB_SSCT_CNTR_DTL  T2
+               ON (T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN)
+         WHERE T1.BASE_YM = #{baseYm}
+           AND T1.CNTR_PERF_CRT_DV_CD = #{cntrPerfCrtDvCd} /* 되물림 */
+           AND T1.PERF_TP_CD = '10' /* 연체) */
+           AND T2.FEE_ACKMT_BASE_AMT > 0
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+    </insert>
+
+    <insert id="insertDlqRedemptionOfFees">
+        INSERT INTO TB_FEDD_FEE_REDF_ADSB_BAS (  /* 수수료되물림재지급기본 */
+                  FEE_REDF_ADSB_ID       /* 수수료되물림재지급ID */
+                , REDF_ADSB_OC_YM        /* 되물림재지급발생년월 */
+                , PERF_YM                /* 실적년월 */
+                , PERF_DV_CD             /* 실적구분코드 */
+                , CO_CD                  /* 회사코드 */
+                , OG_TP_CD               /* 조직유형코드 */
+                , PRTNR_NO               /* 파트너번호 */
+                , FEE_CD                 /* 수수료코드 */
+                , DTA_CRT_FEE_CD         /* 데이터생성수수료코드 */
+                , REDF_ADSB_DV_CD        /* 되물림재지급구분코드 */
+                , REDF_ADSB_TP_CD        /* 되물림재지급유형코드 */
+                , REDF_ADSB_OC_AMT       /* 되물림재지급발생금액 */
+                , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+                <include refid="COMMON.insertSystemField" />)
+        SELECT ${feeRedfAdsbId} AS FEE_REDF_ADSB_ID
+             , REDF_ADSB_OC_YM
+             , PERF_YM
+             , PERF_DV_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , FEE_CD
+             , DTA_CRT_FEE_CD
+             , REDF_ADSB_DV_CD
+             , REDF_ADSB_TP_CD
+             , REDF_ADSB_OC_AMT
+             , REDF_ADSB_CTR_CNFM_AMT
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM (SELECT REDF_ADSB_OC_YM
+                     , PERF_YM
+                     , PERF_DV_CD
+                     , CO_CD
+                     , OG_TP_CD
+                     , PRTNR_NO
+                     , FEE_CD
+                     , DTA_CRT_FEE_CD
+                     , REDF_ADSB_DV_CD
+                     , REDF_ADSB_TP_CD
+                     , SUM(REDF_ADSB_OC_AMT) AS REDF_ADSB_OC_AMT
+                     , SUM(REDF_ADSB_CTR_CNFM_AMT) AS REDF_ADSB_CTR_CNFM_AMT
+                  FROM TB_FEDD_FEE_REDF_ADSB_DTL
+                 <include refid="dlqRedemptionTargetCondition"/>
+                 GROUP BY REDF_ADSB_OC_YM
+                        , PERF_YM
+                        , PERF_DV_CD
+                        , CO_CD
+                        , OG_TP_CD
+                        , PRTNR_NO
+                        , FEE_CD
+                        , DTA_CRT_FEE_CD
+                        , REDF_ADSB_DV_CD
+                        , REDF_ADSB_TP_CD)
+    </insert>
+
+    <update id="updatePrtnrIdCntrDlqRedemptionOfFees">
+        MERGE INTO TB_FEDD_FEE_REDF_ADSB_DTL T1
+                USING (SELECT FEE_REDF_ADSB_ID
+                            , REDF_ADSB_OC_YM
+                            , PERF_YM
+                            , PERF_DV_CD
+                            , CO_CD
+                            , OG_TP_CD
+                            , PRTNR_NO
+                            , FEE_CD
+                            , DTA_CRT_FEE_CD
+                            , REDF_ADSB_DV_CD
+                            , REDF_ADSB_TP_CD
+                         FROM TB_FEDD_FEE_REDF_ADSB_BAS
+                        <include refid="dlqRedemptionTargetCondition"/>
+                          ) T2
+                ON (T1.REDF_ADSB_OC_YM = T2.REDF_ADSB_OC_YM AND T1.PERF_YM = T2.PERF_YM AND T1.PERF_DV_CD = T2.PERF_DV_CD AND
+                    T1.CO_CD = T2.CO_CD AND T1.OG_TP_CD = T2.OG_TP_CD AND T1.PRTNR_NO = T2.PRTNR_NO AND
+                    T1.FEE_CD = T2.FEE_CD AND T1.DTA_CRT_FEE_CD = T2.DTA_CRT_FEE_CD AND
+                    T1.REDF_ADSB_DV_CD = T2.REDF_ADSB_DV_CD AND
+                    T1.REDF_ADSB_TP_CD = T2.REDF_ADSB_TP_CD)
+                WHEN MATCHED THEN
+                    UPDATE
+                       SET T1.FEE_REDF_ADSB_ID = T2.FEE_REDF_ADSB_ID
+    </update>
+
+    <insert id="insertContractDlqRedemptionOfFeeHistories">
+        INSERT INTO TB_FEDD_FEE_REDF_ADSB_DTL_HIST (  /* 수수료되물림재지급상세이력 */
+              FEE_REDF_ADSB_DTL_ID   /* 수수료되물림재지급상세ID */
+            , HIST_CH_DTM            /* 이력변경일시 */
+            , FEE_REDF_ADSB_ID       /* 수수료되물림재지급ID */
+            , ADSB_OJ_REDF_DTL_ID    /* 재지급대상되물림상세ID */
+            , REDF_ADSB_OC_YM        /* 되물림재지급발생년월 */
+            , PERF_YM                /* 실적년월 */
+            , PERF_DV_CD             /* 실적구분코드 */
+            , CO_CD                  /* 회사코드 */
+            , OG_TP_CD               /* 조직유형코드 */
+            , PRTNR_NO               /* 파트너번호 */
+            , CNTR_NO                /* 계약번호 */
+            , CNTR_SN                /* 계약일련번호 */
+            , FEE_CD                 /* 수수료코드 */
+            , DTA_CRT_FEE_CD         /* 데이터생성수수료코드 */
+            , REDF_ADSB_DV_CD        /* 되물림재지급구분코드 */
+            , REDF_ADSB_TP_CD        /* 되물림재지급유형코드 */
+            , REDF_ADSB_OC_AMT       /* 되물림재지급발생금액 */
+            , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+            , REDF_ADSB_CTR_RSON_CD  /* 되물림재지급조정사유코드 */
+            , REDF_ADSB_CTR_RSON_CN  /* 되물림재지급조정사유내용 */
+            , REDF_NAPD_DV_CD        /* 되물림미적용구분코드 */
+            , REDF_NAPD_AMT          /* 되물림미적용금액 */
+            , REDF_NAPD_DT           /* 되물림미적용일자 */
+            , REDF_RPB_OJ_YN         /* 되물림책임대상여부 */
+            , DTA_DL_YN              /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+        SELECT FEE_REDF_ADSB_DTL_ID   /* 수수료되물림재지급상세ID */
+             , FST_RGST_DTM AS HIST_CH_DTM            /* 이력변경일시 */
+             , FEE_REDF_ADSB_ID       /* 수수료되물림재지급ID */
+             , ADSB_OJ_REDF_DTL_ID    /* 재지급대상되물림상세ID */
+             , REDF_ADSB_OC_YM        /* 되물림재지급발생년월 */
+             , PERF_YM                /* 실적년월 */
+             , PERF_DV_CD             /* 실적구분코드 */
+             , CO_CD                  /* 회사코드 */
+             , OG_TP_CD               /* 조직유형코드 */
+             , PRTNR_NO               /* 파트너번호 */
+             , CNTR_NO                /* 계약번호 */
+             , CNTR_SN                /* 계약일련번호 */
+             , FEE_CD                 /* 수수료코드 */
+             , DTA_CRT_FEE_CD         /* 데이터생성수수료코드 */
+             , REDF_ADSB_DV_CD        /* 되물림재지급구분코드 */
+             , REDF_ADSB_TP_CD        /* 되물림재지급유형코드 */
+             , REDF_ADSB_OC_AMT       /* 되물림재지급발생금액 */
+             , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+             , REDF_ADSB_CTR_RSON_CD  /* 되물림재지급조정사유코드 */
+             , REDF_ADSB_CTR_RSON_CN  /* 되물림재지급조정사유내용 */
+             , REDF_NAPD_DV_CD        /* 되물림미적용구분코드 */
+             , REDF_NAPD_AMT          /* 되물림미적용금액 */
+             , REDF_NAPD_DT           /* 되물림미적용일자 */
+             , REDF_RPB_OJ_YN         /* 되물림책임대상여부 */
+             , DTA_DL_YN              /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+          FROM TB_FEDD_FEE_REDF_ADSB_DTL /* 수수료되물림재지급상세 */
+            <include refid="dlqRedemptionTargetCondition"/>
+    </insert>
+
+    <insert id="insertPartnerDlqRedemptionOfFeeHistories">
+        INSERT INTO TB_FEDD_FEE_REDF_ADSB_HIST (  /* 수수료되물림재지급이력 */
+              FEE_REDF_ADSB_ID       /* 수수료되물림재지급ID */
+            , HIST_CH_DTM            /* 이력변경일시 */
+            , ADSB_OJ_REDF_ID        /* 재지급대상되물림ID */
+            , REDF_ADSB_OC_YM        /* 되물림재지급발생년월 */
+            , PERF_YM                /* 실적년월 */
+            , PERF_DV_CD             /* 실적구분코드 */
+            , CO_CD                  /* 회사코드 */
+            , OG_TP_CD               /* 조직유형코드 */
+            , PRTNR_NO               /* 파트너번호 */
+            , FEE_CD                 /* 수수료코드 */
+            , DTA_CRT_FEE_CD         /* 데이터생성수수료코드 */
+            , REDF_ADSB_DV_CD        /* 되물림재지급구분코드 */
+            , REDF_ADSB_TP_CD        /* 되물림재지급유형코드 */
+            , REDF_ADSB_OC_AMT       /* 되물림재지급발생금액 */
+            , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+            , REDF_ADSB_CTR_RSON_CD  /* 되물림재지급조정사유코드 */
+            , REDF_ADSB_CTR_RSON_CN  /* 되물림재지급조정사유내용 */
+            , REDF_NAPD_DV_CD        /* 되물림미적용구분코드 */
+            , REDF_NAPD_AMT          /* 되물림미적용금액 */
+            , REDF_NAPD_DT           /* 되물림미적용일자 */
+            , REDF_RPB_OJ_YN         /* 되물림책임대상여부 */
+            , WHTX_REP_SLIP_TRS_NO   /* 원천세환수전표전송번호 */
+            , WHTX_REP_SLIP_LINE_SN  /* 원천세환수전표라인일련번호 */
+            , WHTX_REP_SLPNO         /* 원천세환수전표번호 */
+            , RDS_RV_USE_ID          /* RDS적립사용ID */
+            , DTA_DL_YN              /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        SELECT FEE_REDF_ADSB_ID       /* 수수료되물림재지급ID */
+             , FST_RGST_DTM AS HIST_CH_DTM            /* 이력변경일시 */
+             , ADSB_OJ_REDF_ID        /* 재지급대상되물림ID */
+             , REDF_ADSB_OC_YM        /* 되물림재지급발생년월 */
+             , PERF_YM                /* 실적년월 */
+             , PERF_DV_CD             /* 실적구분코드 */
+             , CO_CD                  /* 회사코드 */
+             , OG_TP_CD               /* 조직유형코드 */
+             , PRTNR_NO               /* 파트너번호 */
+             , FEE_CD                 /* 수수료코드 */
+             , DTA_CRT_FEE_CD         /* 데이터생성수수료코드 */
+             , REDF_ADSB_DV_CD        /* 되물림재지급구분코드 */
+             , REDF_ADSB_TP_CD        /* 되물림재지급유형코드 */
+             , REDF_ADSB_OC_AMT       /* 되물림재지급발생금액 */
+             , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+             , REDF_ADSB_CTR_RSON_CD  /* 되물림재지급조정사유코드 */
+             , REDF_ADSB_CTR_RSON_CN  /* 되물림재지급조정사유내용 */
+             , REDF_NAPD_DV_CD        /* 되물림미적용구분코드 */
+             , REDF_NAPD_AMT          /* 되물림미적용금액 */
+             , REDF_NAPD_DT           /* 되물림미적용일자 */
+             , REDF_RPB_OJ_YN         /* 되물림책임대상여부 */
+             , WHTX_REP_SLIP_TRS_NO   /* 원천세환수전표전송번호 */
+             , WHTX_REP_SLIP_LINE_SN  /* 원천세환수전표라인일련번호 */
+             , WHTX_REP_SLPNO         /* 원천세환수전표번호 */
+             , RDS_RV_USE_ID          /* RDS적립사용ID */
+             , DTA_DL_YN              /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+          FROM TB_FEDD_FEE_REDF_ADSB_BAS /* 수수료되물림재지급기본 */
+            <include refid="dlqRedemptionTargetCondition"/>
+    </insert>
+</mapper>

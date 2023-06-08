@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveUploadReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchRes;
@@ -96,15 +97,16 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
             .processCount(service.saveMutualAidAllianceBulkDepositReg(dto))
             .build();
     }
-    //    @ApiOperation(value = "상조제휴 일괄입금 등록 생성", notes = "상조제휴 일괄입금 등록 생성한다.")
-    //    @PostMapping
-    //    public SaveResponse saveMutualAidAllianceBulkDepositRegsSum(
-    //        @RequestBody
-    //        @Valid
-    //        SaveReq dto
-    //        ) throws Exception {
-    //        return SaveResponse.builder()
-    //            .processCount(service.saveMutualAidAllianceBulkDepositRegs(dto))
-    //            .build();
-    //    }
+
+    @ApiOperation(value = "상조제휴 일괄입금 등록 생성", notes = "상조제휴 일괄입금 등록 생성한다.")
+    @PostMapping("/create")
+    public SaveResponse saveMutualAidAllianceBulkDepositRegsSum(
+        @RequestBody
+        @Valid
+        SaveReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveMutualAidAllianceBulkDepositRegs(dto))
+            .build();
+    }
 }

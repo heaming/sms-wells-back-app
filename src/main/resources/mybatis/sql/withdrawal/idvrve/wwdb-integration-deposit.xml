@@ -3,9 +3,15 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbIntegrationDepositMapper">
 
     <select id="selectIntegrationDeposit" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto$SearchRes">
-        SELECT
+        SELECT /*+INDEX(T1 IX_RVDW_ITG_DP_BAS_02)*/
                T1.ITG_DP_NO /*통합입금번호*/
              , T1.RVE_CD /*수납코드*/
+             , (SELECT RVE_NM
+                  FROM TB_RVDW_RVE_CD S1
+                 WHERE 1 = 1
+                   AND S1.RVE_CD = T1.RVE_CD
+                   AND S1.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                   AND S1.DTA_DL_YN = 'N') AS RVE_NM
              , T4.PRTNR_CLSF_CD         /*판매자구분*/
              , T1.PRTNR_NO  /*파트너번호*/
              , T1.DP_TP_CD  /*입금유형코드*/
@@ -46,21 +52,26 @@
            AND T4.OG_TP_CD = T4.OG_TP_CD
           LEFT OUTER JOIN TB_RVDW_DP_CPRCNF_BAS T5 /*입금대사기본*/
             ON T5.ITG_DP_NO = T1.ITG_DP_NO
+           AND T5.KW_GRP_CO_CD = T1.KW_GRP_CO_CD  
          WHERE 1 = 1
            AND T1.DTA_DL_YN = 'N'
+           AND T1.KW_GRP_CO_CD = #{session.companyCode}
            AND T1.DP_DV_CD = '1' /*입금구분코드*/
            <if test='@MybatisUtils@isNotEmpty(rveCd)'>
            AND T1.RVE_CD = #{rveCd} /*수납코드*/
            </if>
            <choose>
                <when test='@MybatisUtils@isNotEmpty(dpStartDtm) and @MybatisUtils@isNotEmpty(dpEndDtm)'>
-               AND T1.DP_DTM BETWEEN #{dpStartDtm}||000000 AND #{dpEndDtm}||235959 /*입금일시*/
+               AND (T1.DP_DTM BETWEEN #{dpStartDtm}||000000 AND #{dpEndDtm}||235959 /*입금일시*/
+                    OR SUBSTR(T1.DP_DTM,0,8) BETWEEN #{dpStartDtm} AND #{dpEndDtm})
                </when>
                <when test='@MybatisUtils@isNotEmpty(dpStartDtm)'>
-               AND T1.DP_DTM <![CDATA[>=]]> #{dpStartDtm}||000000 /*입금일시*/
+               AND (T1.DP_DTM <![CDATA[>=]]> #{dpStartDtm}||000000
+                    OR SUBSTR(T1.DP_DTM,0,8) >=  #{dpStartDtm} ) /*입금일시*/
                </when>
                <when test='@MybatisUtils@isNotEmpty(dpEndDtm)'>
-               AND T1.DP_DTM <![CDATA[<=]]> #{dpEndDtm}||235959 /*입금일시*/
+               AND (T1.DP_DTM <![CDATA[<=]]> #{dpEndDtm}||235959
+                    OR SUBSTR(T1.DP_DTM,0,8) <![CDATA[<=]]> #{dpEndDtm}) /*입금일시*/
                </when>
            </choose>
            <if test='@MybatisUtils@isNotEmpty(dpTpCd)'>
@@ -80,7 +91,6 @@
            </if>
            <if test='@MybatisUtils@isNotEmpty(itgDpNo)'>
            AND T1.ITG_DP_NO = #{itgDpNo} /*통합입금번호*/
-           </if>
-         ORDER BY DP_DTM DESC
+           </if>         
     </select>
 </mapper>

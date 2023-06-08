@@ -47,6 +47,7 @@ public class WctaContractIntegrationPagesDvo {
     @DBDecField
     private String istMexnoEncr; /* 설치자 휴대전화국번호암호화 */
     private String istCralIdvTno; /* 설치자 휴대개별전화번호 */
+    private String copnDvCd; /* 고객구분코드 */
     private String dpTpCd; /* 이체방식 납부방식유형코드 */
     private String dpTpNm; /* 이체방식 납부방식유형코드명 */
     private String mpyBsdt; /* 이체일 */

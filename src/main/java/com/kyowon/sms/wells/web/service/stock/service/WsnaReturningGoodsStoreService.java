@@ -8,6 +8,8 @@ import java.util.List;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +43,8 @@ public class WsnaReturningGoodsStoreService {
 
     private final WsnaItemStockItemizationService itemStockservice;
 
-    public List<SearchRes> getReturningGoodsStores(SearchReq dto) {
-        return mapper.selectReturningGoodsStores(dto);
+    public PagingResult<SearchRes> getReturningGoodsStores(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectReturningGoodsStores(dto, pageInfo);
     }
 
     @Transactional
@@ -105,6 +107,20 @@ public class WsnaReturningGoodsStoreService {
 
             log.info("ostrTpCd ------>", dvo.getOstrTpCd());
 
+            String strHgrWareNo = this.mapper.selectHgrWareNo(dvo);
+            dvo.setHgrWareNo(strHgrWareNo);
+            log.info("strHgrWareNo -------> ", strHgrWareNo);
+            String strUpHgrWareNo = this.mapper.selectUpHgrWareNo(dvo);
+            dvo.setUpHgrWareNo(strUpHgrWareNo);
+            log.info("strUpHgrWareNo -------> ", strUpHgrWareNo);
+
+            String strHgrWareMngtPrtnrNo = this.mapper.selectHgrWarePrtnrNo(dvo);
+            String strUpHgrWareMngtPrtnrNo = this.mapper.selectUpHgrWarePrtnrNo(dvo);
+            dvo.setHgrWarePrtnrNo(strHgrWareMngtPrtnrNo);
+            log.info("strHgrWareMngtPrtnrNo -------> ", strHgrWareMngtPrtnrNo);
+            dvo.setUpHgrWarePrtnrNo(strUpHgrWareMngtPrtnrNo);
+            log.info("strUpHgrWareMngtPrtnrNo -------> ", strUpHgrWareMngtPrtnrNo);
+
             if (StringUtils.isNotEmpty(dvo.getOstrConfDt())) {
                 if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())
                     || "12".equals(dvo.getRtngdProcsTpCd()) || "20".equals(dvo.getRtngdProcsTpCd())
@@ -112,16 +128,6 @@ public class WsnaReturningGoodsStoreService {
 
                     if (StringUtils.isEmpty(dvo.getRtngdRvpyProcsYn()) || !"Y".equals(dvo.getRtngdRvpyProcsYn())) {
                         if (!"X".equals(dvo.getFnlItmGdCd())) {
-
-                            String strHgrWareNo = this.mapper.selectHgrWareNo(dvo);
-                            dvo.setHgrWareNo(strHgrWareNo);
-                            String strUpHgrWareNo = this.mapper.selectUpHgrWareNo(dvo);
-                            dvo.setUpHgrWareNo(strUpHgrWareNo);
-
-                            String strHgrWareMngtPrtnrNo = this.mapper.selectHgrWarePrtnrNo(dvo);
-                            String strUpHgrWareMngtPrtnrNo = this.mapper.selectUpHgrWarePrtnrNo(dvo);
-                            dvo.setHgrWarePrtnrNo(strHgrWareMngtPrtnrNo);
-                            dvo.setUpHgrWarePrtnrNo(strUpHgrWareMngtPrtnrNo);
 
                             /*서비스센터에서 물류센터로 내부반품 출고 처리한 내역을 만든다*/
                             result += this.mapper.insertItmOstrIz(dvo);
@@ -211,7 +217,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getHgrWareNo(),
@@ -234,7 +240,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getUpHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getUpHgrWareNo(),
@@ -257,7 +263,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getUpHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getUpHgrWareNo(),
@@ -280,7 +286,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getHgrWareNo(),
@@ -303,7 +309,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             "1", /*창고구분*/
             "100010",
@@ -326,7 +332,7 @@ public class WsnaReturningGoodsStoreService {
         WsnaReturningGoodsStoreDvo vo
     ) {
         WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 5),
+            vo.getCfrmDt().substring(0, 6),
             vo.getCfrmDt(),
             vo.getHgrWareNo().substring(0, 1), /*창고구분*/
             vo.getHgrWareNo(),

@@ -199,8 +199,7 @@ public class WctaContractRegStep2Service {
         );
 
         String sellInflwChnlDtlCd = bas.getSellInflwChnlDtlCd();
-        // FIXME 판매유입채널상세코드 1010 세팅
-        sellInflwChnlDtlCd = "1010";
+
         List<WctaContractRegStep2Dvo.PdDvo> pds = mapper.selectProducts(sellInflwChnlDtlCd, pdFilter);
         for (WctaContractRegStep2Dvo.PdDvo pd : pds) {
             // TODO 로직 추가

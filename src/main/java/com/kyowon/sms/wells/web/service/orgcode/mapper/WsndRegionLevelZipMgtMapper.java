@@ -15,7 +15,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
  * W-SV-U-0145M01 급지 우편번호 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim 김혜원
  * @since 2022.12.06
  */
 @Mapper
@@ -38,9 +38,9 @@ public interface WsndRegionLevelZipMgtMapper {
 
     /**
      * 급지 우편번호 관리 - 저장
-     * @param regionLevelZip : { zip: 우편번호, pdlvNo: 출고지번호 }
+     * @param dvo : { newAdrZip: 우편번호, emdSn: 읍면동일련번호, pdlvNo: 출고지번호 }
      * @return
      */
-    int updateZipNo(WsndRegionLevelZipNoDvo regionLevelZip);
+    int updateZipNo(WsndRegionLevelZipNoDvo dvo);
 
 }

@@ -96,7 +96,8 @@ public class WsnaMovementStoreDto {
         String strTpCd,
         String ostrWareNo,
         String strWareNo,
-        String ostrSn
+        String ostrSn,
+        String strSn
     ) {}
 
     public record MovementOstrMngtRes(
@@ -123,7 +124,9 @@ public class WsnaMovementStoreDto {
         String ostrCnfmCd,
         String inSum,
         String strConfDt,
-        String rmkCn
+        String rmkCn,
+        String strSn,
+        String ostrSn
     ) {}
 
     public record MovementStrSaveReq(

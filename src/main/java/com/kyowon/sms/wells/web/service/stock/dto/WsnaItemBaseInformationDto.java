@@ -73,4 +73,15 @@ public class WsnaItemBaseInformationDto {
         String totalQty /*총재고*/
 
     ) {}
+
+    @ApiModel("WsnaItemBaseInformationDto-SearchAplcReq")
+    public record SearchAplcReq(
+        String itmKndCd,
+        String aplcList
+    ) {}
+
+    @ApiModel("WsnaItemBaseInformationDto-SearchAplcRes")
+    public record SearchAplcRes(
+        String itmPdCd
+    ) {}
 }

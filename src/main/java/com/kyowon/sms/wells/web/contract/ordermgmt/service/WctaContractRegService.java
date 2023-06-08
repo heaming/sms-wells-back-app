@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
-import java.time.Year;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -28,13 +27,8 @@ public class WctaContractRegService {
         return mapper.selectBryyMmdd(cstNo);
     }
 
-    public int calcAge(String bryyMmdd) {
-        return Year.now().compareTo(Year.parse(bryyMmdd.substring(0, 4)));
-    }
-
     public String getRveDvCd(String sellTpCd) {
         return switch (sellTpCd) {
-            case "2" -> "03";
             case "3" -> "04";
             case "6" -> "05";
             default -> "03";

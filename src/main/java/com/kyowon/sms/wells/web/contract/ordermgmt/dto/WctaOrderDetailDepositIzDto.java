@@ -67,6 +67,7 @@ public class WctaOrderDetailDepositIzDto {
         String thmUcBlam, /* 당월미수잔액 */
         String eotAtam, /* 기말선수금 */
         String eotUcAmt, /* 기말미수금액 */
+        String pcsvSpmt, /* 택배추가 */
         String prtnrKnm /* 판매자성명 */
     ) {}
 

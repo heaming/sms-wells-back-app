@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,9 +38,13 @@ public class WsnaWarehouseOrganizationController {
         @ApiImplicitParam(name = "wareLocaraCd", value = "창고지역코드", paramType = "query", example = ""),
     })
 
-    @GetMapping
-    public List<SearchRes> getWarehouseOgs(SearchReq dto) {
-        return this.service.getWarehouseOgs(dto);
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getWarehouseOgs(
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return this.service.getWarehouseOgs(dto, pageInfo);
     }
 
     @ApiOperation(value = "창고조직 관리 목록 엑셀 다운로드", notes = "조회조건에 일치하는 창고조직 관리 데이터를 엑셀다운로드 한다.")

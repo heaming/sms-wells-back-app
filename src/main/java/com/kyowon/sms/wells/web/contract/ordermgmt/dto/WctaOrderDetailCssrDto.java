@@ -31,6 +31,28 @@ public class WctaOrderDetailCssrDto {
         String kwGrpCoCd
 
     ) {}
+
+    @Builder
+    @ApiModel("WctaOrderDetailCssrDto-SaveRpblsReq")
+    public record SaveRpblsReq(
+        String afchCssrIsDvCd,
+        String afchCssrIsNo,
+        String afchCssrTrdDvCd,
+        String chRsonCn,
+        String cntrNo,
+        String cntrSn,
+        String bfchCssrIsNo,
+        String cssrIsDvCd,
+        String cssrIsNo,
+        String cssrTrdDvCd,
+        String cstNo,
+        String kwGrpCoCd,
+        String rveDt,
+        String dpDvCd,
+        String cssrAgrgSn,
+        String cssrDtlSn
+
+    ) {}
     @Builder
     @ApiModel("WctaOrderDetailCssrDto-SearchRcpRes")
     public record SearchRcpRes(
@@ -52,6 +74,7 @@ public class WctaOrderDetailCssrDto {
         String fstRgstDtm, /*등록일*/
         String fstRgstUsrId, /*등록자*/
         /*변경후*/
+        String afchCssrIsDvCd, /* 현금영수증발급구분코드 */
         String afchCssrTrdDvCd, /*공제구분*/
         String afchCssrIsNo, /*발행번호*/
         String afchCssrTrdAmt, /*승인금액*/

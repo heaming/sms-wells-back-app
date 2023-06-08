@@ -11,7 +11,7 @@
              , A1.OPPT_ICHR_PRTNR_NO /* 기회담당파트너번호 [사번] */
              , D1.PRTNR_KNM /* 파트너한글명 [실무담당자(교원)] */
              , A1.PRJ_FOM_CD /* 프로젝트형태코드 */
-             , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'PRJ_FOM_CD', A1.PRJ_FOM_CD) AS PRJ_FOM_NM /* 프로젝트형태코드명 [형태] */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PRJ_FOM_CD', A1.PRJ_FOM_CD) AS PRJ_FOM_NM /* 프로젝트형태코드명 [형태] */
              , E1.BZRNO /* 사업자등록번호 [사업자번호] */
              , E1.LEAD_CST_NM /* 리드고객명 [업체명] */
              , F1.LEAD_CST_RLPPL_NM /* 리드고객관계자명 [업체담당자(KEY-MAN)] */
@@ -25,7 +25,7 @@
              , E1.CRDR_VAL /* 신용등급값 [신용등급] */
              , A1.ET_BIDD_DT AS ET_BIDD_DT /* 예상입찰일자 [입찰예정월] */
              , A1.OPPT_CNTR_FOM_CD /* 기회계약형태코드 */
-             , AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'OPPT_CNTR_FOM_CD', A1.OPPT_CNTR_FOM_CD) AS OPPT_CNTR_FOM_NM /* 기회계약형태코드명 [계약형태] */
+             , F_CMZ_CD_NM('TNT_WELLS', 'OPPT_CNTR_FOM_CD', A1.OPPT_CNTR_FOM_CD) AS OPPT_CNTR_FOM_NM /* 기회계약형태코드명 [계약형태] */
              , L1.TOT_QTY /* 상품총수량 [총수량]*/
              , L1.WRFR_QTY /* 정수기수량 [정수기(제품)] */
              , L1.ARCLE_QTY /* 공기청정기수량 [청정기(제품)] */
@@ -40,6 +40,7 @@
              , A1.BIDD_BZS_NM /* 입찰업체명 [입찰업체] */
              , A1.UNUITM_CN /* 특이사항내용[특이사항] */
              , SUBSTR(A1.FNL_MDFC_DTM, 1, 8) AS FNL_MDFC_DT /* 최종수정일시 [최종수정일자] */
+             , A1.OG_TP_CD /* 조직코드 */
           FROM TB_SSOP_OPPT_BAS A1 /* 기회기본 */
           LEFT OUTER JOIN LATERAL
              (
@@ -74,7 +75,7 @@
                WHERE 1=1
                  AND B1.BASE_YM = SUBSTR(A1.FST_RGST_DTM, 1, 6) /* 월조직내역.기준년월 = 기회기본.최초등록일시 */
                  AND C1.PRTNR_NO = A1.OPPT_ICHR_PRTNR_NO /*월파트너내역.파트너번호 = 기회기본.기회담당파트너번호  */
-                 AND C1.OG_TP_CD LIKE 'W%' /* 사용자session.조직유형코드 */
+                 AND C1.OG_TP_CD = A1.OG_TP_CD /* 사용자session.조직유형코드 */
              ) D1
             ON D1.PRTNR_NO = A1.OPPT_ICHR_PRTNR_NO /*월파트너내역.파트너번호 = 기회기본.기회담당파트너번호  */
            AND A1.DTA_DL_YN = 'N'
@@ -356,7 +357,6 @@
     <update id="updateSsopLeadCstRlpplDtl">
         UPDATE TB_SSOP_LEAD_CST_RLPPL_DTL /* 리드고객관계자상세 */
            SET LEAD_CST_ID             = #{leadCstId}              /* 리드고객ID */
-             , LEAD_RLPPL_DV_CD        = #{leadRlpplDvCd}          /* 리드관계자구분코드 */
              , LEAD_CST_RLPPL_NM       = #{leadCstRlpplNm}         /* 리드고객관계자명 */
              , LOCARA_TNO              = #{locaraTno}              /* 지역전화번호 */
              , EXNO_ENCR               = #{exnoEncr}               /* 전화국번호암호화 */
@@ -462,6 +462,7 @@
             , ET_BIDD_DT         /* 예상입찰일자 */
             , PRJ_FOM_CD         /* 프로젝트형태코드 */
             , OPPT_CNTR_FOM_CD   /* 기회계약형태코드 */
+            , OG_TP_CD           /* 조직유형코드  */
             , OPPT_ICHR_PRTNR_NO /* 기회담당파트너번호 */
             , BIDD_BZS_NM        /* 입찰업체명 */
             , RCVOD_DT           /* 수주일자 */
@@ -479,6 +480,7 @@
             , #{item.etBiddDt}
             , #{item.prjFomCd}
             , #{item.opptCntrFomCd}
+            , #{item.ogTpCd}
             , #{item.opptIchrPrtnrNo}
             , #{item.biddBzsNm}
             , #{item.rcvodDt}
@@ -497,6 +499,7 @@
              , ET_BIDD_DT         = #{etBiddDt}           /* 예상입찰일자 */
              , PRJ_FOM_CD         = #{prjFomCd}           /* 프로젝트형태코드 */
              , OPPT_CNTR_FOM_CD   = #{opptCntrFomCd}      /* 기회계약형태코드 */
+             , OG_TP_CD           = #{ogTpCd}             /* 조직유형코드  */
              , OPPT_ICHR_PRTNR_NO = #{opptIchrPrtnrNo}    /* 기회담당파트너번호 */
              , BIDD_BZS_NM        = #{biddBzsNm}          /* 입찰업체명 */
              , RCVOD_DT           = #{rcvodDt}            /* 수주일자 */
