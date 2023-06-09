@@ -59,4 +59,16 @@ public class WpdyRentalLeasePenaltyMgtService {
         return cnt;
     }
 
+    public String checkDuplication(List<WpdyRentalLeasePenaltyMgtDto.CancelChargeBase> dtos) {
+        List<WpdyCancelChargeBaseDvo> bases = converter.mapAllCancelChargeBaseDtoToCancelChargeBaseDvo(dtos);
+        String duplicationKey = null;
+        for (WpdyCancelChargeBaseDvo base : bases) {
+            duplicationKey = mapper.selectRentalLeasePenaltyDuplication(base);
+            if (StringUtil.isNotBlank(duplicationKey)) {
+                break;
+            }
+        }
+        return duplicationKey;
+    }
+
 }

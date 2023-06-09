@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.standard.mapper;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.product.standard.dto.WpdySeedlingPriceMgtDto;
 import com.kyowon.sms.wells.web.product.standard.dvo.WpdySeedlingPriceBaseDvo;
@@ -27,9 +28,15 @@ public interface WpdySeedlingPriceMgtMapper {
         WpdySeedlingPriceMgtDto.SearchReq dto, PageInfo pageInfo
     );
 
-    int insertSeedlingPriceBase(WpdySeedlingPriceBaseDvo info);
+    int insertSeedlingPriceBase(@Param("info")
+    WpdySeedlingPriceBaseDvo info);
 
     int updateSeedlingPriceBase(WpdySeedlingPriceBaseDvo info);
 
     int deleteSeedlingPriceBase(WpdySeedlingPriceBaseDvo info);
+
+    int insertSeedlingPriceHistory(WpdySeedlingPriceBaseDvo info);
+
+    int updateSeedlingPricePrevHistory(WpdySeedlingPriceBaseDvo info);
+
 }

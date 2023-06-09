@@ -125,12 +125,12 @@
             , #{info.vat}
             , #{info.asSellAmt}
             , #{info.useYn}
-            , #{info.dtaDlYn}
+            , NVL(#{info.dtaDlYn}, 'N')
             <include refid="COMMON.insertSystemFieldValue" /> 
         )
     </insert>
     
-    <update id="update">
+    <update id="updateSeedlingPriceBase">
         UPDATE TB_PDBS_SDING_PRC_BAS T1 /* 모종가격기본 */
            SET PDCT_PD_CD            = #{pdctPdCd}             /* 제품상품코드 */
              , RGLR_SPP_MCHN_KND_CD  = #{rglrSppMchnKndCd}     /* 정기배송기기종류코드 */
@@ -145,17 +145,69 @@
              , VAT                   = #{vat}                  /* 부가가치세 */
              , AS_SELL_AMT           = #{asSellAmt}            /* AS판매금액 */
              , USE_YN                = #{useYn}                /* 사용여부 */
-             , DTA_DL_YN             = #{dtaDlYn}              /* 데이터삭제여부 */
             <include refid="COMMON.updateSystemField"/>
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}    /* 정기배송모종가격ID */
     </update>
     
-    <update id="deleteWellsAllianceBase">
+    <update id="deleteSeedlingPriceBase">
         UPDATE TB_PDBS_SDING_PRC_BAS
            SET DTA_DL_YN = 'Y'
            <include refid="COMMON.updateSystemField"/>
          WHERE DTA_DL_YN = 'N'
            AND RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
+    </update>
+    
+    <insert id="insertSeedlingPriceHistory">
+        INSERT INTO TB_PDBS_SDING_PRC_CH_HIST (  /* 모종가격변경이력 */
+              RGLR_SPP_SDING_PRC_ID /* 정기배송모종가격ID */
+            , HIST_STRT_DTM         /* 이력시작일시 */
+            , HIST_END_DTM          /* 이력종료일시 */
+            , PDCT_PD_CD            /* 제품상품코드 */
+            , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
+            , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
+            , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , PD_PRC_TCNT           /* 상품가격차수 */
+            , APY_STRTDT            /* 적용시작일자 */
+            , APY_ENDDT             /* 적용종료일자 */
+            , SDING_QTY             /* 모종수량 */
+            , SELL_AMT              /* 판매금액 */
+            , SPL_AMT               /* 공급금액 */
+            , VAT                   /* 부가가치세 */
+            , AS_SELL_AMT           /* AS판매금액 */
+            , USE_YN                /* 사용여부 */
+            , DTA_DL_YN             /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        SELECT
+            RGLR_SPP_SDING_PRC_ID /* 정기배송모종가격ID */
+            , #{histStrtDtm}
+            , #{histEndDtm}
+            , PDCT_PD_CD            /* 제품상품코드 */
+            , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
+            , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
+            , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , PD_PRC_TCNT           /* 상품가격차수 */
+            , APY_STRTDT            /* 적용시작일자 */
+            , APY_ENDDT             /* 적용종료일자 */
+            , SDING_QTY             /* 모종수량 */
+            , SELL_AMT              /* 판매금액 */
+            , SPL_AMT               /* 공급금액 */
+            , VAT                   /* 부가가치세 */
+            , AS_SELL_AMT           /* AS판매금액 */
+            , USE_YN                /* 사용여부 */
+            , DTA_DL_YN             /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+          FROM TB_PDBS_SDING_PRC_BAS
+         WHERE RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
+           AND PD_PRC_TCNT = #{pdPrcTcnt}
+           AND ROWNUM = 1
+    </insert>
+    
+    <update id="updateSeedlingPricePrevHistory">
+        UPDATE TB_PDBS_SDING_PRC_CH_HIST H1
+           SET HIST_END_DTM = TO_CHAR(TO_DATE(#{histStrtDtm}, 'YYYYMMDDHH24MISS') + interval '-1' second, 'YYYYMMDDHH24MISS')
+         WHERE RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
+           AND HIST_END_DTM = #{histEndDtm}
+           AND HIST_STRT_DTM != #{histStrtDtm}
     </update>
 </mapper>

@@ -96,7 +96,7 @@ public class WpdyWellsAllianceMgtController {
             .build();
     }
 
-    @ApiOperation(value = "중복체크", notes = "중복체크")
+    @ApiOperation(value = "헬스 제휴 중복체크")
     @PostMapping("/duplication-check")
     public SaveResponse checkDuplication(
         @RequestBody
