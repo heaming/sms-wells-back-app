@@ -128,34 +128,10 @@ public class WsnaReturningGoodsStoreService {
 
                     if (StringUtils.isEmpty(dvo.getRtngdRvpyProcsYn()) || !"Y".equals(dvo.getRtngdRvpyProcsYn())) {
                         if (!"X".equals(dvo.getFnlItmGdCd())) {
-
-                            /*서비스센터에서 물류센터로 내부반품 출고 처리한 내역을 만든다*/
-                            result += this.mapper.insertItmOstrIz(dvo);
-                            /*서비스센터에서 물류센터로 내부반품 입고 처리한 내역을 만든다*/
-                            result += this.mapper.insertItmStrIz(dvo);
-
-                            /*TODO : SP_INSERT_ST121TB , SP_INSERT_ST121TB_991, SP_INSERT_ST121TB*/
-
-                            WsnaItemStockItemizationDto.SaveReq ostrDto = setOstrWsnaItemStockItemizationDtoSaveReq(
-                                dvo
-                            );
-                            result += itemStockservice.createStock(ostrDto);
-
-                            WsnaItemStockItemizationDto.SaveReq movementDto = setMovementWsnaItemStockItemizationDtoSaveReq(
-                                dvo
-                            );
-                            itemStockservice.saveStockMovement(movementDto);
-
-                            WsnaItemStockItemizationDto.SaveReq strDto = setStrWsnaItemStockItemizationDtoSaveReq(dvo);
-                            itemStockservice.createStock(strDto);
-
-                            /*물류센터 입고 확정을 한다*/
-                            result += this.mapper.updateSvItmStocIz(dvo);
-
                             /*물류페기, 리퍼-E급 tt물류폐기일 경우 disuseItmOstrNo 반품요청송신전문*/
                             /*TODO : W-SV-S-0089_물류 반품요청 인터페이스 서비스 호출해야됨*/
                             if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())) {
-
+                                result += this.mapper.insertDiDisuseOstrIz(dvo);
                             }
                             /*공장 발송일(품질팀+tt특별자재) 경우 quantityItmOstrNo*/
                             if (List.of("12", "20", "21", "22").contains(dvo.getRtngdProcsTpCd())) {
@@ -210,75 +186,6 @@ public class WsnaReturningGoodsStoreService {
         }
 
         return processCount;
-    }
-
-    /*기본수불시 필요한 파라미터 정의*/
-    protected WsnaItemStockItemizationDto.SaveReq setOstrWsnaItemStockItemizationDtoSaveReq(
-        WsnaReturningGoodsStoreDvo vo
-    ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 6),
-            vo.getCfrmDt(),
-            vo.getHgrWareNo().substring(0, 1), /*창고구분*/
-            vo.getHgrWareNo(),
-            vo.getHgrWarePrtnrNo(),
-            "261",
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMgtUnt(),
-            vo.getFnlItmGdCd(),
-            vo.getUseQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
-    }
-
-    /*기본수불시 필요한 파라미터 정의*/
-    protected WsnaItemStockItemizationDto.SaveReq setStrWsnaItemStockItemizationDtoSaveReq(
-        WsnaReturningGoodsStoreDvo vo
-    ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 6),
-            vo.getCfrmDt(),
-            vo.getUpHgrWareNo().substring(0, 1), /*창고구분*/
-            vo.getUpHgrWareNo(),
-            vo.getUpHgrWarePrtnrNo(),
-            "161",
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMgtUnt(),
-            vo.getFnlItmGdCd(),
-            vo.getUseQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
-    }
-
-    /*기본수불시 필요한 파라미터 정의*/
-    protected WsnaItemStockItemizationDto.SaveReq setMovementWsnaItemStockItemizationDtoSaveReq(
-        WsnaReturningGoodsStoreDvo vo
-    ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 6),
-            vo.getCfrmDt(),
-            vo.getUpHgrWareNo().substring(0, 1), /*창고구분*/
-            vo.getUpHgrWareNo(),
-            vo.getUpHgrWarePrtnrNo(),
-            "991",
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMgtUnt(),
-            vo.getFnlItmGdCd(),
-            vo.getUseQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
     }
 
     /*반품유형처리타입이 12, 20, 21, 22 일때*/

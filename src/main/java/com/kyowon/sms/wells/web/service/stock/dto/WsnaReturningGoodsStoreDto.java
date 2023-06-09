@@ -53,6 +53,7 @@ public class WsnaReturningGoodsStoreDto {
         String cntrDtlNo, /*고객번호*/
         String cntrNo,
         String cntrSn,
+        String itemGr,
         String rcgvpKnm, /*고객명*/
         String sellTpCd, /*판매유형코드*/
         String sellTpNm, /*판매유형명*/
