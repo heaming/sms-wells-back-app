@@ -24,6 +24,11 @@ public class WctaRentalProductPriceCalculationDvo {
     private String ackmtAmt; /* 인정실적액*/
     private String vat; /* 부가가치세 */
     private String ackmtRt; /* 인정실적율 */
+    private String cntrNo; // 계약번호
+    private String cntrSn; // 계약일련번호
+    private String basePdCd; // 기준상품코드
+    private String orgRtPrc; // 원복렌탈료
+    private String currRtPrc; // 현재렌탈료
 
     // INPUT/OUTPUT
     private String rgstFee; /* 등록비 */

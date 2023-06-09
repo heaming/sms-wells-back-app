@@ -9,4 +9,6 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalProductPriceCal
 @Mapper
 public interface WctaRentalProductPriceCalculationMapper {
     List<WctaRentalProductPriceCalculationDvo> selectRentalFeeCalculation(WctaRentalProductPriceCalculationDvo dvo);
+
+    List<WctaRentalProductPriceCalculationDvo> selectRecoveryRentalFee(String cntrNo, String cntrSn);
 }
