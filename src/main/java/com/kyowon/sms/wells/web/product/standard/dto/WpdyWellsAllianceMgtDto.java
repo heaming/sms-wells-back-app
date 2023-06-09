@@ -17,8 +17,8 @@ public class WpdyWellsAllianceMgtDto {
         String pdCd, /* 상품코드 */
         String prdtCateHigh, /* 대분류 */
         String prdtCateMid, /* 중분류 */
-        String svcStartDt, /* 적용 시작일 */
-        String svcEndDt /* 적용 종료일 */
+        String apyStrtdt, /* 적용 시작일 */
+        String apyEnddt /* 적용 종료일 */
     ) {}
 
     @ApiModel(value = "WpdyWellsAllianceMgtDto-SearchRes")
