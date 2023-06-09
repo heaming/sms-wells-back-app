@@ -13,4 +13,8 @@ public interface WctaMembershipMapper {
         SearchReq dto,
         PageInfo pageInfo
     );
+
+    Integer selectMembershipCustomersCount(
+        SearchReq dto
+    );
 }

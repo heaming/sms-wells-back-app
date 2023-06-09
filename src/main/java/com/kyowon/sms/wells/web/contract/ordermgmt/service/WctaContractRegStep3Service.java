@@ -286,28 +286,28 @@ public class WctaContractRegStep3Service {
                     // 일시불일 때
                     // 계약금, 01, 0101
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmt, "0101", "01");
+                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmt, "0101", "01", bas.getCntrCstNo());
                     }
                     Long pdAmt = dtl.getPdAmt(); // 상품금액, 01, 0201
                     if (!Objects.isNull(pdAmt) && 0l < pdAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, "0201", "01");
+                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, "0201", "01", bas.getCntrCstNo());
                     }
                     Long mshAmt = dtl.getMshAmt(); // 04, 0203 || 0102
                     if (!Objects.isNull(mshAmt) && 0l < mshAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, dtl.getDpTpCdMsh(), "04");
+                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, dtl.getDpTpCdMsh(), "04", bas.getCntrCstNo());
                     }
                 } else {
                     // 그 외
                     // 등록비
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmt, dtl.getDpTpCdIdrv(), "01");
+                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmt, dtl.getDpTpCdIdrv(), "01", bas.getCntrCstNo());
                     }
                     // 월 렌탈료
                     Long fnlAmt = dtl.getFnlAmt();
                     if (!Objects.isNull(fnlAmt) && 0l < fnlAmt) {
                         createStlmInfo(
                             now, cntrNo, stlmBasMap, cntrSn, fnlAmt, dtl.getDpTpCdAftn(),
-                            regService.getRveDvCd(dtl.getSellTpCd())
+                            regService.getRveDvCd(dtl.getSellTpCd()), bas.getCntrCstNo()
                         );
                     }
                 }
@@ -328,11 +328,13 @@ public class WctaContractRegStep3Service {
     @Transactional
     void createStlmInfo(
         String now, String cntrNo, Map<String, String> stlmBasMap, int cntrSn, Long cntrAmt, String dpTpCd,
-        String rveDvCd
+        String rveDvCd, String cstNo
     ) {
         if (!stlmBasMap.containsKey(dpTpCd)) {
             WctaContractStlmBasDvo stlmBas = WctaContractStlmBasDvo.builder()
                 .cntrNo(cntrNo)
+                .cstNo(cstNo)
+                .cntrtRelCd("01") // 통합계약에서는 본인 결제정보만 입력가능
                 .dpTpCd(dpTpCd)
                 .reuseOjYn("N")
                 .build();

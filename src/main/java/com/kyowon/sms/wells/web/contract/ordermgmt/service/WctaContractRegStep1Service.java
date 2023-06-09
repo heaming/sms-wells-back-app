@@ -46,7 +46,7 @@ public class WctaContractRegStep1Service {
         }
 
         // 견적서 존재여부 확인
-        step1Dvo.setPextCntr(mapper.selectPextCntr(cstNo, cntrNo));
+        step1Dvo.setPextCntrs(mapper.selectPextCntr(cstNo, cntrNo));
 
         // 계약자 연체 여부 확인
         List<Long> dlqAmt = mapper.selectCntrtDlqAmt(List.of(cstNo));
@@ -265,7 +265,7 @@ public class WctaContractRegStep1Service {
             WctaContractCstRelDvo.builder()
                 .vlStrtDtm(now)
                 .vlEndDtm(CtContractConst.END_DTM)
-                .cntrUnitTpCd("010")
+                .cntrUnitTpCd("020") // 상세단위로 수정
                 .cntrNo(cntrNo)
                 .dtlCntrNo(cntrNo)
                 .dtlCntrSn(1)
