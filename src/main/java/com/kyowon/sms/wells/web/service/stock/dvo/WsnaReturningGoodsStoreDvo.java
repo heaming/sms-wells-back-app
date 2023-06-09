@@ -56,4 +56,5 @@ public class WsnaReturningGoodsStoreDvo {
     String rmkCn;
     String cntrNo;
     String cntrSn;
+    String wkOstrSn;
 }
