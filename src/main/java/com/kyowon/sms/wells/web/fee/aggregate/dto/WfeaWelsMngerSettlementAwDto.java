@@ -89,4 +89,11 @@ public class WfeaWelsMngerSettlementAwDto {
         String tcntDvCd,
         String cnfmStatYn
     ) {}
+
+    @ApiModel(value = "WfeaWelsMngerSettlementAwDto-SearchEtcRes")
+    public record SearchEtcRes(
+        String opngcnfmYn,
+        String opngCnfmCnt,
+        String feeCnfmYn
+    ) {}
 }
