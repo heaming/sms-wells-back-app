@@ -87,7 +87,7 @@ public class WsnaMovementStoreDto {
     ) {}
 
     public record MovementOstrMngtReq(
-        String stckStdGb,
+        String stckNoStdGb,
         String itmStrNo,
         String itmPdNo,
         String strRgstDt,
