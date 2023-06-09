@@ -4,9 +4,7 @@
     <select id='selectEngineerAllowances' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchEngineerRes">
         /*
          * TODO
-         * 지급대상금액- 조정후수당합계+부가수당합계(메모)
          * 권한 추가되면 수정가능여부 쿼리 추가
-         * 수수료차수구분코드 02 맞는지 확인
          * */
         SELECT DGR2_LEVL_OG_ID	/*센터조직ID*/
              , DGR2_LEVL_OG_NM	/*센터조직명*/
@@ -141,7 +139,7 @@
                     ON T1.BASE_YM = T3.BASE_YM
                     AND T1.BASE_YM = T3.PERF_YM
                     AND T1.PRTNR_NO = T3.PRTNR_NO
-                    AND T3.FEE_TCNT_DV_CD = '02'
+                    AND T3.FEE_TCNT_DV_CD = '01'
                     AND T3.PERF_AGRG_CRT_DV_CD = '601'/*실적집계생성구분코드 601-엔지니어실적*/
                     AND T3.PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
                     AND T3.CO_CD = '2000'
@@ -158,7 +156,7 @@
                     AND T4.FEE_CD IN ('W060001', 'W060002', 'W060003', 'W060004', 'W060005', 'W060006', 'W060007', 'W060008', 'W060009', 'W060010'
                             , 'W060011', 'W060012', 'W060017', 'W060018', 'W060019', 'W060020', 'W060021', 'W060022'
                             , 'W060023', 'W060024', 'W060025', 'W060026', 'W060027', 'W060028')
-                    AND T4.FEE_TCNT_DV_CD = '02'
+                    AND T4.FEE_TCNT_DV_CD = '01'
                     AND T4.SPMT_DSB_DV_CD = '01'
                 LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS T5	/*엔지니어수당확정기본*/
                     ON T5.DTA_DL_YN = 'N'
@@ -233,10 +231,6 @@
     </select>
 
     <select id='selectEngineerManagerAllowances' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchEngineerManagerRes">
-        /*
-         * TODO
-         * 수수료차수구분코드 02 맞는지 확인
-         * */
         SELECT DGR2_LEVL_OG_ID	/*센터조직ID*/
              , DGR2_LEVL_OG_NM	/*센터조직명*/
              , DGR2_LEVL_OG_CD	/*센터조직코드*/
@@ -288,7 +282,7 @@
                 AND T3.CO_CD = '2000'
                 AND T3.OG_TP_CD = 'W06'
                 AND T3.FEE_CD IN ('W060031', 'W060032')
-                AND T3.FEE_TCNT_DV_CD = '02'
+                AND T3.FEE_TCNT_DV_CD = '01'
                 AND T3.SPMT_DSB_DV_CD = '01'
               WHERE T1.BASE_YM = #{perfYm}
               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
@@ -411,7 +405,7 @@
          AND OG_TP_CD = 'W06'            /* 조직유형코드 */
          AND PRTNR_NO = #{prtnrNo}           /* 파트너번호 */
          AND FEE_CD IN ('W060023', 'W060024', 'W060025', 'W060026', 'W060019', 'W060020', 'W060021', 'W060022')             /* 수수료코드 */
-         AND FEE_TCNT_DV_CD = '02'       /* 수수료차수구분코드 */
+         AND FEE_TCNT_DV_CD = '01'       /* 수수료차수구분코드 */
          AND SPMT_DSB_DV_CD = '01'       /* 추가지급구분코드 */
     </insert>
 
@@ -427,7 +421,7 @@
                  , #{ogCd} AS OG_CD
                  , #{feeCd} AS FEE_CD            /* 수수료코드 */
                  , #{feeCd} AS DTA_CRT_FEE_CD   /*데이터생성수수료코드*/
-                 , '02' AS FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
+                 , '01' AS FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
                  , #{feeAmt} AS FEE_CALC_AMT      /* 수수료계산금액 */
                  , NVL(#{feeCtrCnfmAmt}, #{feeAmt}) AS FEE_CTR_CNFM_AMT  /* 수수료조정확정금액 */
                  , '엔지니어 수당 조정' AS FEE_CTR_RSON_CN   /* 수수료조정사유내용 */
@@ -495,7 +489,7 @@
         )
     </update>
 
-    <select id="selectConfirmYnCheck" resultType="integer">
+    <select id="selectConfirmYnCheck" resultType="Integer">
         SELECT COUNT(*) AS CNT
           FROM TB_FEAM_EGER_AW_CNFM_BAS
          WHERE BASE_YM = #{baseYm}
@@ -539,16 +533,42 @@
     </insert>
 
     <update id="updateEgerAllowanceConfirm">
-        UPDATE TB_FEAM_EGER_AW_CNFM_BAS
-           SET HDOF_AW_CNFM_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-               <include refid="COMMON.updateSystemField"/>
-         WHERE 1=1
-           AND BASE_YM = #{baseYm}
-           AND PERF_YM = #{baseYm}
-           AND OJ_DSB_YM = #{baseYm}
-           AND CO_CD = '2000'
-           AND OG_TP_CD = 'W06'
-           AND DTA_DL_YN = 'N'
+        MERGE INTO TB_FEAM_EGER_AW_CNFM_BAS
+             USING DUAL
+                ON (BASE_YM = #{baseYm}
+					AND PERF_YM = #{baseYm}
+					AND OJ_DSB_YM = #{baseYm}
+					AND CO_CD = '2000'
+					AND OG_TP_CD = 'W06'
+					AND DTA_DL_YN = 'N'
+				)
+        WHEN MATCHED THEN
+             UPDATE SET HDOF_AW_CNFM_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                  <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+             INSERT
+                  ( BASE_YM
+					, PERF_YM
+					, OJ_DSB_YM
+					, CO_CD
+					, OG_TP_CD
+					, OG_CD
+					, PRTNR_NO
+					, HDOF_AW_CNFM_DTM
+					, DTA_DL_YN
+                  <include refid="COMMON.insertSystemField"/>
+                  ) VALUES
+                  ( #{baseYm}
+					, #{baseYm}
+					, #{baseYm}
+					, '2000'
+					, 'W06'
+					, #{ogCd}
+					, #{prtnrNo}
+					, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+					, 'N'
+                  <include refid="COMMON.insertSystemFieldValue"/>
+                  )
     </update>
 
     <update id="updateEgerAllowanceConfirmCancel">
