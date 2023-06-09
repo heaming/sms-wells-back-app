@@ -708,136 +708,189 @@
 
     <select id="selectShippings"
             resultType="com.kyowon.sms.wells.web.contract.salesstatus.dto.WcteSecProductDto$SearchShippingRes">
-        SELECT CASE
-                   WHEN T_BLACK_LIST.CNTR_CST_NO = T_CNTR_BAS.CNTR_CST_NO                 THEN 'CNTR_CST_NO' /* 교원키 의심 */
-                   WHEN (T_BLACK_LIST.RCGVP_KNM = T_CSTR_CST_BAS.CST_KNM
-                       OR T_BLACK_LIST.RCGVP_KNM = T_CNTR_ADRPC_BAS.RCGVP_KNM)        THEN 'CST_KNM' /* 고객명 의심 */
-                   WHEN (T_BLACK_LIST.CRAL_LOCARA_TNO = T_CNTR_ADRPC_BAS.CRAL_LOCARA_TNO
-                       AND T_BLACK_LIST.MEXNO_ENCR = T_CNTR_ADRPC_BAS.MEXNO_ENCR
-                       AND T_BLACK_LIST.CRAL_IDV_TNO = T_CNTR_ADRPC_BAS.CRAL_IDV_TNO) THEN 'TNO' /* 전화번호 의심 */
-                   WHEN T_BLACK_LIST.ADR_ID = T_CNTR_ADRPC_BAS.ADR_ID                     THEN 'ADR_ID' /* 주소지 의심 */
-                                                                                          ELSE ''
-               END                                         AS BLK_LIST
-             , COALESCE(T_CTT_BAS.CTT_FSH_DTM, T_CNTR_BAS.CNTR_CNFM_DTM) AS CTT_OR_CNFM_DTM
-             , T_CNTR_DTL.CNTR_NO
-             , T_CNTR_DTL.CNTR_SN
-             , T_SPP_BZS_IVC_PROCS_IZ.SPP_BZS_ORD_ID
-             , T_CNTR_ADRPC_BAS.RCGVP_KNM
-             , T_ADR_BAS.NEW_ADR_ZIP                       AS ZIP
-             , NVL(T_ADR_BAS.RNADR, T_ADR_BAS.LTN_ADR)     AS ADR
-             , NVL(T_ADR_BAS.RDADR, T_ADR_BAS.LTN_DTL_ADR) AS DTL_ADR
-             , T_PD_BAS.PD_MCLSF_ID
-             , T_PD_MCLSF_BAS.PD_CLSF_NM                   AS PD_MCLSF_NM
-             , T_PD_BAS.PD_CD
-             , T_PD_BAS.PD_NM
-             , T_CNTR_ADRPC_BAS.CRAL_LOCARA_TNO
-             , T_CNTR_ADRPC_BAS.MEXNO_ENCR
-             , T_CNTR_ADRPC_BAS.CRAL_IDV_TNO
-             , T_SELL_PRTNR_BAS.CRAL_LOCARA_TNO            AS PRTNR_CRAL_LOCARA_TNO
-             , T_SELL_PRTNR_BAS.MEXNO_ENCR                 AS PRTNR_MEXNO_ENCR
-             , T_SELL_PRTNR_BAS.CRAL_IDV_TNO               AS PRTNR_CRAL_IDV_TNO
-            /*, T_CNTR_WELLS_DTL.IST_DT *//*설치일*//*
-     , T_PDCT_IDNO_OSTR_IZ.PDCT_IDNO *//*시리얼넘버*/
-             , T_CNTR_DTL.SELL_TP_CD /* 주문 유형 코드 */
-          FROM TB_SSCT_CNTR_DTL                             T_CNTR_DTL
-               INNER JOIN TB_SSCT_CNTR_BAS                  T_CNTR_BAS /* 계약기본, PK: CNTR_NO */
-               ON T_CNTR_BAS.DTA_DL_YN = 'N'
-                   AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
-               LEFT OUTER JOIN TB_SSOP_CTT_BAS              T_CTT_BAS
-               ON T_CTT_BAS.CTT_OJ_ID = T_CNTR_DTL.CTT_OJ_ID
-                   AND T_CTT_BAS.DTA_DL_YN = 'N'
-               INNER JOIN TB_OGBS_PRTNR_BAS                 T_SELL_PRTNR_BAS /* 파트너기본, PK: OG_TP_CD, PRTNR_NO */
-               ON T_SELL_PRTNR_BAS.DTA_DL_YN = 'N'
-                   AND T_SELL_PRTNR_BAS.OG_TP_CD = T_CNTR_BAS.SELL_OG_TP_CD
-                   AND T_SELL_PRTNR_BAS.PRTNR_NO = T_CNTR_BAS.SELL_PRTNR_NO
-               INNER JOIN TB_PDBS_PD_BAS                    T_PD_BAS /* 상품기본, PK:PD_CD */
-               ON T_PD_BAS.DTA_DL_YN = 'N'
-                   AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
-               INNER JOIN TB_PDBS_PD_CLSF_BAS               T_PD_MCLSF_BAS /* 상품분류기본, PK: PD_CLSF_ID */
-               ON T_PD_MCLSF_BAS.DTA_DL_YN = 'N'
-                   AND T_PD_MCLSF_BAS.PD_CLSF_ID = T_PD_BAS.PD_MCLSF_ID
-               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL           T_PD_ECOM_PRP_DTL /* 상품각사속성상세, PK: PD_CD,PD_EXTS_PRP_GRP_CD */
-               ON T_PD_ECOM_PRP_DTL.DTA_DL_YN = 'N'
-                   AND T_PD_ECOM_PRP_DTL.PD_CD = T_CNTR_DTL.BASE_PD_CD
-                   AND T_PD_ECOM_PRP_DTL.PD_EXTS_PRP_GRP_CD = 'SPP' /* 배송 */
-                   AND T_PD_ECOM_PRP_DTL.PD_PRP_VAL02 = 'S' /* 삼성전자 */
-               LEFT OUTER JOIN TB_SSSO_SPP_BZS_IVC_PROCS_IZ T_SPP_BZS_IVC_PROCS_IZ /* 배송업체송장처리내역, PK: SPP_BZS_PROCS_ID, FK: CNTR_NO, CNTR_SN */
-               ON T_SPP_BZS_IVC_PROCS_IZ.DTA_DL_YN = 'N'
-                   AND T_SPP_BZS_IVC_PROCS_IZ.CNTR_NO = T_CNTR_DTL.CNTR_NO
-                   AND T_SPP_BZS_IVC_PROCS_IZ.CNTR_SN = T_CNTR_DTL.CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_ADR_REL              T_CNTR_ADR_REL /* 계약주소관계, PK: CNTR_ADR_REL_ID, RANGEKEY: DTL_CNTR_NO, DTL_CNTR_SN VL_STRT_DTM, VL_END_DTM,  */
-               ON T_CNTR_ADR_REL.DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO
-                   AND T_CNTR_ADR_REL.DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
-                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_CNTR_ADR_REL.VL_STRT_DTM AND T_CNTR_ADR_REL.VL_END_DTM
-                   AND T_CNTR_ADR_REL.ADRPC_TP_CD IN ('2','3') /* 주소지 유형 코드: 2.배달주소, 3.설치주소*/
-                   AND T_CNTR_ADR_REL.DTA_DL_YN = 'N'
-               INNER JOIN TB_SSCT_CNTR_ADRPC_BAS            T_CNTR_ADRPC_BAS /* 계약주소지기본, PK: CNTR_ADRPC_ID  */
-               ON T_CNTR_ADRPC_BAS.DTA_DL_YN = 'N'
-                   AND T_CNTR_ADRPC_BAS.CNTR_ADRPC_ID = T_CNTR_ADR_REL.CNTR_ADRPC_ID
-               INNER JOIN TB_GBCO_ADR_BAS                   T_ADR_BAS /* 주소기본, PK: ADR_ID*/
-               ON T_ADR_BAS.DTA_DL_YN = 'N'
-                   AND T_ADR_BAS.ADR_ID = T_CNTR_ADRPC_BAS.ADR_ID
-               INNER JOIN TB_CUBS_CST_BAS                   T_CSTR_CST_BAS
-               ON T_CSTR_CST_BAS.DTA_DL_YN = 'N'
-                   AND T_CSTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
-               LEFT OUTER JOIN (SELECT B.CNTR_CST_NO
-                                     , E.RCGVP_KNM
-                                     , E.CRAL_LOCARA_TNO
-                                     , E.MEXNO_ENCR
-                                     , E.CRAL_IDV_TNO
-                                     , E.ADR_ID
-                                  FROM TB_SSCT_SELL_LM_OJ_IZ             A
-                                       INNER JOIN TB_SSCT_CNTR_BAS       B
-                                       ON B.CNTR_NO = A.SELL_LM_CNTR_NO
-                                           AND B.DTA_DL_YN = 'N'
-                                       INNER JOIN TB_SSCT_CNTR_DTL       C
-                                       ON C.CNTR_NO = A.SELL_LM_CNTR_NO
-                                           AND C.CNTR_SN = A.SELL_LM_CNTR_SN
-                                           AND C.DTA_DL_YN = 'N'
-                                       INNER JOIN TB_SSCT_CNTR_ADR_REL   D
-                                       ON D.DTL_CNTR_NO = C.CNTR_NO
-                                           AND D.DTL_CNTR_SN = C.CNTR_SN
-                                           AND D.VL_END_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-                                           AND D.VL_STRT_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-                                           AND D.DTA_DL_YN = 'N'
-                                       INNER JOIN TB_SSCT_CNTR_ADRPC_BAS E
-                                       ON E.CNTR_ADRPC_ID = D.CNTR_ADRPC_ID
-                                           AND E.DTA_DL_YN = 'N'
-                                 WHERE A.DTA_DL_YN = 'N')   T_BLACK_LIST
-               ON T_BLACK_LIST.CNTR_CST_NO = T_CNTR_BAS.CNTR_CST_NO
-                   OR T_BLACK_LIST.RCGVP_KNM = T_CSTR_CST_BAS.CST_KNM
-                   OR T_BLACK_LIST.RCGVP_KNM = T_CNTR_ADRPC_BAS.RCGVP_KNM
-                   OR (T_BLACK_LIST.CRAL_LOCARA_TNO = T_CNTR_ADRPC_BAS.CRAL_LOCARA_TNO
-                       AND T_BLACK_LIST.MEXNO_ENCR = T_CNTR_ADRPC_BAS.MEXNO_ENCR
-                       AND T_BLACK_LIST.CRAL_IDV_TNO = T_CNTR_ADRPC_BAS.CRAL_IDV_TNO)
-                   OR T_BLACK_LIST.ADR_ID = T_CNTR_ADRPC_BAS.ADR_ID /* fix me: 각 계약에 대해 단건만 조회 할 건지..*/
-              /*LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL    T_CNTR_WELLS_DTL *//*계약WELLS상세*//*
-       ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
-               AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
-               AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
-       LEFT OUTER JOIN TB_SSSO_PDCT_IDNO_OSTR_IZ T_PDCT_IDNO_OSTR_IZ *//*제품고유번호출고내역*//*
-       ON T_PDCT_IDNO_OSTR_IZ.DTA_DL_YN = 'N'
-               AND T_PDCT_IDNO_OSTR_IZ.CNTR_NO = T_SPP_BZS_IVC_PROCS_IZ.CNTR_NO
-               AND T_PDCT_IDNO_OSTR_IZ.CNTR_SN = T_SPP_BZS_IVC_PROCS_IZ.CNTR_SN*/
-         WHERE T_CNTR_DTL.DTA_DL_YN = 'N'
-           AND T_CNTR_DTL.CNTR_DTL_STAT_CD = '101'
+        SELECT
+             (SELECT 1
+                FROM DUAL
+               WHERE EXISTS (
+                         SELECT 1
+                           FROM TB_SSCT_SELL_LM_OJ_IZ A
+                          INNER JOIN TB_SSCT_CNTR_BAS B
+                             ON B.CNTR_NO = A.SELL_LM_CNTR_NO
+                            AND B.DTA_DL_YN = 'N'
+                          WHERE A.DTA_DL_YN = 'N'
+                            AND A.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND A.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND B.CNTR_CST_NO = T2.CNTR_CST_NO
+                            )) AS BLK_YN1
+            ,(SELECT 1
+                FROM DUAL
+               WHERE EXISTS (
+                         SELECT 1
+                           FROM TB_SSCT_SELL_LM_OJ_IZ A
+                          INNER JOIN TB_SSCT_CNTR_BAS B
+                             ON B.CNTR_NO = A.SELL_LM_CNTR_NO
+                            AND B.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_DTL C
+                             ON C.CNTR_NO = A.SELL_LM_CNTR_NO
+                            AND C.CNTR_SN = A.SELL_LM_CNTR_SN
+                            AND C.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_ADR_REL D
+                             ON D.DTL_CNTR_NO = C.CNTR_NO
+                            AND D.DTL_CNTR_SN = C.CNTR_SN
+                            AND D.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND D.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND D.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS E
+                             ON E.CNTR_ADRPC_ID = D.CNTR_ADRPC_ID
+                            AND E.DTA_DL_YN = 'N'
+                          WHERE A.DTA_DL_YN = 'N'
+                            AND (E.RCGVP_KNM = T22.CST_KNM OR E.RCGVP_KNM = T7.RCGVP_KNM )
+                            )) AS BLK_YN2
+            ,(SELECT 1
+                FROM DUAL
+               WHERE EXISTS (
+                         SELECT 1
+                           FROM TB_SSCT_SELL_LM_OJ_IZ A
+                          INNER JOIN TB_SSCT_CNTR_BAS B
+                             ON B.CNTR_NO = A.SELL_LM_CNTR_NO
+                            AND B.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_DTL C
+                             ON C.CNTR_NO = A.SELL_LM_CNTR_NO
+                            AND C.CNTR_SN = A.SELL_LM_CNTR_SN
+                            AND C.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_ADR_REL D
+                             ON D.DTL_CNTR_NO = C.CNTR_NO
+                            AND D.DTL_CNTR_SN = C.CNTR_SN
+                            AND D.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND D.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND D.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS E
+                             ON E.CNTR_ADRPC_ID = D.CNTR_ADRPC_ID
+                            AND E.DTA_DL_YN = 'N'
+                          WHERE A.DTA_DL_YN = 'N'
+                            AND E.CRAL_LOCARA_TNO = T7.CRAL_LOCARA_TNO
+                            AND E.MEXNO_ENCR = T7.MEXNO_ENCR
+                            AND E.CRAL_IDV_TNO = T7.CRAL_IDV_TNO
+                            )) AS BLK_YN3
+            ,(SELECT 1
+                FROM DUAL
+               WHERE EXISTS (
+                         SELECT 1
+                           FROM TB_SSCT_SELL_LM_OJ_IZ A
+                          INNER JOIN TB_SSCT_CNTR_BAS B
+                             ON B.CNTR_NO = A.SELL_LM_CNTR_NO
+                            AND B.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_DTL C
+                             ON C.CNTR_NO = A.SELL_LM_CNTR_NO
+                            AND C.CNTR_SN = A.SELL_LM_CNTR_SN
+                            AND C.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_ADR_REL D
+                             ON D.DTL_CNTR_NO = C.CNTR_NO
+                            AND D.DTL_CNTR_SN = C.CNTR_SN
+                            AND D.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND D.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            AND D.DTA_DL_YN = 'N'
+                          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS E
+                             ON E.CNTR_ADRPC_ID = D.CNTR_ADRPC_ID
+                            AND E.DTA_DL_YN = 'N'
+                          WHERE A.DTA_DL_YN = 'N'
+                            AND E.ADR_ID = T7.ADR_ID
+                            )) AS BLK_YN4
+            , CASE WHEN T11.CTT_FSH_DTM IS NOT NULL THEN SUBSTR(T11.CTT_FSH_DTM,1,8)
+                   ELSE SUBSTR(T2.CNTR_CNFM_DTM,1,8)
+                   END AS CTT_OR_CNFM_DTM
+            , T1.CNTR_NO
+            , T1.CNTR_SN
+            , T5.SPP_BZS_ORD_ID
+            , T9.OJ_DTL_CNTR_NO
+            , T9.OJ_DTL_CNTR_SN
+            , T7.RCGVP_KNM
+            , T8.NEW_ADR_ZIP AS ZIP
+            , NVL(T8.RNADR , T8.LTN_ADR) AS ADR
+            , NVL(T8.RDADR, T8.LTN_DTL_ADR) AS DTL_ADR
+            , T1.PD_MCLSF_ID
+            , T31.PD_CLSF_NM AS PD_MCLSF_NM
+            , T3.PD_CD
+            , T3.PD_NM
+            , T7.CRAL_LOCARA_TNO
+            , T7.MEXNO_ENCR
+            , T7.CRAL_IDV_TNO
+            , T21.CRAL_LOCARA_TNO AS PRTNR_CRAL_LOCARA_TNO
+            , T21.MEXNO_ENCR AS PRTNR_MEXNO_ENCR
+            , T21.CRAL_IDV_TNO AS PRTNR_CRAL_IDV_TNO
+            , T1.SELL_TP_CD
+            , F_CMZ_CD_NM('TNT_EDU', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
+          FROM TB_SSCT_CNTR_DTL T1
+          LEFT OUTER JOIN TB_SSOP_CTT_BAS T11
+            ON T11.CTT_OJ_ID = T1.CTT_OJ_ID
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_PRTNR_BAS T21
+            ON T21.PRTNR_NO = T2.SELL_PRTNR_NO
+           AND T21.OG_TP_CD = T2.SELL_OG_TP_CD
+           AND T21.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T22
+            ON T22.CST_NO = T2.CNTR_CST_NO
+           AND T22.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T1.BASE_PD_CD
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T31
+            ON T31.PD_CLSF_ID = T3.PD_MCLSF_ID
+           AND T31.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
+            ON T4.PD_CD = T1.BASE_PD_CD
+           AND T4.PD_EXTS_PRP_GRP_CD = 'SPP'
+           AND T4.PD_PRP_VAL02 = 'S'
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSSO_SPP_BZS_IVC_PROCS_IZ T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+           AND T5.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T6
+            ON T6.DTL_CNTR_NO = T1.CNTR_NO
+           AND T6.DTL_CNTR_SN = T1.CNTR_SN
+           AND T6.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T6.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T6.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T7
+            ON T7.CNTR_ADRPC_ID = T6.CNTR_ADRPC_ID
+           AND T7.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_ADR_BAS T8
+            ON T8.ADR_ID = T7.ADR_ID
+           AND T8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL T9
+            ON T9.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T9.BASE_DTL_CNTR_SN = T1.CNTR_SN
+           AND T9.CNTR_REL_DTL_CD = '218'
+           AND T9.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T9.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T9.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CNTR_DTL_STAT_CD = '101'
         <if test="@MybatisUtils@isNotEmpty(strtdt) and @MybatisUtils@isNotEmpty(enddt)"><trim>
-           AND T_CNTR_BAS.CNTR_CNFM_DTM <![CDATA[>=]]> #{strtdt} || '000000'
-           AND T_CNTR_BAS.CNTR_CNFM_DTM <![CDATA[<=]]> #{enddt} || '235959'
+           AND T2.CNTR_CNFM_DTM <![CDATA[>=]]> #{strtdt} || '000000'
+           AND T2.CNTR_CNFM_DTM <![CDATA[<=]]> #{enddt} || '235959'
         </trim></if>
         <if test="@MybatisUtils@isEmpty(pdCds) and @MybatisUtils@isNotEmpty(pdMclsfIds)"><trim>
-           AND T_PD_BAS.PD_MCLSF_ID IN
+           AND T1.PD_MCLSF_ID IN
            <foreach collection="pdMclsfIds" item="pdMclsfId" separator="," open="(" close=")">
                #{pdMclsfId}
            </foreach>
         </trim></if>
         <if test="@MybatisUtils@isNotEmpty(pdCds)"><trim>
-           AND T_CNTR_DTL.BASE_PD_CD IN
+           AND T1.BASE_PD_CD IN
            <foreach collection="pdCds" item="pdCd" separator="," open="(" close=")">
                #{pdCd}
            </foreach>
         </trim></if>
-        ORDER BY T_CNTR_BAS.CNTR_CNFM_DTM DESC
+        <if test="@MybatisUtils@equals(isCombi, 'Y')"><trim>
+           /* 콤비엑셀 조회의 경우 */
+           AND T1.BASE_PD_CD IN ('WP02120302','WP02120313','WP02120586', 'WP02120589', 'WP02120592', 'WP02120069','WP02120428')
+        </trim></if>
+        ORDER BY T2.CNTR_CNFM_DTM DESC
     </select>
 
     <select id="selectFreeASs"
