@@ -18,10 +18,10 @@ public class WsnaOutOfStorageItemizationDto {
         String edOstrDt, /*종료출고일자*/
         String ostrTpCd, /*출고유형코드*/
         String wareDvCd, /*창고구분*/
-        String strOjWareNo, /*입고창고번호*/
+        String ostrWareNo, /*출고창고번호*/
         String ostrWareDvCd, /*출고창고구분코드*/
-        String ostrWareNoD,
         String ostrWareNoM,
+        String ostrWareNoD,
         String divide /*구분*/
 
     ) {}
