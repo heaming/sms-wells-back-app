@@ -25,7 +25,7 @@ public class WsncRegularBfsvcAsnController {
 
     @ApiOperation(value = "고객 정기BS 배정", notes = "고객 정기BS 배정")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm", value = "배정년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "작업담당자사번", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = false),

@@ -30,8 +30,8 @@ public class WbncCustomerDto {
         String schDlqMcntEnd,
         String schFntDtStrt,
         String schFntDtEnd,
-        String seachOjBlamStrt,
-        String seachOjBlamEnd,
+        String schOjBlamStrt,
+        String schOjBlamEnd,
         String schCstDv,
         String schCpsnRsgYn,
         String schDv

@@ -10,7 +10,7 @@ public class WsncBeforeServiceAsnBatDto {
 
     @ApiModel(value = "WsncBeforeServiceAsnBatDto-SaveProcessReq")
     public record SaveProcessReq(
-        String baseYm,
+        String asnOjYm,
         String prtnrNo
     ) {}
 

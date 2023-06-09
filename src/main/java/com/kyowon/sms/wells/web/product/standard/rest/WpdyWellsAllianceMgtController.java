@@ -95,4 +95,16 @@ public class WpdyWellsAllianceMgtController {
             .processCount(service.removeWellsAlliances(dtos))
             .build();
     }
+
+    @ApiOperation(value = "중복체크", notes = "중복체크")
+    @PostMapping("/duplication-check")
+    public SaveResponse checkDuplication(
+        @RequestBody
+        @NotEmpty
+        List<WpdyWellsAllianceMgtDto.AllianceBase> dtos
+    ) {
+        return SaveResponse.builder()
+            .data(service.checkDuplication(dtos))
+            .build();
+    }
 }

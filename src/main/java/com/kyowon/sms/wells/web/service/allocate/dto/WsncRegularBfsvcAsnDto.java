@@ -9,7 +9,7 @@ public class WsncRegularBfsvcAsnDto {
 
     @ApiModel(value = "WsncRegularBfsvcAsnDto-SaveProcessReq")
     public record SaveProcessReq(
-        String baseYm,
+        String asnOjYm,
         String prtnrNo,
         String cntrNo,
         String cntrSn

@@ -363,4 +363,18 @@ public class WsnaReturningGoodsStoreService {
     public List<SearchRes> getReturningGoodsStoresExcelDownload(SearchReq dto) {
         return mapper.selectReturningGoodsStores(dto);
     }
+
+    public int saveReturningGoodsStoreConfirmations(List<SaveConfirmationReq> dtos) {
+        int processCount = 0;
+
+        for (SaveConfirmationReq dto : dtos) {
+            WsnaReturningGoodsStoreDvo dvo = this.converter.mapSaveConfirmationReqToReturningGoodsDvo(dto);
+            dvo.setRtngdConfYn("Y");
+
+            processCount += this.mapper.updateReturningGoodsStoreConfirmations(dvo);
+
+        }
+
+        return processCount;
+    }
 }

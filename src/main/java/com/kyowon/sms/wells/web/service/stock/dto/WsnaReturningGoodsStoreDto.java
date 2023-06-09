@@ -15,7 +15,6 @@ public class WsnaReturningGoodsStoreDto {
     @Builder
     @ApiModel("WsnaReturningGoodsStoreDto-SearchReq")
     public record SearchReq(
-        @NotBlank
         String strWareDvCd,
         String strWareNoM,
         String strWareNoD,
@@ -69,6 +68,7 @@ public class WsnaReturningGoodsStoreDto {
         String rtngdProcsTpCd1,
         String rtngdRvpyProcsYn,
         String wkWareNo,
+        String wkOstrSn,
 
         String rmkCn,
         String cntrNoNew,
@@ -108,7 +108,7 @@ public class WsnaReturningGoodsStoreDto {
         String ostrAkDt //출고요청일자
     ) {}
 
-    @ApiModel("WsnaReturningGoodsStoreDto-SearchRes")
+    @ApiModel("WsnaReturningGoodsStoreDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rowState,
@@ -144,7 +144,49 @@ public class WsnaReturningGoodsStoreDto {
         String stkrPrntYn,
         String StkrRPrntYn,
         String cntrNo,
-        String cntrSn
+        String cntrSn,
+        String wkOstrSn
+
+    ) {}
+
+    @ApiModel("WsnaReturningGoodsStoreDto-SaveConfirmationReq")
+    public record SaveConfirmationReq(
+        @NotBlank
+        String rowState,
+        String cstSvAsnNo,
+        String itmPdCd,
+        String itmKndCd,
+        String stFnlVstFshDtFrom,
+        String edFnlVstFshDtTo,
+        String strWareDvCd,
+        String strWareNoM,
+        String strWareNoD,
+
+        String useQty, /*수량*/
+        String ostrConfDt, /*확인일자*/
+        String rtngdProcsTpCd, /*반품처리유형코드*/
+        String mgtUnt, /*관리단위*/
+        String itemKnd, /*품목종류*/
+        String WareNm, /*창고명*/
+        String wkWareNo, /*작업창고번호*/
+        String rtngdConfYn, /*반품확인여부*/
+        String fnlItmGdCd, /*최종품목등급코드*/
+        String itemGrNm,
+        String itemGr,
+
+        String itmOstrNo,
+        String ostrTpCd,
+        String ostrDt,
+
+        String strTpCd,
+        String strRgstDt,
+        String itmStrNo,
+        String rtngdRvpyProcsYn,
+        String stkrPrntYn,
+        String StkrRPrntYn,
+        String cntrNo,
+        String cntrSn,
+        String wkOstrSn
 
     ) {}
 }

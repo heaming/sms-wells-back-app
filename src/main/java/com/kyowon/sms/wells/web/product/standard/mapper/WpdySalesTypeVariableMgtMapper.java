@@ -11,7 +11,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  * <pre>
- * 상품(공통) - 상품운영관리 - 서비스 - B/S 투입 필터/부품 연결
+ * 상품(Wells) - 기준정보관리 - B/S 투입 필터/부품 연결
  * zpdc-price-mngt.xml
  * </pre>
  *

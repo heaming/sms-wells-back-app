@@ -51,4 +51,16 @@ public class WpdyWellsAllianceMgtService {
         return cnt;
     }
 
+    public String checkDuplication(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
+        List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
+        String duplicationKey = null;
+        for (WpdyAllianceBaseDvo base : bases) {
+            duplicationKey = mapper.selectWellsAllianceDuplication(base);
+            if (StringUtil.isNotBlank(duplicationKey)) {
+                break;
+            }
+        }
+        return duplicationKey;
+    }
+
 }
