@@ -14,4 +14,8 @@ public interface WctaReStipulationMapper {
         SearchReq dto,
         PageInfo pageInfo
     );
+
+    Integer selectReStipulationCustomerCounts(
+        SearchReq dto
+    );
 }

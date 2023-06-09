@@ -17,6 +17,8 @@ public interface WctaContractRegStep2Mapper {
 
     List<WctaContractDtlDvo> selectContractDtlWithPdInfo(String cntrNo);
 
+    String selectProductRelId(String basePdCd, String svPdCd);
+
     int insertCntrDtlStep2(WctaContractDtlDvo dvo);
 
     int insertCntrPdRelStep2(@Param("item")
