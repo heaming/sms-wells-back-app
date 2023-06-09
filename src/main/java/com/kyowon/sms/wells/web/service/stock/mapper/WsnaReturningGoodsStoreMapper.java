@@ -60,5 +60,7 @@ public interface WsnaReturningGoodsStoreMapper {
 
     int updateReturningGoodsStoreConfirmations(WsnaReturningGoodsStoreDvo dvo);
 
+    int insertDiDisuseOstrIz(WsnaReturningGoodsStoreDvo dvo);
+
     //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
 }
