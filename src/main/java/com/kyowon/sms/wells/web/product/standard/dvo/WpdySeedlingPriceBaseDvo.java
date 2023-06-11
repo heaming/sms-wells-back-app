@@ -8,6 +8,8 @@ import lombok.Setter;
 public class WpdySeedlingPriceBaseDvo {
     private String fnlMdfcDtm;
     private String fnlMdfcUsrNm;
+    private String histStrtDtm;
+    private String histEndDtm;
 
     private String rglrSppSdingPrcId; /* 정기배송모종가격ID */
     private String pdctPdCd; /* 제품상품코드 */

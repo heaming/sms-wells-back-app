@@ -32,4 +32,6 @@ public interface WpdyRentalLeasePenaltyMgtMapper {
     int mergeRentalLeasePenaltyBase(WpdyCancelChargeBaseDvo info);
 
     int deleteRentalLeasePenaltyBase(WpdyCancelChargeBaseDvo info);
+
+    String selectRentalLeasePenaltyDuplication(WpdyCancelChargeBaseDvo info);
 }

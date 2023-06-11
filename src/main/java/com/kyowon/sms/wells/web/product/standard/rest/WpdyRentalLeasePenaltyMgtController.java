@@ -91,4 +91,16 @@ public class WpdyRentalLeasePenaltyMgtController {
             .processCount(service.removeRentalLeasePenalties(dtos))
             .build();
     }
+
+    @ApiOperation(value = "렌탈/리스 중복체크")
+    @PostMapping("/duplication-check")
+    public SaveResponse checkDuplication(
+        @RequestBody
+        @NotEmpty
+        List<WpdyRentalLeasePenaltyMgtDto.CancelChargeBase> dtos
+    ) {
+        return SaveResponse.builder()
+            .data(service.checkDuplication(dtos))
+            .build();
+    }
 }
