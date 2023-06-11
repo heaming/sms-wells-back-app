@@ -7,7 +7,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto;
+import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto.*;
 import com.kyowon.sms.wells.web.fee.aggregate.service.WfeaWelsMngerSettlementAwService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -38,12 +38,30 @@ public class WfeaWelsMngerSettlementAwController {
         @ApiImplicitParam(name = "schRsbDvCd", value = "직급구분", paramType = "query", required = false),
     })
 
-    @GetMapping
-    public List<WfeaWelsMngerSettlementAwDto.SearchRes> getWelsMngers(
+    @GetMapping("wmList")
+    public List<SearchRes> getWelsMngers(
         @Valid
-        WfeaWelsMngerSettlementAwDto.SearchReq dto
+        SearchReq dto
     ) {
         return this.service.getWelsMngers(dto);
+    }
+
+    @ApiOperation(value = "웰스매니저 개시구분 생성조건 정보 조회\", notes = \"조회조건 실적년월에 해당하는 웰스매니저 개시구분 생성조건 정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrKnm", value = "이름", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schRsbDvCd", value = "직급구분", paramType = "query", required = false),
+    })
+
+    @GetMapping("etc")
+    public SearchEtcRes getCheckWelsMngerOpng(
+        @Valid
+        SearchReq dto
+    ) {
+        return this.service.getCheckWelsMngerOpng(dto);
     }
 
     @ApiOperation(value = "웰스매니저 정착수당정보 생성")
@@ -51,7 +69,7 @@ public class WfeaWelsMngerSettlementAwController {
     public SaveResponse saveWelsMngerOpngs(
         @RequestBody
         @Valid
-        WfeaWelsMngerSettlementAwDto.SaveOpngReq dto
+        SaveOpngReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveWelsMngerOpngs(dto))
@@ -63,7 +81,7 @@ public class WfeaWelsMngerSettlementAwController {
     public SaveResponse saveWelsMngers(
         @RequestBody
         @Valid
-        List<WfeaWelsMngerSettlementAwDto.SaveReq> info
+        List<SaveReq> info
     ) {
         return SaveResponse.builder().processCount(service.saveWelsMngers(info)).build();
     }
@@ -73,7 +91,7 @@ public class WfeaWelsMngerSettlementAwController {
     public SaveResponse saveWelsMngerConfirms(
         @RequestBody
         @Valid
-        WfeaWelsMngerSettlementAwDto.SaveConfirmReq dto
+        SaveConfirmReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveWelsMngerConfirms(dto))

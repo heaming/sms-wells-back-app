@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.fee.aggregate.mapper;
 
 import java.util.List;
-
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto.*;
@@ -22,7 +21,9 @@ public interface WfeaWelsMngerSettlementAwMapper {
         SearchReq dto
     );
 
-    int selectCheckWelsMngerOpng(SaveOpngReq dto);
+    SearchEtcRes selectCheckWelsMngerOpng(
+        SearchReq dto
+    );
 
     int insertWelsMngerOpng(WfeaWelsMngerSettlementAwDvo dvo);
 

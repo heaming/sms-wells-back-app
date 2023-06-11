@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaWelsMngerSettlementAwConverter;
-import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto;
+import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto.*;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaWelsMngerSettlementAwDvo;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaWelsMngerSettlementAwMapper;
 import org.springframework.stereotype.Service;
@@ -37,9 +37,23 @@ public class WfeaWelsMngerSettlementAwService {
      * schRsbDvCd: 직급구분  }
      * @return 조회결과
      */
-    public List<WfeaWelsMngerSettlementAwDto.SearchRes> getWelsMngers(WfeaWelsMngerSettlementAwDto.SearchReq dto) {
-        System.out.println("###############################:" + dto.toString());
+    public List<SearchRes> getWelsMngers(SearchReq dto) {
         return mapper.selectWelsMngers(dto);
+    }
+
+    /**
+     * 웰스매니저 개시구분 생성조건 조회
+     * @param dto : {
+     * perfYm: 실적년월,
+     * tcnt: 회차,
+     * prtnrNo: 번호,
+     * prtnrKnm: 이름,
+     * schDiv: 구분,
+     * schRsbDvCd: 직급구분  }
+     * @return 조회결과
+     */
+    public SearchEtcRes getCheckWelsMngerOpng(SearchReq dto) {
+        return mapper.selectCheckWelsMngerOpng(dto);
     }
 
     /**
@@ -52,19 +66,12 @@ public class WfeaWelsMngerSettlementAwService {
      * cnfmStatYn : 확정여부 }
      * @return 조회결과
      */
-    public int saveWelsMngerOpngs(WfeaWelsMngerSettlementAwDto.SaveOpngReq dto) {
+    public int saveWelsMngerOpngs(SaveOpngReq dto) {
 
         int processCount = 0;
-        int chkCount = 0;
-
-        chkCount = mapper.selectCheckWelsMngerOpng(dto);
-        if (chkCount == 0) {
-            WfeaWelsMngerSettlementAwDvo dvo = converter.mapSaveOpngReqToWfeaWelsMngerSettlementAwDvo(dto);
-            processCount = mapper.insertWelsMngerOpng(dvo);
-            BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
-        } else {
-            BizAssert.isTrue(chkCount == 0, "MSG_ALT_CRT_FAIL");
-        }
+        WfeaWelsMngerSettlementAwDvo dvo = converter.mapSaveOpngReqToWfeaWelsMngerSettlementAwDvo(dto);
+        processCount = mapper.insertWelsMngerOpng(dvo);
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
         return processCount;
     }
 
@@ -78,7 +85,7 @@ public class WfeaWelsMngerSettlementAwService {
      * cnfmStatYn : 확정여부 }
      * @return 조회결과
      */
-    public int saveWelsMngers(List<WfeaWelsMngerSettlementAwDto.SaveReq> info) {
+    public int saveWelsMngers(List<SaveReq> info) {
         AtomicInteger processCount = new AtomicInteger();
         info.forEach(data -> {
             WfeaWelsMngerSettlementAwDvo dvo = this.converter.mapSaveReqToWfeaWelsMngerSettlementAwDvo(data);
@@ -99,7 +106,7 @@ public class WfeaWelsMngerSettlementAwService {
      * cnfmStatYn : 확정여부 }
      * @return 조회결과
      */
-    public int saveWelsMngerConfirms(WfeaWelsMngerSettlementAwDto.SaveConfirmReq dto) {
+    public int saveWelsMngerConfirms(SaveConfirmReq dto) {
 
         int processCount = 0;
         WfeaWelsMngerSettlementAwDvo dvo = converter.mapSaveConfirmReqToWfeaWelsMngerSettlementAwDvo(dto);
