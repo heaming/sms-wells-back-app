@@ -9,6 +9,7 @@ import com.kyowon.sms.wells.web.service.allocate.converter.WsncSpecCustAsnConver
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncSpecCustAsnDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustAsnDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncSpecCustAsnMapper;
+import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,7 @@ public class WsncSpecCustAsnService {
 
     @Transactional
     public int processSpecCustAsn(WsncSpecCustAsnDvo dvo) throws Exception {
+        ValidAssert.hasText(dvo.getAsnOjYm());
         List<WsncSpecCustAsnDvo> asnList = mapper.selectSpecCustAsn(dvo);
 
         for(WsncSpecCustAsnDvo asnDvo : asnList){
@@ -31,6 +33,7 @@ public class WsncSpecCustAsnService {
         return 1;
     }
 
+    @Transactional
     public int processSpecCustAsn(WsncSpecCustAsnDto.SaveProcessReq dto) throws Exception {
         WsncSpecCustAsnDvo dvo = converter.mapSaveProcessReqToSpecCustAsnDvo(dto);
         return processSpecCustAsn(dvo);
