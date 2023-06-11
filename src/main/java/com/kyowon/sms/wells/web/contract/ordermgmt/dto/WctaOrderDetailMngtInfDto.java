@@ -15,7 +15,7 @@ public class WctaOrderDetailMngtInfDto {
         String pdQty, /* 상품수량 */
         String istDt, /* 설치일자 */
         String sellTpNm, /* 판매유형코드명 */
-        String dscDv, /* 할인구분 */
+        String dscDvNm, /* 할인구분 */
         String dscTpNm, /* 할인유형명 */
         String stplPtrm, /* 약정기간 */
         String prd, /* 주기 */

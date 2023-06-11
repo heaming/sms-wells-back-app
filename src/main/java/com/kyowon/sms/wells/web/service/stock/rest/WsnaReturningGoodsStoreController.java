@@ -41,7 +41,6 @@ public class WsnaReturningGoodsStoreController {
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getReturningGoodsStores(
-        @Valid
         SearchReq dto,
         @Valid
         PageInfo pageInfo
@@ -59,6 +58,18 @@ public class WsnaReturningGoodsStoreController {
 
     ) throws ParseException {
         return SaveResponse.builder().processCount(this.service.saveReturningGoodsStores(dtos)).build();
+    }
+
+    @ApiOperation(value = "반품입고 확인일자 반품처리유형코드 저장", notes = "반품입고 확인일자 반품처리유형코드 저장을 한다.")
+    @PostMapping("/confirmation-type")
+    public SaveResponse saveReturningGoodsStoreConfirmations(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<SaveConfirmationReq> dtos
+
+    ) throws ParseException {
+        return SaveResponse.builder().processCount(this.service.saveReturningGoodsStoreConfirmations(dtos)).build();
     }
 
     @ApiOperation(value = "반품입고 관리 엑셀다운로드", notes = "검색조건을 받아 엑셀다운로드용 반품입고 관리를 조회한다.")

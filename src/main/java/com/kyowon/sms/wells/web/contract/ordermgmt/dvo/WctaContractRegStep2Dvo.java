@@ -93,6 +93,7 @@ public class WctaContractRegStep2Dvo {
         String anaFactVal2;
         String pvdaYn;
         String hcrMshTpCd;
+        String pdChip1;
     }
 
     @Getter

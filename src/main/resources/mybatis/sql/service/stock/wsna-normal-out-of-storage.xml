@@ -139,24 +139,20 @@
     </select>
 
     <select id="selectAskMaterialsCenterPresentState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$CenterRes">
-            SELECT WARE_NO
-                , NVL((PITM_STOC_A_GD_QTY - MMT_STOC_A_GD_QTY),0) AS QTY
-                , (SELECT T2.OG_NM
-                     FROM TB_SVST_MCBY_WARE_IZ T1
-                    INNER JOIN TB_OGBS_MM_OG_IZ T2
-                       ON T1.OG_ID = T2.OG_ID
-                      AND T1.APY_YM = T2.BASE_YM
-                    WHERE 1 = 1
-                      AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                      AND WARE_DTL_DV_CD = '20') AS OG_NM
-             FROM TB_SVST_CST_SV_ITM_STOC_IZ
+            SELECT A1.WARE_NO
+                , NVL((A1.PITM_STOC_A_GD_QTY - A1.MMT_STOC_A_GD_QTY),0) AS QTY
+                , T2.OG_NM
+             FROM TB_SVST_CST_SV_ITM_STOC_IZ A1
+            INNER JOIN TB_SVST_MCBY_WARE_IZ A2
+               ON A1.WARE_NO = A2.WARE_NO
+            INNER JOIN TB_OGBS_MM_OG_IZ T2
+               ON A2.OG_TP_CD = T2.OG_TP_CD
+              AND A2.OG_ID = T2.OG_ID
+              AND A2.APY_YM = T2.BASE_YM
             WHERE 1 = 1
-              AND ITM_PD_CD = #{itmPdCd}
-              AND WARE_NO IN ( SELECT WARE_NO
-                                 FROM TB_SVST_MCBY_WARE_IZ
-                                WHERE 1 = 1
-                                  AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                  AND WARE_DTL_DV_CD = '20')
+              AND A1.ITM_PD_CD = #{itmPdCd}
+              AND A2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+              AND A2.WARE_DTL_DV_CD = '20'
     </select>
 
     <select id="selectNormalOutOfStoragesDetails"
@@ -499,11 +495,19 @@
 
     <select id="selectStandardWareHouse"
         resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$StandardWareRes">
-        SELECT NVL(STD_WARE_USE_YN,'0') AS STCK_STD_GB
-             , WARE_NO AS OSTR_WARE_NO
+        SELECT NVL(STD_WARE_USE_YN,'N') AS STCK_STD_GB
+             , WARE_NO
+             , APY_YM
           FROM TB_SVST_MCBY_WARE_IZ
-         WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND WARE_NO = #{ostrWareNo}
+        <where>
+            <if test="@MybatisUtils@isNotEmpty(apyYm)">
+                AND APY_YM = #{apyYm}
+            </if>
+            <if test="@MybatisUtils@isEmpty(apyYm)">
+                AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            </if>
+                AND WARE_NO = #{wareNo}
+        </where>
     </select>
 
     <select id="selectItmOstrAk"

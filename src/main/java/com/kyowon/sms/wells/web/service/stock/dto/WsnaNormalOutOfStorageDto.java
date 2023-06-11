@@ -202,22 +202,25 @@ public class WsnaNormalOutOfStorageDto {
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
     public record StandardWareReq(
-        String ostrWareNo,
+        String apyYm,
+        String wareNo,
         String stckStdGb
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareRes")
     public record StandardWareRes(
-        String ostrWareNo,
-        String stckStdGb
-    ) {}
-
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
-    public record MonthlyWarehouseReq(
         String apyYm,
         String wareNo,
         String stckStdGb
     ) {}
+
+//    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
+//    public record MonthlyWarehouseReq(
+//        String apyYm,
+//        String wareNo,
+//        String stckStdGb
+//    ) {}
+
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkReq")
     public record SearchItmOstrAkReq(
         String ostrAkNo,

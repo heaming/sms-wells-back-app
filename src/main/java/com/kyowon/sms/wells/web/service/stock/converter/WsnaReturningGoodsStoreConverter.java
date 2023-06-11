@@ -10,4 +10,6 @@ public interface WsnaReturningGoodsStoreConverter {
 
     WsnaReturningGoodsStoreDvo mapSaveReqToReturningGoodsDvo(SaveReq dto);
 
+    WsnaReturningGoodsStoreDvo mapSaveConfirmationReqToReturningGoodsDvo(SaveConfirmationReq dto);
+
 }

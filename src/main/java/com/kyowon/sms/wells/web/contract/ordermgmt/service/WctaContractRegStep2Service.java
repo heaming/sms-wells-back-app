@@ -199,8 +199,7 @@ public class WctaContractRegStep2Service {
         );
 
         String sellInflwChnlDtlCd = bas.getSellInflwChnlDtlCd();
-        // FIXME 판매유입채널상세코드 1010 세팅
-        sellInflwChnlDtlCd = "1010";
+
         List<WctaContractRegStep2Dvo.PdDvo> pds = mapper.selectProducts(sellInflwChnlDtlCd, pdFilter);
         for (WctaContractRegStep2Dvo.PdDvo pd : pds) {
             // TODO 로직 추가
@@ -241,7 +240,7 @@ public class WctaContractRegStep2Service {
             dtl.setCntrwTpCd(""); // TODO 계약서유형코드
             dtl.setBlgCrpCd("D0");
             dtl.setRveCrpCd("D0");
-            dtl.setCoCd("D0");
+            dtl.setCoCd("2000");
             dtl.setPdBaseAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
             dtl.setSellAmt(dtl.getFnlAmt());
             dtl.setSppDuedt(""); // TODO 배송예정일자
@@ -276,14 +275,16 @@ public class WctaContractRegStep2Service {
                     }
                 );
             if (StringUtils.isNotEmpty(dtl.getSvPdCd())) {
+                String pdRelId = mapper.selectProductRelId(dtl.getBasePdCd(), dtl.getSvPdCd());
                 mapper.insertCntrPdRelStep2(
                     WctaContractPdRelDvo.builder()
                         .cntrNo(cntrNo)
                         .cntrSn(cntrSn)
+                        .pdRelId(pdRelId)
                         .vlStrtDtm(now)
                         .vlEndDtm(CtContractConst.END_DTM)
-                        .ojPdCd(dtl.getBasePdCd())
-                        .basePdCd(dtl.getSvPdCd())
+                        .ojPdCd(dtl.getSvPdCd())
+                        .basePdCd(dtl.getBasePdCd())
                         .pdRelTpCd("03")
                         .pdQty(1l)
                         .build()

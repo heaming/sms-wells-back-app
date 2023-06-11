@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaEgerAllowanceDto;
 import com.kyowon.sms.wells.web.fee.aggregate.service.WfeaEgerAllowanceService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
-import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,14 +29,12 @@ public class WfeaEgerAllowanceController {
 
     @ApiOperation(value = "엔지니어 실적 집계", notes = "실적년월의 엔지니어 실적을 집계한다.")
     @PostMapping("/aggregates")
-    public SaveResponse saveEgerPerformances(
+    public String saveEgerPerformances(
         @Valid
         @RequestBody
         WfeaEgerAllowanceDto.SaveReq dto
-    ) {
-        return SaveResponse.builder()
-            .processCount(service.saveEgerPerformances(dto))
-            .build();
+    ) throws Exception {
+        return service.saveEgerPerformances(dto);
     }
 
 }

@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,8 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaTaxInvoiceInquiryM
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +31,9 @@ public class WctaTaxInvoiceInquiryService {
     private final WctaTaxInvoiceInquiryMapper mapper;
     private final WctaTaxInvoiceInquiryConverter converter;
     private final WctzHistoryService historyService;
+    private final MessageResourceService messageResourceService;
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     public WctaTaxInvoiceInquiryDvo getTaxInvoiceInquiry(String cntrNo, int cntrSn) {
         return mapper.selectTaxInvoiceInquiry(cntrNo, cntrSn);
@@ -50,16 +57,19 @@ public class WctaTaxInvoiceInquiryService {
         String now = DateUtil.todayNnow();
         String nowDate = DateUtil.getNowDayString(); // 현재일자
         String nowYm = nowDate.substring(0, 6); // 현재년월
+        String dlpnrPsicNm = dvo.getDlpnrPsicNm();
         int nowDay = Integer.parseInt(nowDate.substring(4, 6));// 현재일
         int txinvPblD = Integer.parseInt(dvo.getTxinvPblD()); // 발행일자
         String rtnMsg = ""; // 반환 메세지
-        String[] exceptParams = {"MSG_TXT_TXINV"}; // Exception 메세지
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
 
         boolean txinvPblOjInfoCheck = true; // 발행정보 변경 여부
         boolean txinvPblOjCheck = true; // 발행여부 변경 여부
 
+        BizAssert.isFalse(StringUtils.isEmpty(bzrno) || (bzrno.length() < 10), "MSG_ALT_INVALID_BZRNO"); // 잘못된 사업자등록번호 입니다.
+
         WctaTaxInvoiceInquiryDvo compInvoice = mapper.selectTaxInvoiceInquiryCheck(cntrNo, cntrSn); // 원본 데이터
+        BizAssert.isFalse(Objects.isNull(compInvoice), "MSG_ALT_NOT_FOUND_TXINV"); // 등록된 세금계산서를 찾을 수 없습니다.
 
         // 비교용
         String txinvPblOjYnComp = compInvoice.getTxinvPblOjYn();
@@ -68,27 +78,29 @@ public class WctaTaxInvoiceInquiryService {
         String mexnoComp = compInvoice.getMexno();
         String cralLocaraTnoComp = compInvoice.getCralLocaraTno();
         String cntrCnfmDtm = compInvoice.getCntrCnfmDtm();
-        String cntrCnfmYm = StringUtils.isEmpty(cntrCnfmDtm) ? " " : cntrCnfmDtm.substring(0, 6);
+        String cntrCnfmYm = StringUtils.isEmpty(cntrCnfmDtm) ? "" : cntrCnfmDtm.substring(0, 6);
         String dpTpCd = compInvoice.getDpTpCd();
-        int txinvPblDComp = Objects.isNull(compInvoice.getTxinvPblD()) ? 0
-            : Integer.parseInt(compInvoice.getTxinvPblD());
+        String dlpnrPsicNmComp = compInvoice.getDlpnrPsicNm();
 
-        BizAssert.isTrue(bzrno.length() >= 10, "MSG_ALT_INVALID_BZRNO"); // 잘못되 사업자번호입니다.
+        int txinvPblDComp = Integer.parseInt(compInvoice.getTxinvPblD());
 
         // 파라미터와 일치한 지 확인하는 구간
-        if (txinvPblOjYn.equals(txinvPblOjYnComp)
-            && emadrComp.equals(emadr)
-            && mexnoComp.equals(mexnoComp)
-            && cralIdvTnoComp.equals(cralIdvTno)
-            && mexnoComp.equals(mexno)
-            && cralLocaraTnoComp.equals(cralLocaraTno)) {
+        if (txinvPblOjYn.equals(txinvPblOjYnComp) /// 발행정보 변경 여부
+            && emadr.equals(emadrComp)
+            && cralIdvTno.equals(cralIdvTnoComp)
+            && mexno.equals(mexnoComp)
+            && cralLocaraTno.equals(cralLocaraTnoComp)
+            && dlpnrPsicNm.equals(dlpnrPsicNmComp)
+            && txinvPblD == txinvPblDComp) {
             txinvPblOjInfoCheck = false;
         }
-        if (txinvPblOjYn.equals(txinvPblOjYnComp)) {
+        if (txinvPblOjYn.equals(txinvPblOjYnComp)) { /// 발행여부 변경 여부
             txinvPblOjCheck = false;
         }
 
-        BizAssert.isTrue(txinvPblOjCheck && txinvPblOjInfoCheck, "MSG_ALT_NO_CHG_CNTN"); // 변경된 내용이 없습니다.
+        if (!txinvPblOjCheck && !txinvPblOjInfoCheck) {
+            throw new BizException(messageResourceService.getMessage("MSG_ALT_NO_CHG_CNTN")); // 변경된 내용이 없습니다.
+        }
 
         if (txinvPblOjInfoCheck && "Y".equals(txinvPblOjYn)) {
             if (nowYm.equals(cntrCnfmYm)) {
@@ -97,11 +109,14 @@ public class WctaTaxInvoiceInquiryService {
                 rtnMsg = "변경사항은 익월부터 반영됩니다.\\n※당월부터 반영되길 희망하는 건은 담당자에게 문의 하세요.";
             }
         }
-
-        BizAssert.isFalse(
-            "02".equals(dpTpCd.substring(0, 2)) && "Y".equals(txinvPblOjYn), "MSG_ALT_CARD_FNT_CST_NOT_PBL",
-            exceptParams
-        ); // 카드이체 고객은 세금계산서 발행이 불가합니다.
+        if (StringUtils.isNotEmpty(dpTpCd)) {
+            BizAssert.isFalse(
+                dpTpCd.startsWith("02") && "Y".equals(txinvPblOjYn), "MSG_ALT_CARD_FNT_CST_NOT_PBL",
+                new String[] {messageResourceService.getMessage("MSG_TXT_TXINV")}
+            ); // 카드이체 고객은 세금계산서 발행이 불가합니다.
+        } else {
+            log.debug("입금유형코드: {}", dpTpCd);
+        }
 
         if (txinvPblOjCheck) {
 

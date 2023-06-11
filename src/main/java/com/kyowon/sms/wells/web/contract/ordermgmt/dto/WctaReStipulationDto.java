@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import org.apache.commons.lang.StringUtils;
 
+import javax.annotation.RegEx;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
@@ -16,7 +17,6 @@ public class WctaReStipulationDto {
     @Builder
     @ApiModel("WctaReStipulationDto-SearchReq")
     public record SearchReq(
-        @NotBlank
         @Pattern(regexp = "[12]")
         String copnDvCd,
         String cstKnm,

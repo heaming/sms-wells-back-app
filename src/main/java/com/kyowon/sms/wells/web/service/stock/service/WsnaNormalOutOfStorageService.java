@@ -171,7 +171,8 @@ public class WsnaNormalOutOfStorageService {
         return reqDto;
     }
 
-    public int saveStandardWareHouse(MonthlyWarehouseReq dto) {
+    @Transactional
+    public int saveStandardWareHouse(StandardWareReq dto) {
         WsnaNormalOutOfStorageStdgbDvo dvo = converter.mapToWsnaNormalOutOfStorageStdgbDvo(dto);
         return mapper.updateStandardWareHouse(dvo);
     }

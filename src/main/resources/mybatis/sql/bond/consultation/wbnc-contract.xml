@@ -42,16 +42,16 @@
 		     , CLCTAM_ICHR   /* 집급담당 */
 		     , CNTR_CRAL_LOCARA_TNO
 		     , CNTR_MEXNO_ENCR
-             , CNTR_CRAL_IDV_TNO /* 계약휴대전화번호 */
-             , CNTR_LOCARA_TNO 
-             , CNTR_EXNO_ENCR 
-             , CNTR_IDV_TNO /* 계약전화번호 */
-             , IST_CRAL_LOCARA_TNO 
-             , IST_MEXNO_ENCR 
-             , IST_CRAL_IDV_TNO /* 설치휴대전화번호 */
-             , IST_LOCARA_TNO 
-             , IST_EXNO_ENCR 
-             , IST_IDV_TNO /* 설치전화번호 */
+		     , CNTR_CRAL_IDV_TNO /* 계약휴대전화번호 */
+		     , CNTR_LOCARA_TNO 
+		     , CNTR_EXNO_ENCR 
+		     , CNTR_IDV_TNO /* 계약전화번호 */
+		     , IST_CRAL_LOCARA_TNO 
+		     , IST_MEXNO_ENCR 
+		     , IST_CRAL_IDV_TNO /* 설치휴대전화번호 */
+		     , IST_LOCARA_TNO 
+		     , IST_EXNO_ENCR 
+		     , IST_IDV_TNO /* 설치전화번호 */
 		     , CST_NO /* 고객번호 */
 		     , TF_DT /* 이관일자 */ 
 		     , BU_NOTI_DT /* 부담통보일자 */    
@@ -159,22 +159,27 @@
 		             , ( SELECT LWM_DT
 		                   FROM TB_CBBO_BND_LWM_IZ
 		                  WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '02' AND LWM_DTL_TP_CD = '02'
+		                  AND ROWNUM= 1
 		               ) AS DSB_CMD  /* 지급명령*/
 		             , ( SELECT LWM_DT
 		                   FROM TB_CBBO_BND_LWM_IZ
 		                  WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '03' AND LWM_DTL_TP_CD = '03'
+		                  AND ROWNUM= 1
 		               ) AS PRTY_CLRS  /* 재산명시*/
 		             , ( SELECT LWM_DT
 		                   FROM TB_CBBO_BND_LWM_IZ
 		                  WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '04' AND LWM_DTL_TP_CD = '04'
+		                  AND ROWNUM= 1
 		               ) AS SUBM_CMD  /* 제출명령*/
 		             , ( SELECT LWM_DT
 		                   FROM TB_CBBO_BND_LWM_IZ
 		                  WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '06' AND LWM_DTL_TP_CD = '06'
+		                  AND ROWNUM= 1
 		               ) AS CRC_CMD  /* 보정명령*/
 		             , ( SELECT LWM_DT
 		                   FROM TB_CBBO_BND_LWM_IZ
 		                  WHERE CST_NO = T1.CST_NO AND LWM_TP_CD = '07' AND LWM_DTL_TP_CD = '07'
+		                  AND ROWNUM= 1
 		               ) AS CUJ_OVRD  /* 법원채불*/
 		             , T13.BND_VST_RS_CD AS VST_RS  /* 방문결과*/   
 		             , T13.VST_DT AS VST_DT  /* 방문일자*/  
@@ -205,11 +210,29 @@
 		         LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T6 /* 채권계약기본 */
 		            ON T1.CNTR_NO = T6.CNTR_NO
 		           AND T1.CNTR_SN = T6.CNTR_SN
-		         LEFT OUTER JOIN TB_CBBO_BND_CNSL_PROM_BOO_IZ T7 /* 채권상담약속예약내역 */
+		          LEFT OUTER JOIN
+		                        (
+		                          SELECT CST_NO 
+		                               , PROM_DT
+		                            FROM TB_CBBO_BND_CNSL_PROM_BOO_IZ T7 /* 채권상담약속예약내역 */
+		                           WHERE 1=1
+		                             AND DTA_DL_YN = 'N'
+		                             AND ROWNUM = 1
+		                        ) T7
 		            ON T1.CST_NO = T7.CST_NO
-		        INNER  JOIN TB_CBBO_BND_UNUITM_CVCP_DTL T8 /* 채권특이사항민원상세 */
+		         LEFT OUTER JOIN
+		                        (
+		                          SELECT CST_NO 
+		                               , CNTR_NO
+		                               , CVCP_CN
+		                               , CNSL_UNUITM_CN
+		                            FROM TB_CBBO_BND_UNUITM_CVCP_DTL  /* 채권특이사항민원상세 */
+		                           WHERE 1=1
+		                             AND DTA_DL_YN = 'N'
+		                             AND ROWNUM = 1
+		                        ) T8
 		            ON T1.CST_NO = T8.CST_NO
-		            AND T1.CNTR_NO = T8.CNTR_NO
+		           AND T1.CNTR_NO = T8.CNTR_NO
 		          LEFT OUTER JOIN 
 		                        (
 		                          SELECT CR.CNTR_ADRPC_ID /* 계약주소지ID */
@@ -243,8 +266,17 @@
 		            ON T1.CST_NO = T11.ICHR_PRTNR_NO
 		         LEFT OUTER JOIN TB_CBBO_BND_LWM_IZ T12 /* 채권법조치내역 */
 		            ON T1.CST_NO = T12.CST_NO
-		         LEFT OUTER JOIN TB_CBBO_BND_CNSL_VST_IZ T13 /* 채권상담방문내역 */
-		            ON T1.CST_NO = T13.CST_NO 
+		         LEFT OUTER JOIN
+		                        (
+		                          SELECT CST_NO 
+		                               , BND_VST_RS_CD
+		                               , VST_DT
+		                            FROM TB_CBBO_BND_CNSL_VST_IZ T13 /* 채권상담방문내역 */
+		                           WHERE 1=1
+		                             AND DTA_DL_YN = 'N'
+		                             AND ROWNUM = 1
+		                        ) T13
+		            ON T1.CST_NO = T13.CST_NO
 		          LEFT OUTER JOIN 
 		                        (
 		                          SELECT CR.CNTR_ADRPC_ID
@@ -337,7 +369,9 @@
 		   AND BIL_TP_CD = #{schBilDv}
 		 </if>
 		 <if test='@MybatisUtils@isNotEmpty(schCstThmDp)'>
-		   AND MM_CHRAM_DP = #{schCstThmDp}
+		   <if test="schCstThmDp == '02'">
+             AND MM_CHRAM_DP <![CDATA[<>]]> 0
+           </if>
 		 </if>
 		 <if test='@MybatisUtils@isNotEmpty(schCstDv)'>
            <if test="schDv == '01'">

@@ -8,6 +8,7 @@ import lombok.Setter;
 public class WsnaReturningGoodsStoreDvo {
     String rowState;
     String itmPdCd;
+    String cstSvAsnNo;
     String itmKndCd;
     String stFnlVstFshDtFrom;
     String edFnlVstFshDtTo;
@@ -51,6 +52,9 @@ public class WsnaReturningGoodsStoreDvo {
     String disuseOstrTpCd;
     String strQuantityStrTpCd;
     String quantityOstrTpCd;
+    String stkrPrntYn;
+    String rmkCn;
     String cntrNo;
     String cntrSn;
+    String wkOstrSn;
 }

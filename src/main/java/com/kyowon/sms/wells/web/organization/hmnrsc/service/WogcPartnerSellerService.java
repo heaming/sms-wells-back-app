@@ -96,7 +96,7 @@ public class WogcPartnerSellerService {
         } else {
             dvos.forEach(
                 dvo -> dvo.setCralTno(
-                    String.format("%s-%s-%s", dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralTno())
+                    String.format("%s%s%s", dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralIdvTno())
                 )
             );
         }

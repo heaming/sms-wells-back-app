@@ -134,13 +134,13 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
     public Map<String, String> setLifAlncDvCdHeader(String lifAlncDvCd) {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         if (lifAlncDvCd.equals("30")) { //웰스399
-            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); // 순번 
+            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); // 순번
             headerTitle.put("welsCntrNo", messageResourceService.getMessage("MSG_TXT_CST_CD"));//고객코드
-            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); // 고객성명 
+            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); // 고객성명
             headerTitle.put("lifAlncPdCd", messageResourceService.getMessage("MSG_TXT_PRDT"));// 상품
             headerTitle.put("lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM"));// 상품명
-            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); //계약일자 
-            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); //해지일자 
+            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); //계약일자
+            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); //해지일자
             headerTitle.put("test2", messageResourceService.getMessage("MSG_TXT_EV_DT")); //행사일자
             headerTitle.put("test3", messageResourceService.getMessage("MSG_TXT_MPY"));// 납부
             headerTitle.put("test4", messageResourceService.getMessage("MSG_TXT_AGGS"));// 누계
@@ -336,8 +336,21 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(integrationDvo);
         integrationDvo.setReceiveAskNumber(receiveAskNumber);
 
-        // 수납요청상세 데이터 생성
-        processCount += zwdzWithdrawalService.createReceiveAskDetail(integrationDvo);
+        for (SearchRes searchRes : selectMutualAidAllianceBulkDepositRegs) {
+
+            integrationDvo.setContractNumber(searchRes.welsCntrNo()); //계약번호
+            //            integrationDvo.setContractSerialNumber(searchRes.welsCntrSn()); //계약일련번호
+            integrationDvo.setReceiveAskAmount(searchRes.amt()); //수납요청금액
+            integrationDvo.setReceiveAmount(searchRes.amt()); //수납금액
+            integrationDvo.setReceiveCompanyCd(depositCprDvo.getRveCd()); //수납코드
+            log.info("===================");
+            log.info(integrationDvo.toString());
+            log.info("===================");
+
+            // 수납요청상세 데이터 생성
+            processCount += zwdzWithdrawalService.createReceiveAskDetail(integrationDvo);
+
+        }
         processCount += zwdzWithdrawalService.createReceiveAskDetailHistory(integrationDvo);
 
         //통합입금기본 데이터 수정
@@ -354,15 +367,39 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber); //수납요청번호
         zwdzWithdrawalReceiveDvo.setRveDt(sysDateYmd); //수납일자
         zwdzWithdrawalReceiveDvo.setRveAmt(depositCprDvo.getDpCprcnfAmt()); //수납금액
-        zwdzWithdrawalReceiveDvo.setDpdvCd(depositCprDvo.getDpDvCd()); //입금구분코드
-        zwdzWithdrawalReceiveDvo.setItgDpNo(depositCprDvo.getItgDpNo());
+        zwdzWithdrawalReceiveDvo.setItgDpNo(depositCprDvo.getItgDpNo()); //통합입금번호
+        zwdzWithdrawalReceiveDvo.setDpDvCd(depositCprDvo.getDpDvCd()); //입금구분코드
+
+        zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber); //수납요청번호
+        zwdzWithdrawalReceiveDvo.setRveDt(sysDateYmd); //수납일자
+        zwdzWithdrawalReceiveDvo.setRveAmt(depositCprDvo.getDpCprcnfAmt()); //수납금액
+        zwdzWithdrawalReceiveDvo.setDpDvCd(depositCprDvo.getDpDvCd()); //입금구분코드
+        zwdzWithdrawalReceiveDvo.setItgDpNo(depositCprDvo.getItgDpNo()); //통합입금번호
+        zwdzWithdrawalReceiveDvo.setDpMesCd(depositCprDvo.getDpMesCd());/*입금수단코드*/
+        zwdzWithdrawalReceiveDvo.setDpTpCd(depositCprDvo.getDpTpCd());/*입금유형코드*/
+        //            zwdzWithdrawalReceiveDvo.setRveDvCd();/*수납구분코드*/
+        zwdzWithdrawalReceiveDvo.setDpCprcnfNo(depositComparisonPk); /*입금대사번호*/
+        zwdzWithdrawalReceiveDvo.setRveCoCd(depositCprDvo.getKwGrpCoCd());/*수납회사코드*/
+        zwdzWithdrawalReceiveDvo.setRveCd(depositCprDvo.getRveCd());/*수납코드*/
+        zwdzWithdrawalReceiveDvo.setProcsDvCd(depositCprDvo.getProcsDvCd()); //처리구분
 
         //수납기본 데이터 생성
         String rveNo = zwdzWithdrawalService.createReceive(zwdzWithdrawalReceiveDvo);
         zwdzWithdrawalReceiveDvo.setRveNo(rveNo);
 
-        //수납상세 데이터 생성
-        processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
+        int number = 1;
+
+        for (SearchRes searchRes : selectMutualAidAllianceBulkDepositRegs) {
+            zwdzWithdrawalReceiveDvo.setCntrNo(searchRes.welsCntrNo());/*계약번호*/
+            zwdzWithdrawalReceiveDvo.setRveCd(searchRes.welsCntrSn());/*계약일련번호*/
+            zwdzWithdrawalReceiveDvo.setRveProcsYn("Y");/*수납처리여부*/
+            zwdzWithdrawalReceiveDvo.setRveSn(Integer.toString(number));
+
+            //수납상세 데이터 생성
+            processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
+
+            number++;
+        }
 
         return processCount;
     }

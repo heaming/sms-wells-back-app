@@ -105,6 +105,8 @@
              , M1.PVDA_YN                                                                                           -- 현재가치할인차금여부??
              , T6.PD_PRP_VAL01                                                          AS HCR_MSH_TP_CD            -- 홈케어멤버십구분
              , T11.PD_TP_CD AS CLSF_PD_TP_CD
+             /* chips */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', M1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
              , 1 AS PD_QTY
              , #{sellInflwChnlDtlCd} AS SELL_INFLW_CHNL_DTL_CD
           FROM TB_PDBS_PD_BAS M1
@@ -460,6 +462,17 @@
         ) A
     </select>
 
+    <select id="selectProductRelId" resultType="String">
+        SELECT PD_REL_ID
+          FROM TB_PDBS_PD_REL
+         WHERE 1=1
+           AND BASE_PD_CD = #{basePdCd}
+           AND OJ_PD_CD = #{svPdCd}
+           AND VL_END_DTM = '99991231235959'
+           AND DTA_DL_YN = 'N'
+           AND TEMP_SAVE_YN = 'N'
+    </select>
+
     <sql id="productWhereClause">
          <where>
            AND T1.PD_CD = #{pdCd}
@@ -673,8 +686,15 @@
           AND T1.PD_PRC_CNDT_CHRC_VAL11 = #{sellDscrCd} /*렌탈 법인단체 할인율 코드 (LCETC4)*/
                 </if>
           AND T1.STPL_PRD_CD = #{stplPtrm} /*약정주기*/
-          AND T1.PD_PRC_CNDT_CHRC_VAL02 = #{sellDscDvCd} /*렌탈 할인 구분코드 (LCETC3)*/
-          AND T1.PD_PRC_CNDT_CHRC_VAL03 = #{sellDscTpCd} /*렌탈 할인 유형코드 (LCFLG4)*/
+                <choose>
+                <when test='@MybatisUtils@isNotEmpty(sellDscDvCd)'> AND T1.PD_PRC_CNDT_CHRC_VAL02 = #{sellDscDvCd} /*렌탈 할인 구분코드 (LCETC3)*/ </when>
+                <otherwise> AND T1.PD_PRC_CNDT_CHRC_VAL02 IS NULL </otherwise>
+                </choose>
+                <choose>
+                <when test='@MybatisUtils@isNotEmpty(sellDscTpCd)'> AND T1.PD_PRC_CNDT_CHRC_VAL03 = #{sellDscTpCd} /*렌탈 할인 유형코드 (LCFLG4)*/ </when>
+                <otherwise> AND T1.PD_PRC_CNDT_CHRC_VAL03 IS NULL </otherwise>
+                </choose>
+
           AND T1.PD_PRC_CNDT_CHRC_VAL01 = #{cntrAmt} /*등록비*/
           AND T1.PD_PRC_CNDT_CHRC_VAL07 = #{cntrPtrm} /*변동개월 (소유권이전기간)*/
           /*AND T1.PD_PRC_CNDT_CHRC_VAL18 =  -- 렌탈결합구분, TODO 모종 조치할 때 추가*/

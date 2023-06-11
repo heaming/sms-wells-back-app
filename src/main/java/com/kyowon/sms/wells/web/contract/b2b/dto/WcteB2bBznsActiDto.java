@@ -70,7 +70,8 @@ public class WcteB2bBznsActiDto {
         String maxStplPtrm,
         String biddBzsNm,
         String unuitmCn,
-        String fnlMdfcDt
+        String fnlMdfcDt,
+        String ogTpCd
     ) {}
     @ApiModel("WcteB2bBznsActiDto-SearchKeyManRes")
     public record SearchKeyManReq(
@@ -126,7 +127,8 @@ public class WcteB2bBznsActiDto {
         String maxStplPtrm,
         String biddBzsNm,
         String unuitmCn,
-        String fnlMdfcDt
+        String fnlMdfcDt,
+        String ogTpCd
     ) {
         public SaveReq {
             exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.enc(exnoEncr) : exnoEncr; // 암호화

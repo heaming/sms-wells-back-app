@@ -14,7 +14,7 @@
                             LISTAGG(Z.AVL_CHNL_ID,',') WITHIN GROUP (ORDER BY Z.AVL_CHNL_ID ASC) AS CHN_ID
                       FROM TB_PDBS_PD_DTL Z             /* 상품상세 */
                      WHERE Z.PD_CD = PB.PD_CD
-                       AND DTA_DL_YN = 'N'
+                       AND Z.DTA_DL_YN = 'N'
                   ) AS SELL_CHNL_CDS    
              , T1.PD_ALNCMP_BASE_ID  /* 상품제휴사기준ID */
              , T1.ALNCMP_CD          /* 제휴사코드 */
@@ -69,11 +69,17 @@
            <if test='@MybatisUtils@isNotEmpty( prdtCateMid )'>
            AND PB.PD_MCLSF_ID = #{prdtCateMid}
            </if>
-           <if test='@MybatisUtils@isNotEmpty( svcStartDt )'>
-           AND S1.SV_STRTDT <![CDATA[<=]]> #{svcStartDt}
+           <if test='@MybatisUtils@isNotEmpty( apyStrtdt )'>
+           AND T1.APY_STRTDT <![CDATA[<=]]> #{apyStrtdt}
+               <if test='@MybatisUtils@isEmpty( apyEnddt )'>
+               AND T1.APY_ENDDT <![CDATA[>=]]> #{apyStrtdt}
+               </if>
            </if>
-           <if test='@MybatisUtils@isNotEmpty( svcEndDt )'>
-           AND ( S1.SV_ENDDT IS NULL OR S1.SV_ENDDT <![CDATA[>=]]> #{svcEndDt} )
+           <if test='@MybatisUtils@isNotEmpty( apyEnddt )'>
+               <if test='@MybatisUtils@isEmpty( apyStrtdt )'>
+               AND T1.APY_STRTDT <![CDATA[<=]]> #{apyEnddt}
+               </if>
+           AND T1.APY_ENDDT <![CDATA[>=]]> #{apyEnddt}
            </if>
     </sql>
 
@@ -165,4 +171,13 @@
          WHERE DTA_DL_YN = 'N'
            AND PD_ALNCMP_BASE_ID = #{pdAlncmpBaseId}
     </update>
+    
+    <select id="selectWellsAllianceDuplication" resultType="String">
+        SELECT PD_CD || ',' || SV_PD_CD || ',' || STPL_PRD_CD
+          FROM TB_PDBS_PD_ALNCMP_BAS 
+         WHERE DTA_DL_YN = 'N'
+           AND PD_CD = #{pdCd}
+           AND NVL(SV_PD_CD, 'X') = NVL(#{svPdCd}, 'X')
+           AND NVL(STPL_PRD_CD, 'X') = NVL(#{stplPrdCd}, 'X')
+    </select>
 </mapper>

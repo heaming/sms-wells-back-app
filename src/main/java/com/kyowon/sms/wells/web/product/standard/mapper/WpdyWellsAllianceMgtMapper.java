@@ -11,7 +11,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  * <pre>
- * 상품(공통) - 상품운영관리 - 서비스 - B/S 투입 필터/부품 연결
+ * 상품(Wells) - 상품운영관리 - 서비스 - B/S 투입 필터/부품 연결
  * zpdc-price-mngt.xml
  * </pre>
  *
@@ -32,4 +32,6 @@ public interface WpdyWellsAllianceMgtMapper {
     int mergeWellsAllianceBase(WpdyAllianceBaseDvo info);
 
     int deleteWellsAllianceBase(WpdyAllianceBaseDvo info);
+
+    String selectWellsAllianceDuplication(WpdyAllianceBaseDvo info);
 }

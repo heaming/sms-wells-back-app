@@ -104,48 +104,57 @@
         SELECT
                '0000' AS ERR_CD 	-- 오류코드
              , '정상' AS ERR_NM	-- 오류코드명
-             , T1.PRTNR_NO 		-- 사번
-             , T2.PRTNR_KNM 	-- 성명
-             , T2.CRAL_LOCARA_TNO
-             , T2.MEXNO_ENCR
-             , T2.CRAL_IDV_TNO AS CRAL_TNO	-- 연락처
-             , T4.DGR3_LEVL_OG_CD 	-- 센터코드
-             , T4.DGR3_LEVL_OG_NM 	-- 센터명
-          FROM (
-                 SELECT
-                        A.CNTR_NO 					-- 계약번호
-                      , A.CNTR_CST_NO 				-- 고객번호
-                      , A.SELL_OG_TP_CD 				-- 판매 조직유형코드
-                      , A.SELL_PRTNR_NO 				-- 판매 파트너번호
-                      , NVL(C.OG_TP_CD, A.SELL_OG_TP_CD) AS OG_TP_CD 		-- 최종 현재시점의 판매 조직유형코드
-                      , NVL(C.PRTNR_NO, A.SELL_PRTNR_NO) AS PRTNR_NO 		-- 최종 현재시점의 판매 파트너번호
-                      , A.CNTR_PRGS_STAT_CD 				-- 계약진행상태코드(60:확정)
-                      , A.CNTR_CNFM_DTM 				-- 계약확정년월
-                      , B.CST_NO 					-- 고객번호
-                      , B.CST_KNM					-- 고객명
-                      , B.BRYY_MMDD 				-- 고객생년월일
-                   FROM TB_SSCT_CNTR_BAS A				-- [계약테이블]
-                   LEFT OUTER JOIN TB_CUBS_CST_BAS B			-- [고객기본]
-                     ON A.CNTR_CST_NO = B.CST_NO			-- 고객번호로 연결.
-                   LEFT OUTER JOIN ASN_BAS C				-- [파트너 인수 인계]
-                     ON A.CNTR_NO = C.OJ_CNTR_NO			-- 계약번호로 연결.
-                  WHERE 1=1
-                    AND A.SELL_OG_TP_CD != 'W01'			-- P조직은 제외.
-                    AND A.CNTR_PRGS_STAT_CD = '60'			-- 계약확정
-                    AND A.SELL_OG_TP_CD = #{sellOgTpCd}				-- 판매 조직유형코드 [IN]
-                    AND A.CNTR_CST_NO = #{cntrCstNo} 				-- 고객번호 [IN]
-                    AND B.BRYY_MMDD = #{bryyMmdd}			-- 고객의 생년월일 [IN]
-          ) T1
-          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T2
-            ON T1.OG_TP_CD = T2.OG_TP_CD
-           AND T1.PRTNR_NO = T2.PRTNR_NO 	-- 현재 최종 파트너의 상세정보
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T3
-            ON T3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T1.OG_TP_CD = T3.OG_TP_CD
-           AND T1.PRTNR_NO = T3.PRTNR_NO
-          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T4
-            ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T3.OG_ID = T4.OG_ID
+             , T.PRTNR_NO 		-- 사번
+             , T.PRTNR_KNM 	-- 성명
+             , T.CRAL_LOCARA_TNO -- 연락처1
+             , T.MEXNO_ENCR    -- 연락처2
+             , T.CRAL_IDV_TNO	-- 연락처3
+             , T.DGR3_LEVL_OG_CD 	-- 센터코드
+             , T.DGR3_LEVL_OG_NM 	-- 센터명
+          FROM ( SELECT
+                        T1.PRTNR_NO 		-- 사번
+                      , T2.PRTNR_KNM 	-- 성명
+                      , T2.CRAL_LOCARA_TNO
+                      , T2.MEXNO_ENCR
+                      , T2.CRAL_IDV_TNO
+                      , T4.DGR3_LEVL_OG_CD 	-- 센터코드
+                      , T4.DGR3_LEVL_OG_NM 	-- 센터명
+                   FROM ( SELECT
+                                 A.CNTR_NO 					-- 계약번호
+                               , A.CNTR_CST_NO 				-- 고객번호
+                               , A.SELL_OG_TP_CD 				-- 판매 조직유형코드
+                               , A.SELL_PRTNR_NO 				-- 판매 파트너번호
+                               , NVL(C.OG_TP_CD, A.SELL_OG_TP_CD) AS OG_TP_CD 		-- 최종 현재시점의 판매 조직유형코드
+                               , NVL(C.PRTNR_NO, A.SELL_PRTNR_NO) AS PRTNR_NO 		-- 최종 현재시점의 판매 파트너번호
+                               , A.CNTR_PRGS_STAT_CD 				-- 계약진행상태코드(60:확정)
+                               , A.CNTR_CNFM_DTM 				-- 계약확정년월
+                               , B.CST_NO 					-- 고객번호
+                               , B.CST_KNM					-- 고객명
+                               , B.BRYY_MMDD 				-- 고객생년월일
+                            FROM TB_SSCT_CNTR_BAS A				-- [계약테이블]
+                            LEFT OUTER JOIN TB_CUBS_CST_BAS B			-- [고객기본]
+                              ON A.CNTR_CST_NO = B.CST_NO			-- 고객번호로 연결.
+                            LEFT OUTER JOIN ASN_BAS C				-- [파트너 인수 인계]
+                              ON A.CNTR_NO = C.OJ_CNTR_NO			-- 계약번호로 연결.
+                           WHERE 1=1
+                             AND A.CNTR_PRGS_STAT_CD = '60'			-- 계약확정
+                             AND A.CNTR_CAN_DTM IS NULL				-- 계약취소일자가 널이어야 한다.
+                             AND A.SELL_OG_TP_CD = #{sellOgTpCd}	-- 판매 조직유형코드 [IN]
+                             AND A.CNTR_CST_NO = #{cntrCstNo} 				-- 고객번호 [IN]
+                             AND B.BRYY_MMDD = #{bryyMmdd}			-- 고객의 생년월일 [IN]
+                   ) T1
+                   LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T2
+                     ON T1.OG_TP_CD = T2.OG_TP_CD
+                    AND T1.PRTNR_NO = T2.PRTNR_NO 	-- 현재 최종 파트너의 상세정보
+                   LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T3
+                     ON T3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                    AND T1.OG_TP_CD = T3.OG_TP_CD
+                    AND T1.PRTNR_NO = T3.PRTNR_NO
+                   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T4
+                     ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                    AND T3.OG_ID = T4.OG_ID
+          ) T
+         GROUP BY T.PRTNR_NO, T.PRTNR_KNM, T.CRAL_LOCARA_TNO, T.MEXNO_ENCR, T.CRAL_IDV_TNO, T.DGR3_LEVL_OG_CD, T.DGR3_LEVL_OG_NM
     </select>
 
     <select id="selectRecentContracts" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerSellerInterfaceDvo">
@@ -180,47 +189,63 @@
              WHERE T.RNO = 1
         )
         SELECT
-               '0000' AS RST_CD 	-- 오류코드
-             , '정상' AS RST_NM	-- 오류코드명
-             , T1.PRTNR_NO 		-- 사번
-             , T2.PRTNR_KNM 	-- 성명
-             , T2.CRAL_LOCARA_TNO
-             , T2.MEXNO_ENCR
-             , T2.CRAL_IDV_TNO
-             , CASE WHEN T1.OG_TP_CD LIKE 'W%' THEN T4.DGR3_LEVL_OG_CD ELSE T4.DGR4_LEVL_OG_CD END AS OG_CD 		-- 센터코드(웰스), 지점코드(에듀)
-             , CASE WHEN T1.OG_TP_CD LIKE 'W%' THEN T4.DGR3_LEVL_OG_NM ELSE T4.DGR4_LEVL_OG_NM END AS OG_NM 	-- 센터명(웰스), 지점명(에듀)
-          FROM (
-                SELECT
-                       A.CNTR_NO 					-- 계약번호
-                     , A.CNTR_CST_NO 				-- 고객번호
-                     , A.SELL_OG_TP_CD 				-- 판매 조직유형코드
-                     , A.SELL_PRTNR_NO 				-- 판매 파트너번호
-                     , NVL(C.OG_TP_CD, A.SELL_OG_TP_CD) AS OG_TP_CD 		-- 최종 현재시점의 판매 조직유형코드
-                     , NVL(C.PRTNR_NO, A.SELL_PRTNR_NO) AS PRTNR_NO 		-- 최종 현재시점의 판매 파트너번호
-                     , A.CNTR_PRGS_STAT_CD 				-- 계약진행상태코드(60:확정)
-                     , A.CNTR_CNFM_DTM 				-- 계약확정년월
-                     , B.CST_NO 					-- 고객번호
-                     , B.CST_KNM					-- 고객명
-                     , B.BRYY_MMDD 				-- 고객생년월일
-                  FROM TB_SSCT_CNTR_BAS A			-- [계약테이블]
-                  LEFT OUTER JOIN TB_CUBS_CST_BAS B		-- [고객기본]
-                    ON A.CNTR_CST_NO = B.CST_NO				-- 고객번호로 연결.
-                  LEFT OUTER JOIN ASN_BAS C			-- [파트너 인수 인계]
-                    ON A.CNTR_NO = C.OJ_CNTR_NO				-- 계약번호로 연결.
-                 WHERE 1=1
-                   AND A.CNTR_PRGS_STAT_CD = '60'							-- 계약확정
-                   AND A.CNTR_CNFM_DTM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -36), 'YYYYMMDD') AND TO_CHAR(SYSDATE, 'YYYYMMDD')	-- 최근3년 계약건만 인정
-                   AND A.SELL_OG_TP_CD = #{sellOgTpCd}								-- 판매 조직유형코드 [IN]
-                   AND A.CNTR_CST_NO = #{cntrCstNo} 								-- 고객번호 [IN]
-        ) T1
-          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T2
-            ON T1.OG_TP_CD = T2.OG_TP_CD
-           AND T1.PRTNR_NO = T2.PRTNR_NO 	-- 현재 최종 파트너의 상세정보
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T3
-            ON T3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T1.OG_TP_CD = T3.OG_TP_CD AND T1.PRTNR_NO = T3.PRTNR_NO
-          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T4
-            ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T3.OG_ID = T4.OG_ID
+               '0000' AS ERR_CD 	-- 오류코드
+             , '정상' AS ERR_NM	-- 오류코드명
+             , TB1.PRTNR_NO 		-- 사번
+             , TB2.PRTNR_KNM 	-- 성명
+             , TB2.CRAL_LOCARA_TNO
+             , TB2.MEXNO_ENCR
+             , TB2.CRAL_IDV_TNO
+             , TB4.DGR3_LEVL_OG_CD -- 센터코드
+             , TB4.DGR3_LEVL_OG_NM -- 센터명
+          FROM ( SELECT
+                        T1.CNTR_NO 					-- 계약번호
+                      , T1.CNTR_CST_NO 				-- 고객번호
+                      , T1.SELL_OG_TP_CD 				-- 판매 조직유형코드
+                      , T1.SELL_PRTNR_NO 				-- 판매 파트너번호
+                      , T1.OG_TP_CD 					-- 최종 현재시점의 판매 조직유형코드
+                      , T1.PRTNR_NO 					-- 최종 현재시점의 판매 파트너번호
+                      , T1.CNTR_PRGS_STAT_CD 			-- 계약진행상태코드(60:확정)
+                      , T1.CNTR_CNFM_DTM 				-- 계약확정년월
+                      , T1.CST_NO 						-- 고객번호
+                      , T1.CST_KNM						-- 고객명
+                      , T1.BRYY_MMDD 					-- 고객생년월일
+                  FROM ( SELECT
+                                A.CNTR_NO 					-- 계약번호
+                              , A.CNTR_CST_NO 				-- 고객번호
+                              , A.SELL_OG_TP_CD 				-- 판매 조직유형코드
+                              , A.SELL_PRTNR_NO 				-- 판매 파트너번호
+                              , NVL(C.OG_TP_CD, A.SELL_OG_TP_CD) AS OG_TP_CD 		-- 최종 현재시점의 판매 조직유형코드
+                              , NVL(C.PRTNR_NO, A.SELL_PRTNR_NO) AS PRTNR_NO 		-- 최종 현재시점의 판매 파트너번호
+                              , A.CNTR_PRGS_STAT_CD 				-- 계약진행상태코드(60:확정)
+                              , A.CNTR_CNFM_DTM 				-- 계약확정년월
+                              , B.CST_NO 					-- 고객번호
+                              , B.CST_KNM					-- 고객명
+                              , B.BRYY_MMDD 				-- 고객생년월일
+                              , RANK() OVER(PARTITION BY A.CNTR_CST_NO ORDER BY A.CNTR_CNFM_DTM DESC, A.CNTR_NO DESC) AS RNO	-- 고객번호로 최근계약건
+                          FROM TB_SSCT_CNTR_BAS A			-- [계약테이블]
+                          LEFT OUTER JOIN TB_CUBS_CST_BAS B		-- [고객기본]
+                            ON A.CNTR_CST_NO = B.CST_NO				-- 고객번호로 연결.
+                          LEFT OUTER JOIN ASN_BAS C			-- [파트너 인수 인계]
+                            ON A.CNTR_NO = C.OJ_CNTR_NO				-- 계약번호로 연결.
+                         WHERE 1=1
+                           AND A.CNTR_PRGS_STAT_CD = '60'							-- 계약확정
+                           AND A.CNTR_CNFM_DTM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -36), 'YYYYMMDD') AND TO_CHAR(SYSDATE, 'YYYYMMDD')	-- 최근3년 계약건만 인정
+                           AND A.CNTR_CAN_DTM IS NULL
+                           AND A.SELL_OG_TP_CD = #{sellOgTpCd}								-- 판매 조직유형코드 [IN]
+                           AND A.CNTR_CST_NO = #{cntrCstNo} 								-- 고객번호 [IN]
+               ) T1
+                 WHERE T1.RNO = 1
+        ) TB1
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS TB2
+            ON TB1.OG_TP_CD = TB2.OG_TP_CD
+           AND TB1.PRTNR_NO = TB2.PRTNR_NO 	-- 현재 최종 파트너의 상세정보
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TB3
+            ON TB3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND TB1.OG_TP_CD = TB3.OG_TP_CD
+           AND TB1.PRTNR_NO = TB3.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ TB4
+            ON TB4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND TB3.OG_ID = TB4.OG_ID
     </select>
 </mapper>
