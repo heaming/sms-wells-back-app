@@ -25,10 +25,20 @@ public class WfebAgainDisbursementFeeController {
 
     private final WfebAgainDisbursementFeeService againDisbursementFeeService;
 
+    @ApiOperation(value = "재지급 생성(집계 + 취소 + 연체)", notes = "기준년월, 계약실적생성구분코드를 파라메터로 재지급 생성")
+    @ApiImplicitParams(value = {
+            @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "path", required = true),
+            @ApiImplicitParam(name = "cntrPerfCrtDvCd", value = "계약실적생성구분코드", paramType = "path", required = true),
+    })
+    @PostMapping("/all-again-disbursement-fees/{baseYm}-{cntrPerfCrtDvCd}")
+    public void saveAgainDisbursementOfFees(@PathVariable String baseYm, @PathVariable String cntrPerfCrtDvCd) {
+        againDisbursementFeeService.saveAgainDisbursementOfFees(baseYm, cntrPerfCrtDvCd);
+    }
+
     @ApiOperation(value = "연체재지급 생성", notes = "기준년월, 계약실적생성구분코드를 파라메터로 연체재지급 처리")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "path", required = true),
-        @ApiImplicitParam(name = "cntrPerfCrtDvCd", value = "계약실적생성구분코드", paramType = "path", required = true),
+            @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "path", required = true),
+            @ApiImplicitParam(name = "cntrPerfCrtDvCd", value = "계약실적생성구분코드", paramType = "path", required = true),
     })
     @PostMapping("/delinquent-again-disbursement-fees/{baseYm}-{cntrPerfCrtDvCd}")
     public SaveResponse saveDlqAgainDisbursementOfFees(@PathVariable String baseYm, @PathVariable String cntrPerfCrtDvCd) {
