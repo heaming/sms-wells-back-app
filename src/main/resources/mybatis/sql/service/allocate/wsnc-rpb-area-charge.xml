@@ -8,14 +8,14 @@
         	  FROM TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ T1
         	 WHERE 1 = 1
         	   AND T1.WK_GRP_CD = #{wkGrpCd}
-        	   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.APY_STRTDT AND T1.APY_ENDDT
+        	   AND #{applyDate} BETWEEN T1.APY_STRTDT AND T1.APY_ENDDT
         	   AND T1.IZ_SN = (SELECT MAX(IZ_SN)
         	                     FROM TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ
         	                    WHERE 1 = 1
         	                      AND PD_CD = T1.PD_CD
         	                      AND WK_GRP_CD = T1.WK_GRP_CD
         	                      AND SV_BIZ_DCLSF_CD = T1.SV_BIZ_DCLSF_CD
-        	                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
+        	                      AND #{applyDate} BETWEEN APY_STRTDT AND APY_ENDDT)
         	                      AND DTA_DL_YN = 'N'
         ), TEMP0 AS (
             SELECT T1.NEW_ADR_ZIP, T1.EMD_SN, T1.FR2P_LGLD_CD, T1.CTPV_NM, T1.CTCTY_NM, T1.LAWC_EMD_NM, T1.AMTD_NM, T1.KYNOR_LOCARA_YN, T1.ILD_YN, T1.PDLV_NO
@@ -50,6 +50,12 @@
                  ) T1
              WHERE T1.V1_RN = 1
                AND T1.WK_GRP_CD = #{wkGrpCd}
+           <if test="@MybatisUtils@isNotEmpty(zipFrom)">
+               AND T1.NEW_ADR_ZIP <![CDATA[ >= ]]> #{zipFrom}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(zipTo)">
+               AND T1.NEW_ADR_ZIP <![CDATA[ <= ]]> #{zipTo}
+           </if>
            <if test="@MybatisUtils@isNotEmpty(ctpvNm)">
                AND T1.CTPV_NM = #{ctpvNm}
            </if>
@@ -74,9 +80,9 @@
                               FROM (SELECT CNTR_NO, CNTR_SN, PDCT_PD_CD, ADR_ID
                                       FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
                                      WHERE DTA_DL_YN = 'N'
-                                       AND MNGT_YM = '202305' --TO_CHAR(SYSDATE, 'YYYYMM')
+                                       AND MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                                  ) M1 /* 월별고객서비스대상내역 */
-                             INNER JOIN TB_SVPD_CST_SV_EXCN_DL_IZ M2 /* 고객서비스수행삭제내역 */
+                             INNER JOIN TB_SVPD_CST_SV_EXCN_IZ M2 /* 고객서비스수행내역 */
                                 ON M2.CNTR_NO = M1.CNTR_NO
                                AND M2.CNTR_SN = M1.CNTR_SN
                                AND M2.DTA_DL_YN = 'N'
@@ -84,7 +90,7 @@
                                 ON A1.ADR_ID = M1.ADR_ID
                                AND A1.DTA_DL_YN = 'N'
                              WHERE 1 = 1
-                               AND (M2.REQD_DT IS NULL OR M2.CAN_DT IS NULL OR M2.CPS_DT IS NULL)
+                               AND (M2.REQD_DT IS NULL OR M2.CHNG_DT IS NULL OR M2.CPS_DT IS NULL)
                              GROUP BY A1.NEW_ADR_ZIP, M1.PDCT_PD_CD
                            ) V1
                        INNER JOIN TEMP01 P1
