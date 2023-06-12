@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsMngtSchdInqrDto;
-import com.kyowon.sms.wells.web.service.allocate.service.WsncBsMngtSchdInqrService;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsMngrSchdDto;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncBsMngrSchdService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 
@@ -23,8 +23,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/bs-manager-schedule")
-public class WsncBsScheduleController {
-    private final WsncBsMngtSchdInqrService service;
+public class WsncBsMngrScheduleController {
+    private final WsncBsMngrSchdService service;
 
     @ApiOperation(value = "BS관리일정 조회 화면 - 집계 조회", notes = "조회조건에 따른 BS관리일정 집계 조회")
     @ApiImplicitParams(value = {
@@ -32,11 +32,11 @@ public class WsncBsScheduleController {
         @ApiImplicitParam(name = "baseDateFrom", value = "관리년월From", paramType = "query", required = true),
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
-    @PostMapping("/aggregate")
-    public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrAgrg(
-        WsncBsMngtSchdInqrDto.SearchReq dto
+    @PostMapping("/aggregates")
+    public List<WsncBsMngrSchdDto.SearchRes> getBsMngtSchdInqrAgrg(
+        WsncBsMngrSchdDto.SearchReq dto
     ) {
-        return service.getBsMngtSchdInqrAgrg(dto);
+        return service.getBsMngrSchdAgrg(dto);
     }
 
     @ApiOperation(value = "BS관리일정 조회 화면 - 상세 조회", notes = "조회조건에 따른 BS관리일정 상세 조회")
@@ -46,10 +46,10 @@ public class WsncBsScheduleController {
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
     @PostMapping("/paging")
-    public List<WsncBsMngtSchdInqrDto.SearchRes> getBsMngtSchdInqrPages(
-        WsncBsMngtSchdInqrDto.SearchReq dto, @Valid
+    public List<WsncBsMngrSchdDto.SearchRes> getBsSchdPages(
+        WsncBsMngrSchdDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.getBsMngtSchdInqrPages(dto, pageInfo);
+        return service.getBsMngrSchdPages(dto, pageInfo);
     }
 }

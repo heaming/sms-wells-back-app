@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsMngtSchdInqrDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsMngrSchdDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -19,13 +19,13 @@ import com.sds.sflex.system.config.datasource.PagingResult;
  */
 
 @Mapper
-public interface WsncBsMngtSchdInqrMapper {
-    List<WsncBsMngtSchdInqrDto.SearchRes> selectBsMngtSchdInqrAgrg(
-        WsncBsMngtSchdInqrDto.SearchReq dto
+public interface WsncBsMngrSchdMapper {
+    List<WsncBsMngrSchdDto.SearchRes> selectBsMngrSchdAgrg(
+        WsncBsMngrSchdDto.SearchReq dto
     );
 
-    PagingResult<WsncBsMngtSchdInqrDto.SearchRes> selectBsMngtSchdInqrPages(
-        WsncBsMngtSchdInqrDto.SearchReq dto, PageInfo pageInfo
+    PagingResult<WsncBsMngrSchdDto.SearchRes> selectBsMngrSchdPages(
+        WsncBsMngrSchdDto.SearchReq dto, PageInfo pageInfo
     );
 
 }
