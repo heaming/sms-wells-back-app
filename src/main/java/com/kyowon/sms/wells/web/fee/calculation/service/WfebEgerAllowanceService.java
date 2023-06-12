@@ -120,8 +120,10 @@ public class WfebEgerAllowanceService {
                 }
                 case "H" -> { // 본사
                     dvo.setHdof("Y");
+                    /*
                     int cnt = mapper.selectConfirmYnCheck(dvo);
                     BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
+                     */
 
                     if ("Y".equals(dto.confirm())) { // 확정
                         processCnt = mapper.updateEgerAllowanceConfirm(dvo);

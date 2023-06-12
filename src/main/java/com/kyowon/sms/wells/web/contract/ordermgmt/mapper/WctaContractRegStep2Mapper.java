@@ -17,59 +17,61 @@ public interface WctaContractRegStep2Mapper {
 
     List<WctaContractDtlDvo> selectContractDtlWithPdInfo(String cntrNo);
 
+    String selectProductRelId(String basePdCd, String svPdCd);
+
     int insertCntrDtlStep2(WctaContractDtlDvo dvo);
 
     int insertCntrPdRelStep2(@Param("item")
-    WctaContractPdRelDvo dvo);
+                             WctaContractPdRelDvo dvo);
 
     int insertCntrPrcCmptIzStep2(@Param("item")
-    WctaContractPrcCmptIzDvo dvo);
+                                 WctaContractPrcCmptIzDvo dvo);
 
     int insertCntrWellsDtlStep2(WctaContractWellsDtlDvo dvo);
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDstps(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsdvsSpay(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsdvsRntl(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsrtsSpay(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsrtsRntl(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductStplPtrms(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductCntrPtrms(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductFrisuMshPtrms(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductRgstCss(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductAlncPds(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
+            String pdCd, String sellTpCd, String sellInflwChnlDtlCd
     );
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductServiceInfo(String pdCd);
 
-    WctaContractRegStep2Dvo.PdAmtDvo selectProductPrices(WctaContractDto.SearchPdAmtReq dto);
+    List<WctaContractRegStep2Dvo.PdAmtDvo> selectProductPrices(WctaContractDto.SearchPdAmtReq dto);
 
     List<WctaContractPdRelDvo> selectPdSvcsInBasePd(String pdCd);
 
@@ -92,4 +94,6 @@ public interface WctaContractRegStep2Mapper {
     int deleteCntrPrcCmptIzStep2(String cntrNo);
 
     int deleteCntrPrccchHistory(String cntrNo);
+
+    int deleteCntrWellsDtlStep2(String cntrNo);
 }

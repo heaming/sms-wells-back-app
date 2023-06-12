@@ -50,4 +50,5 @@ public class WdcdCleanerReqeustDvo {
     List<AttachFile> attachFiles3; // 계약서 첨부파일
     List<AttachFile> attachFiles4; // 계약해지 첨부파일
     private String dtaDlYn; // 삭제여부
+    private String dsbAmt;
 }

@@ -12,10 +12,6 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo;
 public interface WsncBsPeriodChartMapper {
     WsncBsPeriodChartResDvo selectPeriodChartBaseInfo(WsncBsPeriodChartDto.SearchReq dto);
 
-    String selectBsPeriodChartBs03_02(WsncBsPeriodChartReqDvo dvo);
-
-    String selectBsPeriodChartBs03_03(WsncBsPeriodChartReqDvo dvo);
-
     int selectBsPeriodChartBs03_04(WsncBsPeriodChartReqDvo dvo);
 
     String selectBsPeriodChartBs03_05(WsncBsPeriodChartReqDvo dvo);

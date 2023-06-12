@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbDepositMapper">
+
+    <select id="selectIntegrationDepositInfos"
+            resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbIntegrationDepositInfoDvo">
+        SELECT A1.ITG_DP_NO
+             , A1.KW_GRP_CO_CD
+             , A1.RVE_CO_CD
+             , A1.RVE_CD
+             , A1.OG_TP_CD
+             , A1.PRTNR_NO
+             , A1.DP_DV_CD
+             , A1.DP_MES_CD
+             , A1.DP_TP_CD
+             , A1.INCMDC_YN
+             , A1.DP_AMT
+             , A1.DP_DTM
+             , A1.RVE_AK_NO
+          FROM TB_RVDW_ITG_DP_BAS A1
+         WHERE A1.DTA_DL_YN = 'N'
+           AND A1.DP_DV_CD = '1'
+           AND EXISTS (
+                       SELECT '1'
+                         FROM TB_RVDW_RVE_AK_DTL A2
+                         JOIN TB_SSCT_CNTR_DTL A3
+                           ON A3.DTA_DL_YN = 'N'
+                          AND A3.CNTR_NO = A2.CNTR_NO
+                          AND A3.CNTR_SN = A2.CNTR_SN
+                         JOIN TB_PDBS_PD_BAS A4
+                           ON A4.DTA_DL_YN = 'N'
+                          AND A4.PD_CD = A3.BASE_PD_CD
+                        WHERE A2.DTA_DL_YN = 'N'
+                          AND A2.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+                          AND A2.RVE_AK_NO = A1.RVE_AK_NO
+                          AND A2.CNTR_NO = #{cntrNo}
+                          AND A3.SELL_TP_DTL_CD IN ('25', '26', '21', '23', '31', '32', '33') /*할부(장기할부, 환경할부), 렌탈(일반렌탈, 공유렌탈), 멤버십(일시불, 렌탈, 홈케어)*/
+                      )
+    </select>
+
+    <select id="selectReceiveAskDetailInfos"
+            resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbIntegrationDepositInfoDvo">
+        SELECT A2.RVE_AK_NO
+             , A2.RVE_AK_SN
+             , A3.RVE_DV_CD
+             , A2.PD_CD
+             , A2.RVE_AK_AMT
+             , A2.RVE_AK_OJ_DRM_NO1
+             , A2.RVE_AK_OJ_DRM_NO2
+             , A3.SELL_TP_CD
+             , A3.SELL_TP_DTL_CD
+             , A4.PD_CLSF_ID
+          FROM TB_RVDW_ITG_DP_BAS A1
+          JOIN TB_RVDW_RVE_AK_DTL A2
+            ON A2.DTA_DL_YN = 'N'
+           AND A2.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+           AND A2.RVE_AK_NO = A1.RVE_AK_NO
+          JOIN TB_SSCT_CNTR_DTL A3
+            ON A3.DTA_DL_YN = 'N'
+           AND A3.CNTR_NO = A2.CNTR_NO
+           AND A3.CNTR_SN = A2.CNTR_SN
+          JOIN TB_PDBS_PD_BAS A4
+            ON A4.DTA_DL_YN = 'N'
+           AND A4.PD_CD = A3.BASE_PD_CD
+         WHERE A1.DTA_DL_YN = 'N'
+           AND A1.ITG_DP_NO = #{itgDpNo}
+    </select>
+
+    <insert id="insertDepositComparisonComfirmation">
+        INSERT
+          INTO TB_RVDW_DP_CPRCNF_BAS    /* 입금대사기본 */
+             (
+               DP_CPRCNF_NO /* 입금대사번호 */
+             , KW_GRP_CO_CD /* 교원그룹회사코드 */
+             , RVE_CO_CD /* 수납회사코드 */
+             , RVE_CD /* 수납코드 */
+             , PROCS_DV_CD /* 처리구분코드 */
+             , DP_DV_CD /* 입금구분코드 */
+             , DP_MES_CD /* 입금수단코드 */
+             , DP_TP_CD /* 입금유형코드 */
+             , RVE_DV_CD /* 수납구분코드 */
+             , IA_DV_CD /* 입금항목구분코드 */
+             , DP_CPRCNF_BIZ_CD /* 입금대사업무코드 */
+             , DP_CPRCNF_PD_CLSF_ID /* 입금대사상품분류ID */
+             , DP_CPRCNF_SELL_TP_CD /* 입금대사판매유형코드 */
+             , DP_CPRCNF_DTM /*입금대사일시 */
+             , DP_CPRCNF_PERF_DT /*입금대사실적일자 */
+             , DP_CPRCNF_CNFM_YN /*입금대사확정여부 */
+             , DP_CPRCNF_CNFM_DTM /* 입금대사확정일시 */
+             , DP_CPRCNF_AMT/* 입금대사금액 */
+             , DP_CPRCNF_PROCS_AMT /* 입금대사처리금액 */
+             , ITG_DP_NO /* 통합입금번호 */
+             , CNTR_NO /* 계약번호 */
+             , CNTR_SN /* 계약일련번호 */
+             , PD_CD /* 상품코드 */
+             , RVE_OJ_DRM_NO1 /* 수납대상식별번호1 */
+             , RVE_OJ_DRM_NO2 /* 수납대상식별번호2 */
+             , INCMDC_YN /* 소득공제여부 */
+             , DTA_DL_YN /*데이터삭제여부*/
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               DP_CPRCNF_NO /* 입금대사번호 */
+             , #{kwGrpCoCd} /* 교원그룹회사코드 */
+             , #{rveCoCd} /* 수납회사코드 */
+             , #{rveCd} /* 수납코드 */
+             , '1' /* 처리구분코드 */
+             , #{dpDvCd} /* 입금구분코드 */
+             , #{dpMesCd} /* 입금수단코드 */
+             , #{dpTpCd} /* 입금유형코드 */
+             , #{rveDvCd} /* 수납구분코드 */
+             , CASE WHEN #{sellTpCd} = '2' AND #{sellTpDtlCd} IN ('25', '26') THEN '04'
+                    WHEN #{sellTpCd} = '2' AND #{sellTpDtlCd} IN ('21', '23') THEN '11'
+                    WHEN #{sellTpCd} = '3' THEN '12'
+                END /* 입금항목구분코드 */
+             , '03' /* 입금대사업무코드-03:입금등록 */
+             , #{pdClsfId} /* 입금대사상품분류ID */
+             , #{sellTpCd} /* 입금대사판매유형코드 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /*입금대사일시 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') /*입금대사실적일자 */
+             , 'Y' /*입금대사확정여부 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 입금대사확정일시 */
+             , #{dpAmt} /* 입금대사금액 */
+             , #{dpAmt} /* 입금대사처리금액 */
+             , #{itgDpNo} /*통합입금번호*/
+             , #{cntrNo} /* 계약번호 */
+             , #{cntrSn} /* 계약일련번호 */
+             , #{pdCd} /* 상품코드 */
+             , #{rveOjDrmNo1} /* 수납대상식별번호1 */
+             , #{rveOjDrmNo2} /* 수납대상식별번호2 */
+             , #{incmdcYn} /* 소득공제여부 */
+             , 'N' /*데이터삭제여부*/
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <insert id="insertVirtualAccountDistribution">
+        INSERT
+          INTO TB_RVDW_VAC_DP_DST_IZ
+             (
+               KW_GRP_CO_CD
+             , VAC_IS_ID
+             , VAC_DP_SN
+             , VAC_DP_DST_SN
+             , VAC_IS_DV_CD
+             , RVE_CD
+             , VAC_DP_DTM
+             , VAC_DP_AMT
+             , ITG_DP_NO
+             , DP_CPRCNF_NO
+             , SELL_TP_CD
+             , CNTR_NO
+             , CNTR_SN
+             , RVE_AK_NO
+             , RVE_AK_SN
+             , DTA_DL_YN /*데이터삭제여부*/
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT A1.KW_GRP_CO_CD
+             , A2.VAC_IS_ID
+             , A2.VAC_DP_SN
+             , (SELECT NVL(MAX(B1.VAC_DP_DST_SN) + 1, 1)
+                  FROM TB_RVDW_VAC_DP_DST_IZ B1
+                 WHERE B1.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+                   AND B1.VAC_IS_ID = A2.VAC_IS_ID
+                   AND B1.VAC_DP_SN = A2.VAC_DP_SN
+               ) VAC_DP_DST_SN
+             , A3.VAC_IS_DV_CD
+             , A1.RVE_CD
+             , A2.VAC_DP_DTM
+             , A2.VAC_DP_AMT
+             , A1.ITG_DP_NO
+             , A1.DP_CPRCNF_NO
+             , A1.DP_CPRCNF_SELL_TP_CD
+             , A1.CNTR_NO
+             , A1.CNTR_SN
+             , A5.RVE_AK_NO
+             , A5.RVE_AK_SN
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_RVDW_DP_CPRCNF_BAS A1
+          JOIN TB_RVDW_VAC_DP_IZ A2
+            ON A2.DTA_DL_YN = 'N'
+           AND A2.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+           AND A2.ITG_DP_NO = A1.ITG_DP_NO
+          JOIN TB_RVDW_VAC_IS_IZ A3
+            ON A3.DTA_DL_YN = 'N'
+           AND A3.KW_GRP_CO_CD = A2.KW_GRP_CO_CD
+           AND A3.VAC_IS_ID = A2.VAC_IS_ID
+          JOIN TB_RVDW_ITG_DP_BAS A4
+            ON A4.DTA_DL_YN = 'N'
+           AND A4.ITG_DP_NO = A1.ITG_DP_NO
+          JOIN TB_RVDW_RVE_AK_DTL A5
+            ON A5.DTA_DL_YN = 'N'
+           AND A5.RVE_AK_NO = A5.RVE_AK_NO
+           AND A5.CNTR_NO = A1.CNTR_NO
+           AND A5.CNTR_SN = A1.CNTR_SN
+         WHERE A1.DTA_DL_YN = 'N'
+           AND A1.ITG_DP_NO = #{itgDpNo}
+    </insert>
+</mapper>

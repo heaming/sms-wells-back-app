@@ -28,6 +28,7 @@ public class WwdbIntegrationDepositDto {
     public record SearchRes(
         String itgDpNo, /*통합입금번호*/
         String rveCd, /*수납코드*/
+        String rveNm, //수납명
         String prtnrClsfCd, /*판매자구분*/
         String prtnrNo, /*파트너번호*/
         String dpTpCd, /*입금유형코드*/
@@ -51,6 +52,13 @@ public class WwdbIntegrationDepositDto {
         String istmMcn, /* 할부개월 */
         String alncmpDvCd /* 제휴가구분코드*/
     ) {
-
+        //        public SearchRes {
+        //            if (!StringUtil.isEmpty(acnoEncr)) {
+        //                acnoEncr = DbEncUtil.dec(acnoEncr); // 계좌번호 복호화
+        //            }
+        //            if (!StringUtil.isEmpty(crcdnoEncr)) {
+        //                crcdnoEncr = DbEncUtil.dec(crcdnoEncr); // 카드번호 복호화
+        //            }
+        //        }
     }
 }

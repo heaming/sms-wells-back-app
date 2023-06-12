@@ -27,9 +27,5 @@ public class WctdInChargeCustomerOrderDvo {
     private String pdNm; /* 상품명 */
     private String adr; /* 기준주소 */
     private String dtlAdr; /* 상세주소 */
-    //private String cntrNo; /* 계약번호 */
-    //private String cntrSn; /* 계약일련번호 */
-    //private String cstKnm; /* 계약자명 */
-    //private String cstNo; /* 고객번호 */
-
+    private String cntrPrgsStatCd;
 }

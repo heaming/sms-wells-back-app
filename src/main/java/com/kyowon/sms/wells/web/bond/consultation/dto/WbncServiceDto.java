@@ -6,7 +6,6 @@ public class WbncServiceDto {
     @ApiModel(value = "WbncServiceDto-FindRes")
     public record FindRes(
         String cstSvAsnNo,
-        String cstSvExcnSn,
         String cntrNo,
         String cntrSn,
         String cntrNoSn,
@@ -17,6 +16,8 @@ public class WbncServiceDto {
         String svBizHclsfCd,
         String svBizHclsfNm,
         String vstFshDt,
+        String vstFshHh,
+        String vstFshDtHh,
         String asCausCd,
         String asCausNm,
         String svProcsCn,

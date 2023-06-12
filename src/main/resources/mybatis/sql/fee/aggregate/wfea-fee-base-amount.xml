@@ -5,55 +5,97 @@
 
     <select id='selectFeeBaseAmounts'
             resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaFeeBaseAmountDto$SearchRes">
-        SELECT 'OO총괄' AS COL1
-        , 'OO지역' AS COL2
-        , #{perfYm} AS COL3
-        , #{ogtp} AS COL4
-        , '1234' AS COL5
-        , '2345' AS COL6
-        , '3456' AS COL7
-        , '4567' AS COL8
-        , '5678' AS COL9
-        , '6789' AS COL10
-        , '7890' AS COL11
-        , '1234' AS COL12
-        , '1-일시불' AS COL13
-        , '1-정상가' AS COL14
-        , '3-3년' AS COL15
-        , '82' AS COL16
-        , 'A-전체' AS COL17
-        , '123,456' AS COL18
-        , '36' AS COL19
-        , '12,345' AS COL20
-        , '0' AS COL21
-        , '-' AS COL22
-        , '-' AS COL23
-        FROM DUAL
-        UNION ALL
-        SELECT 'OO총괄' AS COL1
-        , 'OO지역' AS COL2
-        , '김웰스 지점' AS COL3
-        , '123456' AS COL4
-        , '김교원' AS COL5
-        , '렌탈' AS COL6
-        , '환경가전' AS COL7
-        , '-' AS COL8
-        , '2022-1234567-12' AS COL9
-        , '개인' AS COL10
-        , '2구 포터블 인덕션' AS COL11
-        , '1234' AS COL12
-        , '1-일시불' AS COL13
-        , '1-정상가' AS COL14
-        , '3-3년' AS COL15
-        , '82' AS COL16
-        , 'A-전체' AS COL17
-        , '123,456' AS COL18
-        , '36' AS COL19
-        , '12,345' AS COL20
-        , '0' AS COL21
-        , '-' AS COL22
-        , '-' AS COL23
-        FROM DUAL
+        SELECT T1.CNTR_NO AS LCCODE	        /* 계약상세번호 */
+             , T1.CNTR_RCP_FSH_DTM AS LCCRTT	/* 접수일자 */
+             , T2.SELL_TP_CD||'-'||CD.CD_CNTN AS SELL_TP_CD	/* 판매유형 */
+             , T1.COPN_DV_CD AS LCCGUB	    /* 개인구분 */
+             , OG.OG1_NM /* 총괄단 */
+             , OG.OG2_NM   /* 지역단 */
+             , OG.OG3_NM   /* 지점 */
+             , OG.PRTNR_NO                    /* 번호 */
+             , OG.PRTNR_KNM                   /* 성명 */
+             , T2.BASE_PD_CD AS LCICDE	    /* 판매상품 */
+             , T4.PD_NM AS KAINA1	            /* 판매상품명 */
+            , T2.ACKMT_PERF_RT AS LCPRAT	    /* 인정실적률 */
+             , T2.ACKMT_PERF_AMT AS LCPAMT	/* 인정실적금액 */
+             , T2.FEE_ACKMT_BASE_AMT AS LCGUB5 /* 기준수수료(주문마스터) */
+             , T2.FEE_ACKMT_BASE_AMT AS L115_BAM1	/* 기준수수료(가격기준) LC1150P 매핑정보X 임시처리*/
+             , T2.FEE_ACKMT_BASE_AMT AS PROM_BAM1	/* 기준수수료(프로모션) LC1030P 매핑정보X 임시처리 */
+            , T2.FNL_AMT AS LCAMT1 /* 렌탈료(할인반영) */
+             , T2.SELL_DSC_DV_CD||'-'||T2.SELL_DSCR_CD||'-'||T2.SELL_DSC_TP_CD AS ETC3_ETC4 /* 할인유형 */
+             , T2.SV_PRD||'-'||'1' AS IMON_IUSE		/* 주기-용도 LC3100P.LCIUSE 매핑정보x (1)일반으로 임시처리*/
+             , T2.SELL_DSC_TP_CD AS LCFLG4 /* 재렌탈/1+1 */
+             , CASE WHEN NVL(T5.MCHN_CH_TP_CD,0) > 0 THEN 'Y' ELSE 'N' END AS LCETC7 /* 기변여부 */
+             , T8.COPN_DV_CD AS LCCGU1	 /* 기변개인구분 */
+             , T5.MCHN_CH_TP_CD AS LCFLAG  /* 기변유형 */
+             , T5.MCHN_CPS_APYR AS LCRATE	 /* 기변실적률 */
+             , T5.OJ_CNTR_NO AS LCCOD1     /* 기변1년도 */
+             , '' AS LCCOD2 /* 기변2년차 TO_BE COLUMN 없음 일단 임시처리 */
+             , T2.ALNCMP_CD AS LCETC8	/* 제휴코드 */
+             , T6.PMOT_CD AS LCCK02	/* 프로모션 번호 */
+             , T1.FST_RGST_PRG_ID AS LCEPGM
+             , T1.FST_RGST_USR_ID AS LCECDE
+             , T7.FNL_MDFC_PRG_ID AS LCMPGM
+             , T7.FNL_MDFC_USR_ID AS LCMCDE
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN ( SELECT O.DGR1_LEVL_OG_NM AS OG1_NM /* 총괄단 */
+                           , O.DGR2_LEVL_OG_NM AS OG2_NM  /* 지역단 */
+                           , O.DGR3_LEVL_OG_NM AS OG3_NM  /* 지점 */
+                           , P.PRTNR_NO  /* 번호 */
+                           , P.PRTNR_KNM  /* 성명 */
+                           , P.OG_TP_CD  /* 조직유형 */
+                        FROM TB_OGBS_MM_PRTNR_IZ P  /* T 월파트너 T*/
+                       INNER JOIN TB_OGBS_MM_OG_IZ O  /* T 월조직 T*/
+                          ON P.BASE_YM = O.BASE_YM
+                         AND P.OG_ID = O.OG_ID
+                         AND P.BASE_YM = #{perfYm}
+                         AND P.OG_TP_CD = #{ogTp}
+                         AND SUBSTR(P.OG_ID,1,1) NOT IN ('X','Z')
+                    ) OG
+            ON T1.SELL_PRTNR_NO = OG.PRTNR_NO
+           AND T1.SELL_OG_TP_CD = OG.OG_TP_CD
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.SELL_TP_CD = '2'         /* 렌탈 */
+           AND T2.CNTR_DTL_STAT_CD = '101' /* 정상계약 */
+           AND T2.CTT_RS_CD = '01'         /*컨택코드*/
+           AND T2.BASE_PD_CD != '4129'
+           AND T2.FRISU_YN != 'Y'
+           AND T2.SELL_DSC_DV_CD != '2'
+           AND T2.SELL_DSC_DV_CD != '5'
+           AND NOT EXISTS (SELECT 1 FROM TB_SSCT_RENTAL_RSTL_IZ X WHERE T2.CNTR_NO = X.CNTR_NO AND T2.CNTR_SN = X.CNTR_SN) /*재렌탈약정X LC3100P ONLY 렌탈*/
+         INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T3 /*T WELLS매출확정기본 T*/
+            ON T2.CNTR_NO = T3.CNTR_NO
+           AND T2.CNTR_SN = T3.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS T4
+            ON T2.BASE_PD_CD = T4.PD_CD
+         INNER JOIN T_CMZ_CD_D CD
+            ON T2.SELL_TP_CD = CD.CD_VLD_VAL
+           AND CD.CD_ID = 'SELL_TP_CD'
+          LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ T5  /*T 기기변경내역 T*/
+            ON T2.CNTR_NO = T5.BASE_CNTR_NO
+           AND T2.CNTR_SN = T5.BASE_CNTR_SN
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ T6 /* T프로모션 계약내역T */
+            ON T2.CNTR_NO = T6.DTL_CNTR_NO
+           AND T2.CNTR_SN = T6.DTL_CNTR_SN
+          LEFT OUTER JOIN TB_SSCT_CNTR_CH_HIST T7 /* T 계약변경이력 T */
+            ON T1.CNTR_NO = T7.CNTR_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_BAS T8  /*T 변경렌탈내역 T*/
+            ON T5.OJ_CNTR_NO = T8.CNTR_NO
+         WHERE 1=1
+               AND ( ( T2.BOO_SELL_TP_CD = 2 AND SUBSTR(T1.CNTR_CNFM_DTM,0,6) = #{perfYm})
+                       OR (T2.BOO_SELL_TP_CD = 2 AND SUBSTR(T3.SL_RCOG_DT,0,6) = #{perfYm}
+                     )
+                   )
+               AND ( T2.ALNCMP_CD NOT IN ('01','03','18','19','20','21','26','27','28','29','31','32','43','44','45') /* 에듀제휴,홈쇼핑 제외 */
+                     OR ( T2.ALNCMP_CD IN ('01','03','18','19','20','21','26','27','28','29','31','32','43','44','45')
+                          AND ( NVL(T5.MCHN_CH_TP_CD,0) > 0
+                          AND T5.MCHN_CPS_APYR = 0
+                          AND T2.FEE_ACKMT_BASE_AMT > 0
+                        )
+                   ) /* 홈쇼핑 기변(01)은 체크대상-인정실적=0  T1.CHK1='X' 렌탈 체크조건 관련 매핑정보가 없어 일단 제외 추후 추가예정 */
+        )
+
     </select>
 
 </mapper>

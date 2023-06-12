@@ -124,7 +124,7 @@ public class WctaOrderDetailMngtService {
                 historyService.createContractBasicChangeHistory(
                     WctzCntrBasicChangeHistDvo.builder()
                         .cntrNo(dto.cntrNo())
-                        .cntrCnfmDtm(dto.cntrCnfmDt())
+                        .cntrCnfmDtm(dto.cntrCnfmDtm())
                         .histStrtDtm(histStrtDtm)
                         .build()
                 );

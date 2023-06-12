@@ -1,0 +1,58 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbFiverbikeApplicationAgreementMapper">
+
+    <select id="selectFiverbikeApplicationAgreement" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbFiverbikeApplicationAgreementDto$SearchRes">
+         SELECT A.PIF_THP_OFR_AG_YN AS AGREE_YN
+              , A.AGP_NM AS AGREE_CST_NM
+              , A.APLC_WCON_IMG_CN AS SIGN_IMAGE
+              , SUBSTR(A.FST_RGST_DTM, 3, 6) AS AGREE_DATE
+              , B.CUST_NM
+           FROM (SELECT T1.DTL_CNTR_NO, T1.DTL_CNTR_SN, TRIM(T2.RCGVP_KNM) AS CUST_NM
+                   FROM TB_SSCT_CNTR_ADR_REL T1
+                  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+                     ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+                    AND T2.DTA_DL_YN = 'N'
+                  WHERE 1=1
+					AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+					AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                    AND T1.DTA_DL_YN = 'N'
+                    AND T2.CNTR_NO   = #{cntrNo}
+                  GROUP BY T1.DTL_CNTR_NO, T1.DTL_CNTR_SN, TRIM(T2.RCGVP_KNM)
+                ) B
+           LEFT OUTER JOIN TB_SVPD_SPMT_SV_PIF_U_AG_IZ A
+             ON A.CNTR_NO        = B.DTL_CNTR_NO
+            AND A.CNTR_SN        = B.DTL_CNTR_SN
+            AND A.CNTR_NO        = #{cntrNo}
+            AND A.CNTR_SN        = #{cntrSn}
+            AND A.SPMT_CST_SV_CD = '02'
+            AND A.DTA_DL_YN      = 'N'
+          WHERE ROWNUM = 1
+    </select>
+
+    <insert id="insertFiverbikeApplicationAgreement">
+        INSERT INTO TB_SVPD_SPMT_SV_PIF_U_AG_IZ
+        ( CNTR_NO
+        , CNTR_SN
+        , SPMT_CST_SV_CD
+        , SPMT_CST_SV_U_AG_YN
+        , PIF_THP_OFR_AG_YN
+        , NOTAK_FW_DT
+        , AGP_NM
+        , APLC_WCON_IMG_CN
+        , DTA_DL_YN
+        <include refid="COMMON.insertSystemField"/>
+        )
+   VALUES
+        ( #{cntrNo}
+        , #{cntrSn}
+        , '02'
+        , 'N'
+        , #{agreeYn}
+        , ''
+        , #{custNm}
+        , #{signImage}
+        , 'N'
+        <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+</mapper>

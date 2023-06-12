@@ -1,11 +1,13 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 public class WsnaBsCsmbDeliveryAggregateDto {
     public record SearchReq(
         String mngtYmFrom,
         String mngtYmTo,
-        String bldCds,
-        String itmCds,
+        List<String> bldCds,
+        List<String> itmCds,
         String bfsvcCsmbDdlvOjCd,
         String sapCdFrom,
         String sapCdTo

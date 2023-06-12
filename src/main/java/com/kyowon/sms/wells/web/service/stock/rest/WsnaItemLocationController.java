@@ -2,6 +2,9 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto.CreateReq;
@@ -22,15 +25,22 @@ public class WsnaItemLocationController {
     private final WsnaItemLocationService service;
 
     @GetMapping
-    public List<SearchRes> getItemLocations(SearchReq dto) {
+    public PagingResult<SearchRes> getItemLocations(SearchReq dto, PageInfo pageInfo) {
+        return service.getItemLocations(dto, pageInfo);
+    }
+    @GetMapping("/excel-download")
+    public List<SearchRes> getItemLocationsExcelDownload(SearchReq dto) {
         return service.getItemLocations(dto);
     }
 
     @PutMapping
-    public int saveItemLocations(
+    public SaveResponse saveItemLocations(
         @RequestBody
         List<CreateReq> list
     ) {
-        return service.saveItemLocations(list);
+        return SaveResponse
+            .builder()
+            .processCount(service.saveItemLocations(list))
+            .build();
     }
 }

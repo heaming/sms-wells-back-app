@@ -14,7 +14,7 @@ public interface WctaContractRegStep1Mapper {
 
     WctaContractCstRelDvo selectCntrtInfoByCstNo(String cstNo);
 
-    WctaContractRegStep1Dvo.PextCntrDvo selectPextCntr(String cstNo, String cntrNo);
+    List<WctaContractRegStep1Dvo.PextCntrDvo> selectPextCntr(String cstNo, String cntrNo);
 
     List<Long> selectCntrtDlqAmt(List<String> cstNos);
 

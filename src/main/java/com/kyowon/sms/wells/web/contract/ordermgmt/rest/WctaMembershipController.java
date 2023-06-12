@@ -45,4 +45,20 @@ public class WctaMembershipController {
     ) {
         return service.getMembershipCustomerPages(dto, pageInfo);
     }
+
+    @ApiOperation(value = "멤버쉽 대상자 수 조회", notes = "멤버쉽 대상자 수 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "copnDvCd", value = "법인격구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "전화번호1", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "전화번호2", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "전화번호3", paramType = "query"),
+    })
+    @GetMapping("/customers/counts")
+    public Integer getMembershipCustomerCount(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getMembershipCustomersCounts(dto);
+    }
 }

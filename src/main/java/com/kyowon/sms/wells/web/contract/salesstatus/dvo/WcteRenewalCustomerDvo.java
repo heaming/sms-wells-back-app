@@ -22,7 +22,7 @@ public class WcteRenewalCustomerDvo {
     private String pdNm; // [상품명] 상품명
     private String ogCd; // [조직코드] 조직코드(판매자의조직코드)
     private String cstAgYn; // [마케팅동의여부] 마케팅동의여부
-    private String slDt; // [매출일] 매출일자
+    private String slRcogDt; // [매출일] 매출인식일자
     private String asnDvCd; // [배정구분] 배정구분
     private String asnDvNm; // [배정구분명] 배정구분명
     private String asnDt; // [배정일] 배정일자

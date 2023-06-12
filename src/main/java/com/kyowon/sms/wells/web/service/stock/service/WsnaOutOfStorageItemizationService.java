@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageItemizationMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,9 +36,9 @@ public class WsnaOutOfStorageItemizationService {
      * @param
      * @return
      */
-    public List<SearchRes> getOutOfStorageItemizations(SearchReq dto) {
+    public PagingResult<SearchRes> getOutOfStorageItemizations(SearchReq dto, PageInfo pageInfo) {
 
-        return this.mapper.selectOutOfStorageItemizations(dto);
+        return this.mapper.selectOutOfStorageItemizations(dto, pageInfo);
     }
 
     /**

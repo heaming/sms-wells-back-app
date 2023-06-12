@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.deduction.adsb.mapper.WdebMonthlyAdsbMgtMapper">
+
+    <select id="selectMcbyAdsbPartners" resultType="com.kyowon.sms.wells.web.deduction.adsb.dto.WdebMonthlyAdsbMgtDto$SearchPartnerhRes">
+        /*WELLS - 월별 재지급 관리 목록조회 ( 판매자별 )*/
+        SELECT M.REDF_ADSB_OC_YM /*발생년월*/
+             , M.PERF_YM /*실적년월*/
+             , A.OG_CD /*소속코드*/
+             , MAX(M.PRTNR_NO) AS PRTNR_NO /*파트너번호*/
+             , A.PRTNR_KNM /*성명*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', A.RSB_DV_CD, #{session.langId}) AS RSB_DV_NM /*직책명*/
+             , SUBSTR(A.CLTN_DT, 1, 6) AS CLTN_YM /*해약년월*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'REDF_ADSB_DV_CD', M.REDF_ADSB_DV_CD, #{session.langId}) AS REDF_ADSB_DV_NM /*지급구분*/
+             , NVL(SUM(CASE WHEN M.PERF_DV_CD = '0'
+                     THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(M.REDF_ADSB_CTR_CNFM_AMT, 0)
+                                ELSE NVL(M.REDF_ADSB_OC_AMT, 0) END)
+                  END), 0) AS PR_ADSB_AMT /*개인 재지급액*/
+             , NVL(SUM(CASE WHEN M.PERF_DV_CD = '2'
+                     THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(M.REDF_ADSB_CTR_CNFM_AMT, 0)
+                                ELSE NVL(M.REDF_ADSB_OC_AMT, 0) END)
+                  END), 0) AS OG_ADSB_AMT /*조직 재지급액*/
+             , NVL(SUM(CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(M.REDF_ADSB_CTR_CNFM_AMT, 0)
+                                ELSE NVL(M.REDF_ADSB_OC_AMT, 0) END)
+                   , 0) AS SUM_ADSB_AMT /*재지급액계*/
+          FROM TB_FEDD_FEE_REDF_ADSB_BAS M /*수수료되물림재지급기본*/
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ A /*월파트너내역*/
+            ON M.PRTNR_NO = A.PRTNR_NO 
+           AND M.OG_TP_CD = A.OG_TP_CD 
+           AND M.PERF_YM = A.BASE_YM /*실적년월 = 월파트너기준년월*/
+         WHERE M.DTA_DL_YN = 'N'
+           <!-- AND M.REDF_ADSB_DV_CD = '03' --> /*재지급 고정, TODO: 재지급 데이터 없어서 현재 주석처리*/
+           <if test='@MybatisUtils@isNotEmpty(ogTpCd) and ogTpCd != "ALL"'>
+           AND M.OG_TP_CD = #{ogTpCd} /*PARAM: 조직유형*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cltnYn) and cltnYn != "ALL"'>
+           AND A.BZ_STAT_CD = (CASE WHEN #{cltnYn} = '5' THEN '2'
+                                    WHEN #{cltnYn} = '6' THEN '1'
+                                 END) /*PARAM: 해약여부, 1: 재직, 2: 해약*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYm)'>
+           AND M.REDF_ADSB_OC_YM = #{redfAdsbOcYm} /*PARAM: 발생년월*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND M.PRTNR_NO = #{prtnrNo} /*PARAM: 파트너번호*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(pstnDvCd)'>
+           AND M.PERF_DV_CD = (CASE WHEN #{pstnDvCd} = '15' THEN '0'
+                                    WHEN #{pstnDvCd} = '10' THEN '1'
+                                    WHEN #{pstnDvCd} = '7' THEN '2'
+                                    WHEN #{pstnDvCd} = '4' THEN '5'
+                                    WHEN #{pstnDvCd} = '2' THEN '7'
+                                     END)
+           /*PARAM: 직급구분 (개인: 0, 지구: 1, 지점: 2, 지역: 5, 총괄: 7) 
+           (pstnDvCd, 15: 웰스플래너, 10: 지구장, 7: 지점장, 4: 지역단장, 2: 총괄단장)*/
+           </if>
+         GROUP BY M.REDF_ADSB_OC_YM, M.PERF_YM, A.OG_CD, A.PRTNR_KNM, A.RSB_DV_CD
+                , A.CLTN_DT, M.REDF_ADSB_DV_CD
+    </select>
+    
+    <select id="selectMcbyAdsbContracts" resultType="com.kyowon.sms.wells.web.deduction.adsb.dto.WdebMonthlyAdsbMgtDto$SearchContractRes">
+        /*WELLS - 월별 재지급 관리 목록조회 ( 계약별 )*/
+        SELECT SUBSTR(M.FST_RGST_DTM, 1, 8) AS OC_DT /*처리일자, TODO: 재지급 대상 생성과 금액 생성이 동시에 이루어지기 때문에, 재지급상세에 최초등록 시점이 처리일자인가 확인필요*/
+             , B.CNTR_PD_STRTDT AS PERF_DT /*귀속일자(계약상세.계약상품시작일자), TODO: 대상의 실적일자를 데이터상 계약상품시작일자와 동일한것으로 파악됨*/
+             , M.CNTR_NO 
+             , M.CNTR_SN
+             , M.CNTR_NO || M.CNTR_SN AS CNTR_NO_SN /*계약상세번호*/
+             , M.PRTNR_NO /*판매자.파트너번호*/
+             , C.PRTNR_KNM /*파트너성명*/
+             , NVL(CASE WHEN A.SELL_PRTNR_NO = M.PRTNR_NO /*판매자의 재지급액*/
+                     THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(M.REDF_ADSB_CTR_CNFM_AMT, 0)
+                                ELSE NVL(M.REDF_ADSB_OC_AMT, 0) END)
+                  END, 0) AS SELL_PRTNR_ADSB_AMT /*판매자 재지급액*/
+             , (CASE WHEN C.PSTN_DV_CD = '7' THEN M.PRTNR_NO END) AS BRCH_PRTNR_NO /*지점장 파트너번호*/
+             , (CASE WHEN C.PSTN_DV_CD = '7' THEN C.PRTNR_KNM END) AS BRCH_PRTNR_KNM /*지점장 파트너번호*/
+             , NVL(CASE WHEN A.SELL_PRTNR_NO = M.PRTNR_NO AND C.PSTN_DV_CD = '7' /*판매자(지점장)의 재지급액*/
+                     THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(M.REDF_ADSB_CTR_CNFM_AMT, 0)
+                                ELSE NVL(M.REDF_ADSB_OC_AMT, 0) END)
+                  END, 0) AS BRCH_ADSB_AMT /*판매자(지점장 재지급액)*/
+          FROM TB_FEDD_FEE_REDF_ADSB_DTL M /*수수료되물림재지급상세*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_BAS A /*계약기본*/
+            ON M.CNTR_NO = A.CNTR_NO
+           AND M.PRTNR_NO = A.SELL_PRTNR_NO
+           AND M.OG_TP_CD = A.SELL_OG_TP_CD 
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+            ON A.CNTR_NO = B.CNTR_NO 
+           AND M.CNTR_SN = B.CNTR_SN
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ C /*월파트너내역*/
+            ON M.PRTNR_NO = C.PRTNR_NO 
+           AND M.OG_TP_CD = C.OG_TP_CD 
+           AND M.PERF_YM = C.BASE_YM
+         WHERE M.DTA_DL_YN = 'N'
+           <!-- AND M.REDF_ADSB_DV_CD = '03' --> /*재지급 고정, TODO: 재지급 데이터 없어서 현재 주석처리*/
+           <if test='@MybatisUtils@isNotEmpty(ogTpCd) and ogTpCd != "ALL"'>
+           AND M.OG_TP_CD = #{ogTpCd} /*PARAM: 조직유형*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cltnYn) and cltnYn != "ALL"'>
+           AND A.BZ_STAT_CD = (CASE WHEN #{cltnYn} = '5' THEN '2'
+                                    WHEN #{cltnYn} = '6' THEN '1'
+                                 END) /*PARAM: 해약여부, 1: 재직, 2: 해약*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYm)'>
+           AND SUBSTR(M.FST_RGST_DTM, 1, 6) = #{redfAdsbOcYm} /*PARAM: 발생년월*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND M.PRTNR_NO = #{prtnrNo} /*PARAM: 파트너번호*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(pstnDvCd)'>
+           AND M.PERF_DV_CD = (CASE WHEN #{pstnDvCd} = '15' THEN '0'
+                                    WHEN #{pstnDvCd} = '10' THEN '1'
+                                    WHEN #{pstnDvCd} = '7' THEN '2'
+                                    WHEN #{pstnDvCd} = '4' THEN '5'
+                                    WHEN #{pstnDvCd} = '2' THEN '7'
+                                     END)
+           /*PARAM: 직급구분 (개인: 0, 지구: 1, 지점: 2, 지역: 5, 총괄: 7) 
+           (pstnDvCd, 15: 웰스플래너, 10: 지구장, 7: 지점장, 4: 지역단장, 2: 총괄단장)*/
+           </if>
+    </select>
+    
+</mapper>

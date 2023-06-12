@@ -51,4 +51,12 @@ public interface WcteSecProductMapper {
     int insertNotInstalledIz(WcteSecNistlDvo dvo);
 
     List<WcteSecPdBycfDvo> selectSecPdBycfs();
+
+    PagingResult<SearchShippingRes> selectShippings(SearchShippingReq dto, PageInfo pageInfo);
+
+    List<SearchShippingRes> selectShippings(SearchShippingReq dto);
+
+    PagingResult<SearchFreeAsRes> selectFreeASs(SearchFreeAsReq dto, PageInfo pageInfo);
+
+    List<SearchFreeAsRes> selectFreeASs(SearchFreeAsReq dto);
 }

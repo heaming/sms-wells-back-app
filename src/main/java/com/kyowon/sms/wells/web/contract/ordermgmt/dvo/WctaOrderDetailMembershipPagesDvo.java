@@ -12,6 +12,8 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String cntrNo; /* 계약번호 */
     private String cntrSn; /* 계약순번 */
     private String cntrDtlNo; /* 계약상세번호 */
+    private String sellTpCd; /* 판매유형코드 */
+    private String copnDvCd; /* 고객구분코드 */
     private String cstKnm; /* 계약자명 */
     private String rcgvpKnm; /* 설치자명 */
     private String ojSellTpNm; /* 계약구분*/
@@ -41,7 +43,7 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String cntrRcpFshDt; /* 접수일 */
     private String cntrCnfmYn; /* 확정여부 */
     private String cntrCnfmDt; /* 확정일 */
-    private String cntrTempSaveDt; /* 가입일 */
+    private String cntrPdStrtdt; /* 가입일 */
     private String hcrDuedt; /* 홈케어예정일 */
     private String istDt; /* 설치일 */
     private String dutyExnDtFrisu; /* 의무만료일(무상) */

@@ -18,4 +18,8 @@ public class WctaMembershipService {
     public PagingResult<SearchRes> getMembershipCustomerPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectMembershipCustomers(dto, pageInfo);
     }
+
+    public Integer getMembershipCustomersCounts(SearchReq dto) {
+        return mapper.selectMembershipCustomersCount(dto);
+    }
 }

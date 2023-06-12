@@ -78,6 +78,7 @@ public class WsncRpbAreaZipMgtService {
 
         for (CreateReq dto : dtos) {
             WsncRpbAreaZipNoDvo rpbLocaraZip = this.converter.mapCreateReqToWsncRpbAreaZipNoDvo(dto);
+            this.mapper.deleteZipNo(rpbLocaraZip);
             processCount += this.mapper.insertZipNo(rpbLocaraZip);
         }
 

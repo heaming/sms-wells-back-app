@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaItemLocationConverter;
@@ -18,6 +20,10 @@ import lombok.RequiredArgsConstructor;
 public class WsnaItemLocationService {
     private final WsnaItemLocationMapper mapper;
     private final WsnaItemLocationConverter converter;
+
+    public PagingResult<SearchRes> getItemLocations(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectItemLocations(dto, pageInfo);
+    }
 
     public List<SearchRes> getItemLocations(SearchReq dto) {
         return mapper.selectItemLocations(dto);

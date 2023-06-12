@@ -9,21 +9,32 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 public interface WctaContractRegStep3Mapper {
     int updateCntrDtlStep3(WctaContractDtlDvo dtl);
 
-    int insertCntrAdrpcBasStep3(@Param("item")
-    WctaContractAdrpcBasDvo dvo);
+    int insertCntrStlmBasStep3(@Param("item")
+    WctaContractStlmBasDvo dvo);
 
     int insertCntrStlmRelStep3(@Param("item")
     WctaContractStlmRelDvo dvo);
 
+    int insertCntrAdrpcBasStep3(@Param("item")
+    WctaContractAdrpcBasDvo dvo);
+
     int insertCntrAdrRelStep3(@Param("item")
     WctaContractAdrRelDvo dvo);
 
-    WctaContractRegStep3Dvo selectAdrInfoByCntrCstNo(String cntrCstNo);
+    int updateCntrWellsDtlStep3(WctaContractWellsDtlDvo dvo);
 
-    int deleteStlmRelsStep3(String cntrNo);
+    WctaContractAdrpcBasDvo selectAdrInfoByCntrCstNo(String cntrCstNo);
 
-    int deleteAdrpcBasStep3(String cntrNo);
+    int updateCstStlmInMthCd(String cntrNo, String cstStlmInMthCd);
 
-    int deleteAdrRelsStep3(String cntrNo);
+    int deleteCntrStlmBasStep3(String cntrNo);
+
+    int deleteCntrStlmRelsStep3(String cntrNo);
+
+    int deleteCntrAdrpcBasStep3(String cntrNo);
+
+    int deleteCntrAdrRelsStep3(String cntrNo);
+
+    int deleteWellsDtlStep3(String cntrNo);
 
 }

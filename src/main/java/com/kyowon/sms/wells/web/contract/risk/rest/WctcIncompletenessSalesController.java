@@ -57,8 +57,8 @@ public class WctcIncompletenessSalesController {
         @ApiImplicitParam(name = "strtYm", value = "시작년월", paramType = "query"),
         @ApiImplicitParam(name = "endYm", value = "종료년월", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
-        @ApiImplicitParam(name = "dgr1HgrOgCd", value = "지역단 코드", paramType = "query"),
-        @ApiImplicitParam(name = "dgr2HgrOgCd", value = "지점 코드", paramType = "query"),
+        @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단 코드", paramType = "query"),
+        @ApiImplicitParam(name = "dgr3LevlOgCd", value = "지점 코드", paramType = "query"),
         @ApiImplicitParam(name = "prtnrKnm", value = "파트너명", paramType = "query"),
     })
     @GetMapping("/paging")
@@ -71,15 +71,15 @@ public class WctcIncompletenessSalesController {
         return service.getIncompletenessSalesPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "기기 변경 부정 행위 엑셀 다운로드", notes = "")
+    @ApiOperation(value = "기기 변경 부정 행위 엑셀 다운로드", notes = "기기 변경 부정 행위 조회 결과를 엑셀 다운로드 한다")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "icptSellExrDt", value = "적발년월", paramType = "query"),
         @ApiImplicitParam(name = "baseCntrRcpdt", value = "발생년월", paramType = "query"),
         @ApiImplicitParam(name = "apyStrtDt", value = "시작일자", paramType = "query"),
         @ApiImplicitParam(name = "apyEndDt", value = "종료일자", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
-        @ApiImplicitParam(name = "dgr1HgrOgCd", value = "지역단 코드", paramType = "query"),
-        @ApiImplicitParam(name = "dgr2HgrOgCd", value = "지점 코드", paramType = "query"),
+        @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단 코드", paramType = "query"),
+        @ApiImplicitParam(name = "dgr3LevlOgCd", value = "지점 코드", paramType = "query"),
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
     })
     @GetMapping("/excel-download")

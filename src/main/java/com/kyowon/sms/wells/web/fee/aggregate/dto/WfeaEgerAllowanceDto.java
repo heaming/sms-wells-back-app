@@ -28,8 +28,6 @@ public class WfeaEgerAllowanceDto {
     public record SaveReq(
         @NotBlank
         String perfYm,
-
-        @NotBlank
         String rsbTp
     ) {}
 

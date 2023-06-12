@@ -18,4 +18,8 @@ public class WctaReStipulationService {
     public PagingResult<SearchRes> getReStipulationCustomerPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectReStipulationCustomers(dto, pageInfo);
     }
+
+    public Integer getReStipulationCustomerCounts(SearchReq dto){
+        return mapper.selectReStipulationCustomerCounts(dto);
+    }
 }

@@ -42,11 +42,16 @@ public interface WpdcRoutineBsWorkMgtMapper {
     int isnertRoutineBsWorkDetail(@Param("info")
     WpdcRoutineBsWorkDetailDvo info);
 
+    int updateRoutineBsWorkDetail(@Param("info")
+    WpdcRoutineBsWorkDetailDvo info);
+
     int mergeLifeCustomFilterBase(WpdcLifeCustomFilterBaseDvo info);
 
     int deleteRoutineBsWorkBase(String svPdCd, String pdctPdCd);
 
     int deleteRoutineBsWorkDetail(String svPdCd, String pdctPdCd);
+
+    int deleteRoutineBsWorkDetail(WpdcRoutineBsWorkDetailDvo info);
 
     int deleteLifeCustomFilterStd(WpdcLifeCustomFilterBaseDvo info);
 

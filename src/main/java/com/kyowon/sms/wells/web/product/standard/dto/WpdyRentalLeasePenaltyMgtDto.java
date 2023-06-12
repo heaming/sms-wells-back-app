@@ -14,6 +14,8 @@ public class WpdyRentalLeasePenaltyMgtDto {
     public record SearchReq(
         String prdtCateHigh, /* 대분류 */
         String prdtCateMid, /* 중분류 */
+        String prdtCateLow,
+        String prdtCateLowDtl,
         String pdNm, /* 상품명 */
         String pdCd, /* 상품코드 */
         String svcStartDt, /* 적용 시작일 */

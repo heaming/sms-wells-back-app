@@ -46,7 +46,7 @@ public class WctaContractRegStep1Service {
         }
 
         // 견적서 존재여부 확인
-        step1Dvo.setPextCntr(mapper.selectPextCntr(cstNo, cntrNo));
+        step1Dvo.setPextCntrs(mapper.selectPextCntr(cstNo, cntrNo));
 
         // 계약자 연체 여부 확인
         List<Long> dlqAmt = mapper.selectCntrtDlqAmt(List.of(cstNo));
@@ -147,7 +147,7 @@ public class WctaContractRegStep1Service {
 
         // 계약번호 없으면, 신규 채번
         WctaContractBasDvo basDvo = dvo.getBas();
-        boolean isNewCntr = StringUtils.isEmpty(dvo.getCntrNo()) && StringUtils.isEmpty(basDvo.getCntrNo());
+        boolean isNewCntr = StringUtils.isEmpty(basDvo.getCntrNo());
         String cntrNo = isNewCntr ? cntrNoService.getContractNumber("").cntrNo() : basDvo.getCntrNo();
 
         if (!isNewCntr) {
@@ -172,7 +172,7 @@ public class WctaContractRegStep1Service {
             basDvo.setSellPrtnrNo(dvo.getPrtnr().getPrtnrNo());
             basDvo.setSellOgTpCd(dvo.getPrtnr().getOgTpCd());
             basDvo.setCntrNatCd("KR");
-            basDvo.setCntrPrgsStatCd("10");
+            basDvo.setCntrPrgsStatCd(CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP1);
             mapper.insertCntrBasStep1(basDvo);
         } else {
             mapper.updateCntrBasStep1(basDvo);
@@ -265,7 +265,7 @@ public class WctaContractRegStep1Service {
             WctaContractCstRelDvo.builder()
                 .vlStrtDtm(now)
                 .vlEndDtm(CtContractConst.END_DTM)
-                .cntrUnitTpCd("010")
+                .cntrUnitTpCd("020") // 상세단위로 수정
                 .cntrNo(cntrNo)
                 .dtlCntrNo(cntrNo)
                 .dtlCntrSn(1)

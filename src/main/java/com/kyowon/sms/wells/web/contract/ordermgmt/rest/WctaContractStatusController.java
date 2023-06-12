@@ -79,10 +79,10 @@ public class WctaContractStatusController {
     }
 
     @ApiOperation(value = "계약현황 - 삭제", notes = "")
-    @DeleteMapping("/{cntrNo}")
+    @DeleteMapping
     public SaveResponse removeContract(
         @NotEmpty
-        @PathVariable("cntrNo")
+        @RequestParam
         String cntrNo
     ) {
         return SaveResponse.builder().processCount(service.removeContract(cntrNo)).build();

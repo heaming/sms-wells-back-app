@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.changeorder.dto;
 
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 
 public class WctbChangeOrderDetailDto {
@@ -15,10 +17,25 @@ public class WctbChangeOrderDetailDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
+    @ApiModel("WctbChangeOrderDetailDto-SearchRes")
+    public record SearchRes(
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrChHistRes> searchTbSsctCntrChHistResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrDchHistRes> searchTbSsctCntrDchHistResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrCstRelRes> searchTbSsctCntrCstRelResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrPrtnrRelRes> searchTbSsctCntrPrtnrRelResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrAdrRelRes> searchTbSsctCntrAdrRelResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrAdrChHistRes> searchTbSsctCntrAdrChHistResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrStlmRelRes> searchTbSsctCntrStlmRelResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrStlmChHistRes> searchTbSsctCntrStlmChHistResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrWellsDchHistRes> searchTbSsctCntrWellsDchHistResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctCntrRelRes> searchTbSsctCntrRelResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctMchnChHistRes> searchTbSsctMchnChHistResList,
+        List<WctbChangeOrderDetailDto.SearchTbSsctRentalRstlChHistRes> searchTbSsctRentalRstlChHistResList
+    ) {}
+
     @ApiModel("WctbChangeOrderDetailDto-SearchTbSsctCntrChHistRes")
     public record SearchTbSsctCntrChHistRes(
         String cntrNo,
-        String cntrSn,
         String histStrtDtm,
         String histEndDtm,
         String cntrCstNo,
@@ -140,13 +157,14 @@ public class WctbChangeOrderDetailDto {
     @ApiModel("WctbChangeOrderDetailDto-SearchTbSsctCntrCstRelRes")
     public record SearchTbSsctCntrCstRelRes(
         String cntrCstRelId,
-        String histStrtDtm,
-        String histEndDtm,
+        String vlStrtDtm,
+        String vlEndDtm,
         String cntrUnitTpCd,
         String cntrNo,
-        String cntrSn,
+        String dtlCntrNo,
+        String dtlCntrSn,
         String copnDvCd,
-        String cntrCstNo,
+        String cstNo,
         String cntrCstRelTpCd,
         String cntrtRelCd,
         String insiCstTpCd,
@@ -169,7 +187,6 @@ public class WctbChangeOrderDetailDto {
         String vlStrtDtm,
         String vlEndDtm,
         String cntrNo,
-        String cntrSn,
         String ogTpCd,
         String prtnrNo,
         String cntrPrtnrTpCd,
@@ -199,7 +216,8 @@ public class WctbChangeOrderDetailDto {
         String adrpcTpCd,
         String cntrUnitTpCd,
         String cntrNo,
-        String cntrSn,
+        String dtlCntrNo,
+        String dtlCntrSn,
         String cntrAdrpcId,
         String vstRqdt,
         String vstAkStrtHm,
@@ -265,7 +283,8 @@ public class WctbChangeOrderDetailDto {
         String cntrUnitTpCd,
         String cntrStlmId,
         String cntrNo,
-        String cntrSn,
+        String dtlCntrNo,
+        String dtlCntrSn,
         String dpTpCd,
         String rveDvCd,
         String islndIncmdcTpCd,

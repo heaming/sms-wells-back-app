@@ -38,6 +38,7 @@ public class WsnaOutOfStorageAskMngtDto {
     public record SearchRes(
         String ostrAkNo, // 출고요청번호
         String ostrAkTpCd, // 출고요청유형코드
+        String ostrAkTpNm, // 출고요청유형명
         String strHopDt, // 입고희망일자
         String rectOstrDt, // 최근출고일자
         String wareNm, // 창고명

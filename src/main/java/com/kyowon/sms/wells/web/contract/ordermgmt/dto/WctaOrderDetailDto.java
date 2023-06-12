@@ -12,7 +12,8 @@ public class WctaOrderDetailDto {
     @ApiModel(value = "WctaOrderDetailDto-SearchReq")
     public record SearchReq(
         String cntrNo,
-        String cntrSn
+        String cntrSn,
+        String cntrCstNo
     ) {}
 
     //wells 주문 상세(거래명세서목록조회) - 거래명세서목록조회 Search Request Dto
@@ -98,7 +99,7 @@ public class WctaOrderDetailDto {
     public record SearchContractListsRes(
         String cntrNo,
         String cntrSn,
-        String cntrNoFull,
+        String cntrDtlNo,
         String basePdCd,
         String pdNm
     ) {}

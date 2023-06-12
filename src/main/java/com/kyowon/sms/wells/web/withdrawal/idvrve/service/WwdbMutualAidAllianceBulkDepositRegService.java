@@ -10,6 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbMutualAidAllianceBulkDepositRegConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveUploadReq;
@@ -17,6 +21,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkD
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SearchSumRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbMutualAidAllianceBulkDepositDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbMutualAidAllianceBulkDepositRegDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbIntegrationDepositMapper;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbMutualAidAllianceBulkDepositRegMapper;
@@ -48,6 +53,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
     private final ExcelReadService excelReadService;
 
     private final MessageResourceService messageResourceService;
+
+    private final ZwdzWithdrawalService zwdzWithdrawalService;
 
     @Transactional
     public PagingResult<SearchRes> getMutualAidAllianceBulkDepositRegPages(SearchReq dto, PageInfo pageInfo) {
@@ -108,6 +115,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         /* Validation */
         validateExcelDatas(headerTitle, dataDvo);
+
         for (WwdbMutualAidAllianceBulkDepositRegDvo dvo : dataDvo) {
             if (!ObjectUtils.isEmpty(dvo.getLifCntrNo())) {
                 dvo.setWelsCntrNo("W" + dvo.getWelsCntrNo().toString().replace("-", ""));
@@ -126,13 +134,13 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
     public Map<String, String> setLifAlncDvCdHeader(String lifAlncDvCd) {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         if (lifAlncDvCd.equals("30")) { //웰스399
-            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); // 순번 
+            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); // 순번
             headerTitle.put("welsCntrNo", messageResourceService.getMessage("MSG_TXT_CST_CD"));//고객코드
-            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); // 고객성명 
+            headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); // 고객성명
             headerTitle.put("lifAlncPdCd", messageResourceService.getMessage("MSG_TXT_PRDT"));// 상품
             headerTitle.put("lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM"));// 상품명
-            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); //계약일자 
-            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); //해지일자 
+            headerTitle.put("test7", messageResourceService.getMessage("MSG_TXT_CNTR_DATE")); //계약일자
+            headerTitle.put("test8", messageResourceService.getMessage("MSG_TXT_RSG_DT")); //해지일자
             headerTitle.put("test2", messageResourceService.getMessage("MSG_TXT_EV_DT")); //행사일자
             headerTitle.put("test3", messageResourceService.getMessage("MSG_TXT_MPY"));// 납부
             headerTitle.put("test4", messageResourceService.getMessage("MSG_TXT_AGGS"));// 누계
@@ -185,6 +193,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
             /* 데이터 검증 */
             if (StringUtil.isBlank(dvo.getWelsCntrNo().toString())) { //웰스계약번호
+
                 BizAssert.hasText(
                     dvo.getWelsCntrNo().toString(), "MSG_ALT_INVALID_UPLOAD_DATA",
                     new String[] {String.valueOf(row), header.get("welsCntrNo"), dvo.getWelsCntrNo().toString()}
@@ -259,10 +268,6 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         int diffDay = DateUtil.getDays(sysDateYmd, dto.rveDt());
 
-        log.info("======123=====");
-        System.out.println(diffDay > 0);
-        log.info("======123=====");
-
         //이전만 가능하기에 0보다 크면 예외 발생
         BizAssert.isFalse(diffDay > 0, "MSG_ALT_RVE_DT_CRTL_D_BF_PSB");
         //        BizAssert.isTrue(diffDay > 0, "수납일자는 현재일 과 이전만 가능 합니다.");
@@ -301,7 +306,100 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         BizAssert.isFalse(dpBlam != sumAmt, "MSG_ALT_CPRCNF_NOT_DP_BLAM"); //통합 입금잔액 과 총 대사금액 이 일치하지 않습니다.
 
-        /* 아직 테스트 중이라 미완성*/
+        ZwdzWithdrawalDepositCprDvo depositCprDvo = new ZwdzWithdrawalDepositCprDvo();
+
+        depositCprDvo.setKwGrpCoCd(dto.kwGrpCoCd()); /*교원그룹회사코드*/
+        depositCprDvo.setRveCd(dto.rveCd()); /*수납코드*/
+        depositCprDvo.setProcsDvCd("1"); /*처리구분코드 1 */
+        depositCprDvo.setDpTpCd(dto.dpTpCd()); /*입금유형코드*/
+        depositCprDvo.setIaDvCd("11"); /*입금항목구분코드 11 */
+        depositCprDvo.setDpCprcnfBizDvCd("01"); /*입금대사업무구분코드 01 */
+        depositCprDvo.setDpCprcnfDtm(sysDate); /*입금대사일시*/
+        depositCprDvo.setDpCprcnfAmt(dto.dpObjAmtSum()); /*입금대사금액*/
+        depositCprDvo.setDpCprcnfPerfDt(sysDateYmd); /*입금대사실적일자*/
+        depositCprDvo.setDpCprcnfCnfmYn("Y"); /*입금대사확정여부*/
+        depositCprDvo.setDpCprcnfCnfmDtm(sysDate); /*입금대사확정일시*/
+        depositCprDvo.setItgDpNo(dto.itgDpNo()); /*통합입금번호*/
+        depositCprDvo.setDpDvCd("1"); /*입금구분코드 1*/
+        depositCprDvo.setDpCprcnfBizCd("03"); /*입금대사업무코드 03 */
+        depositCprDvo.setDpCprcnfCanYn("N"); //입금대사취소여부
+        depositCprDvo.setDpCprcnfDstApyYn("N"); //입금대사배분적용여부
+        depositCprDvo.setIncmdcYn("N");//소득공제여부
+
+        //입금대사 데이터 생성
+        String depositComparisonPk = zwdzWithdrawalService.createDepositComparison(depositCprDvo);
+
+        //수납요청 인설트 데이터 조회
+        ZwdzWithdrawalReceiveAskDvo integrationDvo = mapper.selectIntegrationDeposit(depositCprDvo);
+
+        // 수납요청기본 데이터 생성
+        String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(integrationDvo);
+        integrationDvo.setReceiveAskNumber(receiveAskNumber);
+
+        for (SearchRes searchRes : selectMutualAidAllianceBulkDepositRegs) {
+
+            integrationDvo.setContractNumber(searchRes.welsCntrNo()); //계약번호
+            //            integrationDvo.setContractSerialNumber(searchRes.welsCntrSn()); //계약일련번호
+            integrationDvo.setReceiveAskAmount(searchRes.amt()); //수납요청금액
+            integrationDvo.setReceiveAmount(searchRes.amt()); //수납금액
+            integrationDvo.setReceiveCompanyCd(depositCprDvo.getRveCd()); //수납코드
+            log.info("===================");
+            log.info(integrationDvo.toString());
+            log.info("===================");
+
+            // 수납요청상세 데이터 생성
+            processCount += zwdzWithdrawalService.createReceiveAskDetail(integrationDvo);
+
+        }
+        processCount += zwdzWithdrawalService.createReceiveAskDetailHistory(integrationDvo);
+
+        //통합입금기본 데이터 수정
+        WwdbMutualAidAllianceBulkDepositDvo bulkDepositDvo = new WwdbMutualAidAllianceBulkDepositDvo();
+        bulkDepositDvo.setDpCprcnfAmt(depositCprDvo.getDpCprcnfAmt());
+        bulkDepositDvo.setItgDpNo(depositCprDvo.getItgDpNo());
+        bulkDepositDvo.setRveAkNo(receiveAskNumber);
+        processCount += mapper.updateIntegrationDeposit(bulkDepositDvo);
+
+        ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = new ZwdzWithdrawalReceiveDvo();
+
+        //수납기본 정보
+        zwdzWithdrawalReceiveDvo.setKwGrpCoCd(depositCprDvo.getKwGrpCoCd()); //교원법인코드
+        zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber); //수납요청번호
+        zwdzWithdrawalReceiveDvo.setRveDt(sysDateYmd); //수납일자
+        zwdzWithdrawalReceiveDvo.setRveAmt(depositCprDvo.getDpCprcnfAmt()); //수납금액
+        zwdzWithdrawalReceiveDvo.setItgDpNo(depositCprDvo.getItgDpNo()); //통합입금번호
+        zwdzWithdrawalReceiveDvo.setDpDvCd(depositCprDvo.getDpDvCd()); //입금구분코드
+
+        zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber); //수납요청번호
+        zwdzWithdrawalReceiveDvo.setRveDt(sysDateYmd); //수납일자
+        zwdzWithdrawalReceiveDvo.setRveAmt(depositCprDvo.getDpCprcnfAmt()); //수납금액
+        zwdzWithdrawalReceiveDvo.setDpDvCd(depositCprDvo.getDpDvCd()); //입금구분코드
+        zwdzWithdrawalReceiveDvo.setItgDpNo(depositCprDvo.getItgDpNo()); //통합입금번호
+        zwdzWithdrawalReceiveDvo.setDpMesCd(depositCprDvo.getDpMesCd());/*입금수단코드*/
+        zwdzWithdrawalReceiveDvo.setDpTpCd(depositCprDvo.getDpTpCd());/*입금유형코드*/
+        //            zwdzWithdrawalReceiveDvo.setRveDvCd();/*수납구분코드*/
+        zwdzWithdrawalReceiveDvo.setDpCprcnfNo(depositComparisonPk); /*입금대사번호*/
+        zwdzWithdrawalReceiveDvo.setRveCoCd(depositCprDvo.getKwGrpCoCd());/*수납회사코드*/
+        zwdzWithdrawalReceiveDvo.setRveCd(depositCprDvo.getRveCd());/*수납코드*/
+        zwdzWithdrawalReceiveDvo.setProcsDvCd(depositCprDvo.getProcsDvCd()); //처리구분
+
+        //수납기본 데이터 생성
+        String rveNo = zwdzWithdrawalService.createReceive(zwdzWithdrawalReceiveDvo);
+        zwdzWithdrawalReceiveDvo.setRveNo(rveNo);
+
+        int number = 1;
+
+        for (SearchRes searchRes : selectMutualAidAllianceBulkDepositRegs) {
+            zwdzWithdrawalReceiveDvo.setCntrNo(searchRes.welsCntrNo());/*계약번호*/
+            zwdzWithdrawalReceiveDvo.setRveCd(searchRes.welsCntrSn());/*계약일련번호*/
+            zwdzWithdrawalReceiveDvo.setRveProcsYn("Y");/*수납처리여부*/
+            zwdzWithdrawalReceiveDvo.setRveSn(Integer.toString(number));
+
+            //수납상세 데이터 생성
+            processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
+
+            number++;
+        }
 
         return processCount;
     }

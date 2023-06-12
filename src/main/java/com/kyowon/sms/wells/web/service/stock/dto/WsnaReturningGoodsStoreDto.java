@@ -15,7 +15,6 @@ public class WsnaReturningGoodsStoreDto {
     @Builder
     @ApiModel("WsnaReturningGoodsStoreDto-SearchReq")
     public record SearchReq(
-        @NotBlank
         String strWareDvCd,
         String strWareNoM,
         String strWareNoD,
@@ -26,8 +25,8 @@ public class WsnaReturningGoodsStoreDto {
         String itmKndCd, /*품목종류코드*/
         String svBizDclsfCd, /*서비스업무세분류코드*/
         String strConfYnCd, /*입고확인여부코드*/
-        String rtngdProcsTpCd, /*반품처리유형코드*/
-        String ostrConfDt /*확인일자*/
+        String stRtngdProcsTpCd, /*반품처리유형코드*/
+        String stOstrConfDt /*확인일자*/
 
     ) {}
 
@@ -54,6 +53,7 @@ public class WsnaReturningGoodsStoreDto {
         String cntrDtlNo, /*고객번호*/
         String cntrNo,
         String cntrSn,
+        String itemGr,
         String rcgvpKnm, /*고객명*/
         String sellTpCd, /*판매유형코드*/
         String sellTpNm, /*판매유형명*/
@@ -67,6 +67,10 @@ public class WsnaReturningGoodsStoreDto {
         String ostrDt,
         String rtngdProcsTpCd,
         String rtngdProcsTpCd1,
+        String rtngdRvpyProcsYn,
+        String wkWareNo,
+        String wkOstrSn,
+
         String rmkCn,
         String cntrNoNew,
         String barCd,
@@ -105,10 +109,11 @@ public class WsnaReturningGoodsStoreDto {
         String ostrAkDt //출고요청일자
     ) {}
 
-    @ApiModel("WsnaReturningGoodsStoreDto-SearchRes")
+    @ApiModel("WsnaReturningGoodsStoreDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String rowState,
+        String cstSvAsnNo,
         String itmPdCd,
         String itmKndCd,
         String stFnlVstFshDtFrom,
@@ -140,7 +145,49 @@ public class WsnaReturningGoodsStoreDto {
         String stkrPrntYn,
         String StkrRPrntYn,
         String cntrNo,
-        String cntrSn
+        String cntrSn,
+        String wkOstrSn
+
+    ) {}
+
+    @ApiModel("WsnaReturningGoodsStoreDto-SaveConfirmationReq")
+    public record SaveConfirmationReq(
+        @NotBlank
+        String rowState,
+        String cstSvAsnNo,
+        String itmPdCd,
+        String itmKndCd,
+        String stFnlVstFshDtFrom,
+        String edFnlVstFshDtTo,
+        String strWareDvCd,
+        String strWareNoM,
+        String strWareNoD,
+
+        String useQty, /*수량*/
+        String ostrConfDt, /*확인일자*/
+        String rtngdProcsTpCd, /*반품처리유형코드*/
+        String mgtUnt, /*관리단위*/
+        String itemKnd, /*품목종류*/
+        String WareNm, /*창고명*/
+        String wkWareNo, /*작업창고번호*/
+        String rtngdConfYn, /*반품확인여부*/
+        String fnlItmGdCd, /*최종품목등급코드*/
+        String itemGrNm,
+        String itemGr,
+
+        String itmOstrNo,
+        String ostrTpCd,
+        String ostrDt,
+
+        String strTpCd,
+        String strRgstDt,
+        String itmStrNo,
+        String rtngdRvpyProcsYn,
+        String stkrPrntYn,
+        String StkrRPrntYn,
+        String cntrNo,
+        String cntrSn,
+        String wkOstrSn
 
     ) {}
 }

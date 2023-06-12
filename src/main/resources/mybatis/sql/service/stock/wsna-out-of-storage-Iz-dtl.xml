@@ -7,65 +7,87 @@
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageIzDtlDto$SearchRes">
         SELECT T1.STR_WARE_NO /* 입고창고번호 */
              , T1.OSTR_WARE_NO /* 출고창고번호 */
-             , I1.WARE_NM AS IN_WARE_NM /* 입고창고명 */
-             , O1.WARE_NM AS OUT_WARE_NM /* 출고창고명 */
-             , T1.WARE_MNGT_PRTNR_NO
+             , IN1.WARE_NM AS IN_WARE_NM /* 입고창고명 */
+             , IN1.WARE_NM AS IN_WARE_NM_SUB /* 입고창고명 */
+             , OUT1.WARE_NM AS OUT_WARE_NM /* 출고창고명 */
+             , IN1.WARE_MNGT_PRTNR_NO AS IN_WARE_MNGT_PRTNR_NO
              , T1.OSTR_DT
-             , T2.SAP_MAT_CD /* SAP코드 */
+             , T2.SVPD_SAP_CD AS SAP_MAT_CD /* SAP코드 */
+             , T1.ITM_PD_CD
              , T1.ITM_CD
-             , T2.PD_NM /* 품목명 */
+             , T2.SVPD_NM_KOR AS PD_NM /* 품목명 */
              , T1.OSTR_TP_CD /* 출고유형 :MA42 */
              , T1.MNGT_UNIT_CD /* 관리단위 : MA02 */
              , T1.ITM_GD_CD /* 상품등급 : MA06 */
              , T1.OSTR_QTY /* 수량 */
              , T1.BOX_UNIT_QTY
              , (CASE WHEN T1.BOX_UNIT_QTY > 0
-                     THEN T1.OSTR_QTY / T1.BOX_UNIT_QTY
-                     ELSE 0
+                     THEN TO_CHAR(T1.OSTR_QTY / T1.BOX_UNIT_QTY)
+                     ELSE '0'
                  END) AS BOX_QTY
-             , T1.DIDY_DV_CD /* 직배구분코드 ?? */
+             , T1.DIDY_DV_CD /* 직배구분코드  */
              , T1.STR_CONF_DT /* 입고일자 (STR_RGST_DT : 입고등록일자) */
-             , T1.OSTR_AK_NO  || T1.OSTR_AK_SN AS OSTR_AK_NO /* 출고요청번호 */
+             , T1.OSTR_AK_NO  || T1.OSTR_AK_SN AS OSTR_AK_NO /* 고요청번호 */
              , T1.ITM_OSTR_NO || T1.OSTR_SN AS ITM_OSTR_NO /* 출고관리번호 */
              , T1.ITM_STR_NO || T1.STR_SN AS ITM_STR_NO /* 입고관리번호 */
-             , (CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN T2.SV_STRTDT AND T2.SV_ENDDT THEN 'Y'
-                     ELSE 'N' END
+             , (CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD')
+                            BETWEEN T2.SVPD_APLD_FR AND T2.SVPD_APLD_TO
+                     THEN 'Y'
+                     ELSE 'N'
+                 END
                ) AS USE_YN
           FROM TB_SVST_ITM_OSTR_IZ T1
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL J1 /* 임시로 조인 */
-            ON T1.ITM_CD = J1.PD_PRP_VAL01
-         INNER JOIN TB_PDBS_PD_BAS T2
-            /* ON T1.ITM_CD = T2.PD_CD */
-            ON J1.PD_CD = T2.PD_CD
-         INNER JOIN TB_SVST_MCBY_WARE_IZ I1
-            ON T1.STR_WARE_NO = I1.WARE_NO AND I1.APY_YM = #{apyYm}
-         INNER JOIN TB_SVST_MCBY_WARE_IZ O1
-            ON T1.OSTR_WARE_NO = O1.WARE_NO AND O1.APY_YM = #{apyYm}
-         <where>
-           AND T1.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
-           <if test="@MybatisUtils@isNotEmpty(ostrWareNo)">
-           AND T1.OSTR_WARE_NO = #{ostrWareNo} /* 출고창고코드 */
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(ostrTpCd)">
-           AND T1.OSTR_TP_CD  = #{ostrTpCd} /* 출고유형코드 */
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(strWareNo)">
-           AND T1.STR_WARE_NO = #{strWareNo} /* 입고창고코드(입고창고/창고지역/조직창고/개인창고코드) */
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-           AND T1.ITM_GD_CD = #{itmGdCd} /* 등급 */
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(itmkndCd)">
-           AND T1.ITM_KND_CD  = #{itmkndCd} /* 품목종류 */
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(itmkndCd)">
-           AND T1.ITM_CD = #{itmCd}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(useYn)">
-           AND ( CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN T2.SV_STRTDT AND T2.SV_ENDDT THEN 'Y'
-                      ELSE 'N' END
-               ) = #{useYn}
-           </if>
-         </where>
+         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T2
+            ON T1.ITM_PD_CD = T2.SVPD_PD_CD
+         INNER JOIN TB_SVST_MCBY_WARE_IZ IN1
+            ON T1.STR_WARE_NO = IN1.WARE_NO
+           AND IN1.APY_YM = #{apyYm}
+           AND IN1.WARE_DV_CD = #{strWareDvCd}
+         INNER JOIN TB_SVST_MCBY_WARE_IZ OUT1
+            ON T1.OSTR_WARE_NO = OUT1.WARE_NO
+           AND OUT1.APY_YM = #{apyYm}
+           AND OUT1.WARE_DV_CD = #{ostrWareDvCd}
+         WHERE T1.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(strWareDtlDvCd)">
+                <choose>
+                    <when test="@MybatisUtils@isNotEmpty(strWareNo)">
+                        AND IN1.WARE_NO = #{strWareNo} /* 출고창고코드 */
+                    </when>
+                    <when test="@MybatisUtils@isEmpty(strWareNo)">
+                        AND IN1.WARE_NO = #{strWareDtlDvCd} /* 출고창고코드 */
+                    </when>
+                </choose>
+            </when>
+            <when test="@MybatisUtils@isNotEmpty(ostrWareDtlDvCd)">
+                <choose>
+                    <when test="@MybatisUtils@isNotEmpty(ostrWareNo)">
+                        AND T1.OSTR_TP_CD  = #{ostrTpCd} /* 출고유형코드 */
+                    </when>
+                    <when test="@MybatisUtils@isEmpty(ostrWareNo)">
+                        AND OUT1.WARE_NO = #{ostrWareDtlDvCd} /* 출고창고코드 */
+                    </when>
+                </choose>
+            </when>
+            <when test="@MybatisUtils@isNotEmpty(ostrTpCd)">
+                AND T1.OSTR_TP_CD  = #{ostrTpCd} /* 출고유형코드 */
+            </when>
+            <when test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                AND T1.ITM_GD_CD = #{itmGdCd} /* 등급 */
+            </when>
+            <when test="@MybatisUtils@isNotEmpty(itmkndCd)">
+                AND T1.ITM_KND_CD  = #{itmkndCd} /* 품목종류 */
+            </when>
+            <when test="@MybatisUtils@isNotEmpty(itmCd)">
+                AND T1.ITM_CD = #{itmCd}
+            </when>
+            <when test="@MybatisUtils@isNotEmpty(useYn)">
+                AND ( CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD')
+                                BETWEEN T2.SVPD_APLD_FR AND T2.SVPD_APLD_TO
+                           THEN 'Y'
+                           ELSE 'N'
+                       END) = #{useYn}
+            </when>
+        </choose>
     </select>
 </mapper>

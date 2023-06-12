@@ -25,4 +25,19 @@ public class WctaRentalProductPriceCalculationService {
 
         return mapper.selectRentalFeeCalculation(paramDvo);
     }
+
+    public List<WctaRentalProductPriceCalculationDvo> getRecoveryRentalFee(String cntrNo, String cntrSn) {
+        // 파라미터 유효성 체크
+        ValidAssert.hasText(cntrNo); // 계약번호
+        ValidAssert.hasText(cntrSn); // 계약일련번호
+
+        // 반환값
+        // cntrNo; // 계약번호
+        // cntrSn; // 계약일련번호
+        // basePdCd; // 기준상품코드
+        // orgRtPrc; // 원복렌탈료
+        // currRtPrc; // 현재렌탈료
+
+        return mapper.selectRecoveryRentalFee(cntrNo, cntrSn);
+    }
 }

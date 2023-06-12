@@ -39,12 +39,13 @@ public class WsnaReturningGoodsStoreController {
         @ApiImplicitParam(name = "stFnlVstFshDtFrom", value = "처리일자From", paramType = "query", example = "20230109"),
         @ApiImplicitParam(name = "edFnlVstFshDtTo", value = "처리일자To", paramType = "query", example = "20230109")
     })
-    @GetMapping
-    public List<SearchRes> getReturningGoodsStores(
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getReturningGoodsStores(
+        SearchReq dto,
         @Valid
-        SearchReq dto
+        PageInfo pageInfo
     ) {
-        return service.getReturningGoodsStores(dto);
+        return service.getReturningGoodsStores(dto, pageInfo);
     }
 
     @ApiOperation(value = "반품입고 저장", notes = "창고장이나 매니저/엔지니어가 반품입고를받아 물류센터로 반품출고요청을 한다.")
@@ -57,6 +58,18 @@ public class WsnaReturningGoodsStoreController {
 
     ) throws ParseException {
         return SaveResponse.builder().processCount(this.service.saveReturningGoodsStores(dtos)).build();
+    }
+
+    @ApiOperation(value = "반품입고 확인일자 반품처리유형코드 저장", notes = "반품입고 확인일자 반품처리유형코드 저장을 한다.")
+    @PostMapping("/confirmation-type")
+    public SaveResponse saveReturningGoodsStoreConfirmations(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<SaveConfirmationReq> dtos
+
+    ) throws ParseException {
+        return SaveResponse.builder().processCount(this.service.saveReturningGoodsStoreConfirmations(dtos)).build();
     }
 
     @ApiOperation(value = "반품입고 관리 엑셀다운로드", notes = "검색조건을 받아 엑셀다운로드용 반품입고 관리를 조회한다.")

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.pchssl.mapper.WwdcSalesConfirmMapper">
+
+    <select id="selectSalesConfirm"
+            resultType="com.kyowon.sms.wells.web.withdrawal.pchssl.dto.WwdcSalesConfirmDto$SearchSalesConfirmRes">
+        SELECT OPB.OG_CD
+             , OPB.PRTNR_NO
+             , OPB.PRTNR_KNM
+             , SCD.CNTR_NO || SCD.CNTR_SN AS CNTR_DTL_NO
+             , SCD.CNTR_NO  
+             , SCD.CNTR_SN 
+             , CCB.CST_KNM
+             , WSCB.SELL_TP_CD /* 업무구분코드 */
+             , PPB.PD_NM /* 상품명 */
+             , SCD.SELL_AMT /* 판매금액 */
+             , WSCB.RENTAL_PTRM /* 렌탈기간 */
+             , WSCB.RENTAL_TN /* 렌탈 차월 : 렌탈 회차 */
+             , WSCB.MM_ISTM_AMT/* 월납부액 : 월 할부금 */
+             , WSCB.SL_AMT/* 매출액 */
+             , WSCB.PVDA_AMT /* 현할차금액*/
+             , TRUNC(TO_DATE(WSCB.IST_DTM)) - TRUNC(SYSDATE) AS USE_DT /* 렌탈일수 */
+             , ERR.CRT_ERR_CN /* 오류내역 : 확인必 */
+             , RBB.SL_RCOG_PRD_CD /* 매출인식기준 */
+             , RBB.SL_RCOG_PRD_DV_CD /* 매출인식주기*/
+             , SUBSTR(WSCB.OSTR_DTM, 0, 8) AS OSTR_DTM/* 출고일자 */
+             , SUBSTR(WSCB.IST_DTM, 0, 8) AS IST_DTM/* 설치일자 */
+             , WSCB.SV_DT/* 서비스일자 */
+             , SCB.CNTR_CAN_DTM /* 계약취소일자 */
+             , WSCB.SL_RCOG_DT/* 매출인식일자 */
+             , SCD.FNL_MDFC_DTM/* 변경일자 */
+             , SCD.FNL_MDFC_USR_ID/* 변경자 */
+          FROM TB_SSCT_CNTR_DTL SCD -- 계약상세
+         INNER JOIN TB_SSCT_CNTR_BAS SCB -- 계약기본
+            ON SCB.CNTR_NO = SCD.CNTR_NO 
+           AND SCB.DTA_DL_YN = 'N'
+          JOIN (
+                 SELECT DISTINCT LV3
+                      , LV3_NM
+                      , LV2
+                      , LV2_NM
+                      , LV1
+                      , LV1_NM
+                      , OG_TP_CD
+                      , PRTNR_NO
+                      , OG_NM 
+                      , PRTNR_KNM
+                      , OG_CD
+                   FROM (
+                          SELECT B.OG_ID AS LV3
+                               , B.OG_NM AS LV3_NM
+                               , C.OG_ID AS LV2
+                               , C.OG_NM AS LV2_NM
+                               , D.OG_ID AS LV1
+                               , D.OG_NM AS LV1_NM
+                               , OPB.OG_TP_CD AS OG_TP_CD 
+                               , OPB.PRTNR_NO AS PRTNR_NO
+                               , OPB.OG_NM AS OG_NM
+                               , OPB.PRTNR_KNM AS PRTNR_KNM
+                               , OPB.OG_CD AS OG_CD
+                            FROM TB_OGBS_PRTNR_BAS OPB
+                            JOIN TB_OGBS_OG_BAS B
+                              ON OPB.OG_TP_CD = B.OG_TP_CD
+                             AND OPB.OG_CD = B.OG_CD 
+                             AND OPB.OG_ID = B.OG_ID 
+                             AND B.OG_LEVL_DV_CD = CASE WHEN #{session.tenantId} = 'TNT_WELLS' THEN '3' ELSE '4' END
+                            JOIN TB_OGBS_OG_BAS C
+                              ON B.HGR_OG_ID = C.OG_ID 
+                             AND C.OG_LEVL_DV_CD = CASE WHEN #{session.tenantId} = 'TNT_WELLS' THEN '2' ELSE '3' END
+                            JOIN TB_OGBS_OG_BAS D
+                              ON C.HGR_OG_ID = D.OG_ID 
+                             AND D.OG_LEVL_DV_CD = CASE WHEN #{session.tenantId} = 'TNT_WELLS' THEN '1' ELSE '2' END
+                           WHERE 1=1
+                             AND OPB.OG_TP_CD = #{ogTpCd}
+                            <if test='@MybatisUtils@isNotEmpty(sellChnl) and sellChnl !="ALL" and sellChnl != "all"'> 
+                             AND OPB.SELL_CHNL_DV_CD = #{sellChnl}
+                            </if>
+                            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId) and dgr1LevlOgId !="ALL" and dgr1LevlOgId != "all"'> 
+                             AND D.OG_ID = #{dgr1LevlOgId}
+                            </if> 
+                            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId) and dgr2LevlOgId != "ALL" and dgr2LevlOgId != "all"'> 
+                             AND C.OG_ID = #{dgr2LevlOgId}
+                             </if> 
+                        )
+               ) OPB /* 조직레벨 - 파트너기본 */
+            ON SCB.SELL_PRTNR_NO = OPB.PRTNR_NO  
+         INNER JOIN TB_CUBS_CST_BAS CCB  /* 고객기본 */
+            ON CCB.CST_NO = SCB.CNTR_CST_NO
+           AND CCB.DTA_DL_YN = 'N' 
+         INNER JOIN TB_PDBS_PD_BAS PPB /* 상품기본 */
+            ON PPB.PD_CD = SCD.BASE_PD_CD
+           AND PPB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI
+            ON MPI.BASE_YM = SUBSTR(SCB.CNTR_CNFM_DTM, 0, 6)
+           AND MPI.PRTNR_NO = SCB.SELL_PRTNR_NO
+           AND MPI.OG_TP_CD = SCB.SELL_OG_TP_CD
+           AND MPI.DTA_DL_YN = 'N'  
+          LEFT JOIN TB_CBCL_WELLS_SL_CNFM_BAS WSCB
+            ON SCD.CNTR_NO = WSCB.CNTR_NO 
+           AND SCD.CNTR_SN = WSCB.CNTR_SN 
+           AND WSCB.DTA_DL_YN = 'N'
+          LEFT JOIN TB_RVDW_SL_RCOG_BASE_BAS RBB
+            ON PPB.SL_RCOG_CLSF_CD = RBB.SL_RCOG_CLSF_CD
+           AND RBB.DTA_DL_YN = 'N'
+          LEFT JOIN TB_SVPD_RGBSPR_CHT_CRT_ERR_IZ ERR
+            ON SCD.CNTR_NO = ERR.CNTR_NO
+           AND SCD.CNTR_SN = ERR.CNTR_SN
+         WHERE 1=1
+          <if test='@MybatisUtils@isNotEmpty(cellTpCd)'>
+           AND WSCB.SELL_TP_CD = #{cellTpCd} /* 조건: 업무구분 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)'>
+           AND SCD.CNTR_NO = #{cntrNo} 
+           AND SCD.CNTR_SN = #{cntrSn} /* 계약상세번호 */
+          </if> 
+          <if test="@MybatisUtils@isNotEmpty(dtTo)">
+           AND RBB.APY_STRTDT <![CDATA[<=]]> #{dtTo} /* 매출인식일 - 적용시작일자*/
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(dtFrom)"> 
+           AND RBB.APY_ENDDT <![CDATA[>=]]> #{dtFrom} /* 매출인식일 - 적용종료일자*/
+          </if>
+    </select>
+    
+    
+    <update id="updateSalesConfirm">
+      /*   --TODO: 테이블 컬럼 미지정으로 인한 설정값 세팅. */
+      /*   --UPDATE 테이블명 SET 상태값컬럼 = 변경할 상태값 WHERE 상태값컬럼 = {state} */ 
+        UPDATE TB_SSCT_CNTR_DTL 
+           SET DTA_DL_YN = 'N'
+        <include refid="COMMON.updateSystemField"/> 
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+</mapper>

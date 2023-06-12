@@ -9,30 +9,34 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctaContractRegStep4Dvo {
+    private String isUseAttach;
     private WctaContractBasDvo bas;
+    private List<WctaContractDtlDvo> dtls;
     private WctaContractCstRelDvo cntrt;
-    private WctaContractCstRelDvo lrnr;
-    private WctaContractAdrpcBasDvo adrpc;
     private WctaContractPrtnrRelDvo prtnr;
     private WctaContractPrtnrRelDvo prtnr7;
+    private List<CntrDtlDvo> cntrDtls; /* 계약상세정보 */
     private List<StlmDtlDvo> stlmDtls; /* 결제상세정보 */
 
     @Getter
     @Setter
-    public static class StlmDtlDvo {
+    public static class CntrDtlDvo {
+        String cntrNo;
+        String cntrSn;
+        String sellTpNm;
         String pdNm;
-        String stlmTpCd;
-        String stlmTpNm;
-        BigDecimal fnlAmt;
-        BigDecimal dscAmt;
-        BigDecimal c1001;
-        BigDecimal c10010702;
-        BigDecimal c10010802;
-        BigDecimal c10010803;
-        BigDecimal c2001;
-        BigDecimal c20010702;
-        BigDecimal c20010802;
-        BigDecimal c20010803;
-        BigDecimal c2003;
+        Long regAmt;
+        Long rntlAmt;
+        Long pdAmt;
+        Long stplPtrm;
+        Long dscAmt;
+    }
+
+    @Getter
+    @Setter
+    public static class StlmDtlDvo {
+        String stlmTp;
+        String stlmMth;
+        BigDecimal stlmAmt;
     }
 }

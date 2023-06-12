@@ -95,4 +95,29 @@ public class WpdyWellsAllianceMgtController {
             .processCount(service.removeWellsAlliances(dtos))
             .build();
     }
+
+    @ApiOperation(value = "헬스 제휴 중복체크")
+    @PostMapping("/duplication-check")
+    public SaveResponse checkDuplication(
+        @RequestBody
+        @NotEmpty
+        List<WpdyWellsAllianceMgtDto.AllianceBase> dtos
+    ) {
+        return SaveResponse.builder()
+            .data(service.checkDuplication(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "헬스 제휴 중복체크")
+    @PostMapping("/validation-check")
+    public SaveResponse checkValidation(
+        @RequestBody
+        @NotEmpty
+        List<WpdyWellsAllianceMgtDto.AllianceBase> dtos
+    ) {
+        return SaveResponse.builder()
+            .data(service.checkValidation(dtos))
+            .build();
+    }
+
 }

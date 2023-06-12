@@ -6,6 +6,7 @@ import java.util.List;
 import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.standard.converter.WpdyWellsAllianceMgtConverter;
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyWellsAllianceMgtDto;
 import com.kyowon.sms.wells.web.product.standard.dvo.WpdyAllianceBaseDvo;
@@ -49,6 +50,32 @@ public class WpdyWellsAllianceMgtService {
             cnt += mapper.deleteWellsAllianceBase(base);
         }
         return cnt;
+    }
+
+    public String checkDuplication(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
+        List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
+        String duplicationKey = null;
+        for (WpdyAllianceBaseDvo base : bases) {
+            duplicationKey = mapper.selectWellsAllianceDuplication(base);
+            if (StringUtil.isNotBlank(duplicationKey)) {
+                break;
+            }
+        }
+        return duplicationKey;
+    }
+
+    public String checkValidation(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
+        List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
+        String validationIssueKey = null;
+        String validResult = null;
+        for (WpdyAllianceBaseDvo base : bases) {
+            validResult = mapper.selectWellsAllianceValidation(base);
+            if (StringUtil.isBlank(validResult)) {
+                validationIssueKey = base.getPdCd() + PdProductConst.COMMA + StringUtil.nonNull(base.getSvPdCd()) + PdProductConst.COMMA + base.getStplPrdCd();
+                break;
+            }
+        }
+        return validationIssueKey;
     }
 
 }

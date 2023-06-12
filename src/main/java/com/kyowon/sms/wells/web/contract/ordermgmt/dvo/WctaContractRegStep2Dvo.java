@@ -10,7 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WctaContractRegStep2Dvo {
-    String cntrNo;
     WctaContractBasDvo bas;
     List<WctaContractDtlDvo> dtls;
     List<PdClsfDvo> pdClsf;
@@ -23,12 +22,14 @@ public class WctaContractRegStep2Dvo {
         String pdClsfId;
         String pdClsfNm;
         String pdClsfCd;
+        List<PdDvo> products; /* wells는 server에서 상품 분류 */
     }
 
     @Getter
     @Setter
     public static class PdDvo {
         String pdClsf;
+        String pdClsfNm;
         String mclsfVal;
         String lclsfVal;
         String pdCd;
@@ -92,6 +93,7 @@ public class WctaContractRegStep2Dvo {
         String anaFactVal2;
         String pvdaYn;
         String hcrMshTpCd;
+        String pdChip1;
     }
 
     @Getter
@@ -115,6 +117,7 @@ public class WctaContractRegStep2Dvo {
         Long ctrVal;
         String pdPrcId;
         boolean isExistAlncPds; // 제휴상품노출여부(금액조회 시 함께 판단)
+        Integer recapMshPtrm;
     }
 
     @Getter

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.standard.mapper.WpdySeedlingPriceMgtMapper">
+    <sql id="selectSeedlingPriceSql">
+          SELECT
+               PB.PD_NM AS PDCT_PD_NM          /* 제품상품명 */
+               , NVL2(C1.PD_CLSF_NM, C1.PD_CLSF_NM, '') 
+                    || NVL2(C2.PD_CLSF_NM, ' > ' || C2.PD_CLSF_NM, '')
+                    || NVL2(C3.PD_CLSF_NM, ' > ' || C3.PD_CLSF_NM, '') 
+                    AS PD_CLSF_NM  /* 상품분류 */
+               , PB.PD_TP_DTL_CD
+                    
+               , T1.RGLR_SPP_SDING_PRC_ID /* 정기배송모종가격ID */
+               , T1.PDCT_PD_CD            /* 제품상품코드 */
+               , T1.RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
+               , T1.RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
+               , T1.RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+               , T1.PD_PRC_TCNT           /* 상품가격차수 */
+               , T1.APY_STRTDT            /* 적용시작일자 */
+               , T1.APY_ENDDT             /* 적용종료일자 */
+               , T1.SDING_QTY             /* 모종수량 */
+               , T1.SELL_AMT              /* 판매금액 */
+               , T1.SPL_AMT               /* 공급금액 */
+               , T1.VAT                   /* 부가가치세 */
+               , T1.AS_SELL_AMT           /* AS판매금액 */
+               , T1.USE_YN                /* 사용여부 */
+               , T1.DTA_DL_YN             /* 데이터삭제여부 */
+               , T1.FST_RGST_DTM          /* 최초등록일시 */
+               , T1.FST_RGST_USR_ID       /* 최초등록사용자ID */
+               , T1.FST_RGST_PRG_ID       /* 최초등록프로그램ID */
+               , T1.FST_RGST_DEPT_ID      /* 최초등록부서ID */
+               , T1.FNL_MDFC_DTM          /* 최종수정일시 */
+               , T1.FNL_MDFC_USR_ID       /* 최종수정사용자ID */
+               , T1.FNL_MDFC_PRG_ID       /* 최종수정프로그램ID */
+               , T1.FNL_MDFC_DEPT_ID      /* 최종수정부서ID */
+               , MU.USR_NM AS FNL_MDFC_USR_NM              /* 최종수정자 */
+          FROM TB_PDBS_SDING_PRC_BAS T1                    /* 모종가격기본 */
+          LEFT JOIN TB_PDBS_PD_BAS PB                      /* 제품상품코드 */
+            ON PB.PD_CD = T1.PDCT_PD_CD
+           AND PB.DTA_DL_YN = 'N'
+          LEFT JOIN T_CMP_USR_ACO_M MU
+            ON MU.USR_ID = T1.FNL_MDFC_USR_ID
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS C1          /* 대분류 */ 
+            ON PB.PD_HCLSF_ID  = C1.PD_CLSF_ID
+           AND C1.DTA_DL_YN    = 'N'
+          LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C2         /* 중분류 */ 
+            ON PB.PD_MCLSF_ID  = C2.PD_CLSF_ID
+           AND C2.DTA_DL_YN    = 'N'
+          LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C3         /* 소분류 */ 
+            ON PB.PD_LCLSF_ID  = C3.PD_CLSF_ID
+           AND C3.DTA_DL_YN    = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty( apyStrtdt )'>
+           AND T1.APY_STRTDT <![CDATA[<=]]> #{apyStrtdt}
+               <if test='@MybatisUtils@isEmpty( apyEnddt )'>
+               AND T1.APY_ENDDT <![CDATA[>=]]> #{apyStrtdt}
+               </if>
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( apyEnddt )'>
+               <if test='@MybatisUtils@isEmpty( apyStrtdt )'>
+               AND T1.APY_STRTDT <![CDATA[<=]]> #{apyEnddt}
+               </if>
+           AND T1.APY_ENDDT <![CDATA[>=]]> #{apyEnddt}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdctPdNm )'>
+             <bind name="pdctPdNm" value="'%'+ pdctPdNm +'%'"/>
+           AND UPPER(PB.PD_NM) LIKE UPPER(#{pdctPdNm})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( pdctPdCd )'>
+             <bind name="pdctPdCd" value="'%'+ pdctPdCd +'%'"/>
+           AND UPPER(PB.PD_CD) LIKE UPPER(#{pdctPdCd})
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( rglrSppMchnTpCd )'>
+           AND T1.RGLR_SPP_MCHN_TP_CD = #{rglrSppMchnTpCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty( rglrSppPrcDvCd )'>
+           AND T1.RGLR_SPP_PRC_DV_CD = #{rglrSppPrcDvCd}
+           </if>
+    </sql>
+
+    <select id="selectSeedlingPrices" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdySeedlingPriceMgtDto$SearchRes">
+        <include refid="selectSeedlingPriceSql"/>
+        ORDER BY T1.FNL_MDFC_DTM DESC
+    </select>
+    
+    <select id="selectSeedlingPricePages" resultType="com.kyowon.sms.wells.web.product.standard.dto.WpdySeedlingPriceMgtDto$SearchRes">
+        <include refid="selectSeedlingPriceSql"/>
+        ORDER BY T1.FNL_MDFC_DTM DESC
+    </select>
+    
+    <insert id="insertSeedlingPriceBase">
+        <selectKey keyProperty="info.rglrSppSdingPrcId" resultType="java.lang.String" order="BEFORE">
+          SELECT 'PDSM' || SQ_PDBS_SDING_PRC_BAS$RGLR_SPP_SDING_PRC_ID.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_PDBS_SDING_PRC_BAS 
+        (  /* 모종가격기본 */
+              RGLR_SPP_SDING_PRC_ID /* 정기배송모종가격ID */
+            , PDCT_PD_CD            /* 제품상품코드 */
+            , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
+            , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
+            , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , PD_PRC_TCNT           /* 상품가격차수 */
+            , APY_STRTDT            /* 적용시작일자 */
+            , APY_ENDDT             /* 적용종료일자 */
+            , SDING_QTY             /* 모종수량 */
+            , SELL_AMT              /* 판매금액 */
+            , SPL_AMT               /* 공급금액 */
+            , VAT                   /* 부가가치세 */
+            , AS_SELL_AMT           /* AS판매금액 */
+            , USE_YN                /* 사용여부 */
+            , DTA_DL_YN             /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+       VALUES (
+              #{info.rglrSppSdingPrcId}
+            , #{info.pdctPdCd}
+            , #{info.rglrSppMchnKndCd}
+            , #{info.rglrSppMchnTpCd}
+            , #{info.rglrSppPrcDvCd}
+            , #{info.pdPrcTcnt}
+            , #{info.apyStrtdt}
+            , #{info.apyEnddt}
+            , #{info.sdingQty}
+            , #{info.sellAmt}
+            , #{info.splAmt}
+            , #{info.vat}
+            , #{info.asSellAmt}
+            , #{info.useYn}
+            , NVL(#{info.dtaDlYn}, 'N')
+            <include refid="COMMON.insertSystemFieldValue" /> 
+        )
+    </insert>
+    
+    <update id="updateSeedlingPriceBase">
+        UPDATE TB_PDBS_SDING_PRC_BAS T1 /* 모종가격기본 */
+           SET PDCT_PD_CD            = #{pdctPdCd}             /* 제품상품코드 */
+             , RGLR_SPP_MCHN_KND_CD  = #{rglrSppMchnKndCd}     /* 정기배송기기종류코드 */
+             , RGLR_SPP_MCHN_TP_CD   = #{rglrSppMchnTpCd}      /* 정기배송기기유형코드 */
+             , RGLR_SPP_PRC_DV_CD    = #{rglrSppPrcDvCd}       /* 정기배송가격구분코드 */
+             , PD_PRC_TCNT           = #{pdPrcTcnt}            /* 상품가격차수 */
+             , APY_STRTDT            = #{apyStrtdt}            /* 적용시작일자 */
+             , APY_ENDDT             = #{apyEnddt}             /* 적용종료일자 */
+             , SDING_QTY             = #{sdingQty}             /* 모종수량 */
+             , SELL_AMT              = #{sellAmt}              /* 판매금액 */
+             , SPL_AMT               = #{splAmt}               /* 공급금액 */
+             , VAT                   = #{vat}                  /* 부가가치세 */
+             , AS_SELL_AMT           = #{asSellAmt}            /* AS판매금액 */
+             , USE_YN                = #{useYn}                /* 사용여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}    /* 정기배송모종가격ID */
+    </update>
+    
+    <update id="deleteSeedlingPriceBase">
+        UPDATE TB_PDBS_SDING_PRC_BAS
+           SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
+    </update>
+    
+    <insert id="insertSeedlingPriceHistory">
+        INSERT INTO TB_PDBS_SDING_PRC_CH_HIST (  /* 모종가격변경이력 */
+              RGLR_SPP_SDING_PRC_ID /* 정기배송모종가격ID */
+            , HIST_STRT_DTM         /* 이력시작일시 */
+            , HIST_END_DTM          /* 이력종료일시 */
+            , PDCT_PD_CD            /* 제품상품코드 */
+            , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
+            , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
+            , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , PD_PRC_TCNT           /* 상품가격차수 */
+            , APY_STRTDT            /* 적용시작일자 */
+            , APY_ENDDT             /* 적용종료일자 */
+            , SDING_QTY             /* 모종수량 */
+            , SELL_AMT              /* 판매금액 */
+            , SPL_AMT               /* 공급금액 */
+            , VAT                   /* 부가가치세 */
+            , AS_SELL_AMT           /* AS판매금액 */
+            , USE_YN                /* 사용여부 */
+            , DTA_DL_YN             /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        SELECT
+            RGLR_SPP_SDING_PRC_ID /* 정기배송모종가격ID */
+            , #{histStrtDtm}
+            , #{histEndDtm}
+            , PDCT_PD_CD            /* 제품상품코드 */
+            , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
+            , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
+            , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , PD_PRC_TCNT           /* 상품가격차수 */
+            , APY_STRTDT            /* 적용시작일자 */
+            , APY_ENDDT             /* 적용종료일자 */
+            , SDING_QTY             /* 모종수량 */
+            , SELL_AMT              /* 판매금액 */
+            , SPL_AMT               /* 공급금액 */
+            , VAT                   /* 부가가치세 */
+            , AS_SELL_AMT           /* AS판매금액 */
+            , USE_YN                /* 사용여부 */
+            , DTA_DL_YN             /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+          FROM TB_PDBS_SDING_PRC_BAS
+         WHERE RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
+           AND PD_PRC_TCNT = #{pdPrcTcnt}
+           AND ROWNUM = 1
+    </insert>
+    
+    <update id="updateSeedlingPricePrevHistory">
+        UPDATE TB_PDBS_SDING_PRC_CH_HIST H1
+           SET HIST_END_DTM = TO_CHAR(TO_DATE(#{histStrtDtm}, 'YYYYMMDDHH24MISS') + interval '-1' second, 'YYYYMMDDHH24MISS')
+         WHERE RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
+           AND HIST_END_DTM = #{histEndDtm}
+           AND HIST_STRT_DTM != #{histStrtDtm}
+    </update>
+</mapper>

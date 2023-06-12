@@ -27,4 +27,7 @@ public class WctaContractAdrRelDvo {
     private String sppIchrUsrId; /* 배송담당사용자ID */
     private String cntrChRcpId; /* 계약변경접수ID */
     private String dtaDlYn; /* 데이터삭제여부 */
+
+    /* STEP3 */
+    private Integer adrpcIdx; /* 중복제거된 adrpcs의 idx */
 }

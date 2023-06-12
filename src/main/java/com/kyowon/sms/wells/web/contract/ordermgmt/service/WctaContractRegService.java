@@ -1,11 +1,13 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
-import java.time.Year;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.api.client.util.Lists;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.*;
 
@@ -20,12 +22,24 @@ public class WctaContractRegService {
     private final WctaContractRegStep3Mapper step3Mapper;
     private final WctaContractRegStep4Mapper step4Mapper;
 
+    public boolean isNewCntr(String curCntrPrgsStatCd, String cntrPrgsStatCd) {
+        return Integer.valueOf(curCntrPrgsStatCd) < Integer.valueOf(cntrPrgsStatCd);
+    }
+
     public String getBryyMmdd(String cstNo) {
         return mapper.selectBryyMmdd(cstNo);
     }
 
-    public int calcAge(String bryyMmdd) {
-        return Year.now().compareTo(Year.parse(bryyMmdd.substring(0, 4)));
+    public String getRveDvCd(String sellTpCd) {
+        return switch (sellTpCd) {
+            case "3" -> "04";
+            case "6" -> "05";
+            default -> "03";
+        };
+    }
+
+    public List<WctaContractDtlDvo> selectProductInfos(String cntrNo) {
+        return step2Mapper.selectContractDtlWithPdInfo(cntrNo);
     }
 
     @Transactional
@@ -57,18 +71,31 @@ public class WctaContractRegService {
         return mapper.selectContractPrcCmptIz(cntrNo, cntrSn);
     }
 
+    List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn) {
+        return mapper.selectContractPdRel(cntrNo, cntrSn);
+    }
+
     WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn) {
         return mapper.selectContractWellsDtl(cntrNo, cntrSn);
     }
 
-    public WctaContractAdrpcBasDvo selectContractAdrpcBas(String cntrNo) {
+    public List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo) {
         return mapper.selectContractAdrpcBas(cntrNo);
     };
 
-    public List<WctaContractStlmRelDvo> selectContractStlmRel(String cntrNo, int cntrSn) {
-        return mapper.selectContractStlmRel(cntrNo, cntrSn);
+    public WctaContractAdrRelDvo selectContractAdrRel(String cntrNo, int cntrSn) {
+        return mapper.selectContractAdrRel(cntrNo, cntrSn);
+    };
+
+    public WctaContractStlmBasDvo selectContractStlmBas(String cntrNo, int cntrSn) {
+        return mapper.selectContractStlmBas(cntrNo, cntrSn);
     }
 
+    public List<WctaContractStlmRelDvo> selectContractStlmRels(String cntrNo, int cntrSn) {
+        return mapper.selectContractStlmRels(cntrNo, cntrSn);
+    }
+
+    @Transactional
     public void removeStep1Data(String cntrNo) {
         step1Mapper.deleteCntrPrtnrRelStep1(cntrNo);
         step1Mapper.deleteCntrCstRelStep1(cntrNo);
@@ -86,17 +113,72 @@ public class WctaContractRegService {
         step2Mapper.deleteFgptRcpIzStep2(cntrNo);
         step2Mapper.deleteCntrPrcCmptIzStep2(cntrNo);
         step2Mapper.deleteCntrPrccchHistory(cntrNo);
+        step2Mapper.deleteCntrWellsDtlStep2(cntrNo);
     }
 
     @Transactional
     public void removeStep3Data(String cntrNo) {
-        step3Mapper.deleteStlmRelsStep3(cntrNo);
-        step3Mapper.deleteAdrpcBasStep3(cntrNo);
-        step3Mapper.deleteAdrRelsStep3(cntrNo);
+        step3Mapper.deleteCntrStlmBasStep3(cntrNo);
+        step3Mapper.deleteCntrStlmRelsStep3(cntrNo);
+        step3Mapper.deleteCntrAdrpcBasStep3(cntrNo);
+        step3Mapper.deleteCntrAdrRelsStep3(cntrNo);
     }
 
     @Transactional
     public void removeStep4Data(String cntrNo) {
         step4Mapper.updateCntrBasStep4(cntrNo, "");
+    }
+
+    public WctaContractRegDvo selectCntrSmr(String cntrNo) {
+        WctaContractRegDvo dvo = new WctaContractRegDvo();
+        dvo.setCntrNo(cntrNo);
+
+        WctaContractRegStep1Dvo step1Dvo = new WctaContractRegStep1Dvo();
+        WctaContractRegStep2Dvo step2Dvo = new WctaContractRegStep2Dvo();
+        WctaContractRegStep3Dvo step3Dvo = new WctaContractRegStep3Dvo();
+
+        step1Dvo.setBas(selectContractBas(cntrNo));
+        List<WctaContractCstRelDvo> cstRels = selectContractCstRel(cntrNo);
+        step1Dvo.setCntrt(
+            selectCntrtInfoByCstNo(
+                cstRels.stream().filter((v) -> "10".equals(v.getCntrCstRelTpCd())).findFirst()
+                    .get().getCstNo()
+            )
+        );
+        step1Dvo.setLrnrCstNo(
+            cstRels.stream().filter((v) -> "20".equals(v.getCntrCstRelTpCd())).findFirst()
+                .orElse(new WctaContractCstRelDvo()).getCstNo()
+        );
+        List<WctaContractDtlDvo> dtls = selectProductInfos(cntrNo);
+        if (CollectionUtils.isNotEmpty(dtls)) {
+            step2Dvo.setDtls(dtls);
+            dvo.setStep2(step2Dvo);
+            // 결제관계 전체 리스트에서 수납코드구분 01일 때 0101이나 0201이 하나라도 존재하는 경우 해당 데이터 선택
+            List<WctaContractStlmRelDvo> stlmRels = Lists.newArrayList();
+            WctaContractDtlDvo fDtl = dtls.get(0);
+            step3Dvo.setStlmTpCd(fDtl.getStlmTpCd());
+            dtls.forEach(
+                (dtl) -> {
+                    // 금액: 계약결제관계 세팅
+                    List<WctaContractStlmRelDvo> stlms = selectContractStlmRels(dtl.getCntrNo(), dtl.getCntrSn());
+                    stlmRels.addAll(stlms.stream().filter((stlm) -> "01".equals(stlm.getRveDvCd())).toList());
+                }
+            );
+            if (CollectionUtils.isNotEmpty(stlmRels)) {
+                // 계약금/일시금 결제방법 카드/가상계좌 중 하나 찾으면 해당 값 세팅(무조건 통일이므로)
+                step3Dvo.setCntramDpTpCd(
+                    stlmRels.stream().filter((stlm) -> StringUtils.containsAny(stlm.getDpTpCd(), "0201", "0101"))
+                        .findFirst().orElse(
+                            WctaContractStlmRelDvo.builder()
+                                .dpTpCd("")
+                                .build()
+                        ).getDpTpCd()
+                );
+                dvo.setStep3(step3Dvo);
+            }
+            dvo.setStep2(step2Dvo);
+        }
+        dvo.setStep1(step1Dvo);
+        return dvo;
     }
 }

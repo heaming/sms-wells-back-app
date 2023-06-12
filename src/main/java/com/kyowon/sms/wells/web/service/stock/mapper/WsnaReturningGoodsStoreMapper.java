@@ -21,6 +21,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnaReturningGoodsStoreMapper {
 
+    PagingResult<SearchRes> selectReturningGoodsStores(SearchReq dto, PageInfo pageInfo);
+
     List<SearchRes> selectReturningGoodsStores(SearchReq dto);
 
     String selectNextItmOstrNo(FindItmOstrNoReq findItmOstrNoReq);
@@ -55,6 +57,10 @@ public interface WsnaReturningGoodsStoreMapper {
     String selectHgrWarePrtnrNo(WsnaReturningGoodsStoreDvo dvo);
 
     String selectUpHgrWarePrtnrNo(WsnaReturningGoodsStoreDvo dvo);
+
+    int updateReturningGoodsStoreConfirmations(WsnaReturningGoodsStoreDvo dvo);
+
+    int insertDiDisuseOstrIz(WsnaReturningGoodsStoreDvo dvo);
 
     //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
 }

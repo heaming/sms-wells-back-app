@@ -67,30 +67,36 @@ public class WsnaNormalOutOfStorageService {
         int cnt = 0;
         int itmSeq = 1;
         List<WsnaNormalOutOfStorageDvo> voList = converter.mapAllWsnaNormalOutOfStorageDvos(list);
-        for (WsnaNormalOutOfStorageDvo vo : voList) {
-            StrNoAndOstrNoRes res = mapper.selectStrNoAndOstrNo(vo);
-            vo.setItmOstrNo(res.itmOstrNo());
-            vo.setItmStrNo(res.itmStrNo());
-            vo.setStrTpCd(res.strTpCd());
-            vo.setTodayStr(res.todayStr());
-            vo.setOstrSn(itmSeq);
-            vo.setStrSn(itmSeq);
-            vo.setQty(vo.getOutQty());
-            cnt += mapper.updateOstrAkIz(vo);
-            cnt += mapper.insertNormalOstrRgst(vo);
-            cnt += mapper.insertNormalStrRgst(vo);
 
-            WsnaItemStockItemizationDto.SaveReq ostrDto = setOstrWsnaItemStockItemizationDtoSaveReq(vo);
-            cnt += itemStockservice.createStock(ostrDto);
+        if(voList.size() > 0) {
+            WsnaNormalOutOfStorageDvo voTemp = voList.get(0);
+            StrNoAndOstrNoRes res = mapper.selectStrNoAndOstrNo(voTemp);
 
-            WsnaItemStockItemizationDto.SaveReq movementDto = setMovementWsnaItemStockItemizationDtoSaveReq(vo);
-            itemStockservice.saveStockMovement(movementDto);
+            for (WsnaNormalOutOfStorageDvo vo : voList) {
+//            StrNoAndOstrNoRes res = mapper.selectStrNoAndOstrNo(vo);
+                vo.setItmOstrNo(res.itmOstrNo());
+                vo.setItmStrNo(res.itmStrNo());
+                vo.setStrTpCd(res.strTpCd());
+                vo.setTodayStr(res.todayStr());
+                vo.setOstrSn(itmSeq);
+                vo.setStrSn(itmSeq);
+                vo.setQty(vo.getOutQty());
+                cnt += mapper.updateOstrAkIz(vo);
+                cnt += mapper.insertNormalOstrRgst(vo);
+                cnt += mapper.insertNormalStrRgst(vo);
 
-            WsnaItemStockItemizationDto.SaveReq strDto = setStrWsnaItemStockItemizationDtoSaveReq(vo);
-            itemStockservice.saveStockMovement(strDto);
+                WsnaItemStockItemizationDto.SaveReq ostrDto = setOstrWsnaItemStockItemizationDtoSaveReq(vo);
+                cnt += itemStockservice.createStock(ostrDto);
 
-            cnt += mapper.updateOstrAkIzAfter(vo);
-            itmSeq++;
+                WsnaItemStockItemizationDto.SaveReq movementDto = setMovementWsnaItemStockItemizationDtoSaveReq(vo);
+                itemStockservice.saveStockMovement(movementDto);
+
+                WsnaItemStockItemizationDto.SaveReq strDto = setStrWsnaItemStockItemizationDtoSaveReq(vo);
+                itemStockservice.saveStockMovement(strDto);
+
+                cnt += mapper.updateOstrAkIzAfter(vo);
+                itmSeq++;
+            }
         }
         return cnt;
     }
@@ -165,12 +171,17 @@ public class WsnaNormalOutOfStorageService {
         return reqDto;
     }
 
-    public int saveStandardWareHouse(MonthlyWarehouseReq dto) {
+    @Transactional
+    public int saveStandardWareHouse(StandardWareReq dto) {
         WsnaNormalOutOfStorageStdgbDvo dvo = converter.mapToWsnaNormalOutOfStorageStdgbDvo(dto);
         return mapper.updateStandardWareHouse(dvo);
     }
 
     public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
         return mapper.selectStandardWareHouse(dto);
+    }
+
+    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto){
+        return mapper.selectItmOstrAk(dto);
     }
 }

@@ -16,7 +16,6 @@ public class WctaMembershipDto {
     @Builder
     @ApiModel("WctaMembershipDto-SearchReq")
     public record SearchReq(
-        @NotBlank
         @Pattern(regexp = "[12]")
         String copnDvCd,
         String cstKnm,
