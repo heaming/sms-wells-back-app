@@ -133,22 +133,8 @@ public class WsnaMovementStoreController {
         return service.getMovementStoresReg(dto);
     }
 
-    @ApiOperation(value = "월별 창고 표준창고사용", notes = "월별 고의 속성중 표준창고 사용여부를 Y로 수정한다.")
-    @PutMapping("/warehose/standard")
-    public int editWarehouseStandard(
-        String baseYm,
-        String wareNo
-    ) {
-        return 0;
+    @GetMapping("/strware-monthly-end")
+    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto){
+        return service.getStrWareMonthlyClosed(dto);
     }
-
-    @ApiOperation(value = "월별 창고 표준창고 비사용", notes = "월별 고의 속성중 표준창고 사용여부를 N로 수정한다.")
-    @PutMapping("/warehose/no-standard")
-    public int editWarehouseNoStandard(
-        String baseYm,
-        String wareNo
-    ) {
-        return 0;
-    }
-
 }

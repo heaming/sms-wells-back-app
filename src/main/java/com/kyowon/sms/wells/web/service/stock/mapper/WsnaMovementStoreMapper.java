@@ -48,13 +48,11 @@ public interface WsnaMovementStoreMapper {
 
     List<MovementOstrMngtRes> selectMovementStoresReg(MovementOstrMngtReq dto);
 
-    int editWareHouseStandardY(String baseYm, String wareNo);
-
-    int editWareHouseStandardN(String baseYm, String wareNo);
-
     int saveStrConfirm(WsnaMovementStoreConfirmDvo dvo);
 
     int saveOstrConfirm(WsnaMovementStoreConfirmDvo dvo);
 
     int saveItemQtyConfirm(WsnaMovementStoreConfirmDvo dvo);
+
+    int countStrWareMonthlyClosed(warehouseMonthlyReq dto);
 }

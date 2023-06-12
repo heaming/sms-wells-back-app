@@ -107,16 +107,6 @@ public class WsnaMovementStoreService {
     }
 
     @Transactional
-    public int editWareHouseStandardY(String baseYm, String wareNo) {
-        return mapper.editWareHouseStandardY(baseYm, wareNo);
-    };
-
-    @Transactional
-    public int editWareHouseStandardN(String baseYm, String wareNo) {
-        return mapper.editWareHouseStandardN(baseYm, wareNo);
-    };
-
-    @Transactional
     public int saveStrMovementConfrim(List<MovementStrSaveReq> list) {
         int cnt = 0;
         for(MovementStrSaveReq dto : list){
@@ -127,5 +117,9 @@ public class WsnaMovementStoreService {
         }
 
         return cnt;
+    }
+
+    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto){
+        return mapper.countStrWareMonthlyClosed(dto);
     }
 }
