@@ -22,35 +22,49 @@ public class WsncBsMngtSchdInqrDto {
 
     @ApiModel(value = "WsncBsMngtSchdInqrDto-SearchRes")
     public record SearchRes(
-        String vstDt, // 방문일자
+        String vst_Dt, // 방문일자
 
-        String vstTm, // 방문시간
+        String vst_Tm, // 방문시간
 
-        String cstNm, // 고객명
+        String cst_Nm, // 고객명
 
-        String cntrNo, // 계약번호
+        String cntr_No, // 계약번호
 
-        String goodsNm, // 제품명
+        String pdct_CD, // 제품명
 
-        String mpNo, // 휴대전화번호
+        String goods_Nm, // 제품명
 
-        String puPart1, // 투입부품1
+        String mp_No, // 휴대전화번호
 
-        String puPart2, // 투입부품2
+        String pu_Part1, // 투입부품1
 
-        String curntDt, // 최초계약일
+        String pu_Part2, // 투입부품2
 
-        String cntrDt, // 계약일자
+        String pu_Part3, // 투입부품3
 
-        String recntrDt, // 재계약일자
+        String pu_Part4, // 투입부품4
 
-        String mngtAcc, // 관리계정
+        String pu_Part5, // 투입부품5
 
-        String vstAcc, // 방문계정
+        String pu_Part6, // 투입부품6
 
-        String fshAcc, // 완료계정
+        String curnt_Dt, // 최초계약일
 
-        String svcProc // 서비스처리율
+        String cntr_Dt, // 계약일자
+
+        String og_Id, // 조직ID
+
+        String prtnr_No, // 파트너사번
+
+        String recntr_Dt, // 재계약일자
+
+        String mngt_Acc, // 관리계정
+
+        String vst_Acc, // 방문계정
+
+        String fsh_Acc, // 완료계정
+
+        String svc_Proc // 서비스처리율
 
     ) {}
 }
