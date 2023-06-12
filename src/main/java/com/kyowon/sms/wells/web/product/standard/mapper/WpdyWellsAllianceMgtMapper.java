@@ -34,4 +34,6 @@ public interface WpdyWellsAllianceMgtMapper {
     int deleteWellsAllianceBase(WpdyAllianceBaseDvo info);
 
     String selectWellsAllianceDuplication(WpdyAllianceBaseDvo info);
+
+    String selectWellsAllianceValidation(WpdyAllianceBaseDvo info);
 }
