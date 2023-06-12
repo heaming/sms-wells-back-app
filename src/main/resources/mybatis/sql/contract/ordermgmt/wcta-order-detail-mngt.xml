@@ -1086,7 +1086,8 @@
              , SUBSTR(T10.CNTR_RCP_FSH_DTM, 0, 8) AS CNTR_RCP_FSH_DT                        /* 계약접수완료일시 - 접수일자(LCCRYMD,LCCRTY) */
              , CASE WHEN T10.CNTR_CNFM_DTM IS NULL THEN 'N' ELSE 'Y' END AS CNTR_CNFM_YN    /* 계약확정일시 존재여부 - 확정여부(LCFGUB) */
              , SUBSTR(T10.CNTR_CNFM_DTM, 0, 8) AS CNTR_CNFM_DT                              /* 계약확정일시 - 확정일자(LCFIYMD,LCFIXY) */
-             , SUBSTR(T10.CNTR_TEMP_SAVE_DTM, 0, 8) AS CNTR_TEMP_SAVE_DT                    /* 계약임시저장일시 - 가입일(LCENYMD,LCENTY,LCENTT) */
+             --, SUBSTR(T10.CNTR_TEMP_SAVE_DTM, 0, 8) AS CNTR_TEMP_SAVE_DT                    /* 계약임시저장일시 - 가입일(LCENYMD,LCENTY,LCENTT) */
+             , SUBSTR(T11.CNTR_PD_STRTDT, 0, 8) AS CNTR_PD_STRTDT                            /* 계약임시저장일시 - 가입일(LCENYMD,LCENTY,LCENTT) */
              , CASE WHEN T11.CNTRW_TP_CD = '5' THEN  T11.SPP_DUEDT ELSE '' END AS HCR_DUEDT /* 홈케어예정일 (홈케어예정일자:LCDEYMD, LCDEMY) 계약서유형이 홈케이일때 예정일*/
              , T12.IST_DT                                                                   /* 설치일자    (설치일: SETYMD, LCSETY  ASIS에서 목록에서는 매출일을 설치일자로 상세팝업에서는 설치일자를 보고 있었음 전부 설치일로 변경함*/
              , T11.CNTR_PD_STRTDT AS SL_DT                                                                    /* 매출일자 (매출일:SLDT.LCSLEY) */
@@ -2116,11 +2117,11 @@
              , T11.ACKMT_PERF_AMT           /* 인정실적액(LCPAMT) */
              , '' AS DSC_MCN /* 할인개월(LD3000P@LCDMON) TODO.맵핑문의(특성,맵핑없음) */
              , T60.CTR_VAL      AS CTR_AMT                                         /* 조정값 (할인금액:LD3000P@LCDAMT) TODO.문의해야함. */
-             --, F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T23.PD_PRP_VAL01) AS SV_TP_NM       /* 용도구분 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) TODO.재확인필요*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', (SELECT PD_PRP_VAL01
-                                                       FROM TB_PDBS_PD_ECOM_PRP_DTL
-                                                      WHERE PD_CD = T11.BASE_PD_CD
-                                                        AND PD_EXTS_PRP_GRP_CD = 'CMN') ) AS SV_TP_NM       /* 용도구분 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) TODO.재확인필요*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T20.SV_PD_TP_CD ) AS SV_TP_NM       /* 용도구분 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) TODO.재확인필요*/
+--             , F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', (SELECT PD_PRP_VAL01
+--                                                       FROM TB_PDBS_PD_ECOM_PRP_DTL
+--                                                      WHERE PD_CD = T11.BASE_PD_CD
+--                                                        AND PD_EXTS_PRP_GRP_CD = 'CMN') ) AS SV_TP_NM       /* 용도구분 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) TODO.재확인필요*/
              , CASE WHEN T21.REF_PD_CLSF_VAL LIKE '05001002001%' THEN 'Y'   /* 스페셜판매-씨앗 */
                     ELSE '' END AS SPC_YN  /* 스페셜 구분:LCCK04 TOBE맵핑없어서 판매상품중에서 스페셜을 찾음 */
              , T11.SV_PRD                                                                               /* 상품정보 - 서비스주기 (배송주기:LCIMON) */
@@ -2372,12 +2373,12 @@
                                       AND DP_TP_CD IN ('0102','0203') /* 납부방식유형코드 : 계좌자동이체(0102), 카드자동이체(0203)  */
                                       AND CNTR_NO = T11.CNTR_NO
                                       AND DTA_DL_YN = 'N'
-                                      AND CNTR_STLM_ID = (SELECT CNTR_STLM_ID /*계약결제ID*/
+                                      AND CNTR_STLM_ID = (SELECT MAX(CNTR_STLM_ID) /*계약결제ID*/
                                                                  FROM TB_SSCT_CNTR_STLM_REL     /*계약결제관계*/
                                                                 WHERE 1=1
                                                                   AND DTL_CNTR_NO = T11.CNTR_NO
                                                                   AND DTL_CNTR_SN = T11.CNTR_SN
-                                                                  AND RVE_DV_CD = '05'        /*수납구분코드 : 정기배송회비(05)*/
+                                                                  AND RVE_DV_CD IN ('03','05')         /*수납구분코드 : 정기배송회비(05), 월납입액(할부금, 렌탈료)(03)*/
                                                                   AND VL_END_DTM = '99991231235959'
                                                                   AND DTA_DL_YN = 'N'
                                                                )
@@ -2646,12 +2647,10 @@
         UPDATE TB_SSCT_CNTR_BAS
         <if test='@MybatisUtils@equals(cntrCnfmYn,"N")'>
             SET CNTR_PRGS_STAT_CD = '50'
-              , CNTR_CNFM_APR_DTM = null
               , CNTR_CNFM_DTM = null
         </if>
         <if test='@MybatisUtils@equals(cntrCnfmYn,"Y")'>
             SET CNTR_PRGS_STAT_CD = '60'
-              , CNTR_CNFM_APR_DTM = CONCAT(TO_CHAR(SYSDATE, 'YYYYMMDD'),'000000')
               , CNTR_CNFM_DTM = #{cntrCnfmDtm}
         </if>
                <include refid="COMMON.updateSystemField"/>

@@ -398,7 +398,7 @@ public class WctaOrderDetailMngtDto {
         String cntrRcpFshDt,
         String cntrCnfmYn,
         String cntrCnfmDt,
-        String cntrTempSaveDt,
+        String cntrPdStrtdt,
         String hcrDuedt,
         String istDt,
         String dutyExnDtFrisu,
