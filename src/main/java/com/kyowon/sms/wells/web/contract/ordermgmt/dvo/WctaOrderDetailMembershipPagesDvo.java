@@ -43,7 +43,7 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String cntrRcpFshDt; /* 접수일 */
     private String cntrCnfmYn; /* 확정여부 */
     private String cntrCnfmDt; /* 확정일 */
-    private String cntrTempSaveDt; /* 가입일 */
+    private String cntrPdStrtdt; /* 가입일 */
     private String hcrDuedt; /* 홈케어예정일 */
     private String istDt; /* 설치일 */
     private String dutyExnDtFrisu; /* 의무만료일(무상) */
