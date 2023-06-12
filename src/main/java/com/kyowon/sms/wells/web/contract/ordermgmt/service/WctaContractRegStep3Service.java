@@ -112,7 +112,7 @@ public class WctaContractRegStep3Service {
             dtl.setWellsDtl(regService.selectContractWellsDtl(cntrNo, cntrSn));
 
             // 결제정보
-            List<WctaContractStlmRelDvo> stlmRels = regService.selectContractStlmRel(cntrNo, cntrSn);
+            List<WctaContractStlmRelDvo> stlmRels = regService.selectContractStlmRels(cntrNo, cntrSn);
             dtl.setStlmRels(stlmRels);
 
             if (sellTpCd.equals("1")) {
@@ -294,13 +294,17 @@ public class WctaContractRegStep3Service {
                     }
                     Long mshAmt = dtl.getMshAmt(); // 04, 0203 || 0102
                     if (!Objects.isNull(mshAmt) && 0l < mshAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, dtl.getDpTpCdMsh(), "04", bas.getCntrCstNo());
+                        createStlmInfo(
+                            now, cntrNo, stlmBasMap, cntrSn, pdAmt, dtl.getDpTpCdMsh(), "04", bas.getCntrCstNo()
+                        );
                     }
                 } else {
                     // 그 외
                     // 등록비
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmt, dtl.getDpTpCdIdrv(), "01", bas.getCntrCstNo());
+                        createStlmInfo(
+                            now, cntrNo, stlmBasMap, cntrSn, cntrAmt, dtl.getDpTpCdIdrv(), "01", bas.getCntrCstNo()
+                        );
                     }
                     // 월 렌탈료
                     Long fnlAmt = dtl.getFnlAmt();

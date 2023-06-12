@@ -69,7 +69,7 @@ public class WctaContractRegStep2Service {
             WctaContractPdRelDvo svPdRel = regService.selectContractPdRel(cntrNo, cntrSn).stream()
                 .filter((pdRel) -> pdRel.getPdRelTpCd().equals("03")).findFirst().orElse(null);
             if (ObjectUtils.isNotEmpty(svPdRel)) {
-                dtl.setSvPdCd(svPdRel.getBasePdCd());
+                dtl.setSvPdCd(svPdRel.getOjPdCd());
             }
 
             // 제휴상품 노출판단, dto가 record 라서...

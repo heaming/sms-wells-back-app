@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class WctaContractController {
 
     private final WctaContractService service;
+    private final WctaContractRegService regService;
     private final WctaContractRegStep1Service step1Service;
     private final WctaContractRegStep2Service step2Service;
     private final WctaContractRegStep3Service step3Service;
@@ -383,4 +384,14 @@ public class WctaContractController {
     ) {
         return SaveResponse.builder().key(step4Service.saveContractStep4(dvo)).build();
     }
+
+    @ApiOperation(value = "통합계약 요약 조회", notes = "통합계약 요약 정보를 조회한다.")
+    @GetMapping("/summaries")
+    public WctaContractRegDvo getCntrSmrs(
+        @RequestParam
+        String cntrNo
+    ) {
+        return regService.selectCntrSmr(cntrNo);
+    }
+
 }
