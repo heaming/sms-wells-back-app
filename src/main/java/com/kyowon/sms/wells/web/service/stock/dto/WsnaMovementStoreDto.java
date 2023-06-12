@@ -137,4 +137,9 @@ public class WsnaMovementStoreDto {
         String itmPdCd,
         int strQty
     ) {}
+
+    public record warehouseMonthlyReq(
+        String apyYm,
+        String wareNo
+    ){}
 }
