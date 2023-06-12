@@ -180,4 +180,28 @@
            AND NVL(SV_PD_CD, 'X') = NVL(#{svPdCd}, 'X')
            AND NVL(STPL_PRD_CD, 'X') = NVL(#{stplPrdCd}, 'X')
     </select>
+    
+    <select id="selectWellsAllianceValidation" resultType="String">
+        SELECT P1.PD_CD
+          FROM TB_PDBS_PD_PRC_DTL P1
+         WHERE P1.DTA_DL_YN = 'N'
+           AND P1.PD_CD = #{pdCd}
+           AND NVL(SV_PD_CD, 'X') = NVL(#{svPdCd}, 'X')
+           AND NVL(STPL_PRD_CD, 'X') = NVL(#{stplPrdCd}, 'X')
+           AND EXISTS (
+                            SELECT 1
+                              FROM (
+                                    SELECT PD_PRC_ID
+                                           , VER_SN
+                                           , RANK() OVER(
+                                                PARTITION BY PD_PRC_ID 
+                                                ORDER BY VER_SN DESC, HIST_STRT_DTM DESC, FST_RGST_DTM DESC) RNK
+                                      FROM TB_PDBS_PD_PRC_BAS
+                                     WHERE PD_CD = P1.PD_CD
+                                   )
+                             WHERE P1.PD_PRC_ID = PD_PRC_ID
+                               AND P1.VER_SN = VER_SN
+                               AND RNK = 1
+                     )
+    </select>
 </mapper>
