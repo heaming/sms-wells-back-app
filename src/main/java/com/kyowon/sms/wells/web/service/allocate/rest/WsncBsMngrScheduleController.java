@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsMngrSchdDto;
-import com.kyowon.sms.wells.web.service.allocate.service.WsncBsMngrSchdService;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncBsManagerScheduleService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 
@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/bs-manager-schedule")
 public class WsncBsMngrScheduleController {
-    private final WsncBsMngrSchdService service;
+    private final WsncBsManagerScheduleService service;
 
     @ApiOperation(value = "BS관리일정 조회 화면 - 집계 조회", notes = "조회조건에 따른 BS관리일정 집계 조회")
     @ApiImplicitParams(value = {
@@ -33,10 +33,10 @@ public class WsncBsMngrScheduleController {
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
     @PostMapping("/aggregates")
-    public List<WsncBsMngrSchdDto.SearchRes> getBsMngtSchdInqrAgrg(
-        WsncBsMngrSchdDto.SearchReq dto
+    public List<WsncBsManagerScheduleDto.SearchRes> getBsMngtSchdInqrAgrg(
+        WsncBsManagerScheduleDto.SearchReq dto
     ) {
-        return service.getBsMngrSchdAgrg(dto);
+        return service.getBsManagerScheduleAgrg(dto);
     }
 
     @ApiOperation(value = "BS관리일정 조회 화면 - 상세 조회", notes = "조회조건에 따른 BS관리일정 상세 조회")
@@ -46,10 +46,10 @@ public class WsncBsMngrScheduleController {
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
     @PostMapping("/paging")
-    public List<WsncBsMngrSchdDto.SearchRes> getBsSchdPages(
-        WsncBsMngrSchdDto.SearchReq dto, @Valid
+    public List<WsncBsManagerScheduleDto.SearchRes> getBsSchdPages(
+        WsncBsManagerScheduleDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
-        return service.getBsMngrSchdPages(dto, pageInfo);
+        return service.getBsManagerSchedulePages(dto, pageInfo);
     }
 }

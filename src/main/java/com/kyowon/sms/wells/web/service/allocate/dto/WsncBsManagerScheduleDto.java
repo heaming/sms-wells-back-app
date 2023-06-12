@@ -4,12 +4,12 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsncBsMngrSchdDto {
+public class WsncBsManagerScheduleDto {
     // *********************************************************
     // Request Dto
     // 2023.06.12  BS관리일정조회 홍세기 생성
     // *********************************************************
-    @ApiModel(value = "WsncBsMngrSchdDto-SearchReq")
+    @ApiModel(value = "WsncBsManagerScheduleDto-SearchReq")
     public record SearchReq(
 
         String fxnPrtnrNo,
@@ -21,7 +21,7 @@ public class WsncBsMngrSchdDto {
         String baseDateTo
     ) {}
 
-    @ApiModel(value = "WsncBsMngrSchdDto-SearchRes")
+    @ApiModel(value = "WsncBsManagerScheduleDto-SearchRes")
     public record SearchRes(
         String vstDt, // 방문일자
 
