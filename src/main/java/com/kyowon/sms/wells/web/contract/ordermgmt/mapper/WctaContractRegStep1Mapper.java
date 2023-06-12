@@ -28,10 +28,6 @@ public interface WctaContractRegStep1Mapper {
 
     String selectResrOrdrYn();
 
-    String selectPrtnrCstNo(String prtnrNo);
-
-    String selectCntrtPrtnrNo(String cstNo);
-
     List<String> selectCntrtFmlPrtnrNo(String cstNo);
 
     List<String> selectThmCntrsByLrnr(String lrnrCstNo);
