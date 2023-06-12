@@ -83,7 +83,7 @@ public class WctaContractRegStep1Service {
             step1Dvo.setPrrBizRgstPtrms(prrBizRgstPtrms);
         }
         // 3-3-3. 계약자의 파트너 정보 조회
-        String cntrtPrtnrNo = mapper.selectCntrtPrtnrNo(cstNo);
+        String cntrtPrtnrNo = regService.selectCstPrtnrNo(cstNo);
 
         // 6. 계약자 확인 후 정보 조회(기존 데이터 세팅)
         if (StringUtils.isNotEmpty(cntrNo)) {
@@ -118,7 +118,7 @@ public class WctaContractRegStep1Service {
     }
 
     public String selectPrtnrCstNo(String prtnrNo) {
-        return mapper.selectPrtnrCstNo(prtnrNo);
+        return regService.selectPrtnrCstNo(prtnrNo);
     }
 
     @Transactional
@@ -257,7 +257,7 @@ public class WctaContractRegStep1Service {
         String insiCstTpCd = "";
         if (basDvo.getCntrTpCd().equals("03")) {
             insiCstTpCd = "030";
-        } else if (StringUtils.isNotEmpty(mapper.selectCntrtPrtnrNo(dvo.getCntrt().getCstNo()))) {
+        } else if (StringUtils.isNotEmpty(regService.selectCstPrtnrNo(dvo.getCntrt().getCstNo()))) {
             insiCstTpCd = "020";
         }
         // 4-1. 계약자
