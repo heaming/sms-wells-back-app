@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/bs-manager-schedule")
-public class WsncBsMngtSchdInqrController {
+public class WsncBsScheduleController {
     private final WsncBsMngtSchdInqrService service;
 
     @ApiOperation(value = "BS관리일정 조회 화면 - 집계 조회", notes = "조회조건에 따른 BS관리일정 집계 조회")
