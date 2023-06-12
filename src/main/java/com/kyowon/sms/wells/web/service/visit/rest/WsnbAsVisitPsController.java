@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -29,7 +31,7 @@ public class WsnbAsVisitPsController {
 
     private final WsnbAsVisitPsService service;
 
-    @ApiOperation(value = "상품별 서비스 처리 집계 현황 ", notes = "조회조건에 일치하는 상품별 서비스 처리 집계 현황을 조회한다.")
+    @ApiOperation(value = "상품별 서비스 처리 집계 현황", notes = "조회조건에 일치하는 상품별 서비스 처리 집계 현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "서비스센터", value = "ogId", paramType = "query", example = "OG00002"),
         @ApiImplicitParam(name = "처리일자 From", value = "wkExcnDtFrom", paramType = "query", example = "20221201", required = true),
@@ -44,6 +46,21 @@ public class WsnbAsVisitPsController {
         PageInfo pageInfo
     ) {
         return this.service.getProductServices(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "상품별 서비스 처리 집계 현황 엑셀 다운로드", notes = "조회조건에 일치하는 상품별 서비스 처리 집계 현황을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "서비스센터", value = "ogId", paramType = "query", example = "OG00002"),
+        @ApiImplicitParam(name = "처리일자 From", value = "wkExcnDtFrom", paramType = "query", example = "20221201", required = true),
+        @ApiImplicitParam(name = "처리일자 To", value = "wkExcnDtTo", paramType = "query", example = "20221230", required = true),
+        @ApiImplicitParam(name = "유/무상구분", value = "refriDvCd", paramType = "query", example = "1")
+    })
+    @GetMapping("/product-services/excel-download")
+    public List<SearchRes> getProductServicesForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return this.service.getProductServicesForExcelDownload(dto);
     }
 
 }

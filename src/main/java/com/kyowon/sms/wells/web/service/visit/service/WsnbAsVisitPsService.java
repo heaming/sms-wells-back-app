@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbAsVisitPsDto.SearchReq;
@@ -26,6 +28,10 @@ public class WsnbAsVisitPsService {
 
     public PagingResult<SearchRes> getProductServices(SearchReq dto, PageInfo pageInfo) {
         return this.mapper.selectProductServices(dto, pageInfo);
+    }
+
+    public List<SearchRes> getProductServicesForExcelDownload(SearchReq dto) {
+        return this.mapper.selectProductServices(dto);
     }
 
 }

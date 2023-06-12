@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbAsVisitPsDto.SearchReq;
@@ -19,5 +21,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnbAsVisitPsMapper {
 
     PagingResult<SearchRes> selectProductServices(SearchReq dto, PageInfo pageInfo);
+
+    List<SearchRes> selectProductServices(SearchReq dto);
 
 }
