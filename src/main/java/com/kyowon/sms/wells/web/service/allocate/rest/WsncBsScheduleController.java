@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WSNC] BS관리일정 조회")
+@Api(tags = "[WSNC] BS관리일정 조회 ")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/bs-manager-schedule")
