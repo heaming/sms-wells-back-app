@@ -26,7 +26,7 @@ public class WdcdCleanersService {
 
         PagingResult<WdcdCleanersDvo> dvos = new PagingResult<>();
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
-        
+
         // TODO. 본사 영업담당자, 본사 담당자 구분 해야함
         if ("".equals(req.flag())) {
 
@@ -50,12 +50,18 @@ public class WdcdCleanersService {
 
     public List<SearchRes> getCleanersForExcelDownload(SearchReq req) {
 
+        List<WdcdCleanersDvo> dvos = new PagingResult<>();
         List<SearchRes> res = new PagingResult<SearchRes>();
+        
         // TODO. 본사 영업담당자, 본사 담당자 구분 해야함
         if ("".equals(req.flag())) {
-            res = mapper.selectCleanersBusinessManager(req);
+            dvos = mapper.selectCleanersBusinessManager(req);
         } else {
-            res = mapper.selectCleanersPersonInCharge(req);
+            dvos = mapper.selectCleanersPersonInCharge(req);
+        }
+
+        for (WdcdCleanersDvo dvo : dvos) {
+            res.add(converter.mapSearchResToWdcdCleanersDvo(dvo));
         }
 
         return res;

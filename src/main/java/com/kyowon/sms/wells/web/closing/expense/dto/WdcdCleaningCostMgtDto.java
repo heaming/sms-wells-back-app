@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -50,7 +48,7 @@ public class WdcdCleaningCostMgtDto {
         String clingCostDvNm,
         String bldCd,
         String bldNm,
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String claimNm,
         String aplcDt,
         String bilAmt,

@@ -1,8 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -77,15 +75,15 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-FindRes")
     public record FindRes(
         String clingCostAdjRcpNo,
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String cardPsrNm,
         String aplcDt,
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String claimNm,
         String bldCd,
         String bilAmt,
         String locaraTno,
-        @MaskRequired(type = MaskingType.ALL)
+        //@MaskRequired(type = MaskingType.ALL)
         String exnoEncr,
         String idvTno,
         String clingCostSrcpApnFileId,

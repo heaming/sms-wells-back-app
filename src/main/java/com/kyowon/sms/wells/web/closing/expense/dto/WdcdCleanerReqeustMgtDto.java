@@ -1,8 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -82,30 +80,30 @@ public class WdcdCleanerReqeustMgtDto {
         String rcpYm,
         String bldCd,
         String aplcDt,
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String aplcnsNm,/*신청자*/
         String clinrFxnAmt,
         String taxDdctam,
         String dsbAmt,
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String clinrNm, /*청소원*/
         String wrkStrtdt,
         String wrkEnddt,
         String bryyMmdd,
         String frontRrnoEncr, // 주민번호 앞자리
         String backRrnoEncr, // 주민번호 뒷자리
-        @MaskRequired(type = MaskingType.RRN)
+        //@MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, // 주민등록번호
         String locaraTno,
-        @MaskRequired(type = MaskingType.ALL)
+        //@MaskRequired(type = MaskingType.ALL)
         String exnoEncr,
         String idvTno,
         String zip,
         String basAdr,
-        @MaskRequired(type = MaskingType.ALL)
+        //@MaskRequired(type = MaskingType.ALL)
         String dtlAdr,
         String bnkCd,
-        @MaskRequired(type = MaskingType.ACCOUNT)
+        //@MaskRequired(type = MaskingType.ACCOUNT)
         String acnoEncr,    // 계좌번호
         String idfApnFileId,
         String bnkbApnFileId,
