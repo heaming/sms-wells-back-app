@@ -22,6 +22,14 @@ public class WctaContractRegService {
     private final WctaContractRegStep3Mapper step3Mapper;
     private final WctaContractRegStep4Mapper step4Mapper;
 
+    public String selectPrtnrCstNo(String prtnrNo) {
+        return mapper.selectPrtnrCstNo(prtnrNo);
+    }
+
+    public String selectCstPrtnrNo(String cstNo) {
+        return mapper.selectCstPrtnrNo(cstNo);
+    }
+
     public boolean isNewCntr(String curCntrPrgsStatCd, String cntrPrgsStatCd) {
         return Integer.valueOf(curCntrPrgsStatCd) < Integer.valueOf(cntrPrgsStatCd);
     }

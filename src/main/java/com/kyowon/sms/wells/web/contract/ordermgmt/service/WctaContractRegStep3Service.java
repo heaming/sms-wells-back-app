@@ -64,6 +64,7 @@ public class WctaContractRegStep3Service {
                 dtl.setTxinvPblOjYn("N");
                 dtl.setRecapMshPtrm(0);
                 dtl.setSodbtNftfCntrYn("N");
+                dtl.setBlkApy("N");
 
                 if (sellTpCd.equals("1")) {
                     // 유상멤버십기간 조회(step2에서 저장했던 정보를 바탕으로 가격 조회 서비스 사용, regService로 이동 검토)
@@ -100,6 +101,7 @@ public class WctaContractRegStep3Service {
         dtls.forEach((dtl) -> {
             int cntrSn = dtl.getCntrSn();
             String sellTpCd = dtl.getSellTpCd();
+            dtl.setBlkApy("N");
 
             WctaContractAdrRelDvo adrRel = regService.selectContractAdrRel(cntrNo, cntrSn);
             dtl.setAdrRel(adrRel);
@@ -326,7 +328,7 @@ public class WctaContractRegStep3Service {
     }
 
     private static boolean isBlkApy(WctaContractDtlDvo blkApyDtl) {
-        return ObjectUtils.isNotEmpty(blkApyDtl) && "Y".equals(blkApyDtl);
+        return ObjectUtils.isNotEmpty(blkApyDtl) && "Y".equals(blkApyDtl.getBlkApy());
     }
 
     @Transactional

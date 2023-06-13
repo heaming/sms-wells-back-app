@@ -95,7 +95,7 @@ public class WsnaBsCsmbDeliveryAggregateService {
         return rtnDtos;
     }
 
-    public List<SearchQtysRes> getItemQtys(String mngtYmFrom, String mngtYmTo) {
-        return mapper.selectItemQtys(mngtYmFrom, mngtYmTo);
+    public PagingResult<SearchQtysRes> getItemQtys(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectItemQtys(dto, pageInfo);
     }
 }
