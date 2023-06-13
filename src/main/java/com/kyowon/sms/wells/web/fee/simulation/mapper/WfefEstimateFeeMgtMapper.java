@@ -23,11 +23,4 @@ public interface WfefEstimateFeeMgtMapper {
     List<EstimateHome> selectEstimateHome(SearchEstimateReq req);
     List<SaleHome> selectSaleHome(SearchEstimateReq req);
 
-
-    /* TABLET - HOME */
-    BaseHome selectTabletBaseHome(SearchEstimateReq req);
-    List<PerformanceTabletHome> selectPerformanceTabletHome(SearchEstimateReq req);
-    List<EstimateTabletHome> selectEstimateTabletHome(SearchEstimateReq req);
-
-
 }
