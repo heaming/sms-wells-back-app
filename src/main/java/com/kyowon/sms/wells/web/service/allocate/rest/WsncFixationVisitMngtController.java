@@ -82,14 +82,16 @@ public class WsncFixationVisitMngtController {
                 "test14", //String rnadrInstall,
                 "test15", //String rdadrInstall,
                 "test16", //String pdNm,
-                "2", //String pdPrpVal01,(0~9)
+//                "2", //String pdPrpVal01,(0~9)
                 "용도3", //String pdPrpVal01,(0~9)
                 //Insert Data
                 "202212", //String apyStrtYm,
                 "1", //String chRqrDvCd,
                 "20221205105833", //String fnlMdfcDtm,
                 "1", //String fxnPrtnrDvCd,
-                "test22", //String fxnPrtnrNo,
+                "1",
+//                "test22", //String fxnPrtnrNo,
+                "test33", //String fxnPrtnrKnm,
                 "힘들어요", //String chRsonCn,
                 "N", //String dtaDlYn,
 
