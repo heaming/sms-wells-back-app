@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.deduction.adsb.mapper.WdebAgainDisbursementDetailMapper">
+    <select id="selectAgainDisbursements" resultType="com.kyowon.sms.wells.web.deduction.adsb.dto.WdebAgainDisbursementDetailDto$SearchAgainDisbursementRes">
+        SELECT A1.REDF_ADSB_OC_YM /*발생월(되물림재지급발생년월)*/
+             , A1.PERF_YM /*실적월(실적년월)*/
+             , A1.PERF_DV_CD /*실적구분코드*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'WELLS_OJ_PSTN_RANK_CD', A2.PSTN_DV_CD, #{session.langId}) AS PERF_DV_NM /*구분(직급구분코드)*/
+             , A1.CNTR_NO /*계약번호*/
+             , A1.CNTR_SN /*계약일련번호*/
+             , A1.CNTR_NO || A1.CNTR_SN AS CNTR_NO_SN /*계약상세번호*/
+             , D.CST_KNM /*고객명(고객한글명)*/
+             , CASE WHEN A1.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(A1.REDF_ADSB_CTR_CNFM_AMT, 0) /*재지급액(조정확정금액이 존재하면 조정확정금액)*/
+                      WHEN A1.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN NVL(A1.REDF_ADSB_OC_AMT, 0) ELSE 0 END AS ADSB_AMT /*재지급액(조정확정금액이 존재하지 않으면 발생금액)*/ 
+             , F_CMZ_CD_NM(#{session.tenantId}, 'REDF_ADSB_TP_CD', A1.REDF_ADSB_TP_CD, #{session.langId}) AS REDF_ADSB_TP_CD /*적요(되물림재지급유형코드)*/
+             , D.SELL_TP_CD /*판매유형코드*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', D.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM /*상품(판매유형코드)*/
+          FROM TB_FEDD_FEE_REDF_ADSB_DTL A1 /*수수료되물림재지급상세*/
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ A2 /*월파트너내역*/
+            ON A1.PRTNR_NO = A2.PRTNR_NO
+           AND A1.OG_TP_CD = A2.OG_TP_CD
+           AND A1.REDF_ADSB_OC_YM = A2.BASE_YM
+           AND A2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN ( SELECT D2.CNTR_NO
+                                 , D2.CNTR_SN
+                                 , D3.CST_KNM /*고객명(고객한글명)*/
+                                 , D2.SELL_TP_CD /*상품(판매유형코드)*/
+                              FROM TB_SSCT_CNTR_BAS D1 /*계약기본*/  
+                             INNER JOIN TB_SSCT_CNTR_DTL D2 /*계약상세*/
+                                ON D1.CNTR_NO = D2.CNTR_NO   
+                             INNER JOIN TB_CUBS_CST_BAS D3 /*고객기본*/  
+                                ON D1.CNTR_CST_NO = D3.CST_NO
+                          ) D
+            ON D.CNTR_NO = A1.CNTR_NO
+           AND D.CNTR_SN = A1.CNTR_SN
+         WHERE <!-- A1.REDF_ADSB_TP_CD LIKE '03%' TODO: 재지급인 것만 출력해야하는데 현재 데이터가 존재하지 않아 주석처리, 추후 주석해제 예정.
+           AND  -->A1.PERF_DV_CD =  (CASE WHEN #{pstnDv} = '15' THEN '0'
+                                    WHEN #{pstnDv} = '10' THEN '1'
+                                    WHEN #{pstnDv} = '7' THEN '2'
+                                    WHEN #{pstnDv} = '4' THEN '5'
+                                    WHEN #{pstnDv} = '2' THEN '7'
+                                     END)
+           /*PARAM: 직급구분 (개인: 0, 지구: 1, 지점: 2, 지역: 5, 총괄: 7) 
+           (pstnDv, 15: 웰스플래너, 10: 지구장, 7: 지점장, 4: 지역단장, 2: 총괄단장)*/
+           <!-- AND A1.PRTNR_NO = #{prtnrNo}
+           AND A1.OG_TP_CD = #{ogTpCd} TODO: 현재 데이터가 존재하지 않아 주석처리, 추후 주석해제 예정 -->
+         ORDER BY A1.REDF_ADSB_OC_YM /*발생월(되물림재지급발생년월)*/
+                , A1.PERF_YM /*실적월(실적년월)*/
+                , A1.PERF_DV_CD /*실적구분코드*/
+                , CNTR_NO_SN /*계약상세번호*/
+    </select>      
+</mapper>
