@@ -271,23 +271,20 @@ public class WctaContractController {
     @ApiOperation(value = "통합계약정보 조회", notes = "저장된 통합계약 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
-        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query"),
         @ApiImplicitParam(name = "step", value = "step", paramType = "query", required = true),
     })
     @GetMapping("/cntr-info")
     public WctaContractRegDvo selectContractInfo(
-        @RequestParam(required = false)
-        String cstNo,
-        @RequestParam(required = false)
-        String cntrNo,
-        @RequestParam
-        int step
+        SearchStep1Req dto
     ) {
-        return switch (step) {
-            case 1 -> step1Service.selectStepInfo(cstNo, cntrNo);
-            case 2 -> step2Service.selectStepInfo(cntrNo);
-            case 3 -> step3Service.selectStepInfo(cntrNo);
-            case 4 -> step4Service.selectStepInfo(cntrNo);
+        return switch (dto.step()) {
+            case 1 -> step1Service.selectStepInfo(dto);
+            case 2 -> step2Service.selectStepInfo(dto.cntrNo());
+            case 3 -> step3Service.selectStepInfo(dto.cntrNo());
+            case 4 -> step4Service.selectStepInfo(dto.cntrNo());
             default -> throw new BizException("MSG_ALT_ERR_CONTACT_ADMIN");
         };
     }

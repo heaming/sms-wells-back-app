@@ -15,6 +15,7 @@ import com.kyowon.sms.wells.web.contract.common.service.WctzContractNumberServic
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.common.service.WctzPartnerService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractRegConverter;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep1Mapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
@@ -37,8 +38,16 @@ public class WctaContractRegStep1Service {
     private final WctzContractNumberService cntrNoService;
     private final WctzHistoryService historyService;
 
-    public WctaContractRegDvo selectStepInfo(String cstNo, String cntrNo) {
+    public WctaContractRegDvo selectStepInfo(WctaContractDto.SearchStep1Req dto) {
         WctaContractRegStep1Dvo step1Dvo = new WctaContractRegStep1Dvo();
+        String cstNo = dto.cstNo();
+        String cntrNo = dto.cntrNo();
+        /**
+         * cstNo: 신규계약, 고객번호 조회
+         * cstNo cntrNo: 기존계약에서 새로운 계약유형이나 신규 고객으로 변경하는 경우
+         * cntrNo: 기존 계약 조회
+         */
+        boolean updateCntr = StringUtils.isNotEmpty(cstNo) && StringUtils.isNotEmpty(cntrNo);
 
         WctaContractBasDvo bas = regService.selectContractBas(cntrNo);
         if (StringUtils.isEmpty(cstNo) && ObjectUtils.isNotEmpty(bas)) {
@@ -71,6 +80,12 @@ public class WctaContractRegStep1Service {
         if ("7".equals(prtnrInfo.getPstnDvCd())) {
             // 로그인한 파트너가 지국장인 경우
             step1Dvo.setPrtnr7(prtnrInfo);
+            step1Dvo.setPrtnr(
+                converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(
+                    prtnrService
+                        .selectPrtnrInfo(dto.prtnrNo(), dto.ogTpCd())
+                )
+            );
         } else {
             step1Dvo.setPrtnr(prtnrInfo);
         }
@@ -87,22 +102,31 @@ public class WctaContractRegStep1Service {
 
         // 6. 계약자 확인 후 정보 조회(기존 데이터 세팅)
         if (StringUtils.isNotEmpty(cntrNo)) {
-            // 기존 데이터 조회인 경우(계약기본으로 확인)
-            List<WctaContractPrtnrRelDvo> prtnrRels = regService.selectContractPrtnrRel(cntrNo);
-            List<WctaContractCstRelDvo> cstRels = regService.selectContractCstRel(cntrNo);
-
             step1Dvo.setBas(bas);
-            /*
-            step1Dvo.setPrtnr(
-                prtnrRels.size() == 1 ? prtnrRels.get(0)
-                    : prtnrRels.stream().filter((p) -> "010".equals(p.getCntrPrtnrTpCd())).findFirst().get()
-            ); // 파트너 2줄 적재되는 경우(지국장), 계약파트너유형코드 010인 건이 파트너
-            // 파트너는 delete and insert
-            */
-            WctaContractCstRelDvo c = cstRels.stream().filter((v) -> "10".equals(v.getCntrCstRelTpCd())).findFirst()
-                .get();
-            WctaContractCstRelDvo cntrtInfo = mapper.selectCntrtInfoByCstNo(c.getCstNo());
-            step1Dvo.setCntrt(converter.mergeContractCstRelDvo(c, cntrtInfo));
+            if (updateCntr) {
+                step1Dvo.setBas(
+                    WctaContractBasDvo.builder()
+                        .cntrNo(cntrNo)
+                        .build()
+                );
+                step1Dvo.setCntrt(mapper.selectCntrtInfoByCstNo(cstNo));
+            } else {
+                // 기존 데이터 조회인 경우(계약기본으로 확인)
+                List<WctaContractPrtnrRelDvo> prtnrRels = regService.selectContractPrtnrRel(cntrNo);
+                List<WctaContractCstRelDvo> cstRels = regService.selectContractCstRel(cntrNo);
+
+                /*
+                step1Dvo.setPrtnr(
+                    prtnrRels.size() == 1 ? prtnrRels.get(0)
+                        : prtnrRels.stream().filter((p) -> "010".equals(p.getCntrPrtnrTpCd())).findFirst().get()
+                ); // 파트너 2줄 적재되는 경우(지국장), 계약파트너유형코드 010인 건이 파트너
+                // 파트너는 delete and insert
+                */
+                WctaContractCstRelDvo c = cstRels.stream().filter((v) -> "10".equals(v.getCntrCstRelTpCd())).findFirst()
+                    .get();
+                WctaContractCstRelDvo cntrtInfo = mapper.selectCntrtInfoByCstNo(c.getCstNo());
+                step1Dvo.setCntrt(converter.mergeContractCstRelDvo(c, cntrtInfo));
+            }
         } else {
             step1Dvo.setCntrt(mapper.selectCntrtInfoByCstNo(cstNo));
             step1Dvo.setBas(new WctaContractBasDvo());
@@ -165,14 +189,14 @@ public class WctaContractRegStep1Service {
         basDvo.setPrrRcpCntrYn(mapper.selectResrOrdrYn());
         basDvo.setPspcCstId(dvo.getPspcCstId());
         basDvo.setSellInflwChnlDtlCd(contractService.getSaleInflowChnlDtlCd(dvo.getBas().getCntrTpCd()));
+        basDvo.setCntrNo(cntrNo);
+        basDvo.setCntrCstNo(dvo.getCntrt().getCstNo());
+        basDvo.setCopnDvCd(dvo.getCntrt().getCopnDvCd());
+        basDvo.setSellPrtnrNo(dvo.getPrtnr().getPrtnrNo());
+        basDvo.setSellOgTpCd(dvo.getPrtnr().getOgTpCd());
+        basDvo.setCntrNatCd("KR");
+        basDvo.setCntrPrgsStatCd(CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP1);
         if (isNewCntr) {
-            basDvo.setCntrNo(cntrNo);
-            basDvo.setCntrCstNo(dvo.getCntrt().getCstNo());
-            basDvo.setCopnDvCd(dvo.getCntrt().getCopnDvCd());
-            basDvo.setSellPrtnrNo(dvo.getPrtnr().getPrtnrNo());
-            basDvo.setSellOgTpCd(dvo.getPrtnr().getOgTpCd());
-            basDvo.setCntrNatCd("KR");
-            basDvo.setCntrPrgsStatCd(CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP1);
             mapper.insertCntrBasStep1(basDvo);
         } else {
             mapper.updateCntrBasStep1(basDvo);
