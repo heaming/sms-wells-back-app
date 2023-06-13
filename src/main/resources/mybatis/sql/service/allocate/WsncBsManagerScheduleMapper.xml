@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsManagerScheduleMapper">
+    <!-- BS관리일정  집계 조회  -->
+    <select id="selectBsManagerScheduleAgrg"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto$SearchRes">
+        SELECT FST_CNTR_DT AS CNTR_DT
+             , RCNTR_DT AS RECNTR_DT
+             , OG_ID
+             , PRTNR_NO
+             , MNG_CNT AS MNGT_ACC
+             , VST_CNT AS VST_ACC
+             , WRK_CNT AS FSH_ACC
+             , ROUND((WRK_CNT / VST_CNT) * 100, 1) AS SVC_PROC
+          FROM (
+                SELECT FST_CNTR_DT
+                     , RCNTR_DT
+                     , OG_ID
+                     , PRTNR_NO
+                     , (SELECT COUNT(1)
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ AC201
+                         WHERE MNGT_YM = SUBSTR(#{baseDateFrom},1, 6)
+                           AND AC201.MNGT_PRTNR_NO = M1.PRTNR_NO
+                           AND DTA_DL_YN = 'N'
+                        ) MNG_CNT
+                     , (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                         WHERE ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+                           AND AC261.CNFM_PSIC_PRTNR_NO = M1.PRTNR_NO
+                           AND DTA_DL_YN = 'N'
+                        ) VST_CNT
+                    , (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                         WHERE ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+                           AND AC261.CNFM_PSIC_PRTNR_NO = M1.PRTNR_NO
+                           AND DTA_DL_YN = 'N'
+                           AND WK_EXCN_DT IS NOT NULL
+                           AND WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                        ) WRK_CNT
+                 FROM (
+                         SELECT FST_CNTR_DT
+                                , RCNTR_DT
+                                , OG_ID
+                                , PRTNR_NO
+                          FROM TB_OGBS_MM_PRTNR_IZ T1
+                               WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                                 AND T1.OG_TP_CD = 'W02'
+                                 AND T1.BZ_STAT_CD = '1'
+                                 AND T1.DTA_DL_YN = 'N'
+                                 AND PRTNR_NO =  #{fxnPrtnrNo}
+                           UNION ALL
+
+                          SELECT FST_CNTR_DT
+                                , RCNTR_DT
+                                , OG_ID
+                                , PRTNR_NO
+                              FROM TB_OGBS_MM_PRTNR_IZ T1
+                               WHERE T1.BASE_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+                                 AND T1.OG_TP_CD = 'W02'
+                                 AND T1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')||'%'
+                                 AND T1.DTA_DL_YN = 'N'
+                                 AND PRTNR_NO = #{fxnPrtnrNo}
+                       ) M1
+         )
+    </select>
+
+    <select id="selectBsManagerSchedulePages"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto$SearchRes">
+        SELECT VST_CNFMDT AS VST_DT
+             , MAX(VST_CNFM_HH) AS VST_TM
+             , MAX(CST_KNM) AS CST_NM
+             , CNTR_NO AS CNTR_NO
+             , MAX(PDCT_PD_CD) AS PDCT_CD
+             , MAX(PD_NM) AS GOODS_NM
+             , MAX(HP_NO) AS MP_NO
+             , MAX(CASE WHEN RN = 1 THEN PART_NM ELSE '' END) AS PU_PART1
+             , MAX(CASE WHEN RN = 2 THEN PART_NM ELSE '' END) AS PU_PART2
+             , MAX(CASE WHEN RN = 3 THEN PART_NM ELSE '' END) AS PU_PART3
+             , MAX(CASE WHEN RN = 4 THEN PART_NM ELSE '' END) AS PU_PART4
+             , MAX(CASE WHEN RN = 5 THEN PART_NM ELSE '' END) AS PU_PART5
+             , MAX(CASE WHEN RN = 6 THEN PART_NM ELSE '' END) AS PU_PART6
+          FROM (
+                SELECT VST_CNFMDT
+                     , VST_CNFM_HH
+                     , T2.CST_KNM
+                     , AC261.CNTR_NO
+                     , AC251.PDCT_PD_CD
+                     , P1.PD_NM
+                     , T2.CRAL_LOCARA_TNO|| T2.MEXNO_ENCR|| T2.CRAL_IDV_TNO AS HP_NO
+                     , PU_PART_PD_CD
+                     , F2.PD_NM AS PART_NM
+                     , ROW_NUMBER() OVER(PARTITION BY AC261.VST_CNFMDT, AC261.CNTR_NO, AC251.PDCT_PD_CD ORDER BY PU_PART_PD_CD) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+           )
+        GROUP BY VST_CNFMDT
+             , CNTR_NO
+    </select>
+</mapper>
