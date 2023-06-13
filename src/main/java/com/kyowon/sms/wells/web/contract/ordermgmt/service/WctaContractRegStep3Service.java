@@ -249,20 +249,25 @@ public class WctaContractRegStep3Service {
         for (WctaContractDtlDvo dtl : dtls) {
             int cntrSn = dtl.getCntrSn();
 
+            WctaContractDtlDvo bDtl = null;
             if (isBlkApy(blkApyDtl)) {
-                dtl = blkApyDtl;
+                bDtl = blkApyDtl;
+                bDtl.setCntrAmt(dtl.getCntrAmt());
+                bDtl.setFnlAmt(dtl.getFnlAmt());
+            } else {
+                bDtl = dtl;
             }
 
             // 1-1. 계약상세
-            dtl.setRveCrpCd("D0");
-            dtl.setStlmTpCd("10");
-            dtl.setCrncyDvCd("KRW");
+            bDtl.setRveCrpCd("D0");
+            bDtl.setStlmTpCd("10");
+            bDtl.setCrncyDvCd("KRW");
             // 계약금액 일시불일 때 step3저장, 이외의 경우 step2에서 등록비 선택으로 저장
-            mapper.updateCntrDtlStep3(dtl);
+            mapper.updateCntrDtlStep3(bDtl);
             // 1-2. 계약상세이력
             historyService.createContractDetailChangeHistory(
                 WctzCntrDetailChangeHistDvo.builder()
-                    .cntrNo(dtl.getCntrNo())
+                    .cntrNo(bDtl.getCntrNo())
                     .cntrSn(cntrSn)
                     .histStrtDtm(now)
                     .build()
@@ -275,51 +280,51 @@ public class WctaContractRegStep3Service {
                     .vlEndDtm(CtContractConst.END_DTM)
                     .adrpcTpCd("3")
                     .cntrUnitTpCd("020")
-                    .dtlCntrNo(dtl.getCntrNo())
+                    .dtlCntrNo(bDtl.getCntrNo())
                     .dtlCntrSn(cntrSn)
-                    .cntrAdrpcId(adrpcs.get(dtl.getAdrRel().getAdrpcIdx()).getCntrAdrpcId())
+                    .cntrAdrpcId(adrpcs.get(bDtl.getAdrRel().getAdrpcIdx()).getCntrAdrpcId())
                     .build()
             );
 
             // 총판비대면 계약여부 Y가 아니라면 금액 저장
-            if (!"Y".equals(dtl.getSodbtNftfCntrYn())) {
-                Long cntrAmt = dtl.getCntrAmt();
-                if (dtl.getSellTpCd().equals("1")) {
+            if (!"Y".equals(bDtl.getSodbtNftfCntrYn())) {
+                Long cntrAmt = bDtl.getCntrAmt();
+                if (bDtl.getSellTpCd().equals("1")) {
                     // 일시불일 때
                     // 계약금, 01, 0101
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
                         createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmt, "0101", "01", bas.getCntrCstNo());
                     }
-                    Long pdAmt = dtl.getPdAmt(); // 상품금액, 01, 0201
+                    Long pdAmt = bDtl.getPdAmt(); // 상품금액, 01, 0201
                     if (!Objects.isNull(pdAmt) && 0l < pdAmt) {
                         createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, "0201", "01", bas.getCntrCstNo());
                     }
-                    Long mshAmt = dtl.getMshAmt(); // 04, 0203 || 0102
+                    Long mshAmt = bDtl.getMshAmt(); // 04, 0203 || 0102
                     if (!Objects.isNull(mshAmt) && 0l < mshAmt) {
                         createStlmInfo(
-                            now, cntrNo, stlmBasMap, cntrSn, pdAmt, dtl.getDpTpCdMsh(), "04", bas.getCntrCstNo()
+                            now, cntrNo, stlmBasMap, cntrSn, pdAmt, bDtl.getDpTpCdMsh(), "04", bas.getCntrCstNo()
                         );
                     }
                 } else {
-                    // 그 외
+                    // 그 외(일괄적용 케이스 반영)
                     // 등록비
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
                         createStlmInfo(
-                            now, cntrNo, stlmBasMap, cntrSn, cntrAmt, dtl.getDpTpCdIdrv(), "01", bas.getCntrCstNo()
+                            now, cntrNo, stlmBasMap, cntrSn, cntrAmt, bDtl.getDpTpCdIdrv(), "01", bas.getCntrCstNo()
                         );
                     }
                     // 월 렌탈료
-                    Long fnlAmt = dtl.getFnlAmt();
+                    Long fnlAmt = bDtl.getFnlAmt();
                     if (!Objects.isNull(fnlAmt) && 0l < fnlAmt) {
                         createStlmInfo(
-                            now, cntrNo, stlmBasMap, cntrSn, fnlAmt, dtl.getDpTpCdAftn(),
-                            regService.getRveDvCd(dtl.getSellTpCd()), bas.getCntrCstNo()
+                            now, cntrNo, stlmBasMap, cntrSn, fnlAmt, bDtl.getDpTpCdAftn(),
+                            regService.getRveDvCd(bDtl.getSellTpCd()), bas.getCntrCstNo()
                         );
                     }
                 }
             }
             // 4. 계약wells상세
-            WctaContractWellsDtlDvo wellsDtl = dtl.getWellsDtl();
+            WctaContractWellsDtlDvo wellsDtl = bDtl.getWellsDtl();
             wellsDtl.setCntrNo(cntrNo);
             wellsDtl.setCntrSn(cntrSn);
             mapper.updateCntrWellsDtlStep3(wellsDtl);
