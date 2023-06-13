@@ -54,6 +54,7 @@ public class WogcPartnerEngineerService {
 
     /**
      * 엔지니어 출근 관리 목록 저장
+     *
      * @param dtos
      * @return
      */
@@ -128,11 +129,13 @@ public class WogcPartnerEngineerService {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(dto);
             processCnt += this.mapper.insertEgerGdRgst(dvo);
+            /* 배치에서 해야 된다고
             if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
                 this.mapper.updateMonthPrtnrRolDvCd(dvo); //월파트너직무업데이트
                 this.mapper.updatePrtnrRolDvCd(dvo); //직무업데이트
                 this.mapper.insertPrtnrHist(dvo); //파트너상세이력인서트
             }
+            */
         }
         return processCnt;
     }
@@ -224,13 +227,15 @@ public class WogcPartnerEngineerService {
 
         if (status.equals("S")) {
             for (WogcPartnerEngineerDvo dvo : lists) {
-                dvo.setDtaDlYn("Y");
+                dvo.setDtaDlYn("N");
                 this.mapper.insertEgerGdRgst(dvo);
+                /* 배치에서 해야 된다고
                 if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
                     this.mapper.updateMonthPrtnrRolDvCd(dvo); //월파트너직무업데이트
                     this.mapper.updatePrtnrRolDvCd(dvo); //직무업데이트
                     this.mapper.insertPrtnrHist(dvo); //파트너상세이력인서트
                 }
+                */
             }
         }
 
