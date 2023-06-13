@@ -1,11 +1,9 @@
 package com.kyowon.sms.wells.web.fee.simulation.rest;
 
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchEstimateReq;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchHomeRes;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgMRes;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPRes;
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchTabletHomeRes;
 import com.kyowon.sms.wells.web.fee.simulation.service.WfefEstimateFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import io.swagger.annotations.Api;
@@ -61,16 +59,4 @@ public class WfefEstimateFeeMgtController {
     public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req) throws Exception {
         return service.getEstimateFeeHome(req);
     }
-
-    @ApiOperation(value = "예상수수료[테블릿] - 조회(홈마스터)", notes = "예상수수료 흄마스터를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "perType", value = "실적조회", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
-    })
-    @GetMapping("/tablet/home")
-    public SearchTabletHomeRes getEstimateFeeTabletHome(@Valid SearchEstimateReq req) throws Exception {
-        return service.getEstimateFeeTabletHome(req);
-    }
-
 }
