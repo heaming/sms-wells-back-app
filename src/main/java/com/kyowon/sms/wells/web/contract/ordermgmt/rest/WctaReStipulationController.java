@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
+import java.util.List;
+
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.BasInfoRes;
 
 @Api(tags = "[WCTA] 재약정 관리")
 @Validated
@@ -61,5 +64,21 @@ public class WctaReStipulationController {
     ) {
         return service.getReStipulationCustomerCounts(dto);
     }
+
+    @ApiOperation(value = "재약정 기준정보 조회", notes = "재약정 기준정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세일련번호", paramType = "query", required = true)
+    })
+    @GetMapping("/standard-info")
+    public List<BasInfoRes> getRestipulationStandardInfo(
+        @Valid
+        String cntrNo,
+        @Valid
+        Integer cntrSn
+    ){
+        return service.getReStipulationStandardInfo(cntrNo, cntrSn);
+    }
+
 
 }

@@ -59,4 +59,15 @@ public class WctaReStipulationDto {
             mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
         }
     }
+
+    @ApiModel("WctaReStipulationDto-BasInfoRes")
+    public record BasInfoRes(
+        String stplDscAmt,        /*약정할인금액*/
+        String rstlBaseTpCd,      /*재약정기준유형코드*/
+        String rstlSellChnlDvCd,  /*잭약정판매채널구분코드*/
+        String rstlMcn,           /*재약정개월수*/
+        String minRentalAmt,      /*최소렌탈금액*/
+        String rstlDutyMcn,       /*재약정의무개월수*/
+        String text               /*조회용 TEXT*/
+    ) { }
 }
