@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbDepositAggregateMaterialMapper">
+
+    <select id="selectDepositAggregateMaterial"
+            resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateMaterialDto$SearchDepositAggregateMaterialRes">            
+               SELECT A.DV_NM
+                    , A.DP_TP_CD
+                    , A.SELL_TP_CD
+                    , CASE WHEN GROUPING(A.DP_TP_CD) = 1 
+                           THEN ROW_NUMBER() OVER (PARTITION BY GROUPING(A.DP_TP_CD) ORDER BY 1)
+                            ELSE 0
+                      END TOT_ROW_NUM
+                    , SUM(CASE WHEN A.SELL_TP_CD = '1' THEN A.SELL_AMT ELSE 0 END) AS SPAY_AMT /* 일시불 */
+                    , SUM(CASE WHEN A.SELL_TP_CD = '2' THEN A.SELL_AMT ELSE 0 END) AS RTLS_AMT /* 렌탈,리스 */
+                    , SUM(CASE WHEN A.SELL_TP_CD = '3' THEN A.SELL_AMT ELSE 0 END) AS MBMS_AMT /* 멤버십 */
+                    , SUM(CASE WHEN A.SELL_TP_CD = '4' THEN A.SELL_AMT ELSE 0 END) AS CO_IST_AMT /* 회사설치 */
+                    , SUM(CASE WHEN A.SELL_TP_CD = '5' THEN A.SELL_AMT ELSE 0 END) AS MNGT_AMT /* 유지관리 */
+                    , SUM(CASE WHEN A.SELL_TP_CD = '6' THEN A.SELL_AMT ELSE 0 END) AS RGLR_AMT /* 정기배송 */
+                    , SUM(CASE WHEN A.SELL_TP_CD = '9' THEN A.SELL_AMT ELSE 0 END) AS FILT_AMT /* 필터 */
+                    , SUM(A.SELL_AMT) AS TOT_AMT
+                 FROM (
+                        SELECT 
+                               CASE WHEN SCD.SELL_TP_CD IN ('2','4','5') 
+                               THEN '공통'
+                               ELSE '렌탈'
+                                END DV_NM
+                             , RRD.DP_TP_CD /* 입금유형코드 */
+                             , SCD.SELL_TP_CD /* 판매유형코드 */
+                             , SCD.SELL_AMT /* 판매금액 */
+                          FROM TB_SSCT_CNTR_DTL SCD /* 계약상세 */
+                         INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납 상세 */
+                            ON RRD.CNTR_NO = SCD.CNTR_NO
+                           AND RRD.CNTR_SN = SCD.CNTR_SN
+                           AND RRD.DTA_DL_YN = 'N'
+                         WHERE 1 = 1
+                           /* 코드값에 따라 기준일자 변경 */
+                           AND SCD.DTA_DL_YN = 'N'
+                          <if test="@MybatisUtils@equals(dvCd, '1')">
+                           AND RRD.DP_DT LIKE #{searchDt} || '%'
+                          </if>
+                          <if test="@MybatisUtils@equals(dvCd, '2')">
+                           AND RRD.PERF_DT LIKE #{searchDt} || '%'
+                          </if>
+                          <if test="@MybatisUtils@isNotEmpty(dpTpCd) and dpTpCd != 'ALL' and dpTpCd != 'all'">
+                           AND RRD.DP_TP_CD = #{dpTpCd}
+                          </if>
+                      ) A 
+                GROUP BY A.DV_NM, A.DP_TP_CD, A.SELL_TP_CD
+    </select>
+    
+    <select id="selectDepositAggregateMaterialTotal"
+            resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateMaterialDto$SearchDepositAggregateMaterialTotalRes">            
+        SELECT
+               SUM(SPAY_AMT) AS TOT_SPAY
+             , SUM(RTLS_AMT) AS TOT_RTLS
+             , SUM(MBMS_AMT) AS TOT_MBMS
+             , SUM(CO_IST_AMT) AS TOT_CO_IST
+             , SUM(MNGT_AMT) AS TOT_MNGT
+             , SUM(RGLR_AMT) AS TOT_RGLR 
+             , SUM(FILT_AMT) AS TOT_FILT
+             , SUM(TOT_AMT) AS TOT
+             , ROUND(SUM(SPAY_AMT)/SUM(TOT_AMT),4)*100 AS SPAY_PER
+             , ROUND(SUM(RTLS_AMT)/SUM(TOT_AMT),4)*100 AS RTLS_PER
+             , ROUND(SUM(MBMS_AMT)/SUM(TOT_AMT),4)*100 AS MBMS_PER
+             , ROUND(SUM(CO_IST_AMT)/SUM(TOT_AMT),4)*100 AS CO_IST_PER
+             , ROUND(SUM(MNGT_AMT)/SUM(TOT_AMT),4)*100 AS MNGT_PER
+             , ROUND(SUM(RGLR_AMT)/SUM(TOT_AMT),4)*100 AS RGLR_PER
+             , ROUND(SUM(FILT_AMT)/SUM(TOT_AMT),4)*100 AS FILT_PER           
+         FROM (
+                SELECT A.DV_NM
+                     , A.DP_TP_CD
+                     , A.SELL_TP_CD
+                     , SUM(CASE WHEN A.SELL_TP_CD = '1' THEN A.SELL_AMT ELSE 0 END) AS SPAY_AMT /* 일시불 */
+                     , SUM(CASE WHEN A.SELL_TP_CD = '2' THEN A.SELL_AMT ELSE 0 END) AS RTLS_AMT /* 렌탈,리스 */
+                     , SUM(CASE WHEN A.SELL_TP_CD = '3' THEN A.SELL_AMT ELSE 0 END) AS MBMS_AMT /* 멤버십 */
+                     , SUM(CASE WHEN A.SELL_TP_CD = '4' THEN A.SELL_AMT ELSE 0 END) AS CO_IST_AMT /* 회사설치 */
+                     , SUM(CASE WHEN A.SELL_TP_CD = '5' THEN A.SELL_AMT ELSE 0 END) AS MNGT_AMT /* 유지관리 */
+                     , SUM(CASE WHEN A.SELL_TP_CD = '6' THEN A.SELL_AMT ELSE 0 END) AS RGLR_AMT /* 정기배송 */
+                     , SUM(CASE WHEN A.SELL_TP_CD = '9' THEN A.SELL_AMT ELSE 0 END) AS FILT_AMT /* 필터 */
+                     , SUM(A.SELL_AMT) AS TOT_AMT
+                     , SUM(A.SELL_AMT) * 100  / FIRST_VALUE (SUM(A.SELL_AMT) ) OVER (ORDER BY GROUPING(A.DV_NM)  DESC) AS TOT_RAT
+                  FROM (
+                         SELECT 
+                                CASE WHEN SCD.SELL_TP_CD IN ('2','4','5') 
+                                THEN '공통'
+                                ELSE '렌탈'
+                                 END DV_NM
+                              , RRD.DP_TP_CD /* 입금유형코드 */
+                              , SCD.SELL_TP_CD /* 판매유형코드 */
+                              , SCD.SELL_AMT /* 판매금액 */
+                           FROM TB_SSCT_CNTR_DTL SCD /* 계약상세 */
+                         INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납 상세 */
+                             ON RRD.CNTR_NO = SCD.CNTR_NO
+                            AND RRD.CNTR_SN = SCD.CNTR_SN
+                            AND RRD.DTA_DL_YN = 'N'
+                          WHERE 1 = 1
+                            /* 코드값에 따라 일자가 변화 */
+                            AND SCD.DTA_DL_YN = 'N'
+                           <if test="@MybatisUtils@equals(dvCd, '1')">
+                            AND RRD.DP_DT LIKE #{searchDt} || '%'
+                           </if>
+                           <if test="@MybatisUtils@equals(dvCd, '2')">
+                            AND RRD.PERF_DT LIKE #{searchDt} || '%'
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(dpTpCd) and dpTpCd != 'ALL' and dpTpCd != 'all'">
+                            AND RRD.DP_TP_CD = #{dpTpCd}
+                           </if>
+                       ) A 
+                 GROUP BY A.DV_NM, A.DP_TP_CD, A.SELL_TP_CD 
+             )
+    </select>
+</mapper>
