@@ -146,9 +146,10 @@ public class WdcyCloseHourBulkRegService {
                         dvo.setDtaDlYn("N");
                         dvo.setStrtHh(dto.ddClDtTmFrom());   // 마감일자
                         dvo.setEndHh(dto.ddClDtTmTo());  // 마감일자
+                        dvo.setClPrdCd("3");
 
                         if ("1".equals(dto.ddClPerfDtDvVal())) {
-                            dvo.setPerfDt(dto.clDt());
+                            dvo.setPerfDt(addDay);
                         } else {
                             String clDt = DateUtil.addMonths(dto.clDt(), 1);
                             dvo.setPerfDt(clDt.substring(0, 6) + "01");
@@ -157,7 +158,6 @@ public class WdcyCloseHourBulkRegService {
                         if ("11".equals(dvo.getClBizTpCd()) || "12".equals(dvo.getClBizTpCd())) {
 
                             dvo.setClBizTpCd("11");
-
                             count += mapper.insertCloseHour(dvo);
 
                             dvo.setClBizTpCd("12");
@@ -176,7 +176,7 @@ public class WdcyCloseHourBulkRegService {
                             count += mapper.insertCloseHour(dvo);
 
                         } else if ("30".equals(dvo.getClBizTpCd())) {
-
+                            
                             count += mapper.insertCloseHour(dvo);
                         }
 

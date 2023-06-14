@@ -21,4 +21,5 @@ public class WdcyCloseHourBulkRegDvo {
     private String perfDt; // 실적일자
 
     private String dtaDlYn;
+    private String clPrdCd;
 }
