@@ -195,30 +195,4 @@ public class WfefEstimateFeeMgtDto {
         List<EstimateHome> estimates,
         List<SaleHome> sales
     ) {}
-    public record SearchTabletHomeRes(
-        BaseHome base,
-        List<PerformanceTabletHome> performances,
-        List<EstimateTabletHome> estimates,
-        List<SaleHome> sales
-    ) {}
-
-    public record PerformanceTabletHome(
-        String type, // 구분
-        Integer elhmAckmtCt,
-        Long amtSpayHcr,
-        Integer allProcCt,
-        Integer elhmProcCt,
-        String nwcmrEducYn
-    ) {}
-    public record EstimateTabletHome(
-        Long amtEstSalPrpn,
-        Long amtEstSalEarlySttlmnt,
-        Long amtEstSalEnrg,
-        Long amtEstSvcScene,
-        Long amtEstSvcActi,
-        Long amtEstSvcAcml,
-        Long amtEstSvcEdu
-    ) {}
-
-
 }

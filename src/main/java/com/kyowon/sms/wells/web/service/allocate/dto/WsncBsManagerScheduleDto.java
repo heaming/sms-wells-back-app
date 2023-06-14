@@ -21,6 +21,27 @@ public class WsncBsManagerScheduleDto {
         String baseDateTo
     ) {}
 
+    @ApiModel(value = "WsncBsManagerScheduleDto-Aggregates")
+    public record Aggregates(
+
+        String cntrDt, // 계약일자
+
+        String ogId, // 조직ID
+
+        String prtnrNo, // 파트너사번
+
+        String recntrDt, // 재계약일자
+
+        String mngtAcc, // 관리계정
+
+        String vstAcc, // 방문계정
+
+        String fshAcc, // 완료계정
+
+        String svcProc // 서비스처리율
+
+    ) {}
+
     @ApiModel(value = "WsncBsManagerScheduleDto-SearchRes")
     public record SearchRes(
         String vstDt, // 방문일자
@@ -47,25 +68,7 @@ public class WsncBsManagerScheduleDto {
 
         String puPart5, // 투입부품5
 
-        String puPart6, // 투입부품6
-
-        String curntDt, // 최초계약일
-
-        String cntrDt, // 계약일자
-
-        String ogId, // 조직ID
-
-        String prtnrNo, // 파트너사번
-
-        String recntrDt, // 재계약일자
-
-        String mngtAcc, // 관리계정
-
-        String vstAcc, // 방문계정
-
-        String fshAcc, // 완료계정
-
-        String svcProc // 서비스처리율
+        String puPart6 // 투입부품6
 
     ) {}
 }

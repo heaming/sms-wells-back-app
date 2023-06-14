@@ -99,7 +99,6 @@ public class WsnaNormalOutOfStorageDto {
         String strHopDt,
         String svpdItemKnd,
         String itmPdCd,
-        String itmCd,
         String svpdNmKor,
         String svpdSapCd,
         String itemLoc,

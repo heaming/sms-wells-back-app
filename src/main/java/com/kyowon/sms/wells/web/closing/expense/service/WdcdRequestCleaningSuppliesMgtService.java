@@ -1,20 +1,23 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdRequestCleaningSuppliesMgtConverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SearchRsbDvCdRes;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdRequestCleaningSuppliesDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdRequestCleaningSuppliesMgtMapper;
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.BizAssert;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,10 @@ public class WdcdRequestCleaningSuppliesMgtService {
     private final WdcdRequestCleaningSuppliesMgtConverter converter;
     private final AttachFileService attachFileService;
     private final String groupId = "ATG_DCD_CLING_COST";
+
+    public SearchRsbDvCdRes getRsbDvCd(CodeReq req) {
+        return mapper.selectRsbDvCd(req);
+    }
 
     public List<CodeRes> getBuilDingCd(CodeReq req) {
         return mapper.selectBuilDingCd(req);
@@ -51,7 +58,6 @@ public class WdcdRequestCleaningSuppliesMgtService {
             BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
 
         } else {
-
 
             FindRes res = mapper.selectRequestCleaningSupplies(req.clingCostAdjRcpNo());
 

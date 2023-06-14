@@ -29,6 +29,7 @@ public class WsncFixationVisitDvo {
     String fnlMdfcDtm; /* 변경등록일자 */
     String fxnPrtnrDvCd; /* 지정대상 */
     String fxnPrtnrNo; /* 방문담당 */
+    String fxnPrtnrOgTpCd;
     String chRsonCn; /* 변경사유 */
     String dtaDlYn; /* 삭제여부 */
     String prtnrKnm; /* 기존담당-담당자 */

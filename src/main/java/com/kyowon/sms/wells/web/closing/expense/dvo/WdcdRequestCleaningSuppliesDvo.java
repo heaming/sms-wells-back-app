@@ -30,4 +30,5 @@ public class WdcdRequestCleaningSuppliesDvo {
     private String exnoEncr; // 전화국별
     private String idvTno; // 개별전화번호
     private String ogTpCd;
+    private String clingCostSrcpApnFileId;
 }

@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class WsncBsManagerScheduleService {
     private final WsncBsManagerScheduleMapper mapper;
 
-    public List<WsncBsManagerScheduleDto.SearchRes> getBsManagerScheduleAgrg(
+    public List<WsncBsManagerScheduleDto.Aggregates> getBsManagerScheduleAgrg(
         WsncBsManagerScheduleDto.SearchReq dto
     ) {
         return mapper.selectBsManagerScheduleAgrg(dto);
