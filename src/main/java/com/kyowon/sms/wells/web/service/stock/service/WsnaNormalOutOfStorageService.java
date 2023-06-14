@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import java.text.ParseException;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,14 +86,15 @@ public class WsnaNormalOutOfStorageService {
                 cnt += mapper.insertNormalOstrRgst(vo);
                 cnt += mapper.insertNormalStrRgst(vo);
 
-                WsnaItemStockItemizationDto.SaveReq ostrDto = setOstrWsnaItemStockItemizationDtoSaveReq(vo);
-                cnt += itemStockservice.createStock(ostrDto);
+                //1.이동입고->내부출고 991, 출고:221, 입고:121
+                WsnaItemStockItemizationReqDvo movementDvo = setMovementWsnaItemStockItemizationDtoSaveReq(vo);//이동입고
+                itemStockservice.saveStockMovement(movementDvo);
 
-                WsnaItemStockItemizationDto.SaveReq movementDto = setMovementWsnaItemStockItemizationDtoSaveReq(vo);
-                itemStockservice.saveStockMovement(movementDto);
+                WsnaItemStockItemizationReqDvo ostrDvo = setOstrWsnaItemStockItemizationDtoSaveReq(vo);//출고
+                cnt += itemStockservice.createStock(ostrDvo);
 
-                WsnaItemStockItemizationDto.SaveReq strDto = setStrWsnaItemStockItemizationDtoSaveReq(vo);
-                itemStockservice.saveStockMovement(strDto);
+                WsnaItemStockItemizationReqDvo strDvo = setStrWsnaItemStockItemizationDtoSaveReq(vo);//입고
+                itemStockservice.createStock(strDvo);
 
                 cnt += mapper.updateOstrAkIzAfter(vo);
                 itmSeq++;
@@ -105,70 +107,62 @@ public class WsnaNormalOutOfStorageService {
         return mapper.selectNormalOstrRgstChecked(dto);
     }
 
-    protected WsnaItemStockItemizationDto.SaveReq setOstrWsnaItemStockItemizationDtoSaveReq(
+    protected WsnaItemStockItemizationReqDvo setOstrWsnaItemStockItemizationDtoSaveReq(
         WsnaNormalOutOfStorageDvo vo
     ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getTodayStr().substring(0, 6),
-            vo.getTodayStr(),
-            vo.getOstrWareDvCd(), /*창고구분*/
-            vo.getOstrWareNo(),
-            vo.getOstrWareMngtPrtnrNo(),
-            vo.getOstrTpCd(),
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMngtUnitCd(),
-            vo.getItmGdCd(),
-            vo.getOutQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
+        reqDvo.setProcsDt(vo.getTodayStr());
+        reqDvo.setWareDv(vo.getOstrWareDvCd()); /*창고구분*/
+        reqDvo.setWareNo(vo.getOstrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getOstrWareMngtPrtnrNo());
+        reqDvo.setIostTp(vo.getOstrTpCd());
+        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMngtUnitCd());
+        reqDvo.setItemGd(vo.getItmGdCd());
+        reqDvo.setQty(vo.getOutQty());
+
+        return reqDvo;
     }
 
-    protected WsnaItemStockItemizationDto.SaveReq setStrWsnaItemStockItemizationDtoSaveReq(
+    protected WsnaItemStockItemizationReqDvo setStrWsnaItemStockItemizationDtoSaveReq(
         WsnaNormalOutOfStorageDvo vo
     ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getTodayStr().substring(0, 6),
-            vo.getTodayStr(),
-            vo.getStrWareDvCd(), /*창고구분*/
-            vo.getOstrWareNo(),
-            vo.getOstrWareMngtPrtnrNo(),
-            vo.getOstrTpCd(),
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMngtUnitCd(),
-            vo.getItmGdCd(),
-            vo.getOutQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
+        reqDvo.setProcsDt(vo.getTodayStr());
+        reqDvo.setWareDv(vo.getStrWareDvCd()); /*창고구분*/
+        reqDvo.setWareNo(vo.getStrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+        reqDvo.setIostTp(vo.getStrTpCd());
+        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMngtUnitCd());
+        reqDvo.setItemGd(vo.getItmGdCd());
+        reqDvo.setQty(vo.getOutQty());
+
+        return reqDvo;
     }
 
-    protected WsnaItemStockItemizationDto.SaveReq setMovementWsnaItemStockItemizationDtoSaveReq(
+    protected WsnaItemStockItemizationReqDvo setMovementWsnaItemStockItemizationDtoSaveReq(
         WsnaNormalOutOfStorageDvo vo
     ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getTodayStr().substring(0, 6),
-            vo.getTodayStr(),
-            vo.getOstrAkWareDvCd(), /*창고구분*/
-            vo.getOstrWareNo(),
-            vo.getOstrWareMngtPrtnrNo(),
-            vo.getOstrTpCd(),
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMngtUnitCd(),
-            vo.getItmGdCd(),
-            vo.getOutQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
+        reqDvo.setProcsDt(vo.getTodayStr());
+        reqDvo.setWareDv(vo.getOstrAkWareDvCd()); /*창고구분*/
+        reqDvo.setWareNo(vo.getOstrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getOstrWareMngtPrtnrNo());
+//        reqDvo.setIostTp(vo.getOstrTpCd());
+        reqDvo.setIostTp("991");
+        reqDvo.setWorkDiv("A");/*작업구분 workDiv*/
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMngtUnitCd());
+        reqDvo.setItemGd(vo.getItmGdCd());
+        reqDvo.setQty(vo.getOutQty());
+
+        return reqDvo;
     }
 
     @Transactional
