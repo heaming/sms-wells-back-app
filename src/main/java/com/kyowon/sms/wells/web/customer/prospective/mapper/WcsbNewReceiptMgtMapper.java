@@ -93,8 +93,4 @@ public interface WcsbNewReceiptMgtMapper {
         WcsbNewReceiptMgtDto.SearchSummariesReq dto
     );
 
-    //  int insertReceipt(WcsbNewReceiptDvo code);
-    //  int updateReceipt(WcsbNewReceiptDvo code);
-    //    int deleteReceipt(WcsbNewReceiptDvo vo);
-
 }
