@@ -90,7 +90,7 @@ public class WsncFixationVisitMngtController {
                 "20221205105833", //String fnlMdfcDtm,
                 "1", //String fxnPrtnrDvCd,
                 "1",
-//                "test22", //String fxnPrtnrNo,
+                "test22", //String fxnPrtnrNo,
                 "test33", //String fxnPrtnrKnm,
                 "힘들어요", //String chRsonCn,
                 "N", //String dtaDlYn,
