@@ -3,7 +3,15 @@
 <mapper namespace="com.kyowon.sms.wells.web.product.manage.mapper.WpdcRoutineBsWorkMgtMapper">
     <sql id="selectRoutineBsWorkBaseSql">
         SELECT
-               PB.PD_NM AS PART_PD_NM /* 필터/부품명 */    
+             NVL2((
+              SELECT DTL_SN
+                FROM TB_PDBS_RGBS_WK_BASE_DTL
+               WHERE DTA_DL_YN = 'N'
+                 AND SV_PD_CD = T1.SV_PD_CD
+                 AND PDCT_PD_CD = T1.PDCT_PD_CD
+                 AND ROWNUM = 1
+             ), 'Y', 'N') AS DTL_HAS_YN /* B/S 투입 상세 데이터 존재 여부 */
+             , PB.PD_NM AS PART_PD_NM /* 필터/부품명 */    
              , T1.SV_PD_CD         /* 서비스상품코드 */
              , T1.PDCT_PD_CD       /* 제품상품코드 */
              , T1.DTL_SN           /* 상세일련번호 */
@@ -30,7 +38,7 @@
              , T1.FNL_MDFC_PRG_ID  /* 최종수정프로그램ID */
              , T1.FNL_MDFC_DEPT_ID /* 최종수정부서ID */
           FROM TB_PDBS_RGBS_WK_BASE_BAS T1 /* 정기BS작업기준기본 */
-         INNER JOIN TB_PDBS_PD_BAS PB
+          LEFT OUTER JOIN TB_PDBS_PD_BAS PB
             ON T1.PART_PD_CD = PB.PD_CD
            AND PB.DTA_DL_YN = 'N'
          WHERE T1.DTA_DL_YN = 'N'
@@ -114,11 +122,18 @@
           LEFT OUTER JOIN TB_PDBS_PD_BAS PB
             ON T1.CH_PDCT_PD_CD = PB.PD_CD
            AND PB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D C1
+            ON C1.CD_ID = 'VST_DV_CD'
+           AND T1.VST_DV_CD = C1.CD_VLD_VAL
+           AND C1.TENANT_ID = #{session.tenantId}
+           AND C1.CD_USE_YN = 'Y'
+           AND C1.DEL_YN = 'N' 
            
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.SV_PD_CD         = #{svPdCd}           /* 서비스상품코드 */
            AND T1.PDCT_PD_CD       = #{pdctPdCd}         /* 제품상품코드 */
            AND T1.PART_PD_CD       = #{partPdCd}         /* 부품상품코드 */
+         ORDER BY C1.CD_CNTN ASC, PRD_MM_VAL ASC, PB.PD_NM ASC
     </select>
     
     <update id="isnertRoutineBsWorkBase">

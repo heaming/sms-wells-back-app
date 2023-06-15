@@ -48,6 +48,7 @@ public class WpdcRoutineBsWorkMgtDto {
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRoutineBsWorkBaseRes")
     public record SearchRoutineBsWorkBaseRes(
         String partPdNm, /* 제품상품명 */
+        String dtlHasYn, /* B/S 투입 상세 데이터 존재 여부 */
 
         String svPdCd, /* 서비스상품코드 */
         String pdctPdCd, /* 제품상품코드 */
