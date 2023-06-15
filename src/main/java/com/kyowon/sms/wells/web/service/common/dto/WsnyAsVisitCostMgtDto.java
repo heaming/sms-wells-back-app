@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.service.common.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import javax.validation.constraints.NotBlank;
 
 /**
  *
@@ -33,7 +33,9 @@ public class WsnyAsVisitCostMgtDto {
         String bstrCsAmt,
         String apyStrtdt,
         String apyEnddt,
-        String rmkCn
+        String rmkCn,
+        String sapMatCd,
+        String pdNm
     ) {}
 
     @Builder
@@ -57,4 +59,5 @@ public class WsnyAsVisitCostMgtDto {
         String prevIzSn,
         String nextIzSn
     ) {}
+
 }
