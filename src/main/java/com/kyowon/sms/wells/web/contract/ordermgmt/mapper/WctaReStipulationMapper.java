@@ -9,6 +9,7 @@ import java.util.List;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchRes;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.BasInfoRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.ContractRes;
 
 @Mapper
 public interface WctaReStipulationMapper {
@@ -23,4 +24,6 @@ public interface WctaReStipulationMapper {
     );
 
     List<BasInfoRes> selectReStipulationStandardInfo(String cntrNo, Integer cntrSn);
+
+    ContractRes selectRestipulationContractInfo(String cntrNo, Integer cntrSn);
 }

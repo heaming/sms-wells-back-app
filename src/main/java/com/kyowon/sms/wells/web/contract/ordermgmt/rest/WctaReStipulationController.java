@@ -21,6 +21,7 @@ import java.util.List;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchRes;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.BasInfoRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.ContractRes;
 
 @Api(tags = "[WCTA] 재약정 관리")
 @Validated
@@ -79,6 +80,22 @@ public class WctaReStipulationController {
     ){
         return service.getReStipulationStandardInfo(cntrNo, cntrSn);
     }
+
+    @ApiOperation(value = "재약정 대상계약 상세조회", notes = "재약정 대상계약 상세조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세일련번호", paramType = "query", required = true)
+    })
+    @GetMapping("/contract-info")
+    public ContractRes getRestipulationContractInfo(
+        @Valid
+        String cntrNo,
+        @Valid
+        Integer cntrSn
+    ){
+        return service.getRestipulationContractInfo(cntrNo, cntrSn);
+    }
+
 
 
 }
