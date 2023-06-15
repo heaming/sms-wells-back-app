@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRestipulationCntrRegDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaReStipulationMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -33,6 +34,11 @@ public class WctaReStipulationService {
 
     public ContractRes getRestipulationContractInfo(String cntrNo, Integer cntrSn) {
         return mapper.selectRestipulationContractInfo(cntrNo, cntrSn);
+    }
+
+    public String saveRestipulationContractReg(WctaContractRestipulationCntrRegDvo dvo) {
+        mapper.insertRestipulationCntrReg(dvo);
+        return "";
     }
 
 
