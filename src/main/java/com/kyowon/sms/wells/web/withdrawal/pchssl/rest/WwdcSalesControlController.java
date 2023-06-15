@@ -78,7 +78,7 @@ public class WwdcSalesControlController {
         @ApiImplicitParam(name = "mtrDv", value = "자료구분", paramType = "query"),
         @ApiImplicitParam(name = "ctrDv", value = "조정구분", paramType = "query"),
         @ApiImplicitParam(name = "dsc", value = "할인구분", paramType = "query"),
-        @ApiImplicitParam(name = "fstRgstUsrId", value = "등록자ID", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrNo", value = "등록자ID", paramType = "query"),
         @ApiImplicitParam(name = "slCtrPrcsStrtDt", value = "등록일자From", paramType = "query"),
         @ApiImplicitParam(name = "slCtrPrcsFshDt", value = "등록일자To", paramType = "query"),
     })

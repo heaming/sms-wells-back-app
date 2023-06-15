@@ -19,7 +19,7 @@ public class WwdcSalesControlDto {
         String mtrDv, /* 자료구분*/
         String ctrDv, /* 조정구분 */
         String dsc, /* 할인구분 */
-        String fstRgstUsrId, /* 등록자ID */
+        String prtnrNo, /* 등록자ID -> 23.06.15 파트너ID */
         String slCtrPrcsStrtDt, /* 등록일자 From */
         String slCtrPrcsFshDt /* 등록일자 To */
     ) {}
