@@ -4,6 +4,9 @@ import java.text.ParseException;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksReqDvo;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ import lombok.RequiredArgsConstructor;
  * @author inho.choi
  * @since 2023-03-14
  */
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class WsnaNormalOutOfStorageService {
@@ -34,6 +38,8 @@ public class WsnaNormalOutOfStorageService {
     private final WsnaNormalOutOfStorageConverter converter;
 
     private final WsnaItemStockItemizationService itemStockservice;
+
+    private final WsnaMonthlyItemStocksService monthlyService;
 
     public PagingResult<SearchRes> getNormalOutOfStorage(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectNormalOutOfStorage(dto, pageInfo);
@@ -78,23 +84,37 @@ public class WsnaNormalOutOfStorageService {
                 vo.setItmOstrNo(res.itmOstrNo());
                 vo.setItmStrNo(res.itmStrNo());
                 vo.setStrTpCd(res.strTpCd());
+                vo.setOstrTpCd(res.ostrTpCd());
                 vo.setTodayStr(res.todayStr());
                 vo.setOstrSn(itmSeq);
                 vo.setStrSn(itmSeq);
                 vo.setQty(vo.getOutQty());
-                cnt += mapper.updateOstrAkIz(vo);
                 cnt += mapper.insertNormalOstrRgst(vo);
                 cnt += mapper.insertNormalStrRgst(vo);
-
-                //1.이동입고->내부출고 991, 출고:221, 입고:121
-                WsnaItemStockItemizationReqDvo movementDvo = setMovementWsnaItemStockItemizationDtoSaveReq(vo);//이동입고
-                itemStockservice.saveStockMovement(movementDvo);
+                cnt += mapper.updateOstrAkIz(vo);
 
                 WsnaItemStockItemizationReqDvo ostrDvo = setOstrWsnaItemStockItemizationDtoSaveReq(vo);//출고
-                cnt += itemStockservice.createStock(ostrDvo);
-
                 WsnaItemStockItemizationReqDvo strDvo = setStrWsnaItemStockItemizationDtoSaveReq(vo);//입고
-                itemStockservice.createStock(strDvo);
+                WsnaItemStockItemizationReqDvo movementDvo = setMovementWsnaItemStockItemizationDtoSaveReq(vo);//이동입고
+                WsnaMonthlyItemStocksReqDvo monthlyItemStocksDvo = setMonthlyItemStocks(vo);//이동입고
+
+                cnt += itemStockservice.createStock(ostrDvo);
+                monthlyItemStocksDvo.setIostTp("221");//정상출고
+                monthlyItemStocksDvo.setWareNo(ostrDvo.getWareNo());
+                monthlyItemStocksDvo.setWareDv(ostrDvo.getWareDv());
+                cnt += monthlyService.saveMonthlyStock(monthlyItemStocksDvo);
+
+                cnt += itemStockservice.createStock(strDvo);
+                monthlyItemStocksDvo.setIostTp("121");//정상입고
+                monthlyItemStocksDvo.setWareNo(strDvo.getWareNo());
+                monthlyItemStocksDvo.setWareDv(strDvo.getWareDv());
+                cnt += monthlyService.saveMonthlyStock(monthlyItemStocksDvo);
+
+                //이동입고 991
+                cnt += itemStockservice.saveStockMovement(movementDvo);
+
+                monthlyItemStocksDvo.setIostTp("991");
+                cnt += monthlyService.saveMonthlyStock(monthlyItemStocksDvo);//이동입고 월별품목재고
 
                 cnt += mapper.updateOstrAkIzAfter(vo);
                 itmSeq++;
@@ -105,64 +125,6 @@ public class WsnaNormalOutOfStorageService {
 
     public int getNormalOstrRgstChecked(CheckedReq dto) {
         return mapper.selectNormalOstrRgstChecked(dto);
-    }
-
-    protected WsnaItemStockItemizationReqDvo setOstrWsnaItemStockItemizationDtoSaveReq(
-        WsnaNormalOutOfStorageDvo vo
-    ) {
-        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-        reqDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
-        reqDvo.setProcsDt(vo.getTodayStr());
-        reqDvo.setWareDv(vo.getOstrWareDvCd()); /*창고구분*/
-        reqDvo.setWareNo(vo.getOstrWareNo());
-        reqDvo.setWareMngtPrtnrNo(vo.getOstrWareMngtPrtnrNo());
-        reqDvo.setIostTp(vo.getOstrTpCd());
-        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
-        reqDvo.setItmPdCd(vo.getItmPdCd());
-        reqDvo.setMngtUnit(vo.getMngtUnitCd());
-        reqDvo.setItemGd(vo.getItmGdCd());
-        reqDvo.setQty(vo.getOutQty());
-
-        return reqDvo;
-    }
-
-    protected WsnaItemStockItemizationReqDvo setStrWsnaItemStockItemizationDtoSaveReq(
-        WsnaNormalOutOfStorageDvo vo
-    ) {
-        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-        reqDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
-        reqDvo.setProcsDt(vo.getTodayStr());
-        reqDvo.setWareDv(vo.getStrWareDvCd()); /*창고구분*/
-        reqDvo.setWareNo(vo.getStrWareNo());
-        reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
-        reqDvo.setIostTp(vo.getStrTpCd());
-        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
-        reqDvo.setItmPdCd(vo.getItmPdCd());
-        reqDvo.setMngtUnit(vo.getMngtUnitCd());
-        reqDvo.setItemGd(vo.getItmGdCd());
-        reqDvo.setQty(vo.getOutQty());
-
-        return reqDvo;
-    }
-
-    protected WsnaItemStockItemizationReqDvo setMovementWsnaItemStockItemizationDtoSaveReq(
-        WsnaNormalOutOfStorageDvo vo
-    ) {
-        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-        reqDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
-        reqDvo.setProcsDt(vo.getTodayStr());
-        reqDvo.setWareDv(vo.getOstrAkWareDvCd()); /*창고구분*/
-        reqDvo.setWareNo(vo.getOstrWareNo());
-        reqDvo.setWareMngtPrtnrNo(vo.getOstrWareMngtPrtnrNo());
-//        reqDvo.setIostTp(vo.getOstrTpCd());
-        reqDvo.setIostTp("991");
-        reqDvo.setWorkDiv("A");/*작업구분 workDiv*/
-        reqDvo.setItmPdCd(vo.getItmPdCd());
-        reqDvo.setMngtUnit(vo.getMngtUnitCd());
-        reqDvo.setItemGd(vo.getItmGdCd());
-        reqDvo.setQty(vo.getOutQty());
-
-        return reqDvo;
     }
 
     @Transactional
@@ -177,5 +139,80 @@ public class WsnaNormalOutOfStorageService {
 
     public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto){
         return mapper.selectItmOstrAk(dto);
+    }
+
+    protected WsnaItemStockItemizationReqDvo setOstrWsnaItemStockItemizationDtoSaveReq(
+        WsnaNormalOutOfStorageDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo resDvo = new WsnaItemStockItemizationReqDvo();
+        resDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
+        resDvo.setProcsDt(vo.getTodayStr());
+        resDvo.setWareDv(vo.getOstrWareDvCd()); /*창고구분*/
+        resDvo.setWareNo(vo.getOstrWareNo());
+        resDvo.setWareMngtPrtnrNo(vo.getOstrWareMngtPrtnrNo());
+        resDvo.setIostTp(vo.getOstrTpCd());
+        resDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        resDvo.setItmPdCd(vo.getItmPdCd());
+        resDvo.setMngtUnit(vo.getMngtUnitCd());
+        resDvo.setItemGd(vo.getItmGdCd());
+        resDvo.setQty(vo.getOutQty());
+
+        return resDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setStrWsnaItemStockItemizationDtoSaveReq(
+        WsnaNormalOutOfStorageDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo resDvo = new WsnaItemStockItemizationReqDvo();
+        resDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
+        resDvo.setProcsDt(vo.getTodayStr());
+        resDvo.setWareDv(vo.getStrWareDvCd()); /*창고구분*/
+        resDvo.setWareNo(vo.getStrWareNo());
+        resDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+        resDvo.setIostTp(vo.getStrTpCd());
+        resDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        resDvo.setItmPdCd(vo.getItmPdCd());
+        resDvo.setMngtUnit(vo.getMngtUnitCd());
+        resDvo.setItemGd(vo.getItmGdCd());
+        resDvo.setQty(vo.getOutQty());
+
+        return resDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setMovementWsnaItemStockItemizationDtoSaveReq(
+        WsnaNormalOutOfStorageDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo resDvo = new WsnaItemStockItemizationReqDvo();
+        resDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
+        resDvo.setProcsDt(vo.getTodayStr());
+        resDvo.setWareDv(vo.getStrWareDvCd() ); /*창고구분*/
+        resDvo.setWareNo(vo.getStrWareNo());
+        resDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo() );
+//        resDvo.setIostTp(vo.getOstrTpCd());
+        resDvo.setIostTp("991");
+        resDvo.setWorkDiv("A");/*작업구분 workDiv*/
+        resDvo.setItmPdCd(vo.getItmPdCd());
+        resDvo.setMngtUnit(vo.getMngtUnitCd());
+        resDvo.setItemGd(vo.getItmGdCd());
+        resDvo.setQty(vo.getOutQty());
+
+        return resDvo;
+    }
+
+    protected  WsnaMonthlyItemStocksReqDvo setMonthlyItemStocks(WsnaNormalOutOfStorageDvo vo){
+        WsnaMonthlyItemStocksReqDvo resDvo = new WsnaMonthlyItemStocksReqDvo();
+        resDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
+        resDvo.setProcsDt(vo.getTodayStr());
+        resDvo.setWareDv(vo.getStrWareDvCd() ); /*창고구분*/
+        resDvo.setWareNo(vo.getStrWareNo());
+        resDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+//        resDvo.setIostTp(vo.getOstrTpCd());
+//        resDvo.setIostTp("991");
+        resDvo.setWorkDiv("A");/*작업구분 workDiv*/
+        resDvo.setItmPdCd(vo.getItmPdCd());
+        resDvo.setMngtUnit(vo.getMngtUnitCd());
+        resDvo.setItemGd(vo.getItmGdCd());
+        resDvo.setQty(vo.getOutQty());
+        return resDvo;
     }
 }
