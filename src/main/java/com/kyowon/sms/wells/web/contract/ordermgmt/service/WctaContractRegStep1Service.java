@@ -82,8 +82,7 @@ public class WctaContractRegStep1Service {
             step1Dvo.setPrtnr7(prtnrInfo);
             step1Dvo.setPrtnr(
                 converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(
-                    prtnrService
-                        .selectPrtnrInfo(dto.prtnrNo(), dto.ogTpCd())
+                    prtnrService.selectPrtnrInfo(dto.cntrPrtnrNo(), session.getOgTpCd())
                 )
             );
         } else {
