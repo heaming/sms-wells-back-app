@@ -152,8 +152,7 @@ public class WctaContractDto {
     public record SearchStep1Req(
         String cstNo,
         String cntrNo,
-        String prtnrNo,
-        String ogTpCd,
+        String cntrPrtnrNo,
         Integer step
     ) {}
 

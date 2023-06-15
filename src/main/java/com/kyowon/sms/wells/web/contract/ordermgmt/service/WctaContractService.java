@@ -344,42 +344,27 @@ public class WctaContractService {
 
     /**
      * 판매유입채널상세코드
-     * IF 계약유형코드 == 03 (임직원)
-     * return '9020' 직원구매
-     * ELSE IF 계약유형코드 == 04 (지국비치)
-     * return '9010' 지국비치
-     * ELSE {
-     * IF 세션정보.사용자유형코드 == 'P'
-     * IF 세션정보.조직유형코드 = 'E02'
-     * return 3010 (TM)
-     * ELSE
-     * return 1010 (파트너)
-     * ELSE IF 세션정보.사용자유형코드 == 'E'
-     * return 1030 (정규직원)
-     * ELSE IF 세션정보.사용자유형코드 == 'C'
-     * return 1040 (계약직원)
-     * ELSE   return 9999 (오류) - 이후에 오류생성해야함.
-     * }
-     *
      * @param cntrTpCd
      * @return sellInflwChnlDtlCd
      */
     public String getSaleInflowChnlDtlCd(String cntrTpCd) {
         if (CtContractConst.CNTR_TP_CD_ENSM.equals(cntrTpCd)) {
             return "9020";
-            //} else if (CtContractConst.CNTR_TP_CD_DTRC.equals(cntrTpCd)) {
-            //    return "9010";
         } else {
             UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
             String userTypeCode = session.getUserTypeCode();
-            if (org.apache.commons.lang.StringUtils.isEmpty(userTypeCode)) {
+            if (StringUtils.isEmpty(userTypeCode)) {
                 return "1010"; // FIXME 테스트용, 추후 9999로 수정
                 // return "9999";
             }
             String ogTpCd = session.getOgTpCd();
             if (userTypeCode.equals("P")) {
-                if (ogTpCd.equals("E02")) {
-                    return "3010";
+                if (ogTpCd.equals("W05")) {
+                    return "5010";
+                } else if (ogTpCd.equals("W04")) {
+                    return "8050";
+                } else if (ogTpCd.equals("W03")) {
+                    return "1090";
                 } else {
                     return "1010";
                 }
