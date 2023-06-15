@@ -40,5 +40,19 @@ public interface WsnaAsConsumablesStoreMapper {
 
     int deleteAsConsumablesStores(WsnaAsConsumablesStoreDvo dvo);
 
-    List<SearchRes> selectItemProductCodes(SearchItemReq dto);
+    List<SearchItemRes> selectItemProductCodes(SearchItemReq dto);
+
+    String selectWareMngtPrtnrNo(WsnaAsConsumablesStoreDvo dvo);
+
+    int deletePitmStocAGdQty(WsnaAsConsumablesStoreDvo dvo);
+
+    WsnaAsConsumablesStoreDvo selectItmPdCdInformation(WsnaAsConsumablesStoreDvo dvo);
+
+    WsnaAsConsumablesStoreDvo selectMonthlyItmPdCdInformation(WsnaAsConsumablesStoreDvo dvo);
+
+    int deletePitmStocEGdQty(WsnaAsConsumablesStoreDvo dvo);
+
+    int deleteMonthlyPitmStocAGdQty(WsnaAsConsumablesStoreDvo dvo);
+
+    int deleteMonthlyPitmStocEGdQty(WsnaAsConsumablesStoreDvo dvo);
 }
