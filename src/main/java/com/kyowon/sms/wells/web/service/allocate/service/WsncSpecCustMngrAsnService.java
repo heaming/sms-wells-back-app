@@ -13,6 +13,9 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * [WSNC] [W-SV-S-0031] 특정고객 담당자 지정 BS 오더 생성
+ */
 @Service
 @RequiredArgsConstructor
 public class WsncSpecCustMngrAsnService {
