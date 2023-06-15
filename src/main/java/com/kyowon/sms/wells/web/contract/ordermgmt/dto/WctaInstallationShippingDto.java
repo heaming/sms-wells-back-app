@@ -134,6 +134,7 @@ public class WctaInstallationShippingDto {
         String pcsvBzsNm, // 택배업체명
         String sppOrdNo, // 설치처정보 - 송장번호
         String booSellYn, // 예약확정유무
+        String inChnlDvCd, // 입력채널구분코드
 
         String pdHclsfNm, // 대분류명
         String pdMclsfNm, // 중분류명
@@ -173,8 +174,10 @@ public class WctaInstallationShippingDto {
         String egerCralIdvTno, /* 휴대전화개별번호 */
         String retrTrgtYn, /* 반품 대상 여부 */
         String wkGrpDv, /* 작업 그룹 */
+        String svBizHclsfCd, /* 서비스대분류코드 */
         boolean hasKiwiOrd, /* 키위 존재여부 */
-        String egerNm /* 엔지니어명 */
+        String egerNm, /* 엔지니어명 */
+        String svBizDclsfCd // 서비스업무세분류코드
 
     ) {}
 
