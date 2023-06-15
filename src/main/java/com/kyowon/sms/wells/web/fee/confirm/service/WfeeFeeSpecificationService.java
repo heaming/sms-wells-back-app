@@ -45,6 +45,7 @@ public class WfeeFeeSpecificationService {
                         resList = mapper.selectPPlannerFeeSpecifications(
                             dto, String.valueOf(feeCdMap.get("feeCdInStr")),
                             String.valueOf(feeCdMap.get("feeCdFields")),
+                            String.valueOf(feeCdMap.get("feeSumField")),
                             String.valueOf(feeCdMap.get("feeCdInStr"))
                         );
 
@@ -54,6 +55,7 @@ public class WfeeFeeSpecificationService {
                         resList = mapper.selectPManagerFeeSpecifications(
                             dto, String.valueOf(feeCdMap.get("feeCdInStr")),
                             String.valueOf(feeCdMap.get("feeCdFields")),
+                            String.valueOf(feeCdMap.get("feeSumField")),
                             String.valueOf(feeCdMap.get("feeCdInStr"))
                         );
                 }
@@ -65,6 +67,7 @@ public class WfeeFeeSpecificationService {
                         resList = mapper.selectMPlannerFeeSpecifications(
                             dto, String.valueOf(feeCdMap.get("feeCdInStr")),
                             String.valueOf(feeCdMap.get("feeCdFields")),
+                            String.valueOf(feeCdMap.get("feeSumField")),
                             String.valueOf(feeCdMap.get("feeCdInStr"))
                         );
                 } else if ("2".equals(rsbDvCd)) { //지점장
@@ -73,12 +76,13 @@ public class WfeeFeeSpecificationService {
                         resList = mapper.selectMManagerFeeSpecifications(
                             dto, String.valueOf(feeCdMap.get("feeCdInStr")),
                             String.valueOf(feeCdMap.get("feeCdFields")),
+                            String.valueOf(feeCdMap.get("feeSumField")),
                             String.valueOf(feeCdMap.get("feeCdInStr"))
                         );
                 }
             }
             case "W03" -> { //홈마스터
-                //TODO : 홈마스터 일 경우 ( 아직 TB_FEAM_FEE_CD에 홈마스터 코드가 없음)
+                //@TODO : 홈마스터 일 경우 ( 아직 TB_FEAM_FEE_CD에 홈마스터 코드가 없음)
             }
         }
 
@@ -88,14 +92,18 @@ public class WfeeFeeSpecificationService {
     public Map<String, Object> getFeeCdLists(String perfDt, String feeCalcUnitTpCd) {
 
         List<SearchFeeCdRes> feeLists = mapper.selectFeeCodes(perfDt, feeCalcUnitTpCd);
+
         String feeCdInStr = feeLists.stream()
-            .map(item -> "'" + item.feeCd() + "' as " + item.feeCd())
+            .map(item -> "'" + item.feeNm() + "' as " + item.feeNm())
             .collect(Collectors.joining(","));
-        String feeCdFields = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) AS " + item.feeCd())
+        String feeCdFields = feeLists.stream().map(item -> " NVL(" + item.feeNm() + ",0) AS " + item.feeNm())
             .collect(Collectors.joining(","));
+        String feeSumField = feeLists.stream().map(item -> " NVL(" + item.feeNm() + ",0) ")
+            .collect(Collectors.joining("+")) + " AS FEE_SUM ";
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put("feeCdInStr", feeCdInStr);
         returnMap.put("feeCdFields", feeCdFields);
+        returnMap.put("feeSumField", feeSumField);
         returnMap.put("feeCdList", feeLists);
 
         return returnMap;
