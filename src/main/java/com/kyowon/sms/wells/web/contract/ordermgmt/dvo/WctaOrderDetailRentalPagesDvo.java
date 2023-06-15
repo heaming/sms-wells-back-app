@@ -60,7 +60,7 @@ public class WctaOrderDetailRentalPagesDvo {
     private String sppDuedt; /* 예정일 */
     private String istDt; /* 설치일 */
     private String slDt; /* 매출일 */
-    private String istmMcn; /* 계약기간 */
+    private String cntrPtrm; /* 계약기간(할부개월수) */
     private String cntrPdEnddt; /* 만료일 */
     private String canDt; /* 취소일 */
     private String reqdDt; /* 철거일 */
@@ -68,8 +68,8 @@ public class WctaOrderDetailRentalPagesDvo {
     private String recapDutyPtrmN; /* 의무기간 */
     private String cntrAmt; /* 등록비 */
     private String cntrCtrAmt; /* 등록할인 */
-    private String pdBaseAmt; /* 렌탈료1 */
-    private String ctrVal; /* 렌탈할인1 */
+    private String rentalAmt1; /* 렌탈료1 */
+    private String rentalDscAmt1; /* 렌탈할인1 */
     private String rentalAmt2; /* 렌탈료2 */
     private String rentalDscAmt2; /* 렌탈할인1=2 */
     private String rentalDscDfam; /* 할인차액 */

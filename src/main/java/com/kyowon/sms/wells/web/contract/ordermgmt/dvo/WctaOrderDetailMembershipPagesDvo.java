@@ -16,7 +16,7 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String copnDvCd; /* 고객구분코드 */
     private String cstKnm; /* 계약자명 */
     private String rcgvpKnm; /* 설치자명 */
-    private String ojSellTpNm; /* 계약구분*/
+    private String sellTpDtlNm; /* 계약구분*/
     private String mshDvNm; /* 멤버십구분*/
     private String pdClsfNm; /* 상품분류 */
     private String pdCd; /* 상품코드 */
@@ -30,8 +30,8 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String pdLclsfNm; /* 상품구분1 */
     private String pdDclsfNm; /* 상품구분2 */
     private String cntrDtlStatNm; /* 멤버십상태 */
-    private String dscApyTpCdNm; /* 회비자료구분 */
-    private String dscApyDtlCdNm; /*  */
+    private String dscApyTpNm; /* 할인적용유형명 */
+    private String dscApyDtlNm; /* 할인적용상세명 */
     private String feeAckmtCt; /* 인정건수 */
     private String ackmtPerfAmt; /* 인정금액 */
     private String cntrCtrAmt; /* 등록할인 */
