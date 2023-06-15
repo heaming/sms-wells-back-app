@@ -50,6 +50,8 @@ public class WctaContractIntegrationController {
         @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호(계약자/설치자)", paramType = "query"),
         @ApiImplicitParam(name = "bzrno", value = "사업자번호", paramType = "query"),
         @ApiImplicitParam(name = "sfkVal", value = "세이프키값", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "계약구분(판매유형코드)", paramType = "query"),
     })
     @GetMapping("/details/paging")
@@ -80,6 +82,8 @@ public class WctaContractIntegrationController {
         @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호(계약자/설치자)", paramType = "query"),
         @ApiImplicitParam(name = "bzrno", value = "사업자번호", paramType = "query"),
         @ApiImplicitParam(name = "sfkVal", value = "세이프키값", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "계약구분(판매유형코드)", paramType = "query"),
     })
     @GetMapping("/details/excel-download")

@@ -15,7 +15,7 @@ public class WctaOrderDetailMembershipPagesRequestDvo {
     private String dateSeltDv; /* 일자선택 */
     private String choStrtDt; /* 일자선택 시작일자 */
     private String choEndDt; /* 일자선택 종료일자 */
-    private String sellTpCd; /* 계약구분 */
+    private String sellTpDtlCd; /* 계약구분(판매유형상세코드) */
     private String cntrwTpCd; /* 멤버십구분 */
     private String sellInflwChnlDtlCd; /* 판매구분 */
     private String hcsfVal; /* 상품분류(대분류) */
