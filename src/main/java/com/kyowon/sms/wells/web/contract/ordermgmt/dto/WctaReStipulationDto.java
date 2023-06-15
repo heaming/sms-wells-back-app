@@ -73,12 +73,13 @@ public class WctaReStipulationDto {
 
     @ApiModel("WctaReStipulationDto-ContractRes")
     public record ContractRes(
-        String stplDscAmt,        /*현재렌탈차월*/
-        String rstlBaseTpCd,      /*의무사용기간*/
-        String rstlSellChnlDvCd,  /*설치일자*/
-        String rstlMcn,           /*총계약기간*/
-        String minRentalAmt,      /*최소렌탈금액*/
-        String rstlDutyMcn,       /*재약정의무개월수*/
-        String text               /*조회용 TEXT*/
+        String cntrNo,
+        String cntrSn,
+        String rentalTn,       /*현재렌탈차월*/
+        String stplPtrm,       /*의무사용기간*/
+        String cntrPtrm,       /*총계약기간*/
+        String istDt,          /*설치일자*/
+        String cntrPdStrtdt,   /*상품시작일자*/
+           int stplTn          /*약정회차*/
     ) { }
 }

@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRestipulationCntrRegDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
@@ -26,4 +28,6 @@ public interface WctaReStipulationMapper {
     List<BasInfoRes> selectReStipulationStandardInfo(String cntrNo, Integer cntrSn);
 
     ContractRes selectRestipulationContractInfo(String cntrNo, Integer cntrSn);
+
+    int insertRestipulationCntrReg(WctaContractRestipulationCntrRegDvo dvo);
 }
