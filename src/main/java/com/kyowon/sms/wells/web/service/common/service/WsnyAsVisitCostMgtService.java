@@ -1,21 +1,25 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
+import java.text.ParseException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
 import com.kyowon.sms.wells.web.service.common.converter.WsnyAsVisitCostMgtConverter;
 import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsVisitCostMgtDvo;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnyAsVisitCostMgtMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-
-import java.text.ParseException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -40,12 +44,21 @@ public class WsnyAsVisitCostMgtService {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    public PagingResult<WsnyAsVisitCostMgtDto.SearchRes> getAsVisitCostPages(
-        WsnyAsVisitCostMgtDto.SearchReq searchReq, PageInfo pageInfo
+    public PagingResult<SearchRes> getAsVisitCostPages(
+        SearchReq searchReq, PageInfo pageInfo
     ) {
         return new PagingResult<>(
             converter.mapAllRecapAsBstrCostDvoToSearchRes(mapper.selectAsVisitCostPages(searchReq, pageInfo)), pageInfo
         );
+    }
+
+    /**
+     * 유상 AS 출장비 관리 조회(엑셀 다운로드)
+     * @param searchReq : { pdCd:상품코드 }
+     * @return 조회결과
+     */
+    public List<SearchRes> getAsVisitCostForExcelDownload(SearchReq searchReq) {
+        return converter.mapAllRecapAsBstrCostDvoToSearchRes(mapper.selectAsVisitCostPages(searchReq));
     }
 
     /**
@@ -65,7 +78,8 @@ public class WsnyAsVisitCostMgtService {
         for (WsnyAsVisitCostMgtDto.SaveReq row : rowData) {
             switch (row.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
-                    WsnyAsVisitCostMgtDvo maxIzSn = mapper.selectMaxIzSn(converter.mapAllRecapAsBstrCostSaveReqToDvo(row));
+                    WsnyAsVisitCostMgtDvo maxIzSn = mapper
+                        .selectMaxIzSn(converter.mapAllRecapAsBstrCostSaveReqToDvo(row));
                     WsnyAsVisitCostMgtDvo newRow = converter.mapAllRecapAsBstrCostSaveReqToDvo(row);
                     newRow.setIzSn(maxIzSn.getIzSn());
                     updateCount.addAndGet(mapper.insertRecapAsBstrCost(newRow));
@@ -85,7 +99,8 @@ public class WsnyAsVisitCostMgtService {
                     String nextIzSn = target.getNextIzSn();
                     String startDtm = row.apyStrtdt();
                     String endDtm = row.apyEnddt();
-                    updateCount.addAndGet(mapper.updateRecapAsBstrCost(converter.mapAllRecapAsBstrCostSaveReqToDvo(row)));
+                    updateCount
+                        .addAndGet(mapper.updateRecapAsBstrCost(converter.mapAllRecapAsBstrCostSaveReqToDvo(row)));
                     if (!ObjectUtils.isEmpty(prevIzSn))
                         mapper.updatePrevIsZnEndDtm(
                             new WsnyAsVisitCostMgtDvo(pdCd, prevIzSn, null, DateUtil.addDays(startDtm, -1))
