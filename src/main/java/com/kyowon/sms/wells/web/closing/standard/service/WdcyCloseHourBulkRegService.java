@@ -43,6 +43,7 @@ public class WdcyCloseHourBulkRegService {
                     dvo.setEndHh(dto.crtDtTmTo());    //생정 종료일자
                     dvo.setClDt(dto.crtDt());
                     dvo.setDtaDlYn("N");
+                    dvo.setClPrdCd("1");
 
                     if ("1".equals(dto.crtDtPerfDtDvVal())) {
                         dvo.setPerfDt(dto.crtDt());
@@ -84,6 +85,7 @@ public class WdcyCloseHourBulkRegService {
                         dvo.setEnddt(dto.clDt());   // 마감 일자
                         dvo.setClDt(dto.clDt());
                         dvo.setDtaDlYn("N");
+                        dvo.setClPrdCd("3");
 
                         if ("11".equals(dvo.getClBizTpCd()) || "12".equals(dvo.getClBizTpCd())) {
 
@@ -146,7 +148,7 @@ public class WdcyCloseHourBulkRegService {
                         dvo.setDtaDlYn("N");
                         dvo.setStrtHh(dto.ddClDtTmFrom());   // 마감일자
                         dvo.setEndHh(dto.ddClDtTmTo());  // 마감일자
-                        dvo.setClPrdCd("3");
+                        dvo.setClPrdCd("1");
 
                         if ("1".equals(dto.ddClPerfDtDvVal())) {
                             dvo.setPerfDt(addDay);
@@ -176,7 +178,7 @@ public class WdcyCloseHourBulkRegService {
                             count += mapper.insertCloseHour(dvo);
 
                         } else if ("30".equals(dvo.getClBizTpCd())) {
-                            
+
                             count += mapper.insertCloseHour(dvo);
                         }
 
@@ -208,6 +210,7 @@ public class WdcyCloseHourBulkRegService {
                     dvo.setEnddt(addDay);   // 마감일로 부터 달에 막날까지
                     dvo.setClDt(addDay);
                     dvo.setDtaDlYn("N");
+                    dvo.setClPrdCd("1");
 
                     if ("1".equals(dto.rentalRcpClNxdPerfDtDvVal())) {
                         dvo.setPerfDt(dto.clDt());
@@ -242,6 +245,7 @@ public class WdcyCloseHourBulkRegService {
                     dvo.setEnddt(addDay);   // 마감일로 부터 달에 막날까지
                     dvo.setClDt(addDay);
                     dvo.setDtaDlYn("N");
+                    dvo.setClPrdCd("1");
 
                     if ("1".equals(dto.rentalRcpClNxdPerfDtDvVal())) {
                         dvo.setPerfDt(dto.clDt());
@@ -265,6 +269,7 @@ public class WdcyCloseHourBulkRegService {
 
                     count += mapper.insertCloseHour(dvo);
                 } else if ("30".equals(dvo.getClBizTpCd())) {
+                    dvo.setClPrdCd("1");
 
                     count += mapper.insertCloseHour(dvo);
                 }
