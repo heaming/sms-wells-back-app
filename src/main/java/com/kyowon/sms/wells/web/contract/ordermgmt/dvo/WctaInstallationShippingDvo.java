@@ -11,7 +11,8 @@ import lombok.ToString;
 @ToString
 public class WctaInstallationShippingDvo {
 
-    /* 설치/배송 조회 */
+    /* 설치/
+    배송 조회 */
     private String cntrCnfmDtFr; // 계약시작일자 From
     private String cntrCnfmDtTo; // 계약시작일자 To
     private String statDv; // 상태
@@ -106,5 +107,6 @@ public class WctaInstallationShippingDvo {
     private String acpgDiv; /* 접수구분 */
     private String prtnrNo; /* 사번 */
     private String svBizDclsfCd; /* 서비스업무세분류코드 */
+    private String svBizHclsfCd; /* 서비스대분류코드 */
 
 }

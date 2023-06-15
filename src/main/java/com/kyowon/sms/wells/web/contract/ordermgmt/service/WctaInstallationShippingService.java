@@ -81,6 +81,10 @@ public class WctaInstallationShippingService {
                             shipping.setEgerCralIdvTno(item.getEgerCralIdvTno());
                             shipping.setEgerMexnoEncr(item.getEgerMexnoEncr());
                             shipping.setRetrTrgtYn(item.getRetrTrgtYn());
+                            shipping.setInChnlDvCd(item.getInChnlDvCd());
+                            shipping.setSvBizHclsfCd(item.getSvBizHclsfCd());
+                            shipping.setSvBizDclsfCd(item.getSvBizDclsfCd());
+
                         });
                     shipping.setHasKiwiOrd(true);
                     resultDto.add(converter.mapWctaIstShippingDvoToSearchRes(shipping));
