@@ -16,7 +16,7 @@ public class WsncAsAssignPsDto {
     @ApiModel(value = "WsncAsAssignPsDto-SearchTotalCustomerReq")
     public record SearchTotalCustomerReq(
         String year,
-        String pdGdCd,
+        String pdGrpCd,
         String pdCd
     ) {}
 
