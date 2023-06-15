@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.contract.changeorder.service;
 
-import static com.kyowon.sms.wells.web.contract.changeorder.dto.WctaAffiliateAlncDto.SaveReq;
+import static com.kyowon.sms.wells.web.contract.changeorder.dto.WctbAffiliateAlncDto.SaveReq;
 
 import java.util.List;
 
@@ -9,9 +9,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.contract.changeorder.converter.WctaAffiliateAlncConverter;
-import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctaAffiliateAlncDvo;
-import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctaAffiliateAlncMapper;
+import com.kyowon.sms.wells.web.contract.changeorder.converter.WctbAffiliateAlncConverter;
+import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbAffiliateAlncDvo;
+import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbAffiliateAlncMapper;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzAcmpalContractIzHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractWellsDetailHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
@@ -21,29 +21,29 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WctaAffiliateAlncService {
+public class WctbAffiliateAlncService {
 
-    private final WctaAffiliateAlncMapper mapper;
-    private final WctaAffiliateAlncConverter converter;
+    private final WctbAffiliateAlncMapper mapper;
+    private final WctbAffiliateAlncConverter converter;
     private final WctzHistoryService historyService;
 
     @Transactional
     public String getAffiliateAlnc(SaveReq dto) {
-        WctaAffiliateAlncDvo acmpalDvo = converter.saveReqToWctaAffiliateAlncDvo(dto);
+        WctbAffiliateAlncDvo acmpalDvo = converter.saveReqToWctbAffiliateAlncDvo(dto);
 
-        WctaAffiliateAlncDvo checkDvo = mapper.selectAffiliateAlncCheck(dto);
+        WctbAffiliateAlncDvo checkDvo = mapper.selectAffiliateAlncCheck(dto);
 
         if (ObjectUtils.isEmpty(checkDvo)) {
             return "2";
         }
 
-        List<WctaAffiliateAlncDvo> alncDvo = mapper.selectAffiliateAlnc(dto);
+        List<WctbAffiliateAlncDvo> alncDvo = mapper.selectAffiliateAlnc(dto);
 
         if (CollectionUtils.isEmpty(alncDvo)) {
             return "4";
         }
 
-        for (WctaAffiliateAlncDvo dvo : alncDvo) {
+        for (WctbAffiliateAlncDvo dvo : alncDvo) {
 
             String basePdCd = dvo.getBasePdCd(); /* 기존상품코드 */
             String pmotCd = dvo.getPmotCd(); /* 프로모션코드 */
