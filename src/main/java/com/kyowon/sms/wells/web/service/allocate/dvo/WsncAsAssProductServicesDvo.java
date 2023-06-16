@@ -32,5 +32,5 @@ public class WsncAsAssProductServicesDvo {
     String acol10;
     String acol11;
     String acol12;
-    int totalCount;
+    String totalCount;
 }
