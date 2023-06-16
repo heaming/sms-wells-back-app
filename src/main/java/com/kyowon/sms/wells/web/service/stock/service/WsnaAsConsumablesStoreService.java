@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import com.kyowon.sms.common.web.bond.zcommon.utils.BnBondUtils;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsConsumablesStoreDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
@@ -42,6 +44,8 @@ public class WsnaAsConsumablesStoreService {
     private final WsnaAsConsumablesStoreMapper mapper;
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
+
+    private final WsnaItemStockItemizationService itemStockservice;
 
     private final WsnaAsConsumablesStoreConverter converter;
 
@@ -146,7 +150,8 @@ public class WsnaAsConsumablesStoreService {
             if (StringUtil.isNotBlank(dvo.getStrWareNo())) {
 
                 int strCount = mapper.selectMcbyWareIzCount(dvo);
-
+                String strWareMngtPrtnrNo = mapper.selectWareMngtPrtnrNo(dvo);
+                dvo.setWareMngtPrtnrNo(strWareMngtPrtnrNo);
                 if (strCount == 0) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
@@ -241,6 +246,18 @@ public class WsnaAsConsumablesStoreService {
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
                     //TODO : 품목재고내역 create 붙여야함(서비스로 변경 후 서비스호출예정)
+                    insertDvo.setProcsYm(StringUtils.substring(insertDvo.getStrRgstDt(), 0, 6));
+                    insertDvo.setProcsDt(insertDvo.getStrRgstDt());
+                    insertDvo.setWareDv("2");
+                    insertDvo.setWareNo(insertDvo.getStrWareNo());
+                    insertDvo.setIostTp("117");
+                    insertDvo.setWorkDiv("A");
+                    insertDvo.setItemGd(insertDvo.getItmGdCd());
+                    insertDvo.setQty(insertDvo.getStrQty());
+
+                    WsnaItemStockItemizationReqDvo itemDvo = this.converter.mapItemAsConsumablesStoreDvo(insertDvo);
+                    int processResult = itemStockservice.createStock(itemDvo);
+                    BizAssert.isTrue(processResult > 1, "MSG_ALT_SVE_ERR");
 
                 }
             }
@@ -251,7 +268,7 @@ public class WsnaAsConsumablesStoreService {
     }
 
     @Transactional
-    public int saveAsConsumablesStores(List<SaveReq> dtos) {
+    public int saveAsConsumablesStores(List<SaveReq> dtos) throws ParseException {
         int processCount = 0;
         String itmStrNo = null;
         String strTpCd = "117";
@@ -274,6 +291,8 @@ public class WsnaAsConsumablesStoreService {
 
             //STEP02 : 창고마감일자 체크
             int chkWareClose = this.mapper.selectChkWareClose(dvo);
+            String strWareMngtPrtnrNo = mapper.selectWareMngtPrtnrNo(dvo);
+            dvo.setWareMngtPrtnrNo(strWareMngtPrtnrNo);
             //해당 입고년월은 이미 마감이 완료되어, 입고작업이 불가능합니다.
             BizAssert.isTrue(chkWareClose == 0, "MSG_ALT_STR_YM_CL_FSH_STR_WK_IMP");
 
@@ -317,6 +336,18 @@ public class WsnaAsConsumablesStoreService {
                     int result = this.mapper.insertLineAsConsumablesStore(dvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     //TODO : 품목재고내역 create 붙여야함(서비스로 변경 후 서비스호출예정)
+                    dvo.setProcsYm(StringUtils.substring(dvo.getStrRgstDt(), 0, 6));
+                    dvo.setProcsDt(dvo.getStrRgstDt());
+                    dvo.setWareDv("2");
+                    dvo.setIostTp("117");
+                    dvo.setWorkDiv("A");
+                    dvo.setWareNo(dvo.getStrWareNo());
+                    dvo.setItemGd(dvo.getItmGdCd());
+                    dvo.setQty(dvo.getStrQty());
+
+                    WsnaItemStockItemizationReqDvo itemDvo = this.converter.mapItemAsConsumablesStoreDvo(dvo);
+                    int processResult = itemStockservice.createStock(itemDvo);
+                    BizAssert.isTrue(processResult > 1, "MSG_ALT_SVE_ERR");
                     processCount += result;
 
                 }
@@ -334,29 +365,70 @@ public class WsnaAsConsumablesStoreService {
         return processCount;
     }
 
-    public int removeAsConsumablesStores(List<RemoveReq> dtos) {
+    public int removeAsConsumablesStores(List<RemoveReq> dtos) throws ParseException {
         int processCount = 0;
 
         for (RemoveReq dto : dtos) {
             WsnaAsConsumablesStoreDvo dvo = this.converter.mapRemoveReqToAsConsumablesStoreDvo(dto);
+
+            WsnaAsConsumablesStoreDvo varDvo = mapper.selectItmPdCdInformation(dvo);
+
+            if ("A".equals(dvo.getItmGdCd())) {
+                int CalcPitmStocAGdQty = varDvo.getPitmStocAGdQty() - Integer.parseInt(dvo.getStrQty());
+
+                dvo.setPitmStocAGdQty(CalcPitmStocAGdQty);
+
+            } else {
+                int CalcPitmStocEGdQty = varDvo.getPitmStocEGdQty() - Integer.parseInt(dvo.getStrQty());
+
+                dvo.setPitmStocEGdQty(CalcPitmStocEGdQty);
+            }
+
+            WsnaAsConsumablesStoreDvo monthlyDvo = mapper.selectMonthlyItmPdCdInformation(dvo);
+
+            if ("A".equals(dvo.getItmGdCd())) {
+                int monthlyPitmStocAGdQty = monthlyDvo.getMonthlyPitmStocAGdQty() - Integer.parseInt(dvo.getStrQty());
+                int monthlyEtcStrAGdQty = monthlyDvo.getEtcStrAGdQty() - Integer.parseInt(dvo.getStrQty());
+                dvo.setMonthlyPitmStocAGdQty(monthlyPitmStocAGdQty);
+                dvo.setEtcStrAGdQty(monthlyEtcStrAGdQty);
+            } else {
+                int monthlyPitmStocEGdQty = monthlyDvo.getMonthlyPitmStocEGdQty() - Integer.parseInt(dvo.getStrQty());
+                int monthlyEtcStrEGdQty = monthlyDvo.getEtcStrEGdQty() - Integer.parseInt(dvo.getStrQty());
+                dvo.setMonthlyPitmStocEGdQty(monthlyPitmStocEGdQty);
+                dvo.setEtcStrEGdQty(monthlyEtcStrEGdQty);
+
+            }
 
             //STEP01 : 창고마감일자 체크
             int chkWareClose = this.mapper.selectChkWareClose(dvo);
             //해당 입고년월은 이미 마감이 완료되어, 입고작업이 불가능합니다.
             BizAssert.isTrue(chkWareClose == 0, "MSG_ALT_STR_YM_CL_FSH_STR_WK_IMP");
 
+            if ("A".equals(dvo.getItmGdCd())) {
+                //STEP02 : 고객서비스품목재고내역에서 입력한 수량 뺀 시점재고 UPDATE 실시
+                int delResult = this.mapper.deletePitmStocAGdQty(dvo);
+                BizAssert.isTrue(delResult == 1, "MSG_ALT_SVE_ERR");
+                int monthlyResult = this.mapper.deleteMonthlyPitmStocAGdQty(dvo);
+                BizAssert.isTrue(monthlyResult == 1, "MSG_ALT_SVE_ERR");
+
+            } else {
+                int delResult = this.mapper.deletePitmStocEGdQty(dvo);
+                BizAssert.isTrue(delResult == 1, "MSG_ALT_SVE_ERR");
+                int monthlyResult = this.mapper.deleteMonthlyPitmStocEGdQty(dvo);
+                BizAssert.isTrue(monthlyResult == 1, "MSG_ALT_SVE_ERR");
+            }
+
+            //STEP03 : 입고내역에 등록된 품목입고번호로 삭제
             int result = this.mapper.deleteAsConsumablesStores(dvo);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             processCount += result;
-
-            //TODO : 품목재고내역 삭제 메소드 붙여야함(서비스로 변경 후 서비스호출예정)
 
         }
 
         return processCount;
     }
 
-    public List<SearchRes> getItemProductCodes(SearchItemReq dto) {
+    public List<SearchItemRes> getItemProductCodes(SearchItemReq dto) {
         return this.mapper.selectItemProductCodes(dto);
     }
 }

@@ -15,7 +15,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WSNC] 특정고객 배정 인서트")
+@Api(tags = "[WSNC] [W-SV-S-0027] 특정고객 배정 인서트")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/spec-cust-asns")

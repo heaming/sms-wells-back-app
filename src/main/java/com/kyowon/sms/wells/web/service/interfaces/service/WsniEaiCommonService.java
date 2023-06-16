@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
+import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,9 @@ public class WsniEaiCommonService {
             map.put("RETURN_OBJECT", null);
             e.printStackTrace();
 //            throw e;
+        } catch (BizException e) {
+            log.error("[WsniEaiCommonService.doit] BizException ::: Method invoke error!");
+            e.printStackTrace();
         } catch (Exception e) {
             log.error("[WsniEaiCommonService.doit] Method invoke error!");
             map.put("RESULT_CODE", "E");

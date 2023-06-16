@@ -1,25 +1,30 @@
 
 package com.kyowon.sms.wells.web.service.common.rest;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto;
+import java.text.ParseException;
+import java.util.List;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.common.service.WsnyAsVisitCostMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import java.text.ParseException;
-import java.util.List;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/as-visit-costs")
@@ -36,11 +41,22 @@ public class WsnyAsVisitCostMgtController {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "4103000000"),
     })
     @GetMapping("/paging")
-    public PagingResult<WsnyAsVisitCostMgtDto.SearchRes> getAsVisitCostPages(
-        WsnyAsVisitCostMgtDto.SearchReq dto, @Valid
+    public PagingResult<SearchRes> getAsVisitCostPages(
+        SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
         return service.getAsVisitCostPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "유상 AS 출장비 관리 엑셀 다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "4103000000"),
+    })
+    @GetMapping("/excel-download")
+    public List<SearchRes> getAsVisitCostForExcelDownload(
+        SearchReq dto
+    ) {
+        return service.getAsVisitCostForExcelDownload(dto);
     }
 
     @ApiOperation(value = "유상 AS 출장비 관리 저장")
@@ -57,8 +73,9 @@ public class WsnyAsVisitCostMgtController {
         @RequestBody
         @Valid
         @NotEmpty
-        List<WsnyAsVisitCostMgtDto.SaveReq> rowData
+        List<SaveReq> rowData
     ) throws ParseException {
         return SaveResponse.builder().processCount(service.saveAsVisitCosts(rowData)).build();
     }
+
 }

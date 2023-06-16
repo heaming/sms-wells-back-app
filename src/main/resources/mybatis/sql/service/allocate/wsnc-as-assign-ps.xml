@@ -34,23 +34,32 @@
          , SUM(DECODE(MM, '12', 1)) AS ACOL12    -- 12
          , COUNT(*) AS TCNT
       FROM (
-            SELECT FILT_SELL_TP_CD AS TYP
-                 , SUBSTR(MNGT_YM, 0, 4) AS YYYY
-                 , SUBSTR(MNGT_YM, 5,2) MM
-                 , BASE_PD_CD, SUBSTR(BASE_PD_CD, 0, 5) AS PD_CD_5
-                 , SUBSTR(BASE_PD_CD, 6) AS PD_CD_6
-                 , MNGT_YM
-            FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
-            WHERE 1=1
-              <if test="@MybatisUtils@isNotEmpty(year)">
-              AND MNGT_YM LIKE #{year} || '%'
-              </if>
-              <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-              AND PD_GD_CD = #{pdGdCd}
-              </if>
-              <if test="@MybatisUtils@isNotEmpty(pdCd)">
-              AND BASE_PD_CD = #{pdCd}
-              </if>
+            SELECT S1.FILT_SELL_TP_CD AS TYP
+                 , SUBSTR(S1.MNGT_YM, 0, 4) AS YYYY
+                 , SUBSTR(S1.MNGT_YM, 5,2) MM
+                 , S1.BASE_PD_CD
+                 , SUBSTR(S1.BASE_PD_CD, 0, 5) AS PD_CD_5
+                 , SUBSTR(S1.BASE_PD_CD, 6) AS PD_CD_6
+                 , S1.MNGT_YM
+              FROM TB_SVPD_MCBY_CST_SV_OJ_IZ S1
+                 , (SELECT X.PD_CD
+                         , Y.PD_PRP_VAL20 AS PD_GRP_CD
+                      FROM TB_PDBS_PD_BAS X
+                         , TB_PDBS_PD_ECOM_PRP_DTL Y
+                     WHERE X.PD_CD = Y.PD_CD
+                       AND Y.PD_EXTS_PRP_GRP_CD = 'PART'
+                   ) P1
+             WHERE 1=1
+               AND S1.PDCT_PD_CD = P1.PD_CD
+             <if test="@MybatisUtils@isNotEmpty(year)">
+               AND S1.MNGT_YM LIKE #{year} || '%'
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+               AND P1.PD_GRP_CD = #{pdGrpCd}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(pdCd)">
+               AND S1.PDCT_PD_CD = #{pdCd}
+             </if>
       )
     GROUP BY YYYY, TYP
     ORDER BY TYP

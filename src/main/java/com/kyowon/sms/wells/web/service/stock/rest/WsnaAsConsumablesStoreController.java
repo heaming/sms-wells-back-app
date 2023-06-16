@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import java.text.ParseException;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -79,14 +80,14 @@ public class WsnaAsConsumablesStoreController {
         @RequestBody
         @NotEmpty
         List<RemoveReq> dtos
-    ) {
+    ) throws ParseException {
         return this.service.removeAsConsumablesStores(dtos);
 
     }
 
     @ApiOperation(value = "조회조건에 해당하는 품목코드 조회", notes = "조회조건에 해당하는 품목코드를 조회한다.")
     @GetMapping("/filter-items")
-    public List<SearchRes> getItemProductCodes(
+    public List<SearchItemRes> getItemProductCodes(
         SearchItemReq dto
     ) {
         return this.service.getItemProductCodes(dto);

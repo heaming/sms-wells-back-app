@@ -32,7 +32,6 @@ public class WfeeFeeSpecificationDto {
     // EDU 수수료 지급명세서  - 수수료 코드 값 가져옴
     @ApiModel("WfeeFeeSpecificationDto-SearchFeeCdRes")
     public record SearchFeeCdRes(
-        String feeCd,
         String feeNm,
         String feeCalcUnitTpCd
 

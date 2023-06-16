@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbDepositDetailMapper">
+
+    <select id="selectDepositDetail" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositDetailDto$SearchRes">
+        
+        SELECT T1.CNTR_NO /* 계약번호 */
+             , T1.CNTR_SN /* 계약일련번호 */
+             , T1.CNTR_NO || T1.CNTR_SN AS CNTR /* 계약번호 */
+             , LTRIM(SUBSTR(T1.RVE_NO,-8),0) AS DP_NO/*입금번호 -수납번호*/
+             , T6.CST_NO /*고객번호*/
+             , T6.CST_KNM /*고객명*/
+             , T4.OG_CD /*지점-조직코드*/
+             , T4.PRTNR_KNM /* 판매자 */
+             , T3.SELL_PRTNR_NO /* 판매파트너번호 */
+             , T1.RVE_CD /*수납코드*/
+             , T2.SELL_TP_CD /*판매유형*/
+             , T1.OG_TP_CD /* 조직유형코드 */
+             , T1.DP_DV_CD /*입금구분*/
+             , T1.DP_MES_CD /* 입금수단코드 */
+             , T1.DP_TP_CD  /* 입금유형코드 */
+             , T9.VNCO_DV_CD /* VAN사구분코드 */
+             , TO_CHAR(TO_DATE(T1.DP_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS DP_DT /*입금일자*/
+             , TO_CHAR(TO_DATE(T1.PERF_DT,'YYYYMMDD'), 'YYYY-MM-DD') AS PERF_DT /*실적일자*/
+             , T1.DP_AMT /*입금액*/             
+             , (SELECT FNIT_NM
+                  FROM TB_RVDW_FNIT_CD
+                 WHERE 1 = 1
+                   AND FNIT_CD = T8.CRDCD_FNIT_CD 
+               ) AS FNIT_NM /*카드구분*/
+             , T8.CRCDNO_ENCR/*카드번호 */
+             , T8.CRDCD_ISTM_MCN /*신용카드할부개월수*/
+             , T8.CRDCD_APRNO /*신용카드승인번호*/
+             , T8.CRCDONR_NM /*신용카드주명*/
+             , T1.DP_CPRCNF_NO /*대사번호*/
+             , TO_CHAR(TO_DATE(T3.CNTR_CAN_DTM, 'YYYYMMDD'), 'YYYY-MM-DD') AS CNTR_CAN_DTM /*취소일자*/
+             , (SELECT X.USR_NM
+                  FROM T_CMP_USR_ACO_M X /* 사용자계정기본 */
+                 WHERE X.EPNO = T1.FST_RGST_USR_ID
+                   AND X.DEL_YN = 'N' ) AS RGST_KNM /*입력담당자*/
+             , T1.FST_RGST_USR_ID /*번호-최초등록사용자ID*/
+             , (SELECT X.USR_NM
+                  FROM T_CMP_USR_ACO_M X 
+                 WHERE X.EPNO = T7.CLCTAM_PRTNR_NO
+                   AND X.DEL_YN = 'N') AS CLCTAM_PRTNR_NM/*집금담당자*/
+             , T7.CLCTAM_PRTNR_NO /*번호*/
+          FROM TB_RVDW_RVE_DTL T1 /* 수납상세 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2 /* 계약상세 */
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T3 /* 계약기본 */
+            ON T3.CNTR_NO = T2.CNTR_NO
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /* 월파트너내역 */
+            ON T3.SELL_PRTNR_NO = T4.PRTNR_NO
+           AND T3.SELL_OG_TP_CD = T4.OG_TP_CD
+           AND SUBSTR(T1.PERF_DT, 1, 6) = T4.BASE_YM
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_RVDW_RVE_BAS T5 /* 수납기본 */
+            ON T5.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+           AND T5.RVE_NO = T1.RVE_NO
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T6 /* 고객기본 */
+            ON T6.CST_NO = T5.CST_NO
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T7 /* 채권계약기본 */
+            ON T7.CNTR_NO = T2.CNTR_NO
+           AND T7.CNTR_SN = T2.CNTR_SN
+           AND T7.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_RVDW_CARD_STLM_DP_IZ T8 /* 카드결제입금내역 */
+            ON T8.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+           AND T8.ITG_DP_NO = T1.ITG_DP_NO
+           AND T8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS T9 /* 통합입금기본 */
+            ON T9.ITG_DP_NO = T1.ITG_DP_NO 
+           AND T9.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+           AND T9.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+         <choose>
+           <when test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+           AND T2.SELL_TP_CD =  #{sellTpCd} /* 판매유형 */
+           </when>
+           <otherwise>
+           AND T2.SELL_TP_CD IN ('1','2','3','6') /* 판매유형 */
+           </otherwise> 
+         </choose>
+         <choose>
+           <when test='@MybatisUtils@isNotEmpty(dpDvCd)'>
+           AND T1.DP_DV_CD =  #{dpDvCd} /* 입금구분 */
+           </when>
+           <otherwise>
+           AND T1.DP_DV_CD IN ('1','2') /* 입금구분 */
+           </otherwise> 
+         </choose>
+         <choose>
+           <when test='@MybatisUtils@isNotEmpty(dpMesCd)'>
+           AND T1.DP_MES_CD =  #{dpMesCd} /* 입금수단 */
+           </when>
+           <otherwise>
+           AND T1.DP_MES_CD IN ('01','02','03') /* 입금수단 */
+           </otherwise> 
+         </choose>
+         <choose>
+           <when test='@MybatisUtils@isNotEmpty(dpMesCd)'>
+           AND T1.DP_TP_CD =  #{dpTpCd} /*입금유형*/
+           </when>
+           <otherwise>
+           AND T1.DP_TP_CD IN ('0101','0103','0104') /*입금유형*/
+           </otherwise> 
+         </choose>
+         <if test='@MybatisUtils@isNotEmpty(vncoDvCd)'>
+           AND T9.VNCO_DV_CD = #{vncoDvCd} /* VAN사구분코드 */
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)'>
+           AND SUBSTR(T1.DP_DT,0,8) BETWEEN #{startDt} AND #{endDt} /*입금일자*/        
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+           AND
+           <foreach collection="ogTpCdList" item="code" index="index" separator="IN" open="(" close=")"> 
+           T1.OG_TP_CD LIKE '%'||#{code}||'%'  /*조직유형*/
+           </foreach>
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+           AND T1.CNTR_NO = #{cntrNo} /*계약번호*/
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+           AND T1.CNTR_SN = #{cntrSn}/*계약일련번호*/
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(stClctamPrtnrNo) and @MybatisUtils@isNotEmpty(enClctamPrtnrNo)">
+           AND (T7.CLCTAM_PRTNR_NO <![CDATA[>=]]> #{stClctamPrtnrNo}
+                OR T7.CLCTAM_PRTNR_NO <![CDATA[<=]]> #{enClctamPrtnrNo}) /* 집금담당자사번 */
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(stFstRgstUsrId) and @MybatisUtils@isNotEmpty(enFstRgstUsrId)">
+           AND (T1.FST_RGST_USR_ID <![CDATA[>=]]> #{stFstRgstUsrId}
+                OR T1.FST_RGST_USR_ID <![CDATA[<=]]> #{enFstRgstUsrId}) /* 입력담당자사번 */
+         </if>
+    </select>
+
+</mapper>

@@ -118,4 +118,96 @@
                 AND T4.RENTAL_TN BETWEEN T2.RCP_STRT_MCN AND T2.RCP_END_MCN
                 AND T1.DTA_DL_YN = 'N'
     </select>
+
+    <select id="selectRestipulationContractInfo"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto$ContractRes">
+          SELECT T1.CNTR_NO
+               , T1.CNTR_SN
+               , T2.RENTAL_TN       /*현재렌탈차월*/
+               , T1.STPL_PTRM       /*의무사용기간*/
+               , T1.CNTR_PTRM       /*총계약기간*/
+               , T3.IST_DT          /*설치일자*/
+               , T1.CNTR_PD_STRTDT  /*상품시작일자*/
+               , TO_NUMBER(NVL(T4.STPL_TN, 0)) AS STPL_TN
+            FROM TB_SSCT_CNTR_DTL T1
+           INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T2
+              ON T2.CNTR_NO = T1.CNTR_NO
+             AND T2.CNTR_SN = T1.CNTR_SN
+             AND T2.SL_CL_YM = (SELECT MAX(SL_CL_YM)
+                                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                                 WHERE CNTR_NO = T1.CNTR_NO
+                                   AND CNTR_SN = T1.CNTR_SN)
+           INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3
+              ON T3.CNTR_NO = T1.CNTR_NO
+             AND T3.CNTR_SN = T1.CNTR_SN
+            LEFT OUTER JOIN TB_SSCT_RENTAL_RSTL_IZ T4
+              ON T4.CNTR_NO = T1.CNTR_NO
+             AND T4.CNTR_SN = T1.CNTR_SN
+             AND T4.STPL_TN = (SELECT MAX(STPL_TN)
+                                 FROM TB_SSCT_RENTAL_RSTL_IZ
+                                WHERE 1=1
+                                  AND CNTR_NO = T4.CNTR_NO
+                                  AND CNTR_SN = T4.CNTR_SN)
+           WHERE 1=1
+             AND T1.CNTR_NO = #{cntrNo}
+             AND T1.CNTR_SN = #{cntrSn}
+             AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <insert id="insertRestipulationCntrReg">
+        INSERT INTO TB_SSCT_RENTAL_RSTL_IZ (  /* 렌탈재약정내역 */
+          CNTR_NO
+        , CNTR_SN
+        , STPL_TN
+        , STPL_TP_CD
+        , STPL_PTRM_UNIT_CD
+        , STPL_PTRM
+        , STPL_STRTDT
+        , STPL_ENDDT
+        , STPL_DSC_AMT
+        , RSTL_STAT_CD
+        , STPL_RCP_DTM
+        , RCP_OG_TP_CD
+        , RCP_PRTNR_NO
+        , FEE_ACKMT_CT
+        , FEE_ACKMT_BASE_AMT
+        , FEE_FXAM_YN
+        , ACKMT_PERF_RT
+        , ACKMT_PERF_AMT
+        , NOTY_FW_ID
+        , STPL_CNFM_DTM
+        , CNFM_USR_ID
+        , CNTR_CH_FSH_DTM
+        , STPL_CAN_DTM
+        , STPL_CAN_USR_ID
+        , STPL_WDWL_DTM
+        <include refid="COMMON.insertSystemField" />)
+        VALUES (
+         #{cntrNo}
+        , #{cntrSn}
+        , #{stplTn}
+        , #{stplTpCd}
+        , #{stplPtrmUnitCd}
+        , #{stplPtrm}
+        , #{stplStrtdt}
+        , #{stplEnddt}
+        , #{stplDscAmt}
+        , #{rstlStatCd}
+        , #{stplRcpDtm}
+        , #{rcpOgTpCd}
+        , #{rcpPrtnrNo}
+        , #{feeAckmtCt}
+        , #{feeAckmtBaseAmt}
+        , #{feeFxamYn}
+        , #{ackmtPerfRt}
+        , #{ackmtPerfAmt}
+        , #{notyFwId}
+        , #{stplCnfmDtm}
+        , #{cnfmUsrId}
+        , #{cntrChFshDtm}
+        , #{stplCanDtm}
+        , #{stplCanUsrId}
+        , #{stplWdwlDtm}
+        <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
 </mapper>

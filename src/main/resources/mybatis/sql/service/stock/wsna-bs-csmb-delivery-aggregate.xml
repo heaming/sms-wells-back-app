@@ -130,7 +130,8 @@
                  GROUP BY T1.CSMB_PD_CD, T1.SAP_MAT_CD, T1.STR_WARE_NO, T2.PRTNR_NO, T1.MNGT_YM,
                           T2.BLD_CD, T2.BLD_NM, T3.PRTNR_NO, T3.BLD_CD, T3.BLD_NM, T4.BLD_CD, T4.BLD_NM
                ) M1
-         INNER JOIN (SELECT O2.BLD_CD
+         INNER JOIN (SELECT /*+ index (S1 IX_SVPD_CST_SV_BFSVC_ASN_IZ_08)*/
+                            O2.BLD_CD
                           , COUNT(S1.CST_SV_ASN_NO) AS VST_ACC_SUM
                           , SUM(CASE WHEN P1.PD_PRP_VAL20 = '1' AND C1.COPN_DV_CD = '1' THEN 1 ELSE 0 END) AS BDT_INDV /* 비데개인 */
                           , SUM(CASE WHEN P1.PD_PRP_VAL20 = '1' AND C1.COPN_DV_CD = '2' THEN 1 ELSE 0 END) AS BDT_CRP /* 비데법인 */
@@ -145,13 +146,14 @@
                           , SUM(CASE WHEN P1.PD_CD IN ('WM04100164', 'WM04100166', 'WM04100192', 'WM04100193', 'WM04100194', 'WM07101222') THEN 1 ELSE 0 END) AS ARDRSSR /* 에어드레서 */
                           , SUM(CASE WHEN P1.PD_CD IN ('WM04100200', 'WM04100201', 'WM04100202') THEN 1 ELSE 0 END) AS SSCLING /* 삼성청소기 */
                        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1
-                      INNER JOIN (SELECT X.CST_SV_ASN_NO
+                      INNER JOIN (SELECT /*+ index (Y PK_SVPD_CST_SV_EXCN_IZ)*/
+                                         X.CST_SV_ASN_NO
                                        , Y.PDCT_PD_CD
                                     FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ X
                                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ Y
-                                      ON Y.CNTR_NO = X.CNTR_NO
-                                     AND Y.CNTR_SN = X.CNTR_SN
-                                     AND X.SV_BIZ_DCLSF_CD <![CDATA[<>]]> '2140'
+                                      ON X.CNTR_NO = Y.CNTR_NO
+                                     AND X.CNTR_SN = Y.CNTR_SN
+                                     AND TRIM(X.SV_BIZ_DCLSF_CD) <![CDATA[<>]]> '2140'
                                      AND X.ASN_OJ_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
                                  ) S2
                          ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -171,7 +173,7 @@
                          ON C1.CNTR_NO = S1.CNTR_NO
                       WHERE 1=1
                         AND S1.ASN_OJ_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
-                        AND S1.SV_BIZ_DCLSF_CD <![CDATA[<>]]> '2140'
+                        AND TRIM(S1.SV_BIZ_DCLSF_CD) <![CDATA[<>]]> '2140'
                         AND S1.CNFM_PSIC_PRTNR_OG_TP_CD = 'W02'
                         AND S1.VST_PRGS_STAT_CD = '20'
                       GROUP BY O2.BLD_CD

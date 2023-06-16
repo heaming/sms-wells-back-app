@@ -21,7 +21,7 @@ public class WfebEgerAllowanceDto {
     public record SearchReq(
         @NotBlank
         String perfYm,
-        String awDv,
+        String feeSchdTpCd,
         String ogLevlDvCd1,
         String rsbDvCd,
         String prtnrNo

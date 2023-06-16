@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.salesstatus.dto;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -21,7 +22,7 @@ public class WcteRcpIstDto {
         String cntrCnfmDtFr, // 조회시작일자
         @NotBlank
         String cntrCnfmDtTo, // 조회종료일자
-        @NotBlank
+        @NotEmpty
         List<String> pdDvs, // 제품구분
         String cstDvCd, // 고객구분
         String sellInflwChnlDtlCd, // 조직구분

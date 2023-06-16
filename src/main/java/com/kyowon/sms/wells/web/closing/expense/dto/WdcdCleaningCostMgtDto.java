@@ -30,7 +30,8 @@ public class WdcdCleaningCostMgtDto {
         String aplcStartDt,
         @NotBlank
         String aplcEndDt,
-        String bldCd
+        String bldCd,
+        String bldNm
     ) {
     }
 

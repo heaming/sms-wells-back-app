@@ -1,18 +1,19 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep1Dvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRestipulationCntrRegDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaReStipulationService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -21,6 +22,7 @@ import java.util.List;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchRes;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.BasInfoRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.ContractRes;
 
 @Api(tags = "[WCTA] 재약정 관리")
 @Validated
@@ -80,5 +82,28 @@ public class WctaReStipulationController {
         return service.getReStipulationStandardInfo(cntrNo, cntrSn);
     }
 
+    @ApiOperation(value = "재약정 대상계약 상세조회", notes = "재약정 대상계약 상세조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세일련번호", paramType = "query", required = true)
+    })
+    @GetMapping("/contract-info")
+    public ContractRes getRestipulationContractInfo(
+        @Valid
+        String cntrNo,
+        @Valid
+        Integer cntrSn
+    ){
+        return service.getRestipulationContractInfo(cntrNo, cntrSn);
+    }
 
+    @ApiOperation(value = "재약정 계약 저장", notes = "재약정 계약 저장")
+    @PostMapping("/save-contract")
+    public SaveResponse saveRestipulationContractReg(
+        @RequestBody
+        @Valid
+        WctaContractRestipulationCntrRegDvo dvo
+    ){
+        return SaveResponse.builder().key(service.saveRestipulationContractReg(dvo)).build();
+    }
 }

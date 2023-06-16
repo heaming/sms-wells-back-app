@@ -13,7 +13,15 @@ public interface WfeaNetOrderMapper {
         SearchReq dto
     );
 
+    List<SearchRes> selectAggreateNetOrders(
+        SearchReq dto
+    );
+
     List<SearchFeeRes> selectNetOrderFees(
+        SearchReq dto
+    );
+
+    SearchConfirmRes selectNetAggregateConfirm(
         SearchReq dto
     );
 
@@ -22,6 +30,10 @@ public interface WfeaNetOrderMapper {
     );
 
     int insertNetOrders(
+        WfeaNetOrderDvo dvo
+    );
+
+    int updateNetOrders(
         WfeaNetOrderDvo dvo
     );
 }

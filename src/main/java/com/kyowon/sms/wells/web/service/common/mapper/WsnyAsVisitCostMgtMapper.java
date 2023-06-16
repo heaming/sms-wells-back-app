@@ -1,11 +1,12 @@
 package com.kyowon.sms.wells.web.service.common.mapper;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
 import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsVisitCostMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
-import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 /**
  *
@@ -25,6 +26,13 @@ public interface WsnyAsVisitCostMgtMapper {
      * @return 조회결과
      */
     List<WsnyAsVisitCostMgtDvo> selectAsVisitCostPages(WsnyAsVisitCostMgtDto.SearchReq searchReq, PageInfo pageInfo);
+
+    /**
+     * 유상 AS 출장비 관리 조회(엑셀 다운로드)
+     * @param searchReq 조회조건
+     * @return 조회결과
+     */
+    List<WsnyAsVisitCostMgtDvo> selectAsVisitCostPages(WsnyAsVisitCostMgtDto.SearchReq searchReq);
 
     /**
      * 유상 AS 출장비 관리 중복 검증
@@ -75,4 +83,5 @@ public interface WsnyAsVisitCostMgtMapper {
      * @return 처리수
      */
     int insertRecapAsBstrCost(WsnyAsVisitCostMgtDvo dvo);
+
 }

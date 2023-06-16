@@ -35,7 +35,8 @@ public class WctaContractPrtnrRelDvo {
     private String dgr4LevlOgNm; /* 4차레벨조직명 */
     private String dgr5LevlOgCd; /* 5차레벨조직코드 */
     private String dgr5LevlOgNm; /* 5차레벨조직명 */
-    private String hooPrtnrNm; /* 지국장명 */
+    private String dgr4LevlDgPrtnrNo; /* 지점장사번 */
+    private String dgr4LevlDgPrtnrNm; /* 지점장명 */
     private String adr;
     private String adrDtl;
     private String zip;
@@ -43,4 +44,5 @@ public class WctaContractPrtnrRelDvo {
     /* STEP1 */
     private String pstnDvCd; /* 직급코드 */
     private String prrBizRgstYn; /* 사전업무등록여부 */
+    private String ogCd; /* 조직코드 */
 }
