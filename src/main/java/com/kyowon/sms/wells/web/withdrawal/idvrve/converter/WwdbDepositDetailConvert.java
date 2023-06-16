@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbDepositDetailSearchDvo
 
 @Mapper(componentModel = "spring", imports = {StringUtils.class})
 public interface WwdbDepositDetailConvert {
+
     WwdbDepositDetailSearchDvo mapWwdbDepositDetailSearchDvo(SearchReq dto);
 
 }

@@ -27,12 +27,14 @@ public class WwdbDepositDetailController {
 
     @ApiOperation(value = "입금내역 조회", notes = "웰스 입금내역 정보를 검색한다.")
     @GetMapping("/paging")
+
     public PagingResult<SearchRes> getDepositDetailPages(SearchReq dto, PageInfo pageInfo) {
         return service.getDepositDetailPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "입금내역 엑셀다운로드", notes = "웰스 입금내역 정보를 검색하여 엑셀다운로드한다.")
     @GetMapping("/excel-download")
+
     public List<SearchRes> getDepositDetailExcels(SearchReq dto) {
         return service.getDepositDetailExcels(dto);
     }

@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WwdbDepositDetailSearchDvo {
+
     String ogTpCd;
     String[] ogTpCdList;
 }

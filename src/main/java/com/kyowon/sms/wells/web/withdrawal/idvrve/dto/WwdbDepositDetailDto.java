@@ -56,7 +56,6 @@ public class WwdbDepositDetailDto {
         String clctamPrtnrNo,
         //        String stClctamPrtnrNo, // 집금담당자 사번 시작
         //        String enClctamPrtnrNo, // 집금담당자 사번 끝
-
         String dpMesCd, // 입금수단  
         String dpTpCd, // 입금유형  
         String vncoDvCd, // van사 구분

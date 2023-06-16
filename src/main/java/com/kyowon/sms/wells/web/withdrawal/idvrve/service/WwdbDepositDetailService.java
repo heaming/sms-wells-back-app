@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WwdbDepositDetailService {
 
     private final WwdbDepositDetailMapper mapper;
+
     private final WwdbDepositDetailConvert convert;
 
     @Transactional

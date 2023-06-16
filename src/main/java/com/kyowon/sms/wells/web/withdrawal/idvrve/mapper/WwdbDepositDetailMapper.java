@@ -15,4 +15,5 @@ public interface WwdbDepositDetailMapper {
     PagingResult<SearchRes> selectDepositDetail(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRes> selectDepositDetail(SearchReq dto);
+
 }
