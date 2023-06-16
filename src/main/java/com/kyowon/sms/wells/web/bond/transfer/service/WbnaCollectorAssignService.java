@@ -71,6 +71,9 @@ public class WbnaCollectorAssignService {
     public String createCollectorAssigns(
         CreateReq dto
     ) throws Exception {
+        // 배정 가능 여부 확인
+        BizAssert.isTrue(mapper.selectCanCollectorAssign(dto) == 1, "MSG_ALT_ASN_DTA_EXST");
+
         // 기존 배치 동작 여부 확인 (true:배치 동작 가능, false:배치 동작 불가)
         /* TODO 배치 실행 확인 문제로 임시 주석
         BizAssert.isTrue(
