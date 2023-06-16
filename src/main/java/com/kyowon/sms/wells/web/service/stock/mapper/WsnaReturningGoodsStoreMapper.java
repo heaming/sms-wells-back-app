@@ -62,5 +62,9 @@ public interface WsnaReturningGoodsStoreMapper {
 
     int insertDiDisuseOstrIz(WsnaReturningGoodsStoreDvo dvo);
 
+    String selectRmkCn(WsnaReturningGoodsStoreDvo dvo);
+
+    String selectRefrRmkCn(WsnaReturningGoodsStoreDvo dvo);
+
     //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
 }
