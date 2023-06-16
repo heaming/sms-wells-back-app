@@ -29,6 +29,10 @@ public class WsncVisitPeriodRecrtService {
         WsncVisitPeriodRecrtDvo dvo = new WsncVisitPeriodRecrtDvo();
         dvo.setCntrNo(valueOfEmptyStr(param.get("PARAM1")));
         dvo.setCntrSn(valueOfEmptyStr(param.get("PARAM2")));
+
+        log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] cntrNo ::: " + dvo.getCntrNo());
+        log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] cntrSn ::: " + dvo.getCntrSn());
+
         return saveVisitPeriodRecrt(dvo);
     }
 
