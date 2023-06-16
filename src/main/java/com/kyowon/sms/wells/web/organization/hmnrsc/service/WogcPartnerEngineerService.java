@@ -100,10 +100,14 @@ public class WogcPartnerEngineerService {
         for (WogcPartnerEngineerDto.SaveJoeManagementReq dto : dtos) {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveJoeManagementReqToWogcPartnerEngineerDvo(dto);
+
+            String mexnoEncr = dvo.getMexnoEncr();
             processCnt += this.mapper.insertWkGrpBlgDtl(dvo);
             if (dvo.getVlStrtdt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
                 this.mapper.updatePrtnrGrpCd(dvo); //직책업데이트
             }
+            dvo.setMexnoEncr(mexnoEncr);
+            this.mapper.updatePrtnrBusiness(dvo); //업무용전화번호업데이트
         }
 
         return processCnt;

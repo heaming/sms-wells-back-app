@@ -135,32 +135,6 @@
                ) T
               WHERE T.RNO = 1
       )
-      , TNO_BLG_DTL AS (
-             SELECT
-                    T.OG_TP_CD         -- 조직유형코드 PK - TEST 자료 에러라서 고정값 부여함.
-                  , T.PRTNR_NO
-                  , T.APY_SEQN         -- 일련번호 PK
-                  , T.CRAL_LOCARA_TNO  -- 업무용전화번호1
-                  , T.MEXNO_ENCR         -- 업무용전화번호2
-                  , T.CRAL_IDV_TNO     -- 업무용전화번호3
-               FROM (
-                      SELECT
-                             'W06' AS OG_TP_CD     -- 조직유형코드 PK - TEST 자료 에러라서 고정값 부여함.
-                            , A.PRTNR_NO         -- 사번 PK
-                            , A.APY_SEQN         -- 일련번호 PK
-                            , A.CRAL_LOCARA_TNO  -- 업무용전화번호1
-                            , A.MEXNO_ENCR     -- 업무용전화번호2
-                            , A.CRAL_IDV_TNO     -- 업무용전화번호3
-                            , A.DTA_DL_YN
-                            , RANK() OVER (PARTITION BY A.OG_TP_CD, A.PRTNR_NO ORDER BY A.APY_SEQN DESC) AS RNO
-                         FROM TB_OGBS_WK_GRP_BLG_DTL A        -- [작업그룹소속상세 테이블]
-                        WHERE 1=1
-                          AND A.OG_TP_CD = 'W06'                        -- 웰스-엔지니어 고정
-                          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.VL_STRTDT AND A.VL_ENDDT                 -- 적용일기준조회 (여기서 처리)
-                          AND A.DTA_DL_YN = 'N'
-             ) T
-              WHERE T.RNO = 1
-      )
       SELECT
              A.OG_TP_CD 		-- 조직유형코드 PK
            , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR1_LEVL_OG_ID) AS DGR1_LEVL_OG_NM  -- 1단계명
@@ -181,10 +155,10 @@
            , B.CNTR_DT		-- 입사일자
            , C.VL_STRTDT 		-- 적용일자
            , C.VL_ENDDT 		-- 종료일자
-           , C.CRAL_LOCARA_TNO
-           , E.MEXNO_ENCR
-           , E.CRAL_IDV_TNO
-           , E.CRAL_LOCARA_TNO||E.MEXNO_ENCR||E.CRAL_IDV_TNO AS TEL_NUMBER
+           , A.BIZ_USE_IDV_TNO   AS CRAL_LOCARA_TNO
+           , A.BIZ_USE_EXNO_ENCR  AS MEXNO_ENCR
+           , A.BIZ_USE_LOCARA_TNO AS CRAL_IDV_TNO
+           , A.BIZ_USE_IDV_TNO||A.BIZ_USE_EXNO_ENCR||A.BIZ_USE_LOCARA_TNO AS TEL_NUMBER
            , A.DTA_DL_YN
            , C.APY_SEQN
         FROM TB_OGBS_PRTNR_BAS A
@@ -197,9 +171,6 @@
         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D
           ON A.OG_ID = D.OG_ID
          AND D.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-        LEFT OUTER JOIN TNO_BLG_DTL E
-          ON A.OG_TP_CD = E.OG_TP_CD
-         AND A.PRTNR_NO = E.PRTNR_NO
        WHERE 1=1
          AND A.OG_TP_CD = 'W06'					-- 엔지니어
          AND A.DTA_DL_YN = 'N'
@@ -290,10 +261,10 @@
              , B.CNTR_DT		-- 입사일자
              , C.VL_STRTDT 		-- 적용일자
              , C.VL_ENDDT 		-- 종료일자
-             , C.CRAL_LOCARA_TNO
-             , C.MEXNO_ENCR
-             , C.CRAL_IDV_TNO
-             , C.CRAL_LOCARA_TNO||C.MEXNO_ENCR||C.CRAL_IDV_TNO AS TEL_NUMBER
+             , A.BIZ_USE_IDV_TNO   AS CRAL_LOCARA_TNO
+             , A.BIZ_USE_EXNO_ENCR  AS MEXNO_ENCR
+             , A.BIZ_USE_LOCARA_TNO AS CRAL_IDV_TNO
+             , A.BIZ_USE_IDV_TNO||A.BIZ_USE_EXNO_ENCR||A.BIZ_USE_LOCARA_TNO AS TEL_NUMBER
              , A.DTA_DL_YN
              , C.APY_SEQN
              , C.DTA_DL_YN
@@ -381,6 +352,18 @@
            AND OG_TP_CD = #{ogTpCd}
            AND PRTNR_NO = #{prtnrNo}
            AND BASE_YM = SUBSTR(#{vlStrtdt},0,6)
+    </update>
+
+    <!-- 업무용전화번호 업데이트 -->
+    <update id="updatePrtnrBusiness">
+        UPDATE TB_OGBS_PRTNR_BAS
+           SET BIZ_USE_IDV_TNO = #{cralLocaraTno}
+             , BIZ_USE_EXNO_ENCR = #{mexnoEncr}
+             , BIZ_USE_LOCARA_TNO = #{cralIdvTno}
+             <include refid="COMMON.updateSystemField" />
+        WHERE 1=1
+          AND OG_TP_CD = #{ogTpCd}
+          AND PRTNR_NO = #{prtnrNo}
     </update>
 
     <!--엔지니어 등급관리 -->
