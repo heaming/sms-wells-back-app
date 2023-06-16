@@ -29,6 +29,10 @@ public class WsncVisitPeriodRecrtService {
         WsncVisitPeriodRecrtDvo dvo = new WsncVisitPeriodRecrtDvo();
         dvo.setCntrNo(valueOfEmptyStr(param.get("PARAM1")));
         dvo.setCntrSn(valueOfEmptyStr(param.get("PARAM2")));
+
+        log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] cntrNo ::: " + dvo.getCntrNo());
+        log.info("[WsncVisitPeriodRecrtService.saveVisitPeriodRecrt] cntrSn ::: " + dvo.getCntrSn());
+
         return saveVisitPeriodRecrt(dvo);
     }
 
@@ -53,6 +57,11 @@ public class WsncVisitPeriodRecrtService {
          */
         try {
             WsncVisitPeriodRecrtDvo dvo = mapper.selectPeriodPdInfo(req);
+
+            if(dvo == null){
+                return 1;
+            }
+
             switch (dvo.getSvpdItemGr()) {
                 //배송
                 case  "12", "13", "14", "15", "16"
