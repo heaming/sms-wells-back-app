@@ -188,18 +188,16 @@
                     WHEN T2.SELL_TP_CD = '2' AND T2.ALNCMP_CD IN ('17','54','55') /* 렌탈에서 제휴사코드:상조 = 상조 */
                     THEN '라이프'
                     WHEN T2.SELL_TP_CD = '2' OR T2.SELL_TP_CD = '3'   /* 렌탈/리스(2), 멤버십(3) */
-                    THEN (SELECT CASE WHEN CST_GD_CD = '2' THEN 'VIP' ELSE '일반' END
-                            FROM (SELECT CST_GD_CD
-                                       , ROW_NUMBER () OVER( ORDER BY CST_GD_ESTM_DT DESC) AS RN
+                    THEN (CASE WHEN (SELECT COUNT(1)
                                     FROM TB_SSCT_CST_GD_ESTM_IZ T10 /* T.고객등급산정내역*/
                                    WHERE 1=1
                                      AND T10.CST_NO = T1.CNTR_CST_NO       /* 고객번호 */
-                                     AND T10.VL_END_DTM = '99991231235959' /* 유효종료일시 */
-                                     AND T10.ESTM_BASE_STRTDT <![CDATA[ <= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')  /* 산정기준시작일자 */
-                                     AND T10.ESTM_BASE_ENDDT <![CDATA[ >= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')  /* 산정기준종료일자 */
-                                     AND T10.DTA_DL_YN = 'N'               /* 데이터삭제여부 */
-                                 )
-                              WHERE RN=1 )
+                                     AND T10.CST_GD_CD = '2'
+                                     AND TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN  T10.VL_STRT_DTM AND T10.VL_END_DTM
+                                     AND T10.DTA_DL_YN = 'N'               /* 데이터삭제여부*/
+                                    ) = 0
+                                THEN '일반' ELSE 'VIP' END
+                          )
                     ELSE '' END AS CST_GD                       /* 고객등급 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', T3.SEX_DV_CD) AS SEX_DV_NM
              , CASE /* 계좌자동이체 상세정보 */
@@ -220,7 +218,7 @@
              , T6.CRCDNO_ENCR
              , T3.SFK_VAL /* 세이프키값 */
              , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '1' AND FNIT_CD = T7.VAC_BNK_CD) || '$' ||
-             	T7.VAC_NO || '$' || NVL2(T7.VAC_DP_DT, ' 입금일 : ' || T7.VAC_DP_DT, '') AS VAC_INFO
+                T7.VAC_NO || '$' || NVL2(T7.VAC_DP_DT, ' 입금일 : ' || T7.VAC_DP_DT, '') AS VAC_INFO
              , T42.RNADR || T42.RDADR AS CNTRT_ADR /* 계약자 주소 */
              , T51.RCGVP_KNM    /* 수령자한글명 */
              , T51.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO
@@ -232,21 +230,11 @@
          INNER JOIN TB_SSCT_CNTR_DTL T2             /* T.계약상세 */
             ON T2.CNTR_NO = T1.CNTR_NO              /* 계약번호 */
            AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T3            /* T.고객기본 */
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3        /* T.고객기본 */
             ON T3.CST_NO = T1.CNTR_CST_NO
            AND T3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T4       /* T.계약주소관계 - 계약 */
-            ON T4.DTA_DL_YN = 'N'
-           AND T4.VL_END_DTM = '99991231235959'         /* 유효종료일시 */
-           AND T4.ADRPC_TP_CD = '1'                     /* 주소지유형코드 : 계약주소 */
-           AND T4.CNTR_UNIT_TP_CD = '020'               /* 계약단위유형코드 : 계약상세  */
-           AND T4.DTL_CNTR_NO = T2.CNTR_NO
-           AND T4.DTL_CNTR_SN = T2.CNTR_SN
-          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T41 /* T.계약주소지기본 - 계약 */
-            ON T41.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
-           AND T41.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_GBCO_ADR_BAS T42       /* T.주소기본 */
-            ON T42.ADR_ID = T41.ADR_ID
+            ON T42.ADR_ID = T3.ADR_ID
            AND T42.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T5       /* T.계약주소관계 - 배달 */
             ON T5.DTA_DL_YN = 'N'
@@ -271,20 +259,20 @@
                                 , T10.VAC_IS_ID    /* 가상계좌발급ID */
                                 , T20.VAC_BNK_CD   /* 가상계좌은행코드 */
                                 , T20.VAC_NO       /* 가상계좌번호 */
-							    , (SELECT FNIT_NM
-							         FROM TB_RVDW_FNIT_CD
-							        WHERE FNIT_DV_CD = '1'
-							      	  AND FNIT_CD = T20.VAC_BNK_CD) AS VAC_BNK_NM /* 가상계좌명 */
-							    , SUBSTR((SELECT MAX(VAC_DP_DTM) KEEP(DENSE_RANK FIRST ORDER BY VAC_DP_SN DESC)
-							         		FROM TB_RVDW_VAC_DP_IZ /* T.가상계좌입금내역 */
-									        WHERE 1 = 1
-									          AND KW_GRP_CO_CD = T10.KW_GRP_CO_CD
-									          AND VAC_IS_ID = T10.VAC_IS_ID
-									          AND VAC_DP_DV_CD = '1' /* 가상계좌입금구분코드 : 입금(1)*/
-									          AND DTA_DL_YN = 'N'
-							       		 ), 1, 8) AS VAC_DP_DT /* 거래일 */
+                                , (SELECT FNIT_NM
+                                     FROM TB_RVDW_FNIT_CD
+                                    WHERE FNIT_DV_CD = '1'
+                                      AND FNIT_CD = T20.VAC_BNK_CD) AS VAC_BNK_NM /* 가상계좌명 */
+                                , SUBSTR((SELECT MAX(VAC_DP_DTM) KEEP(DENSE_RANK FIRST ORDER BY VAC_DP_SN DESC)
+                                            FROM TB_RVDW_VAC_DP_IZ /* T.가상계좌입금내역 */
+                                            WHERE 1 = 1
+                                              AND KW_GRP_CO_CD = T10.KW_GRP_CO_CD
+                                              AND VAC_IS_ID = T10.VAC_IS_ID
+                                              AND VAC_DP_DV_CD = '1' /* 가상계좌입금구분코드 : 입금(1)*/
+                                              AND DTA_DL_YN = 'N'
+                                         ), 1, 8) AS VAC_DP_DT /* 거래일 */
                                FROM TB_RVDW_VAC_IS_DTL T10               /* T.가상계좌발급상세 */
-                              INNER JOIN TB_RVDW_VAC_BAS T20           	 /* T.가상계좌기본 */
+                              INNER JOIN TB_RVDW_VAC_BAS T20             /* T.가상계좌기본 */
                                  ON T20.KW_GRP_CO_CD = T10.KW_GRP_CO_CD   /* 교원그룹회사코드  */
                                 AND T20.VAC_IS_ID = T10.VAC_IS_ID         /* 가상계좌발급ID  */
                                 AND T20.DTA_DL_YN = 'N'
