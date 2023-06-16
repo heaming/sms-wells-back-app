@@ -183,6 +183,7 @@ public class WctaContractRegService {
                         ).getDpTpCd()
                 );
                 dvo.setStep3(step3Dvo);
+                dvo.setStep4(new WctaContractRegStep4Dvo());
             }
             dvo.setStep2(step2Dvo);
         }
