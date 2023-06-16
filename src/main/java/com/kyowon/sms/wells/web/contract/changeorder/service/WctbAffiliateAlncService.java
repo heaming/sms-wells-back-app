@@ -28,7 +28,7 @@ public class WctbAffiliateAlncService {
     private final WctzHistoryService historyService;
 
     @Transactional
-    public String getAffiliateAlnc(SaveReq dto) {
+    public String saveMutualAidAllianceRsg(SaveReq dto) {
         WctbAffiliateAlncDvo acmpalDvo = converter.saveReqToWctbAffiliateAlncDvo(dto);
 
         WctbAffiliateAlncDvo checkDvo = mapper.selectAffiliateAlncCheck(dto);
