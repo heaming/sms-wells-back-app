@@ -144,6 +144,7 @@ public class WctaContractRegService {
         WctaContractRegStep1Dvo step1Dvo = new WctaContractRegStep1Dvo();
         WctaContractRegStep2Dvo step2Dvo = new WctaContractRegStep2Dvo();
         WctaContractRegStep3Dvo step3Dvo = new WctaContractRegStep3Dvo();
+        WctaContractRegStep4Dvo step4Dvo = new WctaContractRegStep4Dvo();
 
         step1Dvo.setBas(selectContractBas(cntrNo));
         List<WctaContractCstRelDvo> cstRels = selectContractCstRel(cntrNo);
@@ -183,7 +184,7 @@ public class WctaContractRegService {
                         ).getDpTpCd()
                 );
                 dvo.setStep3(step3Dvo);
-                dvo.setStep4(new WctaContractRegStep4Dvo());
+                dvo.setStep4(step4Dvo);
             }
             dvo.setStep2(step2Dvo);
         }

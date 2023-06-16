@@ -253,7 +253,7 @@ public class WctaContractRegStep3Service {
             if (isBlkApy(blkApyDtl)) {
                 bDtl = blkApyDtl;
                 bDtl.setCntrAmt(dtl.getCntrAmt());
-                bDtl.setFnlAmt(dtl.getFnlAmt());
+                bDtl.setSellAmt(dtl.getSellAmt());
             } else {
                 bDtl = dtl;
             }
@@ -314,10 +314,10 @@ public class WctaContractRegStep3Service {
                         );
                     }
                     // 월 렌탈료
-                    Long fnlAmt = bDtl.getFnlAmt();
-                    if (!Objects.isNull(fnlAmt) && 0l < fnlAmt) {
+                    Long sellAmt = bDtl.getSellAmt();
+                    if (!Objects.isNull(sellAmt) && 0l < sellAmt) {
                         createStlmInfo(
-                            now, cntrNo, stlmBasMap, cntrSn, fnlAmt, bDtl.getDpTpCdAftn(),
+                            now, cntrNo, stlmBasMap, cntrSn, sellAmt, bDtl.getDpTpCdAftn(),
                             regService.getRveDvCd(bDtl.getSellTpCd()), bas.getCntrCstNo()
                         );
                     }

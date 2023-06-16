@@ -241,8 +241,8 @@ public class WctaContractRegStep2Service {
             dtl.setBlgCrpCd("D0");
             dtl.setRveCrpCd("D0");
             dtl.setCoCd("2000");
-            dtl.setPdBaseAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
-            dtl.setSellAmt(dtl.getFnlAmt());
+            dtl.setPdBaseAmt(0l); // TODO 20230616
+            dtl.setSellAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
 
