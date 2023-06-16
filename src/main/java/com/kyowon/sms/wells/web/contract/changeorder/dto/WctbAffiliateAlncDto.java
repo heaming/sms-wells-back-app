@@ -3,13 +3,13 @@ package com.kyowon.sms.wells.web.contract.changeorder.dto;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-public class WctaAffiliateAlncDto {
+public class WctbAffiliateAlncDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
     //  Search Request Dto
     @Builder
-    @ApiModel("WctaAffiliateAlncDto-SaveReq")
+    @ApiModel("WctbAffiliateAlncDto-SaveReq")
     public record SaveReq(
         String alncmpCd,
         String cntrNo,
@@ -24,6 +24,6 @@ public class WctaAffiliateAlncDto {
     // Result Dto
     // *********************************************************
     //  Search Result Dto
-    @ApiModel("WctaAffiliateAlncDto-SearchRes")
+    @ApiModel("WctbAffiliateAlncDto-SearchRes")
     public record SearchRes() {}
 }

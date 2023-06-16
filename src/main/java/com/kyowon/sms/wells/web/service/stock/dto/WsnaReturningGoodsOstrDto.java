@@ -97,7 +97,6 @@ public class WsnaReturningGoodsOstrDto {
         String itmKndCd, // 품목종류코드
         String sapMatCd, // SAP자재코드
         String itmPdCd, // 품목상품코드
-        String itmCd, // 품목코드
         String itmPdNm, // 품목명(한글)
         String itmGdCd, // 품목등급코드
         BigDecimal onQty, // 재고수량
@@ -128,7 +127,6 @@ public class WsnaReturningGoodsOstrDto {
         String sapMatCd, // SAP자재코드
         @NotBlank
         String itmPdCd, // 품목상품코드
-        String itmCd, // 품목코드
         String itmPdNm, // 품목명(한글)
         String itmGdCd, // 품목등급코드
         BigDecimal onQty, // 재고수량
@@ -165,7 +163,6 @@ public class WsnaReturningGoodsOstrDto {
 
         String sapMatCd, // SAP자재코드
         String itmPdCd, // 품목상품코드
-        String itmCd, // 품목코드
         String itmPdNm, // 품목명(한글)
         String itmGdCd, // 품목등급코드
         BigDecimal onQty, // 재고수량

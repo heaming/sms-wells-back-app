@@ -56,6 +56,7 @@ public class WctzPartnerDto {
         String baseYm, /* 기준년월 */
         String ogTpCd, /* 조직유형코드 */
         String prtnrNo, /* 파트너번호 */
+        String sellInflwChnlDtlCd, /* 판매채널구분코드 */
         String prtnrClsfCd, /* 파트너분류코드 */
         String cikVal, /* CI키값 */
         String sfkVal, /* 세이프키값 */
@@ -74,6 +75,7 @@ public class WctzPartnerDto {
         String sapDlpnrDtlIzRfltDt, /* SAP거래처상세내역반영일자 */
         String wkGrpCd, /* 작업그룹코드 */
         String wkGrpNm, /* 작업그룹명 */
+        String wkcrCd, /* 작업조번호 */
         String rcrtWrteDt, /* 리쿠르팅작성일자 */
         String fstCntrDt, /* 최초계약일자 */
         String fnlCltnDt, /* 최종해약일자 */
@@ -95,6 +97,18 @@ public class WctzPartnerDto {
         String qlfDvCd, /* 자격구분코드 */
         String perfExcdOjYn, /* 실적제외대상여부 */
         String rdsDsbExcdOjYn, /* RDS지급제외대상여부 */
-        String dtaDlYn /* 데이터삭제여부 */
+        String dtaDlYn, /* 데이터삭제여부 */
+        String dgr1LevlOgCd, /* 1차레벨조직코드 */
+        String dgr1LevlOgNm, /* 1차레벨조직명 */
+        String dgr2LevlOgCd, /* 2차레벨조직코드 */
+        String dgr2LevlOgNm, /* 2차레벨조직명 */
+        String dgr3LevlOgCd, /* 3차레벨조직코드 */
+        String dgr3LevlOgNm, /* 3차레벨조직명 */
+        String dgr4LevlOgCd, /* 4차레벨조직코드 */
+        String dgr4LevlOgNm, /* 4차레벨조직명 */
+        String dgr5LevlOgCd, /* 5차레벨조직코드 */
+        String dgr5LevlOgNm, /* 5차레벨조직명 */
+        String dgr4LevlDgPrtnrNo, /* 지국장사번 */
+        String dgr4LevlDgPrtnrNm /* 지국장명 */
     ) {}
 }

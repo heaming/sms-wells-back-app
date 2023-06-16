@@ -9,6 +9,10 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 @Mapper
 public interface WctaContractRegMapper {
 
+    String selectPrtnrCstNo(String prtnrNo);
+
+    String selectCstPrtnrNo(String cstNo);
+
     String selectBryyMmdd(String cstNo);
 
     int updateCntrPrgsStatCd(String cntrNo, String cntrPrgsStatCd);
@@ -37,9 +41,11 @@ public interface WctaContractRegMapper {
 
     List<WctaContractPrcCmptIzDvo> selectContractPrcCmptIz(String cntrNo, int cntrSn);
 
-    List<WctaContractStlmRelDvo> selectContractStlmRel(String cntrNo);
+    WctaContractStlmBasDvo selectContractStlmBas(String cntrNo, int cntrSn);
 
-    List<WctaContractStlmRelDvo> selectContractStlmRel(String cntrNo, int cntrSn);
+    List<WctaContractStlmRelDvo> selectContractStlmRels(String cntrNo);
+
+    List<WctaContractStlmRelDvo> selectContractStlmRels(String cntrNo, int cntrSn);
 
     WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn);
 

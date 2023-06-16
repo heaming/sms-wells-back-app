@@ -69,7 +69,7 @@ public class WctaContractRegStep2Service {
             WctaContractPdRelDvo svPdRel = regService.selectContractPdRel(cntrNo, cntrSn).stream()
                 .filter((pdRel) -> pdRel.getPdRelTpCd().equals("03")).findFirst().orElse(null);
             if (ObjectUtils.isNotEmpty(svPdRel)) {
-                dtl.setSvPdCd(svPdRel.getBasePdCd());
+                dtl.setSvPdCd(svPdRel.getOjPdCd());
             }
 
             // 제휴상품 노출판단, dto가 record 라서...
@@ -241,8 +241,8 @@ public class WctaContractRegStep2Service {
             dtl.setBlgCrpCd("D0");
             dtl.setRveCrpCd("D0");
             dtl.setCoCd("2000");
-            dtl.setPdBaseAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
-            dtl.setSellAmt(dtl.getFnlAmt());
+            dtl.setPdBaseAmt(0l); // TODO 20230616
+            dtl.setSellAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
 

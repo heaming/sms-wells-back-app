@@ -6,10 +6,12 @@ import java.util.Calendar;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -121,140 +123,128 @@ public class WsnaReturningGoodsStoreService {
             dvo.setUpHgrWarePrtnrNo(strUpHgrWareMngtPrtnrNo);
             log.info("strUpHgrWareMngtPrtnrNo -------> ", strUpHgrWareMngtPrtnrNo);
 
-            if (StringUtils.isNotEmpty(dvo.getOstrConfDt())) {
-                if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())
-                    || "12".equals(dvo.getRtngdProcsTpCd()) || "20".equals(dvo.getRtngdProcsTpCd())
-                    || "21".equals(dvo.getRtngdProcsTpCd()) || "22".equals(dvo.getRtngdProcsTpCd())) {
+            if (StringUtils.isNotEmpty(
+                dvo.getOstrConfDt()
+            ) && ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())
+                || "12".equals(dvo.getRtngdProcsTpCd()) || "20".equals(dvo.getRtngdProcsTpCd())
+                || "21".equals(dvo.getRtngdProcsTpCd()) || "22".equals(dvo.getRtngdProcsTpCd()))
+                && (StringUtils.isEmpty(dvo.getRtngdRvpyProcsYn()) || !"Y".equals(dvo.getRtngdRvpyProcsYn()))) {
 
-                    if (StringUtils.isEmpty(dvo.getRtngdRvpyProcsYn()) || !"Y".equals(dvo.getRtngdRvpyProcsYn())) {
-                        if (!"X".equals(dvo.getFnlItmGdCd())) {
-                            /*물류페기, 리퍼-E급 tt물류폐기일 경우 disuseItmOstrNo 반품요청송신전문*/
-                            /*TODO : W-SV-S-0089_물류 반품요청 인터페이스 서비스 호출해야됨*/
-                            if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())) {
-                                result += this.mapper.insertDiDisuseOstrIz(dvo);
-                            }
-                            /*공장 발송일(품질팀+tt특별자재) 경우 quantityItmOstrNo*/
-                            if (List.of("12", "20", "21", "22").contains(dvo.getRtngdProcsTpCd())) {
-                                result += this.mapper.insertQuantityItmOstrIz(dvo);
-                                //                                result += this.mapper.insertItmOstrAkIz(dvo);
-                                result += this.mapper.insertQuantityItmStrIz(dvo);
+                if (!"X".equals(dvo.getFnlItmGdCd())) {
 
-                                /*출고창고의 재고모듈을 실행한다.*/
-                                WsnaItemStockItemizationDto.SaveReq quantityOstrDto = setQuantityOstrWsnaItemStockItemizationDtoSaveReq(
-                                    dvo
-                                );
-                                result += itemStockservice.createStock(quantityOstrDto);
-                                /*입고창고 이동재고를 생성*/
-                                WsnaItemStockItemizationDto.SaveReq quantityStrDto = setQuantityStrWsnaItemStockItemizationDtoSaveReq(
-                                    dvo
-                                );
-                                result += itemStockservice.saveStockMovement(quantityStrDto);
-                            }
+                    String rmkCn = this.mapper.selectRmkCn(dvo);
+                    dvo.setRmkCn(rmkCn);
 
-                        }
-                        /*UPDATE */
-                        /*출고일자, 스티커 출력 유무, 비고 사항 저장*/
-                        result += this.mapper.updateWkOstrIz(dvo);
+                    /*물류페기, 리퍼-E급 tt물류폐기일 경우 disuseItmOstrNo 반품요청송신전문*/
+                    /*TODO : W-SV-S-0089_물류 반품요청 인터페이스 서비스 호출해야됨*/
+                    if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())) {
+                        result += this.mapper.insertDiDisuseOstrIz(dvo);
                     }
 
-                }
-                /*출고일자가 있고 리퍼작업완료 건이면 기타출고 처리를한다.*/
-            } else if (StringUtils.isNotEmpty(dvo.getOstrConfDt())) {
-                if (List.of("80", "81", "82").contains(dvo.getRtngdProcsTpCd())) {
-                    if (StringUtils.isEmpty(dvo.getRtngdRvpyProcsYn())
-                        || !"Y".equals(dvo.getRtngdRvpyProcsYn())) {
+                    /*공장 발송일(품질팀+tt특별자재) 경우 quantityItmOstrNo*/
+                    if (List.of("12", "20", "21", "22").contains(dvo.getRtngdProcsTpCd())) {
 
-                        result += this.mapper.insertRefrOstrFinish(dvo);
+                        result += this.mapper.insertQuantityItmOstrIz(dvo);
+                        //                                result += this.mapper.insertItmOstrAkIz(dvo);
+                        result += this.mapper.insertQuantityItmStrIz(dvo);
 
-                        /*TODO : 출고창고 재고모듈을 실행한다. (품목출고내역) 등록*/
-                        WsnaItemStockItemizationDto.SaveReq etcOstrDto = setEtcOstrWsnaItemStockItemizationDtoSaveReq(
+                        /*출고창고의 재고모듈을 실행한다.*/
+                        WsnaItemStockItemizationReqDvo quantityOstrDto = setQuantityOstrWsnaItemStockItemizationDtoSaveReq(
                             dvo
                         );
-
-                        result += itemStockservice.createStock(etcOstrDto);
-
-                        result += this.mapper.updateRefrOstrFinish(dvo);
-
+                        result += itemStockservice.createStock(quantityOstrDto);
+                        /*입고창고 이동재고를 생성*/
+                        WsnaItemStockItemizationReqDvo quantityStrDto = setQuantityStrWsnaItemStockItemizationDtoSaveReq(
+                            dvo
+                        );
+                        result += itemStockservice.saveStockMovement(quantityStrDto);
                     }
-                }
 
-            } else {
+                }
+                /*출고일자, 스티커 출력 유무, 비고 사항 저장*/
+                result += this.mapper.updateWkOstrIz(dvo);
+
+            } else if (StringUtils.isNotEmpty(dvo.getOstrConfDt())
+                && (List.of("80", "81", "82").contains(dvo.getRtngdProcsTpCd()))
+                && (StringUtils.isEmpty(dvo.getRtngdRvpyProcsYn())
+                    || !"Y".equals(dvo.getRtngdRvpyProcsYn()))) {
+
+                String refrRmkCn = this.mapper.selectRefrRmkCn(dvo);
+                dvo.setRmkCn(refrRmkCn);
+
+                result += this.mapper.insertRefrOstrFinish(dvo);
+
+                /*TODO : 출고창고 재고모듈을 실행한다. (품목출고내역) 등록*/
+                WsnaItemStockItemizationReqDvo etcOstrDvo = setEtcOstrWsnaItemStockItemizationDtoSaveReq(dvo);
+
+                result += itemStockservice.createStock(etcOstrDvo);
+
+                result += this.mapper.updateRefrOstrFinish(dvo);
                 /*출고일자가 없는경우*/
+            } else {
                 result += this.mapper.updateNotOstrConfDt(dvo);
             }
             processCount += result;
         }
-
         return processCount;
+
     }
 
     /*반품유형처리타입이 12, 20, 21, 22 일때*/
-    protected WsnaItemStockItemizationDto.SaveReq setQuantityOstrWsnaItemStockItemizationDtoSaveReq(
+    protected WsnaItemStockItemizationReqDvo setQuantityOstrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 6),
-            vo.getCfrmDt(),
-            vo.getHgrWareNo().substring(0, 1), /*창고구분*/
-            vo.getHgrWareNo(),
-            vo.getHgrWarePrtnrNo(),
-            "261",
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMgtUnt(),
-            vo.getFnlItmGdCd(),
-            vo.getUseQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getCfrmDt().substring(0, 6));
+        reqDvo.setProcsDt(vo.getCfrmDt());
+        reqDvo.setWareDv(vo.getHgrWareNo().substring(0, 1)); /*창고구분*/
+        reqDvo.setWareNo(vo.getHgrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getHgrWarePrtnrNo());
+        reqDvo.setIostTp("261");
+        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMgtUnt());
+        reqDvo.setItemGd(vo.getFnlItmGdCd());
+        reqDvo.setQty(vo.getUseQty());
+        return reqDvo;
     }
 
     /*반품유형처리타입이 12, 20, 21, 22 일때*/
-    protected WsnaItemStockItemizationDto.SaveReq setQuantityStrWsnaItemStockItemizationDtoSaveReq(
+    protected WsnaItemStockItemizationReqDvo setQuantityStrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 6),
-            vo.getCfrmDt(),
-            "1", /*창고구분*/
-            "100010",
-            vo.getUpHgrWarePrtnrNo(),
-            "991",
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMgtUnt(),
-            vo.getFnlItmGdCd(),
-            vo.getUseQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getCfrmDt().substring(0, 6));
+        reqDvo.setProcsDt(vo.getCfrmDt());
+        reqDvo.setWareDv("1"); /*창고구분*/
+        reqDvo.setWareNo("100010");
+        reqDvo.setWareMngtPrtnrNo(vo.getUpHgrWarePrtnrNo());
+        reqDvo.setIostTp("991");
+        reqDvo.setWorkDiv("A");/*작업구분 workDiv*/
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMgtUnt());
+        reqDvo.setItemGd(vo.getFnlItmGdCd());
+        reqDvo.setQty(vo.getUseQty());
+        return reqDvo;
     }
 
     /*기타출고일 경우*/
-    protected WsnaItemStockItemizationDto.SaveReq setEtcOstrWsnaItemStockItemizationDtoSaveReq(
+    protected WsnaItemStockItemizationReqDvo setEtcOstrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
-        WsnaItemStockItemizationDto.SaveReq reqDto = new WsnaItemStockItemizationDto.SaveReq(
-            vo.getCfrmDt().substring(0, 6),
-            vo.getCfrmDt(),
-            vo.getHgrWareNo().substring(0, 1), /*창고구분*/
-            vo.getHgrWareNo(),
-            vo.getHgrWarePrtnrNo(),
-            "218",
-            "A", /*작업구분 workDiv*/
-            vo.getItmPdCd(),
-            vo.getMgtUnt(),
-            vo.getFnlItmGdCd(),
-            vo.getUseQty(),
-            null,
-            null,
-            null
-        );
-        return reqDto;
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getCfrmDt().substring(0, 6));
+        reqDvo.setProcsDt(vo.getCfrmDt());
+        reqDvo.setWareDv(vo.getHgrWareNo().substring(0, 1)); /*창고구분*/
+        reqDvo.setWareNo(vo.getHgrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getHgrWarePrtnrNo());
+        reqDvo.setIostTp("218");
+        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMgtUnt());
+        reqDvo.setItemGd(vo.getFnlItmGdCd());
+        reqDvo.setQty(vo.getUseQty());
+        return reqDvo;
     }
 
     public String isOstrTpCd(String rtngdProcsTpCd) {

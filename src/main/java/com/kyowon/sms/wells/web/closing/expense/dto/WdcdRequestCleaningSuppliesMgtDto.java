@@ -1,12 +1,11 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
+import java.util.List;
+
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import java.util.List;
 
 public class WdcdRequestCleaningSuppliesMgtDto {
 
@@ -19,8 +18,19 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     public record CodeReq(
         String ogTpCd,
         String prtnrNo
-    ) {
-    }
+    ) {}
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 청소 용품비 관리 - 청소(용품)비 신청 / 직책 조회
+    @Builder
+    @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-SearchRsbDvCdRes")
+    public record SearchRsbDvCdRes(
+        String rsbDvCd,
+        String pstnDvCd,
+        String cdCntn
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -31,8 +41,7 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     public record CodeRes(
         String bldCd,
         String bldNm
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -54,8 +63,7 @@ public class WdcdRequestCleaningSuppliesMgtDto {
         String exnoEncr,
         String idvTno,
         String ogTpCd
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -77,19 +85,18 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-FindRes")
     public record FindRes(
         String clingCostAdjRcpNo,
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String cardPsrNm,
         String aplcDt,
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String claimNm,
         String bldCd,
         String bilAmt,
         String locaraTno,
-        @MaskRequired(type = MaskingType.ALL)
+        //@MaskRequired(type = MaskingType.ALL)
         String exnoEncr,
         String idvTno,
         String clingCostSrcpApnFileId,
         String ogTpCd
-    ) {
-    }
+    ) {}
 }

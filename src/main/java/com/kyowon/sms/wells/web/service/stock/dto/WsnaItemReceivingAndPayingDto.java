@@ -22,7 +22,6 @@ public class WsnaItemReceivingAndPayingDto {
         String itmGdCd,
         String useYn,
         String itmPdCdFrom,
-        String itmPdCdTo,
         String sapMatCdFrom,
         String sapMatCdTo,
         List<String> sapMatDpcts

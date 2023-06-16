@@ -24,10 +24,10 @@ public class WctaOrderDetailSinglePaymentPagesDvo {
     private String rnmnoEncr;
     private String basePdCd;
     private String basePdNm;
-    private String dscApyTpCd;
-    private String dscApyTpNm;
-    private String dscApyDtlCd;
-    private String dscApyDtlNm;
+    private String sellDscDvCd;
+    private String sellDscDvNm;
+    private String sellDscTpCd;
+    private String sellDscTpNm;
     private String cntrRcpFshDtm;
     private String sppDuedt;
     private String slDt;
@@ -41,8 +41,8 @@ public class WctaOrderDetailSinglePaymentPagesDvo {
     private String cntrChDtlRsonNm;
     private String frisuYn;
     private String freExpnCnfmDtm;
-    private String cttTpCd;
-    private String cttTpNm;
+    private String cttRsCd;
+    private String cttRsNm;
     private String iostDtlCd;
     private String sppIvcCrtDtm;
     private String booSellYn;

@@ -1,8 +1,10 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsncFixationVisitDto {
     // *********************************************************
@@ -55,6 +57,7 @@ public class WsncFixationVisitDto {
         String fnlMdfcDtm, /* 변경등록일자 */
         String fxnPrtnrDvCd, /* 지정대상 */
         String fxnPrtnrNo, /* 방문담당 */
+        String fxnPrtnrOgTpCd,
         String chRsonCn, /* 변경사유 */
         String dtaDlYn, /* 삭제여부 */
         String prtnrKnm, /* 기존담당-담당자 */
@@ -74,8 +77,10 @@ public class WsncFixationVisitDto {
         String rnadr, /* 법정동코드 */
         String rdadr, /* 법정동명 */
         String cralLocaraTno, /* 지역전화번호 */
+        String mexnoEncr,
         String cralIdvTno, /* 도서지역여부 */
         String locaraTno, /* 구주소우편번호 */
+        String exnoEncr,
         String idvTno, /* 데이터삭제여부 */
         String sellTpCd, /* 변경일련번호 */
         String fxnPrtnrDvCd, /* 방문주기값 */
@@ -83,8 +88,19 @@ public class WsncFixationVisitDto {
         String apyStrtYm, /* 관리자구분코드 */
         String chRsonCn, /* 지점조직ID */
         String fnlMdfcDtm, /* BS담당파트너번호 */
-        String fnlMdfcUsrId /* 사용여부 */
-    ) {}
+        String fnlMdfcUsrId, /* 사용여부 */
+        String fnlMdfcUsrNm,
+        String pdctPdNm, /* 상품명 */
+        String fxnPrtnrKnm, /* 방문담당자 */
+        String prtnrKnm, /* 기존담당자 */
+        String cltnDt, /* 퇴사일자 */
+        String ogNm /* 담당센터 */
+    ) {
+        public SearchRes {
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            exnoEncr = DbEncUtil.dec(exnoEncr);
+        }
+    }
 
     @ApiModel(value = "WsncFixationVisitDto-SearchRegRes")
     public record SearchRegRes(
@@ -104,16 +120,23 @@ public class WsncFixationVisitDto {
         String rnadrInstall, /* 설치정보-도로명주소 */
         String rdadrInstall, /* 설치정보-도로명상세주소 */
         String pdNm, /* 상품정보-상품 */
-        String pdPrpVal01, /* 상품정보-용도 */
+//        String pdPrpVal01, /* 상품정보-용도 */
         String pdPrpVal01Nm, /* 상품정보-용도명 */
         String apyStrtYm, /* 적용기간 */
         String chMngrDvCd, /* 변경구분 */
         String fnlMdfcDtm, /* 변경등록일자 */
         String fxnPrtnrDvCd, /* 지정대상 */
+        String fxnPrtnrOgTpCd,
         String fxnPrtnrNo, /* 방문담당 */
+        String fxnPrtnrKnm,
         String chRsonCn, /* 변경사유 */
         String dtaDlYn, /* 삭제여부 */
         String prtnrKnm, /* 기존담당-담당자 */
         String cltnDt /* 기존담당-활동중지일 */
-    ) {}
+    ) {
+        public SearchRegRes {
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            mexnoEncrInstall = DbEncUtil.dec(mexnoEncrInstall);
+        }
+    }
 }

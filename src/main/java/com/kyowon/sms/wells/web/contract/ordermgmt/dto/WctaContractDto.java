@@ -147,6 +147,15 @@ public class WctaContractDto {
         String cntrCstGrpId
     ) {}
 
+    // 통합계약Step1 Search Request Dto
+    @ApiModel("WctaContractDto-SearchStep1Req")
+    public record SearchStep1Req(
+        String cstNo,
+        String cntrNo,
+        String cntrPrtnrNo,
+        Integer step
+    ) {}
+
     // 지국장 소속 파트너 조회 Search Request Dto
     @ApiModel("WctaContractDto-SearchMngerPrtnrReq")
     public record SearchMngerPrtnrReq(

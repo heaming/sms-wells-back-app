@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -35,12 +33,12 @@ public class WdcdCleanersMgtDto {
         String rcpYm, /*접수년월*/
         String fstRgstDtm, /*등록일시*/
         String fnlMdfcDtm, /*변경일시*/
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String clinrNm, /*청소원*/
         String bldCd, /*빌딩코드*/
         String bldNm, /*빌딩 명*/
         String aplcDt, /*신청일*/
-        @MaskRequired(type = MaskingType.NAME)
+        //@MaskRequired(type = MaskingType.NAME)
         String aplcnsNm, /*신청자*/
         String cntrwApnFileId, /*계약서*/
         String cntrLroreApnFileId, /*계약해지원*/
@@ -54,17 +52,17 @@ public class WdcdCleanersMgtDto {
         String wrkEnddt, /*근무종료일자*/
         String workStatus, /*근무여부*/
         // TODO. 머스킹 필요
-        @MaskRequired(type = MaskingType.RRN)
+        //@MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, /*주민등록번호*/
         String locaraTno,
         String exnoEncr,
         String idvTno,
-        @MaskRequired(type = MaskingType.PHONE)
+        //@MaskRequired(type = MaskingType.PHONE)
         String telNum,
         String address, /*주민등록상의주소*/
         String bnkCd, /*은행코드*/
         String bnkNm, /*은행명*/
-        @MaskRequired(type = MaskingType.ACCOUNT)
+        //@MaskRequired(type = MaskingType.ACCOUNT)
         String acnoEncr /*계좌번호*/
     ) {
         public SearchRes {

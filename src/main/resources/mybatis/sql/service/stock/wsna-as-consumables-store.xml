@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsConsumablesStoreMapper">
+
+    <select id="selectAsConsumablesStorePages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto$SearchRes">
+        SELECT T1.STR_WARE_NO /*입고창고번호*/
+             , T1.ITM_STR_NO /*품목입고번호*/
+             , T1.STR_SN AS ITM_STR_SN /*입고순번*/
+             , T2.WARE_NM  /*창고명*/
+             , T1.STR_RGST_DT /*입고등록일자*/
+             , P1.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
+             , T1.ITM_PD_CD /*품목상품코드*/
+             , T1.MNGT_UNIT_CD /*관리단위코드*/
+             , P1.SVPD_NM_ABBR1 AS ITM_PD_NM
+             , T1.ITM_GD_CD /*품목등급코드*/
+             , T1.STR_QTY /*입고수량*/
+             , T1.RMK_CN  /*입고사유*/
+          FROM TB_SVST_ITM_STR_IZ T1
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+            ON T1.STR_WARE_NO = T2.WARE_NO
+           AND SUBSTR(T1.STR_RGST_DT,1,6) = T2.APY_YM
+         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
+             ON P1.SVPD_PD_CD = T1.ITM_PD_CD
+         WHERE 1 = 1
+           AND T1.STR_RGST_DT LIKE #{strRgstDt} ||'%'
+           AND P1.SVPD_ITEM_KND = '7'
+         <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+           AND T1.ITM_PD_CD = #{itmPdCd}
+         </if>
+           AND T1.STR_TP_CD = '117'
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND T2.WARE_USE_YN = 'Y'
+         ORDER BY T1.ITM_STR_NO
+                , T1.STR_SN
+
+    </select>
+
+    <select id="selectMcbyWareIzCount" resultType="Integer">
+        SELECT COUNT(*)
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE 1 = 1
+           AND WARE_NO = #{strWareNo}
+           AND APY_YM = SUBSTR(#{strRgstDt},1,6)
+           AND WARE_USE_YN = 'Y'
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectItmPdCdCount" resultType="Integer">
+        SELECT COUNT(*)
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
+         WHERE 1 = 1
+           AND P1.SVPD_ITEM_KND = '7'
+           AND P1.SVPD_PD_CD = #{itmPdCd}
+
+    </select>
+
+    <select id="selectMgtUntFind" resultType="java.lang.String">
+        SELECT P1.SVPD_MGT_UNT AS MNGT_UNIT
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
+         WHERE 1 = 1
+           AND P1.SVPD_PD_CD = #{itmPdCd}
+
+    </select>
+
+    <select id="selectNextItmStrNo" resultType="java.lang.String">
+        SELECT #{strTpCd} || #{strRgstDt} || LPAD(SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL,7,'0') AS ITM_STR_NO
+          FROM DUAL
+    </select>
+
+    <insert id="insertAsConsumablesStore">
+        INSERT INTO TB_SVST_ITM_STR_IZ (
+                  ITM_STR_NO                /* 품목입고번호 */
+                , STR_SN                    /* 입고일련번호 */
+                , STR_TP_CD                 /* 입고유형코드 */
+                , STR_RGST_DT               /* 입고등록일자 */
+                , STR_WARE_NO               /* 입고창고번호 */
+                , WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
+                , WARE_MNGT_PRTNR_OG_TP_CD  /* 창고관리파트너조직유형코드 */
+                , STR_WARE_DV_CD            /* 입고창고구분코드 */
+                , DRT_STR_YN                /*직접입고여부*/
+                , ITM_PD_CD                 /* 품목상품코드 */
+                , ITM_GD_CD                 /* 품목등급코드 */
+                , MNGT_UNIT_CD              /* 관리단위코드 */
+                , STR_QTY                   /* 입고수량 */
+                , STR_CONF_DT               /* 입고확인일자 */
+                , STR_CONF_HH               /* 입고확인시간 */
+                , STR_CONF_PRTNR_NO         /* 입고확인파트너번호 */
+                , STR_CONF_PRTNR_OG_TP_CD   /* 입고확인파트너조직유형코드 */
+                , RMK_CN                    /* 비고내용 */
+                , DTA_DL_YN                 /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemField" />)
+            VALUES (
+                  #{itmStrNo}
+                , #{itmStrSn}
+                , #{strTpCd}
+                , #{strRgstDt}
+                , #{strWareNo}
+                , ( SELECT WARE_MNGT_PRTNR_NO
+                      FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                       AND APY_YM =  SUBSTR(#{strRgstDt},1,6)
+                       AND WARE_NO = #{strWareNo})
+                , (SELECT OG_TP_CD
+                     FROM TB_SVST_MCBY_WARE_IZ
+                    WHERE 1 = 1
+                      AND WARE_NO = #{strWareNo}
+                      AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+                , '2'
+                , 'N'
+                , #{itmPdCd}
+                , #{itmGdCd}
+                , #{mngtUnit}
+                , #{strQty}
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , TO_CHAR(SYSDATE, 'HH24MISS')
+                , #{session.employeeIDNumber}
+                , #{strConfPrtnrOgTpCd}
+                , #{rmkCn}
+                , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />
+                )
+
+    </insert>
+
+    <select id="selectChkWareClose" resultType="Integer">
+		SELECT COUNT(*) AS CNT
+          FROM TB_SVST_MCBY_WARE_CL_IZ
+         WHERE APY_YM = SUBSTR(#{strRgstDt},1,6)
+           AND WARE_NO = #{strWareNo}
+           AND WARE_CL_YN = 'Y'
+
+    </select>
+
+    <insert id="insertLineAsConsumablesStore">
+        INSERT INTO TB_SVST_ITM_STR_IZ (
+                  ITM_STR_NO                /* 품목입고번호 */
+                , STR_SN                    /* 입고일련번호 */
+                , STR_TP_CD                 /* 입고유형코드 */
+                , STR_RGST_DT               /* 입고등록일자 */
+                , STR_WARE_NO               /* 입고창고번호 */
+                , WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
+                , WARE_MNGT_PRTNR_OG_TP_CD  /* 창고관리파트너조직유형코드 */
+                , STR_WARE_DV_CD            /* 입고창고구분코드 */
+                , DRT_STR_YN                /*직접입고여부*/
+                , ITM_PD_CD                 /* 품목상품코드 */
+                , ITM_GD_CD                 /* 품목등급코드 */
+                , MNGT_UNIT_CD              /* 관리단위코드 */
+                , STR_QTY                   /* 입고수량 */
+                , STR_CONF_DT               /* 입고확인일자 */
+                , STR_CONF_HH               /* 입고확인시간 */
+                , STR_CONF_PRTNR_NO         /* 입고확인파트너번호 */
+                , STR_CONF_PRTNR_OG_TP_CD   /* 입고확인파트너조직유형코드 */
+                , RMK_CN                    /* 비고내용 */
+                , DTA_DL_YN                 /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemField" />)
+            VALUES (
+                  #{itmStrNo}
+                , (SELECT NVL(MAX(STR_SN),0) +1
+                     FROM TB_SVST_ITM_STR_IZ
+                    WHERE 1 = 1
+                      AND ITM_STR_NO = #{itmStrNo})
+                , #{strTpCd}
+                , #{strRgstDt}
+                , #{strWareNo}
+                , ( SELECT WARE_MNGT_PRTNR_NO
+                      FROM TB_SVST_MCBY_WARE_IZ
+                     WHERE 1 = 1
+                       AND APY_YM =  SUBSTR(#{strRgstDt},1,6)
+                       AND WARE_NO = #{strWareNo})
+                , (SELECT OG_TP_CD
+                     FROM TB_SVST_MCBY_WARE_IZ
+                    WHERE 1 = 1
+                      AND WARE_NO = #{strWareNo}
+                      AND APY_YM = TO_CHAR(SYSDATE,'YYYYMM'))
+                , '2'
+                , 'N'
+                , #{itmPdCd}
+                , #{itmGdCd}
+                , #{mngtUnit}
+                , #{strQty}
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , TO_CHAR(SYSDATE, 'HH24MISS')
+                , #{session.employeeIDNumber}
+                , #{strConfPrtnrOgTpCd}
+                , #{rmkCn}
+                , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />
+                )
+
+
+    </insert>
+
+    <update id="updateAsConsumablesStore">
+        UPDATE TB_SVST_ITM_STR_IZ
+           SET RMK_CN = #{rmkCn}
+       <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ITM_STR_NO = #{itmStrNo}
+           AND STR_SN = #{itmStrSn}
+
+    </update>
+
+    <delete id="deleteAsConsumablesStores">
+        UPDATE TB_SVST_ITM_STR_IZ
+           SET DTA_DL_YN = 'Y'
+       <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ITM_STR_NO = #{itmStrNo}
+           AND STR_SN = #{itmStrSn}
+
+    </delete>
+
+    <select id="selectItemProductCodes" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto$SearchItemRes">
+        SELECT P1.SVPD_PD_CD AS CODE_ID
+             , P1.SVPD_NM_ABBR1 AS CODE_NAME
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
+         WHERE 1 = 1
+           AND P1.SVPD_ITEM_KND = #{itmKndCd}
+         ORDER BY P1.SVPD_PD_CD
+
+
+    </select>
+
+    <select id="selectWareMngtPrtnrNo" resultType="java.lang.String">
+        SELECT WARE_MNGT_PRTNR_NO
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE 1 = 1
+           AND APY_YM =  SUBSTR(#{strRgstDt},1,6)
+           AND WARE_NO = #{strWareNo}
+    </select>
+
+    <update id="deletePitmStocAGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , FNL_OSTR_DT = #{strRgstDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{strWareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="deletePitmStocEGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             , FNL_OSTR_DT = #{strRgstDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{strWareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+
+    </update>
+
+    <update id="deleteMonthlyPitmStocAGdQty">
+        UPDATE TB_SVST_MCITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{monthlyPitmStocAGdQty}
+             , ETC_STR_A_GD_QTY = #{etcStrAGdQty}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE BASE_YM = SUBSTR(#{strRgstDt},1,6)
+           AND WARE_NO = #{strWareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="deleteMonthlyPitmStocEGdQty">
+        UPDATE TB_SVST_MCITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{monthlyPitmStocEGdQty}
+             , ETC_STR_E_GD_QTY = #{etcStrEGdQty}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE BASE_YM = SUBSTR(#{strRgstDt},1,6)
+           AND WARE_NO = #{strWareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <select id="selectItmPdCdInformation" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsConsumablesStoreDvo">
+        SELECT WARE_NO                                                    /* 창고번호 */
+             , ITM_PD_CD                                                  /* 품목상품코드 */
+             , NVL(PITM_STOC_A_GD_QTY, 0)     AS PITM_STOC_A_GD_QTY       /* 시점재고A등급수량 */
+             , NVL(PITM_STOC_E_GD_QTY, 0)     AS PITM_STOC_E_GD_QTY       /* 시점재고E등급수량 */
+          FROM TB_SVST_CST_SV_ITM_STOC_IZ /* 고객서비스품목재고내역 */
+         WHERE 1 = 1
+           AND WARE_NO                = #{strWareNo}               /* 창고번호 */
+           AND ITM_PD_CD              = #{itmPdCd}
+    </select>
+
+    <select id="selectMonthlyItmPdCdInformation" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsConsumablesStoreDvo">
+        SELECT WARE_NO                                                    /* 창고번호 */
+             , ITM_PD_CD                                                  /* 품목상품코드 */
+             , NVL(PITM_STOC_A_GD_QTY, 0)     AS MONTHLY_PITM_STOC_A_GD_QTY       /* 시점재고A등급수량 */
+             , NVL(PITM_STOC_E_GD_QTY, 0)     AS MONTHLY_PITM_STOC_E_GD_QTY       /* 시점재고E등급수량 */
+             , NVL(ETC_STR_A_GD_QTY, 0)       AS ETC_STR_A_GD_QTY          /* 기타입고A등급수량 */
+             , NVL(ETC_STR_E_GD_QTY, 0)       AS ETC_STR_E_GD_QTY          /* 기타입고E등급수량 */
+          FROM TB_SVST_MCITM_STOC_IZ /* 고객서비스품목재고내역 */
+         WHERE 1 = 1
+           AND BASE_YM = SUBSTR(#{strRgstDt},1,6)
+           AND WARE_NO                = #{strWareNo}               /* 창고번호 */
+           AND ITM_PD_CD              = #{itmPdCd}
+
+    </select>
+
+</mapper>

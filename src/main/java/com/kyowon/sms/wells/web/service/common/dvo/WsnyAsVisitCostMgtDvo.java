@@ -32,4 +32,7 @@ public class WsnyAsVisitCostMgtDvo {
     String rmkCn;
     String prevIzSn;
     String nextIzSn;
+    String sapMatCd;
+    String pdNm;
+
 }

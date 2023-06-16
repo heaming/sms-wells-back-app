@@ -60,7 +60,7 @@ public class WctaOrderDetailRentalPagesDvo {
     private String sppDuedt; /* 예정일 */
     private String istDt; /* 설치일 */
     private String slDt; /* 매출일 */
-    private String istmMcn; /* 계약기간 */
+    private String cntrPtrm; /* 계약기간(할부개월수) */
     private String cntrPdEnddt; /* 만료일 */
     private String canDt; /* 취소일 */
     private String reqdDt; /* 철거일 */
@@ -68,8 +68,8 @@ public class WctaOrderDetailRentalPagesDvo {
     private String recapDutyPtrmN; /* 의무기간 */
     private String cntrAmt; /* 등록비 */
     private String cntrCtrAmt; /* 등록할인 */
-    private String pdBaseAmt; /* 렌탈료1 */
-    private String ctrVal; /* 렌탈할인1 */
+    private String rentalAmt1; /* 렌탈료1 */
+    private String rentalDscAmt1; /* 렌탈할인1 */
     private String rentalAmt2; /* 렌탈료2 */
     private String rentalDscAmt2; /* 렌탈할인1=2 */
     private String rentalDscDfam; /* 할인차액 */
@@ -80,9 +80,9 @@ public class WctaOrderDetailRentalPagesDvo {
     private String ackmtPerfRt; /* 인정실적률(%) */
     private String feeAckmtBaseAmt; /* 수수료기준금액 */
     private String feeFxamYn; /* 수수료정액여부 */
-    private String dscApyDtlCd; /* 할인구분 */
-    private String dscApyTpCd; /* 할인유형 */
-    private String dscPmotCd; /* 할인제도 */
+    private String sellDscDvCd; /* 할인구분 */
+    private String sellDscTpCd; /* 할인유형 */
+    private String dscPmotCd; /* 할인제도(프로모션코드) */
     private String mchnChTpCd; /* 기변유형 */
     private String ojCntrDtlNo; /* 기변상대코드 */
     private String ojBasePdCd; /* 기변이전상품 */
@@ -195,7 +195,8 @@ public class WctaOrderDetailRentalPagesDvo {
     private String leaseDvNm; /* 렌탈/리스 구분 */
     private String pmotTpNm; /* 프로모션유형 */
     private String mchnChTpNm; /* 기변유형코드명 */
-    private String dscApyDtlCdNm; /* 할인유형-코드명 */
+    private String sellDscDvNm; /* 할인적용구분명 */
+    private String sellDscTpNm; /* 할인적용유형명 */
     private String svPrdInfo; /* 관리/방문/택배 주기 */
     private String lcflg3; /* 설치월 면제 */
     private String cntrChDtlRsonCd; /* 명의변경구분 */

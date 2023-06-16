@@ -28,13 +28,23 @@ public class WfeaNetOrderService {
     private final WfeaNetOrderConverter converter;;
 
     /**
-     * WELLS 월순주문 집계 기본 조회
+     * WELLS 월순주문 집계 데이터 조회
      * @param 'SearchReq' 검색조건 정보
      * @return 조회된 데이터
      */
 
     public List<SearchRes> getNetOrders(SearchReq dto) {
         return this.mapper.selectNetOrders(dto);
+    }
+
+    /**
+     * WELLS 월순주문 집계 데이터 조회
+     * @param 'SearchReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchRes> getNetAggreateOrders(SearchReq dto) {
+        return this.mapper.selectAggreateNetOrders(dto);
     }
 
     /**
@@ -45,6 +55,16 @@ public class WfeaNetOrderService {
 
     public List<SearchFeeRes> getNetOrderFees(SearchReq dto) {
         return this.mapper.selectNetOrderFees(dto);
+    }
+
+    /**
+     * WELLS 월순주문 수수료실적 집계 확정여부 조회
+     * @param 'SearchReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public SearchConfirmRes getNetAggregateConfirm(SearchReq dto) {
+        return this.mapper.selectNetAggregateConfirm(dto);
     }
 
     /**
@@ -62,6 +82,24 @@ public class WfeaNetOrderService {
 
         mapper.deleteNetOrders(dvo);
         processCount = mapper.insertNetOrders(dvo);
+
+        return processCount;
+    }
+
+    /**
+     * WELLS 월순주문 집계 확정
+     * @param 'SaveReq' 확정정보 수정 조건 정보
+     * @return 저장 결과
+     */
+
+    @Transactional
+    public int updateByNetOrders(SaveReq dto) {
+
+        int processCount = 0;
+
+        WfeaNetOrderDvo dvo = converter.mapSaveReqToWfeaNetOrderDvo(dto);
+
+        processCount = mapper.updateNetOrders(dvo);
 
         return processCount;
     }

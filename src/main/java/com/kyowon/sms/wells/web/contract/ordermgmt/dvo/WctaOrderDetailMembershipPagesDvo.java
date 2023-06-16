@@ -16,7 +16,7 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String copnDvCd; /* 고객구분코드 */
     private String cstKnm; /* 계약자명 */
     private String rcgvpKnm; /* 설치자명 */
-    private String ojSellTpNm; /* 계약구분*/
+    private String sellTpDtlNm; /* 계약구분*/
     private String mshDvNm; /* 멤버십구분*/
     private String pdClsfNm; /* 상품분류 */
     private String pdCd; /* 상품코드 */
@@ -30,8 +30,8 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String pdLclsfNm; /* 상품구분1 */
     private String pdDclsfNm; /* 상품구분2 */
     private String cntrDtlStatNm; /* 멤버십상태 */
-    private String dscApyTpCdNm; /* 회비자료구분 */
-    private String dscApyDtlCdNm; /*  */
+    private String sellDscDvNm; /* 할인적용구분명 */
+    private String sellDscTpNm; /* 할인적용유형명 */
     private String feeAckmtCt; /* 인정건수 */
     private String ackmtPerfAmt; /* 인정금액 */
     private String cntrCtrAmt; /* 등록할인 */
@@ -43,7 +43,7 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String cntrRcpFshDt; /* 접수일 */
     private String cntrCnfmYn; /* 확정여부 */
     private String cntrCnfmDt; /* 확정일 */
-    private String cntrTempSaveDt; /* 가입일 */
+    private String cntrPdStrtdt; /* 가입일 */
     private String hcrDuedt; /* 홈케어예정일 */
     private String istDt; /* 설치일 */
     private String dutyExnDtFrisu; /* 의무만료일(무상) */

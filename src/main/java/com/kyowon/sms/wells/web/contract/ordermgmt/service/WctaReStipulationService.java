@@ -1,13 +1,18 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRestipulationCntrRegDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaReStipulationMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchReq;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.SearchRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.BasInfoRes;
+import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReStipulationDto.ContractRes;
 
 @Service
 @RequiredArgsConstructor
@@ -22,4 +27,19 @@ public class WctaReStipulationService {
     public Integer getReStipulationCustomerCounts(SearchReq dto){
         return mapper.selectReStipulationCustomerCounts(dto);
     }
+
+    public List<BasInfoRes> getReStipulationStandardInfo(String cntrNo, Integer cntrSn) {
+        return mapper.selectReStipulationStandardInfo(cntrNo, cntrSn);
+    }
+
+    public ContractRes getRestipulationContractInfo(String cntrNo, Integer cntrSn) {
+        return mapper.selectRestipulationContractInfo(cntrNo, cntrSn);
+    }
+
+    public String saveRestipulationContractReg(WctaContractRestipulationCntrRegDvo dvo) {
+        mapper.insertRestipulationCntrReg(dvo);
+        return "";
+    }
+
+
 }

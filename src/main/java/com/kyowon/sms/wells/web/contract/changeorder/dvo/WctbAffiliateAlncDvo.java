@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WctaAffiliateAlncDvo {
+public class WctbAffiliateAlncDvo {
 
     /* 라이프주문수신전문 check */
     private String klsley;

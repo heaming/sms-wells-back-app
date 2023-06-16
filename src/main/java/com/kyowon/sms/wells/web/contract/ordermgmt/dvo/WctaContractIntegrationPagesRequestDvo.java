@@ -29,5 +29,7 @@ public class WctaContractIntegrationPagesRequestDvo {
     private String cralIdvTno; /* 휴대개별전화번호(계약자/설치자) */
     private String bzrno; /* 사업자번호 */
     private String sfkVal; /* 세이프키값 */
+    private String cntrNo; /* 계약번호 */
+    private String cntrSn; /* 계약일련번호 */
     private List<String> sellTpCd; /* 계약구분(판매유형코드) */
 }

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
-@Api(tags = "[WDCY] 청소 용품비 관리")
+@Api(tags = "[WDCY] 마감시간 일괄등록")
 @RequiredArgsConstructor
 @RestController
 @Slf4j

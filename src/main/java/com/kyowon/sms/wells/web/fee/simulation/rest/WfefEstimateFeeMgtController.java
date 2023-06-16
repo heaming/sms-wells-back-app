@@ -59,5 +59,4 @@ public class WfefEstimateFeeMgtController {
     public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req) throws Exception {
         return service.getEstimateFeeHome(req);
     }
-
 }

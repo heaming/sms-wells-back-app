@@ -20,8 +20,8 @@ import javax.validation.Valid;
 import java.util.List;
 
 @InterfaceController
-@Api(tags = "[WDCC] wells일시불외(할부)-실적정보조회 I/F")
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performances/etc")
+@Api(tags = "[WDCC] wells일시불외(할부)-실적정보조회 I/F : W-CL-I-0004")
+@RequestMapping(DcClosingConst.INTERFACE_URL_V1 + "/performances/etc")
 @RequiredArgsConstructor
 @Validated
 public class WdccEtcPerformanceInterfaceController {

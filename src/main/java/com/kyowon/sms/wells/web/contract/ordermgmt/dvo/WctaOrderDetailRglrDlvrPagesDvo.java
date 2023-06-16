@@ -51,8 +51,8 @@ public class WctaOrderDetailRglrDlvrPagesDvo {
     private String mchnPdMclsfNm; /* 기기종류 */
     private String mchnPdLclsfNm; /* 기기구분 */
     private String pdTpNm; /* 상품선택유형 */
-    private String recapDutyPtrmN; /* 의무기간 */
-    private String stplPtrm; /* 계약기간 */
+    private String stplPtrm; /* 의무기간 */
+    private String cntrPtrm; /* 계약기간 */
     private String fnlAmt; /* 판매가격 */
     private String sellAmt; /* 공급가 */
     private String vat; /* 부가세 */

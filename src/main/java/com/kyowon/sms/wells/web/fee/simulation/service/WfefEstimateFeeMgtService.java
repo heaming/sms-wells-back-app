@@ -48,6 +48,4 @@ public class WfefEstimateFeeMgtService {
     public SearchHomeRes getEstimateFeeHome(SearchEstimateReq req) {
         return new SearchHomeRes(mapper.selectBaseHome(req), mapper.selectPerformanceHome(req), mapper.selectEstimateHome(req) ,mapper.selectSaleHome(req));
     }
-
-
 }

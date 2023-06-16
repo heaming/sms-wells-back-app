@@ -13,6 +13,9 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * [WSNC] [W-SV-S-0029] 특정고객 예정자재 인서트
+ */
 @Service
 @RequiredArgsConstructor
 public class WsncSpecCustPlanMatService {

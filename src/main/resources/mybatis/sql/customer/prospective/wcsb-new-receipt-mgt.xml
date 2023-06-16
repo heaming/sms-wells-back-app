@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.customer.prospective.mapper.WcsbNewReceiptMgtMapper">
+<!-- wcsb-new-receipt-mgt.xml -->
+
+    
+    <!--     접수조회 (TAB)   - Receipt      -->
+    <!-- 접수 목록 조회 -->
+    <select id="selectReceiptPages" resultType="com.kyowon.sms.wells.web.customer.prospective.dto.WcsbNewReceiptMgtDto$SearchRes">
+        <![CDATA[ ]]>
+        SELECT T2.PSPC_CST_INFLW_DT      /* 접수일 */
+             , T1.APLC_SN                /* 접수번호 - 가망고객ID */
+             , T1.PSPC_CST_CNSL_ID       /* 가망고객상담ID */
+             , DECODE(T1.ICHR_ASN_FSH_DTM, NULL, '', SUBSTR(T1.ICHR_ASN_FSH_DTM, 1, 8)) AS ICHR_ASN_FSH_DT /* 배정일자 */
+             , T1.ICHR_OG_TP_CD          /* 담당자 조직유형코드 */
+             , T1.ICHR_PRTNR_NO          /* 담당자 사번 */
+             , T4.PRTNR_KNM AS ICHR_PRTNR_NM /* 담당자 이름 */
+             , T1.SELL_INFLW_CHNL_DV_CD  /* 접수구분코드 */
+             , DECODE(T1.SELL_INFLW_CHNL_DV_CD, '40', '큐빅CC', '20', '홈페이지', '-') AS RECV_TP_NM /* 접수구분 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'INRT_PD_DV_CD', T1.INRT_PD_DV_CD) AS INRT_PD_DV_NM       /* 상품구분 */    
+             , T1.INRT_PD_DV_CD         /* 상품구분코드 */
+             , SUBSTR(T1.CNSL_PSB_STRT_DTM, 1, 8) AS CONTACT_DATE /* 컨택요청일 */     
+             , SUBSTR(T1.CNSL_PSB_STRT_DTM, 9, 2) || '<![CDATA[:00  ~ ]]>' || SUBSTR(T1.CNSL_PSB_END_DTM, 9, 2) || '<![CDATA[:00]]>' AS CONTACT_TIME /* 컨택요청시간 */
+             , T2.PSPC_CST_RCP_CN       /* 요청내용 */
+             , T2.PSPC_CST_KNM          /* 고객이름 */
+             , T2.OTSD_LK_DRM_VAL       /* 고객코드 */
+             , T2.CRAL_LOCARA_TNO       /* 고객휴대전화1 */
+             , T2.MEXNO_ENCR            /* 고객휴대전화2 */
+             , T2.CRAL_IDV_TNO          /* 고객휴대전화3 */
+             , T2.LOCARA_TNO            /* 고객일반전화1 */
+             , T2.EXNO_ENCR             /* 고객일반전화2 */
+             , T2.IDV_TNO               /* 고객일반전화3 */
+             , T3.NEW_ADR_ZIP           /* 우편번호 */
+             , T3.RNADR || ' ' || T3.RDADR AS CUST_ADR  /* 주소 */
+             , SUBSTR(T6.FST_RGST_DTM, 1, 8) AS FST_RGST_DT /* 생성일 */
+             , T6.SPP_DUEDT                  /* 예정일 */ 
+             , T6.CNTR_PD_STRTDT             /* 매출일 */
+             , T6.CNTR_NO                    /* 계약번호 */
+             , T7.PD_NM                      /* 상품명 */
+             , T1.FST_RGST_DTM               /* 최초등록일시 */
+             , T1.FST_RGST_USR_ID            /* 최초등록사용자ID */     
+             , CASE WHEN T1.SELL_INFLW_CHNL_DV_CD = '40' THEN (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = 'HR1' AND PRTNR_NO = T1.FST_RGST_USR_ID)
+                    ELSE (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N')
+               END AS FST_RGST_USR_NM     /* 최초등록사용자 */     
+             , T1.FST_RGST_PRG_ID         /* 최초등록프로그램ID */
+             , T1.FST_RGST_DEPT_ID        /* 최초등록부서ID */
+             , (SELECT DEPT_NM FROM T_CMP_USR_ACO_M WHERE DEPT_ID = T1.FST_RGST_DEPT_ID  AND DEL_YN = 'N' AND ROWNUM <![CDATA[ = ]]> 1) AS FST_RGST_DEPT_NM
+             , T1.FNL_MDFC_DTM            /* 최종수정일시 */
+             , T1.FNL_MDFC_USR_ID         /* 최종수정사용자ID */
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM 
+             , T1.FNL_MDFC_PRG_ID         /* 최종수정프로그램ID */
+             , T1.FNL_MDFC_DEPT_ID        /* 최종수정부서ID */    
+             , (SELECT DEPT_NM FROM T_CMP_USR_ACO_M WHERE DEPT_ID = T1.FNL_MDFC_DEPT_ID AND DEL_YN = 'N' AND ROWNUM <![CDATA[ = ]]> 1) AS FNL_MDFC_DEPT_NM
+             , '' AS PH_NO
+             , '' AS WIRE_TEL_NO
+             , F_CMZ_CD_NM('TNT_WELLS', 'PSPC_CST_CNSL_RS_CD', T1.PSPC_CST_CNSL_RS_CD) AS PSPC_CST_CNSL_RS_NM /* 배정컨택 */
+             , T1.CNSL_MO_CN             /* 상담메모내용 */          
+          FROM TB_SSOP_PSPC_CST_CNSL_BAS T1        /* T1. 가망고객상담기본 */
+         INNER JOIN TB_SSOP_PSPC_CST_BAS T2        /* T2. 가망고객기본 */
+            ON T1.PSPC_CST_ID = T2.PSPC_CST_ID  
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T3       /* T3 주소 기본 */
+            ON T2.ADR_ID = T3.ADR_ID
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T4     /* T4. 파트너기본 */
+            ON T1.ICHR_OG_TP_CD = T4.OG_TP_CD 
+           AND T1.ICHR_PRTNR_NO = T4.PRTNR_NO 
+          
+            LEFT OUTER JOIN (SELECT   CNTR_NO
+                                    , CNTR_SN
+                                    , OTSD_LK_DRM_VAL
+                                    , RANK() OVER(PARTITION BY OTSD_LK_DRM_VAL ORDER BY CNTR_NO DESC) AS ROW_NO
+                                 FROM TB_SSCT_CNTR_WELLS_DTL 
+                                WHERE DTA_DL_YN = 'N' ) T5 /* T5. 계약WELLS상세 */
+                ON T2.OTSD_LK_DRM_VAL = T5.OTSD_LK_DRM_VAL
+               AND T5.ROW_NO = 1
+          
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T6 /* T6. 계약상세 */
+            ON T5.CNTR_NO = T6.CNTR_NO 
+           AND T5.CNTR_SN = T6.CNTR_SN 
+           AND T6.CNTR_DTL_STAT_CD = '101'
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T7 /* T7. 상품기본 */ 
+            ON T6.BASE_PD_CD = T7.PD_CD
+         WHERE 1 = 1
+           AND T1.PSPC_CST_CNSL_TP_CD = '001'
+           AND T1.DTA_DL_YN = 'N'   
+     <!-- Dynamic Search Condition Start -->
+     <if test='@MybatisUtils@isNotEmpty( assignDtFrom ) and @MybatisUtils@isNotEmpty( assignDtTo )'>
+        AND T2.PSPC_CST_INFLW_DT BETWEEN #{assignDtFrom} AND #{assignDtTo} /* 접수기간 필수 */  
+     </if>
+     <if test='@MybatisUtils@isNotEmpty( sellInflwchnlDvCd )'>
+        AND T1.SELL_INFLW_CHNL_DV_CD = #{sellInflwchnlDvCd} /* 접수구분 존재 시 */  
+     </if>
+     <!-- 멀티Combo 전체 선택 또는 하나도 선택하지 않았을 때 조건 미실행. -->
+     <if test="@MybatisUtils@isNotEmpty( isAllPrdt ) and  @MybatisUtils@equals( isAllPrdt , false )">
+         <if test=" @MybatisUtils@isNotEmpty( prdtType ) and prdtType.length != 0 ">
+             AND T1.INRT_PD_DV_CD IN
+             <foreach collection="prdtType" item="item" index="index" separator="," open="(" close=")">
+                 #{item}
+             </foreach> /* 상품구분 존재 시 */
+         </if>
+     </if>
+     <if test='@MybatisUtils@isNotEmpty( ichrPrtnrNo )'>
+        AND T1.ICHR_PRTNR_NO = #{ichrPrtnrNo}   /* 배정담당자 사번 */  
+     </if>
+    </select>
+    
+    <!-- 담당자 수동배정 조회 -->
+    <select id="selectPartnerInfoByPrtnrNo" resultType="com.kyowon.sms.wells.web.customer.prospective.dto.WcsbNewReceiptMgtDto$PartnerRes">
+        SELECT MM_PRTNR.OG_ID      /* 조직ID */
+             , MM_PRTNR.OG_TP_CD   /* 조직유형 코드 */
+             , MM_PRTNR.OG_CD      /* 조직코드 */
+             , MM_PRTNR.OG_NM      /* 조직명 */
+             , MM_PRTNR.PSTN_DV_CD /* 직급코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'OJ_PSTN_CD', MM_PRTNR.PSTN_DV_CD) AS PSTN_NM           /* 직급 명 */
+             , MM_PRTNR.PRTNR_NO AS PRTNR_NO   /* 파트너사번 */
+             , MM_PRTNR.PRTNR_KNM AS PRTNR_NM  /* 파트너이름 */
+             , PRTNR.CRAL_LOCARA_TNO AS PRTNR_MP_NO1 /* 파트너휴대폰번호1 */
+             , PRTNR.MEXNO_ENCR AS PRTNR_MP_NO2      /* 파트너휴대폰번호2 */
+             , PRTNR.CRAL_IDV_TNO AS PRTNR_MP_NO3    /* 파트너휴대폰번호3 */
+             , '' AS PRTNR_HP_NO
+          FROM TB_OGBS_MM_PRTNR_IZ MM_PRTNR
+         INNER JOIN TB_OGBS_MM_OG_IZ OG
+            ON OG.BASE_YM = MM_PRTNR.BASE_YM
+           AND OG.OG_ID = MM_PRTNR.OG_ID
+           AND OG.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PRTNR   /* 파트너연락처 확인 용 */
+            ON PRTNR.OG_TP_CD = MM_PRTNR.OG_TP_CD
+           AND PRTNR.PRTNR_NO = MM_PRTNR.PRTNR_NO
+           AND PRTNR.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND MM_PRTNR.DTA_DL_YN = 'N'
+           AND MM_PRTNR.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           <if test="@MybatisUtils@isNotEmpty( ogTpCd )">
+           --   AND MM_PRTNR.OG_TP_CD = #{OG_TP_CD}   /* 'HR1', 'ALC' - 존재 시 */
+           </if>
+           AND MM_PRTNR.PRTNR_NO = #{prtnrNo}
+         FETCH FIRST ROWS ONLY
+    </select>
+    
+    <!-- 담당자 수동배정 저장 -->
+    <update id="updatePspcCstCnslAssign">
+        UPDATE TB_SSOP_PSPC_CST_CNSL_BAS
+           SET ICHR_ASN_FSH_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , ICHR_OG_TP_CD    = #{ogTpCd}
+             , ICHR_PRTNR_NO    = #{prtnrNo}
+            <include refid="COMMON.updateSystemField"/>
+         WHERE PSPC_CST_CNSL_ID = #{pspcCstCnslId}
+    </update>
+    
+    <!-- 접수 (단건)상세 조회 -->
+    <select id="selectPspcCstCnslAssign" resultType="com.kyowon.sms.wells.web.customer.prospective.dto.WcsbNewReceiptMgtDto$SearchDtlRes">
+        <![CDATA[ ]]>
+        SELECT T2.PSPC_CST_INFLW_DT          /* 접수일 */
+             , T1.APLC_SN                    /* 접수번호 */
+             , T1.PSPC_CST_CNSL_ID           /* 가망고객상담ID */
+             , DECODE(T1.ICHR_ASN_FSH_DTM, NULL, '', SUBSTR(T1.ICHR_ASN_FSH_DTM, 1, 8)) AS ICHR_ASN_FSH_DT /* 배정일자 */
+             , T1.ICHR_OG_TP_CD              /* 담당자 조직유형코드 */
+             , T1.ICHR_PRTNR_NO              /* 담당자 사번 */
+             , T4.PRTNR_KNM AS ICHR_PRTNR_NM /* 담당자 이름 */
+             , T1.PSPC_CST_CNSL_RS_CD        /* 가망고객상담결과코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'PSPC_CST_CNSL_RS_CD', T1.PSPC_CST_CNSL_RS_CD) AS PSPC_CST_CNSL_RS_NM /* 배정컨택 */     
+             , T1.CNSL_MO_CN                 /* 상담메모내용 */
+             , T1.SELL_INFLW_CHNL_DV_CD      /* 접수구분코드 */
+             , DECODE(T1.SELL_INFLW_CHNL_DV_CD, '40', '큐빅CC', '20', '홈페이지', '-') AS RECV_TP_NM /* 접수구분 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'INRT_PD_DV_CD', T1.INRT_PD_DV_CD) AS INRT_PD_DV_NM       /* 상품구분 */    
+             , T1.INRT_PD_DV_CD              /* 상품구분코드 */
+             , SUBSTR(T1.CNSL_PSB_STRT_DTM, 1, 8) AS CONTACT_DATE /* 컨택요청일 */     
+             , SUBSTR(T1.CNSL_PSB_STRT_DTM, 9, 2) || '<![CDATA[:00  ~ ]]>' || SUBSTR(T1.CNSL_PSB_END_DTM, 9, 2) || '<![CDATA[:00]]>' AS CONTACT_TIME /* 컨택요청시간 */
+             , T2.PSPC_CST_RCP_CN            /* 요청내용 */
+             , T2.PSPC_CST_KNM               /* 고객이름 */
+             , T2.OTSD_LK_DRM_VAL            /* 고객코드 */
+             , T2.CRAL_LOCARA_TNO            /* 고객휴대전화1 */
+             , T2.MEXNO_ENCR                 /* 고객휴대전화2 */
+             , T2.CRAL_IDV_TNO               /* 고객휴대전화3 */
+             , T2.LOCARA_TNO                 /* 고객일반전화1 */
+             , T2.EXNO_ENCR                  /* 고객일반전화2 */
+             , T2.IDV_TNO                    /* 고객일반전화3 */
+             , T3.NEW_ADR_ZIP                /* 우편번호 */
+             , T3.RNADR || ' ' || T3.RDADR AS CUST_ADR  /* 주소 */
+             , SUBSTR(T6.FST_RGST_DTM, 1, 8) AS FST_RGST_DT /* 생성일 */
+             , T6.SPP_DUEDT                  /* 예정일 */ 
+             , T6.CNTR_PD_STRTDT             /* 매출일 */
+             , T6.CNTR_NO                    /* 계약번호 */
+             , T7.PD_NM                      /* 상품명 */
+             , T1.FST_RGST_DTM               /* 최초등록일시 */
+             , T1.FST_RGST_USR_ID            /* 최초등록사용자ID */     
+             , CASE WHEN T1.SELL_INFLW_CHNL_DV_CD = '40' THEN (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = 'HR1' AND PRTNR_NO = T1.FST_RGST_USR_ID)
+                    ELSE (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N')
+               END AS FST_RGST_USR_NM        /* 최초등록사용자 */     
+             , T1.FST_RGST_PRG_ID            /* 최초등록프로그램ID */
+             , T1.FST_RGST_DEPT_ID           /* 최초등록부서ID */
+             , (SELECT DEPT_NM FROM T_CMP_USR_ACO_M WHERE DEPT_ID = T1.FST_RGST_DEPT_ID  AND DEL_YN = 'N' AND ROWNUM = 1) AS FST_RGST_DEPT_NM
+             , T1.FNL_MDFC_DTM               /* 최종수정일시 */
+             , T1.FNL_MDFC_USR_ID            /* 최종수정사용자ID */
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM 
+             , T1.FNL_MDFC_PRG_ID            /* 최종수정프로그램ID */
+             , T1.FNL_MDFC_DEPT_ID           /* 최종수정부서ID */    
+             , (SELECT DEPT_NM FROM T_CMP_USR_ACO_M WHERE DEPT_ID = T1.FNL_MDFC_DEPT_ID AND DEL_YN = 'N' AND ROWNUM = 1) AS FNL_MDFC_DEPT_NM
+             , '' AS PH_NO
+             , '' AS WIRE_TEL_NO
+          FROM TB_SSOP_PSPC_CST_CNSL_BAS T1        /* T1. 가망고객상담기본 */
+         INNER JOIN TB_SSOP_PSPC_CST_BAS T2        /* T2. 가망고객기본 */
+            ON T1.PSPC_CST_ID = T2.PSPC_CST_ID  
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T3       /* T3 주소 기본 */
+            ON T2.ADR_ID = T3.ADR_ID
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T4     /* T4. 파트너기본 */
+            ON T1.ICHR_OG_TP_CD = T4.OG_TP_CD 
+           AND T1.ICHR_PRTNR_NO = T4.PRTNR_NO 
+            LEFT OUTER JOIN (SELECT   CNTR_NO
+                                    , CNTR_SN
+                                    , OTSD_LK_DRM_VAL
+                                    , RANK() OVER(PARTITION BY OTSD_LK_DRM_VAL ORDER BY CNTR_NO DESC) AS ROW_NO
+                                 FROM TB_SSCT_CNTR_WELLS_DTL 
+                                WHERE DTA_DL_YN = 'N' ) T5 /* T5. 계약WELLS상세 */
+                ON T2.OTSD_LK_DRM_VAL = T5.OTSD_LK_DRM_VAL
+               AND T5.ROW_NO = 1
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T6 /* T6. 계약상세 */
+            ON T5.CNTR_NO = T6.CNTR_NO 
+           AND T5.CNTR_SN = T6.CNTR_SN 
+           AND T6.CNTR_DTL_STAT_CD = '101'
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T7 /* T7. 상품기본 */ 
+            ON T6.BASE_PD_CD = T7.PD_CD 
+         WHERE 1 = 1
+           AND T1.PSPC_CST_CNSL_TP_CD = '001'
+           AND T1.DTA_DL_YN = 'N'   
+           AND T1.PSPC_CST_CNSL_ID = #{pspcCstCnslId}
+    </select>
+    
+    <!-- 배정정보 수정 -->
+    <update id="updatePspcCstCnslContact">
+        UPDATE TB_SSOP_PSPC_CST_CNSL_BAS
+           SET PSPC_CST_CNSL_RS_CD = #{pspcCstCnslRsCd}
+             , CNSL_MO_CN = #{cnslMoCn}
+              <include refid="COMMON.updateSystemField"/> 
+         WHERE PSPC_CST_CNSL_ID = #{pspcCstCnslId}
+    </update>
+    
+    
+    <!--     배정조회 (TAB)   - Assign     -->
+     <!-- 배정 목록 조회 -->
+    <select id="selectAssignPages" resultType="com.kyowon.sms.wells.web.customer.prospective.dto.WcsbNewReceiptMgtDto$SearchDtlRes">
+        SELECT T2.PSPC_CST_INFLW_DT      /* 접수일 */
+             , T1.APLC_SN                /* 접수번호 - 가망고객ID */
+             , T1.PSPC_CST_CNSL_ID       /* 가망고객상담ID */
+             , DECODE(T1.ICHR_ASN_FSH_DTM, NULL, '', SUBSTR(T1.ICHR_ASN_FSH_DTM, 1, 8)) AS ICHR_ASN_FSH_DT /* 배정일자 */
+             , T1.ICHR_OG_TP_CD          /* 담당자 조직유형코드 */
+             , T1.ICHR_PRTNR_NO          /* 담당자 사번 */
+             , T4.PRTNR_KNM AS ICHR_PRTNR_NM /* 담당자 이름 */
+             , T1.PSPC_CST_CNSL_RS_CD    /* 가망고객상담결과코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'PSPC_CST_CNSL_RS_CD', T1.PSPC_CST_CNSL_RS_CD) AS PSPC_CST_CNSL_RS_NM /* 배정컨택 */     
+             , T1.CNSL_MO_CN             /* 상담메모내용 */     
+             , T1.SELL_INFLW_CHNL_DV_CD  /* 접수구분코드 */
+             , DECODE(T1.SELL_INFLW_CHNL_DV_CD, '40', '큐빅CC', '20', '홈페이지', '-') AS RECV_TP_NM /* 접수구분 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'INRT_PD_DV_CD', T1.INRT_PD_DV_CD) AS INRT_PD_DV_NM       /* 상품구분 */    
+             , T1.INRT_PD_DV_CD         /* 상품구분코드 */
+             , SUBSTR(T1.CNSL_PSB_STRT_DTM, 1, 8) AS CONTACT_DATE /* 컨택요청일 */     
+             , SUBSTR(T1.CNSL_PSB_STRT_DTM, 9, 2) || '<![CDATA[:00  ~ ]]>' || SUBSTR(T1.CNSL_PSB_END_DTM, 9, 2) || '<![CDATA[:00]]>' AS CONTACT_TIME /* 컨택요청시간 */
+             , T2.PSPC_CST_RCP_CN            /* 요청내용 */
+             , T2.PSPC_CST_KNM               /* 고객이름 */
+             , T2.OTSD_LK_DRM_VAL            /* 고객코드 */
+             , T2.CRAL_LOCARA_TNO            /* 고객휴대전화1 */
+             , T2.MEXNO_ENCR                 /* 고객휴대전화2 */
+             , T2.CRAL_IDV_TNO               /* 고객휴대전화3 */
+             , T2.LOCARA_TNO                 /* 고객일반전화1 */
+             , T2.EXNO_ENCR                  /* 고객일반전화2 */
+             , T2.IDV_TNO                    /* 고객일반전화3 */
+             , T3.NEW_ADR_ZIP                /* 우편번호 */
+             , T3.RNADR || ' ' || T3.RDADR AS CUST_ADR  /* 주소 */
+             , SUBSTR(T6.FST_RGST_DTM, 1, 8) AS FST_RGST_DT /* 생성일 */
+             , T6.SPP_DUEDT                  /* 예정일 */ 
+             , T6.CNTR_PD_STRTDT             /* 매출일 */
+             , T6.CNTR_NO                    /* 계약번호 */
+             , T7.PD_NM                      /* 상품명 */
+             , T1.FST_RGST_DTM               /* 최초등록일시 */
+             , T1.FST_RGST_USR_ID            /* 최초등록사용자ID */     
+             , CASE WHEN T1.SELL_INFLW_CHNL_DV_CD = '40' THEN (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = 'HR1' AND PRTNR_NO = T1.FST_RGST_USR_ID)
+                    ELSE (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N')
+               END AS FST_RGST_USR_NM        /* 최초등록사용자 */     
+             , T1.FST_RGST_PRG_ID            /* 최초등록프로그램ID */
+             , T1.FST_RGST_DEPT_ID           /* 최초등록부서ID */
+             , (SELECT DEPT_NM FROM T_CMP_USR_ACO_M WHERE DEPT_ID = T1.FST_RGST_DEPT_ID  AND DEL_YN = 'N' AND ROWNUM = 1) AS FST_RGST_DEPT_NM
+             , T1.FNL_MDFC_DTM               /* 최종수정일시 */
+             , T1.FNL_MDFC_USR_ID            /* 최종수정사용자ID */
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM 
+             , T1.FNL_MDFC_PRG_ID            /* 최종수정프로그램ID */
+             , T1.FNL_MDFC_DEPT_ID           /* 최종수정부서ID */    
+             , (SELECT DEPT_NM FROM T_CMP_USR_ACO_M WHERE DEPT_ID = T1.FNL_MDFC_DEPT_ID AND DEL_YN = 'N' AND ROWNUM = 1) AS FNL_MDFC_DEPT_NM
+             , '' AS PH_NO                   /* UI표현용 가상컬럼 */
+             , '' AS WIRE_TEL_NO             /* UI표현용 가상컬럼 */
+          FROM TB_SSOP_PSPC_CST_CNSL_BAS T1        /* T1. 가망고객상담기본 */
+         INNER JOIN TB_SSOP_PSPC_CST_BAS T2        /* T2. 가망고객기본 */
+            ON T1.PSPC_CST_ID = T2.PSPC_CST_ID  
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T3       /* T3 주소 기본 */
+            ON T2.ADR_ID = T3.ADR_ID
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T4     /* T4. 파트너기본 */
+            ON T1.ICHR_OG_TP_CD = T4.OG_TP_CD 
+           AND T1.ICHR_PRTNR_NO = T4.PRTNR_NO 
+          LEFT OUTER JOIN (SELECT CNTR_NO
+                                , CNTR_SN
+                                , OTSD_LK_DRM_VAL
+                                , RANK() OVER(PARTITION BY OTSD_LK_DRM_VAL ORDER BY CNTR_NO DESC) AS ROW_NO
+                             FROM TB_SSCT_CNTR_WELLS_DTL 
+                            WHERE DTA_DL_YN = 'N' ) T5 /* T5. 계약WELLS상세 */
+            ON T2.OTSD_LK_DRM_VAL = T5.OTSD_LK_DRM_VAL
+           AND T5.ROW_NO = 1
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T6 /* T6. 계약상세 */
+            ON T5.CNTR_NO = T6.CNTR_NO 
+           AND T5.CNTR_SN = T6.CNTR_SN 
+           AND T6.CNTR_DTL_STAT_CD = '101'
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T7 /* T7. 상품기본 */ 
+            ON T6.BASE_PD_CD = T7.PD_CD 
+         WHERE 1 = 1
+           AND T1.PSPC_CST_CNSL_TP_CD = '001'
+           AND T1.DTA_DL_YN = 'N'      
+        <if test='@MybatisUtils@isNotEmpty( assignDtFrom ) and @MybatisUtils@isNotEmpty( assignDtTo )'>
+            AND T1.ICHR_ASN_FSH_DTM BETWEEN #{assignDtFrom} || '000000' AND #{assignDtTo} || '235959' /* 접수기간 필수 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty( ichrPrtnrNo )'>
+            AND T1.ICHR_PRTNR_NO = #{ichrPrtnrNo}   /* 배정담당자 사번 */  
+        </if>
+        <!-- 멀티Combo 전체 선택 또는 하나도 선택하지 않았을 때 조건 미실행. -->
+        <if test="@MybatisUtils@isNotEmpty( isAllPrdt ) and  @MybatisUtils@equals( isAllPrdt , false )">
+            <if test=" @MybatisUtils@isNotEmpty( prdtType ) and prdtType.length != 0 ">
+            AND T1.INRT_PD_DV_CD IN
+            <foreach collection="prdtType" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+            </if>
+        </if>
+         ORDER BY T2.PSPC_CST_INFLW_DT DESC, T4.PRTNR_KNM ASC
+    </select>
+    
+    <!--     집계 (TAB) - Summaries     -->
+    <!-- 집계정보 조회 -->
+    <select id="selectPspcCstCnslRecvSummaries" resultType="com.kyowon.sms.wells.web.customer.prospective.dto.WcsbNewReceiptMgtDto$SearchSummariesRes">
+        SELECT T1.INRT_PD_DV_CD || '. ' || F_CMZ_CD_NM('TNT_WELLS', 'INRT_PD_DV_CD', T1.INRT_PD_DV_CD) AS INRT_PD_DV_NM       /* 상품구분 */    
+             , T1.INRT_PD_DV_CD         /* 상품구분코드 */
+             , COUNT(T1.PSPC_CST_CNSL_ID) AS RECV_COUNT /* 접수건수 */
+             , SUM(DECODE(T6.CNTR_NO, NULL, 0, 1)) AS CNTR_COUNT /* 계약건수 */
+          FROM TB_SSOP_PSPC_CST_CNSL_BAS T1        /* T1. 가망고객상담기본 */
+         INNER JOIN TB_SSOP_PSPC_CST_BAS T2        /* T2. 가망고객기본 */
+            ON T1.PSPC_CST_ID = T2.PSPC_CST_ID  
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T5 /* T5. 계약WELLS상세 */
+            ON T2.OTSD_LK_DRM_VAL = T5.OTSD_LK_DRM_VAL
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T6 /* T6. 계약상세 */
+            ON T5.CNTR_NO = T6.CNTR_NO 
+           AND T5.CNTR_SN = T6.CNTR_SN 
+           AND T6.CNTR_DTL_STAT_CD = '101'
+           AND T6.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.PSPC_CST_CNSL_TP_CD = '001'
+           AND T1.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty( recvDtFrom ) and @MybatisUtils@isNotEmpty( recvDtTo )'>
+               AND T2.PSPC_CST_INFLW_DT BETWEEN #{recvDtFrom} AND #{recvDtTo} /* 접수기간 */
+           </if>
+           <!-- 멀티Combo 전체 선택 또는 하나도 선택하지 않았을 때 조건 미실행. -->
+           <if test="@MybatisUtils@isNotEmpty( isAllPrdt ) and  @MybatisUtils@equals( isAllPrdt , false )">
+               <if test=" @MybatisUtils@isNotEmpty( prdtType ) and prdtType.length != 0 ">
+                   AND T1.INRT_PD_DV_CD IN
+                   <foreach collection="prdtType" item="item" index="index" separator="," open="(" close=")">
+                       #{item}
+                   </foreach> /* 상품구분 존재 시 */
+               </if>
+           </if>
+         GROUP BY T1.INRT_PD_DV_CD  
+         ORDER BY T1.INRT_PD_DV_CD ASC
+    </select>
+    
+</mapper>

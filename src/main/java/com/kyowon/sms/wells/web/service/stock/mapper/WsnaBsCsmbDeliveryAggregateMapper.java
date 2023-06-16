@@ -17,4 +17,6 @@ public interface WsnaBsCsmbDeliveryAggregateMapper {
     PagingResult<WsnaBsCsmbDeliveryAggregateDvo> selectDeliveryAggregate(SearchReq dto, PageInfo pageInfo);
 
     List<SearchQtysRes> selectItemQtys(String mngtYmFrom, String mngtYmTo);
+
+    PagingResult<SearchQtysRes> selectItemQtys(SearchReq dto, PageInfo pageInfo);
 }

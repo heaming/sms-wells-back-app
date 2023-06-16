@@ -45,7 +45,6 @@ public class WsnaOutOfStorageIzDtlDto {
         String ostrDt,
         String sapMatCd,
         String itmPdCd,
-        String itmCd,
         String pdNm,
         String ostrTpCd,
         String mngtUnitCd,
