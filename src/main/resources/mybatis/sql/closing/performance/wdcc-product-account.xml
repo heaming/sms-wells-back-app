@@ -172,17 +172,18 @@
     <select id="selectProductAccountsExcelDownload" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto$SearchExcelRes">
         WITH T1 AS( 
                   SELECT S1.CNTR_NO, S1.CNTR_SN
-                        ,S1.BF_CNTR_NO, S1.BF_CNTR_SN
-                        ,S1.AF_CNTR_NO, S1.AF_CNTR_SN  
-                        ,S2.CST_NO 
-                        ,S3.CST_NO AS BF_CST_NO 
-                        ,S4.CST_NO AS AF_CST_NO  
-                   FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS S1 LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL S2  /*계약고객관계*/
-                                                                    ON S1.CNTR_NO = S2.DTL_CNTR_NO  /*계약번호*/ 
-                                                          LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL S3  /*계약고객관계*/
-                                                                    ON S1.BF_CNTR_NO = S2.DTL_CNTR_NO  /*계약번호*/ 
-                                                          LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL S4  /*계약고객관계*/
-                                                                    ON S1.AF_CNTR_NO = S2.DTL_CNTR_NO  /*계약번호*/           
+                       , S1.BF_CNTR_NO, S1.BF_CNTR_SN
+                       , S1.AF_CNTR_NO, S1.AF_CNTR_SN  
+                       , S2.CST_NO 
+                       , S3.CST_NO AS BF_CST_NO 
+                       , S4.CST_NO AS AF_CST_NO  
+                    FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS S1
+                    LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL S2  /*계약고객관계*/
+                      ON S1.CNTR_NO = S2.DTL_CNTR_NO  /*계약번호*/ 
+                    LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL S3  /*계약고객관계*/
+                      ON S1.BF_CNTR_NO = S2.DTL_CNTR_NO  /*계약번호*/ 
+                    LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL S4  /*계약고객관계*/
+                      ON S1.AF_CNTR_NO = S2.DTL_CNTR_NO  /*계약번호*/           
                    WHERE 1=1 
                    /*조회조건 화면이랑 같음.*/
                    AND SUBSTR(CH_DTM, 0, 6) BETWEEN #{baseYmFrom} AND #{baseYmTo}
@@ -207,9 +208,10 @@
                           WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T2.SELL_TP_DTL_CD ) AS SELL_TP_DTL_CD    /*판매유형상세*/
                       , (SELECT CD_CNTN FROM T_CMZ_CD_D  
                           WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'COPN_DV_CD' AND CD_VLD_VAL = (SELECT COPN_DV_CD FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO  ) ) AS  CUST_CLS_CD /*고객구분(법인격)*/
-                      , T1.CST_NO AS CST_NO    /*고객번호*/
+                      , T1.CNTR_NO || TO_CHAR(T1.CNTR_SN) AS CNTR_NO  /*계약번호*/
                       , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO  ) AS CST_KNM  /*고객명*/
                       , 'N' AS NEW_CUST_YN   /*신규교원키여부 - 발라낼 방법이 없음.*/
+                      , T1.CST_NO AS CST_NO    /*고객번호*/
                       , (SELECT TRUNC(MONTHS_BETWEEN(TRUNC(SYSDATE), TO_DATE(BRYY_MMDD,'YYYYMMDD')) / 12)  FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO  ) AS BRYY_MMDD  /*고객연령*/ 
                       , (CASE WHEN (SELECT SEX_DV_CD FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO  ) = '1' THEN '남'
                               ELSE '여' END) AS SEX_DV_CD  /*성별*/
@@ -220,9 +222,10 @@
                       , (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO  ) AS PRTNR_NO  /*판매자 파트너번호*/
                       , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = (SELECT SELL_OG_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CST_NO  ) 
                                                                    AND PRTNR_NO = (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CST_NO  )   )  AS PRTNR_NM  /*파트너명*/
-                      , (SELECT NEW_ADR_ZIP FROM TB_GBCO_ADR_BAS WHERE ADR_ID =  (SELECT ADR_ID FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) ) AS CTNT_CST_ZIP  /*계약우편번호*/ 
-                      , (SELECT MAX(SPP_ZIP) FROM TB_SVPD_CST_SV_SPP_ADR_IZ /*고객서비스배송주소내역*/ WHERE CNTR_NO =T1.CNTR_NO  AND CNTR_SN =T1.CNTR_SN ) AS OJ_ZIP /*배송주소우편번호*/                                                   
-                      , T2.PD_MCLSF_ID AS PDGRP_CD  /*상품군코드 (중분류)*/
+                      , (SELECT NEW_ADR_ZIP FROM TB_GBCO_ADR_BAS WHERE ADR_ID =  (SELECT ADR_ID FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) ) AS CTNT_CST_ZIP  /*계약우편번호*/
+                      , (SELECT MAX(SPP_ZIP) FROM TB_SVPD_CST_SV_SPP_ADR_IZ /*고객서비스배송주소내역*/ WHERE CNTR_NO =T1.CNTR_NO  AND CNTR_SN =T1.CNTR_SN ) AS OJ_ZIP /*배송주소우편번호*/
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T2.PD_HCLSF_ID) AS PD_HCLSF_NM  /*상품대분류명)*/
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T2.PD_MCLSF_ID) AS PD_MCLSF_NM  /*상품중분류명)*/
                       , T2.BASE_PD_CD AS PD_CD      /*상품코드*/
                       , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T2.BASE_PD_CD) AS PD_NM  /*상품명*/
                       , T2.SV_PRD AS SV_PRD  /*서비스주기*/
@@ -247,9 +250,10 @@
                           WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T3.SELL_TP_DTL_CD ) AS SELL_TP_DTL_CD2    /*판매유형상세*/
                       , (SELECT CD_CNTN FROM T_CMZ_CD_D  
                           WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'COPN_DV_CD' AND CD_VLD_VAL = (SELECT COPN_DV_CD FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.BF_CST_NO  ) ) AS  CUST_CLS_CD2 /*고객구분(법인격)*/
-                      , T1.BF_CST_NO AS CST_NO2   /*고객번호*/
+                      , T1.BF_CNTR_NO || TO_CHAR(T1.BF_CNTR_SN) AS CNTR_NO2  /*계약번호*/
                       , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.BF_CST_NO  ) AS CST_KNM2  /*고객명*/
                       , 'N' AS NEW_CUST_YN2   /*신규교원키여부 - 발라낼 방법이 없음.*/
+                      , T1.BF_CST_NO AS CST_NO2   /*고객번호*/
                       , (SELECT TRUNC(MONTHS_BETWEEN(TRUNC(SYSDATE), TO_DATE(BRYY_MMDD,'YYYYMMDD')) / 12)  FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.BF_CST_NO  ) AS BRYY_MMDD2  /*고객연령*/ 
                       , (CASE WHEN (SELECT SEX_DV_CD FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.BF_CST_NO  ) = '1' THEN '남'
                               ELSE '여' END) AS SEX_DV_CD2  /*성별*/
@@ -261,8 +265,9 @@
                       , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = (SELECT SELL_OG_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.BF_CST_NO  ) 
                                                                    AND PRTNR_NO = (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.BF_CST_NO  )   )  AS PRTNR_NM2 /*파트너명*/
                       , (SELECT NEW_ADR_ZIP FROM TB_GBCO_ADR_BAS WHERE ADR_ID =  (SELECT ADR_ID FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.BF_CST_NO) ) AS CTNT_CST_ZIP2  /*계약우편번호*/ 
-                      , (SELECT MAX(SPP_ZIP) FROM TB_SVPD_CST_SV_SPP_ADR_IZ /*고객서비스배송주소내역*/ WHERE CNTR_NO =T1.BF_CNTR_NO  AND CNTR_SN =T1.BF_CNTR_SN ) AS OJ_ZIP2 /*배송주소우편번호*/                                                   
-                      , T3.PD_MCLSF_ID AS PDGRP_CD2  /*상품군코드 (중분류)*/
+                      , (SELECT MAX(SPP_ZIP) FROM TB_SVPD_CST_SV_SPP_ADR_IZ /*고객서비스배송주소내역*/ WHERE CNTR_NO =T1.BF_CNTR_NO  AND CNTR_SN =T1.BF_CNTR_SN ) AS OJ_ZIP2 /*배송주소우편번호*/
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_HCLSF_ID) AS PD_HCLSF_NM2  /*상품대분류명*/
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_MCLSF_ID) AS PD_MCLSF_NM2  /*상품중분류명*/
                       , T3.BASE_PD_CD AS PD_CD2      /*상품코드*/
                       , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.BASE_PD_CD) AS PD_NM2  /*상품명*/
                       , T3.SV_PRD AS SV_PRD2  /*서비스주기*/
@@ -287,9 +292,10 @@
                           WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T4.SELL_TP_DTL_CD ) AS SELL_TP_DTL_CD3    /*판매유형상세*/
                       , (SELECT CD_CNTN FROM T_CMZ_CD_D  
                           WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'COPN_DV_CD' AND CD_VLD_VAL = (SELECT COPN_DV_CD FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.AF_CST_NO  ) ) AS  CUST_CLS_CD3 /*고객구분(법인격)*/
-                      , T1.AF_CST_NO AS CST_NO3   /*고객번호*/
+                      , T1.AF_CNTR_NO || TO_CHAR(T1.AF_CNTR_SN) AS CNTR_NO3  /*계약번호*/
                       , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.AF_CST_NO  ) AS CST_KNM3  /*고객명*/
                       , 'N' AS NEW_CUST_YN3   /*신규교원키여부 - 발라낼 방법이 없음.*/
+                      , T1.AF_CST_NO AS CST_NO3   /*고객번호*/
                       , (SELECT TRUNC(MONTHS_BETWEEN(TRUNC(SYSDATE), TO_DATE(BRYY_MMDD,'YYYYMMDD')) / 12)  FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.AF_CST_NO  ) AS BRYY_MMDD3  /*고객연령*/ 
                       , (CASE WHEN (SELECT SEX_DV_CD FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.AF_CST_NO  ) = '1' THEN '남'
                             ELSE '여' END) AS SEX_DV_CD3  /*성별*/
@@ -302,7 +308,8 @@
                                                                  AND PRTNR_NO = (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.AF_CST_NO  )   )  AS PRTNR_NM3 /*파트너명*/
                       , (SELECT NEW_ADR_ZIP FROM TB_GBCO_ADR_BAS WHERE ADR_ID =  (SELECT ADR_ID FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.AF_CST_NO) ) AS CTNT_CST_ZIP3  /*계약우편번호*/ 
                       , (SELECT MAX(SPP_ZIP) FROM TB_SVPD_CST_SV_SPP_ADR_IZ /*고객서비스배송주소내역*/ WHERE CNTR_NO =T1.AF_CNTR_NO  AND CNTR_SN =T1.AF_CNTR_SN ) AS OJ_ZIP3 /*배송주소우편번호*/                                                   
-                      , T4.PD_MCLSF_ID AS PDGRP_CD3  /*상품군코드 (중분류)*/
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T4.PD_HCLSF_ID) AS PD_HCLSF_NM3  /*상품대분류명*/
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T4.PD_MCLSF_ID) AS PD_MCLSF_NM3  /*상품중분류명*/
                       , T4.BASE_PD_CD AS PD_CD3      /*상품코드*/
                       , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T4.BASE_PD_CD) AS PD_NM3  /*상품명*/
                       , T4.SV_PRD AS SV_PRD3  /*서비스주기*/
