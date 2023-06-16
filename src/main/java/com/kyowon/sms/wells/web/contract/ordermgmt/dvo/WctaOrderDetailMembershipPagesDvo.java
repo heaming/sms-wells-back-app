@@ -30,8 +30,8 @@ public class WctaOrderDetailMembershipPagesDvo {
     private String pdLclsfNm; /* 상품구분1 */
     private String pdDclsfNm; /* 상품구분2 */
     private String cntrDtlStatNm; /* 멤버십상태 */
-    private String dscApyTpNm; /* 할인적용유형명 */
-    private String dscApyDtlNm; /* 할인적용상세명 */
+    private String sellDscDvNm; /* 할인적용구분명 */
+    private String sellDscTpNm; /* 할인적용유형명 */
     private String feeAckmtCt; /* 인정건수 */
     private String ackmtPerfAmt; /* 인정금액 */
     private String cntrCtrAmt; /* 등록할인 */

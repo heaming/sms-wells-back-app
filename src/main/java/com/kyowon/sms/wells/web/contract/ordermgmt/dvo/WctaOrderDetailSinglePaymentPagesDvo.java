@@ -26,7 +26,7 @@ public class WctaOrderDetailSinglePaymentPagesDvo {
     private String basePdNm;
     private String sellDscDvCd;
     private String sellDscDvNm;
-    private String sellDscrCd;
+    private String sellDscTpCd;
     private String sellDscTpNm;
     private String cntrRcpFshDtm;
     private String sppDuedt;
