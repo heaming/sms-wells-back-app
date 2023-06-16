@@ -56,10 +56,10 @@
                                  WHERE RBFB.BIL_DT = #{bilDt}
                                    AND RBFB.FNT_DV_CD = #{fntDvCd}
                                    <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-                                   AND RAFS.AC_FNT_RS_CD != '0000'
+                                   AND RAFS.AC_FNT_RS_CD IS NULL
                                    </if>
                                    <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-                                   AND RCFS.CARD_FNT_RS_CD != '0000'
+                                   AND RCFS.CARD_FNT_RS_CD IS NULL
                                    </if>
         )
         GROUP BY AUTO_FNT_CLSF, BNK_CD,BNK_NM
@@ -67,7 +67,8 @@
     </select>
 
     <select id="selectAftnDpNcrtCheckListPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnDpNcrtCheckListRes">
-               SELECT '자동이체(은행) 수신되었으나 입금반영 안된 건' AS AFTN_CLSF
+               SELECT CASE WHEN #{fntDvCd} = '01' THEN '자동이체(은행) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)'
+                           WHEN #{fntDvCd} = '02' THEN '자동이체(카드) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)' END AS AFTN_CLSF
                      , RBFD.CNTR_NO
                      , RBFD.CNTR_SN
                      , RBFD.CNTR_NO || RBFD.CNTR_SN AS CNTR
@@ -83,13 +84,13 @@
             INNER JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
                     ON RBFB.BIL_NO = RAFS.BIL_NO
                    AND RAFS.DTA_DL_YN = 'N'
-                   AND RAFS.AC_FNT_RS_CD != '0000'
+                   AND RAFS.AC_FNT_RS_CD IS NOT NULL
             </if>
             <if test='@MybatisUtils@equals(fntDvCd, "02")'>
             INNER JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
                     ON RBFB.BIL_NO = RCFS.BIL_NO
                    AND RCFS.DTA_DL_YN = 'N'
-                   AND RCFS.CARD_FNT_RS_CD != '0000'
+                   AND RCFS.CARD_FNT_RS_CD IS NOT NULL
             </if>
             INNER JOIN TB_SSCT_CNTR_DTL SCD
                     ON RBFD.CNTR_NO = SCD.CNTR_NO
@@ -99,13 +100,13 @@
                     ON SCD.CNTR_NO = SCB.CNTR_NO
                    AND SCB.DTA_DL_YN = 'N'
                    AND SCB.CNTR_CAN_DTM IS NULL
-       LEFT OUTER JOIN TB_RVDW_RVE_AK_DTL RRAD
+            INNER JOIN TB_RVDW_RVE_AK_DTL RRAD
                     ON RBFD.BIL_NO = RRAD.RVE_AK_OJ_DRM_NO1
                    AND RBFD.BIL_DTL_SN = RRAD.RVE_AK_OJ_DRM_NO2
                    AND RRAD.DTA_DL_YN = 'N'
                  WHERE RBFB.BIL_DT = #{bilDt}
                    AND RBFB.FNT_DV_CD = #{fntDvCd}
-              ORDER BY DP_AMT DESC
+              ORDER BY RBFD.DP_AMT DESC
     </select>
 
     <select id="selectAftnSlPerfCheckInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnSlPerfCheckInqrRes">
@@ -260,7 +261,7 @@
                                                             WHEN #{dpTpCd} = '0203' THEN '02'
                                                        END)
                                             WHEN MSTR_CNTR.BNK_CD != SUB_CNTR.BNK_CD OR MSTR_CNTR.CDCO_CD != SUB_CNTR.CDCO_CD
-                                                 THEN (CASE WHEN #{dpTpCd} = '0102' THEN '2.은행코드상이' || (SELECT CD_CNTN
+                                                 THEN (CASE WHEN #{dpTpCd} = '0102' THEN '2.은행코드상이(' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D
                                                                                                  WHERE CD_ID = UPPER('BNK_CD')
                                                                                                    AND TENANT_ID = 'TNT_WELLS'
@@ -274,7 +275,7 @@
                                                                                                    AND DEL_YN = 'N'
                                                                                                    AND CD_VLD_VAL = SUB_CNTR.BNK_CD)
                                                                                                || ')'
-                                                            WHEN #{dpTpCd} = '0203' THEN '2.계좌구분상이' || (SELECT CD_CNTN
+                                                            WHEN #{dpTpCd} = '0203' THEN '2.계좌구분상이(' || (SELECT CD_CNTN
                                                                                                   FROM T_CMZ_CD_D
                                                                                                  WHERE CD_ID = UPPER('CDCO_CD')
                                                                                                    AND TENANT_ID = 'TNT_WELLS'
@@ -316,61 +317,105 @@
                                        END AS ERR_TYP
                                   FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
                                   JOIN (
-                                                SELECT SCD.CNTR_NO
+                                         SELECT SCD.CNTR_NO
                                               , SCD.CNTR_SN
                                               , SCD.SELL_TP_CD
-                                              , SCSB.DP_TP_CD
-                                              , SCSB.BNK_CD
-                                              , SCSB.CDCO_CD
+                                              , A.DP_TP_CD
+                                              , A.BNK_CD
+                                              , A.CDCO_CD
                                               , SCD.CNTR_DTL_STAT_CD
-                                              , SCSB.MPY_BSDT
-                                              , SCSB.CST_NO
-                                              , SCSB.ACNO_ENCR
-                                              , SCSB.CRCDNO_ENCR
+                                              , A.MPY_BSDT
+                                              , A.CST_NO
+                                              , A.ACNO_ENCR
+                                              , A.CRCDNO_ENCR
                                            FROM TB_SSCT_CNTR_DTL SCD
                                            JOIN TB_SSCT_CNTR_BAS SCB
                                              ON SCD.CNTR_NO = SCB.CNTR_NO
                                             AND SCB.CNTR_CAN_DTM IS NULL
                                             AND SCD.DTA_DL_YN = 'N'
                                             AND SCB.DTA_DL_YN = 'N'
-                                           JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                             ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
-                                            AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
-                                            AND SCSR.DTA_DL_YN = 'N'
-                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                             ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID
-                                            AND SCSB.DTA_DL_YN = 'N'
-                                          WHERE SCSB.DP_TP_CD = #{dpTpCd}
+                                           JOIN (
+                                                    SELECT *
+                                                      FROM (
+                                                            SELECT SCSB.CNTR_STLM_ID
+                                                                 , SCSB.CST_NO
+                                                                 , SCSB.ACNO_ENCR /* 계좌번호 암호화 */
+                                                                 , SCSB.CRCDNO_ENCR /* 신용카드번호 암호화 */
+                                                                 , SCSB.OWR_KNM
+                                                                 , SCSB.MPY_BSDT
+                                                                 , SCSB.BNK_CD 
+                                                                 , SCSB.CDCO_CD
+                                                                 , SCSB.DP_TP_CD 
+                                                                 , SCSB.CNTRT_REL_CD
+                                                                 , SCSB.CARD_EXPDT_YM
+                                                                 , SCSR.DTL_CNTR_NO 
+                                                                 , SCSR.DTL_CNTR_SN
+                                                                 , SCSR.CNTR_UNIT_TP_CD
+                                                                 , SCSB.FNIT_APR_RS_CD
+                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO , SCSR.DTL_CNTR_SN ORDER BY SCSB.CNTR_STLM_ID  DESC) AS RN
+                                                              FROM TB_SSCT_CNTR_STLM_REL SCSR
+                                                              JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+                                                                ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                                               AND SCSB.DTA_DL_YN = 'N'
+                                                               AND SCSR.DTA_DL_YN = 'N'
+                                                               AND SCSB.DP_TP_CD = #{dpTpCd}
+                                                           )
+                                                     WHERE RN = 1
+                                                ) A
+                                                ON A.DTL_CNTR_NO = SCD.CNTR_NO
+                                               AND A.DTL_CNTR_SN = SCD.CNTR_SN
                                        ) MSTR_CNTR
                                     ON RIBB.DG_CNTR_NO = MSTR_CNTR.CNTR_NO
                                    AND RIBB.DG_CNTR_SN = MSTR_CNTR.CNTR_SN
                                    AND RIBB.DTA_DL_YN ='N'
                         JOIN (
-                                                SELECT SCD.CNTR_NO
+                                         SELECT SCD.CNTR_NO
                                               , SCD.CNTR_SN
                                               , SCD.SELL_TP_CD
-                                              , SCSB.DP_TP_CD
-                                              , SCSB.BNK_CD
-                                              , SCSB.CDCO_CD
+                                              , A.DP_TP_CD
+                                              , A.BNK_CD
+                                              , A.CDCO_CD
                                               , SCD.CNTR_DTL_STAT_CD
-                                              , SCSB.MPY_BSDT
-                                              , SCSB.CST_NO
-                                              , SCSB.ACNO_ENCR
-                                              , SCSB.CRCDNO_ENCR
+                                              , A.MPY_BSDT
+                                              , A.CST_NO
+                                              , A.ACNO_ENCR
+                                              , A.CRCDNO_ENCR
                                            FROM TB_SSCT_CNTR_DTL SCD
                                            JOIN TB_SSCT_CNTR_BAS SCB
                                              ON SCD.CNTR_NO = SCB.CNTR_NO
                                             AND SCB.CNTR_CAN_DTM IS NULL
                                             AND SCD.DTA_DL_YN = 'N'
                                             AND SCB.DTA_DL_YN = 'N'
-                                           JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                                             ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
-                                            AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
-                                            AND SCSR.DTA_DL_YN = 'N'
-                                           JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                             ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID
-                                            AND SCSB.DTA_DL_YN = 'N'
-                                          WHERE SCSB.DP_TP_CD = #{dpTpCd}
+                                           JOIN (
+                                                    SELECT *
+                                                      FROM (
+                                                            SELECT SCSB.CNTR_STLM_ID
+                                                                 , SCSB.CST_NO
+                                                                 , SCSB.ACNO_ENCR /* 계좌번호 암호화 */
+                                                                 , SCSB.CRCDNO_ENCR /* 신용카드번호 암호화 */
+                                                                 , SCSB.OWR_KNM
+                                                                 , SCSB.MPY_BSDT
+                                                                 , SCSB.BNK_CD 
+                                                                 , SCSB.CDCO_CD
+                                                                 , SCSB.DP_TP_CD 
+                                                                 , SCSB.CNTRT_REL_CD
+                                                                 , SCSB.CARD_EXPDT_YM
+                                                                 , SCSR.DTL_CNTR_NO 
+                                                                 , SCSR.DTL_CNTR_SN
+                                                                 , SCSR.CNTR_UNIT_TP_CD
+                                                                 , SCSB.FNIT_APR_RS_CD
+                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO , SCSR.DTL_CNTR_SN ORDER BY SCSB.CNTR_STLM_ID  DESC) AS RN
+                                                              FROM TB_SSCT_CNTR_STLM_REL SCSR
+                                                              JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+                                                                ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                                               AND SCSB.DTA_DL_YN = 'N'
+                                                               AND SCSR.DTA_DL_YN = 'N'
+                                                               AND SCSB.DP_TP_CD = #{dpTpCd}
+                                                           )
+                                                     WHERE RN = 1
+                                                ) A
+                                                ON A.DTL_CNTR_NO = SCD.CNTR_NO
+                                               AND A.DTL_CNTR_SN = SCD.CNTR_SN
                                        ) SUB_CNTR
                                    ON RIBB.SUBOD_CNTR_NO = SUB_CNTR.CNTR_NO
                                   AND RIBB.SUBOD_CNTR_SN = SUB_CNTR.CNTR_SN
