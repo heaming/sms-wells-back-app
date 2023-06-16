@@ -53,6 +53,11 @@ public class WsncVisitPeriodRecrtService {
          */
         try {
             WsncVisitPeriodRecrtDvo dvo = mapper.selectPeriodPdInfo(req);
+
+            if(dvo == null){
+                return 1;
+            }
+
             switch (dvo.getSvpdItemGr()) {
                 //배송
                 case  "12", "13", "14", "15", "16"
