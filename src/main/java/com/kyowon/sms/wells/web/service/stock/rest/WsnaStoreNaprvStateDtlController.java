@@ -24,7 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(value = SnServiceConst.REST_URL_V1 + "/store-naprv-state-dtl")
+@RequestMapping(value = SnServiceConst.REST_URL_V1 + "/store-not-approve-detail")
 @Api(tags = "[WSNA] 입고 미승인상세현황 REST API")
 @RequiredArgsConstructor
 @Validated
@@ -32,7 +32,7 @@ public class WsnaStoreNaprvStateDtlController {
 
     private final WsnaStoreNaprvStateDtlService service;
 
-    @ApiOperation(value = "입고 미승인상세현황", notes = "조회조건에 일치하는 데이터를 조회한다.")
+    @ApiOperation(value = "입고 미승인상세현황 조회", notes = "조회조건에 일치하는 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "", required = true),
         @ApiImplicitParam(name = "itmPdCd", value = "품목번호", paramType = "query", example = "", required = true),
@@ -50,15 +50,7 @@ public class WsnaStoreNaprvStateDtlController {
         return this.service.getStoreNaprvStateDtl(dto, pageInfo);
     }
 
-    @ApiOperation(value = "입고 미승인상세현황", notes = "조회조건에 일치하는 데이터를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "", required = true),
-        @ApiImplicitParam(name = "itmPdCd", value = "품목번호", paramType = "query", example = "", required = true),
-        @ApiImplicitParam(name = "strTpCd", value = "입고유형", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "startDate", value = "적용시작일자", paramType = "query", example = "20230821"),
-        @ApiImplicitParam(name = "endDate", value = "적용종료일자", paramType = "query", example = "20230821"),
-        @ApiImplicitParam(name = "ostrWareDvCd", value = "출고창고구분", paramType = "query", example = "1"),
-    })
+    @ApiOperation(value = "입고 미승인상세현황 엑셀다운로드", notes = "검색 조건을 입력받아 엑셀 다운로드용 데이터를 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getStoreNaprvStateDtlExcelDownload(
         SearchReq dto
@@ -66,8 +58,8 @@ public class WsnaStoreNaprvStateDtlController {
         return this.service.getStoreNaprvStateDtl(dto);
     }
 
-    @ApiOperation(value = "입고 미승인상세현황", notes = "입고 확인 상세정보를 업데이트한다.")
-    @PostMapping("/str-confirm-detail")
+    @ApiOperation(value = "입고 미승인상세현황 업데이트", notes = "입고 확인 정보를 업데이트한다.")
+    @PostMapping("/confirmation")
     public SaveResponse saveStoreNaprvStateDtl(
         @Valid
         @RequestBody

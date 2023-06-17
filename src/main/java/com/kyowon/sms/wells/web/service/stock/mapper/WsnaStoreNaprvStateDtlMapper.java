@@ -1,10 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreNaprvStateDtlDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreNaprvStateDtlDto.SearchRes;
+
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreNaprvStateDtlDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStoreNaprvStateDtlDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -26,8 +28,8 @@ public interface WsnaStoreNaprvStateDtlMapper {
      * @param dto : SearchReq(strWareNo-입고창고번호, itmPdCd-품목코드, startDate-적용시작일자, endDate-적용마감일자, ostrWareDvCd-출고창고구분)
      * @return 조회결과
      */
-    PagingResult<WsnaStoreNaprvStateDtlDto.SearchRes> selectStoreNaprvStateDtl(
-        WsnaStoreNaprvStateDtlDto.SearchReq dto, PageInfo pageInfo
+    PagingResult<SearchRes> selectStoreNaprvStateDtl(
+        SearchReq dto, PageInfo pageInfo
     );
 
     /**
@@ -36,8 +38,8 @@ public interface WsnaStoreNaprvStateDtlMapper {
      * @param dto : SearchReqSearchReq(strWareNo-입고창고번호, itmPdCd-품목코드, startDate-적용시작일자, endDate-적용마감일자, ostrWareDvCd-출고창고구분)
      * @return 조회결과
      */
-    List<WsnaStoreNaprvStateDtlDto.SearchRes> selectStoreNaprvStateDtl(
-        WsnaStoreNaprvStateDtlDto.SearchReq dto
+    List<SearchRes> selectStoreNaprvStateDtl(
+        SearchReq dto
     );
 
     /**

@@ -3,85 +3,75 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStoreNaprvStateDtlMapper">
     <select id="selectStoreNaprvStateDtl"
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreNaprvStateDtlDto$SearchRes">
-        SELECT S1.STR_RGST_DT --입고등록일자
-        , S1.STR_TP_CD --입고유형
-        , W_IN.WARE_NM AS STR_WARE_NM -- 입고창고이름
-        -- , S1.STR_WARE_NO -- 입고창고번호
-        , S1.ITM_STR_NO -- 품목입고번호
-        , S1.STR_SN -- 입고일련번호
-        , S1.ITM_OSTR_NO -- 품목출고번호
-        , S1.OSTR_SN -- 출고일련번호
-        , W_OUT.WARE_NM AS OSTR_WARE_NM -- 출고창고이름
-        , S1.ITM_GD_CD -- 품목 등급코드
-        , S1.ITM_PD_CD --품목상품코드 TB_PDBS_PD_BAS
-        -- , S1.ITM_CD
-        -- , S1.OSTR_TP_CD -- 출고유형코드
-        -- , S1.OSTR_WARE_NO -- 출고창고번호
-        -- , -- 품목명
-        , S1.STR_QTY --입고수량
-        -- , S1.ACB_DT --회계일자
-        -- , S1.EVID_DV_CD -- 증빙구분코드
-        -- , '' -- 운송코드 (ST141_TRANS_CD)
-        FROM TB_SVST_ITM_STR_IZ S1 --ST141
-        LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ W_IN --ST102
-        ON S1.STR_WARE_NO = W_IN.WARE_NO AND SUBSTR(S1.STR_RGST_DT, 1, 6) = W_IN.APY_YM
-        LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ W_OUT --ST102
-        ON S1.STR_WARE_NO = W_OUT.WARE_NO AND SUBSTR(S1.STR_RGST_DT, 1, 6) = W_OUT.APY_YM
-        WHERE 1 = 1
-        AND S1.STR_WARE_NO = #{strWareNo}
-        AND S1.ITM_PD_CD = #{itmPdCd}
+        SELECT S1.STR_RGST_DT /* 입고등록일자 */
+             , S1.STR_TP_CD /* 입고유형 */
+             , W_IN.WARE_NM AS STR_WARE_NM /* 입고창고이름 */
+             , S1.ITM_STR_NO /* 품목입고번호 */
+             , S1.STR_SN /* 입고일련번호 */
+             , S1.ITM_OSTR_NO /* 품목출고번호 */
+             , S1.OSTR_SN /* 출고일련번호 */
+             , W_OUT.WARE_NM AS OSTR_WARE_NM /* 출고창고이름 */
+             , S1.ITM_GD_CD /* 품목 등급코드 */
+             , S1.ITM_PD_CD /*품목상품코드 */
+             , S1.STR_QTY /*입고수량 */
+          FROM TB_SVST_ITM_STR_IZ S1
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ W_IN
+            ON S1.STR_WARE_NO = W_IN.WARE_NO AND SUBSTR(S1.STR_RGST_DT, 1, 6) = W_IN.APY_YM
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ W_OUT
+            ON S1.OSTR_WARE_NO = W_OUT.WARE_NO AND SUBSTR(S1.STR_RGST_DT, 1, 6) = W_OUT.APY_YM
+         WHERE 1 = 1
+           AND S1.STR_WARE_NO = #{strWareNo}
+           AND S1.ITM_PD_CD = #{itmPdCd}
         <if test="@MybatisUtils@isNotEmpty(strTpCd)">
-            AND S1.STR_TP_CD = #{strTpCd}
+           AND S1.STR_TP_CD = #{strTpCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(startDate)">
-            AND S1.STR_RGST_DT BETWEEN #{startDate} AND #{endDate}
+           AND S1.STR_RGST_DT BETWEEN #{startDate} AND #{endDate}
         </if>
         <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
-            AND #{ostrWareDvCd} = (SELECT OSTR_WARE_DV_CD FROM TB_SVST_ITM_OSTR_IZ S2 WHERE S1.ITM_OSTR_NO =
-            S2.ITM_OSTR_NO AND S1.OSTR_SN = S2.OSTR_SN)
+           AND #{ostrWareDvCd} = (SELECT OSTR_WARE_DV_CD FROM TB_SVST_ITM_OSTR_IZ S2 WHERE S1.ITM_OSTR_NO = S2.ITM_OSTR_NO AND S1.OSTR_SN = S2.OSTR_SN)
         </if>
     </select>
 
     <update id="updateStoreNaprvStateDtlOstr"
             parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStoreNaprvStateDtlDvo">
-        UPDATE TB_SVST_ITM_OSTR_IZ --품목출고내역
-        SET STR_CONF_DT = TO_CHAR(SYSDATE, 'YYYYMMDD') -- 입고확인일자
-        , STR_CONF_HH = TO_CHAR(SYSDATE, 'HH24MISS') -- 입고확인시간
-        , STR_CONF_PRTNR_NO = NVL(#{userId}, #{session.userId}) -- 입고확인파트너번호
-        <include refid="COMMON.updateSystemField"/>
+        UPDATE TB_SVST_ITM_OSTR_IZ /* 품목출고내역 */
+           SET STR_CONF_DT = TO_CHAR(SYSDATE, 'YYYYMMDD') /* 입고확인일자 */
+             , STR_CONF_HH = TO_CHAR(SYSDATE, 'HH24MISS') /* 입고확인시간 */
+             , STR_CONF_PRTNR_NO = NVL(#{userId}, #{session.userId}) /* 입고확인파트너번호 */
+               <include refid="COMMON.updateSystemField"/>
         WHERE ITM_OSTR_NO = #{itmOstrNo}
-        AND OSTR_SN = #{ostrSn}
+          AND OSTR_SN = #{ostrSn}
     </update>
 
     <update id="updateStoreNaprvStateDtlItmStock"
             parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStoreNaprvStateDtlDvo">
-        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ --고객서비스품목재고내역
-        SET MMT_STOC_A_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'A', #{strQty}, 0) &lt; 0) THEN
-        0
-        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'A', #{strQty}, 0)
-        END
-        , MMT_STOC_B_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{dvo.itmGdCd}, 'B', #{strQty}, 0) &lt; 0) THEN 0
-        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'B', #{strQty}, 0)
-        END
-        , MMT_STOC_E_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'E', #{strQty}, 0) &lt; 0) THEN 0
-        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'E', #{strQty}, 0)
-        END
-        , MMT_STOC_R_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'R', #{strQty}, 0) &lt; 0) THEN 0
-        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'R', #{strQty}, 0)
-        END
-        <include refid="COMMON.updateSystemField"/>
-        WHERE WARE_NO = #{strWareNo} --입고창고
-        AND ITM_PD_CD = #{itmPdCd}
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ /* 고객서비스품목재고내역 */
+           SET MMT_STOC_A_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'A', #{strQty}, 0) &lt; 0) THEN 0
+                                        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'A', #{strQty}, 0)
+                                    END
+             , MMT_STOC_B_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{dvo.itmGdCd}, 'B', #{strQty}, 0) &lt; 0) THEN 0
+                                        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'B', #{strQty}, 0)
+                                    END
+             , MMT_STOC_E_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'E', #{strQty}, 0) &lt; 0) THEN 0
+                                        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'E', #{strQty}, 0)
+                                    END
+             , MMT_STOC_R_GD_QTY = CASE WHEN (MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'R', #{strQty}, 0) &lt; 0) THEN 0
+                                        ELSE MMT_STOC_A_GD_QTY-DECODE(#{itmGdCd}, 'R', #{strQty}, 0)
+                                    END
+               <include refid="COMMON.updateSystemField"/>
+        WHERE WARE_NO = #{strWareNo} /* 입고창고 */
+          AND ITM_PD_CD = #{itmPdCd}
     </update>
 
     <update id="updateStoreNaprvStateDtlStr"
             parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStoreNaprvStateDtlDvo">
-        UPDATE TB_SVST_ITM_STR_IZ --품목입고내역
-        SET STR_CONF_DT = TO_CHAR(SYSDATE, 'YYYYMMDD') -- 입고확인일자
-        , STR_CONF_HH = TO_CHAR(SYSDATE, 'HH24MISS') -- 입고확인시간
-        , STR_CONF_PRTNR_NO = NVL(#{userId}, #{session.userId}) -- 입고확인파트너번호
-        <include refid="COMMON.updateSystemField"/>
+        UPDATE TB_SVST_ITM_STR_IZ /* 품목입고내역 */
+           SET STR_CONF_DT = TO_CHAR(SYSDATE, 'YYYYMMDD') /* 입고확인일자 */
+             , STR_CONF_HH = TO_CHAR(SYSDATE, 'HH24MISS') /* 입고확인시간 */
+             , STR_CONF_PRTNR_NO = NVL(#{userId}, #{session.userId}) /* 입고확인파트너번호 */
+               <include refid="COMMON.updateSystemField"/>
         WHERE ITM_STR_NO = #{itmStrNo}
-        AND STR_SN = #{strSn}
+          AND STR_SN = #{strSn}
     </update>
 </mapper>
