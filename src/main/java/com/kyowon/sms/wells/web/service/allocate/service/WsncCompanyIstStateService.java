@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncCompanyIstStateConverter;
@@ -33,4 +35,16 @@ public class WsncCompanyIstStateService {
         return mapper.selectCompanyIstStateAll(dto, pageInfo);
     }
 
+    /**
+     * 전체 조회
+     *
+     * @programId : K-W-SV-U-0270M01
+     * @param dto : 조회파라메터
+     * @return 조회결과
+     */
+    public List<WsncCompanyIstStateDto.SearchAllRes> getCompanyIstStateAll(
+        WsncCompanyIstStateDto.SearchReq dto
+    ) {
+        return mapper.selectCompanyIstStateAll(dto);
+    }
 }

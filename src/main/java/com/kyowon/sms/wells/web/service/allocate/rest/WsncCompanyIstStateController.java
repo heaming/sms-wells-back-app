@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +28,7 @@ public class WsncCompanyIstStateController {
 
     private final WsncCompanyIstStateService service;
 
-    @ApiOperation(value = "회사설치 (8888코드) 현황 - 전체 조회", notes = "전체 현황 조회")
+    @ApiOperation(value = "회사설치 (8888코드) 현황 - 조회", notes = "전체/필터/부자재 조회")
     @GetMapping("/all/paging")
     public PagingResult<WsncCompanyIstStateDto.SearchAllRes> getCompanyIstStateAll(
         WsncCompanyIstStateDto.SearchReq dto,
@@ -36,4 +38,11 @@ public class WsncCompanyIstStateController {
         return service.getCompanyIstStateAll(dto, pageInfo);
     }
 
+    @ApiOperation(value = "회사설치 (8888코드) 현황 - 조회 (엑셀 다운로드)", notes = "전체/필터/부자재 엑셀 다운로드")
+    @GetMapping("/all/excel-download")
+    public List<WsncCompanyIstStateDto.SearchAllRes> getCompanyIstStateAll(
+        WsncCompanyIstStateDto.SearchReq dto
+    ) {
+        return service.getCompanyIstStateAll(dto);
+    }
 }

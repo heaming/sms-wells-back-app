@@ -15,7 +15,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsncCompanyIstStateAllDvo {
+public class WsncCompanyIstStatePsDvo {
     String cntrNo; // 계약번호
     String deptCd; // 부서
     String deptNm1; // 부서명
@@ -40,6 +40,5 @@ public class WsncCompanyIstStateAllDvo {
     String wrkPrtnrNo; // 작업자 사번
     String wrkrPrtnrKnm; // 작업자 성명
     String wrkOgNm; // 작업자 소속
-    String cstAdr; // 고객주소 상세
-    String pdClsfNm; // 상품분류명
+    String cstAdr; // 고객주소 상세 TB_SVST_SV_WK_OSTR_IZ
 }
