@@ -93,16 +93,24 @@
                       FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
                 INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
                         ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+                       AND S1.CNTR_NO = S2.CNTR_NO
+                       AND S1.CNTR_SN = S2.CNTR_SN
+                       AND S1.CNTR_CST_NO = S2.CNTR_CST_NO
                      WHERE S2.DTA_DL_YN = 'N'
                        AND S1.WK_PRGS_STAT_CD = '20'
                        AND S1.WK_EXCN_DT LIKE #{wkExcnDt} || '%'
                        AND (S2.SV_BIZ_HCLSF_CD = '1' OR ( S2.SV_BIZ_HCLSF_CD = '3' AND SUBSTR(S2.SV_BIZ_DCLSF_CD, 1, 2) IN ('31', '32', '33', '34') ))
-                       AND S2.PD_CD = #{pdCd}
                        AND S2.PD_CD IN (SELECT X1.PD_CD
                                           FROM TB_PDBS_PD_ECOM_PRP_DTL X1
                                          WHERE X1.DTA_DL_YN = 'N'
                                            AND X1.PD_EXTS_PRP_GRP_CD = 'PART'
-                                           AND X1.PD_PRP_VAL20 = #{pdPrpVal20})
+                                           <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+                                           AND X1.PD_PRP_VAL20 = #{pdGrpCd}
+                                           </if>
+                                           <if test="@MybatisUtils@isNotEmpty(pdCd)">
+                                           AND X1.PD_CD = #{pdCd}
+                                           </if>
+                                           )
                     UNION ALL
                     -- B/S
                     SELECT '2' SV_BIZ_HCLSF_CD
@@ -111,17 +119,27 @@
                       FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1
                 INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2
                         ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+                       AND S1.ASN_OJ_YM = S2.ASN_OJ_YM
+                       AND S1.CNTR_NO = S2.CNTR_NO
+                       AND S1.CNTR_SN = S2.CNTR_SN
                      WHERE S2.DTA_DL_YN = 'N'
                        AND S1.VST_PRGS_STAT_CD = '20'
                        AND S2.PDCT_PD_CD != 'WM05100245' -- 드라이온+ KW-F01W1
                        AND S1.WK_EXCN_DT LIKE #{wkExcnDt} || '%'
-                       AND S2.PDCT_PD_CD = #{pdCd}
+                       <if test="@MybatisUtils@isNotEmpty(mngrDvCd)">
+                       AND S1.CNFM_PSIC_DV_CD = #{mngrDvCd}
+                       </if>
                        AND S2.PDCT_PD_CD IN (SELECT X1.PD_CD
                                                FROM TB_PDBS_PD_ECOM_PRP_DTL X1
                                               WHERE X1.DTA_DL_YN = 'N'
                                                 AND X1.PD_EXTS_PRP_GRP_CD = 'PART'
-                                                AND X1.PD_PRP_VAL20 = #{pdPrpVal20})
-                       AND S1.CNFM_PSIC_DV_CD = #{mngrDvCd}
+                                                <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+                                                AND X1.PD_PRP_VAL20 = #{pdGrpCd}
+                                                </if>
+                                                <if test="@MybatisUtils@isNotEmpty(pdCd)">
+                                                AND X1.PD_CD = #{pdCd}
+                                                </if>
+                                                )
                 ) T1
         GROUP BY T1.YYYY, T1.SV_BIZ_HCLSF_CD
         ORDER BY T1.SV_BIZ_HCLSF_CD
