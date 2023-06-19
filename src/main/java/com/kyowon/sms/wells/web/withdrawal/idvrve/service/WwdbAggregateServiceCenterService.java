@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
-
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -18,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WwdbAggregateServiceCenterService {
-    
+
     private final WwdbAggregateServiceCenterMapper mapper;
 
     /**
@@ -29,8 +28,8 @@ public class WwdbAggregateServiceCenterService {
      * @return PagingResult
      */
     public PagingResult<SearchAggregateServiceCenterRes> getAggregateServiceCenters(
-            SearchAggregateServiceCenterReq req, 
-            PageInfo pageInfo
+        SearchAggregateServiceCenterReq req,
+        PageInfo pageInfo
     ) {
         return mapper.selectAggregateServiceCenters(req, pageInfo);
     }
@@ -54,7 +53,7 @@ public class WwdbAggregateServiceCenterService {
      * @return SearchAggregateEngineerOgRes
      */
     public List<SearchAggregateEngineerOgRes> getServiceCenters(
-            SearchAggregateServiceCenterReq req
+        SearchAggregateServiceCenterReq req
     ) {
         return mapper.selectServiceCenters(req);
     }
@@ -66,9 +65,9 @@ public class WwdbAggregateServiceCenterService {
      * @return SearchAggregateServiceCenterTotalRes
      */
     public SearchAggregateServiceCenterTotalRes getAggregateServiceCentersTotal(
-            SearchAggregateServiceCenterReq req
+        SearchAggregateServiceCenterReq req
     ) {
         return mapper.selectAggregateServiceCentersTotal(req);
     }
-    
+
 }

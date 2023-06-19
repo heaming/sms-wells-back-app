@@ -13,21 +13,21 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WwdbAggregateServiceCenterMapper {
-    
+
     PagingResult<SearchAggregateServiceCenterRes> selectAggregateServiceCenters(
-            SearchAggregateServiceCenterReq req,
-            PageInfo pageInfo
+        SearchAggregateServiceCenterReq req,
+        PageInfo pageInfo
     );
 
     List<SearchAggregateServiceCenterRes> selectAggregateServiceCenters(
-            SearchAggregateServiceCenterReq req
+        SearchAggregateServiceCenterReq req
     );
 
     List<SearchAggregateEngineerOgRes> selectServiceCenters(
-            SearchAggregateServiceCenterReq req
+        SearchAggregateServiceCenterReq req
     );
 
     SearchAggregateServiceCenterTotalRes selectAggregateServiceCentersTotal(
-            SearchAggregateServiceCenterReq req
+        SearchAggregateServiceCenterReq req
     );
 }

@@ -30,9 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/aggregate-service-centers")
 public class WwdbAggregateServiceCenterController {
-    
+
     private final WwdbAggregateServiceCenterService service;
-    
+
     @ApiOperation(value = "입금집계현황-서비스센터 목록", notes = "입금집계현황-서비스센터 목록")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "strtSvDt", value = "서비스일자시작", required = true),
@@ -43,11 +43,12 @@ public class WwdbAggregateServiceCenterController {
     @GetMapping("/paging")
     public PagingResult<SearchAggregateServiceCenterRes> getAggregateServiceCenters(
         SearchAggregateServiceCenterReq req,
-        @Valid PageInfo pageInfo
+        @Valid
+        PageInfo pageInfo
     ) {
-        return service.getAggregateServiceCenters(req, pageInfo);   
+        return service.getAggregateServiceCenters(req, pageInfo);
     }
-    
+
     @ApiOperation(value = "입금집계현황-서비스센터 목록 - 합계", notes = "입금집계현황-서비스센터 목록 - 합계")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "strtSvDt", value = "서비스일자시작", required = true),
@@ -59,9 +60,9 @@ public class WwdbAggregateServiceCenterController {
     public SearchAggregateServiceCenterTotalRes getAggregateServiceCentersTotal(
         SearchAggregateServiceCenterReq req
     ) {
-        return service.getAggregateServiceCentersTotal(req);   
+        return service.getAggregateServiceCentersTotal(req);
     }
-    
+
     @ApiOperation(value = "입금집계현황_서비스센터 엑셀 다운로드", notes = "입금집계현황_서비스센터 엑셀 다운로드")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "strtSvDt", value = "서비스일자시작", required = true),
@@ -73,14 +74,14 @@ public class WwdbAggregateServiceCenterController {
     public List<SearchAggregateServiceCenterRes> getAggregateServiceCentersExcels(
         SearchAggregateServiceCenterReq req
     ) {
-        return service.getAggregateServiceCentersExcels(req);   
+        return service.getAggregateServiceCentersExcels(req);
     }
-    
+
     @ApiOperation(value = "엔지니어 조직 센터 조회", notes = "엔지니어 조직 센터 조회")
     @GetMapping("/service-center")
     public List<SearchAggregateEngineerOgRes> getServiceCenters(
         SearchAggregateServiceCenterReq req
     ) {
-        return service.getServiceCenters(req);   
+        return service.getServiceCenters(req);
     }
 }
