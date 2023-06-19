@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.payment.mapper.WdcaDepositDelinquentMapper">
+    <select id="selectDepositDelinquents" resultType="com.kyowon.sms.wells.web.closing.payment.dto.WdcaDepositDelinquentDto$SearchRes">
+        <if test='@MybatisUtils@equals(inqrDv, "1")'>
+            SELECT F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)          AS SELL_TP_CD /*판매유형코드*/
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)      AS SELL_TP_DTL_CD
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_CHNL_DTL_CD', T.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_CD
+                 , '' AS PD_CLSF_NM
+                 , SUM(T.THM_NW_ACC_N + T.NOM_ACC_N + T.DLQ_ACC_N) AS TOT_ACC_N  /* 총 계정수 : 당월 신규, 정상, 연체 계정수 합 */
+                 , SUM(T.FNL_AMT + T.NOM_UC_AMT + T.DLQ_AMT) AS UCAM_TAM /* 미수금 총액 : 당월 신규/정상 미수금액+DLQ_AMT합 */
+                 , SUM(T.FNL_AMT) AS FNL_AMT
+                 , SUM(T.THM_NW_ACC_N) AS THM_NW_ACC_N
+                 , SUM(T.THM_NW_DP_AMT) AS THM_NW_DP_AMT
+                 , DECODE(SUM(T.FNL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT) / SUM(T.FNL_AMT)) * 100) AS THM_NW_DP_RT /* 당월 신규 입금율 : (당월신규입금계/당원신규미수금계) * 100*/
+                 , SUM(T.NOM_UC_AMT) AS NOM_UC_AMT
+                 , SUM(T.NOM_ACC_N) AS NOM_ACC_N
+                 , SUM(T.NOM_DP_AMT) AS NOM_DP_AMT
+                 , DECODE(SUM(T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT) / SUM(T.NOM_UC_AMT)) * 100) AS NOM_DP_RT
+                 , SUM(T.DLQ_AMT) AS DLQ_AMT
+                 , SUM(T.DLQ_ACC_N) AS DLQ_ACC_N
+                 , SUM(T.DLQ_DP_AMT) AS DLQ_DP_AMT
+                 , DECODE(SUM(T.FNL_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.DLQ_AMT - T.DLQ_DP_AMT) / SUM(T.FNL_AMT + T.NOM_UC_AMT)) * 100) AS UC_CPR_DLQ_RT
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS TOT_DP_AMT
+                 , DECODE(SUM(T.FNL_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT + T.THM_NW_DP_AMT) / SUM(T.FNL_AMT + T.NOM_UC_AMT)) * 100) AS DP_RT
+                 , SUM(T.BIL_AMT) AS BIL_AGG
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS DP_AGG
+                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM
+              FROM (
+                   /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
+                   SELECT A.SELL_TP_CD       /*판매유형코드*/
+                        , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
+                        , B.SELL_INFLW_CHNL_DTL_CD
+                        , A.FNL_AMT AS FNL_AMT
+                        , 1 AS THM_NW_ACC_N
+                        , D.RVE_AMT AS THM_NW_DP_AMT
+                        , 0 AS NOM_UC_AMT  
+                        , 0 AS NOM_ACC_N   
+                        , 0 AS NOM_DP_AMT  
+                        , 0 AS DLQ_AMT     
+                        , 0 AS DLQ_ACC_N   
+                        , 0 AS DLQ_DP_AMT  
+                        , 0 AS BIL_AMT
+                     FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                        , TB_SSCT_CNTR_BAS B    /*계약기본*/
+                        , TB_RVDW_RVE_DTL D     /*수납상세*/
+                    WHERE A.CNTR_NO = B.CNTR_NO
+                      <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                      /*화면-계약상세번호 입력 시-시작*/
+                      AND A.CNTR_NO = #{cntrNo}
+                      AND A.CNTR_SN = #{cntrSn}
+                      /*화면-계약상세번호 입력 시-종료*/
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                      /*화면-판매유형 선택 시(전체 제외)-시작*/
+                      AND A.SELL_TP_CD IN (
+                          <foreach collection="sellTpCd" item="sellTpCd" separator=",">
+                               #{sellTpCd}
+                          </foreach>
+                           )
+                      /*화면-판매유형 선택 시(전체 제외)-종료*/
+                      </if>
+                      AND B.CNTR_CNFM_DTM BETWEEN #{perfYm}||'00000000' AND #{perfYm}||'99999999' /*계약확정일시 - 당월*/
+                      <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                      AND B.COPN_DV_CD = #{copnDvCd}
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(sellChnl) and sellChnl.size() > 0">
+                      AND B.SELL_INFLW_CHNL_DTL_CD IN (
+                          <foreach collection="sellChnl" item="sellChnl" separator=",">
+                               #{sellChnl}
+                          </foreach>
+                           )
+                      </if>
+                      AND B.CNTR_CAN_DTM IS NULL        /*취소일시 - NULL*/
+                      AND A.CNTR_NO = D.CNTR_NO
+                      AND A.CNTR_SN = D.CNTR_SN
+                      AND D.DP_DV_CD = '1'  /*입금구분코드 - 1:입금*/
+                      AND D.RVE_DV_CD = '01'    /*수납구분코드 - 01:계약(청약)금*/
+                      AND D.RVE_DT BETWEEN #{perfYm} ||'01' AND #{perfYm} ||'31'    /*수납일자 - 당월*/
+                      AND A.DTA_DL_YN = 'N'
+                      AND B.DTA_DL_YN = 'N'
+                      AND D.DTA_DL_YN = 'N'
+                    UNION ALL
+                    /*정상 전월마감*/
+                   SELECT A.SELL_TP_CD   /*판매유형코드*/
+                        , A.SELL_TP_DTL_CD /*판매유형상세코드*/
+                        , B.SELL_INFLW_CHNL_DTL_CD
+                        , 0 AS FNL_AMT
+                        , 0 AS THM_NW_ACC_N
+                        , 0 AS THM_NW_DP_AMT
+                        , D.EOT_UC_AMT AS NOM_UC_AMT
+                        , 1 AS NOM_ACC_N
+                        , D.THM_ISTM_TOT_DP_AMT AS NOM_DP_AMT
+                        , 0 AS DLQ_AMT
+                        , 0 AS DLQ_ACC_N 
+                        , 0 AS DLQ_DP_AMT 
+                        , D.SL_AGG_AMT AS BIL_AMT
+                     FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                        , TB_SSCT_CNTR_BAS B    /*계약기본*/
+                        , TB_CBCL_WELLS_SL_MM_CL_IZ D   /*WELLS월마감매출내역*/
+                    WHERE A.CNTR_NO = B.CNTR_NO
+                      <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                      /*화면-계약상세번호 입력 시-시작*/
+                      AND A.CNTR_NO = #{cntrNo}
+                      AND A.CNTR_SN = #{cntrSn}
+                      /*화면-계약상세번호 입력 시-종료*/
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                      /*화면-판매유형 선택 시(전체 제외)-시작*/
+                      AND A.SELL_TP_CD IN (
+                          <foreach collection="sellTpCd" item="sellTpCd" separator=",">
+                               #{sellTpCd}
+                          </foreach>
+                           )
+                      /*화면-판매유형 선택 시(전체 제외)-종료*/
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                      AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(sellChnl) and sellChnl.size() > 0">
+                      AND B.SELL_INFLW_CHNL_DTL_CD IN (
+                          <foreach collection="sellChnl" item="sellChnl" separator=",">
+                               #{sellChnl}
+                          </foreach>
+                           )
+                      </if>
+                      AND D.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                      AND A.CNTR_NO = D.CNTR_NO
+                      AND A.CNTR_SN = D.CNTR_SN
+                      AND (D.CNTR_NO, D.CNTR_SN) NOT IN (SELECT CNTR_NO, CNTR_SN 
+                                                           FROM TB_CBCL_DLQ_BAS_HIST   /*연체기본이력*/ 
+                                                          WHERE DLQ_SN = 1 AND PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM'))
+                      AND A.DTA_DL_YN = 'N'
+                      AND B.DTA_DL_YN = 'N'
+                      AND D.DTA_DL_YN = 'N'
+                    UNION ALL 
+                    /*연체 전월마감*/
+                   SELECT A.SELL_TP_CD       /*판매유형코드*/
+                        , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
+                        , B.SELL_INFLW_CHNL_DTL_CD
+                        , 0 AS FNL_AMT
+                        , 0 AS THM_NW_ACC_N 
+                        , 0 AS THM_NW_DP_AMT
+                        , 0 AS NOM_UC_AMT    
+                        , 0 AS NOM_ACC_N     
+                        , 0 AS NOM_DP_AMT    
+                        , D.EOT_DLQ_AMT AS DLQ_AMT   
+                        , 1 AS DLQ_ACC_N 
+                        , D.THM_DLQ_DP_SUM_AMT AS DLQ_DP_AMT 
+                        , 0 AS BIL_AMT
+                     FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                        , TB_SSCT_CNTR_BAS B    /*계약기본*/
+                        , TB_CBCL_DLQ_BAS_HIST D    /*연체기본이력*/
+                    WHERE A.CNTR_NO = B.CNTR_NO
+                      <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                      /*화면-계약상세번호 입력 시-시작*/
+                      AND A.CNTR_NO = #{cntrNo}
+                      AND A.CNTR_SN = #{cntrSn}
+                      /*화면-계약상세번호 입력 시-종료*/
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                      /*화면-판매유형 선택 시(전체 제외)-시작*/
+                      AND A.SELL_TP_CD IN (
+                          <foreach collection="sellTpCd" item="sellTpCd" separator=",">
+                               #{sellTpCd}
+                          </foreach>
+                           )
+                      /*화면-판매유형 선택 시(전체 제외)-종료*/
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                      AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(sellChnl) and sellChnl.size() > 0">
+                      AND B.SELL_INFLW_CHNL_DTL_CD IN (
+                          <foreach collection="sellChnl" item="sellChnl" separator=",">
+                               #{sellChnl}
+                          </foreach>
+                           )
+                      </if>
+                      AND A.CNTR_NO = D.CNTR_NO
+                      AND A.CNTR_SN = D.CNTR_SN
+                      AND D.DLQ_SN = 1
+                      AND D.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                      AND A.DTA_DL_YN = 'N'
+                      AND B.DTA_DL_YN = 'N'
+                      AND D.DTA_DL_YN = 'N'
+                   ) T
+             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.SELL_INFLW_CHNL_DTL_CD
+        </if>
+        <if test='@MybatisUtils@equals(inqrDv, "2")'>
+            SELECT F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)          AS SELL_TP_CD /*판매유형코드*/
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)      AS SELL_TP_DTL_CD
+                 , '' AS SELL_INFLW_CHNL_DTL_CD
+                 , T.PD_CLSF_NM AS PD_CLSF_NM
+                 , SUM(T.THM_NW_ACC_N + T.NOM_ACC_N + T.DLQ_ACC_N) AS TOT_ACC_N  /* 총 계정수 : 당월 신규, 정상, 연체 계정수 합 */
+                 , SUM(T.FNL_AMT + T.NOM_UC_AMT + T.DLQ_AMT) AS UCAM_TAM /* 미수금 총액 : 당월 신규/정상 미수금액+DLQ_AMT합 */
+                 , SUM(T.FNL_AMT) AS FNL_AMT 
+                 , SUM(T.THM_NW_ACC_N) AS THM_NW_ACC_N   
+                 , SUM(T.THM_NW_DP_AMT) AS THM_NW_DP_AMT 
+                 , DECODE(SUM(T.FNL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT) / SUM(T.FNL_AMT)) * 100) AS THM_NW_DP_RT /* 당월 신규 입금율 : (당월신규입금계/당원신규미수금계) * 100*/
+                 , SUM(T.NOM_UC_AMT) AS NOM_UC_AMT   
+                 , SUM(T.NOM_ACC_N) AS NOM_ACC_N     
+                 , SUM(T.NOM_DP_AMT) AS NOM_DP_AMT   
+                 , DECODE(SUM(T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT) / SUM(T.NOM_UC_AMT)) * 100) AS NOM_DP_RT 
+                 , SUM(T.DLQ_AMT) AS DLQ_AMT     
+                 , SUM(T.DLQ_ACC_N) AS DLQ_ACC_N     
+                 , SUM(T.DLQ_DP_AMT) AS DLQ_DP_AMT   
+                 , DECODE(SUM(T.FNL_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.DLQ_AMT - T.DLQ_DP_AMT) / SUM(T.FNL_AMT + T.NOM_UC_AMT)) * 100) AS UC_CPR_DLQ_RT 
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS TOT_DP_AMT 
+                 , DECODE(SUM(T.FNL_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT + T.THM_NW_DP_AMT) / SUM(T.FNL_AMT + T.NOM_UC_AMT)) * 100) AS DP_RT 
+                 , SUM(T.BIL_AMT) AS BIL_AGG 
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS DP_AGG 
+                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM 
+              FROM (
+                    /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
+                    SELECT A.SELL_TP_CD       /*판매유형코드*/
+                         , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
+                         , E.PD_CLSF_NM
+                         , A.FNL_AMT AS FNL_AMT
+                         , 1 AS THM_NW_ACC_N
+                         , D.RVE_AMT AS THM_NW_DP_AMT
+                         , 0 AS NOM_UC_AMT  
+                         , 0 AS NOM_ACC_N   
+                         , 0 AS NOM_DP_AMT  
+                         , 0 AS DLQ_AMT        
+                         , 0 AS DLQ_ACC_N   
+                         , 0 AS DLQ_DP_AMT  
+                         , 0 AS BIL_AMT
+                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                         , TB_SSCT_CNTR_BAS B /*계약기본*/
+                         , TB_PDBS_PD_BAS C       /*상품기본*/
+                         , TB_RVDW_RVE_DTL D      /*수납상세*/
+                         , TB_PDBS_PD_CLSF_BAS E  /*상품분류기본*/
+                     WHERE A.CNTR_NO = B.CNTR_NO
+                       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                       /*화면-계약상세번호 입력 시-시작*/
+                       AND A.CNTR_NO = #{cntrNo}
+                       AND A.CNTR_SN = #{cntrSn}
+                       /*화면-계약상세번호 입력 시-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       /*화면-판매유형 선택 시(전체 제외)-시작*/
+                       AND A.SELL_TP_CD IN (
+                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
+                               #{sellTpCd}
+                           </foreach>
+                            )
+                       /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       AND B.CNTR_CNFM_DTM BETWEEN #{perfYm}||'00000000' AND #{perfYm}||'99999999' /*계약확정일시 - 당월*/
+                       <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                       AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
+                       </if>
+                       AND B.CNTR_CAN_DTM IS NULL        /*취소일시 - NULL*/
+                       AND A.BASE_PD_CD = C.PD_CD
+                       AND C.PD_CLSF_ID = E.PD_CLSF_ID
+                       AND A.CNTR_NO = D.CNTR_NO
+                       AND A.CNTR_SN = D.CNTR_SN
+                       AND D.DP_DV_CD = '1'  /*입금구분코드 - 1:입금*/
+                       AND D.RVE_DV_CD = '01'    /*수납구분코드 - 01:계약(청약)금*/
+                       AND D.RVE_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'    /*수납일자 - 당월*/
+                       AND A.DTA_DL_YN = 'N'
+                       AND B.DTA_DL_YN = 'N'
+                       AND D.DTA_DL_YN = 'N'
+                     UNION ALL 
+                    /*정상 전월마감*/
+                    SELECT A.SELL_TP_CD /*판매유형코드*/
+                         , A.SELL_TP_DTL_CD /*판매유형상세코드*/
+                         , E.PD_CLSF_NM
+                         , 0 AS FNL_AMT
+                         , 0 AS THM_NW_ACC_N 
+                         , 0 AS THM_NW_DP_AMT
+                         , D.EOT_UC_AMT AS NOM_UC_AMT
+                         , 1 AS NOM_ACC_N
+                         , D.THM_ISTM_TOT_DP_AMT AS NOM_DP_AMT  
+                         , 0 AS DLQ_AMT    
+                         , 0 AS DLQ_ACC_N 
+                         , 0 AS DLQ_DP_AMT 
+                         , D.SL_AGG_AMT AS BIL_AMT
+                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                         , TB_SSCT_CNTR_BAS B    /*계약기본*/
+                         , TB_PDBS_PD_BAS C      /*상품기본*/
+                         , TB_CBCL_WELLS_SL_MM_CL_IZ D   /*WELLS월마감매출내역*/
+                         , TB_PDBS_PD_CLSF_BAS E /*상품분류기본*/
+                     WHERE A.CNTR_NO = B.CNTR_NO
+                       AND A.BASE_PD_CD = C.PD_CD
+                       AND C.PD_CLSF_ID = E.PD_CLSF_ID
+                       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                       /*화면-계약상세번호 입력 시-시작*/
+                       AND A.CNTR_NO = #{cntrNo}
+                       AND A.CNTR_SN = #{cntrSn}
+                       /*화면-계약상세번호 입력 시-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       /*화면-판매유형 선택 시(전체 제외)-시작*/
+                       AND A.SELL_TP_CD IN (
+                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
+                               #{sellTpCd}
+                           </foreach>
+                            )
+                       /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                       AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
+                       </if>
+                       AND D.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                       AND A.CNTR_NO = D.CNTR_NO
+                       AND A.CNTR_SN = D.CNTR_SN
+                       AND (D.CNTR_NO, D.CNTR_SN) NOT IN (SELECT CNTR_NO, CNTR_SN 
+                                                            FROM TB_CBCL_DLQ_BAS_HIST   /*연체기본이력*/ 
+                                                           WHERE DLQ_SN = 1 AND PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM'))
+                       AND A.DTA_DL_YN = 'N'
+                       AND B.DTA_DL_YN = 'N'
+                       AND D.DTA_DL_YN = 'N'
+                     UNION ALL 
+                    /*연체 전월마감*/
+                    SELECT A.SELL_TP_CD       /*판매유형코드*/
+                         , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
+                         , E.PD_CLSF_NM
+                         , 0 AS FNL_AMT
+                         , 0 AS THM_NW_ACC_N 
+                         , 0 AS THM_NW_DP_AMT
+                         , 0 AS NOM_UC_AMT  
+                         , 0 AS NOM_ACC_N       
+                         , 0 AS NOM_DP_AMT  
+                         , D.EOT_DLQ_AMT AS DLQ_AMT    
+                         , 1 AS DLQ_ACC_N 
+                         , D.THM_DLQ_DP_SUM_AMT AS DLQ_DP_AMT 
+                         , 0 AS BIL_AMT
+                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                         , TB_SSCT_CNTR_BAS B /*계약기본*/
+                         , TB_PDBS_PD_BAS C       /*상품기본*/
+                         , TB_CBCL_DLQ_BAS_HIST D /*연체기본이력*/
+                         , TB_PDBS_PD_CLSF_BAS E  /*상품분류기본*/
+                     WHERE A.CNTR_NO = B.CNTR_NO
+                       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                       /*화면-계약상세번호 입력 시-시작*/
+                       AND A.CNTR_NO = #{cntrNo}
+                       AND A.CNTR_SN = #{cntrSn}
+                       /*화면-계약상세번호 입력 시-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       /*화면-판매유형 선택 시(전체 제외)-시작*/
+                       AND A.SELL_TP_CD IN (
+                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
+                               #{sellTpCd}
+                           </foreach>
+                            )
+                       /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                       AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
+                       </if>
+                       AND A.BASE_PD_CD = C.PD_CD
+                       AND C.PD_CLSF_ID = E.PD_CLSF_ID
+                       AND A.CNTR_NO = D.CNTR_NO
+                       AND A.CNTR_SN = D.CNTR_SN
+                       AND D.DLQ_SN = 1
+                       AND D.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                       AND A.DTA_DL_YN = 'N'
+                       AND B.DTA_DL_YN = 'N'
+                       AND D.DTA_DL_YN = 'N'
+                       AND E.DTA_DL_YN = 'N'
+                   ) T
+               GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.PD_CLSF_NM
+        </if>
+    </select>
+</mapper>
