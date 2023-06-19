@@ -90,6 +90,7 @@ public class WsnaNormalOutOfStorageDto {
     public record DetailRes(
         String flag,
         String chk,
+        String dummyQty,
         String ostrAkTpCd,
         String ostrTpCd,
         String strWareNo,
