@@ -146,7 +146,8 @@ public class WsnaReturningGoodsStoreDto {
         String StkrRPrntYn,
         String cntrNo,
         String cntrSn,
-        String wkOstrSn
+        String wkOstrSn,
+        String rmkCn
 
     ) {}
 
@@ -187,7 +188,8 @@ public class WsnaReturningGoodsStoreDto {
         String StkrRPrntYn,
         String cntrNo,
         String cntrSn,
-        String wkOstrSn
+        String wkOstrSn,
+        String rmkCn
 
     ) {}
 }
