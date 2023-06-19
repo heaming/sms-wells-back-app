@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.deduction.rds.service;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
@@ -14,10 +13,12 @@ import com.kyowon.sms.common.web.deduction.rds.dto.ZdecRdsAnAccountErrorMgtDto.S
 import com.kyowon.sms.common.web.deduction.rds.dto.ZdecRdsAnAccountErrorMgtDto.SearchRdsAnAccountErrorNewChkRes;
 import com.kyowon.sms.common.web.deduction.rds.dvo.ZdecRdsAnAccountErrorMgtDvo;
 import com.kyowon.sms.common.web.deduction.rds.mapper.ZdecRdsAnAccountErrorMgtMapper;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdaAutoTransferInterfaceService;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAnAccountEffectivenessResDvo;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaSettleBankSendAndReceiveService;
 import com.sds.sflex.common.common.service.ExcelDownloadService;
 import com.sds.sflex.common.docs.service.AttachFileService;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,9 @@ public class WdecRdsAnAccountErrorMgtService {
 
     //    private final EaiInterfaceService interfaceService;
 
-    private final WwdaAutoTransferInterfaceService wwdaAutoTransferInterfaceService;
+    //    private final WwdaAutoTransferInterfaceService wwdaAutoTransferInterfaceService;
+
+    private final ZwdaSettleBankSendAndReceiveService zwdaSettleBankSendAndReceiveService;
 
     /**
      * RDS 계좌오류 체크 조회
@@ -200,25 +203,62 @@ public class WdecRdsAnAccountErrorMgtService {
      */
     public Map<String, String> accountRealNameService(ZdecRdsAnAccountErrorMgtDvo dvo) {
 
-        WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq dto = new WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq(
-            dvo.getFnitCd(), dvo.getAcnoEncr(), dvo.getPrtnrKnm(), dvo.getBryyMmdd()
-        );
+        //        WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq dto = new WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq(
+        //            dvo.getFnitCd(), dvo.getAcnoEncr(), dvo.getPrtnrKnm(), dvo.getBryyMmdd()
+        //        );
+        //
+        //        List<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> res = wwdaAutoTransferInterfaceService
+        //            .getRealNameCertification(dto);
+        //
+        //        BizAssert.isTrue(null != res, "MSG_ALT_AC_CHECK_ERR", new String[] {""});
+        //
+        //        Map<String, String> accountResult = new HashMap<>();
+        //
+        //        if ("1".equals(res.get(0).acFntRsCd())) {
+        //            accountResult.put("acFntRsCd", "N");
+        //        } else {
+        //            accountResult.put("acFntRsCd", "Y");
+        //        }
+        //
+        //        accountResult.put("acFntRsCdNm", res.get(0).acFntRsCdNm());
+        //        accountResult.put("owrKnm", res.get(0).owrKnm());
+        //
+        //        return accountResult;
 
-        List<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> res = wwdaAutoTransferInterfaceService
-            .getRealNameCertification(dto);
+        //        EwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq dto = new EwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq(
+        //            dvo.getFnitCd(), dvo.getAcnoEncr(), dvo.getPrtnrKnm(), dvo.getBryyMmdd()
+        //        );
+
+        //        List<EwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> res = ewdaAutoTransferInterfaceService
+        //            .getRealNameCertification(dto);
+
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+
+        Map<String, Object> reqParam = new HashMap<>();
+        reqParam.put("FNIT_CD", dvo.getFnitCd()); // 금융기관코드
+        reqParam.put("BANK_CD", dvo.getFnitCd()); // 은행코드
+        reqParam.put("ACC_NO", dvo.getAcnoEncr());//계좌번호
+        reqParam.put("SYS_DV_CD", session.getTenantCd());//시스템구분코드 EDU, WELLS
+        ZwdaAnAccountEffectivenessResDvo res = zwdaSettleBankSendAndReceiveService
+            .getAccountOwnerRnmConfInterface(reqParam);
 
         BizAssert.isTrue(null != res, "MSG_ALT_AC_CHECK_ERR", new String[] {""});
 
         Map<String, String> accountResult = new HashMap<>();
 
-        if ("1".equals(res.get(0).acFntRsCd())) {
+        //        rqdt; // 거래일자
+        //        userDealNo; //사용자거래번호
+        //        rplyCd; // 응답코드
+        //        depsPrsnNm; //예금주명
+
+        if ("0000".equals(res.getRqdt())) {
             accountResult.put("acFntRsCd", "N");
         } else {
             accountResult.put("acFntRsCd", "Y");
         }
 
-        accountResult.put("acFntRsCdNm", res.get(0).acFntRsCdNm());
-        accountResult.put("owrKnm", res.get(0).owrKnm());
+        //        accountResult.put("acFntRsCdNm", res.get(0).acFntRsCdNm());
+        accountResult.put("owrKnm", res.getDepsPrsnNm());
 
         return accountResult;
     }
