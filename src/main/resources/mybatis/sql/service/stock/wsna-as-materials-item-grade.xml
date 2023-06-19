@@ -18,16 +18,22 @@
 
 
     <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
-        SELECT WARE_NO   /* 창고번호 */
-             , WARE_NM   /* 창고명 */
-          FROM TB_SVST_MCBY_WARE_IZ   /* 월별창고내역 */
-         WHERE DTA_DL_YN  = 'N'
-           AND APY_YM     = #{baseYm}
-           AND WARE_DV_CD = #{wareDvCd}
+        SELECT D1.WARE_NO   /* 창고번호 */
+             , D1.WARE_NM   /* 창고명 */
+          FROM TB_SVST_MCBY_WARE_IZ D1        /* 월별창고내역 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+            ON D2.APY_YM  = D1.APY_YM
+           AND D2.WARE_NO = D1.HGR_WARE_NO
+         WHERE D1.DTA_DL_YN      = 'N'
+           AND D2.DTA_DL_YN      = 'N'
+           AND D1.APY_YM         = #{baseYm}
+           AND D1.WARE_DV_CD     = #{wareDvCd}
        <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
-           AND WARE_DTL_DV_CD = #{wareDtlDvCd}
+           AND D1.WARE_DTL_DV_CD = #{wareDtlDvCd}
        </if>
-         ORDER BY WARE_USE_YN DESC, WARE_NM ASC, WARE_NO ASC
+           AND (    ( D1.WARE_DTL_DV_CD = '20' AND (D1.WARE_NM LIKE '%센터' OR D1.WARE_NM LIKE '%지점') )
+                 OR ( D1.WARE_DTL_DV_CD = '21' AND (D2.WARE_NM LIKE '%센터' OR D2.WARE_NM LIKE '%지점') ) )
+         ORDER BY D1.WARE_USE_YN DESC, D1.WARE_NM ASC, D1.WARE_NO ASC
     </select>
 
     <select id="selectAsMaterialsItemGradePages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialsItemGradeDto$SearchRes">
@@ -56,7 +62,6 @@
                 WHERE DTA_DL_YN      = 'N'
                   AND MNGT_YM        = #{baseYm}
                   AND ITM_KND_CD     = #{itmKndCd}
-                  AND WARE_NO        = NVL(#{wareNo}, '000001')
             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND ITM_PD_CD      = #{itmPdCd}
             </if>
@@ -73,6 +78,21 @@
                 </when>
             </choose>
             </if>
+            <choose>
+                <when test="@MybatisUtils@isEmpty(wareNo)">
+                  AND WARE_NO        = '000001'
+                </when>
+                <otherwise>
+                  AND WARE_NO        = ( SELECT CASE WHEN WARE_DTL_DV_CD = '20' THEN WARE_NO
+                                                     ELSE HGR_WARE_NO
+                                                END
+                                           FROM TB_SVST_MCBY_WARE_IZ   /* 월별창고내역 */
+                                          WHERE DTA_DL_YN  = 'N'
+                                            AND APY_YM     = #{baseYm}
+                                            AND WARE_DV_CD = #{wareDvCd}
+                                            AND WARE_NO    = #{wareNo} )
+                </otherwise>
+            </choose>
              ) D1
          INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
             ON D2.SVPD_PD_CD = D1.ITM_PD_CD
