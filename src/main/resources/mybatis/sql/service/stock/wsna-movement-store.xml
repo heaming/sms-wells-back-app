@@ -38,6 +38,9 @@
         <if test="@MybatisUtils@isEmpty(strTpCd)">
            AND STR_IZ.STR_TP_CD IN ('121','122','123','162','161')
         </if>
+          AND STR_IZ.DTA_DL_YN = 'N'
+          AND OSTR_IZ.DTA_DL_YN = 'N'
+          AND WARE_IZ.DTA_DL_YN = 'N'
         GROUP BY STR_IZ.STR_TP_CD
                 ,STR_IZ.STR_WARE_NO
                 ,STR_IZ.STR_SN
@@ -72,10 +75,12 @@
                   AND S1.ITM_PD_CD = T1.ITM_PD_CD
                   AND S1.ITM_STR_NO = T1.ITM_STR_NO
                   AND S1.STR_SN = T1.STR_SN
+                  AND S1.DTA_DL_YN = 'N'
               ) AS OSTR_SN
             , (SELECT S1.STR_HOP_DT
                  FROM TB_SVST_ITM_OSTR_AK_IZ S1
                 WHERE S1.OSTR_AK_NO = T1.OSTR_AK_NO
+                  AND S1.DTA_DL_YN = 'N'
                   AND ROWNUM = 1
               ) AS STR_HOP_DT
          FROM TB_SVST_ITM_STR_IZ T1 /* 품목입고내역 */
@@ -101,6 +106,9 @@
           AND T1.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}
           AND T1.STR_CONF_DT IS NULL
           AND T1.STR_SN = (SELECT MIN(W1.STR_SN) FROM TB_SVST_ITM_STR_IZ W1 WHERE W1.ITM_STR_NO = T1.ITM_STR_NO AND W1.STR_CONF_DT IS NULL)
+          AND T1.DTA_DL_YN = 'N'
+          AND T2.DTA_DL_YN = 'N'
+          AND T4.DTA_DL_YN = 'N'
          ORDER BY STR_TP_CD, ITM_STR_NO ,STR_SN
     </select>
 
@@ -134,6 +142,9 @@
          <if test="@MybatisUtils@isNotEmpty(ostrTpCd)">
            AND T1.OSTR_TP_CD = #{ostrTpCd}
          </if>
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND T4.DTA_DL_YN = 'N'
          GROUP BY T1.ITM_OSTR_NO
              , T1.OSTR_TP_CD
              , T1.OSTR_WARE_NO
@@ -167,6 +178,7 @@
                                           ELSE T1.OSTR_WARE_NO
                                       END)
                    AND S2.ITM_PD_CD = T1.ITM_PD_CD
+                   AND S2.DTA_DL_YN = 'N'
                ) AS ITEM_LOC /* 위치정보 */
              , NVL((SELECT (CASE T1.ITM_GD_CD
                                  WHEN 'A' THEN S3.PITM_STOC_A_GD_QTY - S3.MMT_STOC_A_GD_QTY
@@ -177,7 +189,8 @@
                              END)
                       FROM TB_SVST_CST_SV_ITM_STOC_IZ  S3
                      WHERE S3.WARE_NO = T1.STR_WARE_NO
-                       AND S3.ITM_PD_CD = T1.ITM_PD_CD)
+                       AND S3.ITM_PD_CD = T1.ITM_PD_CD
+                       AND S3.DTA_DL_YN = 'N')
                ,0) AS ON_QTY
              , T1.MNGT_UNIT_CD
              , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', T1.MNGT_UNIT_CD) AS MNGT_UNIT_NM
@@ -199,6 +212,7 @@
                  WHERE S1.OSTR_AK_NO = T1.OSTR_AK_NO
                    AND S1.OSTR_AK_NO LIKE '360%'
                    AND S1.SELL_RCPDT IS NOT NULL
+                   AND S1.DTA_DL_YN = 'N'
              ) IN_SUM
              , T1.STR_CONF_DT
              , T3.RMK_CN
@@ -217,6 +231,10 @@
            AND T1.STR_WARE_NO = #{strWareNo}
            AND T1.OSTR_WARE_NO = #{ostrWareNo}
            AND T1.STR_TP_CD = #{strTpCd}
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND T3.DTA_DL_YN = 'N'
+         ORDER BY T1.STR_SN
     </select>
     <update id="saveStrConfirm">
         UPDATE TB_SVST_ITM_STR_IZ T1
