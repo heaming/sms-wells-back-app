@@ -38,7 +38,7 @@ public class WsnaAsMaterialsItemGradeService {
     /**
      * 창고리스트 조회
      * @param dto   (필수) 조회조건
-     * @return
+     * @return 창고 리스트
      */
     public List<WsnzWellsCodeWareHouseDvo> getWareHouses(WsnaAsMaterialsItemGradeDto.SearchWareReq dto) {
         ValidAssert.notNull(dto);
@@ -52,7 +52,7 @@ public class WsnaAsMaterialsItemGradeService {
      * AS자재 품목등급 조회
      * @param dto       (필수) 조회조건
      * @param pageInfo  (필수) 페이징 정보
-     * @return
+     * @return AS자재 품목등급 데이터 리스트
      */
     public PagingResult<WsnaAsMaterialsItemGradeDto.SearchRes> getAsMaterialsItemGradePages(
         WsnaAsMaterialsItemGradeDto.SearchReq dto, PageInfo pageInfo
@@ -82,7 +82,7 @@ public class WsnaAsMaterialsItemGradeService {
     /**
      * AS자재 품목등급 조회 - 엑셀 다운로드
      * @param dto       (필수) 조회조건
-     * @return
+     * @return AS자재 품목등급 데이터 리스트
      */
     public List<WsnaAsMaterialsItemGradeDto.SearchRes> getAsMaterialsItemGradesExcelDownload(
         WsnaAsMaterialsItemGradeDto.SearchReq dto
@@ -123,7 +123,7 @@ public class WsnaAsMaterialsItemGradeService {
         // 데이터가 생성되었는지 체크
         Integer createCount = this.mapper.selectCstSvItmGdIzCount(dvo);
 
-        return createCount == null ? "Y" : "N";
+        return createCount == null ? "N" : "Y";
     }
 
     /**
