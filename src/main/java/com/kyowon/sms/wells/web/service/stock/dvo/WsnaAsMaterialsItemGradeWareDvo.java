@@ -18,7 +18,10 @@ public class WsnaAsMaterialsItemGradeWareDvo {
 
     // 창고번호
     private String wareNo;
+    // 창고명
+    private String wareNm;
     // 창고구분코드
     private String wareDvCd;
-
+    // 창고상세구분코드
+    private String wareDtlDvCd;
 }

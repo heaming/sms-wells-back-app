@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialsItemGradeDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialsItemGradeDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialsItemGradeWareDvo;
@@ -33,6 +34,19 @@ import lombok.RequiredArgsConstructor;
 public class WsnaAsMaterialsItemGradeService {
 
     private final WsnaAsMaterialsItemGradeMapper mapper;
+
+    /**
+     * 창고리스트 조회
+     * @param dto   (필수) 조회조건
+     * @return
+     */
+    public List<WsnzWellsCodeWareHouseDvo> getWareHouses(WsnaAsMaterialsItemGradeDto.SearchWareReq dto) {
+        ValidAssert.notNull(dto);
+        ValidAssert.hasText(dto.baseYm());
+        ValidAssert.hasText(dto.wareDvCd());
+
+        return this.mapper.selectWareHouses(dto);
+    }
 
     /**
      * AS자재 품목등급 조회
@@ -63,6 +77,53 @@ public class WsnaAsMaterialsItemGradeService {
         } else {
             return this.mapper.selectAsMaterialsItemGradePagesForWare(dto, pageInfo);
         }
+    }
+
+    /**
+     * AS자재 품목등급 조회 - 엑셀 다운로드
+     * @param dto       (필수) 조회조건
+     * @return
+     */
+    public List<WsnaAsMaterialsItemGradeDto.SearchRes> getAsMaterialsItemGradesExcelDownload(
+        WsnaAsMaterialsItemGradeDto.SearchReq dto
+    ) {
+        ValidAssert.notNull(dto);
+
+        // 기준년월
+        String baseYm = dto.baseYm();
+        // 현재년월
+        String nowYm = DateUtil.getNowDayString().substring(0, 6);
+        // 기준년월 > 현재년월일 경우 메시지 처리
+        BizAssert.isTrue(nowYm.compareTo(baseYm) >= 0, "MSG_ALT_INQR_CRTL_MM_PSB");
+
+        // 창고세부구분코드
+        String wareDtlDvCd = dto.wareDtlDvCd();
+
+        // 창고세부구분코드가 전체인 경우
+        if (StringUtils.isEmpty(wareDtlDvCd)) {
+            return this.mapper.selectAsMaterialsItemGradePages(dto);
+        } else {
+            return this.mapper.selectAsMaterialsItemGradePagesForWare(dto);
+        }
+    }
+
+    /**
+     * AS자재 품목등급 데이터 생성 중복체크
+     * @param dvo   (필수) 품목등급 데이터 생성 체크 dvo
+     * @return 데이터 생성 중복 여부
+     */
+    public String getCreateAsMaterialsDuplication(WsnaAsMaterialsItemGradeDvo dvo) {
+
+        ValidAssert.notNull(dvo);
+        // 기준년월
+        String baseYm = dvo.getBaseYm();
+        ValidAssert.hasText(baseYm);
+        ValidAssert.hasText(dvo.getItmKndCd());
+
+        // 데이터가 생성되었는지 체크
+        Integer createCount = this.mapper.selectCstSvItmGdIzCount(dvo);
+
+        return createCount == null ? "N" : "Y";
     }
 
     /**

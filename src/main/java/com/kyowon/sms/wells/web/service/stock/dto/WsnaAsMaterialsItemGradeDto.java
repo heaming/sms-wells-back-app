@@ -19,6 +19,19 @@ import lombok.Builder;
 public class WsnaAsMaterialsItemGradeDto {
 
     @Builder
+    @ApiModel("WsnaAsMaterialsItemGradeDto-SearchWareReq")
+    public record SearchWareReq(
+        @NotBlank
+        String baseYm,
+        // 창고구분코드
+        @NotBlank
+        String wareDvCd,
+
+        // 창고세부구분코드
+        String wareDtlDvCd
+    ) {}
+
+    @Builder
     @ApiModel("WsnaAsMaterialsItemGradeDto-SearchReq")
     public record SearchReq(
 
