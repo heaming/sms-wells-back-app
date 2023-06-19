@@ -123,7 +123,7 @@ public class WsnaAsMaterialsItemGradeService {
         // 데이터가 생성되었는지 체크
         Integer createCount = this.mapper.selectCstSvItmGdIzCount(dvo);
 
-        return createCount == null ? "N" : "Y";
+        return createCount == null ? "Y" : "N";
     }
 
     /**
