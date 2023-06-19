@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialsItemGradeDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialsItemGradeDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialsItemGradeWareDvo;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsMaterialsItemGradeMapper;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradeDto;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradeDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradeWareDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsMaterialItemGradeMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -31,16 +31,16 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WsnaAsMaterialsItemGradeService {
+public class WsnaAsMaterialItemGradeService {
 
-    private final WsnaAsMaterialsItemGradeMapper mapper;
+    private final WsnaAsMaterialItemGradeMapper mapper;
 
     /**
      * 창고리스트 조회
      * @param dto   (필수) 조회조건
      * @return 창고 리스트
      */
-    public List<WsnzWellsCodeWareHouseDvo> getWareHouses(WsnaAsMaterialsItemGradeDto.SearchWareReq dto) {
+    public List<WsnzWellsCodeWareHouseDvo> getWareHouses(WsnaAsMaterialItemGradeDto.SearchWareReq dto) {
         ValidAssert.notNull(dto);
         ValidAssert.hasText(dto.baseYm());
         ValidAssert.hasText(dto.wareDvCd());
@@ -54,8 +54,8 @@ public class WsnaAsMaterialsItemGradeService {
      * @param pageInfo  (필수) 페이징 정보
      * @return AS자재 품목등급 데이터 리스트
      */
-    public PagingResult<WsnaAsMaterialsItemGradeDto.SearchRes> getAsMaterialsItemGradePages(
-        WsnaAsMaterialsItemGradeDto.SearchReq dto, PageInfo pageInfo
+    public PagingResult<WsnaAsMaterialItemGradeDto.SearchRes> getAsMaterialItemGradePages(
+        WsnaAsMaterialItemGradeDto.SearchReq dto, PageInfo pageInfo
     ) {
 
         ValidAssert.notNull(dto);
@@ -73,9 +73,9 @@ public class WsnaAsMaterialsItemGradeService {
 
         // 창고세부구분코드가 전체인 경우
         if (StringUtils.isEmpty(wareDtlDvCd)) {
-            return this.mapper.selectAsMaterialsItemGradePages(dto, pageInfo);
+            return this.mapper.selectAsMaterialItemGradePages(dto, pageInfo);
         } else {
-            return this.mapper.selectAsMaterialsItemGradePagesForWare(dto, pageInfo);
+            return this.mapper.selectAsMaterialItemGradePagesForWare(dto, pageInfo);
         }
     }
 
@@ -84,8 +84,8 @@ public class WsnaAsMaterialsItemGradeService {
      * @param dto       (필수) 조회조건
      * @return AS자재 품목등급 데이터 리스트
      */
-    public List<WsnaAsMaterialsItemGradeDto.SearchRes> getAsMaterialsItemGradesExcelDownload(
-        WsnaAsMaterialsItemGradeDto.SearchReq dto
+    public List<WsnaAsMaterialItemGradeDto.SearchRes> getAsMaterialItemGradesExcelDownload(
+        WsnaAsMaterialItemGradeDto.SearchReq dto
     ) {
         ValidAssert.notNull(dto);
 
@@ -101,9 +101,9 @@ public class WsnaAsMaterialsItemGradeService {
 
         // 창고세부구분코드가 전체인 경우
         if (StringUtils.isEmpty(wareDtlDvCd)) {
-            return this.mapper.selectAsMaterialsItemGradePages(dto);
+            return this.mapper.selectAsMaterialItemGradePages(dto);
         } else {
-            return this.mapper.selectAsMaterialsItemGradePagesForWare(dto);
+            return this.mapper.selectAsMaterialItemGradePagesForWare(dto);
         }
     }
 
@@ -112,7 +112,7 @@ public class WsnaAsMaterialsItemGradeService {
      * @param dvo   (필수) 품목등급 데이터 생성 체크 dvo
      * @return 데이터 생성 중복 여부
      */
-    public String getCreateAsMaterialsDuplication(WsnaAsMaterialsItemGradeDvo dvo) {
+    public String getCreateAsMaterialDuplication(WsnaAsMaterialItemGradeDvo dvo) {
 
         ValidAssert.notNull(dvo);
         // 기준년월
@@ -132,7 +132,7 @@ public class WsnaAsMaterialsItemGradeService {
      * @return 품목등급 데이터 생성 건수
      */
     @Transactional
-    public int createAsMaterialsItemGrade(WsnaAsMaterialsItemGradeDvo dvo) {
+    public int createAsMaterialItemGrades(WsnaAsMaterialItemGradeDvo dvo) {
 
         ValidAssert.notNull(dvo);
         // 기준년월
@@ -149,10 +149,10 @@ public class WsnaAsMaterialsItemGradeService {
         int count = 0;
 
         // 현재년월에 해당하는 창고리스트 조회
-        List<WsnaAsMaterialsItemGradeWareDvo> wareDvos = this.mapper.selectMcbyWareList();
+        List<WsnaAsMaterialItemGradeWareDvo> wareDvos = this.mapper.selectMcbyWareList();
         if (CollectionUtils.isNotEmpty(wareDvos)) {
 
-            for (WsnaAsMaterialsItemGradeWareDvo wareDvo : wareDvos) {
+            for (WsnaAsMaterialItemGradeWareDvo wareDvo : wareDvos) {
                 // 창고번호
                 String wareNo = wareDvo.getWareNo();
                 // 창고구분코드
@@ -174,12 +174,12 @@ public class WsnaAsMaterialsItemGradeService {
      * @return 품목등급 데이터 저장 건수
      */
     @Transactional
-    public int saveAsMaterialsItemGrades(List<WsnaAsMaterialsItemGradeDvo> dvos) {
+    public int saveAsMaterialItemGrades(List<WsnaAsMaterialItemGradeDvo> dvos) {
         ValidAssert.notEmpty(dvos);
 
         int count = 0;
 
-        for (WsnaAsMaterialsItemGradeDvo dvo : dvos) {
+        for (WsnaAsMaterialItemGradeDvo dvo : dvos) {
             ValidAssert.hasText(dvo.getBaseYm());
             ValidAssert.hasText(dvo.getItmPdCd());
             ValidAssert.hasText(dvo.getCtrItmMngtGdCd());

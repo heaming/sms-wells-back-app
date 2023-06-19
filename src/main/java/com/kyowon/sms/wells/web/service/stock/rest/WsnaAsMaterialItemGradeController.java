@@ -9,10 +9,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaAsMaterialsItemGradeConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialsItemGradeDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialsItemGradeDvo;
-import com.kyowon.sms.wells.web.service.stock.service.WsnaAsMaterialsItemGradeService;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaAsMaterialItemGradeConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradeDto;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradeDvo;
+import com.kyowon.sms.wells.web.service.stock.service.WsnaAsMaterialItemGradeService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -37,12 +37,12 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-materials-item-grade")
-public class WsnaAsMaterialsItemGradeController {
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-material-item-grade")
+public class WsnaAsMaterialItemGradeController {
 
-    private final WsnaAsMaterialsItemGradeConverter converter;
+    private final WsnaAsMaterialItemGradeConverter converter;
 
-    private final WsnaAsMaterialsItemGradeService service;
+    private final WsnaAsMaterialItemGradeService service;
 
     /**
      * 창고리스트 조회
@@ -57,7 +57,7 @@ public class WsnaAsMaterialsItemGradeController {
         @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "20")
     })
     public List<WsnzWellsCodeWareHouseDvo> getWareHouses(@Valid
-    WsnaAsMaterialsItemGradeDto.SearchWareReq dto) {
+    WsnaAsMaterialItemGradeDto.SearchWareReq dto) {
         return this.service.getWareHouses(dto);
     }
 
@@ -80,10 +80,10 @@ public class WsnaAsMaterialsItemGradeController {
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07100214"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
     })
-    public PagingResult<WsnaAsMaterialsItemGradeDto.SearchRes> getAsMaterialsItemGradePages(@Valid
-    WsnaAsMaterialsItemGradeDto.SearchReq dto, @Valid
+    public PagingResult<WsnaAsMaterialItemGradeDto.SearchRes> getAsMaterialsItemGradePages(@Valid
+    WsnaAsMaterialItemGradeDto.SearchReq dto, @Valid
     PageInfo pageInfo) {
-        return this.service.getAsMaterialsItemGradePages(dto, pageInfo);
+        return this.service.getAsMaterialItemGradePages(dto, pageInfo);
     }
 
     /**
@@ -104,9 +104,9 @@ public class WsnaAsMaterialsItemGradeController {
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07100214"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
     })
-    public List<WsnaAsMaterialsItemGradeDto.SearchRes> getAsMaterialsItemGradeExcelDownload(@Valid
-    WsnaAsMaterialsItemGradeDto.SearchReq dto) {
-        return this.service.getAsMaterialsItemGradesExcelDownload(dto);
+    public List<WsnaAsMaterialItemGradeDto.SearchRes> getAsMaterialsItemGradeExcelDownload(@Valid
+    WsnaAsMaterialItemGradeDto.SearchReq dto) {
+        return this.service.getAsMaterialItemGradesExcelDownload(dto);
     }
 
     /**
@@ -121,10 +121,10 @@ public class WsnaAsMaterialsItemGradeController {
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "6", required = true)
     })
     public String getAsMaterialsItemGradePages(@Valid
-    WsnaAsMaterialsItemGradeDto.CreateReq dto) {
-        WsnaAsMaterialsItemGradeDvo dvo = this.converter.mapCreateReqToWsnaAsMaterialsItemGradeDvo(dto);
+    WsnaAsMaterialItemGradeDto.CreateReq dto) {
+        WsnaAsMaterialItemGradeDvo dvo = this.converter.mapCreateReqToWsnaAsMaterialItemGradeDvo(dto);
 
-        return this.service.getCreateAsMaterialsDuplication(dvo);
+        return this.service.getCreateAsMaterialDuplication(dvo);
     }
 
     /**
@@ -138,12 +138,12 @@ public class WsnaAsMaterialsItemGradeController {
     public SaveResponse createAsMaterialsItemGrades(
         @RequestBody
         @Valid
-        WsnaAsMaterialsItemGradeDto.CreateReq dto
+        WsnaAsMaterialItemGradeDto.CreateReq dto
     ) throws Exception {
 
-        WsnaAsMaterialsItemGradeDvo dvo = this.converter.mapCreateReqToWsnaAsMaterialsItemGradeDvo(dto);
+        WsnaAsMaterialItemGradeDvo dvo = this.converter.mapCreateReqToWsnaAsMaterialItemGradeDvo(dto);
 
-        return SaveResponse.builder().processCount(this.service.createAsMaterialsItemGrade(dvo)).build();
+        return SaveResponse.builder().processCount(this.service.createAsMaterialItemGrades(dvo)).build();
     }
 
     /**
@@ -158,12 +158,12 @@ public class WsnaAsMaterialsItemGradeController {
         @RequestBody
         @Valid
         @NotEmpty
-        List<WsnaAsMaterialsItemGradeDto.SaveReq> dtos
+        List<WsnaAsMaterialItemGradeDto.SaveReq> dtos
     ) throws Exception {
 
-        List<WsnaAsMaterialsItemGradeDvo> dvos = this.converter.mapAllSaveReqToWsnaAsMaterialsItemGradeDvo(dtos);
+        List<WsnaAsMaterialItemGradeDvo> dvos = this.converter.mapAllSaveReqToWsnaAsMaterialItemGradeDvo(dtos);
 
-        return SaveResponse.builder().processCount(this.service.saveAsMaterialsItemGrades(dvos)).build();
+        return SaveResponse.builder().processCount(this.service.saveAsMaterialItemGrades(dvos)).build();
     }
 
 }

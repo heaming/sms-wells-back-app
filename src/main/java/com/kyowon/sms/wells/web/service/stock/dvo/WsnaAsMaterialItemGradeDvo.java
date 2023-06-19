@@ -14,7 +14,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaAsMaterialsItemGradeDvo {
+public class WsnaAsMaterialItemGradeDvo {
 
     // 기준년월
     private String baseYm;

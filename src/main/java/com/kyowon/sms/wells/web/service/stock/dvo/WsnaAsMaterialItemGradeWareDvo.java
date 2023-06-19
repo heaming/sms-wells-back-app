@@ -14,7 +14,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaAsMaterialsItemGradeWareDvo {
+public class WsnaAsMaterialItemGradeWareDvo {
 
     // 창고번호
     private String wareNo;

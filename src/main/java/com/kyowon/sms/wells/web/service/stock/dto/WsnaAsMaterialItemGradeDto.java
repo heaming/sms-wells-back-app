@@ -16,10 +16,10 @@ import lombok.Builder;
  * @since 2023-06-15
  */
 
-public class WsnaAsMaterialsItemGradeDto {
+public class WsnaAsMaterialItemGradeDto {
 
     @Builder
-    @ApiModel("WsnaAsMaterialsItemGradeDto-SearchWareReq")
+    @ApiModel("WsnaAsMaterialItemGradeDto-SearchWareReq")
     public record SearchWareReq(
         @NotBlank
         String baseYm,
@@ -32,7 +32,7 @@ public class WsnaAsMaterialsItemGradeDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaAsMaterialsItemGradeDto-SearchReq")
+    @ApiModel("WsnaAsMaterialItemGradeDto-SearchReq")
     public record SearchReq(
 
         // 기준년월
@@ -67,7 +67,7 @@ public class WsnaAsMaterialsItemGradeDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaAsMaterialsItemGradeDto-SearchRes")
+    @ApiModel("WsnaAsMaterialItemGradeDto-SearchRes")
     public record SearchRes(
 
         // SAP코드
@@ -96,7 +96,7 @@ public class WsnaAsMaterialsItemGradeDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaAsMaterialsItemGradeDto-CreateReq")
+    @ApiModel("WsnaAsMaterialItemGradeDto-CreateReq")
     public record CreateReq(
         // 기준년월
         @NotBlank
@@ -107,7 +107,7 @@ public class WsnaAsMaterialsItemGradeDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaAsMaterialsItemGradeDto-SaveReq")
+    @ApiModel("WsnaAsMaterialItemGradeDto-SaveReq")
     public record SaveReq(
         // 관리년월
         @NotBlank
