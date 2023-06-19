@@ -201,7 +201,7 @@ public class WdecRdsAnAccountErrorMgtService {
     public Map<String, String> accountRealNameService(ZdecRdsAnAccountErrorMgtDvo dvo) {
 
         WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq dto = new WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq(
-            dvo.getFnitCd(), dvo.getAcnoEncr(), dvo.getPrtnrKnm(), "19890101"
+            dvo.getFnitCd(), dvo.getAcnoEncr(), dvo.getPrtnrKnm(), dvo.getBryyMmdd()
         );
 
         List<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> res = wwdaAutoTransferInterfaceService
