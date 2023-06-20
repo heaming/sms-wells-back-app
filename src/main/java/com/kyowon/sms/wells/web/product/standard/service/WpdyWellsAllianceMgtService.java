@@ -71,7 +71,7 @@ public class WpdyWellsAllianceMgtService {
         for (WpdyAllianceBaseDvo base : bases) {
             validResult = mapper.selectWellsAllianceValidation(base);
             if (StringUtil.isBlank(validResult)) {
-                validationIssueKey = base.getPdCd() + PdProductConst.COMMA + StringUtil.nonNull(base.getSvPdCd()) + PdProductConst.COMMA + base.getStplPrdCd();
+                validationIssueKey = base.getPdCd() + PdProductConst.COMMA + StringUtil.nonNull(base.getSvPdCd()) + PdProductConst.COMMA + StringUtil.nonNull(base.getStplPrdCd());
                 break;
             }
         }
