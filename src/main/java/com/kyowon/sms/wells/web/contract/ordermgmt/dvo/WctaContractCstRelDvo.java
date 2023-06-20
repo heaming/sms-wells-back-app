@@ -53,7 +53,7 @@ public class WctaContractCstRelDvo {
     private String adrId;
     private String zip;
     private String adr;
-    private String dtlAdr;
+    private String adrDtl;
     private int age;
     private String cntrTpCd;
     private String cntrTpNm;
