@@ -55,4 +55,12 @@ public class WsnaItemBaseInformationController {
         return service.getItemBaseInformationAplcLists(dto);
     }
 
+    @ApiOperation(value = "품목기본정보 창고구분, 창고상세구분 조회", notes = "부모창에서 넘어온 파라미터로 창고구분, 창고상세구분 조회")
+    @GetMapping("/checked-code")
+    public List<SearchWareRes> getItemBaseInformationWareDvCds(
+        SearchReq dto
+    ) {
+        return service.getItemBaseInformationWareDvCds(dto);
+    }
+
 }
