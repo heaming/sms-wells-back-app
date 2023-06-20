@@ -38,10 +38,12 @@ public class WctcRiskAuditDto {
         String wellsOjPstnRankNm,
         String dangMngtPntnrOgNm,
         String dangMngtPntnrOgCd,
+        String ogLevlDvCd,
         String dangMngtPntnrNm,
         String dangMngtPrtnrNo,
         String dangOjPrtnrNm,
         String dangOjPrtnrNo,
+        String dangOjPrtnrPstnDvCd,
         String dangOjPrtnrPstnDvNm,
         String dangOcStrtmm,
         String dangArbitOgNm,
@@ -61,8 +63,9 @@ public class WctcRiskAuditDto {
         String dgr2LevlOgCd,
         String dgr3LevlOgCd,
         String ogId,
-        String sortOrd,
         String pstnDvCd,
-        String dangOjPrtnrPstnDvCd
+        String dgrLevlOgCd,
+        String hgrOgId,
+        String ogTpCd
     ) {}
 }
