@@ -40,7 +40,7 @@ public class WsncRegularBfsvcOjService {
         BatchCallReqDvo batchDvo = new BatchCallReqDvo();
         Map<String, String> params = new HashMap<String, String>();
 
-        batchDvo.setJobKey("SMS_DE_OZ0001");
+        batchDvo.setJobKey("WSM_SN_OA0001");
 
         params.put("asnOjYm", dvo.getAsnOjYm());
         params.put("createTarget", dvo.getCreateTarget());
