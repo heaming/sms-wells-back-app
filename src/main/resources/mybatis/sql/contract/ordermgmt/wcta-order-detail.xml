@@ -295,101 +295,114 @@
     </select>
 
     <select id="selectOrderDetailContractLists" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchContractListsRes">
-        SELECT T11.CNTR_NO /* 계약번호 */
-             , T11.CNTR_SN /* 계약일련번호 */
-             , CONCAT(CONCAT(T11.CNTR_NO, '-'), T11.CNTR_SN) AS CNTR_DTL_NO /* 계약번호+계약일련번호 */
-             , T11.BASE_PD_CD    /* 상품코드 */
-             , T11.CNTR_NO || ' - ' || T11.CNTR_SN || '  ' || T20.PD_NM AS PD_NM         /* 상품명 */
-          FROM TB_SSCT_CNTR_BAS T10                  /* T.계약기본 */
-         INNER JOIN TB_SSCT_CNTR_DTL T11             /* T.계약상세 */
-            ON T11.CNTR_NO = T10.CNTR_NO             /* 계약번호 */
-           AND T11.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_PDBS_PD_BAS T20         /* T.상품기본 */
-            ON T20.PD_CD = T11.BASE_PD_CD            /* 상품코드 */
-           AND T20.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
-           AND T20.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
-         WHERE 1 = 1
-           AND T10.CNTR_CST_NO = #{cntrCstNo}          /* 고객번호 */
-           AND T10.DTA_DL_YN = 'N'
-        <choose>
-         <when test='@MybatisUtils@equals(session.baseRleCd, "W1020")'>
-           AND T11.SELL_TP_CD IN ('1','2','3','6')   /* 판매유형코드 : 일시불(1), 렌탈/리스(2), 멤버십(3), 정기배송(6) */
-           AND T10.SELL_PRTNR_NO IN (SELECT PRTNR_NO
-                                       FROM TB_OGBS_MM_PRTNR_IZ
-                                      WHERE 1 = 1
-                                        AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                        AND OG_TP_CD IN ('W01','W02','W03','W04','W05','W06','ALC')
-                                   <if test='@MybatisUtils@equals(session.orgTpCd, "W01")'>  /* P추진단 */
-                                     <if test='@MybatisUtils@equals(session.careerLevelCode, "15")'>  /* 플래너 */
-                                         AND PRTNR_NO = #{session.userId}
-                                         AND OG_TP_CD = #{session.orgTpCd)
-                                     </if>
-                                     <if test='@MybatisUtils@equals(session.careerLevelCode, "10")'>  /* 지국장 */
-                                         AND OG_CD = #{session.departmentId}
-                                         AND OG_TP_CD = #{session.orgTpCd)
-                                     </if>
-                                     <if test='@MybatisUtils@equals(session.careerLevelCode, "7") or @MybatisUtils@equals(session.careerLevelCode, "4") or @MybatisUtils@equals(session.careerLevelCode, "2")'>  /* 7: 지점장, 4: 지역단장, 2: 총괄단장 - 하위조직 모두 */
-                                         AND OG_ID IN (SELECT OG_ID
-                                                         FROM TB_OGBS_MM_OG_IZ
-                                                        WHERE 1=1
-                                                          AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                                          AND DTA_DL_YN = 'N'
-                                                      CONNECT BY PRIOR OG_ID = HGR_OG_ID
-                                                      START WITH OG_ID = (SELECT OG_ID
-                                                                            FROM TB_OGBS_MM_OG_IZ
-                                                                           WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                                                             AND OG_CD = #{session.departmentId} --'71438'
-                                                                             AND OG_TP_CD = #{session.orgTpCd}	--'HR1'
-                                                                             AND DTA_DL_YN = 'N')
-                                                      )
-                                     </if>
-                                   </if>
-                                    )
-         </when>
-         <otherwise>
-           AND T11.SELL_TP_CD IN ('1','2','3','6')   /* 판매유형코드 : 일시불(1), 렌탈/리스(2), 멤버십(3), 정기배송(6) */
-           AND ((T11.SELL_TP_CD IN ('1','6'))  /* 일시불, 정기배송 */
-               OR (T11.SELL_TP_CD IN ('2','3') /* 렌탈, 멤버십 인경우 월별고객서비스대상내역에 있어야함 */
-                   AND EXISTS (SELECT 1
-                                 FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T13          /* T.월별고객서비스대상내역  LC5690P */
-                                WHERE T13.CNTR_NO = T11.CNTR_NO              /* 계약번호 */
-                                  AND T13.CNTR_SN = T11.CNTR_SN              /* 계약일련번호 */
-                                  AND T13.MNGT_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'YYYYMM'))
-                  )
-               )
-           AND T10.SELL_PRTNR_NO IN (SELECT PRTNR_NO
-                                       FROM TB_OGBS_MM_PRTNR_IZ
-                                      WHERE 1 = 1
-                                        AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                        AND OG_TP_CD IN ('W01','W02','W03','W04','W05','W06','ALC')
-                                   <if test='@MybatisUtils@equals(session.orgTpCd, "W01")'>  /* P추진단 */
-                                     <if test='@MybatisUtils@equals(session.careerLevelCode, "15")'>  /* 플래너 */
-                                         AND PRTNR_NO = #{session.userId}
-                                         AND OG_TP_CD = #{session.orgTpCd)
-                                     </if>
-                                     <if test='@MybatisUtils@equals(session.careerLevelCode, "10")'>  /* 지국장 */
-                                         AND OG_CD = #{session.departmentId}
-                                         AND OG_TP_CD = #{session.orgTpCd)
-                                     </if>
-                                     <if test='@MybatisUtils@equals(session.careerLevelCode, "7") or @MybatisUtils@equals(session.careerLevelCode, "4") or @MybatisUtils@equals(session.careerLevelCode, "2")'>  /* 7: 지점장, 4: 지역단장, 2: 총괄단장 - 하위조직 모두 */
-                                         AND OG_ID IN (SELECT OG_ID
-                                                         FROM TB_OGBS_MM_OG_IZ
-                                                        WHERE 1=1
-                                                          AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                                          AND DTA_DL_YN = 'N'
-                                                      CONNECT BY PRIOR OG_ID = HGR_OG_ID
-                                                      START WITH OG_ID = (SELECT OG_ID
-                                                                            FROM TB_OGBS_MM_OG_IZ
-                                                                           WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                                                             AND OG_CD = #{session.departmentId} --'71438'
-                                                                             AND OG_TP_CD = #{session.orgTpCd}	--'HR1'
-                                                                             AND DTA_DL_YN = 'N')
-                                                      )
-                                     </if>
-                                   </if>
-                                    )
-         </otherwise>
-        </choose>
+        SELECT
+               CNTR_NO /* 계약번호 */
+              , CNTR_SN /* 계약일련번호 */
+              , MAX(CNTR_DTL_NO) AS  CNTR_DTL_NO /* 계약번호+계약일련번호 */
+              , MAX(BASE_PD_CD) AS  BASE_PD_CD    /* 상품코드 */
+              , MAX(PD_NM) AS   PD_NM        /* 상품명 */
+          FROM (
+                SELECT T11.CNTR_NO /* 계약번호 */
+                     , T11.CNTR_SN /* 계약일련번호 */
+                     , CONCAT(CONCAT(T11.CNTR_NO, '-'), T11.CNTR_SN) AS CNTR_DTL_NO /* 계약번호+계약일련번호 */
+                     , T11.BASE_PD_CD    /* 상품코드 */
+                     , T11.CNTR_NO || ' - ' || T11.CNTR_SN || '  ' || T20.PD_NM AS PD_NM         /* 상품명 */
+                  FROM TB_SSCT_CNTR_BAS T10                  /* T.계약기본 */
+                 INNER JOIN TB_SSCT_CNTR_DTL T11             /* T.계약상세 */
+                    ON T11.CNTR_NO = T10.CNTR_NO             /* 계약번호 */
+                   AND T11.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_PDBS_PD_BAS T20         /* T.상품기본 */
+                    ON T20.PD_CD = T11.BASE_PD_CD            /* 상품코드 */
+                   AND T20.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
+                   AND T20.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
+                 WHERE 1 = 1
+                   AND T10.CNTR_CST_NO = #{cntrCstNo}          /* 고객번호 */
+                   AND T10.DTA_DL_YN = 'N'
+                <choose>
+                 <when test='@MybatisUtils@equals(session.baseRleCd, "W1020")'>
+                   AND T11.SELL_TP_CD IN ('1','2','3','6')   /* 판매유형코드 : 일시불(1), 렌탈/리스(2), 멤버십(3), 정기배송(6) */
+                   AND ((T11.CNTR_NO = #{cntrNo} AND T11.CNTR_SN = #{cntrSn})
+                       OR (T10.SELL_PRTNR_NO IN (SELECT PRTNR_NO
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE 1 = 1
+                                                AND BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
+                                                AND OG_TP_CD IN ('W01','W02','W03','W04','W05','W06','ALC')
+                                           <if test='@MybatisUtils@equals(session.orgTpCd, "W01")'>  /* P추진단 */
+                                             <if test='@MybatisUtils@equals(session.careerLevelCode, "15")'>  /* 플래너 */
+                                                 AND PRTNR_NO = #{session.userId}
+                                                 AND OG_TP_CD = #{session.orgTpCd}
+                                             </if>
+                                             <if test='@MybatisUtils@equals(session.careerLevelCode, "10")'>  /* 지국장 */
+                                                 AND OG_CD = #{session.departmentId}
+                                                 AND OG_TP_CD = #{session.orgTpCd}
+                                             </if>
+                                             <if test='@MybatisUtils@equals(session.careerLevelCode, "7") or @MybatisUtils@equals(session.careerLevelCode, "4") or @MybatisUtils@equals(session.careerLevelCode, "2")'>  /* 7: 지점장, 4: 지역단장, 2: 총괄단장 - 하위조직 모두 */
+                                                 AND OG_ID IN (SELECT OG_ID
+                                                                 FROM TB_OGBS_MM_OG_IZ
+                                                                WHERE 1=1
+                                                                  AND BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
+                                                                  AND DTA_DL_YN = 'N'
+                                                              CONNECT BY PRIOR OG_ID = HGR_OG_ID
+                                                              START WITH OG_ID = (SELECT OG_ID
+                                                                                    FROM TB_OGBS_MM_OG_IZ
+                                                                                   WHERE BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
+                                                                                     AND OG_CD = #{session.departmentId} --'71438'
+                                                                                     AND OG_TP_CD = #{session.orgTpCd}	--'HR1'
+                                                                                     AND DTA_DL_YN = 'N')
+                                                              )
+                                             </if>
+                                           </if>
+                                            )))
+                 </when>
+                 <otherwise>
+                   AND T11.SELL_TP_CD IN ('1','2','3','6')   /* 판매유형코드 : 일시불(1), 렌탈/리스(2), 멤버십(3), 정기배송(6) */
+                   AND ((T11.CNTR_NO = #{cntrNo} AND T11.CNTR_SN = #{cntrSn})
+                       OR (((T11.SELL_TP_CD IN ('1','6'))  /* 일시불, 정기배송 */
+                           OR (T11.SELL_TP_CD IN ('2','3') /* 렌탈, 멤버십 인경우 월별고객서비스대상내역에 있어야함 */
+                               AND EXISTS (SELECT 1
+                                             FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T13          /* T.월별고객서비스대상내역  LC5690P */
+                                            WHERE T13.CNTR_NO = T11.CNTR_NO              /* 계약번호 */
+                                              AND T13.CNTR_SN = T11.CNTR_SN              /* 계약일련번호 */
+                                              AND T13.MNGT_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'YYYYMM'))
+                              )
+                           )
+                       AND T10.SELL_PRTNR_NO IN (SELECT PRTNR_NO
+                                                   FROM TB_OGBS_MM_PRTNR_IZ
+                                                  WHERE 1 = 1
+                                                    AND BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
+                                                    AND OG_TP_CD IN ('W01','W02','W03','W04','W05','W06','ALC')
+                                               <if test='@MybatisUtils@equals(session.orgTpCd, "W01")'>  /* P추진단 */
+                                                 <if test='@MybatisUtils@equals(session.careerLevelCode, "15")'>  /* 플래너 */
+                                                     AND PRTNR_NO = #{session.userId}
+                                                     AND OG_TP_CD = #{session.orgTpCd}
+                                                 </if>
+                                                 <if test='@MybatisUtils@equals(session.careerLevelCode, "10")'>  /* 지국장 */
+                                                     AND OG_CD = #{session.departmentId}
+                                                     AND OG_TP_CD = #{session.orgTpCd}
+                                                 </if>
+                                                 <if test='@MybatisUtils@equals(session.careerLevelCode, "7") or @MybatisUtils@equals(session.careerLevelCode, "4") or @MybatisUtils@equals(session.careerLevelCode, "2")'>  /* 7: 지점장, 4: 지역단장, 2: 총괄단장 - 하위조직 모두 */
+                                                     AND OG_ID IN (SELECT OG_ID
+                                                                     FROM TB_OGBS_MM_OG_IZ
+                                                                    WHERE 1=1
+                                                                      AND BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
+                                                                      AND DTA_DL_YN = 'N'
+                                                                  CONNECT BY PRIOR OG_ID = HGR_OG_ID
+                                                                  START WITH OG_ID = (SELECT OG_ID
+                                                                                        FROM TB_OGBS_MM_OG_IZ
+                                                                                       WHERE BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
+                                                                                         AND OG_CD = #{session.departmentId} --'71438'
+                                                                                         AND OG_TP_CD = #{session.orgTpCd}	--'HR1'
+                                                                                         AND DTA_DL_YN = 'N')
+                                                                  )
+                                                 </if>
+                                               </if>
+                                                )
+                     ))
+                 </otherwise>
+                </choose>
+             )
+             GROUP BY CNTR_NO, CNTR_SN
+        ORDER BY CNTR_NO DESC, CNTR_SN DESC
     </select>
 
     <select id="selectDepositItemizations" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchDepositItemizationsRes">
