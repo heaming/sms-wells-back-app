@@ -3,8 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaDesignationWithdrawalCustomerMgtMapper">
 
     <select id="selectAftnDsnWdrwCstInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto$SearchAutoFntDsnWdrwCstRes">
-            SELECT 
-                   SCD.CNTR_NO || SCD.CNTR_SN AS CNTR 
+            SELECT SCD.CNTR_NO || SCD.CNTR_SN AS CNTR 
                  , SCD.CNTR_NO
                  , SCD.CNTR_SN
                  , CCB.CST_KNM 
@@ -41,19 +40,33 @@
     </select>
     
     <select id="selectAutomaticFntOjYnConf" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo">
-        SELECT SCSB.DP_TP_CD
-             , SCSB.FNIT_APR_RS_CD
-          FROM TB_SSCT_CNTR_STLM_BAS SCSB
-          JOIN TB_SSCT_CNTR_BAS SCB
-            ON SCSB.CNTR_NO = SCB.CNTR_NO 
-           AND SCSB.CST_NO = SCB.CNTR_CST_NO
-           AND SCSB.DTA_DL_YN = 'N'
-           AND SCB.DTA_DL_YN = 'N'
+        SELECT A.DP_TP_CD
+             , A.FNIT_APR_RS_CD
+          FROM TB_SSCT_CNTR_BAS SCB
           JOIN TB_SSCT_CNTR_DTL SCD
             ON SCB.CNTR_NO = SCD.CNTR_NO
            AND SCD.DTA_DL_YN = 'N'
-         WHERE SCD.CNTR_NO = #{cntrNo}
-           AND SCD.CNTR_SN = #{cntrSn}
+           AND SCB.DTA_DL_YN = 'N'
+          JOIN (
+                SELECT *
+                  FROM (
+                        SELECT SCSB.DP_TP_CD 
+                             , SCSR.DTL_CNTR_NO 
+                             , SCSR.DTL_CNTR_SN
+                             , SCSB.FNIT_APR_RS_CD
+                             , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO , SCSR.DTL_CNTR_SN ORDER BY SCSB.CNTR_STLM_ID  DESC) AS RN
+                          FROM TB_SSCT_CNTR_STLM_REL SCSR
+                          JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+                            ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                           AND SCSB.DTA_DL_YN = 'N'
+                           AND SCSR.DTA_DL_YN = 'N'
+                         WHERE SCSR.DTL_CNTR_NO = #{cntrNo}
+                           AND SCSR.DTL_CNTR_SN = #{cntrSn}
+                       )
+                 WHERE RN = 1
+            ) A
+            ON A.DTL_CNTR_NO = SCD.CNTR_NO
+           AND A.DTL_CNTR_SN = SCD.CNTR_SN
     </select>
     
     <select id="selectItgWdrwRgstCstCk" resultType="Integer">
