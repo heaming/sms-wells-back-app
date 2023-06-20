@@ -50,6 +50,7 @@ public class WsnaNormalOutOfStorageDvo {
     String avgOut;
     String ostrWareDvCd;
     String strWareDvCd;
+    String stringOstrDt;
     int ostrSn;
     int strSn;
 }

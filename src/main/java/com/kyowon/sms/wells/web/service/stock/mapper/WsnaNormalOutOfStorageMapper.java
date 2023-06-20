@@ -23,7 +23,8 @@ public interface WsnaNormalOutOfStorageMapper {
 
     PagingResult<CenterRes> selectAskMaterialsCenterPresentState(AskReq dto, PageInfo pageInfo);
 
-    PagingResult<DetailRes> selectNormalOutOfStoragesDetails(DetailReq dto, PageInfo pageInfo);
+    PagingResult<DetailRes> getNormalOstrRgsts(DetailReq dto, PageInfo pageInfo);
+    PagingResult<DetailRes> removeNormalOstrRgsts(DetailReq dto, PageInfo pageInfo);
 
     int insertNormalOstrRgst(WsnaNormalOutOfStorageDvo vo);
 
@@ -42,4 +43,8 @@ public interface WsnaNormalOutOfStorageMapper {
     StandardWareRes selectStandardWareHouse(StandardWareReq dto);
 
     SearchItmOstrAkRes selectItmOstrAk(SearchItmOstrAkReq dto);
+
+    int removeNormalStr(WsnaNormalOutOfStorageDvo vo);
+    int removeNormalOstr(WsnaNormalOutOfStorageDvo vo);
+    int updateRemoveOstrAkIzAfter(WsnaNormalOutOfStorageDvo vo);
 }
