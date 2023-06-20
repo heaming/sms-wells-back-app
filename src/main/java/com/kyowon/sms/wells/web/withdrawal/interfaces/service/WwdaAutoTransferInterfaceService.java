@@ -565,7 +565,7 @@ public class WwdaAutoTransferInterfaceService {
         String copnDvCd = "1"; /*법인격구분코드*/
         String copnDvDrmVal = dto.bryyMmdd(); /*법인격구분코드식별값*/
         String achldrNm = dto.cntrtNm(); /*예금주명*/
-        String systemDvCd = "1"; /*시스템구분코드 1 : EDU, 2: WELLS*/
+        String systemDvCd = "2"; /*시스템구분코드 1 : EDU, 2: WELLS*/
         String psicId = "9999999999"; /*담장자ID*/
         String deptId = ""; /*부서ID*/
 
@@ -578,6 +578,7 @@ public class WwdaAutoTransferInterfaceService {
         reqParam.put("copnDvDrmVal", copnDvDrmVal);
         reqParam.put("achldrNm", achldrNm);
         reqParam.put("systemDvCd", systemDvCd);
+        reqParam.put("sysDvCd", "W");
         reqParam.put("psicId", psicId);
         reqParam.put("deptId", deptId);
 
