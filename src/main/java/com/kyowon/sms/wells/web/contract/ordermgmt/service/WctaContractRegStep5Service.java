@@ -96,9 +96,9 @@ public class WctaContractRegStep5Service {
 
     @Transactional
     void editContractProgressStatus(String cntrNo, CtContractProgressStatus status) {
+        log.debug("계약기본 update: {}, {}", cntrNo, status.getCode());
         int result = mapper.updateContractProgressStatus(cntrNo, status.getCode());
         isTrue(result == 1, "MSG_ALT_SVE_ERR");
-        /* 변경 이력 남기기*/
         result = mapper.insertContractChHist(cntrNo);
         isTrue(result == 1, "MSG_ALT_SVE_ERR");
     }
@@ -250,18 +250,12 @@ public class WctaContractRegStep5Service {
                     paid = false;
                     editContractProgressStatus(cntrNo, CtContractProgressStatus.STLM_FSH);
                 }
-                case CRDCD_AFTN -> {
+                case CRDCD_AFTN, AC_AFTN -> {
                     log.debug("계약결제기본-카드자동이체 update: {}", dvo);
                     updateContractSettlement(dvo);
                 }
                 case IDV_RVE_CRDCD, YMDR_CARD_VCH -> {
                     log.debug("계약결제기본-신용카드 update: {}", dvo);
-                    updateContractSettlement(dvo);
-                }
-                case SMT_MLG, W_MONEY, KMBRS_CASH -> {
-                    log.debug("계약결제기본-포인트결제 update");
-                    /* TODO 마일리지 결제 가능 정보 받아와서 넘기기 : 마일리지 코드랑 가격 넘기면 되겠지 */
-                    dvo.setMlgDrmVal("개발예정");
                     updateContractSettlement(dvo);
                 }
                 default -> throw new BizException("지원하지 않는 입금 유형입니다.");
@@ -271,7 +265,7 @@ public class WctaContractRegStep5Service {
         /* 계상상태코드 결제기본생성완료*/
         List<WctaContractAdrpcBasDvo> adrpcs = req.adrpcs();
         for (WctaContractAdrpcBasDvo adrpc : adrpcs) {
-            updateContractAdrpcBas(adrpc);
+            editContractAdrpcBas(adrpc);
         }
 
         if (paid) {
@@ -323,6 +317,7 @@ public class WctaContractRegStep5Service {
 
     @Transactional
     void updateContractSettlement(WctaContractStlmBasDvo dvo) {
+        log.debug("결제 기본 update: {}", dvo);
         int result = mapper.updateContractSettlement(dvo);
         isTrue(result == 1, "MSG_ALT_SVE_ERR");
         result = mapper.insertContractSettlementChHist(dvo.getCntrStlmId());
@@ -351,7 +346,7 @@ public class WctaContractRegStep5Service {
     }
 
     @Transactional
-    void updateContractAdrpcBas(WctaContractAdrpcBasDvo updateDvo) {
+    void editContractAdrpcBas(WctaContractAdrpcBasDvo updateDvo) {
         /*
          * EDU는 계약시 다건이더라도 배송지는 같다.
          * 따라서, 결제시 입력받은 주소ID와 계약주소관계 테이블의 첫번째 데이터로 찾은 계약주소지기본 테이블의 주소ID가 다른 경우에,
