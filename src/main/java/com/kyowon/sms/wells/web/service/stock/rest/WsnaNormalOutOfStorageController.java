@@ -41,7 +41,7 @@ public class WsnaNormalOutOfStorageController {
     @GetMapping
     public PagingResult<SearchRes> getNormalOutOfStorage(
         SearchReq dto, @Valid
-        PageInfo pageInfo
+    PageInfo pageInfo
     ) {
         return service.getNormalOutOfStorage(dto, pageInfo);
     }
@@ -97,12 +97,20 @@ public class WsnaNormalOutOfStorageController {
     }
 
     @GetMapping("/detail")
-    public PagingResult<DetailRes> getNormalOutOfStoragesDetails(
+    public PagingResult<DetailRes> getNormalOstrRgsts(
         DetailReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return service.getNormalOutOfStoragesDetails(dto, pageInfo);
+        return service.getNormalOstrRgsts(dto, pageInfo);
+    }
+    @GetMapping("/detail-remove")
+    public PagingResult<DetailRes> removeNormalOstrRgsts(
+        DetailReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.removeNormalOstrRgsts(dto, pageInfo);
     }
 
     @PutMapping("/detail")
@@ -112,6 +120,16 @@ public class WsnaNormalOutOfStorageController {
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveNormalOstrRgsts(list))
+            .build();
+    }
+
+    @DeleteMapping
+    public SaveResponse removeNormalOstrRgsts(
+        @RequestBody
+        List<CreateReq> list
+    ) throws Exception{
+        return SaveResponse.builder()
+            .processCount(service.removeNormalOstrRgsts(list))
             .build();
     }
 
@@ -134,7 +152,7 @@ public class WsnaNormalOutOfStorageController {
     }
 
     @GetMapping("/itm-ostr-ak")
-    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto){
+    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto) {
         return service.getItmOstrAk(dto);
     }
 }
