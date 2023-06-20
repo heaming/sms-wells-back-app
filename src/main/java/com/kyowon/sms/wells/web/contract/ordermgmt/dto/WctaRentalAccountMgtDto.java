@@ -45,9 +45,7 @@ public class WctaRentalAccountMgtDto {
     //wells 확정 승인 기준 관리 - 확정 승인 기준 관리 조회 Search Result Dto
     @ApiModel("WctaRentalAccountMgtDto-SearchByoRentalAccountRes")
     public record SearchByoRentalAccountRes(
-        String dgr1LevlOgNm,
         String dgr1LevlOgCd,
-        String dgr2LevlOgNm,
         String dgr2LevlOgCd,
         String istDt,
         String rstlYn,
