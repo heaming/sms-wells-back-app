@@ -269,6 +269,10 @@ public class WctaOrderDetailMngtDto {
         String cntrMexnoEncr,
         String cntrCralIdvTno,
         String dntcYn,
+        String baseCntrInfo,
+        String basePdNm,
+        String baseRentalAmt,
+        String baseSvPrd,
         String stplDscAmt,
         String stplStrtdt,
         String stplCanDt,
@@ -481,7 +485,7 @@ public class WctaOrderDetailMngtDto {
     ) {}
 
     //주문상세조회/관리(일시불) - 주문상세조회(일시불-일반/계약번호조회) Search Result Dto
-    @ApiModel(value = "WctaOrderDetailInqrDto-SearchOrderDetailSnglPmntPagesRes")
+    @ApiModel(value = "WctaOrderDetailMngtDto-SearchOrderDetailSnglPmntPagesRes")
     public record SearchOrderDetailSnglPmntPagesRes(
         String cntrDtlNo,
         String cntrNo,

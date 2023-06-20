@@ -131,6 +131,10 @@ public class WctaOrderDetailRentalPagesDvo {
     private String cntrMexnoEncr; /* 계약자 휴대전화국번호암호화 */
     private String cntrCralIdvTno; /* 계약자 휴대개별전화번호 */
     private String dntcYn; /* 두낫콜 여부 */
+    private String baseCntrInfo; /* 이후 기변정보 */
+    private String basePdNm; /* 이후 기변정보-제품명 */
+    private String baseRentalAmt; /* 이후 기변정보-사용렌탈료 */
+    private String baseSvPrd; /* 이후 기변정보-관리주기 */
     private String stplDscAmt; /* 재약정 가입정보-할인금액 */
     private String stplStrtdt; /* 재약정 가입정보-시작일 */
     private String stplCanDt; /* 재약정 가입정보-취소일 */
