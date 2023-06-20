@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 import java.math.BigDecimal;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -119,6 +120,7 @@ public class WsnaAsMaterialItemGradeDto {
         @NotBlank
         String ctrItmMngtGdCd,
         // 비고내용 - 조정사유
+        @Size(max = 4000)
         String rmkCn
     ) {}
 
