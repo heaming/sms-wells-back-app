@@ -49,7 +49,6 @@
                     ON T1.OSTR_OJ_WARE_NO = T2.WARE_NO
                    AND T2.APY_YM = SUBSTR(#{strHopDtStr}, 1,6)
                  WHERE T1.STR_HOP_DT BETWEEN #{strHopDtStr} AND #{strHopDtEnd}
-
                  <if test="@MybatisUtils@equals('Y',ostrCnfm)">
                    AND T1.RECT_OSTR_DT IS NOT NULL
                  </if>
@@ -65,6 +64,8 @@
                  <if test="@MybatisUtils@isNotEmpty(wareLocaraCd)">
                    AND T2.WARE_LOCARA_CD = #{wareLocaraCd}
                  </if>
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T2.DTA_DL_YN = 'N'
                  GROUP BY T1.OSTR_AK_TP_CD
                         , T1.OSTR_OJ_WARE_NO
                         , T1.STR_OJ_WARE_NO
@@ -110,8 +111,8 @@
            AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            </if>
            AND T1.WARE_MNGT_PRTNR_NO = #{session.employeeIDNumber}
-
            AND T1.WARE_USE_YN = 'Y'
+           AND T1.DTA_DL_YN = 'N'
          </where>
          ORDER BY T1.WARE_NO
     </select>
@@ -137,6 +138,8 @@
                                     AND WARE_USE_YN = 'Y'
                                     AND WARE_NO = #{strOjWareNo}
                                     AND WARE_DTL_DV_CD != '20')
+           AND TA.DTA_DL_YN = 'N'
+           AND TB.DTA_DL_YN = 'N'
          ORDER BY WARE_NM
     </select>
 
@@ -155,6 +158,9 @@
               AND A1.ITM_PD_CD = #{itmPdCd}
               AND A2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
               AND A2.WARE_DTL_DV_CD = '20'
+              AND A1.DTA_DL_YN = 'N'
+              AND A2.DTA_DL_YN = 'N'
+              AND T2.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectNormalOutOfStoragesDetails"
@@ -170,6 +176,7 @@
                               ELSE '0'
                           END
                END) AS CHK
+             , '0' AS DUMMY_QTY
              , T1.OSTR_AK_TP_CD
              , (CASE T1.OSTR_AK_TP_CD
                      WHEN '310' THEN '221'
@@ -213,8 +220,10 @@
                                        FROM TB_SVST_MCBY_WARE_IZ S2
                                       WHERE S2.WARE_NM = #{ostrOjWareNm}
                                         AND S2.APY_YM = SUBSTR(#{ostrAkRgstDt},1,6)
+                                        AND S2.DTA_DL_YN = 'N'
                                     )
                    AND S1.ITM_PD_CD  = T1.ITM_PD_CD
+                   AND S1.DTA_DL_YN = 'N'
                ) AS ITEM_LOC
              , (SELECT S3.OSTR_TMS || ''
                   FROM TB_SVST_CST_SV_ITM_LCT_IZ S3
@@ -224,8 +233,10 @@
                                        FROM TB_SVST_MCBY_WARE_IZ S4
                                       WHERE S4.WARE_NM = #{ostrOjWareNm}
                                         AND S4.APY_YM = SUBSTR(#{ostrAkRgstDt},1,6)
+                                        AND S4.DTA_DL_YN = 'N'
                                     )
                    AND S3.ITM_PD_CD  = T1.ITM_PD_CD
+                   AND S3.DTA_DL_YN = 'N'
                ) AS PAJU_LOC
              , T1.OSTR_AK_WARE_DV_CD /* ST156_REQ_DEPT_GB */
              , T1.WARE_MNGT_PRTNR_NO /* ST156_REQ_STCK_MGR */
@@ -248,13 +259,13 @@
                      WHEN 'E' THEN (T5.PITM_STOC_E_GD_QTY - T5.MMT_STOC_E_GD_QTY)
                      WHEN 'R' THEN (T5.PITM_STOC_R_GD_QTY - T5.MMT_STOC_R_GD_QTY)
                END) AS QTY
-             , T1.OSTR_CNFM_QTY || '' AS OSTR_CNFM_QTY
+             , NVL(T1.OSTR_CNFM_QTY, 0) || '' AS OSTR_CNFM_QTY
              , T1.RMK_CN
              , T1.OSTR_CNFM_CD
              , T1.RECT_OSTR_DT
-             , T1.OSTR_AGG_QTY || '' AS OSTR_AGG_QTY
-             , (T1.OSTR_CNFM_QTY - T1.OSTR_AGG_QTY) || '' AS OUT_QTY
-             , (T1.OSTR_CNFM_QTY - T1.OSTR_AGG_QTY) || '' AS OUT_QTY_ORG
+             , NVL(T1.OSTR_AGG_QTY, 0) || '' AS OSTR_AGG_QTY
+             , (NVL(T1.OSTR_CNFM_QTY, 0) - NVL(T1.OSTR_AGG_QTY, 0)) || '' AS OUT_QTY
+             , (NVL(T1.OSTR_CNFM_QTY, 0) - NVL(T1.OSTR_AGG_QTY, 0)) || '' AS OUT_QTY_ORG
              , '' AS STR_CONF_DT
              , T2.SVPD_BASE_GB /* ST101_BASE_GB */
              , T2.SVPD_BASE_COLOR_GB /* ST101_BASE_COLOR_GB */
@@ -288,15 +299,21 @@
                                                                 , 'YYYYMMDD')
                                                             , -1)
                                                     ), 'YYYYMMDD')
+                   AND S7.DTA_DL_YN = 'N'
+                   AND S8.DTA_DL_YN = 'N'
                ) AS AVG_OUT
              , (SELECT S5.WARE_DV_CD
                  FROM TB_SVST_MCBY_WARE_IZ S5
                 WHERE S5.WARE_NO = T1.STR_OJ_WARE_NO
-                  AND S5.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')) AS STR_WARE_DV_CD
+                  AND S5.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  AND S5.DTA_DL_YN = 'N'
+               ) AS STR_WARE_DV_CD
              , (SELECT S6.WARE_DV_CD
                  FROM TB_SVST_MCBY_WARE_IZ S6
                 WHERE S6.WARE_NO = T1.OSTR_OJ_WARE_NO
-                  AND S6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')) AS OSTR_WARE_DV_CD
+                  AND S6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  AND S6.DTA_DL_YN = 'N'
+               ) AS OSTR_WARE_DV_CD
              , T6.WARE_NM AS STR_WARE_NM
              , T7.WARE_NM AS OSTR_WARE_NM
           FROM TB_SVST_ITM_OSTR_AK_IZ T1
@@ -318,6 +335,11 @@
            AND T1.STR_OJ_WARE_NO = #{strWareNo}
            AND T1.OSTR_AK_RGST_DT = #{rgstDt}
            AND T1.OSTR_AK_NO = #{ostrAkNo}
+           AND T1.DTA_DL_YN = 'N'
+           AND T4.DTA_DL_YN = 'N'
+           AND T5.DTA_DL_YN = 'N'
+           AND T6.DTA_DL_YN = 'N'
+           AND T7.DTA_DL_YN = 'N'
           ORDER BY T1.OSTR_AK_NO, T1.OSTR_AK_SN
     </select>
 
@@ -334,8 +356,8 @@
                  , T1.OSTR_TP_CD
                  , T1.STR_TP_CD
               FROM (SELECT TO_CHAR(SYSDATE,'YYYYMMDD') AS TODAY_STR
-                         , '221' AS OSTR_TP_CD
-                         , DECODE('221' ,'221','121','222','122','223','123','261','161','262','162') AS STR_TP_CD
+                         , #{ostrTpCd} AS OSTR_TP_CD
+                         , DECODE(#{ostrTpCd} ,'221','121','222','122','223','123','261','161','262','162') AS STR_TP_CD
                       FROM DUAL
                    ) T1
         )T2
@@ -483,6 +505,7 @@
                #{item}
            </foreach>
             )
+           AND T1.DTA_DL_YN = 'N'
         </where>
     </select>
 
@@ -508,6 +531,7 @@
                 AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
             </if>
                 AND WARE_NO = #{wareNo}
+                AND DTA_DL_YN = 'N'
         </where>
     </select>
 
@@ -535,5 +559,6 @@
         FROM TB_SVST_ITM_OSTR_AK_IZ T1
        WHERE T1.OSTR_AK_NO = #{ostrAkNo}
          AND T1.OSTR_AK_SN = #{ostrAkSn}
+         AND T1.DTA_DL_YN = 'N'
     </select>
 </mapper>
