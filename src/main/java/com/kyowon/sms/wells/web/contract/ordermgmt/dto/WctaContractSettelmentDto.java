@@ -12,7 +12,7 @@ public class WctaContractSettelmentDto {
 
     @Builder
     @ApiModel(
-        value = "EctaContractSettelmentDto-SearchBasicInfoReq",
+        value = "WctaContractSettelmentDto-SearchBasicInfoReq",
         description = "고객 확인을 위한 기본 계약 정보를 제공하기 위한 검색 객체"
     )
     public record SearchBasicInfoReq(
@@ -26,7 +26,7 @@ public class WctaContractSettelmentDto {
 
     @Builder
     @ApiModel(
-        value = "EctaContractSettelmentDto-FindBasicInfoRes",
+        value = "WctaContractSettelmentDto-FindBasicInfoRes",
         description = "고객 확인을 위한 기본 계약 정보 응답 객체 "
     )
     public record FindBasicInfoRes(
@@ -42,7 +42,7 @@ public class WctaContractSettelmentDto {
 
     @Builder
     @ApiModel(
-        value = "EctaContractSettelmentDto-AuthenticationReq",
+        value = "WctaContractSettelmentDto-AuthenticationReq",
         description = "고객 인증 요청 객체"
     )
     public record AuthenticationReq(
@@ -60,7 +60,7 @@ public class WctaContractSettelmentDto {
 
     @Builder
     @ApiModel(
-        value = "EctaContractSettelmentDto-Authorization",
+        value = "WctaContractSettelmentDto-Authorization",
         description = "고객 인가 객체"
     )
     public record Authorization(
@@ -71,7 +71,7 @@ public class WctaContractSettelmentDto {
 
     @Builder
     @ApiModel(
-        value="EctaContractSettelmentDto-FindContractForStlmRes",
+        value="WctaContractSettelmentDto-FindContractForStlmRes",
         description="Find Contract For Stlm Req Dto"
     )
     public record FindContractForStlmRes(
@@ -85,7 +85,7 @@ public class WctaContractSettelmentDto {
 
     @Builder
     @ApiModel(
-        value = "EctaContractSettelmentDto-SaveReq",
+        value = "WctaContractSettelmentDto-SaveReq",
         description = "고객 결제 확정 객체"
     )
     public record SaveReq(
@@ -103,7 +103,7 @@ public class WctaContractSettelmentDto {
 
     @Builder
     @ApiModel(
-        value = "EctaContractSettelmentDto-SaveReq",
+        value = "WctaContractSettelmentDto-SaveReq",
         description = "고객 결제 확정 결과"
     )
     public record SaveRes(
@@ -114,4 +114,16 @@ public class WctaContractSettelmentDto {
             cntrNo = DbEncUtil.dec(cntrNo);
         }*/
     }
+
+    @Builder
+    @ApiModel(value = "WctaContractSettelmentDto-CreditReq", description = "신용카드 승인 요청")
+    public record CreditReq(
+        String owrKnm,
+        Integer stlmAmt,
+        String istmMcn,
+        String crcdnoEncr,
+        String cardExpdtYm,
+        String cntrNo,
+        List<WctaContractStlmRelDvo> stlmRels
+    ) {}
 }
