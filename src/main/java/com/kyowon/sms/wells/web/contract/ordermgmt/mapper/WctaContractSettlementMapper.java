@@ -36,4 +36,8 @@ public interface WctaContractSettlementMapper {
     Optional<WctaContractAdrpcBasDvo> selectContractAdrpcBasByPk(String cntrAdrpcId);
 
     int insertContractAdrpcBasChHist(String cntrAdrpcId);
+
+    String selectFnitCdInfo(String crdcdBinNo);
+
+    WctaSettlementCntrBasDvo selectContractBasic(String cntrNo);
 }
