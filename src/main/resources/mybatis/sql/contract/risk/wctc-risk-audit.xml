@@ -79,6 +79,10 @@
                                 AND A1.OG_LEVL_DV_CD IN (1,2,3) /* 1:총괄단, 2:지역단, 3:지점만 포함 */
                                 AND A1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                                 AND A1.OG_TP_CD LIKE 'W0'||'%'
+                                AND ( /* AS-IS와 동일하게 조건 적용 AS-IS : AKDDPT → TO-BE : OG_CD, AS-IS : AKDRNK → TO-BE : PSTN_DV_CD */
+                                         (SUBSTR(A1.OG_CD,1,1) BETWEEN 'A' AND 'O' AND A1.OG_LEVL_DV_CD != 3) /* PSTN_DV_CD 조건으로 지국장을 제외 함 */
+                                      OR (SUBSTR(A1.OG_CD,1,1) BETWEEN 'P' AND 'P')
+                                    )
                               UNION ALL
                              SELECT A1.OG_UPBRNG_PRTNR_NO AS OG_PRTNR_NO /* 조직육성파트너번호(영업지원매니저) */
                                   , A1.OG_NM AS DGR_LEVL_OG_NM
@@ -140,10 +144,6 @@
                 WHERE 1 = 1
                       /* AS-IS AKDGUB IN (2,7) TO-BE OG_TP_CD임(W01, W03, W04, W05 해당) 참조:https://kyowon.atlassian.net/wiki/spaces/ForKUS/pages/190579531/10.+AS-IS+TO-BE  */
                   AND I2.OG_TP_CD IN ('W01', 'W02', 'W03', 'W04', 'W05', 'ALC')
-                  AND ( /* AS-IS와 동일하게 조건 적용 AS-IS : AKDDPT → TO-BE : OG_CD, AS-IS : AKDRNK → TO-BE : PSTN_DV_CD */
-                           (SUBSTR(I2.OG_CD,1,1) BETWEEN 'A' AND 'O' AND B1.PSTN_DV_CD != 7) /* PSTN_DV_CD 조건으로 지국장을 제외 함 */
-                        OR (SUBSTR(I2.OG_CD,1,1) BETWEEN 'P' AND 'P')
-                      )
                   AND B1.PSTN_DV_CD != 15 /* 플래너 제외 */
              )
            , W2 AS (
