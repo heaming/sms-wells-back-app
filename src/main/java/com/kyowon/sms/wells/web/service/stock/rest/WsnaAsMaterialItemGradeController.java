@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-material-item-grade")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-material-item-grades")
 public class WsnaAsMaterialItemGradeController {
 
     private final WsnaAsMaterialItemGradeConverter converter;
