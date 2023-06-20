@@ -14,6 +14,12 @@
                     , I2.OG_LEVL_DV_CD
                     , I2.OG_NM
                     , I2.OG_TP_CD
+                    , I2.DGR1_LEVL_DG_PRTNR_NO
+                    , I2.DGR2_LEVL_DG_PRTNR_NO
+                    , I2.DGR3_LEVL_DG_PRTNR_NO
+                    , I2.BIZ_SPPT_PRTNR_NO
+                    --, I2.OG_UPBRNG_HDTM_PRTNR_NO
+                    , I2.OG_UPBRNG_PRTNR_NO
                  FROM (
                       SELECT I1.OG_PRTNR_NO
                            , I1.DGR_LEVL_OG_CD
@@ -27,6 +33,8 @@
                            , I1.DGR1_LEVL_DG_PRTNR_NO
                            , I1.DGR2_LEVL_DG_PRTNR_NO
                            , I1.DGR3_LEVL_DG_PRTNR_NO
+                           , I1.BIZ_SPPT_PRTNR_NO
+                           --, I1.OG_UPBRNG_HDTM_PRTNR_NO
                            , I1.OG_UPBRNG_PRTNR_NO
                         FROM (
                              SELECT CASE WHEN A1.OG_LEVL_DV_CD = 1 /* 총괄단 */
@@ -63,6 +71,8 @@
                                   , A1.DGR1_LEVL_DG_PRTNR_NO
                                   , A1.DGR2_LEVL_DG_PRTNR_NO
                                   , A1.DGR3_LEVL_DG_PRTNR_NO
+                                  , A1.BIZ_SPPT_PRTNR_NO
+                                  --, A1.OG_UPBRNG_HDTM_PRTNR_NO
                                   , A1.OG_UPBRNG_PRTNR_NO
                                FROM TB_OGBS_MM_OG_IZ A1 /* 월조직내역 */
                               WHERE A1.DTA_DL_YN = 'N'
@@ -83,6 +93,8 @@
                                   , A1.DGR1_LEVL_DG_PRTNR_NO
                                   , A1.DGR2_LEVL_DG_PRTNR_NO
                                   , A1.DGR3_LEVL_DG_PRTNR_NO
+                                  , A1.BIZ_SPPT_PRTNR_NO
+                                  --, A1.OG_UPBRNG_HDTM_PRTNR_NO
                                   , A1.OG_UPBRNG_PRTNR_NO
                                FROM TB_OGBS_MM_OG_IZ A1 /* 월조직내역 */
                               WHERE A1.DTA_DL_YN = 'N'
@@ -99,6 +111,8 @@
                                   , A1.DGR1_LEVL_DG_PRTNR_NO
                                   , A1.DGR2_LEVL_DG_PRTNR_NO
                                   , A1.DGR3_LEVL_DG_PRTNR_NO
+                                  , A1.BIZ_SPPT_PRTNR_NO
+                                  --, A1.OG_UPBRNG_HDTM_PRTNR_NO
                                   , A1.OG_UPBRNG_PRTNR_NO
                                   ) I1
                        WHERE I1.OG_PRTNR_NO IS NOT NULL
@@ -115,6 +129,8 @@
                            , I1.DGR1_LEVL_DG_PRTNR_NO
                            , I1.DGR2_LEVL_DG_PRTNR_NO
                            , I1.DGR3_LEVL_DG_PRTNR_NO
+                           , I1.BIZ_SPPT_PRTNR_NO
+                           --, I1.OG_UPBRNG_HDTM_PRTNR_NO
                            , I1.OG_UPBRNG_PRTNR_NO
                            ) I2
                 INNER JOIN TB_OGBS_MM_PRTNR_IZ B1
@@ -129,14 +145,6 @@
                         OR (SUBSTR(I2.OG_CD,1,1) BETWEEN 'P' AND 'P')
                       )
                   AND B1.PSTN_DV_CD != 15 /* 플래너 제외 */
-            <if test="!@MybatisUtils@equals(session.ogTpCd, 'HR1')">
-                  AND (    I2.DGR1_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                        OR I2.DGR2_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                        OR I2.DGR3_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                        OR I2.OG_UPBRNG_PRTNR_NO = #{session.employeeIDNumber}
-                        OR B1.PRTNR_NO = #{session.employeeIDNumber}
-                      )
-            </if>
              )
            , W2 AS (
              SELECT A1.DANG_CHK_ID
@@ -206,6 +214,12 @@
                      END DGR_LEVL_OG_CD /* 1/2/3차 조직명 */
                   , D2.HGR_OG_ID /* 상위조직ID */
                   , D2.OG_TP_CD
+                  , D2.DGR1_LEVL_DG_PRTNR_NO
+                  , D2.DGR2_LEVL_DG_PRTNR_NO
+                  , D2.DGR3_LEVL_DG_PRTNR_NO
+                  , D2.BIZ_SPPT_PRTNR_NO
+                  --, D2.OG_UPBRNG_HDTM_PRTNR_NO
+                  , D2.OG_UPBRNG_PRTNR_NO
                FROM TB_SSCT_DANG_CHK_IZ A1 /* 위험점검내역 */
               INNER JOIN TB_OGBS_MM_PRTNR_IZ C1 /* 월파트너내역 */
                  ON C1.PRTNR_NO = A1.DANG_OJ_PRTNR_NO /* 월파트너내역.파트너번호 = 위험점검내역.위험대상파트너번호 */
@@ -230,24 +244,6 @@
               WHERE 1 = 1
                 AND A1.DANG_MNGT_PSTN_DV_CD != 15 /* 위험점검내역.위험관리직급구분코드 != 15 ▶ as-is 조건 15(웰스플레너) 제외 */
                 AND A1.DTA_DL_YN = 'N' /* 위험점검내역.데이터삭제여부가 'N'인 건 */
-            <if test="!@MybatisUtils@equals(session.ogTpCd, 'HR1')">
-                AND (
-                        (
-                            D2.DGR1_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR D2.DGR2_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR D2.DGR3_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR D2.OG_UPBRNG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR C2.PRTNR_NO = #{session.employeeIDNumber}
-                        )
-                     OR (
-                            D1.DGR1_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR D1.DGR2_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR D1.DGR3_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR D1.OG_UPBRNG_PRTNR_NO = #{session.employeeIDNumber}
-                         OR C1.PRTNR_NO = #{session.employeeIDNumber}
-                        )
-                    )
-            </if>
                     /* 조회조건 - 적용기간(등록일자 또는 발생년월) FROM~TO */
             <if test='@MybatisUtils@equals(srchGbn, "1")'>
                 <if test='@MybatisUtils@isNotEmpty(dangOcStrtdt)'>
@@ -299,6 +295,12 @@
              , I3.DGR_LEVL_OG_CD
              , I3.HGR_OG_ID
              , I3.OG_TP_CD
+             , I3.DGR1_LEVL_DG_PRTNR_NO
+             , I3.DGR2_LEVL_DG_PRTNR_NO
+             , I3.DGR3_LEVL_DG_PRTNR_NO
+             , I3.BIZ_SPPT_PRTNR_NO
+             --, I3.OG_UPBRNG_HDTM_PRTNR_NO
+             , I3.OG_UPBRNG_PRTNR_NO
           FROM (
                SELECT '' AS DANG_CHK_ID
                     , W1.WELLS_OJ_PSTN_RANK_NM AS WELLS_OJ_PSTN_RANK_NM
@@ -333,6 +335,12 @@
                     , W1.DGR_LEVL_OG_CD AS DGR_LEVL_OG_CD
                     , W1.HGR_OG_ID AS HGR_OG_ID
                     , W1.OG_TP_CD
+                    , W1.DGR1_LEVL_DG_PRTNR_NO
+                    , W1.DGR2_LEVL_DG_PRTNR_NO
+                    , W1.DGR3_LEVL_DG_PRTNR_NO
+                    , W1.BIZ_SPPT_PRTNR_NO
+                    --, W1.OG_UPBRNG_HDTM_PRTNR_NO
+                    , W1.OG_UPBRNG_PRTNR_NO
                  FROM W1
                 WHERE NOT EXISTS (
                       SELECT W2.DANG_MNGT_PNTNR_OG_CD
@@ -375,14 +383,31 @@
                     , W2.DGR_LEVL_OG_CD
                     , W2.HGR_OG_ID
                     , W2.OG_TP_CD
+                    , W2.DGR1_LEVL_DG_PRTNR_NO
+                    , W2.DGR2_LEVL_DG_PRTNR_NO
+                    , W2.DGR3_LEVL_DG_PRTNR_NO
+                    , W2.BIZ_SPPT_PRTNR_NO
+                    --, W2.OG_UPBRNG_HDTM_PRTNR_NO
+                    , W2.OG_UPBRNG_PRTNR_NO
                  FROM W2
                ) I3
            WHERE 1=1
+        <if test="!@MybatisUtils@equals(session.ogTpCd, 'HR1')">
+            AND (
+                     I3.DGR1_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
+                  OR I3.DGR2_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
+                  OR I3.DGR3_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
+                  OR I3.OG_UPBRNG_PRTNR_NO = #{session.employeeIDNumber}
+                  OR I3.BIZ_SPPT_PRTNR_NO = #{session.employeeIDNumber}
+                  OR I3.DANG_MNGT_PRTNR_NO = #{session.employeeIDNumber}
+                  OR I3.DANG_OJ_PRTNR_NO = #{session.employeeIDNumber}
+                )
+        </if>
         <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
             AND TRIM(I3.DGR_LEVL_OG_CD) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
         </if>
         <if test='@MybatisUtils@isNotEmpty(rgrp)'>
-            AND TRIM(I3.DGR_LEVL_OG_CD) LIKE SUBSTR(#{rgrp},1,3)||'%' /* 조회조건 - 지역단 - 2차레벨조직 */
+            AND TRIM(I3.DGR_LEVL_OG_CD) LIKE SUBSTR(#{rgrp},1,3)||'%' /* 조회조건 - 지역단 - 2`    차레벨조직 */
         </if>
         <if test='@MybatisUtils@isNotEmpty(brch)'>
             AND TRIM(I3.DGR_LEVL_OG_CD) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
