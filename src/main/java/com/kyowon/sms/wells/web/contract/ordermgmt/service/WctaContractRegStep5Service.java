@@ -334,15 +334,15 @@ public class WctaContractRegStep5Service {
 
         editContractProgressStatus(cntrNo, CtContractProgressStatus.CNFM);
 
-        // 계약상세상태코드 변경
-//        List<WctaContractDtlDvo> cntrDtls = contractRegService.selectContractDtl(cntrNo);
-//        for (WctaContractDtlDvo dtl : cntrDtls) {
-//            WctbContractDtlStatCdChDvo dtlStatDvo = new WctbContractDtlStatCdChDvo();
-//            dtlStatDvo.setCntrNo(cntrNo);
-//            dtlStatDvo.setCntrSn(dtl.getCntrSn().toString());
-//            dtlStatDvo.setCntrDtlStatCd("101"); // 정상!
-//            cntrStatChService.editContractDtlStatCdCh(dtlStatDvo);
-//        }
+//         계약상세상태코드 변경
+        List<WctaContractDtlDvo> cntrDtls = contractRegService.selectContractDtl(cntrNo);
+        for (WctaContractDtlDvo dtl : cntrDtls) {
+            WctbContractDtlStatCdChDvo dtlStatDvo = new WctbContractDtlStatCdChDvo();
+            dtlStatDvo.setCntrNo(cntrNo);
+            dtlStatDvo.setCntrSn(dtl.getCntrSn().toString());
+            dtlStatDvo.setCntrDtlStatCd("101"); // 정상!
+            cntrStatChService.editContractDtlStatCdCh(dtlStatDvo);
+        }
     }
 
     @Transactional
