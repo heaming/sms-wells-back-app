@@ -73,7 +73,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
         int processCount = 0;
 
         for (SaveReq dto : req) {
-            String[] index = {String.valueOf(dto.dataRow() + 1)};
+            String[] index = {dto.cntr()};
             WwdaDesignationWithdrawalCustomerMgtDvo dvo = converter
                 .mapSaveReqToWwdaDesignationWithdrawalCustomerMgtDvo(dto);
             // SearchContractDetailInfRes res = mapper.selectContractDetailInf(dvo); // 필요한지 모르곘음
@@ -82,7 +82,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
             BizAssert.isFalse(Objects.isNull(afyDvo), "MSG_ALT_CHK_CNTR_NO", index);
 
             BizAssert.isFalse(
-                !afyDvo.getDpTpCd().equals("0102") && !afyDvo.getDpTpCd().equals("0203"),
+                !afyDvo.getDpTpCd().equals("0102"),
                 "MSG_ALT_NOT_AFTN_OJ_CST", index
             );
             BizAssert.isFalse(!"Y".equals(afyDvo.getFnitAprRsCd()), "MSG_ALT_NOT_AC_FNT_APR", index);
