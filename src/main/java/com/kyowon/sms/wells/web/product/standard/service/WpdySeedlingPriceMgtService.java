@@ -79,4 +79,16 @@ public class WpdySeedlingPriceMgtService {
         }
         return base;
     }
+
+    public String checkDuplication(List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> dtos) {
+        List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dtos);
+        String duplicationKey = null;
+        for (WpdySeedlingPriceBaseDvo base : bases) {
+            duplicationKey = mapper.selectSeedlingPriceDuplication(base);
+            if (StringUtil.isNotBlank(duplicationKey)) {
+                break;
+            }
+        }
+        return duplicationKey;
+    }
 }

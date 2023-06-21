@@ -43,7 +43,7 @@ public class WpdySeedlingPriceMgtController {
         @ApiImplicitParam(name = "rglrSppMchnTpCd", value = "기기유형", paramType = "query", example = "ABC"),
         @ApiImplicitParam(name = "rglrSppPrcDvCd", value = "가격구분", paramType = "query", example = "01"),
     })
-    @ApiOperation(value = "헬스 제휴 조회", notes = "헬스 제휴 정보 목록을 조회한다.")
+    @ApiOperation(value = "모종제품가격 관리 조회", notes = "모종제품가격 관리 정보 목록을 조회한다.")
     @GetMapping
     public List<WpdySeedlingPriceMgtDto.SearchRes> getSeedlingPrices(
         WpdySeedlingPriceMgtDto.SearchReq dto
@@ -61,7 +61,7 @@ public class WpdySeedlingPriceMgtController {
         @ApiImplicitParam(name = "svcStartDt", value = "적용 시작일", paramType = "query", example = "20230421"),
         @ApiImplicitParam(name = "svcEndDt", value = "적용 종료일", paramType = "query", example = "20230431"),
     })
-    @ApiOperation(value = "헬스 제휴 페이징 조회", notes = "검색조건을 입력 받아 Paging된 헬스 제휴 목록을 조회한다.")
+    @ApiOperation(value = "모종제품가격 관리 페이징 조회", notes = "검색조건을 입력 받아 Paging된 모종제품가격 관리 목록을 조회한다.")
     @GetMapping("/paging")
     public PagingResult<WpdySeedlingPriceMgtDto.SearchRes> getSeedlingPricePages(
         WpdySeedlingPriceMgtDto.SearchReq dto, @Valid
@@ -70,7 +70,7 @@ public class WpdySeedlingPriceMgtController {
         return service.getSeedlingPricePages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "헬스 제휴 수정", notes = "수정된 헬스 제휴 정보를 반영한다.")
+    @ApiOperation(value = "모종제품가격 관리 수정", notes = "수정된 모종제품가격 관리 정보를 반영한다.")
     @PostMapping
     public SaveResponse saveSeedlingPrices(
         @Valid
@@ -82,7 +82,7 @@ public class WpdySeedlingPriceMgtController {
             .build();
     }
 
-    @ApiOperation(value = "헬스 제휴 삭제")
+    @ApiOperation(value = "모종제품가격 관리 삭제")
     @DeleteMapping
     public SaveResponse removeSeedlingPrices(
         @RequestBody
@@ -91,6 +91,18 @@ public class WpdySeedlingPriceMgtController {
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.removeSeedlingPrices(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "모종제품가격 관리 중복체크")
+    @PostMapping("/duplication-check")
+    public SaveResponse checkDuplication(
+        @RequestBody
+        @NotEmpty
+        List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> dtos
+    ) {
+        return SaveResponse.builder()
+            .data(service.checkDuplication(dtos))
             .build();
     }
 }
