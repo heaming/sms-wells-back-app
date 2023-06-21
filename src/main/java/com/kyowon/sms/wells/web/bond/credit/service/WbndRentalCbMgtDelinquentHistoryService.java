@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.bond.credit.service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,29 +32,9 @@ public class WbndRentalCbMgtDelinquentHistoryService {
     private final ZbnzMessageMgtService messageMgtService;
 
     public List<SearchRes> getRentalCbMgtDelinquentHistories(SearchReq dto) {
-        //        return this.converter.listRentalCbDlqIzDvoToSearchRes(
-        //            this.mapper.selectRentalCbMgtDelinquentHistories(this.converter.mapSearchReqToRentalCbDlqIzDvo(dto))
-        //        );
-        List list = new ArrayList();
-        for (int i = 0; i < 10; i++) {
-            SearchRes res = SearchRes.builder()
-                .cstNo("1232414")
-                .cstKnm("김개똥")
-                .copnDvNm("개인")
-                .cralTno("010-1234-5678")
-                .dlqAmt(new Long(40000))
-                .dlqBlam(new Long(50000))
-                .prtnrKnm("한개똥")
-                .dsphTno("111111")
-                .rgstSchDt("20230101")
-                .niceFwExcdYn("N")
-                .fntStplDt("20230202")
-                .msgFwDt("20230404")
-                .niceFwDt("20230303")
-                .build();
-            list.add(res);
-        }
-        return list;
+        return this.converter.listRentalCbDlqIzDvoToSearchRes(
+            this.mapper.selectRentalCbMgtDelinquentHistories(this.converter.mapSearchReqToRentalCbDlqIzDvo(dto))
+        );
     }
 
     @Transactional
