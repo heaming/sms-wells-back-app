@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwwdbDepositAggregateDtlServiceCenterMapper">
+    <select id="selectDepositAggregateServiceCenters" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto$SearchRes">
+        SELECT T3.VST_FSH_DT  /*설치일자*/
+		     , T2.DP_DTM /*입금일자*/
+		     , T4.OG_ID /* 센터 ID */
+		     , T4.OG_NM /* 센터명 */
+		     , T1.ICHR_PRTNR_NO /*담당파트너번호*/
+		     , T4.PRTNR_KNM /*담당파트너명*/
+		     , T2.CNTR_NO
+		     , T2.CNTR_SN
+		     , T5.CNTR_CST_NO /*고객번호*/
+		     , T5.CST_KNM /*고객명*/
+		     , T5.CRAL_LOCARA_TNO /*휴대폰 앞자리*/
+		     , T5.MEXNO_ENCR /*휴대폰 중간자리*/
+			 , T5.CRAL_IDV_TNO /*휴대폰 끝자리*/
+			 , T5.PD_CD /*상품코드*/
+		     , T5.PD_NM /*제품명*/
+		     , T5.SELL_TP_CD /*고객구분*/
+		     , (SELECT SV_BIZ_DCLSF_CD FROM TB_SVPD_CST_SVAS_IST_ASN_IZ WHERE 1 = 1 AND CST_SV_ASN_NO = T2.CST_SV_ASN_NO AND DTA_DL_YN ='N' ) AS SV_BIZ_DCLSF_CD /*고객서비스AS설치배정내역*/  /*서비스유형*/
+		     , T1.BIL_OJ_AMT - BIL_CTR_SUM_AMT AS BIL_AMT/*청구금액*/
+		     , T2.DP_SUM_AMT AS DP_SUM_AMT /*대사금액*/
+		     , LPAD(T2.STLM_DV_CD,2,0) AS STLM_DV_CD /*결제구분코드*/
+		     , LPAD(T2.STLM_DV_CD,2,0) AS STLM_DV_NO /*입금번호*/
+		     , T2.ISCMP_CD/*결제처*/
+		     , CASE WHEN LPAD(T2.STLM_DV_CD,2,0) = '02'
+		            THEN T2.CARD_APRNO /*승인번호*/
+		             END AS CARD_APRNO
+		     , NVL2(T6.CS_BIL_NO,'Y','N') AS TAX_BLL  /*세금계산서*/
+		  FROM TB_SVPD_SV_CS_BIL_BAS T1  /*서비스비용청구기본*/
+		  JOIN TB_SVPD_SV_CS_DP_IZ T2 /*서비스비용입금내역*/
+		    ON T2.CS_BIL_NO = T1.CS_BIL_NO
+		   AND T2.DTA_DL_YN = 'N'
+		  JOIN TB_SVPD_CST_SV_WK_RS_IZ T3  /*고객서비스작업결과내역*/
+		    ON T3.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+		   AND T3.DTA_DL_YN = 'N'
+		  JOIN (
+			  	 SELECT
+			  	        TS1.OG_ID /* 센터 */
+			          , TS1.OG_NM /* 센터 ID */
+			          , TS2.PRTNR_KNM /* 성명 */
+			          , TS2.PRTNR_NO /* 번호 */
+			          , TS1.OG_TP_CD
+			          , TS1.BASE_YM
+			    FROM TB_OGBS_MM_OG_IZ TS1 /* 월조직내역 */
+			    JOIN TB_OGBS_MM_PRTNR_IZ TS2 /* 월파트너내역 */
+			      ON TS2.BASE_YM = TS1.BASE_YM /* 기준년월 */
+			     AND TS2.OG_TP_CD = TS1.OG_TP_CD /* 조직유형코드 */
+			     AND TS2.OG_ID = TS1.OG_ID /* 조직ID */
+			     AND TS2.DTA_DL_YN = 'N'
+			   WHERE 1 = 1
+			     AND TS1.DTA_DL_YN = 'N'
+			     AND TS1.BASE_YM <![CDATA[>=]]> SUBSTR(#{startDt},0,6)
+				 AND TS1.BASE_YM <![CDATA[<=]]> SUBSTR(#{endDt},0,6)
+			   ) T4
+	    	 ON SUBSTR(T3.VST_FSH_DT,0,6) = T4.BASE_YM
+	        AND T4.PRTNR_NO = T1.ICHR_PRTNR_NO
+	        AND T4.OG_TP_CD = T1.OG_TP_CD
+	       LEFT OUTER JOIN (
+		  	  	SELECT SS1.CNTR_NO /*계약번호*/
+		  	  	     , SS1.CNTR_SN /*계약일련번호*/
+		  	  	     , SS3.CNTR_CST_NO /*고객번호*/
+		  	  	     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = SS3.CNTR_CST_NO AND DTA_DL_YN ='N') AS CST_KNM
+		  	  	     , CRAL_LOCARA_TNO /*휴대폰 앞자리*/
+				     , MEXNO_ENCR /*휴대폰 중간자리*/
+					 , CRAL_IDV_TNO /*휴대폰 끝자리*/
+		  	  	     , SS2.PD_CD /*상품코드*/
+		  	  	     , SS2.PD_NM /*상품이름*/
+		  	  	     , SS2.SELL_TP_CD /*고객구분*/
+		  	  	  FROM TB_SSCT_CNTR_DTL SS1 /*계약상세*/
+		  	  	  JOIN TB_PDBS_PD_BAS SS2/*상품기본*/
+		  	  	    ON SS2.PD_CD = SS1.BASE_PD_CD
+		  	  	   AND SS2.DTA_DL_YN = 'N'
+		  	  	  JOIN TB_SSCT_CNTR_ADRPC_BAS SS3 /*계약주소지기본*/
+		  	  	    ON SS3.CNTR_NO = SS1.CNTR_NO
+		  	  	   AND SS3.DTA_DL_YN = 'N'
+		     	 WHERE 1 = 1
+		     	   AND SS1.DTA_DL_YN ='N'
+	  	   ) T5 /*고객정보 뽑기*/
+	  	   ON T5.CNTR_NO = T2.CNTR_NO
+	  	  AND T5.CNTR_SN = T2.CNTR_SN
+	  	 LEFT OUTER JOIN TB_SVPD_SV_CS_TXINV_IS_IZ T6
+	  	   ON T6.CS_BIL_NO = T1.CS_BIL_NO
+	  	  AND T6.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(useYn)'>
+            <choose>
+                <when test="@MybatisUtils@equals(useYn, 'Y')">
+          AND T2.DP_DTM IS NOT NULL
+                </when>
+                <otherwise>
+          AND T2.DP_DTM IS NULL
+                </otherwise>
+            </choose>
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(startDt)'>
+		  AND T3.VST_FSH_DT <![CDATA[>=]]> #{startDt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(endDt)'>
+        AND T3.VST_FSH_DT <![CDATA[<=]]> #{endDt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(ogId)'>
+		  AND T4.OG_ID = #{ogId}
+        </if>
+
+        <if test='@MybatisUtils@isNotEmpty(stlmDvCd)'>
+		  AND T1.STLM_DV_CD = #{stlmDvCd}
+        </if>
+        ORDER BY T3.VST_FSH_DT , T4.OG_ID , T2.DP_DTM
+    </select>
+
+    <select id="selectDepositAggregateServiceCentersTotal" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto$SearchSumRes">
+        SELECT
+               SUM(BIL_AMT) AS BIL_AMT_TOT
+             , SUM(DP_SUM_AMT) AS DP_SUM_AMT_TOT
+          FROM (
+               SELECT
+                      T1.BIL_OJ_AMT - BIL_CTR_SUM_AMT AS BIL_AMT/*청구금액*/
+                    , T2.DP_SUM_AMT AS DP_SUM_AMT /*대사금액*/
+                FROM TB_SVPD_SV_CS_BIL_BAS T1  /*서비스비용청구기본*/
+                JOIN TB_SVPD_SV_CS_DP_IZ T2 /*서비스비용입금내역*/
+                  ON T2.CS_BIL_NO = T1.CS_BIL_NO
+                 AND T2.DTA_DL_YN = 'N'
+                JOIN TB_SVPD_CST_SV_WK_RS_IZ T3  /*고객서비스작업결과내역*/
+                  ON T3.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                 AND T3.DTA_DL_YN = 'N'
+                JOIN (
+              SELECT
+                     TS1.OG_ID /* 센터 */
+                   , TS1.OG_NM /* 센터 ID */
+                   , TS2.PRTNR_KNM /* 성명 */
+                   , TS2.PRTNR_NO /* 번호 */
+                   , TS1.OG_TP_CD
+                   , TS1.BASE_YM
+                FROM TB_OGBS_MM_OG_IZ TS1 /* 월조직내역 */
+                JOIN TB_OGBS_MM_PRTNR_IZ TS2 /* 월파트너내역 */
+                  ON TS2.BASE_YM = TS1.BASE_YM /* 기준년월 */
+                 AND TS2.OG_TP_CD = TS1.OG_TP_CD /* 조직유형코드 */
+                 AND TS2.OG_ID = TS1.OG_ID /* 조직ID */
+                 AND TS2.DTA_DL_YN = 'N'
+               WHERE 1 = 1
+                 AND TS1.DTA_DL_YN = 'N'
+                 AND TS1.BASE_YM <![CDATA[>=]]> SUBSTR(#{startDt},0,6)
+                 AND TS1.BASE_YM <![CDATA[<=]]> SUBSTR(#{endDt},0,6)
+                ) T4
+                  ON SUBSTR(T3.VST_FSH_DT,0,6) = T4.BASE_YM
+                 AND T4.PRTNR_NO = T1.ICHR_PRTNR_NO
+                 AND T4.OG_TP_CD = T1.OG_TP_CD
+                 LEFT OUTER JOIN (
+               SELECT SS1.CNTR_NO /*계약번호*/
+                    , SS1.CNTR_SN /*계약일련번호*/
+                    , SS3.CNTR_CST_NO /*고객번호*/
+                    , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = SS3.CNTR_CST_NO AND DTA_DL_YN ='N') AS CST_KNM
+                    , CRAL_LOCARA_TNO /*휴대폰 앞자리*/
+                    , MEXNO_ENCR /*휴대폰 중간자리*/
+                    , CRAL_IDV_TNO /*휴대폰 끝자리*/
+                    , SS2.PD_CD /*상품코드*/
+                    , SS2.PD_NM /*상품이름*/
+                    , SS2.SELL_TP_CD /*고객구분*/
+                 FROM TB_SSCT_CNTR_DTL SS1 /*계약상세*/
+                 JOIN TB_PDBS_PD_BAS SS2/*상품기본*/
+                   ON SS2.PD_CD = SS1.BASE_PD_CD
+                  AND SS2.DTA_DL_YN = 'N'
+                 JOIN TB_SSCT_CNTR_ADRPC_BAS SS3 /*계약주소지기본*/
+                   ON SS3.CNTR_NO = SS1.CNTR_NO
+                  AND SS3.DTA_DL_YN = 'N'
+                WHERE 1 = 1
+                  AND SS1.DTA_DL_YN ='N'
+                 ) T5 /*고객정보 뽑기*/
+                   ON T5.CNTR_NO = T2.CNTR_NO
+                  AND T5.CNTR_SN = T2.CNTR_SN
+                 LEFT OUTER JOIN TB_SVPD_SV_CS_TXINV_IS_IZ T6
+                   ON T6.CS_BIL_NO = T1.CS_BIL_NO
+                  AND T6.DTA_DL_YN = 'N'
+                  <if test='@MybatisUtils@isNotEmpty(useYn)'>
+                      <choose>
+                          <when test="@MybatisUtils@equals(useYn, 'Y')">
+                  AND T2.DP_DTM IS NOT NULL
+                          </when>
+                          <otherwise>
+                  AND T2.DP_DTM IS NULL
+                          </otherwise>
+                     </choose>
+                  </if>
+                  <if test='@MybatisUtils@isNotEmpty(startDt)'>
+                  AND T3.VST_FSH_DT <![CDATA[>=]]> #{startDt}
+                  </if>
+                  <if test='@MybatisUtils@isNotEmpty(endDt)'>
+                  AND T3.VST_FSH_DT <![CDATA[<=]]> #{endDt}
+                  </if>
+                  <if test='@MybatisUtils@isNotEmpty(ogId)'>
+                  AND T4.OG_ID = #{ogId}
+                  </if>
+                  <if test='@MybatisUtils@isNotEmpty(stlmDvCd)'>
+                  AND T1.STLM_DV_CD = #{stlmDvCd}
+                  </if>
+        )
+    </select>
+
+    <select id="selectCenterCodes" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto$SearchCodeRes">
+        SELECT T1.OG_ID AS CODE_ID
+             , MAX(T1.OG_NM || ' (' || T1.OG_CD || ')') AS CODE_NAME
+          FROM TB_OGBS_MM_OG_IZ T1
+         WHERE 1 = 1
+		   AND T1.BASE_YM  <![CDATA[>=]]> SUBSTR(#{startDt},0,6)
+  		   AND T1.BASE_YM  <![CDATA[<=]]> SUBSTR(#{endDt},0,6)
+           AND T1.OG_TP_CD IN ('W03', 'W06')
+           AND T1.CLO_DT IS NULL
+           AND T1.DTA_DL_YN = 'N'
+         GROUP BY T1.OG_ID
+         ORDER BY T1.OG_ID
+    </select>
+</mapper>
