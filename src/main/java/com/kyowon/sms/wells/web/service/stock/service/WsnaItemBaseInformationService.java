@@ -29,4 +29,8 @@ public class WsnaItemBaseInformationService {
     public List<SearchAplcRes> getItemBaseInformationAplcLists(SearchAplcReq dto) {
         return this.mapper.selectItemBaseInformationAplcLists(dto);
     }
+
+    public List<SearchWareRes> getItemBaseInformationWareDvCds(SearchReq dto) {
+        return this.mapper.selectItemBaseInformationWareDvCds(dto);
+    }
 }
