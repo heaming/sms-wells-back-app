@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradeDto.*;
+
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -8,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradeDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradeDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradeWareDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsMaterialItemGradeMapper;
@@ -40,7 +41,7 @@ public class WsnaAsMaterialItemGradeService {
      * @param dto   (필수) 조회조건
      * @return 창고 리스트
      */
-    public List<WsnzWellsCodeWareHouseDvo> getWareHouses(WsnaAsMaterialItemGradeDto.SearchWareReq dto) {
+    public List<WsnzWellsCodeWareHouseDvo> getWareHouses(SearchWareReq dto) {
         ValidAssert.notNull(dto);
         ValidAssert.hasText(dto.baseYm());
         ValidAssert.hasText(dto.wareDvCd());
@@ -54,9 +55,7 @@ public class WsnaAsMaterialItemGradeService {
      * @param pageInfo  (필수) 페이징 정보
      * @return AS자재 품목등급 데이터 리스트
      */
-    public PagingResult<WsnaAsMaterialItemGradeDto.SearchRes> getAsMaterialItemGradePages(
-        WsnaAsMaterialItemGradeDto.SearchReq dto, PageInfo pageInfo
-    ) {
+    public PagingResult<SearchRes> getAsMaterialItemGradePages(SearchReq dto, PageInfo pageInfo) {
 
         ValidAssert.notNull(dto);
         ValidAssert.notNull(pageInfo);
@@ -84,9 +83,7 @@ public class WsnaAsMaterialItemGradeService {
      * @param dto       (필수) 조회조건
      * @return AS자재 품목등급 데이터 리스트
      */
-    public List<WsnaAsMaterialItemGradeDto.SearchRes> getAsMaterialItemGradesExcelDownload(
-        WsnaAsMaterialItemGradeDto.SearchReq dto
-    ) {
+    public List<SearchRes> getAsMaterialItemGradesExcelDownload(SearchReq dto) {
         ValidAssert.notNull(dto);
 
         // 기준년월
