@@ -1,13 +1,19 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
 /**
  *
  * <pre>
- * 회사설치 (8888코드) 현황
+ * 회사설치 현황
  * </pre>
  *
  * @author heymi.cho 조혜미
@@ -18,22 +24,18 @@ public class WsncCompanyIstStateDto {
     // Request Dto
     // *********************************************************
     @ApiModel(value = "WsncCompanyIstStateDto-SearchMainReq")
-    public record SearchAllReq(
+    public record SearchMainReq(
         @NotBlank
-        String mgtYnm
+        String mgtYnm,
+        List<String> mgtTyps,
+        String istDtFrom,
+        String istDtTo
     ) {}
 
     @ApiModel(value = "WsncCompanyIstStateDto-SearchPsReq")
-    public record SearchReq(
-        @NotBlank
-        String mgtYnm,
-
-        String mgtTyp,
-
-        @NotBlank
+    public record SearchPsReq(
+        List<String> mgtTyps,
         String istDtFrom,
-
-        @NotBlank
         String istDtTo
     ) {}
 
@@ -71,4 +73,34 @@ public class WsncCompanyIstStateDto {
 
     ) {}
 
+    @ApiModel(value = "WsncCompanyIstStateDto-SearchPsRes")
+    public record SearchPsRes(
+        String cntrNo,
+        String cntrSn,
+        String sapMatCd,
+        String basePdCd,
+        String basePdNm,
+        String svcTpNm,
+        String istDt,
+        String useMcn,
+        String frisuBfsvcPtrmN,
+        String newAdrZip,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String rnadr,
+        String rdadr,
+        String ogId,
+        String ogNm,
+        String hgrOgId,
+        String hgrOgNm
+    ) {
+        public SearchPsRes {
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
+            exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr;
+        }
+    }
 }
