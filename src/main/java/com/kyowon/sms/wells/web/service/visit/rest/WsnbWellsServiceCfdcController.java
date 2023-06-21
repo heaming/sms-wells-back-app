@@ -26,7 +26,7 @@ import javax.validation.Valid;
 public class WsnbWellsServiceCfdcController {
     private final WsnbWellsServiceCfdcService service;
 
-    @ApiOperation(value = "웰스 서비스 확인서 발송을 위한 주문내역 조회", notes = "'1. Input Parameter 값을 이용하여 웰스 서비스 확인서 리스트를 조회한다.")
+    @ApiOperation(value = "웰스 서비스 확인서 발송을 위한 주문내역 조회", notes = "Input Parameter 값을 이용하여 웰스 서비스 확인서 리스트를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "toDate", value = "기간", paramType = "query", example = "20230601"),
         @ApiImplicitParam(name = "fromDate", value = "기간", paramType = "query", example = "20230601"),
@@ -37,7 +37,7 @@ public class WsnbWellsServiceCfdcController {
         @ApiImplicitParam(name = "searchParam4", value = "조회유형 파라미터", paramType = "query", example = ""),
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getServiceProcessings(
+    public PagingResult<SearchRes> getWellsServiceConfirmations(
         SearchReq dto,
         @Valid
         PageInfo pageInfo
