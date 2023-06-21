@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.bond.credit.service;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,16 +9,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kyowon.sms.wells.web.bond.credit.converter.WbndRentalCbMgtConverter;
-import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtDto.SaveTalkReq;
-import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtDto.SearchTalkReq;
-import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtDto.SearchTalkRes;
+import com.kyowon.sms.wells.web.bond.credit.converter.WbndRentalCbMgtMessageExcludeConverter;
+import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtMessageExcludeDto.SaveReq;
+import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtMessageExcludeDto.SearchReq;
+import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtMessageExcludeDto.SearchRes;
 import com.kyowon.sms.wells.web.bond.credit.dvo.WbndBondContactExcludeIzDvo;
-import com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbMgtMapper;
+import com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbMgtMessageExcludeMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.common.common.service.ExcelReadService;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
@@ -34,36 +34,36 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WbndRentalCbMgtService {
+public class WbndRentalCbMgtMessageExcludeService {
 
-    private final WbndRentalCbMgtMapper mapper;
-    private final WbndRentalCbMgtConverter converter;
+    private final WbndRentalCbMgtMessageExcludeMapper mapper;
+    private final WbndRentalCbMgtMessageExcludeConverter converter;
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
 
-    public PagingResult<SearchTalkRes> getNotificationTalkPages(
-        SearchTalkReq dto, PageInfo pageInfo
+    public PagingResult<SearchRes> getRentalCbMessageExcludePages(
+        SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectNotificationTalks(dto, pageInfo);
+        return mapper.getRentalCbMessageExcludePages(dto, pageInfo);
     }
 
-    public List<SearchTalkRes> getNotificationTalksForExcelDownload(SearchTalkReq dto) {
-        return mapper.selectNotificationTalks(dto);
+    public List<SearchRes> getRentalCbMessageExcludesForExcelDownload(SearchReq dto) {
+        return mapper.getRentalCbMessageExcludePages(dto);
     }
 
     @Transactional
-    public int saveNotificationTalks(List<SaveTalkReq> dtos) {
+    public int saveRentalCbMessageExcludes(List<SaveReq> dtos) {
         int processCount = 0;
-        for (SaveTalkReq dto : dtos) {
-            WbndBondContactExcludeIzDvo dvo = this.converter.mapSaveTalkReqToContactDvo(dto);
+        for (SaveReq dto : dtos) {
+            WbndBondContactExcludeIzDvo dvo = this.converter.mapSaveReqToContactDvo(dto);
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
-                    int result = this.mapper.insertNotificationTalk(dvo);
+                    int result = this.mapper.insertRentalCbMessageExclude(dvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     processCount += result;
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
-                    int result = this.mapper.updateNotificationTalk(dvo);
+                    int result = this.mapper.updateRentalCbMessageExclude(dvo);
                     BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     processCount += result;
                 }
@@ -74,11 +74,11 @@ public class WbndRentalCbMgtService {
     }
 
     @Transactional
-    public int removeNotificationTalks(List<String> bndCntcExcdOjIds) {
+    public int removeRentalCbMessageExcludes(List<String> bndCntcExcdOjIds) {
         int processCount = 0;
 
         for (String bndCntcExcdOjId : bndCntcExcdOjIds) {
-            int result = this.mapper.deleteNotificationTalk(bndCntcExcdOjId);
+            int result = this.mapper.deleteRentalCbMessageExclude(bndCntcExcdOjId);
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             processCount += result;
         }
@@ -86,7 +86,7 @@ public class WbndRentalCbMgtService {
     }
 
     @Transactional
-    public UploadRes saveNotificationTalksExcelUpload(MultipartFile file) throws Exception {
+    public UploadRes saveRentalCbMessageExcludesExcelUpload(MultipartFile file) throws Exception {
         // 업로드 엑셀 헤더 설정
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("cstNo", messageResourceService.getMessage("MSG_TXT_CST_NO"));
@@ -124,7 +124,7 @@ public class WbndRentalCbMgtService {
                 // 적용시작년월 적용종료년월 check
                 if (key.equals("apyEnddt") && StringUtil.isBlank(headerTitleValidation.get(key))) {
                     String date = headerTitleValidation.get(key).replaceAll("[^0-9]", "");
-                    if (!dataFormatCheck(date)) {
+                    if (!DateUtil.isValid(date, "yyyyMM")) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);
                         errorDvo.setHeaderName(headerTitle.get(key));
@@ -138,7 +138,7 @@ public class WbndRentalCbMgtService {
                 }
                 if (key.equals("apyStrtdt") && StringUtil.isBlank(headerTitleValidation.get(key))) {
                     String date = headerTitleValidation.get(key).replaceAll("[^0-9]", "");
-                    if (!dataFormatCheck(date)) {
+                    if (!DateUtil.isValid(date, "yyyyMM")) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);
                         errorDvo.setHeaderName(headerTitle.get(key));
@@ -159,7 +159,7 @@ public class WbndRentalCbMgtService {
                 dvo.setCtntExcdOjTpCd("01"); // 고객번호
                 dvo.setCtntExcdMediTpCd("03"); // 알림톡
 
-                int result = this.mapper.insertNotificationTalk(dvo);
+                int result = this.mapper.insertRentalCbMessageExclude(dvo);
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                 processCount += result;
             }
@@ -168,16 +168,4 @@ public class WbndRentalCbMgtService {
             .status(excelUploadErrorDvos.isEmpty() ? "S" : "E").errorInfo(excelUploadErrorDvos).excelData(list).build();
 
     }
-
-    public boolean dataFormatCheck(String date) throws Exception {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-            sdf.setLenient(false);
-            sdf.parse(date);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
 }
