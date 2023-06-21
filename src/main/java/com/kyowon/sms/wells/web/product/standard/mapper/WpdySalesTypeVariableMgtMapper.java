@@ -30,4 +30,6 @@ public interface WpdySalesTypeVariableMgtMapper {
     int mergeSalesTypeVariableBase(WpdyTypeVariableBaseDvo info);
 
     int deleteSalesTypeVariableBase(WpdyTypeVariableBaseDvo info);
+
+    String selectSalesTypeVariableDuplication(WpdyTypeVariableBaseDvo info);
 }

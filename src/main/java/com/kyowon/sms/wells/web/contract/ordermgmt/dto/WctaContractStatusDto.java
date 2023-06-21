@@ -59,7 +59,10 @@ public class WctaContractStatusDto {
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String mobileTelNo
+        String mobileTelNo,
+        String resultDiv,
+        String viewRcpFshDtm,
+        String viewCntrPrgsStatCd
     ) {
         public SearchRes{
             mobileTelNo = CtContractUtils.buildTno(cralLocaraTno, mexnoEncr, cralIdvTno);

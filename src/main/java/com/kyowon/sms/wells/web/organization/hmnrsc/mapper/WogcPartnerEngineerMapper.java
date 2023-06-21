@@ -52,4 +52,6 @@ public interface WogcPartnerEngineerMapper {
     void updatePrtnrRolDvCd(WogcPartnerEngineerDvo dvo);
 
     void insertPrtnrHist(WogcPartnerEngineerDvo dvo);
+
+    void updatePrtnrBusiness(WogcPartnerEngineerDvo dvo);
 }

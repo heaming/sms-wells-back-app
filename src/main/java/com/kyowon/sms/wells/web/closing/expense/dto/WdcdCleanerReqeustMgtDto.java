@@ -112,7 +112,7 @@ public class WdcdCleanerReqeustMgtDto {
     ) {
         public FindRes {
             frontRrnoEncr = rrnoEncr.substring(0, 6);
-            backRrnoEncr = rrnoEncr.substring(6, 13);
+            backRrnoEncr = rrnoEncr.substring(6, rrnoEncr.length());
         }
     }
 }

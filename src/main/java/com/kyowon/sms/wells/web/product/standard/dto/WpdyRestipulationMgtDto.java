@@ -70,6 +70,7 @@ public class WpdyRestipulationMgtDto {
         Integer rcpStrtMcn, /* 접수시작개월수 */
         Integer rcpEndMcn, /* 접수종료개월수 */
         Integer rstlDutyMcn, /* 재약정의무개월수 - 의무기간 */
+        String pdNm, /* 상품코드 - 중복데이터가 있을시 기준 출력값 */
 
         String fnlMdfcDtm
     ) {

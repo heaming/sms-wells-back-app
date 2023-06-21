@@ -83,4 +83,16 @@ public class WpdySalesTypeVariableMgtController {
             .processCount(service.removeSalesTypeVariables(dtos))
             .build();
     }
+
+    @ApiOperation(value = "판매유형별 변수 중복체크")
+    @PostMapping("/duplication-check")
+    public SaveResponse checkDuplication(
+        @RequestBody
+        @NotEmpty
+        List<WpdySalesTypeVariableMgtDto.TypeVariableBase> dtos
+    ) {
+        return SaveResponse.builder()
+            .data(service.checkDuplication(dtos))
+            .build();
+    }
 }

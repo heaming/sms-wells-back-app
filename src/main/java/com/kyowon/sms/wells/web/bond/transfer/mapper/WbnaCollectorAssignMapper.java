@@ -37,6 +37,8 @@ public interface WbnaCollectorAssignMapper {
         SearchReq dto
     );
 
+    int selectCanCollectorAssign(CreateReq dto);
+
     int updateCollectorAssingsConfirm(WbnaCollectorAssignDvo dvo);
 
     int updateCollectorAssing(WbnaCollectorAssignDvo dvo);

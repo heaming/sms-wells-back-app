@@ -50,11 +50,15 @@
               FROM WSMDBS.TB_SSCT_CNTR_DTL  A /* 계약상세 */
              INNER JOIN TB_SSCT_CNTR_BAS B /*계약기본*/
                 ON A.CNTR_NO = B.CNTR_NO
+               AND A.DTA_DL_YN = 'N'
+               AND B.DTA_DL_YN = 'N'
              INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /* 계약WELLS 상세 */
                 ON A.CNTR_NO = C.CNTR_NO
                AND A.CNTR_SN = C.CNTR_SN
+               AND C.DTA_DL_YN = 'N'
              INNER JOIN WSMDBS.TB_PDBS_PD_BAS  D /* 상품기본 */
                 ON A.BASE_PD_CD = D.PD_CD
+               AND D.DTA_DL_YN = 'N'
               LEFT OUTER JOIN LATERAL
                    (/* 기변 재렌탈 */
                     SELECT  CASE WHEN F.MCHN_CH_TP_CD NOT IN (15,16,19) THEN 'C' /* 기기변경 */
@@ -88,6 +92,7 @@
                 ON 1=1
              INNER JOIN TB_PDBS_PD_CLSF_BAS H /* 상품분류기본 */
                 ON H.PD_CLSF_ID = D.PD_MCLSF_ID /* 상품분류기본.상품분류ID = 상품기본.상품중분류ID */
+               AND H.DTA_DL_YN = 'N'
              WHERE 1=1
                AND B.CNTR_PRGS_STAT_CD = '60' /* 계약진행 상태 코드(60 : 계약확정) */
                AND A.SELL_TP_CD IN ('2','3') /* 판매유형코드(2 : 렌탈/리스, 3 : 멤버십) */
@@ -107,12 +112,11 @@
             AND T1.BASE_PD_CD = #{basePdCd}
         </if>
         GROUP BY T1.PD_CLSF_NM, T1.PD_NM, T1.BASE_PD_CD, T1.IST_MT
+        ORDER BY 1, 2, 3, 4, 5 DESC
     </select>
     <select id="selectByoRentalAccount" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto$SearchByoRentalAccountRes">
         SELECT
-           T1.DGR1_LEVL_OG_NM AS DGR1_LEVL_OG_NM /* 1차상위 조직명 - 총괄단 */
-         , T1.DGR1_LEVL_OG_CD AS DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
-         , T1.DGR2_LEVL_OG_NM AS DGR2_LEVL_OG_NM /* 2차상위 조직명 - 지역단 */
+           T1.DGR1_LEVL_OG_CD AS DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
          , T1.DGR2_LEVL_OG_CD AS DGR2_LEVL_OG_CD /* 2차상위 조직코드 - 지역단 */
          , T1.IST_MT       AS IST_DT /* 설치년월 */
          , MAX(T1.RSTL_YN) AS RSTL_YN /* 재약정여부 */
@@ -125,9 +129,7 @@
          , SUM(T1.CNT6)    AS SPR_REQD_CNT /* 이탈(철거-후속계약X) */
          , ROUND((SUM(T1.CNT5) + SUM(T1.CNT6)) * 100 / SUM(T1.TOT_CNT),1) SPR_RAT  -- 이탈율
       FROM (
-            SELECT E.DGR1_LEVL_OG_NM /* 1차상위 조직명 - 총괄단 */
-                 , E.DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
-                 , E.DGR2_LEVL_OG_NM /* 2차상위 조직명 - 지역단 */
+            SELECT E.DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
                  , E.DGR2_LEVL_OG_CD /* 2차상위 조직코드 - 지역단 */
                  , SUBSTR(C.IST_DT,1,6) AS IST_MT  /* 설치년월 */
                  , F.CHK_CHDVC_RERNT /* 기변/재렌탈 체크 */
@@ -158,14 +160,19 @@
               FROM TB_SSCT_CNTR_DTL A /* 계약상세 */
              INNER JOIN TB_SSCT_CNTR_BAS B /*계약기본*/
                 ON A.CNTR_NO = B.CNTR_NO
+               AND A.DTA_DL_YN = 'N'
+               AND B.DTA_DL_YN = 'N'
              INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /* 계약WELLS 상세 */
                 ON A.CNTR_NO = C.CNTR_NO
                AND A.CNTR_SN = C.CNTR_SN
+               AND C.DTA_DL_YN = 'N'
              INNER JOIN TB_OGBS_MM_PRTNR_IZ D /* 월파트너 내역 */
                 ON D.PRTNR_NO = B.SELL_PRTNR_NO /* 월파트너내역.파트너 번호 = 계약기본.판매파트너번호*/
+               AND D.DTA_DL_YN = 'N'
              INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ  E /* 월 조직 내역 */
                 ON E.OG_ID = D.OG_ID /* 월조직내역.조직ID = 월파트너내역.조직ID */
                AND E.BASE_YM = D.BASE_YM
+               AND E.DTA_DL_YN = 'N'
               LEFT OUTER JOIN LATERAL
                    (/* 기변 재렌탈 */
                     SELECT  CASE WHEN F.MCHN_CH_TP_CD NOT IN (15,16,19) THEN 'C' /* 기기변경 */
@@ -214,10 +221,9 @@
         <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
             AND T1.DGR2_LEVL_OG_CD = #{dgr2LevlOgCd}
         </if>
-        GROUP BY T1.DGR1_LEVL_OG_NM /* 1차상위 조직명 - 총괄단 ※내역 기준에 따라 다를 수 있음 */
-            , T1.DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
-            , T1.DGR2_LEVL_OG_NM /* 2차상위 조직명 - 지역단 ※내역 기준에 따라 다를 수 있음 */
+        GROUP BY T1.DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
             , T1.DGR2_LEVL_OG_CD /* 2차상위 조직코드 - 지역단 */
             , T1.IST_MT            /* 설치년월(설치일자)*/
+        ORDER BY 1,2,3,4 DESC
     </select>
 </mapper>

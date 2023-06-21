@@ -1,23 +1,17 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdRequestCleaningSuppliesMgtConverter;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeReq;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.CodeRes;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.FindRes;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.SearchRsbDvCdRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdRequestCleaningSuppliesDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdRequestCleaningSuppliesMgtMapper;
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.BizAssert;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +47,7 @@ public class WdcdRequestCleaningSuppliesMgtService {
             BizAssert.isTrue(dvo.getAttachFiles().size() > 0, "MSG_ALT_APN_FILE_RGST");
 
             attachFileService.saveAttachFiles(groupId, clingCostSignApnFileId, dvo.getAttachFiles());
-            dvo.setClingCostSignApnFileId(clingCostSignApnFileId);
+            dvo.setClingCostSrcpApnFileId(clingCostSignApnFileId);
             count += mapper.insertRequestCleaningSupplies(dvo);
             BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
 

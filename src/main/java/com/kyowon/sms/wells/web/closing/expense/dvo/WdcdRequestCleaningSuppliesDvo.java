@@ -20,7 +20,7 @@ public class WdcdRequestCleaningSuppliesDvo {
     private String cardPsrNm;
     private String claimNm;
     List<AttachFile> attachFiles;
-    private String clingCostSignApnFileId;
+    private String clingCostSrcpApnFileId;
     private String dtaDlYn;
     private String contact;
     private String bilAmt;

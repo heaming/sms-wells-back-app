@@ -24,7 +24,9 @@ public class WsnaItemBaseInformationDto {
         String itmPdCd,
         String itmPdNm,
         String wareNo,
-        String ostrWareNo
+        String ostrWareNo,
+        String wareDvCd,
+        String wareDtlDvCd
     ) {}
 
     @ApiModel("WsnaItemBaseInformationDto-SearchRes")
@@ -83,5 +85,11 @@ public class WsnaItemBaseInformationDto {
     @ApiModel("WsnaItemBaseInformationDto-SearchAplcRes")
     public record SearchAplcRes(
         String itmPdCd
+    ) {}
+
+    @ApiModel("WsnaItemBaseInformationDto-SearchWareRes")
+    public record SearchWareRes(
+        String wareDvCd,
+        String wareDtlDvCd
     ) {}
 }

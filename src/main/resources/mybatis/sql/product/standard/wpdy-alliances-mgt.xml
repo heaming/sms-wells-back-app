@@ -22,7 +22,7 @@
              , T1.PD_CD              /* 상품코드 */
              , T1.SV_PD_CD           /* 서비스상품코드 */
              , S1.PD_NM AS SV_PD_NM  /* 서비스상품코드 */
-             , T1.STPL_PRD_CD        /* 약정주기코드 */
+             , DECODE(T1.STPL_PRD_CD, '0', '00', NVL(T1.STPL_PRD_CD, '00')) AS STPL_PRD_CD /* 약정주기코드 */
              , T1.RENTAL_DSC_DV_CD   /* 렌탈할인구분코드 */
              , T1.RENTAL_DSC_TP_CD   /* 렌탈할인유형코드 */
              , T1.RENTAL_CRP_DSCR_CD /* 렌탈법인할인율코드 */
@@ -44,9 +44,11 @@
             ON S1.PD_CD = T1.SV_PD_CD
            AND S1.DTA_DL_YN = 'N'
           LEFT JOIN T_CMP_USR_ACO_M RU
-            ON RU.USR_ID = T1.FST_RGST_USR_ID 
+            ON (RU.USR_ID = T1.FST_RGST_USR_ID OR RU.EPNO = T1.FST_RGST_USR_ID)
+           AND RU.DEL_YN = 'N' 
           LEFT JOIN T_CMP_USR_ACO_M MU
-            ON MU.USR_ID = T1.FNL_MDFC_USR_ID
+            ON (MU.USR_ID = T1.FNL_MDFC_USR_ID OR MU.EPNO = T1.FNL_MDFC_USR_ID)
+           AND MU.DEL_YN = 'N' 
          WHERE T1.DTA_DL_YN = 'N'
            <if test='@MybatisUtils@isNotEmpty( alncmpCd )'>
              <bind name="alncmpCd" value="'%'+ alncmpCd +'%'"/>
@@ -173,12 +175,13 @@
     </update>
     
     <select id="selectWellsAllianceDuplication" resultType="String">
-        SELECT PD_CD || ',' || SV_PD_CD || ',' || STPL_PRD_CD
+        SELECT PD_CD || ',' || SV_PD_CD || ',' || DECODE(STPL_PRD_CD, '0', '00', NVL(STPL_PRD_CD, '00'))
           FROM TB_PDBS_PD_ALNCMP_BAS 
          WHERE DTA_DL_YN = 'N'
            AND PD_CD = #{pdCd}
            AND NVL(SV_PD_CD, 'X') = NVL(#{svPdCd}, 'X')
-           AND NVL(STPL_PRD_CD, 'X') = NVL(#{stplPrdCd}, 'X')
+           AND DECODE(STPL_PRD_CD, '0', '00', NVL(STPL_PRD_CD, '00')) = DECODE(#{stplPrdCd}, '0', '00', NVL(#{stplPrdCd}, '00'))
+           AND ROWNUM = 1
     </select>
     
     <select id="selectWellsAllianceValidation" resultType="String">
@@ -187,7 +190,8 @@
          WHERE P1.DTA_DL_YN = 'N'
            AND P1.PD_CD = #{pdCd}
            AND NVL(SV_PD_CD, 'X') = NVL(#{svPdCd}, 'X')
-           AND NVL(STPL_PRD_CD, 'X') = NVL(#{stplPrdCd}, 'X')
+           AND DECODE(STPL_PRD_CD, '0', '00', NVL(STPL_PRD_CD, '00')) = DECODE(#{stplPrdCd}, '0', '00', NVL(#{stplPrdCd}, '00'))
+           AND ROWNUM = 1
            AND EXISTS (
                             SELECT 1
                               FROM (
