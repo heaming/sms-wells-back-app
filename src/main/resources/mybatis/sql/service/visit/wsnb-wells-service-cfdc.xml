@@ -1,0 +1,135 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsServiceCfdcMapper">
+
+    <select id="selectWellsServiceConfirmations" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto$SearchRes">
+        SELECT T01.*
+          FROM (
+            SELECT T1.CNTR_CST_NO							-- 고객번호
+                 , T2.ASN_OJ_YM
+                 , T2.CNTR_NO
+                 , T2.CNTR_SN
+                 , T2.CNTR_NO || '-' || T2.CNTR_SN AS CNTR	-- 계약상세번호
+                 , T1.SELL_PRTNR_NO							-- 판매자사번
+                 , T3.OG_CD									-- 판매자소속
+                 , T10.SVPD_NM_ABBR1                        -- 상품명
+                 , T4.RCGVP_KNM AS CNTR_KNM					-- 계약자명
+                 , T4.CRAL_LOCARA_TNO						-- 계약자휴대번호 (1)
+                 , T4.MEXNO_ENCR							-- 계약자휴대번호 (2)
+                 , T4.CRAL_IDV_TNO							-- 계약자휴대번호 (3)
+                 , T4.LOCARA_TNO							-- 계약자전화번호 (1)
+                 , T4.EXNO_ENCR								-- 계약자전화번호 (2)
+                 , T4.IDV_TNO								-- 계약자전화번호 (3)
+                 , T5.BZRNO									-- 계약자사업번호
+                 , T6.RCGVP_KNM AS INSTALL_KNM				-- 설치자명
+                 , T6.ADR									-- 설치처 주소
+                 , T2.WK_EXCN_DT							-- 관리일자
+                 , T7.CLSF_CD_SRN_PRNT_CN					-- 관리내역
+                 , T9.PRTNR_KNM								-- 담당자
+                 , T9.BASE_YM
+                 , T4.RCGVP_KNM AS NM					    -- 성명
+              FROM TB_SSCT_CNTR_BAS T1
+             INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2
+                ON T2.CNTR_NO = T1.CNTR_NO
+               AND T2.VST_PRGS_STAT_CD = '20'	-- 작업완료
+        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T3
+                ON T3.OG_TP_CD = T1.SELL_OG_TP_CD
+               AND T3.PRTNR_NO = T1.SELL_PRTNR_NO
+        LEFT OUTER JOIN (
+                    SELECT T2.RCGVP_KNM   		-- 계약자명
+                         , T2.CRAL_LOCARA_TNO	-- 계약자휴대번호 (1)
+                         , T2.MEXNO_ENCR		-- 계약자휴대번호 (2)
+                         , T2.CRAL_IDV_TNO		-- 계약자휴대번호 (3)
+                         , T2.LOCARA_TNO		-- 계약자전화번호 (1)
+                         , T2.EXNO_ENCR			-- 계약자전화번호 (2)
+                         , T2.IDV_TNO			-- 계약자전화번호 (3)
+                         , T1.DTL_CNTR_NO		-- 계약번호
+                         , T1.DTL_CNTR_SN		-- 계약상세번호
+                      FROM TB_SSCT_CNTR_ADR_REL T1
+                         , TB_SSCT_CNTR_ADRPC_BAS T2
+                     WHERE T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
+                       AND T1.ADRPC_TP_CD = '1'  -- 1 계약주소, 3 설치주소
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                   ) T4
+                ON T4.DTL_CNTR_NO = T2.CNTR_NO
+               AND T4.DTL_CNTR_SN = T2.CNTR_SN
+        LEFT OUTER JOIN TB_CUBS_CST_BAS T5
+                ON T5.CST_NO = T1.CNTR_CST_NO
+        LEFT OUTER JOIN (
+                    SELECT T2.ADR_ID    	-- 설치처주소ID
+                         , T2.RCGVP_KNM   	-- 설치자명
+                         , T1.DTL_CNTR_NO
+                         , T1.DTL_CNTR_SN
+                         , T3.RNADR || T3.RDADR AS ADR
+                      FROM TB_SSCT_CNTR_ADR_REL T1
+                     INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+                        ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+                LEFT OUTER JOIN TB_GBCO_ADR_BAS T3
+                        ON T3.ADR_ID = T2.ADR_ID
+                     WHERE T1.ADRPC_TP_CD = '3'  -- 1 계약주소, 3 설치주소
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                   ) T6
+                ON T6.DTL_CNTR_NO = T2.CNTR_NO
+               AND T6.DTL_CNTR_SN = T2.CNTR_SN
+        LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T7
+                ON T7.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+        LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ T8
+                ON T8.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T9
+                ON T9.OG_TP_CD = T8.OG_TP_CD
+               AND T9.PRTNR_NO = T8.PRTNR_NO
+               AND T9.BASE_YM = T2.ASN_OJ_YM
+        LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ T11
+                ON T11.CNTR_NO = T2.CNTR_NO
+               AND T11.CNTR_SN = T2.CNTR_SN
+        LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T10
+                ON T10.SVPD_PD_CD = T11.PDCT_PD_CD
+             WHERE T2.VST_CNFMDT BETWEEN #{fromDate} AND #{toDate}
+             ORDER BY T2.VST_CNFMDT DESC
+                 , T2.CNTR_NO DESC
+                 , T2.CNTR_SN DESC
+                 , T1.CNTR_CST_NO
+                 , T3.OG_CD
+        ) T01
+        WHERE 1=1
+      <if test='@MybatisUtils@equals(searchType, "1")'>  -- 계약상세번호
+        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
+          AND T01.CNTR = #{searchParam1}
+        </if>
+      </if>
+      <if test='@MybatisUtils@equals(searchType, "2")'>  -- 고객번호
+        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
+          AND T01.CNTR_CST_NO = #{searchParam1}
+        </if>
+      </if>
+      <if test='@MybatisUtils@equals(searchType, "3")'>  -- 계약자명
+        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
+          AND T01.CNTR_KNM = #{searchParam1}
+        </if>
+      </if>
+      <if test='@MybatisUtils@equals(searchType, "4")'>  -- 계약자전화번호
+        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
+          AND T01.CRAL_LOCARA_TNO = #{searchParam2}
+          AND T01.MEXNO_ENCR = #{searchParam3}
+          AND T01.CRAL_IDV_TNO = #{searchParam4}
+        </if>
+      </if>
+      <if test='@MybatisUtils@equals(searchType, "5")'>  -- 계약자사업자번호
+        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
+          AND T01.BZRNO = #{searchParam1}
+        </if>
+      </if>
+      <if test='@MybatisUtils@equals(searchType, "6")'>  -- 판매자사번
+        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
+          AND T01.SELL_PRTNR_NO = #{searchParam1}
+        </if>
+      </if>
+      <if test='@MybatisUtils@equals(searchType, "7")'>  -- 조직코드
+        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
+          AND T01.OG_CD <![CDATA[ >= ]]> #{searchParam1}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(searchParam2)">
+          AND T01.OG_CD <![CDATA[ <= ]]> #{searchParam2}
+        </if>
+      </if>
+    </select>
+</mapper>
