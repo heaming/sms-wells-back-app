@@ -16,6 +16,8 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradePsDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradePsDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaAsMaterialItemGradePsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -59,22 +61,42 @@ public class WsnaAsMaterialItemGradePsController {
     }
 
     /**
-     * AS자재 품목등급현황 조회
+     * AS자재 품목등급현황 페이징 조회
      * @param dto
      * @return
      */
-    @GetMapping
-    @ApiOperation(value = "AS자재 품목등급현황 조회", notes = "AS자재 품목등급현황을 조회한다.")
+    @GetMapping("/paging")
+    @ApiOperation(value = "AS자재 품목등급현황 페이징 조회", notes = "AS자재 품목등급현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
     })
-    public List<HashMap<String, String>> getAsMaterialsItemGradePs(@Valid
+    public PagingResult<HashMap<String, String>> getAsMaterialsItemGradePsPaging(@Valid
+    WsnaAsMaterialItemGradePsDto.SearchReq dto, @Valid
+    PageInfo pageInfo) {
+
+        WsnaAsMaterialItemGradePsDvo dvo = this.converter.mapSearchReqToWsnaAsMaterialItemGradePsDvo(dto);
+        return this.service.getAsMaterialItemGradePsPaging(dvo, pageInfo);
+    }
+
+    /**
+     * AS자재 품목등급현황 엑셀 다운로드
+     * @param dto
+     * @return
+     */
+    @GetMapping("/excel-download")
+    @ApiOperation(value = "AS자재 품목등급현황 엑셀 다운로드", notes = "조회조건에 일치하는 AS자재 품목등급 데이터를 엑셀다운로드 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
+        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+    })
+    public List<HashMap<String, String>> getAsMaterialsItemGradePsExcelDownload(@Valid
     WsnaAsMaterialItemGradePsDto.SearchReq dto) {
 
         WsnaAsMaterialItemGradePsDvo dvo = this.converter.mapSearchReqToWsnaAsMaterialItemGradePsDvo(dto);
-        return this.service.getAsMaterialItemGradePs(dvo);
+        return this.service.getAsMaterialItemGradePsExcelDownload(dvo);
     }
 
 }

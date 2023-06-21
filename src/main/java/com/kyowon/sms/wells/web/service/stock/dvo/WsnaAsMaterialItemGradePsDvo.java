@@ -26,4 +26,8 @@ public class WsnaAsMaterialItemGradePsDvo {
     private String wareNoInStr;
     // PIVOT 창고번호 필드
     private String wareNoFields;
+    // OFFSET
+    private Integer offSet;
+    // FETCH SIZE
+    private Integer size;
 }

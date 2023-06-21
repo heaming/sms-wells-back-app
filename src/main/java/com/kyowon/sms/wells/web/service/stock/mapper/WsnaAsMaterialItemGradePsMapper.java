@@ -13,6 +13,8 @@ public interface WsnaAsMaterialItemGradePsMapper {
 
     List<WsnzWellsCodeWareHouseDvo> selectMcByWares(String baseYm, String allText);
 
+    long selectAsMaterialItemGradePsCount(WsnaAsMaterialItemGradePsDvo dvo);
+
     List<HashMap<String, String>> selectAsMaterialItemGradePs(WsnaAsMaterialItemGradePsDvo dvo);
 
 }
