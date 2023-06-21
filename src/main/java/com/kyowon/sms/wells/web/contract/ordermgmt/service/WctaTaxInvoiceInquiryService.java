@@ -104,9 +104,9 @@ public class WctaTaxInvoiceInquiryService {
 
         if (txinvPblOjInfoCheck && "Y".equals(txinvPblOjYn)) {
             if (nowYm.equals(cntrCnfmYm)) {
-                rtnMsg = "0차월 발행은 말일 날짜로 발행되며, 익월 초 수신 가능합니다.\n※선택한 발행일자는 익월부터 반영됩니다.";
+                rtnMsg = messageResourceService.getMessage("MSG_ALT_TXINV_PBL_THM0_LAST_D"); // "0차월 발행은 말일 날짜로 발행되며, 익월 초 수신 가능합니다."
             } else if (nowDay >= txinvPblD || nowDay >= txinvPblDComp) {
-                rtnMsg = "변경사항은 익월부터 반영됩니다.\\n※당월부터 반영되길 희망하는 건은 담당자에게 문의 하세요.";
+                rtnMsg = messageResourceService.getMessage("MSG_ALT_TXINV_CHANGE_RFLT_NEXT_MM"); // 변경사항은 익월부터 반영됩니다.
             }
         }
         if (StringUtils.isNotEmpty(dpTpCd)) {
