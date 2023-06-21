@@ -13,12 +13,12 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WbndRentalCbMgtMessageExcludeMapper {
 
-    PagingResult<SearchRes> getRentalCbMessageExcludePages(
+    PagingResult<SearchRes> selectRentalCbMessageExcludePages(
         SearchReq dto,
         PageInfo pageInfo
     );
 
-    List<SearchRes> getRentalCbMessageExcludePages(
+    List<SearchRes> selectRentalCbMessageExcludePages(
         SearchReq dto
     );
 

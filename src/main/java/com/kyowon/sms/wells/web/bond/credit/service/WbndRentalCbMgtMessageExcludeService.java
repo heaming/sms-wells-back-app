@@ -44,11 +44,11 @@ public class WbndRentalCbMgtMessageExcludeService {
     public PagingResult<SearchRes> getRentalCbMessageExcludePages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.getRentalCbMessageExcludePages(dto, pageInfo);
+        return mapper.selectRentalCbMessageExcludePages(dto, pageInfo);
     }
 
     public List<SearchRes> getRentalCbMessageExcludesForExcelDownload(SearchReq dto) {
-        return mapper.getRentalCbMessageExcludePages(dto);
+        return mapper.selectRentalCbMessageExcludePages(dto);
     }
 
     @Transactional
