@@ -4,9 +4,9 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WbndRentalCbMgtDto {
-    @ApiModel("WbndRentalCbMgtDto-SearchNotificationTalkReq")
-    public record SearchTalkReq(
+public class WbndRentalCbMgtMessageExcludeDto {
+    @ApiModel("WbndRentalCbMgtMessageExcludeDto-SearchReq")
+    public record SearchReq(
         String cstNo, /*고객번호*/
         @NotBlank
         String ctntExcdBndBizCd, /*연락제외채권업무코드*/
@@ -16,8 +16,8 @@ public class WbndRentalCbMgtDto {
         String ctntExcdMediTpCd/*연락제외매체유형코드*/
     ) {}
 
-    @ApiModel("WbndRentalCbMgtDto-SearchNotificationTalkRes")
-    public record SearchTalkRes(
+    @ApiModel("WbndRentalCbMgtMessageExcludeDto-SearchRes")
+    public record SearchRes(
         String cstNo, /*고객번호*/
         String apyStrtdt, /*적용시작일자*/
         String apyEnddt, /*적용종료일자*/
@@ -29,8 +29,8 @@ public class WbndRentalCbMgtDto {
         String fnlMdfcDtm
     ) {}
 
-    @ApiModel("WbndRentalCbMgtDto-SaveTalkReq")
-    public record SaveTalkReq(
+    @ApiModel("WbndRentalCbMgtMessageExcludeDto-SaveReq")
+    public record SaveReq(
         String cstNo, /*고객번호*/
         String apyStrtdt, /*적용시작일자*/
         String apyEnddt, /*적용종료일자*/
