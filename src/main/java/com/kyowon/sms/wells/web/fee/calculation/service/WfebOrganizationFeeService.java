@@ -172,7 +172,7 @@ public class WfebOrganizationFeeService {
     }
 
     /**
-     * 품의결재이력 최종여부 수정
+     * 반송, 회수의 이유로 재결재시 이전 품의결재이력 최종여부 수정
      * @param dto : {
      * perfYm : 실적년월
      * ogTp : 조직유형

@@ -200,7 +200,7 @@ public class WfebOrganizationFeeController {
         return this.service.getdsbCnst(dto);
     }
 
-    @ApiOperation(value = "품의결재 이력 저장", notes = "품의결재 이력을 생성한다.")
+    @ApiOperation(value = "품의결재 이력 저장", notes = "수수료지급내역 결재ID를 수정 후 신규 품의결재 이력을 생성한다.")
     @PostMapping("/dsbCnst-save")
     public SaveResponse saveDsbCnstIz(
         @RequestBody
@@ -212,7 +212,7 @@ public class WfebOrganizationFeeController {
             .build();
     }
 
-    @ApiOperation(value = "품의결재 이력 수정", notes = "품의결재 이력의 최종여부 데이터를 수정한다.")
+    @ApiOperation(value = "품의결재 이력 수정", notes = "품의 재결재의 이유로 이전 결재이력의 최종여부 데이터를 N으로 수정한다.")
     @PostMapping("/dsbCnst-update")
     public SaveResponse updateDsbCnstIz(
         @RequestBody
