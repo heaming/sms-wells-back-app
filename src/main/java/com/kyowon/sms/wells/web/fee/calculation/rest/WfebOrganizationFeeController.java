@@ -185,4 +185,42 @@ public class WfebOrganizationFeeController {
             .processCount(this.service.saveWmFees(dto))
             .build();
     }
+
+    @ApiOperation(value = "WELLS 품의 결재진행상태 조회", notes = "조회조건에 품의 결재진행상태 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTp", value = "조직유형", paramType = "query", required = true),
+    })
+
+    @GetMapping("/dsbCnst")
+    public SearchDsbCnstRes getdsbCnst(
+        @Valid
+        SearchDsbCnstReq dto
+    ) {
+        return this.service.getdsbCnst(dto);
+    }
+
+    @ApiOperation(value = "품의결재 이력 저장", notes = "품의결재 이력을 생성한다.")
+    @PostMapping("/dsbCnst-save")
+    public SaveResponse saveDsbCnstIz(
+        @RequestBody
+        @Valid
+        SaveDsbCnstReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.service.saveDsbCnstIz(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "품의결재 이력 수정", notes = "품의결재 이력의 최종여부 데이터를 수정한다.")
+    @PostMapping("/dsbCnst-update")
+    public SaveResponse updateDsbCnstIz(
+        @RequestBody
+        @Valid
+        SearchDsbCnstReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(this.service.updateDsbCnstIz(dto))
+            .build();
+    }
 }

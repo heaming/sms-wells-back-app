@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
 import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,6 +132,60 @@ public class WfebOrganizationFeeService {
 
         WfebOrganizationFeeDvo dvo = converter.mapSaveReqToWfebOgFeeDvo(dto);
 
+        // TODO: WM 수수료 생성 서비스 호출
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
+
+        return processCount;
+    }
+
+    /**
+     * WELLS 결재품의 진행단계 조회
+     * @param 'SearchDsbCnstReq'
+     * @return 조회된 데이터
+     */
+
+    public SearchDsbCnstRes getdsbCnst(SearchDsbCnstReq dto) {
+        return this.mapper.selectdsbCnst(dto);
+    }
+
+    /**
+     * 품의결재 지급내역 업데이트 및 품의결재이력 데이터 생성
+     * @param dto : {
+     * perfYm : 실적년월
+     * ogTp : 조직유형
+     * appKey : 품의결재키
+     * }
+     * @return 생성건수
+     * @throws Exception
+     * */
+    @Transactional
+    public int saveDsbCnstIz(SaveDsbCnstReq dto) {
+        int processCount = 0;
+
+        WfebOrganizationFeeDvo dvo = converter.mapSaveDsbCnstReqToWfebOgFeeDvo(dto);
+        this.mapper.updateDsbIz(dvo);
+        processCount = this.mapper.insertDsbCnstIz(dvo);
+        // TODO: WM 수수료 생성 서비스 호출
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
+
+        return processCount;
+    }
+
+    /**
+     * 품의결재이력 최종여부 수정
+     * @param dto : {
+     * perfYm : 실적년월
+     * ogTp : 조직유형
+     * }
+     * @return 생성건수
+     * @throws Exception
+     * */
+    @Transactional
+    public int updateDsbCnstIz(SearchDsbCnstReq dto) {
+        int processCount = 0;
+
+        WfebOrganizationFeeDvo dvo = converter.mapSearchDsbCnstReqToWfebOgFeeDvo(dto);
+        processCount = this.mapper.updateDsbCnstIz(dvo);
         // TODO: WM 수수료 생성 서비스 호출
         BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
 

@@ -2548,4 +2548,59 @@
       FROM DUAL
     </select>
 
+    <select id='selectdsbCnst' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchDsbCnstRes">
+        SELECT CASE WHEN T2.APRV_PRGS_STT_CD = 'A04003' THEN 'Y'  /* 승인 */
+                    WHEN T2.APRV_PRGS_STT_CD IN ('A04002','A04005') THEN 'N' /*  진행, 보류 = 품의 진행 중 */
+                    ELSE '' /* 그 외 신규 품의진행 가능 */
+               END AS DSB_CNST_YN
+          FROM TB_FEAM_FEE_DSB_CNST_IZ T1    /*T 수수료지급품의내역 T*/
+         INNER JOIN T_CML_APRV_MNGT_M T2     /*T 결재이력관리 T  공통쪽 배치를 통해 결재상태 업데이트 */
+            ON T1.FEE_CNST_NO = T2.APP_KEY
+         WHERE T1.DSB_YM = #{perfYm}   /* 지급년월 */
+           AND T1.OG_TP_CD = #{ogTp}   /* 조직유형 */
+           AND T1.DTA_DL_YN = 'N'      /* 데이터 삭제여부 */
+           AND T1.FNL_YN = 'N'         /* 최종여부 */
+    </select>
+
+    <update id="updateDsbIz">
+        UPDATE TB_FEAM_FEE_DSB_IZ
+           SET APRV_ID = #{appKey}   /* 결재ID  */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE DSB_YM = #{perfYm}    /* 지급년월 */
+           AND OG_TP_CD = #{ogTp}    /* 조직유형 */
+           AND FEE_TCNT_DV_CD = '02' /* 2차 실지급*/
+    </update>
+
+    <insert id="insertDsbCnstIz">
+        INSERT INTO TB_FEAM_FEE_DSB_CNST_IZ
+               ( FEE_CNST_NO
+               , DCB_YM
+               , CO_CD
+               , OG_TP_CD
+               , DRFTR_ID
+               , APRV_ID
+               , FNL_YN
+               , DTA_DL_YN
+        <include refid="COMMON.insertSystemField" />
+               )
+        VALUES ( #{appKey}
+               , #{perfYm}
+               , '2000'
+               , #{ogTp}
+               , #{session.userId}
+               , #{appKey}
+               , 'N'
+               , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+               )
+    </insert>
+
+    <update id="updateDsbCnstIz">
+        UPDATE TB_FEAM_FEE_DSB_CNST_IZ
+           SET FNL_YN = 'Y'  /* 최종여부  */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE DSB_YM = #{perfYm}    /* 지급년월 */
+           AND OG_TP_CD = #{ogTp}    /* 조직유형 */
+    </update>
+
 </mapper>

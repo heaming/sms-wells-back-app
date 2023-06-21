@@ -52,6 +52,20 @@ public class WfebOrganizationFeeDto {
         String perfYm
     ) {}
 
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchDsbCnstReq")
+    public record SearchDsbCnstReq(
+        String perfYm,
+        String ogTp
+    ) {}
+
+    @ApiModel(value = "WfebOrganizationFeeDto-SaveDsbCnstReq")
+    public record SaveDsbCnstReq(
+        @NotBlank
+        String perfYm,
+        String ogTp,
+        String appKey
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -612,5 +626,10 @@ public class WfebOrganizationFeeDto {
         String col38, /*매니저정착2 수료여부*/
         int col39, /*미팅일수*/
         String col40 /*보수교육여부*/
+    ) {}
+
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchDsbCnstRes")
+    public record SearchDsbCnstRes(
+        String dsbCnstYn /* 지급품의코드 */
     ) {}
 }
