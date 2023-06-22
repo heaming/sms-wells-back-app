@@ -587,7 +587,7 @@ public class WwdaAutoTransferInterfaceService {
 
         // 청구생성코드가 1이 아닐때 에러 발생
         // (1 : 정상처리, 2 : 오류, 3 : 자료없음)
-        BizAssert.isTrue("1".equals(resultDvo.getBilCrtStatCd()), resultDvo.getErrCn());
+        // BizAssert.isTrue("1".equals(resultDvo.getBilCrtStatCd()), resultDvo.getErrCn());
 
         // 3. 수신결과 및 리턴 설정
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
