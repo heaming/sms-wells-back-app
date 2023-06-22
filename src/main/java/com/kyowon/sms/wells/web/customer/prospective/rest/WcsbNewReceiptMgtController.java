@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 public class WcsbNewReceiptMgtController {
-
     private final WcsbNewReceiptMgtService service;
 
     /*

@@ -135,8 +135,14 @@ public class WcsbNewReceiptMgtDto {
 
     ) {
         public PartnerRes {
+            //            prtnrMpNo2 = StringUtils.isNotEmpty(prtnrMpNo2) ? DbEncUtil.dec(prtnrMpNo2) : prtnrMpNo2;
+            //            prtnrHpNo = prtnrHpNo + "-" + prtnrMpNo2 + "-" + prtnrMpNo3;
             prtnrMpNo2 = StringUtils.isNotEmpty(prtnrMpNo2) ? DbEncUtil.dec(prtnrMpNo2) : prtnrMpNo2;
-            prtnrHpNo = prtnrHpNo + "-" + prtnrMpNo2 + "-" + prtnrMpNo3;
+            if (StringUtils.isNotEmpty(prtnrMpNo1) || StringUtils.isNotEmpty(prtnrMpNo2)
+                || StringUtils.isNotEmpty(prtnrMpNo3)) {
+                prtnrHpNo = StringUtil.nvl2(prtnrMpNo1, " ") + "-" + StringUtil.nvl2(prtnrMpNo2, " ") + "-"
+                    + StringUtil.nvl2(prtnrMpNo3, " ");
+            }
         }
     }
 

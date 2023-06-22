@@ -51,6 +51,7 @@ public class WcsbNewReceiptMgtService {
     /**
      * 접수 (단건)상세 조회
      * @param pspcCstCnslId
+     * @param cntrNo
      * @return
      */
     public WcsbNewReceiptMgtDto.SearchDtlRes getPspcCstCnslAssign(
