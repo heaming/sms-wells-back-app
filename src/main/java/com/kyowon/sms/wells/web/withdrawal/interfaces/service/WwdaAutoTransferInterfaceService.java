@@ -558,7 +558,7 @@ public class WwdaAutoTransferInterfaceService {
         WwdaAutoTransferRealNameCertificationInterfaceDvo result = new WwdaAutoTransferRealNameCertificationInterfaceDvo();
 
         // 1. 계좌 유효성 검사 호출을 위한 파라미터 설정
-        String cntrNo = "W20220042279"; /*임시계약번호*/
+        String cntrNo = "W99999999999"; /*임시계약번호*/
         String cntrSn = "1"; /*임시계약일련번호*/
         String bnkCd = dto.bnkCd(); /*은행코드*/
         String acNo = dto.acno(); /*계좌번호*/
