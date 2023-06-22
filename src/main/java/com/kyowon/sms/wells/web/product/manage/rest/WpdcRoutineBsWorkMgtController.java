@@ -8,6 +8,7 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,19 +73,6 @@ public class WpdcRoutineBsWorkMgtController {
         return service.getRoutineBsWorkTasks(dto);
     }
 
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "svPdCd", value = "서비스 상품코드", paramType = "query", example = "WS01200001"),
-        @ApiImplicitParam(name = "pdctPdCd", value = "제품코드", paramType = "query", example = "WM01200001"),
-        @ApiImplicitParam(name = "partPdCd", value = "부품코드", paramType = "query", example = "WM07104689"),
-    })
-    @ApiOperation(value = "정기 B/S 투입 방문 작업 기준 조회", notes = "정기 B/S 투입 기준 정보 목록을 조회한다.")
-    @GetMapping("/life-filters")
-    public List<WpdcRoutineBsWorkMgtDto.SearchLifeCustomFiltersRes> getLifeCustomFilters(
-        WpdcRoutineBsWorkMgtDto.SearchReq dto
-    ) {
-        return service.getLifeCustomFilters(dto);
-    }
-
     @ApiOperation(value = "정기 B/S 투입 방문 작업 기준 수정", notes = "수정된 정기 B/S 투입 기준/상세 정보를 반영한다.")
     @PutMapping
     public SaveResponse editBsWork(
@@ -121,6 +109,19 @@ public class WpdcRoutineBsWorkMgtController {
             .build();
     }
 
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "svPdCd", value = "서비스 상품코드", paramType = "query", example = "WS01200001"),
+        @ApiImplicitParam(name = "pdctPdCd", value = "제품코드", paramType = "query", example = "WM01200001"),
+        @ApiImplicitParam(name = "partPdCd", value = "부품코드", paramType = "query", example = "WM07104689"),
+    })
+    @ApiOperation(value = "정기 B/S 투입 방문 작업 기준 조회", notes = "정기 B/S 투입 기준 정보 목록을 조회한다.")
+    @GetMapping("/life-filters")
+    public List<WpdcRoutineBsWorkMgtDto.SearchLifeCustomFiltersRes> getLifeCustomFilters(
+        WpdcRoutineBsWorkMgtDto.SearchReq dto
+    ) {
+        return service.getLifeCustomFilters(dto);
+    }
+
     @ApiOperation(value = "생활맞춤형필터 수정", notes = "수정된 생활맞춤형필터 정보를 반영한다.")
     @PutMapping("/life-filters")
     public SaveResponse editLifeCustomFilters(
@@ -142,6 +143,18 @@ public class WpdcRoutineBsWorkMgtController {
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.removeLifeFilters(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "생활맞춤형필터 관리 중복체크")
+    @PostMapping("/life-filters/duplication-check")
+    public SaveResponse checkLifeFilterDuplication(
+        @RequestBody
+        @NotEmpty
+        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos
+    ) {
+        return SaveResponse.builder()
+            .data(service.checkLifeFilterDuplication(dtos))
             .build();
     }
 }
