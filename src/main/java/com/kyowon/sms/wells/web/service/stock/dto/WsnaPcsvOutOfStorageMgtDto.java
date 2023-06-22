@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 import javax.validation.constraints.NotBlank;
 
 import com.sds.sflex.common.utils.DbEncUtil;
-import com.sds.sflex.system.config.annotation.DBDecField;
 
 import io.swagger.annotations.ApiModel;
 
@@ -20,7 +19,6 @@ public class WsnaPcsvOutOfStorageMgtDto {
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchReq")
     public record SearchReq(
         String findGb,
-
         String selCnt,
         String svBizDclsfCd,
         String wkPrgsStatCd,
@@ -28,7 +26,8 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String wkWareNo,
         String startDt,
         String endDt,
-        String vstFshDt
+        String vstFshDt,
+        String ivcPrntSn
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchRes")
@@ -98,14 +97,12 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String cralLocaRaTno, //휴대지역전화번호(휴대폰번호)
 
-        @DBDecField
         String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
 
         String cralIdvTno, //휴대개별전화번호(휴대폰번호)
 
         String locaraTno, //지역전화번호 (전화번호)
 
-        @DBDecField
         String exnoEncr, //전화국번호암호화(전화번호)
 
         String idvTno, //개별전화번호(전화번호)
@@ -167,6 +164,12 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String rpbLocaraCd,
 
+        String asLctCd,
+
+        String asPhnCd,
+
+        String asCausCd,
+
         String pdUswyCd,
 
         String filtSellTpCd,
@@ -183,7 +186,12 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String siteAwSvTpCd,
 
-        String siteAwAtcCd
+        String siteAwAtcCd,
+
+        String ivcPrntSn,
+
+        String istDt
+
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-LogisticsCentersRes")
@@ -201,5 +209,10 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String svpdPdCd,
         String svpdNmKor,
         String svpdItemGr
+    ) {}
+    @ApiModel("WsnaPcsvOutOfStorageMgtDto-IvcPrntSnRes")
+    public record IvcPrntSnRes(
+        String codeId,
+        String codeName
     ) {}
 }

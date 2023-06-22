@@ -16,6 +16,10 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String cntrSn;
     String urgtYn;
     String rpbLocaraCd;
+    String asLctCd;
+    String asPhnCd;
+    String asCausCd;
+    String ivcPrntSn;
 
     /* 사용제품 내역등록 ,수불처리 */
     String pdGdCd;
@@ -29,5 +33,6 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String filtSellTpCd;
     String pdSellTpCd;
     String pdUswyCd;
+    String istDt;
 
 }

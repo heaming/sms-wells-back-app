@@ -32,6 +32,7 @@ public class WsnaPcsvOutOfStorageMgtController {
         @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query"),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
         @ApiImplicitParam(name = "vstFshDt", value = "출고확정일자", paramType = "query"),
+        @ApiImplicitParam(name = "ivcPrntSn", value = "출고확정순번", paramType = "query"),
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "svBizDclsfCd", value = "출고구분", paramType = "query", required = true),
         @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
@@ -46,9 +47,11 @@ public class WsnaPcsvOutOfStorageMgtController {
 
     @ApiOperation(value = "택배설치상품 출고관리 엑셀다운로드", notes = "조회조건에 일치하는 택배설치상품 출고관리 정보를 조회한다.")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "selCnt", value = "조회제한건수", paramType = "query"),
         @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query"),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
         @ApiImplicitParam(name = "vstFshDt", value = "출고확정일자", paramType = "query"),
+        @ApiImplicitParam(name = "ivcPrntSn", value = "출고확정순번", paramType = "query"),
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "svBizDclsfCd", value = "출고구분", paramType = "query", required = true),
         @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
@@ -91,5 +94,11 @@ public class WsnaPcsvOutOfStorageMgtController {
     @GetMapping("/products")
     public List<ProductsRes> getPcsvProducts(ProductsReq dto) {
         return service.getPcsvProducts(dto);
+    }
+
+    @ApiOperation(value = "택배 출고확정순번 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
+    @GetMapping("/ivc-prntsns")
+    public List<IvcPrntSnRes> getPcsvIvcPrntSns(SearchReq dto) {
+        return service.getPcsvIvcPrntSns(dto);
     }
 }

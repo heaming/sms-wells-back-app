@@ -43,6 +43,10 @@ public class WsnaPcsvOutOfStorageMgtService {
         return mapper.selectPcsvProducts(dto);
     }
 
+    public List<IvcPrntSnRes> getPcsvIvcPrntSns(SearchReq dto) {
+        return mapper.selectPcsvIvcPrntSns(dto);
+    }
+
     public int savePcsvOutOfStorage(List<SaveReq> dtos) {
         int processCount = 0;
 

@@ -94,15 +94,15 @@
 
           -- 0 :전체 1: 작업완료 2: 작업대기
           <if test="@MybatisUtils@equals(findGb, '0')">
-              AND T7.CNTR_RCP_FSH_DTM BETWEEN #{startDt} || '000000' AND #{endDt} || '000000'
+              AND SUBSTR(T7.CNTR_RCP_FSH_DTM,1,8) BETWEEN #{startDt}  AND #{endDt}
           </if>
           <if test="@MybatisUtils@equals(findGb, '1')">
               AND T2.WK_PRGS_STAT_CD IN ('20')
               AND T4.VST_FSH_DT = #{vstFshDt}
-             -- AND T4.IVC_PRINT_SN = '1'
+              AND T4.IVC_PRNT_SN = #{ivcPrntSn}
           </if>
             <if test="@MybatisUtils@equals(findGb, '2')">
-              AND T7.CNTR_RCP_FSH_DTM BETWEEN #{startDt} || '000000' AND #{endDt} || '000000'
+              AND SUBSTR(T7.CNTR_RCP_FSH_DTM,1,8) BETWEEN #{startDt}  AND #{endDt}
               AND T2.WK_PRGS_STAT_CD IN ('00', '10')
               AND T8.RSG_FSH_DT IS NULL
               AND T3.REQD_DT IS NULL
@@ -308,8 +308,9 @@
     <select id="selectPcsvOutOfStorageStockQty" resultType="String">
      SELECT NVL((SELECT PITM_STOC_A_GD_QTY- MMT_STOC_A_GD_QTY
                  FROM TB_SVST_CST_SV_ITM_STOC_IZ
-                 WHERE WARE_NO = #{wkWareNo}
-                AND ITM_PD_CD  =#{pdCd}),0) STOC_QTY
+                 WHERE DTA_DL_YN  ='N'
+                 AND WARE_NO = #{wkWareNo}
+                 AND ITM_PD_CD  =#{pdCd}),0) STOC_QTY
      FROM DUAL
     </select>
     <select id="selectPcsvLogisticsCenters" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto$LogisticsCentersRes">
@@ -323,19 +324,46 @@
          ORDER BY CODE_ID
     </select>
     <select id="selectPcsvProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto$ProductsRes">
-      SELECT DISTINCT
+     SELECT DISTINCT
            T1.PD_CD AS SVPD_PD_CD
          , T2.PD_NM AS SVPD_NM_KOR
          , T3.PD_PRP_VAL20 AS SVPD_ITEM_GR
       FROM WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ T1         /*고객서비스AS설치대상내역, KWAS.LC_ALLOCATE_AC211TB*/
            INNER JOIN WSMDBS.TB_PDBS_PD_BAS T2          /*상품기본*/
                    ON T1.PD_CD = T2.PD_CD
+                   AND T2.DTA_DL_YN  ='N'
            INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T3 /*상품각사속성상세*/
                    ON T2.PD_CD = T3.PD_CD
-                  AND T3.PD_EXTS_PRP_GRP_CD = 'PART'    /*상품 확장 속성 그룹 코드 : , CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
-     WHERE SV_BIZ_DCLSF_CD = #{svBizDclsfCd} /*서비스 업무 세분류 코드 : 1112 제품배송, 1113 제품재배송, 2250 웰컴BS, 3460 택배반품*/
+                   AND T3.DTA_DL_YN  ='N'
+                   AND T3.PD_EXTS_PRP_GRP_CD = 'PART'    /*상품 확장 속성 그룹 코드 : , CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+     WHERE T1.DTA_DL_YN  ='N'
+     AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
      ORDER BY TO_NUMBER(SVPD_ITEM_GR), SVPD_PD_CD, SVPD_NM_KOR
     </select>
+    <select id="selectPcsvIvcPrntSns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto$IvcPrntSnRes">
+          SELECT DISTINCT
+                   CODE_ID
+                 , CODE_NAME
+              FROM (
+                       SELECT DISTINCT IVC_PRNT_SN   AS CODE_ID
+                                  , IVC_PRNT_SN      AS CODE_NAME
+                       FROM WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ T1
+                          INNER JOIN WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+                            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                            AND T2.DTA_DL_YN = 'N'
+                       WHERE T1.DTA_DL_YN = 'N'
+                           AND T1.VST_FSH_DT = #{vstFshDt}
+                           AND T1.PDCT_PD_CD  = #{pdCd}
+                           AND T2.SV_BIZ_DCLSF_CD ='1112'
+                       UNION ALL
+
+                       SELECT 1 AS CODE_ID
+                             , 1 AS CODE_NAME
+                       FROM DUAL
+                   )
+             GROUP BY CODE_ID, CODE_NAME
+             ORDER BY CODE_ID DESC
+     </select>
 
 
 </mapper>

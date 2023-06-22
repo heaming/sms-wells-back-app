@@ -20,7 +20,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         if ("1112".equals(dvo.getSvBizDclsfCd())) {
             //정상출고
             mapper.insertPcsvOutOfStorage(dvo); // 작업결과 IU
-            //mapper.insertPcsvOutOfStorageRvPy(dvo); //사용내역 + 수불처리
+            mapper.insertPcsvOutOfStorageRvPy(dvo); //사용내역 + 수불처리
 
             //TODO KSS 마스터 예정일자, 매출일자, 설치일자 업데이트
             //TODO KSS 마스터 변경정보 인서트
