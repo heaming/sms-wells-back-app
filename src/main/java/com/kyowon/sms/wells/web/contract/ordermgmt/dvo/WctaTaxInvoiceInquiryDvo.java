@@ -26,6 +26,7 @@ public class WctaTaxInvoiceInquiryDvo {
     private String dlpnrCd; /* 거래처 코드 */
     private String dpTpCd; /* 입금유형코드 */
 
+    private String sellTpCd;
     /* 세금계산서접수기준내역 */
     private String cntrNo; /* 계약번호 */
     private int cntrSn; /* 계약일련번호 */
