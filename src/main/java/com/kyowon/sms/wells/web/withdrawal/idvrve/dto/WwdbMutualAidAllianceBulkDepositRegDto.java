@@ -28,7 +28,9 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
 
     public record SearchSumRes(
         String countLif, /*대상건수*/
-        String amtSum /*대상금액*/
+        String amtSum, /*대상금액*/
+        String dpDtm, //수납일
+        String dpBlam //잔액
     ) {
 
     }
