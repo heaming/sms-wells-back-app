@@ -69,21 +69,21 @@
                       AND T.OG_TP_CD = A.DANG_OJ_OG_TP_CD /* 월파트너내역.조직유형코드 = 위험점검내역.위험대상조직유형코드 */
                       AND T.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월파트너내역.기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
                    ) AS DANG_OJ_PRTNR_NM /* 월 조직/파트너 내역(WITH).파트너한글명 */
-                   , A.DANG_OJ_PSTN_DV_CD /* 위험점검내역.위험대상직급구분코드 */
-                   ,T2.DGR1_LEVL_DG_PRTNR_NO AS DGR1_LEVL_DG_PRTNR_NO
-                   ,T2.DGR1_LEVL_DG_PRTNR_NM AS DGR1_LEVL_DG_PRTNR_NM
-                   ,T2.DGR2_LEVL_DG_PRTNR_NO AS DGR2_LEVL_DG_PRTNR_NO
-                   ,T2.DGR2_LEVL_DG_PRTNR_NM AS DGR2_LEVL_DG_PRTNR_NM
-                   ,T2.BIZ_SPPT_PRTNR_NO AS BZNS_SPPT_PRTNR_NO
-                   , (
+                 ,  A.DANG_OJ_PSTN_DV_CD /* 위험점검내역.위험대상직급구분코드 */
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 2 THEN T2.DGR1_LEVL_DG_PRTNR_NO ELSE '' END AS DGR1_LEVL_DG_PRTNR_NO
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 2 THEN T2.DGR1_LEVL_DG_PRTNR_NM ELSE '' END AS DGR1_LEVL_DG_PRTNR_NM
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4 THEN T2.DGR2_LEVL_DG_PRTNR_NO ELSE '' END AS DGR2_LEVL_DG_PRTNR_NO
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4 THEN T2.DGR2_LEVL_DG_PRTNR_NM ELSE '' END AS DGR2_LEVL_DG_PRTNR_NM
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4 THEN T2.OG_UPBRNG_PRTNR_NO ELSE    '' END AS BZNS_SPPT_PRTNR_NO
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4 THEN (
                     SELECT MAX(PRTNR_KNM) /* 월파트너내역.파트너한글명 */
                       FROM TB_OGBS_MM_PRTNR_IZ T /* 월파트너내역 */
-                     WHERE T.PRTNR_NO = T2.BIZ_SPPT_PRTNR_NO /* 월파트너내역.파트너번호 = 위험점검내역.위험관리파트너번호 */
+                     WHERE T.PRTNR_NO = T2.OG_UPBRNG_PRTNR_NO /* 월파트너내역.파트너번호 = 위험점검내역.위험관리파트너번호 */
                       AND T.OG_TP_CD = T2.OG_TP_CD /* 월파트너내역.조직유형코드 = 위험점검내역.위험대상조직유형코드 */
                       AND T.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월파트너내역.기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
-                   ) AS BZNS_SPPT_PRTNR_NM
-                   ,T2.DGR3_LEVL_DG_PRTNR_NO AS DGR3_LEVL_DG_PRTNR_NO
-                   ,T2.DGR3_LEVL_DG_PRTNR_NM AS DGR3_LEVL_DG_PRTNR_NM
+                   )    ELSE '' END AS BZNS_SPPT_PRTNR_NM
+                 , CASE WHEN SUBSTR(T2.OG_CD,1,1) = 'P' AND A.DANG_OJ_PSTN_DV_CD > 7 THEN T2.DGR3_LEVL_DG_PRTNR_NO ELSE '' END AS DGR3_LEVL_DG_PRTNR_NO
+                 , CASE WHEN SUBSTR(T2.OG_CD,1,1) = 'P' AND A.DANG_OJ_PSTN_DV_CD > 7 THEN T2.DGR3_LEVL_DG_PRTNR_NM ELSE '' END AS DGR3_LEVL_DG_PRTNR_NM
                  , A.DANG_CHK_NM /* 위험점검내역.위험점검명 */
                  , A.DANG_ARBIT_CD /* [벌점 - 조치항목]  */
                  , A.DANG_UNCVR_CT /* 위험점검내역.위험적발건수 */
@@ -96,6 +96,7 @@
             ON T2.OG_ID = A.DANG_OJ_OG_ID
            AND T2.PRTNR_NO = A.DANG_OJ_PRTNR_NO
            AND T2.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6)
+           AND T2.OG_TP_CD IN ('W01', 'W02', 'W03', 'W04', 'W05', 'ALC')
              WHERE 1=1
              AND A.DTA_DL_YN = 'N'
             /* 조회조건 - 적용기간(등록일자 또는 발생년월) FROM~TO */
@@ -130,6 +131,7 @@
             <if test='@MybatisUtils@isNotEmpty(dangOjPrtnrNo)'>
                 AND TRIM(G.DANG_OJ_PRTNR_NO) LIKE #{dangOjPrtnrNo}||'%' /* 조회조건 - 사번 - 위험점검내역.위험관리파트너번호 */
             </if>
+           ORDER BY G.OG_CD, G.DANG_OJ_PRTNR_NM
     </select>
     <select id="selectDuplicationCheck" resultType="java.lang.String">
         SELECT MAX(DANG_CHK_ID)
@@ -196,11 +198,11 @@
             , C.DGR5_LEVL_OG_NM /* 월조직내역.5차레벨조직명 */
             , C.DGR5_LEVL_DG_PRTNR_NO /* 월조직내역.5차레벨대표파트너번호 */
             , C.DGR5_LEVL_OG_ID /* 5차레벨조직ID */
-            , C.BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+            , C.OG_UPBRNG_PRTNR_NO AS BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
                     , (SELECT PRTNR_KNM
                 FROM TB_OGBS_PRTNR_BAS T1
                 WHERE 1=1
-                AND T1.PRTNR_NO = C.BIZ_SPPT_PRTNR_NO
+                AND T1.PRTNR_NO = C.OG_UPBRNG_PRTNR_NO
                 AND T1.OG_TP_CD = C.OG_CD
             ) AS BIZ_SPPT_PRTNR_NM /* 월조직내역.업무지원파트너명 */
             , C.OG_UPBRNG_PRTNR_NO /* 월조직내역.조직육성파트너번호(영업지원파트너번호)-BM */
@@ -390,7 +392,7 @@
                 , #{item.dangOjPrtnrNo} /* 위험대상파트너번호 */
                 , #{item.dangMngtOgTpCd} /* 위험관리조직유형코드 */
                 , #{item.dangMngtPrtnrNo} /* 위험관리파트너번호 */
-                , #{item.dangOjOgId} /* 위험대상조직ID */
+                , (SELECT OG_ID FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = #{item.dangOjOgTpCd} AND PRTNR_NO = #{item.dangOjPrtnrNo}) /* 위험대상조직ID */
                 , #{item.dangOjPstnDvCd} /* 위험대상직급구분코드 */
                 , #{item.dangMngtPstnDvCd} /* 위험관리직급구분코드 */
                 , '' /* 위험등급값 */

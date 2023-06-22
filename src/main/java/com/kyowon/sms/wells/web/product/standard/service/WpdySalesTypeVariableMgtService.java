@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.standard.service;
 
 import java.util.List;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.product.standard.converter.WpdySalesTypeVariableMgtConverter;
@@ -45,6 +46,18 @@ public class WpdySalesTypeVariableMgtService {
             cnt += mapper.deleteSalesTypeVariableBase(base);
         }
         return cnt;
+    }
+
+    public String checkDuplication(List<WpdySalesTypeVariableMgtDto.TypeVariableBase> dtos) {
+        List<WpdyTypeVariableBaseDvo> bases = converter.mapAllTypeVarBaseDtoToTypeVarBaseDvo(dtos);
+        String duplicationKey = null;
+        for (WpdyTypeVariableBaseDvo base : bases) {
+            duplicationKey = mapper.selectSalesTypeVariableDuplication(base);
+            if (StringUtil.isNotBlank(duplicationKey)) {
+                break;
+            }
+        }
+        return duplicationKey;
     }
 
 }

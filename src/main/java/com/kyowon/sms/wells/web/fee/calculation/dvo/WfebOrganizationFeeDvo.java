@@ -9,5 +9,7 @@ public class WfebOrganizationFeeDvo {
 
     String perfYm;
     String no;
+    String ogTp;
+    String appKey;
 
 }

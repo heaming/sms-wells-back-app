@@ -38,4 +38,8 @@ public class WctaContractStatusDvo {
     private String mexnoEncr;
     private String cralIdvTno;
     private String mobileTelNo;
+
+    private String resultDiv;
+    private String viewRcpFshDtm;
+    private String viewCntrPrgsStatCd;
 }

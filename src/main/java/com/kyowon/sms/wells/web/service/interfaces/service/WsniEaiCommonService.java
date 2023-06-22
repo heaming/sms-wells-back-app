@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,6 +77,13 @@ public class WsniEaiCommonService {
             log.error("[WsniEaiCommonService.doit] IllegalAccessException ::: Method invoke error!");
             map.put("RESULT_CODE", "E");
             map.put("RESULT_MSG", "IllegalAccessException");
+            map.put("RETURN_OBJECT", null);
+            e.printStackTrace();
+//            throw e;
+        } catch (InvocationTargetException e){
+            log.error("[WsniEaiCommonService.doit] InvocationTargetException ::: Method invoke error!");
+            map.put("RESULT_CODE", "E");
+            map.put("RESULT_MSG", "InvocationTargetException");
             map.put("RETURN_OBJECT", null);
             e.printStackTrace();
 //            throw e;

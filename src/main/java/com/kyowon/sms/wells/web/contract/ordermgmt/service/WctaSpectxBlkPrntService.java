@@ -110,6 +110,7 @@ public class WctaSpectxBlkPrntService {
         return mapper.selectTradeSpcshFwInqrs(dto);
     }
 
+    @Transactional
     public int saveTradeSpcshFws(List<WctaSpectxBlkPrntDto.SaveTradeSpcshFwReq> dtos) throws Exception {
         int res = 0;
         for (WctaSpectxBlkPrntDto.SaveTradeSpcshFwReq dto : dtos) {
