@@ -54,9 +54,9 @@ public class WcsbNewReceiptMgtService {
      * @return
      */
     public WcsbNewReceiptMgtDto.SearchDtlRes getPspcCstCnslAssign(
-        String pspcCstCnslId
+        String pspcCstCnslId, String cntrNo
     ) {
-        return mapper.selectPspcCstCnslAssign(pspcCstCnslId);
+        return mapper.selectPspcCstCnslAssign(pspcCstCnslId, cntrNo);
     }
 
     /**
