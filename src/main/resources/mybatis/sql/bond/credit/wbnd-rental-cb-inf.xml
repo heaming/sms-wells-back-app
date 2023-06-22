@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbInformationMapper">
+    <select id="getTransSeq" resultType="String">
+        SELECT ( SELECT LPAD(NVL(MAX(ROWNUM),0)+1,10,'0')
+                   FROM TB_CBBO_WELLS_RENTAL_CB_RS_IZ
+               ) AS TRANS_SEQ   /*요청일련번호*/
+		     , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS GET_T       /*요청시분초*/
+		  FROM DUAL
+
+    </select>
+    
+    <select id="getTransCdMsg" resultType="String">
+        SELECT DANG_ARBIT_CD_NM 
+          FROM TB_SSCT_DANG_ARBIT_CD
+         WHERE 1=1
+           AND DANG_ARBIT_CD = #{dangArbitCd} 
+    </select>
+    
+    <insert id="insertCBSearchTrans">
+        INSERT INTO TB_CBBO_WELLS_RENTAL_CB_RS_IZ ( /*T:WELLS렌탈CB결과내역*/
+		       RENTAL_CB_INQR_ID         /*렌탈CB조회ID*/
+		     , CST_NO                    /*고객번호*/
+		     , SFK_VAL                   /*세이프키값*/
+		     , RENTAL_CB_DRM_DV_CD       /*렌탈CB식별구분코드*/
+		     , RENTAL_CB_INQR_USWY_CD    /*렌탈CB조회용도코드*/
+		     , CINF_INQR_RSON_CD         /*신용정보조회사유코드*/
+		     , DTA_DL_YN                 /*데이터삭제여부*/
+		     <include refid="COMMON.insertSystemField" />
+		) VALUES (
+		       (SELECT 'CBR'||TO_CHAR(SYSDATE,'YYYY')||(SELECT LPAD(NVL(MAX(SUBSTR(RENTAL_CB_INQR_ID,8,8)),0)+1,8,'0')
+		                                                 FROM TB_CBBO_WELLS_RENTAL_CB_RS_IZ
+		                                                WHERE RENTAL_CB_INQR_ID LIKE 'CBR'||TO_CHAR(SYSDATE,'YYYY')||'%')
+		        FROM DUAL)
+		     , #{cstNo}
+		     , #{rsdnNo}
+		     , #{keyDiv}
+		     , #{inqRsnCd}
+		     , #{rplyCd}         /*NICE 응답결과에서 파싱*/
+		     , 'N'
+		     <include refid="COMMON.insertSystemFieldValue" /> 
+		)
+		        
+    
+    
+    </insert>
+</mapper>
+    
