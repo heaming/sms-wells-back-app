@@ -55,7 +55,7 @@ public class WpdyRestipulationMgtService {
         DuplicationRes duplicationRes = new DuplicationRes(null, "N");
         for (SaveReq dto : dtos) {
             WpdyRestipulationDvo vo = converter.mapSaveReqToWpdyRestipulationDvo(dto);
-            if (mapper.selectDuplicationByPk(vo) == 1) {
+            if (mapper.selectDuplicationByPk(vo) > 0) {
                 return new DuplicationRes(vo.getPdNm(), "Y");
             }
         }
