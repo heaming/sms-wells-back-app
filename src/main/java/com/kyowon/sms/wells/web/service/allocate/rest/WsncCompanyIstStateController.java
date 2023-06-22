@@ -65,39 +65,39 @@ public class WsncCompanyIstStateController {
         return service.getCompanyIstStatePs(dto);
     }
 
-    //    @ApiOperation(value = "회사설치 현황 - 필터탭 조회", notes = "필터 조회")
-    //    @GetMapping("/filter/paging")
-    //    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateFltr(
-    //        SearchMainReq dto,
-    //        @Valid
-    //        PageInfo pageInfo
-    //    ) {
-    //        return service.getCompanyIstStateFltr(dto, pageInfo);
-    //    }
-    //
-    //    @ApiOperation(value = "회사설치 현황 - 필터탭 엑셀 다운로드", notes = "필터 엑셀 다운로드")
-    //    @GetMapping("/filter/excel-download")
-    //    public List<SearchFltrSubMatRes> getCompanyIstStateFltr(
-    //        SearchMainReq dto
-    //    ) {
-    //        return service.getCompanyIstStateFltr(dto);
-    //    }
-    //
-    //    @ApiOperation(value = "회사설치 현황 - 부자재탭 조회", notes = "부자재 조회")
-    //    @GetMapping("/sub-material/paging")
-    //    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateSubMat(
-    //        SearchMainReq dto,
-    //        @Valid
-    //        PageInfo pageInfo
-    //    ) {
-    //        return service.getCompanyIstStateSubMat(dto, pageInfo);
-    //    }
-    //
-    //    @ApiOperation(value = "회사설치 현황 - 부자재탭 엑셀 다운로드", notes = "부자재 엑셀 다운로드")
-    //    @GetMapping("/sub-material/excel-download")
-    //    public List<SearchFltrSubMatRes> getCompanyIstStateSubMat(
-    //        SearchMainReq dto
-    //    ) {
-    //        return service.getCompanyIstStateSubMat(dto);
-    //    }
+    @ApiOperation(value = "회사설치 현황 - 필터탭 조회", notes = "필터 조회")
+    @GetMapping("/filter/paging")
+    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateFltr(
+        SearchMainReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getCompanyIstStateFltr(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "회사설치 현황 - 필터탭 엑셀 다운로드", notes = "필터 엑셀 다운로드")
+    @GetMapping("/filter/excel-download")
+    public List<SearchFltrSubMatRes> getCompanyIstStateFltr(
+        SearchMainReq dto
+    ) {
+        return service.getCompanyIstStateFltr(dto);
+    }
+
+    @ApiOperation(value = "회사설치 현황 - 부자재탭 조회", notes = "부자재 조회")
+    @GetMapping("/sub-material/paging")
+    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateSubMat(
+        SearchMainReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getCompanyIstStateSubMat(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "회사설치 현황 - 부자재탭 엑셀 다운로드", notes = "부자재 엑셀 다운로드")
+    @GetMapping("/sub-material/excel-download")
+    public List<SearchFltrSubMatRes> getCompanyIstStateSubMat(
+        SearchMainReq dto
+    ) {
+        return service.getCompanyIstStateSubMat(dto);
+    }
 }

@@ -44,7 +44,7 @@ public interface WsncCompanyIstStateMapper {
     /**
      * 현황 탭 조회
      *
-     * @param dto : SearchReq mgtYnm(배정년월)
+     * @param dto : SearchReq mgtTyps(관리유형), istDtFrom(설치일자 시작), istDtTo(설치일자 종료)
      * @return 조회결과
      */
     PagingResult<SearchPsRes> selectCompanyIstStatePs(
@@ -59,5 +59,45 @@ public interface WsncCompanyIstStateMapper {
      */
     List<SearchPsRes> selectCompanyIstStatePs(
         SearchPsReq dto
+    );
+
+    /**
+     * 필터 탭 조회
+     *
+     * @param dto : SearchReq mgtYnm(배정년월)
+     * @return 조회결과
+     */
+    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateFltr(
+        SearchMainReq dto, PageInfo pageInfo
+    );
+
+    /**
+     * 필터 탭 엑셀 다운로드
+     *
+     * @param dto : SearchReq mgtYnm(배정년월)
+     * @return 조회결과
+     */
+    List<SearchFltrSubMatRes> selectCompanyIstStateFltr(
+        SearchMainReq dto
+    );
+
+    /**
+     * 부자재 탭 조회
+     *
+     * @param dto : SearchReq mgtYnm(배정년월)
+     * @return 조회결과
+     */
+    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateSubMat(
+        SearchMainReq dto, PageInfo pageInfo
+    );
+
+    /**
+     * 부자재 탭 액셀 다운로드
+     *
+     * @param dto : SearchReq mgtYnm(배정년월)
+     * @return 조회결과
+     */
+    List<SearchFltrSubMatRes> selectCompanyIstStateSubMat(
+        SearchMainReq dto
     );
 }
