@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
+package com.kyowon.sms.wells.web.contract.changeorder.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
