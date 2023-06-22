@@ -74,7 +74,7 @@ public class WbndRentalCbInformationService {
             paramMap.put("insHomNo", insHomNo);
             paramMap.put("insAdr", insAdr);
 
-            String TransSeq = mapper.getTransSeq();
+            String TransSeq = mapper.selectTransSeq();
             paramMap.put("TransSeq", TransSeq);
 
             String rtnJson = Trans(paramMap);
@@ -119,7 +119,7 @@ public class WbndRentalCbInformationService {
                         //params.put("LCGROP", "1000000212");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
 
-                        rst = mapper.getTransCdMsg(params);
+                        rst = mapper.selectTransCdMsg(params);
                         if (rst != null) {
                             ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst.get("LCTEXT"));
                         }
@@ -130,7 +130,7 @@ public class WbndRentalCbInformationService {
                         //params.put("LCGROP", "1000000211");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
 
-                        rst = mapper.getTransCdMsg(params);
+                        rst = mapper.selectTransCdMsg(params);
                         if (rst != null) {
                             ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst.get("LCTEXT"));
                         }
