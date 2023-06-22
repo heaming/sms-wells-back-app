@@ -599,6 +599,9 @@ public class WwdaAutoTransferInterfaceService {
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
         result.setAcFntRsCdNm(mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd));
 
+        // 3.1 리턴받은 계좌주명
+        result.setOwrKnm(resultDvo.getAchldrNm());
+
         resultDtos.add(result);
 
         return converter.mapRealNameCertificationDvoToWwdaAutoTransferRealNameCertificationRes(resultDtos);
