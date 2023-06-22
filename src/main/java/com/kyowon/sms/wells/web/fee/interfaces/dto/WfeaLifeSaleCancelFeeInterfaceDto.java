@@ -12,70 +12,70 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
     public record SaveReq(
         @NotBlank
         @JsonProperty("AKSDTE")
-        String aksdte, /* 발생월 */
+        String aKSDTE, /* 발생월 */
         @NotBlank
         @JsonProperty("ITM01")
-        String itm01, /* 예상확정구분코드 */
+        String iTM01, /* 예상확정구분코드 */
         @NotBlank
         @JsonProperty("ITM02")
-        String itm02, /* 상조고객코드 */
+        String iTM02, /* 상조고객코드 */
         @NotBlank
         @JsonProperty("AKDSEQ")
-        String akdseq, /* 회차 */
+        String aKDSEQ, /* 회차 */
         @JsonProperty("AKSGUB")
-        String aksgub, /* 구분 */
+        String aKSGUB, /* 구분 */
         @JsonProperty("AKSALE")
-        String aksale, /* 판매구분 */
+        String aKSALE, /* 판매구분 */
         @JsonProperty("AKDCDE")
-        String akdcde, /* 사번 */
+        String aKDCDE, /* 사번 */
         @JsonProperty("AKDBON")
-        String akdbon, /* 지점장 */
+        String aKDBON, /* 지점장 */
         @JsonProperty("AKCODE")
-        String akcode, /* 상조상품코드 */
+        String aKCODE, /* 상조상품코드 */
         @JsonProperty("ITM03")
-        String itm03, /* 상조상품명 */
+        String iTM03, /* 상조상품명 */
         @JsonProperty("AKCRTE")
-        String akcrte, /* 접수일 */
+        String aKCRTE, /* 접수일 */
         @JsonProperty("AKSLTE")
-        String akslte, /* 계약일 */
+        String aKSLTE, /* 계약일 */
         @JsonProperty("AKCDTE")
-        String akcdte, /* 취소일 */
+        String aKCDTE, /* 취소일 */
         @JsonProperty("AKTCNT")
-        String aktcnt, /* 총지급대상 */
+        String aKTCNT, /* 총지급대상 */
         @JsonProperty("AKMAMT")
-        String akmamt, /* 누적발생매출 */
+        String aKMAMT, /* 누적발생매출 */
         @JsonProperty("AKIAMT")
-        String akiamt, /* 누적입금 */
+        String aKIAMT, /* 누적입금 */
         @JsonProperty("AKISEQ")
-        String akiseq, /* 완납회차 */
+        String aKISEQ, /* 완납회차 */
         @JsonProperty("ITM04")
-        String itm04, /* WELLS 고객코드 */
+        String iTM04, /* WELLS 고객코드 */
         @JsonProperty("ITM05")
-        String itm05, /* WELLS 계약일련번호 */
+        String iTM05, /* WELLS 계약일련번호 */
         @JsonProperty("AKGDYM")
-        String akgdym, /* 수수료지급월 */
+        String aKGDYM, /* 수수료지급월 */
         @JsonProperty("AKHDYM")
-        String akhdym, /* 수수료되물림 */
+        String aKHDYM, /* 수수료되물림 */
         @JsonProperty("AKLOCK")
-        String aklock, /* 마감여부 */
+        String aKLOCK, /* 마감여부 */
         @JsonProperty("ITM06")
-        String itm06, /* 데이터삭제여부 */
+        String iTM06, /* 데이터삭제여부 */
         @JsonProperty("AKWDAY")
-        String akwday, /* 생성일자 */
+        String aKWDAY, /* 생성일자 */
         @JsonProperty("AKWDSP")
-        String akwdsp, /* 생성자 */
+        String aKWDSP, /* 생성자 */
         @JsonProperty("AKWPGM")
-        String akwpgm, /* 생성PGM */
+        String aKWPGM, /* 생성PGM */
         @JsonProperty("ITM07")
-        String itm07, /* 최초등록부서ID */
+        String iTM07, /* 최초등록부서ID */
         @JsonProperty("AKUDAY")
-        String akuday, /* 수정일자 */
+        String aKUDAY, /* 수정일자 */
         @JsonProperty("AKUDSP")
-        String akudsp, /* 수정자 */
+        String aKUDSP, /* 수정자 */
         @JsonProperty("AKUPGM")
-        String akupgm, /* 생성PGM */
+        String aKUPGM, /* 생성PGM */
         @JsonProperty("ITM08")
-        String itm08 /* 최종수정부서ID */
+        String iTM08 /* 최종수정부서ID */
 
     ) {}
 
