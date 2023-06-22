@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.fee.interfaces.rest;
 
-import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto;
+import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto.SaveReq;
+import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto.SaveRes;
 import com.kyowon.sms.wells.web.fee.interfaces.service.WfeaLifeSaleCancelFeeInterfaceService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -29,17 +30,17 @@ public class WfeaLifeSaleCancelFeeInterfaceController {
     public EaiWrapper createRdsProductDisbursementHoldings(
         @Valid
         @RequestBody
-        EaiWrapper<WfeaLifeSaleCancelFeeInterfaceDto.SaveReq> reqWrapper
+        EaiWrapper<SaveReq> reqWrapper
     ) throws Exception {
         // 1. Response용 EaiWrapper 생성
-        EaiWrapper<WfeaLifeSaleCancelFeeInterfaceDto.SaveRes> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<SaveRes> resWrapper = reqWrapper.newResInstance();
 
         // 2. return 파라미터
         String[] returnValue = service.updateLifeFeeSync(reqWrapper.getBody());
 
         // 3. 서비스 메소드 호출 및 Response Body 세팅
         resWrapper.setBody(
-            WfeaLifeSaleCancelFeeInterfaceDto.SaveRes.builder()
+            SaveRes.builder()
                 .rsCd(returnValue[0])
                 .rsMsg(returnValue[1])
                 .build()
