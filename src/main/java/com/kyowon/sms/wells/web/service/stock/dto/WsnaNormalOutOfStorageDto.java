@@ -84,7 +84,10 @@ public class WsnaNormalOutOfStorageDto {
         String ostrOjWareNm,
         String strOjWareNm,
         String stckStdGb,
-        String rgstDt
+        String rgstDt,
+        String itmOstrNo,
+        String ostrSn,
+        String ostrTpCd
     ) {}
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRes")
     public record DetailRes(
@@ -109,7 +112,7 @@ public class WsnaNormalOutOfStorageDto {
         String itmGdCd,
         String reqStckQty,
         String ostrWareNo,
-        String ostrWareMngtPrtnrNo,
+//        String ostrWareMngtPrtnrNo,
         String mngtUnitCd,
         String mgtUntNm,
         String boxUnitQty,
@@ -239,6 +242,9 @@ public class WsnaNormalOutOfStorageDto {
         String ostrOjWareNm,
         String strOjWareNm,
         String ostrAkTpNm,
-        String itmPdCd
+        String itmPdCd,
+        String itmOstrNo,
+//        String ostrSn,
+        String ostrTpCd
     ){}
 }
