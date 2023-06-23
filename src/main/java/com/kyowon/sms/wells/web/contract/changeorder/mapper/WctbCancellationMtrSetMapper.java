@@ -1,11 +1,11 @@
-package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
+package com.kyowon.sms.wells.web.contract.changeorder.mapper;
 
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctbCancellationMtrSetDto;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctbCancellationMtrSetDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancellationMtrSetDto;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancellationMtrSetDto.SearchRes;
 
 ;
 

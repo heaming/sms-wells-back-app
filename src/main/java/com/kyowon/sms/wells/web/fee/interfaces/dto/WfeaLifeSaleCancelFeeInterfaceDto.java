@@ -8,8 +8,8 @@ import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 public class WfeaLifeSaleCancelFeeInterfaceDto {
-    @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
-    public record SaveReq(
+
+    public  record IfList(
         @NotBlank
         @JsonProperty("AKSDTE")
         String aksdte, /* 발생월 */
@@ -78,9 +78,14 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         String itm08 /* 최종수정부서ID */
 
     ) {}
-
-    @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveRes")
     @Builder
+    @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
+    public record SaveReq(
+        List<IfList> ifs
+    ) {}
+
+    @Builder
+    @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveRes")
     public record SaveRes(
         @JsonProperty("RS_CD")
         String rsCd, /*결과코드*/

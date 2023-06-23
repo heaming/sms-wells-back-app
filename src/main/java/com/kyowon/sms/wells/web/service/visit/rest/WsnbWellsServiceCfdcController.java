@@ -38,8 +38,8 @@ public class WsnbWellsServiceCfdcController {
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getWellsServiceConfirmations(
-        SearchReq dto,
         @Valid
+        SearchReq dto,
         PageInfo pageInfo
     ) {
         return service.getWellsServiceConfirmations(dto, pageInfo);

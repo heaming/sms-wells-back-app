@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WctcPartnerInfInqrPywdDvo {
+public class WctaPartnerInfInqrPywdDvo {
     private String sellInflwChnlDtlCd;
     private String prtnrNo;
     private String prtnrKnm;

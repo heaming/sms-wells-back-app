@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemReceivingAndPayingDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReceiptsAndPaymentsDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemReceivingAndPayingDto.*;
@@ -12,9 +14,10 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnaItemReceivingAndPayingMapper {
 
-    PagingResult<SearchRes> selectReceiptsAndPaymentsPages(
-        SearchReq dto,
-        PageInfo pageInfo
+    long selectReceiptsAndPaymentCount(WsnaReceiptsAndPaymentsDvo dvo);
+
+    List<SearchRes> selectReceiptsAndPaymentsPages(
+        WsnaReceiptsAndPaymentsDvo dvo
     );
 
     List<SearchRes> selectReceiptsAndPaymentsPages(
