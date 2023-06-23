@@ -61,7 +61,7 @@
         , T1.ISTM_MCN
         , SUBSTR(T1.SL_CL_DT , -2) AS LCSLED
         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1 /*월마감테이블*/
-        LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세*/
+        JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세*/
         ON T2.CNTR_NO = T1.CNTR_NO
         AND T2.CNTR_SN = T1.CNTR_SN
         AND T2.DTA_DL_YN = 'N'
@@ -73,15 +73,23 @@
         LEFT OUTER JOIN TB_CUBS_CST_BAS T4
         ON T4.CST_NO = T1.CST_NO
         AND T4.DTA_DL_YN = 'N'
-        LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5
+        JOIN TB_SSCT_CNTR_DTL T5
         ON T5.CNTR_NO = T1.CNTR_NO
         AND T5.CNTR_SN = T1.CNTR_SN
         AND T5.DTA_DL_YN = 'N'
+        JOIN TB_SSCT_CNTR_STLM_REL SCSR
+          ON T5.CNTR_NO = SCSR.DTL_CNTR_NO
+         AND SCSR.DP_TP_CD = '0401'
         WHERE 1 = 1
         AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM')
-        <if test="@MybatisUtils@isNotEmpty(cntr)">
-        AND T1.CNTR_NO||T1.CNTR_SN LIKE '%'||#{cntr} /*계약일련번호*/
-        </if>
+        <choose>
+            <when test="@MybatisUtils@equals(cntr, 'no')">
+                AND T1.DTA_DL_YN = 'N'
+            </when>
+            <otherwise>
+            AND T1.CNTR_NO||T1.CNTR_SN LIKE '%'||#{cntr} /*계약일련번호*/
+            </otherwise>
+        </choose>
 
         <!--            <choose>-->
         <!--                <when test="@MybatisUtils@equals(cntr, 'null')">-->
@@ -492,7 +500,6 @@
                                                   FROM TB_RVDW_GIRO_OCR_MNGT_BAS T1  --OCR관리기본
                                                   LEFT OUTER JOIN (SELECT LEVEL AS HOECHA FROM DUAL CONNECT BY LEVEL<![CDATA[ <= ]]> 100) T2
                                                     ON T2.HOECHA BETWEEN T1.STRT_GIRO_TN AND T1.END_GIRO_TN
-                                                   AND T2.DTA_DL_YN = 'N'
                                                   LEFT OUTER JOIN TB_RVDW_GIRO_PLRCV_BAS T3 --지로수신처
                                                     ON T3.CNTR_NO = T1.CNTR_NO AND T3.CNTR_SN = T3.CNTR_SN
                                                    AND T3.DTA_DL_YN = 'N'

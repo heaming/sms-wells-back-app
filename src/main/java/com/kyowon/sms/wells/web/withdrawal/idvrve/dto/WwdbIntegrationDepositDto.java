@@ -52,13 +52,13 @@ public class WwdbIntegrationDepositDto {
         String istmMcn, /* 할부개월 */
         String alncmpDvCd /* 제휴가구분코드*/
     ) {
-        //        public SearchRes {
-        //            if (!StringUtil.isEmpty(acnoEncr)) {
-        //                acnoEncr = DbEncUtil.dec(acnoEncr); // 계좌번호 복호화
-        //            }
-        //            if (!StringUtil.isEmpty(crcdnoEncr)) {
-        //                crcdnoEncr = DbEncUtil.dec(crcdnoEncr); // 카드번호 복호화
-        //            }
-        //        }
+        public SearchRes {
+            if (!StringUtil.isEmpty(acnoEncr)) {
+                acnoEncr = DbEncUtil.dec(acnoEncr); // 계좌번호 복호화
+            }
+            if (!StringUtil.isEmpty(crcdnoEncr)) {
+                crcdnoEncr = DbEncUtil.dec(crcdnoEncr); // 카드번호 복호화
+            }
+        }
     }
 }

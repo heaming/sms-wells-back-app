@@ -34,7 +34,7 @@ public class WsnbWellsServiceCfdcDto {
         String cntrCstNo,
         String asnOjYm,
         String cntrNo,
-        String cntrSn,
+        Integer cntrSn,
         String cntr,
         String sellPrtnrNo,
         String ogCd,

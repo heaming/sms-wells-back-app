@@ -279,27 +279,47 @@
                                                   , RIBB.DG_CNTR_SN
                                                   , RIBB.SUBOD_CNTR_NO 
                                                   , RIBB.SUBOD_CNTR_SN 
-                                                  , SCSB.DP_TP_CD 
-                                                  , SCSB.BNK_CD
-                                                  , SCSB.CDCO_CD 
-                                                  , SCSB.ACNO_ENCR
-                                                  , SCSB.CRCDNO_ENCR
-                                                  , SCSB.OWR_KNM    
-                                                  , SCSB.MPY_BSDT
+                                                  , A.DP_TP_CD 
+                                                  , A.BNK_CD
+                                                  , A.CDCO_CD 
+                                                  , A.ACNO_ENCR
+                                                  , A.CRCDNO_ENCR
+                                                  , A.OWR_KNM    
+                                                  , A.MPY_BSDT
                                                   , RIEI.ITG_BIL_PRTC_DTM   
                                                   , RIEI.FNL_MDFC_USR_ID    
                                                   , RIEI.AFTN_ITG_UNRG_RS_CD    
                                                   , RIEI.AFTN_ITG_UNRG_RSON_CD  
                                                   , RIEI.ERR_CN 
-                                               FROM TB_SSCT_CNTR_STLM_BAS SCSB
-                                               JOIN TB_SSCT_CNTR_BAS SCB
-                                                 ON SCSB.CST_NO = SCB.CNTR_CST_NO 
-                                                AND SCSB.CNTR_NO = SCB.CNTR_NO 
-                                                AND SCSB.DTA_DL_YN = 'N'
-                                                AND SCB.DTA_DL_YN = 'N'
+                                               FROM (
+                                                     SELECT *
+                                                      FROM (
+                                                            SELECT SCSB.ACNO_ENCR /* 계좌번호 암호화 */
+                                                                 , SCSB.CRCDNO_ENCR /* 신용카드번호 암호화 */
+                                                                 , SCSB.OWR_KNM
+                                                                 , SCSB.BNK_CD 
+                                                                 , SCSB.CDCO_CD
+                                                                 , SCSR.DTL_CNTR_NO 
+                                                                 , SCSR.DTL_CNTR_SN
+                                                                 , SCSB.MPY_BSDT
+                                                                 , SCSB.DP_TP_CD
+                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO, SCSR.DTL_CNTR_SN ORDER BY SCSR.VL_STRT_DTM DESC) AS RN
+                                                              FROM TB_SSCT_CNTR_STLM_REL SCSR
+                                                              JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+                                                                ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                                               AND SCSB.DTA_DL_YN = 'N'
+                                                               AND SCSR.DTA_DL_YN = 'N'
+                                                               AND SCSB.DP_TP_CD IN ('0102','0203')
+                                                       )
+                                                 WHERE RN = 1
+                                                   ) A
                                                JOIN TB_SSCT_CNTR_DTL SCD
-                                                 ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                                 ON A.DTL_CNTR_NO = SCD.CNTR_NO
+                                                AND A.DTL_CNTR_SN = SCD.CNTR_SN
                                                 AND SCD.DTA_DL_YN = 'N'
+                                               JOIN TB_SSCT_CNTR_BAS SCB
+                                                 ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                                AND SCB.DTA_DL_YN = 'N'
                                                JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
                                                  ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
                                                 AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 
@@ -328,27 +348,47 @@
                                                   , RIBB.DG_CNTR_SN
                                                   , RIBB.SUBOD_CNTR_NO 
                                                   , RIBB.SUBOD_CNTR_SN 
-                                                  , SCSB.DP_TP_CD 
-                                                  , SCSB.BNK_CD
-                                                  , SCSB.CDCO_CD 
-                                                  , SCSB.ACNO_ENCR
-                                                  , SCSB.CRCDNO_ENCR
-                                                  , SCSB.OWR_KNM    
-                                                  , SCSB.MPY_BSDT
+                                                  , A.DP_TP_CD 
+                                                  , A.BNK_CD
+                                                  , A.CDCO_CD 
+                                                  , A.ACNO_ENCR
+                                                  , A.CRCDNO_ENCR
+                                                  , A.OWR_KNM    
+                                                  , A.MPY_BSDT
                                                   , RIEI.ITG_BIL_PRTC_DTM   
                                                   , RIEI.FNL_MDFC_USR_ID    
                                                   , RIEI.AFTN_ITG_UNRG_RS_CD    
                                                   , RIEI.AFTN_ITG_UNRG_RSON_CD  
                                                   , RIEI.ERR_CN 
-                                               FROM TB_SSCT_CNTR_STLM_BAS SCSB
-                                               JOIN TB_SSCT_CNTR_BAS SCB
-                                                 ON SCSB.CST_NO = SCB.CNTR_CST_NO 
-                                                AND SCSB.CNTR_NO = SCB.CNTR_NO 
-                                                AND SCSB.DTA_DL_YN = 'N'
-                                                AND SCB.DTA_DL_YN = 'N'
+                                               FROM (
+                                                     SELECT *
+                                                      FROM (
+                                                            SELECT SCSB.ACNO_ENCR /* 계좌번호 암호화 */
+                                                                 , SCSB.CRCDNO_ENCR /* 신용카드번호 암호화 */
+                                                                 , SCSB.OWR_KNM
+                                                                 , SCSB.BNK_CD 
+                                                                 , SCSB.CDCO_CD
+                                                                 , SCSR.DTL_CNTR_NO 
+                                                                 , SCSR.DTL_CNTR_SN
+                                                                 , SCSB.MPY_BSDT
+                                                                 , SCSB.DP_TP_CD
+                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO, SCSR.DTL_CNTR_SN ORDER BY SCSR.VL_STRT_DTM DESC) AS RN
+                                                              FROM TB_SSCT_CNTR_STLM_REL SCSR
+                                                              JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+                                                                ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
+                                                               AND SCSB.DTA_DL_YN = 'N'
+                                                               AND SCSR.DTA_DL_YN = 'N'
+                                                               AND SCSB.DP_TP_CD IN ('0102','0203')
+                                                       )
+                                                 WHERE RN = 1
+                                                   ) A
                                                JOIN TB_SSCT_CNTR_DTL SCD
-                                                 ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                                 ON A.DTL_CNTR_NO = SCD.CNTR_NO
+                                                AND A.DTL_CNTR_SN = SCD.CNTR_SN
                                                 AND SCD.DTA_DL_YN = 'N'
+                                               JOIN TB_SSCT_CNTR_BAS SCB
+                                                 ON SCB.CNTR_NO = SCD.CNTR_NO 
+                                                AND SCB.DTA_DL_YN = 'N'
                                                JOIN TB_RVCL_ITG_BIL_OJ_BAS RIBB
                                                  ON RIBB.SUBOD_CNTR_NO = SCD.CNTR_NO 
                                                 AND RIBB.SUBOD_CNTR_SN = SCD.CNTR_SN 

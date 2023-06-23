@@ -134,7 +134,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
     public Map<String, String> setLifAlncDvCdHeader(String lifAlncDvCd) {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         if (lifAlncDvCd.equals("30")) { //웰스399
-            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); // 순번
+            headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SN")); // 순번
             headerTitle.put("welsCntrNo", messageResourceService.getMessage("MSG_TXT_CST_CD"));//고객코드
             headerTitle.put("test1", messageResourceService.getMessage("MSG_TXT_CUST_STMT")); // 고객성명
             headerTitle.put("lifAlncPdCd", messageResourceService.getMessage("MSG_TXT_PRDT"));// 상품
@@ -147,9 +147,9 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             headerTitle.put("test5", messageResourceService.getMessage("MSG_TXT_INSLM_AMT"));// 부금금액
             headerTitle.put("test6", messageResourceService.getMessage("MSG_TXT_INSLM_AGG"));// 부금누계
             headerTitle.put("lifSpptAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT"));// 지원금액
-            headerTitle.put("lifSpptAggAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT"));// 라이프지원누계금액
-            headerTitle.put("lifRepAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); //라이프환수금액
-            headerTitle.put("lifCntrNo", messageResourceService.getMessage("MSG_TXT_MUTU_CNTR_NO"));// 상조계약번호
+            headerTitle.put("lifSpptAggAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AGG"));// 라이프지원누계금액
+            headerTitle.put("lifRepAmt", messageResourceService.getMessage("MSG_TXT_REP_AMT")); //라이프환수금액
+            headerTitle.put("lifCntrNo", messageResourceService.getMessage("MSG_TXT_MUTU_MB_CD"));// 상조계약번호
         } else {
             headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); /* 순번 */
             headerTitle.put("lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM")); /*상품명*/
@@ -311,7 +311,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         depositCprDvo.setKwGrpCoCd(dto.kwGrpCoCd()); /*교원그룹회사코드*/
         depositCprDvo.setRveCd(dto.rveCd()); /*수납코드*/
         depositCprDvo.setProcsDvCd("1"); /*처리구분코드 1 */
-        depositCprDvo.setDpTpCd(dto.dpTpCd()); /*입금유형코드*/
+        depositCprDvo.setDpMesCd("06"); /*입금수단코드*/
+        depositCprDvo.setDpTpCd("0801"); /*입금유형코드*/
         depositCprDvo.setIaDvCd("11"); /*입금항목구분코드 11 */
         depositCprDvo.setDpCprcnfBizDvCd("01"); /*입금대사업무구분코드 01 */
         depositCprDvo.setDpCprcnfDtm(sysDate); /*입금대사일시*/

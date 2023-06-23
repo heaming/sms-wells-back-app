@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.ordermgmt.service;
+package com.kyowon.sms.wells.web.contract.changeorder.service;
 
 import java.util.List;
 
@@ -6,11 +6,11 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctbCancellationMtrSetConverter;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctbCancellationMtrSetDto;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctbCancellationMtrSetDto.SearchRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctbCancellationMtrSetDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctbCancellationMtrSetMapper;
+import com.kyowon.sms.wells.web.contract.changeorder.converter.WctbCancellationMtrSetConverter;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancellationMtrSetDto;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancellationMtrSetDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancellationMtrSetDvo;
+import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCancellationMtrSetMapper;
 
 import lombok.RequiredArgsConstructor;
 

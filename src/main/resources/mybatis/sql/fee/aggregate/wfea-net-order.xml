@@ -295,7 +295,7 @@
             AND M.OG_TP_CD = #{ogDvCd}
         </if>
           WHERE T3.CD_ID = 'OG_TP_CD'
-            AND T3.TENANT_ID = 'TNT_WELLS'
+            AND T3.TENANT_ID = #{session.tenantId}
         <if test="ogDvCd == ''">
             AND T3.CD_VLD_VAL IN ('W01','W02','W03','W04','W05','W06')
         </if>
@@ -322,7 +322,7 @@
            AND CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
     </delete>
 
-    <insert id="insertNetOrders">
+    <insert id="insertManagerNetOrders">
         INSERT INTO TB_FEAM_WELS_NRCTR_MM_CL
         SELECT #{perfYm} AS BASE_YM
              , #{perfYm} AS PERF_YM
@@ -375,7 +375,7 @@
              , '' AS CVT_PERF_AMT
              , CASE WHEN A.BOO_SELL_TP_CD = 2 THEN 'Y' ELSE 'N' END AS BOO_SELL_YN
              , A.CNTR_RCP_FSH_DTM AS RCPDT
-             , TO_CHAR(A.SL_RCOG_DT,'YYYYMM') AS SL_DT
+             , A.SL_RCOG_DT AS SL_DT
              , A.CNTR_PD_ENDDT AS CAN_DT
              , CASE WHEN A.SELL_TP_CD = '1' THEN 0 /* 일시불 = 0 */
                     WHEN A.RSTL_YN = 'Y' THEN 0 /* 재약정 = '' */
@@ -384,14 +384,7 @@
              , '' AS FEE_CPSN_REDF_ID
              , TO_CHAR(SYSDATE,'YYYYMMDD') AS OJ_PRCSDT
              , 'N' AS DTA_DL_YN
-             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
-             , 'BATCH' AS FST_RGST_USR_ID
-             , 'BATCH' AS FST_RGST_PRG_ID
-             , 'BATCH' AS FST_RGST_DEPT_ID
-             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
-             , 'BATCH' AS FNL_MDFC_USR_ID
-             , 'BATCH' AS FNL_MDFC_PRG_ID
-             , 'BATCH' AS FNL_MDFC_DEPT_ID
+             <include refid="COMMON.insertSystemFieldValue"/>
           FROM ( /* 일시불 */
                  SELECT BAS.CNTR_NO /*계약번호*/
                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
@@ -686,6 +679,625 @@
            AND A.CNTR_SN = D.BASE_CNTR_SN
          WHERE NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE A.CNTR_NO = X.CNTR_NO AND A.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '01') /*수수료실적제외대상 제외*/
 
+    </insert>
+
+    <insert id="insertPlannerNetOrders">
+        INSERT INTO TB_FEAM_WELS_NRCTR_MM_CL
+        SELECT #{perfYm} AS BASE_YM
+             , #{perfYm} AS PERF_YM
+             , #{tcntDvCd} AS FEE_TCNT_DV_CD
+             , A.CNTR_NO
+             , A.CNTR_SN
+             , '01' AS CNTR_PERF_CRT_DV_CD
+             , '02' AS NTOR_CNFM_STAT_CD
+             , '2000' AS CO_CD
+             , 'W01' AS OG_TP_CD
+             , A.SELL_PRTNR_NO
+             , A.BASE_PD_CD AS PD_CD
+             , '' AS REF_PD_CLSF_VAL
+             , '' AS PERF_TP_CD
+             , A.SELL_TP_CD
+             , A.SELL_DSC_DV_CD AS DSC_DV_CD
+             , CASE WHEN A.SELL_DSC_DV_CD = '5' THEN A.SELL_DSCR_CD ELSE '0' END AS SELL_DSCR_CD
+             , CASE WHEN A.SELL_DSC_DV_CD != '5' THEN A.STPL_PTRM ELSE 0 END AS RECAP_DUTY_PTRM_N
+             , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_DSC_TP_CD = '' THEN '0' ELSE A.SELL_DSC_TP_CD END) /* 렌탈 */
+                    ELSE '0'
+               END AS PMOT_USWY_DV_CD
+             , A.SV_PRD AS BFSVC_PRD_CD
+             , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN D.MCHN_CH_TP_CD IS NOT NULL THEN 'Y' ELSE 'N' END) /* 렌탈 */
+                    ELSE ''
+               END AS MCHN_CH_YN
+             , CASE WHEN A.SELL_TP_CD = '2' THEN A.SELL_DSC_TP_CD /* 렌탈 */
+                    ELSE ''
+               END AS SELL_DSC_TP_CD
+             , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(D.MCHN_CH_TP_CD,0)
+                    ELSE '0'
+               END AS MCHN_CH_TP_CD
+             , 'N' AS RSTL_YN
+             , '1' AS FEE_ACKMT_DV_CD
+             , B.OG_ID AS HDQ_OG_ID
+             , '1' AS VTSEL_SODBT_CHNL_DV_CD
+             , '' AS SELL_AMT
+             , '' AS SL_AMT
+             , '' AS REDF_ADSB_OJ_AMT
+             , '' AS VAT
+             , '' AS ACKMT_PERF_RT
+             , A.ACKMT_PERF_AMT
+             , A.FEE_ACKMT_CT AS ACKMT_PERF_CT
+             , '' AS CVT_PERF_AMT
+             , CASE WHEN A.BOO_SELL_TP_CD = 2 THEN 'Y' ELSE 'N' END AS BOO_SELL_YN
+             , A.CNTR_RCP_FSH_DTM AS RCPDT
+             , A.SL_RCOG_DT AS SL_DT
+             , A.CNTR_PD_ENDDT AS CAN_DT
+             , CASE WHEN A.SELL_TP_CD = '1' THEN 0 /* 일시불 = 0 */
+                    WHEN A.SELL_TP_CD = '3' THEN A.ISTM_MCN /* 멤버십 */
+                    WHEN A.SELL_TP_CD = '6' THEN 0 /* 정기배송 = 0 */
+                    ELSE A.STPL_PTRM
+               END AS STPL_PTRM_MCN
+             , '' AS FEE_CPSN_REDF_ID
+             , TO_CHAR(SYSDATE,'YYYYMMDD') AS OJ_PRCSDT
+             , 'N' AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue"/>
+           FROM ( /* 일시불 */
+                  SELECT BAS.CNTR_NO /*계약번호*/
+                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                       , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                       , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                       , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                       , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                       , DTL.BASE_PD_CD /* 상품코드 */
+                       , DTL.CNTR_SN /* 계약sq*/
+                       , DTL.CNTRW_TP_CD /* 상품분류 */
+                       , SC.SL_RCOG_DT /* 매출년월 */
+                       , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                       , DTL.FEE_FXAM_YN /* 정액여부 */
+                       , DTL.SELL_TP_CD /* 판매유형 코드 */
+                       , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                       , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                       , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                       , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                       , DTL.SV_PRD /* BS주기코드 */
+                       , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                       , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                       , DTL.ISTM_MCN /* 할부개월수 */
+                       , DTL.STPL_PTRM  /*약정기간*/
+                    FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                      ON BAS.CNTR_NO = DTL.CNTR_NO
+                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
+                     AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                      ON DTL.CNTR_NO = SC.CNTR_NO
+                     AND DTL.CNTR_SN = SC.CNTR_SN
+                   WHERE BAS.SELL_OG_TP_CD = 'W01'
+                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                   UNION ALL
+                  SELECT BAS.CNTR_NO /*계약번호*/
+                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                       , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                       , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                       , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                       , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                       , DTL.BASE_PD_CD /* 상품코드 */
+                       , DTL.CNTR_SN /* 계약sq*/
+                       , DTL.CNTRW_TP_CD /* 상품분류 */
+                       , SC.SL_RCOG_DT /* 매출년월 */
+                       , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                       , DTL.FEE_FXAM_YN /* 정액여부 */
+                       , DTL.SELL_TP_CD /* 판매유형 코드 */
+                       , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                       , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                       , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                       , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                       , DTL.SV_PRD /* BS주기코드 */
+                       , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                       , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                       , DTL.ISTM_MCN /* 할부개월수 */
+                       , DTL.STPL_PTRM  /*약정기간*/
+                    FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                      ON BAS.CNTR_NO = DTL.CNTR_NO
+                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
+                     AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                      ON DTL.CNTR_NO = SC.CNTR_NO
+                     AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
+                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
+                   WHERE BAS.SELL_OG_TP_CD = 'W01'
+                   UNION ALL
+                   /* 렌탈 */
+                  SELECT BAS.CNTR_NO /*계약번호*/
+                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                       , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                       , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                       , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                       , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                       , DTL.BASE_PD_CD /* 상품코드 */
+                       , DTL.CNTR_SN /* 계약sq*/
+                       , DTL.CNTRW_TP_CD /* 상품분류 */
+                       , SC.SL_RCOG_DT /* 매출년월 */
+                       , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                       , DTL.FEE_FXAM_YN /* 정액여부 */
+                       , DTL.SELL_TP_CD /* 판매유형 코드 */
+                       , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                       , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                       , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                       , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                       , DTL.SV_PRD /* BS주기코드 */
+                       , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                       , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                       , DTL.ISTM_MCN /* 할부개월수 */
+                       , DTL.STPL_PTRM  /*약정기간*/
+                    FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                      ON BAS.CNTR_NO = DTL.CNTR_NO
+                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
+                     AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                      ON DTL.CNTR_NO = SC.CNTR_NO
+                     AND DTL.CNTR_SN = SC.CNTR_SN
+                   WHERE BAS.SELL_OG_TP_CD = 'W01'
+                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                   UNION ALL
+                  SELECT BAS.CNTR_NO /*계약번호*/
+                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                       , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                       , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                       , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                       , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                       , DTL.BASE_PD_CD /* 상품코드 */
+                       , DTL.CNTR_SN /* 계약sq*/
+                       , DTL.CNTRW_TP_CD /* 상품분류 */
+                       , SC.SL_RCOG_DT /* 매출년월 */
+                       , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                       , DTL.FEE_FXAM_YN /* 정액여부 */
+                       , DTL.SELL_TP_CD /* 판매유형 코드 */
+                       , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                       , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                       , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                       , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                       , DTL.SV_PRD /* BS주기코드 */
+                       , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                       , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                       , DTL.ISTM_MCN /* 할부개월수 */
+                       , DTL.STPL_PTRM  /*약정기간*/
+                    FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                      ON BAS.CNTR_NO = DTL.CNTR_NO
+                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
+                     AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                      ON DTL.CNTR_NO = SC.CNTR_NO
+                     AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
+                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
+                   WHERE BAS.SELL_OG_TP_CD = 'W01'
+                   UNION ALL
+                  /* 멤버십 */
+                  SELECT BAS.CNTR_NO /*계약번호*/
+                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                       , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                       , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                       , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                       , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                       , DTL.BASE_PD_CD /* 상품코드 */
+                       , DTL.CNTR_SN /* 계약sq*/
+                       , DTL.CNTRW_TP_CD /* 상품분류 */
+                       , SC.SL_RCOG_DT /* 매출년월 */
+                       , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                       , DTL.FEE_FXAM_YN /* 정액여부 */
+                       , DTL.SELL_TP_CD /* 판매유형 코드 */
+                       , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                       , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                       , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                       , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                       , DTL.SV_PRD /* BS주기코드 */
+                       , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                       , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                       , DTL.ISTM_MCN /* 할부개월수 */
+                       , DTL.STPL_PTRM  /*약정기간*/
+                    FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                      ON BAS.CNTR_NO = DTL.CNTR_NO
+                     AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
+                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                      ON DTL.CNTR_NO = SC.CNTR_NO
+                     AND DTL.CNTR_SN = SC.CNTR_SN
+                   WHERE BAS.SELL_OG_TP_CD = 'W01'
+                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                     AND BAS.CNTR_CNFM_DTM != BAS.CNTR_CAN_DTM /* 설치일자 != 취소년월 */
+                   UNION ALL
+                  /* 정기배송 */
+                  SELECT BAS.CNTR_NO /*계약번호*/
+                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                       , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                       , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                       , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                       , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                       , DTL.BASE_PD_CD /* 상품코드 */
+                       , DTL.CNTR_SN /* 계약sq*/
+                       , DTL.CNTRW_TP_CD /* 상품분류 */
+                       , SC.SL_RCOG_DT /* 매출년월 */
+                       , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                       , DTL.FEE_FXAM_YN /* 정액여부 */
+                       , DTL.SELL_TP_CD /* 판매유형 코드 */
+                       , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                       , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                       , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                       , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                       , DTL.SV_PRD /* BS주기코드 */
+                       , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                       , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                       , DTL.ISTM_MCN /* 할부개월수 */
+                       , DTL.STPL_PTRM  /*약정기간*/
+                    FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                      ON BAS.CNTR_NO = DTL.CNTR_NO
+                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
+                     AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                      ON DTL.CNTR_NO = SC.CNTR_NO
+                     AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND DTL.STPL_PTRM >= 6
+                   WHERE BAS.SELL_OG_TP_CD = 'W01'
+                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                   UNION ALL
+                  SELECT BAS.CNTR_NO /*계약번호*/
+                       , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                       , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                       , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                       , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                       , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                       , DTL.BASE_PD_CD /* 상품코드 */
+                       , DTL.CNTR_SN /* 계약sq*/
+                       , DTL.CNTRW_TP_CD /* 상품분류 */
+                       , SC.SL_RCOG_DT /* 매출년월 */
+                       , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                       , DTL.FEE_FXAM_YN /* 정액여부 */
+                       , DTL.SELL_TP_CD /* 판매유형 코드 */
+                       , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                       , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                       , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                       , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                       , DTL.SV_PRD /* BS주기코드 */
+                       , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                       , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                       , DTL.ISTM_MCN /* 할부개월수 */
+                       , DTL.STPL_PTRM  /*약정기간*/
+                    FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                      ON BAS.CNTR_NO = DTL.CNTR_NO
+                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
+                     AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                      ON DTL.CNTR_NO = SC.CNTR_NO
+                     AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND DTL.STPL_PTRM >= 6
+                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
+                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
+                     WHERE BAS.SELL_OG_TP_CD = 'W01'
+                ) A
+          INNER JOIN TB_OGBS_MM_PRTNR_IZ B /* T월파트너내역T */
+             ON A.CNTR_CNFM_DTM = B.BASE_YM
+            AND A.SELL_OG_TP_CD = B.OG_TP_CD
+            AND A.SELL_PRTNR_NO = B.PRTNR_NO
+           LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ D  /*T기기변경내역T*/
+             ON A.CNTR_NO = D.BASE_CNTR_NO
+            AND A.CNTR_SN = D.BASE_CNTR_SN
+          WHERE NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE A.CNTR_NO = X.CNTR_NO AND A.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '01') /*수수료실적제외대상 제외*/
+    </insert>
+
+    <insert id="insertHomeMasterNetOrders">
+        INSERT INTO TB_FEAM_WELS_NRCTR_MM_CL
+        SELECT #{perfYm} AS BASE_YM
+             , #{perfYm} AS PERF_YM
+             , #{tcntDvCd} AS FEE_TCNT_DV_CD
+             , A.CNTR_NO
+             , A.CNTR_SN
+             , '01' AS CNTR_PERF_CRT_DV_CD
+             , '02' AS NTOR_CNFM_STAT_CD
+             , '2000' AS CO_CD
+             , 'W03' AS OG_TP_CD
+             , A.SELL_PRTNR_NO AS PRTNR_NO
+             , A.BASE_PD_CD AS PD_CD
+             , '' AS REF_PD_CLSF_VAL
+             , '' AS PERF_TP_CD
+             , A.SELL_TP_CD
+             , A.SELL_DSC_DV_CD
+             , CASE WHEN A.SELL_DSC_DV_CD = '5' THEN A.SELL_DSCR_CD ELSE '0' END AS SELL_DSCR_CD
+             , CASE WHEN A.SELL_DSC_DV_CD != '5' THEN A.STPL_PTRM ELSE 0 END AS RECAP_DUTY_PTRM_N
+             , CASE WHEN A.SELL_TP_CD = '2'
+                    THEN (CASE WHEN A.SELL_DSC_TP_CD = '' THEN '0' ELSE A.SELL_DSC_TP_CD END)
+                    ELSE '0'
+               END AS PMOT_USWY_DV_CD /* 일시불 = 0 */
+             , A.SV_PRD AS BFSVC_PRD_CD
+             , CASE WHEN A.SELL_TP_CD = '1' THEN '' /* 일시불 = '' */
+                    WHEN D.MCHN_CH_TP_CD IS NOT NULL THEN 'Y' ELSE 'N' END AS MCHN_CH_YN
+             , CASE WHEN A.SELL_TP_CD = '1' THEN '' /* 일시불 = 0 */
+                    ELSE A.SELL_DSC_TP_CD END AS SELL_DSC_TP_CD
+             , CASE WHEN A.SELL_TP_CD = '1' THEN '0' /* 일시불 = 0 */
+                    WHEN A.SELL_TP_CD = '6' THEN '0' /* 정기배송 = 0 */
+                    ELSE NVL(D.MCHN_CH_TP_CD,0)
+               END AS MCHN_CH_TP_CD
+             , A.RSTL_YN
+             , '1' AS FEE_ACKMT_DV_CD
+             , B.OG_ID AS HDQ_OG_ID
+             , '1' AS VTSEL_SODBT_CHNL_DV_CD
+             , '' AS SELL_AMT
+             , '' AS SL_AMT
+             , '' AS REDF_ADSB_OJ_AMT
+             , '' AS VAT
+             , '' AS ACKMT_PERF_RT
+             , A.ACKMT_PERF_AMT
+             , A.FEE_ACKMT_CT AS ACKMT_PERF_CT
+             , '' AS CVT_PERF_AMT
+             , CASE WHEN A.BOO_SELL_TP_CD = 2 THEN 'Y'
+                    ELSE 'N'
+               END AS BOO_SELL_YN
+             , A.CNTR_RCP_FSH_DTM AS RCPDT
+             , A.SL_RCOG_DT AS SL_DT
+             , A.CNTR_PD_ENDDT AS CAN_DT
+             , CASE WHEN A.SELL_TP_CD = '1' THEN 0 /* 일시불 = 0 */
+                    ELSE A.STPL_PTRM
+               END AS STPL_PTRM_MCN
+             , '' AS FEE_CPSN_REDF_ID
+             , TO_CHAR(SYSDATE,'YYYYMMDD') AS OJ_PRCSDT
+             , 'N' AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM ( /* 일시불 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTRW_TP_CD /* 상품분류 */
+                      , SC.SL_RCOG_DT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.FEE_FXAM_YN /* 정액여부 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
+                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
+                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                     ON DTL.CNTR_NO = SC.CNTR_NO
+                    AND DTL.CNTR_SN = SC.CNTR_SN
+                  WHERE BAS.SELL_OG_TP_CD = 'W03'
+                    AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                  UNION ALL
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTRW_TP_CD /* 상품분류 */
+                      , SC.SL_RCOG_DT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.FEE_FXAM_YN /* 정액여부 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
+                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
+                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                     ON DTL.CNTR_NO = SC.CNTR_NO
+                    AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
+                    AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
+                  WHERE BAS.SELL_OG_TP_CD = 'W03'
+                  UNION ALL
+                  /* 렌탈 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTRW_TP_CD /* 상품분류 */
+                      , SC.SL_RCOG_DT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.FEE_FXAM_YN /* 정액여부 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
+                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                     ON DTL.CNTR_NO = SC.CNTR_NO
+                    AND DTL.CNTR_SN = SC.CNTR_SN
+                  WHERE BAS.SELL_OG_TP_CD = 'W03'
+                    AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                  UNION ALL
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTRW_TP_CD /* 상품분류 */
+                      , SC.SL_RCOG_DT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.FEE_FXAM_YN /* 정액여부 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
+                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                     ON DTL.CNTR_NO = SC.CNTR_NO
+                    AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
+                    AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
+                  WHERE BAS.SELL_OG_TP_CD = 'W03'
+                  UNION ALL
+                  /* 정기배송 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTRW_TP_CD /* 상품분류 */
+                      , SC.SL_RCOG_DT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.FEE_FXAM_YN /* 정액여부 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
+                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                     ON DTL.CNTR_NO = SC.CNTR_NO
+                    AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND DTL.STPL_PTRM >= 6
+                  WHERE BAS.SELL_OG_TP_CD = 'W03'
+                    AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                  UNION ALL
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTRW_TP_CD /* 상품분류 */
+                      , SC.SL_RCOG_DT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.FEE_FXAM_YN /* 정액여부 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
+                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                     ON DTL.CNTR_NO = SC.CNTR_NO
+                    AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
+                    AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
+                    AND DTL.STPL_PTRM >= 6
+                  WHERE BAS.SELL_OG_TP_CD = 'W03'
+                  UNION ALL
+                  /* 멤버십 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_RCP_FSH_DTM /*접수일자*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTRW_TP_CD /* 상품분류 */
+                      , SC.SL_RCOG_DT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.FEE_FXAM_YN /* 정액여부 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_TP_DTL_CD /* 환경가전여부 분별 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
+                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                     ON DTL.CNTR_NO = SC.CNTR_NO
+                    AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND DTL.STPL_PTRM >= 6
+                  WHERE BAS.SELL_OG_TP_CD = 'W03'
+                    AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
+                    AND BAS.CNTR_CNFM_DTM != BAS.CNTR_CAN_DTM /*당월가입_당월취소는 제외*/
+               ) A
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ B /* T월파트너내역T */
+            ON A.CNTR_CNFM_DTM = B.BASE_YM
+           AND A.SELL_OG_TP_CD = B.OG_TP_CD
+           AND A.SELL_PRTNR_NO = B.PRTNR_NO
+           AND B.OG_ID NOT LIKE 'Z95%'      /* 총판제외 */
+          LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ D  /*T기기변경내역T*/
+            ON A.CNTR_NO = D.BASE_CNTR_NO
+           AND A.CNTR_SN = D.BASE_CNTR_SN
+         WHERE NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE A.CNTR_NO = X.CNTR_NO AND A.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '01') /*수수료실적제외대상 제외*/
     </insert>
 
     <update id="updateNetOrders">

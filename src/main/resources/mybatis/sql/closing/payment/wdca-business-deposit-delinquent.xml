@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.payment.mapper.WdcaBusinessDepositDelinquentMapper">
+    <select id="selectBusinessDepositDelinquentPages" resultType="com.kyowon.sms.wells.web.closing.payment.dto.WdcaBusinessDepositDelinquentDto$SearchRes">
+        WITH PRTNR AS
+        ( 
+             SELECT DISTINCT E.BASE_YM/* 기준년월 */
+                  , E.DGR1_LEVL_OG_CD/* 총괄단 코드 */
+                  , E.DGR1_LEVL_OG_ID/* 총괄단 ID */
+                  , E.DGR2_LEVL_OG_CD/* 지역단 코드 */
+                  , E.DGR2_LEVL_OG_ID/* 지역단 ID */
+                  , E.DGR2_LEVL_DG_PRTNR_NM/* 지역단장명 */
+                  , E.DGR3_LEVL_OG_CD/* 지점코드 */
+                  , E.DGR3_LEVL_OG_ID/* 지점 ID */
+                  , E.DGR3_LEVL_DG_PRTNR_NM/* 지점장명 */
+                  , E.DGR3_LEVL_DG_PRTNR_NO/* 지점장 사번 */
+                  , D.PRTNR_KNM/* 판매자명 */
+                  , D.PRTNR_NO/* 판매자 사번 */
+                  , D.CLTN_DT/* 해약일자 */
+               FROM TB_OGBS_MM_PRTNR_IZ D/*월파트너내역*/
+                  , TB_OGBS_MM_OG_IZ E/*월조직내역*/
+              WHERE D.BASE_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-3),'YYYYMM') AND #{baseYm}
+                AND D.OG_TP_CD = E.OG_TP_CD
+                AND D.OG_ID = E.OG_ID
+                AND E.BASE_YM = D.BASE_YM
+        )
+        SELECT A.DGR2_LEVL_OG_CD/* 접수당시 지역단 코드 : 지역단 코드 노출 */
+             , A.DGR2_LEVL_DG_PRTNR_NM/* 접수당시 지역단장 : 지역단장명 노출 */
+             , A.DGR3_LEVL_OG_CD/* 접수당시 지점코드 : 지점코드 노출 */
+             , A.DGR3_LEVL_DG_PRTNR_NM/* 접수당시 지점장 : 지점장명 노출 */
+             , A.DGR3_LEVL_DG_PRTNR_NO/* 접수당시 번호 : 지점장 사번 노출 */
+             , A.PRTNR_KNM/* 접수당시 판매자명 : 판매자명 노출 */
+             , A.PRTNR_NO/* 접수당시 번호 : 판매자 사번 노출 */
+             , A.CLTN_DT/* 접수당시 해약일자 : 해약 년/월/일 노출 */
+             , B.DGR3_LEVL_OG_CD AS NOW_DGR3_LEVL_OG_CD/* 현재소속 지점코드 : 지점코드 노출 */
+             , B.DGR3_LEVL_DG_PRTNR_NM AS NOW_DGR3_LEVL_DG_PRTNR_NM/* 현재소속 지점장 : 지점장명 노출 */
+             , B.DGR3_LEVL_DG_PRTNR_NO AS NOW_DGR3_LEVL_DG_PRTNR_NO/* 현재소속 번호 : 지점장 사번 노출 */
+             , B.PRTNR_KNM AS NOW_PRTNR_KNM/* 현재소속 판매자명 : 판매자명 노출 */
+             , B.PRTNR_NO AS NOW_PRTNR_NO/* 현재소속 번호 : 판매자 사번 노출 */
+             , B.CLTN_DT AS NOW_CLTN_DT/* 현재소속 해약일자 : 해약 년/월/일 노출 */          
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', AMT.SELL_TP_CD) AS SELL_TP_NM /* 업무구분 : 렌탈, 멤버십, 정기배송, 금융리스, 홈케어, 일시불 중 해당데이터 노출 */
+             , AMT.CNTR_NO || '-' || AMT.CNTR_SN AS CNTR_DTL_NO/* 계약상세번호 : 계약상세번호 노출 */
+             , AMT.CST_NO /* 고객번호 : 고객번호 노출 */
+             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = AMT.CST_NO) AS CST_KNM/* 고객명 : 고객명 노출 */
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = AMT.BASE_PD_CD)AS PD_NM/* 제품명 : 제품명 노출 */
+             , SUBSTR(AMT.CNTR_CNFM_DTM, 0, 8) AS CNTR_CNFM_DTM/* 계약일자 : 계약 년/월/일 노출 */
+             , SUBSTR(AMT.IST_DTM, 0, 8) AS IST_DTM/* 설치일자 : 설치 년/월/일 노출 */
+             , NVL(AMT.MM_ISTM_AMT, AMT.RENTAL_AMT) AS RENTAL_AMT /* 월 렌탈료 : 월 렌탈금액 노출 */
+             , AMT.ISTM_MCN/* 의무약정 : 의무약정 개월수 노출 */
+             /* 2022.12 조회 시 : 8~10월 설치 주문 조회 (그리드는 9,10,11월 청구/입금실적) */
+             , AMT.BILLING3/* 3개월전 청구금액 */
+             , AMT.BILLING2/* 2개월전 청구금액 */
+             , AMT.BILLING1 /* 1개월전 청구금액 */
+             , AMT.BILLING_SUM /* 청구합계 : 청구 합계금액 노출 */
+             /* 입금현황(기준년월에 따라 그리드 월데이터가 변경됨) */
+             , AMT.DEPOSIT3/* 3개월전 입금액 */
+             , AMT.DEPOSIT2/* 2개월전 입금액 */
+             , AMT.DEPOSIT1 /* 1개월전 입금액 */
+             , AMT.DEPOSIT_SUM/* 입금합계 : 입금 합계금액 노출 */
+             /* 연체현황(기준년월에 따라 그리드 월데이터가 변경됨) */
+             , AMT.DELINQUENT3/* 3개월전 연체금액 */
+             , AMT.DELINQUENT2/* 2개월전 연체금액 */
+             , AMT.DELINQUENT1/* 1개월전 연체금액 */
+             , AMT.THIS_MONTH /* 당월입금 : 당월입금금액 노출 */
+             , CASE WHEN AMT.DELINQUENT1 > AMT.THIS_MONTH THEN 'Y' ELSE 'N' END AS DELINQUENT_YN /* 연체여부 : Y/N 중 해당데이터 노출 */
+          FROM (
+                    SELECT MIN(T.SL_CL_YM) AS SL_CL_YM
+                         , T.SELL_PRTNR_NO
+                         , T.SELL_TP_CD
+                         , T.CNTR_NO
+                         , T.CNTR_SN
+                         , T.CST_NO 
+                         , T.BASE_PD_CD
+                         , T.CNTR_CNFM_DTM
+                         , T.IST_DTM
+                         , T.MM_ISTM_AMT
+                         , T.RENTAL_AMT
+                         , T.ISTM_MCN
+                         , SUM(T.BILLING3) AS BILLING3/* 3개월전 청구금액 */
+                         , SUM(T.BILLING2) AS BILLING2/* 2개월전 청구금액 */
+                         , SUM(T.BILLING1) AS BILLING1/* 1개월전 청구금액 */
+                         , SUM(T.BILLING1 + T.BILLING2 + T.BILLING3) AS BILLING_SUM/* 청구합계 : 청구 합계금액 노출 */
+                         , SUM(T.DEPOSIT3) AS DEPOSIT3/* 3개월전 입금액 */
+                         , SUM(T.DEPOSIT2) AS DEPOSIT2/* 2개월전 입금액 */
+                         , SUM(T.DEPOSIT1) AS DEPOSIT1 /* 1개월전 입금액 */
+                         , SUM(T.DEPOSIT1 + T.DEPOSIT2 + T.DEPOSIT3) AS DEPOSIT_SUM/* 입금합계 : 입금 합계금액 노출 */
+                         , SUM(T.DELINQUENT3) AS DELINQUENT3/* 3개월전 연체금액 */
+                         , SUM(T.DELINQUENT2) AS DELINQUENT2/* 2개월전 연체금액 */
+                         , SUM(T.DELINQUENT1) AS DELINQUENT1/* 1개월전 연체금액 */
+                         , SUM(T.THIS_MONTH) AS THIS_MONTH/* 당월입금 : 당월입금금액 노출 */
+                      FROM (
+                                /* 3개월전 현황 */
+                                SELECT C.SL_CL_YM
+                                     , B.SELL_PRTNR_NO
+                                     , A.SELL_TP_CD                                                      
+                                     , C.CNTR_NO
+                                     , C.CNTR_SN/* 계약상세번호 */
+                                     , J.CST_NO/* 고객번호 */
+                                     , A.BASE_PD_CD
+                                     , B.CNTR_CNFM_DTM/* 계약일시 */
+                                     , C.IST_DTM/* 설치일시 */
+                                     , A.MM_ISTM_AMT/* 월할부금 */
+                                     , C.RENTAL_AMT/* 월 렌탈료 */
+                                     , C.ISTM_MCN/* 의무약정 개월수 */
+                                     , C.SL_AGG_AMT AS BILLING3/* 3개월전 청구금액 */
+                                     , 0 AS BILLING2/* 2개월전 청구금액 */
+                                     , 0 AS BILLING1 /* 1개월전 청구금액 */
+                                     , C.THM_ISTM_TOT_DP_AMT AS DEPOSIT3/* 3개월전 입금액 */
+                                     , 0 AS DEPOSIT2/* 2개월전 입금액 */
+                                     , 0 AS DEPOSIT1 /* 1개월전 입금액 */
+                                     , G.EOT_DLQ_AMT AS DELINQUENT3/* 3개월전 연체금액 */
+                                     , 0 AS DELINQUENT2/* 2개월전 연체금액 */
+                                     , 0 AS DELINQUENT1/* 1개월전 연체금액 */
+                                     , 0 AS THIS_MONTH/* 당월입금 */
+                                  FROM TB_SSCT_CNTR_DTL A/*계약상세*/
+                                     , TB_SSCT_CNTR_BAS B/*계약기본*/
+                                     , TB_SSCT_CNTR_CST_REL J/*계약고객관계*/
+                                     , TB_CBCL_WELLS_SL_MM_CL_IZ C/*WELLS매출월마감내역*/
+                                  LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST G/*연체기본이력 - 연체금액*/ 
+                                    ON C.CNTR_NO = G.CNTR_NO
+                                   AND C.CNTR_SN = G.CNTR_SN   
+                                   AND G.DLQ_SN = 1 
+                                   AND G.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'),-3), 'YYYYMM')
+                                 WHERE A.CNTR_NO = B.CNTR_NO
+                                   AND A.CNTR_SN = C.CNTR_SN
+                                   AND B.CNTR_NO = C.CNTR_NO
+                                   AND A.CNTR_NO = J.CNTR_NO
+                                   AND C.SL_CL_YM =  TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-3),'YYYYMM')
+                                   AND C.IST_DTM > 0 /* 설치일시 > 0 */
+                                   AND C.CAN_DT IS NULL /* 취소년 = 0 */
+                                   AND C.REQD_DTM IS NULL/* 철거년 = 0 */ 
+                                 UNION ALL 
+                                /* 2개월전 현황 */
+                                SELECT C.SL_CL_YM
+                                     , B.SELL_PRTNR_NO
+                                     , A.SELL_TP_CD                                                      
+                                     , C.CNTR_NO
+                                     , C.CNTR_SN/* 계약상세번호 */
+                                     , J.CST_NO/* 고객번호 */
+                                     , A.BASE_PD_CD
+                                     , B.CNTR_CNFM_DTM/* 계약일시 */
+                                     , C.IST_DTM/* 설치일시 */
+                                     , A.MM_ISTM_AMT/* 월할부금 */
+                                     , C.RENTAL_AMT/* 월 렌탈료 */
+                                     , C.ISTM_MCN/* 의무약정 개월수 */
+                                     , 0 AS BILLING3/* 3개월전 청구금액 */
+                                     , C.SL_AGG_AMT AS BILLING2/* 2개월전 청구금액 */
+                                     , 0 AS BILLING1 /* 1개월전 청구금액 */
+                                     , 0 AS DEPOSIT3/* 3개월전 입금액 */
+                                     , C.THM_ISTM_TOT_DP_AMT AS DEPOSIT2/* 2개월전 입금액 */
+                                     , 0 AS DEPOSIT1 /* 1개월전 입금액 */
+                                     , 0 AS DELINQUENT3/* 3개월전 연체금액 */
+                                     , G.EOT_DLQ_AMT AS DELINQUENT2/* 2개월전 연체금액 */
+                                     , 0 AS DELINQUENT1/* 1개월전 연체금액 */
+                                     , 0 AS THIS_MONTH/* 당월입금 */
+                                  FROM TB_SSCT_CNTR_DTL A/*계약상세*/
+                                     , TB_SSCT_CNTR_BAS B/*계약기본*/
+                                     , TB_SSCT_CNTR_CST_REL J/*계약고객관계*/
+                                     , TB_CBCL_WELLS_SL_MM_CL_IZ C/*WELLS매출월마감내역*/
+                                  LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST G/*연체기본이력 - 연체금액*/ 
+                                    ON C.CNTR_NO = G.CNTR_NO
+                                   AND C.CNTR_SN = G.CNTR_SN   
+                                   AND G.DLQ_SN = 1 
+                                   AND G.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'),-2), 'YYYYMM')
+                                 WHERE A.CNTR_NO = B.CNTR_NO
+                                   AND A.CNTR_SN = C.CNTR_SN
+                                   AND B.CNTR_NO = C.CNTR_NO
+                                   AND A.CNTR_NO = J.CNTR_NO
+                                   AND C.SL_CL_YM =  TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-2),'YYYYMM')
+                                   AND C.IST_DTM > 0 /* 설치일시 > 0 */
+                                   AND C.CAN_DT IS NULL /* 취소년 = 0 */
+                                   AND C.REQD_DTM IS NULL/* 철거년 = 0 */ 
+                                 UNION ALL 
+                                /* 1개월전 현황 */
+                                SELECT C.SL_CL_YM
+                                     , B.SELL_PRTNR_NO
+                                     , A.SELL_TP_CD                                                      
+                                     , C.CNTR_NO
+                                     , C.CNTR_SN/* 계약상세번호 */
+                                     , J.CST_NO/* 고객번호 */
+                                     , A.BASE_PD_CD
+                                     , B.CNTR_CNFM_DTM/* 계약일시 */
+                                     , C.IST_DTM/* 설치일시 */
+                                     , A.MM_ISTM_AMT/* 월할부금 */
+                                     , C.RENTAL_AMT/* 월 렌탈료 */
+                                     , C.ISTM_MCN/* 의무약정 개월수 */
+                                     , 0 AS BILLING3/* 3개월전 청구금액 */
+                                     , 0 AS BILLING2/* 2개월전 청구금액 */
+                                     , C.SL_AGG_AMT AS BILLING1 /* 1개월전 청구금액 */
+                                     , 0 AS DEPOSIT3/* 3개월전 입금액 */
+                                     , 0 AS DEPOSIT2/* 2개월전 입금액 */
+                                     , C.THM_ISTM_TOT_DP_AMT AS DEPOSIT1 /* 1개월전 입금액 */
+                                     , 0 AS DELINQUENT3/* 3개월전 연체금액 */
+                                     , 0 AS DELINQUENT2/* 2개월전 연체금액 */
+                                     , G.EOT_DLQ_AMT AS DELINQUENT1/* 1개월전 연체금액 */
+                                     , F.RVE_AMT AS THIS_MONTH /* 당월입금 */
+                                  FROM TB_SSCT_CNTR_DTL A/*계약상세*/
+                                     , TB_SSCT_CNTR_BAS B/*계약기본*/
+                                     , TB_SSCT_CNTR_CST_REL J/*계약고객관계*/
+                                     , TB_CBCL_WELLS_SL_MM_CL_IZ C/*WELLS매출월마감내역*/
+                                  LEFT OUTER JOIN TB_RVDW_RVE_DTL F/*수납상세 - 당월입금*/
+                                    ON C.CNTR_NO = F.CNTR_NO
+                                   AND C.CNTR_SN = F.CNTR_SN 
+                                   AND F.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
+                                   AND F.RVE_DV_CD = '01'/*수납구분코드 - 01:계약(청약)금*/
+                                   AND F.RVE_DT BETWEEN #{baseYm}||'01' AND #{baseYm}||'31'/*수납일자 - 당월*/
+                                  LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST G/*연체기본이력 - 연체금액*/ 
+                                    ON C.CNTR_NO = G.CNTR_NO
+                                   AND C.CNTR_SN = G.CNTR_SN   
+                                   AND G.DLQ_SN = 1 
+                                   AND G.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'),-1), 'YYYYMM')
+                                 WHERE A.CNTR_NO = B.CNTR_NO
+                                   AND A.CNTR_SN = C.CNTR_SN
+                                   AND B.CNTR_NO = C.CNTR_NO
+                                   AND A.CNTR_NO = J.CNTR_NO
+                                   AND C.SL_CL_YM =  TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')
+                                   AND C.IST_DTM > 0 /* 설치일시 > 0 */
+                                   AND C.CAN_DT IS NULL /* 취소년 = 0 */
+                                   AND C.REQD_DTM IS NULL/* 철거년 = 0 */ 
+                           ) T  
+                     GROUP BY T.SELL_PRTNR_NO, T.SELL_TP_CD, T.CNTR_NO, T.CNTR_SN, T.CST_NO, T.BASE_PD_CD, T.CNTR_CNFM_DTM, T.IST_DTM, T.MM_ISTM_AMT, T.RENTAL_AMT, T.ISTM_MCN
+               ) AMT
+             , PRTNR A 
+             , PRTNR B
+         WHERE AMT.SELL_PRTNR_NO = A.PRTNR_NO
+           AND A.BASE_YM = AMT.SL_CL_YM
+           AND AMT.SELL_PRTNR_NO = B.PRTNR_NO
+           AND B.BASE_YM = #{baseYm}
+           AND B.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd} /*총괄단*/
+           <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
+           AND B.DGR2_LEVL_OG_ID = #{dgr2LevlOgCd} /*지역단*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgCd)'>
+           AND B.DGR3_LEVL_OG_ID = #{dgr3LevlOgCd} /*지점*/
+           </if>
+    </select>
+</mapper>

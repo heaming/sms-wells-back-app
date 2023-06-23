@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.product.manage.dvo.WpdcLifeCustomFilterBaseDvo;
 import com.kyowon.sms.wells.web.product.manage.dvo.WpdcRoutineBsWorkBaseDvo;
 import com.kyowon.sms.wells.web.product.manage.dvo.WpdcRoutineBsWorkDetailDvo;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcRoutineBsWorkMgtMapper;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -100,5 +101,17 @@ public class WpdcRoutineBsWorkMgtService {
         mapper.deleteRoutineBsWorkBase(pdCd, null);
         mapper.deleteRoutineBsWorkDetail(pdCd, null);
         mapper.deleteLifeCustomFilterStdByPdCd(pdCd);
+    }
+
+    public String checkLifeFilterDuplication(List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos) {
+        List<WpdcLifeCustomFilterBaseDvo> bases = converter.mapAllRemoveLifeFltBaseDtoToLifeFltBaseDvo(dtos);
+        String duplicationKey = null;
+        for (WpdcLifeCustomFilterBaseDvo base : bases) {
+            duplicationKey = mapper.selectLifeFilterDuplication(base);
+            if (StringUtil.isNotBlank(duplicationKey)) {
+                break;
+            }
+        }
+        return duplicationKey;
     }
 }
