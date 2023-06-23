@@ -17,10 +17,6 @@ public interface WsnaOutOfStorageAskMngtMapper {
 
     FindRes selectOutOfStorageAskItms(FindReq dto);
 
-    PagingResult<OutOfRes> selectOutOfStorageItms(
-        SearchReq dto, PageInfo pageInfo
-    );
-
     List<OutOfRes> selectOutOfStorageItms(SearchReq dto);
 
     List<SearchOstrObjectWarehouseRes> selectOstrObjectWarehouses(
