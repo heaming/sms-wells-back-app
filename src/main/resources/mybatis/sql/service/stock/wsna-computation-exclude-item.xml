@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaComputationExcludeItemMapper">
+
+    <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaComputationExcludeItemPdDvo">
+        SELECT T1.PD_CD                        /* 상품코드 */
+             , T1.PD_ABBR_NM   AS PD_NM        /* 상품명 */
+             , T2.PD_PRP_VAL19 AS ITM_KND_CD   /* 품목종류코드 */
+          FROM TB_PDBS_PD_BAS T1                 /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2   /* 상품각사속성상세 */
+            ON T1.PD_CD = T2.PD_CD
+         WHERE T1.PD_TP_CD           = 'M'
+           AND T1.DTA_DL_YN          = 'N'
+           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND T2.DTA_DL_YN          = 'N'
+           AND T2.PD_PRP_VAL19      IN ('5', '6')   /* 필터, A/S자재 */
+         ORDER BY T1.PD_CD
+    </select>
+
+    <select id="selectCmptExcdItms" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaComputationExcludeItemDto$SearchRes">
+        SELECT D2.SAP_MAT_CD AS SAP_CD      /* SAP코드 */
+             , D1.ITM_PD_CD                 /* 품목코드 */
+             , D2.PD_ABBR_NM AS ITM_PD_NM   /* 품목명 */
+             , D1.RMK_CN                    /* 비고 */
+             , D1.FST_RGST_DTM              /* 등록일자 */
+             , D4.DEPT_NM                   /* 소속 */
+             , D4.USR_NM                    /* 등록자 */
+             , D1.MNGT_YM                   /* 관리년월 */
+             , D1.CMPT_EXCD_SN              /* 산출제외일련번호 */
+             , D1.ITM_KND_CD                /* 품목종류코드 */
+          FROM TB_SVST_CMPT_EXCD_ITM_IZ D1       /* 산출제외품목 */
+         INNER JOIN TB_PDBS_PD_BAS D2            /* 상품기본 */
+            ON D2.PD_CD = D1.ITM_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3   /* 상품각사속성상세 */
+            ON D3.PD_CD = D2.PD_CD
+         INNER JOIN T_CMP_USR_ACO_M D4           /* 사용자계정기본 */
+            ON D4.USR_ID = D1.FST_RGST_USR_ID
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D2.PD_TP_CD           = 'M'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_PRP_VAL19      IN ('5', '6')   /* 필터, A/S자재 */
+           AND D1.MNGT_YM            = #{inqrYm}
+           AND #{inqrYm} || '01' BETWEEN NVL(D2.RVPY_STRTDT, '19000101') AND NVL(D2.RVPY_ENDDT, '99991231')
+        <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+           AND D1.ITM_PD_CD          = #{itmPdCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+           AND D3.PD_PRP_VAL19       = #{itmKndCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strtSapCd)">
+           AND D2.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(endSapCd)">
+           AND D2.SAP_MAT_CD <![CDATA[<]]>  LPAD(#{endSapCd}, 18, '0')
+        </if>
+         ORDER BY D1.ITM_PD_CD
+    </select>
+
+    <insert id="insertCmptExcdItm">
+        INSERT INTO TB_SVST_CMPT_EXCD_ITM_IZ   /* 산출제외품목 */
+             (
+               MNGT_YM        /* 관리년월 */
+             , ITM_PD_CD      /* 품목상품코드 */
+             , CMPT_EXCD_SN   /* 산출제외일련번호 */
+             , ITM_KND_CD     /* 품목종류코드 */
+             , RMK_CN         /* 비고내용 */
+             , DTA_DL_YN      /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{mngtYm}
+             , #{itmPdCd}
+             , ( SELECT NVL(MAX(CMPT_EXCD_SN), 0) + 1
+                   FROM TB_SVST_CMPT_EXCD_ITM_IZ
+                  WHERE MNGT_YM   = #{mngtYm}
+                    AND ITM_PD_CD = #{itmPdCd} )
+             , #{itmKndCd}
+             , #{rmkCn}
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <update id="updateCmptExcdItm">
+        UPDATE TB_SVST_CMPT_EXCD_ITM_IZ   /* 산출제외품목 */
+           SET RMK_CN = #{rmkCd}   /* 비고내용 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE MNGT_YM      = #{mngtYm}       /* 관리년월 */
+           AND ITM_PD_CD    = #{itmPdCd}      /* 품목상품코드 */
+           AND CMPT_EXCD_SN = #{cmptExcdSn}   /* 산출제외일련번호 */
+    </update>
+
+    <update id="updateCmptExcdItmForRemove">
+        UPDATE TB_SVST_CMPT_EXCD_ITM_IZ   /* 산출제외품목 */
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE MNGT_YM      = #{mngtYm}       /* 관리년월 */
+           AND ITM_PD_CD    = #{itmPdCd}      /* 품목상품코드 */
+           AND CMPT_EXCD_SN = #{cmptExcdSn}   /* 산출제외일련번호 */
+    </update>
+
+    <insert id="insertCmptExcdItmForTransfer">
+        INSERT INTO TB_SVST_CMPT_EXCD_ITM_IZ   /* 산출제외품목 */
+             (
+               MNGT_YM        /* 관리년월 */
+             , ITM_PD_CD      /* 품목상품코드 */
+             , CMPT_EXCD_SN   /* 산출제외일련번호 */
+             , ITM_KND_CD     /* 품목종류코드 */
+             , RMK_CN         /* 비고내용 */
+             , DTA_DL_YN      /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT #{inqrYm}
+             , D1.ITM_PD_CD
+             , ( SELECT NVL(MAX(CMPT_EXCD_SN), 0) + 1
+                   FROM TB_SVST_CMPT_EXCD_ITM_IZ
+                  WHERE MNGT_YM   = #{mngtYm}
+                    AND ITM_PD_CD = D1.ITM_PD_CD )
+             , ITM_KND_CD
+             , RMK_CN
+             , DTA_DL_YN
+          FROM TB_SVST_CMPT_EXCD_ITM_IZ D1
+         WHERE D1.DTA_DL_YN = 'N'
+           AND D1.MNGT_YM   = TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), -1), 'YYYYMM')
+    </insert>
+
+</mapper>
