@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbAdvancedSellFeeReplaceMapper">
+    <select id="selectAggregateLists" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchAggregateRes">
+        SELECT OG_TP_CD  /*조직유형코드*/
+              ,DG_CST_ID  /*대표고객코드*/
+              ,DG_CST_NM /*대표고객명*/
+              ,BASE_YM   /*기준년월*/
+              ,SUM(SL_AMT) AS SL_AMT      /*매출금액*/
+              ,SUM(FEE_OC_AMT) AS FEE_OC_AMT  /*수수료발생금액*/
+              ,FEE_OC_YM    /*수수료발생년월*/
+              ,PIA_CS_YN    /*선급대상여부*/
+              ,SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_RES_AMT   /*선급판매수수료이월잔액*/
+              ,SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT  /*선급수수료발생금액*/
+              ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT     /*비용대체금액*/
+              ,SUM(CS_RPLC_AMT_CANC_BLAM) AS CS_RPLC_AMT_CANC_BLAM  /*비용대체금액 (취소분 잔액) - 취소건 선급잔액 */
+              ,SUM(TTRM_CS_AMT) AS TTRM_CS_AMT /*당기비용인식액*/
+              ,SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액*/
+         FROM
+            (
+             SELECT OG_TP_CD  /*조직유형코드*/
+                   ,DG_CST_ID  /*대표고객코드*/
+                   ,(SELECT MAX(DG_CST_NM) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = T1.DG_CST_ID  ) AS DG_CST_NM /*대표고객명*/
+                   ,BASE_YM   /*기준년월*/
+                   ,SL_AMT      /*매출금액*/
+                   ,FEE_OC_AMT   /*수수료발생금액*/
+                   ,FEE_OC_YM    /*수수료발생년월*/
+                   ,PIA_CS_YN    /*선급대상여부*/
+                   ,PIA_SELL_FEE_CRDOVR_RES_AMT   /*선급판매수수료이월잔액*/
+                   ,FEE_OC_AMT AS PIA_FEE_OC_AMT  /*선급수수료발생금액 - 이테이블의 금액은 모두 선급대상*/
+                   ,CS_RPLC_AMT    /*비용대체금액*/
+                   ,CASE WHEN CNTR_PD_ENDDT IS NOT NULL
+                         THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
+                         ELSE 0 END  AS CS_RPLC_AMT_CANC_BLAM  /*비용대체금액 (취소분 잔액) - 취소건 선급잔액 */
+                   ,CASE WHEN CNTR_PD_ENDDT IS NOT NULL
+                         THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
+                         ELSE CS_RPLC_AMT END  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+                   ,CASE WHEN CNTR_PD_ENDDT IS NOT NULL
+                         THEN 0
+                         ELSE FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT END AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+               FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
+              WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+                <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+                AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+                AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+                AND DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                AND CNTR_NO   = #{cntrNo}   /*계약번호*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+                AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+                </if>
+             UNION ALL
+             /*선급비대상건*/
+             SELECT T2.OG_TP_CD  /*조직유형코드*/
+                   ,T4.DG_CST_ID  /*대표고객코드*/
+                   ,(SELECT MAX(DG_CST_NM) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = T4.DG_CST_ID ) AS DG_CST_NM /*대표고객명*/
+                   ,T2.BASE_YM   /*기준년월*/
+                   ,T4.SL_AMT      /*매출금액*/
+                   ,T2.FEE_CTR_CNFM_AMT AS FEE_OC_AMT   /*수수료발생금액*/
+                   ,T2.OJ_DSB_YM AS FEE_OC_YM    /*수수료발생년월*/
+                   ,'N' AS PIA_CS_YN    /*선급대상여부*/
+                   ,0 AS PIA_SELL_FEE_CRDOVR_RES_AMT
+                   ,0 AS PIA_FEE_OC_AMT
+                   ,0 AS CS_RPLC_AMT
+                   ,0 AS CS_RPLC_AMT_CANC_BLAM
+                   ,T2.FEE_CTR_CNFM_AMT AS TTRM_CS_AMT
+                   ,0 AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+               FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ T2  /*수수료계산계약상세내역*/
+                   ,TB_FEAM_FEE_BASE_DTL T3 /*수수료기준상세*/
+                   ,TB_CBCL_WELLS_SL_CNFM_BAS T4  /*매출확정-WELLS*/
+              WHERE 1=1
+                AND T2.FEE_CD        = T3.FEE_CD
+                AND T2.CNTR_NO       = T4.CNTR_NO
+                AND T2.CNTR_SN       = T4.CNTR_SN
+                AND T2.BASE_YM       = #{baseYm}
+                AND T2.BASE_YM       = SUBSTR(T4.SL_RCOG_DT,1,8)  /*매출월이랑 수수료기준년월 */
+                <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+                AND T4.OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+                </if>
+                AND T3.PIA_FEE_OJ_YN <![CDATA[<>]]> 'Y'     /*선급대상 Y가 아닌거. (웰스는 판매유형 더 뒤져야함)*/
+                <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+                AND T3.PIA_FEE_OJ_YN = #{piaCsYn}     /*Y가 들어오더라도 바로위의조건에서 걸려서 안나옴. N 인건이나 전체일떄만 나오게함*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+                AND T4.DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                AND T2.CNTR_NO   = #{cntrNo}   /*계약번호*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                AND T2.CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+                AND T2.FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+                </if>
+             )
+         GROUP BY OG_TP_CD  /*조직유형코드*/
+              ,DG_CST_ID  /*대표고객코드*/
+              ,DG_CST_NM /*대표고객명*/
+              ,BASE_YM   /*기준년월*/
+              ,FEE_OC_YM    /*수수료발생년월*/
+              ,PIA_CS_YN    /*선급대상여부*/
+    </select>
+
+    <select id="selectAggregateSummary" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchAggregateSummaryRes">
+        SELECT SUM(SL_AMT) AS SL_AMT /*매출금액*/
+             , SUM(FEE_OC_AMT) AS FEE_OC_AMT /*수수료발생금액*/
+             , PIA_CS_YN /*선급대상여부*/
+             , SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_RES_AMT /*선급판매수수료이월잔액*/
+             , SUM(FEE_OC_AMT) AS PIA_FEE_OC_AMT /*선급수수료발생금액 - 이테이블의 금액은 모두 선급대상*/
+             , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT /*비용대체금액*/
+             , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
+                                ELSE 0 END)           AS CS_RPLC_AMT_CANC_BLAM /*비용대체금액 (취소분 잔액) - 취소건 선급잔액 */
+             , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
+                    ELSE CS_RPLC_AMT END) AS TTRM_CS_AMT /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+             , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL THEN 0
+                    ELSE FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT END) AS PIA_FEE_EOT_BLAM /*선급수수료기말잔액. 취소된 경우는 0*/
+          FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
+         WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+           <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+           AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+           AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+           AND DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+           AND CNTR_NO   = #{cntrNo}   /*계약번호*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+           AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+           AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+           </if>
+      GROUP BY PIA_CS_YN
+      UNION ALL
+      /*선급비대상건*/
+      SELECT NVL(SUM(T4.SL_AMT),0) AS SL_AMT     /*매출금액*/
+            ,NVL(SUM(T2.FEE_CTR_CNFM_AMT),0) AS FEE_OC_AMT   /*수수료발생금액*/
+            ,'N' AS PIA_CS_YN    /*선급대상여부*/
+            ,0 AS PIA_SELL_FEE_CRDOVR_RES_AMT
+            ,0 AS PIA_FEE_OC_AMT
+            ,0 AS CS_RPLC_AMT
+            ,0 AS CS_RPLC_AMT_CANC_BLAM
+            ,NVL(SUM(T2.FEE_CTR_CNFM_AMT),0) AS TTRM_CS_AMT
+            ,0 AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+        FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ T2  /*수수료계산계약상세내역*/
+            ,TB_FEAM_FEE_BASE_DTL T3 /*수수료기준상세*/
+            ,TB_CBCL_WELLS_SL_CNFM_BAS T4  /*매출확정-WELLS*/
+       WHERE T2.FEE_CD   = T3.FEE_CD
+         AND T2.CNTR_NO  = T4.CNTR_NO
+         AND T2.CNTR_SN  = T4.CNTR_SN
+         AND T2.BASE_YM  = #{baseYm}
+         AND T2.BASE_YM  = SUBSTR(T4.SL_RCOG_DT,1,8)  /*매출월이랑 수수료기준년월 */
+         <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+         AND T2.OG_TP_CD = #{ogTpCd}   /*조직유형*/
+         </if>
+         AND T3.PIA_FEE_OJ_YN <![CDATA[<>]]> 'Y'     /*선급대상 Y가 아닌거. (웰스는 판매유형 더 뒤져야함)*/
+         <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+         AND T3.PIA_FEE_OJ_YN = #{piaCsYn}     /*Y가 들어오더라도 바로위의조건에서 걸려서 안나옴. N 인건이나 전체일떄만 나오게함*/
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+         AND T4.DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+         AND T2.CNTR_NO   = #{cntrNo}   /*계약번호*/
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+         AND T2.CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+         AND T2.FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+         </if>
+    </select>
+
+    <select id="selectDtlLists" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchRes">
+        SELECT OG_TP_CD  /*조직유형코드*/
+              ,DG_CST_ID  /*대표고객코드*/
+              ,(SELECT MAX(DG_CST_NM) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = T1.DG_CST_ID) AS DG_CST_NM /*대표고객명*/
+              ,BASE_YM   /*기준년월*/
+              ,CNTR_NO || CNTR_SN AS CNTR_NO  /*계약상세번호*/
+              ,FEE_OC_AMT   /*수수료발생금액*/
+              ,PIA_CS_YN    /*선급대상여부*/
+              ,FEE_OC_YM    /*수수료발생년월*/
+              ,FEE_OC_AMT AS PIA_FEE_OC_AMT  /*선급수수료발생금액 - 이테이블의 금액은 모두 선급대상*/
+              ,SL_RCOG_DT  /*매출일자*/
+              ,STPL_TN     /*약정회차*/
+              ,SL_AMT      /*매출금액*/
+              ,CNTR_PD_ENDDT  /*계약상품종료일자 - 계약취소일자 (계약취소인지 매출취소인지는 확정을 해야함 서비스에서 정해서 값을 내릴것임.*/
+              ,CS_RPLC_YM     /*비용대체년월*/
+              ,CS_RPLC_AMT    /*비용대체금액*/
+              ,CASE WHEN '0' = #{feeChk}  /*수수료구분 상세에 미체크 했을때 수수료코드 안보여줄것임 */
+                    THEN ''
+                    ELSE (SELECT FEE_NM FROM TB_FEAM_FEE_CD WHERE FEE_CD = T1.FEE_CD) END AS FEE_NM /*수수료코드(구분)*/
+              ,DP_SLIP_TRS_NO  /*입금전표전송번호*/
+              ,SAP_SLPNO       /*선급판매수수료전표번호*/
+              ,CASE WHEN CNTR_PD_ENDDT IS NOT NULL
+                    THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
+                    ELSE CS_RPLC_AMT END  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+              ,CS_RPLC_AGG_AMT   /*비용대체누계금액*/
+              ,CASE WHEN CNTR_PD_ENDDT IS NOT NULL
+                    THEN 0
+                    ELSE FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT END AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+              ,SUBSTR(FNL_MDFC_DTM,1,8) AS FNL_MDFC_DTM  /*처리일자*/
+              ,(SELECT MAX(USR_NM) FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID) AS USR_NM  /*사용자명*/
+          FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
+         WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+           <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+           AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+           AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+           AND DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+           AND CNTR_NO   = #{cntrNo}   /*계약번호*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+           AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+           AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+           </if>
+        UNION ALL
+        /*선급비대상건*/
+        SELECT T2.OG_TP_CD  /*조직유형코드*/
+              ,T4.DG_CST_ID  /*대표고객코드*/
+              ,(SELECT MAX(DG_CST_NM) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = T4.DG_CST_ID ) AS DG_CST_NM /*대표고객명*/
+              ,T2.BASE_YM   /*기준년월*/
+              ,T2.CNTR_NO || T2.CNTR_SN AS CNTR_NO  /*계약상세번호*/
+              ,T2.FEE_CTR_CNFM_AMT AS FEE_OC_AMT   /*수수료발생금액*/
+              ,'N' AS PIA_CS_YN    /*선급대상여부*/
+              ,T2.OJ_DSB_YM AS FEE_OC_YM    /*수수료발생년월*/
+              ,0  AS PIA_FEE_OC_AMT  /*선급수수료발생금액 - 이테이블의 금액은 모두 선급대상*/
+              ,'' AS SL_RCOG_DT  /*매출일자*/
+              ,0  AS STPL_TN     /*약정회차*/
+              ,0  AS SL_AMT      /*매출금액*/
+              ,'' AS CNTR_PD_ENDDT  /*계약상품종료일자 - 계약취소일자 (계약취소인지 매출취소인지는 확정을 해야함 서비스에서 정해서 값을 내릴것임.*/
+              ,'' AS CS_RPLC_YM     /*비용대체년월*/
+              ,0  AS CS_RPLC_AMT    /*비용대체금액*/
+              ,CASE WHEN '0' = #{feeChk}   /*수수료구분 상세에 미체크 했을때 */
+                    THEN ''
+                    ELSE (SELECT FEE_NM FROM TB_FEAM_FEE_CD WHERE FEE_CD = T2.FEE_CD) END  AS FEE_NM        /*수수료코드(구분)*/
+              ,'' AS DP_SLIP_TRS_NO  /*입금전표전송번호*/
+              ,'' AS SAP_SLPNO       /*선급판매수수료전표번호*/
+              ,T2.FEE_CTR_CNFM_AMT  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+              ,0 AS CS_RPLC_AGG_AMT   /*비용대체누계금액*/
+              ,0 AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+              ,SUBSTR(T2.FNL_MDFC_DTM,1,8) AS FNL_MDFC_DTM  /*처리일자*/
+              ,(SELECT MAX(USR_NM) FROM T_CMP_USR_ACO_M WHERE USR_ID = T2.FNL_MDFC_USR_ID) AS USR_NM  /*사용자명*/
+          FROM TB_FEAM_FEE_CALC_BAS T1 /*수수로계산기본*/
+              ,TB_FEAM_FEE_CALC_CNTR_DTL_IZ T2  /*수수료계산계약상세내역*/
+              ,TB_FEAM_FEE_BASE_DTL T3 /*수수료기준상세*/
+              ,TB_CBCL_WELLS_SL_CNFM_BAS T4  /*매출확정-WELLS*/
+          WHERE T1.BASE_YM        = T2.BASE_YM
+            AND T1.PERF_YM        = T2.PERF_YM
+            AND T1.OJ_DSB_YM      = T2.OJ_DSB_YM
+            AND T1.CO_CD          = T2.CO_CD
+            AND T1.OG_TP_CD       = T2.OG_TP_CD
+            AND T1.PRTNR_NO       = T2.PRTNR_NO
+            AND T1.FEE_CD         = T2.FEE_CD
+            AND T1.DTA_CRT_FEE_CD = T2.DTA_CRT_FEE_CD
+            AND T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD
+            AND T1.SPMT_DSB_DV_CD = T2.SPMT_DSB_DV_CD
+            AND T1.FEE_CALC_TP_CD = T2.FEE_CALC_TP_CD
+            AND T2.FEE_CD         = T3.FEE_CD
+            AND T2.CNTR_NO        = T4.CNTR_NO
+            AND T2.CNTR_SN        = T4.CNTR_SN
+            AND T2.BASE_YM        = #{baseYm}
+            AND T2.BASE_YM        = SUBSTR(T4.SL_RCOG_DT,1,8)  /*매출월이랑 수수료기준년월 */
+            <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+            AND T2.OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+            </if>
+            AND T3.PIA_FEE_OJ_YN <![CDATA[<>]]> 'Y'     /*선급대상 Y가 아닌거. (웰스는 판매유형 더 뒤져야함)*/
+            <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+            AND T3.PIA_FEE_OJ_YN = #{piaCsYn}     /*Y가 들어오더라도 바로위의조건에서 걸려서 안나옴. N 인건이나 전체일떄만 나오게함*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+            AND T4.DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+            AND T2.CNTR_NO   = #{cntrNo}   /*계약번호*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+            AND T2.CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+            AND T2.FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+            </if>
+    </select>
+
+    <select id="selectDtlSummary" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchDtlSummaryRes">
+         SELECT PIA_CS_YN    /*선급대상여부*/
+               ,SUM(SL_AMT) AS SL_AMT     /*매출금액*/
+               ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT    /*비용대체금액*/
+               ,SUM(FEE_OC_AMT) AS FEE_OC_AMT
+               ,SUM(FEE_OC_AMT) AS PIA_FEE_OC_AMT
+               ,SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL
+                         THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
+                         ELSE CS_RPLC_AMT END)  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+               ,SUM(CS_RPLC_AGG_AMT) AS CS_RPLC_AGG_AMT   /*비용대체누계금액*/
+               ,SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL
+                         THEN 0
+                         ELSE FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT END) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+           FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
+          WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+            <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+            AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+            AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+            AND DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+            AND CNTR_NO   = #{cntrNo}   /*계약번호*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+            AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+            AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+            </if>
+       GROUP BY PIA_CS_YN
+       UNION ALL
+       /*선급비대상건*/
+       SELECT 'N' AS PIA_CS_YN    /*선급대상여부*/
+             ,0 AS SL_AMT      /*매출금액*/
+             ,0 AS CS_RPLC_AMT    /*비용대체금액*/
+             ,0 AS FEE_OC_AMT
+             ,0 AS PIA_FEE_OC_AMT
+             ,NVL(SUM(T2.FEE_CTR_CNFM_AMT),0) AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+             ,0 AS CS_RPLC_AGG_AMT   /*비용대체누계금액*/
+             ,0 AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+         FROM TB_FEAM_FEE_CALC_BAS T1 /*수수로계산기본*/
+             ,TB_FEAM_FEE_CALC_CNTR_DTL_IZ T2  /*수수료계산계약상세내역*/
+             ,TB_FEAM_FEE_BASE_DTL T3 /*수수료기준상세*/
+             ,TB_CBCL_WELLS_SL_CNFM_BAS T4  /*매출확정-WELLS*/
+        WHERE 1=1
+          AND T1.BASE_YM        = T2.BASE_YM
+          AND T1.PERF_YM        = T2.PERF_YM
+          AND T1.OJ_DSB_YM      = T2.OJ_DSB_YM
+          AND T1.CO_CD          = T2.CO_CD
+          AND T1.OG_TP_CD       = T2.OG_TP_CD
+          AND T1.PRTNR_NO       = T2.PRTNR_NO
+          AND T1.FEE_CD         = T2.FEE_CD
+          AND T1.DTA_CRT_FEE_CD = T2.DTA_CRT_FEE_CD
+          AND T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD
+          AND T1.SPMT_DSB_DV_CD = T2.SPMT_DSB_DV_CD
+          AND T1.FEE_CALC_TP_CD = T2.FEE_CALC_TP_CD
+          AND T2.FEE_CD         = T3.FEE_CD
+          AND T2.CNTR_NO        = T4.CNTR_NO
+          AND T2.CNTR_SN        = T4.CNTR_SN
+          AND T2.BASE_YM        = #{baseYm}
+          AND T2.BASE_YM        = SUBSTR(T4.SL_RCOG_DT,1,8)  /*매출월이랑 수수료기준년월 */
+          <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+          AND T2.OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+          </if>
+          AND T3.PIA_FEE_OJ_YN <![CDATA[<>]]> 'Y'     /*선급대상 Y가 아닌거. (웰스는 판매유형 더 뒤져야함)*/
+          <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+          AND T3.PIA_FEE_OJ_YN = #{piaCsYn}     /*Y가 들어오더라도 바로위의조건에서 걸려서 안나옴. N 인건이나 전체일떄만 나오게함*/
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+          AND T4.DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+          AND T2.CNTR_NO   = #{cntrNo}   /*계약번호*/
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+          AND T2.CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+          AND T2.FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+          </if>
+    </select>
+
+    <select id="selectDivideLists" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchDivideRes">
+        WITH T AS
+        (
+            SELECT DG_CST_ID  /*대표고객코드*/
+                  ,(SELECT MAX(DG_CST_NM) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = T1.DG_CST_ID) AS DG_CST_NM /*대표고객명*/
+                  ,BASE_YM      /*발생년월*/
+                  ,SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_BLAM   /*선급판매수수료이월잔액*/
+                  ,SUM(FEE_OC_AMT)  AS PIA_FEE_OC_AMT  /*선급수수료발생금액*/
+                  ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT             /*비용대체금액*/
+                  ,SUM(FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액*/
+              FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1
+             WHERE SUBSTR(BASE_YM,1,4) = #{baseYm}      /*기준년월 - 년이 인풋으로 들어오는것. (2023) */
+               <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+               AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+               AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+               AND DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+               AND CNTR_NO   = #{cntrNo}   /*계약번호*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+               AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+               AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+               </if>
+          GROUP BY DG_CST_ID, BASE_YM
+        )
+            SELECT DG_CST_ID  /*대표고객코드*/
+                  ,DG_CST_NM /*대표고객명*/
+                  ,'' AS BASE_YM   /*기준년월*/
+                  ,MIN(PIA_SELL_FEE_CRDOVR_BLAM) AS PIA_SELL_FEE_CRDOVR_BLAM    /*선급판매수수료이월잔액*/
+                  ,0  AS PIA_FEE_OC_AMT    /*선급수수료발생금액*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '01'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT1     /*1월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '02'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT2     /*2월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '03'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT3     /*3월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '04'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT4     /*4월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '05'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT5     /*5월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '06'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT6     /*6월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '07'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT7     /*7월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '08'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT8     /*8월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '09'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT9     /*9월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '10'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT10     /*10월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '11'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT11     /*11월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '12'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT12     /*12월비용대체*/
+                  ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT_TOT   /*합계*/
+                  ,SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+              FROM T
+          GROUP BY DG_CST_ID, DG_CST_NM, BASE_YM
+         UNION ALL
+            SELECT DG_CST_ID  /*대표고객코드*/
+                  ,DG_CST_NM /*대표고객명*/
+                  ,BASE_YM  /*기준년월*/
+                  ,0 AS PIA_SELL_FEE_CRDOVR_BLAM    /*선급판매수수료이월잔액*/
+                  ,SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '01' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '01'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT1
+                            /*1월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '02' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '02'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT2     /*2월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '03' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '03'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT3     /*3월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '04' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '04'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT4     /*4월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '05' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '05'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT5     /*5월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '06' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '06'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT6     /*6월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '07' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '07'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT7     /*7월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '08' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '08'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT8     /*8월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '09' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '09'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT9     /*9월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '10' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '10'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT10     /*10월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '11' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '11'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT11     /*11월비용대체*/
+                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '12' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '12'
+                        THEN SUM(CS_RPLC_AMT)
+                        ELSE 0 END  AS CS_RPLC_AMT12     /*12월비용대체*/
+                  ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT_TOT   /*합계*/
+                  ,SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+             FROM T
+         GROUP BY DG_CST_ID, DG_CST_NM, BASE_YM
+    </select>
+
+    <select id="selectDivideSummary" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchDivideSummaryRes">
+        WITH T AS
+        (
+            SELECT BASE_YM      /*발생년월*/
+                  ,SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_BLAM   /*선급판매수수료이월잔액*/
+                  ,SUM(FEE_OC_AMT)  AS PIA_FEE_OC_AMT  /*선급수수료발생금액*/
+                  ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT             /*비용대체금액*/
+                  ,SUM(FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액*/
+              FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1
+             WHERE SUBSTR(BASE_YM,1,4) = #{baseYm}      /*기준년월 - 년이 인풋으로 들어오는것. (2023) */
+               <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+               AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+               AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
+               AND DG_CST_ID = #{dgCstId}  /*대표고객코드*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+               AND CNTR_NO   = #{cntrNo}   /*계약번호*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+               AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+               AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+               </if>
+          GROUP BY BASE_YM
+        )
+            SELECT BASE_YM  /*기준년월*/
+                  ,SUM(PIA_SELL_FEE_CRDOVR_BLAM) AS PIA_SELL_FEE_CRDOVR_BLAM  /*선급판매수수료이월잔액*/
+                  ,SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT /*선급수수료발생금액*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '01' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '01'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT1     /*1월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '02' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '02'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT2     /*2월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '03' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '03'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT3     /*3월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '04' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '04'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT4     /*4월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '05' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '05'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT5     /*5월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '06' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '06'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT6     /*6월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '07' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '07'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT7     /*7월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '08' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '08'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT8     /*8월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '09' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '09'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT9     /*9월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '10' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '10'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT10     /*10월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '11' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '11'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT11     /*11월비용대체*/
+                  ,(CASE WHEN SUBSTR(BASE_YM,5,2) = '12' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '12'
+                         THEN SUM(CS_RPLC_AMT)
+                         ELSE 0 END) AS CS_RPLC_AMT12     /*12월비용대체*/
+                  ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT_TOT   /*합계*/
+                  ,SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+             FROM T
+         GROUP BY BASE_YM
+    </select>
+
+    <select id="selectCustomerCodes" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchCodeRes">
+        SELECT DG_CST_ID AS CODE_ID  /*대표고객ID*/
+              ,DG_CST_NM AS CODE_NAME  /*대표고객명*/
+          FROM TB_CBCL_DG_CST_ID_BAS
+         WHERE SAP_BZ_TERY_CD = '1210' /* WELLS */
+           AND SRN_MARK_YN = 'Y'
+           AND DTA_DL_YN = 'N'
+      GROUP BY DG_CST_ID, DG_CST_NM
+      ORDER BY DG_CST_ID
+    </select>
+
+    <select id="selectFeeGubunCodes" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchCodeRes">
+        SELECT FEE_CD AS CODE_ID /*수수료코드*/
+              ,FEE_CD || '(' || SRN_MARK_FEE_NM || ')' AS CODE_NAME   /*수수료명*/
+          FROM TB_FEAM_FEE_BASE_DTL
+         WHERE PIA_FEE_OJ_YN = 'Y'
+           AND (TO_CHAR(SYSDATE,'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM)
+           AND DTA_DL_YN = 'N'
+      ORDER BY FEE_CD
+    </select>
+
+    <select id="selectPop" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchPopRes">
+        SELECT KW_GRP_CO_CD
+              ,TO_CHAR(LAST_DAY(add_months(sysdate,-1)),'YYYYMMDD') AS SLIP_FTRM_DT
+              ,SUM(FEE_OC_AMT) AS FEE_OC_AMT   /*선급한매수수료총액*/
+              ,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT   /*비용대체총액*/
+              ,MAX(PIA_SELL_FEE_SMRY) AS PIA_SELL_FEE_SMRY   /*적요*/
+              ,MAX(DP_SLPNO) AS DP_SLPNO   /*전표번호*/
+          FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
+         WHERE BASE_YM = TO_CHAR(add_months(sysdate,-1),'YYYYMM')
+           AND KW_GRP_CO_CD = #{kwGprCoCd}
+      GROUP BY KW_GRP_CO_CD
+    </select>
+
+    <update id="updatePop">
+        UPDATE TB_CBCL_PIA_FEE_CS_RPLC_BAS
+           SET PIA_SELL_FEE_SMRY = #{piaSellFeeSmry}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE BASE_YM = TO_CHAR(add_months(sysdate,-1),'YYYYMM')
+           AND KW_GRP_CO_CD = #{kwGrpCoCd}
+    </update>
+</mapper>
