@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.fee.interfaces.service;
 
 import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto;
-import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto.IfList;
+import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto.IfRequest;
 import com.kyowon.sms.wells.web.fee.interfaces.dvo.WfeaLifeSaleCancelFeenterfaceDvo;
 
 import com.kyowon.sms.wells.web.fee.interfaces.mapper.WfeaLifeSaleCancelFeeInterfaceMapper;
@@ -21,7 +21,7 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
     @Transactional
     public String[] updateLifeFeeSync(WfeaLifeSaleCancelFeeInterfaceDto.SaveReq dto) throws Exception {
         // 왜 리스트로 넘어옴?
-        for (IfList item : dto.data()) {
+        for (IfRequest item : dto.data()) {
             // DTO > DVO
             WfeaLifeSaleCancelFeenterfaceDvo saveDvo = new WfeaLifeSaleCancelFeenterfaceDvo();
             saveDvo.setBaseYm(item.aksdte());

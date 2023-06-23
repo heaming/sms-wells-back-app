@@ -9,7 +9,7 @@ import java.util.List;
 
 public class WfeaLifeSaleCancelFeeInterfaceDto {
 
-    public  record IfList(
+    public  record IfRequest(
         @NotBlank
         @JsonProperty("AKSDTE")
         String aksdte, /* 발생월 */
@@ -82,7 +82,7 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
     @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
     public record SaveReq(
         @JsonProperty("LIST")
-        List<IfList> data
+        List<IfRequest> data
     ) {}
 
     @Builder
