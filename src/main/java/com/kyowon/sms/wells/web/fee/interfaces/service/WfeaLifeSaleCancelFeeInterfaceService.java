@@ -21,7 +21,7 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
     @Transactional
     public String[] updateLifeFeeSync(WfeaLifeSaleCancelFeeInterfaceDto.SaveReq dto) throws Exception {
         // 왜 리스트로 넘어옴?
-        for (IfList item : dto.ifs()) {
+        for (IfList item : dto.data()) {
             // DTO > DVO
             WfeaLifeSaleCancelFeenterfaceDvo saveDvo = new WfeaLifeSaleCancelFeenterfaceDvo();
             saveDvo.setBaseYm(item.aksdte());

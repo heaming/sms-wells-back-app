@@ -81,7 +81,8 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
     @Builder
     @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
     public record SaveReq(
-        List<IfList> ifs
+        @JsonProperty("LIST")
+        List<IfList> data
     ) {}
 
     @Builder
