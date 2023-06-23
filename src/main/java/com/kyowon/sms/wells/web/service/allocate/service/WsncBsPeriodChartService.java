@@ -27,9 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class WsncBsPeriodChartService {
-    WsncBsPeriodChartMapper mapper;
+    private final WsncBsPeriodChartMapper mapper;
 
-    WsncBsPeriodChartConverter converter;
+    private final WsncBsPeriodChartConverter converter;
 
     /*
      * 정기 BS 주기표 생성
