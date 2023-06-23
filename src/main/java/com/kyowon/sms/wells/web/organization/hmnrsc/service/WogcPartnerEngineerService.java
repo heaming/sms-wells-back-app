@@ -15,6 +15,11 @@ import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.F
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveEngineerGradeReq;
+
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveJoeManagementReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
@@ -72,32 +77,67 @@ public class WogcPartnerEngineerService {
         return processCount;
     }
 
-    public PagingResult<WogcPartnerEngineerDto.FindJoeManagementRes> getJoeManagementPages(
+    public PagingResult<FindJoeManagementRes> getJoeManagementPages(
         FindJoeManagementReq dto, PageInfo pageInfo
     ) {
-        return this.mapper.selectJoeManagements(dto, pageInfo);
+
+        PagingResult<WogcPartnerEngineerDvo> dvos = mapper.selectJoeManagements(dto, pageInfo);
+        PageInfo newPage = dvos.getPageInfo();
+        PagingResult<FindJoeManagementRes> results = null;
+
+        if (CollectionUtils.isNotEmpty(dvos)) {
+            dvos.forEach(
+                dvo -> {
+                    dvo.setCralLocaraTno(StringUtils.isNotEmpty(dvo.getCralLocaraTno()) ? dvo.getCralLocaraTno() : "");
+                    dvo.setMexnoEncr(StringUtils.isNotEmpty(dvo.getMexnoEncr()) ? dvo.getMexnoEncr() : "");
+                    dvo.setCralIdvTno(StringUtils.isNotEmpty(dvo.getCralIdvTno()) ? dvo.getCralIdvTno() : "");
+                    dvo.setCralLocaraTno(
+                        String.format("%s-%s-%s", dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralIdvTno())
+                    );
+                }
+            );
+
+            results = this.wogcPartnerEngineerConverter.mapAllWogcPartnerEngineerDvoToFindJoeManagementRes(dvos);
+            results.setPageInfo(newPage);
+        }
+        return results;
     }
 
-    public List<WogcPartnerEngineerDto.FindJoeManagementRes> getJoeManagementForExcelDownload(
+    public List<FindJoeManagementRes> getJoeManagementForExcelDownload(
         FindJoeManagementReq dto
     ) {
         List<WogcPartnerEngineerDto.FindJoeManagementRes> result = null;
         List<WogcPartnerEngineerDvo> dvos = this.mapper.selectJoeManagementForExcelDownload(dto);
+        /*
         for (WogcPartnerEngineerDvo dvo : dvos) {
             String cralLocaraTno = StringUtils.isNotEmpty(dvo.getCralLocaraTno()) ? dvo.getCralLocaraTno() : "";
             String mexnoEncr = StringUtils.isNotEmpty(dvo.getMexnoEncr()) ? dvo.getMexnoEncr() : "";
             String cralIdvTno = StringUtils.isNotEmpty(dvo.getCralIdvTno()) ? dvo.getCralIdvTno() : "";
             dvo.setCralLocaraTno(cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno);
         }
+*/
+
+        if (CollectionUtils.isNotEmpty(dvos)) {
+            dvos.forEach(
+                dvo -> {
+                    dvo.setCralLocaraTno(StringUtils.isNotEmpty(dvo.getCralLocaraTno()) ? dvo.getCralLocaraTno() : "");
+                    dvo.setMexnoEncr(StringUtils.isNotEmpty(dvo.getMexnoEncr()) ? dvo.getMexnoEncr() : "");
+                    dvo.setCralIdvTno(StringUtils.isNotEmpty(dvo.getCralIdvTno()) ? dvo.getCralIdvTno() : "");
+                    dvo.setCralLocaraTno(
+                        String.format("%s-%s-%s", dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralIdvTno())
+                    );
+                }
+            );
+        }
         result = this.wogcPartnerEngineerConverter.mapWogcPartnerEngineerDvoToFindJoeManagementRes(dvos);
         return result;
     }
 
     @Transactional
-    public int saveJoeManagement(List<WogcPartnerEngineerDto.SaveJoeManagementReq> dtos) {
+    public int saveJoeManagement(List<SaveJoeManagementReq> dtos) {
         int processCnt = 0;
 
-        for (WogcPartnerEngineerDto.SaveJoeManagementReq dto : dtos) {
+        for (SaveJoeManagementReq dto : dtos) {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveJoeManagementReqToWogcPartnerEngineerDvo(dto);
 
@@ -113,23 +153,23 @@ public class WogcPartnerEngineerService {
         return processCnt;
     }
 
-    public PagingResult<WogcPartnerEngineerDto.FindEngineerGradeRes> getEngineerGradePages(
+    public PagingResult<FindEngineerGradeRes> getEngineerGradePages(
         FindEngineerGradeReq dto, PageInfo pageInfo
     ) {
         return this.mapper.selectEngineerGrades(dto, pageInfo);
     }
 
-    public List<WogcPartnerEngineerDto.FindEngineerGradeRes> getEngineerGradeForExcelDownload(
+    public List<FindEngineerGradeRes> getEngineerGradeForExcelDownload(
         FindEngineerGradeReq dto
     ) {
         return this.mapper.selectEngineerGrades(dto);
     }
 
     @Transactional
-    public int saveEngineerGrade(List<WogcPartnerEngineerDto.SaveEngineerGradeReq> dtos) {
+    public int saveEngineerGrade(List<SaveEngineerGradeReq> dtos) {
         int processCnt = 0;
 
-        for (WogcPartnerEngineerDto.SaveEngineerGradeReq dto : dtos) {
+        for (SaveEngineerGradeReq dto : dtos) {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(dto);
             processCnt += this.mapper.insertEgerGdRgst(dvo);
