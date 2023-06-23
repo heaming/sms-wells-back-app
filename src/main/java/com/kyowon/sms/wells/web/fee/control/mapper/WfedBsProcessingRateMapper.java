@@ -20,6 +20,8 @@ public interface WfedBsProcessingRateMapper {
 
     List<WfedBsProcessingRateDto.SearchRes> selectBsProcessingRates(WfedBsProcessingRateDto.SearchReq dto);
 
+    int selectBsAgrgCheck(WfedBsProcessingRateDvo dvo);
+
     int updatePartnerBsProcessingRate(WfedBsProcessingRateDvo dvo);
 
     int updateMonthBsProcessingRate(WfedBsProcessingRateDvo dvo);
