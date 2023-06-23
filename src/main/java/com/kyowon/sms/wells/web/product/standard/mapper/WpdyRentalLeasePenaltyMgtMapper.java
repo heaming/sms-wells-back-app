@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.standard.mapper;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyRentalLeasePenaltyMgtDto;
 import com.kyowon.sms.wells.web.product.standard.dvo.WpdyCancelChargeBaseDvo;
@@ -33,5 +34,7 @@ public interface WpdyRentalLeasePenaltyMgtMapper {
 
     int deleteRentalLeasePenaltyBase(WpdyCancelChargeBaseDvo info);
 
-    String selectRentalLeasePenaltyDuplication(WpdyCancelChargeBaseDvo info);
+    String selectRentalLeasePenaltyDuplication(@Param("info")
+    WpdyCancelChargeBaseDvo info, @Param("idList")
+    List<String> idList);
 }
