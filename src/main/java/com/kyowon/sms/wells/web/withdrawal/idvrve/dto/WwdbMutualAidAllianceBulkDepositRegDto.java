@@ -19,6 +19,7 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
         String welsCntrSn, /*웰스계약일련번호*/
         String lifAlncDvCd, /*라이프제휴구분코드*/
         String fstRgstDtm, /*입력일자*/
+        String pdCd, /*상품코드*/
         String fstRgstUsrId, /*입력담당자id*/
         String fstRgstUsrNm, /*입력담당자id*/
         long sumAmt /*합계*/
@@ -99,6 +100,24 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
         String pchsCdcoCd, /*매입카드사코드*/
         String istmMcn, /* 할부개월 */
         String alncmpDvCd /* 제휴가구분코드*/
+    ) {
+
+    }
+
+    public record SearchIntegrationDepositRes(
+        String dprNm, /*입금자명*/
+        String cstNo, /*고객번호*/
+        String fnitCd, /*금융기관코드*/
+        String acnoEncr, /*계좌번호암호화*/
+        String crcdnoEncr,
+        String crdcdFnitCd, /*신용카드금융기관코드*/
+        String crdcdCopnDvCd, /*신용카드법인격구분코드*/
+        String crdcdBryyMmdd, /*신용카드생년월일*/
+        String crdcdBzrno, /*신용카드사업자등록번호*/
+        String crdcdExpdtYm, /*신용카드유효기간년월*/
+        String crdcdIstmMcn, /*신용카드할부개월수*/
+        String dpDtm, /*입금일자*/
+        String dpAmt /*입금금액*/
     ) {
 
     }
