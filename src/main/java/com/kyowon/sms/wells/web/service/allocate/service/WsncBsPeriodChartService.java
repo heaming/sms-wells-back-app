@@ -105,6 +105,7 @@ public class WsncBsPeriodChartService {
                 chekInstMths = chekInstMths + chart06Res.getVstNmnN();
             }
             processParam.setChekInstMths(chekInstMths);
+            processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs03_07(processParam);
             //AS-IS ::: C1 Loop(chart07Res)
