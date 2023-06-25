@@ -34,4 +34,5 @@ public interface WsnaWarehouseOrganizationMapper {
 
     List<SearchWarehouseRes> selectLogisticsCenters();
 
+    PagingResult<SearchBuildingRes> selectBuildingInformations(SearchBuildingReq dto, PageInfo pageInfo);
 }

@@ -131,4 +131,7 @@ public class WsnaWarehouseOrganizationService {
             || BUSINESS_CENTER_ORGANIZATION.getCode().equals(wareDtlDvCd);
     }
 
+    public PagingResult<SearchBuildingRes> getBuildingInformations(SearchBuildingReq dto, PageInfo pageInfo) {
+        return this.mapper.selectBuildingInformations(dto, pageInfo);
+    }
 }

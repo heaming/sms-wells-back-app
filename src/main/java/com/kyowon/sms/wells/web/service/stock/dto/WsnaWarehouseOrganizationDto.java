@@ -156,4 +156,22 @@ public class WsnaWarehouseOrganizationDto {
         String codeName
     ) {}
 
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchBuildingReq")
+    public record SearchBuildingReq(
+        String dgr1LevlOgId, //1차레벨 조직ID
+        String dgr2LevlOgId //2차레벨 조직ID
+    ) {}
+
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchBuildingRes")
+    public record SearchBuildingRes(
+        String bldCd, //빌딩코드
+        String bldCdNm, //빌딩코드명
+        String bldNm, //빌딩명
+        String bldAdr, // 빌딩주소
+        String adrId, //주소 id
+        String rnadr, //도로명주소
+        String rdadr, // 도로명주소상세
+        String newAdrZip //신주소우편번호
+    ) {}
+
 }
