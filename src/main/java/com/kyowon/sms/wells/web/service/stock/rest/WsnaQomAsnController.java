@@ -43,8 +43,16 @@ public class WsnaQomAsnController {
         return service.getIndividualWareQomAsns(dto, pageInfo);
     }
 
+    @GetMapping("/count")
+    public int getCountQomAsn(SearchReq dto){
+        return service.getCountQomAsn(dto);
+    }
+
     @PutMapping("/warehouse-renewals")
-    public SaveResponse editWarehouseRenewals(@Valid SearchReq dto){
+    public SaveResponse editWarehouseRenewals(
+        @RequestBody
+        SearchReq dto
+    ){
         return SaveResponse.builder()
             .processCount(service.editWarehouseRenewals(dto))
             .build();
