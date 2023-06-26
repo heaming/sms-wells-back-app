@@ -10,7 +10,7 @@
              , MPI.PRTNR_KNM                /*파트너명*/
              , WGB.WK_GRP_CD                /*작업그룹코드*/
              , F_CMZ_CD_NM('TNT_WELLS', 'WK_GRP_CD', WGB.WK_GRP_CD) AS WK_GRP_NM
-             , CASE WHEN EAI.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'Y'
+             , CASE WHEN EVI.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'Y'
                                                            ELSE 'N'
                END BIZ_AGNT_YN
              , EAI.WRK_DT                   /*근무일자*/
@@ -24,10 +24,11 @@
                   AND BASE_MM = SUBSTR(EAI.WRK_DT, 5, 2)
                   AND BASE_D  = SUBSTR(EAI.WRK_DT, 7, 2)) AS WRK_NM
              , EAI.EGER_WRK_STAT_CD            /*근태사유코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_WRK_STAT_CD', EAI.EGER_WRK_STAT_CD) AS EGER_WRK_STAT_NM
              , EAI.RMK_CN                      /*비고내용*/
-             , EAI.DNL_STRTDT                  /*근태시작일자*/
-             , EAI.DNL_ENDDT                   /*근태종료일자*/
-             , EAI.BIZ_AGNT_PRTNR_NO           /*업무대행파트너번호*/
+             , EVI.VCN_STRT_DT                  /*휴가시작일자*/
+             , EVI.VCN_END_DT                   /*휴가종료일자*/
+             , EVI.BIZ_AGNT_PRTNR_NO           /*업무대행파트너번호*/
              , MPI2.PRTNR_KNM AS AGNT_PRTNR_KNM            /*파트너명*/
              , EAI.PCP_PRTNR_NO                            /*처리자파트너번호*/
              , MPI3.PRTNR_KNM AS PCP_PRTNR_KNM             /*파트너명*/
@@ -43,6 +44,11 @@
                           ) WGB /*작업그룹소속상세*/
             ON EAI.PRTNR_NO = WGB.PRTNR_NO
            AND EAI.OG_TP_CD = WGB.OG_TP_CD
+          LEFT OUTER JOIN TB_OGPS_EGER_VCN_IZ EVI
+            ON EVI.OG_TP_CD = EAI.OG_TP_CD
+           AND EVI.PRTNR_NO = EAI.PRTNR_NO
+           AND #{baseDt} BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT
+           AND EVI.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI
             ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND MPI.PRTNR_NO = EAI.PRTNR_NO
@@ -50,15 +56,15 @@
            AND MPI.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI2
             ON MPI2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND MPI2.PRTNR_NO = EAI.BIZ_AGNT_PRTNR_NO
-           AND MPI2.OG_TP_CD = EAI.OG_TP_CD
+           AND MPI2.PRTNR_NO = EVI.BIZ_AGNT_PRTNR_NO
+           AND MPI2.OG_TP_CD = EVI.OG_TP_CD
            AND MPI2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI3
             ON MPI3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND MPI3.PRTNR_NO = EAI.PCP_PRTNR_NO
            AND MPI3.OG_TP_CD = EAI.PCP_OG_TP_CD
            AND MPI3.DTA_DL_YN = 'N'
-         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ MOG
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ MOG
             ON MOG.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND MOG.OG_ID = MPI.OG_ID
            AND MOG.DTA_DL_YN = 'N'
