@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
@@ -27,7 +29,7 @@ public class WsnaComputationExcludeItemDto {
         // 품목종류코드
         String itmKndCd,
         // 품목코드
-        String itmPdCd,
+        List<String> itmPdCds,
         // 시작 SAP코드
         String strtSapCd,
         // 종료 SAP코드
