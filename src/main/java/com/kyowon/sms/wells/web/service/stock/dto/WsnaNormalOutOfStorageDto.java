@@ -55,7 +55,8 @@ public class WsnaNormalOutOfStorageDto {
     public record AskReq(
         String itmPdCd,
         String strOjWareNo,
-        String wareDvCd
+        String wareDvCd,
+        String wareDtlDvCd
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskRes")
