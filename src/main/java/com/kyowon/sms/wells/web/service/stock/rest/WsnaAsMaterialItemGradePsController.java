@@ -45,11 +45,6 @@ public class WsnaAsMaterialItemGradePsController {
 
     private final WsnaAsMaterialItemGradePsService service;
 
-    /**
-     * 창고 조회
-     * @param dto
-     * @return
-     */
     @GetMapping("/ware-houses")
     @ApiOperation(value = "AS자재 품목등급현황 창고 조회", notes = "AS자재 품목등급현황 창고를 조회한다.")
     @ApiImplicitParams(value = {
@@ -60,11 +55,6 @@ public class WsnaAsMaterialItemGradePsController {
         return this.service.getWareHouses(dto);
     }
 
-    /**
-     * AS자재 품목등급현황 페이징 조회
-     * @param dto
-     * @return
-     */
     @GetMapping("/paging")
     @ApiOperation(value = "AS자재 품목등급현황 페이징 조회", notes = "AS자재 품목등급현황을 조회한다.")
     @ApiImplicitParams(value = {
@@ -80,11 +70,6 @@ public class WsnaAsMaterialItemGradePsController {
         return this.service.getAsMaterialItemGradePsPaging(dvo, pageInfo);
     }
 
-    /**
-     * AS자재 품목등급현황 엑셀 다운로드
-     * @param dto
-     * @return
-     */
     @GetMapping("/excel-download")
     @ApiOperation(value = "AS자재 품목등급현황 엑셀 다운로드", notes = "조회조건에 일치하는 AS자재 품목등급 데이터를 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {

@@ -32,10 +32,6 @@ public class WsnaComputationExcludeItemController {
 
     private final WsnaComputationExcludeItemService service;
 
-    /**
-     * 산출 제외품목 등록 품목 조회
-     * @return
-     */
     @GetMapping("/products")
     @ApiOperation(value = "산출 제외품목 등록 품목 조회", notes = "산출 제외품목 품목 목록을 조회한다.")
     public List<WsnaComputationExcludeItemPdDvo> getProducts() {
@@ -43,12 +39,6 @@ public class WsnaComputationExcludeItemController {
         return this.service.getProducts();
     }
 
-    /**
-     * 산출 제외품목 페이징 조회
-     * @param dto
-     * @param pageInfo
-     * @return
-     */
     @GetMapping("/paging")
     @ApiOperation(value = "산출 제외품목 페이징 조회", notes = "산출 제외품목을 조회한다.")
     @ApiImplicitParams(value = {
@@ -65,11 +55,6 @@ public class WsnaComputationExcludeItemController {
         return this.service.getComputationExcludeItemsPaging(dto, pageInfo);
     }
 
-    /**
-     * 산출 제외품목 엑셀 다운로드
-     * @param dto
-     * @return
-     */
     @GetMapping("/excel-download")
     @ApiOperation(value = "산출 제외품목 엑셀 다운로드", notes = "조회조건에 일치하는  산출 제외품목 데이터를 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {
@@ -84,12 +69,6 @@ public class WsnaComputationExcludeItemController {
         return this.service.getComputationExcludeItemsExcelDownload(dto);
     }
 
-    /**
-     * 산출 제외품목 삭제
-     * @param dtos
-     * @return
-     * @throws Exception
-     */
     @DeleteMapping
     @ApiOperation(value = "산출 제외품목 삭제", notes = "산출 제외품목 데이터를 삭제한다.")
     public SaveResponse removeComputationExcludeItems(
@@ -102,12 +81,6 @@ public class WsnaComputationExcludeItemController {
         return SaveResponse.builder().processCount(this.service.updateComputationExcludeItemForRemove(dtos)).build();
     }
 
-    /**
-     * 산출 제외품목 저장
-     * @param dtos
-     * @return
-     * @throws Exception
-     */
     @PostMapping
     @ApiOperation(value = "산출 제외품목 저장", notes = "산출 제외품목 데이터를 저장한다.")
     public SaveResponse saveComputationExcludeItems(
@@ -120,11 +93,6 @@ public class WsnaComputationExcludeItemController {
         return SaveResponse.builder().processCount(this.service.saveComputationExcludeItem(dtos)).build();
     }
 
-    /**
-     * 전월 데이터 건수 체크
-     * @param dto
-     * @return
-     */
     @GetMapping("/last-month-check")
     @ApiOperation(value = "산출 제외품목 전월 데이터 건수 체크", notes = "전월 데이터 이관을 위한 전월 데이터 건수를 체크한다.")
     @ApiImplicitParams(value = {
@@ -136,11 +104,6 @@ public class WsnaComputationExcludeItemController {
         return this.service.checkComputationExcludeItemCount(dto.inqrYm(), 1);
     }
 
-    /**
-     * 당월 데이터 건수 체크
-     * @param dto
-     * @return
-     */
     @GetMapping("/this-month-check")
     @ApiOperation(value = "산출 제외품목 당월 데이터 건수 체크", notes = "전월 데이터 이관을 위한 당월 데이터 건수를 체크한다.")
     @ApiImplicitParams(value = {
@@ -152,12 +115,6 @@ public class WsnaComputationExcludeItemController {
         return this.service.checkComputationExcludeItemCount(dto.inqrYm(), 0);
     }
 
-    /**
-     * 산출 제외품목 데이터 이관
-     * @param dto
-     * @return
-     * @throws Exception
-     */
     @PostMapping("/item-transfers")
     @ApiOperation(value = "산출 제외품목 데이터 이관", notes = "전월 산출 제외품목 데이터를 이번달로 적용한다.")
     public SaveResponse createComputationExcludeItemForTransfers(

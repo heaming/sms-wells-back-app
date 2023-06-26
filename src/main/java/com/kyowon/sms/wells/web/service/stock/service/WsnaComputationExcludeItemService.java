@@ -38,7 +38,6 @@ public class WsnaComputationExcludeItemService {
 
     /**
      * 품목 조회
-     * @param dto
      * @return
      */
     public List<WsnaComputationExcludeItemPdDvo> getProducts() {
@@ -53,8 +52,6 @@ public class WsnaComputationExcludeItemService {
      * @return
      */
     public PagingResult<SearchRes> getComputationExcludeItemsPaging(SearchReq dto, PageInfo pageInfo) {
-        ValidAssert.notNull(dto);
-        ValidAssert.notNull(pageInfo);
 
         return this.mapper.selectCmptExcdItms(dto, pageInfo);
     }
@@ -65,7 +62,6 @@ public class WsnaComputationExcludeItemService {
      * @return
      */
     public List<SearchRes> getComputationExcludeItemsExcelDownload(SearchReq dto) {
-        ValidAssert.notNull(dto);
 
         return this.mapper.selectCmptExcdItms(dto);
     }
@@ -91,7 +87,6 @@ public class WsnaComputationExcludeItemService {
      */
     @Transactional
     public int createComputationExcludeItemForTransfers(TransferReq dto) {
-        ValidAssert.notNull(dto);
 
         // 조회년월
         String inqrYm = dto.inqrYm();
@@ -117,7 +112,6 @@ public class WsnaComputationExcludeItemService {
      */
     @Transactional
     public int updateComputationExcludeItemForRemove(List<RemoveReq> dtos) {
-        ValidAssert.notEmpty(dtos);
 
         int count = 0;
 
@@ -140,7 +134,6 @@ public class WsnaComputationExcludeItemService {
      */
     @Transactional
     public int saveComputationExcludeItem(List<SaveReq> dtos) {
-        ValidAssert.notEmpty(dtos);
 
         int count = 0;
 

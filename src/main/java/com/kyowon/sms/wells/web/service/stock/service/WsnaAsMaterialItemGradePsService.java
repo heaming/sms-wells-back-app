@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradePsDto.SearchWareReq;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -7,7 +9,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradePsDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradePsDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsMaterialItemGradePsMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -42,12 +43,10 @@ public class WsnaAsMaterialItemGradePsService {
      * @param dto
      * @return
      */
-    public List<WsnzWellsCodeWareHouseDvo> getWareHouses(WsnaAsMaterialItemGradePsDto.SearchWareReq dto) {
+    public List<WsnzWellsCodeWareHouseDvo> getWareHouses(SearchWareReq dto) {
 
-        ValidAssert.notNull(dto);
         // 기준년월
         String baseYm = dto.baseYm();
-        ValidAssert.hasText(baseYm);
 
         // 현재년월
         String nowYm = DateUtil.getNowDayString().substring(0, 6);
