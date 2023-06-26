@@ -39,6 +39,7 @@ public class WctaTaxInvoiceInquiryDto {
         String emadr2, /* @뒤 메일주소 */
         String cntrCnfmDtm, /*  계약확정일시 */
         String dlpnrCd, /* 거래처 코드 */
-        String dpTpCd /* 입금유형코드 */
+        String dpTpCd, /* 입금유형코드 */
+        String sellTpCd /* 판매유형코드 */
     ) {}
 }

@@ -1,88 +1,185 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnMapper">
-    <select id="selectCountQomAsn">
+    <select id="selectCountQomAsn" resultType="int">
         SELECT COUNT(1) AS CNT
           FROM TB_SVST_ITM_QOM_ASN_IZ
          WHERE ASN_OJ_YM = #{asnOjYm}
-           AND ASN_TN_N = #{asnTnN}
-           AND WARE_DTL_DV_CD = #{wareDtlDvCd}
+           AND ASN_TN_N = #{cnt}
+           AND WARE_DV_CD = #{wareDvCd}
     </select>
-
+    <select id="selectOstrWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$WareRes">
+        SELECT T1.WARE_NO AS CODE_ID
+             , T1.WARE_NM AS CODE_NAME
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         WHERE T1.APY_YM =  #{apyYm}
+           AND T1.WARE_NO IN ('100002','100008')
+    </select>
+    <select id="selectStrWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$WareRes">
+        SELECT T1.WARE_NO AS CODE_ID
+             , T1.WARE_NM AS CODE_NAME
+        FROM TB_SVST_MCBY_WARE_IZ T1
+       INNER JOIN (SELECT J1.STR_WARE_NO
+                     FROM TB_SVST_ITM_QOM_ASN_IZ J1
+                    WHERE J1.ASN_OJ_YM  = #{asnOjYm}
+                      AND J1.DTA_DL_YN = 'N'
+                    GROUP BY J1.STR_WARE_NO
+                  ) T2
+           ON T1.WARE_NO = T2.STR_WARE_NO
+        WHERE T1.APY_YM =  #{apyYm}
+          AND T1.WARE_DV_CD = #{wareDvCd}
+    </select>
     <select id="selectIndependenceQomAsns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$SearchRes">
-        SELECT #{asnOjYm} AS ASN_OJ_YM
-             , '100008' AS OSTR_WARE_NO
-             , T4.STR_WARE_DV_CD
-             , T4.STR_WARE_NO
-             , T2.WARE_NM AS STR_WARE_NM
-             , T4.PU_PART_PD_CD AS ITEM_CD
-             , T4.PU_PART_PD_CD AS ITEM_CODE
-             , T1.SVPD_SELL_TP_CD AS SALE_CD
-             , T1.SVPD_NM_ABBR1 AS NM_ABBR1
-             , T1.SVPD_MGT_UNT_NM AS MGT_UNT_NM
-             , 'A' AS DEG
-             , T4.ON_QTY
-             , CASE WHEN T4.PU_QTY <![CDATA[<]]> T4.ON_QTY THEN 0
-                    WHEN T2.WARE_DTL_DV_CD NOT IN ('10','20','30') THEN T4.PU_QTY - T4.ON_QTY
-                    WHEN T4.PU_QTY = T4.ON_QTY THEN 1
-                    ELSE T4.PU_QTY - T4.ON_QTY
-                END AS USE_QTY
-             , 0 AS ACC_QTY
-             /* 조직창고가 아니라면, 개인창고는 센터로 뭉쳐서 CHG_CD=000, 직배는 CHG_CD !=000(가중치 영향안받음) */
-             , CASE WHEN T2.WARE_DTL_DV_CD NOT IN ('10','20','30')
-                                        /** 필요수량에서 재고수량을 뺀 부족수량 요청 **/
-                         THEN CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>]]> 0
-                                        THEN (T4.FULL_PU_QTY - T4.ON_QTY)
-                                   ELSE 0
-                               END
-                    ELSE CASE WHEN NVL(T4.BOX_QTY) <![CDATA[>]]> 0
-                                   THEN CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[<]]> -3 THEN 0
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN -3 AND -1
-                                                  THEN T4.BOX_QTY * CEIL((1) * (300/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) = 0
-                                                  THEN T4.BOX_QTY * CEIL((1) * (300/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 1 AND 3
-                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (300/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 4 AND 9
-                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (200/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 10 AND 19
-                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (150/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 20 AND 49
-                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (140/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 50 AND 99
-                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (130/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 100 AND 199
-                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (120/100) /  T4.BOX_QTY)
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>=]]> 200
-                                                  THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (110/100) /  T4.BOX_QTY)
-                                         END
-                                   ELSE CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[<]]> -3 THEN 0
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN -3 AND -1
-                                                  THEN T4.BOX_QTY * CEIL((1) * (300/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) = 0 THEN CEIL((1) * (300/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 1 AND 3
-                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (300/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 4 AND 9
-                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (200/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 10 AND 19
-                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (150/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 20 AND 49
-                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (140/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 50 AND 99
-                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (130/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 100 AND 199
-                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (120/100))
-                                             WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>=]]> 200
-                                                  THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (110/100))
-                                         END
-                          END
-                END AS CNFRM_QTY
-           , T1.SVPD_BOX_QTY S BOX_CNT
-        FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
-             , TB_SVST_MCBY_WARE_IZ T2
-             , TB_SVST_MCITM_STOC_IZ T3
-             , (<include refid="groupBy01"/>) T4
-         WHERE T1.SVPD_PD_CD = T4.PU_PART_PD_CD
+        SELECT '' AS CHK
+             , M1.ASN_OJ_YM
+             , M1.OSTR_WARE_NO
+             , M1.STR_WARE_NO
+             /* SEQ */
+             , LPAD((SELECT DECODE(MAX(TO_NUMBER(SUBSTR(MS01.ITM_QOM_ASN_NO ,9,15))), NULL, '1', MAX(TO_NUMBER(SUBSTR(MS01.ITM_QOM_ASN_NO ,9,15))) +1)
+                       FROM TB_SVST_ITM_QOM_ASN_IZ MS01
+                      WHERE MS01.ASN_OJ_YM = M1.ASN_OJ_YM
+                        AND MS01.OSTR_WARE_NO = M1.OSTR_WARE_NO
+                        AND MS01.STR_WARE_NO = M1.STR_WARE_NO
+                    ) + (RANK() OVER(PARTITION BY M1.ASN_OJ_YM, M1.OSTR_WARE_NO, M1.STR_WARE_NO ORDER BY ROWNUM) -1 ), 7, '0'
+               ) AS SEQ
+             , #{cnt} AS ASN_TN_N /* 배정회차수 */
+             , M1.STR_WARE_DV_CD
+             , M1.STR_WARE_NM
+             , M1.ITEM_CD
+             , M1.ITEM_CODE
+             , NVL(M1.SALE_CD,'9999') SALE_CD
+             , M1.NM_ABBR1
+             , M1.MGT_UNT_NM
+             , M1.DEG
+             , M1.ON_QTY
+             , M1.USE_QTY
+             , M1.CNFRM_QTY
+             , NVL(M1.ACC_QTY,0) ACC_QTY
+             , NVL(M1.BOX_CNT,0) BOX_QTY
+             , M1.BOX_CNT
+             , M1.BOX_MGT_QTY
+             , M1.STCK_MGR_GB
+             , M1.STCK_MGR
+             , M1.BLD_CD
+             , M1.STCK_BLD_CD
+             , M1.STCK_BLD_NM
+             , M1.WARE_ADR_ID
+             , M1.ADR_USE_YN
+             , M1.PU_QTY
+             , M1.FULL_PU_QTY
+             , M1.PITM_STOC_A_GD_QTY
+          FROM (SELECT #{asnOjYm} AS ASN_OJ_YM
+                     , '100008' AS OSTR_WARE_NO
+                     , T4.STR_WARE_DV_CD
+                     , T4.STR_WARE_NO
+                     , T2.WARE_NM AS STR_WARE_NM
+                     , T4.PU_PART_PD_CD AS ITEM_CD
+                     , T4.PU_PART_PD_CD AS ITEM_CODE
+                     , T1.SVPD_SELL_TP_CD AS SALE_CD
+                     , T1.SVPD_NM_ABBR1 AS NM_ABBR1
+                     , T1.SVPD_MGT_UNT_NM AS MGT_UNT_NM
+                     , 'A' AS DEG
+                     , T4.ON_QTY
+                     , CASE WHEN T4.PU_QTY <![CDATA[<]]> T4.ON_QTY THEN 0
+                            WHEN T2.WARE_DTL_DV_CD NOT IN ('10','20','30') THEN T4.PU_QTY - T4.ON_QTY
+                            WHEN T4.PU_QTY = T4.ON_QTY THEN 1
+                            ELSE T4.PU_QTY - T4.ON_QTY
+                        END AS USE_QTY
+                     , 0 AS ACC_QTY
+                     /* 조직창고가 아니라면, 개인창고는 센터로 뭉쳐서 CHG_CD=000, 직배는 CHG_CD !=000(가중치 영향안받음) */
+                     , CASE WHEN T2.WARE_DTL_DV_CD NOT IN ('10','20','30')
+                                /** 필요수량에서 재고수량을 뺀 부족수량 요청 **/
+                            THEN CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>]]> 0
+                                      THEN (T4.FULL_PU_QTY - T4.ON_QTY)
+                                      ELSE 0
+                                  END
+                            ELSE CASE WHEN NVL(T4.BOX_QTY, 0) <![CDATA[>]]> 0
+                                      THEN CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[<]]> -3 THEN 0
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN -3 AND -1
+                                                    THEN T4.BOX_QTY * CEIL((1) * (300/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) = 0
+                                                    THEN T4.BOX_QTY * CEIL((1) * (300/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 1 AND 3
+                                                    THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (300/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 4 AND 9
+                                                    THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (200/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 10 AND 19
+                                                    THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (150/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 20 AND 49
+                                                    THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (140/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 50 AND 99
+                                                    THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (130/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 100 AND 199
+                                                    THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (120/100) /  T4.BOX_QTY)
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>=]]> 200
+                                                    THEN T4.BOX_QTY * CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (110/100) /  T4.BOX_QTY)
+                                            END
+                                      ELSE CASE WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[<]]> -3 THEN 0
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN -3 AND -1
+                                                    THEN T4.BOX_QTY * CEIL((1) * (300/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) = 0 THEN CEIL((1) * (300/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 1 AND 3
+                                                    THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (300/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 4 AND 9
+                                                    THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (200/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 10 AND 19
+                                                    THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (150/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 20 AND 49
+                                                    THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (140/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 50 AND 99
+                                                    THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (130/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) BETWEEN 100 AND 199
+                                                    THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (120/100))
+                                                WHEN (T4.FULL_PU_QTY - T4.ON_QTY) <![CDATA[>=]]> 200
+                                                    THEN CEIL((T4.FULL_PU_QTY - T4.ON_QTY) * (110/100))
+                                            END
+                                  END
+                        END AS CNFRM_QTY
+                     , T1.SVPD_BOX_QTY AS BOX_CNT
+                     , NVL(T1.SVPD_BOX_QTY,0) AS BOX_MGT_QTY
+                     , CASE WHEN T2.WARE_DTL_DV_CD  IN ('10','20','30') THEN '1'
+                            ELSE '2'
+                        END AS STCK_MGR_GB
+                     , T2.WARE_MNGT_PRTNR_NO AS STCK_MGR
+                     , T2.BLD_CD
+                     , (SELECT TS01.BLD_CD
+                          FROM TB_OGBS_MM_OG_IZ TS01
+                         WHERE TS01.BASE_YM = #{apyYm}
+                           AND TS01.OG_ID = T2.OG_ID
+                       ) AS STCK_BLD_CD
+                     , (SELECT TS01.BLD_NM
+                          FROM TB_OGBS_MM_OG_IZ TS01
+                         WHERE TS01.BASE_YM = #{apyYm}
+                           AND TS01.OG_ID = T2.OG_ID
+                       ) AS STCK_BLD_NM
+                     , T2.WARE_ADR_ID
+                     , T2.ADR_USE_YN
+                     /* ST101_DAS_CD */
+                     , T4.PU_QTY
+                     , T4.FULL_PU_QTY
+                     , T4.BOX_QTY
+                     , T3.PITM_STOC_A_GD_QTY
+                  FROM (<include refid="groupBy01"/>) T4
+                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
+                    ON T4.PU_PART_PD_CD = T1.SVPD_PD_CD
+                   AND (T1.SVPD_ITEM_GR IS NULL OR T1.SVPD_ITEM_GR != '11')
+                  LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T2
+                    ON (T2.APY_YM = #{apyYm} AND T4.STR_WARE_NO = T2.WARE_NO )
+                  LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T3
+                    ON (T3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') AND T4.PU_PART_PD_CD = T3.ITM_PD_CD AND T4.STR_WARE_NO = T3.WARE_NO)
+               /* TODO: 배양액 제외 조건 추가해야함. (T4.PU_PART_PD_CD)*/
+               <where>
+                    <if test="@MybatisUtils@isNotEmpty(itmKnd)">
+                       AND T1.SVPD_ITEM_KND = #{itmKnd}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+                       AND T4.STR_WARE_DV_CD = #{wareDvCd}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(strWareNo)">
+                       AND T4.STR_WARE_NO = #{strWareNo}
+                    </if>
+               </where>
+               ) M1
     </select>
 
     <select id="selectIndividualWareQomAsns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$SearchRes">
@@ -190,7 +287,7 @@
                        AND G1.STR_WARE_NO = K02.WARE_NO
                        </if>
                ), 0) AS ON_QTY
-             , T1.STR_WARE_DV_CD
+             , G1.STR_WARE_DV_CD
           FROM (SELECT S01.ASN_OJ_YM
                      , S01.CNTR_NO
                      , S01.CNTR_SN
@@ -217,6 +314,7 @@
                      , TB_SVPD_CST_SV_BFSVC_ASN_IZ S11  /* LC_ALLOCATE_AC261TB */
                      </if>
                  WHERE S02.MNGT_YM = #{apyYm}
+                   AND S01.ASN_OJ_YM = #{asnOjYm}
                    AND S02.CNTR_NO = S01.CNTR_NO
                    AND S02.CNTR_SN = S01.CNTR_SN
                    AND S02.PDCT_PD_CD = S01.PDCT_PD_CD
@@ -225,8 +323,8 @@
                    AND S02.BFSVC_TP_CD = '1' /* BS 유형(1:방문 2:배송) */
                    AND S03.WARE_DTL_DV_CD NOT IN ('10','20','30')
                    AND S03.WARE_USE_YN = 'Y'
-                   AND S03.ASN_OJ_YM = #{asnOjYm}
-                   AND S03.QOM_ASN_WARE_NO = '100008' /* 교원성수물류센터 */
+                   AND S03.APY_YM = #{asnOjYm}
+                   AND S03.WARE_NO = '100008' /* 교원성수물류센터 */
                    AND NOT EXISTS (SELECT 1
                                      FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ S04
                                     WHERE S04.CNTR_NO = S01.CNTR_NO

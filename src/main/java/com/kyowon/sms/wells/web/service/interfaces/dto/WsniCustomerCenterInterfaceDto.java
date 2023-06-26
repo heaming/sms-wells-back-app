@@ -216,4 +216,34 @@ public class WsniCustomerCenterInterfaceDto {
         String msg,
         String result
     ) {}
+
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrRes")
+    public record FindAdnInfReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn
+    ) {}
+
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrRes")
+    public record FindAdnInfRes(
+        String istLctDtlCn,
+        String allCleanMsg,
+        String allCleanYn,
+        String changeCount,
+        String dtlCntrNo,
+        String dtlCntrSn,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String newAdrZip,
+        String rnadr,
+        String rdadr,
+        String bsStopYn,
+        String changeYn,
+        String changePossibleYn
+    ) {}
 }

@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 public class WcsbNewReceiptMgtController {
-
     private final WcsbNewReceiptMgtService service;
 
     /*
@@ -66,14 +65,16 @@ public class WcsbNewReceiptMgtController {
     }
 
     @ApiOperation(value = "배정/접수 (단건)상세 조회", notes = "배정/접수 상세 데이터를 조회한다.")
-    @GetMapping("/assign/{pspcCstCnslId}")
+    @GetMapping("/assign/{pspcCstCnslId}/{cntrNo}")
     public WcsbNewReceiptMgtDto.SearchDtlRes getPspcCstCnslAssign(
         @Valid
         @RequestBody
         @PathVariable
-        String pspcCstCnslId
+        String pspcCstCnslId,
+        @PathVariable
+        String cntrNo
     ) throws Exception {
-        return service.getPspcCstCnslAssign(pspcCstCnslId);
+        return service.getPspcCstCnslAssign(pspcCstCnslId, cntrNo);
     }
 
     @ApiOperation(value = "담당자 수동배정 조회", notes = "담당자 수동배정을 위해 사번을 입력받아 담당자 정보를 조회한다.")

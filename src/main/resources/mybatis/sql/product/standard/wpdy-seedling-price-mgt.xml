@@ -39,7 +39,7 @@
             ON PB.PD_CD = T1.PDCT_PD_CD
            AND PB.DTA_DL_YN = 'N'
           LEFT JOIN T_CMP_USR_ACO_M MU
-            ON (MU.USR_ID = T1.FNL_MDFC_USR_ID OR MU.EPNO = T1.FNL_MDFC_USR_ID)
+            ON MU.USR_ID = T1.FNL_MDFC_USR_ID
            AND MU.DEL_YN = 'N'
           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS C1          /* 대분류 */ 
             ON PB.PD_HCLSF_ID  = C1.PD_CLSF_ID
@@ -117,7 +117,17 @@
             , #{info.rglrSppMchnKndCd}
             , #{info.rglrSppMchnTpCd}
             , #{info.rglrSppPrcDvCd}
-            , #{info.pdPrcTcnt}
+            , NVL(
+                   (
+                   SELECT MAX(PD_PRC_TCNT) + 1 
+                     FROM TB_PDBS_SDING_PRC_BAS
+                    WHERE DTA_DL_YN = 'N'
+                      AND PDCT_PD_CD = #{info.pdctPdCd}
+                      AND RGLR_SPP_MCHN_KND_CD = #{info.rglrSppMchnKndCd}
+                      AND RGLR_SPP_MCHN_TP_CD = #{info.rglrSppMchnTpCd}
+                      AND RGLR_SPP_PRC_DV_CD = #{info.rglrSppPrcDvCd}
+                   )
+              , 1)  
             , #{info.apyStrtdt}
             , #{info.apyEnddt}
             , #{info.sdingQty}
@@ -137,7 +147,6 @@
              , RGLR_SPP_MCHN_KND_CD  = #{rglrSppMchnKndCd}     /* 정기배송기기종류코드 */
              , RGLR_SPP_MCHN_TP_CD   = #{rglrSppMchnTpCd}      /* 정기배송기기유형코드 */
              , RGLR_SPP_PRC_DV_CD    = #{rglrSppPrcDvCd}       /* 정기배송가격구분코드 */
-             , PD_PRC_TCNT           = #{pdPrcTcnt}            /* 상품가격차수 */
              , APY_STRTDT            = #{apyStrtdt}            /* 적용시작일자 */
              , APY_ENDDT             = #{apyEnddt}             /* 적용종료일자 */
              , SDING_QTY             = #{sdingQty}             /* 모종수량 */
@@ -214,12 +223,23 @@
     
     <select id="selectSeedlingPriceDuplication" resultType="String">
         SELECT PDCT_PD_CD || ',' || RGLR_SPP_MCHN_KND_CD || ',' || RGLR_SPP_MCHN_TP_CD || ',' || RGLR_SPP_PRC_DV_CD
+               || ',' || #{info.apyStrtdt}
+               || ',' || #{info.apyEnddt}
           FROM TB_PDBS_SDING_PRC_BAS 
          WHERE DTA_DL_YN = 'N'
-           AND PDCT_PD_CD = #{pdctPdCd}
-           AND RGLR_SPP_MCHN_KND_CD = #{rglrSppMchnKndCd}
-           AND RGLR_SPP_MCHN_TP_CD = #{rglrSppMchnTpCd}
-           AND RGLR_SPP_PRC_DV_CD = #{rglrSppPrcDvCd}
+           AND PDCT_PD_CD = #{info.pdctPdCd}
+           AND RGLR_SPP_MCHN_KND_CD = #{info.rglrSppMchnKndCd}
+           AND RGLR_SPP_MCHN_TP_CD = #{info.rglrSppMchnTpCd}
+           AND RGLR_SPP_PRC_DV_CD = #{info.rglrSppPrcDvCd}
+           AND APY_ENDDT <![CDATA[>=]]> #{info.apyStrtdt}
+           AND APY_STRTDT <![CDATA[<=]]> #{info.apyEnddt}
+           <if test='@MybatisUtils@isNotEmpty( idList )'>
+           AND RGLR_SPP_SDING_PRC_ID NOT IN (
+            <foreach collection="idList" item="val" separator=",">
+                #{val}
+            </foreach>
+           )
+           </if>
            AND ROWNUM = 1
     </select>
 </mapper>

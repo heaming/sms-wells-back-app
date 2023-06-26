@@ -39,6 +39,8 @@ public interface WpdySeedlingPriceMgtMapper {
 
     int updateSeedlingPricePrevHistory(WpdySeedlingPriceBaseDvo info);
 
-    String selectSeedlingPriceDuplication(WpdySeedlingPriceBaseDvo info);
+    String selectSeedlingPriceDuplication(@Param("info")
+    WpdySeedlingPriceBaseDvo info, @Param("idList")
+    List<String> idList);
 
 }

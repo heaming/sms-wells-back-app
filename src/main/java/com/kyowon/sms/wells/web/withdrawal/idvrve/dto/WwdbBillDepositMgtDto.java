@@ -125,6 +125,8 @@ public class WwdbBillDepositMgtDto {
         String dpDtm, /*입금일시*/
         @NotBlank
         String fntDt, /*실적일자*/
+
+        String rveDt, /*입금일자(수납일자)*/
         String pyAmt /*입금금액*/
     ) {
 

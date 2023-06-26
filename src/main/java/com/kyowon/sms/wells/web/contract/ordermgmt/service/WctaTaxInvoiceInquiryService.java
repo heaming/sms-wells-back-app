@@ -62,6 +62,7 @@ public class WctaTaxInvoiceInquiryService {
         int txinvPblD = Integer.parseInt(dvo.getTxinvPblD()); // 발행일자
         String rtnMsg = ""; // 반환 메세지
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        String sellTpCd = dvo.getSellTpCd(); // 판매유형코드
 
         boolean txinvPblOjInfoCheck = true; // 발행정보 변경 여부
         boolean txinvPblOjCheck = true; // 발행여부 변경 여부
@@ -133,8 +134,23 @@ public class WctaTaxInvoiceInquiryService {
                     .build()
             );
 
-            // 세금계산서접수기준내역 추가
+            String txinvPdDvCd = "";
+            String txinvPblDvCd = "01";
 
+            // 세금계산서접수기준내역 추가
+            switch (sellTpCd) {
+                case "1" -> txinvPdDvCd = "21";
+                case "2" -> txinvPdDvCd = "23";
+                case "3" -> txinvPdDvCd = "25";
+                case "6" -> {
+                    txinvPdDvCd = "27";
+                    txinvPblDvCd = "02";
+                }
+                case "9" -> txinvPdDvCd = "22";
+                default -> {}
+            }
+            dvo.setTxinvPdDvCd(txinvPdDvCd);
+            dvo.setTxinvPblDvCd(txinvPblDvCd);
             dvo.setRcpdt(nowDate);
             dvo.setTxinvPblYn(dvo.getTxinvPblOjYn());
             dvo.setAplcPsicId(session.getEmployeeIDNumber());

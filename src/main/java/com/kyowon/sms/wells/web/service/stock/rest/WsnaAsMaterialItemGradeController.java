@@ -45,11 +45,6 @@ public class WsnaAsMaterialItemGradeController {
 
     private final WsnaAsMaterialItemGradeService service;
 
-    /**
-     * 창고리스트 조회
-     * @param dto
-     * @return
-     */
     @GetMapping("/ware-houses")
     @ApiOperation(value = "AS자재 품목등급관리 창고 조회", notes = "AS자재 품목등급관리 창고 목록을 조회한다.")
     @ApiImplicitParams(value = {
@@ -62,12 +57,6 @@ public class WsnaAsMaterialItemGradeController {
         return this.service.getWareHouses(dto);
     }
 
-    /**
-     * AS자재 품목등급관리 페이징 조회
-     * @param dto
-     * @param pageInfo
-     * @return
-     */
     @GetMapping("/paging")
     @ApiOperation(value = "AS자재 품목등급관리 페이징 조회", notes = "AS자재 품목등급을 조회한다.")
     @ApiImplicitParams(value = {
@@ -87,11 +76,6 @@ public class WsnaAsMaterialItemGradeController {
         return this.service.getAsMaterialItemGradePages(dto, pageInfo);
     }
 
-    /**
-     * AS자재 품목등급관리 엑셀 다운로드
-     * @param dto
-     * @return
-     */
     @GetMapping("/excel-download")
     @ApiOperation(value = "AS자재 품목등급관리 엑셀 다운로드", notes = "조회조건에 일치하는 AS자재 품목등급 데이터를 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {
@@ -110,11 +94,6 @@ public class WsnaAsMaterialItemGradeController {
         return this.service.getAsMaterialItemGradesExcelDownload(dto);
     }
 
-    /**
-     * AS자재 품목등급 데이터 생성 중복 체크
-     * @param dto
-     * @return
-     */
     @GetMapping("/duplication-check")
     @ApiOperation(value = "AS자재 품목등급관리 데이터 생성 중복 체크", notes = "AS자재 품목등급 데이터 생성 중복 체크를 한다.")
     @ApiImplicitParams(value = {
@@ -128,12 +107,6 @@ public class WsnaAsMaterialItemGradeController {
         return this.service.getCreateAsMaterialDuplication(dvo);
     }
 
-    /**
-     * AS자재 품목등급 데이터 생성
-     * @param dto   (필수) 품목등급 데이터 생성 dto
-     * @return
-     * @throws Exception
-     */
     @PostMapping("/item-grades")
     @ApiOperation(value = "AS자재 품목등급관리 데이터 생성", notes = "AS자재 품목등급 데이터를 생성한다.")
     public SaveResponse createAsMaterialsItemGrades(
@@ -147,12 +120,6 @@ public class WsnaAsMaterialItemGradeController {
         return SaveResponse.builder().processCount(this.service.createAsMaterialItemGrades(dvo)).build();
     }
 
-    /**
-     * AS자재 품목등급 데이터 저장
-     * @param dtos  (필수) 변경된 데이터 리스트
-     * @return
-     * @throws Exception
-     */
     @PostMapping
     @ApiOperation(value = "AS자재 품목등급관리 데이터 저장", notes = "AS자재 품목등급 데이터를 저장한다.")
     public SaveResponse saveAsMaterialsItemGrades(
