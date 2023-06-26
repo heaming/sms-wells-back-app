@@ -62,9 +62,11 @@ public class WsnaWarehouseOrganizationDvo {
     String ogCd;
     String ogNm;
     String dgr1LevlOgCd;
+    String dgr1LevlOgId;
     String dgr1LevlOgNm;
     String dgr1LevlOgCdNm;
     String dgr2LevlOgCd;
+    String dgr2LevlOgId;
     String dgr2LevlOgNm;
     String dgr2LevlOgCdNm;
 
