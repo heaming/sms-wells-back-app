@@ -57,6 +57,7 @@ public class WsnaWarehouseOrganizationDvo {
     String rnadr;
     String rdadr;
     String newAdrZip;
+    String bldCdNm;
     String ogId;
     String ogCd;
     String ogNm;

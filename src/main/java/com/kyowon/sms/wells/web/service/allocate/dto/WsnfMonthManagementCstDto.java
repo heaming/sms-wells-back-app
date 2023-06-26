@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.adrwork.dto;
+package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
@@ -11,7 +11,7 @@ public class WsnfMonthManagementCstDto {
     @ApiModel(value = "WsnfMonthManagementCstDto-CreateReq")
     public record CreateReq(
         @NotBlank
-        String managementYm,
+        String mngtYm,
         @NotBlank
         String createTarget
     ) {}
@@ -19,7 +19,7 @@ public class WsnfMonthManagementCstDto {
     @ApiModel(value = "WsnfMonthManagementCstDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
-        String managementYm,
+        String mngtYm,
         @NotBlank
         String createTarget
     ) {}

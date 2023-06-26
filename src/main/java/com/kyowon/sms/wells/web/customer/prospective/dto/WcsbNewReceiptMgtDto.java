@@ -231,6 +231,10 @@ public class WcsbNewReceiptMgtDto {
                 cntrPdStrtdt = cntrPdStrtdt.substring(0, 4) + "-" + cntrPdStrtdt.substring(4, 6) + "-"
                     + cntrPdStrtdt.substring(6, 8);
             }
+            if (StringUtils.isNotEmpty(sppDuedt)) {
+                sppDuedt = sppDuedt.substring(0, 4) + "-" + sppDuedt.substring(4, 6) + "-"
+                    + sppDuedt.substring(6, 8);
+            }
         }
     }
 

@@ -63,11 +63,11 @@ public class WsnaOutOfStorageAskMngtService {
      * @param dto : { session.userid : 사용자id , apyYm : 기준년월 }
      * @return 조회결과
      */
-    public PagingResult<OutOfRes> getOutOfStorageItemPages(
-        SearchReq dto, PageInfo pageInfo
+    public List<OutOfRes> getOutOfStorageItemPages(
+        SearchReq dto
     ) {
         // TODO: 물류창고 조회 로직 추가 필요.
-        return this.mapper.selectOutOfStorageItms(dto, pageInfo);
+        return this.mapper.selectOutOfStorageItms(dto);
     }
 
     /**

@@ -33,10 +33,10 @@ public class WwdbGiroDepositMgtDto {
         //        String fntDt, //--입금일자
         //        String rveDt, //--실적일자
         //        String pyAmt, //--입금금액
-        //        String giroFee, // --수수료금액     
+        //        String giroFee, // --수수료금액
         //        String dpMesCd, //--입금유형
         //        String sellTpCd, //--판매유형
-        //        String procsErrTpCd, // --처리오류유형코드                    
+        //        String procsErrTpCd, // --처리오류유형코드
         //        String dgCntrNo //--대표번호
     ) {}
 
@@ -49,11 +49,10 @@ public class WwdbGiroDepositMgtDto {
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveReq(
         String giroDpMtrDvCd, // --구분코드
-        String dpSn, // --일련번호      
-        @NotBlank
-        String rveDt, //--수납일자        
+        String dpSn, // --일련번호
+        String rveDt, //--수납일자
         String fntDt, //--이체일자
-        String giroDpBnkCd, //--은행코드        
+        String giroDpBnkCd, //--은행코드
         String bnkBrncCd, //--은행점포코드
         String giroIndxNo, //--지로색인번호
         String giroInqNo, //--지로조회번호
@@ -175,14 +174,14 @@ public class WwdbGiroDepositMgtDto {
 
     }
 
-    //지로 입금 에러 조회 
+    //지로 입금 에러 조회
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchErrosRes")
     public record SearchErrosRes(
         String itgDpNo, //--통합입금번호
         String cntrNo, //--계약번호
         String cntr, //--계약번호
-        String cstKnm, //--  a. 고객명 
-        String pyAmt, //--납입금액  
+        String cstKnm, //--  a. 고객명
+        String pyAmt, //--납입금액
         String rveDt, //--입금일
         String fntDt, //--실적일
         String fnlMdfcDtm, //--수정일시
@@ -191,14 +190,14 @@ public class WwdbGiroDepositMgtDto {
         String cntrSn
     ) {}
 
-    //지로 입금 에러 저장 
+    //지로 입금 에러 저장
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveErrosReq")
     public record SaveErrosReq(
         String rowState,
         String itgDpNo, //--통합입금번호
         String cntrNo, //--계약번호
-        String cstKnm, //--  a. 고객명 
-        String pyAmt, //--납입금액  
+        String cstKnm, //--  a. 고객명
+        String pyAmt, //--납입금액
         String rveDt, //--입금일
         String fntDt, //--실적일
         String cntrSn,

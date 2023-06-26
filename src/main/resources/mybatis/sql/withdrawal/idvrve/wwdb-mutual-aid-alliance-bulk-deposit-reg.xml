@@ -25,6 +25,12 @@
                , T1.WELS_CNTR_SN /*웰스계약일련번호*/
                , T1.LIF_ALNC_DV_CD /*라이프제휴구분코드*/
                , T1.FST_RGST_DTM /*입력일자*/
+               , (SELECT BASE_PD_CD
+                    FROM TB_SSCT_CNTR_DTL
+                   WHERE 1  = 1
+                     AND CNTR_NO = T1.WELS_CNTR_NO
+                     AND CNTR_SN = T1.WELS_CNTR_SN
+                     AND DTA_DL_YN = 'N') AS PD_CD
                , (SELECT X.USR_NM
                     FROM T_CMP_USR_ACO_M X
                    WHERE X.USR_ID = T1.FST_RGST_USR_ID
@@ -36,10 +42,17 @@
                      AND X.DEL_YN = 'N'
                   ) AS FST_RGST_USR_ID  /*입력담당자ID*/
             FROM TB_RVDW_LIF_RENTAL_SPPT_BAS T1 /*라이프렌탈지원기본*/
-            LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/
+            LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 /*수납상세*/
               ON T2.CNTR_NO = T1.WELS_CNTR_NO
              AND T2.CNTR_SN = T1.WELS_CNTR_SN
+             AND T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+             AND T2.DTA_DL_YN = 'N'
+             AND T2.DP_DV_CD = '1' /*입금*/
+             AND T2.DP_MES_CD = '06'/*입금수단코드 일단은 포인트로 넣어보자*/
+             AND T2.DP_TP_CD = '0604'/*입금유형코드 일단 웰스제휴로 넣어보자*/
+             AND SUBSTR(T2.RVE_DT,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(T1.LIF_SPPT_YM,'YYYYMM'),1),'YYYYMM')
            WHERE 1 = 1
+             AND T1.KW_GRP_CO_CD = #{session.companyCode}
            <if test='@MybatisUtils@isNotEmpty(lifSpptYm)'>
              AND T1.LIF_SPPT_YM = #{lifSpptYm} /*라이프지원년월*/
            </if>
@@ -62,7 +75,7 @@
     <select id="selectMutualAidAllianceBulkDepositRegsSum" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto$SearchSumRes">
          SELECT
                 COUNT(LIF_SPPT_YM) AS COUNT_LIF
-              , MAX(RVE_DT) AS DP_DTM
+              , MAX(DP_DT) AS DP_DTM
                <choose>
                 <when test='@MybatisUtils@equals(lifAlncDvCd, "30")'>
                  /*구분코드가 웰스399 일때*/
@@ -80,11 +93,12 @@
               ON T2.CNTR_NO = T1.WELS_CNTR_NO
              AND T2.CNTR_SN = T1.WELS_CNTR_SN
              AND T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-           WHERE 1 = 1
              AND T2.DTA_DL_YN = 'N'
              AND T2.DP_DV_CD = '1' /*입금*/
-             AND T2.DP_MES_CD = '06'/*입금수단코드 일단은 포인트로 넣어보자*/
-             AND T2.DP_TP_CD = '0801'/*입금유형코드 일단 웰스제휴로 넣어보자*/
+             AND T2.DP_MES_CD = '06'/*입금수단코드 일단은  넣어보자*/
+             AND T2.DP_TP_CD = '0604'/*입금유형코드 일단  넣어보자*/
+             AND SUBSTR(T2.RVE_DT,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(T1.LIF_SPPT_YM,'YYYYMM'),1),'YYYYMM')
+           WHERE 1 = 1
              AND T1.KW_GRP_CO_CD = #{session.companyCode}
            <if test='@MybatisUtils@isNotEmpty(lifSpptYm)'>
              AND T1.LIF_SPPT_YM = #{lifSpptYm} /*라이프지원년월*/
@@ -176,9 +190,11 @@
 
     <update id="updateIntegrationDeposit">
         UPDATE TB_RVDW_ITG_DP_BAS
-           SET RFND_AMT = RFND_AMT + #{dpCprcnfAmt}
-             , DP_BLAM = DP_BLAM - #{dpCprcnfAmt}
+           SET RFND_AMT = NVL(RFND_AMT,0) + #{dpCprcnfAmt}
+             , DP_BLAM = NVL(DP_BLAM,0) - #{dpCprcnfAmt}
              , RVE_AK_NO = #{rveAkNo}
+            <!-- , DP_DTM = #{dpDtm}
+             , PERF_DT = #{perfDt}-->
              <include refid="COMMON.updateSystemField" />
          WHERE 1 = 1
            AND KW_GRP_CO_CD = #{session.companyCode}
@@ -204,5 +220,30 @@
          WHERE 1 = 1
            AND T1.KW_GRP_CO_CD = #{session.companyCode}
            AND T1.ITG_DP_NO = #{itgDpNo}
+    </select>
+
+    <select id="selectIntegrationDepositInfo" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto$SearchIntegrationDepositRes">
+        SELECT
+               DPR_NM	/*입금자명*/
+             , CST_NO /*고객번호*/
+             , CASE WHEN DP_MES_CD = '01' THEN FNIT_CD
+                    WHEN DP_MES_CD = '02' THEN CRDCD_FNIT_CD
+                     END
+               AS FNIT_CD	/*금융기관코드*/
+             , ACNO_ENCR	/*계좌번호암호화*/
+             , CRCDNO_ENCR /*신용카드암호화*/
+             , CRDCD_FNIT_CD	/*신용카드금융기관코드*/
+             , CRDCD_COPN_DV_CD	/*신용카드법인격구분코드*/
+             , CRDCD_BRYY_MMDD	/*신용카드생년월일*/
+             , CRDCD_BZRNO	/*신용카드사업자등록번호*/
+             , CRDCD_EXPDT_YM	/*신용카드유효기간년월*/
+             , CRDCD_ISTM_MCN	/*신용카드할부개월수*/
+             , DP_DTM /*입금일자*/
+             , DP_AMT /*입금금액*/
+          FROM TB_RVDW_ITG_DP_BAS T1
+         WHERE 1 = 1
+           AND T1.KW_GRP_CO_CD = #{session.companyCode}
+           AND T1.ITG_DP_NO = #{itgDpNo}
+           AND T1.DTA_DL_YN  = 'N'
     </select>
 </mapper>

@@ -8,6 +8,7 @@ import lombok.Setter;
 public class WsncBsPeriodChartResDvo {
     String cntrNo;
     String cntrSn;
+    String dtlSn;
     String bfsvcSppStpRsonCd;
     String stvlvChngDt;
     String sellTpCd;

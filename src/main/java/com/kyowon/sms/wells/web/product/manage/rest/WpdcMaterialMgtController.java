@@ -146,7 +146,7 @@ public class WpdcMaterialMgtController {
             .checkHeaderValidation(file, mendatoryColumns);
 
         // Excel Data Drm 해제 및 Data 파싱.
-        List<Map<String, Object>> excelData = excelReadService.readExcel(file);
+        List<Map<String, Object>> excelData = excelReadService.readExcel(file, true);
 
         if (headerErrors.size() > 0) {
             // Not Null 컬럼 누락시 데이터 확인없이 Error Throw

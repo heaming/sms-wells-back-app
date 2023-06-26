@@ -19,7 +19,7 @@
              , T1.DPR_NM    /*입금자명*/
              , NVL(T1.DP_AMT,0) AS DP_AMT     /*입금금액*/
              , T1.DP_BLAM   /*입금잔액*/
-             , T2.PEXT_BNK_CD    /*은행코드*/
+             , T2.FNIT_CD AS PEXT_BNK_CD    /*은행코드*/
              , T2.FNIT_NM AS BANK_NM/*은행명*/
              , T1.ACNO_ENCR /*계좌번호암호화*/
              , T1.CARD_KND_CD /* 카드구분 */
@@ -42,7 +42,7 @@
            AND T2.DTA_DL_YN = 'N' /* 삭제여부 */
            AND T2.KFTC_CD_YN = 'Y' /* 금융결제원코드여부 */
           LEFT OUTER JOIN TB_RVDW_FNIT_CD T3 /* 금융기관 - 카드*/
-            ON T3.FNIT_CD = T1.FNIT_CD
+            ON T3.FNIT_CD = T1.CRDCD_FNIT_CD
            AND T3.FNIT_DG_CD_YN = 'Y'  /* 금융기관대표코드여부 */
            AND T3.FNIT_DV_CD = '2' /* 1번 은행 */
            AND T3.DTA_DL_YN = 'N' /* 삭제여부 */
@@ -50,9 +50,28 @@
           LEFT OUTER JOIN  TB_OGBS_PRTNR_BAS T4 /*파트너기본*/
             ON T4.PRTNR_NO = T1.PRTNR_NO
            AND T4.OG_TP_CD = T4.OG_TP_CD
-          LEFT OUTER JOIN TB_RVDW_DP_CPRCNF_BAS T5 /*입금대사기본*/
-            ON T5.ITG_DP_NO = T1.ITG_DP_NO
-           AND T5.KW_GRP_CO_CD = T1.KW_GRP_CO_CD  
+          LEFT OUTER JOIN (
+          		SELECT
+          		       S1.KW_GRP_CO_CD
+          		     , S1.ITG_DP_NO
+          		     , MAX(DP_CPRCNF_NO) AS DP_CPRCNF_NO
+          		     , SUM(S1.DP_CPRCNF_PROCS_AMT) AS DP_CPRCNF_PROCS_AMT
+          		     , MAX(S1.DP_CPRCNF_DTM) AS DP_CPRCNF_DTM
+          		  FROM TB_RVDW_DP_CPRCNF_BAS S1  /*입금대사기본*/
+           		 WHERE 1 = 1
+           		    AND S1.KW_GRP_CO_CD = #{session.companyCode}
+			        AND S1.DP_DV_CD = '1' /*입금구분코드*/
+                  <if test='@MybatisUtils@isNotEmpty(dpTpCd)'>
+                    AND S1.DP_TP_CD = #{dpTpCd} /*입금유형*/
+                  </if>
+                  <if test='@MybatisUtils@isNotEmpty(rveCd)'>
+                   AND S1.RVE_CD = #{rveCd} /*수납코드*/
+                  </if>
+           		 GROUP BY S1.KW_GRP_CO_CD , S1.ITG_DP_NO
+           		 ORDER BY MAX(FNL_MDFC_DTM) DESC
+          )  T5
+           ON T5.ITG_DP_NO = T1.ITG_DP_NO
+           AND T5.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
          WHERE 1 = 1
            AND T1.DTA_DL_YN = 'N'
            AND T1.KW_GRP_CO_CD = #{session.companyCode}
@@ -91,6 +110,6 @@
            </if>
            <if test='@MybatisUtils@isNotEmpty(itgDpNo)'>
            AND T1.ITG_DP_NO = #{itgDpNo} /*통합입금번호*/
-           </if>         
+           </if>
     </select>
 </mapper>
