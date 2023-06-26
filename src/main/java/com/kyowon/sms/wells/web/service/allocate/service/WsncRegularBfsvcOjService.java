@@ -32,7 +32,6 @@ public class WsncRegularBfsvcOjService {
 
     private final WsncRegularBfsvcOjConverter converter;
 
-    @Transactional
     public int createRegularBfsvcOj(WsncRegularBfsvcOjDto.CreateReq dto) throws Exception {
 //        return createRegularBfsvcOj(converter.mapSaveProcessReqToDvo(dto));
         WsncRegularBfsvcOjDvo dvo = converter.mapSaveProcessReqToDvo(dto);
