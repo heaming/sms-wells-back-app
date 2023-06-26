@@ -46,7 +46,7 @@ public class WsnaComputationExcludeItemDto {
         // 비고
         String rmkCn,
         // 등록일자
-        String fstRgstDtm,
+        String fstRgstDt,
         // 소속
         String deptNm,
         // 등록자

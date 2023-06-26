@@ -52,7 +52,7 @@ public class WsnaComputationExcludeItemService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<SearchRes> getCountExcludeItemsPaging(SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRes> getComputationExcludeItemsPaging(SearchReq dto, PageInfo pageInfo) {
         ValidAssert.notNull(dto);
         ValidAssert.notNull(pageInfo);
 
@@ -64,10 +64,24 @@ public class WsnaComputationExcludeItemService {
      * @param dto
      * @return
      */
-    public List<SearchRes> getCountExcludeItemsExcelDownload(SearchReq dto) {
+    public List<SearchRes> getComputationExcludeItemsExcelDownload(SearchReq dto) {
         ValidAssert.notNull(dto);
 
         return this.mapper.selectCmptExcdItms(dto);
+    }
+
+    /**
+     * 산출 제외품목 데이터 건수 체크
+     * @param inqrYm
+     * @param period
+     * @return N : Empty, Y : NotEmpty
+     */
+    public String checkComputationExcludeItemCount(String inqrYm, int period) {
+        ValidAssert.hasText(inqrYm);
+
+        Integer count = this.mapper.selectCmptExcdItmCount(inqrYm, period);
+
+        return count == null ? "N" : "Y";
     }
 
     /**
@@ -76,12 +90,22 @@ public class WsnaComputationExcludeItemService {
      * @return
      */
     @Transactional
-    public int createCountExcludeItemForTransfers(TransferReq dto) {
+    public int createComputationExcludeItemForTransfers(TransferReq dto) {
         ValidAssert.notNull(dto);
 
         // 조회년월
         String inqrYm = dto.inqrYm();
         ValidAssert.hasText(inqrYm);
+
+        // 전월 데이터 조회
+        Integer count = this.mapper.selectCmptExcdItmCount(inqrYm, 1);
+        // 전월 데이터가 없습니다. 전월 데이터가 있는 경우에만 이관 가능합니다.
+        BizAssert.isFalse(count == null, "MSG_ALT_LSTMM_NO_DATA");
+
+        // 당월 데이터 조회
+        count = this.mapper.selectCmptExcdItmCount(inqrYm, 0);
+        // 당월 데이터가 있는 경우 이관이 불가능합니다.
+        BizAssert.isFalse(count != null, "MSG_ALT_THM_DTA_EXST");
 
         return this.mapper.insertCmptExcdItmForTransfer(inqrYm);
     }
@@ -92,7 +116,7 @@ public class WsnaComputationExcludeItemService {
      * @return
      */
     @Transactional
-    public int updateCountExcludeItemForRemove(List<RemoveReq> dtos) {
+    public int updateComputationExcludeItemForRemove(List<RemoveReq> dtos) {
         ValidAssert.notEmpty(dtos);
 
         int count = 0;
@@ -115,7 +139,7 @@ public class WsnaComputationExcludeItemService {
      * @return
      */
     @Transactional
-    public int saveCountExcludeItem(List<SaveReq> dtos) {
+    public int saveComputationExcludeItem(List<SaveReq> dtos) {
         ValidAssert.notEmpty(dtos);
 
         int count = 0;

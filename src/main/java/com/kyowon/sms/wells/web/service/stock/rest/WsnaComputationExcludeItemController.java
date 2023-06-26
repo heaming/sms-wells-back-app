@@ -5,6 +5,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaComputationExcludeI
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -37,10 +38,6 @@ public class WsnaComputationExcludeItemController {
      */
     @GetMapping("/products")
     @ApiOperation(value = "산출 제외품목 등록 품목 조회", notes = "산출 제외품목 품목 목록을 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "inqrYm", value = "조회년월", paramType = "query", example = "202212", required = true),
-        @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "6")
-    })
     public List<WsnaComputationExcludeItemPdDvo> getProducts() {
 
         return this.service.getProducts();
@@ -61,11 +58,11 @@ public class WsnaComputationExcludeItemController {
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
-    public PagingResult<SearchRes> getCountExcludeItemsPaging(@Valid
+    public PagingResult<SearchRes> getComputationExcludeItemsPaging(@Valid
     SearchReq dto, @Valid
     PageInfo pageInfo) {
 
-        return this.service.getCountExcludeItemsPaging(dto, pageInfo);
+        return this.service.getComputationExcludeItemsPaging(dto, pageInfo);
     }
 
     /**
@@ -82,9 +79,9 @@ public class WsnaComputationExcludeItemController {
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
-    public List<SearchRes> getCountExcludeItemsExcelDownload(@Valid
+    public List<SearchRes> getComputationExcludeItemsExcelDownload(@Valid
     SearchReq dto) {
-        return this.service.getCountExcludeItemsExcelDownload(dto);
+        return this.service.getComputationExcludeItemsExcelDownload(dto);
     }
 
     /**
@@ -95,13 +92,14 @@ public class WsnaComputationExcludeItemController {
      */
     @DeleteMapping
     @ApiOperation(value = "산출 제외품목 삭제", notes = "산출 제외품목 데이터를 삭제한다.")
-    public SaveResponse removeCountExcludeItems(
+    public SaveResponse removeComputationExcludeItems(
         @RequestBody
         @Valid
+        @NotEmpty
         List<RemoveReq> dtos
     ) throws Exception {
 
-        return SaveResponse.builder().processCount(this.service.updateCountExcludeItemForRemove(dtos)).build();
+        return SaveResponse.builder().processCount(this.service.updateComputationExcludeItemForRemove(dtos)).build();
     }
 
     /**
@@ -112,13 +110,46 @@ public class WsnaComputationExcludeItemController {
      */
     @PostMapping
     @ApiOperation(value = "산출 제외품목 저장", notes = "산출 제외품목 데이터를 저장한다.")
-    public SaveResponse saveCountExcludeItems(
+    public SaveResponse saveComputationExcludeItems(
         @RequestBody
         @Valid
+        @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
 
-        return SaveResponse.builder().processCount(this.service.saveCountExcludeItem(dtos)).build();
+        return SaveResponse.builder().processCount(this.service.saveComputationExcludeItem(dtos)).build();
+    }
+
+    /**
+     * 전월 데이터 건수 체크
+     * @param dto
+     * @return
+     */
+    @GetMapping("/last-month-check")
+    @ApiOperation(value = "산출 제외품목 전월 데이터 건수 체크", notes = "전월 데이터 이관을 위한 전월 데이터 건수를 체크한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "inqrYm", value = "조회년월", paramType = "query", example = "202212", required = true)
+    })
+    public String checkComputationExcludeItemLastMonth(@Valid
+    TransferReq dto) {
+
+        return this.service.checkComputationExcludeItemCount(dto.inqrYm(), 1);
+    }
+
+    /**
+     * 당월 데이터 건수 체크
+     * @param dto
+     * @return
+     */
+    @GetMapping("/this-month-check")
+    @ApiOperation(value = "산출 제외품목 당월 데이터 건수 체크", notes = "전월 데이터 이관을 위한 당월 데이터 건수를 체크한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "inqrYm", value = "조회년월", paramType = "query", example = "202212", required = true)
+    })
+    public String checkComputationExcludeItemThisMonth(@Valid
+    TransferReq dto) {
+
+        return this.service.checkComputationExcludeItemCount(dto.inqrYm(), 0);
     }
 
     /**
@@ -129,12 +160,12 @@ public class WsnaComputationExcludeItemController {
      */
     @PostMapping("/item-transfers")
     @ApiOperation(value = "산출 제외품목 데이터 이관", notes = "전월 산출 제외품목 데이터를 이번달로 적용한다.")
-    public SaveResponse createCountExcludeItemForTransfers(
+    public SaveResponse createComputationExcludeItemForTransfers(
         @RequestBody
         @Valid
         TransferReq dto
     ) throws Exception {
-        return SaveResponse.builder().processCount(this.service.createCountExcludeItemForTransfers(dto)).build();
+        return SaveResponse.builder().processCount(this.service.createComputationExcludeItemForTransfers(dto)).build();
     }
 
 }

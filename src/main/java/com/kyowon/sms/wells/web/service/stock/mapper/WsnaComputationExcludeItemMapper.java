@@ -27,6 +27,8 @@ public interface WsnaComputationExcludeItemMapper {
 
     int updateCmptExcdItmForRemove(WsnaComputationExcludeItemDvo dvo);
 
+    Integer selectCmptExcdItmCount(String inqrYm, int period);
+
     int insertCmptExcdItmForTransfer(String inqrYm);
 
 }
