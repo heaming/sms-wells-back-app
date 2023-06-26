@@ -77,6 +77,7 @@ public class WsncBsPeriodChartService {
 
         processParam.setChekCyclMths(chekCyclMths);
 
+
         /*******************************************************************************************************
          * 가구화 로직 (방문일자 및 차월 계산)
          *******************************************************************************************************/
@@ -106,6 +107,9 @@ public class WsncBsPeriodChartService {
             }
             processParam.setChekInstMths(chekInstMths);
             processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
+
+            processParam.setChekCyclMths(chart06Res.getVstNmnN());     // 방문차월 수 세팅 - js
+            processParam.setChekInstMths(chekInstMths);     // 설치차월 수 세팅 - js
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs03_07(processParam);
             //AS-IS ::: C1 Loop(chart07Res)
