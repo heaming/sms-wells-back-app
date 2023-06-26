@@ -112,7 +112,7 @@ public class WogcPartnerEngineerDto {
         String wkcrCd,
         String wkcrCdNm,
         String cntrDt,
-        String vlStrtDt,
+        String vlStrtdt,
         String vlEnddt,
         String cralLocaraTno,
         String mexnoEncr,
