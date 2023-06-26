@@ -92,6 +92,7 @@ public class WsnaWarehouseOrganizationDto {
         String fstRgstDt, // 최초등록일
         String adrUseYn, // 주소사용여부
         String bldCd, // 빌딩코드
+        String bldCdNm, //빌딩코드명
         String wareAdrId, // 창고주소ID
         String rnadr,
         String rdadr,
@@ -154,6 +155,24 @@ public class WsnaWarehouseOrganizationDto {
     public record SearchWarehouseRes(
         String codeId,
         String codeName
+    ) {}
+
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchBuildingReq")
+    public record SearchBuildingReq(
+        String dgr1LevlOgId, //1차레벨 조직ID
+        String dgr2LevlOgId //2차레벨 조직ID
+    ) {}
+
+    @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchBuildingRes")
+    public record SearchBuildingRes(
+        String bldCd, //빌딩코드
+        String bldCdNm, //빌딩코드명
+        String bldNm, //빌딩명
+        String bldAdr, // 빌딩주소
+        String adrId, //주소 id
+        String rnadr, //도로명주소
+        String rdadr, // 도로명주소상세
+        String newAdrZip //신주소우편번호
     ) {}
 
 }
