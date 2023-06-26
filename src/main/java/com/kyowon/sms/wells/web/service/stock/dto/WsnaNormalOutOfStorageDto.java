@@ -135,6 +135,8 @@ public class WsnaNormalOutOfStorageDto {
         String avgOut,
         String ostrWareDvCd,
         String strWareDvCd,
+        String ostrWareDtlDvCd,
+        String strWareDtlDvCd,
         String strWareNm,
         String ostrWareNm
     ) {}
