@@ -90,7 +90,7 @@ public class WsncBsPeriodChartService {
         //AS-IS ::: WORK_X Loop(chart06Res)
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
             //SELL_TP_CD = 1 ::: 일시불, 2 렌탈
-            if ((("1".equals(baseInfoRes.getSellTpCd()) || ("2".equals(baseInfoRes.getSellTpCd()))) && chart06Res.getVstNmnN() == 0)) {
+            if (("1".equals(baseInfoRes.getSellTpCd()) || ("2".equals(baseInfoRes.getSellTpCd()))) && chart06Res.getVstNmnN() == 0) {
                 continue;
             }
 
