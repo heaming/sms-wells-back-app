@@ -23,4 +23,17 @@ public class WsniCustomerCenterInterfaceDvo {
     String sppDptuDt;
     String sppFshDt;
     String useYn;
+
+    String istLctDtlCn;
+    String allCleanMsg;
+    String allCleanYn;
+    int changeCount;
+    String dtlCntrNo;
+    String dtlCntrSn;
+    String newAdrZip;
+    String rnadr;
+    String rdadr;
+    String bsStopYn;
+    String changeYn;
+    String changePossibleYn;
 }

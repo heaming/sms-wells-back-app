@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.customer.prospective.dto;
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -65,11 +66,20 @@ public class WcsbNewReceiptMgtDto {
         String fnlMdfcUsrId
     ) {
         public SearchRes {
+
             mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
-            phNo = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
+            if (StringUtils.isNotEmpty(cralLocaraTno) || StringUtils.isNotEmpty(mexnoEncr)
+                || StringUtils.isNotEmpty(cralIdvTno)) {
+                phNo = StringUtil.nvl2(cralLocaraTno, " ") + "-" + StringUtil.nvl2(mexnoEncr, " ") + "-"
+                    + StringUtil.nvl2(cralIdvTno, " ");
+            }
 
             exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr;
-            wireTelNo = locaraTno + "-" + exnoEncr + "-" + idvTno;
+            if (StringUtils.isNotEmpty(locaraTno) || StringUtils.isNotEmpty(exnoEncr)
+                || StringUtils.isNotEmpty(idvTno)) {
+                wireTelNo = StringUtil.nvl2(locaraTno, " ") + "-" + StringUtil.nvl2(exnoEncr, " ") + "-"
+                    + StringUtil.nvl2(idvTno, " ");
+            }
 
             if (StringUtils.isNotEmpty(pspcCstInflwDt)) {
                 pspcCstInflwDt = pspcCstInflwDt.substring(0, 4) + "-" + pspcCstInflwDt.substring(4, 6) + "-"
@@ -87,6 +97,11 @@ public class WcsbNewReceiptMgtDto {
                 cntrPdStrtdt = cntrPdStrtdt.substring(0, 4) + "-" + cntrPdStrtdt.substring(4, 6) + "-"
                     + cntrPdStrtdt.substring(6, 8);
             }
+            if (StringUtils.isNotEmpty(sppDuedt)) {
+                sppDuedt = sppDuedt.substring(0, 4) + "-" + sppDuedt.substring(4, 6) + "-"
+                    + sppDuedt.substring(6, 8);
+            }
+
         }
     }
 
@@ -120,8 +135,14 @@ public class WcsbNewReceiptMgtDto {
 
     ) {
         public PartnerRes {
+            //            prtnrMpNo2 = StringUtils.isNotEmpty(prtnrMpNo2) ? DbEncUtil.dec(prtnrMpNo2) : prtnrMpNo2;
+            //            prtnrHpNo = prtnrHpNo + "-" + prtnrMpNo2 + "-" + prtnrMpNo3;
             prtnrMpNo2 = StringUtils.isNotEmpty(prtnrMpNo2) ? DbEncUtil.dec(prtnrMpNo2) : prtnrMpNo2;
-            prtnrHpNo = prtnrHpNo + "-" + prtnrMpNo2 + "-" + prtnrMpNo3;
+            if (StringUtils.isNotEmpty(prtnrMpNo1) || StringUtils.isNotEmpty(prtnrMpNo2)
+                || StringUtils.isNotEmpty(prtnrMpNo3)) {
+                prtnrHpNo = StringUtil.nvl2(prtnrMpNo1, " ") + "-" + StringUtil.nvl2(prtnrMpNo2, " ") + "-"
+                    + StringUtil.nvl2(prtnrMpNo3, " ");
+            }
         }
     }
 
@@ -179,11 +200,20 @@ public class WcsbNewReceiptMgtDto {
         String fnlMdfcUsrId
     ) {
         public SearchDtlRes {
+
             mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
-            phNo = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
+            if (StringUtils.isNotEmpty(cralLocaraTno) || StringUtils.isNotEmpty(mexnoEncr)
+                || StringUtils.isNotEmpty(cralIdvTno)) {
+                phNo = StringUtil.nvl2(cralLocaraTno, " ") + "-" + StringUtil.nvl2(mexnoEncr, " ") + "-"
+                    + StringUtil.nvl2(cralIdvTno, " ");
+            }
 
             exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr;
-            wireTelNo = locaraTno + "-" + exnoEncr + "-" + idvTno;
+            if (StringUtils.isNotEmpty(locaraTno) || StringUtils.isNotEmpty(exnoEncr)
+                || StringUtils.isNotEmpty(idvTno)) {
+                wireTelNo = StringUtil.nvl2(locaraTno, " ") + "-" + StringUtil.nvl2(exnoEncr, " ") + "-"
+                    + StringUtil.nvl2(idvTno, " ");
+            }
 
             if (StringUtils.isNotEmpty(pspcCstInflwDt)) {
                 pspcCstInflwDt = pspcCstInflwDt.substring(0, 4) + "-" + pspcCstInflwDt.substring(4, 6) + "-"
@@ -200,6 +230,10 @@ public class WcsbNewReceiptMgtDto {
             if (StringUtils.isNotEmpty(cntrPdStrtdt)) {
                 cntrPdStrtdt = cntrPdStrtdt.substring(0, 4) + "-" + cntrPdStrtdt.substring(4, 6) + "-"
                     + cntrPdStrtdt.substring(6, 8);
+            }
+            if (StringUtils.isNotEmpty(sppDuedt)) {
+                sppDuedt = sppDuedt.substring(0, 4) + "-" + sppDuedt.substring(4, 6) + "-"
+                    + sppDuedt.substring(6, 8);
             }
         }
     }

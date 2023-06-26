@@ -77,6 +77,7 @@ public class WsncVisitPeriodRecrtService {
                     -> wsncBsPeriodChartService.processBsPeriodChartBs03(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), true);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             throw new BizException("MSG_TXT_PERIOD_CHART_ERROR");    //주기표 생성 오류가 발생하였습니다.
         }
 

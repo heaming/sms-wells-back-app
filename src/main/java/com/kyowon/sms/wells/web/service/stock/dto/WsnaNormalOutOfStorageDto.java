@@ -54,7 +54,8 @@ public class WsnaNormalOutOfStorageDto {
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskReq")
     public record AskReq(
         String itmPdCd,
-        String strOjWareNo
+        String strOjWareNo,
+        String wareDvCd
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskRes")
@@ -84,7 +85,10 @@ public class WsnaNormalOutOfStorageDto {
         String ostrOjWareNm,
         String strOjWareNm,
         String stckStdGb,
-        String rgstDt
+        String rgstDt,
+        String itmOstrNo,
+        String ostrSn,
+        String ostrTpCd
     ) {}
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRes")
     public record DetailRes(
@@ -109,7 +113,7 @@ public class WsnaNormalOutOfStorageDto {
         String itmGdCd,
         String reqStckQty,
         String ostrWareNo,
-        String ostrWareMngtPrtnrNo,
+        //        String ostrWareMngtPrtnrNo,
         String mngtUnitCd,
         String mgtUntNm,
         String boxUnitQty,
@@ -214,18 +218,18 @@ public class WsnaNormalOutOfStorageDto {
         String stckStdGb
     ) {}
 
-//    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
-//    public record MonthlyWarehouseReq(
-//        String apyYm,
-//        String wareNo,
-//        String stckStdGb
-//    ) {}
+    //    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
+    //    public record MonthlyWarehouseReq(
+    //        String apyYm,
+    //        String wareNo,
+    //        String stckStdGb
+    //    ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkReq")
     public record SearchItmOstrAkReq(
         String ostrAkNo,
         String ostrAkSn
-    ){}
+    ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkRes")
     public record SearchItmOstrAkRes(
@@ -239,6 +243,9 @@ public class WsnaNormalOutOfStorageDto {
         String ostrOjWareNm,
         String strOjWareNm,
         String ostrAkTpNm,
-        String itmPdCd
-    ){}
+        String itmPdCd,
+        String itmOstrNo,
+        //        String ostrSn,
+        String ostrTpCd
+    ) {}
 }

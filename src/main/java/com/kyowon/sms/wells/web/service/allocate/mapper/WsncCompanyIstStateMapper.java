@@ -61,43 +61,44 @@ public interface WsncCompanyIstStateMapper {
         SearchPsReq dto
     );
 
-    /**
-     * 필터 탭 조회
-     *
-     * @param dto : SearchReq mgtYnm(배정년월)
-     * @return 조회결과
-     */
-    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateFltr(
-        SearchMainReq dto, PageInfo pageInfo
-    );
-
-    /**
-     * 필터 탭 엑셀 다운로드
-     *
-     * @param dto : SearchReq mgtYnm(배정년월)
-     * @return 조회결과
-     */
-    List<SearchFltrSubMatRes> selectCompanyIstStateFltr(
-        SearchMainReq dto
-    );
-
-    /**
-     * 부자재 탭 조회
-     *
-     * @param dto : SearchReq mgtYnm(배정년월)
-     * @return 조회결과
-     */
-    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateSubMat(
-        SearchMainReq dto, PageInfo pageInfo
-    );
-
-    /**
-     * 부자재 탭 액셀 다운로드
-     *
-     * @param dto : SearchReq mgtYnm(배정년월)
-     * @return 조회결과
-     */
-    List<SearchFltrSubMatRes> selectCompanyIstStateSubMat(
-        SearchMainReq dto
-    );
+    //    <!-- TODO 개발중 - K-W-SV-U-0270M02 K-W-SV-U-0270M03 -->
+    //    /**
+    //     * 필터 탭 조회
+    //     *
+    //     * @param dto : SearchReq mgtYnm(배정년월)
+    //     * @return 조회결과
+    //     */
+    //    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateFltr(
+    //        SearchMainReq dto, PageInfo pageInfo
+    //    );
+    //
+    //    /**
+    //     * 필터 탭 엑셀 다운로드
+    //     *
+    //     * @param dto : SearchReq mgtYnm(배정년월)
+    //     * @return 조회결과
+    //     */
+    //    List<SearchFltrSubMatRes> selectCompanyIstStateFltr(
+    //        SearchMainReq dto
+    //    );
+    //
+    //    /**
+    //     * 부자재 탭 조회
+    //     *
+    //     * @param dto : SearchReq mgtYnm(배정년월)
+    //     * @return 조회결과
+    //     */
+    //    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateSubMat(
+    //        SearchMainReq dto, PageInfo pageInfo
+    //    );
+    //
+    //    /**
+    //     * 부자재 탭 액셀 다운로드
+    //     *
+    //     * @param dto : SearchReq mgtYnm(배정년월)
+    //     * @return 조회결과
+    //     */
+    //    List<SearchFltrSubMatRes> selectCompanyIstStateSubMat(
+    //        SearchMainReq dto
+    //    );
 }

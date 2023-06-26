@@ -1,292 +1,433 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemReceivingAndPayingMapper">
 
-    <select id="selectReceiptsAndPaymentsPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemReceivingAndPayingDto$SearchRes">
-         SELECT T1.ITM_PD_CD
-                 , TO_CHAR(TO_NUMBER(P1.SVPD_SAP_CD)) SAP_MAT_CD
-                 , P1.SVPD_NM_KOR AS ITM_PD_NM
-                 /* BTD_STOC_A_GD_QTY(기초재고A등급수량) + BTD_STOC_B_GD_QTY(기초재고B등급수량) +BTD_STOC_E_GD_QTY(기초재고E등급수량)+ BTD_STOC_R_GD_QTY(기초재고R등급수량) + STR_QTY(입고수량) + USE_QTY(반품 사용수량) -  OSTR_QTY(출고수량) - USE_QTY(반품외 사용수량)의 SUM*/
-                 , T1.BTD_STOC_A_GD_QTY + T1.BTD_STOC_B_GD_QTY + T1.BTD_STOC_E_GD_QTY + T1.BTD_STOC_R_GD_QTY + NVL(T2.STR_QTY, 0) + (NVL(T2.RTNGD_STR_INSD_QTY, 0) + NVL(T7.RTNGD_STR_OTSD_QTY, 0)) - NVL(T3.OSTR_QTY, 0) - (NVL(T3.RTNGD_OSTR_INSD_QTY, 0) + NVL(T3.RTNGD_OSTR_OTSD_QTY, 0)) AS BAS_STOC_QTY
-                 /* 입고수량 */
-                 , NVL(T2.PRCHS_STR_QTY, 0) AS PRCHS_STR_QTY
-                 , NVL(T2.NOM_STR_QTY, 0) AS NOM_STR_QTY
-                 , NVL(T2.QOM_ASN_STR_QTY, 0) AS QOM_ASN_STR_QTY
-                 , NVL(T2.QOM_MMT_STR_QTY, 0) AS QOM_MMT_STR_QTY
-                 , NVL(T2.RTNGD_STR_INSD_QTY, 0) AS RTNGD_STR_INSD_QTY
-                 , NVL(T7.RTNGD_STR_OTSD_QTY, 0) AS RTNGD_STR_OTSD_QTY
-                 , NVL(T2.ETC_STR_QTY, 0) AS ETC_STR_QTY
-                 , NVL(T5.STR_CTR_QTY, 0) AS STR_CTR_QTY
-                 , NVL(T6.CNFM_PITM_STR_GAP_QTY, 0) AS CNFM_PITM_STR_GAP_QTY
-                 /* 출고수량 */
-                 , NVL(T3.NOM_OSTR_QTY, 0) AS NOM_OSTR_QTY
-                 , NVL(T3.SVC_NOM_OSTR_QTY, 0) AS SVC_NOM_OSTR_QTY
-                 , NVL(T3.SELL_NOM_OSTR_QTY, 0) AS SELL_NOM_OSTR_QTY
-                 , NVL(T3.QOM_ASN_OSTR_QTY, 0) AS QOM_ASN_OSTR_QTY
-                 , NVL(T3.QOM_MMT_OSTR_QTY, 0) AS QOM_MMT_OSTR_QTY
-                 , NVL(T3.RTNGD_OSTR_INSD_QTY, 0) AS RTNGD_OSTR_INSD_QTY
-                 , NVL(T3.RTNGD_OSTR_OTSD_QTY, 0) AS RTNGD_OSTR_OTSD_QTY
-                 , NVL(T4.USE_QTY, 0) AS USE_QTY
-                 , NVL(T4.YEAR_IN_USE_QTY, 0) AS YEAR_IN_USE_QTY
-                 , NVL(T4.YEAR_OUT_USE_QTY, 0) AS YEAR_OUT_USE_QTY
-                 , NVL(T3.REFR_OSTR_QTY, 0) AS REFR_OSTR_QTY
-                 , NVL(T3.SELL_OSTR_QTY, 0) AS SELL_OSTR_QTY
-                 , NVL(T3.DSU_OSTR_QTY, 0) AS DSU_OSTR_QTY
-                 , NVL(T3.ETC_OSTR_QTY, 0) AS ETC_OSTR_QTY
-                 , NVL(T5.OSTR_CTR_QTY, 0) AS OSTR_CTR_QTY
-                 , NVL(T6.CNFM_PITM_OSTR_GAP_QTY, 0) AS CNFM_PITM_OSTR_GAP_QTY
-                 , NVL(T8.MMT_STOC_QTY, 0) AS MMT_STOC_QTY
-              FROM (
-		              SELECT X1.ITM_PD_CD
-		                   , SUM(X1.BTD_STOC_A_GD_QTY) BTD_STOC_A_GD_QTY
-		                   , SUM(X1.BTD_STOC_B_GD_QTY) BTD_STOC_B_GD_QTY
-		                   , SUM(X1.BTD_STOC_E_GD_QTY) BTD_STOC_E_GD_QTY
-		                   , SUM(X1.BTD_STOC_R_GD_QTY) BTD_STOC_R_GD_QTY
-		                FROM TB_SVST_MCITM_STOC_IZ X1
-		               INNER JOIN TB_SVST_MCBY_WARE_IZ Z1
-		                  ON X1.WARE_NO = Z1.WARE_NO
-		                 AND X1.BASE_YM = Z1.APY_YM
-		               WHERE X1.BASE_YM BETWEEN SUBSTR(#{stFromYmd}, 1, 6) AND SUBSTR(#{edToYmd}, 1, 6)
-		               <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                         AND Z1.WARE_DV_CD = #{strWareDvCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                         AND Z1.HGR_WARE_NO = #{strWareNoM}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                         AND Z1.WARE_NO = #{strWareNoD}
-                       </if>
-		            GROUP BY X1.ITM_PD_CD
-		           ) T1
-        INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
-                ON T1.ITM_PD_CD = P1.SVPD_PD_CD
-         LEFT JOIN (
-                        SELECT X1.ITM_PD_CD
-                             , SUM(X1.STR_QTY) STR_QTY
-                             , SUM(CASE WHEN X1.STR_TP_CD = '110' THEN X1.STR_QTY END) AS PRCHS_STR_QTY
-                             , SUM(CASE WHEN X1.STR_TP_CD = '121' THEN X1.STR_QTY END) AS NOM_STR_QTY
-                             , SUM(CASE WHEN X1.STR_TP_CD = '122' THEN X1.STR_QTY END) AS QOM_ASN_STR_QTY
-                             , SUM(CASE WHEN X1.STR_TP_CD = '123' THEN X1.STR_QTY END) AS QOM_MMT_STR_QTY
-                             , SUM(CASE WHEN X1.STR_TP_CD = '161' THEN X1.STR_QTY END) AS RTNGD_STR_INSD_QTY
-                             , SUM(CASE WHEN X1.STR_TP_CD = '162' THEN X1.STR_QTY END) AS RTNGD_STR_OTSD_QTY
-                             , SUM(CASE WHEN X1.STR_TP_CD = '117' THEN X1.STR_QTY END) AS ETC_STR_QTY
-                          FROM TB_SVST_ITM_STR_IZ X1
-                    INNER JOIN TB_SVST_MCBY_WARE_IZ X2
-                            ON X1.STR_WARE_NO = X2.WARE_NO
-                           AND SUBSTR(X1.STR_RGST_DT,1,6) = X2.APY_YM
-                         WHERE 1 = 1
-                           AND X1.STR_RGST_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-		               <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                           AND X2.WARE_DV_CD = #{strWareDvCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                           AND X2.HGR_WARE_NO = #{strWareNoM}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                           AND X2.WARE_NO = #{strWareNoD}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-                           AND X1.ITM_GD_CD = #{itmGdCd}
-                       </if>
-                           AND X1.DTA_DL_YN = 'N'
-                        GROUP BY X1.ITM_PD_CD
-                    ) T2
-                ON T1.ITM_PD_CD = T2.ITM_PD_CD
-         LEFT JOIN (
-                        SELECT X1.ITM_PD_CD
-                             , SUM(X1.OSTR_QTY) AS OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '221' THEN X1.OSTR_QTY END) NOM_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '221' AND X1.OSTR_WARE_DV_CD = '1' THEN X1.OSTR_QTY END) SVC_NOM_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '221' AND X1.OSTR_WARE_DV_CD = '3' THEN X1.OSTR_QTY END) SELL_NOM_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '222' THEN X1.OSTR_QTY END) QOM_ASN_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '223' THEN X1.OSTR_QTY END) QOM_MMT_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '261' THEN X1.OSTR_QTY END) RTNGD_OSTR_INSD_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '262' THEN X1.OSTR_QTY END) RTNGD_OSTR_OTSD_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '218' THEN X1.OSTR_QTY END) REFR_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '211' THEN X1.OSTR_QTY END) SELL_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '212' THEN X1.OSTR_QTY END) DSU_OSTR_QTY
-                             , SUM(CASE WHEN X1.OSTR_TP_CD = '217' THEN X1.OSTR_QTY END) ETC_OSTR_QTY
-                          FROM TB_SVST_ITM_OSTR_IZ X1
-                    INNER JOIN TB_SVST_MCBY_WARE_IZ X2
-                            ON X1.OSTR_WARE_NO = X2.WARE_NO
-                           AND SUBSTR(X1.OSTR_DT,1,6) = X2.APY_YM
-                         WHERE 1 = 1
-                           AND X1.OSTR_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-		               <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                           AND X2.WARE_DV_CD = #{strWareDvCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                           AND X2.HGR_WARE_NO = #{strWareNoM}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                           AND X2.WARE_NO = #{strWareNoD}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-                           AND X1.ITM_GD_CD = #{itmGdCd}
-                       </if>
-                           AND X1.DTA_DL_YN = 'N'
-                        GROUP BY  X1.ITM_PD_CD
-                    ) T3
-                ON T1.ITM_PD_CD = T3.ITM_PD_CD
-         LEFT JOIN (
-                        SELECT X1.ITM_PD_CD
-                             , SUM(X1.USE_QTY) USE_QTY
-                             , SUM(CASE WHEN TRUNC(TO_DATE(X1.OSTR_DT) - TO_DATE(X2.IST_DT)) <![CDATA[ <= ]]> 365 THEN X1.USE_QTY END) YEAR_IN_USE_QTY
-                             , SUM(CASE WHEN TRUNC(TO_DATE(X1.OSTR_DT) - TO_DATE(X2.IST_DT)) <![CDATA[ > ]]> 365 THEN X1.USE_QTY END) YEAR_OUT_USE_QTY
-                          FROM TB_SVST_SV_WK_OSTR_IZ X1
-                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ X2
-                            ON X1.CNTR_NO = X2.CNTR_NO
-                           AND X1.CNTR_SN = X2.CNTR_SN
-                    INNER JOIN TB_SVST_MCBY_WARE_IZ X3
-                            ON X1.WK_WARE_NO = X3.WARE_NO
-                           AND SUBSTR(X1.FNL_VST_FSH_DT,1,6) = X3.APY_YM
-                         WHERE 1 = 1
-                           AND X1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-                           AND X1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4')
-                           AND X1.DTA_DL_YN = 'N'
-		               <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                           AND X3.WARE_DV_CD = #{strWareDvCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                           AND X3.HGR_WARE_NO = #{strWareNoM}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                           AND X3.WARE_NO = #{strWareNoD}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-                           AND X1.FNL_ITM_GD_CD = #{itmGdCd}
-                       </if>
-                        GROUP BY X1.ITM_PD_CD
-                    ) T4
-                ON T1.ITM_PD_CD = T4.ITM_PD_CD
-         LEFT JOIN (
-                      SELECT A.PD_CD
-                           , SUM(STR_CTR_QTY) STR_CTR_QTY
-                           , SUM(OSTR_CTR_QTY) OSTR_CTR_QTY
-                        FROM  (SELECT X1.PD_CD
-                                    , CASE WHEN X1.AFCT_ITM_GD_CD = 'A' THEN SUM(X1.CTR_QTY) ELSE 0 END STR_CTR_QTY
-                                    , CASE WHEN X1.BFCT_ITM_GD_CD = 'A' THEN SUM(X1.CTR_QTY) ELSE 0 END OSTR_CTR_QTY
-                                 FROM TB_SVST_ITM_GD_CTR_IZ X1
-                                INNER JOIN TB_SVST_MCBY_WARE_IZ Z1
-                                   ON X1.WARE_NO = Z1.WARE_NO
-                                WHERE 1 = 1
-                                  AND X1.CTR_WK_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-                               <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                                  AND Z1.WARE_DV_CD = #{strWareDvCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                                  AND Z1.HGR_WARE_NO = #{strWareNoM}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                                  AND Z1.WARE_NO = #{strWareNoD}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-                                  AND X1.AFCT_ITM_GD_CD = #{itmGdCd}
-                               </if>
-                                  AND X1.DTA_DL_YN = 'N'
-                                GROUP BY X1.PD_CD, X1.AFCT_ITM_GD_CD, X1.BFCT_ITM_GD_CD) A
-                       GROUP BY A.PD_CD
-                    ) T5
-                ON T1.ITM_PD_CD = T5.PD_CD
-         LEFT JOIN (
-                        SELECT X1.PD_CD
-                             , SUM(X1.CNFM_PITM_STR_GAP_QTY) CNFM_PITM_STR_GAP_QTY
-                             , SUM(X1.CNFM_PITM_OSTR_GAP_QTY) CNFM_PITM_OSTR_GAP_QTY
-                          FROM TB_SVST_MCBY_STOC_ACINSP_IZ X1
-                    INNER JOIN TB_SVST_MCBY_WARE_IZ Z1
-                            ON X1.WARE_NO = Z1.WARE_NO
-                           AND X1.BASE_YM = Z1.APY_YM
-                         WHERE 1 = 1
-                           AND X1.BASE_YM BETWEEN SUBSTR(#{stFromYmd}, 1, 6) AND SUBSTR(#{edToYmd}, 1, 6)
-                           AND X1.DTA_DL_YN = 'N'
-		               <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                           AND Z1.WARE_DV_CD = #{strWareDvCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                           AND Z1.HGR_WARE_NO = #{strWareNoM}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                           AND Z1.WARE_NO = #{strWareNoD}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-                           AND 'A' = #{itmGdCd}
-                       </if>
-                        GROUP BY X1.PD_CD
-                    ) T6
-                ON T1.ITM_PD_CD = T6.PD_CD
-         LEFT JOIN (
-                        SELECT X1.ITM_PD_CD
-                             , SUM(X1.USE_QTY) AS RTNGD_STR_OTSD_QTY
-                          FROM TB_SVST_SV_WK_OSTR_IZ X1
-                    INNER JOIN TB_SVST_MCBY_WARE_IZ X2
-                            ON X1.WK_WARE_NO = X2.WARE_NO
-                           AND X2.APY_YM = SUBSTR(#{stFromYmd}, 1, 6)
-                         WHERE 1 = 1
-                           AND X1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-		               <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                           AND X2.WARE_DV_CD = #{strWareDvCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                           AND X2.HGR_WARE_NO = #{strWareNoM}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                           AND X2.WARE_NO = #{strWareNoD}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-                           AND X1.FNL_ITM_GD_CD = #{itmGdCd}
-                       </if>
-                           AND X1.DTA_DL_YN = 'N'
-                           AND X1.SV_BIZ_HCLSF_CD = '6'
-                        GROUP BY X1.ITM_PD_CD
-                    ) T7
-                ON T1.ITM_PD_CD = T7.ITM_PD_CD
-         LEFT JOIN (SELECT X1.ITM_PD_CD
-                        , SUM(CASE WHEN X1.OSTR_TP_CD NOT IN ('211', '217') THEN X1.OSTR_QTY END) MMT_STOC_QTY
-                      FROM TB_SVST_ITM_OSTR_IZ X1
-                     INNER JOIN TB_SVST_MCBY_WARE_IZ X2
-                        ON X1.OSTR_WARE_NO = X2.WARE_NO
-                       AND SUBSTR(X1.OSTR_DT,1,6) = X2.APY_YM
-                     WHERE 1 = 1
-                       AND X1.OSTR_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-                       AND X1.STR_CONF_DT IS NULL
-                       AND X1.OSTR_QTY > 0
-                       AND X2.WARE_DV_CD = '2'
-                       AND X1.DTA_DL_YN = 'N'
-                    <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-                       AND X2.WARE_DV_CD = #{strWareDvCd}
-                   </if>
-                   <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                       AND X2.HGR_WARE_NO = #{strWareNoM}
-                   </if>
-                   <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-                       AND X2.WARE_NO = #{strWareNoD}
-                   </if>
-                   <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-                       AND X1.ITM_GD_CD = #{itmGdCd}
-                   </if>
-                     GROUP BY X1.ITM_PD_CD
-                    ) T8
-                ON T1.ITM_PD_CD = T8.ITM_PD_CD
-             WHERE 1 = 1
-           <if test="@MybatisUtils@isNotEmpty(itmKnd)">
-               AND P1.SVPD_ITEM_KND = #{itmKnd}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(useYn)">
-               AND P1.SVPD_USE_YN = #{useYn}
-           </if>
-           <!--TODO : 품목코드 ASIS에서는 BETWEEN으로 설정했으나 TOBE에서는 품목코드가 변경되면서 FROM~TO방식이 필요없을꺼 같음-->
-           <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom)">
-               AND P1.SVPD_PD_CD = #{itmPdCdFrom}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sapMatCdFrom)">
-               AND TO_CHAR(TO_NUMBER(P1.SVPD_SAP_CD)) BETWEEN #{sapMatCdFrom} AND #{sapMatCdTo}
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(sapMatDpcts)'>
-               AND TO_CHAR(TO_NUMBER(P1.SVPD_SAP_CD)) IN
-               <foreach collection="sapMatDpcts" item="sapMatDpct" open="(" close=")" separator=",">
-                    TRIM(#{sapMatDpct})
-               </foreach>
-           </if>
+    <select id="selectReceiptsAndPaymentCount" resultType="java.lang.Long">
+           WITH PD AS
+             (
+               SELECT T1.PD_CD
+                    , T1.PD_NM
+                    , T1.SAP_MAT_CD
+                 FROM TB_PDBS_PD_BAS T1                 /* 상품기본 */
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2   /* 상품각사속성상세 */
+                   ON T2.PD_CD = T1.PD_CD
+                WHERE T1.PD_TP_CD = 'M'
+                  AND T1.DTA_DL_YN = 'N'
+                  AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND T2.DTA_DL_YN = 'N'
+                <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom)">
+                  AND T1.PD_CD = #{itmPdCdFrom}
+                </if>
+	            <if test="@MybatisUtils@isNotEmpty(itmKnd)">
+                  AND T2.PD_PRP_VAL19 = #{itmKnd}
+                </if>
+                <if test='@MybatisUtils@equals(useYn, "Y")'>
+                  AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN NVL(T1.RVPY_STRTDT,'19000101') AND NVL(T1.RVPY_ENDDT,'99991231')
+                </if>
+                <if test='@MybatisUtils@equals(useYn, "N")'>
+                  AND TO_CHAR(SYSDATE,'YYYYMMDD') NOT BETWEEN NVL(T1.RVPY_STRTDT,'19000101') AND NVL(T1.RVPY_ENDDT,'99991231')
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(sapMatCdFrom)">
+                  AND TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) BETWEEN #{sapMatCdFrom} AND #{sapMatCdTo}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(sapMatDpcts)'>
+                  AND TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) IN
+                   <foreach collection="sapMatDpcts" item="sapMatDpct" open="(" close=")" separator=",">
+                        TRIM(#{sapMatDpct})
+                   </foreach>
+                </if>
+             )
+            SELECT COUNT(*)
+              FROM PD T1
+    </select>
 
+    <select id="selectReceiptsAndPaymentsPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemReceivingAndPayingDto$SearchRes">
+           WITH PD AS
+             (
+               SELECT T1.PD_CD
+                    , T1.PD_NM
+                    , T1.SAP_MAT_CD
+                 FROM TB_PDBS_PD_BAS T1                 /* 상품기본 */
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2   /* 상품각사속성상세 */
+                   ON T2.PD_CD = T1.PD_CD
+                WHERE T1.PD_TP_CD = 'M'
+                  AND T1.DTA_DL_YN = 'N'
+                  AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND T2.DTA_DL_YN = 'N'
+                <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom)">
+                  AND T1.PD_CD = #{itmPdCdFrom}
+                </if>
+	            <if test="@MybatisUtils@isNotEmpty(itmKnd)">
+                  AND T2.PD_PRP_VAL19 = #{itmKnd}
+                </if>
+                <if test='@MybatisUtils@equals(useYn, "Y")'>
+                  AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN NVL(T1.RVPY_STRTDT,'19000101') AND NVL(T1.RVPY_ENDDT,'99991231')
+                </if>
+                <if test='@MybatisUtils@equals(useYn, "N")'>
+                  AND TO_CHAR(SYSDATE,'YYYYMMDD') NOT BETWEEN NVL(T1.RVPY_STRTDT,'19000101') AND NVL(T1.RVPY_ENDDT,'99991231')
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(sapMatCdFrom)">
+                  AND TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) BETWEEN #{sapMatCdFrom} AND #{sapMatCdTo}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(sapMatDpcts)'>
+                  AND TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) IN
+                   <foreach collection="sapMatDpcts" item="sapMatDpct" open="(" close=")" separator=",">
+                        TRIM(#{sapMatDpct})
+                   </foreach>
+                </if>
+             )
+             , WARE AS
+             (
+               SELECT WARE_NO
+                 FROM TB_SVST_MCBY_WARE_IZ
+                WHERE DTA_DL_YN = 'N'
+                  AND APY_YM = SUBSTR(#{stFromYmd}, 1,6)
+              <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
+                  AND WARE_DV_CD = #{strWareDvCd}
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
+                  AND HGR_WARE_NO = #{strWareNoM}
+                  </if>
+              <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
+                  AND WARE_NO = #{strWareNoD}
+              </if>
+                  <!--AND ( HGR_WARE_NO = #{wareNo} OR WARE_NO = #{wareNo} ) 창고세부구분코드가 전체인경우
+                   AND WARE_DTL_DV_CD = #{wareDtlDvCd} AND WARE_NO = #{wareNo} 창고세부구분코드가 조직창고인 경우
+                   AND WARE_DTL_DV_CD = #{wareDtlDvCd} AND HGR_WARE_NO = #{wareNo} 창고세부구분코드가 개인창고인 경우  -->
+             )
+            SELECT T1.PD_CD AS ITM_PD_CD
+                 , TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) AS SAP_MAT_CD
+                 , T1.PD_NM AS ITM_PD_NM
+                 , NVL(T2.BTD_STOC_A_GD_QTY, 0) + NVL(T2.BTD_STOC_B_GD_QTY, 0) + NVL(T2.BTD_STOC_E_GD_QTY, 0) + NVL(T2.BTD_STOC_R_GD_QTY, 0)
+                   + NVL(T2.STR_QTY, 0) + NVL(T2.RTNGD_STR_OTSD_QTY, 0) - NVL(T2.OSTR_QTY, 0) + NVL(T2.USE_QTY, 0) AS BAS_STOC_QTY
+                 /* 입고 */
+                 , NVL(T3.PRCHS_STR_QTY, 0) AS PRCHS_STR_QTY
+                 , NVL(T3.NOM_STR_QTY, 0) AS NOM_STR_QTY
+                 , NVL(T3.QOM_ASN_STR_QTY, 0) AS QOM_ASN_STR_QTY
+                 , NVL(T3.QOM_MMT_STR_QTY, 0) AS QOM_MMT_STR_QTY
+                 , NVL(T3.RTNGD_STR_INSD_QTY, 0) AS RTNGD_STR_INSD_QTY
+                 , NVL(T3.RTNGD_STR_OTSD_QTY, 0) AS RTNGD_STR_OTSD_QTY
+                 , NVL(T3.ETC_STR_QTY, 0) AS ETC_STR_QTY
+                 , NVL(T9.STR_CTR_QTY, 0) AS STR_CTR_QTY
+                 , NVL(T5.CNFM_PITM_STR_GAP_QTY, 0) AS CNFM_PITM_STR_GAP_QTY
+                 /* 출고 */
+                 , NVL(T4.NOM_OSTR_QTY, 0) AS NOM_OSTR_QTY
+                 , NVL(T4.SVC_NOM_OSTR_QTY, 0) AS SVC_NOM_OSTR_QTY
+                 , NVL(T4.SELL_NOM_OSTR_QTY, 0) AS SELL_NOM_OSTR_QTY
+                 , NVL(T4.QOM_ASN_OSTR_QTY, 0) AS QOM_ASN_OSTR_QTY
+                 , NVL(T4.QOM_MMT_OSTR_QTY, 0) AS QOM_MMT_OSTR_QTY
+                 , NVL(T4.RTNGD_OSTR_INSD_QTY, 0) AS RTNGD_OSTR_INSD_QTY
+                 , NVL(T4.RTNGD_OSTR_OTSD_QTY, 0) AS RTNGD_OSTR_OTSD_QTY
+                 , NVL(T6.USE_QTY, 0) AS USE_QTY
+                 , NVL(T7.YEAR_IN_USE_QTY, 0) AS YEAR_IN_USE_QTY
+                 , NVL(T8.YEAR_OUT_USE_QTY, 0) AS YEAR_OUT_USE_QTY
+                 , NVL(T4.REFR_OSTR_QTY, 0) AS REFR_OSTR_QTY
+                 , NVL(T4.SELL_OSTR_QTY, 0) AS SELL_OSTR_QTY
+                 , NVL(T4.DSU_OSTR_QTY, 0) AS DSU_OSTR_QTY
+                 , NVL(T4.ETC_OSTR_QTY, 0) AS ETC_OSTR_QTY
+                 , NVL(T9.OSTR_CTR_QTY, 0) AS OSTR_CTR_QTY
+                 , NVL(T5.CNFM_PITM_OSTR_GAP_QTY, 0) AS CNFM_PITM_OSTR_GAP_QTY
+                 , NVL(T4.MMT_STOC_QTY, 0) AS MMT_STOC_QTY
+              FROM PD T1
+              LEFT OUTER JOIN
+                 (
+                   SELECT T.ITM_PD_CD
+                        , SUM(T.BTD_STOC_A_GD_QTY)  AS BTD_STOC_A_GD_QTY
+                        , SUM(T.BTD_STOC_B_GD_QTY)  AS BTD_STOC_B_GD_QTY
+                        , SUM(T.BTD_STOC_E_GD_QTY)  AS BTD_STOC_E_GD_QTY
+                        , SUM(T.BTD_STOC_R_GD_QTY)  AS BTD_STOC_R_GD_QTY
+                        , SUM(T.STR_QTY)            AS STR_QTY
+                        , SUM(T.RTNGD_STR_OTSD_QTY) AS RTNGD_STR_OTSD_QTY
+                        , SUM(T.STR_CTR_QTY)        AS STR_CTR_QTY
+                        , SUM(T.OSTR_QTY)           AS OSTR_QTY
+                        , SUM(T.USE_QTY)            AS USE_QTY
+                        , SUM(T.OSTR_CTR_QTY)       AS OSTR_CTR_QTY
+                     FROM
+                        (
+                          SELECT D1.ITM_PD_CD
+                                , SUM(D1.BTD_STOC_A_GD_QTY) AS BTD_STOC_A_GD_QTY
+                                , SUM(D1.BTD_STOC_B_GD_QTY) AS BTD_STOC_B_GD_QTY
+                                , SUM(D1.BTD_STOC_E_GD_QTY) AS BTD_STOC_E_GD_QTY
+                                , SUM(D1.BTD_STOC_R_GD_QTY) AS BTD_STOC_R_GD_QTY
+                                , 0                       AS STR_QTY
+                                , 0                       AS RTNGD_STR_OTSD_QTY
+                                , 0                       AS STR_CTR_QTY
+                                , 0                       AS OSTR_QTY
+                                , 0                       AS USE_QTY
+                                , 0                       AS OSTR_CTR_QTY
+                             FROM TB_SVST_MCITM_STOC_IZ D1   /* 월별품목재고내역 */
+                            INNER JOIN PD D2                 /* WITH절 상품 */
+                               ON D2.PD_CD = D1.ITM_PD_CD
+                            INNER JOIN WARE D3               /* WITH절 창고 */
+                               ON D3.WARE_NO = D1.WARE_NO
+                            WHERE D1.DTA_DL_YN = 'N'
+                              AND D1.BASE_YM = SUBSTR(#{stFromYmd}, 1, 6)
+                            GROUP BY D1.ITM_PD_CD
+                               UNION ALL
+                           SELECT D1.ITM_PD_CD
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , SUM(D1.STR_QTY)
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                             FROM TB_SVST_ITM_STR_IZ D1
+                            INNER JOIN PD D2
+                               ON D2.PD_CD = D1.ITM_PD_CD
+                            INNER JOIN WARE D3
+                               ON D3.WARE_NO = D1.STR_WARE_NO
+                            WHERE D1.DTA_DL_YN = 'N'
+                              AND D1.STR_RGST_DT >= SUBSTR(#{stFromYmd}, 1, 6) || '01'
+                              AND D1.STR_RGST_DT <![CDATA[ < ]]> #{stFromYmd}
+                            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                              AND D1.ITM_GD_CD = #{itmGdCd}
+                            </if>
+                            GROUP BY D1.ITM_PD_CD
+                           UNION ALL
+                           SELECT D1.ITM_PD_CD
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
+                                       ELSE 0
+                                  END)
+                                , 0
+                                , 0
+                                , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD <![CDATA[ <> ]]> '6' THEN D1.USE_QTY
+                                       ELSE 0
+                                  END)
+                                , 0
+                             FROM TB_SVST_SV_WK_OSTR_IZ D1
+                            INNER JOIN PD D2
+                               ON D2.PD_CD = D1.ITM_PD_CD
+                            INNER JOIN WARE D3
+                               ON D3.WARE_NO = D1.WK_WARE_NO
+                            WHERE D1.DTA_DL_YN = 'N'
+                              AND D1.FNL_VST_FSH_DT >= SUBSTR(#{stFromYmd}, 1, 6) || '01'
+                              AND D1.FNL_VST_FSH_DT <![CDATA[ < ]]> #{stFromYmd}
+                            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                              AND D1.FNL_ITM_GD_CD = #{itmGdCd}
+                            </if>
+                            GROUP BY D1.ITM_PD_CD
+                            UNION ALL
+                           SELECT D1.PD_CD
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , SUM(CASE WHEN #{itmGdCd} IS NULL THEN D1.CTR_QTY
+                                       WHEN D1.AFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY
+                                       ELSE 0
+                                  END)
+                                , 0
+                                , 0
+                                , SUM(CASE WHEN D1.AFCT_ITM_GD_CD = 'A' THEN D1.CTR_QTY
+                                       ELSE 0
+                                  END)
+                             FROM TB_SVST_ITM_GD_CTR_IZ D1
+                            INNER JOIN PD D2
+                               ON D2.PD_CD = D1.PD_CD
+                            INNER JOIN WARE D3
+                               ON D3.WARE_NO = D1.WARE_NO
+                            WHERE D1.DTA_DL_YN = 'N'
+                              AND D1.CTR_WK_DT >= SUBSTR(#{stFromYmd}, 1, 6) || '01'
+                              AND D1.CTR_WK_DT <![CDATA[ < ]]> #{stFromYmd}
+                            GROUP BY D1.PD_CD
+                            UNION ALL
+                           SELECT D1.ITM_PD_CD
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , 0
+                                , SUM(D1.OSTR_QTY)
+                                , 0
+                                , 0
+                             FROM TB_SVST_ITM_OSTR_IZ D1
+                            INNER JOIN PD D2
+                               ON D2.PD_CD = D1.ITM_PD_CD
+                            INNER JOIN WARE D3
+                               ON D3.WARE_NO = D1.OSTR_WARE_NO
+                            WHERE D1.DTA_DL_YN = 'N'
+                              AND D1.OSTR_DT >= SUBSTR(#{stFromYmd}, 1, 6) || '01'
+                              AND D1.OSTR_DT <![CDATA[ < ]]> #{stFromYmd}
+                            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                              AND D1.ITM_GD_CD = #{itmGdCd}
+                            </if>
+                            GROUP BY D1.ITM_PD_CD
+                        ) T
+                    GROUP BY T.ITM_PD_CD
+                 ) T2
+                ON T2.ITM_PD_CD = T1.PD_CD
+              LEFT OUTER JOIN
+                 (
+                   SELECT D1.ITM_PD_CD
+                        , SUM(D1.STR_QTY)                                         AS STR_QTY
+                        , SUM(CASE WHEN D1.STR_TP_CD = '110' THEN D1.STR_QTY END) AS PRCHS_STR_QTY
+                        , SUM(CASE WHEN D1.STR_TP_CD = '121' THEN D1.STR_QTY END) AS NOM_STR_QTY
+                        , SUM(CASE WHEN D1.STR_TP_CD = '122' THEN D1.STR_QTY END) AS QOM_ASN_STR_QTY
+                        , SUM(CASE WHEN D1.STR_TP_CD = '123' THEN D1.STR_QTY END) AS QOM_MMT_STR_QTY
+                        , SUM(CASE WHEN D1.STR_TP_CD = '161' THEN D1.STR_QTY END) AS RTNGD_STR_INSD_QTY
+                        , SUM(CASE WHEN D1.STR_TP_CD = '162' THEN D1.STR_QTY END) AS RTNGD_STR_OTSD_QTY
+                        , SUM(CASE WHEN D1.STR_TP_CD = '117' THEN D1.STR_QTY END) AS ETC_STR_QTY
+                     FROM TB_SVST_ITM_STR_IZ D1
+                    INNER JOIN PD D2
+                       ON D2.PD_CD = D1.ITM_PD_CD
+                    INNER JOIN WARE D3
+                       ON D3.WARE_NO = D1.STR_WARE_NO
+                    WHERE D1.DTA_DL_YN ='N'
+                      AND D1.STR_RGST_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                      AND D1.ITM_GD_CD = #{itmGdCd}
+                    </if>
+                     GROUP BY D1.ITM_PD_CD
+                 ) T3
+                ON T3.ITM_PD_CD = T1.PD_CD
+              LEFT OUTER JOIN
+                 (
+                   SELECT D1.ITM_PD_CD
+                        , SUM(D1.OSTR_QTY)                                          AS OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '221' THEN D1.OSTR_QTY END) AS NOM_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '221'
+                                    AND D1.OSTR_WARE_DV_CD = '2' THEN D1.OSTR_QTY
+                              END)                                                  AS SVC_NOM_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '221'
+                                    AND D1.OSTR_WARE_DV_CD = '3' THEN D1.OSTR_QTY
+                              END)                                                  AS SELL_NOM_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '222' THEN D1.OSTR_QTY END) AS QOM_ASN_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '223' THEN D1.OSTR_QTY END) AS QOM_MMT_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '261' THEN D1.OSTR_QTY END) AS RTNGD_OSTR_INSD_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '262' THEN D1.OSTR_QTY END) AS RTNGD_OSTR_OTSD_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '218' THEN D1.OSTR_QTY END) AS REFR_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '211' THEN D1.OSTR_QTY END) AS SELL_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '212' THEN D1.OSTR_QTY END) AS DSU_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD = '217' THEN D1.OSTR_QTY END) AS ETC_OSTR_QTY
+                        , SUM(CASE WHEN D1.OSTR_TP_CD NOT IN ('211', '217')
+                                    AND D1.STR_CONF_DT IS NULL
+                                    AND D1.OSTR_QTY <![CDATA[ > ]]> 0 THEN D1.OSTR_QTY
+                               END)                                                 AS MMT_STOC_QTY
+                     FROM TB_SVST_ITM_OSTR_IZ D1
+                    INNER JOIN PD D2
+                       ON D2.PD_CD = D1.ITM_PD_CD
+                    INNER JOIN WARE D3
+                       ON D3.WARE_NO = D1.OSTR_WARE_NO
+                    WHERE D1.DTA_DL_YN = 'N'
+                      AND D1.OSTR_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                      AND D1.ITM_GD_CD = #{itmGdCd}
+                    </if>
+                    GROUP BY D1.ITM_PD_CD
+                 ) T4
+                ON T4.ITM_PD_CD = T1.PD_CD
+              LEFT OUTER JOIN
+                 (
+                   SELECT D1.PD_CD AS ITM_PD_CD
+                        , SUM(D1.CNFM_PITM_STR_GAP_QTY) AS CNFM_PITM_STR_GAP_QTY
+                        , SUM(D1.CNFM_PITM_OSTR_GAP_QTY) AS CNFM_PITM_OSTR_GAP_QTY
+                     FROM TB_SVST_MCBY_STOC_ACINSP_IZ D1
+                    INNER JOIN PD D2
+                       ON D2.PD_CD = D1.PD_CD
+                    INNER JOIN WARE D3
+                       ON D3.WARE_NO = D1.WARE_NO
+                    WHERE D1.DTA_DL_YN = 'N'
+                      AND D1.BASE_YM = SUBSTR(#{stFromYmd}, 1, 6)
+                      AND D1.IOST_RFDT BETWEEN #{stFromYmd} AND #{edToYmd}
+                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                      AND 'A' = #{itmGdCd}
+                    </if>
+                    GROUP BY D1.PD_CD
+                 ) T5
+                ON T5.ITM_PD_CD = T1.PD_CD
+              LEFT OUTER JOIN
+                 (
+                   SELECT D1.ITM_PD_CD
+                        , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY END) AS RTNGD_STR_OTSD_QTY
+                        , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4') THEN D1.USE_QTY END) AS USE_QTY
+                     FROM TB_SVST_SV_WK_OSTR_IZ D1
+                    INNER JOIN PD D2
+                       ON D2.PD_CD = D1.ITM_PD_CD
+                    INNER JOIN WARE D3
+                       ON D3.WARE_NO = D1.WK_WARE_NO
+                    WHERE D1.DTA_DL_YN = 'N'
+                      AND D1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                      AND D1.FNL_ITM_GD_CD = #{itmGdCd}
+                    </if>
+                    GROUP BY D1.ITM_PD_CD
+                 ) T6
+                ON T6.ITM_PD_CD = T1.PD_CD
+              LEFT OUTER JOIN
+                 (
+                   SELECT D1.ITM_PD_CD
+                        , SUM(D1.USE_QTY) AS YEAR_IN_USE_QTY
+                     FROM TB_SVST_SV_WK_OSTR_IZ D1
+                    INNER JOIN WARE D3
+                       ON D3.WARE_NO = D1.WK_WARE_NO
+                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2
+                       ON D2.CNTR_NO = D1.CNTR_NO
+                      AND D2.CNTR_SN = D1.CNTR_SN
+                    WHERE D1.DTA_DL_YN = 'N'
+                      AND D2.DTA_DL_YN = 'N'
+                      AND D1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                      AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4')
+                      AND FNL_VST_FSH_DT <![CDATA[ < ]]> ADD_MONTHS( NVL(D2.IST_DT, TO_CHAR(SYSDATE, 'YYYYMMDD')), 12)
+                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                      AND D1.FNL_ITM_GD_CD = #{itmGdCd}
+                    </if>
+                    GROUP BY D1.ITM_PD_CD
+                 ) T7
+                ON T7.ITM_PD_CD = T1.PD_CD
+              LEFT OUTER JOIN
+                 (
+                   SELECT D1.ITM_PD_CD
+                        , SUM(D1.USE_QTY) AS YEAR_OUT_USE_QTY
+                     FROM TB_SVST_SV_WK_OSTR_IZ D1
+                    INNER JOIN WARE D3
+                       ON D3.WARE_NO = D1.WK_WARE_NO
+                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2
+                       ON D2.CNTR_NO = D1.CNTR_NO
+                      AND D2.CNTR_SN = D1.CNTR_SN
+                    WHERE D1.DTA_DL_YN = 'N'
+                      AND D2.DTA_DL_YN = 'N'
+                      AND D1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                      AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4')
+                      AND FNL_VST_FSH_DT <![CDATA[ >= ]]> ADD_MONTHS( NVL(D2.IST_DT, TO_CHAR(SYSDATE, 'YYYYMMDD')), 12)
+                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                      AND D1.FNL_ITM_GD_CD = #{itmGdCd}
+                    </if>
+                    GROUP BY D1.ITM_PD_CD
+                 ) T8
+                ON T8.ITM_PD_CD = T1.PD_CD
+              LEFT OUTER JOIN
+                 (
+                   SELECT D1.PD_CD AS ITM_PD_CD
+                        , SUM(CASE WHEN #{itmGdCd} IS NULL THEN D1.CTR_QTY
+                                   WHEN D1.AFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY END) AS STR_CTR_QTY
+                        , SUM(CASE WHEN #{itmGdCd} IS NULL THEN D1.CTR_QTY
+                                   WHEN D1.BFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY END) AS OSTR_CTR_QTY
+                     FROM TB_SVST_ITM_GD_CTR_IZ D1
+                    INNER JOIN PD D2
+                       ON D2.PD_CD = D1.PD_CD
+                    INNER JOIN WARE D3
+                       ON D3.WARE_NO = D1.WARE_NO
+                    WHERE D1.DTA_DL_YN = 'N'
+                      AND D1.CTR_WK_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                    GROUP BY D1.PD_CD
+                 ) T9
+                ON T9.ITM_PD_CD = T1.PD_CD
+              ORDER BY T1.PD_CD
+           <if test="@MybatisUtils@isNotEmpty(offset)">
+             OFFSET ${offset} ROW FETCH NEXT ${size} ROW ONLY
+           </if>
 
     </select>
 

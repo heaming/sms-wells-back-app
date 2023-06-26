@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaContractRegStep5Service;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -63,7 +64,15 @@ public class WctaContractSettlementController {
         @RequestBody
         @Valid
         SaveReq req
-    ) {
+    ) throws Exception {
         return service.saveContractSettlements(req);
+    }
+
+    @ApiOperation(value = "신용카드 결제 서비스", notes = "신용카드 승인 서비스")
+    @PostMapping("/credit-card-spay")
+    public SaveResponse payCreditcard(
+        @RequestBody @Valid CreditReq req
+    ) {
+        return service.payCreditcard(req);
     }
 }

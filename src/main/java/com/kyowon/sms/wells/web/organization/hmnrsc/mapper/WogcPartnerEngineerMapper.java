@@ -27,7 +27,7 @@ public interface WogcPartnerEngineerMapper {
 
     int updateEngineer(WogcPartnerEngineerDvo engineer);
 
-    PagingResult<FindJoeManagementRes> selectJoeManagements(FindJoeManagementReq dto, PageInfo pageInfo);
+    PagingResult<WogcPartnerEngineerDvo> selectJoeManagements(FindJoeManagementReq dto, PageInfo pageInfo);
 
     List<WogcPartnerEngineerDvo> selectJoeManagementForExcelDownload(FindJoeManagementReq dto);
 

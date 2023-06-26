@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchFltrSubMatRes;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchPsReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchPsRes;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCompanyIstStateMapper;
@@ -78,57 +77,58 @@ public class WsncCompanyIstStateService {
         return mapper.selectCompanyIstStatePs(dto);
     }
 
-    /**
-     * 필터 조회
-     *
-     * @programId : K-W-SV-U-0270M01
-     * @param dto : 조회파라메터
-     * @return 조회결과
-     */
-    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateFltr(
-        SearchMainReq dto,
-        PageInfo pageInfo
-    ) {
-        return mapper.selectCompanyIstStateFltr(dto, pageInfo);
-    }
-
-    /**
-     * 필터 엑셀 다운로드
-     *
-     * @programId : K-W-SV-U-0270M01
-     * @param dto : 조회파라메터
-     * @return 조회결과
-     */
-    public List<SearchFltrSubMatRes> getCompanyIstStateFltr(
-        SearchMainReq dto
-    ) {
-        return mapper.selectCompanyIstStateFltr(dto);
-    }
-
-    /**
-     * 부자재 조회
-     *
-     * @programId : K-W-SV-U-0270M01
-     * @param dto : 조회파라메터
-     * @return 조회결과
-     */
-    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateSubMat(
-        SearchMainReq dto,
-        PageInfo pageInfo
-    ) {
-        return mapper.selectCompanyIstStateSubMat(dto, pageInfo);
-    }
-
-    /**
-     * 부자재 엑셀 다운로드
-     *
-     * @programId : K-W-SV-U-0270M01
-     * @param dto : 조회파라메터
-     * @return 조회결과
-     */
-    public List<SearchFltrSubMatRes> getCompanyIstStateSubMat(
-        SearchMainReq dto
-    ) {
-        return mapper.selectCompanyIstStateSubMat(dto);
-    }
+    //    <!-- TODO 개발중 - K-W-SV-U-0270M02 K-W-SV-U-0270M03 -->
+    //    /**
+    //     * 필터 조회
+    //     *
+    //     * @programId : K-W-SV-U-0270M01
+    //     * @param dto : 조회파라메터
+    //     * @return 조회결과
+    //     */
+    //    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateFltr(
+    //        SearchMainReq dto,
+    //        PageInfo pageInfo
+    //    ) {
+    //        return mapper.selectCompanyIstStateFltr(dto, pageInfo);
+    //    }
+    //
+    //    /**
+    //     * 필터 엑셀 다운로드
+    //     *
+    //     * @programId : K-W-SV-U-0270M01
+    //     * @param dto : 조회파라메터
+    //     * @return 조회결과
+    //     */
+    //    public List<SearchFltrSubMatRes> getCompanyIstStateFltr(
+    //        SearchMainReq dto
+    //    ) {
+    //        return mapper.selectCompanyIstStateFltr(dto);
+    //    }
+    //
+    //    /**
+    //     * 부자재 조회
+    //     *
+    //     * @programId : K-W-SV-U-0270M01
+    //     * @param dto : 조회파라메터
+    //     * @return 조회결과
+    //     */
+    //    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateSubMat(
+    //        SearchMainReq dto,
+    //        PageInfo pageInfo
+    //    ) {
+    //        return mapper.selectCompanyIstStateSubMat(dto, pageInfo);
+    //    }
+    //
+    //    /**
+    //     * 부자재 엑셀 다운로드
+    //     *
+    //     * @programId : K-W-SV-U-0270M01
+    //     * @param dto : 조회파라메터
+    //     * @return 조회결과
+    //     */
+    //    public List<SearchFltrSubMatRes> getCompanyIstStateSubMat(
+    //        SearchMainReq dto
+    //    ) {
+    //        return mapper.selectCompanyIstStateSubMat(dto);
+    //    }
 }

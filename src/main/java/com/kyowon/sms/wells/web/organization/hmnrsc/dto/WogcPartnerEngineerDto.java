@@ -36,9 +36,10 @@ public class WogcPartnerEngineerDto {
         String wrkDt,
         String wrkNm,
         String egerWrkStatCd,
+        String egerWrkStatNm,
         String rmkCn,
-        String dnlStrtdt,
-        String dnlEnddt,
+        String vcnStrtDt,
+        String vcnEndDt,
         String bizAgntPrtnrNo,
         String agntPrtnrKnm,
         String pcpPrtnrNo,
@@ -60,8 +61,8 @@ public class WogcPartnerEngineerDto {
         String wrkNm,
         String egerWrkStatCd,
         String rmkCn,
-        String dnlStrtdt,
-        String dnlEnddt,
+        String vcnStrtDt,
+        String vcnEndDt,
         String bizAgntPrtnrNo,
         String agntPrtnrKnm,
         String pcpPrtnrNo,
@@ -77,8 +78,8 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementReq")
     @Builder
     public record FindJoeManagementReq(
+        String ogLevlDvCd1,
         String ogLevlDvCd2,
-        String ogLevlDvCd3,
         String wkGrpCd,
         String rsbDvCd,
         String prtnrNo,
@@ -161,9 +162,9 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-FindEngineerGradeReq")
     @Builder
     public record FindEngineerGradeReq(
+        String ogLevlDvCd1,
         String ogLevlDvCd2,
-        String ogLevlDvCd3,
-        String rolDvCd,
+        String prtnrGdCd,
         String searchYm,
         String chk
     ) {}
@@ -184,6 +185,8 @@ public class WogcPartnerEngineerDto {
 
         String prtnrNo,
         String prtnrKnm,
+        String rsbDvCd,
+        String rsbDvCdNm,
         String rolDvCd,
         String rolDvCdNm,
         String prtnrGdCd,

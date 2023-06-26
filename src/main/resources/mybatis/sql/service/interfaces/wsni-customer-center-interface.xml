@@ -340,4 +340,136 @@
          WHERE CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </update>
+
+    <select id="selectIstLctDtlCn" resultType="String">
+        SELECT T1.IST_LCT_DTL_CN
+          FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL T1
+         WHERE 1 = 1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTL_SN = (SELECT MAX(X1.DTL_SN)
+                              FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL X1
+                             WHERE T1.CNTR_NO = X1.CNTR_NO
+                               AND T1.CNTR_SN = X1.CNTR_SN
+                               AND X1.DTA_DL_YN = 'N')
+    </select>
+
+    <select id="selectAllCleanYn" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerCenterInterfaceDvo">
+        SELECT '올클린서비스 ' || T1.ASN_OJ_YM  || '월 대상고객입니다' AS ALL_CLEAN_MSG
+             , NVL2(T1.ASN_OJ_YM, 'Y', 'N') AS ALL_CLEAN_YN
+          FROM TB_SVPD_RGBS_PU_ITM_IZ T1
+         WHERE 1 = 1
+           AND T1.ASN_OJ_YM >= TO_CHAR(SYSDATE , 'YYYYMM')
+           AND T1.PU_PART_PD_CD IN ('WM07104602', 'WM07104667', 'WM07104669')
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+         GROUP BY T1.ASN_OJ_YM
+    </select>
+
+    <select id="selectTotalMaterialUseYn" resultType="int">
+        SELECT COUNT(1) AS CHANGE_COUNT
+          FROM TB_SVST_SV_WK_OSTR_IZ T1
+         WHERE 1 = 1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.REFRI_DV_CD = '1'
+           AND T1.ITM_PD_CD IN ('WM07105864' /* GLASS CARE BS교체 RK1B1,RM523 */
+                              , 'WM07105786' /* 등패드 */
+                              , 'WM07105787' /* 머리패드 */
+                              , 'WM07105788') /* 어깨패드 */
+    </select>
+
+    <select id="selectFilterShippingAddressInfo" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerCenterInterfaceDvo">
+        SELECT S1.DTL_CNTR_NO
+             , S1.DTL_CNTR_SN
+             , S2.CRAL_LOCARA_TNO
+             , S2.MEXNO_ENCR
+             , S2.CRAL_IDV_TNO
+             , S2.LOCARA_TNO
+             , S2.EXNO_ENCR
+             , S2.IDV_TNO
+             , A1.NEW_ADR_ZIP
+             , A1.RNADR
+             , A1.RDADR
+          FROM TB_SSCT_CNTR_ADR_REL S1
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S2
+            ON S1.CNTR_ADRPC_ID = S2.CNTR_ADRPC_ID
+         INNER JOIN TB_GBCO_ADR_BAS A1
+            ON S2.ADR_ID = A1.ADR_ID
+         WHERE 1 = 1
+           AND S1.DTL_CNTR_NO = #{cntrNo}
+           AND S1.DTL_CNTR_SN = #{cntrSn}
+           AND S1.ADRPC_TP_CD = '2' /* 배송지(2) */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+    </select>
+
+    <select id="selectBsStopYn" resultType="String">
+        SELECT CASE WHEN COUNT(1) > 0 THEN 'Y'
+                    ELSE 'N'
+                END BS_STOP_YN
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T2
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+         WHERE 1 = 1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T2.CNTR_DTL_STAT_CD = '302'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.HIST_STRT_DTM AND T2.HIST_END_DTM
+           AND T2.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectBespokePanelChangeYn" resultType="String">
+        SELECT CASE WHEN COUNT(1) > 0 THEN 'Y'
+                    ELSE 'N'
+                END CHANGE_YN
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+         WHERE 1 = 1
+           AND T1.SV_BIZ_DCLSF_CD = '3531' /*비스포크 교체*/
+           AND T1.WK_PRGS_STAT_CD = '20'
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectTopPlateChangePossibleYn" resultType="String">
+        SELECT CASE WHEN (Y1.RANGE_CHANGE_CNT > 0 OR Y1.RANGE_CHANGE_BS_CNT > 0) OR Y1.ITEM_CNT > 0 THEN 'N'
+                    ELSE 'Y'
+                END CHANGE_POSSIBLE_YN
+          FROM (SELECT (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+                         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+                            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                         WHERE 1 = 1
+                           AND T1.SV_BIZ_DCLSF_CD = '3124' /*전기레인지 글라스 상판 교체 서비스*/
+                           AND T2.PD_CD IN ('WM05100114', 'WM05100966', 'WM05100967') /*전기레인지*/
+                           AND T1.WK_PRGS_STAT_CD = '20'
+                           AND T1.CNTR_NO = #{cntrNo}
+                           AND T1.CNTR_SN = #{cntrSn}
+                       ) AS RANGE_CHANGE_CNT
+                     , (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                         WHERE 1 = 1
+                           AND T1.SV_BIZ_DCLSF_CD = '2178' /*전기레인지 글라스 상판교체 BS*/
+                           AND T1.VST_PRGS_STAT_CD = '20'
+                           AND T1.CNTR_NO = #{cntrNo}
+                           AND T1.CNTR_SN = #{cntrSn}
+                       ) AS RANGE_CHANGE_BS_CNT
+                     , (SELECT COUNT(1)
+                          FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         WHERE 1 = 1
+                           AND T1.CNTR_NO = #{cntrNo}
+                           AND T1.CNTR_SN = #{cntrSn}
+                           AND T1.REFRI_DV_CD = '1' /* 무상 */
+                           AND T1.ITM_PD_CD IN ('WM07105864' /* GLASS CARE BS교체 RK1B1,RM523 */
+                                              , 'WM07105786' /* 등패드 */
+                                              , 'WM07105787' /* 머리패드 */
+                                              , 'WM07105788') /* 어깨패드 */
+                       ) ITEM_CNT
+                  FROM DUAL
+               ) Y1
+    </select>
 </mapper>

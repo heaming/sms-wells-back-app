@@ -41,7 +41,9 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WpdcMaterialMgtService {
@@ -146,7 +148,7 @@ public class WpdcMaterialMgtService {
                         .pdRelTpCd(relDto.pdRelTpCd())
                         .build()
                 );
-                //                System.out.println("tbPdbsPdRel.ojPdCd() >>>> " + tbPdbsPdRel.ojPdCd());
+
             }
 
             // #2. 신규 추가 항목 INSER 
@@ -402,9 +404,10 @@ public class WpdcMaterialMgtService {
                     if (entry.getKey().equals(metaVo.getColNm())) {
                         if (entry.getValue().toString().split("\\|").length > 1) {
                             String tempVal[] = entry.getValue().toString().split("\\|");
+                            log.debug(metaVo.getColId() + " && " + tempVal[0].trim() + " && " + tempVal[1].trim());
                             masterMap.put(metaVo.getColId(), tempVal[1].trim());
                         } else {
-                            masterMap.put(metaVo.getColId(), entry.getValue());
+                            masterMap.put(metaVo.getColId(), entry.getValue().toString().trim());
                         }
                     }
                 }
@@ -447,7 +450,7 @@ public class WpdcMaterialMgtService {
                         if (entry.getKey().equals(metaVo.getColNm())) {
                             if (entry.getValue().toString().split("\\|").length > 1) {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
-                                propertyMap.put(metaVo.getColId(), tempVal[1]);
+                                propertyMap.put(metaVo.getColId(), tempVal[1].trim());
                                 colsSb.append(metaVo.getColId()).append(",");
                             } else {
                                 // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스

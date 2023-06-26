@@ -62,6 +62,7 @@ public class WctaTaxInvoiceInquiryService {
         int txinvPblD = Integer.parseInt(dvo.getTxinvPblD()); // 발행일자
         String rtnMsg = ""; // 반환 메세지
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        String sellTpCd = dvo.getSellTpCd(); // 판매유형코드
 
         boolean txinvPblOjInfoCheck = true; // 발행정보 변경 여부
         boolean txinvPblOjCheck = true; // 발행여부 변경 여부
@@ -104,9 +105,9 @@ public class WctaTaxInvoiceInquiryService {
 
         if (txinvPblOjInfoCheck && "Y".equals(txinvPblOjYn)) {
             if (nowYm.equals(cntrCnfmYm)) {
-                rtnMsg = "0차월 발행은 말일 날짜로 발행되며, 익월 초 수신 가능합니다.\n※선택한 발행일자는 익월부터 반영됩니다.";
+                rtnMsg = messageResourceService.getMessage("MSG_ALT_TXINV_PBL_THM0_LAST_D"); // "0차월 발행은 말일 날짜로 발행되며, 익월 초 수신 가능합니다."
             } else if (nowDay >= txinvPblD || nowDay >= txinvPblDComp) {
-                rtnMsg = "변경사항은 익월부터 반영됩니다.\\n※당월부터 반영되길 희망하는 건은 담당자에게 문의 하세요.";
+                rtnMsg = messageResourceService.getMessage("MSG_ALT_TXINV_CHANGE_RFLT_NEXT_MM"); // 변경사항은 익월부터 반영됩니다.
             }
         }
         if (StringUtils.isNotEmpty(dpTpCd)) {
@@ -133,8 +134,23 @@ public class WctaTaxInvoiceInquiryService {
                     .build()
             );
 
-            // 세금계산서접수기준내역 추가
+            String txinvPdDvCd = "";
+            String txinvPblDvCd = "01";
 
+            // 세금계산서접수기준내역 추가
+            switch (sellTpCd) {
+                case "1" -> txinvPdDvCd = "21";
+                case "2" -> txinvPdDvCd = "23";
+                case "3" -> txinvPdDvCd = "25";
+                case "6" -> {
+                    txinvPdDvCd = "27";
+                    txinvPblDvCd = "02";
+                }
+                case "9" -> txinvPdDvCd = "22";
+                default -> {}
+            }
+            dvo.setTxinvPdDvCd(txinvPdDvCd);
+            dvo.setTxinvPblDvCd(txinvPblDvCd);
             dvo.setRcpdt(nowDate);
             dvo.setTxinvPblYn(dvo.getTxinvPblOjYn());
             dvo.setAplcPsicId(session.getEmployeeIDNumber());

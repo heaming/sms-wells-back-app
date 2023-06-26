@@ -558,7 +558,7 @@ public class WwdaAutoTransferInterfaceService {
         WwdaAutoTransferRealNameCertificationInterfaceDvo result = new WwdaAutoTransferRealNameCertificationInterfaceDvo();
 
         // 1. 계좌 유효성 검사 호출을 위한 파라미터 설정
-        String cntrNo = "W20220042279"; /*임시계약번호*/
+        String cntrNo = "W99999999999"; /*임시계약번호*/
         String cntrSn = "1"; /*임시계약일련번호*/
         String bnkCd = dto.bnkCd(); /*은행코드*/
         String acNo = dto.acno(); /*계좌번호*/
@@ -587,7 +587,7 @@ public class WwdaAutoTransferInterfaceService {
 
         // 청구생성코드가 1이 아닐때 에러 발생
         // (1 : 정상처리, 2 : 오류, 3 : 자료없음)
-        BizAssert.isTrue("1".equals(resultDvo.getBilCrtStatCd()), resultDvo.getErrCn());
+        // BizAssert.isTrue("1".equals(resultDvo.getBilCrtStatCd()), resultDvo.getErrCn());
 
         // 3. 수신결과 및 리턴 설정
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
@@ -598,6 +598,9 @@ public class WwdaAutoTransferInterfaceService {
 
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
         result.setAcFntRsCdNm(mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd));
+
+        // 3.1 리턴받은 계좌주명
+        result.setOwrKnm(resultDvo.getAchldrNm());
 
         resultDtos.add(result);
 

@@ -5,6 +5,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class WctaContractStlmBasDvo {
@@ -39,7 +40,6 @@ public class WctaContractStlmBasDvo {
     private String fntEvidDrmVal; /* 이체증빙식별값 */
     private String reuseOjYn; /* 재사용대상여부 */
     private String signFileId; /* 서명파일ID */
-    private String bfCntrStlmId; /* 이전계약결제ID */
     private String mvsDstcRcvryBaseDtm; /* 소산파기복구기준일시 */
     private String mvsDstcRcvryDvCd; /* 소산파기복구구분코드 */
     private String mvsDstcRcvryDtm; /* 소산파기복구일시 */

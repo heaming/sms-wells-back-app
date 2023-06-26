@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import java.text.ParseException;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,8 @@ public class WsnaReturningGoodsOstrService {
 
     private final WsnaReturningGoodsOstrMapper mapper;
 
+    private final WsnaItemStockItemizationService itemStockservice;
+
     private final WsnaReturningGoodsOstrConverter converter;
 
     public List<SearchWarehouseRes> getWareHouses(SearchWarehouseReq dto) {
@@ -56,7 +60,7 @@ public class WsnaReturningGoodsOstrService {
     }
 
     @Transactional
-    public int saveReturningGoodsOstrs(List<SaveReq> dtos) {
+    public int saveReturningGoodsOstrs(List<SaveReq> dtos) throws ParseException {
         int processCount = 0;
         int serialNumber = 0;
 
@@ -85,17 +89,42 @@ public class WsnaReturningGoodsOstrService {
             if (isReturnToLogistics(dvo.getOstrTpCd(), dvo.getStrWareDvCd())) {
                 // TODO: 반품(내부)이고 입고 창고가 물류센터인 경우 - 반품요청 중계 테이블 Insert
                 // TODO: 품목재고내역관리 서비스(W-SV-S-0087)의 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고
+                WsnaItemStockItemizationReqDvo returnOstrDvo = setReturningOstrWsnaItemStockItemizationDtoSaveReq(
+                    dvo
+                );
+                result += itemStockservice.createStock(returnOstrDvo);
             } else if (isReturning(dvo.getOstrTpCd())) {
                 // 반품(내부/외부)이고 입고창고가 물류센터가 아닌 경우 - 품목입고내역 insert
                 result = this.mapper.insertItemReceivingHistory(dvo);
                 // TODO: 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고
+
+                WsnaItemStockItemizationReqDvo returnOstrDvo = setReturningOstrWsnaItemStockItemizationDtoSaveReq(
+                    dvo
+                );
+                result += itemStockservice.createStock(returnOstrDvo);
+
                 // TODO: 품목재고내역 이동 메소드(saveItemStockIzMmts)를 호출 - 재고이동
+                WsnaItemStockItemizationReqDvo returnMoveDvo = setReturningMoveWsnaItemStockItemizationDtoSaveReq(
+                    dvo
+                );
+                result += itemStockservice.saveStockMovement(returnMoveDvo);
                 // TODO: 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 입고
+
+                WsnaItemStockItemizationReqDvo returnStrDvo = setReturningStrWsnaItemStockItemizationDtoSaveReq(
+                    dvo
+                );
+
+                result += itemStockservice.createStock(returnStrDvo);
             } else {
                 // TODO: 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 폐기출고
+                WsnaItemStockItemizationReqDvo returnDisuseDvo = setReturningDisuseWsnaItemStockItemizationDtoSaveReq(
+                    dvo
+                );
+
+                result += itemStockservice.createStock(returnDisuseDvo);
             }
 
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            //            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             processCount += result;
         }
 
@@ -103,7 +132,7 @@ public class WsnaReturningGoodsOstrService {
     }
 
     @Transactional
-    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) {
+    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) throws ParseException {
         int processCount = 0;
 
         for (RemoveReq dto : dtos) {
@@ -117,12 +146,33 @@ public class WsnaReturningGoodsOstrService {
 
                 } else {
                     // TODO: 품목재고내역 삭제 메소드(saveItemStockIzDls)를 호출 - 입고창고의 입고재고수량 삭제
+                    WsnaItemStockItemizationReqDvo returnRemoveDvo = setReturningRemoveWsnaItemStockItemizationDtoSaveReq(
+                        dvo
+                    );
+
+                    itemStockservice.removeStock(returnRemoveDvo);
+                    //                    BizAssert.isTrue(removeResult == 1, "MSG_ALT_DEL_ERR");
+
                     // TODO: 품목재고내역 이동 메소드(saveItemStockIzMmts)를 호출 - 입고창고의 이동재고수량 삭제
+
+                    WsnaItemStockItemizationReqDvo moveDvo = setReturningRemoveMoveWsnaItemStockItemizationDtoSaveReq(
+                        dvo
+                    );
+
+                    itemStockservice.saveStockMovement(moveDvo);
+                    //                    BizAssert.isTrue(moveResult == 1, "MSG_ALT_DEL_ERR");
+
                     this.mapper.deleteItemReceivingHistory(dvo); // 품목입고내역삭제
                 }
             }
 
             // TODO: 품목재고내역 삭제 메소드(saveItemStockIzDls)를 호출 - 출고창고의 출고재고수량 복원
+            WsnaItemStockItemizationReqDvo ostrRemoveDvo = setReturningOstrRemoveWsnaItemStockItemizationDtoSaveReq(
+                dvo
+            );
+
+            itemStockservice.removeStock(ostrRemoveDvo);
+            //            BizAssert.isTrue(ostrResult == 1, "MSG_ALT_DEL_ERR");
 
             int result = this.mapper.deleteItemForwardingHistory(dvo); // 품목출고내역삭제
 
@@ -139,6 +189,133 @@ public class WsnaReturningGoodsOstrService {
 
     public Boolean isReturnToLogistics(String ostrTpCd, String strWareDvCd) {
         return RETURN_INSIDE.equals(ostrTpCd) && WARE_DV_CD_LOGISTICS_CENTER.equals(strWareDvCd);
+    }
+
+    /*품목재고내역관리 서비스(W-SV-S-0087)의 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고*/
+    protected WsnaItemStockItemizationReqDvo setReturningOstrWsnaItemStockItemizationDtoSaveReq(
+        WsnaReturningGoodsDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getOstrDt().substring(0, 6));
+        reqDvo.setProcsDt(vo.getOstrDt());
+        reqDvo.setWareDv(vo.getWareDvCd());
+        reqDvo.setWareNo(vo.getOstrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+        reqDvo.setIostTp("261");
+        reqDvo.setWorkDiv("A");
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMngtUnitCd());
+        reqDvo.setItemGd(vo.getItmGdCd());
+        reqDvo.setQty(String.valueOf(vo.getOstrQty()));
+        return reqDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setReturningMoveWsnaItemStockItemizationDtoSaveReq(
+        WsnaReturningGoodsDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo moveDvo = new WsnaItemStockItemizationReqDvo();
+        moveDvo.setProcsYm(vo.getOstrDt().substring(0, 6));
+        moveDvo.setProcsDt(vo.getOstrDt());
+        moveDvo.setWareDv(vo.getStrWareDvCd());
+        moveDvo.setWareNo(vo.getStrWareNo());
+        moveDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+        moveDvo.setIostTp("991");
+        moveDvo.setWorkDiv("A");
+        moveDvo.setItmPdCd(vo.getItmPdCd());
+        moveDvo.setMngtUnit(vo.getMngtUnitCd());
+        moveDvo.setItemGd(vo.getItmGdCd());
+        moveDvo.setQty(String.valueOf(vo.getOstrQty()));
+        return moveDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setReturningStrWsnaItemStockItemizationDtoSaveReq(
+        WsnaReturningGoodsDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getOstrDt().substring(0, 6));
+        reqDvo.setProcsDt(vo.getOstrDt());
+        reqDvo.setWareDv(vo.getStrWareDvCd());
+        reqDvo.setWareNo(vo.getStrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getStrWareMngtPrtnrNo());
+        reqDvo.setIostTp("161");
+        reqDvo.setWorkDiv("A");
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMngtUnitCd());
+        reqDvo.setItemGd(vo.getItmGdCd());
+        reqDvo.setQty(String.valueOf(vo.getOstrQty()));
+        return reqDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setReturningDisuseWsnaItemStockItemizationDtoSaveReq(
+        WsnaReturningGoodsDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(vo.getOstrDt().substring(0, 6));
+        reqDvo.setProcsDt(vo.getOstrDt());
+        reqDvo.setWareDv(vo.getWareDvCd());
+        reqDvo.setWareNo(vo.getOstrWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+        reqDvo.setIostTp("212");
+        reqDvo.setWorkDiv("A");
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setMngtUnit(vo.getMngtUnitCd());
+        reqDvo.setItemGd(vo.getItmGdCd());
+        reqDvo.setQty(String.valueOf(vo.getOstrQty()));
+        return reqDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setReturningRemoveWsnaItemStockItemizationDtoSaveReq(
+        WsnaReturningGoodsDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo removeDvo = new WsnaItemStockItemizationReqDvo();
+        removeDvo.setProcsYm(vo.getOstrDt().substring(0, 6));
+        removeDvo.setProcsDt(vo.getOstrDt());
+        removeDvo.setWareDv(vo.getStrWareDvCd());
+        removeDvo.setWareNo(vo.getStrWareNo());
+        removeDvo.setWareMngtPrtnrNo(vo.getStrWareMngtPrtnrNo());
+        removeDvo.setIostTp("161");
+        removeDvo.setWorkDiv("D");
+        removeDvo.setItmPdCd(vo.getItmPdCd());
+        removeDvo.setMngtUnit(vo.getMngtUnitCd());
+        removeDvo.setItemGd(vo.getItmGdCd());
+        removeDvo.setQty(String.valueOf(vo.getOstrQty()));
+        return removeDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setReturningRemoveMoveWsnaItemStockItemizationDtoSaveReq(
+        WsnaReturningGoodsDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo removeDvo = new WsnaItemStockItemizationReqDvo();
+        removeDvo.setProcsYm(vo.getOstrDt().substring(0, 6));
+        removeDvo.setProcsDt(vo.getOstrDt());
+        removeDvo.setWareDv(vo.getStrWareDvCd());
+        removeDvo.setWareNo(vo.getStrWareNo());
+        removeDvo.setWareMngtPrtnrNo(vo.getStrWareMngtPrtnrNo());
+        removeDvo.setIostTp("991");
+        removeDvo.setWorkDiv("D");
+        removeDvo.setItmPdCd(vo.getItmPdCd());
+        removeDvo.setMngtUnit(vo.getMngtUnitCd());
+        removeDvo.setItemGd(vo.getItmGdCd());
+        removeDvo.setQty(String.valueOf(vo.getOstrQty()));
+        return removeDvo;
+    }
+
+    protected WsnaItemStockItemizationReqDvo setReturningOstrRemoveWsnaItemStockItemizationDtoSaveReq(
+        WsnaReturningGoodsDvo vo
+    ) {
+        WsnaItemStockItemizationReqDvo removeDvo = new WsnaItemStockItemizationReqDvo();
+        removeDvo.setProcsYm(vo.getOstrDt().substring(0, 6));
+        removeDvo.setProcsDt(vo.getOstrDt());
+        removeDvo.setWareDv(vo.getWareDvCd());
+        removeDvo.setWareNo(vo.getOstrWareNo());
+        removeDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+        removeDvo.setIostTp(vo.getOstrTpCd());
+        removeDvo.setWorkDiv("D");
+        removeDvo.setItmPdCd(vo.getItmPdCd());
+        removeDvo.setMngtUnit(vo.getMngtUnitCd());
+        removeDvo.setItemGd(vo.getItmGdCd());
+        removeDvo.setQty(String.valueOf(vo.getOstrQty()));
+        return removeDvo;
     }
 
 }

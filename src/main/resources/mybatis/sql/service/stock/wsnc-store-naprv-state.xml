@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStoreNaprvStateMapper">
+    <select id="selectStoreNaprvState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreNaprvStateDto$SearchRes">
+        /* @formatter:off */
+        SELECT T1.STR_WARE_NO
+             , W_IN.WARE_NM /* 입고창고명 */
+             , T1.ITM_PD_CD
+             , T1.PD_NM
+             , T1.NAPRV_QTY
+         FROM ( SELECT S1.STR_WARE_NO /* 입고창고코드 */
+                     , S1.ITM_PD_CD /* 자재코드 */
+                     , P1.PD_NM /* 자재명 */
+                     , SUM(STR_QTY) NAPRV_QTY/* 미승인수량 */
+                     , S1.STR_RGST_DT
+                 FROM TB_SVST_ITM_STR_IZ S1
+                 INNER JOIN TB_PDBS_PD_BAS P1
+                 ON S1.ITM_PD_CD = P1.PD_CD
+                 WHERE 1=1
+                 AND S1.STR_CONF_DT IS NULL
+                 <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
+                 AND S1.STR_WARE_DV_CD = #{strWareDvCd}
+                 </if>
+                 <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
+                 AND S1.HGR_WARE_NO = #{strWareNoM}
+                 </if>
+                 <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
+                 AND S1.STR_WARE_NO = #{strWareNoD}
+                 </if>
+                 GROUP BY S1.STR_WARE_NO, S1.ITM_PD_CD, P1.PD_NM, S1.STR_RGST_DT
+         ) T1
+         INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ S2
+                 ON T1.STR_WARE_NO = S2.WARE_NO AND T1.ITM_PD_CD = S2.ITM_PD_CD
+         LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ W_IN
+                 ON T1.STR_WARE_NO = W_IN.WARE_NO AND SUBSTR(T1.STR_RGST_DT, 1, 6) = W_IN.APY_YM
+         WHERE T1.NAPRV_QTY = S2.MMT_STOC_A_GD_QTY
+         AND T1.NAPRV_QTY > 0
+    </select>
+</mapper>

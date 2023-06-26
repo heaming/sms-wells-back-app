@@ -183,4 +183,21 @@ public class WsniCustomerCenterInterfaceController {
         return resWrapper;
     }
 
+    @ApiOperation(value = "부가 정보 조회", notes = "고객센터에서 설치 장소 상세위치, 서비스 부가정보 등 부가 정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @GetMapping("/additionals")
+    public EaiWrapper<FindAdnInfRes> getAdditional(
+        @Valid
+        @RequestBody
+        EaiWrapper<FindAdnInfReq> reqWrapper
+    ) throws IOException, Exception {
+        EaiWrapper<FindAdnInfRes> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getAdditional(reqWrapper.getBody()));
+
+        return resWrapper;
+    }
+
 }

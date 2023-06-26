@@ -60,12 +60,17 @@
          AND (T_DLQ_BAS.DLQ_ACU_MCN IS NULL OR T_DLQ_BAS.DLQ_ACU_MCN <![CDATA[<]]> 3) /* 3연체가 아닌 건 */
          AND EXISTS (SELECT T_PD_RSTL_BAS.PD_CD
                        FROM TB_PDBS_PD_RSTL_BAS T_PD_RSTL_BAS
-                      WHERE 1=1
+                      WHERE T_PD_RSTL_BAS.DTA_DL_YN = 'N'
                         AND T_PD_RSTL_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
                         AND (T_PD_RSTL_BAS.RSTL_SELL_CHNL_DV_CD = SUBSTR(T_CNTR_BAS.SELL_INFLW_CHNL_DTL_CD,0,2) OR T_PD_RSTL_BAS.RSTL_SELL_CHNL_DV_CD = '00')
                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_PD_RSTL_BAS.VL_STRT_DTM AND T_PD_RSTL_BAS.VL_END_DTM
-                        AND T_WELLS_SL_MM_CL_IZ.RENTAL_TN BETWEEN T_PD_RSTL_BAS.RCP_STRT_MCN AND T_PD_RSTL_BAS.RCP_END_MCN
-                        AND T_PD_RSTL_BAS.DTA_DL_YN = 'N')
+                        AND T_WELLS_SL_MM_CL_IZ.RENTAL_TN BETWEEN T_PD_RSTL_BAS.RCP_STRT_MCN AND T_PD_RSTL_BAS.RCP_END_MCN)
+         AND NOT EXISTS (SELECT 1 /* 대상건 중에 재약정 접수인 건이 없어야 */
+                           FROM TB_SSCT_RENTAL_RSTL_IZ
+                          WHERE DTA_DL_YN = 'N'
+                            AND CNTR_NO = T_CNTR_DTL.CNTR_NO
+                            AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                            AND RSTL_STAT_CD = '010')
         <if test="@MybatisUtils@isNotEmpty(cstKnm)"><trim>
          AND T_CNTR_CST_BAS.CST_KNM = #{cstKnm}
         </trim></if>
