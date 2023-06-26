@@ -6,7 +6,9 @@
         SELECT
                /*T1.KW_GRP_CO_CD*/
                T2.KW_GRP_CO_CD
-             , T1.CNTR_NO||T1.CNTR_SN AS CNTR_NO --계약번호
+             , T1.CNTR_NO||T1.CNTR_SN AS CNTR --계약번호
+             , T1.CNTR_NO
+             , T1.CNTR_SN
              , T7.CST_KNM  --고객명
              , T1.ITG_DP_NO --통합입금번호
              , T1.FNT_DT AS RVE_DT --입금일자
@@ -18,7 +20,13 @@
              <!--, T2.DP_TP_CD AS DP_MES_CD &#45;&#45;입금유형
              , T4.SELL_TP_CD AS SELL_TP_CD &#45;&#45;판매유형-->
              , T1.PROCS_ERR_TP_CD --처리오류유형코드
-             , T3.DG_CNTR_NO||T3.DG_CNTR_SN AS DG_CNTR_NO
+             , T3.DG_CNTR_NO||T3.DG_CNTR_SN AS DG_CNTR
+             , T3.DG_CNTR_NO
+             , T3.DG_CNTR_SN
+             , T1.GIRO_RVE_DV_CD
+             , T1.GIRO_NO /*지로번호*/
+             , T1.GIRO_DP_MTR_DV_CD /*지로입금자료구분코드*/
+             , T1.GIRO_DP_SN /*일련번호*/
           FROM TB_RVDW_GIRO_DP_IZ T1 --입금내역
           LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 --수납상세
            /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/
@@ -52,6 +60,12 @@
             </if>
             <if test='@MybatisUtils@equals(errorChk, "2")'>
             AND T1.PROCS_ERR_TP_CD = '3'
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgCntrNo)'>
+            AND T1.DG_CNTR_NO = #{dgCntrNo}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgCntrSn)'>
+            AND T1.DG_CNTR_SN = #{dgCntrSn}
             </if>
            ORDER BY ITG_DP_NO
     </select>
@@ -316,7 +330,8 @@
                      , GIRO_DP_BNK_CD --은행코드
                      , GIRO_INQNO --지로조회번호
                      , CNTR_NO --계약번호
-                     , (SELECT NVL(MAX(CNTR_SN),0)+1 FROM TB_RVDW_GIRO_DP_IZ WHERE CNTR_NO = T1.CNTR_NO) AS CNTR_SN
+                     , 1 AS CNTR_SN
+<!--                     , (SELECT NVL(CNTR_SN,0)+1 FROM TB_RVDW_GIRO_DP_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = 1) AS CNTR_SN-->
                      --, LPAD(ROW_NUMBER() OVER(PARTITION BY CNTR_NO ORDER BY DP_SN DESC ),5,0) AS CNTR_SN --계약일련번호
                      , PY_TN --회차
                      , (CASE WHEN TO_NUMBER(SUBSTR(PY_YM,1,2)) = 0  THEN 0
@@ -399,6 +414,7 @@
          WHERE 1 = 1
            AND GIRO_NO = '3010068' /* 지로번호*/
            AND FNT_DT = #{fntDt}
+           AND RVE_DT = #{rveDt}
            AND DTA_DL_YN = 'N'
     </select>
 
@@ -410,6 +426,8 @@
           AND GIRO_OCR_BNDL_YM = #{giroOcrBndlYm}
           AND DG_CNTR_NO = #{dgCntrNo}
           AND DG_CNTR_SN = #{dgCntrSn}
+          AND FNT_DT = #{fntDt}
+          AND RVE_DT = #{rveDt}
           AND DG_CNTR_YN = 'Y'
           AND DTA_DL_YN = 'N'
     </select>
@@ -486,6 +504,7 @@
            <include refid="COMMON.updateSystemField"/>
          WHERE GIRO_NO = #{giroNo}
            AND FNT_DT = #{fntDt}
+           AND RVE_DT = #{rveDt}
            AND GIRO_DP_MTR_DV_CD = #{giroDpMtrDvCd}
            AND GIRO_DP_SN = #{giroDpSn}
     </update>

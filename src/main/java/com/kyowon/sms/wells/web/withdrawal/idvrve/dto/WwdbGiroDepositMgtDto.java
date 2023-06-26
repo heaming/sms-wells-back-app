@@ -9,13 +9,18 @@ public class WwdbGiroDepositMgtDto {
         String rveDt,
         String fntDt,
         String giroOcrBndlYm,
-        String errorChk
+        String errorChk,
+
+        String dgCntrNo,
+        String dgCntrSn
     ) {}
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchRes")
     public record SearchRes(
         String kwGrpCoCd,
         String cntrNo,
+        String cntrSn,
+        String cntr,
         String cstKnm,
         String rveDt,
         String perfDt,
@@ -24,7 +29,13 @@ public class WwdbGiroDepositMgtDto {
         String sellTpCd,
         String dpMesCd,
         String procsErrTpCd,
-        String dgCntrNo
+        String dgCntr,
+        String dgCntrNo,
+        String dgCntrSn,
+        String giroRveDvCd,
+        String giroNo /*지로번호*/,
+        String giroDpMtrDvCd /*지로입금자료구분코드*/,
+        String giroDpSn /*일련번호*/
 
         //        String kwGrpCoCd,
         //        String cntrNo, //--계약번호
