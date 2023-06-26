@@ -95,12 +95,12 @@ public class WsnaComputationExcludeItemService {
         // 전월 데이터 조회
         Integer count = this.mapper.selectCmptExcdItmCount(inqrYm, 1);
         // 전월 데이터가 없습니다. 전월 데이터가 있는 경우에만 이관 가능합니다.
-        BizAssert.isFalse(count == null, "MSG_ALT_LSTMM_NO_DATA");
+        BizAssert.notNull(count, "MSG_ALT_LSTMM_NO_DATA");
 
         // 당월 데이터 조회
         count = this.mapper.selectCmptExcdItmCount(inqrYm, 0);
         // 당월 데이터가 있는 경우 이관이 불가능합니다.
-        BizAssert.isFalse(count != null, "MSG_ALT_THM_DTA_EXST");
+        BizAssert.isNull(count, "MSG_ALT_THM_DTA_EXST");
 
         return this.mapper.insertCmptExcdItmForTransfer(inqrYm);
     }
