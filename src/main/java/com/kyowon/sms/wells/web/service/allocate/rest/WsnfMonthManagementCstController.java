@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsnfMonthManagementCstDto;
+import com.kyowon.sms.wells.web.service.allocate.service.WsnfMonthManagementCstService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -22,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/month-management")
 @Slf4j
 public class WsnfMonthManagementCstController {
+
+    private final WsnfMonthManagementCstService service;
 
     @ApiOperation(value = "월관리 고객 생성 - 생성", notes = "월관리 고객 생성")
     @PostMapping
@@ -38,7 +41,7 @@ public class WsnfMonthManagementCstController {
         //TODO Job Execution
 
         return SaveResponse.builder()
-            .processCount(1)
+            .processCount(service.createMonthManagementCst(dto))
             .build();
     }
 
