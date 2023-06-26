@@ -92,7 +92,7 @@ public class WdcbAdvancedSellFeeReplaceController {
     }
 
     @ApiOperation(value = "전표 생성", notes = "전표 생성")
-    @PostMapping("/slip-create")
+    @PutMapping("/slip-create")
     public SaveResponse saveSlipCreate(
         @RequestBody
         @Valid

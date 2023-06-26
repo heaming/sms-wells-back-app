@@ -24,4 +24,19 @@ public interface WsniCustomerCenterInterfaceMapper {
     int insertFilterShippingAddress(WsniCustomerCenterInterfaceDvo dvo);
 
     int updateFilterShippingAddress(WsniCustomerCenterInterfaceDvo dvo);
+
+    String selectIstLctDtlCn(FindAdnInfReq dto);
+
+    WsniCustomerCenterInterfaceDvo selectAllCleanYn(FindAdnInfReq dto);
+
+    int selectTotalMaterialUseYn(FindAdnInfReq dto);
+
+    WsniCustomerCenterInterfaceDvo selectFilterShippingAddressInfo(FindAdnInfReq dto);
+
+    String selectBsStopYn(FindAdnInfReq dto);
+
+    String selectBespokePanelChangeYn(FindAdnInfReq dto);
+
+    String selectTopPlateChangePossibleYn(FindAdnInfReq dto);
+
 }

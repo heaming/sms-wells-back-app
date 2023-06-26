@@ -105,4 +105,22 @@ public class WsniCustomerCenterInterfaceService {
         // @TODO: TEMP_CODE :: 메세지 정상 출력되는지 확인 필요
         return new EditShpadrRes("MSG_ALT_SAVE_DATA", "S001");
     }
+
+    public FindAdnInfRes getAdditional(FindAdnInfReq dto) {
+        WsniCustomerCenterInterfaceDvo returnDvo = new WsniCustomerCenterInterfaceDvo();
+        WsniCustomerCenterInterfaceDvo tempDvo = new WsniCustomerCenterInterfaceDvo();
+
+        tempDvo = mapper.selectAllCleanYn(dto);
+
+        returnDvo = mapper.selectFilterShippingAddressInfo(dto);
+        returnDvo.setAllCleanMsg(tempDvo.getAllCleanMsg());
+        returnDvo.setAllCleanYn(tempDvo.getAllCleanYn());
+        returnDvo.setIstLctDtlCn(mapper.selectIstLctDtlCn(dto));
+        returnDvo.setChangeCount(mapper.selectTotalMaterialUseYn(dto));
+        returnDvo.setBsStopYn(mapper.selectBsStopYn(dto));
+        returnDvo.setChangeYn(mapper.selectBespokePanelChangeYn(dto));
+        returnDvo.setChangePossibleYn(mapper.selectTopPlateChangePossibleYn(dto));
+
+        return converter.mapDvoToFindAdnInfResDto(returnDvo);
+    }
 }
