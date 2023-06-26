@@ -53,8 +53,9 @@ public class WogcPartnerEngineerDvo {
     String wrkDt;
     String wrkNm;
     String egerWrkStatCd;
-    String dnlStrtdt;
-    String dnlEnddt;
+    String egerWrkStatNm;
+    String vcnStrtDt;
+    String vcnEndDt;
     String bizAgntPrtnrNo;
     String agntPrtnrKnm;
     String pcpPrtnrNo;
