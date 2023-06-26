@@ -8,12 +8,12 @@
              , OG_CD
              , PRTNR_KNM
              , RSB_DV_NM
-             , SV01999901	/*관리건수*/
-             , SV01999902	/*방문건수*/
-             , SV01999903	/*전월건수*/
-             , SV01999902 + SV01999903 AS TOT_SV_CNT	/*완료건수*/
-             , SV01999909	/*비율*/
-             , SV01999910	/*수정비율*/
+             , NVL(SV01999901, 0) AS SV01999901	/*관리건수*/
+             , NVL(SV01999902, 0) AS SV01999902	/*방문건수*/
+             , NVL(SV01999903, 0) AS SV01999903	/*전월건수*/
+             , NVL(SV01999902, 0) + NVL(SV01999903, 0) AS TOT_SV_CNT	/*완료건수*/
+             , NVL(SV01999909, 0) AS SV01999909	/*비율*/
+             , NVL(SV01999910, 0) AS SV01999910	/*수정비율*/
           FROM
              ( SELECT A.BASE_YM
                     , A.OG_TP_CD
@@ -24,19 +24,19 @@
                     , B.PRTNR_SV_PERF_ATC_CD
                     , B.PERF_VAL
                  FROM TB_OGBS_MM_PRTNR_IZ A	/*월파트너내역*/
-                INNER JOIN TB_FEAM_WPTN_SV_PERF_AGRG B	/*웰스파트너서비스실적집계*/
+                 LEFT OUTER JOIN TB_FEAM_WPTN_SV_PERF_AGRG B	/*웰스파트너서비스실적집계*/
                    ON A.BASE_YM = B.BASE_YM
                   AND A.OG_TP_CD = B.OG_TP_CD
                   AND A.PRTNR_NO = B.PRTNR_NO
                   AND B.DTA_DL_YN = 'N'
+                  AND B.CL_DV_CD = '02'	/*마감구분코드-02 순주문2차*/
+                  AND B.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999909', 'SV01999910')
                 WHERE A.DTA_DL_YN = 'N'
                   AND A.BASE_YM = #{perfYm}
                   AND A.OG_TP_CD = 'W02'
                 <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND A.PRTNR_NO = #{prtnrNo}
                 </if>
-                  AND B.CL_DV_CD = '02'	/*마감구분코드-02 순주문2차*/
-                  AND B.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999909', 'SV01999910')
              )
          PIVOT
              ( SUM(PERF_VAL) FOR PRTNR_SV_PERF_ATC_CD IN (
@@ -52,6 +52,17 @@
           WHERE SV01999909 != SV01999910
         </if>
          ORDER BY BASE_YM, OG_TP_CD, PRTNR_NO
+    </select>
+
+    <select id="selectBsAgrgCheck" resultType="int">
+        SELECT COUNT(*) AS CNT
+          FROM TB_FEAM_WPTN_SV_PERF_AGRG
+         WHERE DTA_DL_YN = 'N'
+           AND BASE_YM = #{baseYm}
+           AND CL_DV_CD = '02'   /*마감구분코드 02-순주문2차*/
+           AND OG_TP_CD = 'W02'
+           AND PRTNR_NO = #{prtnrNo}
+           AND PRTNR_SV_PERF_ATC_CD = 'SV01999909'
     </select>
 
     <update id="updatePartnerBsProcessingRate">

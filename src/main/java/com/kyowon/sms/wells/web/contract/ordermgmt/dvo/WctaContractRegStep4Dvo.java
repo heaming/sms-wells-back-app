@@ -29,6 +29,7 @@ public class WctaContractRegStep4Dvo {
         Long rntlAmt;
         Long pdAmt;
         Long stplPtrm;
+        Long cntrPtrm;
         Long dscAmt;
     }
 

@@ -85,7 +85,7 @@ public class WwdbGiroDepositMgtService {
             // 중복 제거
             List<SaveReq> duplicates = dtos.stream().distinct().collect(Collectors.toList());
 
-            String[] fntDt = new String[dtos.size() - 1];
+            String[] fntDt = new String[dtos.size()];
 
             for (int i = 0; i < duplicates.size(); i++) {
                 if (duplicates.get(i).giroDpMtrDvCd().equals("22")) {
@@ -128,7 +128,7 @@ public class WwdbGiroDepositMgtService {
 
         processCount += mapper.inertIntegrationItemization(dvo);
         processCount += mapper.updateIntegrationItemization(dvo);
-        //        
+        //
         //        int tcnt = 0; // 자료　건수
         //        int rcnt = 0; // 제외　건수
         //        int acnt = 0; // 기　처리건
@@ -204,7 +204,7 @@ public class WwdbGiroDepositMgtService {
         //
         //                        mapper.updateGiroDepositItemization(regMap); //이거 파라미터 넘겨야함
         //
-        //                        //                        
+        //                        //
         //                        //                        regMap.put("CWFLG1",  "2");  // 취소된　고객코드
         //                        //                        procCnt = dpstMapper.updateGiroDpstDat(regMap); // 지로입금 자료 수정 CW5520P
         //                        //                        if(procCnt != 1){
@@ -215,7 +215,7 @@ public class WwdbGiroDepositMgtService {
         //                        regMap.put("cntrNo", inserList.get(i).cntrNo());
         //                        regMap.put("cntrSn", inserList.get(i).cntrSn());
         //
-        //                        //                        
+        //                        //
         //
         //                        //                        수납상세 INSERT 문이랑 히스토리 INSERT문 짜야함
         //                    }
@@ -223,7 +223,7 @@ public class WwdbGiroDepositMgtService {
         //                } else { // 통합발행　지로　입금　처리
         //                    regMap = new HashMap<String, Object>();
         //                    regMap.put("giroOcrBndlYm", fntDt.substring(0, 6)); // 발행년
-        //                    regMap.put("dgCntrNo", inserList.get(i).cntrNo()); // 
+        //                    regMap.put("dgCntrNo", inserList.get(i).cntrNo()); //
         //                    regMap.put("dgCntrSn", inserList.get(i).cntrSn()); // 대표고객년도
         //
         //                    int settingAmount = mapper.selectGiroDepositSettingAmount(regMap); //계약상세상태코드 정상(101)인 설정금액
@@ -241,7 +241,7 @@ public class WwdbGiroDepositMgtService {
         //                    } else {
         //                        regMap = new HashMap<String, Object>();
         //                        regMap.put("giroOcrBndlYm", fntDt.substring(0, 6)); // 발행년
-        //                        regMap.put("dgCntrNo", inserList.get(i).cntrNo()); // 
+        //                        regMap.put("dgCntrNo", inserList.get(i).cntrNo()); //
         //                        regMap.put("dgCntrSn", inserList.get(i).cntrSn()); // 대표고객년도
         //                        List<SearchDepositSettingRes> selectGiroDepositSettingList = mapper
         //                            .selectGiroDepositSettingList(regMap);

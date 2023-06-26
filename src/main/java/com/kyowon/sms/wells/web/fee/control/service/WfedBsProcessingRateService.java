@@ -62,6 +62,11 @@ public class WfedBsProcessingRateService {
 
         for (SaveReq dto : dtos) {
             WfedBsProcessingRateDvo dvo = converter.mapSaveReqToWfedBsProcessingRateDvo(dto);
+
+            // 수정하기 전, BS 실적집계가 완료된 상태인지 체크한다.
+            int cnt = mapper.selectBsAgrgCheck(dvo);
+            BizAssert.isTrue(cnt > 0, "MSG_ALT_BFSVC_PERF_AGRG_AFT_PRGS"); //BS실적집계 후 진행하세요.
+
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED, CommConst.ROW_STATE_UPDATED -> {
                     dvo.setPerfVal(dvo.getSv01999910());

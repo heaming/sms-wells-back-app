@@ -27,9 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class WsncBsPeriodChartService {
-    WsncBsPeriodChartMapper mapper;
+    private final WsncBsPeriodChartMapper mapper;
 
-    WsncBsPeriodChartConverter converter;
+    private final WsncBsPeriodChartConverter converter;
 
     /*
      * 정기 BS 주기표 생성
@@ -105,6 +105,7 @@ public class WsncBsPeriodChartService {
                 chekInstMths = chekInstMths + chart06Res.getVstNmnN();
             }
             processParam.setChekInstMths(chekInstMths);
+            processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs03_07(processParam);
             //AS-IS ::: C1 Loop(chart07Res)
