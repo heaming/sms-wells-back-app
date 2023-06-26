@@ -35,15 +35,15 @@ public class WsnaPcsvOutOfStorageMgtService {
         return mapper.selectPcsvOutOfStorageStockQty(dto);
     }
 
-    public List<LogisticsCentersRes> getPcsvLogisticsCenters() {
+    public List<FindLogisticsCentersRes> getPcsvLogisticsCenters() {
         return mapper.selectPcsvLogisticsCenters();
     }
 
-    public List<ProductsRes> getPcsvProducts(ProductsReq dto) {
+    public List<FindProductsRes> getPcsvProducts(FindProductsReq dto) {
         return mapper.selectPcsvProducts(dto);
     }
 
-    public List<IvcPrntSnRes> getPcsvIvcPrntSns(SearchReq dto) {
+    public List<FindIvcPrntSnRes> getPcsvIvcPrntSns(SearchReq dto) {
         return mapper.selectPcsvIvcPrntSns(dto);
     }
 

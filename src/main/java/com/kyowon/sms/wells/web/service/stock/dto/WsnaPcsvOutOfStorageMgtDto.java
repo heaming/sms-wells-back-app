@@ -151,10 +151,16 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String pdGdCd,
 
         @NotBlank
+        String pdGrpCd,
+
+        @NotBlank
         String pdCd,
 
         @NotBlank
         String prtnrNo,
+
+        @NotBlank
+        String ogTpCd,
 
         @NotBlank
         String cntrSn,
@@ -194,24 +200,24 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
     ) {}
 
-    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-LogisticsCentersRes")
-    public record LogisticsCentersRes(
+    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindLogisticsCentersRes")
+    public record FindLogisticsCentersRes(
         String codeId,
         String codeName
     ) {}
 
-    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-ProductsReq")
-    public record ProductsReq(
+    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindProductsReq")
+    public record FindProductsReq(
         String svBizDclsfCd
     ) {}
-    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-ProductsRes")
-    public record ProductsRes(
-        String svpdPdCd,
-        String svpdNmKor,
-        String svpdItemGr
+    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindProductsRes")
+    public record FindProductsRes(
+        String pdCd,
+        String pdNm,
+        String pdGrpCd
     ) {}
-    @ApiModel("WsnaPcsvOutOfStorageMgtDto-IvcPrntSnRes")
-    public record IvcPrntSnRes(
+    @ApiModel("WsnaPcsvOutOfStorageMgtDto-FindIvcPrntSnRes")
+    public record FindIvcPrntSnRes(
         String codeId,
         String codeName
     ) {}

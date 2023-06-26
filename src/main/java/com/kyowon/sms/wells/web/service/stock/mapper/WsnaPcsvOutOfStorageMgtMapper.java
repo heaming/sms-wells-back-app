@@ -13,9 +13,9 @@ public interface WsnaPcsvOutOfStorageMgtMapper {
 
     String selectPcsvOutOfStorageStockQty(SearchReq dto);
 
-    List<LogisticsCentersRes> selectPcsvLogisticsCenters();
+    List<FindLogisticsCentersRes> selectPcsvLogisticsCenters();
 
-    List<ProductsRes> selectPcsvProducts(ProductsReq dto);
+    List<FindProductsRes> selectPcsvProducts(FindProductsReq dto);
 
-    List<IvcPrntSnRes> selectPcsvIvcPrntSns(SearchReq dto);
+    List<FindIvcPrntSnRes> selectPcsvIvcPrntSns(SearchReq dto);
 }

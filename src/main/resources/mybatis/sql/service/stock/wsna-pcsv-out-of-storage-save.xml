@@ -7,7 +7,8 @@
             , WK_EXCN_DT    = TO_CHAR(SYSDATE,'YYYYMMDD')
             , WK_EXCN_HH    = TO_CHAR(SYSDATE,'HH24MISS')
             , WK_PRTNR_NO = #{prtnrNo}
-            , SITE_AW_PD_GRP_CD = '3'   /* TODO KWAS.GET_ITEM_GR(#PD_CD#) */
+            , WK_PRTNR_OG_TP_CD = #{ogTpCd}
+            , SITE_AW_PD_GRP_CD = #{pdGrpCd}
             , SITE_AW_SV_TP_CD = #{svBizHclsfCd}
             , SITE_AW_ATC_CD = #{siteAwAtcCd}
            <include refid="COMMON.updateSystemField"/>
@@ -125,7 +126,7 @@
                            /*  AC221_TR_TM 컬럼없음*/
                            /*  AC221_MGRT_GB 컬럼없음*/
         , DTM_CH_RSON_DTL_CN /*  AC221_CFRM_MEMO */
-                           /*  AC221_LOG_ID  TODO (확인필요 :AS-IS '40' 정의)  */
+                           /*  AC221_LOG_ID   */
         , SV_BIZ_HCLSF_CD  /*  AC221_DATA_GB */
          /* TO-BE only */
         , SV_BIZ_DCLSF_CD  /*  AC211_WRK_TYP_DTL */
@@ -280,11 +281,11 @@
             /* ★월관리 고객 생성*/
             IF (V_SV_BIZ_DCLSF_CD LIKE '11%') THEN
                 SELECT COUNT(1)
-                    INTO V_SV_OJ_IZ_COUNT
+                INTO V_SV_OJ_IZ_COUNT
                 FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
                 WHERE MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                 AND CNTR_NO = #{cntrNo}
-                /* AND AC202_CSMR_SEQ = #CSMR_SEQ#   TODO  AC202_CSMR_SEQ 컬럼 없음 */
+                AND CNTR_SN = #{cntrSn}
                 AND ROWNUM=1;
 
                 IF (V_SV_OJ_IZ_COUNT = 0) THEN
@@ -293,7 +294,6 @@
                   ( MNGT_YM /* AC202_MGT_YM    */
                   , CNTR_NO /* AC202_CSMR_YR  + AC202_CSMR_CD  */
                   , CNTR_SN
-                    /* AC202_CSMR_SEQ  컬럼없음 */
                     /* AC201_SALE_GB   컬럼없음 */
                     /* AC201_MGT_GB    컬럼없음 */
                   , FILT_SELL_TP_CD/* AC202_SALE_TYP  */
@@ -343,7 +343,6 @@
                 SELECT TO_CHAR(SYSDATE,'YYYYMM') AS MNGT_YM        /* AC202_MGT_YM    */
                     , CNTR_NO AS CNTR_NO                           /* AC202_CSMR_YR + AC202_CSMR_CD   */
                     , CNTR_SN AS CNTR_SN
-                    /* AC202_CSMR_SEQ  컬럼없음 */
                     /* AC201_SALE_GB   컬럼없음 */
                     /* AC201_MGT_GB    컬럼없음 */
                     , ''  AS FILT_SELL_TP_CD                         /* AC201_SALE_TYP 컬럼없음 */
@@ -456,8 +455,82 @@
             , FNL_MDFC_PRG_ID = #{session.pageId}
             , FNL_MDFC_DEPT_ID = #{session.departmentId}
             WHERE CNTR_NO = #{cntrNo};
-            /* 23.03.14 이경호 파트장님요청, 렌탈건은 웰컴 BS 생성, */
-            /* 웰컴BS생성 */
+
+            /*23.03.14 이경호 파트장님요청, 렌탈건은 웰컴 BS 생성 */
+            /*23.06.03 백현아 파트장님요청, 일시불 판매코드 4572건은 무조건 웰컴 BS 생성 */
+
+            IF (V_CHK_WELCOME_BS = 'Y') THEN
+                /*웰컴BS생성*/
+                /*무결성 제약 조건 오류 방지*/
+                DELETE FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                WHERE CNTR_NO = #{cntrNo}
+                  AND CNTR_SN = #{cntrSn}
+                  AND WK_DT IS NULL
+                  AND SV_BIZ_DCLSF_CD = '2250';   /*BA04  2250    업무유형(세분류)   설치점검*/
+
+                INSERT INTO TB_SVPD_CST_SV_RGBSPR_IZ
+                (   CNTR_NO                          /* VS107_CSMR_YR ,VS107_CSMR_CD */
+                  , CNTR_SN                          /* new col*/
+                  , WK_SN                            /* new col*/
+                  , SV_BIZ_MCLSF_CD                  /* new col*/
+                  , SV_BIZ_DCLSF_CD                  /* VS107_WRK_TYP_DTL */
+                  , VST_DUEDT                        /* VS107_VST_DT */
+                  , FILT_CHNG_LV_CD                  /* VS107_CHNG_STG */
+                  , IST_NMN_N                        /* VS107_INST_MTHS */
+                  , VST_NMN_N                        /* VS107_VST_MTHS */
+                  , ITM_KND_CD                       /* VS107_ITEM_KND */
+                  , PART_PD_CD                       /* VS107_PART_CD */
+                  , PART_USE_QTY                     /* VS107_QTY */
+                  , VST_DV_CD                        /* VS107_VST_GB */
+                  , FST_RGST_DTM                     /* VS107_REG_DT*/
+                  , FST_RGST_USR_ID                  /* VS107_REG_ID*/
+                  , FST_RGST_PRG_ID                  /* VS107_PGRM_ID */
+                  , FST_RGST_DEPT_ID
+                  , FNL_MDFC_DTM
+                  , FNL_MDFC_USR_ID
+                  , FNL_MDFC_PRG_ID
+                  , FNL_MDFC_DEPT_ID
+                )
+                VALUES
+                (
+                  #{cntrNo}                              /* VS107_CSMR_YR ,VS107_CSMR_CD */
+                , #{cntrSn}								 /* new col : CNTR_SN */
+                , (
+                   SELECT NVL(MAX(TEMP.WK_SN) + 1, 1) AS WK_SN
+                   FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
+                   WHERE  TEMP.CNTR_NO = #{cntrNo}
+                    AND TEMP.CNTR_SN = #{cntrSn}
+                    AND TEMP.SV_BIZ_MCLSF_CD = '22'
+                    AND TEMP.SV_BIZ_DCLSF_CD = '2250'
+                )                                        /* new col : WK_SN  */
+                , '22'                                   /* new col : SV_BIZ_MCLSF_CD */
+                , '2250'                                 /* VS107_WRK_TYP_DTL */
+                , TO_CHAR(SYSDATE+7, 'YYYYMMDD')         /* VS107_VST_DT */
+                , '00'                                   /* VS107_CHNG_STG */
+                , (CASE WHEN TO_CHAR(SYSDATE+7, 'YYYYMM')
+                      = TO_CHAR(SYSDATE, 'YYYYMM')
+                      THEN 0 ELSE 1 END )                /* VS107_INST_MTHS */
+                , 0                                      /* VS107_VST_MTHS */
+                , ''                                     /* VS107_ITEM_KND */
+                , ''                                     /* VS107_PART_CD */
+                , 0                                      /* VS107_QTY */
+                , '10'                                   /* VS107_VST_GB */
+                , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')   /* VS107_REG_DT */
+                , '4250'                                 /* VS107_REG_ID */
+                , 'SP_MK_WELCOME_BS'                     /* VS107_PGRM_ID */
+                , #{session.departmentId}                /* FNL_MDFC_DEPT_ID */
+                , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')   /* VS107_REG_DT */
+                , '4250'                                 /* VS107_REG_ID */
+                , 'SP_MK_WELCOME_BS'                     /* VS107_PGRM_ID */
+                , #{session.departmentId}                /* FNL_MDFC_DEPT_ID */
+                );
+                /* 웰컴BS생성 프로시저 */
+                IF (LENGTH(OUT_MSG) > 0) THEN
+                  RAISE_APPLICATION_ERROR(-20003, OUT_MSG );
+                END IF;
+            END IF;
+
+            RAISE_APPLICATION_ERROR(-20003, '잘못되었음 출고처리!!!');
         END;
     </insert>
     <insert  id="insertPcsvOutOfStorageRvPy" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo">
@@ -729,7 +802,7 @@
            INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2
              ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
           WHERE T1.CNTR_NO = #{cntrNo}
-           /* AND AC211_CSMR_SEQ = #CSMR_SEQ#    CSMR_SEQ 컬럼없음*/
+            AND T1.CNTR_SN = #{cntrSn}
            AND T1.SV_BIZ_DCLSF_CD = '3460'
            AND T2.WK_PRGS_STAT_CD IN ('00', '10');
 
@@ -742,7 +815,7 @@
               INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2
               ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
              WHERE T1.CNTR_NO = #{cntrNo}
-               /*AND AC211_CSMR_SEQ = #CSMR_SEQ#   CSMR_SEQ 컬럼없음*/
+              AND T1.CNTR_SN = #{cntrSn}
               AND T1.SV_BIZ_DCLSF_CD = '3460'
               AND T2.WK_PRGS_STAT_CD IN ('00', '10');
 
@@ -761,7 +834,8 @@
                 , WK_EXCN_DT    = TO_CHAR(SYSDATE,'YYYYMMDD')
                 , WK_EXCN_HH    = TO_CHAR(SYSDATE,'HH24MISS')
                 , WK_PRTNR_NO = #{prtnrNo}
-                , SITE_AW_PD_GRP_CD = '3'    /* TODO KWAS.GET_ITEM_GR(#PD_CD#) */
+                , WK_PRTNR_OG_TP_CD = #{ogTpCd}
+                , SITE_AW_PD_GRP_CD = #{pdGrpCd}
                 , SITE_AW_SV_TP_CD = V_SV_BIZ_HCLSF_CD
                 , SITE_AW_ATC_CD = V_SITE_AW_ATC_CD
                <include refid="COMMON.updateSystemField"/>

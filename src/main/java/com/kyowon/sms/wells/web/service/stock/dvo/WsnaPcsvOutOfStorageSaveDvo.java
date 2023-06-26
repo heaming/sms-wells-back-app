@@ -20,6 +20,8 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String asPhnCd;
     String asCausCd;
     String ivcPrntSn;
+    String ogTpCd;
+    String pdGrpCd;
 
     /* 사용제품 내역등록 ,수불처리 */
     String pdGdCd;
