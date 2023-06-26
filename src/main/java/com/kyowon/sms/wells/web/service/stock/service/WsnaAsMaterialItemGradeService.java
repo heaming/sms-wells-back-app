@@ -57,9 +57,6 @@ public class WsnaAsMaterialItemGradeService {
      */
     public PagingResult<SearchRes> getAsMaterialItemGradePages(SearchReq dto, PageInfo pageInfo) {
 
-        ValidAssert.notNull(dto);
-        ValidAssert.notNull(pageInfo);
-
         // 기준년월
         String baseYm = dto.baseYm();
         // 현재년월
@@ -84,7 +81,6 @@ public class WsnaAsMaterialItemGradeService {
      * @return AS자재 품목등급 데이터 리스트
      */
     public List<SearchRes> getAsMaterialItemGradesExcelDownload(SearchReq dto) {
-        ValidAssert.notNull(dto);
 
         // 기준년월
         String baseYm = dto.baseYm();
