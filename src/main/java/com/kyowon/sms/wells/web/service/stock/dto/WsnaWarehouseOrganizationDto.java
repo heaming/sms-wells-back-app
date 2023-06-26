@@ -92,6 +92,7 @@ public class WsnaWarehouseOrganizationDto {
         String fstRgstDt, // 최초등록일
         String adrUseYn, // 주소사용여부
         String bldCd, // 빌딩코드
+        String bldCdNm, //빌딩코드명
         String wareAdrId, // 창고주소ID
         String rnadr,
         String rdadr,
