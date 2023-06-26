@@ -148,6 +148,7 @@ public class WdcbAdvancedSellFeeReplaceDto {
     @ApiModel("WdcbAdvancedSellFeeReplaceDto-SaveReq")
     public record SaveReq(
         String piaSellFeeSmry,
+        String kwGrpCoCd,
         String fnlMdfcDtm
     ) {}
 }
