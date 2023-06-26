@@ -119,12 +119,12 @@ public class WsnaWarehouseOrganizationController {
 
     @ApiOperation(value = "빌딩정보 조회", notes = "조직ID를 이용하여 빌딩정보를 조회한다")
     @GetMapping("/buildings/paging")
-    public PagingResult<SearchBuildingRes> getBuildingInformations(
+    public PagingResult<SearchBuildingRes> getBuildings(
         SearchBuildingReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return this.service.getBuildingInformations(dto, pageInfo);
+        return this.service.getBuildings(dto, pageInfo);
     }
 
 }
