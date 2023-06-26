@@ -157,6 +157,7 @@
              , SUBSTR(T1.FST_RGST_DTM, 1, 8) AS FST_RGST_DT /* 최초등록일 */
              , T1.ADR_USE_YN /* 주소사용여부 */
              , T1.BLD_CD /* 빌딩코드 */
+             , T5.BLD_NM || '(' || T1.BLD_CD || ')' AS BLD_CD_NM
              , T1.WARE_ADR_ID
              , T4.RNADR
              , T4.RDADR
@@ -186,6 +187,9 @@
           LEFT OUTER JOIN TB_GBCO_ADR_BAS T4 /* 주소기본 */
             ON T4.ADR_ID = T1.WARE_ADR_ID
            AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_BLD_BAS T5
+            ON T5.BLD_CD = T1.BLD_CD
+           AND T5.OG_TP_CD = T1.OG_TP_CD
          WHERE T1.APY_YM = SUBSTR(#{apyYmWareNo}, 1, 6)
            AND T1.WARE_NO = SUBSTR(#{apyYmWareNo}, 7)
            AND T1.DTA_DL_YN = 'N'
@@ -325,6 +329,35 @@
            AND V1.WARE_USE_YN = 'Y'
            AND V1.DTA_DL_YN = 'N'
          ORDER BY CODE_ID
+    </select>
+
+    <select id="selectBuildings" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto$SearchBuildingRes">
+        SELECT DISTINCT T2.BLD_CD
+             , T2.BLD_NM
+             , T2.BLD_NM || '(' || T2.BLD_CD || ')' AS BLD_CD_NM
+             , T3.RNADR || ' ' || T3.RDADR AS BLD_ADR
+             , T3.RNADR
+             , T3.RDADR
+             , T3.NEW_ADR_ZIP
+             , T2.ADR_ID
+          FROM TB_OGBS_MM_OG_IZ T1
+         INNER JOIN TB_OGBS_BLD_BAS T2
+            ON T1.OG_TP_CD = T2.OG_TP_CD
+           AND T1.BLD_CD = T2.BLD_CD
+         LEFT OUTER JOIN TB_GBCO_ADR_BAS T3
+           ON T3.ADR_ID = T2.ADR_ID
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T2.DTA_DL_YN = 'N'
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.OG_TP_CD IN ('W02', 'ALC')
+         <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+           AND T1.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+           AND T1.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+         </if>
+         ORDER BY T2.BLD_CD
+
     </select>
 
 </mapper>
