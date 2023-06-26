@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Api(tags = "[WSNA] 물량배정")
 @Validated
@@ -46,6 +47,15 @@ public class WsnaQomAsnController {
     @GetMapping("/count")
     public int getCountQomAsn(SearchReq dto){
         return service.getCountQomAsn(dto);
+    }
+
+    @GetMapping("/ostr-ware")
+    public List<WareRes> getOstrWarehouse(SearchReq dto){
+        return service.getOstrWarehouse(dto);
+    }
+    @GetMapping("/str-ware")
+    public List<WareRes> getStrWarehouse(SearchReq dto){
+        return service.getStrWarehouse(dto);
     }
 
     @PutMapping("/warehouse-renewals")

@@ -11,7 +11,7 @@ public class WsnaQomAsnDto {
         String ostrWare,
         String strWare,
         String itmKndCd,
-        String wareDtlDvCd,
+        String wareDvCd,
         String itmCdSt, //sapMatCdFrom,
         String itmCdEd //sapMatCdTo
     ){}
@@ -59,5 +59,11 @@ public class WsnaQomAsnDto {
     @ApiModel(value = "WsnaQomAsnDto-CreateIndividualWareReq")
     public record CreateIndividualWareReq(
 
+    ){}
+
+    @ApiModel(value = "WsnaQomAsnDto-WareRes")
+    public record WareRes(
+        String codeId,
+        String codeName
     ){}
 }

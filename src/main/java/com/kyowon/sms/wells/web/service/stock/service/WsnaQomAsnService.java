@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaQomAsnConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.CreateIndependenceWareReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.CreateIndividualWareReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchReq;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,14 @@ public class WsnaQomAsnService {
     public int getCountQomAsn(SearchReq dto){
         return mapper.selectCountQomAsn(dto);
     }
+
+    public List<WsnaQomAsnDto.WareRes> getOstrWarehouse(SearchReq dto){
+        return mapper.selectOstrWarehouse(dto);
+    }
+    public List<WsnaQomAsnDto.WareRes> getStrWarehouse(SearchReq dto){
+        return mapper.selectStrWarehouse(dto);
+    }
+
     @Transactional
     public int editWarehouseRenewals(SearchReq dto){
         WsnaRenewalWareHouseDvo vo = converter.searchReqToWsnaRenewalWareHouseDvo(dto);
