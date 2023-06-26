@@ -98,6 +98,7 @@ public class WsncBsPeriodChartService {
             //SELL_TP_CD = 1 ::: 일시불, 2 렌탈
             if(("1".equals(baseInfoRes.getSellTpCd())) || ("2".equals(baseInfoRes.getSellTpCd()))){
                 chekInstMths = chart06Res.getVstNmnN();
+                chekInstMths = chekInstMths + chart06Res.getVstNmnN();
             }
             //SELL_TP_CD = 3 ::: 멤버십 (AS-IS는 2)
             else if ("3".equals(baseInfoRes.getSellTpCd())) {
