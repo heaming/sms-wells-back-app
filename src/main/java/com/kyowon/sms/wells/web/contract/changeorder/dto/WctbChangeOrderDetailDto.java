@@ -332,7 +332,6 @@ public class WctbChangeOrderDetailDto {
         String rveCrpCd,
         String fntEvidDrmVal,
         String reuseOjYn,
-        String bfCntrStlmId,
         String mvsDstcRcvryBaseDtm,
         String mvsDstcRcvryDvCd,
         String mvsDstcRcvryDtm,
