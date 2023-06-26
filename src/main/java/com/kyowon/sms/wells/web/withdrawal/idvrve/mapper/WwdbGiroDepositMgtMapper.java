@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.mapper;
 import java.util.List;
 import java.util.Map;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchContractDetailRes;
@@ -65,7 +66,7 @@ public interface WwdbGiroDepositMgtMapper {
     int deleteGiroDeposit();
 
     /* 지로 지로입금내역 조회*/
-    List<SearchDepositRes> selectGiroDepositList(SearchReq dto);
+    List<SearchDepositRes> selectGiroDepositList(WwdbBillDepositMgtDto.SaveIntegrationReq dto);
 
     /* 지로 묶음기본 조회*/
     int selectGiroDepositCount(Map<String, Object> dto);
