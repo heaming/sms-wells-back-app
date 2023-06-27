@@ -539,20 +539,64 @@
           FROM TB_SSCT_CNTR_BAS T1
          INNER JOIN TB_CUBS_CST_BAS T2
             ON T2.CST_NO = T1.CNTR_CST_NO
-         WHERE 1=1
+         WHERE T1.DTA_DL_YN = 'N'
            AND T1.CNTR_NO = #{cntrNo}
-           AND T1.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectFnitCdInfo" resultType="String">
         SELECT FNIT_CD
         FROM TB_RVDW_CRDCD_BIN_NO_BAS
-        WHERE 1=1
+        WHERE DTA_DL_YN = 'N'
           AND KW_GRP_CO_CD = '2000'
-          AND DTA_DL_YN = 'N'
           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
           AND USE_YN = 'Y'
           AND CRDCD_BIN_NO = SUBSTR(#{crdcdBinNo},0,6)
         FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <select id="selectBasTaxInvoiceInquiry"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaTaxInvoiceInquiryDvo">
+        SELECT T_CNTR_BAS.CNTR_NO
+             , #{session.employeeIDNumber}  AS APLC_PSIC_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS RCPDT
+             , T_CNTR_CST_BAS.BZRNO
+             , T_CNTR_CST_BAS.CST_NO        AS CNTR_CST_NO
+             , 'Y'                          AS TXINV_PBL_YN
+             , NVL((SELECT MAX(TXINV_PBL_D) FROM TB_SSCT_TXINV_RCP_BASE_IZ WHERE BZRNO = T_CNTR_CST_BAS.BZRNO),
+                   '99')                    AS TXINV_PBL_D
+             , T_CNTR_CST_BAS.CST_KNM
+             , T_CNTR_CST_BAS.EMADR
+             , T_CST_CTPLC_BAS.LOCARA_TNO
+             , T_CST_CTPLC_BAS.EXNO_ENCR
+             , T_CST_CTPLC_BAS.IDV_TNO
+             , T_CNTR_CST_BAS.CRAL_LOCARA_TNO
+             , T_CNTR_CST_BAS.MEXNO_ENCR
+             , T_CNTR_CST_BAS.CRAL_IDV_TNO
+             , 'N'                          AS DTA_DL_YN
+          FROM TB_SSCT_CNTR_BAS           T_CNTR_BAS
+               INNER JOIN TB_CUBS_CST_BAS T_CNTR_CST_BAS
+               ON T_CNTR_CST_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+               LEFT OUTER JOIN
+               LATERAL (
+                   SELECT LOCARA_TNO
+                        , EXNO_ENCR
+                        , IDV_TNO
+                        , CST_CTPLC_OJ_REFK_VAL
+                     FROM TB_CUBS_CST_CTPLC_BAS /* 계약기본 연락처,주소 정보 */
+                    WHERE DTA_DL_YN = 'N'
+                      AND CST_CTPLC_OJ_REFK_VAL = T_CNTR_CST_BAS.CST_NO
+                      AND CTPLC_TP_CD = DECODE(T_CNTR_CST_BAS.COPN_DV_CD, '1', '04', '2', '05')
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                      AND FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM)
+                                            FROM TB_CUBS_CST_CTPLC_BAS
+                                           WHERE CST_CTPLC_OJ_REFK_VAL = T_CNTR_CST_BAS.CST_NO
+                                             AND CTPLC_TP_CD = DECODE(T_CNTR_CST_BAS.COPN_DV_CD, '1', '04', '2', '05')
+                                             AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                                             AND DTA_DL_YN = 'N')
+                   )                      T_CST_CTPLC_BAS
+               ON T_CST_CTPLC_BAS.CST_CTPLC_OJ_REFK_VAL = T_CNTR_CST_BAS.CST_NO
+         WHERE T_CNTR_BAS.DTA_DL_YN = 'N'
+           AND T_CNTR_BAS.CNTR_NO = #{cntrNo}
     </select>
 </mapper>
