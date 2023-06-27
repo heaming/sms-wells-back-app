@@ -118,12 +118,21 @@ public class WctaContractSettelmentDto {
     @Builder
     @ApiModel(value = "WctaContractSettelmentDto-CreditReq", description = "신용카드 승인 요청")
     public record CreditReq(
+        @NotBlank
+        String cntrStlmId,
         String owrKnm,
-        Integer stlmAmt,
         String istmMcn,
         String crcdnoEncr,
-        String cardExpdtYm,
-        String cntrNo,
-        List<WctaContractStlmRelDvo> stlmRels
+        String cardExpdtYm
+    ) {}
+
+
+    @Builder
+    @ApiModel(value = "WctaContractSettelmentDto-CreditReq", description = "신용카드 승인 요청 결과")
+    public record CreditRes(
+        String aprNo,
+        String cdcoCd,
+        String fnitAprRsCd,
+        String fnitAprFshDtm
     ) {}
 }

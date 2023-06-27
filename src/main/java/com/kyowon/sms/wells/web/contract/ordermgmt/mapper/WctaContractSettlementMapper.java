@@ -42,4 +42,6 @@ public interface WctaContractSettlementMapper {
     WctaSettlementCntrBasDvo selectContractBasic(String cntrNo);
 
     WctaTaxInvoiceInquiryDvo selectBasTaxInvoiceInquiry(String cntrNo);
+
+    List<WctaContractStlmRelDvo> selectContractStlmRels(String cntrStlmId);
 }
