@@ -72,7 +72,7 @@ public class WsnaNormalOutOfStorageDto {
     public record CenterRes(
         String wareNo, /*창고번호*/
         String qty, /*현재재고수량*/
-        String ogNm /*조직명*/
+        String wareNm
     ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailReq")

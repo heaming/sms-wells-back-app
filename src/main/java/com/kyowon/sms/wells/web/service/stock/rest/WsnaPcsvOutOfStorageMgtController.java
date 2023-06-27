@@ -84,21 +84,27 @@ public class WsnaPcsvOutOfStorageMgtController {
             .build();
     }
 
-    @ApiOperation(value = "택배 물류센터 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
+    @ApiOperation(value = "택배 물류센터 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/logistics-centers")
     public List<FindLogisticsCentersRes> getPcsvLogisticsCenters() {
         return service.getPcsvLogisticsCenters();
     }
 
-    @ApiOperation(value = "택배 상품 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
+    @ApiOperation(value = "택배 상품 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/products")
     public List<FindProductsRes> getPcsvProducts(FindProductsReq dto) {
         return service.getPcsvProducts(dto);
     }
 
-    @ApiOperation(value = "택배 출고확정순번 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
+    @ApiOperation(value = "택배 출고확정 순번 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/ivc-prntsns")
     public List<FindIvcPrntSnRes> getPcsvIvcPrntSns(SearchReq dto) {
         return service.getPcsvIvcPrntSns(dto);
+    }
+
+    @ApiOperation(value = "택배 출고확정 순번 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
+    @GetMapping("/ivc-prntsn")
+    public String getPcsvIvcPrntSn(SearchReq dto) {
+        return service.getPcsvIvcPrntSn(dto);
     }
 }
