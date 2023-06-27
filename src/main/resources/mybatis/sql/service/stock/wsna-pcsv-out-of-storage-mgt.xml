@@ -31,12 +31,6 @@
              , T1.PD_USWY_CD
              , T4.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
              , NVL(T5.USE_QTY, 1) AS USE_QTY /*사용수량*/
-             , NVL((SELECT MAX(TT1.IVC_PRNT_SN) + 1
-                      FROM TB_SVPD_CST_SV_WK_RS_IZ TT1  /*고객서비스작업결과내역, KWAS.LC_VISIT_VS106TB 작업완료결과테이블*/
-                     WHERE 1=1
-                       AND TT1.VST_FSH_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
-                       AND TT1.PDCT_PD_CD = T1.PD_CD
-                       AND TT1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}), 1) AS IVC_PRNT_SN
              , T9.WARE_NO    /*창고번호 - 일단 파주물류로 고정*/
              , T9.WARE_NM    /*창고명*/
                /*작업결과용*/
@@ -224,7 +218,6 @@
           , NVL(T1.OG_TP_CD, T1.ICHR_OG_TP_CD) AS OG_TP_CD
           , NVL(T1.PRTNR_NO, T1.ICHR_PRTNR_NO) AS PRTNR_NO
           , T6.PRTNR_KNM
-          , T1.IVC_PRNT_SN          /*송장출력번호*/
           , TO_CHAR(TO_DATE(T1.VST_FSH_DT ),'YYYY-MM') AS VST_FSH_DT  /*방문완료일자(출고확정일)*/
           , T1.USE_QTY               /*사용수량*/
           , T1.WARE_NO  AS WK_WARE_NO /*일단 파주물류로 고정*/
@@ -322,5 +315,17 @@
          )
       GROUP BY CODE_ID, CODE_NAME
       ORDER BY CODE_ID DESC
+     </select>
+     <select id="selectPcsvIvcPrntSn" resultType="String">
+         SELECT NVL((SELECT MAX(T1.IVC_PRNT_SN) + 1
+         FROM TB_SVPD_CST_SV_WK_RS_IZ T1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2
+          ON  T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+          AND T2.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+          AND T1.VST_FSH_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+          AND T1.PDCT_PD_CD = #{pdCd}
+          AND T2.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}), 1) AS IVC_PRNT_SN
+        FROM DUAL
      </select>
 </mapper>
