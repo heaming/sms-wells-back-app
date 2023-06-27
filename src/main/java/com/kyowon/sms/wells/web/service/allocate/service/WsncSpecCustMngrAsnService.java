@@ -66,6 +66,8 @@ public class WsncSpecCustMngrAsnService {
             mngrAsnDvo_05 = mapper.selectSpecCustMngrAsn_05(mngrAsnDvo).orElseGet(WsncSpecCustMngrAsnDvo::new);
             mngrAsnDvo.setPsicAsnDt(mngrAsnDvo_05.getPsicAsnDt());
             mngrAsnDvo.setPsicAsnHh(mngrAsnDvo_05.getPsicAsnHh());
+            mngrAsnDvo.setCnfmPsicAsnDt(mngrAsnDvo_05.getPsicAsnDt());      // 확정담당배정일자 js
+            mngrAsnDvo.setCnfmPsicAsnHh(mngrAsnDvo_05.getPsicAsnHh());      // 확정담당배정시간 js
 
             //insert
             mapper.insertSpecCustMngrAsn(mngrAsnDvo);
