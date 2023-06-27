@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalPerformanceCprAsDto;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbRentalPerformanceCprAsService;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalAsPerformanceDto;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbRentalAsPerformanceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
 import io.swagger.annotations.Api;
@@ -22,9 +22,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/rental-performance-cpr")
 @Api(tags = "[WSNB] 렌탈 실적 대비 A/S율 집계 현황")
 @RequiredArgsConstructor
-public class WsnbRentalPerformanceCprAsController {
+public class WsnbRentalAsPerformanceController {
 
-    private final WsnbRentalPerformanceCprAsService service;
+    private final WsnbRentalAsPerformanceService service;
 
     @ApiOperation(value = "렌탈 실적 대비 A/S율 집계 현황", notes = "조회조건에 일치하는 렌탈 실적 대비 A/S율 집계 현황을 조회한다.")
     @ApiImplicitParams(value = {
@@ -35,9 +35,9 @@ public class WsnbRentalPerformanceCprAsController {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "WM04100162")
     })
     @GetMapping("/aggregate")
-    public List<WsnbRentalPerformanceCprAsDto.SearchRes> getRentalPerformanceCprAsPercent(
+    public List<WsnbRentalAsPerformanceDto.SearchRes> getRentalPerformanceCprAsPercent(
         @Valid
-        WsnbRentalPerformanceCprAsDto.SearchReq dto
+        WsnbRentalAsPerformanceDto.SearchReq dto
     ) {
         return this.service.getRentalPerformanceCprAs(dto);
     }

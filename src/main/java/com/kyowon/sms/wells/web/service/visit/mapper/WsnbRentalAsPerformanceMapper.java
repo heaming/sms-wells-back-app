@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalPerformanceCprAsDto;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalAsPerformanceDto;
 
 /**
  * <pre>
@@ -15,9 +15,9 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalPerformanceCprAsDto;
  * @since 2023.06.26
  */
 @Mapper
-public interface WsnbRentalPerformanceCprAsMapper {
+public interface WsnbRentalAsPerformanceMapper {
 
-    List<WsnbRentalPerformanceCprAsDto.SearchRes> selectRentalPerformanceCprAsPer(
-        WsnbRentalPerformanceCprAsDto.SearchReq dto
+    List<WsnbRentalAsPerformanceDto.SearchRes> selectRentalPerformanceCprAsPer(
+        WsnbRentalAsPerformanceDto.SearchReq dto
     );
 }

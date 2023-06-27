@@ -4,7 +4,7 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsnbRentalPerformanceCprAsDto {
+public class WsnbRentalAsPerformanceDto {
 
     @ApiModel(value = "WsnbRentalPerformanceCprAsDto-SearchReq")
     public record SearchReq(

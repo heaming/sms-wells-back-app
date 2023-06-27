@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalPerformanceCprAsDto;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbRentalPerformanceCprAsMapper;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalAsPerformanceDto;
+import com.kyowon.sms.wells.web.service.visit.mapper.WsnbRentalAsPerformanceMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbRentalPerformanceCprAsService {
+public class WsnbRentalAsPerformanceService {
 
-    private final WsnbRentalPerformanceCprAsMapper mapper;
+    private final WsnbRentalAsPerformanceMapper mapper;
 
-    public List<WsnbRentalPerformanceCprAsDto.SearchRes> getRentalPerformanceCprAs(
-        WsnbRentalPerformanceCprAsDto.SearchReq dto
+    public List<WsnbRentalAsPerformanceDto.SearchRes> getRentalPerformanceCprAs(
+        WsnbRentalAsPerformanceDto.SearchReq dto
     ) {
         return this.mapper.selectRentalPerformanceCprAsPer(dto);
     }
