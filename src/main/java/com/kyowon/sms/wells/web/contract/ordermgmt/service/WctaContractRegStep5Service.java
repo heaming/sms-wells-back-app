@@ -1,5 +1,21 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditCardApprovalDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbCreditCardApprovalService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
@@ -7,23 +23,42 @@ import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalServic
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractDtlStatCdChService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractSettlementConverter;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.AuthenticationReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.Authorization;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.CreditReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.FindBasicInfoRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.FindContractForStlmRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.SaveReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.SaveRes;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.SearchBasicInfoReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaAgreeItemDtlDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaAgreeItemDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrpcBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractCstRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractDtlDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractForAuthDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractPrtnrRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSettlementCntrBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaTaxInvoiceInquiryDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractSettlementMapper;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaTaxInvoiceInquiryMapper;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtAgAtcDvCd;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtAgStatCd;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractProgressStatus;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtCopnDvCd;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtDpTpCd;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtSellTpCd;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtTxinvPblDvCd;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtTxinvPdDvCd;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.response.SaveResponse;
 import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 import static com.sds.sflex.system.config.validation.BizAssert.isTrue;
 
@@ -220,7 +255,7 @@ public class WctaContractRegStep5Service {
     }
 
     @Transactional
-    public SaveRes saveContractSettlements(SaveReq req) {
+    public SaveRes saveContractSettlements(SaveReq req) throws Exception {
         /* FIXME: validate contract: 계약 기본 정보 조회 후, 상태 검사 후 튕겨 내기 */
         String cntrNo = req.cntrNo();
         getContractForAuth(cntrNo);
