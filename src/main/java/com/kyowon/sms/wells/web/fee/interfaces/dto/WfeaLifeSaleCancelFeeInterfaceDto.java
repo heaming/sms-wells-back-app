@@ -9,7 +9,7 @@ import java.util.List;
 
 public class WfeaLifeSaleCancelFeeInterfaceDto {
 
-    public  record IfRequest(
+    public record IfRequest(
         @NotBlank
         @JsonProperty("AKSDTE")
         String aksdte, /* 발생월 */
@@ -21,7 +21,7 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         String itm02, /* 상조고객코드 */
         @NotBlank
         @JsonProperty("AKDSEQ")
-        String akdseq, /* 회차 */
+        int akdseq, /* 회차 */
         @JsonProperty("AKSGUB")
         String aksgub, /* 구분 */
         @JsonProperty("AKSALE")
@@ -43,11 +43,11 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         @JsonProperty("AKTCNT")
         String aktcnt, /* 총지급대상 */
         @JsonProperty("AKMAMT")
-        String akmamt, /* 누적발생매출 */
+        int akmamt, /* 누적발생매출 */
         @JsonProperty("AKIAMT")
-        String akiamt, /* 누적입금 */
+        int akiamt, /* 누적입금 */
         @JsonProperty("AKISEQ")
-        String akiseq, /* 완납회차 */
+        int akiseq, /* 완납회차 */
         @JsonProperty("ITM04")
         String itm04, /* WELLS 고객코드 */
         @JsonProperty("ITM05")
