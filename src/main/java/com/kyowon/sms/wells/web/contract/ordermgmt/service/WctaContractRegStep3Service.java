@@ -248,7 +248,7 @@ public class WctaContractRegStep3Service {
         Map<String, String> stlmBasMap = Maps.newHashMap();
         for (WctaContractDtlDvo dtl : dtls) {
             int cntrSn = dtl.getCntrSn();
-
+            System.out.println("세금계산서 발행여부: "+dtl.getTxinvPblOjYn());
             WctaContractDtlDvo bDtl = null;
             if (isBlkApy(blkApyDtl)) {
                 bDtl = blkApyDtl;
