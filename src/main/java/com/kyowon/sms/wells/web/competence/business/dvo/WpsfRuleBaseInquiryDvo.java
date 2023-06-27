@@ -11,7 +11,7 @@ public class WpsfRuleBaseInquiryDvo {
     private String vlStrtDtm; /* 유효시작일시 */
     private String vlEndDtm; /* 유효종료일시 */
     private String ogTpCd; /* 조직유형코드 */
-    private String rsbTpCd; /* 직책유형코드 */
+    private String rsbDvCd; /* 직책유형코드 */
     private String bznsSpptMnalRghCd; /* 영업지원매뉴얼권한코드 */
     private String mnalRghRelId; /* 매뉴얼권한관계ID */
     private String dtaDlYn; /* 데이터삭제여부 */

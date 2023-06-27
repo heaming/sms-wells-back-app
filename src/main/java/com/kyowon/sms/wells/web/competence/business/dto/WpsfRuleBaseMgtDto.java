@@ -20,7 +20,9 @@ public class WpsfRuleBaseMgtDto {
         String urgnYN,
         String oneDepth,
         String twoDepth,
-        String threeDepth
+        String threeDepth,
+        String ogTpCd,
+        String rsbDvCd
 
     ) {}
 

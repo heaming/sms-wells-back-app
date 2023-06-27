@@ -24,6 +24,10 @@ public interface WpsfRuleBaseMgtMapper {
         SearchReq dto
     );
 
+    List<SearchRes> selectRuleBase(
+        SearchReq dto
+    );
+
     int insertRuleBase(WpsfRuleBaseDvo dvo);
 
     int updateRuleBase(WpsfRuleBaseDvo dvo);

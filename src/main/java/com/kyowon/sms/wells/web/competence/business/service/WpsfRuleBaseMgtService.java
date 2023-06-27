@@ -41,6 +41,10 @@ public class WpsfRuleBaseMgtService {
         return mapper.selectRuleBaseMgtPages(dto);
     }
 
+    public List<SearchRes> getRuleBase(SearchReq dto) {
+        return mapper.selectRuleBase(dto);
+    }
+
     /**
      * 규정 및 기준관리 등록,수정
      *
@@ -52,11 +56,7 @@ public class WpsfRuleBaseMgtService {
         int processCount = 0;
         WpsfRuleBaseDvo dvo = converter.mapSaveReq(dto);
         dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
-        if (dvo.getBznsSpptMnalId() == null) {
 
-        } else {
-
-        }
         if (dvo.getInqrLvTcnt() == 3 && dvo.getBznsSpptMnalRgstCd().equals("02")) {
 
             Date date = new Date();
@@ -81,13 +81,14 @@ public class WpsfRuleBaseMgtService {
         if (CollectionUtils.isNotEmpty(dto.rsbDvCds())) {
             WpsfRuleBaseInquiryDvo wDvo = new WpsfRuleBaseInquiryDvo();
             wDvo.setDtaDlYn(DeDeductionConst.DELETE_N);
+
             for (String rsbDvCd : dto.rsbDvCds()) {
                 String mnalRghId = mapper.selectMnalRghId();
-                wDvo.setMnalRghRelId(dvo.getMnalRghRelId());
+                wDvo.setMnalRghRelId(mnalRghId);
                 wDvo.setBznsSpptMnalId(dvo.getBznsSpptMnalId());
                 wDvo.setMnalRghId(mnalRghId);
                 wDvo.setOgTpCd(dto.ogTpCd());
-                wDvo.setRsbTpCd(rsbDvCd);
+                wDvo.setRsbDvCd(rsbDvCd);
                 processCount = mapper.insertRuleBaseRel(wDvo);
             }
         }
@@ -115,4 +116,5 @@ public class WpsfRuleBaseMgtService {
         }
         return processCount;
     }
+
 }

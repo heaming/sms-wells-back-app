@@ -89,6 +89,122 @@
         )T1 WHERE 1=1
     </select>
 
+    <select id="selectRuleBase" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto$SearchRes">
+        SELECT
+            T1.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
+            , T1.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
+            , T1.VL_STRT_DTM            /* 유효시작일시 */
+            , T1.VL_END_DTM             /* 유효종료일시 */
+            , T1.BZNS_SPPT_MNAL_NM      /* 영업지원매뉴얼명 */
+            , T1.BZNS_SPPT_MNAL_RGST_CD /* 영업지원매뉴얼등록코드 */
+            , T1.BZNS_SPPT_MNAL_CH_CN   /* 영업지원매뉴얼변경내용 */
+            , T1.BZNS_SPPT_MNAL_MPBL_DV_CD
+            , T1.MNAL_RGH_REL_ID        /* 매뉴얼권한관계ID */
+            , T1.INQR_LV_TCNT           /* 조회단계차수 */
+            , T1.EXPSR_ODR              /* 노출순서 */
+            , T1.APN_FILE_DOC_ID        /* 첨부파일문서ID */
+            , T1.ORG_PATH
+            , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM
+            , TO_CHAR(TO_DATE(T1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS FNL_MDFC_DT /* 최종수정일자 [수정일] */
+            , T1.DTA_DL_YN
+        FROM (
+            SELECT
+                BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
+                , HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
+                , VL_STRT_DTM            /* 유효시작일시 */
+                , VL_END_DTM             /* 유효종료일시 */
+                , BZNS_SPPT_MNAL_NM      /* 영업지원매뉴얼명 */
+                , BZNS_SPPT_MNAL_RGST_CD /* 영업지원매뉴얼등록코드 */
+                , BZNS_SPPT_MNAL_CH_CN   /* 영업지원매뉴얼변경내용 */
+                , BZNS_SPPT_MNAL_MPBL_DV_CD
+                , MNAL_RGH_REL_ID        /* 매뉴얼권한관계ID */
+                , INQR_LV_TCNT           /* 조회단계차수 */
+                , EXPSR_ODR              /* 노출순서 */
+                , APN_FILE_DOC_ID        /* 첨부파일문서ID */
+                , SUBSTR(SYS_CONNECT_BY_PATH(HGR_BZNS_SPPT_MNAL_ID||INQR_LV_TCNT||EXPSR_ODR, '.'),2)||'.'||BZNS_SPPT_MNAL_ID AS ORG_PATH
+                , FNL_MDFC_DTM
+                , FNL_MDFC_USR_ID
+                , DTA_DL_YN
+            FROM
+            (
+                SELECT
+                    (B.FILE_UID) BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
+                    , (A.BZNS_SPPT_MNAL_ID) HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
+                    , A.VL_STRT_DTM            /* 유효시작일시 */
+                    , A.VL_END_DTM             /* 유효종료일시 */
+                    , (B.FILE_NM) BZNS_SPPT_MNAL_NM      /* 영업지원매뉴얼명 */
+                    , A.BZNS_SPPT_MNAL_RGST_CD /* 영업지원매뉴얼등록코드 */
+                    , A.BZNS_SPPT_MNAL_CH_CN   /* 영업지원매뉴얼변경내용 */
+                    , A.BZNS_SPPT_MNAL_MPBL_DV_CD
+                    , A.MNAL_RGH_REL_ID        /* 매뉴얼권한관계ID */
+                    , TO_NUMBER('4') INQR_LV_TCNT           /* 조회단계차수 */
+                    , ROW_NUMBER() OVER(ORDER BY B.FST_RGST_DTM DESC) AS EXPSR_ODR              /* 노출순서 */
+                    , A.APN_FILE_DOC_ID        /* 첨부파일문서ID */
+                    , A.FNL_MDFC_DTM
+                    , A.FNL_MDFC_USR_ID
+                    , B.FILE_NM
+                    , (B.DEL_YN) DTA_DL_YN
+                FROM TB_PSCA_BZNS_SPPT_MNAL_BAS A INNER JOIN T_CMD_ATTH_FILE_D B
+                ON B.ATTH_DOC_ID =A.APN_FILE_DOC_ID
+                INNER JOIN TB_PSCA_BZNS_SPPT_MNAL_RGH_REL C
+                ON A.BZNS_SPPT_MNAL_ID = C.BZNS_SPPT_MNAL_ID
+                WHERE
+                A.DTA_DL_YN = 'N'
+                AND A.BZNS_SPPT_MNAL_MPBL_DV_CD = 2
+                AND C.OG_TP_CD  = #{ogTpCd}
+                AND C.RSB_DV_CD = #{rsbDvCd}
+                UNION ALL
+                SELECT
+                    (B.FILE_UID) BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
+                    , (A.BZNS_SPPT_MNAL_ID) HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
+                    , A.VL_STRT_DTM            /* 유효시작일시 */
+                    , A.VL_END_DTM             /* 유효종료일시 */
+                    , (B.FILE_NM) BZNS_SPPT_MNAL_NM      /* 영업지원매뉴얼명 */
+                    , A.BZNS_SPPT_MNAL_RGST_CD /* 영업지원매뉴얼등록코드 */
+                    , A.BZNS_SPPT_MNAL_CH_CN   /* 영업지원매뉴얼변경내용 */
+                    , A.BZNS_SPPT_MNAL_MPBL_DV_CD
+                    , A.MNAL_RGH_REL_ID        /* 매뉴얼권한관계ID */
+                    , TO_NUMBER('4') INQR_LV_TCNT           /* 조회단계차수 */
+                    , ROW_NUMBER() OVER(ORDER BY B.FST_RGST_DTM DESC) AS EXPSR_ODR              /* 노출순서 */
+                    , A.APN_FILE_DOC_ID        /* 첨부파일문서ID */
+                    , A.FNL_MDFC_DTM
+                    , A.FNL_MDFC_USR_ID
+                    , B.FILE_NM
+                    , (B.DEL_YN) DTA_DL_YN
+                FROM TB_PSCA_BZNS_SPPT_MNAL_BAS A,T_CMD_ATTH_FILE_D B
+                WHERE B.ATTH_DOC_ID =A.APN_FILE_DOC_ID
+                AND A.DTA_DL_YN = 'N'
+                AND A.BZNS_SPPT_MNAL_MPBL_DV_CD = 1
+                UNION ALL
+                SELECT
+                    T0.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
+                    , T0.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
+                    , T0.VL_STRT_DTM            /* 유효시작일시 */
+                    , T0.VL_END_DTM             /* 유효종료일시 */
+                    , T0.BZNS_SPPT_MNAL_NM      /* 영업지원매뉴얼명 */
+                    , T0.BZNS_SPPT_MNAL_RGST_CD /* 영업지원매뉴얼등록코드 */
+                    , T0.BZNS_SPPT_MNAL_CH_CN   /* 영업지원매뉴얼변경내용 */
+                    , T0.BZNS_SPPT_MNAL_MPBL_DV_CD
+                    , T0.MNAL_RGH_REL_ID        /* 매뉴얼권한관계ID */
+                    , T0.INQR_LV_TCNT           /* 조회단계차수 */
+                    , T0.EXPSR_ODR              /* 노출순서 */
+                    , T0.APN_FILE_DOC_ID        /* 첨부파일문서ID */
+                    , T0.FNL_MDFC_DTM
+                    , T0.FNL_MDFC_USR_ID
+                    ,('') FILE_NM
+                    , T0.DTA_DL_YN
+                FROM (SELECT A.* FROM TB_PSCA_BZNS_SPPT_MNAL_BAS A,(SELECT MAX(VL_END_DTM)VL_END_DTM,BZNS_SPPT_MNAL_ID FROM TB_PSCA_BZNS_SPPT_MNAL_BAS GROUP BY BZNS_SPPT_MNAL_ID) B
+                WHERE B.VL_END_DTM =  A.VL_END_DTM
+                AND A.DTA_DL_YN = 'N'
+                AND B.BZNS_SPPT_MNAL_ID = A.BZNS_SPPT_MNAL_ID) T0
+            )
+            WHERE 1=1
+            START WITH BZNS_SPPT_MNAL_ID = '000000000000001'
+        CONNECT BY PRIOR BZNS_SPPT_MNAL_ID = HGR_BZNS_SPPT_MNAL_ID
+        )T1 WHERE 1=1
+    </select>
+
+
 <!--    <select id="selectBnzsSpptMnalId" resultType="String">-->
 <!--        SELECT LPAD(SQ_PSCA_BZNS_SPPT_MNAL_BAS$BZNS_SPPT_MNAL_ID.NEXTVAL,15,0) FROM DUAL-->
 <!--    </select>-->
@@ -187,7 +303,7 @@
             , VL_STRT_DTM           /* 유효시작일시 */
             , VL_END_DTM            /* 유효종료일시 */
             , OG_TP_CD              /* 조직유형코드 */
-            , RSB_TP_CD             /* 직책유형코드 */
+            , RSB_DV_CD             /* 직책유형코드 */
             , BZNS_SPPT_MNAL_RGH_CD /* 영업지원매뉴얼권한코드 */
             , MNAL_RGH_REL_ID       /* 매뉴얼권한관계ID */
             , DTA_DL_YN             /* 데이터삭제여부 */
@@ -198,7 +314,7 @@
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , '99991231235959'
             , #{ogTpCd}
-            , #{rsbTpCd}
+            , #{rsbDvCd}
             , #{bznsSpptMnalRghCd}
             , #{mnalRghRelId}
             , #{dtaDlYn}
@@ -211,7 +327,7 @@
             , VL_STRT_DTM           = #{vlStrtDtm}            /* 유효시작일시 */
             , VL_END_DTM            = #{vlEndDtm}             /* 유효종료일시 */
             , OG_TP_CD              = #{ogTpCd}               /* 조직유형코드 */
-            , RSB_TP_CD             = #{rsbTpCd}              /* 직책유형코드 */
+            , RSB_DV_CD             = #{rsbDvCd}              /* 직책유형코드 */
             , BZNS_SPPT_MNAL_RGH_CD = #{bznsSpptMnalRghCd}    /* 영업지원매뉴얼권한코드 */
             , MNAL_RGH_REL_ID       = #{mnalRghRelId}         /* 매뉴얼권한관계ID */
             , DTA_DL_YN             = #{dtaDlYn}              /* 데이터삭제여부 */

@@ -35,11 +35,24 @@ public class WpsfRuleBaseMgtController {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
     @GetMapping
-    public List<SearchRes> getruleBaseMgtPages(
+    public List<SearchRes> getRuleBaseMgtPages(
         @Valid
         SearchReq dto
     ) {
         return service.getRuleBaseMgtsForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "규정 및 기준관리 조회", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = true),
+    })
+    @GetMapping("/user")
+    public List<SearchRes> getRuleBase(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getRuleBase(dto);
     }
 
     @ApiOperation(value = "규정 및 기준관리 저장", notes = "규정 및 기준관리를 저장한다.")
