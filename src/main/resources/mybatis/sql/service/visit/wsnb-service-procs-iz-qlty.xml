@@ -1,0 +1,263 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbServiceProcsIzQltyMapper">
+
+    <select id="selectServiceProcsIzQltys" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcsIzQltyDvo">
+        SELECT S1.CNTR_NO /* 계약번호 */
+             , S1.CNTR_SN /* 계약일련번호 */
+             , S1.CNTR_NO || '-' || S1.CNTR_SN AS CNTR_NO_SN /* 계약상세번호 */
+             , (SELECT X1.CST_KNM FROM TB_CUBS_CST_BAS X1 WHERE X1.CST_NO = S1.CNTR_CST_NO) AS CST_KNM /* 고객명 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', C1.COPN_DV_CD) AS COPN_DV_NM /* 개인법인구분 */
+             , S3.ALNC_BZS_CD AS CTT_ICHR /* 컨택담당(확인필요) */
+             , NULL AS HSP /* 홈쇼핑(제휴회사코드에 포함되는데 별도 필드가 필요한지 체크 필요) */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'ALNC_STAT_ACD', S3.ALNC_BZS_CD) AS ALNC_BZS_NM /* 제휴회사명 */
+             , C2.FRISU_YN /* 무료체험(무상여부) */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', C2.SELL_TP_CD) AS SELL_TP_NM /* 고객유형(판매유형명) */
+             , C4.CRAL_LOCARA_TNO /* 계약자-휴대지역전화번호 */
+             , C4.MEXNO_ENCR /* 계약자-휴대전화국번호암호화 */
+             , C4.CRAL_IDV_TNO /* 계약자-휴대개별전화번호 */
+             , A1.NEW_ADR_ZIP /* 계약자-우편번호 */
+             , A1.RNADR || ' ' || A1.RDADR AS RADR /* 계약자-주소 */
+             , C1.CNTR_CNFM_DTM /* 계약일자 */
+             , P1.PD_NM /* 상품명 */
+             , P1.PD_ABBR_NM AS MODEL_NM /* 모델명 */
+             , S5.SCN_YN /* 스캔구분 */
+             , S5.BF_MNFT_CO_ID /* 이전제조번호 */
+             , S4.BC_NO /* 제조번호 */
+             , S5.PRDT_YM /* 제조년월 */
+             , O1.OG_NM /* 접수자소속 */
+             , O1.PRTNR_KNM /* 접수자표시 */
+             , S2.CNSL_MO_CN /* 접수내역 */
+             , S3.IST_DT /* 설치일자 */
+             , CASE WHEN S3.IST_DT IS NOT NULL THEN CEIL(MONTHS_BETWEEN(S1.WK_EXCN_DT, S3.IST_DT)) ELSE 0 END USE_MCN /* 사용개월 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_HCLSF_CD', S1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM /* 서비스유형명 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM /* 서비스유형상세명 */
+             , S1.CNTR_CST_NO /* 상대고객번호 */
+             , S5.AS_REFRI_DV_NM /* A/S고객구분 */
+             , S5.BFSVC_REFRI_DV_NM /* B/S고객구분 */
+             , S5.REFRI_DV_NM /* 유/무상구분 */
+             , S5.EGER_CNR_NM /* 담당센터 */
+             , O2.PRTNR_KNM || '(' || O2.PRTNR_NO || ')' AS PRTNR /* 담당엔지니어 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', O2.PRTNR_GD_CD) AS PRTNR_PSTN_DV /* 직급구분 */
+             , S5.SITE_AW_DV_NM /* 현장수당(항목명) */
+             , S5.SITE_AW_AMT /* 현장수당(금액) */
+             , NVL(B1.AW_AMT, 0) AS AW_AMT /* 현장수당(금액) */
+             , S4.CRAL_LOCARA_TNO AS CONTACT_CRAL_LOCARA_TNO /* 연락처(핸드폰) 1 */
+             , C4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
+             , C4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
+             , S2.FNL_RCPDT /* 접수일자 */
+             , S1.VST_DUEDT /* 예정일자 */
+             , CASE WHEN S1.VST_DUEDT || S1.VST_EXP_HH != S1.VST_CNFMDT || S1.VST_CNFM_HH THEN 'Y' ELSE '' END AS VST_CH_YN /* 변경 */
+             , S1.VST_CNFMDT /* 확정일자 */
+             , S1.VST_CNFM_HH /* 확정일시 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_CD', S1.DTM_CH_CAUS_CD) AS DTM_CH_CAUS_NM /* 변경원인 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_DTL_CD', S1.DTM_CH_RSON_CD) AS DTM_CH_RSON_NM /* 변경사유 */
+             , S1.DTM_CH_RSON_DTL_CN /* 변경사유상세 */
+             , S2.SMS_FW_YN /* MMS */
+             , S1.VST_CNFM_HH AS PROM_HH /* 약속시간 */
+             , S5.ARV_DTM /* 작업시간(도착) */
+             , S5.VST_FSH_DTM /* 작업시간(완료) */
+             , S5.WK_LDTM /* 소요시간 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD) AS WK_PRGS_STAT_NM /* 작업상태 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_WK_CAN_RSON_CD', S1.WK_CAN_RSON_CD) AS WK_CAN_RSON_NM /* 취소사유 */
+             , S1.WK_CAN_MO_CN /* 취소상세내역 */
+             , S5.FGPT_DSB_YN /* 사은품지급여부 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'BAD_DV_CD', S4.BAD_DV_CD) AS BAD_DV_NM /* 불량구분 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AS_LCT_CD', S4.AS_LCT_CD) AS AS_LCT_NM /* 고장위치 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AS_PHN_CD', S4.AS_PHN_CD) AS AS_PHN_NM /* 고장현상 */
+             , S5.AS_LCT_CD_NM /* 고장위치상세 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PROCS_FOM_CD', S4.SV_PROCS_FOM_CD) AS SV_PROCS_FOM_NM /* 처리형태 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AS_IMPTA_RSON_CD', S4.IMPTA_RSON_CD) AS IMPTA_RSON_NM /* 귀책 */
+             , S4.AS_CD_EYN /* AS코드없음 */
+             , S4.SFT_ACDN_YN /* 안전사고 */
+             , S4.PLS_SV_YN /* 플러스서비스 */
+             , S4.PESL_ARTC_DFRN_YN /* 인적사항다름 */
+             , S4.CWTR_WPRS_VAL /* 수압(냉) */
+             , S4.WWT_WPRS_VAL /* 수압(온) */
+             , NULL AS SV_PROCS /* 상세(작업결과상세) */
+             , S4.SV_PROCS_CN /* 상세내역 */
+             , S7.PD_NM01 AS PU1_PART /* 투입부품1 */
+             , S7.PD_NM02 AS PU2_PART /* 투입부품2 */
+             , S7.PD_NM03 AS PU3_PART /* 투입부품3 */
+             , S7.PD_NM04 AS PU4_PART /* 투입부품4 */
+             , S7.PD_NM05 AS PU5_PART /* 투입부품5 */
+             , S7.PD_NM06 AS PU6_PART /* 투입부품6 */
+             , S7.PD_NM07 AS PU7_PART /* 투입부품7 */
+             , S7.PD_NM08 AS PU8_PART /* 투입부품8 */
+             , S7.PD_NM09 AS PU9_PART /* 투입부품9 */
+             , S7.PD_NM10 AS PU10_PART /* 투입부품10 */
+             , S7.PU1_UPRC /* 투입부품비용1 */
+             , S7.PU2_UPRC /* 투입부품비용2 */
+             , S7.PU3_UPRC /* 투입부품비용3 */
+             , S7.PU4_UPRC /* 투입부품비용4 */
+             , S7.PU5_UPRC /* 투입부품비용5 */
+             , S7.PU6_UPRC /* 투입부품비용6 */
+             , S7.PU7_UPRC /* 투입부품비용7 */
+             , S7.PU8_UPRC /* 투입부품비용8 */
+             , S7.PU9_UPRC /* 투입부품비용9 */
+             , S7.PU10_UPRC /* 투입부품비용10 */
+             , (NVL(S7.PU1_UPRC, 0) + NVL(S7.PU2_UPRC, 0) + NVL(S7.PU3_UPRC, 0) + NVL(S7.PU4_UPRC, 0) + NVL(S7.PU5_UPRC, 0)
+             + NVL(S7.PU6_UPRC, 0) + NVL(S7.PU7_UPRC, 0) + NVL(S7.PU8_UPRC, 0) + NVL(S7.PU9_UPRC, 0) + NVL(S7.PU10_UPRC, 0)) AS TOTAL_PU_UPRC
+             , NVL(S6.PART_CS, 0) PART_CS /* 수납(부품비) */
+             , NVL(S6.TCFEE, 0) TCFEE /* 수납(기술료) */
+             , NVL(S6.BSTR_CS, 0) BSTR_CS /* 수납(출장료) */
+             , NVL(S6.ETC_CS, 0) ETC_CS /* 수납(기타비용) */
+             , NVL(S6.RVE_CS_TOT, 0) RVE_CS_TOT /* 수납(전체) */
+             , S5.CSH_STLM_AMT AS CASH_STLM /* 현금 */
+             , S5.CARD_STLM_AMT AS CARD_STLM /* 카드 */
+             , S5.ELC_STLM_AMT AS ELC_STLM /* 전자결제 */
+             , S4.CST_SIGN_HS_YN /* 고객서명 */
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
+            ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S3
+            ON S3.CNTR_NO = S1.CNTR_NO
+           AND S3.CNTR_SN = S1.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S4
+            ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+           AND S4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_QLTY_MNGT_AS_DTL_IZ S5
+            ON S5.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+          LEFT OUTER JOIN (SELECT X1.CST_SV_ASN_NO
+                                , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '10' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) PART_CS
+                                , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '20' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) TCFEE
+                                , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '30' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) BSTR_CS
+                                , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '50' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) ETC_CS
+                                , SUM(X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT) RVE_CS_TOT
+                             FROM TB_SVPD_SV_CS_BIL_DTL X1
+                            WHERE 1 = 1
+                              AND X1.DTA_DL_YN = 'N'
+                              AND X1.CS_BIL_ATC_CD IN ('10', '20', '30', '50')
+                            GROUP BY X1.CST_SV_ASN_NO
+             ) S6
+            ON S1.CST_SV_ASN_NO = S6.CST_SV_ASN_NO
+          LEFT OUTER JOIN (SELECT Y1.CST_SV_ASN_NO
+                                , MAX(CASE WHEN Y1.SEQ = 1 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM01
+                                , MAX(CASE WHEN Y1.SEQ = 2 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM02
+                                , MAX(CASE WHEN Y1.SEQ = 3 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM03
+                                , MAX(CASE WHEN Y1.SEQ = 4 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM04
+                                , MAX(CASE WHEN Y1.SEQ = 5 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM05
+                                , MAX(CASE WHEN Y1.SEQ = 6 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM06
+                                , MAX(CASE WHEN Y1.SEQ = 7 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM07
+                                , MAX(CASE WHEN Y1.SEQ = 8 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM08
+                                , MAX(CASE WHEN Y1.SEQ = 9 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM09
+                                , MAX(CASE WHEN Y1.SEQ = 10 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM10
+                                , MAX(CASE WHEN Y1.SEQ = 1 THEN Y2.PDCT_UPRC END) PU1_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 2 THEN Y2.PDCT_UPRC END) PU2_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 3 THEN Y2.PDCT_UPRC END) PU3_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 4 THEN Y2.PDCT_UPRC END) PU4_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 5 THEN Y2.PDCT_UPRC END) PU5_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 6 THEN Y2.PDCT_UPRC END) PU6_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 7 THEN Y2.PDCT_UPRC END) PU7_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 8 THEN Y2.PDCT_UPRC END) PU8_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 9 THEN Y2.PDCT_UPRC END) PU9_UPRC
+                                , MAX(CASE WHEN Y1.SEQ = 10 THEN Y2.PDCT_UPRC END) PU10_UPRC
+                             FROM (SELECT X1.CST_SV_ASN_NO
+                                        , CASE WHEN X1.SV_BIZ_HCLSF_CD IN ('1', '2', '3') THEN '출고' ELSE '입고' END INOUT_GB
+                                        , X1.ITM_PD_CD
+                                        , RANK() OVER (PARTITION BY X1.CST_SV_ASN_NO ORDER BY X1.WK_OSTR_SN) SEQ
+                                     FROM TB_SVST_SV_WK_OSTR_IZ X1
+                                    WHERE 1 = 1
+                                      AND X1.DTA_DL_YN = 'N'
+                                ) Y1
+                            INNER JOIN TB_PDBS_PD_BAS Y2
+                               ON Y2.PD_CD = Y1.ITM_PD_CD
+                            WHERE Y1.SEQ <![CDATA[<=]]> 10
+                            GROUP BY Y1.CST_SV_ASN_NO
+             ) S7
+            ON S1.CST_SV_ASN_NO = S7.CST_SV_ASN_NO
+          LEFT OUTER JOIN (SELECT X1.WK_GRP_CD
+                                , X1.RGLVL_GD_CD
+                                , X1.AW_AMT
+                             FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ X1
+                            WHERE 1 = 1
+                              AND X1.DTA_DL_YN = 'N'
+                              AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                              AND X1.GD_SN = (SELECT MAX(Y1.GD_SN)
+                                                FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ Y1
+                                               WHERE X1.WK_GRP_CD = Y1.WK_GRP_CD
+                                                 AND X1.RGLVL_GD_CD = Y1.RGLVL_GD_CD)
+             ) B1
+            ON B1.WK_GRP_CD = S1.WK_GRP_CD
+           AND B1.RGLVL_GD_CD = S1.RGLVL_GD_CD
+         INNER JOIN TB_SSCT_CNTR_BAS C1
+            ON C1.CNTR_NO = S1.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_DTL C2
+            ON C2.CNTR_NO = S1.CNTR_NO
+           AND C2.CNTR_SN = S1.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_ADR_REL C3
+            ON C3.DTL_CNTR_NO = S1.CNTR_NO
+           AND C3.DTL_CNTR_SN = S1.CNTR_SN
+           AND C3.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
+            ON C4.CNTR_ADRPC_ID = C3.CNTR_ADRPC_ID
+         INNER JOIN TB_GBCO_ADR_BAS A1
+            ON A1.ADR_ID = C4.ADR_ID
+          LEFT JOIN TB_OGBS_MM_PRTNR_IZ O1
+            ON O1.BASE_YM = SUBSTR(S2.RCPDT, 1, 6)
+           AND O1.OG_TP_CD = S2.RCP_OG_TP_CD
+           AND O1.PRTNR_NO = S2.RCP_ICHR_PRTNR_NO
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ O2
+            ON O2.BASE_YM = SUBSTR(S4.ASN_DT, 1, 6)
+           AND O2.OG_TP_CD = S4.OG_TP_CD
+           AND O2.PRTNR_NO = S4.PRTNR_NO
+         INNER JOIN TB_PDBS_PD_BAS P1
+            ON S2.PD_CD = P1.PD_CD
+         WHERE 1 = 1
+           AND S2.DTA_DL_YN = 'N'
+        <choose>
+            <when test='@MybatisUtils@equals(serviceType, "9")'>
+           AND S1.SV_BIZ_HCLSF_CD = '1'
+           AND S3.ALNC_BZS_CD = '03' /* 서비스유형 : 홈쇼핑만 */
+            </when>
+            <when test='@MybatisUtils@isNotEmpty(serviceType)'>
+           AND S1.SV_BIZ_HCLSF_CD = #{serviceType} /* 서비스유형 */
+            </when>
+        </choose>
+        <if test='@MybatisUtils@isNotEmpty(serviceCenter)'>
+           AND S1.SV_CNR_OG_ID = #{ogId} /* 서비스센터 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(engineer)'>
+           AND S1.ICHR_PRTNR_NO = #{prtnrNo} /* 엔지니어 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(refriType)'>
+           AND S4.REFRI_DV_CD = CASE WHEN #{refriType} IN ('2', '3', '4') THEN '2' ELSE '1' END /* 유/무상구분 */
+        </if>
+        <if test='@MybatisUtils@equals(refriType, "3")'>
+           AND S1.SITE_AW_ATC_CD != 'O150' /* 유상(아웃소싱제외) */
+        </if>
+        <if test='@MybatisUtils@equals(refriType, "4")'>
+           AND S1.SITE_AW_ATC_CD = 'O150' /* 유상(아웃소싱) */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+           AND S1.SITE_AW_PD_GRP_CD = #{pdGrpCd} /* 상품그룹 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND P1.PD_CD = #{pdCd} /* 상품코드 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(inquiryBase) and @MybatisUtils@isNotEmpty(baseDateFrom) and @MybatisUtils@isNotEmpty(baseDateTo)'>
+            <choose>
+                <when test='@MybatisUtils@equals(inquiryBase, "1")'>
+           AND S2.FNL_RCPDT BETWEEN #{baseDateFrom} AND #{baseDateTo} /* 조회기준 : 접수일자 */
+                </when>
+                <when test='@MybatisUtils@equals(inquiryBase, "2")'>
+           AND S1.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo} /* 조회기준 : 처리일자 */
+               </when>
+                <when test='@MybatisUtils@equals(inquiryBase, "3")'>
+           AND S1.VST_CNFMDT BETWEEN #{baseDateFrom} AND #{baseDateTo} /* 조회기준 : 방문확정일 */
+                </when>
+           </choose>
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(svBizDclsfCd)'>
+           AND S2.SV_BIZ_DCLSF_CD = #{svBizDclsfCd} /* 업무유형 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(wkPrgsStatCd)'>
+           AND S1.WK_PRGS_STAT_CD = #{wkPrgsStatCd} /* 작업상태 */
+        </if>
+        <if test='@MybatisUtils@equals(installBase, "1")'>
+           AND S3.IST_DT <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(CASE WHEN LENGTH(S2.FNL_RCPDT) = 8 THEN TO_DATE(S2.FNL_RCPDT) ELSE SYSDATE END, -12), 'YYYYMMDD') /* 설치기준 '1년 이내' */
+        </if>
+         ORDER BY S1.CNTR_NO
+    </select>
+
+</mapper>
