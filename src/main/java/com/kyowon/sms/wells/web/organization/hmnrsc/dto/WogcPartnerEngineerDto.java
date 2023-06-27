@@ -68,6 +68,8 @@ public class WogcPartnerEngineerDto {
         String pcpPrtnrNo,
         String pcpPrtnrKnm,
         String employeeIDNumber,
+        String ogLevlDvCd1,
+        String ogLevlDvCd2,
         String procsDtm
 
     ) {}
@@ -110,7 +112,7 @@ public class WogcPartnerEngineerDto {
         String wkcrCd,
         String wkcrCdNm,
         String cntrDt,
-        String vlStrtDt,
+        String vlStrtdt,
         String vlEnddt,
         String cralLocaraTno,
         String mexnoEncr,
