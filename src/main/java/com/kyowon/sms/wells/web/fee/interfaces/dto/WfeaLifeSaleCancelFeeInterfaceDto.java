@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.fee.interfaces.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -9,7 +11,8 @@ import java.util.List;
 
 public class WfeaLifeSaleCancelFeeInterfaceDto {
 
-    public  record IfRequest(
+
+    public record IfRequest(
         @NotBlank
         @JsonProperty("AKSDTE")
         String aksdte, /* 발생월 */
@@ -21,60 +24,87 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         String itm02, /* 상조고객코드 */
         @NotBlank
         @JsonProperty("AKDSEQ")
-        String akdseq, /* 회차 */
+        int akdseq, /* 회차 */
         @JsonProperty("AKSGUB")
+        @JsonSetter(nulls = Nulls.SKIP)
         String aksgub, /* 구분 */
         @JsonProperty("AKSALE")
+        @JsonSetter(nulls = Nulls.SKIP)
         String aksale, /* 판매구분 */
         @JsonProperty("AKDCDE")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akdcde, /* 사번 */
         @JsonProperty("AKDBON")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akdbon, /* 지점장 */
         @JsonProperty("AKCODE")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akcode, /* 상조상품코드 */
         @JsonProperty("ITM03")
+        @JsonSetter(nulls = Nulls.SKIP)
         String itm03, /* 상조상품명 */
         @JsonProperty("AKCRTE")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akcrte, /* 접수일 */
         @JsonProperty("AKSLTE")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akslte, /* 계약일 */
         @JsonProperty("AKCDTE")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akcdte, /* 취소일 */
         @JsonProperty("AKTCNT")
+        @JsonSetter(nulls = Nulls.SKIP)
         String aktcnt, /* 총지급대상 */
         @JsonProperty("AKMAMT")
-        String akmamt, /* 누적발생매출 */
+        @JsonSetter(nulls = Nulls.SKIP)
+        int akmamt, /* 누적발생매출 */
         @JsonProperty("AKIAMT")
-        String akiamt, /* 누적입금 */
+        @JsonSetter(nulls = Nulls.SKIP)
+        int akiamt, /* 누적입금 */
         @JsonProperty("AKISEQ")
-        String akiseq, /* 완납회차 */
+        @JsonSetter(nulls = Nulls.SKIP)
+        int akiseq, /* 완납회차 */
         @JsonProperty("ITM04")
+        @JsonSetter(nulls = Nulls.SKIP)
         String itm04, /* WELLS 고객코드 */
         @JsonProperty("ITM05")
+        @JsonSetter(nulls = Nulls.SKIP)
         String itm05, /* WELLS 계약일련번호 */
         @JsonProperty("AKGDYM")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akgdym, /* 수수료지급월 */
         @JsonProperty("AKHDYM")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akhdym, /* 수수료되물림 */
         @JsonProperty("AKLOCK")
+        @JsonSetter(nulls = Nulls.SKIP)
         String aklock, /* 마감여부 */
         @JsonProperty("ITM06")
+        @JsonSetter(nulls = Nulls.SKIP)
         String itm06, /* 데이터삭제여부 */
         @JsonProperty("AKWDAY")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akwday, /* 생성일자 */
         @JsonProperty("AKWDSP")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akwdsp, /* 생성자 */
         @JsonProperty("AKWPGM")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akwpgm, /* 생성PGM */
         @JsonProperty("ITM07")
+        @JsonSetter(nulls = Nulls.SKIP)
         String itm07, /* 최초등록부서ID */
         @JsonProperty("AKUDAY")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akuday, /* 수정일자 */
         @JsonProperty("AKUDSP")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akudsp, /* 수정자 */
         @JsonProperty("AKUPGM")
+        @JsonSetter(nulls = Nulls.SKIP)
         String akupgm, /* 생성PGM */
         @JsonProperty("ITM08")
+        @JsonSetter(nulls = Nulls.SKIP)
         String itm08 /* 최종수정부서ID */
 
     ) {}
