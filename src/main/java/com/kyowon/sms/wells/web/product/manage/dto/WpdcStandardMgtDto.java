@@ -59,4 +59,9 @@ public class WpdcStandardMgtDto {
         List<ZpdcProductDto.PropertyGroupCode> groupCodes,
         List<ZpdcRelationMgtDto.SearchProductRes> relProducts
     ) {}
+
+    @ApiModel(value = "WpdcStandardMgtDto-SaleRecognitionClassification")
+    public record SaleRecognitionClassification(
+        String slRcogClsfNm
+    ) {}
 }
