@@ -34,6 +34,7 @@ public class WctaContractRegStep5Service {
     public static final String AG_DRM_DV_CD_CNTR = "03";
 
     private final WctaContractSettlementMapper mapper;
+    private final WctaTaxInvoiceInquiryMapper taxInvoiceMapper;
     private final WctaContractSettlementConverter converter;
     private final WctaContractRegService contractRegService;
 
@@ -218,10 +219,8 @@ public class WctaContractRegStep5Service {
         return LocalDate.parse(cutoff, DateTimeFormatter.ofPattern(pattern));
     }
 
-    /* 저장 페이즈 TODO */
-
     @Transactional
-    public SaveRes saveContractSettlements(SaveReq req) throws Exception {
+    public SaveRes saveContractSettlements(SaveReq req) {
         /* FIXME: validate contract: 계약 기본 정보 조회 후, 상태 검사 후 튕겨 내기 */
         String cntrNo = req.cntrNo();
         getContractForAuth(cntrNo);
@@ -272,9 +271,30 @@ public class WctaContractRegStep5Service {
             confirmContract(cntrNo);
         }
 
+        /* 20230627 세금계산서 발행 추가.. saveTaxInvoice? */
+        putTaxInvoice(cntrNo);
+
         return SaveRes.builder()
             .result(true)
             .build();
+    }
+
+    @Transactional
+    void putTaxInvoice(String cntrNo) {
+        WctaTaxInvoiceInquiryDvo taxInvoiceInquiryDvo = mapper.selectBasTaxInvoiceInquiry(cntrNo);
+        List<WctaContractDtlDvo> dtlDvos = contractRegService.selectContractDtl(cntrNo);
+
+        dtlDvos.forEach(dtlDvo -> {
+            CtSellTpCd sellTpCd = CtSellTpCd.of(dtlDvo.getSellTpCd());
+            taxInvoiceInquiryDvo.setCntrSn(dtlDvo.getCntrSn());
+            taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPdDvCd.of(sellTpCd)
+                .map(CtTxinvPdDvCd::getCode)
+                .orElse(""));
+            taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
+
+            taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
+            taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
+        });
     }
 
     @Transactional

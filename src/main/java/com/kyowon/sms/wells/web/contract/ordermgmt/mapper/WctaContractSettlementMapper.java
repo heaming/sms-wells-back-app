@@ -40,4 +40,6 @@ public interface WctaContractSettlementMapper {
     String selectFnitCdInfo(String crdcdBinNo);
 
     WctaSettlementCntrBasDvo selectContractBasic(String cntrNo);
+
+    WctaTaxInvoiceInquiryDvo selectBasTaxInvoiceInquiry(String cntrNo);
 }
