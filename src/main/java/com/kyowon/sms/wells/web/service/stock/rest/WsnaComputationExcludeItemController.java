@@ -44,7 +44,7 @@ public class WsnaComputationExcludeItemController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "inqrYm", value = "조회년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "6"),
-        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07104077"),
+        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "[WM07104077]"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
@@ -79,6 +79,19 @@ public class WsnaComputationExcludeItemController {
     ) throws Exception {
 
         return SaveResponse.builder().processCount(this.service.updateComputationExcludeItemForRemove(dtos)).build();
+    }
+
+    @GetMapping("/duplication-check")
+    @ApiOperation(value = "산출 제외품목 중복 체크", notes = "산출 제외품목 중복 체크를 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "mngtYm", value = "관리년월", paramType = "query", example = "202212", required = true),
+        @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07104077", required = true)
+    })
+    public String checkComputationExcludeItemDuplication(@RequestParam
+    String mngtYm, @RequestParam
+    String itmPdCd) {
+
+        return this.service.checkComputationExcludeItemDuplication(mngtYm, itmPdCd);
     }
 
     @PostMapping
