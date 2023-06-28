@@ -36,5 +36,6 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String pdSellTpCd;
     String pdUswyCd;
     String istDt;
+    String wareMngtPrtnrNo;
 
 }
