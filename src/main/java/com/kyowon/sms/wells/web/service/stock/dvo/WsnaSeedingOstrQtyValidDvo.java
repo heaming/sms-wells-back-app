@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 public class WsnaSeedingOstrQtyValidDvo {
 
-    private WsnaSeedingOstrQtyDvo dvo;
+    private WsnaSeedingOstrQtyExcelDvo dvo;
 
     private int row;
 

@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +27,6 @@ public class WsnaSeedingOstrQtyDvo {
     // 한도일련번호
     private int limSn;
     // 한도수량
-    private int limQty;
+    private BigDecimal limQty;
 
 }

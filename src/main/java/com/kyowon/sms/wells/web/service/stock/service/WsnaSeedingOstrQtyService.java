@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingOstrQtyDto.*;
+import static com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.common.web.bond.zcommon.utils.BnBondUtils;
+import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedingOstrQtyConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingOstrQtyDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingOstrQtyExcelDvo;
@@ -26,7 +29,6 @@ import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -53,6 +55,8 @@ public class WsnaSeedingOstrQtyService {
 
     // 엑셀 서비스
     private final ExcelReadService excelService;
+
+    private static final long MAX_VALUE = 999999999999L;
 
     /**
      * 모종 출고가능수량 페이징 조회
@@ -103,7 +107,7 @@ public class WsnaSeedingOstrQtyService {
      * @return
      */
     @Transactional
-    public WsnaSeedingOstrQtyExcelDvo createSeedingOstrQtysExcelUpload(MultipartFile file) {
+    public UploadRes createSeedingOstrQtysExcelUpload(MultipartFile file) throws Exception {
 
         int count = 0;
 
@@ -116,18 +120,13 @@ public class WsnaSeedingOstrQtyService {
         headerTitle.put("svBizHclsfCd", this.messageService.getMessage("MSG_TXT_TASK_TYPE"));
         // 패키지구분
         headerTitle.put("sdingPkgGrpCd", this.messageService.getMessage("MSG_TXT_PKG_DV"));
-        // 가능수량
-        headerTitle.put("limQty", this.messageService.getMessage("MSG_TXT_PSB_QTY"));
+        // 수량
+        headerTitle.put("limQty", this.messageService.getMessage("MSG_TXT_QTY"));
 
         // file 복호화
-        List<WsnaSeedingOstrQtyDvo> list = null;
 
-        try {
-            list = this.excelService
-                .readExcel(file, new ExcelMetaDvo(1, headerTitle), WsnaSeedingOstrQtyDvo.class);
-        } catch (Exception e) {
-            throw new BizException(e);
-        }
+        List<WsnaSeedingOstrQtyExcelDvo> list = this.excelService
+            .readExcel(file, new ExcelMetaDvo(1, headerTitle), WsnaSeedingOstrQtyExcelDvo.class, Boolean.TRUE);
 
         // 모종패키지코드 조회
         List<String> pkgDvCds = this.mapper.selectCmzPkgDvCds();
@@ -144,7 +143,7 @@ public class WsnaSeedingOstrQtyService {
             validDvo.setHeaderTitle(headerTitle);
             validDvo.setErrorDvos(errorDvos);
 
-            for (WsnaSeedingOstrQtyDvo dvo : list) {
+            for (WsnaSeedingOstrQtyExcelDvo dvo : list) {
                 validDvo.setDvo(dvo);
                 validDvo.setRow(row);
 
@@ -155,20 +154,25 @@ public class WsnaSeedingOstrQtyService {
 
             // 오류가 없을 경우
             if (CollectionUtils.isEmpty(errorDvos)) {
-                for (WsnaSeedingOstrQtyDvo dvo : list) {
-                    count += this.mapper.insertDcbySdingRcpLimQty(dvo);
+                for (WsnaSeedingOstrQtyExcelDvo dvo : list) {
+                    WsnaSeedingOstrQtyDvo createDvo = this.converter
+                        .mapWsnaSeedingOstrQtyExcelDvoToWsnaSeedingOstrQtyDvo(dvo);
+                    count += this.mapper.insertDcbySdingRcpLimQty(createDvo);
                 }
-            }
 
-            // 생성에 실패 하였습니다.
-            BizAssert.isTrue(count == list.size(), "MSG_ALT_CRT_FAIL");
+                // 생성에 실패 하였습니다.
+                BizAssert.isTrue(count == list.size(), "MSG_ALT_CRT_FAIL");
+            }
         }
 
-        WsnaSeedingOstrQtyExcelDvo excelDvo = new WsnaSeedingOstrQtyExcelDvo();
-        excelDvo.setErrorDvos(errorDvos);
-        excelDvo.setSeedingDvos(list);
+        String status = CollectionUtils.isEmpty(errorDvos) ? PdProductConst.EXCEL_UPLOAD_SUCCESS
+            : PdProductConst.EXCEL_UPLOAD_ERROR;
 
-        return excelDvo;
+        return UploadRes.builder()
+            .status(status)
+            .excelData(list)
+            .errorInfo(errorDvos)
+            .build();
     }
 
     /**
@@ -177,7 +181,7 @@ public class WsnaSeedingOstrQtyService {
      */
     private void checkExcelUploadValid(WsnaSeedingOstrQtyValidDvo validDvo) {
 
-        WsnaSeedingOstrQtyDvo dvo = validDvo.getDvo();
+        WsnaSeedingOstrQtyExcelDvo dvo = validDvo.getDvo();
         int row = validDvo.getRow();
         List<String> pkgDvCds = validDvo.getPkgDvCds();
         List<String> svBizHclsfCds = validDvo.getSvBizHclsfCds();
@@ -191,10 +195,10 @@ public class WsnaSeedingOstrQtyService {
         // 패키지코드
         String sdingPkgGrpCd = dvo.getSdingPkgGrpCd();
         // 가능수량
-        int limQty = dvo.getLimQty();
+        String limQty = dvo.getLimQty();
 
         // null check
-        String[] nullColumnName = new String[3];
+        String[] nullColumnName = new String[4];
         if (StringUtils.isBlank(vstDt)) {
             nullColumnName[0] = "vstDt";
         }
@@ -206,14 +210,26 @@ public class WsnaSeedingOstrQtyService {
         if (StringUtils.isBlank(sdingPkgGrpCd)) {
             nullColumnName[2] = "sdingPkgGrpCd";
         }
-        for (String column : nullColumnName) {
-            if (StringUtil.isNotBlank(column)) {
-                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
-                errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get(column));
-                // 유효하지 않은 항목이 있습니다.
-                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_EXIST_INVALID_ITEM"));
-                errorDvos.add(errorDvo);
+
+        if (StringUtils.isBlank(limQty)) {
+            nullColumnName[3] = "limQty";
+        }
+
+        if (StringUtils.isBlank(vstDt) || StringUtils.isBlank(svBizHclsfCd) || StringUtils.isBlank(sdingPkgGrpCd)
+            || StringUtils.isBlank(limQty)) {
+            for (String column : nullColumnName) {
+                if (StringUtil.isNotBlank(column)) {
+                    String headerTit = headerTitle.get(column);
+
+                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                    errorDvo.setErrorRow(row);
+                    errorDvo.setHeaderName(headerTit);
+                    // {0} 은(는) 필수값 입니다.
+                    errorDvo.setErrorData(
+                        this.messageService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", new String[] {headerTit})
+                    );
+                    errorDvos.add(errorDvo);
+                }
             }
         }
 
@@ -251,14 +267,30 @@ public class WsnaSeedingOstrQtyService {
         }
 
         // 가능수량 검증
-        if (limQty < 1) {
+        if (StringUtils.isNotBlank(limQty)) {
+            BigDecimal qty = new BigDecimal(limQty);
             String headerTit = headerTitle.get("limQty");
-            ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
-            errorDvo.setErrorRow(row);
-            errorDvo.setHeaderName(headerTitle.get("limQty"));
-            //값이 0이거나 마이너스입니다.
-            errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_ZR_VAL_INC"));
-            errorDvos.add(errorDvo);
+
+            // qty < 1
+            if (qty.compareTo(BigDecimal.ONE) < 0) {
+                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                errorDvo.setErrorRow(row);
+                errorDvo.setHeaderName(headerTit);
+                // 값이 0이거나 마이너스입니다.
+                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_ZR_VAL_INC"));
+                errorDvos.add(errorDvo);
+                // qty > 999,999,999,999
+            } else if (qty.compareTo(BigDecimal.valueOf(MAX_VALUE)) > 0) {
+                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                errorDvo.setErrorRow(row);
+                errorDvo.setHeaderName(headerTit);
+                // {0} 항목의 값은 {1} 이하여야 합니다.
+                errorDvo.setErrorData(
+                    this.messageService
+                        .getMessage("MSG_ALT_VALUE_OVER", new String[] {headerTit, String.format("%,d", MAX_VALUE)})
+                );
+                errorDvos.add(errorDvo);
+            }
         }
     }
 }

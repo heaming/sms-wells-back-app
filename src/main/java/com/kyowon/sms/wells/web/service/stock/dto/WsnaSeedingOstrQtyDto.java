@@ -1,8 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
+
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
 
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
@@ -45,7 +47,7 @@ public class WsnaSeedingOstrQtyDto {
         // 패키지명
         String sdingPkgNm,
         // 한도수량
-        int limQty,
+        BigDecimal limQty,
         // 모종패키지그룹코드
         String sdingPkgGrpCd,
         // 서비스업무대분류코드
@@ -61,9 +63,9 @@ public class WsnaSeedingOstrQtyDto {
         @NotBlank
         @ValidDate
         String vstDt,
-        // 모종패키지코드
+        // 모종패키지그룹코드
         @NotBlank
-        String sdingPkgCd,
+        String sdingPkgGrpCd,
         // 서비스업무대분류코드
         @NotBlank
         String svBizHclsfCd,
@@ -72,8 +74,8 @@ public class WsnaSeedingOstrQtyDto {
         int limSn,
         // 한도수량
         @Positive
-        @Size(max = 12)
-        int limQty
+        @Max(999999999999L)
+        BigDecimal limQty
     ) {}
 
 }

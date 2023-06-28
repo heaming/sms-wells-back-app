@@ -8,17 +8,12 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingOstrQtyDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingOstrQtyExcelDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaSeedingOstrQtyService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -88,18 +83,8 @@ public class WsnaSeedingOstrQtyController {
     @ApiOperation(value = "모종 출고가능수량 엑셀 업로드", notes = "모종 출고가능수량 데이터를 엑셀 업로드를 통해 일괄 등록한다.")
     public UploadRes createSeedingOstrQtysExcelUpload(@RequestParam("file")
     MultipartFile file) throws Exception {
-        WsnaSeedingOstrQtyExcelDvo dvo = this.service.createSeedingOstrQtysExcelUpload(file);
-        List<ExcelUploadErrorDvo> errorDvos = dvo.getErrorDvos();
-        List<WsnaSeedingOstrQtyDvo> seedingDvos = dvo.getSeedingDvos();
 
-        String status = CollectionUtils.isEmpty(errorDvos) ? PdProductConst.EXCEL_UPLOAD_SUCCESS
-            : PdProductConst.EXCEL_UPLOAD_ERROR;
-
-        return UploadRes.builder()
-            .status(status)
-            .excelData(seedingDvos)
-            .errorInfo(errorDvos)
-            .build();
+        return this.service.createSeedingOstrQtysExcelUpload(file);
     }
 
 }
