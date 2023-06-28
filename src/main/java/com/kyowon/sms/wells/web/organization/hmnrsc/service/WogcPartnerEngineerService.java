@@ -96,10 +96,9 @@ public class WogcPartnerEngineerService {
                     );
                 }
             );
-
-            results = this.wogcPartnerEngineerConverter.mapAllWogcPartnerEngineerDvoToFindJoeManagementRes(dvos);
-            results.setPageInfo(newPage);
         }
+        results = this.wogcPartnerEngineerConverter.mapAllWogcPartnerEngineerDvoToFindJoeManagementRes(dvos);
+        results.setPageInfo(newPage);
         return results;
     }
 
