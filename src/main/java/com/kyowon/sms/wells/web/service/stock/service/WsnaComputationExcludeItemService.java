@@ -4,6 +4,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaComputationExcludeI
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -128,6 +129,22 @@ public class WsnaComputationExcludeItemService {
     }
 
     /**
+     * 산출 제외품목 중복 체크
+     * @param mngtYm
+     * @param itmPdCd
+     * @return
+     */
+    public String checkComputationExcludeItemDuplication(String mngtYm, String itmPdCd) {
+        ValidAssert.hasText(mngtYm);
+        ValidAssert.hasText(itmPdCd);
+
+        // 품목 중복 체크
+        String dupCheck = this.mapper.selectCmptExcdItmDuplication(mngtYm, itmPdCd);
+
+        return StringUtils.isNotEmpty(dupCheck) ? "Y" : "N";
+    }
+
+    /**
      * 산출 제외품목 저장
      * @param dtos
      * @return
@@ -146,6 +163,15 @@ public class WsnaComputationExcludeItemService {
 
             // 생성
             if (CommConst.ROW_STATE_CREATED.equals(rowState)) {
+                // 관리년월
+                String mngtYm = dvo.getMngtYm();
+                // 품목코드
+                String itmPdCd = dvo.getItmPdCd();
+
+                // 품목 중복 체크
+                String dupCheck = this.mapper.selectCmptExcdItmDuplication(mngtYm, itmPdCd);
+                // {0} 은(는) 이미 등록된 제외 품목입니다.
+                BizAssert.isNull(dupCheck, "MSG_ALT_EXIST_RGST_EXCD_ITM", new String[] {itmPdCd});
 
                 result = this.mapper.insertCmptExcdItm(dvo);
 

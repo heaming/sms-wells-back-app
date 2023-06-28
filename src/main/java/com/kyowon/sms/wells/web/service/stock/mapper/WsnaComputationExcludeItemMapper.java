@@ -21,6 +21,8 @@ public interface WsnaComputationExcludeItemMapper {
 
     List<SearchRes> selectCmptExcdItms(SearchReq dto);
 
+    String selectCmptExcdItmDuplication(String mngtYm, String itmPdCd);
+
     int insertCmptExcdItm(WsnaComputationExcludeItemDvo dvo);
 
     int updateCmptExcdItm(WsnaComputationExcludeItemDvo dvo);
