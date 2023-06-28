@@ -665,7 +665,7 @@ public class WwdaAutoTransferInterfaceService {
                 List<ZwdbCreditcardDto.SearchInfoRes> binInfos = zwdbCreditcardMapper
                     .selectCreditcardBinInfos(searchReq);
 
-                if (!ObjectUtils.isEmpty(binInfos)) {
+                if (!ObjectUtils.isEmpty(binInfos) && "0000".equals(cardFntRsCd)) {
                     result.setCdcoCd(binInfos.get(0).fnitCd());
                     result.setCdcoNm(binInfos.get(0).fnitNm());
                 }
