@@ -48,6 +48,53 @@ public class WogcPartnerEngineerDto {
 
     ) {}
 
+    @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationRes")
+    public record SearchVacationRes(
+        String egerWrkStatCd,
+        String egerWrkStatNm,
+        String prtnrNo,
+        String vcnStrtDt,
+        String vcnEndDt,
+        String rmkCn,
+        String prtnrKnm,
+        String bizAgntPrtnrNo
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationReq")
+    public record SearchVacationReq(
+        String prtnrNo
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationCntRes")
+    public record SearchVacationCntRes(
+        String cnt
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SaveReq")
+    public record SaveReq(
+        String egerWrkStatCd,
+        String oriVcnStrtDt,
+        String vcnStrtDt,
+        String vcnEndDt,
+        String rmkCn,
+        String bizAgntPrtnrNo,
+        String prtnrNo,
+        String rowState
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-RemoveReq")
+    public record RemoveReq(
+        String prtnrNo,
+        String oriVcnStrtDt,
+        String vcnStrtDt,
+        String rowState
+
+    ) {}
+
     @ApiModel(value = "WogcPartnerEngineerDto-SaveEngineerAttendReq")
     public record SaveEngineerAttendReq(
         String ogCd,
