@@ -163,6 +163,7 @@ public class WogcPartnerEngineerService {
         for (SaveEngineerGradeReq dto : dtos) {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(dto);
+            dvo.setDtaDlYn("N");
             processCnt += this.mapper.insertEgerGdRgst(dvo);
             /* 배치에서 해야 된다고
             if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
