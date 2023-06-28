@@ -186,35 +186,55 @@ public class WfeeIndividualFeeDto {
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerRes")
     public record FindMngerRes(
         String perfYm, /*실적년월*/
-        String blg, /*소속*/
         String prtnrNo, /*번호*/
-        String rsb, /*직책*/
-        String emplNm, /*성명*/
         String frrSum, /*수수료계*/
+        String blg, /*소속*/
+        String rsb, /*직책*/
         String ddtnSum, /*공제계*/
-        String aclDsb, /*실지급*/
+        String emplNm, /*성명*/
         String dsbBnk, /*지급은행*/
-        String dsbAc /*지급계좌*/
+        String dsbAc, /*지급계좌*/
+        String aclDsb, /*실지급*/
+        String mgtCnt,
+        String vstCnt,
+        String procsRt,
+        String rsbYn
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerEtcRes")
     public record SearchMngerEtcRes(
-        String div,
-        String elhmAckmtCt,
-        String bfsvcAckmtCt,
-        String chng,
-        String bfsvcFhsCt,
-        String metgPrscD
+        String item1,
+        String fval1,
+        String item2,
+        String fval2,
+        String item3,
+        String fval3,
+        String item4,
+        String fval4
+    ) {}
+
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerBeforeServiceRes")
+    public record SearchMngerBeforeServiceRes(
+        String cdNm,
+        String cnt1,
+        String cnt2,
+        String amt1,
+        String cnt3,
+        String cnt4,
+        String amt2,
+        String sumAmt
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerFeeRes")
     public record SearchMngerFeeRes(
         String item1,
-        String amt1,
+        String fval1,
         String item2,
-        String amt2,
+        String fval2,
         String item3,
-        String amt3
+        String fval3,
+        String item4,
+        String fval4
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerDeductionRes")
@@ -222,11 +242,9 @@ public class WfeeIndividualFeeDto {
         String rds,
         String erntx,
         String rsdntx,
-        String buDdtn,
         String hirInsr,
-        String inddInsr,
-        String redf,
-        String dlqRedf
+        String buDdtn,
+        String pnpyam
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerPnpyamRes")
