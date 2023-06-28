@@ -1,64 +1,31 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditCardApprovalDto;
+import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbCreditCardApprovalDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbCreditCardApprovalService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractDtlStatCdChService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractSettlementConverter;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.AuthenticationReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.Authorization;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.CreditReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.FindBasicInfoRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.FindContractForStlmRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.SaveReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.SaveRes;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.SearchBasicInfoReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaAgreeItemDtlDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaAgreeItemDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrRelDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrpcBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractCstRelDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractDtlDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractForAuthDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractPrtnrRelDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmRelDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSettlementCntrBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaTaxInvoiceInquiryDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractSettlementMapper;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaTaxInvoiceInquiryMapper;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtAgAtcDvCd;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtAgStatCd;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractProgressStatus;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtCopnDvCd;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtDpTpCd;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtSellTpCd;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtTxinvPblDvCd;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtTxinvPdDvCd;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.*;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.response.SaveResponse;
 import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static com.sds.sflex.system.config.validation.BizAssert.isTrue;
 
@@ -255,7 +222,7 @@ public class WctaContractRegStep5Service {
     }
 
     @Transactional
-    public SaveRes saveContractSettlements(SaveReq req) throws Exception {
+    public SaveRes saveContractSettlements(SaveReq req) {
         /* FIXME: validate contract: 계약 기본 정보 조회 후, 상태 검사 후 튕겨 내기 */
         String cntrNo = req.cntrNo();
         getContractForAuth(cntrNo);
@@ -380,15 +347,8 @@ public class WctaContractRegStep5Service {
     }
 
     @Transactional
-    void confirmContract(String cntrNo) throws Exception {
-        WctaContractBasDvo contractBasDvo = contractRegService.selectContractBas(cntrNo);
-        CtContractProgressStatus cntrPrgsStatCd = CtContractProgressStatus.of(contractBasDvo.getCntrPrgsStatCd());
-//        if (cntrPrgsStatCd != CtContractProgressStatus.STLM_FSH) {
-//            throw new BizException("결제정보가 생성된 계약만 확정 가능합니다.");
-//        }
-
+    void confirmContract(String cntrNo) {
         editContractProgressStatus(cntrNo, CtContractProgressStatus.CNFM);
-
 //         계약상세상태코드 변경
         List<WctaContractDtlDvo> cntrDtls = contractRegService.selectContractDtl(cntrNo);
         for (WctaContractDtlDvo dtl : cntrDtls) {
@@ -396,7 +356,11 @@ public class WctaContractRegStep5Service {
             dtlStatDvo.setCntrNo(cntrNo);
             dtlStatDvo.setCntrSn(dtl.getCntrSn().toString());
             dtlStatDvo.setCntrDtlStatCd("101"); // 정상!
-            cntrStatChService.editContractDtlStatCdCh(dtlStatDvo);
+            try {
+                cntrStatChService.editContractDtlStatCdCh(dtlStatDvo);
+            } catch (Exception e) {
+                throw new BizException("계약 상태 변경 실패");
+            }
         }
     }
 
@@ -435,26 +399,71 @@ public class WctaContractRegStep5Service {
         return mapper.selectContractAdrpcBasByPk(cntrAdrpcId).orElseThrow(() -> new BizException("주소지가 없는 계약건이 있습니다."));
     }
 
-
+    /**
+     * 수납요청 기본 및 상세 데이터 생성 후 카드결제 승인 API 호출
+     * 고객번호
+     * 수납요청방식코드 (대면/비대면)
+     * 수납요청파트너번호
+     * 수납요청파트너조직유형코드
+     *
+     * @param req : 수납 요청 정보
+     * @return SaveResponse
+     */
     @Transactional
-    public SaveResponse payCreditcard(CreditReq req) {
-        List<WctaContractStlmRelDvo> dvos = req.stlmRels();
-
+    public List<CreditRes> requestCreditCardApproval(CreditReq req) {
         // 신용카드 금융기관코드 조회
         String fnitCd = mapper.selectFnitCdInfo(req.crcdnoEncr());
         BizAssert.notNull(fnitCd, "조회되지 않은 금융기관 카드번호입니다");
 
-        WctaSettlementCntrBasDvo bas = mapper.selectContractBasic(req.cntrNo());
-        // 고객번호
-        // 수납요청방식코드 (대면/비대면)
-        // 수납요청파트너번호
-        // 수납요청파트너조직유형코드
+        WctaContractStlmBasDvo contractStlmBasDvo = getCntrStlmByPk(req.cntrStlmId());
+        List<WctaContractStlmRelDvo> stlmRelDvos = getContractStlmRels(req.cntrStlmId()); /* 아마 1 건 일거다.*/
 
-        // 수납요청 기본 및 상세 데이터 생성 후 카드결제 승인 API 호출
+        WctaSettlementCntrBasDvo bas = mapper.selectContractBasic(contractStlmBasDvo.getCntrNo());
+
+        long totSmltAmt = stlmRelDvos.stream()
+            .mapToLong(WctaContractStlmRelDvo::getStlmAmt)
+            .sum();
+
+        // 수납요청 기본 데이터 생성 후 수납요청번호 리턴
+        ZwdzWithdrawalReceiveAskDvo withdrawalReceiveAskDvo = createReceiveAsk(bas, totSmltAmt);
+
+        setCreditInfosToWithdrawalReceiveAsk(req, fnitCd, withdrawalReceiveAskDvo);
+
+        stlmRelDvos.forEach(dvo -> {
+            withdrawalReceiveAskDvo.setDepositTypeCode(dvo.getDpTpCd());
+            withdrawalReceiveAskDvo.setContractNumber(dvo.getDtlCntrNo());
+            withdrawalReceiveAskDvo.setContractSerialNumber(dvo.getDtlCntrSn().toString());
+            rveReqService.createReceiveAskDetail(withdrawalReceiveAskDvo);
+            rveReqService.createReceiveAskDetailHistory(withdrawalReceiveAskDvo);
+        });
+
+        List<ZwdbCreditCardApprovalDto.SaveReq> creditCardApprovalSaveReqs =  stlmRelDvos
+            .stream()
+            .map((dvo) -> getCreditCardApprovalSaveReq(withdrawalReceiveAskDvo, dvo.getStlmAmt()))
+            .toList();
+        SaveResponse response = paymentService.saveCreditCardApproval(creditCardApprovalSaveReqs);
+        List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) response.getData();
+        BizAssert.isTrue(responses.size() > 0 && responses.get(0).getErrorCd().equals("S"), "신용승인 요청 실패");
+        return responses.stream().map((dvo) -> CreditRes.builder()
+            .aprNo(dvo.getAprNo())
+            .cdcoCd(fnitCd)/* FIXME: 결제 쪽 api 스펙 변경시 수정할 것 */
+            .fnitAprFshDtm(dvo.getStlmDtm())
+            .build()).toList();
+    }
+
+    List<WctaContractStlmRelDvo> getContractStlmRels(String cntrStlmId) {
+        return mapper.selectContractStlmRels(cntrStlmId);
+    }
+
+    @Transactional
+    ZwdzWithdrawalReceiveAskDvo createReceiveAsk(
+        WctaSettlementCntrBasDvo bas,
+        long stmlAmt
+    ) {
         ZwdzWithdrawalReceiveAskDvo receiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
         receiveAskDvo.setKyowonGroupCompanyCd("2000");
         receiveAskDvo.setCustomNumber(bas.getCstNo());
-        receiveAskDvo.setReceiveAskAmount(req.stlmAmt().toString());
+        receiveAskDvo.setReceiveAskAmount(Long.toString(stmlAmt));
         receiveAskDvo.setReceiveAskStatusCode("01");
         receiveAskDvo.setReceiveAskDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         receiveAskDvo.setRveAkMthdCd(bas.getRveAkMthdCd());
@@ -465,66 +474,52 @@ public class WctaContractRegStep5Service {
 
         // 수납요청 기본 데이터 생성 후 수납요청번호 리턴
         String receiveAskNumber = rveReqService.createReceiveAskBase(receiveAskDvo);
-        System.out.println("수납요청번호: " + receiveAskNumber);
+        log.debug("수납요청번호: {}", receiveAskNumber);
+        receiveAskDvo.setReceiveAskNumber(receiveAskNumber);
+        receiveAskDvo.setCrdcdBryyMmdd(CtCopnDvCd.of(bas.getCopnDvCd()) == CtCopnDvCd.INDIVIDUAL ? bas.getBryyMmdd() : "");
+        receiveAskDvo.setCrdcdBzrno(CtCopnDvCd.of(bas.getCopnDvCd()) == CtCopnDvCd.COOPERATION ? bas.getBzrno() : "");
+        return receiveAskDvo;
+    }
 
-        List<ZwdbCreditCardApprovalDto.SaveReq> dtos = new ArrayList<>(0);
+    private static void setCreditInfosToWithdrawalReceiveAsk(CreditReq req, String fnitCd, ZwdzWithdrawalReceiveAskDvo withdrawalReceiveAskDvo) {
+        withdrawalReceiveAskDvo.setDepositDivideCode("1"); // 입금구분코드 - 입금
+        withdrawalReceiveAskDvo.setDepositMeansCode("02"); // 입금수단코드 - 신용카드
+        withdrawalReceiveAskDvo.setReceiveStatusCode("02"); // 수납상태코드 - 수납요청
+        withdrawalReceiveAskDvo.setFinancialInstitutionCd(fnitCd); // 금융기관코드
+        withdrawalReceiveAskDvo.setAccountOwnerName(req.owrKnm()); // 카드주
+        withdrawalReceiveAskDvo.setCreditCardNumberEncr(req.crcdnoEncr()); // 카드번호암호화
+        withdrawalReceiveAskDvo.setCreditCardExpireDate(req.cardExpdtYm());
+        withdrawalReceiveAskDvo.setCreditCardIstmMcn(req.istmMcn());
+        withdrawalReceiveAskDvo.setReceiveDivideCode("01"); //수납구분코드 계약(청약)금
+    }
 
-        for (WctaContractStlmRelDvo dvo : dvos) {
-            System.out.println(dvo.getDtlCntrNo());
-
-            ZwdzWithdrawalReceiveAskDvo receiveAskDtlDvo = new ZwdzWithdrawalReceiveAskDvo();
-            receiveAskDtlDvo = receiveAskDvo;
-            receiveAskDtlDvo.setReceiveAskNumber(receiveAskNumber);
-            receiveAskDtlDvo.setDepositDivideCode("1"); // 입금구분코드 - 입금
-            receiveAskDtlDvo.setDepositMeansCode("02"); // 입금수단코드 - 신용카드
-            receiveAskDtlDvo.setDepositTypeCode(dvo.getDpTpCd());
-            receiveAskDtlDvo.setReceiveStatusCode("02"); // 수납상태코드 - 수납요청
-            receiveAskDtlDvo.setFinancialInstitutionCd(fnitCd); // 금융기관코드
-            receiveAskDtlDvo.setAccountOwnerName(req.owrKnm()); // 카드주
-            receiveAskDtlDvo.setCreditCardNumberEncr(req.crcdnoEncr()); // 카드번호암호화
-            receiveAskDtlDvo.setCreditCardExpireDate(req.cardExpdtYm());
-            receiveAskDtlDvo.setCreditCardIstmMcn(req.istmMcn());
-            receiveAskDtlDvo.setContractNumber(dvo.getDtlCntrNo());
-            receiveAskDtlDvo.setContractSerialNumber(dvo.getDtlCntrSn().toString());
-            receiveAskDtlDvo.setReceiveDivideCode("01"); //수납구분코드 계약(청약)금
-
-            //            contract.setVirtualAccountIsId(vacIsDvo.getVacIsId()); // 가상계좌발급ID
-            //            contract.setVirtualAccountIsDtlSerialNumber(Integer.toString(rveAkSn)); // 가상계좌발급상세일련번호
-
-            rveReqService.createReceiveAskDetail(receiveAskDtlDvo);
-
-            rveReqService.createReceiveAskDetailHistory(receiveAskDtlDvo);
-
-            ZwdbCreditCardApprovalDto.SaveReq aprvDto = new ZwdbCreditCardApprovalDto.SaveReq(
-                "2000",
-                "",
-                "",
-                receiveAskNumber,
-                bas.getCstNo(),
-                fnitCd,
-                req.crcdnoEncr().substring(0, 4),
-                req.crcdnoEncr().substring(5, 8),
-                req.crcdnoEncr().substring(8, 12),
-                req.crcdnoEncr().substring(12),
-                req.crcdnoEncr(),
-                req.cardExpdtYm(),
-                req.owrKnm(),
-                bas.getCopnDvCd() == "1" ? bas.getBryyMmdd() : "",
-                bas.getCopnDvCd() == "2" ? bas.getBzrno() : "",
-                "N", // TODO: 소득공제여부
-                req.istmMcn(),
-                dvo.getStlmAmt().toString(),
-                "",
-                bas.getRveAkMthdCd(),
-                "01",
-                bas.getRveAkPrtnrOgTpCd(),
-                bas.getRveAkPrtnrNo(),
-                "1", // TODO: 법인카드를 구분?
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
-            );
-            dtos.add(aprvDto);
-            //paymentService.createCreditCardApprovalCancelStep1();
-        }
-        return paymentService.saveCreditCardApproval(dtos);
+    private static ZwdbCreditCardApprovalDto.SaveReq getCreditCardApprovalSaveReq(ZwdzWithdrawalReceiveAskDvo withdrawalReceiveAskDvo, long stlmAmt) {
+        String crcdnoEncr = withdrawalReceiveAskDvo.getCreditCardNumberEncr();
+        return new ZwdbCreditCardApprovalDto.SaveReq(
+            "2000",
+            "",
+            "",
+            withdrawalReceiveAskDvo.getReceiveAskNumber(),
+            withdrawalReceiveAskDvo.getCustomNumber(),
+            withdrawalReceiveAskDvo.getFinancialInstitutionCd(),
+            crcdnoEncr.substring(0, 4),
+            crcdnoEncr.substring(5, 8),
+            crcdnoEncr.substring(8, 12),
+            crcdnoEncr.substring(12),
+            crcdnoEncr,
+            withdrawalReceiveAskDvo.getCreditCardExpireDate(),
+            withdrawalReceiveAskDvo.getAccountOwnerName(),
+            withdrawalReceiveAskDvo.getCrdcdBryyMmdd(),
+            withdrawalReceiveAskDvo.getCrdcdBzrno(), //  bas.getCopnDvCd() == "2" ? bas.getBzrno() : "",
+            "N", // TODO: 소득공제여부
+            withdrawalReceiveAskDvo.getCreditCardIstmMcn(),
+            Long.toString(stlmAmt),
+            "",
+            withdrawalReceiveAskDvo.getRveAkMthdCd(),
+            "01",
+            withdrawalReceiveAskDvo.getRvePrtnrOgTpCd(),
+            withdrawalReceiveAskDvo.getRvePrtnrNo(),
+            "1", // TODO: 법인카드를 구분?
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
     }
 }
