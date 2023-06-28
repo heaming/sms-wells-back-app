@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/refund-present-state")
+@RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/refund-list")
 public class WwdbRefundPresentStateController {
 
     private final WwdbRefundPresentStateService service;
