@@ -645,6 +645,35 @@ public class WwdaAutoTransferInterfaceService {
 
         ZwdaCardNumberEffectivenessCheckResDvo resDvo = KiccReceiveService.saveCardNumberEffectivenessCheck(param);
 
+        if (!ObjectUtils.isEmpty(resDvo)) {
+            if ("1".equals(resDvo.getStateCode())) {
+                // 3. 수신결과 및 리턴 설정
+                String cardFntRsCd = resDvo.getRspCd();
+                // 3.1 리턴받은 카드이체결과코드 셋팅
+                // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
+                result.setCardFntRsCd(cardFntRsCd);
+
+                // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
+                // 3.2.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
+                result.setCardFntRsCdNm(mapper.selectAutomaticTransferResultCodeName("CARD", cardFntRsCd));
+
+                // 3.3 카드사코드 조회
+                // 3.3.1 신용카드BIN번호 조회
+                ZwdbCreditcardDto.SearchInfoReq searchReq = ZwdbCreditcardDto.SearchInfoReq.builder()
+                    .crdcdBinNo(crdcdNo)
+                    .build();
+                List<ZwdbCreditcardDto.SearchInfoRes> binInfos = zwdbCreditcardMapper
+                    .selectCreditcardBinInfos(searchReq);
+
+                if (!ObjectUtils.isEmpty(binInfos)) {
+                    result.setCdcoCd(binInfos.get(0).fnitCd());
+                    result.setCdcoNm(binInfos.get(0).fnitNm());
+                }
+            } else {
+                result.setCardFntRsCdNm(resDvo.getErrCn());
+            }
+        }
+
         // 3. 수신결과 및 리턴 설정
         String cardFntRsCd = resDvo.getRspCd();
         // 3.1 리턴받은 카드이체결과코드 셋팅
