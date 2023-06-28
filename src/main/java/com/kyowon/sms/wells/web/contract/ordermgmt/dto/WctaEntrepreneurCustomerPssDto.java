@@ -26,7 +26,7 @@ public class WctaEntrepreneurCustomerPssDto {
         String pdNm,
         String cstrGbn,
         String fntGbn,
-        String fromogCd,
+        String fromOgCd,
         String toOgCd,
         String prtnrNo,
         String incentiveGbn,

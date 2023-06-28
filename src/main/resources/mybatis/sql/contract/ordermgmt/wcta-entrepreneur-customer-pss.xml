@@ -493,6 +493,70 @@
                WHERE R1.BASE_YM = SUBSTR(W1.CNTR_CNFM_DTM,1,6) /* TO_CHAR(SYSDATE, 'YYYYMM') */ /* 기준년월 현재월 - 조회조건(접수일자, 설치일자, 렌탈차월) - 계약기본.계약확정일 */
                  AND R1.PRTNR_NO = W1.SELL_PRTNR_NO /* 월파트너마감.파트너번호 = 계약기본.판매파트너번호*/
                  AND R1.OG_TP_CD = W1.SELL_OG_TP_CD
+                <if test="@MybatisUtils@equals(session.ogTpCd, 'HR1')">
+                    <if test="@MybatisUtils@isNotEmpty(fromOgCd) and @MybatisUtils@isNotEmpty(toOgCd)">
+                   AND S1.OG_CD BETWEEN #{fromOgCd} AND #{toOgCd}
+                    </if>
+                </if>
+                <if test="!@MybatisUtils@equals(session.ogTpCd, 'HR1')">
+                   AND S1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S1.OG_TP_CD IN ('W01','W02','W03','W04','W05', 'ALC', 'E02')
+                    <if test='@MybatisUtils@equals(session.baseRleCd, "W1020") and @MybatisUtils@equals(session.rsbCd, "110")'>
+                         /* 업무담당 그룹중에 업무담당만 권한체크(BM,BM팀장은 스킵) */
+                         AND (S1.OG_TP_CD, S1.OG_CD) IN /* 로그인한 업무담당이 관리하는 조직코드 */
+                           ( SELECT X1.OG_TP_CD
+                                  , B1.OG_CD
+                               FROM TB_OGBS_SPPT_OG_IZ X1
+                              INNER JOIN
+                                  ( SELECT A1.OG_ID
+                                         , A1.OG_CD
+                                      FROM TB_OGBS_MM_OG_IZ A1
+                                     WHERE A1.DTA_DL_YN = 'N'
+                                       AND A1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                  ) B1
+                                 ON X1.OG_ID = B1.OG_ID
+                              WHERE X1.DTA_DL_YN = 'N'
+                                AND X1.OG_TP_CD IN ('W01','W02','W03','W04','W05', 'ALC', 'E02')
+                                AND X1.BZNS_SPPT_RSB_DV_CD IN ('W0106', 'W0206') /*업무담당*/
+                                AND X1.MNGT_STRT_DT  <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                AND X1.MNGT_END_DT  <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                AND X1.PRTNR_NO = #{session.employeeIDNumber}
+                           )
+                    </if>
+                    <if test='@MybatisUtils@equals(session.baseRleCd, "W1030") and (@MybatisUtils@equals(session.rsbCd, "170") or @MybatisUtils@equals(session.rsbCd, "177"))'>
+                        /* 업무담당 그룹중에 BM,BM팀장 권한체크 */
+                         AND S1.DGR1_LEVL_DG_PRTNR_NO IN /* 로그인한 BM이 관리하는 조직의 총괄사번 */
+                           ( SELECT B1.DGR1_LEVL_DG_PRTNR_NO /*총괄사번(1차레벨대표파트너번호)*/
+                               FROM TB_OGBS_SPPT_OG_IZ X1
+                              INNER JOIN
+                                  ( SELECT A1.OG_ID
+                                         , A1.DGR1_LEVL_DG_PRTNR_NO
+                                      FROM TB_OGBS_MM_OG_IZ A1
+                                     WHERE A1.DTA_DL_YN = 'N'
+                                       AND A1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                  ) B1
+                                 ON X1.OG_ID = B1.OG_ID
+                              WHERE X1.DTA_DL_YN = 'N'
+                                AND X1.OG_TP_CD IN ('W01','W02','W03','W04','W05', 'ALC')
+                                AND X1.BZNS_SPPT_RSB_DV_CD IN ('W0107', 'W0207') /*BM*/
+                                AND X1.MNGT_STRT_DT  <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                AND X1.MNGT_END_DT  <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                AND X1.PRTNR_NO = #{session.employeeIDNumber}
+                           )
+                    </if>
+                    <if test="@MybatisUtils@equals(session.careerLevelCode, '2')">
+                        AND S1.DGR1_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
+                    </if>
+                    <if test="@MybatisUtils@equals(session.careerLevelCode, '4')">
+                        AND S1.DGR2_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
+                    </if>
+                    <if test="@MybatisUtils@equals(session.careerLevelCode, '7')">
+                        AND S1.DGR3_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
+                    </if>
+                    <if test="@MybatisUtils@equals(session.careerLevelCode, '15')">
+                        AND R1.PRTNR_NO = #{session.employeeIDNumber}
+                    </if>
+                </if>
              ) T1
             ON T1.PRTNR_NO = W1.SELL_PRTNR_NO /* 월파트너마감.파트너번호 = 계약기본.판매파트너번호*/
          INNER JOIN W3
@@ -533,6 +597,12 @@
         </if>
         <if test="@MybatisUtils@isNotEmpty(dlpnrBzclNm)">
            AND D1.DLPNR_BZCL_NM LIKE '%'||#{dlpnrBzclNm}||'%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cstrGbn)">
+           AND C1.COPN_DV_CD = #{cstrGbn}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(fntGbn)">
+           AND P1.MPY_MTHD_TP_CD = #{fntGbn}
         </if>
     </select>
 </mapper>
