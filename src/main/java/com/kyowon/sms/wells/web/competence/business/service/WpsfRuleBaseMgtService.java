@@ -4,8 +4,6 @@ import static com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDt
 import static com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto.SearchRes;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -19,6 +17,7 @@ import com.kyowon.sms.wells.web.competence.business.dvo.WpsfRuleBaseDvo;
 import com.kyowon.sms.wells.web.competence.business.dvo.WpsfRuleBaseInquiryDvo;
 import com.kyowon.sms.wells.web.competence.business.mapper.WpsfRuleBaseMgtMapper;
 import com.sds.sflex.common.docs.service.AttachFileService;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -37,11 +36,11 @@ public class WpsfRuleBaseMgtService {
         return mapper.selectRuleBaseMgtPages(dto, pageInfo);
     }
 
-    public List<SearchRes> getRuleBaseMgtsForExcelDownload(SearchReq dto) {
+    public List<SearchRes> getRuleBase(SearchReq dto) {
         return mapper.selectRuleBaseMgtPages(dto);
     }
 
-    public List<SearchRes> getRuleBase(SearchReq dto) {
+    public List<SearchRes> getUserRuleBase(SearchReq dto) {
         return mapper.selectRuleBase(dto);
     }
 
@@ -59,9 +58,7 @@ public class WpsfRuleBaseMgtService {
 
         if (dvo.getInqrLvTcnt() == 3 && dvo.getBznsSpptMnalRgstCd().equals("02")) {
 
-            Date date = new Date();
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-            String nowDate = formatter.format(date);
+            String nowDate = DateUtil.getNowString();
 
             BigDecimal vlEndDtm = new BigDecimal(nowDate);
             BigDecimal one = new BigDecimal("1");

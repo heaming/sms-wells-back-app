@@ -21,7 +21,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[] 규정 및 기준관리")
+@Api(tags = "[WPSF] 규정 및 기준관리")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -35,11 +35,11 @@ public class WpsfRuleBaseMgtController {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
     @GetMapping
-    public List<SearchRes> getRuleBaseMgtPages(
+    public List<SearchRes> getRuleBase(
         @Valid
         SearchReq dto
     ) {
-        return service.getRuleBaseMgtsForExcelDownload(dto);
+        return service.getRuleBase(dto);
     }
 
     @ApiOperation(value = "규정 및 기준관리 조회", notes = "")
@@ -48,11 +48,11 @@ public class WpsfRuleBaseMgtController {
         @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = true),
     })
     @GetMapping("/user")
-    public List<SearchRes> getRuleBase(
+    public List<SearchRes> getUserRuleBase(
         @Valid
         SearchReq dto
     ) {
-        return service.getRuleBase(dto);
+        return service.getUserRuleBase(dto);
     }
 
     @ApiOperation(value = "규정 및 기준관리 저장", notes = "규정 및 기준관리를 저장한다.")
