@@ -15,8 +15,8 @@ public class WsnbServiceProcsIzQltyDto {
     @ApiModel("WsnbServiceProcsIzQltyDto-SearchReq")
     public record SearchReq(
         String serviceType, // 서비스유형
-        String serviceCenter, // 서비스센터
-        String engineer, // 엔지니어
+        String ogId, // 서비스센터
+        String prtnrNo, // 엔지니어
         String refriType, // 유무상구분
         String pdGrpCd, // 상품그룹코드
         String pdCd, // 상품코드

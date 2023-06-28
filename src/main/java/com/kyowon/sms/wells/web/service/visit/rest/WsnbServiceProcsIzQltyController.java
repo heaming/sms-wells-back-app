@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +21,6 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/service-processing-quality")
 @Api(tags = "[WSNB] 서비스처리 내역(품질) REST API")
@@ -32,8 +32,8 @@ public class WsnbServiceProcsIzQltyController {
     @ApiOperation(value = "서비스처리 내역(품질) 조회", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "serviceType", value = "서비스유형", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "serviceCenter", value = "서비스센터", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "engineer", value = "엔지니어", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "prtnrNo", value = "엔지니어", paramType = "query", example = ""),
         @ApiImplicitParam(name = "refriType", value = "유무상구분", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "query", example = "12"),
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "WM03100193"),
@@ -53,7 +53,7 @@ public class WsnbServiceProcsIzQltyController {
         return this.service.getServiceProcsIzQltys(dto, pageInfo);
     }
 
-    @ApiOperation(value = "서비스처리 내역(품질) 조회", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
+    @ApiOperation(value = "서비스처리 내역(품질) 조회 (엑셀 다운로드)", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getServiceProcsIzQltysForExcel(SearchReq dto) {
         return this.service.getServiceProcsIzQltysForExcel(dto);
