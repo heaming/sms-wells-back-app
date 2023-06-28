@@ -108,14 +108,6 @@ public class WogcPartnerEngineerService {
     ) {
         List<WogcPartnerEngineerDto.FindJoeManagementRes> result = null;
         List<WogcPartnerEngineerDvo> dvos = this.mapper.selectJoeManagementForExcelDownload(dto);
-        /*
-        for (WogcPartnerEngineerDvo dvo : dvos) {
-            String cralLocaraTno = StringUtils.isNotEmpty(dvo.getCralLocaraTno()) ? dvo.getCralLocaraTno() : "";
-            String mexnoEncr = StringUtils.isNotEmpty(dvo.getMexnoEncr()) ? dvo.getMexnoEncr() : "";
-            String cralIdvTno = StringUtils.isNotEmpty(dvo.getCralIdvTno()) ? dvo.getCralIdvTno() : "";
-            dvo.setCralLocaraTno(cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno);
-        }
-*/
 
         if (CollectionUtils.isNotEmpty(dvos)) {
             dvos.forEach(
