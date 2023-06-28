@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -281,7 +283,8 @@ public class WcsaCustomerInterfaceService {
         return 1;
     }
 
-    public WcsaCustomerInterfaceDto.SaveCustomerAgreementRes saveCustomerAgreements(WcsaCustomerInterfaceDto.SaveCustomerAgreementReq dto) {
+    @Transactional
+    public SaveCustomerAgreementRes saveCustomerAgreements(SaveCustomerAgreementReq dto) {
 
         // 1. 고객동의 정보 설정
         WcsaCustomerAgreementDvo agreeDvo = converter.mapSaveCustomerAgreementReqToWcsaCustomerAgreementDvo(dto);

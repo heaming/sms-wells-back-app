@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.customer.contact.rest;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,12 +59,12 @@ public class WcsaCustomerInterfaceController {
 
     @ApiOperation(value = "wells 사업본부 동의정보 등록/변경(IF ID:EAI_WCUI1009)", notes = "wells 사업본부 채널별 고객 동의정보 수신 데이터를 사업본부별 고객동의정보 반영한다.")
     @PostMapping("/agree-provisions")
-    public EaiWrapper<WcsaCustomerInterfaceDto.SaveCustomerAgreementRes> saveCustomerAgreements(
+    public EaiWrapper<SaveCustomerAgreementRes> saveCustomerAgreements(
         @Valid
         @RequestBody
-        EaiWrapper<WcsaCustomerInterfaceDto.SaveCustomerAgreementReq> reqWrapper
+        EaiWrapper<SaveCustomerAgreementReq> reqWrapper
     ) {
-        EaiWrapper<WcsaCustomerInterfaceDto.SaveCustomerAgreementRes> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<SaveCustomerAgreementRes> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(wcsaCustomerInterfaceService.saveCustomerAgreements(reqWrapper.getBody()));
         return resWrapper;
     }
