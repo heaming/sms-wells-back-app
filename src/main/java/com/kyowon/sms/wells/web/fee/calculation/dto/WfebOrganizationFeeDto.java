@@ -62,7 +62,10 @@ public class WfebOrganizationFeeDto {
     public record SaveDsbCnstReq(
         @NotBlank
         String perfYm,
+
         String ogTp,
+
+        String unitCd,
         String appKey
     ) {}
 

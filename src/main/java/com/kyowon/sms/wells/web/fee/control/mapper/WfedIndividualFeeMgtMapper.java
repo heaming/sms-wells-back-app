@@ -52,6 +52,10 @@ public interface WfedIndividualFeeMgtMapper {
         SearchMngerReq dto
     );
 
+    List<SearchMngerBaseInfoRes> selectMngerBaseInfo(
+        SearchMngerReq dto
+    );
+
     List<SearchMngerBeforeServiceRes> selectMngerBeforeServices(
         SearchMngerReq dto
     );
@@ -60,7 +64,7 @@ public interface WfedIndividualFeeMgtMapper {
         SearchMngerReq dto
     );
 
-    FindMngerFeeRes selectMngerFee(
+    List<SearchMngerFeeRes> selectMngerFees(
         SearchMngerReq dto
     );
 
