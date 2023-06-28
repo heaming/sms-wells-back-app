@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.common.web.organization.attachment.dto.ZogeSeizureDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -67,6 +68,35 @@ public class WogcPartnerEngineerController {
         String prtnrNo
     ) throws Exception {
         return SaveResponse.builder().processCount(this.service.saveEngineerAttends(dtos, prtnrNo)).build();
+    }
+
+    @ApiOperation(value = "엔지니어 휴가상세 조회", notes = "조회 조건에 일치하는 엔지니어 휴가상세 목록을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+    })
+    @GetMapping("/vacations")
+    PagingResult<SearchVacationRes> getVacations(SearchVacationReq dto, PageInfo pageInfo) {
+        return service.getVacations(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "휴가상세 관리 목록 저장", notes = "CUD 변경 데이터를 List 형태로 받아 일괄 저장한다.")
+    @PostMapping("/vacations")
+    public SaveResponse saveVacations(
+        @RequestBody
+        @Valid
+        List<WogcPartnerEngineerDto.SaveReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder().processCount(this.service.saveVacations(dtos)).build();
+    }
+
+    @ApiOperation(value = "휴가상세 관리 목록 삭제", notes = "선택한 휴가상세 관리 목록을 일괄 삭제한다.")
+    @PutMapping("/vacations")
+    public SaveResponse removeVacations(
+        @RequestBody
+        @Valid
+        List<WogcPartnerEngineerDto.RemoveReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder().processCount(this.service.removeVacations(dtos)).build();
     }
 
     @ApiOperation(value = "서비스센터 조 관리 조회", notes = "조회 조건에 일치하는 서비스센터 조관리 목록을 페이징 조회한다.")
