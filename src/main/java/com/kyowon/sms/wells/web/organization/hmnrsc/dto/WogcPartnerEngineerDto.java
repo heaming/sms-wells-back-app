@@ -120,9 +120,7 @@ public class WogcPartnerEngineerDto {
         String dtaDlYn,
         String telNumber
     ) {
-        public FindJoeManagementRes {
-            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
-        }
+
     }
 
     /**
