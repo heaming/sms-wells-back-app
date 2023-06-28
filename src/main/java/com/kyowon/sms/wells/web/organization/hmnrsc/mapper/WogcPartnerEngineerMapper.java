@@ -4,8 +4,9 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.*;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -36,10 +37,10 @@ public interface WogcPartnerEngineerMapper {
     void updatePrtnrGrpCd(WogcPartnerEngineerDvo dvo);
 
     PagingResult<FindEngineerGradeRes> selectEngineerGrades(
-        WogcPartnerEngineerDto.FindEngineerGradeReq dto, PageInfo pageInfo
+        FindEngineerGradeReq dto, PageInfo pageInfo
     );
 
-    List<FindEngineerGradeRes> selectEngineerGrades(WogcPartnerEngineerDto.FindEngineerGradeReq dto);
+    List<FindEngineerGradeRes> selectEngineerGrades(FindEngineerGradeReq dto);
 
     int insertEgerGdRgst(WogcPartnerEngineerDvo dvo);
 

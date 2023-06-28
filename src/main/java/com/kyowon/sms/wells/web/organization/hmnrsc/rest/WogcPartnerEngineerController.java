@@ -74,7 +74,7 @@ public class WogcPartnerEngineerController {
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
-        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "vlDt", value = "적용기준일", paramType = "query", required = false),
 
@@ -89,7 +89,7 @@ public class WogcPartnerEngineerController {
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "wkGrpCd", value = "그룹", paramType = "query", required = false),
-        @ApiImplicitParam(name = "egerRsbCd", value = "직책", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "vlDt", value = "적용기준일", paramType = "query", required = false),
 
