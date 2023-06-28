@@ -2,7 +2,11 @@ package com.kyowon.sms.wells.web.customer.contact.service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +24,14 @@ import com.kyowon.sms.wells.web.customer.contact.converter.WcsaCustomerInterface
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerInfoReq;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerRes;
+import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo;
+import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementResultDvo;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaInterfaceResultDvo;
 import com.kyowon.sms.wells.web.customer.contact.mapper.WcsaCustomerMapper;
+import com.kyowon.sms.wells.web.customer.zcommon.constants.CsCustomerConst;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class WcsaCustomerInterfaceService {
     private final ZcsaCustomerInfoService zcsaCustomerInfoService;
+    private final MessageResourceService messageService;
     private final WcsaCustomerInterfaceConverter converter;
 
     private final WcsaCustomerMapper mapper;
@@ -272,5 +281,52 @@ public class WcsaCustomerInterfaceService {
             BizAssert.isTrue(resultCrp > 0, "MSG_ALT_SVE_ERR");
         }
         return 1;
+    }
+
+    @Transactional
+    public SaveCustomerAgreementRes saveCustomerAgreements(SaveCustomerAgreementReq dto) {
+
+        // 1. 고객동의 정보 설정
+        WcsaCustomerAgreementDvo agreeDvo = converter.mapSaveCustomerAgreementReqToWcsaCustomerAgreementDvo(dto);
+
+        // 2. 고객 유효성 체크
+        String isExistCustomer = mapper.selectCustomerExistYn(agreeDvo.getCstNo());
+        if (StringUtils.equals(Objects.toString(isExistCustomer, "N"), "N")) {  // 고객정보가 존재하지 않는 경우, return
+            WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(false, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_CST_INF_NOT_EXST"));
+            return converter.mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(resultDvo);
+        }
+
+        // 3. 기존 동의내역 조회
+        String preCstAgId = mapper.selectCustomerRecentAgreement(agreeDvo.getCstNo());
+
+        // 4. 고객동의내역 등록
+        // 4.1. 고객동의내역 Insert
+        mapper.insertCustomerAgreement(agreeDvo);
+
+        // 4.2. 고객동의내역상세 Insert
+        Map<String, String> agAtcDvCdMap =  agreeDvo.getAgAtcDvCdMap();
+        if (agAtcDvCdMap != null && !agAtcDvCdMap.isEmpty()) {
+            for (String agAtcDvCd : agAtcDvCdMap.keySet()) {
+                if (StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "Y") || StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "N")) {
+                    agreeDvo.setAgAtcDvCd(agAtcDvCd);
+                    agreeDvo.setAgYn(agAtcDvCdMap.get(agAtcDvCd));
+                    mapper.insertCustomerAgreementDetail(agreeDvo);
+                }
+            }
+        }
+
+        // 5. 기존 동의내역 만료처리 - 기존 동의내역이 존재하는 경우
+        if (StringUtils.isNotBlank(Objects.toString(preCstAgId, ""))) {
+            // 5.1. 고객동의내역 만료처리 Update
+            mapper.updateCustomerAgreementExpiration(preCstAgId);
+
+            // 5.2. 고객동의내역상세 만료처리 Update
+            mapper.updateCustomerAgreementDetailExpiration(preCstAgId);
+        }
+
+        // 6. 정상완료처리
+        WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(true, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_PRGS_OK"));
+        return converter.mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(resultDvo);
+
     }
 }
