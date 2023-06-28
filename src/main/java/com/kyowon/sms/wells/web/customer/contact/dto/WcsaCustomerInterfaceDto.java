@@ -1,7 +1,14 @@
 package com.kyowon.sms.wells.web.customer.contact.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.validation.constraints.NotBlank;
+
 import org.apache.commons.lang.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kyowon.sms.wells.web.customer.zcommon.constants.CsCustomerConst;
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
@@ -144,4 +151,52 @@ public class WcsaCustomerInterfaceDto {
         String RS_MSG
     ) {}
 
+    /**
+     * 고객 약관동의 정보 저장 Req
+     * @param wkDv
+     * @param cstNo
+     * @param agWdwalDtm
+     * @param prvCn
+     */
+    @ApiModel(value = "WcsaCustomerInterfaceDto-SaveCustomerAgreementReq")
+    public record SaveCustomerAgreementReq(
+        @NotBlank
+        @JsonProperty("WK_DV")
+        String wkDv,                        /* 작업구분 (01 : 약관동의변경, 02 : 회원탈퇴) */
+        @NotBlank
+        @JsonProperty("CST_NO")
+        String cstNo,                       /* 고객번호 */
+        @JsonProperty("AG_WDWAL_DTM")
+        String agWdwalDtm,                  /* 동의탈퇴일시 */
+        @NotBlank
+        @JsonProperty("PRV_CN")
+        String prvCn,                       /* 약관내용 */
+        Map<String, String> agAtcDvCdMap    /* 동의항목구분코드 */
+    ) {
+        public SaveCustomerAgreementReq {
+            String[] prvCnArray = prvCn.trim().split(CsCustomerConst.IF_PRV_CN_SPLIT_CHAR);
+            if (prvCnArray.length == 3) {
+                agAtcDvCdMap = new HashMap<>();
+                agAtcDvCdMap.put("101", prvCnArray[0]); // 101 : 이용약관
+                agAtcDvCdMap.put("102", prvCnArray[1]); // 102 : 개인정보 수집 및 이용 동의
+                agAtcDvCdMap.put("103", prvCnArray[2]); // 103 : 마케팅 목적 처리 동의서
+            }
+        }
+    }
+
+    /**
+     * 고객 약관동의 정보 저장 Res
+     * @param rsStat
+     * @param rsMsg
+     * @param rsCd
+     */
+    @ApiModel(value = "WcsaCustomerInterfaceDto-SaveCustomerAgreementRes")
+    public record SaveCustomerAgreementRes(
+        @JsonProperty("RS_STAT")
+        Boolean rsStat,                     /* 결과상태 (true/false) */
+        @JsonProperty("RS_MSG")
+        String rsMsg,                       /* 결과메세지 (에러의 경우만 에러 메시지) */
+        @JsonProperty("RS_CD")
+        String rsCd                         /* 결과코드 (0000 : 정상, 9999 : 시스템 오류) */
+    ) {}
 }

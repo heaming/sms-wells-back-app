@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @InterfaceController
-@Api(tags = "[WCSA] 고객센터 WELLS 고객정보 조회")
+@Api(tags = "[WCSA] 고객 인터페이스 관리")
 @RequestMapping(CstCommonConstant.INTERFACE_URL_V1 + "/customers")
 @RequiredArgsConstructor
 @Validated
@@ -55,4 +55,15 @@ public class WcsaCustomerInterfaceController {
         return resWrapper;
     }
 
+    @ApiOperation(value = "wells 사업본부 동의정보 등록/변경(IF ID:EAI_WCUI1009)", notes = "wells 사업본부 채널별 고객 동의정보 수신 데이터를 사업본부별 고객동의정보 반영한다.")
+    @PostMapping("/agree-provisions")
+    public EaiWrapper<WcsaCustomerInterfaceDto.SaveCustomerAgreementRes> saveCustomerAgreements(
+        @Valid
+        @RequestBody
+        EaiWrapper<WcsaCustomerInterfaceDto.SaveCustomerAgreementReq> reqWrapper
+    ) {
+        EaiWrapper<WcsaCustomerInterfaceDto.SaveCustomerAgreementRes> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(wcsaCustomerInterfaceService.saveCustomerAgreements(reqWrapper.getBody()));
+        return resWrapper;
+    }
 }
