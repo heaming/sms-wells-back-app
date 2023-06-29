@@ -291,7 +291,7 @@ public class WctaContractRegStep5Service {
             CtTxinvPdDvCd ctTxinvPdDvCd = CtTxinvPdDvCd.of(sellTpCd).orElse(null);
             if (ctTxinvPdDvCd != null && "Y".equals(dtlDvo.getTxinvPblOjYn())) {
                 taxInvoiceInquiryDvo.setCntrSn(dtlDvo.getCntrSn());
-                taxInvoiceInquiryDvo.setTxinvPblDvCd(ctTxinvPdDvCd.getCode());
+                taxInvoiceInquiryDvo.setTxinvPdDvCd(ctTxinvPdDvCd.getCode());
                 taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
                 taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
                 taxInvoiceInquiryDvo.setMexnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getMexnoEncr()));
