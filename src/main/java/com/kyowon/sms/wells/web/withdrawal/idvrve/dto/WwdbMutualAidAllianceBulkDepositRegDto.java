@@ -105,6 +105,7 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
     }
 
     public record SearchIntegrationDepositRes(
+        String itgDpNo,
         String dprNm, /*입금자명*/
         String cstNo, /*고객번호*/
         String fnitCd, /*금융기관코드*/
@@ -117,7 +118,8 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
         String crdcdExpdtYm, /*신용카드유효기간년월*/
         String crdcdIstmMcn, /*신용카드할부개월수*/
         String dpDtm, /*입금일자*/
-        String dpAmt /*입금금액*/
+        String dpAmt, /*입금금액*/
+        String dpBlam /*입금잔액*/
     ) {
 
     }

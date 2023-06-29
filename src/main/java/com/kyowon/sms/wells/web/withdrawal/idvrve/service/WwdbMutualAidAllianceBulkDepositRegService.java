@@ -254,11 +254,14 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         int processCount = 0;
 
         //통합입금 조회
-        com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto.SearchRes selectIntegrationDeposit = depositMapper
-            .selectIntegrationDeposit(dto);
+        //        com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto.SearchRes selectIntegrationDeposit = depositMapper
+        //            .selectIntegrationDeposit(dto);
+
+        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
+            .selectIntegrationDepositInfo(dto.itgDpNo());
 
         //통합입금 조회 결과가 없을경우
-        BizAssert.hasText(selectIntegrationDeposit.itgDpNo(), "MSG_ALT_ITG_DP_DTA_NOT_EXST"); // ("통합입금 데이터가 존재하지 않습니다. [통합입금번호 오류]");
+        BizAssert.hasText(searchIntegrationDepositRes.itgDpNo(), "MSG_ALT_ITG_DP_DTA_NOT_EXST"); // ("통합입금 데이터가 존재하지 않습니다. [통합입금번호 오류]");
 
         //오늘 날짜
         String sysDate = DateUtil.getNowString();
@@ -307,7 +310,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             throw new BizException("MSG_ALT_MUTU_DP_CRT_LSTMM_PSB"); //상조입금생성은 전월만 가능합니다.
         }
 
-        long dpBlam = Long.parseLong(selectIntegrationDeposit.dpBlam());
+        long dpBlam = Long.parseLong(searchIntegrationDepositRes.dpBlam());
         long sumAmt = selectMutualAidAllianceBulkDepositRegs.get(0).sumAmt();
 
         BizAssert.isFalse(dpBlam == 0, "MSG_ALT_CPRCNF_NOT_DP_BLAM"); //대사 할 입금잔액이 없습니다. 입금잔액을 확인하세요.
@@ -317,8 +320,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
 
         /*통합입금번호로 해당 데이터 조회*/
-        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
-            .selectIntegrationDepositInfo(dto.itgDpNo());
+        //        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
+        //            .selectIntegrationDepositInfo(dto.itgDpNo());
 
         /*수납요청기본 인설트 데이터 입력*/
         ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
