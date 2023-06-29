@@ -31,8 +31,9 @@
              , T1.PD_USWY_CD
              , T4.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
              , NVL(T5.USE_QTY, 1) AS USE_QTY /*사용수량*/
-             , T9.WARE_NO    /*창고번호 - 일단 파주물류로 고정*/
+             , T9.WARE_NO    /*창고번호*/
              , T9.WARE_NM    /*창고명*/
+             , T9.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
                /*작업결과용*/
              , NVL(T4.AS_LCT_CD, T6.AS_LCT_CD) AS AS_LCT_CD    /*AS위치코드*/
              , NVL(T4.AS_PHN_CD, T6.AS_PHN_CD) AS AS_PHN_CD    /*AS현상코드*/
@@ -218,9 +219,10 @@
           , NVL(T1.OG_TP_CD, T1.ICHR_OG_TP_CD) AS OG_TP_CD
           , NVL(T1.PRTNR_NO, T1.ICHR_PRTNR_NO) AS PRTNR_NO
           , T6.PRTNR_KNM
-          , TO_CHAR(TO_DATE(T1.VST_FSH_DT ),'YYYY-MM') AS VST_FSH_DT  /*방문완료일자(출고확정일)*/
+          , TO_CHAR(TO_DATE(T1.VST_FSH_DT ),'YYYY-MM-DD') AS VST_FSH_DT  /*방문완료일자(출고확정일)*/
           , T1.USE_QTY               /*사용수량*/
-          , T1.WARE_NO  AS WK_WARE_NO /*일단 파주물류로 고정*/
+          , T1.WARE_NO  AS WK_WARE_NO
+          , T1.WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
           /*작업결과용*/
           , T1.AS_LCT_CD                 /*AS위치코드*/
           , T1.AS_PHN_CD                 /*AS현상코드*/
@@ -253,8 +255,8 @@
       INNER JOIN TEMP4 T6  /*조직정보*/
        ON T6.PRTNR_NO = NVL(T1.PRTNR_NO, T1.ICHR_PRTNR_NO)
      WHERE 1=1
-       /* 작업대기 */
-     <if test="@MybatisUtils@equals(findGb, '2')">
+     <if test="@MybatisUtils@equals(findGb, '2') and @MybatisUtils@isNotEmpty(selCnt)">
+       /* 작업대기, 조회제한 건수 존재시 */
        AND CROW <![CDATA[ <= ]]> #{selCnt}
      </if>
     </select>
@@ -319,7 +321,7 @@
      <select id="selectPcsvIvcPrntSn" resultType="String">
          SELECT NVL((SELECT MAX(T1.IVC_PRNT_SN) + 1
          FROM TB_SVPD_CST_SV_WK_RS_IZ T1
-         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
           ON  T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
           AND T2.DTA_DL_YN = 'N'
          WHERE T1.DTA_DL_YN = 'N'

@@ -25,7 +25,7 @@ public class WfebMutualAidFeeMgtDto {
         String prtnrKnm,
         String cdCntn,
         String brmgrPrtnrNo,
-        String welsCntrNo,
+        String cntrNo,
         String pdNm,
         String cntrPdStrtdt,
         String lifCntrNo,
@@ -74,7 +74,7 @@ public class WfebMutualAidFeeMgtDto {
     ) {}
     public record AidOrder(
         String alncNm,
-        String welsCntrNo,
+        String cntrNo,
         String lifCntrNo,
         String cstKnm,
         String ogCd,

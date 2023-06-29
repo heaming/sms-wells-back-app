@@ -3,6 +3,9 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import com.sds.sflex.system.config.constant.CommConst;
+import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -77,6 +80,72 @@ public class WogcPartnerEngineerService {
         return processCount;
     }
 
+    public PagingResult<WogcPartnerEngineerDto.SearchVacationRes> getVacations(
+        WogcPartnerEngineerDto.SearchVacationReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectVacations(dto, pageInfo);
+    }
+
+    /**
+     * 휴가상세 관리 수정, 저장
+     *
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int saveVacations(List<WogcPartnerEngineerDto.SaveReq> dtos) {
+        int processCount = 0;
+
+        for (WogcPartnerEngineerDto.SaveReq dto : dtos) {
+            WogcPartnerEngineerDvo vacations = this.wogcPartnerEngineerConverter
+                .mapSaveReqToWogcPartnerEngineerDvo(dto);
+
+            switch (dto.rowState()) {
+                case CommConst.ROW_STATE_CREATED -> {
+                    processCount = this.mapper.selectVacationsCnt(dto);
+                    if (processCount != 0) {
+                        throw new BizException("MSG_ALT_VCN_INFO_EX");
+                    } else {
+                        processCount += this.mapper.insertVacation(vacations);
+                    }
+
+                }
+                case CommConst.ROW_STATE_UPDATED -> {
+                    processCount = this.mapper.selectVacationsCnt(dto);
+                    if (processCount != 0) {
+                        throw new BizException("MSG_ALT_VCN_INFO_EX");
+                    } else {
+                        processCount += this.mapper.updateVacation(vacations);
+                    }
+
+                }
+                default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
+            }
+        }
+        return processCount;
+    }
+
+    /**
+     * 휴가상세 관리 목록 삭제
+     *
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int removeVacations(List<WogcPartnerEngineerDto.RemoveReq> dtos) {
+        int processCount = 0;
+
+        for (WogcPartnerEngineerDto.RemoveReq dto : dtos) {
+            WogcPartnerEngineerDvo vacations = this.wogcPartnerEngineerConverter
+                .mapRemoveReqToWogcPartnerEngineerDvo(dto);
+
+            processCount += this.mapper.deleteVacation(vacations);
+
+        }
+
+        return processCount;
+    }
+
     public PagingResult<FindJoeManagementRes> getJoeManagementPages(
         FindJoeManagementReq dto, PageInfo pageInfo
     ) {
@@ -96,10 +165,9 @@ public class WogcPartnerEngineerService {
                     );
                 }
             );
-
-            results = this.wogcPartnerEngineerConverter.mapAllWogcPartnerEngineerDvoToFindJoeManagementRes(dvos);
-            results.setPageInfo(newPage);
         }
+        results = this.wogcPartnerEngineerConverter.mapAllWogcPartnerEngineerDvoToFindJoeManagementRes(dvos);
+        results.setPageInfo(newPage);
         return results;
     }
 
@@ -108,6 +176,7 @@ public class WogcPartnerEngineerService {
     ) {
         List<WogcPartnerEngineerDto.FindJoeManagementRes> result = null;
         List<WogcPartnerEngineerDvo> dvos = this.mapper.selectJoeManagementForExcelDownload(dto);
+
         /*
         for (WogcPartnerEngineerDvo dvo : dvos) {
             String cralLocaraTno = StringUtils.isNotEmpty(dvo.getCralLocaraTno()) ? dvo.getCralLocaraTno() : "";
@@ -115,7 +184,7 @@ public class WogcPartnerEngineerService {
             String cralIdvTno = StringUtils.isNotEmpty(dvo.getCralIdvTno()) ? dvo.getCralIdvTno() : "";
             dvo.setCralLocaraTno(cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno);
         }
-*/
+        */
 
         if (CollectionUtils.isNotEmpty(dvos)) {
             dvos.forEach(
@@ -172,6 +241,7 @@ public class WogcPartnerEngineerService {
         for (SaveEngineerGradeReq dto : dtos) {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(dto);
+            dvo.setDtaDlYn("N");
             processCnt += this.mapper.insertEgerGdRgst(dvo);
             /* 배치에서 해야 된다고
             if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {

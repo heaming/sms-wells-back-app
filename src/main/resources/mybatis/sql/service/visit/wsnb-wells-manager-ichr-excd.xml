@@ -1,0 +1,157 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsManagerIchrExcdMapper">
+
+    <select id="selectWellsManagerInchargeExcds" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsManagerIchrExcdDto$SearchRes">
+		SELECT T1.BASE_YM
+			 , T1.DGR1_LEVL_OG_CD						-- 총괄단
+ 			 , T12.OG_CD						    	-- 지역단
+ 			 , T12.OG_TP_CD
+ 			 , CASE T12.OG_TP_CD
+ 			 	WHEN 'W02' THEN '매니저'
+ 			 	WHEN 'W03' THEN '엔지니어'
+ 			 	WHEN 'W06' THEN '엔지니어'
+ 			 	ELSE '-'
+ 			   END AS OG_TP						-- 우편번호 담당자
+ 			 , T3.CNTR_NO
+ 			 , T3.CNTR_SN
+ 			 , T3.CNTR_NO || '-' || T3.CNTR_SN AS CNTR	-- 계약번호
+ 			 , T4.RCGVP_KNM								-- 고객명
+ 			 , T6.CST_GD_CD								-- 고객등급
+			 , T14.SVPD_ITEM_GR_NM                      -- 상품그룹
+			 , T14.SVPD_NM_ABBR1                        -- 상품명
+ 			 , T7.SELL_TP_CD							-- 유형
+ 			 , T3.VST_NMN_N								-- 차월
+ 			 , T3.IST_NMN_N								-- 설치개월수
+ 			 , T9.VST_DV_CD								-- 구분
+ 			 , T8.VST_PRGS_STAT_CD						-- 진행상태
+ 			 , T3.SV_HSHD_NO							-- 가구코드
+ 			 , ( SELECT COUNT(1)
+ 			 	   FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T01
+ 			 	  WHERE T01.MNGT_YM = T3.MNGT_YM
+ 			 	  	AND T01.SV_HSHD_NO = T3.SV_HSHD_NO
+ 			   ) AS SV_HSHD_NO_CNT						-- 가구수
+ 			 , T10.NEW_ADR_ZIP							-- 우편번호
+			 , T4.LOCARA_TNO							-- 설치전화(1)
+			 , T4.EXNO_ENCR								-- 설치전화(2)
+			 , T4.IDV_TNO								-- 설치전화(3)
+			 , T4.CRAL_LOCARA_TNO						-- 휴대전화(1)
+			 , T4.MEXNO_ENCR							-- 휴대전화(2)
+			 , T4.CRAL_IDV_TNO							-- 휴대전화(3)
+			 , T10.RNADR || ' ' || T10.RDADR AS ADR		-- 주소
+			 , T11.CTPV_NM || ' ' || T11.CTCTY_NM || ' ' ||  T11.EMD_NM AS EMD	-- 읍면동
+ 			 , T1.DGR2_LEVL_OG_CD						-- 지역단
+ 			 , T1.DGR3_LEVL_OG_CD						-- 지점
+ 			 , T12.PRTNR_KNM							-- 담당자
+ 			 , T8.MNGER_RGLVL_DV_CD						-- 급지
+ 			 , T9.CLSF_CD_SRN_PRNT_CN					-- 업무유형
+ 			 , CASE T9.EGER_WK_YN
+ 			 	WHEN 'Y' THEN '강제배정'
+ 			 	ELSE ''
+ 			   END AS EGER_WK							-- 강제배정
+ 			 , T13.FIX									-- 고정
+ 			 , T13.CH_RSON_CN							-- 고정등록 사유
+		  FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T3
+    	 INNER JOIN TB_OGBS_MM_PRTNR_IZ T12
+    	 	ON T12.OG_TP_CD = T3.MNGT_PRTNR_OG_TP_CD
+    	   AND T12.PRTNR_NO = T3.MNGT_PRTNR_NO
+    	   AND T12.BASE_YM = T3.MNGT_YM
+	LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T1
+		 	ON T1.OG_ID = T12.OG_ID
+		   AND T1.BASE_YM = T12.BASE_YM
+		   AND T1.DTA_DL_YN = 'N'
+		 INNER JOIN (
+				SELECT DISTINCT T01.DTL_CNTR_NO
+					 , T01.DTL_CNTR_SN
+					 , T02.ADR_ID
+					 , T02.RCGVP_KNM
+					 , T02.LOCARA_TNO
+					 , T02.EXNO_ENCR
+					 , T02.IDV_TNO
+					 , T02.CRAL_LOCARA_TNO
+					 , T02.MEXNO_ENCR
+					 , T02.CRAL_IDV_TNO
+				  FROM TB_SSCT_CNTR_ADR_REL T01
+				     , TB_SSCT_CNTR_ADRPC_BAS T02
+				 WHERE T01.CNTR_ADRPC_ID = T02.CNTR_ADRPC_ID
+				   AND T01.ADRPC_TP_CD = '3'
+				   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T01.VL_STRT_DTM AND T01.VL_END_DTM
+				   AND T01.DTA_DL_YN = 'N'
+				   AND T02.DTA_DL_YN = 'N'
+			   ) T4
+			ON T4.DTL_CNTR_NO = T3.CNTR_NO
+		   AND T4.DTL_CNTR_SN = T3.CNTR_SN
+		 INNER JOIN TB_SSCT_CNTR_BAS T5
+		    ON T5.CNTR_NO = T3.CNTR_NO
+		   AND T5.DTA_DL_YN = 'N'
+		 INNER JOIN TB_CUBS_CST_DTL T6
+			ON T6.CST_NO = T5.CNTR_CST_NO
+		   AND T6.DTA_DL_YN = 'N'
+		 INNER JOIN TB_SSCT_CNTR_DTL T7
+			ON T7.CNTR_NO = T3.CNTR_NO
+		   AND T7.CNTR_SN = T3.CNTR_SN
+		   AND T7.DTA_DL_YN = 'N'
+	LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T8
+			ON T8.CNTR_NO = T3.CNTR_NO
+		   AND T8.CNTR_SN = T3.CNTR_SN
+		   AND T8.ASN_OJ_YM = T3.MNGT_YM
+		   AND T8.DTA_DL_YN = 'N'
+	LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T9
+            ON T9.CST_SV_ASN_NO = T8.CST_SV_ASN_NO
+           AND T9.ASN_OJ_YM = T8.ASN_OJ_YM
+           AND T9.CNTR_NO = T8.CNTR_NO
+           AND T9.CNTR_SN = T8.CNTR_SN
+           AND T9.SV_BIZ_MCLSF_CD = T8.SV_BIZ_MCLSF_CD
+           AND T9.SV_BIZ_DCLSF_CD = T8.SV_BIZ_DCLSF_CD
+           AND T9.WK_SN = T8.WK_SN
+           AND T9.DTA_DL_YN = 'N'
+		 INNER JOIN TB_GBCO_ADR_BAS T10
+    		ON T10.ADR_ID = T4.ADR_ID
+    	   AND T10.DTA_DL_YN = 'N'
+		 INNER JOIN TB_GBCO_RNADR_BAS T11
+    		ON T11.NEW_ADR_ZIP = T10.NEW_ADR_ZIP
+    	   AND T11.DTA_DL_YN = 'N'
+	LEFT OUTER JOIN (
+			SELECT '고정' AS FIX
+			     , T01.CH_RSON_CN
+			     , T01.CNTR_NO
+			     , T01.CNTR_SN
+			  FROM TB_SVPD_CNTR_FXN_PRTNR_IZ T01
+			 WHERE T01.DTA_DL_YN = 'N'
+			   AND T01.CH_SN = (
+			   				SELECT MAX(T001.CH_SN)
+			         		  FROM TB_SVPD_CNTR_FXN_PRTNR_IZ T001
+			      			 WHERE T001.CNTR_NO = T01.CNTR_NO
+			          		   AND T001.CNTR_SN = T01.CNTR_SN
+			          			)
+   			   ) T13
+   			ON T13.CNTR_NO = T3.CNTR_NO
+   		   AND T13.CNTR_SN = T3.CNTR_SN
+    LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T14
+            ON T14.SVPD_PD_CD = T3.PDCT_PD_CD
+         WHERE T3.MNGT_YM = #{mngtYm}
+        <if test="@MybatisUtils@isNotEmpty(fromAdrZip)">
+           AND T10.NEW_ADR_ZIP >= #{fromAdrZip}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(toAdrZip)">
+           AND T10.NEW_ADR_ZIP <![CDATA[ <= ]]> #{toAdrZip}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+           AND T1.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+           AND T1.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(accountDivCd)'>
+           AND T8.VST_PRGS_STAT_CD IN ('00', '20', '73')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(exceptWellsFarmYn) and @MybatisUtils@equals(exceptWellsFarmYn, 'Y')">
+           AND T14.SVPD_ITEM_GR NOT IN ('11' , '92')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(exceptEgerWkYn) and @MybatisUtils@equals(exceptEgerWkYn, 'Y')">
+           AND T9.EGER_WK_YN != 'Y'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(exceptFixYn) and @MybatisUtils@equals(exceptFixYn, 'Y')">
+           AND T13.FIX IS NULL
+        </if>
+    </select>
+</mapper>

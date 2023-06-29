@@ -2,10 +2,12 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.*;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -27,6 +29,8 @@ public interface WogcPartnerEngineerMapper {
 
     int updateEngineer(WogcPartnerEngineerDvo engineer);
 
+    PagingResult<SearchVacationRes> selectVacations(SearchVacationReq dto, PageInfo pageInfo);
+
     PagingResult<WogcPartnerEngineerDvo> selectJoeManagements(FindJoeManagementReq dto, PageInfo pageInfo);
 
     List<WogcPartnerEngineerDvo> selectJoeManagementForExcelDownload(FindJoeManagementReq dto);
@@ -36,10 +40,10 @@ public interface WogcPartnerEngineerMapper {
     void updatePrtnrGrpCd(WogcPartnerEngineerDvo dvo);
 
     PagingResult<FindEngineerGradeRes> selectEngineerGrades(
-        WogcPartnerEngineerDto.FindEngineerGradeReq dto, PageInfo pageInfo
+        FindEngineerGradeReq dto, PageInfo pageInfo
     );
 
-    List<FindEngineerGradeRes> selectEngineerGrades(WogcPartnerEngineerDto.FindEngineerGradeReq dto);
+    List<FindEngineerGradeRes> selectEngineerGrades(FindEngineerGradeReq dto);
 
     int insertEgerGdRgst(WogcPartnerEngineerDvo dvo);
 
@@ -54,4 +58,12 @@ public interface WogcPartnerEngineerMapper {
     void insertPrtnrHist(WogcPartnerEngineerDvo dvo);
 
     void updatePrtnrBusiness(WogcPartnerEngineerDvo dvo);
+
+    int insertVacation(WogcPartnerEngineerDvo vacation);
+
+    int updateVacation(WogcPartnerEngineerDvo vacation);
+
+    int deleteVacation(WogcPartnerEngineerDvo vacation);
+
+    int selectVacationsCnt(WogcPartnerEngineerDto.SaveReq dto);
 }

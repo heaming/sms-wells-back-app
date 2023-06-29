@@ -43,8 +43,8 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
                 saveDvo.setSlOcAcuAmt(item.akmamt());
                 saveDvo.setDpAcuAmt(item.akiamt());
                 saveDvo.setFlpymTn(item.akiseq());
-                saveDvo.setWelsCntrNo(item.itm04());
-                saveDvo.setWelsCntrSn(item.itm05());
+                saveDvo.setCntrNo(item.itm04());
+                saveDvo.setCntrSn(item.itm05());
                 saveDvo.setFeeDsbYm(item.akgdym());
                 saveDvo.setFeeRedfYm(item.akhdym());
                 saveDvo.setCnfmYn(item.aklock());

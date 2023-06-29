@@ -197,8 +197,6 @@
     </sql>
     <sql id="insertSvstSvWkOstrIzCols">
           CNTR_NO          /* ST163_CSMR_YR ,ST163_CSMR_CD */
-          /* ST163_CSMR_SEQ 컬럼없음 */
-          /* ST163_SEQ 컬럼없음 */
         , WK_OSTR_SN /* ST163_SER */
         , ITM_PD_CD  /* ST163_ITEM_CD */
         , SV_BIZ_HCLSF_CD                 /* ST163_WRK_TYP */
@@ -408,7 +406,7 @@
             , #{pdCd}                                          /* VS106_GDS_CD  */
             , NVL('1', '1')                                    /* VS106_CHAG_GB */
             , #{urgtYn}                                        /* VS106_UGNT_YN */
-            , #{rpbLocaraCd}                                   /* VS106_VST_AR */
+            , ''                                               /* VS106_VST_AR */
             , 'N'                                              /* VS106_RET_YN */
             , #{prtnrNo}                                       /* VS106_EMP_ID */
             , TO_CHAR(SYSDATE, 'YYYYMMDD')                     /* VS106_VST_COMP_DT */
@@ -455,7 +453,7 @@
             , FNL_MDFC_PRG_ID = #{session.pageId}
             , FNL_MDFC_DEPT_ID = #{session.departmentId}
             WHERE CNTR_NO = #{cntrNo};
-
+            <!--
             /*23.03.14 이경호 파트장님요청, 렌탈건은 웰컴 BS 생성 */
             /*23.06.03 백현아 파트장님요청, 일시불 판매코드 4572건은 무조건 웰컴 BS 생성 */
 
@@ -529,7 +527,7 @@
                   RAISE_APPLICATION_ERROR(-20003, OUT_MSG );
                 END IF;
             END IF;
-
+            -->
             RAISE_APPLICATION_ERROR(-20003, '잘못되었음 출고처리!!!');
         END;
     </insert>
@@ -606,24 +604,27 @@
                  AND ITM_PD_CD = #{pdCd};
             END IF;
 
+            IF ( V_ITM_STOC_IZ_QTY <![CDATA[ < ]]>  0) THEN
+                RAISE_APPLICATION_ERROR(-20003, '자재 수량이 부족합니다. 보유 자재를 확인해주세요!' );
+            END IF;
+
             /* 작업순번 조회 */
-             SELECT COUNT(CST_SV_ASN_NO)      /* VS106_SEQ 없음 임시로 대체  */
+             SELECT COUNT(CST_SV_ASN_NO)
               INTO V_WK_RS_IZ_SEQ
               FROM TB_SVPD_CST_SV_WK_RS_IZ
-             WHERE 1=1
-               AND CST_SV_ASN_NO = #{cstSvAsnNo}
-               ;
+             WHERE CST_SV_ASN_NO = #{cstSvAsnNo};
+
             /* 중복 제거를 위해서 카운팅 */
               SELECT NVL(COUNT(*),0) AS  OSTR_IZ_COUNT
               INTO V_WK_OSTR_IZ_COUNT
               FROM TB_SVST_SV_WK_OSTR_IZ
               WHERE CNTR_NO = #{cntrNo}
-              /* AND ST163_SEQ = V_WK_RS_IZ_SEQ   ST163_SEQ 없음 */
-              AND ITM_PD_CD = #{pdCd}
-              AND REFRI_DV_CD = '1';
+               AND CNTR_SN = #{cntrSn}
+               AND ITM_PD_CD = #{pdCd}
+               AND REFRI_DV_CD = '1';
 
-            IF ( V_ITM_STOC_IZ_QTY <![CDATA[ < ]]>  0) THEN
-                RAISE_APPLICATION_ERROR(-20003, '자재 수량이 부족합니다. 보유 자재를 확인해주세요!' );
+            IF ( V_WK_OSTR_IZ_COUNT <![CDATA[ > ]]>  0) THEN
+                RAISE_APPLICATION_ERROR(-20003, '이미 등록된 자재입니다. 사용 자재를 다시 확인 해주세요.' );
             ELSE
 
                 /* 사용 내역을 저장한다. */
@@ -634,13 +635,10 @@
                 VALUES
                 (
                 #{cntrNo} /* ST163_CSMR_YR ,ST163_CSMR_CD */
-                /* ST163_CSMR_SEQ 없음 */
-                /* V_WK_RS_IZ_SEQ: ST163_SEQ 컬럼없음 */
                 ,(
-                    SELECT LPAD(NVL(MAX(WK_OSTR_SN),0)+1,3,'0')
+                    SELECT NVL(MAX(WK_OSTR_SN),0)+1
                     FROM TB_SVST_SV_WK_OSTR_IZ
                     WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
-                /* AND ST163_SEQ = V_WK_RS_IZ_SEQ  ST163_SER : ST163_SEQ 컬럼없음 */
                 )
                 , #{pdCd} /* ST163_ITEM_CD */
                 , #{svBizHclsfCd} /* ST163_WRK_TYP */
@@ -755,7 +753,7 @@
           , #{pdCd}                                 /* VS106_GDS_CD  */
           , NVL('1', '1')                           /* VS106_CHAG_GB */
           , #{urgtYn}                               /* VS106_UGNT_YN */
-          , #{rpbLocaraCd}                          /* VS106_VST_AR */
+          , ''                                      /* VS106_VST_AR */
           , 'N'                                     /* VS106_RET_YN */
           , #{prtnrNo}                              /* VS106_EMP_ID */
           , TO_CHAR(SYSDATE, 'YYYYMMDD')            /* VS106_VST_COMP_DT */
@@ -867,7 +865,7 @@
             , #{pdCd}                                    /* VS106_GDS_CD  */
             , NVL('1', '1')                              /* VS106_CHAG_GB */
             , #{urgtYn}                                  /* VS106_UGNT_YN */
-            , #{rpbLocaraCd}                             /* VS106_VST_AR */
+            , ''                                         /* VS106_VST_AR */
             , 'N'                                        /* VS106_RET_YN */
             , #{prtnrNo}                                 /* VS106_EMP_ID */
             , TO_CHAR(SYSDATE, 'YYYYMMDD')               /* VS106_VST_COMP_DT */

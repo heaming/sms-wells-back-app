@@ -16,7 +16,8 @@ public class WsnaAssignExcludeItemDto {
     public record SearchReq(
         String asnExcdDvCd,
         String itmKndCd,
-        String wareNo
+        String wareNo,
+        String baseYm
     ) {}
 
     @ApiModel(value = "WsnaAssignExcludeItemDto-SearchRes")
@@ -33,6 +34,11 @@ public class WsnaAssignExcludeItemDto {
         String knd
     ) {}
 
+    @ApiModel(value = "WsnaAssignExcludeItemDto-WareRes")
+    public record WareRes(
+      String codeId,
+      String codeName
+    ){}
     @ApiModel(value = "WsnaAssignExcludeItemDto-SaveReq")
     public record SaveReq(
         String asnExcdDvCd,

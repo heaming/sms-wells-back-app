@@ -367,6 +367,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             // 수납요청상세 데이터 생성
             processCount += zwdzWithdrawalService.createReceiveAskDetail(zwdzWithdrawalReceiveAskDvo);
         }
+        //수납요청상세 이력 생성
+        processCount += zwdzWithdrawalService.createReceiveAskDetailHistory(zwdzWithdrawalReceiveAskDvo);
 
         //수납기본 인설트 데이터 입력이
         ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = new ZwdzWithdrawalReceiveDvo();
@@ -410,7 +412,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             depositCprDvo.setDpCprcnfCnfmYn("Y"); //DP_CPRCNF_CNFM_YN	입금대사확정여부
             depositCprDvo.setDpCprcnfCnfmDtm(sysDate); //DP_CPRCNF_CNFM_DTM	입금대사확정일시
             depositCprDvo.setDpCprcnfAmt(searchRes.amt()); //DP_CPRCNF_AMT	입금대사금액
-            //            depositCprDvo.setDpCprcnfProcsAmt(); //DP_CPRCNF_PROCS_AMT	입금대사처리금액
+            depositCprDvo.setDpCprcnfProcsAmt(searchRes.amt()); //DP_CPRCNF_PROCS_AMT	입금대사처리금액
             //            depositCprDvo.setDpCprcnfBlam(); //DP_CPRCNF_BLAM	입금대사잔액
             depositCprDvo.setDpCprcnfDstApyYn("N");////DP_CPRCNF_DST_APY_YN	입금대사배분적용여부
             depositCprDvo.setItgDpNo(dto.itgDpNo()); //ITG_DP_NO	통합입금번호

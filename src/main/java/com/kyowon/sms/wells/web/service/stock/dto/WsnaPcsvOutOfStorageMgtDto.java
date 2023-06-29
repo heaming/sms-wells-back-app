@@ -125,7 +125,9 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String asPhnCd, //AS현상코드 (작업결과용)
 
-        String asCausCd //AS원인코드 (작업결과용)
+        String asCausCd, //AS원인코드 (작업결과용)
+
+        String wareMngtPrtnrNo //창고관리파트너번호
     ) {
         public SearchRes {
             exnoEncr = DbEncUtil.dec(exnoEncr);
@@ -189,6 +191,8 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String useQty,
 
         String wkWareNo,
+
+        String wareMngtPrtnrNo,
 
         String siteAwSvTpCd,
 

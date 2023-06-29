@@ -24,8 +24,8 @@ public class WfeaLifeSaleCancelFeenterfaceDvo {
     private int slOcAcuAmt; /* 매출발생누적금액 */
     private int dpAcuAmt; /* 입금누적금액 */
     private int flpymTn; /* 완납회차 */
-    private String welsCntrNo; /* 웰스계약번호 */
-    private String welsCntrSn; /* 웰스계약일련번호 */
+    private String cntrNo; /* 계약번호 */
+    private String cntrSn; /* 계약일련번호 */
     private String feeDsbYm; /* 수수료지급년월 */
     private String feeRedfYm; /* 수수료되물림년월 */
     private String cnfmYn; /* 확정여부 */
