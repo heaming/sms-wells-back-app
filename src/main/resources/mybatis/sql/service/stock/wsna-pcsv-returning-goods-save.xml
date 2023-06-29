@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvReturningGoodsSaveMapper">
+    <insert id="savePcsvReturningGoods" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo">
+        DECLARE
+            BEGIN
+                /* 고객서비스AS설치배정내역 업데이트 */
+                UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ                               /* 고객서비스AS설치배정내역 */
+                   SET WK_PRGS_STAT_CD = #{wkPrgsStatCd}                         /* 작업진행상태코드 */
+                     , DTM_CH_RSON_CD = #{dtmChRsonCd}                           /* 일시변경사유코드 - 임시 개봉여부 사용 */
+                     , DTM_CH_RSON_DTL_CN = #{sppProcsBzsNm}||'/'||#{rtngdNm}    /* 일시변경사유상세내용 - 임시 택배사 */
+                     , WK_CAN_MO_CN = #{sppIvcNo}                                /* 작업취소메모내용 - 임시 송장번호 */
+                     , ARV_DT = #{arvDt}                                         /* 도착일자 */
+                     , ARV_HH = TO_CHAR(SYSDATE,'HH24MISS')                      /* 도착시간 */
+                     <include refid="COMMON.updateSystemField"/>
+                 WHERE 1=1
+                   AND CST_SV_ASN_NO = #{cstSvAsnNo}                             /* 고객서비스배정번호 */
+                   AND CNTR_SN = #{cntrSn}
+                   ;
+            END;
+    </insert>
+    <insert id="savePcsvReturningGoodsCancel" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo">
+        DECLARE
+            V_WK_RS_IZ_COUNT INT;
+
+            BEGIN
+                /* 동일 키값으로 작업결과가 저장되었는지 체크한다. */
+                SELECT COUNT(*) AS WK_RS_IZ_COUNT
+                  INTO V_WK_RS_IZ_COUNT
+                  FROM TB_SVPD_CST_SV_WK_RS_IZ
+                 WHERE 1=1
+                  AND CST_SV_ASN_NO = #{cstSvAsnNo}     /* 고객서비스배정번호 */
+                  AND CNTR_SN = #{cntrSn}
+                  ;
+
+                /* 완료건 완료 처리 불가 */
+                IF ( V_WK_RS_IZ_COUNT <![CDATA[>]]> 0) THEN
+                    RAISE_APPLICATION_ERROR(-20003, '[이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요.]');
+                END IF;
+
+                /* 고객서비스AS설치배정내역 업데이트 */
+                UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ                  /* 고객서비스AS설치배정내역 */
+                   SET WK_PRGS_STAT_CD = '20'                       /* 작업진행상태코드 */
+                     , WK_EXCN_DT = TO_CHAR(SYSDATE,'YYYYMMDD')     /* 작업수행일자 */
+                     , WK_EXCN_HH = TO_CHAR(SYSDATE,'HH24MISS')     /* 작업수행시간 */
+                     , WK_PRTNR_NO = #{prtnrNo}                     /* AC221_EMP_ID_WRK 작업파트너번호 */
+                     , SITE_AW_PD_GRP_CD = '3'                      /* 현장수당상품그룹코드 AC221_GDS_GR = KWAS.GET_ITEM_GR('43123000000') */
+                     , SITE_AW_SV_TP_CD = #{siteAwSvTpCd}           /* 현장수당서비스유형코드 */
+                     , SITE_AW_ATC_CD = #{siteAwAtcCd}              /* 현장수당항목코드 */
+                     , WK_PRTNR_OG_TP_CD = #{ogTpCd}
+                     <include refid="COMMON.updateSystemField"/>
+                 WHERE 1=1
+                   AND CST_SV_ASN_NO = #{cstSvAsnNo}                /* 고객서비스배정번호 */
+                   AND CNTR_SN = #{cntrSn}
+                   ;
+
+                /* 작업결과 결과테이블에 저장 */
+                INSERT
+                INTO TB_SVPD_CST_SV_WK_RS_IZ
+                (
+                  <include refid="insertSvpdCstSvWkRsIzCols"/>
+                )
+                 VALUES
+                 (
+                  #{cntrNo}
+                , #{cntrSn}
+                , #{cstSvAsnNo}
+                , #{pdCd}           /* VS106_GDS_CD  */
+                , NVL('1', '1')
+                , #{urgtYn}
+                , '' /* 추후 작업 rpbLocaraCd(조회 4자리), VST_LOCARA_CD(저장 2자리) */
+                , 'N'
+                , #{prtnrNo}
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , TO_CHAR(SYSDATE, 'HH24MISS')
+                , '20'
+                , '1'
+                , #{asLctCd}
+                , #{asPhnCd}
+                , #{asCausCd}
+                , ''                /* 없음 svProcsFomCd */
+                , ''                /* 없음 imptaRsonCd */
+                , '설치택배상품 반품완료' || CHR(10) ||
+                  '1. 매출일자 : ' || TO_CHAR(TO_DATE(#{cntrPdStrtdt}), 'YYYY-MM-DD') || CHR(10) ||
+                  '2. 제품수령일자 : ' || TO_CHAR(TO_DATE(#{pdCdArvDt}), 'YYYY-MM-DD') || CHR(10) ||
+                  '3. 반품상담접수일자 : ' || TO_CHAR(TO_DATE(#{vstRqdt}), 'YYYY-MM-DD') || CHR(10) ||
+                  '4. 현물입고일자 : ' || TO_CHAR(TO_DATE(#{arvDt}), 'YYYY-MM-DD') || CHR(10) ||
+                  '5. 경과일수 : ' || #{pdUseDc} || CHR(10) ||
+                  '6. 산정등급 : ' || #{rtngdGd} || CHR(10) ||
+                  '7. 개봉여부 :' || (CASE WHEN #{dtmChRsonCd} = '91' THEN '개봉'
+                           WHEN #{dtmChRsonCd} = '92' THEN '미개봉'
+                           ELSE ''
+                           END) || CHR(10) ||
+                  '8. 반품운송장 번호 :'|| #{sppIvcNo} || CHR(10) ||
+                  '9. 택배사/반품자 :' || #{sppProcsBzsNm} || '/' || #{rtngdNm} || CHR(10) ||
+                  '10. 취소일자 :' || TO_CHAR(TO_DATE(#{rsgAplcDt}), 'YYYY-MM-DD') || CHR(10) ||
+                  '11. 철거요청일자 :' || TO_CHAR(TO_DATE(#{reqdDt}), 'YYYY-MM-DD') || CHR(10) ||
+                  '12. 최종등급 :' || #{fnlRtngdGd} || CHR(10)
+                , #{bcNo}
+                , ''                /* 없음 BC_IN_MTHD_CD */
+                , ''                /* 없음 CST_SIGN_CN */
+                , ''                /* 없음 RGST_IP_ADR */
+                , #{cralLocaraTno}  /* 휴대폰번호 */
+                , #{mexnoEncr}      /* 휴대폰번호 */
+                , #{cralIdvTno}     /* 휴대폰번호 */
+                , ''                /* VS106_DELIVERY_SEQ */
+                , #{sppIvcNo}       /* VS106_TRACKING_NO */
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                , 'N'
+                <include refid="COMMON.insertSystemFieldValue"/>
+                 )
+                  ;
+
+                /* 철거일자 업데이트 */
+                UPDATE TB_SVPD_CST_SV_EXCN_IZ     /* 고객서비스수행내역 */
+                   SET REQD_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   <include refid="COMMON.updateSystemField"/>
+                 WHERE 1=1
+                   AND CNTR_NO = #{cntrNo}     /* 고객서비스배정번호 */
+                   AND CNTR_SN = #{cntrSn}
+                   ;
+
+                /* 미완료 웰컴BS 취소 처리, 무결성 제약 조건 오류 방지 */
+                UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ     /* 고객서비스BS배정내역 */
+                   SET VST_PRGS_STAT_CD = '93'     /* 방문진행상태코드 AC261_PROC_STUS = '93' 고정인지 확인 필요 */
+                   <include refid="COMMON.updateSystemField"/>
+                 WHERE 1=1
+                   AND CNTR_NO = #{cntrNo}
+                   AND CNTR_SN = #{cntrSn}     /* 계약일련번호 AC261_CSMR_SEQ = '00' */
+                   AND CST_SV_ASN_NO = #{cstSvAsnNo}
+                   AND SV_BIZ_DCLSF_CD = '2250'     /* 서비스업무세분류코드 AC261_WRK_TYP_DTL = '2250'  BA04  2250 고정인지 확인필요   업무유형상세코드*/
+                   AND VST_PRGS_STAT_CD != '20'    /* AC261_PROC_STUS != '20' */
+                   ;
+            END;
+        </insert>
+        <insert id="savePcsvReturningGoodsReceivingAndPaying" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo">
+            DECLARE
+                V_WK_OSTR_SN INT;
+                V_MNGR_DV_CD CHAR(1) := '';
+                V_DGR1_LEVL_OG_ID VARCHAR2(15) := '';     /* 총괄단 ST163_ADMIN_CD */
+                V_DGR3_LEVL_OG_ID VARCHAR2(15) := '';     /* 센터 ST163_BIZ_CD */
+                V_BRCH_OG_ID VARCHAR2(15) := '';          /* 지점 ST163_BRNH_CD */
+
+            BEGIN
+                /* 작업 엔지니어의 소속 정보를 구한다. */
+                SELECT
+                    (CASE T1.OG_TP_CD
+                        WHEN 'W03' THEN '1'     /* 매니저 */
+                        WHEN 'W06' THEN '2'     /* 엔지니어 */
+                        WHEN 'HR1' THEN '3'     /* 임직원 */
+                        ELSE ''
+                    END) AS MNGR_DV_CD
+                     ,(SELECT T2.DGR1_LEVL_OG_ID
+                         FROM TB_OGBS_MM_OG_IZ T2
+                        WHERE T2.BASE_YM = T1.BASE_YM
+                          AND T2.OG_ID = T1.OG_ID
+                        ) AS DGR1_LEVL_OG_ID     /* 총괄단 ST163_ADMIN_CD */
+                     ,(SELECT T2.DGR2_LEVL_OG_ID
+                         FROM TB_OGBS_MM_OG_IZ T2
+                        WHERE T2.BASE_YM = T1.BASE_YM
+                          AND T2.OG_ID = T1.OG_ID
+                        ) AS DGR3_LEVL_OG_ID     /* 센터 ST163_BIZ_CD */
+                     ,T1.OG_ID AS BRCH_OG_ID     /* 지점 ST163_BRNH_CD */
+                INTO V_MNGR_DV_CD
+                    , V_DGR1_LEVL_OG_ID
+                    , V_DGR3_LEVL_OG_ID
+                    , V_BRCH_OG_ID
+                FROM TB_OGBS_MM_PRTNR_IZ T1
+               WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                 AND T1.BZ_STAT_CD = '1'
+                 AND T1.DTA_DL_YN = 'N'
+                 AND T1.PRTNR_NO = #{prtnrNo};
+
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN V_MNGR_DV_CD := '';
+
+                /* 작업순번 조회 */
+                SELECT NVL(MAX(WK_OSTR_SN),0)
+                  INTO V_WK_OSTR_SN
+                  FROM TB_SVST_SV_WK_OSTR_IZ
+                 WHERE 1=1
+                   AND CST_SV_ASN_NO = #{cstSvAsnNo}
+                   AND CNTR_SN = #{cntrSn}
+                   ;
+
+                IF ( V_WK_OSTR_SN <![CDATA[>]]> #{wkOstrSn}) THEN
+                    RAISE_APPLICATION_ERROR(-20003, '[이미 등록된 자재입니다. 사용 자재를 다시 확인 해주세요.]' );
+                ELSE
+
+                    /* 사용 내역을 저장한다. */
+                    INSERT INTO TB_SVST_SV_WK_OSTR_IZ
+                    (
+                      <include refid="insertSvstSvWkOstrIzCols"/>
+                    )
+                    VALUES
+                    (
+                     #{cntrNo}
+                    , V_WK_OSTR_SN + 1
+                    , #{pdCd}                                       /* ST163_ITEM_CD */
+                    , #{svBizHclsfCd}                               /* ST163_WRK_TYP */
+                    , #{svBizDclsfCd}                               /* ST163_WRK_TYP_DTL */
+                    , #{asRefRiDvCd}                                /* ST163_CHAG_CSMR_AS */
+                    , #{bfsvcRefRiDvCd}                             /* ST163_CHAG_CSMR_BS */
+                    , '1'                                           /* ST163_CHAG_GB */
+                    , #{pdCd}                                       /* ST163_GDS_CD_B */
+                    , #{bcNo}                                       /* ST163_BARCODE_B */
+                    , #{sellTpCd}                                   /* ST163_SALE_TYP_B */
+                    , #{pdUswyCd}                                   /* ST163_USGE_B */
+                    , #{pdGdCd}                                     /* ST163_DEG_B */
+                    , TO_CHAR(SYSDATE, 'YYYYMMDD')                  /* ST163_VST_COMP_DT_B */
+                    , #{pdCd}                                       /* ST163_GDS_CD_A */
+                    , ''                                            /* ST163_BARCODE_A */
+                    , #{filtSellTpCd}                               /* ST163_SALE_TYP_A */
+                    , #{pdUswyCd}                                   /* ST163_USGE_A */
+                    , #{fnlRtngdGd}                                 /* ST163_DEG_A */
+                    , TO_CHAR(SYSDATE, 'YYYYMMDD')                  /* ST163_VST_COMP_DT_A */
+                    , NVL(#{useQty},0)                              /* ST163_QTY */
+                    , 0                                             /* ST163_CSMR_PR */
+                    , 0                                             /* ST163_REQ_AMT */
+                    , 0	                                            /* ST163_EXPR_DAYS */
+                    , NVL(#{istDt}, TO_CHAR(SYSDATE,'YYYYMMDD'))    /* ST163_INST_DT */
+                    , #{cstSvAsnNo}                                 /* ST163_DATA_GB ,ST163_ORD_DT, ST163_ORD_SEQ */
+                    , V_MNGR_DV_CD                                  /* ST163_CHG_GB */
+                    , V_DGR1_LEVL_OG_ID                             /* ST163_ADMIN_CD */
+                    , NVL(V_DGR3_LEVL_OG_ID, V_BRCH_OG_ID)          /* ST163_BIZ_CD */
+                    , ''                                            /* ST163_BRNH_CD */
+                    , #{prtnrNo}                                    /* ST163_EMP_ID */
+                    , #{wareNo}                                     /* ST163_WRK_STCK_CD */
+                    , 'N'
+                    , 'N'
+                    , 'N'
+                    , 'N'
+                    , 'N'
+                    <include refid="COMMON.insertSystemFieldValue"/>
+                    )
+                    ;
+                END IF;
+            END;
+    </insert>
+    <sql id="insertSvpdCstSvWkRsIzCols">
+          CNTR_NO                        /* VS106_CSMR_YR, VS106_CSMR_CD */
+        , CNTR_SN                        /* VS106_CSMR_SEQ */
+        , CST_SV_ASN_NO                  /* VS106_DATA_GB, VS106_ORD_DT, VS106_ORD_SEQ */
+        , PDCT_PD_CD                     /* VS106_GDS_CD  */
+        , REFRI_DV_CD                    /* VS106_CHAG_GB */
+        , URGT_YN                        /* VS106_UGNT_YN */
+        , VST_LOCARA_CD                  /* VS106_VST_AR */
+        , CLN_YN                         /* VS106_RET_YN */
+                                         /* VS106_SVC_CD 컬럼없음 OG_ID */
+        , PRTNR_NO                       /* VS106_EMP_ID */
+        , VST_FSH_DT                     /* VS106_VST_COMP_DT */
+        , VST_FSH_HH                     /* VS106_VST_COMP_TM */
+        , WK_PRGS_STAT_CD                 /* VS106_PROC_STUS_WRK */
+        , BAD_DV_CD                       /* VS106_BAD_GB 불량구분 */
+        , AS_LCT_CD                       /* VS106_POSIT */
+        , AS_PHN_CD                       /* VS106_PHNM */
+        , AS_CAUS_CD                      /* VS106_CAUS */
+        , SV_PROCS_FOM_CD                 /* VS106_PRC_TYP 처리형태(SB36) 처리형태, 공통코드 PROCS_FOM_CD */
+        , IMPTA_RSON_CD                   /* VS106_IMPUTATION 귀책사유(SB35) */
+        , SV_PROCS_CN                     /* VS106_PROC_TXT */
+        , BC_NO                           /* VS106_BAR_CD */
+        , BC_IN_MTHD_CD                   /* VS106_IN_MTH */
+        , CST_SIGN_CN                     /* VS106_CSMR_SIGN */
+        , RGST_IP_ADR                     /* VS106_REG_IP */
+        , CRAL_LOCARA_TNO                 /* VS106_PHONE_NUMBER 휴대지역전화번호    */
+        , MEXNO_ENCR                      /* VS106_PHONE_NUMBER 휴대전화국번호암호화  */
+        , CRAL_IDV_TNO                    /* VS106_PHONE_NUMBER 휴대개별전화번호 */
+        , IVC_PRNT_SN                     /*  VS106_DELIVERY_SEQ   */
+        , SPP_IVC_NO                      /*  VS106_TRACKING_NO */
+        , AS_AK_RCP_YN                    /* VS106_AS_REQ_YN    A/S요청접수여부(방문내역) */
+        , INF_CH_AK_YN                    /* VS106_INFO_REQ_YN  정보변경요청여부(방문내역) */
+        , ETC_CH_AK_YN                    /*  new col VS106_ETC_REQ_YN 기타변경요청여부(방문내역)  */
+        , IST_CTF_MTMS_FW_YN              /*  new col  */
+        , SFT_ACDN_YN                     /*  new col  */
+        , PLS_SV_YN                       /*  new col  */
+        , PESL_ARTC_DFRN_YN               /*  new col  */
+        , TONEP_IST_OPT_YN                /*  new col  */
+        , TONEP_RCVRY_OPT_YN              /*  new col  */
+        , TONEP_FRISU_RCVRY_VT1_USE_YN    /*  new col  */
+        , CST_SIGN_HS_YN                  /*  new col  */
+        , DCEVDN_CONF_YN                  /*  new col  */
+        , IST_FIT_YN                      /*  new col  */
+        , DTA_DL_YN                       /*   new col  */
+        <include refid="COMMON.insertSystemField"/>
+    </sql>
+    <sql id="insertSvstSvWkOstrIzCols">
+          CNTR_NO                       /* ST163_CSMR_YR ,ST163_CSMR_CD */
+                                        /* ST163_CSMR_SEQ 컬럼없음 */
+                                        /* ST163_SEQ 컬럼없음 */
+        , WK_OSTR_SN                    /* ST163_SER */
+        , ITM_PD_CD                     /* ST163_ITEM_CD */
+        , SV_BIZ_HCLSF_CD               /* ST163_WRK_TYP */
+        , SV_BIZ_DCLSF_CD               /* ST163_WRK_TYP_DTL */
+        , AS_REFRI_DV_CD                /* ST163_CHAG_CSMR_AS */
+        , BFSVC_REFRI_DV_CD             /* ST163_CHAG_CSMR_BS  */
+        , REFRI_DV_CD                   /* ST163_CHAG_GB  */
+        , FST_PD_CD                     /* ST163_GDS_CD_B  */
+        , FST_BC_NO                     /* ST163_BARCODE_B */
+        , FST_SELL_TP_CD                /* ST163_SALE_TYP_B */
+        , FST_PD_USWY_CD                /* ST163_USGE_B */
+        , FST_ITM_GD_CD                 /* ST163_DEG_B */
+        , FST_VST_FSH_DT                /* ST163_VST_COMP_DT_B */
+        , FNL_PD_CD                     /* ST163_GDS_CD_A */
+        , FNL_BC_NO                     /* ST163_BARCODE_A  */
+        , FNL_SELL_TP_CD                /* ST163_SALE_TYP_A */
+        , FNL_PD_USWY_CD                /* ST163_USGE_A */
+        , FNL_ITM_GD_CD                 /* ST163_DEG_A */
+        , FNL_VST_FSH_DT                /* ST163_VST_COMP_DT_A */
+        , USE_QTY                       /* ST163_QTY  */
+        , CSMR_UPRC_AMT                 /* ST163_CSMR_PR */
+        , ITM_BIL_AMT                   /* ST163_REQ_AMT  */
+        , FRE_EXPN_DC                   /* ST163_EXPR_DAYS */
+        , FRE_EXPN_IST_DT               /* ST163_INST_DT */
+        , CST_SV_ASN_NO                 /* ST163_DATA_GB ,ST163_ORD_DT, ST163_ORD_SEQ */
+        , MNGR_DV_CD                    /* ST163_CHG_GB */
+        , DGR1_LEVL_OG_ID               /* ST163_ADMIN_CD */
+        , DGR3_LEVL_OG_ID               /* ST163_BIZ_CD */
+        , BRCH_OG_ID                    /* ST163_BRNH_CD */
+        , ICHR_PRTNR_NO                 /* ST163_EMP_ID */
+        , WK_WARE_NO                    /* ST163_WRK_STCK_CD */
+        , STKR_PRNT_YN                  /*  new col  */
+        , RTNGD_RVPY_PROCS_YN           /*  new col  */
+        , RTNGD_CONF_YN                 /*  new col  */
+        , REFR_AS_RCP_YN                /*  new col  */
+        , DTA_DL_YN                     /*  new col  */
+         <include refid="COMMON.insertSystemField"/>
+    </sql>
+</mapper>
