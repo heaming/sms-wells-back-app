@@ -288,14 +288,15 @@ public class WctaContractRegStep5Service {
 
         dtlDvos.forEach(dtlDvo -> {
             CtSellTpCd sellTpCd = CtSellTpCd.of(dtlDvo.getSellTpCd());
-            taxInvoiceInquiryDvo.setCntrSn(dtlDvo.getCntrSn());
-            taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPdDvCd.of(sellTpCd)
-                .map(CtTxinvPdDvCd::getCode)
-                .orElse(""));
-            taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
-
-            taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
-            taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
+            CtTxinvPdDvCd ctTxinvPdDvCd = CtTxinvPdDvCd.of(sellTpCd).orElse(null);
+            if (ctTxinvPdDvCd != null && "Y".equals(dtlDvo.getTxinvPblOjYn())) {
+                taxInvoiceInquiryDvo.setCntrSn(dtlDvo.getCntrSn());
+                taxInvoiceInquiryDvo.setTxinvPblDvCd(ctTxinvPdDvCd.getCode());
+                taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
+                taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
+                taxInvoiceInquiryDvo.setMexnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getMexnoEncr()));
+                taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
+            }
         });
     }
 
