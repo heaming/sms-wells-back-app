@@ -29,6 +29,7 @@ public class WfebSoleDistributorFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "strtYm", value = "접수년월 시작월", paramType = "query", required = true),
         @ApiImplicitParam(name = "endYm", value = "접수년월 종료월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query"),
         @ApiImplicitParam(name = "cancelStrtYm", value = "취소년월 시작월", paramType = "query"),
         @ApiImplicitParam(name = "cancelEndYm", value = "취소년월 종료월", paramType = "query"),
     })
@@ -40,6 +41,7 @@ public class WfebSoleDistributorFeeMgtController {
     @ApiOperation(value = "총판수수료 생성관리 - 조회(수수료 실적)", notes = "총판수수료 생성관리의 수수료 실적을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query"),
     })
     @GetMapping("/fee")
     public List<Fee> getDistributorFee(@Valid SearchFeeReq req) throws Exception {
