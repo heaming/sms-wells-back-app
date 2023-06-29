@@ -46,7 +46,7 @@ public class WctiRegularDeliveryPackageDto {
         @JsonProperty("PKG_PD_NM")
         String pkgPdNm, // 패키지상품코드명
         @JsonProperty("PKG_PD_AMT")
-        int pkgPdAmt, // 패키지상품금액
+        Integer pkgPdAmt, // 패키지상품금액
         @JsonProperty("PDCT_LIST")
         List<Product> pdctList
     ) {}
@@ -58,9 +58,9 @@ public class WctiRegularDeliveryPackageDto {
         @JsonProperty("PDCT_NM")
         String pdctNm, // 제품코드명
         @JsonProperty("PDCT_QTY")
-        int pdctQty, // 제품수량
+        Integer pdctQty, // 제품수량
         @JsonProperty("PDCT_AMT")
-        int pdctAmt // 제품금액
+        Integer pdctAmt // 제품금액
     ) {}
 }
 
