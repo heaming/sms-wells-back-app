@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractSettlementMapper;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaTaxInvoiceInquiryMapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.*;
+import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.response.SaveResponse;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -33,17 +34,14 @@ import static com.sds.sflex.system.config.validation.BizAssert.isTrue;
 @Service
 @RequiredArgsConstructor
 public class WctaContractRegStep5Service {
-    public static final String AG_DRM_DV_CD_CNTR = "03";
+    public static final String AG_DRM_DV_CD_CNTR = "03"; /* 동의식별코드 : 03 계약 */
 
     private final WctaContractSettlementMapper mapper;
     private final WctaTaxInvoiceInquiryMapper taxInvoiceMapper;
     private final WctaContractSettlementConverter converter;
     private final WctaContractRegService contractRegService;
-
     private final ZwdzWithdrawalService rveReqService;
-
     private final ZwdbCreditCardApprovalService paymentService;
-
     private final WctbContractDtlStatCdChService cntrStatChService;
 
     /**
@@ -284,18 +282,21 @@ public class WctaContractRegStep5Service {
     @Transactional
     void putTaxInvoice(String cntrNo) {
         WctaTaxInvoiceInquiryDvo taxInvoiceInquiryDvo = mapper.selectBasTaxInvoiceInquiry(cntrNo);
+        /* 해당 dvo 에 dec anno 없음. 자체적으로 풀어서 다시 암호화 해서 넣기 */
+        taxInvoiceInquiryDvo.setExnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getExnoEncr()));
         List<WctaContractDtlDvo> dtlDvos = contractRegService.selectContractDtl(cntrNo);
 
         dtlDvos.forEach(dtlDvo -> {
             CtSellTpCd sellTpCd = CtSellTpCd.of(dtlDvo.getSellTpCd());
-            taxInvoiceInquiryDvo.setCntrSn(dtlDvo.getCntrSn());
-            taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPdDvCd.of(sellTpCd)
-                .map(CtTxinvPdDvCd::getCode)
-                .orElse(""));
-            taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
-
-            taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
-            taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
+            CtTxinvPdDvCd ctTxinvPdDvCd = CtTxinvPdDvCd.of(sellTpCd).orElse(null);
+            if (ctTxinvPdDvCd != null && "Y".equals(dtlDvo.getTxinvPblOjYn())) {
+                taxInvoiceInquiryDvo.setCntrSn(dtlDvo.getCntrSn());
+                taxInvoiceInquiryDvo.setTxinvPdDvCd(ctTxinvPdDvCd.getCode());
+                taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
+                taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
+                taxInvoiceInquiryDvo.setMexnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getMexnoEncr()));
+                taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
+            }
         });
     }
 
@@ -434,15 +435,16 @@ public class WctaContractRegStep5Service {
             withdrawalReceiveAskDvo.setContractNumber(dvo.getDtlCntrNo());
             withdrawalReceiveAskDvo.setContractSerialNumber(dvo.getDtlCntrSn().toString());
             rveReqService.createReceiveAskDetail(withdrawalReceiveAskDvo);
-            rveReqService.createReceiveAskDetailHistory(withdrawalReceiveAskDvo);
         });
+        rveReqService.createReceiveAskDetailHistory(withdrawalReceiveAskDvo);
 
         List<ZwdbCreditCardApprovalDto.SaveReq> creditCardApprovalSaveReqs =  stlmRelDvos
             .stream()
             .map((dvo) -> getCreditCardApprovalSaveReq(withdrawalReceiveAskDvo, dvo.getStlmAmt()))
             .toList();
         SaveResponse response = paymentService.saveCreditCardApproval(creditCardApprovalSaveReqs);
-        List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) response.getData();
+        /* 이거 이렇게 준단다. */
+        @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) response.getData();
         BizAssert.isTrue(responses.size() > 0 && responses.get(0).getErrorCd().equals("S"), "신용승인 요청 실패");
         return responses.stream().map((dvo) -> CreditRes.builder()
             .aprNo(dvo.getAprNo())
