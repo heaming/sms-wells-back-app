@@ -26,6 +26,10 @@ public class WsnaQomAsnService {
     public PagingResult<SearchRes>  getIndependenceWareQomAsns(SearchReq dto, PageInfo pageInfo){
         return mapper.selectIndependenceQomAsns(dto, pageInfo);
     }
+    public PagingResult<SearchRes>  getIndependenceQomAsnsAfter(SearchReq dto, PageInfo pageInfo){
+        return mapper.selectIndependenceQomAsnsAfter(dto, pageInfo);
+    }
+
     public PagingResult<SearchRes>  getIndividualWareQomAsns(SearchReq dto, PageInfo pageInfo){
         return mapper.selectIndependenceQomAsns(dto, pageInfo);
     }
