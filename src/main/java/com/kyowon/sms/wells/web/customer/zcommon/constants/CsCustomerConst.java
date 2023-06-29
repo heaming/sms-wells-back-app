@@ -8,4 +8,5 @@ public class CsCustomerConst {
 
     public static final String IF_RETURN_CODE_SUCCESS = "0000";
     public static final String IF_PRV_CN_SPLIT_CHAR = "S";
+    public static final String IF_DEFAULT_LANG_ID = "ko";
 }
