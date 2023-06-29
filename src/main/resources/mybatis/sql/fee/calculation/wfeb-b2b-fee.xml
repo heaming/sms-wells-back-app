@@ -89,6 +89,9 @@
             AND C5.CD_VLD_VAL     = T7.PMOT_USWY_DV_CD
           WHERE 1=1
             AND T1.BASE_YM             = #{perfYm}
+            <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+             AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
+            </if>
             AND T1.PERF_AGRG_CRT_DV_CD = '401'               /* 실적집계생성구분코드 : ???-B2B수수료실적생성   */
             AND T1.OG_TP_CD            = 'W04'               /* 조직유형코드         : W04-온라인B2B           */
             AND T1.PERF_ATC_CD         = 'W04P00001'         /* 실적항목코드         : W04P00001-기본수수료금액 */
@@ -99,6 +102,7 @@
 
     <select id='selectB2bFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebB2bFeeMgtDto$Fee">
         SELECT T1.BASE_YM
+             , T1.FEE_TCNT_DV_CD
 	         , T1.CO_CD                             /* 업체코드          */
              , NVL(C0.CD_CNTN, T1.CO_CD) CO_CD_NM   /* 업체명   - T1.CO_CD */
              , T3.OG_CD
@@ -140,10 +144,13 @@
            AND T9.PRTNR_NO   = T1.PRTNR_NO
            AND T9.FEE_CD     = T1.FEE_CD
          WHERE T1.BASE_YM        = #{perfYm}
+           <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+           AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
+           </if>
            AND T1.OG_TP_CD       = 'W04'
            AND T1.DTA_DL_YN      = 'N'
            AND T1.FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
-         GROUP BY T1.BASE_YM, T1.CO_CD, NVL(C0.CD_CNTN, T1.CO_CD), T3.OG_CD, T3.PRTNR_KNM, T1.PRTNR_NO
+         GROUP BY T1.BASE_YM, T1.FEE_TCNT_DV_CD, T1.CO_CD, NVL(C0.CD_CNTN, T1.CO_CD), T3.OG_CD, T3.PRTNR_KNM, T1.PRTNR_NO
     </select>
 
 
@@ -300,28 +307,28 @@
     </update>
 
     <delete id="deleteAggregateNtorMmCl">
-        DELETE FROM TB_FEAM_NTOR_MM_CL T1         -- 순주문파트너 월마감
+        DELETE FROM TB_FEAM_NTOR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
-           AND T1.PERF_AGRG_CRT_DV_CD = '401'     -- B2B수수료실적생성
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '401'
     </delete>
 
     <delete id="deleteAggregateNtorCntrMmCl">
-        DELETE FROM TB_FEAM_NTORP_CNTR_MM_CL T1   -- 순주문파트너 계약월마감
+        DELETE FROM TB_FEAM_NTORP_CNTR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
-           AND T1.PERF_AGRG_CRT_DV_CD = '401'     -- B2B수수료실적생성
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '401'
     </delete>
 
     <delete id="deleteAggregateNtorPerfMmCl">
-        DELETE FROM TB_FEAM_NTORP_PERF_MM_CL T1   -- 순주문파트너 실적월마감
+        DELETE FROM TB_FEAM_NTORP_PERF_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
-           AND T1.PERF_AGRG_CRT_DV_CD = '401'     -- B2B수수료실적생성
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '401'
     </delete>
 
     <insert id="insertAggregateNtorMmCl">
-        INSERT INTO TB_FEAM_NTOR_MM_CL (  -- 순주문파트너월마감
+        INSERT INTO TB_FEAM_NTOR_MM_CL (
                BASE_YM
              , FEE_TCNT_DV_CD
              , PERF_AGRG_CRT_DV_CD
@@ -329,17 +336,17 @@
              , DTA_DL_YN
              <include refid="COMMON.insertSystemField" />
         )
-        SELECT #{perfYm}          AS BASE_YM              -- 실행조건 : UI실적년월
-             , '02'               AS FEE_TCNT_DV_CD       -- 2차
-             , '401'              AS PERF_AGRG_CRT_DV_CD  -- B2B수수료실적생성
-             , '01'               AS NTOR_CNFM_STAT_CD    -- 임시저장
+        SELECT #{perfYm}          AS BASE_YM
+             , NVL(#{feeTcntDvCd}, '02') AS FEE_TCNT_DV_CD
+             , '401'              AS PERF_AGRG_CRT_DV_CD
+             , '01'               AS NTOR_CNFM_STAT_CD
              , 'N'                AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
           FROM DUAL
     </insert>
 
     <insert id="insertAggregateNtorCntrMmCl">
-        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL (  -- 순주문파트너 계약월마감
+        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL (
                BASE_YM
              , PERF_YM
              , FEE_TCNT_DV_CD
@@ -359,26 +366,26 @@
         SELECT T1.BASE_YM
              , T1.PERF_YM
              , T1.FEE_TCNT_DV_CD
-             , '401'                AS PERF_AGRG_CRT_DV_CD  -- B2B수수료실적생성
-             , 'W04P00001'          AS PERF_ATC_CD          -- B2B기본수수료
-             , '2000'               AS CO_CD                -- 교원프라퍼티 ???
+             , '401'                AS PERF_AGRG_CRT_DV_CD
+             , 'W04P00001'          AS PERF_ATC_CD
+             , '2000'               AS CO_CD
              , T1.OG_TP_CD
              , T1.PRTNR_NO
-             , '0'                  AS PERF_DV_CD           -- 개인판매
+             , '0'                  AS PERF_DV_CD
              , T1.CNTR_NO
              , T1.CNTR_SN
-             , '01'                 AS CNTR_PERF_CRT_DV_CD  -- 순주문집계 (01:순주문집계, 02:되물림생성, 03:재지급생성)
+             , '01'                 AS CNTR_PERF_CRT_DV_CD
              , T1.ACKMT_PERF_AMT    AS PERF_VAL
              , 'N'                  AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
           FROM TB_FEAM_WELS_NRCTR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
-           AND T1.OG_TP_CD            = 'W04'     -- 온라인총판
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.OG_TP_CD            = 'W04'
     </insert>
 
     <insert id="insertAggregateNtorPerfMmCl">
-        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너 실적월마감
+        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (
                BASE_YM
              , PERF_YM
              , FEE_TCNT_DV_CD
@@ -406,12 +413,12 @@
              <include refid="COMMON.insertSystemFieldValue" />
           FROM TB_FEAM_NTORP_CNTR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '02'        -- 2차
-           AND T1.PERF_AGRG_CRT_DV_CD = '401'       -- B2B수수료실적생성
-           AND T1.PERF_ATC_CD         = 'W04P00001' -- B2B기본수수료
-        -- AND T1.CO_CD               = '2000'      -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
-           AND T1.OG_TP_CD            = 'W04'       -- 온라인B2B
-           AND T1.PERF_DV_CD          = '0'         -- 개인판매
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '401'
+           AND T1.PERF_ATC_CD         = 'W04P00001
+        -- AND T1.CO_CD               = '2000'
+           AND T1.OG_TP_CD            = 'W04'
+           AND T1.PERF_DV_CD          = '0'
          GROUP BY T1.BASE_YM
                 , T1.PERF_YM
                 , T1.FEE_TCNT_DV_CD
@@ -424,7 +431,7 @@
     </insert>
 
     <insert id="insertAggregateNtorPerfPointMmCl">
-        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (  -- 순주문파트너 실적월마감
+        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (
                BASE_YM
              , PERF_YM
              , FEE_TCNT_DV_CD
@@ -462,12 +469,12 @@
             ON T3.BASE_YM  = T2.BASE_YM
            AND T3.OG_ID    = T2.OG_ID
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '02'         -- 2차
-           AND T1.PERF_AGRG_CRT_DV_CD = '401'        -- B2B수수료실적생성
-           AND T1.PERF_ATC_CD         = 'W04P00001'  -- B2B기본수수료
-        -- AND T1.CO_CD               = '2000'       -- 회사코드가 여러개가 될수도 있으니까 일단 주석처리하자.
-           AND T1.OG_TP_CD            = 'W04'        -- 온라인B2B
-           AND T1.PERF_DV_CD          = '0'          -- 개인판매
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '401'
+           AND T1.PERF_ATC_CD         = 'W04P00001'
+        -- AND T1.CO_CD               = '2000'
+           AND T1.OG_TP_CD            = 'W04'
+           AND T1.PERF_DV_CD          = '0'
          GROUP BY T1.BASE_YM
                 , T1.PERF_YM
                 , T1.FEE_TCNT_DV_CD
@@ -479,11 +486,11 @@
     </insert>
 
     <update id="updateAggregateNtorMmCl">
-        UPDATE TB_FEAM_NTOR_MM_CL T1   -- 순주문파트너 월마감
-           SET T1.NTOR_CNFM_STAT_CD = '02'              -- 확정
+        UPDATE TB_FEAM_NTOR_MM_CL T1
+           SET T1.NTOR_CNFM_STAT_CD = '02'
                <include refid="COMMON.updateSystemField"/>
          WHERE T1.BASE_YM             = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = '02'      -- 2차
-           AND T1.PERF_AGRG_CRT_DV_CD = '401'     -- B2B수수료실적생성
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '401'
     </update>
 </mapper>

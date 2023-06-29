@@ -4,6 +4,7 @@ import com.kyowon.sms.common.web.fee.schedule.service.ZfeyFeeScheduleMgtService;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.*;
 import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebSoleDistributorFeeDvo;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +65,7 @@ public class WfebSoleDistributorFeeMgtService {
             dvo.setCoCd(row.coCd());
             dvo.setOgTpCd("W05"); // 수수료 총판
             dvo.setPrtnrNo(row.prtnrNo());
-            dvo.setFeeTcntDvCd("02"); // 2차
+            dvo.setFeeTcntDvCd(row.feeTcntDvCd()); // 2차
             dvo.setSpmtDsbDvCd("01"); // 정상지급
             dvo.setFeeCalcTpCd("01"); // 수수료 계산
             dvo.setDtaDlYn("N");
@@ -136,7 +137,7 @@ public class WfebSoleDistributorFeeMgtService {
 
         // 06. 수수료일정 갱신 API 호출 공통모듈
         // @TODO 세션 coCd[session.getCompanyCode()] 관련해서 업무별로 말이 다달라서 하드코딩함 -_-;
-        String feeSchdId = req.perfYm() + "501" + "02" + "2000"; // 기준일+총판+2차수+회사코드
+        String feeSchdId = req.perfYm() + "501" + (StringUtil.isEmpty(req.feeTcntDvCd()) ? "02" : req.feeTcntDvCd()) + "2000"; // 기준일+총판+2차수+회사코드
         service.editStepLevelStatus(feeSchdId, "W0501", "03");
         return processCount;
     }
