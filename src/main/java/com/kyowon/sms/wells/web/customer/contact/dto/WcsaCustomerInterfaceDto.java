@@ -187,6 +187,7 @@ public class WcsaCustomerInterfaceDto {
             if (prvCnArray.length > 0) {
                 agAtcDvCdMap = new HashMap<>();
                 for (int i = 0; i < prvCnArray.length; i++) {
+                    if (i >= AG_ATC_DV_CD_ARRAY.length) break;
                     if (StringUtils.equals(prvCnArray[i], "Y") || StringUtils.equals(prvCnArray[i], "N")) {
                         agAtcDvCdMap.put(AG_ATC_DV_CD_ARRAY[i], prvCnArray[i]);
                     }
