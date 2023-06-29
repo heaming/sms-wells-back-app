@@ -595,12 +595,21 @@ public class WwdaAutoTransferInterfaceService {
         // 3. 수신결과 및 리턴 설정
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
         String acFntRsCd = resultDvo.getAcFntRsCd();
+        String acFntRsNm = "";
 
         // 3.1 리턴받은 계좌이체불능코드 셋팅
         result.setAcFntRsCd(acFntRsCd);
 
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
-        result.setAcFntRsCdNm(mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd));
+        if (!ObjectUtils.isEmpty(resultDvo.getBilCrtStatCd())) {
+            if ("1".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd);
+            }
+            if ("2".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = resultDvo.getErrCn();
+            }
+        }
+        result.setAcFntRsCdNm(acFntRsNm);
 
         // 3.1 리턴받은 계좌주명
         result.setOwrKnm(resultDvo.getAchldrNm());
