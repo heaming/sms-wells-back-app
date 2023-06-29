@@ -4,8 +4,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageMapper">
 
     <select id="selectEtcOutOfStorages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto$SearchRes">
-        SELECT 1 AS CHK
-             , OSTR_IZ.ITM_OSTR_NO AS ITM_OSTR_NO
+        SELECT OSTR_IZ.ITM_OSTR_NO AS ITM_OSTR_NO
              , OSTR_IZ.OSTR_TP_CD AS OSTR_TP_CD
              , OSTR_IZ.OSTR_WARE_NO AS OSTR_WARE_NO
              , WARE_IZ.WARE_NM AS WARE_NM
@@ -19,6 +18,12 @@
              , OSTR_IZ.ITM_GD_CD /*품목등급코드*/ AS ITM_GD_CD
              , OSTR_IZ.MNGT_UNIT_CD /*관리단위코드*/ AS MNGT_UNIT_CD
              , OSTR_IZ.OSTR_RSON_CD /*출고사유코드*/ AS OSTR_RSON_CD
+             , (SELECT NVL((SELECT DECODE(OSTR_IZ.ITM_GD_CD, 'A', PITM_STOC_A_GD_QTY, 'B' , PITM_STOC_B_GD_QTY, 'E', PITM_STOC_E_GD_QTY, 'R', PITM_STOC_R_GD_QTY, 0)
+          			  			- DECODE(OSTR_IZ.ITM_GD_CD, 'A', MMT_STOC_A_GD_QTY, 'B', MMT_STOC_B_GD_QTY, 'E', MMT_STOC_E_GD_QTY,'R', MMT_STOC_R_GD_QTY, 0)
+	             FROM TB_SVST_CST_SV_ITM_STOC_IZ
+	            WHERE WARE_NO = OSTR_IZ.OSTR_WARE_NO
+	              AND ITM_PD_CD = OSTR_IZ.ITM_PD_CD), 0)
+	              FROM DUAL)  AS ON_QTY
              , OSTR_IZ.OSTR_QTY /*출고수량*/ AS OSTR_QTY
              , OSTR_IZ.RMK_CN /*비고*/ AS RMK_CN
              , OSTR_IZ.OSTR_AK_SN /*출고요청일련번호*/ AS OSTR_AK_SN
@@ -32,10 +37,11 @@
          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC_IZ /*고객서비스품목재고내역*/
             ON STOC_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO
            AND STOC_IZ.ITM_PD_CD = OSTR_IZ.ITM_PD_CD
-           WHERE 1 = 1
-           AND OSTR_IZ.ITM_OSTR_NO = '217202102040000006'
-           AND OSTR_IZ.OSTR_WARE_NO = '200371'
+         WHERE OSTR_IZ.ITM_OSTR_NO = #{itmOstrNo}
+           AND OSTR_IZ.OSTR_WARE_NO = #{ostrWareNo}
            AND WARE_IZ.WARE_USE_YN = 'Y'
+           AND OSTR_IZ.DTA_DL_YN = 'N'
+         ORDER BY OSTR_IZ.ITM_OSTR_NO
 
     </select>
     <update id="deleteEtcOutOfStorages">
@@ -50,20 +56,78 @@
 
     </update>
     <select id="selectNewItmOstrNo" resultType="java.lang.String">
-         SELECT NVL(MAX(ITM_OSTR_NO), #{ostrTpCd}||#{ostrDt}||LPAD(0, 7, '0')) +1 AS ITM_OSTR_NO
-           FROM TB_SVST_ITM_OSTR_IZ
-          WHERE OSTR_TP_CD = #{ostrTpCd}
-            AND OSTR_DT= #{ostrDt}
-            AND OSTR_WARE_NO = #{ostrWareNo}
+        SELECT '217' ||#{ostrDt} || LPAD(SQ_SVST_ITM_OSTR_IZ$ITM_OSTR_NO.NEXTVAL,7,'0') AS ITM_OSTR_NO
+          FROM DUAL
      </select>
-    <select id="selectNewOstrSn" resultType="java.lang.String">
-           SELECT (NVL(MAX(OSTR_SN),0)+1) AS OSTR_SN
-             FROM TB_SVST_ITM_OSTR_IZ
-            WHERE OSTR_TP_CD = #{ostrTpCd}
-              AND OSTR_DT= #{ostrDt}
-              AND OSTR_WARE_NO = #{ostrWareNo}
-              AND ITM_OSTR_NO = #{itmOstrNo}
-     </select>
+
+     <select id="selectWareMngtPrtnrNo" resultType="java.lang.String">
+          SELECT T1.WARE_MNGT_PRTNR_NO
+            FROM TB_SVST_MCBY_WARE_IZ T1
+           WHERE 1 = 1
+             AND T1.WARE_NO = #{ostrWareNo}
+             AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+             AND T1.DTA_DL_YN = 'N'
+</select>
+
+     <insert id="insertEtcOutOfStorageOstrIz">
+          INSERT INTO TB_SVST_ITM_OSTR_IZ (  /* 품목출고내역 */
+                       ITM_OSTR_NO              /* 품목출고번호 */
+                     , OSTR_SN                  /* 출고일련번호 */
+                     , OSTR_TP_CD               /* 출고유형코드 */
+                     , OSTR_WARE_NO             /* 출고창고번호 */
+                     , OSTR_DT                  /* 출고일자 */
+                     , ITM_KND_CD               /* 품목종류코드 */
+                     , ITM_PD_CD                /* 품목상품코드 */
+                     , OSTR_WARE_DV_CD          /* 출고창고구분코드 */
+                     , MNGT_UNIT_CD             /* 관리단위코드 */
+                     , BOX_UNIT_QTY             /* 박스단위수량 */
+                     , ITM_GD_CD                /* 품목등급코드 */
+                     , OSTR_QTY                 /* 출고수량 */
+                     , WARE_MNGT_PRTNR_NO       /* 창고관리파트너번호 */
+                     , WARE_MNGT_PRTNR_OG_TP_CD /* 창고관리파트너조직유형코드 */
+                     , OSTR_RSON_CD             /* 출고사유코드 */
+                     , STR_AK_WARE_DV_CD        /* 입고요청창고구분코드*/
+                     , STR_WARE_NO              /* 입고창고번호 */
+                     , DTA_DL_YN                /* 데이터삭제여부 */
+                     , RMK_CN                   /* 비고내용 */
+                     <include refid="COMMON.insertSystemField" />)
+                SELECT #{itmOstrNo}
+                     , ${ostrSn}
+                     , #{ostrTpCd}
+                     , #{ostrWareNo}
+                     , #{ostrDt}
+                     , #{itmKndCd}
+                     , #{itmPdCd}
+                     , '1'
+                     , #{mngtUnitCd}
+                     , 0
+                     , #{itmGdCd}
+                     , ${ostrQty}
+                     , #{wareMngtPrtnrNo}
+                     , (SELECT T1.OG_TP_CD
+                          FROM TB_SVST_MCBY_WARE_IZ T1
+                        WHERE 1 = 1
+                          AND T1.APY_YM = SUBSTR(#{ostrDt}, 1, 6)
+                          AND T1.WARE_NO = #{ostrWareNo}
+                          AND T1.WARE_MNGT_PRTNR_NO = #{wareMngtPrtnrNo})
+                     , #{ostrRsonCd}
+                     , '2'
+                     , #{bilDept}
+                     , 'N'
+                     , #{rmkCn}
+                     <include refid="COMMON.insertSystemFieldValue" />
+                  FROM DUAL
+    </insert>
+
+     <select id="selectEtcOutOfStorageDepts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto$SearchDeptRes">
+        SELECT T1.DEPT_CD AS CODE_ID
+             , T1.DEPT_NM3||'('||T1.DEPT_CD ||')' AS CODE_NAME
+          FROM TB_OGBS_DEPT_BAS T1
+         WHERE 1 = 1
+           AND USE_YN = 'Y'
+           AND DEPT_DV_VAL = '1'
+         ORDER BY DEPT_CD
+    </select>
 
 
 

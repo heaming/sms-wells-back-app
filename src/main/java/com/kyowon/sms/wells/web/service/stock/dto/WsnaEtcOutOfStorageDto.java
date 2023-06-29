@@ -36,29 +36,39 @@ public class WsnaEtcOutOfStorageDto {
         String itmPdCd,
         String pdAbbrNm,
         String itmGdCd,
-        //        String onQty,
+        String onQty,
         String mngtUnitCd,
         String ostrQty,
         String ostrRsonCd,
         String rmkCn,
         String wareNm,
-        String wareMngtPrtnrNo
+        String wareMngtPrtnrNo,
+        String ostrDt
+    ) {}
+
+    @ApiModel("WsnaEtcOutOfStorageDto-SearchDeptRes")
+    public record SearchDeptRes(
+        String codeId,
+        String codeName
+
     ) {}
 
     @Builder
     @ApiModel("WsnaEtcOutOfStorageDto-SaveReq")
     public record SaveReq(
-        String itmOstrNo,
-        String ostrSn,
-        String ostrTpCd,
-        String ostrWareNo,
-        String sapMatCd,
-        String itmPdCd,
-        String pdAbbrNm,
-        String itmGdCd,
-        //        String onQty,
+        String itmOstrNo, //품목출고번호
+        String ostrSn, //출고순번
+        String ostrTpCd, //출고유형코드
+        String ostrWareNo, //출고창고번호
+        String itmKndCd, //품목종류코드
+        String sapMatCd, //sap코드
+        String itmPdCd, //품목상품코드
+        String pdAbbrNm, //상품명
+        String itmGdCd, //상품등급코드
+        String bilDept, //청구부서
+        int onQty, //재고수량
         String mngtUnitCd,
-        String ostrQty,
+        int ostrQty,
         String ostrRsonCd,
         String rmkCn,
         String wareNm,
@@ -67,42 +77,63 @@ public class WsnaEtcOutOfStorageDto {
         String strOjWareNo
     ) {}
 
-    @Builder
+    @ApiModel("WsnaEtcOutOfStorageDto-FindItmOstrNoReq")
+    public record FindItmOstrNoReq(
+        String ostrDt // 출고일자
+    ) {}
+
+    @ApiModel("WsnaEtcOutOfStorageDto-FindWareMngtPrtnrNoReq")
+    public record FindWareMngtPrtnrNoReq(
+        String ostrWareNo //출고창고번호
+    ) {}
+
     @ApiModel("WsnaEtcOutOfStorageDto-DeleteReq")
     public record DeleteReq(
-        String itmOstrNo,
-        String ostrSn,
-        String ostrTpCd,
-        String ostrWareNo,
-        String sapMatCd,
-        String itmPdCd,
-        String pdAbbrNm,
-        String itmGdCd,
-        //        String onQty,
+        @NotBlank
+        String itmOstrNo, //품목출고번호
+        @NotBlank
+        String ostrSn, //출고순번
+        String ostrTpCd, //출고유형코드
+        @NotBlank
+        String ostrWareNo, //출고창고번호
+        String itmKndCd, //품목종류코드
+        String sapMatCd, //sap코드
+        String itmPdCd, //품목상품코드
+        String pdAbbrNm, //상품명
+        String itmGdCd, //상품등급코드
+        String bilDept, //청구부서
+        int onQty, //재고수량
         String mngtUnitCd,
-        String ostrQty,
+        int ostrQty,
         String ostrRsonCd,
         String rmkCn,
         String wareNm,
-        String wareMngtPrtnrNo
+        String wareMngtPrtnrNo,
+        String ostrDt,
+        String strOjWareNo
     ) {}
     @ApiModel("WsnaEtcOutOfStorageDto-DeleteRes")
     public record DeleteRes(
         @NotBlank
-        String itmOstrNo,
-        String ostrTpCd,
+        String itmOstrNo, //품목출고번호
         @NotBlank
-        String ostrWareNo,
-        String sapMatCd,
-        String itmPdCd,
-        String pdAbbrNm,
-        String itmGdCd,
-        //        String onQty,
+        String ostrSn, //출고순번
+        String ostrTpCd, //출고유형코드
+        String ostrWareNo, //출고창고번호
+        String itmKndCd, //품목종류코드
+        String sapMatCd, //sap코드
+        String itmPdCd, //품목상품코드
+        String pdAbbrNm, //상품명
+        String itmGdCd, //상품등급코드
+        String bilDept, //청구부서
+        int onQty, //재고수량
         String mngtUnitCd,
-        String ostrQty,
+        int ostrQty,
         String ostrRsonCd,
         String rmkCn,
         String wareNm,
-        String wareMngtPrtnrNo
+        String wareMngtPrtnrNo,
+        String ostrDt,
+        String strOjWareNo
     ) {}
 }

@@ -19,16 +19,19 @@ public class WsnaEtcOutOfStorageDvo {
     String ostrWareNo;
     String sapMatCd;
     String itmPdCd;
+    String itmKndCd;
     String ostrSn;
     String pdAbbrNm;
     String itmGdCd;
-    String onQty;
+    int onQty;
     String mngtUnitCd;
-    String ostrQty;
+    int ostrQty;
     String ostrRsonCd;
     String rmkCn;
     String wareNm;
     String wareMngtPrtnrNo;
     String ostrDt;
     String strOjWareNo;
+
+    String bilDept;
 }
