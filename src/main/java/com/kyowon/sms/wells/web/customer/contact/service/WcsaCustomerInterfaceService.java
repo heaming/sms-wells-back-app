@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +22,8 @@ import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstCtplcBasDvo;
 import com.kyowon.sms.common.web.customer.contact.mapper.ZcsaCustomerMapper;
 import com.kyowon.sms.wells.web.customer.contact.converter.WcsaCustomerInterfaceConverter;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerInfoReq;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerRes;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo;
@@ -286,6 +288,14 @@ public class WcsaCustomerInterfaceService {
     @Transactional
     public SaveCustomerAgreementRes saveCustomerAgreements(SaveCustomerAgreementReq dto) {
 
+        // 0. Session 설정
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+        if (userSession != null) {
+            if (StringUtils.isBlank(Objects.toString(userSession.getLangId(), ""))) {
+                userSession.setLangId(CsCustomerConst.IF_DEFAULT_LANG_ID);
+            }
+        }
+
         // 1. 고객동의 정보 설정
         WcsaCustomerAgreementDvo agreeDvo = converter.mapSaveCustomerAgreementReqToWcsaCustomerAgreementDvo(dto);
 
@@ -300,12 +310,12 @@ public class WcsaCustomerInterfaceService {
         String preCstAgId = mapper.selectCustomerRecentAgreement(agreeDvo.getCstNo());
 
         // 4. 고객동의내역 등록
-        // 4.1. 고객동의내역 Insert
-        mapper.insertCustomerAgreement(agreeDvo);
-
-        // 4.2. 고객동의내역상세 Insert
         Map<String, String> agAtcDvCdMap =  agreeDvo.getAgAtcDvCdMap();
         if (agAtcDvCdMap != null && !agAtcDvCdMap.isEmpty()) {
+            // 4.1. 고객동의내역 Insert
+            mapper.insertCustomerAgreement(agreeDvo);
+
+            // 4.2. 고객동의내역상세 Insert
             for (String agAtcDvCd : agAtcDvCdMap.keySet()) {
                 if (StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "Y") || StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "N")) {
                     agreeDvo.setAgAtcDvCd(agAtcDvCd);
@@ -313,6 +323,9 @@ public class WcsaCustomerInterfaceService {
                     mapper.insertCustomerAgreementDetail(agreeDvo);
                 }
             }
+        } else {
+            WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(false, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_AG_INF_NOT_EXST"));
+            return converter.mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(resultDvo);
         }
 
         // 5. 기존 동의내역 만료처리 - 기존 동의내역이 존재하는 경우

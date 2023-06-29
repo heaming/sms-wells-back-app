@@ -173,13 +173,24 @@ public class WcsaCustomerInterfaceDto {
         String prvCn,                       /* 약관내용 */
         Map<String, String> agAtcDvCdMap    /* 동의항목구분코드 */
     ) {
+        // 동의항목구분코드 Info
+        public static final String[] AG_ATC_DV_CD_ARRAY = new String[] {
+              "101"     // 이용약관
+            , "102"     // 개인정보 수집 및 이용 동의
+            , "103"     // 마케팅 목적 처리 동의서
+            , "105"     // 개인정보 제3자 제공 동의
+            , "107"     // 교원그룹 통합 마케팅 목적 수집 이용 및 광고성 정보 수신 동의
+        };
+
         public SaveCustomerAgreementReq {
             String[] prvCnArray = prvCn.trim().split(CsCustomerConst.IF_PRV_CN_SPLIT_CHAR);
-            if (prvCnArray.length == 3) {
+            if (prvCnArray.length > 0) {
                 agAtcDvCdMap = new HashMap<>();
-                agAtcDvCdMap.put("101", prvCnArray[0]); // 101 : 이용약관
-                agAtcDvCdMap.put("102", prvCnArray[1]); // 102 : 개인정보 수집 및 이용 동의
-                agAtcDvCdMap.put("103", prvCnArray[2]); // 103 : 마케팅 목적 처리 동의서
+                for (int i = 0; i < prvCnArray.length; i++) {
+                    if (StringUtils.equals(prvCnArray[i], "Y") || StringUtils.equals(prvCnArray[i], "N")) {
+                        agAtcDvCdMap.put(AG_ATC_DV_CD_ARRAY[i], prvCnArray[i]);
+                    }
+                }
             }
         }
     }
