@@ -594,7 +594,7 @@ public class WwdaAutoTransferInterfaceService {
 
         // 3. 수신결과 및 리턴 설정
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
-        String acFntRsCd = StringUtil.isNotEmpty(resultDvo.getAcFntRsCd()) ? resultDvo.getAcFntRsCd() : "0000";
+        String acFntRsCd = resultDvo.getAcFntRsCd();
 
         // 3.1 리턴받은 계좌이체불능코드 셋팅
         result.setAcFntRsCd(acFntRsCd);
