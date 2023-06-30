@@ -1,13 +1,19 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncBeforeServiceAsnBatConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBeforeServiceAsnBatDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBeforeServiceAsnBatDvo;
+import com.sds.sflex.common.utils.StringUtil;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WsncBeforeServiceAsnBatService {
@@ -22,6 +28,11 @@ public class WsncBeforeServiceAsnBatService {
 
     @Transactional
     public int processBeforeServiceAsnBat(WsncBeforeServiceAsnBatDto.SaveProcessReq dto) throws Exception {
+        return processBeforeServiceAsnBat(converter.mapSaveProcessReqToDvo(dto));
+    }
+
+    @Transactional
+    public int processBeforeServiceAsnBat(WsncBeforeServiceAsnBatDvo dvo) throws Exception {
 
         /*
          * 해당 배치는 조직 파트의 월조직마감 배치가 수행된 후 3시간 뒤에 작업시작 예정 (3영업일 이전에 작업 생성 요청 - 정확한 시간은 추후 정의)
@@ -34,14 +45,26 @@ public class WsncBeforeServiceAsnBatService {
          */
 
         //Step 1. [W-SV-S-0027] ::: 특정고객 배정 인서트를 수행한다.
-        wsncSpecCustAsnService.processSpecCustAsn(converter.mapSaveProcessReqToSpecCustAsnDvo(dto));
+        wsncSpecCustAsnService.processSpecCustAsn(converter.mapDvoToSpecCustAsnDvo(dvo));
 
         //Step 2. [W-SV-S-0029] ::: 특정고객 예정자재 인서트 서비스를 수행한다.
-        wsncSpecCustPlanMatService.processSpecCustPlanMat(converter.mapSaveProcessReqToSpecCustPlanMatDvo(dto));
+        wsncSpecCustPlanMatService.processSpecCustPlanMat(converter.mapDvoToSpecCustPlanMatDvo(dvo));
 
         //Step 3. [W-SV-S-0031] ::: 특정고객 담당자 지정 BS 오더 생성 서비스를 수행한다.
-        wsncSpecCustMngrAsnService.processSpecCustAsn(converter.mapSaveProcessReqToSpecCustMngrAsnDvo(dto));
+        wsncSpecCustMngrAsnService.processSpecCustAsn(converter.mapDvoToSpecCustMngrAsnDvo(dvo));
 
         return 1;
+    }
+
+    @Transactional
+    public int processBeforeServiceAsnBat(Map<String, Object> param) throws Exception {
+        WsncBeforeServiceAsnBatDvo dvo = new WsncBeforeServiceAsnBatDvo();
+        dvo.setAsnOjYm(StringUtil.nvl(param.get("PARAM1")));
+        dvo.setPrtnrNo(StringUtil.nvl(param.get("PARAM2")));
+
+        log.info("[WsncBeforeServiceAsnBatService.processBeforeServiceAsnBat] AsnOjYm ::: " + dvo.getAsnOjYm());
+        log.info("[WsncBeforeServiceAsnBatService.processBeforeServiceAsnBat] PrtnrNo ::: " + dvo.getPrtnrNo());
+
+        return processBeforeServiceAsnBat(dvo);
     }
 }

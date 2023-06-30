@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.FindProductRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -23,6 +23,8 @@ public interface WsnbServiceProcessingMapper {
 
     List<FindProductRes> selectProducts(String pdGrpCd);
 
-    PagingResult<SearchRes> selectServiceProcessings(SearchReq dto, PageInfo pageInfo);
+    PagingResult<WsnbServiceProcessingDvo> selectServiceProcessings(SearchReq dto, PageInfo pageInfo);
+
+    List<WsnbServiceProcessingDvo> selectServiceProcessings(SearchReq dto);
 
 }

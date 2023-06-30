@@ -22,15 +22,16 @@ public class WsnaOutOfStorageIzDtlDto {
         @NotBlank
         String edOstrDt,
         String ostrTpCd,
+        String strTpCd,
         String ostrWareDvCd,
         String ostrWareDtlDvCd,
         String ostrWareNo,
         String strWareDvCd,
         String strWareDtlDvCd,
         String strWareNo,
+        String itmPdCd,
         String itmGdCd,
-        String itmkndCd,
-        String itmCd,
+        String itmKndCd,
         String useYn
     ) {}
 
@@ -55,7 +56,7 @@ public class WsnaOutOfStorageIzDtlDto {
         String didyDvCd,
         String strConfDt,
         String ostrAkNo,
-        String itmostrNo,
+        String itmOstrNo,
         String itmStrNo,
         String useYn
     ) {}

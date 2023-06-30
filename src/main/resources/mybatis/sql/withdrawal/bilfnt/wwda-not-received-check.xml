@@ -67,7 +67,9 @@
     </select>
 
     <select id="selectAftnDpNcrtCheckListPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnDpNcrtCheckListRes">
-               SELECT CASE WHEN #{fntDvCd} = '01' THEN '자동이체(은행) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)'
+               SELECT /*+ USE_NL(RBFB RBFD SCB) INDEX(RBFD TB_RVCL_BIL_FNT_AK_DTL IX_RVCL_BIL_FNT_AK_DTL_03) INDEX(SCD TB_SSCT_CNTR_DTL IX_SSCT_CNTR_DTL_03)
+           INDEX(RAFS TB_RVCL_AC_FNT_SEND_MTR_IZ ARR_TB_RVCL_AC_FNT_SEND_MTR_IZ)  */
+                      CASE WHEN #{fntDvCd} = '01' THEN '자동이체(은행) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)'
                            WHEN #{fntDvCd} = '02' THEN '자동이체(카드) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)' END AS AFTN_CLSF
                      , RBFD.CNTR_NO
                      , RBFD.CNTR_SN
@@ -80,18 +82,12 @@
                     ON RBFB.BIL_NO = RBFD.BIL_NO
                    AND RBFB.DTA_DL_YN = 'N'
                    AND RBFD.DTA_DL_YN = 'N'
-            <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-            INNER JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
+             LEFT JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
                     ON RBFB.BIL_NO = RAFS.BIL_NO
                    AND RAFS.DTA_DL_YN = 'N'
-                   AND RAFS.AC_FNT_RS_CD IS NOT NULL
-            </if>
-            <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-            INNER JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
+             LEFT JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ RCFS
                     ON RBFB.BIL_NO = RCFS.BIL_NO
                    AND RCFS.DTA_DL_YN = 'N'
-                   AND RCFS.CARD_FNT_RS_CD IS NOT NULL
-            </if>
             INNER JOIN TB_SSCT_CNTR_DTL SCD
                     ON RBFD.CNTR_NO = SCD.CNTR_NO
                    AND RBFD.CNTR_SN = SCD.CNTR_SN
@@ -100,12 +96,16 @@
                     ON SCD.CNTR_NO = SCB.CNTR_NO
                    AND SCB.DTA_DL_YN = 'N'
                    AND SCB.CNTR_CAN_DTM IS NULL
-            INNER JOIN TB_RVDW_RVE_AK_DTL RRAD
-                    ON RBFD.BIL_NO = RRAD.RVE_AK_OJ_DRM_NO1
-                   AND RBFD.BIL_DTL_SN = RRAD.RVE_AK_OJ_DRM_NO2
-                   AND RRAD.DTA_DL_YN = 'N'
                  WHERE RBFB.BIL_DT = #{bilDt}
                    AND RBFB.FNT_DV_CD = #{fntDvCd}
+                   AND NOT EXISTS (
+                                   SELECT 1
+                                     FROM TB_RVDW_RVE_AK_DTL RRAD
+                                    WHERE RBFD.BIL_NO = RRAD.RVE_AK_OJ_DRM_NO1
+                                      AND RBFD.BIL_DTL_SN = RRAD.RVE_AK_OJ_DRM_NO2
+                                      AND RRAD.DTA_DL_YN = 'N'
+                                  )
+                   AND (RCFS.CARD_FNT_RS_CD IS NOT NULL OR RAFS.AC_FNT_RS_CD IS NOT NULL)
               ORDER BY RBFD.DP_AMT DESC
     </select>
 
@@ -246,7 +246,8 @@
                          , M_CRCDNO_ENCR
                          , S_CRCDNO_ENCR
                       FROM (
-                                SELECT MSTR_CNTR.SELL_TP_CD AS MSTR_SELL_TP_CD
+                                SELECT /*+ LEADING(MSTR_CNTR) USE_NL(RIBB MSTR_CNTR SUB_CNTR) NO_MERGE(MSTR_CNTR) NO_MERGE(SUB_CNTR) INDEX(RIBB IX_RVCL_ITG_BIL_OJ_BAS_01) */
+                                       MSTR_CNTR.SELL_TP_CD AS MSTR_SELL_TP_CD
                                      , RIBB.DG_CNTR_NO
                                      , MSTR_CNTR.DP_TP_CD AS MSTR_DP_TP_CD
                                      , SUB_CNTR.SELL_TP_CD AS SUB_SELL_TP_CD
@@ -313,7 +314,7 @@
                                                                       || ')'
                                             WHEN MSTR_CNTR.SELL_TP_CD = '3' OR SUB_CNTR.SELL_TP_CD = '3' THEN '7.멤버십주문묶음출금등록불가'
                                             WHEN MSTR_CNTR.SELL_TP_CD = '1' OR SUB_CNTR.SELL_TP_CD = '1' THEN '8.일시불주문묶음출금등록불가'
-                                            WHEN MSTR_CNTR.CNTR_DTL_STAT_CD != '101' OR MSTR_CNTR.CNTR_NO IS NULL THEN '10.대표주문번호 계약종료'
+                                            WHEN MSTR_CNTR.CNTR_DTL_STAT_CD >= 303 OR MSTR_CNTR.CNTR_NO IS NULL THEN '10.대표주문번호 계약종료'
                                        END AS ERR_TYP
                                   FROM TB_RVCL_ITG_BIL_OJ_BAS RIBB
                                   JOIN (
@@ -352,15 +353,15 @@
                                                                  , SCSR.DTL_CNTR_SN
                                                                  , SCSR.CNTR_UNIT_TP_CD
                                                                  , SCSB.FNIT_APR_RS_CD
-                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO , SCSR.DTL_CNTR_SN ORDER BY SCSB.CNTR_STLM_ID  DESC) AS RN
+                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO, SCSR.DTL_CNTR_SN ORDER BY SCSR.VL_STRT_DTM DESC) AS RN
                                                               FROM TB_SSCT_CNTR_STLM_REL SCSR
                                                               JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
                                                                 ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
                                                                AND SCSB.DTA_DL_YN = 'N'
                                                                AND SCSR.DTA_DL_YN = 'N'
-                                                               AND SCSB.DP_TP_CD = #{dpTpCd}
                                                            )
                                                      WHERE RN = 1
+                                                       AND DP_TP_CD = #{dpTpCd}
                                                 ) A
                                                 ON A.DTL_CNTR_NO = SCD.CNTR_NO
                                                AND A.DTL_CNTR_SN = SCD.CNTR_SN
@@ -404,15 +405,15 @@
                                                                  , SCSR.DTL_CNTR_SN
                                                                  , SCSR.CNTR_UNIT_TP_CD
                                                                  , SCSB.FNIT_APR_RS_CD
-                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO , SCSR.DTL_CNTR_SN ORDER BY SCSB.CNTR_STLM_ID  DESC) AS RN
+                                                                 , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO, SCSR.DTL_CNTR_SN ORDER BY SCSR.VL_STRT_DTM DESC) AS RN
                                                               FROM TB_SSCT_CNTR_STLM_REL SCSR
                                                               JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
                                                                 ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID 
                                                                AND SCSB.DTA_DL_YN = 'N'
                                                                AND SCSR.DTA_DL_YN = 'N'
-                                                               AND SCSB.DP_TP_CD = #{dpTpCd}
                                                            )
                                                      WHERE RN = 1
+                                                       AND DP_TP_CD = #{dpTpCd}
                                                 ) A
                                                 ON A.DTL_CNTR_NO = SCD.CNTR_NO
                                                AND A.DTL_CNTR_SN = SCD.CNTR_SN

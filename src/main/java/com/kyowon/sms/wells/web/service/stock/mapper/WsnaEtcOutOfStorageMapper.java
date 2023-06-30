@@ -14,7 +14,11 @@ public interface WsnaEtcOutOfStorageMapper {
 
     int deleteEtcOutOfStorages(WsnaEtcOutOfStorageDvo etcOutOfStorage);
 
-    String selectNewItmOstrNo(WsnaEtcOutOfStorageDvo dvo);
+    List<SearchDeptRes> selectEtcOutOfStorageDepts();
 
-    String selectNewOstrSn(WsnaEtcOutOfStorageDvo dvo);
+    String selectNewItmOstrNo(FindItmOstrNoReq findItmOstrNoReq);
+
+    int insertEtcOutOfStorageOstrIz(WsnaEtcOutOfStorageDvo dvo);
+
+    String selectWareMngtPrtnrNo(FindWareMngtPrtnrNoReq findWareMngtPrtnrNoReq);
 }

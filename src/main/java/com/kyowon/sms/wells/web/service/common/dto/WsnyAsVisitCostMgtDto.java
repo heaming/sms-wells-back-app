@@ -23,7 +23,8 @@ public class WsnyAsVisitCostMgtDto {
         String bstrCsAmt,
         String apyStrtdt,
         String apyEnddt,
-        String rmkCn
+        String rmkCn,
+        String apyMtrChk
     ) {}
 
     @ApiModel(value = "WsnyAsVisitCostMgtDto-SearchRes")

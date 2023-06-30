@@ -21,6 +21,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
+
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/out-of-storage-asks")
 @Api(tags = "[WSNA] 출고요청 관리 REST API")
@@ -39,7 +41,7 @@ public class WsnaOutOfStorageAskMngtController {
         @ApiImplicitParam(name = "wareLocaraCd", value = "창고지역코드", paramType = "query", example = "")
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getOutOfStorageAsks(WsnaOutOfStorageAskMngtDto.SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRes> getOutOfStorageAsks(SearchReq dto, PageInfo pageInfo) {
         return this.service.getOutOfStorageAsks(dto, pageInfo);
     }
 
@@ -51,20 +53,18 @@ public class WsnaOutOfStorageAskMngtController {
     }
 
     @ApiOperation(value = "출고요청등록 하단영역 조회", notes = "부모창에서 넘어온 파라미터로 출고요청 등록 하단영역을 조회")
-    @GetMapping("/out-of-storage-items/paging")
-    public PagingResult<WsnaOutOfStorageAskMngtDto.OutOfRes> getOutOfStorageItemPages(
-        WsnaOutOfStorageAskMngtDto.SearchReq dto,
-        @Valid
-        PageInfo pageInfo
+    @GetMapping("/out-of-storage-items")
+    public List<OutOfRes> getOutOfStorageItemPages(
+        SearchReq dto
     ) {
 
-        return this.service.getOutOfStorageItemPages(dto, pageInfo);
+        return this.service.getOutOfStorageItemPages(dto);
     }
 
     @ApiOperation(value = "출고요청등록 엑셀다운로드", notes = "출고요청등록 엑셀다운로드를 한다")
     @GetMapping("/out-of-storage-items/excel-download")
     public List<OutOfRes> getOutOfStorageItemExcelDownload(
-        WsnaOutOfStorageAskMngtDto.SearchReq dto
+        SearchReq dto
     ) {
         return this.service.getOutOfStorageItemExcelDownload(dto);
     }

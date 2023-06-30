@@ -1,106 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroDepositMgtMapper">
-    
+
     <select id="selectGiroDepositMgt" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchRes">
-        SELECT 
+        SELECT
                /*T1.KW_GRP_CO_CD*/
                T2.KW_GRP_CO_CD
-             , T1.CNTR_NO||T1.CNTR_SN AS CNTR_NO --계약번호
+             , T1.CNTR_NO||T1.CNTR_SN AS CNTR --계약번호
+             , T1.CNTR_NO
+             , T1.CNTR_SN
              , T7.CST_KNM  --고객명
              , T1.ITG_DP_NO --통합입금번호
              , T1.FNT_DT AS RVE_DT --입금일자
              , T1.RVE_DT AS PERF_DT --실적일자
              , T1.PY_AMT AS RVE_AMT--입금금액
-             , T1.GIRO_FEE --수수료금액     
-             , T2.DP_TP_CD AS DP_MES_CD --입금유형
-             , T4.SELL_TP_CD AS SELL_TP_CD --판매유형
-             , T1.PROCS_ERR_TP_CD --처리오류유형코드                    
-             , T3.DG_CNTR_NO||T3.DG_CNTR_SN AS DG_CNTR_NO
+             , T1.GIRO_FEE --수수료금액
+             , NVL(T2.DP_TP_CD,'0401') AS DP_MES_CD --입금유형
+             , NVL(T4.SELL_TP_CD,'2') AS SELL_TP_CD --판매유형
+             <!--, T2.DP_TP_CD AS DP_MES_CD &#45;&#45;입금유형
+             , T4.SELL_TP_CD AS SELL_TP_CD &#45;&#45;판매유형-->
+             , T1.PROCS_ERR_TP_CD --처리오류유형코드
+             , T3.DG_CNTR_NO||T3.DG_CNTR_SN AS DG_CNTR
+             , T3.DG_CNTR_NO
+             , T3.DG_CNTR_SN
+             , T1.GIRO_RVE_DV_CD
+             , T1.GIRO_NO /*지로번호*/
+             , T1.GIRO_DP_MTR_DV_CD /*지로입금자료구분코드*/
+             , T1.GIRO_DP_SN /*일련번호*/
           FROM TB_RVDW_GIRO_DP_IZ T1 --입금내역
           LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 --수납상세
-           /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/ 
-            ON T1.CNTR_NO = T2.CNTR_NO 
-           AND T1.CNTR_SN = T2.CNTR_SN 
-           AND T2.DTA_DL_YN = 'N' 
+           /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
            AND T2.DP_MES_CD = '06'
           LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6  --계약기본
-            ON T1.CNTR_NO = T6.CNTR_NO    
-           AND T6.DTA_DL_YN = 'N' 
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T7 --고객기본  
-            ON T7.CST_NO = T6.CNTR_CST_NO  
-           AND T7.DTA_DL_YN = 'N' 
+            ON T1.CNTR_NO = T6.CNTR_NO
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T7 --고객기본
+            ON T7.CST_NO = T6.CNTR_CST_NO
+           AND T7.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_RVDW_GIRO_OCR_BNDL_BAS T3 --지로OCR묶음기본
-            ON T3.CNTR_NO = T1.CNTR_NO 
-           AND T3.CNTR_SN = T1.CNTR_SN 
-           AND T3.GIRO_OCR_BNDL_YM = SUBSTR(T1.FNT_DT,0,6)             
-           AND T3.DTA_DL_YN = 'N' 
+            ON T3.CNTR_NO = T1.CNTR_NO
+           AND T3.CNTR_SN = T1.CNTR_SN
+           AND T3.GIRO_OCR_BNDL_YM = SUBSTR(T1.FNT_DT,0,6)
+           AND T3.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SSCT_CNTR_DTL T4 /*계약상세*/
-            ON T4.CNTR_NO = T1.CNTR_NO 
-           AND T4.CNTR_SN = T1.CNTR_SN 
-           AND T4.DTA_DL_YN = 'N' 
+            ON T4.CNTR_NO = T1.CNTR_NO
+           AND T4.CNTR_SN = T1.CNTR_SN
+           AND T4.DTA_DL_YN = 'N'
          WHERE 1 = 1
           /* AND KW_GRP_CO_CD = {session.companyCode}*/
            AND T1.DTA_DL_YN = 'N'
             <if test='@MybatisUtils@isNotEmpty(fntDt)'>
-            AND T1.FNT_DT = #{fntDt}    
+            AND T1.FNT_DT = #{fntDt}
             </if>
-            <if test='@MybatisUtils@isNotEmpty(rveDt)'>  
+            <if test='@MybatisUtils@isNotEmpty(rveDt)'>
             AND T1.RVE_DT = #{rveDt}
-            </if>                          
+            </if>
             <if test='@MybatisUtils@equals(errorChk, "2")'>
             AND T1.PROCS_ERR_TP_CD = '3'
-            </if>    
-           ORDER BY ITG_DP_NO 
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgCntrNo)'>
+            AND T1.DG_CNTR_NO = #{dgCntrNo}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgCntrSn)'>
+            AND T1.DG_CNTR_SN = #{dgCntrSn}
+            </if>
+           ORDER BY ITG_DP_NO
     </select>
-    
+
     <select id="selectGiroDepositSum" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchSumRes">
-        SELECT 
+        SELECT
                SUM(T1.PY_AMT) AS RVE_AMT_SUM--입금금액
-             , SUM(T1.GIRO_FEE) AS GIRO_FEE_SUM --수수료금액   
+             , SUM(T1.GIRO_FEE) AS GIRO_FEE_SUM --수수료금액
           FROM TB_RVDW_GIRO_DP_IZ T1 --입금내역
           LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 --수납상세
-           /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/ 
-            ON T1.CNTR_NO = T2.CNTR_NO 
-           AND T1.CNTR_SN = T2.CNTR_SN 
-           AND T2.DTA_DL_YN = 'N' 
+           /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
            AND T2.DP_MES_CD = '06'
           LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6  --계약기본
-            ON T1.CNTR_NO = T6.CNTR_NO    
-           AND T6.DTA_DL_YN = 'N' 
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T7 --고객기본  
-            ON T7.CST_NO = T6.CNTR_CST_NO  
-           AND T7.DTA_DL_YN = 'N' 
+            ON T1.CNTR_NO = T6.CNTR_NO
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T7 --고객기본
+            ON T7.CST_NO = T6.CNTR_CST_NO
+           AND T7.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_RVDW_GIRO_OCR_BNDL_BAS T3 --지로OCR묶음기본
-            ON T3.CNTR_NO = T1.CNTR_NO 
-           AND T3.CNTR_SN = T1.CNTR_SN 
-           AND T3.GIRO_OCR_BNDL_YM = SUBSTR(T1.FNT_DT,0,6)             
-           AND T3.DTA_DL_YN = 'N' 
+            ON T3.CNTR_NO = T1.CNTR_NO
+           AND T3.CNTR_SN = T1.CNTR_SN
+           AND T3.GIRO_OCR_BNDL_YM = SUBSTR(T1.FNT_DT,0,6)
+           AND T3.DTA_DL_YN = 'N'
          WHERE 1 = 1
           /* AND KW_GRP_CO_CD = {session.companyCode}*/
            AND T1.DTA_DL_YN = 'N'
             <if test='@MybatisUtils@isNotEmpty(fntDt)'>
-            AND T1.FNT_DT = #{fntDt}    
+            AND T1.FNT_DT = #{fntDt}
             </if>
-            <if test='@MybatisUtils@isNotEmpty(rveDt)'>  
+            <if test='@MybatisUtils@isNotEmpty(rveDt)'>
             AND T1.RVE_DT = #{rveDt}
-            </if>                          
+            </if>
             <if test='@MybatisUtils@equals(errorChk, "2")'>
             AND T1.PROCS_ERR_TP_CD = '3'
-            </if>               
+            </if>
     </select>
-          
+
     <select id="selectGiroDepositDate" resultType="String">
-        SELECT 
-               TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS GIRO_DP_ULD_DTM 
+        SELECT
+               TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS GIRO_DP_ULD_DTM
           FROM DUAL
     </select>
-    
+
     <insert id="inertGiroDeposit">
         INSERT INTO TB_RVDW_GIRO_DP_LEDG_IZ /* 지로입금 원장내역 */
         (
               GIRO_DP_ULD_DTM /*지로입금업로드일시*/
-            , GIRO_DP_ULD_SN /*지로입금업로드일련번호*/              
+            , GIRO_DP_ULD_SN /*지로입금업로드일련번호*/
             , GIRO_DP_MTR_DV_CD --구분코드
             , DP_SN --일련번호
             , RVE_DT --수납일자
@@ -112,18 +128,18 @@
             , PY_AMT --납입금액
             , GIRO_RVE_DV_CD --지로수납구분코드
             , GIRO_FEE_DV_CD --지로수수료구분코드
-            , RMK_CN  --비고    
+            , RMK_CN  --비고
             , DTA_DL_YN
-            , GIRO_DP_ULD_PROCS_YN 
+            , GIRO_DP_ULD_PROCS_YN
             <include refid="COMMON.insertSystemField"/>
          )VALUES(
               #{giroDpUldDtm} /*지로입금업로드일시*/
-            , ( 
-                SELECT 
-                       NVL(MAX(GIRO_DP_ULD_SN),0)+1 
+            , (
+                SELECT
+                       NVL(MAX(GIRO_DP_ULD_SN),0)+1
                   FROM TB_RVDW_GIRO_DP_LEDG_IZ
-                 WHERE GIRO_DP_ULD_DTM = #{giroDpUldDtm}                   
-              ) /*지로입금업로드일련번호*/  
+                 WHERE GIRO_DP_ULD_DTM = #{giroDpUldDtm}
+              ) /*지로입금업로드일련번호*/
             , #{giroDpMtrDvCd} --구분코드
             , #{dpSn} --일련번호
             , #{rveDt} --수납일자
@@ -135,13 +151,13 @@
             , #{pyAmt} --납입금액
             , #{giroRveDvCd} --지로수납구분코드
             , #{giroFeeDvCd} --지로수수료구분코드
-            , #{rmkCn}  --비고    
+            , #{rmkCn}  --비고
             , 'N'
             , 'N'
             <include refid="COMMON.insertSystemFieldValue" />
          )
     </insert>
-    
+
     <update id="updateGiroDeposit">
         UPDATE TB_RVDW_GIRO_DP_LEDG_IZ
            SET GIRO_DP_ULD_PROCS_YN = 'Y'
@@ -150,8 +166,8 @@
            AND DTA_DL_YN = 'N'
            AND GIRO_DP_ULD_PROCS_YN = 'N'
     </update>
-    
-    
+
+
     <insert id="inertGiroDepositItemization">
         INSERT INTO TB_RVDW_GIRO_DP_IZ(
                   ITG_DP_NO --통합입금번호
@@ -179,39 +195,39 @@
                   #{session.companyCode}||TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_RVDW_ITG_DP_BAS$ITG_DP_NO.NEXTVAL,8,0)
                 , #{giroNo}
                 , #{giroDpMtrDvCd}
-                , #{dpSn} 
+                , #{dpSn}
                 , #{fntDt}
-                , #{rveDt} 
-                , #{giroDpBnkCd} 
-                , #{giroInqno} 
-                , #{cntrNo} 
-                , #{cntrSn} 
-                , #{pyTn}              
-                , #{pyYm}              
+                , #{rveDt}
+                , #{giroDpBnkCd}
+                , #{giroInqno}
+                , #{cntrNo}
+                , #{cntrSn}
+                , #{pyTn}
+                , #{pyYm}
                 , #{pyAmt}
-                , #{giroFeeDvCd} 
-                , #{giroRveDvCd} 
-                , #{dtaDlYn}    
+                , #{giroFeeDvCd}
+                , #{giroRveDvCd}
+                , #{dtaDlYn}
                /* , {session.companyCode}*/
                 , #{procsErrTpCd}
                 , 'N'
                  <include refid="COMMON.insertSystemFieldValue" />
                 )
-                                          
+
     </insert>
-    
+
     <delete id="deleteGiroDepositItemization">
-        DELETE       
+        DELETE
           FROM
                TB_RVDW_GIRO_DP_IZ
-         WHERE ITG_DP_PROCS_YN = 'N'    
+         WHERE ITG_DP_PROCS_YN = 'N'
            AND DTA_DL_YN = 'N'
-           AND FNT_DT IN 
+           AND FNT_DT IN
            <foreach collection="fntDt" item="code" index="index" separator="," open="(" close=")">
-                      #{code}         
-           </foreach>           
+                      #{code}
+           </foreach>
     </delete>
-            
+
     <insert id="inertIntegrationItemizationTest">
         INSERT INTO TB_RVDW_ITG_DP_BAS(
                     ITG_DP_NO /*통합입금번호*/
@@ -220,24 +236,24 @@
                   , RVE_CD /*수납코드*/
                   , OG_TP_CD /*조직유형코드*/
                   , PRTNR_NO /*파트너번호*/
-                  , CST_NO /*고객번호*/       
+                  , CST_NO /*고객번호*/
                   , DP_DV_CD /*입금구분코드*/
                   , DP_MES_CD /*입금수단코드*/
                   , DP_TP_CD /*입금유형코드*/
                   , DP_DTM /*입금일시*/
-                  , PERF_DT /*실적일자*/      
+                  , PERF_DT /*실적일자*/
               /*  , DPR_NM 입금자명*/
-                  , DP_AMT /*입금금액*/                               
+                  , DP_AMT /*입금금액*/
                   , RVE_AK_NO /*수납요청번호*/
                   , ITG_DP_CH_RSON_CD /*통합입금변경사유코드*/
                   <include refid="COMMON.insertSystemField"/>
          )   SELECT
                     T1.ITG_DP_NO /*통합입금번호*/
                   , T1.RVE_CO_CD  /*수납회사코드*/
-                  , T1.RVE_CD /*수납코드*/  
+                  , T1.RVE_CD /*수납코드*/
                   , T1.OG_TP_CD /*조직유형코드*/
                   , T1.PRTNR_NO /*파트너번호*/
-                  , T2.CNTR_CST_NO/*고객번호*/    
+                  , T2.CNTR_CST_NO/*고객번호*/
                   , T1.DP_DV_CD /*입금구분코드*/
                   , T1.DP_MES_CD /*입금수단코드*/
                   , T1.DP_TP_CD /*입금유형코드*/
@@ -245,51 +261,51 @@
                   , T1.PERF_DT /*실적일자*/
                  /*입금자명*/
                   , T1.DP_AMT  /*입금금액*/
-                  , T1.RVE_AK_NO /*수납요청번호*/  
-                  <include refid="COMMON.insertSystemFieldValue" /> 
+                  , T1.RVE_AK_NO /*수납요청번호*/
+                  <include refid="COMMON.insertSystemFieldValue" />
                FROM TB_RVDW_RVE_DTL T1
                LEFT OUTER JOIN TB_SSCT_CNTR_BAS T2
-                 ON T2.CNTR_NO = T1.CNTR_NO 
+                 ON T2.CNTR_NO = T1.CNTR_NO
                 AND T2.DTA_DL_YN = 'N'
               WHERE 1 = 1
                 AND T1.CNTR_NO = #{cntrNo}
                 AND T1.CNTR_SN = #{cntrSn}
-                AND T1.DTA_DL_YN = 'N'                
+                AND T1.DTA_DL_YN = 'N'
     </insert>
-    
+
     <insert id="inertIntegrationItemization">
         INSERT INTO TB_RVDW_ITG_DP_BAS(
                     ITG_DP_NO /*통합입금번호*/
                   , KW_GRP_CO_CD /*교원그룹번호*/
                   , DP_DTM /*입금일시*/
-                  , PERF_DT /*실적일자*/      
-                  , DP_AMT /*입금금액*/                               
+                  , PERF_DT /*실적일자*/
+                  , DP_AMT /*입금금액*/
                   <include refid="COMMON.insertSystemField"/>
          )   SELECT
                     ITG_DP_NO
                   , #{session.companyCode}
                   , FNT_DT
                   , RVE_DT
-                  , PY_AMT  
+                  , PY_AMT
                   <include refid="COMMON.insertSystemFieldValue" />
                FROM TB_RVDW_GIRO_DP_IZ
               WHERE ITG_DP_PROCS_YN = 'N'
-                AND DTA_DL_YN = 'N'                                          
+                AND DTA_DL_YN = 'N'
     </insert>
-    
+
     <update id="updateIntegrationItemization">
         UPDATE TB_RVDW_GIRO_DP_IZ
            SET ITG_DP_PROCS_YN = 'Y'
            <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND ITG_DP_PROCS_YN = 'N'
-           AND DTA_DL_YN = 'N'                                            
+           AND DTA_DL_YN = 'N'
     </update>
 
     <insert id="inertIntegrationItemizationHistory">
         INSERT INTO TB_RVDW_ITG_DP_BAS_HIST (
               ITG_DP_NO --통합입금번호
-            , ITG_DP_CAN_YN --통합입금취소여부 
+            , ITG_DP_CAN_YN --통합입금취소여부
             , INCMDC_YN --소득공제여부
             , DTA_DL_YN
             , HIST_CH_DTM
@@ -298,15 +314,15 @@
               #{itgDpNo}
             , #{itgDpCanYn}
             , #{incmdcYn}
-            , #{dtaDlYn} 
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') 
-          <include refid="COMMON.insertSystemFieldValue" />                 
-        )                  
+            , #{dtaDlYn}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          <include refid="COMMON.insertSystemFieldValue" />
+        )
     </insert>
-    
+
     <select id="selectGiroDepositItemizationInfo" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveInfoDvo">
-                SELECT                        
-                       GIRO_NO  
+                SELECT
+                       GIRO_NO
                      , GIRO_DP_MTR_DV_CD
                      , DP_SN -- 일련번호
                      , FNT_DT --이체일자
@@ -314,9 +330,10 @@
                      , GIRO_DP_BNK_CD --은행코드
                      , GIRO_INQNO --지로조회번호
                      , CNTR_NO --계약번호
-                     , (SELECT NVL(MAX(CNTR_SN),0)+1 FROM TB_RVDW_GIRO_DP_IZ WHERE CNTR_NO = T1.CNTR_NO) AS CNTR_SN
+                     , 1 AS CNTR_SN
+<!--                     , (SELECT NVL(CNTR_SN,0)+1 FROM TB_RVDW_GIRO_DP_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = 1) AS CNTR_SN-->
                      --, LPAD(ROW_NUMBER() OVER(PARTITION BY CNTR_NO ORDER BY DP_SN DESC ),5,0) AS CNTR_SN --계약일련번호
-                     , PY_TN --회차        
+                     , PY_TN --회차
                      , (CASE WHEN TO_NUMBER(SUBSTR(PY_YM,1,2)) = 0  THEN 0
                              ELSE TO_NUMBER('20' || PY_YM)
                             END) AS PY_YM /*납입년월 */
@@ -328,50 +345,51 @@
                        <include refid="COMMON.insertSystemFieldValue"/>
                   FROM(
                             SELECT
-                                   
+
                                    (
                                           SELECT SUBSTR(DP_SN,3,5) ||  SUBSTR(RVE_DT,1,2)
                                         FROM TB_RVDW_GIRO_DP_LEDG_IZ  /* 지로입금　원시파일 */
                                        WHERE GIRO_DP_MTR_DV_CD = '11'   /* 구분코드 */
                                          AND GIRO_DP_ULD_PROCS_YN = 'N'
+                                         AND ROWNUM = 1
                                    ) AS GIRO_NO --지로번호
                                  , GIRO_DP_MTR_DV_CD --구분코드
                                  , DP_SN -- 일련번호
                                  , FNT_DT --이체일자
                                  , RVE_DT --수납일자
                                  , GIRO_DP_BNK_CD --은행코드
-                                 , GIRO_INQNO --지로조회번호                            
+                                 , GIRO_INQNO --지로조회번호
                                  , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'
                                         WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN SUBSTR(GIRO_INQNO,1,4)
                                         WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN SUBSTR(GIRO_INQNO,10,4)
-                                        ELSE 'W'||SUBSTR(GIRO_INQNO,3,11) END CNTR_NO /*계약번호     */      
+                                        ELSE 'W'||SUBSTR(GIRO_INQNO,3,11) END CNTR_NO /*계약번호     */
 --                               , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'
 --                                      WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN SUBSTR(GIRO_INQNO,1,4)
 --                                      WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN SUBSTR(GIRO_INQNO,10,4)
---                                      ELSE SUBSTR(GIRO_INQNO,3,12) END CNTR_NO /*계약번호     */      
+--                                      ELSE SUBSTR(GIRO_INQNO,3,12) END CNTR_NO /*계약번호     */
                                  , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'
                                          WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN '0'
                                         WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN '0'
-                                        ELSE SUBSTR(GIRO_INQNO,14,2) END PY_TN --납입회차     
+                                        ELSE SUBSTR(GIRO_INQNO,14,2) END PY_TN --납입회차
                                  , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'
                                         WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN '0'
                                         WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN '0'
                                         ELSE SUBSTR(GIRO_INQNO,16,4) END PY_YM /*납입년월     */
                                  , PY_AMT --납입금액
-                                 , GIRO_FEE_DV_CD--지로수수료        
+                                 , GIRO_FEE_DV_CD--지로수수료
                                  , GIRO_RVE_DV_CD -- 수납구분
                                  , DTA_DL_YN
                               FROM TB_RVDW_GIRO_DP_LEDG_IZ
                              WHERE GIRO_DP_MTR_DV_CD = '22'
-                               AND DTA_DL_YN = 'N'       
-                               AND GIRO_DP_ULD_PROCS_YN = 'N'                          
-                      ) T1  
+                               AND DTA_DL_YN = 'N'
+                               AND GIRO_DP_ULD_PROCS_YN = 'N'
+                      ) T1
     </select>
-    
+
     <delete id="deleteGiroDeposit">
         DELETE FROM TB_RVDW_GIRO_DP_LEDG_IZ
     </delete>
-    
+
     <select id="selectGiroDepositList" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchDepositRes">
         SELECT
                ITG_DP_NO
@@ -391,26 +409,29 @@
              , GIRO_RVE_DV_CD
              , GIRO_PRTS_DV_CD
              , PROCS_ERR_TP_CD
-             , DTA_DL_YN 
+             , DTA_DL_YN
           FROM TB_RVDW_GIRO_DP_IZ
          WHERE 1 = 1
            AND GIRO_NO = '3010068' /* 지로번호*/
            AND FNT_DT = #{fntDt}
+           AND RVE_DT = #{rveDt}
            AND DTA_DL_YN = 'N'
     </select>
-    
+
     <select id="selectGiroDepositCount" resultType="int">
-        SELECT 
-              COUNT(GIRO_OCR_BNDL_YM) AS CNT 
+        SELECT
+              COUNT(GIRO_OCR_BNDL_YM) AS CNT
          FROM TB_RVDW_GIRO_OCR_BNDL_BAS
         WHERE 1 = 1
           AND GIRO_OCR_BNDL_YM = #{giroOcrBndlYm}
           AND DG_CNTR_NO = #{dgCntrNo}
           AND DG_CNTR_SN = #{dgCntrSn}
+          AND FNT_DT = #{fntDt}
+          AND RVE_DT = #{rveDt}
           AND DG_CNTR_YN = 'Y'
           AND DTA_DL_YN = 'N'
     </select>
-    
+
     <select id="selectContractDetail" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchContractDetailRes">
         SELECT
                CNTR_NO
@@ -469,31 +490,32 @@
              , CNTR_CH_RCP_ID
              , CNTR_CH_SN
              , CNTR_CH_DTL_RSON_CD
-             , CNTR_CH_DTL_AK_CN   
+             , CNTR_CH_DTL_AK_CN
          FROM TB_SSCT_CNTR_DTL
         WHERE 1 = 1
           AND CNTR_NO = #{cntrNo}
-          AND CNTR_SN = #{cntrSn}   
+          AND CNTR_SN = #{cntrSn}
     </select>
-    
+
     <update id="updateGiroDepositItemization">
-        UPDATE 
+        UPDATE
                TB_RVDW_GIRO_DP_IZ
-           SET PROCS_ERR_TP_CD = #{procsErrTpCd} 
+           SET PROCS_ERR_TP_CD = #{procsErrTpCd}
            <include refid="COMMON.updateSystemField"/>
          WHERE GIRO_NO = #{giroNo}
            AND FNT_DT = #{fntDt}
+           AND RVE_DT = #{rveDt}
            AND GIRO_DP_MTR_DV_CD = #{giroDpMtrDvCd}
-           AND GIRO_DP_SN = #{giroDpSn}           
+           AND GIRO_DP_SN = #{giroDpSn}
     </update>
-    
+
     <select id="selectGiroDepositSettingAmount">
-        SELECT  
+        SELECT
                NVL(SUM(DP_SE_AMT),0) AS DP_SE_AMT
           FROM TB_RVDW_GIRO_OCR_BNDL_BAS A
          INNER JOIN TB_SSCT_CNTR_DTL B
-            ON A.CNTR_NO = B.CNTR_NO 
-           AND A.CNTR_SN = B.CNTR_SN 
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
          WHERE 1 = 1
            AND GIRO_OCR_BNDL_YM = #{giroOcrBndlYm}
            AND DG_CNTR_NO = #{dgCntrNo}
@@ -502,16 +524,16 @@
            AND B.DTA_DL_YN = 'N'
            AND B.CNTR_DTL_STAT_CD = '101'
     </select>
-    
+
     <select id="selectGiroDepositSettingList" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchDepositSettingRes">
-        SELECT  
+        SELECT
                DP_SE_AMT
              , DG_CNTR_NO
              , DG_CNTR_SN
           FROM TB_RVDW_GIRO_OCR_BNDL_BAS A
          INNER JOIN TB_SSCT_CNTR_DTL B
-            ON A.CNTR_NO = B.CNTR_NO 
-           AND A.CNTR_SN = B.CNTR_SN 
+            ON A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
          WHERE 1 = 1
            AND GIRO_OCR_BNDL_YM = #{giroOcrBndlYm}
            AND DG_CNTR_NO = #{dgCntrNo}
@@ -522,39 +544,43 @@
     </select>
 
     <select id="selectBillingDocumentErrors" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchErrosRes">
-        SELECT     
-               I1.CNTR_NO 
-             , I1.CNTR_SN 
+        SELECT
+               I1.CNTR_NO
+             , I1.CNTR_SN
              , I1.CNTR_NO || I1.CNTR_SN AS CNTR
              , I1.ITG_DP_NO
-             , T7.CST_KNM 
+             , T7.CST_KNM
              , I1.PY_AMT --금액
              , I1.FNT_DT --(입금일)
-             , I1.RVE_DT --(실적일)         
-             , TO_CHAR(TO_DATE(I1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'),'YYYYMMDD') AS FNL_MDFC_DTM 
-             , I1.FNL_MDFC_USR_ID 
+             , I1.RVE_DT --(실적일)
+             , TO_CHAR(TO_DATE(I1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'),'YYYYMMDD') AS FNL_MDFC_DTM
+             , (SELECT X.EPNO
+                  FROM T_CMP_USR_ACO_M X
+                 WHERE X.USR_ID = I1.FNL_MDFC_USR_ID
+                   AND X.DEL_YN = 'N'
+                ) AS FNL_MDFC_USR_ID  /* 수정담당자 ID*/
              , I1.DP_ERR_PROCS_CN
-          FROM TB_RVDW_GIRO_DP_IZ I1 --지로입금내역 
+          FROM TB_RVDW_GIRO_DP_IZ I1 --지로입금내역
           LEFT OUTER JOIN TB_RVDW_RVE_DTL I2 --수납상세
-            ON I2.CNTR_NO = I1.CNTR_NO 
-           AND I2.CNTR_SN = I1.CNTR_SN 
+            ON I2.CNTR_NO = I1.CNTR_NO
+           AND I2.CNTR_SN = I1.CNTR_SN
            AND I2.RVE_DT = I1.FNT_DT
           LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6  --계약기본
-            ON I1.CNTR_NO = T6.CNTR_NO 
-          LEFT OUTER JOIN TB_CUBS_CST_BAS T7 --고객기본  
-            ON T7.CST_NO = T6.CNTR_CST_NO    
+            ON I1.CNTR_NO = T6.CNTR_NO
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T7 --고객기본
+            ON T7.CST_NO = T6.CNTR_CST_NO
          WHERE 1 = 1
            AND I1.PROCS_ERR_TP_CD != '3'
            AND I1.DTA_DL_YN = 'N'
            <if test='@MybatisUtils@isNotEmpty(fntDt)'>
-           AND I1.FNT_DT = #{fntDt}    
+           AND I1.FNT_DT = #{fntDt}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(rveDt)'>  
+           <if test='@MybatisUtils@isNotEmpty(rveDt)'>
            AND I1.RVE_DT = #{rveDt}
-           </if> 
-         ORDER BY FNT_DT        
+           </if>
+         ORDER BY FNT_DT
     </select>
-    
+
     <update id="updateBillingDocumentErrors">
         UPDATE TB_RVDW_GIRO_DP_IZ
            SET CNTR_NO = #{cntrNo}
@@ -566,34 +592,34 @@
              , PROCS_ERR_TP_CD = #{procsErrTpCd}
              <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
-           AND ITG_DP_NO = #{itgDpNo}  
+           AND ITG_DP_NO = #{itgDpNo}
     </update>
-    
+
     <select id="selectDtlState" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchDtlStateRes">
-        SELECT   
-               CNTR_NO 
-             , CNTR_SN  
+        SELECT
+               CNTR_NO
+             , CNTR_SN
              , CNTR_DTL_STAT_CD --계약상태코드
-        FROM TB_SSCT_CNTR_DTL 
+        FROM TB_SSCT_CNTR_DTL
         WHERE CNTR_NO = #{cntrNo}
-          AND CNTR_SN = #{cntrSn}    
+          AND CNTR_SN = #{cntrSn}
     </select>
-    
+
     <select id="selectBillingDocumentMgtLedgerItemization" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchLedgerItemizationRes">
-    SELECT 
+    SELECT
            FNT_DT
          , CHK_CNT
-         , ITG_DP_PROCS_Y_CNT   
+         , ITG_DP_PROCS_Y_CNT
       FROM (
-                SELECT  
-                       FNT_DT 
+                SELECT
+                       FNT_DT
                      , COUNT(RVE_DT) AS CHK_CNT /* 조회조건에 해당 하는 수납일자가 존재하는지 */
                      , SUM(CASE WHEN ITG_DP_PROCS_YN = 'Y' THEN 1 ELSE 0 END) AS ITG_DP_PROCS_Y_CNT /* 통합입금처리가 되었는지 안되었는지 확인하여 입금처리가 완료 되었으면 더한다.*/
                   FROM TB_RVDW_GIRO_DP_IZ
                  WHERE DTA_DL_YN = 'N'
-                   AND FNT_DT IN 
+                   AND FNT_DT IN
                    <foreach collection="rveDt" item="code" index="index" separator="," open="(" close=")">
-                      #{code}         
+                      #{code}
                    </foreach>
                                   /*(SELECT RVE_DT
                                      FROM TB_RVDW_GIRO_DP_LEDG_IZ
@@ -601,8 +627,8 @@
                                       AND GIRO_DP_ULD_PROCS_YN = 'N'
                                    GROUP BY RVE_DT)*/
                  GROUP BY FNT_DT
-                 ORDER BY FNT_DT  
+                 ORDER BY FNT_DT
             )
-      WHERE ROWNUM = 1            
+      WHERE ROWNUM = 1
     </select>
 </mapper>

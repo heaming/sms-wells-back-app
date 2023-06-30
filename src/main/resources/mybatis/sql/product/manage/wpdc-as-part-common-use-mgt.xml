@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.product.manage.mapper.WpdcAsPartCommonUseMgtMapper">
+    <select id="selectAsParts" resultType="com.kyowon.sms.wells.web.product.manage.dto.WpdcAsPartCommonUseMgtDto$SearchPartRes">
+        SELECT DISTINCT T2.PD_CD                                                    AS PART_PD_CD           /* 부품코드 */
+             , T2.PD_NM                                                             AS PART_PD_NM           /* 부품명 */
+             , P1.PD_PRP_VAL17                                                      AS AS_MAT_MNG_TP_CD     /* 관리유형코드 */
+             , F_CMZ_CD_NM('TNT_WELLS','MAT_MNGT_DV_CD', P1.PD_PRP_VAL17, 'ko')     AS AS_MAT_MNG_TP_NM     /* 관리유형명 */
+             , SUBSTR(T2.SAP_MAT_CD, 10, 9)                                         AS SAP_MAT_CD           /* 자재코드 */
+             , P1.PD_PRP_VAL01 || NVL2(P1.PD_PRP_VAL01, '-', '') || P1.PD_PRP_VAL31 AS AS_ITEM_CD           /* 품목코드 */
+             , P1.PD_PRP_VAL19                                                      AS AS_MAT_ITM_KND_CD    /* 품목종류코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'ITM_KND_CD', P1.PD_PRP_VAL19, 'ko')        AS AS_MAT_ITM_KND_NM    /* 품목종류명 */
+             , P1.PD_PRP_VAL20                                                      AS AS_MAT_ITM_GRP_CD    /* 품목그룹코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P1.PD_PRP_VAL20, 'ko')         AS AS_MAT_ITM_GRP_NM    /* 품목그룹명 */
+             , P1.PD_PRP_VAL36                                                      AS SV_MAT_GRP_CD        /* 서비스자재그룹코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_MAT_GRP_CD', P1.PD_PRP_VAL36, 'ko')     AS SV_MAT_GRP_NM        /* 서비스자재그룹명 */
+             , P1.PD_PRP_VAL21                                                      AS AS_MAT_CMN_CLSF_CD   /* AS자재 공통분류코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CMN_PART_DV_CD', P1.PD_PRP_VAL21, 'ko')    AS AS_MAT_CMN_CLSF_NM   /* AS자재 공통분류명 */
+             , P1.PD_PRP_VAL15                                                      AS ORDNY_HV_MAT_YN      /* 상시보유자재여부 */
+             , P1.PD_PRP_VAL30                                                      AS TRNOVR_RT_OJ_YN      /* 회전율 대상여부 */
+          FROM TB_PDBS_PD_REL T1
+         INNER JOIN TB_PDBS_PD_BAS T2
+            ON T1.OJ_PD_CD = T2.PD_CD  /* AS부품 */
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
+            ON T2.PD_CD = P1.PD_CD
+           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'   /* 'PART' : AS부품 */
+           AND P1.DTA_DL_YN = 'N'
+         WHERE T1.PD_REL_TP_CD = '14'   /* 14 : AS부품 */
+           AND T1.DTA_DL_YN = 'N'
+       <if test="@MybatisUtils@isNotEmpty(prdtCateHigh) and !@MybatisUtils@equals(prdtCateHigh, 'ALL')">
+           AND T2.PD_HCLSF_ID = #{prdtCateHigh}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(prdtCateMid) and !@MybatisUtils@equals(prdtCateMid, 'ALL')">
+           AND T2.PD_MCLSF_ID = #{prdtCateMid}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(prdtCateLow) and !@MybatisUtils@equals(prdtCateLow, 'ALL')">
+           AND T2.PD_LCLSF_ID = #{prdtCateLow}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(asMatItmKndCd)'>
+           AND P1.PD_PRP_VAL19 = #{asMatItmKndCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(asMatItmGrpCd)'>
+           AND P1.PD_PRP_VAL20 = #{asMatItmGrpCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(svMatGrpCd)'>
+           AND P1.PD_PRP_VAL36 = #{svMatGrpCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND T2.PD_CD = #{pdCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(sapMatCd)'>
+           AND T2.SAP_MAT_CD LIKE '%' || #{sapMatCd} || '%'
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(sapItemCdFrom)'>
+           AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 <![CDATA[>=]]> #{sapItemCdFrom}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(sapItemCdTo)'>
+           AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 <![CDATA[<=]]> #{sapItemCdTo}
+       </if>
+    </select>
+
+    <select id="selectProductsByPart" resultType="com.kyowon.sms.wells.web.product.manage.dto.WpdcAsPartCommonUseMgtDto$SearchProductRes">
+        SELECT T2.PD_CD
+             , T2.PD_NM
+             , SUBSTR(T2.SAP_MAT_CD, 10, 9)                                       AS SAP_MAT_CD  /* 자재코드 */
+             , T3.PD_PRP_VAL01 || NVL2(T3.PD_PRP_VAL01,'-','') || T3.PD_PRP_VAL31 AS AS_ITEM_CD  /*  품목코드 */
+          FROM TB_PDBS_PD_REL T1
+         INNER JOIN TB_PDBS_PD_BAS T2
+            ON T2.PD_CD = T1.BASE_PD_CD
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+            ON T3.PD_CD  = T2.PD_CD
+           AND T3.PD_EXTS_PRP_GRP_CD = 'PART'   /* 'PART' : AS부품 */
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.PD_REL_TP_CD = '14'   /* 14 : AS부품 */
+           AND T1.OJ_PD_CD = #{partPdCd}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbAggregateServiceCenterMapper">
+    
+    <select id="selectAggregateServiceCenters" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAggregateServiceCenterDto$SearchAggregateServiceCenterRes">
+        SELECT N.OG_ID                                                          /*센터아이디*/
+             , N.OG_NM                                                          /*센터명*/
+             , N.PRTNR_NO                                                       /*반허*/
+             , N.PRTNR_KNM                                                      /*엔지니어*/
+             , N.RECAP_AMT                                                      /*유상금액*/
+             , N.CTR_AMT                                                        /*조정금액*/
+             , N.ADP_BIL_SL_AMT                                                 /*합산청구 매출금액*/
+             , N.ADP_BIL_DP_AMT                                                 /*합산청구 입금액*/
+             , N.VAC_SL_AMT                                                     /*가상계좌 매출금액*/
+             , N.VAC_DP_AMT                                                     /*가상계좌 입금액*/
+             , N.CARD_SL_AMT                                                    /*카드 매출금액*/
+             , N.CARD_DP_AMT                                                    /*카드 입금액*/
+             , N.ADP_BIL_SL_AMT + N.VAC_SL_AMT + N.CARD_SL_AMT AS SL_AMT_SUM    /*매출금액 총합계*/
+             , N.ADP_BIL_DP_AMT + N.VAC_DP_AMT + N.CARD_DP_AMT AS DP_AMT_SUM    /*입금액 총합계*/
+          FROM (SELECT M.OG_ID
+                     , M.OG_NM
+                     , M.PRTNR_NO
+                     , M.PRTNR_KNM
+                     , SUM(M.RECAP_AMT) AS RECAP_AMT
+                     , SUM(M.CTR_AMT) AS CTR_AMT
+                     , SUM(M.ADP_BIL_SL_AMT) AS ADP_BIL_SL_AMT
+                     , SUM(M.ADP_BIL_DP_AMT) AS ADP_BIL_DP_AMT
+                     , SUM(M.VAC_SL_AMT) AS VAC_SL_AMT
+                     , SUM(M.VAC_DP_AMT) AS VAC_DP_AMT
+                     , SUM(M.CARD_SL_AMT) AS CARD_SL_AMT
+                     , SUM(M.CARD_DP_AMT) AS CARD_DP_AMT
+                  FROM (SELECT L.OG_ID
+                             , L.OG_NM 
+                             , L.PRTNR_NO 
+                             , L.PRTNR_KNM 
+                             , L.STLM_DV_CD
+                             , SUM(L.BIL_OJ_AMT) AS RECAP_AMT
+                             , SUM(L.BIL_CTR_SUM_AMT) AS CTR_AMT
+                             , CASE WHEN L.STLM_DV_CD = '01'
+                                 THEN SUM(L.BIL_OJ_AMT) - SUM(L.BIL_CTR_SUM_AMT)
+                                 ELSE 0
+                               END AS ADP_BIL_SL_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '01'
+                                 THEN SUM(L.DP_SUM_AMT) 
+                                 ELSE 0
+                               END AS ADP_BIL_DP_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '02'
+                                 THEN SUM(L.BIL_OJ_AMT) - SUM(L.BIL_CTR_SUM_AMT)
+                                 ELSE 0
+                               END AS VAC_SL_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '02'
+                                 THEN SUM(L.DP_SUM_AMT) 
+                                 ELSE 0
+                               END AS VAC_DP_AMT
+                             , CASE WHEN L.STLM_DV_CD = '03'
+                                 THEN SUM(L.BIL_OJ_AMT) - SUM(L.BIL_CTR_SUM_AMT)
+                                 ELSE 0
+                               END AS CARD_SL_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '03'
+                                 THEN SUM(L.DP_SUM_AMT) 
+                                 ELSE 0
+                               END AS CARD_DP_AMT 
+                          FROM (SELECT MPI.OG_ID
+                                     , MPI.OG_NM 
+                                     , MPI.PRTNR_NO 
+                                     , MPI.PRTNR_KNM 
+                                     , MPI.BASE_YM 
+                                     , CBB.STLM_DV_CD
+                                     , CBI.BIL_OJ_AMT
+                                     , CBI.BIL_CTR_SUM_AMT
+                                     , CDI.DP_SUM_AMT 
+                                  FROM TB_SVPD_SV_CS_BIL_IZ CBI 
+                                 INNER JOIN TB_SVPD_SV_CS_DP_IZ CDI 
+                                    ON CBI.CNTR_NO = CDI.CNTR_NO
+                                   AND CBI.CST_SV_ASN_NO = CDI.CST_SV_ASN_NO
+                                   AND CBI.DTA_DL_YN = 'N'
+                                   AND CDI.DTA_DL_YN = 'N'
+                                 INNER JOIN TB_OGBS_MM_PRTNR_IZ MPI 
+                                    ON CBI.OG_TP_CD = MPI.OG_TP_CD
+                                   AND MPI.OG_TP_CD IN ('W03', 'W06')
+                                   AND CBI.ICHR_PRTNR_NO = MPI.PRTNR_NO
+                                 INNER JOIN TB_SVPD_SV_CS_BIL_BAS CBB 
+                                    ON CBI.CS_BIL_NO = CBB.CS_BIL_NO
+                                 WHERE MPI.BASE_YM = (SELECT SUBSTR(SWRI.VST_FSH_DT,0,6)
+                                                        FROM TB_SVPD_CST_SV_WK_RS_IZ SWRI
+                                                       WHERE SWRI.CST_SV_ASN_NO = CBI.CST_SV_ASN_NO
+                                                      )
+                                  <if test='@MybatisUtils@isNotEmpty(strtSvDt) and @MybatisUtils@isNotEmpty(endSvDt)'>
+                                   AND MPI.BASE_YM BETWEEN SUBSTR(#{strtSvDt},0,6) AND SUBSTR(#{endSvDt},0,6)
+                                  </if>
+                                  <if test='@MybatisUtils@isNotEmpty(svCnr)'>
+                                   AND MPI.OG_ID  = #{svCnr}
+                                  </if>
+                                  <if test='@MybatisUtils@isNotEmpty(prtnrKnm)'>
+                                   AND MPI.PRTNR_KNM LIKE '%' || #{prtnrKnm} || '%'
+                                  </if>
+                                ) L
+                         GROUP BY L.OG_ID, L.OG_NM, L.PRTNR_NO, L.PRTNR_KNM, L.STLM_DV_CD) M
+                      GROUP BY M.OG_ID, M.OG_NM, M.PRTNR_NO, M.PRTNR_KNM) N
+         ORDER BY N.OG_ID
+    </select>
+    
+    <select id="selectAggregateServiceCentersTotal" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAggregateServiceCenterDto$SearchAggregateServiceCenterTotalRes">
+        SELECT SUM(N.RECAP_AMT) AS RECAP_AMT_TT
+             , SUM(N.CTR_AMT) AS CTR_AMT_TT
+             , SUM(N.ADP_BIL_SL_AMT) AS ADP_BIL_SL_AMT_TT
+             , SUM(N.ADP_BIL_DP_AMT) AS ADP_BIL_DP_AMT_TT
+             , SUM(N.VAC_SL_AMT) AS VAC_SL_AMT_TT
+             , SUM(N.VAC_DP_AMT) AS VAC_DP_AMT_TT
+             , SUM(N.CARD_SL_AMT) AS CARD_SL_AMT_TT
+             , SUM(N.CARD_DP_AMT) AS CARD_DP_AMT_TT
+             , SUM(N.SL_AMT_SUM) AS SL_AMT_SUM_TT
+             , SUM(N.DP_AMT_SUM) AS DP_AMT_SUM_TT
+          FROM (SELECT M.RECAP_AMT
+                     , M.CTR_AMT
+                     , M.ADP_BIL_SL_AMT
+                     , M.ADP_BIL_DP_AMT
+                     , M.VAC_SL_AMT
+                     , M.VAC_DP_AMT
+                     , M.CARD_SL_AMT
+                     , M.CARD_DP_AMT
+                     , M.ADP_BIL_SL_AMT + M.VAC_SL_AMT + M.CARD_SL_AMT AS SL_AMT_SUM
+                     , M.ADP_BIL_DP_AMT + M.VAC_DP_AMT + M.CARD_DP_AMT AS DP_AMT_SUM
+                  FROM (SELECT SUM(L.BIL_OJ_AMT) AS RECAP_AMT
+                             , SUM(L.BIL_CTR_SUM_AMT) AS CTR_AMT
+                             , CASE WHEN L.STLM_DV_CD = '01'
+                                 THEN SUM(L.BIL_OJ_AMT) - SUM(L.BIL_CTR_SUM_AMT)
+                                 ELSE 0
+                               END AS ADP_BIL_SL_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '01'
+                                 THEN SUM(L.DP_SUM_AMT) 
+                                 ELSE 0
+                               END AS ADP_BIL_DP_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '02'
+                                 THEN SUM(L.BIL_OJ_AMT) - SUM(L.BIL_CTR_SUM_AMT)
+                                 ELSE 0
+                               END AS VAC_SL_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '02'
+                                 THEN SUM(L.DP_SUM_AMT) 
+                                 ELSE 0
+                               END AS VAC_DP_AMT
+                             , CASE WHEN L.STLM_DV_CD = '03'
+                                 THEN SUM(L.BIL_OJ_AMT) - SUM(L.BIL_CTR_SUM_AMT)
+                                 ELSE 0
+                               END AS CARD_SL_AMT 
+                             , CASE WHEN L.STLM_DV_CD = '03'
+                                 THEN SUM(L.DP_SUM_AMT) 
+                                 ELSE 0
+                               END AS CARD_DP_AMT 
+                          FROM (SELECT MPI.OG_ID
+                                     , MPI.OG_NM 
+                                     , MPI.PRTNR_NO 
+                                     , MPI.PRTNR_KNM 
+                                     , MPI.BASE_YM 
+                                     , CBB.STLM_DV_CD
+                                     , CBI.BIL_OJ_AMT
+                                     , CBI.BIL_CTR_SUM_AMT
+                                     , CBI.CST_SV_ASN_NO
+                                     , CDI.DP_SUM_AMT
+                                  FROM TB_SVPD_SV_CS_BIL_IZ CBI /*서비스비용청구내역*/
+                                 INNER JOIN TB_SVPD_SV_CS_DP_IZ CDI /*서비스비용입금내역*/
+                                    ON CBI.CNTR_NO = CDI.CNTR_NO 
+                                   AND CBI.CST_SV_ASN_NO = CDI.CST_SV_ASN_NO
+                                   AND CBI.DTA_DL_YN = 'N'
+                                   AND CDI.DTA_DL_YN = 'N'
+                                 INNER JOIN TB_OGBS_MM_PRTNR_IZ MPI /*월파트너내역*/
+                                    ON CBI.OG_TP_CD = MPI.OG_TP_CD
+                                   AND CBI.ICHR_PRTNR_NO = MPI.PRTNR_NO
+                                   AND MPI.OG_TP_CD IN ('W03', 'W06')
+                                 INNER JOIN TB_SVPD_SV_CS_BIL_BAS CBB /*서비스비용청구기본*/
+                                    ON CBI.CS_BIL_NO = CBB.CS_BIL_NO
+                                 WHERE MPI.BASE_YM = (SELECT SUBSTR(SWRI.VST_FSH_DT,0,6)
+                                                        FROM TB_SVPD_CST_SV_WK_RS_IZ SWRI
+                                                       WHERE SWRI.CST_SV_ASN_NO = CBI.CST_SV_ASN_NO)
+                                  <if test='@MybatisUtils@isNotEmpty(strtSvDt) and @MybatisUtils@isNotEmpty(endSvDt)'>
+                                   AND MPI.BASE_YM BETWEEN SUBSTR(#{strtSvDt},0,6) AND SUBSTR(#{endSvDt},0,6)
+                                  </if>
+                                  <if test='@MybatisUtils@isNotEmpty(svCnr)'>
+                                   AND MPI.OG_ID  = #{svCnr}
+                                  </if>
+                                  <if test='@MybatisUtils@isNotEmpty(prtnrKnm)'>
+                                   AND MPI.PRTNR_KNM LIKE '%' || #{prtnrKnm} || '%'
+                                  </if>
+                                ) L
+                         GROUP BY L.OG_NM, L.PRTNR_NO, L.PRTNR_KNM, L.STLM_DV_CD) M) N 
+    </select>
+    
+    <select id="selectServiceCenters" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbAggregateServiceCenterDto$SearchAggregateEngineerOgRes">
+        SELECT DISTINCT T1.OG_ID
+             , T1.OG_TP_CD
+             , T1.OG_CD
+             , T1.OG_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+             , T1.HGR_OG_ID
+          FROM TB_OGBS_MM_OG_IZ T1
+         WHERE 1 = 1
+           AND T1.BASE_YM <![CDATA[>=]]> SUBSTR(#{strtSvDt},0,6)
+           AND T1.BASE_YM <![CDATA[<=]]> SUBSTR(#{endSvDt},0,6)
+           AND T1.OG_TP_CD IN ('W03', 'W06')
+           AND T1.CLO_DT IS NULL
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.OG_CD    
+    </select>
+</mapper>

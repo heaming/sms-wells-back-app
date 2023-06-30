@@ -60,9 +60,9 @@
                    , T11.AUTH_RSG_CNFMDT /* 직권해지확정일자 */
                 FROM TB_CBBO_BND_CNSL_BAS_IZ T1
                 LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T2
-                  ON T2.CNTR_NO = T1.CNTR_NO
+                  ON T2.BASE_YM = T1.BASE_YM
+                 AND T2.CNTR_NO = T1.CNTR_NO
                  AND T2.CNTR_SN = T1.CNTR_SN
-                 AND T2.BASE_YM = T1.BASE_YM
                  AND T2.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3
                   ON T3.CNTR_NO = T1.CNTR_NO
@@ -72,9 +72,9 @@
                   ON T4.CNTR_NO = T1.CNTR_NO
                  AND T4.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_RVCL_BIL_PLAN_BAS T5
-                  ON T5.CNTR_NO = T1.CNTR_NO
+                  ON T5.BIL_YM = T1.BASE_YM
+                 AND T5.CNTR_NO = T1.CNTR_NO
                  AND T5.CNTR_SN = T1.CNTR_SN
-                 AND T5.BIL_YM = T1.BASE_YM
                  AND T5.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T6
                   ON T6.CNTR_STLM_REL_ID = T5.CNTR_STLM_REL_ID
@@ -174,14 +174,14 @@
              , NVL(T1.UC_AMT, 0) AS UC_AMT /* 미수금액 */
           FROM TB_CBBO_BND_CNTR_BAS T1
           LEFT OUTER JOIN TB_CBBO_BND_CNSL_BAS_IZ T2
-            ON T2.CNTR_NO = T1.CNTR_NO
+            ON T2.BASE_YM = T1.BASE_YM
+           AND T2.CNTR_NO = T1.CNTR_NO
            AND T2.CNTR_SN = T1.CNTR_SN
-           AND T2.BASE_YM = T1.BASE_YM
            AND T2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
-            ON T3.CNTR_NO = T2.CNTR_NO
+            ON T3.PERF_YM = T2.BASE_YM
+           AND T3.CNTR_NO = T2.CNTR_NO
            AND T3.CNTR_SN = T2.CNTR_SN
-           AND T3.PERF_YM = T2.BASE_YM
            AND T3.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4
             ON T4.SL_CL_YM = T1.BASE_YM
@@ -251,35 +251,40 @@
                       + CASE WHEN T4.RENTAL_TN = 0 THEN T4.RENTAL_RGST_COST*(-1) + T4.RENTAL_DSC_AMT
                              ELSE 0
                         END) AS LENTAL_DP_AMT /* 렌탈 입금금액 */
-                   , T1.DLQ_AMT AS DLQ_AMT /* 연체금액 */
+                   , T1.DLQ_AMT  /* 연체금액 */
                    , T1.UC_AMT + T4.SPMT_SL_AMT AS OJ_AMT /* 미수 + 추가매출 :대상금액 */
                    , T1.THM_CHRAM_AMT /* 당월요금 */
                    , T1.DLQ_ADD_AMT /* 연체가산금액 */
                    , T1.DLQ_ADD_DP_AMT /* 연체가산입금금액 */
-                   , T3.EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* ASIS:가산금기말 */
-                   , T4.SL_AGG_AMT AS SL_AGG_AMT /* ASIS:매출누계 */
-                   , 0 AS SL_AGG_VAT_AMT /* 항목확일필요 ASIS:매출누계VAT */
-                   , 0 AS BOR_AMT /* 위약금항목확인필요 */
-                   , 0 AS LSFE /* 분실료항목확일필요*/
-                   , T4.DSC_AGG_AMT AS DSC_AGG_AMT /* ASIS:할인누계 */
-                   , T4.CTR_AGG_AMT AS CTR_AGG_AMT /* ASIS:조정누계 */
-                   , T4.SL_DP_AGG_AMT AS SL_DP_AGG_AMT /* ASIS:매출입금누계 */
+                   , T3.EOT_DLQ_ADD_AMT  /* ASIS:가산금기말 */
+                   , T4.SL_AGG_AMT  /* ASIS:매출누계 */
+                   , 0 AS SL_AGG_VAT_AMT /* 항목확인필요 ASIS:매출누계VAT */
+                   , T1.RSG_BOR_AMT AS BOR_AMT
+                   , T5.LS_RNTF AS LSFE /* 분실료 */
+                   , T4.DSC_AGG_AMT /* ASIS:할인누계 */
+                   , T4.CTR_AGG_AMT /* ASIS:조정누계 */
+                   , T4.SL_DP_AGG_AMT /* ASIS:매출입금누계 */
                 FROM TB_CBBO_BND_CNTR_BAS T1
                 LEFT OUTER JOIN TB_CBBO_BND_CNSL_BAS_IZ T2
-                  ON T2.CNTR_NO = T1.CNTR_NO
+                  ON T2.BASE_YM = T1.BASE_YM
+                 AND T2.CNTR_NO = T1.CNTR_NO
                  AND T2.CNTR_SN = T1.CNTR_SN
-                 AND T2.BASE_YM = T1.BASE_YM
                  AND T2.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
-                  ON T3.CNTR_NO = T2.CNTR_NO
+                  ON T3.PERF_YM = T2.BASE_YM
+                 AND T3.CNTR_NO = T2.CNTR_NO
                  AND T3.CNTR_SN = T2.CNTR_SN
-                 AND T3.PERF_YM = T2.BASE_YM
                  AND T3.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4
                   ON T4.SL_CL_YM = T1.BASE_YM
                  AND T4.CNTR_NO = T1.CNTR_NO
                  AND T4.CNTR_SN = T1.CNTR_SN
                  AND T4.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T5
+                  ON T5.PERF_YM = T1.BASE_YM
+                 AND T5.CNTR_NO = T1.CNTR_NO
+                 AND T5.CNTR_SN = T1.CNTR_SN
+                 AND T5.DTA_DL_YN = 'N'
                WHERE 1=1
                  AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}
                  AND T1.CNTR_NO = #{cntrNo}

@@ -65,8 +65,11 @@ public class WsnaNormalOutOfStorageService {
         return mapper.selectAskMaterialsCenterPresentState(dto, pageInfo);
     }
 
-    public PagingResult<DetailRes> getNormalOutOfStoragesDetails(DetailReq dto, PageInfo pageInfo) {
-        return mapper.selectNormalOutOfStoragesDetails(dto, pageInfo);
+    public PagingResult<DetailRes> getNormalOstrRgsts(DetailReq dto, PageInfo pageInfo) {
+        return mapper.getNormalOstrRgsts(dto, pageInfo);
+    }
+    public PagingResult<DetailRes> removeNormalOstrRgsts(DetailReq dto, PageInfo pageInfo) {
+        return mapper.removeNormalOstrRgsts(dto, pageInfo);
     }
 
     @Transactional
@@ -98,27 +101,64 @@ public class WsnaNormalOutOfStorageService {
                 WsnaItemStockItemizationReqDvo movementDvo = setMovementWsnaItemStockItemizationDtoSaveReq(vo);//이동입고
                 WsnaMonthlyItemStocksReqDvo monthlyItemStocksDvo = setMonthlyItemStocks(vo);//이동입고
 
+                //정상출고
                 cnt += itemStockservice.createStock(ostrDvo);
-                monthlyItemStocksDvo.setIostTp("221");//정상출고
-                monthlyItemStocksDvo.setWareNo(ostrDvo.getWareNo());
-                monthlyItemStocksDvo.setWareDv(ostrDvo.getWareDv());
-                cnt += monthlyService.saveMonthlyStock(monthlyItemStocksDvo);
-
-                cnt += itemStockservice.createStock(strDvo);
-                monthlyItemStocksDvo.setIostTp("121");//정상입고
-                monthlyItemStocksDvo.setWareNo(strDvo.getWareNo());
-                monthlyItemStocksDvo.setWareDv(strDvo.getWareDv());
-                cnt += monthlyService.saveMonthlyStock(monthlyItemStocksDvo);
 
                 //이동입고 991
                 cnt += itemStockservice.saveStockMovement(movementDvo);
 
-                monthlyItemStocksDvo.setIostTp("991");
-                cnt += monthlyService.saveMonthlyStock(monthlyItemStocksDvo);//이동입고 월별품목재고
+                //정상입고
+                cnt += itemStockservice.createStock(strDvo);
 
-                cnt += mapper.updateOstrAkIzAfter(vo);
                 itmSeq++;
             }
+        }
+        return cnt;
+    }
+
+    @Transactional
+    public int removeNormalOstrRgsts(List<CreateReq> list) throws ParseException {
+        int cnt = 0;
+        List<WsnaNormalOutOfStorageDvo> voList = converter.mapAllWsnaNormalOutOfStorageDvos(list);
+
+        if(voList.size() > 0) {
+            for (WsnaNormalOutOfStorageDvo vo : voList) {
+
+                WsnaItemStockItemizationReqDvo ostrDvo = setOstrWsnaItemStockItemizationDtoSaveReq(vo);//출고
+                WsnaItemStockItemizationReqDvo strDvo = setStrWsnaItemStockItemizationDtoSaveReq(vo);//입고
+                WsnaItemStockItemizationReqDvo movementDvo = setMovementWsnaItemStockItemizationDtoSaveReq(vo);//이동입고
+                WsnaMonthlyItemStocksReqDvo monthlyItemStocksDvo = setMonthlyItemStocks(vo);//이동입고
+
+                mapper.removeNormalOstr(vo);
+                mapper.removeNormalStr(vo);
+                mapper.updateRemoveOstrAkIzAfter(vo);
+
+                //정상입고
+                movementDvo.setWorkDiv("D");
+                movementDvo.setIostTp("121");
+                movementDvo.setWareNo(strDvo.getWareNo());
+                movementDvo.setWareDv(strDvo.getWareDv());
+                movementDvo.setWareMngtPrtnrNo(strDvo.getWareMngtPrtnrNo());
+                cnt += itemStockservice.removeStock(strDvo);
+
+                //이동입고 991
+                movementDvo.setWorkDiv("D");
+                movementDvo.setIostTp("991");
+                movementDvo.setWareNo(ostrDvo.getWareNo());
+                movementDvo.setWareDv(ostrDvo.getWareDv());
+                movementDvo.setWareMngtPrtnrNo(ostrDvo.getWareMngtPrtnrNo());
+                cnt += itemStockservice.saveStockMovement(movementDvo);
+
+                //정상출고
+                movementDvo.setWorkDiv("D");
+                movementDvo.setIostTp("221");
+                movementDvo.setWareNo(ostrDvo.getWareNo());
+                movementDvo.setWareDv(ostrDvo.getWareDv());
+                movementDvo.setWareMngtPrtnrNo(ostrDvo.getWareMngtPrtnrNo());
+                cnt += itemStockservice.removeStock(ostrDvo);
+
+            }
+
         }
         return cnt;
     }

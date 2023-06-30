@@ -36,14 +36,62 @@ public class WogcPartnerEngineerDto {
         String wrkDt,
         String wrkNm,
         String egerWrkStatCd,
+        String egerWrkStatNm,
         String rmkCn,
-        String dnlStrtdt,
-        String dnlEnddt,
+        String vcnStrtDt,
+        String vcnEndDt,
         String bizAgntPrtnrNo,
         String agntPrtnrKnm,
         String pcpPrtnrNo,
         String pcpPrtnrKnm,
         String procsDtm
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationRes")
+    public record SearchVacationRes(
+        String egerWrkStatCd,
+        String egerWrkStatNm,
+        String prtnrNo,
+        String vcnStrtDt,
+        String vcnEndDt,
+        String rmkCn,
+        String prtnrKnm,
+        String bizAgntPrtnrNo
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationReq")
+    public record SearchVacationReq(
+        String prtnrNo
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationCntRes")
+    public record SearchVacationCntRes(
+        String cnt
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-SaveReq")
+    public record SaveReq(
+        String egerWrkStatCd,
+        String oriVcnStrtDt,
+        String vcnStrtDt,
+        String vcnEndDt,
+        String rmkCn,
+        String bizAgntPrtnrNo,
+        String prtnrNo,
+        String rowState
+
+    ) {}
+
+    @ApiModel(value = "WogcPartnerEngineerDto-RemoveReq")
+    public record RemoveReq(
+        String prtnrNo,
+        String oriVcnStrtDt,
+        String vcnStrtDt,
+        String rowState
 
     ) {}
 
@@ -60,13 +108,15 @@ public class WogcPartnerEngineerDto {
         String wrkNm,
         String egerWrkStatCd,
         String rmkCn,
-        String dnlStrtdt,
-        String dnlEnddt,
+        String vcnStrtDt,
+        String vcnEndDt,
         String bizAgntPrtnrNo,
         String agntPrtnrKnm,
         String pcpPrtnrNo,
         String pcpPrtnrKnm,
         String employeeIDNumber,
+        String ogLevlDvCd1,
+        String ogLevlDvCd2,
         String procsDtm
 
     ) {}
@@ -77,8 +127,8 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementReq")
     @Builder
     public record FindJoeManagementReq(
+        String ogLevlDvCd1,
         String ogLevlDvCd2,
-        String ogLevlDvCd3,
         String wkGrpCd,
         String rsbDvCd,
         String prtnrNo,
@@ -109,7 +159,7 @@ public class WogcPartnerEngineerDto {
         String wkcrCd,
         String wkcrCdNm,
         String cntrDt,
-        String vlStrtDt,
+        String vlStrtdt,
         String vlEnddt,
         String cralLocaraTno,
         String mexnoEncr,
@@ -117,9 +167,7 @@ public class WogcPartnerEngineerDto {
         String dtaDlYn,
         String telNumber
     ) {
-        public FindJoeManagementRes {
-            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
-        }
+
     }
 
     /**
@@ -161,9 +209,9 @@ public class WogcPartnerEngineerDto {
     @ApiModel(value = "WogcPartnerEngineerDto-FindEngineerGradeReq")
     @Builder
     public record FindEngineerGradeReq(
+        String ogLevlDvCd1,
         String ogLevlDvCd2,
-        String ogLevlDvCd3,
-        String rolDvCd,
+        String prtnrGdCd,
         String searchYm,
         String chk
     ) {}
@@ -184,6 +232,8 @@ public class WogcPartnerEngineerDto {
 
         String prtnrNo,
         String prtnrKnm,
+        String rsbDvCd,
+        String rsbDvCdNm,
         String rolDvCd,
         String rolDvCdNm,
         String prtnrGdCd,

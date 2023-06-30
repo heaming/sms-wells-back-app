@@ -126,6 +126,19 @@ public class WfedIndividualFeeMgtService {
     }
 
     /**
+     * 개인별 수수료 관리 M조직 기본내역 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public List<SearchMngerBaseInfoRes> getMngerBaseInfo(
+        SearchMngerReq dto
+    ) {
+        return this.mapper.selectMngerBaseInfo(dto);
+    }
+
+    /**
      * 개인별 수수료 관리 M조직 BS 목록 조회
      * @param dto : {
      * perfYm : 실적년월,
@@ -156,8 +169,8 @@ public class WfedIndividualFeeMgtService {
      * no : 번호 }
      * @return 조회결과
      */
-    public FindMngerFeeRes getMngerFee(SearchMngerReq dto) {
-        return mapper.selectMngerFee(dto);
+    public List<SearchMngerFeeRes> getMngerFees(SearchMngerReq dto) {
+        return mapper.selectMngerFees(dto);
     }
 
     /**

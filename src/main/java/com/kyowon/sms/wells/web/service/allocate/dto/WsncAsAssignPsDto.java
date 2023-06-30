@@ -47,7 +47,7 @@ public class WsncAsAssignPsDto {
     public record SearchProductServicesReq(
         String wkExcnDt,
         String mngrDvCd,
-        String pdPrpVal20,
+        String pdGrpCd,
         String pdCd
     ) {}
 
@@ -68,6 +68,6 @@ public class WsncAsAssignPsDto {
         String acol10,
         String acol11,
         String acol12,
-        int totalCount
+        String totalCount
     ) {}
 }

@@ -4,7 +4,8 @@
     <select id="selectPersonInCharges" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto$SearchRes">
         WITH
         TEMP01 AS ( /* 선택한 작업그룹에 해당하는 상품 리스트 */
-        	SELECT DISTINCT T1.PD_CD
+        	SELECT /*+ MATERIALIZE */
+        	       DISTINCT T1.PD_CD
         	  FROM TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ T1
         	 WHERE 1 = 1
         	   AND T1.WK_GRP_CD = #{wkGrpCd}
@@ -18,7 +19,8 @@
         	                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
         	                      AND DTA_DL_YN = 'N'
         ), TEMP0 AS (
-            SELECT T1.NEW_ADR_ZIP, T1.EMD_SN, T1.FR2P_LGLD_CD, T1.CTPV_NM, T1.CTCTY_NM, T1.LAWC_EMD_NM, T1.AMTD_NM, T1.KYNOR_LOCARA_YN, T1.ILD_YN, T1.PDLV_NO
+            SELECT /*+ MATERIALIZE */
+                   T1.NEW_ADR_ZIP, T1.EMD_SN, T1.FR2P_LGLD_CD, T1.CTPV_NM, T1.CTCTY_NM, T1.LAWC_EMD_NM, T1.AMTD_NM, T1.KYNOR_LOCARA_YN, T1.ILD_YN, T1.PDLV_NO
                  , T1.RPB_LOCARA_CD, T1.LOCARA_SN
                  , T1.WK_GRP_CD, T1.IZ_SN, T1.APY_STRTDT, T1.APY_ENDDT, T1.SAT_WRK_YN, T1.RSTR_CNDT_USE_YN, T1.UDSN_USE_YN, T1.RPB_LOCARA_GRP_CD, T1.VST_DOW_VAL, T1.MMT_AV_LDTM, T1.LOCARA_CEN_STRU_ADR, T1.ICHR_PRTNR_OG_TP_CD, T1.ICHR_PRTNR_NO, T1.PPRN_ICHR_PRTNR_OG_TP_CD, T1.PPRN_ICHR_PRTNR_NO1, T1.PPRN_ICHR_PRTNR_NO2, T1.PPRN_ICHR_PRTNR_NO3, T1.PPRN_ICHR_PRTNR_NO4, T1.PPRN_ICHR_PRTNR_NO5
               FROM (SELECT ROW_NUMBER() OVER(PARTITION BY V1.NEW_ADR_ZIP, V1.FR2P_LGLD_CD, V1.CTPV_NM, V1.CTCTY_NM, V1.LAWC_EMD_NM, V1.AMTD_NM ORDER BY V1.EMD_SN DESC) AS V1_RN
@@ -26,10 +28,11 @@
                          , V2.RPB_LOCARA_CD, V2.LOCARA_SN
                          , V3.WK_GRP_CD, V3.IZ_SN, V3.APY_STRTDT, V3.APY_ENDDT, V3.SAT_WRK_YN, V3.RSTR_CNDT_USE_YN, V3.UDSN_USE_YN, V3.RPB_LOCARA_GRP_CD, V3.VST_DOW_VAL, V3.MMT_AV_LDTM, V3.LOCARA_CEN_STRU_ADR, V3.ICHR_PRTNR_OG_TP_CD, V3.ICHR_PRTNR_NO, V3.PPRN_ICHR_PRTNR_OG_TP_CD, V3.PPRN_ICHR_PRTNR_NO1, V3.PPRN_ICHR_PRTNR_NO2, V3.PPRN_ICHR_PRTNR_NO3, V3.PPRN_ICHR_PRTNR_NO4, V3.PPRN_ICHR_PRTNR_NO5
                       FROM TB_SVPD_EGER_ASN_ADR_IZ V1 /* 엔지니어배정용주소내역 */
-                     INNER JOIN (SELECT M2.RPB_LOCARA_CD, M2.LOCARA_SN, M2.FR2P_LGLD_CD, M2.CTPV_NM, M2.CTCTY_NM, M2.LAWC_EMD_NM, M2.AMTD_NM
+                     INNER JOIN (SELECT /*+ INDEX(M2 PK_SVPD_RPB_LOCARA_MNGT_ADR_IZ) */
+                                        M2.RPB_LOCARA_CD, M2.LOCARA_SN, M2.FR2P_LGLD_CD, M2.CTPV_NM, M2.CTCTY_NM, M2.LAWC_EMD_NM, M2.AMTD_NM
                                       , ROW_NUMBER() OVER(PARTITION BY M2.FR2P_LGLD_CD, M2.CTPV_NM, M2.CTCTY_NM, M2.LAWC_EMD_NM, M2.AMTD_NM ORDER BY M2.ADR_ODR_NO DESC) AS RN
                                    FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ M2
-                                  WHERE ${applyDate} BETWEEN M2.APY_STRTDT AND M2.APY_ENDDT
+                                  WHERE #{applyDate} BETWEEN M2.APY_STRTDT AND M2.APY_ENDDT
                                     AND DTA_DL_YN = 'N') V2 /* 책임지역별관리주소내역 */
                         ON V2.FR2P_LGLD_CD = V1.FR2P_LGLD_CD
                        AND V2.CTPV_NM = V1.CTPV_NM
@@ -74,24 +77,23 @@
         	  FROM (SELECT NEW_ADR_ZIP
                          , PDCT_PD_CD
                          , MGT_CNT
-                      FROM (SELECT A1.NEW_ADR_ZIP
+                      FROM (SELECT /*+ INDEX(M1 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
+                                   (SELECT DISTINCT A1.NEW_ADR_ZIP
+                                      FROM TB_GBCO_ADR_BAS A1
+                                     WHERE A1.ADR_ID = M1.ADR_ID
+                                       AND A1.DTA_DL_YN = 'N') AS NEW_ADR_ZIP
                                  , M1.PDCT_PD_CD
                                  , COUNT(1) AS MGT_CNT
-                              FROM (SELECT CNTR_NO, CNTR_SN, PDCT_PD_CD, ADR_ID
-                                      FROM TB_SVPD_MCBY_CST_SV_OJ_IZ
-                                     WHERE DTA_DL_YN = 'N'
-                                       AND MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                 ) M1 /* 월별고객서비스대상내역 */
+                              FROM TB_SVPD_MCBY_CST_SV_OJ_IZ M1 /* 월별고객서비스대상내역 */
                              INNER JOIN TB_SVPD_CST_SV_EXCN_IZ M2 /* 고객서비스수행내역 */
                                 ON M2.CNTR_NO = M1.CNTR_NO
                                AND M2.CNTR_SN = M1.CNTR_SN
                                AND M2.DTA_DL_YN = 'N'
-                             INNER JOIN TB_GBCO_ADR_BAS A1 /* 주소지기본 */
-                                ON A1.ADR_ID = M1.ADR_ID
-                               AND A1.DTA_DL_YN = 'N'
                              WHERE 1 = 1
+                               AND M1.DTA_DL_YN = 'N'
+                               AND M1.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                                AND (M2.REQD_DT IS NULL OR M2.CHNG_DT IS NULL OR M2.CPS_DT IS NULL)
-                             GROUP BY A1.NEW_ADR_ZIP, M1.PDCT_PD_CD
+                             GROUP BY M1.ADR_ID, M1.PDCT_PD_CD
                            ) V1
                        INNER JOIN TEMP01 P1
                           ON P1.PD_CD = V1.PDCT_PD_CD
@@ -104,33 +106,30 @@
         	     , ROUND(SUM(WRK_CNT) / 3, 2) AS WRK_CNT
         	  FROM (SELECT NEW_ADR_ZIP
         	             , SUM(WRK_CNT) AS WRK_CNT
-        	          FROM (SELECT V3.NEW_ADR_ZIP
+        	          FROM (SELECT S3.NEW_ADR_ZIP
                                  , COUNT(1) AS WRK_CNT
                               FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1 /* 고객서비스AS설치배정내역 */
                              INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2 /* 고객서비스AS설치대상내역 */
                                 ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                               AND T1.DTA_DL_YN = 'N'
                                AND T2.DTA_DL_YN = 'N'
-                             INNER JOIN (SELECT V1.DTL_CNTR_NO, V1.DTL_CNTR_SN, V2.ADR_ID
-                                           FROM TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
-                                          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
-                                             ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
-                                            AND V2.DTA_DL_YN = 'N'
-                                          WHERE V1.DTA_DL_YN = 'N'
-                                            AND V1.ADRPC_TP_CD = '3' /* 설치처 */
-                                            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
-                                 ) T3
-                                ON T3.DTL_CNTR_NO = T1.CNTR_NO
-                               AND T3.DTL_CNTR_SN = T1.CNTR_SN
-                             INNER JOIN TB_GBCO_ADR_BAS V3 /* 주소지기본 */
-                                ON V3.ADR_ID = T3.ADR_ID
-                               AND V3.DTA_DL_YN = 'N'
-                             WHERE T1.DTA_DL_YN = 'N'
-                               AND T1.WK_PRGS_STAT_CD = '20' /* 작업진행상태 = '작업완료' */
+                              LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL S1  /* 계약주소관계 */
+                                ON S1.DTL_CNTR_NO = T1.CNTR_NO
+                               AND S1.DTL_CNTR_SN = T1.CNTR_SN
+                               AND S1.ADRPC_TP_CD = '3'  /* 설치처 */
+                               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                             INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S2  /* 계약주소지기본 */
+                                ON S2.CNTR_ADRPC_ID = S1.CNTR_ADRPC_ID
+                             INNER JOIN TB_GBCO_ADR_BAS S3  /* 주소기본 */
+                                ON S3.ADR_ID = S2.ADR_ID
+                               AND S3.DTA_DL_YN = 'N'
+                             WHERE T1.WK_PRGS_STAT_CD = '20' /* 작업진행상태 = '작업완료' */
                                AND T1.WK_EXCN_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '31'
                                AND T1.WK_GRP_CD = #{wkGrpCd}
-                             GROUP BY V3.NEW_ADR_ZIP
+                             GROUP BY S3.NEW_ADR_ZIP
                              UNION ALL
-                            SELECT T3.NEW_ADR_ZIP
+                            SELECT /*+ INDEX(T1 IX_SVPD_CST_SV_BFSVC_ASN_IZ_08) */
+                                   T3.NEW_ADR_ZIP
                                  , COUNT(1) AS WRK_CNT
                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1 /* 고객서비스BS배정내역 */
                              INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 */
@@ -142,6 +141,8 @@
                              WHERE T1.DTA_DL_YN = 'N'
                                AND T1.VST_PRGS_STAT_CD = '20' /* 작업진행상태 = '작업완료' */
                                AND T1.CNFM_PSIC_DV_CD = '2'
+                               -- 조회 속도를 높이기 위해 Key부분에 Index 조건 추가 --
+                               AND T1.ASN_OJ_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -4), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(SYSDATE, 0), 'YYYYMM')
                                AND T1.WK_EXCN_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '31'
                                AND T1.WK_GRP_CD = #{wkGrpCd}
                              GROUP BY T3.NEW_ADR_ZIP

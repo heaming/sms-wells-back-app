@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemOrderQuantityMapper">
+
+    <sql id="selectWithProduct">
+          WITH PD AS
+             (
+               SELECT T1.PD_CD
+                    , T1.PD_ABBR_NM   AS PD_NM
+                    , T1.SAP_MAT_CD   AS SAP_CD
+                    , T2.PD_PRP_VAL07 AS MOQ
+                    , T2.PD_PRP_VAL06 AS LEAD_TIME
+                    , T2.PD_PRP_VAL21 AS COMM_GB
+                 FROM TB_PDBS_PD_BAS T1                        /* 상품기본 */
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2          /* 상품각사속성상세 */
+                   ON T1.PD_CD = T2.PD_CD
+                 LEFT OUTER JOIN TB_SVST_CMPT_EXCD_ITM_IZ T3   /* 산출제외품목 */
+                   ON T3.ITM_PD_CD = T1.PD_CD
+                  AND T3.DTA_DL_YN = 'N'
+                  AND T3.MNGT_YM   = #{inqrYm}
+                WHERE T1.PD_TP_CD           = 'M'
+                  AND T1.DTA_DL_YN          = 'N'
+                  AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND T2.DTA_DL_YN          = 'N'
+                  AND T3.ITM_PD_CD IS NULL                 /* 산출제외품목이 아닌 것 */
+            <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                  AND T2.PD_PRP_VAL19       = #{itmKndCd}
+            </if>
+            <if test="@MybatisUtils@isEmpty(itmKndCd)">
+                  AND T2.PD_PRP_VAL19      IN ('5', '6')   /* 필터, A/S자재 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND T1.PD_CD              = #{itmPdCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND T1.PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                   #{itmPdCd}
+                                </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strtSapCd)">
+                  AND T1.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(endSapCd)">
+                  AND T1.SAP_MAT_CD <![CDATA[<]]>  LPAD(#{endSapCd}, 18, '0')
+            </if>
+             )
+    </sql>
+
+    <select id="selectItemOrderQuantityCount" resultType="java.lang.Long">
+        <include refid="selectWithProduct" />
+        SELECT COUNT(*)
+          FROM PD
+    </select>
+
+    <select id="selectItemOrderQuantitiy" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemOrderQuantityDvo">
+        <include refid="selectWithProduct" />
+             , WARE AS
+             (
+               SELECT WARE_DV_CD
+                    , WARE_DTL_DV_CD
+                    , WARE_NO
+                 FROM TB_SVST_MCBY_WARE_IZ   /* 월별창고내역 */
+                WHERE DTA_DL_YN   = 'N'
+                  AND WARE_USE_YN = 'Y'
+                  AND APY_YM      = #{inqrYm}
+             )
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'CMN_PART_DV_CD', D1.COMM_GB, #{session.langId}) AS COMM_GB_NM        /* 제품군 */
+             , D1.SAP_CD                                                                                      /* SAP코드 */
+             , D1.PD_CD                                                                                       /* 품목코드 */
+             , D1.PD_NM                                                                                       /* 품목명 */
+             , NVL(D2.BZNS_OG_QTY, 0)                                                    AS BZNS_OG_QTY       /* 영업조직 */
+             , NVL(D2.BZNS_INDV_QTY, 0)                                                  AS BZNS_INDV_QTY     /* 영업개인 */
+             , NVL(D2.SV_CNR_QTY, 0)                                                     AS SV_CNR_QTY        /* 서비스센터 */
+             , NVL(D8.THM_QOM_ASN_QTY, 0)                                                AS THM_QOM_ASN_QTY   /* 당월물량배정 */
+             , NVL(D3.PART_USE_QTY, 0)                                                   AS ET_NED_QTY1       /* 예상소요량 1개월 */
+             , NVL(D4.PART_USE_QTY, 0)                                                   AS ET_NED_QTY2       /* 예상소요량 2개월 */
+             , NVL(D5.PART_USE_QTY, 0)                                                   AS ET_NED_QTY3       /* 예상소요량 3개월 */
+             , NVL(D6.PART_USE_QTY, 0)                                                   AS ET_NED_QTY4       /* 예상소요량 4개월 */
+             , D1.MOQ                                                                                         /* 최소발주량 */
+             , D1.LEAD_TIME                                                                                   /* 리드타임 */
+             , NVL(D7.PART_USE_QTY, 0)                                                   AS ET_NED_QTY5       /* 예상소요량 5개월 */
+          FROM PD D1
+          LEFT OUTER JOIN
+             (
+               SELECT T.ITM_PD_CD
+                    , SUM(T.BZNS_OG_QTY)     AS BZNS_OG_QTY
+                    , SUM(T.BZNS_INDV_QTY)   AS BZNS_INDV_QTY
+                    , SUM(T.SV_CNR_QTY)      AS SV_CNR_QTY
+                 FROM
+                    (
+                      SELECT D1.ITM_PD_CD
+                           , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '30'
+                                      THEN NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
+                                 END) AS BZNS_OG_QTY       /* 영업조직 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '3' AND D3.WARE_DTL_DV_CD <![CDATA[<>]]> '30'
+                                      THEN NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
+                                 END) AS BZNS_INDV_QTY     /* 영업개인 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '2'
+                                      THEN NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
+                                 END) AS SV_CNR_QTY        /* 서비스센터 */
+                        FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
+                       INNER JOIN PD D2                     /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
+                          ON D3.WARE_NO = D1.WARE_NO
+                         AND D3.APY_YM  = TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), -1),'YYYYMM')
+                       WHERE D1.DTA_DL_YN   = 'N'
+                         AND D3.DTA_DL_YN   = 'N'
+                         AND D3.WARE_USE_YN = 'Y'
+                         AND D1.BASE_YM     = TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), -1),'YYYYMM')
+                    <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                         AND D1.ITM_PD_CD = #{itmPdCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                             <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                             </foreach>
+                    </if>
+                       GROUP BY D1.ITM_PD_CD
+                       UNION ALL
+                      SELECT D1.ITM_PD_CD
+                           , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '30'
+                                      THEN ( NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) )
+                                           - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
+                                 END) AS BZNS_OG_QTY       /* 영업조직 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '3' AND D3.WARE_DTL_DV_CD <![CDATA[<>]]> '30'
+                                      THEN ( NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) )
+                                           - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
+                                 END) AS BZNS_INDV_QTY     /* 영업개인 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '2'
+                                      THEN ( NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) )
+                                           - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
+                                 END) AS SV_CNR_QTY        /* 서비스센터 */
+                        FROM TB_SVST_MCITM_STOC_IZ D1   /* 월별품목재고내역 */
+                       INNER JOIN PD D2                 /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN WARE D3               /* WITH절 창고 */
+                          ON D3.WARE_NO = D1.WARE_NO
+                       WHERE D1.DTA_DL_YN = 'N'
+                         AND D1.BASE_YM   = #{inqrYm}
+                    <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                         AND D1.ITM_PD_CD = #{itmPdCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                             <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                             </foreach>
+                    </if>
+                       GROUP BY D1.ITM_PD_CD
+                       UNION ALL
+                      SELECT D1.ITM_PD_CD
+                           , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '30' THEN D1.STR_QTY END) AS BZNS_OG_QTY       /* 영업조직 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '3'
+                                       AND D3.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN D1.STR_QTY
+                                 END)                                                    AS BZNS_INDV_QTY     /* 영업개인 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '2' THEN D1.STR_QTY END)      AS SV_CNR_QTY        /* 서비스센터 */
+                        FROM TB_SVST_ITM_STR_IZ D1   /* 품목입고내역 */
+                       INNER JOIN PD D2              /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN WARE D3            /* WITH절 창고 */
+                          ON D3.WARE_NO = D1.STR_WARE_NO
+                       WHERE D1.DTA_DL_YN = 'N'
+                         AND D1.STR_RGST_DT BETWEEN #{inqrYm} || '01' AND TO_CHAR(LAST_DAY(TO_DATE(#{inqrYm}, 'YYYYMM')), 'YYYYMMDD')
+                    <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                         AND D1.ITM_PD_CD = #{itmPdCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                             <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                             </foreach>
+                    </if>
+                       GROUP BY D1.ITM_PD_CD
+                       UNION ALL
+                      SELECT D1.ITM_PD_CD
+                           , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '30'
+                                      THEN CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
+                                                ELSE D1.USE_QTY * -1
+                                           END
+                                 END) AS BZNS_OG_QTY       /* 영업조직 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '3'
+                                       AND D3.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
+                                                                                           ELSE D1.USE_QTY * -1
+                                                                                      END
+                                 END) AS BZNS_INDV_QTY     /* 영업개인 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '2'
+                                      THEN CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
+                                                ELSE D1.USE_QTY * -1
+                                           END
+                                 END) AS SV_QTY            /* 서비스 */
+                        FROM TB_SVST_SV_WK_OSTR_IZ D1   /* 서비스작업출고내역 */
+                       INNER JOIN PD D2                 /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN WARE D3               /* WITH절 창고 */
+                          ON D3.WARE_NO = D1.WK_WARE_NO
+                       WHERE D1.DTA_DL_YN = 'N'
+                         AND D1.FNL_ITM_GD_CD <![CDATA[<>]]> 'X'
+                         AND D1.USE_QTY <![CDATA[>]]> 0
+                         AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '6')   /*  */
+                         AND D1.FNL_VST_FSH_DT BETWEEN #{inqrYm} || '01' AND TO_CHAR(LAST_DAY(TO_DATE(#{inqrYm}, 'YYYYMM')), 'YYYYMMDD')
+                    <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                         AND D1.ITM_PD_CD = #{itmPdCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                             <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                             </foreach>
+                    </if>
+                       GROUP BY D1.ITM_PD_CD
+                       UNION ALL
+                      SELECT D1.ITM_PD_CD
+                           , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '30' THEN D1.OSTR_QTY * -1 END) AS BZNS_OG_QTY       /* 영업조직 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '3'
+                                       AND D3.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN D1.OSTR_QTY * -1
+                                 END)                                                          AS BZNS_INDV_QTY     /* 영업개인 */
+                           , SUM(CASE WHEN D3.WARE_DV_CD = '2' THEN D1.OSTR_QTY * -1 END)      AS SV_CNR_QTY        /* 서비스 */
+                        FROM TB_SVST_ITM_OSTR_IZ D1   /* 품목출고내역 */
+                       INNER JOIN PD D2
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN WARE D3
+                          ON D3.WARE_NO = D1.OSTR_WARE_NO
+                       WHERE D1.DTA_DL_YN = 'N'
+                         AND D1.ITM_GD_CD <![CDATA[<>]]> 'X'
+                         AND D1.OSTR_DT BETWEEN #{inqrYm} || '01' AND TO_CHAR(LAST_DAY(TO_DATE(#{inqrYm}, 'YYYYMM')), 'YYYYMMDD')
+                    <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                         AND D1.ITM_PD_CD = #{itmPdCd}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                             <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                             </foreach>
+                    </if>
+                       GROUP BY D1.ITM_PD_CD
+                    ) T
+                GROUP BY T.ITM_PD_CD
+             ) D2
+            ON D2.ITM_PD_CD = D1.PD_CD
+          LEFT OUTER JOIN
+             (
+               SELECT D1.PART_PD_CD        AS ITM_PD_CD
+                    , SUM(D1.PART_USE_QTY) AS PART_USE_QTY
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
+                   ON D2.CNTR_NO = D1.CNTR_NO
+                  AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D2.REQD_DT IS NULL
+                  AND D2.CPS_DT IS NULL
+                  AND D2.CHNG_DT IS NULL
+                  AND D2.IST_DT IS NOT NULL
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 1), 'MM'), 'YYYYMMDD')
+                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 1)), 'YYYYMMDD')
+             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PART_PD_CD = #{itmPdCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PART_PD_CD IN
+                                     <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                      #{itmPdCd}
+                                     </foreach>
+             </if>
+                GROUP BY D1.PART_PD_CD
+             ) D3
+            ON D3.ITM_PD_CD = D1.PD_CD
+          LEFT OUTER JOIN
+             (
+               SELECT D1.PART_PD_CD        AS ITM_PD_CD
+                    , SUM(D1.PART_USE_QTY) AS PART_USE_QTY
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
+                   ON D2.CNTR_NO = D1.CNTR_NO
+                  AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D2.REQD_DT IS NULL
+                  AND D2.CPS_DT IS NULL
+                  AND D2.CHNG_DT IS NULL
+                  AND D2.IST_DT IS NOT NULL
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 2), 'MM'), 'YYYYMMDD')
+                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 2)), 'YYYYMMDD')
+             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PART_PD_CD = #{itmPdCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PART_PD_CD IN
+                                     <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                      #{itmPdCd}
+                                     </foreach>
+             </if>
+                GROUP BY D1.PART_PD_CD
+             ) D4
+            ON D4.ITM_PD_CD = D1.PD_CD
+          LEFT OUTER JOIN
+             (
+               SELECT D1.PART_PD_CD        AS ITM_PD_CD
+                    , SUM(D1.PART_USE_QTY) AS PART_USE_QTY
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
+                   ON D2.CNTR_NO = D1.CNTR_NO
+                  AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D2.REQD_DT IS NULL
+                  AND D2.CPS_DT IS NULL
+                  AND D2.CHNG_DT IS NULL
+                  AND D2.IST_DT IS NOT NULL
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 3), 'MM'), 'YYYYMMDD')
+                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 3)), 'YYYYMMDD')
+             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PART_PD_CD = #{itmPdCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PART_PD_CD IN
+                                     <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                      #{itmPdCd}
+                                     </foreach>
+             </if>
+                GROUP BY D1.PART_PD_CD
+             ) D5
+            ON D5.ITM_PD_CD = D1.PD_CD
+          LEFT OUTER JOIN
+             (
+               SELECT D1.PART_PD_CD        AS ITM_PD_CD
+                    , SUM(D1.PART_USE_QTY) AS PART_USE_QTY
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
+                   ON D2.CNTR_NO = D1.CNTR_NO
+                  AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D2.REQD_DT IS NULL
+                  AND D2.CPS_DT IS NULL
+                  AND D2.CHNG_DT IS NULL
+                  AND D2.IST_DT IS NOT NULL
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 4), 'MM'), 'YYYYMMDD')
+                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 4)), 'YYYYMMDD')
+             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PART_PD_CD = #{itmPdCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PART_PD_CD IN
+                                     <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                      #{itmPdCd}
+                                     </foreach>
+             </if>
+                GROUP BY D1.PART_PD_CD
+             ) D6
+            ON D6.ITM_PD_CD = D1.PD_CD
+          LEFT OUTER JOIN
+             (
+               SELECT D1.PART_PD_CD        AS ITM_PD_CD
+                    , SUM(D1.PART_USE_QTY) AS PART_USE_QTY
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
+                   ON D2.CNTR_NO = D1.CNTR_NO
+                  AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D2.REQD_DT IS NULL
+                  AND D2.CPS_DT IS NULL
+                  AND D2.CHNG_DT IS NULL
+                  AND D2.IST_DT IS NOT NULL
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 5), 'MM'), 'YYYYMMDD')
+                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 5)), 'YYYYMMDD')
+             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PART_PD_CD = #{itmPdCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PART_PD_CD IN
+                                     <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                      #{itmPdCd}
+                                     </foreach>
+             </if>
+                GROUP BY D1.PART_PD_CD
+             ) D7
+            ON D7.ITM_PD_CD = D1.PD_CD
+          LEFT OUTER JOIN
+             (
+               SELECT D1.PU_PART_PD_CD AS ITM_PD_CD
+                    , SUM(D1.PU_QTY)   AS THM_QOM_ASN_QTY
+                 FROM TB_SVPD_RGBS_PU_ITM_IZ D1   /* 정기BS투입품목내역 */
+                INNER JOIN PD D2                  /* WITH절 상품 */
+                   ON D2.PD_CD = D1.PU_PART_PD_CD
+                WHERE D1.DTA_DL_YN     = 'N'
+                  AND D1.ASN_OJ_YM     = #{inqrYm}
+             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PU_PART_PD_CD = #{itmPdCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PU_PART_PD_CD IN
+                                     <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                      #{itmPdCd}
+                                     </foreach>
+             </if>
+                GROUP BY D1.PU_PART_PD_CD
+             ) D8
+            ON D8.ITM_PD_CD = D1.PD_CD
+         ORDER BY D1.PD_CD
+        <if test="@MybatisUtils@isNotEmpty(offSet) and @MybatisUtils@isNotEmpty(size)">
+        OFFSET ${offSet} ROW FETCH NEXT ${size} ROW ONLY
+        </if>
+    </select>
+
+</mapper>

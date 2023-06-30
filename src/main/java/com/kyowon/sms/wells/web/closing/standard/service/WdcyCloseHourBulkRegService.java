@@ -213,7 +213,7 @@ public class WdcyCloseHourBulkRegService {
                     dvo.setClPrdCd("1");
 
                     if ("1".equals(dto.rentalRcpClNxdPerfDtDvVal())) {
-                        dvo.setPerfDt(dto.clDt());
+                        dvo.setPerfDt(addDay);
                     } else {
                         String clDt = DateUtil.addMonths(dto.clDt(), 1);
                         dvo.setPerfDt(clDt.substring(0, 6) + "01");
@@ -226,7 +226,7 @@ public class WdcyCloseHourBulkRegService {
                     dvo.setEndHh(dto.spayRcpClNxdTmTo());  // (일시불)마감익일~말일시간/실적일자
 
                     if ("1".equals(dto.spayRcpClNxdPerfDtDvVal())) {
-                        dvo.setPerfDt(dto.clDt());
+                        dvo.setPerfDt(addDay);
                     } else {
                         String clDt = DateUtil.addMonths(dto.clDt(), 1);
                         dvo.setPerfDt(clDt.substring(0, 6) + "01");
@@ -248,7 +248,7 @@ public class WdcyCloseHourBulkRegService {
                     dvo.setClPrdCd("1");
 
                     if ("1".equals(dto.rentalRcpClNxdPerfDtDvVal())) {
-                        dvo.setPerfDt(dto.clDt());
+                        dvo.setPerfDt(addDay);
                     } else {
                         String clDt = DateUtil.addMonths(dto.clDt(), 1);
                         dvo.setPerfDt(clDt.substring(0, 6) + "01");
@@ -261,7 +261,7 @@ public class WdcyCloseHourBulkRegService {
                     dvo.setEndHh(dto.spayRcpClNxdTmTo());  // (일시불)마감익일~말일시간/실적일자
 
                     if ("1".equals(dto.spayRcpClNxdPerfDtDvVal())) {
-                        dvo.setPerfDt(dto.clDt());
+                        dvo.setPerfDt(addDay);
                     } else {
                         String clDt = DateUtil.addMonths(dto.clDt(), 1);
                         dvo.setPerfDt(clDt.substring(0, 6) + "01");

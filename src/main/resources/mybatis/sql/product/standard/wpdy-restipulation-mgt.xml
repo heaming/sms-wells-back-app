@@ -29,9 +29,9 @@
           JOIN TB_PDBS_PD_BAS T2
              ON T2.PD_CD = T1.PD_CD
           LEFT JOIN T_CMP_USR_ACO_M U1
-            ON T1.FST_RGST_USR_ID = U1.USR_ID
+            ON U1.USR_ID = T1.FST_RGST_USR_ID
           LEFT JOIN T_CMP_USR_ACO_M U2
-            ON T1.FNL_MDFC_USR_ID = U2.USR_ID
+            ON U2.USR_ID = T1.FNL_MDFC_USR_ID
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.VL_END_DTM = '99991231235959'
         <if test="@MybatisUtils@isNotEmpty(pdNm)">
@@ -40,9 +40,25 @@
         <if test="@MybatisUtils@isNotEmpty(pdCd)">
            AND T1.PD_CD                = #{pdCd}                 /* 상품코드 */
         </if>
+        <!-- 
         <if test="@MybatisUtils@isNotEmpty( startDate ) and @MybatisUtils@isNotEmpty( endDate ) ">
            AND T1.APY_STRTDT BETWEEN #{startDate} AND #{endDate} /* 적용시작일자 */
         </if>
+         -->
+        <if test='@MybatisUtils@isNotEmpty( startDate )'>
+            AND T1.APY_ENDDT <![CDATA[>=]]> #{startDate}
+           <if test='@MybatisUtils@isEmpty( endDate )'>
+            AND T1.APY_STRTDT <![CDATA[<=]]> #{startDate}
+           </if>
+        </if>
+        <if test='@MybatisUtils@isNotEmpty( endDate )'>
+           <if test='@MybatisUtils@isEmpty( startDate )'>
+           AND T1.APY_ENDDT <![CDATA[>=]]> #{endDate}
+           </if>
+           AND T1.APY_STRTDT <![CDATA[<=]]> #{endDate}
+        </if>
+        
+        
       ORDER BY T1.FNL_MDFC_DTM DESC, FNL_MDFC_DTM DESC
     </select>
     
@@ -55,7 +71,9 @@
            AND M.RSTL_BASE_TP_CD      = #{rstlBaseTpCd}        /* 재약정기준유형코드 */
            AND M.STPL_TN              = #{stplTn}              /* 약정회차 */
            AND M.RSTL_SELL_CHNL_DV_CD = #{rstlSellChnlDvCd}    /* 재약정판매채널구분코드 */
-           AND M.APY_STRTDT           = #{apyStrtdt}           /* 적용시작일자 */
+           AND M.RSTL_MCN                = #{rstlMcn}          /* 약정개월수 */
+           AND M.APY_ENDDT <![CDATA[ >= ]]> #{apyStrtdt}        /* 적용시작일자 */ 
+           AND M.APY_STRTDT <![CDATA[ <= ]]> #{apyEnddt}      /* 적용시작일자 */
     </select>
 
     <!-- 재약정 목록 저장 - 추가 -->

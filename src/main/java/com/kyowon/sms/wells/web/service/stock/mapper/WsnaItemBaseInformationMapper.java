@@ -14,4 +14,6 @@ public interface WsnaItemBaseInformationMapper {
     List<OstrRes> selectItemBaseInformationsOutOf(SearchReq dto);
 
     List<SearchAplcRes> selectItemBaseInformationAplcLists(SearchAplcReq dto);
+
+    List<SearchWareRes> selectItemBaseInformationWareDvCds(SearchReq dto);
 }

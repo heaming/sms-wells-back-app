@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Api(tags = "[WSNA] 물량배정")
 @Validated
@@ -33,6 +34,15 @@ public class WsnaQomAsnController {
     ){
         return service.getIndependenceWareQomAsns(dto, pageInfo);
     }
+    @ApiOperation(value = "", notes = "")
+    @GetMapping("/independence-warehouse-after")
+    public PagingResult<SearchRes> getIndependenceQomAsnsAfter(
+        @Valid
+        SearchReq dto,
+        PageInfo pageInfo
+    ){
+        return service.getIndependenceQomAsnsAfter(dto, pageInfo);
+    }
 
     @GetMapping("/individual-warehouse")
     public PagingResult<SearchRes> getIndividualWareQomAsns(
@@ -43,8 +53,25 @@ public class WsnaQomAsnController {
         return service.getIndividualWareQomAsns(dto, pageInfo);
     }
 
+    @GetMapping("/count")
+    public int getCountQomAsn(SearchReq dto){
+        return service.getCountQomAsn(dto);
+    }
+
+    @GetMapping("/ostr-ware")
+    public List<WareRes> getOstrWarehouse(SearchReq dto){
+        return service.getOstrWarehouse(dto);
+    }
+    @GetMapping("/str-ware")
+    public List<WareRes> getStrWarehouse(SearchReq dto){
+        return service.getStrWarehouse(dto);
+    }
+
     @PutMapping("/warehouse-renewals")
-    public SaveResponse editWarehouseRenewals(@Valid SearchReq dto){
+    public SaveResponse editWarehouseRenewals(
+        @RequestBody
+        SearchReq dto
+    ){
         return SaveResponse.builder()
             .processCount(service.editWarehouseRenewals(dto))
             .build();

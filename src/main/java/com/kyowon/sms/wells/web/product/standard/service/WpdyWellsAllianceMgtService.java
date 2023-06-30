@@ -2,6 +2,7 @@
 package com.kyowon.sms.wells.web.product.standard.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
@@ -54,9 +55,13 @@ public class WpdyWellsAllianceMgtService {
 
     public String checkDuplication(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
         List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
+        List<String> idList = bases.stream()
+            .map(base -> base.getPdAlncmpBaseId())
+            .filter(value -> StringUtil.isNotBlank(value))
+            .collect(Collectors.toList());
         String duplicationKey = null;
         for (WpdyAllianceBaseDvo base : bases) {
-            duplicationKey = mapper.selectWellsAllianceDuplication(base);
+            duplicationKey = mapper.selectWellsAllianceDuplication(base, idList);
             if (StringUtil.isNotBlank(duplicationKey)) {
                 break;
             }
@@ -71,7 +76,7 @@ public class WpdyWellsAllianceMgtService {
         for (WpdyAllianceBaseDvo base : bases) {
             validResult = mapper.selectWellsAllianceValidation(base);
             if (StringUtil.isBlank(validResult)) {
-                validationIssueKey = base.getPdCd() + PdProductConst.COMMA + StringUtil.nonNull(base.getSvPdCd()) + PdProductConst.COMMA + base.getStplPrdCd();
+                validationIssueKey = base.getPdCd() + PdProductConst.COMMA + StringUtil.nonNull(base.getSvPdCd()) + PdProductConst.COMMA + StringUtil.nonNull(base.getStplPrdCd());
                 break;
             }
         }

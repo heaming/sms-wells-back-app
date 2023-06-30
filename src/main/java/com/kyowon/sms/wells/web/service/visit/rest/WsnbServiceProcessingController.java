@@ -42,8 +42,8 @@ public class WsnbServiceProcessingController {
     @ApiOperation(value = "서비스처리 내역 조회", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "serviceType", value = "서비스유형", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "serviceCenter", value = "서비스센터", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "engineer", value = "엔지니어", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "prtnrNo", value = "엔지니어", paramType = "query", example = ""),
         @ApiImplicitParam(name = "refriType", value = "유무상구분", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "query", example = "12"),
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "WM03100193"),
@@ -61,6 +61,12 @@ public class WsnbServiceProcessingController {
         PageInfo pageInfo
     ) {
         return this.service.getServiceProcessings(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "서비스처리 내역 조회 (엑셀 다운로드)", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getServiceProcessingsForExcel(SearchReq dto) {
+        return this.service.getServiceProcessingsForExcel(dto);
     }
 
 }

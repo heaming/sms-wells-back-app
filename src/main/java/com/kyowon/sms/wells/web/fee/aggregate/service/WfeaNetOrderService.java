@@ -70,6 +70,10 @@ public class WfeaNetOrderService {
     /**
      * WELLS 월순주문 집계 생성
      * @param 'SaveReq' 삭제 및 저장 조건 정보
+     *        1.계약별집계정보 삭제
+     *        2.매니저 계약별 집계
+     *        3.플래너 계약별 집계
+     *        4.홈마스터 계약별 집계
      * @return 저장 결과
      */
 
@@ -81,7 +85,9 @@ public class WfeaNetOrderService {
         WfeaNetOrderDvo dvo = converter.mapSaveReqToWfeaNetOrderDvo(dto);
 
         mapper.deleteNetOrders(dvo);
-        processCount = mapper.insertNetOrders(dvo);
+        processCount += mapper.insertManagerNetOrders(dvo);
+        processCount += mapper.insertPlannerNetOrders(dvo);
+        processCount += mapper.insertHomeMasterNetOrders(dvo);
 
         return processCount;
     }

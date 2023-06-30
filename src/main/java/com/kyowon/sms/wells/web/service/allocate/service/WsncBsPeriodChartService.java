@@ -27,9 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class WsncBsPeriodChartService {
-    WsncBsPeriodChartMapper mapper;
+    private final WsncBsPeriodChartMapper mapper;
 
-    WsncBsPeriodChartConverter converter;
+    private final WsncBsPeriodChartConverter converter;
 
     /*
      * 정기 BS 주기표 생성
@@ -77,6 +77,7 @@ public class WsncBsPeriodChartService {
 
         processParam.setChekCyclMths(chekCyclMths);
 
+
         /*******************************************************************************************************
          * 가구화 로직 (방문일자 및 차월 계산)
          *******************************************************************************************************/
@@ -88,23 +89,29 @@ public class WsncBsPeriodChartService {
 
         //AS-IS ::: WORK_X Loop(chart06Res)
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
-            //SELL_TP_CD = 1 ::: 렌탈
-            if ("1".equals(baseInfoRes.getSellTpCd()) && chart06Res.getVstNmnN() == 0) {
+            //SELL_TP_CD = 1 ::: 일시불, 2 렌탈
+            if (("1".equals(baseInfoRes.getSellTpCd()) || ("2".equals(baseInfoRes.getSellTpCd()))) && chart06Res.getVstNmnN() == 0) {
                 continue;
             }
 
             //설치차월 계산
-            //SELL_TP_CD = 1 ::: 렌탈
-            if("1".equals(baseInfoRes.getSellTpCd())){
-                chekInstMths = chart06Res.getVstNmnN();
+            //SELL_TP_CD = 1 ::: 일시불, 2 렌탈
+            if(("1".equals(baseInfoRes.getSellTpCd())) || ("2".equals(baseInfoRes.getSellTpCd()))){
+                chekInstMths = chart06Res.getVstNmnN();     // 설치차월 수 세팅 - js
+//                chekInstMths = chekInstMths + chart06Res.getVstNmnN();
             }
             //SELL_TP_CD = 3 ::: 멤버십 (AS-IS는 2)
             else if ("3".equals(baseInfoRes.getSellTpCd())) {
                 //TB_PDBS_RGBS_WK_BASE_DTL.TOT_STPL_MCN 로 대체
-                chekInstMths = baseInfoRes.getChekInstMths();
-                chekInstMths = chekInstMths + chart06Res.getVstNmnN();
+                chekInstMths = chart06Res.getVstNmnN();     // 설치차월 수 세팅 - js
+//                chekInstMths = baseInfoRes.getChekInstMths();
+//                chekInstMths = chekInstMths + chart06Res.getVstNmnN();
             }
-            processParam.setChekInstMths(chekInstMths);
+
+            processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
+
+            processParam.setChekCyclMths(chart06Res.getVstNmnN());     // 방문차월 수 세팅 - js
+            processParam.setChekInstMths(chekInstMths);         // 설치차월 수 세팅 - js
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs03_07(processParam);
             //AS-IS ::: C1 Loop(chart07Res)

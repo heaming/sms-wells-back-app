@@ -96,4 +96,88 @@
             , #{session.ogId}
         )
     </insert>
+
+    <select id="selectCustomerExistYn" resultType="String">
+        SELECT NVL((SELECT 'Y'
+                      FROM TB_CUBS_CST_BAS
+                     WHERE 1=1
+                       AND CST_NO = #{cstNo}
+                       AND DTA_DL_YN = 'N'), 'N') AS EXIST_YN
+          FROM DUAL
+    </select>
+
+    <select id="selectCustomerRecentAgreement" resultType="String">
+        SELECT MAX(CST_AG_ID) AS CST_AG_ID
+          FROM TB_CUBS_CST_AG_IZ
+         WHERE DTA_DL_YN = 'N'
+           AND CST_AG_CHNL_DV_CD = '02' /* 02 : 홈페이지 */
+           AND AG_DRM_REFK_VAL = #{cstNo}   /* 고객번호 */
+           AND (AG_EXN_PRCSDT IS NULL OR AG_EXN_PRCSDT = '99991231')   /* 동의최신 */
+           AND AG_EXN_PROCS_RSON_CD IS NULL
+    </select>
+
+    <insert id="insertCustomerAgreement" parameterType="com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo">
+        <selectKey keyProperty="item.cstAgId" resultType="java.lang.String" order="BEFORE">
+            SELECT 'CUA' || LPAD(SQ_CUBS_CST_AG_IZ$CST_AG_ID.NEXTVAL, 12, 0)
+              FROM DUAL
+        </selectKey>
+        INSERT INTO TB_CUBS_CST_AG_IZ (  /* 고객동의내역 */
+               CST_AG_ID            /* 고객동의ID */
+             , AG_DRM_DV_CD         /* 동의식별구분코드 */
+             , AG_DRM_REFK_VAL      /* 동의식별참조키값 */
+             , CST_AG_CHNL_DV_CD    /* 고객동의채널구분코드 */
+             , AG_PROCS_DTM         /* 동의처리일시 */
+             , AG_EXN_PRCSDT        /* 동의만료처리일자 */
+             , DTA_DL_YN            /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+               #{item.cstAgId}
+             , '01'                 /* 01 : 고객 */
+             , #{item.cstNo}
+             , '02'                 /* 02 : 홈페이지 */
+             , NVL(#{item.agWdwalDtm}, '')
+             , '99991231'
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <insert id="insertCustomerAgreementDetail" parameterType="com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo">
+        INSERT INTO TB_CUBS_CST_AG_IZ_DTL (  /* 고객동의내역상세 */
+               CST_AG_ID            /* 고객동의ID */
+             , AG_ATC_DV_CD         /* 동의항목구분코드 */
+             , AG_STAT_CD           /* 동의상태코드 */
+             , AG_STRTDT            /* 동의시작일자 */
+             , AG_EXN_DUEDT         /* 동의만료예정일자 */
+             , DTA_DL_YN            /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+               #{cstAgId}
+             , #{agAtcDvCd}
+             , CASE WHEN #{wkDv} = '02' THEN '02'   /* 회원탈퇴인 경우, 무조건 미동의 처리 */
+                    WHEN #{agYn} = 'Y' THEN '01'
+                    WHEN #{agYn} = 'N' THEN '02'
+                END
+             , SUBSTR(#{agWdwalDtm}, 1, 8)
+             , '99991231'
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <update id="updateCustomerAgreementExpiration">
+        UPDATE TB_CUBS_CST_AG_IZ
+           SET AG_EXN_PRCSDT = TO_CHAR(sysdate, 'yyyymmdd')
+             , AG_EXN_PROCS_RSON_CD = '03'
+             <include refid="COMMON.updateSystemField"/>
+         WHERE CST_AG_ID = #{preCstAgId}
+    </update>
+
+    <update id="updateCustomerAgreementDetailExpiration">
+        UPDATE TB_CUBS_CST_AG_IZ_DTL
+           SET AG_EXN_PRCSDT = TO_CHAR(sysdate, 'yyyymmdd')
+             , AG_EXN_PROCS_RSON_CD = '03'
+             <include refid="COMMON.updateSystemField"/>
+          WHERE CST_AG_ID = #{preCstAgId}
+    </update>
 </mapper>

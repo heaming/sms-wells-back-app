@@ -248,7 +248,7 @@ public class WctaContractRegStep3Service {
         Map<String, String> stlmBasMap = Maps.newHashMap();
         for (WctaContractDtlDvo dtl : dtls) {
             int cntrSn = dtl.getCntrSn();
-
+            System.out.println("세금계산서 발행여부: "+dtl.getTxinvPblOjYn());
             WctaContractDtlDvo bDtl = null;
             if (isBlkApy(blkApyDtl)) {
                 bDtl = blkApyDtl;
@@ -341,7 +341,7 @@ public class WctaContractRegStep3Service {
         String now, String cntrNo, Map<String, String> stlmBasMap, int cntrSn, Long cntrAmt, String dpTpCd,
         String rveDvCd, String cstNo
     ) {
-        if (!stlmBasMap.containsKey(dpTpCd)) {
+//        if (!stlmBasMap.containsKey(dpTpCd)) {
             WctaContractStlmBasDvo stlmBas = WctaContractStlmBasDvo.builder()
                 .cntrNo(cntrNo)
                 .cstNo(cstNo)
@@ -351,13 +351,13 @@ public class WctaContractRegStep3Service {
                 .build();
             mapper.insertCntrStlmBasStep3(stlmBas);
             stlmBasMap.put(dpTpCd, stlmBas.getCntrStlmId());
-        }
+//        }
         mapper.insertCntrStlmRelStep3(
             WctaContractStlmRelDvo.builder()
                 .vlStrtDtm(now)
                 .vlEndDtm(CtContractConst.END_DTM)
                 .cntrUnitTpCd("020")
-                .cntrStlmId(stlmBasMap.get(dpTpCd))
+                .cntrStlmId(stlmBas.getCntrStlmId())
                 .dtlCntrNo(cntrNo)
                 .dtlCntrSn(cntrSn)
                 .rveDvCd(rveDvCd)

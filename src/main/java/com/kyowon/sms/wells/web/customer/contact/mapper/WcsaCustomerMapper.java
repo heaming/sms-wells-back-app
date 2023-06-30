@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.customer.contact.mapper;
 
+import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,4 +23,15 @@ public interface WcsaCustomerMapper {
     int insertCrpCstMpnoInfo(@Param("item")
     ZcsaCstCtplcBasDvo dvo);
 
+    String selectCustomerExistYn(String cstNo);
+
+    String selectCustomerRecentAgreement(String cstNo);
+
+    int insertCustomerAgreement(@Param("item") WcsaCustomerAgreementDvo agreeDvo);
+
+    int insertCustomerAgreementDetail(WcsaCustomerAgreementDvo agreeDvo);
+
+    int updateCustomerAgreementExpiration(String preCstAgId);
+
+    int updateCustomerAgreementDetailExpiration(String preCstAgId);
 }

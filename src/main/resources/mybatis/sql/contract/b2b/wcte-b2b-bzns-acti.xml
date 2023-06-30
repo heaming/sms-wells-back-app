@@ -170,6 +170,21 @@
              ) L1
             ON L1.OPPT_ID = A1.OPPT_ID
          WHERE A1.DTA_DL_YN = 'N'
+           AND A1.FST_RGST_USR_ID =
+               CASE WHEN (
+                         SELECT MAX(T1.USR_ID)
+                           FROM T_CMP_USR_ACO_M T1
+                          INNER JOIN T_CMY_USR_M T2      --> HR의 재직중인 임직원 대상으로 제한
+                             ON T2.USR_ID = T1.USR_ID
+                            AND T2.IRSD_STT_CD = 'W'        -- 재직중인 사용자만 추출
+                            AND T2.TENANT_ID = 'TNT_WELLS'
+                            AND T2.OG_TP_CD = 'HR1'
+                          WHERE 1=1
+                            AND T1.RSB_CD IN ('22','175','178','219')
+                            AND T1.USR_ID = #{session.userId}
+                         ) IS NOT NULL THEN  A1.FST_RGST_USR_ID
+                         ELSE #{session.userId}
+                    END
         <if test='@MybatisUtils@isNotEmpty(srchGbn)'>
            AND A1.PRJ_FOM_CD = #{srchGbn}
         </if>

@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.fee.calculation.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebOrganizationFeeDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto.*;
@@ -42,4 +43,15 @@ public interface WfebOrganizationFeeMapper {
     );
 
     List<SearchWmRes> selectWmFees(SearchWmReq dto);
+
+    SearchDsbCnstRes selectdsbCnst(
+        SearchDsbCnstReq dto
+    );
+
+    int updateDsbIz(WfebOrganizationFeeDvo dvo);
+
+    int insertDsbCnstIz(WfebOrganizationFeeDvo dvo);
+
+    int updateDsbCnstIz(WfebOrganizationFeeDvo dvo);
+
 }
