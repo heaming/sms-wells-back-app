@@ -25,6 +25,7 @@ public class WsnaReturningGoodsOstrAgrgDto {
         String pdClsfId,
         String pdClsfNm,
         String pdNm,
+        String pdCd,
         String sapMatCd,
         Integer fnlESum,
         Integer fnlRSum,

@@ -13,4 +13,5 @@ public class WsnaReturningGoodsOstrAgrgDvo {
     Integer fnlRSum;
     Integer fnlXSum;
     String sapMatCd;
+    String pdCd;
 }
