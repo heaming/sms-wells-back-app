@@ -16,6 +16,7 @@ public class WpdySeedlingPriceBaseDvo {
     private String rglrSppMchnKndCd; /* 정기배송기기종류코드 */
     private String rglrSppMchnTpCd; /* 정기배송기기유형코드 */
     private String rglrSppPrcDvCd; /* 정기배송가격구분코드 */
+    private String basePdCd; /* 기준상품코드 */
     private Long pdPrcTcnt; /* 상품가격차수 */
     private String apyStrtdt; /* 적용시작일자 */
     private String apyEnddt; /* 적용종료일자 */

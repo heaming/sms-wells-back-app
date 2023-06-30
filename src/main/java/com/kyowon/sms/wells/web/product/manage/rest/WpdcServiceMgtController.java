@@ -68,6 +68,7 @@ public class WpdcServiceMgtController {
                         .tbPdbsPdRel(dto.tbPdbsPdRel())
                         .isModifiedProp(dto.isModifiedProp())
                         .isOnlyFileModified(dto.isOnlyFileModified())
+                        .isModifiedRelation(dto.isModifiedRelation())
                         .build(),
                     false
                 )

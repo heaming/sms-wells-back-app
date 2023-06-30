@@ -21,6 +21,7 @@ public class WpdcStandardMgtDto {
         boolean isModifiedProp,
         boolean isModifiedPrice,
         boolean isOnlyFileModified,
+        boolean isModifiedRelation,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
@@ -38,6 +39,7 @@ public class WpdcStandardMgtDto {
         boolean isModifiedProp,
         boolean isModifiedPrice,
         boolean isOnlyFileModified,
+        boolean isModifiedRelation,
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
         List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
         List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,

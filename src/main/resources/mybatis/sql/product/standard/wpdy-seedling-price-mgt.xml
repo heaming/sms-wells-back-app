@@ -9,12 +9,14 @@
                     || NVL2(C3.PD_CLSF_NM, ' > ' || C3.PD_CLSF_NM, '') 
                     AS PD_CLSF_NM  /* 상품분류 */
                , PB.PD_TP_DTL_CD
-                    
+               , P2.PD_NM AS BASE_PD_NM   /* 기준상품코드명 */
+               
                , T1.RGLR_SPP_SDING_PRC_ID /* 정기배송모종가격ID */
                , T1.PDCT_PD_CD            /* 제품상품코드 */
                , T1.RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
                , T1.RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
                , T1.RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+               , T1.BASE_PD_CD            /* 기준상품코드 */
                , T1.PD_PRC_TCNT           /* 상품가격차수 */
                , T1.APY_STRTDT            /* 적용시작일자 */
                , T1.APY_ENDDT             /* 적용종료일자 */
@@ -38,6 +40,9 @@
           LEFT JOIN TB_PDBS_PD_BAS PB                      /* 제품상품코드 */
             ON PB.PD_CD = T1.PDCT_PD_CD
            AND PB.DTA_DL_YN = 'N'
+          LEFT JOIN TB_PDBS_PD_BAS P2                      /* 기준상품코드 */
+            ON P2.PD_CD = T1.BASE_PD_CD
+           AND P2.DTA_DL_YN = 'N' 
           LEFT JOIN T_CMP_USR_ACO_M MU
             ON MU.USR_ID = T1.FNL_MDFC_USR_ID
            AND MU.DEL_YN = 'N'
@@ -91,7 +96,7 @@
     
     <insert id="insertSeedlingPriceBase">
         <selectKey keyProperty="info.rglrSppSdingPrcId" resultType="java.lang.String" order="BEFORE">
-          SELECT 'PDSM' || SQ_PDBS_SDING_PRC_BAS$RGLR_SPP_SDING_PRC_ID.NEXTVAL FROM DUAL
+          SELECT 'PDSM' || LPAD(  SQ_PDBS_SDING_PRC_BAS$RGLR_SPP_SDING_PRC_ID.NEXTVAL  , 11, 0) RGLR_SPP_SDING_PRC_ID FROM DUAL
         </selectKey>
         INSERT INTO TB_PDBS_SDING_PRC_BAS 
         (  /* 모종가격기본 */
@@ -100,6 +105,7 @@
             , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
             , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
             , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , BASE_PD_CD            /* 기준상품코드 */
             , PD_PRC_TCNT           /* 상품가격차수 */
             , APY_STRTDT            /* 적용시작일자 */
             , APY_ENDDT             /* 적용종료일자 */
@@ -117,6 +123,7 @@
             , #{info.rglrSppMchnKndCd}
             , #{info.rglrSppMchnTpCd}
             , #{info.rglrSppPrcDvCd}
+            , #{info.basePdCd}
             , NVL(
                    (
                    SELECT MAX(PD_PRC_TCNT) + 1 
@@ -126,6 +133,10 @@
                       AND RGLR_SPP_MCHN_KND_CD = #{info.rglrSppMchnKndCd}
                       AND RGLR_SPP_MCHN_TP_CD = #{info.rglrSppMchnTpCd}
                       AND RGLR_SPP_PRC_DV_CD = #{info.rglrSppPrcDvCd}
+                      <choose> 
+                          <when test='@MybatisUtils@isNotEmpty( info.basePdCd )'> AND BASE_PD_CD = #{info.basePdCd} </when>
+                          <otherwise> AND BASE_PD_CD IS NULL </otherwise> 
+                      </choose>
                    )
               , 1)  
             , #{info.apyStrtdt}
@@ -147,6 +158,7 @@
              , RGLR_SPP_MCHN_KND_CD  = #{rglrSppMchnKndCd}     /* 정기배송기기종류코드 */
              , RGLR_SPP_MCHN_TP_CD   = #{rglrSppMchnTpCd}      /* 정기배송기기유형코드 */
              , RGLR_SPP_PRC_DV_CD    = #{rglrSppPrcDvCd}       /* 정기배송가격구분코드 */
+             , BASE_PD_CD            = #{basePdCd}             /* 기준상품코드 */
              , APY_STRTDT            = #{apyStrtdt}            /* 적용시작일자 */
              , APY_ENDDT             = #{apyEnddt}             /* 적용종료일자 */
              , SDING_QTY             = #{sdingQty}             /* 모종수량 */
@@ -177,6 +189,7 @@
             , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
             , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
             , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , BASE_PD_CD            /* 기준상품코드 */
             , PD_PRC_TCNT           /* 상품가격차수 */
             , APY_STRTDT            /* 적용시작일자 */
             , APY_ENDDT             /* 적용종료일자 */
@@ -196,6 +209,7 @@
             , RGLR_SPP_MCHN_KND_CD  /* 정기배송기기종류코드 */
             , RGLR_SPP_MCHN_TP_CD   /* 정기배송기기유형코드 */
             , RGLR_SPP_PRC_DV_CD    /* 정기배송가격구분코드 */
+            , BASE_PD_CD            /* 기준상품코드 */
             , PD_PRC_TCNT           /* 상품가격차수 */
             , APY_STRTDT            /* 적용시작일자 */
             , APY_ENDDT             /* 적용종료일자 */
@@ -225,6 +239,7 @@
         SELECT PDCT_PD_CD || ',' || RGLR_SPP_MCHN_KND_CD || ',' || RGLR_SPP_MCHN_TP_CD || ',' || RGLR_SPP_PRC_DV_CD
                || ',' || #{info.apyStrtdt}
                || ',' || #{info.apyEnddt}
+               || ',' || BASE_PD_CD
           FROM TB_PDBS_SDING_PRC_BAS 
          WHERE DTA_DL_YN = 'N'
            AND PDCT_PD_CD = #{info.pdctPdCd}
@@ -233,6 +248,10 @@
            AND RGLR_SPP_PRC_DV_CD = #{info.rglrSppPrcDvCd}
            AND APY_ENDDT <![CDATA[>=]]> #{info.apyStrtdt}
            AND APY_STRTDT <![CDATA[<=]]> #{info.apyEnddt}
+           <choose> 
+               <when test='@MybatisUtils@isNotEmpty( info.basePdCd )'> AND BASE_PD_CD = #{info.basePdCd} </when>
+               <otherwise> AND BASE_PD_CD IS NULL </otherwise> 
+           </choose>
            <if test='@MybatisUtils@isNotEmpty( idList )'>
            AND RGLR_SPP_SDING_PRC_ID NOT IN (
             <foreach collection="idList" item="val" separator=",">
