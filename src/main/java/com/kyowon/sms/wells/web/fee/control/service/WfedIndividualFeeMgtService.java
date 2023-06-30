@@ -51,7 +51,7 @@ public class WfedIndividualFeeMgtService {
      * no : 번호 }
      * @return 조회결과
      */
-    public FindHmstFeeRes getHmstFee(SearchHmstReq dto) {
+    public List<SearchHmstFeeRes> getHmstFee(SearchHmstReq dto) {
         return mapper.selectHmstFee(dto);
     }
 
@@ -91,13 +91,24 @@ public class WfedIndividualFeeMgtService {
     }
 
     /**
+     * 개인별 수수료 관리 P조직 기본 내역 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public List<SearchPlarEtcRes> getPlarEtcs(SearchPlarReq dto) {
+        return mapper.selectPlarEtcs(dto);
+    }
+
+    /**
      * 개인별 수수료 관리 P조직 수수료 내역 조회
      * @param dto : {
      * perfYm : 실적년월,
      * no : 번호 }
      * @return 조회결과
      */
-    public FindPlarFeeRes getPlarFee(SearchPlarReq dto) {
+    public List<SearchPlarFeeRes> getPlarFee(SearchPlarReq dto) {
         return mapper.selectPlarFee(dto);
     }
 
@@ -123,6 +134,19 @@ public class WfedIndividualFeeMgtService {
      */
     public FindMngerEntrpRes getMngerEntrp(SearchMngerReq dto) {
         return mapper.selectMngerEntrp(dto);
+    }
+
+    /**
+     * 개인별 수수료 관리 M조직 기본내역 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public List<SearchMngerBaseInfoRes> getMngerBaseInfo(
+        SearchMngerReq dto
+    ) {
+        return this.mapper.selectMngerBaseInfo(dto);
     }
 
     /**
@@ -156,8 +180,8 @@ public class WfedIndividualFeeMgtService {
      * no : 번호 }
      * @return 조회결과
      */
-    public FindMngerFeeRes getMngerFee(SearchMngerReq dto) {
-        return mapper.selectMngerFee(dto);
+    public List<SearchMngerFeeRes> getMngerFees(SearchMngerReq dto) {
+        return mapper.selectMngerFees(dto);
     }
 
     /**

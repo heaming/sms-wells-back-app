@@ -32,6 +32,7 @@ public class WsnaOutOfStorageAskMngtDvo {
     String ostrAkQty; /*출고요청수량*/
     String ostrCnfmQty; /*출고확정수량*/
     String rmkCn; /*비고*/
+    String ovivTpCd;
     String rectOstrDt; /*최근출고일자*/
     String ostrWareMngtPrtnrNo; /*출고창고관리파트너번호*/
     String ostrOjWareNo; /*출고대상창고번호*/

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedingOstrQtyMapper">
+
+    <select id="selectDcbySdingRcpLim" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingOstrQtyDto$SearchRes">
+        SELECT VST_DT                                                                                               /* 방문일자 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', SV_BIZ_HCLSF_CD, #{session.langId}) AS SV_BIZ_HCLSF_NM   /* 업무유형 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'PKG_DV_CD', SDING_PKG_GRP_CD, #{session.langId})      AS SDING_PKG_NM      /* 패키지명 */
+             , LIM_QTY                                                                                              /* 한도수량 */
+             , SDING_PKG_GRP_CD                                                                                     /* 모종패키지그룹코드 */
+             , SV_BIZ_HCLSF_CD                                                                                      /* 서비스업무대분류코드 */
+             , LIM_SN                                                                                               /* 한도일련번호 */
+          FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ   /* 일별모종접수한도내역 */
+         WHERE DTA_DL_YN        = 'N'
+           AND SV_BIZ_HCLSF_CD IN ('1', '2', '3')   /* 설치, B/S, A/S */
+           AND VST_DT BETWEEN #{strtDt} AND #{endDt}
+        <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
+           AND SV_BIZ_HCLSF_CD  = #{svBizHclsfCd}
+        </if>
+         ORDER BY VST_DT, SV_BIZ_HCLSF_CD, SDING_PKG_GRP_CD, LIM_QTY, LIM_SN
+    </select>
+
+    <update id="updateDcbySdingRcpLimQty">
+        UPDATE TB_SVPD_DCBY_SDING_RCP_LIM_IZ   /* 일별모종접수한도내역 */
+           SET LIM_QTY = #{limQty}   /* 한도수량 */
+        <include refid="COMMON.updateSystemField" />
+         WHERE DTA_DL_YN        = 'N'
+           AND VST_DT           = #{vstDt}
+           AND SDING_PKG_GRP_CD = #{sdingPkgGrpCd}
+           AND SV_BIZ_HCLSF_CD  = #{svBizHclsfCd}
+           AND LIM_SN           = #{limSn}
+    </update>
+
+    <select id="selectCmzSvBizHclsfCds" resultType="java.lang.String">
+        SELECT CD_VLD_VAL   /* 코드유효값 */
+          FROM T_CMZ_CD_D   /* 코드상세 */
+         WHERE DEL_YN      = 'N'
+           AND TENANT_ID   = 'TNT_WELLS'
+           AND CD_ID       = 'SV_BIZ_HCLSF_CD'
+           AND CD_VLD_VAL IN ('1', '2', '3')   /* 설치, B/S, A/S */
+    </select>
+
+    <select id="selectCmzPkgDvCds" resultType="java.lang.String">
+        SELECT CD_VLD_VAL   /* 코드유효값 */
+          FROM T_CMZ_CD_D   /* 코드상세 */
+         WHERE DEL_YN    = 'N'
+           AND TENANT_ID = 'TNT_WELLS'
+           AND CD_ID     = 'PKG_DV_CD'
+    </select>
+
+    <insert id="insertDcbySdingRcpLimQty">
+        INSERT INTO TB_SVPD_DCBY_SDING_RCP_LIM_IZ   /* 일별모종접수한도내역 */
+             (
+               VST_DT             /* 방문일자 */
+             , SDING_PKG_GRP_CD   /* 모종패키지그룹코드 */
+             , SV_BIZ_HCLSF_CD    /* 서비스업무대분류코드 */
+             , LIM_SN             /* 한도일련번호 */
+             , LIM_QTY            /* 한도수량 */
+             , DTA_DL_YN          /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               REPLACE(#{vstDt}, '-', '')
+             , #{sdingPkgGrpCd}
+             , #{svBizHclsfCd}
+             , ( SELECT NVL(MAX(LIM_SN), 0) + 1
+                   FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ
+                  WHERE VST_DT           = REPLACE(#{vstDt}, '-', '')
+                    AND SDING_PKG_GRP_CD = #{sdingPkgGrpCd}
+                    AND SV_BIZ_HCLSF_CD  = #{svBizHclsfCd} )
+             , #{limQty}
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+</mapper>

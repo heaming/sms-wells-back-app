@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.standard.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -78,5 +79,21 @@ public class WpdySeedlingPriceMgtService {
             }
         }
         return base;
+    }
+
+    public String checkDuplication(List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> dtos) {
+        List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dtos);
+        List<String> idList = bases.stream()
+            .map(base -> base.getRglrSppSdingPrcId())
+            .filter(value -> StringUtil.isNotBlank(value))
+            .collect(Collectors.toList());
+        String duplicationKey = null;
+        for (WpdySeedlingPriceBaseDvo base : bases) {
+            duplicationKey = mapper.selectSeedlingPriceDuplication(base, idList);
+            if (StringUtil.isNotBlank(duplicationKey)) {
+                break;
+            }
+        }
+        return duplicationKey;
     }
 }

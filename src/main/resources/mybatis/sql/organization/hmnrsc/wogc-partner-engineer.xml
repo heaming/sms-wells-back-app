@@ -10,7 +10,7 @@
              , MPI.PRTNR_KNM                /*파트너명*/
              , WGB.WK_GRP_CD                /*작업그룹코드*/
              , F_CMZ_CD_NM('TNT_WELLS', 'WK_GRP_CD', WGB.WK_GRP_CD) AS WK_GRP_NM
-             , CASE WHEN EAI.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'Y'
+             , CASE WHEN EVI.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'Y'
                                                            ELSE 'N'
                END BIZ_AGNT_YN
              , EAI.WRK_DT                   /*근무일자*/
@@ -23,11 +23,16 @@
                   AND BASE_Y  = SUBSTR(EAI.WRK_DT, 1, 4)
                   AND BASE_MM = SUBSTR(EAI.WRK_DT, 5, 2)
                   AND BASE_D  = SUBSTR(EAI.WRK_DT, 7, 2)) AS WRK_NM
-             , EAI.EGER_WRK_STAT_CD            /*근태사유코드*/
-             , EAI.RMK_CN                      /*비고내용*/
-             , EAI.DNL_STRTDT                  /*근태시작일자*/
-             , EAI.DNL_ENDDT                   /*근태종료일자*/
-             , EAI.BIZ_AGNT_PRTNR_NO           /*업무대행파트너번호*/
+              , CASE WHEN EAI.WRK_DT BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT THEN EVI.EGER_WRK_STAT_CD
+                     ELSE EAI.EGER_WRK_STAT_CD
+                END AS EGER_WRK_STAT_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_WRK_STAT_CD', EAI.EGER_WRK_STAT_CD) AS EGER_WRK_STAT_NM
+             , CASE WHEN EAI.WRK_DT BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT THEN EVI.RMK_CN
+                    ELSE EAI.RMK_CN
+                END AS RMK_CN
+             , EVI.VCN_STRT_DT                  /*휴가시작일자*/
+             , EVI.VCN_END_DT                   /*휴가종료일자*/
+             , EVI.BIZ_AGNT_PRTNR_NO           /*업무대행파트너번호*/
              , MPI2.PRTNR_KNM AS AGNT_PRTNR_KNM            /*파트너명*/
              , EAI.PCP_PRTNR_NO                            /*처리자파트너번호*/
              , MPI3.PRTNR_KNM AS PCP_PRTNR_KNM             /*파트너명*/
@@ -43,6 +48,11 @@
                           ) WGB /*작업그룹소속상세*/
             ON EAI.PRTNR_NO = WGB.PRTNR_NO
            AND EAI.OG_TP_CD = WGB.OG_TP_CD
+          LEFT OUTER JOIN TB_OGPS_EGER_VCN_IZ EVI
+            ON EVI.OG_TP_CD = EAI.OG_TP_CD
+           AND EVI.PRTNR_NO = EAI.PRTNR_NO
+           AND #{baseDt} BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT
+           AND EVI.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI
             ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND MPI.PRTNR_NO = EAI.PRTNR_NO
@@ -50,15 +60,15 @@
            AND MPI.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI2
             ON MPI2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND MPI2.PRTNR_NO = EAI.BIZ_AGNT_PRTNR_NO
-           AND MPI2.OG_TP_CD = EAI.OG_TP_CD
+           AND MPI2.PRTNR_NO = EVI.BIZ_AGNT_PRTNR_NO
+           AND MPI2.OG_TP_CD = EVI.OG_TP_CD
            AND MPI2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI3
             ON MPI3.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND MPI3.PRTNR_NO = EAI.PCP_PRTNR_NO
            AND MPI3.OG_TP_CD = EAI.PCP_OG_TP_CD
            AND MPI3.DTA_DL_YN = 'N'
-         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ MOG
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ MOG
             ON MOG.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND MOG.OG_ID = MPI.OG_ID
            AND MOG.DTA_DL_YN = 'N'
@@ -66,6 +76,12 @@
            AND EAI.DTA_DL_YN = 'N'
            AND EAI.OG_TP_CD = 'W06'
            AND EAI.WRK_DT = #{baseDt}
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+           AND MOG.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           AND MOG.DGR2_LEVL_OG_ID = #{ogLevlDvCd2}
+           </if>
     </select>
 
      <!--엔지니어 출근 관리 목록 저장 -->
@@ -73,9 +89,6 @@
         UPDATE TB_OGPS_EGER_ATDC_IZ
            SET EGER_WRK_STAT_CD = #{egerWrkStatCd}              /*엔지니어근무상태코드*/
              , RMK_CN = #{rmkCn}                  			    /*비고내용*/
-             , DNL_STRTDT = #{dnlStrtdt}              		    /*근태시작일자*/
-             , DNL_ENDDT = #{dnlEnddt}                          /*근태종료일자*/
-             , BIZ_AGNT_PRTNR_NO = #{bizAgntPrtnrNo}            /*업무대행파트너번호*/
              , PCP_PRTNR_NO = #{session.employeeIDNumber}       /*처리자사번*/
              , PROCS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /*처리일시*/
              <include refid="COMMON.updateSystemField" />
@@ -85,8 +98,107 @@
           AND WRK_DT = #{wrkDt}
     </update>
 
+    <!--엔지니어 휴가정보 상세 조회 -->
+    <select id="selectVacations" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$SearchVacationRes">
+         SELECT EVI.EGER_WRK_STAT_CD
+              , F_CMZ_CD_NM('TNT_WELLS', 'EGER_WRK_STAT_CD', EVI.EGER_WRK_STAT_CD) AS EGER_WRK_STAT_NM
+              , EVI.PRTNR_NO
+              , EVI.VCN_STRT_DT
+              , EVI.VCN_END_DT
+              , EVI.RMK_CN
+              , MPI.PRTNR_KNM
+              , EVI.BIZ_AGNT_PRTNR_NO
+           FROM TB_OGPS_EGER_VCN_IZ EVI             /* 엔지니어휴가내역 */
+           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI  /* 월파트너내역 */
+             ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            AND MPI.PRTNR_NO = EVI.BIZ_AGNT_PRTNR_NO
+            AND MPI.OG_TP_CD = EVI.OG_TP_CD
+            AND MPI.DTA_DL_YN = 'N'
+          WHERE 1=1
+            AND EVI.DTA_DL_YN = 'N'
+            AND EVI.OG_TP_CD = 'W06'
+            AND EVI.PRTNR_NO = #{prtnrNo}
+          ORDER BY EVI.VCN_STRT_DT DESC
+    </select>
+
+    <!--엔지니어 휴가정보 상세 조회 카운트(temp) -->
+    <select id="selectVacationsCnt" resultType="int">
+         SELECT COUNT(1) AS CNT
+           FROM TB_OGPS_EGER_VCN_IZ EVI
+           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI
+             ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            AND MPI.PRTNR_NO = EVI.BIZ_AGNT_PRTNR_NO
+            AND MPI.OG_TP_CD = EVI.OG_TP_CD
+            AND MPI.DTA_DL_YN = 'N'
+          WHERE 1=1
+            AND EVI.DTA_DL_YN = 'N'
+            AND EVI.OG_TP_CD = 'W06'
+            AND EVI.VCN_STRT_DT = #{vcnStrtDt}
+            AND EVI.PRTNR_NO = #{prtnrNo}
+    </select>
+
+    <!--엔지니어 휴가정보 관리등록 -->
+   <insert id="insertVacation">
+       INSERT INTO TB_OGPS_EGER_VCN_IZ (
+              OG_TP_CD
+            , PRTNR_NO
+            , VCN_STRT_DT
+            , EGER_WRK_STAT_CD
+            , VCN_END_DT
+            , BIZ_AGNT_PRTNR_NO
+            , RMK_CN
+            , PCP_OG_TP_CD
+            , PCP_PRTNR_NO
+            , PROCS_DTM
+            , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+         ) VALUES (
+               'W06'
+             , #{prtnrNo}
+             , #{vcnStrtDt}
+             , #{egerWrkStatCd}
+             , #{vcnEndDt}
+             , #{bizAgntPrtnrNo}
+             , #{rmkCn}
+             , #{session.ogTpCd}
+             , #{session.employeeIDNumber}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+         )
+   </insert>
+
+   <!--엔지니어 휴가정보 관리수정 -->
+   <update id="updateVacation">
+      UPDATE TB_OGPS_EGER_VCN_IZ
+         SET VCN_STRT_DT = #{vcnStrtDt}
+           , VCN_END_DT = #{vcnEndDt}
+           , EGER_WRK_STAT_CD = #{egerWrkStatCd}
+           , BIZ_AGNT_PRTNR_NO = #{bizAgntPrtnrNo}
+           , RMK_CN = #{rmkCn}
+           , PCP_OG_TP_CD = #{session.ogTpCd}
+           , PCP_PRTNR_NO = #{session.employeeIDNumber}
+           , PROCS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           <include refid="COMMON.updateSystemField" />
+       WHERE 1=1
+         AND OG_TP_CD = 'W06'
+         AND VCN_STRT_DT = #{oriVcnStrtDt}
+         AND PRTNR_NO = #{prtnrNo}
+   </update>
+
+    <!--엔지니어 휴가정보 관리삭제-->
+   <update id="deleteVacation">
+       UPDATE TB_OGPS_EGER_VCN_IZ
+          SET DTA_DL_YN = 'Y'
+          <include refid="COMMON.updateSystemField" />
+        WHERE 1=1
+          AND OG_TP_CD = 'W06'
+          AND VCN_STRT_DT = #{oriVcnStrtDt}
+          AND PRTNR_NO = #{prtnrNo}
+   </update>
+
     <!-- 서비스센터 조 관리 -->
-    <select id="selectJoeManagements" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$FindJoeManagementRes">
+    <select id="selectJoeManagements" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo">
         WITH WK_GRP_BLG_DTL AS (
              SELECT
                     T.OG_TP_CD 	-- 조직유형코드 PK - TEST 자료 에러라서 고정값 부여함.
@@ -134,8 +246,28 @@
                          AND A.DTA_DL_YN = 'N'
                ) T
               WHERE T.RNO = 1
-      )
-      SELECT
+        )
+        <if test="@MybatisUtils@isNotEmpty(session.baseRleCd) and (!@MybatisUtils@equals(session.baseRleCd, 'E1010') and !@MybatisUtils@equals(session.baseRleCd, 'E3010') and !@MybatisUtils@equals(session.baseRleCd, 'W1010'))">
+        , OG_TREE AS (
+             SELECT
+                    A.BASE_YM
+                  , A.OG_ID
+                  , A.HGR_OG_ID
+                  , A.OG_TP_CD
+                  , A.OG_LEVL_DV_CD
+                  , A.OG_CD
+                  , A.OG_NM
+                  , A.OG_ABBR_NM
+                  , A.BLD_CD
+                  , A.BLD_NM
+               FROM TB_OGBS_MM_OG_IZ A
+              WHERE 1=1
+                AND A.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                AND A.OG_TP_CD = 'W06'
+                AND A.DTA_DL_YN = 'N'
+        )
+        </if>
+        SELECT
              A.OG_TP_CD 		-- 조직유형코드 PK
            , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR1_LEVL_OG_ID) AS DGR1_LEVL_OG_NM  -- 1단계명
            , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR2_LEVL_OG_ID) AS DGR2_LEVL_OG_NM  -- 2단계명
@@ -168,18 +300,18 @@
         LEFT OUTER JOIN WK_GRP_BLG_DTL C
           ON A.OG_TP_CD = C.OG_TP_CD
          AND A.PRTNR_NO = C.PRTNR_NO
-        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D
+       INNER JOIN TB_OGBS_MM_OG_IZ D
           ON A.OG_ID = D.OG_ID
          AND D.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
        WHERE 1=1
          AND A.OG_TP_CD = 'W06'					-- 엔지니어
          AND A.DTA_DL_YN = 'N'
          AND B.CLTN_DT IS NULL
+         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+         AND D.DGR1_LEVL_OG_ID = #{ogLevlDvCd1} 						-- 조직레벨 (여기서 추가 처리 필요함)
+         </if>
          <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
          AND D.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
-         AND D.DGR3_LEVL_OG_ID = #{ogLevlDvCd3} 						-- 조직레벨 (여기서 추가 처리 필요함)
          </if>
          <if test='@MybatisUtils@isNotEmpty(wkGrpCd)'>
          AND C.WK_GRP_CD = #{wkGrpCd}						-- 작업그룹(여기서 처리)					--AND							-- 직책 (아래서 처리예정)
@@ -188,9 +320,32 @@
          AND A.PRTNR_NO  = #{prtnrNo} 						-- 검색조건 : 번호 (여기서 처리)
          </if>
          <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-         AND C.EGER_RSB_CD = #{rsbDvCd} 					-- 직책 (여기서 추가처리 필요함)
+         AND B.RSB_DV_CD = #{rsbDvCd} 					-- 직책 (여기서 추가처리 필요함)
          </if>
-       ORDER BY A.PRTNR_NO DESC
+         <if test="@MybatisUtils@isNotEmpty(session.baseRleCd) and (!@MybatisUtils@equals(session.baseRleCd, 'E1010') and !@MybatisUtils@equals(session.baseRleCd, 'E3010') and !@MybatisUtils@equals(session.baseRleCd, 'W1010'))">
+         AND D.OG_ID IN (  --세션의 직책이 업무지원매니저라면, 자기가 관리하는 조직만 조회
+                          SELECT
+             		             OG_ID
+             	            FROM OG_TREE A
+             	           START WITH A.OG_ID IN (				-- [내가 업무지원하는 조직들 목록]
+             		                               SELECT DISTINCT S.OG_ID
+             		                                 FROM TB_OGBS_SPPT_OG_IZ S
+              		                                INNER JOIN TB_OGBS_PRTNR_DTL D
+              		                                   ON D.OG_TP_CD = 'HR1'
+                                                      AND S.PRTNR_NO = D.PRTNR_NO
+             		                                WHERE 1=1
+             		                                  AND S.OG_TP_CD = 'W06'			-- 세션 조직유형코드
+             		                                  AND S.PRTNR_NO = #{session.employeeIDNumber}			-- 세션 로그인한 번호
+             		                                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S.MNGT_STRT_DT AND S.MNGT_END_DT
+              		                                  AND D.CLTN_DT IS NULL			-- 살아있는 업무지원매니저
+             	                                 )
+             	         CONNECT BY PRIOR A.OG_ID = A.HGR_OG_ID
+         )
+         </if>
+        <if test="@MybatisUtils@equals(session.baseRleCd, 'W6040')">
+        AND A.PRTNR_NO = #{session.employeeIDNumber}   --세션의 직책이 플래너 등, 하위대상이라면, 자기것만 나와야 함
+        </if>
+        ORDER BY A.PRTNR_NO DESC
     </select>
 
     <select id="selectJoeManagementForExcelDownload" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo">
@@ -242,6 +397,26 @@
             ) T
         WHERE T.RNO = 1
         )
+        <if test="@MybatisUtils@isNotEmpty(session.baseRleCd) and (!@MybatisUtils@equals(session.baseRleCd, 'E1010') and !@MybatisUtils@equals(session.baseRleCd, 'E3010') and !@MybatisUtils@equals(session.baseRleCd, 'W1010'))">
+        , OG_TREE AS (
+             SELECT
+                    A.BASE_YM
+                  , A.OG_ID
+                  , A.HGR_OG_ID
+                  , A.OG_TP_CD
+                  , A.OG_LEVL_DV_CD
+                  , A.OG_CD
+                  , A.OG_NM
+                  , A.OG_ABBR_NM
+                  , A.BLD_CD
+                  , A.BLD_NM
+              FROM TB_OGBS_MM_OG_IZ A
+             WHERE 1=1
+               AND A.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+               AND A.OG_TP_CD = 'W06'
+               AND A.DTA_DL_YN = 'N'
+        )
+        </if>
         SELECT
                A.OG_TP_CD 		-- 조직유형코드 PK
              , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR1_LEVL_OG_ID) AS DGR1_LEVL_OG_NM  -- 1단계명
@@ -282,11 +457,11 @@
           AND A.OG_TP_CD = 'W06'					-- 엔지니어
           AND A.DTA_DL_YN = 'N'
           AND B.CLTN_DT IS NULL
+          <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+          AND D.DGR1_LEVL_OG_ID = #{ogLevlDvCd1} 						-- 조직레벨 (여기서 추가 처리 필요함)
+          </if>
           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
           AND D.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
-          AND D.DGR3_LEVL_OG_ID = #{ogLevlDvCd3} 						-- 조직레벨 (여기서 추가 처리 필요함)
           </if>
           <if test='@MybatisUtils@isNotEmpty(wkGrpCd)'>
           AND C.WK_GRP_CD = #{wkGrpCd}						-- 작업그룹(여기서 처리)
@@ -295,7 +470,30 @@
           AND A.PRTNR_NO  = #{prtnrNo} 						-- 검색조건 : 번호 (여기서 처리)
           </if>
           <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-          AND C.EGER_RSB_CD = #{rsbDvCd} 					-- 직책 (여기서 추가처리 필요함)
+          AND B.RSB_DV_CD = #{rsbDvCd} 					-- 직책 (여기서 추가처리 필요함)
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(session.baseRleCd) and (!@MybatisUtils@equals(session.baseRleCd, 'E1010') and !@MybatisUtils@equals(session.baseRleCd, 'E3010') and !@MybatisUtils@equals(session.baseRleCd, 'W1010'))">
+          AND D.OG_ID IN (  --세션의 직책이 업무지원매니저라면, 자기가 관리하는 조직만 조회
+                           SELECT
+                                  OG_ID
+                             FROM OG_TREE A
+                            START WITH A.OG_ID IN (				-- [내가 업무지원하는 조직들 목록]
+                                                    SELECT DISTINCT S.OG_ID
+                                                      FROM TB_OGBS_SPPT_OG_IZ S
+                                                     INNER JOIN TB_OGBS_PRTNR_DTL D
+                                                        ON D.OG_TP_CD = 'HR1'
+                                                       AND S.PRTNR_NO = D.PRTNR_NO
+                                                     WHERE 1=1
+                                                       AND S.OG_TP_CD = 'W06'			-- 세션 조직유형코드
+                                                       AND S.PRTNR_NO = #{session.employeeIDNumber}			-- 세션 로그인한 번호
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S.MNGT_STRT_DT AND S.MNGT_END_DT
+                                                       AND D.CLTN_DT IS NULL			-- 살아있는 업무지원매니저
+                           )
+                          CONNECT BY PRIOR A.OG_ID = A.HGR_OG_ID
+          )
+          </if>
+          <if test="@MybatisUtils@equals(session.baseRleCd, 'W6040')">
+          AND A.PRTNR_NO = #{session.employeeIDNumber}   --세션의 직책이 플래너 등, 하위대상이라면, 자기것만 나와야 함
           </if>
         ORDER BY A.PRTNR_NO DESC
     </select>
@@ -398,19 +596,41 @@
                    ) T
              WHERE T.RNO = 1
       )
+      <if test="@MybatisUtils@isNotEmpty(session.baseRleCd) and (!@MybatisUtils@equals(session.baseRleCd, 'E1010') and !@MybatisUtils@equals(session.baseRleCd, 'E3010') and !@MybatisUtils@equals(session.baseRleCd, 'W1010'))">
+      , OG_TREE AS (
+             SELECT
+                    A.BASE_YM
+                  , A.OG_ID
+                  , A.HGR_OG_ID
+                  , A.OG_TP_CD
+                  , A.OG_LEVL_DV_CD
+                  , A.OG_CD
+                  , A.OG_NM
+                  , A.OG_ABBR_NM
+                  , A.BLD_CD
+                  , A.BLD_NM
+               FROM TB_OGBS_MM_OG_IZ A
+              WHERE 1=1
+                AND A.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                AND A.OG_TP_CD = 'W06'
+                AND A.DTA_DL_YN = 'N'
+      )
+      </if>
       SELECT
-             A.OG_TP_CD 		-- 조직유형코드 PK
-           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR1_LEVL_OG_ID) AS DGR1_LEVL_OG_NM  -- 1단계명
-           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR2_LEVL_OG_ID) AS DGR2_LEVL_OG_NM  -- 2단계명
-           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR3_LEVL_OG_ID) AS DGR3_LEVL_OG_NM  -- 3단계명
-           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR4_LEVL_OG_ID) AS DGR4_LEVL_OG_NM  -- 4단계명
-           , (SELECT T.OG_ABBR_NM FROM TB_OGBS_MM_OG_IZ T WHERE T.BASE_YM = D.BASE_YM AND T.OG_ID = D.DGR5_LEVL_OG_ID) AS DGR5_LEVL_OG_NM  -- 5단계명
-           , A.PRTNR_NO 		-- 사번 PK
-           , A.PRTNR_KNM 		-- 성명
-           , B.ROL_DV_CD
-           , F_CMZ_CD_NM(#{session.tenantId}, 'ROL_DV_CD', B.ROL_DV_CD) AS ROL_DV_CD_NM
+             B.OG_TP_CD 		-- 조직유형코드 PK
+           , A.DGR1_LEVL_OG_NM  -- 1단계명
+           , A.DGR2_LEVL_OG_NM  -- 2단계명
+           , A.DGR3_LEVL_OG_NM  -- 3단계명
+           , A.DGR4_LEVL_OG_NM  -- 4단계명
+           , A.DGR5_LEVL_OG_NM  -- 5단계명
+           , B.PRTNR_NO 		-- 사번 PK
+           , B.PRTNR_KNM 		-- 성명
+           , B.RSB_DV_CD
+           , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', B.RSB_DV_CD) AS RSB_DV_CD_NM
+           , '' AS ROL_DV_CD
+           , '' AS ROL_DV_CD_NM
            , C.PRTNR_GD_CD	-- 등급
-           , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', C.PRTNR_GD_CD) AS PRTNR_GD_CD_NM
+           , F_CMZ_CD_NM(#{session.tenantId}, 'EGER_EVL_GD_CD', C.PRTNR_GD_CD) AS PRTNR_GD_CD_NM
            , C.APY_STRTDT		-- 적용시작일자
            , C.APY_ENDDT 		-- 적용종료일자
            , C.RMK_CN		-- 비고
@@ -418,39 +638,55 @@
            , B.CLTN_DT
            , C.APY_SEQN
            , C.DTA_DL_YN
-       FROM TB_OGBS_PRTNR_BAS A    					-- [월 조직 스냅샷 테이블]
-       LEFT OUTER JOIN TB_OGBS_PRTNR_DTL B
-         ON A.OG_TP_CD = B.OG_TP_CD
-        AND A.PRTNR_NO = B.PRTNR_NO
+       FROM TB_OGBS_MM_OG_IZ A    					-- [월 조직 스냅샷 테이블]
+      INNER JOIN TB_OGBS_MM_PRTNR_IZ B		-- [월 파트너 스냅샷 테이블]
+         ON A.BASE_YM = B.BASE_YM
+        AND A.OG_ID = B.OG_ID
        LEFT OUTER JOIN EGER_GD_RGST_IZ C
-         ON A.OG_TP_CD = C.OG_TP_CD
-        AND A.PRTNR_NO = C.PRTNR_NO
-       LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D
-         ON A.OG_ID = D.OG_ID
-        AND D.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-       LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ E
-         ON A.OG_TP_CD = E.OG_TP_CD
-        AND A.PRTNR_NO = E.PRTNR_NO
-        AND E.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+         ON B.OG_TP_CD = C.OG_TP_CD
+        AND B.PRTNR_NO = C.PRTNR_NO
       WHERE 1=1
+        AND A.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
         AND A.OG_TP_CD = 'W06'
         AND B.CLTN_DT IS NULL		-- 해약일자 있는 엔지니어 제외. 퇴사했으니...일단 제외
+        <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+        AND A.DGR1_LEVL_OG_ID = #{ogLevlDvCd1} 						-- 조직레벨 (여기서 추가 처리 필요함)
+        </if>
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
-        AND D.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
+        AND A.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
         </if>
-        <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
-        AND D.DGR3_LEVL_OG_ID = #{ogLevlDvCd3} 						-- 조직레벨 (여기서 추가 처리 필요함)
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(rolDvCd)'>
-        AND B.ROL_DV_CD = #{rolDvCd}
+        <if test='@MybatisUtils@isNotEmpty(prtnrGdCd)'>
+        AND C.PRTNR_GD_CD = #{prtnrGdCd}
         </if>
         AND A.DTA_DL_YN = 'N'
         AND B.DTA_DL_YN = 'N'
-        AND C.DTA_DL_YN = 'N'
         <if test="@MybatisUtils@equals(chk, 'Y')">
-        AND E.WKCR_CD IS NULL
+        AND C.PRTNR_GD_CD IS NULL
         </if>
-      ORDER BY A.PRTNR_NO DESC
+        <if test="@MybatisUtils@isNotEmpty(session.baseRleCd) and (!@MybatisUtils@equals(session.baseRleCd, 'E1010') and !@MybatisUtils@equals(session.baseRleCd, 'E3010') and !@MybatisUtils@equals(session.baseRleCd, 'W1010'))">
+        AND A.OG_ID IN (  --세션의 직책이 업무지원매니저라면, 자기가 관리하는 조직만 조회
+             SELECT
+                    OG_ID
+               FROM OG_TREE A
+              START WITH A.OG_ID IN (				-- [내가 업무지원하는 조직들 목록]
+                                      SELECT DISTINCT S.OG_ID
+                                        FROM TB_OGBS_SPPT_OG_IZ S
+                                       INNER JOIN TB_OGBS_PRTNR_DTL D
+                                          ON D.OG_TP_CD = 'HR1'
+                                         AND S.PRTNR_NO = D.PRTNR_NO
+                                       WHERE 1=1
+                                         AND S.OG_TP_CD = 'W06'			-- 세션 조직유형코드
+                                         AND S.PRTNR_NO = #{session.employeeIDNumber}			-- 세션 로그인한 번호
+                                         AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S.MNGT_STRT_DT AND S.MNGT_END_DT
+                                         AND D.CLTN_DT IS NULL			-- 살아있는 업무지원매니저
+              )
+            CONNECT BY PRIOR A.OG_ID = A.HGR_OG_ID
+        )
+        </if>
+        <if test="@MybatisUtils@equals(session.baseRleCd, 'W6040')">
+        AND B.PRTNR_NO = #{session.employeeIDNumber}   --세션의 직책이 플래너 등, 하위대상이라면, 자기것만 나와야 함
+        </if>
+      ORDER BY B.PRTNR_NO DESC
     </select>
 
     <insert id="insertEgerGdRgst">

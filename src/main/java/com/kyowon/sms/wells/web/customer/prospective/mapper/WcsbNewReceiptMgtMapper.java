@@ -35,9 +35,10 @@ public interface WcsbNewReceiptMgtMapper {
     /**
      * 접수 (단건)상세 조회
      * @param pspcCstCnslId
+     * @param cntrNo
      * @return
      */
-    WcsbNewReceiptMgtDto.SearchDtlRes selectPspcCstCnslAssign(String pspcCstCnslId);
+    WcsbNewReceiptMgtDto.SearchDtlRes selectPspcCstCnslAssign(String pspcCstCnslId, String cntrNo);
 
     /**
      * 담당자 수동배정 조회

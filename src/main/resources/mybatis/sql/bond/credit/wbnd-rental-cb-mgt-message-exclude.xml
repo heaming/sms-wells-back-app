@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbMgtMessageExcludeMapper">
+    <select id="selectRentalCbMessageExcludePages" resultType="com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtMessageExcludeDto$SearchRes">
+        SELECT T1.CST_NO AS CST_NO/*고객번호*/
+             , TO_CHAR(TO_DATE(T1.APY_STRTDT),'YYYYMM') AS APY_STRTDT /*적용시작일자*/
+             , TO_CHAR(TO_DATE(T1.APY_ENDDT),'YYYYMM') AS APY_ENDDT /*적용종료일자*/
+             , T1.BND_CNTC_EXCD_OJ_ID AS BND_CNTC_EXCD_OJ_ID/*채권접촉제외대상ID*/
+             , T1.CTNT_EXCD_BND_BIZ_CD AS CTNT_EXCD_BND_BIZ_CD /*연락제외채권업무코드*/
+             , T1.CTNT_EXCD_OJ_TP_CD AS CTNT_EXCD_OJ_TP_CD /*연락제외대상유형코드*/
+             , T1.CTNT_EXCD_MEDI_TP_CD AS CTNT_EXCD_MEDI_TP_CD /*연락제외매체유형코드*/
+             , T1.CTNT_EXCD_RSON_DV_CD AS CTNT_EXCD_RSON_DV_CD /*연락제외사유구분코드*/
+             , T1.FNL_MDFC_DTM AS FNL_MDFC_DTM /*최종수정일시*/
+          FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ T1 /*채권접촉제외대상내역*/
+         WHERE 1 = 1
+           AND T1.CTNT_EXCD_BND_BIZ_CD = #{ctntExcdBndBizCd} /*02 : 렌탈CB*/
+           AND T1.CTNT_EXCD_OJ_TP_CD = #{ctntExcdOjTpCd} /*01 : 고객번호*/
+           AND T1.CTNT_EXCD_MEDI_TP_CD = #{ctntExcdMediTpCd} /*03 : 알림톡*/
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+           AND T1.CST_NO = #{cstNo}
+        </if>
+           AND (T1.APY_STRTDT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD') AND T1.APY_ENDDT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD'))
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY APY_STRTDT ASC
+    </select>
+    <insert id="insertRentalCbMessageExclude">
+        INSERT INTO TB_CBBO_BND_CNTC_EXCD_OJ_IZ (
+               BND_CNTC_EXCD_OJ_ID
+             , CTNT_EXCD_BND_BIZ_CD
+             , CTNT_EXCD_OJ_TP_CD
+             , CTNT_EXCD_MEDI_TP_CD
+             , CLCTAM_OG_TP_CD
+             , CLCTAM_PRTNR_NO
+             , CST_NO
+             , CLCTN_OJ_OG_TP_CD
+             , CLCTN_OJ_PRTNR_NO
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , APY_STRTDT
+             , APY_ENDDT
+             , CTNT_EXCD_RSON_DV_CD
+             , EXCD_MO_CN
+             , BND_CLCTN_MSG_BOO_ID
+             , DTA_DL_YN
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+        <!--TODO: 시퀀스 채번 nextval 입력 예정 -->
+               TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDhh24miss') || LPAD((SELECT COUNT(1)
+                                                                    FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ
+                                                                   WHERE SUBSTR(FST_RGST_DTM, 0,8) = TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD'))+1, 6, '0')
+             , #{ctntExcdBndBizCd}
+             , #{ctntExcdOjTpCd}
+             , #{ctntExcdMediTpCd}
+             , NULL
+             , NULL
+             , #{cstNo}
+             , NULL
+             , NULL
+             , NULL
+             , NULL
+             , NULL
+             , TO_CHAR(TRUNC(TO_DATE(REPLACE(#{apyStrtdt},'-',''),'YYYYMM'),'MM'),'YYYYMMDD')
+             , TO_CHAR(LAST_DAY(TRUNC(TO_DATE(REPLACE(#{apyEnddt},'-',''),'YYYYMM'))),'YYYYMMDD')
+             , #{ctntExcdRsonDvCd}
+             , NULL
+             , NULL
+             , 'N'
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    <update id="updateRentalCbMessageExclude">
+        UPDATE TB_CBBO_BND_CNTC_EXCD_OJ_IZ
+           SET CST_NO = #{cstNo}
+             , APY_STRTDT = TO_CHAR(TRUNC(TO_DATE(REPLACE(#{apyStrtdt},'-',''),'YYYYMM'),'MM'),'YYYYMMDD')
+             , APY_ENDDT = TO_CHAR(LAST_DAY(TRUNC(TO_DATE(REPLACE(#{apyEnddt},'-',''),'YYYYMM'))),'YYYYMMDD')
+         WHERE 1 = 1
+           AND BND_CNTC_EXCD_OJ_ID = #{bndCntcExcdOjId}
+           AND DTA_DL_YN = 'N'
+    </update>
+
+    <update id="deleteRentalCbMessageExclude">
+        UPDATE TB_CBBO_BND_CNTC_EXCD_OJ_IZ
+           SET DTA_DL_YN = 'Y'
+         WHERE 1 = 1
+           AND BND_CNTC_EXCD_OJ_ID = #{bndCntcExcdOjId}
+           AND DTA_DL_YN = 'N'
+    </update>
+</mapper>

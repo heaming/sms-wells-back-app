@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.common.dto;
 
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsnyPaidAsCostMgtDto {
 
@@ -16,7 +16,7 @@ public class WsnyPaidAsCostMgtDto {
     @ApiModel(value = "WsnyPaidAsCostMgtDto-SearchRes")
     public record SearchRes(
         String sapMatCd, // SAP코드
-        String pdCd, // 품목코드
+        String useMatPdCd, // 품목코드
         String pdNm, // 품목명
         String apyStrtdt, // 적용시작일자
         String apyEnddt, // 적용종료일자
@@ -26,8 +26,7 @@ public class WsnyPaidAsCostMgtDto {
         int tcfeeAmt, // 기술료금액
         int sumAmt, // 합계(소비자단가금액+기술료금액)
         int izSn,
-        String basePdCd,
-        String useMatPdCd
+        String basePdCd
     ){}
 
     @ApiModel(value = "WsnyPaidAsCostMgtDto-PdReq")

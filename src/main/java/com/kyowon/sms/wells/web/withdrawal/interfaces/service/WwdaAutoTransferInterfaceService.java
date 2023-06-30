@@ -17,9 +17,12 @@ import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaBundleWithdrawalMgtDvo;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaCardNumberEffectivenessCheckReqDvo;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaCardNumberEffectivenessCheckResDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaIntegrationBillingIzDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.mapper.ZwdaBundleWithdrawalMgtMapper;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaKiccReceiveProcessService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransferConverter;
@@ -36,7 +39,6 @@ import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdaAutoTransferInt
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
-import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -51,6 +53,7 @@ public class WwdaAutoTransferInterfaceService {
     private final KakaoMessageService kakaoMessageService;
     private final WwdaAutoTransferConverter converter;
     private final ZwdaAutoTransferRealTimeAccountService realTimeAccountService;
+    private final ZwdaKiccReceiveProcessService KiccReceiveService;
 
     /**
      * 자동이체 출금내역 조회
@@ -558,14 +561,14 @@ public class WwdaAutoTransferInterfaceService {
         WwdaAutoTransferRealNameCertificationInterfaceDvo result = new WwdaAutoTransferRealNameCertificationInterfaceDvo();
 
         // 1. 계좌 유효성 검사 호출을 위한 파라미터 설정
-        String cntrNo = "W20220042279"; /*임시계약번호*/
+        String cntrNo = "W99999999999"; /*임시계약번호*/
         String cntrSn = "1"; /*임시계약일련번호*/
         String bnkCd = dto.bnkCd(); /*은행코드*/
         String acNo = dto.acno(); /*계좌번호*/
         String copnDvCd = "1"; /*법인격구분코드*/
         String copnDvDrmVal = dto.bryyMmdd(); /*법인격구분코드식별값*/
         String achldrNm = dto.cntrtNm(); /*예금주명*/
-        String systemDvCd = "1"; /*시스템구분코드 1 : EDU, 2: WELLS*/
+        String systemDvCd = "2"; /*시스템구분코드 1 : EDU, 2: WELLS*/
         String psicId = "9999999999"; /*담장자ID*/
         String deptId = ""; /*부서ID*/
 
@@ -578,6 +581,7 @@ public class WwdaAutoTransferInterfaceService {
         reqParam.put("copnDvDrmVal", copnDvDrmVal);
         reqParam.put("achldrNm", achldrNm);
         reqParam.put("systemDvCd", systemDvCd);
+        reqParam.put("sysDvCd", "W");
         reqParam.put("psicId", psicId);
         reqParam.put("deptId", deptId);
 
@@ -586,17 +590,29 @@ public class WwdaAutoTransferInterfaceService {
 
         // 청구생성코드가 1이 아닐때 에러 발생
         // (1 : 정상처리, 2 : 오류, 3 : 자료없음)
-        BizAssert.isTrue("1".equals(resultDvo.getBilCrtStatCd()), resultDvo.getErrCn());
+        // BizAssert.isTrue("1".equals(resultDvo.getBilCrtStatCd()), resultDvo.getErrCn());
 
         // 3. 수신결과 및 리턴 설정
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
-        String acFntRsCd = StringUtil.isNotEmpty(resultDvo.getAcFntRsCd()) ? resultDvo.getAcFntRsCd() : "0000";
+        String acFntRsCd = resultDvo.getAcFntRsCd();
+        String acFntRsNm = "";
 
         // 3.1 리턴받은 계좌이체불능코드 셋팅
         result.setAcFntRsCd(acFntRsCd);
 
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
-        result.setAcFntRsCdNm(mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd));
+        if (!ObjectUtils.isEmpty(resultDvo.getBilCrtStatCd())) {
+            if ("1".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd);
+            }
+            if ("2".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = resultDvo.getErrCn();
+            }
+        }
+        result.setAcFntRsCdNm(acFntRsNm);
+
+        // 3.1 리턴받은 계좌주명
+        result.setOwrKnm(resultDvo.getAchldrNm());
 
         resultDtos.add(result);
 
@@ -604,7 +620,7 @@ public class WwdaAutoTransferInterfaceService {
     }
 
     /**
-     * 자동이체 계좌 실명인증
+     * 자동이체 카드 유효성 체크
      * @param dto
      * @return
      */
@@ -618,7 +634,7 @@ public class WwdaAutoTransferInterfaceService {
         String crdcdNo = dto.crdcdNo(); /*신용카드번호*/
         String cardExpdtYm = dto.cardExpdtYm(); /*카드유효기간년월*/
         String vacCopnDvCd = "1"; /*법인격구분코드*/
-        String bryyMm = dto.bryyMmdd(); /*생년월일*/
+        String bryyMm = dto.bryyMmdd(); /*법인격구분식별값 = BRYY_MMDD(생년월일)*/
         String tmlNo = ""; /*단말기번호*/
         String trdAmt = "0"; /*거래금액*/
         String istmMcnt = "0"; /*할부개월*/
@@ -628,9 +644,47 @@ public class WwdaAutoTransferInterfaceService {
         // 2. 카드번호 유효성 검사 서비스 호출(Z-WD-S-0060)
         // TODO : 카드번호유효성검사 서비스 개발 이후 호출 필요
 
-        // 3. 수신결과 및 리턴 설정
-        String cardFntRsCd = "0000";
+        ZwdaCardNumberEffectivenessCheckReqDvo param = new ZwdaCardNumberEffectivenessCheckReqDvo();
+        param.setCrcdnoEncr(crdcdNo);
+        param.setCardExpdtYm(cardExpdtYm);
+        param.setCopnDvCd(vacCopnDvCd);
+        param.setCopnDvDrmVal(bryyMm);
+        param.setTmlNo(tmlNo);
+        param.setSysDvCd(systemDvCd);
 
+        ZwdaCardNumberEffectivenessCheckResDvo resDvo = KiccReceiveService.saveCardNumberEffectivenessCheck(param);
+
+        if (!ObjectUtils.isEmpty(resDvo)) {
+            if ("1".equals(resDvo.getStateCode())) {
+                // 3. 수신결과 및 리턴 설정
+                String cardFntRsCd = resDvo.getRspCd();
+                // 3.1 리턴받은 카드이체결과코드 셋팅
+                // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
+                result.setCardFntRsCd(cardFntRsCd);
+
+                // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
+                // 3.2.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
+                result.setCardFntRsCdNm(mapper.selectAutomaticTransferResultCodeName("CARD", cardFntRsCd));
+
+                // 3.3 카드사코드 조회
+                // 3.3.1 신용카드BIN번호 조회
+                ZwdbCreditcardDto.SearchInfoReq searchReq = ZwdbCreditcardDto.SearchInfoReq.builder()
+                    .crdcdBinNo(crdcdNo)
+                    .build();
+                List<ZwdbCreditcardDto.SearchInfoRes> binInfos = zwdbCreditcardMapper
+                    .selectCreditcardBinInfos(searchReq);
+
+                if (!ObjectUtils.isEmpty(binInfos) && "0000".equals(cardFntRsCd)) {
+                    result.setCdcoCd(binInfos.get(0).fnitCd());
+                    result.setCdcoNm(binInfos.get(0).fnitNm());
+                }
+            } else {
+                result.setCardFntRsCdNm(resDvo.getErrCn());
+            }
+        }
+
+        // 3. 수신결과 및 리턴 설정
+        String cardFntRsCd = resDvo.getRspCd();
         // 3.1 리턴받은 카드이체결과코드 셋팅
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
         result.setCardFntRsCd(cardFntRsCd);

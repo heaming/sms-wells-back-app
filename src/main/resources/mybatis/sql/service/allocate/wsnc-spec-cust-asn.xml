@@ -8,8 +8,19 @@
                 SELECT zz.CNTR_NO
                      , zz.CNTR_SN
                      , MAX(zz.SV_BIZ_DCLSF_CD) AS MAX_SV_BIZ_DCLSF_CD
-                     , LISTAGG(zz.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) AS LIST_SV_BIZ_DCLSF_CD
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
+                     , (SELECT LISTAGG(cc.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY cc.SV_BIZ_DCLSF_CD ASC)
+                          FROM (SELECT DISTINCT SV_BIZ_DCLSF_CD
+                                  FROM TB_SVPD_CST_SV_RGBSPR_IZ yy
+                                 WHERE 1=1
+                                   AND yy.CNTR_NO = zz.CNTR_NO
+                                   AND yy.CNTR_SN = zz.CNTR_SN
+                                   AND yy.VST_DUEDT LIKE #{asnOjYm} || '%'
+                                   AND yy.MTR_CAN_DT IS NULL
+                                   AND yy.WK_DT IS NULL -- 작업처리 되지 않은 건
+                                   AND yy.VST_DV_CD = '20'-- 배송 건
+                                ) cc
+                        ) AS LIST_SV_BIZ_DCLSF_CD
+        FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
                      , T_CMZ_CD_D xx
                  WHERE zz.VST_DUEDT LIKE #{asnOjYm} || '%'
                    AND zz.MTR_CAN_DT IS NULL
@@ -30,7 +41,18 @@
                 SELECT zz.CNTR_NO
                      , zz.CNTR_SN
                      , MAX(zz.SV_BIZ_DCLSF_CD) AS MAX_SV_BIZ_DCLSF_CD
-                     , LISTAGG(zz.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) AS LIST_SV_BIZ_DCLSF_CD
+                     , (SELECT LISTAGG(cc.SV_BIZ_DCLSF_CD, ',') WITHIN GROUP (ORDER BY cc.SV_BIZ_DCLSF_CD ASC)
+                          FROM (SELECT DISTINCT SV_BIZ_DCLSF_CD
+                                  FROM TB_SVPD_CST_SV_RGBSPR_IZ yy
+                                 WHERE 1=1
+                                   AND yy.CNTR_NO = zz.CNTR_NO
+                                   AND yy.CNTR_SN = zz.CNTR_SN
+                                   AND yy.VST_DUEDT LIKE #{asnOjYm} || '%'
+                                   AND yy.MTR_CAN_DT IS NULL
+                                   AND yy.WK_DT IS NULL -- 작업처리 되지 않은 건
+                                   AND yy.VST_DV_CD  <![CDATA[ <> ]]> '20'-- 배송 이외 (방문)
+                        ) cc
+                        ) AS LIST_SV_BIZ_DCLSF_CD
                      , MAX(zz.VST_DV_CD) AS VST_DV_CD
                   FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
                      , T_CMZ_CD_D xx
@@ -58,21 +80,22 @@
              , t2.WK_PSIC_DV_CD AS MNGR_DV_CD
              , t5.LIST_SV_BIZ_DCLSF_CD AS RLTD_SV_BIZ_DCLSF_CD
              , (
-                SELECT LISTAGG(xx.CD_CNTN, '/') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.SV_BIZ_DCLSF_CD, xx.CD_CNTN) AS CLSF_CD_SRN_PRNT_CN
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-                     , T_CMZ_CD_D xx
-                 WHERE zz.CNTR_NO = t1.CNTR_NO
-                   AND zz.CNTR_SN = t1.CNTR_SN
-                   AND zz.VST_DUEDT LIKE #{asnOjYm} || '%'
-                   AND zz.MTR_CAN_DT IS NULL
-                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
-                   AND zz.VST_DV_CD <![CDATA[ <> ]]> '20'-- 배송 이외 (방문)
-                   AND xx.TENANT_ID = 'TNT_WELLS'
-                   AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
-                   AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD
+                SELECT LISTAGG(cc.CD_CNTN, '/') WITHIN GROUP (ORDER BY cc.SV_BIZ_DCLSF_CD ASC) AS CLSF_CD_SRN_PRNT_CN
+                  FROM (SELECT DISTINCT SV_BIZ_DCLSF_CD, CD_CNTN
+                          FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
+                             , T_CMZ_CD_D xx
+                         WHERE zz.CNTR_NO = t1.CNTR_NO
+                           AND zz.CNTR_SN = t1.CNTR_SN
+                           AND zz.VST_DUEDT LIKE #{asnOjYm} || '%'
+                           AND zz.MTR_CAN_DT IS NULL
+                           AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
+                           AND zz.VST_DV_CD <![CDATA[ <> ]]> '20'-- 배송 이외 (방문)
+                           AND xx.TENANT_ID = 'TNT_WELLS'
+                           AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
+                           AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD) cc
                ) AS CLSF_CD_SRN_PRNT_CN
              , t3.ADR_ID AS ADR_ID
-             , '' AS LSTMM_CRDOVR_YN
+             , 'N' AS LSTMM_CRDOVR_YN
              , '' AS BF_VST_DUEDT
              , t2.PDCT_PD_CD AS PDCT_PD_CD
              , t1.IST_NMN_N AS IST_NMN_N
@@ -116,6 +139,7 @@
            AND t1.MTR_CAN_DT IS NULL
            AND t1.WK_DT IS NULL -- 작업처리 되지 않은 건
            AND t1.VST_DV_CD <![CDATA[ <> ]]> '20' -- 배송 이외 (방문)
+           AND t1.CNTR_NO IN ('W20230001623', 'W20234900100') -- 통테용 계약번호 js
          <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
            AND t1.CNTR_NO = #{cntrNo}
          </if>
@@ -133,21 +157,22 @@
              , t2.WK_PSIC_DV_CD AS MNGR_DV_CD
              , t5.LIST_SV_BIZ_DCLSF_CD AS RLTD_SV_BIZ_DCLSF_CD
              , (
-                SELECT LISTAGG(xx.CD_CNTN, '/') WITHIN GROUP (ORDER BY zz.SV_BIZ_DCLSF_CD ASC) OVER (PARTITION BY zz.SV_BIZ_DCLSF_CD, xx.CD_CNTN) AS CLSF_CD_SRN_PRNT_CN
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
-                     , T_CMZ_CD_D xx
-                 WHERE zz.CNTR_NO = t1.CNTR_NO
-                   AND zz.CNTR_SN = t1.CNTR_SN
-                   AND zz.VST_DUEDT LIKE #{asnOjYm} || '%'
-                   AND zz.MTR_CAN_DT IS NULL
-                   AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
-                   AND zz.VST_DV_CD = '20'-- 배송건
-                   AND xx.TENANT_ID = 'TNT_WELLS'
-                   AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
-                   AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD
+                SELECT LISTAGG(cc.CD_CNTN, '/') WITHIN GROUP (ORDER BY cc.SV_BIZ_DCLSF_CD ASC) AS CLSF_CD_SRN_PRNT_CN
+                  FROM (SELECT DISTINCT SV_BIZ_DCLSF_CD, CD_CNTN
+                          FROM TB_SVPD_CST_SV_RGBSPR_IZ zz
+                             , T_CMZ_CD_D xx
+                         WHERE zz.CNTR_NO = t1.CNTR_NO
+                           AND zz.CNTR_SN = t1.CNTR_SN
+                           AND zz.VST_DUEDT LIKE #{asnOjYm} || '%'
+                           AND zz.MTR_CAN_DT IS NULL
+                           AND zz.WK_DT IS NULL -- 작업처리 되지 않은 건
+                           AND zz.VST_DV_CD = '20'-- 배송건
+                           AND xx.TENANT_ID = 'TNT_WELLS'
+                           AND xx.CD_ID = 'SV_BIZ_DCLSF_CD'
+                           AND xx.CD_VLD_VAL = zz.SV_BIZ_DCLSF_CD) cc
                ) AS CLSF_CD_SRN_PRNT_CN
              , t3.ADR_ID AS ADR_ID
-             , '' AS LSTMM_CRDOVR_YN
+             , 'N' AS LSTMM_CRDOVR_YN
              , '' AS BF_VST_DUEDT
              , t2.PDCT_PD_CD AS PDCT_PD_CD
              , t1.IST_NMN_N AS IST_NMN_N
@@ -191,6 +216,7 @@
            AND t1.MTR_CAN_DT IS NULL
            AND t1.WK_DT IS NULL -- 작업처리 되지 않은 건
            AND t1.VST_DV_CD = '20'-- 배송건
+           AND t1.CNTR_NO IN ('W20230001623', 'W20234900100') -- 통테용 계약번호 js
          <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
            AND t1.CNTR_NO = #{cntrNo}
          </if>

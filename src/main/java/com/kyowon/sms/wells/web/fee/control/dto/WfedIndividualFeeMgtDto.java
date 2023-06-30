@@ -67,28 +67,16 @@ public class WfedIndividualFeeMgtDto {
         String aclDsbAmt /* 실지급액 */
     ) {}
 
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstFeeRes")
-    public record FindHmstFeeRes(
-        String aksd01,
-        String aksd02,
-        String aksd03,
-        String aksd04,
-        String aksd05,
-        String aksd06,
-        String aksd07,
-        String aksd08,
-        String aksd09,
-        String aksd10,
-        String aksd13,
-        String aksd14,
-        String aksd11,
-        String aksd15,
-        String aksd51,
-        String aksd52,
-        String aksd53,
-        String aksd54,
-        String aksd55,
-        String aksd56
+    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchHmstFeeRes")
+    public record SearchHmstFeeRes(
+        String item1,
+        String fval1,
+        String item2,
+        String fval2,
+        String item3,
+        String fval3,
+        String item4,
+        String fval4
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindHmstDeductionRes")
@@ -122,40 +110,29 @@ public class WfedIndividualFeeMgtDto {
         String rsb,
         String metg,
         String qlf,
-        String indvElhm,
-        String indvElhmExcp,
-        String indvAdp,
-        String ogElhm,
-        String ogElhmExcp,
-        String ogAdp,
-        String indvChng,
-        String indvMutu,
-        String ogMutu,
         String intbsSum,
         String ddtnSum,
         String aclDsbAmt
     ) {}
 
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindPlarFeeRes")
-    public record FindPlarFeeRes(
-        String w01,
-        String w02,
-        String w03,
-        String w04,
-        String w05,
-        String w21,
-        String w23,
-        String w24,
-        String w25,
-        String w11,
-        String w12,
-        String w13,
-        String w15,
-        String w16,
-        String w17,
-        String w22,
-        String w20,
-        String w30
+    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarEtcRes")
+    public record SearchPlarEtcRes(
+        String item1,
+        String fval1,
+        String item2,
+        String fval2,
+        String item3,
+        String fval3
+    ) {}
+
+    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarFeeRes")
+    public record SearchPlarFeeRes(
+        String item1,
+        String fval1,
+        String item2,
+        String fval2,
+        String item3,
+        String fval3
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindPlarDeductionRes")
@@ -182,27 +159,36 @@ public class WfedIndividualFeeMgtDto {
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindMngerEntrpRes")
     public record FindMngerEntrpRes(
         String emplNm,
-        String blg,
+        String mngDpt,
+        String rgnlGrp,
+        String branch,
         String rsb,
-        String metg,
-        String welsMnger,
+        String rgsBaseMm,
+        String prfmtMon,
+        String bizCltnMon,
         String qlf,
-        String elhmRental,
-        String elhmSnglPmnt,
-        String elhmFxam,
-        String elhmExcpSnglPmnt,
-        String elhmExcpFxam,
-        String indvCount,
-        String ogElhmRental,
-        String ogElhmSnglPmnt,
-        String ogElhmExcpSnglPmnt,
-        String ogCount,
-        String ogNewSell,
-        String indvNewSell,
-        String bsPdAccCnt,
-        String w1Count,
-        String w2Count
+        String opngMm,
+        String opngNmm,
+        String mngCltnMm,
+        String mgtCnt,
+        String vstCnt,
+        String procsRt,
+        String intbsSum,
+        String ddtnSum,
+        String aclDsbAmt
 
+    ) {}
+
+    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerBaseInfoRes")
+    public record SearchMngerBaseInfoRes(
+        String item1,
+        String fval1,
+        String item2,
+        String fval2,
+        String item3,
+        String fval3,
+        String item4,
+        String fval4
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerBeforeServiceRes")
@@ -214,44 +200,19 @@ public class WfedIndividualFeeMgtDto {
         String cnt3,
         String cnt4,
         String amt2,
-        String sumAmt,
-        String cntRat
+        String sumAmt
     ) {}
 
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindMngerFeeRes")
-    public record FindMngerFeeRes(
-        String sd04,
-        String sd05,
-        String sd06,
-        String sd08,
-        String sd09,
-        String sd10,
-        String sd11,
-        String sd12,
-        String sd13,
-        String sd14,
-        String sd15,
-        String sd16,
-        String sd17,
-        String sd18,
-        String sd19,
-        String sd22,
-        String sd23,
-        String sd26,
-        String sd29,
-        String sd31,
-        String sd34,
-        String sd36,
-        String sd39,
-        String sd40,
-        String sd42,
-        String sd43,
-        String sd48,
-        String sd49,
-        String sd50,
-        String md62,
-        String md63,
-        String md95
+    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerFeeRes")
+    public record SearchMngerFeeRes(
+        String item1,
+        String fval1,
+        String item2,
+        String fval2,
+        String item3,
+        String fval3,
+        String item4,
+        String fval4
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindMngerDeductionRes")

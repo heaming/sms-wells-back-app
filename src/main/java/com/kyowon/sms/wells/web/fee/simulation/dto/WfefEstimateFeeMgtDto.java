@@ -104,8 +104,8 @@ public class WfefEstimateFeeMgtDto {
         Long otscEtc,/* 아웃소싱,커피,삼성  */
         Long bdtEtc,/* 비데,연수기         */
         Long etcFxamDsb,/* 미지정              */
-        String w1,/* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
-        String w2 /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
+        Long w1,/* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
+        Long w2 /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
 
     ) {}
 

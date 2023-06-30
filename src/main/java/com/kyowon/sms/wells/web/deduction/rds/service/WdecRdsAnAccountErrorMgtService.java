@@ -251,7 +251,7 @@ public class WdecRdsAnAccountErrorMgtService {
         //        rplyCd; // 응답코드
         //        depsPrsnNm; //예금주명
 
-        if ("0000".equals(res.getRqdt())) {
+        if ("0000".equals(res.getRplyCd())) {
             accountResult.put("acFntRsCd", "N");
         } else {
             accountResult.put("acFntRsCd", "Y");

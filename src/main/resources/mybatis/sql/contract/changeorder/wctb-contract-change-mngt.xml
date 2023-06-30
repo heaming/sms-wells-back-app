@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMngtMapper">
+    <select id="selectContractChanges" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto$SearchContractChangeRes">
+        SELECT T11.CNTR_NO              /* 계약번호  LCYEAR + LCCODE*/
+             , T11.CNTR_SN              /* 계약번호  */
+             , T11.SELL_TP_CD           /* 판매유형코드 LC_TYPE (2:L20)*/
+             , T11.SELL_TP_DTL_CD       /* 판매유형상세코드 */
+             /* 화면 표시 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T11.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM /* 판매유형사케코드명 (판매유형:LC_TYPE_NM)*/
+             , T40.CST_KNM              /* 계약자명 - 고객명(LC31.LCCNAM) */
+             , CASE WHEN T40.COPN_DV_CD = '2' THEN T40.BZRNO ELSE T40.BRYY_MMDD END AS BRYY_BZRNO   /* 계약자정보 - 사업자번호(LCCINO) / 생년 */
+             , T10.COPN_DV_CD           /* 법인격구분코드 (LCCGUB) 개인:1, 법인:2*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', T10.COPN_DV_CD) AS COPN_DV_NM /* 법인격구분명 (LCCGUB) 개인:1, 법인:2*/
+             , T11.CNTR_NO || '-' || T11.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 (LC_ORDR_NO)*/
+             , SUBSTR(T10.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT  /* 계약확정일시(접수일) : 접수일자(LCCRT_DT) */
+             , T20.PD_NM                /* 상품명 (KAINAM) */
+             , T11.BASE_PD_CD           /* 상품코드 (LCICDE) */
+             , T20.SV_PD_TP_CD          /* 용도구분코드 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_TP_CD', T20.SV_PD_TP_CD ) AS SV_PD_TP_NM     /* 용도구분 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) */
+             , T11.SV_PRD               /* (계약상세.서비스주기) LC31.LCIMON */
+             , SV_PTRM_UNIT_CD
+             , NVL(F_CMZ_CD_NM(#{session.tenantId}, 'SV_PTRM_UNIT_CD', T11.SV_PTRM_UNIT_CD ),'개월') AS SV_PTRM_UNIT_NM     /* 서비스기간단위명 */
+             , T40.SEX_DV_CD            /* 성별 (LCCSEX) */
+             , T11.CNTR_DTL_STAT_CD     /* 계약상세상태코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_PRD_UNIT_CD', T11.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM /* 계약상세상태명 (사용구분 - 1:관리(101),2:탈퇴(201~303), 만료(401,402) :useDivNm)*/
+             , T11.FNL_AMT   AS RENTAL_AMT1         /* 렌탈료-최종값 (렌탈료1:LCAMT1) */
+             , T11.CNTR_PTRM AS CNTR_PTRM1          /* 계약기간 (렌탈기간1 : LCMON1) */
+             , ''            AS RENTAL_AMT2         /* TODO.맵핑없음 (렌탈료2:LCAMT2) */
+             , ''            AS CNTR_PTRM2          /* TODO.맵핑없음 (렌탈기간2 : LCMON2) */
+             ,T11.SELL_DSC_DV_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, (SELECT TCDD.USER_DFN_02
+                                         FROM T_CMZ_CD_D TCDD
+                                        WHERE 1 = 1
+                                          AND TCDD.CD_ID = 'SELL_DSC_DV_CD'
+                                          AND TCDD.CD_VLD_VAL = T11.SELL_TP_CD
+                                          AND TCDD.TENANT_ID = #{session.tenantId}
+                                         ),  T11.SELL_DSC_DV_CD) AS SELL_DSC_DV_NM             /* 판매할인구분코드-할인적용유형명 - 할인구분 명(LCETC3_NM) */
+             , T11.SELL_DSCR_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, (SELECT TCDD.USER_DFN_02
+                                         FROM T_CMZ_CD_D TCDD
+                                        WHERE 1 = 1
+                                          AND TCDD.TENANT_ID = #{session.tenantId}
+                                          AND TCDD.CD_ID = 'SELL_DSCR_CD'
+                                          AND TCDD.PRTS_CD_ID = (SELECT TCDD.USER_DFN_02
+                                                                  FROM T_CMZ_CD_D TCDD
+                                                                 WHERE 1 = 1
+                                                                   AND TCDD.CD_ID = 'SELL_DSC_DV_CD'
+                                                                   AND TCDD.CD_VLD_VAL = T11.SELL_TP_CD
+                                                                  AND TCDD.TENANT_ID = #{session.tenantId}
+                                                                 )
+                                         ), T11.SELL_DSCR_CD ) AS SELL_DSCR_NM               /* 판매할인율코드- - 할인유형 명(LCETC4_M,) */
+             , SELL_DSC_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, (SELECT CM2.USER_DFN_02 AS ID
+                                           FROM T_CMZ_CD_D CM2
+                                          WHERE 1 = 1
+                                            AND CM2.CD_ID = 'SELL_DSC_TP_CD'
+                                            AND CM2.PRTS_CD_VLD_VAL = T11.SELL_TP_CD
+                                            AND CM2.TENANT_ID = #{session.tenantId}
+                                        ), T11.SELL_DSC_TP_CD ) AS SELL_DSC_TP_NM            /* 판매할인유형코드  (프로모션코드 :LCFLG4_NM , LCFLG4)  */
+             , T11.ALNCMP_CD                                                                 /* 제휴사코드 (제휴코드:LCETC8)*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'ALNCMP_CD', T11.ALNCMP_CD) AS ALNCMP_NM             /* 제휴코드명- 제휴코드명(LCETC8_NM) */
+             , (T30.FGPT_PD_CD
+              || (SELECT T301.PD_NM
+                    FROM TB_PDBS_PD_BAS  T301
+                   WHERE T301.PD_CD = T30.FGPT_PD_CD
+                     AND T301.DTA_DL_YN = 'N')
+              || (CASE WHEN T30.FGPT_PD_CNT > 1 THEN '외' || (T30.FGPT_PD_CNT -1) ||'건' ELSE '' END)) AS FGPT_INFO /* 사은품정보 (LC_GIFT, PRMT) 첫번째 사은품명 + 첫번째 사은품코드 외 사은품갯수 */
+             , T21.REF_PD_CLSF_VAL AS HCLSF_REF_PD_CLSF_VAL /* KAETC1 06(order.KAETC1=='8') */
+             , T22.REF_PD_CLSF_VAL AS MCLSF_REF_PD_CLSF_VAL /* KAETC2 06003("order.KAETC1=='8' AND order.KAETC2=='M'),  06005(order.KAETC1=='8' AND order.KAETC2=='2') */
+             , T21.PD_CLSF_NM  AS PD_HCLSF_NM       /* 대분류 KAETC1 KAETC1NM*/
+             , T22.PD_CLSF_NM  AS PD_MCLSF_NM       /* 중분류 KAETC2 KAETC2NM*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'HCR_DV_CD', T12.HCR_DV_CD) AS HCR_DV_NM                   /* 홈케어구분코드(합쳐짐) = LCPRT1_NM + LCPRT2_NM*/
+             , '' AS BDT_MNFT_NM                    /* 제조회사 (일시불일때만 제조회사 표시하지만, 맵핑없음 공통코드:BDT_MNFT_CO_CD) LCJEJO_NM */
+             , T12.IST_DT                           /* 설치일자  LCSET_DT*/
+             , T10.SELL_INFLW_CHNL_DTL_CD           /* 판매유입채널상세코드 (직원구매 체크용(9020:직원구매->v_saleDiv:9)) */
+        -------------------------------------------------------------------
+        -- 계약관련 테이블
+        -------------------------------------------------------------------
+          FROM TB_SSCT_CNTR_BAS T10            /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T11       /* T.계약상세  LD3000P*/
+            ON T11.CNTR_NO = T10.CNTR_NO        /* 계약번호 */
+           AND T11.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T12  /* T.WELLS상세 */
+            ON T12.CNTR_NO = T11.CNTR_NO              /*계약번호  */
+           AND T12.CNTR_SN = T11.CNTR_SN              /*계약번호  */
+           AND T12.DTA_DL_YN = 'N'
+        ---------------------------------------------------------------------
+        ---- 상품관련 테이블
+        ---------------------------------------------------------------------
+         INNER JOIN TB_PDBS_PD_BAS T20               /* T.상품기본 -  */
+            ON T20.PD_CD = T11.BASE_PD_CD            /* 상품코드 */
+           AND T20.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
+           AND T20.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T21         /* T.상품분류기본 상품중분류ID =대분류명 */
+            ON T21.PD_CLSF_ID = T20.PD_HCLSF_ID        /* 상품분류ID */
+           AND T21.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T22          /* T.상품분류기본 상품중분류ID =중분류명 */
+            ON T22.PD_CLSF_ID = T20.PD_MCLSF_ID        /* 상품분류ID */
+           AND T22.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT T300.DTL_CNTR_NO AS DTL_CNTR_NO
+                                        , T300.DTL_CNTR_SN AS DTL_CNTR_SN
+                                        , MAX(T300.FGPT_PD_CD) KEEP(DENSE_RANK FIRST ORDER BY T300.FGPT_RCP_ID ASC) AS FGPT_PD_CD --최초등록 사은품
+                                        , COUNT(1) AS FGPT_PD_CNT     /* 사은품건수 */
+                                     FROM TB_SSCT_FGPT_RCP_IZ  T300     /* T.사은품접수내역 */
+                                    WHERE 1=1
+                                      AND T300.DTL_CNTR_NO = T11.CNTR_NO
+                                      AND T300.DTL_CNTR_SN = T11.CNTR_SN
+                                      AND T300.DTA_DL_YN = 'N'
+                                    GROUP BY T300.DTL_CNTR_NO, T300.DTL_CNTR_SN
+                                  ) T30   /* 사은품 정보  */
+            ON T30.DTL_CNTR_NO = T11.CNTR_NO
+           AND T30.DTL_CNTR_SN = T11.CNTR_SN
+        ---------------------------------------------------------------------
+        ---- 계약자 / 설치처 정보
+        ---------------------------------------------------------------------
+          INNER JOIN TB_CUBS_CST_BAS T40           /* T.고객기본 - 계약자 */
+            ON T40.CST_NO = T10.CNTR_CST_NO/* 고객번호*/
+           AND T40.DTA_DL_YN = 'N'/* 데이터삭제여부 */
+         WHERE 1=1
+           AND T11.CNTR_DTL_STAT_CD = '101' /* 정상(101) */
+           AND T11.CNTRW_TP_CD IN ('1','2','3','5') /* 계약서유형코드 (일시불(환경가전):1, 일시불(BH):2,  렌탈:3, 홈케어서비스:5 ) 멤버십는 홈케어서비스만 사용함*/
+            /* P1.계약확정일시(접수일) */
+           AND T10.CNTR_CNFM_DTM BETWEEN #{cntrCnfmDtmFr} ||'000000' AND {cntrCnfmDtmTo} ||'235959' /* P.계약확정일시(접수일)  - LCCRTY*/
+            /* P2.계약상세번호 */
+           AND T11.CNTR_NO = #{cntrNo} /* P.계약번호  - LCYEAR , LCCODE*/
+           AND T11.CNTR_SN = #{cntrSn}            /* P.계약일련번호  - LCYEAR , LCCODE*/
+           /* P3.상품구분 */
+       -   AND T11.SELL_TP_CD = #{sellTpCd}            /* P.판매유형코드  - 일시불(1), 렌탈/리스(2), 멤버십(3)*/
+           /* P4.계약자명 */
+           AND T40.CST_KNM LIKE #{cstKnm} || '%' /* 계약자명 */
+    </select>
+</mapper>

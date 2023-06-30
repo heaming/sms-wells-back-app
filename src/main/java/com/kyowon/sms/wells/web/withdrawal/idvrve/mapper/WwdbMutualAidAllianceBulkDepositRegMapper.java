@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
@@ -29,4 +30,6 @@ public interface WwdbMutualAidAllianceBulkDepositRegMapper {
     int updateIntegrationDeposit(WwdbMutualAidAllianceBulkDepositDvo dvo);
 
     ZwdzWithdrawalReceiveAskDvo selectIntegrationDeposit(ZwdzWithdrawalDepositCprDvo dvo);
+
+    WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes selectIntegrationDepositInfo(String itgDpNo);
 }

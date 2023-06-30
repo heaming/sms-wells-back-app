@@ -29,6 +29,7 @@
                   FROM TB_SVST_ITM_OSTR_AK_IZ S1
                  WHERE S1.OSTR_AK_NO = J1.OSTR_AK_NO
                    AND S1.ITM_PD_CD = J1.ITM_PD_CD
+                   AND S1.DTA_DL_YN = 'N'
                ) AS OSTR_AK_SN
              , ' ' AS RMK_CN
           FROM (SELECT T1.OSTR_AK_NO
@@ -94,6 +95,9 @@
             <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                AND J2.SVPD_ITEM_KND = #{itmKndCd}
             </if>
+            <if test="@MybatisUtils@equals('N',ostrCnfm)">
+                AND J1.OSTR_DTRN_YN != '출고완료'
+            </if>
          </where>
          ORDER BY J1.OSTR_AK_NO ASC
     </select>
@@ -130,14 +134,19 @@
          WHERE 1 = 1
            AND TA.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND TA.WARE_USE_YN = 'Y'
-           AND TA.WARE_DV_CD = '2'
+           AND TA.WARE_DV_CD = #{wareDvCd}
            AND TB.ITM_PD_CD = #{itmPdCd}
            AND TA.HGR_WARE_NO = (SELECT HGR_WARE_NO
                                    FROM TB_SVST_MCBY_WARE_IZ
                                   WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                                     AND WARE_USE_YN = 'Y'
                                     AND WARE_NO = #{strOjWareNo}
-                                    AND WARE_DTL_DV_CD != '20')
+                                <if test="@MybatisUtils@equals(wareDvCd, '2')">
+                                    AND WARE_DTL_DV_CD != '20'
+                                </if>
+                                <if test="@MybatisUtils@equals(wareDvCd, '3')">
+                                    AND WARE_DTL_DV_CD != '30'
+                                </if>)
            AND TA.DTA_DL_YN = 'N'
            AND TB.DTA_DL_YN = 'N'
          ORDER BY WARE_NM
@@ -146,24 +155,24 @@
     <select id="selectAskMaterialsCenterPresentState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$CenterRes">
             SELECT A1.WARE_NO
                 , NVL((A1.PITM_STOC_A_GD_QTY - A1.MMT_STOC_A_GD_QTY),0) AS QTY
-                , T2.OG_NM
+                , A2.WARE_NM
              FROM TB_SVST_CST_SV_ITM_STOC_IZ A1
             INNER JOIN TB_SVST_MCBY_WARE_IZ A2
                ON A1.WARE_NO = A2.WARE_NO
-            INNER JOIN TB_OGBS_MM_OG_IZ T2
-               ON A2.OG_TP_CD = T2.OG_TP_CD
-              AND A2.OG_ID = T2.OG_ID
-              AND A2.APY_YM = T2.BASE_YM
             WHERE 1 = 1
               AND A1.ITM_PD_CD = #{itmPdCd}
               AND A2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+          <if test="@MybatisUtils@equals(wareDvCd, '2')">
               AND A2.WARE_DTL_DV_CD = '20'
+          </if>
+          <if test="@MybatisUtils@equals(wareDvCd, '3')">
+              AND A2.WARE_DTL_DV_CD = '30'
+          </if>
               AND A1.DTA_DL_YN = 'N'
               AND A2.DTA_DL_YN = 'N'
-              AND T2.DTA_DL_YN = 'N'
     </select>
 
-    <select id="selectNormalOutOfStoragesDetails"
+    <select id="getNormalOstrRgsts"
         resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$DetailRes">
         SELECT 'I' AS FLAG
              , (CASE WHEN T1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700'
@@ -308,12 +317,24 @@
                   AND S5.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                   AND S5.DTA_DL_YN = 'N'
                ) AS STR_WARE_DV_CD
-             , (SELECT S6.WARE_DV_CD
+             , (SELECT S6.WARE_DTL_DV_CD
                  FROM TB_SVST_MCBY_WARE_IZ S6
                 WHERE S6.WARE_NO = T1.OSTR_OJ_WARE_NO
                   AND S6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                   AND S6.DTA_DL_YN = 'N'
                ) AS OSTR_WARE_DV_CD
+             , (SELECT S5.WARE_DTL_DV_CD
+                 FROM TB_SVST_MCBY_WARE_IZ S5
+                WHERE S5.WARE_NO = T1.STR_OJ_WARE_NO
+                  AND S5.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  AND S5.DTA_DL_YN = 'N'
+               ) AS STR_WARE_DTL_DV_CD
+             , (SELECT S6.WARE_DV_CD
+                 FROM TB_SVST_MCBY_WARE_IZ S6
+                WHERE S6.WARE_NO = T1.OSTR_OJ_WARE_NO
+                  AND S6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  AND S6.DTA_DL_YN = 'N'
+               ) AS OSTR_WARE_DTL_DV_CD
              , T6.WARE_NM AS STR_WARE_NM
              , T7.WARE_NM AS OSTR_WARE_NM
           FROM TB_SVST_ITM_OSTR_AK_IZ T1
@@ -322,27 +343,197 @@
           LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T4
             ON T1.ITM_PD_CD = T4.ITM_PD_CD
            AND T1.STR_OJ_WARE_NO = T4.WARE_NO
+           AND T4.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T5
             ON T1.ITM_PD_CD = T5.ITM_PD_CD
            AND T1.OSTR_OJ_WARE_NO = T5.WARE_NO
+           AND T5.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T6
             ON T6.WARE_NO =  T1.STR_OJ_WARE_NO
            AND T6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T6.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T7
             ON T7.WARE_NO =  T1.OSTR_OJ_WARE_NO
            AND T7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T7.DTA_DL_YN = 'N'
          WHERE T1.OSTR_AK_TP_CD = #{ostrAkTpCd}
            AND T1.STR_OJ_WARE_NO = #{strWareNo}
            AND T1.OSTR_AK_RGST_DT = #{rgstDt}
            AND T1.OSTR_AK_NO = #{ostrAkNo}
            AND T1.DTA_DL_YN = 'N'
-           AND T4.DTA_DL_YN = 'N'
-           AND T5.DTA_DL_YN = 'N'
-           AND T6.DTA_DL_YN = 'N'
-           AND T7.DTA_DL_YN = 'N'
           ORDER BY T1.OSTR_AK_NO, T1.OSTR_AK_SN
     </select>
-
+    <select id="removeNormalOstrRgsts"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$DetailRes">
+        SELECT 'D' AS FLAG
+             , '1' AS CHK
+             , '0' AS DUMMY_QTY
+             , T3.OSTR_AK_TP_CD
+             , T1.OSTR_TP_CD
+             , T1.STR_WARE_NO
+             , T3.OSTR_AK_RGST_DT
+             , T1.OSTR_AK_SN || '' AS OSTR_AK_SN
+             , T1.OSTR_AK_NO
+             , T1.STR_HOP_DT
+             , T2.SVPD_ITEM_KND /* ST156_ITEM_KND */
+             , T1.ITM_PD_CD
+             , T2.SVPD_NM_KOR
+             , T2.SVPD_SAP_CD
+             , (SELECT CASE WHEN #{ostrOjWareNm} = '교원파주물류센터'
+                            THEN F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', S1.WARE_TP_CD)
+                                 || ' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', S1.ITM_LCT_ANGLE_VAL)
+                                 || ' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', S1.ITM_LCT_FLOR_NO_VAL)
+                                 || ' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', S1.ITM_LCT_COF_VAL)
+                                 || ' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', S1.ITM_LCT_MAT_GRP_CD)
+                                 ELSE F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', S1.WARE_TP_CD)
+                                 || ' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', S1.ITM_LCT_ANGLE_VAL)
+                                 || ' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', S1.ITM_LCT_COF_VAL)
+                                 || ' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', S1.ITM_LCT_FLOR_NO_VAL)
+                                 ||' '
+                                 || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', S1.ITM_LCT_MAT_GRP_CD)
+                       END
+                  FROM TB_SVST_CST_SV_ITM_LCT_IZ S1
+                 WHERE S1.WARE_NO = (SELECT CASE WHEN #{stckStdGb} != '1' THEN '200012'
+                                                 WHEN S2.WARE_NO = '100002' THEN '' /* 교원파주물류센터로 조회 시 품목위치 조회되게 변경(2020.12.03 안승기 매니저님) */
+                                                 ELSE S2.WARE_NO
+                                             END
+                                       FROM TB_SVST_MCBY_WARE_IZ S2
+                                      WHERE S2.WARE_NM = #{ostrOjWareNm}
+                                        AND S2.APY_YM = SUBSTR(#{ostrAkRgstDt},1,6)
+                                        AND S2.DTA_DL_YN = 'N'
+                                    )
+                   AND S1.ITM_PD_CD  = T1.ITM_PD_CD
+                   AND S1.DTA_DL_YN = 'N'
+               ) AS ITEM_LOC
+             , (SELECT S3.OSTR_TMS || ''
+                  FROM TB_SVST_CST_SV_ITM_LCT_IZ S3
+                 WHERE S3.WARE_NO = (SELECT CASE WHEN S4.WARE_NO = '100002' THEN S4.WARE_NO
+                                                 ELSE ''
+                                             END
+                                       FROM TB_SVST_MCBY_WARE_IZ S4
+                                      WHERE S4.WARE_NM = #{ostrOjWareNm}
+                                        AND S4.APY_YM = SUBSTR(#{ostrAkRgstDt},1,6)
+                                        AND S4.DTA_DL_YN = 'N'
+                                    )
+                   AND S3.ITM_PD_CD  = T1.ITM_PD_CD
+                   AND S3.DTA_DL_YN = 'N'
+               ) AS PAJU_LOC
+             , T3.OSTR_AK_WARE_DV_CD /* ST156_REQ_DEPT_GB */
+             , T1.ITM_GD_CD
+             , (CASE T1.ITM_GD_CD
+                     WHEN 'A' THEN (T4.PITM_STOC_A_GD_QTY - T4.MMT_STOC_A_GD_QTY)
+                     WHEN 'B' THEN (T4.PITM_STOC_B_GD_QTY - T4.MMT_STOC_B_GD_QTY)
+                     WHEN 'E' THEN (T4.PITM_STOC_E_GD_QTY - T4.MMT_STOC_E_GD_QTY)
+                     WHEN 'R' THEN (T4.PITM_STOC_R_GD_QTY - T4.MMT_STOC_R_GD_QTY)
+                 END) AS REQ_STCK_QTY  <!-- 요청창고 재고수량 -->
+             , T1.OSTR_WARE_NO
+             , T1.WARE_MNGT_PRTNR_NO
+             , T1.MNGT_UNIT_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', T3.MNGT_UNIT_CD) AS MGT_UNT_NM
+             , T3.BOX_UNIT_QTY || '' AS BOX_UNIT_QTY
+             , '' AS OSTR_AK_QTY
+             , (CASE T1.ITM_GD_CD
+                     WHEN 'A' THEN (T5.PITM_STOC_A_GD_QTY - T5.MMT_STOC_A_GD_QTY)
+                     WHEN 'B' THEN (T5.PITM_STOC_B_GD_QTY - T5.MMT_STOC_B_GD_QTY)
+                     WHEN 'E' THEN (T5.PITM_STOC_E_GD_QTY - T5.MMT_STOC_E_GD_QTY)
+                     WHEN 'R' THEN (T5.PITM_STOC_R_GD_QTY - T5.MMT_STOC_R_GD_QTY)
+                 END) AS QTY
+             , NVL(T1.OSTR_QTY, 0) || '' AS OSTR_CNFM_QTY
+             , T3.RMK_CN
+             , T3.OSTR_CNFM_CD
+             , T1.OSTR_DT AS RECT_OSTR_DT
+             , NVL(T1.OSTR_QTY, 0) || '' AS OSTR_AGG_QTY
+             , NVL(T1.OSTR_QTY, 0) || '' AS OUT_QTY
+             , NVL(T1.OSTR_QTY, 0) || '' AS OUT_QTY_ORG
+             , '' AS STR_CONF_DT
+             , T2.SVPD_BASE_GB /* ST101_BASE_GB */
+             , T2.SVPD_BASE_COLOR_GB /* ST101_BASE_COLOR_GB */
+             , T2.SVPD_MGT_TYP /* ST101_MGT_TYP */
+             , 0 || '' AS CFRM_CNT
+             , (SELECT ROUND(SUM(S7.USE_QTY)/3,1)
+                  FROM TB_SVST_SV_WK_OSTR_IZ S7
+                 INNER JOIN TB_SVST_MCBY_WARE_IZ S8
+                    ON S8.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S8.HGR_WARE_NO = T3.STR_OJ_WARE_NO
+                 WHERE S7.WK_WARE_NO = S8.WARE_NO
+                   AND S7.ITM_PD_CD = T1.ITM_PD_CD
+                   AND S7.FNL_ITM_GD_CD = T1.ITM_GD_CD
+                   AND S7.FNL_VST_FSH_DT
+                       BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(NVL( T1.STR_CONF_DT,TO_CHAR(SYSDATE, 'YYYYMMDD'))
+                                                    , 'YYYYMMDD')
+                                        , -3), 'YYYYMM'
+                                       ) || '01'
+                           AND TO_CHAR(LAST_DAY
+                                        (ADD_MONTHS
+                                            (TO_DATE(SUBSTR( NVL( T1.STR_CONF_DT, TO_CHAR(SYSDATE, 'YYYYMMDD')), 1, 6)
+                                              || '01', 'YYYYMMDD')
+                                         , -1)
+                                       ), 'YYYYMMDD')
+                           AND S7.DTA_DL_YN = 'N'
+                           AND S8.DTA_DL_YN = 'N'
+               ) AS AVG_OUT
+             , (SELECT S5.WARE_DV_CD
+                  FROM TB_SVST_MCBY_WARE_IZ S5
+                 WHERE S5.WARE_NO = T3.STR_OJ_WARE_NO
+                   AND S5.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S5.DTA_DL_YN = 'N'
+                ) AS STR_WARE_DV_CD
+             , (SELECT S6.WARE_DV_CD
+                  FROM TB_SVST_MCBY_WARE_IZ S6
+                 WHERE S6.WARE_NO = T1.OSTR_WARE_NO
+                   AND S6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S6.DTA_DL_YN = 'N'
+               ) AS OSTR_WARE_DV_CD
+             , (SELECT S5.WARE_DTL_DV_CD
+                  FROM TB_SVST_MCBY_WARE_IZ S5
+                 WHERE S5.WARE_NO = T3.STR_OJ_WARE_NO
+                   AND S5.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S5.DTA_DL_YN = 'N'
+                ) AS STR_WARE_DTL_DV_CD
+             , (SELECT S6.WARE_DTL_DV_CD
+                  FROM TB_SVST_MCBY_WARE_IZ S6
+                 WHERE S6.WARE_NO = T1.OSTR_WARE_NO
+                   AND S6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S6.DTA_DL_YN = 'N'
+               ) AS OSTR_WARE_DTL_DV_CD
+             , T6.WARE_NM AS STR_WARE_NM
+             , T7.WARE_NM AS OSTR_WARE_NM
+          FROM TB_SVST_ITM_OSTR_IZ T1
+         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T2
+            ON T1.ITM_PD_CD = T2.SVPD_PD_CD
+         INNER JOIN TB_SVST_ITM_OSTR_AK_IZ T3
+            ON T1.OSTR_AK_NO = T3.OSTR_AK_NO
+           AND T1.OSTR_AK_SN = T3.OSTR_AK_SN
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T4
+            ON T1.ITM_PD_CD = T4.ITM_PD_CD
+           AND T1.STR_WARE_NO = T4.WARE_NO
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T5
+            ON T3.ITM_PD_CD = T5.ITM_PD_CD
+           AND T1.OSTR_WARE_NO = T5.WARE_NO
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T6
+            ON T6.WARE_NO = T1.STR_WARE_NO
+           AND T6.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T7
+            ON T7.WARE_NO =  T1.OSTR_WARE_NO
+           AND T7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T7.DTA_DL_YN = 'N'
+         WHERE T1.ITM_OSTR_NO = #{itmOstrNo}
+           AND T1.OSTR_TP_CD = #{ostrTpCd}
+           AND T1.OSTR_AK_NO = #{ostrAkNo}
+           AND T1.STR_CONF_DT IS NULL
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.ITM_OSTR_NO, T1.OSTR_SN
+    </select>
     <select id="selectStrNoAndOstrNo"
         resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto$StrNoAndOstrNoRes">
         SELECT T2.OSTR_TP_CD || T2.TODAY_STR || LPAD(SQ_SVST_ITM_OSTR_IZ$ITM_OSTR_NO.NEXTVAL, 7, 0) AS ITM_OSTR_NO
@@ -398,9 +589,9 @@
              , #{ostrSn}
              , #{pdPrpVal19}/*ITM_KND_CD*/
              , #{itmPdCd}
-             , '1' /* STR_AK_WARE_DV_CD */
+             , #{ostrAkWareDvCd}  /* STR_AK_WARE_DV_CD */
              , #{ostrWareMngtPrtnrNo}
-             , '1' /* OSTR_WARE_DV_CD */
+             , #{ostrWareDvCd} /* OSTR_WARE_DV_CD */
              , #{mngtUnitCd}
              , #{boxUnitQty}
              , #{itmGdCd}
@@ -556,9 +747,45 @@
                  WHERE S1.APY_YM = SUBSTR(T1.STR_HOP_DT, 1,6)
                    AND S1.WARE_NO = T1.STR_OJ_WARE_NO
                ) AS STR_OJ_WARE_NM
-        FROM TB_SVST_ITM_OSTR_AK_IZ T1
-       WHERE T1.OSTR_AK_NO = #{ostrAkNo}
-         AND T1.OSTR_AK_SN = #{ostrAkSn}
-         AND T1.DTA_DL_YN = 'N'
+             , (SELECT S1.ITM_OSTR_NO
+                  FROM TB_SVST_ITM_OSTR_IZ S1
+                 WHERE S1.OSTR_WARE_NO = T1.OSTR_OJ_WARE_NO
+                   AND S1.ITM_PD_CD = T1.ITM_PD_CD
+                   AND S1.OSTR_AK_NO = #{ostrAkNo}
+                   AND ROWNUM=1
+               ) AS ITM_OSTR_NO
+             , (SELECT S1.OSTR_TP_CD
+                  FROM TB_SVST_ITM_OSTR_IZ S1
+                 WHERE S1.OSTR_WARE_NO = T1.OSTR_OJ_WARE_NO
+                   AND S1.ITM_PD_CD = T1.ITM_PD_CD
+                   AND S1.OSTR_AK_NO = #{ostrAkNo}
+                   AND ROWNUM=1
+               ) AS OSTR_TP_CD
+          FROM TB_SVST_ITM_OSTR_AK_IZ T1
+         WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+           AND T1.DTA_DL_YN = 'N'
+           AND ROWNUM =1
     </select>
+
+    <delete id="removeNormalStr">
+        DELETE
+          FROM TB_SVST_ITM_STR_IZ
+         WHERE ITM_STR_NO = #{itmStrNo}
+           AND STR_SN = #{strSn}
+    </delete>
+    <delete id="removeNormalOstr">
+        DELETE
+          FROM TB_SVST_ITM_OSTR_IZ
+         WHERE ITM_OSTR_NO = #{itmOstrNo}
+           AND OSTR_SN = #{ostrSn}
+    </delete>
+    <update id="updateRemoveOstrAkIzAfter">
+        UPDATE TB_SVST_ITM_OSTR_AK_IZ
+           SET RECT_OSTR_DT = ''
+             , OSTR_AGG_QTY = OSTR_AGG_QTY - #{outQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE OSTR_AK_NO = #{ostrAkNo}
+           AND OSTR_AK_SN = #{ostrAkSn}
+    </update>
+
 </mapper>

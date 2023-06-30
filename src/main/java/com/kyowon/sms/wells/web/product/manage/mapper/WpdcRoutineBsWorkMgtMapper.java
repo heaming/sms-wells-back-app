@@ -56,4 +56,6 @@ public interface WpdcRoutineBsWorkMgtMapper {
     int deleteLifeCustomFilterStd(WpdcLifeCustomFilterBaseDvo info);
 
     int deleteLifeCustomFilterStdByPdCd(String svPdCd);
+
+    String selectLifeFilterDuplication(WpdcLifeCustomFilterBaseDvo info);
 }

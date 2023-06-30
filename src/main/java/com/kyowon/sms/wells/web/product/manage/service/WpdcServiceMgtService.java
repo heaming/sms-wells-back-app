@@ -39,7 +39,10 @@ public class WpdcServiceMgtService {
                 hisService.createProductHistory(pdCd, startDtm);
             }
         }
-        relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
+        if (isCreate || dto.isModifiedRelation()) {
+            relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(pdCd, startDtm);
+        }
         return pdService.getProductByPdCd(pdCd);
     }
 

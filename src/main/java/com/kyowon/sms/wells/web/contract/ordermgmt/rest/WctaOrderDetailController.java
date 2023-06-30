@@ -44,6 +44,8 @@ public class WctaOrderDetailController {
 
     @ApiOperation(value = "wells 주문 상세(상세계약목록)", notes = "주문 상세(상세계약목록)정보 조회")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
     })
     @GetMapping("/order-details/customer-bases/contract-lists")

@@ -4,7 +4,42 @@
     <select id="selectOrderDetailRentalPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailRentalPagesDvo">
         WITH T11 AS (
         /* 화면 필수 기준으로 대상 조회 */
-                      SELECT T11.*
+                      SELECT
+                      		 --T11.*
+                              T11.CNTR_NO
+                            , T11.CNTR_SN
+                            , T11.BASE_PD_CD
+                            , T11.PD_QTY
+                            , T11.CNTR_DTL_STAT_CD
+                            , T11.CNTRW_TP_CD
+                            , T11.FRISU_YN
+                            , T11.RSTL_YN
+                            , T11.SV_PRD
+                            , T11.SELL_DSC_DV_CD
+                            , T11.CNTR_AMT
+                            , T11.FNL_AMT
+                            , T11.FST_RGST_DTM
+                            , T11.PD_GD_CD
+                            , T11.FST_RGST_USR_ID
+                            , T11.FST_RGST_PRG_ID
+                            , T11.CTT_RS_CD
+                            , T11.ALNCMP_CD
+                            , T11.ALNCMP_CNTR_DRM_VAL
+                            , T11.SELL_DSC_TP_CD
+                            , T11.FEE_FXAM_YN
+                            , T11.FEE_ACKMT_BASE_AMT
+                            , T11.ACKMT_PERF_RT
+                            , T11.ACKMT_PERF_AMT
+                            , T11.BOO_SELL_TP_CD
+                            , T11.DSC_AMT
+                            , T11.CNTRAM_DSC_AMT
+                            , T11.CNTR_PD_ENDDT
+                            , T11.STPL_PTRM
+                            , T11.STPL_PTRM_UNIT_CD
+                            , T11.CNTR_PTRM
+                            , T11.CNTR_PD_STRTDT
+                            , T11.SPP_DUEDT
+                            , T11.SELL_TP_CD
                             , T10.CNTR_CST_NO
                             , T12.IST_DT
                             , T12.REQD_DT
@@ -1921,7 +1956,9 @@
     <select id="selectOrderRegularShippingsPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailRglrDlvrPagesDvo">
         SELECT *
           FROM (
-        SELECT CONCAT(CONCAT(T11.CNTR_NO, '-'), T11.CNTR_SN) AS CNTR_DTL_NO /* 계약번호 - 계약일련번호 [계약상세번호] */
+        SELECT /*+ LEADING(T10) NO_MERGE(T25) PUSH_PRED(T25)
+                   USE_NL(T10 T11 T12 T14 T15 T18 T20 T21 T24 T25 T30 T32 T33 T34 T40 T41 T43 T44 T45 T80) */
+               CONCAT(CONCAT(T11.CNTR_NO, '-'), T11.CNTR_SN) AS CNTR_DTL_NO /* 계약번호 - 계약일련번호 [계약상세번호] */
              , T11.SELL_TP_CD                       /* 판매유형코드 */
              , CASE WHEN T33.OG_LEVL_DV_CD = 2 THEN T33.DGR2_LEVL_DG_PRTNR_NO
                     WHEN T33.OG_LEVL_DV_CD = 1 THEN T33.DGR1_LEVL_DG_PRTNR_NO
@@ -2240,7 +2277,8 @@
                                        AND T240.PD_CD = T11.HGR_PD_CD
                                   ) T24
             ON T24.PD_CD = T11.HGR_PD_CD
-          LEFT OUTER JOIN LATERAL (SELECT /* 최초 접수시 패키지 정보 */
+          LEFT OUTER JOIN LATERAL (SELECT /*+LEADING(DHIST) INDEX(DHIST ARR_TB_SSCT_CNTR_DCH_HIST) USE_NL(DHIST PBAS)*/
+                                          /* 최초 접수시 패키지 정보 */
                                            DHIST.HGR_PD_CD   /* 접수기준 - 패키지번호 */
                                          , PBAS.PD_NM       /* 접수기준 - 패키지명 */
                                          , DHIST.CNTR_NO
@@ -2250,8 +2288,8 @@
                                         ON PBAS.PD_CD = DHIST.HGR_PD_CD
                                        AND PBAS.DTA_DL_YN = 'N'
                                       WHERE 1=1
-                                        AND DHIST.CNTR_NO = T11.CNTR_NO
-                                        AND DHIST.CNTR_SN = T11.CNTR_SN
+                                        --AND DHIST.CNTR_NO = T11.CNTR_NO
+                                        --AND DHIST.CNTR_SN = T11.CNTR_SN
                                         AND DHIST.HIST_STRT_DTM IN (SELECT NVL(MIN(HIST_STRT_DTM) ,'') /* 이력시작일시 */
                                                                    FROM TB_SSCT_CNTR_CH_HIST
                                                                   WHERE 1=1

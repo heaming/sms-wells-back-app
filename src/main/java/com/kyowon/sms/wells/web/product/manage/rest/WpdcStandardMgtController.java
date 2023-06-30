@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.product.manage.rest;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,6 +83,7 @@ public class WpdcStandardMgtController {
                         .isModifiedProp(dto.isModifiedProp())
                         .isModifiedPrice(dto.isModifiedPrice())
                         .isOnlyFileModified(dto.isOnlyFileModified())
+                        .isModifiedRelation(dto.isModifiedRelation())
                         .build(),
                     false
                 )
@@ -106,5 +110,19 @@ public class WpdcStandardMgtController {
     public SaveResponse removeProduct(@PathVariable("pdCd")
     String pdCd) throws Exception {
         return SaveResponse.builder().processCount(service.removeProduct(pdCd)).build();
+    }
+
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "slRcogClsfCd", value = "매출인식분류코드", paramType = "path", required = true, example = "E01"),
+    })
+    @ApiOperation(value = "기준상품 상품 매출인식분류코드명 조회")
+    @GetMapping("/recogn-class/{slRcogClsfCd}")
+    public WpdcStandardMgtDto.SaleRecognitionClassification getSaleRecognClassName(
+        @PathVariable
+        @Valid
+        @NotBlank
+        String slRcogClsfCd
+    ) throws Exception {
+        return service.getSaleRecognClassName(slRcogClsfCd);
     }
 }

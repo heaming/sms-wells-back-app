@@ -250,7 +250,7 @@ public class WpdcAsPartsMgtService {
                         if (entry.getKey().equals(metaVo.getColNm())) {
                             if (entry.getValue().toString().split("\\|").length > 1) {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
-                                propertyMap.put(metaVo.getColId(), tempVal[1]);
+                                propertyMap.put(metaVo.getColId(), tempVal[1].trim());
                             } else {
                                 // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스 
                                 // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.

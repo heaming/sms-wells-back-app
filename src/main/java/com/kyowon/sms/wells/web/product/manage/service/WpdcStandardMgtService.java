@@ -16,6 +16,7 @@ import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcRelationMgtService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.dto.WpdcStandardMgtDto;
+import com.kyowon.sms.wells.web.product.manage.mapper.WpdcStandardMgtMapper;
 import com.sds.sflex.common.utils.DateUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class WpdcStandardMgtService {
     private final ZpdcPriceMgtService prcService;
     private final ZpdcRelationMgtService relService;
     private final ZpdcHistoryMgtService hisService;
+    private final WpdcStandardMgtMapper mapper;
 
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas saveProduct(WpdcStandardMgtDto.SaveReq dto, boolean isCreate)
@@ -51,7 +53,10 @@ public class WpdcStandardMgtService {
             prcService.savePricePropFinalDetails(prc, dtls, dto.tbPdbsPdPrcFnlDtl(), startDtm);
             prcService.savePriceDiscountPremiumDetail(pdCd, dto.tbPdbsPdDscPrumDtl());
         }
-        relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
+        if (isCreate || dto.isModifiedRelation()) {
+            relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(pdCd, startDtm);
+        }
         return pdService.getProductByPdCd(pdCd);
     }
 
@@ -61,4 +66,9 @@ public class WpdcStandardMgtService {
         prcService.removePdPriceByPdCd(pdCd);
         return pdService.removeProduct(pdCd, startDtm);
     }
+
+    public WpdcStandardMgtDto.SaleRecognitionClassification getSaleRecognClassName(String slRcogClsfCd) {
+        return mapper.selectSaleRecognClassName(slRcogClsfCd);
+    }
+
 }

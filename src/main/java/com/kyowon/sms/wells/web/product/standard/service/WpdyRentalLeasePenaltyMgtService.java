@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.standard.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
@@ -61,9 +62,13 @@ public class WpdyRentalLeasePenaltyMgtService {
 
     public String checkDuplication(List<WpdyRentalLeasePenaltyMgtDto.CancelChargeBase> dtos) {
         List<WpdyCancelChargeBaseDvo> bases = converter.mapAllCancelChargeBaseDtoToCancelChargeBaseDvo(dtos);
+        List<String> idList = bases.stream()
+            .map(base -> base.getCcamId())
+            .filter(value -> StringUtil.isNotBlank(value))
+            .collect(Collectors.toList());
         String duplicationKey = null;
         for (WpdyCancelChargeBaseDvo base : bases) {
-            duplicationKey = mapper.selectRentalLeasePenaltyDuplication(base);
+            duplicationKey = mapper.selectRentalLeasePenaltyDuplication(base, idList);
             if (StringUtil.isNotBlank(duplicationKey)) {
                 break;
             }

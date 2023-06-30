@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.product.standard.mapper;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.product.standard.dto.WpdyWellsAllianceMgtDto;
 import com.kyowon.sms.wells.web.product.standard.dvo.WpdyAllianceBaseDvo;
@@ -33,7 +34,9 @@ public interface WpdyWellsAllianceMgtMapper {
 
     int deleteWellsAllianceBase(WpdyAllianceBaseDvo info);
 
-    String selectWellsAllianceDuplication(WpdyAllianceBaseDvo info);
+    String selectWellsAllianceDuplication(@Param("info")
+    WpdyAllianceBaseDvo info, @Param("idList")
+    List<String> idList);
 
     String selectWellsAllianceValidation(WpdyAllianceBaseDvo info);
 }

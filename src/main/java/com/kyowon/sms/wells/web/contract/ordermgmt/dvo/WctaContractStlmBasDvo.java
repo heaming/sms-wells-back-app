@@ -1,10 +1,13 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.*;
 
 @Getter
 @Setter
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class WctaContractStlmBasDvo {
@@ -19,7 +22,11 @@ public class WctaContractStlmBasDvo {
     private String dpTpCd; /* 입금유형코드 */
     private String bnkCd; /* 은행코드 */
     private String cdcoCd; /* 카드사코드 */
+    @DBEncField
+    @DBDecField
     private String acnoEncr; /* 계좌번호암호화 */
+    @DBEncField
+    @DBDecField
     private String crcdnoEncr; /* 신용카드번호암호화 */
     private String cardExpdtYm; /* 카드유효기간년월 */
     private String mlgTpCd; /* 마일리지유형코드 */
@@ -39,7 +46,6 @@ public class WctaContractStlmBasDvo {
     private String fntEvidDrmVal; /* 이체증빙식별값 */
     private String reuseOjYn; /* 재사용대상여부 */
     private String signFileId; /* 서명파일ID */
-    private String bfCntrStlmId; /* 이전계약결제ID */
     private String mvsDstcRcvryBaseDtm; /* 소산파기복구기준일시 */
     private String mvsDstcRcvryDvCd; /* 소산파기복구구분코드 */
     private String mvsDstcRcvryDtm; /* 소산파기복구일시 */

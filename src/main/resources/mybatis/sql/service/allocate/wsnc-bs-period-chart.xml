@@ -7,11 +7,11 @@
         /* BFSVC_SPP_STP_RSON_CD != '00'일 경우 Process End! */
         SELECT TB_1.CNTR_NO
              , TB_1.CNTR_SN
-             , TB_2.BFSVC_SPP_STP_RSON_CD
-             , TB_2.STVLV_CHNG_DT
+             , TB_1.BFSVC_SPP_STP_RSON_CD
+             , TB_1.STVLV_CHNG_DT
              , TB_3.SELL_TP_CD
-             , TB_2.SV_PD_CD
-             , TB_2.PDCT_PD_CD
+             , TB_1.SV_PD_CD
+             , TB_1.PDCT_PD_CD
              , TB_4.IST_DT
              , CEIL(MONTHS_BETWEEN(SUBSTR(TB_3.CNTR_PD_STRTDT,1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS
              , CEIL(MONTHS_BETWEEN(SUBSTR(TO_CHAR(SYSDATE, 'YYYYMMDD'),1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS_BS04
@@ -20,12 +20,7 @@
                       ELSE ''
                       END
                ) AS CNTR_PD_STRTDT
-          FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL TB_1
-         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_2
-         ON (
-                TB_1.CNTR_NO = TB_2.CNTR_NO
-            AND TB_1.CNTR_SN = TB_2.CNTR_SN
-         )
+          FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
          INNER JOIN TB_SSCT_CNTR_DTL TB_3
          ON (
                 TB_1.CNTR_NO = TB_3.CNTR_NO
@@ -71,6 +66,7 @@
         /* SV_PD_CD, PDCT_PD_CD는 selectBsPeriodChartBs03_01 의 결과로 수행한다. */
         SELECT VST_NMN_N
              , TOT_STPL_MCN
+             , DTL_SN
           FROM TB_PDBS_RGBS_WK_BASE_DTL
          WHERE 1=1
            AND SV_PD_CD = #{svPdCd}
@@ -98,6 +94,7 @@
                   /* AND 'PRD_RFLT_YN'   = 'Y' */ /* cherro ::: 주기반영여부 컬럼 없음. */
                    AND TB_1.PDCT_PD_CD = #{pdctPdCd}
                    AND TB_1.SV_PD_CD = #{svPdCd}
+                   AND TB_1.DTL_SN = #{dtlSn}
                )
          WHERE 1=1
            AND WRK_TYP_DTL != '9999'
@@ -268,19 +265,19 @@
 
     <select id="selectBsPeriodChartBs03_20" resultType="java.lang.String">
         SELECT (CASE WHEN (SELECT COUNT(1)
-                             FROM TB_PDBS_LVLH_CSTMW_FILT_BASE
+                             FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
                             WHERE PDCT_PD_CD = #{pdctPdCd}
                               AND SV_PD_CD = #{svPdCd}
                               AND VST_DV_CD = #{vstGb}
                               AND PART_PD_CD = #{partCd}
                           ) > 0  THEN (SELECT PART_PD_CD
-                                         FROM TB_PDBS_LVLH_CSTMW_FILT_BASE
+                                         FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
                                         WHERE PDCT_PD_CD = #{pdctPdCd}
                                           AND SV_PD_CD = #{svPdCd}
                                           AND PRD_MM_VAL = SUBSTR(#{chekVstDt},5,2)
                                           AND VST_DV_CD= #{vstGb}
                                         )
-                     ELSE ''
+                     ELSE #{partCd}     -- js
                 END) AS NEW_PART_CD
           FROM DUAL
     </select>
@@ -311,7 +308,6 @@
             , SV_BIZ_DCLSF_CD
             , WK_SN
             , VST_DUEDT
-            , SV_BIZ_DCLSF_CD
             , FILT_CHNG_LV_CD
             , IST_NMN_N
             , VST_NMN_N
@@ -332,17 +328,8 @@
             , #{cntrSn}
             , SUBSTR(#{newWrkTypDtl}, 1, 2)
             , #{newWrkTypDtl}
-            , (
-                SELECT NVL(MAX(TEMP.WK_SN) + 1, 1) AS WK_SN
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
-                 WHERE 1=1
-                   AND TEMP.CNTR_NO = #{cntrNo}
-                   AND TEMP.CNTR_SN = #{cntrSn}
-                   AND TEMP.SV_BIZ_MCLSF_CD = SUBSTR(#{newWrkTypDtl}, 1, 2)
-                   AND TEMP.SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
-              )
+            , #{dtlSn}                  /* 로직변경 - js */
             , #{chekVstDt}
-            , #{newWrkTypDtl}
             , #{chngStg}
             , #{chekInstMths}
             , #{chekCyclMths}          /* CHEK_VST_MTHS -> vstNmnN */
@@ -363,7 +350,8 @@
 
     <insert id="insertBsPeriodChartError">
         INSERT INTO TB_SVPD_RGBSPR_CHT_CRT_ERR_IZ(
-              CNTR_NO
+              RGBS_PRD_CHT_ERR_IZ_ID
+            , CNTR_NO
             , CNTR_SN
 			, CRT_ERR_CN
             , FST_RGST_DTM
@@ -375,7 +363,8 @@
             , FNL_MDFC_PRG_ID
             , FNL_MDFC_DEPT_ID
         ) VALUES(
-              #{cntrNo}
+              TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_RGBSPR_CHT_CRT_ERR_IZ$RGBS_PRD_CHT_ERR_IZ_ID.NEXTVAL, 12, '0')
+            , #{cntrNo}
             , #{cntrSn}
             , #{crtErrCn}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')

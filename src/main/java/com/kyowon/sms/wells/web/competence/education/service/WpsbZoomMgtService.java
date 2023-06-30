@@ -29,7 +29,7 @@ public class WpsbZoomMgtService {
     }
 
     /**
-     * 미팅기준관리등록
+     * Zoom 전체등록,수정
      *
      * @param dto
      * @return processCount
@@ -58,7 +58,7 @@ public class WpsbZoomMgtService {
     }
 
     /**
-    * 미팅기준관리등록,수정
+    * Zoom 등록,수정
     *
     * @param dto
     * @return processCount

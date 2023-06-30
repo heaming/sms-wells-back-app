@@ -29,7 +29,15 @@ public interface WfeaNetOrderMapper {
         WfeaNetOrderDvo dvo
     );
 
-    int insertNetOrders(
+    int insertManagerNetOrders(
+        WfeaNetOrderDvo dvo
+    );
+
+    int insertPlannerNetOrders(
+        WfeaNetOrderDvo dvo
+    );
+
+    int insertHomeMasterNetOrders(
         WfeaNetOrderDvo dvo
     );
 

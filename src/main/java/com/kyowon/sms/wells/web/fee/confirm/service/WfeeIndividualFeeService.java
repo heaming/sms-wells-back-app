@@ -211,6 +211,19 @@ public class WfeeIndividualFeeService {
     }
 
     /**
+     * 수수료 M조직 개인별 실적 BS 목록 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public List<SearchMngerBeforeServiceRes> getMngerBeforeServices(
+        SearchMngerReq dto
+    ) {
+        return this.mapper.selectMngerBeforeServices(dto);
+    }
+
+    /**
      * 수수료 M조직 개인별 실적 수수료 내역 조회
      * @param dto : {
      * perfYm : 실적년월,
