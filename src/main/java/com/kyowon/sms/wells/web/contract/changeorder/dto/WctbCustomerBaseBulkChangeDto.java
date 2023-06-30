@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.contract.changeorder.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WctbCustomerBaseBulkChDto {
+public class WctbCustomerBaseBulkChangeDto {
     @ApiModel(value = "WctbCustomerBaseBulkChDto-SearchReq")
     public record SearchReq(
         String sellTpCd, // 업무구분

@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WctbCustomerBaseBulkChDvo {
+public class WctbCustomerBaseBulkChangeDvo {
     private String sellTpCd; // 업무구분
     private String prcDvCd; // 처리구분
     private String cntrNo; // 계약번호

@@ -4,13 +4,13 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCustomerBaseBulkChangeDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCustomerBaseBulkChDto;
-import com.kyowon.sms.wells.web.contract.changeorder.service.WctbCustomerBaseBulkChService;
+import com.kyowon.sms.wells.web.contract.changeorder.service.WctbCustomerBaseBulkChangeService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
 import io.swagger.annotations.Api;
@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CtContractConst.REST_URL_V1 + "/changeorder")
-public class WctbCustomerBaseBulkChController {
+public class WctbCustomerBaseBulkChangeController {
 
-    private final WctbCustomerBaseBulkChService service;
+    private final WctbCustomerBaseBulkChangeService service;
 
     @ApiOperation(value = "고객기준 일괄변경 대상 조회(자동이체,설치자명,세금계산서발행여부)", notes = "고객기준 일괄변경 대상 조회(자동이체,설치자명,세금계산서발행여부)")
     @ApiImplicitParams(value = {
@@ -43,9 +43,9 @@ public class WctbCustomerBaseBulkChController {
         @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query"),
     })
     @GetMapping("/change-automatic-fnts")
-    public List<WctbCustomerBaseBulkChDto.SearchCustomerRes> getBulkChangeObjects(
+    public List<WctbCustomerBaseBulkChangeDto.SearchCustomerRes> getBulkChangeObjects(
         @Valid
-        WctbCustomerBaseBulkChDto.SearchReq dto
+        WctbCustomerBaseBulkChangeDto.SearchReq dto
     ) {
         return service.getBulkChangeObjects(dto);
     }
@@ -65,9 +65,9 @@ public class WctbCustomerBaseBulkChController {
         @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query"),
     })
     @GetMapping("/change-planers")
-    public List<WctbCustomerBaseBulkChDto.SearchPartnerRes> getPlannerChanges(
+    public List<WctbCustomerBaseBulkChangeDto.SearchPartnerRes> getPlannerChanges(
         @Valid
-        WctbCustomerBaseBulkChDto.SearchReq dto
+        WctbCustomerBaseBulkChangeDto.SearchReq dto
     ) {
         return service.getPlannerChanges(dto);
     }
