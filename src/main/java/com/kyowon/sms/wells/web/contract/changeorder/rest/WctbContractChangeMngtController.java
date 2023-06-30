@@ -28,7 +28,7 @@ public class WctbContractChangeMngtController {
 
     private final WctbContractChangeMngtService service;
 
-    @ApiOperation(value = "wells 주문 상세 변경 이력 조회", notes = "주문 변경에 대한 이력을 조회")
+    @ApiOperation(value = "계약변경관리-조회", notes = "변경할 계약번호를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
