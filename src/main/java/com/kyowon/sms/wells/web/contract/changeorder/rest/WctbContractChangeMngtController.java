@@ -11,6 +11,7 @@ import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtD
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractChangeMngtService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
@@ -41,8 +42,10 @@ public class WctbContractChangeMngtController {
     @GetMapping
     public PagingResult<SearchContractChangeRes> getContractChangePages(
         @Valid
-        SearchContractChangeReq dto
+        SearchContractChangeReq dto,
+        @Valid
+        PageInfo pageInfo
     ) {
-        return service.getContractChangePages(dto);
+        return service.getContractChangePages(dto, pageInfo);
     }
 }
