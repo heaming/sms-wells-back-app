@@ -11,6 +11,7 @@ public class WfebB2bFeeMgtDto {
         String strtYm,
         @NotBlank
         String endYm,
+        String feeTcntDvCd,
         String cancelStrtYm,
         String cancelEndYm
     ) {}
@@ -40,10 +41,12 @@ public class WfebB2bFeeMgtDto {
 
      public record SearchFeeReq(
         @NotBlank
-        String perfYm
+        String perfYm,
+        String feeTcntDvCd
     ) {}
     public record Fee(
         String baseYm,
+        String feeTcntDvCd,
         String coCd,
         String coCdNm,
         String ogCd,
@@ -64,6 +67,7 @@ public class WfebB2bFeeMgtDto {
     ) {};
     public record CreateReq(
         @NotBlank
-        String perfYm /* 실적년월 */
+        String perfYm, /* 실적년월 */
+        String feeTcntDvCd
     ) {};
 }

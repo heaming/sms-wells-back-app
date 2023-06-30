@@ -35,10 +35,8 @@ public class WsnaOutOfStorageItemizationDto {
         String itmStrNo,
         String ostrAkNo,
         String ostrAkSn,
-        String itmPdCd,
         String strHopDt,
         String ostrDt,
-        String ostrSn,
         String wareNm,
         String wareAdrId
         //        String newAdrZip,

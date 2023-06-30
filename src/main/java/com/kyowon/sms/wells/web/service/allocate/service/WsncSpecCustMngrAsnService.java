@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,9 +65,13 @@ public class WsncSpecCustMngrAsnService {
 
             //배정일자/배정시간 구하는 로직 수행
             mngrAsnDvo_05 = mapper.selectSpecCustMngrAsn_05(mngrAsnDvo).orElseGet(WsncSpecCustMngrAsnDvo::new);
-            mngrAsnDvo.setPsicAsnDt(mngrAsnDvo_05.getPsicAsnDt());
-            mngrAsnDvo.setPsicAsnHh(mngrAsnDvo_05.getPsicAsnHh());
 
+            if(mngrAsnDvo_05 != null && (StringUtils.isNotEmpty(mngrAsnDvo_05.getPsicAsnDt()))){
+                mngrAsnDvo.setPsicAsnDt(mngrAsnDvo_05.getPsicAsnDt());
+                mngrAsnDvo.setPsicAsnHh(mngrAsnDvo_05.getPsicAsnHh());
+                mngrAsnDvo.setCnfmPsicAsnDt(mngrAsnDvo_05.getPsicAsnDt());
+                mngrAsnDvo.setCnfmPsicAsnHh(mngrAsnDvo_05.getPsicAsnHh());
+            }
             //insert
             mapper.insertSpecCustMngrAsn(mngrAsnDvo);
         }

@@ -23,9 +23,13 @@
                   AND BASE_Y  = SUBSTR(EAI.WRK_DT, 1, 4)
                   AND BASE_MM = SUBSTR(EAI.WRK_DT, 5, 2)
                   AND BASE_D  = SUBSTR(EAI.WRK_DT, 7, 2)) AS WRK_NM
-             , EAI.EGER_WRK_STAT_CD            /*근태사유코드*/
+              , CASE WHEN EAI.WRK_DT BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT THEN EVI.EGER_WRK_STAT_CD
+                     ELSE EAI.EGER_WRK_STAT_CD
+                END AS EGER_WRK_STAT_CD
              , F_CMZ_CD_NM('TNT_WELLS', 'EGER_WRK_STAT_CD', EAI.EGER_WRK_STAT_CD) AS EGER_WRK_STAT_NM
-             , EAI.RMK_CN                      /*비고내용*/
+             , CASE WHEN EAI.WRK_DT BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT THEN EVI.RMK_CN
+                    ELSE EAI.RMK_CN
+                END AS RMK_CN
              , EVI.VCN_STRT_DT                  /*휴가시작일자*/
              , EVI.VCN_END_DT                   /*휴가종료일자*/
              , EVI.BIZ_AGNT_PRTNR_NO           /*업무대행파트너번호*/
@@ -85,9 +89,6 @@
         UPDATE TB_OGPS_EGER_ATDC_IZ
            SET EGER_WRK_STAT_CD = #{egerWrkStatCd}              /*엔지니어근무상태코드*/
              , RMK_CN = #{rmkCn}                  			    /*비고내용*/
-             , DNL_STRTDT = #{dnlStrtdt}              		    /*근태시작일자*/
-             , DNL_ENDDT = #{dnlEnddt}                          /*근태종료일자*/
-             , BIZ_AGNT_PRTNR_NO = #{bizAgntPrtnrNo}            /*업무대행파트너번호*/
              , PCP_PRTNR_NO = #{session.employeeIDNumber}       /*처리자사번*/
              , PROCS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /*처리일시*/
              <include refid="COMMON.updateSystemField" />
@@ -96,6 +97,105 @@
           AND PRTNR_NO = #{prtnrNo}
           AND WRK_DT = #{wrkDt}
     </update>
+
+    <!--엔지니어 휴가정보 상세 조회 -->
+    <select id="selectVacations" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$SearchVacationRes">
+         SELECT EVI.EGER_WRK_STAT_CD
+              , F_CMZ_CD_NM('TNT_WELLS', 'EGER_WRK_STAT_CD', EVI.EGER_WRK_STAT_CD) AS EGER_WRK_STAT_NM
+              , EVI.PRTNR_NO
+              , EVI.VCN_STRT_DT
+              , EVI.VCN_END_DT
+              , EVI.RMK_CN
+              , MPI.PRTNR_KNM
+              , EVI.BIZ_AGNT_PRTNR_NO
+           FROM TB_OGPS_EGER_VCN_IZ EVI             /* 엔지니어휴가내역 */
+           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI  /* 월파트너내역 */
+             ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            AND MPI.PRTNR_NO = EVI.BIZ_AGNT_PRTNR_NO
+            AND MPI.OG_TP_CD = EVI.OG_TP_CD
+            AND MPI.DTA_DL_YN = 'N'
+          WHERE 1=1
+            AND EVI.DTA_DL_YN = 'N'
+            AND EVI.OG_TP_CD = 'W06'
+            AND EVI.PRTNR_NO = #{prtnrNo}
+          ORDER BY EVI.VCN_STRT_DT DESC
+    </select>
+
+    <!--엔지니어 휴가정보 상세 조회 카운트(temp) -->
+    <select id="selectVacationsCnt" resultType="int">
+         SELECT COUNT(1) AS CNT
+           FROM TB_OGPS_EGER_VCN_IZ EVI
+           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MPI
+             ON MPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            AND MPI.PRTNR_NO = EVI.BIZ_AGNT_PRTNR_NO
+            AND MPI.OG_TP_CD = EVI.OG_TP_CD
+            AND MPI.DTA_DL_YN = 'N'
+          WHERE 1=1
+            AND EVI.DTA_DL_YN = 'N'
+            AND EVI.OG_TP_CD = 'W06'
+            AND EVI.VCN_STRT_DT = #{vcnStrtDt}
+            AND EVI.PRTNR_NO = #{prtnrNo}
+    </select>
+
+    <!--엔지니어 휴가정보 관리등록 -->
+   <insert id="insertVacation">
+       INSERT INTO TB_OGPS_EGER_VCN_IZ (
+              OG_TP_CD
+            , PRTNR_NO
+            , VCN_STRT_DT
+            , EGER_WRK_STAT_CD
+            , VCN_END_DT
+            , BIZ_AGNT_PRTNR_NO
+            , RMK_CN
+            , PCP_OG_TP_CD
+            , PCP_PRTNR_NO
+            , PROCS_DTM
+            , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+         ) VALUES (
+               'W06'
+             , #{prtnrNo}
+             , #{vcnStrtDt}
+             , #{egerWrkStatCd}
+             , #{vcnEndDt}
+             , #{bizAgntPrtnrNo}
+             , #{rmkCn}
+             , #{session.ogTpCd}
+             , #{session.employeeIDNumber}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+         )
+   </insert>
+
+   <!--엔지니어 휴가정보 관리수정 -->
+   <update id="updateVacation">
+      UPDATE TB_OGPS_EGER_VCN_IZ
+         SET VCN_STRT_DT = #{vcnStrtDt}
+           , VCN_END_DT = #{vcnEndDt}
+           , EGER_WRK_STAT_CD = #{egerWrkStatCd}
+           , BIZ_AGNT_PRTNR_NO = #{bizAgntPrtnrNo}
+           , RMK_CN = #{rmkCn}
+           , PCP_OG_TP_CD = #{session.ogTpCd}
+           , PCP_PRTNR_NO = #{session.employeeIDNumber}
+           , PROCS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           <include refid="COMMON.updateSystemField" />
+       WHERE 1=1
+         AND OG_TP_CD = 'W06'
+         AND VCN_STRT_DT = #{oriVcnStrtDt}
+         AND PRTNR_NO = #{prtnrNo}
+   </update>
+
+    <!--엔지니어 휴가정보 관리삭제-->
+   <update id="deleteVacation">
+       UPDATE TB_OGPS_EGER_VCN_IZ
+          SET DTA_DL_YN = 'Y'
+          <include refid="COMMON.updateSystemField" />
+        WHERE 1=1
+          AND OG_TP_CD = 'W06'
+          AND VCN_STRT_DT = #{oriVcnStrtDt}
+          AND PRTNR_NO = #{prtnrNo}
+   </update>
 
     <!-- 서비스센터 조 관리 -->
     <select id="selectJoeManagements" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo">
@@ -200,7 +300,7 @@
         LEFT OUTER JOIN WK_GRP_BLG_DTL C
           ON A.OG_TP_CD = C.OG_TP_CD
          AND A.PRTNR_NO = C.PRTNR_NO
-        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D
+       INNER JOIN TB_OGBS_MM_OG_IZ D
           ON A.OG_ID = D.OG_ID
          AND D.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
        WHERE 1=1
@@ -527,10 +627,10 @@
            , B.PRTNR_KNM 		-- 성명
            , B.RSB_DV_CD
            , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', B.RSB_DV_CD) AS RSB_DV_CD_NM
-           , B.ROL_DV_CD
-           , F_CMZ_CD_NM(#{session.tenantId}, 'ROL_DV_CD', B.ROL_DV_CD) AS ROL_DV_CD_NM
+           , '' AS ROL_DV_CD
+           , '' AS ROL_DV_CD_NM
            , C.PRTNR_GD_CD	-- 등급
-           , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', C.PRTNR_GD_CD) AS PRTNR_GD_CD_NM
+           , F_CMZ_CD_NM(#{session.tenantId}, 'EGER_EVL_GD_CD', C.PRTNR_GD_CD) AS PRTNR_GD_CD_NM
            , C.APY_STRTDT		-- 적용시작일자
            , C.APY_ENDDT 		-- 적용종료일자
            , C.RMK_CN		-- 비고
@@ -560,7 +660,6 @@
         </if>
         AND A.DTA_DL_YN = 'N'
         AND B.DTA_DL_YN = 'N'
-        AND C.DTA_DL_YN = 'N'
         <if test="@MybatisUtils@equals(chk, 'Y')">
         AND C.PRTNR_GD_CD IS NULL
         </if>

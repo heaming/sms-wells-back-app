@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.customer.contact.converter;
 
+import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo;
+import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementResultDvo;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -124,4 +126,8 @@ public interface WcsaCustomerInterfaceConverter {
     ZcsaCstCtplcBasDvo mapCstCtplcBasToCustomerInfoByEcc(
         ZcsaCustomerInfoByEccDvo dvo
     );
+
+    WcsaCustomerAgreementDvo mapSaveCustomerAgreementReqToWcsaCustomerAgreementDvo(WcsaCustomerInterfaceDto.SaveCustomerAgreementReq dto);
+
+    WcsaCustomerInterfaceDto.SaveCustomerAgreementRes mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(WcsaCustomerAgreementResultDvo resultDvo);
 }

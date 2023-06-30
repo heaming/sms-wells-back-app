@@ -77,6 +77,10 @@ public interface WfeeIndividualFeeMapper {
         SearchMngerReq dto
     );
 
+    List<SearchMngerBeforeServiceRes> selectMngerBeforeServices(
+        SearchMngerReq dto
+    );
+
     List<SearchMngerFeeRes> selectMngerFees(
         SearchMngerReq dto
     );

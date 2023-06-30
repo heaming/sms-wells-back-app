@@ -106,4 +106,5 @@ public class WsnaPcsvOutOfStorageDvo {
 
     String asCausCd; //AS원인코드 (작업결과용)
 
+    String wareMngtPrtnrNo; //창고관리파트너번호 (물류연동)
 }

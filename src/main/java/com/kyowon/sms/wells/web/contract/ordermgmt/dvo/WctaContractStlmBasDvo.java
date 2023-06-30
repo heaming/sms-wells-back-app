@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.*;
 
 @Getter
@@ -20,7 +22,11 @@ public class WctaContractStlmBasDvo {
     private String dpTpCd; /* 입금유형코드 */
     private String bnkCd; /* 은행코드 */
     private String cdcoCd; /* 카드사코드 */
+    @DBEncField
+    @DBDecField
     private String acnoEncr; /* 계좌번호암호화 */
+    @DBEncField
+    @DBDecField
     private String crcdnoEncr; /* 신용카드번호암호화 */
     private String cardExpdtYm; /* 카드유효기간년월 */
     private String mlgTpCd; /* 마일리지유형코드 */

@@ -21,7 +21,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[] wells 허위방문관리")
+@Api(tags = "[WPSH] wells 허위방문관리")
 @Validated
 @RequiredArgsConstructor
 @RestController

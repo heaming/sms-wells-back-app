@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.interfaces.service;
 import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRegularDeliveryPackageDto.FindReq;
 import static com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRegularDeliveryPackageDto.FindRes;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiRegularDeliveryPackageMapper;
@@ -27,11 +28,15 @@ public class WctiRegularDeliveryPackageService {
 
         FindRes res = mapper.selectRegularDeliveryPackage(dto);
 
-        return FindRes.builder()
+        if (ObjectUtils.isEmpty(res)) {
+            return null;
+        } else {
+            return FindRes.builder()
             .pkgPdCd(res.pkgPdCd())
             .pkgPdNm(res.pkgPdNm())
             .pkgPdAmt(res.pkgPdAmt())
             .pdctList(mapper.selectChangPsbProducts(dto))
             .build();
+        }
     }
 }

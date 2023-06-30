@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.service.visit.converter.WsnbServiceProcessingConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.FindProductRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchRes;
@@ -27,12 +28,20 @@ public class WsnbServiceProcessingService {
 
     private final WsnbServiceProcessingMapper mapper;
 
+    private final WsnbServiceProcessingConverter converter;
+
     public List<FindProductRes> getProducts(String pdGrpCd) {
         return this.mapper.selectProducts(pdGrpCd);
     }
 
     public PagingResult<SearchRes> getServiceProcessings(SearchReq dto, PageInfo pageInfo) {
-        return this.mapper.selectServiceProcessings(dto, pageInfo);
+        return new PagingResult<>(
+            converter.mapAllDvoToSearchRes(mapper.selectServiceProcessings(dto, pageInfo)), pageInfo
+        );
+    }
+
+    public List<SearchRes> getServiceProcessingsForExcel(SearchReq dto) {
+        return converter.mapAllDvoToSearchRes(mapper.selectServiceProcessings(dto));
     }
 
 }

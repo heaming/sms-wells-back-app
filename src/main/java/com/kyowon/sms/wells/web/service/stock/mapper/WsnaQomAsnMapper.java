@@ -14,6 +14,7 @@ public interface WsnaQomAsnMapper {
 
     int selectCountQomAsn(SearchReq dto);
     PagingResult<SearchRes>  selectIndependenceQomAsns(SearchReq dto, PageInfo pageInfo);
+    PagingResult<SearchRes>  selectIndependenceQomAsnsAfter(SearchReq dto, PageInfo pageInfo);
     PagingResult<SearchRes>  selectIndividualWareQomAsns(SearchReq dto, PageInfo pageInfo);
 
     int updateWareHouse(WsnaRenewalWareHouseDvo vo);;

@@ -60,19 +60,26 @@ public class WfeaOrganizationNetOrderDto {
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerReq")
     public record SearchMngerReq(
         @NotBlank
-        String schBizDv,
-        @NotBlank
-        String schDv,
+        String schInqrDv,
+        String schOrdr,
+        String schDiv,
+        String schFeePerf,
         String schPdctTp,
+        String schSelType,
+        String schDtStrt,
+        String schDtEnd,
+        String schCancDtStrt,
+        String schCancDtEnd,
         String schPdCdStrt,
         String schPdCdEnd,
-        String schSlDtStrt,
-        String schSlDtEnd,
-        String schRcpDtStrt,
-        String schRcpDtEnd,
+        String schPkgCdStrt,
+        String schPkgCdEnd,
+        String ogLevl1,
+        String ogLevl2,
+        String ogLevl3,
+        String schPrtnrNo,
         String schPerfYm,
-        String schVstDtStrt,
-        String schVstDtEnd
+        String schRsbDv
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarReq")

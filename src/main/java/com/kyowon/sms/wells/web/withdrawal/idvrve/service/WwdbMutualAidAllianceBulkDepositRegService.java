@@ -254,11 +254,14 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         int processCount = 0;
 
         //통합입금 조회
-        com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto.SearchRes selectIntegrationDeposit = depositMapper
-            .selectIntegrationDeposit(dto);
+        //        com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto.SearchRes selectIntegrationDeposit = depositMapper
+        //            .selectIntegrationDeposit(dto);
+
+        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
+            .selectIntegrationDepositInfo(dto.itgDpNo());
 
         //통합입금 조회 결과가 없을경우
-        BizAssert.hasText(selectIntegrationDeposit.itgDpNo(), "MSG_ALT_ITG_DP_DTA_NOT_EXST"); // ("통합입금 데이터가 존재하지 않습니다. [통합입금번호 오류]");
+        BizAssert.hasText(searchIntegrationDepositRes.itgDpNo(), "MSG_ALT_ITG_DP_DTA_NOT_EXST"); // ("통합입금 데이터가 존재하지 않습니다. [통합입금번호 오류]");
 
         //오늘 날짜
         String sysDate = DateUtil.getNowString();
@@ -307,7 +310,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             throw new BizException("MSG_ALT_MUTU_DP_CRT_LSTMM_PSB"); //상조입금생성은 전월만 가능합니다.
         }
 
-        long dpBlam = Long.parseLong(selectIntegrationDeposit.dpBlam());
+        long dpBlam = Long.parseLong(searchIntegrationDepositRes.dpBlam());
         long sumAmt = selectMutualAidAllianceBulkDepositRegs.get(0).sumAmt();
 
         BizAssert.isFalse(dpBlam == 0, "MSG_ALT_CPRCNF_NOT_DP_BLAM"); //대사 할 입금잔액이 없습니다. 입금잔액을 확인하세요.
@@ -317,8 +320,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
 
         /*통합입금번호로 해당 데이터 조회*/
-        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
-            .selectIntegrationDepositInfo(dto.itgDpNo());
+        //        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
+        //            .selectIntegrationDepositInfo(dto.itgDpNo());
 
         /*수납요청기본 인설트 데이터 입력*/
         ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
@@ -367,6 +370,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             // 수납요청상세 데이터 생성
             processCount += zwdzWithdrawalService.createReceiveAskDetail(zwdzWithdrawalReceiveAskDvo);
         }
+        //수납요청상세 이력 생성
+        processCount += zwdzWithdrawalService.createReceiveAskDetailHistory(zwdzWithdrawalReceiveAskDvo);
 
         //수납기본 인설트 데이터 입력이
         ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = new ZwdzWithdrawalReceiveDvo();
@@ -410,7 +415,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             depositCprDvo.setDpCprcnfCnfmYn("Y"); //DP_CPRCNF_CNFM_YN	입금대사확정여부
             depositCprDvo.setDpCprcnfCnfmDtm(sysDate); //DP_CPRCNF_CNFM_DTM	입금대사확정일시
             depositCprDvo.setDpCprcnfAmt(searchRes.amt()); //DP_CPRCNF_AMT	입금대사금액
-            //            depositCprDvo.setDpCprcnfProcsAmt(); //DP_CPRCNF_PROCS_AMT	입금대사처리금액
+            depositCprDvo.setDpCprcnfProcsAmt(searchRes.amt()); //DP_CPRCNF_PROCS_AMT	입금대사처리금액
             //            depositCprDvo.setDpCprcnfBlam(); //DP_CPRCNF_BLAM	입금대사잔액
             depositCprDvo.setDpCprcnfDstApyYn("N");////DP_CPRCNF_DST_APY_YN	입금대사배분적용여부
             depositCprDvo.setItgDpNo(dto.itgDpNo()); //ITG_DP_NO	통합입금번호
