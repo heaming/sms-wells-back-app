@@ -1,18 +1,15 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import com.kyowon.sms.wells.web.bond.credit.dvo.WbndBondContactExcludeIzDvo;
-import com.kyowon.sms.wells.web.fee.confirm.converter.WfeeIndividualFeeConverter;
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncManagementCstRglvlConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SavePartnerReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.OrganizationRes;
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncManagementCstRglvlConverter;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncManagementCstRglvlBsAssignInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncManagementCstRglvlExchangeInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncManagementCstRglvlMapper;
-import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import com.sds.sflex.system.config.exception.BizException;
-import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,11 +24,17 @@ public class WsncManagementCstRglvlService {
     private final WsncManagementCstRglvlMapper mapper;
     private final WsncManagementCstRglvlConverter converter;
 
-    public PagingResult<WsncManagementCstRglvlDto.SearchRes> getManagementCustomerRglvlPages(
-        WsncManagementCstRglvlDto.SearchReq dto,
+    public PagingResult<SearchRes> getManagementCustomerRglvls(
+        SearchReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectManagementCustomerRglvlPages(dto, pageInfo);
+        return mapper.selectManagementCustomerRglvls(dto, pageInfo);
+    }
+
+    public List<SearchRes> getManagementCustomerRglvlsForExcelDownload(
+        SearchReq dto
+    ) {
+        return mapper.selectManagementCustomerRglvls(dto);
     }
 
     @Transactional
@@ -58,7 +61,7 @@ public class WsncManagementCstRglvlService {
         return processCount;
     }
 
-    public WsncManagementCstRglvlDto.OrganizationRes getOrganizationInfo(String ogId) {
+    public OrganizationRes getOrganizationInfo(String ogId) {
         return mapper.selectOrganizationInfo(ogId);
     }
 

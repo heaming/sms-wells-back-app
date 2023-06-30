@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/wells-service-cfdc")
@@ -43,5 +44,14 @@ public class WsnbWellsServiceCfdcController {
         PageInfo pageInfo
     ) {
         return service.getWellsServiceConfirmations(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "웰스 서비스 확인서 발송을 위한 주문내역 조회 (엑셀 다운로드)", notes = "Input Parameter 값을 이용하여 웰스 서비스 확인서 리스트를 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getWellsServiceConfirmationsForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getWellsServiceConfirmationsForExcelDownload(dto);
     }
 }

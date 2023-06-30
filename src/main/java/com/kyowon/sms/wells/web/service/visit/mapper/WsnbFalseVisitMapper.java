@@ -7,7 +7,11 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbFalseVisitDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbFalseVisitDto.SearchRes;
 
+import java.util.List;
+
 @Mapper
 public interface WsnbFalseVisitMapper {
     PagingResult<SearchRes> selectFalseVisits(SearchReq dto, PageInfo pageInfo);
+
+    List<SearchRes> selectFalseVisits(SearchReq dto);
 }
