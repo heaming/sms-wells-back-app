@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CtContractConst.REST_URL_V1 + "/changeorders/changes")
+@RequestMapping(CtContractConst.REST_URL_V1 + "/changeorder/changes")
 public class WctbContractChangeMngtController {
 
     private final WctbContractChangeMngtService service;
