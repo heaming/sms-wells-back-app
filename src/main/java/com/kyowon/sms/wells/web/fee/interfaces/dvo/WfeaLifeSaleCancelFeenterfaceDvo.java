@@ -10,7 +10,7 @@ public class WfeaLifeSaleCancelFeenterfaceDvo {
     private String baseYm; /* 기준년월 */
     private String etCnfmDvCd; /* 예상확정구분코드 */
     private String lifCntrNo; /* 라이프계약번호 */
-    private int lifCntrOcTn; /* 라이프계약발생회차 */
+    private Integer lifCntrOcTn; /* 라이프계약발생회차 */
     private String lifCntrStatCd; /* 라이프계약상태코드 */
     private String sellDvCd; /* 판매구분코드 */
     private String prtnrNo; /* 파트너번호 */
@@ -21,11 +21,11 @@ public class WfeaLifeSaleCancelFeenterfaceDvo {
     private String cntrDt; /* 계약일자 */
     private String canDt; /* 취소일자 */
     private String totDsbOjDvCd; /* 총지급대상구분코드 */
-    private int slOcAcuAmt; /* 매출발생누적금액 */
-    private int dpAcuAmt; /* 입금누적금액 */
-    private int flpymTn; /* 완납회차 */
+    private Long slOcAcuAmt; /* 매출발생누적금액 */
+    private Long dpAcuAmt; /* 입금누적금액 */
+    private Integer flpymTn; /* 완납회차 */
     private String cntrNo; /* 계약번호 */
-    private String cntrSn; /* 계약일련번호 */
+    private Integer cntrSn; /* 계약일련번호 */
     private String feeDsbYm; /* 수수료지급년월 */
     private String feeRedfYm; /* 수수료되물림년월 */
     private String cnfmYn; /* 확정여부 */

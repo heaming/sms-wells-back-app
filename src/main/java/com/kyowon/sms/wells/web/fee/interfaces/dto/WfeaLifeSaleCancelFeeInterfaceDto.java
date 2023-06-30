@@ -26,7 +26,7 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         String itm02, /* 상조고객코드 */
         @NotBlank
         @JsonProperty("AKDSEQ")
-        int akdseq, /* 회차 */
+        Integer akdseq, /* 회차 */
         @JsonProperty("AKSGUB")
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
@@ -70,23 +70,19 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         @JsonProperty("AKMAMT")
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
-        int akmamt, /* 누적발생매출 */
+        Long  akmamt, /* 누적발생매출 */
         @JsonProperty("AKIAMT")
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
-        int akiamt, /* 누적입금 */
+        Long  akiamt, /* 누적입금 */
         @JsonProperty("AKISEQ")
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
-        int akiseq, /* 완납회차 */
+        Integer  akiseq, /* 완납회차 */
         @JsonProperty("ITM04")
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
         String itm04, /* WELLS 고객코드 */
-        @JsonProperty("ITM05")
-        @JsonSetter(nulls = Nulls.SKIP)
-        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
-        String itm05, /* WELLS 계약일련번호 */
         @JsonProperty("AKGDYM")
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
@@ -119,23 +115,27 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
         String itm07, /* 최초등록부서ID */
-        @JsonProperty("AKUDAY")
-        @JsonSetter(nulls = Nulls.SKIP)
-        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
-        String akuday, /* 수정일자 */
-        @JsonProperty("AKUDSP")
-        @JsonSetter(nulls = Nulls.SKIP)
-        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
-        String akudsp, /* 수정자 */
-        @JsonProperty("AKUPGM")
-        @JsonSetter(nulls = Nulls.SKIP)
-        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
-        String akupgm, /* 생성PGM */
         @JsonProperty("ITM08")
         @JsonSetter(nulls = Nulls.SKIP)
         @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
         String itm08 /* 최종수정부서ID */
 
+//        @JsonProperty("AKUDAY")
+//        @JsonSetter(nulls = Nulls.SKIP)
+//        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
+//        String akuday, /* 수정일자 */
+//        @JsonProperty("AKUDSP")
+//        @JsonSetter(nulls = Nulls.SKIP)
+//        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
+//        String akudsp, /* 수정자 */
+//        @JsonProperty("AKUPGM")
+//        @JsonSetter(nulls = Nulls.SKIP)
+//        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
+//        String akupgm, /* 생성PGM */
+//        @JsonProperty("ITM05")
+//        @JsonSetter(nulls = Nulls.SKIP)
+//        @JsonDeserialize(using = EmptyStringToNullDeserializer.class)
+//        String itm05, /* WELLS 계약일련번호 */
     ) {}
     @Builder
     @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
