@@ -12,9 +12,7 @@ public class WsncManagementCstRglvlDto {
         String manageYm,
         String rcgvpDiv,
         String exceptWellsManagerYn,
-        @PositiveOrZero
         String addressZipFrom,
-        @PositiveOrZero
         String addressZipTo,
         @NotBlank
         String localGroupCd,
