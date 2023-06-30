@@ -25,12 +25,14 @@ public class WpdySeedlingPriceMgtDto {
         String pdctPdNm, /* 제품상품코드 */
         String pdTpDtlCd, /* 상품유형 */
         String pdClsfNm, /* 상품분류 */
+        String basePdNm, /* 기준상품코드명 */
 
         String rglrSppSdingPrcId, /* 정기배송모종가격ID */
         String pdctPdCd, /* 제품상품코드 */
         String rglrSppMchnKndCd, /* 정기배송기기종류코드 */
         String rglrSppMchnTpCd, /* 정기배송기기유형코드 */
         String rglrSppPrcDvCd, /* 정기배송가격구분코드 */
+        String basePdCd, /* 기준상품코드 */
         Long pdPrcTcnt, /* 상품가격차수 */
         String apyStrtdt, /* 적용시작일자 */
         String apyEnddt, /* 적용종료일자 */
@@ -59,6 +61,7 @@ public class WpdySeedlingPriceMgtDto {
         String rglrSppMchnKndCd, /* 정기배송기기종류코드 */
         String rglrSppMchnTpCd, /* 정기배송기기유형코드 */
         String rglrSppPrcDvCd, /* 정기배송가격구분코드 */
+        String basePdCd, /* 기준상품코드 */
         Long pdPrcTcnt, /* 상품가격차수 */
         String apyStrtdt, /* 적용시작일자 */
         String apyEnddt, /* 적용종료일자 */

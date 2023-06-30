@@ -53,7 +53,10 @@ public class WpdcStandardMgtService {
             prcService.savePricePropFinalDetails(prc, dtls, dto.tbPdbsPdPrcFnlDtl(), startDtm);
             prcService.savePriceDiscountPremiumDetail(pdCd, dto.tbPdbsPdDscPrumDtl());
         }
-        relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
+        if (isCreate || dto.isModifiedRelation()) {
+            relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(pdCd, startDtm);
+        }
         return pdService.getProductByPdCd(pdCd);
     }
 
