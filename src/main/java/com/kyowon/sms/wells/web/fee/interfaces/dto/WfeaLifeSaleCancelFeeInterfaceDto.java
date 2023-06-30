@@ -12,6 +12,7 @@ import java.util.List;
 public class WfeaLifeSaleCancelFeeInterfaceDto {
 
 
+    @Builder
     public record IfRequest(
         @NotBlank
         @JsonProperty("AKSDTE")
