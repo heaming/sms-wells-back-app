@@ -123,4 +123,14 @@ public class WsniCustomerCenterInterfaceService {
 
         return converter.mapDvoToFindAdnInfResDto(returnDvo);
     }
+
+    public List<SearchPkgChRes> getPackageChangeHistory(FindAdnInfReq dto) {
+        List<SearchPkgChRes> searchRes = mapper.selectPackageChangeHistory(dto);
+
+        if (ObjectUtils.isEmpty(searchRes)) {
+            throw new BizException("MSG_TXT_NO_DATA_RM");
+        }
+
+        return searchRes;
+    }
 }

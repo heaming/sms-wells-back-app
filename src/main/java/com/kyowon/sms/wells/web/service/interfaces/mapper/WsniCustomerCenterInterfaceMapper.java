@@ -9,6 +9,7 @@ import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerCenterInterfa
 
 @Mapper
 public interface WsniCustomerCenterInterfaceMapper {
+
     List<SearchContactRes> selectEngineerContactPs(SearchReq dto);
 
     List<SearchPromChRes> selectEngineerPromChHist(SearchReq dto);
@@ -39,4 +40,5 @@ public interface WsniCustomerCenterInterfaceMapper {
 
     String selectTopPlateChangePossibleYn(FindAdnInfReq dto);
 
+    List<SearchPkgChRes> selectPackageChangeHistory(FindAdnInfReq dto);
 }
