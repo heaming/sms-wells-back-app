@@ -48,7 +48,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/home-master/fee")
-    public FindHmstFeeRes getHmstFee(
+    public List<SearchHmstFeeRes> getHmstFee(
         @Valid
         SearchHmstReq dto
     ) {
@@ -93,13 +93,26 @@ public class WfedIndividualFeeMgtController {
         return service.getPlarEntrp(dto);
     }
 
+    @ApiOperation(value = "개인별 수수료 관리 기본 정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 기본 정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
+    })
+    @GetMapping("/plar-basic")
+    public List<SearchPlarEtcRes> getPlarEtcs(
+        @Valid
+        SearchPlarReq dto
+    ) {
+        return service.getPlarEtcs(dto);
+    }
+
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/plar-fee")
-    public FindPlarFeeRes getPlarFee(
+    public List<SearchPlarFeeRes> getPlarFee(
         @Valid
         SearchPlarReq dto
     ) {

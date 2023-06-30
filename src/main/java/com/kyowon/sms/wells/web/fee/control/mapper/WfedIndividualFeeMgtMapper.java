@@ -24,7 +24,7 @@ public interface WfedIndividualFeeMgtMapper {
         SearchHmstReq dto
     );
 
-    FindHmstFeeRes selectHmstFee(
+    List<SearchHmstFeeRes> selectHmstFee(
         SearchHmstReq dto
     );
 
@@ -40,7 +40,11 @@ public interface WfedIndividualFeeMgtMapper {
         SearchPlarReq dto
     );
 
-    FindPlarFeeRes selectPlarFee(
+    List<SearchPlarEtcRes> selectPlarEtcs(
+        SearchPlarReq dto
+    );
+
+    List<SearchPlarFeeRes> selectPlarFee(
         SearchPlarReq dto
     );
 
