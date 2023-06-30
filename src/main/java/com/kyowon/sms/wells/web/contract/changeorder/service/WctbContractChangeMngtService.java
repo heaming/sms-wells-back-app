@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.changeorder.service;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMngtMapper;
@@ -25,4 +26,8 @@ public class WctbContractChangeMngtService {
 
     }
 
+    public WctbContractChangeMngtDto.FindPartnerRes getPartnerByCntrNo(String cntrNo, String cntrSn) {
+        // 계약변경관리-파트너 변경(조회)
+        return mapper.selectPartnerByCntrNo(cntrNo, cntrSn);
+    }
 }

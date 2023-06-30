@@ -65,4 +65,16 @@ public class WctbContractChangeMngtDto {
         String sellInflwChnlDtlCd /* 판매유입채널상세코드 (직원구매 체크용(9020:직원구매->vSalediv:9)) */
     ) {}
 
+    @ApiModel(value = "WctbContractChangeMngtDto-FindPartnerRes")
+    public record FindPartnerRes(
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String prtnrKnm, /* 판매자한글명 (akdnam) */
+        String sellPrtnrNo, /* 판매파트너번호 (lcdcde) */
+        String dgr1LevlOgNm, /* 1차레벨조직명 */
+        String dgr2LevlOgNm, /* 2차레벨조직명 */
+        String dgr3LevlOgNm, /* 3차레벨조직명 */
+        String ogCd, /* (판매자의) 조직코드 */
+        String ogTpCd /* 조직유형코드*/
+    ) {}
 }

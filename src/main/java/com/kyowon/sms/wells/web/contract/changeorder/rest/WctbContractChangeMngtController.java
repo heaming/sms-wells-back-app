@@ -5,8 +5,10 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractChangeMngtService;
@@ -47,5 +49,20 @@ public class WctbContractChangeMngtController {
         PageInfo pageInfo
     ) {
         return service.getContractChangePages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "계약변경관리-파트너 변경(조회)", notes = "계약변경관리-파트너 변경(조회)")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+    })
+    @GetMapping("/partners")
+    public WctbContractChangeMngtDto.FindPartnerRes getPartnerByCntrNo(
+        @RequestParam
+        String cntrNo,
+        @RequestParam
+        String cntrSn
+    ) {
+        return service.getPartnerByCntrNo(cntrNo, cntrSn);
     }
 }

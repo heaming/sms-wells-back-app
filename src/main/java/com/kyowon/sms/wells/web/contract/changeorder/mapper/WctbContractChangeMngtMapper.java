@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.changeorder.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -11,4 +12,5 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WctbContractChangeMngtMapper {
     PagingResult<SearchContractChangeRes> selectContractChanges(SearchContractChangeReq dto, PageInfo pageInfo);
 
+    WctbContractChangeMngtDto.FindPartnerRes selectPartnerByCntrNo(String cntrNo, String cntrSn);
 }
