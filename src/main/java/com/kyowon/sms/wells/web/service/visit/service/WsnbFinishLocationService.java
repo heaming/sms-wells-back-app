@@ -8,6 +8,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WsnbFinishLocationService {
@@ -17,4 +19,7 @@ public class WsnbFinishLocationService {
         return mapper.selectFinishLocations(dto, pageInfo);
     }
 
+    public List<SearchRes> getFinishLocationsForExcelDownload(SearchReq dto) {
+        return mapper.selectFinishLocations(dto);
+    }
 }

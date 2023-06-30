@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/finish-location")
@@ -38,10 +39,19 @@ public class WsnbFinishLocationController {
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getFinishLocations(
-        SearchReq dto,
         @Valid
+        SearchReq dto,
         PageInfo pageInfo
     ) {
         return service.getFinishLocations(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "완료 위치 내역 조회 (엑셀 다운로드)", notes = "완료건에 대한 위치 내역을 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getFinishLocationsForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getFinishLocationsForExcelDownload(dto);
     }
 }
