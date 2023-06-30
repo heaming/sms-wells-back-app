@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractChangeMngtService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -39,9 +39,9 @@ public class WctbContractChangeMngtController {
 
     })
     @GetMapping
-    public PagingResult<SearchRes> getContractChangePages(
+    public PagingResult<SearchContractChangeRes> getContractChangePages(
         @Valid
-        SearchReq dto
+        SearchContractChangeReq dto
     ) {
         return service.getContractChangePages(dto);
     }

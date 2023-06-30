@@ -2,8 +2,8 @@ package com.kyowon.sms.wells.web.contract.changeorder.service;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMngtMapper;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -17,7 +17,7 @@ public class WctbContractChangeMngtService {
 
     private final WctbContractChangeMngtMapper mapper;
 
-    public PagingResult<SearchRes> getContractChangePages(SearchReq dto) {
+    public PagingResult<SearchContractChangeRes> getContractChangePages(SearchContractChangeReq dto) {
         return mapper.selectContractChanges(dto);
 
     }

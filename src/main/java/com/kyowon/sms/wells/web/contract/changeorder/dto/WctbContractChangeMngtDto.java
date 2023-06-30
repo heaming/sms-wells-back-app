@@ -4,8 +4,8 @@ import io.swagger.annotations.ApiModel;
 
 public class WctbContractChangeMngtDto {
 
-    @ApiModel(value = "WctbContractChangeMngtDto-SearchReq")
-    public record SearchReq(
+    @ApiModel(value = "WctbContractChangeMngtDto-SearchContractChangeReq")
+    public record SearchContractChangeReq(
         String cntrNo, // 계약번호
         int cntrSn, // 계약일련번호
         String sellTpCd, // 판매유형코드
@@ -17,8 +17,8 @@ public class WctbContractChangeMngtDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    @ApiModel("WctbContractChangeMngtDto-SearchRes")
-    public record SearchRes(
+    @ApiModel("WctbContractChangeMngtDto-SearchContractChangeRes")
+    public record SearchContractChangeRes(
         String cntrNo, /* 계약번호  lcyear + lccode*/
         int cntrSn, /* 계약일련번호  */
         String sellTpCd, /* 판매유형코드 lcType (2:l20)*/
