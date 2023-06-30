@@ -20,6 +20,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/wells-manager-incharge-excd")
 @Api(tags = "[WSNB] 웰스매니저 미관리계정 현황 REST API")
@@ -47,5 +49,14 @@ public class WsnbWellsManagerIchrExcdController {
         PageInfo pageInfo
     ) {
         return service.getWellsManagerInchargeExcds(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "웰스매니저 미관리계정 현황 (엑셀 다운로드)", notes = "웰스매니저 미관리계정 현황을 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getWellsManagerInchargeExcdsForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getWellsManagerInchargeExcdsForExcelDownload(dto);
     }
 }

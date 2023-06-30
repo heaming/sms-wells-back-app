@@ -8,6 +8,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WsnbWellsManagerIchrExcdService {
@@ -17,5 +19,11 @@ public class WsnbWellsManagerIchrExcdService {
         SearchReq dto, PageInfo pageInfo
     ) {
         return mapper.selectWellsManagerInchargeExcds(dto, pageInfo);
+    }
+
+    public List<SearchRes> getWellsManagerInchargeExcdsForExcelDownload(
+        SearchReq dto
+    ) {
+        return mapper.selectWellsManagerInchargeExcds(dto);
     }
 }
