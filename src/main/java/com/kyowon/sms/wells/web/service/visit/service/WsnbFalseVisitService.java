@@ -8,6 +8,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WsnbFalseVisitService {
@@ -17,5 +19,11 @@ public class WsnbFalseVisitService {
         SearchReq dto, PageInfo pageInfo
     ) {
         return mapper.selectFalseVisits(dto, pageInfo);
+    }
+
+    public List<SearchRes> getFalseVisitsForExcelDownload(
+        SearchReq dto
+    ) {
+        return mapper.selectFalseVisits(dto);
     }
 }

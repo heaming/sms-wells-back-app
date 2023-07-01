@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/false-visit")
@@ -38,5 +39,14 @@ public class WsnbFalseVisitController {
         PageInfo pageInfo
     ) {
         return service.getFalseVisits(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "허위방문 등록현황 조회 (엑셀 다운로드)", notes = "허위방문 등록현황을 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getFalseVisitsForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getFalseVisitsForExcelDownload(dto);
     }
 }

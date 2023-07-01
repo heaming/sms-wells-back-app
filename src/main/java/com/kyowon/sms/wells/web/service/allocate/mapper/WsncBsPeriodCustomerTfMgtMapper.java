@@ -13,9 +13,13 @@ import java.util.List;
 @Mapper
 public interface WsncBsPeriodCustomerTfMgtMapper {
 
-    PagingResult<SearchRes> selectBsPeriodCustomerPages(
+    PagingResult<SearchRes> selectBsPeriodCustomers(
         SearchReq dto,
         PageInfo pageInfo
+    );
+
+    List<SearchRes> selectBsPeriodCustomers(
+        SearchReq dto
     );
 
     List<BranchsAndServiceCentersRes> selectBranchsAndServiceCenters();

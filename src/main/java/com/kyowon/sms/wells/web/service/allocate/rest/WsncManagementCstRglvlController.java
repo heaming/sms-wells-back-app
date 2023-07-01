@@ -1,8 +1,11 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SavePartnerReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.OrganizationRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncManagementCstRglvlService;
-import com.sds.sflex.system.config.constant.CommConst;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -11,6 +14,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,7 +23,8 @@ import java.util.List;
 @Api(tags = "[WSNC] 관리고객 급지관리")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/manage-customer-rglvl")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/manage-customer-rglvl")
+@Validated
 public class WsncManagementCstRglvlController {
     private final WsncManagementCstRglvlService service;
 
@@ -35,11 +40,21 @@ public class WsncManagementCstRglvlController {
         @ApiImplicitParam(name = "partnerNo", value = "매니저", paramType = "query", example = "ALL"),
     })
     @GetMapping("/paging")
-    public PagingResult<WsncManagementCstRglvlDto.SearchRes> getBsPeriodCustomerPages(
-        WsncManagementCstRglvlDto.SearchReq dto,
+    public PagingResult<SearchRes> getManagementCustomerRglvls(
+        @Valid
+        SearchReq dto,
         PageInfo pageInfo
     ) {
-        return service.getManagementCustomerRglvlPages(dto, pageInfo);
+        return service.getManagementCustomerRglvls(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "관리고객 급지 및 배정담당자 조회 (엑셀 다운로드)", notes = "관리고객 급지 및 배정담당자를 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getManagementCustomerRglvlsForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getManagementCustomerRglvlsForExcelDownload(dto);
     }
 
     @ApiOperation(value = "관리고객 급지 및 배정담당자 정보 갱신", notes = "관리고객 급지 및 배정담당자 정보를 변경")
@@ -47,7 +62,7 @@ public class WsncManagementCstRglvlController {
     public SaveResponse savePartnerInfoAndMngerRglvlDvCd(
         @Valid
         @RequestBody
-        List<WsncManagementCstRglvlDto.SavePartnerReq> dtos
+        List<SavePartnerReq> dtos
     ) {
         return SaveResponse.builder()
             .processCount(service.savePartnerInfoAndMngerRglvlDvCd(dtos))
@@ -59,7 +74,7 @@ public class WsncManagementCstRglvlController {
         @ApiImplicitParam(name = "ogId", value = "조직 아이디", paramType = "path", example = ""),
     })
     @GetMapping("/organization-info/{ogId}")
-    public WsncManagementCstRglvlDto.OrganizationRes getOrganizationInfo(
+    public OrganizationRes getOrganizationInfo(
         @PathVariable
         String ogId
     ) {

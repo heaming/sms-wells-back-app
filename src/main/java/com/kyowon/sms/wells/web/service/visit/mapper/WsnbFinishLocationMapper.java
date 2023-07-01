@@ -6,7 +6,11 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 @Mapper
 public interface WsnbFinishLocationMapper {
     PagingResult<SearchRes> selectFinishLocations(SearchReq dto, PageInfo pageInfo);
+
+    List<SearchRes> selectFinishLocations(SearchReq dto);
 }
