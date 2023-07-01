@@ -205,7 +205,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @GetMapping("/as-business")
+    @GetMapping("/as-business-error")
     public EaiWrapper getPackageChangeHistory(
         @RequestBody
         @Valid
