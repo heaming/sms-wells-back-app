@@ -2,122 +2,143 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdOperatingCostMgtMapper">
 
-    <select id="selectCode" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto$FindCodeRes">
-        SELECT DISTINCT SAP_PD_DV_CD
-             , SAP_PD_DV_NM
-          FROM TB_CBCL_SAP_PD_DV_CD
-    </select>
-
     <select id="selectAmount" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$SearchAmountRes">
-        SELECT SUM(COALESCE(BEF_JAN_AMT,0))  AS BEF_JAN_AMT /*이월*/
-             , SUM(COALESCE(CARD_LIM_AMT,0)) AS CARD_THM_DSB  /*당월지급*/
-             , SUM(COALESCE(CARD_LIM_AMT,0)) AS CARD_LIM_AMT /*사용가능*/
-             , SUM(COALESCE(CARD_USE_AMT,0)) AS CARD_USE_AMT /*사용*/
-             , SUM(COALESCE(CARD_CAN_AMT,0)) AS CARD_CAN_AMT/*취소*/
-             , SUM(COALESCE(CARD_RES_AMT,0)) AS CARD_RES_AMT /*잔액*/
-          FROM ( SELECT CASE WHEN SUBSTR(#{baseYM},5,2) != '01'
-                        THEN (SELECT CARD_RES_AMT
-                                FROM WSMDBS.TB_CBCL_OPCS_ADJ_CARD_IZ AA
-                               WHERE AA.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM || '01','YYYYMMDD'),-1),'YYYYMM')
-                                 AND AA.CRCDNO_ENCR = A.CRCDNO_ENCR AND AA.USE_YN='Y'
-                                 AND ROWNUM = 1)
-                             ELSE 0
-                        END AS BEF_JAN_AMT
-                     , A.CARD_LIM_AMT AS CARD_LIM_AMT
-                     , A.CARD_USE_AMT AS CARD_USE_AMT
-                     , (CARD_USE_AMT - (SELECT CARD_USE_AMT
-                                         FROM TB_CBCL_OPCS_ADJ_CARD_IZ T1
-                                        WHERE BASE_YM = #{baseYm}
-                                          AND A.OPCS_CARD_ID = T1.OPCS_CARD_ID
-                                          AND CARD_STAT_CHDT IS NOT NULL)) CARD_CAN_AMT
-                     , A.CARD_RES_AMT AS CARD_RES_AMT
-                  FROM TB_CBCL_OPCS_ADJ_CARD_IZ A
-                 INNER JOIN TB_OGBS_OG_BAS T2 /*조직기본*/
-                    ON A.ADJ_OG_ID = T2.OG_ID
-                 WHERE A.BASE_YM = #{baseYM}
-                   AND A.USE_YN = 'Y'
-               <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-                   AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-                   AND T2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
-                   AND T2.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
-               </if>
-                   AND A.ADJ_USR_ID != 0
-            )
-        <if test="@MybatisUtils@isNotEmpty(pstnDvCd)">
-            AND A.PSTN_DV_CD = #{pstnDvCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(pstnDvCd)">
-            AND A.PSTN_DV_CD != '91' /* 육성팀장 제외 영업부 전체 */
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(adjOgId)">
-            AND SUBSTR(A.ADJ_OG_ID, 1,1) = #{adjOgId}
-        </if>
+        /* [WDCD] 운영비 등록관리 - grid 운영비 금액 현황 */
+        SELECT X.BASE_YM        /*기준년월*/
+             , X.PSTN_DV_CD     /*직급구분코드*/
+             , X.RSB_DV_NM      /*직책명*/
+             , X.ADJ_OG_ID      /*정산조직ID*/
+             , X.ADJ_OG_NM      /*정산조직명*/
+             , X.OG_TP_CD       /*조직유형코드*/
+             , X.ADJ_PRTNR_NO   /*정산파트너번호*/
+             , X.ADJ_USR_NM     /*정산사용자명*/
+             , X.OPCS_ADJ_NO    /*운영비정산번호*/
+             , X.ADJ_YN         /*정산여부*/
+             , SUM(X.BEF_CARD_RES_AMT) AS BEF_CARD_RES_AMT  /*이월잔액*/
+             , SUM(X.CARD_LIM_AMT-X.BEF_CARD_RES_AMT) AS THM_CARD_LIM_AMT   /*당월지급*/
+             , SUM(X.CARD_LIM_AMT) AS CARD_LIM_AMT  /*당월이용가능금액*/
+             , SUM(X.CARD_USE_AMT) AS CARD_USE_AMT  /*당월사용금액*/
+             , SUM(X.CARD_CAN_AMT) AS CARD_CAN_AMT  /*당월취소금액*/
+             , SUM(X.CARD_RES_AMT) AS CARD_RES_AMT  /*잔액*/
+          FROM (SELECT A.BASE_YM        /*기준년월*/
+                     , A.PSTN_DV_CD     /*직급구분코드*/
+                     , C.RSB_DV_CD      /*직책구분코드*/
+                     , (SELECT CD_CNTN
+                          FROM T_CMZ_CD_D S1
+                         WHERE S1.TENANT_ID = 'TNT_WELLS'
+                           AND S1.CD_ID = 'RSB_DV_CD'
+                           AND S1.CD_VLD_VAL = C.RSB_DV_CD) AS RSB_DV_NM    /*직책명*/
+                     , A.ADJ_OG_ID      /*정산조직ID*/
+                     , A.ADJ_OG_NM      /*정산조직명*/
+                     , A.OG_TP_CD       /*조직유형코드*/
+                     , A.ADJ_PRTNR_NO   /*정산파트너번호*/
+                     , A.ADJ_USR_NM     /*정산사용자명*/
+                     , A.OPCS_ADJ_NO    /*운영비정산번호*/
+                     , A.ADJ_YN         /*정산여부*/
+                     , NVL((SELECT S1.CARD_RES_AMT
+                             FROM TB_CBCL_OPCS_ADJ_CARD_IZ S1
+                            WHERE S1.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM||'01','YYYYMMDD'),-1),'YYYYMM')||'%'
+                              AND S1.CRCDNO_ENCR = A.CRCDNO_ENCR
+                              AND S1.USE_YN = 'Y'),0) AS BEF_CARD_RES_AMT /*이월잔액*/
+                     , NVL((SELECT CARD_LIM_AMT
+                              FROM TB_CBCL_OPCS_ADJ_CARD_IZ S1
+                             WHERE S1.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM||'01','YYYYMMDD'),-1),'YYYYMM')||'%'
+                               AND S1.CRCDNO_ENCR = A.CRCDNO_ENCR
+                               AND S1.USE_YN = 'Y'),0) AS BEF_CARD_LIM_AMT /*전월지급*/
+                     , NVL((SELECT CARD_USE_AMT
+                              FROM TB_CBCL_OPCS_ADJ_CARD_IZ S1
+                             WHERE S1.BASE_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM||'01','YYYYMMDD'),-1),'YYYYMM')||'%'
+                               AND S1.CRCDNO_ENCR = A.CRCDNO_ENCR
+                               AND S1.USE_YN = 'Y'),0) AS BEF_CARD_USE_AMT /*전월사용금액*/
+                     , NVL((SELECT S1.CARD_USE_AMT
+                             FROM TB_CBCL_OPCS_ADJ_CARD_IZ S1
+                            WHERE S1.BASE_YM = A.BASE_YM
+                              AND S1.CRCDNO_ENCR = A.CRCDNO_ENCR
+                              AND S1.USE_YN = 'Y'
+                              AND S1.CARD_USE_AMT>0),0) AS CARD_USE_AMT /*카드사용금액*/
+                     , NVL((SELECT S1.CARD_USE_AMT
+                             FROM TB_CBCL_OPCS_ADJ_CARD_IZ S1
+                            WHERE S1.BASE_YM = A.BASE_YM
+                              AND S1.CRCDNO_ENCR = A.CRCDNO_ENCR
+                              AND S1.USE_YN = 'Y'
+                              AND S1.CARD_USE_AMT <![CDATA[<]]> 0),0) AS CARD_CAN_AMT /*카드취소금액*/
+                     , NVL(A.CARD_LIM_AMT,0) AS CARD_LIM_AMT    /*카드사용한도*/
+                     , NVL(A.CARD_RES_AMT,0) AS CARD_RES_AMT    /*카드잔여금액*/
+                 FROM TB_CBCL_OPCS_ADJ_CARD_IZ A /*T:운영비정산카드내역*/
+                INNER JOIN TB_OGBS_MM_OG_IZ B /*T:월조직내역*/
+                   ON B.BASE_YM = A.BASE_YM
+                  AND B.OG_ID = A.ADJ_OG_ID
+                INNER JOIN TB_OGBS_MM_PRTNR_IZ C /*T:*월파트너내역*/
+                   ON C.BASE_YM = B.BASE_YM
+                  AND C.OG_ID = B.OG_ID
+                WHERE 1=1
+                  AND A.BASE_YM = #{baseYm}         /*기준년월*/
+                  AND A.DTA_DL_YN = 'N'
+                  AND A.USE_YN = 'Y'
+                  AND A.CARD_STAT_CD = '00'         /*카드상태코드-00:사용*/
+                  AND OPCS_ADJ_NO IS NOT NULL
+            <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                  AND A.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                  AND A.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                  AND A.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
+            </if>
+               ) X
+         WHERE 1=1
+           AND ROWNUM= 1
+         GROUP BY X.BASE_YM     /*기준년월*/
+             , X.PSTN_DV_CD     /*직급구분코드*/
+             , X.RSB_DV_NM      /*직책명*/
+             , X.ADJ_OG_ID      /*정산조직ID*/
+             , X.ADJ_OG_NM      /*정산조직명*/
+             , X.OG_TP_CD       /*조직유형코드*/
+             , X.ADJ_PRTNR_NO   /*정산파트너번호*/
+             , X.ADJ_USR_NM     /*정산사용자명*/
+             , X.OPCS_ADJ_NO    /*운영비정산번호*/
+             , X.ADJ_YN         /*정산여부*/
     </select>
 
     <select id="selectSummary" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$SearchSummaryRes">
-        SELECT COUNT(APR_DT) AS APR_DT/*승인일시*/
-             , COUNT('') AS USR_SMRY_CN
-             , OPCS_WHTX_CFDC_APN_FILE_ID
-          FROM TB_CBCL_OPCS_ADJ_BAS T1
-         INNER JOIN TB_CBCL_OPCS_ADJ_USE_REL T2
-            ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
-           AND T1.BASE_YM = T2.BASE_YM
-         INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ T3
-            ON T2.OPCS_CARD_USE_IZ_ID = T3.OPCS_CARD_USE_IZ_ID
-           AND T2.BASE_YM = T3.BASE_YM
-         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T4
-            ON T1.ADJ_USR_ID = T4.ADJ_USR_ID
-           AND T1.BASE_YM = T4.BASE_YM
-        INNER JOIN TB_OGBS_OG_BAS T5 /*조직기본*/
-            ON T4.ADJ_OG_ID = T5.OG_ID
-           AND T4.USE_YN = 'Y'
-           AND (T4.ADJ_USR_ID = #{session.userId} OR T4.BLDMR_PRTNR_NO = #{session.userId})
-         WHERE T1.DTA_DL_YN = 'N'
-           AND T1.BASE_YM = #{baseYm}
-        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-           AND T5.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-           AND T5.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
-           AND T5.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
-        </if>
-         GROUP BY OPCS_WHTX_CFDC_APN_FILE_ID
-         UNION
-        SELECT COUNT('') AS APR_DT /*승인일시*/
-             , COUNT(USR_SMRY_CN) AS USR_SMRY_CN
-             , OPCS_WHTX_CFDC_APN_FILE_ID
-          FROM TB_CBCL_OPCS_ADJ_BAS T1
-         INNER JOIN TB_CBCL_OPCS_ADJ_USE_REL T2
-            ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
-           AND T1.BASE_YM = T2.BASE_YM
-         INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ T3
-            ON T2.OPCS_CARD_USE_IZ_ID = T3.OPCS_CARD_USE_IZ_ID
-           AND T2.BASE_YM = T3.BASE_YM
-         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T4
-            ON T1.ADJ_USR_ID = T4.ADJ_USR_ID
-           AND T1.BASE_YM = T4.BASE_YM
-         INNER JOIN TB_OGBS_OG_BAS T5 /*조직기본*/
-            ON T4.ADJ_OG_ID = T5.OG_ID
-           AND T4.USE_YN = 'Y'
-           AND (T4.ADJ_USR_ID = #{session.userId} OR T4.BLDMR_PRTNR_NO = #{session.userId})
-         WHERE T1.DTA_DL_YN = 'N'
-           AND T1.BASE_YM = #{baseYm}
-        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-           AND T5.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-           AND T5.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
-           AND T5.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
-        </if>
-         GROUP BY OPCS_WHTX_CFDC_APN_FILE_ID
+        /* 운영비 등록관리 - grid 운영비 적요 현황 */
+        SELECT OPCS_CARD_ID
+             , OPCS_ADJ_NO
+             , COUNT(1) AS OPCS_ADJ_CNT /*운영비총사용건수*/
+             , SUM(CASE WHEN X.ADJ_YN = 'Y' THEN 0 ELSE 1 END) AS OPCS_SMRY_N_CNT   /*미적요건수*/
+             , MAX(X.OPCS_WHTX_CFDC_APN_FILE_ID) AS OPCS_WHTX_CFDC_APN_FILE_ID      /*운영비원천세확인서첨부파일ID*/
+          FROM (SELECT A.OPCS_CARD_ID
+                     , A.OPCS_ADJ_NO    /*운영비정산번호*/
+                     , A.ADJ_YN         /*정산여부*/
+                     , A.OPCS_WHTX_CFDC_APN_FILE_ID /*운영비원천세확인서첨부파일ID*/
+                  FROM TB_CBCL_OPCS_ADJ_CARD_IZ A /*T:운영비정산카드내역*/
+                 INNER JOIN TB_OGBS_MM_OG_IZ B /*T:월조직내역*/
+                    ON B.BASE_YM = A.BASE_YM
+                   AND B.OG_ID = A.ADJ_OG_ID
+                 WHERE 1=1
+                   AND A.DTA_DL_YN = 'N'
+                   AND A.BASE_YM = #{baseYm}        /*기준년월*/
+                   AND A.ADJ_PRTNR_NO IS NOT NULL   /*정산파트너번호*/
+            <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                   AND A.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                   AND A.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                   AND A.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
+            </if>
+               ) X
+         WHERE 1=1
+           AND ROWNUM= 1
+         GROUP BY X.OPCS_CARD_ID, X.OPCS_ADJ_NO
     </select>
 
+    <update id="updateFile">
+        UPDATE TB_CBCL_OPCS_ADJ_CARD_IZ SET
+               OPCS_WHTX_CFDC_APN_FILE_ID = #{opcsWhtxCfdcApnFileId}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE OPCS_CARD_ID = #{opcsCardId}
+    </update>
 </mapper>

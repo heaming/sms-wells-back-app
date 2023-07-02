@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[WDCD]원천세정산 - 유가증권")
+@Api(tags = "[WDCD]원천세정산 - 유가증권 popUp")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
