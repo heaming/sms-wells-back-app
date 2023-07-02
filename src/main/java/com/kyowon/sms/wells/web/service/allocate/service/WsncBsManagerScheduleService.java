@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 /**
  *
  *
- * W-SV-U-0089M01 BS관리일정조회
+ * W-SV-U-0089M01 BS관리일정조회(일자별)
  *
  *
  * @author 37615 홍세기
@@ -25,16 +25,16 @@ import lombok.RequiredArgsConstructor;
 public class WsncBsManagerScheduleService {
     private final WsncBsManagerScheduleMapper mapper;
 
-    public List<WsncBsManagerScheduleDto.Aggregates> getBsManagerScheduleAgrg(
+    public List<WsncBsManagerScheduleDto.Aggregates> getBsScheduleDateAgrg(
         WsncBsManagerScheduleDto.SearchReq dto
     ) {
-        return mapper.selectBsManagerScheduleAgrg(dto);
+        return mapper.selectBsScheduleDateAgrg(dto);
     }
 
-    public PagingResult<WsncBsManagerScheduleDto.SearchRes> getBsManagerSchedulePages(
+    public PagingResult<WsncBsManagerScheduleDto.SearchRes> getBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectBsManagerSchedulePages(dto, pageInfo);
+        return mapper.selectBsScheduleDatePages(dto, pageInfo);
     }
 }
