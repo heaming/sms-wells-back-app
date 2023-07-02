@@ -25,16 +25,16 @@ import lombok.RequiredArgsConstructor;
 public class WsncBsManagerScheduleService {
     private final WsncBsManagerScheduleMapper mapper;
 
-    public List<WsncBsManagerScheduleDto.Aggregates> getBsManagerScheduleAgrg(
+    public List<WsncBsManagerScheduleDto.Aggregates> getBsScheduleDateAgrg(
         WsncBsManagerScheduleDto.SearchReq dto
     ) {
-        return mapper.selectBsManagerScheduleAgrg(dto);
+        return mapper.selectBsScheduleDateAgrg(dto);
     }
 
-    public PagingResult<WsncBsManagerScheduleDto.SearchRes> getBsManagerSchedulePages(
+    public PagingResult<WsncBsManagerScheduleDto.SearchRes> getBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectBsManagerSchedulePages(dto, pageInfo);
+        return mapper.selectBsScheduleDatePages(dto, pageInfo);
     }
 }

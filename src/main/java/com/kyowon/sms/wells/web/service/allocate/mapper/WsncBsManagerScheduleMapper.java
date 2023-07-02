@@ -20,11 +20,11 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsncBsManagerScheduleMapper {
-    List<WsncBsManagerScheduleDto.Aggregates> selectBsManagerScheduleAgrg(
+    List<WsncBsManagerScheduleDto.Aggregates> selectBsScheduleDateAgrg(
         WsncBsManagerScheduleDto.SearchReq dto
     );
 
-    PagingResult<WsncBsManagerScheduleDto.SearchRes> selectBsManagerSchedulePages(
+    PagingResult<WsncBsManagerScheduleDto.SearchRes> selectBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto, PageInfo pageInfo
     );
 
