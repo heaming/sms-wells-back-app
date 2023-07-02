@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class WsncBsManagerScheduleController {
     private final WsncBsManagerScheduleService service;
 
-    @ApiOperation(value = "BS관리일정 조회 화면(일자별) - 집계 조회", notes = "조회조건에 따른 BS관리일정(일자별) 집계 조회")
+    @ApiOperation(value = "BS관리일정 조회 화면(일자별) - 집계 조회", notes = "조회조건에 따른 BS관리일정(일자별) 집계 조회 일자별로 화면명 변경")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "fxnPrtnrNo", value = "파트너사번", paramType = "query", required = false),
         @ApiImplicitParam(name = "baseDateFrom", value = "관리년월From", paramType = "query", required = true),

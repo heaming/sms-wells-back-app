@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 /**
  *
  *
- * W-SV-U-0089M01 BS관리일정조회
+ * W-SV-U-0089M01 BS관리일정조회(일자별)
  *
  *
  * @author 37615 홍세기
