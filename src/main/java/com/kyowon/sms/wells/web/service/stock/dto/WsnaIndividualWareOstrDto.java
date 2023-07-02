@@ -67,9 +67,11 @@ public class WsnaIndividualWareOstrDto {
         String ostrIzOstrSn, /*출고일련번호*/
         String ostrIzSellRcpdt, /*판매접수일자*/
         String cfrmQty, /*확정수량*/
+        String cfrmBoxQty,
         String outQty, /*출고수량*/
         String accBoxQty, /*물량배정출고박스수량*/
-        String outBoxQty /*출고박스수량*/
+        String outBoxQty, /*출고박스수량*/
+        String asnOjYm
     ) {}
 
     @ApiModel("WsnaIndividualWareOstrDto-LogisticReq")
