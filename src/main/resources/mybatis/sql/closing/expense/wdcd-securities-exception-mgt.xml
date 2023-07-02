@@ -2,112 +2,156 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdSecuritiesExceptionMgtMapper">
 
-    <select id="selectAdjustObject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto$SearchAdjustObjectRes">
-        SELECT SUBSTR(T1.CRCDNO_ENCR ,1,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,5,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,9,4) || '-' || SUBSTR(T1.CRCDNO_ENCR,13,4) AS CARD_NUM
-             , TO_CHAR(TO_DATE(T1.APVTM_MS,'YYYY-MM-DD HH24:MI'),'YYYY-MM-DD HH24:MI') AS AUTH_DATE
-             , (SELECT C2.DGR2_LEVL_OG_NM
-                  FROM TB_OGBS_MM_OG_IZ C2
-                 WHERE C2.OG_TP_CD = T3.OG_TP_CD
-                   AND ROWNUM = 1) AS OG_TP_NM
-             , T1.CARD_APRNO
-             , CASE T1.CARD_APR_STAT_CD WHEN '1' THEN '승인' WHEN '0' THEN '취소' END AS STAT_NM
-             , CASE T1.CARD_APR_STAT_CD WHEN '0' THEN T1.DOM_TRD_AMT*-1 ELSE T1.DOM_TRD_AMT END AS REQUEST_AMOUNT
-             , T1.FOR_TRD_AMT
-             , T1.CDCO_CD
-             , SUM(CASE T1.CARD_APR_STAT_CD WHEN '0' THEN T1.DOM_TRD_AMT*-1 ELSE T1.DOM_TRD_AMT END) OVER() AS USE_AMT
-             , T2.ADJ_OG_NM
-             , CASE T1.ADJ_CRCDNO_ENCR WHEN '51' THEN '시상' WHEN '52' THEN '행사/교육/회의' WHEN '53' THEN '영업활동지원' WHEN '54' THEN '비품' WHEN '03' THEN '상품권' END AS USE_CLS_NM
-             , CASE COALESCE(T1.USR_SMRY_CN,' ') WHEN ' ' THEN 'N' ELSE 'Y' END AS MEMO_YN
-             , T1.OPCS_ADJ_SMRY_DV_CD
-             , T1.ADJ_CRCDNO_ENCR
-             , T1.MRC_TOBZ_CD
-             , T1.MRC_TOBZ_NM
-             , T1.MRC_ADR_CN
-             , CASE ( SELECT COUNT(1) FROM TB_CBCL_OPCS_ADJ_USE_REL WHERE OPCS_CARD_USE_IZ_ID = OPCS_CARD_USE_IZ_ID ) WHEN 0 THEN '' ELSE '완료' END AS MRSC_ACC_YN
-             , T1.DTA_DL_YN
-             , T1.OPCS_ADJ_SMRY_DV_CD /*운영비정산적요구분코드*/
-             , T1.OJ_APY_CN /*대상적용내용*/
-             , T1.USR_SMRY_CN /*사용자적요내용*/
-             , T2.ADJ_YN
-             , T2.MSCR_WHTX_CFDC_APN_FILE_ID
-             , T1.OPCS_ADJ_EXCD_YN
-             , T1.OPCS_CARD_USE_IZ_ID
-          FROM TB_CBCL_OPCS_CARD_USE_IZ T1
-         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ T2
-            ON T1.OPCS_CARD_USE_IZ_ID = T2.OPCS_CARD_ID
-           AND USE_YN = 'Y'
-           AND T1.BASE_YM = T2.BASE_YM
-           AND T2.BASE_YM = #{baseYm}
-           AND (T2.ADJ_USR_ID = #{session.userId} OR T2.BLDMR_PRTNR_NO = #{session.userId})
-         INNER JOIN TB_CBCL_OPCS_ADJ_BASE_BAS T3
-            ON T2.OG_TP_CD = T3.OG_TP_CD
-           AND T2.BASE_YM = T3.BASE_YM
-           AND T3.MSCR_YN = 'N'
-         WHERE T1.MRC_TOBZ_NM NOT LIKE '%상품권%'
-           AND T1.MRC_NM NOT LIKE '%상품권%'
-           AND T1.MRC_NM NOT LIKE '%기프티%'
-           AND T1.MRC_NM NOT LIKE '%기프트%'
-           AND T1.MRC_NM NOT LIKE '%카카오%선물%'
-         ORDER BY CASE T2.ADJ_USR_ID WHEN #{session.userId} THEN 0 ELSE 1 END, T2.CRCDNO_ENCR, T1.APR_DT
-    </select>
-
-    <select id="selectWithholdingTaxAdjust" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto$SearchWithholdingTaxAdjustRes">
-        SELECT T7.DGR2_LEVL_OG_NM
-             , T7.DGR3_LEVL_OG_NM
-             , ADJ_DEPT_OG_ID
-             , T1.OG_TP_CD
-             , (SELECT USR_NM
-                  FROM T_CMP_USR_ACO_M
-                 WHERE USR_ID = ADJ_USR_ID) AS USR_NM
-             , T1.OPCS_ADJ_NO
-             , (SELECT CRLV_NM
-                  FROM T_CMP_USR_ACO_M
-                 WHERE USR_ID = ADJ_USR_ID) AS CRLV_NM
-             , T6.ADJ_CNFM_AMT
-             , T2.DST_WHTX
-             , T5.CARD_APRNO
-          FROM TB_CBCL_OPCS_CNFM_BAS T6
-         INNER JOIN TB_CBCL_OPCS_ADJ_BAS T1
-            ON T6.OG_TP_CD = T1.OG_TP_CD
-           AND T6.BASE_YM = T1.BASE_YM
-           AND T6.MSCR_YN = 'N'
-           AND T1.MSCR_YN = 'N'
-         INNER JOIN TB_CBCL_OPCS_ADJ_DTL T2
-            ON T1.OPCS_ADJ_NO = T2.OPCS_ADJ_NO
-         INNER JOIN TB_CBCL_OPCS_ADJ_USE_REL T3
-            ON T1.OPCS_ADJ_NO = T3.OPCS_ADJ_NO
-           AND T1.BASE_YM = T3.BASE_YM
-         INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ T5
-            ON T3.OPCS_CARD_USE_IZ_ID = T5.OPCS_CARD_USE_IZ_ID
-         INNER JOIN TB_OGBS_OG_BAS T7 /*조직기본*/
-            ON T1.ADJ_DEPT_OG_ID = T7.OG_ID
-           AND T1.PSTN_DV_CD = T7.OG_CD
-         INNER JOIN TB_OGBS_PRTNR_DTL T8 /*파트너 상세*/
-            ON T1.PSTN_DV_CD = T8.PSTN_DV_CD
-           AND T7.OG_TP_CD = T8.OG_TP_CD
-         WHERE T1.BASE_YM = #{baseYM}
-           AND T1.ADJ_USR_ID = #{session.userId}
-           AND T1.DTA_DL_YN = 'N'
-           AND T2.DTA_DL_YN = 'N'
-           AND T3.DTA_DL_YN = 'N'
-           AND T1.BASE_YM = #{baseYm}
-       <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-           AND T8.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-           AND T8.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(dgr4LevlOgId)">
-           AND T8.DGR4_LEVL_OG_ID = #{dgr4LevlOgId}
-       </if>
+    <select id="selectAdjustObject" resultType="com.kyowon.sms.wells.web.closing.expense.dvo.WdcdSecuritiesExceptionDvo">
+        /* [WDCD] 운영비 등록 관리 - 유가증권 제외 */
+        SELECT A.OPCS_CARD_USE_IZ_ID    /*운영비카드사용내역ID*/
+             , TO_CHAR(TO_DATE(A.APR_DT||A.APVTM_MS,'YYYYMMDDHH24MISS'),'YYYY-MM-DD AM HH24:MI') AS USE_DTM /*사용일시*/
+             , C.DGR1_LEVL_OG_ID        /*(hidden)총괄단조직ID*/
+             , C.DGR1_LEVL_OG_NM        /*총괄단명*/
+             , A.CRCDNO_ENCR            /*카드번호*/
+             , A.MRC_NM                 /*가맹점명*/
+             , A.MRC_TOBZ_NM            /*가맹점업종명*/
+             , A.MRC_ADR_CN             /*가맹점주소내용*/
+             , A.CARD_APRNO             /*카드승인번호*/
+             , SUM(CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
+                        ELSE A.DOM_TRD_AMT END) OVER() AS DOM_TRD_AMT    /*사용금액*/
+             , (CASE WHEN A.OPCS_ADJ_EXCD_YN = 'Y' THEN '정산제외' ELSE '정산' END) AS OPCS_ADJ_EXCD_YN   /*운영비정산제외여부*/
+             , A.OPCS_ADJ_SMRY_DV_CD    /*운영비정산적요구분코드*/
+             , (SELECT CD_CNTN
+                  FROM T_CMZ_CD_D S1
+                 WHERE S1.TENANT_ID = 'TNT_WELLS'
+                   AND S1.CD_ID = 'OPCS_ADJ_SMRY_DV_CD'
+                   AND S1.CD_VLD_VAL = A.OPCS_ADJ_SMRY_DV_CD) AS OPCS_ADJ_SMRY_DV_NM    /*운영비정산적요구분명*/
+             , A.OJ_APY_CN              /*대상적용내용*/
+             , A.USR_SMRY_CN            /*사용자적요내용*/
+             , A.MRC_TOBZ_CD            /*(hidden)가맹점업종코드*/
+             , A.CDCO_CD                /*(hidden)카드사코드*/
+             , '원천세 정산' AS OPCS_ADJ_BTN       /*원천세정산버튼*/
+             , (CASE (SELECT COUNT(1) FROM TB_CBCL_OPCS_ADJ_USE_REL S1 WHERE S1.OPCS_CARD_USE_IZ_ID = A.OPCS_CARD_USE_IZ_ID)
+                     WHEN 0 THEN ''
+                     ELSE '완료' END) AS ADJ_CLS  /*정산여부*/
+             , B.ADJ_OG_ID
+          FROM TB_CBCL_OPCS_CARD_USE_IZ A /*T:운영비카드사용내역*/
+         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ B /*T:운영비정산카드내역*/
+            ON B.CRCDNO_ENCR = A.CRCDNO_ENCR
+           AND B.BASE_YM = A.BASE_YM
+         INNER JOIN TB_OGBS_MM_OG_IZ C /*T:월조직내역*/
+            ON C.BASE_YM = B.BASE_YM
+           AND C.OG_ID = B.ADJ_OG_ID
+         WHERE 1=1
+           AND A.DTA_DL_YN = 'N'
+           AND B.USE_YN = 'Y'
+           AND B.BASE_YM = #{baseYm}
+        <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+           AND B.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND B.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND B.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
+        </if>
+        AND A.MRC_TOBZ_NM NOT LIKE '%'||'상품권'||'%'
+        AND A.MRC_NM NOT LIKE '%'||'상품권'||'%'
+        AND A.MRC_NM NOT LIKE '%'||'기프트'||'%'
+        AND A.MRC_NM NOT LIKE '%'||'기프티'||'%'
+        AND A.MRC_NM NOT LIKE '%'||'카카오'||'%'||'선물'||'%'
+      ORDER BY A.CRCDNO_ENCR
+             , A.APR_DT
+             , A.APVTM_MS
     </select>
 
     <update id="editWithholdingTaxAdjust">
-        UPDATE TB_CBCL_OPCS_CARD_USE_IZ SET
-             , OPCS_ADJ_EXCD_YN    = #{opcsAdjExcdYn}
-             , OPCS_ADJ_SMRY_DV_CD = #{opcsAdjSmryDvCd}
-             , OJ_APY_CN   = #{ojApyCn}
-             , USR_SMRY_CN = #{usrSmryCn}
-         WHERE OPCS_CARD_USE_IZ_ID = #{opcsCardUseIzId}
+        /* 정산대상 grid 우측상단의 "저장" 버튼
+         -- 입력값 모두 필수입력 사항임
+         -- 정산제외여부를 'Y'로 된 경우 저장버튼 클릭시 아래의 로직을 필수적으로 체크하여 부합될때 update가 되어야 함
+          -- 1. grid에서 2개 이상의 정상제외여부가 'Y'로 되어 있어야 함
+             2. 'Y'로 된 행에 대하여 승인번호가 모두 동일하여야 함
+             3. 'Y'로 된 행에 대하여 사용금액 합계가 0이 되어야 함
+        */
+        UPDATE TB_CBCL_OPCS_CARD_USE_IZ /*T:운영비카드사용내역*/
+           SET OPCS_ADJ_EXCD_YN    = #{opcsAdjExcdYn}   /*정산제외여부*/
+             , OPCS_ADJ_SMRY_DV_CD = #{opcsAdjSmryDvCd} /*적요입력-구분*/
+             , OJ_APY_CN = #{ojApyCn}                   /*적요입력-대상*/
+             , USR_SMRY_CN = #{usrSmryCn}               /*적요입력-구매품목 및 사용내역*/
+         WHERE 1=1
+           AND OPCS_CARD_USE_IZ_ID = #{opcsCardUseIzId} /*운영비카드사용내역ID-정산대상 grid에서 선택된 행*/
     </update>
+
+    <select id="selectWithholdingTaxAdjust" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto$SearchWithholdingTaxAdjustRes">
+        SELECT X.DGR1_LEVL_OG_NM            /*총괄단*/
+             , X.DGR2_LEVL_OG_NM            /*지역단*/
+             , X.DST_OJPS_NM                /*성명*/
+             , X.DST_OJ_PRTNR_NO            /*번호*/
+             , X.RSB_DV_NM                  /*직책명*/
+             , SUM(X.DST_AMT) AS DST_AMT    /*운영비정산금액*/
+             , SUM(X.DST_WHTX) AS DST_WHTX  /*원천세*/
+             , SUM(X.ERNTX) AS ERNTX        /*(hidden)소득세*/
+             , SUM(X.RSDNTX) AS RSDNTX      /*(hidden)주민세*/
+          FROM (SELECT T2.DGR1_LEVL_OG_NM   /*총괄단*/
+                     , T2.DGR2_LEVL_OG_NM   /*지역단*/
+                     , T1.DST_OJPS_NM       /*성명*/
+                     , T1.DST_OJ_PRTNR_NO   /*번호*/
+                     , (SELECT CD_CNTN
+                          FROM T_CMZ_CD_D S1
+                         WHERE S1.TENANT_ID = 'TNT_EDU'
+                           AND S1.CD_ID = 'RSB_DV_CD'
+                           AND S1.CD_VLD_VAL = T3.RSB_DV_CD) AS RSB_DV_NM    /*직책명*/
+                     , T1.DST_AMT           /*운영비정산금액*/
+                     , T1.DST_WHTX          /*원천세*/
+                     , T1.ERNTX             /*소득세*/
+                     , T1.RSDNTX            /*주민세*/
+                     , T5.CARD_APRNO        /*승인번호*/
+                  FROM (SELECT B.DST_OJ_OG_TP_CD    /*배분대상조직유형코드*/
+                             , B.DST_OJ_PRTNR_NO    /*배분대상파트너번호*/
+                             , B.DST_OJPS_NM        /*배분대상자명*/
+                             , A.ADJ_OG_ID          /*정산조직ID*/
+                             , A.OPCS_ADJ_NO        /*운영비정산번호*/
+                             , MAX(B.DST_OJPS_PERF_AMT) AS DST_OJPS_PERF_AMT    /*배분대상자실적금액*/
+                             , SUM(B.DST_AMT) AS DST_AMT    /*배분금액*/
+                             , SUM(B.DST_WHTX) AS DST_WHTX  /*배분원천세*/
+                             , SUM(B.ERNTX) AS ERNTX        /*소득세*/
+                             , SUM(B.RSDNTX) AS RSDNTX      /*주민세*/
+                             , MAX(A.USE_AMT) AS USE_AMT    /*사용금액*/
+                             , MAX(A.BASE_YM) AS BASE_YM    /*기준월*/
+                          FROM TB_CBCL_OPCS_ADJ_BAS A /*T:운영비정산기본*/
+                         INNER JOIN TB_CBCL_OPCS_ADJ_DTL B /*T:운영비정산상세*/
+                            ON B.OPCS_ADJ_NO = A.OPCS_ADJ_NO
+                         INNER JOIN TB_OGBS_MM_PRTNR_IZ C /*T:월파트너내역*/
+                            ON C.BASE_YM = A.BASE_YM
+                           AND C.OG_ID = A.ADJ_OG_ID
+                         WHERE 1=1
+                           AND A.DTA_DL_YN = 'N'
+                           AND A.BASE_YM = #{baseYm}        /*기준년월*/
+                           AND A.OPCS_ADJ_NO = #{opcsAdjNo} /*운영비정산번호*/
+                           AND A.MSCR_YN = 'N'     /*유가증권여부*/
+                         GROUP BY B.DST_OJ_OG_TP_CD /*배분대상조직유형코드*/
+                             , B.DST_OJ_PRTNR_NO    /*배분대상파트너번호*/
+                             , B.DST_OJPS_NM        /*배분대상자명*/
+                             , A.ADJ_OG_ID          /*정산조직ID*/
+                             , A.OPCS_ADJ_NO        /*운영비정산번호*/
+                       ) T1
+                 INNER JOIN TB_OGBS_MM_OG_IZ T2 /*T:월조직내역*/
+                    ON T2.BASE_YM = T1.BASE_YM
+                   AND T2.OG_ID = T1.ADJ_OG_ID
+                  LEFT JOIN TB_OGBS_MM_PRTNR_IZ T3 /*T:월파트너내역*/
+                    ON T3.BASE_YM = T1.BASE_YM
+                   AND T3.OG_TP_CD = T1.DST_OJ_OG_TP_CD
+                   AND T3.PRTNR_NO = T1.DST_OJ_PRTNR_NO
+                  LEFT JOIN TB_CBCL_OPCS_ADJ_USE_REL T4 /*운영비정산사용관계*/
+                    ON T4.BASE_YM = T1.BASE_YM
+                   AND T4.OPCS_ADJ_NO = T1.OPCS_ADJ_NO
+                  LEFT JOIN TB_CBCL_OPCS_CARD_USE_IZ T5 /*T:운영비정산카드내역*/
+                    ON T5.BASE_YM = T1.BASE_YM
+                   AND T5.OPCS_CARD_USE_IZ_ID = T4.OPCS_CARD_USE_IZ_ID
+                 WHERE 1=1
+               ) X
+         WHERE 1=1
+         GROUP BY X.DGR1_LEVL_OG_NM /*총괄단*/
+             , X.DGR2_LEVL_OG_NM    /*지역단*/
+             , X.DST_OJPS_NM        /*성명*/
+             , X.DST_OJ_PRTNR_NO    /*번호*/
+             , X.RSB_DV_NM          /*직책명*/
+         ORDER BY SUM(X.DST_AMT) DESC
+    </select>
 </mapper>

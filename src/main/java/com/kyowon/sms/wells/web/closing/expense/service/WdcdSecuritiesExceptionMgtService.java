@@ -1,12 +1,13 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
-import com.kyowon.sms.wells.web.closing.expense.converter.WdcdMarketableSecuritiesExcdMgtContverter;
+import com.kyowon.sms.wells.web.closing.expense.converter.WdcdSecuritiesExceptionMgtContverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto.*;
-import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritiesExcdDvo;
+import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdSecuritiesExceptionDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdSecuritiesExceptionMgtMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,11 +15,17 @@ import java.util.List;
 public class WdcdSecuritiesExceptionMgtService {
 
     private final WdcdSecuritiesExceptionMgtMapper mapper;
-    private final WdcdMarketableSecuritiesExcdMgtContverter contverter;
+    private final WdcdSecuritiesExceptionMgtContverter contverter;
 
     public List<SearchAdjustObjectRes> getAdjustObject(SearchAdjustObjectReq req) {
 
-        return mapper.selectAdjustObject(req);
+        List<WdcdSecuritiesExceptionDvo> dvos = mapper.selectAdjustObject(req);
+
+        List<SearchAdjustObjectRes> res = new ArrayList<>();
+        for (WdcdSecuritiesExceptionDvo dvo : dvos) {
+            res.add(contverter.mapWdcdMarketableSecuritiesExcdDvoToSearchAdjustObjectRes(dvo));
+        }
+        return res;
     }
 
     public List<SearchWithholdingTaxAdjustRes> getWithholdingTaxAdjust(SearchWithholdingTaxAdjustReq req) {
@@ -26,10 +33,10 @@ public class WdcdSecuritiesExceptionMgtService {
         return mapper.selectWithholdingTaxAdjust(req);
     }
 
-    public int editWithholdingTaxAdjust(List<EditReq> reqs) {
+    public int editWithholdingTaxAdjust(List<SaveReq> reqs) {
         int count = 0;
-        for (EditReq req : reqs) {
-            WdcdMarketableSecuritiesExcdDvo dvo = contverter.mapEditReqToWdcdMarketableSecuritiesExcdDvo(req);
+        for (SaveReq req : reqs) {
+            WdcdSecuritiesExceptionDvo dvo = contverter.mapEditReqToWdcdMarketableSecuritiesExcdDvo(req);
             count += mapper.editWithholdingTaxAdjust(dvo);
         }
 

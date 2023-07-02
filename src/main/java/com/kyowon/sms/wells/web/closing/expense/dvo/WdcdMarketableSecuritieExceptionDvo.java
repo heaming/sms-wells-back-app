@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WdcdMarketableSecuritiesDvo {
+public class WdcdMarketableSecuritieExceptionDvo {
 
     private String opcsAdjNo; // 운영비정산번호
     private String dstOjOgTpCd;
@@ -23,5 +23,5 @@ public class WdcdMarketableSecuritiesDvo {
     private String adjOgId;
     private String baseYm;
     private String adjPrtnrNo;
-    private String delete;
+    private String deleted;
 }
