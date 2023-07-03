@@ -6,7 +6,7 @@
                SELECT I2.OG_PRTNR_NO
                     , B1.PSTN_DV_CD
                     , B1.PRTNR_KNM AS OG_PRTNR_NM
-                    , F_CMZ_CD_NM('TNT_WELLS', 'WELLS_OJ_PSTN_RANK_CD', B1.PSTN_DV_CD)  AS WELLS_OJ_PSTN_RANK_NM /* [구분] - WELLS대상직급명-CODE : WELLS_OJ_PSTN_RANK_CD */
+                    , F_CMZ_CD_NM(#{session.tenantId}, 'WELLS_OJ_PSTN_RANK_CD', B1.PSTN_DV_CD)  AS WELLS_OJ_PSTN_RANK_NM /* [구분] - WELLS대상직급명-CODE : WELLS_OJ_PSTN_RANK_CD */
                     , I2.DGR_LEVL_OG_CD
                     , I2.OG_CD
                     , I2.OG_ID
@@ -148,7 +148,7 @@
              )
            , W2 AS (
              SELECT A1.DANG_CHK_ID
-                  , F_CMZ_CD_NM('TNT_WELLS', 'WELLS_OJ_PSTN_RANK_CD', A1.DANG_MNGT_PSTN_DV_CD)  AS WELLS_OJ_PSTN_RANK_NM /* [구분] - WELLS대상직급명-CODE : WELLS_OJ_PSTN_RANK_CD */
+                  , F_CMZ_CD_NM(#{session.tenantId}, 'WELLS_OJ_PSTN_RANK_CD', A1.DANG_MNGT_PSTN_DV_CD)  AS WELLS_OJ_PSTN_RANK_NM /* [구분] - WELLS대상직급명-CODE : WELLS_OJ_PSTN_RANK_CD */
                   , D2.OG_NM AS DANG_MNGT_PNTNR_OG_NM /* [소속명] - 조직명 */
                   , D2.OG_CD AS DANG_MNGT_PNTNR_OG_CD /* [소속코드] - 조직코드 */
                   , D2.OG_LEVL_DV_CD
@@ -157,11 +157,11 @@
                   , C1.PRTNR_KNM AS DANG_OJ_PRTNR_NM /* [행위자사번 - 성명] - 파트너한글명 */
                   , A1.DANG_OJ_PRTNR_NO /* [행위자사번- 사번] - 위험대상파트너번호 */
                   , C1.PSTN_DV_CD AS DANG_OJ_PRTNR_PSTN_DV_CD /* 행위자직급코드 - 직급코드 */
-                  , F_CMZ_CD_NM('TNT_WELLS', 'PSTN_DV_CD', C1.PSTN_DV_CD) AS DANG_OJ_PRTNR_PSTN_DV_NM /* [행위자사번 - 직급] - 직급구분명 */
+                  , F_CMZ_CD_NM(#{session.tenantId}, 'PSTN_DV_CD', C1.PSTN_DV_CD) AS DANG_OJ_PRTNR_PSTN_DV_NM /* [행위자사번 - 직급] - 직급구분명 */
                   , SUBSTR(A1.DANG_OC_STRTDT, 1, 6) AS DANG_OC_STRTMM /* [벌점 - 발생년월] - SUBSTR(위험점검내역.위험발생시작일자,1,6) */
-                  , F_CMZ_CD_NM ('TNT_WELLS', 'PNTSC_ARBIT_DEPT_CD', A1.DANG_ARBIT_OG_ID) AS DANG_ARBIT_OG_NM /* [벌점 - 조치부서] - 공통코드 벌점 조치 부서 PNTSC_ARBIT_DEPT_CD */
+                  , F_CMZ_CD_NM (#{session.tenantId}, 'PNTSC_ARBIT_DEPT_CD', A1.DANG_ARBIT_OG_ID) AS DANG_ARBIT_OG_NM /* [벌점 - 조치부서] - 공통코드 벌점 조치 부서 PNTSC_ARBIT_DEPT_CD */
                   , A1.DANG_CHK_NM /* [벌점 - 부과내역] - 위험점검내역.위험점검명 */
-                  , AFMDBS.F_CMZ_CD_NM ('TNT_WELLS', 'PNTSC_ARBIT_ATC_CD', A1.DANG_ARBIT_CD) AS DANG_ARBIT_CD_NM /* [벌점 - 조치항목] - 공통코드 벌점조치항목 PNTSC_ARBIT_ATC_CD */
+                  , AFMDBS.F_CMZ_CD_NM (#{session.tenantId}, 'PNTSC_ARBIT_ATC_CD', A1.DANG_ARBIT_CD) AS DANG_ARBIT_CD_NM /* [벌점 - 조치항목] - 공통코드 벌점조치항목 PNTSC_ARBIT_ATC_CD */
                   , A1.DANG_UNCVR_CT /* [벌점 - 부과대상건수] - 위험적발건수 */
                   , CASE WHEN A1.DANG_MNGT_PSTN_DV_CD = '5' /* 위험관리직급구분코드 = 5(업무지원매니저-BM) */
                     THEN TRUNC(NVL(A1.DANG_ARBIT_LVY_PC,0) * 0.5, 1) /* TRUNC(위험점검내역.위험조치부과점수 * 0.5,1) */
@@ -405,12 +405,15 @@
         </if>
         <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
             AND TRIM(I3.DGR_LEVL_OG_CD) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
+            AND I3.OG_LEVL_DV_CD = '1'
         </if>
         <if test='@MybatisUtils@isNotEmpty(rgrp)'>
-            AND TRIM(I3.DGR_LEVL_OG_CD) LIKE SUBSTR(#{rgrp},1,3)||'%' /* 조회조건 - 지역단 - 2`    차레벨조직 */
+            AND TRIM(I3.DGR_LEVL_OG_CD) LIKE #{rgrp}||'%' /* 조회조건 - 지역단 - 2`    차레벨조직 */
+            AND I3.OG_LEVL_DV_CD = '2'
         </if>
         <if test='@MybatisUtils@isNotEmpty(brch)'>
             AND TRIM(I3.DGR_LEVL_OG_CD) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
+            AND I3.OG_LEVL_DV_CD = '3'
         </if>
         <if test='@MybatisUtils@isNotEmpty(dangOjPrtnrNo)'>
             AND TRIM(I3.DANG_MNGT_PRTNR_NO) LIKE #{dangOjPrtnrNo}||'%' /* 조회조건 - 사번 - 위험점검내역.위험관리파트너번호 */
