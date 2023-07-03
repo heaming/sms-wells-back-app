@@ -3,10 +3,7 @@ package com.kyowon.sms.wells.web.contract.changeorder.rest;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
@@ -64,5 +61,15 @@ public class WctbContractChangeMngtController {
         String cntrSn
     ) {
         return service.getPartnerByCntrNo(cntrNo, cntrSn);
+    }
+
+    @ApiOperation(value = "계약변경관리-파트너 변경(저장)", notes = "계약변경관리-파트너 변경(저장)")
+    @PostMapping("/partners")
+    public int editPartnerInformations(
+        @Valid
+        @RequestBody
+        WctbContractChangeMngtDto.EditPartnerReq dto
+    ) {
+        return service.editPartnerInformations(dto);
     }
 }

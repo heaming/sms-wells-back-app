@@ -26,8 +26,8 @@
              , F_CMZ_CD_NM(#{session.tenantId}, 'SV_PRD_UNIT_CD', T11.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM /* 계약상세상태명 (사용구분 - 1:관리(101),2:탈퇴(201~303), 만료(401,402) :useDivNm)*/
              , T11.FNL_AMT   AS RENTAL_AMT1         /* 렌탈료-최종값 (렌탈료1:LCAMT1) */
              , T11.CNTR_PTRM AS CNTR_PTRM1          /* 계약기간 (렌탈기간1 : LCMON1) */
-             , ''            AS RENTAL_AMT2         /* TODO.맵핑없음 (렌탈료2:LCAMT2) */
-             , ''            AS CNTR_PTRM2          /* TODO.맵핑없음 (렌탈기간2 : LCMON2) */
+             , 0            AS RENTAL_AMT2         /* TODO.맵핑없음 (렌탈료2:LCAMT2) */
+             , 0            AS CNTR_PTRM2          /* TODO.맵핑없음 (렌탈기간2 : LCMON2) */
              ,T11.SELL_DSC_DV_CD
              , F_CMZ_CD_NM(#{session.tenantId}, (SELECT TCDD.USER_DFN_02
                                          FROM T_CMZ_CD_D TCDD
@@ -169,4 +169,449 @@
             AND T11.CNTR_NO = #{cntrNo}
             AND T11.CNTR_SN = #{cntrSn}
     </select>
+
+    <select id="selectDateTime" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeMngtDvo">
+        /* 데이터의 INSERT/UPDATE/유효시작일시/유효종료일시를 일관되게 맞추기 위해, 미리 조회해온다. */
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , #{session.ogId} AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , #{session.ogId} AS FNL_MDFC_DEPT_ID
+          FROM DUAL
+    </select>
+
+    <insert id="insertSellPartnerToCntrChRcpBas">
+        /* 1. INSERT 계약변경접수기본 */
+
+        <selectKey keyProperty="dvo.cntrChRcpId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_CH_RCP_ID)), 0) + 1, 15, '0') AS CNTR_CH_RCP_ID /* 계약변경접수ID */
+          FROM TB_SSCT_CNTR_CH_RCP_BAS /* 계약변경접수기본 */
+        </selectKey>
+
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_BAS /* 계약변경접수기본 */
+             ( CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , CNTR_CH_RCP_DTM /* 계약변경접수일시 */
+             , CNTR_CH_TP_CD /* 계약변경유형코드 */
+             , CH_RQR_DV_CD /* 변경요청자구분코드 */
+             , CH_RQR_NM /* 변경요청자명 */
+             , CST_NO /* 고객번호 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 */
+             , CNTR_CH_PRGS_MO_CN /* 계약변경진행메모내용 */
+             , CH_RCST_DV_CD /* 변경접수자구분코드 */
+             , CH_RCP_USR_ID /* 변경접수사용자ID */
+             , APR_DTM /* 승인일시 */
+             , APR_USR_ID /* 승인사용자ID */
+             , CNTR_CH_FSH_DTM /* 계약변경완료일시 */
+             , BIZ_TF_ID /* 업무이관ID */
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             ( #{dvo.cntrChRcpId} /* 계약변경접수ID */
+             , #{dvo.fstRgstDtm} /* 계약변경접수일시 */
+             , '105' /* 계약변경유형코드. 판매자변경(105) */
+             , '2' /* 변경요청자구분코드. 교원(2) */
+             , #{session.userName} /* 변경요청자명 */
+             , ( SELECT CNTR_CST_NO /* 계약고객번호 */
+                   FROM TB_SSCT_CNTR_BAS /* 계약기본 */
+                  WHERE CNTR_NO = #{dvo.cntrNo}
+                    AND DTA_DL_YN = 'N'
+               ) /* 고객번호 */
+             , '판매파트너번호:'||#{dvo.sellPrtnrNo}||
+               '|판매조직유형코드:'||#{dvo.ogTpCd} /* 계약변경요청내용 */
+             , '50' /* 계약변경진행상태코드. 처리완료(50) */
+             , '' /* 계약변경진행메모내용 */
+             , '' /* 변경접수자구분코드 */
+             , #{session.employeeIDNumber} /* 변경접수사용자ID */
+             , #{dvo.fstRgstDtm} /* 승인일시 */
+             , #{session.employeeIDNumber} /* 승인사용자ID */
+             , #{dvo.fstRgstDtm} /* 계약변경완료일시 */
+             , '' /* 업무이관ID */
+             , 'N'
+             , #{dvo.fstRgstDtm}
+             , #{dvo.fstRgstUsrId}
+             , #{dvo.fstRgstPrgId}
+             , #{dvo.fstRgstDeptId}
+             , #{dvo.fnlMdfcDtm}
+             , #{dvo.fnlMdfcUsrId}
+             , #{dvo.fnlMdfcPrgId}
+             , #{dvo.fnlMdfcDeptId}
+             )
+    </insert>
+
+    <insert id="insertSellPartnerToCntrChRcchHist">
+        /* 2. INSERT 계약변경접수변경이력 */
+        INSERT INTO TB_SSCT_CNTR_CH_RCCH_HIST /* 계약변경접수변경이력 */
+             ( CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , HIST_STRT_DTM /* 이력시작일시 */
+             , HIST_END_DTM /* 이력종료일시 */
+             , CNTR_CH_RCP_DTM /* 계약변경접수일시 */
+             , CNTR_CH_TP_CD /* 계약변경유형코드 */
+             , CH_RQR_DV_CD /* 변경요청자구분코드 */
+             , CH_RQR_NM /* 변경요청자명 */
+             , CST_NO /* 고객번호 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 */
+             , CNTR_CH_PRGS_MO_CN /* 계약변경진행메모내용 */
+             , CH_RCST_DV_CD /* 변경접수자구분코드 */
+             , CH_RCP_USR_ID /* 변경접수사용자ID */
+             , APR_DTM /* 승인일시 */
+             , APR_USR_ID /* 승인사용자ID */
+             , CNTR_CH_FSH_DTM /* 계약변경완료일시 */
+             , BIZ_TF_ID /* 업무이관ID */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT CNTR_CH_RCP_ID
+             , #{fstRgstDtm}
+             , '99991231235959'
+             , CNTR_CH_RCP_DTM
+             , CNTR_CH_TP_CD
+             , CH_RQR_DV_CD
+             , CH_RQR_NM
+             , CST_NO
+             , CNTR_CH_AK_CN
+             , CNTR_CH_PRGS_STAT_CD
+             , CNTR_CH_PRGS_MO_CN
+             , CH_RCST_DV_CD
+             , CH_RCP_USR_ID
+             , APR_DTM
+             , APR_USR_ID
+             , CNTR_CH_FSH_DTM
+             , BIZ_TF_ID
+             , DTA_DL_YN
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSCT_CNTR_CH_RCP_BAS /* 계약변경접수기본 */
+         WHERE CNTR_CH_RCP_ID = #{cntrChRcpId} /* 계약변경접수ID = 입력받은 계약변경접수ID */
+           AND DTA_DL_YN = 'N'
+    </insert>
+
+    <insert id="insertSellPartnerToCntrChRcpDtl">
+        /* 3. INSERT 계약변경접수상세 */
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_DTL /* 계약변경접수상세 */
+             ( CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , CNTR_CH_SN /* 계약변경일련번호 */
+             , CNTR_UNIT_TP_CD /* 계약단위유형코드 */
+             , CNTR_NO /* 계약번호 */
+             , DTL_CNTR_NO /* 상세계약번호 */
+             , DTL_CNTR_SN /* 상세계약일련번호 */
+             , CNTR_CH_RSON_DV_CD /* 계약변경사유구분코드 */
+             , CNTR_CH_RSON_CD /* 계약변경사유코드 */
+             , CNTR_CH_ATC_DV_CD /* 계약변경항목구분코드 */
+             , CH_APY_STRTDT /* 변경적용시작일자 */
+             , CH_APY_ENDDT /* 변경적용종료일자 */
+             , CH_PD_CD /* 변경상품코드 */
+             , CH_QTY /* 변경수량 */
+             , CH_AMT /* 변경금액 */
+             , CH_PTRM_UNIT_CD /* 변경기간단위코드 */
+             , CH_PTRM_N /* 변경기간수 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_ADRPC_ID /* 계약주소지ID */
+             , CNTR_STLM_ID /* 계약결제ID */
+             , BFCH_CN /* 변경전내용 */
+             , PROCS_YN /* 처리여부 */
+             , PROCS_DUEDT /* 처리예정일자 */
+             , PROCS_FSH_DTM /* 처리완료일시 */
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT #{cntrChRcpId} /* 계약변경접수ID */
+             , C2.CNTR_SN /* 계약변경일련번호. 계약일련번호랑 같도록 세팅 */
+             , '020' /* 계약단위유형코드. 계약상세(020) */
+             , C2.CNTR_NO /* 계약번호 */
+             , C2.CNTR_NO /* 상세계약번호 */
+             , C2.CNTR_SN /* 상세계약일련번호 */
+             , '' /* 계약변경사유구분코드 */
+             , '' /* 계약변경사유코드 */
+             , '10' /* 계약변경항목구분코드. 변경내용(10) */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') /* 변경적용시작일자 */
+             , '99991231' /* 변경적용종료일자 */
+             , '' /* 변경상품코드 */
+             , '' /* 변경수량 */
+             , '' /* 변경금액 */
+             , '' /* 변경기간단위코드 */
+             , '' /* 변경기간수 */
+             , '판매파트너번호:'||#{sellPrtnrNo}||
+               '|판매조직유형코드:'||#{ogTpCd} /* 계약변경요청내용 */
+             , '' /* 계약주소지ID */
+             , '' /* 계약결제ID */
+             , '변경전판매파트너번호:'||D2.SELL_PRTNR_NO||
+               '|변경전판매조직유형코드:'||D2.SELL_OG_TP_CD /* 변경전내용 */
+             , 'Y' /* 처리여부 */
+             , '' /* 처리예정일자 */
+             , #{fstRgstDtm} /* 처리완료일시 */
+             , 'N'
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSCT_CNTR_DTL C2 /* 계약상세 */
+         INNER JOIN TB_SSCT_CNTR_BAS D2 /* 계약기본 */
+            ON D2.CNTR_NO = C2.CNTR_NO
+           AND D2.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND C2.CNTR_NO = #{cntrNo}
+           AND C2.DTA_DL_YN = 'N'
+    </insert>
+
+    <insert id="insertSellPartnerToCntrChRcpDchHist">
+        /* 4. INSERT 계약변경접수상세이력 */
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_DCH_HIST /* 계약변경접수상세변경이력 */
+             ( CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , HIST_STRT_DTM /* 이력시작일시 */
+             , CNTR_CH_SN /* 계약변경일련번호 */
+             , HIST_END_DTM /* 이력종료일시 */
+             , CNTR_UNIT_TP_CD /* 계약단위유형코드 */
+             , CNTR_NO /* 계약번호 */
+             , DTL_CNTR_NO /* 상세계약번호 */
+             , DTL_CNTR_SN /* 상세계약일련번호 */
+             , CNTR_CH_RSON_DV_CD /* 계약변경사유구분코드 */
+             , CNTR_CH_RSON_CD /* 계약변경사유코드 */
+             , CNTR_CH_ATC_DV_CD /* 계약변경항목구분코드 */
+             , CH_APY_STRTDT /* 변경적용시작일자 */
+             , CH_APY_ENDDT /* 변경적용종료일자 */
+             , CH_PD_CD /* 변경상품코드 */
+             , CH_QTY /* 변경수량 */
+             , CH_AMT /* 변경금액 */
+             , CH_PTRM_UNIT_CD /* 변경기간단위코드 */
+             , CH_PTRM_N /* 변경기간수 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_ADRPC_ID /* 계약주소지ID */
+             , CNTR_STLM_ID /* 계약결제ID */
+             , PROCS_YN /* 처리여부 */
+             , BFCH_CN /* 변경전내용 */
+             , PROCS_DUEDT /* 처리예정일자 */
+             , PROCS_FSH_DTM /* 처리완료일시 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , #{fstRgstDtm} /* 이력시작일시 */
+             , CNTR_CH_SN /* 계약변경일련번호 */
+             , '99991231235959' /* 이력종료일시 */
+             , CNTR_UNIT_TP_CD /* 계약단위유형코드 */
+             , CNTR_NO /* 계약번호 */
+             , DTL_CNTR_NO /* 상세계약번호 */
+             , DTL_CNTR_SN /* 상세계약일련번호 */
+             , CNTR_CH_RSON_DV_CD /* 계약변경사유구분코드 */
+             , CNTR_CH_RSON_CD /* 계약변경사유코드 */
+             , CNTR_CH_ATC_DV_CD /* 계약변경항목구분코드 */
+             , CH_APY_STRTDT /* 변경적용시작일자 */
+             , CH_APY_ENDDT /* 변경적용종료일자 */
+             , CH_PD_CD /* 변경상품코드 */
+             , CH_QTY /* 변경수량 */
+             , CH_AMT /* 변경금액 */
+             , CH_PTRM_UNIT_CD /* 변경기간단위코드 */
+             , CH_PTRM_N /* 변경기간수 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_ADRPC_ID /* 계약주소지ID */
+             , CNTR_STLM_ID /* 계약결제ID */
+             , PROCS_YN /* 처리여부 */
+             , BFCH_CN /* 변경전내용 */
+             , PROCS_DUEDT /* 처리예정일자 */
+             , PROCS_FSH_DTM /* 처리완료일시 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSCT_CNTR_CH_RCP_DTL /* 계약변경접수상세 */
+         WHERE 1 = 1
+           AND CNTR_CH_RCP_ID = #{cntrChRcpId} /* 계약변경접수ID = 입력받은 계약변경접수ID */
+           AND DTA_DL_YN = 'N'
+    </insert>
+
+    <update id="updateSellPartnerToCntrBas">
+        /* 5. UPDATE 계약기본 */
+        UPDATE TB_SSCT_CNTR_BAS /* 계약기본 */
+           SET SELL_OG_TP_CD = #{ogTpCd} /* 판매조직유형코드 */
+             , SELL_PRTNR_NO = #{sellPrtnrNo} /* 판매파트너번호 */
+             , CNTR_CH_RCP_ID = #{cntrChRcpId} /* 계약변경접수ID */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+
+    <update id="updateExSellPartnerToCntrChHist">
+        /* 6-1. UPDATE 계약변경이력 */
+        UPDATE TB_SSCT_CNTR_CH_HIST /* 계약변경이력 */
+           SET HIST_END_DTM = #{fnlMdfcDtm} /* 이력종료일시=현재일시 */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+
+    <insert id="insertSellPartnerToCntrChHist">
+        /* 6-2. INSERT 계약변경이력 */
+        INSERT INTO TB_SSCT_CNTR_CH_HIST /* 계약변경이력 */
+             ( CNTR_NO /* 계약번호 */
+             , HIST_STRT_DTM /* 이력시작일시 */
+             , HIST_END_DTM /* 이력종료일시 */
+             , CNTR_CST_NO /* 계약고객번호 */
+             , COPN_DV_CD /* 법인격구분코드 */
+             , SELL_INFLW_CHNL_DTL_CD /* 판매유입채널상세코드 */
+             , SELL_OG_TP_CD /* 판매조직유형코드 */
+             , SELL_PRTNR_NO /* 판매파트너번호 */
+             , CNTR_TP_CD /* 계약유형코드 */
+             , CNTR_NAT_CD /* 계약국가코드 */
+             , CNTR_PRGS_STAT_CD /* 계약진행상태코드 */
+             , CST_STLM_IN_MTH_CD /* 고객결제입력방법코드 */
+             , PRR_RCP_CNTR_YN /* 사전접수계약여부 */
+             , CNTR_TEMP_SAVE_DTM /* 계약임시저장일시 */
+             , CNTR_RCP_FSH_DTM /* 계약접수완료일시 */
+             , CNTR_STLM_FSH_DTM /* 계약결제완료일시 */
+             , CNTR_CNFM_APR_AK_DTM /* 계약확정승인요청일시 */
+             , CNTR_CNFM_APR_DTM /* 계약확정승인일시 */
+             , CNTR_CNFM_DTM /* 계약확정일시 */
+             , CNTR_CAN_DTM /* 계약취소일시 */
+             , CNTR_CAN_RSON_CD /* 계약취소사유코드 */
+             , CNTR_PRGS_STAT_MO_CN /* 계약진행상태메모내용 */
+             , DSB_GUR_TP_CD /* 지급보증유형코드 */
+             , CNTR_INFLW_PH_DV_CD /* 계약유입경로구분코드 */
+             , PSPC_CST_ID /* 가망고객ID */
+             , CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , DCEVDN_DOC_ID /* 증빙서류문서ID */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT CNTR_NO /* 계약번호 */
+             , #{fnlMdfcDtm} /* 이력시작일시 */
+             , '99991231235959' /* 이력종료일시 */
+             , CNTR_CST_NO /* 계약고객번호 */
+             , COPN_DV_CD /* 법인격구분코드 */
+             , SELL_INFLW_CHNL_DTL_CD /* 판매유입채널상세코드 */
+             , SELL_OG_TP_CD /* 판매조직유형코드 */
+             , SELL_PRTNR_NO /* 판매파트너번호 */
+             , CNTR_TP_CD /* 계약유형코드 */
+             , CNTR_NAT_CD /* 계약국가코드 */
+             , CNTR_PRGS_STAT_CD /* 계약진행상태코드 */
+             , CST_STLM_IN_MTH_CD /* 고객결제입력방법코드 */
+             , PRR_RCP_CNTR_YN /* 사전접수계약여부 */
+             , CNTR_TEMP_SAVE_DTM /* 계약임시저장일시 */
+             , CNTR_RCP_FSH_DTM /* 계약접수완료일시 */
+             , CNTR_STLM_FSH_DTM /* 계약결제완료일시 */
+             , CNTR_CNFM_APR_AK_DTM /* 계약확정승인요청일시 */
+             , CNTR_CNFM_APR_DTM /* 계약확정승인일시 */
+             , CNTR_CNFM_DTM /* 계약확정일시 */
+             , CNTR_CAN_DTM /* 계약취소일시 */
+             , CNTR_CAN_RSON_CD /* 계약취소사유코드 */
+             , CNTR_PRGS_STAT_MO_CN /* 계약진행상태메모내용 */
+             , DSB_GUR_TP_CD /* 지급보증유형코드 */
+             , CNTR_INFLW_PH_DV_CD /* 계약유입경로구분코드 */
+             , PSPC_CST_ID /* 가망고객ID */
+             , CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , DCEVDN_DOC_ID /* 증빙서류문서ID */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSCT_CNTR_BAS /* 계약기본 */
+         WHERE CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </insert>
+
+    <update id="updateSellPartnerToCntrPrtnrRel">
+        UPDATE TB_SSCT_CNTR_PRTNR_REL /* 계약파트너관계 */
+           SET VL_END_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND OG_TP_CD = #{bfOgTpCd}
+           AND PRTNR_NO = #{bfPrtnrNo}
+           AND VL_END_DTM = '99991231235959'
+           AND DTA_DL_YN = 'N'
+    </update>
+
+    <insert id="insertSellPartnerToCntrPrtnrRel">
+        /* 7-2. INSERT 계약파트너관계 */
+        INSERT INTO TB_SSCT_CNTR_PRTNR_REL /* 계약파트너관계 */
+             ( CNTR_PRTNR_REL_ID /* 계약파트너관계ID */
+             , VL_STRT_DTM /* 유효시작일시 */
+             , VL_END_DTM /* 유효종료일시 */
+             , CNTR_NO /* 계약번호 */
+             , OG_TP_CD /* 조직유형코드 */
+             , PRTNR_NO /* 파트너번호 */
+             , CNTR_PRTNR_TP_CD /* 계약파트너유형코드 */
+             , CNTR_PRTNR_TP_DRM_VAL /* 계약파트너유형식별값 */
+             , OG_ID /* 조직ID */
+             , RCP_AOFFCE_CD /* 접수사무소코드 */
+             , PRR_BIZ_RGR_YN /* 사전업무등록자여부 */
+             , ALNC_PRTNR_DRM_VAL /* 제휴파트너식별값 */
+             , ALNC_PRTNR_IDNR_NM /* 제휴파트너식별자명 */
+             , ALNC_PRTNR_DRM_DV_CD /* 제휴파트너식별구분코드 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT ( SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_PRTNR_REL_ID)), 0) + 1, 15, '0') AS CNTR_PRTNR_REL_ID
+                  FROM TB_SSCT_CNTR_PRTNR_REL /* 계약파트너관계ID */
+               )
+             , #{fnlMdfcDtm} /* 유효시작일시 */
+             , '99991231235959' /* 유효종료일시 */
+             , CNTR_NO /* 계약번호 */
+             , #{ogTpCd} /* 조직유형코드 */
+             , #{sellPrtnrNo} /* 파트너번호 */
+             , CNTR_PRTNR_TP_CD /* 계약파트너유형코드 */
+             , CNTR_PRTNR_TP_DRM_VAL /* 계약파트너유형식별값 */
+             , ( SELECT OG_ID
+                   FROM TB_OGBS_MM_PRTNR_IZ /* 월파트너내역 */
+                  WHERE 1 = 1
+                    AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                    AND OG_TP_CD = #{ogTpCd}
+                    AND PRTNR_NO = #{sellPrtnrNo}
+                    AND DTA_DL_YN = 'N'
+               ) /* 조직ID */
+             , RCP_AOFFCE_CD /* 접수사무소코드 */
+             , PRR_BIZ_RGR_YN /* 사전업무등록자여부 */
+             , ALNC_PRTNR_DRM_VAL /* 제휴파트너식별값 */
+             , ALNC_PRTNR_IDNR_NM /* 제휴파트너식별자명 */
+             , ALNC_PRTNR_DRM_DV_CD /* 제휴파트너식별구분코드 */
+             , 'N' /* 데이터삭제여부 */
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSCT_CNTR_PRTNR_REL /* 계약파트너관계 */
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND VL_END_DTM = #{fnlMdfcDtm}
+    </insert>
 </mapper>
