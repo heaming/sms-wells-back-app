@@ -43,6 +43,7 @@ public class WctbCancelPresentStateDto {
     public record SearchRentalRes(
         String ogCd,
         String ogNm,
+        String seq,
         String prtnrNo,
         String prtnrKnm,
         String cntrNo,
