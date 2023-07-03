@@ -1,39 +1,39 @@
 package com.kyowon.sms.wells.web.contract.changeorder.mapper;
 
+import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeDvo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeMngtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
-public interface WctbContractChangeMngtMapper {
+public interface WctbContractChangeMgtMapper {
     PagingResult<SearchContractChangeRes> selectContractChanges(SearchContractChangeReq dto, PageInfo pageInfo);
 
     WctbContractChangeMngtDto.FindPartnerRes selectPartnerByCntrNo(String cntrNo, String cntrSn);
 
-    WctbContractChangeMngtDvo selectDateTime();
+    WctbContractChangeDvo selectDateTime();
 
     int insertSellPartnerToCntrChRcpBas(@Param("dvo")
-    WctbContractChangeMngtDvo inputDvo);
+    WctbContractChangeDvo inputDvo);
 
-    int insertSellPartnerToCntrChRcchHist(WctbContractChangeMngtDvo inputDvo);
+    int insertSellPartnerToCntrChRcchHist(WctbContractChangeDvo inputDvo);
 
-    int insertSellPartnerToCntrChRcpDtl(WctbContractChangeMngtDvo inputDvo);
+    int insertSellPartnerToCntrChRcpDtl(WctbContractChangeDvo inputDvo);
 
-    int insertSellPartnerToCntrChRcpDchHist(WctbContractChangeMngtDvo inputDvo);
+    int insertSellPartnerToCntrChRcpDchHist(WctbContractChangeDvo inputDvo);
 
-    int updateSellPartnerToCntrBas(WctbContractChangeMngtDvo inputDvo);
+    int updateSellPartnerToCntrBas(WctbContractChangeDvo inputDvo);
 
-    int updateExSellPartnerToCntrChHist(WctbContractChangeMngtDvo inputDvo);
+    int updateExSellPartnerToCntrChHist(WctbContractChangeDvo inputDvo);
 
-    int insertSellPartnerToCntrChHist(WctbContractChangeMngtDvo inputDvo);
+    int insertSellPartnerToCntrChHist(WctbContractChangeDvo inputDvo);
 
-    int updateSellPartnerToCntrPrtnrRel(WctbContractChangeMngtDvo inputDvo);
+    int updateSellPartnerToCntrPrtnrRel(WctbContractChangeDvo inputDvo);
 
-    int insertSellPartnerToCntrPrtnrRel(WctbContractChangeMngtDvo inputDvo);
+    int insertSellPartnerToCntrPrtnrRel(WctbContractChangeDvo inputDvo);
 }

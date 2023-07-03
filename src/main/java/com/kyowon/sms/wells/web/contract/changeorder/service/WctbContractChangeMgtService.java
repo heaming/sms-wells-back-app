@@ -1,14 +1,14 @@
 package com.kyowon.sms.wells.web.contract.changeorder.service;
 
+import com.kyowon.sms.wells.web.contract.changeorder.converter.WctbContractChangeMgtConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.contract.changeorder.converter.WctbContractChangeMngtConverter;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeMngtDvo;
-import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMngtMapper;
+import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeDvo;
+import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -19,9 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WctbContractChangeMngtService {
-    private final WctbContractChangeMngtConverter converter;
-    private final WctbContractChangeMngtMapper mapper;
+public class WctbContractChangeMgtService {
+    private final WctbContractChangeMgtConverter converter;
+    private final WctbContractChangeMgtMapper mapper;
 
     public PagingResult<SearchContractChangeRes> getContractChangePages(
         SearchContractChangeReq dto, PageInfo pageInfo
@@ -36,13 +36,13 @@ public class WctbContractChangeMngtService {
     }
 
     @Transactional
-    public int editPartnerInformations(WctbContractChangeMngtDto.EditPartnerReq dto) {
+    public int editPartner(WctbContractChangeMngtDto.EditPartnerReq dto) {
         // 계약변경관리-파트너 변경(저장)
         // 저장할 데이터 변환 DTO -> DVO
-        WctbContractChangeMngtDvo inputDvo = converter.mapEditPartnerReqToWctbContractChangeMngtDvo(dto);
+        WctbContractChangeDvo inputDvo = converter.mapEditPartnerReqToWctbContractChangeMngtDvo(dto);
 
         // 데이터의 INSERT/UPDATE/유효시작일시/유효종료일시를 일관되게 맞추기 위해, 미리 조회해온다.
-        WctbContractChangeMngtDvo dateTimeDvo = mapper.selectDateTime();
+        WctbContractChangeDvo dateTimeDvo = mapper.selectDateTime();
         inputDvo.setFstRgstDtm(dateTimeDvo.getFstRgstDtm());
         inputDvo.setFstRgstUsrId(dateTimeDvo.getFstRgstUsrId());
         inputDvo.setFstRgstPrgId(dateTimeDvo.getFstRgstPrgId());

@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WctbContractChangeMngtDvo {
+public class WctbContractChangeDvo {
 
     /* input */
     private String cntrCnfmDtmFr; // 계약시작접수일자

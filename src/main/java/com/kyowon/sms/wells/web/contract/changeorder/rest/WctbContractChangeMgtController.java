@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
-import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractChangeMngtService;
+import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractChangeMgtService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CtContractConst.REST_URL_V1 + "/changeorder/changes")
-public class WctbContractChangeMngtController {
+public class WctbContractChangeMgtController {
 
-    private final WctbContractChangeMngtService service;
+    private final WctbContractChangeMgtService service;
 
     @ApiOperation(value = "계약변경관리-조회", notes = "변경할 계약번호를 조회")
     @ApiImplicitParams(value = {
@@ -64,12 +64,12 @@ public class WctbContractChangeMngtController {
     }
 
     @ApiOperation(value = "계약변경관리-파트너 변경(저장)", notes = "계약변경관리-파트너 변경(저장)")
-    @PostMapping("/partners")
-    public int editPartnerInformations(
+    @PutMapping("/partners")
+    public int editPartner(
         @Valid
         @RequestBody
         WctbContractChangeMngtDto.EditPartnerReq dto
     ) {
-        return service.editPartnerInformations(dto);
+        return service.editPartner(dto);
     }
 }
