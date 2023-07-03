@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
+import java.util.List;
 
 public class WfeaLifeSaleCancelFeeInterfaceDto {
 
@@ -21,9 +21,8 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         @NotBlank
         @JsonProperty("ITM02")
         String itm02, /* 상조고객코드 */
-        @NotBlank
         @JsonProperty("AKDSEQ")
-        Integer akdseq, /* 회차 */
+        int akdseq, /* 회차 */
         @JsonProperty("AKSGUB")
         String aksgub, /* 구분 */
         @JsonProperty("AKSALE")
@@ -86,7 +85,7 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
     @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
     public record SaveReq(
         @JsonProperty("LIST")
-        ArrayList<IfRequest> list
+        List<IfRequest> list
     ) {}
 
     @Builder
