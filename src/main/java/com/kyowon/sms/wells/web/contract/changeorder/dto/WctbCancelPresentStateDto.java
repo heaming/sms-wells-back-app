@@ -11,29 +11,28 @@ public class WctbCancelPresentStateDto {
     @Builder
     @ApiModel("WctbCancelPresentStateDto-SearchReq")
     public record SearchReq(
-        String ogCd,
-        String dtDiv,
-        String cancelFromDt,
-        String cancelToDt,
-        String cntrNo,
-        String cntrSn,
-        String sellOgTpCd,
-        String basePdCd,
-        String pdGdCd,
-        String rgstUsrEpNo,
-        String clctamPrtnrNo,
-        String printDiv,
-        String copnDvCd,
-        String sellTpCd,
-        String sellTpDtlCd,
-        String alncmpCd,
-        String cntrStatChRsonCd,
-        String reqdDiv,
-        String wellsFarmCancelDiv,
-        String pdHclsfId,
-        String pdMclsfId
-    ) {
-    }
+        String ogCd, // 소속구분
+        String dtDiv, // 일자검색구분
+        String cancelFromDt, // 시작일
+        String cancelToDt, // 종료일
+        String cntrNo, // 계약번호
+        String cntrSn, // 계약일련변호
+        String sellOgTpCd, // 판매구분
+        String basePdCd, // 상품콛,
+        String pdGdCd, // 상품등급
+        String rgstUsrEpNo, // 등록담당자사번
+        String clctamPrtnrNo, // 집금담당
+        String printDiv, // 출력구분
+        String copnDvCd, // 계약구분
+        String sellTpCd, // 판매유형
+        String sellTpDtlCd, // 판매세부
+        String alncmpCd, // 상조취소
+        String cntrStatChRsonCd, // 취소유형
+        String reqdDiv, // 철거구
+        String wellsFarmCancelDiv, // 웰스팜취소구분
+        String pdHclsfId, // 상품대분류
+        String pdMclsfId // 상품중분류
+    ) {}
 
     // *********************************************************
     // Rental - Result Dto
@@ -43,6 +42,7 @@ public class WctbCancelPresentStateDto {
     public record SearchRentalRes(
         String ogCd,
         String ogNm,
+        String seq,
         String prtnrNo,
         String prtnrKnm,
         String cntrNo,
@@ -74,8 +74,7 @@ public class WctbCancelPresentStateDto {
         Integer lsRntf,
         Integer totRfndAmt,
         String clctamPrtnrKnm
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // RegularShipping - Result Dto
@@ -106,9 +105,17 @@ public class WctbCancelPresentStateDto {
         String cntrStatChRsonNm,
         String ojDtlCntrNo,
         String ojDtlCntrSn
-    ) {
-    }
+    ) {}
 
+    // *********************************************************
+    // Single payment - Result Dto
+    // *********************************************************
+    // Single payment 취소현황 Search Result Dto
+    @ApiModel("WctbCancelPresentStateDto-SearchSinglePayRes")
+    public record SearchSinglePayRes(
+        String cntrNo,
+        String cntrSn
+    ) {}
 
     // *********************************************************
     // Membership - Result Dto
@@ -155,8 +162,7 @@ public class WctbCancelPresentStateDto {
         String fstRgstDtm,
         String bizSpptPrtnrNo,
         String bizSpptPrtnrNm
-    ) {
-    }
+    ) {}
 }
 
 

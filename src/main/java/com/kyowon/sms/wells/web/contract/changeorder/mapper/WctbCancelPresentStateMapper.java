@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto.SearchMembershipRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto.SearchRegularShippingRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto.SearchRentalRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto.SearchReq;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto.*;
 
 @Mapper
 public interface WctbCancelPresentStateMapper {
@@ -16,9 +13,12 @@ public interface WctbCancelPresentStateMapper {
             SearchReq dto
     );
 
-
     List<SearchRegularShippingRes> selectRegularShippingCancelPresentStates(
-            SearchReq dto
+        SearchReq dto
+    );
+
+    List<SearchSinglePayRes> selectSinglePaymentCancelPresentStates(
+        SearchReq dto
     );
 
     List<SearchMembershipRes> selectMembershipCancelPresentStates(
