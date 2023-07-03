@@ -1,0 +1,605 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyFeeCalculationSqlForEngineerMapper">
+
+    <insert id='insertOrganizationEjectFee'>
+        INSERT INTO TB_FEAM_EGER_AW_CALC_BAS (  /* 엔지니어수당계산기본 */
+               BASE_YM           /* 기준년월 */
+             , PERF_YM           /* 실적년월 */
+             , OJ_DSB_YM         /* 대상지급년월 */
+             , CO_CD             /* 회사코드 */
+             , OG_TP_CD          /* 조직유형코드 */
+             , PRTNR_NO          /* 파트너번호 */
+             , OG_CD             /* 조직코드 */
+             , FEE_CD            /* 수수료코드 */
+             , DTA_CRT_FEE_CD    /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD    /* 추가지급구분코드 */
+             , FEE_CALC_AMT      /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT  /* 수수료조정확정금액 */
+             , FNL_FEE_YN        /* 최종수수료여부 */
+             <include refid="COMMON.insertSystemField" />)
+        SELECT Z.AL130_GIVE_YM AS BASE_YM           /* 001.기준년월 */
+             , Z.AL130_GIVE_YM AS PERF_YM           /* 002.실적년월 */
+             , Z.AL130_GIVE_YM AS OJ_DSB_YM         /* 003.대상지급년월 */
+             , #{coCd}         AS CO_CD             /* 004.회사코드 */
+             , 'W06'       AS OG_TP_CD          /* 005.조직유형코드 */
+             , AL130_EMP_ID    AS PRTNR_NO          /* 006.파트너번호 */
+             , Z.AL130_SVC_CD                       /* 007.부서코드 */
+             , Z.FEE_CD        AS FEE_CD            /* 007.수수료코드 */
+             , Z.FEE_CD        AS DTA_CRT_FEE_CD    /* 008.데이터생성수수료코드 */
+             , #{feeTcntDvCd}  AS FEE_TCNT_DV_CD    /* 009.수수료차수구분코드 */
+             , '01'            AS SPMT_DSB_DV_CD    /* 010.추가지급구분코드 */
+             , Z.FEE_CALC_AMT  AS FEE_CALC_AMT      /* 011.수수료계산금액 */
+             , Z.FEE_CALC_AMT  AS FEE_CTR_CNFM_AMT  /* 012.수수료조정확정금액 */
+             , #{fnlFeeYn}             AS FNL_FEE_YN        /* 016.최종수수료여부 */
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM (
+                SELECT AL130_GIVE_YM                         /*--지급대상년월*/
+                     , AL130_SVC_CD                        /*--서비스센터코드*/
+                     , AL130_EMP_ID                        /*--엔지니어사번*/
+                     , W060001C            AS   W060001C   /*--설치작업건수*/
+                     , W060001             AS   W060001    /*--설치작업실적*/
+                     , W060002             AS   W060002    /*--설치작업급지실적*/
+                     , W060003C            AS   W060003C   /*--BS작업건수*/
+                     , W060003             AS   W060003    /*--BS작업실적*/
+                     , W060004             AS   W060004    /*--BS작업급지실적*/
+                     , W060005C            AS   W060005C   /*--AS작업건수*/
+                     , W060005             AS   W060005    /*--AS작업실적*/
+                     , W060006             AS   W060006    /*--AS작업급지실적*/
+                     , W060007C            AS   W060007C   /*--동행처리건수*/
+                     , W060007             AS   W060007    /*--동행처리실적*/
+                     , W060008             AS   W060008    /*--동행처리급지실적*/
+                     , W060010C            AS   W060010C   /*--AS스케일링건수*/
+                     , W060010             AS   W060010    /*--AS스케일링실적*/
+                     , W060011C            AS   W060011C   /*--AS일반수리건수*/
+                     , W060011             AS   W060011    /*--AS일반수리실적*/
+                     , W060012C            AS   W060012C   /*--AS경수리건수*/
+                     , W060012             AS   W060012    /*--AS경수리실적*/
+                  FROM (
+                        SELECT AL130_GIVE_YM
+                             , AL130_SVC_CD
+                             , AL130_EMP_ID
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '1' THEN 1                      ELSE 0 END)     AS W060001C   -- AL130_INST_CNT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '1' THEN NVL(CO410_SVC_FEE,0)   ELSE 0 END)     AS W060001    --AL130_INST_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '1' THEN NVL(AC149_LOCAL_ALW,0) ELSE 0 END)     AS W060002    --AL130_INST_LOCAL_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '2' THEN 1                      ELSE 0 END)     AS W060003C   --AL130_BS_CNT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '2' THEN NVL(CO410_SVC_FEE,0)   ELSE 0 END)     AS W060003    --AL130_BS_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '2' THEN NVL(AC149_LOCAL_ALW,0) ELSE 0 END)     AS W060004    -- AL130_BS_LOCAL_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '3' THEN 1                      ELSE 0 END)     AS W060005C   --AL130_AS_CNT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '3' THEN NVL(CO410_SVC_FEE,0)   ELSE 0 END)     AS W060005    --AL130_AS_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP =  '3' THEN NVL(AC149_LOCAL_ALW,0) ELSE 0 END)     AS W060006    --AL130_AS_LOCAL_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '31' THEN 1                      ELSE 0 END)     AS W060010C   --AL130_AS_SCL_CNT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '31' THEN NVL(CO410_SVC_FEE,0)   ELSE 0 END)     AS W060010    --AL130_AS_SCL_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '32' THEN 1                      ELSE 0 END)     AS W060011C   --AL130_AS_GNR_CNT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '32' THEN 5000                   ELSE 0 END)     AS W060011    --AL130_AS_GNR_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '33' THEN 1                      ELSE 0 END)     AS W060012C   --AL130_AS_LGH_CNT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '33' THEN 10000                  ELSE 0 END)     AS W060012    --AL130_AS_LGH_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '7'  THEN 1                      ELSE 0 END)     AS W060007C   --AL130_CMP_CNT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '7'  THEN NVL(CO410_SVC_FEE,0)   ELSE 0 END)     AS W060007    --AL130_CMP_AMT
+                             , SUM(CASE WHEN AC221_SVC_TYP = '7'  THEN NVL(AC149_LOCAL_ALW,0) ELSE 0 END)     AS W060008    --AL130_CMP_LOCAL_AMT
+                          FROM (
+                                /*1. 설치, A/S 건 */
+                                SELECT /*+ USE_NL(V1 Y) NO_MERGE(V1) INDEX(Y IX_FEAM_SITE_AW_DSB_BASE_BAS_01) */  --★★★ 힌트 수정!!!
+                                       V1.WRK_YM                       AS AL130_GIVE_YM
+                                     , V1.AC022_DEPT_CD                AS AL130_SVC_CD
+                                     , V1.AC221_EMP_ID_WRK             AS AL130_EMP_ID
+                                     , (CASE WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_GDS_CD = 'WM07100357' THEN  '31'    /*스켈일링*/  /* AS-IS -> TO-BE : 42990000000 -> WM07100357 */
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_POSIT IN ('X607')     THEN  '32'         /*일반수리*/
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_POSIT IN ('X606')     THEN  '33'         /*경수리*/
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_POSIT IN ('X605')     THEN  '34'         /*중수리*/
+                                             /*아웃소싱 49060-000000 퓨레스(KWP-7000), 49070-000000    살균수기충전(KW-K01W1), 49080-000000 살균수기포트(KW-K02W1), 49090-000000 퓨레스2(KW-C02W1), 49100-000000 스테들러폼 로버트 에어워셔, 49190-000000 항균음이온샤워기1(KW-S02Y1), 49200-000000 항균음이온샤워기2(KW-S02S1)*/
+                                             /* AS-IS -> TO-BE : 49060000000 -> WM03100514 , 49070000000 -> WM01100660, 49080000000 -> WM01100661, 49090000000 -> WM03100528 */
+                                             /*                  49100000000 -> WM02100789 , 49190000000 -> WM07100338, 49200000000 -> WM07100344                            */
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_GDS_CD IN ('WM03100514','WM01100660','WM01100661','WM03100528','WM02100789','WM07100338','WM07100344') THEN '35'
+                                             WHEN V1.AC221_SVC_TYP LIKE '41%'                THEN '1'
+                                             WHEN V1.AC221_SVC_TYP LIKE '42%'                THEN '2'
+                                             WHEN V1.AC221_SVC_TYP LIKE '43%'                THEN '3'
+                                             ELSE SUBSTR(V1.AC221_SVC_TYP,1,1)
+                                        END) AS AC221_SVC_TYP
+                                     , (CASE WHEN AC024_EMP_DEG = '23'                       THEN Y.FULEY_AW_AMT           /* AS-IS : 11 -> 23 */
+                                             WHEN AC024_EMP_DEG = '15'                       THEN Y.ROL_LYR1_TOPMR_AW_AMT  /* AS-IS : 21 -> 15 */
+                                             WHEN AC024_EMP_DEG = '16'                       THEN Y.ROL_LYR1_UPLR_AW_AMT   /* AS-IS : 22 -> 16 */
+                                             WHEN AC024_EMP_DEG = '17'                       THEN Y.ROL_LYR1_MDLYR_AW_AMT  /* AS-IS : 23 -> 17 */
+                                             WHEN AC024_EMP_DEG = '18'                       THEN Y.ROL_LYR1_LOLYR_AW_AMT  /* AS-IS : 24 -> 18 */
+                                             WHEN AC024_EMP_DEG = '19'                       THEN Y.ROL_L2_UPLR_AW_AMT     /* AS-IS : 31 -> 19 */
+                                             WHEN AC024_EMP_DEG = '20'                       THEN Y.ROL_L2_MDLYR_AW_AMT    /* AS-IS : 32 -> 20 */
+                                             WHEN AC024_EMP_DEG = '21'                       THEN Y.ROL_L2_LOLYR_AW_AMT    /* AS-IS : 33 -> 21 */
+                                             WHEN AC024_EMP_DEG = '22'                       THEN Y.ROL_L3_AW_AMT          /* AS-IS : 41 -> 22 */
+                                             WHEN AC024_EMP_DEG = '24'                       THEN Y.CRWK_AW_AMT            /* AS-IS : 51 -> 24 */
+                                             ELSE 0
+                                        END) AS CO410_SVC_FEE
+                                     , NVL((SELECT AW_AMT
+                                              FROM (SELECT MAX(AW_AMT) AS AW_AMT
+                                                      FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ T1
+                                                     WHERE TRIM(RGLVL_GD_CD) = TRIM(AC221_LOCAL_DEG)
+                                                       AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                       AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                  THEN '10'
+                                                                             ELSE AC147_WRK_GR
+                                                                        END)
+                                                       AND GD_SN     = (SELECT MAX(GD_SN)
+                                                                          FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ
+                                                                         WHERE RGLVL_GD_CD = T1.RGLVL_GD_CD
+                                                                           AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                                      THEN  '10'
+                                                                                                 ELSE AC147_WRK_GR
+                                                                                            END)
+                                                                           AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)))
+                                         , '0') AS AC149_LOCAL_ALW   /*--책임지역 급지 수당*/
+                                  FROM (SELECT X.AC221_WRK_DT , X.WRK_YM       , X.AC022_DEPT_CD    , X.AC221_EMP_ID_WRK , X.AC022_CGUB
+                                             , X.AC022_GRAD   , X.AC221_GDS_GR , X.AC221_SVC_TYP    , X.AC221_ALW_CD     , X.AC221_LOCAL_DEG
+                                             , X.VS106_GDS_CD , X.VS106_POSIT  , X.VS106_VST_COMP_DT, X.VS106_VST_COMP_TM
+                                             , (SELECT MAX(PRTNR_GD_CD)
+                                                  FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ T2
+                                                 WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                   AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                   AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                     FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ
+                                                                    WHERE PRTNR_NO  =  T2.PRTNR_NO
+                                                                      AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                ) AS AC024_EMP_DEG
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ T3
+                                                         WHERE PD_CD = VS106_GDS_CD
+                                                           AND SV_BIZ_DCLSF_CD = AC221_SVC_TYP
+                                                           AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                           AND IZ_SN = (SELECT MAX(IZ_SN)
+                                                                          FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ
+                                                                         WHERE PD_CD           = T3.PD_CD
+                                                                           AND SV_BIZ_DCLSF_CD = T3.SV_BIZ_DCLSF_CD
+                                                                           AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               ) AS AC147_WRK_GR
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL T4
+                                                         WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                           AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT
+                                                           AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                             FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL
+                                                                            WHERE PRTNR_NO = T4.PRTNR_NO
+                                                                              AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT)
+                                                        UNION ALL
+                                                         /*20.10.21 김민석매니저님 요청, 홈마스터 개인사업자 작업그룹 13으로 강제 변경*/
+                                                        SELECT '20' FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ WHERE PRTNR_NO = AC221_EMP_ID_WRK AND OG_CD LIKE 'V9%'
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               )  AS AC026_WRK_GR
+                                          FROM (SELECT  /*+ LEADING(C) INDEX(D IX_SVPD_CST_SV_WK_RS_IZ_02) */    --★★★ 힌트 수정!!!
+                                                       A.WK_EXCN_DT               AS AC221_WRK_DT
+                                                     , SUBSTR(A.WK_EXCN_DT,1,6)   AS WRK_YM
+                                                     , C.OG_CD                    AS AC022_DEPT_CD
+                                                     , A.WK_PRTNR_NO              AS AC221_EMP_ID_WRK
+                                                     , C.PRTNR_CLSF_CD            AS AC022_CGUB
+                                                     , C.PSTN_DV_CD               AS AC022_GRAD
+                                                     , A.SITE_AW_PD_GRP_CD        AS AC221_GDS_GR
+                                                     , B.SV_BIZ_DCLSF_CD          AS AC221_SVC_TYP
+                                                     , A.SITE_AW_ATC_CD           AS AC221_ALW_CD
+                                                     , A.RGLVL_GD_CD              AS AC221_LOCAL_DEG
+                                                     , D.PDCT_PD_CD               AS VS106_GDS_CD
+                                                     , D.AS_LCT_CD                AS VS106_POSIT
+                                                     , D.VST_FSH_DT               AS VS106_VST_COMP_DT
+                                                     , D.VST_FSH_HH               AS VS106_VST_COMP_TM
+                                                  FROM WSMDBS.TB_SVPD_CST_SVAS_IST_ASN_IZ A -- KWAS.LC_ALLOCATE_AC221TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ  B -- KWAS.LC_ALLOCATE_AC211TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_OGBS_MM_PRTNR_IZ         C -- KWAS.LC_ALLOCATE_AC022TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ     D -- KWAS.LC_VISIT_VS106TB@DL_TMIGKW1_ITGSEL
+                                                 WHERE 1=1
+                                                   AND B.CST_SV_ASN_NO  = A.CST_SV_ASN_NO   --AC221_DATA_GB = AC211_DATA_GB     AND  AC221_ORD_DT = AC211_ORD_DT  AND  AC221_ORD_SEQ = AC211_ORD_SEQ
+                                                   AND (B.PD_CD NOT IN (SELECT PD_CD
+                                                                          FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL
+                                                                         WHERE PD_EXTS_PRP_GRP_CD = 'PART' AND PD_PRP_VAL19 = '4' AND PD_PRP_VAL20 = '11')
+                                                        OR B.SV_BIZ_DCLSF_CD NOT LIKE '1%') /*--20.04.14 조종원파트장님 요청 웰스팜 모종은 as만 카운팅*/
+                                                   AND D.CST_SV_ASN_NO  = A.CST_SV_ASN_NO   -- AC221_DATA_GB = VS106_DATA_GB     AND  AC221_ORD_DT = VS106_ORD_DT  AND  AC221_ORD_SEQ = VS106_ORD_SEQ
+                                                   AND C.PRTNR_NO   = A.WK_PRTNR_NO
+                                                   AND C.BASE_YM = #{baseYm}
+                                                   AND C.OG_TP_CD = 'W06'
+                                                   AND C.RSB_DV_CD  NOT IN ('171', '0') /*--EA06 55    직책(엔지니어) 센터소장*/
+                                                   AND C.ROL_DV_CD  != '0'
+                                                   AND A.WK_EXCN_DT LIKE #{baseYm} ||'%'
+                                                   AND A.DTA_DL_YN  = 'N'  -- AC221_DATA_STUS IN ('1', '2') TO-BE에서 삭제되고 DTA_DL_YN로 대체
+                                                   AND A.WK_PRGS_STAT_CD = '20'
+                                                   AND A.SITE_AW_ATC_CD IS NOT NULL) X
+                                         WHERE 1=1
+                                       )  V1
+                                     , WSMDBS.TB_FEAM_SITE_AW_DSB_BASE_BAS Y  --KWAS.LC_COMMONCODE_CO410TB@DL_TMIGKW1_ITGSEL
+                                 WHERE 1=1
+                                   AND Y.PD_GRP_CD      = AC221_GDS_GR
+                                   AND Y.SV_TP_CD       = SUBSTR(V1.AC221_SVC_TYP,1,1)
+                                   AND Y.SITE_AW_ATC_CD = AC221_ALW_CD
+                                   AND Y.RGLVL_DV_CD    = '1'   /*--기존 급지는 모주건 1 급지로 세팅*/
+                                   AND V1.AC221_WRK_DT BETWEEN Y.APY_STRTDT AND Y.APY_ENDDT
+                                UNION ALL
+                                   /* 동행 처리 건*/
+                                SELECT /*+ USE_NL(V1 Y) NO_MERGE(V1) INDEX(Y IX_FEAM_SITE_AW_DSB_BASE_BAS_01) */    --★★★ 힌트 수정!!!
+                                       V1.WRK_YM                       AS AL130_GIVE_YM
+                                     , V1.AC022_DEPT_CD                AS AL130_SVC_CD
+                                     , V1.AC221_EMP_ID_WRK             AS AL130_EMP_ID
+                                     , '7'   AS AC221_SVC_TYP
+                                     , (CASE WHEN AC024_EMP_DEG = '23'                       THEN Y.FULEY_AW_AMT           /* AS-IS : 11 -> 23 */
+                                             WHEN AC024_EMP_DEG = '15'                       THEN Y.ROL_LYR1_TOPMR_AW_AMT  /* AS-IS : 21 -> 15 */
+                                             WHEN AC024_EMP_DEG = '16'                       THEN Y.ROL_LYR1_UPLR_AW_AMT   /* AS-IS : 22 -> 16 */
+                                             WHEN AC024_EMP_DEG = '17'                       THEN Y.ROL_LYR1_MDLYR_AW_AMT  /* AS-IS : 23 -> 17 */
+                                             WHEN AC024_EMP_DEG = '18'                       THEN Y.ROL_LYR1_LOLYR_AW_AMT  /* AS-IS : 24 -> 18 */
+                                             WHEN AC024_EMP_DEG = '19'                       THEN Y.ROL_L2_UPLR_AW_AMT     /* AS-IS : 31 -> 19 */
+                                             WHEN AC024_EMP_DEG = '20'                       THEN Y.ROL_L2_MDLYR_AW_AMT    /* AS-IS : 32 -> 20 */
+                                             WHEN AC024_EMP_DEG = '21'                       THEN Y.ROL_L2_LOLYR_AW_AMT    /* AS-IS : 33 -> 21 */
+                                             WHEN AC024_EMP_DEG = '22'                       THEN Y.ROL_L3_AW_AMT          /* AS-IS : 41 -> 22 */
+                                             WHEN AC024_EMP_DEG = '24'                       THEN Y.CRWK_AW_AMT            /* AS-IS : 51 -> 24 */
+                                             ELSE 0
+                                        END) AS CO410_SVC_FEE
+                                     , NVL((SELECT AW_AMT
+                                              FROM (SELECT MAX(AW_AMT) AS AW_AMT
+                                                       FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ T1
+                                                      WHERE TRIM(RGLVL_GD_CD) = TRIM(AC221_LOCAL_DEG)
+                                                        AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                        AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                   THEN  '10'
+                                                                              ELSE AC147_WRK_GR
+                                                                         END)
+                                                        AND GD_SN = (SELECT MAX(GD_SN)
+                                                                       FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ
+                                                                      WHERE RGLVL_GD_CD = T1.RGLVL_GD_CD
+                                                                        AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                                   THEN  '10'
+                                                                                              ELSE AC147_WRK_GR
+                                                                                         END)
+                                                                        AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)))
+                                         , '0') AS AC149_LOCAL_ALW   /*--책임지역 급지 수당*/
+                                  FROM (SELECT X.AC221_WRK_DT, X.WRK_YM      , X.AC022_DEPT_CD, X.AC221_EMP_ID_WRK, X.AC022_CGUB
+                                             , X.AC022_GRAD  , X.AC221_GDS_GR, X.AC221_SVC_TYP, X.AC221_ALW_CD    , X.AC221_LOCAL_DEG
+                                             , X.VS106_GDS_CD, X.VS106_POSIT , X.VS106_VST_COMP_DT  , X.VS106_VST_COMP_TM
+                                             , (SELECT MAX(PRTNR_GD_CD)
+                                                  FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ T2
+                                                 WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                   AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                   AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                     FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ
+                                                                    WHERE PRTNR_NO = T2.PRTNR_NO
+                                                                      AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                ) AS AC024_EMP_DEG
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ T3
+                                                         WHERE PD_CD = VS106_GDS_CD
+                                                           AND SV_BIZ_DCLSF_CD = AC221_SVC_TYP
+                                                           AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                           AND IZ_SN  = (SELECT MAX(IZ_SN )
+                                                                           FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ
+                                                                          WHERE PD_CD           = T3.PD_CD
+                                                                            AND SV_BIZ_DCLSF_CD = T3.SV_BIZ_DCLSF_CD
+                                                                            AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               ) AS AC147_WRK_GR
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL T4
+                                                         WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                           AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT
+                                                           AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                             FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL
+                                                                            WHERE PRTNR_NO = T4.PRTNR_NO
+                                                                              AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT)
+                                                        UNION ALL
+                                                         /*20.10.21 김민석매니저님 요청, 홈마스터 개인사업자 작업그룹 13으로 강제 변경*/
+                                                        SELECT '20' FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ WHERE PRTNR_NO = AC221_EMP_ID_WRK AND OG_CD LIKE 'V9%'
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               )  AS AC026_WRK_GR
+                                          FROM (SELECT /*+ LEADING(C) USE_NL(A B C D) INDEX(A IX_SVPD_CST_SVAS_IST_ASN_IZ_07) INDEX(D IX_SVPD_CST_SV_WK_RS_IZ_03) */    --★★★ 힌트 수정!!!
+                                                       A.WK_EXCN_DT               AS AC221_WRK_DT
+                                                     , SUBSTR(A.WK_EXCN_DT,1,6)   AS WRK_YM
+                                                     , C.OG_CD                    AS AC022_DEPT_CD
+                                                     , D.ACPN_PRTNR_NO            AS AC221_EMP_ID_WRK
+                                                     , C.PRTNR_CLSF_CD            AS AC022_CGUB
+                                                     , C.PSTN_DV_CD               AS AC022_GRAD
+                                                     , A.SITE_AW_PD_GRP_CD        AS AC221_GDS_GR
+                                                     , B.SV_BIZ_DCLSF_CD          AS AC221_SVC_TYP
+                                                     , A.SITE_AW_ATC_CD           AS AC221_ALW_CD
+                                                     , A.RGLVL_GD_CD              AS AC221_LOCAL_DEG
+                                                     , D.PDCT_PD_CD               AS VS106_GDS_CD
+                                                     , D.AS_LCT_CD                AS VS106_POSIT
+                                                     , D.VST_FSH_DT               AS VS106_VST_COMP_DT
+                                                     , D.VST_FSH_HH               AS VS106_VST_COMP_TM
+                                                  FROM WSMDBS.TB_SVPD_CST_SVAS_IST_ASN_IZ A --KWAS.LC_ALLOCATE_AC221TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ  B --KWAS.LC_ALLOCATE_AC211TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_OGBS_MM_PRTNR_IZ         C --KWAS.LC_ALLOCATE_AC022TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ     D --KWAS.LC_VISIT_VS106TB@DL_TMIGKW1_ITGSEL
+                                                 WHERE 1=1
+                                                   AND B.CST_SV_ASN_NO = A.CST_SV_ASN_NO --AC221_DATA_GB = AC211_DATA_GB  AND  AC221_ORD_DT = AC211_ORD_DT  AND  AC221_ORD_SEQ = AC211_ORD_SEQ
+                                                   AND ( B.PD_CD NOT IN (SELECT PD_CD
+                                                                           FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL
+                                                                          WHERE PD_EXTS_PRP_GRP_CD = 'PART' AND PD_PRP_VAL19 = '4' AND PD_PRP_VAL20 = '11')
+                                                         OR B.SV_BIZ_DCLSF_CD NOT LIKE '1%') /*--20.04.14 조종원파트장님 요청 웰스팜 모종은 as만 카운팅*/
+                                                   AND D.CST_SV_ASN_NO  = A.CST_SV_ASN_NO --AC221_DATA_GB = VS106_DATA_GB  AND  AC221_ORD_DT = VS106_ORD_DT  AND  AC221_ORD_SEQ = VS106_ORD_SEQ
+                                                   AND D.ACPN_PRTNR_NO IS NOT NULL
+                                                   AND C.PRTNR_NO   = D.ACPN_PRTNR_NO
+                                                   AND C.BASE_YM  = #{baseYm}
+                                                   AND C.OG_TP_CD = 'W06'
+                                                   AND C.RSB_DV_CD  NOT IN ('171', '0') /*--EA06 55    직책(엔지니어) 센터소장*/
+                                                   AND C.ROL_DV_CD  != '0'
+                                                   AND A.WK_EXCN_DT LIKE #{baseYm}||'%'
+                                                   AND A.DTA_DL_YN  = 'N' --AC221_DATA_STUS IN ('1', '2')
+                                                   AND A.WK_PRGS_STAT_CD = '20'
+                                                   AND A.SITE_AW_ATC_CD IS NOT NULL) X
+                                         WHERE 1=1
+                                       ) V1
+                                     , WSMDBS.TB_FEAM_SITE_AW_DSB_BASE_BAS Y --KWAS.LC_COMMONCODE_CO410TB@DL_TMIGKW1_ITGSEL
+                                 WHERE 1=1
+                                   AND Y.PD_GRP_CD      = AC221_GDS_GR
+                                   AND Y.SV_TP_CD       = SUBSTR(V1.AC221_SVC_TYP,1,1)
+                                   AND Y.SITE_AW_ATC_CD = AC221_ALW_CD
+                                   AND Y.RGLVL_DV_CD    = '1'        /*--기존 급지는 모주건 1 급지로 세팅*/
+                                   AND V1.AC221_WRK_DT BETWEEN Y.APY_STRTDT AND Y.APY_ENDDT
+                                UNION ALL
+                                /*3. B/S 건 */
+                                SELECT /*+ USE_NL(V1 Y) NO_MERGE(V1) INDEX(Y IX_FEAM_SITE_AW_DSB_BASE_BAS_01) */    --★★★ 힌트 수정!!!
+                                       V1.WRK_YM                       AS AL130_GIVE_YM
+                                     , V1.AC022_DEPT_CD                AS AL130_SVC_CD
+                                     , V1.AC221_EMP_ID_WRK             AS AL130_EMP_ID
+                                     , (CASE WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_GDS_CD = 'WM07100357' THEN  '31'    /*스켈일링*/  /* AS-IS -> TO-BE : 42990000000 -> WM07100357 */
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_POSIT IN ('X607') THEN  '32'         /*일반수리*/
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_POSIT IN ('X606') THEN  '33'         /*경수리*/
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_POSIT IN ('X605') THEN  '34'         /*중수리*/
+                                             /*아웃소싱 49060-000000 퓨레스(KWP-7000), 49070-000000    살균수기충전(KW-K01W1), 49080-000000 살균수기포트(KW-K02W1), 49090-000000 퓨레스2(KW-C02W1), 49100-000000 스테들러폼 로버트 에어워셔, 49190-000000 항균음이온샤워기1(KW-S02Y1), 49200-000000 항균음이온샤워기2(KW-S02S1)*/
+                                             WHEN V1.AC221_SVC_TYP LIKE '3%' AND VS106_GDS_CD IN ('WM03100514','WM01100660','WM01100661','WM03100528','WM02100789','WM07100338','WM07100344') THEN '35'
+                                                  /* AS-IS -> TO-BE : 49060000000 -> WM03100514 , 49070000000 -> WM01100660, 49080000000 -> WM01100661, 49090000000 -> WM03100528 */
+                                                  /*                  49100000000 -> WM02100789 , 49190000000 -> WM07100338, 49200000000 -> WM07100344                            */
+                                             WHEN V1.AC221_SVC_TYP LIKE '4%' THEN '2'
+                                             ELSE SUBSTR(V1.AC221_SVC_TYP,1,1)
+                                        END) AS AC221_SVC_TYP
+                                     , (CASE WHEN AC024_EMP_DEG = '23'                       THEN Y.FULEY_AW_AMT           /* AS-IS : 11 -> 23 */
+                                             WHEN AC024_EMP_DEG = '15'                       THEN Y.ROL_LYR1_TOPMR_AW_AMT  /* AS-IS : 21 -> 15 */
+                                             WHEN AC024_EMP_DEG = '16'                       THEN Y.ROL_LYR1_UPLR_AW_AMT   /* AS-IS : 22 -> 16 */
+                                             WHEN AC024_EMP_DEG = '17'                       THEN Y.ROL_LYR1_MDLYR_AW_AMT  /* AS-IS : 23 -> 17 */
+                                             WHEN AC024_EMP_DEG = '18'                       THEN Y.ROL_LYR1_LOLYR_AW_AMT  /* AS-IS : 24 -> 18 */
+                                             WHEN AC024_EMP_DEG = '19'                       THEN Y.ROL_L2_UPLR_AW_AMT     /* AS-IS : 31 -> 19 */
+                                             WHEN AC024_EMP_DEG = '20'                       THEN Y.ROL_L2_MDLYR_AW_AMT    /* AS-IS : 32 -> 20 */
+                                             WHEN AC024_EMP_DEG = '21'                       THEN Y.ROL_L2_LOLYR_AW_AMT    /* AS-IS : 33 -> 21 */
+                                             WHEN AC024_EMP_DEG = '22'                       THEN Y.ROL_L3_AW_AMT          /* AS-IS : 41 -> 22 */
+                                             WHEN AC024_EMP_DEG = '24'                       THEN Y.CRWK_AW_AMT            /* AS-IS : 51 -> 24 */
+                                             ELSE 0
+                                        END) AS CO410_SVC_FEE
+                                     , NVL((SELECT AW_AMT
+                                              FROM (SELECT MAX(AW_AMT) AS AW_AMT
+                                                      FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ T1
+                                                     WHERE TRIM(RGLVL_GD_CD) = TRIM(AC221_LOCAL_DEG)
+                                                       AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                       AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                  THEN  '10'
+                                                                             ELSE AC147_WRK_GR
+                                                                        END)
+                                                        AND GD_SN = (SELECT MAX(GD_SN)
+                                                                       FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ
+                                                                      WHERE RGLVL_GD_CD = T1.RGLVL_GD_CD
+                                                                        AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                                   THEN  '10'
+                                                                                              ELSE AC147_WRK_GR
+                                                                                         END)
+                                                                        AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                   ))
+                                         , '0') AS AC149_LOCAL_ALW   /*--책임지역 급지 수당*/
+                                  FROM (SELECT X.AC221_WRK_DT , X.WRK_YM      , X.AC022_DEPT_CD    , X.AC221_EMP_ID_WRK , X.AC022_CGUB
+                                             , X.AC022_GRAD   , X.AC221_GDS_GR, X.AC221_SVC_TYP    , X.AC221_ALW_CD     , X.AC221_LOCAL_DEG
+                                             , X.VS106_GDS_CD , X.VS106_POSIT , X.VS106_VST_COMP_DT, X.VS106_VST_COMP_TM
+                                             , (SELECT MAX(PRTNR_GD_CD)
+                                                  FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ T2
+                                                 WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                   AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                   AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                     FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ
+                                                                    WHERE PRTNR_NO = T2.PRTNR_NO
+                                                                      AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                ) AS AC024_EMP_DEG
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ T3
+                                                         WHERE PD_CD = VS106_GDS_CD
+                                                           AND SV_BIZ_DCLSF_CD = AC221_SVC_TYP
+                                                           AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                           AND IZ_SN  = (SELECT MAX(IZ_SN )
+                                                                           FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ
+                                                                          WHERE PD_CD           = T3.PD_CD
+                                                                            AND SV_BIZ_DCLSF_CD = T3.SV_BIZ_DCLSF_CD
+                                                                            AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               ) AS AC147_WRK_GR
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL T4
+                                                         WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                           AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT
+                                                           AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                             FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL
+                                                                            WHERE PRTNR_NO = T4.PRTNR_NO
+                                                                              AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT)
+                                                        UNION ALL
+                                                         /*20.10.21 김민석매니저님 요청, 홈마스터 개인사업자 작업그룹 13으로 강제 변경*/
+                                                        SELECT '20' FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ WHERE PRTNR_NO = AC221_EMP_ID_WRK AND OG_CD LIKE 'V9%'
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               )  AS AC026_WRK_GR
+                                          FROM (SELECT /*+ LEADING(C) INDEX(D IX_SVPD_CST_SV_WK_RS_IZ_02) INDEX(B IX_SVPD_CST_SV_BFSVC_OJ_IZ_01) */    --★★★ 힌트 수정!!!
+                                                       A.WK_EXCN_DT               AS AC221_WRK_DT
+                                                     , SUBSTR(A.WK_EXCN_DT,1,6)   AS WRK_YM
+                                                     , C.OG_CD                    AS AC022_DEPT_CD
+                                                     , A.CNFM_PSIC_PRTNR_NO       AS AC221_EMP_ID_WRK
+                                                     , C.PRTNR_CLSF_CD            AS AC022_CGUB
+                                                     , C.PSTN_DV_CD               AS AC022_GRAD
+                                                     , A.SITE_AW_PD_GRP_CD        AS AC221_GDS_GR
+                                                     , A.SV_BIZ_DCLSF_CD          AS AC221_SVC_TYP
+                                                     , A.SITE_AW_ATC_CD           AS AC221_ALW_CD
+                                                     , A.LOCARA_GD_CD             AS AC221_LOCAL_DEG
+                                                     , D.PDCT_PD_CD               AS VS106_GDS_CD
+                                                     , D.AS_LCT_CD                AS VS106_POSIT
+                                                     , D.VST_FSH_DT               AS VS106_VST_COMP_DT
+                                                     , D.VST_FSH_HH               AS VS106_VST_COMP_TM
+                                                  FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_ASN_IZ A --KWAS.LC_ALLOCATE_AC261TB@DL_TMIGKW1_ITGSEL  TB_SVPD_CST_SV_BFSVC_ASN_IZ
+                                                     , WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ  B --KWAS.LC_ALLOCATE_AC251TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_OGBS_MM_PRTNR_IZ         C --KWAS.LC_ALLOCATE_AC022TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ     D --KWAS.LC_VISIT_VS106TB@DL_TMIGKW1_ITGSEL
+                                                 WHERE 1=1
+                                                   AND B.CST_SV_ASN_NO = A.CST_SV_ASN_NO --AC261_DATA_GB = AC251_DATA_GB   AND  AC261_ORD_DT = AC251_ORD_DT  AND  AC261_ORD_SEQ = AC251_ORD_SEQ
+                                                   AND B.PDCT_PD_CD NOT IN (SELECT PD_CD
+                                                                              FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL
+                                                                             WHERE PD_EXTS_PRP_GRP_CD = 'PART' AND PD_PRP_VAL19 = '4' AND PD_PRP_VAL20 = '11')
+                                                   AND D.CST_SV_ASN_NO = A.CST_SV_ASN_NO --AC261_DATA_GB = VS106_DATA_GB   AND  AC261_ORD_DT = VS106_ORD_DT  AND  AC261_ORD_SEQ = VS106_ORD_SEQ
+                                                   AND C.PRTNR_NO   = A.CNFM_PSIC_PRTNR_NO
+                                                   AND C.BASE_YM = #{baseYm}
+                                                   AND C.OG_TP_CD = 'W06'
+                                                   AND C.RSB_DV_CD  NOT IN ('171', '0') /*--EA06 55    직책(엔지니어) 센터소장*/
+                                                   AND C.ROL_DV_CD  != '0'
+                                                   AND A.WK_EXCN_DT LIKE #{baseYm} || '%'
+                                                   AND A.DTA_DL_YN  = 'N'  --AC261_DATA_STUS IN ('1', '2')
+                                                   AND A.VST_PRGS_STAT_CD = '20'
+                                                   AND A.SITE_AW_ATC_CD IS NOT NULL ) X
+                                         WHERE 1=1
+                                       ) V1
+                                     , WSMDBS.TB_FEAM_SITE_AW_DSB_BASE_BAS Y  --KWAS.LC_COMMONCODE_CO410TB@DL_TMIGKW1_ITGSEL
+                                 WHERE 1=1
+                                   AND Y.PD_GRP_CD = AC221_GDS_GR
+                                   AND Y.SV_TP_CD= SUBSTR(V1.AC221_SVC_TYP,1,1)
+                                   AND Y.SITE_AW_ATC_CD = AC221_ALW_CD
+                                   AND Y.RGLVL_DV_CD = '1'   /*--기존 급지는 모주건 1 급지로 세팅*/
+                                   AND V1.AC221_WRK_DT BETWEEN Y.APY_STRTDT AND Y.APY_ENDDT
+                                UNION ALL
+                                /*4. B/S 건 동행 처리건 */
+                                SELECT /*+ USE_NL(V1 Y) NO_MERGE(V1) INDEX(Y IX_FEAM_SITE_AW_DSB_BASE_BAS_01) */    --★★★ 힌트 수정!!!
+                                       V1.WRK_YM                       AS AL130_GIVE_YM
+                                     , V1.AC022_DEPT_CD                AS AL130_SVC_CD
+                                     , V1.AC221_EMP_ID_WRK             AS AL130_EMP_ID
+                                     , '7'   AS AC221_SVC_TYP
+                                     , (CASE WHEN AC024_EMP_DEG = '23'                       THEN Y.FULEY_AW_AMT           /* AS-IS : 11 -> 23 */
+                                             WHEN AC024_EMP_DEG = '15'                       THEN Y.ROL_LYR1_TOPMR_AW_AMT  /* AS-IS : 21 -> 15 */
+                                             WHEN AC024_EMP_DEG = '16'                       THEN Y.ROL_LYR1_UPLR_AW_AMT   /* AS-IS : 22 -> 16 */
+                                             WHEN AC024_EMP_DEG = '17'                       THEN Y.ROL_LYR1_MDLYR_AW_AMT  /* AS-IS : 23 -> 17 */
+                                             WHEN AC024_EMP_DEG = '18'                       THEN Y.ROL_LYR1_LOLYR_AW_AMT  /* AS-IS : 24 -> 18 */
+                                             WHEN AC024_EMP_DEG = '19'                       THEN Y.ROL_L2_UPLR_AW_AMT     /* AS-IS : 31 -> 19 */
+                                             WHEN AC024_EMP_DEG = '20'                       THEN Y.ROL_L2_MDLYR_AW_AMT    /* AS-IS : 32 -> 20 */
+                                             WHEN AC024_EMP_DEG = '21'                       THEN Y.ROL_L2_LOLYR_AW_AMT    /* AS-IS : 33 -> 21 */
+                                             WHEN AC024_EMP_DEG = '22'                       THEN Y.ROL_L3_AW_AMT          /* AS-IS : 41 -> 22 */
+                                             WHEN AC024_EMP_DEG = '24'                       THEN Y.CRWK_AW_AMT            /* AS-IS : 51 -> 24 */
+                                             ELSE 0
+                                        END) AS CO410_SVC_FEE
+                                     , NVL((SELECT AW_AMT
+                                              FROM (SELECT MAX(AW_AMT) AS AW_AMT
+                                                      FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ T1
+                                                     WHERE TRIM(RGLVL_GD_CD) = TRIM(AC221_LOCAL_DEG)
+                                                       AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                       AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                  THEN  '10'
+                                                                             ELSE AC147_WRK_GR
+                                                                        END)
+                                                        AND GD_SN    = (SELECT MAX(GD_SN)
+                                                                          FROM WSMDBS.TB_SVPD_RGLVL_GD_AW_WTCF_IZ
+                                                                         WHERE RGLVL_GD_CD = T1.RGLVL_GD_CD
+                                                                           AND WK_GRP_CD = (CASE WHEN AC147_WRK_GR = '12' AND AC026_WRK_GR != '12'
+                                                                                                      THEN  '10'
+                                                                                                 ELSE AC147_WRK_GR
+                                                                                            END)
+                                                                           AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                   ))
+                                     , '0') AS AC149_LOCAL_ALW   /*--책임지역 급지 수당*/
+                                  FROM (SELECT X.AC221_WRK_DT , X.WRK_YM      , X.AC022_DEPT_CD    , X.AC221_EMP_ID_WRK , X.AC022_CGUB
+                                             , X.AC022_GRAD   , X.AC221_GDS_GR, X.AC221_SVC_TYP    , X.AC221_ALW_CD     , X.AC221_LOCAL_DEG
+                                             , X.VS106_GDS_CD , X.VS106_POSIT , X.VS106_VST_COMP_DT, X.VS106_VST_COMP_TM
+                                             , (SELECT MAX(PRTNR_GD_CD)
+                                                  FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ T2
+                                                 WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                   AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                   AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                     FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ
+                                                                    WHERE PRTNR_NO = T2.PRTNR_NO
+                                                                      AND AC221_WRK_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                ) AS AC024_EMP_DEG
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ T3
+                                                         WHERE PD_CD = VS106_GDS_CD
+                                                           AND SV_BIZ_DCLSF_CD = AC221_SVC_TYP
+                                                           AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT
+                                                           AND IZ_SN  = (SELECT MAX(IZ_SN )
+                                                                           FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ
+                                                                          WHERE PD_CD           = T3.PD_CD
+                                                                            AND SV_BIZ_DCLSF_CD = T3.SV_BIZ_DCLSF_CD
+                                                                            AND VS106_VST_COMP_DT BETWEEN APY_STRTDT AND APY_ENDDT)
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               ) AS AC147_WRK_GR
+                                             , (SELECT MAX(WK_GRP_CD) AS WK_GRP_CD
+                                                  FROM (SELECT WK_GRP_CD
+                                                          FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL T4
+                                                         WHERE PRTNR_NO = AC221_EMP_ID_WRK
+                                                           AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT
+                                                           AND APY_SEQN = (SELECT MAX(APY_SEQN)
+                                                                             FROM WSMDBS.TB_OGBS_WK_GRP_BLG_DTL
+                                                                            WHERE PRTNR_NO = T4.PRTNR_NO
+                                                                              AND VS106_VST_COMP_DT BETWEEN VL_STRTDT AND VL_ENDDT)
+                                                        UNION ALL
+                                                         /*20.10.21 김민석매니저님 요청, 홈마스터 개인사업자 작업그룹 13으로 강제 변경*/
+                                                        SELECT '20' FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ WHERE PRTNR_NO = AC221_EMP_ID_WRK AND OG_CD LIKE 'V9%'
+                                                        UNION ALL
+                                                        SELECT '10' AS WK_GRP_CD FROM DUAL )
+                                               )  AS AC026_WRK_GR
+                                          FROM (SELECT /*+ LEADING(C) USE_NL(A B C D) INDEX(A IX_SVPD_CST_SV_BFSVC_ASN_IZ_11) INDEX(D IX_SVPD_CST_SV_WK_RS_IZ_03) */    --★★★ 힌트 수정!!!
+                                                       A.WK_EXCN_DT             AS AC221_WRK_DT
+                                                     , SUBSTR(A.WK_EXCN_DT,1,6) AS WRK_YM
+                                                     , C.OG_CD                  AS AC022_DEPT_CD
+                                                     , D.ACPN_PRTNR_NO          AS AC221_EMP_ID_WRK
+                                                     , C.PRTNR_CLSF_CD          AS AC022_CGUB
+                                                     , C.PSTN_DV_CD             AS AC022_GRAD
+                                                     , A.SITE_AW_PD_GRP_CD      AS AC221_GDS_GR
+                                                     , A.SV_BIZ_DCLSF_CD        AS AC221_SVC_TYP
+                                                     , A.SITE_AW_ATC_CD         AS AC221_ALW_CD
+                                                     , A.LOCARA_GD_CD           AS AC221_LOCAL_DEG
+                                                     , D.PDCT_PD_CD             AS VS106_GDS_CD
+                                                     , D.AS_LCT_CD              AS VS106_POSIT
+                                                     , D.VST_FSH_DT             AS VS106_VST_COMP_DT
+                                                     , D.VST_FSH_HH             AS VS106_VST_COMP_TM
+                                                  FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_ASN_IZ A --KWAS.LC_ALLOCATE_AC261TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ  B --KWAS.LC_ALLOCATE_AC251TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_OGBS_MM_PRTNR_IZ         C --KWAS.LC_ALLOCATE_AC022TB@DL_TMIGKW1_ITGSEL
+                                                     , WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ     D --KWAS.LC_VISIT_VS106TB@DL_TMIGKW1_ITGSEL
+                                                 WHERE 1=1
+                                                   AND B.CST_SV_ASN_NO  = A.CST_SV_ASN_NO   --AC261_DATA_GB = AC251_DATA_GB  AND  AC261_ORD_DT = AC251_ORD_DT  AND  AC261_ORD_SEQ = AC251_ORD_SEQ
+                                                   --AND (AC251_GDS_CD NOT LIKE '6%') /*--20.04.14 조종원파트장님 요청 웰스팜 모종은 as만 카운팅*/
+                                                   AND B.PDCT_PD_CD NOT IN (SELECT PD_CD
+                                                                              FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL
+                                                                             WHERE PD_EXTS_PRP_GRP_CD = 'PART' AND PD_PRP_VAL19 = '4' AND PD_PRP_VAL20 = '11')
+                                                   AND D.CST_SV_ASN_NO  = A.CST_SV_ASN_NO   --AC261_DATA_GB = VS106_DATA_GB  AND  AC261_ORD_DT = VS106_ORD_DT  AND  AC261_ORD_SEQ = VS106_ORD_SEQ
+                                                   AND C.PRTNR_NO  = D.ACPN_PRTNR_NO
+                                                   AND C.BASE_YM = #{baseYm}
+                                                   AND C.OG_TP_CD = 'W06'
+                                                   AND C.RSB_DV_CD    NOT IN ('171', '0') /*--EA06 55    직책(엔지니어) 센터소장*/
+                                                   AND C.ROL_DV_CD    != '0'
+                                                   AND A.WK_EXCN_DT  LIKE #{baseYm} || '%'
+                                                   AND A.DTA_DL_YN  = 'N'  --AC261_DATA_STUS IN ('1', '2')
+                                                   AND A.VST_PRGS_STAT_CD = '20'
+                                                   AND A.SITE_AW_ATC_CD IS NOT NULL) X
+                                         WHERE 1=1
+                                       ) V1
+                                     , WSMDBS.TB_FEAM_SITE_AW_DSB_BASE_BAS Y  --KWAS.LC_COMMONCODE_CO410TB@DL_TMIGKW1_ITGSEL
+                                 WHERE 1=1
+                                   AND Y.PD_GRP_CD = AC221_GDS_GR
+                                   AND Y.SV_TP_CD= SUBSTR(V1.AC221_SVC_TYP,1,1)
+                                   AND Y.SITE_AW_ATC_CD = AC221_ALW_CD
+                                   AND Y.RGLVL_DV_CD = '1'   /*--기존 급지는 모주건 1 급지로 세팅*/
+                                   AND V1.AC221_WRK_DT BETWEEN Y.APY_STRTDT AND Y.APY_ENDDT
+                               ) V2
+                         WHERE 1=1
+                         GROUP BY AL130_GIVE_YM
+                                 , AL130_SVC_CD
+                                 , AL130_EMP_ID
+                       )
+                 ORDER BY AL130_GIVE_YM, AL130_SVC_CD, AL130_EMP_ID
+               )
+               UNPIVOT (FEE_CALC_AMT FOR
+                              FEE_CD IN (W060001, W060002, W060003, W060004, W060005, W060006, W060007, W060008, W060010, W060011, W060012)
+                       ) Z
+         WHERE Z.FEE_CALC_AMT > 0
+    </insert>
+</mapper>
