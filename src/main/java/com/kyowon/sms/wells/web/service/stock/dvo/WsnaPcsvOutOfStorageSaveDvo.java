@@ -20,6 +20,7 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String asPhnCd;
     String asCausCd;
     String ivcPrntSn;
+    String ogId;
     String ogTpCd;
     String pdGrpCd;
 
@@ -36,6 +37,7 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String pdSellTpCd;
     String pdUswyCd;
     String istDt;
-    String wareMngtPrtnrNo;
+    String wareMngtPrtnrNo; /*창고관리파트너번호*/
+    String itmOstrNo; /*품목출고번호*/
 
 }

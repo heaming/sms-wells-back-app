@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
 
@@ -63,10 +64,18 @@ public class WsnaPcsvOutOfStorageMgtService {
                 processCount += 1;
             }
         } catch (Exception e) {
+            //TODO 추후 DECLARE 소스 제거시 아래소스도 제거예정
             if (e instanceof UncategorizedSQLException) {
                 int errorCode = ((UncategorizedSQLException)e).getSQLException().getErrorCode();
                 if (errorCode == 20003) {
-                    throw new BizException(((UncategorizedSQLException)e).getSQLException().getMessage());
+                    String message = ((UncategorizedSQLException)e).getSQLException().getMessage();
+
+                    if (StringUtils.isNotEmpty(message) && message.indexOf("[") > -1 && message.indexOf("]") > -1) {
+                        int start = message.indexOf("[") + 1;
+                        int end = message.indexOf("]");
+                        message = message.substring(start, end);
+                    }
+                    throw new BizException(message);
                 }
             }
             throw e;
