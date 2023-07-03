@@ -13,7 +13,7 @@ public interface WctaContractSettlementMapper {
 
     int updateContractProgressStatus(String cntrNo, String cntrPrgsStatCd);
 
-    int insertContractChHist(String cntrNo);
+    int upsertContractChHist(String cntrNo);
 
     Optional<WctaPriorBizBsdtDvo> selectPriorReceipt();
 

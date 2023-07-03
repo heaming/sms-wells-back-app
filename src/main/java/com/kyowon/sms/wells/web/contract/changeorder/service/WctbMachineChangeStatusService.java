@@ -177,6 +177,7 @@ public class WctbMachineChangeStatusService {
         inDvo.setDlqAmt(baseInfoDvo.getEotDlqAmt());
         inDvo.setUcAmt(baseInfoDvo.getEotUcAmt());
         inDvo.setRecapDutyPtrmN(baseInfoDvo.getRecapDutyPtrmN());
+        inDvo.setPdNm(baseInfoDvo.getPdNm());
 
         return inDvo;
     }

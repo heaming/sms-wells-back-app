@@ -164,7 +164,7 @@
          <if test='@MybatisUtils@isNotEmpty(pdFilter)'>
            AND T1.PD_NM LIKE '%' || #{pdFilter} || '%'
          </if>
-           AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5') -- 회사설치, 필터, 멤버십, '유지관리' 제외
+           AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5', '6') -- 회사설치, 필터, 멤버십, 유지관리, 정기배송 제외
            AND NOT EXISTS (
              -- 판매제한 조회
                  SELECT 1
@@ -347,7 +347,7 @@
             ON M1.PD_CD = C1.BASE_PD_CD
            AND M1.DTA_DL_YN = 'N'
            AND M1.SELL_YN = 'Y'
-           AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5') -- 회사설치, 필터, 멤버십, '유지관리' 제외
+           AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5', '6') -- 회사설치, 필터, 멤버십, 유지관리, 정기배송 제외
           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T1 -- 공통속성
             ON T1.PD_CD = M1.PD_CD
            AND T1.PD_EXTS_PRP_GRP_CD = 'CMN'
@@ -407,8 +407,8 @@
                      ON T13.SELL_BASE_ID = T12.SELL_BASE_ID
                     AND T13.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T14
-                     ON T14.PRTNR_NO = '1002934' -- 파트너번호
-                    AND T14.OG_TP_CD = 'W01' -- 파트너조직유형코드
+                     ON T14.PRTNR_NO = #{session.employeeIDNumber} -- 파트너번호
+                    AND T14.OG_TP_CD = #{session.ogTpCd} -- 파트너조직유형코드
                   WHERE 1 = 1
                     AND NVL(NULL, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')) BETWEEN T12.VL_STRT_DTM AND T12.VL_END_DTM -- '계약접수일자, 신규일때는 값없음'
                     AND T12.DTA_DL_YN = 'N'
@@ -794,6 +794,96 @@
            AND PD_REL_TP_CD = '05'
            AND DTA_DL_YN = 'N'
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+    </select>
+
+    <select id="selectWelsfHcfPkgs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdWelsfHcfPkg">
+        /*렌탈 웰스팜/홈카페 기기 선택시 추가되는 정기배송 패키지의 목록 및 가격 조회*/
+        SELECT DISTINCT T1.PD_NM AS CODE_NAME
+             , T1.PD_CD AS CODE_ID
+             , T1.PD_NM
+             , T1.PD_CD
+             , T5.PD_PRP_VAL07 AS RGLR_SPP_CNTR_DV_CD /* 정기배송 계약기간 */
+             , T5.PD_PRP_VAL13 AS RGLR_SPP_PRC_DV_CD  /* 정기배송 가격구분 */
+             , T1.PDCT_UPRC_USE_YN                    /* 제품단가 사용여부 Y-자유선택 N-일반패키지*/
+             , T6.FNL_VAL
+          FROM TB_PDBS_PD_BAS T1
+         INNER JOIN TB_PDBS_PD_REL T2
+            ON T2.OJ_PD_CD = T1.PD_CD
+           AND T2.PD_REL_TP_CD = '19'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5
+            ON T5.PD_CD = T1.PD_CD
+           AND T5.PD_EXTS_PRP_GRP_CD = 'CNTR'
+           AND T5.PD_PRP_VAL13 = '4' /* 결합형 */
+         INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T6
+            ON T6.PD_CD = T2.OJ_PD_CD
+           AND T6.VER_SN = (SELECT MAX(T7.VER_SN)
+                              FROM TB_PDBS_PD_PRC_FNL_DTL T7
+                             WHERE T7.PD_PRC_FNL_DTL_ID = T6.PD_PRC_FNL_DTL_ID)
+         WHERE T2.BASE_PD_CD = #{pdCd}
+         UNION ALL
+        SELECT DISTINCT T1.PD_NM AS CODE_NAME
+             , T1.PD_CD AS CODE_ID
+             , T1.PD_NM
+             , T1.PD_CD
+             , T5.PD_PRP_VAL07 AS RGLR_SPP_CNTR_DV_CD /* 정기배송 계약기간 */
+             , T5.PD_PRP_VAL13 AS RGLR_SPP_PRC_DV_CD  /* 정기배송 가격구분 */
+             , T1.PDCT_UPRC_USE_YN                    /* 제품단가 사용여부 Y-자유선택 N-일반패키지*/
+             , T6.FNL_VAL
+        FROM TB_PDBS_PD_BAS T1
+         INNER JOIN TB_PDBS_PD_REL T2
+            ON T2.OJ_PD_CD = T1.PD_CD
+           AND T2.PD_REL_TP_CD = '19'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5
+            ON T5.PD_CD = T1.PD_CD
+           AND T5.PD_EXTS_PRP_GRP_CD = 'CNTR'
+           AND T5.PD_PRP_VAL13 = '3' /* 일시불 */
+         INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T6
+            ON T6.PD_CD = T2.OJ_PD_CD
+           AND T6.PD_PRC_FNL_PRP_VAL16 = 'Y' /* 동시구매가능개월여부 */
+           AND T6.VER_SN = (SELECT MAX(T7.VER_SN)
+                              FROM TB_PDBS_PD_PRC_FNL_DTL T7
+                             WHERE T7.PD_PRC_FNL_DTL_ID = T6.PD_PRC_FNL_DTL_ID)
+         WHERE T2.BASE_PD_CD = #{pdCd}
+    </select>
+
+    <select id="selectSdingCapsls" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdSdingCapsl">
+        /* 정기배송 상품 클릭시 표시되는 제품정보 */
+        SELECT
+               PB.PD_NM AS PART_PD_NM   /* 부품상품명 */
+             , T1.SV_PD_CD
+             , T1.PDCT_PD_CD
+             , T1.DTL_SN
+             , T1.PRD_MM_VAL
+             , T1.VST_DV_CD
+             , T1.PART_PD_CD
+             , T2.PART_USE_QTY
+          FROM TB_PDBS_LVLH_CSTMW_FILT_BAS T1
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON T1.PART_PD_CD = PB.PD_CD
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_RGBS_WK_BASE_BAS T2
+            ON T2.SV_PD_CD = T1.SV_PD_CD
+           AND T2.PDCT_PD_CD = T1.PDCT_PD_CD
+           AND T2.DTL_SN = (SELECT MAX(T3.DTL_SN)
+                              FROM TB_PDBS_RGBS_WK_BASE_BAS T3
+                             WHERE 1=1
+                               AND T3.SV_PD_CD = T2.SV_PD_CD
+                               AND T3.PDCT_PD_CD = T2.PDCT_PD_CD)
+         WHERE 1=1
+           AND T1.SV_PD_CD = (SELECT PD_CD
+                                FROM TB_PDBS_PD_BAS T4
+                               INNER JOIN TB_PDBS_PD_REL T5
+                                  ON T5.OJ_PD_CD = T4.PD_CD
+                                 AND T5.PD_REL_TP_CD = '03' /*서비스*/
+                               WHERE 1=1
+                                 AND T5.BASE_PD_CD = #{pdCd}
+                                 AND T4.DTA_DL_YN = 'N'
+                               FETCH FIRST 1 ROWS ONLY)
+           AND T1.PRD_MM_VAL = TO_CHAR(SYSDATE, 'MM')
+           AND T1.PDCT_PD_CD = (SELECT OJ_PD_CD
+                                  FROM TB_PDBS_PD_REL
+                                 WHERE BASE_PD_CD = T1.SV_PD_CD
+                                 FETCH FIRST 1 ROWS ONLY)
     </select>
 
     <!-- STEP2 저장 -->

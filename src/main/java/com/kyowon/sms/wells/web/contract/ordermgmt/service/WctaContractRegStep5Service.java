@@ -7,12 +7,15 @@ import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAsk
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractDtlStatCdChService;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrBasicChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractSettlementConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractSettlementMapper;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaTaxInvoiceInquiryMapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.*;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -32,6 +35,7 @@ import static com.sds.sflex.system.config.validation.BizAssert.isTrue;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class WctaContractRegStep5Service {
     public static final String AG_DRM_DV_CD_CNTR = "03"; /* 동의식별코드 : 03 계약 */
@@ -43,6 +47,7 @@ public class WctaContractRegStep5Service {
     private final ZwdzWithdrawalService rveReqService;
     private final ZwdbCreditCardApprovalService paymentService;
     private final WctbContractDtlStatCdChService cntrStatChService;
+    private final WctzHistoryService historyService;
 
     /**
      * 고객 접근 URL 로그인 화면을 위한 결제 최소 정보를 제공합니다.
@@ -80,9 +85,7 @@ public class WctaContractRegStep5Service {
      */
     @Transactional
     public Authorization authorize(AuthenticationReq req) {
-        String cntrNo = req.cntrNo();
         boolean valid = getAuth(req);
-        editContractProgressStatus(cntrNo, CtContractProgressStatus.STLM_ING);
         return new Authorization(valid, "");
     }
 
@@ -98,9 +101,23 @@ public class WctaContractRegStep5Service {
     @Transactional
     void editContractProgressStatus(String cntrNo, CtContractProgressStatus status) {
         log.debug("계약기본 update: {}, {}", cntrNo, status.getCode());
+
+        /* 변경하는 값이 기존과 같으면 넘어간다. */
+        WctaContractBasDvo basDvo = contractRegService.selectContractBas(cntrNo);
+        if (status.equals(CtContractProgressStatus.of(basDvo.getCntrPrgsStatCd()))) {
+            return;
+        }
+
         int result = mapper.updateContractProgressStatus(cntrNo, status.getCode());
         isTrue(result == 1, "MSG_ALT_SVE_ERR");
-        result = mapper.insertContractChHist(cntrNo);
+
+        WctzCntrBasicChangeHistDvo histDvo = historyService.getContractBasicChangeHistory(cntrNo);
+
+        if (!histDvo.getHistStrtDtm().equals(DateUtil.todayNnow())) {
+            historyService.expireContractBasicChangeHistory(cntrNo); /* pk 중복이 가능하다. 충분히. 발생 하지 않는다면 기존 값을 expire 한다.*/
+        }
+        result = mapper.upsertContractChHist(cntrNo);
+
         isTrue(result == 1, "MSG_ALT_SVE_ERR");
     }
 
@@ -113,7 +130,17 @@ public class WctaContractRegStep5Service {
     public FindContractForStlmRes getContractForSettlements(AuthenticationReq req) {
         /* TODO: getAuth check 로직 필요  */
         String cntrNo = req.cntrNo();
-        WctaContractBasDvo contrctBasDvo = getContractBasForSettlements(cntrNo);
+
+
+        WctaContractBasDvo contrctBasDvo = null;
+        try {
+            contrctBasDvo = getContractBasForSettlements(cntrNo);
+        } catch (BizException e) {
+            editContractProgressStatus(cntrNo, CtContractProgressStatus.TEMP_STEP1);
+            throw e;
+        }
+
+        editContractProgressStatus(cntrNo, CtContractProgressStatus.STLM_ING);
 
         List<WctaContractDtlDvo> productInfos = contractRegService.selectProductInfos(cntrNo);
 
@@ -190,12 +217,10 @@ public class WctaContractRegStep5Service {
 
         boolean expired = cntrRcpFshDt.isBefore(LocalDate.now());
         if (expired) {
-            editContractProgressStatus(cntrNo, CtContractProgressStatus.TEMP_STEP1);
             throw new BizException("가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다.");
             /* TODO: MSG 가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다. */
         }
-
-    //endregion
+        //endregion
 
         return contractBasDvo;
     }
@@ -294,6 +319,7 @@ public class WctaContractRegStep5Service {
                 taxInvoiceInquiryDvo.setTxinvPdDvCd(ctTxinvPdDvCd.getCode());
                 taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
                 taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
+                taxInvoiceInquiryDvo.setExnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getExnoEncr()));
                 taxInvoiceInquiryDvo.setMexnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getMexnoEncr()));
                 taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
             }
@@ -303,7 +329,6 @@ public class WctaContractRegStep5Service {
     @Transactional
     void createAgreeInfos(String cntrNo, List<WctaAgreeItemDtlDvo> agIzs) {
         isTrue(agIzs.size() > 0, "동의 내역이 없습니다.");
-
 
         WctaAgreeItemDvo agreeItemDvo = new WctaAgreeItemDvo();
         String cstAgId = mapper.selectMaxCntrCstAgId();

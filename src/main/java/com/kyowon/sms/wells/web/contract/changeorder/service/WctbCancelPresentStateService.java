@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto.*;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCancelPresentStateMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class WctbCancelPresentStateService {
      * @param dto
      * @return list
      */
-    public List<WctbCancelPresentStateDto.SearchRentalRes> getRentalCancelPresentStates(WctbCancelPresentStateDto.SearchReq dto) {
+    public List<SearchRentalRes> getRentalCancelPresentStates(SearchReq dto) {
         return mapper.selectRentalCancelPresentStates(dto);
     }
 
@@ -31,8 +31,18 @@ public class WctbCancelPresentStateService {
      * @param dto
      * @return list
      */
-    public List<WctbCancelPresentStateDto.SearchRegularShippingRes> getRegularShippingCancelPresentStates(WctbCancelPresentStateDto.SearchReq dto) {
+    public List<SearchRegularShippingRes> getRegularShippingCancelPresentStates(SearchReq dto) {
         return mapper.selectRegularShippingCancelPresentStates(dto);
+    }
+
+    /**
+     * 프로그램ID : W-SS-U-0160M03
+     *  - 일시불 취소현황
+     * @param dto
+     * @return list
+     */
+    public List<SearchSinglePayRes> getSinglePaymentCancelPresentStates(SearchReq dto) {
+        return mapper.selectSinglePaymentCancelPresentStates(dto);
     }
 
     /**
@@ -41,7 +51,7 @@ public class WctbCancelPresentStateService {
      * @param dto
      * @return list
      */
-    public List<WctbCancelPresentStateDto.SearchMembershipRes> getMembershipCancelPresentStates(WctbCancelPresentStateDto.SearchReq dto) {
+    public List<SearchMembershipRes> getMembershipCancelPresentStates(SearchReq dto) {
         return mapper.selectMembershipCancelPresentStates(dto);
     }
 }

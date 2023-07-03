@@ -6,20 +6,20 @@ import lombok.ToString;
 
 /**
  * <pre>
- * 매출확정생성 서비스 DVO
+ * 매출확정생성 서비스 WELLS매출확정기본 Table DVO
  * </pre>
  *
- * @author WOO SEUNGMIN
- * @since 2023-04-13
+ * @author WOO SEUNG MIN
+ * @since 2023-06-22
  */
 @Getter
 @Setter
 @ToString
-public class WdcbSalesConfirmCreateDvo {
-
+public class WdcbSlCnfmBasDvo {
     private String cntrNo;
     private int cntrSn;
     private String slRcogDt;
+    private int slCnfmSn;
     private String kwGrpCoCd;
     private String bzHdqDvCd;
     private String ogTpCd;
@@ -28,12 +28,14 @@ public class WdcbSalesConfirmCreateDvo {
     private String pdMclsfId;
     private String pdLclsfId;
     private String pdCd;
+    private String dgCstId;
     private String cstNo;
     private String copnDvCd;
     private String bzrno;
     private String sellTpCd;
     private String sellTpDtlCd;
     private String sellInflwChnlDtlCd;
+    private String sapPdDvCd;
     private int sellQty;
     private int sellAmt;
     private int sellAmtVat;
@@ -41,6 +43,7 @@ public class WdcbSalesConfirmCreateDvo {
     private int cntrTam;
     private int subscAmt;
     private int rentalRgstCost;
+    private int rentalRgstCostVat;
     private int rentalAmt;
     private int rentalDscAmt;
     private int rentalPtrm;
@@ -81,6 +84,7 @@ public class WdcbSalesConfirmCreateDvo {
     private int slDc;
     private int svAmt;
     private int nomIntAmt;
+    private int intVat;
     private int mlgSlAmt;
     private String ostrDtm;
     private String sppDtm;
@@ -89,13 +93,36 @@ public class WdcbSalesConfirmCreateDvo {
     private String svDt;
     private int pvdaOjPcam;
     private int pvdaAmt;
-    private String slRcogClsfCd;
-    private String lgstItmGdCd;
-    private int reimPcsvCs;
-    private int pcsvReimAmt;
+    private String lgstSppMthdCd;
+    private String iostWareCd;
+    private String sapMatEvlClssVal;
+    private String sapSlTpCd;
+    private String sapBizDvCd;
+    private String sapBzHdqInfCd;
+    private int slAmt;
+    private int vat;
     private String iostDt;
+    private String ctrlOrdTpCd;
+    private String sapMatCd;
     private int slQty;
     private String rtngdYn;
     private String frisuYn;
+    private String cscnCd;
+    private String wbsCd;
+    private String sapPurpMatCd;
     private String fgptYn;
+    private String sapTxnDtfrCd;
+    private String sapTxinvPblBaseCd;
+    private String rvpyYn;
+    private String saveGdsYn;
+    private String sapPlntCd;
+    private String sapSaveLctVal;
+    private String slpAkNo;
+    private String sapTrsDt;
+    private String sapRfdt;
+    private String sapSlpno;
+    private String sapSlipMsg;
+    private String slipSlDt;
+    private String slipPblPrdCd;
+    private String dtaDlYn;
 }

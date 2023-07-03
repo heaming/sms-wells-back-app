@@ -79,7 +79,21 @@ public class WpdcMaterialMgtController {
         ZpdcMaterialMgtDto.SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .data(service.saveMaterial(dto))
+            //            .data(service.saveMaterial(dto))
+            .data(
+                service.saveMaterial(
+                    ZpdcMaterialMgtDto.SaveReq.builder()
+                        .pdCd(dto.pdCd())
+                        .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
+                        .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
+                        .tbPdbsPdRel(dto.tbPdbsPdRel())
+                        .isModifiedProp(dto.isModifiedProp())
+                        .isOnlyFileModified(dto.isOnlyFileModified())
+                        .isModifiedRelation(dto.isModifiedRelation())
+                        .build(),
+                    false
+                )
+            )
             .build();
     }
 
@@ -91,7 +105,21 @@ public class WpdcMaterialMgtController {
         ZpdcMaterialMgtDto.EditReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .data(service.editMaterial(dto))
+            //            .data(service.editMaterial(dto))
+            .data(
+                service.editMaterial(
+                    ZpdcMaterialMgtDto.EditReq.builder()
+                        .pdCd(dto.pdCd())
+                        .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
+                        .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
+                        .tbPdbsPdRel(dto.tbPdbsPdRel())
+                        .isModifiedProp(dto.isModifiedProp())
+                        .isOnlyFileModified(dto.isOnlyFileModified())
+                        .isModifiedRelation(dto.isModifiedRelation())
+                        .build(),
+                    false
+                )
+            )
             .build();
     }
 
