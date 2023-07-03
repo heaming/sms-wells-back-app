@@ -141,4 +141,15 @@ public class WctaContractRegStep2Dvo {
         String svVstPrdCd;
         String pcsvPrdCd;
     }
+
+    @Getter
+    @Setter
+    public static class PdWelsfHcfPkg {
+        String codeId;
+        String codeName;
+        String rglrSppCntrDvCd;
+        String rglrSppPrcDvCd;
+        String pdctUprcUseYn;
+        String fnlVal;
+    }
 }

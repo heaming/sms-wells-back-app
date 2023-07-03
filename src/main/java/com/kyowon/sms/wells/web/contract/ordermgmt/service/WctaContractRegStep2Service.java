@@ -212,6 +212,10 @@ public class WctaContractRegStep2Service {
         return pdDvo;
     }
 
+    public List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> selectWelsfHcfPkgs(String pdCd) {
+        return mapper.selectWelsfHcfPkgs(pdCd);
+    }
+
     @Transactional
     public String saveContractStep2(WctaContractRegStep2Dvo dvo) {
         String now = DateUtil.todayNnow();

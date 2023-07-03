@@ -364,6 +364,18 @@ public class WctaContractController {
         return step2Service.selectProductSelects(dto);
     }
 
+    @ApiOperation(value = "상품 속성 조회", notes = "선택한 상품의 속성목록을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+    })
+    @GetMapping("/welsf-hcf-pkgs")
+    public List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> selectWlsfHcf(
+        @RequestParam
+        String pdCd
+    ) {
+        return step2Service.selectWelsfHcfPkgs(pdCd);
+    }
+
     @ApiOperation(value = "Step2 저장", notes = "Step2 정보를 신규 등록하거나 기존 정보를 수정한다.")
     @PostMapping("save-cntr-step2")
     public SaveResponse saveContractSte2(
