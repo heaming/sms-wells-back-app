@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedReleaseScheduleMapper">
+
+    <select id="selectSeedReleaseSchedulesPaging" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSearchDvo">
+        SELECT CASE WHEN T1.REFRI_DV_CD = '1' THEN 'X'
+                    WHEN T1.REFRI_DV_CD = '2' THEN CASE WHEN T1.OSTR_CNFMDT IS NOT NULL THEN 'C'
+                                                        ELSE 'R'
+                                                   END
+                    ELSE 'N'
+               END                                                                                AS DP_YN                  /* 입금 */
+             , CASE WHEN T1.OSTR_CNFMDT IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+               END                                                                                AS OSTR_YN                /* 출고 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'REFRI_DV_CD', T1.REFRI_DV_CD, #{session.langId})         AS REFRI_DIV              /* 유/무상구분 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'ITM_IOST_DV_CD', T1.ITM_IOST_DV_CD, #{session.langId})   AS SHIP_DIV               /* 배송구분 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD, #{session.langId}) AS RECEIPT_DIV            /* 접수구분 */
+             , T1.CNTR_NO                                                                                                   /* 계약번호 */
+             , ''                                                                                 AS CST_NM                 /* 고객명 */
+             , T1.SPP_ORD_NO                                                                                                /* 배송번호 */
+             , T2.PD_NM                                                                           AS MCHN_MODEL             /* 기기모델 */
+             , ''                                                                                 AS MCHN_CST_NO            /* 기기고객번호 */
+             , ''                                                                                 AS MCHN_CST_NM            /* 기기고객명 */
+             , ''                                                                                 AS CTRL_PKG               /* 현재패키지 */
+             , ''                                                                                 AS SHIP_PKG               /* 배송패키지 */
+             , T5.PD_NM                                                                           AS SDING1                 /* 모종1 */
+             , SUBSTR(T1.SDING_INFO1, INSTR(T1.SDING_INFO1, '|', 1, 1) + 1)                       AS QTY1                   /* 수량1 */
+             , T6.PD_NM                                                                           AS SDING2                 /* 모종2 */
+             , SUBSTR(T1.SDING_INFO2, INSTR(T1.SDING_INFO2, '|', 1, 1) + 1)                       AS QTY2                   /* 수량2 */
+             , T7.PD_NM                                                                           AS SDING3                 /* 모종3 */
+             , SUBSTR(T1.SDING_INFO3, INSTR(T1.SDING_INFO3, '|', 1, 1) + 1)                       AS QTY3                   /* 수량3 */
+             , T8.PD_NM                                                                           AS SDING4                 /* 모종4 */
+             , SUBSTR(T1.SDING_INFO4, INSTR(T1.SDING_INFO4, '|', 1, 1) + 1)                       AS QTY4                   /* 수량4 */
+             , T9.PD_NM                                                                           AS SDING5                 /* 모종5 */
+             , SUBSTR(T1.SDING_INFO5, INSTR(T1.SDING_INFO5, '|', 1, 1) + 1)                       AS QTY5                   /* 수량5 */
+             , T1.REQD_DT                                                                         AS MCHN_DEM_DT            /* 기기철거일자 */
+             , T1.RCPDT                                                                           AS RECEIPT_DT             /* 접수일자 */
+             , T1.VST_CNFMDT                                                                      AS VST_DT                 /* 방문일자 */
+             , T1.OSTR_DUEDT                                                                      AS OSTR_SCHE_DT           /* 출고예정일자 */
+             , T1.BS_FSH_DT                                                                                                 /* B/S완료일자 */
+             , T1.DP_DT                                                                                                     /* 입금일자 */
+             , T1.OSTR_CNFMDT                                                                     AS OSTR_CNFM_DT           /* 출고확정일자 */
+             , T1.CNR_NM                                                                          AS SDING_RCG_WARE_NM      /* 모종수령창고 */
+             , T1.OG_NM                                                                           AS VST_CENTER             /* 방문센터 */
+             , T3.PRTNR_KNM                                                                       AS VST_ICHR               /* 방문담당 */
+             , T3.CRAL_LOCARA_TNO                                                                 AS ICHR_CRAL_LOCARA_TNO   /* 담당휴대지역전화번호 */
+             , T3.MEXNO_ENCR                                                                      AS ICHR_MEXNO_ENCR        /* 담당전화국번호암호화 */
+             , T3.CRAL_IDV_TNO                                                                    AS ICHR_CRAL_IDV_TNO      /* 담당휴대개별전화번호 */
+             , T4.CRAL_LOCARA_TNO                                                                 AS CST_CRAL_LOCARA_TNO    /* 고객휴대지역전화번호 */
+             , T4.MEXNO_ENCR                                                                      AS CST_MEXNO_ENCR         /* 고객전화국번호암호화 */
+             , T4.CRAL_IDV_TNO                                                                    AS CST_CRAL_IDV_TNO       /* 고객휴대개별전화번호 */
+             , T1.NEW_ADR_ZIP                                                                     AS CST_ZIP                /* 고객우편번호 */
+             , T1.RNADR || T1.RDADR                                                               AS CST_ADR                /* 고객주소 */
+             , T1.REFRI_DV_CD                                                                                               /* 유무상구분코드 */
+             , T1.CNTR_SN                                                                                                   /* 계약일련번호 */
+             , T1.SV_BIZ_HCLSF_CD                                                                                           /* 서비스업무대분류코드 */
+             , T1.SV_BIZ_DCLSF_CD                                                                                           /* 서비스업무세분류코드 */
+             , T1.SPP_PLAN_SN                                                                                               /* 배송계획일련번호 */
+          FROM
+             (
+               SELECT D1.CNTR_NO                           /* 계약번호 */
+                    , D1.CNTR_SN                           /* 계약일련번호 */
+                    , D1.SV_BIZ_HCLSF_CD                   /* 서비스업무대분류코드 */
+                    , D1.SV_BIZ_DCLSF_CD                   /* 서비스업무세분류코드 */
+                    , D1.SPP_ORD_NO                        /* 배송주문번호 */
+                    , D1.SPP_PLAN_SN                       /* 배송계획일련번호 */
+                    , D1.REFRI_DV_CD                       /* 유무상구분코드 */
+                    , D1.OSTR_CNFMDT                       /* 출고확정일자 */
+                    , D1.ITM_IOST_DV_CD                    /* 품목입출고구분코드 */
+                    , D8.BASE_PD_CD                        /* 기준상품코드 */
+                    , D7.REQD_DT                           /* 철거일자 */
+                    , D2.RCPDT                             /* 접수일자 */
+                    , D3.VST_CNFMDT                        /* 방문일자 */
+                    , D1.OSTR_DUEDT                        /* 출고예정일자 */
+                    , ''                  AS BS_FSH_DT     /* B/S완료일자 */
+                    , D1.DP_DT                             /* 입금일자 */
+                    , D6.CNR_NM                            /* 모종수령창고 */
+                    , D4.OG_NM                             /* 방문센터 */
+                    , D4.OG_TP_CD                          /* 조직유형코드 */
+                    , D4.PRTNR_NO                          /* 파트너번호 */
+                    , D2.CNTR_ADRPC_ID                     /* 계약주소지ID */
+                    , D5.NEW_ADR_ZIP                       /* 신규우편번호 */
+                    , D5.RNADR                             /* 도로명주소 */
+                    , D5.RDADR                             /* 도로명상세주소 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 1 ) AS SDING_INFO1   /* 모종1 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 2 ) AS SDING_INFO2   /* 모종2 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 3 ) AS SDING_INFO3   /* 모종3 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 4 ) AS SDING_INFO4   /* 모종4 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 5 ) AS SDING_INFO5   /* 모종5 정보 */
+                 FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
+                INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
+                   ON D2.CNTR_NO         = D1.CNTR_NO
+                  AND D2.CNTR_SN         = D1.CNTR_SN
+                  AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                  AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                  AND D1.SPP_ORD_NO      = D2.SV_BIZ_HCLSF_CD || D2.RCPDT || SUBSTR(D2.AS_IST_OJ_NO, -5)
+                INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3     /* 고객서비스AS설치배정내역 */
+                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                INNER JOIN TB_OGBS_MM_PRTNR_IZ D4             /* 월파트너내역 */
+                   ON D4.OG_TP_CD = D3.ICHR_OG_TP_CD
+                  AND D4.PRTNR_NO = D3.ICHR_PRTNR_NO
+                  AND D4.BASE_YM  = SUBSTR(#{strtDt}, 1, 6)
+                 LEFT OUTER JOIN TB_GBCO_ADR_BAS D5           /* 주소기본 */
+                   ON D5.ADR_ID    = D2.CNTR_ADRPC_ID
+                  AND D5.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_SVPD_BYZIP_SHPADR_IZ D6   /* 우편번호별배송처내역 */
+                   ON D6.NEW_ADR_ZIP = D5.NEW_ADR_ZIP
+                  AND D6.DTA_DL_YN   = 'N'
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D7          /* 고객서비스수행내역 */
+                   ON D7.CNTR_NO = D2.CNTR_NO
+                  AND D7.CNTR_SN = D2.CNTR_SN
+                INNER JOIN TB_SSCT_CNTR_DTL D8                /* 계약상세 */
+                   ON D8.CNTR_NO = D7.CNTR_NO
+                  AND D8.CNTR_SN = D7.CNTR_SN
+                INNER JOIN TB_SSCT_CNTR_BAS D9                /* 계약기본 */
+                   ON D9.CNTR_NO = D8.CNTR_NO
+                INNER JOIN TB_PDBS_PD_BAS D10                  /* 상품기본 */
+                   ON D10.PD_CD = D1.SDING_PKG_PD_CD
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D11        /* 상품각사속성상세 */
+                   ON D11.PD_CD = D10.PD_CD
+                WHERE D1.DTA_DL_YN           = 'N'
+                  AND D2.DTA_DL_YN           = 'N'
+                  AND D3.DTA_DL_YN           = 'N'
+                  AND D4.DTA_DL_YN           = 'N'
+                  AND D7.DTA_DL_YN           = 'N'
+                  AND D8.DTA_DL_YN           = 'N'
+                  AND D9.DTA_DL_YN           = 'N'
+                  AND D10.DTA_DL_YN          = 'N'
+                  AND D10.PD_TP_CD           = 'M'
+                  AND D11.DTA_DL_YN          = 'N'
+                  AND D11.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D1.CAN_DT IS NULL
+                  AND D7.REQD_DT IS NULL
+                  AND D9.CNTR_CAN_DTM IS NULL
+                  AND D11.PD_PRP_VAL01 LIKE '60%'
+            <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
+                  AND D1.SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
+            </if>
+            <choose>
+            <when test='@MybatisUtils@equals(dtTpCd, "1")'>
+                  AND D2.RCPDT BETWEEN #{strtDt} AND #{endDt}         /* 접수일자 */
+            </when>
+            <when test='@MybatisUtils@equals(dtTpCd, "2")'>
+                  AND D3.VST_CNFMDT BETWEEN #{strtDt} AND #{endDt}    /* 방문일자 */
+            </when>
+            <when test='@MybatisUtils@equals(dtTpCd, "3")'>
+                  AND D1.OSTR_CNFMDT BETWEEN #{strtDt} AND #{endDt}   /* 확정일자 */
+            </when>
+            <when test='@MybatisUtils@equals(dtTpCd, "4")'>
+            <choose>
+                <when test='@MybatisUtils@equals(dayOfWeek, "1") or @MybatisUtils@equals(dayOfWeek, "3")'>   /* 월, 수 */
+                  AND (  (
+                               D3.VST_CNFMDT = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD')
+                           AND D4.OG_CD IN ( '71350'     /* 의정부지점 */
+                                           , '71352'     /* 일산지점 */
+                                           , '71355'     /* 인천지점 */
+                                           , '71356'     /* 수원지점 */
+                                           , '71367'     /* 하남지점 */
+                                           , '71394'     /* Wells생산팀 */
+                                           , '71623'     /* Wellsfarm */
+                                           , '75041'     /* 북부서비스센터 */
+                                           , '75041'     /* 서부서비스센터 */
+                                           , '75043'     /* 남부서비스센터 */
+                                           , '75044' )   /* 동부서비스센터 */
+                         )
+                        OR
+                         (
+                               D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 2, 'YYYYMMDD')
+                           AND D4.OG_CD IN ( '71357'     /* 부산지점 */
+                                           , '71359'     /* 원주지점 */
+                                           , '71360'     /* 청주지점 */
+                                           , '71361'     /* 서대구지점 */
+                                           , '71363'     /* 광주지점 */
+                                           , '71364'     /* 전주지점 */
+                                           , '71365'     /* 제주지점 */
+                                           , '75047'     /* 경북서비스센터 */
+                                           , '75041'     /* 경남서비스센터 */
+                                           , '75045'     /* 충청서비스센터 */
+                                           , '75046'     /* 호남서비스센터 */
+                                           , '71782'     /* 원주서비스센터 */
+                                           , '71783'     /* 광양서비스센터 */
+                                           , '71784' )   /* 광양지점 */
+                         ) )
+                </when>
+                <when test='@MybatisUtils@equals(dayOfWeek, "2") or @MybatisUtils@equals(dayOfWeek, "4")'>   /* 화, 목 */
+                  AND D3.VST_CNFMDT = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD')
+                  AND D4.OG_CD IN ( '71350'     /* 의정부지점 */
+                                  , '71352'     /* 일산지점 */
+                                  , '71355'     /* 인천지점 */
+                                  , '71356'     /* 수원지점 */
+                                  , '71367'     /* 하남지점 */
+                                  , '71394'     /* Wells생산팀 */
+                                  , '71623'     /* Wellsfarm */
+                                  , '75041'     /* 북부서비스센터 */
+                                  , '75041'     /* 서부서비스센터 */
+                                  , '75043'     /* 남부서비스센터 */
+                                  , '75044' )   /* 동부서비스센터 */
+                </when>
+                <when test='@MybatisUtils@equals(dayOfWeek, "5")'>   /* 금요일 */
+                  AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 3, 'YYYYMMDD')
+                  AND D4.OG_CD IN ( '71350'     /* 의정부지점 */
+                                  , '71352'     /* 일산지점 */
+                                  , '71355'     /* 인천지점 */
+                                  , '71356'     /* 수원지점 */
+                                  , '71367'     /* 하남지점 */
+                                  , '71394'     /* Wells생산팀 */
+                                  , '71623'     /* Wellsfarm */
+                                  , '75041'     /* 북부서비스센터 */
+                                  , '75041'     /* 서부서비스센터 */
+                                  , '75043'     /* 남부서비스센터 */
+                                  , '75044'     /* 동부서비스센터 */
+                                  , '71357'     /* 부산지점 */
+                                  , '71359'     /* 원주지점 */
+                                  , '71360'     /* 청주지점 */
+                                  , '71361'     /* 서대구지점 */
+                                  , '71363'     /* 광주지점 */
+                                  , '71364'     /* 전주지점 */
+                                  , '71365'     /* 제주지점 */
+                                  , '75047'     /* 경북서비스센터 */
+                                  , '75041'     /* 경남서비스센터 */
+                                  , '75045'     /* 충청서비스센터 */
+                                  , '75046'     /* 호남서비스센터 */
+                                  , '71782'     /* 원주서비스센터 */
+                                  , '71783'     /* 광양서비스센터 */
+                                  , '71784' )   /* 광양지점 */
+                </when>
+            </choose>
+            </when>
+            </choose>
+            <if test="@MybatisUtils@isNotEmpty(refriDivCd)">
+                  AND D1.REFRI_DV_CD    = #{refriDivCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(sppDvCd)">
+                  AND D1.ITM_IOST_DV_CD = #{sppDvCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(fshProcsCd)">
+                <choose>
+                <when test='!@MybatisUtils@equals(fshProcsCd, "20")'>
+                  AND D3.WK_PRGS_STAT_CD IN ('00', '10')   /* 작업대기, 진행중 */
+                </when>
+                <otherwise>
+                  AND D3.WK_PRGS_STAT_CD = #{fshProcsCd}
+                </otherwise>
+                </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
+                <choose>
+                <when test='@MybatisUtils@equals(pkgDvCd, "1")'>
+                  AND D11.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
+                </when>
+                <when test='@MybatisUtils@equals(pkgDvCd, "2")'>
+                  AND D11.PD_PRP_VAL01 BETWEEN '60801' AND '60805'
+                </when>
+                <when test='@MybatisUtils@equals(pkgDvCd, "3")'>
+                  AND D11.PD_PRP_VAL01 BETWEEN '60810' AND '60821'
+                </when>
+                </choose>
+            </if>
+            <if test='@MybatisUtils@equals(ostrYn, "Y")'>
+                  AND D1.OSTR_CNFMDT IS NOT NULL
+            </if>
+            <if test='@MybatisUtils@equals(ostrYn, "N")'>
+                  AND D1.OSTR_CNFMDT IS NULL
+            </if>
+                UNION ALL
+               SELECT D1.CNTR_NO                           /* 계약번호 */
+                    , D1.CNTR_SN                           /* 계약일련번호 */
+                    , D1.SV_BIZ_HCLSF_CD                   /* 서비스업무대분류코드 */
+                    , D1.SV_BIZ_DCLSF_CD                   /* 서비스업무세분류코드 */
+                    , D1.SPP_ORD_NO                        /* 배송주문번호 */
+                    , D1.SPP_PLAN_SN                       /* 배송계획일련번호 */
+                    , D1.REFRI_DV_CD                       /* 유무상구분코드 */
+                    , D1.OSTR_CNFMDT                       /* 출고확정일자 */
+                    , D1.ITM_IOST_DV_CD                    /* 품목입출고구분코드 */
+                    , D8.BASE_PD_CD                        /* 기준상품코드 */
+                    , D7.REQD_DT                           /* 철거일자 */
+                    , SUBSTR(D2.FST_RGST_DTM, 1, 8)        /* 접수일자 */
+                    , D3.VST_CNFMDT                        /* 방문일자 */
+                    , D1.OSTR_DUEDT                        /* 출고예정일자 */
+                    , D3.WK_EXCN_DT       AS BS_FSH_DT     /* B/S완료일자 */
+                    , D1.DP_DT                             /* 입금일자 */
+                    , D6.CNR_NM                            /* 모종수령창고 */
+                    , D4.OG_NM                             /* 방문센터 */
+                    , D4.OG_TP_CD                          /* 조직유형코드 */
+                    , D4.PRTNR_NO                          /* 파트너번호 */
+                    , D2.ADR_ID                            /* 주소ID */
+                    , D5.NEW_ADR_ZIP                       /* 신규우편번호 */
+                    , D5.RNADR                             /* 도로명주소 */
+                    , D5.RDADR                             /* 도로명상세주소 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 1 ) AS SDING_INFO1   /* 모종1 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 2 ) AS SDING_INFO2   /* 모종2 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 3 ) AS SDING_INFO3   /* 모종3 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 4 ) AS SDING_INFO4   /* 모종4 정보 */
+                    , ( SELECT T.SDING_PD_CD || '|' || T.SDING_QTY
+                          FROM
+                             (
+                               SELECT SDING_PD_CD
+                                    , SDING_QTY
+                                    , ROW_NUMBER() OVER(ORDER BY SDING_SN) AS RN
+                                 FROM TB_SVPD_SDING_SPP_EXP_IZ   /* 모종배송예정내역 */
+                                WHERE CNTR_NO         = D1.CNTR_NO
+                                  AND CNTR_SN         = D1.CNTR_SN
+                                  AND SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND SPP_ORD_NO      = D1.SPP_ORD_NO
+                                  AND SPP_PLAN_SN     = D1.SPP_PLAN_SN
+                                  AND DTA_DL_YN       = 'N'
+                             ) T
+                         WHERE T.RN = 5 ) AS SDING_INFO5   /* 모종5 정보 */
+                 FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2      /* 고객서비스BS대상내역 */
+                   ON D2.CNTR_NO = D1.CNTR_NO
+                  AND D2.CNTR_SN = D2.CNTR_SN
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3     /* 고객서비스BS배정내역 */
+                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4       /* 월파트너내역 */
+                   ON D4.OG_TP_CD  = D3.CNFM_PSIC_PRTNR_OG_TP_CD
+                  AND D4.PRTNR_NO  = D3.CNFM_PSIC_PRTNR_NO
+                  AND D4.DTA_DL_YN = 'N'
+                  AND D4.BASE_YM   = SUBSTR(#{strtDt}, 1, 6)
+                 LEFT OUTER JOIN TB_GBCO_ADR_BAS D5           /* 주소기본 */
+                   ON D5.ADR_ID    = D2.ADR_ID
+                  AND D5.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_SVPD_BYZIP_SHPADR_IZ D6   /* 우편번호별배송처내역 */
+                   ON D6.NEW_ADR_ZIP = D5.NEW_ADR_ZIP
+                  AND D6.DTA_DL_YN   = 'N'
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D7          /* 고객서비스수행내역 */
+                   ON D7.CNTR_NO = D2.CNTR_NO
+                  AND D7.CNTR_SN = D2.CNTR_SN
+                INNER JOIN TB_SSCT_CNTR_DTL D8                /* 계약상세 */
+                   ON D8.CNTR_NO = D7.CNTR_NO
+                  AND D8.CNTR_SN = D7.CNTR_SN
+                INNER JOIN TB_SSCT_CNTR_BAS D9                /* 계약기본 */
+                   ON D9.CNTR_NO = D8.CNTR_NO
+                INNER JOIN TB_PDBS_PD_BAS D10                 /* 상품기본 */
+                   ON D10.PD_CD = D2.PDCT_PD_CD
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D11        /* 상품각사속성상세 */
+                   ON D11.PD_CD = D10.PD_CD
+                WHERE D1.DTA_DL_YN           = 'N'
+                  AND D2.DTA_DL_YN           = 'N'
+                  AND D3.DTA_DL_YN           = 'N'
+                  AND D7.DTA_DL_YN           = 'N'
+                  AND D8.DTA_DL_YN           = 'N'
+                  AND D9.DTA_DL_YN           = 'N'
+                  AND D10.DTA_DL_YN          = 'N'
+                  AND D10.PD_TP_CD           = 'M'
+                  AND D11.DTA_DL_YN          = 'N'
+                  AND D11.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D7.CNTR_DTL_STAT_CD    = '101'   /* 정상 */
+                  AND D1.CAN_DT IS NULL
+                  AND D7.REQD_DT IS NULL
+                  AND D9.CNTR_CAN_DTM IS NULL
+                  AND D11.PD_PRP_VAL01 LIKE '60%'
+            <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
+                  AND D1.SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
+            </if>
+            <choose>
+            <when test='@MybatisUtils@equals(dtTpCd, "1")'>
+                  AND D2.FST_RGST_DTM BETWEEN #{strtDt} || '000000' AND #{endDt} || '235959'   /* 접수일자 */
+            </when>
+            <when test='@MybatisUtils@equals(dtTpCd, "2")'>
+                  AND D3.VST_CNFMDT BETWEEN #{strtDt} AND #{endDt}                             /* 방문일자 */
+            </when>
+            <when test='@MybatisUtils@equals(dtTpCd, "3")'>
+                  AND D1.OSTR_CNFMDT BETWEEN #{strtDt} AND #{endDt}                            /* 확정일자 */
+            </when>
+            <when test='@MybatisUtils@equals(dtTpCd, "4")'>
+            <choose>
+                <when test='@MybatisUtils@equals(dayOfWeek, "1") or @MybatisUtils@equals(dayOfWeek, "3")'>   /* 월, 수 */
+                  AND (  (
+                               D3.VST_CNFMDT = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD')
+                           AND D4.OG_CD IN ( '71350'     /* 의정부지점 */
+                                           , '71352'     /* 일산지점 */
+                                           , '71355'     /* 인천지점 */
+                                           , '71356'     /* 수원지점 */
+                                           , '71367'     /* 하남지점 */
+                                           , '71394'     /* Wells생산팀 */
+                                           , '71623'     /* Wellsfarm */
+                                           , '75041'     /* 북부서비스센터 */
+                                           , '75041'     /* 서부서비스센터 */
+                                           , '75043'     /* 남부서비스센터 */
+                                           , '75044' )   /* 동부서비스센터 */
+                         )
+                        OR
+                         (
+                               D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 2, 'YYYYMMDD')
+                           AND D4.OG_CD IN ( '71357'     /* 부산지점 */
+                                           , '71359'     /* 원주지점 */
+                                           , '71360'     /* 청주지점 */
+                                           , '71361'     /* 서대구지점 */
+                                           , '71363'     /* 광주지점 */
+                                           , '71364'     /* 전주지점 */
+                                           , '71365'     /* 제주지점 */
+                                           , '75047'     /* 경북서비스센터 */
+                                           , '75041'     /* 경남서비스센터 */
+                                           , '75045'     /* 충청서비스센터 */
+                                           , '75046'     /* 호남서비스센터 */
+                                           , '71782'     /* 원주서비스센터 */
+                                           , '71783'     /* 광양서비스센터 */
+                                           , '71784' )   /* 광양지점 */
+                         ) )
+                </when>
+                <when test='@MybatisUtils@equals(dayOfWeek, "2") or @MybatisUtils@equals(dayOfWeek, "4")'>   /* 화, 목 */
+                  AND D3.VST_CNFMDT = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD')
+                  AND D4.OG_CD IN ( '71350'     /* 의정부지점 */
+                                  , '71352'     /* 일산지점 */
+                                  , '71355'     /* 인천지점 */
+                                  , '71356'     /* 수원지점 */
+                                  , '71367'     /* 하남지점 */
+                                  , '71394'     /* Wells생산팀 */
+                                  , '71623'     /* Wellsfarm */
+                                  , '75041'     /* 북부서비스센터 */
+                                  , '75041'     /* 서부서비스센터 */
+                                  , '75043'     /* 남부서비스센터 */
+                                  , '75044' )   /* 동부서비스센터 */
+                </when>
+                <when test='@MybatisUtils@equals(dayOfWeek, "5")'>   /* 금요일 */
+                  AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 3, 'YYYYMMDD')
+                  AND D4.OG_CD IN ( '71350'     /* 의정부지점 */
+                                  , '71352'     /* 일산지점 */
+                                  , '71355'     /* 인천지점 */
+                                  , '71356'     /* 수원지점 */
+                                  , '71367'     /* 하남지점 */
+                                  , '71394'     /* Wells생산팀 */
+                                  , '71623'     /* Wellsfarm */
+                                  , '75041'     /* 북부서비스센터 */
+                                  , '75041'     /* 서부서비스센터 */
+                                  , '75043'     /* 남부서비스센터 */
+                                  , '75044'     /* 동부서비스센터 */
+                                  , '71357'     /* 부산지점 */
+                                  , '71359'     /* 원주지점 */
+                                  , '71360'     /* 청주지점 */
+                                  , '71361'     /* 서대구지점 */
+                                  , '71363'     /* 광주지점 */
+                                  , '71364'     /* 전주지점 */
+                                  , '71365'     /* 제주지점 */
+                                  , '75047'     /* 경북서비스센터 */
+                                  , '75041'     /* 경남서비스센터 */
+                                  , '75045'     /* 충청서비스센터 */
+                                  , '75046'     /* 호남서비스센터 */
+                                  , '71782'     /* 원주서비스센터 */
+                                  , '71783'     /* 광양서비스센터 */
+                                  , '71784' )   /* 광양지점 */
+                </when>
+            </choose>
+            </when>
+            </choose>
+            <if test="@MybatisUtils@isNotEmpty(refriDivCd)">
+                  AND D1.REFRI_DV_CD    = #{refriDivCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(sppDvCd)">
+                  AND D1.ITM_IOST_DV_CD = #{sppDvCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(fshProcsCd)">
+                <choose>
+                <when test='!@MybatisUtils@equals(fshProcsCd, "20")'>
+                  AND D3.VST_PRGS_STAT_CD IN ('00', '10')   /* 작업대기, 진행중 */
+                </when>
+                <otherwise>
+                  AND D3.VST_PRGS_STAT_CD = #{fshProcsCd}
+                </otherwise>
+                </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
+                <choose>
+                <when test='@MybatisUtils@equals(pkgDvCd, "1")'>
+                  AND D11.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
+                </when>
+                <when test='@MybatisUtils@equals(pkgDvCd, "2")'>
+                  AND D11.PD_PRP_VAL01 BETWEEN '60801' AND '60805'
+                </when>
+                <when test='@MybatisUtils@equals(pkgDvCd, "3")'>
+                  AND D11.PD_PRP_VAL01 BETWEEN '60810' AND '60821'
+                </when>
+                </choose>
+            </if>
+            <if test='@MybatisUtils@equals(ostrYn, "Y")'>
+                  AND D1.OSTR_CNFMDT IS NOT NULL
+            </if>
+            <if test='@MybatisUtils@equals(ostrYn, "N")'>
+                  AND D1.OSTR_CNFMDT IS NULL
+            </if>
+             ) T1
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T2      /* 상품기본 */
+            ON T2.PD_CD     = T1.BASE_PD_CD
+           AND T2.PD_TP_CD  = 'M'
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T3   /* 파트너기본 */
+            ON T3.OG_TP_CD = T1.OG_TP_CD
+           AND T3.PRTNR_NO = T1.PRTNR_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T4   /* 계약주소지기본 */
+            ON T4.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T5      /* 상품기본 */
+            ON T5.PD_CD     = SUBSTR(T1.SDING_INFO1, 1, INSTR(T1.SDING_INFO1, '|', 1, 1) - 1)
+           AND T5.PD_TP_CD  = 'M'
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T6      /* 상품기본 */
+            ON T6.PD_CD     = SUBSTR(T1.SDING_INFO2, 1, INSTR(T1.SDING_INFO2, '|', 1, 1) - 1)
+           AND T6.PD_TP_CD  = 'M'
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T7      /* 상품기본 */
+            ON T7.PD_CD     = SUBSTR(T1.SDING_INFO3, 1, INSTR(T1.SDING_INFO3, '|', 1, 1) - 1)
+           AND T7.PD_TP_CD  = 'M'
+           AND T7.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T8      /* 상품기본 */
+            ON T8.PD_CD     = SUBSTR(T1.SDING_INFO4, 1, INSTR(T1.SDING_INFO4, '|', 1, 1) - 1)
+           AND T8.PD_TP_CD  = 'M'
+           AND T8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T9      /* 상품기본 */
+            ON T9.PD_CD     = SUBSTR(T1.SDING_INFO5, 1, INSTR(T1.SDING_INFO5, '|', 1, 1) - 1)
+           AND T9.PD_TP_CD  = 'M'
+           AND T9.DTA_DL_YN = 'N'
+         ORDER BY T1.CNTR_NO, T1.CNTR_SN
+    </select>
+
+    <update id="updateSdingSppPlanIzDpDt">
+        UPDATE TB_SVPD_SDING_SPP_PLAN_IZ   /* 모종배송계획내역 */
+           SET DP_DT = #{dpDt}
+         WHERE DTA_DL_YN   = 'N'
+           AND REFRI_DV_CD = '2'   /* 유상서비스 */
+           AND OSTR_CNFMDT IS NULL
+           AND CNTR_NO         = #{cntrNo}
+           AND CNTR_SN         = #{cntrSn}
+           AND SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
+           AND SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND SPP_ORD_NO      = #{sppOrdNo}
+           AND SPP_PLAN_SN     = #{sppPlanSn}
+    </update>
+
+
+</mapper>
