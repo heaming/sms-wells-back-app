@@ -8,6 +8,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WsnbWellsServiceCfdcService {
@@ -15,5 +17,9 @@ public class WsnbWellsServiceCfdcService {
 
     public PagingResult<SearchRes> getWellsServiceConfirmations(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectWellsServiceConfirmations(dto, pageInfo);
+    }
+
+    public List<SearchRes> getWellsServiceConfirmationsForExcelDownload(SearchReq dto) {
+        return mapper.selectWellsServiceConfirmations(dto);
     }
 }

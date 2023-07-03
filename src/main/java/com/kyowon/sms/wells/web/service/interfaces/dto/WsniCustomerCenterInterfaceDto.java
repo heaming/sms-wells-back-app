@@ -217,7 +217,7 @@ public class WsniCustomerCenterInterfaceDto {
         String result
     ) {}
 
-    @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrRes")
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-FindAdnInfReq")
     public record FindAdnInfReq(
         @NotBlank
         String cntrNo,
@@ -225,8 +225,30 @@ public class WsniCustomerCenterInterfaceDto {
         String cntrSn
     ) {}
 
-    @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrRes")
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-FindAdnInfRes")
     public record FindAdnInfRes(
+        String istLctDtlCn,
+        String allCleanMsg,
+        String allCleanYn,
+        String changeCount,
+        String dtlCntrNo,
+        String dtlCntrSn,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String newAdrZip,
+        String rnadr,
+        String rdadr,
+        String bsStopYn,
+        String changeYn,
+        String changePossibleYn
+    ) {}
+
+    @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchPkgChRes")
+    public record SearchPkgChRes(
         String istLctDtlCn,
         String allCleanMsg,
         String allCleanYn,

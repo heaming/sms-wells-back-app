@@ -4,14 +4,15 @@ import java.util.List;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.ManagersAndEngineersRes;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.BranchsAndServiceCentersRes;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncBsPeriodCustomerTfMgtService;
-import com.sds.sflex.system.config.constant.CommConst;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -19,10 +20,13 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+import javax.validation.Valid;
+
 @Api(tags = "[WSNC] 정기BS 고객이관 관리")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/before-service-period-customer")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/before-service-period-customer")
+@Validated
 public class WsncBsPeriodCustomerTfMgtController {
 
     private final WsncBsPeriodCustomerTfMgtService service;
@@ -38,11 +42,21 @@ public class WsncBsPeriodCustomerTfMgtController {
         @ApiImplicitParam(name = "addressZip", value = "우편번호", paramType = "query", example = "28601"),
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getBsPeriodCustomerPages(
+    public PagingResult<SearchRes> getBsPeriodCustomers(
+        @Valid
         SearchReq dto,
         PageInfo pageInfo
     ) {
-        return service.getBsPeriodCustomerPages(dto, pageInfo);
+        return service.getBsPeriodCustomers(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "정기BS 고객 컨택 이력 조회 (엑셀 다운로드)", notes = "정기BS 고객 컨택 이력을 조회한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getBsPeriodCustomersForExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getBsPeriodCustomersForExcelDownload(dto);
     }
 
     @ApiOperation(value = "정기BS 소속 조회")

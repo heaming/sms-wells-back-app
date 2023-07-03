@@ -200,4 +200,20 @@ public class WsniCustomerCenterInterfaceController {
         return resWrapper;
     }
 
+    @ApiOperation(value = "정기배송 패키지 변경 이력 조회", notes = "고객센터에서 정기배송 패키지 변경 이력을 조회하는 인터페이스")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @GetMapping("/as-business-error")
+    public EaiWrapper getPackageChangeHistory(
+        @RequestBody
+        @Valid
+        EaiWrapper<FindAdnInfReq> reqWrapper
+    ) throws IOException, Exception {
+        EaiWrapper<List<SearchPkgChRes>> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getPackageChangeHistory(reqWrapper.getBody()));
+
+        return resWrapper;
+    }
 }

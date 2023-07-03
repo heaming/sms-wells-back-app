@@ -2,11 +2,12 @@ package com.kyowon.sms.wells.web.closing.expense.service;
 
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdMarketableSecuritiesMgtConverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesMgtDto.*;
-import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritiesDvo;
+import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdSecuritiesDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdSecuritiesMgtMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,7 +19,14 @@ public class WdcdSecuritiesMgtService {
 
     public List<SearchAdjustObjectRes> getAdjustObject(SearchAdjustObjectReq req) {
 
-        return mapper.selectAdjustObject(req);
+        List<WdcdSecuritiesDvo> dvos = mapper.selectAdjustObject(req);
+
+        List<SearchAdjustObjectRes> res = new ArrayList<>();
+
+        for (WdcdSecuritiesDvo dvo : dvos) {
+            res.add(converter.mapWdcdMarketableSecuritiesDvoToSearchAdjustObjectRes(dvo));
+        }
+        return res;
     }
 
     public List<SearchWithholdingTaxAdjustRes> getWithholdingTaxAdjust(SearchWithholdingTaxAdjustReq req) {
@@ -26,10 +34,10 @@ public class WdcdSecuritiesMgtService {
         return mapper.selectWithholdingTaxAdjust(req);
     }
 
-    public int editWithholdingTaxAdjust(List<EditReq> reqs) {
+    public int editWithholdingTaxAdjust(List<SaveReq> reqs) {
         int count = 0;
-        for (EditReq req : reqs) {
-            WdcdMarketableSecuritiesDvo dvo = converter.mapEditReqToWdcdMarketableSecuritiesDvo(req);
+        for (SaveReq req : reqs) {
+            WdcdSecuritiesDvo dvo = converter.mapSaveReqToWdcdMarketableSecuritiesDvo(req);
             count += mapper.editWithholdingTaxAdjust(dvo);
         }
 

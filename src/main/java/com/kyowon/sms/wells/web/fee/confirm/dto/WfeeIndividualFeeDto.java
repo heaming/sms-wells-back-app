@@ -158,11 +158,13 @@ public class WfeeIndividualFeeDto {
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstFeeRes")
     public record SearchHmstFeeRes(
         String item1,
-        String amt1,
+        String fval1,
         String item2,
-        String amt2,
+        String fval2,
         String item3,
-        String amt3
+        String fval3,
+        String item4,
+        String fval4
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstDeductionRes")
@@ -273,22 +275,22 @@ public class WfeeIndividualFeeDto {
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarEtcRes")
     public record SearchPlarEtcRes(
-        String div,
-        String elhmAckmtCt,
-        String bfsvcAckmtCt,
-        String chng,
-        String fhsCt,
-        String metgPrscD
+        String item1,
+        String fval1,
+        String item2,
+        String fval2,
+        String item3,
+        String fval3
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarFeeRes")
     public record SearchPlarFeeRes(
         String item1,
-        String amt1,
+        String fval1,
         String item2,
-        String amt2,
+        String fval2,
         String item3,
-        String amt3
+        String fval3
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindPlarDeductionRes")

@@ -83,6 +83,7 @@ public class WpdcStandardMgtController {
                         .isModifiedProp(dto.isModifiedProp())
                         .isModifiedPrice(dto.isModifiedPrice())
                         .isOnlyFileModified(dto.isOnlyFileModified())
+                        .isModifiedRelation(dto.isModifiedRelation())
                         .build(),
                     false
                 )

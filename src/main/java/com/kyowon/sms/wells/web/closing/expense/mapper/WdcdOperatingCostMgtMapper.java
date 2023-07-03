@@ -1,19 +1,18 @@
 package com.kyowon.sms.wells.web.closing.expense.mapper;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.*;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchAmountRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchSummaryRes;
+import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdOperatingCostDvo;
 import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 @Mapper
 public interface WdcdOperatingCostMgtMapper {
-    
-    List<SearchAmountRes> selectAmount(SearchReq req);
 
-    List<SearchSummaryRes> selectSummary(SearchReq req);
+    SearchAmountRes selectAmount(SearchReq req);
 
-    void insertWithholdingTaxCfdc(FileReq req);
+    SearchSummaryRes selectSummary(SearchReq req);
 
-    SaveRes selectWithholdingTaxCfdc(SaveReq req);
+    int updateFile(WdcdOperatingCostDvo dvo);
 
 }

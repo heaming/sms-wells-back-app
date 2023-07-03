@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiModel;
 public class WsncBsManagerScheduleDto {
     // *********************************************************
     // Request Dto
-    // 2023.06.12  BS관리일정조회 홍세기 생성
+    // 2023.06.12  BS관리일정조회(일자별) 홍세기 생성
     // *********************************************************
     @ApiModel(value = "WsncBsManagerScheduleDto-SearchReq")
     public record SearchReq(
