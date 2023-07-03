@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.changeorder.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WctbContractChangeMngtDto {
@@ -76,5 +78,21 @@ public class WctbContractChangeMngtDto {
         String dgr3LevlOgNm, /* 3차레벨조직명 */
         String ogCd, /* (판매자의) 조직코드 */
         String ogTpCd /* 조직유형코드*/
+    ) {}
+
+    @ApiModel(value = "WctbContractChangeMngtDto-EditPartnerReq")
+    public record EditPartnerReq(
+        @NotBlank
+        String cntrNo, /* 계약번호 */
+        @NotBlank
+        String cntrSn, /* 계약일련번호 */
+        @NotBlank
+        String prtnrKnm, /* 판매자한글명 */
+        @NotBlank
+        String sellPrtnrNo, /* 판매파트너번호 */
+        @NotBlank
+        String ogTpCd, /* 조직유형코드*/
+        String bfPrtnrNo, /* 변경전 파트너번호 */
+        String bfOgTpCd /* 변경전 조직유형코드 */
     ) {}
 }
