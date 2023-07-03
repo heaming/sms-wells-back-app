@@ -1,11 +1,19 @@
 package com.kyowon.sms.wells.web.closing.performance.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 public class WdccNormalAccountExceptDto {
     @ApiModel("WdccNormalAccountExceptDto-SearchReq")
     public record SearchReq(
         String pdCd,
+        String regDtFrom,
+        String regDtTo
+    ) {}
+
+    @ApiModel("WdccNormalAccountExceptDto-SearchContractReq")
+    public record SearchContractReq(
         String cntrNo,
         String cntrSn,
         String regDtFrom,

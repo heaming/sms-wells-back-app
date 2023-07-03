@@ -7,13 +7,12 @@ import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SaveReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SearchCntrRes;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.*;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccNormalAccountExceptService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -32,65 +31,61 @@ public class WdccNormalAccountExceptController {
 
     @ApiOperation(value = "상품별 조회", notes = "조회조건에 따른 상품별 내역 조회")
 
-    @GetMapping("/product/lists")
-    public List<SearchRes> getProductList(
-        @Valid
+    @GetMapping("/by-product/lists")
+    public List<SearchRes> getProductsList(
         SearchReq dto
     ) {
-        return service.getProductList(dto);
+        return service.getProductsList(dto);
     }
 
     @ApiOperation(value = "계약상세번호 조회", notes = "조회조건에 따른 계약상세번호 내역 조회")
 
-    @GetMapping("/contract/lists")
-    public List<SearchCntrRes> getContractList(
-        @Valid
-        SearchReq dto
+    @GetMapping("/by-contract/lists")
+    public List<SearchCntrRes> getContractsList(
+        SearchContractReq dto
     ) {
-        return service.getContractList(dto);
+        return service.getContractsList(dto);
     }
 
     @ApiOperation(value = "정상계정 제외관리 등록", notes = "정상계정 제외관리 등록")
     @PostMapping
-    public SaveResponse createExceptManagement(
+    public SaveResponse createNormalAccountExcept(
         @RequestBody
         @Valid
         @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
-        return SaveResponse.builder().processCount(service.createExceptManagement(dtos)).build();
+        return SaveResponse.builder().processCount(service.createNormalAccountExcept(dtos)).build();
     }
 
     @ApiOperation(value = "정상계정 제외관리 수정", notes = "정상계정 제외관리 수정")
     @PutMapping
-    public SaveResponse editExceptManagement(
+    public SaveResponse editNormalAccountExcept(
         @RequestBody
         @Valid
         @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
-        return SaveResponse.builder().processCount(service.createExceptManagement(dtos)).build();
+        return SaveResponse.builder().processCount(service.createNormalAccountExcept(dtos)).build();
     }
 
     @ApiOperation(value = "정상계정 제외관리 삭제", notes = "정상계정 제외관리 삭제")
     @DeleteMapping
-    public SaveResponse removeExceptManagement(
+    public SaveResponse removeNormalAccountExcept(
         @Valid
-        @RequestBody
+        @RequestParam
         @NotEmpty
         List<String> nomAccExcdIds
     ) {
-        return SaveResponse.builder().processCount(service.removeExceptManagement(nomAccExcdIds)).build();
+        return SaveResponse.builder().processCount(service.removeNormalAccountExcept(nomAccExcdIds)).build();
     }
 
-    //    @ApiOperation(value = "정상계정 제외관리 엑셀업로드", notes = "제외관리할 계정을 엑셀업로드한다.")
-    //    @PostMapping("/excel-upload")
-    //    public UploadRes saveExceptManagementForExcelUpload(
-    //        @RequestParam("file")
-    //        MultipartFile file
-    //    ) throws Exception {
-    //        return UploadRes.builder()
-    //            .processCount(service.saveExceptManagementForExcelUpload(file))
-    //            .build();
-    //    }
+    @ApiOperation(value = "정상계정 제외관리 엑셀업로드", notes = "제외관리할 계정을 엑셀업로드한다.")
+    @PostMapping("/excel-upload")
+    public UploadRes saveNormalAccountExceptForExcelUpload(
+        @RequestParam("file")
+        MultipartFile file
+    ) throws Exception {
+        return service.saveNormalAccountExceptForExcelUpload(file);
+    }
 }

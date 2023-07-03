@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SearchCntrRes;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SearchContractReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccNormalAccountExceptDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.performance.dvo.WdccNormalAccountExceptDvo;
@@ -16,7 +17,7 @@ public interface WdccNormalAccountExceptMapper {
     );
 
     List<SearchCntrRes> selectContract(
-        SearchReq dto
+        SearchContractReq dto
     );
 
     int insertExceptMng(WdccNormalAccountExceptDvo dvo);
