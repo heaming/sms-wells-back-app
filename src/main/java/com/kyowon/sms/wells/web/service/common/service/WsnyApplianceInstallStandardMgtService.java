@@ -1,16 +1,15 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
-import java.util.Map;
+import static com.kyowon.sms.wells.web.service.common.dto.WsnyApplianceInstallStandardMgtDto.*;
+
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.converter.WsnyApplianceInstallStandardMgtConverter;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyApplianceInstallStandardMgtDto;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyApplianceInstallStandardMgtDvo;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnyApplianceInstallStandardMgtMapper;
-import com.sds.sflex.common.common.service.ExcelReadService;
-import com.sds.sflex.system.config.core.service.MessageResourceService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,19 +30,23 @@ public class WsnyApplianceInstallStandardMgtService {
 
     private final WsnyApplianceInstallStandardMgtMapper mapper;
     private final WsnyApplianceInstallStandardMgtConverter converter;
-    private final Map<String, String> header;
-    private final MessageResourceService messageResourceService;
-    private final ExcelReadService excelReadService;
 
-    public WsnyApplianceInstallStandardMgtDto.SearchRes getApplianceInstallStandard(
-        WsnyApplianceInstallStandardMgtDto.SearchReq dto
+    public SearchRes getApplianceInstallStandard(
+        SearchReq dto
     ) {
         return mapper.selectInstallStandards(dto);
     }
 
     @Transactional
-    public int saveApplianceInstallStandard(WsnyApplianceInstallStandardMgtDto.SaveReq dto) {
-        WsnyApplianceInstallStandardMgtDvo dvo = converter.mapAllInstallStandardDvoToSaveRes(dto);
-        return mapper.saveApplianceInstallStandard(dvo);
+    public int saveApplianceInstallStandard(List<SaveReq> dtos) {
+        int processCnt = 0;
+
+        for (SaveReq dto : dtos) {
+            WsnyApplianceInstallStandardMgtDvo dvo = converter.mapAllInstallStandardDvoToSaveRes(dto);
+
+            mapper.saveApplianceInstallStandard(dvo);
+        }
+
+        return processCnt;
     }
 }

@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -32,7 +34,7 @@ public class WsnyApplianceInstallStandardMgtController {
         @ApiImplicitParam(name = "dgr1ClsfCd", value = "1차 분류", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "dgr2ClsfCd", value = "2차 분류", paramType = "query", example = "11")
     })
-    @GetMapping("/searching")
+    @GetMapping
     public WsnyApplianceInstallStandardMgtDto.SearchRes getApplianceInstallStandardSearch(
         WsnyApplianceInstallStandardMgtDto.SearchReq installStandardReq
     ) {
@@ -44,8 +46,8 @@ public class WsnyApplianceInstallStandardMgtController {
     public SaveResponse saveInstallStandard(
         @RequestBody
         @Valid
-        WsnyApplianceInstallStandardMgtDto.SaveReq dto
-    ) {
+        List<WsnyApplianceInstallStandardMgtDto.SaveReq> dto
+    ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveApplianceInstallStandard(dto))
             .build();

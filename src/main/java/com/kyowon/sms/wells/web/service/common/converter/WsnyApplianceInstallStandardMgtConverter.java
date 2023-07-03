@@ -9,7 +9,7 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnyApplianceInstallStandardM
 
 @Mapper(componentModel = "spring")
 public interface WsnyApplianceInstallStandardMgtConverter {
-    List<WsnyApplianceInstallStandardMgtDto.SearchRes> mapAllInstallStandardDvoToSearchRes(
+    List<WsnyApplianceInstallStandardMgtDto.SearchRes> mapInstallStandardDvoToSearchRes(
         List<WsnyApplianceInstallStandardMgtDvo> dvos
     );
 

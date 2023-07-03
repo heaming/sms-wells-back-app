@@ -31,5 +31,7 @@ public class WsnyApplianceInstallStandardMgtDvo {
     String baseCn43;
     String baseCn44;
     String baseCn51;
-
+    String baseCn;
+    String hclsfCd;
+    String lclsfCd;
 }
