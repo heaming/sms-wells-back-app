@@ -19,6 +19,7 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSap
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
@@ -26,6 +27,7 @@ import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
+import com.kyowon.sms.common.web.product.manage.service.ZpdcRelationMgtService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import com.kyowon.sms.wells.web.product.manage.mapper.WpdcMaterialMgtMapper;
 import com.sds.sflex.common.common.dto.CodeDto.CodeComponent;
@@ -56,6 +58,8 @@ public class WpdcMaterialMgtService {
     private final ZpdcHistoryMgtService hisService;
     //    private final ZpdcMaterialConverter converter;
 
+    private final ZpdcRelationMgtService relService;
+
     private final AttachFileService fileService;
 
     private final CodeService codeService;
@@ -72,7 +76,7 @@ public class WpdcMaterialMgtService {
     }
 
     @Transactional
-    public ZpdcProductDto.TbPdbsPdBas saveMaterial(ZpdcMaterialMgtDto.SaveReq dto)
+    public ZpdcProductDto.TbPdbsPdBas saveMaterial(ZpdcMaterialMgtDto.SaveReq dto, boolean isCreate)
         throws Exception {
         String startDtm = DateUtil.getDate(new Date());
 
@@ -114,6 +118,11 @@ public class WpdcMaterialMgtService {
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
 
+        if (dto.isModifiedRelation()) {
+            relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(dvo.getPdCd(), startDtm);
+        }
+
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 
@@ -124,7 +133,9 @@ public class WpdcMaterialMgtService {
      * @throws Exception
      */
     @Transactional
-    public void editEachTbPdbsPdRel(String pdCd, List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels, String tempSaveYn)
+    public void editEachTbPdbsPdRel(
+        String pdCd, List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRels, String tempSaveYn
+    )
         throws Exception {
 
         String startDtm = DateUtil.getDate(new Date());
@@ -136,9 +147,9 @@ public class WpdcMaterialMgtService {
 
             // 23-04-05 Converter로 Dto에서 Dvo로 변환시 모두 null로 반환함.
             // dto로 
-            for (ZpdcMaterialMgtDto.TbPdbsPdRel relDto : tbPdbsPdRels) {
+            for (ZpdcRelationMgtDto.ProductRelation relDto : tbPdbsPdRels) {
                 mapper.mergeEachTbPdbsPdRelByDto(
-                    ZpdcMaterialMgtDto.TbPdbsPdRel.builder()
+                    ZpdcRelationMgtDto.ProductRelation.builder()
                         .ojPdCd(relDto.ojPdCd())
                         .pdRelId(relDto.pdRelId())
                         .basePdCd(pdCd)
@@ -166,7 +177,7 @@ public class WpdcMaterialMgtService {
     }
 
     @Transactional
-    public ZpdcProductDto.TbPdbsPdBas editMaterial(ZpdcMaterialMgtDto.EditReq dto)
+    public ZpdcProductDto.TbPdbsPdBas editMaterial(ZpdcMaterialMgtDto.EditReq dto, boolean isCreate)
         throws Exception {
 
         String startDtm = DateUtil.getDate(new Date());
