@@ -147,6 +147,20 @@ public class WctaContractRegStep2Dvo {
     public static class PdWelsfHcfPkg {
         String codeId;
         String codeName;
+        String pdCd;
+        String pdNm;
+        String rglrSppCntrDvCd;
+        String rglrSppPrcDvCd;
+        String pdctUprcUseYn;
+        String fnlVal;
+        List<PdSdingCapsl> sdingCapsls;
+    }
+
+    @Getter
+    @Setter
+    public static class PdSdingCapsl {
+        String codeId;
+        String codeName;
         String rglrSppCntrDvCd;
         String rglrSppPrcDvCd;
         String pdctUprcUseYn;

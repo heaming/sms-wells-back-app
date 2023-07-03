@@ -213,7 +213,11 @@ public class WctaContractRegStep2Service {
     }
 
     public List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> selectWelsfHcfPkgs(String pdCd) {
-        return mapper.selectWelsfHcfPkgs(pdCd);
+        List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> welsfHcfPkgs = mapper.selectWelsfHcfPkgs(pdCd);
+        welsfHcfPkgs.forEach((pkg) -> {
+            pkg.setSdingCapsls(mapper.selectSdingCapsls(pkg.getPdCd()));
+        });
+        return welsfHcfPkgs;
     }
 
     @Transactional
