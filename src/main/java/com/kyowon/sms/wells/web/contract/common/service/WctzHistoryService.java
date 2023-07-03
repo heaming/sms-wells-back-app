@@ -152,7 +152,7 @@ public class WctzHistoryService {
      * @return
      */
     public WctzCntrBasicChangeHistDvo getContractBasicChangeHistory(String cntrNo) {
-        return mapper.selectCntrBasicChangeHist(cntrNo);
+        return mapper.selectCntrBasicChangeHistory(cntrNo);
     }
 
     /**
@@ -167,7 +167,7 @@ public class WctzHistoryService {
 
         WctzCntrBasicChangeHistDvo newHist = converter.convertCntrBasicToChangeHist(
             dvo,
-            mapper.selectCntrBasicChangeHist(dvo.getCntrNo())
+            mapper.selectCntrBasicForHist(dvo.getCntrNo())
         );
 
         WctzCntrBasicChangeHistDvo befHist = getContractBasicChangeHistory(dvo.getCntrNo());

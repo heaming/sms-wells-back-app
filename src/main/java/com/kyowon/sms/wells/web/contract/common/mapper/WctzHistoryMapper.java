@@ -37,7 +37,9 @@ public interface WctzHistoryMapper {
 
     int deleteCntrChRcchStatChangeHist(WctzCntrChRcchStatChangeHistDvo dvo);
 
-    WctzCntrBasicChangeHistDvo selectCntrBasicChangeHist(String cntrNo);
+    WctzCntrBasicChangeHistDvo selectCntrBasicForHist(String cntrNo);
+
+    WctzCntrBasicChangeHistDvo selectCntrBasicChangeHistory(String cntrNo);
 
     int insertCntrBasicChangeHist(WctzCntrBasicChangeHistDvo dvo);
 

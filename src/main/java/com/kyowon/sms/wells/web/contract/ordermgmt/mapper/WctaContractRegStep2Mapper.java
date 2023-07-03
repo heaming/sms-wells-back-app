@@ -77,6 +77,8 @@ public interface WctaContractRegStep2Mapper {
 
     List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> selectWelsfHcfPkgs(String pdCd);
 
+    List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapsls(String pdCd);
+
     boolean isExistAlncPds(WctaContractDto.SearchPdAmtReq dto);
 
     int deleteCntrDtlStep2(String cntrNo);
