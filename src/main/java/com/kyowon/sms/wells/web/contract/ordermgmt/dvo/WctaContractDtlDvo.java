@@ -117,6 +117,8 @@ public class WctaContractDtlDvo {
     private Long ctrVal;
     private String pdPrcId;
 
+    private String cntrRelDtlCd; /*계약관계상세코드 */
+
     private List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscDvCds; /* 판매할인구분코드 */
