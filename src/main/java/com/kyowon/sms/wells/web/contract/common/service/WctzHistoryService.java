@@ -173,7 +173,7 @@ public class WctzHistoryService {
         WctzCntrBasicChangeHistDvo befHist = getContractBasicChangeHistory(dvo.getCntrNo());
         if (ObjectUtils.isEmpty(befHist)) {
             // 최초변경
-            newHist.setHistStrtDtm(now);
+            newHist.setHistStrtDtm(now); /* 위에서 넣는데 최초일 때는 강제하는 의미인가요? */
         } else {
             befHist.setHistEndDtm(dvo.getHistStrtDtm());
             mapper.updateCntrBasicChangeHist(befHist);
@@ -181,6 +181,14 @@ public class WctzHistoryService {
 
         newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertCntrBasicChangeHist(newHist);
+    }
+
+    public void expireContractBasicChangeHistory(String cntrNo) {
+        String now = DateUtil.todayNnow();
+        WctzCntrBasicChangeHistDvo befHist = getContractBasicChangeHistory(cntrNo);
+        befHist.setHistEndDtm(now);
+        int result = mapper.updateCntrBasicChangeHist(befHist);
+        BizAssert.isTrue(result == 1, "계약 변경 이력 생성 실패");
     }
 
     /**
