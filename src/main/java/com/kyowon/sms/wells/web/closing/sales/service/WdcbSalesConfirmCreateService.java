@@ -1,12 +1,19 @@
 package com.kyowon.sms.wells.web.closing.sales.service;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.closing.sales.converter.WdcbSalesConfirmCreateConverter;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesConfirmCreateDto.CreateReq;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmCreateDvo;
+import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmReceivingAndPayingDvo;
+import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmSapMatDvo;
+import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSlCnfmBasDvo;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesConfirmCreateMapper;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
@@ -27,168 +34,296 @@ public class WdcbSalesConfirmCreateService {
     private final WdcbSalesConfirmCreateConverter conveter;
 
     /**
-     * TODO: 1. 판매유형/판매유형상세/상품코드로 웹매출유형, sap매출유형코드 매핑
-     * TODO: 2. sap-, co- , wbs- 등의 코드  매핑
-     */
-
-    /**
      * 매출확정생성 서비스
-     * @param cntrNo   계약번호
-     * @param cntrSn    계약일련번호
-     * @param slDt  매출일자
-     * @param sapPlntCd SAP플랜트코드
-     * @param sapSaveLctVal SAP저장위치값
-     * @param slYm  매출년월
-     * @param sapOgInfCd    SAP조직정보코드
-     * @param webSlTpCd 웹매출유형코드
-     * @param ctrlOrdTpCd   CO주문유형코드
-     * @param sapMatCd  SAP자재코드
-     * @param slQty 매출수량
-     * @param slAmt 매출금액
-     * @param vat   부가가치세
-     * @param cscnCd    코스트센터코드
-     * @param wbsCd WBS코드
-     * @param sapPdctSclsrtStrcVal  SAP제품계층구조값
-     * @param sapPurpMatCd  SAP목적자재코드
-     * @param sapTxnDtfrCd  SAP과세면세코드
-     * @param sapTxinvPblBaseCd SAP세금계산서발행기준코드
-     * @param ichrPrtnrNo   담당파트너번호
-     * @param rvpyYn    수불여부
-     * @param saveGdsYn 저장물품여부
-     * @param iostDt    입출고일자
-     * @param kwGrpCoCd 교원그룹회사코드
-     * @param ogTpCd    조직유형코드
-     * @param sellChnlCd    판매채널코드
-     * @param sellTpCd  판매유형코드
-     * @param sellTpDtlCd   판매유형상세코드
-     * @param pdCd  상품코드
-     * @param cstNo 고객번호
-     * @param prtnrNo   파트너번호
-     * @param sapSlTpCd SAP매출유형코드
-     * @param sapSlDvCd SAP매출구분코드
-     * @param slRgstPrgId   매출등록프로그램ID
-     * @param slpAkNo   매출전표요청번호
-     * @param slpAkSn   매출전표요청일련번호
-     * @param sapTrsDt  SAP전송일자
-     * @param sapRfdt   SAP반영일자
-     * @param sapSlpno  SAP전표번호
-     * @param sapSlipMsg    SAP전표메시지
-     * @param slipSlDt  전표매출일자
-     * @param svBizHclsfCd  서비스업무대분류코드
-     * @param cstSvAsnNo    고객서비스배정번호
-     * @param cstSvExcnSn   고객서비스수행일련번호
-     * @param slipPblPrdCd  전표발행주기코드
-     * @param onscrSchdOpDt 화상일정개설일자
-     * @param onscrFstLsnDt 화상최초수업일자
-     * @param lrnnSappCtfDt 학습앱인증일자
-     * @param lrnnStpDt 학습중지일자
-     * @param lrnnDc    학습일수
-     * @param lrnnSvUprcAmt 학습서비스단가금액
-     * @param pvdaOjPcam    현재가치할인차금대상원금
-     * @param pvdaAmt   현재가치할인차금금액
-     * @param woSuscDc  전체구독일수
-     * @param onscrResTms   화상잔여횟수
-     * @param lrnnStrtdt    학습시작일자
-     * @param lrnnEnddt 학습종료일자
-     * @param thmLrnnStrtD  당월학습시작일
-     * @param thmLrnnEndD   당월학습종료일
-     * @param thmLrnnFshYn  당월학습완료여부
-     * @param cntrDt    계약일자
-     * @param cntrAmt   계약금액
-     * @param frisuMlgAmt   무상마일리지금액
-     * @param istmPcamAmt   할부원금금액
-     * @param istmFeeLvyAmt 할부수수료부과금액
-     * @param istmAmt   할부금액
-     * @param istmMcn   할부개월수
-     * @param woSuscMcntN   전체구독개월수
-     * @param mmMpyAmt  월납부금액
-     * @param lbryMslrDUprc 라이브러리화상학습일단가
-     * @param lbryMslrDscDUprc  라이브러리화상학습할인일단가
-     * @param thmLrnnDc 당월학습일수
-     * @param cntrTotAmt    계약총금액
-     * @param mmIntamDscAmt 월할부금할인금액
-     * @param cntramThmDscAmt   계약금당월할인금액
-     * @param combiDscAmt   결합할인금액
-     * @param dscSlAmt  할인매출금액
-     * @param combiDscSlAmt 결합할인매출금액
-     * @param slCanAmt  매출취소금액
-     * @param slChAmt   매출변경금액
-     * @param dfaAmt    대손금액
-     * @param dfaPrcsdt 대손처리일자
-     * @param slCtrAmt  매출조정금액
-     * @param slExCd    매출예외코드
-     * @param slExCn    매출예외내용
-     * @param nkPdChDpAmt   누리키즈상품변경입금금액
-     * @param ostrAmt   출고금액
-     * @param rtngdAmt  반품금액
-     * @param ostrDscAmt    출고할인금액
-     * @param rtngdDscAmt   반품할인금액
-     * @param nkPdChEotBndAmt   누리키즈상품변경기말채권금액
-     * @param sellQty   판매수량
-     * @param sellSplAmt    판매공급금액
-     * @param cntrTam   계약총액
-     * @param fnnLeasePcamTam   금융리스원금총액
-     * @param fnnLeaseIntTam    금융리스이자총액
-     * @param subscAmt  청약금액
-     * @param tkAmt 인수금액
-     * @param rentalRgstCost    렌탈등록비
-     * @param rentalRgstCostVat 렌탈등록비부가가치세
-     * @param rentalAmt 렌탈금액
-     * @param rentalPtrm    렌탈기간
-     * @param rentalDscAmt  렌탈할인금액
-     * @param rentalDc  렌탈일수
-     * @param thmOcFeeAmt   당월발생수수료금액
-     * @param dscAmt    할인금액
-     * @param cntramDpAmt   계약금입금금액
-     * @param bilDscAmt 청구할인금액
-     * @param ovrCtrDpAmt   초과조정입금금액
-     * @param prpdSlAmt 선수매출금액
-     * @param sellFee   판매수수료
-     * @param prmStrtY  선납시작년도
-     * @param prmStrtMm 선납시작월
-     * @param prmEndY   선납종료년도
-     * @param prmEndMm  선납종료월
-     * @param prmMcn    선납개월수
-     * @param prmDscr   선납할인율
-     * @param prmDscAmt 선납할인금액
-     * @param prmDpAmt  선납입금금액
-     * @param prmRfndAmt    선납환불금액
-     * @param prmRplcAmt    선납대체금액
-     * @param prmSlAmt  선납매출금액
-     * @param nomSlAmt  정상매출금액
-     * @param spmtSlAmt 추가매출금액
-     * @param nomDscAmt 정상할인금액
-     * @param spmtDscAmt    추가할인금액
-     * @param leaseSlCtrAmt 리스매출조정금액
-     * @param leaseSlCanAmt 리스매출취소금액
-     * @param leaseSlCtrTotAmt  리스매출조정총금액
-     * @param nomIntAmt 정상이자금액
-     * @param spmtIntAmt    추가이자금액
-     * @param intNomDscAmt  이자정상할인금액
-     * @param intSpmtDscAmt 이자추가할인금액
-     * @param intCtrAmt 이자조정금액
-     * @param intSumAmt 이자합계금액
-     * @param intVat    이자부가가치세
-     * @param thmOcSvSlAmt  당월발생서비스매출금액
-     * @param thmOcSvSlVat  당월발생서비스매출부가가치세
-     * @param rtngdYn   반품여부
-     * @param frisuYn   무상여부
-     * @param fgptYn    사은품여부
-     * @param ostrDtm   출고일시
-     * @param sppDtm    배송일시
-     * @param istDtm    설치일시
-     * @param reqdDtm   철거일시
-     * @param svDt  서비스일자
-     * @param dtaDlYn   데이터삭제여부
-     * @return 처리완료 여부(Y), 오류난 경우(N) 
+     * @param cntrNo
+     * @param cntrSn
+     * @param slRcogDt
+     * @param kwGrpCdCd
+     * @param bzHdqDvCd
+     * @param ogTpCd
+     * @param prtnrNo
+     * @param pdHclsfId
+     * @param pdMclsfId
+     * @param pdLclsfId
+     * @param pdCd
+     * @param cstNo
+     * @param copnDvCd
+     * @param bzrno
+     * @param sellTpCd
+     * @param sellTpDtlCd
+     * @param sellInflwChnlDtlCd
+     * @param sellQty
+     * @param sellAmt
+     * @param sellAmtVat
+     * @param sellSplAmt
+     * @param cntrTam
+     * @param subscAmt
+     * @param rentalRgstCost
+     * @param rentalAmt
+     * @param rentalDscAmt
+     * @param rentalPtrm
+     * @param rentalTn
+     * @param istmPcamAmt
+     * @param istmFeeLvyAmt
+     * @param istmAmt
+     * @param istmMcn
+     * @param mmIstmAmt
+     * @param dscAmt
+     * @param cntramDpAmt
+     * @param bilDscAmt
+     * @param ovrCtrDpAmt
+     * @param prmTn
+     * @param totPrmAmt
+     * @param prmExpAmt
+     * @param prmStrtY
+     * @param prmStrtMm
+     * @param prmEndY
+     * @param prmEndMm
+     * @param prmMcn
+     * @param prmDscr
+     * @param prmDscAmt
+     * @param prmDpAmt
+     * @param prmRfndAmt
+     * @param prmRplcAmt
+     * @param prmSlAmt
+     * @param nomSlAmt
+     * @param spmtSlAmt
+     * @param nomDscAmt
+     * @param spmtDscAmt
+     * @param slCtrAmt
+     * @param slCanAmt
+     * @param slStpYn
+     * @param cntrStlmFshDtm
+     * @param cntrStrtdt
+     * @param canDt
+     * @param slDc
+     * @param svAmt
+     * @param nomIntAmt
+     * @param mlgSlAmt
+     * @param ostrDtm
+     * @param sppDtm
+     * @param istDtm
+     * @param reqdDtm
+     * @param svDt
+     * @param pvdaOjPcam
+     * @param pvdaAmt
+     * @param slRcogClsfCd
+     * @param lgstItmGdCd
+     * @param reimPcsvCs
+     * @param pcsvReimAmt
+     * @param iostDt
+     * @param slQty
+     * @param rtngdYn
+     * @param frisuYn
+     * @param fgptYn
+     * @return processCount
      * @throws BizException 조회 결과가 없는 경우 Exception 처리
      */
     @Transactional
-    public String createSalesConfirm(CreateReq dto) throws BizException {
-        WdcbSalesConfirmCreateDvo inputDvo = conveter.mapCreateReqToWdcbSalesConfirmCreateDvo(dto);
+    public int createSalesConfirm(List<CreateReq> dtos) throws BizException {
+        int processCount = 0;
+        Iterator<CreateReq> iterator = dtos.iterator();
 
-        int result = mapper.insertSalesConfirm(inputDvo);
+        while (iterator.hasNext()) {
+            CreateReq dto = iterator.next();
 
-        return result >= 1 ? "Y" : "N";
+            WdcbSalesConfirmCreateDvo dvo = conveter.mapCreateReqToWdcbSalesConfirmCreateDvo(dto);
+
+            WdcbSlCnfmBasDvo inputDvo = new WdcbSlCnfmBasDvo();
+
+            /* 1.매출확정일련번호 채번 */
+            int slCnfmSn = mapper.selectSalesConfirmSerialNumber(dvo);
+            /* 2.대표고객 매핑 */
+            String dgCstId = mapper.selectDgCstId(dvo);
+            /* 3.SAP상품구분코드 매핑 */
+            /* 3-1. 판매유형에 필터가 들어온경우 (SELL_TP_CD = 9 ) 
+            판매유형상세에 빈값이 들어올예정으로 이때 SELL_TP_DTL_CD (판매유형상세) 에 9 셋팅
+             */
+            if ("9".equals(dvo.getSellTpCd()))
+                dvo.setSellTpDtlCd("9");
+            String sapPdDvCd = mapper.selectSapPdDvCd(dvo);
+            /* 4. 렌탈등록비부가가치세(RENTAL_RGST_COST_VAT)  */
+            int rentalRgstCostVat = (int)Math.floor(dvo.getRentalRgstCost() * 0.0909);
+            /* 5. 이자부가가치세 (INT_VAT) : VO에 있는 정상이자금액 NON_INT_AMT * 0.0909 값을 넣어줌.  (소수점 TRUNC) */
+            int intVat = (int)Math.floor(dvo.getNomIntAmt() * 0.0909);
+            /* 6. SAP자재평가클래스값(SAP_MAT_EVL_CLSS_VAL) / SAP자재코드(SAP_MAT_CD) */
+            WdcbSalesConfirmSapMatDvo edcbSapMatDvo = mapper.selectSapMat(dvo);
+            String sapMatEvlClssVal = edcbSapMatDvo.getSapMatEvlClssVal();
+            String sapMatCd = edcbSapMatDvo.getSapMatCd();
+            /* 6-1.저장물품여부(SAVE_GDS_YN) */
+            String saveGdsYn = sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N";
+            /* 7. SAP사업본부정보코드(SAP_BZ_HDQ_INF_CD) */
+            String sapBzHdqInfCd = "1210";
+            /* 8. 매출금액 (SL_AMT) */
+            int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - dvo.getSpmtDscAmt()
+                - dvo.getSlCtrAmt(); // 정상매출금액 + 추가매출금액- 정상할인금액 - 추가할인금액 - 매출조정금액
+            /* 9. 부가가치세(VAT) */
+            int vat = (int)Math.floor(slAmt * 0.0909);
+            /* 10. CO주문유형 */
+            String ctrlOrdTpCd = mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd());
+            /* 11. 코스트센터코드, WBS코드, SAP목적자재코드 */
+            /* ASIS의 ZS2200P 테이블에도 모든 값이 공백임. 공백 넣을것 */
+            /* 12. SAP과세면세구분코드 */
+            String sapTxnDtfrCd = dvo.getPvdaAmt() > 0 ? "3" : vat > 0 ? "1" : "0";
+            /* 13. SAP세금계산서발행기준코드 */
+            String sapTxinvPblBaseCd = "";
+            if ("B1".equals(sapPdDvCd) || "B2".equals(sapPdDvCd)) {
+                sapTxinvPblBaseCd = "";
+            } else {
+                sapTxinvPblBaseCd = "4";
+            }
+            if ("B1".equals(sapPdDvCd) || dvo.getPvdaAmt() > 0) {
+                sapTxinvPblBaseCd = "3";
+            }
+            /* 14. 물류배송방식코드, SAP플랜트코드, SAP저장위치값. */
+            WdcbSalesConfirmReceivingAndPayingDvo wdcbSalesConfirmReceivingAndPayingDvo = mapper
+                .selectReceivingAndPaying(dvo);
+            String lgstSppMthdCd = wdcbSalesConfirmReceivingAndPayingDvo.getSppMthdTpCd();
+            String sapPlntCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapPlntCd();
+            String sapSaveLctCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapSaveLctCd();
+            String rvpyYn = wdcbSalesConfirmReceivingAndPayingDvo.getCnt() > 0 ? "Y" : "N";
+            /* 15. SAP매출유형코드 */
+            String sapSlTpCd = "";
+            String slTpDvCd = "";
+            String clssVal = "";
+            String addCondition = "";
+            String slpMapngCdv = "";
+            if ("N".equals(dvo.getRtngdYn())) {
+                slTpDvCd = "1";
+            } else if ("Y".equals(dvo.getRtngdYn())) {
+                slTpDvCd = "2";
+            } else if (dvo.getPcsvReimAmt() > 0) {
+                slTpDvCd = "3";
+            } else if (dvo.getSlCanAmt() > 0) {
+                slTpDvCd = "7";
+            }
+            if ("Z1".equals(sapSaveLctCd.substring(0, 2))) {
+                clssVal = "1";
+            } else if ("Z2".equals(sapSaveLctCd.substring(0, 2))) {
+                clssVal = "2";
+            } else if ("Z7".equals(sapSaveLctCd.substring(0, 2))) {
+                clssVal = "3";
+            }
+
+            if (dvo.getRentalRgstCost() > 0) {
+                addCondition = "1";
+            } else if ("E".equals(dvo.getLgstItmGdCd()) || "R".equals(dvo.getLgstItmGdCd())) {
+                addCondition = "2";
+            } else if ("6".equals(dvo.getSellTpCd()) && "Y".equals(rvpyYn)) {
+                addCondition = "3";
+            } else {
+                addCondition = "0";
+            }
+
+            slpMapngCdv = mapper.selectSlpMapngCdv(dvo.getSellTpDtlCd(), clssVal, slTpDvCd, addCondition);
+            sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
+
+            /* 매핑 값 셋팅 */
+            inputDvo.setCntrNo(dvo.getCntrNo());
+            inputDvo.setCntrSn(dvo.getCntrSn());
+            inputDvo.setSlRcogDt(dvo.getSlRcogDt());
+            inputDvo.setSlCnfmSn(slCnfmSn);
+            inputDvo.setKwGrpCoCd(dvo.getKwGrpCoCd());
+            inputDvo.setBzHdqDvCd(dvo.getBzHdqDvCd());
+            inputDvo.setOgTpCd(dvo.getOgTpCd());
+            inputDvo.setPrtnrNo(dvo.getPrtnrNo());
+            inputDvo.setPdHclsfId(dvo.getPdHclsfId());
+            inputDvo.setPdMclsfId(dvo.getPdMclsfId());
+            inputDvo.setPdLclsfId(dvo.getPdLclsfId());
+            inputDvo.setPdCd(dvo.getPdCd());
+            inputDvo.setDgCstId(dgCstId);
+            inputDvo.setCstNo(dvo.getCstNo());
+            inputDvo.setCopnDvCd(dvo.getCopnDvCd());
+            inputDvo.setBzrno(dvo.getBzrno());
+            inputDvo.setSellTpCd(dvo.getSellTpCd());
+            inputDvo.setSellTpDtlCd(dvo.getSellTpDtlCd());
+            inputDvo.setSellInflwChnlDtlCd(dvo.getSellInflwChnlDtlCd());
+            inputDvo.setSapPdDvCd(sapPdDvCd);
+            inputDvo.setSellQty(dvo.getSellQty());
+            inputDvo.setSellAmt(dvo.getSellAmt());
+            inputDvo.setSellAmtVat(dvo.getSellAmtVat());
+            inputDvo.setSellSplAmt(dvo.getSellSplAmt());
+            inputDvo.setCntrTam(dvo.getCntrTam());
+            inputDvo.setSubscAmt(dvo.getSubscAmt());
+            inputDvo.setRentalRgstCost(dvo.getRentalRgstCost());
+            inputDvo.setRentalRgstCostVat(rentalRgstCostVat);
+            inputDvo.setRentalAmt(dvo.getRentalAmt());
+            inputDvo.setRentalDscAmt(dvo.getRentalDscAmt());
+            inputDvo.setRentalPtrm(dvo.getRentalPtrm());
+            inputDvo.setRentalTn(dvo.getRentalTn());
+            inputDvo.setIstmPcamAmt(dvo.getIstmPcamAmt());
+            inputDvo.setIstmFeeLvyAmt(dvo.getIstmFeeLvyAmt());
+            inputDvo.setIstmAmt(dvo.getIstmAmt());
+            inputDvo.setIstmMcn(dvo.getIstmMcn());
+            inputDvo.setMmIstmAmt(dvo.getMmIstmAmt());
+            inputDvo.setDscAmt(dvo.getDscAmt());
+            inputDvo.setCntramDpAmt(dvo.getCntramDpAmt());
+            inputDvo.setBilDscAmt(dvo.getBilDscAmt());
+            inputDvo.setOvrCtrDpAmt(dvo.getOvrCtrDpAmt());
+            inputDvo.setPrmTn(dvo.getPrmTn());
+            inputDvo.setTotPrmAmt(dvo.getTotPrmAmt());
+            inputDvo.setPrmExpAmt(dvo.getPrmExpAmt());
+            inputDvo.setPrmStrtY(dvo.getPrmStrtY());
+            inputDvo.setPrmStrtMm(dvo.getPrmStrtMm());
+            inputDvo.setPrmEndY(dvo.getPrmEndY());
+            inputDvo.setPrmEndMm(dvo.getPrmEndMm());
+            inputDvo.setPrmMcn(dvo.getPrmMcn());
+            inputDvo.setPrmDscr(dvo.getPrmDscr());
+            inputDvo.setPrmDscAmt(dvo.getPrmDscAmt());
+            inputDvo.setPrmDpAmt(dvo.getPrmDpAmt());
+            inputDvo.setPrmRfndAmt(dvo.getPrmRfndAmt());
+            inputDvo.setPrmRplcAmt(dvo.getPrmRplcAmt());
+            inputDvo.setPrmSlAmt(dvo.getPrmSlAmt());
+            inputDvo.setNomSlAmt(dvo.getNomSlAmt());
+            inputDvo.setSpmtSlAmt(dvo.getSpmtSlAmt());
+            inputDvo.setNomDscAmt(dvo.getNomDscAmt());
+            inputDvo.setSpmtDscAmt(dvo.getSpmtDscAmt());
+            inputDvo.setSlCtrAmt(dvo.getSlCtrAmt());
+            inputDvo.setSlCanAmt(dvo.getSlCanAmt());
+            inputDvo.setSlStpYn(dvo.getSlStpYn());
+            inputDvo.setCntrStlmFshDtm(dvo.getCntrStlmFshDtm());
+            inputDvo.setCntrStrtdt(dvo.getCntrStrtdt());
+            inputDvo.setCanDt(dvo.getCanDt());
+            inputDvo.setSlDc(dvo.getSlDc());
+            inputDvo.setSvAmt(dvo.getSvAmt());
+            inputDvo.setNomIntAmt(dvo.getNomIntAmt());
+            inputDvo.setIntVat(intVat);
+            inputDvo.setMlgSlAmt(dvo.getMlgSlAmt());
+            inputDvo.setOstrDtm(dvo.getOstrDtm());
+            inputDvo.setSppDtm(dvo.getSppDtm());
+            inputDvo.setIstDtm(dvo.getIstDtm());
+            inputDvo.setReqdDtm(dvo.getReqdDtm());
+            inputDvo.setSvDt(dvo.getSvDt());
+            inputDvo.setPvdaOjPcam(dvo.getPvdaOjPcam());
+            inputDvo.setPvdaAmt(dvo.getPvdaAmt());
+            inputDvo.setLgstSppMthdCd(lgstSppMthdCd);
+            inputDvo.setIostWareCd("");
+            inputDvo.setSapMatEvlClssVal(sapMatEvlClssVal);
+            inputDvo.setSapSlTpCd(sapSlTpCd);
+            inputDvo.setSapBizDvCd("");
+            inputDvo.setSapBzHdqInfCd(sapBzHdqInfCd);
+            inputDvo.setSlAmt(slAmt);
+            inputDvo.setVat(vat);
+            inputDvo.setIostDt(dvo.getIostDt());
+            inputDvo.setCtrlOrdTpCd(ctrlOrdTpCd);
+            inputDvo.setSapMatCd(sapMatCd);
+            inputDvo.setSlQty(dvo.getSlQty());
+            inputDvo.setRtngdYn(dvo.getRtngdYn());
+            inputDvo.setFrisuYn(dvo.getFrisuYn());
+            inputDvo.setCscnCd("");
+            inputDvo.setWbsCd("");
+            inputDvo.setSapPurpMatCd("");
+            inputDvo.setFgptYn(dvo.getFgptYn());
+            inputDvo.setSapTxnDtfrCd(sapTxnDtfrCd);
+            inputDvo.setSapTxinvPblBaseCd(sapTxinvPblBaseCd);
+            inputDvo.setRvpyYn(rvpyYn);
+            inputDvo.setSaveGdsYn(saveGdsYn);
+            inputDvo.setSapPlntCd(sapPlntCd);
+            inputDvo.setSapSaveLctVal(sapSaveLctCd);
+
+            processCount += mapper.insertSalesConfirm(inputDvo);
+
+        }
+        return processCount;
     }
 }
