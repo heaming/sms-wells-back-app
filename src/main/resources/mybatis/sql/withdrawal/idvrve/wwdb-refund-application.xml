@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundApplicationMapper">
-    
+
     <select id="selectRefundApplication" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationRes">
-        SELECT 
+        SELECT
                RRRB.RFND_STAT_CD                                /* 환불상태 */
              , RRRB.FNL_MDFC_DTM                                /* 접수일자 */
              , SCD.CNTRW_TP_CD                                  /* 계약유형. 그리드 정의 없음. 리스, 렌탈, 멤버십, 정기배송 */
              , RRRB.CNTR_NO                                     /* 계약상세번호 */
-             , RRRB.CNTR_SN  
+             , RRRB.CNTR_SN
              , CCB.CST_KNM                                      /* 계약자 */
              , SCB.CNTR_CNFM_DTM                                /* 계약일자 */
              , RRD.RVE_DV_CD                                    /* 입금유형 */
@@ -32,8 +32,8 @@
                     WHEN RRRD.RFND_DSB_DV_CD = '02' THEN '3'                                                 /* 3. 카드환불 */
                     WHEN RRRD.RFND_DSB_DV_CD = '03' THEN ( CASE WHEN RRRD.BLTF_RFND_DV_CD = '01' THEN '2'    /* 2. 현금전금 */
                                                                 WHEN RRRD.BLTF_RFND_DV_CD = '02' THEN '1'    /* 1. 카드전금 */
-                                                            END 
-                                                         )                                                         
+                                                            END
+                                                         )
                 END AS RFND_DSB_DV_CD_CSH_BLTF                  /* 처리구분 */
              , RRRD.RFND_RSON_CD                                /* 환불사유 */
              , RRRD.RFND_RSON_CN                                /* 환불내용 */
@@ -43,10 +43,10 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
          INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
-         INNER JOIN TB_SSCT_CNTR_BAS SCB                /* 계약기본 */  
+         INNER JOIN TB_SSCT_CNTR_BAS SCB                /* 계약기본 */
             ON SCB.DTA_DL_YN = 'N'
            AND RRRB.CNTR_NO = SCB.CNTR_NO               /* 계약번호 */
          INNER JOIN TB_SSCT_CNTR_DTL SCD                /* 계약상세 */
@@ -60,7 +60,7 @@
          INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */
             ON CCB.DTA_DL_YN = 'N'
            AND RRRB.CST_NO = CCB.CST_NO                 /* 고객번호 */
-         LEFT JOIN TB_RVDW_RVE_DTL RRD                 /* 수납상세 */ 
+         LEFT JOIN TB_RVDW_RVE_DTL RRD                 /* 수납상세 */
             ON RRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD     /* 교원그룹회사코드 */
            AND RRRB.CNTR_NO = RRD.CNTR_NO               /* 계약번호 */
@@ -70,9 +70,9 @@
            AND RRRB.FNL_MDFC_DTM BETWEEN #{startDay} || '000000' AND #{endDay} || '235959' /* 접수일자 */
            </if>
            AND RRRB.RFND_STAT_CD = #{rfndStatCd}         /* 환불상태 : 접수(01.환불접수완료), 진행중(05.환불진행중), 반려(04.환불반려), 승인(03.환불처리완료) */
-           /* AND ( RRD.DP_DV_CD = '1' AND RRD.RVE_DV_CD = {rveDvCd} ) 입금유형 : 입금구분코드(DP_DV_CD)가 입금(1), 환불(2), 전금(3)이므로 조건에서 제외. 수납구분코드(RVE_DV_CD)는 01.계약금, 15.기타선수금만 조회 */
-           /* AND RRD.RVE_DV_CD = {rveDvCd}   수납상세 테이블 데이터 수정 가능할때까지 주석. 입금유형 : 입금구분코드(DP_DV_CD)가 입금(1), 환불(2), 전금(3)이므로 조건에서 제외. 수납구분코드(RVE_DV_CD)가 01.계약금, 15.기타선수금 */
-           <if test="@MybatisUtils@isNotEmpty(rfndDsbDvCdCshBltf)">
+           AND RRD.DP_DV_CD = '2' /*입금구분코드 : 2(환불)*/
+           AND RRD.RVE_DV_CD = #{rveDvCd} /* 수납구분코드(RVE_DV_CD)는 01.계약금, 15.기타선수금만 조회 */
+           <if test="@MybatisUtils@isNotEmpty(rfndDsbDvCdCshBltf) and !@MybatisUtils@equals(rfndDsbDvCdCshBltf, 'ALL')">
            /* 처리구분   : 환불지급구분코드 (RFND_DSB_DV_CD), 현금환불구분코드 (CSH_RFND_DV_CD), 전금환불구분코드(BLTF_RFND_DV_CD) 조합으로 표시 */
            /* 1. 카드전금 : 환불지급구분코드 (RFND_DSB_DV_CD) :  03(전금) AND 전금할분구분코드 (BLTF_RFND_DV_CD) : 02(카드전금) */
            /* 2. 현금전금 : 환불지급구분코드 (RFND_DSB_DV_CD) :  03(전금) AND 전금할분구분코드 (BLTF_RFND_DV_CD) : 01(현금전금) */
@@ -87,7 +87,7 @@
                                           WHEN #{rfndDsbDvCdCshBltf} = '5' THEN 01
                                           WHEN #{rfndDsbDvCdCshBltf} = '6' THEN 01
                                       END
-           AND RRRD.BLTF_RFND_DV_CD = CASE WHEN #{rfndDsbDvCdCshBltf} = '1' THEN 02 
+           AND RRRD.BLTF_RFND_DV_CD = CASE WHEN #{rfndDsbDvCdCshBltf} = '1' THEN 02
                                            WHEN #{rfndDsbDvCdCshBltf} = '2' THEN 01
                                            WHEN #{rfndDsbDvCdCshBltf} = '4' THEN 02
                                            WHEN #{rfndDsbDvCdCshBltf} = '5' THEN 01
@@ -107,11 +107,11 @@
            AND CCB.BZRNO = #{bzrno}                      /* 사업자등록번호 */
            </if>
     </select>
-    
+
     <select id="selectRefundContractDetail" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundContractDetailRes">
-        SELECT 
+        SELECT
                SCD.CNTR_NO                              /* 계약번호 */
-             , SCD.CNTR_SN                              /* 계약일련번호 */  
+             , SCD.CNTR_SN                              /* 계약일련번호 */
              , SCD.STLM_TP_CD                           /* 계약유형(일시불, 할부) */
              , SCB.COPN_DV_CD                           /* 고객유형 */
              , CCB.BZRNO                                /* 사업자번호 */
@@ -129,7 +129,7 @@
              , RRD.DP_MES_CD                            /* 입금수단코드 01.현금, 02.신용카드, 05.전금 */
              , RRD.DP_DV_CD                             /* 입금구분코드 1.입금, 2.환불, 4.전금 */
              , RRD.RVE_NO                               /* 수납번호 */
-          FROM TB_SSCT_CNTR_BAS SCB                     /* 계약기본 */  
+          FROM TB_SSCT_CNTR_BAS SCB                     /* 계약기본 */
          INNER JOIN TB_SSCT_CNTR_DTL SCD                /* 계약상세 */
             ON SCB.DTA_DL_YN = 'N'
            AND SCD.DTA_DL_YN = 'N'
@@ -137,8 +137,7 @@
          INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */
             ON CCB.DTA_DL_YN = 'N'
            AND SCB.CNTR_CST_NO = CCB.CST_NO            /* 계약고객번호 = 고객번호 */
-         /* INNER JOIN TB_RVDW_RVE_DTL RRD                  수납상세 */ 
-          LEFT JOIN TB_RVDW_RVE_DTL RRD                 /* 수납상세 */ 
+         INNER JOIN TB_RVDW_RVE_DTL RRD                /*   수납상세 */
             ON RRD.DTA_DL_YN = 'N'
            AND RRD.KW_GRP_CO_CD = '2000'                /* 교원그룹회사코드 웰스 2000 */
            AND SCB.CNTR_NO = RRD.CNTR_NO                /* 계약번호 */
@@ -148,7 +147,7 @@
             ON PPB.DTA_DL_YN = 'N'
            AND SCD.BASE_PD_CD = PPB.PD_CD               /* 기준상품코드 = 상품코드 */
          WHERE 1 = 1
-           /* AND RRD.DP_DV_CD = '1'  입금구분코드 1.입금 */
+           AND RRD.DP_DV_CD = '1' /* 입금구분코드 1.입금 */
            <if test="@MybatisUtils@isNotEmpty(cntrStartDay) or @MybatisUtils@isNotEmpty(cntrEndDay)">
            AND SCB.FNL_MDFC_DTM BETWEEN #{cntrStartDay} || '000000' AND #{cntrEndDay} || '235959' /* 접수일자 */
            </if>
@@ -171,13 +170,13 @@
            AND CCB.BZRNO = #{bzrno}                     /* 사업자번호 */
            </if>
     </select>
-    
+
     <select id="selectRefundPossibleAmount" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundPossibleAmountRes">
           WITH A1 AS /*주문금액*/
              (
-               SELECT 
+               SELECT
                       NVL(SCD.CNTR_AMT, 0) AS CNTR_AMT/* 청약금액 = 계약상세.계약금액*/
-                    , NVL(SCD.CRP_UC_AMT, 0) AS CRP_UC_AMT/* 법인미수금액 = 계약상세.법인미수금액 */        
+                    , NVL(SCD.CRP_UC_AMT, 0) AS CRP_UC_AMT/* 법인미수금액 = 계약상세.법인미수금액 */
                     , NVL(SCD.MM_ISTM_AMT, 0) AS MM_ISTM_AMT/* 월할부금액_금액 = 계약상세.월할부금액 */
                     , NVL(SCD.ISTM_MCN, 0) AS ISTM_MCN /* 월할부금액_개월 = 계약상세.할부개월수 */
                     , NVL(RBFAD.BIL_NO, 0) AS BIL_NO/* 현재차월수 */
@@ -196,7 +195,7 @@
              )
              , A2 AS /* 주문금액 */
              (
-               SELECT 
+               SELECT
                       MAX(A1.CNTR_AMT) AS CNTR_AMT /* 청약금액 = 계약상세.계약금액*/
                     , MAX(A1.CRP_UC_AMT) AS CRP_UC_AMT /* 법인미수금액 = 계약상세.법인미수금액 */
                     , MAX(A1.MM_ISTM_AMT) AS MM_ISTM_AMT/* 월할부금액_금액 = 계약상세.월할부금액 */
@@ -207,8 +206,8 @@
                  FROM A1
              )
              , B0 AS /* 입금금액 */
-             ( 
-               SELECT 
+             (
+               SELECT
                       RRD.DP_AMT
                     , RRD.DP_DV_CD
                     , RRD.RVE_DV_CD
@@ -232,7 +231,7 @@
                   AND B0.RVE_DV_CD = '01' /* 수납상세.수납구분코드 = 01.계약(청약금)*/
              )
              , B2 AS /* 입금금액.법인미수금액*/
-             ( 
+             (
                SELECT NVL(SUM(B0.DP_AMT), 0) AS CRP_UC_AMT
                  FROM B0
            INNER JOIN TB_RVDW_DP_CPRCNF_BAS RDCB /* 입금대사기본 */
@@ -279,7 +278,7 @@
              , C1 AS /* 환불가능금액 청약/인수금액 */
              /* 환불가능 청약/인수금액 = 입금금액(청약/인수금액) - 주문금액(청약금액) */
              (
-               SELECT CASE WHEN B1.SUBSC_TK_AMT - A2.CNTR_AMT > 0 THEN B1.SUBSC_TK_AMT - A2.CNTR_AMT 
+               SELECT CASE WHEN B1.SUBSC_TK_AMT - A2.CNTR_AMT > 0 THEN B1.SUBSC_TK_AMT - A2.CNTR_AMT
                       ELSE 0
                        END AS SUBSC_TK_AMT /** 청약 인수 금액 */
                  FROM B1
@@ -309,7 +308,7 @@
              , C4 AS /* 환불가능금액 선수금액 */
              /* 환불가능 선수금액 = 입금금액(할부금액) - 주문금액(월할부금액 * 월할부개월 ) */
              (
-               SELECT CASE WHEN B3.ISTM_AMT - ( A2.MM_ISTM_AMT * A2.ISTM_MCN ) > 0 THEN B3.ISTM_AMT - ( A2.MM_ISTM_AMT * A2.ISTM_MCN ) 
+               SELECT CASE WHEN B3.ISTM_AMT - ( A2.MM_ISTM_AMT * A2.ISTM_MCN ) > 0 THEN B3.ISTM_AMT - ( A2.MM_ISTM_AMT * A2.ISTM_MCN )
                       ELSE 0
                        END AS PRPD_AMT
                  FROM B3
@@ -328,7 +327,7 @@
                  JOIN C4
                    ON 1 = 1
              )
-        SELECT 
+        SELECT
                A2.CNTR_AMT AS ORDER_CNTR_AMT /* 청약금액 = 계약상세.계약금액*/
              , A2.CRP_UC_AMT AS ORDER_CRP_UC_AMT /* 법인미수금액 = 계약상세.법인미수금액 */
              , A2.MM_ISTM_AMT AS ORDER_MM_ISTM_AMT /* 월할부금액_금액 = 계약상세.월할부금액 */
@@ -368,30 +367,30 @@
           JOIN C5
             ON 1 = 1
     </select>
-    
+
    <select id="selectRefundApplicationCard" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchCardRes">
         SELECT FNIT_NM /* 금융기관명 */
              , FNIT_CD /* 금융기관코드 */
           FROM TB_RVDW_FNIT_CD /* 금융기관코드 */
          WHERE FNIT_DV_CD = '2' /* 카드 */
     </select>
-    
+
    <select id="selectRefundApplicationBank" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchBankRes">
         SELECT FNIT_NM /* 금융기관명 */
              , FNIT_CD /* 금융기관코드 */
           FROM TB_RVDW_FNIT_CD /* 금융기관코드 */
          WHERE FNIT_DV_CD = '1' /* 은행 */
     </select>
-    
+
     <insert id="insertRefundApplication">
         <selectKey keyProperty="rfndRcpNo" resultType="java.lang.String"  order="BEFORE">
         SELECT 'RVR' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(NVL(SUBSTR(MAX(RFND_RCP_NO), 8), 0) + 1, 12, '0')
           FROM TB_RVDW_RFND_RCP_BAS /* 환불접수기본 */
         </selectKey>
-        
-        INSERT 
+
+        INSERT
           INTO TB_RVDW_RFND_RCP_BAS /* 환불접수기본 */
-             ( 
+             (
                KW_GRP_CO_CD         /* 교원그룹회사코드 */
              , RFND_RCP_NO          /* 환불접수번호 */
              , CST_NO               /* 고객번호 */
@@ -414,7 +413,7 @@
              , DTA_DL_YN            /*데이터삭제여부*/
         <include refid="COMMON.insertSystemField"/>
              )
-        VALUES 
+        VALUES
              (
                '2000'               /* 교원그룹회사코드 1200.에듀, 2000.웰스 */
              , #{rfndRcpNo}         /* 환불접수번호 */
@@ -445,8 +444,8 @@
         SELECT 'RVR' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(NVL(SUBSTR(MAX(RFND_RCP_NO), 8), 0), 12, '0')
           FROM TB_RVDW_RFND_RCP_BAS /* 환불접수기본 */
         </selectKey>
-        
-        INSERT 
+
+        INSERT
           INTO TB_RVDW_RFND_RCP_BAS_HIST    /* 환불접수기본이력 */
              (
                KW_GRP_CO_CD                 /* 교원그룹회사코드 */
@@ -482,7 +481,7 @@
              , DTA_DL_YN                    /*데이터삭제여부*/
         <include refid="COMMON.insertSystemField"/>
              )
-        SELECT 
+        SELECT
                RRRB.KW_GRP_CO_CD            /* 교원그룹회사코드 */
              , RRRB.RFND_RCP_NO             /* 환불접수번호 */
              , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')                      /* 이력변경일시 */
@@ -526,14 +525,14 @@
          WHERE RRRB.KW_GRP_CO_CD = '2000'               /* 교원그룹회사코드 1200.에듀, 2000.웰스 */
            AND RRRB.RFND_RCP_NO = #{rfndRcpNo}            /* 환불접수번호 */
     </insert>
-    
+
     <insert id="insertRefundApplicationDetail">
         <selectKey keyProperty="rfndRcpNo" resultType="java.lang.String"  order="BEFORE">
         SELECT 'RVR' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(NVL(SUBSTR(MAX(RFND_RCP_NO), 8), 0) + 1, 12, '0') AS rfndRcpNo
           FROM TB_RVDW_RFND_RCP_BAS /* 환불접수기본 */
         </selectKey>
 
-        INSERT 
+        INSERT
           INTO TB_RVDW_RFND_RCP_DTL     /* 환불접수상세 */
              (
                KW_GRP_CO_CD             /* 교원그룹회사코드 */
@@ -549,7 +548,7 @@
              , RFND_AC_DV_CD            /* 환불계좌구분코드 */
              , CSH_RFND_ACNO_ENCR       /* 계좌번호 */
              , CSH_RFND_ACOWN_NM        /* 예금주 */
-             
+
              , CSH_RFND_ADRS_DV_CD      /* 수취인 */
              , CSH_RFND_DLGPS_NM        /* 대표자 확인 */
              , CARD_RFND_CRDCD_APR_STRT_DT /* 승인일 시작 */
@@ -585,9 +584,9 @@
              , (
                SELECT NVL(MAX(RRRD.RFND_RCP_DTL_SN), 0) + 1
                  FROM TB_RVDW_RFND_RCP_DTL RRRD /* 환불접수상세 */
-                WHERE RRRD.RFND_RCP_NO = #{rfndRcpNo} 
+                WHERE RRRD.RFND_RCP_NO = #{rfndRcpNo}
                )                        /* 환불접수상세일련번호 */
-             , #{rveNo}                 /* 수납번호 */  
+             , #{rveNo}                 /* 수납번호 */
              , #{rfndDvCd}              /* 환불구분 */
              , #{rfndDsbDvCd}           /* 환불지급구분코드 01.현금환불, 02.카드환블, 03.전금, 04.귀속, 05.웰스당월가전손료 */
              , #{rfndRsonCn}            /* 기타 환불사유 입력, 전금환불사유 */
@@ -626,13 +625,13 @@
              <include refid="COMMON.insertSystemFieldValue" />
              )
     </insert>
-    
+
     <insert id="insertRefundApplicationDetailHistory">
         <selectKey keyProperty="rfndRcpNo" resultType="java.lang.String"  order="BEFORE">
         SELECT 'RVR' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(NVL(SUBSTR(MAX(RFND_RCP_NO), 8), 0) + 1, 12, '0') AS rfndRcpNo
           FROM TB_RVDW_RFND_RCP_BAS /* 환불접수기본 */
         </selectKey>
-        INSERT 
+        INSERT
           INTO TB_RVDW_RFND_RCP_DTL_HIST    /* 환불접수상세이력 */
              (
                KW_GRP_CO_CD                 /* 교원그룹회사코드 */
@@ -748,10 +747,10 @@
           AND RRRD.RFND_RCP_DTL_SN = (
                                    SELECT MAX(RRRD.RFND_RCP_DTL_SN)
                                      FROM TB_RVDW_RFND_RCP_DTL RRRD /* 환불접수상세 */
-                                    WHERE RRRD.RFND_RCP_NO = #{rfndRcpNo} 
+                                    WHERE RRRD.RFND_RCP_NO = #{rfndRcpNo}
                                  )                        /* 환불접수상세일련번호 */
     </insert>
-    
+
     <select id="selectRefundApplicationInfo" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$RefundBasic">
         SELECT
                RRRB.RFND_RCP_NO
@@ -774,11 +773,11 @@
            AND RRRB.KW_GRP_CO_CD = '2000'   /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = #{rfndRcpNo}          /* 환불접수번호 */
     </select>
-    
+
     <select id="selectRefundApplicationDetailInfo" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$RefundDetail">
         SELECT
                RRRD.RFND_RCP_NO
-             , RRRD.RFND_RCP_DTL_SN   
+             , RRRD.RFND_RCP_DTL_SN
              , RRRD.RVE_NO /* 수납상세.수납번호 */
              , RRRD.RFND_DV_CD /* 환불구분 01.전체환불, 02.부분환불*/
              , RRRD.RFND_DSB_DV_CD /* (상세)환불구분(현금환불, 카드환불, 전금) */
@@ -807,13 +806,13 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
          INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
          WHERE RRRB.KW_GRP_CO_CD = '2000'               /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = #{rfndRcpNo}          /* 환불접수번호 */
     </select>
-    
+
     <update id="updateRefundApplication">
         UPDATE TB_RVDW_RFND_RCP_BAS
            SET EX_RFND_RSON_CN = #{exRfndRsonCn}
@@ -836,7 +835,7 @@
          INTO TB_RVDW_RFND_RCP_DTL
         USING DUAL
            ON
-            ( 
+            (
                   DTA_DL_YN = 'N'
               AND RFND_RCP_NO = #{rfndRcpNo}          /* 환불접수번호 */
               AND RFND_RCP_DTL_SN = #{rfndRcpDtlSn}   /* 환불접수일련번호 */
@@ -870,8 +869,8 @@
             , RFND_EVID_MTR_FILE_ID     = #{rfndEvidMtrFileId} /* 증빙자료 파일명 */
               <include refid="COMMON.updateSystemField"/>
          WHEN NOT MATCHED THEN
-       INSERT  
-            ( 
+       INSERT
+            (
               KW_GRP_CO_CD /* 교원그룹회사코드 */
             , RFND_RCP_NO /* 환불접수번호 */
             , RFND_RCP_DTL_SN /* 환불접수상세일련번호 */
@@ -921,13 +920,13 @@
             <include refid="COMMON.insertSystemField"/>
             )
        VALUES
-            ( 
+            (
               2000 /*교원그룹회사코드*/
             , #{rfndRcpNo} /*환불접수번호*/
             , (
                 SELECT NVL(MAX(RRRD.RFND_RCP_DTL_SN), 0) + 1
                   FROM TB_RVDW_RFND_RCP_DTL RRRD /* 환불접수상세 */
-                 WHERE RRRD.RFND_RCP_NO = #{rfndRcpNo} 
+                 WHERE RRRD.RFND_RCP_NO = #{rfndRcpNo}
                )                        /* 환불접수상세일련번호 */
             , #{rfndDsbDvCd} /*환불지급구분코드*/
             , #{cshRfndDvCd} /*현금환불구분코드*/
@@ -975,16 +974,16 @@
              <include refid="COMMON.insertSystemFieldValue"/>
             )
     </update>
-    
+
     <delete id="deleteRefundApplication">
-        DELETE 
+        DELETE
           FROM TB_RVDW_RFND_RCP_BAS
          WHERE KW_GRP_CO_CD = '2000'
            AND RFND_RCP_NO = #{rfndRcpNo}
     </delete>
-    
+
     <select id="selectRefundApplicationDetailPartner" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationDetailPartnerRes">
-        SELECT 
+        SELECT
              (
                SELECT OPB.PRTNR_KNM
                  FROM TB_OGBS_PRTNR_BAS OPB
@@ -996,11 +995,11 @@
              , RRRB.RFND_STAT_CD                /* 처리상태 */
           FROM TB_RVDW_RFND_RCP_BAS RRRB        /* 환불접수기본 */
          WHERE RRRB.KW_GRP_CO_CD = '2000'
-           AND RRRB.RFND_RCP_NO = #{rfndRcpNo}  /* 환불접수번호 */ 
+           AND RRRB.RFND_RCP_NO = #{rfndRcpNo}  /* 환불접수번호 */
     </select>
-    
+
     <select id="selectRefundApplicationDetailContract" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$Ctract">
-        SELECT 
+        SELECT
                SCB.CNTR_NO /* 계약번호 */
              , SCD.SELL_TP_CD /* 주문유형 */
              , CCB.CST_KNM /* 고객명 */
@@ -1023,7 +1022,7 @@
           FROM TB_SSCT_CNTR_BAS SCB                     /* 계약기본 */
     INNER JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
             ON SCB.DTA_DL_YN = 'N'
-           AND SCD.DTA_DL_YN = 'N' 
+           AND SCD.DTA_DL_YN = 'N'
            AND SCB.CNTR_NO = SCD.CNTR_NO                /* 계약번호 */
     INNER JOIN TB_CUBS_CST_BAS CCB                      /* 고객기본 */
             ON CCB.DTA_DL_YN = 'N'
@@ -1042,7 +1041,7 @@
     INNER JOIN TB_SSOP_CTT_BAS CONB                      /* 컨텍기본 */
             ON SCB.DTA_DL_YN = 'N'
            AND CONB.CTT_OJ_ID = ( SELECT MAX(CTT_OJ_ID)
-                                    FROM TB_SSOP_CTT_BAS 
+                                    FROM TB_SSOP_CTT_BAS
                                    WHERE CNTR_NO = #{cntrNo} ) /* 마지막 컨텍 번호 */
            AND SCB.CNTR_NO = CONB.CNTR_NO
      LEFT JOIN TB_CBCL_WELLS_SL_CNFM_BAS CWSCB          /* WELLS매출확정기본 */
@@ -1061,11 +1060,11 @@
            AND SCB.CNTR_NO = #{cntrNo}
            AND SCD.CNTR_SN = #{cntrSn}
     </select>
-    
+
     <select id="selectRefundApplicationDetailPossible" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationDetailPossibleRes">
           WITH A12 AS
              (
-                SELECT 
+                SELECT
                        NVL(SUM(RRD.DP_AMT), 0) AS DP_AMT  /* 총입금 누계금액, 입금누계금액 */
                   FROM TB_SSCT_CNTR_DTL SCD      /* 계약상세 */
             INNER JOIN TB_RVDW_RVE_DTL RRD      /* 수납상세 */
@@ -1080,7 +1079,7 @@
              )
              , B1 AS
              (
-                SELECT 
+                SELECT
                        NVL(CDB.THM_OC_DLQ_AMT, 0) AS THM_OC_DLQ_AMT      /* 전월 연체금액 */
                   FROM TB_SSCT_CNTR_DTL SCD     /* 계약상세 */
             INNER JOIN TB_CBCL_DLQ_BAS CDB      /* 연체기본 */
@@ -1095,7 +1094,7 @@
              )
              , A3 AS
              (
-                SELECT 
+                SELECT
                        NVL(RRD.DP_AMT, 0) AS DP_AMT      /* 당월 선수금액 */
                   FROM TB_SSCT_CNTR_DTL SCD     /* 계약상세 */
             INNER JOIN TB_RVDW_RVE_DTL RRD      /* 수납상세 */
@@ -1103,16 +1102,16 @@
                    AND RRD.DTA_DL_YN = 'N'
                    AND SCD.CNTR_NO = RRD.CNTR_NO
                    AND SCD.CNTR_SN = RRD.CNTR_SN
-                 WHERE 1 = 1 
+                 WHERE 1 = 1
                    AND RRD.DP_DT = TO_CHAR(SYSDATE, 'YYYYMM') /* 당월 */
                    AND RRD.DP_DV_CD = 1 /* 수납상세.입금구분코드 = 입금 */
                    AND RRD.RVE_DV_CD IN ( 97, 98 ) /* 수납상세.수납구분코 IN ( 영업선수, 기타선수) */
                    AND SCD.CNTR_NO = #{cntrNo}
                    AND SCD.CNTR_SN = #{cntrSn}
              )
-             , B2 AS 
+             , B2 AS
              (
-                SELECT 
+                SELECT
                        NVL(CDB.THM_OC_DLQ_AMT, 0) AS THM_OC_DLQ_AMT      /* 당월 연체금액 */
                   FROM TB_SSCT_CNTR_DTL SCD     /* 계약상세 */
             INNER JOIN TB_CBCL_DLQ_BAS CDB      /* 연체기본 */
@@ -1125,9 +1124,9 @@
                    AND SCD.CNTR_NO = #{cntrNo}
                    AND SCD.CNTR_SN = #{cntrSn}
              )
-             , A4 AS 
+             , A4 AS
              (
-                SELECT 
+                SELECT
                        NVL(RRD.DP_AMT, 0) AS DP_AMT      /* 당월 입금액 */
                   FROM TB_SSCT_CNTR_DTL SCD     /* 계약상세 */
             INNER JOIN TB_RVDW_RVE_DTL RRD      /* 수납상세 */
@@ -1135,22 +1134,22 @@
                    AND RRD.DTA_DL_YN = 'N'
                    AND SCD.CNTR_NO = RRD.CNTR_NO
                    AND SCD.CNTR_SN = RRD.CNTR_SN
-                 WHERE 1 = 1 
+                 WHERE 1 = 1
                    AND RRD.DP_DT = TO_CHAR(SYSDATE, 'YYYYMM') /* 당월 */
                    AND RRD.DP_DV_CD = 1 /* 수납상세.입금구분코드 = 입금 */
                    AND SCD.CNTR_NO = #{cntrNo}
                    AND SCD.CNTR_SN = #{cntrSn}
              )
              , C1 AS
-             ( 
+             (
                 SELECT NVL( A4.DP_AMT - B1.THM_OC_DLQ_AMT, 0) AS ABL_AMT /* 환불가능금액 */
                   FROM A4
              FULL JOIN B1
                     ON 1 = 1
              )
-        SELECT 
+        SELECT
                NVL(A12.DP_AMT, 0) AS DP_AGG_AMT /* 총입금 누계금액, 입금누계금액 */
-             , NVL(A12.DP_AMT, 0) AS DP_AGG_AMT2 /* 총입금 누계금액, 입금누계금액 */ 
+             , NVL(A12.DP_AMT, 0) AS DP_AGG_AMT2 /* 총입금 누계금액, 입금누계금액 */
              , NVL(B1.THM_OC_DLQ_AMT, 0) AS LSTMM_DLQ_AMT /* 전월 연체금액 */
              , NVL(A3.DP_AMT, 0) AS THM_PRPD_AMT /* 당월 선수금액 */
              , NVL(B2.THM_OC_DLQ_AMT, 0) AS THM_DLQ_AMT /* 당월 연체금액 */
@@ -1168,10 +1167,10 @@
      FULL JOIN C1
             ON 1 = 1
     </select>
-    
-        
+
+
     <select id="selectRefundApplicationDetailDeposit" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationDetailDepositRes">
-        SELECT 
+        SELECT
                RRD.RVE_SN /* 입금일련번호 */
              , RRD.DP_DT /* 입금일자 */
              , RRD.PERF_DT /* 실적일자 */
@@ -1186,7 +1185,7 @@
                 END AS CSH_CRD
              , ( SELECT RFC.FNIT_NM /* 금융기관명 */
                    FROM TB_RVDW_FNIT_CD RFC/* 금융기관코드 */
-                  WHERE RFC.FNIT_CD = RIDB.FNIT_CD 
+                  WHERE RFC.FNIT_CD = RIDB.FNIT_CD
              )  AS FNIT_NM /* 카드사, 은행 */
              , RIDB.CRCDNO_ENCR /* 카드번호 */
              , RIDB.CRDCD_APRNO /* 승인번호 */
@@ -1196,9 +1195,9 @@
           FROM TB_SSCT_CNTR_DTL SCD     /* 계약상세 */
           JOIN TB_RVDW_RVE_DTL RRD      /* 수납상세 */
             ON RRD.DTA_DL_YN = 'N'
-           AND SCD.CNTR_NO = RRD.CNTR_NO 
-           AND SCD.CNTR_SN = RRD.CNTR_SN 
-          JOIN TB_RVDW_RFND_RCP_BAS RRRB /* 환불접수기본 */ 
+           AND SCD.CNTR_NO = RRD.CNTR_NO
+           AND SCD.CNTR_SN = RRD.CNTR_SN
+          JOIN TB_RVDW_RFND_RCP_BAS RRRB /* 환불접수기본 */
             ON RRRB.DTA_DL_YN = 'N'
            AND SCD.CNTR_NO = RRRB.CNTR_NO
            AND SCD.CNTR_SN = RRRB.CNTR_SN
@@ -1209,9 +1208,9 @@
            AND SCD.CNTR_NO = #{cntrNo}
            AND SCD.CNTR_SN = #{cntrSn}
     </select>
-    
+
     <select id="selectRefundApplicationDetailPerformance" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationDetailPerformanceRes">
-        SELECT 
+        SELECT
                CWSMCI.CNTR_NO /* 계약번호 */
              , CWSMCI.SL_STP_YN /* 매출중지 */
              , CWSMCI.SL_CL_YM /* 매출년월 */
@@ -1233,25 +1232,25 @@
           JOIN TB_CBCL_WELLS_SL_MM_CL_IZ CWSMCI      /* WELLS매출월마감내역 */
             ON SCD.DTA_DL_YN = 'N'
            AND CWSMCI.DTA_DL_YN = 'N'
-           AND SCD.CNTR_NO = CWSMCI.CNTR_NO 
-           AND SCD.CNTR_SN = CWSMCI.CNTR_SN 
+           AND SCD.CNTR_NO = CWSMCI.CNTR_NO
+           AND SCD.CNTR_SN = CWSMCI.CNTR_SN
          LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS CWBAB      /* WELLS위약금액기본 */
             ON CWBAB.DTA_DL_YN = 'N'
            AND CWSMCI.SL_CL_YM = CWBAB.PERF_YM  /* 매출마감년월 = 실적년월 */
-           AND CWSMCI.CNTR_NO = CWBAB.CNTR_NO 
-           AND CWSMCI.CNTR_SN = CWBAB.CNTR_SN 
+           AND CWSMCI.CNTR_NO = CWBAB.CNTR_NO
+           AND CWSMCI.CNTR_SN = CWBAB.CNTR_SN
           JOIN TB_CBCL_DLQ_BAS CDB                    /* 연체기본 */
             ON CDB.DTA_DL_YN= 'N'
            AND CWSMCI.SL_CL_YM = CDB.PERF_YM  /* 매출마감년월 = 실적년월 */
-           AND CWSMCI.CNTR_NO = CDB.CNTR_NO 
-           AND CWSMCI.CNTR_SN = CDB.CNTR_SN 
+           AND CWSMCI.CNTR_NO = CDB.CNTR_NO
+           AND CWSMCI.CNTR_SN = CDB.CNTR_SN
          WHERE 1 = 1
            AND SCD.CNTR_NO = #{cntrNo}
            AND SCD.CNTR_SN = #{cntrSn}
     </select>
-    
+
     <select id="selectRefundApplicationDetailApplication" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$App">
-        SELECT 
+        SELECT
                RRRD.RFND_RCP_NO
              , RRRD.RFND_RCP_DTL_SN
              , RRRD.RFND_DSB_DV_CD                              /* 환불구분 */
@@ -1263,10 +1262,10 @@
                     WHEN RRRD.RFND_DSB_DV_CD = '02' THEN '3'                                                 /* 3. 카드환불 */
                     WHEN RRRD.RFND_DSB_DV_CD = '03' THEN ( CASE WHEN RRRD.BLTF_RFND_DV_CD = '01' THEN '2'    /* 2. 현금전금 */
                                                                 WHEN RRRD.BLTF_RFND_DV_CD = '02' THEN '1'    /* 1. 카드전금 */
-                                                            END 
-                                                         )                                                         
+                                                            END
+                                                         )
                 END AS RFND_DSB_DV_CD_CSH_BLTF                  /* 전금구분 */
-                
+
              , RRRD.BLTF_RFND_MB_DV_CD                          /* 전금환불회원구분코드 *//* 회원구분 */
              , PPB.PD_NM                                        /* 상품명 *//* 상품 */
              , RRRD.BLTF_BF_VAC_NO_ENCR                         /* 전금이전가상계좌번호암호화 *//* 전금전 가상계좌 */
@@ -1276,7 +1275,7 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                        /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                        /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD            /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO              /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                             /* 계약상세 */
@@ -1290,7 +1289,7 @@
            AND RRRD.RFND_RCP_NO = #{rfndRcpNo}
            AND RRRD.RFND_RCP_DTL_SN = #{rfndRcpDtlSn}
     </select>
-    
+
     <select id="selectRefundApplicationDetailReceipt" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationDetailReceiptRes">
         SELECT
                RRRB.RFND_RCP_NO
@@ -1304,12 +1303,12 @@
            AND RRRB.KW_GRP_CO_CD = '2000'   /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = #{rfndRcpNo}          /* 환불접수번호 */
     </select>
-    
+
 
     <select id="selectRefundApplicationDetailInfo2" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$RefundDetail">
         SELECT
                RRRD.RFND_RCP_NO
-             , RRRD.RFND_RCP_DTL_SN   
+             , RRRD.RFND_RCP_DTL_SN
              , RRRD.RVE_NO /* 수납상세.수납번호 */
              , RRRD.RFND_DV_CD /* 환불구분 01.전체환불, 02.부분환불*/
              , RRRD.RFND_DSB_DV_CD /* (상세)환불구분(현금환불, 카드환불, 전금) */
@@ -1338,20 +1337,20 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
          INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
          WHERE RRRB.KW_GRP_CO_CD = '2000'               /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = #{rfndRcpNo}          /* 환불접수번호 */
            AND RRRD.RFND_RCP_DTL_SN = #{rfndRcpDtlSn}
     </select>
-    
+
     <select id="selectRefundApplicationConnectHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationConnectHistoryRes">
         SELECT CTT_RCP_DTM              /* 컨택일시 */
              , CTT_CHNL_TP_CD           /* 상담경로 */
-             , ( SELECT PRTNR_KNM 
-                   FROM TB_OGBS_PRTNR_BAS 
-                  WHERE PRTNR_NO = CTT_PSIC_ID 
+             , ( SELECT PRTNR_KNM
+                   FROM TB_OGBS_PRTNR_BAS
+                  WHERE PRTNR_NO = CTT_PSIC_ID
                ) AS PRTNR_KNM              /* 상담자 */
              , CTT_PSIC_ID              /* 번호 */
              , CTT_MO_CN                /* 상담내용 */
