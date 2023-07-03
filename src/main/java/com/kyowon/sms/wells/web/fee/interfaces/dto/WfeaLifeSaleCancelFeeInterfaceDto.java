@@ -13,73 +13,71 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
     @Builder
     public record IfRequest(
         @NotBlank
-        @JsonProperty("AKSDTE")
-        String aksdte, /* 발생월 */
+        @JsonProperty("BASE_YM")
+        String baseYm,
         @NotBlank
-        @JsonProperty("ITM01")
-        String itm01, /* 예상확정구분코드 */
+        @JsonProperty("ET_CNFM_DV_CD")
+        String etCnfmDvCd,
         @NotBlank
-        @JsonProperty("ITM02")
-        String itm02, /* 상조고객코드 */
-        @JsonProperty("AKDSEQ")
-        int akdseq, /* 회차 */
-        @JsonProperty("AKSGUB")
-        String aksgub, /* 구분 */
-        @JsonProperty("AKSALE")
-        String aksale, /* 판매구분 */
-        @JsonProperty("AKDCDE")
-        String akdcde, /* 사번 */
-        @JsonProperty("AKDBON")
-        String akdbon, /* 지점장 */
-        @JsonProperty("AKCODE")
-        String akcode, /* 상조상품코드 */
-        @JsonProperty("ITM03")
-        String itm03, /* 상조상품명 */
-        @JsonProperty("AKCRTE")
-        String akcrte, /* 접수일 */
-        @JsonProperty("AKSLTE")
-        String akslte, /* 계약일 */
-        @JsonProperty("AKCDTE")
-        String akcdte, /* 취소일 */
-        @JsonProperty("AKTCNT")
-        String aktcnt, /* 총지급대상 */
-        @JsonProperty("AKMAMT")
-        Long  akmamt, /* 누적발생매출 */
-        @JsonProperty("AKIAMT")
-        Long  akiamt, /* 누적입금 */
-        @JsonProperty("AKISEQ")
-        Integer akiseq, /* 완납회차 */
-        @JsonProperty("ITM04")
-        String itm04, /* WELLS 고객코드 */
-        @JsonProperty("ITM05")
-        String itm05, /* WELLS 계약일련번호 */
-        @JsonProperty("AKGDYM")
-        String akgdym, /* 수수료지급월 */
-        @JsonProperty("AKHDYM")
-        String akhdym, /* 수수료되물림 */
-        @JsonProperty("AKLOCK")
-        String aklock, /* 마감여부 */
-        @JsonProperty("ITM06")
-        String itm06, /* 데이터삭제여부 */
-        @JsonProperty("AKWDAY")
-        String akwday, /* 생성일자 */
-        @JsonProperty("AKWDSP")
-        String akwdsp, /* 생성자 */
-        @JsonProperty("AKWPGM")
-        String akwpgm, /* 생성PGM */
-        @JsonProperty("ITM07")
-        String itm07, /* 최초등록부서ID */
-        @JsonProperty("AKUDAY")
-        String akuday, /* 수정일자 */
-        @JsonProperty("AKUDSP")
-        String akudsp, /* 수정자 */
-        @JsonProperty("AKUPGM")
-        String akupgm, /* 생성PGM */
-        @JsonProperty("ITM08")
-        String itm08 /* 최종수정부서ID */
-
-
-
+        @JsonProperty("LIF_CNTR_NO")
+        String lifCntrNo,
+        @NotBlank
+        @JsonProperty("LIF_CNTR_OC_TN")
+        String lifCntrOcTn,
+        @JsonProperty("LIF_CNTR_STAT_CD")
+        String lifCntrStatCd,
+        @JsonProperty("SELL_DV_CD")
+        String sellDvCd,
+        @JsonProperty("PRTNR_NO")
+        String prtnrNo,
+        @JsonProperty("BRMGR_PRTNR_NO")
+        String brmgrPrtnrNo,
+        @JsonProperty("LIF_PD_CD")
+        String lifPdCd,
+        @JsonProperty("LIF_PD_NM")
+        String lifPdNm,
+        @JsonProperty("RCPDT")
+        String rcpdt,
+        @JsonProperty("CNTR_DT")
+        String cntrDt,
+        @JsonProperty("CAN_DT")
+        String canDt,
+        @JsonProperty("TOT_DSB_OJ_DV_CD")
+        String totDsbOjDvCd,
+        @JsonProperty("SL_OC_ACU_AMT")
+        Long slOcAcuAmt,
+        @JsonProperty("DP_ACU_AMT")
+        Long dpAcuAmt,
+        @JsonProperty("FLPYM_TN")
+        Integer flpymTn,
+        @JsonProperty("WELS_CNTR_NO")
+        String welsCntrNo,
+        @JsonProperty("WELS_CNTR_SN")
+        String welsCntrSn,
+        @JsonProperty("FEE_DSB_YM")
+        String feeDsbYm,
+        @JsonProperty("FEE_REDF_YM")
+        String feeRedfYm,
+        @JsonProperty("CNFM_YN")
+        String cnfmYn,
+        @JsonProperty("DTA_DL_YN")
+        String dtaDlYn,
+        @JsonProperty("FST_RGST_DTM")
+        String fstRgstDtm,
+        @JsonProperty("FST_RGST_USR_ID")
+        String fstRgstUsrId,
+        @JsonProperty("FST_RGST_PRG_ID")
+        String fstRgstPrgId,
+        @JsonProperty("FST_RGST_DEPT_ID")
+        String fstRgstDeptId,
+        @JsonProperty("FNL_MDFC_DTM")
+        String fnlMdfcDtm,
+        @JsonProperty("FNL_MDFC_USR_ID")
+        String fnlMdfcUsrId,
+        @JsonProperty("FNL_MDFC_PRG_ID")
+        String fnlMdfcPrgId,
+        @JsonProperty("FNL_MDFC_DEPT_ID")
+        String fnlMdfcDeptId
     ) {}
     @Builder
     @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
