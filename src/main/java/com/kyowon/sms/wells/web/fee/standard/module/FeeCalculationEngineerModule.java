@@ -57,14 +57,16 @@ public class FeeCalculationEngineerModule extends FeeCalculationCommonModule {
     }
 
     /**
-     * 수당일괄계산 수당데이터 삭제 전처리 메소드
+     * 수당일괄계산 사용자정의 처리 메소드
      * W060001, W060002, W060003, W060004, W060005, W060006, W060007, W060008, W060010, W060011, W060012 수수료 삭제
      *
-     * 홈마스터 급지수수료 후처리 메소드
      */
-    @FeeModuleMethodInfo(methodName = "수당일괄계산 수당 데이터 삭제 전처리", methodExplanation = "W060001 ~ W060012(W060009 제외) 수당 데이터 삭제")
-    public void runAllowanceBulkDeletionPreProcess() {
-        engineerCalculationMapper.deleteAllowances(baseYm, feeTcntDvCd);
+    @FeeModuleMethodInfo(methodName = "수당일괄계산 사용자정의 처리", methodExplanation = "W060001 ~ W060012(W060009 제외) 수당일괄계산 사용자정의 처리")
+    public void runAllowanceBulkCalculation() {
+        engineerCalculationMapper.deleteEngineerAllowances(baseYm, feeTcntDvCd, "DATA");
+        engineerCalculationMapper.deleteEngineerAllowances(baseYm, feeTcntDvCd, "HISTORY");
+        engineerCalculationMapper.insertEngineerAllowances(baseYm, feeStandard.basic().coCd(), feeStandard.basic().fnlFeeYn(), feeTcntDvCd);
+        engineerCalculationMapper.insertEngineerAllowanceHistories(baseYm, feeTcntDvCd);
     }
 
 }
