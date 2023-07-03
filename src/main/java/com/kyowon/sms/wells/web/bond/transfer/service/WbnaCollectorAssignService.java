@@ -75,12 +75,11 @@ public class WbnaCollectorAssignService {
         BizAssert.isTrue(mapper.selectCanCollectorAssign(dto) == 1, "MSG_ALT_ASN_DTA_EXST");
 
         // 기존 배치 동작 여부 확인 (true:배치 동작 가능, false:배치 동작 불가)
-        /* TODO 배치 실행 확인 문제로 임시 주석
         BizAssert.isTrue(
             bondBatchStatusDetailsService
                 .checkBondBatchOperationStatus(dto.baseYm(), dto.bzHdqDvCd(), dto.clctamDvCd()),
             "MSG_ALT_RUN_ASN_BAT_EXST"
-        );*/ // TODO 메시지 변경 필요한 경우 해당 id의 내용만 변경
+        ); // TODO 메시지 변경 필요한 경우 해당 id의 내용만 변경
 
         /*
         * 1.균등배정 -> 배정 타입1(균등배정 -> 지역우선배정) 0103
@@ -123,8 +122,7 @@ public class WbnaCollectorAssignService {
         bondBatchStatusDetailsDvo.setTfBizDvCd(BnBondConst.TfBizDvCd.COLLECTOR_ASSIGNMENT.getValue());
         bondBatchStatusDetailsDvo.setBndNwDvCd(BnBondConst.BndNwDvCd.OLD.getValue());
         bondBatchStatusDetailsDvo.setBndBatStatCd(BnBondConst.BndBatStatCd.START.getValue());
-        // TODO 항목 길이 문제로 임시 주석
-        // bondBatchStatusDetailsService.createBondBatchStatusDetails(bondBatchStatusDetailsDvo);
+        bondBatchStatusDetailsService.createBondBatchStatusDetails(bondBatchStatusDetailsDvo);
 
         return oldBondBatchJobRunId;
     }
