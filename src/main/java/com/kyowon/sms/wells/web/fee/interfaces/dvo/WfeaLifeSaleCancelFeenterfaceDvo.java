@@ -10,7 +10,7 @@ public class WfeaLifeSaleCancelFeenterfaceDvo {
     private String baseYm; /* 기준년월 */
     private String etCnfmDvCd; /* 예상확정구분코드 */
     private String lifCntrNo; /* 라이프계약번호 */
-    private int lifCntrOcTn; /* 라이프계약발생회차 */
+    private String lifCntrOcTn; /* 라이프계약발생회차 */
     private String lifCntrStatCd; /* 라이프계약상태코드 */
     private String sellDvCd; /* 판매구분코드 */
     private String prtnrNo; /* 파트너번호 */
