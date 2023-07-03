@@ -44,6 +44,7 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
                 saveDvo.setDpAcuAmt(item.akiamt());
                 saveDvo.setFlpymTn(item.akiseq());
                 saveDvo.setCntrNo(item.itm04());
+                saveDvo.setCntrSn(Integer.parseInt(item.itm05()));
                 saveDvo.setFeeDsbYm(item.akgdym());
                 saveDvo.setFeeRedfYm(item.akhdym());
                 saveDvo.setCnfmYn(item.aklock());
@@ -53,15 +54,12 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
                 saveDvo.setFstRgstPrgId(item.akwpgm());
                 saveDvo.setFstRgstDeptId(item.itm07());
                 saveDvo.setFnlMdfcDeptId(item.itm08());
-//                saveDvo.setFnlMdfcDtm(item.akuday());
-//                saveDvo.setFnlMdfcUsrId(item.akudsp());
-//                saveDvo.setFnlMdfcPrgId(item.akupgm());
-//                saveDvo.setCntrSn(item.itm05());
-                saveDvo.setCntrSn(null);
+                saveDvo.setFnlMdfcDtm(item.akuday());
+                saveDvo.setFnlMdfcUsrId(item.akudsp());
                 saveDvo.setFnlMdfcDtm(null);
                 saveDvo.setFnlMdfcUsrId(null);
                 saveDvo.setFnlMdfcPrgId(null);
-
+                saveDvo.setFnlMdfcPrgId(item.akupgm());
                 String cnfmYn = mapper.selectLifeFeeValidKey(saveDvo);
                 // 1.1 마감여부? 체크 후 마감이면 에러 CNFM_YN = 'Y'면 에러
                 if ("Y".equals(cnfmYn)) {
