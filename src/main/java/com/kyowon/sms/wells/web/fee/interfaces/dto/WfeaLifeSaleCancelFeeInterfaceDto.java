@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
+import java.util.ArrayList;
 
 public class WfeaLifeSaleCancelFeeInterfaceDto {
 
@@ -86,7 +86,7 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
     @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")
     public record SaveReq(
         @JsonProperty("LIST")
-        List<IfRequest> list
+        ArrayList<IfRequest> list
     ) {}
 
     @Builder
