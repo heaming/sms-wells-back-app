@@ -33,7 +33,6 @@ public class WsnbServiceProcessingDvo {
     String cralIdvTno;
     String newAdrZip;
     String radr;
-    String chkPrdCd;
     String cntrCnfmDtm;
     String pdNm;
     String pdGrpCd;
