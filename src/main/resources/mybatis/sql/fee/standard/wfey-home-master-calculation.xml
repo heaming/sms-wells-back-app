@@ -1,0 +1,73 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyHomeMasterCalculationMapper">
+
+    <update id='updateRglvlFeePostProcess'>
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ B
+           SET B.RGLVL_FEE_AMT = CASE
+                                     WHEN B.VST_RGLVL_GD_CD = 2 THEN 1000
+                                     WHEN B.VST_RGLVL_GD_CD = 3 THEN 4000
+                                     WHEN B.VST_RGLVL_GD_CD = 4 THEN 5000
+                                     ELSE 0 END
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND (B.BASE_YM, B.CL_DV_CD, B.OG_TP_CD, B.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feetcntDvCd}
+                   AND A.FEE_CALC_AMT > 0) -- 수수료 받아 간 사람.
+           AND B.WK_EXCN_DT IS NOT NULL
+           AND B.VST_RGLVL_GD_CD IN ('2', '3', '4')
+           AND B.SV_BIZ_DCLSF_CD NOT IN ('4330', '2250', '2240') -- 제외 홈마스터 방문부재건 4330 / 웰컴BS 2250 / 사전방문 2240
+    </update>
+
+    <update id='updateSvSiteFeePostProcess'>
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ B
+           SET B.FEE_CALC_AMT = CASE
+                                    WHEN B.FEE_FXAM_YN = 'Y' THEN B.FEE_UPRC_AMT
+                                    ELSE CASE
+                                             WHEN (SELECT NVL(MAX(C.FEE_PERF_ATC_VAL), '0')
+                                                     FROM TB_FEAM_PRTNR_PERF_MM_CL C
+                                                    WHERE C.BASE_YM = B.BASE_YM
+                                                      AND C.PERF_YM = B.BASE_YM
+                                                      AND C.FEE_TCNT_DV_CD = B.CL_DV_CD
+                                                      AND C.OG_TP_CD = B.OG_TP_CD
+                                                      AND C.PRTNR_NO = B.PRTNR_NO
+                                                      AND C.PERF_ATC_CD = 'W03P00110') = '1' THEN B.FEE_UPRC_AMT * 1.8
+                                             WHEN (SELECT NVL(MAX(C.FEE_PERF_ATC_VAL), '0')
+                                                     FROM TB_FEAM_PRTNR_PERF_MM_CL C
+                                                    WHERE C.BASE_YM = B.BASE_YM
+                                                      AND C.PERF_YM = B.BASE_YM
+                                                      AND C.FEE_TCNT_DV_CD = B.CL_DV_CD
+                                                      AND C.OG_TP_CD = B.OG_TP_CD
+                                                      AND C.PRTNR_NO = B.PRTNR_NO
+                                                      AND C.PERF_ATC_CD = 'W03P00110') = '2' THEN B.FEE_UPRC_AMT * 1.5
+                                             WHEN (SELECT NVL(MAX(C.FEE_PERF_ATC_VAL), '0')
+                                                     FROM TB_FEAM_PRTNR_PERF_MM_CL C
+                                                    WHERE C.BASE_YM = B.BASE_YM
+                                                      AND C.PERF_YM = B.BASE_YM
+                                                      AND C.FEE_TCNT_DV_CD = B.CL_DV_CD
+                                                      AND C.OG_TP_CD = B.OG_TP_CD
+                                                      AND C.PRTNR_NO = B.PRTNR_NO
+                                                      AND C.PERF_ATC_CD = 'W03P00110') = '3' THEN B.FEE_UPRC_AMT * 1.2
+                                             ELSE 0 END
+               END
+         WHERE 1 = 1
+           AND (B.BASE_YM, B.CL_DV_CD, B.OG_TP_CD, B.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_CALC_AMT > 0) -- 수수료 받아 간 사람.
+           AND B.WK_EXCN_DT IS NOT NULL
+           AND B.SV_BIZ_DCLSF_CD NOT IN ('4330', '2250', '2240') -- 제외 홈마스터 방문부재건 4330 / 웰컴BS 2250  / 사전방문 2240
+    </update>
+</mapper>
