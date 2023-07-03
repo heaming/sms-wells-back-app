@@ -294,6 +294,7 @@ public class WctaContractRegStep5Service {
                 taxInvoiceInquiryDvo.setTxinvPdDvCd(ctTxinvPdDvCd.getCode());
                 taxInvoiceInquiryDvo.setTxinvPblDvCd(CtTxinvPblDvCd.of(sellTpCd).getCode());
                 taxInvoiceMapper.updateTaxInvoiceInquiry(taxInvoiceInquiryDvo);
+                taxInvoiceInquiryDvo.setExnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getExnoEncr()));
                 taxInvoiceInquiryDvo.setMexnoEncr(DbEncUtil.dec(taxInvoiceInquiryDvo.getMexnoEncr()));
                 taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
             }
@@ -303,7 +304,6 @@ public class WctaContractRegStep5Service {
     @Transactional
     void createAgreeInfos(String cntrNo, List<WctaAgreeItemDtlDvo> agIzs) {
         isTrue(agIzs.size() > 0, "동의 내역이 없습니다.");
-
 
         WctaAgreeItemDvo agreeItemDvo = new WctaAgreeItemDvo();
         String cstAgId = mapper.selectMaxCntrCstAgId();
