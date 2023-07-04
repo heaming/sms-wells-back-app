@@ -373,7 +373,7 @@ public class WctaContractRegStep5Service {
     }
 
     @Transactional
-    void confirmContract(String cntrNo) {
+    public void confirmContract(String cntrNo) {
         editContractProgressStatus(cntrNo, CtContractProgressStatus.CNFM);
 //         계약상세상태코드 변경
         List<WctaContractDtlDvo> cntrDtls = contractRegService.selectContractDtl(cntrNo);
