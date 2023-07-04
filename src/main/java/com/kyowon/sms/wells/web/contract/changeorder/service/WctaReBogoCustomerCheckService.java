@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WctaReBogoCustomerCheckService {
     private final WctaReBogoCustomerCheckMapper mapper;
-    WctaReBogoCustomerCheckResultDvo result;
+    WctaReBogoCustomerCheckResultDvo result = new WctaReBogoCustomerCheckResultDvo();
     public String rsltMchnChgYn; //기기변경여부
     public String rsltPdCd; //W-SS-S-0009 상품코드 결과값
     public String rsltPmotCd; //W-SS-S-0009 상품코드 결과값
