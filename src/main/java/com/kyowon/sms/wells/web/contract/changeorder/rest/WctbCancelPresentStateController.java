@@ -88,7 +88,7 @@ public class WctbCancelPresentStateController {
         @ApiImplicitParam(name = "reqdDiv", value = "철거구분", paramType = "query"),
     })
     @GetMapping("/single-payment-cancels")
-    public List<SearchSinglePayRes> getSinglePaymentCancelPresentStates(
+    public List<SearchSinglePaymentRes> getSinglePaymentCancelPresentStates(
         @Valid
         SearchReq dto
     ) {
