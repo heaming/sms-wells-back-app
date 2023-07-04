@@ -41,7 +41,7 @@ public class WctbCancelPresentStateService {
      * @param dto
      * @return list
      */
-    public List<SearchSinglePayRes> getSinglePaymentCancelPresentStates(SearchReq dto) {
+    public List<SearchSinglePaymentRes> getSinglePaymentCancelPresentStates(SearchReq dto) {
         return mapper.selectSinglePaymentCancelPresentStates(dto);
     }
 
