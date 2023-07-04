@@ -57,4 +57,11 @@ public interface WctzHistoryConverter {
         @MappingTarget
         WctzMachineChangeHistoryDvo target
     );
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    WctzContractChRcchStatChangeDtlHistDvo convertContractChangeReceiptDtlToHist(
+        WctzContractChRcchStatChangeDtlHistDvo source,
+        @MappingTarget
+        WctzContractChRcchStatChangeDtlHistDvo target
+    );
 }

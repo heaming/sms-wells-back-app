@@ -81,4 +81,13 @@ public interface WctzHistoryMapper {
 
     int insertMachineChangeHistory(WctzMachineChangeHistoryDvo dvo);
 
+    // 계약변경접수상세변경이력
+    WctzContractChRcchStatChangeDtlHistDvo selectContractChRcchStatChangeDtlHistory(String cntrChRcpId, int cntrChSn);
+
+    WctzContractChRcchStatChangeDtlHistDvo selectContractChRcchStatChangeDtlForHist(String cntrChRcpId, int cntrChSn);
+
+    int updateContractChRcchStatChangeDtlHistory(WctzContractChRcchStatChangeDtlHistDvo dvo);
+
+    int insertContractChRcchStatChangeDtlHistory(WctzContractChRcchStatChangeDtlHistDvo dvo);
+
 }

@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.contract.changeorder.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,12 +13,15 @@ public class WctbContractChangeDvo {
     /* input */
     private String cntrCnfmDtmFr; // 계약시작접수일자
     private String cntrCnfmDtmTo; // 계약종료접수일자
+    private String inDv; // 처리구분
+    private String aprvDv; // 승인구분
 
     /* output */
     private String cntrNo; /* 계약번호  lcyear + lccode*/
     private int cntrSn; /* 계약일련번호  */
     private String sellTpCd; /* 판매유형코드 lcType (2:l20)*/
     private String sellTpDtlCd; /* 판매유형상세코드 */
+    private String resYn; // 결과코드
 
     /* 화면 표시 */
     private String sellTpDtlNm; /* 판매유형사케코드명 (판매유형:lcTypeNm)*/
@@ -56,6 +62,52 @@ public class WctbContractChangeDvo {
     private String bdtMnftNm; /* 제조회사 (일시불일때만 제조회사 표시하지만; 맵핑없음 공통코드:bdtMnftCoCd) lcjejoNm */
     private String istDt; /* 설치일자  lcsetDt*/
     private String sellInflwChnlDtlCd; /* 판매유입채널상세코드 (직원구매 체크용(9020:직원구매->vSalediv:9)) */
+
+    /* 계약주문 Check */
+    private String pkgYn; /* 패키지 주문 여부 (LC348_GSEQ) */
+    private String prmPtrmYn; /* 선납주문여부 (LCST10) */
+    private String dpYn; /* 입금여부 (LC_DPST_YN) */
+    private String ftfYn; /* 대면여부 concWay:2 = FTF_YN:N*/
+    private String istBzsCd; /* 설치업체 (설치업체(IST_BZS_CD):S:삼성전자,C:청호,o:기타) : KA11.KACK04, KA_CK04)  */
+    private String istPcsvTpCd; /* 설치택배구분 (1:설치, 2:택배) 설치요청 구분  - REQ_SET_DIV - KA11.KACK05 , LCGUBN2*/
+    private String rcpdt; /* 계약접수완료일시 - 접수일자(LCCRT_DT ,LCCRTY) bindMsgs[4] */
+    private String cttRsCd; /* 컨택결과 코드 LC_CCDE */
+    private String canDt; /* 취소일(LCCANT.LCCANY, LCCANT) */
+    private String onePlusOneYn; /* 1+1 상대코드 등록 여부 체크(isOnpsOpntCd)*/
+    private String canPrgsStatCd; /* 취소 진행 상태코드 */
+    private String rglrSppCntr; /* 정기배송 계약리스트 */
+    private String brmgrNm; /* 지점장명(AKDBNM) bindMsgs[0] */
+    private String cntrCralLocaraTno; /* 계약자　휴대폰번호1 LCCNOT. LCCNO1 bindMsgs[7] */
+    @DBEncField
+    @DBDecField
+    private String cntrMexnoEncr; /* 계약자　휴대폰번호2 LCCNOT. LCCNO2 bindMsgs[7] */
+    private String cntrCralIdvTno; /* 계약자　휴대폰번호3 LCCNOT. LCCNO3 bindMsgs[7] */
+    private String brmgrCralLocaraTno; /* 지점장전화번호-휴대지역전화번호 (AKDBTD,LCBPHONE) -  */
+    @DBEncField
+    @DBDecField
+    private String brmgrMexnoEncr; /* 지점장전화번호-휴대전화국번호암호화 (AKDBT1,LCBPHONE) - 수신자 전화번호  */
+    private String brmgrCralIdvTno; /* 지점장전화번호-휴대개별전화번호 (AKDBT2,LCBPHONE) - 수신자 전화번호 */
+
+    /* 계약변경접수 */
+    private String cntrUnitTpCd; /* 계약단위유형코드 */
+    private String dtlCntrNo; /* 상세계약번호 */
+    private int dtlCntrSn; /* 상세계약일련번호 */
+    private String cntrChRsonDvCd; /* 계약변경사유구분코드 */
+    private String cntrChRsonCd; /* 계약변경사유코드 */
+    private String cntrChAtcDvCd; /*계약변경항목구분코드 */
+    private String cntrChAkCn; /* 계약변경요청내용 */
+    private String dtaDlYn; /* 데이터삭제여부 */
+
+    /* 상세 */
+    private String cntrChRcpDtm; /* 계약변경접수일시 */
+    private String cntrChTpCd; /* 계약변경유형코드 */
+    private String chRqrDvCd; /* 변경요청자구분코드 */
+    private String chRqrNm; /* 변경요청자명 */
+    private String cstNo; /* 고객번호 */
+    private String cntrChPrgsStatCd; /* 계약변경진행상태코드 */
+    private String chRcstDvCd; /* 변경접수자구분코드 */
+    private String chRcpUsrId; /* 변경접수사용자id */
+    private String cntrChFshDtm; /* 계약변경완료일시 */
 
     private String prtnrKnm; // 판매자한글명
     private String sellPrtnrNo; // 판매파트너번호

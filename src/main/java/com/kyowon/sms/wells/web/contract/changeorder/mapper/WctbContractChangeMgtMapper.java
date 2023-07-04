@@ -1,18 +1,32 @@
 package com.kyowon.sms.wells.web.contract.changeorder.mapper;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeDvo;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.SearchContractChangeRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WctbContractChangeMgtMapper {
     PagingResult<SearchContractChangeRes> selectContractChanges(SearchContractChangeReq dto, PageInfo pageInfo);
+
+    WctbContractChangeDvo selectCheckOgTpCd();
+
+    List<WctbContractChangeDvo> selectCheckOrderChPrgs(String cntrNo, int cntrSn);
+
+    WctbContractChangeDvo selectCntrOrderInfo(String cntrNo, int cntrSn);
+
+    int insertContractChRcpBase(@Param("item")
+    WctbContractChangeDvo dvo);
+
+    int insertContractChRcpDetail(@Param("item")
+    WctbContractChangeDvo dvo);
 
     WctbContractChangeMngtDto.FindPartnerRes selectPartnerByCntrNo(String cntrNo, String cntrSn);
 
