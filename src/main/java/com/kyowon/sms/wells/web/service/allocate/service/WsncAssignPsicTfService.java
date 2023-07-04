@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,11 @@ public class WsncAssignPsicTfService {
         WsncAssignPsicTfDvo dvo = converter.mapReqToAssignPsicTfDvo(dto);
         dvo.setCstSvAsnNo(""); // 고객서비스배정번호 없이 전체 대상
         return this.processAssignPsicTf(dvo);
+    }
+
+    @Transactional
+    public int processAssignPsicTf(Map<String, Object> param) throws Exception {
+        return this.processAssignPsicTf(new WsncAssignPsicTfDvo());
     }
 
     /*
