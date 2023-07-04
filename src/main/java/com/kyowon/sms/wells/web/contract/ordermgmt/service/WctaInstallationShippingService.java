@@ -84,9 +84,8 @@ public class WctaInstallationShippingService {
                             shipping.setInChnlDvCd(item.getInChnlDvCd());
                             shipping.setSvBizHclsfCd(item.getSvBizHclsfCd());
                             shipping.setSvBizDclsfCd(item.getSvBizDclsfCd());
-
+                            shipping.setHasKiwiOrd(true);
                         });
-                    shipping.setHasKiwiOrd(true);
                     resultDto.add(converter.mapWctaIstShippingDvoToSearchRes(shipping));
                 }
             }
@@ -222,7 +221,7 @@ public class WctaInstallationShippingService {
         WctaInstallationShippingDvo checkCancel = mapper.selectCheckCancel(dvo);
 
         if (CollectionUtils.isEmpty(kiwiInstallOrders)) {
-            if (List.of('2', '3').contains(prdDiv)) {
+            if (List.of("2", "3").contains(prdDiv)) {
                 if ("9".equals(wkGb)) {
                     return "";
                 } else {
