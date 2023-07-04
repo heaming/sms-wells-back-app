@@ -337,7 +337,7 @@ public class WctaContractDto {
     //확정승인 요청내역 - 확정 승인 구매 내역 Search Result Dto
     @ApiModel("WctaContractDto-SearchConfirmAprPsicPrchssRes")
     public record SearchConfirmAprPsicPrchssRes(
-        String cntrNo,
+        String cntrDtlNo,
         String cstKnm,
         String cstGdNm,
         String rcgvpKnm,
