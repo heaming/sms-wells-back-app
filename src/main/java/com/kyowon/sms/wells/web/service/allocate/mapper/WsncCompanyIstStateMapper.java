@@ -61,26 +61,25 @@ public interface WsncCompanyIstStateMapper {
         SearchPsReq dto
     );
 
-    //    <!-- TODO 개발중 - K-W-SV-U-0270M02 K-W-SV-U-0270M03 -->
-    //    /**
-    //     * 필터 탭 조회
-    //     *
-    //     * @param dto : SearchReq mgtYnm(배정년월)
-    //     * @return 조회결과
-    //     */
-    //    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateFltr(
-    //        SearchMainReq dto, PageInfo pageInfo
-    //    );
-    //
-    //    /**
-    //     * 필터 탭 엑셀 다운로드
-    //     *
-    //     * @param dto : SearchReq mgtYnm(배정년월)
-    //     * @return 조회결과
-    //     */
-    //    List<SearchFltrSubMatRes> selectCompanyIstStateFltr(
-    //        SearchMainReq dto
-    //    );
+    /**
+     * 필터 / 부자재 탭 조회
+     *
+     * @param dto : SearchReq mgtYnm(배정년월), itmKndCd(품목종류 - 5/필터 6/부자재)
+     * @return 조회결과
+     */
+    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateFltrOrSubMat(
+        SearchMainReq dto, PageInfo pageInfo
+    );
+
+    /**
+     * 필터 탭 엑셀 다운로드
+     *
+     * @param dto : SearchReq mgtYnm(배정년월), itmKndCd(품목종류 - 5/필터 6/부자재)
+     * @return 조회결과
+     */
+    List<SearchFltrSubMatRes> selectCompanyIstStateFltrOrSubMat(
+        SearchMainReq dto
+    );
     //
     //    /**
     //     * 부자재 탭 조회

@@ -29,7 +29,8 @@ public class WsncCompanyIstStateDto {
         String mgtYnm,
         List<String> mgtTyps,
         String istDtFrom,
-        String istDtTo
+        String istDtTo,
+        String itmKndCd
     ) {}
 
     @ApiModel(value = "WsncCompanyIstStateDto-SearchPsReq")
@@ -45,30 +46,32 @@ public class WsncCompanyIstStateDto {
     @ApiModel(value = "WsncCompanyIstStateDto-SearchAllRes")
     public record SearchAllRes(
         String cntrNo,
-        String deptCd,
-        String deptNm1,
-        String csnrCd,
+        String cntrSn,
+        String ogId,
         String ogNm,
-        String custNm,
-        String copnDvCd,
-        String pdCd, // 상품코드
-        String pdNm, // 상품명
-        String svBizMclsfCd, // 작업그룹
+        String prtnrNo,
+        String cscnCd,
+        String deptNm,
+        String rcgvpKnm,
+        String svcTpNm,
+        String fnlPdCd, // 상품코드
+        String basePdNm, // 상품명
+        String svBizHclsfCd, // 작업그룹
         String svBizDclsfCd, // 작업유형상세
-        // 작업유형명 BFSVC_WK_DV_CD
         String sapMatCd, // SAP코드
-        String partPdCd, // 품목코드
-        String partPdNm, // 부품명
+        String pdctPdCd,
+        String itmPdCd, // 품목코드
+        String itmPdNm, // 부품명
         Long useQty, // 사용수량
         Long pdctUprc, // 실제원가
         Long pdctUprcSum, // 원가합계금액
         Long csmrUprcAmt, // 소비자가
         Long csmrUprcAmtSum, // 소비자가합계급액
-        String refriDvCd, // 유무상
-        String wrkPrtnrClsfCd, // 작업자 구분
-        String wrkPrtnrNo, // 작업자 사번
-        String wrkPrtnrKnm, // 작업자 성명
-        String wrkOgNm, // 작업자 소속
+        //        String refriDvCd, // 유무상
+        String prtnrClsfCd, // 작업자 구분
+        String ichrPrtnrNo, // 작업자 사번
+        String prtnrKnm, // 작업자 성명
+        String prtnrOgNm, // 작업자 소속
         String cstAdr// 고객주소 상세
     ) {}
 
@@ -105,31 +108,11 @@ public class WsncCompanyIstStateDto {
 
     @ApiModel(value = "WsncCompanyIstStateDto-SearchFltrSubMatRes")
     public record SearchFltrSubMatRes(
-        String cntrNo,
-        String deptCd,
-        String deptNm1,
-        String csnrCd,
-        String ogNm,
-        String custNm,
-        String copnDvCd,
-        String pdCd, // 상품코드
-        String pdNm, // 상품명
-        String svBizMclsfCd, // 작업그룹
-        String svBizDclsfCd, // 작업유형상세
-        // 작업유형명 BFSVC_WK_DV_CD
-        String sapMatCd, // SAP코드
-        String partPdCd, // 품목코드
-        String partPdNm, // 부품명
-        Long useQty, // 사용수량
-        Long pdctUprc, // 실제원가
-        Long pdctUprcSum, // 원가합계금액
-        Long csmrUprcAmt, // 소비자가
-        Long csmrUprcAmtSum, // 소비자가합계급액
-        String refriDvCd, // 유무상
-        String wrkPrtnrClsfCd, // 작업자 구분
-        String wrkPrtnrNo, // 작업자 사번
-        String wrkPrtnrKnm, // 작업자 성명
-        String wrkOgNm, // 작업자 소속
-        String cstAdr// 고객주소 상세
+        String itmKndCd,
+        String sapMatCd,
+        String itmPdCd,
+        String itmPdNm,
+        Long useQtySum,
+        Long pdctUprcSum
     ) {}
 }
