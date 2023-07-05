@@ -108,10 +108,21 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchMngerSellFeeRes> getManagerSellFees(
+    public List<WfeaOrganizationNetOrderDto.SearchMngerSellFeeRes> getManagerFees(
         WfeaOrganizationNetOrderDto.SearchMngerReq dto
     ) {
-        return this.mapper.selectManagerSellFees(dto);
+        return this.mapper.selectManagerFees(dto);
+    }
+
+    /**
+     * WELLS M조직 수수료 순주문 관리 집계정보 조회
+     * @param 'SearchMngerReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+    public List<WfeaOrganizationNetOrderDto.SearchMngerAgrgRes> getManagerAggregation(
+        WfeaOrganizationNetOrderDto.SearchMngerReq dto
+    ) {
+        return this.mapper.selectManagerAggregation(dto);
     }
 
     /**
@@ -131,7 +142,18 @@ public class WfeaOrganizationNetOrderService {
     public List<WfeaOrganizationNetOrderDto.SearchPlarSellFeeRes> getPlannerSellFees(
         WfeaOrganizationNetOrderDto.SearchPlarReq dto
     ) {
-        return this.mapper.selectPlannerSellFees(dto);
+        return this.mapper.selectPlannerFees(dto);
+    }
+
+    /**
+     * WELLS P조직 수수료 순주문 관리 집계정보 조회
+     * @param 'SearchMngerReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+    public List<WfeaOrganizationNetOrderDto.SearchPlarAgrgRes> getPlannerAggregation(
+        WfeaOrganizationNetOrderDto.SearchPlarReq dto
+    ) {
+        return this.mapper.selectPlannerAggregation(dto);
     }
 
 }
