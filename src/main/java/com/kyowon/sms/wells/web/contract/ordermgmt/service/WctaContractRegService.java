@@ -75,16 +75,20 @@ public class WctaContractRegService {
         return mapper.selectContractPrtnrRel(cntrNo);
     }
 
-    List<WctaContractPrcCmptIzDvo> selectContractPrcCmptIz(String cntrNo, int cntrSn) {
+    public List<WctaContractPrcCmptIzDvo> selectContractPrcCmptIz(String cntrNo, int cntrSn) {
         return mapper.selectContractPrcCmptIz(cntrNo, cntrSn);
     }
 
-    List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn) {
+    public List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn) {
         return mapper.selectContractPdRel(cntrNo, cntrSn);
     }
 
-    WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn) {
+    public WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn) {
         return mapper.selectContractWellsDtl(cntrNo, cntrSn);
+    }
+
+    public List<WctaContractRelDvo> selectContractRel(String cntrNo) {
+        return mapper.selectContractRel(cntrNo);
     }
 
     public List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo) {

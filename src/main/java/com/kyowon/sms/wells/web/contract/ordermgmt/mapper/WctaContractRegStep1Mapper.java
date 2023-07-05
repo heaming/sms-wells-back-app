@@ -6,7 +6,10 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchCntrtInfoReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractBasDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractCstRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractPrtnrRelDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep1Dvo;
 
 @Mapper
 public interface WctaContractRegStep1Mapper {
@@ -52,11 +55,6 @@ public interface WctaContractRegStep1Mapper {
 
     int insertCntrCstRelStep1(@Param("item")
     WctaContractCstRelDvo dvo);
-
-    int updateCntrRelStep1(WctaContractRelDvo dvo);
-
-    int insertCntrRelStep1(@Param("item")
-    WctaContractRelDvo dvo);
 
     int deleteCntrPrtnrRelStep1(String cntrNo);
 

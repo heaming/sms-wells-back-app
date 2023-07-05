@@ -117,6 +117,13 @@ public class WctaContractDtlDvo {
     private Long ctrVal;
     private String pdPrcId;
 
+    private String cntrRelDtlCd; /* 계약관계상세코드 */
+    private String pkg; /* 선택한 패키지 상품번호 */
+    private List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> pkgs; /* 패키지 */
+    private List<WctaContractRegStep2Dvo.PdSdingCapsl> sdingCapsls; /* 모종캡슐 */
+    private String ojCntrNo; /* 대상계약번호 */
+    private Integer ojCntrSn; /* 대상계약일련번호 */
+
     private List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscDvCds; /* 판매할인구분코드 */
