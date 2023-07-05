@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import com.sds.sflex.system.config.annotation.DBDecField;
 
 import lombok.Getter;
@@ -32,15 +34,15 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String ctrlPkg;
     private String shipPkg;
     private String sding1;
-    private Integer qty1;
+    private BigDecimal qty1;
     private String sding2;
-    private Integer qty2;
+    private BigDecimal qty2;
     private String sding3;
-    private Integer qty3;
+    private BigDecimal qty3;
     private String sding4;
-    private Integer qty4;
+    private BigDecimal qty4;
     private String sding5;
-    private Integer qty5;
+    private BigDecimal qty5;
     private String mchnDemDt;
     private String receiptDt;
     private String vstDt;
@@ -69,4 +71,27 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String svBizHclSfCd;
     private String svBizDclsfCd;
     private int sppPlanSn;
+
+    private String sdingPdCd1;
+
+    private String sowDt1;
+    private String sdingPdCd2;
+    private String sowDt2;
+    private String sdingPdCd3;
+    private String sowDt3;
+    private String sdingPdCd4;
+    private String sowDt4;
+    private String sdingPdCd5;
+    private String sowDt5;
+
+    private String sdingPkgPdCd;
+    private String mngrDvCd;
+    private String dpEpttNm;
+    private String ogTpCd;
+    private String prtnrNo;
+    private String cntrAdrpcId;
+    private BigDecimal recapCsAmt;
+    private String sdingMcnrPdCd;
+    private String sppDvCd;
+    private String cstSvAsnNo;
 }

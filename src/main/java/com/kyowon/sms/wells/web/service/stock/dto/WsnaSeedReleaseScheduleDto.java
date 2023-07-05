@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
@@ -57,15 +59,15 @@ public class WsnaSeedReleaseScheduleDto {
         String ctrlPkg,
         String shipPkg,
         String sding1,
-        Integer qty1,
+        BigDecimal qty1,
         String sding2,
-        Integer qty2,
+        BigDecimal qty2,
         String sding3,
-        Integer qty3,
+        BigDecimal qty3,
         String sding4,
-        Integer qty4,
+        BigDecimal qty4,
         String sding5,
-        Integer qty5,
+        BigDecimal qty5,
         String mchnDemDt,
         String receiptDt,
         String vstDt,
@@ -84,7 +86,27 @@ public class WsnaSeedReleaseScheduleDto {
         int cntrSn,
         String svBizHclSfCd,
         String svBizDclsfCd,
-        int sppPlanSn
+        int sppPlanSn,
+        String sdingPdCd1,
+        String sowDt1,
+        String sdingPdCd2,
+        String sowDt2,
+        String sdingPdCd3,
+        String sowDt3,
+        String sdingPdCd4,
+        String sowDt4,
+        String sdingPdCd5,
+        String sowDt5,
+        String sdingPkgPdCd,
+        String mngrDvCd,
+        String dpEpttNm,
+        String ogTpCd,
+        String prtnrNo,
+        String cntrAdrpcId,
+        BigDecimal recapCsAmt,
+        String sdingMcnrPdCd,
+        String sppDvCd,
+        String cstSvAsnNo
     ) {}
 
     @Builder
@@ -107,6 +129,65 @@ public class WsnaSeedReleaseScheduleDto {
         @ValidDate
         String dpDt
 
+    ) {}
+
+    @Builder
+    @ApiModel("WsnaSeedReleaseScheduleDto-CreateReq")
+    public record CreateReq(
+
+        @NotBlank
+        String cntrNo,
+        @Positive
+        int cntrSn,
+        @NotBlank
+        String svBizHclSfCd,
+        @NotBlank
+        String svBizDclsfCd,
+        @NotBlank
+        String sppOrdNo,
+        @Positive
+        int sppPlanSn,
+
+        String cstNm,
+        String mchnCstNo,
+        String sdingMcnrPdCd,
+        String sdingPkgPdCd,
+
+        String sdingPdCd1,
+        BigDecimal qty1,
+        String sowDt1,
+        String sdingPdCd2,
+        BigDecimal qty2,
+        String sowDt2,
+        String sdingPdCd3,
+        BigDecimal qty3,
+        String sowDt3,
+        String sdingPdCd4,
+        BigDecimal qty4,
+        String sowDt4,
+        String sdingPdCd5,
+        BigDecimal qty5,
+        String sowDt5,
+
+        @ValidDate
+        String receiptDt,
+        @ValidDate
+        String vstDt,
+        @ValidDate
+        String ostrScheDt,
+        @ValidDate
+        String ostrCnfmDt,
+
+        String mngrDvCd,
+        String ogTpCd,
+        String prtnrNo,
+        String cntrAdrpcId,
+        String refriDvCd,
+        BigDecimal recapCsAmt,
+        String dpEpttNm,
+        String dpDt,
+        String sppDvCd,
+        String cstSvAsnNo
     ) {}
 
 }

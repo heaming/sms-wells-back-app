@@ -83,4 +83,16 @@ public class WsnaSeedReleaseScheduleController {
         return SaveResponse.builder().processCount(this.service.editSeedReleaseSchedules(dtos)).build();
     }
 
+    @PostMapping
+    @ApiOperation(value = "모종 출고 예정리스트 출고 확정", notes = "모종 출고 예정리스트 데이터를 출고 확정한다.")
+    public SaveResponse createSeedReleaseSchedules(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<CreateReq> dtos
+    ) throws Exception {
+
+        return SaveResponse.builder().processCount(this.service.createSeedReleaseSchedulesForCnfm(dtos)).build();
+    }
+
 }

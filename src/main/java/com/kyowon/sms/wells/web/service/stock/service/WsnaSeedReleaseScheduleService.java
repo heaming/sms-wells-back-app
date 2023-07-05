@@ -6,7 +6,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedReleaseScheduleConverter;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleAsTpDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleCnfmDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSearchDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedReleaseScheduleMapper;
@@ -32,6 +35,13 @@ public class WsnaSeedReleaseScheduleService {
     private final WsnaSeedReleaseScheduleMapper maaper;
 
     private final WsnaSeedReleaseScheduleConverter converter;
+
+    private final WsnzHistoryMapper historyMapper;
+
+    private static final String SV_BIZ_HCLSF_CD_INSTL = "1";
+    private static final String SV_BIZ_HCLSF_CD_BS = "2";
+
+    private static final String SPP_DV_CD_PCSV = "2";
 
     /**
      * 모종 출고 예정 리스트 페이징 조회
@@ -84,6 +94,81 @@ public class WsnaSeedReleaseScheduleService {
         }
 
         return count;
+    }
+
+    /**
+     * 모종 출고 예정 리스트 출고 확정
+     * @param dtos
+     * @return
+     */
+    public int createSeedReleaseSchedulesForCnfm(List<CreateReq> dtos) {
+
+        int count = 0;
+
+        for (CreateReq dto : dtos) {
+            WsnaSeedReleaseScheduleCnfmDvo dvo = this.converter.mapCreateReqToWsnaSeedReleaseScheduleCnfmDvo(dto);
+
+            int result = this.maaper.insertSdingSppCnfmIz(dvo);
+            // 저장에 실패 하였습니다.
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+
+            // 서비스업무대분류코드
+            String svBizHclsfCd = dvo.getSvBizHclsfCd();
+            // 고객서비스배정번호
+            String cstSvAsnNo = dto.cstSvAsnNo();
+
+            // B/S가 아닌 경우
+            if (!SV_BIZ_HCLSF_CD_BS.equals(svBizHclsfCd)) {
+                // 고객서비스AS설치배정내역 저장
+                this.maaper.updateCstSvasIstAsnIzForCnfm(cstSvAsnNo);
+            }
+
+            // 설치인 경우
+            if (SV_BIZ_HCLSF_CD_INSTL.equals(svBizHclsfCd)) {
+                String sdingMcnrCntrNo = dvo.getSdingMcnrCntrNo();
+
+                // 고객서비스AS설치배정내역 저장
+                this.maaper.updateCstSvasIstAsnIzForInstl(sdingMcnrCntrNo);
+            }
+
+            // 모종 출고확정일 저장
+            this.maaper.updateSdingSppPlanIzForCnfm(dvo);
+
+            // 배송구분
+            String sppDvCd = dvo.getSppDvCd();
+            // 택배인 경우
+            if (!SV_BIZ_HCLSF_CD_BS.equals(svBizHclsfCd) && SPP_DV_CD_PCSV.equals(sppDvCd)) {
+                // 서비스작업출고내역 데이터 생성
+                this.maaper.insertSvWkOstrIzs(dvo);
+
+                // 작업결과 조회
+                Integer cnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
+                // 이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요.
+                BizAssert.isNull(cnt, "이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요.");
+
+                // AS유형코드 조회
+                WsnaSeedReleaseScheduleAsTpDvo asTpDvo = this.maaper.selectAsTpCdInfo(dvo);
+                // 현장수당항목코드
+                String siteAwAtcCd = asTpDvo.getSiteAwAtcCd();
+                // 고객서비스AS설치배정내역 업데이트
+                this.maaper.updateCstSvasIstAsnIz(cstSvAsnNo, svBizHclsfCd, siteAwAtcCd);
+
+                // 로그 저장
+                this.historyMapper.insertCstSvasIstAsnHistByPk(cstSvAsnNo);
+
+                // 작업결과저장
+                this.maaper.insertCstSvWkRsIz(dvo, asTpDvo);
+
+                // 배송 업데이트
+                this.maaper.updateSdingSppPlanIzForPcsv(dvo);
+            }
+
+            count += result;
+
+        }
+
+        return count;
+
     }
 
 }
