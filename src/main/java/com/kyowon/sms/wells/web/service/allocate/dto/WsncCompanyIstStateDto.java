@@ -30,7 +30,7 @@ public class WsncCompanyIstStateDto {
         List<String> mgtTyps,
         String istDtFrom,
         String istDtTo,
-        String itmKndCd
+        List<String> itmKndCd
     ) {}
 
     @ApiModel(value = "WsncCompanyIstStateDto-SearchPsReq")
@@ -51,7 +51,7 @@ public class WsncCompanyIstStateDto {
         String ogNm,
         String prtnrNo,
         String cscnCd,
-        String deptNm,
+        String deptNm1,
         String rcgvpKnm,
         String svcTpNm,
         String fnlPdCd, // 상품코드
@@ -60,6 +60,7 @@ public class WsncCompanyIstStateDto {
         String svBizDclsfCd, // 작업유형상세
         String sapMatCd, // SAP코드
         String pdctPdCd,
+        String basePdCd,
         String itmPdCd, // 품목코드
         String itmPdNm, // 부품명
         Long useQty, // 사용수량
@@ -113,6 +114,9 @@ public class WsncCompanyIstStateDto {
         String itmPdCd,
         String itmPdNm,
         Long useQtySum,
-        Long pdctUprcSum
+        Long pdctUprc,
+        Long pdctUprcSum,
+        Long csmrUprcAmt,
+        Long csmrUprcAmtSum
     ) {}
 }

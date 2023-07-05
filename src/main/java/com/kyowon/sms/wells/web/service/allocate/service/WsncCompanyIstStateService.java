@@ -56,7 +56,7 @@ public class WsncCompanyIstStateService {
      *
      * @param dto : 조회파라메터
      * @return 조회결과
-     * @programId : K-W-SV-U-0270M01
+     * @programId : K-W-SV-U-0270M04
      */
     public PagingResult<SearchPsRes> getCompanyIstStatePs(
         SearchPsReq dto,
@@ -70,7 +70,7 @@ public class WsncCompanyIstStateService {
      *
      * @param dto : 조회파라메터
      * @return 조회결과
-     * @programId : K-W-SV-U-0270M01
+     * @programId : K-W-SV-U-0270M04
      */
     public List<SearchPsRes> getCompanyIstStatePs(
         SearchPsReq dto
@@ -81,7 +81,7 @@ public class WsncCompanyIstStateService {
     /**
      * 필터/부자재 조회
      *
-     * @programId : K-W-SV-U-0270M01 / K-W-SV-U-0270M02
+     * @programId : K-W-SV-U-0270M03 / K-W-SV-U-0270M02
      * @param dto : 조회파라메터
      * @return 조회결과
      */
@@ -95,7 +95,7 @@ public class WsncCompanyIstStateService {
     /**
      * 필터/부자재 조회
      *
-     * @programId : K-W-SV-U-0270M01 / K-W-SV-U-0270M02
+     * @programId : K-W-SV-U-0270M03 / K-W-SV-U-0270M02
      * @param dto : 조회파라메터
      * @return 조회결과
      */

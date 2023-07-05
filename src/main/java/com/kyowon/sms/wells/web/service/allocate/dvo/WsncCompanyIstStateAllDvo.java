@@ -22,7 +22,7 @@ public class WsncCompanyIstStateAllDvo {
     String ogNm;
     String prtnrNo;
     String cscnCd;
-    String deptNm;
+    String deptNm1;
     String rcgvpKnm;
     String svcTpNm;
     String fnlPdCd; // 상품코드
@@ -31,6 +31,7 @@ public class WsncCompanyIstStateAllDvo {
     String svBizDclsfCd; // 작업유형상세
     String sapMatCd; // SAP코드
     String pdctPdCd;
+    String basePdCd;
     String itmPdCd; // 품목코드
     String itmPdNm; // 부품명
     Long useQty; // 사용수량
@@ -38,7 +39,7 @@ public class WsncCompanyIstStateAllDvo {
     Long pdctUprcSum; // 원가합계금액
     Long csmrUprcAmt; // 소비자가
     Long csmrUprcAmtSum; // 소비자가합계급액
-    //        String refriDvCd; // 유무상
+    //    String refriDvCd; // 유무상
     String prtnrClsfCd; // 작업자 구분
     String ichrPrtnrNo; // 작업자 사번
     String prtnrKnm; // 작업자 성명

@@ -22,4 +22,7 @@ public class WsncCompanyIstStateFltrSubMatDvo {
     String itmPdNm;
     Long useQtySum;
     Long pdctUprcSum;
+    Long pdctUprc;
+    Long csmrUprcAmt;
+    Long csmrUprcAmtSum;
 }
