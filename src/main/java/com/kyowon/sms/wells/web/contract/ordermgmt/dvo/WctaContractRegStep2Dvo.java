@@ -149,21 +149,37 @@ public class WctaContractRegStep2Dvo {
         String codeName;
         String pdCd;
         String pdNm;
-        String rglrSppCntrDvCd;
+        Long cntrPtrm;
         String rglrSppPrcDvCd;
         String pdctUprcUseYn;
-        String fnlVal;
+        Long fnlAmt;
+        Long pdQty;
+        String sellTpCd;
+        String sellTpDtlCd;
+        String pdHclsfId;
+        String pdMclsfId;
+        String pdLclsfId;
+        String pdDclsfId;
+        String crncyDvCd;
+        BigDecimal ackmtPerfRt;
+        Long ackmtPerfAmt;
         List<PdSdingCapsl> sdingCapsls;
+        String cntrRelDtlCd;
+        String pdChip1;
     }
 
     @Getter
     @Setter
     public static class PdSdingCapsl {
-        String codeId;
-        String codeName;
-        String rglrSppCntrDvCd;
-        String rglrSppPrcDvCd;
-        String pdctUprcUseYn;
-        String fnlVal;
+        String partPdNm;
+        String svPdCd;
+        String pdctPdCd;
+        String dtlSn;
+        String prdMmVal;
+        String vstDvCd;
+        String partPdCd;
+        Long partUseQty;
+        String pdRelId;
+        String pdRelTpCd;
     }
 }
