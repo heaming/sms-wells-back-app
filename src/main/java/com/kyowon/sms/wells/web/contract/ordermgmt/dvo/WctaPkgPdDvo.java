@@ -8,5 +8,7 @@ import lombok.Setter;
 public class WctaPkgPdDvo {
     private String pdCd;
     private String pdNm;
+    private String pdRelId;
+    private String pdRelTpCd;
     private String prc;
 }

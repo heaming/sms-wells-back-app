@@ -94,6 +94,8 @@ public class WctaContractRegStep2Dvo {
         String pvdaYn;
         String hcrMshTpCd;
         String pdChip1;
+        Long fnlAmt;
+        List<PdSdingCapsl> sdingCapsls;
     }
 
     @Getter
@@ -147,10 +149,12 @@ public class WctaContractRegStep2Dvo {
     public static class PdWelsfHcfPkg {
         String codeId;
         String codeName;
+        String pdClsfNm;
         String pdCd;
         String pdNm;
         Long cntrPtrm;
         String rglrSppPrcDvCd;
+        String rglrSppMchnTpCd;
         String pdctUprcUseYn;
         Long fnlAmt;
         Long pdQty;
@@ -178,7 +182,7 @@ public class WctaContractRegStep2Dvo {
         String prdMmVal;
         String vstDvCd;
         String partPdCd;
-        Long partUseQty;
+        Long itmQty;
         String pdRelId;
         String pdRelTpCd;
     }
