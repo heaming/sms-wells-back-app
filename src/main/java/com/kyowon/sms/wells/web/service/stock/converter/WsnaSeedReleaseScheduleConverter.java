@@ -40,6 +40,7 @@ public interface WsnaSeedReleaseScheduleConverter {
     @Mapping(source = "prtnrNo", target = "ichrPrtnrNo")
     WsnaSeedReleaseScheduleCnfmDvo mapCreateReqToWsnaSeedReleaseScheduleCnfmDvo(CreateReq dto);
 
+    @Mapping(source = "sdingPkgPdCd", target = "pdctPdCd")
     WsnaSeedReleaseScheduleWkRsDvo mapWsnaSeedReleaseScheduleCnfmDvoToWsnaSeedReleaseScheduleWkRsDvo(
         WsnaSeedReleaseScheduleCnfmDvo dvo
     );

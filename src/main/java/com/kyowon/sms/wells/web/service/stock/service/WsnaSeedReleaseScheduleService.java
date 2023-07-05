@@ -111,7 +111,7 @@ public class WsnaSeedReleaseScheduleService {
         int count = 0;
 
         // 배양액 택배배송
-        String svProcCn = this.messageService.getMessage("SDING_PCSV_FW");
+        String svProcCn = this.messageService.getMessage("MSG_TXT_SDING_PCSV_FW");
 
         for (CreateReq dto : dtos) {
             WsnaSeedReleaseScheduleCnfmDvo dvo = this.converter.mapCreateReqToWsnaSeedReleaseScheduleCnfmDvo(dto);
@@ -177,6 +177,7 @@ public class WsnaSeedReleaseScheduleService {
                 // 불량구분코드
                 String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
 
+                wkRsDvo.setCstSvAsnNo(cstSvAsnNo);
                 wkRsDvo.setAcLctCd(asLctCd);
                 wkRsDvo.setAsPhnCd(asPhnCd);
                 wkRsDvo.setAsCausCd(asCausCd);
