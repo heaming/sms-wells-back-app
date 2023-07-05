@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -48,6 +49,21 @@ public class WctaContractRegStep2Service {
                     .sellTpCd(sellTpCd)
                     .build()
             );
+
+            // 정기배송인 경우 계약관계테이블의 계약관계상세코드 세팅
+            if ("6".equals(sellTpCd)) {
+                List<WctaContractRelDvo> rels = regService.selectContractRel(cntrNo);
+                WctaContractRelDvo rel = rels.stream().filter((r) -> r.getBaseDtlCntrSn() == cntrSn).findFirst()
+                    .orElseThrow();
+                dtl.setCntrRelDtlCd(rel.getCntrRelDtlCd());
+                dtl.setPkg(dtl.getPdCd());
+                WctaContractDtlDvo m = dtls.stream().filter((d) -> d.getCntrSn() == rel.getOjDtlCntrSn()).findFirst()
+                    .orElseThrow();
+                List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> pkgs = selectWelsfHcfPkgs(m.getPdCd());
+                pkgs.forEach((p) -> p.setCntrRelDtlCd(rel.getCntrRelDtlCd()));
+                dtl.setPkgs(pkgs);
+                dtl.setSdingCapsls(mapper.selectSdingCapsls(dtl.getPdCd()));
+            }
 
             // select option 세팅(converter 사용?)
             dtl.setSvPdCds(sels.getSvPdCds());
@@ -217,7 +233,8 @@ public class WctaContractRegStep2Service {
         welsfHcfPkgs.forEach((pkg) -> {
             pkg.setSdingCapsls(mapper.selectSdingCapsls(pkg.getPdCd()));
         });
-        return welsfHcfPkgs;
+        return welsfHcfPkgs.stream().sorted(Comparator.comparing(WctaContractRegStep2Dvo.PdWelsfHcfPkg::getCodeId))
+            .toList();
     }
 
     @Transactional
@@ -253,6 +270,14 @@ public class WctaContractRegStep2Service {
             dtl.setSellAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
+
+            // 정기배송(기기+모종캡슐)인 경우 기기의 계약기간, 약정기간 세팅
+            if ("216".equals(dtl.getCntrRelDtlCd())) {
+                WctaContractDtlDvo m = dvo.getDtls().stream().filter((d) -> d.getCntrSn() == cntrSn - 1).findFirst()
+                    .orElseThrow();
+                dtl.setCntrPtrm(m.getCntrPtrm());
+                dtl.setStplPtrm(m.getStplPtrm());
+            }
 
             if (sellTpCd.equals("1")) {
                 // 일시불인 경우 계약금 없음
@@ -298,8 +323,46 @@ public class WctaContractRegStep2Service {
                         .build()
                 );
             }
+            // 3-2. 정기배송제품
+            if (CollectionUtils.isNotEmpty(dtl.getSdingCapsls())) {
+                dtl.getSdingCapsls().forEach((pdSdingCapsl -> {
+                    mapper.insertCntrPdRelStep2(
+                        WctaContractPdRelDvo.builder()
+                            .cntrNo(cntrNo)
+                            .cntrSn(cntrSn)
+                            .pdRelId(pdSdingCapsl.getPdRelId())
+                            .vlStrtDtm(now)
+                            .vlEndDtm(CtContractConst.END_DTM)
+                            .ojPdCd(pdSdingCapsl.getPartPdCd())
+                            .basePdCd(dtl.getPdCd())
+                            .pdRelTpCd(pdSdingCapsl.getPdRelTpCd())
+                            .pdQty(pdSdingCapsl.getPartUseQty())
+                            .build()
+                    );
+                }));
+            }
 
             // 4. 계약관계 - 1+1, 다건구매할인, 복합상품구매, 법인다건구매(기기변경 제외)
+            if (StringUtils.containsAny(
+                dtl.getCntrRelDtlCd(),
+                "216", "214", "215", "22P", "22M", "22W"
+            )) {
+                String ojCntrNo = StringUtils.defaultString(dtl.getOjCntrNo(), cntrNo);
+                int ojCntrSn = ObjectUtils.isNotEmpty(dtl.getOjCntrSn()) ? dtl.getOjCntrSn() : cntrSn - 1;
+                mapper.insertCntrRelStep2(
+                    WctaContractRelDvo.builder()
+                        .baseDtlCntrNo(cntrNo)
+                        .baseDtlCntrSn(cntrSn)
+                        .ojDtlCntrNo(ojCntrNo)
+                        .ojDtlCntrSn(ojCntrSn)
+                        .vlStrtDtm(now)
+                        .vlEndDtm(CtContractConst.END_DTM)
+                        .cntrRelDtlCd(dtl.getCntrRelDtlCd())
+                        .cntrRelTpCd("20")
+                        .cntrUnitTpCd("020")
+                        .build()
+                );
+            }
 
             // 5. 기기변경내역
 

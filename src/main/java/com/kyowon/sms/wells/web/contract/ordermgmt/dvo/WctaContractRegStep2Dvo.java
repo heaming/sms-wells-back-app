@@ -149,11 +149,23 @@ public class WctaContractRegStep2Dvo {
         String codeName;
         String pdCd;
         String pdNm;
-        String rglrSppCntrDvCd;
+        Long cntrPtrm;
         String rglrSppPrcDvCd;
         String pdctUprcUseYn;
-        String fnlAmt;
+        Long fnlAmt;
+        Long pdQty;
+        String sellTpCd;
+        String sellTpDtlCd;
+        String pdHclsfId;
+        String pdMclsfId;
+        String pdLclsfId;
+        String pdDclsfId;
+        String crncyDvCd;
+        BigDecimal ackmtPerfRt;
+        Long ackmtPerfAmt;
         List<PdSdingCapsl> sdingCapsls;
+        String cntrRelDtlCd;
+        String pdChip1;
     }
 
     @Getter
@@ -166,6 +178,8 @@ public class WctaContractRegStep2Dvo {
         String prdMmVal;
         String vstDvCd;
         String partPdCd;
-        String partUseQty;
+        Long partUseQty;
+        String pdRelId;
+        String pdRelTpCd;
     }
 }
