@@ -123,6 +123,8 @@ public class WctaContractDtlDvo {
     private List<WctaContractRegStep2Dvo.PdSdingCapsl> sdingCapsls; /* 모종캡슐 */
     private String ojCntrNo; /* 대상계약번호 */
     private Integer ojCntrSn; /* 대상계약일련번호 */
+    private Long rglrSppCntrDvCd; /* 정기배송 계약기간 */
+    private Long rglrSppDutyPtrmDvCd; /* 정기배송 약정기간 */
 
     private List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */

@@ -50,6 +50,7 @@ public class WctaContractRegStep2Service {
                     .build()
             );
 
+            List<WctaContractPdRelDvo> pdRels = regService.selectContractPdRel(cntrNo, cntrSn);
             // 정기배송인 경우 계약관계테이블의 계약관계상세코드 세팅
             if ("6".equals(sellTpCd)) {
                 List<WctaContractRelDvo> rels = regService.selectContractRel(cntrNo);
@@ -62,7 +63,9 @@ public class WctaContractRegStep2Service {
                 List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> pkgs = selectWelsfHcfPkgs(m.getPdCd());
                 pkgs.forEach((p) -> p.setCntrRelDtlCd(rel.getCntrRelDtlCd()));
                 dtl.setPkgs(pkgs);
-                dtl.setSdingCapsls(mapper.selectSdingCapsls(dtl.getPdCd()));
+                dtl.setSdingCapsls(
+                    mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                );
             }
 
             // select option 세팅(converter 사용?)
@@ -82,8 +85,8 @@ public class WctaContractRegStep2Service {
             }
 
             // 계약상품관계 조회, 상품관계 유형코드가 기준-서비스("03")인 데이터가 있다면(서비스상품) 세팅
-            WctaContractPdRelDvo svPdRel = regService.selectContractPdRel(cntrNo, cntrSn).stream()
-                .filter((pdRel) -> pdRel.getPdRelTpCd().equals("03")).findFirst().orElse(null);
+            WctaContractPdRelDvo svPdRel = pdRels.stream().filter((pdRel) -> pdRel.getPdRelTpCd().equals("03"))
+                .findFirst().orElse(null);
             if (ObjectUtils.isNotEmpty(svPdRel)) {
                 dtl.setSvPdCd(svPdRel.getOjPdCd());
             }
@@ -182,6 +185,8 @@ public class WctaContractRegStep2Service {
             dvo.setSellDscTpCds(mapper.selectProductDstps(pdCd, sellTpCd, sellInflwChnlDtlCd));
             dvo.setSellDscrCds(mapper.selectProductDsrtsRntl(pdCd, sellTpCd, sellInflwChnlDtlCd));
             dvo.setSellDscDvCds(mapper.selectProductDsdvsRntl(pdCd, sellTpCd, sellInflwChnlDtlCd));
+        } else if ("6".equals(sellTpCd)) {
+            dvo.setSdingCapsls(mapper.selectSdingCapsls(pdCd));
         }
         return dvo;
     }
@@ -221,6 +226,10 @@ public class WctaContractRegStep2Service {
             // TODO 로직 추가
             pdClsfs.stream().filter((pdClsf) -> pdClsf.getPdClsfId().equals(pd.getPdClsf())).findFirst().get()
                 .getProducts().add(pd);
+            // 단독정기배송일 때 세부상품리스트 추가
+            if ("6".equals(pd.getSellTpCd())) {
+                pd.setSdingCapsls(mapper.selectSdingCapsls(pd.getPdCd()));
+            }
         }
         pdClsfs.removeIf((pdClsf) -> CollectionUtils.isEmpty(pdClsf.getProducts()));
         pdDvo.setPdClsf(pdClsfs);
@@ -277,6 +286,11 @@ public class WctaContractRegStep2Service {
                     .orElseThrow();
                 dtl.setCntrPtrm(m.getCntrPtrm());
                 dtl.setStplPtrm(m.getStplPtrm());
+            } else if ("214".equals(dtl.getCntrRelDtlCd())) {
+                WctaContractDtlDvo m = dvo.getDtls().stream().filter((d) -> d.getCntrSn() == cntrSn - 1).findFirst()
+                    .orElseThrow();
+                dtl.setCntrPtrm(m.getRglrSppCntrDvCd());
+                dtl.setStplPtrm(m.getRglrSppDutyPtrmDvCd());
             }
 
             if (sellTpCd.equals("1")) {
@@ -296,50 +310,54 @@ public class WctaContractRegStep2Service {
             );
 
             // 3. 계약상품관계 (기준상품에 서비스가 있는경우)
-            mapper.selectPdSvcsInBasePd(dtl.getBasePdCd()).stream()
-                .forEach(
-                    (pdRel) -> {
-                        pdRel.setCntrNo(cntrNo);
-                        pdRel.setCntrSn(cntrSn);
-                        pdRel.setVlStrtDtm(now);
-                        pdRel.setVlEndDtm(CtContractConst.END_DTM);
-                        pdRel.setPdQty(1l);
-                        mapper.insertCntrPdRelStep2(pdRel);
-                    }
-                );
-            if (StringUtils.isNotEmpty(dtl.getSvPdCd())) {
-                String pdRelId = mapper.selectProductRelId(dtl.getBasePdCd(), dtl.getSvPdCd());
-                mapper.insertCntrPdRelStep2(
-                    WctaContractPdRelDvo.builder()
-                        .cntrNo(cntrNo)
-                        .cntrSn(cntrSn)
-                        .pdRelId(pdRelId)
-                        .vlStrtDtm(now)
-                        .vlEndDtm(CtContractConst.END_DTM)
-                        .ojPdCd(dtl.getSvPdCd())
-                        .basePdCd(dtl.getBasePdCd())
-                        .pdRelTpCd("03")
-                        .pdQty(1l)
-                        .build()
-                );
-            }
-            // 3-2. 정기배송제품
-            if (CollectionUtils.isNotEmpty(dtl.getSdingCapsls())) {
-                dtl.getSdingCapsls().forEach((pdSdingCapsl -> {
+            if (!"6".equals(dtl.getSellTpCd())) {
+                // 3-1. 정기배송이 아닌 경우, 서비스상품 조회 후 저장
+                mapper.selectPdSvcsInBasePd(dtl.getBasePdCd()).stream()
+                    .forEach(
+                        (pdRel) -> {
+                            pdRel.setCntrNo(cntrNo);
+                            pdRel.setCntrSn(cntrSn);
+                            pdRel.setVlStrtDtm(now);
+                            pdRel.setVlEndDtm(CtContractConst.END_DTM);
+                            pdRel.setPdQty(1l);
+                            mapper.insertCntrPdRelStep2(pdRel);
+                        }
+                    );
+                if (StringUtils.isNotEmpty(dtl.getSvPdCd())) {
+                    String pdRelId = mapper.selectProductRelId(dtl.getBasePdCd(), dtl.getSvPdCd());
                     mapper.insertCntrPdRelStep2(
                         WctaContractPdRelDvo.builder()
                             .cntrNo(cntrNo)
                             .cntrSn(cntrSn)
-                            .pdRelId(pdSdingCapsl.getPdRelId())
+                            .pdRelId(pdRelId)
                             .vlStrtDtm(now)
                             .vlEndDtm(CtContractConst.END_DTM)
-                            .ojPdCd(pdSdingCapsl.getPartPdCd())
-                            .basePdCd(dtl.getPdCd())
-                            .pdRelTpCd(pdSdingCapsl.getPdRelTpCd())
-                            .pdQty(pdSdingCapsl.getPartUseQty())
+                            .ojPdCd(dtl.getSvPdCd())
+                            .basePdCd(dtl.getBasePdCd())
+                            .pdRelTpCd("03")
+                            .pdQty(1l)
                             .build()
                     );
-                }));
+                }
+            } else {
+                // 3-2. 정기배송제품
+                if (CollectionUtils.isNotEmpty(dtl.getSdingCapsls())) {
+                    dtl.getSdingCapsls().forEach((pdSdingCapsl -> {
+                        mapper.insertCntrPdRelStep2(
+                            WctaContractPdRelDvo.builder()
+                                .cntrNo(cntrNo)
+                                .cntrSn(cntrSn)
+                                .pdRelId(pdSdingCapsl.getPdRelId())
+                                .vlStrtDtm(now)
+                                .vlEndDtm(CtContractConst.END_DTM)
+                                .ojPdCd(pdSdingCapsl.getPartPdCd())
+                                .basePdCd(dtl.getPdCd())
+                                .pdRelTpCd(pdSdingCapsl.getPdRelTpCd())
+                                .pdQty(pdSdingCapsl.getItmQty())
+                                .build()
+                        );
+                    }));
+                }
             }
 
             // 4. 계약관계 - 1+1, 다건구매할인, 복합상품구매, 법인다건구매(기기변경 제외)
