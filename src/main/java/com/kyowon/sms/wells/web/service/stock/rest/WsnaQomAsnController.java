@@ -47,7 +47,7 @@ public class WsnaQomAsnController {
     @GetMapping("/individual-warehouse")
     public PagingResult<SearchRes> getIndividualWareQomAsns(
         @Valid
-        SearchReq dto,
+        IndividualWareSearchReq dto,
         PageInfo pageInfo
     ){
         return service.getIndividualWareQomAsns(dto, pageInfo);
