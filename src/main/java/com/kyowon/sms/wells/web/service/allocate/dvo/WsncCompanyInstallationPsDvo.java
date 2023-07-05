@@ -15,7 +15,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsncCompanyIstStatePsDvo {
+public class WsncCompanyInstallationPsDvo {
     String cntrNo;
     String cntrSn;
     String sapMatCd;
