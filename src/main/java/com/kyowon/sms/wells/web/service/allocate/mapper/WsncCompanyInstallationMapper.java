@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.*;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyInstallationDto.*;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
  * @since 2023.05.24
  */
 @Mapper
-public interface WsncCompanyIstStateMapper {
+public interface WsncCompanyInstallationMapper {
 
     /**
      * 전체 탭 조회
@@ -27,7 +27,7 @@ public interface WsncCompanyIstStateMapper {
      * @param dto : SearchReq mgtYnm(배정년월)
      * @return 조회결과
      */
-    PagingResult<SearchAllRes> selectCompanyIstStateAll(
+    PagingResult<SearchAllRes> selectCompanyInstallationAll(
         SearchMainReq dto, PageInfo pageInfo
     );
 
@@ -37,7 +37,7 @@ public interface WsncCompanyIstStateMapper {
      * @param dto : SearchReq mgtYnm(배정년월)
      * @return 조회결과
      */
-    List<SearchAllRes> selectCompanyIstStateAll(
+    List<SearchAllRes> selectCompanyInstallationAll(
         SearchMainReq dto
     );
 
@@ -47,7 +47,7 @@ public interface WsncCompanyIstStateMapper {
      * @param dto : SearchReq mgtTyps(관리유형), istDtFrom(설치일자 시작), istDtTo(설치일자 종료)
      * @return 조회결과
      */
-    PagingResult<SearchPsRes> selectCompanyIstStatePs(
+    PagingResult<SearchPsRes> selectCompanyInstallationPs(
         SearchPsReq dto, PageInfo pageInfo
     );
 
@@ -57,7 +57,7 @@ public interface WsncCompanyIstStateMapper {
      * @param dto : SearchReq mgtYnm(배정년월)
      * @return 조회결과
      */
-    List<SearchPsRes> selectCompanyIstStatePs(
+    List<SearchPsRes> selectCompanyInstallationPs(
         SearchPsReq dto
     );
 
@@ -67,7 +67,7 @@ public interface WsncCompanyIstStateMapper {
      * @param dto : SearchReq mgtYnm(배정년월), itmKndCd(품목종류 - 5/필터 6/부자재)
      * @return 조회결과
      */
-    PagingResult<SearchFltrSubMatRes> selectCompanyIstStateFltrOrSubMat(
+    PagingResult<SearchFltrSubMatRes> selectCompanyInstallationFltrOrSubMat(
         SearchMainReq dto, PageInfo pageInfo
     );
 
@@ -77,7 +77,7 @@ public interface WsncCompanyIstStateMapper {
      * @param dto : SearchReq mgtYnm(배정년월), itmKndCd(품목종류 - 5/필터 6/부자재)
      * @return 조회결과
      */
-    List<SearchFltrSubMatRes> selectCompanyIstStateFltrOrSubMat(
+    List<SearchFltrSubMatRes> selectCompanyInstallationFltrOrSubMat(
         SearchMainReq dto
     );
     //

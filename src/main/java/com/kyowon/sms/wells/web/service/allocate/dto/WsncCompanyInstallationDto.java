@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiModel;
  * @author heymi.cho 조혜미
  * @since 2023-05-24
  */
-public class WsncCompanyIstStateDto {
+public class WsncCompanyInstallationDto {
     // *********************************************************
     // Request Dto
     // *********************************************************

@@ -1,16 +1,16 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchAllRes;
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchMainReq;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyInstallationDto.SearchAllRes;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyInstallationDto.SearchMainReq;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchFltrSubMatRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchPsReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyIstStateDto.SearchPsRes;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCompanyIstStateMapper;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyInstallationDto.SearchFltrSubMatRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyInstallationDto.SearchPsReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncCompanyInstallationDto.SearchPsRes;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCompanyInstallationMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -20,9 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsncCompanyIstStateService {
+public class WsncCompanyInstallationService {
 
-    private final WsncCompanyIstStateMapper mapper;
+    private final WsncCompanyInstallationMapper mapper;
 
     /**
      * 전체 조회
@@ -31,11 +31,11 @@ public class WsncCompanyIstStateService {
      * @return 조회결과
      * @programId : K-W-SV-U-0270M01
      */
-    public PagingResult<SearchAllRes> getCompanyIstStateAll(
+    public PagingResult<SearchAllRes> getCompanyInstallationAll(
         SearchMainReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectCompanyIstStateAll(dto, pageInfo);
+        return mapper.selectCompanyInstallationAll(dto, pageInfo);
     }
 
     /**
@@ -45,10 +45,10 @@ public class WsncCompanyIstStateService {
      * @return 조회결과
      * @programId : K-W-SV-U-0270M01
      */
-    public List<SearchAllRes> getCompanyIstStateAll(
+    public List<SearchAllRes> getCompanyInstallationAll(
         SearchMainReq dto
     ) {
-        return mapper.selectCompanyIstStateAll(dto);
+        return mapper.selectCompanyInstallationAll(dto);
     }
 
     /**
@@ -58,11 +58,11 @@ public class WsncCompanyIstStateService {
      * @return 조회결과
      * @programId : K-W-SV-U-0270M04
      */
-    public PagingResult<SearchPsRes> getCompanyIstStatePs(
+    public PagingResult<SearchPsRes> getCompanyInstallationPs(
         SearchPsReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectCompanyIstStatePs(dto, pageInfo);
+        return mapper.selectCompanyInstallationPs(dto, pageInfo);
     }
 
     /**
@@ -72,10 +72,10 @@ public class WsncCompanyIstStateService {
      * @return 조회결과
      * @programId : K-W-SV-U-0270M04
      */
-    public List<SearchPsRes> getCompanyIstStatePs(
+    public List<SearchPsRes> getCompanyInstallationPs(
         SearchPsReq dto
     ) {
-        return mapper.selectCompanyIstStatePs(dto);
+        return mapper.selectCompanyInstallationPs(dto);
     }
 
     /**
@@ -85,11 +85,11 @@ public class WsncCompanyIstStateService {
      * @param dto : 조회파라메터
      * @return 조회결과
      */
-    public PagingResult<SearchFltrSubMatRes> getCompanyIstStateFltrOrSubMat(
+    public PagingResult<SearchFltrSubMatRes> getCompanyInstallationFltrOrSubMat(
         SearchMainReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectCompanyIstStateFltrOrSubMat(dto, pageInfo);
+        return mapper.selectCompanyInstallationFltrOrSubMat(dto, pageInfo);
     }
 
     /**
@@ -99,9 +99,9 @@ public class WsncCompanyIstStateService {
      * @param dto : 조회파라메터
      * @return 조회결과
      */
-    public List<SearchFltrSubMatRes> getCompanyIstStateFltrOrSubMat(
+    public List<SearchFltrSubMatRes> getCompanyInstallationFltrOrSubMat(
         SearchMainReq dto
     ) {
-        return mapper.selectCompanyIstStateFltrOrSubMat(dto);
+        return mapper.selectCompanyInstallationFltrOrSubMat(dto);
     }
 }

@@ -15,7 +15,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsncCompanyIstStateFltrSubMatDvo {
+public class WsncCompanyInstallationFltrSubMatDvo {
     String itmKndCd;
     String sapMatCd;
     String itmPdCd;

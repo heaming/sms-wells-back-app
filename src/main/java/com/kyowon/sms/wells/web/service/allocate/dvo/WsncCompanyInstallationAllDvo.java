@@ -15,7 +15,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsncCompanyIstStateAllDvo {
+public class WsncCompanyInstallationAllDvo {
     String cntrNo;
     String cntrSn;
     String ogId;
