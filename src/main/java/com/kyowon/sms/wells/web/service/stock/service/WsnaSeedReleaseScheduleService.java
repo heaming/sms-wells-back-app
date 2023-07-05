@@ -10,10 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedReleaseScheduleConverter;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleAsTpDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleCnfmDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedReleaseScheduleMapper;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -161,14 +158,33 @@ public class WsnaSeedReleaseScheduleService {
                 WsnaSeedReleaseScheduleAsTpDvo asTpDvo = this.maaper.selectAsTpCdInfo(dvo);
                 // 현장수당항목코드
                 String siteAwAtcCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getSiteAwAtcCd();
+
                 // 고객서비스AS설치배정내역 업데이트
                 this.maaper.updateCstSvasIstAsnIz(cstSvAsnNo, svBizHclsfCd, siteAwAtcCd);
 
                 // 로그 저장
                 this.historyMapper.insertCstSvasIstAsnHistByPk(cstSvAsnNo);
 
+                WsnaSeedReleaseScheduleWkRsDvo wkRsDvo = this.converter
+                    .mapWsnaSeedReleaseScheduleCnfmDvoToWsnaSeedReleaseScheduleWkRsDvo(dvo);
+
+                // AS위치코드
+                String asLctCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAcLctCd();
+                // AS현상코드
+                String asPhnCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsPhnCd();
+                // AS원인코드
+                String asCausCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsCausCd();
+                // 불량구분코드
+                String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
+
+                wkRsDvo.setAcLctCd(asLctCd);
+                wkRsDvo.setAsPhnCd(asPhnCd);
+                wkRsDvo.setAsCausCd(asCausCd);
+                wkRsDvo.setBadDvCd(badDvCd);
+                wkRsDvo.setSvProcsCn(svProcCn);
+
                 // 작업결과저장
-                this.maaper.insertCstSvWkRsIz(dvo, asTpDvo, svProcCn);
+                this.maaper.insertCstSvWkRsIz(wkRsDvo);
 
                 // 배송 업데이트
                 this.maaper.updateSdingSppPlanIzForPcsv(dvo);

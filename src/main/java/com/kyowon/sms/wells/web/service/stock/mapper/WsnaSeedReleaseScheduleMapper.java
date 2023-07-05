@@ -6,10 +6,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleAsTpDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleCnfmDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -38,7 +35,7 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     int updateCstSvasIstAsnIz(String cstSvAsnNo, String svBizHclsfCd, String siteAwAtcCd);
 
-    int insertCstSvWkRsIz(WsnaSeedReleaseScheduleCnfmDvo dvo, WsnaSeedReleaseScheduleAsTpDvo asTpDvo, String svProcCn);
+    int insertCstSvWkRsIz(WsnaSeedReleaseScheduleWkRsDvo dvo);
 
     int updateSdingSppPlanIzForPcsv(WsnaSeedReleaseScheduleCnfmDvo dvo);
 
