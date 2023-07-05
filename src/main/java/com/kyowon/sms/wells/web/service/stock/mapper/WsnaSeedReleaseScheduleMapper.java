@@ -38,7 +38,7 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     int updateCstSvasIstAsnIz(String cstSvAsnNo, String svBizHclsfCd, String siteAwAtcCd);
 
-    int insertCstSvWkRsIz(WsnaSeedReleaseScheduleCnfmDvo dvo, WsnaSeedReleaseScheduleAsTpDvo asTpDvo);
+    int insertCstSvWkRsIz(WsnaSeedReleaseScheduleCnfmDvo dvo, WsnaSeedReleaseScheduleAsTpDvo asTpDvo, String svProcCn);
 
     int updateSdingSppPlanIzForPcsv(WsnaSeedReleaseScheduleCnfmDvo dvo);
 

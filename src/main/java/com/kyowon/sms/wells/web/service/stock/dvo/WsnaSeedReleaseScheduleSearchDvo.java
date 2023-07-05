@@ -68,7 +68,7 @@ public class WsnaSeedReleaseScheduleSearchDvo {
 
     private String refriDvCd;
     private int cntrSn;
-    private String svBizHclSfCd;
+    private String svBizHclsfCd;
     private String svBizDclsfCd;
     private int sppPlanSn;
 

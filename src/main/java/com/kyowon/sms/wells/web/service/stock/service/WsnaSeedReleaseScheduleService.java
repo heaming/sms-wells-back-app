@@ -4,7 +4,9 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedReleaseSchedule
 
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedReleaseScheduleConverter;
@@ -13,6 +15,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleCnfmDvo
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSearchDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedReleaseScheduleMapper;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -37,6 +40,9 @@ public class WsnaSeedReleaseScheduleService {
     private final WsnaSeedReleaseScheduleConverter converter;
 
     private final WsnzHistoryMapper historyMapper;
+
+    // 메시지 서비스
+    private final MessageResourceService messageService;
 
     private static final String SV_BIZ_HCLSF_CD_INSTL = "1";
     private static final String SV_BIZ_HCLSF_CD_BS = "2";
@@ -79,6 +85,7 @@ public class WsnaSeedReleaseScheduleService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int editSeedReleaseSchedules(List<EditReq> dtos) {
 
         int count = 0;
@@ -101,9 +108,13 @@ public class WsnaSeedReleaseScheduleService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int createSeedReleaseSchedulesForCnfm(List<CreateReq> dtos) {
 
         int count = 0;
+
+        // 배양액 택배배송
+        String svProcCn = this.messageService.getMessage("SDING_PCSV_FW");
 
         for (CreateReq dto : dtos) {
             WsnaSeedReleaseScheduleCnfmDvo dvo = this.converter.mapCreateReqToWsnaSeedReleaseScheduleCnfmDvo(dto);
@@ -143,13 +154,13 @@ public class WsnaSeedReleaseScheduleService {
 
                 // 작업결과 조회
                 Integer cnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
-                // 이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요.
-                BizAssert.isNull(cnt, "이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요.");
+                // 이미 완료 처리 되었습니다.
+                BizAssert.isNull(cnt, "MSG_ALT_ALRDY_FSH_PROCS");
 
                 // AS유형코드 조회
                 WsnaSeedReleaseScheduleAsTpDvo asTpDvo = this.maaper.selectAsTpCdInfo(dvo);
                 // 현장수당항목코드
-                String siteAwAtcCd = asTpDvo.getSiteAwAtcCd();
+                String siteAwAtcCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getSiteAwAtcCd();
                 // 고객서비스AS설치배정내역 업데이트
                 this.maaper.updateCstSvasIstAsnIz(cstSvAsnNo, svBizHclsfCd, siteAwAtcCd);
 
@@ -157,7 +168,7 @@ public class WsnaSeedReleaseScheduleService {
                 this.historyMapper.insertCstSvasIstAsnHistByPk(cstSvAsnNo);
 
                 // 작업결과저장
-                this.maaper.insertCstSvWkRsIz(dvo, asTpDvo);
+                this.maaper.insertCstSvWkRsIz(dvo, asTpDvo, svProcCn);
 
                 // 배송 업데이트
                 this.maaper.updateSdingSppPlanIzForPcsv(dvo);

@@ -84,7 +84,7 @@ public class WsnaSeedReleaseScheduleDto {
         String cstAdr,
         String refriDvCd,
         int cntrSn,
-        String svBizHclSfCd,
+        String svBizHclsfCd,
         String svBizDclsfCd,
         int sppPlanSn,
         String sdingPdCd1,
@@ -140,7 +140,7 @@ public class WsnaSeedReleaseScheduleDto {
         @Positive
         int cntrSn,
         @NotBlank
-        String svBizHclSfCd,
+        String svBizHclsfCd,
         @NotBlank
         String svBizDclsfCd,
         @NotBlank
