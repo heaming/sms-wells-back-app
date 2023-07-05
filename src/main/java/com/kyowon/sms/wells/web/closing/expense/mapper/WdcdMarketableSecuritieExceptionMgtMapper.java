@@ -9,13 +9,13 @@ import java.util.List;
 @Mapper
 public interface WdcdMarketableSecuritieExceptionMgtMapper {
 
-    List<FindCodeRes> selectBuilDingCd();
+    List<FindCodeRes> selectBuilDingCd(FindCodeReq req);
 
     List<SearchSubjectRes> selectSubject(SearchSubjectReq req);
 
     List<SearchFinalSettlementRes> selectFinalWithholdingTaxSettlement(SearchFinalSettlementReq req);
 
-    String selectCheckWhetherMonthFinalized(WdcdMarketableSecuritieExceptionDvo dvo);
+    String selectCheckWhetherMonthFinalized(SaveReq req);
 
     String selectOpcsAdjNo(WdcdMarketableSecuritieExceptionDvo dvo);
 
@@ -29,5 +29,7 @@ public interface WdcdMarketableSecuritieExceptionMgtMapper {
 
     int updateOpcsCard(WdcdMarketableSecuritieExceptionDvo dvo);
 
-    AccCardInfoDetailRes selectAccCardInfoDetail(WdcdMarketableSecuritieExceptionDvo dvo);
+    int insertAccMap(WdcdMarketableSecuritieExceptionDvo dvo);
+
+    List<AccCardInfoDetailRes> selectAccCardInfoDetail(SaveReq req);
 }
