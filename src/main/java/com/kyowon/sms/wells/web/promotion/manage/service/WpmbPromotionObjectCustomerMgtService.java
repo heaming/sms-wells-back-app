@@ -168,10 +168,16 @@ public class WpmbPromotionObjectCustomerMgtService {
                     }
                 }
                 // 4. 시작일 체크
+                if (StringUtils.isBlank(excelRow.getVlStrtDtm())) {    // 필수값 체크
+                    excelUploadErrorDvos.add(getErrorDvo(i, headerTitle.get("vlStrtDtm"), messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get("vlStrtDtm"))));
+                }
                 if (StringUtils.isNotBlank(excelRow.getVlStrtDtm()) && !DateUtil.isValid(excelRow.getVlStrtDtm(), "yyyyMMdd")) {
                     excelUploadErrorDvos.add(getErrorDvo(i, headerTitle.get("vlStrtDtm"), messageResourceService.getMessage("MSG_ALT_ERROR_DT", "'" + excelRow.getVlStrtDtm() + "'")));
                 }
                 // 5. 종료일 체크
+                if (StringUtils.isBlank(excelRow.getVlEndDtm())) {    // 필수값 체크
+                    excelUploadErrorDvos.add(getErrorDvo(i, headerTitle.get("vlEndDtm"), messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get("vlEndDtm"))));
+                }
                 if (StringUtils.isNotBlank(excelRow.getVlEndDtm()) && !DateUtil.isValid(excelRow.getVlEndDtm(), "yyyyMMdd")) {
                     excelUploadErrorDvos.add(getErrorDvo(i, headerTitle.get("vlEndDtm"), messageResourceService.getMessage("MSG_ALT_ERROR_DT", "'" + excelRow.getVlEndDtm() + "'")));
                 }
