@@ -30,5 +30,6 @@ public class WdcdSecuritiesDvo {
     private String cdcoCd;                /*(hidden)카드사코드*/
     private String opcsAdjBtn;       /*원천세정산버튼*/
     private String adjCls;             /*정산여부*/
+    private String dgr2LevlOgId;             /*(hidden)지역단ID*/
     private String adjOgId;
 }

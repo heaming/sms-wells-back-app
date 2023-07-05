@@ -29,6 +29,7 @@ public class WdcdSecuritiesMgtDto {
         String opcsCardUseIzId,    /*운영비카드사용내역ID*/
         String useDtm,              /*사용일시*/
         String dgr1LevlOgId,        /*(hidden)총괄단조직ID*/
+        String dgr2LevlOgId,        /*(hidden)지역단조직ID*/
         String dgr1LevlOgNm,        /*총괄단명*/
         String crcdnoEncr,            /*카드번호*/
         String mrcNm,                 /*가맹점명*/
