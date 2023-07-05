@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncCustomerCenterHistoryMapper">
+    <select id="selectCustomerCenterHistories" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerCenterHistoryDto$FindRes">
+        SELECT ROWNUM AS NO         /* 번호 */
+             , A.CNSL_NO            /* 상담번호 */
+             , A.CNSL_DT            /* 상담일자 */
+             , A.CNSL_ST_DT         /* 상담시작일자 */
+             , A.CNSL_ST_TM         /* 상담시작시간 */
+             , A.CNSL_ST_DT || A.CNSL_ST_TM AS CNSL_ST_DT_TM   /* 상담시작일시 */
+             , A.CST_NO             /* 고객번호 */
+             , A.JOB_CD             /* 업무구분(C001:SalesTM, CM01:회원업무, EE00:EDU, EE01:빨간펜, EE20:잡지, EE30:전집, EE40:+JEM, EE50:SP, EE60:HI%, EE70:도요새, EK10:구몬, ES10:교원아이, FF01:스타트원, L001:Wells, L002:라이프, KM02:Market85, KM01:K멤버스) */
+             , FN_CD_VAL_NM('JOB_CD', A.JOB_CD) AS JOB_NM /* 업무구분명 */
+             , A.CENTER_CD          /* 센터코드 */
+             , FN_CD_VAL_NM('CENTER_CD', A.CENTER_CD) AS CENTER_NM /* 센터코드명 */
+             , A.SELL_TP_CD        /* 판매유형코드 --> 차세대영업관리시스템 코드 테이블 ETL 이관 후 조회해야함 현재 못함 */
+             , A.CNTR_NO            /* 계약번호 */
+             , A.CNTR_SN            /* 계약일련번호 */
+             , A.CNTR_NO || '-' || A.CNTR_SN AS CNTR_NO_SN  /* 계약상세번호 */
+             , A.CNSL_CN            /* 상담내용 */
+             , A.CST_NM             /* 고객명 */
+             , A.CST_TNOA           /* 고객전화번호A */
+             , A.CST_TNOB           /* 고객전화번호B */
+             , A.CST_TNOC           /* 고객전화번호C */
+             , A.CNSL_ED_DT         /*  상담종료일자 */
+             , A.CNSL_ED_TM         /*  상담종료시간 */
+             , A.CALL_TP_CD         /* 콜유형코드(I:인바운드 콜, O:아웃바운드 콜) */
+             , CASE WHEN A.CALL_TP_CD = 'I' THEN 'IN'
+                    WHEN A.CALL_TP_CD = 'O' THEN 'OUT'
+                    ELSE A.CALL_TP_CD
+               END AS CALL_TP_NM    /* 콜유형명 */
+             , A.REG_DT             /* 입력일자 */
+             , A.REG_TM             /* 입력시간 */
+             , ( SELECT USER_NM FROM TB_USER TU WHERE TU.USER_ID = A.REG_USER_ID ) AS REG_USER_NM
+             , A.MOD_DT             /* 수정일자 */
+             , A.MOD_TM             /* 수정시간 */
+             , A.MOD_USER_ID        /* 수정사용자ID */
+             , ( SELECT USER_NM FROM TB_USER TU WHERE TU.USER_ID = A.MOD_USER_ID ) AS MOD_USER_NM
+          FROM TB_WELLS_COUNSEL A
+         WHERE 1=1
+           AND ROWNUM <![CDATA[ < 5001 ]]> /* 대량건 조회시 WAS Server 다운될 수 있으므로 5000건 이하로만 조회되도록 함 */
+           AND A.CST_NO = #{cstNo} /* 고객번호 */
+         ORDER BY A.CNSL_DT DESC, A.CNSL_ST_TM DESC, A.CST_NM ASC
+    </select>
+</mapper>

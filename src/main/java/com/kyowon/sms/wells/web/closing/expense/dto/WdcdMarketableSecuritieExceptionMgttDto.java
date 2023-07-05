@@ -110,6 +110,8 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String adjPrtnrNo,          /*(hidden)정산파트너번호*/
         String dgr1LevlOgNm,       /*1차레벨조직명*/
         String dgr2LevlOgNm,       /*2차레벨조직명*/
+        String dgr1LevlOgId,       /*1차레벨조직명*/
+        String dgr2LevlOgId,       /*2차레벨조직명*/
         String dstOjpsNm,           /*배분대상자명*/
         String dstOjOgTpCd,       /*(hidden)배분대상조직유형코드*/
         String dstOjPrtnrNo,       /*배분대상파트너번호*/
@@ -123,7 +125,8 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String mscrYn,               /*(hidden)유가증권여부*/
         String bldCd,                /*빌딩코드*/
         String bldNm,                /*빌딩명*/
-        String rsbDvNm               /*직책명*/
+        String rsbDvNm,               /*직책명*/
+        String baseYm
     ) {
 
     }
@@ -150,6 +153,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String adjOgId,
         String baseYm,
         String adjPrtnrNo,
+        String opcsCardUseIzId,
         String deleted
     ) {
     }

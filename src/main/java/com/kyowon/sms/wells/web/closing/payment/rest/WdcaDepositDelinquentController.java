@@ -35,6 +35,7 @@ public class WdcaDepositDelinquentController {
         @ApiImplicitParam(name = "inqrDv", value = "조회구분", paramType = "query"),
         @ApiImplicitParam(name = "sellChnl", value = "판매채널", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
@@ -53,6 +54,7 @@ public class WdcaDepositDelinquentController {
         @ApiImplicitParam(name = "inqrDv", value = "조회구분", paramType = "query"),
         @ApiImplicitParam(name = "sellChnl", value = "판매채널", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
