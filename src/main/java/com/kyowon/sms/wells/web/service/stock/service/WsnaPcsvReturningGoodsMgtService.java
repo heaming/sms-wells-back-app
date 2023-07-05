@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +12,6 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.S
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvReturningGoodsMgtMapper;
-import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,28 +48,12 @@ public class WsnaPcsvReturningGoodsMgtService {
     public int savePcsvReturningGoods(List<SaveReq> dtos) {
         int processCount = 0;
 
-        try {
-            for (SaveReq dto : dtos) {
-                WsnaPcsvReturningGoodsDvo dvo = converter.mapSaveReqToPcsvReturningGoodsDvo(dto);
+        for (SaveReq dto : dtos) {
+            WsnaPcsvReturningGoodsDvo dvo = converter.mapSaveReqToPcsvReturningGoodsDvo(dto);
 
-                service.savePcsvReturningGoods(dvo);
+            service.savePcsvReturningGoods(dvo);
 
-                processCount += 1;
-            }
-        } catch (Exception e) {
-            if (e instanceof UncategorizedSQLException) {
-                int errorCode = ((UncategorizedSQLException)e).getSQLException().getErrorCode();
-                if (errorCode == 20003) {
-                    String message = ((UncategorizedSQLException)e).getSQLException().getMessage();
-
-                    if (StringUtils.isNotEmpty(message) && message.indexOf("[") > -1 && message.indexOf("]") > -1) {
-                        int start = message.indexOf("[") + 1;
-                        int end = message.indexOf("]");
-                        message = message.substring(start, end);
-                    }
-                    throw new BizException(message);
-                }
-            }
+            processCount += 1;
         }
 
         return processCount;
