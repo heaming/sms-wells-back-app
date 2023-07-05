@@ -123,7 +123,7 @@ public class WsnaSeedReleaseScheduleService {
             // 서비스업무대분류코드
             String svBizHclsfCd = dvo.getSvBizHclsfCd();
             // 고객서비스배정번호
-            String cstSvAsnNo = dto.cstSvAsnNo();
+            String cstSvAsnNo = dvo.getCstSvAsnNo();
 
             // B/S가 아닌 경우
             if (!SV_BIZ_HCLSF_CD_BS.equals(svBizHclsfCd)) {
@@ -177,7 +177,6 @@ public class WsnaSeedReleaseScheduleService {
                 // 불량구분코드
                 String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
 
-                wkRsDvo.setCstSvAsnNo(cstSvAsnNo);
                 wkRsDvo.setAcLctCd(asLctCd);
                 wkRsDvo.setAsPhnCd(asPhnCd);
                 wkRsDvo.setAsCausCd(asCausCd);
