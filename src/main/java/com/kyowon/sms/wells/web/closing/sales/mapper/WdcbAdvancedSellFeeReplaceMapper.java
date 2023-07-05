@@ -29,8 +29,6 @@ public interface WdcbAdvancedSellFeeReplaceMapper {
         SearchReq dto
     );
 
-    List<SearchCodeRes> selectCustomerCodes();
-
     List<SearchCodeRes> selectFeeGubunCodes();
 
     SearchPopRes selectPop(

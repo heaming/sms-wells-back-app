@@ -57,12 +57,6 @@ public class WdcbAdvancedSellFeeReplaceService {
         return mapper.selectDivideLists(dto);
     }
 
-    public List<SearchCodeRes> getCustomerCodes(
-
-    ) {
-        return mapper.selectCustomerCodes();
-    }
-
     public List<SearchCodeRes> getFeeGubunCodes(
 
     ) {
