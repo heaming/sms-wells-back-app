@@ -78,13 +78,35 @@ public class WctbContractChangeMgtController {
             .build();
     }
 
+    @ApiOperation(value = "계약변경관리-고객정보변경 전 조회", notes = "변경하기 전 기본정보 조회")
+    @GetMapping("/customers")
+    public FindCustomerInformationRes getContractChangePages(
+        @RequestParam
+        String cntrNo,
+        @RequestParam
+        int cntrSn
+    ) {
+        return service.getCustomerInformations(cntrNo, cntrSn);
+    }
+
+    @ApiOperation(value = "계약변경관리-고객정보변경", notes = "계약 고객정보 / 설치자 정보 변경")
+    @PostMapping("/customers")
+    public SaveResponse editCustomerInformation(
+        @RequestBody
+        SaveChangeReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.editCustomerInformation(dto))
+            .build();
+    }
+
     @ApiOperation(value = "계약변경관리-파트너 변경(조회)", notes = "계약변경관리-파트너 변경(조회)")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
     @GetMapping("/partners")
-    public WctbContractChangeMngtDto.FindPartnerRes getPartnerByCntrNo(
+    public FindPartnerRes getPartnerByCntrNo(
         @RequestParam
         String cntrNo,
         @RequestParam

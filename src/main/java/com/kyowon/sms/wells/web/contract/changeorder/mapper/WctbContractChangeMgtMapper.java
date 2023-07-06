@@ -22,11 +22,21 @@ public interface WctbContractChangeMgtMapper {
 
     WctbContractChangeDvo selectCntrOrderInfo(String cntrNo, int cntrSn);
 
+    WctbContractChangeDvo selectCustomerInformation(String cntrNo, int cntrSn);
+
+    WctbContractChangeDvo selectKiwiInstallOrders(String cntrNo, int cntrSn);
+
     int insertContractChRcpBase(@Param("item")
     WctbContractChangeDvo dvo);
 
     int insertContractChRcpDetail(@Param("item")
     WctbContractChangeDvo dvo);
+
+    int insertContractChangeReceiptHist(WctbContractChangeDvo dvo);
+
+    int updateContractAddrBase(WctbContractChangeDvo dvo);
+
+    int updateContractAddrChangeHist(WctbContractChangeDvo dvo);
 
     WctbContractChangeMngtDto.FindPartnerRes selectPartnerByCntrNo(String cntrNo, String cntrSn);
 
