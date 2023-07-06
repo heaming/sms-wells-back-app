@@ -38,7 +38,8 @@ public class WctaOrderDetailService {
     }
 
     public List<SearchDepositItemizationsRes> getDepositItemizations(SearchTradeSpecificationSheetReq dto) {
-        return mapper.selectDepositItemizations(dto);
+        return converter
+            .mapWctaDepositItemizationsDvoToSearchDepositItemizationsRes(mapper.selectDepositItemizations(dto));
     }
 
     public List<SearchTradeSpecificationSheetRes> getTradeSpcshs(SearchTradeSpecificationSheetReq dto) {
@@ -46,7 +47,8 @@ public class WctaOrderDetailService {
     }
 
     public List<SearchCardSalesSlipsRes> getCardSalesSlips(SearchTradeSpecificationSheetReq dto) {
-        return mapper.selectCardSalesSlips(dto);
+        return converter
+            .mapWctaCardSalesSlipsDvoToSearchCardSalesSlipsRes(mapper.selectCardSalesSlips(dto));
     }
 
     public List<SearchContractArticlesRes> getContractArticles(SearchTradeSpecificationSheetReq dto) {

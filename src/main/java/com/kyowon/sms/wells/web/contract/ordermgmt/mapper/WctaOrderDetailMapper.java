@@ -5,6 +5,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCardSalesSlipsDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaDepositItemizationsDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailCustomerBaseDvo;
 
 @Mapper
@@ -18,11 +20,11 @@ public interface WctaOrderDetailMapper {
 
     List<SearchContractListsRes> selectOrderDetailContractLists(SearchReq dto);
 
-    List<SearchDepositItemizationsRes> selectDepositItemizations(SearchTradeSpecificationSheetReq dto);
+    List<WctaDepositItemizationsDvo> selectDepositItemizations(SearchTradeSpecificationSheetReq dto);
 
     List<SearchTradeSpecificationSheetRes> selectTradeSpcshs(SearchTradeSpecificationSheetReq dto);
 
-    List<SearchCardSalesSlipsRes> selectCardSalesSlips(SearchTradeSpecificationSheetReq dto);
+    List<WctaCardSalesSlipsDvo> selectCardSalesSlips(SearchTradeSpecificationSheetReq dto);
 
     List<SearchContractArticlesRes> selectContractArticles(SearchTradeSpecificationSheetReq dto);
 
