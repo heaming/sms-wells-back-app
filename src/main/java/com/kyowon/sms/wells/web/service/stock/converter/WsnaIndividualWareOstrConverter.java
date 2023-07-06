@@ -1,6 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.CreateReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
 import org.mapstruct.Mapper;
+
+import java.util.List;
 
 /**
  * <pre>
@@ -12,5 +16,5 @@ import org.mapstruct.Mapper;
  */
 @Mapper(componentModel = "spring")
 public interface WsnaIndividualWareOstrConverter {
-
+    List<WsnaIndividualWareOstrDvo> mapAllCreateReqToIndividualDvo(List<CreateReq> list);
 }
