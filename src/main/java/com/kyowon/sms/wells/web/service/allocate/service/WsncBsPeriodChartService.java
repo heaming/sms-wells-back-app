@@ -18,11 +18,6 @@ import com.sds.sflex.system.config.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/*
- * @TODO
- *   각 주기표 로직 별 모듈화 진행할 것.
- *
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -230,8 +225,9 @@ public class WsncBsPeriodChartService {
         for (WsncBsPeriodChartResDvo chart06Res : chart06ResList) {
 
             //설치차월 계산 - 기준일자 와 설치일자 사이의 차월수
-            chekInstMths = baseInfoRes.getChekInstMths();
-            chekInstMths = chekInstMths + chart06Res.getVstNmnN();
+//            chekInstMths = baseInfoRes.getChekInstMths();
+//            chekInstMths = chekInstMths + chart06Res.getVstNmnN();
+            chekInstMths = chart06Res.getVstNmnN();
             processParam.setChekInstMths(chekInstMths);
 
             //방문예정일자 계산
@@ -254,6 +250,8 @@ public class WsncBsPeriodChartService {
                 chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
             }
             processParam.setChekVstDt(chekVstDt);
+            processParam.setChekCyclMths(chart06Res.getVstNmnN());     // 방문차월 수 세팅 - js
+            processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs04_07(processParam);
 
@@ -363,6 +361,8 @@ public class WsncBsPeriodChartService {
             newGdsCd = mapper.selectBsPeriodChartBs01_22(processParam);
             vVs107CnclDt = mapper.selectBsPeriodChartBs01_23(processParam);
             processParam.setNewGdsCd(newGdsCd);
+            processParam.setChekCyclMths(chart06Res.getVstNmnN());     // 방문차월 수 세팅 - js
+            processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs01_07(processParam);
             //AS-IS ::: C1 Loop(chart07Res)
@@ -445,7 +445,7 @@ public class WsncBsPeriodChartService {
 
             //cherro ::: vstNmnN (방문차월) 값은 0이 없을 것. 혹시나 해서 로직 넣어둠.
             //시작차월 체크(일반:1차월 멤버십:0차월
-            if ("1".equals(baseInfoRes.getSellTpCd()) && chart06Res.getVstNmnN() == 0) {
+            if (("1".equals(baseInfoRes.getSellTpCd()) || ("2".equals(baseInfoRes.getSellTpCd()))) && chart06Res.getVstNmnN() == 0) {
                 continue;
             }
 
@@ -482,6 +482,8 @@ public class WsncBsPeriodChartService {
             processParam.setNewGdsCd(newGdsCd);
             processParam.setNewPartList(newPartList);
             processParam.setVVs107CnclDt(vVs107CnclDt);
+            processParam.setChekCyclMths(chart06Res.getVstNmnN());     // 방문차월 수 세팅 - js
+            processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
 
             List<WsncBsPeriodChartResDvo> chart07ResList = mapper.selectBsPeriodChartBs05_07(processParam);
             //AS-IS ::: C1 Loop(chart07Res)

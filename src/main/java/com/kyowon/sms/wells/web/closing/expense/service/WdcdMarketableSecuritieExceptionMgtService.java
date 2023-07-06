@@ -19,8 +19,8 @@ public class WdcdMarketableSecuritieExceptionMgtService {
     private final WdcdMarketableSecuritieExceptionMgtMapper mapper;
     private final WdcdMarketableSecuritieExceptionMgtConverter converter;
 
-    public List<FindCodeRes> getBuilDingCd() {
-        return mapper.selectBuilDingCd();
+    public List<FindCodeRes> getBuilDingCd(FindCodeReq req) {
+        return mapper.selectBuilDingCd(req);
     }
 
     public List<SearchSubjectRes> getSubject(SearchSubjectReq req) {
@@ -37,43 +37,42 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         int count = 0;
         String opcsAdjNo = null;
 
-        for (SaveReq req : reqs) {
-            WdcdMarketableSecuritieExceptionDvo dvo = converter.mapSaveReqToWdcdMarketableSecuritieExceptionDvo(req);
+        String checkMonth = mapper.selectCheckWhetherMonthFinalized(reqs.get(0));
 
-            String checkMonth = mapper.selectCheckWhetherMonthFinalized(dvo);
+        if ("Y".equals(checkMonth)) {
+            BizAssert.isTrue(false, "등록수정 불가합니다.");
+        }
 
-            if ("Y".equals(checkMonth)) {
-                BizAssert.isTrue(true, "등록수정 불가합니다.");
-            }
+        List<AccCardInfoDetailRes> detailRess = mapper.selectAccCardInfoDetail(reqs.get(0));
 
-            AccCardInfoDetailRes detailRes = mapper.selectAccCardInfoDetail(dvo);
+        for (AccCardInfoDetailRes detailRes : detailRess) {
 
-            if (StringUtils.isEmpty(detailRes.opcsAdjNo())) {
+            WdcdMarketableSecuritieExceptionDvo dvo = converter.mapAccCardInfoDetailResToWdcdMarketableSecuritieExceptionDvo(detailRes);
 
-                if (StringUtils.isEmpty(opcsAdjNo)) {
-                    opcsAdjNo = mapper.selectOpcsAdjNo(dvo);
-                }
-
-                dvo.setOpcsAdjNo(opcsAdjNo);
-                count += mapper.insertAccMst(dvo);
-                count += mapper.insertAccDetail(dvo);
-
-                if ("Y".equals(dvo.getDeleted())) {
-                    count += mapper.deleteAccDetail(dvo);
-                }
-            } else {
-
+            if (!"null".equals(String.valueOf(detailRes))) {
                 count += mapper.updateAccMst(dvo);
                 count += mapper.deleteAccDetail(dvo);
-                count += mapper.insertAccDetail(dvo);
+            }
+        }
+
+        for (SaveReq req : reqs) {
+
+            WdcdMarketableSecuritieExceptionDvo dvo = converter.mapSaveReqToWdcdMarketableSecuritieExceptionDvo(req);
+            if (StringUtils.isEmpty(opcsAdjNo)) {
+                opcsAdjNo = mapper.selectOpcsAdjNo(dvo);
             }
 
+            dvo.setOpcsAdjNo(opcsAdjNo);
+            count += mapper.insertAccMst(dvo);
+            count += mapper.insertAccDetail(dvo);
             count += mapper.updateOpcsCard(dvo);
+            count += mapper.insertAccMap(dvo);
 
-            int start = Integer.parseInt(opcsAdjNo.substring(1, 6));
-            int end = Integer.parseInt(opcsAdjNo.substring(7, opcsAdjNo.length())) + 1;
+            int start = Integer.parseInt(opcsAdjNo.substring(0, 6));
+            int end = Integer.parseInt(opcsAdjNo.substring(6, opcsAdjNo.length()));
 
-            opcsAdjNo = String.valueOf(start) + String.format("%08d", end);
+            opcsAdjNo = String.valueOf(start) + String.format("%06d", end + 1);
+
         }
 
         return count;

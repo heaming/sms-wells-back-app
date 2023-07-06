@@ -104,6 +104,7 @@ public class WdcdMarketableSecuritieMgtDto {
     // 운영비 원천세 정산(유가증권) / 정산대상
     @ApiModel(value = "WdcdMarketableSecuritieMgtDto-SearchFinalSettlementRes")
     public record SearchFinalSettlementRes(
+        String baseYm,
         String opcsAdjNo,           /*(hidden)운영비정산번호*/
         String adjOgId,             /*(hidden)정산조직ID*/
         String ogTpCd,              /*(hidden)조직유형코드*/
@@ -149,6 +150,7 @@ public class WdcdMarketableSecuritieMgtDto {
         String adjOgId,
         String baseYm,
         String adjPrtnrNo,
+        String opcsCardUseIzId,
         String deleted
     ) {
     }

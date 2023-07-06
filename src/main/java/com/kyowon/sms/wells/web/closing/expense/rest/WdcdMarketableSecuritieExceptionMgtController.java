@@ -25,8 +25,8 @@ public class WdcdMarketableSecuritieExceptionMgtController {
     private final WdcdMarketableSecuritieExceptionMgtService service;
 
     @GetMapping("/code")
-    public List<FindCodeRes> getBuilDingCd() {
-        return service.getBuilDingCd();
+    public List<FindCodeRes> getBuilDingCd(FindCodeReq req) {
+        return service.getBuilDingCd(req);
     }
 
     @ApiOperation(value = "원천세정산 - 유가증권 제외", notes = "유가증권 제외 조회")

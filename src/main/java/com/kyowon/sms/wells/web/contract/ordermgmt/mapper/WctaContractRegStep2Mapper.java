@@ -27,6 +27,9 @@ public interface WctaContractRegStep2Mapper {
     int insertCntrPrcCmptIzStep2(@Param("item")
     WctaContractPrcCmptIzDvo dvo);
 
+    int insertCntrRelStep2(@Param("item")
+    WctaContractRelDvo dvo);
+
     int insertCntrWellsDtlStep2(WctaContractWellsDtlDvo dvo);
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDstps(
@@ -78,6 +81,8 @@ public interface WctaContractRegStep2Mapper {
     List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> selectWelsfHcfPkgs(String pdCd);
 
     List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapsls(String pdCd);
+
+    List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapsls(String pdCd, List<String> parts);
 
     boolean isExistAlncPds(WctaContractDto.SearchPdAmtReq dto);
 

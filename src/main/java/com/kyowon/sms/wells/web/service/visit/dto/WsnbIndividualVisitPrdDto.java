@@ -65,7 +65,9 @@ public class WsnbIndividualVisitPrdDto {
         String sellTpCd,
         String chkPrdCd,
         String pdGdCd,
-        String frisuBfsvcPtrmN
+        String frisuBfsvcPtrmN,
+        String svPdCd,
+        String pdctPdCd
     ) {}
 
     @ApiModel(value = "WsnbIndividualVisitPrdDto-SearchVstRes")

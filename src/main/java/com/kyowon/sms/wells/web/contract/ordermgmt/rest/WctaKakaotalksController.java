@@ -31,7 +31,7 @@ public class WctaKakaotalksController {
 
     @ApiOperation(value = "카카오톡 발송 내역 조회", notes = "계약번호와 계약구분별로 카카오톡 발송내역을 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "mtPr", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "concDiv", value = "계약구분", paramType = "query"),
     })
     @GetMapping("/kakaotalk-forwarding-itemizations")

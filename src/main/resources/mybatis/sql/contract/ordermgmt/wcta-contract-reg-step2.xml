@@ -18,7 +18,7 @@
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdDvo">
         SELECT CASE WHEN A.CLSF_PD_TP_CD = 'P'
                     THEN CASE WHEN A.IST_BZS_CD = 'S' THEN '4'
-                              WHEN A.SELL_TP_CD = '6' AND A.RGLR_SPP_CNTR_DV_CD != '0' THEN '5'
+                              WHEN A.SELL_TP_CD = '6' THEN '5'
                               WHEN A.MCLSF_VAL = '01001' THEN '1'
                               WHEN A.MCLSF_VAL = '02001' THEN '2'
                               WHEN A.MCLSF_VAL = '03001' THEN '3'
@@ -29,7 +29,7 @@
                END AS PD_CLSF
              , CASE WHEN A.CLSF_PD_TP_CD = 'P'
                     THEN CASE WHEN A.IST_BZS_CD = 'S' THEN '삼성가전'
-                              WHEN A.SELL_TP_CD = '6' AND A.RGLR_SPP_CNTR_DV_CD != '0' THEN '정기배송'
+                              WHEN A.SELL_TP_CD = '6' THEN '정기배송'
                               WHEN A.MCLSF_VAL = '01001' THEN '정수기'
                               WHEN A.MCLSF_VAL = '02001' THEN '청정기'
                               WHEN A.MCLSF_VAL = '03001' THEN '비데'
@@ -87,14 +87,15 @@
              , T3.PD_PRP_VAL12                                                          AS RGLR_SPP_PDCT_CONS_QTY   -- 정기배송 총수량
              , T3.PD_PRP_VAL03                                                          AS PD_CHO_LM_YN             -- 제품선택제한여부 (정기배송 패키지- 자유선택패키지 경우 사용)
              , T3.PD_PRP_VAL04                                                          AS PD_CHO_QTY               -- 제품선택개수 (정기배송 패키지- 자유선택패키지 경우 사용 - 선택할수 있는 총 수량)
-             , T3.PD_PRP_VAL13                                                          AS LABO_EU_YN               -- 라보전용 여부
+             , T3.PD_PRP_VAL13                                                          AS RGLR_SPP_PRC_DV_CD       /* 정기배송 가격구분 */
+             , T3.PD_PRP_VAL15                                                AS RGLR_SPP_MCHN_TP_CD /* 정기배송 기기유형 */
              , T3.PD_PRP_VAL05                                                          AS CHDVC_PRMIT_YN           -- 기변허용구분
              , T8.PD_PRP_VAL02                                                          AS FGPT_TP_YN               -- 렌탈 - 사은품구분
              , T4.PD_PRP_VAL01                                                          AS AS_RCP_PRMIT_YN          -- 서비스 AS접수 허용여부
              , T4.PD_PRP_VAL02                                                          AS FRISU_AS_PTRM_N          -- 일시불_무상AS기간
              , T5.PD_PRP_VAL01                                                          AS RNTF                     -- 손료비
              , T5.PD_PRP_VAL02                                                          AS LOST_RNTF                -- 분실손료
-             , M1.ACKMT_PERF_RT                                                                                     -- 인정실적율       (상품기본속성에 있는데.. 할인에 따라 달라진다?)
+             , M1.ACKMT_PERF_RT                                                                                     -- 인정실적율       (상품기본속성에 있는데.. 할인에 따라 달라진다'TNT_WELLS')
              , M1.ACKMT_CT                                                                                          -- 인정건수
              , M1.FEE_AMT                                                                                           -- 수수료금액 (파트너 수수료)
              , M1.HD_CNDT_CD                                                                                        -- 보류조건코드
@@ -102,13 +103,14 @@
              , M1.REDF_YN                                                                                           --  되물림 여부
              , M1.ANA_FACT_VAL1                                                                                     -- 분석팩터 1 (BI용)
              , M1.ANA_FACT_VAL2                                                                                     -- 분석팩터 2 (BI용)
-             , M1.PVDA_YN                                                                                           -- 현재가치할인차금여부??
+             , M1.PVDA_YN                                                                                           -- 현재가치할인차금여부'ko''1010'
              , T6.PD_PRP_VAL01                                                          AS HCR_MSH_TP_CD            -- 홈케어멤버십구분
              , T11.PD_TP_CD AS CLSF_PD_TP_CD
              /* chips */
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', M1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
              , 1 AS PD_QTY
              , #{sellInflwChnlDtlCd} AS SELL_INFLW_CHNL_DTL_CD
+             , 0 AS FNL_AMT
           FROM TB_PDBS_PD_BAS M1
           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T1 -- 공통속성
             ON T1.PD_CD = M1.PD_CD
@@ -162,7 +164,7 @@
            -- 기준상품 or 복합상품
            AND T11.PD_TP_CD IN ('P', 'C')
          <if test='@MybatisUtils@isNotEmpty(pdFilter)'>
-           AND T1.PD_NM LIKE '%' || #{pdFilter} || '%'
+           AND M1.PD_NM LIKE '%' || #{pdFilter} || '%'
          </if>
            AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5', '6') -- 회사설치, 필터, 멤버십, 유지관리, 정기배송 제외
            AND NOT EXISTS (
@@ -225,15 +227,126 @@
                                  )
                          )
                      )
-           )
-        ORDER BY M1.SELL_TP_CD, M1.PD_HCLSF_ID, M1.PD_MCLSF_ID, M1.PD_NM
+                )
+        UNION ALL
+        SELECT T8.REF_PD_CLSF_VAL        AS MCLSF_VAL-- 참조 중분류값 (LNB 구분을 위해)
+             , T9.REF_PD_CLSF_VAL        AS LCLSF_VAL-- 참조 소분류값 (LNB 구분을 위해)
+             , T1.PD_CD                                                         AS PD_CD
+             , T1.PD_NM                                                         AS PD_NM
+             , T1.PD_HCLSF_ID                                                   AS PD_HCLSF_ID
+             , T1.PD_MCLSF_ID                                                   AS PD_MCLSF_ID
+             , T1.PD_LCLSF_ID                                                   AS PD_LCLSF_ID
+             , T1.PD_DCLSF_ID                                                   AS PD_DCLSF_ID
+             , T1.PD_ABBR_NM                                                                                -- 약어
+             , T1.CST_BASE_PD_ABBR_NM
+             , T1.PD_EPL_CN
+             , T1.SELL_TP_CD                                                    AS SELL_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD)            AS SELL_TP_NM       -- 판매유형코드명 3
+             , T1.SELL_TP_DTL_CD                                                                    -- 판매상세유형코드
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD)    AS SELL_TP_DTL_NM   -- 판매유형코드명 3
+             , T1.PD_TP_CD
+             , T1.PD_TP_DTL_CD
+             , T1.BASE_PD_CHO_YN                                                                         -- 기준상품 선택여부
+             , T1.CRNCY_DV_CD                                                                        -- 통화 유형코드
+             , T1.SPAY_SELL_PSB_YN                                                                   -- 일시불결제 가능여부
+             , T1.VAT_TP_CD                                                                          -- 일시불결제 가능여부
+             , F_CMZ_CD_NM(#{session.tenantId}, 'VAT_TP_CD', T1.VAT_TP_CD) AS VAT_TP_NM -- 부가가치세 유형명
+             , T1.PDCT_UPRC_USE_YN                                                                   -- 제품단가사용여부 (wells 정기배송패키지 - 자유선택패키지의 경우 Y로 사용)
+             , T1.FGPT_YN                                                                            -- 사은품 대상여부
+             , ''                                                             AS FILT_ENDDT               -- 필터종료일자
+             , ''                                                             AS OTSC_PD_YN               -- 아웃소싱여부
+             , ''                                                             AS RFBSH_YN                 -- 리퍼여부
+             , CASE WHEN T10.PD_TP_CD = 'P' THEN T11.PD_PRP_VAL01 ELSE '' END AS IST_PCSV_TP_CD           -- 설치택배구분
+             , CASE WHEN T10.PD_TP_CD = 'C' THEN T11.PD_PRP_VAL01 ELSE '' END AS MPACT_YN                 -- 합포장여부
+             , CASE WHEN T10.PD_TP_CD = 'P' THEN T11.PD_PRP_VAL02 ELSE '' END AS IST_BZS_CD               -- 설치업체코드
+             , CASE WHEN T10.PD_TP_CD = 'C' THEN T11.PD_PRP_VAL02 ELSE '' END AS STOC_MNGT_OJ_YN          -- 재고관리대상
+             , T11.PD_PRP_VAL07                                               AS PCSV_BZS_CD              -- 택배업체
+             , T11.PD_PRP_VAL08                                               AS SV_ALNC_BZS_CD           -- 서비스 제휴업체
+             , T11.PD_PRP_VAL03                                               AS ORD_PRMIT_YM             -- 주문허용구분 (무슨 의미인지 파악X)
+             , T11.PD_PRP_VAL04                                               AS BZS_SPP_YN               -- 업체배송 (무슨 의미인지 파악X)
+             , T12.PD_DTL_PRP_VAL01                                           AS BF_PD_CD                 -- 개정 전 상품코드 (ASIS 상품코드)
+             , T5.PD_PRP_VAL01                                                AS CNTR_PTRM_DV_CD          -- 계약기간 4
+             , T5.PD_PRP_VAL02                                                AS DUTY_USE_PTRM_DV_CD      -- 의무사용기간 5
+             , T5.PD_PRP_VAL07                                                AS RGLR_SPP_CNTR_DV_CD /* 정기배송 계약기간 */
+             , T5.PD_PRP_VAL08                                                AS RGLR_SPP_DUTY_PTRM_DV_CD -- 정기배송 의무기간 (0: 기기결합으로 기기의 계약기간 및 의무기간 따름, 6-12 계약기간 후 종료)
+             , T5.PD_PRP_VAL09                                                AS RGLR_SPP_PRM_MCN         -- 정기배송 선납개월
+             , T5.PD_PRP_VAL10                                                AS RGLR_SPP_BIL_DV_CD       -- 정기배송 청구구분
+             , T5.PD_PRP_VAL11                                                AS RGLR_SPP_CONS_TPCD       -- 정기배송 구성유형
+             , T5.PD_PRP_VAL12                                                AS RGLR_SPP_PDCT_CONS_QTY   -- 정기배송 총수량
+             , T5.PD_PRP_VAL03                                                AS PD_CHO_LM_YN             -- 제품선택제한여부 (정기배송 패키지- 자유선택패키지 경우 사용)
+             , T5.PD_PRP_VAL04                                                AS PD_CHO_QTY               -- 제품선택개수 (정기배송 패키지- 자유선택패키지 경우 사용 - 선택할수 있는 총 수량)
+             , T5.PD_PRP_VAL13                                                AS RGLR_SPP_PRC_DV_CD  /* 정기배송 가격구분 */
+             , T5.PD_PRP_VAL15                                                AS RGLR_SPP_MCHN_TP_CD /* 정기배송 기기유형 */
+             , T5.PD_PRP_VAL05                                                AS CHDVC_PRMIT_YN           -- 기변허용구분
+             , ''                                                             AS FGPT_TP_YN               -- 렌탈 - 사은품구분
+             , T13.PD_PRP_VAL01                                               AS AS_RCP_PRMIT_YN          -- 서비스 AS접수 허용여부
+             , T13.PD_PRP_VAL02                                               AS FRISU_AS_PTRM_N          -- 일시불_무상AS기간
+             , T14.PD_PRP_VAL01                                               AS RNTF                     -- 손료비
+             , T14.PD_PRP_VAL02                                               AS LOST_RNTF                -- 분실손료
+             , T1.ACKMT_PERF_RT                                                                                     -- 인정실적율       (상품기본속성에 있는데.. 할인에 따라 달라진다'TNT_WELLS')
+             , T1.ACKMT_CT                                                                                          -- 인정건수
+             , T1.FEE_AMT                                                                                           -- 수수료금액 (파트너 수수료)
+             , T1.HD_CNDT_CD                                                                                        -- 보류조건코드
+             , T1.RDS_YN                                                                                            -- RDS 여부
+             , T1.REDF_YN                                                                                           --  되물림 여부
+             , T1.ANA_FACT_VAL1                                                                                     -- 분석팩터 1 (BI용)
+             , T1.ANA_FACT_VAL2                                                                                     -- 분석팩터 2 (BI용)
+             , T1.PVDA_YN                                                                                           -- 현재가치할인차금여부'ko''1010'
+             , ''                                                             AS HCR_MSH_TP_CD            -- 홈케어멤버십구분
+             , T10.PD_TP_CD                                                   AS CLSF_PD_TP_CD
+              /* chips */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD) AS PD_CHIP1
+             , 1 AS PD_QTY
+             , #{sellInflwChnlDtlCd} AS SELL_INFLW_CHNL_DTL_CD
+             , T6.FNL_VAL AS FNL_AMT
+          FROM TB_PDBS_PD_BAS T1
+         INNER JOIN TB_PDBS_PD_REL T2
+            ON T2.OJ_PD_CD = T1.PD_CD
+           AND T2.PD_REL_TP_CD = '19'
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T8
+            ON T8.PD_CLSF_ID = T1.PD_MCLSF_ID
+           AND T8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T9
+            ON T9.PD_CLSF_ID = T1.PD_LCLSF_ID
+           AND T9.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T10 -- 상품분류
+            ON T10.PD_CLSF_ID = T1.PD_CLSF_ID
+           AND T10.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T11 -- 배송속성
+            ON T11.PD_CD = T1.PD_CD
+           AND T11.PD_EXTS_PRP_GRP_CD = 'SPP'
+           AND T11.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_DTL T12 -- 이력속성
+            ON T12.PD_CD = T1.PD_CD
+           AND T12.VL_END_DTM = '99991231235959'
+           AND T12.AVL_CHNL_ID = 'W02' -- 판매유입상세채널코드
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T13 -- AS속성
+            ON T13.PD_CD = T1.PD_CD
+           AND T13.PD_EXTS_PRP_GRP_CD = 'AFS'
+           AND T13.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T14 -- 교환/반품속성
+            ON T14.PD_CD = T1.PD_CD
+           AND T14.PD_EXTS_PRP_GRP_CD = 'EXCH'
+           AND T14.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5
+            ON T5.PD_CD = T2.OJ_PD_CD
+           AND T5.PD_EXTS_PRP_GRP_CD = 'CNTR'
+           AND T5.PD_PRP_VAL13 = '3' /* 일시불 */
+         INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T6
+            ON T6.PD_CD = T2.OJ_PD_CD
+           AND T6.VER_SN = (SELECT MAX(T7.VER_SN)
+                              FROM TB_PDBS_PD_PRC_FNL_DTL T7
+                             WHERE T7.PD_PRC_FNL_DTL_ID = T6.PD_PRC_FNL_DTL_ID)
+           AND T6.PD_PRC_FNL_PRP_VAL16 = 'N'
+        ORDER BY SELL_TP_CD, PD_HCLSF_ID, PD_MCLSF_ID, PD_NM
         ) A
     </select>
 
     <select id="selectContractDtlWithPdInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractDtlDvo">
         SELECT CASE WHEN A.CLSF_PD_TP_CD = 'P'
                     THEN CASE WHEN A.IST_BZS_CD = 'S' THEN '4'
-                              WHEN A.SELL_TP_CD = '6' AND A.RGLR_SPP_CNTR_DV_CD != '0' THEN '5'
+                              WHEN A.SELL_TP_CD = '6' THEN '5'
                               WHEN A.MCLSF_VAL = '01001' THEN '1'
                               WHEN A.MCLSF_VAL = '02001' THEN '2'
                               WHEN A.MCLSF_VAL = '03001' THEN '3'
@@ -244,7 +357,7 @@
                END AS PD_CLSF
              , CASE WHEN A.CLSF_PD_TP_CD = 'P'
                     THEN CASE WHEN A.IST_BZS_CD = 'S' THEN '삼성가전'
-                              WHEN A.SELL_TP_CD = '6' AND A.RGLR_SPP_CNTR_DV_CD != '0' THEN '정기배송'
+                              WHEN A.SELL_TP_CD = '6' THEN '정기배송'
                               WHEN A.MCLSF_VAL = '01001' THEN '정수기'
                               WHEN A.MCLSF_VAL = '02001' THEN '청정기'
                               WHEN A.MCLSF_VAL = '03001' THEN '비데'
@@ -347,7 +460,7 @@
             ON M1.PD_CD = C1.BASE_PD_CD
            AND M1.DTA_DL_YN = 'N'
            AND M1.SELL_YN = 'Y'
-           AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5', '6') -- 회사설치, 필터, 멤버십, 유지관리, 정기배송 제외
+           AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5') -- 회사설치, 필터, 멤버십, 유지관리 제외
           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T1 -- 공통속성
             ON T1.PD_CD = M1.PD_CD
            AND T1.PD_EXTS_PRP_GRP_CD = 'CMN'
@@ -800,12 +913,25 @@
         /*렌탈 웰스팜/홈카페 기기 선택시 추가되는 정기배송 패키지의 목록 및 가격 조회*/
         SELECT DISTINCT T1.PD_NM AS CODE_NAME
              , T1.PD_CD AS CODE_ID
+             , '정기배송' AS PD_CLSF_NM
              , T1.PD_NM
              , T1.PD_CD
-             , T5.PD_PRP_VAL07 AS RGLR_SPP_CNTR_DV_CD /* 정기배송 계약기간 */
+             , T5.PD_PRP_VAL07 AS CNTR_PTRM /* 정기배송 계약기간 */
              , T5.PD_PRP_VAL13 AS RGLR_SPP_PRC_DV_CD  /* 정기배송 가격구분 */
+             , T5.PD_PRP_VAL15 AS RGLR_SPP_MCHN_TP_CD /* 정기배송 기기유형 */
              , T1.PDCT_UPRC_USE_YN                    /* 제품단가 사용여부 Y-자유선택 N-일반패키지*/
-             , T6.FNL_VAL
+             , T6.FNL_VAL AS FNL_AMT
+             , T1.SELL_TP_CD
+             , T1.SELL_TP_DTL_CD
+             , T1.PD_HCLSF_ID
+             , T1.PD_MCLSF_ID
+             , T1.PD_LCLSF_ID
+             , T1.PD_DCLSF_ID
+             , T1.CRNCY_DV_CD
+             , T6.PD_PRC_FNL_PRP_VAL01 AS ACKMT_PERF_RT
+             , T6.ACKMT_AMT AS ACKMT_PERF_AMT
+             , 1 AS PD_QTY
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
           FROM TB_PDBS_PD_BAS T1
          INNER JOIN TB_PDBS_PD_REL T2
             ON T2.OJ_PD_CD = T1.PD_CD
@@ -823,12 +949,25 @@
          UNION ALL
         SELECT DISTINCT T1.PD_NM AS CODE_NAME
              , T1.PD_CD AS CODE_ID
+             , '정기배송' AS PD_CLSF_NM
              , T1.PD_NM
              , T1.PD_CD
-             , T5.PD_PRP_VAL07 AS RGLR_SPP_CNTR_DV_CD /* 정기배송 계약기간 */
+             , T5.PD_PRP_VAL07 AS CNTR_PTRM /* 정기배송 계약기간 */
              , T5.PD_PRP_VAL13 AS RGLR_SPP_PRC_DV_CD  /* 정기배송 가격구분 */
+             , T5.PD_PRP_VAL15 AS RGLR_SPP_MCHN_TP_CD /* 정기배송 기기유형 */
              , T1.PDCT_UPRC_USE_YN                    /* 제품단가 사용여부 Y-자유선택 N-일반패키지*/
-             , T6.FNL_VAL
+             , T6.FNL_VAL AS FNL_AMT
+             , T1.SELL_TP_CD
+             , T1.SELL_TP_DTL_CD
+             , T1.PD_HCLSF_ID
+             , T1.PD_MCLSF_ID
+             , T1.PD_LCLSF_ID
+             , T1.PD_DCLSF_ID
+             , T1.CRNCY_DV_CD
+             , T6.PD_PRC_FNL_PRP_VAL01 AS ACKMT_PERF_RT
+             , T6.ACKMT_AMT AS ACKMT_PERF_AMT
+             , 1 AS PD_QTY
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
         FROM TB_PDBS_PD_BAS T1
          INNER JOIN TB_PDBS_PD_REL T2
             ON T2.OJ_PD_CD = T1.PD_CD
@@ -856,19 +995,18 @@
              , T1.PRD_MM_VAL
              , T1.VST_DV_CD
              , T1.PART_PD_CD
-             , T2.PART_USE_QTY
+             , T3.ITM_QTY
+             , T3.PD_REL_ID
+             , T3.PD_REL_TP_CD
           FROM TB_PDBS_LVLH_CSTMW_FILT_BAS T1
          INNER JOIN TB_PDBS_PD_BAS PB
             ON T1.PART_PD_CD = PB.PD_CD
            AND PB.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_RGBS_WK_BASE_BAS T2
-            ON T2.SV_PD_CD = T1.SV_PD_CD
-           AND T2.PDCT_PD_CD = T1.PDCT_PD_CD
-           AND T2.DTL_SN = (SELECT MAX(T3.DTL_SN)
-                              FROM TB_PDBS_RGBS_WK_BASE_BAS T3
-                             WHERE 1=1
-                               AND T3.SV_PD_CD = T2.SV_PD_CD
-                               AND T3.PDCT_PD_CD = T2.PDCT_PD_CD)
+         INNER JOIN TB_PDBS_PD_REL T3
+            ON T3.OJ_PD_CD = PB.PD_CD
+           AND T3.BASE_PD_CD = #{pdCd}
+           AND T3.PD_REL_TP_CD = '05' /* 20230704 21로 바뀔 수 있음 */
+           AND T3.VL_END_DTM = '99991231235959'
          WHERE 1=1
            AND T1.SV_PD_CD = (SELECT PD_CD
                                 FROM TB_PDBS_PD_BAS T4
@@ -884,6 +1022,12 @@
                                   FROM TB_PDBS_PD_REL
                                  WHERE BASE_PD_CD = T1.SV_PD_CD
                                  FETCH FIRST 1 ROWS ONLY)
+        <if test='@MybatisUtils@isList(parts)'>
+           AND T1.PART_PD_CD
+            <foreach collection="parts" item="part" separator="," open="IN (" close=")">
+                #{part}
+            </foreach>
+        </if>
     </select>
 
     <!-- STEP2 저장 -->
@@ -1320,6 +1464,47 @@
              , #{istAkArtcMoCn}
              , #{sconCn}
              <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrRelStep2">
+        <selectKey keyProperty="item.cntrRelId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_REL (  /* 계약관계 */
+              CNTR_REL_ID      /* 계약관계ID */
+            , VL_STRT_DTM      /* 유효시작일시 */
+            , VL_END_DTM       /* 유효종료일시 */
+            , CNTR_UNIT_TP_CD  /* 계약단위유형코드 */
+            , CNTR_REL_TP_CD   /* 계약관계유형코드 */
+            , CNTR_REL_DTL_CD  /* 계약관계상세코드 */
+            , BASE_CNTR_NO     /* 기준계약번호 */
+            , OJ_CNTR_NO       /* 대상계약번호 */
+            , BASE_DTL_CNTR_NO /* 기준상세계약번호 */
+            , BASE_DTL_CNTR_SN /* 기준상세계약일련번호 */
+            , OJ_DTL_CNTR_NO   /* 대상상세계약번호 */
+            , OJ_DTL_CNTR_SN   /* 대상상세계약일련번호 */
+            , CNTR_CST_GRP_ID  /* 계약고객그룹ID */
+            , CNTR_REL_DTL_CN  /* 계약관계상세내용 */
+            , OTSD_LK_DRM_VAL  /* 외부연계식별값 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.cntrRelId}
+            , #{item.vlStrtDtm}
+            , #{item.vlEndDtm}
+            , #{item.cntrUnitTpCd}
+            , #{item.cntrRelTpCd}
+            , #{item.cntrRelDtlCd}
+            , #{item.baseCntrNo}
+            , #{item.ojCntrNo}
+            , #{item.baseDtlCntrNo}
+            , #{item.baseDtlCntrSn}
+            , #{item.ojDtlCntrNo}
+            , #{item.ojDtlCntrSn}
+            , #{item.cntrCstGrpId}
+            , #{item.cntrRelDtlCn}
+            , #{item.otsdLkDrmVal}
+            <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
     <delete id="deleteCntrDtlStep2">

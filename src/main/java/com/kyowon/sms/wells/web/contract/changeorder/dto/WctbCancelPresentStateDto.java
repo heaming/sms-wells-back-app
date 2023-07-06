@@ -31,7 +31,9 @@ public class WctbCancelPresentStateDto {
         String reqdDiv, // 철거구
         String wellsFarmCancelDiv, // 웰스팜취소구분
         String pdHclsfId, // 상품대분류
-        String pdMclsfId // 상품중분류
+        String pdMclsfId, // 상품중분류
+        String omssnDiv,
+        String partDiv
     ) {}
 
     // *********************************************************
@@ -111,10 +113,44 @@ public class WctbCancelPresentStateDto {
     // Single payment - Result Dto
     // *********************************************************
     // Single payment 취소현황 Search Result Dto
-    @ApiModel("WctbCancelPresentStateDto-SearchSinglePayRes")
-    public record SearchSinglePayRes(
-        String cntrNo,
-        String cntrSn
+    @ApiModel("WctbCancelPresentStateDto-SearchSinglePaymentRes")
+    public record SearchSinglePaymentRes(
+        String cntrNo, // 계약번호
+        String cntrSn, // 계약일련번호
+        String ogNm, // 소속구분명
+        String cntrCstKnm, // 고객명
+        String ogCd, //  조직코드
+        String sellPrtnrNo, // 판매자사번
+        String prtnrKnm, // 판매자명
+        String alncmpNm, // 제휴회사
+        String sellEvCd, // 행사코드
+        String sellEvNm, // 행사명
+        String basePdCd, // 상품코드
+        String pdNm, // 상품명
+        String cntrCnfmDt, // 계약일자
+        String istDt, // 설치일자
+        String cntrPdEnddt, // 원장
+        String pdChDt, // 상변
+        String slChDt, // 매변
+        String reqdAkDt, // 철거요청일
+        String reqdDt, // 철거완료일
+        String reqdPsicId, // 철거담당자
+        String prsGbn, // 처리구분
+        String cntrTam, // 총판매금
+        String cntrAmt, // 청약금
+        String crpUcAmt, // 법인미수금
+        String cntrDpAmt, // 청약/인수 총입금
+        String cntrRfAmt, // 청약/인수 총환불
+        String cntrInsAmt, // 최종 할부총입금
+        String pdChPeriod, // 경과기간
+        String pdChPeriodRntf, // 손율
+        String pdChPeriodAmt, // 금액
+        String pdChRntfRplcDpAmt, // 대체입금
+        String pdChRntfAddDpAmt, // 추가입금
+        String pdChRntfDpAmt, // 손료입금
+        String npdRntfAmt, // 상변미납손료
+        String rntfRplcAmt, // 손료대체
+        String etcPrpdAmt // 기타선수
     ) {}
 
     // *********************************************************

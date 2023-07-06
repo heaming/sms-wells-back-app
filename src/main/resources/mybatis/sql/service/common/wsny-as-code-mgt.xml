@@ -16,18 +16,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyAsCodeMgtMapper">
     <select id="selectAsCodes" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo">
-        SELECT A.SV_TP_CD                                                           AS SV_TP_CD        /*서비스유형코드*/
-             , A.AS_LCT_CD                                                          AS AS_LCT_CD       /*AS위치코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', A.AS_LCT_CD, 'ko')             AS AS_LCT_NM       /*AS위치코드*/
-             , A.AS_PHN_CD                                                          AS AS_PHN_CD       /*AS현상코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', A.AS_PHN_CD, 'ko')             AS AS_PHN_NM       /*AS현상코드*/
-             , A.AS_CAUS_CD                                                         AS AS_CAUS_CD      /*AS원인코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', A.AS_CAUS_CD, 'ko')           AS AS_CAUS_NM      /*AS원인코드*/
-             , A.SITE_AW_ATC_CD                                                     AS SITE_AW_ATC_CD  /*현장수당항목코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', A.SITE_AW_ATC_CD, 'ko')   AS SITE_AW_ATC_NM  /*현장수당항목코드*/
-             , A.SV_ANA_HCLSF_CD                                                    AS SV_ANA_HCLSF_CD /*서비스분석대분류코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', A.SV_ANA_HCLSF_CD, 'ko') AS SV_ANA_HCLSF_NM /*서비스분석대분류코드*/
-             , B.FULEY_AW_AMT                                                       AS FULEY_AW_AMT    /*정직원수당금액*/
+        SELECT /*+ USE_NL(A B) INDEX(A (SV_TP_CD , AS_LCT_CD , AS_PHN_CD , AS_CAUS_CD)) */		--★★★ 힌트 추가!!!
+               A.SV_TP_CD                                                           				   AS SV_TP_CD        /*서비스유형코드*/
+             , A.AS_LCT_CD                                                          				   AS AS_LCT_CD       /*AS위치코드*/
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', A.AS_LCT_CD, 'ko') FROM DUAL)             AS AS_LCT_NM       /*AS위치코드*/  	--★★★ SQL 수정!!!
+             , A.AS_PHN_CD                                                          				   AS AS_PHN_CD       /*AS현상코드*/
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', A.AS_PHN_CD, 'ko') FROM DUAL)             AS AS_PHN_NM       /*AS현상코드*/	--★★★ SQL 수정!!!
+             , A.AS_CAUS_CD                                                         				   AS AS_CAUS_CD      /*AS원인코드*/
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', A.AS_CAUS_CD, 'ko') FROM DUAL)           AS AS_CAUS_NM      /*AS원인코드*/	--★★★ SQL 수정!!!
+             , A.SITE_AW_ATC_CD                                                     				   AS SITE_AW_ATC_CD  /*현장수당항목코드*/
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', A.SITE_AW_ATC_CD, 'ko') FROM DUAL)   AS SITE_AW_ATC_NM  /*현장수당항목코드*/		--★★★ SQL 수정!!!
+             , A.SV_ANA_HCLSF_CD                                                    				   AS SV_ANA_HCLSF_CD /*서비스분석대분류코드*/
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', A.SV_ANA_HCLSF_CD, 'ko') FROM DUAL) AS SV_ANA_HCLSF_NM /*서비스분석대분류코드*/	--★★★ SQL 수정!!!
+             , B.FULEY_AW_AMT                                                       			       AS FULEY_AW_AMT    /*정직원수당금액*/
           FROM TB_SVPD_AS_TP_CD A
           LEFT OUTER JOIN TB_FEAM_SITE_AW_DSB_BASE_BAS B
             ON A.SITE_AW_ATC_CD = B.SITE_AW_ATC_CD
@@ -35,25 +36,25 @@
            AND A.PD_GRP_CD = B.PD_GRP_CD
            AND A.SV_TP_CD = B.SV_TP_CD
          WHERE 1=1
-         <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
            AND A.PD_GRP_CD = #{pdGrpCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(pdCd)'>
            AND A.PD_CD = #{pdCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
            AND A.SV_TP_CD = #{svTpCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(asLctCd)'>
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(asLctCd)'>
            AND A.AS_LCT_CD = #{asLctCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(apyChk) and apyChk != "0" '>
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(apyChk) and apyChk != "0" '>
            AND A.APY_STRTDT &lt;= ${applyDate}
            AND A.APY_ENDDT &gt;= ${applyDate}
            AND B.APY_STRTDT &lt;= ${applyDate}
            AND B.APY_ENDDT &gt;= ${applyDate}
-         </if>
-         ORDER BY SV_TP_CD , AS_LCT_CD , AS_PHN_CD , AS_CAUS_CD
+           </if>
+        ORDER BY SV_TP_CD , AS_LCT_CD , AS_PHN_CD , AS_CAUS_CD
     </select>
 
     <update id="saveAsCode">

@@ -30,6 +30,8 @@ public class WfebMutualAidFeeMgtController {
         @ApiImplicitParam(name = "strtDt", value = "계약시작일자", paramType = "query"),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
         @ApiImplicitParam(name = "pdCd", value = "상품명", paramType = "query"),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query"),
+        @ApiImplicitParam(name = "clasfctnFee", value = "수수료구분", paramType = "query"),
     })
     @GetMapping("/individual")
     public List<AidIndividual> getMutualAidIndividual(@Valid SearchAidReq req) throws Exception {
@@ -41,7 +43,9 @@ public class WfebMutualAidFeeMgtController {
         @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "strtDt", value = "계약시작일자", paramType = "query"),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "pdCd", value = "상품명", paramType = "query")
+        @ApiImplicitParam(name = "pdCd", value = "상품명", paramType = "query"),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query"),
+        @ApiImplicitParam(name = "clasfctnFee", value = "수수료구분", paramType = "query"),
     })
     @GetMapping("/group")
     public List<AidGroup> getMutualAidGroup(@Valid SearchAidReq req) throws Exception {
@@ -52,6 +56,12 @@ public class WfebMutualAidFeeMgtController {
     @PostMapping("/create")
     public SaveResponse createMutualAid(@RequestBody @Valid CreateAidReq req) throws Exception {
         return SaveResponse.builder().processCount(service.createMutualAid(req)).build();
+    }
+
+    @ApiOperation(value = "상조 수수료 - 되물림 생성", notes = "상조 수수료 해당일자로 되물림을 생성한다.")
+    @PostMapping("/create-redf")
+    public SaveResponse createRedfMutualAid(@RequestBody @Valid CreateAidReq req) throws Exception {
+        return SaveResponse.builder().processCount(service.createRedfMutualAid(req)).build();
     }
 
     @ApiOperation(value = "상조 수수료 제휴주문 - 조회", notes = "상조 수수료 제휴주문을 조회한다.")

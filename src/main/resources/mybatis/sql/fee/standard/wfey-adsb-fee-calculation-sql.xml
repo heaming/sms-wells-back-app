@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyAdsbFeeCalculationSqlMapper">
+    <insert id="insertAgainDisbursementFees">
+        INSERT INTO TB_FEAM_FEE_CALC_CNTR_DTL_IZ (  /* 수수료계산계약상세내역 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+             , CNTR_NO            /* 계약번호 */
+             , CNTR_SN            /* 계약일련번호 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+        <include refid="COMMON.insertSystemField" />)
+        SELECT T02.REDF_ADSB_OC_YM AS BASE_YM
+             , T02.REDF_ADSB_OC_YM AS PERF_YM
+             , T02.REDF_ADSB_OC_YM AS OJ_DSB_YM
+             , T02.CO_CD
+             , T02.OG_TP_CD
+             , T02.PRTNR_NO
+             , #{feeCd} AS FEE_CD
+             , #{dtaCrtFeeCd} AS DTA_CRT_FEE_CD
+             , '01' AS SPMT_DSB_DV_CD
+             , '01' AS FEE_CALC_TP_CD /* 수수료계산 */
+             , T02.CNTR_NO
+             , T02.CNTR_SN
+             , SUM(T02.REDF_ADSB_CTR_CNFM_AMT) AS FEE_CALC_AMT
+             , SUM(T02.REDF_ADSB_CTR_CNFM_AMT) AS FEE_CTR_CNFM_AMT
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_OGBS_MM_PRTNR_IZ T01
+               INNER JOIN TB_FEDD_FEE_REDF_ADSB_DTL T02
+               ON(T01.BASE_YM = T02.REDF_ADSB_OC_YM AND T01.OG_TP_CD = T02.OG_TP_CD AND T01.PRTNR_NO = T02.PRTNR_NO AND T02.CO_CD = #{coCd})
+         WHERE T02.REDF_ADSB_OC_YM = #{baseYm}
+           AND T02.REDF_ADSB_DV_CD = '03'
+           AND ${feeOjExrCndtCn}
+        GROUP BY T02.REDF_ADSB_OC_YM
+               , T02.REDF_ADSB_OC_YM
+               , T02.REDF_ADSB_OC_YM
+               , T02.CO_CD
+               , T02.OG_TP_CD
+               , T02.PRTNR_NO
+               , T02.CNTR_NO
+               , T02.CNTR_SN
+    </insert>
+</mapper>

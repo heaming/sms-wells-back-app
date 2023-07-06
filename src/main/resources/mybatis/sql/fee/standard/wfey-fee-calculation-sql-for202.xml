@@ -1,0 +1,92 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyFeeCalculationSqlFor202Mapper">
+
+    <update id='insertOrganizationEjectFee'>
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
+                                                  BASE_YM            /* 기준년월 */
+                                                , PERF_YM            /* 실적년월 */
+                                                , OJ_DSB_YM          /* 대상지급년월 */
+                                                , CO_CD              /* 회사코드 */
+                                                , OG_TP_CD           /* 조직유형코드 */
+                                                , PRTNR_NO           /* 파트너번호 */
+                                                , FEE_CD             /* 수수료코드 */
+                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+                                                , FEE_CALC_AMT       /* 수수료계산금액 */
+                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                                                <include refid="COMMON.insertSystemField" />)
+        SELECT AA.BASE_YM
+             , AA.BASE_YM         AS PERF_YM
+             , AA.BASE_YM         AS OJ_DSB_YM
+             , #{coCd}             AS CO_CD
+             , AA.OG_TP_CD
+             , AA.PRTNR_NO
+             , #{feeCd}          AS FEE_CD
+             , #{dtaCrtFeeCd}          AS DTA_CRT_FEE_CD
+             , AA.FEE_TCNT_DV_CD
+             , '01'               AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
+             , '01'               AS FEE_CALC_TP_CD -- 01 / 수수료계산
+             , SUM(AA.AMT_AKSD09) AS FEE_CALC_AMT
+             , SUM(AA.AMT_AKSD09) AS FEE_CTR_CNFM_AMT
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM (SELECT A.BASE_YM
+                     , #{feeTcntDvCd}                             AS FEE_TCNT_DV_CD      -- 수수료차수(변수)
+                     , A.OG_TP_CD
+                     , A.PRTNR_NO
+                     , NVL(B.PERF_VAL, 0)               AS CNT_DEQ00           -- 인정건수
+                     , NVL(C.BASE_PRTNR_NO, ' ')                               -- 배출자사번
+                     , NVL(C.OJ_PRTNR_PSTN_DV_CD, '99') AS OJ_PRTNR_PSTN_DV_CD -- 피배출자 직급
+                     , NVL(C.EJT_NMN_N, 99)             AS EJT_NMN_N           -- 피배출자 차월수
+                     , NVL(C.OG_EJT_GD_CD, '99')        AS OG_EJT_GD_CD        -- 배출등급   1,6 : 신규    4,7 : 경력
+                     , CASE
+                           WHEN NVL(C.OJ_PRTNR_PSTN_DV_CD, '99') IN ('6', '7') THEN ( -- 피배출자 직급이 6,7인 경우만 집계
+                               CASE
+                                   WHEN NVL(C.OG_EJT_GD_CD, '99') IN ('1', '6') THEN ( -- 배출등급 신규
+                                       CASE
+                                           WHEN NVL(C.EJT_NMN_N, 99) = 1 AND NVL(B.PERF_VAL, 0) >= 30 THEN 1000000 -- 1차월
+                                           WHEN NVL(C.EJT_NMN_N, 99) = 1 AND NVL(B.PERF_VAL, 0) >= 20 THEN 800000
+                                           WHEN NVL(C.EJT_NMN_N, 99) = 2 AND NVL(B.PERF_VAL, 0) >= 30 THEN 800000 -- 2차월
+                                           WHEN NVL(C.EJT_NMN_N, 99) = 2 AND NVL(B.PERF_VAL, 0) >= 20 THEN 600000
+                                           WHEN NVL(C.EJT_NMN_N, 99) = 3 AND NVL(B.PERF_VAL, 0) >= 30 THEN 700000 -- 3차월
+                                           WHEN NVL(C.EJT_NMN_N, 99) = 3 AND NVL(B.PERF_VAL, 0) >= 20 THEN 500000
+                                           WHEN NVL(C.EJT_NMN_N, 99) IN (4, 5, 6) AND NVL(B.PERF_VAL, 0) >= 30
+                                               THEN 500000 -- 4,5,6차월
+                                           WHEN NVL(C.EJT_NMN_N, 99) IN (4, 5, 6) AND NVL(B.PERF_VAL, 0) >= 20 THEN 300000
+                                           ELSE 0 END)
+                                   WHEN NVL(C.OG_EJT_GD_CD, '99') IN ('4', '7') THEN ( -- 배출등급 경력
+                                       CASE
+                                           WHEN NVL(C.EJT_NMN_N, 99) IN (1, 2, 3, 4, 5, 6) AND NVL(B.PERF_VAL, 0) >= 30
+                                               THEN 500000
+                                           WHEN NVL(C.EJT_NMN_N, 99) IN (1, 2, 3, 4, 5, 6) AND NVL(B.PERF_VAL, 0) >= 20
+                                               THEN 300000
+                                           ELSE 0 END)
+                                   ELSE 0 END)
+                           ELSE 0 END                   AS AMT_AKSD09
+                  FROM TB_OGBS_MM_PRTNR_IZ A -- 파트너
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B -- 순주문실적
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.BASE_YM = B.PERF_YM
+                                           AND '02' = B.FEE_TCNT_DV_CD -- 수수료차수(변수)
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND 'W02P00002' = B.PERF_ATC_CD --  실적건수(고정)
+                                           AND '2' = B.PERF_DV_CD -- 지점장 집계
+                       LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL C -- 배출-조직
+                                       ON A.BASE_YM = C.MNGT_YM
+                                           AND A.OG_TP_CD = C.BASE_OG_TP_CD
+                                           AND A.PRTNR_NO = C.BASE_PRTNR_NO
+                                           AND '10' = C.OG_EJT_DV_CD -- 피배출자
+                                           AND 'Y' = C.ACKMT_YN -- 인정여부
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.PSTN_DV_CD = 7) AA
+         GROUP BY AA.BASE_YM
+                , AA.OG_TP_CD
+                , AA.PRTNR_NO
+                , AA.FEE_TCNT_DV_CD
+        HAVING SUM(AA.AMT_AKSD09) > 0
+    </update>
+</mapper>

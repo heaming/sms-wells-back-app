@@ -15,6 +15,7 @@ public class WdcdSecuritiesExceptionDvo {
     private String opcsCardUseIzId;    /*운영비카드사용내역ID*/
     private String useDtm;                  /*사용일시*/
     private String dgr1LevlOgId;        /*(hidden)총괄단조직ID*/
+    private String dgr2LevlOgId;        /*(hidden)지역단조직ID*/
     private String dgr1LevlOgNm;        /*총괄단명*/
     @DBEncField
     @DBDecField
@@ -31,4 +32,5 @@ public class WdcdSecuritiesExceptionDvo {
     private String adjCls;            /*정산여부*/
     private String domTrdAmt;
     private String adjOgId;
+    private String domTrdAmt1;
 }

@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcActivityMapper">
+    <select
+        id="searchMonthlyActivitiesS"
+        resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchMonthlyActivityRes">
+        WITH LC5910P AS (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , SL_DT
+                 , CAN_DT
+                 , LCCN01
+                 , LCCN11
+                 , LCCN31
+                 , LCCN32
+                 , LCCN33
+                 , LCCN34
+                 , LCCN35
+                 , LCCN42
+                 , LCCN43
+                 , LCCN44
+                 , LCCN47
+                 , LCCN49
+              FROM (
+                SELECT B.BASE_YM
+                     , B.PRTNR_NO
+                     , A.SL_DT
+                     , A.CAN_DT
+                     , B.PERF_ATC_CD
+                     , B.PERF_VAL
+                  FROM TB_FEAM_WELS_NRCTR_MM_CL A
+                 INNER JOIN TB_FEAM_NTORP_CNTR_MM_CL B
+                    ON B.BASE_YM = A.BASE_YM
+                   AND B.PERF_YM = A.PERF_YM
+                   AND B.CNTR_NO = A.CNTR_NO
+                   AND B.CNTR_SN = A.CNTR_SN
+                   AND B.CNTR_PERF_CRT_DV_CD = A.CNTR_PERF_CRT_DV_CD
+                 WHERE 1 = 1
+                   AND B.BASE_YM = #{ baseYm }
+                   AND B.PERF_YM = #{ baseYm }
+                   AND B.FEE_TCNT_DV_CD = '02'       --2차가 메인
+                   AND B.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문  LCESTM  = '1' 인 경우
+                   AND B.OG_TP_CD = #{ogTpCd}   -- wells M조직....LCSALE  = 7  이면, M조직
+                   AND B.PERF_ATC_CD  IN ('W00P00037','W00P00043','W00P00012','W00P00014','W00P00015','W00P00013','W00P00016','W00P00018','W00P00019','W00P00017','W00P00057','W00P00036')
+                 )
+                PIVOT ( SUM(PERF_VAL)   FOR  PERF_ATC_CD IN ('W00P00037' AS LCCN01,'W00P00043' AS LCCN11,'W00P00012' AS LCCN31,'W00P00014' AS LCCN32,'W00P00015' AS LCCN33,'W00P00013' AS LCCN34,
+                                                             'W00P00016' AS LCCN35,'W00P00018' AS LCCN42,'W00P00019' AS LCCN43,'W00P00017' AS LCCN44,'W00P00057' AS LCCN47,'W00P00036' AS LCCN49) )
+        ),
+        LC5910P2 AS (
+            SELECT PRTNR_NO
+                 , LCCN01
+                 , LCCN11
+                 , LCCN31
+                 , LCCN34
+                 , LCCN35
+                 , LCCN44
+              FROM (
+                SELECT B.PRTNR_NO
+                     , B.PERF_ATC_CD
+                     , B.PERF_VAL
+                  FROM (SELECT *
+                          FROM TB_FEAM_WELS_NRCTR_MM_CL
+                         <![CDATA[
+                         WHERE SL_DT >= TO_CHAR(TRUNC(TO_DATE(#{baseYm},'YYYYMM'),'MM'),'YYYYMMDD')
+                           AND SL_DT <= TO_CHAR(TRUNC(LAST_DAY(TO_DATE(#{baseYm},'YYYYMM')))+1,'YYYYMMDD')
+                           AND BASE_YM >= NVL(CAN_DT, '0')) A
+                         ]]>
+                 INNER JOIN TB_FEAM_NTORP_CNTR_MM_CL B
+                    ON B.BASE_YM = A.BASE_YM
+                   AND B.PERF_YM = A.PERF_YM
+                   AND B.FEE_TCNT_DV_CD = A.FEE_TCNT_DV_CD
+                   AND B.CNTR_NO = A.CNTR_NO
+                   AND B.CNTR_SN = A.CNTR_SN
+                   AND B.CNTR_PERF_CRT_DV_CD = A.CNTR_PERF_CRT_DV_CD
+                 WHERE 1 = 1
+                   AND B.FEE_TCNT_DV_CD = '02'       --2차가 메인
+                   AND B.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문  LCESTM  = '1' 인 경우 -- 총주문에 대해서는 수수료파트에서 쿼리를 제공 못하는 중임. 추후에 문의하여야함.
+                   AND B.OG_TP_CD = #{ogTpCd}
+                   AND B.PERF_ATC_CD  IN ('W00P00037','W00P00043','W00P00012','W00P00013','W00P00016','W00P00017')
+            )
+            PIVOT ( SUM(PERF_VAL)   FOR  PERF_ATC_CD IN ('W00P00037' AS LCCN01,'W00P00043' AS LCCN11,'W00P00012' AS LCCN31,'W00P00013' AS LCCN34,'W00P00016' AS LCCN35,'W00P00017' AS LCCN44) )
+        )
+        SELECT M.BASE_YM 								-- 관리년월 			AKDDYM
+             , O.OG_CD								-- 소속 				AKDDPT
+             , M.PRTNR_KNM							-- 성명 				AKDNAM
+             , M.PRTNR_NO 							-- 번호 				AKDCDE
+             , M.PSTN_DV_CD 							-- 직급 				AKDRNK
+             , O.BLD_CD 								-- 빌딩코드 			AKDBLD
+             , O.BLD_NM 								-- 빌딩명 			AKDBNA
+             , M.CNTR_DT		                         -- 등록기준일자       	AKDSYM
+             , M.PRFMT_DT		                         -- 승급일자      		SEUSYM
+             , M.FNL_CLTN_DT											-- 최종해약일자      	AKDLYM
+             , O.DGR3_LEVL_DG_PRTNR_NO	AS HOO_PRTNR_NO											-- 지점장사번      	AKDBON
+             , F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', M.QLF_DV_CD) AS QLF_DV_CD					-- 자격 			AKETC7
+             , NVL(S1.LCCN47, 0) AS LCCN47														-- 웰스팜재약정    	LCCN47
+             , NVL(AB80.AKDEQ0, 0) AS AKCDQ0_SUNJU 												-- 순주문    		AKCDQ0_SUNJU
+             , NVL(S1.AKCDQ0, 0) AS AKCDQ0 														-- 접수전체       	AKCDQ0
+             , NVL(S1.AKCDQ0_SULCHI, 0) AS AKCDQ0_SULCHI 											-- 접수설치       	AKCDQ0_SULCHI
+             , NVL(AB80.AKDEQ1,0) AS AKCDQ1_SUNJU 												-- 순주문    		AKCDQ1_SUNJU
+             , NVL(S1.AKCDQ1, 0) AS AKCDQ1 														-- 접수전체       	AKCDQ1
+             , NVL(S1.AKCDQ1_SULCHI, 0) AS AKCDQ1_SULCHI  										-- 접수설치       	AKCDQ1_SULCHI
+             , NVL(S12.LCCN31, 0) + NVL(S12.LCCN34, 0) + NVL(S12.LCCN35, 0) + NVL(S12.LCCN44, 0) + NVL(S1.LCCN47, 0) AS LCCNT0 	-- 인정건수       	LCCNT0
+             , NVL(S12.LCCN01, 0) + NVL(S12.LCCN11, 0) AS LCCNT1														-- 전체건수       	LCCNT1
+             , NVL(S11.METG_PRSC_DC,0) AS METG_PRSC_DC 											-- 일수          	AKCUIL
+             , CASE WHEN NVL(S11.METG_PRSC_DC,0) >= 15 THEN 'Y' ELSE 'N' END AS METG_PRSC_DC_YN 	-- 인정여부 		CUILYN
+             , CASE WHEN S10.EDUC_CRSE_CRT_BASE_YM = M.BASE_YM THEN 'Y' ELSE 'N' END AS EDU11_YN 				-- 플래너스타트업	IS11EDU
+             , NVL(S6.EDUC_CPC_ACKMT_YN, 'N') AS EDU17_YN 										-- 수석플래너실전	IS17EDU
+             , CASE WHEN NVL(S7.LCCNT2, 0) + NVL(S7.LCCNT3, 0) > 0 THEN TO_CHAR(NVL(S7.LCCNT2, 0) + NVL(S7.LCCNT3, 0))
+                    ELSE '0'
+                END AS LCVCNT 																		-- B/S계정		LCVCNT
+             <![CDATA[
+             , CASE WHEN M.FNL_CLTN_DT IS NOT NULL AND M.FNL_CLTN_DT >= '20210101'
+                    THEN
+                    CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(M.FNL_CLTN_DT, 1, 6)||'01','YYYYMMDD'),3), 'YYYYMM') < SUBSTR(M.CNTR_DT,1,6)
+                         THEN 'N' ELSE 'Y' END
+                    ELSE 'N'
+                END AS FNL_CLTN_DT_YN																-- 3개월이내재등록  	LYM3YN
+             ]]>
+             , '' AS CHG_BASE_YM
+             , CASE WHEN S8.SEX_DV_CD IN ('1', '3') THEN '남자'
+                    WHEN S8.SEX_DV_CD IN ('2', '4') THEN '여자'
+                    ELSE '판별불가'
+                END AS SEX_DV_CD
+             , 0 AS PRTNR_EJT_CNT
+             , 0 AS AKCDQ0_PR
+             , 0 AS AKCDQ1_PR
+             , 0 AS GADCNT
+             , 0 AS SILCNT
+          FROM TB_OGBS_MM_PRTNR_IZ M
+         INNER JOIN TB_OGBS_MM_OG_IZ O
+            ON M.BASE_YM = O.BASE_YM
+           AND M.OG_ID = O.OG_ID
+          LEFT OUTER JOIN (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , SUM(LCCN31+LCCN34+LCCN35+LCCN44) AS AKCDQ0 		-- 인정건수
+                 , SUM(LCCN47) AS LCCN47 								-- WELLS팜 재약정건수
+                 , SUM(NVL(CASE WHEN SL_DT IS NOT NULL AND TO_NUMBER(SL_DT) > 0 AND (CAN_DT IS NULL OR TO_NUMBER(CAN_DT) = 0) THEN LCCN31+LCCN34+LCCN35+LCCN44 END ,0)) AS AKCDQ0_SULCHI
+                 , SUM(LCCN01 + LCCN11) AS AKCDQ1						-- 전체 건수
+                 , SUM(NVL(CASE WHEN SL_DT IS NOT NULL AND TO_NUMBER(SL_DT) > 0 AND (CAN_DT IS NULL OR TO_NUMBER(CAN_DT) = 0) THEN LCCN01 + LCCN11 END ,0)) AS AKCDQ1_SULCHI
+                 , SUM(NVL(CASE WHEN SUBSTR(SL_DT,1,6) = '202305' THEN LCCN31+LCCN34+LCCN35+LCCN44 END ,0)) AS LCCNT0		-- 당월 설치 건 (인정건수기준)
+                 , SUM(NVL(CASE WHEN SUBSTR(SL_DT,1,6) = '202305' THEN LCCN01 END ,0)) AS LCCNT1							-- 당월 설치 건 (전체건수기준)
+              FROM LC5910P
+             GROUP BY BASE_YM, PRTNR_NO
+          ) S1
+            ON M.PRTNR_NO = S1.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT EDUC_CRSE_CRT_BASE_YM
+                 , PRTNR_NO
+                 , OG_TP_CD
+                 , EDUC_CPC_ACKMT_YN
+              FROM TB_PSCA_MCPTN_EDUC_IZ
+             WHERE 1=1
+               AND EDUC_CRSE_CRT_BASE_YM = #{baseYm}							-- [검색조건 : 관리년월]
+               AND OG_TP_CD = #{ogTpCd}						-- [검색조건 : 조직유형]
+               AND EDUC_CRSE_NO = '17'
+               AND EDUC_CPC_ACKMT_YN = 'Y' 	-- 교육수료인정여부
+           ) S6
+            ON M.PRTNR_NO = S6.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , LCCNT2
+                 , LCCNT3
+              FROM (
+                SELECT BASE_YM
+                     , PRTNR_NO
+                     , PRTNR_SV_PERF_ATC_CD  	-- SV01999902 => 01 99 99 LCCNT2    //  SV01999903 => 01 99 99 LCCNT3
+                     , PERF_VAL
+                  FROM TB_FEAM_WPTN_SV_PERF_AGRG
+                 WHERE 1 = 1
+                   AND BASE_YM  = #{baseYm}
+                   AND CL_DV_CD = '02'        	--2차가 메인
+                   AND OG_TP_CD = #{ogTpCd}
+                   AND PRTNR_SV_PERF_ATC_CD IN ('SV01999902','SV01999903')
+              )
+            PIVOT(SUM(PERF_VAL) FOR PRTNR_SV_PERF_ATC_CD IN ('SV01999902' AS LCCNT2, 'SV01999903' AS LCCNT3))
+           ) S7
+            ON M.PRTNR_NO = S7.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS S8
+            ON M.OG_TP_CD = S8.OG_TP_CD
+           AND M.PRTNR_NO = S8.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT EDUC_CRSE_CRT_BASE_YM
+                 , PRTNR_NO
+                 , OG_TP_CD
+              FROM TB_PSCA_MCPTN_EDUC_IZ
+             WHERE 1=1
+               AND EDUC_CRSE_CRT_BASE_YM = #{baseYm}							-- [검색조건 : 관리년월]
+               AND OG_TP_CD = #{ogTpCd}							-- [검색조건 : 조직유형] / 2:P영업조직, 7:M영업조직
+               AND EDUC_CRSE_NO = '11'
+               AND EDUC_CPC_ACKMT_YN = 'Y' 	-- 교육수료인정여부
+           ) S10
+            ON M.PRTNR_NO = S10.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT PRTNR_NO
+                 , CASE WHEN METG_PRSC_DC >= 15 THEN METG_PRSC_DC
+                        WHEN LDSTC_METG_PRSC_YN = 'Y' THEN 15
+                        ELSE METG_PRSC_DC
+                    END AS METG_PRSC_DC
+              FROM TB_PSCA_MCPTN_METG_AGRG
+             WHERE 1=1
+               AND AGRG_YM = #{baseYm}							-- [검색조건 : 관리년월]
+               AND OG_TP_CD = #{ogTpCd}							-- [검색조건 : 조직유형]
+            ) S11
+            ON M.PRTNR_NO = S11.PRTNR_NO
+          LEFT OUTER JOIN LC5910P2 S12
+            ON M.PRTNR_NO = S12.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , AKDEQ0
+                 , AKDEQ1
+            FROM (
+                SELECT BASE_YM
+                     , PRTNR_NO
+                     , PERF_ATC_CD  -- W02P00002 = AKDEQ0  // W00P00036 =  AKDEQ1
+                     , PERF_VAL
+                  FROM TB_FEAM_NTORP_PERF_MM_CL B
+                 WHERE 1=1
+                   AND B.BASE_YM =#{baseYm}  -- 변수
+                   AND B.PERF_YM =#{baseYm}  -- 변수
+                   AND B.FEE_TCNT_DV_CD = '02'       --2차가 메인
+                   AND B.PERF_DV_CD = '0'  -- 판매자 AKDFLG = '0'
+                   AND B.PERF_ATC_CD IN ('W02P00002','W00P00036')
+                )
+            PIVOT(SUM(PERF_VAL) FOR PERF_ATC_CD IN ('W02P00002' AS AKDEQ0, 'W00P00036' AS AKDEQ1))
+           ) AB80
+            ON M.PRTNR_NO = AB80.PRTNR_NO
+         WHERE 1=1
+           AND M.BASE_YM = #{baseYm}		-- [검색조건:관리년월]
+           AND M.OG_TP_CD = #{ogTpCd}			-- 웰스M
+           AND M.RSB_DV_CD = 'W0205'		-- 프리매니저
+           <if test='@MybatisUtils@isNotEmpty(qlfDvCd)'>
+           AND M.QLF_DV_CD = #{qlfDvCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd3}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd2}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isEmpty(ogLevlDvCd2) and @MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd1}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+    </select>
+
+    <select
+        id="searchMonthlyActivitiesE"
+        resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchMonthlyActivityRes">
+        WITH LC5910P AS (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , SL_DT
+                 , CAN_DT
+                 , LCCN01
+                 , LCCN11
+                 , LCCN31
+                 , LCCN32
+                 , LCCN33
+                 , LCCN34
+                 , LCCN35
+                 , LCCN42
+                 , LCCN43
+                 , LCCN44
+                 , LCCN47
+                 , LCCN49
+              FROM (
+                SELECT B.BASE_YM
+                     , B.PRTNR_NO
+                     , A.SL_DT
+                     , A.CAN_DT
+                     , B.PERF_ATC_CD
+                     , B.PERF_VAL
+                  FROM TB_FEAM_WELS_NRCTR_MM_CL A
+                 INNER JOIN TB_FEAM_NTORP_CNTR_MM_CL B
+                    ON B.BASE_YM              = A.BASE_YM
+                   AND B.PERF_YM              = A.PERF_YM
+                   AND B.FEE_TCNT_DV_CD       = A.FEE_TCNT_DV_CD
+                   AND B.CNTR_NO              = A.CNTR_NO
+                   AND B.CNTR_SN              = A.CNTR_SN
+                   AND B.CNTR_PERF_CRT_DV_CD  = A.CNTR_PERF_CRT_DV_CD
+                 WHERE 1 = 1
+                   AND B.BASE_YM = #{baseYm}
+                   AND B.PERF_YM = #{baseYm}
+                   AND B.FEE_TCNT_DV_CD = '02'       --2차가 메인
+                   AND B.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문  LCESTM  = '1' 인 경우
+                   AND B.OG_TP_CD = #{ogTpCd}   -- wells M조직....LCSALE  = 7  이면, M조직
+                   AND B.PERF_ATC_CD  IN ('W00P00037','W00P00043','W00P00012','W00P00014','W00P00015','W00P00013','W00P00016','W00P00018','W00P00019','W00P00017','W00P00057','W00P00036')
+                )
+            PIVOT ( SUM(PERF_VAL)   FOR  PERF_ATC_CD IN ('W00P00037' AS LCCN01,'W00P00043' AS LCCN11,'W00P00012' AS LCCN31,'W00P00014' AS LCCN32,'W00P00015' AS LCCN33,'W00P00013' AS LCCN34,'W00P00016' AS LCCN35,
+                                                         'W00P00018' AS LCCN42,'W00P00019' AS LCCN43,'W00P00017' AS LCCN44,'W00P00057' AS LCCN47,'W00P00036' AS LCCN49) )
+        )
+        SELECT M.BASE_YM 															-- 관리년월 			AKDDYM
+             , O.OG_CD															-- 소속 				AKDDPT
+             , M.PRTNR_KNM														-- 성명 				AKDNAM
+             , M.PRTNR_NO 														-- 번호 				AKDCDE
+             , M.PSTN_DV_CD 														-- 직급 				AKDRNK
+             , O.BLD_CD 															-- 빌딩코드 			AKDBLD
+             , O.BLD_NM 															-- 빌딩명 			AKDBNA
+             , M.PRFMT_DT               								        -- 승진년월 			AKDRYM
+             , O.DGR2_LEVL_DG_PRTNR_NO AS HOO_PRTNR_NO							-- 지점장사번       	AKDBON
+             , F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', M.QLF_DV_CD) AS QLF_DV_CD	-- 자격 				AKETC7
+             , NVL(S1.AKCDQ0, 0) AS AKCDQ0 										-- 인정건수			AKCDQ0
+             , NVL(S1.AKCDQ1, 0) AS AKCDQ1 										-- 전체건수     		AKCDQ1
+             , NVL(S1.LCCNT0, 0) AS LCCNT0 										-- 당월 설치 건(인정건수기준)	LCCNT0
+             , NVL(S1.LCCNT1, 0) AS LCCNT1 										-- 당월 설치 건(전체건수기준)	LCCNT1
+             , CASE WHEN S5.EDUC_CPC_ACKMT_YN = 'Y' THEN 'Y' ELSE 'N' END AS EDU17_YN	-- 수석플래너실전교육     IS17EDU
+             , CASE WHEN NVL(S6.LCCNT2, 0) + NVL(S6.LCCNT3, 0) > 0 THEN TO_CHAR(NVL(S6.LCCNT2, 0) + NVL(S6.LCCNT3, 0))
+                    ELSE '0'
+                END AS LCVCNT 														-- 웰스매니저완료B/S계정  LCVCNT
+             , CASE WHEN S8.SEX_DV_CD IN ('1', '3') THEN '남자'
+                    WHEN S8.SEX_DV_CD IN ('2', '4') THEN '여자'
+                    ELSE '판별불가'
+                END AS SEX_DV_CD
+             , '' AS CNTR_DT
+             , '' AS FNL_CLTN_DT
+             , 0 AS AKCDQ0_SUNJU
+             , 0 AS AKCDQ0_SULCHI
+             , 0 AS AKCDQ1_SUNJU
+             , 0 AS AKCDQ1_SULCHI
+             , 0 AS METG_PRSC_DC
+             , 'N' AS METG_PRSC_DC_YN
+             , 'N' AS EDU11_YN
+             , 'N' AS FNL_CLTN_DT_YN
+             , '' AS CHG_BASE_YM
+             , '' AS LCCN47
+             , 0 AS PRTNR_EJT_CNT
+             , 0 AS AKCDQ0_PR
+             , 0 AS AKCDQ1_PR
+             , 0 AS GADCNT
+             , 0 AS SILCNT
+          FROM TB_OGBS_MM_PRTNR_IZ M
+         INNER JOIN TB_OGBS_MM_OG_IZ O
+            ON M.BASE_YM = O.BASE_YM
+           AND M.OG_ID = O.OG_ID
+          LEFT OUTER JOIN (
+            SELECT PRTNR_NO
+                 , SUM(LCCN31+LCCN34+LCCN35+LCCN44) AS AKCDQ0 		-- 인정건수
+                 , SUM(LCCN01) AS AKCDQ1 								-- 전체 건수
+                 , SUM(NVL(CASE WHEN SUBSTR(SL_DT,1,6) = '202305' THEN LCCN31+LCCN34+LCCN35+LCCN44 END ,0)) AS LCCNT0		-- 당월 설치 건 (인정건수기준)
+                 , SUM(NVL(CASE WHEN SUBSTR(SL_DT,1,6) = '202305' THEN LCCN01 END ,0)) AS LCCNT1							-- 당월 설치 건 (전체건수기준)
+              FROM LC5910P
+             GROUP BY PRTNR_NO
+           ) S1
+            ON M.PRTNR_NO = S1.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT EDUC_CRSE_CRT_BASE_YM
+                 , PRTNR_NO
+                 , OG_TP_CD
+                 , EDUC_CPC_ACKMT_YN
+              FROM TB_PSCA_MCPTN_EDUC_IZ
+             WHERE 1=1
+               AND EDUC_CRSE_CRT_BASE_YM = #{baseYm}							-- [검색조건 : 관리년월]
+               AND OG_TP_CD = #{ogTpCd}						-- [검색조건 : 조직유형]
+               AND EDUC_CRSE_NO = '17'
+           ) S5
+            ON M.PRTNR_NO = S5.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , LCCNT2
+                 , LCCNT3
+              FROM (
+                SELECT BASE_YM
+                     , PRTNR_NO
+                     , PRTNR_SV_PERF_ATC_CD  	-- SV01999902 => 01 99 99 LCCNT2    //  SV01999903 => 01 99 99 LCCNT3
+                     , PERF_VAL
+                  FROM TB_FEAM_WPTN_SV_PERF_AGRG
+                 WHERE 1 = 1
+                   AND BASE_YM  = #{baseYm}						-- [검색조건 : 관리년월]
+                   AND CL_DV_CD = '02'        	--2차가 메인
+                   AND OG_TP_CD = #{ogTpCd}  		-- wells M조직
+                   AND PRTNR_SV_PERF_ATC_CD IN ('SV01999902','SV01999903')
+            )
+            PIVOT(SUM(PERF_VAL) FOR PRTNR_SV_PERF_ATC_CD IN ('SV01999902' AS LCCNT2, 'SV01999903' AS LCCNT3))
+           ) S6
+            ON M.PRTNR_NO = S6.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS S8
+            ON M.OG_TP_CD = S8.OG_TP_CD
+           AND M.PRTNR_NO = S8.PRTNR_NO
+         WHERE 1=1
+           AND M.BASE_YM = #{baseYm}	-- [검색조건:관리년월]
+           AND M.OG_TP_CD = #{ogTpCd}			-- 웰스M
+           AND M.RSB_DV_CD = 'W0204'		-- 지구장
+           <if test='@MybatisUtils@isNotEmpty(qlfDvCd)'>
+           AND M.QLF_DV_CD = #{qlfDvCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd3}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd2}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isEmpty(ogLevlDvCd2) and @MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd1}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+    </select>
+
+    <select
+        id="searchMonthlyActivitiesA"
+        resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchMonthlyActivityRes">
+        WITH LC5910P AS (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , SL_DT
+                 , CAN_DT
+                 , LCCN01
+                 , LCCN11
+                 , LCCN31
+                 , LCCN32
+                 , LCCN33
+                 , LCCN34
+                 , LCCN35
+                 , LCCN42
+                 , LCCN43
+                 , LCCN44
+                 , LCCN47
+                 , LCCN49
+              FROM (
+                SELECT B.BASE_YM
+                     , B.PRTNR_NO
+                     , A.SL_DT
+                     , A.CAN_DT
+                     , B.PERF_ATC_CD
+                     , B.PERF_VAL
+                  FROM TB_FEAM_WELS_NRCTR_MM_CL A
+                 INNER JOIN TB_FEAM_NTORP_CNTR_MM_CL B
+                    ON B.BASE_YM              = A.BASE_YM
+                   AND B.PERF_YM              = A.PERF_YM
+                   AND B.FEE_TCNT_DV_CD       = A.FEE_TCNT_DV_CD
+                   AND B.CNTR_NO              = A.CNTR_NO
+                   AND B.CNTR_SN              = A.CNTR_SN
+                   AND B.CNTR_PERF_CRT_DV_CD  = A.CNTR_PERF_CRT_DV_CD
+                 WHERE 1 = 1
+                   AND B.BASE_YM = #{baseYm}
+                   AND B.PERF_YM = #{baseYm}
+                   AND B.FEE_TCNT_DV_CD = '02'       --2차가 메인
+                   AND B.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문  LCESTM  = '1' 인 경우
+                   AND B.OG_TP_CD = #{ogTpCd}   -- wells M조직....LCSALE  = 7  이면, M조직
+                   AND B.PERF_ATC_CD  IN ('W00P00037','W00P00043','W00P00012','W00P00014','W00P00015','W00P00013','W00P00016','W00P00018','W00P00019','W00P00017','W00P00057','W00P00036')
+            )
+            PIVOT ( SUM(PERF_VAL)   FOR  PERF_ATC_CD IN ('W00P00037' AS LCCN01,'W00P00043' AS LCCN11,'W00P00012' AS LCCN31,'W00P00014' AS LCCN32,'W00P00015' AS LCCN33,'W00P00013' AS LCCN34,'W00P00016' AS LCCN35,
+                                                         'W00P00018' AS LCCN42,'W00P00019' AS LCCN43,'W00P00017' AS LCCN44,'W00P00057' AS LCCN47,'W00P00036' AS LCCN49) )
+        )
+        SELECT M.BASE_YM 								-- 관리년월		AKDDYM
+             , O.OG_CD								-- 소속			AKDDPT
+             , M.PRTNR_KNM							-- 성명			AKDNAM
+             , M.PRTNR_NO 							-- 번호			AKDCDE
+             , M.PSTN_DV_CD 							-- 직급			AKDRNK
+             , CASE WHEN S8.SEX_DV_CD IN ('1', '3') THEN '남자'
+                    WHEN S8.SEX_DV_CD IN ('2', '4') THEN '여자'
+                    ELSE '판별불가'
+                END AS SEX_DV_CD 						-- 성별           SEXGBN
+             , O.BLD_CD 								-- 빌딩코드		AKDBLD
+             , O.BLD_NM 								-- 빌딩명			AKDBNA
+             , M.PRFMT_DT                        		-- 승진일자		AKDRYM
+             , M.FST_CNTR_DT AS CNTR_DT					-- 최초등록년월  	AKDEYM
+             , NVL((
+                SELECT T.BASE_YM
+                  FROM TB_OGBS_MM_PRTNR_IZ T
+                 WHERE 1=1
+                   AND T.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(M.BASE_YM || '01', 'YYYYMMDD'), -1), 'YYYYMM')
+                   AND T.OG_TP_CD = M.OG_TP_CD
+                   AND T.PRTNR_NO = M.PRTNR_NO
+                   AND T.QLF_DV_CD != M.QLF_DV_CD
+                 ),'') AS CHG_BASE_YM 												-- 전월대비(직책전환월)   CHGDYM
+             , F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', M.QLF_DV_CD) AS QLF_DV_CD	-- 자격(직책구분)		AKETC7
+             , NVL((
+                 SELECT COUNT(OJ_PRTNR_NO) 	-- 피배출자(낮은분)
+                   FROM TB_OGPS_PRTNR_EJT_REL T
+                  WHERE 1=1
+                    AND T.MNGT_YM = M.BASE_YM
+                    AND T.OG_EJT_DV_CD = '10'	-- 배출코드 10이 맞나요?
+                    AND T.BASE_OG_TP_CD = M.OG_TP_CD
+                    AND T.BASE_PRTNR_NO = M.PRTNR_NO -- 배출자(높은분)
+                    AND T.ACKMT_YN = 'Y' 	-- 인정여부
+                 ),0) AS PRTNR_EJT_CNT 												-- 배출수(인정)  		BAECNT
+             , NVL((
+                SELECT T.METG_PRSC_DC
+                  FROM TB_PSCA_MCPTN_METG_AGRG T
+                 WHERE 1=1
+                   AND T.AGRG_YM 	= M.BASE_YM
+                   AND T.OG_TP_CD 	= M.OG_ID
+                   AND T.PRTNR_NO 	= M.PRTNR_NO
+                   AND T.METG_PTCP_ACKMT_YN = 'Y'
+                 ),0) AS METG_PRSC_DC 												-- 미팅참석일   		AKCUIL
+             , NVL(S1.LCCN47, 0) AS LCCN47										-- 웰스팜재약정  	LCCN47
+             , NVL(AB80.AKDEQ0, 0) AS AKCDQ0_SUNJU 								-- 순주문    		AKCDQ0_SUNJU
+             , NVL(S1.AKCDQ0, 0) AS AKCDQ0 										-- 접수전체   		AKCDQ0
+             , NVL(S1.AKCDQ0_SULCHI, 0) AS AKCDQ0_SULCHI							-- 접수설치    	AKCDQ0_SULCHI
+             , NVL(S9.AKCDQ0, 0) AS AKCDQ0_PR										-- 개인 접수전체	AKCDQ0_PR
+             , NVL(AB80.AKDEQ1,0) AS AKCDQ1_SUNJU 								-- 순주문			AKCDQ1_SUNJU
+             , NVL(S1.AKCDQ1, 0) AS AKCDQ1										-- 접수전체    	AKCDQ1
+             , NVL(S1.AKCDQ1_SULCHI, 0) AS AKCDQ1_SULCHI							-- 접수설치    	AKCDQ1_SULCHI
+             , NVL(S9.AKCDQ1, 0) AS AKCDQ1_PR 									-- 개인 접수전체	AKCDQ1_PR
+             , NVL(S1.GADCNT, 0) AS GADCNT										-- 가동인원    	GADCNT
+             , NVL(S1.SILCNT, 0) AS SILCNT										-- 실동인원    	SILCNT
+             , '' AS FNL_CLTN_DT
+             , '' AS HOO_PRTNR_NO
+             , 0 AS LCCNT0
+             , 0 AS LCCNT1
+             , 'N' AS METG_PRSC_DC_YN
+             , 'N' AS EDU11_YN
+             , 'N' AS EDU17_YN
+             , 0 AS LCVCNT
+             , 'N' AS FNL_CLTN_DT_YN
+          FROM TB_OGBS_MM_PRTNR_IZ M
+         INNER JOIN TB_OGBS_MM_OG_IZ O
+            ON M.BASE_YM = O.BASE_YM
+           AND M.OG_ID = O.OG_ID
+          LEFT OUTER JOIN (
+            SELECT O1.DGR2_LEVL_DG_PRTNR_NO
+                 , SUM(B1.AKCDQ0) AS AKCDQ0 						-- 인정건수
+                 , SUM(B1.LCCN47) AS LCCN47 						-- WELLS팜 재약정건수
+                 , SUM(B1.AKCDQ0_SULCHI) AS AKCDQ0_SULCHI 		-- 인정건수
+                 , SUM(B1.AKCDQ1) AS AKCDQ1 						-- 준주문집계건수
+                 , SUM(B1.AKCDQ1_SULCHI) AS AKCDQ1_SULCHI 		-- 준주문집계건수
+                 , SUM(CASE WHEN B1.AKCDQ1 >= 1 THEN 1 END) AS GADCNT  -- 가동인원(전체건수_접수전체)
+                 , SUM(CASE WHEN B1.AKCDQ0 >= 3 THEN 1 END) AS SILCNT  -- 실동인원(인정건수_접수전체)
+              FROM TB_OGBS_MM_PRTNR_IZ A1
+             INNER JOIN TB_OGBS_MM_OG_IZ O1
+                ON A1.BASE_YM = O1.BASE_YM
+               AND A1.OG_ID = O1.OG_ID
+             INNER JOIN (
+                SELECT BASE_YM
+                     , PRTNR_NO
+                     , SUM(LCCN31+LCCN34+LCCN35+LCCN44) AS AKCDQ0 		-- 인정건수
+                     , SUM(LCCN47) AS LCCN47 								-- WELLS팜 재약정건수
+                     , SUM(NVL(CASE WHEN SL_DT IS NOT NULL AND TO_NUMBER(SL_DT) > 0 AND (CAN_DT IS NULL OR TO_NUMBER(CAN_DT) = 0) THEN LCCN31+LCCN34+LCCN35+LCCN44 END ,0)) AS AKCDQ0_SULCHI
+                     , SUM(LCCN01 + LCCN11) AS AKCDQ1						-- 전체 건수
+                     , SUM(NVL(CASE WHEN SL_DT IS NOT NULL AND TO_NUMBER(SL_DT) > 0 AND (CAN_DT IS NULL OR TO_NUMBER(CAN_DT) = 0) THEN LCCN01 + LCCN11 END ,0)) AS AKCDQ1_SULCHI
+                  FROM LC5910P
+                 GROUP BY BASE_YM, PRTNR_NO
+                 ) B1
+                ON A1.PRTNR_NO = B1.PRTNR_NO
+             WHERE 1=1
+               AND A1.BASE_YM = #{baseYm}
+               AND A1.OG_TP_CD = #{ogTpCd}
+               AND TO_NUMBER(A1.PSTN_DV_CD) >= 5
+             GROUP BY DGR2_LEVL_DG_PRTNR_NO
+             ) S1
+            ON M.PRTNR_NO = S1.DGR2_LEVL_DG_PRTNR_NO	-- LV2 사람에게 연결함.
+          LEFT OUTER JOIN (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , SUM(LCCN31+LCCN34+LCCN35+LCCN44) AS AKCDQ0 		-- 인정건수
+                 , SUM(LCCN47) AS LCCN47 								-- WELLS팜 재약정건수
+                 , SUM(NVL(CASE WHEN SL_DT IS NOT NULL AND TO_NUMBER(SL_DT) > 0 AND (CAN_DT IS NULL OR TO_NUMBER(CAN_DT) = 0) THEN LCCN31+LCCN34+LCCN35+LCCN44 END ,0)) AS AKCDQ0_SULCHI
+                 , SUM(LCCN01 + LCCN11) AS AKCDQ1						-- 전체 건수
+                 , SUM(NVL(CASE WHEN SL_DT IS NOT NULL AND TO_NUMBER(SL_DT) > 0 AND (CAN_DT IS NULL OR TO_NUMBER(CAN_DT) = 0) THEN LCCN01 + LCCN11 END ,0)) AS AKCDQ1_SULCHI
+              FROM LC5910P
+             GROUP BY BASE_YM, PRTNR_NO
+            ) S9
+            ON M.PRTNR_NO = S9.PRTNR_NO
+          LEFT OUTER JOIN (
+            SELECT BASE_YM
+                 , PRTNR_NO
+                 , AKDEQ0
+                 , AKDEQ1
+              FROM (
+                SELECT BASE_YM
+                     , PRTNR_NO
+                     , PERF_ATC_CD  -- W02P00002 = AKDEQ0  // W00P00036 =  AKDEQ1
+                     , PERF_VAL
+                  FROM TB_FEAM_NTORP_PERF_MM_CL B
+                 WHERE 1=1
+                   AND B.BASE_YM = #{baseYm}
+                   AND B.PERF_YM = #{baseYm}
+                   AND B.FEE_TCNT_DV_CD = '02'       --2차가 메인
+                   AND B.PERF_DV_CD = '0'  -- 판매자 AKDFLG = '0'
+                   AND B.PERF_ATC_CD IN ('W02P00002','W00P00036')
+                )
+            PIVOT(SUM(PERF_VAL) FOR PERF_ATC_CD IN ('W02P00002' AS AKDEQ0, 'W00P00036' AS AKDEQ1))
+            ) AB80
+            ON M.PRTNR_NO = AB80.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS S8
+            ON M.OG_TP_CD = S8.OG_TP_CD
+           AND M.PRTNR_NO = S8.PRTNR_NO
+         WHERE 1=1
+           AND M.BASE_YM = #{baseYm}		-- [검색조건:관리년월]
+           AND M.OG_TP_CD = #{ogTpCd}			-- 웰스M
+           AND M.RSB_DV_CD = 'W0203'		-- 지점장 = LV2 사람들 리스트
+           <if test='@MybatisUtils@isNotEmpty(qlfDvCd)'>
+           AND M.QLF_DV_CD = #{qlfDvCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd3}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd2}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isEmpty(ogLevlDvCd2) and @MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+           AND M.OG_ID IN (SELECT T.OG_ID
+                             FROM (SELECT OG_ID, HGR_OG_ID
+                                     FROM TB_OGBS_MM_OG_IZ
+                                    WHERE BASE_YM = #{baseYm}) T
+                            START WITH T.OG_ID = #{ogLevlDvCd1}
+                         CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+    </select>
+
+    <select
+        id="searchAccureActivities"
+        resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchAccureActivityRes">
+    </select>
+
+</mapper>

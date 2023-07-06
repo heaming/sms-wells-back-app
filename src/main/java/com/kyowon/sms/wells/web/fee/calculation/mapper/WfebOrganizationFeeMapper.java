@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.fee.calculation.mapper;
 
+import java.util.HashMap;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebOrganizationFeeDvo;
@@ -54,4 +55,5 @@ public interface WfebOrganizationFeeMapper {
 
     int updateDsbCnstIz(WfebOrganizationFeeDvo dvo);
 
+    HashMap<String, String> selectHmstFeeFormDtl(String perfYm);
 }

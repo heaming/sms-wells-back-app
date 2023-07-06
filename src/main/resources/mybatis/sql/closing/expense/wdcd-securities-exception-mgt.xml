@@ -7,6 +7,7 @@
         SELECT A.OPCS_CARD_USE_IZ_ID    /*운영비카드사용내역ID*/
              , TO_CHAR(TO_DATE(A.APR_DT||A.APVTM_MS,'YYYYMMDDHH24MISS'),'YYYY-MM-DD AM HH24:MI') AS USE_DTM /*사용일시*/
              , C.DGR1_LEVL_OG_ID        /*(hidden)총괄단조직ID*/
+             , C.DGR2_LEVL_OG_ID        /*(hidden)지역단ID*/
              , C.DGR1_LEVL_OG_NM        /*총괄단명*/
              , A.CRCDNO_ENCR            /*카드번호*/
              , A.MRC_NM                 /*가맹점명*/
@@ -15,6 +16,7 @@
              , A.CARD_APRNO             /*카드승인번호*/
              , SUM(CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
                         ELSE A.DOM_TRD_AMT END) OVER() AS DOM_TRD_AMT    /*사용금액*/
+             , A.DOM_TRD_AMT AS DOM_TRD_AMT1
              , (CASE WHEN A.OPCS_ADJ_EXCD_YN = 'Y' THEN '정산제외' ELSE '정산' END) AS OPCS_ADJ_EXCD_YN   /*운영비정산제외여부*/
              , A.OPCS_ADJ_SMRY_DV_CD    /*운영비정산적요구분코드*/
              , (SELECT CD_CNTN
@@ -70,7 +72,9 @@
              3. 'Y'로 된 행에 대하여 사용금액 합계가 0이 되어야 함
         */
         UPDATE TB_CBCL_OPCS_CARD_USE_IZ /*T:운영비카드사용내역*/
-           SET OPCS_ADJ_EXCD_YN    = #{opcsAdjExcdYn}   /*정산제외여부*/
+           SET OPCS_ADJ_EXCD_YN    = (CASE WHEN #{opcsAdjExcdYn} = '정상' THEN 'Y'
+                                           ELSE 'N'
+                                           END) /*정산제외여부*/
              , OPCS_ADJ_SMRY_DV_CD = #{opcsAdjSmryDvCd} /*적요입력-구분*/
              , OJ_APY_CN = #{ojApyCn}                   /*적요입력-대상*/
              , USR_SMRY_CN = #{usrSmryCn}               /*적요입력-구매품목 및 사용내역*/

@@ -1,17 +1,65 @@
 package com.kyowon.sms.wells.web.contract.changeorder.dto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+import com.sds.sflex.system.config.validation.validator.ValidDate;
+
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WctbContractChangeMngtDto {
 
     @ApiModel(value = "WctbContractChangeMngtDto-SearchContractChangeReq")
     public record SearchContractChangeReq(
         String cntrNo, // 계약번호
-        int cntrSn, // 계약일련번호
+        String cntrSn, // 계약일련번호
         String sellTpCd, // 판매유형코드
         String cstKnm, // 계약자명
+
+        @ValidDate
+        @NotEmpty
         String cntrCnfmDtmFr, // 계약시작접수일자
+        @ValidDate
+        @NotEmpty
         String cntrCnfmDtmTo // 계약종료접수일자
+    ) {}
+
+    @ApiModel(value = "WctbContractChangeMngtDto-FindBeforeChangeCheckReq")
+    public record FindBeforeChangeCheckReq(
+
+        @NotBlank
+        String cntrNo, // 계약번호
+        @NotNull
+        int cntrSn, // 계약일련번호
+        String alncmpCd, // 제휴사코드
+        String mclsfRefPdClsfVal,
+        String sellTpDtlCd, // 판매유형상세코드
+        String sellTpCd, // 판매유형코드
+        String inDv, // 처리구분
+        String istDt, // 설치일자
+        String cntrCnfmDt, // 계약시작일자
+        String aprvDv // 승인구분
+    ) {}
+
+    @ApiModel(value = "WctbContractChangeMngtDto-SaveCancelReq")
+    public record SaveCancelReq(
+        @NotBlank
+        String cntrNo, // 계약번호
+        @NotNull
+        int cntrSn, // 계약일련번호
+        String cntrDtlNo, // 계약상세번호
+        String alncmpCd, // 제휴사코드
+        String mclsfRefPdClsfVal,
+        String sellTpDtlCd, // 판매유형상세코드
+        String sellTpCd, // 판매유형코드
+        String inDv, // 처리구분
+        String istDt, // 설치일자
+        String cntrCnfmDt, // 계약시작일자
+        String cstNo, // 고객번호
+        String cstKnm, // 고객명
+        String aprvDv // 승인구분
     ) {}
 
     // *********************************************************
@@ -26,6 +74,7 @@ public class WctbContractChangeMngtDto {
         /* 화면 표시 */
         String sellTpDtlNm, /* 판매유형사케코드명 (판매유형:lcTypeNm)*/
         String cstKnm, /* 계약자명 - 고객명(lc31.lccnam) */
+        String cstNo, /* 고객번호 */
         String bryyBzrno, /* 계약자정보 - 사업자번호(lccino) / 생년 */
         String copnDvCd, /* 법인격구분코드 (lccgub) 개인:1, 법인:2*/
         String copnDvNm, /* 법인격구분명 (lccgub) 개인:1, 법인:2*/
@@ -65,6 +114,13 @@ public class WctbContractChangeMngtDto {
         String sellInflwChnlDtlCd /* 판매유입채널상세코드 (직원구매 체크용(9020:직원구매->vSalediv:9)) */
     ) {}
 
+    @Builder
+    @ApiModel(value = "WctbContractChangeMngtDto-FindBeforeChangeCheckRes")
+    public record FindBeforeChangeCheckRes(
+        String checkYn, // 처리여부
+        String warnMsg // 경고메세지
+    ) {}
+
     @ApiModel(value = "WctbContractChangeMngtDto-FindPartnerRes")
     public record FindPartnerRes(
         String cntrNo, /* 계약번호 */
@@ -76,5 +132,21 @@ public class WctbContractChangeMngtDto {
         String dgr3LevlOgNm, /* 3차레벨조직명 */
         String ogCd, /* (판매자의) 조직코드 */
         String ogTpCd /* 조직유형코드*/
+    ) {}
+
+    @ApiModel(value = "WctbContractChangeMngtDto-EditPartnerReq")
+    public record EditPartnerReq(
+        @NotBlank
+        String cntrNo, /* 계약번호 */
+        @NotBlank
+        String cntrSn, /* 계약일련번호 */
+        @NotBlank
+        String prtnrKnm, /* 판매자한글명 */
+        @NotBlank
+        String sellPrtnrNo, /* 판매파트너번호 */
+        @NotBlank
+        String ogTpCd, /* 조직유형코드*/
+        String bfPrtnrNo, /* 변경전 파트너번호 */
+        String bfOgTpCd /* 변경전 조직유형코드 */
     ) {}
 }

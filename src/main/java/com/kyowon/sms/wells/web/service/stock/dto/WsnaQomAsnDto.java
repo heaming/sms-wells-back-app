@@ -51,6 +51,54 @@ public class WsnaQomAsnDto {
         String pitmStocAGdQtY
     ){}
 
+    @ApiModel(value = "WsnaQomAsnDto-IndividualWareSearchReq")
+    public record IndividualWareSearchReq(
+        String apyYm,
+        String asnOjYm,
+        String cnt,
+        String ostrWare,
+        String strWare,
+        String itmKndCd,
+        String strTpCd,
+        String wareDvCd,
+        String wareDtlDvCd,
+        String itmCdSt, //sapMatCdFrom,
+        String itmCdEd //sapMatCdTo
+    ){}
+    @ApiModel(value = "WsnaQomAsnDto-IndividualWareSearchRes")
+    public record IndividualWareSearchRes(
+        String chk,
+        String apyYm,
+        String asnOjYm,
+        String outStckCd,
+        String strWareNo,
+        String seq,
+        String asnTnN,
+        String wareDvCd,
+        String didyDvCd,
+        String strWareNm,
+        String itmPdCd,
+        String saleCd,
+        String nmAbbr1,
+        String deg,
+        String stckMgr,
+        String stckMgrNm,
+        String bldCd,
+        String tell,
+        String bldnam,
+        String qomQtyPrvt,
+        String qomQtyCrp,
+        String qomQty,
+        String baseQty,
+        String accQtySum,
+        String onQty,
+        String twQty,
+        String nwQty,
+        String bsQty,
+        String cfrmQty,
+        String boxDv,
+        String accQty
+    ){}
     @ApiModel(value = "WsnaQomAsnDto-CreateIndependenceWareReq")
     public record CreateIndependenceWareReq(
 

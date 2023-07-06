@@ -111,7 +111,9 @@ public class WpmbPromotionObjectCustomerMgtDto {
         String cntrNo,                          /* 계약번호 */
         @NotBlank
         String cntrSn,                          /* 계약일련번호 */
+        @NotBlank
         String vlStrtDtm,                       /* 유효시작일시 */
+        @NotBlank
         String vlEndDtm,                        /* 유효종료일시 */
         @NotBlank
         String pmotOjSpcDscDvCd,                /* 특별할인코드 */
