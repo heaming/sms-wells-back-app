@@ -116,6 +116,11 @@ public class WsnaSeedReleaseScheduleService {
         for (CreateReq dto : dtos) {
             WsnaSeedReleaseScheduleCnfmDvo dvo = this.converter.mapCreateReqToWsnaSeedReleaseScheduleCnfmDvo(dto);
 
+            // 확정 데이터 체크
+            Integer dupCnt = this.maaper.selectSdingSppCnfmIzCount(dvo);
+            // 이미 완료 처리 되었습니다.
+            BizAssert.isNull(dupCnt, "MSG_ALT_ALRDY_FSH_PROCS");
+
             int result = this.maaper.insertSdingSppCnfmIz(dvo);
             // 저장에 실패 하였습니다.
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
@@ -150,9 +155,9 @@ public class WsnaSeedReleaseScheduleService {
                 this.maaper.insertSvWkOstrIzs(dvo);
 
                 // 작업결과 조회
-                Integer cnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
+                dupCnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
                 // 이미 완료 처리 되었습니다.
-                BizAssert.isNull(cnt, "MSG_ALT_ALRDY_FSH_PROCS");
+                BizAssert.isNull(dupCnt, "MSG_ALT_ALRDY_FSH_PROCS");
 
                 // AS유형코드 조회
                 WsnaSeedReleaseScheduleAsTpDvo asTpDvo = this.maaper.selectAsTpCdInfo(dvo);
