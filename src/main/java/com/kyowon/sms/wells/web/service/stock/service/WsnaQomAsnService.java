@@ -5,6 +5,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.CreateIndependenceWareReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.CreateIndividualWareReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.IndividualWareSearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaRenewalWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnMapper;
@@ -30,8 +31,8 @@ public class WsnaQomAsnService {
         return mapper.selectIndependenceQomAsnsAfter(dto, pageInfo);
     }
 
-    public PagingResult<SearchRes>  getIndividualWareQomAsns(SearchReq dto, PageInfo pageInfo){
-        return mapper.selectIndependenceQomAsns(dto, pageInfo);
+    public PagingResult<SearchRes>  getIndividualWareQomAsns(IndividualWareSearchReq dto, PageInfo pageInfo){
+        return mapper.selectIndividualWareQomAsns(dto, pageInfo);
     }
 
     public int getCountQomAsn(SearchReq dto){
