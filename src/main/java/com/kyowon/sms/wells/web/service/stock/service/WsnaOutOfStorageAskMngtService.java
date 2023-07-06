@@ -140,8 +140,8 @@ public class WsnaOutOfStorageAskMngtService {
         }
 
         if (CollectionUtils.isNotEmpty(insertListDvo)) {
-            WsnaOutOfStorageAskMngtDvo tempDvo = insertListDvo.get(0);
-            String ostrAkNo = tempDvo.getOstrAkNo();
+            WsnaOutOfStorageAskMngtDvo insertDvo = insertListDvo.get(0);
+            String ostrAkNo = insertDvo.getOstrAkNo();
             List<WsnaOutOfStorageAskMngtDvo> logisticsDvo = this.mapper.selectLogisticsOutStorageAskInfo(ostrAkNo);
             //출고대상창고의 구분이 1(물류센터) 일경우
             if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsDvo.get(0).getOstrOjWareDvCd())) {
@@ -151,8 +151,8 @@ public class WsnaOutOfStorageAskMngtService {
         }
 
         if (CollectionUtils.isNotEmpty(updateListDvo)) {
-            WsnaOutOfStorageAskMngtDvo tempDvo2 = updateListDvo.get(0);
-            String updateOstrAkNo = tempDvo2.getOstrAkNo();
+            WsnaOutOfStorageAskMngtDvo updateDvo = updateListDvo.get(0);
+            String updateOstrAkNo = updateDvo.getOstrAkNo();
             List<WsnaOutOfStorageAskMngtDvo> logisticsDvo = this.mapper
                 .selectLogisticsOutStorageAskInfo(updateOstrAkNo);
             //출고대상창고의 구분이 1(물류센터) 일경우
