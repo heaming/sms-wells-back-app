@@ -1,18 +1,15 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndividualWareOstrConverter;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndividualWareOstrConverter;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
-
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.*;
-
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +28,20 @@ public class WsnaIndividualWareOstrService {
 
     public List<ItmRes> getItemKndCode(ItmReq dto) {
         return this.mapper.selectItemKndCode(dto);
+    }
+
+    @Transactional
+    public int createIndividualWareOstr(List<CreateReq> list) {
+        int cnt = 0;
+        String newOstrAkNo = mapper.selectNewOstrAkNoByQomOstr("360");
+
+        List<WsnaIndividualWareOstrDvo> voList = converter.mapAllCreateReqToIndividualDvo(list);
+        int len = voList.size();
+        for(int i = 0; i < len; i++){
+            voList.get(i).setOstrAkNo(newOstrAkNo);
+        }
+
+        cnt += mapper.insertTbSvstItmOstrAkIz(voList);
+        return cnt;
     }
 }
