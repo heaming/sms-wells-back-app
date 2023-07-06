@@ -24,4 +24,10 @@ public interface WsnaOutofStorageAskMngtConverter {
     @Mapping(target = "svCnrLkTnoEncr", expression = "java(StringUtils.defaultString(dvo.getLocaraTno()) + StringUtils.defaultString(dvo.getExnoEncr()) + StringUtils.defaultString(dvo.getIdvTno()))")
     List<WsnaLogisticsOutStorageAskReqDvo> mapCreateOutOfStorageAsksDvo(List<WsnaOutOfStorageAskMngtDvo> logisticsDvo);
 
+    WsnaOutOfStorageAskMngtDvo mapDeleteReqToOutOfStorageAskMngtDvo(WsnaOutOfStorageAskMngtDto.RemoveReq dto);
+
+    List<WsnaLogisticsOutStorageAskReqDvo> mapWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(
+        List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo
+    );
+
 }
