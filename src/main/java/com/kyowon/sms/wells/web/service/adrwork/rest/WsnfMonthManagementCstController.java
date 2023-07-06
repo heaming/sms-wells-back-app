@@ -1,14 +1,11 @@
-package com.kyowon.sms.wells.web.service.allocate.rest;
+package com.kyowon.sms.wells.web.service.adrwork.rest;
 
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsnfMonthManagementCstDto;
-import com.kyowon.sms.wells.web.service.allocate.service.WsnfMonthManagementCstService;
+import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfMonthManagementCstDto;
+import com.kyowon.sms.wells.web.service.adrwork.service.WsnfMonthManagementCstService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -38,30 +35,21 @@ public class WsnfMonthManagementCstController {
                 + dto.mngtYm() + " / " + dto.createTarget()
         );
 
-        //TODO Job Execution
-
         return SaveResponse.builder()
             .processCount(service.createMonthManagementCst(dto))
             .build();
     }
 
-//    @ApiOperation(value = "월관리 고객 생성 - 생성", notes = "월관리 고객 생성")
-//    @DeleteMapping
-//    public SaveResponse deleteMonthManagementCst(
-//        @Valid
-//        @RequestBody
-//        WsnfMonthManagementCstDto.RemoveReq dto
-//    ) throws Exception {
-//        log.info(
-//            "[WsnfMonthManagementCstController.deleteMonthManagementCst] WsnfMonthManagementCstJob-Delete batch Job execute."
-//                + dto.managementYm() + " / " + dto.createTarget()
-//        );
-//
-//        //TODO Job Execution
-//
-//        return SaveResponse.builder()
-//            .processCount(1)
-//            .build();
-//    }
+    @ApiOperation(value = "월관리 고객 생성 - 삭제", notes = "월관리 고객 생성")
+    @DeleteMapping
+    public SaveResponse removeMonthManagementCst(
+        @Valid
+        @RequestBody
+        WsnfMonthManagementCstDto.RemoveReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.removeMonthManagementCst(dto))
+            .build();
+    }
 
 }
