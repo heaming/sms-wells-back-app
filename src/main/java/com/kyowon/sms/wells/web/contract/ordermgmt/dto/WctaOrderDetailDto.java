@@ -30,7 +30,7 @@ public class WctaOrderDetailDto {
     //wells 1+1 접수 정보 조회(기존고객정보) - wells 1+1 접수 정보 조회 Search Result Dto
     @ApiModel("WctaOrderDetailDto-SearchPextCstInfoRes")
     public record SearchPextCstInfoRes(
-        String cntrNoFull,
+        String cntrDtlNo,
         String cstKnm,
         String basePdCd,
         String pdNm,
@@ -42,7 +42,7 @@ public class WctaOrderDetailDto {
     //wells 1+1 접수 정보 조회(신규고객정보) - wells 1+1 접수 정보 조회 Search Result Dto
     @ApiModel("WctaOrderDetailDto-SearchNewCstInfoRes")
     public record SearchNewCstInfoRes(
-        String cntrNoFull,
+        String cntrDtlNo,
         String cstKnm,
         String basePdCd,
         String pdNm,
@@ -110,7 +110,7 @@ public class WctaOrderDetailDto {
         String sellTpCd,
         String cntrNo,
         String cntrSn,
-        String cntrNoFull,
+        String cntrDtlNo,
         String rveNoFull,
         String rveDt,
         String perfDt,
@@ -140,7 +140,7 @@ public class WctaOrderDetailDto {
     public record SearchTradeSpecificationSheetRes(
         String cntrNo,
         String cntrSn,
-        String cntrNoFull,
+        String cntrDtlNo,
         String sellTpNm,
         String pdNm,
         String lcrcnt,
@@ -157,14 +157,14 @@ public class WctaOrderDetailDto {
     public record SearchCardSalesSlipsRes(
         String cntrNo,
         String cntrSn,
-        String cntrNoFull,
+        String cntrDtlNo,
         String basePdCd,
+        String pdNm,
         String sellTpCd,
         String rveOjDrmNo,
         String cardgbn,
         String edcgbn,
         String crdcdIstmMcn,
-        String pdNm,
         String dpstdt,
         String dpsthm,
         String dpcndt,
@@ -183,7 +183,7 @@ public class WctaOrderDetailDto {
     public record SearchContractArticlesRes(
         String cntrNo,
         String cntrSn,
-        String cntrNoFull,
+        String cntrDtlNo,
         String sellTpCd,
         String pdNm,
         String pdMclsfNm,
@@ -199,7 +199,7 @@ public class WctaOrderDetailDto {
     public record SearchContractsRes(
         String cntrNo,
         String cntrSn,
-        String cntrNoFull,
+        String cntrDtlNo,
         String cntrCstNo,
         String pdNm,
         String cntrDt,

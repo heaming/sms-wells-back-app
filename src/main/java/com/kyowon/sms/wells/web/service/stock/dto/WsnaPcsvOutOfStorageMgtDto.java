@@ -170,6 +170,9 @@ public class WsnaPcsvOutOfStorageMgtDto {
         @NotBlank
         String urgtYn,
 
+        @NotBlank
+        String ogId,
+
         String rpbLocaraCd,
 
         String asLctCd,

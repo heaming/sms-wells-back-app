@@ -20,8 +20,11 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String asPhnCd;
     String asCausCd;
     String ivcPrntSn;
+    String ogId;
     String ogTpCd;
     String pdGrpCd;
+    String svProcsCn; /*서비스처리내용*/
+    String wkCanMoCn; /*작업취소메모내용*/
 
     /* 사용제품 내역등록 ,수불처리 */
     String pdGdCd;
@@ -36,6 +39,19 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String pdSellTpCd;
     String pdUswyCd;
     String istDt;
-    String wareMngtPrtnrNo;
+    String wareMngtPrtnrNo; /*창고관리파트너번호*/
+    String itmOstrNo; /*품목출고번호*/
+
+    /* 엔지니어 정보 조회 */
+    String mngrDvCd;
+    String dgr1LevlOgId;
+    String dgr2LevlOgId;
+    String brchOgId;
+
+    /*수불 재고 수량 조회 */
+    int aQty;
+    int bQty;
+    int eQty;
+    int rQty;
 
 }

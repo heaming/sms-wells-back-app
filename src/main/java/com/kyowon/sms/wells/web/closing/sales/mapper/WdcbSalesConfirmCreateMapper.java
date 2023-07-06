@@ -3,6 +3,9 @@ package com.kyowon.sms.wells.web.closing.sales.mapper;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmCreateDvo;
+import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmReceivingAndPayingDvo;
+import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmSapMatDvo;
+import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSlCnfmBasDvo;
 
 /**
  * <pre>
@@ -14,9 +17,20 @@ import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmCreateDvo;
  */
 @Mapper
 public interface WdcbSalesConfirmCreateMapper {
-    /**
-     * @param 인서트 테이블(TB_CBCL_SL_CNFM_BAS)
-     * @return insert 결과
-     */
-    int insertSalesConfirm(WdcbSalesConfirmCreateDvo dvo);
+
+    int selectSalesConfirmSerialNumber(WdcbSalesConfirmCreateDvo dvo);
+
+    String selectDgCstId(WdcbSalesConfirmCreateDvo dvo);
+
+    String selectSapPdDvCd(WdcbSalesConfirmCreateDvo dvo);
+
+    WdcbSalesConfirmSapMatDvo selectSapMat(WdcbSalesConfirmCreateDvo dvo);
+
+    String selectCtrlOrdTpCd(String sapPdDvCd, String sellInflwChnlDtlCd, String ogTpCd);
+
+    WdcbSalesConfirmReceivingAndPayingDvo selectReceivingAndPaying(WdcbSalesConfirmCreateDvo dvo);
+
+    String selectSlpMapngCdv(String sellTpDtlCd, String clssVal, String slTpDvCd, String addCondition);
+
+    int insertSalesConfirm(WdcbSlCnfmBasDvo inputDvo);
 }

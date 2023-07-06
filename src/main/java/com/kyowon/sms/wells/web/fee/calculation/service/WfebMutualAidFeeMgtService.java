@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,11 +29,31 @@ public class WfebMutualAidFeeMgtService {
      * @return
      */
     public List<AidIndividual> getMutualAidIndividual(SearchAidReq req) {
-        return mapper.selectMutualAidIndividual(req);
+        List<AidIndividual> list = new ArrayList<>();
+        if ("0".equals(req.clasfctnFee())) {
+            // 0 수수료
+            list = mapper.selectMutualAidIndividualFee(req);
+        } else if ("1".equals(req.clasfctnFee())) {
+            // 1 되물림
+            list = mapper.selectMutualAidIndividualRedf(req);
+        } else {
+            // 2연체 3재지급
+            list = mapper.selectMutualAidIndividualEtc(req);
+        }
+        return list;
     }
     public List<AidGroup> getMutualAidGroup(SearchAidReq req) {
-        return mapper.selectMutualAidGroup(req);
+        List<AidGroup> list = new ArrayList<>();
+        if ("0".equals(req.clasfctnFee())) {
+            list = mapper.selectMutualAidGroupFee(req);
+        } else if ("1".equals(req.clasfctnFee())) {
+            list = mapper.selectMutualAidGroupRedf(req);
+        } else { // 2, 3
+            list = mapper.selectMutualAidGroupEtc(req);
+        }
+        return list;
     }
+
     /**
      * 상조 수수료 - 생성
      * @param req
@@ -40,8 +61,26 @@ public class WfebMutualAidFeeMgtService {
      */
     @Transactional
     public int createMutualAid(CreateAidReq req) {
-        return mapper.updateMutualAid(req);
+        int processCount = 0;
+        processCount += mapper.updateMutualAidFee(req);
+        processCount += mapper.updateMutualAidNpaid(req);
+        return processCount;
     }
+
+    /**
+     * 상조 수수료 되물림 - 생성
+     * @param req
+     * @return
+     */
+    @Transactional
+    public int createRedfMutualAid(CreateAidReq req) {
+        int processCount = 0;
+        processCount += mapper.updateRedfMutualAidFee(req);
+        processCount += mapper.updateRedfMutualAidDlq(req);
+        processCount += mapper.updateRedfMutualAidAdsb(req);
+        return processCount;
+    }
+
     /**
      * 상조 수수료 제휴주문 - 조회
      * @param req

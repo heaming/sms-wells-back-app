@@ -4,7 +4,7 @@
     <select id="selectEntrepreneurCustomerPss" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEntrepreneurCustomerPssDto$SearchRes">
         WITH W1 AS (
        SELECT
-             AFMDBS.F_CMZ_CD_NM ('TNT_WELLS', 'SELL_TP_CD', A1.SELL_TP_CD) AS SELL_TP_NM /* [업무유형] */
+             AFMDBS.F_CMZ_CD_NM (#{session.tenantId}, 'SELL_TP_CD', A1.SELL_TP_CD) AS SELL_TP_NM /* [업무유형] */
            , A1.CNTR_NO /* [계약번호] */
            , A1.CNTR_SN /* 계약일련번호 */
            , A1.SELL_TP_CD /* [계약자정보-판매유형] */
@@ -65,6 +65,7 @@
                AND CL1.SL_CL_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') AND TO_CHAR(SYSDATE, 'YYYYMM')
                AND CL1.CNTR_NO = A1.CNTR_NO
                AND CL1.CNTR_SN = A1.CNTR_SN
+               AND CL1.OG_TP_CD = B1.SELL_OG_TP_CD
              GROUP BY CL1.CNTR_NO, CL1.CNTR_SN
            ) CL1
           ON CL1.CNTR_NO = A1.CNTR_NO
@@ -156,9 +157,11 @@
          INNER JOIN TB_SSCT_CNTR_REL X1 /* 계약관계 */
             ON X1.OJ_DTL_CNTR_NO = W1.CNTR_NO /* 계약관계.대상상세계약번호 = 계약상세.계약번호 */
            AND X1.OJ_DTL_CNTR_SN = W1.CNTR_SN /* 계약관계.대상상세계약일련번호 = 계약상세.계약일련번호 */
+           AND X1.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_DTL A2 /* 계약상세 */
             ON A2.CNTR_NO = X1.BASE_DTL_CNTR_NO /* 계약상세.계약번호 = 계약관계.기준상세계약번호 */
            AND A2.CNTR_SN = X1.BASE_DTL_CNTR_SN /* 계약상세.계약일련번호 = 계약관계.기준상세계약일련번호 */
+           AND A2.DTA_DL_YN = 'N'
          INNER JOIN LATERAL
              (
               SELECT
@@ -220,13 +223,261 @@
          INNER JOIN TB_SSCT_CNTR_BAS B1 /* 계약기본 */
             ON B1.CNTR_NO = A1.CNTR_NO
            AND B1.DTA_DL_YN = 'N'
-           AND A1.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL J1 /* 계약WELLS상세 */
             ON J1.CNTR_NO = A1.CNTR_NO
            AND J1.CNTR_SN = A1.CNTR_SN
            AND J1.DTA_DL_YN = 'N'
          WHERE W3.CHK_CHDVC_RERNT = 'C'
         ) /* 기변이전정보 */
+        ,BASE_USR AS(
+        SELECT U1.USR_ID /* 사용자ID */
+             , U1.BASE_RLE_CD /* 기준역할코드 */
+             , U1.HCD_CD /* 홈카드 */
+             , U1.OG_TP_CD /* 조직유형코드 */
+             , U1.USR_TYPE_CD /* 사용자유형코드 - E:정규직, C:계약직, P:파트너, O:외주*/
+             , U1.IRSD_STT_CD /* 재직상태코드 - W:재직, R:퇴직, D:해직(계약해지) */
+             , U1.OG_ID /* 조직ID */
+             , U2.CRLV_CD /* 직급코드 */
+             , U2.RSB_CD /* 직책코드 */
+             , U2.EPNO /* 사번 */
+             , U2.LOGIN_ID /* 로그인ID */
+             , U2.USR_ACO_STT_CD /* 사용자계정상태코드 - 1:정상, 2:승인대기, 6:잠김, 7:휴면, 8:중지, 9:해지 */
+             , CASE /* 1:HR의 전사스텝조직 + TENANT별 스텝조직인 경우 - 임직원구매 / EDU업무지원매니저 / EDU조직육성매니저 / WELLS업무담당 / WELLS영업지원매니저 제외 ※제휴채널(ALC) 포함여부 확인 필요 */
+                    WHEN     U1.OG_TP_CD = 'HR1'
+                         --AND U1.BASE_RLE_CD NOT IN ('G1020','E1020','E1030','W1020','W1030', 'ALC') /* 임직원구매 / EDU업무지원매니저 / EDU조직육성매니저 / WELLS업무담당 / WELLS영업지원매니저 제외 */
+                         THEN 'W01,W02,W03,W04,W05' /* AS-IS 대부분이 AKDGUB IN (2,7)로 조회 해당 컬럼 TO-BE OG_TP_CD임(W01, W02, W03, W04, W05 해당) 참조:https://kyowon.atlassian.net/wiki/spaces/ForKUS/pages/190579531/10.+AS-IS+TO-BE */
+                              /* W01:P추진단 ,W02:M추진단 ,W03:홈마스터 ,W04:B2B ,W05:온라인총판 ALC:제휴채널*/
+                    ELSE
+                         CASE /* 2:영업지원조직 담당자인 경우 */
+                              WHEN I1.PRTNR_NO IS NOT NULL THEN /* 지원조직내역에 데이터가 있으면 영업지원조직 담당자 - 총괄단장, 지역단장, 지점장, 조직육성매니저, 영업지원 매니저 등 !!!!!230620 확인 시 개발과 운영의 데이터가 다름(운영 OG_ID가 같은 건이 없다!!!) */
+                                   U1.OG_TP_CD /* 우선 session.ogTpCd와 동일한 것으로 가정 */
+                              ELSE
+                                   /* 3:영업파트너 및 기타 역할자 */
+                                   U1.OG_TP_CD /* session.ogTpCd와 동일 */
+                         END
+               END INQR_OG_TP_CD /* 조회대상 조직유형코드 */
+          FROM T_CMY_USR_M U1 /* 사용자기본 */
+         INNER JOIN T_CMP_USR_ACO_M U2 /* 사용자계정기본 */
+            ON U1.USR_ID = U2.USR_ID
+           AND U1.DEL_YN = 'N'
+           AND U2.DEL_YN = 'N'
+          LEFT OUTER JOIN LATERAL
+             (
+              /* 영업지원직책구분코드 - W0106 : 업무담당, W0107 : BM, W0206 : 업무담당, W0107 : BM */
+              SELECT U3.OG_ID /* 조직ID */
+                   , U3.OG_TP_CD /* 조직유형코드 */
+                   , U3.PRTNR_NO /* 파트너번호 */
+                   , MAX(U3.BZNS_SPPT_RSB_DV_CD) AS BZNS_SPPT_RSB_DV_CD /* 영업지원직책구분코드 */
+                   , MAX(U3.RVE_CD) AS RVE_CD /* 수납코드 */
+                   , COUNT(U3.PRTNR_NO) AS DATA_CN /* 데이터 건수 */
+                FROM TB_OGBS_SPPT_OG_IZ U3 /* 지원조직내역 */
+               WHERE U3.DTA_DL_YN = 'N'
+                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN U3.MNGT_STRT_DT AND U3.MNGT_END_DT
+                 AND U3.PRTNR_NO = U2.EPNO /* 파트너번호 */
+                 AND U3.OG_TP_CD = U1.OG_TP_CD /* 조직유형코드 */
+                 AND U3.OG_ID = U1.OG_ID /* 조직ID */
+               GROUP BY U3.OG_ID /* 조직ID */
+                      , U3.OG_TP_CD /* 조직유형코드 */
+                      , U3.PRTNR_NO /* 파트너번호 */
+             ) I1
+            ON I1.OG_ID = U1.OG_ID
+           AND I1.OG_TP_CD = U1.OG_TP_CD
+           AND I1.PRTNR_NO = U2.EPNO
+         WHERE 1=1
+           AND U1.TENANT_ID = #{session.tenantId} /* 테넌트ID */
+           AND U1.USR_ID = #{session.userId} /*  사용자ID */
+           AND U1.IRSD_STT_CD = 'W' /* 재직상태코드 - W:재직, R:퇴직, D:해직(계약해지) */
+           AND U2.USR_ACO_STT_CD = '1' /* 사용자계정상태코드 = 1(정상) */
+        )
+        , BASE_OG AS (
+        /* 월조직/월파트너내역-현재월기준 */
+        /* ※조직편제 참고 wells(M/P 영업부) → 총괄단 → 지역단 → 지점 */
+        SELECT /*+ INDEX (A1 PK_OGBS_MM_OG_IZ) */
+               A1.OG_ID /* 조직ID */
+             , A1.HGR_OG_ID /* 상위조직ID */
+             , A1.OG_TP_CD /* 조직유형코드 */
+             , A1.OG_LEVL_DV_CD /* 조직레벨구분코드 */
+             , A1.OG_CD /* 조직코드 */
+             , A1.OG_NM /* 조직명 */
+             , A1.DGR1_LEVL_OG_CD /* 1차레벨조직코드 - 총괄단*/
+             , A1.DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+             , A1.DGR1_LEVL_DG_PRTNR_NO /* 1차레벨대표파트너번호 */
+             , A1.DGR1_LEVL_OG_NM /* 1차레벨조직명 */
+             , A1.DGR2_LEVL_OG_CD /* 2차레벨조직코드 - 지역단 */
+             , A1.DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+             , A1.DGR2_LEVL_DG_PRTNR_NO /* 2차레벨대표파트너번호 */
+             , A1.DGR2_LEVL_OG_NM /* 2차레벨조직명 */
+             , A1.DGR3_LEVL_OG_CD /* 3차레벨조직코드 - 지점 */
+             , A1.DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+             , A1.DGR3_LEVL_DG_PRTNR_NO /* 3차레벨대표파트너번호 */
+             , A1.DGR3_LEVL_OG_NM /* 3차레벨조직명 */
+             , A1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+             , A1.OG_UPBRNG_PRTNR_NO /* 조직육성파트너번호 */
+             , A1.OG_UPBRNG_HDTM_PRTNR_NO /* 조직육성팀장파트너번호 */
+             , A1.BASE_YM /* 기준년월 */
+             , B1.PRTNR_NO /* 파트너번호 */
+             , B1.PRTNR_KNM /* 파트너한글명 */
+             , B1.PSTN_DV_CD /* 직급구분코드 */
+             , B1.RSB_DV_CD /* 직책구분코드 */
+             , B1.ROL_DV_CD /* 직무구분코드 */
+          FROM TB_OGBS_MM_OG_IZ A1 /* 월조직내역 */
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ B1 /* 월파트너내역 */
+            ON B1.BASE_YM = A1.BASE_YM /* 기준년월 */
+           AND B1.OG_TP_CD = A1.OG_TP_CD /* 조직유형코드 */
+           AND B1.OG_ID = A1.OG_ID /* 조직ID */
+           AND B1.OG_CD = A1.OG_CD
+           AND B1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND A1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+           AND A1.OG_TP_CD IN
+             (
+              SELECT REGEXP_SUBSTR(A1.OG_TP_CD_LST, '[^,]+', 1, LEVEL) AS SPLIT_OG_TP_CD
+                FROM (
+                      SELECT INQR_OG_TP_CD AS OG_TP_CD_LST
+                        FROM BASE_USR
+                     ) A1
+              CONNECT BY LEVEL <![CDATA[ <= ]]> LENGTH(REGEXP_REPLACE(A1.OG_TP_CD_LST, '[^,]+','')) + 1
+             )
+        ),
+        BASE_RNG_INQR AS (
+        SELECT
+               SUM(I2.DGR1_LEVL_DG_PRTNR_CHK) AS DGR1_LEVL_DG_PRTNR_CHK
+             , SUM(I2.DGR2_LEVL_DG_PRTNR_CHK) AS DGR2_LEVL_DG_PRTNR_CHK
+             , SUM(I2.DGR3_LEVL_DG_PRTNR_CHK) AS DGR3_LEVL_DG_PRTNR_CHK
+             , SUM(I2.BIZ_SPPT_PRTNR_CHK) AS BIZ_SPPT_PRTNR_CHK
+             , SUM(I2.OG_UPBRNG_PRTNR_CHK) AS OG_UPBRNG_PRTNR_CHK
+             , SUM(I2.OG_UPBRNG_HDTM_PRTNR_CHK) AS OG_UPBRNG_HDTM_PRTNR_CHK
+             , SUM(I2.PRTNR_CHK) AS PRTNR_CHK
+             , (
+                  SUM(I2.DGR1_LEVL_DG_PRTNR_CHK)
+                + SUM(I2.DGR2_LEVL_DG_PRTNR_CHK)
+                + SUM(I2.DGR3_LEVL_DG_PRTNR_CHK)
+                + SUM(I2.BIZ_SPPT_PRTNR_CHK)
+                + SUM(I2.OG_UPBRNG_PRTNR_CHK)
+                + SUM(I2.OG_UPBRNG_HDTM_PRTNR_CHK)
+                + SUM(I2.PRTNR_CHK)
+               ) AS OGBS_RGH_CHK
+             , MAX(I2.EPNO) AS EPNO
+             , MAX(I2.OG_TP_CD) AS OG_TP_CD
+             , MAX(I2.INQR_OG_TP_CD) AS INQR_OG_TP_CD
+          FROM
+             (
+              SELECT CASE WHEN I1.DGR1_LEVL_DG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END DGR1_LEVL_DG_PRTNR_CHK
+                   , CASE WHEN I1.DGR2_LEVL_DG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END DGR2_LEVL_DG_PRTNR_CHK
+                   , CASE WHEN I1.DGR2_LEVL_DG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END DGR3_LEVL_DG_PRTNR_CHK
+                   , CASE WHEN I1.BIZ_SPPT_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END BIZ_SPPT_PRTNR_CHK
+                   , CASE WHEN I1.OG_UPBRNG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END OG_UPBRNG_PRTNR_CHK
+                   , CASE WHEN I1.OG_UPBRNG_HDTM_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END OG_UPBRNG_HDTM_PRTNR_CHK
+                   , CASE WHEN I1.PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END PRTNR_CHK
+                   , I1.EPNO
+                   , I1.OG_TP_CD
+                   , I1.INQR_OG_TP_CD
+                FROM
+                   (
+                    SELECT A1.DGR1_LEVL_DG_PRTNR_NO /* 1차레벨대표파트너번호 */
+                         , A1.DGR2_LEVL_DG_PRTNR_NO /* 2차레벨대표파트너번호 */
+                         , A1.DGR3_LEVL_DG_PRTNR_NO /* 3차레벨대표파트너번호 */
+                         , A1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+                         , A1.OG_UPBRNG_PRTNR_NO /* 조직육성파트너번호 */
+                         , A1.OG_UPBRNG_HDTM_PRTNR_NO /* 조직육성팀장파트너번호 */
+                         , A1.PRTNR_NO /* 파트너(플래너) */
+                         , (SELECT MAX(T2.EPNO) FROM BASE_USR T2) AS EPNO
+                         , (SELECT MAX(T2.OG_TP_CD) FROM BASE_USR T2) AS OG_TP_CD
+                         , (SELECT MAX(T2.INQR_OG_TP_CD) FROM BASE_USR T2) AS INQR_OG_TP_CD
+                      FROM BASE_OG A1
+                   ) I1
+             ) I2
+        ),
+        BASE_OGBS AS (
+        SELECT
+               CASE WHEN     B1.OGBS_RGH_CHK = 0
+                         AND B1.OG_TP_CD = 'HR1'
+                         THEN 'Y'
+                    ELSE /* 겸직이 있어 관련 건을 다 찾음 */
+                         CASE WHEN B1.OGBS_RGH_CHK <![CDATA[ > ]]> 0
+                                   THEN
+                                        CASE WHEN (B1.DGR1_LEVL_DG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.DGR1_LEVL_DG_PRTNR_NO)  /* 총괄단장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.DGR2_LEVL_DG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.DGR2_LEVL_DG_PRTNR_NO)  /* 지역단장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.DGR3_LEVL_DG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.DGR3_LEVL_DG_PRTNR_NO)  /* 지점장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.BIZ_SPPT_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.BIZ_SPPT_PRTNR_NO)  /* 업무지원파트너 */
+                                                  THEN 'Y'
+                                             WHEN (B1.OG_UPBRNG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.OG_UPBRNG_PRTNR_NO)  /* 조직육성파트너 */
+                                                  THEN 'Y'
+                                             WHEN (B1.OG_UPBRNG_HDTM_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.OG_UPBRNG_HDTM_PRTNR_NO)  /* 조직육성팀장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.PRTNR_NO) /* 파트너(선생님) */
+                                                  THEN 'Y'
+                                             ELSE 'N'
+                                        END
+                              ELSE 'N'
+                         END
+               END AS INQR_YN
+              , CASE WHEN     B1.OGBS_RGH_CHK = 0
+                         AND B1.OG_TP_CD = 'HR1'
+                         THEN 'Y'
+                    ELSE 'N'
+                END HR1_YN /* 본사여부 */
+              , B1.EPNO /* 사번 */
+              , A1.OG_ID /* 조직ID */
+              , A1.HGR_OG_ID /* 상위조직ID */
+              , A1.OG_TP_CD /* 조직유형코드 */
+              , A1.OG_LEVL_DV_CD /* 조직레벨구분코드 */
+              , A1.OG_CD /* 조직코드 */
+              , A1.OG_NM /* 조직명 */
+              , A1.DGR1_LEVL_OG_CD /* 1차레벨조직코드 */
+              , A1.DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+              , A1.DGR1_LEVL_DG_PRTNR_NO /* 1차레벨대표파트너번호 */
+              , A1.DGR1_LEVL_OG_NM /* 1차레벨대표파트너명 */
+              , A1.DGR2_LEVL_OG_CD /* 2차레벨조직코드 */
+              , A1.DGR2_LEVL_OG_ID /* 1차레벨조직ID */
+              , A1.DGR2_LEVL_DG_PRTNR_NO  /* 2차레벨대표파트너번호 */
+              , A1.DGR2_LEVL_OG_NM /* 2차레벨대표파트너명 */
+              , A1.DGR3_LEVL_OG_CD /* 3차레벨조직코드 */
+              , A1.DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+              , A1.DGR3_LEVL_DG_PRTNR_NO  /* 3차레벨대표파트너번호 */
+              , A1.DGR3_LEVL_OG_NM /* 3차레벨대표파트너명 */
+              , A1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+              , A1.OG_UPBRNG_PRTNR_NO /* 조직육성파트너번호 */
+              , A1.OG_UPBRNG_HDTM_PRTNR_NO /* 조직육성팀장파트너번호 */
+              , A1.BASE_YM /* 기준년월 */
+              , A1.PRTNR_NO /* 파트너번호 */
+              , A1.PRTNR_KNM /* 파트너한글명 */
+              , A1.PSTN_DV_CD /* 직급구분코드 */
+              , A1.RSB_DV_CD /* 직책구분코드 */
+              , A1.ROL_DV_CD /* 직무구분코드 */
+        --      , ROWNUM AS RNUM
+          FROM BASE_OG A1
+         INNER JOIN BASE_RNG_INQR B1
+            ON 1=1
+        -- START WITH A1.OG_LEVL_DV_CD = '1' /* 계층형으로 적용시 상위부서코드로 연결되지 않아 DATA 건수가 줄어듬 */
+        --CONNECT BY NOCYCLE PRIOR A1.OG_ID = A1.HGR_OG_ID
+        ORDER BY OG_CD
+        )
         ------------------------------------------------------------------------------------------
         SELECT
                W1.SELL_TP_NM /* [업무유형] */
@@ -296,7 +547,7 @@
                ) AS TXINV_PBL_TP_CD /* [세금계산서 정보-발행구분] */
              , W2.EMADR /* [세금계산서 정보-이메일] */
              , P1.MPY_MTHD_TP_CD /* [이체정보-이체구분] */
-             , F_CMZ_CD_NM('TNT_WELLS', 'MPY_MTHD_TP_CD', P1.MPY_MTHD_TP_CD) AS MPY_MTHD_TP_NM /* [이체정보-이체구분명] */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'MPY_MTHD_TP_CD', P1.MPY_MTHD_TP_CD) AS MPY_MTHD_TP_NM /* [이체정보-이체구분명] */
              , P1.MPY_BSDT /* [이체정보-이체일] */
              , W1.IST_DT AS SL_DT /* [매출일] WELLS 설치일을 매출인식일로 처리 */
              , SUBSTR(W1.CNTR_CAN_DTM, 1, 8) AS CAN_DT /* [취소일] */
@@ -312,20 +563,20 @@
              , T1.DGR3_LEVL_DG_PRTNR_NO /* [파트너 정보-지점장사번] */
              , T1.DGR3_LEVL_DG_PRTNR_NM /* [파트너 정보-지점장명] */
              , T1.BLD_NM /* [빌딩명] */
-             , F_CMZ_CD_NM( 'TNT_WELLS'
+             , F_CMZ_CD_NM( #{session.tenantId}
                           , (SELECT CM1.USER_DFN_02 AS ID
                                FROM T_CMZ_CD_D CM1
                               WHERE CM1.CD_ID = 'SELL_DSC_DV_CD'
                                 AND CM1.CD_VLD_VAL = W1.SELL_TP_CD
-                                AND CM1.TENANT_ID = 'TNT_WELLS')
+                                AND CM1.TENANT_ID = #{session.tenantId})
                           , W1.SELL_DSC_DV_CD ) AS DSC_APY_TP_CD /* [할인구분] */
-             , F_CMZ_CD_NM( 'TNT_WELLS'
+             , F_CMZ_CD_NM( #{session.tenantId}
                           , (SELECT CM1.USER_DFN_02 AS ID
                                FROM T_CMZ_CD_D CM1
                               WHERE 1 = 1
                                 AND CM1.CD_ID = 'SELL_DSC_TP_CD'
                                 AND CM1.CD_VLD_VAL = W1.SELL_TP_CD
-                                AND CM1.TENANT_ID = 'TNT_WELLS')
+                                AND CM1.TENANT_ID = #{session.tenantId})
                           , W1.SELL_DSC_TP_CD ) AS DSC_APY_DTL_CD /* [행사유형] */
              , CASE WHEN W3.CHK_CHDVC_RERNT = 'C' THEN 'Y' ELSE '' END CHDVC_YN /* [기기변경] */
              , CASE WHEN W3.CHK_CHDVC_RERNT = 'R' THEN 'Y' ELSE '' END RERNT /* [계약자정보-재렌탈여부] */
@@ -430,7 +681,6 @@
                INNER JOIN TB_GBCO_ADR_BAS F1 /* 주소기본 */
                   ON E1.ADR_ID = F1.ADR_ID /* 계약주소지기본.주소ID = 주소기본.주소ID */
                  AND F1.DTA_DL_YN = 'N'
-                 AND E1.DTA_DL_YN = 'N'
                WHERE E1.CNTR_NO = W1.CNTR_NO /* 계약주소지기본.계약번호 = 계약상세 계약번호 */
                  AND E1.CNTR_CST_NO = W1.CNTR_CST_NO
                  AND E2.DTL_CNTR_NO = W1.CNTR_NO
@@ -499,63 +749,10 @@
                     </if>
                 </if>
                 <if test="!@MybatisUtils@equals(session.ogTpCd, 'HR1')">
-                   AND S1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                   AND S1.OG_TP_CD IN ('W01','W02','W03','W04','W05', 'ALC', 'E02')
-                    <if test='@MybatisUtils@equals(session.baseRleCd, "W1020") and @MybatisUtils@equals(session.rsbCd, "110")'>
-                         /* 업무담당 그룹중에 업무담당만 권한체크(BM,BM팀장은 스킵) */
-                         AND (S1.OG_TP_CD, S1.OG_CD) IN /* 로그인한 업무담당이 관리하는 조직코드 */
-                           ( SELECT X1.OG_TP_CD
-                                  , B1.OG_CD
-                               FROM TB_OGBS_SPPT_OG_IZ X1
-                              INNER JOIN
-                                  ( SELECT A1.OG_ID
-                                         , A1.OG_CD
-                                      FROM TB_OGBS_MM_OG_IZ A1
-                                     WHERE A1.DTA_DL_YN = 'N'
-                                       AND A1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                  ) B1
-                                 ON X1.OG_ID = B1.OG_ID
-                              WHERE X1.DTA_DL_YN = 'N'
-                                AND X1.OG_TP_CD IN ('W01','W02','W03','W04','W05', 'ALC', 'E02')
-                                AND X1.BZNS_SPPT_RSB_DV_CD IN ('W0106', 'W0206') /*업무담당*/
-                                AND X1.MNGT_STRT_DT  <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                AND X1.MNGT_END_DT  <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                AND X1.PRTNR_NO = #{session.employeeIDNumber}
-                           )
-                    </if>
-                    <if test='@MybatisUtils@equals(session.baseRleCd, "W1030") and (@MybatisUtils@equals(session.rsbCd, "170") or @MybatisUtils@equals(session.rsbCd, "177"))'>
-                        /* 업무담당 그룹중에 BM,BM팀장 권한체크 */
-                         AND S1.DGR1_LEVL_DG_PRTNR_NO IN /* 로그인한 BM이 관리하는 조직의 총괄사번 */
-                           ( SELECT B1.DGR1_LEVL_DG_PRTNR_NO /*총괄사번(1차레벨대표파트너번호)*/
-                               FROM TB_OGBS_SPPT_OG_IZ X1
-                              INNER JOIN
-                                  ( SELECT A1.OG_ID
-                                         , A1.DGR1_LEVL_DG_PRTNR_NO
-                                      FROM TB_OGBS_MM_OG_IZ A1
-                                     WHERE A1.DTA_DL_YN = 'N'
-                                       AND A1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                  ) B1
-                                 ON X1.OG_ID = B1.OG_ID
-                              WHERE X1.DTA_DL_YN = 'N'
-                                AND X1.OG_TP_CD IN ('W01','W02','W03','W04','W05', 'ALC')
-                                AND X1.BZNS_SPPT_RSB_DV_CD IN ('W0107', 'W0207') /*BM*/
-                                AND X1.MNGT_STRT_DT  <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                AND X1.MNGT_END_DT  <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                AND X1.PRTNR_NO = #{session.employeeIDNumber}
-                           )
-                    </if>
-                    <if test="@MybatisUtils@equals(session.careerLevelCode, '2')">
-                        AND S1.DGR1_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                    </if>
-                    <if test="@MybatisUtils@equals(session.careerLevelCode, '4')">
-                        AND S1.DGR2_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                    </if>
-                    <if test="@MybatisUtils@equals(session.careerLevelCode, '7')">
-                        AND S1.DGR3_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber}
-                    </if>
-                    <if test="@MybatisUtils@equals(session.careerLevelCode, '15')">
-                        AND R1.PRTNR_NO = #{session.employeeIDNumber}
-                    </if>
+                   AND R1.PRTNR_NO IN ( SELECT PRTNR_NO
+                                          FROM BASE_OGBS A1
+                                         WHERE A1.INQR_YN = 'Y'
+                                       )
                 </if>
              ) T1
             ON T1.PRTNR_NO = W1.SELL_PRTNR_NO /* 월파트너마감.파트너번호 = 계약기본.판매파트너번호*/
@@ -565,11 +762,13 @@
           LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ V1 /* 계약프로모션내역 */
            ON V1.DTL_CNTR_NO = W1.CNTR_NO /*계약프로모션내역.상세계약번호 = 계약상세.계약번호 */
            AND V1.DTL_CNTR_SN = W1.CNTR_SN /*계약프로모션내역.상세계약일련번호 = 계약상세.계약일련번호 */
+           AND V1.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL W9 /* 계약상품관계 */
             ON W9.CNTR_NO = W1.CNTR_NO /* 계약상품관계.계약번호 = 계약상세.계약번호 */
            AND W9.CNTR_SN = W1.CNTR_SN /* 계약상품관계.계약일련번호 = 계약상세.계약일련번호 */
            AND W9.BASE_PD_CD = W1.BASE_PD_CD /* 계약상품관계.기준상품코드 = 계약상세.기준상품코드 → 확인필요 */
            AND W9.BASE_PD_CD = W1.HGR_PD_CD
+           AND W9.DTA_DL_YN = 'N'
           LEFT OUTER JOIN W4
             ON W4.OJ_DTL_CNTR_NO = W1.CNTR_NO /* 계약관계.대상상세계약번호 = 계약상세.계약번호 */
            AND W4.OJ_DTL_CNTR_SN = W1.CNTR_SN /* 계약관계.대상상세계약일련번호 = 계약상세.계약일련번호 */

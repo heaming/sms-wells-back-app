@@ -40,8 +40,8 @@
              , B.CLTN_DT AS NOW_CLTN_DT/* 현재소속 해약일자 : 해약 년/월/일 노출 */          
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', AMT.SELL_TP_CD) AS SELL_TP_NM /* 업무구분 : 렌탈, 멤버십, 정기배송, 금융리스, 홈케어, 일시불 중 해당데이터 노출 */
              , AMT.CNTR_NO || '-' || AMT.CNTR_SN AS CNTR_DTL_NO/* 계약상세번호 : 계약상세번호 노출 */
-             , AMT.CST_NO /* 고객번호 : 고객번호 노출 */
-             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = AMT.CST_NO) AS CST_KNM/* 고객명 : 고객명 노출 */
+             , CST.CST_NO /* 고객번호 : 고객번호 노출 */
+             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = CST.CST_NO) AS CST_KNM/* 고객명 : 고객명 노출 */
              , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = AMT.BASE_PD_CD)AS PD_NM/* 제품명 : 제품명 노출 */
              , SUBSTR(AMT.CNTR_CNFM_DTM, 0, 8) AS CNTR_CNFM_DTM/* 계약일자 : 계약 년/월/일 노출 */
              , SUBSTR(AMT.IST_DTM, 0, 8) AS IST_DTM/* 설치일자 : 설치 년/월/일 노출 */
@@ -69,7 +69,6 @@
                          , T.SELL_TP_CD
                          , T.CNTR_NO
                          , T.CNTR_SN
-                         , T.CST_NO 
                          , T.BASE_PD_CD
                          , T.CNTR_CNFM_DTM
                          , T.IST_DTM
@@ -95,7 +94,6 @@
                                      , A.SELL_TP_CD                                                      
                                      , C.CNTR_NO
                                      , C.CNTR_SN/* 계약상세번호 */
-                                     , J.CST_NO/* 고객번호 */
                                      , A.BASE_PD_CD
                                      , B.CNTR_CNFM_DTM/* 계약일시 */
                                      , C.IST_DTM/* 설치일시 */
@@ -114,7 +112,6 @@
                                      , 0 AS THIS_MONTH/* 당월입금 */
                                   FROM TB_SSCT_CNTR_DTL A/*계약상세*/
                                      , TB_SSCT_CNTR_BAS B/*계약기본*/
-                                     , TB_SSCT_CNTR_CST_REL J/*계약고객관계*/
                                      , TB_CBCL_WELLS_SL_MM_CL_IZ C/*WELLS매출월마감내역*/
                                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST G/*연체기본이력 - 연체금액*/ 
                                     ON C.CNTR_NO = G.CNTR_NO
@@ -124,7 +121,6 @@
                                  WHERE A.CNTR_NO = B.CNTR_NO
                                    AND A.CNTR_SN = C.CNTR_SN
                                    AND B.CNTR_NO = C.CNTR_NO
-                                   AND A.CNTR_NO = J.CNTR_NO
                                    AND C.SL_CL_YM =  TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-3),'YYYYMM')
                                    AND C.IST_DTM > 0 /* 설치일시 > 0 */
                                    AND C.CAN_DT IS NULL /* 취소년 = 0 */
@@ -136,7 +132,6 @@
                                      , A.SELL_TP_CD                                                      
                                      , C.CNTR_NO
                                      , C.CNTR_SN/* 계약상세번호 */
-                                     , J.CST_NO/* 고객번호 */
                                      , A.BASE_PD_CD
                                      , B.CNTR_CNFM_DTM/* 계약일시 */
                                      , C.IST_DTM/* 설치일시 */
@@ -155,7 +150,6 @@
                                      , 0 AS THIS_MONTH/* 당월입금 */
                                   FROM TB_SSCT_CNTR_DTL A/*계약상세*/
                                      , TB_SSCT_CNTR_BAS B/*계약기본*/
-                                     , TB_SSCT_CNTR_CST_REL J/*계약고객관계*/
                                      , TB_CBCL_WELLS_SL_MM_CL_IZ C/*WELLS매출월마감내역*/
                                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST G/*연체기본이력 - 연체금액*/ 
                                     ON C.CNTR_NO = G.CNTR_NO
@@ -165,7 +159,6 @@
                                  WHERE A.CNTR_NO = B.CNTR_NO
                                    AND A.CNTR_SN = C.CNTR_SN
                                    AND B.CNTR_NO = C.CNTR_NO
-                                   AND A.CNTR_NO = J.CNTR_NO
                                    AND C.SL_CL_YM =  TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-2),'YYYYMM')
                                    AND C.IST_DTM > 0 /* 설치일시 > 0 */
                                    AND C.CAN_DT IS NULL /* 취소년 = 0 */
@@ -177,7 +170,6 @@
                                      , A.SELL_TP_CD                                                      
                                      , C.CNTR_NO
                                      , C.CNTR_SN/* 계약상세번호 */
-                                     , J.CST_NO/* 고객번호 */
                                      , A.BASE_PD_CD
                                      , B.CNTR_CNFM_DTM/* 계약일시 */
                                      , C.IST_DTM/* 설치일시 */
@@ -196,7 +188,6 @@
                                      , F.RVE_AMT AS THIS_MONTH /* 당월입금 */
                                   FROM TB_SSCT_CNTR_DTL A/*계약상세*/
                                      , TB_SSCT_CNTR_BAS B/*계약기본*/
-                                     , TB_SSCT_CNTR_CST_REL J/*계약고객관계*/
                                      , TB_CBCL_WELLS_SL_MM_CL_IZ C/*WELLS매출월마감내역*/
                                   LEFT OUTER JOIN TB_RVDW_RVE_DTL F/*수납상세 - 당월입금*/
                                     ON C.CNTR_NO = F.CNTR_NO
@@ -212,14 +203,15 @@
                                  WHERE A.CNTR_NO = B.CNTR_NO
                                    AND A.CNTR_SN = C.CNTR_SN
                                    AND B.CNTR_NO = C.CNTR_NO
-                                   AND A.CNTR_NO = J.CNTR_NO
                                    AND C.SL_CL_YM =  TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')
                                    AND C.IST_DTM > 0 /* 설치일시 > 0 */
                                    AND C.CAN_DT IS NULL /* 취소년 = 0 */
                                    AND C.REQD_DTM IS NULL/* 철거년 = 0 */ 
                            ) T  
-                     GROUP BY T.SELL_PRTNR_NO, T.SELL_TP_CD, T.CNTR_NO, T.CNTR_SN, T.CST_NO, T.BASE_PD_CD, T.CNTR_CNFM_DTM, T.IST_DTM, T.MM_ISTM_AMT, T.RENTAL_AMT, T.ISTM_MCN
+                     GROUP BY T.SELL_PRTNR_NO, T.SELL_TP_CD, T.CNTR_NO, T.CNTR_SN, T.BASE_PD_CD, T.CNTR_CNFM_DTM, T.IST_DTM, T.MM_ISTM_AMT, T.RENTAL_AMT, T.ISTM_MCN
                ) AMT
+          LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL CST/*계약고객관계*/
+            ON CST.CNTR_NO = AMT.CNTR_NO
              , PRTNR A 
              , PRTNR B
          WHERE AMT.SELL_PRTNR_NO = A.PRTNR_NO

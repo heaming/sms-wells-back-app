@@ -20,6 +20,7 @@ public class WdcaDepositDelinquentDto {
      * @param inqrDv 조회구분
      * @param sellChnl 판매채널
      * @param sellTpCd 판매유형
+     * @param sellTpDtlCd 판매유형상세
      * @param cntrNo 계약번호
      * @param cntrSn 계약일련번호
      */
@@ -29,7 +30,8 @@ public class WdcaDepositDelinquentDto {
         String copnDvCd,
         String inqrDv,
         List<String> sellChnl,
-        List<String> sellTpCd,
+        String sellTpCd,
+        String sellTpDtlCd,
         String cntrNo,
         String cntrSn
     ) {}

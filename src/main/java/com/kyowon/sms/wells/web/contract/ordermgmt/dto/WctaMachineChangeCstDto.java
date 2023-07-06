@@ -47,6 +47,7 @@ public class WctaMachineChangeCstDto {
         String cntrSn, // 기변 계약일련번호
         String ptyCopnDvCd, // 상대법인격구분코드
         String pdCd, // 기변상품코드
+        String pdNm, // 기변상품명
         int rentalNmnN, // 렌탈차월
         String rerntPsbDt, // 재렌탈가능일
         String stplDutyStrtDt, // 약정의무시작일

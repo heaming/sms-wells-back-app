@@ -1,0 +1,81 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsOstrAgrgMapper">
+
+<select id="selectReturningGoodsOstrAgrg" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto$SearchRes">
+        WITH PD_INFO AS ( SELECT T1.PD_CD
+                               , T1.PD_CLSF_ID
+                               , T1.PD_TP_CD /* 상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품 */
+                               , T1.SAP_MAT_CD
+                               , T1.PD_NM
+                               , T2.PD_EXTS_PRP_GRP_CD /* 상품확장속성그룹코드 */
+                               , T2.PD_PRP_VAL01
+                               , F_CMZ_CD_NM('TNT_WELLS', 'SV_IST_PCSV_DV_CD', T2.PD_PRP_VAL01, 'ko') AS SV_IST_PCSV_DV_CD_NM
+                               /* , F_CMZ_CD_NM('TNT_WELLS', (SELECT SOURC_INF_CN AS COMMON_CODE  -- 공통코드 (T_CMZ_CD_D 테이블에서 확인 OR 팝업)
+                                                           FROM TB_PDBS_PD_PRP_META_BAS TT1  -- 상품속성메타기본
+                                                          WHERE USE_YN = 'Y'
+                                                            AND PD_TP_CD = 'P'   -- C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품
+                                                            AND PD_PRP_GRP_DTL_DV_CD = 'SPP'
+                                                            AND COL_ID = 'PD_PRP_VAL01'
+                                                         ) , T2.PD_PRP_VAL01, 'ko') AS PD_PRP_VAL01_NM */
+                               , T2.PD_PRP_VAL02
+                               , F_CMZ_CD_NM('TNT_WELLS', 'IST_BZS_CD', T2.PD_PRP_VAL02, 'ko') AS IST_BZS_CD_NM
+                               /* , F_CMZ_CD_NM('TNT_WELLS', (SELECT SOURC_INF_CN AS COMMON_CODE  -- 공통코드 (T_CMZ_CD_D 테이블에서 확인 OR 팝업)
+                                                   FROM TB_PDBS_PD_PRP_META_BAS TT1 -- 상품속성메타기본
+                                                  WHERE USE_YN = 'Y'
+                                                    AND PD_TP_CD = 'P'*/ /* C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품 */
+                                                    /* AND PD_PRP_GRP_DTL_DV_CD = 'SPP'
+                                                    AND COL_ID = 'PD_PRP_VAL02'
+                                                 ), T2.PD_PRP_VAL02, 'ko') AS IST_BZS_CD_NM */
+                               , T1.SELL_TP_CD
+                               , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD, 'ko') AS SELL_TP_CD_NM
+                               , T1.SV_PD_TP_CD /* 서비스상품유형코드(AS-IS 용도구분) : 1 방문, 2 택배, 3 홈케어, 4 혼합(방문+홈케어), 5 혼합(택배+홈케어)*//*SV_TP_CD 0 공통, 1 일반, 2 업소, 3 특별１, 4 특별２, 5 홈케어, 6 특별(조리수), 7 택배1, 8 택배2, 9 예외 */
+                            FROM WSMDBS.TB_PDBS_PD_BAS T1 /* 상품기본 */
+                 LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /* 상품각사속성상세 */
+                              ON T1.PD_CD = T2.PD_CD
+                              /* AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */ /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+                           WHERE 1=1
+                             AND (T1.PD_TP_DTL_CD IN ('01','03')
+                                  AND T1.PD_CLSF_ID NOT IN ('PDC000000000112','PDC000000001815', 'PDC000000001814', 'PDC000000001821')
+                                  AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT'))
+                              OR PD_NM LIKE '%특별자재%'
+                              OR PD_NM LIKE '%발주X TANK%' /* 구분값 필요 - 우선 하드코딩 해둡니다 */
+        )
+        , OSTR AS ( SELECT P1.PD_CD
+                         , P1.PD_CLSF_ID
+                         , P1.PD_NM
+                         , P1.SAP_MAT_CD
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'E' THEN 1 END) AS FNL_E_SUM
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'R' THEN 1 END) AS FNL_R_SUM
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'X' THEN 1 END) AS FNL_X_SUM
+                      FROM TB_SVST_SV_WK_OSTR_IZ O1 /* 서비스작업출고내역 st163 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ O2 /* 월별창고내역 ST102 */
+                        ON SUBSTR(O1.FNL_VST_FSH_DT,1,6) = O2.APY_YM
+                       AND O1.WK_WARE_NO = O2.WARE_NO
+                INNER JOIN PD_INFO P1
+                        ON O1.ITM_PD_CD = P1.PD_CD
+                     WHERE 1=1
+                       AND O1.SV_BIZ_HCLSF_CD = '6'
+                       <if test="@MybatisUtils@isNotEmpty(startDate)">
+                       AND O1.OSTR_CONF_DT BETWEEN #{startDate} AND #{endDate}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(svCnrCd)">
+                       AND O2.HGR_WARE_NO = #{svCnrCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(rtngdProcsTpCd)">
+                       AND O1.RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}
+                       </if>
+                  GROUP BY P1.PD_CD, P1.PD_CLSF_ID, P1.PD_NM, P1.SAP_MAT_CD
+        )
+        SELECT NVL(OSTR.PD_CLSF_ID, OSTR.PD_CD) PD_CLSF_ID
+             , NVL(( SELECT PD_CLSF_NM
+                       FROM TB_PDBS_PD_CLSF_BAS
+                      WHERE OSTR.PD_CLSF_ID = TB_PDBS_PD_CLSF_BAS.PD_CLSF_ID), OSTR.PD_NM) AS PD_CLSF_NM
+             , OSTR.PD_CD
+             , OSTR.PD_NM
+             , NVL(OSTR.FNL_E_SUM, 0) FNL_E_SUM
+             , NVL(OSTR.FNL_R_SUM, 0) FNL_R_SUM
+             , NVL(OSTR.FNL_X_SUM, 0) FNL_X_SUM
+             , OSTR.SAP_MAT_CD
+          FROM OSTR
+    </select>
+</mapper>

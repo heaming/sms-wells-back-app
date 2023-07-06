@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnMapper">
+
     <select id="selectCountQomAsn" resultType="int">
         SELECT COUNT(1) AS CNT
           FROM TB_SVST_ITM_QOM_ASN_IZ
@@ -8,6 +9,7 @@
            AND ASN_TN_N = #{cnt}
            AND WARE_DV_CD = #{wareDvCd}
     </select>
+
     <select id="selectOstrWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$WareRes">
         SELECT T1.WARE_NO AS CODE_ID
              , T1.WARE_NM AS CODE_NAME
@@ -15,6 +17,7 @@
          WHERE T1.APY_YM =  #{apyYm}
            AND T1.WARE_NO IN ('100002','100008')
     </select>
+
     <select id="selectStrWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$WareRes">
         SELECT T1.WARE_NO AS CODE_ID
              , T1.WARE_NM AS CODE_NAME
@@ -29,6 +32,57 @@
         WHERE T1.APY_YM =  #{apyYm}
           AND T1.WARE_DV_CD = #{wareDvCd}
     </select>
+
+    <select id="selectIndependenceQomAsnsAfter"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$SearchRes">
+        SELECT '' AS CHK
+             , T1.ASN_OJ_YM
+             , T1.ITM_QOM_ASN_NO
+             , T1.OSTR_WARE_NO
+             , T1.STR_WARE_NO
+             , T1.WARE_DV_CD
+             , T2.WARE_NM AS STR_WARE_NM
+             , T1.ITM_PD_CD
+             , T1.ITM_PD_CD AS ITEM_CODE
+             , '' AS SALE_CD
+             , T3.SVPD_NM_ABBR1 AS NM_ABBR1
+             , '' AS MGT_UNT_NM --공통코드에서 가져오기 MA02
+             , T1.MAT_GD_CD
+             , T1.CRTL_STOC_QTY /* 현재재고수량 */
+             , T1.THWK_EXP_QTY /* 금주예정수량 */
+             , T1.CNFM_QTY /* 확정수량 */
+             , T1.MCBY_ACU_OSTR_QTY /* 월별누적출고수량 */
+             , T1.BOX_QTY /* 박스수량 */
+             , T1.BOX_UNIT_QTY /* 박스단위수량 */
+             , T1.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+             , '' AS WARE_MNGT_PRTNR_NM --파트너명
+             , T1.BLD_CD /* 빌딩코드 */
+             , '' AS ST102_CHG_CD
+             , '' AS TELL -- 전화번호 AC021_HNO_NO1 || AC021_HNO_NO2 || AC021_HNO_NO3
+             , '' AS BLDNAM --빌딩명
+             , '' AS AKDZP1
+             , '' AS AKDZP2
+             , '' AS AKDZIP -- ST152_AKDZIP
+             , T1.ADR_ID
+             , T1.BLD_ADR
+             , T1.ADR_DV_CD
+             , T1.DAS_NO
+             , T1.CRP_ASN_QOM_CT
+             , T1.GE_ASN_QOM_CT /* 일반배정물량건수 */
+             , T1.ETN_WTCF_APY_QTY /* 회차별가중치적용수량 */
+             , T1.WO_ASN_QOM_CT /* 전체배정물량건수 */
+          FROM TB_SVST_ITM_QOM_ASN_IZ T1
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T2
+            ON T1.ASN_OJ_YM  = T2.APY_YM
+           AND T1.STR_WARE_NO = T2.WARE_NO
+          LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3
+            ON T1.ITM_PD_CD = T3.SVPD_PD_CD
+         WHERE T1.ASN_OJ_YM = '202306'
+           AND T1.ASN_TN_N = #{cnt}
+           AND T1.OSTR_WARE_NO = #{ostrWareNo}
+           AND T1.WARE_DV_CD = #{wareDvCd}
+    </select>
+
     <select id="selectIndependenceQomAsns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$SearchRes">
         SELECT '' AS CHK
              , M1.ASN_OJ_YM
@@ -182,8 +236,873 @@
                ) M1
     </select>
 
-    <select id="selectIndividualWareQomAsns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$SearchRes">
+    <select id="selectIndividualWareQomAsns" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$IndividualWareSearchRes">
+        WITH TW_QTY1 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+                 , W1.PU_PART_PD_CD
+                 , SUM(W1.PU_QTY) AS QTY
+              FROM (
+                    SELECT T1.CNFM_PSIC_PRTNR_NO
+                         , T3.PU_PART_PD_CD
+                         , T3.PU_QTY
+                         , T1.VST_PRGS_STAT_CD
+                         , T1.VST_CNFMDT
+                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                     INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                        ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                       AND T1.CNTR_NO = T2.CNTR_NO
+                       AND T1.CNTR_SN = T2.CNTR_SN
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                     INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3
+                        ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                       AND T2.CNTR_NO = T3.CNTR_NO
+                       AND T2.CNTR_SN = T3.CNTR_SN
+                       AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                     INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4
+                        ON T1.CNTR_NO = T4.CNTR_NO
+                       AND T1.CNTR_SN = T4.CNTR_SN
+                     WHERE T1.ASN_OJ_YM = #{asnOjYm}
+                       AND T4.REQD_DT IS NULL
+                       AND T4.CPS_DT IS NULL
+                       AND T1.DTA_DL_YN = 'N'
+                       AND T2.DTA_DL_YN = 'N'
+                       AND T3.DTA_DL_YN = 'N'
+                       AND T4.DTA_DL_YN = 'N'
+                   ) W1
+             WHERE W1.VST_PRGS_STAT_CD != 20
+             GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        ),
+        TW_QTY2 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+            , W1.PU_PART_PD_CD
+            , SUM(W1.PU_QTY) AS QTY
+            FROM (
+                  SELECT T1.CNFM_PSIC_PRTNR_NO
+                        , T3.PU_PART_PD_CD
+                        , T3.PU_QTY
+                        , T1.VST_PRGS_STAT_CD
+                        , T1.VST_CNFMDT
+                     FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                    INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                       ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                      AND T1.CNTR_NO = T2.CNTR_NO
+                      AND T1.CNTR_SN = T2.CNTR_SN
+                      AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                    INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3
+                       ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                      AND T2.CNTR_NO = T3.CNTR_NO
+                      AND T2.CNTR_SN = T3.CNTR_SN
+                      AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4
+                       ON T1.CNTR_NO = T4.CNTR_NO
+                      AND T1.CNTR_SN = T4.CNTR_SN
+                    WHERE T1.ASN_OJ_YM = #{asnOjYm}
+                      AND T4.REQD_DT IS NULL
+                      AND T4.CPS_DT IS NULL
+                      AND T1.DTA_DL_YN = 'N'
+                      AND T2.DTA_DL_YN = 'N'
+                      AND T3.DTA_DL_YN = 'N'
+                      AND T4.DTA_DL_YN = 'N'
+                  ) W1
+            WHERE W1.VST_PRGS_STAT_CD != 20
+            AND TO_CHAR(TO_DATE(W1.VST_CNFMDT),'W') = TO_CHAR(SYSDATE,'W')
+            GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        ),
+        NW_QTY1 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+            , W1.PU_PART_PD_CD
+            , SUM(W1.PU_QTY) AS QTY
+            FROM (
+                  SELECT T1.CNFM_PSIC_PRTNR_NO
+                       , T3.PU_PART_PD_CD
+                       , T3.PU_QTY
+                       , T1.VST_PRGS_STAT_CD
+                       , T1.VST_CNFMDT
+                    FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                   INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                      ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                     AND T1.CNTR_NO = T2.CNTR_NO
+                     AND T1.CNTR_SN = T2.CNTR_SN
+                     AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                   INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3
+                      ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                     AND T2.CNTR_NO = T3.CNTR_NO
+                     AND T2.CNTR_SN = T3.CNTR_SN
+                     AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                   INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4
+                      ON T1.CNTR_NO = T4.CNTR_NO
+                     AND T1.CNTR_SN = T4.CNTR_SN
+                   WHERE T1.ASN_OJ_YM = #{asnOjYm}
+                     AND T4.REQD_DT IS NULL
+                     AND T4.CPS_DT IS NULL
+                     AND T1.DTA_DL_YN = 'N'
+                     AND T2.DTA_DL_YN = 'N'
+                     AND T3.DTA_DL_YN = 'N'
+                     AND T4.DTA_DL_YN = 'N'
+                  ) W1
+            WHERE W1.VST_PRGS_STAT_CD != 20
+            AND TO_CHAR(TO_DATE(W1.VST_CNFMDT),'W') = TO_CHAR(SYSDATE+7,'W')
+            GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        ),
+        BS_QTY1 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+            , W1.PU_PART_PD_CD
+            , SUM(W1.PU_QTY) AS QTY
+            FROM (
+                  SELECT T1.CNFM_PSIC_PRTNR_NO
+                       , T3.PU_PART_PD_CD
+                       , T3.PU_QTY
+                       , T1.VST_PRGS_STAT_CD
+                       , T1.VST_CNFMDT
+                    FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                   INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                      ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                     AND T1.CNTR_NO = T2.CNTR_NO
+                     AND T1.CNTR_SN = T2.CNTR_SN
+                     AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                   INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3
+                      ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                     AND T2.CNTR_NO = T3.CNTR_NO
+                     AND T2.CNTR_SN = T3.CNTR_SN
+                     AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                   INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4
+                      ON T1.CNTR_NO = T4.CNTR_NO
+                     AND T1.CNTR_SN = T4.CNTR_SN
+                   WHERE T1.ASN_OJ_YM = #{asnOjYm}
+                     AND T4.REQD_DT IS NULL
+                     AND T4.CPS_DT IS NULL
+                     AND T1.DTA_DL_YN = 'N'
+                     AND T2.DTA_DL_YN = 'N'
+                     AND T3.DTA_DL_YN = 'N'
+                     AND T4.DTA_DL_YN = 'N'
+                  ) W1
+            WHERE W1.VST_PRGS_STAT_CD = 20
+            GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        )
+        SELECT '' AS CHK
+             , T1.APY_YM
+             ,  #{asnOjYm} AS ASN_OJ_YM
+             , '100008' AS OUT_STCK_CD
+             , T1.STR_WARE_NO
+             , '0'  AS SEQ
+             , T1.ASN_TN_N
+             , T1.WARE_DV_CD
+             , T1.DIDY_DV_CD
+             , T1.STR_WARE_NM
+             , T1.ITM_PD_CD
+             , '9999' AS SALE_CD
+             , T1.NM_ABBR1
+             , T1.DEG
+             , T1.STCK_MGR AS STCK_MGR
+             , T1.STCK_MGR_NM
+             , T1.BLD_CD
+             , '000-0000-0000' AS TELL
+             , T1.BLDNAM
+             , T1.AC252_QTY1 AS QOM_QTY_PRVT /*배정수량합계-개인*/
+             , T1.AC252_QTY2 AS QOM_QTY_CRP /*배정수량합계-법인*/
+             , T1.AC252_QTY AS QOM_QTY /*배정수량합계-개인+법인*/
+             , T1.BASE_QTY
+             , T1.ACC_QTY_SUM
+             , T1.ON_QTY
+             , T1.TW_QTY
+             , T1.NW_QTY
+             , T1.BS_QTY
+             , (CASE WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797','WM07104798','WM07105097')
+                          AND MOD((T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY) ,2) = 1
+                          THEN (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY) + 1
+                     WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797','WM07104798','WM07105097')
+                          AND MOD((T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY) ,2) = 0
+                          THEN (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY)
+                    WHEN T1.ASN_TN_N = '1' THEN (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY)
+                    WHEN NVL(T1.BOX_QTY, 0) &gt; 0
+                         THEN T1.BOX_QTY * CEIL(GREATEST(((T1.TW_QTY + T1.NW_QTY)- T1.ON_QTY),(T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY),0) / T1.BOX_QTY)
+                    ELSE GREATEST(((T1.TW_QTY + T1.NW_QTY) - T1.ON_QTY), (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY), 0)
+                 END
+               ) AS CFRM_QTY
+             , (CASE WHEN NVL(T1.BOX_QTY, 0) &gt; 0
+                          THEN (T1.BOX_QTY * CEIL(GREATEST( ((T1.TW_QTY + T1.NW_QTY)- T1.ON_QTY),(T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY), 0 )
+                                                 / T1.BOX_QTY) / T1.BOX_QTY)
+                     ELSE 0
+                 END
+               ) AS BOX_DV
+             , 0 AS ACC_QTY
+          FROM (SELECT J2.WARE_DV_CD
+                     , J2.WARE_DTL_DV_CD
+                     , J2.DIDY_DV_CD
+                     , J3.STCK_CD_RECD AS STR_WARE_NO
+                     , J2.WARE_NM AS STR_WARE_NM
+                     , J2.WARE_MNGT_PRTNR_NO AS STCK_MGR
+                     , (SELECT C1.PRTNR_KNM
+                          FROM TB_OGBS_MM_PRTNR_IZ C1
+                         WHERE C1.BASE_YM = J2.APY_YM
+                           AND C1.OG_TP_CD = J2.OG_TP_CD
+                           AND C1.PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                       ) AS STCK_MGR_NM
+                     , (SELECT JS1.BLD_NM
+                          FROM TB_OGBS_BLD_BAS JS1
+                         WHERE JS1.OG_TP_CD = J2.OG_TP_CD
+                           AND JS1.BLD_CD = J2.BLD_CD
+                       ) AS BLDNAM
+                     , J3.ITM_PD_CD
+                     , J1.SVPD_NM_ABBR1 AS NM_ABBR1
+                     , 'A' AS DEG
+                     , (SELECT NVL(F1.SVPD_BOX_QTY, 0)
+                             FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) F1
+                            WHERE F1.SVPD_PD_CD = J3.ITM_PD_CD
+                              AND F1.SVPD_PD_CD IN ('WM07103020','WM07105668')
+                       ) AS BOX_QTY
+                     , J3.AC252_QTY1
+                     , J3.AC252_QTY2
+                     , (J3.AC252_QTY1 + J3.AC252_QTY2) AS AC252_QTY
+                     , J3.BASE_QTY
+                     , J3.ACC_QTY_SUM
+                     , (CASE WHEN #{apyYm} != #{asnOjYm} THEN 0
+                             ELSE J3.AC252_ON_QTY
+                         END) AS ON_QTY
+                     , (CASE WHEN #{apyYm} != #{asnOjYm}
+                                  THEN (SELECT NVL(TW1.QTY, 0)
+                                          FROM TW_QTY1 TW1
+                                         WHERE TW1.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                           AND TW1.PU_PART_PD_CD = J3.ITM_PD_CD
+                                       )
+                             ELSE (SELECT NVL(TW2.QTY, 0)
+                                     FROM TW_QTY2 TW2
+                                    WHERE TW2.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                      AND TW2.PU_PART_PD_CD = J3.ITM_PD_CD
+                                  )
+                         END) AS TW_QTY
+                     , (CASE WHEN #{apyYm} != #{asnOjYm} THEN 0
+                             WHEN #{apyYm} != TO_CHAR(SYSDATE + 7, 'YYYYMMDD') THEN 0
+                             ELSE (SELECT NVL(NW1.QTY, 0)
+                                     FROM NW_QTY1 NW1
+                                    WHERE NW1.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                      AND NW1.PU_PART_PD_CD = J3.ITM_PD_CD
+                                  )
+                         END) AS NW_QTY
+                     , (CASE WHEN #{apyYm} != #{asnOjYm} THEN 0
+                             ELSE (SELECT NVL(BS1.QTY, 0)
+                                     FROM BS_QTY1 BS1
+                                    WHERE BS1.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                      AND BS1.PU_PART_PD_CD = J3.ITM_PD_CD
+                                  )
+                         END) AS BS_QTY
+                     , #{apyYm} AS APY_YM
+                     , #{asnOjYm} AS ASN_OJ_YM
+                     , #{cnt} AS ASN_TN_N
+                     , J3.BLD_CD
+                  FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) J1
+                 INNER JOIN (SELECT JT1.STCK_CD_RECD
+                                  , JT1.EMP_ID
+                                  , JT1.BLD_CD
+                                  , JT1.AC252_ITEM_KND
+                                  , JT1.AC252_PART_CD AS ITM_PD_CD
+                                  , SUM(JT1.AC252_QTY_1) AS AC252_QTY1
+                                  , SUM(JT1.AC252_QTY_2) AS AC252_QTY2
+                                  , ((CASE WHEN JT1.AC252_ITEM_KND != '5' THEN (SUM(JT1.AC252_QTY_1) * 1.0)
+                                           WHEN #{cnt} = '1' AND JT1.BLD_CD IN ('885', '951')
+                                                THEN (CASE WHEN SUM(JT1.AC252_QTY_1) &lt; 5
+                                                                THEN (SUM(JT1.AC252_QTY_1) * 1.0)
+                                                           ELSE ROUND(SUM(JT1.AC252_QTY_1) * 1.0, 0)
+                                                       END)
+                                           WHEN #{cnt} = '1'
+                                                THEN (CASE WHEN SUM(JT1.AC252_QTY_1) &lt; 5
+                                                                THEN (SUM(JT1.AC252_QTY_1) * 1.0)
+                                                           ELSE ROUND(SUM(JT1.AC252_QTY_1) * 0.4, 0)
+                                                       END)
+                                           WHEN #{cnt} &gt; '1'
+                                                THEN (CASE WHEN SUM(JT1.AC252_QTY_1) &lt; 5
+                                                                THEN (SUM(JT1.AC252_QTY_1) * 1.0)
+                                                            ELSE ROUND(SUM(JT1.AC252_QTY_1) * 1.0, 0)
+                                                       END)
+                                       END) + SUM(JT1.AC252_QTY_2) * 1.0) AS BASE_QTY
+                                  , NVL((SELECT SUM(JTS1.ACL_OSTR_QTY)
+                                           FROM TB_SVST_ITM_QOM_ASN_IZ JTS1
+                                          WHERE JTS1.ASN_OJ_YM = #{asnOjYm}
+                                            AND JTS1.STR_WARE_NO = JT1.STCK_CD_RECD
+                                            AND JTS1.ITM_PD_CD = JT1.AC252_PART_CD)
+                                        , 0) AS ACC_QTY_SUM
+                                  , NVL((SELECT SUM(JTS2.PITM_STOC_A_GD_QTY)
+                                           FROM TB_SVST_CST_SV_ITM_STOC_IZ JTS2
+                                          WHERE JTS2.WARE_NO = JT1.STCK_CD_RECD
+                                            AND JTS2.ITM_PD_CD = JT1.AC252_PART_CD)
+                                        , 0) AS AC252_ON_QTY
+                               FROM (SELECT JT2.STCK_CD_RECD
+                                          , JT2.AC202_MGT_EMP_ID AS EMP_ID
+                                          , JT2.VS107_PART_CD AS AC252_PART_CD
+                                          , (CASE WHEN (JT2.AC201_INST_GB = '1' OR JT2.AC201_INST_GB IS NULL)
+                                                        THEN JT2.VS107_QTY
+                                                  ELSE 0
+                                              END) AS AC252_QTY_1
+                                          , (CASE WHEN JT2.AC201_INST_GB = '2' THEN  JT2.VS107_QTY ELSE 0 END) AS AC252_QTY_2
+                                          , JT2.ITM_KND_CD AS AC252_ITEM_KND
+                                          , JT2.APY_YM
+                                          , JT2.ASN_OJ_YM
+                                          , JT2.ASN_TN_N
+                                          , JT2.BLD_CD
+                                       FROM (
+                                             SELECT US1.ITM_KND_CD
+                                                  , US1.PART_USE_QTY AS VS107_QTY
+                                                  , US4.WARE_NO AS STCK_CD_RECD
+                                                  , US3.MNGT_PRTNR_NO AS AC202_MGT_EMP_ID
+                                                  , US1.PART_PD_CD AS VS107_PART_CD
+                                                  , (SELECT Z1.COPN_DV_CD
+                                                       FROM TB_SSCT_CNTR_BAS Z1
+                                                      WHERE Z1.CNTR_NO = US2.CNTR_NO) AS AC201_INST_GB
+                                                  , #{apyYm} AS APY_YM
+                                                  , #{asnOjYm} AS ASN_OJ_YM
+                                                  , #{cnt} AS ASN_TN_N
+                                                  , US4.BLD_CD
+                                               FROM TB_SVPD_CST_SV_RGBSPR_IZ US1
+                                              INNER JOIN TB_SVPD_CST_SV_EXCN_IZ US2
+                                                 ON US2.CNTR_NO = US1.CNTR_NO
+                                                AND US2.CNTR_SN = US1.CNTR_SN
+                                              INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ US3
+                                                 ON US2.CNTR_NO = US3.CNTR_NO
+                                                AND US2.CNTR_SN = US3.CNTR_SN
+                                              INNER JOIN TB_SVST_MCBY_WARE_IZ US4
+                                                 ON US3.MNGT_YM = US4.APY_YM
+                                                AND US3.MNGT_PRTNR_NO = US4.WARE_MNGT_PRTNR_NO
+                                              WHERE US3.MNGT_YM = #{apyYm}
+                                                AND US1.PART_PD_CD IS NOT NULL
+                                                AND US1.VST_DV_CD LIKE '1%'
+                                                AND US1.VST_DV_CD != '13'
+                                                AND SUBSTR(US1.VST_DUEDT, 1, 6) = #{asnOjYm}
+                                                AND US2.REQD_DT IS NULL
+                                                AND US2.CPS_DT IS NULL
+                                                AND NOT EXISTS(SELECT 1
+                                                                 FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ WS1
+                                                                WHERE WS1.CNTR_NO = US1.CNTR_NO
+                                                                  AND WS1.CNTR_SN = US1.CNTR_SN
+                                                                  AND WS1.AK_SN = (SELECT MAX(WSS1.AK_SN)
+                                                                                     FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ WSS1
+                                                                                    WHERE WS1.CNTR_NO = WSS1.CNTR_NO
+                                                                                      AND WS1.CNTR_SN = WSS1.CNTR_SN)
+                                                                                      AND SPP_STP_DV_CD = 'B')
+                                                AND NOT EXISTS(SELECT 1
+                                                                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ WJ1
+                                                                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ WJ2
+                                                                   ON WJ1.CNTR_NO = WJ2.CNTR_NO
+                                                                  AND WJ1.CNTR_SN = WJ2.CNTR_SN
+                                                                  AND WJ1.ASN_OJ_YM = WJ2.ASN_OJ_YM
+                                                                WHERE WJ1.ASN_OJ_YM = '202103'
+                                                                  AND WJ1.CNFM_PSIC_DV_CD = '2'
+                                                                  AND WJ1.CNTR_NO = US1.CNTR_NO
+                                                                  AND WJ1.CNTR_SN = US1.CNTR_SN
+                                                                  AND WJ2.PU_PART_PD_CD IN ('WM07104621','WM07104619')
+                                                                  AND ROWNUM = 1)
+                                             UNION ALL
+                                             SELECT '6' AS VS107_ITEM_KND
+                                                  , UT1.PART_USE_QTY AS VS107_QTY
+                                                  , UT4.WARE_NO AS STCK_CD_RECD
+                                                  , UT3.MNGT_PRTNR_NO AS AC202_MGT_EMP_ID
+                                                  , UT1.PART_PD_CD
+                                                  , (SELECT Z2.COPN_DV_CD
+                                                       FROM TB_SSCT_CNTR_BAS Z2
+                                                      WHERE Z2.CNTR_NO = UT2.CNTR_NO) AS AC201_INST_GB
+                                                  , #{apyYm} AS APY_YM
+                                                  , #{asnOjYm} AS ASN_OJ_YM
+                                                  , #{cnt} AS ASN_TN_N
+                                                  , UT4.BLD_CD
+                                               FROM TB_SVPD_CST_SV_RGBSPR_IZ UT1
+                                              INNER JOIN TB_SVPD_CST_SV_EXCN_IZ UT2
+                                                 ON UT2.CNTR_NO = UT1.CNTR_NO
+                                                AND UT2.CNTR_SN = UT1.CNTR_SN
+                                              INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ UT3
+                                                 ON UT2.CNTR_NO = UT3.CNTR_NO
+                                                AND UT2.CNTR_SN = UT3.CNTR_SN
+                                              INNER JOIN TB_SVST_MCBY_WARE_IZ UT4
+                                                 ON UT3.MNGT_YM = UT4.APY_YM
+                                                AND UT3.MNGT_PRTNR_NO = UT4.WARE_MNGT_PRTNR_NO
+                                              WHERE  UT3.MNGT_YM = #{apyYm}
+                                                AND UT1.PART_PD_CD IS NOT NULL
+                                                AND UT1.VST_DV_CD LIKE '1%'
+                                                AND UT1.VST_DV_CD != '13'
+                                                AND SUBSTR(UT1.VST_DUEDT, 1, 6) = #{asnOjYm}
+                                                AND UT2.REQD_DT IS NULL
+                                                AND UT2.CPS_DT IS NULL
+                                             ) JT2
+                                       WHERE JT2.VS107_QTY &gt; 0
+                                         AND JT2.STCK_CD_RECD IS NOT NULL
+                                    ) JT1
+                                    GROUP BY JT1.STCK_CD_RECD, JT1.EMP_ID, JT1.BLD_CD, JT1.AC252_PART_CD , JT1.AC252_ITEM_KND
+                            ) J3
+                    ON J3.ITM_PD_CD = J1.SVPD_PD_CD
+                 INNER JOIN TB_SVST_MCBY_WARE_IZ J2
+                    ON J2.APY_YM = #{apyYm}
+                   AND J3.STCK_CD_RECD = J2.WARE_NO
+                   AND J2.WARE_DV_CD = '3'
+                 WHERE (J1.SVPD_ITEM_GR IS NULL OR J1.SVPD_ITEM_GR != '11')
+                   AND J3.ITM_PD_CD NOT IN('WM07105704','WM07105748','WM07105703','WM07105745','WM07105747','WM07105952','WM07106035'
+                                          ,'WM07104436','WM07106025','WM07105705','WM07106030','WM07105924','WM07105925','WM07102129'
+                                          ,'WM07105746')
+                   AND NOT EXISTS (SELECT 1
+                                     FROM TB_SVST_QOM_ASN_EXCD_IZ S1
+                                    WHERE S1.ASN_EXCD_DV_CD = '0'
+                                      AND S1.STR_WARE_NO = '300000'
+                                      AND S1.ITM_PD_CD = J3.ITM_PD_CD)
+                                      AND NOT EXISTS (SELECT 1
+                                                        FROM TB_SVST_QOM_ASN_EXCD_IZ S2
+                                                       WHERE S2.ASN_EXCD_DV_CD = '3'
+                                                         AND S2.STR_WARE_NO = J3.STCK_CD_RECD
+                                                         AND S2.ITM_PD_CD = J3.ITM_PD_CD)
+                                      AND J2.WARE_MNGT_PRTNR_NO IN (SELECT S3.PRTNR_NO
+                                                                      FROM TB_OGBS_MM_PRTNR_IZ S3
+                                                                     WHERE S3.BASE_YM = J2.APY_YM
+                                                                       AND NOT EXISTS
+                                                                                     (SELECT S4.PRTNR_NO
+                                                                                           , S4.QOM_ASN_APY_YN
+                                                                                        FROM (SELECT SS1.PRTNR_NO, SS1.QOM_ASN_APY_YN
+                                                                                                FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ SS1
+                                                                                               WHERE SS1.APY_SN = (SELECT MAX(SS2.APY_SN)
+                                                                                                                     FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ SS2
+                                                                                                                    WHERE SS2.PRTNR_NO = SS1.PRTNR_NO
+                                                                                                                  )
+                                                                                             ) S4
+                                                                                       WHERE S4.QOM_ASN_APY_YN = 'N'
+                                                                                     )
+                                                                                 AND S3.PSTN_DV_CD != '4'
+                                                                   )
+                                      AND J2.DIDY_DV_CD != '2'
+                       ) T1
+                 WHERE 1=1
+    </select>
 
+    <select id="selectIndividualWareQomAsns_BACKUP" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto$IndividualWareSearchRes">
+        WITH TW_QTY1 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+                 , W1.PU_PART_PD_CD
+                 , SUM(W1.PU_QTY) AS QTY
+              FROM (
+                    SELECT T1.CNFM_PSIC_PRTNR_NO
+                         , T3.PU_PART_PD_CD
+                         , T3.PU_QTY
+                         , T1.VST_PRGS_STAT_CD
+                         , T1.VST_CNFMDT
+                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1 /* 고객서비스BS배정내역 - LC_ALLOCATE_AC261TB */
+                     INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 - LC_ALLOCATE_AC251TB */
+                        ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                       AND T1.CNTR_NO = T2.CNTR_NO
+                       AND T1.CNTR_SN = T2.CNTR_SN
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                     INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3 /* 고객서비스정기BS투입품목상세 - LC_ALLOCATE_AC252TB */
+                        ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                       AND T2.CNTR_NO = T3.CNTR_NO
+                       AND T2.CNTR_SN = T3.CNTR_SN
+                       AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                     INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /* 고객서비스수행내역 - LC_ALLOCATE_AC201TB */
+                        ON T1.CNTR_NO = T4.CNTR_NO
+                       AND T1.CNTR_SN = T4.CNTR_SN
+                     WHERE T1.ASN_OJ_YM = #{asnOjYm} /* 변수 : 배정년월 ASN_OJ_YM */
+                       AND T4.REQD_DT IS NULL
+                       AND T4.CPS_DT IS NULL
+                       AND T1.DTA_DL_YN = 'N'
+                       AND T2.DTA_DL_YN = 'N'
+                       AND T3.DTA_DL_YN = 'N'
+                       AND T4.DTA_DL_YN = 'N'
+                   ) W1
+             WHERE W1.VST_PRGS_STAT_CD != 20
+             GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        ),
+        TW_QTY2 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+            , W1.PU_PART_PD_CD
+            , SUM(W1.PU_QTY) AS QTY
+            FROM (
+                  SELECT T1.CNFM_PSIC_PRTNR_NO
+                        , T3.PU_PART_PD_CD
+                        , T3.PU_QTY
+                        , T1.VST_PRGS_STAT_CD
+                        , T1.VST_CNFMDT
+                     FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1 /* 고객서비스BS배정내역 - LC_ALLOCATE_AC261TB */
+                    INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 - LC_ALLOCATE_AC251TB */
+                       ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                      AND T1.CNTR_NO = T2.CNTR_NO
+                      AND T1.CNTR_SN = T2.CNTR_SN
+                      AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                    INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3 /* 고객서비스정기BS투입품목상세 - LC_ALLOCATE_AC252TB */
+                       ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                      AND T2.CNTR_NO = T3.CNTR_NO
+                      AND T2.CNTR_SN = T3.CNTR_SN
+                      AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /* 고객서비스수행내역 - LC_ALLOCATE_AC201TB */
+                       ON T1.CNTR_NO = T4.CNTR_NO
+                      AND T1.CNTR_SN = T4.CNTR_SN
+                    WHERE T1.ASN_OJ_YM = #{asnOjYm} /* 변수 : 배정년월 ASN_OJ_YM */
+                      AND T4.REQD_DT IS NULL
+                      AND T4.CPS_DT IS NULL
+                      AND T1.DTA_DL_YN = 'N'
+                      AND T2.DTA_DL_YN = 'N'
+                      AND T3.DTA_DL_YN = 'N'
+                      AND T4.DTA_DL_YN = 'N'
+                  ) W1
+            WHERE W1.VST_PRGS_STAT_CD != 20
+            AND TO_CHAR(TO_DATE(W1.VST_CNFMDT),'W') = TO_CHAR(SYSDATE,'W')
+            GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        ),
+        NW_QTY1 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+            , W1.PU_PART_PD_CD
+            , SUM(W1.PU_QTY) AS QTY
+            FROM (
+                  SELECT T1.CNFM_PSIC_PRTNR_NO
+                       , T3.PU_PART_PD_CD
+                       , T3.PU_QTY
+                       , T1.VST_PRGS_STAT_CD
+                       , T1.VST_CNFMDT
+                    FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1 /* 고객서비스BS배정내역 - LC_ALLOCATE_AC261TB */
+                   INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 - LC_ALLOCATE_AC251TB */
+                      ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                     AND T1.CNTR_NO = T2.CNTR_NO
+                     AND T1.CNTR_SN = T2.CNTR_SN
+                     AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                   INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3 /* 고객서비스정기BS투입품목상세 - LC_ALLOCATE_AC252TB */
+                      ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                     AND T2.CNTR_NO = T3.CNTR_NO
+                     AND T2.CNTR_SN = T3.CNTR_SN
+                     AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                   INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /* 고객서비스수행내역 - LC_ALLOCATE_AC201TB */
+                      ON T1.CNTR_NO = T4.CNTR_NO
+                     AND T1.CNTR_SN = T4.CNTR_SN
+                   WHERE T1.ASN_OJ_YM = #{asnOjYm} /* 변수 : 배정년월 ASN_OJ_YM */
+                     AND T4.REQD_DT IS NULL
+                     AND T4.CPS_DT IS NULL
+                     AND T1.DTA_DL_YN = 'N'
+                     AND T2.DTA_DL_YN = 'N'
+                     AND T3.DTA_DL_YN = 'N'
+                     AND T4.DTA_DL_YN = 'N'
+                  ) W1
+            WHERE W1.VST_PRGS_STAT_CD != 20
+            AND TO_CHAR(TO_DATE(W1.VST_CNFMDT),'W') = TO_CHAR(SYSDATE+7,'W')
+            GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        ),
+        BS_QTY1 AS (
+            SELECT W1.CNFM_PSIC_PRTNR_NO
+            , W1.PU_PART_PD_CD
+            , SUM(W1.PU_QTY) AS QTY
+            FROM (
+                  SELECT T1.CNFM_PSIC_PRTNR_NO
+                       , T3.PU_PART_PD_CD
+                       , T3.PU_QTY
+                       , T1.VST_PRGS_STAT_CD
+                       , T1.VST_CNFMDT
+                    FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1 /* 고객서비스BS배정내역 - LC_ALLOCATE_AC261TB */
+                   INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 - LC_ALLOCATE_AC251TB */
+                      ON T1.ASN_OJ_YM = T2.ASN_OJ_YM
+                     AND T1.CNTR_NO = T2.CNTR_NO
+                     AND T1.CNTR_SN = T2.CNTR_SN
+                     AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                   INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ T3 /* 고객서비스정기BS투입품목상세 - LC_ALLOCATE_AC252TB */
+                      ON T2.ASN_OJ_YM = T3.ASN_OJ_YM
+                     AND T2.CNTR_NO = T3.CNTR_NO
+                     AND T2.CNTR_SN = T3.CNTR_SN
+                     AND T2.PDCT_PD_CD = T3.PDCT_PD_CD
+                   INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /* 고객서비스수행내역 - LC_ALLOCATE_AC201TB */
+                      ON T1.CNTR_NO = T4.CNTR_NO
+                     AND T1.CNTR_SN = T4.CNTR_SN
+                   WHERE T1.ASN_OJ_YM = #{asnOjYm} /* 변수 : 배정년월 ASN_OJ_YM */
+                     AND T4.REQD_DT IS NULL
+                     AND T4.CPS_DT IS NULL
+                     AND T1.DTA_DL_YN = 'N'
+                     AND T2.DTA_DL_YN = 'N'
+                     AND T3.DTA_DL_YN = 'N'
+                     AND T4.DTA_DL_YN = 'N'
+                  ) W1
+            WHERE W1.VST_PRGS_STAT_CD = 20
+            GROUP BY W1.CNFM_PSIC_PRTNR_NO, W1.PU_PART_PD_CD
+        )
+        SELECT '' AS CHK /*체크 값*/
+             , T1.APY_YM
+             ,  #{asnOjYm} AS ASN_OJ_YM /* 배정년월 ALLO_YM */
+             , '100008' AS OUT_STCK_CD /*출고창고 - 100008 성수물류, 100002 파주물류 */
+             , T1.STR_WARE_NO /*입고창고*/
+             , '0'  AS SEQ /* 저장순번 INSERT 문에서 (NVL(MAX(ITM_QOM_ASN_NO) + 1, '31' || ASN_OJ_YM || '0000001'), ASN_OJ_YM을 기준으로 */
+             , T1.ASN_TN_N /* 배정횟차 ASN_TN_N */
+             , T1.WARE_DV_CD /*창고구분 1 물류, 2 엔지니어, 3 매니저*/
+             , T1.DIDY_DV_CD /*배송구분 1 조직, 2 직배*/
+             , T1.STR_WARE_NM /*창고명*/
+             , T1.ITM_PD_CD /*자재코드 ITEM_CD */
+             /* , NVL(T1.SALE_CD,'9999') AS SALE_CD */ /*판매코드*/
+             , '9999' AS SALE_CD
+             , T1.NM_ABBR1 /*자재명*/
+             , T1.DEG
+             , T1.STCK_MGR AS STCK_MGR
+             , T1.STCK_MGR_NM /* 창고 소유주명 */
+             , T1.STCK_DBLD /* 해당창고빌딩번호 */
+             , '000-0000-0000' AS TELL /*소유주연락처*/
+             , T1.BLDNAM /*빌딩명*/
+             , T1.AC252_QTY1  /*배정수량합계-개인*/
+             , T1.AC252_QTY2  /*배정수량합계-법인*/
+             , T1.AC252_QTY   /*배정수량합계-개인+법인*/
+             , T1.BASE_QTY    /*주차별 누적 출고율 적용 수량*/
+             , T1.ACC_QTY_SUM /*해당월 출고수량 합계*/
+             , T1.ON_QTY      /*조회시점 재고 수량*/
+             , T1.TW_QTY
+             , T1.NW_QTY
+             , T1.BS_QTY
+             , (CASE WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797','WM07104798','WM07105097')
+                          AND MOD((T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY) ,2) = 1
+                          THEN (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY) + 1
+                     WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797','WM07104798','WM07105097')
+                          AND MOD((T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY) ,2) = 0
+                          THEN (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY)
+                    WHEN T1.ASN_TN_N = '1' THEN (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY)
+                    WHEN NVL(T1.BOX_QTY, 0) &gt; 0
+                         THEN T1.BOX_QTY * CEIL(GREATEST(((T1.TW_QTY + T1.NW_QTY)- T1.ON_QTY),(T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY),0) / T1.BOX_QTY)
+                    ELSE GREATEST(((T1.TW_QTY + T1.NW_QTY) - T1.ON_QTY), (T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY), 0)
+               ) AS CFRM_QTY /*확정수량*/
+             , (CASE WHEN NVL(T1.BOX_QTY, 0) &gt; 0
+                          THEN (T1.BOX_QTY * CEIL(GREATEST( ((T1.TW_QTY + T1.NW_QTY)- T1.ON_QTY),(T1.BASE_QTY - T1.ON_QTY - T1.BS_QTY), 0 )
+                                                 / T1.BOX_QTY) / T1.BOX_QTY)
+                     ELSE 0
+               ) AS BOX_DV /*박스단위수량*/
+             , 0 AS ACC_QTY
+          FROM (SELECT J2.WARE_DV_CD /*창고구분 - 1 물류, 2 엔지니어, 3 매니저*/
+                     , J2.WARE_DTL_DV_CD /*창고상세구분*/
+                     , J2.DIDY_DV_CD /*배송구분 - 1 조직창고, 2 직배*/
+                     , J3.STCK_CD_RECD AS STR_WARE_NO /*입고창고*/
+                     , J2.WARE_NM AS STR_WARE_NM /*입고창고명*/
+                     , J2.WARE_MNGT_PRTNR_NO AS STCK_MGR /*창고담당 사번*/
+                     , (SELECT C1.PRTNR_KNM
+                          FROM TB_OGBS_MM_PRTNR_IZ C1
+                         WHERE C1.BASE_YM = J3.APY_YM
+                           AND C1.OG_TP_CD = J2.OG_TP_CD
+                           AND C1.PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                       ) AS STCK_MGR_NM /*창고담당 성명*/
+                     , (SELECT JS1.BLD_NM
+                          FROM TB_OGBS_BLD_BAS JS1
+                         WHERE JS1.OG_TP_CD = J2.OG_TP_CD
+                           AND JS1.BLD_CD = J2.BLD_CD
+                       ) AS BLDNAM
+                    /* , ST102_ZIP_NO1 */
+                    /* , ST102_ZIP_NO2 */
+                    /* , ST102_ADD */
+                    /* , ST102_ADD_DTL */
+                    /* , ST102_ADD_REFER */
+                    /* , ST102_ADD_GB */
+                     , J3.ITM_PD_CD /*자재코드*/
+                     , J1.SVPD_NM_ABBR1 AS NM_ABBR1 /*자재명*/
+                     , 'A' AS DEG
+                     , NVL(SELECT F1.SVPD_BOX_QTY
+                             FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) F1
+                            WHERE F1.SVPD_PD_CD = J3.ITM_PD_CD
+                              AND F1.SVPD_PD_CD IN ('WM07103020','WM07105668')
+                       , 0) AS J3.BOX_QTY /*박스수량*/
+                     , J3.AC252_QTY1                                   /*배정수량합계-개인*/
+                     , J3.AC252_QTY2                                   /*배정수량합계-법인*/
+                     , (J3.AC252_QTY1 + J3.AC252_QTY2) AS AC252_QTY         /*배정수량합계-개인+법인*/
+                     , J3.BASE_QTY                                     /*주차별 누적 출고율 적용 수량*/
+                     , J3.ACC_QTY_SUM                                  /*해당월 출고수량 합계*/
+                     , (CASE WHEN J2.APY_YM != J3.ASN_OJ_YM THEN 0  /*기준년과 배정년이 다른다면 0 으로 처리*/
+                             ELSE J3.AC252_ON_QTY
+                         END) AS ON_QTY /*조회시점 재고 수량*/
+                     , (CASE WHEN J2.APY_YM != J3.ASN_OJ_YM /* asnOjYm 배정년월 ALLO_YM */
+                                  THEN NVL(SELECT TW1.QTY
+                                             FROM TW1_QTY1 TW1
+                                            WHERE TW1.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                              AND TW1.PU_PART_PD_CD = J3.ITM_PD_CD
+                                           , 0)
+                             ELSE NVL(SELECT TW2.QTY
+                                        FROM TW_QTY2 TW2
+                                       WHERE TW2.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                         AND TW2.PU_PART_PD_CD = J3.ITM_PD_CD
+                                      , 0)
+                         END) AS TW_QTY /*해당주차사용예정수량*/
+                     , (CASE WHEN J2.APY_YM != J3.ASN_OJ_YM THEN 0  /*기준년과 배정년이 다른다면 0 으로 처리*/
+                             WHEN J2.APY_YM != TO_CHAR(SYSDATE + 7, 'YYYYMMDD') THEN 0 /*마지막배정이라면 차주 수량 0으로 계산*/
+                             ELSE NVL(SELECT NW1.QTY
+                                        FROM NW_QTY1 NW1
+                                       WHERE NW1.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                         AND NW1.PU_PART_PD_CD = J3.ITM_PD_CD
+                                      , 0)
+                         END) AS NW_QTY
+                     , (CASE WHEN J2.APY_YM != J3.ASN_OJ_YM THEN 0  /*기준년과 배정년이 다른다면 0 으로 처리*/
+                             ELSE NVL(SELECT BS1.QTY
+                                        FROM BS_QTY1 BS1
+                                       WHERE BS1.CNFM_PSIC_PRTNR_NO = J2.WARE_MNGT_PRTNR_NO
+                                         AND BS1.PU_PART_PD_CD = J3.ITM_PD_CD
+                                      , 0)
+                       ) AS BS_QTY /*BS 완료 건수*/
+                     , #{apyYm} AS APY_YM /* 변수: APY_YM*/
+                     , #{asnOjYm} AS ASN_OJ_YM /* 변수: ASN_OJ_YM*/
+                     , #{cnt} AS ASN_TN_N /* 변수: ASN_TN_N */
+                     , J3.BLD_CD
+                  FROM TB_SVST_MCBY_WARE_IZ J2
+                 INNER JOIN (SELECT JT1.STCK_CD_RECD /*입고창고*/
+                                  , JT1.EMP_ID
+                                  , JT1.BLD_CD
+                                  , JT1.AC252_ITEM_KND
+                                  , JT1.AC252_PART_CD AS ITM_PD_CD /*자재코드*/
+                                  , SUM(JT1.AC252_QTY_1) AS AC252_QTY1 /*배정수량합계-개인*/
+                                  , SUM(JT1.AC252_QTY_2) AS AC252_QTY2 /*배정수량합계-법인*/
+                                  /*가중치 적용*/
+                                  , ((CASE WHEN JT1.AC252_ITEM_KND != '5' THEN (SUM(JT1.AC252_QTY_1) * 1.0) /*필터가 아니면 무조건 100%*/
+                                           WHEN #{cnt} = '1' AND JT1.BLD_CD IN ('885', '951')
+                                                THEN (CASE WHEN SUM(JT1.AC252_QTY_1) &lt; 5
+                                                                THEN (SUM(JT1.AC252_QTY_1) * 1.0)
+                                                           ELSE ROUND(SUM(JT1.AC252_QTY_1) * 1.0, 0)
+                                                       END)
+                                           WHEN #{cnt} = '1'
+                                                THEN (CASE WHEN SUM(JT1.AC252_QTY_1) &lt; 5
+                                                                THEN (SUM(JT1.AC252_QTY_1) * 1.0)
+                                                           ELSE ROUND(SUM(JT1.AC252_QTY_1) * 0.4, 0)
+                                                       END) /*일반 * 40%*/
+                                           WHEN #{cnt} &gt; '1'
+                                                THEN (CASE WHEN SUM(JT1.AC252_QTY_1) &lt; 5
+                                                                THEN (SUM(JT1.AC252_QTY_1) * 1.0)
+                                                            ELSE ROUND(SUM(JT1.AC252_QTY_1) * 1.0, 0)
+                                                       END)
+                                  /*일반 * 80% 2,3차 40% 반영 2022.02 이지영 매니저님 요청*/ /* 2022.04 2차 부터 1차 40% 2차 60% 반영 */
+                                       END) + SUM(JT1.AC252_QTY_2) * 1.0) AS BASE_QTY /*주차별 가중치 적용 수량*/
+                                  , NVL((SELECT SUM(JTS1.ACL_OSTR_QTY)
+                                           FROM TB_SVST_ITM_QOM_ASN_IZ JTS1
+                                          WHERE JTS1.ASN_OJ_YM = #{asnOjYm} /* 변수 : ASN_OJ_YM */
+                                            AND JTS1.STR_WARE_NO = JT1.STCK_CD_RECD
+                                            AND JTS1.ITM_PD_CD = JT1.AC252_PART_CD)
+                                        , 0) AS ACC_QTY_SUM /*해당월 누적 물량배정 입고수량*/
+                                  , NVL((SELECT SUM(JTS2.PITM_STOC_A_GD_QTY)
+                                           FROM TB_SVST_CST_SV_ITM_STOC_IZ JTS2
+                                          WHERE JTS2.WARE_NO = JT1.STCK_CD_RECD
+                                            AND JTS2.ITM_PD_CD = JT1.AC252_PART_CD)
+                                        , 0) AS AC252_ON_QTY /*조회시점 재고수량*/
+                               FROM (SELECT JT2.STCK_CD_RECD
+                                          , JT2.AC202_MGT_EMP_ID AS EMP_ID
+                                          , JT2.VS107_PART_CD AS AC252_PART_CD
+                                          , (CASE WHEN (JT2.AC201_INST_GB = '1' OR JT2.AC201_INST_GB IS NULL)
+                                                        THEN JT2.VS107_QTY
+                                                  ELSE 0
+                                              END) AS AC252_QTY_1
+                                          , (CASE WHEN JT2.AC201_INST_GB = '2' THEN  JT2.VS107_QTY ELSE 0 END) AS AC252_QTY_2
+                                          , JT2.ITM_KND_CD AS AC252_ITEM_KND
+                                          , JT2.APY_YM
+                                          , JT2.ASN_OJ_YM
+                                          , JT2.ASN_TN_N
+                                          , JT2.BLD_CD
+                                       FROM (/* 필터 셋팅 */
+                                             SELECT US1.ITM_KND_CD /*VS107_ITEM_KND*/
+                                                  , US1.PART_USE_QTY AS VS107_QTY /*VS107_QTY*/
+                                                  , US4.WARE_NO AS STCK_CD_RECD
+                                                  , US3.MNGT_PRTNR_NO AS AC202_MGT_EMP_ID
+                                                  , US1.PART_PD_CD AS VS107_PART_CD /*필터코드 VS107_PART_CD */
+                                                  , (SELECT Z1.COPN_DV_CD
+                                                       FROM TB_SSCT_CNTR_BAS Z1
+                                                      WHERE Z1.CNTR_NO = US2.CNTR_NO) AS AC201_INST_GB /*설치구분 */
+                                                  , #{apyYm} AS APY_YM    /*  배정년월 APY_YM */
+                                                  , #{asnOjYm} AS ASN_OJ_YM /* 배정년월 ALLO_YM */
+                                                  , #{cnt} AS ASN_TN_N /* 배정횟차 ASN_TN_N */
+                                                  , US4.BLD_CD
+                                               FROM TB_SVPD_CST_SV_RGBSPR_IZ US1 /* LC_VISIT_VS107TB */
+                                              INNER JOIN TB_SVPD_CST_SV_EXCN_IZ US2 /* LC_ALLOCATE_AC201TB */
+                                                 ON US2.CNTR_NO = US1.CNTR_NO
+                                                AND US2.CNTR_SN = US1.CNTR_SN
+                                              INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ US3 /* LC_ALLOCATE_AC202TB */
+                                                 ON US2.CNTR_NO = US3.CNTR_NO
+                                                AND US2.CNTR_SN = US3.CNTR_SN
+                                              INNER JOIN TB_SVST_MCBY_WARE_IZ US4
+                                                 ON US3.MNGT_YM = US4.APY_YM
+                                                AND US3.MNGT_PRTNR_NO = US4.WARE_MNGT_PRTNR_NO
+                                              WHERE US3.MNGT_YM = #{apyYm} /* 배정년월 APY_YM */
+                                                AND US1.PART_PD_CD IS NOT NULL
+                                                AND US1.VST_DV_CD LIKE '1%' /*방문구분코드 : 방문구분 10: 방문, 11: 매니저, 12: 엔지니어, 13: 홈마스터, 20: 택배 */
+                                                AND US1.VST_DV_CD != '13'   /*방문구분코드 : 방문구분 10: 방문, 11: 매니저, 12: 엔지니어, 13: 홈마스터, 20: 택배 */
+                                                AND SUBSTR(US1.VST_DUEDT, 1, 6) = #{asnOjYm} /* 배정년월 ALLO_YM */
+                                                AND US2.REQD_DT IS NULL
+                                                AND US2.CPS_DT IS NULL
+                                                AND NOT EXISTS(SELECT 1
+                                                                 FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ WS1 /*LC_VISIT_VS171TB : 자가관리배송중지요청내역*/
+                                                                WHERE WS1.CNTR_NO = US1.CNTR_NO
+                                                                  AND WS1.CNTR_SN = US1.CNTR_SN
+                                                                  AND WS1.AK_SN = (SELECT MAX(WSS1.AK_SN)
+                                                                                     FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ WSS1
+                                                                                    WHERE WS1.CNTR_NO = WSS1.CNTR_NO
+                                                                                      AND WS1.CNTR_SN = WSS1.CNTR_SN)
+                                                                                      AND SPP_STP_DV_CD = 'B')
+                                                AND NOT EXISTS(SELECT 1
+                                                                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ WJ1
+                                                                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ WJ2
+                                                                   ON WJ1.CNTR_NO = WJ2.CNTR_NO
+                                                                  AND WJ1.CNTR_SN = WJ2.CNTR_SN
+                                                                  AND WJ1.ASN_OJ_YM = WJ2.ASN_OJ_YM
+                                                                WHERE WJ1.ASN_OJ_YM = '202103' /*고정값*/
+                                                                  AND WJ1.CNFM_PSIC_DV_CD = '2'
+                                                                  AND WJ1.CNTR_NO = US1.CNTR_NO
+                                                                  AND WJ1.CNTR_SN = US1.CNTR_SN
+                                                                  AND WJ2.PU_PART_PD_CD IN ('WM07104621','WM07104619')
+                                                                  AND ROWNUM = 1)
+                                             UNION ALL
+                                             SELECT '6' AS VS107_ITEM_KND
+                                                  , UT1.PART_USE_QTY AS VS107_QTY /*VS107_QTY*/
+                                                  , UT4.WARE_NO AS STCK_CD_RECD
+                                                  , UT3.MNGT_PRTNR_NO AS AC202_MGT_EMP_ID
+                                                  , UT1.PART_PD_CD /*필터코드 VS107_PART_CD */
+                                                  , (SELECT Z2.COPN_DV_CD
+                                                       FROM TB_SSCT_CNTR_BAS Z2
+                                                      WHERE Z2.CNTR_NO = UT2.CNTR_NO) AS AC201_INST_GB /*설치구분 */
+                                                  , #{apyYm} AS APY_YM
+                                                  , #{asnOjYm} AS ASN_OJ_YM
+                                                  , #{cnt} AS ASN_TN_N /* 배정횟차 ASN_TN_N */
+                                                  , UT4.BLD_CD
+                                               FROM TB_SVPD_CST_SV_RGBSPR_IZ UT1 /* LC_VISIT_VS107TB */
+                                              INNER JOIN TB_SVPD_CST_SV_EXCN_IZ UT2 /* LC_ALLOCATE_AC201TB */
+                                                 ON UT2.CNTR_NO = UT1.CNTR_NO
+                                                AND UT2.CNTR_SN = UT1.CNTR_SN
+                                              INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ UT3 /* LC_ALLOCATE_AC202TB */
+                                                 ON UT2.CNTR_NO = UT3.CNTR_NO
+                                                AND UT2.CNTR_SN = UT3.CNTR_SN
+                                              INNER JOIN TB_SVST_MCBY_WARE_IZ UT4
+                                                 ON UT3.MNGT_YM = UT4.APY_YM
+                                                AND UT3.MNGT_PRTNR_NO = UT4.WARE_MNGT_PRTNR_NO
+                                              WHERE  UT3.MNGT_YM = #{apyYm} /*  배정년월 APY_YM */
+                                                AND UT1.PART_PD_CD IS NOT NULL
+                                                AND UT1.VST_DV_CD LIKE '1%' /*방문구분코드 : 방문구분 10: 방문, 11: 매니저, 12: 엔지니어, 13: 홈마스터, 20: 택배 */
+                                                AND UT1.VST_DV_CD != '13'   /*방문구분코드 : 방문구분 10: 방문, 11: 매니저, 12: 엔지니어, 13: 홈마스터, 20: 택배 */
+                                                AND SUBSTR(UT1.VST_DUEDT, 1, 6) = #{asnOjYm} /*  배정년월 ALLO_YM */
+                                                AND UT2.REQD_DT IS NULL
+                                                AND UT2.CPS_DT IS NULL
+                                             ) JT2
+                                       WHERE JT2.VS107_QTY &gt; 0
+                                         AND JT1.STCK_CD_RECD IS NOT NULL
+                                    ) JT1
+                                    GROUP BY JT1.STCK_CD_RECD, JT1.EMP_ID, JT1.BLD_CD, JT1.AC252_PART_CD , JT1.AC252_ITEM_KND
+                            ) J3
+                              ON J2.APY_YM = J3.APY_YM
+                             AND J2.WARE_NO = J3.STCK_CD_RECD
+                             AND J2.WARE_DV_CD = '3'
+                           WHERE (J1.SVPD_ITEM_GR IS NULL OR J1.SVPD_ITEM_GR != '11')
+                             AND J3.ITM_PD_CD NOT IN('WM07105704','WM07105748','WM07105703','WM07105745','WM07105747','WM07105952','WM07106035'
+                                                    ,'WM07104436','WM07106025','WM07105705','WM07106030','WM07105924','WM07105925','WM07102129'
+                                                    ,'WM07105746')
+                             AND NOT EXISTS (SELECT 1
+                                               FROM TB_SVST_QOM_ASN_EXCD_IZ S1
+                                              WHERE S1.ASN_EXCD_DV_CD = '0'
+                                                AND S1.STR_WARE_NO = '300000'
+                                                AND S1.ITM_PD_CD = J3.ITM_PD_CD)
+                                                AND NOT EXISTS (SELECT 1
+                                                                  FROM TB_SVST_QOM_ASN_EXCD_IZ S2
+                                                                 WHERE S2.ASN_EXCD_DV_CD = '3'
+                                                                   AND S2.STR_WARE_NO = J3.STCK_CD_RECD
+                                                                   AND S2.ITM_PD_CD = J3.ITM_PD_CD)
+                                                      /*           AND J3.ITM_PD_CD BETWEEN itemCdSt AND itemCdEd */
+                                                AND J2.WARE_MNGT_PRTNR_NO IN (SELECT S3.PRTNR_NO
+                                                                                FROM TB_OGBS_MM_PRTNR_IZ S3
+                                                                               WHERE S3.BASE_YM = J3.APY_YM
+                                                                                 AND NOT EXISTS
+                                                                                     (SELECT S4.PRTNR_NO
+                                                                                           , S4.QOM_ASN_APY_YN
+                                                                                        FROM (SELECT SS1.PRTNR_NO, SS1.QOM_ASN_APY_YN
+                                                                                                FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ SS1
+                                                                                               WHERE SS1.APY_SN = (SELECT MAX(SS2.APY_SN)
+                                                                                                                     FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ SS2
+                                                                                                                    WHERE SS2.PRTNR_NO = SS1.PRTNR_NO
+                                                                                                                  )
+                                                                                             ) S4
+                                                                                       WHERE S4.QOM_ASN_APY_YN = 'N'
+                                                                                     )
+                                                                                 AND S3.PSTN_DV_CD != '4'
+                                            )
+                             AND J2.DIDY_DV_CD != '2'
+                           ) T1
+                    WHERE 1=1
+        /* ORDER BY AKDZIP, STCK_DBLD, IN_STCK_CD, ITEM_CD */
     </select>
 
     <update id="updateWareHouse">
@@ -320,7 +1239,7 @@
                    AND S02.PDCT_PD_CD = S01.PDCT_PD_CD
                    AND S03.APY_YM = #{apyYm}
                    AND S03.WARE_MNGT_PRTNR_NO = DECODE(#{cnt}, '1', S02.MNGT_PRTNR_NO, S02.FXN_PRTNR_NO) /* cnt : 회차 */
-                   AND S02.BFSVC_TP_CD = '1' /* BS 유형(1:방문 2:배송) */
+                   <!-- AND S02.BFSVC_TP_CD = '1' /* BS 유형(1:방문 2:배송) */ -->
                    AND S03.WARE_DTL_DV_CD NOT IN ('10','20','30')
                    AND S03.WARE_USE_YN = 'Y'
                    AND S03.APY_YM = #{asnOjYm}

@@ -31,4 +31,6 @@ public class WctbMachineChStatBasInfDvo {
     private String cntrDtlStatCd;
     private int frisuBfsvcPtrmN;
     private String exnDt;
+
+    private String pdNm;
 }

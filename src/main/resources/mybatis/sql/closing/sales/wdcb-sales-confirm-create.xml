@@ -2,119 +2,135 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesConfirmCreateMapper">
     
+    <select id="selectSalesConfirmSerialNumber" resultType="int">
+        /* 매출확정일련번호 채번 */
+        SELECT NVL(MAX(SL_CNFM_SN),0)+1 AS SL_CNFM_SN
+          FROM TB_CBCL_WELLS_SL_CNFM_BAS
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SL_RCOG_DT = #{slRcogDt}
+    </select>
+    
+    <select id="selectDgCstId" resultType="string">
+        SELECT MAX(DG_CST_ID) AS DG_CST_ID
+          FROM TB_CBCL_DG_CST_ID_BAS
+         WHERE SELL_TP_CD = #{sellTpCd}
+           AND SELL_TP_DTL_CD = #{sellTpDtlCd}
+           AND SAP_BZ_TERY_CD = '1210'
+           AND DTA_DL_YN = 'N'
+    </select>
+    
+    <select id="selectSapPdDvCd" resultType="string">
+        SELECT MAX(SAP_PD_DV_CD) AS SAP_PD_DV_CD
+          FROM TB_CBCL_SAP_PD_DV_CD
+         WHERE SELL_TP_CD = #{sellTpCd}
+           AND SELL_TP_DTL_CD = #{sellTpDtlCd}
+           AND DTA_DL_YN = 'N'
+    </select>
+    
+    <select id="selectSapMat" resultType="com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmSapMatDvo">
+        SELECT S1.PD_CD
+             , S3.SAP_MAT_EVL_CLSS_VAL AS SAP_MAT_EVL_CLSS_VAL /*SAP자재평가클래스*/
+             , S3.SAP_MAT_CD /*SAP자재코드*/
+          FROM TB_PDBS_PD_BAS S1
+         INNER JOIN TB_PDBS_PD_REL S2
+            ON S1.PD_CD =S2.BASE_PD_CD
+           AND S2.PD_REL_TP_CD  ='05' /* 기준상품  - 제품 */
+           AND S2.DTA_DL_YN  = 'N'
+         INNER JOIN TB_PDBS_PD_BAS S3
+            ON S2.OJ_PD_CD = S3.PD_CD
+           AND S3.DTA_DL_YN  = 'N' 
+         INNER JOIN TB_GBCO_SAP_MAT_RCV_IZ S4
+            ON S3.SAP_MAT_CD = S4.SAP_MAT_CD
+           AND S4.DTA_DL_YN  = 'N'
+         WHERE S1.PD_CD = #{pdCd}   /*VO에 들어온 상품코드 EX) EP01100317'*/
+           AND ROWNUM = 1
+    </select>
+    
+    <select id="selectCtrlOrdTpCd" resultType="string">
+        SELECT SLP_MAPNG_CDV
+          FROM TB_CBCL_SLP_BASE_INF_BAS
+         WHERE CNDT_VARB_NM1 = #{sapPdDvCd}
+           AND CNDT_VARB_NM2 = #{sellInflwChnlDtlCd}
+           AND CNDT_VARB_NM2 = #{ogTpCd}
+           AND SAP_BZ_TERY_CD = '1210'
+    </select>
+    
+    <select id="selectReceivingAndPaying" resultType="com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmReceivingAndPayingDvo">
+        SELECT T1.LGST_SPP_MTHD_CD AS SPP_MTHD_TP_CD /*배송방식유형코드*/
+             , T1.SAP_PLNT_CD   /*SAP플랜트코드*/
+             , T2.SAP_SAVE_LCT_CD  /*SAP저장위치코드*/
+             , T1.LGST_ITM_GD_CD    /*물류품목등급코드 -14일이나반품건이나 폐기건 찾는건데.. 입출금에서 못줄꺼 대비*/
+             , COUNT(1) AS CNT   /*이게 0보다 크면 수불여부 Y 조회되지 않거나 0이면  N*/
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT T1
+             , TB_IFIN_ITM_OSTR_AK_SEND_ETXT T2
+         WHERE T1.LGST_OSTR_AK_NO = T2.LGST_OSTR_AK_NO
+           AND T1.SAP_PLNT_CD = T2.SAP_PLNT_CD
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+         GROUP BY T1.LGST_SPP_MTHD_CD  /*배송방식유형코드*/
+             , T1.SAP_PLNT_CD   /*SAP플랜트코드*/
+             , T2.SAP_SAVE_LCT_CD  /*SAP저장위치코드*/
+             , T1.LGST_ITM_GD_CD
+    </select>
+    
+    <select id="selectSlpMapngCdv" resultType="string">
+        SELECT MAX(SLP_MAPNG_CDV) AS SLP_MAPNG_CDV
+          FROM TB_CBCL_SLP_BASE_INF_BAS
+         WHERE SLP_BASE_CDV = 'SAP_SL_TP_CD'
+           AND SAP_BZ_TERY_CD = '1210'
+           AND CNDT_VARB_NM1 = #{sellTpDtlCd}  /*판매유형코드*/
+           AND CNDT_VARB_NM2 = #{clssVal}  /*평가클래스*/
+           AND CNDT_VARB_NM3 = #{slTpDvCd}  /*매출유형구분*/
+           AND CNDT_VARB_NM4 = #{addCondition}  /*추가조건*/
+    </select>
+    
     <insert id="insertSalesConfirm">
-        INSERT INTO TB_SSOP_EXPN_CNR_BAS (
+        INSERT INTO TB_CBCL_WELLS_SL_CNFM_BAS (
               CNTR_NO
             , CNTR_SN
-            , SL_DT
-            , SAP_PLNT_CD
-            , SAP_SAVE_LCT_VAL
-            , SL_YM
-            , SAP_OG_INF_CD
-            , WEB_SL_TP_CD
-            , CTRL_ORD_TP_CD
-            , SAP_MAT_CD
-            , SL_QTY
-            , SL_AMT
-            , VAT
-            , CSCN_CD
-            , WBS_CD
-            , SAP_PDCT_SCLSRT_STRC_VAL
-            , SAP_PURP_MAT_CD
-            , SAP_TXN_DTFR_CD
-            , SAP_TXINV_PBL_BASE_CD
-            , ICHR_PRTNR_NO
-            , RVPY_YN
-            , SAVE_GDS_YN
-            , IOST_DT
+            , SL_RCOG_DT
+            , SL_CNFM_SN
             , KW_GRP_CO_CD
+            , BZ_HDQ_DV_CD
             , OG_TP_CD
-            , SELL_CHNL_CD
+            , PRTNR_NO
+            , PD_HCLSF_ID
+            , PD_MCLSF_ID
+            , PD_LCLSF_ID
+            , PD_CD
+            , DG_CST_ID
+            , CST_NO
+            , COPN_DV_CD
+            , BZRNO
             , SELL_TP_CD
             , SELL_TP_DTL_CD
-            , PD_CD
-            , CST_NO
-            , PRTNR_NO
-            , SAP_SL_TP_CD
-            , SAP_SL_DV_CD
-            , SL_RGST_PRG_ID
-            , SLP_AK_NO
-            , SLP_AK_SN
-            , SAP_TRS_DT
-            , SAP_RFDT
-            , SAP_SLPNO
-            , SAP_SLIP_MSG
-            , SLIP_SL_DT
-            , SV_BIZ_HCLSF_CD
-            , CST_SV_ASN_NO
-            , CST_SV_EXCN_SN
-            , SLIP_PBL_PRD_CD
-            , ONSCR_SCHD_OP_DT
-            , ONSCR_FST_LSN_DT
-            , LRNN_SAPP_CTF_DT
-            , LRNN_STP_DT
-            , LRNN_DC
-            , LRNN_SV_UPRC_AMT
-            , PVDA_OJ_PCAM
-            , PVDA_AMT
-            , WO_SUSC_DC
-            , ONSCR_RES_TMS
-            , LRNN_STRTDT
-            , LRNN_ENDDT
-            , THM_LRNN_STRT_D
-            , THM_LRNN_END_D
-            , THM_LRNN_FSH_YN
-            , CNTR_DT
-            , CNTR_AMT
-            , FRISU_MLG_AMT
+            , SELL_INFLW_CHNL_DTL_CD
+            , SAP_PD_DV_CD
+            , SELL_QTY
+            , SELL_AMT
+            , SELL_AMT_VAT
+            , SELL_SPL_AMT
+            , CNTR_TAM
+            , SUBSC_AMT
+            , RENTAL_RGST_COST
+            , RENTAL_RGST_COST_VAT
+            , RENTAL_AMT
+            , RENTAL_DSC_AMT
+            , RENTAL_PTRM
+            , RENTAL_TN
             , ISTM_PCAM_AMT
             , ISTM_FEE_LVY_AMT
             , ISTM_AMT
             , ISTM_MCN
-            , WO_SUSC_MCNT_N
-            , MM_MPY_AMT
-            , LBRY_MSLR_D_UPRC
-            , LBRY_MSLR_DSC_D_UPRC
-            , THM_LRNN_DC
-            , CNTR_TOT_AMT
-            , MM_INTAM_DSC_AMT
-            , CNTRAM_THM_DSC_AMT
-            , COMBI_DSC_AMT
-            , DSC_SL_AMT
-            , COMBI_DSC_SL_AMT
-            , SL_CAN_AMT
-            , SL_CH_AMT
-            , DFA_AMT
-            , DFA_PRCSDT
-            , SL_CTR_AMT
-            , SL_EX_CD
-            , SL_EX_CN
-            , NK_PD_CH_DP_AMT
-            , OSTR_AMT
-            , RTNGD_AMT
-            , OSTR_DSC_AMT
-            , RTNGD_DSC_AMT
-            , NK_PD_CH_EOT_BND_AMT
-            , SELL_QTY
-            , SELL_SPL_AMT
-            , CNTR_TAM
-            , FNN_LEASE_PCAM_TAM
-            , FNN_LEASE_INT_TAM
-            , SUBSC_AMT
-            , TK_AMT
-            , RENTAL_RGST_COST
-            , RENTAL_RGST_COST_VAT
-            , RENTAL_AMT
-            , RENTAL_PTRM
-            , RENTAL_DSC_AMT
-            , RENTAL_DC
-            , THM_OC_FEE_AMT
+            , MM_ISTM_AMT
             , DSC_AMT
             , CNTRAM_DP_AMT
             , BIL_DSC_AMT
             , OVR_CTR_DP_AMT
-            , PRPD_SL_AMT
-            , SELL_FEE
+            , PRM_TN
+            , TOT_PRM_AMT
+            , PRM_EXP_AMT
             , PRM_STRT_Y
             , PRM_STRT_MM
             , PRM_END_Y
@@ -130,140 +146,102 @@
             , SPMT_SL_AMT
             , NOM_DSC_AMT
             , SPMT_DSC_AMT
-            , LEASE_SL_CTR_AMT
-            , LEASE_SL_CAN_AMT
-            , LEASE_SL_CTR_TOT_AMT
+            , SL_CTR_AMT
+            , SL_CAN_AMT
+            , SL_STP_YN
+            , CNTR_STLM_FSH_DTM
+            , CNTR_STRTDT
+            , CAN_DT
+            , SL_DC
+            , SV_AMT
             , NOM_INT_AMT
-            , SPMT_INT_AMT
-            , INT_NOM_DSC_AMT
-            , INT_SPMT_DSC_AMT
-            , INT_CTR_AMT
-            , INT_SUM_AMT
             , INT_VAT
-            , THM_OC_SV_SL_AMT
-            , THM_OC_SV_SL_VAT
-            , RTNGD_YN
-            , FRISU_YN
-            , FGPT_YN
+            , MLG_SL_AMT
             , OSTR_DTM
             , SPP_DTM
             , IST_DTM
             , REQD_DTM
             , SV_DT
+            , PVDA_OJ_PCAM
+            , PVDA_AMT
+            , LGST_SPP_MTHD_CD
+            , IOST_WARE_CD
+            , SAP_MAT_EVL_CLSS_VAL
+            , SAP_SL_TP_CD
+            , SAP_BIZ_DV_CD
+            , SAP_BZ_HDQ_INF_CD
+            , SL_AMT
+            , VAT
+            , IOST_DT
+            , CTRL_ORD_TP_CD
+            , SAP_MAT_CD
+            , SL_QTY
+            , RTNGD_YN
+            , FRISU_YN
+            , CSCN_CD
+            , WBS_CD
+            , SAP_PURP_MAT_CD
+            , FGPT_YN
+            , SAP_TXN_DTFR_CD
+            , SAP_TXINV_PBL_BASE_CD
+            , RVPY_YN
+            , SAVE_GDS_YN
+            , SAP_PLNT_CD
+            , SAP_SAVE_LCT_VAL
+            , SLP_AK_NO
+            , SAP_TRS_DT
+            , SAP_RFDT
+            , SAP_SLPNO
+            , SAP_SLIP_MSG
+            , SLIP_SL_DT
+            , SLIP_PBL_PRD_CD
             , DTA_DL_YN
             <include refid="COMMON.insertSystemField" />
         ) VALUES (
               #{cntrNo}
             , #{cntrSn}
-            , #{slDt}
-            , #{sapPlntCd}
-            , #{sapSaveLctVal}
-            , #{slYm}
-            , #{sapOgInfCd}
-            , #{webSlTpCd}
-            , #{ctrlOrdTpCd}
-            , #{sapMatCd}
-            , #{slQty}
-            , #{slAmt}
-            , #{vat}
-            , #{cscnCd}
-            , #{wbsCd}
-            , #{sapPdctSclsrtStrcVal}
-            , #{sapPurpMatCd}
-            , #{sapTxnDtfrCd}
-            , #{sapTxinvPblBaseCd}
-            , #{ichrPrtnrNo}
-            , #{rvpyYn}
-            , #{saveGdsYn}
-            , #{iostDt}
+            , #{slRcogDt}
+            , #{slCnfmSn}
             , #{kwGrpCoCd}
+            , #{bzHdqDvCd}
             , #{ogTpCd}
-            , #{sellChnlCd}
+            , #{prtnrNo}
+            , #{pdHclsfId}
+            , #{pdMclsfId}
+            , #{pdLclsfId}
+            , #{pdCd}
+            , #{dgCstId}
+            , #{cstNo}
+            , #{copnDvCd}
+            , #{bzrno}
             , #{sellTpCd}
             , #{sellTpDtlCd}
-            , #{pdCd}
-            , #{cstNo}
-            , #{prtnrNo}
-            , #{sapSlTpCd}
-            , #{sapSlDvCd}
-            , #{slRgstPrgId}
-            , #{slpAkNo}
-            , #{slpAkSn}
-            , #{sapTrsDt}
-            , #{sapRfdt}
-            , #{sapSlpno}
-            , #{sapSlipMsg}
-            , #{slipSlDt}
-            , #{svBizHclsfCd}
-            , #{cstSvAsnNo}
-            , #{cstSvExcnSn}
-            , #{slipPblPrdCd}
-            , #{onscrSchdOpDt}
-            , #{onscrFstLsnDt}
-            , #{lrnnSappCtfDt}
-            , #{lrnnStpDt}
-            , #{lrnnDc}
-            , #{lrnnSvUprcAmt}
-            , #{pvdaOjPcam}
-            , #{pvdaAmt}
-            , #{woSuscDc}
-            , #{onscrResTms}
-            , #{lrnnStrtdt}
-            , #{lrnnEnddt}
-            , #{thmLrnnStrtD}
-            , #{thmLrnnEndD}
-            , #{thmLrnnFshYn}
-            , #{cntrDt}
-            , #{cntrAmt}
-            , #{frisuMlgAmt}
+            , #{sellInflwChnlDtlCd}
+            , #{sapPdDvCd}
+            , #{sellQty}
+            , #{sellAmt}
+            , #{sellAmtVat}
+            , #{sellSplAmt}
+            , #{cntrTam}
+            , #{subscAmt}
+            , #{rentalRgstCost}
+            , #{rentalRgstCostVat}
+            , #{rentalAmt}
+            , #{rentalDscAmt}
+            , #{rentalPtrm}
+            , #{rentalTn}
             , #{istmPcamAmt}
             , #{istmFeeLvyAmt}
             , #{istmAmt}
             , #{istmMcn}
-            , #{woSuscMcntN}
-            , #{mmMpyAmt}
-            , #{lbryMslrDUprc}
-            , #{lbryMslrDscDUprc}
-            , #{thmLrnnDc}
-            , #{cntrTotAmt}
-            , #{mmIntamDscAmt}
-            , #{cntramThmDscAmt}
-            , #{combiDscAmt}
-            , #{dscSlAmt}
-            , #{combiDscSlAmt}
-            , #{slCanAmt}
-            , #{slChAmt}
-            , #{dfaAmt}
-            , #{dfaPrcsdt}
-            , #{slCtrAmt}
-            , #{slExCd}
-            , #{slExCn}
-            , #{nkPdChDpAmt}
-            , #{ostrAmt}
-            , #{rtngdAmt}
-            , #{ostrDscAmt}
-            , #{rtngdDscAmt}
-            , #{nkPdChEotBndAmt}
-            , #{sellQty}
-            , #{sellSplAmt}
-            , #{cntrTam}
-            , #{fnnLeasePcamTam}
-            , #{fnnLeaseIntTam}
-            , #{subscAmt}
-            , #{tkAmt}
-            , #{rentalRgstCost}
-            , #{rentalRgstCostVat}
-            , #{rentalAmt}
-            , #{rentalPtrm}
-            , #{rentalDscAmt}
-            , #{rentalDc}
-            , #{thmOcFeeAmt}
+            , #{mmIstmAmt}
             , #{dscAmt}
             , #{cntramDpAmt}
             , #{bilDscAmt}
             , #{ovrCtrDpAmt}
-            , #{prpdSlAmt}
-            , #{sellFee}
+            , #{prmTn}
+            , #{totPrmAmt}
+            , #{prmExpAmt}
             , #{prmStrtY}
             , #{prmStrtMm}
             , #{prmEndY}
@@ -279,26 +257,55 @@
             , #{spmtSlAmt}
             , #{nomDscAmt}
             , #{spmtDscAmt}
-            , #{leaseSlCtrAmt}
-            , #{leaseSlCanAmt}
-            , #{leaseSlCtrTotAmt}
+            , #{slCtrAmt}
+            , #{slCanAmt}
+            , #{slStpYn}
+            , #{cntrStlmFshDtm}
+            , #{cntrStrtdt}
+            , #{canDt}
+            , #{slDc}
+            , #{svAmt}
             , #{nomIntAmt}
-            , #{spmtIntAmt}
-            , #{intNomDscAmt}
-            , #{intSpmtDscAmt}
-            , #{intCtrAmt}
-            , #{intSumAmt}
             , #{intVat}
-            , #{thmOcSvSlAmt}
-            , #{thmOcSvSlVat}
-            , #{rtngdYn}
-            , #{frisuYn}
-            , #{fgptYn}
+            , #{mlgSlAmt}
             , #{ostrDtm}
             , #{sppDtm}
             , #{istDtm}
             , #{reqdDtm}
             , #{svDt}
+            , #{pvdaOjPcam}
+            , #{pvdaAmt}
+            , #{lgstSppMthdCd}
+            , #{iostWareCd}
+            , #{sapMatEvlClssVal}
+            , #{sapSlTpCd}
+            , #{sapBizDvCd}
+            , #{sapBzHdqInfCd}
+            , #{slAmt}
+            , #{vat}
+            , #{iostDt}
+            , #{ctrlOrdTpCd}
+            , #{sapMatCd}
+            , #{slQty}
+            , #{rtngdYn}
+            , #{frisuYn}
+            , #{cscnCd}
+            , #{wbsCd}
+            , #{sapPurpMatCd}
+            , #{fgptYn}
+            , #{sapTxnDtfrCd}
+            , #{sapTxinvPblBaseCd}
+            , #{rvpyYn}
+            , #{saveGdsYn}
+            , #{sapPlntCd}
+            , #{sapSaveLctVal}
+            , #{slpAkNo}
+            , #{sapTrsDt}
+            , #{sapRfdt}
+            , #{sapSlpno}
+            , #{sapSlipMsg}
+            , #{slipSlDt}
+            , #{slipPblPrdCd}
             , 'N'
         <include refid="COMMON.insertSystemFieldValue" />)
     </insert>

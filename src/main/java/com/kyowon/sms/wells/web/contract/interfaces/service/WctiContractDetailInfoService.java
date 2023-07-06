@@ -18,6 +18,14 @@ public class WctiContractDetailInfoService {
     private final WctiContractDetailInfoMapper mapper;
     private final WctiContractDetailInfoConverter converter;
 
+    /**
+    * 계약상세 정보 조회
+    *
+    * @interfaceId   EAI_WSSI1047
+    * @programId   W-SS-I-0004
+    * @param       dto
+    * @return      FindRes
+    */
     public FindRes getContractDetail(FindReq dto) {
         WctiContractDetailInfoDvo returnDvo = mapper.selectContractDetail(dto).orElse(null);
 
@@ -40,7 +48,7 @@ public class WctiContractDetailInfoService {
             //멤버십 모코드(렌탈, 일시불)를 조회
             if ("3".equals(returnDvo.getSellTpCd())) {
                 FindMembershipRes membershipRes = mapper.selectContractDetailMembership(dto);
-                if (clctamRes != null) {
+                if (membershipRes != null) {
                     returnDvo.setOjCntrNo(membershipRes.ojCntrNo());
                     returnDvo.setOjCntrSn(membershipRes.ojCntrSn());
                     returnDvo.setOjSellTpCd(membershipRes.ojSellTpCd());

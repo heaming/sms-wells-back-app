@@ -20,11 +20,17 @@ public class WsncBsPeriodCustomerTfMgtService {
 
     private final WsncBsPeriodCustomerTfMgtMapper mapper;
 
-    public PagingResult<SearchRes> getBsPeriodCustomerPages(
+    public PagingResult<SearchRes> getBsPeriodCustomers(
         SearchReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectBsPeriodCustomerPages(dto, pageInfo);
+        return mapper.selectBsPeriodCustomers(dto, pageInfo);
+    }
+
+    public List<SearchRes> getBsPeriodCustomersForExcelDownload(
+        SearchReq dto
+    ) {
+        return mapper.selectBsPeriodCustomers(dto);
     }
 
     public List<BranchsAndServiceCentersRes> getBranchsAndServiceCenters() {

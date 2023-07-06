@@ -27,6 +27,7 @@ public class WctbMachineChStatInOutDvo {
     // Result param
     // *********************************************************
     private String workFlag; // 기기변경유형
+    private String pdNm;     // 이전기기 상품명
     private String resultDvCheck; // 결과구분CHECK
     private String resultMessage;
     private int finalPerfRt; // 최종실적율

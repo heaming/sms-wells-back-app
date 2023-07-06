@@ -34,11 +34,20 @@ public class WsnaQomAsnController {
     ){
         return service.getIndependenceWareQomAsns(dto, pageInfo);
     }
+    @ApiOperation(value = "", notes = "")
+    @GetMapping("/independence-warehouse-after")
+    public PagingResult<SearchRes> getIndependenceQomAsnsAfter(
+        @Valid
+        SearchReq dto,
+        PageInfo pageInfo
+    ){
+        return service.getIndependenceQomAsnsAfter(dto, pageInfo);
+    }
 
     @GetMapping("/individual-warehouse")
     public PagingResult<SearchRes> getIndividualWareQomAsns(
         @Valid
-        SearchReq dto,
+        IndividualWareSearchReq dto,
         PageInfo pageInfo
     ){
         return service.getIndividualWareQomAsns(dto, pageInfo);

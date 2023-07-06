@@ -472,4 +472,52 @@
                   FROM DUAL
                ) Y1
     </select>
+
+    <select id="selectPackageChangeHistory" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto$SearchPkgChRes">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.AK_SN
+             , T1.RGST_DT
+             , T1.AS_AK_DV_CD
+             , CASE WHEN T1.AS_AK_DV_CD = '1' THEN '제품변경'
+                    WHEN T1.AS_AK_DV_CD = '4' THEN '미배송요청'
+                END AS_AK_DV_NM
+             , T1.AK_CHDT
+             , T1.BFCH_PD_CD
+             , (SELECT X.PD_NM
+                  FROM TB_PDBS_PD_BAS X
+                 WHERE X.PD_CD = T1.BFCH_PD_CD
+               ) BFCH_PD_NM
+             , T1.AFCH_PD_CD
+             , (SELECT X.PD_NM
+                  FROM TB_PDBS_PD_BAS X
+                 WHERE X.PD_CD = T1.AFCH_PD_CD
+               ) AFCH_PD_NM
+             , (SELECT PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS X
+                 WHERE X.PRTNR_NO = T1.FST_RGST_USR_ID
+               ) PRTNR_KNM
+             , (SELECT LISTAGG(A.PD_NM||' '||PART_QTY||'개'||CHR(13)||CHR(10), '') WITHIN GROUP(ORDER BY A.PD_NM||PART_QTY) AS DT_INFO /*패키지구성정보*/
+                  FROM TB_PDBS_PD_BAS A
+                     , (SELECT SUBSTR(PART_LIST, 1, INSTR(PART_LIST, ',',1,1)-1) AS PART_CD
+                             , SUBSTR(PART_LIST, INSTR(PART_LIST, ',',1,1)+1, (CASE WHEN INSTR(PART_LIST, ',',1,2) > 0 THEN INSTR(PART_LIST, ',',1,2) - INSTR(PART_LIST, ',',1,1)-1
+                                                                                    ELSE LENGTH(PART_LIST)
+                                                                               END)) AS PART_QTY
+                          FROM (SELECT TRIM(REGEXP_SUBSTR(TXT, '[^|]+', 1, LEVEL)) AS PART_LIST
+                                  FROM (SELECT CHO_CAPSL_CN AS TXT FROM DUAL) T1
+                   CONNECT BY INSTR(TXT, '|', 1, LEVEL - 1) > 0)) B
+                   WHERE 1=1
+                     AND PART_CD = A.PD_CD
+                ) AS PART_INFO
+             , T1.MTR_PROCS_STAT_CD       -- 작업상태 1:입력, 2:수정, 3:취소
+             , CASE WHEN T1.MTR_PROCS_STAT_CD = '1' THEN '입력'
+                    WHEN T1.MTR_PROCS_STAT_CD = '2' THEN '수정'
+                    WHEN T1.MTR_PROCS_STAT_CD = '3' THEN '취소'
+                END MTR_PROCS_STAT_NM
+          FROM TB_SVPD_HCF_AS_AK_HIST T1
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+         ORDER BY T1.FST_RGST_DTM DESC
+    </select>
 </mapper>

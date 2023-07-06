@@ -5,10 +5,10 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
+import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachTbPdbsPdRelDvo;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -24,7 +24,7 @@ public interface WpdcMaterialMgtMapper {
     int deleteTbPdbsPdRel(@Param("pdCd")
     String pdCd,
         @Param("info")
-        List<ZpdcMaterialMgtDto.TbPdbsPdRel> tbPdbsPdRels,
+        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRels,
         @Param("delMode")
         String delMode,
         @Param("startDtm")
@@ -35,7 +35,7 @@ public interface WpdcMaterialMgtMapper {
     int mergeEachTbPdbsPdRel(@Param("info")
     ZpdcEachTbPdbsPdRelDvo info);
 
-    int mergeEachTbPdbsPdRelByDto(ZpdcMaterialMgtDto.TbPdbsPdRel dto);
+    int mergeEachTbPdbsPdRelByDto(ZpdcRelationMgtDto.ProductRelation dto);
 
     int deleteEachPdbsPdRels(String pdCd);
 

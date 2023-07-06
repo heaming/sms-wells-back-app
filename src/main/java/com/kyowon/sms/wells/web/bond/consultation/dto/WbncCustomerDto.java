@@ -215,7 +215,8 @@ public class WbncCustomerDto {
     @ApiModel(value = "WbncCustomerDto-FindCustomerDetailRes")
     public static record FindCustomerDetailRes(
         String mpyBsdt, /* 이체 */
-        String sellTpCd, /* 업무구분 */
+        String sellTpCd, /* 업무구분코드 */
+        String sellTpNm, /* 업무구분명 */
         String prdf, /* 제품군 */
         String pdNm, /* 상품명 */
         String cntrNo, /* 계약번호 */

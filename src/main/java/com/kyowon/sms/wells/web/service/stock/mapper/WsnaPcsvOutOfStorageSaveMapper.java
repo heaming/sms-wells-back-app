@@ -6,9 +6,20 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo;
 
 @Mapper
 public interface WsnaPcsvOutOfStorageSaveMapper {
-    void insertPcsvOutOfStorage(WsnaPcsvOutOfStorageSaveDvo vo);
 
-    void insertPcsvOutOfStorageRvPy(WsnaPcsvOutOfStorageSaveDvo vo);
+    int selectExistSvpdCstSvWkRsIz(WsnaPcsvOutOfStorageSaveDvo vo);
 
-    void insertPcsvOutOfStorageRshp(WsnaPcsvOutOfStorageSaveDvo vo);
+    WsnaPcsvOutOfStorageSaveDvo selectEngineerOgbsMmPrtnrIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    WsnaPcsvOutOfStorageSaveDvo selectQtySvstCstSvItmStocIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    WsnaPcsvOutOfStorageSaveDvo selectAsCodeSvpdCstSvasIstOjIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    WsnaPcsvOutOfStorageSaveDvo selectReturningSvpdCstSvasIstOjIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    void updateSvpdCstSvasIstAsnIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    void insertSvpdCstSvWkRsIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    void insertSvstSvWkOstrIz(WsnaPcsvOutOfStorageSaveDvo vo);
 }

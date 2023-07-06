@@ -1,24 +1,23 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.EditReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchAmountRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchSummaryRes;
 import com.kyowon.sms.wells.web.closing.expense.service.WdcdOperatingCostMgtService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
-@Api(tags = "[WDCD] 운영비 등록 관리")
+@Api(tags = "[WDCD] 운영비 등록 관리 Main")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -36,8 +35,8 @@ public class WdcdOperatingCostMgtController {
         @ApiImplicitParam(name = "dgr4LevlOgId", value = "센터단", paramType = "query"),
     })
     @GetMapping("/amount")
-    public List<SearchAmountRes> getAmount(@Valid
-                                           SearchReq req) {
+    public SearchAmountRes getAmount(@Valid
+                                     SearchReq req) {
 
         return service.getAmount(req);
     }
@@ -51,10 +50,14 @@ public class WdcdOperatingCostMgtController {
         @ApiImplicitParam(name = "dgr4LevlOgId", value = "센터단", paramType = "query"),
     })
     @GetMapping("/summary")
-    public List<SearchSummaryRes> getSummary(@Valid
-                                             SearchReq req) {
+    public SearchSummaryRes getSummary(@Valid
+                                       SearchReq req) {
 
         return service.getSummary(req);
     }
 
+    @PostMapping
+    public SaveResponse editFile(@RequestBody EditReq req) throws Exception {
+        return SaveResponse.builder().processCount(service.editFile(req)).build();
+    }
 }

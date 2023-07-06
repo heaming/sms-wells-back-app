@@ -11,7 +11,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 /**
  *
  *
- * W-SV-U-0089M01 BS관리일정조회
+ * W-SV-U-0089M01 BS관리일정조회(일자별)
  *
  *
  * @author 37615 홍세기
@@ -20,11 +20,11 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsncBsManagerScheduleMapper {
-    List<WsncBsManagerScheduleDto.Aggregates> selectBsManagerScheduleAgrg(
+    List<WsncBsManagerScheduleDto.Aggregates> selectBsScheduleDateAgrg(
         WsncBsManagerScheduleDto.SearchReq dto
     );
 
-    PagingResult<WsncBsManagerScheduleDto.SearchRes> selectBsManagerSchedulePages(
+    PagingResult<WsncBsManagerScheduleDto.SearchRes> selectBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto, PageInfo pageInfo
     );
 

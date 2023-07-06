@@ -1,8 +1,10 @@
 package com.kyowon.sms.wells.web.promotion.manage.dto;
 
 import io.swagger.annotations.ApiModel;
+import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
+import java.util.Objects;
 
 public class WpmbPromotionObjectCustomerMgtDto {
 
@@ -22,6 +24,13 @@ public class WpmbPromotionObjectCustomerMgtDto {
         String vlEndDtm,                        /* 이력종료일시 */
         String pmotOjSpcDscDvCd                 /* 유효종료일시 */
     ) {
+        public SearchReq {
+            if (StringUtils.isEmpty(Objects.toString(vlStrtDtm, "")) && !StringUtils.isEmpty(Objects.toString(vlEndDtm, ""))) {
+                vlStrtDtm = vlEndDtm;
+            } else if (!StringUtils.isEmpty(Objects.toString(vlStrtDtm, "")) && StringUtils.isEmpty(Objects.toString(vlEndDtm, ""))) {
+                vlEndDtm = vlStrtDtm;
+            }
+        }
     }
 
     /**
@@ -111,7 +120,9 @@ public class WpmbPromotionObjectCustomerMgtDto {
         String cntrNo,                          /* 계약번호 */
         @NotBlank
         String cntrSn,                          /* 계약일련번호 */
+        @NotBlank
         String vlStrtDtm,                       /* 유효시작일시 */
+        @NotBlank
         String vlEndDtm,                        /* 유효종료일시 */
         @NotBlank
         String pmotOjSpcDscDvCd,                /* 특별할인코드 */

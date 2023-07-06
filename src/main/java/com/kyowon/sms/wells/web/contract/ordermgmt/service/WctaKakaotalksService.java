@@ -42,6 +42,6 @@ public class WctaKakaotalksService {
             tempCodes.add("Wells18203"); // 장기 할부 안내 문구 추가 템플릿(일반)
         }
 
-        return mapper.selectKakaotalkFwIzs(dto.mtPr(), tempCodes);
+        return mapper.selectKakaotalkFwIzs(dto.cntrDtlNo(), tempCodes);
     }
 }

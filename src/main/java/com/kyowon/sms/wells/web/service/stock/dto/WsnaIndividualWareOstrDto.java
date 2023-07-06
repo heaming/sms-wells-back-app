@@ -67,9 +67,11 @@ public class WsnaIndividualWareOstrDto {
         String ostrIzOstrSn, /*출고일련번호*/
         String ostrIzSellRcpdt, /*판매접수일자*/
         String cfrmQty, /*확정수량*/
+        String cfrmBoxQty,
         String outQty, /*출고수량*/
         String accBoxQty, /*물량배정출고박스수량*/
-        String outBoxQty /*출고박스수량*/
+        String outBoxQty, /*출고박스수량*/
+        String asnOjYm
     ) {}
 
     @ApiModel("WsnaIndividualWareOstrDto-LogisticReq")
@@ -102,4 +104,21 @@ public class WsnaIndividualWareOstrDto {
         String codeId,
         String codeName
     ) {}
+
+    @ApiModel("WsnaIndividualWareOstrDto-CreateReq")
+    public record CreateReq(
+        String ostrAkNo,
+        String ostrAkSn,
+        String ostrAkTpCd,
+        String ostrOjWareNo,
+        String strOjWareNo,
+        String ostrAkRgstDt,
+        String strHopDt,
+        String itmPdCd,
+        String itmGdCd,
+        String mngtUnitCd,
+        String ostrAkQty,
+        String rmkCn,
+        String dtaDlYn
+    ){}
 }

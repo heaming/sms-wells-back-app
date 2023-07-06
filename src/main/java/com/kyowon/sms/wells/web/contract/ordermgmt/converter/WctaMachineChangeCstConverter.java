@@ -33,5 +33,6 @@ public interface WctaMachineChangeCstConverter {
     @Mapping(source = "baseInfoDvo.cstKnm", target = "cstKnm")
     @Mapping(source = "baseInfoDvo.istDt", target = "istDt")
     @Mapping(source = "baseInfoDvo.reqdDt", target = "reqdDt")
+    @Mapping(source = "validDvo.pdNm", target = "pdNm")
     FindRes mapWctaMachineChangeCstDvoToFindRes(WctbMachineChStatInOutDvo validDvo, WctaMachineChangeCstDvo baseInfoDvo);
 }

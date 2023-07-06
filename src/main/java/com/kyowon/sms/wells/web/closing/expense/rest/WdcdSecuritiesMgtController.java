@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[WDCD] 운영비 등록 관리 - 유가증권")
+@Api(tags = "[WDCD] 운영비 등록 관리 - 유가증권 Tab")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -24,7 +24,7 @@ public class WdcdSecuritiesMgtController {
 
     private final WdcdSecuritiesMgtService service;
 
-    @ApiOperation(value = "유가증권 제외 - 정산대상", notes = "조직코드")
+    @ApiOperation(value = "유가증권 - 정산대상", notes = "조직코드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYM", value = "사용년월", paramType = "query"),
         @ApiImplicitParam(name = "entrpDvCd", value = "사업자 구분코드", paramType = "query"),
@@ -38,7 +38,7 @@ public class WdcdSecuritiesMgtController {
         return service.getAdjustObject(req);
     }
 
-    @ApiOperation(value = "유가증권 제외 - 정산대상", notes = "조직코드")
+    @ApiOperation(value = "유가증권 - 정산대상", notes = "조직코드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYM", value = "사용년월", paramType = "query"),
         @ApiImplicitParam(name = "entrpDvCd", value = "사업자 구분코드", paramType = "query"),
@@ -53,7 +53,7 @@ public class WdcdSecuritiesMgtController {
     }
 
     @PutMapping
-    public SaveResponse editWithholdingTaxAdjust(@Valid @RequestBody List<EditReq> req) {
+    public SaveResponse editWithholdingTaxAdjust(@RequestBody List<SaveReq> req) {
         return SaveResponse.builder().processCount(service.editWithholdingTaxAdjust(req)).build();
     }
 
