@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -48,4 +50,28 @@ public class WsnaOutOfStorageAskMngtDvo {
     String useQty; /*당월수량*/
     String baseStocQty; /*기본재고수량*/
 
+    //물류인터페이스 전송용 dvo
+    String rowState;
+    String ostrOjWareDvCd;
+    String ostrHopDt; /*출고희망일자*/
+    String wareMngtPrtnrOgTpCd;
+    String mpacSn; /*합포장일련번호*/
+    String iostAkDvCd; /*입출고요청구분코드*/
+    String sapIostTpCd; /*sap입출고유형코드*/
+    String lgstSppMthdCd; /*물류배송방식코드*/
+    String lgstWkMthdCd; /*물류작업방식코드*/
+    String mdlvPrtnrNo; /*배달파트너번호*/
+    //    String lgstItmGdCd; /*물류품목등급코드*/
+    String svCnrCd; /*서비스센터코드*/
+    String svCnrNm; /*서비스센터명*/
+    String svCnrIchrPrtnrNm; /*서비스센터담당파트너명*/
+    String locaraTno; /*지역전화번호*/
+
+    @DBDecField
+    String exnoEncr; /*전화국번호암호화*/
+    String idvTno; /*개별전화번호*/
+    String svCnrLkTnoEncr; /*서비스센터전화번호*/
+    String svCnrAdr; /*서비스센터 주소*/
+    String hsmtrlClsfCd; /*학습지분류코드*/
+    String hsmtrlClsfNm; /*학습지분류명*/
 }

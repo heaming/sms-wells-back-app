@@ -15,6 +15,29 @@
 -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAskMngtMapper">
+<resultMap type="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo" id="messageDtl">
+		<result column="OSTR_AK_NO" property="ostrAkNo"/>
+		<result column="OSTR_AK_SN" property="ostrAkSn"/>
+		<result column="OSTR_AK_TP_CD" property="ostrAkTpCd"/>
+        <result column="STR_OJ_WARE_NO" property="strOjWareNo"/>
+		<result column="OSTR_OJ_WARE_NO" property="ostrOjWareNo"/>
+		<result column="OSTR_AK_RGST_DT" property="ostrAkRgstDt"/>
+		<result column="STR_HOP_DT" property="strHopDt"/>
+		<result column="OSTR_AK_WARE_DV_CD" property="ostrAkWareDvCd"/>
+		<result column="WARE_MNGT_PRTNR_NO" property="wareMngtPrtnrNo"/>
+		<result column="WARE_MNGT_PRTNR_OG_TP_CD" property="wareMngtPrtnrOgTpCd"/>
+		<result column="OSTR_OJ_WARE_DV_CD" property="ostrOjWareDvCd"/>
+		<result column="OSTR_WARE_MNGT_PRTNR_NO" property="ostrWareMngtPrtnrNo"/>
+		<result column="ITM_PD_CD" property="itmPdCd"/>
+		<result column="MNGT_UNIT_CD" property="mngtUnitCd"/>
+        <result column="BOX_UNIT_QTY" property="boxUnitgQty"/>
+        <result column="ITM_GD_CD" property="itmGdCd"/>
+        <result column="OSTR_AK_QTY" property="ostrAkQty"/>
+        <result column="OSTR_CNFM_QTY" property="ostrCnfmQty"/>
+        <result column="RECT_OSTR_DT" property="rectOstrDt"/>
+        <result column="OVIV_TP_CD" property="ovivTpCd"/>
+        <result column="RMK_CN" property="rmkCn"/>
+	</resultMap>
 
     <select id="selectOutOfStorageAsks"
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$SearchRes">
@@ -300,4 +323,64 @@
          WHERE OSTR_AK_NO = #{ostrAkNo}
            AND OSTR_AK_SN = #{ostrAkSn}
     </update>
+
+    <select id="selectLogisticsOutStorageAskInfo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo">
+        SELECT T1.OSTR_AK_NO
+	      , T1.OSTR_AK_SN
+	      , T1.OSTR_AK_TP_CD
+	      , T1.OSTR_AK_RGST_DT
+	      , T1.OSTR_AK_WARE_DV_CD
+	      , T1.OSTR_OJ_WARE_DV_CD
+  	      , T1.STR_HOP_DT AS OSTR_HOP_DT /*출고희망일자*/
+	      , T1.WARE_MNGT_PRTNR_NO
+	      , T1.WARE_MNGT_PRTNR_OG_TP_CD
+	      , 0 AS MPAC_SN /*합포장일련번호*/
+	      , 'WE' AS IOST_AK_DV_CD /*입출고요청구분코드*/
+	      , '' AS SAP_IOST_TP_CD /*SAP입출고유형코드*/
+	      , '6' AS LGST_SPP_MTHD_CD /*물류배송방식코드*/
+	      , 'WE01' AS LGST_WK_MTHD_CD /*물류작업방식코드*/
+ 	      , '' AS MDLV_PRTNR_NO /*배달파트너번호*/
+	      , T1.ITM_PD_CD /*품목상품코드*/
+	      , T1.OSTR_AK_QTY
+	      , 'A' AS ITM_GD_CD /*물류품목등급코드*/
+	  	  , T1.OSTR_OJ_WARE_NO
+	      , A1.WARE_NO AS SV_CNR_CD /*서비스센터코드*/
+          , A1.WARE_NM AS SV_CNR_NM /*서비스센터명*/
+	      , A1.WARE_MNGT_PRTNR_NM AS SV_CNR_ICHR_PRTNR_NM /*서비스센터담당파트너명*/
+	      , A1.LOCARA_TNO
+	      , A1.EXNO_ENCR
+	      , A1.IDV_TNO
+	      , TRIM(A1.ADR_NM) AS SV_CNR_ADR /*서비스센터 주소*/
+	      , T1.OVIV_TP_CD /*배차유형코드*/
+	      , '' AS HSMTRL_CLSF_CD /*학습지분류코드*/
+	      , '' AS HSMTRL_CLSF_NM /*학습지분류명*/
+	      , T1.RMK_CN
+        FROM TB_SVST_ITM_OSTR_AK_IZ T1
+        INNER JOIN (
+					        SELECT T2.APY_YM /* 적용년월 */
+					             , T2.WARE_DV_CD /* 창고구분코드 */
+					             , T2.WARE_DTL_DV_CD /* 창고상세구분코드 */
+					             , T2.WARE_NO /* 창고번호 */
+					             , T2.WARE_NM /* 창고명 */
+					             , T3.PRTNR_KNM AS WARE_MNGT_PRTNR_NM
+					             , T5.RNADR || ' ' || T5.RDADR AS ADR_NM
+					             , T4.LOCARA_TNO
+					             , T4.EXNO_ENCR
+					             , T4.IDV_TNO
+							  FROM TB_SVST_MCBY_WARE_IZ T2 /* 월별창고내역 */
+					          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T3 /* 파트너기본 */
+					            ON T3.OG_TP_CD = T2.OG_TP_CD
+					           AND T3.PRTNR_NO = T2.WARE_MNGT_PRTNR_NO
+					           AND T3.DTA_DL_YN = 'N'
+					          LEFT OUTER JOIN TB_OGBS_OG_BAS T4 /* 조직내역 */
+					            ON T4.OG_ID = T2.OG_ID
+					           AND T4.DTA_DL_YN = 'N'
+					          LEFT OUTER JOIN TB_GBCO_ADR_BAS T5 /* 주소기본 */
+					            ON T5.ADR_ID = T2.WARE_ADR_ID
+					           AND T5.DTA_DL_YN = 'N'
+							  WHERE T2.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+					      ) A1
+           ON A1.WARE_NO = T1.STR_OJ_WARE_NO
+          WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+    </select>
 </mapper>
