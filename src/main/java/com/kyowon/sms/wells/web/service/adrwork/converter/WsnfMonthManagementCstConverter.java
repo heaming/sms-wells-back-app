@@ -1,9 +1,9 @@
-package com.kyowon.sms.wells.web.service.allocate.converter;
+package com.kyowon.sms.wells.web.service.adrwork.converter;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsnfMonthManagementCstDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsnfMonthManagementCstDvo;
+import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfMonthManagementCstDto;
+import com.kyowon.sms.wells.web.service.adrwork.dvo.WsnfMonthManagementCstDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsnfMonthManagementCstConverter {

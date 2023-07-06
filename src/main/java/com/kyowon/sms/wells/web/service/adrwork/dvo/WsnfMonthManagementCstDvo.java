@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.allocate.dvo;
+package com.kyowon.sms.wells.web.service.adrwork.dvo;
 
 import lombok.Getter;
 import lombok.Setter;

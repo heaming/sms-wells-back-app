@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.allocate.dto;
+package com.kyowon.sms.wells.web.service.adrwork.dto;
 
 import io.swagger.annotations.ApiModel;
 
