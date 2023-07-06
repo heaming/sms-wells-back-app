@@ -21,6 +21,7 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -85,17 +86,34 @@ public class WsnaOutOfStorageAskMngtService {
         return this.mapper.selectOstrObjectWarehouses(dto);
     }
 
+    @Transactional
     public int removeOutOfStorageAskItems(List<RemoveReq> dtos) {
         int processCount = 0;
         // TODO: 삭제시 검증에 필요한 인터페이스(W-SV-I-0027) 개발 후 로직추가.
+        List<WsnaOutOfStorageAskMngtDvo> removeListDvo = new ArrayList<>();
 
         for (RemoveReq dto : dtos) {
-            processCount += this.mapper.deleteOutOfStorageAskItems(dto);
+            WsnaOutOfStorageAskMngtDvo dvo = this.converter.mapDeleteReqToOutOfStorageAskMngtDvo(dto);
+            processCount += this.mapper.deleteOutOfStorageAskItems(dvo);
+            removeListDvo.add(dvo);
+        }
+
+        if (CollectionUtils.isNotEmpty(removeListDvo)) {
+            WsnaOutOfStorageAskMngtDvo removeDvo = removeListDvo.get(0);
+            String deleteOstrAkNo = removeDvo.getOstrAkNo();
+            List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo = this.mapper.selectDtaDlYnOstrAkNo(deleteOstrAkNo);
+            if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsRemoveDvo.get(0).getOstrOjWareDvCd())) {
+                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                    .mapWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(logisticsRemoveDvo);
+                logisticsservice.removeOutOfStorageAsks(dvo);
+            }
+
         }
 
         return processCount;
     }
 
+    @Transactional
     public int saveOutOfStorageAskItems(List<SaveReq> dtos) {
         int processCount = 0;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
