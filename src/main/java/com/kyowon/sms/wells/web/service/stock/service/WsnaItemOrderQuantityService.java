@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaItemOrderQuantityConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemOrderQuantityDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemOrderQuantitySearchDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockItemIvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemOrderQuantityMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -38,6 +39,8 @@ public class WsnaItemOrderQuantityService {
 
     // 재고서비스
     private final WsnaItemStockItemizationService stockService;
+
+    private static final int SLICE_SIZE = 999;
 
     /**
      * BS자재 발주수량 산출 페이징 조회
@@ -94,38 +97,56 @@ public class WsnaItemOrderQuantityService {
     private void getRealTimeLogisticStockQtys(List<WsnaItemOrderQuantityDvo> dvos) {
 
         if (CollectionUtils.isNotEmpty(dvos)) {
-            for (WsnaItemOrderQuantityDvo dvo : dvos) {
-                // 품목코드
-                String pdCd = dvo.getPdCd();
 
-                RealTimeGradeStockResIvo res = this.stockService.getRealTimeGradeStock(pdCd);
-                BigDecimal thmQomAsnQty = dvo.getThmQomAsnQty();
-                BigDecimal logisticQty = this.getTotalLogisticQty(res);
+            int size = dvos.size();
+            int sliceSize = Math.floorDiv(size, SLICE_SIZE) + (Math.floorMod(size, SLICE_SIZE) > 0 ? 1 : 0);
 
-                dvo.setLogisticCnrQty(logisticQty);
-                dvo.setLogisticSum(thmQomAsnQty.add(logisticQty));
+            for (int i = 0; i < sliceSize; i++) {
+                int startIdx = i * SLICE_SIZE;
+                int endIdx = (i + 1) * SLICE_SIZE > size ? size : (i + 1) * SLICE_SIZE;
+
+                List<WsnaItemOrderQuantityDvo> sliceDvos = dvos.subList(startIdx, endIdx);
+                List<String> itmPds = sliceDvos.stream().map(WsnaItemOrderQuantityDvo::getPdCd).toList();
+
+                RealTimeGradeStockResIvo res = this.stockService
+                    .getRealTimeGradeStock(itmPds.subList(startIdx, endIdx));
+
+                this.setTotalLogisticQty(res, sliceDvos);
             }
         }
     }
 
     /**
-     * 물류 총 수량 가져오기
+     * 물류 물량 셋팅
      * @param ivo
-     * @return
+     * @param sliceDvos
      */
-    private BigDecimal getTotalLogisticQty(RealTimeGradeStockResIvo ivo) {
+    private void setTotalLogisticQty(RealTimeGradeStockResIvo ivo, List<WsnaItemOrderQuantityDvo> sliceDvos) {
 
-        if (ObjectUtils.isNotEmpty(ivo)) {
+        if (ObjectUtils.isNotEmpty(ivo) && CollectionUtils.isNotEmpty(ivo.getLgstQtys())) {
+            List<RealTimeGradeStockItemIvo> lgstQtys = ivo.getLgstQtys();
+            for (WsnaItemOrderQuantityDvo dvo : sliceDvos) {
+                String pdCd = dvo.getPdCd();
 
-            BigDecimal aGdQty = ObjectUtils.isEmpty(ivo.getLgstAGdQty()) ? BigDecimal.ZERO : ivo.getLgstAGdQty();
-            BigDecimal bGdQty = ObjectUtils.isEmpty(ivo.getLgstBGdQty()) ? BigDecimal.ZERO : ivo.getLgstBGdQty();
-            BigDecimal eGdQty = ObjectUtils.isEmpty(ivo.getLgstEGdQty()) ? BigDecimal.ZERO : ivo.getLgstEGdQty();
-            BigDecimal rGdQty = ObjectUtils.isEmpty(ivo.getLgstRGdQty()) ? BigDecimal.ZERO : ivo.getLgstRGdQty();
+                RealTimeGradeStockItemIvo itmIvo = lgstQtys.stream().filter(qty -> pdCd.equals(qty.getItmPdCd()))
+                    .findAny().get();
 
-            return aGdQty.add(bGdQty).add(eGdQty).add(rGdQty);
+                BigDecimal aGdQty = ObjectUtils.isEmpty(itmIvo.getLgstAGdQty()) ? BigDecimal.ZERO
+                    : itmIvo.getLgstAGdQty();
+                BigDecimal bGdQty = ObjectUtils.isEmpty(itmIvo.getLgstBGdQty()) ? BigDecimal.ZERO
+                    : itmIvo.getLgstBGdQty();
+                BigDecimal eGdQty = ObjectUtils.isEmpty(itmIvo.getLgstEGdQty()) ? BigDecimal.ZERO
+                    : itmIvo.getLgstEGdQty();
+                BigDecimal rGdQty = ObjectUtils.isEmpty(itmIvo.getLgstRGdQty()) ? BigDecimal.ZERO
+                    : itmIvo.getLgstRGdQty();
+
+                BigDecimal lgstQty = aGdQty.add(bGdQty).add(eGdQty).add(rGdQty);
+
+                BigDecimal thmQomAsnQty = dvo.getThmQomAsnQty();
+                dvo.setLogisticCnrQty(lgstQty);
+                dvo.setLogisticSum(thmQomAsnQty.add(lgstQty));
+            }
         }
-
-        return BigDecimal.ZERO;
     }
 
 }
