@@ -30,4 +30,6 @@ public interface WsnaOutOfStorageAskMngtMapper {
     int insertOutOfStorageAskItems(WsnaOutOfStorageAskMngtDvo dvo);
 
     int updateOutOfStorageAskItmes(WsnaOutOfStorageAskMngtDvo dvo);
+
+    List<WsnaOutOfStorageAskMngtDvo> selectLogisticsOutStorageAskInfo(String ostrAkNo);
 }
