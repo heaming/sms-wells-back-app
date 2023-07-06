@@ -1,17 +1,20 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1003.request.WellsCounselReqIvo;
 import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1003.response.WellsCounselResIvo;
 import com.kyowon.sms.common.web.service.stock.service.ZsnaWellsCounselSevice;
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvReturningGoodsSaveMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,48 +27,81 @@ public class WsnaPcsvReturningGoodsSaveService {
     private final WsnaPcsvReturningGoodsSaveMapper mapper;
     private final ZsnaWellsCounselSevice counselService;
     private final WsnaItemStockItemizationService itemStockservice;
+    private final WctaInstallationReqdDtInService reqdDtService;
 
     @Transactional
-    public void savePcsvReturningGoods(WsnaPcsvReturningGoodsDvo dvo) {
+    public void savePcsvReturningGoods(WsnaPcsvReturningGoodsSaveDvo dvo) {
 
         WellsCounselResIvo counselRes;
+        String pdArvDt = "";
 
-        // 취소완료 처리 - 처리구분(11), 서비스상태코드(10), 철거일(Not Null)
-        if ("11".equals(dvo.getFindGb()) && "10".equals(dvo.getWkPrgsStatCd()) && !(dvo.getReqdDt().isEmpty())) {
-            // 작업상태 변경(savePcsvReturningGoodsCancel)
-            // 고객서비스AS 설치배정내역 업데이트, 로그 저장, 작업결과테이블 저장, 철거일자 업데이트 , 고객서비스BS배정내역 업데이트
-            mapper.savePcsvReturningGoodsCancel(dvo);
-            log.debug("############# 취소요청 처리 완료[savePcsvReturningGoodsCancel] #################");
+        /*
+          물류 KWLIB.DL1500P EAI연계
+          1. 송장번호(sppIvcNo)로 상품도착일자(pdArvDt) 조회
+        */
+        // 물류(HQ) 연계인터페이스 호출 추 후 작업
+        /*
+        if (!StringUtils.isEmpty(dvo.getSppIvcNo())) {
+            pdArvDt = "";
 
-            // 철거제품 내역등록 (savePcsvReturningGoodsReceivingAndPaying)
-            // 작업엔지니어 조회, 작업순번조회, 작업결과테이블 저장, 로그저장 , 수불처리
-            mapper.savePcsvReturningGoodsReceivingAndPaying(dvo);
-            log.debug("############# 철거제품 내역등록(savePcsvReturningGoodsReceivingAndPaying] #################");
+            if (!StringUtils.isEmpty(pdArvDt)) {
+                dvo = setPcsvReturnGoodspdArvDtSaveReq(pdArvDt, dvo);
+            }
+        }
+        */
 
-            // 수불처리 연계 인터페이스
+        if ("11".equals(dvo.getFindGb()) && "10".equals(dvo.getWkPrgsStatCd())
+            && !StringUtils.isEmpty(dvo.getReqdDt())) {
+            /*
+              취소완료 처리 StringUtils.isEmpty(dvo.getReqdDt())
+              조건 - 처리구분(11), 서비스상태코드(10), 철거일(Not Null)
+            */
+
+            // 1. 동일 키값으로 작업결과 조회
+            selectExistSvpdCstSvWkRsIz(dvo);
+            // 2. 고객서비스설치배정내역 업데이트
+            mapper.updateSvpdCstSvasIstAsnIz(dvo);
+            // 3. 작업결과 저장
+            mapper.insertSvpdCstSvWkRsIz(dvo);
+            // 4. 철거일자 업데이트
+            mapper.updateSvpdCstSvExcnIz(dvo);
+            // 5. 미완료 웰컴BS 취소 처리 업데이트 TB_SVPD_CST_SV_BFSVC_ASN_IZ
+            mapper.updateSvpdCstSvBfsvcAsnIz(dvo);
+            // 6. 철거일자 업데이트(서비스모바일 > 설치완료 > 철거일자 판매시스템 연계)
+            String reqdDt = DateUtil.getNowDayString();
+            reqdDtService.saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), "", reqdDt.substring(0, 8));
+            log.debug("[판매시스템 철거일자 업데이트] => {}", reqdDt);
+            // 7. 작업엔지니어 조회 추가 작업 필요
+            WsnaPcsvReturningGoodsSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo); //작업엔지니어 정보를 구한다.
+            // 8. 서비스작업출고내역 저장
+            mapper.insertSvstSvWkOstrIz(dvo);
+            // 9. 수불처리 저장
             itemStockservice.createStock(setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
-            //            try {
-            //            } catch (ParseException e) {
-            //                throw new RuntimeException(e);
-            //            }
-
-            log.debug("############# 수불처리 등록(savePcsvReturningGoodsReceivingAndPaying] #################");
+            log.debug("[수불처리 저장] => {}", setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
 
         } else {
-            // 반품요청, 반품등록 처리
-            // 고객서비스AS 설치배정내역 업데이트 및 로그 저장
-            mapper.savePcsvReturningGoods(dvo);
-            log.debug("############# 반품요청/등록 처리 완료[savePcsvReturningGoods] #################");
+            /*
+              반품요청, 반품등록 처리
+            */
+            // 1. 고객서비스AS설치배정내역 업데이트
+            mapper.updateSvpdCstSvasAsIstAsnIz(dvo);
+            log.debug("[고객서비스AS설치배정내역 업데이트] => {}", dvo);
 
-            // KWCC(고객센터) 상담정보 EAI 인터페이스 호출
+            // 2. KWCC(고객센터) 상담정보 EAI 인터페이스 호출
             counselRes = counselService.saveWellsCounsel(setPcsvReturnGoodsWellsCounselReqIvoSaveReq(dvo));
             log.debug("[고객센터 상담정보 연계 처리결과 조회] => {}", counselRes);
-            log.debug("############# 고객센터 등록 완료[saveWellsCounsel] #################");
         }
 
     }
 
-    private WellsCounselReqIvo setPcsvReturnGoodsWellsCounselReqIvoSaveReq(WsnaPcsvReturningGoodsDvo dvo) {
+    private void selectExistSvpdCstSvWkRsIz(
+        WsnaPcsvReturningGoodsSaveDvo dvo
+    ) {
+        int existCnt = mapper.selectExistSvpdCstSvWkRsIz(dvo);
+        BizAssert.isTrue(existCnt == 0, "이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요.");
+    }
+
+    private WellsCounselReqIvo setPcsvReturnGoodsWellsCounselReqIvoSaveReq(WsnaPcsvReturningGoodsSaveDvo dvo) {
 
         WellsCounselReqIvo reqIvo = new WellsCounselReqIvo();
         StringBuffer cnslCn = new StringBuffer();
@@ -81,7 +117,7 @@ public class WsnaPcsvReturningGoodsSaveService {
         cnslCn.append("1. 매출일자 : ");
         cnslCn.append(dvo.getCntrPdStrtdt() + "||");
         cnslCn.append("2. 제품수령일자 : ");
-        cnslCn.append(dvo.getPdCdArvDt() + "||");
+        cnslCn.append(dvo.getPdArvDt() + "||");
         cnslCn.append("3. 반품상담접수일자 : ");
         cnslCn.append(dvo.getVstRqdt() + "||");
         cnslCn.append("4. 현물입고일자 : ");
@@ -91,7 +127,7 @@ public class WsnaPcsvReturningGoodsSaveService {
         cnslCn.append("6. 산정등급 : ");
         cnslCn.append(dvo.getRtngdGd() + "||");
         cnslCn.append("7. 개봉여부 : ");
-        if ("91".equals(dvo.getGdsOpenYn())) {
+        if ("91".equals(dvo.getDtmChRsonCd())) {
             cnslCn.append("개봉" + "||");
         } else {
             cnslCn.append("미개봉" + "||");
@@ -110,7 +146,7 @@ public class WsnaPcsvReturningGoodsSaveService {
     }
 
     private WsnaItemStockItemizationReqDvo setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(
-        WsnaPcsvReturningGoodsDvo dvo
+        WsnaPcsvReturningGoodsSaveDvo dvo
     ) {
 
         WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
@@ -128,6 +164,21 @@ public class WsnaPcsvReturningGoodsSaveService {
         reqDvo.setQty(dvo.getUseQty());
 
         return reqDvo;
+    }
+
+    private WsnaPcsvReturningGoodsSaveDvo setPcsvReturnGoodspdArvDtSaveReq(
+        String pdArvDt, WsnaPcsvReturningGoodsSaveDvo dvo
+    ) {
+        /*
+        물류 KWLIB.DL1500P EAI연계로 dvo 속성 값 추가
+        1. pdArvDt 상품도착일자 추가
+        2. pdUseDc 상품사용일수 추가
+        3. rtngdGd 반품상품등급 추가
+        4. fnlRtngdGd 최종반품상품등급 추가
+        */
+        String nowDay = DateUtil.getNowDayString();
+
+        return dvo;
     }
 
 }

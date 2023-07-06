@@ -10,7 +10,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvReturningGoodsMgtMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class WsnaPcsvReturningGoodsMgtService {
         int processCount = 0;
 
         for (SaveReq dto : dtos) {
-            WsnaPcsvReturningGoodsDvo dvo = converter.mapSaveReqToPcsvReturningGoodsDvo(dto);
+            WsnaPcsvReturningGoodsSaveDvo dvo = converter.mapSaveReqToPcsvReturningGoodsDvo(dto);
 
             service.savePcsvReturningGoods(dvo);
 

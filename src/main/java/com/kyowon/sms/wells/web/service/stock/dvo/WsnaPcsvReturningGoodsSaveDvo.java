@@ -26,7 +26,6 @@ public class WsnaPcsvReturningGoodsSaveDvo {
     String cralLocaraTno; //휴대지역전화번호(휴대폰번호)
     String mexnoEncr; //휴대전화국번호암호화(휴대폰번호)
     String cralIdvTno; //휴대개별전화번호(휴대폰번호)
-    String hpNo;
     String locaraTno; //지역전화번호 (전화번호)
     String exnoEncr; //전화국번호암호화(전화번호)
     String idvTno; //개별전화번호(전화번호)
@@ -52,11 +51,10 @@ public class WsnaPcsvReturningGoodsSaveDvo {
     String ogNm;
     String fstRgstUsrId;
     String prtnrKnm;
-    String pdCdArvDt;
+    String pdArvDt;
     String pdUseDc;
     String rtngdGd;
     String arvDt;
-    String gdsOpenYn;
     String sppIvcNo;
     String sppProcsBzsNm;
     String rtngdNm;
@@ -81,5 +79,14 @@ public class WsnaPcsvReturningGoodsSaveDvo {
     String pdLclsfId; // 상품소분류ID
     String pdDclsfId; // 상품세분류ID
     String dtmChRsonCd; //개봉여부코드
-    String wkOstrSn; //작업순번
+    String editYn; //수정여부
+    String cntrDtlNo; //계약상세번호
+    String wellsReqdDt; //wells철거일자
+
+    /* 엔지니어 정보 조회 */
+    String mngrDvCd;
+    String dgr1LevlOgId;
+    String dgr3LevlOgId;
+    String brchOgId;
+
 }

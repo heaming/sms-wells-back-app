@@ -40,7 +40,9 @@ public class WsnaPcsvReturningGoodsMgtController {
         @ApiImplicitParam(name = "endDt", value = "요청종료일자", paramType = "query"),
         @ApiImplicitParam(name = "cntrCstNo", value = "계약고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNm", value = "고객명", paramType = "query"),
-        @ApiImplicitParam(name = "hpNo", value = "휴대폰번호", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대폰번호1", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대폰번호2", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대폰번호3", paramType = "query"),
         @ApiImplicitParam(name = "bcNo", value = "제품시리얼넘버", paramType = "query"),
     })
     @GetMapping
@@ -57,9 +59,11 @@ public class WsnaPcsvReturningGoodsMgtController {
         @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
         @ApiImplicitParam(name = "startDt", value = "요청시작일자", paramType = "query"),
         @ApiImplicitParam(name = "endDt", value = "요청종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "cntrCstNo", value = "계약고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
         @ApiImplicitParam(name = "rcgvpKnm", value = "고객명", paramType = "query"),
-        @ApiImplicitParam(name = "hpNo", value = "휴대폰번호", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대폰번호1", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대폰번호2", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대폰번호3", paramType = "query"),
         @ApiImplicitParam(name = "bcNo", value = "제품시리얼넘버", paramType = "query"),
     })
     @GetMapping("/excel-download")

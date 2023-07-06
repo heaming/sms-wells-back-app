@@ -25,11 +25,19 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String wkPrgsStatCd,
         String startDt,
         String endDt,
-        String cntrCstNo,
+        String cntrDtlNo, // 계약상세번호
         String rcgvpKnm,
-        String hpNo,
-        String bcNo
-    ) {}
+        String bcNo,
+        String svBizDclsfCd,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno
+
+    ) {
+        public SearchReq {
+            mexnoEncr = DbEncUtil.enc(mexnoEncr);
+        }
+    }
 
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-SearchRes")
     public record SearchRes(
@@ -53,7 +61,6 @@ public class WsnaPcsvReturningGoodsMgtDto {
         @DBDecField
         String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
         String cralIdvTno, //휴대개별전화번호(휴대폰번호)
-        String hpNo,
         String locaraTno, //지역전화번호 (전화번호)
         @DBDecField
         String exnoEncr, //전화국번호암호화(전화번호)
@@ -80,11 +87,10 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String ogNm,
         String fstRgstUsrId,
         String prtnrKnm,
-        String pdCdArvDt,
+        String pdArvDt,
         String pdUseDc,
         String rtngdGd,
         String arvDt,
-        String gdsOpenYn,
         String sppIvcNo,
         String sppProcsBzsNm,
         String rtngdNm,
@@ -108,7 +114,9 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String pdMclsfId, // 상품중분류ID
         String pdLclsfId, // 상품소분류ID
         String pdDclsfId, // 상품세분류ID
-        String dtmChRsonCd //개봉여부코드
+        String dtmChRsonCd, //개봉여부코드
+        String editYn, //수정여부
+        String wellsReqdDt //wells철거일자
 
     ) {
         public SearchRes {
@@ -156,7 +164,6 @@ public class WsnaPcsvReturningGoodsMgtDto {
         @DBDecField
         String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
         String cralIdvTno, //휴대개별전화번호(휴대폰번호)
-        String hpNo,
         String locaraTno, //지역전화번호 (전화번호)
 
         @DBDecField
@@ -179,11 +186,10 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String ogNm,
         String fstRgstUsrId,
         String prtnrKnm,
-        String pdCdArvDt,
+        String pdArvDt,
         String pdUseDc,
         String rtngdGd,
         String arvDt,
-        String gdsOpenYn,
         String sppIvcNo,
         String sppProcsBzsNm,
         String rtngdNm,
@@ -206,9 +212,7 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String pdMclsfId, // 상품중분류ID
         String pdLclsfId, // 상품소분류ID
         String pdDclsfId, // 상품세분류ID
-        String dtmChRsonCd, //개봉여부코드
-        String wkOstrSn //작업순번
-
+        String dtmChRsonCd //개봉여부코드
     ) {}
 
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindLogisticsCentersRes")
@@ -224,9 +228,9 @@ public class WsnaPcsvReturningGoodsMgtDto {
 
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindProductsRes")
     public record FindProductsRes(
-        String svpdPdCd,
-        String svpdNmKor,
-        String svpdItemGr
+        String pdCd,
+        String pdNm,
+        String pdGrpCd
     ) {}
 
 }
