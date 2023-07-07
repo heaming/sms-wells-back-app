@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaItemOrderQuantityConverter;
@@ -144,14 +143,10 @@ public class WsnaItemOrderQuantityService {
                     String stockPdCd = stock.getItmPdCd();
 
                     if (pdCd.equals(stockPdCd)) {
-                        BigDecimal aGdQty = ObjectUtils.isEmpty(stock.getLgstAGdQty()) ? BigDecimal.ZERO
-                            : stock.getLgstAGdQty();
-                        BigDecimal bGdQty = ObjectUtils.isEmpty(stock.getLgstBGdQty()) ? BigDecimal.ZERO
-                            : stock.getLgstBGdQty();
-                        BigDecimal eGdQty = ObjectUtils.isEmpty(stock.getLgstEGdQty()) ? BigDecimal.ZERO
-                            : stock.getLgstEGdQty();
-                        BigDecimal rGdQty = ObjectUtils.isEmpty(stock.getLgstRGdQty()) ? BigDecimal.ZERO
-                            : stock.getLgstRGdQty();
+                        BigDecimal aGdQty = stock.getLgstAGdQty();
+                        BigDecimal bGdQty = stock.getLgstBGdQty();
+                        BigDecimal eGdQty = stock.getLgstEGdQty();
+                        BigDecimal rGdQty = stock.getLgstRGdQty();
 
                         lgstQty = aGdQty.add(bGdQty).add(eGdQty).add(rGdQty);
 
