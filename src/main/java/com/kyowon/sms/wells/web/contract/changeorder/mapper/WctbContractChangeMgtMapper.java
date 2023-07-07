@@ -38,6 +38,8 @@ public interface WctbContractChangeMgtMapper {
 
     int updateContractAddrChangeHist(WctbContractChangeDvo dvo);
 
+    int insertContractAddrChangeHist(WctbContractChangeDvo dvo);
+
     WctbContractChangeMngtDto.FindPartnerRes selectPartnerByCntrNo(String cntrNo, String cntrSn);
 
     WctbContractChangeDvo selectDateTime();
