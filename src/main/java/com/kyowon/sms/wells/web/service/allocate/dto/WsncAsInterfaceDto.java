@@ -16,14 +16,21 @@ public class WsncAsInterfaceDto {
         String cstKnm,
         String hpno,
         String newAdrZip,
-        String pdGrpId
+        String pdGrpId,
+        String cntrSn,
+        String cntrCstNo,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String adrId
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchCustInfoRes")
     public record SearchCustInfoRes(
         String cntrNo,
+        String cstNo,
         String cstKnm,
-        String cntrDt,
+        String cntrCnfmDtm,
         String pdCd,
         String pdNm,
         String cralLocaraTno,
@@ -32,18 +39,11 @@ public class WsncAsInterfaceDto {
         String locaraTno,
         String exnoEncr,
         String idvTno,
-        String lgsysCd,
-        String oldAdrZip,
-        String ltnAdr,
-        String ltnDtlAdr,
         String newAdrZip,
         String rnadr,
         String rdadr,
-        String addRefer,
-        String addGb,
+        String adrDvCd,
         String addr,
-        String hpno,
-        String telno,
         String rcgvpKnm,
         String bryyMmdd,
         String sexDvCd,
