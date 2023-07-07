@@ -30,8 +30,10 @@ public class WctbCustomerBaseBulkChangeDvo {
     private String txinvPblOjYn; //  [세금계산서] 세금계산서발행대상여부
     private String atmtStat; //  [자동이체정보-상태]
     private String mpyBsdt; //  [자동이체정보-이체일] 납부기준일자
-    private String dpTpCd; //  입금유형코드
-    private String dpTpNm; //  [자동이체정보-이체구분] 입금유형명
+    private String aftnInfFntDvCd; // 자동이체정보-이체구분코드
+    private String aftnInfFntDvNm; // [자동이체정보-이체구분] 이체구분명
+    private String dpTpCd; // 입금유형코드
+    private String dpTpNm; // 입금유형명
     private String bnkCdcoCd; //  은행/카드사코드
     private String bnkCdcoNm; //  [자동이체정보-카드사/은행] 은행/카드사명
     @DBDecField

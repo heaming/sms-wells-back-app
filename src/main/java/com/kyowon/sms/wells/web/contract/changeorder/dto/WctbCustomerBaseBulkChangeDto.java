@@ -33,8 +33,10 @@ public class WctbCustomerBaseBulkChangeDto {
         String emadr, /*[이메일]이메일주소*/
         String atmtStat, /* [자동이체정보-상태] */
         String mpyBsdt, /* [자동이체정보-이체일] 납부기준일자 */
+        String aftnInfFntDvCd, // 자동이체정보-이체구분코드
+        String aftnInfFntDvNm, // [자동이체정보-이체구분] 이체구분명
         String dpTpCd, /* 입금유형코드 */
-        String dpTpNm, /* [자동이체정보-이체구분] 입금유형명 */
+        String dpTpNm, /* 입금유형명 */
         String bnkCdcoCd, /* 은행/카드사코드 */
         String bnkCdcoNm, /* [자동이체정보-카드사/은행] 은행/카드사명 */
         String acnoCrcdno, /* [자동이체정보-카드/계좌번호] */
