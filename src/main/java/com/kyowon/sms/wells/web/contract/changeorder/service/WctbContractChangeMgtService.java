@@ -420,6 +420,9 @@ public class WctbContractChangeMgtService {
         res = mapper.updateContractAddrChangeHist(dvo);
         BizAssert.isTrue(res > 0, "MSG_ALT_SVE_ERR");
 
+        res = mapper.insertContractAddrChangeHist(dvo);
+        BizAssert.isTrue(res > 0, "MSG_ALT_SVE_ERR");
+
         String orgRcgvpKnm = orgDvo.getRcgvpKnm(); // 수령자한글명
         String orgAdrId = orgDvo.getIstAdrId(); // 주소ID
         String orgCralLocaraTno = orgDvo.getRcgvpKnm(); // 휴대지역전화번호

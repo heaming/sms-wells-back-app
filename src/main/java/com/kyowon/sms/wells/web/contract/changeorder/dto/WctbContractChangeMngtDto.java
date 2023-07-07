@@ -71,6 +71,7 @@ public class WctbContractChangeMngtDto {
         String cstKnm, /* 계약자명 - 고객명(lc31.lccnam) */
         String cntrCstNo, /* 계약자정보 - 고객번호 */
         String bryyMmdd, /* 계약자정보 - 생년월일 */
+        String cntrAdrpcId, /* 계약주소지 ID */
         String bzrno, /* 계약자정보 - 사업자번호(lccino) */
         String copnDvNm, /* 법인격구분명 (lccgub) 개인:1; 법인:2*/
         String cntrCralLocaraTno, /* 계약자　휴대폰번호1 LCCNOT. LCCNO1 bindMsgs[7] */
@@ -166,7 +167,7 @@ public class WctbContractChangeMngtDto {
     public record FindCustomerInformationRes(
         String cntrNo, /* 계약번호 */
         int cntrSn, /* 계약일련번호 */
-        String cntrAdrpcId,
+        String cntrAdrpcId, /* 계약주소지 ID */
         String cstKnm, /* 계약자정보 - 계약자명 / 법인명 */
         String cntrCstNo, /* 계약자정보 - 고객번호 */
         String bryyMmdd, /* 계약자정보 - 생년월일 */
