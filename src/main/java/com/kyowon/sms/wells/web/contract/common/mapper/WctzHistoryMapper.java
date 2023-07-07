@@ -4,6 +4,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.contract.common.dvo.*;
 
+import java.util.Optional;
+
 @Mapper
 public interface WctzHistoryMapper {
 
@@ -99,4 +101,21 @@ public interface WctzHistoryMapper {
 
     int insertContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo);
 
+    Optional<WctaPspcCstChHistDvo> selectLastPspcCstChHist(String pspcCstId);
+
+    int expirePspcCstChHistory(String pspcCstId, String histStrtDtm);
+
+    int upsertPspcCstChHist(String pspcCstId, String histStrtDtm);
+
+    Optional<WctaPspcCstCnslChHistDvo> selectLastPspcCstCnslChHist(String pspcCstCnslId);
+
+    int expirePspcCstCnslChHistory(String pspcCstCnslId, String histStrtDtm);
+
+    int upsertPspcCstCnslChHist(String pspcCstCnslId, String histStrtDtm);
+
+    Optional<WctaPspcCstCnslRchHistDvo> selectLastPspcCstCnslRchHist(String pspcCstCnslId, int pspcCstCnslSn);
+
+    int expirePspcCstCnslRchHistory(String pspcCstCnslId, int pspcCstCnslSn, String histStrtDtm);
+
+    int upsertPspcCstCnslRchHist(String pspcCstCnslId, int pspcCstCnslSn, String histStrtDtm);
 }
