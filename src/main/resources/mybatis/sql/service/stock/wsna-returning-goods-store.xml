@@ -2,197 +2,197 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsStoreMapper">
 
     <select id="selectReturningGoodsStores" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto$SearchRes">
-        SELECT A.CST_SV_ASN_NO /*고객서비스배정내역*/
-             , F.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
-        <!--      , (CASE WHEN (LCREQY IS NULL OR LCREQY=0) THEN (TO_DATE(A.FNL_VST_FSH_DT) - TO_DATE(D.IST_DT)) -->
-        <!--       ELSE (TO_DATE(LPAD(LCREQY,4,'0')|| LPAD(LCREQM,2,'0')|| LPAD(LCREQD,2,'0')) - TO_DATE(D.IST_DT)) -->
-        <!-- END) AS USE_DAYS  -->
-             , A.ITM_PD_CD /*품목상품코드*/
-             , F.SVPD_NM_KOR AS ITM_PD_NM /*품목상품명*/
-             , (CASE WHEN F.SVPD_ITEM_GR IN ('1', '3', '4', '92', '11', '10', '93', '95', '91') THEN F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', F.SVPD_ITEM_GR)
-                     WHEN F.SVPD_ITEM_GR = '2' AND F.SVPD_ITEM_CD = '42990' THEN '커피머신'
-                     WHEN F.SVPD_ITEM_CD IN ('49010', '49020') THEN '커피머신'
-                     WHEN F.SVPD_ITEM_GR IN ('5', '7', '8') THEN '기타'
-                     WHEN F.SVPD_ITEM_GR IN ('9') AND F.SVPD_ITEM_CD IN ('49200', '49060', '49070', '49080') THEN '기타'
-                     ELSE F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', F.SVPD_ITEM_GR)
-                 END ) AS ITEM_GR_NM
-             , F.SVPD_ITEM_GR AS ITEM_GR
-             , A.STKR_PRNT_YN /*스티커출력여부*/
-             , D.IST_DT /*설치일자*/
+
+        SELECT T1.CST_SV_ASN_NO /*고객서비스배정내역*/
+               , T5.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
+               , T1.ITM_PD_CD /*품목상품코드*/
+               , T5.SVPD_NM_KOR AS ITM_PD_NM /*품목상품명*/
+               , (CASE WHEN T5.SVPD_ITEM_GR IN ('1', '3', '4', '92', '11', '10', '93', '95', '91') THEN F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', T5.SVPD_ITEM_GR)
+                       WHEN T5.SVPD_ITEM_GR = '2' AND T5.SVPD_ITEM_CD = '42990' THEN '커피머신'
+                       WHEN T5.SVPD_ITEM_CD IN ('49010', '49020') THEN '커피머신'
+                       WHEN T5.SVPD_ITEM_GR IN ('5', '7', '8') THEN '기타'
+                       WHEN T5.SVPD_ITEM_GR IN ('9') AND T5.SVPD_ITEM_CD IN ('49200', '49060', '49070', '49080') THEN '기타'
+                       ELSE F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', T5.SVPD_ITEM_GR)
+                   END ) AS ITEM_GR_NM
+             , T5.SVPD_ITEM_GR AS ITEM_GR
+             , T1.STKR_PRNT_YN /*스티커출력여부*/
+             , T3.IST_DT /*설치일자*/
              , (SELECT A1.REQD_DT
                   FROM TB_SSCT_CNTR_WELLS_DTL A1
                  WHERE 1 = 1
-                   AND A1.CNTR_NO = T1.CNTR_NO) AS REQD_DT /*철거일자*/
-             , TO_CHAR(TO_DATE(E.VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(E.VST_FSH_HH,'HH24MISS'),'HH24:MI:SS') AS VST_FSH_DT /*작업일자*/
-             , A.RTNGD_CONF_YN /*반품확인여부*/
-             , CEIL(MONTHS_BETWEEN(A.FNL_VST_FSH_DT, D.IST_DT)) AS USE_MTHS /*사용개월*/
-             , (CASE WHEN MONTHS_BETWEEN(A.FNL_VST_FSH_DT, IST_DT) <![CDATA[ <= ]]> 1 THEN 'Y'
+                   AND A1.CNTR_NO = X1.CNTR_NO) AS REQD_DT /*철거일자*/
+             , TO_CHAR(TO_DATE(T4.VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(T4.VST_FSH_HH,'HH24MISS'),'HH24:MI:SS') AS VST_FSH_DT /*작업일자*/
+             , T1.RTNGD_CONF_YN  /*반품확인여부*/
+             , CEIL(MONTHS_BETWEEN(T1.FNL_VST_FSH_DT, T3.IST_DT)) AS USE_MTHS /*사용개월*/
+             , (CASE WHEN MONTHS_BETWEEN(T1.FNL_VST_FSH_DT, T3.IST_DT)   <![CDATA[ <= ]]>   1 THEN 'Y'
                          ELSE 'N'
                     END) AS REFURBISH_YN    --리퍼여부
-             , A.FNL_ITM_GD_CD /*최종품목등급코드*/
-             , A.USE_QTY /*사용수량*/
-             , CASE WHEN REFR_AS_RCP_YN = '1' THEN '접수완료'
-                       ELSE ''
-                   END REFR_AS_RCP_YN /*리퍼접수*/
-             , A.CNTR_NO || '-' ||A.CNTR_SN AS CNTR_DTL_NO /*고객번호*/
-             /*고객명*/
-             , T4.RCGVP_KNM  /*고객명*/
-             , T2.SELL_TP_CD /*판매유형코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD) AS SELL_TP_NM /*판매유형명*/
-             /*판매유형*/
-             /*관리유형*/
-             , (CASE WHEN T2.FRISU_YN = 'Y' THEN '무료체험'
-                     WHEN T2.ALNCMP_CD = '45' THEN F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T2.ALNCMP_CD)
+             , T1.FNL_ITM_GD_CD /*등급*/
+             , T1.USE_QTY /*사용수량*/
+             , CASE WHEN T1.REFR_AS_RCP_YN = '1' THEN '접수완료'
+                    ELSE ''
+                END REFR_AS_RCP_YN /*리퍼접수*/
+             , T1.CNTR_NO || '-' ||T1.CNTR_SN AS CNTR_DTL_NO /*고객번호*/
+             , X4.RCGVP_KNM
+             , X2.SELL_TP_CD /*판매유형코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', X2.SELL_TP_CD) AS SELL_TP_NM /*판매유형명*/
+             , (CASE WHEN X2.FRISU_YN = 'Y' THEN '무료체험'
+                     WHEN X2.ALNCMP_CD = '45' THEN F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', X2.ALNCMP_CD)
                      ELSE ''
                 END) AS REFER_ARTC /*참고사항*/
-             , A.SV_BIZ_DCLSF_CD /*서비스업무세분류코드 BA04*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', A.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM /*업무유형*/
-             , A.OSTR_CONF_DT /*확인일자*/
-             , A.OSTR_CONF_DT AS OSTR_CONF_DT1 /*확인일자*/
-             , A.OSTR_DT /*전산반품*/
-             , A.RTNGD_PROCS_TP_CD /*반품처리유형코드*/
-             , A.RTNGD_PROCS_TP_CD AS RTNGD_PROCS_TP_CD1 /*반품처리유형코드*/
-             , A.RMK_CN /*특이사항*/
-             , (CASE WHEN SUBSTR(A.CST_SV_ASN_NO,1,1) = '9' THEN C.CNTR_NO
+             , T1.SV_BIZ_DCLSF_CD /*서비스업무세분류코드 BA04*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', T1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM /*업무유형*/
+             , T1.OSTR_CONF_DT /*확인일자*/
+             , T1.OSTR_CONF_DT AS OSTR_CONF_DT1 /*확인일자*/
+             , T1.OSTR_DT /*전산반품*/
+             , T1.RTNGD_PROCS_TP_CD /*반품처리유형코드*/
+             , T1.RTNGD_PROCS_TP_CD AS RTNGD_PROCS_TP_CD1 /*반품처리유형코드*/
+             , T1.RMK_CN /*특이사항*/
+             , (CASE WHEN SUBSTR(T1.CST_SV_ASN_NO,1,1) = '9' THEN T2.CNTR_NO
                      ELSE ''
                  END) AS CNTR_NO_NEW /*신규 고객번호*/
-             , CASE WHEN A.FNL_ITM_GD_CD = 'E'
-                     AND A.SV_BIZ_DCLSF_CD = '3210'
-                    THEN A.FST_BC_NO
-                    ELSE E.BC_NO
+             , CASE WHEN T1.FNL_ITM_GD_CD = 'E'
+                     AND T1.SV_BIZ_DCLSF_CD = '3210'
+                    THEN T1.FST_BC_NO
+                    ELSE T4.BC_NO
                 END AS BAR_CD /*제조번호*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', E.AS_LCT_CD) AS AS_LCT_NM /*AS위치코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', E.AS_PHN_CD) AS AS_PHN_NM /*AS현상코드*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', E.AS_CAUS_CD) AS AS_CAUS_NM /*AS원인코드*/
-             , E.SV_PROCS_CN /*서비스처리내용*/
-             , A.ICHR_PRTNR_NO /*담당엔지니어사번*/
-             , (SELECT FNM
-                  FROM TB_OGBS_EMP_BAS
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', T4.AS_LCT_CD) AS AS_LCT_NM /*AS위치코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', T4.AS_PHN_CD) AS AS_PHN_NM /*AS현상코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', T4.AS_CAUS_CD) AS AS_CAUS_NM /*AS원인코드*/
+             , T4.SV_PROCS_CN /*서비스처리내용*/
+             , T1.ICHR_PRTNR_NO /*담당엔지니어사번*/
+             , (SELECT A1.PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS A1
                  WHERE 1 = 1
-                   AND SAP_EMPNO = A.ICHR_PRTNR_NO) AS EMP_NM /*담당엔지니어명*/
-             , C.FST_RGST_USR_ID /*철거요청사번*/
-             <!-- TODO : 현재 철거요청사번에 대한 정의가 부적절 테이블 컬럼부터 변경되어야 함 -->
+                   AND A1.PRTNR_NO = T1.ICHR_PRTNR_NO
+                   AND A1.OG_TP_CD = T1.OG_TP_CD) AS EMP_NM /*담당엔지니어명*/
+             , T2.FST_RGST_USR_ID /*철거요청사번*/
              , (SELECT A.PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS A
-                 WHERE 1 = 1
-                   AND A.PRTNR_NO = C.FST_RGST_USR_ID
-                   AND A.OG_TP_CD IN ('W02','W06','HR1')
-                   AND ROWNUM = 1) AS FST_RGST_USER_NM /*철거요청자명*/
-        	 <!--, CASE WHEN SUBSTR(AC021_DEPT_CD ,1,1)  BETWEEN 'A' AND 'H' THEN '방판' -->
-             <!--WHEN SUBSTR(AC021_DEPT_CD ,1,1)  BETWEEN 'Y' AND 'Z'  OR AC021_DEPT_CD = '75050' THEN '신규채널' -->
-             <!--     ELSE '기타' -->
-             <!-- END AS CHANNEL_NM /*접수자구분*/ -->
-             , C.CNSL_MO_CN /*접수내역*/
+                          FROM TB_OGBS_PRTNR_BAS A
+                         WHERE 1 = 1
+                           AND A.PRTNR_NO = T2.FST_RGST_USR_ID
+                           AND A.OG_TP_CD IN ('W02','W06','HR1')
+                           AND ROWNUM = 1) AS FST_RGST_USER_NM /*철거요청자명*/
+             , T2.CNSL_MO_CN /*접수내역*/
              /*접수자소속*/
-             , T3.PRTNR_KNM /*접수자명*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'BAD_DV_CD', E.BAD_DV_CD) AS BAD_DV_NM /*불량구분*/
-             , A.WK_OSTR_SN /*작업출고일련번호*/
-             , A.SV_BIZ_HCLSF_CD /*서비스대분류코드*/
-             , A.WK_WARE_NO /*작업창고번호*/
-             , B.WARE_NM /*창고명*/
-             , A.MNGR_DV_CD /*관리자 구분코드*/
-             , A.ITM_OSTR_NO /*품목출고번호*/
-             , A.STKR_R_PRNT_YN /*스티거R출력여부*/
+             , T7.PRTNR_KNM /*접수자명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'BAD_DV_CD', T4.BAD_DV_CD) AS BAD_DV_NM /*불량구분*/
+             , T1.WK_OSTR_SN /*작업출고일련번호*/
+             , T1.SV_BIZ_HCLSF_CD /*서비스대분류코드*/
+             , T1.WK_WARE_NO /*작업창고번호*/
+             , T8.WARE_NM /*창고명*/
+             , T1.MNGR_DV_CD /*관리자 구분코드*/
+             , T1.ITM_OSTR_NO /*품목출고번호*/
+             , T1.STKR_R_PRNT_YN /*스티거R출력여부*/
         --     , (SELECT A1.DEPT_NM2
-        --          FROM TB_OGBS_DEPT_BAS A1
+        --          FROM TB_OGBS_MM_OG_IZ A1
         --         WHERE 1 = 1
-        --           AND A1.DEPT_CD = A.BIZ_CD) AS DEPT_NM
-             , DECODE(A.RTNGD_RVPY_PROCS_YN, 'Y','Y','N') AS RTNGD_RVPY_PROCS_YN
-             , F.SVPD_ITEM_KND AS ITEM_KND
-             , F.SVPD_MGT_UNT AS MGT_UNT
-             , A.CNTR_NO
-             , A.CNTR_SN
-          FROM TB_SVST_SV_WK_OSTR_IZ A
-         INNER JOIN (SELECT WARE_NO
-                          , MAX(WARE_NM) AS WARE_NM
-                          , HGR_WARE_NO
-                          , WARE_DV_CD
-                       FROM TB_SVST_MCBY_WARE_IZ
-                      WHERE 1 = 1
-                        AND APY_YM BETWEEN SUBSTR(#{stFnlVstFshDtFrom},1,6) AND SUBSTR(#{edFnlVstFshDtTo},1,6)
-                      <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-                        AND HGR_WARE_NO = #{strWareNoM}
-                      </if>
-                      GROUP BY WARE_NO
-                             , HGR_WARE_NO
-                             , WARE_DV_CD
-                     ) B
-            ON B.WARE_NO = A.WK_WARE_NO
-         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ C /*고객서비스AS설치대상내역*/
-            ON C.CST_SV_ASN_NO = DECODE(SUBSTR(A.CST_SV_ASN_NO,1,1),'9', '1', A.CST_SV_ASN_NO)
-         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D
-            ON D.CNTR_NO = A.CNTR_NO
-           AND D.CNTR_SN = A.CNTR_SN
-         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ E
-            ON E.CST_SV_ASN_NO = A.CST_SV_ASN_NO
-           AND E.CNTR_NO = A.CNTR_NO
-           AND E.CNTR_SN = A.CNTR_SN
-         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) F
-            ON F.SVPD_PD_CD = A.ITM_PD_CD
-         LEFT OUTER JOIN (SELECT A.*
-                            FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A
-                           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ B
-                              ON A.CST_SV_ASN_NO = B.CST_SV_ASN_NO
-                           WHERE 1 = 1
-                             AND A.SV_BIZ_DCLSF_CD LIKE '11%'
-                             AND A.MTR_STAT_CD != '3'
-                             AND B.WK_PRGS_STAT_CD = '20'
-                             AND ROWNUM = 1) G
-            ON G.CNTR_NO = A.CNTR_NO
-           AND G.CNTR_SN = A.CNTR_SN
-         LEFT OUTER JOIN TB_SSCT_CNTR_BAS /*계약기본*/ T1
-            ON T1.CNTR_NO = D.CNTR_NO
-         INNER JOIN TB_SSCT_CNTR_DTL /*계약상세*/ T2
-            ON T1.CNTR_NO = T2.CNTR_NO
-         INNER JOIN TB_SSCT_CNTR_ADR_REL T5
-            ON T2.CNTR_NO = T5.DTL_CNTR_NO
-           AND T2.CNTR_SN = T5.DTL_CNTR_SN
-           AND T5.ADRPC_TP_CD = '3'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T5.VL_STRT_DTM AND T5.VL_END_DTM
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
-            ON T5.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T3
-            ON T3.PRTNR_NO = G.FST_RGST_USR_ID
-           AND T3.BASE_YM = SUBSTR(G.FST_RGST_DTM, 1, 6)
-           AND T3.OG_TP_CD IN ('W06', 'W02', 'HR1')
-          WHERE 1 = 1
-            AND A.SV_BIZ_HCLSF_CD = '6'
-        <if test="@MybatisUtils@isNotEmpty(fnlItmGdCd)">
-            AND A.FNL_ITM_GD_CD = #{fnlItmGdCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
-            AND F.SVPD_PD_CD = #{itmPdCd}
-        </if>
-        <if test="@MybatisUtils@isEmpty(stRtngdProcsTpCd)">
-            AND A.FNL_VST_FSH_DT BETWEEN #{stFnlVstFshDtFrom} AND #{edFnlVstFshDtTo}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(stRtngdProcsTpCd)">
-            AND A.RTNGD_PROCS_TP_CD = #{stRtngdProcsTpCd}
-            AND A.OSTR_CONF_DT BETWEEN #{stFnlVstFshDtFrom} AND #{edFnlVstFshDtTo}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-            AND B.WARE_DV_CD = #{strWareDvCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
-            AND B.HGR_WARE_NO = #{strWareNoM}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
-            AND B.WARE_DV_CD = #{strWareNoD}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
-            AND A.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(stOstrConfDt)">
-            AND A.OSTR_CONF_DT = #{stOstrConfDt}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(strConfYnCd) and @MybatisUtils@equals(strConfYnCd, '1')">
-            AND A.OSTR_CONF_DT IS NOT NULL
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(strConfYnCd) and @MybatisUtils@equals(strConfYnCd, '2')">
-            AND A.OSTR_CONF_DT IS NULL
-        </if>
-        ORDER BY A.CST_SV_ASN_NO
-
+        --           AND A1.DEPT_CD = T1.BIZ_CD) AS DEPT_NM
+             , DECODE(T1.RTNGD_RVPY_PROCS_YN, 'Y','Y','N') AS RTNGD_RVPY_PROCS_YN
+             , T5.SVPD_ITEM_KND AS ITEM_KND
+             , T5.SVPD_MGT_UNT AS MGT_UNT
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+            FROM TB_SVST_SV_WK_OSTR_IZ T1 /*LC_STOCK_ST163TB*/
+           INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2 /*LC_ALLOCATE_AC211TB*/
+              ON T2.CST_SV_ASN_NO = DECODE(SUBSTR(T1.CST_SV_ASN_NO,1,1),'9', '1', T1.CST_SV_ASN_NO)
+           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /*LC_ALLOCATE_AC201TB*/
+              ON T3.CNTR_NO = T1.CNTR_NO
+             AND T3.CNTR_SN = T1.CNTR_SN
+           INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T4 /*LC_VISIT_VS106TB*/
+              ON T4.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+             AND T4.CNTR_NO = T1.CNTR_NO
+             AND T4.CNTR_SN = T1.CNTR_SN
+           INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T5
+              ON T5.SVPD_PD_CD = T1.ITM_PD_CD
+             LEFT OUTER JOIN TB_SSCT_CNTR_BAS /*계약기본*/ X1
+                ON X1.CNTR_NO = T3.CNTR_NO
+               AND X1.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_DTL /*계약상세*/ X2
+                ON X2.CNTR_NO = X1.CNTR_NO
+               AND X2.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_ADR_REL X3
+                ON X3.DTL_CNTR_NO = X2.CNTR_NO
+               AND X3.DTL_CNTR_SN = X2.CNTR_SN
+               AND X3.ADRPC_TP_CD = '3'
+               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X3.VL_STRT_DTM AND X3.VL_END_DTM
+               AND X3.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_ADRPC_BAS X4
+                ON X4.CNTR_ADRPC_ID = X3.CNTR_ADRPC_ID
+             LEFT OUTER JOIN (SELECT A.*
+                                FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A
+                               INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ B
+                                  ON A.CST_SV_ASN_NO = B.CST_SV_ASN_NO
+                               WHERE 1 = 1
+                                 AND A.SV_BIZ_DCLSF_CD LIKE '11%'
+                                 AND A.MTR_STAT_CD != '3'
+                                 AND B.WK_PRGS_STAT_CD = '20'
+                                 AND A.DTA_DL_YN = 'N'
+                                 AND B.DTA_DL_YN = 'N'
+                                 AND ROWNUM = 1) T6
+                ON T6.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+              LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+                    ON T7.PRTNR_NO = T6.FST_RGST_USR_ID
+                   AND T7.BASE_YM = SUBSTR(T6.FST_RGST_DTM, 1, 6)
+                   AND T7.OG_TP_CD IN ('W06', 'W02', 'HR1')
+                   AND T7.DTA_DL_YN = 'N'
+             INNER JOIN (SELECT WARE_NO
+                              , MAX(WARE_NM) AS WARE_NM
+                              , HGR_WARE_NO
+                              , WARE_DV_CD
+                           FROM TB_SVST_MCBY_WARE_IZ
+                          WHERE 1 = 1
+                            AND APY_YM BETWEEN SUBSTR(#{stFnlVstFshDtFrom},1,6) AND SUBSTR(#{edFnlVstFshDtTo},1,6)
+                          <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
+                            AND HGR_WARE_NO = #{strWareNoM}
+                          </if>
+        --                    AND WARE_DV_CD = '2'
+                            AND DTA_DL_YN = 'N'
+                          GROUP BY WARE_NO
+                                 , HGR_WARE_NO
+                                 , WARE_DV_CD
+                         ) T8
+                    ON T8.WARE_NO = T1.WK_WARE_NO
+               WHERE T1.FNL_VST_FSH_DT BETWEEN #{stFnlVstFshDtFrom} AND #{edFnlVstFshDtTo}
+                 AND T1.SV_BIZ_HCLSF_CD = '6'
+            <if test="@MybatisUtils@isNotEmpty(fnlItmGdCd)">
+                 AND T1.FNL_ITM_GD_CD = #{fnlItmGdCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                 AND T5.SVPD_ITEM_KND = #{itmKndCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                 AND T5.SVPD_PD_CD = #{itmPdCd}
+            </if>
+            <if test="@MybatisUtils@isEmpty(stRtngdProcsTpCd)">
+                 AND T1.FNL_VST_FSH_DT BETWEEN #{stFnlVstFshDtFrom} AND #{edFnlVstFshDtTo}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(stRtngdProcsTpCd)">
+                 AND T1.RTNGD_PROCS_TP_CD = #{stRtngdProcsTpCd}
+                 AND T1.OSTR_CONF_DT BETWEEN #{stFnlVstFshDtFrom} AND #{edFnlVstFshDtTo}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
+                 AND T8.WARE_DV_CD = #{strWareDvCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
+                 AND T8.HGR_WARE_NO = #{strWareNoM}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
+                 AND T8.WARE_DV_CD = #{strWareNoD}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
+                 AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(stOstrConfDt)">
+                 AND T1.OSTR_CONF_DT = #{stOstrConfDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strConfYnCd) and @MybatisUtils@equals(strConfYnCd, '1')">
+                 AND T1.OSTR_CONF_DT IS NOT NULL
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strConfYnCd) and @MybatisUtils@equals(strConfYnCd, '2')">
+                 AND T1.OSTR_CONF_DT IS NULL
+            </if>
+            ORDER BY T1.CST_SV_ASN_NO
     </select>
 
     <select id="selectNextItmOstrNo" resultType="java.lang.String">
