@@ -54,42 +54,34 @@ public class WsncAsInterfaceDto {
     public record SearchRecInfoReq(
         @NotBlank
         String cntrNo,
-        String svBizDclsfCd
+        String cntrSn
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchRecInfoRes")
     public record SearchRecInfoRes(
+        String cntrNo,
+        String inChnlDvCd,
+        String svBizHclsfCd,
+        String rcpdt,
         String asIstOjNo,
-        String cnslMoCn,
         String svBizDclsfCd,
         String svBizDclsfNm,
-        String svBizHclsfCd,
-        String asnDt,
-        String cstSvAsnNo,
-        String cnclYn,
-        String wkAcpteStatCd,
-        String wkAcpteDt,
-        String vstDuedt,
-        String wkPrgsStatCd,
-        String wkExcnDt,
-        String wkExcnHh,
-        String wkPrtnrNo,
-        String ichrPrtnrNo,
-        String prtnrKnm,
-        String ogNm,
-        String recdDt,
-        String telCo,
-        String hpNo1,
-        String hpNo2,
-        String telAr,
-        String telNo1,
-        String telNo2,
-        String zipNo1,
-        String zipNo2,
+        String cnslMoCn,
+        String cltnYn,
+        String vstCnfmDt,
+        String vstCnfmM,
+        String vstExpDt,
+        String vstExpM,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String newAdrZip,
         String rnadr,
         String rdadr,
-        String addRefer,
-        String addGb
+        String adrDvCd
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchUsingProductReq")
