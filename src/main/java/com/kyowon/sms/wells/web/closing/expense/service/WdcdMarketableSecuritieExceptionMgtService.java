@@ -6,7 +6,6 @@ import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieExcep
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritieExceptionMgtMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,20 +57,13 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         for (SaveReq req : reqs) {
 
             WdcdMarketableSecuritieExceptionDvo dvo = converter.mapSaveReqToWdcdMarketableSecuritieExceptionDvo(req);
-            if (StringUtils.isEmpty(opcsAdjNo)) {
-                opcsAdjNo = mapper.selectOpcsAdjNo(dvo);
-            }
 
-            dvo.setOpcsAdjNo(opcsAdjNo);
+            dvo.setOpcsAdjNo(mapper.selectOpcsAdjNo(dvo));
+
             count += mapper.insertAccMst(dvo);
             count += mapper.insertAccDetail(dvo);
             count += mapper.updateOpcsCard(dvo);
             count += mapper.insertAccMap(dvo);
-
-            int start = Integer.parseInt(opcsAdjNo.substring(0, 6));
-            int end = Integer.parseInt(opcsAdjNo.substring(6, opcsAdjNo.length()));
-
-            opcsAdjNo = String.valueOf(start) + String.format("%06d", end + 1);
 
         }
 
