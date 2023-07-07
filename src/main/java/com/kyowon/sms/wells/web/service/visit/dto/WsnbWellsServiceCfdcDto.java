@@ -60,4 +60,61 @@ public class WsnbWellsServiceCfdcDto {
             exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr;
         }
     }
+
+    @ApiModel(value = "WsnbWellsServiceCfdcDto-ReportReq")
+    public record ReportReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        String prtnrKnm,
+        String nm,
+        String etcSelect,
+        String publishDatetime
+    ) {}
+
+    @ApiModel(value = "WsnbWellsServiceCfdcDto-KakaoReq")
+    public record KakaoReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        String prtnrKnm,
+        String nm,
+        String etcSelect,
+        String publishDatetime,
+        String callingNumber,
+        String receivingNumber
+    ) {}
+
+    @ApiModel(value = "WsnbWellsServiceCfdcDto-EmailReq")
+    public record EmailReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        String prtnrKnm,
+        String nm,
+        String etcSelect,
+        String publishDatetime,
+        String caller,
+        String receiver
+    ) {}
+
+    @ApiModel(value = "WsnbWellsServiceCfdcDto-HistoryReq")
+    public record HistoryReq(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        String prtnrKnm,
+        String nm
+    ) {}
+
+    @ApiModel(value = "WsnbWellsServiceCfdcDto-HistoryRes")
+    public record HistoryRes(
+        String receiver,
+        String sendDatetime,
+        String sender
+    ) {}
 }
