@@ -58,83 +58,52 @@
         </if>
     </select>
 
-    <!--@TODO TEMP_CODE-->
     <!--W-SV-I-0022 > LC_ASREGN_API_S14 -->
     <select id='selectReceiptInformations' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceRecInfoDvo">
-    SELECT AS_IST_OJ_NO
-         , CNSL_MO_CN
-         , SV_BIZ_DCLSF_CD
-         , SV_BIZ_DCLSF_NM
-         , SV_BIZ_HCLSF_CD
-         , EGER_ASN_DT
-         , CST_SV_ASN_NO
-         , CNCL_YN
-         , WK_ACPTE_STAT_CD
-         , WK_ACPTE_DT
-         , VST_DUEDT
-         , WK_PRGS_STAT_CD
-         , WK_EXCN_DT
-         , WK_EXCN_HH
-         , WK_PRTNR_NO
-         , ICHR_PRTNR_NO
-         , PRTNR_KNM
-         , OG_NM
-         , RECD_DT
-         , TEL_CO
-         , HP_NO1
-         , HP_NO2
-         , TEL_AR
-         , TEL_NO1
-         , TEL_NO2
-         , ZIP_NO1
-         , ZIP_NO2
-         , RNADR
-         , RDADR
-         , ADD_REFER
-         , ADD_GB
-    FROM (SELECT AS_IST_OJ_NO /*AC211_IN_GB	입력구분, AC211_WRK_GB	작업구분, AC211_WRK_DT	작업일자, AC211_SEQ	작업번호 -> 입력구분코드(1)+작업구분(1)+접수일자(8)+LPAD(작업번호,8,''0'')*/
-               , CNSL_MO_CN
-               , T1.SV_BIZ_DCLSF_CD
-               , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SV_BIZ_DCLSF_CD' AND CD_VLD_VAL = T1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM
-               , T7.SV_BIZ_HCLSF_CD /*자료구분(접수관리)*/
-               , T7.EGER_ASN_DT /*배정일자(접수관리)*/
-               , T7.CST_SV_ASN_NO/*배정순번(접수관리)*/
-               , T1.CNTR_NO
-               , (CASE WHEN WK_PRGS_STAT_CD = '00' AND NVL(WK_ACPTE_STAT_CD, 'N') = 'N' THEN 'Y' ELSE 'N' END) AS CNCL_YN
-               , NVL(WK_ACPTE_STAT_CD, 'N') AS WK_ACPTE_STAT_CD /*작업수락상태(수락 'Y', 그외 '')*/
-               , WK_ACPTE_DT /*작업수락일자 : 배송상품 수신 일시*/
-               , VST_DUEDT /*방문예정일자*/
-               , WK_PRGS_STAT_CD /*작업진행상태*/
-               , WK_EXCN_DT /*작업일자*/
-               , WK_EXCN_HH/*작업시간*/
-               , WK_PRTNR_NO /*작업처리자*/
-               , ICHR_PRTNR_NO /*엔지니어(엔지니어배정)*/
-               , T8.PRTNR_KNM/*엔지니어명*/
-               , T8.OG_NM /*센터명*/
-               , SUBSTR(RCPDT, 0, 4) || '-' || SUBSTR(RCPDT, 5, 2) || '-' || SUBSTR(RCPDT, 7, 2) AS RECD_DT
-               , TRIM(T3.CRAL_LOCARA_TNO) AS TEL_CO
-               , TRIM(T3.MEXNO_ENCR) AS HP_NO1
-               , TRIM(T3.CRAL_IDV_TNO) AS HP_NO2
-               , TRIM(T3.CRAL_LOCARA_TNO) AS TEL_AR
-               , TRIM(T3.MEXNO_ENCR) AS TEL_NO1
-               , TRIM(T3.CRAL_IDV_TNO) AS TEL_NO2
-               , TRIM(SUBSTR(T6.NEW_ADR_ZIP, 0, 3)) AS ZIP_NO1
-               , TRIM(SUBSTR(T6.NEW_ADR_ZIP, 4, 5)) AS ZIP_NO2
-               , TRIM(T6.RNADR) AS RNADR
-               , TRIM(T6.RDADR) AS RDADR
-               , TRIM(T6.RNADR) || TRIM(T6.RDADR) AS ADD_REFER
-               , '1' AS ADD_GB
-            FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1 /*고객서비스AS설치대상내역(LC_ALLOCATE_AC211TB)*/
-            LEFT OUTER JOIN TB_CUBS_CST_BAS T3 /*고객기본*/ ON T1.CNTR_CST_NO = T3.CST_NO
-            LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T5 /*계약주소지기본*/ ON T5.DTA_DL_YN = 'N' AND T1.CNTR_NO = T5.CNTR_NO AND T1.CNTR_CST_NO = T5.CNTR_CST_NO
-            LEFT OUTER JOIN TB_GBCO_ADR_BAS T6 /*주소기본*/ ON T6.DTA_DL_YN = 'N' AND T5.ADR_ID = T6.ADR_ID
-            LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T7 ON T1.CNTR_NO = T7.CNTR_NO /*고객서비스AS설치배정내역*/
-            LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T8 /*파트너기본*/ ON T3.PRTNR_NO = T8.PRTNR_NO
-           WHERE T1.SV_BIZ_HCLSF_CD = '3')
-    WHERE 1 = 1
-      <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-      AND CNTR_NO = #{cntrNo}
-      </if>
+        SELECT SVPD1.CNTR_NO
+             , SVPD1.IN_CHNL_DV_CD
+             , SVPD1.SV_BIZ_HCLSF_CD
+             , TO_DATE(SUBSTR(SVPD1.RCPDT, 0, 8)) AS RCPDT
+             , AS_IST_OJ_NO
+             , SVPD1.SV_BIZ_DCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', SVPD1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_NM
+             , CNSL_MO_CN
+             , CASE WHEN WK_PRGS_STAT_CD = '00' AND NVL(WK_ACPTE_STAT_CD, 'N') = 'N' THEN 'Y' ELSE 'N' END AS CLTN_YN -- 해약여부
+             , VST_CNFMDT AS VST_CNFM_DT
+             , VST_CNFM_HH AS VST_CNFM_M
+             , VST_DUEDT AS VST_EXP_DT
+             , VST_EXP_HH AS VST_EXP_M
+             , CUBS1.CRAL_LOCARA_TNO
+             , CUBS1.MEXNO_ENCR
+             , CUBS1.CRAL_IDV_TNO
+             , SSCT1.LOCARA_TNO
+             , SSCT1.EXNO_ENCR
+             , SSCT1.IDV_TNO
+             , GBCO1.NEW_ADR_ZIP
+             , GBCO1.RNADR
+             , GBCO1.RDADR
+             , SSCT1.ADR_DV_CD
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ SVPD1 /*고객서비스AS설치대상내역*/
+          LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ SVPD2 /*고객서비스AS설치배정내역*/
+            ON SVPD1.CNTR_NO = SVPD2.CNTR_NO
+          LEFT OUTER JOIN TB_CUBS_CST_BAS CUBS1 /*고객기본*/
+            ON SVPD1.CNTR_CST_NO = CUBS1.CST_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT1 /*계약주소지기본*/
+            ON SSCT1.DTA_DL_YN = 'N'
+           AND SVPD1.CNTR_NO = SSCT1.CNTR_NO
+           AND SVPD1.CNTR_CST_NO = SSCT1.CNTR_CST_NO
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS GBCO1 /*주소기본*/
+            ON GBCO1.DTA_DL_YN = 'N'
+           AND SSCT1.ADR_ID = GBCO1.ADR_ID
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OGBS1 /*파트너기본*/
+            ON CUBS1.PRTNR_NO = OGBS1.PRTNR_NO
+         WHERE SVPD1.SV_BIZ_HCLSF_CD = '3' -- AS
+           <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+           AND SVPD1.CNTR_NO = #{cntrNo}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+           AND SVPD1.CNTR_SN = #{cntrSn}
+           </if>
     </select>
 
     <!--@TODO TEMP_CODE-->
