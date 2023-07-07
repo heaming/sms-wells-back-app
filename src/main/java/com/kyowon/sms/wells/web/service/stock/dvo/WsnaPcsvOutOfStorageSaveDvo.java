@@ -45,7 +45,7 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     /* 엔지니어 정보 조회 */
     String mngrDvCd;
     String dgr1LevlOgId;
-    String dgr2LevlOgId;
+    String dgr3LevlOgId;
     String brchOgId;
 
     /*수불 재고 수량 조회 */

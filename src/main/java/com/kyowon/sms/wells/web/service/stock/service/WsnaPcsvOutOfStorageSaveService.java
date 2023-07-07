@@ -3,10 +3,12 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageSaveMapper;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 public class WsnaPcsvOutOfStorageSaveService {
 
     private final WsnaPcsvOutOfStorageSaveMapper mapper;
+
+    private final MessageResourceService messageResourceService;
+
+    private final WctaInstallationReqdDtInService installationReqdDtInService;
 
     private final WsnaItemStockItemizationService itemStockservice;
 
@@ -31,7 +37,7 @@ public class WsnaPcsvOutOfStorageSaveService {
 
             // 배정테이블 업데이트
             mapper.updateSvpdCstSvasIstAsnIz(dvo);
-            dvo.setSvProcsCn("설치택배상품 출고완료");
+            dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_FSH")); //설치택배상품 출고완료
 
             // 작업결과 IU
             mapper.insertSvpdCstSvWkRsIz(dvo);
@@ -47,22 +53,35 @@ public class WsnaPcsvOutOfStorageSaveService {
             /* 수불처리 */
             //작업엔지니어 정보를 구한다.
             WsnaPcsvOutOfStorageSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo);
-            int itmStocIzQty = 0;
-            // 수불 오류 방지를 위해서 재고 수량 체크
-            WsnaPcsvOutOfStorageSaveDvo qtyDvo = mapper.selectQtySvstCstSvItmStocIz(dvo);
-            if ("A".equals(dvo.getPdGdCd())) {
-                itmStocIzQty = dvo.getAQty();
-            } else if ("B".equals(dvo.getPdGdCd())) {
-                itmStocIzQty = dvo.getBQty();
-            } else if ("E".equals(dvo.getPdGdCd())) {
-                itmStocIzQty = dvo.getEQty();
-            } else if ("R".equals(dvo.getPdGdCd())) {
-                itmStocIzQty = dvo.getRQty();
+            if (engineerDvo != null) {
+                dvo.setMngrDvCd(engineerDvo.getMngrDvCd());
+                dvo.setDgr1LevlOgId(engineerDvo.getDgr1LevlOgId());
+                dvo.setDgr3LevlOgId(engineerDvo.getDgr3LevlOgId());
+                dvo.setBrchOgId(engineerDvo.getBrchOgId());
             }
-            BizAssert.isFalse(itmStocIzQty < 0, "자재 수량이 부족합니다. 보유 자재를 확인해주세요.");
+
+            // 수불 오류 방지를 위해서 재고 수량 체크
+            int itmStocIzQty = 0;
+            WsnaPcsvOutOfStorageSaveDvo qtyDvo = mapper.selectQtySvstCstSvItmStocIz(dvo);
+            if (qtyDvo != null) {
+                if ("A".equals(dvo.getPdGdCd())) {
+                    itmStocIzQty = qtyDvo.getAQty();
+                } else if ("B".equals(dvo.getPdGdCd())) {
+                    itmStocIzQty = qtyDvo.getBQty();
+                } else if ("E".equals(dvo.getPdGdCd())) {
+                    itmStocIzQty = qtyDvo.getEQty();
+                } else if ("R".equals(dvo.getPdGdCd())) {
+                    itmStocIzQty = qtyDvo.getRQty();
+                }
+            }
+            BizAssert.isFalse(itmStocIzQty < 0, "MSG_ALT_MAT_QTY_ERR", new String[] {""}); //자재 수량이 부족합니다.보유 자재를 확인해주세요!
 
             //사용내역 IU
             mapper.insertSvstSvWkOstrIz(dvo);
+
+            //TODO 출고 확정시 일자(설치일자)로 지정 (판매시스템 연계)
+            String istDt = DateUtil.getNowDayString();
+            //installationReqdDtInService.saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), istDt, "");
 
             //TODO 수불처리
             //            WsnaItemStockItemizationReqDvo itemDvo = setPcsvOstrWsnaItemStockItemizationDtoSaveReq(dvo);
@@ -87,7 +106,7 @@ public class WsnaPcsvOutOfStorageSaveService {
             mapper.updateSvpdCstSvasIstAsnIz(dvo);
 
             //작업결과 IU
-            dvo.setSvProcsCn("설치택배상품 재배송 출고완료");
+            dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_RSHP_FSH")); //설치택배상품 재배송 출고완료
             mapper.insertSvpdCstSvWkRsIz(dvo);
 
             //TODO TB_SVPD_CST_SVAS_IST_ASN_HIST 로그 저장
@@ -103,15 +122,17 @@ public class WsnaPcsvOutOfStorageSaveService {
 
                 //위치현상원인수당조회
                 WsnaPcsvOutOfStorageSaveDvo asCodeDvo = mapper.selectAsCodeSvpdCstSvasIstOjIz(dvo);
-                //AS_LCT_CD, AS_PHN_CD, AS_CAUS_CD, SITE_AW_ATC_CD 정의
-                dvo.setAsLctCd(asCodeDvo.getAsLctCd());
-                dvo.setAsPhnCd(asCodeDvo.getAsPhnCd());
-                dvo.setAsCausCd(asCodeDvo.getAsCausCd());
-                dvo.setSiteAwAtcCd(asCodeDvo.getSiteAwAtcCd());
+                if (asCodeDvo != null) {
+                    //AS_LCT_CD, AS_PHN_CD, AS_CAUS_CD, SITE_AW_ATC_CD 정의
+                    dvo.setAsLctCd(asCodeDvo.getAsLctCd());
+                    dvo.setAsPhnCd(asCodeDvo.getAsPhnCd());
+                    dvo.setAsCausCd(asCodeDvo.getAsCausCd());
+                    dvo.setSiteAwAtcCd(asCodeDvo.getSiteAwAtcCd());
+                }
                 mapper.updateSvpdCstSvasIstAsnIz(dvo); // 배정테이블 업데이트
 
                 //반품 배정번호를 기준으로 작업결과IU
-                dvo.setSvProcsCn("설치택배상품 재배송으로 인한 반품완료 처리(재고X)");
+                dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_RSHP_RTNGD_FSH")); //설치택배상품 재배송으로 인한 반품완료 처리(재고X)
                 mapper.insertSvpdCstSvWkRsIz(dvo);
 
                 //TODO TB_SVPD_CST_SVAS_IST_ASN_HIST 로그 저장(반품 오더기준)
@@ -130,7 +151,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         WsnaPcsvOutOfStorageSaveDvo vo
     ) {
         int existCnt = mapper.selectExistSvpdCstSvWkRsIz(vo);
-        BizAssert.isTrue(existCnt == 0, "이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요.");
+        BizAssert.isTrue(existCnt == 0, "MSG_ALT_EXIST_FSH_WK_LIST_RTRY_CONF"); //이미 완료 처리 되었습니다. 작업목록을 다시 확인 해주세요
     }
 
     private WsnaItemStockItemizationReqDvo setPcsvOstrWsnaItemStockItemizationDtoSaveReq(
