@@ -94,4 +94,7 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String sdingMcnrPdCd;
     private String sppDvCd;
     private String cstSvAsnNo;
+
+    private String cntrDtlNo;
+    private String mchnCstDtlNo;
 }

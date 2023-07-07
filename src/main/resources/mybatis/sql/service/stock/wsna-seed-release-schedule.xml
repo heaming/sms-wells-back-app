@@ -17,10 +17,12 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'ITM_IOST_DV_CD', T1.ITM_IOST_DV_CD, #{session.langId})   AS SHIP_DIV               /* 배송구분 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD, #{session.langId}) AS RECEIPT_DIV            /* 접수구분 */
              , T1.CNTR_NO                                                                                                   /* 계약번호 */
+             , T1.CNTR_NO || '-' || T1.CNTR_SN                                                    AS CNTR_DTL_NO            /* 계약상세번호 */
              , NVL(T1.CST_NM, T10.CST_KNM)                                                        AS CST_NM                 /* 고객명 */
              , T1.SPP_ORD_NO                                                                                                /* 배송번호 */
              , T4.PD_NM                                                                           AS MCHN_MODEL             /* 기기모델 */
              , T2.BASE_DTL_CNTR_NO                                                                AS MCHN_CST_NO            /* 기기고객번호 */
+             , T2.BASE_DTL_CNTR_NO || '-' || T2.BASE_DTL_CNTR_SN                                  AS MCHN_CST_DTL_NO        /* 기기계약상세번호 */
              , T6.CST_KNM                                                                         AS MCHN_CST_NM            /* 기기고객명 */
              , T7.PD_NM                                                                           AS CTRL_PKG               /* 현재패키지 */
              , T8.PD_NM                                                                           AS SHIP_PKG               /* 배송패키지 */
@@ -460,11 +462,15 @@
                     , D4.OG_NM                                       /* 방문센터 */
                     , D4.OG_TP_CD                                    /* 조직유형코드 */
                     , D4.PRTNR_NO                                    /* 파트너번호 */
-                    , D7.CNTR_ADRPC_ID                               /* 계약주소지ID */
+                    , ( SELECT CNTR_ADRPC_ID
+                          FROM TB_SSCT_CNTR_ADRPC_BAS
+                         WHERE CNTR_NO = D2.CNTR_NO
+                           AND ADR_ID  = D2.ADR_ID
+                           AND ROWNUM  = 1 )        AS CNTR_ADRPC_ID /* 계약주소지ID */
                     , D1.MNGR_DV_CD                                  /* 관리자구분코드 */
                     , D1.DP_EPTT_NM                                  /* 입금예정자명 */
                     , D1.RECAP_CS_AMT                                /* 유상비용금액 */
-                    , ''                            AS CST_SV_ASN_NO /* 고객서비스배정번호 */
+                    , D3.CST_SV_ASN_NO                               /* 고객서비스배정번호 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -620,7 +626,7 @@
                    ON D2.CNTR_NO         = D1.CNTR_NO
                   AND D2.CNTR_SN         = D1.CNTR_SN
                   AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
-                  AND D1.SV_BIZ_HCLSF_CD = SUBSTR(D2.CST_SV_ASN_NO, 1, 1)
+                  AND D1.SV_BIZ_HCLSF_CD = '2'
                   AND D1.SPP_ORD_NO      = SUBSTR(D2.CST_SV_ASN_NO, 1, 1) || D2.VST_DUEDT || LPAD(D2.IST_NMN_N, 5, '0')
                 INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3     /* 고객서비스BS배정내역 */
                    ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
@@ -634,10 +640,6 @@
                   AND D5.CNTR_SN = D2.CNTR_SN
                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
                    ON D6.PD_CD = D2.PDCT_PD_CD
-                 LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS D7   /* 계약주소지기본 */
-                   ON D7.CNTR_NO   = D2.CNTR_NO
-                  AND D7.ADR_ID    = D2.ADR_ID
-                  AND D7.DTA_DL_YN = 'N'
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D2.DTA_DL_YN          = 'N'
                   AND D3.DTA_DL_YN          = 'N'
@@ -833,6 +835,18 @@
            AND SPP_ORD_NO      = #{sppOrdNo}
            AND SPP_PLAN_SN     = #{sppPlanSn}
     </update>
+
+    <select id="selectSdingSppCnfmIzCount" resultType="java.lang.Integer">
+        SELECT 1
+          FROM TB_SVPD_SDING_SPP_CNFM_IZ   /* 모종배송확정내역 */
+         WHERE CNTR_NO         = #{cntrNo}
+           AND CNTR_SN         = #{cntrSn}
+           AND SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
+           AND SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND SPP_ORD_NO      = #{sppOrdNo}
+           AND SPP_PLAN_SN     = #{sppPlanSn}
+           AND ROWNUM          = 1
+    </select>
 
     <insert id="insertSdingSppCnfmIz">
         INSERT INTO TB_SVPD_SDING_SPP_CNFM_IZ   /* 모종배송확정내역 */
