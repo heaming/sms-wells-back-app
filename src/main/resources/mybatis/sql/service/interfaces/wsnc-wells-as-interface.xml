@@ -1,64 +1,74 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsncWellsAsInterfaceMapper">
 
-    <!--@TODO TEMP_CODE-->
     <!-- W-SV-I-0021 > LC_ASREGN_API_S13 -->
     <select id='selectCustomerInformations' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceCustInfoDvo">
-    SELECT CNTR_NO,CST_KNM,CNTR_DT,PD_CD,PD_NM,CRAL_MPNO,MEXNO_ENCR,CRAL_IDV_TNO,MPNO,EXNO_ENCR,IDV_TNO,NEW_ADR_ZIP,RNADR,RDADR,ADD_REFER,ADD_GB,ADDR,HPNO,TELNO,RCGVP_KNM,BRYY_MMDD,SEX_DV_CD,CNTR_CST_NO, PD_GRP_ID
-    FROM (
-        SELECT T1.CNTR_NO                                             AS CNTR_NO
-             , T2.BASE_PD_CD                                          AS PD_CD
-             , PD_PRP_VAL20                                           AS PD_GRP_ID /*ST101_ITEM_GR*/
-             , T3.CST_KNM                                             AS CST_KNM
-             , CAST(T1.CNTR_CNFM_DTM AS CHAR(7))                      AS CNTR_DT
-             , ''                                                     AS DB2_ICDE
-             , T4.PD_NM                                               AS PD_NM
-             , BASE_PD_CD
-             , T3.CRAL_LOCARA_TNO                                     AS CRAL_MPNO
-             , T3.MEXNO_ENCR                                          AS MEXNO_ENCR
-             , T3.CRAL_IDV_TNO                                        AS CRAL_IDV_TNO
-             , T3.CRAL_LOCARA_TNO                                     AS MPNO
-             , T3.MEXNO_ENCR                                          AS EXNO_ENCR
-             , T3.CRAL_IDV_TNO                                        AS IDV_TNO
-             , T6.NEW_ADR_ZIP                                         AS NEW_ADR_ZIP
-             , T6.RNADR                                               AS RNADR
-             , T6.RDADR                                               AS RDADR
-             , T6.RNADR || T6.RDADR                                   AS ADD_REFER
-             , '1'                                                    AS ADD_GB
-             , T6.RNADR || T6.RDADR                                   AS ADDR
-             , T3.CST_KNM                                             AS RCGVP_KNM
-             , T3.CRAL_LOCARA_TNO || T3.MEXNO_ENCR || T3.CRAL_IDV_TNO AS HPNO
-             , T3.CRAL_LOCARA_TNO || T3.MEXNO_ENCR || T3.CRAL_IDV_TNO AS TELNO
-             , BRYY_MMDD                                              AS BRYY_MMDD
-             , SEX_DV_CD                                              AS SEX_DV_CD
-             , T1.CNTR_CST_NO                                         AS CNTR_CST_NO
-             , PD_PRP_VAL20                                           AS ITEM_GR
-          FROM TB_SSCT_CNTR_BAS T1 /*계약기본*/
-         INNER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세*/ON T1.CNTR_NO = T2.CNTR_NO AND T2.SELL_TP_CD != '9'
-         INNER JOIN TB_CUBS_CST_BAS T3 /*고객기본*/ ON T1.CNTR_CST_NO = T3.CST_NO
-         INNER JOIN TB_PDBS_PD_BAS T4 /*상품기본*/ ON T2.BASE_PD_CD = T4.PD_CD
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T5 /*계약주소지기본*/ ON T5.DTA_DL_YN = 'N' AND T1.CNTR_NO = T5.CNTR_NO AND T1.CNTR_CST_NO = T5.CNTR_CST_NO
-         INNER JOIN TB_GBCO_ADR_BAS /*주소기본*/ T6 ON T6.DTA_DL_YN = 'N' AND T5.ADR_ID = T6.ADR_ID
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL /*상품각사속성상세*/ T7 ON T4.PD_CD = T7.PD_cD  AND T7.PD_EXTS_PRP_GRP_CD = 'PART' AND PD_PRP_VAL20 IN ('1','2','3','4', '92', '11')
-    ) WHERE ITEM_GR IN ('1','2','3','4', '92', '11')
-        <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-        AND CNTR_NO = #{cntrNo}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(cstKnm)">
-        AND CST_KNM = #{cstKnm}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(hpno)">
-        AND HPNO = #{hpno}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(newAdrZip)">
-        AND NEW_ADR_ZIP = #{newAdrZip}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(pdGrpId)">
-        AND PD_GRP_ID = #{pdGrpId}
-        </if>
+        SELECT DISTINCT
+           SSCT1.CNTR_NO -- 계약번호
+         , CUBS1.CST_NO -- 고객번호
+         , CUBS1.CST_KNM -- 고객한글명
+         , SSCT1.CNTR_CNFM_DTM AS CNTR_DT -- 계약일자
+         , PDBS1.PD_CD -- 상품코드
+         , PDBS1.PD_NM -- 상품명
+         , SSCT3.CRAL_LOCARA_TNO -- 휴대지역전화번호
+         , SSCT3.MEXNO_ENCR -- 휴대전화국번호암호화
+         , SSCT3.CRAL_IDV_TNO -- 휴대개별전화번호
+         , SSCT3.LOCARA_TNO -- 지역전화번호
+         , SSCT3.EXNO_ENCR -- 전화국번호암호화
+         , SSCT3.IDV_TNO -- 개별전화번호
+         , GBCO1.NEW_ADR_ZIP -- 신주소우편번호
+         , GBCO1.RNADR -- 도로명주소
+         , GBCO1.RDADR -- 도로명상세주소
+         , SSCT3.ADR_DV_CD -- 주소구분코드
+         , GBCO1.LTN_ADR AS ADDR
+         , SSCT3.RCGVP_KNM -- 수령자한글명
+         , CUBS1.BRYY_MMDD -- 생년월일
+         , CUBS1.SEX_DV_CD -- 성별구분코드
+         , SSCT1.CNTR_CST_NO-- 계약고객번호
+      FROM TB_SSCT_CNTR_BAS SSCT1 /*계약기본*/
+     INNER JOIN TB_SSCT_CNTR_DTL SSCT2 /*계약상세*/
+        ON SSCT1.CNTR_NO = SSCT2.CNTR_NO
+      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT3 /*계약주소지기본*/
+        ON SSCT3.CNTR_NO = SSCT1.CNTR_NO
+       AND SSCT3.CNTR_CST_NO = SSCT1.CNTR_CST_NO
+      LEFT OUTER JOIN TB_CUBS_CST_BAS CUBS1 /*고객기본*/
+        ON CUBS1.CST_NO = SSCT1.CNTR_CST_NO
+      LEFT OUTER JOIN TB_PDBS_PD_BAS PDBS1 /*상품기본*/
+        ON PDBS1.PD_CD = SSCT2.BASE_PD_CD
+      LEFT OUTER JOIN TB_PDBS_PD_REL PDBS2 /*상품관계*/
+        ON PDBS2.BASE_PD_CD = SSCT2.BASE_PD_CD
+      LEFT OUTER JOIN TB_GBCO_ADR_BAS GBCO1/*주소기본*/
+        ON CUBS1.ADR_ID = GBCO1.ADR_ID
+     WHERE SSCT1.DTA_DL_YN = 'N'
+       <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+       AND SSCT1.CNTR_NO = #{cntrNo}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+       AND SSCT2.CNTR_SN = #{cntrSn}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
+       AND SSCT1.CNTR_CST_NO = #{cntrCstNo}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(cstKnm)">
+       AND CUBS1.CST_KNM = #{cstKnm}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+       AND CUBS1.CRAL_LOCARA_TNO = #{cralLocaraTno}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+       AND CUBS1.MEXNO_ENCR = #{mexnoEncr}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+       AND CUBS1.CRAL_IDV_TNO = #{cralIdvTno}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(pdGrpId)">
+       AND PDBS2.PD_GRP_ID = #{pdGrpId}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(adrId)">
+       AND CUBS1.ADR_ID = #{adrId}
+       </if>
     </select>
 
-    <!--@TODO TEMP_CODE-->
     <!--W-SV-I-0022 > LC_ASREGN_API_S14 -->
     <select id='selectReceiptInformations' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceRecInfoDvo">
     SELECT AS_IST_OJ_NO
@@ -137,48 +147,7 @@
       </if>
     </select>
 
-    <!--@TODO TEMP_CODE-->
     <select id='selectUsingProducts' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceUsingPdutDvo">
-    <!--SELECT CST_NM,CNTR_NO,PD_CD,BC_NO_URL,BC_NO,MPNO,ADR,PD_NM,BC_DV_CD
-    FROM (
-           SELECT '이옥주' AS CST_NM, 'W20176323255' AS CNTR_NO, '4370' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=A08W1KD02J61900111' AS BC_NO_URL, 'A08W1KD02J61900111' AS BC_NO, ' 010-2788-6547' AS MPNO, '경기 고양시 일산동구 월드고양로 19 (장항동, 킨텍스원시티 2블럭)' AS ADR, '청정기(KW-A08W1)' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '배본화' AS CST_NM, 'W20194147013' AS CNTR_NO, '4525' AS PD_CD, '   ' AS BC_NO_URL, '' AS BC_NO, ' 010-2788-2575' AS MPNO, '경기 고양시 일산서구 대산로 263 (대화동, 성저마을4단지아파트)' AS ADR, 'LED마스크_금융리스' AS PD_NM, '1' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '윤애선' AS CST_NM, 'W20202529794' AS CNTR_NO, '4626' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WLPWAKB01LB2600150' AS BC_NO_URL, 'WLPWAKB01LB2600150' AS BC_NO, ' 010-2788-1458' AS MPNO, '충북 청주시 흥덕구 1순환로512번길 32 (봉명동, 삼정아파트)' AS ADR, '정수기(WL652NGA)냉정' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '배본화' AS CST_NM, 'W20206737778' AS CNTR_NO, '4627' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WMEWRKB01M81900031' AS BC_NO_URL, 'WMEWRKB01M81900031' AS BC_NO, ' 010-2788-2575' AS MPNO, '경기 고양시 일산서구 대산로 263 (대화동, 성저마을4단지아파트)' AS ADR, '정수기WM652NWR냉정 R' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '백순선' AS CST_NM, 'W20216142635' AS CNTR_NO, '4665' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM4WAFD02N62100044' AS BC_NO_URL, 'WM4WAFD02N62100044' AS BC_NO, '010-2788-2749' AS MPNO, '경기도 안산시 단원구 풍전로 37-24 (원곡동)' AS ADR, '정수기(WM271UWA)' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '김서경' AS CST_NM, 'W20216138708' AS CNTR_NO, '4419' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=BM4WAKC01N52800159' AS BC_NO_URL, 'BM4WAKC01N52800159' AS BC_NO, '010-2788-7755' AS MPNO, '대구 수성구 시지로14길 57 (시지동)' AS ADR, '비데(BM350RWA)' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '백순선' AS CST_NM, 'W20220006318' AS CNTR_NO, '4665' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM4WAFD02NC0700259' AS BC_NO_URL, 'WM4WAFD02NC0700259' AS BC_NO, '010-2788-8353' AS MPNO, '경기도 수원시 팔달구 권광로276번길 51-5 (인계동)' AS ADR, '정수기(WM271UWA)' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '배본화' AS CST_NM, 'W20220000116' AS CNTR_NO, '7314' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=AN3WAKD02NC0900039' AS BC_NO_URL, 'AN3WAKD02NC0900039' AS BC_NO, '010-2788-2575' AS MPNO, '경기도 고양시 일산서구 대산로 263 (대화동, 성저마을4단지아파트)' AS ADR, '청정기(AN730CWA)30평' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '정현덕' AS CST_NM, 'W20220013279' AS CNTR_NO, '7418' AS PD_CD, '   ' AS BC_NO_URL, '' AS BC_NO, '010-2788-9077' AS MPNO, '인천 서구 간촌로27번길 12-1 (연희동, 라인맨션)' AS ADR, '킹 원목_금융리스' AS PD_NM, '1' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '정현덕' AS CST_NM, 'W20220013279' AS CNTR_NO, '7418' AS PD_CD, '   ' AS BC_NO_URL, '' AS BC_NO, '010-2788-9077' AS MPNO, '인천 서구 간촌로27번길 12-1 (연희동, 라인맨션)' AS ADR, '킹 원목_금융리스' AS PD_NM, '1' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '김윤정' AS CST_NM, 'W20220013291' AS CNTR_NO, '4676' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01NC2000130' AS BC_NO_URL, 'WP1WAKD01NC2000130' AS BC_NO, '010-2788-7351' AS MPNO, '경기 남양주시 천마산로 25 (호평동, 호평1차대명루첸아파트)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '정현덕' AS CST_NM, 'W20220014614' AS CNTR_NO, '7416' AS PD_CD, '   ' AS BC_NO_URL, '' AS BC_NO, '010-2788-9077' AS MPNO, '인천 서구 간촌로27번길 12-1 (연희동, 라인맨션)' AS ADR, '매트리스 킹 HIB_금융리스' AS PD_NM, '1' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '정현덕' AS CST_NM, 'W20220014614' AS CNTR_NO, '7416' AS PD_CD, '   ' AS BC_NO_URL, '' AS BC_NO, '010-2788-9077' AS MPNO, '인천 서구 간촌로27번길 12-1 (연희동, 라인맨션)' AS ADR, '매트리스 킹 HIB_금융리스' AS PD_NM, '1' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '천현주' AS CST_NM, 'W20220006697' AS CNTR_NO, '4765' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM5WAFD01NC2200303' AS BC_NO_URL, 'WM5WAFD01NC2200303' AS BC_NO, ' 010-2788-0375' AS MPNO, '경상남도 통영시 광도면 죽림1로 41-55 (한선파라빌리지)' AS ADR, '정수기(WM171UWA)냉온' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '손미희' AS CST_NM, 'W20220013893' AS CNTR_NO, '4668' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01P11000147' AS BC_NO_URL, 'WP1WAKD01P11000147' AS BC_NO, '010-2788-6448' AS MPNO, '서울 양천구 신정로 170 (신정동, 현대6차아파트)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '서정례' AS CST_NM, 'W20220013484' AS CNTR_NO, '7311' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=AN1WAKD02NC2800032' AS BC_NO_URL, 'AN1WAKD02NC2800032' AS BC_NO, '010-2788-5092' AS MPNO, '서울 관악구 국회단지23길 16 (봉천동)' AS ADR, '청정기(AN522CWA)22평' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '김연수' AS CST_NM, 'W20220006255' AS CNTR_NO, '4765' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM5WAFD01NC2100035' AS BC_NO_URL, 'WM5WAFD01NC2100035' AS BC_NO, '010-2788-6817' AS MPNO, '전북 전주시 덕진구 동부대로 575 (우아동3가, 우정신세계)' AS ADR, '정수기(WM171UWA)냉온' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '김서경' AS CST_NM, 'W20220014023' AS CNTR_NO, '4668' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01P10600096' AS BC_NO_URL, 'WP1WAKD01P10600096' AS BC_NO, '010-2788-7755' AS MPNO, '대구 수성구 시지로14길 57 (시지동)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '박영' AS CST_NM, '20220013644' AS CNTR_NO, '4676' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01NC2300093' AS BC_NO_URL, 'WP1WAKD01NC2300093' AS BC_NO, '010-2788-3370' AS MPNO, '전남 진도군 의신면 침계길 17 (,)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '윤애선' AS CST_NM, 'W20220002145' AS CNTR_NO, '4765' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM5WAFD01NC2200216' AS BC_NO_URL, 'WM5WAFD01NC2200216' AS BC_NO, '010-2788-1450' AS MPNO, '충청북도 옥천군 옥천읍 중앙로 56-2 ' AS ADR, '정수기(WM171UWA)냉온' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '이옥주' AS CST_NM, 'W20220013848' AS CNTR_NO, '4668' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01NC2800015' AS BC_NO_URL, 'WP1WAKD01NC2800015' AS BC_NO, '010-2788-6547' AS MPNO, '경기 고양시 일산동구 월드고양로 19 (장항동, 킨텍스원시티 2블럭)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '배본화' AS CST_NM, 'W20220000116' AS CNTR_NO, '7314' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=AN3WAKD02NC0900039' AS BC_NO_URL, 'AN3WAKD02NC0900039' AS BC_NO, '010-2788-2575' AS MPNO, '경기도 고양시 일산서구 대산로 263 (대화동, 성저마을4단지아파트)' AS ADR, '청정기(AN730CWA)30평' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '윤애선' AS CST_NM, 'W20220002145' AS CNTR_NO, '4765' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM5WAFD01NC2200216' AS BC_NO_URL, 'WM5WAFD01NC2200216' AS BC_NO, '010-2788-1450' AS MPNO, '충청북도 옥천군 옥천읍 중앙로 56-2 ' AS ADR, '정수기(WM171UWA)냉온' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '김연수' AS CST_NM, 'W20220006255' AS CNTR_NO, '4765' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM5WAFD01NC2100035' AS BC_NO_URL, 'WM5WAFD01NC2100035' AS BC_NO, '010-2788-6817' AS MPNO, '전북 전주시 덕진구 동부대로 575 (우아동3가, 우정신세계)' AS ADR, '정수기(WM171UWA)냉온' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '백순선' AS CST_NM, 'W20220006318' AS CNTR_NO, '4665' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM4WAFD02NC0700259' AS BC_NO_URL, 'WM4WAFD02NC0700259' AS BC_NO, '010-2788-8353' AS MPNO, '경기도 수원시 팔달구 권광로276번길 51-5 (인계동)' AS ADR, '정수기(WM271UWA)' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '천현주' AS CST_NM, 'W20220006697' AS CNTR_NO, '4765' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WM5WAFD01NC2200303' AS BC_NO_URL, 'WM5WAFD01NC2200303' AS BC_NO, ' 010-2788-0375' AS MPNO, '경상남도 통영시 광도면 죽림1로 41-55 (한선파라빌리지)' AS ADR, '정수기(WM171UWA)냉온' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '정현덕' AS CST_NM, 'W20220013279' AS CNTR_NO, '7418' AS PD_CD, '   ' AS BC_NO_URL, '' AS BC_NO, '010-2788-9077' AS MPNO, '인천 서구 간촌로27번길 12-1 (연희동, 라인맨션)' AS ADR, '킹 원목_금융리스' AS PD_NM, '1' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '김윤정' AS CST_NM, 'W20220013291' AS CNTR_NO, '4676' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01NC2000130' AS BC_NO_URL, 'WP1WAKD01NC2000130' AS BC_NO, '010-2788-7351' AS MPNO, '경기 남양주시 천마산로 25 (호평동, 호평1차대명루첸아파트)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '서정례' AS CST_NM, 'W20220013484' AS CNTR_NO, '7311' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=AN1WAKD02NC2800032' AS BC_NO_URL, 'AN1WAKD02NC2800032' AS BC_NO, '010-2788-5092' AS MPNO, '서울 관악구 국회단지23길 16 (봉천동)' AS ADR, '청정기(AN522CWA)22평' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '박영' AS CST_NM, 'W20220013644' AS CNTR_NO, '4676' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01NC2300093' AS BC_NO_URL, 'WP1WAKD01NC2300093' AS BC_NO, '010-2788-3370' AS MPNO, '전남 진도군 의신면 침계길 17 (,)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '이옥주' AS CST_NM, 'W20220013848' AS CNTR_NO, '4668' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01NC2800015' AS BC_NO_URL, 'WP1WAKD01NC2800015' AS BC_NO, '010-2788-6547' AS MPNO, '경기 고양시 일산동구 월드고양로 19 (장항동, 킨텍스원시티 2블럭)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '손미희' AS CST_NM, 'W20220013893' AS CNTR_NO, '4668' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01P11000147' AS BC_NO_URL, 'WP1WAKD01P11000147' AS BC_NO, '010-2788-6448' AS MPNO, '서울 양천구 신정로 170 (신정동, 현대6차아파트)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '김서경' AS CST_NM, 'W20220014023' AS CNTR_NO, '4668' AS PD_CD, 'http://qr.kyowonwells.com/qr/qr?qrnum=WP1WAKD01P10600096' AS BC_NO_URL, 'WP1WAKD01P10600096' AS BC_NO, '010-2788-7755' AS MPNO, '대구 수성구 시지로14길 57 (시지동)' AS ADR, '정수기(WP610NWA) ' AS PD_NM, '2' AS BC_DV_CD FROM DUAL UNION ALL
-           SELECT '정현덕' AS CST_NM, 'W20220014614' AS CNTR_NO, '7416' AS PD_CD, '   ' AS BC_NO_URL, '' AS BC_NO, '010-2788-9077' AS MPNO, '인천 서구 간촌로27번길 12-1 (연희동, 라인맨션)' AS ADR, '매트리스 킹 HIB_금융리스' AS PD_NM, '1' AS BC_DV_CD FROM DUAL
-    ) WHERE 1 = 1
-        <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-        AND CNTR_NO = #{cntrNo}
-        </if>-->
         SELECT T1.CNTR_NO
              , T1.CNTR_CST_NO
              , C2.RCGVP_KNM
@@ -233,170 +202,94 @@
                 ON S1.PDCT_PD_CD = P1.PD_CD
     </select>
 
-    <!--@TODO TEMP_CODE-->
     <select id='selectServiceHistorys' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceServHistDvo">
-<!--    <![CDATA[-->
-<!--    SELECT SV_TP_NM, CNTR_NO, WK_EXCN_DT, RGST_DT, AS_IST_OJ_NO, CST_SV_ASN_NO, SV_PROCS_CN, CNSL_MO_CN, SV_BIZ_DCLSF_CD, SV_BIZ_DCLSF_NM, RCP_DTM, IST_NMN_N, WKP_NM FROM (-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20211291073' AS CNTR_NO, '20211008' AS WK_EXCN_DT, '20211001' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000266286' AS CST_SV_ASN_NO, '포트세척B/S[배양액 A 6ml R2<G01/배양액 B 6ml R2<G01케일/청롤로상추버터헤드(2)/POT TAG BS<G01,G02]벌레무 기피제없음 파종0909' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2164' AS SV_BIZ_DCLSF_CD, '신규 모종 이식' AS SV_BIZ_DCLSF_NM, '2021-10-01 23:31:17' AS RCP_DTM, '차월' AS IST_NMN_N, '임영동' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20213734390' AS CNTR_NO, '20211007' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002869' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2164' AS SV_BIZ_DCLSF_CD, '신규 모종 이식' AS SV_BIZ_DCLSF_NM, '2021-09-29 15:34:33' AS RCP_DTM, '차월' AS IST_NMN_N, '이강호' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20210924189' AS CNTR_NO, '20211009' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002888' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2170' AS SV_BIZ_DCLSF_CD, '홈케어서비스' AS SV_BIZ_DCLSF_NM, '2021-09-14 10:21:21' AS RCP_DTM, '차월' AS IST_NMN_N, '이주행 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20215846613' AS CNTR_NO, '20211012' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002892' AS CST_SV_ASN_NO, '필터교체B/S[가을 알레르기<AL106]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '이도경 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20216451776' AS CNTR_NO, '20211019' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002883' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2168' AS SV_BIZ_DCLSF_CD, '모종 포트교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '김인후' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20212828016' AS CNTR_NO, '20211006' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002876' AS CST_SV_ASN_NO, '정기점검B/S' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2110' AS SV_BIZ_DCLSF_CD, '정기 점검' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '박효정 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20216075204' AS CNTR_NO, '20211015' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002875' AS CST_SV_ASN_NO, '노즐팁교체B/S[NOZZLE TIP<BL350]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2134' AS SV_BIZ_DCLSF_CD, '노즐팁 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '강하영 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20215983693' AS CNTR_NO, '20211006' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002873' AS CST_SV_ASN_NO, '필터교체B/S[알레르기<AN500]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '오세길 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20216004800' AS CNTR_NO, '' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002871' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2110' AS SV_BIZ_DCLSF_CD, '정기 점검' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '정애숙 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20216127188' AS CNTR_NO, '20211014' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002870' AS CST_SV_ASN_NO, '노즐팁교체B/S[NOZZLE TIP B/S<BK750]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2134' AS SV_BIZ_DCLSF_CD, '노즐팁 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '임나권 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20213536046' AS CNTR_NO, '' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002430' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2168' AS SV_BIZ_DCLSF_CD, '모종 포트교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '김지성' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20213656487' AS CNTR_NO, '20211007' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002420' AS CST_SV_ASN_NO, '필터교체B/S[멀티카본플러스<P57]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '김혜영 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20213059495' AS CNTR_NO, '20211011' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000002417' AS CST_SV_ASN_NO, '필터교체B/S[알레르기<AN500]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '김혜영 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20212961180' AS CNTR_NO, '20211004' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000001999' AS CST_SV_ASN_NO, '필터교체B/S[멀티카본플러스<P57]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '변유형 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20210471458' AS CNTR_NO, '20211008' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000001998' AS CST_SV_ASN_NO, '정기점검B/S' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2110' AS SV_BIZ_DCLSF_CD, '정기 점검' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '손준철 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20213174165' AS CNTR_NO, '20211012' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000001997' AS CST_SV_ASN_NO, '필터교체B/S[프리카본(11)]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '박나경 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20212871214' AS CNTR_NO, '20211014' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000001989' AS CST_SV_ASN_NO, '필터교체B/S[복합프리<PK2]' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '백현미 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20210579222' AS CNTR_NO, '' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000001988' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2134' AS SV_BIZ_DCLSF_CD, '노즐팁 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '김덕림 ' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'B/S' AS SV_TP_NM, 'W20213745394' AS CNTR_NO, '20211008' AS WK_EXCN_DT, '20210910' AS RGST_DT, '0' AS AS_IST_OJ_NO, '220211000001983' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '' AS CNSL_MO_CN, '2120' AS SV_BIZ_DCLSF_CD, '필터 교체' AS SV_BIZ_DCLSF_NM, '2021-09-10 16:37:36' AS RCP_DTM, '차월' AS IST_NMN_N, '박명주' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210049655' AS CNTR_NO, '20210108' AS WK_EXCN_DT, '20210107' AS RGST_DT, '132021010734503' AS AS_IST_OJ_NO, '320210101058023' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, 'As요청건1.고객번호 : 2021-00496552.고객명 : 손영숙3.원인증상 :트레이스크래치4.필요자재 : 트레이5.접수사유 : 초기설치시트레이스크래치6.방문날짜 : 8일' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-07 15:16:06' AS RCP_DTM, '차월' AS IST_NMN_N, '김성호' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210063626' AS CNTR_NO, '20210107' AS WK_EXCN_DT, '20210107' AS RGST_DT, '132021010734127' AS AS_IST_OJ_NO, '320210101057994' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. AS증상 및 확인사항☞ 차단기떨어짐2. 방문요청,날짜☞ 당일3. 특이사항 ☞ 사용중 차단기 계속 떨어짐4. 접수요청자☞김희영eng' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-07 14:59:46' AS RCP_DTM, '차월' AS IST_NMN_N, '김희영' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210012781' AS CNTR_NO, '20210108' AS WK_EXCN_DT, '20210107' AS RGST_DT, '132021010728691' AS AS_IST_OJ_NO, '320210101057476' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1 아침마다 뿌옇게 나옴 [ 기포현상 안내시 물음 매일 이렇게 많이 빼야 되냐고함   필터 이상같다고 불만 ]2 1/8일[금] 9시 3 조영애 배우자 010-9048-2919 연락' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-07 10:23:19' AS RCP_DTM, '차월' AS IST_NMN_N, '김영주' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210076433' AS CNTR_NO, '20210111' AS WK_EXCN_DT, '20210107' AS RGST_DT, '132021010727484' AS AS_IST_OJ_NO, '320210101057354' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 조리수 누수 AS접수요청2. 01/07(목) -> 01/08(금) 변경 문자3. 정두규 엔지니어 / 010-6438-54124. 01/07 정두규 엔지니어 문자전달 완료' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-07 08:59:57' AS RCP_DTM, '차월' AS IST_NMN_N, '정두규' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210081707' AS CNTR_NO, '20210107' AS WK_EXCN_DT, '20210107' AS RGST_DT, '132021010727480' AS AS_IST_OJ_NO, '320210101057353' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. AS증상 및 확인사항 제빙기연결2. 방문요청,날짜 당일3. 접수경로,특이사항 고객유선요청4. 접수요청자권동규eng' AS CNSL_MO_CN, '3320' AS SV_BIZ_DCLSF_CD, '재설치' AS SV_BIZ_DCLSF_NM, '2021-01-07 08:53:37' AS RCP_DTM, '차월' AS IST_NMN_N, '권동규' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210052871' AS CNTR_NO, '20210108' AS WK_EXCN_DT, '20210107' AS RGST_DT, '132021010727471' AS AS_IST_OJ_NO, '320210101057347' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 10분마다 드륵하는 소음2. 1/7일3. 소음없다고 했는데 10분마다 소음 발생으로 불만4. 이희경.핸드폰▶ 홍경섭 엔지니어 6일통화건' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-07 08:30:57' AS RCP_DTM, '차월' AS IST_NMN_N, '홍경섭' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210007008' AS CNTR_NO, '20210106' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010624775' AS AS_IST_OJ_NO, '320210101057105' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '렌지환경점검' AS CNSL_MO_CN, '3130' AS SV_BIZ_DCLSF_CD, '환경점검' AS SV_BIZ_DCLSF_NM, '2021-01-06 16:28:51' AS RCP_DTM, '차월' AS IST_NMN_N, '이승욱' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210043174' AS CNTR_NO, '20210106' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010624450' AS AS_IST_OJ_NO, '320210101057083' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 설치업무지원/천장작업2. 심장용ENG' AS CNSL_MO_CN, '3320' AS SV_BIZ_DCLSF_CD, '재설치' AS SV_BIZ_DCLSF_NM, '2021-01-06 16:16:51' AS RCP_DTM, '차월' AS IST_NMN_N, '심장용' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210070617' AS CNTR_NO, '20210107' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010622342' AS AS_IST_OJ_NO, '320210101056889' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.조리수 설치 2.1/7일 3.비용안내 4.김성옥 지점장 접수' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-06 14:54:09' AS RCP_DTM, '차월' AS IST_NMN_N, '곽선일' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210005615' AS CNTR_NO, '20210106' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010620479' AS AS_IST_OJ_NO, '320210101056718' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.전기레인지 설치환경 점검' AS CNSL_MO_CN, '3130' AS SV_BIZ_DCLSF_CD, '환경점검' AS SV_BIZ_DCLSF_NM, '2021-01-06 13:43:08' AS RCP_DTM, '차월' AS IST_NMN_N, '이재봉' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210079119' AS CNTR_NO, '20210107' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010619812' AS AS_IST_OJ_NO, '320210101056636' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.온수 안나옴-냉수는정상2.1/7-목-빠른 방문요청->어제 설치 했다며 불만심함3.남 접수' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-06 13:07:27' AS RCP_DTM, '차월' AS IST_NMN_N, '김경식' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210010536' AS CNTR_NO, '20210106' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010618804' AS AS_IST_OJ_NO, '320210101056539' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '렌지환경점검' AS CNSL_MO_CN, '3130' AS SV_BIZ_DCLSF_CD, '환경점검' AS SV_BIZ_DCLSF_NM, '2021-01-06 12:02:07' AS RCP_DTM, '차월' AS IST_NMN_N, '고운' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210046667' AS CNTR_NO, '20210203' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010617777' AS AS_IST_OJ_NO, '320210101056457' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, 'AS 접수요청1.원인증상 : 에어호스 연결 부품 파손2.필요자재 : 앉았을때 왼쪽날개 에어호스 연결하는 플라스틱3.접수사유 : 설치시 에어호스 연결용 부품파손/기억자모양 흰색플라스틱/앉았을시 왼쪽 날개부분4.방문날짜 : 접수가능일강정묵 요청' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-06 11:20:22' AS RCP_DTM, '차월' AS IST_NMN_N, '성우메디텍' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210022890' AS CNTR_NO, '20210112' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010616161' AS AS_IST_OJ_NO, '320210101056329' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 분리 1/122. 재설치 1/12ㄴ VIP 무상진행 3.김수진 핸드폰 정수기 비데 동시' AS CNSL_MO_CN, '3320' AS SV_BIZ_DCLSF_CD, '재설치' AS SV_BIZ_DCLSF_NM, '2021-01-06 10:16:23' AS RCP_DTM, '차월' AS IST_NMN_N, '권동규' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210022890' AS CNTR_NO, '20210112' AS WK_EXCN_DT, '20210106' AS RGST_DT, '132021010616160' AS AS_IST_OJ_NO, '320210101056328' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 분리 1/122. 재설치 1/12ㄴ VIP 무상진행 3.김수진 핸드폰 정수기 비데 동시' AS CNSL_MO_CN, '3310' AS SV_BIZ_DCLSF_CD, '분리' AS SV_BIZ_DCLSF_NM, '2021-01-06 10:16:22' AS RCP_DTM, '차월' AS IST_NMN_N, '권동규' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210078978' AS CNTR_NO, '20210106' AS WK_EXCN_DT, '20210105' AS RGST_DT, '132021010509820' AS AS_IST_OJ_NO, '320210101055694' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '2021-78978 핫모듈불량/A급 불량/제품교체' AS CNSL_MO_CN, '3210' AS SV_BIZ_DCLSF_CD, '제품원인' AS SV_BIZ_DCLSF_NM, '2021-01-05 15:18:22' AS RCP_DTM, '차월' AS IST_NMN_N, '문봉웅' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210021206' AS CNTR_NO, '20210108' AS WK_EXCN_DT, '20210105' AS RGST_DT, '132021010500813' AS AS_IST_OJ_NO, '320210101054963' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.소독약냄새남(어제 많이 계속 빼도 동일함)2.1/83.이현석 배우자 : 010-5527-0722 통화' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-05 09:24:37' AS RCP_DTM, '차월' AS IST_NMN_N, '한승윤' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210082540' AS CNTR_NO, '20210104' AS WK_EXCN_DT, '20210104' AS RGST_DT, '132021010400296' AS AS_IST_OJ_NO, '320210101054774' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.전기레인지 설치환경점검' AS CNSL_MO_CN, '3130' AS SV_BIZ_DCLSF_CD, '환경점검' AS SV_BIZ_DCLSF_NM, '2021-01-04 18:43:57' AS RCP_DTM, '차월' AS IST_NMN_N, '이재봉' AS WKP_NM FROM DUAL UNION ALL-->
-<!--        SELECT 'A/S' AS SV_TP_NM, 'W20210013524' AS CNTR_NO, '20210104' AS WK_EXCN_DT, '20210104' AS RGST_DT, '132021010487915' AS AS_IST_OJ_NO, '320210101054555' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '설치환경점검' AS CNSL_MO_CN, '3130' AS SV_BIZ_DCLSF_CD, '환경점검' AS SV_BIZ_DCLSF_NM, '2021-01-04 16:47:24' AS RCP_DTM, '차월' AS IST_NMN_N, '이호영' AS WKP_NM FROM DUAL-->
-<!--    ) WHERE 1=1-->
-<!--    ]]>-->
-<!--        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>-->
-<!--        AND CNTR_NO = #{cntrNo}-->
-<!--        </if>-->
-            SELECT T1.CNTR_NO
-                 , T1.CNTR_SN
-                 , T1.CST_SV_ASN_NO
-                 , T1.AS_IST_OJ_NO
-                 , T1.WK_EXCN_DT
-                 , O1.PRTNR_KNM AS WK_PRTNR_KNM
-                 , T1.RGST_DT
-                 , T1.RCPDT
-                 , T1.RCP_HH
-                 , T1.PD_CD
-                 , NVL(P1.PD_ABBR_NM, P1.PD_NM) AS PD_NM
-                 , S1.SV_PROCS_CN
-                 , T1.CNSL_MO_CN
-                 , T1.SV_BIZ_HCLSF_CD
-                 , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM
-                 , T1.SV_BIZ_DCLSF_CD
-                 , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', T1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM
-                 , (SELECT X1.IST_NMN_N || '차월'
-                      FROM TB_SVPD_MCBY_CST_SV_OJ_IZ X1
-                     WHERE T1.CNTR_NO = X1.CNTR_NO
-                       AND T1.CNTR_SN = X1.CNTR_SN
-                       AND X1.MNGT_YM = SUBSTR(T1.WK_EXCN_DT, 1, 6))  AS IST_NMN_N
-              FROM (
-                        SELECT S1.CNTR_NO
-                             , S1.CNTR_SN
-                             , S1.CST_SV_ASN_NO
-                             , S1.WK_EXCN_DT
-                             , S1.WK_PRTNR_OG_TP_CD
-                             , S1.WK_PRTNR_NO
-                             , SUBSTR(S1.FST_RGST_DTM, 1, 8) AS RGST_DT
-                             , S2.AS_IST_OJ_NO
-                             , S2.FNL_RCPDT AS RCPDT
-                             , S2.FNL_RCP_HH RCP_HH
-                             , S2.PD_CD
-                             , S1.SV_BIZ_HCLSF_CD
-                             , S1.SV_BIZ_DCLSF_CD
-                             , S2.CNSL_MO_CN
-                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
-                    INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
-                            ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-                         WHERE 1 = 1
-                           AND S1.WK_PRGS_STAT_CD IN ('00', '10', '20')
-                           AND S2.DTA_DL_YN = 'N'
-                           AND S2.SV_BIZ_HCLSF_CD = '3' /* A/S(3) */
-                           AND S2.MTR_STAT_CD != '3' /* 취소(3) */
-                           AND S1.CNTR_NO = #{cntrNo}
-                    UNION ALL
-                        SELECT S1.CNTR_NO
-                             , S1.CNTR_SN
-                             , S1.CST_SV_ASN_NO
-                             , S1.WK_EXCN_DT
-                             , S1.CNFM_PSIC_PRTNR_OG_TP_CD AS WK_PRTNR_OG_TP_CD
-                             , S1.CNFM_PSIC_PRTNR_NO AS WK_PRTNR_NO
-                             , SUBSTR(S1.FST_RGST_DTM, 1, 8) AS RGST_DT
-                             , '' AS_IST_OJ_NO
-                             , S1.CNFM_PSIC_ASN_DT AS RCPDT
-                             , S1.CNFM_PSIC_ASN_HH AS RCP_HH
-                             , S2.PDCT_PD_CD AS PD_CD
-                             , S1.SITE_AW_SV_TP_CD AS SV_BIZ_HCLSF_CD
-                             , S1.SV_BIZ_DCLSF_CD
-                             , '' CNSL_MO_CN
-                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1
-                    INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2
-                            ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-                         WHERE 1 = 1
-                           AND S1.VST_PRGS_STAT_CD IN ('00', '10', '20')
-                           AND S2.DTA_DL_YN = 'N'
-                           AND S1.CNTR_NO = #{cntrNo}
-                       ) T1
-             LEFT JOIN TB_SVPD_CST_SV_WK_RS_IZ S1
-                    ON T1.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-                   AND S1.DTA_DL_YN = 'N'
-            INNER JOIN TB_PDBS_PD_BAS P1
-                    ON T1.PD_CD = P1.PD_CD
-            INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
-                    ON SUBSTR(T1.WK_EXCN_DT, 1, 6) = O1.BASE_YM
-                   AND T1.WK_PRTNR_OG_TP_CD = O1.OG_TP_CD
-                   AND T1.WK_PRTNR_NO = O1.PRTNR_NO;
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.CST_SV_ASN_NO
+             , T1.AS_IST_OJ_NO
+             , T1.WK_EXCN_DT
+             , O1.PRTNR_KNM AS WK_PRTNR_KNM
+             , T1.RGST_DT
+             , T1.RCPDT
+             , T1.RCP_HH
+             , T1.PD_CD
+             , NVL(P1.PD_ABBR_NM, P1.PD_NM) AS PD_NM
+             , S1.SV_PROCS_CN
+             , T1.CNSL_MO_CN
+             , T1.SV_BIZ_HCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM
+             , T1.SV_BIZ_DCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', T1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM
+             , (SELECT X1.IST_NMN_N || '차월'
+                  FROM TB_SVPD_MCBY_CST_SV_OJ_IZ X1
+                 WHERE T1.CNTR_NO = X1.CNTR_NO
+                   AND T1.CNTR_SN = X1.CNTR_SN
+                   AND X1.MNGT_YM = SUBSTR(T1.WK_EXCN_DT, 1, 6))  AS IST_NMN_N
+          FROM (
+                    SELECT S1.CNTR_NO
+                         , S1.CNTR_SN
+                         , S1.CST_SV_ASN_NO
+                         , S1.WK_EXCN_DT
+                         , S1.WK_PRTNR_OG_TP_CD
+                         , S1.WK_PRTNR_NO
+                         , SUBSTR(S1.FST_RGST_DTM, 1, 8) AS RGST_DT
+                         , S2.AS_IST_OJ_NO
+                         , S2.FNL_RCPDT AS RCPDT
+                         , S2.FNL_RCP_HH RCP_HH
+                         , S2.PD_CD
+                         , S1.SV_BIZ_HCLSF_CD
+                         , S1.SV_BIZ_DCLSF_CD
+                         , S2.CNSL_MO_CN
+                      FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
+                INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
+                        ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+                     WHERE 1 = 1
+                       AND S1.WK_PRGS_STAT_CD IN ('00', '10', '20')
+                       AND S2.DTA_DL_YN = 'N'
+                       AND S2.SV_BIZ_HCLSF_CD = '3' /* A/S(3) */
+                       AND S2.MTR_STAT_CD != '3' /* 취소(3) */
+                       AND S1.CNTR_NO = #{cntrNo}
+                UNION ALL
+                    SELECT S1.CNTR_NO
+                         , S1.CNTR_SN
+                         , S1.CST_SV_ASN_NO
+                         , S1.WK_EXCN_DT
+                         , S1.CNFM_PSIC_PRTNR_OG_TP_CD AS WK_PRTNR_OG_TP_CD
+                         , S1.CNFM_PSIC_PRTNR_NO AS WK_PRTNR_NO
+                         , SUBSTR(S1.FST_RGST_DTM, 1, 8) AS RGST_DT
+                         , '' AS_IST_OJ_NO
+                         , S1.CNFM_PSIC_ASN_DT AS RCPDT
+                         , S1.CNFM_PSIC_ASN_HH AS RCP_HH
+                         , S2.PDCT_PD_CD AS PD_CD
+                         , S1.SITE_AW_SV_TP_CD AS SV_BIZ_HCLSF_CD
+                         , S1.SV_BIZ_DCLSF_CD
+                         , '' CNSL_MO_CN
+                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2
+                        ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+                     WHERE 1 = 1
+                       AND S1.VST_PRGS_STAT_CD IN ('00', '10', '20')
+                       AND S2.DTA_DL_YN = 'N'
+                       AND S1.CNTR_NO = #{cntrNo}
+                   ) T1
+         LEFT JOIN TB_SVPD_CST_SV_WK_RS_IZ S1
+                ON T1.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+               AND S1.DTA_DL_YN = 'N'
+        INNER JOIN TB_PDBS_PD_BAS P1
+                ON T1.PD_CD = P1.PD_CD
+        INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
+                ON SUBSTR(T1.WK_EXCN_DT, 1, 6) = O1.BASE_YM
+               AND T1.WK_PRTNR_OG_TP_CD = O1.OG_TP_CD
+               AND T1.WK_PRTNR_NO = O1.PRTNR_NO;
 
 
 
 
-            /* ASIS 쿼리ID bestDeptQuery.xml (selectSrvcinfoList) */
-            /* DESC : ASIS에는 MAT_NM 가져오는 로직 없음(구현 제외) */
+        /* ASIS 쿼리ID bestDeptQuery.xml (selectSrvcinfoList) */
+        /* DESC : ASIS에는 MAT_NM 가져오는 로직 없음(구현 제외) */
     </select>
 
-    <!--@TODO TEMP_CODE-->
     <select id='selectServiceContents' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceServContDvo">
-<!--    <![CDATA[
-    SELECT SV_TP_NM,CNTR_NO,WK_EXCN_DT,RGST_DT,AS_IST_OJ_NO,CST_SV_ASN_NO,SV_PROCS_CN,CNSL_MO_CN,SV_BIZ_DCLSF_CD,SV_BIZ_DCLSF_NM,RCP_DTM,WRK_EMP_NM,WKP_NM,PD_NM,MAT_NM
-    FROM (
-           SELECT 'A/S' AS SV_TP_NM, 'W20206767655' AS CNTR_NO, '20210304' AS WK_EXCN_DT, '20210225' AS RGST_DT, '132021022515869' AS AS_IST_OJ_NO, '320210101102214' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.온수 안따뜻함2.3/2[접수 취소건 발생시 우선 방문요청 하심]3.박주연 010-5339-8151 접수4.전원재인가,온수초기화 진행시 동일 증상임' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-02-25 17:51:39' AS RCP_DTM, '이경호' AS WRK_EMP_NM, '웰스멀티카본플러스필터' AS WKP_NM, '부유물질, 녹물 등 입자가 큰 불순물 및 잔류염소 , 휘발성 유기화합물 제거, 미네랄 성분 함유, 중금속 6종 제거 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20178503044' AS CNTR_NO, '20210429' AS WK_EXCN_DT, '20210429' AS RGST_DT, '132021042920225' AS AS_IST_OJ_NO, '320210401319272' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '리퍼작업' AS CNSL_MO_CN, '3541' AS SV_BIZ_DCLSF_CD, '리퍼작업' AS SV_BIZ_DCLSF_NM, '2021-04-29 12:41:53' AS RCP_DTM, '황현동' AS WRK_EMP_NM, '웰스팜필터' AS WKP_NM, '집안 먼지 유입을 방지하여 식물재배기 내부의 청정상태를 유지하는 프리 더스트 필터' AS PD_NM, ' PLANT POT Rev.1<G01,G02' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20193629796' AS CNTR_NO, '20210305' AS WK_EXCN_DT, '20210219' AS RGST_DT, '232021021993923' AS AS_IST_OJ_NO, '320210219166861' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 유형: 물맛2. 증상: 물에서 수도물맛이 난다고하심3. 요청자/연락처: 박성희 010 5644 96404. 요청내용/특이사항:수도물맛나심 김보경 WM( 010-2176-9970)' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-02-19 09:54:03' AS RCP_DTM, '박준관' AS WRK_EMP_NM, '네오나노클린필터' AS WKP_NM, '노로바이러스, 세균, 미세입자, 잔류가스, 냄새제거 및 미네랄 성분 함유 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20200969206' AS CNTR_NO, '20210507' AS WK_EXCN_DT, '20210507' AS RGST_DT, '132021050782592' AS AS_IST_OJ_NO, '320210401325792' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.웰스팜 리퍼2.김종혁엔지니어 진행건' AS CNSL_MO_CN, '3541' AS SV_BIZ_DCLSF_CD, '리퍼작업' AS SV_BIZ_DCLSF_NM, '2021-05-07 16:47:24' AS RCP_DTM, '김종혁' AS WRK_EMP_NM, '웰스팜필터' AS WKP_NM, '집안 먼지 유입을 방지하여 식물재배기 내부의 청정상태를 유지하는 프리 더스트 필터' AS PD_NM, ' PLANT POT Rev.1<G01,G02' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20180928879' AS CNTR_NO, '20210429' AS WK_EXCN_DT, '20210423' AS RGST_DT, '232021042305707' AS AS_IST_OJ_NO, '320210423357327' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 유형: 냄새2. 증상: 청정기 사용시 썩은 냄새가 나신다고함.3. 요청자/연락처: 이상현4. 요청내용/특이사항:저번에 아이가 청정기에 우유를 쏟고나서 청정기 가동시 썩은 냄새가 진동하신다고 하심 이상현 WM( 010-9449-3781)' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-04-23 14:44:05' AS RCP_DTM, '이계원' AS WRK_EMP_NM, '탈취필터' AS WKP_NM, '생활악취/유해가스/새집증후군 유발물질 제거' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20212822041' AS CNTR_NO, '20210512' AS WK_EXCN_DT, '20210508' AS RGST_DT, '232021050830523' AS AS_IST_OJ_NO, '320210508400146' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 유형: 냄새2. 증상: 청정기에서 시큼한 냄새가 많이 난다고 하십니다3. 요청자/연락처: 어업회사4. 요청내용/특이사항:ㆍ 양선화 WM( 010-8307-7493)' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-05-08 10:21:46' AS RCP_DTM, '이승용' AS WRK_EMP_NM, '콤비필터' AS WKP_NM, '초미세먼지 및 나노입자 제거, 생활악취/유해가스/새집증후군 유발물질 제거' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20200135959' AS CNTR_NO, '20210525' AS WK_EXCN_DT, '20210518' AS RGST_DT, '432021051845974' AS AS_IST_OJ_NO, '320210518427213' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '물안나옴 ' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-05-18 11:25:29' AS RCP_DTM, '이승욱' AS WRK_EMP_NM, '복합프리필터' AS WKP_NM, '부유물질, 녹물 등 입자가 큰 불순물 및 잔류염소 , 휘발성 유기화합물 제거, 미네랄 성분 함유' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20182968534' AS CNTR_NO, '20210112' AS WK_EXCN_DT, '20210111' AS RGST_DT, '432021011139686' AS AS_IST_OJ_NO, '320210111070196' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '비데 필터가 터져서 물이 세고 있습니다. 동파 때문인지는 모르겠지만 일단 벨브는 잠궈났는데. AS부탁드립니다. 접수완료 010.8293.2118로 부탁드립니다.' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-01-11 11:13:24' AS RCP_DTM, '구경빈' AS WRK_EMP_NM, '웰스클린필터' AS WKP_NM, ' 마이크로 필터로 세정수 내 부유물 및 침전물을 제거' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20172367453' AS CNTR_NO, '20210617' AS WK_EXCN_DT, '20210614' AS RGST_DT, '132021061418165' AS AS_IST_OJ_NO, '320210401356294' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '2017-2367453 결로 누수 / 특별자재 교체' AS CNSL_MO_CN, '3112' AS SV_BIZ_DCLSF_CD, '특별A/S' AS SV_BIZ_DCLSF_NM, '2021-06-14 13:51:46' AS RCP_DTM, '박진엽' AS WRK_EMP_NM, '네오나노클린필터' AS WKP_NM, '노로바이러스, 세균, 미세입자, 잔류가스, 냄새제거 및 미네랄 성분 함유 ' AS PD_NM, ' 특별자재 tt 냉온W<P37,P67,WL672NW COVER FRONT Rev.1<P27,37 특별자재 tt 냉온W<P37,P67,WL672NW' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20186490644' AS CNTR_NO, '20210624' AS WK_EXCN_DT, '20210617' AS RGST_DT, '132021061748840' AS AS_IST_OJ_NO, '320210401359385' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.비린냄새 남/물 색깔이 누런색 확인됨2.6/24(목)3.김지은 접수 4.다른가족들도 다 느낌/종이컵 받아도 동일함 ' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-06-17 10:28:28' AS RCP_DTM, '김정환' AS WRK_EMP_NM, '웰스멀티카본플러스필터' AS WKP_NM, '부유물질, 녹물 등 입자가 큰 불순물 및 잔류염소 , 휘발성 유기화합물 제거, 미네랄 성분 함유, 중금속 6종 제거 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20186490644' AS CNTR_NO, '20210624' AS WK_EXCN_DT, '20210617' AS RGST_DT, '132021061748840' AS AS_IST_OJ_NO, '320210401359385' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.비린냄새 남/물 색깔이 누런색 확인됨2.6/24(목)3.김지은 접수 4.다른가족들도 다 느낌/종이컵 받아도 동일함 ' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-06-17 10:28:28' AS RCP_DTM, '김정환' AS WRK_EMP_NM, '나노플러스필터' AS WKP_NM, '노로바이러스, 세균, 미세입자 제거 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20186490644' AS CNTR_NO, '20210624' AS WK_EXCN_DT, '20210617' AS RGST_DT, '132021061748840' AS AS_IST_OJ_NO, '320210401359385' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.비린냄새 남/물 색깔이 누런색 확인됨2.6/24(목)3.김지은 접수 4.다른가족들도 다 느낌/종이컵 받아도 동일함 ' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-06-17 10:28:28' AS RCP_DTM, '김정환' AS WRK_EMP_NM, '포스트카본필터' AS WKP_NM, '물속 잔류가스와 냄새 제거 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20214430033' AS CNTR_NO, '20210621' AS WK_EXCN_DT, '20210618' AS RGST_DT, '132021061859245' AS AS_IST_OJ_NO, '320210401360379' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.필터에서 쉰내가 남2.6/243.백지연' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-06-18 10:52:52' AS RCP_DTM, '강민우' AS WRK_EMP_NM, '콤비필터' AS WKP_NM, '초미세먼지 및 나노입자 제거, 생활악취/유해가스/새집증후군 유발물질 제거' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20214430033' AS CNTR_NO, '20210621' AS WK_EXCN_DT, '20210618' AS RGST_DT, '132021061859245' AS AS_IST_OJ_NO, '320210401360379' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.필터에서 쉰내가 남2.6/243.백지연' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-06-18 10:52:52' AS RCP_DTM, '강민우' AS WRK_EMP_NM, '초미센먼지필터' AS WKP_NM, '일상 생활에서 발생하는 초미세먼지 제거 강화 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20203580473' AS CNTR_NO, '20210424' AS WK_EXCN_DT, '20210424' AS RGST_DT, '132021042468492' AS AS_IST_OJ_NO, '320210401315000' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '웰스팜 공유렌탈 리퍼 작업 완료건' AS CNSL_MO_CN, '3541' AS SV_BIZ_DCLSF_CD, '리퍼작업' AS SV_BIZ_DCLSF_NM, '2021-04-24 13:54:47' AS RCP_DTM, '김성현' AS WRK_EMP_NM, '웰스팜필터' AS WKP_NM, '집안 먼지 유입을 방지하여 식물재배기 내부의 청정상태를 유지하는 프리 더스트 필터' AS PD_NM, ' PLANT POT Rev.1<G01,G02' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20207118883' AS CNTR_NO, '20210623' AS WK_EXCN_DT, '20210621' AS RGST_DT, '132021062167733' AS AS_IST_OJ_NO, '320210401361270' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 온수 안나옴. (밸브확인안내)2. 6/29 14시 -> 빠른일정요청 -> sm케이톡 3. 장미정 010-2654-7495 . 정수기 2대동시' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-06-21 09:20:48' AS RCP_DTM, '김재윤' AS WRK_EMP_NM, '복합프리필터' AS WKP_NM, '부유물질, 녹물 등 입자가 큰 불순물 및 잔류염소 , 휘발성 유기화합물 제거, 미네랄 성분 함유' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20186489687' AS CNTR_NO, '20210120' AS WK_EXCN_DT, '20210112' AS RGST_DT, '132021011275075' AS AS_IST_OJ_NO, '320210101062600' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.미처리 bs요청/미납금 입금 - 2021.1월.복합필터2.1/15[금]오후3.최정윤.휴 전화부재로 선접수 문자발송' AS CNSL_MO_CN, '3121' AS SV_BIZ_DCLSF_CD, '필터B/S' AS SV_BIZ_DCLSF_NM, '2021-01-12 16:25:02' AS RCP_DTM, '이상규' AS WRK_EMP_NM, '복합필터' AS WKP_NM, '황사에 포함된  중금속성분(SOx,NOx) 제거 및 항균 기능' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20178663109' AS CNTR_NO, '20210311' AS WK_EXCN_DT, '20210304' AS RGST_DT, '232021030418407' AS AS_IST_OJ_NO, '320210304206673' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 유형: 물량2. 증상: 물이 졸졸  나와요 3. 요청자/연락처: 010271420184. 요청내용/특이사항:전체적인  점검 요망 윤지혜 WM( 010-7762-3006)' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-03-04 14:21:37' AS RCP_DTM, '권한녕' AS WRK_EMP_NM, '웰스멀티카본플러스필터' AS WKP_NM, '부유물질, 녹물 등 입자가 큰 불순물 및 잔류염소 , 휘발성 유기화합물 제거, 미네랄 성분 함유, 중금속 6종 제거 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20178663109' AS CNTR_NO, '20210311' AS WK_EXCN_DT, '20210304' AS RGST_DT, '232021030418407' AS AS_IST_OJ_NO, '320210304206673' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 유형: 물량2. 증상: 물이 졸졸  나와요 3. 요청자/연락처: 010271420184. 요청내용/특이사항:전체적인  점검 요망 윤지혜 WM( 010-7762-3006)' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-03-04 14:21:37' AS RCP_DTM, '권한녕' AS WRK_EMP_NM, '나노플러스필터' AS WKP_NM, '노로바이러스, 세균, 미세입자 제거 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20178663109' AS CNTR_NO, '20210311' AS WK_EXCN_DT, '20210304' AS RGST_DT, '232021030418407' AS AS_IST_OJ_NO, '320210304206673' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1. 유형: 물량2. 증상: 물이 졸졸  나와요 3. 요청자/연락처: 010271420184. 요청내용/특이사항:전체적인  점검 요망 윤지혜 WM( 010-7762-3006)' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-03-04 14:21:37' AS RCP_DTM, '권한녕' AS WRK_EMP_NM, '포스트카본필터' AS WKP_NM, '물속 잔류가스와 냄새 제거 ' AS PD_NM, '' AS MAT_NM FROM DUAL UNION ALL
-           SELECT 'A/S' AS SV_TP_NM, 'W20207598763' AS CNTR_NO, '20210610' AS WK_EXCN_DT, '20210514' AS RGST_DT, '132021051444178' AS AS_IST_OJ_NO, '320210401330803' AS CST_SV_ASN_NO, '' AS SV_PROCS_CN, '1.생활맞춤형 필터 유상교체 2.5/183.박동원주무관 /070-4180-00004.총19대 .결제는 계좌이체원함. 교원사업자등록번호 필요함. 서류요청' AS CNSL_MO_CN, '3110' AS SV_BIZ_DCLSF_CD, '제품A/S' AS SV_BIZ_DCLSF_NM, '2021-05-14 09:36:10' AS RCP_DTM, '강하현' AS WRK_EMP_NM, '초미세먼지필터' AS WKP_NM, '일상 생활에서 발생하는 초미세먼지 제거 강화 ' AS PD_NM, '' AS MAT_NM FROM DUAL
-    ) WHERE 1=1
-    ]]>
-        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-        AND CNTR_NO = #{cntrNo}
-        </if>-->
         SELECT T1.CNTR_NO
              , T1.CNTR_SN
              , T1.CST_SV_ASN_NO
