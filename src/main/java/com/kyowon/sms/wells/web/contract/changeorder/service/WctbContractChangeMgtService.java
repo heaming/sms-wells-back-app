@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
@@ -20,6 +20,8 @@ import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMg
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractChRcchStatChangeDtlHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaInstallationShippingDto.SaveAssignProcessingReq;
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationShippingService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
@@ -42,6 +44,7 @@ public class WctbContractChangeMgtService {
     private final MessageResourceService messageResourceService;
     private final KakaoMessageService kakaoMessageService;
     private final WctzHistoryService historyService;
+    private final WctaInstallationShippingService installService;
 
     /*
     * 계약변경관리-조회
@@ -257,6 +260,16 @@ public class WctbContractChangeMgtService {
         String now = DateUtil.getNowString();
         String cntrChAkCn = "계약변경유형코드: 계약취소신청";
 
+        WctbContractChangeDvo dateTimeDvo = mapper.selectDateTime();
+        dvo.setFstRgstDtm(dateTimeDvo.getFstRgstDtm());
+        dvo.setFstRgstUsrId(dateTimeDvo.getFstRgstUsrId());
+        dvo.setFstRgstPrgId(dateTimeDvo.getFstRgstPrgId());
+        dvo.setFstRgstDeptId(dateTimeDvo.getFstRgstDeptId());
+        dvo.setFnlMdfcDtm(dateTimeDvo.getFnlMdfcDtm());
+        dvo.setFnlMdfcUsrId(dateTimeDvo.getFnlMdfcUsrId());
+        dvo.setFnlMdfcPrgId(dateTimeDvo.getFnlMdfcPrgId());
+        dvo.setFnlMdfcDeptId(dateTimeDvo.getFnlMdfcDeptId());
+
         dvo.setCntrChRcpDtm(now); // 계약변경접수일시
         dvo.setCntrChTpCd("402"); // 계약변경유형코드
         dvo.setChRqrDvCd("2"); // 변경요청자구분코드
@@ -265,6 +278,8 @@ public class WctbContractChangeMgtService {
         dvo.setCntrChPrgsStatCd("20"); // 계약변경진행상태코드
         dvo.setChRcstDvCd(""); // 변경접수자구분코드
         dvo.setChRcpUsrId(employeeUserId); // 변경접수사용자id
+        dvo.setAprDtm(now); /* 승인일시 */
+        dvo.setAprUsrId(employeeUserId); /* 승인사용자ID */
         dvo.setCntrChFshDtm(now); // 계약변경완료일시
         dvo.setDtaDlYn("N"); // 데이터삭제여부
 
@@ -324,7 +339,146 @@ public class WctbContractChangeMgtService {
         return processCount;
     }
 
-    public WctbContractChangeMngtDto.FindPartnerRes getPartnerByCntrNo(String cntrNo, String cntrSn) {
+    /*
+    * 계약변경관리-고객정보조회
+    * */
+    public FindCustomerInformationRes getCustomerInformations(String cntrNo, int cntrSn) {
+        return converter.wctbContractChangeDvoToFindCustomerRes(mapper.selectCustomerInformation(cntrNo, cntrSn));
+    }
+
+    /*
+    * 계약변경관리-고객정보저장
+    * */
+    @Transactional
+    public int editCustomerInformation(SaveChangeReq dto) throws Exception {
+
+        WctbContractChangeDvo dvo = converter.saveChangeReqToWctbContractChangeDvo(dto);
+
+        String cntrNo = dvo.getCntrNo(); // 계약번호
+        int cntrSn = dvo.getCntrSn(); // 계약일련번호
+
+        WctbContractChangeDvo orgDvo = mapper.selectCustomerInformation(cntrNo, cntrSn); // 변경 전 데이터
+
+        String now = DateUtil.getNowString(); // 현재 일자
+        String nowDay = DateUtil.getNowDayString(); // 현재일
+        String rcgvpKnm = dvo.getRcgvpKnm(); // 수령자 한글명
+        String adrId = dvo.getIstAdrId(); // 주소 ID
+
+        String cralLocaraTno = dvo.getIstCralLocaraTno(); // 휴대지역전화번호
+        String mexnoEncr = dvo.getIstMexnoEncr(); // 휴대전화국번호암호화
+        String cralIdvTno = dvo.getIstCralIdvTno(); // 휴대개별전화번호
+
+        /* TODO: 계약자 정보는 고객 I/F 완료 후 추가예정 */
+
+        WctbContractChangeDvo kiwiDvo = mapper.selectKiwiInstallOrders(cntrNo, cntrSn);
+
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        String employeeUserId = session.getEmployeeIDNumber();
+        String loginName = session.getUserName();
+
+        if (ObjectUtils.isNotEmpty(kiwiDvo)) {
+
+            int wkPrgsStatCd = Integer.parseInt(kiwiDvo.getWkPrgsStatCd()); // 작업진행상태
+            if (wkPrgsStatCd < 70) {
+                SaveAssignProcessingReq kiwiDto = SaveAssignProcessingReq
+                    .builder()
+                    .cntrNo(cntrNo)
+                    .cntrSn(Integer.toString(cntrSn))
+                    .prtnrNo(employeeUserId)
+                    .inputGb("3")
+                    .wkGb("1")
+                    .workDt(kiwiDvo.getRcpdt())
+                    .asIstOjNo(kiwiDvo.getAsIstOjNo())
+                    .acpgDiv("3")
+                    .basePdCd("")
+                    .prdDiv("1")
+                    .build();
+                String checkYn = installService.saveAssignProcessings(kiwiDto);
+
+                if ("N".equals(checkYn)) {
+                    throw new BizException("설치배정자료 삭제 오류");
+                }
+            }
+        }
+        WctbContractChangeDvo dateTimeDvo = mapper.selectDateTime();
+        dvo.setFstRgstDtm(dateTimeDvo.getFstRgstDtm());
+        dvo.setFstRgstUsrId(dateTimeDvo.getFstRgstUsrId());
+        dvo.setFstRgstPrgId(dateTimeDvo.getFstRgstPrgId());
+        dvo.setFstRgstDeptId(dateTimeDvo.getFstRgstDeptId());
+        dvo.setFnlMdfcDtm(dateTimeDvo.getFnlMdfcDtm());
+        dvo.setFnlMdfcUsrId(dateTimeDvo.getFnlMdfcUsrId());
+        dvo.setFnlMdfcPrgId(dateTimeDvo.getFnlMdfcPrgId());
+        dvo.setFnlMdfcDeptId(dateTimeDvo.getFnlMdfcDeptId());
+        dvo.setAdrId(adrId);
+        dvo.setCralLocaraTno(cralLocaraTno);
+        dvo.setMexnoEncr(mexnoEncr);
+        dvo.setCralIdvTno(cralIdvTno);
+
+        int res = mapper.updateContractAddrBase(dvo);
+        BizAssert.isTrue(res > 0, "MSG_ALT_SVE_ERR");
+
+        res = mapper.updateContractAddrChangeHist(dvo);
+        BizAssert.isTrue(res > 0, "MSG_ALT_SVE_ERR");
+
+        res = mapper.insertContractAddrChangeHist(dvo);
+        BizAssert.isTrue(res > 0, "MSG_ALT_SVE_ERR");
+
+        String orgRcgvpKnm = orgDvo.getRcgvpKnm(); // 수령자한글명
+        String orgAdrId = orgDvo.getIstAdrId(); // 주소ID
+        String orgCralLocaraTno = orgDvo.getRcgvpKnm(); // 휴대지역전화번호
+        String orgMexnoEncr = orgDvo.getIstMexnoEncr(); // 휴대전화국번호
+        String orgCralIdvTno = orgDvo.getIstCralIdvTno(); // 휴대개별전화번호
+
+        String cntrChAkCn = "수령자한글명: " + rcgvpKnm
+            + "|주소ID:" + adrId
+            + "|휴대지역전화번호:" + cralLocaraTno
+            + "|휴대전화국번호:" + mexnoEncr
+            + "|휴대개별전화번호:" + cralIdvTno + "|";
+
+        String bfchCn = "수령자한글명: " + orgRcgvpKnm
+            + "|주소ID:" + orgAdrId
+            + "|휴대지역전화번호:" + orgCralLocaraTno
+            + "|휴대전화국번호:" + orgMexnoEncr
+            + "|휴대개별전화번호:" + orgCralIdvTno + "|";
+
+        dvo.setCntrChRcpDtm(now); // 계약변경접수일시
+        dvo.setCntrChTpCd("102"); // 계약변경유형코드
+        dvo.setChRqrDvCd("2"); // 변경요청자구분코드 (변경 가능성 존재)
+        dvo.setChRqrNm(loginName); // 변경요청자명
+        dvo.setCntrChAkCn(cntrChAkCn); // 계약변경요청내용
+        dvo.setCntrChPrgsStatCd("50"); // 계약변경진행상태코드
+        dvo.setChRcstDvCd(""); // 변경접수자구분코드
+        dvo.setChRcpUsrId(employeeUserId); // 변경접수사용자id
+        dvo.setAprDtm(now); // 승인일시
+        dvo.setAprUsrId(employeeUserId); // 승인사용자ID
+        dvo.setCntrChFshDtm(now); // 계약변경완료일시
+        dvo.setDtaDlYn("N"); // 데이터삭제여부
+
+        int basRes = mapper.insertContractChRcpBase(dvo); // 계약변경접수기본
+        BizAssert.isTrue(basRes > 0, "MSG_ALT_SVE_ERR");
+
+        basRes = mapper.insertContractChangeReceiptHist(dvo);
+        BizAssert.isTrue(basRes > 0, "MSG_ALT_SVE_ERR");
+
+        dvo.setCntrUnitTpCd("020"); // 계약단위유형코드
+        dvo.setCntrChRsonDvCd(""); // 계약변경사유구분코드
+        dvo.setCntrChRsonCd(""); // 계약변경사유코드
+        dvo.setCntrChAtcDvCd(""); // 계약변경항목구분코드
+        dvo.setChApyStrtdt(nowDay); // 변경적용종료일자
+        dvo.setChApyEnddt("99991231"); // 변경적용종료일자
+        dvo.setBfchCn(bfchCn); // 변경 전 내용
+        dvo.setProcsYn("Y"); // 처리여부
+        dvo.setDtlCntrNo(cntrNo);
+
+        int dtlRes = mapper.insertContractChRcpDetail(dvo);
+        BizAssert.isTrue(dtlRes > 0, "MSG_ALT_SVE_ERR");
+
+        dtlRes = mapper.insertSellPartnerToCntrChRcpDchHist(dvo);
+        BizAssert.isTrue(dtlRes > 0, "MSG_ALT_SVE_ERR");
+        return 1;
+    }
+
+    public FindPartnerRes getPartnerByCntrNo(String cntrNo, String cntrSn) {
         // 계약변경관리-파트너 변경(조회)
         return mapper.selectPartnerByCntrNo(cntrNo, cntrSn);
     }

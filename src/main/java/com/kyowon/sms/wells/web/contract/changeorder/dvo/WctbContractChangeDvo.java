@@ -21,7 +21,24 @@ public class WctbContractChangeDvo {
     private int cntrSn; /* 계약일련번호  */
     private String sellTpCd; /* 판매유형코드 lcType (2:l20)*/
     private String sellTpDtlCd; /* 판매유형상세코드 */
-    private String resYn; // 결과코드
+    private String resYn; /* 결과코드 */
+    private String cntrAdrpcId; /* 계약주소지 ID */
+    private String rn; /* rownum */
+    private String asIstOjNo; /* 작업순번 */
+    private String cnslMoCn; /* 상담메모(엔지니어 전달메모) */
+    private String eggrAsnDt; /* 배정일자(엔지니어 배정일자) */
+    private String wkAcpteStatCd; /* 작업수락상태 */
+    private String wkAcpteDt; /* 작업수락일자 */
+    private String wkAcpteHh; /* 작업수락시간 */
+    private String vstExpHh; /* 방문확정예약시간 */
+    private String vstCnfmdt; /* 방문확정일자 */
+    private String vstCnfmHh; /* 방문확정시간 */
+    private String wkPrgsStatCd; /* 작업진행상태 */
+    private String wkCanMoCn; /* 작업취소메모 */
+    private String ogNm; /* 센터명 */
+    private String egerCrallocaraTno; /* 휴대지역전화번호 */
+    private boolean hasKiwiOrd; /* 키위 존재여부 */
+    private String egerNm; /* 엔지니어명 */
 
     /* 화면 표시 */
     private String sellTpDtlNm; /* 판매유형사케코드명 (판매유형:lcTypeNm)*/
@@ -63,6 +80,41 @@ public class WctbContractChangeDvo {
     private String istDt; /* 설치일자  lcsetDt*/
     private String sellInflwChnlDtlCd; /* 판매유입채널상세코드 (직원구매 체크용(9020:직원구매->vSalediv:9)) */
 
+    /* 계약주소지기본 / 상세 */
+    private String cntrCstNo; /* 계약자정보 - 고객번호 */
+    private String bryyMmdd; /* 계약자정보 - 생년월일 */
+    private String bzrno; /* 계약자정보 - 사업자번호(lccino) */
+    private String cntrAdrId; /* 계약자정보 -주소ID */
+    private String cntrAdrDvCd; /* 계약자정보 -주소구분코드  */
+    private String cntrAdrZip; /* 계약자정보 - 우편번호 */
+    private String cntrCstRnadr; /* 계약자정보 - 기준주소 */
+    private String cntrCstRdadr; /* 계약자정보 - 상세주소 */
+    private String adrId; /* 주소ID */
+    private String cralLocaraTno; /* 휴대지역전화번호 */
+    private String mexnoEncr; /* 휴대전화국번호암호화 */
+    private String cralIdvTno; /* 휴대개별전화번호 */
+    private String bfchCn; /* 변경전 내용 */
+    private String chApyStrtdt; /* 변경적용시작일자 */
+    private String chApyEnddt; /* 변경적용종료일자 */
+    private String procsYn; /* 처리여부 */
+
+    private String cntrCopnLocaraTno; /* 계약자정보 - 법인지역번호 */
+    @DBEncField
+    @DBDecField
+    private String cntrCopnExnoEncr; /* 계약자정보 - 법인전화국번호암호화 */
+    private String cntrCopnIdvTno; /* 계약자정보 - 법인개별전화번호 */
+    private String rcgvpKnm; /* 설치처정보 - 설치자　명(lcwnam)*/
+    private String istCralLocaraTno; /* 설치자 - 휴대전화번호1 */
+    @DBEncField
+    @DBDecField
+    private String istMexnoEncr; /* 설치자 - 휴대전화번호2 */
+    private String istCralIdvTno; /* 설치자 - 휴대전화번호3 */
+    private String istAdrId; /* 설치자 - 주소 ID */
+    private String istAdrDvCd; /* 설치자 - 주소구분코드 */
+    private String istAdrZip; /* 설치처정보 - 우편번호 : lcwzip */
+    private String istRnadr; /* 설치처정보 - 기준주소 : lcwad1 + lcwad2 +lcwad3 */
+    private String istRdadr; /* 설치처정보 - 상세주소 : lcwad1 + lcwad2 +lcwad3 */
+
     /* 계약주문 Check */
     private String pkgYn; /* 패키지 주문 여부 (LC348_GSEQ) */
     private String prmPtrmYn; /* 선납주문여부 (LCST10) */
@@ -96,6 +148,8 @@ public class WctbContractChangeDvo {
     private String cntrChRsonCd; /* 계약변경사유코드 */
     private String cntrChAtcDvCd; /*계약변경항목구분코드 */
     private String cntrChAkCn; /* 계약변경요청내용 */
+    private String aprDtm; /* 승인일시 */
+    private String aprUsrId; /* 승인사용자ID */
     private String dtaDlYn; /* 데이터삭제여부 */
 
     /* 상세 */
