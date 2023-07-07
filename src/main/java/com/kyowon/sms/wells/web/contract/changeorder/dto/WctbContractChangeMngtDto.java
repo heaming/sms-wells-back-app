@@ -62,6 +62,52 @@ public class WctbContractChangeMngtDto {
         String aprvDv // 승인구분
     ) {}
 
+    @ApiModel(value = "WctbContractChangeMngtDto-SaveChangeReq")
+    public record SaveChangeReq(
+        @NotBlank
+        String cntrNo, /* 계약번호 */
+        @NotNull
+        int cntrSn, /* 계약일련번호 */
+        String cstKnm, /* 계약자명 - 고객명(lc31.lccnam) */
+        String cntrCstNo, /* 계약자정보 - 고객번호 */
+        String bryyMmdd, /* 계약자정보 - 생년월일 */
+        String bzrno, /* 계약자정보 - 사업자번호(lccino) */
+        String copnDvNm, /* 법인격구분명 (lccgub) 개인:1; 법인:2*/
+        String cntrCralLocaraTno, /* 계약자　휴대폰번호1 LCCNOT. LCCNO1 bindMsgs[7] */
+        String cntrMexnoEncr, /* 계약자　휴대폰번호2 LCCNOT. LCCNO2 bindMsgs[7] */
+        String cntrCralIdvTno, /* 계약자　휴대폰번호3 LCCNOT. LCCNO3 bindMsgs[7] */
+        String cntrAdrZip, /* 계약자정보 - 우편번호 */
+        String cntrCstRnadr, /* 계약자정보 - 기준주소 */
+        String cntrCstRdadr, /* 계약자정보 - 상세주소 */
+        String cntrAdrId, /* 계약자정보 -주소ID */
+        String cntrAdrDvCd, /* 계약자정보 -주소구분코드  */
+        String rcgvpKnm, /* 설치처정보 - 설치자　명(lcwnam) */
+        String istCralLocaraTno, /* 설치자 - 휴대전화번호1 */
+        String istMexnoEncr, /* 설치자 - 휴대전화번호2 */
+        String istCralIdvTno, /* 설치자 - 주소 ID */
+        String istAdrId, /* 설치자 - 주소 ID */
+        String istAdrDvCd, /* 설치자 - 주소구분코드 */
+        String istAdrZip, /* 설치처정보 - 우편번호 : lcwzip */
+        String istRnadr, /* 설치처정보 - 기준주소 : lcwad1 + lcwad2 +lcwad3 */
+        String istRdadr /* 설치처정보 - 상세주소 : lcwad1 + lcwad2 +lcwad3 */
+    ) {}
+
+    @ApiModel(value = "WctbContractChangeMngtDto-EditPartnerReq")
+    public record EditPartnerReq(
+        @NotBlank
+        String cntrNo, /* 계약번호 */
+        @NotBlank
+        String cntrSn, /* 계약일련번호 */
+        @NotBlank
+        String prtnrKnm, /* 판매자한글명 */
+        @NotBlank
+        String sellPrtnrNo, /* 판매파트너번호 */
+        @NotBlank
+        String ogTpCd, /* 조직유형코드*/
+        String bfPrtnrNo, /* 변경전 파트너번호 */
+        String bfOgTpCd /* 변경전 조직유형코드 */
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -71,6 +117,7 @@ public class WctbContractChangeMngtDto {
         int cntrSn, /* 계약일련번호  */
         String sellTpCd, /* 판매유형코드 lcType (2:l20)*/
         String sellTpDtlCd, /* 판매유형상세코드 */
+        String cttRsCd, /* 컨택결과코드 */
         /* 화면 표시 */
         String sellTpDtlNm, /* 판매유형사케코드명 (판매유형:lcTypeNm)*/
         String cstKnm, /* 계약자명 - 고객명(lc31.lccnam) */
@@ -115,6 +162,39 @@ public class WctbContractChangeMngtDto {
     ) {}
 
     @Builder
+    @ApiModel(value = "WctbContractChangeMngtDto-FindCustomerInformationRes")
+    public record FindCustomerInformationRes(
+        String cntrNo, /* 계약번호 */
+        int cntrSn, /* 계약일련번호 */
+        String cntrAdrpcId,
+        String cstKnm, /* 계약자정보 - 계약자명 / 법인명 */
+        String cntrCstNo, /* 계약자정보 - 고객번호 */
+        String bryyMmdd, /* 계약자정보 - 생년월일 */
+        String bzrno, /* 계약자정보 - 사업자번호(lccino) */
+        String copnDvNm, /* 법인격구분코드 - 구분(개인 String법인)  */
+        String cntrCralLocaraTno, /* 계약자정보 -휴대지역전화번호 */
+        String cntrMexnoEncr, /* 계약자정보 -휴대전화국번호암호화 */
+        String cntrCralIdvTno, /* 계약자정보 -휴대개별전화번호  */
+        String cntrCopnLocaraTno, /* 계약자정보 - 법인지역번호 */
+        String cntrCopnExnoEncr, /* 계약자정보 - 법인전화국번호암호화 */
+        String cntrCopnIdvTno, /* 계약자정보 - 법인개별전화번호 */
+        String cntrAdrZip, /* 계약자정보 - 우편번호 */
+        String cntrCstRnadr, /* 계약자정보 - 기준주소 */
+        String cntrCstRdadr, /* 계약자정보 - 상세주소 */
+        String cntrAdrId, /* 계약자정보 -주소ID */
+        String cntrAdrDvCd, /* 계약자정보 -주소구분코드 */
+        String rcgvpKnm, /* 설치처정보 - 설치자　명(lcwnam)*/
+        String istCralLocaraTno, /* 설치자 - 휴대전화번호1 */
+        String istMexnoEncr, /* 설치자 - 휴대전화번호2 */
+        String istAdrId, /* 설치자 - 주소 ID */
+        String istAdrDvCd, /* 설치자 - 주소구분코드 */
+        String istCralIdvTno, /* 설치자 - 휴대전화번호3 */
+        String istAdrZip, /* 설치처정보 - 우편번호 : lcwzip */
+        String istRnadr, /* 설치처정보 - 기준주소 : lcwad1 + lcwad2 +lcwad3 */
+        String istRdadr /* 설치처정보 - 상세주소 : lcwad1 + lcwad2 +lcwad3 */
+    ) {}
+
+    @Builder
     @ApiModel(value = "WctbContractChangeMngtDto-FindBeforeChangeCheckRes")
     public record FindBeforeChangeCheckRes(
         String checkYn, // 처리여부
@@ -132,21 +212,5 @@ public class WctbContractChangeMngtDto {
         String dgr3LevlOgNm, /* 3차레벨조직명 */
         String ogCd, /* (판매자의) 조직코드 */
         String ogTpCd /* 조직유형코드*/
-    ) {}
-
-    @ApiModel(value = "WctbContractChangeMngtDto-EditPartnerReq")
-    public record EditPartnerReq(
-        @NotBlank
-        String cntrNo, /* 계약번호 */
-        @NotBlank
-        String cntrSn, /* 계약일련번호 */
-        @NotBlank
-        String prtnrKnm, /* 판매자한글명 */
-        @NotBlank
-        String sellPrtnrNo, /* 판매파트너번호 */
-        @NotBlank
-        String ogTpCd, /* 조직유형코드*/
-        String bfPrtnrNo, /* 변경전 파트너번호 */
-        String bfOgTpCd /* 변경전 조직유형코드 */
     ) {}
 }

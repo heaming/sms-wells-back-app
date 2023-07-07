@@ -387,4 +387,43 @@ public class WctzHistoryService {
         newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertContractChRcchStatChangeDtlHistory(newHist);
     }
+
+    /**
+    * 계약주소변경이력 조회
+    *
+    * @param cntrAdrpcId 계약주소지 ID
+    * @return dvo
+    */
+    public WctzContractAddrChangeHistDvo getContractAddrChangeHistory(String cntrAdrpcId) {
+        return mapper.selectContractAddrChangeForHist(cntrAdrpcId);
+    }
+
+    /**
+    * 계약주소변경이력
+    *
+    * @param dvo
+    * */
+    @Transactional
+    public void createContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzContractAddrChangeHistDvo newHist = converter.convertContractAddrChangeToHist(
+            dvo,
+            mapper.selectContractAddrChangeHistory(dvo.getCntrAdrpcId())
+        );
+
+        WctzContractAddrChangeHistDvo befHist = getContractAddrChangeHistory(dvo.getCntrAdrpcId());
+        if (ObjectUtils.isEmpty(befHist)) {
+            dvo.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateContractAddrChangeHistory(befHist);
+        }
+
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
+        mapper.insertContractAddrChangeHistory(newHist);
+    }
 }

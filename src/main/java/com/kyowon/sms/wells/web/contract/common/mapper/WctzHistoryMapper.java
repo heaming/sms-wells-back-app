@@ -90,4 +90,13 @@ public interface WctzHistoryMapper {
 
     int insertContractChRcchStatChangeDtlHistory(WctzContractChRcchStatChangeDtlHistDvo dvo);
 
+    // 계약주소변경이력
+    WctzContractAddrChangeHistDvo selectContractAddrChangeHistory(String cntrAdrpcId);
+
+    WctzContractAddrChangeHistDvo selectContractAddrChangeForHist(String cntrAdrpcId);
+
+    int updateContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo);
+
+    int insertContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo);
+
 }
