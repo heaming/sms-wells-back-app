@@ -33,12 +33,17 @@ public class WwdbDepositDetailService {
             String[] ogTpCdList = dto.ogTpCd().split(",");
             dvo.setOgTpCdList(ogTpCdList);
         }
-        return mapper.selectDepositDetail(dto, pageInfo);
+        return mapper.selectDepositDetail(dvo, pageInfo);
     }
 
     @Transactional
     public List<SearchRes> getDepositDetailExcels(SearchReq dto) {
-        return mapper.selectDepositDetail(dto);
+        WwdbDepositDetailSearchDvo dvo = convert.mapWwdbDepositDetailSearchDvo(dto);
+        if (!StringUtil.isEmpty(dto.ogTpCd())) {
+            String[] ogTpCdList = dto.ogTpCd().split(",");
+            dvo.setOgTpCdList(ogTpCdList);
+        }
+        return mapper.selectDepositDetail(dvo);
     }
 
 }
