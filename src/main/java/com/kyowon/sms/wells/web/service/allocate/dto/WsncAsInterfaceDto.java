@@ -12,7 +12,6 @@ public class WsncAsInterfaceDto {
     public record SearchCustInfoReq(
         @NotBlank
         String cntrNo,
-        @NotNull
         String cstKnm,
         String hpno,
         String newAdrZip,
