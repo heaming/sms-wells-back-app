@@ -52,7 +52,11 @@ public class WdeaAwRedfEtAmtDto {
         String brchElhmExcpPerf, /*지점 가전외실적*/
         String brchNwSellCt, /*지점 신규판매건수*/
         String mnger, /* 매니저*/
-        String plar /*플래너*/
+        String plar, /*플래너*/
+        String indvElhmBaseAmt, /*개인 가전기준가*/
+        String indvElhmExcpBaseAmt, /*개인 가전외기준가*/
+        String brchElhmBaseAmt, /*지점 가전기준가*/
+        String brchElhmExcpBaseAmt /*지점 가전외기준가*/
 
     ) {}
 
@@ -79,6 +83,12 @@ public class WdeaAwRedfEtAmtDto {
         String elhmOgPrpn, /*지점 가전조직비례*/
         String elhmExcpOgPrpn, /*지점 가전외조직비례*/
         String ogSellEncrg, /*지점 조직판매장려*/
-        String redfEtSum /*합계*/
+        String redfEtSum, /*합계*/
+        String indvElhmPrpnMetg, /*개인 가전비례+미팅*/
+        String indvElhmExcpPrpnMetg, /*개인 가전외비례+미팅*/
+        String educ, /*교육 */
+        String nwSell, /*신규 판매*/
+        String ogMngt /*조직 관리*/
+
     ) {}
 }
