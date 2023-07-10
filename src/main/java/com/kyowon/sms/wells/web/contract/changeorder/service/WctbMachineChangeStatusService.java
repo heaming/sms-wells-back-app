@@ -191,9 +191,9 @@ public class WctbMachineChangeStatusService {
       * @param  dvo sellTpCd 판매유형코드
       * @return
       *  오류여부 Y 고객없음
-      *          A 약정만료월기준적용
+      *          A 약정만료월기준적용 ==> 이것밖에 없음.
       *          B 57차월월기준적용
-      *          C 일반재약정고객 ==> 이것밖에 없음.
+      *          C 일반재약정고객
       *          D 상조재약정고객
       */
     public FindRes checkValidMachindChangeStatus(WctbMachineChStatInOutDvo dvo) throws Exception{
