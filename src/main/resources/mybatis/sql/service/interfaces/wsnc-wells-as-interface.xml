@@ -118,58 +118,134 @@
     </select>
 
     <select id='selectUsingProducts' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceUsingPdutDvo">
-        SELECT T1.CNTR_NO
-             , T1.CNTR_CST_NO
-             , C2.RCGVP_KNM
-             , S1.PDCT_PD_CD
-             , P1.PD_ABBR_NM
-             , S1.BC_NO
-             , C2.CRAL_LOCARA_TNO
-             , C2.MEXNO_ENCR
-             , C2.CRAL_IDV_TNO
-             , A1.RNADR || ' ' || A1.RDADR ADR
-          FROM (
-                    SELECT C1.CNTR_CST_NO
-                         , C1.CNTR_NO
-                         , C2.CNTR_SN
-                      FROM TB_SSCT_CNTR_BAS C1
-                INNER JOIN TB_SSCT_CNTR_DTL C2
-                        ON C1.CNTR_NO = C2.CNTR_NO
-                     WHERE 1 = 1
-                       AND C1.CNTR_NO = #{cntrNo}
-                     UNION ALL
-                    SELECT C1.CNTR_CST_NO
-                         , C2.CNTR_NO
-                         , C3.CNTR_SN
-                      FROM TB_SSCT_CNTR_BAS C1
-                INNER JOIN TB_SSCT_CNTR_BAS C2
-                        ON C1.CNTR_CST_NO = C2.CNTR_CST_NO
-                       AND C2.CNTR_NO != C1.CNTR_NO
-                INNER JOIN TB_SSCT_CNTR_DTL C3
-                        ON C2.CNTR_NO = C3.CNTR_NO
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
-                        ON C3.CNTR_NO = S1.CNTR_NO
-                       AND C3.CNTR_SN = S1.CNTR_SN
-                     WHERE 1 = 1
-                       AND C1.CNTR_NO = #{cntrNo}
-                       AND C3.SELL_TP_CD IN ('2', '3') /* 렌털(2), 멤버쉽(3) */
-                       AND S1.REQD_DT IS NULL
-                       AND S1.IST_DT IS NOT NULL
-                   ) T1
-        INNER JOIN TB_SSCT_CNTR_ADR_REL C1
-                ON T1.CNTR_NO = C1.DTL_CNTR_NO
-               AND T1.CNTR_SN = C1.DTL_CNTR_SN
-               AND C1.ADRPC_TP_CD = '3'
-               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C1.VL_STRT_DTM AND C1.VL_END_DTM
-        INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C2
-                ON C1.CNTR_ADRPC_ID = C2.CNTR_ADRPC_ID
-        INNER JOIN TB_GBCO_ADR_BAS A1
-                ON C2.ADR_ID = A1.ADR_ID
-        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
-                ON T1.CNTR_NO = S1.CNTR_NO
-               AND T1.CNTR_SN = S1.CNTR_SN
-        INNER JOIN TB_PDBS_PD_BAS P1
-                ON S1.PDCT_PD_CD = P1.PD_CD
+--         SELECT T1.CNTR_NO
+--              , T1.CNTR_CST_NO
+--              , C2.RCGVP_KNM
+--              , S1.PDCT_PD_CD
+--              , P1.PD_ABBR_NM
+--              , S1.BC_NO
+--              , C2.CRAL_LOCARA_TNO
+--              , C2.MEXNO_ENCR
+--              , C2.CRAL_IDV_TNO
+--              , A1.RNADR || ' ' || A1.RDADR ADR
+--           FROM (
+--                     SELECT C1.CNTR_CST_NO
+--                          , C1.CNTR_NO
+--                          , C2.CNTR_SN
+--                       FROM TB_SSCT_CNTR_BAS C1
+--                 INNER JOIN TB_SSCT_CNTR_DTL C2
+--                         ON C1.CNTR_NO = C2.CNTR_NO
+--                      WHERE 1 = 1
+--                        AND C1.CNTR_NO = #{cntrNo}
+--
+--                      UNION ALL
+--
+--                     SELECT C1.CNTR_CST_NO
+--                          , C2.CNTR_NO
+--                          , C3.CNTR_SN
+--                       FROM TB_SSCT_CNTR_BAS C1
+--                 INNER JOIN TB_SSCT_CNTR_BAS C2
+--                         ON C1.CNTR_CST_NO = C2.CNTR_CST_NO
+--                        AND C2.CNTR_NO != C1.CNTR_NO
+--                 INNER JOIN TB_SSCT_CNTR_DTL C3
+--                         ON C2.CNTR_NO = C3.CNTR_NO
+--                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
+--                         ON C3.CNTR_NO = S1.CNTR_NO
+--                        AND C3.CNTR_SN = S1.CNTR_SN
+--                      WHERE C1.CNTR_NO = #{cntrNo}
+--                        AND C3.SELL_TP_CD IN ('2', '3') /* 렌털(2), 멤버쉽(3) */
+--                        AND S1.REQD_DT IS NULL
+--                        AND S1.IST_DT IS NOT NULL
+--                        AND C3.CNTR_DTL_STAT_CD = '303'--계약취소
+--                    ) T1
+--         INNER JOIN TB_SSCT_CNTR_ADR_REL C1
+--                 ON T1.CNTR_NO = C1.DTL_CNTR_NO
+--                AND T1.CNTR_SN = C1.DTL_CNTR_SN
+--                AND C1.ADRPC_TP_CD = '3'
+--                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C1.VL_STRT_DTM AND C1.VL_END_DTM
+--         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C2
+--                 ON C1.CNTR_ADRPC_ID = C2.CNTR_ADRPC_ID
+--         INNER JOIN TB_GBCO_ADR_BAS A1
+--                 ON C2.ADR_ID = A1.ADR_ID
+--         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
+--                 ON T1.CNTR_NO = S1.CNTR_NO
+--                AND T1.CNTR_SN = S1.CNTR_SN
+--         INNER JOIN TB_PDBS_PD_BAS P1
+--                 ON S1.PDCT_PD_CD = P1.PD_CD
+        SELECT SSCT1.CNTR_NO
+             , SSCT3.CNTR_CST_NO
+             , SSCT3.RCGVP_KNM
+             , SVPD1.PDCT_PD_CD
+             , (SELECT NVL(CST_BASE_PD_ABBR_NM, PD_NM) FROM TB_PDBS_PD_BAS PDBS WHERE PDBS.PD_CD = SVPD1.PDCT_PD_CD) PDCT_PD_NM
+             , SSCT1.BASE_PD_CD
+             , (SELECT NVL(CST_BASE_PD_ABBR_NM, PD_NM) FROM TB_PDBS_PD_BAS PDBS WHERE PDBS.PD_CD = SSCT1.BASE_PD_CD) BASE_PD_NM
+             , NVL(SVPD1.BC_NO, SVPD1.QRS_RDM_NO) AS BC_NO
+             , SSCT3.CRAL_LOCARA_TNO
+             , SSCT3.MEXNO_ENCR
+             , SSCT3.CRAL_IDV_TNO
+             , CASE WHEN SSCT3.ADR_DV_CD = '1' THEN GBCO1.NEW_ADR_ZIP
+                    WHEN SSCT3.ADR_DV_CD = '2' THEN GBCO1.OLD_ADR_ZIP
+               END ZIP
+             , CASE WHEN SSCT3.ADR_DV_CD = '1' THEN GBCO1.RNADR || ' ' || GBCO1.RDADR
+                    WHEN SSCT3.ADR_DV_CD = '2' THEN GBCO1.LTN_ADR || ' ' || GBCO1.LTN_DTL_ADR
+               END ADR
+          FROM TB_SSCT_CNTR_DTL                  SSCT1 /*계약상세*/
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ SVPD1 /*고객서비스수행내역*/
+            ON SSCT1.CNTR_NO = SVPD1.CNTR_NO
+           AND SSCT1.CNTR_SN = SVPD1.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_ADR_REL         SSCT2 /*계약주소관계*/
+            ON SSCT1.CNTR_NO = SSCT2.DTL_CNTR_NO
+           AND SSCT1.CNTR_SN = SSCT2.DTL_CNTR_SN
+           AND SSCT2.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SSCT2.VL_STRT_DTM AND SSCT2.VL_END_DTM
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS       SSCT3 /*계약주소지기본*/
+            ON SSCT2.CNTR_ADRPC_ID = SSCT3.CNTR_ADRPC_ID
+         INNER JOIN TB_GBCO_ADR_BAS        GBCO1 /*주소기본*/
+            ON SSCT3.ADR_ID = GBCO1.ADR_ID
+         WHERE 1=1
+           AND 'N' IN (SSCT1.DTA_DL_YN, SVPD1.DTA_DL_YN, SSCT2.DTA_DL_YN, SSCT3.DTA_DL_YN, GBCO1.DTA_DL_YN)
+           AND SSCT1.CNTR_NO = #{cntrNo}
+        UNION ALL
+        SELECT SSCT1.CNTR_NO
+             , SSCT3.CNTR_CST_NO
+             , SSCT3.RCGVP_KNM
+             , SVPD1.PDCT_PD_CD
+             , (SELECT NVL(CST_BASE_PD_ABBR_NM, PD_NM) FROM TB_PDBS_PD_BAS PDBS WHERE PDBS.PD_CD = SVPD1.PDCT_PD_CD) PDCT_PD_NM
+             , SSCT1.BASE_PD_CD
+             , (SELECT NVL(CST_BASE_PD_ABBR_NM, PD_NM) FROM TB_PDBS_PD_BAS PDBS WHERE PDBS.PD_CD = SSCT1.BASE_PD_CD) BASE_PD_NM
+             , NVL(SVPD1.BC_NO, SVPD1.QRS_RDM_NO) AS BC_NO
+             , SSCT3.CRAL_LOCARA_TNO
+             , SSCT3.MEXNO_ENCR
+             , SSCT3.CRAL_IDV_TNO
+             , CASE WHEN SSCT3.ADR_DV_CD = '1' THEN GBCO1.NEW_ADR_ZIP
+                    WHEN SSCT3.ADR_DV_CD = '2' THEN GBCO1.OLD_ADR_ZIP
+               END ZIP
+             , CASE WHEN SSCT3.ADR_DV_CD = '1' THEN GBCO1.RNADR || ' ' || GBCO1.RDADR
+                    WHEN SSCT3.ADR_DV_CD = '2' THEN GBCO1.LTN_ADR || ' ' || GBCO1.LTN_DTL_ADR
+               END ADR
+          FROM TB_SSCT_CNTR_DTL SSCT1 /*계약상세*/
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ SVPD1 /*고객서비스수행내역*/
+            ON SVPD1.CNTR_NO = SSCT1.CNTR_NO
+           AND SVPD1.CNTR_SN = SSCT1.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_ADR_REL SSCT2 /*계약주소관계*/
+            ON SSCT2.DTL_CNTR_NO = SSCT1.CNTR_NO
+           AND SSCT2.DTL_CNTR_SN = SSCT1.CNTR_SN
+           AND SSCT2.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SSCT2.VL_STRT_DTM AND SSCT2.VL_END_DTM
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT3 /*계약주소지기본*/
+            ON SSCT3.CNTR_ADRPC_ID = SSCT2.CNTR_ADRPC_ID
+          JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT4 /*계약주소지기본*/
+            ON SSCT4.CNTR_CST_NO = SSCT3.CNTR_CST_NO
+           AND SSCT4.CNTR_NO != #{cntrNo}
+         INNER JOIN TB_GBCO_ADR_BAS GBCO1 /*주소기본*/
+            ON GBCO1.DTA_DL_YN = 'N'
+           AND SSCT3.ADR_ID = GBCO1.ADR_ID
+         WHERE 'N' IN (SSCT1.DTA_DL_YN, SVPD1.DTA_DL_YN, SSCT2.DTA_DL_YN, SSCT3.DTA_DL_YN, GBCO1.DTA_DL_YN, SSCT4.DTA_DL_YN)
+           AND SSCT1.CNTR_NO = #{cntrNo}
+           AND SVPD1.REQD_DT IS NULL -- 철거일자
+           AND SVPD1.IST_DT IS NOT NULL -- 설치일자
+           AND SSCT1.SELL_TP_CD IN ('2', '3') -- 2:렌탈, 3:멤버십
+           AND SSCT1.CNTR_DTL_STAT_CD = '303'--계약취소
     </select>
 
     <select id='selectServiceHistorys' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceServHistDvo">
