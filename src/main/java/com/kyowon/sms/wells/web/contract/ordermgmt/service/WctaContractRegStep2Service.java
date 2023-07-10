@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -50,22 +51,61 @@ public class WctaContractRegStep2Service {
                     .build()
             );
 
+            // 계약관계 관련 정보 세팅
             List<WctaContractPdRelDvo> pdRels = regService.selectContractPdRel(cntrNo, cntrSn);
-            // 정기배송인 경우 계약관계테이블의 계약관계상세코드 세팅
+            List<WctaContractRelDvo> rels = regService.selectContractRel(cntrNo);
+            WctaContractRelDvo rel = rels.stream().filter((r) -> r.getBaseDtlCntrSn() == cntrSn).findFirst()
+                .orElse(WctaContractRelDvo.builder().build());
+            dtl.setCntrRelDtlCd(rel.getCntrRelDtlCd());
             if ("6".equals(sellTpCd)) {
-                List<WctaContractRelDvo> rels = regService.selectContractRel(cntrNo);
-                WctaContractRelDvo rel = rels.stream().filter((r) -> r.getBaseDtlCntrSn() == cntrSn).findFirst()
-                    .orElseThrow();
-                dtl.setCntrRelDtlCd(rel.getCntrRelDtlCd());
-                dtl.setPkg(dtl.getPdCd());
-                WctaContractDtlDvo m = dtls.stream().filter((d) -> d.getCntrSn() == rel.getOjDtlCntrSn()).findFirst()
-                    .orElseThrow();
-                List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> pkgs = selectWelsfHcfPkgs(m.getPdCd());
-                pkgs.forEach((p) -> p.setCntrRelDtlCd(rel.getCntrRelDtlCd()));
-                dtl.setPkgs(pkgs);
-                dtl.setSdingCapsls(
-                    mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                if ("216".equals(dtl.getCntrRelDtlCd())) {
+                    // 정기배송 정보 세팅
+                    dtl.setPkg(dtl.getPdCd());
+                    WctaContractDtlDvo m = dtls.stream().filter((d) -> d.getCntrSn() == rel.getOjDtlCntrSn())
+                        .findFirst()
+                        .orElseThrow();
+                    List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> pkgs = selectWelsfHcfPkgs(m.getPdCd());
+                    pkgs.forEach((p) -> p.setCntrRelDtlCd(rel.getCntrRelDtlCd()));
+                    dtl.setPkgs(pkgs);
+                    dtl.setSdingCapsls(
+                        mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                    );
+                } else if ("214".equals(dtl.getCntrRelDtlCd())) {
+                    // 단독 정기배송 정보 세팅
+                    dtl.setSltrRglrSppMchn(
+                        WctaContractRegStep2Dvo.PdSltrRglrSppMchn.builder()
+                            .rglrSppMchnYn(true)
+                            .ojCntrNo(rel.getOjDtlCntrNo())
+                            .ojCntrSn(rel.getOjDtlCntrSn())
+                            .pdNm(mapper.selectPdNm(rel.getOjDtlCntrNo(), rel.getOjDtlCntrSn()))
+                            .build()
+                    );
+                    dtl.setSdingCapsls(
+                        mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                    );
+                }
+            }
+            if ("215".equals(dtl.getCntrRelDtlCd())) {
+                // 1+1 정보 세팅
+                dtl.setOpo(
+                    WctaContractRegStep2Dvo.PdOpo.builder()
+                        .opoYn(true)
+                        .ojCntrNo(rel.getOjDtlCntrNo())
+                        .ojCntrSn(rel.getOjDtlCntrSn())
+                        .pdNm(mapper.selectPdNm(rel.getOjDtlCntrNo(), rel.getOjDtlCntrSn()))
+                        .build()
                 );
+                dtl.setRentalDiscountFixed(true);
+            }
+            // 기기변경 내역 확인, 존재하는 경우 세팅
+            List<WctaMachineChangeIzDvo> mchnChs = regService.selectMachineChangeIz(cntrNo);
+            Optional<WctaMachineChangeIzDvo> mchnCh = mchnChs.stream().filter((m) -> m.getBaseCntrSn() == cntrSn)
+                .findFirst();
+            if (mchnCh.isPresent()) {
+                WctaMachineChangeIzDvo m = mchnCh.get();
+                m.setMchnChYn(true);
+                m.setPdNm(mapper.selectPdNm(m.getOjCntrNo(), m.getOjCntrSn()));
+                dtl.setMchnCh(m);
             }
 
             // select option 세팅(converter 사용?)
@@ -280,17 +320,16 @@ public class WctaContractRegStep2Service {
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
 
-            // 정기배송(기기+모종캡슐)인 경우 기기의 계약기간, 약정기간 세팅
             if ("216".equals(dtl.getCntrRelDtlCd())) {
+                // 정기배송(기기+모종캡슐)인 경우 기기의 계약기간, 약정기간 세팅
                 WctaContractDtlDvo m = dvo.getDtls().stream().filter((d) -> d.getCntrSn() == cntrSn - 1).findFirst()
                     .orElseThrow();
                 dtl.setCntrPtrm(m.getCntrPtrm());
                 dtl.setStplPtrm(m.getStplPtrm());
             } else if ("214".equals(dtl.getCntrRelDtlCd())) {
-                WctaContractDtlDvo m = dvo.getDtls().stream().filter((d) -> d.getCntrSn() == cntrSn - 1).findFirst()
-                    .orElseThrow();
-                dtl.setCntrPtrm(m.getRglrSppCntrDvCd());
-                dtl.setStplPtrm(m.getRglrSppDutyPtrmDvCd());
+                // 단독 정기배송인 경우 상품속성의 정기배송계약기간, 정기배송약정기간 세팅
+                dtl.setCntrPtrm(dtl.getRglrSppCntrDvCd());
+                dtl.setStplPtrm(dtl.getRglrSppDutyPtrmDvCd());
             }
 
             if (sellTpCd.equals("1")) {
@@ -360,13 +399,25 @@ public class WctaContractRegStep2Service {
                 }
             }
 
-            // 4. 계약관계 - 1+1, 다건구매할인, 복합상품구매, 법인다건구매(기기변경 제외)
+            // 4. 계약관계 - 1+1, 다건구매할인, 복합상품구매, 법인다건구매(기기변경 제외) - 상세 단위당 계약관계 대상 1개_20230710
             if (StringUtils.containsAny(
                 dtl.getCntrRelDtlCd(),
                 "216", "214", "215", "22P", "22M", "22W"
             )) {
-                String ojCntrNo = StringUtils.defaultString(dtl.getOjCntrNo(), cntrNo);
-                int ojCntrSn = ObjectUtils.isNotEmpty(dtl.getOjCntrSn()) ? dtl.getOjCntrSn() : cntrSn - 1;
+                String ojCntrNo = cntrNo;
+                Integer ojCntrSn = cntrSn;
+                if ("216".equals(dtl.getCntrRelDtlCd())) {
+                    ojCntrNo = cntrNo;
+                    ojCntrSn = cntrSn - 1;
+                } else if ("214".equals(dtl.getCntrRelDtlCd())) {
+                    WctaContractRegStep2Dvo.PdSltrRglrSppMchn sltrRglrSppMchn = dtl.getSltrRglrSppMchn();
+                    ojCntrNo = sltrRglrSppMchn.getOjCntrNo();
+                    ojCntrSn = sltrRglrSppMchn.getOjCntrSn();
+                } else if ("215".equals(dtl.getCntrRelDtlCd())) {
+                    WctaContractRegStep2Dvo.PdOpo opo = dtl.getOpo();
+                    ojCntrNo = opo.getOjCntrNo();
+                    ojCntrSn = opo.getOjCntrSn();
+                }
                 mapper.insertCntrRelStep2(
                     WctaContractRelDvo.builder()
                         .baseDtlCntrNo(cntrNo)
@@ -383,6 +434,13 @@ public class WctaContractRegStep2Service {
             }
 
             // 5. 기기변경내역
+            WctaMachineChangeIzDvo mchnCh = dtl.getMchnCh();
+            if (ObjectUtils.isNotEmpty(mchnCh) && mchnCh.getMchnChYn()) {
+                mchnCh.setBaseCntrNo(cntrNo);
+                mchnCh.setBaseCntrSn(cntrSn);
+                mchnCh.setMchnChSn(1); /* 기기변경일련번호 */
+                mapper.insertMchnChIzStep2(mchnCh);
+            }
 
             /* TODO 프로모션, 사은품 정의되면 처리
             // 6. 계약프로모션내역(프로모션을 선택한 경우)

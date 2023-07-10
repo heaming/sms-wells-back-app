@@ -91,6 +91,10 @@ public class WctaContractRegService {
         return mapper.selectContractRel(cntrNo);
     }
 
+    public List<WctaMachineChangeIzDvo> selectMachineChangeIz(String cntrNo) {
+        return mapper.selectMachineChangeIz(cntrNo);
+    }
+
     public List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo) {
         return mapper.selectContractAdrpcBas(cntrNo);
     };
@@ -116,6 +120,8 @@ public class WctaContractRegService {
 
     @Transactional
     public void removeStep2Data(String cntrNo) {
+        step2Mapper.deleteCntrRelStep2(cntrNo);
+        step2Mapper.deleteMchnChIzStep2(cntrNo);
         step2Mapper.deleteCntrDtlStep2(cntrNo);
         step2Mapper.deleteContractDetailHistory(cntrNo);
         step2Mapper.deleteCntrHsmtrlDtlStep2(cntrNo);
