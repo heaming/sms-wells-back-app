@@ -56,6 +56,7 @@
                                                       AND C.PERF_ATC_CD = 'W03P00110') = '3' THEN B.FEE_UPRC_AMT * 1.2
                                              ELSE 0 END
                END
+            <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND (B.BASE_YM, B.CL_DV_CD, B.OG_TP_CD, B.PRTNR_NO) IN
                (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
@@ -70,4 +71,415 @@
            AND B.WK_EXCN_DT IS NOT NULL
            AND B.SV_BIZ_DCLSF_CD NOT IN ('4330', '2250', '2240') -- 제외 홈마스터 방문부재건 4330 / 웰컴BS 2250  / 사전방문 2240
     </update>
+
+    <update id="updateResignPartnerEducationFees">
+        UPDATE TB_FEAM_FEE_CALC_BAS A
+           SET A.DTA_DL_YN = 'Y'
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND A.OJ_DSB_YM = #{baseYm}
+           AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+           AND A.BASE_YM != A.OJ_DSB_YM -- 과거에 만들어 둔거
+           AND A.FEE_CD = 'W030011'     -- 고정
+           AND A.DTA_DL_YN = 'N'
+           AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO /* 월파트너에 존재하지 않는 경우는 삭제하기로...  */
+                                    FROM TB_OGBS_MM_PRTNR_IZ B
+                                   WHERE 1 = 1
+                                     AND B.BASE_YM = #{baseYm}
+                                     AND B.OG_TP_CD = #{ogTpCd}
+                                     AND B.PSTN_DV_CD = '15' -- 고정
+         )
+    </update>
+
+    <insert id ="insertResignPartnerEducationFeeHistories">
+        INSERT INTO TB_FEAM_FEE_CALC_HIST (  /* 수수료계산이력 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+             , HIST_CH_DTM        /* 이력변경일시 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+             , FEE_CTR_RSON_CN    /* 수수료조정사유내용 */
+             , FEE_CTR_OG_TP_CD   /* 수수료조정조직유형코드 */
+             , FEE_CTR_PRTNR_NO   /* 수수료조정파트너번호 */
+             , FEE_CALC_VARB_VAL1 /* 수수료계산변수값1 */
+             , FEE_CALC_VARB_VAL2 /* 수수료계산변수값2 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+             , DTA_DL_YN          /* 데이터삭제여부 */
+             , FST_RGST_DTM       /* 최초등록일시 */
+             , FST_RGST_USR_ID    /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID    /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID   /* 최초등록부서ID */
+             , FNL_MDFC_DTM       /* 최종수정일시 */
+             , FNL_MDFC_USR_ID    /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID    /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID   /* 최종수정부서ID */)
+        SELECT BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+             , FNL_MDFC_DTM
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+             , FEE_CTR_RSON_CN    /* 수수료조정사유내용 */
+             , FEE_CTR_OG_TP_CD   /* 수수료조정조직유형코드 */
+             , FEE_CTR_PRTNR_NO   /* 수수료조정파트너번호 */
+             , FEE_CALC_VARB_VAL1 /* 수수료계산변수값1 */
+             , FEE_CALC_VARB_VAL2 /* 수수료계산변수값2 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+             , DTA_DL_YN          /* 데이터삭제여부 */
+             , FST_RGST_DTM       /* 최초등록일시 */
+             , FST_RGST_USR_ID    /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID    /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID   /* 최초등록부서ID */
+             , FNL_MDFC_DTM       /* 최종수정일시 */
+             , FNL_MDFC_USR_ID    /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID    /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID   /* 최종수정부서ID */
+          FROM TB_FEAM_FEE_CALC_BAS A/* 수수료계산기본 */
+         WHERE 1 = 1
+            AND A.OJ_DSB_YM = #{baseYm}
+            AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+            AND A.BASE_YM != A.OJ_DSB_YM -- 과거에 만들어 둔거
+            AND A.FEE_CD = 'W030011'     -- 고정
+            AND A.DTA_DL_YN = 'N'
+            AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO /* 월파트너에 존재하지 않는 경우는 삭제하기로...  */
+                                     FROM TB_OGBS_MM_PRTNR_IZ B
+                                    WHERE 1 = 1
+                                      AND B.BASE_YM = #{baseYm}
+                                      AND B.OG_TP_CD = #{ogTpCd}
+                                      AND B.PSTN_DV_CD = '15' -- 고정
+          )
+    </insert>
+
+    <update id="updateResignPartnerEducationFeePlan">
+        UPDATE TB_FEAM_FEEPDSB_PLAN_IZ A
+           SET A.DTA_DL_YN = 'Y'
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND A.OJ_DSB_YM = #{baseYm}
+           AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+           AND A.BASE_YM != A.OJ_DSB_YM -- 과거에 만들어 둔거
+           AND A.FEE_CD = 'W030011'     -- 고정
+           AND A.DTA_DL_YN = 'N'
+           AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO /* 월파트너에 존재하지 않는 경우는 삭제하기로...  */
+                                    FROM TB_OGBS_MM_PRTNR_IZ B
+                                   WHERE 1 = 1
+                                     AND B.BASE_YM = #{baseYm}
+                                     AND B.OG_TP_CD = #{ogTpCd}
+                                     AND B.PSTN_DV_CD = '15' -- 고정
+         )
+    </update>
+
+    <insert id="insertResignPartnerEducationFeePlanHistories">
+        INSERT INTO TB_FEAM_FEEPDSB_PLAN_HIST (  /* 수수료분할지급계획이력 */
+               BASE_YM          /* 기준년월 */
+             , PERF_YM          /* 실적년월 */
+             , OJ_DSB_YM        /* 대상지급년월 */
+             , CO_CD            /* 회사코드 */
+             , OG_TP_CD         /* 조직유형코드 */
+             , PRTNR_NO         /* 파트너번호 */
+             , FEE_CD           /* 수수료코드 */
+             , DTA_CRT_FEE_CD   /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD   /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD   /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD   /* 수수료계산유형코드 */
+             , HIST_CH_DTM      /* 이력변경일시 */
+             , DSB_TN           /* 지급회차 */
+             , DSB_LV_TCNT      /* 지급단계차수 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             , FST_RGST_DTM     /* 최초등록일시 */
+             , FST_RGST_USR_ID  /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID  /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID /* 최초등록부서ID */
+             , FNL_MDFC_DTM     /* 최종수정일시 */
+             , FNL_MDFC_USR_ID  /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID  /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID /* 최종수정부서ID */)
+        SELECT BASE_YM          /* 기준년월 */
+             , PERF_YM          /* 실적년월 */
+             , OJ_DSB_YM        /* 대상지급년월 */
+             , CO_CD            /* 회사코드 */
+             , OG_TP_CD         /* 조직유형코드 */
+             , PRTNR_NO         /* 파트너번호 */
+             , FEE_CD           /* 수수료코드 */
+             , DTA_CRT_FEE_CD   /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD   /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD   /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD   /* 수수료계산유형코드 */
+             , FNL_MDFC_DTM
+             , DSB_TN           /* 지급회차 */
+             , DSB_LV_TCNT      /* 지급단계차수 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             , FST_RGST_DTM     /* 최초등록일시 */
+             , FST_RGST_USR_ID  /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID  /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID /* 최초등록부서ID */
+             , FNL_MDFC_DTM     /* 최종수정일시 */
+             , FNL_MDFC_USR_ID  /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID  /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID /* 최종수정부서ID */
+          FROM TB_FEAM_FEEPDSB_PLAN_IZ A/* 수수료분할지급계획내역 */
+        WHERE 1 = 1
+           AND A.OJ_DSB_YM = #{baseYm}
+           AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+           AND A.BASE_YM != A.OJ_DSB_YM -- 과거에 만들어 둔거
+           AND A.FEE_CD = 'W030011'     -- 고정
+           AND A.DTA_DL_YN = 'N'
+           AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO /* 월파트너에 존재하지 않는 경우는 삭제하기로...  */
+                                    FROM TB_OGBS_MM_PRTNR_IZ B
+                                   WHERE 1 = 1
+                                     AND B.BASE_YM = #{baseYm}
+                                     AND B.OG_TP_CD = #{ogTpCd}
+                                     AND B.PSTN_DV_CD = '15' -- 고정
+         )
+    </insert>
+
+    <insert id="insertEducationFees">
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+            <include refid="COMMON.insertSystemField" />)
+        SELECT A.BASE_YM
+             , A.BASE_YM AS PERF_YM
+             , A.BASE_YM AS OJ_DSB_YM
+             , #{coCd}    AS CO_CD
+             , A.OG_TP_CD
+             , A.PRTNR_NO
+             , #{feeCd} AS FEE_CD
+             , #{dtaCrtFeeCd} AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd}      AS FEE_TCNT_DV_CD
+             , '01'      AS SPMT_DSB_DV_CD
+             , '01'      AS FEE_CALC_TP_CD
+             , 75000     AS FEE_CALC_AMT
+             , 75000     AS FEE_CTR_CNFM_AMT
+             , #{fnlFeeYn}       AS FNL_FEE_YN
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_OGBS_MM_PRTNR_IZ A
+         WHERE 1 = 1
+           AND A.BASE_YM = #{baseYm}
+           AND A.OG_TP_CD = #{ogTpCd}
+           AND A.PSTN_DV_CD = '15'               -- 고정
+           AND A.FST_CNTR_DT >= '20230901'       -- 고정 (시스템 적용 월부터)
+           AND NVL(A.PERF_EXCD_OJ_YN, 'N') = 'N' -- 고정 (실직제외여부)
+           AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO
+                                    FROM TB_FEAM_FEE_CALC_BAS B
+                                   WHERE 1 = 1
+                                     AND B.BASE_YM <![CDATA[<]]> #{baseYm}
+                                     AND B.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                     AND B.FEE_CD = #{feeCd}
+                                     AND B.FEE_CTR_CNFM_AMT > 0
+                                     AND B.DTA_DL_YN = 'N') /* 지난달까지 교육 수수료 지급 이력이 있으면 대상 제외  */
+           AND A.PRTNR_NO IN (SELECT C.PRTNR_NO
+                                FROM TB_FEAM_PRTNR_PERF_MM_CL C
+                               WHERE 1 = 1
+                                 AND C.BASE_YM = #{baseYm}
+                                 AND C.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                 AND C.OG_TP_CD = #{ogTpCd}
+                                 AND C.PERF_ATC_CD = 'W03P00112' -- 고정 (교육)
+                                 AND C.FEE_PERF_ATC_VAL = 'Y' -- 고정 (수료)
+         ) /* 교육수료하신분  */
+           AND A.PRTNR_NO IN (SELECT D.PRTNR_NO
+                                FROM TB_FEAM_NTORP_PERF_MM_CL D
+                               WHERE 1 = 1
+                                 AND D.BASE_YM <![CDATA[<=]]> #{baseYm}
+                                 AND D.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                 AND D.OG_TP_CD = #{ogTpCd}
+                                 AND D.PERF_ATC_CD = 'W03P00085' -- 서비스건수
+                                 AND D.PERF_DV_CD = '0'
+                               GROUP BY D.PRTNR_NO
+                              HAVING SUM(D.PERF_VAL) >= 20) /* 서비스 누적 실적 건수 20건 이상  */
+         UNION ALL
+        SELECT A.BASE_YM
+             , A.BASE_YM                                                                AS PERF_YM
+             , TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM || '01', 'YYYYMMDD'), 2), 'YYYYMM') AS OJ_DSB_YM
+             , #{coCd}                                                                  AS CO_CD            -- 고정
+             , A.OG_TP_CD
+             , A.PRTNR_NO
+             , #{feeCd}                                                                 AS FEE_CD
+             , #{dtaCrtFeeCd}                                                           AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd}                                                           AS FEE_TCNT_DV_CD
+             , '01'                                                                     AS SPMT_DSB_DV_CD   -- 고정
+             , '01'                                                                     AS FEE_CALC_TP_CD   -- 고정
+             , 75000                                                                    AS FEE_CALC_AMT     -- 고정
+             , 75000                                                                    AS FEE_CTR_CNFM_AMT -- 고정
+             , #{fnlFeeYn}                                                              AS FNL_FEE_YN       -- 고정
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_OGBS_MM_PRTNR_IZ A
+         WHERE 1 = 1
+           AND A.BASE_YM = #{baseYm}
+           AND A.OG_TP_CD = #{ogTpCd}
+           AND A.PSTN_DV_CD = '15'               -- 고정
+           AND A.FST_CNTR_DT >= '20230901'       -- 고정 (시스템 적용 월부터)
+           AND NVL(A.PERF_EXCD_OJ_YN, 'N') = 'N' -- 고정 (실직제외여부)
+           AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO
+                                    FROM TB_FEAM_FEE_CALC_BAS B
+                                   WHERE 1 = 1
+                                     AND B.BASE_YM <![CDATA[<]]> #{baseYm}
+                                     AND B.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                     AND B.FEE_CD = #{feeCd}
+                                     AND B.FEE_CTR_CNFM_AMT > 0
+                                     AND B.DTA_DL_YN = 'N') /* 지난달까지 교육 수수료 지급 이력이 있으면 대상 제외  */
+           AND A.PRTNR_NO IN (SELECT C.PRTNR_NO
+                                FROM TB_FEAM_PRTNR_PERF_MM_CL C
+                               WHERE 1 = 1
+                                 AND C.BASE_YM = #{baseYm}
+                                 AND C.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                 AND C.OG_TP_CD = #{ogTpCd}
+                                 AND C.PERF_ATC_CD = 'W03P00112' -- 고정 (교육)
+                                 AND C.FEE_PERF_ATC_VAL = 'Y' -- 고정 (수료)
+         ) /* 교육수료하신분  */
+           AND A.PRTNR_NO IN (SELECT D.PRTNR_NO
+                                FROM TB_FEAM_NTORP_PERF_MM_CL D
+                               WHERE 1 = 1
+                                 AND D.BASE_YM <![CDATA[<=]]> #{baseYm}
+                                 AND D.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                 AND D.OG_TP_CD = #{ogTpCd}
+                                 AND D.PERF_ATC_CD = 'W03P00085' -- 서비스건수
+                                 AND D.PERF_DV_CD = '0'
+                               GROUP BY D.PRTNR_NO
+                              HAVING SUM(D.PERF_VAL) >= 20) /* 서비스 누적 실적 건수 20건 이상  */
+    </insert>
+
+    <insert id="insertEducationFeePlan">
+        INSERT INTO TB_FEAM_FEEPDSB_PLAN_IZ (  /* 수수료분할지급계획내역 */
+               BASE_YM          /* 기준년월 */
+             , PERF_YM          /* 실적년월 */
+             , OJ_DSB_YM        /* 대상지급년월 */
+             , CO_CD            /* 회사코드 */
+             , OG_TP_CD         /* 조직유형코드 */
+             , PRTNR_NO         /* 파트너번호 */
+             , FEE_CD           /* 수수료코드 */
+             , DTA_CRT_FEE_CD   /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD   /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD   /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD   /* 수수료계산유형코드 */
+             , DSB_TN           /* 지급회차 */
+             , DSB_LV_TCNT      /* 지급단계차수 */
+            <include refid="COMMON.insertSystemField" />)
+        SELECT A.BASE_YM
+             , A.BASE_YM AS PERF_YM
+             , A.BASE_YM AS OJ_DSB_YM
+             , #{coCd}    AS CO_CD
+             , A.OG_TP_CD
+             , A.PRTNR_NO
+             , #{feeCd} AS FEE_CD
+             , #{dtaCrtFeeCd} AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd}      AS FEE_TCNT_DV_CD
+             , '01'      AS SPMT_DSB_DV_CD -- 고정
+             , '01'      AS FEE_CALC_TP_CD -- 고정
+             , 1         AS DSB_TN         -- 고정
+             , 1         AS DSB_LV_TCNT    -- 고정
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_OGBS_MM_PRTNR_IZ A
+         WHERE 1 = 1
+           AND A.BASE_YM = #{baseYm}
+           AND A.OG_TP_CD = #{ogTpCd}
+           AND A.PSTN_DV_CD = '15'               -- 고정
+           AND A.FST_CNTR_DT >= '20230901'       -- 고정 (시스템 적용 월부터)
+           AND NVL(A.PERF_EXCD_OJ_YN, 'N') = 'N' -- 고정 (실직제외여부)
+           AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO
+                                    FROM TB_FEAM_FEE_CALC_BAS B
+                                   WHERE 1 = 1
+                                     AND B.BASE_YM <![CDATA[<]]> #{baseYm}
+                                     AND B.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                     AND B.FEE_CD = #{feeCd}
+                                     AND B.FEE_CTR_CNFM_AMT > 0
+                                     AND B.DTA_DL_YN = 'N') /* 지난달까지 교육 수수료 지급 이력이 있으면 대상 제외  */
+           AND A.PRTNR_NO IN (SELECT C.PRTNR_NO
+                                FROM TB_FEAM_PRTNR_PERF_MM_CL C
+                               WHERE 1 = 1
+                                 AND C.BASE_YM = #{baseYm}
+                                 AND C.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                 AND C.OG_TP_CD = #{ogTpCd}
+                                 AND C.PERF_ATC_CD = 'W03P00112' -- 고정 (교육)
+                                 AND C.FEE_PERF_ATC_VAL = 'Y' -- 고정 (수료)
+         ) /* 교육수료하신분  */
+           AND A.PRTNR_NO IN (SELECT D.PRTNR_NO
+                                FROM TB_FEAM_NTORP_PERF_MM_CL D
+                               WHERE 1 = 1
+                                 AND D.BASE_YM <![CDATA[<=]]> #{baseYm}       -- 변수 ( 기준년월 )
+                                 AND D.FEE_TCNT_DV_CD = #{feetcntDvCd}
+                                 AND D.OG_TP_CD = #{ogTpCd}          -- 변수 ( 조직 )
+                                 AND D.PERF_ATC_CD = 'W03P00085' -- 서비스건수
+                                 AND D.PERF_DV_CD = '0'
+                               GROUP BY D.PRTNR_NO
+                              HAVING SUM(D.PERF_VAL) >= 20) /* 서비스 누적 실적 건수 20건 이상  */
+         UNION ALL
+        SELECT A.BASE_YM
+             , A.BASE_YM                                                                AS PERF_YM
+             , TO_CHAR(ADD_MONTHS(TO_DATE(A.BASE_YM || '01', 'YYYYMMDD'), 2), 'YYYYMM') AS OJ_DSB_YM
+             , #{coCd}                                                                  AS CO_CD          -- 고정
+             , A.OG_TP_CD
+             , A.PRTNR_NO
+             , #{feeCd}                                                                 AS FEE_CD         -- 고정
+             , #{dtaCrtFeeCd}                                                           AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd}                                                           AS FEE_TCNT_DV_CD -- 변수 (차수)
+             , '01'                                                                     AS SPMT_DSB_DV_CD -- 고정
+             , '01'                                                                     AS FEE_CALC_TP_CD -- 고정
+             , 2                                                                        AS DSB_TN         -- 고정
+             , 3                                                                        AS DSB_LV_TCNT    -- 고정
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_OGBS_MM_PRTNR_IZ A
+         WHERE 1 = 1
+           AND A.BASE_YM = #{baseYm}              -- 변수 ( 기준년월 )
+           AND A.OG_TP_CD = #{ogTpCd}                -- 변수 ( 조직 )
+           AND A.PSTN_DV_CD = '15'               -- 고정
+           AND A.FST_CNTR_DT >= '20230901'       -- 고정 (시스템 적용 월부터)
+           AND NVL(A.PERF_EXCD_OJ_YN, 'N') = 'N' -- 고정 (실직제외여부)
+           AND A.PRTNR_NO NOT IN (SELECT B.PRTNR_NO
+                                    FROM TB_FEAM_FEE_CALC_BAS B
+                                   WHERE 1 = 1
+                                     AND B.BASE_YM <![CDATA[<]]> #{baseYm}    -- 변수 ( 기준년월 )
+                                     AND B.FEE_TCNT_DV_CD = #{feeTcntDvCd} -- 변수 (차수)
+                                     AND B.FEE_CD = #{feeCd}
+                                     AND B.FEE_CTR_CNFM_AMT > 0
+                                     AND B.DTA_DL_YN = 'N') /* 지난달까지 교육 수수료 지급 이력이 있으면 대상 제외  */
+           AND A.PRTNR_NO IN (SELECT C.PRTNR_NO
+                                FROM TB_FEAM_PRTNR_PERF_MM_CL C
+                               WHERE 1 = 1
+                                 AND C.BASE_YM = #{baseYm}        -- 변수 ( 기준년월 )
+                                 AND C.FEE_TCNT_DV_CD = #{feeTcntDvCd}     -- 변수 (차수)
+                                 AND C.OG_TP_CD = #{ogTpCd}          -- 변수 ( 조직 )
+                                 AND C.PERF_ATC_CD = 'W03P00112' -- 고정 (교육)
+                                 AND C.FEE_PERF_ATC_VAL = 'Y' -- 고정 (수료)
+         ) /* 교육수료하신분  */
+           AND A.PRTNR_NO IN (SELECT D.PRTNR_NO
+                                FROM TB_FEAM_NTORP_PERF_MM_CL D
+                               WHERE 1 = 1
+                                 AND D.BASE_YM <![CDATA[<=]]> #{baseYm}       -- 변수 ( 기준년월 )
+                                 AND D.FEE_TCNT_DV_CD = #{feeTcntDvCd}     -- 변수 (차수)
+                                 AND D.OG_TP_CD = #{ogTpCd}          -- 변수 ( 조직 )
+                                 AND D.PERF_ATC_CD = 'W03P00085' -- 서비스건수
+                                 AND D.PERF_DV_CD = '0'
+                               GROUP BY D.PRTNR_NO
+                              HAVING SUM(D.PERF_VAL) >= 20) /* 서비스 누적 실적 건수 20건 이상  */
+    </insert>
 </mapper>
