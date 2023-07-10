@@ -374,6 +374,8 @@
              , M1.PD_NM                                                                                     -- 상품명 2
              , CASE WHEN T11.PD_TP_CD = 'P' THEN T2.PD_PRP_VAL02 ELSE '' END            AS IST_BZS_CD               -- 설치업체코드
              , T3.PD_PRP_VAL07                                                          AS RGLR_SPP_CNTR_DV_CD      -- 정기배송 계약구분 (0: 기기결합으로 기기의 계약기간 및 의무기간 따름, 999: 고객 요청전까지 계속 배송, 6-12 계약기간 후 종료)
+             , T3.PD_PRP_VAL13                                                          AS RGLR_SPP_PRC_DV_CD      -- 정기배송 계약구분 (0: 기기결합으로 기기의 계약기간 및 의무기간 따름, 999: 고객 요청전까지 계속 배송, 6-12 계약기간 후 종료)
+             , T3.PD_PRP_VAL15                                                          AS RGLR_SPP_MCHN_TP_CD      -- 정기배송 계약구분 (0: 기기결합으로 기기의 계약기간 및 의무기간 따름, 999: 고객 요청전까지 계속 배송, 6-12 계약기간 후 종료)
              , T11.PD_TP_CD                                                             AS CLSF_PD_TP_CD
              /* chips */
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', M1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
@@ -1022,12 +1024,26 @@
                                   FROM TB_PDBS_PD_REL
                                  WHERE BASE_PD_CD = T1.SV_PD_CD
                                  FETCH FIRST 1 ROWS ONLY)
-        <if test='@MybatisUtils@isList(parts)'>
+        <if test='@MybatisUtils@isList(parts) and parts.size > 0'>
            AND T1.PART_PD_CD
             <foreach collection="parts" item="part" separator="," open="IN (" close=")">
                 #{part}
             </foreach>
         </if>
+    </select>
+
+    <select id="selectPdNm" resultType="String">
+        SELECT T3.PD_NM
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T2.BASE_PD_CD
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T2.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
     </select>
 
     <!-- STEP2 저장 -->
@@ -1176,55 +1192,6 @@
              <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
-    <insert id="insertCntrHsmtrlDtlStep2">
-        INSERT INTO TB_SSCT_CNTR_HSMTRL_DTL (  /* 계약학습지상세 */
-               CNTR_NO               /* 계약번호 */
-             , CNTR_SN               /* 계약일련번호 */
-             , LRNN_GRY_CD           /* 학습학년코드 */
-             , LRNN_STRT_LV_CD       /* 학습시작단계코드 */
-             , LRNN_STRT_RQDT        /* 학습시작요청일자 */
-             , LRNN_DOW_CD           /* 학습요일코드 */
-             , LRNN_HM               /* 학습시분 */
-             , LRNN_CRSE_SERIS_CD    /* 학습과정시리즈코드 */
-             , LRNN_TCHMT_UNIT_TP_CD /* 학습교재단위유형코드 */
-             , TOT_LRNN_CIRN         /* 총학습부수 */
-             , RGL_TCHMT_STRT_ISN    /* 정규교재시작호수 */
-             , RGL_TCHMT_END_ISN     /* 정규교재종료호수 */
-             , RETT_TCHMT_STRT_ISN   /* 소급교재시작호수 */
-             , RETT_TCHMT_END_ISN    /* 소급교재종료호수 */
-             , LRNN_TCHMT_BASE_YM    /* 학습교재기준년월 */
-             , LRNN_STRTDT           /* 학습시작일자 */
-             , LRNN_ENDDT            /* 학습종료일자 */
-             , BORR_LRNN_ISN         /* 차주학습호수 */
-             , RES_LRNN_CIRN         /* 잔여학습부수 */
-             , BIL_STRTDT            /* 청구시작일자 */
-             , BIL_ENDDT             /* 청구종료일자 */
-             <include refid="COMMON.insertSystemField" />)
-         VALUES (
-               #{cntrNo}
-             , #{cntrSn}
-             , #{lrnnGryCd}
-             , #{lrnnStrtLvCd}
-             , #{lrnnStrtRqdt}
-             , #{lrnnDowCd}
-             , #{lrnnHm}
-             , #{lrnnCrseSerisCd}
-             , #{lrnnTchmtUnitTpCd}
-             , #{totLrnnCirn}
-             , #{rglTchmtStrtIsn}
-             , #{rglTchmtEndIsn}
-             , #{rettTchmtStrtIsn}
-             , #{rettTchmtEndIsn}
-             , #{lrnnTchmtBaseYm}
-             , #{lrnnStrtdt}
-             , #{lrnnEnddt}
-             , #{borrLrnnIsn}
-             , #{resLrnnCirn}
-             , #{bilStrtdt}
-             , #{bilEnddt}
-             <include refid="COMMON.insertSystemFieldValue" /> )
-    </insert>
-
     <insert id="insertCntrPdRelStep2">
         <selectKey keyProperty="item.cntrPdRelId" resultType="java.lang.String" order="BEFORE">
         SELECT LPAD(NVL(MAX(CNTR_PD_REL_ID) + 1, 1), 15, 0)
@@ -1258,7 +1225,40 @@
              , #{item.pdQty}
              , #{item.cntrChRcpId}
              <include refid="COMMON.insertSystemFieldValue" /> )
-     </insert>
+    </insert>
+
+    <insert id="insertMchnChIzStep2">
+        INSERT INTO TB_SSCT_MCHN_CH_IZ (  /* 기기변경내역 */
+              BASE_CNTR_NO          /* 기준계약번호 */
+            , BASE_CNTR_SN          /* 기준계약일련번호 */
+            , MCHN_CH_SN            /* 기기변경일련번호 */
+            , OJ_CNTR_NO            /* 대상계약번호 */
+            , OJ_CNTR_SN            /* 대상계약일련번호 */
+            , MCHN_CH_TP_CD         /* 기기변경유형코드 */
+            , PASG_MCN              /* 경과개월수 */
+            , BASE_CNTR_RCPDT       /* 기준계약접수일자 */
+            , BASE_CNTR_SL_DT       /* 기준계약매출일자 */
+            , MCHN_CPS_APYR         /* 기기보상적용율 */
+            , MCHN_CLN_OJ_YN        /* 기기회수대상여부 */
+            , OJ_CNTR_MM_BASE_DV_CD /* 대상계약월기준구분코드 */
+            , OJ_CNTR_CH_FSH_DTM    /* 대상계약변경완료일시 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{baseCntrNo}
+            , #{baseCntrSn}
+            , #{mchnChSn}
+            , #{ojCntrNo}
+            , #{ojCntrSn}
+            , #{mchnChTpCd}
+            , #{pasgMcn}
+            , #{baseCntrRcpdt}
+            , #{baseCntrSlDt}
+            , #{mchnCpsApyr}
+            , #{mchnClnOjYn}
+            , #{ojCntrMmBaseDvCd}
+            , #{ojCntrChFshDtm}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
 
     <insert id="insertCntrPmotIzStep2">
         <selectKey keyProperty="item.cntrPmotId" resultType="java.lang.String" order="BEFORE">
@@ -1532,6 +1532,11 @@
          WHERE CNTR_NO = #{cntrNo}
     </delete>
 
+    <delete id="deleteMchnChIzStep2">
+        DELETE TB_SSCT_MCHN_CH_IZ
+         WHERE BASE_CNTR_NO = #{cntrNo}
+    </delete>
+
     <delete id="deleteCntrPmotIzStep2">
         DELETE TB_SSCT_CNTR_PMOT_IZ
          WHERE CNTR_NO = #{cntrNo}
@@ -1557,4 +1562,8 @@
          WHERE CNTR_NO = #{cntrNo}
     </delete>
 
+    <delete id="deleteCntrRelStep2">
+        DELETE TB_SSCT_CNTR_REL
+         WHERE BASE_DTL_CNTR_NO = #{cntrNo}
+    </delete>
 </mapper>

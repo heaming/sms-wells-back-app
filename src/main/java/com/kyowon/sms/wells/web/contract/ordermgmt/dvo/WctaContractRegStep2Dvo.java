@@ -3,9 +3,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 import java.math.BigDecimal;
 import java.util.List;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -77,6 +75,8 @@ public class WctaContractRegStep2Dvo {
         String rglrSppPdctConsQty;
         String pdChoLmYn;
         String pdChoQty;
+        String rglrSppPrcDvCd;
+        String rglrSppMchnTpCd;
         String laboEuYn;
         String chdvcPrmitYn;
         String fgptTpYn;
@@ -185,5 +185,29 @@ public class WctaContractRegStep2Dvo {
         Long itmQty;
         String pdRelId;
         String pdRelTpCd;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PdOpo {
+        Boolean opoYn;
+        String ojCntrNo;
+        Integer ojCntrSn;
+        String pdNm;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PdSltrRglrSppMchn {
+        Boolean rglrSppMchnYn;
+        String ojCntrNo;
+        Integer ojCntrSn;
+        String pdNm;
     }
 }
