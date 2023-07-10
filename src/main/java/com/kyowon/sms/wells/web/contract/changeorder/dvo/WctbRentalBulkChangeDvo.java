@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.changeorder.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +27,7 @@ public class WctbRentalBulkChangeDvo {
     private String stpStrtYm; //시작기간(중지시작년월)
     private String stpEndYm; //종료기간 (중지종료년월)
     private String cralLocaraTno; //휴대전화1
+    @DBDecField
     private String mexnoEncr; //휴대전화2
     private String cralIdvTno; //휴대전화3
     private String feeFxamYn; // 수수료정액여부
