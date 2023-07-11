@@ -79,9 +79,10 @@ public class WsnaPcsvOutOfStorageSaveService {
             //사용내역 IU
             mapper.insertSvstSvWkOstrIz(dvo);
 
-            //TODO 출고 확정시 일자(설치일자)로 지정 (판매시스템 연계)
+            //출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
             String istDt = DateUtil.getNowDayString();
-            //installationReqdDtInService.saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), istDt, "");
+            String sppDueDt = DateUtil.getNowDayString();
+            //installationReqdDtInService.saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), istDt, "", sppDueDt);
 
             //TODO 수불처리
             //            WsnaItemStockItemizationReqDvo itemDvo = setPcsvOstrWsnaItemStockItemizationDtoSaveReq(dvo);
