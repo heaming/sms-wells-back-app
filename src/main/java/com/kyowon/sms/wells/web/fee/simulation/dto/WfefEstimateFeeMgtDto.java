@@ -10,18 +10,25 @@ public class WfefEstimateFeeMgtDto {
         @NotBlank
         String perType,
         @NotBlank
-        String sellPrtnrNo,
-        String userDvCd
+        String sellPrtnrNo
     ) {}
 
     public record BaseP(
-        String useOg, // 조직사용여부
         String prtnrKnm,
         String ogCd, // 조직코드
         String rsbDvCd, // 직책구분코드
+        String startYm, // 개시차월
+        String prfmtYm, // 승진차월
         Long amtEstSalFee, // 예상판매수수료 - 개인
         Long amtMutAidFee, // 예상상조수수료 - 개인
-        Long amtFeeSum // 예상수수료합계 - 개인
+        Long amtFeeSum, // 예상수수료합계 - 개인
+        Long amtEstOgFee // 예상조직수수료
+    ) {}
+
+    public record MeetingP(
+        String plarSrtup,
+        String plannerPrctc,
+        String metgPrscD
     ) {}
 
     public record PerformanceP(
@@ -29,21 +36,25 @@ public class WfefEstimateFeeMgtDto {
         Long amtElhm, // 가전
         Long amtExceptElhm, // 가전외
         Long amtMutu429, // 상조-429
-        Long amtMutu599, // 상조-599
-        String eduCertSrtupYn, // 교육수료-플래너스타트업
-        String eduCertPlarPriticYn // 교육수료-플래너실전
+        Long amtMutu599 // 상조-599
     ) {}
 
     public record EstimateP(
-        Long amtSumElhmPrpn, /* 개인-가전비례 */
-        Long amtSumElhmExcpPrpn, /* 개인-가전외비례 */
-        Long amtSumSalIntv, /* 개인-판매장려 */
-        Long amtSumStmnt, /* 개인-정착 */
-        Long amtSumMutu, /* 개인-상조 */
-        Long amtSumOgElhmPrpn, /* 조직-가전비례 */
-        Long amtSumOgElhmExcpPrpn, /* 조직-가전외비례 */
-        Long amtSumOgSalIntv, /* 조직-판매장려 */
-        Long amtSumOgMutu /* 조직-상조 */
+        Long prsnlFeeElhmPrpn,
+        Long prsnlFeeElhmExcpPrpn,
+        Long prsnlFeeSalIntv,
+        Long prsnlFeeMetg,
+        Long prsnlFeeStmnt,
+        Long prsnlFeeMutu,
+        Long prsnlFeeAgg,
+        Long orgnstnFeeElhmOgPrpn,
+        Long orgnstnFeeElhmOgExcpPrpn,
+        Long orgnstnFeeOgSellEncrg,
+        Long orgnstnFeeOgEjt1,
+        Long orgnstnFeeOgEjt2,
+        Long orgnstnFeeNbBrch,
+        Long orgnstnFeePrfmtFee,
+        Long orgnstnFeeAgg
     ) {}
 
     public record SaleP(
@@ -63,9 +74,11 @@ public class WfefEstimateFeeMgtDto {
     ) {}
 
     public record SearchOgPRes(
+        String userDvCd,
         BaseP base,
+        MeetingP meeting,
         List<PerformanceP> performances,
-        List<EstimateP> estimates,
+        EstimateP estimate,
         List<SaleP> sales
     ) {}
 
@@ -159,9 +172,9 @@ public class WfefEstimateFeeMgtDto {
         String pdNm,
         String cstKnm,
         String mchnChTpCd,
-        Long amtElhmBasePrc,
-        Integer elhmAckmtCt,
-        Integer elhmExcpAckmtCt
+        Long amtSumElhm,
+        Long amtSumChng,
+        Long amtSumExceptElhm
     ) {}
 
     public record SearchOgMRes(
