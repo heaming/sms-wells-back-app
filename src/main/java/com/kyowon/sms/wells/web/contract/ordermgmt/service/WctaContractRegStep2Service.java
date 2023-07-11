@@ -11,10 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.api.client.util.Lists;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrBasicChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrPrccchHistDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractWellsDetailHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.*;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
@@ -438,8 +435,16 @@ public class WctaContractRegStep2Service {
             if (ObjectUtils.isNotEmpty(mchnCh) && mchnCh.getMchnChYn()) {
                 mchnCh.setBaseCntrNo(cntrNo);
                 mchnCh.setBaseCntrSn(cntrSn);
-                mchnCh.setMchnChSn(1); /* 기기변경일련번호 */
+                mchnCh.setMchnChSn(1);
                 mapper.insertMchnChIzStep2(mchnCh);
+
+                historyService.createMachineChangeHistory(
+                    WctzMachineChangeHistoryDvo.builder()
+                        .baseCntrNo(cntrNo)
+                        .baseCntrSn(cntrSn)
+                        .histStrtDtm(now)
+                        .build()
+                );
             }
 
             /* TODO 프로모션, 사은품 정의되면 처리
