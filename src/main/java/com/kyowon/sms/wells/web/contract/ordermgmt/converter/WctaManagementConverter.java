@@ -36,4 +36,8 @@ public interface WctaManagementConverter {
     List<SearchRglrDlvrOrdrDtptListRes> mapWctaRglrDlvrOrdrDtptListDvoToSearchRglrDlvrOrdrDtptListRes(
         List<WctaRglrDlvrOrdrDtptListDvo> dvos
     );
+
+    List<SearchMastOrdrDtptRes> mapWctaMastOrdrDtptDvoToSearchMastOrdrDtptRes(
+        List<WctaMastOrdrDtptDvo> dvos
+    );
 }

@@ -41,6 +41,16 @@ public class WctaManagementDto {
         String cnfmMsgYn /* 확정승인 메세지 */
     ) {}
 
+    //계약관리 - 알림톡 발송 Save Request Dto
+    @ApiModel(value = "WctaManagementDto-SaveNotificationTalkFwsReq")
+    public record SaveNotificationTalkFwsReq(
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String cntrDv, /* 계약상세구분 */
+        String stplRcpDt, /* 접수일자(계약일자) */
+        String stplPtrm /* 약정개월(의무사용기간) */
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -424,5 +434,28 @@ public class WctaManagementDto {
         String cntrAprAkDvCdNm, /* 계약승인요청구분코드명 */
         String cntrAprAkDvCd, /* 계약승인요청구분코드 */
         String ackdCnftMsg /* 승인 확인 메시지 */
+    ) {}
+
+    //계약관리 - 계약정보 조회 Search Result Dto
+    @ApiModel("WctaManagementDto-SearchMastOrdrDtptRes")
+    public record SearchMastOrdrDtptRes(
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String cntrDtlNo, /* 계약상세번호 */
+        String cntrwTpCd, /* 계약서구분(계약서유형코드) */
+        String cntrPrgsStatCd, /* 계약진행상태코드 */
+        String cntrRcpFshDt, /* 접수일자 */
+        String cntrCralLocaraTno, /* 계약자 휴대지역전화번호 */
+        String cntrMexnoEncr, /* 계약자 휴대전화국번호암호화 */
+        String cntrCralIdvTno, /* 계약자 휴대개별전화번호 */
+        String sellTpCd, /* 판매유형코드 */
+        String cstKnm, /* 고객명 */
+        String cntrCnt, /* 그룹주문 건수 */
+        String basePdCd, /* 상품코드 */
+        String pdNm, /* 상품명 */
+        String sellTpDtlCd, /* 상품각사속성상세 */
+        String svAlncBzsCd, /* 서비스제휴업체 */
+        String sppDuedt, /* 배송일자 */
+        String sowDuedt /* 파종예정일자 */
     ) {}
 }
