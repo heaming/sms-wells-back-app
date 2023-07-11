@@ -77,6 +77,11 @@ public class WctbContractChangeMgtService {
 
         WctbContractChangeDvo checkDvo = mapper.selectCheckOgTpCd();
 
+        String[] msgParam = new String[] {
+            messageResourceService.getMessage("MSG_TXT_USR") + messageResourceService.getMessage("MSG_TXT_INF")};
+
+        BizAssert.isFalse(ObjectUtils.isEmpty(checkDvo), "MSG_ALT_CHK_CONFIRM", msgParam); // 사용자 정보를 확인하세요.
+
         String ogTpCd = checkDvo.getOgTpCd();
         String resYn = checkDvo.getResYn();
 
