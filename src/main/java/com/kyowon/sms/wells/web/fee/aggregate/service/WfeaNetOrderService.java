@@ -85,6 +85,8 @@ public class WfeaNetOrderService {
         WfeaNetOrderDvo dvo = converter.mapSaveReqToWfeaNetOrderDvo(dto);
 
         mapper.deleteNetOrders(dvo);
+        mapper.deleteWelsNetOrders(dvo);
+        mapper.insertNetOrder(dvo);
         processCount += mapper.insertManagerNetOrders(dvo);
         processCount += mapper.insertPlannerNetOrders(dvo);
         processCount += mapper.insertHomeMasterNetOrders(dvo);

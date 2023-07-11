@@ -86,10 +86,10 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchHmstReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchHmstSellFeeRes> getHomeMasterSellFees(
+    public List<WfeaOrganizationNetOrderDto.SearchHmstFeeRes> getHomeMasterFees(
         WfeaOrganizationNetOrderDto.SearchHmstReq dto
     ) {
-        return this.mapper.selectHomeMasterSellFees(dto);
+        return this.mapper.selectHomeMasterFees(dto);
     }
 
     /**

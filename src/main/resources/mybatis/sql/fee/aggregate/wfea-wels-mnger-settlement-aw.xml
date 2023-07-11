@@ -20,7 +20,7 @@
                     WHEN T4.QLF_DV_CD = '3' THEN '웰스매니저'
                     WHEN T4.QLF_DV_CD = '6' THEN 'BS프리매니저'
                END AS NEXT_QLF_DV_CD /* M+1자격 */
-             , T3.PYM AS PROCS_DTM   /* WM전환월 */
+             , SUBSTR(T3.PYD,0,6) AS PROCS_DTM   /* WM전환월 */
              , T5.EDU096  AS SRTUP /* 스타트업 */
              , T5.EDU143  AS FREE_SRTUP /* 프리스타트업 */
              , CASE WHEN T1.BZ_STAT_CD = '1' THEN 'Y' /* 사업상태코드 = 1 사업 */
@@ -43,17 +43,16 @@
            ON T1.RSB_DV_CD = CD.CD_VLD_VAL
           AND CD.CD_ID = 'RSB_DV_CD'
           AND CD.TENANT_ID = 'TNT_WELLS'
-        LEFT OUTER JOIN ( SELECT ROW_NUMBER() OVER (PARTITION BY PRTNR_NO ORDER BY CV_DT DESC) AS RANK
-                               , SUBSTR(CV_DT,0,6) AS PYM
-                               , PRTNR_NO
-                            FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
-                           WHERE OG_TP_CD = 'W02'
-                             AND QLF_DV_CD = '3'  /* 웰스매니저 */
-                             AND QLF_APLC_DV_CD = '1'  /* 승급 */
-                             AND DTA_DL_YN = 'N'
+        LEFT OUTER JOIN ( SELECT MAX(A.CV_DT) AS PYD
+                               , A.PRTNR_NO
+                            FROM TB_OGPS_PLAR_QLF_CH_IZ A /*플래너 자격 변경내역*/
+                           WHERE A.OG_TP_CD = 'W02'
+                             AND A.QLF_DV_CD = '3'  /* 웰스매니저 */
+                             AND A.QLF_APLC_DV_CD = '1'  /* 승급 */
+                             AND A.DTA_DL_YN = 'N'
+                           GROUP BY A.PRTNR_NO
                         )T3
             ON T1.PRTNR_NO = T3.PRTNR_NO
-           AND T3.RANK = 1
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
             ON T1.PRTNR_NO = T4.PRTNR_NO
            AND T1.OG_TP_CD = T4.OG_TP_CD

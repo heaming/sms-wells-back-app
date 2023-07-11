@@ -27,7 +27,7 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchHmstReq dto
     );
 
-    List<SearchHmstSellFeeRes> selectHomeMasterSellFees(
+    List<SearchHmstFeeRes> selectHomeMasterFees(
         SearchHmstReq dto
     );
 
