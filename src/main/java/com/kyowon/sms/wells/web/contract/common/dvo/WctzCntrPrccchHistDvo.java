@@ -16,9 +16,6 @@ public class WctzCntrPrccchHistDvo {
     private String pdCd; /* 상품코드 */
     private String pdPrcFnlDtlId; /* 상품가격최종상세ID */
     private Integer verSn; /* 버전일련번호 */
-    private String pdPrpMetaId; /* 상품속성메타ID */
-    private String prpNm; /* 속성명 */
-    private String pdPrcPrpVal; /* 상품가격속성값 */
     private Integer apyStrtTn; /* 적용시작회차 */
     private Integer apyEndTn; /* 적용종료회차 */
     private String fxamFxrtDvCd; /* 정액정률구분코드 */
