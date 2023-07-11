@@ -106,7 +106,9 @@ public class WsnaSeedReleaseScheduleDto {
         BigDecimal recapCsAmt,
         String sdingMcnrPdCd,
         String sppDvCd,
-        String cstSvAsnNo
+        String cstSvAsnNo,
+        String cntrDtlNo,
+        String mchnCstDtlNo
     ) {}
 
     @Builder

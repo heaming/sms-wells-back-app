@@ -20,6 +20,18 @@
                     ELSE '알수없음'
                END AS ATMT_STAT /* [자동이체정보-상태] */
              , T7.MPY_BSDT /* [자동이체정보-이체일] 납부기준일자 */
+             , CASE WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0102' /*계좌자동이체*/ THEN '1'
+                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0203' /*카드자동이체*/ THEN '2'
+                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0401' /*지로*/ THEN 'G'
+                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD IS NULL THEN 'N'
+                    WHEN T2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN ''
+               END AS AFTN_INF_FNT_DV_CD /* 자동이체정보-이체구분코드 */
+             , CASE WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0102' /*계좌자동이체*/ THEN '은행'
+                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0203' /*카드자동이체*/ THEN '카드'
+                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0401' /*지로*/ THEN '지로'
+                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD IS NULL THEN '보류'
+                    WHEN T2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN ''
+               END AS AFTN_INF_FNT_DV_NM /* [자동이체정보-이체구분] 이체구분명 */
              , T6.DP_TP_CD /* 입금유형코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T6.DP_TP_CD) AS DP_TP_NM /* [자동이체정보-이체구분] 입금유형명 */
              , CASE WHEN T6.DP_TP_CD = '0102' THEN T7.BNK_CD
@@ -86,6 +98,7 @@
            AND T6.DTL_CNTR_SN = T2.CNTR_SN
            AND T6.DTA_DL_YN = 'N'
            AND T6.VL_END_DTM = '99991231235959'
+           AND T6.DP_TP_CD IN ('0102', '0203', '0401') /* 입금유형코드=계좌자동이체(0102),카드자동이체(0203),지로(0401) */
           LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7 /* 계약결제기본 */
             ON T7.CNTR_STLM_ID = T6.CNTR_STLM_ID
            AND T7.DTA_DL_YN = 'N'

@@ -1,0 +1,230 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyFeeCalculationSqlFor301Mapper">
+
+    <insert id='insertEarlSettleFee'>
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+        <include refid="COMMON.insertSystemField" />)
+        SELECT Z.BASE_YM
+              ,Z.PERF_YM
+              ,Z.OJ_DSB_YM
+              ,Z.CO_CD
+              ,Z.OG_TP_CD
+              ,Z.PRTNR_NO
+              ,#{feeCd}                 AS FEE_CD                     -- 고정
+              ,#{dtaCrtFeeCd}                 AS DTA_CRT_FEE_CD             -- 고정
+              ,Z.FEE_TCNT_DV_CD
+              ,'01'                      AS SPMT_DSB_DV_CD             -- 고정
+              ,'01'                      AS FEE_CALC_TP_CD             -- 고정
+              ,Z.FEE_CALC_AMT
+              ,Z.FEE_CTR_CNFM_AMT
+              ,Z.FNL_FEE_YN
+            <include refid="COMMON.insertSystemFieldValue" />
+          FROM (
+                    /* 0차월 */
+           SELECT A.BASE_YM
+                 ,A.PERF_YM
+                 ,A.BASE_YM                 AS OJ_DSB_YM
+                 ,A.CO_CD
+                 ,A.OG_TP_CD
+                 ,A.PRTNR_NO
+                 ,A.FEE_TCNT_DV_CD
+           --      ,NVL(B.FEE_PERF_ATC_VAL,'N')   -- 교육이수여부
+           --      ,NVL(C.PERF_VAL,0)             -- 서비스 건수
+           --      ,NVL(D.CNT_SELL,0)             -- 렌탈 판매 건수
+                 ,CASE WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 100 AND NVL(D.CNT_SELL,0) >= 1 THEN 700000
+                       WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 75                             THEN 500000
+                       WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 20                             THEN 300000
+                       ELSE 0 END  AS FEE_CALC_AMT
+                 ,CASE WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 100 AND NVL(D.CNT_SELL,0) >= 1 THEN 700000
+                       WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 75                             THEN 500000
+                       WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 20                             THEN 300000
+                       ELSE 0 END  AS FEE_CTR_CNFM_AMT
+                 ,#{fnlFeeYn}                       AS FNL_FEE_YN
+             FROM TB_FEAM_PRTNR_PERF_MM_CL A
+                 JOIN TB_OGBS_MM_PRTNR_IZ Z
+                 ON  A.BASE_YM             = Z.BASE_YM
+                 AND A.OG_TP_CD            = Z.OG_TP_CD
+                 AND A.PRTNR_NO            = Z.PRTNR_NO
+                 AND NVL(Z.PERF_EXCD_OJ_YN,'N') = 'N'
+                 LEFT OUTER JOIN  TB_FEAM_PRTNR_PERF_MM_CL B
+                 ON  A.BASE_YM             = B.BASE_YM
+                 AND A.PERF_YM             = B.PERF_YM
+                 AND A.FEE_TCNT_DV_CD      = B.FEE_TCNT_DV_CD
+                 AND A.PERF_AGRG_CRT_DV_CD = B.PERF_AGRG_CRT_DV_CD
+                 AND 'W03P00112'           = B.PERF_ATC_CD /* 교육수료  */
+                 AND A.CO_CD               = B.CO_CD
+                 AND A.OG_TP_CD            = B.OG_TP_CD
+                 AND A.PRTNR_NO            = B.PRTNR_NO
+                 LEFT OUTER JOIN  TB_FEAM_NTORP_PERF_MM_CL C
+                 ON  A.BASE_YM             = C.BASE_YM
+                 AND A.PERF_YM             = C.PERF_YM
+                 AND A.FEE_TCNT_DV_CD      = C.FEE_TCNT_DV_CD
+                 AND A.PERF_AGRG_CRT_DV_CD = C.PERF_AGRG_CRT_DV_CD
+                 AND 'W03P00085'           = C.PERF_ATC_CD /* 서비스건수  */
+                 AND A.CO_CD               = C.CO_CD
+                 AND A.OG_TP_CD            = C.OG_TP_CD
+                 AND A.PRTNR_NO            = C.PRTNR_NO
+                 AND '0'                   = C.PERF_DV_CD  /* 개인실적  */
+                 LEFT OUTER JOIN (SELECT  D.OG_TP_CD, D.PRTNR_NO, COUNT(D.CNTR_NO) CNT_SELL
+                   FROM TB_FEAM_WELS_NRCTR_MM_CL D
+                   WHERE 1 = 1
+                     AND D.BASE_YM          = #{baseYm}
+                     AND D.FEE_TCNT_DV_CD   = #{feeTcntDvCd}
+                     AND D.OG_TP_CD            = #{ogTpCd}
+                     AND D.CNTR_PERF_CRT_DV_CD = '01'  /* 순주문  */
+                     AND D.SELL_TP_CD       = '2'      /* 렌탈/리스  */
+                     AND NVL(D.CAN_DT,'0')  = '0'
+                    GROUP BY  D.OG_TP_CD, D.PRTNR_NO) D
+                 ON  A.OG_TP_CD            = D.OG_TP_CD
+                 AND A.PRTNR_NO            = D.PRTNR_NO
+            WHERE 1 = 1
+              AND A.BASE_YM          = #{baseYm}    -- 변수
+              AND A.FEE_TCNT_DV_CD   = #{feeTcntDvCd}        -- 변수
+              AND A.PERF_AGRG_CRT_DV_CD = '301'     -- 고정 (순주문수수료)
+              AND A.OG_TP_CD         = #{ogTpCd}       -- 고정
+              AND A.PERF_ATC_CD      = 'W03P00124' -- 고정
+              AND A.PERF_VAL         = 0           -- 고정 ( 0차월 )
+           UNION ALL
+           /* 1차월 */
+           SELECT A.BASE_YM
+                 ,A.PERF_YM
+                 ,A.BASE_YM                 AS OJ_DSB_YM
+                 ,A.CO_CD
+                 ,A.OG_TP_CD
+                 ,A.PRTNR_NO
+                 ,A.FEE_TCNT_DV_CD
+           --      ,NVL(B.FEE_PERF_ATC_VAL,'N')   -- 교육이수여부
+           --      ,NVL(C.PERF_VAL,0)             -- 서비스 건수
+           --      ,NVL(D.CNT_SELL,0)             -- 렌탈 판매 건수
+                 ,CASE WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 100 AND NVL(D.CNT_SELL,0) >= 1 THEN 700000
+                       WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 75                             THEN 500000
+                       ELSE 0 END  AS FEE_CALC_AMT
+                 ,CASE WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 100 AND NVL(D.CNT_SELL,0) >= 1 THEN 700000
+                       WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 75                             THEN 500000
+                       ELSE 0 END  AS FEE_CTR_CNFM_AMT
+                 ,'Y'                       AS FNL_FEE_YN
+             FROM TB_FEAM_PRTNR_PERF_MM_CL A
+                 JOIN TB_OGBS_MM_PRTNR_IZ Z
+                 ON  A.BASE_YM             = Z.BASE_YM
+                 AND A.OG_TP_CD            = Z.OG_TP_CD
+                 AND A.PRTNR_NO            = Z.PRTNR_NO
+                 AND NVL(Z.PERF_EXCD_OJ_YN,'N') = 'N'
+                 LEFT OUTER JOIN  TB_FEAM_PRTNR_PERF_MM_CL B
+                 ON  A.BASE_YM             = B.BASE_YM
+                 AND A.PERF_YM             = B.PERF_YM
+                 AND A.FEE_TCNT_DV_CD      = B.FEE_TCNT_DV_CD
+                 AND A.PERF_AGRG_CRT_DV_CD = B.PERF_AGRG_CRT_DV_CD
+                 AND 'W03P00112'           = B.PERF_ATC_CD /* 교육수료  */
+                 AND A.CO_CD               = B.CO_CD
+                 AND A.OG_TP_CD            = B.OG_TP_CD
+                 AND A.PRTNR_NO            = B.PRTNR_NO
+                 LEFT OUTER JOIN  TB_FEAM_NTORP_PERF_MM_CL C
+                 ON  A.BASE_YM             = C.BASE_YM
+                 AND A.PERF_YM             = C.PERF_YM
+                 AND A.FEE_TCNT_DV_CD      = C.FEE_TCNT_DV_CD
+                 AND A.PERF_AGRG_CRT_DV_CD = C.PERF_AGRG_CRT_DV_CD
+                 AND 'W03P00085'           = C.PERF_ATC_CD /* 서비스건수  */
+                 AND A.CO_CD               = C.CO_CD
+                 AND A.OG_TP_CD            = C.OG_TP_CD
+                 AND A.PRTNR_NO            = C.PRTNR_NO
+                 AND '0'                   = C.PERF_DV_CD  /* 개인실적  */
+                 LEFT OUTER JOIN (SELECT  D.OG_TP_CD, D.PRTNR_NO, COUNT(D.CNTR_NO) CNT_SELL
+                   FROM TB_FEAM_WELS_NRCTR_MM_CL D
+                   WHERE 1 = 1
+                     AND D.BASE_YM          = #{baseYm}    -- 변수
+                     AND D.FEE_TCNT_DV_CD   = #{feeTcntDvCd}        -- 변수
+                     AND D.OG_TP_CD            = #{ogTpCd}
+                     AND D.CNTR_PERF_CRT_DV_CD = '01'  /* 순주문  */
+                     AND D.SELL_TP_CD       = '2'      /* 렌탈/리스  */
+                     AND NVL(D.CAN_DT,'0')  = '0'
+                    GROUP BY  D.OG_TP_CD, D.PRTNR_NO  ) D
+                 ON  A.OG_TP_CD            = D.OG_TP_CD
+                 AND A.PRTNR_NO            = D.PRTNR_NO
+            WHERE 1 = 1
+              AND A.BASE_YM          = #{baseYm}    -- 변수
+              AND A.FEE_TCNT_DV_CD   = #{feeTcntDvCd}        -- 변수
+              AND A.PERF_AGRG_CRT_DV_CD = '301'     -- 고정 (순주문수수료)
+              AND A.OG_TP_CD         = #{ogTpCd}       -- 고정
+              AND A.PERF_ATC_CD      = 'W03P00124' -- 고정
+              AND A.PERF_VAL         = 1           -- 고정 ( 1차월 )
+           UNION ALL
+           /* 2차월 */
+           SELECT A.BASE_YM
+                 ,A.PERF_YM
+                 ,A.BASE_YM                 AS OJ_DSB_YM
+                 ,A.CO_CD
+                 ,A.OG_TP_CD
+                 ,A.PRTNR_NO
+                 ,A.FEE_TCNT_DV_CD
+           --      ,NVL(B.FEE_PERF_ATC_VAL,'N')   -- 교육이수여부
+           --      ,NVL(C.PERF_VAL,0)             -- 서비스 건수
+           --      ,NVL(D.CNT_SELL,0)             -- 렌탈 판매 건수
+                 ,CASE WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 100 AND NVL(D.CNT_SELL,0) >= 1 THEN 700000
+                       ELSE 0 END  AS FEE_CALC_AMT
+                 ,CASE WHEN NVL(B.FEE_PERF_ATC_VAL,'N') = 'Y' AND NVL(C.PERF_VAL,0) >= 100 AND NVL(D.CNT_SELL,0) >= 1 THEN 700000
+                       ELSE 0 END  AS FEE_CTR_CNFM_AMT
+                 ,'Y'                       AS FNL_FEE_YN
+             FROM TB_FEAM_PRTNR_PERF_MM_CL A
+                 JOIN TB_OGBS_MM_PRTNR_IZ Z
+                 ON  A.BASE_YM             = Z.BASE_YM
+                 AND A.OG_TP_CD            = Z.OG_TP_CD
+                 AND A.PRTNR_NO            = Z.PRTNR_NO
+                 AND NVL(Z.PERF_EXCD_OJ_YN,'N') = 'N'
+                 LEFT OUTER JOIN  TB_FEAM_PRTNR_PERF_MM_CL B
+                 ON  A.BASE_YM             = B.BASE_YM
+                 AND A.PERF_YM             = B.PERF_YM
+                 AND A.FEE_TCNT_DV_CD      = B.FEE_TCNT_DV_CD
+                 AND A.PERF_AGRG_CRT_DV_CD = B.PERF_AGRG_CRT_DV_CD
+                 AND 'W03P00112'           = B.PERF_ATC_CD /* 교육수료  */
+                 AND A.CO_CD               = B.CO_CD
+                 AND A.OG_TP_CD            = B.OG_TP_CD
+                 AND A.PRTNR_NO            = B.PRTNR_NO
+                 LEFT OUTER JOIN  TB_FEAM_NTORP_PERF_MM_CL C
+                 ON  A.BASE_YM             = C.BASE_YM
+                 AND A.PERF_YM             = C.PERF_YM
+                 AND A.FEE_TCNT_DV_CD      = C.FEE_TCNT_DV_CD
+                 AND A.PERF_AGRG_CRT_DV_CD = C.PERF_AGRG_CRT_DV_CD
+                 AND 'W03P00085'           = C.PERF_ATC_CD /* 서비스건수  */
+                 AND A.CO_CD               = C.CO_CD
+                 AND A.OG_TP_CD            = C.OG_TP_CD
+                 AND A.PRTNR_NO            = C.PRTNR_NO
+                 AND '0'                   = C.PERF_DV_CD  /* 개인실적  */
+                 LEFT OUTER JOIN (SELECT  D.OG_TP_CD, D.PRTNR_NO, COUNT(D.CNTR_NO) CNT_SELL   /* 2차월은 지난 3개월 중 판매건수 본다  */
+                   FROM TB_FEAM_WELS_NRCTR_MM_CL D
+                   WHERE 1 = 1
+                     AND D.BASE_YM          >= TO_CHAR(ADD_MONTHS(#{baseYm}||'01',-2),'YYYYMM')    -- 변수 (기준년월)
+                     AND D.BASE_YM          <![CDATA[<=]]> #{baseYm}    -- 변수
+                     AND D.FEE_TCNT_DV_CD   = #{feeTcntDvCd}        -- 변수
+                     AND D.OG_TP_CD            = #{ogTpCd}
+                     AND D.CNTR_PERF_CRT_DV_CD = '01'  /* 순주문  */
+                     AND D.SELL_TP_CD       = '2'      /* 렌탈/리스  */
+                     AND NVL(D.CAN_DT,'0')  = '0'
+                    GROUP BY  D.OG_TP_CD, D.PRTNR_NO  ) D
+                 ON  A.OG_TP_CD            = D.OG_TP_CD
+                 AND A.PRTNR_NO            = D.PRTNR_NO
+            WHERE 1 = 1
+              AND A.BASE_YM          = #{baseYm}    -- 변수
+              AND A.FEE_TCNT_DV_CD   = #{feeTcntDvCd}        -- 변수
+              AND A.PERF_AGRG_CRT_DV_CD = '301'     -- 고정 (순주문수수료)
+              AND A.OG_TP_CD         = #{ogTpCd}       -- 고정
+              AND A.PERF_ATC_CD      = 'W03P00124' -- 고정
+              AND A.PERF_VAL         = 2           -- 고정 ( 2차월 )
+               ) Z
+         WHERE 1 = 1
+           AND Z.FEE_CALC_AMT > 0
+    </insert>
+</mapper>

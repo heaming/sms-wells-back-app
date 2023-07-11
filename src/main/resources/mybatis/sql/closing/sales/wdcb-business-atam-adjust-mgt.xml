@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbBusinessAtamAdjustMgtMapper">
-    
+
     <select id='selectSapPdDvCds' resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto$SearchSapPdDvCdRes">
         SELECT SAP_PD_DV_CD AS CODE_ID  /*SAP상품구분코드*/
              , SAP_PD_DV_NM AS CODE_NAME  /*SAP상품항목코드*/
-          FROM TB_CBCL_SAP_PD_DV_CD      
+          FROM TB_CBCL_SAP_PD_DV_CD
          WHERE SAP_BZ_TERY_CD = DECODE(#{session.tenantId}, 'TNT_EDU', '1110', '1210')  /*WELLS*/
            AND SAP_PD_ATC_CD = '00'     /*상품항목 00 - SAP상품코드인건, 01부터는 SAP항목코드*/
-         GROUP BY SAP_PD_DV_CD , SAP_PD_DV_NM  
+         GROUP BY SAP_PD_DV_CD , SAP_PD_DV_NM
          ORDER BY SAP_PD_DV_CD
     </select>
-    
+
     <select id="selectBusinessAtamTotals" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto$SearchTotalRes">
         SELECT SELL_TP_CD  /*판매유형코드*/
              , SELL_TP_DTL_CD /*판매유형상세*/
              , DG_CST_ID   /*대표고객ID*/
-             , (SELECT MAX(SAP_PD_DV_NM) 
+             , (SELECT MAX(SAP_PD_DV_NM)
                   FROM TB_CBCL_SAP_PD_DV_CD WHERE SAP_PD_DV_CD = T1.SAP_PD_DV_CD) AS SAP_PD_DV_NM  /*SAP상품구분코드명*/
              , BASE_YM              /*기준년월*/
              , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT   /*채권반제금액*/
@@ -26,7 +26,7 @@
              , SUM(UC_AMT) AS UC_AMT                       /*매출채권잔액*/
           FROM TB_CBCL_SL_BND_ALRPY_BAS T1                 /*채권반제기본*/
          WHERE 1=1
-           AND KW_GRP_CO_CD = '2000'  /*교원그룹회사코드 - 프라퍼티 고정*/ 
+           AND KW_GRP_CO_CD = '2000'  /*교원그룹회사코드 - 프라퍼티 고정*/
            AND BASE_YM = #{baseYm}          /*기준년월*/
            AND ((#{dpKndCd} = '1' AND SELL_TP_CD = '1' )    /*일시불*/
                    OR (#{dpKndCd} = '5' AND RVE_DV_CD = '02')   /*연체가산금*/
@@ -44,11 +44,11 @@
          GROUP BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, DG_CST_ID, BASE_YM, SL_BND_ALRPY_SLIP_TRS_NO, SAP_ALRPY_SLPNO
          ORDER BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, DG_CST_ID
     </select>
-    
+
     <select id="selectBusinessAtamDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto$SearchDetailRes">
         SELECT SELL_TP_CD  /*판매유형코드*/
              , SELL_TP_DTL_CD /*판매유형상세*/
-             , (SELECT MAX(SAP_PD_DV_NM) 
+             , (SELECT MAX(SAP_PD_DV_NM)
                   FROM TB_CBCL_SAP_PD_DV_CD WHERE SAP_PD_DV_CD = T1.SAP_PD_DV_CD) AS SAP_PD_DV_NM  /*SAP상품구분코드명*/
              , DG_CST_ID   /*대표고객ID*/
              , BASE_YM              /*기준년월*/
@@ -86,7 +86,7 @@
            </if>
          ORDER BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, DG_CST_ID, CNTR_NO, CNTR_SN
     </select>
-    
+
     <select id="selectSapAlrpySlpnos" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto$SearchSlpnoRes">
         SELECT SELL_TP_CD  /*판매유형코드*/
              , SELL_TP_DTL_CD /*판매유형상세*/
@@ -98,25 +98,23 @@
            AND SAP_ALRPY_SLPNO = #{sapAlrpySlpno}
          ORDER BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_ALRPY_SLPNO
     </select>
-    
+
     <update id="updateAllRepaymentBase">
         UPDATE TB_CBCL_SL_BND_ALRPY_BAS /*반제기본테이블*/
            SET SL_BND_ALRPY_SLIP_TRS_NO = ''
-             , SL_BND_ALRPY_SLPNO = ''
-             , SL_BND_ALRPY_SLIP_LINE_SN = 0
              , SAP_ALRPY_SLPNO = ''
              , SAP_SLIP_MSG = ''
         <include refid="COMMON.updateSystemField"/>
          WHERE SAP_ALRPY_SLPNO = #{sapAlrpySlpno}
     </update>
-    
+
     <update id="updateDepositSlip">
         UPDATE TB_IFIN_DP_SLIP_BAS /*입금전표테이블*/
            SET BKTXT = TO_CHAR(SYSDATE,'YYYYMMDD')||'반제취소'  /*적요*/
              , BELNR = ''   /*SAP전표번호*/
              , STBLG = ''   /*SAP역분개전표*/
              , MESSGE = ''  /*SAP전표메시지*/
-             , ZFCGUB = 'Y' 
+             , ZFCGUB = 'Y'
              , FIMYMD = TO_CHAR(SYSDATE,'YYYYMMDD')
              , FIMHMS = TO_CHAR(SYSDATE,'HH24MISS')
          WHERE BELNR = #{sapAlrpySlpno}

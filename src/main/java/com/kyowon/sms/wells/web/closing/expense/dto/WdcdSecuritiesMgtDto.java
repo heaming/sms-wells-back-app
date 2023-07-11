@@ -37,6 +37,8 @@ public class WdcdSecuritiesMgtDto {
         String mrcAdrCn,             /*가맹점주소내용*/
         String cardAprno,             /*카드승인번호*/
         String domTrdAmt,               /*사용금액*/
+        String domTrdSumAmt,               /*사용금액 합*/
+        String domTrdAmt1,               /*사용금액*/
         String opcsAdjExcdYn,           /*운영비정산제외여부*/
         String opcsAdjSmryDvCd,    /*운영비정산적요구분코드*/
         String opcsAdjSmryDvNm,    /*운영비정산적요구분명*/
@@ -65,7 +67,10 @@ public class WdcdSecuritiesMgtDto {
     @ApiModel(value = "WdcdSecuritiesMgtDto-SearchWithholdingTaxAdjustReq")
     public record SearchWithholdingTaxAdjustReq(
         String baseYm,
-        String opcsAdjNo
+        String opcsAdjNo,
+        String dgr1LevlOgId,
+        String dgr2LevlOgId,
+        String dgr3LevlOgId
     ) {
 
     }

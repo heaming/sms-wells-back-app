@@ -7,8 +7,9 @@ import lombok.Setter;
 @Getter
 public class WsncAsInterfaceCustInfoDvo {
     String cntrNo;
+    String cstNo;
     String cstKnm;
-    String cntrDt;
+    String cntrCnfmDtm;
     String pdCd;
     String pdNm;
     String cralLocaraTno;
@@ -17,18 +18,11 @@ public class WsncAsInterfaceCustInfoDvo {
     String locaraTno;
     String exnoEncr;
     String idvTno;
-    String lgsysCd;
-    String oldAdrZip;
-    String ltnAdr;
-    String ltnDtlAdr;
     String newAdrZip;
     String rnadr;
     String rdadr;
-    String addRefer;
-    String addGb;
+    String adrDvCd;
     String addr;
-    String hpno;
-    String telno;
     String rcgvpKnm;
     String bryyMmdd;
     String sexDvCd;

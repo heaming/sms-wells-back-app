@@ -19,6 +19,8 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     int updateSdingSppPlanIzDpDt(WsnaSeedReleaseScheduleDvo dvo);
 
+    Integer selectSdingSppCnfmIzCount(WsnaSeedReleaseScheduleCnfmDvo dvo);
+
     int insertSdingSppCnfmIz(WsnaSeedReleaseScheduleCnfmDvo dvo);
 
     int updateCstSvasIstAsnIzForCnfm(String cstSvAsnNo);

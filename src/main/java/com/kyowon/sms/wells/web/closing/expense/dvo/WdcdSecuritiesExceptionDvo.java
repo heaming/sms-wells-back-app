@@ -31,6 +31,7 @@ public class WdcdSecuritiesExceptionDvo {
     private String opcsAdjBtn;       /*원천세정산버튼*/
     private String adjCls;            /*정산여부*/
     private String domTrdAmt;
+    private String domTrdSumAmt;
     private String adjOgId;
     private String domTrdAmt1;
 }

@@ -137,6 +137,7 @@ public class WctaInstallationShippingDto {
         String booSellYn, // 예약확정유무
         String inChnlDvCd, // 입력채널구분코드
 
+        String profile, // 프로필
         String pdHclsfNm, // 대분류명
         String pdMclsfNm, // 중분류명
         String istPcsvSellTpCd, // 설치택배구분

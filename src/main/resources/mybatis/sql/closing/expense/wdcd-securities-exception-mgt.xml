@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdSecuritiesExceptionMgtMapper">
 
     <select id="selectAdjustObject" resultType="com.kyowon.sms.wells.web.closing.expense.dvo.WdcdSecuritiesExceptionDvo">
-        /* [WDCD] 운영비 등록 관리 - 유가증권 제외 */
+        /* [WDCD] 운영비 등록 관리 - newCgcdInjSpptAplcId - 유가증권  제외*/
         SELECT A.OPCS_CARD_USE_IZ_ID    /*운영비카드사용내역ID*/
              , TO_CHAR(TO_DATE(A.APR_DT||A.APVTM_MS,'YYYYMMDDHH24MISS'),'YYYY-MM-DD AM HH24:MI') AS USE_DTM /*사용일시*/
              , C.DGR1_LEVL_OG_ID        /*(hidden)총괄단조직ID*/
@@ -15,8 +15,9 @@
              , A.MRC_ADR_CN             /*가맹점주소내용*/
              , A.CARD_APRNO             /*카드승인번호*/
              , SUM(CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
-                        ELSE A.DOM_TRD_AMT END) OVER() AS DOM_TRD_AMT    /*사용금액*/
-             , A.DOM_TRD_AMT AS DOM_TRD_AMT1
+                    ELSE A.DOM_TRD_AMT END) OVER() AS DOM_TRD_SUM_AMT    /*(hidden)사용합계금액*/
+             , (CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
+                 ELSE A.DOM_TRD_AMT END) AS DOM_TRD_AMT    /*사용금액*/
              , (CASE WHEN A.OPCS_ADJ_EXCD_YN = 'Y' THEN '정산제외' ELSE '정산' END) AS OPCS_ADJ_EXCD_YN   /*운영비정산제외여부*/
              , A.OPCS_ADJ_SMRY_DV_CD    /*운영비정산적요구분코드*/
              , (SELECT CD_CNTN
@@ -127,7 +128,16 @@
                          WHERE 1=1
                            AND A.DTA_DL_YN = 'N'
                            AND A.BASE_YM = #{baseYm}        /*기준년월*/
-                           AND A.OPCS_ADJ_NO = #{opcsAdjNo} /*운영비정산번호*/
+                           /*AND A.OPCS_ADJ_NO 운영비정산번호*/
+                           <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                              AND A.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                              AND A.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                              AND A.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
+                           </if>
                            AND A.MSCR_YN = 'N'     /*유가증권여부*/
                          GROUP BY B.DST_OJ_OG_TP_CD /*배분대상조직유형코드*/
                              , B.DST_OJ_PRTNR_NO    /*배분대상파트너번호*/

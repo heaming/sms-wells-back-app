@@ -12,18 +12,24 @@ public class WsncAsInterfaceDto {
     public record SearchCustInfoReq(
         @NotBlank
         String cntrNo,
-        @NotNull
         String cstKnm,
         String hpno,
         String newAdrZip,
-        String pdGrpId
+        String pdGrpId,
+        String cntrSn,
+        String cntrCstNo,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String adrId
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchCustInfoRes")
     public record SearchCustInfoRes(
         String cntrNo,
+        String cstNo,
         String cstKnm,
-        String cntrDt,
+        String cntrCnfmDtm,
         String pdCd,
         String pdNm,
         String cralLocaraTno,
@@ -32,18 +38,11 @@ public class WsncAsInterfaceDto {
         String locaraTno,
         String exnoEncr,
         String idvTno,
-        String lgsysCd,
-        String oldAdrZip,
-        String ltnAdr,
-        String ltnDtlAdr,
         String newAdrZip,
         String rnadr,
         String rdadr,
-        String addRefer,
-        String addGb,
+        String adrDvCd,
         String addr,
-        String hpno,
-        String telno,
         String rcgvpKnm,
         String bryyMmdd,
         String sexDvCd,
@@ -54,42 +53,34 @@ public class WsncAsInterfaceDto {
     public record SearchRecInfoReq(
         @NotBlank
         String cntrNo,
-        String svBizDclsfCd
+        String cntrSn
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchRecInfoRes")
     public record SearchRecInfoRes(
+        String cntrNo,
+        String inChnlDvCd,
+        String svBizHclsfCd,
+        String rcpdt,
         String asIstOjNo,
-        String cnslMoCn,
         String svBizDclsfCd,
         String svBizDclsfNm,
-        String svBizHclsfCd,
-        String asnDt,
-        String cstSvAsnNo,
-        String cnclYn,
-        String wkAcpteStatCd,
-        String wkAcpteDt,
-        String vstDuedt,
-        String wkPrgsStatCd,
-        String wkExcnDt,
-        String wkExcnHh,
-        String wkPrtnrNo,
-        String ichrPrtnrNo,
-        String prtnrKnm,
-        String ogNm,
-        String recdDt,
-        String telCo,
-        String hpNo1,
-        String hpNo2,
-        String telAr,
-        String telNo1,
-        String telNo2,
-        String zipNo1,
-        String zipNo2,
+        String cnslMoCn,
+        String cltnYn,
+        String vstCnfmDt,
+        String vstCnfmM,
+        String vstExpDt,
+        String vstExpM,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String newAdrZip,
         String rnadr,
         String rdadr,
-        String addRefer,
-        String addGb
+        String adrDvCd
     ) {}
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchUsingProductReq")

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbLossRentFeeClearingMapper">
+    <select id="selectLossRentFee" resultType="int">
+        -- WELLS위약금액기본 Table의 분실손료 존재여부 확인
+        SELECT LS_RNTF /*분실손료*/
+          FROM TB_CBCL_WELLS_BOR_AMT_BAS /*WELLS위약금액기본*/
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+    
+    <insert id="insertLossRentFee">
+        -- WELLS위약금액기본이력 Table 생성
+        INSERT INTO TB_CBCL_WELLS_BOR_AMT_BAS_HIST /*WELLS위약금액기본이력*/
+        (
+          PERF_YM               /*실적년월          */
+        , CNTR_NO               /*계약번호          */
+        , CNTR_SN               /*계약일련번호      */
+        , BOR_AMT_SN            /*위약금액일련번호  */
+        , CCAM_CMPT_RQDT        /*위약금산출요청일자*/
+        , CCAM_CMPT_CLTN_DT     /*위약금산출해약일자*/
+        , RES_RTLFE_BOR_AMT     /*잔여렌탈료위약금액*/
+        , RGST_COST_DSC_BOR_AMT /*등록비할인위약금액*/
+        , RENTAL_DSC_BOR_AMT    /*렌탈할인위약금액  */
+        , CSMB_COST_BOR_AMT     /*소모품비위약금액  */
+        , RSTL_BOR_AMT          /*재약정위약금액    */
+        , P_BOR_AMT             /*포인트위약금      */
+        , REQD_CS_BOR_AMT       /*철거비용위약금    */
+        , RVE_DT                /*수납일자          */
+        , RVE_NO                /*수납번호          */
+        , RVE_SN                /*수납일련번호      */
+        , RVE_AMT               /*수납금액          */
+        , REQD_DT               /*철거일자          */
+        , LS_RNTF               /*분실손료          */
+        , BOR_AMT               /*위약금액          */
+        , CCAM_RES_AMT          /*위약금잔여금액    */
+        , DTA_DL_YN             /*데이터삭제여부    */
+        <include refid="COMMON.insertSystemField"/>)
+        )
+        SELECT PERF_YM                              /*실적년월          */
+             , CNTR_NO                              /*계약번호          */
+             , CNTR_SN                              /*계약일련번호      */
+             , BOR_AMT_SN + 1                       /*위약금액일련번호  */
+             , CCAM_CMPT_RQDT                       /*위약금산출요청일자*/
+             , CCAM_CMPT_CLTN_DT                    /*위약금산출해약일자*/
+             , RES_RTLFE_BOR_AMT                    /*잔여렌탈료위약금액*/
+             , RGST_COST_DSC_BOR_AMT                /*등록비할인위약금액*/
+             , RENTAL_DSC_BOR_AMT                   /*렌탈할인위약금액  */
+             , CSMB_COST_BOR_AMT                    /*소모품비위약금액  */
+             , RSTL_BOR_AMT                         /*재약정위약금액    */
+             , P_BOR_AMT                            /*포인트위약금      */
+             , REQD_CS_BOR_AMT                      /*철거비용위약금    */
+             , RVE_DT                               /*수납일자          */
+             , RVE_NO                               /*수납번호          */
+             , RVE_SN                               /*수납일련번호      */
+             , RVE_AMT                              /*수납금액          */
+             , #{reqdDt}                            /*철거일자          */
+             , 0                                    /*분실손료          */
+             , BOR_AMT                              /*위약금액          */
+             , CCAM_RES_AMT - LS_RNTF               /*위약금잔여금액    */
+             , DTA_DL_YN                            /*데이터삭제여부    */
+             <include refid="COMMON.insertSystemFieldValue"/>)
+          FROM TB_CBCL_WELLS_BOR_AMT_BAS_HIST /*WELLS위약금액기본이력*/
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND BOR_AMT_SN = (SELECT MAX(BOR_AMT_SN)
+                               FROM TB_CBCL_WELLS_BOR_AMT_BAS_HIST /*WELLS위약금액기본이력*/
+                              WHERE CNTR_NO = #{cntrNo}
+                                AND CNTR_SN = #{cntrSn})
+    </insert>
+    
+    <update id="updateLossRentFee">
+        -- WELLS위약금액기본 Table 수정
+        UPDATE TB_CBCL_WELLS_BOR_AMT_BAS                           /*WELLS위약금액기본*/
+           SET LS_RNTF = 0                                         /*분실손료*/
+             , CCAM_RES_AMT = CCAM_RES_AMT - LS_RNTF               /*위약금잔여금액    */
+             <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+
+</mapper>

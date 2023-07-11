@@ -24,6 +24,8 @@ public interface WctaContractRegStep2Mapper {
     int insertCntrPdRelStep2(@Param("item")
     WctaContractPdRelDvo dvo);
 
+    int insertMchnChIzStep2(WctaMachineChangeIzDvo dvo);
+
     int insertCntrPrcCmptIzStep2(@Param("item")
     WctaContractPrcCmptIzDvo dvo);
 
@@ -84,6 +86,8 @@ public interface WctaContractRegStep2Mapper {
 
     List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapsls(String pdCd, List<String> parts);
 
+    String selectPdNm(String cntrNo, Integer cntrSn);
+
     boolean isExistAlncPds(WctaContractDto.SearchPdAmtReq dto);
 
     int deleteCntrDtlStep2(String cntrNo);
@@ -96,6 +100,8 @@ public interface WctaContractRegStep2Mapper {
 
     int deleteCntrPdRelStep2(String cntrNo);
 
+    int deleteMchnChIzStep2(String cntrNo);
+
     int deleteCntrPmotIzStep2(String cntrNo);
 
     int deleteFgptRcpIzStep2(String cntrNo);
@@ -105,4 +111,6 @@ public interface WctaContractRegStep2Mapper {
     int deleteCntrPrccchHistory(String cntrNo);
 
     int deleteCntrWellsDtlStep2(String cntrNo);
+
+    int deleteCntrRelStep2(String cntrNo);
 }

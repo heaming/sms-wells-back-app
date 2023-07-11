@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -36,6 +37,9 @@ public class WctaInstallationShippingService {
     private final WctzHistoryService historyService;
     private final WsnbServiceWorkInterfaceService interfaceService;
 
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     /* TODO: 인터페이스 생성 후 재작업 예정 */
     private static final String TIMEASSIGN_URL = "/W/SV/EAI_WSVI1003/req";
 
@@ -53,6 +57,7 @@ public class WctaInstallationShippingService {
             List<WctaInstallationShippingDvo> kiwiInstallOrders = mapper.selectKiwiInstallOrders(shippings.getList());
 
             for (WctaInstallationShippingDvo shipping : shippings) {
+                shipping.setProfile(activeProfile);
                 if (CollectionUtils.isEmpty(kiwiInstallOrders)) {
                     resultDto.add(converter.mapWctaIstShippingDvoToSearchRes(shipping));
                     shipping.setHasKiwiOrd(false);
