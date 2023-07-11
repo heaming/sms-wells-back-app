@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.fee.simulation.dto;
 
-import io.swagger.models.auth.In;
-
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
