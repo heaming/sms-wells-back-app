@@ -46,15 +46,13 @@ public class WfefEstimateFeeMgtDto {
         Long prsnlFeeMetg,
         Long prsnlFeeStmnt,
         Long prsnlFeeMutu,
-        Long prsnlFeeAgg,
         Long orgnstnFeeElhmOgPrpn,
         Long orgnstnFeeElhmOgExcpPrpn,
         Long orgnstnFeeOgSellEncrg,
         Long orgnstnFeeOgEjt1,
         Long orgnstnFeeOgEjt2,
         Long orgnstnFeeNbBrch,
-        Long orgnstnFeePrfmtFee,
-        Long orgnstnFeeAgg
+        Long orgnstnFeePrfmtFee
     ) {}
 
     public record SaleP(
@@ -147,19 +145,16 @@ public class WfefEstimateFeeMgtDto {
         Long estSalCommEduc,
         Long estSalCommStmnt,
         Long estSalCommMchnCh,
-        Long estSalCommAgg,
         Long estBsFeeBsMgmt,
         Long estBsFeeBsEnrg,
         Long estBsFeeRglvl,
-        Long estBsFeeAgg,
         Long estOgFeeElhmOgPrpn,
         Long estOgFeeElhmOgExcpPrpn,
         Long estOgFeeOgSellEncrg,
         Long estOgFeeNincMgt,
         Long estOgFeeOgEjt1,
         Long estOgFeeOgEjt2,
-        Long estOgFeeNbBrch,
-        Long estOgFeeAgg
+        Long estOgFeeNbBrch
     ) {}
 
     public record SaleM(
