@@ -45,7 +45,7 @@ public class WsnbIndividualVisitPrdDto {
         String baseYmd,
         String vstNmnN,
         String periodDeleteYmd,
-        String asnOjYmd,
+        String asnOjYm,
         String carriedForwardYmd,
         String rqstRsn
     ) {}
