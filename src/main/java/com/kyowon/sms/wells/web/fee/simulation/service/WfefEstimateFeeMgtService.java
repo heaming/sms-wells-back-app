@@ -37,7 +37,17 @@ public class WfefEstimateFeeMgtService {
      * @return
      */
     public SearchOgMRes getEstimateFeeOgM(SearchEstimateReq req) {
-        return new SearchOgMRes(mapper.selectBaseM(req),  mapper.selectPerformanceM(req), mapper.selectBsM(req), mapper.selectEstimateM(req), mapper.selectSaleM(req));
+        // @todo 조직관련 데이터 확정되면 데이터 0박아놓은거 정리 필요
+        String userDvCd = mapper.selectUserDvCd(req.perfYm(), "W02", req.sellPrtnrNo());
+        return new SearchOgMRes(
+            userDvCd,
+            mapper.selectBaseM(req, userDvCd),
+            mapper.selectMeetingM(req, userDvCd),
+            mapper.selectPerformanceM(req, userDvCd),
+            mapper.selectBsM(req, userDvCd),
+            "OG".equals(userDvCd) ? mapper.selectOgBsM(req, userDvCd) : null,
+            mapper.selectEstimateM(req, userDvCd),
+            mapper.selectSaleM(req, userDvCd));
     }
 
      /**

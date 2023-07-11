@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.fee.simulation.dto;
 
+import io.swagger.models.auth.In;
+
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
@@ -10,10 +12,12 @@ public class WfefEstimateFeeMgtDto {
         @NotBlank
         String perType,
         @NotBlank
-        String sellPrtnrNo
+        String sellPrtnrNo,
+        String userDvCd
     ) {}
 
     public record BaseP(
+        String useOg, // 조직사용여부
         String prtnrKnm,
         String ogCd, // 조직코드
         String rsbDvCd, // 직책구분코드
@@ -71,25 +75,32 @@ public class WfefEstimateFeeMgtDto {
         String prtnrKnm,
         String ogCd, // 조직코드
         String rsbDvCd, // 직책구분코드
+        String startYm, // 개시차월
+        String prfmtYm, // 승진차월
         Long amtEstSalFee, // 예상판매수수료
+        Long amtEstOgFee, // 예상조직수수료
         Long amtEstBsFee, // 예상BS수수료
-        Long amtFeeSum, // 예상수수료합계
-        String ojDsbYm // 개시차월
+        Long amtFeeSum // 예상수수료합계
+    ) {}
+
+    public record MeetingM(
+        String preSrtup,
+        String srtup,
+        String metgPrscD,
+        String cmpfEduc,
+        String stmnt1,
+        String stmnt2,
+        String stmnt345,
+        String brmgrOnline
     ) {}
 
     public record PerformanceM(
         String type, // 구분
-        Long elhmAckmtCt,/* 가전인정건수 */
-        Long spayIstm,/* 일시불/할부  */
-        Long baseRtlfe,/* 기준렌탈료   */
-        Long bfsvcAckmtCt,/* BS인정건수   */
-        String plarSrtup,/* 플래너 스타트업 */
-        String topmrPlarStmnt,/* 수석플래너 정착 */
-        String plarPrtic,/* 플래너 실전     */
-        String managerSrtup,/* 매니저 스타트업 */
-        String managerStmnt,/* 매니저 정착     */
-        String cmpfEduc,/* 보수교육        */
-        Long metgPrscDc/* 미팅참석일수 */
+        Long elhmAckmtCt, /* 가전인정건수 */
+        Long rentalBasePrc, /* 기준렌탈료   */
+        Long snglPmntBasePrc, /* 일시불/할부  */
+        Long elhmExcpAckmtPerf, /* 가전외인정실적금액   */
+        Long ninc /* 계정순증건수   */
     ) {}
 
     public record BsM(
@@ -99,49 +110,70 @@ public class WfefEstimateFeeMgtDto {
         Long wrfr03, /* 정수기 */
         Long wrfr04, /* 정수기 */
         Long unWrfr, /* 비정수기 */
-        Long puf01,/* 청정기1             */
-        Long puf02,/* 청정기2             */
-        Long otscEtc,/* 아웃소싱,커피,삼성  */
-        Long bdtEtc,/* 비데,연수기         */
-        Long etcFxamDsb,/* 미지정              */
+        Long puf01, /* 청정기1             */
+        Long puf02, /* 청정기2             */
+        Long otscEtc, /* 아웃소싱,커피,삼성  */
+        Long bdtEtc, /* 비데,연수기         */
         Long w1,/* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
-        Long w2 /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
+        Long w2, /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
+        Long prdSum
+    ) {}
 
+    public record OgBsM(
+        String type, // 구분
+        Long asgnCt,
+        Long fhsCt,
+        Long procsRt,
+        Long etFhsCt,
+        Long etProcsRt
     ) {}
 
     public record EstimateM(
-        Long amtSumElhmPrpn, /* 가전비례   */
-        Long amtSumElhmMetg, /* 가전미팅   */
-        Long amtSumElhmExcpPrpn, /* 가전외비례 */
-        Long amtSumElhmExcpMetg, /* 가전외미팅 */
-        Long amtSumSalIntv, /* 판매장려   */
-        Long amtEdu, /* 교육       */
-        Long amtSumStmnt, /* 정착       */
-        Long amtBsMgmt, /* BS관리     */
-        Long amtRglvl /* 급지       */
+        Long estSalCommElhmPrpn,
+        Long estSalCommElhmExcpPrpn,
+        Long estSalCommElhmEnrg,
+        Long estSalCommMetg,
+        Long estSalCommEduc,
+        Long estSalCommStmnt,
+        Long estSalCommMchnCh,
+        Long estSalCommAgg,
+        Long estBsFeeBsMgmt,
+        Long estBsFeeBsEnrg,
+        Long estBsFeeRglvl,
+        Long estBsFeeAgg,
+        Long estOgFeeElhmOgPrpn,
+        Long estOgFeeElhmOgExcpPrpn,
+        Long estOgFeeOgSellEncrg,
+        Long estOgFeeNincMgt,
+        Long estOgFeeOgEjt1,
+        Long estOgFeeOgEjt2,
+        Long estOgFeeNbBrch,
+        Long estOgFeeAgg
     ) {}
 
     public record SaleM(
-        String cntrRcpFshDtm,  /* 접수일자 - 계약접수완료일시        */
-        String cntrCnfmDtm,  /* 매출일자 - 계약확정일시            */
-        String cntrNo,  /* 계약번호                           */
-        String cstKnm,  /* 계약자                             */
-        String pdNm,  /* 상품명                             */
-        String cntrwTpCd,  /* 상품구분 - 계약서유형코드:BH, 렌탈 T4.CNTRW_TP_CD*/
-        String cntrTpCd,  /* 계약유형                           */
-        Long pdAccCnt, /* 인정건수 - 판매인정건수 */
-        Long bfsvcAckmtCt, /* BS인정건수 - BS판매인정건수 */
-        Long amtElhmRental, /* 가전렌탈 - (인정)렌탈금액 */
-        Long amtElhmSpay, /* 가전일시불 - 홈케어일시불 */
-        Long elhmExcpSpay, /* 가전외일시불 - (기준금액)환경외－일시불 */
-        Long etc
+        String prtnrKnm,
+        String prtnrNo,
+        String cntrRcpFshDtm,
+        String cntrCnfmDtm,
+        String cntrCanDtm,
+        String cntrNo,
+        String pdNm,
+        String cstKnm,
+        String mchnChTpCd,
+        Long amtElhmBasePrc,
+        Integer elhmAckmtCt,
+        Integer elhmExcpAckmtCt
     ) {}
 
     public record SearchOgMRes(
+        String userDvCd,
         BaseM base,
+        MeetingM meeting,
         List<PerformanceM> performances,
         List<BsM> bses,
-        List<EstimateM> estimates,
+        List<OgBsM> ogBses,
+        EstimateM estimate,
         List<SaleM> sales
     ) {}
 
