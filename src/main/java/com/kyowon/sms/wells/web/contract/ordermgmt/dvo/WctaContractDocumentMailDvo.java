@@ -30,7 +30,7 @@ public class WctaContractDocumentMailDvo {
     @Getter
     @Setter
     public static class Contract {
-        String cntrNoFull; // 계약상세번호
+        String cntrDtlNo; // 계약상세번호
         String cntrNo; // 계약번호
         String cntrSn; // 계약일련번호
 

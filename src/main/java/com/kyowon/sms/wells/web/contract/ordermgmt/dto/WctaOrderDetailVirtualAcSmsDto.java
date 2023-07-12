@@ -25,6 +25,10 @@ public class WctaOrderDetailVirtualAcSmsDto {
     @ApiModel("WctaOrderDetailVirtualAcSmsDto-SaveReq")
     public record SaveReq(
         @NotBlank
+        String cntrNo,
+        @NotNull
+        int cntrSn,
+        @NotBlank
         String cstNm,
         @NotBlank
         String msgTit,
