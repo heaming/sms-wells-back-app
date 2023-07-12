@@ -5,13 +5,13 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
-import com.kyowon.sms.wells.web.service.interfaces.service.WsnbCapsulepkgChSppinfService;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchRes;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsniCapsulepkgChSppinfInterfaceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -26,12 +26,12 @@ import lombok.RequiredArgsConstructor;
 //@Api(tags = "[WSNB] Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트")
 @RequiredArgsConstructor
 @Validated
-public class WsnbCapsulepkgChSppinfInterfaceController {
+public class WsniCapsulepkgChSppinfInterfaceController {
 
-    private final WsnbCapsulepkgChSppinfService service;
+    private final WsniCapsulepkgChSppinfInterfaceService service;
 
     @ApiOperation(value = "Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트", notes = "Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트 조회 API이다.")
-    @GetMapping
+    @PostMapping
     public EaiWrapper getCapsulepkgChSppinfs(
         @Valid
         @RequestBody
