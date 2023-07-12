@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,11 +18,29 @@ import lombok.Setter;
 @Setter
 public class WsnaQomAsnCreateDvo {
 
-    private String apyYm;
     private String asnOjYm;
-    private int cnt;
+    private BigDecimal asnTnN;
+    private String strWareNo;
     private String ostrWareNo;
+    private String itmPdCd;
     private String wareDvCd;
     private String wareDtlDvCd;
-    private int itmQomAsnNo;
+    private String sppDvCd;
+    private String wareMngtPrtnrNo;
+    private String ogTpCd;
+    private String bldCd;
+    private String adrId;
+    private String matGdCd;
+    private BigDecimal geAsnQomCt;
+    private BigDecimal crpAsnQomCt;
+    private BigDecimal woAsnQomCt;
+    private BigDecimal etnWtcfApyQty;
+    private BigDecimal mcbyAcuOstrQty;
+    private BigDecimal crtlStocQty;
+    private BigDecimal thwkExpQty;
+    private BigDecimal borrExpQty;
+    private BigDecimal cnfmQty;
+    private BigDecimal boxUnitQty;
+    private BigDecimal aclOstrQty;
+    private BigDecimal bfsvcFshCt;
 }

@@ -1,13 +1,13 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.EditReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchRes;
 
 import java.util.List;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnWareRenewalDvo;
 
@@ -18,8 +18,6 @@ public interface WsnaQomAsnConverter {
     SearchRes mapWsnaQomAsnIndividualSearchDvoToSearchRes(WsnaQomAsnIndividualSearchDvo dvo);
 
     List<SearchRes> mapAllWsnaQomAsnIndividualSearchDvoToSearchRes(List<WsnaQomAsnIndividualSearchDvo> dvos);
-
-    WsnaQomAsnCreateDvo mapCreateReqToWsnaQomAsnCreateDvo(CreateReq dto);
 
     WsnaQomAsnWareRenewalDvo mapEditReqToWsnaQomAsnWareRenewalDvo(EditReq dto);
 

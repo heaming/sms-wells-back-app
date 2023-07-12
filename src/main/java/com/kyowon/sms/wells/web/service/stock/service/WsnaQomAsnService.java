@@ -4,6 +4,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.*;
 
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,7 +97,7 @@ public class WsnaQomAsnService {
      * @param dto
      * @return
      */
-    @Transactional
+    @Transactional(timeout = -1)
     public int createQomAsnForIndividual(CreateReq dto) {
 
         // 기준년월
@@ -106,17 +107,16 @@ public class WsnaQomAsnService {
         // 회차
         int cnt = dto.cnt();
 
-        int itmQomAsnNo = this.mapper.selectItmQomAsnNoMax(dto);
-
-        WsnaQomAsnCreateDvo dvo = this.converter.mapCreateReqToWsnaQomAsnCreateDvo(dto);
-        dvo.setItmQomAsnNo(itmQomAsnNo);
+        List<WsnaQomAsnCreateDvo> dvos = null;
 
         // 1회차 이고 기준년월과 배정년월이 다를 경우
         if (cnt == 1 && !apyYm.equals(asnOjYm)) {
-            return this.mapper.insertQomAsnFirstCntForIndividual(dvo);
+            dvos = this.mapper.selectQomAsnFirstTnIndividualsForCreate(dto);
         } else {
-            return this.mapper.insertQomAsnForIndividual(dvo);
+            dvos = this.mapper.selectQomAsnIndividualsForCreate(dto);
         }
+
+        return CollectionUtils.isNotEmpty(dvos) ? this.mapper.insertItmQomAsnIz(dvos) : 0;
     }
 
     /**
