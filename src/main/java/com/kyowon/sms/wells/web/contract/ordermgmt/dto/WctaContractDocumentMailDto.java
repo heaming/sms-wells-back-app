@@ -44,7 +44,7 @@ public class WctaContractDocumentMailDto {
 
     public record Contract(
         @NotBlank
-        String cntrNoFull, // 계약상세번호
+        String cntrDtlNo, // 계약상세번호
         String cntrDt,
         String dataRow,
         String mshAmt,
