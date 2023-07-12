@@ -1,117 +1,119 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
+
+/**
+ * <pre>
+ * W-SV-U-0190M01, W-SV-U-0191M01 개인창고, 독립창고 물량배정 dto
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-07-11
+ */
 
 public class WsnaQomAsnDto {
-    @ApiModel(value = "WsnaQomAsnDto-SearchReq")
+
+    @Builder
+    @ApiModel("WsnaQomAsnDto-SearchReq")
     public record SearchReq(
+        @NotBlank
         String apyYm,
+        @NotBlank
         String asnOjYm,
-        String cnt,
-        String ostrWare,
-        String strWare,
-        String itmKndCd,
-        String wareDvCd,
-        String itmCdSt, //sapMatCdFrom,
-        String itmCdEd //sapMatCdTo
-    ){}
-
-    @ApiModel(value = "WsnaQomAsnDto-SearchRes")
-    public record SearchRes(
-        String chk,
-        String asnOjYm,
+        @Positive
+        int cnt,
+        @NotBlank
         String ostrWareNo,
-        String strWareNo,
-        String seq,
-        String asnTnN,
-        String strWareDvCd,
-        String strWareNm,
-        String itemCd,
-        String itemCode,
-        String saleCd,
-        String nmAbbr1,
-        String mgtUntNm,
-        String deg,
-        String onQty,
-        String useQty,
-        String cnfrmQty,
-        String accQty,
-        String boxQty,
-        String boxCnt,
-        String boxMgtQty,
-        String stckMgrGb,
-        String stckMgr,
-        String bldCd,
-        String stckBldCd,
-        String stckBldNm,
-        String wareAdrId,
-        String adrUseYn,
-        String puQty,
-        String fullPuQty,
-        String pitmStocAGdQtY
-    ){}
-
-    @ApiModel(value = "WsnaQomAsnDto-IndividualWareSearchReq")
-    public record IndividualWareSearchReq(
-        String apyYm,
-        String asnOjYm,
-        String cnt,
-        String ostrWare,
-        String strWare,
         String itmKndCd,
-        String strTpCd,
+        String itmPdCd,
+        @NotBlank
+        String wareDvCd,
+        @NotBlank
+        String wareDtlDvCd,
+        String strWareNo
+    ) {}
+
+    @Builder
+    @ApiModel("WsnaQomAsnDto-SearchRes")
+    public record SearchRes(
+        String sapCd,
+        String itmPdCd,
+        String itmPdNm,
+
+        String wareNo,
+        String prtnrNo,
+        String prtnrNm,
+        String wareNm,
+
+        BigDecimal centerQty,
+        BigDecimal geQty,
+        BigDecimal crpQty,
+        BigDecimal totalQty,
+        BigDecimal apyQty,
+        BigDecimal ostrQty,
+        BigDecimal bsQty,
+        BigDecimal stocQty,
+        BigDecimal thwkQty,
+        BigDecimal borrQty,
+        BigDecimal cnfmQty,
+        BigDecimal boxQty,
+
+        String bldCd,
+        String bldNm,
+        String telNo,
+        String adrZip,
+        String rnadr,
+        String rdadr
+
+    ) {}
+
+    @Builder
+    @ApiModel("WsnaQomAsnDto-CreateReq")
+    public record CreateReq(
+        String asnOjYm,
+        BigDecimal asnTnN,
+        String strWareNo,
+        String ostrWareNo,
+        String itmPdCd,
         String wareDvCd,
         String wareDtlDvCd,
-        String itmCdSt, //sapMatCdFrom,
-        String itmCdEd //sapMatCdTo
-    ){}
-    @ApiModel(value = "WsnaQomAsnDto-IndividualWareSearchRes")
-    public record IndividualWareSearchRes(
-        String chk,
-        String apyYm,
-        String asnOjYm,
-        String outStckCd,
-        String strWareNo,
-        String seq,
-        String asnTnN,
-        String wareDvCd,
-        String didyDvCd,
-        String strWareNm,
-        String itmPdCd,
-        String saleCd,
-        String nmAbbr1,
-        String deg,
-        String stckMgr,
-        String stckMgrNm,
+        String sppDvCd,
+        String wareMngtPrtnrNo,
+        String ogTpCd,
         String bldCd,
-        String tell,
-        String bldnam,
-        String qomQtyPrvt,
-        String qomQtyCrp,
-        String qomQty,
-        String baseQty,
-        String accQtySum,
-        String onQty,
-        String twQty,
-        String nwQty,
-        String bsQty,
-        String cfrmQty,
-        String boxDv,
-        String accQty
-    ){}
-    @ApiModel(value = "WsnaQomAsnDto-CreateIndependenceWareReq")
-    public record CreateIndependenceWareReq(
+        String adrId,
+        String matGdCd,
+        BigDecimal geAsnQomCt,
+        BigDecimal crpAsnQomCt,
+        BigDecimal woAsnQomCt,
+        BigDecimal etnWtcfApyQty,
+        BigDecimal mcbyAcuOstrQty,
+        BigDecimal crtlStocQty,
+        BigDecimal thwkExpQty,
+        BigDecimal borrExpQty,
+        BigDecimal cnfmQty,
+        BigDecimal boxUnitQty,
+        BigDecimal aclOstrQty,
+        BigDecimal bfsvcFshCt
 
-    ){}
+    ) {}
 
-    @ApiModel(value = "WsnaQomAsnDto-CreateIndividualWareReq")
-    public record CreateIndividualWareReq(
+    @Builder
+    @ApiModel("WsnaQomAsnDto-EditWareRenewalReq")
+    public record EditReq(
+        @NotBlank
+        String apyYm,
+        @NotBlank
+        String asnOjYm,
+        @NotBlank
+        String ostrWareNo
 
-    ){}
+    ) {}
 
-    @ApiModel(value = "WsnaQomAsnDto-WareRes")
-    public record WareRes(
-        String codeId,
-        String codeName
-    ){}
 }

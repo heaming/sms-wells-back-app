@@ -18,7 +18,7 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD, #{session.langId}) AS RECEIPT_DIV            /* 접수구분 */
              , T1.CNTR_NO                                                                                                   /* 계약번호 */
              , T1.CNTR_NO || '-' || T1.CNTR_SN                                                    AS CNTR_DTL_NO            /* 계약상세번호 */
-             , NVL(T1.CST_NM, T10.CST_KNM)                                                        AS CST_NM                 /* 고객명 */
+             , T10.CST_KNM                                                                        AS CST_NM                 /* 고객명 */
              , T1.SPP_ORD_NO                                                                                                /* 배송번호 */
              , T4.PD_NM                                                                           AS MCHN_MODEL             /* 기기모델 */
              , T2.BASE_DTL_CNTR_NO                                                                AS MCHN_CST_NO            /* 기기고객번호 */
@@ -102,32 +102,35 @@
           FROM
              (
             <if test='!@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
-               SELECT D1.CNTR_NO                           /* 계약번호 */
-                    , D1.CNTR_SN                           /* 계약일련번호 */
-                    , D1.SV_BIZ_HCLSF_CD                   /* 서비스업무대분류코드 */
-                    , D1.SV_BIZ_DCLSF_CD                   /* 서비스업무세분류코드 */
-                    , D1.SPP_ORD_NO                        /* 배송주문번호 */
-                    , D1.SPP_PLAN_SN                       /* 배송계획일련번호 */
-                    , D1.REFRI_DV_CD                       /* 유무상구분코드 */
-                    , D1.OSTR_CNFMDT                       /* 출고확정일자 */
-                    , D1.ITM_IOST_DV_CD                    /* 품목입출고구분코드 */
-                    , D1.SDING_PKG_PD_CD                   /* 배송 패키지 상품코드 */
-                    , D5.PDCT_PD_CD                        /* 현재 패키지 상품코드 */
-                    , D2.ISTLL_KNM        AS CST_NM        /* 고객명 */
-                    , D5.REQD_DT                           /* 철거일자 */
-                    , D2.RCPDT                             /* 접수일자 */
-                    , D3.VST_CNFMDT                        /* 방문일자 */
-                    , D1.OSTR_DUEDT                        /* 출고예정일자 */
-                    , ''                  AS BS_FSH_DT     /* B/S완료일자 */
-                    , D1.DP_DT                             /* 입금일자 */
-                    , D4.OG_NM                             /* 방문센터 */
-                    , D4.OG_TP_CD                          /* 조직유형코드 */
-                    , D4.PRTNR_NO                          /* 파트너번호 */
-                    , D2.CNTR_ADRPC_ID                     /* 계약주소지ID */
-                    , D1.MNGR_DV_CD                        /* 관리자구분코드 */
-                    , D1.DP_EPTT_NM                        /* 입금예정자명 */
-                    , D1.RECAP_CS_AMT                      /* 유상비용금액 */
-                    , D3.CST_SV_ASN_NO                     /* 고객서비스배정번호 */
+               SELECT D1.CNTR_NO                                /* 계약번호 */
+                    , D1.CNTR_SN                                /* 계약일련번호 */
+                    , D1.SV_BIZ_HCLSF_CD                        /* 서비스업무대분류코드 */
+                    , D1.SV_BIZ_DCLSF_CD                        /* 서비스업무세분류코드 */
+                    , D1.SPP_ORD_NO                             /* 배송주문번호 */
+                    , D1.SPP_PLAN_SN                            /* 배송계획일련번호 */
+                    , D1.REFRI_DV_CD                            /* 유무상구분코드 */
+                    , D1.OSTR_CNFMDT                            /* 출고확정일자 */
+                    , D1.ITM_IOST_DV_CD                         /* 품목입출고구분코드 */
+                    , D1.SDING_PKG_PD_CD                        /* 배송 패키지 상품코드 */
+                    , D5.PDCT_PD_CD                             /* 현재 패키지 상품코드 */
+                    , D5.REQD_DT                                /* 철거일자 */
+                    , D2.RCPDT                                  /* 접수일자 */
+                    , D3.VST_CNFMDT                             /* 방문일자 */
+                    , D1.OSTR_DUEDT                             /* 출고예정일자 */
+                    , ''                     AS BS_FSH_DT       /* B/S완료일자 */
+                    , D1.DP_DT                                  /* 입금일자 */
+                    , D4.OG_NM                                  /* 방문센터 */
+                    , D4.OG_TP_CD                               /* 조직유형코드 */
+                    , D4.PRTNR_NO                               /* 파트너번호 */
+                    , ( SELECT CNTR_ADRPC_ID
+                          FROM TB_SSCT_CNTR_ADRPC_BAS
+                         WHERE CNTR_NO = D2.CNTR_NO
+                           AND ADR_ID  = D2.ADR_ID
+                           AND ROWNUM  = 1 ) AS CNTR_ADRPC_ID   /* 계약주소지ID */
+                    , D1.MNGR_DV_CD                             /* 관리자구분코드 */
+                    , D1.DP_EPTT_NM                             /* 입금예정자명 */
+                    , D1.RECAP_CS_AMT                           /* 유상비용금액 */
+                    , D3.CST_SV_ASN_NO                          /* 고객서비스배정번호 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -158,7 +161,7 @@
 				                                                  ELSE '%'
 				                                             END )
                              ) T
-                         WHERE T.RN = 1 ) AS SDING_INFO1   /* 모종1 정보 */
+                         WHERE T.RN = 1 )    AS SDING_INFO1     /* 모종1 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -189,7 +192,7 @@
 				                                                  ELSE '%'
 				                                             END )
                              ) T
-                         WHERE T.RN = 2 ) AS SDING_INFO2   /* 모종2 정보 */
+                         WHERE T.RN = 2 )    AS SDING_INFO2     /* 모종2 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -220,7 +223,7 @@
 				                                                  ELSE '%'
 				                                             END )
                              ) T
-                         WHERE T.RN = 3 ) AS SDING_INFO3   /* 모종3 정보 */
+                         WHERE T.RN = 3 )    AS SDING_INFO3     /* 모종3 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -251,7 +254,7 @@
 				                                                  ELSE '%'
 				                                             END )
                              ) T
-                         WHERE T.RN = 4 ) AS SDING_INFO4   /* 모종4 정보 */
+                         WHERE T.RN = 4 )    AS SDING_INFO4     /* 모종4 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -282,7 +285,7 @@
 				                                                  ELSE '%'
 				                                             END )
                              ) T
-                         WHERE T.RN = 5 ) AS SDING_INFO5   /* 모종5 정보 */
+                         WHERE T.RN = 5 )    AS SDING_INFO5    /* 모종5 정보 */
                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
                 INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
                    ON D2.CNTR_NO         = D1.CNTR_NO
@@ -457,7 +460,6 @@
                     , D1.ITM_IOST_DV_CD                              /* 품목입출고구분코드 */
                     , D1.SDING_PKG_PD_CD                             /* 배송 패키지 상품코드 */
                     , D5.PDCT_PD_CD                                  /* 현재 패키지 상품코드 */
-                    , ''                            AS CST_NM        /* 고객명 */
                     , D5.REQD_DT                                     /* 철거일자 */
                     , SUBSTR(D2.FST_RGST_DTM, 1, 8) AS RCPDT         /* 접수일자 */
                     , D3.VST_CNFMDT                                  /* 방문일자 */
@@ -825,7 +827,7 @@
          WHERE T2.DTA_DL_YN          = 'N'
            AND T2.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
            AND T3.DTA_DL_YN          = 'N'
-           AND T3.CNTR_DTL_STAT_CD <![CDATA[<>]]> '304'   /* 계약취소 */
+           AND T3.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
            AND T5.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
            AND T9.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
          ORDER BY T1.CNTR_NO, T1.CNTR_SN, T1.SPP_ORD_NO, T1.SPP_PLAN_SN
