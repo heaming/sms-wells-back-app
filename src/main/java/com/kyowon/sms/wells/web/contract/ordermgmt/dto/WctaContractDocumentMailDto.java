@@ -45,17 +45,11 @@ public class WctaContractDocumentMailDto {
     public record Contract(
         @NotBlank
         String cntrDtlNo, // 계약상세번호
-        String cntrDt,
-        String dataRow,
-        String mshAmt,
-        String pdNm,
-        String rentalAmt,
-        String rentalAmt2,
-        String rglrSppAmt,
-        String rowState,
-        String sellTpCd,
-        String sellTpNm,
-        String spayAmt
+
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn
     ) {}
 
     // *********************************************************

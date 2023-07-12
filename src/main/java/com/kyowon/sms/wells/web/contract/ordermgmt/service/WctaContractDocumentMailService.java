@@ -44,8 +44,8 @@ public class WctaContractDocumentMailService {
         for (Contract cntrDvo : cntrList) {
             String cntrNoFull = cntrDvo.getCntrDtlNo();
 
-            String cntrNo = cntrNoFull.split("-")[0];
-            String cntrSn = cntrNoFull.split("-")[1];
+            String cntrNo = cntrDvo.getCntrNo();
+            String cntrSn = cntrDvo.getCntrSn();
             String docDvCd = dvo.getDocDvCd();
             String email = dvo.getRecpMail();
             String cstNm = dvo.getCstKnm();
