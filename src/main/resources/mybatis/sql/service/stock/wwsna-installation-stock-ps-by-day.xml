@@ -40,7 +40,7 @@
                               FROM TB_SVST_MCBY_WARE_IZ
                         INNER JOIN OG_INF
                                 ON TB_SVST_MCBY_WARE_IZ.OG_ID = OG_INF.OG_ID
-                             WHERE APY_YM = SUBSTR(#{baseDt},1,6) --#{}
+                             WHERE APY_YM = SUBSTR(#{baseDt},1,6)
                                AND WARE_DV_CD = '2'
                                AND WARE_ICHR_NO = '000'
              )
@@ -156,13 +156,12 @@
                         INNER JOIN STOCK_INF
                                 ON S1.OSTR_WARE_NO = STOCK_INF.WARE_NO
                                AND S1.OSTR_DT BETWEEN STOCK_INF.APY_YM||'01' AND #{baseDt}
-                             WHERE 1=1
                              <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-                               AND S1.ITM_GD_CD = #{pdGdCd}
+                             WHERE S1.ITM_GD_CD = #{pdGdCd}
                              </if>
             )
-            , WK_OSTR2 AS ( SELECT S1.WK_WARE_NO WARE_NO
-                                 , S1.ITM_PD_CD PD_CD
+            , WK_OSTR2 AS ( SELECT S1.WK_WARE_NO AS WARE_NO
+                                 , S1.ITM_PD_CD AS PD_CD
                                  , PD_INF.ITM_KND_CD
                                  , 0 AS BTD_STOC_A_GD_QTY
                                  , 0 AS BTD_STOC_B_GD_QTY
@@ -172,16 +171,15 @@
                                  , 0 AS USE_QTY
                                  , 0 AS CTR_QTY
                                  , 0 AS OSTR_QTY
-                                 , S1.USE_QTY USE_QTY2
+                                 , S1.USE_QTY AS USE_QTY2
                                  , 0 AS CTR_QTY2
-                              FROM TB_SVST_ SV_WK_OSTR_IZ S1 /* 서비스작업출고내역 ST163 */
+                              FROM TB_SVST_SV_WK_OSTR_IZ S1 /* 서비스작업출고내역 ST163 */
                         INNER JOIN PD_INF
                                 ON S1.ITM_PD_CD = PD_INF.PD_CD
                         INNER JOIN STOCK_INF
                                 ON S1.WK_WARE_NO = STOCK_INF.WARE_NO
                                AND S1.FNL_VST_FSH_DT BETWEEN STOCK_INF.APY_YM||'01' AND #{baseDt}
-                             WHERE 1=1
-                               AND S1.SV_BIZ_HCLSF_CD = '6'
+                             WHERE S1.SV_BIZ_HCLSF_CD = '6'
                                <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
                                AND S1.FNL_ITM_GD_CD = #{pdGdCd}
                                </if>
@@ -219,7 +217,8 @@
                             FROM ( SELECT TEMP_DATE
                                      FROM ( SELECT TO_CHAR((TO_DATE(#{baseDt}, 'YYYYMMDD') + LEVEL-1), 'YYYYMMDD') AS TEMP_DATE
                                               FROM DUAL
-                                  CONNECT BY LEVEL <![CDATA[<=]]> 30 )
+                                  CONNECT BY LEVEL <![CDATA[<=]]> 30
+                                        )
                             ) T_DATE
                 LEFT OUTER JOIN ( SELECT T1.SV_CNR_OG_ID AS OG_ID /* 센터 OG_ID */
                                        , T1.VST_CNFMDT
@@ -234,7 +233,7 @@
                                    WHERE T2.MTR_STAT_CD IN ('1', '2')
                                      AND T1.WK_PRGS_STAT_CD IN ('00', '10')
                                      AND T2.SV_BIZ_HCLSF_CD = '1'
-                                     AND T1.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{baseDt},'YYYYMMDD'),'YYYYMMDD') AND TO_CHAR(TO_DATE(#{baseDt},'YYYYMMDD')+30, 'YYYYMMDD') --#{}
+                                     AND T1.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{baseDt},'YYYYMMDD'),'YYYYMMDD') AND TO_CHAR(TO_DATE(#{baseDt},'YYYYMMDD')+30, 'YYYYMMDD')
                                      AND T1.SV_CNR_OG_ID NOT IN ('OGO198500002399',
                                                                 '71507',
                                                                 '71369',
@@ -263,9 +262,9 @@
              , OG_NM
              , PD_CD
              , PD_NM
-             , STR_SUM
-             , PRV_MNG_SUM
-             , STR_SUM + PRV_MNG_SUM AS STOCK_TOTAL
+             , NVL(STR_SUM,0) STR_SUM
+             , NVL(PRV_MNG_SUM,0) PRV_MNG_SUM
+             , NVL(STR_SUM,0) + NVL(PRV_MNG_SUM,0) AS STOCK_TOTAL
              , NVL(STR_SUM + PRV_MNG_SUM - INSTALLDATE1, 0) AS STOCKDATE1
              , NVL(STR_SUM + PRV_MNG_SUM - INSTALLDATE1 - INSTALLDATE2, 0) AS STOCKDATE2
              , NVL(STR_SUM + PRV_MNG_SUM - INSTALLDATE1 - INSTALLDATE2 - INSTALLDATE3, 0) AS STOCKDATE3
@@ -280,20 +279,20 @@
              , NVL(STR_SUM + PRV_MNG_SUM - INSTALLDATE1 - INSTALLDATE2 - INSTALLDATE3 - INSTALLDATE4 - INSTALLDATE5 - INSTALLDATE6 - INSTALLDATE7 - INSTALLDATE8 - INSTALLDATE9 - INSTALLDATE10 - INSTALLDATE11 - INSTALLDATE12, 0) AS STOCKDATE12
              , NVL(STR_SUM + PRV_MNG_SUM - INSTALLDATE1 - INSTALLDATE2 - INSTALLDATE3 - INSTALLDATE4 - INSTALLDATE5 - INSTALLDATE6 - INSTALLDATE7 - INSTALLDATE8 - INSTALLDATE9 - INSTALLDATE10 - INSTALLDATE11 - INSTALLDATE12 - INSTALLDATE13, 0) AS STOCKDATE13
              , NVL(STR_SUM + PRV_MNG_SUM - INSTALLDATE1 - INSTALLDATE2 - INSTALLDATE3 - INSTALLDATE4 - INSTALLDATE5 - INSTALLDATE6 - INSTALLDATE7 - INSTALLDATE8 - INSTALLDATE9 - INSTALLDATE10 - INSTALLDATE11 - INSTALLDATE12 - INSTALLDATE13 - INSTALLDATE14, 0) AS STOCKDATE14
-             , INSTALLDATE1
-             , INSTALLDATE2
-             , INSTALLDATE3
-             , INSTALLDATE4
-             , INSTALLDATE5
-             , INSTALLDATE6
-             , INSTALLDATE7
-             , INSTALLDATE8
-             , INSTALLDATE9
-             , INSTALLDATE10
-             , INSTALLDATE11
-             , INSTALLDATE12
-             , INSTALLDATE13
-             , INSTALLDATE14
+             , NVL(INSTALLDATE1,0) INSTALLDATE1
+             , NVL(INSTALLDATE2,0) INSTALLDATE2
+             , NVL(INSTALLDATE3,0) INSTALLDATE3
+             , NVL(INSTALLDATE4,0) INSTALLDATE4
+             , NVL(INSTALLDATE5,0) INSTALLDATE5
+             , NVL(INSTALLDATE6,0) INSTALLDATE6
+             , NVL(INSTALLDATE7,0) INSTALLDATE7
+             , NVL(INSTALLDATE8,0) INSTALLDATE8
+             , NVL(INSTALLDATE9,0) INSTALLDATE9
+             , NVL(INSTALLDATE10,0) INSTALLDATE10
+             , NVL(INSTALLDATE11,0) INSTALLDATE11
+             , NVL(INSTALLDATE12,0) INSTALLDATE12
+             , NVL(INSTALLDATE13,0) INSTALLDATE13
+             , NVL(INSTALLDATE14,0) INSTALLDATE14
              , NVL((INSTALLDATE1+INSTALLDATE2+INSTALLDATE3+INSTALLDATE4+INSTALLDATE5+INSTALLDATE6+INSTALLDATE7+INSTALLDATE8+INSTALLDATE9+INSTALLDATE10+INSTALLDATE11+INSTALLDATE12+INSTALLDATE13+INSTALLDATE14), 0) IST_TOTAL
           FROM	( SELECT MAIN2.OG_ID  /* SELECT 3 :: 센터별 날짜별 - 설치 */
                        , MAIN2.OG_NM
@@ -455,10 +454,10 @@
                            ON S3.PD_CD = PD_INF.PD_CD
                    INNER JOIN STOCK_INF
                            ON S3.WARE_NO = STOCK_INF.WARE_NO
-                        WHERE S3.IOST_RFDT =#{baseDt}
-                          <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-                          AND S3.ITM_GD_CD = #{pdGdCd}
-                          </if>
+                        WHERE S3.IOST_RFDT = #{baseDt}
+                        <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
+                         AND 'A' = #{pdGdCd}
+                        </if>
 
                     UNION ALL
 
@@ -473,7 +472,7 @@
                          FROM TB_SVST_ITM_OSTR_IZ S4 /* 품목출고내역 ST161 */
                    INNER JOIN STOCK_INF
                            ON S4.OSTR_WARE_NO = STOCK_INF.WARE_NO
-                          AND S4.OSTR_DT =#{baseDt}
+                          AND S4.OSTR_DT = #{baseDt}
                         <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
                         WHERE S4.ITM_GD_CD = #{pdGdCd}
                         </if>
@@ -493,7 +492,7 @@
                             ON S5.PD_CD = PD_INF.PD_CD
                     INNER JOIN STOCK_INF
                             ON S5.WARE_NO = STOCK_INF.WARE_NO
-                           AND S5.IOST_RFDT = #{baseDt} --#{}
+                           AND S5.IOST_RFDT = #{baseDt}
                         <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
                          WHERE 'A' = #{pdGdCd}
                         </if>
@@ -511,11 +510,11 @@
                            FROM TB_SVST_ITM_OSTR_IZ S6 /* 품목출고내역 ST161 */
                      INNER JOIN STOCK_INF
                              ON S6.OSTR_WARE_NO = STOCK_INF.WARE_NO
-                          WHERE S6.OSTR_DT =#{baseDt} --#{}
+                          WHERE S6.OSTR_DT = #{baseDt}
                             AND S6.OSTR_TP_CD = '221'
                             AND S6.STR_WARE_NO LIKE '2%'
                             <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-                            AND S6.ITM_GD_CD =#{pdGdCd}
+                            AND S6.ITM_GD_CD = #{pdGdCd}
                             </if>
 
                      UNION ALL
@@ -531,11 +530,11 @@
                            FROM TB_SVST_ITM_OSTR_IZ S7 /* 품목출고내역 ST161 */
                      INNER JOIN STOCK_INF
                              ON S7.OSTR_WARE_NO = STOCK_INF.WARE_NO
-                          WHERE S7.OSTR_DT =#{baseDt} --#{}
+                          WHERE S7.OSTR_DT = #{baseDt}
                             AND S7.OSTR_TP_CD = '221'
                             AND S7.STR_WARE_NO LIKE '3%'
                             <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-                            AND S7.ITM_GD_CD =#{pdGdCd}
+                            AND S7.ITM_GD_CD = #{pdGdCd}
                             </if>
 
                       UNION ALL
@@ -633,7 +632,7 @@
                           WHERE S11.FNL_MDFC_USR_ID IS NULL
                             AND S11.FNL_MDFC_USR_ID IS NULL
                             AND S11.SV_BIZ_HCLSF_CD IN ('1','2','3','4')
-                            AND S11.FNL_VST_FSH_DT = #{baseDt} --#{}
+                            AND S11.FNL_VST_FSH_DT = #{baseDt}
                             <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
                             AND S11.FNL_ITM_GD_CD = #{pdGdCd}
                             </if>
@@ -706,7 +705,7 @@
                WHERE 1=1
                  AND AGRG.ITM_KND_CD = #{itmKndCd} /* 4 상품 */
                  <if test="@MybatisUtils@isNotEmpty(pdCd)">
-                 AND AGRG.ITM_PD_CD = #{pdCd}
+                 AND AGRG.PD_CD = #{pdCd}
                  </if>
                  GROUP BY AGRG.OG_ID
                         , AGRG.OG_NM
