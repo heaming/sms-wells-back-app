@@ -15,14 +15,14 @@ public interface WdcaCancellationFeeComputationConverter {
     WdcaCancellationFeeComputationDvo mapSaveReqToWdcaCancellationFeeComputationDvo(SearchReq dto);
 
     @BeanMapping(ignoreByDefault = true)
-    @Mapping(source = "dvo.resRtlfeBorAmt", target = "RES_RTLFE_BOR_AMT")
-    @Mapping(source = "dvo.rgstCostDscBorAmt", target = "RGST_COST_DSC_BOR_AMT")
-    @Mapping(source = "dvo.rentalDscBorAmt", target = "RENTAL_DSC_BOR_AMT")
-    @Mapping(source = "dvo.rstlBorAmt", target = "RSTL_BOR_AMT")
-    @Mapping(source = "dvo.csmbCostBorAmt", target = "CSMB_COST_BOR_AMT")
-    @Mapping(source = "dvo.PBorAmt", target = "P_BOR_AMT")
-    @Mapping(source = "dvo.reqdCsBorAmt", target = "REQD_CS_BOR_AMT")
-    @Mapping(source = "dvo.lsRntf", target = "LS_RNTF")
-    @Mapping(source = "dvo.borAmt", target = "BOR_AMT")
+    @Mapping(source = "dvo.resRtlfeBorAmt", target = "resRtlfeBorAmt")
+    @Mapping(source = "dvo.rgstCostDscBorAmt", target = "rgstCostDscBorAmt")
+    @Mapping(source = "dvo.rentalDscBorAmt", target = "rentalDscBorAmt")
+    @Mapping(source = "dvo.rstlBorAmt", target = "rstlBorAmt")
+    @Mapping(source = "dvo.csmbCostBorAmt", target = "csmbCostBorAmt")
+    @Mapping(source = "dvo.PBorAmt", target = "pBorAmt")
+    @Mapping(source = "dvo.reqdCsBorAmt", target = "reqdCsBorAmt")
+    @Mapping(source = "dvo.lsRntf", target = "lsRntf")
+    @Mapping(source = "dvo.borAmt", target = "borAmt")
     SearchRes mapCancellationFeeComputationResultToSearchRes(WdcaCancellationFeeComputationResultDvo dvo);
 }
