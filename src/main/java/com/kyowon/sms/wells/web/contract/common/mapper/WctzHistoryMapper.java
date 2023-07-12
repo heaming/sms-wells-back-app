@@ -102,19 +102,19 @@ public interface WctzHistoryMapper {
 
     int insertContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo);
 
-    Optional<WctaPspcCstChHistDvo> selectLastPspcCstChHist(String pspcCstId);
+    Optional<WctzPspcCstChHistDvo> selectLastPspcCstChHist(String pspcCstId);
 
     int expirePspcCstChHistory(String pspcCstId, String histStrtDtm);
 
     int upsertPspcCstChHist(String pspcCstId, String histStrtDtm);
 
-    Optional<WctaPspcCstCnslChHistDvo> selectLastPspcCstCnslChHist(String pspcCstCnslId);
+    Optional<WctzPspcCstCnslChHistDvo> selectLastPspcCstCnslChHist(String pspcCstCnslId);
 
     int expirePspcCstCnslChHistory(String pspcCstCnslId, String histStrtDtm);
 
     int upsertPspcCstCnslChHist(String pspcCstCnslId, String histStrtDtm);
 
-    Optional<WctaPspcCstCnslRchHistDvo> selectLastPspcCstCnslRchHist(String pspcCstCnslId, int pspcCstCnslSn);
+    Optional<WctzPspcCstCnslRchHistDvo> selectLastPspcCstCnslRchHist(String pspcCstCnslId, int pspcCstCnslSn);
 
     int expirePspcCstCnslRchHistory(String pspcCstCnslId, int pspcCstCnslSn, String histStrtDtm);
 
