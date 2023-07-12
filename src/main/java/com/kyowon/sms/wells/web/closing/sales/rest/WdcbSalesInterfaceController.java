@@ -24,7 +24,7 @@ public class WdcbSalesInterfaceController {
 
     private final WdcbSalesInterfaceService service;
 
-    @ApiOperation(value = "[W-CL-I-0001] WELLS 입금/환불 제휴 정보 조회", notes = "압력된 계약정보로 Wells 측으로 제공되는 라이프, K멤버스 제휴 등의 렌탈정보를 조회하는 인터페이스")
+    @ApiOperation(value = "[EAI_WECLI1005] WELLS입금환불제휴정보조회", notes = "압력된 계약정보로 Wells 측으로 제공되는 라이프, K멤버스 제휴 등의 렌탈정보를 조회하는 인터페이스")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = false)
