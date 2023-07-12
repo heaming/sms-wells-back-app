@@ -4,11 +4,9 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
 public class WctaContractDocumentMailDvo {
 
     String docDvCd; // 발행구분(증빙서류 구분)
@@ -33,17 +31,5 @@ public class WctaContractDocumentMailDvo {
         String cntrDtlNo; // 계약상세번호
         String cntrNo; // 계약번호
         String cntrSn; // 계약일련번호
-
-        String cntrDt;
-        String dataRow;
-        String mshAmt;
-        String pdNm;
-        String rentalAmt;
-        String rentalAmt2;
-        String rglrSppAmt;
-        String rowState;
-        String sellTpCd;
-        String sellTpNm;
-        String spayAmt;
     }
 }

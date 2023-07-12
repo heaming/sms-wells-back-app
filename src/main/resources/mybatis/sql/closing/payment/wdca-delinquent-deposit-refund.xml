@@ -1,81 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.payment.mapper.WdcaDelinquentDepositRefundMapper">
-    <select id="selectDepositRefundProcessingAmount" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDelinquentDepositRefundDvo">
+    <select id="selectDepositRefundProcessingAmount" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDepositRefundProcessingAmountDvo">
         SELECT CNTR_NO /*계약번호*/
              , CNTR_SN /*계약일련번호*/
-             , NVL( CASE WHEN #{dpDvCd} = '1'  /*[1:입금]*/
-                          AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
-                          AND THM_DLQ_DP_SUM_AMT = 0 /*당월연체입금합계금액*/
-                          AND #{rveAmt} >= EOT_DLQ_AMT /*기말연체금액*/
-                              THEN EOT_DLQ_AMT /*기말연체금액*/
-                         WHEN #{dpDvCd} = '1'  /*[1:입금]*/
-                          AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
-                          AND THM_DLQ_DP_SUM_AMT > 0 /*당월연체입금합계금액*/
-                          AND #{rveAmt} >= EOT_DLQ_AMT /*기말연체금액*/
-                              THEN EOT_DLQ_AMT /*기말연체금액*/ + THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
-                         ELSE #{rveAmt} + THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+             , NVL( CASE WHEN #{dpDvCd} IN ('1', '3')  /*[1:입금, 3:전금입금]*/
+                         AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
+                        THEN #{rveAmt}
+                        ELSE 0
                     END, 0 ) AS THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
-             , NVL( CASE WHEN #{dpDvCd} = '1'  /*[1:입금]*/
-                          AND #{rveDvCd} = '02' /*[02:연체가산금]*/
-                          AND THM_DLQ_DP_SUM_AMT = 0 /*당월연체입금합계금액*/
-                          AND #{rveAmt} >= EOT_DLQ_ADD_AMT /*기말연체가산금액*/
-                              THEN EOT_DLQ_ADD_AMT
-                         WHEN #{dpDvCd} = '1'  /*[1:입금]*/
-                          AND #{rveDvCd} = '02' /*[02:연체가산금]*/
-                          AND THM_DLQ_DP_SUM_AMT > 0 /*당월연체입금합계금액*/
-                          AND #{rveAmt} >= EOT_DLQ_ADD_AMT /*기말연체가산금액*/
-                              THEN EOT_DLQ_ADD_AMT
-                         ELSE #{rveAmt}
+             , NVL( CASE WHEN #{dpDvCd} IN ('1', '3')  /*[1:입금, 3:전금입금]*/
+                                AND #{rveDvCd} = '02' /*[02:연체가산금]*/
+                        THEN #{rveAmt}
+                        ELSE 0
                     END, 0 ) AS THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
-             , NVL( CASE WHEN #{dpDvCd} = '2'  /*[2:환불]*/
-                          AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
-                          AND THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/ + #{rveAmt} >= THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
-                              THEN THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
-                         ELSE #{rveAmt} + THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/
+             /*-----------------------------------------------------------------------------------------------------*/
+             /*환불 처리에 대해선 아직 입/출금에게 들은 이야기가 없기에 소설 씀                                        */
+             /*입금구분코드 = 환불 AND 수납구분코드 = 월납입금액 -> 당월연체입금합계금액과 :입력값_수납금액을 비교        */
+             /*:입력값_수납금액 >= 당월연체입금합계금액 => 당월연체환불합계금액 = 당월연체입금합계금액                   */
+             /*:입력값_수납금액 <![CDATA[<]]> 당월연체입금합계금액  => :입력값_수납금액                                             */
+             /*-----------------------------------------------------------------------------------------------------*/
+             , NVL( CASE WHEN #{dpDvCd} IN ('2', '4')  /*[2:환불, 4:전금환불]*/ AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
+                         THEN (CASE WHEN THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/ + :입력값_수납금액 >= THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+                               THEN THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
+                               ELSE #{rveAmt} + THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/
+                                    END)
+                         ELSE 0
                     END, 0 ) AS THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/
-             , NVL( CASE WHEN #{dpDvCd} = '2'  /*[2:환불]*/
-                          AND #{rveDvCd} = '02' /*[02:연체가산금]*/
-                          AND THM_DLQ_RFND_SUM_AMT /*당월연체가산환불합계금액*/ + #{rveAmt} >= THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
-                              THEN THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
-                         ELSE #{rveAmt} + THM_DLQ_RFND_SUM_AMT /*당월연체가산환불합계금액*/
+             /*-----------------------------------------------------------------------------------------------------*/
+             /*입금구분코드 = 입금 AND 수납구분코드 = 연체가산금 -> 당월연체가산입금합계금액과 :입력값_수납금액을 비교 */
+             /*:입력값_수납금액 >= 당월연체가산입금합계금액 => 당월연체가산환불합계금액 = 당월연체가산입금합계금액  */
+             /*:입력값_수납금액 <![CDATA[<]]> 당월연체가산입금합계금액  => :입력값_수납금액                                           */
+             /*-----------------------------------------------------------------------------------------------------*/
+             , NVL( CASE WHEN #{dpDvCd} IN ('2', '4')  /*[2:환불, 4:전금환불]*/ AND #{rveDvCd} = '02' /*[02:연체가산금]*/
+                               THEN (CASE WHEN THM_DLQ_RFND_SUM_AMT /*당월연체가산환불합계금액*/ + #{rveAmt} >= THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
+                                   THEN THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
+                                   ELSE #{rveAmt} + THM_DLQ_RFND_SUM_AMT /*당월연체가산환불합계금액*/
+                                 END)
+                    ELSE 0
                     END, 0 ) AS THM_DLQ_ADD_RFND_SUM_AMT /*당월연체가산환불합계금액*/
+             , EOT_DLQ_AMT /*기말연체금액*/
+             , EOT_DLQ_ADD_AMT/*기말연체가산금액*/
+             , SELL_TP_CD
           FROM TB_CBCL_DLQ_BAS /*연체기본*/
          WHERE DTA_DL_YN = 'N'                                        /*데이터삭제여부*/
            AND PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
            AND CNTR_NO   = #{cntrNo}
            AND CNTR_SN   = #{cntrSn}
     </select>
-    
+
     <update id="updateDlqBas">
         UPDATE TB_CBCL_DLQ_BAS /*연체기본*/
-           SET THM_DLQ_DP_SUM_AMT       = CASE WHEN #{dpDvCd} = '1'
+           SET THM_DLQ_DP_SUM_AMT       = CASE WHEN #{dpDvCd} IN ('1', '3')
                                                 AND #{rveDvCd} = '03'
                                                     THEN #{thmDlqDpSumAmt}
                                                ELSE THM_DLQ_DP_SUM_AMT END /*당월연체입금합계금액*/
-             , THM_DLQ_RFND_SUM_AMT     = CASE WHEN #{dpDvCd} = '2'
+             , THM_DLQ_RFND_SUM_AMT     = CASE WHEN #{dpDvCd} IN ('2', '4')
                                                 AND #{rveDvCd} = '03'
                                                     THEN #{thmDlqRfndSumAmt}
                                                ELSE THM_DLQ_RFND_SUM_AMT END /*당월연체환불합계금액*/
-             , EOT_DLQ_AMT              = CASE WHEN #{dpDvCd} = '1'
-                                                AND #{rveDvCd} = '02'
-                                                    THEN EOT_DLQ_ADD_AMT - #{thmDlqAddDpSumAmt}
-                                               WHEN #{dpDvCd} = '2'
-                                                AND #{rveDvCd} = '02'
-                                                    THEN EOT_DLQ_ADD_AMT + #{thmDlqRfndSumAmt}
-                                               ELSE EOT_DLQ_ADD_AMT END /*기말연체금액*/
-             , THM_DLQ_ADD_DP_SUM_AMT   = CASE WHEN #{dpDvCd} = '1'
+             , EOT_DLQ_AMT              = CASE WHEN #{dpDvCd} IN ('1', '3')
+                                                AND #{rveDvCd} = '03'
+                                                    THEN EOT_DLQ_AMT - #{thmDlqDpSumAmt}
+                                               WHEN #{dpDvCd} IN ('2', '4')
+                                                AND #{rveDvCd} = '03'
+                                                    THEN EOT_DLQ_AMT + #{thmDlqRfndSumAmt}
+                                               ELSE EOT_DLQ_AMT END /*기말연체금액*/
+             , THM_DLQ_ADD_DP_SUM_AMT   = CASE WHEN #{dpDvCd} IN ('1', '3')
                                                 AND #{rveDvCd} = '02'
                                                     THEN #{thmDlqAddDpSumAmt}
                                                ELSE THM_DLQ_ADD_DP_SUM_AMT END /*당월연체가산입금합계금액*/
-             , THM_DLQ_ADD_RFND_SUM_AMT = CASE WHEN #{dpDvCd} = '2'
+             , THM_DLQ_ADD_RFND_SUM_AMT = CASE WHEN #{dpDvCd} IN ('2', '4')
                                                 AND #{rveDvCd} = '02'
                                                     THEN #{thmDlqAddRfndSumAmt}
                                                ELSE THM_DLQ_ADD_RFND_SUM_AMT END /*당월연체가산환불합계금액*/
-             , EOT_DLQ_ADD_AMT          = CASE WHEN #{dpDvCd} = '1'
+             , EOT_DLQ_ADD_AMT          = CASE WHEN #{dpDvCd} IN ('1', '3')
                                                 AND #{rveDvCd} = '02'
                                                     THEN EOT_DLQ_ADD_AMT - #{thmDlqAddDpSumAmt}
-                                               WHEN #{dpDvCd} = '2'
+                                               WHEN #{dpDvCd} IN ('2', '4')
                                                 AND #{rveDvCd} = '02'
                                                     THEN EOT_DLQ_ADD_AMT + #{thmDlqAddRfndSumAmt}
                                                ELSE EOT_DLQ_ADD_AMT END /*기말연체가산금액*/
@@ -85,7 +87,7 @@
            AND CNTR_NO   = #{cntrNo}    /*계약번호*/
            AND CNTR_SN   = #{cntrSn}    /*계약일련번호*/
     </update>
-    
+
     <insert id="insertDlqBasHist">
         INSERT INTO TB_CBCL_DLQ_BAS_HIST ( /*연체기본이력*/
               PERF_YM                  /*실적년월*/
@@ -164,15 +166,15 @@
                AND CNTR_NO   = #{cntrNo}
                AND CNTR_SN   = #{cntrSn}
     </insert>
-    
+
     <update id="updateBndCntrBas">
         UPDATE TB_CBBO_BND_CNTR_BAS /*채권계약기본*/
-           SET DLQ_DP_AMT       = CASE WHEN 입력값_입금구분코드 = '1'
-                                        AND 입력값_수납구분코드 = '03'
+           SET DLQ_DP_AMT       = CASE WHEN #{dpDvCd} IN ('1', '3')
+                                        AND #{rveDvCd} = '03'
                                             THEN #{thmDlqDpSumAmt}
                                        ELSE DLQ_DP_AMT END /*연체입금금액*/
-             , DLQ_ADD_DP_AMT   = CASE WHEN 입력값_입금구분코드 = '1'
-                                        AND 입력값_수납구분코드 = '02'
+             , DLQ_ADD_DP_AMT   = CASE WHEN #{dpDvCd} IN ('1', '3')
+                                        AND #{rveDvCd} = '02'
                                             THEN #{thmDlqAddDpSumAmt}
                                        ELSE DLQ_ADD_DP_AMT END /*연체가산입금금액*/
              <include refid="COMMON.updateSystemField"/>
@@ -180,6 +182,124 @@
            AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') /*기준년월*/
            AND CNTR_NO = #{cntrNo}    /*계약번호*/
            AND CNTR_SN = #{cntrSn}    /*계약일련번호*/
+    </update>
+
+    <update id="updateBznsAtamBas">
+        UPDATE TB_CBCL_BZNS_ATAM_BAS/*영업선수금기본*/
+           SET BZNS_ATAM_BLAM = #{bznsAtamBlam} /*영업선수금잔액*/
+             <include refid="COMMON.updateSystemField"/>
+         WHERE RVE_NO = #{cntrNo}
+           AND RVE_SN = #{cntrSn}
+    </update>
+
+    <insert id="updatebznsAtamProcsIz">
+        INSERT INTO TB_CBCL_BZNS_ATAM_PROCS_IZ /*영업선수금처리내역*/ (
+               RVE_NO
+             , RVE_SN
+             , BZNS_ATAM_SN
+             , BZNS_ATAM_PROCS_CD
+             , BZNS_ATAM_PROCS_AMT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES (
+               #{cntrNo}
+             , #{cntrSn}
+             , (SELECT NVL(MAX(BZNS_ATAM_SN), 0) + 1
+                  FROM TB_CBCL_BZNS_ATAM_PROCS_IZ /*영업선수금처리내역*/
+                 WHERE RVE_NO = #{cntrNo}
+                   AND RVE_SN = #{cntrSn})            /*영업선수금일련번호*/
+             , #{bznsAtamProcsCd}
+             , #{bznsAtamProcsAmt}
+             , 'N'                                                             /*데이터삭제여부*/
+             <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <select id="selectAgainDisbursementObjectDivide" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaAgainDisbursementObjectDivideDvo">
+        SELECT B.CNTR_NO
+             , B.CNTR_SN
+             , B.CNTR_TAM    /*계약총액*/
+             , (SELECT NVL(SUM(RVE_AMT), 0)
+                 FROM (
+                        SELECT CASE WHEN DP_DV_CD IN ('1', '3') THEN RVE_AMT
+                                        ELSE -RVE_AMT
+                                        END RVE_AMT
+                        FROM TB_RVDW_RVE_DTL
+                        WHERE CNTR_NO = #{cntrNo}
+                        AND CNTR_SN = #{cntrSn}
+                        AND RVE_DV_CD IN ('03', '04', '05')
+                      )
+               )  AS DP_ACU_AMT/*입금누적금액*/
+          FROM TB_SSCT_CNTR_BAS A
+             , TB_SSCT_CNTR_DTL B
+         WHERE A.CNTR_NO = B.CNTR_NO
+           AND B.CNTR_NO = #{cntrNo}
+           AND B.CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectAgainDisbursementObjectDivideRental" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaAgainDisbursementObjectDivideRentalDvo">
+        SELECT A.FNL_AMT /*렌탈료*/
+             , A.ACKMT_PERF_AMT/*인정실적금액*/
+             , B.IST_DT/*설치일자*/
+             , SUBSTR(C.CNTR_CAN_DTM, 1, 8) AS CAN_DT/*취소일자*/
+             , CASE WHEN D.RENTAL_TN > 0 THEN D.RENTAL_TN
+                ELSE CASE WHEN A.CNTR_DTL_STAT_CD = '202' THEN D.RENTAL_TN2
+                          ELSE D.RENTAL_TN2 + 1 END
+                END AS RENTAL_TN  /*렌탈회차*/
+             , (SELECT NVL(SUM(RVE_AMT), 0)
+                     FROM (
+                            SELECT CASE WHEN DP_DV_CD IN ('1', '3') THEN RVE_AMT
+                                   ELSE -RVE_AMT
+                                   END RVE_AMT
+                              FROM TB_RVDW_RVE_DTL
+                             WHERE CNTR_NO = #{cntrNo}
+                               AND CNTR_SN = #{cntrSn}
+                          )
+                )  AS DP_ACU_AMT/*입금누적금액*/
+             , NVL(E.UC_AMT, 0) AS UC_AMT/*미수금액*/
+          FROM TB_SSCT_CNTR_DTL A/*계약상세*/
+             , TB_SSCT_CNTR_WELLS_DTL B/*계약WELLS상세*/
+             , TB_SSCT_CNTR_BAS C/*계약기본*/
+             , (SELECT CNTR_NO, CNTR_SN, NVL(MAX(RENTAL_TN), 0) AS RENTAL_TN, NVL(MAX(RENTAL_TN2), 0) AS RENTAL_TN2
+                  FROM (
+                        SELECT CNTR_NO, CNTR_SN, RENTAL_TN, NULL AS RENTAL_TN2
+                          FROM TB_CBCL_WELLS_SL_CNFM_BAS/*WELLS매출확정기본*/
+                         WHERE SUBSTR(SL_RCOG_DT, 1, 6) /*매출인식일자*/ = SUBSTR(#{rveDt}, 1, 6)
+                           AND CNTR_NO = #{cntrNo}
+                           AND CNTR_SN = #{cntrSn}
+                         UNION ALL
+                        SELECT CNTR_NO, CNTR_SN,  NULL AS RENTAL_TN, RENTAL_TN AS RENTAL_TN2
+                          FROM TB_CBCL_WELLS_SL_CNFM_BAS/*WELLS매출확정기본*/
+                         WHERE SUBSTR(SL_RCOG_DT, 1, 6) /*매출인식일자*/ = SUBSTR(ADD_MONTHS(TO_DATE(#{rveDt}, 'YYYYMMDD'), -1), 1, 6)
+                           AND CNTR_NO = #{cntrNo}
+                           AND CNTR_SN = #{cntrSn}
+                       )
+                 GROUP BY CNTR_NO, CNTR_SN
+               ) D
+          LEFT OUTER JOIN TB_CBCL_SL_BND_ALRPY_BAS E/*매출채권반제기본*/
+            ON E.CNTR_NO = D.CNTR_NO
+           AND E.CNTR_SN = D.CNTR_SN
+           AND E.BASE_YM = SUBSTR(ADD_MONTHS(TO_DATE(#{rveDt}, 'YYYYMMDD'), -1), 1, 6)
+         WHERE A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+    </select>
+
+    <update id="updateRedfAdsbBas">
+        UPDATE TB_CBCL_REDF_ADSB_BAS/*되물림재지급기본*/
+           SET ADSB_DT                       = TO_CHAR(SYSDATE, 'YYYYMMDD') /*재지급일자*/
+             , ADSB_RT                       = #{adsbRt}
+             , ADSB_AMT                      = #{adsbAmt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND REDF_ADSB_SN = (SELECT MAX(REDF_ADSB_SN)
+                                 FROM TB_CBCL_REDF_ADSB_BAS
+                                WHERE CNTR_NO = #{cntrNo}
+                                  AND CNTR_SN = #{cntrSn})
     </update>
 
 </mapper>

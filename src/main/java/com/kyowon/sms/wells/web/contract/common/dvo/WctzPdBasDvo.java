@@ -1,11 +1,11 @@
-package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
+package com.kyowon.sms.wells.web.contract.common.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class WctaPdBasDvo {
+public class WctzPdBasDvo {
     private String pdCd; /*상품코드*/
     private String pdTpCd; /*상품유형코드*/
     private String pdTpDtlCd; /*상품유형상세코드*/

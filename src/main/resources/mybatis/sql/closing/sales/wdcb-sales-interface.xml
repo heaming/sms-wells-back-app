@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesInterfaceMapper">
+
+    <select id="selectAllianceContract" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesInterfaceDto$SearchAllianceContractRes">
+        SELECT A3.CST_KNM AS CNTR_CST_NM                                                                   /* 계약고객명 */
+             , SUBSTR(A1.ALNCMP_CNTR_DRM_VAL, 1, 4) AS KLYEAR                                              /* 라이프계약년도 */
+             , SUBSTR(A1.ALNCMP_CNTR_DRM_VAL, 5, 7) AS KLCODE                                              /* 라이프회원코드 */
+             , A1.CNTR_AMT                                                                                 /* 계약금액 */
+             , A1.SELL_AMT AS RENTAL_AMT                                                                   /* 렌탈금액 */
+             , NVL(A1.RENTAL_AMT2, 0) AS RENTAL_AMT2                                                       /* 렌탈금액2 */
+             , A1.CNTR_PD_STRTDT AS SL_RCOG_DT                                                             /* 매출인식일자 */
+             , CASE WHEN A1.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN A1.CNTR_PD_ENDDT END AS CAN_DT  /* 취소일자 */
+             , A1.ALNCMP_CD                                                                                /* 제휴사코드 */
+             , A2.SELL_PRTNR_NO                                                                            /* 판매파트너번호 */
+             , A4.PRTNR_KNM AS SELL_PRTNR_NM                                                               /* 판매파트너명 */
+             , A4.OG_CD AS SELL_PRTNR_OG_CD                                                                /* 판매파트너조직코드 */
+             , NVL(A5.MLG_EOT_PRPD_AMT, 0) AS RES_PNT                                                      /* 잔여포인트 */
+             , NVL(A5.RENTAL_AMT, 0) - NVL(A5.RENTAL_DSC_AMT, 0) AS MM_RENTAL_AMT                          /* 월렌탈금액 */
+             , NVL((SELECT SUM(X1.RVE_AMT)
+                      FROM TB_RVDW_RVE_DTL X1  /* 수납상세 */
+                     WHERE X1.DTA_DL_YN = 'N'
+                       AND X1.DP_TP_CD IN ('0605', '0606')  /* 상수-유무상포인트 */
+                       AND X1.CNTR_NO = A1.CNTR_NO
+                       AND X1.CNTR_SN = A1.CNTR_SN), 0) AS PNT_RVE_AMT                                     /* 포인트수납금액 */
+          FROM TB_SSCT_CNTR_DTL A1  /* 계약상세 */
+         INNER JOIN TB_SSCT_CNTR_BAS A2  /* 계약기본 */
+            ON A2.CNTR_NO = A1.CNTR_NO
+          LEFT OUTER JOIN TB_CUBS_CST_BAS A3  /* 고객기본 */
+            ON A3.CST_NO = A2.CNTR_CST_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS A4  /* 파트너기본 */
+            ON A4.OG_TP_CD = A2.SELL_OG_TP_CD
+           AND A4.PRTNR_NO = A2.SELL_PRTNR_NO
+          LEFT OUTER JOIN
+             ( SELECT Y1.CNTR_NO
+                    , Y1.CNTR_SN
+                    , Y1.MLG_EOT_PRPD_AMT
+                    , Y1.RENTAL_AMT
+                    , Y1.RENTAL_DSC_AMT
+                    , ROW_NUMBER() OVER(PARTITION BY Y1.CNTR_NO, Y1.CNTR_SN ORDER BY SL_CL_YM DESC) SN
+                 FROM TB_CBCL_WELLS_SL_MM_CL_IZ Y1  /* 웰스매출월마감내역 */
+                WHERE Y1.DTA_DL_YN = 'N'
+             ) A5
+            ON A5.CNTR_NO = A1.CNTR_NO
+           AND A5.CNTR_SN = A1.CNTR_SN
+           AND A5.SN = 1
+         WHERE A1.CNTR_NO = #{cntrNo}  /* 필수변수-계약번호 */
+           AND A1.CNTR_SN = #{cntrSn}  /* 필수변수-계약일련번호 */
+    </select>
+
+</mapper>

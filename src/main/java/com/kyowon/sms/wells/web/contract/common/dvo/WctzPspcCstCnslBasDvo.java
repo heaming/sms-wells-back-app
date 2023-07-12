@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
+package com.kyowon.sms.wells.web.contract.common.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class WctaPspcCstCnslBasDvo {
+public class WctzPspcCstCnslBasDvo {
     private String pspcCstCnslId; /*가망고객상담ID*/
     private String pspcCstId; /*가망고객ID*/
     private String pspcCstCnslTpCd; /*가망고객상담유형코드*/
@@ -27,8 +27,8 @@ public class WctaPspcCstCnslBasDvo {
     private String pspcCstFtfYn; /*가망고객대면여부*/
     private String vstAgDtm; /*방문동의일시*/
     private String alncCnslCponId; /*제휴상담쿠폰ID*/
-    private String cnslCponFshDtm; /*담당배정완료일시*/
-    private String ichrPrtUseDtm; /*상담쿠폰사용일시*/
+    private String cnslCponUseDtm; /*담당배정완료일시*/
+    private String ichrAsnFshDtm; /*상담쿠폰사용일시*/
     private String ichrAsnnrNo; /*담당파트너번호*/
     private String cnslMoCn; /*상담메모내용*/
     private String cnslEvlDtm; /*상담평가일시*/

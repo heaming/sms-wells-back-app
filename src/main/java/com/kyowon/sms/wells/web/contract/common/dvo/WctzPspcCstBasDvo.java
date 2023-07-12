@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
+package com.kyowon.sms.wells.web.contract.common.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.annotation.DBEncField;
@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class WctaPspcCstBasDvo {
+public class WctzPspcCstBasDvo {
     private String pspcCstId; /*가망고객ID*/
     private String pspcCstInflwDt; /*가망고객유입일자*/
     private String pspcCstKnm; /*가망고객한글명*/

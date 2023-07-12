@@ -18,7 +18,6 @@
               , CEIL(MONTHS_BETWEEN(TO_DATE(T1.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(T1.PRFMT_DT, 'YYYYMMDD'))) PRFMT_YM   --승진차월(PRFMT_DT : 승진일자)
               , SUM(CASE WHEN T3.FEE_CD = 'W010003' THEN T3.FEE_CALC_AMT ELSE 0 END) AS AMT_EST_SAL_FEE /* 예상판매수수료 - 개인 */
               , SUM(CASE WHEN T3.FEE_CD = 'W010021' THEN T3.FEE_CALC_AMT ELSE 0 END) AS AMT_MUT_AID_FEE /* 예상상조수수료 - 개인 */
-              , SUM(T3.FEE_CALC_AMT) AS AMT_FEE_SUM     /* 예상수수료합계 - 개인 */
               <choose>
               <when test='@MybatisUtils@equals(userDvCd, "OG")'>
               , 9 AS AMT_EST_OG_FEE /* todo 조직계산식 */
@@ -27,6 +26,7 @@
               , 0 AS AMT_EST_OG_FEE
               </otherwise>
               </choose>
+              , 0 AS AMT_FEE_SUM
           FROM TB_OGBS_MM_PRTNR_IZ    T1   /* 파트너기본           */
           LEFT OUTER JOIN TB_OGBS_PRTNR_DTL    T2   /* 파트너상세           */
             ON T2.OG_TP_CD = T1.OG_TP_CD
@@ -40,6 +40,12 @@
                               WHERE OG_TP_CD            = 'W01'   /* 조직유형코드:P추진단                    */
                                 AND FEE_CALC_UNIT_TP_CD = '101' ) /* 수수료계산단위유형코드: P추진단 플래너  */
            AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_FEAM_FEE_BASE_DTL T4 /* 수수료기준상세       */
+            ON T4.FEE_CD       = T3.FEE_CD
+           AND T4.APY_STRT_YM <![CDATA[<=]]> #{req.perfYm}
+           AND T4.APY_END_YM  >= #{req.perfYm}
+           AND T4.FNL_FEE_YN   = 'Y'
+           AND T4.DTA_DL_YN    = 'N'
          WHERE T1.BASE_YM = #{req.perfYm}
            AND T1.OG_TP_CD  = 'W01' /* 조직유형코드:P추진단 */
            AND T1.PRTNR_NO  = #{req.sellPrtnrNo}
@@ -173,6 +179,12 @@
             ON T3.FEE_CD = T2.FEE_CD
            AND T3.OG_TP_CD = T2.OG_TP_CD
            AND T3.FEE_CALC_UNIT_TP_CD IN ('101', '102' )
+          LEFT OUTER JOIN TB_FEAM_FEE_BASE_DTL T4 /* 수수료기준상세       */
+            ON T4.FEE_CD       = T3.FEE_CD
+           AND T4.APY_STRT_YM <![CDATA[<=]]> #{req.perfYm}
+           AND T4.APY_END_YM  >= #{req.perfYm}
+           AND T4.FNL_FEE_YN   = 'Y'
+           AND T4.DTA_DL_YN    = 'N'
          WHERE T1.OG_TP_CD  = 'W01'
            AND T1.PRTNR_NO  = #{req.sellPrtnrNo}
            AND T1.DTA_DL_YN = 'N'
@@ -259,7 +271,7 @@
                                               ,'W020084' ) --BS관리(판매자)
                             THEN T3.FEE_CALC_AMT
                             ELSE 0 END), 0) AS AMT_EST_BS_FEE  /* 예상BS수수료                */
-             , NVL(SUM(T3.FEE_CALC_AMT), 0) AS AMT_FEE_SUM     /* 예상수수료합계              */
+             , 0 AS AMT_FEE_SUM
          FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역         */
         INNER JOIN TB_OGBS_PRTNR_DTL T2 /* 파트너상세           */
            ON T2.OG_TP_CD    = T1.OG_TP_CD
@@ -269,6 +281,12 @@
           AND T3.PRTNR_NO    = T1.PRTNR_NO
           AND T3.BASE_YM     = T1.BASE_YM
           AND T3.DTA_DL_YN   = 'N'
+         LEFT OUTER JOIN TB_FEAM_FEE_BASE_DTL T4 /* 수수료기준상세       */
+           ON T4.FEE_CD       = T3.FEE_CD
+          AND T4.APY_STRT_YM <![CDATA[<=]]> #{req.perfYm}
+          AND T4.APY_END_YM  >= #{req.perfYm}
+          AND T4.FNL_FEE_YN   = 'Y'
+          AND T4.DTA_DL_YN    = 'N'
         WHERE T1.BASE_YM   = #{req.perfYm}
           AND T1.OG_TP_CD  = 'W02' /* 조직유형코드:M추진단 */
           AND T1.PRTNR_NO  = #{req.sellPrtnrNo}
@@ -507,7 +525,12 @@
          LEFT OUTER JOIN  TB_FEAM_FEE_CD T3 /* 수수료코드 */
            ON T3.FEE_CD     = T2.FEE_CD
           AND T3.OG_TP_CD   = T2.OG_TP_CD
-        --AND T3.FEE_CALC_UNIT_TP_CD IN ('101', '102' ) /* 수수료계산단위유형코드-101:P추진단 플래너, 102:P추진단 지국장  */
+         LEFT OUTER JOIN TB_FEAM_FEE_BASE_DTL T4 /* 수수료기준상세       */
+           ON T4.FEE_CD       = T3.FEE_CD
+          AND T4.APY_STRT_YM <![CDATA[<=]]> #{req.perfYm}
+          AND T4.APY_END_YM  >= #{req.perfYm}
+          AND T4.FNL_FEE_YN   = 'Y'
+          AND T4.DTA_DL_YN    = 'N'
         WHERE T1.BASE_YM   = #{req.perfYm}
           AND T1.OG_TP_CD  = 'W02'
           AND T1.PRTNR_NO  = #{req.sellPrtnrNo}
@@ -608,6 +631,7 @@
                         )
                         END
                         ), 0) AS AMT_EST_SER_FEE /* 예상서비스수수료 */
+            , 0 AS AMT_FEE_SUM
          FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
         INNER JOIN TB_OGBS_PRTNR_DTL T2 /* 파트너상세 */
            ON  T2.OG_TP_CD    = T1.OG_TP_CD
@@ -617,6 +641,12 @@
           AND T3.PRTNR_NO    = T1.PRTNR_NO
           AND T3.BASE_YM     = T1.BASE_YM
           AND T3.DTA_DL_YN   = 'N'
+         LEFT OUTER JOIN TB_FEAM_FEE_BASE_DTL T4 /* 수수료기준상세       */
+           ON T4.FEE_CD       = T3.FEE_CD
+          AND T4.APY_STRT_YM <![CDATA[<=]]> #{perfYm}
+          AND T4.APY_END_YM  >= #{perfYm}
+          AND T4.FNL_FEE_YN   = 'Y'
+          AND T4.DTA_DL_YN    = 'N'
         WHERE T1.BASE_YM   = #{perfYm}
           AND T1.OG_TP_CD  = 'W03' /* 조직유형코드:홈마스터 */
           AND T1.PRTNR_NO  = #{sellPrtnrNo}
@@ -713,7 +743,12 @@
           AND T3.OG_TP_CD     = T2.OG_TP_CD
           AND T3.APY_STRT_YM <![CDATA[<=]]> T2.BASE_YM
           AND T3.APY_END_YM  >= T2.BASE_YM
-        --AND T3.FEE_CALC_UNIT_TP_CD IN ('301', '302' ) /* 수수료계산단위유형코드-301:홈마스터-일반(15등급), 302:홈마스터-지점장 */
+         LEFT OUTER JOIN TB_FEAM_FEE_BASE_DTL T4 /* 수수료기준상세       */
+           ON T4.FEE_CD       = T3.FEE_CD
+          AND T4.APY_STRT_YM <![CDATA[<=]]> #{perfYm}
+          AND T4.APY_END_YM  >= #{perfYm}
+          AND T4.FNL_FEE_YN   = 'Y'
+          AND T4.DTA_DL_YN    = 'N'
         WHERE T1.BASE_YM   = #{perfYm}
           AND T1.OG_TP_CD  = 'W03' /* 조직유형코드:홈마스터 */
           AND T1.PRTNR_NO  = #{sellPrtnrNo}

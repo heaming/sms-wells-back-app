@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCapsulepkgChSppinfMapper">
+
+    <select id="selectCapsulepkgChSppinfs" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto$SearchRes">
+        SELECT VST_DT AS SPP_DUEDT   /*배송예정일*/
+             , MAX(PD_CD) AS PD_CD    /*현재패키지*/
+             , AFCH_PD_CD   /*패키지명*/
+<!--             , LISTAGG(PART_NM, '/') WITHIN GROUP(ORDER BY PART_NM) AS DT_INFO  /*패키지구성정보*/-->
+             , MAX(FILT_PD_CD) AS FILT_PD_CD
+             , MAX(SELL_AMT) AS SELL_AMT    /*패키지가격*/
+             , (CASE WHEN MAX(WK_DT) IS NOT NULL THEN '배송완료'
+                     WHEN MAX(WK_DT) IS NULL AND SUBSTR(VST_DT,1,6) = TO_CHAR(ADD_MONTHS(SYSDATE, 0), 'YYYYMM') THEN '배송진행'
+                     WHEN MAX(WK_DT) IS NULL AND SUBSTR(VST_DT,1,6) <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') THEN '배송예정'
+                END) AS SPP_PRGS_STAT_CD  /*배송상태*/
+             , MAX(ADDR) AS IST_ADDR    /*배송주소*/
+          FROM (
+                SELECT A.VST_DUEDT AS VST_DT /*배송예정일*/
+                     , (SELECT T1.PD_CD FROM TB_PDBS_PD_BAS T1 WHERE T1.PD_CD = C.PDCT_PD_CD) AS PD_CD /*상품코드*/
+                     , (SELECT T1.PD_CD FROM TB_PDBS_PD_BAS T1
+                         WHERE T1.PD_CD = NVL((SELECT T2.OJ_PD_CD FROM TB_PDBS_PD_REL T2
+                                                WHERE T2.PD_REL_TP_CD = '18'
+                                                  AND T2.DTA_DL_YN = 'N'
+                                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                  AND T2.BASE_PD_CD = B.AFCH_PD_CD), C.PDCT_PD_CD)) AS AFCH_PD_CD /*변경후상품코드*/
+<!--                     , (SELECT T1.PD_NM || A.PART_USE_QTY || '건' FROM TB_PDBS_PD_BAS T1 WHERE T1.PD_CD = A.PART_PD_CD) AS PART_NM /*패키지구성정보*/-->
+<!--                     , A.PART_USE_QTY-->
+                     , '' AS FILT_PD_CD
+                     , D.FNL_VAL AS SELL_AMT /*패키지가격*/
+                     , A.WK_DT /*배송상태*/
+                     , (SELECT (SELECT Z.RNADR || ' ' || Z.RDADR FROM TB_GBCO_ADR_BAS Z WHERE Z.ADR_ID = T2.ADR_ID)
+                          FROM TB_SSCT_CNTR_ADR_REL T1
+                             , TB_SSCT_CNTR_ADRPC_BAS T2
+                         WHERE T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
+                           AND T1.ADRPC_TP_CD IN ('2','3') /* 설치처 */
+                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                           AND T1.DTL_CNTR_NO = C.CNTR_NO
+                           AND T1.DTL_CNTR_SN = C.CNTR_SN ) AS ADDR
+                     , A.CNTR_NO
+                     , A.CNTR_SN
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ A --LC_VISIT_VS107TB
+                  LEFT OUTER JOIN TB_SVPD_HCF_AS_AK_IZ B --LC_CAPSULE_CS104TB
+                    ON B.CNTR_NO = A.CNTR_NO
+                   AND B.CNTR_SN = A.CNTR_SN
+                   AND SUBSTR(B.AK_CHDT,1,6) = SUBSTR(A.VST_DUEDT,1,6)
+                  LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ C --LC_ALLOCATE_AC201TB
+                    ON C.CNTR_NO = A.CNTR_NO
+                   AND C.CNTR_SN = A.CNTR_SN
+                 INNER JOIN (SELECT T1.PD_CD
+                                  , T1.PD_NM
+                                  , T4.FNL_VAL
+                                  , T4.VL_STRT_DTM
+                                  , T4.VL_END_DTM
+                               FROM TB_PDBS_PD_BAS T1 -- 기준
+                              INNER JOIN TB_PDBS_PD_REL T2
+                                 ON T1.PD_CD = T2.BASE_PD_CD
+                                AND T2.PD_REL_TP_CD = '05'  /* 제품만 조회 */
+                                AND TO_CHAR(SYSDATE,'YYYYYMM') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                               LEFT OUTER JOIN TB_PDBS_PD_PRC_FNL_DTL T4
+                                 ON T1.PD_CD = T4.PD_CD
+                                AND T4.HIST_END_DTM = '99991231235959'
+                                AND TO_CHAR(SYSDATE,'YYYYYMM') BETWEEN T4.VL_STRT_DTM AND T4.VL_END_DTM
+                              WHERE T1.PD_TP_CD = 'P'
+                                AND T1.SELL_TP_CD = '6'  /* 정기배송 상품 */
+                            ) D --KWMART.LD1010P
+                    ON D.PD_CD = B.AFCH_PD_CD
+                   AND SUBSTR(A.VST_DUEDT,1,6) || '10' BETWEEN D.VL_STRT_DTM AND D.VL_END_DTM
+                 WHERE 1=1
+                   AND A.VST_DUEDT <![CDATA[<]]> (CASE WHEN TO_CHAR(SYSDATE, 'DD') <![CDATA[<=]]> '20' THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '99'
+                                           ELSE TO_CHAR(ADD_MONTHS(SYSDATE, 2), 'YYYYMM') || '99'
+                                      END)
+                   AND A.CNTR_NO = #{cntrNo}
+                   AND A.CNTR_SN = #{cntrSn}
+               ) V1
+         GROUP BY VST_DT, AFCH_PD_CD
+         ORDER BY VST_DT DESC
+    </select>
+
+</mapper>

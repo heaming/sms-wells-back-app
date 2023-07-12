@@ -21,8 +21,8 @@ public class WfefEstimateFeeMgtDto {
         String prfmtYm, // 승진차월
         Long amtEstSalFee, // 예상판매수수료 - 개인
         Long amtMutAidFee, // 예상상조수수료 - 개인
-        Long amtFeeSum, // 예상수수료합계 - 개인
-        Long amtEstOgFee // 예상조직수수료
+        Long amtEstOgFee, // 예상조직수수료
+        Long amtFeeSum // 수수료합계
     ) {}
 
     public record MeetingP(
@@ -89,7 +89,7 @@ public class WfefEstimateFeeMgtDto {
         Long amtEstSalFee, // 예상판매수수료
         Long amtEstOgFee, // 예상조직수수료
         Long amtEstBsFee, // 예상BS수수료
-        Long amtFeeSum // 예상수수료합계
+        Long amtFeeSum // 수수료합계
     ) {}
 
     public record MeetingM(
@@ -188,7 +188,8 @@ public class WfefEstimateFeeMgtDto {
         String ogCd, // 조직코드
         String rsbDvCd, // 직책구분코드
         Long amtEstSalFee, // 예상판매수수료
-        Long amtEstSerFee // 예상서비스수수료
+        Long amtEstSerFee, // 예상서비스수수료
+        Long amtFeeSum // 수수료합계
     ) {}
 
     public record PerformanceHome(

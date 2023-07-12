@@ -1,11 +1,10 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPdBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPspcCstBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPspcCstCnslBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPspcCstCnslRcmdIzDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
 import java.util.Optional;
 
 @Mapper
@@ -14,17 +13,37 @@ public interface WctaReceiptBulkUploadMapper {
 
     boolean isExistServiceProduct(String pdCd);
 
-    Optional<WctaPdBasDvo> selectPdBasByPk(String pdCd);
+    Optional<WctzPdBasDvo> selectPdBasByPk(String pdCd);
 
     String selectPspcCstIdForNewPspcCstBas();
 
-    Optional<WctaPspcCstBasDvo> selectPspcCstBasByPk(String pspcCstId);
+    Optional<WctzPspcCstBasDvo> selectPspcCstBasByPk(String pspcCstId);
 
-    int insertPspcCstBas(WctaPspcCstBasDvo dvo);
+    int insertPspcCstBas(WctzPspcCstBasDvo dvo);
 
     String selectPspcCstCnslIdForNewPspcCstCnslBas();
 
-    int insertPspcCstCnslBas(WctaPspcCstCnslBasDvo dvo);
+    int insertPspcCstCnslBas(WctzPspcCstCnslBasDvo dvo);
 
-    int insertPspcCstCnslRcmdIz(WctaPspcCstCnslRcmdIzDvo dvo);
+    int insertPspcCstCnslRcmdIz(WctzPspcCstCnslRcmdIzDvo dvo);
+
+    boolean isExistCstBas(WctzCstBasDvo basDvo);
+
+    int insertProspectCustomers(List<WctaBulkProspectCustomerDvo> dvos);
+
+    Optional<WctaRentalFinalPriceDvo> selectRentalPdPrcFnlDtl(WctaRentalFinalPriceDvo req);
+
+    Optional<WctzMmPrtnrIzDvo> selectAlncmpDgPrtnr(String alncmpDgPrtnrMapngCd, String alncmpDgPrtnrOgTpCd);
+
+    String selectCntrPrtnrRelIdForNewCntrPrtnrRel();
+
+    String selectCntrCstRelIdForNewCntrCstRel();
+
+    String selectCntrPdRelIdForNewCntrPdRel();
+
+    int insertBulkRentals(List<WctaBulkRentalDvo> dvos);
+
+    List<WctzPdRelDvo> selectPdRels(String basePdCd);
+
+    List<WctzPdRelDvo> selectPdRels(String basePdCd, String pdRelTpCd);
 }
