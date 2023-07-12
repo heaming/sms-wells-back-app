@@ -6,12 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.closing.sales.converter.WdcbBusinessAtamAdjustMgtConverter;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SaveSlpnoReq;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchDetailRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchSapPdDvCdRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchSlpnoRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchTotalRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.*;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbBusinessAtamAdjustDvo;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbBusinessAtamAdjustMgtMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -45,16 +40,14 @@ public class WdcbBusinessAtamAdjustMgtService {
     @Transactional
     public int saveSlpnoInitializes(List<SaveSlpnoReq> dtos) {
         int processCount = 0;
-        for (SaveSlpnoReq dto : dtos) {
-            WdcbBusinessAtamAdjustDvo dvo = converter.mapSaveSlpnoReqToWdcbBusinessAtamAdjustDvo(dto);
-            int result = mapper.updateAllRepaymentBase(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        SaveSlpnoReq dto = dtos.get(0);
+        WdcbBusinessAtamAdjustDvo dvo = converter.mapSaveSlpnoReqToWdcbBusinessAtamAdjustDvo(dto);
+        int result = mapper.updateAllRepaymentBase(dvo);
+        BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
 
-            mapper.updateDepositSlip(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        mapper.updateDepositSlip(dvo);
 
-            processCount += result;
-        }
+        processCount += result;
         return processCount;
     }
 }
