@@ -19,6 +19,7 @@ import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMgtMapper;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractChRcchStatChangeDtlHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractNotifyFowrdindHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaInstallationShippingDto.SaveAssignProcessingReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationShippingService;
@@ -77,10 +78,7 @@ public class WctbContractChangeMgtService {
 
         WctbContractChangeDvo checkDvo = mapper.selectCheckOgTpCd();
 
-        String[] msgParam = new String[] {
-            messageResourceService.getMessage("MSG_TXT_USR") + messageResourceService.getMessage("MSG_TXT_INF")};
-
-        BizAssert.isFalse(ObjectUtils.isEmpty(checkDvo), "MSG_ALT_CHK_CONFIRM", msgParam); // 사용자 정보를 확인하세요.
+        BizAssert.isFalse(ObjectUtils.isEmpty(checkDvo), "MSG_ALT_NO_AUTH"); // 권한이 없습니다.
 
         String ogTpCd = checkDvo.getOgTpCd();
         String resYn = checkDvo.getResYn();
@@ -261,6 +259,7 @@ public class WctbContractChangeMgtService {
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         String employeeUserId = session.getEmployeeIDNumber();
+        String userName = session.getUserName();
 
         String now = DateUtil.getNowString();
         String cntrChAkCn = "계약변경유형코드: 계약취소신청";
@@ -340,6 +339,32 @@ public class WctbContractChangeMgtService {
             .callback("15884113")
             .build();
         processCount += kakaoMessageService.sendMessage(kakaoSendReqDvo);
+
+        if (processCount > 0) {
+            String notyFwId = historyService.createContractNotifyFowrdindHistory(
+                WctzContractNotifyFowrdindHistDvo.builder()
+                    .notyFwTpCd("20") // 알림발송유형코드
+                    .notyFwBizDvCd("10") // 알림발송업무구분코드
+                    .akUsrId(employeeUserId) // 요청자 ID
+                    .rqrNm(userName)// 요청자명
+                    .akDtm(now) // 요청일시
+                    .fwDtm(now) // 발송일시
+                    // .msgTit(title) // 메세지 제목  ( 메세지 내용, 제목은 식별키 값으로 이메일 테이블 join 해서 내용 조회 가능)
+                    // .msgCn(sendDvo.getContent()) // 메세지 내용
+                    .cntrNo(cntrNo) // 계약번호
+                    .cntrSn(cntrSn) // 계약일련번호
+                    // .fwLkIdkVal(emailUid) // 발송연계식별키값 TODO: 추가 예정
+                    .fwOjRefkVal1(templateCode) // 발송대상참조키값1
+                    .rcvrNm(brmgrNm) // 수신자명
+                    .rcvrLocaraTno(cralLocaraTno) // 수신자지역전화번호
+                    .rcvrExnoEncr(mexnoEncr) // 수신자전화국번호암호화
+                    .rcvrIdvTno(cralIdvTno) // 수신자개별전화번호
+                    .notyFwRsCd("10") // 알림발송결과코드
+                    .dtaDlYn("N") // 삭제여부
+                    .build(),
+                false
+            );
+        }
 
         return processCount;
     }
