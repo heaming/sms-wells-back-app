@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
+package com.kyowon.sms.wells.web.contract.common.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class WctaPspcCstCnslRcmdIzDvo {
+public class WctzPspcCstCnslRcmdIzDvo {
     private String pspcCstCnslId; /*가망고객상담ID*/
     private Integer pspcCstCnslSn; /*가망고객상담일련번호*/
     private String mbCstNo; /*회원고객번호*/
@@ -22,10 +22,10 @@ public class WctaPspcCstCnslRcmdIzDvo {
     private String trsYn; /*전송여부*/
     private String dtaDlYn; /*데이터삭제여부*/
 
-    public WctaPspcCstCnslRcmdIzDvo() {
+    public WctzPspcCstCnslRcmdIzDvo() {
     }
 
-    public WctaPspcCstCnslRcmdIzDvo(String pspcCstCnslId, Integer pspcCstCnslSn) {
+    public WctzPspcCstCnslRcmdIzDvo(String pspcCstCnslId, Integer pspcCstCnslSn) {
         this.pspcCstCnslId = pspcCstCnslId;
         this.pspcCstCnslSn = pspcCstCnslSn;
     }
