@@ -8,10 +8,12 @@ import java.util.List;
 @Mapper
 public interface WfefEstimateFeeMgtMapper {
     String selectUserDvCd(String perfYm, String ogTpCd, String sellPrtnrNo);
-    BaseP selectBaseP(SearchEstimateReq req);
-    List<PerformanceP> selectPerformanceP(SearchEstimateReq req);
-    List<EstimateP> selectEstimateP(SearchEstimateReq req);
-    List<SaleP> selectSaleP(SearchEstimateReq req);
+
+    BaseP selectBaseP(SearchEstimateReq req, String userDvCd);
+    MeetingP selectMeetingP(SearchEstimateReq req, String userDvCd);
+    List<PerformanceP> selectPerformanceP(SearchEstimateReq req, String userDvCd);
+    EstimateP selectEstimateP(SearchEstimateReq req, String userDvCd);
+    List<SaleP> selectSaleP(SearchEstimateReq req, String userDvCd);
 
     BaseM selectBaseM(SearchEstimateReq req, String userDvCd);
     MeetingM selectMeetingM(SearchEstimateReq req, String userDvCd);
