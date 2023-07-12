@@ -21,6 +21,8 @@ public class WdcbSalesInterfaceDto {
         int cntrSn
     ) {}
 
+    @ApiModel(value = "WdcbSalesInterfaceDto-SearchAllianceContractRes")
+    @Builder
     public record SearchAllianceContractRes(
 
         @JsonProperty("CNTR_CST_NM")
