@@ -11,7 +11,7 @@ import io.swagger.annotations.ApiModel;
  * @author yeonghwa.cheon
  * @since 2023.03.20
  */
-public class WsnbCapsulepkgChSppinfDto {
+public class WsniCapsulepkgChSppinfDto {
 
     @ApiModel(value = "WsnbCapsulepkgChSppinfDto-SearchReq")
     public record SearchReq(

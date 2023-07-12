@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchRes;
 
 /**
  * <pre>
@@ -16,7 +16,7 @@ import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto
  * @since 2023.03.20
  */
 @Mapper
-public interface WsnbCapsulepkgChSppinfMapper {
+public interface WsniCapsulepkgChSppinfMapper {
 
     List<SearchRes> selectCapsulepkgChSppinfs(SearchReq dto);
 

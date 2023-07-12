@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbCapsulepkgChSppinfDto.SearchRes;
-import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbCapsulepkgChSppinfMapper;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchRes;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCapsulepkgChSppinfMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbCapsulepkgChSppinfService {
+public class WsniCapsulepkgChSppinfInterfaceService {
 
-    private final WsnbCapsulepkgChSppinfMapper mapper;
+    private final WsniCapsulepkgChSppinfMapper mapper;
 
     public List<SearchRes> getCapsulepkgChSppinfs(SearchReq dto) {
         /* db2 테이블 확인 된 후 로직 전체적으로 수정 예정 */
