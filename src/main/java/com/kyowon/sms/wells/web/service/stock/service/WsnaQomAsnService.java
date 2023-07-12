@@ -4,7 +4,6 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.*;
 
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,12 +92,11 @@ public class WsnaQomAsnService {
     }
 
     /**
-     * 개인창고 물량배정 데이터 생성
+     * 개인창고 물량배정 데이터 생성 관련 조회
      * @param dto
      * @return
      */
-    @Transactional(timeout = -1)
-    public int createQomAsnForIndividual(CreateReq dto) {
+    public List<WsnaQomAsnCreateDvo> getQomAsnIndividualsForCreate(SearchReq dto) {
 
         // 기준년월
         String apyYm = dto.apyYm();
@@ -107,16 +105,25 @@ public class WsnaQomAsnService {
         // 회차
         int cnt = dto.cnt();
 
-        List<WsnaQomAsnCreateDvo> dvos = null;
-
         // 1회차 이고 기준년월과 배정년월이 다를 경우
         if (cnt == 1 && !apyYm.equals(asnOjYm)) {
-            dvos = this.mapper.selectQomAsnFirstTnIndividualsForCreate(dto);
+            return this.mapper.selectQomAsnFirstTnIndividualsForCreate(dto);
         } else {
-            dvos = this.mapper.selectQomAsnIndividualsForCreate(dto);
+            return this.mapper.selectQomAsnIndividualsForCreate(dto);
         }
+    }
 
-        return CollectionUtils.isNotEmpty(dvos) ? this.mapper.insertItmQomAsnIz(dvos) : 0;
+    /**
+     * 개인창고 물량배정 데이터 생성
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int createQomAsnsForIndividual(List<CreateReq> dtos) {
+
+        List<WsnaQomAsnCreateDvo> dvos = this.converter.mapAllCreateReqToWsnaQomAsnCreateDvo(dtos);
+
+        return this.mapper.insertItmQomAsnIz(dvos);
     }
 
     /**

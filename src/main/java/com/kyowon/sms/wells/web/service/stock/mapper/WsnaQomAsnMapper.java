@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.CreateReq;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchReq;
 
 import java.util.List;
@@ -23,9 +22,9 @@ public interface WsnaQomAsnMapper {
 
     Integer selectQomAsnCount(String asnOjYm, int cnt);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnFirstTnIndividualsForCreate(CreateReq dto);
+    List<WsnaQomAsnCreateDvo> selectQomAsnFirstTnIndividualsForCreate(SearchReq dto);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnIndividualsForCreate(CreateReq dto);
+    List<WsnaQomAsnCreateDvo> selectQomAsnIndividualsForCreate(SearchReq dto);
 
     int insertItmQomAsnIz(List<WsnaQomAsnCreateDvo> dvos);
 

@@ -76,18 +76,31 @@ public class WsnaQomAsnDto {
     @Builder
     @ApiModel("WsnaQomAsnDto-CreateReq")
     public record CreateReq(
-        @NotBlank
-        String apyYm,
-        @NotBlank
         String asnOjYm,
-        @Positive
-        int cnt,
-        @NotBlank
+        BigDecimal asnTnN,
+        String strWareNo,
         String ostrWareNo,
-        @NotBlank
+        String itmPdCd,
         String wareDvCd,
-        @NotBlank
-        String wareDtlDvCd
+        String wareDtlDvCd,
+        String sppDvCd,
+        String wareMngtPrtnrNo,
+        String ogTpCd,
+        String bldCd,
+        String adrId,
+        String matGdCd,
+        BigDecimal geAsnQomCt,
+        BigDecimal crpAsnQomCt,
+        BigDecimal woAsnQomCt,
+        BigDecimal etnWtcfApyQty,
+        BigDecimal mcbyAcuOstrQty,
+        BigDecimal crtlStocQty,
+        BigDecimal thwkExpQty,
+        BigDecimal borrExpQty,
+        BigDecimal cnfmQty,
+        BigDecimal boxUnitQty,
+        BigDecimal aclOstrQty,
+        BigDecimal bfsvcFshCt
 
     ) {}
 
