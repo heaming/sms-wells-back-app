@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import java.math.BigDecimal;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
@@ -27,7 +28,8 @@ public class WsnaQomAsnDto {
         @NotBlank
         String asnOjYm,
         @Positive
-        int cnt,
+        @Max(999999999999L)
+        BigDecimal cnt,
         @NotBlank
         String ostrWareNo,
         String itmKndCd,

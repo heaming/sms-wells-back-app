@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -103,10 +104,10 @@ public class WsnaQomAsnService {
         // 배정년월
         String asnOjYm = dto.asnOjYm();
         // 회차
-        int cnt = dto.cnt();
+        BigDecimal cnt = dto.cnt();
 
         // 1회차 이고 기준년월과 배정년월이 다를 경우
-        if (cnt == 1 && !apyYm.equals(asnOjYm)) {
+        if (BigDecimal.ONE.equals(cnt) && !apyYm.equals(asnOjYm)) {
             return this.mapper.selectQomAsnFirstTnIndividualsForCreate(dto);
         } else {
             return this.mapper.selectQomAsnIndividualsForCreate(dto);
