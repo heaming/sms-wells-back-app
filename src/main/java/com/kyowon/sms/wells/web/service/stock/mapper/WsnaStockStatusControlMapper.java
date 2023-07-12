@@ -25,5 +25,5 @@ public interface WsnaStockStatusControlMapper {
 
     FindOgNmRes selectOrganizationDeptName(String wareNo);
 
-    List<FinditmPdCdRes> selectStockStatusItmPdCd(String itmKnd);
+    List<SearchItmPdCdRes> selectStockStatusItmPdCd(SearchItmPdCdReq dto);
 }

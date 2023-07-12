@@ -36,7 +36,7 @@ public class WsnaStockStatusControlService {
         return mapper.selectOrganizationDeptName(wareNo);
     }
 
-    public List<FinditmPdCdRes> getStockStatusItmPdCd(String itmKnd) {
-        return mapper.selectStockStatusItmPdCd(itmKnd);
+    public List<SearchItmPdCdRes> getStockStatusItmPdCd(SearchItmPdCdReq dto) {
+        return mapper.selectStockStatusItmPdCd(dto);
     }
 }

@@ -63,15 +63,21 @@ public class WsnaStockStatusControlDto {
         String wareDvCd
     ) {}
 
+    @ApiModel("WsnaStockStatusControlDto-SearchItmPdCdReq")
+    public record SearchItmPdCdReq(
+        String itmKnd
+    ) {}
+
     @ApiModel("WsnaStockStatusControlDto-FindOgNmRes")
     public record FindOgNmRes(
         String ogCd,
         String ogNm
     ) {}
 
-    @ApiModel("WsnaStockStatusControlDto-FinditmPdCdRes")
-    public record FinditmPdCdRes(
+    @ApiModel("WsnaStockStatusControlDto-SearchItmPdCdRes")
+    public record SearchItmPdCdRes(
         String codeId,
-        String codeName
+        String codeName,
+        String itmKnd
     ) {}
 }

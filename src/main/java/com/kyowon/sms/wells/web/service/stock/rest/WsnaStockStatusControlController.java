@@ -69,11 +69,10 @@ public class WsnaStockStatusControlController {
     }
 
     @ApiOperation(value = "재고상태조정 관리 상품조회.", notes = "재고상태조정 관리 품목종류에 해당하는 상품을 조회한다.")
-    @GetMapping("/product/{itmKnd}")
-    public List<FinditmPdCdRes> getStockStatusItmPdCd(
-        @PathVariable
-        String itmKnd
+    @GetMapping("/product")
+    public List<SearchItmPdCdRes> getStockStatusItmPdCd(
+        SearchItmPdCdReq dto
     ) {
-        return service.getStockStatusItmPdCd(itmKnd);
+        return service.getStockStatusItmPdCd(dto);
     }
 }
