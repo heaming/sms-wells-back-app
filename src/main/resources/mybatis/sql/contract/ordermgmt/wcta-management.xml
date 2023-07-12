@@ -145,7 +145,7 @@
 --                   AND CNTR_NO = T11.CNTR_NO
 --                   AND CAN_YN = 'N' /* 취소여부 */
 --                   AND DTA_DL_YN = 'N') AS CNTR_APR_CN              /* 확정 승인 요청 건수 DFNT_ACKD_REQ_CNT . TODO.성능개선필요*/
-             , '' AS CNTR_APR_CN
+             , '1' AS CNTR_APR_CN
 --             , (SELECT TSST.CST_SIGN_CN
 --                  FROM TB_SVPD_SIGN_TEMP TSST /* T.서명임시*/
 --                 WHERE 1=1
@@ -281,7 +281,7 @@
            AND T30.OG_TP_CD = T0.RCP_OG_TP_CD
            AND T30.PRTNR_NO = T0.RCP_PRTNR_NO
            AND T30.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_OGBS_EMP_BAS T31         /* T.직원기본 - 판매자 */
+          LEFT OUTER JOIN TB_GBCO_EMP_BAS T31         /* T.직원기본 - 판매자 */
             ON T31.SAP_EMPNO = T0.RCP_PRTNR_NO
            AND T31.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CUBS_CST_BAS T40           /* T.고객기본 - 계약자 */
@@ -413,7 +413,7 @@
            AND T30.OG_TP_CD = T10.SELL_OG_TP_CD
            AND T30.PRTNR_NO = T10.SELL_PRTNR_NO
            AND T30.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_OGBS_EMP_BAS T31           /* T.직원기본 - 판매자 */
+          LEFT OUTER JOIN TB_GBCO_EMP_BAS T31           /* T.직원기본 - 판매자 */
             ON T31.SAP_EMPNO = T10.SELL_PRTNR_NO
            AND T31.DTA_DL_YN = 'N'
          INNER JOIN TB_OGBS_MM_OG_IZ T32          /* T.월조직내역 - 조직정보 */
@@ -1615,4 +1615,68 @@
          WHERE 1 = 1
            AND CNTR_APR_ID       = #{cntrAprId}                         /* 계약승인ID */
     </update>
+
+    <select id="selectMastOrdrDtpt" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaMastOrdrDtptDvo">
+        SELECT
+               T11.CNTR_NO
+             , T11.CNTR_SN
+             /* 1. [START] ordrMap = comnOrdrMapper.selectMastOrdrDtpt */
+             , CONCAT(CONCAT(T11.CNTR_NO, '-'), T11.CNTR_SN) AS CNTR_DTL_NO /* 계약번호 - 계약일련번호 [계약상세번호] : ordrNo */
+             , T11.CNTRW_TP_CD
+             , T10.CNTR_PRGS_STAT_CD                                    /* 계약진행상태코드 (statCd, STAT_CD) 60:확정 */
+             , SUBSTR(T10.CNTR_RCP_FSH_DTM, 1, 8) AS CNTR_RCP_FSH_DT    /* 접수일자(acpgDt, ACPG_DT) */
+             , T40.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO              /* 계약자　휴대폰번호1 LCCNOT. LCCNO1 */
+             , T40.MEXNO_ENCR AS CNTR_MEXNO_ENCR                        /* 계약자　휴대폰번호2 LCCNOT. LCCNO2 */
+             , T40.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO                    /* 계약자　휴대폰번호3 LCCNOT. LCCNO3 */
+             , T11.SELL_TP_CD                                           /* 판매유형코드 : 정기배송(6) - prdtDiv : L60*/
+             , T40.CST_KNM                                              /* 계약자정보 - 고객명(cnrtNm / CNRT_NM) */
+             , (SELECT COUNT(1)
+                  FROM TB_SSCT_CNTR_BAS T100                  			/* T.계약기본 */
+                 INNER JOIN TB_SSCT_CNTR_DTL T110             			/* T.계약상세 */
+                    ON T110.CNTR_NO = T100.CNTR_NO              		/* 계약번호 */
+                   AND T110.DTA_DL_YN = 'N'
+                  WHERE 1=1
+                   AND T100.CNTR_NO = T10.CNTR_NO            			/* 계약번호 : GRP_WPN_SEQ */
+                   AND T100.CNTR_PRGS_STAT_CD != '99'       			/* 계약진행상태 삭제 제외(ASIS 90 이하) */
+                ) AS CNTR_CNT                                           /* 그룹주문 건수(grpWpnSeq, CNTR_NO)  ORDR_CNT */
+             /* 1. [END] ordrMap = comnOrdrMapper.selectMastOrdrDtpt */
+             /* 2. [START] ordrMap = prdtMap = efOrdrMapper.getOrdrEfInfo */
+             , T11.BASE_PD_CD           /* 상품코드 (PRDT_CD, cnrtGdsCd)*/
+             , (SELECT T200.PD_NM
+                  FROM TB_PDBS_PD_BAS T200  /* T.상품기본  */
+                 WHERE T200.PD_CD = T11.BASE_PD_CD
+                   AND T200.TEMP_SAVE_YN = 'N'
+                   AND T200.DTA_DL_YN = 'N'
+                ) AS PD_NM /* 상품명 (PRDT_NM, prdtNm, cnrtGdsNm, prdtNms)*/
+             /* 2. [END] ordrMap = prdtMap = efOrdrMapper.getOrdrEfInfo */
+             /* 3. [START] prdtAtrbInfoMap = prdtService.getPrdtInfo */
+             , T11.SELL_TP_DTL_CD                               		/* 판매유형상세코드 장기할부(25) = ASIS(KACK13=4) */
+             , (SELECT T210.PD_PRP_VAL08
+                  FROM TB_PDBS_PD_ECOM_PRP_DTL T210    					/* T.상품각사속성상세 - 서비스제휴업체 */
+                 WHERE 1=1
+                   AND T210.PD_EXTS_PRP_GRP_CD = 'SPP'
+                   AND T210.PD_CD = T11.BASE_PD_CD
+                   AND T210.DTA_DL_YN = 'N'
+               ) AS SV_ALNC_BZS_CD                              		/* 서비스제휴업체 : SV_ALNC_BZS_CD=녹십자(01) = ASIS : KACK15 = 1 */
+             /* 3. [END] prdtAtrbInfoMap = prdtService.getPrdtInfo */
+             /* 4. [START] scddInfoMap = comnOrdrDb2Mapper.getInltShpnScddDt */
+             , NVL(T11.SPP_DUEDT, '미배정') AS SPP_DUEDT  				/* 배송예정일자 (LCDEMY, LCDEM_DT) */
+             , CASE WHEN T11.SPP_DUEDT IS NULL THEN '미정'
+                    WHEN VALIDATE_CONVERSION(T11.SPP_DUEDT AS DATE, 'YYYYMMDD') = 0 THEN '' /* 날짜계산전에 날짜형태  체크(정상 1, 비정상0) */
+                    ELSE TO_CHAR(TO_DATE(T11.SPP_DUEDT, 'YYYYMMDD') -35, 'YYYYMMDD') END AS SOW_DUEDT   /* 파종예정일자(배송예정일자 - 35) */
+             /* 4. [END] scddInfoMap = comnOrdrDb2Mapper.getInltShpnScddDt */
+          FROM TB_SSCT_CNTR_BAS T10                  /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T11             /* T.계약상세 */
+            ON T11.CNTR_NO = T10.CNTR_NO             /* 계약번호 */
+           AND T11.CNTRW_TP_CD IN ('1','2','3','4','5','6') /* 계약서유형코드 : 1:환경가전일시불, 2:BH일시불, 3:환경가전렌탈, 4:멤버십, 5:홈케어서비스, 6:모종일시불 */
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T40           	 /* T.고객기본 - 계약자 */
+            ON T40.CST_NO = T10.CNTR_CST_NO			 /* 고객번호 */
+           AND T40.DTA_DL_YN = 'N'					 /* 데이터삭제여부 */
+         WHERE 1=1
+           AND T11.CNTR_NO = #{cntrNo}
+           AND T11.CNTR_SN = #{cntrSn}
+           --AND T11.CNTR_NO = 'W20032025332'          /* P.계약번호 */
+           --AND T11.CNTR_SN = '1'                     /* P.계약일련번호 */
+    </select>
 </mapper>

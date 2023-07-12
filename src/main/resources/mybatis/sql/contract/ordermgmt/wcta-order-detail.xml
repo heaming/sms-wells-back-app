@@ -161,12 +161,13 @@
                           T6.CRCDNO_ENCR || ' ' ||    /* 카드번호:TODO MASK적용여부 확인 */
                           '이체일:' || T6.MPY_BSDT /* 카드이체일자 */
                     ELSE '' END AS AFTN_INFO
-             , T6.DP_TP_CD
+             , T61.DP_TP_CD
              , T6.ACNO_ENCR
              , T6.CRCDNO_ENCR
              , T3.SFK_VAL /* 세이프키값 */
              , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '1' AND FNIT_CD = T7.VAC_BNK_CD) || '$' ||
-                T7.VAC_NO || '$' || NVL2(T7.VAC_DP_DT, ' 입금일 : ' || T7.VAC_DP_DT, '') AS VAC_INFO
+                T7.VAC_NO || '$' || NVL2(T7.VAC_DP_DT, ' 입금일 ' || TO_DATE(T7.VAC_DP_DT, 'YYYYMMDD'), '') || '$' ||
+                T7.VAC_VNCO_DV_CD AS VAC_INFO
              , T42.RNADR || T42.RDADR AS CNTRT_ADR /* 계약자 주소 */
              , T51.RCGVP_KNM    /* 수령자한글명 */
              , T51.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO
@@ -201,12 +202,16 @@
             ON T6.CNTR_NO = T1.CNTR_NO      /* 계약번호 */
            AND T6.CST_NO = T1.CNTR_CST_NO   /* 계약고객번호 */
            AND T6.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_STLM_REL T61      /* 계약결제관계 */
+            ON T61.CNTR_STLM_ID = T6.CNTR_STLM_ID
+           AND T61.DTA_DL_YN = 'N'
           LEFT OUTER JOIN (SELECT T10.CNTR_NO
                                 , T10.CNTR_SN
                                 , T10.CST_NO
-                                , T10.VAC_IS_ID    /* 가상계좌발급ID */
-                                , T20.VAC_BNK_CD   /* 가상계좌은행코드 */
-                                , T20.VAC_NO       /* 가상계좌번호 */
+                                , T10.VAC_IS_ID         /* 가상계좌발급ID */
+                                , T20.VAC_BNK_CD        /* 가상계좌은행코드 */
+                                , T20.VAC_NO            /* 가상계좌번호 */
+                                , T20.VAC_VNCO_DV_CD    /* 가상계좌VAN사구분코드 */
                                 , (SELECT FNIT_NM
                                      FROM TB_RVDW_FNIT_CD
                                     WHERE FNIT_DV_CD = '1'
@@ -237,9 +242,10 @@
            AND T8.DTA_DL_YN = 'N'
            AND T8.TEMP_SAVE_YN = 'N'
          WHERE 1=1
-           AND T1.DTA_DL_YN = 'N'   /* 데이터삭제여부 */
            AND T2.CNTR_NO = #{cntrNo}
            AND T2.CNTR_SN = #{cntrSn}
+           AND TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN T61.VL_STRT_DTM AND T61.VL_END_DTM
+           AND T1.DTA_DL_YN = 'N'   /* 데이터삭제여부 */
     </select>
 
     <select id="selectOrderDetailContractLists" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchContractListsRes">

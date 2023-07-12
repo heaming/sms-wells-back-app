@@ -15,25 +15,27 @@ public interface WctaManagementMapper {
 
     List<SearchEmployeePurchaseListRes> selectEmployeePurchaseList(SearchKssOrdrListReq dto);
 
-    List<WctaLspyOrdrDtptListDvo> selectLspyOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaLspyOrdrDtptListDvo> selectLspyOrdrDtptList(String cntrNo);
 
-    List<WctaBhOrdrDtptListDvo> selectBhOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaBhOrdrDtptListDvo> selectBhOrdrDtptList(String cntrNo);
 
-    List<WctaRentOrdrDtptListDvo> selectRentOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaRentOrdrDtptListDvo> selectRentOrdrDtptList(String cntrNo, String cntrPrgsStatCd);
 
-    List<WctaMbOrdrDtptListDvo> selectMbOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaMbOrdrDtptListDvo> selectMbOrdrDtptList(String cntrNo);
 
-    List<WctaHcsOrdrDtptListDvo> selectHcsOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaHcsOrdrDtptListDvo> selectHcsOrdrDtptList(String cntrNo);
 
-    List<WctaPlantsOrdrDtptListDvo> selectPlantsOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaPlantsOrdrDtptListDvo> selectPlantsOrdrDtptList(String cntrNo);
 
-    List<WctaRglrDlvrOrdrDtptListDvo> selectRglrDlvrOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaRglrDlvrOrdrDtptListDvo> selectRglrDlvrOrdrDtptList(String cntrNo);
 
-    List<WctaRentOrdrDtptListDvo> selectLtmIstmOrdrDtptList(SearchLspyOrdrDtptListReq dto);
+    List<WctaRentOrdrDtptListDvo> selectLtmIstmOrdrDtptList(String cntrNo, String cntrPrgsStatCd);
 
     List<SearchOrdrInfo4ReqDfntRes> selectOrdrInfo4ReqDfntList(String cntrNo, String cntrSn);
 
     List<SearchDfntAckdReqListRes> selectDfntAckdReqList(WctaDfntAckdReqDvo paramMap);
 
     int updateAprvDfntAckdReq(String cntrAprId);
+
+    List<WctaMastOrdrDtptDvo> selectMastOrdrDtpt(String cntrNo, String cntrSn);
 }

@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaManagementDto.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaContractRegStep5Service;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaManagementService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class WctaManagementController {
 
     private final WctaManagementService service;
+    private final WctaContractRegStep5Service cnfmService;
 
     @ApiOperation(value = "계약관리", notes = "계약관리내역을 조회")
     @ApiImplicitParams(value = {
@@ -66,7 +68,7 @@ public class WctaManagementController {
         return service.getContractMngtDtls(dto);
     }
 
-    @ApiOperation(value = "확정요청승인", notes = "선택한 계약관리 조회 결과 확정승인을 요청")
+    @ApiOperation(value = "확정승인요청", notes = "선택한 계약관리 조회 결과 확정승인을 요청")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
@@ -83,5 +85,34 @@ public class WctaManagementController {
         } else {
             return SaveResponse.builder().processCount(service.saveConfirmApprovals(dtos)).build();
         }
+    }
+
+    @ApiOperation(value = "확정요청", notes = "선택한 계약관리 조회 결과 확정을 요청")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+    })
+    @PutMapping("/managements/confirm")
+    public void saveConfirms(
+        @RequestBody
+        @NotEmpty
+        @PathVariable
+        String cntrNo
+    ) throws Exception {
+        cnfmService.confirmContract(cntrNo);
+    }
+
+    @ApiOperation(value = "알림톡 발송", notes = "선택한 계약관리 조회 결과 알림톡을 발송")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrDv", value = "계약상세구분", paramType = "query"),
+    })
+    @PutMapping("/managements/notification-talk-forwarding")
+    public SaveResponse saveNotificationTalkFws(
+        @RequestBody
+        @NotEmpty
+        List<SaveNotificationTalkFwsReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder().processCount(service.saveNotificationTalkFws(dtos)).build();
     }
 }
