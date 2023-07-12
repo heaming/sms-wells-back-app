@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncUnpaidGuideUrgentExcludeMapper">
+    <select id="selectUnpaidGuideUrgentExcludes" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncUnpaidGuideUrgentExcludeDto$SearchRes">
+        SELECT T1.BND_CNTC_EXCD_OJ_ID /* 채권접촉제외대상ID */
+             , DECODE(T1.CTNT_EXCD_OJ_TP_CD,'03','안내서','04','촉구서') AS FW_DV_NM
+             , T1.CST_NO
+             , SUBSTR(T1.APY_STRTDT,0,6) AS APY_STRTDT
+             , SUBSTR(T1.APY_ENDDT,0,6) AS APY_ENDDT
+             , SUBSTR(T1.FST_RGST_DTM,0,8) AS FST_RGST_DTM
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N') AS USR_NM
+          FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ T1
+         WHERE 1 = 1
+           AND #{baseYm} BETWEEN SUBSTR(T1.APY_STRTDT,0,6) AND SUBSTR(T1.APY_ENDDT,0,6)
+           AND T1.CTNT_EXCD_OJ_TP_CD = DECODE(#{schFwDv},'01','03','02','04')
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <update id="updateUnpaidGuideUrgentExclude">
+        UPDATE TB_CBBO_BND_CNTC_EXCD_OJ_IZ /* 채권접촉제외대상내역 */
+           SET APY_ENDDT = TO_CHAR(TRUNC(LAST_DAY(#{apyEnddt},'YYYYMM')),'YYYYMMDD') /* 적용종료일자 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND BND_CNTC_EXCD_OJ_ID  = #{bndCntcExcdOjId}     /* 채권접촉제외대상ID */
+    </update>
+
+    <update id="updateUnpaidGuideUrgentExcludeExcelUpload">
+        MERGE INTO TB_CBBO_BND_CNTC_EXCD_OJ_IZ T1  /* 채권접촉제외대상내역 */
+             USING ( SELECT #{ctntExcdOjTpCd} AS CTNT_EXCD_OJ_TP_CD     /* 연락제외대상유형코드 */
+                          , #{cstNo} AS CST_NO                          /* 고객번호 */
+                          , TO_CHAR(TRUNC(TO_DATE(#{apyStrtdt},'YYYYMM')),'YYYYMMDD') AS APY_STRTDT            /* 적용시작일자 */
+                          , TO_CHAR(LAST_DAY(TO_DATE(#{apyEnddt},'YYYYMM')),'YYYYMMDD') AS APY_ENDDT           /* 적용종료일자 */
+                       FROM DUAL  ) T2
+                ON (T1.CST_NO = T2.CST_NO                               /* 고객번호 */
+                AND T1.CTNT_EXCD_OJ_TP_CD = T2.CTNT_EXCD_OJ_TP_CD       /* 연락제외대상유형코드 */
+                AND T1.DTA_DL_YN = 'N'
+                   )
+        WHEN MATCHED THEN
+          UPDATE
+             SET APY_STRTDT = T2.APY_STRTDT
+               , APY_ENDDT = T2.APY_ENDDT
+                <include refid="COMMON.updateSystemField"/>WHEN NOT MATCHED THEN
+          INSERT (
+                 BND_CNTC_EXCD_OJ_ID
+               , CTNT_EXCD_BND_BIZ_CD
+               , CTNT_EXCD_OJ_TP_CD
+               , CTNT_EXCD_MEDI_TP_CD
+               , CLCTAM_OG_TP_CD
+               , CLCTAM_PRTNR_NO
+               , CST_NO
+               , CLCTN_OJ_OG_TP_CD
+               , CLCTN_OJ_PRTNR_NO
+               , LOCARA_TNO
+               , EXNO_ENCR
+               , IDV_TNO
+               , APY_STRTDT
+               , APY_ENDDT
+               , CTNT_EXCD_RSON_DV_CD
+               , EXCD_MO_CN
+               , BND_CLCTN_MSG_BOO_ID
+               , DTA_DL_YN
+               , FST_RGST_DTM
+               , FST_RGST_USR_ID
+               , FST_RGST_PRG_ID
+               , FST_RGST_DEPT_ID
+               , FNL_MDFC_DTM
+               , FNL_MDFC_USR_ID
+               , FNL_MDFC_PRG_ID
+               , FNL_MDFC_DEPT_ID
+          ) VALUES (
+                 TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDhh24miss') || LPAD((SELECT COUNT(1)
+                                                                   FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ
+                                                                  WHERE SUBSTR(FST_RGST_DTM, 0,8) = TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD'))+1, 6, '0')
+               , NULL
+               , T2.CTNT_EXCD_OJ_TP_CD
+               , NULL
+               , NULL
+               , NULL
+               , T2.CST_NO
+               , NULL
+               , NULL
+               , NULL
+               , NULL
+               , NULL
+               , T2.APY_STRTDT
+               , T2.APY_ENDDT
+               , NULL
+               , NULL
+               , NULL
+               , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />  )
+    </update>
+</mapper>
