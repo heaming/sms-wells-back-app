@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.contract.common.mapper;
 
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.common.dvo.*;
-
-import java.util.Optional;
 
 @Mapper
 public interface WctzHistoryMapper {
@@ -118,4 +119,9 @@ public interface WctzHistoryMapper {
     int expirePspcCstCnslRchHistory(String pspcCstCnslId, int pspcCstCnslSn, String histStrtDtm);
 
     int upsertPspcCstCnslRchHist(String pspcCstCnslId, int pspcCstCnslSn, String histStrtDtm);
+
+    int insertContractNotifyFowrdindHist(@Param("item")
+    WctzContractNotifyFowrdindHistDvo dvo);
+
+    int updateContractNotifyFowrdindHist(WctzContractNotifyFowrdindHistDvo dvo);
 }

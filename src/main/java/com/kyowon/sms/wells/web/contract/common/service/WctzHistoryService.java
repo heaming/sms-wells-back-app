@@ -441,7 +441,9 @@ public class WctzHistoryService {
 
         mapper.selectLastPspcCstCnslChHist(pspcCstId).ifPresent((lastHist) -> {
             if (now.equals(lastHist.getHistStrtDtm())) {
-                if (!forced) { throw new BizException("이력 생성 실패"); }
+                if (!forced) {
+                    throw new BizException("이력 생성 실패");
+                }
             } else {
                 int result = mapper.expirePspcCstChHistory(pspcCstId, now);
                 BizAssert.isTrue(result == 1, "이력 생성 실패");
@@ -466,7 +468,9 @@ public class WctzHistoryService {
 
         mapper.selectLastPspcCstCnslChHist(pspcCstCnslId).ifPresent((lastHist) -> {
             if (now.equals(lastHist.getHistStrtDtm())) {
-                if (!forced) { throw new BizException("이력 생성 실패"); }
+                if (!forced) {
+                    throw new BizException("이력 생성 실패");
+                }
             } else {
                 int result = mapper.expirePspcCstCnslChHistory(pspcCstCnslId, now);
                 BizAssert.isTrue(result == 1, "이력 생성 실패");
@@ -492,7 +496,9 @@ public class WctzHistoryService {
 
         mapper.selectLastPspcCstCnslRchHist(pspcCstCnslId, pspcCstCnslSn).ifPresent((lastHist) -> {
             if (now.equals(lastHist.getHistStrtDtm())) {
-                if (!forced) { throw new BizException("이력 생성 실패"); }
+                if (!forced) {
+                    throw new BizException("이력 생성 실패");
+                }
             } else {
                 int result = mapper.expirePspcCstCnslRchHistory(pspcCstCnslId, pspcCstCnslSn, now);
                 BizAssert.isTrue(result == 1, "이력 생성 실패");
@@ -501,5 +507,26 @@ public class WctzHistoryService {
 
         int result = mapper.upsertPspcCstCnslRchHist(pspcCstCnslId, pspcCstCnslSn, now);
         BizAssert.isTrue(result == 1, "이력 생성 실패");
+    }
+
+    /**
+     * 계약알림발송이력 생성
+     * @param dvo 계약알림발송정보
+     * @param isEdit 신규추가/수정 구분
+     */
+
+    @Transactional
+    public String createContractNotifyFowrdindHistory(WctzContractNotifyFowrdindHistDvo dvo, boolean isEdit) {
+        if (!isEdit) {
+            int insertRes = mapper.insertContractNotifyFowrdindHist(dvo);
+            BizAssert.isTrue(insertRes == 1, "이력 생성 실패");
+
+            return dvo.getNotyFwId();
+        } else {
+            int updateRes = mapper.updateContractNotifyFowrdindHist(dvo);
+            BizAssert.isTrue(updateRes == 1, "이력 생성 실패");
+
+            return "Y";
+        }
     }
 }
