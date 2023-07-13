@@ -26,6 +26,8 @@ public interface WsnaQomAsnMapper {
 
     List<WsnaQomAsnCreateDvo> selectQomAsnIndividualsForCreate(SearchReq dto);
 
+    List<WsnaQomAsnCreateDvo> selectQomAsnIndependenceForCreate(SearchReq dto);
+
     int insertItmQomAsnIz(List<WsnaQomAsnCreateDvo> dvos);
 
     PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(
@@ -33,6 +35,10 @@ public interface WsnaQomAsnMapper {
     );
 
     List<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(SearchReq dto);
+
+    PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndependence(SearchReq dto, PageInfo pageInfo);
+
+    List<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndependence(SearchReq dto);
 
     int updateRgbsPuItmForWareRenewal(WsnaQomAsnWareRenewalDvo dvo);
 

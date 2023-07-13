@@ -23,6 +23,8 @@ public class WsnaQomAsnIndividualSearchDvo {
     private String sapCd;
     private String itmPdCd;
     private String itmPdNm;
+    private String mngtUnit;
+    private String matGdCd;
 
     private String wareNo;
     private String prtnrNo;
@@ -42,6 +44,13 @@ public class WsnaQomAsnIndividualSearchDvo {
     private BigDecimal cnfmQty;
     private BigDecimal boxQty;
 
+    private BigDecimal bsFullQty;
+    private BigDecimal bsAsnQty;
+    private BigDecimal stockOgQty;
+    private BigDecimal stockIndvQty;
+    private BigDecimal nedQty;
+    private BigDecimal boxUnitQty;
+
     private String bldCd;
     private String bldNm;
     private String locaraTno;
@@ -51,4 +60,5 @@ public class WsnaQomAsnIndividualSearchDvo {
     private String adrZip;
     private String rnadr;
     private String rdadr;
+
 }

@@ -115,12 +115,21 @@ public class WsnaQomAsnService {
     }
 
     /**
+     * 독립창고 물량배정 데이터 생성 관련 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnaQomAsnCreateDvo> getQomAsnIndependenceForCreate(SearchReq dto) {
+        return this.mapper.selectQomAsnIndependenceForCreate(dto);
+    }
+
+    /**
      * 개인창고 물량배정 데이터 생성
      * @param dtos
      * @return
      */
     @Transactional
-    public int createQomAsnsForIndividual(List<CreateReq> dtos) {
+    public int createQomAsns(List<CreateReq> dtos) {
 
         List<WsnaQomAsnCreateDvo> dvos = this.converter.mapAllCreateReqToWsnaQomAsnCreateDvo(dtos);
 
@@ -137,6 +146,33 @@ public class WsnaQomAsnService {
         List<WsnaQomAsnIndividualSearchDvo> dvos = this.mapper.selectQomAsnsForIndividual(dto);
 
         return this.converter.mapAllWsnaQomAsnIndividualSearchDvoToSearchRes(dvos);
+    }
+
+    /**
+     * 독립창고 물량배정 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
+    public PagingResult<SearchRes> getQomAsnsForIndependence(SearchReq dto, PageInfo pageInfo) {
+
+        PagingResult<WsnaQomAsnIndividualSearchDvo> result = this.mapper.selectQomAsnsForIndependence(dto, pageInfo);
+        List<WsnaQomAsnIndividualSearchDvo> dvos = result.getList();
+
+        List<SearchRes> resDtos = this.converter.mapAllWsnaQomAsnIndividualSearchDvoToSearchRes(dvos);
+
+        return new PagingResult<>(resDtos, pageInfo);
+    }
+
+    /**
+     * 독립창고 물량배정 엑셀 다운로드
+     * @param dto
+     * @return
+     */
+    public List<SearchRes> getQomAsnsExcelDownloadForIndependence(SearchReq dto) {
+        List<WsnaQomAsnIndividualSearchDvo> result = this.mapper.selectQomAsnsForIndependence(dto);
+
+        return this.converter.mapAllWsnaQomAsnIndividualSearchDvoToSearchRes(result);
     }
 
     /**

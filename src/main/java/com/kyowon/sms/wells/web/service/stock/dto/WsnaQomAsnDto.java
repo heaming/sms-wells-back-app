@@ -47,6 +47,8 @@ public class WsnaQomAsnDto {
         String sapCd,
         String itmPdCd,
         String itmPdNm,
+        String mngtUnit,
+        String matGdCd,
 
         String wareNo,
         String prtnrNo,
@@ -65,6 +67,13 @@ public class WsnaQomAsnDto {
         BigDecimal borrQty,
         BigDecimal cnfmQty,
         BigDecimal boxQty,
+
+        BigDecimal bsFullQty,
+        BigDecimal bsAsnQty,
+        BigDecimal stockOgQty,
+        BigDecimal stockIndvQty,
+        BigDecimal nedQty,
+        BigDecimal boxUnitQty,
 
         String bldCd,
         String bldNm,
