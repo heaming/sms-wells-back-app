@@ -132,15 +132,67 @@ public class WsnaQomAsnController {
         return this.service.getQomAsnIndividualsForCreate(dto);
     }
 
-    @PostMapping("/individual-wares")
-    @ApiOperation(value = "개인창고 물량배정 데이터 생성", notes = "개인창고 물량배정 데이터를 생성한다.")
-    public SaveResponse createQomAsnsForIndividual(
+    @GetMapping("/independence-wares")
+    @ApiOperation(value = "독립창고 물량배정 데이터 생성 관련 조회", notes = "독립창고 물량배정 데이터 생성을 위한 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true)
+    })
+    public List<WsnaQomAsnCreateDvo> getQomAsnIndependenceForCreate(@Valid
+    SearchReq dto) {
+        return this.service.getQomAsnIndependenceForCreate(dto);
+    }
+
+    @PostMapping
+    @ApiOperation(value = "물량배정 데이터 생성", notes = "물량배정 데이터를 생성한다.")
+    public SaveResponse createQomAsns(
         @RequestBody
         @Valid
         @NotEmpty
         List<CreateReq> dtos
     ) {
-        return SaveResponse.builder().processCount(this.service.createQomAsnsForIndividual(dtos)).build();
+        return SaveResponse.builder().processCount(this.service.createQomAsns(dtos)).build();
+    }
+
+    @GetMapping("/independence-wares/paging")
+    @ApiOperation(value = "독립창고 물량배정 페이징 조회", notes = "독립창고 물량배정 데이터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
+        @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
+        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
+        @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true),
+        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031")
+    })
+    public PagingResult<SearchRes> getQomAsnsForIndependence(@Valid
+    SearchReq dto, @Valid
+    PageInfo pageInfo) {
+        return this.service.getQomAsnsForIndependence(dto, pageInfo);
+    }
+
+    @GetMapping("/independence-wares/excel-download")
+    @ApiOperation(value = "독립창고 물량배정 엑셀 다운로드", notes = "조회조건에 일치하는 독립창고 물량배정 데이터를 엑셀 다운로드 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
+        @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
+        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
+        @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true),
+        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031")
+    })
+    public List<SearchRes> getQomAsnsExcelDownloadForIndependence(@Valid
+    SearchReq dto) {
+        return this.service.getQomAsnsExcelDownloadForIndependence(dto);
     }
 
     @PutMapping("/ware-renewal")

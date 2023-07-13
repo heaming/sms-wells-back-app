@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -103,14 +104,23 @@ public class WsnaQomAsnService {
         // 배정년월
         String asnOjYm = dto.asnOjYm();
         // 회차
-        int cnt = dto.cnt();
+        BigDecimal cnt = dto.cnt();
 
         // 1회차 이고 기준년월과 배정년월이 다를 경우
-        if (cnt == 1 && !apyYm.equals(asnOjYm)) {
+        if (BigDecimal.ONE.equals(cnt) && !apyYm.equals(asnOjYm)) {
             return this.mapper.selectQomAsnFirstTnIndividualsForCreate(dto);
         } else {
             return this.mapper.selectQomAsnIndividualsForCreate(dto);
         }
+    }
+
+    /**
+     * 독립창고 물량배정 데이터 생성 관련 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnaQomAsnCreateDvo> getQomAsnIndependenceForCreate(SearchReq dto) {
+        return this.mapper.selectQomAsnIndependenceForCreate(dto);
     }
 
     /**
@@ -119,11 +129,16 @@ public class WsnaQomAsnService {
      * @return
      */
     @Transactional
-    public int createQomAsnsForIndividual(List<CreateReq> dtos) {
+    public int createQomAsns(List<CreateReq> dtos) {
 
+        int count = 0;
         List<WsnaQomAsnCreateDvo> dvos = this.converter.mapAllCreateReqToWsnaQomAsnCreateDvo(dtos);
 
-        return this.mapper.insertItmQomAsnIz(dvos);
+        for (WsnaQomAsnCreateDvo dvo : dvos) {
+            count += this.mapper.insertItmQomAsnIz(dvo);
+        }
+
+        return count;
     }
 
     /**
@@ -139,10 +154,38 @@ public class WsnaQomAsnService {
     }
 
     /**
+     * 독립창고 물량배정 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
+    public PagingResult<SearchRes> getQomAsnsForIndependence(SearchReq dto, PageInfo pageInfo) {
+
+        PagingResult<WsnaQomAsnIndividualSearchDvo> result = this.mapper.selectQomAsnsForIndependence(dto, pageInfo);
+        List<WsnaQomAsnIndividualSearchDvo> dvos = result.getList();
+
+        List<SearchRes> resDtos = this.converter.mapAllWsnaQomAsnIndividualSearchDvoToSearchRes(dvos);
+
+        return new PagingResult<>(resDtos, pageInfo);
+    }
+
+    /**
+     * 독립창고 물량배정 엑셀 다운로드
+     * @param dto
+     * @return
+     */
+    public List<SearchRes> getQomAsnsExcelDownloadForIndependence(SearchReq dto) {
+        List<WsnaQomAsnIndividualSearchDvo> result = this.mapper.selectQomAsnsForIndependence(dto);
+
+        return this.converter.mapAllWsnaQomAsnIndividualSearchDvoToSearchRes(result);
+    }
+
+    /**
      * 창고갱신
      * @param dto
      * @return
      */
+    @Transactional
     public int editQomAsnForWareRenewalDvo(EditReq dto) {
 
         WsnaQomAsnWareRenewalDvo dvo = this.converter.mapEditReqToWsnaQomAsnWareRenewalDvo(dto);

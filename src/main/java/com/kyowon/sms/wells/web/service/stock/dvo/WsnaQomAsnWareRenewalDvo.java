@@ -19,4 +19,5 @@ public class WsnaQomAsnWareRenewalDvo {
     private String asnOjYm;
     private String apyYm;
     private String ostrWareNo;
+
 }

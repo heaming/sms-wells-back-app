@@ -26,13 +26,19 @@ public interface WsnaQomAsnMapper {
 
     List<WsnaQomAsnCreateDvo> selectQomAsnIndividualsForCreate(SearchReq dto);
 
-    int insertItmQomAsnIz(List<WsnaQomAsnCreateDvo> dvos);
+    List<WsnaQomAsnCreateDvo> selectQomAsnIndependenceForCreate(SearchReq dto);
+
+    int insertItmQomAsnIz(WsnaQomAsnCreateDvo dvo);
 
     PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(
         SearchReq dto, PageInfo pageInfo
     );
 
     List<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(SearchReq dto);
+
+    PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndependence(SearchReq dto, PageInfo pageInfo);
+
+    List<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndependence(SearchReq dto);
 
     int updateRgbsPuItmForWareRenewal(WsnaQomAsnWareRenewalDvo dvo);
 
