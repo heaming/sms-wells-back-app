@@ -62,6 +62,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String dgr2LevlOgNm,              /*2차레벨조직명-지역단*/
         String dgr2LevlOgId,              /*(hidden)2차레벨조직ID-지역단*/
         String dgrLevlOgId,          /*(hidden)1차레벨조직ID-총괄단*/
+        String dgrLevlDgPrtnrNo,          /*(hidden)1차레벨대표파트너번호-총괄단*/
         String ogTpCd,                     /*(hidden)2차레벨조직유형코드-지역단*/
         String ogId,                        /*(hidden)정산조직ID*/
         String dstOjOgTpCd,              /*(hidden)배분대상조직유형코드*/
