@@ -189,7 +189,7 @@ public class WctaTaxInvoiceInquiryService {
 
             /* 계약변경접수기본 */
             dvo.setCntrChRcpDtm(now); /* 계약변경접수일시 */
-            dvo.setCntrChTpCd("201"); /* 계약변경유형코드 */
+            dvo.setCntrChTpCd("205"); /* 계약변경유형코드 */
             dvo.setChRqrDvCd("1"); /* 변경요청자구분코드 */
             dvo.setChRqrNm(chRqrNm);
             dvo.setCstNo(dvo.getCntrCstNo());
@@ -212,8 +212,6 @@ public class WctaTaxInvoiceInquiryService {
             dvo.setFnlMdfcUsrId(employeeId); // 최종수정유저ID
             dvo.setFnlMdfcPrgId(fnlMdfcPrgId); // 최종수정프로그램ID
             dvo.setFnlMdfcDeptId(fnlMdfcDeptId); // 최종수정부서ID
-
-            System.out.println("fnlMdfcDeptId: " + fnlMdfcDeptId);
 
             int baseRes = mapper.insertContractChangeReceipt(dvo);
             BizAssert.isFalse(baseRes <= 0, "MSG_ALT_SVE_ERR");
