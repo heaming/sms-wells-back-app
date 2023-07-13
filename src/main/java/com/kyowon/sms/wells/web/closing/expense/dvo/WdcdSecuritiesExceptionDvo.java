@@ -34,4 +34,5 @@ public class WdcdSecuritiesExceptionDvo {
     private String domTrdSumAmt;
     private String adjOgId;
     private String domTrdAmt1;
+    private String opcsAdjNo;
 }

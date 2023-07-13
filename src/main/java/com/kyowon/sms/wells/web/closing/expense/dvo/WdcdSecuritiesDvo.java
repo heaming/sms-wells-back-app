@@ -34,4 +34,5 @@ public class WdcdSecuritiesDvo {
     private String dgr2LevlOgId;             /*(hidden)지역단ID*/
     private String domTrdSumAmt;
     private String adjOgId;
+    private String opcsAdjNo; /*운영비정산번호*/
 }
