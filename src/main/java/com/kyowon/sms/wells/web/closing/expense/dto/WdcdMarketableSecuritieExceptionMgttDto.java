@@ -96,7 +96,9 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String bldCd,
         String rsbDvCd,
         String baseYm,
-        String adjOgId
+        String adjOgId,
+        String opcsAdjNo,
+        String adjPrtnrNo /* 정산파트너번호-부모화면에서 리턴 받음*/
     ) {
 
     }
