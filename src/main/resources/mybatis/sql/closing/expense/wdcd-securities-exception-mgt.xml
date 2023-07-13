@@ -85,88 +85,115 @@
     </update>
 
     <select id="selectWithholdingTaxAdjust" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto$SearchWithholdingTaxAdjustRes">
-        SELECT X.DGR1_LEVL_OG_NM            /*총괄단*/
-             , X.DGR2_LEVL_OG_NM            /*지역단*/
-             , X.DST_OJPS_NM                /*성명*/
-             , X.DST_OJ_PRTNR_NO            /*번호*/
-             , X.RSB_DV_NM                  /*직책명*/
-             , SUM(X.DST_AMT) AS DST_AMT    /*운영비정산금액*/
-             , SUM(X.DST_WHTX) AS DST_WHTX  /*원천세*/
-             , SUM(X.ERNTX) AS ERNTX        /*(hidden)소득세*/
-             , SUM(X.RSDNTX) AS RSDNTX      /*(hidden)주민세*/
-          FROM (SELECT T2.DGR1_LEVL_OG_NM   /*총괄단*/
-                     , T2.DGR2_LEVL_OG_NM   /*지역단*/
-                     , T1.DST_OJPS_NM       /*성명*/
-                     , T1.DST_OJ_PRTNR_NO   /*번호*/
-                     , (SELECT CD_CNTN
-                          FROM T_CMZ_CD_D S1
-                         WHERE S1.TENANT_ID = 'TNT_WELLS'
-                           AND S1.CD_ID = 'RSB_DV_CD'
-                           AND S1.CD_VLD_VAL = T3.RSB_DV_CD) AS RSB_DV_NM    /*직책명*/
-                     , T1.DST_AMT           /*운영비정산금액*/
-                     , T1.DST_WHTX          /*원천세*/
-                     , T1.ERNTX             /*소득세*/
-                     , T1.RSDNTX            /*주민세*/
-                     , T5.CARD_APRNO        /*승인번호*/
-                  FROM (SELECT B.DST_OJ_OG_TP_CD    /*배분대상조직유형코드*/
-                             , B.DST_OJ_PRTNR_NO    /*배분대상파트너번호*/
-                             , B.DST_OJPS_NM        /*배분대상자명*/
-                             , A.ADJ_OG_ID          /*정산조직ID*/
-                             , A.OPCS_ADJ_NO        /*운영비정산번호*/
-                             , MAX(B.DST_OJPS_PERF_AMT) AS DST_OJPS_PERF_AMT    /*배분대상자실적금액*/
-                             , SUM(B.DST_AMT) AS DST_AMT    /*배분금액*/
-                             , SUM(B.DST_WHTX) AS DST_WHTX  /*배분원천세*/
-                             , SUM(B.ERNTX) AS ERNTX        /*소득세*/
-                             , SUM(B.RSDNTX) AS RSDNTX      /*주민세*/
-                             , MAX(A.USE_AMT) AS USE_AMT    /*사용금액*/
-                             , MAX(A.BASE_YM) AS BASE_YM    /*기준월*/
-                          FROM TB_CBCL_OPCS_ADJ_BAS A /*T:운영비정산기본*/
-                         INNER JOIN TB_CBCL_OPCS_ADJ_DTL B /*T:운영비정산상세*/
-                            ON B.OPCS_ADJ_NO = A.OPCS_ADJ_NO
-                         INNER JOIN TB_OGBS_MM_PRTNR_IZ C /*T:월파트너내역*/
-                            ON C.BASE_YM = A.BASE_YM
-                           AND C.OG_ID = A.ADJ_OG_ID
-                         WHERE 1=1
-                           AND A.DTA_DL_YN = 'N'
-                           AND A.BASE_YM = #{baseYm}        /*기준년월*/
-                           /*AND A.OPCS_ADJ_NO 운영비정산번호*/
-                           <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
-                              AND A.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
-                           </if>
-                           <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-                              AND A.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
-                           </if>
-                           <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-                              AND A.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
-                           </if>
-                           AND A.MSCR_YN = 'N'     /*유가증권여부*/
-                         GROUP BY B.DST_OJ_OG_TP_CD /*배분대상조직유형코드*/
-                             , B.DST_OJ_PRTNR_NO    /*배분대상파트너번호*/
-                             , B.DST_OJPS_NM        /*배분대상자명*/
-                             , A.ADJ_OG_ID          /*정산조직ID*/
-                             , A.OPCS_ADJ_NO        /*운영비정산번호*/
-                       ) T1
-                 INNER JOIN TB_OGBS_MM_OG_IZ T2 /*T:월조직내역*/
-                    ON T2.BASE_YM = T1.BASE_YM
-                   AND T2.OG_ID = T1.ADJ_OG_ID
-                  LEFT JOIN TB_OGBS_MM_PRTNR_IZ T3 /*T:월파트너내역*/
-                    ON T3.BASE_YM = T1.BASE_YM
-                   AND T3.OG_TP_CD = T1.DST_OJ_OG_TP_CD
-                   AND T3.PRTNR_NO = T1.DST_OJ_PRTNR_NO
-                  LEFT JOIN TB_CBCL_OPCS_ADJ_USE_REL T4 /*운영비정산사용관계*/
-                    ON T4.BASE_YM = T1.BASE_YM
-                   AND T4.OPCS_ADJ_NO = T1.OPCS_ADJ_NO
-                  LEFT JOIN TB_CBCL_OPCS_CARD_USE_IZ T5 /*T:운영비정산카드내역*/
-                    ON T5.BASE_YM = T1.BASE_YM
-                   AND T5.OPCS_CARD_USE_IZ_ID = T4.OPCS_CARD_USE_IZ_ID
+        SELECT Y.DGR1_LEVL_OG_NM    /*총괄단*/
+             , Y.DGR2_LEVL_OG_NM    /*지역단*/
+             , Y.DST_OJPS_NM        /*성명*/
+             , Y.DST_OJ_PRTNR_NO    /*번호*/
+             , Y.RSB_DV_NM          /*직책명*/
+             , Y.DST_AMT            /*운영비정산금액*/
+             , Y.DST_WHTX           /*원천세*/
+             , Y.ERNTX              /*(hidden)소득세*/
+             , Y.RSDNTX             /*(hidden)주민세*/
+             , (SELECT LISTAGG(S2.CARD_APRNO,', ') WITHIN GROUP (ORDER BY S2.CARD_APRNO)
+                  FROM TB_CBCL_OPCS_ADJ_USE_REL S1
+                 INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ S2
+                    ON S2.BASE_YM = S1.BASE_YM
+                   AND S2.OPCS_CARD_USE_IZ_ID = S1.OPCS_CARD_USE_IZ_ID
+                 INNER JOIN TB_CBCL_OPCS_ADJ_BAS S3
+                    ON S3.BASE_YM = S1.BASE_YM
+                   AND S3.OPCS_ADJ_NO = S1.OPCS_ADJ_NO
+                 INNER JOIN TB_CBCL_OPCS_ADJ_DTL S4
+                    ON S4.OPCS_ADJ_NO = S1.OPCS_ADJ_NO
                  WHERE 1=1
-               ) X
+                   AND S4.DST_OJ_PRTNR_NO = Y.DST_OJ_PRTNR_NO
+                   AND S4.DTA_DL_YN = 'N'
+                   AND S3.BASE_YM = #{baseYm}   /*기준년월*/
+                   <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                   AND S3.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                   AND S3.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                   AND S3.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
+                   </if>
+                 GROUP BY S4.DST_OJ_PRTNR_NO) AS CARD_APRNO     /*승인번호*/
+          FROM (SELECT X.DGR1_LEVL_OG_NM            /*총괄단*/
+                     , X.DGR2_LEVL_OG_NM            /*지역단*/
+                     , X.DST_OJPS_NM                /*성명*/
+                     , X.DST_OJ_PRTNR_NO            /*번호*/
+                     , X.RSB_DV_NM                  /*직책명*/
+                     , SUM(X.DST_AMT) AS DST_AMT    /*운영비정산금액*/
+                     , SUM(X.DST_WHTX) AS DST_WHTX  /*원천세*/
+                     , SUM(X.ERNTX) AS ERNTX        /*(hidden)소득세*/
+                     , SUM(X.RSDNTX) AS RSDNTX      /*(hidden)주민세*/
+                  FROM (SELECT DISTINCT T2.DGR1_LEVL_OG_NM   /*총괄단*/
+                             , T2.DGR2_LEVL_OG_NM   /*지역단*/
+                             , T1.DST_OJPS_NM       /*성명*/
+                             , T1.DST_OJ_PRTNR_NO   /*번호*/
+                             , (SELECT CD_CNTN
+                                  FROM T_CMZ_CD_D S1
+                                 WHERE S1.TENANT_ID = 'TNT_WELLS'
+                                   AND S1.CD_ID = 'RSB_DV_CD'
+                                   AND S1.CD_VLD_VAL = T3.RSB_DV_CD) AS RSB_DV_NM    /*직책명*/
+                             , T1.DST_AMT           /*운영비정산금액*/
+                             , T1.DST_WHTX          /*원천세*/
+                             , T1.ERNTX             /*소득세*/
+                             , T1.RSDNTX            /*주민세*/
+                          FROM (SELECT B.DST_OJ_OG_TP_CD    /*배분대상조직유형코드*/
+                                     , B.DST_OJ_PRTNR_NO    /*배분대상파트너번호*/
+                                     , B.DST_OJPS_NM        /*배분대상자명*/
+                                     , A.ADJ_OG_ID          /*정산조직ID*/
+                                     , A.OPCS_ADJ_NO        /*운영비정산번호*/
+                                     , MAX(B.DST_OJPS_PERF_AMT) AS DST_OJPS_PERF_AMT    /*배분대상자실적금액*/
+                                     , SUM(B.DST_AMT) AS DST_AMT    /*배분금액*/
+                                     , SUM(B.DST_WHTX) AS DST_WHTX  /*배분원천세*/
+                                     , SUM(B.ERNTX) AS ERNTX        /*소득세*/
+                                     , SUM(B.RSDNTX) AS RSDNTX      /*주민세*/
+                                     , MAX(A.USE_AMT) AS USE_AMT    /*사용금액*/
+                                     , MAX(A.BASE_YM) AS BASE_YM    /*기준월*/
+                                  FROM TB_CBCL_OPCS_ADJ_BAS A /*T:운영비정산기본*/
+                                 INNER JOIN TB_CBCL_OPCS_ADJ_DTL B /*T:운영비정산상세*/
+                                    ON B.OPCS_ADJ_NO = A.OPCS_ADJ_NO
+                                 INNER JOIN TB_OGBS_MM_PRTNR_IZ C /*T:월파트너내역*/
+                                    ON C.BASE_YM = A.BASE_YM
+                                   AND C.OG_ID = A.ADJ_OG_ID
+                                 WHERE 1=1
+                                   AND A.DTA_DL_YN = 'N'
+                                   AND A.BASE_YM = #{baseYm}   /*기준년월*/
+                                   <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                                   AND A.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                                   AND A.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                                   AND A.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
+                                   </if>
+                                   AND A.MSCR_YN = 'N'     /*유가증권여부*/
+                                 GROUP BY B.DST_OJ_OG_TP_CD /*배분대상조직유형코드*/
+                                     , B.DST_OJ_PRTNR_NO    /*배분대상파트너번호*/
+                                     , B.DST_OJPS_NM        /*배분대상자명*/
+                                     , A.ADJ_OG_ID          /*정산조직ID*/
+                                     , A.OPCS_ADJ_NO        /*운영비정산번호*/
+                               ) T1
+                         INNER JOIN TB_OGBS_MM_OG_IZ T2 /*T:월조직내역*/
+                            ON T2.BASE_YM = T1.BASE_YM
+                           AND T2.OG_ID = T1.ADJ_OG_ID
+                         INNER JOIN TB_OGBS_MM_PRTNR_IZ T3 /*T:월파트너내역*/
+                            ON T3.BASE_YM = T1.BASE_YM
+                           AND T3.OG_TP_CD = T1.DST_OJ_OG_TP_CD
+                           AND T3.PRTNR_NO = T1.DST_OJ_PRTNR_NO
+                         WHERE 1=1
+                       ) X
+                 WHERE 1=1
+                 GROUP BY X.DGR1_LEVL_OG_NM /*총괄단*/
+                     , X.DGR2_LEVL_OG_NM    /*센터*/
+                     , X.DST_OJPS_NM        /*성명*/
+                     , X.DST_OJ_PRTNR_NO    /*번호*/
+                     , X.RSB_DV_NM          /*직책명*/
+               ) Y
          WHERE 1=1
-         GROUP BY X.DGR1_LEVL_OG_NM    /*총괄단*/
-                , X.DGR2_LEVL_OG_NM    /*지역단*/
-                , X.DST_OJPS_NM        /*성명*/
-                , X.DST_OJ_PRTNR_NO    /*번호*/
-                , X.RSB_DV_NM          /*직책명*/
-         ORDER BY SUM(X.DST_AMT) DESC
+         ORDER BY Y.DST_AMT DESC
     </select>
 </mapper>
