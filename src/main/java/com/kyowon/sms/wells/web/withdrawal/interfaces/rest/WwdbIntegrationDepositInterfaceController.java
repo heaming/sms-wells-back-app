@@ -18,14 +18,14 @@ import java.util.List;
 
 @InterfaceController
 @Api(tags = "[WWDB] 공통 통합입금 내역 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/integration-deposit")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/integration-deposit")
 @RequiredArgsConstructor
 @Validated
 public class WwdbIntegrationDepositInterfaceController {
 
     private final WwdbIntegrationDepositInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WDEI1011] 공통 통합입금 내역 회사선택 코드 조회")
+    @ApiOperation(value = "[EAI_WDEI1011] 공통 통합입금 내역 회사선택 코드 조회 - W-WD-I-0023")
     @PostMapping("/company-codes")
     public EaiWrapper getIntegrationDepositCompanyCode(
         @Valid
@@ -43,7 +43,7 @@ public class WwdbIntegrationDepositInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WDEI1012] 공통 통합입금 내역 입금유형 코드 조회")
+    @ApiOperation(value = "[EAI_WDEI1012] 공통 통합입금 내역 입금유형 코드 조회 - W-WD-I-0024")
     @PostMapping("/deposit-codes")
     public EaiWrapper getIntegrationDepositDepoCode(
         @Valid
@@ -61,7 +61,7 @@ public class WwdbIntegrationDepositInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WDEI1013] 공통 통합입금 내역 세부 거래내역 조회")
+    @ApiOperation(value = "[EAI_WDEI1013] 공통 통합입금 내역 세부 거래내역 조회 - W-WD-I-0025")
     @PostMapping("/detail-trades")
     public EaiWrapper getIntegrationDepositDetailTrades(
         @Valid
@@ -79,7 +79,7 @@ public class WwdbIntegrationDepositInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WDEI1014] 공통 통합입금 내역 조회")
+    @ApiOperation(value = "[EAI_WDEI1014] 공통 통합입금 내역 조회 - W-WD-I-0026")
     @PostMapping("/itemizations")
     public EaiWrapper getIntegrationDepositItemizations(
         @Valid
