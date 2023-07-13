@@ -514,37 +514,37 @@
     </select>
 
     <select id="selectQomAsnIndependenceForCreate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo">
-        SELECT #{asnOjYm}                             AS ASN_OJ_YM
-             , #{cnt}                                 AS ASN_TN_N
+        SELECT #{asnOjYm}        AS ASN_OJ_YM
+             , #{cnt}            AS ASN_TN_N
              , T1.STR_WARE_NO
-             , #{ostrWareNo}                          AS OSTR_WARE_NO
+             , #{ostrWareNo}     AS OSTR_WARE_NO
              , T1.ITM_PD_CD
-             , #{wareDvCd}                            AS WARE_DV_CD
-             , NVL(T1.WARE_DTL_DV_CD, #{wareDtlDvCd}) AS WARE_DTL_DV_CD
+             , T1.STR_WARE_DV_CD AS WARE_DV_CD
+             , #{wareDtlDvCd}    AS WARE_DTL_DV_CD
              , T1.SPP_DV_CD
              , T1.WARE_MNGT_PRTNR_NO
              , T1.OG_TP_CD
              , T1.BLD_CD
              , T1.ADR_ID
-             , 'A'                                    AS MAT_GD_CD
+             , 'A'               AS MAT_GD_CD
              , T1.GE_ASN_QOM_CT
              , T1.CRP_ASN_QOM_CT
              , T1.WO_ASN_QOM_CT
              , T1.ETN_WTCF_APY_QTY
-             , 0                                      AS MCBY_ACU_OSTR_QTY
+             , 0                 AS MCBY_ACU_OSTR_QTY
              , T1.CRTL_STOC_QTY
              , T1.THWK_EXP_QTY
              , T1.CNFM_QTY
              , T1.BOX_QTY
              , CASE WHEN T1.BOX_QTY > 1 THEN T1.CNFM_QTY / T1.BOX_QTY
                     ELSE 0
-               END                                    AS BOX_UNIT_QTY
+               END               AS BOX_UNIT_QTY
           FROM
              (
                SELECT QOM.STR_WARE_NO
                     , QOM.ITM_PD_CD
                     , QOM.SPP_DV_CD
-                    , WARE.WARE_DTL_DV_CD
+                    , QOM.STR_WARE_DV_CD
                     , QOM.WARE_MNGT_PRTNR_NO
                     , QOM.OG_TP_CD
                     , QOM.BLD_CD
@@ -601,6 +601,7 @@
                            , QOM.OG_TP_CD
                            , QOM.BLD_CD
                            , QOM.ADR_ID
+                           , QOM.STR_WARE_DV_CD
                            , MAX(QOM.BOX_QTY) AS BOX_QTY
                            , SUM(QOM.PU_QTY)  AS WO_ASN_QOM_CT
                            , SUM(QOM.PU_QTY)  AS ETN_WTCF_APY_QTY
@@ -691,6 +692,7 @@
                                 AND D2.MNGT_YM             = #{apyYm}
                                 AND D3.APY_YM              = #{apyYm}
                                 AND D1.QOM_ASN_WARE_NO     = #{ostrWareNo}
+                                AND D1.STR_WARE_DV_CD      = #{wareDvCd}
                                 AND D8.VST_DUEDT LIKE #{asnOjYm} || '%'
                                 AND ( D7.PD_PRP_VAL20 IS NULL OR D7.PD_PRP_VAL20 <![CDATA[<>]]> '11' )
                                 AND NOT(    D6.DGR2_LEVL_OG_CD IN ('D940000', 'H930000')
@@ -709,7 +711,7 @@
                                                                                 AND CNTR_SN   = S1.CNTR_SN
                                                                                 AND DTA_DL_YN = 'N' ) )
                            ) QOM
-                       GROUP BY QOM.STR_WARE_NO, QOM.ITM_PD_CD, QOM.SPP_DV_CD, QOM.WARE_MNGT_PRTNR_NO, QOM.OG_TP_CD, QOM.BLD_CD, QOM.ADR_ID
+                       GROUP BY QOM.STR_WARE_NO, QOM.ITM_PD_CD, QOM.SPP_DV_CD, QOM.WARE_MNGT_PRTNR_NO, QOM.OG_TP_CD, QOM.BLD_CD, QOM.ADR_ID, QOM.STR_WARE_DV_CD
                     ) QOM
                  LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ STOC   /* 월별품목재고내역 */
                    ON STOC.ITM_PD_CD = QOM.ITM_PD_CD
@@ -720,8 +722,6 @@
                    ON WARE.WARE_NO        = QOM.STR_WARE_NO
                   AND WARE.DTA_DL_YN      = 'N'
                   AND WARE.APY_YM         = #{apyYm}
-                  AND WARE.WARE_DV_CD     = #{wareDvCd}
-                  AND WARE.WARE_DTL_DV_CD = #{wareDtlDvCd}
              ) T1
          WHERE NOT EXISTS ( SELECT 1
                               FROM TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
@@ -1032,8 +1032,7 @@
                          AND D3.MNGT_YM     = #{apyYm}
                          AND D5.APY_YM      = #{apyYm}
                     ) T1
-                WHERE (     T1.BEF_QOM_ASN_WARE_NO <![CDATA[<>]]> T1.QOM_ASN_WARE_NO
-                        AND T1.BEF_QOM_ASN_WARE_NO <![CDATA[<>]]> '100008' )
+                WHERE T1.BEF_QOM_ASN_WARE_NO <![CDATA[<>]]> T1.QOM_ASN_WARE_NO
                    OR T1.BEF_WARE_DV_CD <![CDATA[<>]]> T1.WARE_DV_CD
                    OR T1.BEF_STR_WARE_NO <![CDATA[<>]]> T1.STR_WARE_NO
              ) TB_SRC
