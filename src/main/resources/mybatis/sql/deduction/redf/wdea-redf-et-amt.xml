@@ -226,12 +226,12 @@
                AND SUB.SELL_PRTNR_NO = D.PRTNR_NO
                AND SUB.SELL_OG_TP_CD = D.OG_TP_CD
                AND D.REDF_ADSB_DV_CD = '02' /* 되물림재지급구분코드 02: 되물림, 03: 재지급, 재지급제외 */
-               AND D.PERF_YM = '202302' /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지*/
+               AND D.PERF_YM = #{perfYm} /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지*/
                AND D.DTA_DL_YN = 'N'
               LEFT OUTER JOIN TB_FEAM_NTORP_CNTR_MM_CL O /*순주문파트너계약월마감*/
                 ON M.CNTR_NO = O.CNTR_NO
                AND M.CNTR_SN = O.CNTR_SN
-               AND O.PERF_YM = '202302'
+               AND O.PERF_YM = #{perfYm}
                AND D.REDF_ADSB_OC_YM = O.BASE_YM
               LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ A /*월파트너내역*/
                 ON SUB.SELL_PRTNR_NO = A.PRTNR_NO
@@ -290,12 +290,12 @@
                AND SUB.SELL_PRTNR_NO = D.PRTNR_NO
                AND SUB.SELL_OG_TP_CD = D.OG_TP_CD
                AND D.REDF_ADSB_DV_CD = '02' /* 되물림재지급구분코드 02: 되물림, 03: 재지급, 재지급제외 */
-               AND D.PERF_YM = '202302' /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지*/
+               AND D.PERF_YM = #{perfYm} /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지*/
                AND D.DTA_DL_YN = 'N'
               LEFT OUTER JOIN TB_FEAM_NTORP_CNTR_MM_CL O /*순주문파트너계약월마감*/
                 ON M.CNTR_NO = O.CNTR_NO
                AND M.CNTR_SN = O.CNTR_SN
-               AND O.PERF_YM = '202302'
+               AND O.PERF_YM = #{perfYm}
                AND D.REDF_ADSB_OC_YM = O.BASE_YM
               LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ A /*월파트너내역*/
                 ON SUB.SELL_PRTNR_NO = A.PRTNR_NO
@@ -342,7 +342,7 @@
     </delete>
 
     <insert id="insertRedfEtCntrBas">
-        /*수당되물림 예상액 조회(EDU) - 되물림예상금계약기본(1) INSERT*/
+        /*수당되물림 예상액 조회(WELLS) - 되물림예상금계약기본(1) INSERT*/
         INSERT INTO TB_FEDD_REDF_ET_CNTR_BAS (  /* 되물림예상계약기본 */
                   BASE_YM             /* 기준년월 */
                 , PERF_YM             /* 실적년월 */
@@ -360,7 +360,7 @@
                 <include refid="COMMON.insertSystemField" />
                 )
                (
-        /*수당되물림 예상액 조회(EDU) - 되물림내역(판매내역) INSERT용*/
+        /*수당되물림 예상액 조회(WELLS) - 되물림내역(판매내역) INSERT용*/
         SELECT TO_CHAR(SYSDATE, 'YYYYMM') AS BAES_YM /*발생년월*/
              , #{perfYm} AS PERF_YM /*PARAM: 실적년월*/
              , SUB.SELL_OG_TP_CD /*조직유형코드*/
@@ -447,7 +447,7 @@
     </insert>
 
     <insert id="insertRedfEtAmtIz">
-        /*수당되물림 예상액 조회(EDU) - 되물림예상금액내역(N) INSERT*/
+        /*수당되물림 예상액 조회(WELLS) - 되물림예상금액내역(N) INSERT*/
         INSERT INTO TB_FEDD_REDF_ET_AMT_IZ (  /* 되물림예상금액내역 */
                   BASE_YM             /* 기준년월 */
                 , PERF_YM             /* 실적년월 */
@@ -464,7 +464,7 @@
                 <include refid="COMMON.insertSystemField" />
                 )
                (
-        /*수당되물림 예상액 조회(EDU) - 되물림내역(판매내역) INSERT용*/
+        /*수당되물림 예상액 조회(WELLS) - 되물림내역(판매내역) INSERT용*/
         SELECT TO_CHAR(SYSDATE, 'YYYYMM') AS BAES_YM /*발생년월*/
              , #{perfYm} AS PERF_YM /*PARAM: 실적년월*/
              , SUB.SELL_OG_TP_CD /*조직유형코드*/
@@ -557,190 +557,246 @@
     </insert>
 
     <select id="selectAwRedfEtAmts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAwRedfEtAmtDto$SearchRedfEtRes">
-          /*최초수수료*/
-        SELECT F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_FST_FEE', #{session.langId}) AS DV /*최초수수료*/
-             /*공통*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010003', 'W010103') THEN B.FEE_AMT /*최초수수료-개인 판매장려(수수료금액, W010003개인판매장려수수료 W010103개인판매장려수수료(지점장))*/
-                             WHEN C.FEE_CD IN ('W020012', 'W020008', 'W020009', 'W020010', 'W020011') THEN B.FEE_AMT /*최초수수료-개인 판매장려(수수료금액, W020012판매장려(매니저) W020008(플래너) W020009(수석플래너) W020010(플래너지점장) W020011(매니저지점장))*/
-                         END), 0)) AS INDV_SELL_ENCRG
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010005', 'W010105') THEN B.FEE_AMT /*최초수수료-개인 정착(수수료금액, W010005정착수수료 W010105정착수수료(지점장))*/
-                             WHEN C.FEE_CD = 'W020038' THEN B.FEE_AMT /*TODO: 판매정착수수료 코드 W020038 맞는지 확인필요. 최초수수료-개인 정착(수수료금액, W020038판매정착)*/
-                         END), 0)) AS INDV_SETTLE
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020005', 'W020030') THEN B.FEE_AMT END), 0)) AS INDV_MCHN_CH /*TODO: P조직에 해당하는 기기변경 수수료코드 찾지 못함. 코드 확인 필요. 최초수수료-개인 기기변경(수수료금액, W020005환경가전기기변경판매자(매니저)/판매자(플래너)/판매자(수석플래너) W020030환경가전기기변경지점매니저(지점장) */
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010011' THEN B.FEE_AMT /*최초수수료-지점 가전조직비례(수수료금액, W010011가전 조직비례수수료)*/
-                             WHEN C.FEE_CD IN ('W020021', 'W020019', 'W020020') THEN B.FEE_AMT /*최초수수료-지점 가전조직비례(수수료금액, W020021환경가전조직비례(지구장) W020019(플래너지점장) W020020(매니저지점장))*/
-                        END), 0)) AS ELHM_OG_PRPN
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010012' THEN B.FEE_AMT /*최초수수료-지점 가전외조직비례(수수료금액, W010012가전외 조직비례수수료)*/
-                             WHEN C.FEE_CD IN ('W020024', 'W020022', 'W020023') THEN B.FEE_AMT /*최초수수료-지점 가전외조직비례(수수료금액, W020024환경가전외조직비례(지구장) W020022(플래너지점장) W020023(매니저지점장))*/
-                        END), 0)) AS ELHM_EXCP_OG_PRPN
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010013' THEN B.FEE_AMT /*최초수수료-지점 조직판매장려(수수료금액, W010013조직판매장려수수료)*/
-                             WHEN C.FEE_CD IN ('W020017', 'W020046') THEN B.FEE_AMT /*최초수수료-지점 조직판매장려(수수료금액, W020017조직판매장려(매니저지점장) W020046(플래너지점장))*/
-                        END), 0)) AS OG_SELL_ENCRG
-             , SUM(NVL(B.FEE_AMT, 0)) AS REDF_ET_SUM /*최초수수료-합계*/
-             /*P조직*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010001', 'W010101') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_PERF /*최초수수료-개인 가전비례(수수료금액, W010001가전개인비례수수료 W010101가전개인비례수수료(지점장))*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010002', 'W010102') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN /*최초수수료-개인 가전외비례(수수료금액, W010002가전외개인비례수수료 W010102가전외개인비례수수료(지점장)))*/
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010004' THEN B.FEE_AMT END), 0)) AS INDV_METG /*최초수수료-개인 미팅(수수료금액, W010004미팅수수료)*/
-             /*M조직*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020001', 'W020002', 'W020062') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_PRPN_METG /*최초수수료-개인 가전비례+미팅(수수료금액, W020001환경가전비례(매니저)/(플래너)/(수석플래너) W020002(지점장) W020062환경가전미팅)*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020003', 'W020004', 'W020063') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN_METG /*최초수수료-개인 가전외비례+미팅(수수료금액, W020003환경가전외비례(매니저)/(플래너)/(수석플래너) W020004(지점장) W020063환경가전외미팅)*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020074', 'W020075', 'W020076', 'W020077') THEN B.FEE_AMT END), 0)) AS EDUC /*TODO: 수수료쪽 코드 참고함. 교육 수수료코드 맞는지 확인 필요. 최초수수료-개인 교육*/
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W020013' THEN B.FEE_AMT END), 0)) AS NW_SELL /*최초수수료-지점 신규판매(수수료금액, W020013조직신규판매(지점장))*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020018', 'W020060') THEN B.FEE_AMT END), 0)) AS OG_MNGT /*최초수수료-지점 조직관리(수수료금액, W020018조직관리(지점장) W020060조직관리2)*/
-          FROM TB_SSCT_CNTR_DTL M /*계약상세*/
-         INNER JOIN TB_SSCT_CNTR_BAS SUB /*계약기본*/
-            ON M.CNTR_NO = SUB.CNTR_NO
-          LEFT OUTER JOIN TB_FEAM_FEE_DSB_CNTR_DTL_IZ B /*수수료지급계약상세내역*/
-            ON M.CNTR_NO = B.CNTR_NO
-           AND M.CNTR_SN = B.CNTR_SN
-           AND SUB.SELL_PRTNR_NO = B.PRTNR_NO
-           AND SUB.SELL_OG_TP_CD = B.OG_TP_CD
-           AND B.FEE_TCNT_DV_CD = '02' /*수수료차수 2차 고정*/
-          LEFT OUTER JOIN TB_FEAM_FEE_DSB_DTL_IZ C /*수수료지급상세내역*/
-            ON B.DSB_YM = C.DSB_YM
-           AND B.CO_CD = C.CO_CD
-           AND B.OG_TP_CD = C.OG_TP_CD
-           AND B.PRTNR_NO = C.PRTNR_NO
-           AND B.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
-           AND B.SPMT_DSB_DV_CD = C.SPMT_DSB_DV_CD
-           AND B.FEE_DSB_DTL_SN = C.FEE_DSB_DTL_SN
-           AND C.FEE_ATC_DV_CD = '01' /*수수료항목구분코드, 01: 수수료, 02: 공제 등등*/
-          LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_DTL D /*수수료되물림재지급상세*/
-            ON M.CNTR_NO = D.CNTR_NO
-           AND M.CNTR_SN = D.CNTR_SN
-           AND SUB.SELL_PRTNR_NO = D.PRTNR_NO
-           AND SUB.SELL_OG_TP_CD = D.OG_TP_CD
-           AND D.REDF_ADSB_DV_CD = '02' /* 되물림재지급구분코드 02: 되물림, 03: 재지급, 재지급제외 */
-<!--&#45;&#45;           AND D.PERF_YM = #{perfYm} /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지 */ -->
-         WHERE M.DTA_DL_YN = 'N'
-           AND SUB.DTA_DL_YN = 'N'
-           AND B.DTA_DL_YN = 'N'
-           AND C.DTA_DL_YN = 'N'
-           AND D.DTA_DL_YN = 'N'
+        SELECT T1.DV
+             , T1.INDV_SELL_ENCRG
+             , T1.INDV_SETTLE
+             , T1.INDV_MCHN_CH
+             , T1.ELHM_OG_PRPN
+             , T1.ELHM_EXCP_OG_PRPN
+             , T1.OG_SELL_ENCRG
+             , T1.INDV_ELHM_PERF
+             , T1.INDV_ELHM_EXCP_PRPN
+             , T1.INDV_METG
+             , T1.INDV_ELHM_PRPN_METG
+             , T1.INDV_ELHM_EXCP_PRPN_METG
+             , T1.EDUC
+             , T1.NW_SELL
+             , T1.OG_MNGT
+             , NVL(CASE WHEN #{ogTpCd} = '2' THEN T1.INDV_ELHM_PERF + T1.INDV_ELHM_EXCP_PRPN + T1.INDV_SELL_ENCRG + T1.INDV_METG + T1.INDV_MCHN_CH + T1.INDV_SETTLE + T1.ELHM_OG_PRPN + T1.ELHM_EXCP_OG_PRPN + T1.OG_SELL_ENCRG
+                        WHEN #{ogTpCd} = '7' THEN T1.INDV_ELHM_PRPN_METG + T1.INDV_ELHM_EXCP_PRPN_METG + T1.INDV_SELL_ENCRG + T1.EDUC + T1.INDV_SETTLE + T1.INDV_MCHN_CH + T1.ELHM_OG_PRPN + T1.ELHM_EXCP_OG_PRPN + T1.OG_SELL_ENCRG + T1.NW_SELL + T1.OG_MNGT END, 0)
+               AS REDF_ET_SUM /*최초수수료-합계*/
+          FROM (
+              /*최초수수료*/
+            SELECT F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_FST_FEE', #{session.langId}) AS DV /*최초수수료*/
+                 /*공통*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010003', 'W010103') THEN B.FEE_AMT /*최초수수료-개인 판매장려(수수료금액, W010003개인판매장려수수료 W010103개인판매장려수수료(지점장))*/
+                                 WHEN C.FEE_CD IN ('W020012', 'W020008', 'W020009', 'W020010', 'W020011') THEN B.FEE_AMT /*최초수수료-개인 판매장려(수수료금액, W020012판매장려(매니저) W020008(플래너) W020009(수석플래너) W020010(플래너지점장) W020011(매니저지점장))*/
+                             END), 0)) AS INDV_SELL_ENCRG
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010005', 'W010105') THEN B.FEE_AMT /*최초수수료-개인 정착(수수료금액, W010005정착수수료 W010105정착수수료(지점장))*/
+                                 WHEN C.FEE_CD = 'W020038' THEN B.FEE_AMT /*TODO: 판매정착수수료 코드 W020038 맞는지 확인필요. 최초수수료-개인 정착(수수료금액, W020038판매정착)*/
+                             END), 0)) AS INDV_SETTLE
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020005', 'W020030') THEN B.FEE_AMT END), 0)) AS INDV_MCHN_CH /*TODO: P조직에 해당하는 기기변경 수수료코드 찾지 못함. 코드 확인 필요. 최초수수료-개인 기기변경(수수료금액, W020005환경가전기기변경판매자(매니저)/판매자(플래너)/판매자(수석플래너) W020030환경가전기기변경지점매니저(지점장) */
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010011' THEN B.FEE_AMT /*최초수수료-지점 가전조직비례(수수료금액, W010011가전 조직비례수수료)*/
+                                 WHEN C.FEE_CD IN ('W020021', 'W020019', 'W020020') THEN B.FEE_AMT /*최초수수료-지점 가전조직비례(수수료금액, W020021환경가전조직비례(지구장) W020019(플래너지점장) W020020(매니저지점장))*/
+                            END), 0)) AS ELHM_OG_PRPN
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010012' THEN B.FEE_AMT /*최초수수료-지점 가전외조직비례(수수료금액, W010012가전외 조직비례수수료)*/
+                                 WHEN C.FEE_CD IN ('W020024', 'W020022', 'W020023') THEN B.FEE_AMT /*최초수수료-지점 가전외조직비례(수수료금액, W020024환경가전외조직비례(지구장) W020022(플래너지점장) W020023(매니저지점장))*/
+                            END), 0)) AS ELHM_EXCP_OG_PRPN
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010013' THEN B.FEE_AMT /*최초수수료-지점 조직판매장려(수수료금액, W010013조직판매장려수수료)*/
+                                 WHEN C.FEE_CD IN ('W020017', 'W020046') THEN B.FEE_AMT /*최초수수료-지점 조직판매장려(수수료금액, W020017조직판매장려(매니저지점장) W020046(플래너지점장))*/
+                            END), 0)) AS OG_SELL_ENCRG
+                 /*P조직*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010001', 'W010101') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_PERF /*최초수수료-개인 가전비례(수수료금액, W010001가전개인비례수수료 W010101가전개인비례수수료(지점장))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010002', 'W010102') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN /*최초수수료-개인 가전외비례(수수료금액, W010002가전외개인비례수수료 W010102가전외개인비례수수료(지점장)))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010004' THEN B.FEE_AMT END), 0)) AS INDV_METG /*최초수수료-개인 미팅(수수료금액, W010004미팅수수료)*/
+                 /*M조직*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020001', 'W020002', 'W020062') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_PRPN_METG /*최초수수료-개인 가전비례+미팅(수수료금액, W020001환경가전비례(매니저)/(플래너)/(수석플래너) W020002(지점장) W020062환경가전미팅)*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020003', 'W020004', 'W020063') THEN B.FEE_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN_METG /*최초수수료-개인 가전외비례+미팅(수수료금액, W020003환경가전외비례(매니저)/(플래너)/(수석플래너) W020004(지점장) W020063환경가전외미팅)*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020074', 'W020075', 'W020076', 'W020077') THEN B.FEE_AMT END), 0)) AS EDUC /*최초수수료-개인 교육(수수료금액, W020074판매장려미팅(플래너지점장) W020075판매장려미팅교육(수석플래너) W020076(플래너) W020077(매니저))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W020013' THEN B.FEE_AMT END), 0)) AS NW_SELL /*최초수수료-지점 신규판매(수수료금액, W020013조직신규판매(지점장))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020018', 'W020060') THEN B.FEE_AMT END), 0)) AS OG_MNGT /*최초수수료-지점 조직관리(수수료금액, W020018조직관리(지점장) W020060조직관리2)*/
+              FROM TB_SSCT_CNTR_DTL M /*계약상세*/
+             INNER JOIN TB_SSCT_CNTR_BAS SUB /*계약기본*/
+                ON M.CNTR_NO = SUB.CNTR_NO
+              LEFT OUTER JOIN TB_FEAM_FEE_DSB_CNTR_DTL_IZ B /*수수료지급계약상세내역*/
+                ON M.CNTR_NO = B.CNTR_NO
+               AND M.CNTR_SN = B.CNTR_SN
+               AND SUB.SELL_PRTNR_NO = B.PRTNR_NO
+               AND SUB.SELL_OG_TP_CD = B.OG_TP_CD
+               AND B.FEE_TCNT_DV_CD = '02' /*수수료차수 2차 고정*/
+              LEFT OUTER JOIN TB_FEAM_FEE_DSB_DTL_IZ C /*수수료지급상세내역*/
+                ON B.DSB_YM = C.DSB_YM
+               AND B.CO_CD = C.CO_CD
+               AND B.OG_TP_CD = C.OG_TP_CD
+               AND B.PRTNR_NO = C.PRTNR_NO
+               AND B.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+               AND B.SPMT_DSB_DV_CD = C.SPMT_DSB_DV_CD
+               AND B.FEE_DSB_DTL_SN = C.FEE_DSB_DTL_SN
+               AND C.FEE_ATC_DV_CD = '01' /*수수료항목구분코드, 01: 수수료, 02: 공제 등등*/
+              LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_DTL D /*수수료되물림재지급상세*/
+                ON M.CNTR_NO = D.CNTR_NO
+               AND M.CNTR_SN = D.CNTR_SN
+               AND SUB.SELL_PRTNR_NO = D.PRTNR_NO
+               AND SUB.SELL_OG_TP_CD = D.OG_TP_CD
+               AND D.REDF_ADSB_DV_CD = '02' /* 되물림재지급구분코드 02: 되물림, 03: 재지급, 재지급제외 */
+    <!--&#45;&#45;           AND D.PERF_YM = #{perfYm} /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지 */ -->
+             WHERE M.DTA_DL_YN = 'N'
+               AND SUB.DTA_DL_YN = 'N'
+               AND B.DTA_DL_YN = 'N'
+               AND C.DTA_DL_YN = 'N'
+               AND D.DTA_DL_YN = 'N'
+            ) T1
          UNION ALL
-         /*기되물림액*/
-        SELECT F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_PEXT_REDF_AMT', #{session.langId}) AS DV /*기되물림액*/
-             /*공통*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010003', 'W010103') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-개인 판매장려(발생금액 OR 조정확정금액, W010003개인판매장려수수료 W010103개인판매장려수수료(지점장))*/
-                             WHEN C.FEE_CD IN ('W020012', 'W020008', 'W020009', 'W020010', 'W020011') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*최초수수료-개인 판매장려(수수료금액, W020012판매장려(매니저) W020008(플래너) W020009(수석플래너) W020010(플래너지점장) W020011(매니저지점장))*/
-                         END), 0)) AS INDV_ELHM_PERF
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010005', 'W010105') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-개인 정착(발생금액 OR 조정확정금액, W010005정착수수료 W010105정착수수료(지점장))*/
-                             WHEN C.FEE_CD = 'W020038' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*TODO: 판매정착수수료 코드 W020038 맞는지 확인필요. 기되물림액-개인 정착(발생금액 OR 조정확정금액, W020038판매정착)*/
-                         END), 0)) AS INDV_METG
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020005', 'W020030') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_MCHN_CH /*TODO: P조직에 해당하는 기기변경 수수료코드 찾지 못함. 코드 확인 필요. 기되물림액-개인 기기변경(발생금액 OR 조정확정금액, W020005환경가전기기변경판매자(매니저)/판매자(플래너)/판매자(수석플래너) W020030환경가전기기변경지점매니저(지점장) */
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010011' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전조직비례(발생금액 OR 조정확정금액, W010011가전 조직비례수수료)*/
-                             WHEN C.FEE_CD IN ('W020021', 'W020019', 'W020020') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전조직비례(발생금액 OR 조정확정금액, W020021환경가전조직비례(지구장) W020019(플래너지점장) W020020(매니저지점장))*/
-                        END), 0)) AS ELHM_OG_PRPN
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010012' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전외조직비례(발생금액 OR 조정확정금액, W010012가전외 조직비례수수료)*/
-                             WHEN C.FEE_CD IN ('W020024', 'W020022', 'W020023') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전외조직비례(발생금액 OR 조정확정금액, W020024환경가전외조직비례(지구장) W020022(플래너지점장) W020023(매니저지점장))*/
-                        END), 0)) AS ELHM_EXCP_OG_PRPN
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010013' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 조직판매장려(발생금액 OR 조정확정금액, W010013조직판매장려수수료)*/
-                             WHEN C.FEE_CD IN ('W020017', 'W020046') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 조직판매장려(발생금액 OR 조정확정금액, W020017조직판매장려(매니저지점장) W020046(플래너지점장))*/
-                        END), 0)) AS OG_SELL_ENCRG
-             , SUM(NVL((CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END), 0)) AS REDF_ET_SUM /*기되물림액-합계*/
-             /*P조직*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010001', 'W010101') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_PERF /*기되물림액-개인 가전비례(발생금액 OR 조정확정금액, W010001가전개인비례수수료 W010101가전개인비례수수료(지점장))*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010002', 'W010102') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_EXCP_PRPN /*기되물림액-개인 가전외비례(발생금액 OR 조정확정금액, W010002가전외개인비례수수료 W010102가전외개인비례수수료(지점장)))*/
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W010004' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_METG /*기되물림액-개인 미팅(발생금액 OR 조정확정금액, W010004미팅수수료)*/
-             /*M조직*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020001', 'W020002', 'W020062') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_PRPN_METG /*기되물림액-개인 가전비례+미팅(발생금액 OR 조정확정금액, W020001환경가전비례(매니저)/(플래너)/(수석플래너) W020002(지점장) W020062환경가전미팅)*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020003', 'W020004', 'W020063') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_EXCP_PRPN_METG /*기되물림액-개인 가전외비례+미팅(발생금액 OR 조정확정금액, W020003환경가전외비례(매니저)/(플래너)/(수석플래너) W020004(지점장) W020063환경가전외미팅)*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020074', 'W020075', 'W020076', 'W020077') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS EDUC /*TODO: 수수료쪽 코드 참고함. 교육 수수료코드 맞는지 확인 필요. 기되물림액-개인 교육*/
-             , SUM(NVL((CASE WHEN C.FEE_CD = 'W020013' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS NW_SELL /*기되물림액-지점 신규판매(발생금액 OR 조정확정금액, W020013조직신규판매(지점장))*/
-             , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020018', 'W020060') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
-                          ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS OG_MNGT /*기되물림액-지점 조직관리(발생금액 OR 조정확정금액, W020018조직관리(지점장) W020060조직관리2)*/
-          FROM TB_SSCT_CNTR_DTL M /*계약상세*/
-         INNER JOIN TB_SSCT_CNTR_BAS SUB /*계약기본*/
-            ON M.CNTR_NO = SUB.CNTR_NO
-          LEFT OUTER JOIN TB_FEAM_FEE_DSB_CNTR_DTL_IZ B /*수수료지급계약상세내역*/
-            ON M.CNTR_NO = B.CNTR_NO
-           AND M.CNTR_SN = B.CNTR_SN
-           AND SUB.SELL_PRTNR_NO = B.PRTNR_NO
-           AND SUB.SELL_OG_TP_CD = B.OG_TP_CD
-           AND B.FEE_TCNT_DV_CD = '02' /*수수료차수 2차 고정*/
-          LEFT OUTER JOIN TB_FEAM_FEE_DSB_DTL_IZ C /*수수료지급상세내역*/
-            ON B.DSB_YM = C.DSB_YM
-           AND B.CO_CD = C.CO_CD
-           AND B.OG_TP_CD = C.OG_TP_CD
-           AND B.PRTNR_NO = C.PRTNR_NO
-           AND B.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
-           AND B.SPMT_DSB_DV_CD = C.SPMT_DSB_DV_CD
-           AND B.FEE_DSB_DTL_SN = C.FEE_DSB_DTL_SN
-           AND C.FEE_ATC_DV_CD = '01' /*수수료항목구분코드, 01: 수수료, 02: 공제 등등*/
-          LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_DTL D /*수수료되물림재지급상세*/
-            ON M.CNTR_NO = D.CNTR_NO
-           AND M.CNTR_SN = D.CNTR_SN
-           AND SUB.SELL_PRTNR_NO = D.PRTNR_NO
-           AND SUB.SELL_OG_TP_CD = D.OG_TP_CD
-           AND D.REDF_ADSB_DV_CD = '02' /* 되물림재지급구분코드 02: 되물림, 03: 재지급, 재지급제외 */
-<!--&#45;&#45;           AND D.PERF_YM = #{perfYm} /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지 */ -->
-         WHERE M.DTA_DL_YN = 'N'
-           AND SUB.DTA_DL_YN = 'N'
-           AND B.DTA_DL_YN = 'N'
-           AND C.DTA_DL_YN = 'N'
-           AND D.DTA_DL_YN = 'N'
+        SELECT T2.DV
+             , T2.INDV_SELL_ENCRG
+             , T2.INDV_SETTLE
+             , T2.INDV_MCHN_CH
+             , T2.ELHM_OG_PRPN
+             , T2.ELHM_EXCP_OG_PRPN
+             , T2.OG_SELL_ENCRG
+             , T2.INDV_ELHM_PERF
+             , T2.INDV_ELHM_EXCP_PRPN
+             , T2.INDV_METG
+             , T2.INDV_ELHM_PRPN_METG
+             , T2.INDV_ELHM_EXCP_PRPN_METG
+             , T2.EDUC
+             , T2.NW_SELL
+             , T2.OG_MNGT
+             , NVL(CASE WHEN #{ogTpCd} = '2' THEN T2.INDV_ELHM_PERF + T2.INDV_ELHM_EXCP_PRPN + T2.INDV_SELL_ENCRG + T2.INDV_METG + T2.INDV_MCHN_CH + T2.INDV_SETTLE + T2.ELHM_OG_PRPN + T2.ELHM_EXCP_OG_PRPN + T2.OG_SELL_ENCRG
+                        WHEN #{ogTpCd} = '7' THEN T2.INDV_ELHM_PRPN_METG + T2.INDV_ELHM_EXCP_PRPN_METG + T2.INDV_SELL_ENCRG + T2.EDUC + T2.INDV_SETTLE + T2.INDV_MCHN_CH + T2.ELHM_OG_PRPN + T2.ELHM_EXCP_OG_PRPN + T2.OG_SELL_ENCRG + T2.NW_SELL + T2.OG_MNGT END, 0)
+               AS REDF_ET_SUM /*최초수수료-합계*/
+          FROM (
+             /*기되물림액*/
+            SELECT F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_PEXT_REDF_AMT', #{session.langId}) AS DV /*기되물림액*/
+                 /*공통*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010003', 'W010103') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-개인 판매장려(발생금액 OR 조정확정금액, W010003개인판매장려수수료 W010103개인판매장려수수료(지점장))*/
+                                 WHEN C.FEE_CD IN ('W020012', 'W020008', 'W020009', 'W020010', 'W020011') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*최초수수료-개인 판매장려(수수료금액, W020012판매장려(매니저) W020008(플래너) W020009(수석플래너) W020010(플래너지점장) W020011(매니저지점장))*/
+                             END), 0)) AS INDV_SELL_ENCRG
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010005', 'W010105') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-개인 정착(발생금액 OR 조정확정금액, W010005정착수수료 W010105정착수수료(지점장))*/
+                                 WHEN C.FEE_CD = 'W020038' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*TODO: 판매정착수수료 코드 W020038 맞는지 확인필요. 기되물림액-개인 정착(발생금액 OR 조정확정금액, W020038판매정착)*/
+                             END), 0)) AS INDV_SETTLE
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020005', 'W020030') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_MCHN_CH /*TODO: P조직에 해당하는 기기변경 수수료코드 찾지 못함. 코드 확인 필요. 기되물림액-개인 기기변경(발생금액 OR 조정확정금액, W020005환경가전기기변경판매자(매니저)/판매자(플래너)/판매자(수석플래너) W020030환경가전기기변경지점매니저(지점장) */
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010011' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전조직비례(발생금액 OR 조정확정금액, W010011가전 조직비례수수료)*/
+                                 WHEN C.FEE_CD IN ('W020021', 'W020019', 'W020020') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전조직비례(발생금액 OR 조정확정금액, W020021환경가전조직비례(지구장) W020019(플래너지점장) W020020(매니저지점장))*/
+                            END), 0)) AS ELHM_OG_PRPN
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010012' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전외조직비례(발생금액 OR 조정확정금액, W010012가전외 조직비례수수료)*/
+                                 WHEN C.FEE_CD IN ('W020024', 'W020022', 'W020023') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 가전외조직비례(발생금액 OR 조정확정금액, W020024환경가전외조직비례(지구장) W020022(플래너지점장) W020023(매니저지점장))*/
+                            END), 0)) AS ELHM_EXCP_OG_PRPN
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010013' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 조직판매장려(발생금액 OR 조정확정금액, W010013조직판매장려수수료)*/
+                                 WHEN C.FEE_CD IN ('W020017', 'W020046') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) /*기되물림액-지점 조직판매장려(발생금액 OR 조정확정금액, W020017조직판매장려(매니저지점장) W020046(플래너지점장))*/
+                            END), 0)) AS OG_SELL_ENCRG
+                 /*P조직*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010001', 'W010101') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_PERF /*기되물림액-개인 가전비례(발생금액 OR 조정확정금액, W010001가전개인비례수수료 W010101가전개인비례수수료(지점장))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W010002', 'W010102') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_EXCP_PRPN /*기되물림액-개인 가전외비례(발생금액 OR 조정확정금액, W010002가전외개인비례수수료 W010102가전외개인비례수수료(지점장)))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W010004' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_METG /*기되물림액-개인 미팅(발생금액 OR 조정확정금액, W010004미팅수수료)*/
+                 /*M조직*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020001', 'W020002', 'W020062') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_PRPN_METG /*기되물림액-개인 가전비례+미팅(발생금액 OR 조정확정금액, W020001환경가전비례(매니저)/(플래너)/(수석플래너) W020002(지점장) W020062환경가전미팅)*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020003', 'W020004', 'W020063') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS INDV_ELHM_EXCP_PRPN_METG /*기되물림액-개인 가전외비례+미팅(발생금액 OR 조정확정금액, W020003환경가전외비례(매니저)/(플래너)/(수석플래너) W020004(지점장) W020063환경가전외미팅)*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020074', 'W020075', 'W020076', 'W020077') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS EDUC /*기되물림액-개인 교육(발생금액 OR 조정확정금액, W020074판매장려미팅(플래너지점장) W020075판매장려미팅교육(수석플래너) W020076(플래너) W020077(매니저))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD = 'W020013' THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS NW_SELL /*기되물림액-지점 신규판매(발생금액 OR 조정확정금액, W020013조직신규판매(지점장))*/
+                 , SUM(NVL((CASE WHEN C.FEE_CD IN ('W020018', 'W020060') THEN (CASE WHEN D.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN D.REDF_ADSB_OC_AMT
+                              ELSE D.REDF_ADSB_CTR_CNFM_AMT END) END), 0)) AS OG_MNGT /*기되물림액-지점 조직관리(발생금액 OR 조정확정금액, W020018조직관리(지점장) W020060조직관리2)*/
+              FROM TB_SSCT_CNTR_DTL M /*계약상세*/
+             INNER JOIN TB_SSCT_CNTR_BAS SUB /*계약기본*/
+                ON M.CNTR_NO = SUB.CNTR_NO
+              LEFT OUTER JOIN TB_FEAM_FEE_DSB_CNTR_DTL_IZ B /*수수료지급계약상세내역*/
+                ON M.CNTR_NO = B.CNTR_NO
+               AND M.CNTR_SN = B.CNTR_SN
+               AND SUB.SELL_PRTNR_NO = B.PRTNR_NO
+               AND SUB.SELL_OG_TP_CD = B.OG_TP_CD
+               AND B.FEE_TCNT_DV_CD = '02' /*수수료차수 2차 고정*/
+              LEFT OUTER JOIN TB_FEAM_FEE_DSB_DTL_IZ C /*수수료지급상세내역*/
+                ON B.DSB_YM = C.DSB_YM
+               AND B.CO_CD = C.CO_CD
+               AND B.OG_TP_CD = C.OG_TP_CD
+               AND B.PRTNR_NO = C.PRTNR_NO
+               AND B.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+               AND B.SPMT_DSB_DV_CD = C.SPMT_DSB_DV_CD
+               AND B.FEE_DSB_DTL_SN = C.FEE_DSB_DTL_SN
+               AND C.FEE_ATC_DV_CD = '01' /*수수료항목구분코드, 01: 수수료, 02: 공제 등등*/
+              LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_DTL D /*수수료되물림재지급상세*/
+                ON M.CNTR_NO = D.CNTR_NO
+               AND M.CNTR_SN = D.CNTR_SN
+               AND SUB.SELL_PRTNR_NO = D.PRTNR_NO
+               AND SUB.SELL_OG_TP_CD = D.OG_TP_CD
+               AND D.REDF_ADSB_DV_CD = '02' /* 되물림재지급구분코드 02: 되물림, 03: 재지급, 재지급제외 */
+    <!--&#45;&#45;           AND D.PERF_YM = #{perfYm} /*PARAM: 실적년월, TODO: 금액쪽에도 파라미터로 넘어온 실적년월을 거는게 맞는지 */ -->
+             WHERE M.DTA_DL_YN = 'N'
+               AND SUB.DTA_DL_YN = 'N'
+               AND B.DTA_DL_YN = 'N'
+               AND C.DTA_DL_YN = 'N'
+               AND D.DTA_DL_YN = 'N'
+            ) T2
          UNION ALL
-        /*되물림예상액*/
-        SELECT F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_REDF_ET_AMT', #{session.langId}) AS DV /*되물림예상액*/
-             /*공통*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010003', 'W010103') THEN SUB.REDF_OC_AMT /*되물림예상액-개인 판매장려(되물림발생금액, W010003개인판매장려수수료 W010103개인판매장려수수료(지점장))*/
-                             WHEN SUB.FEE_CD IN ('W020012', 'W020008', 'W020009', 'W020010', 'W020011') THEN SUB.REDF_OC_AMT /*되물림예상액-개인 판매장려(되물림발생금액, W020012판매장려(매니저) W020008(플래너) W020009(수석플래너) W020010(플래너지점장) W020011(매니저지점장))*/
-                         END), 0)) AS INDV_SELL_ENCRG
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010005', 'W010105') THEN SUB.REDF_OC_AMT /*되물림예상액-개인 정착(되물림발생금액, W010005정착수수료 W010105정착수수료(지점장))*/
-                             WHEN SUB.FEE_CD = 'W020038' THEN SUB.REDF_OC_AMT /*TODO: 판매정착수수료 코드 W020038 맞는지 확인필요. 되물림예상액-개인 정착(되물림발생금액, W020038판매정착)*/
-                         END), 0)) AS INDV_SETTLE
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020005', 'W020030') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_MCHN_CH /*TODO: P조직에 해당하는 기기변경 수수료코드 찾지 못함. 코드 확인 필요. 되물림예상액-개인 기기변경(되물림발생금액, W020005환경가전기기변경판매자(매니저)/판매자(플래너)/판매자(수석플래너) W020030환경가전기기변경지점매니저(지점장) */
-             , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010011' THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전조직비례(되물림발생금액, W010011가전 조직비례수수료)*/
-                             WHEN SUB.FEE_CD IN ('W020021', 'W020019', 'W020020') THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전조직비례(되물림발생금액, W020021환경가전조직비례(지구장) W020019(플래너지점장) W020020(매니저지점장))*/
-                        END), 0)) AS ELHM_OG_PRPN
-             , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010012' THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전외조직비례(되물림발생금액, W010012가전외 조직비례수수료)*/
-                             WHEN SUB.FEE_CD IN ('W020024', 'W020022', 'W020023') THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전외조직비례(되물림발생금액, W020024환경가전외조직비례(지구장) W020022(플래너지점장) W020023(매니저지점장))*/
-                        END), 0)) AS ELHM_EXCP_OG_PRPN
-             , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010013' THEN SUB.REDF_OC_AMT /*되물림예상액-지점 조직판매장려(되물림발생금액, W010013조직판매장려수수료)*/
-                             WHEN SUB.FEE_CD IN ('W020017', 'W020046') THEN SUB.REDF_OC_AMT /*되물림예상액-지점 조직판매장려(되물림발생금액, W020017조직판매장려(매니저지점장) W020046(플래너지점장))*/
-                        END), 0)) AS OG_SELL_ENCRG
-             , SUM(NVL(SUB.REDF_OC_AMT, 0)) AS REDF_ET_SUM /*되물림예상액-합계*/
-             /*P조직*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010001', 'W010101') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_PERF /*되물림예상액-개인 가전비례(되물림발생금액, W010001가전개인비례수수료 W010101가전개인비례수수료(지점장))*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010002', 'W010102') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN /*되물림예상액-개인 가전외비례(되물림발생금액, W010002가전외개인비례수수료 W010102가전외개인비례수수료(지점장)))*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010004' THEN SUB.REDF_OC_AMT END), 0)) AS INDV_METG /*되물림예상액-개인 미팅(되물림발생금액, W010004미팅수수료)*/
-             /*M조직*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020001', 'W020002', 'W020062') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_PRPN_METG /*되물림예상액-개인 가전비례+미팅(되물림발생금액, W020001환경가전비례(매니저)/(플래너)/(수석플래너) W020002(지점장) W020062환경가전미팅)*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020003', 'W020004', 'W020063') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN_METG /*되물림예상액-개인 가전외비례+미팅(되물림발생금액, W020003환경가전외비례(매니저)/(플래너)/(수석플래너) W020004(지점장) W020063환경가전외미팅)*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020074', 'W020075', 'W020076', 'W020077') THEN SUB.REDF_OC_AMT END), 0)) AS EDUC /*TODO: 수수료쪽 코드 참고함. 교육 수수료코드 맞는지 확인 필요. 되물림예상액-개인 교육*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W020013' THEN SUB.REDF_OC_AMT END), 0)) AS NW_SELL /*되물림예상액-지점 신규판매(되물림발생금액, W020013조직신규판매(지점장))*/
-             , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020018', 'W020060') THEN SUB.REDF_OC_AMT END), 0)) AS OG_MNGT /*되물림예상액-지점 조직관리(되물림발생금액, W020018조직관리(지점장) W020060조직관리2)*/
-          FROM TB_FEDD_REDF_ET_CNTR_BAS M /*되물림예상계약기본*/
-         INNER JOIN TB_FEDD_REDF_ET_AMT_IZ SUB /*되물림예상금액내역*/
-            ON M.BASE_YM = SUB.BASE_YM
-           AND M.PERF_YM = SUB.PERF_YM
-           AND M.OG_TP_CD = SUB.OG_TP_CD
-           AND M.PRTNR_NO = SUB.PRTNR_NO
-           AND M.CNTR_NO = SUB.CNTR_NO
-           AND M.CNTR_SN = SUB.CNTR_SN
-           AND M.CNTR_PERF_CRT_DV_CD = SUB.CNTR_PERF_CRT_DV_CD
-           AND M.REDF_ADSB_TP_CD = SUB.REDF_ADSB_TP_CD
-           AND M.PERF_DV_CD = SUB.PERF_DV_CD
-         WHERE M.DTA_DL_YN = 'N'
-           AND SUB.DTA_DL_YN = 'N'
+        SELECT T3.DV
+             , T3.INDV_SELL_ENCRG
+             , T3.INDV_SETTLE
+             , T3.INDV_MCHN_CH
+             , T3.ELHM_OG_PRPN
+             , T3.ELHM_EXCP_OG_PRPN
+             , T3.OG_SELL_ENCRG
+             , T3.INDV_ELHM_PERF
+             , T3.INDV_ELHM_EXCP_PRPN
+             , T3.INDV_METG
+             , T3.INDV_ELHM_PRPN_METG
+             , T3.INDV_ELHM_EXCP_PRPN_METG
+             , T3.EDUC
+             , T3.NW_SELL
+             , T3.OG_MNGT
+             , NVL(CASE WHEN #{ogTpCd} = '2' THEN T3.INDV_ELHM_PERF + T3.INDV_ELHM_EXCP_PRPN + T3.INDV_SELL_ENCRG + T3.INDV_METG + T3.INDV_MCHN_CH + T3.INDV_SETTLE + T3.ELHM_OG_PRPN + T3.ELHM_EXCP_OG_PRPN + T3.OG_SELL_ENCRG
+                        WHEN #{ogTpCd} = '7' THEN T3.INDV_ELHM_PRPN_METG + T3.INDV_ELHM_EXCP_PRPN_METG + T3.INDV_SELL_ENCRG + T3.EDUC + T3.INDV_SETTLE + T3.INDV_MCHN_CH + T3.ELHM_OG_PRPN + T3.ELHM_EXCP_OG_PRPN + T3.OG_SELL_ENCRG + T3.NW_SELL + T3.OG_MNGT END, 0)
+               AS REDF_ET_SUM /*최초수수료-합계*/
+          FROM (
+            /*되물림예상액*/
+            SELECT F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_REDF_ET_AMT', #{session.langId}) AS DV /*되물림예상액*/
+                 /*공통*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010003', 'W010103') THEN SUB.REDF_OC_AMT /*되물림예상액-개인 판매장려(되물림발생금액, W010003개인판매장려수수료 W010103개인판매장려수수료(지점장))*/
+                                 WHEN SUB.FEE_CD IN ('W020012', 'W020008', 'W020009', 'W020010', 'W020011') THEN SUB.REDF_OC_AMT /*되물림예상액-개인 판매장려(되물림발생금액, W020012판매장려(매니저) W020008(플래너) W020009(수석플래너) W020010(플래너지점장) W020011(매니저지점장))*/
+                             END), 0)) AS INDV_SELL_ENCRG
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010005', 'W010105') THEN SUB.REDF_OC_AMT /*되물림예상액-개인 정착(되물림발생금액, W010005정착수수료 W010105정착수수료(지점장))*/
+                                 WHEN SUB.FEE_CD = 'W020038' THEN SUB.REDF_OC_AMT /*TODO: 판매정착수수료 코드 W020038 맞는지 확인필요. 되물림예상액-개인 정착(되물림발생금액, W020038판매정착)*/
+                             END), 0)) AS INDV_SETTLE
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020005', 'W020030') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_MCHN_CH /*TODO: P조직에 해당하는 기기변경 수수료코드 찾지 못함. 코드 확인 필요. 되물림예상액-개인 기기변경(되물림발생금액, W020005환경가전기기변경판매자(매니저)/판매자(플래너)/판매자(수석플래너) W020030환경가전기기변경지점매니저(지점장) */
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010011' THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전조직비례(되물림발생금액, W010011가전 조직비례수수료)*/
+                                 WHEN SUB.FEE_CD IN ('W020021', 'W020019', 'W020020') THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전조직비례(되물림발생금액, W020021환경가전조직비례(지구장) W020019(플래너지점장) W020020(매니저지점장))*/
+                            END), 0)) AS ELHM_OG_PRPN
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010012' THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전외조직비례(되물림발생금액, W010012가전외 조직비례수수료)*/
+                                 WHEN SUB.FEE_CD IN ('W020024', 'W020022', 'W020023') THEN SUB.REDF_OC_AMT /*되물림예상액-지점 가전외조직비례(되물림발생금액, W020024환경가전외조직비례(지구장) W020022(플래너지점장) W020023(매니저지점장))*/
+                            END), 0)) AS ELHM_EXCP_OG_PRPN
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010013' THEN SUB.REDF_OC_AMT /*되물림예상액-지점 조직판매장려(되물림발생금액, W010013조직판매장려수수료)*/
+                                 WHEN SUB.FEE_CD IN ('W020017', 'W020046') THEN SUB.REDF_OC_AMT /*되물림예상액-지점 조직판매장려(되물림발생금액, W020017조직판매장려(매니저지점장) W020046(플래너지점장))*/
+                            END), 0)) AS OG_SELL_ENCRG
+                 /*P조직*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010001', 'W010101') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_PERF /*되물림예상액-개인 가전비례(되물림발생금액, W010001가전개인비례수수료 W010101가전개인비례수수료(지점장))*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W010002', 'W010102') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN /*되물림예상액-개인 가전외비례(되물림발생금액, W010002가전외개인비례수수료 W010102가전외개인비례수수료(지점장)))*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W010004' THEN SUB.REDF_OC_AMT END), 0)) AS INDV_METG /*되물림예상액-개인 미팅(되물림발생금액, W010004미팅수수료)*/
+                 /*M조직*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020001', 'W020002', 'W020062') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_PRPN_METG /*되물림예상액-개인 가전비례+미팅(되물림발생금액, W020001환경가전비례(매니저)/(플래너)/(수석플래너) W020002(지점장) W020062환경가전미팅)*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020003', 'W020004', 'W020063') THEN SUB.REDF_OC_AMT END), 0)) AS INDV_ELHM_EXCP_PRPN_METG /*되물림예상액-개인 가전외비례+미팅(되물림발생금액, W020003환경가전외비례(매니저)/(플래너)/(수석플래너) W020004(지점장) W020063환경가전외미팅)*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020074', 'W020075', 'W020076', 'W020077') THEN SUB.REDF_OC_AMT END), 0)) AS EDUC /*되물림예상액-개인 교육(되물림발생금액, W020074판매장려미팅(플래너지점장) W020075판매장려미팅교육(수석플래너) W020076(플래너) W020077(매니저))*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD = 'W020013' THEN SUB.REDF_OC_AMT END), 0)) AS NW_SELL /*되물림예상액-지점 신규판매(되물림발생금액, W020013조직신규판매(지점장))*/
+                 , SUM(NVL((CASE WHEN SUB.FEE_CD IN ('W020018', 'W020060') THEN SUB.REDF_OC_AMT END), 0)) AS OG_MNGT /*되물림예상액-지점 조직관리(되물림발생금액, W020018조직관리(지점장) W020060조직관리2)*/
+              FROM TB_FEDD_REDF_ET_CNTR_BAS M /*되물림예상계약기본*/
+             INNER JOIN TB_FEDD_REDF_ET_AMT_IZ SUB /*되물림예상금액내역*/
+                ON M.BASE_YM = SUB.BASE_YM
+               AND M.PERF_YM = SUB.PERF_YM
+               AND M.OG_TP_CD = SUB.OG_TP_CD
+               AND M.PRTNR_NO = SUB.PRTNR_NO
+               AND M.CNTR_NO = SUB.CNTR_NO
+               AND M.CNTR_SN = SUB.CNTR_SN
+               AND M.CNTR_PERF_CRT_DV_CD = SUB.CNTR_PERF_CRT_DV_CD
+               AND M.REDF_ADSB_TP_CD = SUB.REDF_ADSB_TP_CD
+               AND M.PERF_DV_CD = SUB.PERF_DV_CD
+             WHERE M.DTA_DL_YN = 'N'
+               AND SUB.DTA_DL_YN = 'N'
+            ) T3
     </select>
 </mapper>
