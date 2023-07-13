@@ -7,7 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBfsvcCrdovrAsnDto;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitPeriodRecrtDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRegularBfsvcAsnDvo;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncBfsvcCrdovrAsnService;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncRegularBfsvcAsnService;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncVisitPeriodRecrtService;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
@@ -33,6 +35,8 @@ public class WsnbIndividualVisitPrdService {
 
     private final MessageResourceService messageService;
 
+    private final WsncRegularBfsvcAsnService wsncRegularBfsvcAsnService;
+
     public WsnbIndividualVisitPrdDto.SearchRes getCustomerInfo(WsnbIndividualVisitPrdDto.SearchReq dto) {
         return mapper.selectCustomerInfo(dto);
     }
@@ -52,8 +56,12 @@ public class WsnbIndividualVisitPrdService {
      */
     @Transactional
     public int processBsAssign(WsnbIndividualVisitPrdDto.SearchProcessReq dto) throws Exception {
-        log.info("[WsnbIndividualVisitPrdService.processBsAssign] process start!");
-        return 0;
+        WsncRegularBfsvcAsnDvo dvo = new WsncRegularBfsvcAsnDvo();
+        dvo.setCntrNo(dto.cntrNo());
+        dvo.setCntrSn(dto.cntrSn());
+        dvo.setAsnOjYm(dto.asnOjYm());
+        wsncRegularBfsvcAsnService.processRegularBfsvcAsn(dvo);
+        return 1;
     }
 
     /*
@@ -118,6 +126,8 @@ public class WsnbIndividualVisitPrdService {
      */
     @Transactional
     public int processVisitPeriodRegen(WsnbIndividualVisitPrdDto.SearchProcessReq dto) throws Exception {
+        //방문주기 삭제 후 생성
+        processVisitPeriodDelete(dto);
         WsncVisitPeriodRecrtDto.SaveReq param = new WsncVisitPeriodRecrtDto.SaveReq(dto.cntrNo(), dto.cntrSn());
         return wsncVisitPeriodRecrtService.saveVisitPeriodRecrt(param);
     }
