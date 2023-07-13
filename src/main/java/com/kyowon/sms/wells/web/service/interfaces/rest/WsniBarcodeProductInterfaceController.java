@@ -28,7 +28,7 @@ public class WsniBarcodeProductInterfaceController {
 
     private final WsniBarcodeProductInterfaceService service;
 
-    @ApiOperation(value = "W-SV-I-0011 바코드를 입력받아 등록된 바코드인지 확인 API")
+    @ApiOperation(value = "W-SV-I-0010 QR코드별 상품정보 조회 팝업")
     @PostMapping
     public EaiWrapper getBarcodeProducts(
         @Valid
@@ -51,5 +51,4 @@ public class WsniBarcodeProductInterfaceController {
         resWrapper.setBody(service.getBarcodeSearchCustomers(reqWrapper.getBody()));
         return resWrapper;
     }
-
 }

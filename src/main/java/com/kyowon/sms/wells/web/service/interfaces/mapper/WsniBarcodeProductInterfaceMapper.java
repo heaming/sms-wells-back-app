@@ -6,7 +6,9 @@ import com.kyowon.sms.wells.web.service.interfaces.dto.WsniBarcodeProductInterfa
 
 @Mapper
 public interface WsniBarcodeProductInterfaceMapper {
-    WsniBarcodeProductInterfaceDto.SearchRes selectBarcodeProduct(WsniBarcodeProductInterfaceDto.SearchReq dto);
+    WsniBarcodeProductInterfaceDto.SearchRes selectBarcodeProduct(
+        WsniBarcodeProductInterfaceDto.SearchReq dto
+    );
 
     WsniBarcodeProductInterfaceDto.SearchCustRes selectBarcodeSearchCustomer(WsniBarcodeProductInterfaceDto.SearchCustReq dto);
 }
