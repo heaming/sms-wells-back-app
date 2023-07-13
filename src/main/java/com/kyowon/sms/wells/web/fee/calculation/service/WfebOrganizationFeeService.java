@@ -199,10 +199,11 @@ public class WfebOrganizationFeeService {
      * 홈마스터 수수료 생성관리 품의 데이터 조회
      * @return
      */
-    public HashMap<String, String> getHmstFeeFormDtl() {
+    public HashMap<String, String> getHmstFeeFormDtl(String appKey) {
         HashMap<String, String> rtnMap = new HashMap<String, String>();
         String perfYm = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
         rtnMap = mapper.selectHmstFeeFormDtl(perfYm);
+        rtnMap.put("appKey", appKey);
 
         return rtnMap;
 
