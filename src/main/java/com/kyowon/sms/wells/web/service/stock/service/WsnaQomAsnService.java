@@ -131,9 +131,14 @@ public class WsnaQomAsnService {
     @Transactional
     public int createQomAsns(List<CreateReq> dtos) {
 
+        int count = 0;
         List<WsnaQomAsnCreateDvo> dvos = this.converter.mapAllCreateReqToWsnaQomAsnCreateDvo(dtos);
 
-        return this.mapper.insertItmQomAsnIz(dvos);
+        for (WsnaQomAsnCreateDvo dvo : dvos) {
+            count += this.mapper.insertItmQomAsnIz(dvo);
+        }
+
+        return count;
     }
 
     /**

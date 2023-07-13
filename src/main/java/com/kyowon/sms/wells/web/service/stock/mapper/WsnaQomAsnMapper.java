@@ -28,7 +28,7 @@ public interface WsnaQomAsnMapper {
 
     List<WsnaQomAsnCreateDvo> selectQomAsnIndependenceForCreate(SearchReq dto);
 
-    int insertItmQomAsnIz(List<WsnaQomAsnCreateDvo> dvos);
+    int insertItmQomAsnIz(WsnaQomAsnCreateDvo dvos);
 
     PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(
         SearchReq dto, PageInfo pageInfo
