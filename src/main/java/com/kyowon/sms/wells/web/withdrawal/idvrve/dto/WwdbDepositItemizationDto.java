@@ -37,4 +37,11 @@ public class WwdbDepositItemizationDto {
         String pdNm /*상품명*/
 
     ) {}
+
+    @ApiModel("WwdbDepositItemizationDto-SearchDepositItemizationsByEngineersRes")
+    public record SearchDepositItemizationsByEngineersRes(
+        String prtnrNo, /*파트너번호*/
+        String prtnrNm, /*파트너명*/
+        String rveAmt /*수납금액*/
+    ) {}
 }
