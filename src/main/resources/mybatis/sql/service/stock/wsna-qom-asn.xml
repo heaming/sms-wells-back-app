@@ -963,96 +963,92 @@
          ORDER BY D5.BLD_NM, D6.PRTNR_KNM, D1.ITM_PD_CD
     </select>
 
+    <select id="selectRgbsPuItmsForWareRenewal" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnWareRenewalDvo">
+        SELECT DISTINCT T1.ASN_OJ_YM
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.PDCT_PD_CD
+             , T1.SV_BIZ_DCLSF_CD
+             , T1.IST_NMN_N
+             , T1.FILT_CHNG_LV_CD
+             , T1.PU_PART_PD_CD
+             , T1.QOM_ASN_WARE_NO
+             , T1.WARE_DV_CD
+             , T1.STR_WARE_NO
+          FROM
+             (
+               SELECT D1.ASN_OJ_YM                                /* 배정대상년월 */
+                    , D1.CNTR_NO                                  /* 계약번호 */
+                    , D1.CNTR_SN                                  /* 계약일련번호 */
+                    , D1.PDCT_PD_CD                               /* 제품상품코드 */
+                    , D1.SV_BIZ_DCLSF_CD                          /* 서비스업무세분류코드 */
+                    , D1.IST_NMN_N                                /* 설치차월수 */
+                    , D1.FILT_CHNG_LV_CD                          /* 필터교체단계코드 */
+                    , D1.PU_PART_PD_CD                            /* 투입부품상품코드 */
+                    , D1.QOM_ASN_WARE_NO AS BEF_QOM_ASN_WARE_NO   /* 변경전 물량배정창고번호 */
+                    , #{ostrWareNo}      AS QOM_ASN_WARE_NO       /* 물량배정창고번호 */
+                    , D1.STR_WARE_DV_CD  AS BEF_WARE_DV_CD        /* 변경전 창고구분코드 */
+                    , CASE WHEN D5.DIDY_DV_CD = '1'
+                            AND D5.WARE_DV_CD = '2' THEN '1'
+                           WHEN D5.DIDY_DV_CD = '1'
+                            AND D5.WARE_DV_CD = '3' THEN '2'
+                           WHEN D5.DIDY_DV_CD = '2' THEN '3'
+                           ELSE '9'
+                      END                AS WARE_DV_CD            /* 창고구분코드 */
+                    , D1.STR_WARE_NO     AS BEF_STR_WARE_NO       /* 변경전 입고창고번호 */
+                    , CASE WHEN D5.DIDY_DV_CD = '2' THEN D5.WARE_NO
+                           ELSE D5.HGR_WARE_NO
+                      END                AS STR_WARE_NO           /* 입고창고번호 */
+                 FROM TB_SVPD_RGBS_PU_ITM_IZ D1                   /* 정기BS투입품목내역 */
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2          /* 고객서비스BS대상내역 */
+                   ON D2.ASN_OJ_YM = D1.ASN_OJ_YM
+                  AND D2.CNTR_NO   = D1.CNTR_NO
+                  AND D2.CNTR_SN   = D1.CNTR_SN
+                INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ D3           /* 월별고객서비스대상내역 */
+                   ON D3.CNTR_NO = D2.CNTR_NO
+                  AND D3.CNTR_SN = D2.CNTR_SN
+                 LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D4   /* 고객서비스BS배정내역 */
+                   ON D4.ASN_OJ_YM = D1.ASN_OJ_YM
+                  AND D4.CNTR_NO   = D1.CNTR_NO
+                  AND D4.CNTR_SN   = D1.CNTR_SN
+                  AND D4.DTA_DL_YN = 'N'
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D5               /* 월별창고내역 */
+                   ON D5.OG_TP_CD           = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL(D4.CNFM_PSIC_PRTNR_OG_TP_CD, D3.FXN_PRTNR_OG_TP_CD)
+                                                   ELSE D3.FXN_PRTNR_OG_TP_CD
+                                              END
+                  AND D5.WARE_MNGT_PRTNR_NO = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL(D4.CNFM_PSIC_PRTNR_NO, D3.FXN_PRTNR_NO)
+                                                   ELSE D3.FXN_PRTNR_NO
+                                              END
+                WHERE D1.DTA_DL_YN   = 'N'
+                  AND D2.DTA_DL_YN   = 'N'
+                  AND D3.DTA_DL_YN   = 'N'
+                  AND D5.DTA_DL_YN   = 'N'
+                  AND D5.WARE_USE_YN = 'Y'
+                  AND D2.VST_DV_CD LIKE '1%'
+                  AND D1.ASN_OJ_YM   = #{asnOjYm}
+                  AND D3.MNGT_YM     = #{apyYm}
+                  AND D5.APY_YM      = #{apyYm}
+             ) T1
+         WHERE T1.BEF_QOM_ASN_WARE_NO <![CDATA[<>]]> T1.QOM_ASN_WARE_NO
+            OR T1.BEF_WARE_DV_CD <![CDATA[<>]]> T1.WARE_DV_CD
+            OR T1.BEF_STR_WARE_NO <![CDATA[<>]]> T1.STR_WARE_NO
+    </select>
+
     <update id="updateRgbsPuItmForWareRenewal">
-         MERGE INTO TB_SVPD_RGBS_PU_ITM_IZ TB_TGT   /* 정기BS투입품목내역 */
-         USING
-             (
-               SELECT T1.ASN_OJ_YM
-                    , T1.CNTR_NO
-                    , T1.CNTR_SN
-                    , T1.PDCT_PD_CD
-                    , T1.SV_BIZ_DCLSF_CD
-                    , T1.IST_NMN_N
-                    , T1.FILT_CHNG_LV_CD
-                    , T1.PU_PART_PD_CD
-                    , T1.QOM_ASN_WARE_NO
-                    , T1.WARE_DV_CD
-                    , T1.STR_WARE_NO
-                 FROM
-                    (
-                      SELECT D1.ASN_OJ_YM                                /* 배정대상년월 */
-                           , D1.CNTR_NO                                  /* 계약번호 */
-	                       , D1.CNTR_SN                                  /* 계약일련번호 */
-	                       , D1.PDCT_PD_CD                               /* 제품상품코드 */
-	                       , D1.SV_BIZ_DCLSF_CD                          /* 서비스업무세분류코드 */
-      	                   , D1.IST_NMN_N                                /* 설치차월수 */
-	                       , D1.FILT_CHNG_LV_CD                          /* 필터교체단계코드 */
-	                       , D1.PU_PART_PD_CD                            /* 투입부품상품코드 */
-                           , D1.QOM_ASN_WARE_NO AS BEF_QOM_ASN_WARE_NO   /* 변경전 물량배정창고번호 */
-                           , #{ostrWareNo}      AS QOM_ASN_WARE_NO       /* 물량배정창고번호 */
-                           , D1.STR_WARE_DV_CD  AS BEF_WARE_DV_CD        /* 변경전 창고구분코드 */
-	                       , CASE WHEN D5.DIDY_DV_CD = '1'
- 	                               AND D5.WARE_DV_CD = '2' THEN '1'
-			                      WHEN D5.DIDY_DV_CD = '1'
-			                       AND D5.WARE_DV_CD = '3' THEN '2'
-			                      WHEN D5.DIDY_DV_CD = '2' THEN '3'
-			                      ELSE '9'
-	                         END                AS WARE_DV_CD            /* 창고구분코드 */
-                           , D1.STR_WARE_NO     AS BEF_STR_WARE_NO       /* 변경전 입고창고번호 */
-	                       , CASE WHEN D5.DIDY_DV_CD = '2' THEN D5.WARE_NO
- 	                              ELSE D5.HGR_WARE_NO
-	                         END                AS STR_WARE_NO           /* 입고창고번호 */
-                        FROM TB_SVPD_RGBS_PU_ITM_IZ D1                   /* 정기BS투입품목내역 */
-                       INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2          /* 고객서비스BS대상내역 */
-                          ON D2.ASN_OJ_YM = D1.ASN_OJ_YM
-                         AND D2.CNTR_NO   = D1.CNTR_NO
-                         AND D2.CNTR_SN   = D1.CNTR_SN
-                       INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ D3           /* 월별고객서비스대상내역 */
-                          ON D3.CNTR_NO = D2.CNTR_NO
-                         AND D3.CNTR_SN = D2.CNTR_SN
-                        LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D4   /* 고객서비스BS배정내역 */
-                          ON D4.ASN_OJ_YM = D1.ASN_OJ_YM
-                         AND D4.CNTR_NO   = D1.CNTR_NO
-                         AND D4.CNTR_SN   = D1.CNTR_SN
-                         AND D4.DTA_DL_YN = 'N'
-                       INNER JOIN TB_SVST_MCBY_WARE_IZ D5               /* 월별창고내역 */
-                          ON D5.OG_TP_CD           = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL(D4.CNFM_PSIC_PRTNR_OG_TP_CD, D3.FXN_PRTNR_OG_TP_CD)
-	                                                      ELSE D3.FXN_PRTNR_OG_TP_CD
-							                         END
-                         AND D5.WARE_MNGT_PRTNR_NO = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL(D4.CNFM_PSIC_PRTNR_NO, D3.FXN_PRTNR_NO)
-	                                                      ELSE D3.FXN_PRTNR_NO
-					   		                         END
-                       WHERE D1.DTA_DL_YN   = 'N'
-                         AND D2.DTA_DL_YN   = 'N'
-                         AND D3.DTA_DL_YN   = 'N'
-                         AND D5.DTA_DL_YN   = 'N'
-                         AND D5.WARE_USE_YN = 'Y'
-                         AND D2.VST_DV_CD LIKE '1%'
-                         AND D1.ASN_OJ_YM   = #{asnOjYm}
-                         AND D3.MNGT_YM     = #{apyYm}
-                         AND D5.APY_YM      = #{apyYm}
-                    ) T1
-                WHERE T1.BEF_QOM_ASN_WARE_NO <![CDATA[<>]]> T1.QOM_ASN_WARE_NO
-                   OR T1.BEF_WARE_DV_CD <![CDATA[<>]]> T1.WARE_DV_CD
-                   OR T1.BEF_STR_WARE_NO <![CDATA[<>]]> T1.STR_WARE_NO
-             ) TB_SRC
-            ON
-             (
-                   TB_TGT.ASN_OJ_YM       = TB_SRC.ASN_OJ_YM
-               AND TB_TGT.CNTR_NO         = TB_SRC.CNTR_NO
-               AND TB_TGT.CNTR_SN         = TB_SRC.CNTR_SN
-               AND TB_TGT.PDCT_PD_CD      = TB_SRC.PDCT_PD_CD
-               AND TB_TGT.SV_BIZ_DCLSF_CD = TB_SRC.SV_BIZ_DCLSF_CD
-               AND TB_TGT.IST_NMN_N       = TB_SRC.IST_NMN_N
-               AND TB_TGT.FILT_CHNG_LV_CD = TB_SRC.FILT_CHNG_LV_CD
-               AND TB_TGT.PU_PART_PD_CD   = TB_SRC.PU_PART_PD_CD
-             )
-          WHEN MATCHED THEN
-        UPDATE
-           SET TB_TGT.QOM_ASN_WARE_NO = TB_SRC.QOM_ASN_WARE_NO
-             , TB_TGT.STR_WARE_DV_CD  = TB_SRC.WARE_DV_CD
-	         , TB_TGT.STR_WARE_NO     = TB_SRC.STR_WARE_NO
+        UPDATE TB_SVPD_RGBS_PU_ITM_IZ   /* 정기BS투입품목내역 */
+           SET QOM_ASN_WARE_NO = #{qomAsnWareNo}
+             , STR_WARE_DV_CD  = #{wareDvCd}
+	         , STR_WARE_NO     = #{strWareNo}
         <include refid="COMMON.updateSystemField"/>
+         WHERE ASN_OJ_YM       = #{asnOjYm}
+           AND CNTR_NO         = #{cntrNo}
+           AND CNTR_SN         = #{cntrSn}
+           AND PDCT_PD_CD      = #{pdctPdCd}
+           AND SV_BIZ_DCLSF_CD = #{svBizDclsfCD}
+           AND IST_NMN_N       = #{istNmnN}
+           AND FILT_CHNG_LV_CD = #{filtChngLvCd}
+           AND PU_PART_PD_CD   = #{puPartPdCd}
     </update>
+
 
 </mapper>
