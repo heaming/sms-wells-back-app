@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.rest;
 
-
 import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdbEdiCardAprovalRefundInterfaceService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -21,14 +20,14 @@ import static com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbEdiCardApro
 
 @InterfaceController
 @Api(tags = "[WWDB] wells EDI카드 승인/환불 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/edicard")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/edicard")
 @RequiredArgsConstructor
 @Validated
 public class WwdbEdiCardAprovalRefundInterfaceController {
 
     private final WwdbEdiCardAprovalRefundInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WDEI1009] wells EDI카드 승인/환불 내역 조회")
+    @ApiOperation(value = "[EAI_WDEI1009] wells EDI카드 승인/환불 내역 조회 - W-WD-I-0008")
     @PostMapping("/aproval-refunds")
     public EaiWrapper getAprovalRefunds(
         @Valid
