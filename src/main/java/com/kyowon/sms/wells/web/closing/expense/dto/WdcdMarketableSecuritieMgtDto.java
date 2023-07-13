@@ -98,7 +98,8 @@ public class WdcdMarketableSecuritieMgtDto {
         String rsbDvCd,
         String baseYm,
         String adjOgId,
-        String opcsAdjNo
+        String opcsAdjNo,
+        String adjPrtnrNo
     ) {
 
     }
