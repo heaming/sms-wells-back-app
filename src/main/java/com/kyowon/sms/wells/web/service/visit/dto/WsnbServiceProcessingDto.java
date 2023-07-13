@@ -145,7 +145,7 @@ public class WsnbServiceProcessingDto {
         String elcStlm,
         String adpBilAmt,
         String cstSignHsYn,
-        String istEnvrPhoPhCn,
+        String istEnvrPhoPhDocId,
         String acpnPrtnrKnm,
         String acpnPrtnrGdNm
     ) {}
