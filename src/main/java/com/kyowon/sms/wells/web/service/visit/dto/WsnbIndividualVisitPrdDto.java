@@ -86,6 +86,7 @@ public class WsnbIndividualVisitPrdDto {
     public record SearchPeriodRes(
         String vstNmnN,
         String bfsvcWkDvCd,
+        String filtChngLvCd,
         String pdNm,
         String partUseQty,
         String vstDvCd
