@@ -17,15 +17,7 @@ import lombok.Setter;
 public class WsnaQomAsnWareRenewalDvo {
 
     private String asnOjYm;
-    private String cntrNo;
-    private int cntrSn;
-    private String pdctPdCd;
-    private String svBizDclsfCd;
-    private int istNmnN;
-    private String filtChngLvCd;
-    private String puPartPdCd;
-    private String qomAsnWareNo;
-    private String wareDvCd;
-    private String strWareNo;
+    private String apyYm;
+    private String ostrWareNo;
 
 }

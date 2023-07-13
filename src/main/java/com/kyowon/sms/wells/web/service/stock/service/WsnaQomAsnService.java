@@ -188,14 +188,8 @@ public class WsnaQomAsnService {
     @Transactional
     public int editQomAsnForWareRenewalDvo(EditReq dto) {
 
-        int count = 0;
+        WsnaQomAsnWareRenewalDvo dvo = this.converter.mapEditReqToWsnaQomAsnWareRenewalDvo(dto);
 
-        List<WsnaQomAsnWareRenewalDvo> dvos = this.mapper.selectRgbsPuItmsForWareRenewal(dto);
-
-        for (WsnaQomAsnWareRenewalDvo dvo : dvos) {
-            count += this.mapper.updateRgbsPuItmForWareRenewal(dvo);
-        }
-
-        return count;
+        return this.mapper.updateRgbsPuItmForWareRenewal(dvo);
     }
 }

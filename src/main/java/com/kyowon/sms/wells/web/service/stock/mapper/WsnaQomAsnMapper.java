@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.EditReq;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchReq;
 
 import java.util.List;
@@ -40,8 +39,6 @@ public interface WsnaQomAsnMapper {
     PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndependence(SearchReq dto, PageInfo pageInfo);
 
     List<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndependence(SearchReq dto);
-
-    List<WsnaQomAsnWareRenewalDvo> selectRgbsPuItmsForWareRenewal(EditReq dto);
 
     int updateRgbsPuItmForWareRenewal(WsnaQomAsnWareRenewalDvo dvo);
 
