@@ -16,7 +16,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnaAssignExcludeItemMapper {
 
-    List<WsnzWellsCodeWareHouseDvo> selectWarehouse();
+    List<WsnzWellsCodeWareHouseDvo> selectWarehouses();
 
     PagingResult<SearchRes> selectAssignExcludeItemsPaging(SearchReq dto, PageInfo pageInfo);
 

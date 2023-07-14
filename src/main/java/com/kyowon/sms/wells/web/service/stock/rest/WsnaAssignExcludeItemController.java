@@ -41,10 +41,10 @@ public class WsnaAssignExcludeItemController {
 
     private final WsnaAssignExcludeItemService service;
 
-    @GetMapping("/warehouse")
+    @GetMapping("/warehouses")
     @ApiOperation(value = "배정제외품목 등록 창고 조회", notes = "배정제외품목 등록 창고를 조회한다.")
-    public List<WsnzWellsCodeWareHouseDvo> getWarehouse() {
-        return this.service.getWarehouse();
+    public List<WsnzWellsCodeWareHouseDvo> getWarehouses() {
+        return this.service.getWarehouses();
     }
 
     @GetMapping("/paging")

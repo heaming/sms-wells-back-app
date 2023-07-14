@@ -48,8 +48,8 @@ public class WsnaAssignExcludeItemService {
      * 창고조회
      * @return
      */
-    public List<WsnzWellsCodeWareHouseDvo> getWarehouse() {
-        return this.mapper.selectWarehouse();
+    public List<WsnzWellsCodeWareHouseDvo> getWarehouses() {
+        return this.mapper.selectWarehouses();
     }
 
     /**
