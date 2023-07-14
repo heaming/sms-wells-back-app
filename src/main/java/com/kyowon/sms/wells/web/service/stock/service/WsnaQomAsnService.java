@@ -131,14 +131,16 @@ public class WsnaQomAsnService {
     @Transactional
     public int createQomAsns(List<CreateReq> dtos) {
 
-        int count = 0;
+        CreateReq dto = dtos.get(0);
+        String asnOjYm = dto.asnOjYm();
+        String wareDtlDvCd = dto.wareDtlDvCd();
+
+        int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
+
         List<WsnaQomAsnCreateDvo> dvos = this.converter.mapAllCreateReqToWsnaQomAsnCreateDvo(dtos);
+        dvos.forEach(dvo -> dvo.setQomAsnNo(qomAsnNoMax));
 
-        for (WsnaQomAsnCreateDvo dvo : dvos) {
-            count += this.mapper.insertItmQomAsnIz(dvo);
-        }
-
-        return count;
+        return this.mapper.insertItmQomAsns(dvos);
     }
 
     /**
