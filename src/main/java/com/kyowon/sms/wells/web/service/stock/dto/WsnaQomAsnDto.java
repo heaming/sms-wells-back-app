@@ -110,6 +110,7 @@ public class WsnaQomAsnDto {
         BigDecimal borrExpQty,
         BigDecimal cnfmQty,
         BigDecimal boxUnitQty,
+        BigDecimal boxQty,
         BigDecimal aclOstrQty,
         BigDecimal bfsvcFshCt
 
