@@ -206,7 +206,9 @@ public class WctaContractRegStep1Service {
         basDvo.setCntrTempSaveDtm(now);
         basDvo.setPrrRcpCntrYn(mapper.selectResrOrdrYn());
         basDvo.setPspcCstId(dvo.getPspcCstId());
-        basDvo.setSellInflwChnlDtlCd(contractService.getSaleInflowChnlDtlCd(dvo.getBas().getCntrTpCd()));
+        String saleInflowChnlDtlCd = contractService.getSaleInflowChnlDtlCd(dvo.getBas().getCntrTpCd());
+        BizAssert.isFalse("9999".equals(saleInflowChnlDtlCd), "유효하지 않은 판매유입채널상세코드입니다.");
+        basDvo.setSellInflwChnlDtlCd(saleInflowChnlDtlCd);
         basDvo.setCntrNo(cntrNo);
         basDvo.setCntrCstNo(dvo.getCntrt().getCstNo());
         basDvo.setCopnDvCd(dvo.getCntrt().getCopnDvCd());
