@@ -18,6 +18,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep3Mapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +40,7 @@ public class WctaContractRegStep3Service {
 
         // 계약자 기준 기본주소지 조회
         WctaContractAdrpcBasDvo basAdrpc = mapper.selectAdrInfoByCntrCstNo(bas.getCntrCstNo());
+        BizAssert.isTrue(ObjectUtils.isNotEmpty(basAdrpc), "계약자 주소지 정보가 없습니다.");
         basAdrpc.setCntrtRelCd("01");
         step3Dvo.setBasAdrpc(basAdrpc);
 
@@ -248,7 +250,7 @@ public class WctaContractRegStep3Service {
         Map<String, String> stlmBasMap = Maps.newHashMap();
         for (WctaContractDtlDvo dtl : dtls) {
             int cntrSn = dtl.getCntrSn();
-            System.out.println("세금계산서 발행여부: "+dtl.getTxinvPblOjYn());
+            System.out.println("세금계산서 발행여부: " + dtl.getTxinvPblOjYn());
             WctaContractDtlDvo bDtl = null;
             if (isBlkApy(blkApyDtl)) {
                 bDtl = blkApyDtl;
@@ -341,17 +343,17 @@ public class WctaContractRegStep3Service {
         String now, String cntrNo, Map<String, String> stlmBasMap, int cntrSn, Long cntrAmt, String dpTpCd,
         String rveDvCd, String cstNo
     ) {
-//        if (!stlmBasMap.containsKey(dpTpCd)) {
-            WctaContractStlmBasDvo stlmBas = WctaContractStlmBasDvo.builder()
-                .cntrNo(cntrNo)
-                .cstNo(cstNo)
-                .cntrtRelCd("01") // 통합계약에서는 본인 결제정보만 입력가능
-                .dpTpCd(dpTpCd)
-                .reuseOjYn("N")
-                .build();
-            mapper.insertCntrStlmBasStep3(stlmBas);
-            stlmBasMap.put(dpTpCd, stlmBas.getCntrStlmId());
-//        }
+        //        if (!stlmBasMap.containsKey(dpTpCd)) {
+        WctaContractStlmBasDvo stlmBas = WctaContractStlmBasDvo.builder()
+            .cntrNo(cntrNo)
+            .cstNo(cstNo)
+            .cntrtRelCd("01") // 통합계약에서는 본인 결제정보만 입력가능
+            .dpTpCd(dpTpCd)
+            .reuseOjYn("N")
+            .build();
+        mapper.insertCntrStlmBasStep3(stlmBas);
+        stlmBasMap.put(dpTpCd, stlmBas.getCntrStlmId());
+        //        }
         mapper.insertCntrStlmRelStep3(
             WctaContractStlmRelDvo.builder()
                 .vlStrtDtm(now)
