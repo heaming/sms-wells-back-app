@@ -3,15 +3,14 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 import com.kyowon.sflex.common.common.dto.SujiewonDto;
 import com.kyowon.sflex.common.common.service.SujiewonService;
 import com.kyowon.sms.wells.web.contract.common.dvo.*;
+import com.kyowon.sms.wells.web.contract.common.service.WctzContractNumberService;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaReceiptBulkUploadConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto.*;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaBulkContractDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaBulkProspectCustomerDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalFinalPriceDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSpayFinalPriceDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaReceiptBulkUploadMapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.*;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
@@ -34,6 +33,7 @@ public class WctaReceiptBulkUploadService {
     private final WctaReceiptBulkUploadMapper mapper;
     private final SujiewonService sujiewonService;
     private final WctzHistoryService historyService;
+    private final WctzContractNumberService contractNumberService;
 
     /**
      * 가망고객기본 단건 조회
@@ -180,6 +180,7 @@ public class WctaReceiptBulkUploadService {
             .build();
     }
 
+    @Transactional
     public int createBulkRentals(List<CreateBulkRentalReq> reqs) {
         List<WctaBulkContractDvo> wctaBulkContractDvos = reqs.stream()
             .map(converter::mapCreateBulkRentalReqToWctaBulkContractDvo)
@@ -196,7 +197,7 @@ public class WctaReceiptBulkUploadService {
 
         int count = 0;
         for (WctaBulkContractDvo wctaBulkContractDvo : wctaBulkContractDvos) {
-            String cntrNo = mapper.selectNewCntrNo();
+            String cntrNo = contractNumberService.getContractNumber("").cntrNo();
             log.debug("! 채번된 cntrNo {}, {}", count++, cntrNo);
             int cntrSn = 1;
             int basePdQty = 1;
@@ -343,7 +344,7 @@ public class WctaReceiptBulkUploadService {
 
         int result = 0;
         for (WctaBulkContractDvo wctaBulkContractDvo : wctaBulkContractDvos) {
-            String cntrNo = mapper.selectNewCntrNo();
+            String cntrNo = contractNumberService.getContractNumber("").cntrNo();
             int cntrSn = 1;
             int basePdQty = 1;
             wctaBulkContractDvo.setCntrNo(cntrNo);
@@ -379,6 +380,79 @@ public class WctaReceiptBulkUploadService {
         }
 
         result = mapper.insertBulkSpays(wctaBulkContractDvos);
+        BizAssert.isTrue(result >= 1, "저장에 실패했습니다.");
+
+        return 1;
+    }
+
+    public ValidateIstlcRes validateInstallLocation(ValidateIstlcReq req) {
+        String cntrNo = req.cntrNo();
+        int cntrSn = req.cntrSn();
+
+        WctaIstlcValidationDvo validationDvo = mapper.selectIstlcValidation(cntrNo, cntrSn).orElseThrow(() -> new BizException("계약번호, 계약일련번호를 다시 확인해 주세요."));
+
+        if (StringUtils.hasText(validationDvo.getCntrPdStrtdt())) {
+            throw new BizException("이미 설치가 완료된 계약입니다.");
+        }
+
+        SujiewonDto.FormatRes adr = getFormattedAddresses(req.adr1(), req.adr2());
+
+        return ValidateIstlcRes.builder()
+            .adrId(adr.adrCd())
+            .cntrCstNo(validationDvo.getCstNo())
+            .copnDvCd(validationDvo.getCopnDvCd())
+            .origCntrAdrRelId(validationDvo.getCntrAdrRelId())
+            .adrpcTpCd(validationDvo.getAdrpcTpCd())
+            .cntrUnitTpCd(validationDvo.getCntrUnitTpCd())
+            .build();
+    }
+
+    @Transactional
+    public int createBulkInstallLocations(List<CreateBulkIstlcReq> reqs) {
+        List<WctzCntrAdprcBasDvo> wctzCntrAdprcBasDvos = reqs.stream()
+            .map(converter::mapCreateBulkIstlcReqToWctzCntrAdprcBasDvo)
+            .toList();
+
+        List<WctzCntrAdrRelDvo> wctzCntrAdrRelDvos = reqs.stream()
+            .map(converter::mapCreateBulkIstlcReqToWctzCntrAdrRelDvo)
+            .toList();
+
+        List<String> origCntrAdrRelIds = reqs.stream()
+            .map(CreateBulkIstlcReq::origCntrAdrRelId)
+            .toList();
+
+        String firstCntrAdrpcId = mapper.selectNewCntrAdrpcId();
+        long cntrAdrpcIdSeq = Long.parseLong(firstCntrAdrpcId);
+        String firstCntrAdrRelId = mapper.selectNewCntrAdrRelId();
+        long cntrAdrRelIdSeq = Long.parseLong(firstCntrAdrRelId);
+
+        String now = DateUtil.todayNnow();
+
+        for (WctzCntrAdprcBasDvo wctzCntrAdprcBasDvo : wctzCntrAdprcBasDvos) {
+            String cntrAdrpcId = String.format("%015d", cntrAdrpcIdSeq++);
+            wctzCntrAdprcBasDvo.setCntrAdrpcId(cntrAdrpcId);
+        }
+
+        for (int i = 0; i < wctzCntrAdprcBasDvos.size(); i++) {
+            String cntrAdrpcId = String.format("%015d", cntrAdrpcIdSeq++);
+            WctzCntrAdprcBasDvo wctzCntrAdprcBasDvo = wctzCntrAdprcBasDvos.get(i);
+            wctzCntrAdprcBasDvo.setCntrAdrpcId(cntrAdrpcId);
+
+            String cntrAdrRelId = String.format("%015d", cntrAdrRelIdSeq++);
+            WctzCntrAdrRelDvo wctzCntrAdrRelDvo = wctzCntrAdrRelDvos.get(i);
+            wctzCntrAdrRelDvo.setCntrAdrRelId(cntrAdrRelId);
+            wctzCntrAdrRelDvo.setCntrAdrpcId(cntrAdrpcId);
+            wctzCntrAdrRelDvo.setAdrpcTpCd("2");
+            wctzCntrAdrRelDvo.setCntrUnitTpCd("020");
+            wctzCntrAdrRelDvo.setVlStrtDtm(now);
+            wctzCntrAdrRelDvo.setVlEndDtm(CtContractConst.END_DTM);
+        }
+
+        int result = mapper.insertBulkAdprcBases(wctzCntrAdprcBasDvos);
+        BizAssert.isTrue(result >= 1, "저장에 실패했습니다.");
+        result = mapper.updateBulkExpireCntrAdrRels(origCntrAdrRelIds, now);
+        BizAssert.isTrue(result >= 1, "저장에 실패했습니다.");
+        result = mapper.insertBulkCntrAdrRels(wctzCntrAdrRelDvos);
         BizAssert.isTrue(result >= 1, "저장에 실패했습니다.");
 
         return 1;
@@ -424,7 +498,6 @@ public class WctaReceiptBulkUploadService {
      * @param adr2 주소2
      * @return 주소객체
      */
-    @Transactional
     SujiewonDto.FormatRes getFormattedAddresses(String adr1, String adr2) {
         try {
             /* 상세 주소 기준으로 수지원넷에 요청하고 정제된 주소 정보를 조회 한다. 화면에서 조용히 실행하기 위해 biz exception 으로 감싸 rethrow 한다. */
