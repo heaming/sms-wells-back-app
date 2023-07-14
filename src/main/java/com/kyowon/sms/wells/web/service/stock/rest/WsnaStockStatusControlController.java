@@ -75,4 +75,12 @@ public class WsnaStockStatusControlController {
     ) {
         return service.getStockStatusItmPdCd(dto);
     }
+
+    @ApiOperation(value = "재고상태조정 관리 창고관련 상품조회.", notes = "재고상태조정 관리 품목종류에 해당하는 상품을 창고별로 조회한다.")
+    @GetMapping("/product-warehouse")
+    public List<SearchWarehouseItmPdCdRes> getStockStatusWarehouseItmPdCd(
+        SearchWarehouseItmPdCdReq dto
+    ) {
+        return service.getStockStatusWarehouseItmPdCd(dto);
+    }
 }

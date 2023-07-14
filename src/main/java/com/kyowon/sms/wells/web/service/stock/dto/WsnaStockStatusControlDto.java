@@ -80,4 +80,18 @@ public class WsnaStockStatusControlDto {
         String codeName,
         String itmKnd
     ) {}
+
+    @ApiModel("WsnaStockStatusControlDto-SearchWarehouseItmPdCdReq")
+    public record SearchWarehouseItmPdCdReq(
+        String wareNo,
+        String itmKnd
+    ) {}
+
+    @ApiModel("WsnaStockStatusControlDto-SearchWarehouseItmPdCdRes")
+    public record SearchWarehouseItmPdCdRes(
+        String codeId,
+        String codeName,
+        String itmKnd,
+        String wareNo
+    ) {}
 }
