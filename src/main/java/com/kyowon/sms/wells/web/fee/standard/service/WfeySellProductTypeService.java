@@ -64,7 +64,7 @@ public class WfeySellProductTypeService {
     @Transactional
     public int saveSellProductType(List<SaveSellProductReq> req) throws Exception {
         int processCount = 0;
-         for (SaveSellProductReq dto : req) {
+        for (SaveSellProductReq dto : req) {
             WfeySellProductTypeDvo dvo = converter.mapSaveReqWfeySellProductTypeDvo(dto);
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
