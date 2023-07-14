@@ -22,6 +22,8 @@ public class WctaContractRegStep1Dvo {
     private List<PrrBizRgstPtrmDvo> prrBizRgstPtrms; /* 사전업무 등록기간 */
     private String isFmlPrtnrYn; /* 파트너가족여부 */
     private String pspcCstId; /* 가망고객ID */
+    private String mshCntrNo; /* 멤버십 원계약 계약번호 */
+    private Integer mshCntrSn; /* 멤버십 원계약 계약일련번호 */
 
     @Getter
     @Setter

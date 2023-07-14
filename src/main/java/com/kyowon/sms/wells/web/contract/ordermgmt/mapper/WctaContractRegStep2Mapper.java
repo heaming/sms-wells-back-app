@@ -15,6 +15,10 @@ public interface WctaContractRegStep2Mapper {
 
     List<WctaContractRegStep2Dvo.PdDvo> selectProducts(String sellInflwChnlDtlCd, String pdFilter);
 
+    List<WctaContractRegStep2Dvo.PdDvo> selectProducts(
+        String sellInflwChnlDtlCd, String pdFilter, List<String> mshPdCds
+    );
+
     List<WctaContractDtlDvo> selectContractDtlWithPdInfo(String cntrNo);
 
     String selectProductRelId(String basePdCd, String svPdCd);
@@ -87,6 +91,8 @@ public interface WctaContractRegStep2Mapper {
     List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapsls(String pdCd, List<String> parts);
 
     String selectPdNm(String cntrNo, Integer cntrSn);
+
+    int selectRntlMcn(String cntrNo, Integer cntrSn);
 
     boolean isExistAlncPds(WctaContractDto.SearchPdAmtReq dto);
 
