@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.api.client.util.Lists;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.*;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
 import lombok.RequiredArgsConstructor;
 
@@ -183,8 +184,10 @@ public class WctaContractRegService {
                     stlmRels.addAll(stlms.stream().filter((stlm) -> "01".equals(stlm.getRveDvCd())).toList());
                 }
             );
-            if (CollectionUtils.isNotEmpty(stlmRels)) {
+            if (CollectionUtils.isNotEmpty(stlmRels)
+                || step1Dvo.getBas().getCntrTpCd().equals(CtContractConst.CNTR_TP_CD_MSH)) {
                 // 계약금/일시금 결제방법 카드/가상계좌 중 하나 찾으면 해당 값 세팅(무조건 통일이므로)
+                // 멤버십의 경우 계약금/등록금이 없기 때문에 stlmRels가 없어도 생성
                 step3Dvo.setCntramDpTpCd(
                     stlmRels.stream().filter((stlm) -> StringUtils.containsAny(stlm.getDpTpCd(), "0201", "0101"))
                         .findFirst().orElse(
