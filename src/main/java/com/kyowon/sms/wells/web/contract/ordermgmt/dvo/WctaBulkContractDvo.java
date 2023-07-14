@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WctaBulkRentalDvo {
+public class WctaBulkContractDvo {
     private String basePdCd;
     private String copnDvCd;
     private String cstNo;
@@ -17,7 +17,7 @@ public class WctaBulkRentalDvo {
     private String svPdCd;
     private Integer stplPtrm;
     private String pspcCstInflwDt;
-    private String sellDscTpCd; /* from rentalDscTpCd */
+    private String sellDscTpCd; /* from rentalDscTpCd, spayDscTpCd */
     private String sellDscDvCd; /* from rentalDscDvCd */
     private String sellDscrCd; /* from rentalCrpDscrCd */
     private Long sellDscCtrAmt;
@@ -48,8 +48,6 @@ public class WctaBulkRentalDvo {
     private Integer pdQty;
     private String cntrwTpCd;
     private String txinvPblOjYn;
-    private String blgCrpCd;
-    private String rveCrpCd;
     private String coCd;
     private Long cntramDscAmt; /* todo */
     private String cntrPrtnrRelId;
@@ -70,4 +68,18 @@ public class WctaBulkRentalDvo {
     private String svVlStrtDtm;
     private String svVlEndDtm;
     private Integer svPdQty;
+    private String cntrPrcCmptId;
+    private String pdPrcFnlDtlId;
+    private Integer verSn;
+    private String fxamFxrtDvCd;
+    private Double ctrVal;
+    private Double fnlVal;
+    private String pdPrcId;
+
+    /* 일시불 only */
+    private String hcrDvCd; /* 홈케어구분코드 */
+    private String frisuBfsvcPtrmN; /* 무상멤버십기간 */
+    private String istDt; /*설치일자*/
+    private String bfsvcBzsDvCd; /*BS업체구분코드*/
+    private String splyBzsDvCd; /*조달업체구분코드*/
 }

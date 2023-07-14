@@ -29,9 +29,11 @@ public interface WctaReceiptBulkUploadMapper {
 
     boolean isExistCstBas(WctzCstBasDvo basDvo);
 
+    Optional<WctzCstBasDvo> selectCstBasWithInfos(WctzCstBasDvo basDvo);
+
     int insertProspectCustomers(List<WctaBulkProspectCustomerDvo> dvos);
 
-    Optional<WctaRentalFinalPriceDvo> selectRentalPdPrcFnlDtl(WctaRentalFinalPriceDvo req);
+    List<WctaRentalFinalPriceDvo> selectRentalPdPrcFnlDtl(WctzPdPrcFnlDtlDvo req);
 
     Optional<WctzMmPrtnrIzDvo> selectAlncmpDgPrtnr(String alncmpDgPrtnrMapngCd, String alncmpDgPrtnrOgTpCd);
 
@@ -41,9 +43,19 @@ public interface WctaReceiptBulkUploadMapper {
 
     String selectCntrPdRelIdForNewCntrPdRel();
 
-    int insertBulkRentals(List<WctaBulkRentalDvo> dvos);
+    String selectCntrPrcCmptIdForNewCntrPrcCmptIz();
+
+    int insertBulkRentals(List<WctaBulkContractDvo> dvos);
 
     List<WctzPdRelDvo> selectPdRels(String basePdCd);
 
     List<WctzPdRelDvo> selectPdRels(String basePdCd, String pdRelTpCd);
+
+    List<WctaSpayFinalPriceDvo> selectSpayPdPrcFnlDtl(WctzPdPrcFnlDtlDvo fnlDtlSearchParams);
+
+    int insertBulkSpays(List<WctaBulkContractDvo> dvos);
+
+    int insertBulkSpay(WctaBulkContractDvo dvo);
+
+    String selectNewCntrNo();
 }

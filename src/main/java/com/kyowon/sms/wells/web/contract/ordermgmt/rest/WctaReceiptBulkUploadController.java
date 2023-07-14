@@ -40,6 +40,24 @@ public class WctaReceiptBulkUploadController {
     }
 
     @ApiOperation(
+        value = "일시불 대량 업로드 유효성 검사",
+        notes = "일시불 대량 업로드 유효성 검사"
+    )
+    @PutMapping({"/single-payments/validate"})
+    public ValidateBulkSpayRes validateSinglePayment(@RequestBody ValidateBulkSpayReq req) {
+        return service.validateBulkSpay(req);
+    }
+
+    @ApiOperation(value = "일시불 대량 업로드 저장", notes = "권한 주의")
+    @PostMapping("/single-payments")
+    public SaveResponse createSpays(
+        @RequestBody
+        List<CreateBulkSpayReq> reqs
+    ) {
+        return SaveResponse.builder().processCount(service.createBulkSpays(reqs)).build();
+    }
+
+    @ApiOperation(
         value = "가망고객 유효성 검사",
         notes = "가망고객 유효성 검사"
     )
