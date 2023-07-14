@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAssignExcludeItemMapper">
+
+    <select id="selectWarehouse" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
+        SELECT WARE_NO
+             , WARE_NM
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE DTA_DL_YN      = 'N'
+           AND APY_YM         = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND WARE_DV_CD     = '3'
+           AND WARE_DTL_DV_CD = '30'
+         ORDER BY TO_NUMBER(SORT_DV_VAL), WARE_NM, HGR_WARE_NO, WARE_NO
+    </select>
+
+    <select id="selectAssignExcludeItemsPaging" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAssignExcludeItemDto$SearchRes">
+        SELECT CASE WHEN D3.ITM_PD_CD IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+               END                                                                           AS CHK              /* Row 체크여부 */
+             , #{asnExcdDvCd}                                                                AS ASN_EXCD_DV_CD   /* 배정제외구분코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'ASN_EXCD_DV_CD', #{asnExcdDvCd}, #{session.langId}) AS ASN_EXCD_DV_NM   /* 배정제외구분 */
+             , CASE WHEN #{asnExcdDvCd} = '0' THEN '300000'
+                    WHEN #{asnExcdDvCd} = '3' THEN #{wareNo}
+               END                                                                           AS STR_WARE_NO      /* 입고창고번호 */
+             , D1.PD_CD                                                                      AS ITM_PD_CD        /* 품목상품코드 */
+             , D1.PD_NM                                                                      AS ITM_PD_NM        /* 품목명 */
+             , D2.PD_PRP_VAL19                                                               AS ITM_KND_CD       /* 품목종류코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'ITM_KND_CD', D2.PD_PRP_VAL19, #{session.langId})    AS ITM_KND_NM       /* 품목종류 */
+             , D1.SAP_MAT_CD                                                                                     /* SAP코드 */
+          FROM TB_PDBS_PD_BAS D1
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2
+            ON D2.PD_CD = D1.PD_CD
+          LEFT OUTER JOIN TB_SVST_QOM_ASN_EXCD_IZ D3   /* 물량배정제외내역 */
+            ON D3.ITM_PD_CD      = D1.PD_CD
+           AND D3.DTA_DL_YN      = 'N'
+           AND D3.ASN_EXCD_DV_CD = #{asnExcdDvCd}
+        <if test='@MybatisUtils@equals(asnExcdDvCd, "3") and @MybatisUtils@isNotEmpty(wareNo)'>
+           AND D3.STR_WARE_NO    = #{wareNo}
+        </if>
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_TP_CD           = 'M'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D2.PD_PRP_VAL19      IN ('4', '5', '6')
+        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+           AND D2.PD_PRP_VAL19       = #{itmKndCd}
+        </if>
+         ORDER BY D1.PD_CD
+    </select>
+
+    <update id="updateQomAsnExcdIzForRemove">
+        UPDATE TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
+           SET DTA_DL_YN = 'Y'
+        <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN      = 'N'
+           AND ASN_EXCD_DV_CD = #{asnExcdDvCd}
+        <if test='@MybatisUtils@equals(asnExcdDvCd, "3") and @MybatisUtils@isNotEmpty(wareNo)'>
+           AND STR_WARE_NO    = #{wareNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+           AND ITM_KND_CD     = #{itmKndCd}
+        </if>
+    </update>
+
+    <insert id="insertQomAsnExcdIz">
+        INSERT INTO TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
+             (
+               ASN_EXCD_DV_CD   /* 배정제외구분코드 */
+             , STR_WARE_NO      /* 입고창고번호 */
+             , ITM_PD_CD        /* 품목상품코드 */
+             , ASN_EXCD_SN      /* 배정제외일련번호 */
+             , ITM_KND_CD       /* 품목종류코드 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               #{asnExcdDvCd}
+             , #{strWareNo}
+             , #{itmPdCd}
+             , ( SELECT NVL(MAX(ASN_EXCD_SN), 0) + 1
+                   FROM TB_SVST_QOM_ASN_EXCD_IZ
+                  WHERE ASN_EXCD_DV_CD = #{asnExcdDvCd}
+                    AND STR_WARE_NO    = #{strWareNo}
+                    AND ITM_PD_CD      = #{itmPdCd} )
+             , #{itmKndCd}
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+
+</mapper>
