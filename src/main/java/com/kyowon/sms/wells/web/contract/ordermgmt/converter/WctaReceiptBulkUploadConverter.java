@@ -1,13 +1,11 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.converter;
 
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCstBasDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzPdPrcFnlDtlDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzPspcCstBasDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzPspcCstCnslBasDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto.CreateBulkRentalReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto.CreateProspectCstReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto.ValidateBulkRentalReq;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaBulkRentalDvo;
-import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalFinalPriceDvo;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaBulkContractDvo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -39,14 +37,32 @@ public interface WctaReceiptBulkUploadConverter {
     @Mapping(source = "rentalDscDvCd", target = "pdPrcCndtChrcVal02")
     @Mapping(source = "rentalCrpDscrCd", target = "pdPrcCndtChrcVal11")
     @Mapping(source = "rentalDscTpCd", target = "pdPrcCndtChrcVal03")
-    WctaRentalFinalPriceDvo mapValidateBulkRentalReqToFnlDtlSearchParam(ValidateBulkRentalReq req);
+    @Mapping(constant = "2", target = "sellTpCd") /* 렌탈 */
+    WctzPdPrcFnlDtlDvo mapValidateBulkRentalReqToFnlDtlSearchParam(ValidateBulkRentalReq req);
 
     @Mapping(constant = "KR", target = "cntrNatCd")
-    @Mapping(target = "sellPrtnrNo", source = "alncmpDgPrtnrMapngCd")
-    @Mapping(target = "sellOgTpCd", source = "alncmpDgPrtnrOgTpCd")
-    @Mapping(target = "sellDscTpCd", source = "rentalDscTpCd")
-    @Mapping(target = "sellDscDvCd", source = "rentalDscDvCd")
-    @Mapping(target = "sellDscrCd", source = "rentalCrpDscrCd")
-    @Mapping(target = "otsdLkDrmVal", source = "alncmpSuscOrdNo")
-    WctaBulkRentalDvo mapCreateBulkRentalReqToWctaBulkRentalDvo(CreateBulkRentalReq createBulkRentalReq);
+    @Mapping(source = "alncmpDgPrtnrMapngCd", target = "sellPrtnrNo")
+    @Mapping(source = "alncmpDgPrtnrOgTpCd", target = "sellOgTpCd")
+    @Mapping(source = "rentalDscTpCd", target = "sellDscTpCd")
+    @Mapping(source = "rentalDscDvCd", target = "sellDscDvCd")
+    @Mapping(source = "rentalCrpDscrCd", target = "sellDscrCd")
+    @Mapping(source = "alncmpSuscOrdNo", target = "otsdLkDrmVal")
+    WctaBulkContractDvo mapCreateBulkRentalReqToWctaBulkContractDvo(CreateBulkRentalReq createBulkRentalReq);
+
+    @Mapping(source = "basePdCd", target = "pdCd")
+    @Mapping(source = "frisuBfsvcPtrmN", target = "pdPrcFnlPrpVal10")
+    @Mapping(source = "spayDscDvCd", target = "pdPrcCndtChrcVal06")
+    @Mapping(source = "spayDscrCd", target = "pdPrcCndtChrcVal13")
+    @Mapping(source = "hcrDvCd", target = "pdPrcCndtChrcVal05")
+    @Mapping(constant = "1", target = "sellTpCd") /* 일시불 */
+    WctzPdPrcFnlDtlDvo mapValidateBulkSpayReqToFnlDtlSearchParam(ValidateBulkSpayReq req);
+
+    WctzCstBasDvo mapValidateBulkSpayReqToWctaCstBasDvo(ValidateBulkSpayReq req);
+
+    @Mapping(constant = "KR", target = "cntrNatCd")
+    @Mapping(source = "alncmpDgPrtnrMapngCd", target = "sellPrtnrNo")
+    @Mapping(source = "alncmpDgPrtnrOgTpCd", target = "sellOgTpCd")
+    @Mapping(source = "spayDscDvCd", target = "sellDscDvCd")
+    /*@Mapping(source = "spayDscrCd", target = "sellDscrCd") 아마도?*/
+    WctaBulkContractDvo mapCreateBulkSpayReqToWctaBulkContractDvo(CreateBulkSpayReq createBulkSpayReq);
 }

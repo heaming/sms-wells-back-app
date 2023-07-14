@@ -43,7 +43,7 @@ public class WctzPdPrcFnlDtlDvo {
     private String cndtFxamFxrtDvCd; /*조건정액정률구분코드*/
     private Double cndtDscPrumVal; /*조건할인할증값*/
     private String basePdCd; /*기준상품코드*/
-    private String sellTpCd; /*기준상품코드*/
+    private String sellTpCd; /*판매유형코드*/
     private String dscPrumMtrxFlorId01;
     private String dscPrumMtrxFlorId02;
     private String dscPrumMtrxFlorId03;
