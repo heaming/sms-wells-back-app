@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchCntrtInfoReq;
 
+import java.text.NumberFormat;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -59,12 +60,10 @@ public class WctaContractRegStep1Service {
 
         // 계약자 연체 여부 확인
         List<Long> dlqAmt = mapper.selectCntrtDlqAmt(List.of(cstNo));
-        /* TODO 임시처리
         BizAssert.empty(
             dlqAmt, "MSG_ALT_DLQ_CST_AMT",
             new String[] {NumberFormat.getCurrencyInstance().format(dlqAmt.stream().reduce(0L, Long::sum))}
         );
-        */
 
         // 3-3. 파트너 정보 조회 입력
         // 3-3-1. 로그인 사용자의 파트너 정보 조회
@@ -74,7 +73,6 @@ public class WctaContractRegStep1Service {
             .selectPrtnrInfo(loginPrtnrno, session.getOgTpCd());
 
         // 3-3-2. 로그인 사용자 = 파트너, 사전업무 등록기간 체크
-        // XXX 로그인 사용자는 반드시 파트너임을 가정함, 세션변경 필요(W01, 1002934)
         BizAssert.notNull(loginPrtnrInfo, "존재하지 않는 파트너입니다.");
         WctaContractPrtnrRelDvo prtnrInfo = converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(loginPrtnrInfo);
         if ("7".equals(prtnrInfo.getPstnDvCd())) {
