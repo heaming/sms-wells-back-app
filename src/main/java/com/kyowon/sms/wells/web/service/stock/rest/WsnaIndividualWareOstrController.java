@@ -1,26 +1,20 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
-import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.*;
-
 import com.kyowon.sms.wells.web.service.stock.service.WsnaIndividualWareOstrService;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.*;
 
 @Api(tags = "[] 개인창고출고관리")
 @Validated
@@ -59,6 +53,18 @@ public class WsnaIndividualWareOstrController {
         return service.getItemKndCode(dto);
     }
 
+    @ApiOperation(value = "개인창고출고관리 출고요청 저장", notes = "선택한 품목을 출고요청을 한다.")
+    @PostMapping
+    public SaveResponse createIndividualWareOstrs(
+        @RequestBody
+        @Valid
+        List<CreateReq> list
+    ){
+        return SaveResponse.builder()
+            .processCount(service.createIndividualWareOstr(list))
+            .build();
+
+    }
     //    @ApiOperation(value = "개인창고출고관리 엑셀 다운로드", notes = "")
     //    @ApiImplicitParams(value = {
     //        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),

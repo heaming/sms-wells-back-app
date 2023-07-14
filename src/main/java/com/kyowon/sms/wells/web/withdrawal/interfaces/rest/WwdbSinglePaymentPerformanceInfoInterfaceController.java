@@ -19,14 +19,14 @@ import java.util.List;
 
 @InterfaceController
 @Api(tags = "[WWDB] wells 일시불(할부)- 실적 정보 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/single-payment-infos")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/single-payment-infos")
 @RequiredArgsConstructor
 @Validated
 public class WwdbSinglePaymentPerformanceInfoInterfaceController {
 
     private final WwdbSinglePaymentPerformanceInfoInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WDEI1005] wells 일시불(할부)- 실적 정보 조회")
+    @ApiOperation(value = "[EAI_WDEI1005] wells 일시불(할부)- 실적 정보 조회 - W-WD-I-0002")
     @PostMapping
     public EaiWrapper getSinglePaymentPerformanceInfos(
         @Valid
@@ -34,9 +34,11 @@ public class WwdbSinglePaymentPerformanceInfoInterfaceController {
         EaiWrapper<WwdbSinglePaymentPerformanceInfoInterfaceDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdbSinglePaymentPerformanceInfoInterfaceDto.SearchRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<WwdbSinglePaymentPerformanceInfoInterfaceDto.SearchRes>> resWrapper = reqWrapper
+            .newResInstance();
         // 서비스 메소드 호출
-        List<WwdbSinglePaymentPerformanceInfoInterfaceDto.SearchRes> res = service.getSinglePaymentPerformanceInfos(reqWrapper.getBody());
+        List<WwdbSinglePaymentPerformanceInfoInterfaceDto.SearchRes> res = service
+            .getSinglePaymentPerformanceInfos(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

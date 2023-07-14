@@ -23,5 +23,6 @@ public class WdcdMarketableSecuritieExceptionDvo {
     private String adjOgId;
     private String baseYm;
     private String adjPrtnrNo;
+    private String opcsCardUseIzId;
     private String deleted;
 }

@@ -25,7 +25,7 @@ public class WctzHistoryService {
      * 계약상세변경이력(최신) 조회
      * @param cntrNo 계약번호
      * @param cntrSn 계약일련번호
-     * @return
+     * @return 계약상세변경이력(최신)
      */
     public WctzCntrDetailChangeHistDvo getContractDetailChangeHistory(String cntrNo, int cntrSn) {
         return mapper.selectCntrDetailChangeHist(cntrNo, cntrSn);
@@ -63,7 +63,7 @@ public class WctzHistoryService {
      * 계약상세상태변경이력(최신) 조회
      * @param cntrNo 계약번호
      * @param cntrSn 계약일련번호
-     * @return
+     * @return 계약상세상태변경이력(최신)
      */
     public WctzCntrDtlStatChangeHistDvo getContractDetailStatChangeHistory(String cntrNo, int cntrSn) {
         return mapper.selectCntrDetailStatChangeHist(cntrNo, cntrSn);
@@ -116,7 +116,7 @@ public class WctzHistoryService {
     /**
      * 계약변경접수변경이력(최신) 조회
      * @param cntrChRcpId 계약변경접수ID
-     * @return
+     * @return 계약변경접수변경이력(최신)
      */
     public WctzCntrChRcchStatChangeHistDvo getContractChangeRcchStatChangeHistory(String cntrChRcpId) {
         return mapper.selectCntrChRcchStatChangeHist(cntrChRcpId);
@@ -149,7 +149,7 @@ public class WctzHistoryService {
     /**
      * 계약기본변경이력(최신) 조회
      * @param cntrNo 계약번호
-     * @return
+     * @return 계약기본변경이력(최신)
      */
     public WctzCntrBasicChangeHistDvo getContractBasicChangeHistory(String cntrNo) {
         return mapper.selectCntrBasicChangeHistory(cntrNo);
@@ -194,7 +194,7 @@ public class WctzHistoryService {
     /**
     * 관계사제휴계약변경이력(최신) 조회
     * @param acmpalCntrId 관계사제휴계약ID
-    * @return
+    * @return 관계사제휴계약변경이력(최신)
     */
     public WctzAcmpalContractIzHistDvo getAcmpalContractIzChangeHistory(String acmpalCntrId) {
         return mapper.selectAcmpalContractIzHist(acmpalCntrId);
@@ -232,7 +232,7 @@ public class WctzHistoryService {
     * 계약WELLS상세(최신) 조회
     * @param cntrNo 계약번호
     * @param cntrSn 계약일련번호
-    * @return
+    * @return 계약WELLS상세(최신)
     */
     public WctzContractWellsDetailHistDvo getContractWellsDetailChangeHistory(String cntrNo, int cntrSn) {
         return mapper.selectContractWellsDetailHist(cntrNo, cntrSn);
@@ -280,7 +280,7 @@ public class WctzHistoryService {
     /**
      * 계약가격산출변경이력 생성
      *
-     * @param dvo
+     * @param dvo 이력 객체
      */
     @Transactional
     public void createCntrPrccchHistory(WctzCntrPrccchHistDvo dvo) {
@@ -320,7 +320,7 @@ public class WctzHistoryService {
     /**
      * 기기변경이력 생성
      *
-     * @param dvo
+     * @param dvo 이력 객체
      */
     @Transactional
     public void createMachineChangeHistory(WctzMachineChangeHistoryDvo dvo) {
@@ -344,5 +344,189 @@ public class WctzHistoryService {
 
         newHist.setHistEndDtm(CtContractConst.END_DTM);
         mapper.insertMachineChangeHistory(newHist);
+    }
+
+    /**
+    * 계약변경접수상세변경이력 조회
+    *
+    * @param cntrChRcpId 계약변경접수ID
+    * @param cntrChSn 계약변경일련번호
+    * @return dvo
+    */
+    public WctzContractChRcchStatChangeDtlHistDvo getContractChRcchChangeDtlHistory(String cntrChRcpId, int cntrChSn) {
+        return mapper.selectContractChRcchStatChangeDtlHistory(cntrChRcpId, cntrChSn);
+    }
+
+    /**
+    * 계약변경접수상세변경이력
+    *
+    * @param dvo 이력 객체
+    * */
+    @Transactional
+    public void createContractChRcchChangeDtlHistory(WctzContractChRcchStatChangeDtlHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzContractChRcchStatChangeDtlHistDvo newHist = converter.convertContractChangeReceiptDtlToHist(
+            dvo,
+            mapper.selectContractChRcchStatChangeDtlForHist(dvo.getCntrChRcpId(), dvo.getCntrChSn())
+        );
+
+        WctzContractChRcchStatChangeDtlHistDvo befHist = getContractChRcchChangeDtlHistory(
+            dvo.getCntrChRcpId(), dvo.getCntrChSn()
+        );
+        if (ObjectUtils.isEmpty(befHist)) {
+            dvo.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateContractChRcchStatChangeDtlHistory(befHist);
+        }
+
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
+        mapper.insertContractChRcchStatChangeDtlHistory(newHist);
+    }
+
+    /**
+    * 계약주소변경이력 조회
+    *
+    * @param cntrAdrpcId 계약주소지 ID
+    * @return dvo
+    */
+    public WctzContractAddrChangeHistDvo getContractAddrChangeHistory(String cntrAdrpcId) {
+        return mapper.selectContractAddrChangeForHist(cntrAdrpcId);
+    }
+
+    /**
+    * 계약주소변경이력
+    *
+    * @param dvo 이력 객체
+    * */
+    @Transactional
+    public void createContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo) {
+        String now = DateUtil.todayNnow();
+        if (StringUtil.isEmpty(dvo.getHistStrtDtm())) {
+            dvo.setHistStrtDtm(now);
+        }
+
+        WctzContractAddrChangeHistDvo newHist = converter.convertContractAddrChangeToHist(
+            dvo,
+            mapper.selectContractAddrChangeHistory(dvo.getCntrAdrpcId())
+        );
+
+        WctzContractAddrChangeHistDvo befHist = getContractAddrChangeHistory(dvo.getCntrAdrpcId());
+        if (ObjectUtils.isEmpty(befHist)) {
+            dvo.setHistStrtDtm(now);
+        } else {
+            befHist.setHistEndDtm(dvo.getHistStrtDtm());
+            mapper.updateContractAddrChangeHistory(befHist);
+        }
+
+        newHist.setHistEndDtm(CtContractConst.END_DTM);
+        mapper.insertContractAddrChangeHistory(newHist);
+    }
+
+    /**
+     * 가망고객기본변경이력 생성
+     */
+    @Transactional
+    public void createPspcCstChHistory(String pspcCstId) {
+        createPspcCstChHistory(pspcCstId, false);
+    }
+
+    @Transactional
+    public void createPspcCstChHistory(String pspcCstId, boolean forced) {
+        String now = DateUtil.todayNnow();
+
+        mapper.selectLastPspcCstCnslChHist(pspcCstId).ifPresent((lastHist) -> {
+            if (now.equals(lastHist.getHistStrtDtm())) {
+                if (!forced) {
+                    throw new BizException("이력 생성 실패");
+                }
+            } else {
+                int result = mapper.expirePspcCstChHistory(pspcCstId, now);
+                BizAssert.isTrue(result == 1, "이력 생성 실패");
+            }
+        });
+
+        int result = mapper.upsertPspcCstChHist(pspcCstId, now);
+        BizAssert.isTrue(result == 1, "이력 생성 실패");
+    }
+
+    /**
+     * 가망고객상담기본변경이력 생성
+     */
+    @Transactional
+    public void createPspcCstCnslChHistory(String pspcCstCnslId) {
+        createPspcCstCnslChHistory(pspcCstCnslId, false);
+    }
+
+    @Transactional
+    public void createPspcCstCnslChHistory(String pspcCstCnslId, boolean forced) {
+        String now = DateUtil.todayNnow();
+
+        mapper.selectLastPspcCstCnslChHist(pspcCstCnslId).ifPresent((lastHist) -> {
+            if (now.equals(lastHist.getHistStrtDtm())) {
+                if (!forced) {
+                    throw new BizException("이력 생성 실패");
+                }
+            } else {
+                int result = mapper.expirePspcCstCnslChHistory(pspcCstCnslId, now);
+                BizAssert.isTrue(result == 1, "이력 생성 실패");
+            }
+        });
+
+        /* 기존 데이터가 있고, 시간이 다르면 expired, 아니면 upsert */
+        int result = mapper.upsertPspcCstCnslChHist(pspcCstCnslId, now);
+        BizAssert.isTrue(result == 1, "이력 생성 실패");
+    }
+
+    /**
+     * 가망고객상담추천내역변경이력 생성
+     */
+    @Transactional
+    public void createPspcCstCnslRchHistory(String pspcCstCnslId, int pspcCstCnslSn) {
+        createPspcCstCnslRchHistory(pspcCstCnslId, pspcCstCnslSn, false);
+    }
+
+    @Transactional
+    public void createPspcCstCnslRchHistory(String pspcCstCnslId, int pspcCstCnslSn, boolean forced) {
+        String now = DateUtil.todayNnow();
+
+        mapper.selectLastPspcCstCnslRchHist(pspcCstCnslId, pspcCstCnslSn).ifPresent((lastHist) -> {
+            if (now.equals(lastHist.getHistStrtDtm())) {
+                if (!forced) {
+                    throw new BizException("이력 생성 실패");
+                }
+            } else {
+                int result = mapper.expirePspcCstCnslRchHistory(pspcCstCnslId, pspcCstCnslSn, now);
+                BizAssert.isTrue(result == 1, "이력 생성 실패");
+            }
+        });
+
+        int result = mapper.upsertPspcCstCnslRchHist(pspcCstCnslId, pspcCstCnslSn, now);
+        BizAssert.isTrue(result == 1, "이력 생성 실패");
+    }
+
+    /**
+     * 계약알림발송이력 생성
+     * @param dvo 계약알림발송정보
+     * @param isEdit 신규추가/수정 구분
+     */
+
+    @Transactional
+    public String createContractNotifyFowrdindHistory(WctzContractNotifyFowrdindHistDvo dvo, boolean isEdit) {
+        if (!isEdit) {
+            int insertRes = mapper.insertContractNotifyFowrdindHist(dvo);
+            BizAssert.isTrue(insertRes == 1, "이력 생성 실패");
+
+            return dvo.getNotyFwId();
+        } else {
+            int updateRes = mapper.updateContractNotifyFowrdindHist(dvo);
+            BizAssert.isTrue(updateRes == 1, "이력 생성 실패");
+
+            return "Y";
+        }
     }
 }

@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -192,4 +195,17 @@ public class WfebOrganizationFeeService {
         return processCount;
     }
 
+    /**
+     * 홈마스터 수수료 생성관리 품의 데이터 조회
+     * @return
+     */
+    public HashMap<String, String> getHmstFeeFormDtl(String appKey) {
+        HashMap<String, String> rtnMap = new HashMap<String, String>();
+        String perfYm = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        rtnMap = mapper.selectHmstFeeFormDtl(perfYm);
+        rtnMap.put("appKey", appKey);
+
+        return rtnMap;
+
+    }
 }

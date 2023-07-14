@@ -29,6 +29,7 @@ public class WdcdSecuritiesMgtDto {
         String opcsCardUseIzId,    /*운영비카드사용내역ID*/
         String useDtm,              /*사용일시*/
         String dgr1LevlOgId,        /*(hidden)총괄단조직ID*/
+        String dgr2LevlOgId,        /*(hidden)지역단조직ID*/
         String dgr1LevlOgNm,        /*총괄단명*/
         String crcdnoEncr,            /*카드번호*/
         String mrcNm,                 /*가맹점명*/
@@ -36,6 +37,8 @@ public class WdcdSecuritiesMgtDto {
         String mrcAdrCn,             /*가맹점주소내용*/
         String cardAprno,             /*카드승인번호*/
         String domTrdAmt,               /*사용금액*/
+        String domTrdSumAmt,               /*사용금액 합*/
+        String domTrdAmt1,               /*사용금액*/
         String opcsAdjExcdYn,           /*운영비정산제외여부*/
         String opcsAdjSmryDvCd,    /*운영비정산적요구분코드*/
         String opcsAdjSmryDvNm,    /*운영비정산적요구분명*/
@@ -45,7 +48,9 @@ public class WdcdSecuritiesMgtDto {
         String cdcoCd,                /*(hidden)카드사코드*/
         String opcsAdjBtn,       /*원천세정산버튼*/
         String adjCls,             /*정산여부*/
-        String adjOgId
+        String adjOgId,
+        String adjPrtnrNo, /*정산파트너번호*/
+        String opcsAdjNo /*운영비정산번호*/
     ) {
         public SearchAdjustObjectRes {
 
@@ -64,7 +69,10 @@ public class WdcdSecuritiesMgtDto {
     @ApiModel(value = "WdcdSecuritiesMgtDto-SearchWithholdingTaxAdjustReq")
     public record SearchWithholdingTaxAdjustReq(
         String baseYm,
-        String opcsAdjNo
+        String opcsAdjNo,
+        String dgr1LevlOgId,
+        String dgr2LevlOgId,
+        String dgr3LevlOgId
     ) {
 
     }

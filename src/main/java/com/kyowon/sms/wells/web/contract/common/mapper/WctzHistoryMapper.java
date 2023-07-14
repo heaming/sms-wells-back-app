@@ -1,6 +1,9 @@
 package com.kyowon.sms.wells.web.contract.common.mapper;
 
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.common.dvo.*;
 
@@ -81,4 +84,44 @@ public interface WctzHistoryMapper {
 
     int insertMachineChangeHistory(WctzMachineChangeHistoryDvo dvo);
 
+    // 계약변경접수상세변경이력
+    WctzContractChRcchStatChangeDtlHistDvo selectContractChRcchStatChangeDtlHistory(String cntrChRcpId, int cntrChSn);
+
+    WctzContractChRcchStatChangeDtlHistDvo selectContractChRcchStatChangeDtlForHist(String cntrChRcpId, int cntrChSn);
+
+    int updateContractChRcchStatChangeDtlHistory(WctzContractChRcchStatChangeDtlHistDvo dvo);
+
+    int insertContractChRcchStatChangeDtlHistory(WctzContractChRcchStatChangeDtlHistDvo dvo);
+
+    // 계약주소변경이력
+    WctzContractAddrChangeHistDvo selectContractAddrChangeHistory(String cntrAdrpcId);
+
+    WctzContractAddrChangeHistDvo selectContractAddrChangeForHist(String cntrAdrpcId);
+
+    int updateContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo);
+
+    int insertContractAddrChangeHistory(WctzContractAddrChangeHistDvo dvo);
+
+    Optional<WctzPspcCstChHistDvo> selectLastPspcCstChHist(String pspcCstId);
+
+    int expirePspcCstChHistory(String pspcCstId, String histStrtDtm);
+
+    int upsertPspcCstChHist(String pspcCstId, String histStrtDtm);
+
+    Optional<WctzPspcCstCnslChHistDvo> selectLastPspcCstCnslChHist(String pspcCstCnslId);
+
+    int expirePspcCstCnslChHistory(String pspcCstCnslId, String histStrtDtm);
+
+    int upsertPspcCstCnslChHist(String pspcCstCnslId, String histStrtDtm);
+
+    Optional<WctzPspcCstCnslRchHistDvo> selectLastPspcCstCnslRchHist(String pspcCstCnslId, int pspcCstCnslSn);
+
+    int expirePspcCstCnslRchHistory(String pspcCstCnslId, int pspcCstCnslSn, String histStrtDtm);
+
+    int upsertPspcCstCnslRchHist(String pspcCstCnslId, int pspcCstCnslSn, String histStrtDtm);
+
+    int insertContractNotifyFowrdindHist(@Param("item")
+    WctzContractNotifyFowrdindHistDvo dvo);
+
+    int updateContractNotifyFowrdindHist(WctzContractNotifyFowrdindHistDvo dvo);
 }

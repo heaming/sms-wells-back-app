@@ -117,6 +117,23 @@ public class WctaContractDtlDvo {
     private Long ctrVal;
     private String pdPrcId;
 
+    private String cntrRelDtlCd; /* 계약관계상세코드 */
+    private String pkg; /* 선택한 패키지 상품번호 */
+    private List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> pkgs; /* 패키지 */
+    private List<WctaContractRegStep2Dvo.PdSdingCapsl> sdingCapsls; /* 모종캡슐 */
+    private String ojCntrNo; /* 대상계약번호 */
+    private Integer ojCntrSn; /* 대상계약일련번호 */
+    private Boolean rentalDiscountFixed; /* 렌탈할인유형 고정여부 */
+
+    private WctaContractRegStep2Dvo.PdOpo opo; /* 1+1 */
+    private WctaMachineChangeIzDvo mchnCh; /* 기기변경내역 */
+    private WctaContractRegStep2Dvo.PdSltrRglrSppMchn sltrRglrSppMchn; /* 단독정기배송 기기 */
+
+    private Long rglrSppCntrDvCd; /* 정기배송 계약기간 */
+    private Long rglrSppDutyPtrmDvCd; /* 정기배송 약정기간 */
+    private String rglrSppPrcDvCd; /* 정기배송 가격구분 */
+    private String rglrSppMchnTpCd; /* 정기배송 기기유형 */
+
     private List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscDvCds; /* 판매할인구분코드 */

@@ -17,7 +17,7 @@ public interface WctbCancelPresentStateMapper {
         SearchReq dto
     );
 
-    List<SearchSinglePayRes> selectSinglePaymentCancelPresentStates(
+    List<SearchSinglePaymentRes> selectSinglePaymentCancelPresentStates(
         SearchReq dto
     );
 

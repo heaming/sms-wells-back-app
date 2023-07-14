@@ -33,10 +33,10 @@
                  </if>
                  , T.PRTNR_NO/*파트너번호*/
                  , T.PRTNR_KNM/*파트너명*/
-                 , T.SELL_TP_CD                                                       AS SELL_TP_CD       
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)         AS SELL_TP_NM     
-                 , T.SELL_TP_DTL_CD                                                     AS SELL_TP_DTL_CD   
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)         AS SELL_TP_DTL_NM 
+                 , T.SELL_TP_CD                                                       AS SELL_TP_CD
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)         AS SELL_TP_NM
+                 , T.SELL_TP_DTL_CD                                                     AS SELL_TP_DTL_CD
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)         AS SELL_TP_DTL_NM
                  , SUM(T.THM_NW_ACC_N + T.NOM_ACC_N + T.DLQ_ACC_N) AS TOT_ACC_N/* 총 계정수 : 당월 신규, 정상, 연체 계정수 합 */
                  , SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT + T.DLQ_AMT) AS UCAM_TAM /* 미수금 총액 : 당월 신규/정상 미수금액+연체금액합 */
                  , SUM(T.THM_NW_UC_AMT) AS THM_NW_UC_AMT
@@ -46,16 +46,16 @@
                  , SUM(T.NOM_UC_AMT) AS NOM_UC_AMT
                  , SUM(T.NOM_ACC_N) AS NOM_ACC_N
                  , SUM(T.NOM_DP_AMT) AS NOM_DP_AMT
-                 , DECODE(SUM(T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT) / SUM(T.NOM_UC_AMT)) * 100) AS NOM_DP_RT 
+                 , DECODE(SUM(T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT) / SUM(T.NOM_UC_AMT)) * 100) AS NOM_DP_RT
                  , SUM(T.DLQ_AMT) AS DLQ_AMT
                  , SUM(T.DLQ_ACC_N) AS DLQ_ACC_N
                  , SUM(T.DLQ_DP_AMT) AS DLQ_DP_AMT
-                 , DECODE(SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.DLQ_AMT - T.DLQ_DP_AMT) / SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT)) * 100) AS UC_CPR_DLQ_RT 
-                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS TOT_DP_AMT 
-                 , DECODE(SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT + T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT)) * 100) AS DP_RT 
-                 , SUM(T.BIL_AMT) AS BIL_AGG 
-                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS DP_AGG 
-                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM 
+                 , DECODE(SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.DLQ_AMT - T.DLQ_DP_AMT) / SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT)) * 100) AS UC_CPR_DLQ_RT
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS TOT_DP_AMT
+                 , DECODE(SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT + T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT)) * 100) AS DP_RT
+                 , SUM(T.BIL_AMT) AS BIL_AGG
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS DP_AGG
+                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM
               FROM (
                     /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
                     SELECT E.OG_CD/*조직코드*/
@@ -102,14 +102,13 @@
                        AND A.CNTR_NO = #{cntrNo}
                        AND A.CNTR_SN = #{cntrSn}
                        </if>
-                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                        /*화면-판매유형 선택 시(전체 제외)-시작*/
-                       AND A.SELL_TP_CD IN (
-                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                                #{sellTpCd}
-                           </foreach>
-                            )
+                       AND A.SELL_TP_CD = #{sellTpCd}
                        /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
                        </if>
                        <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
                        AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
@@ -121,6 +120,7 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
+                       AND E.OG_LEVL_DV_CD = #{inqrDv}
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
@@ -148,8 +148,8 @@
                        AND B.DTA_DL_YN = 'N'
                        AND C.DTA_DL_YN = 'N'
                        AND D.DTA_DL_YN = 'N'
-                       AND E.DTA_DL_YN = 'N'      
-                     UNION ALL 
+                       AND E.DTA_DL_YN = 'N'
+                     UNION ALL
                     /*정상 전월마감*/
                     SELECT E.OG_CD/*조직코드*/
                          , E.OG_NM/*조직명*/
@@ -176,14 +176,14 @@
                          , A.SELL_TP_CD/*판매유형코드*/
                          , A.SELL_TP_DTL_CD /*판매유형상세코드*/
                          , 0 AS THM_NW_UC_AMT
-                         , 0 AS THM_NW_ACC_N 
+                         , 0 AS THM_NW_ACC_N
                          , 0 AS THM_NW_DP_AMT
                          , D.EOT_UC_AMT AS NOM_UC_AMT
                          , 1 AS NOM_ACC_N
                          , D.THM_ISTM_TOT_DP_AMT AS NOM_DP_AMT
                          , 0 AS DLQ_AMT
-                         , 0 AS DLQ_ACC_N 
-                         , 0 AS DLQ_DP_AMT 
+                         , 0 AS DLQ_ACC_N
+                         , 0 AS DLQ_DP_AMT
                          , D.SL_AGG_AMT AS BIL_AMT
                       FROM TB_SSCT_CNTR_DTL A /*계약상세*/
                          , TB_SSCT_CNTR_BAS B/*계약기본*/
@@ -195,14 +195,13 @@
                        AND A.CNTR_NO = #{cntrNo}
                        AND A.CNTR_SN = #{cntrSn}
                        </if>
-                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                        /*화면-판매유형 선택 시(전체 제외)-시작*/
-                       AND A.SELL_TP_CD IN (
-                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                                #{sellTpCd}
-                           </foreach>
-                            )
+                       AND A.SELL_TP_CD = #{sellTpCd}
                        /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
                        </if>
                        <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
                        AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
@@ -212,6 +211,7 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
+                       AND E.OG_LEVL_DV_CD = #{inqrDv}
                        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
                        AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
                        </if>
@@ -233,16 +233,16 @@
                        AND D.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
-                       AND (D.CNTR_NO, D.CNTR_SN) NOT IN (SELECT CNTR_NO, CNTR_SN 
-                                                            FROM TB_CBCL_DLQ_BAS_HIST/*연체기본이력*/ 
+                       AND (D.CNTR_NO, D.CNTR_SN) NOT IN (SELECT CNTR_NO, CNTR_SN
+                                                            FROM TB_CBCL_DLQ_BAS_HIST/*연체기본이력*/
                                                            WHERE DLQ_SN = 1
                                                              AND PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM'))
                        AND A.DTA_DL_YN = 'N'
                        AND B.DTA_DL_YN = 'N'
                        AND C.DTA_DL_YN = 'N'
                        AND D.DTA_DL_YN = 'N'
-                       AND E.DTA_DL_YN = 'N'    
-                     UNION ALL 
+                       AND E.DTA_DL_YN = 'N'
+                     UNION ALL
                      /*연체 전월마감*/
                     SELECT E.OG_CD/*조직코드*/
                          , E.OG_NM/*조직명*/
@@ -269,14 +269,14 @@
                          , A.SELL_TP_CD       /*판매유형코드*/
                          , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
                          , 0 AS THM_NW_UC_AMT
-                         , 0 AS THM_NW_ACC_N 
+                         , 0 AS THM_NW_ACC_N
                          , 0 AS THM_NW_DP_AMT
                          , 0 AS NOM_UC_AMT
                          , 0 AS NOM_ACC_N
                          , 0 AS NOM_DP_AMT
                          , D.EOT_DLQ_AMT AS DLQ_AMT
-                         , 1 AS DLQ_ACC_N 
-                         , D.THM_DLQ_DP_SUM_AMT AS 입금금액 
+                         , 1 AS DLQ_ACC_N
+                         , D.THM_DLQ_DP_SUM_AMT AS 입금금액
                          , 0 AS BIL_AMT
                       FROM TB_SSCT_CNTR_DTL A /*계약상세*/
                          , TB_SSCT_CNTR_BAS B/*계약기본*/
@@ -288,14 +288,13 @@
                        AND A.CNTR_NO = #{cntrNo}
                        AND A.CNTR_SN = #{cntrSn}
                        </if>
-                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                        /*화면-판매유형 선택 시(전체 제외)-시작*/
-                       AND A.SELL_TP_CD IN (
-                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                                #{sellTpCd}
-                           </foreach>
-                            )
+                       AND A.SELL_TP_CD = #{sellTpCd}
                        /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
                        </if>
                        <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
                        AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
@@ -305,6 +304,7 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
+                       AND E.OG_LEVL_DV_CD = #{inqrDv}
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DLQ_SN = 1
@@ -376,281 +376,29 @@
                  </if>
                  , T.PRTNR_NO/*파트너번호*/
                  , T.PRTNR_KNM/*파트너명*/
-                 , T.SELL_TP_CD                                                       AS SELL_TP_CD       
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)         AS SELL_TP_NM     
-                 , T.SELL_TP_DTL_CD                                                     AS SELL_TP_DTL_CD   
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)         AS SELL_TP_DTL_NM 
+                 , T.SELL_TP_CD                                                       AS SELL_TP_CD
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)         AS SELL_TP_NM
+                 , T.SELL_TP_DTL_CD                                                     AS SELL_TP_DTL_CD
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)         AS SELL_TP_DTL_NM
                  , SUM(T.THM_NW_ACC_N + T.NOM_ACC_N) AS TOT_ACC_N/* 총 계정수 : 당월 신규, 정상, 연체 계정수 합 */
                  , SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT) AS UCAM_TAM /* 미수금 총액 : 당월 신규/정상 미수금액+연체금액합 */
                  , SUM(T.THM_NW_UC_AMT) AS THM_NW_UC_AMT
-                 , SUM(T.THM_NW_ACC_N) AS THM_NW_ACC_N 
+                 , SUM(T.THM_NW_ACC_N) AS THM_NW_ACC_N
                  , SUM(T.THM_NW_DP_AMT) AS THM_NW_DP_AMT
                  , DECODE(SUM(T.THM_NW_UC_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT)) * 100) AS THM_NW_DP_RT /* 당월 신규 입금율 : (당월신규입금계/당원신규미수금계) * 100*/
-                 , SUM(T.NOM_UC_AMT) AS NOM_UC_AMT 
-                 , SUM(T.NOM_ACC_N) AS NOM_ACC_N 
-                 , SUM(T.NOM_DP_AMT) AS NOM_DP_AMT 
-                 , DECODE(SUM(T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT) / SUM(T.NOM_UC_AMT)) * 100) AS NOM_DP_RT 
+                 , SUM(T.NOM_UC_AMT) AS NOM_UC_AMT
+                 , SUM(T.NOM_ACC_N) AS NOM_ACC_N
+                 , SUM(T.NOM_DP_AMT) AS NOM_DP_AMT
+                 , DECODE(SUM(T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT) / SUM(T.NOM_UC_AMT)) * 100) AS NOM_DP_RT
                  , 0 AS DLQ_AMT
-                 , 0 AS DLQ_ACC_N 
-                 , 0 AS DLQ_DP_AMT 
-                 , 0 AS UC_CPR_DLQ_RT 
-                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT) AS TOT_DP_AMT 
-                 , DECODE(SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT + T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT)) * 100) AS DP_RT 
-                 , SUM(T.BIL_AMT) AS BIL_AGG 
-                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT) AS DP_AGG 
-                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM 
-              FROM (
-                    /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                         </if>
-                         <if test="@MybatisUtils@equals(inqrDv, '2')">
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
-                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
-                         </if>
-                         <if test="@MybatisUtils@equals(inqrDv, '3')">
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
-                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
-                         , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
-                         , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
-                         </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
-                         , A.SELL_TP_CD       /*판매유형코드*/
-                         , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
-                         , A.FNL_AMT AS THM_NW_UC_AMT
-                         , 1 AS THM_NW_ACC_N
-                         , D.RVE_AMT AS THM_NW_DP_AMT
-                         , 0 AS NOM_UC_AMT 
-                         , 0 AS NOM_ACC_N 
-                         , 0 AS NOM_DP_AMT 
-                         , 0 AS DLQ_AMT
-                         , 0 AS DLQ_ACC_N 
-                         , 0 AS DLQ_DP_AMT 
-                         , 0 AS BIL_AMT
-                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
-                         , TB_SSCT_CNTR_BAS B/*계약기본*/
-                         , TB_OGBS_MM_PRTNR_IZ C/*월파트너내역*/
-                         , TB_RVDW_RVE_DTL D/*수납상세*/
-                         , TB_OGBS_MM_OG_IZ E/*월조직내역*/
-                     WHERE A.CNTR_NO = B.CNTR_NO
-                       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
-                       AND A.CNTR_NO = #{cntrNo}
-                       AND A.CNTR_SN = #{cntrSn}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
-                       /*화면-판매유형 선택 시(전체 제외)-시작*/
-                       AND A.SELL_TP_CD IN (
-                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                                #{sellTpCd}
-                           </foreach>
-                            )
-                       /*화면-판매유형 선택 시(전체 제외)-종료*/
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
-                       AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
-                       </if>
-                       AND B.CNTR_CNFM_DTM BETWEEN #{perfYm}||'00000000' AND #{perfYm}||'99999999'/*계약확정일시 - 당월*/
-                       AND B.CNTR_CAN_DTM IS NULL/*취소일시 - NULL*/
-                       AND B.SELL_PRTNR_NO = C.PRTNR_NO
-                       AND C.BASE_YM = #{perfYm}
-                       AND C.OG_TP_CD = E.OG_TP_CD
-                       AND C.OG_ID = E.OG_ID
-                       AND E.BASE_YM = C.BASE_YM
-                       AND A.CNTR_NO = D.CNTR_NO
-                       AND A.CNTR_SN = D.CNTR_SN
-                       AND D.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
-                       AND D.RVE_DV_CD = '01'/*수납구분코드 - 01:계약(청약)금*/
-                       AND D.RVE_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'/*수납일자 - 당월*/
-                       <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
-                       AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
-                       AND E.DGR2_LEVL_OG_ID = #{dgr2LevlOgCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgCd)'>
-                       AND E.DGR3_LEVL_OG_ID = #{dgr3LevlOgCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(ogTp) and !@MybatisUtils@equals(ogTp, 'ALL')">
-                       AND B.SELL_OG_TP_CD = #{ogTp}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-                       AND C.PRTNR_NO = #{prtnrNo}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
-                       AND B.CNTR_CST_NO = #{cntrCstNo}
-                       </if>
-                       AND A.DTA_DL_YN = 'N'
-                       AND B.DTA_DL_YN = 'N'
-                       AND C.DTA_DL_YN = 'N'
-                       AND D.DTA_DL_YN = 'N'
-                       AND E.DTA_DL_YN = 'N'
-                     UNION ALL 
-                    /*정상 전월마감*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                         </if>
-                         <if test="@MybatisUtils@equals(inqrDv, '2')">
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
-                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
-                         </if>
-                         <if test="@MybatisUtils@equals(inqrDv, '3')">
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
-                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
-                         , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
-                         , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
-                         </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
-                         , A.SELL_TP_CD/*판매유형코드*/
-                         , A.SELL_TP_DTL_CD /*판매유형상세코드*/
-                         , 0 AS THM_NW_UC_AMT
-                         , 0 AS THM_NW_ACC_N 
-                         , 0 AS THM_NW_DP_AMT
-                         , D.EOT_UC_AMT AS NOM_UC_AMT
-                         , 1 AS NOM_ACC_N
-                         , D.THM_ISTM_TOT_DP_AMT AS NOM_DP_AMT
-                         , 0 AS DLQ_AMT
-                         , 0 AS DLQ_ACC_N 
-                         , 0 AS DLQ_DP_AMT 
-                         , D.SL_AGG_AMT AS BIL_AMT
-                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
-                         , TB_SSCT_CNTR_BAS B/*계약기본*/
-                         , TB_OGBS_MM_PRTNR_IZ C/*월파트너내역*/
-                         , TB_CBCL_WELLS_SL_MM_CL_IZ D/*WELLS월마감매출내역*/
-                         , TB_OGBS_MM_OG_IZ E/*월조직내역*/
-                     WHERE A.CNTR_NO = B.CNTR_NO
-                       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
-                       AND A.CNTR_NO = #{cntrNo}
-                       AND A.CNTR_SN = #{cntrSn}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
-                       /*화면-판매유형 선택 시(전체 제외)-시작*/
-                       AND A.SELL_TP_CD IN (
-                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                                #{sellTpCd}
-                           </foreach>
-                            )
-                       /*화면-판매유형 선택 시(전체 제외)-종료*/
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
-                       AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
-                       </if>
-                       AND B.SELL_PRTNR_NO = C.PRTNR_NO
-                       AND C.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
-                       AND C.OG_TP_CD = E.OG_TP_CD
-                       AND C.OG_ID = E.OG_ID
-                       AND E.BASE_YM = C.BASE_YM
-                       <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
-                       AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
-                       AND E.DGR2_LEVL_OG_ID = #{dgr2LevlOgCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgCd)'>
-                       AND E.DGR3_LEVL_OG_ID = #{dgr3LevlOgCd}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(ogTp) and !@MybatisUtils@equals(ogTp, 'ALL')">
-                       AND B.SELL_OG_TP_CD = #{ogTp}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-                       AND C.PRTNR_NO = #{prtnrNo}
-                       </if>
-                       <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
-                       AND B.CNTR_CST_NO = #{cntrCstNo}
-                       </if>
-                       AND D.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
-                       AND A.CNTR_NO = D.CNTR_NO
-                       AND A.CNTR_SN = D.CNTR_SN
-                       AND (D.CNTR_NO, D.CNTR_SN) NOT IN (SELECT CNTR_NO, CNTR_SN 
-                                                            FROM TB_CBCL_DLQ_BAS_HIST/*연체기본이력*/ 
-                                                           WHERE DLQ_SN = 1 AND PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM'))
-                       AND A.DTA_DL_YN = 'N'
-                       AND B.DTA_DL_YN = 'N'
-                       AND C.DTA_DL_YN = 'N'
-                       AND D.DTA_DL_YN = 'N'
-                       AND E.DTA_DL_YN = 'N'  
-                   ) T
-             <if test='@MybatisUtils@equals(inqrDv, "1")'>
-             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
-             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD
-             </if>
-             <if test='@MybatisUtils@equals(inqrDv, "2")'>
-             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.DGR2_LEVL_OG_CD, T.DGR2_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
-             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD, T.DGR2_LEVL_OG_CD
-             </if>
-             <if test='@MybatisUtils@equals(inqrDv, "3")'>
-             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.DGR2_LEVL_OG_CD, T.DGR2_LEVL_OG_NM, T.DGR3_LEVL_OG_CD, T.DGR3_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
-             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD, T.DGR2_LEVL_OG_CD, T.DGR3_LEVL_OG_CD
-             </if>
-        </if>
-        <if test='@MybatisUtils@equals(dlqDv, "2")'>
-            --2) 총괄단 연체
-            SELECT T.OG_CD/*조직코드*/
-                 , T.OG_NM/*조직명*/
-                 <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                 , '' AS DGR2_LEVL_OG_CD/*2차레벨조직코드*/
-                 , '' AS DGR2_LEVL_OG_NM/*2차레벨조직명*/
-                 , '' AS DGR3_LEVL_OG_CD/*3차레벨조직코드*/
-                 , '' AS DGR3_LEVL_OG_NM/*3차레벨조직명*/
-                 </if>
-                 <if test="@MybatisUtils@equals(inqrDv, '2')">
-                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                 , T.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
-                 , T.DGR2_LEVL_OG_NM/*2차레벨조직명*/
-                 , '' AS DGR3_LEVL_OG_CD/*3차레벨조직코드*/
-                 , '' AS DGR3_LEVL_OG_NM/*3차레벨조직명*/
-                 </if>
-                 <if test="@MybatisUtils@equals(inqrDv, '3')">
-                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
-                 , T.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
-                 , T.DGR2_LEVL_OG_NM/*2차레벨조직명*/
-                 , T.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
-                 , T.DGR3_LEVL_OG_NM/*3차레벨조직명*/
-                 </if>
-                 , T.PRTNR_NO/*파트너번호*/
-                 , T.PRTNR_KNM/*파트너명*/
-                 , T.SELL_TP_CD                                                       AS SELL_TP_CD       
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)       AS SELL_TP_NM     
-                 , T.SELL_TP_DTL_CD                                                   AS SELL_TP_DTL_CD   
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)       AS SELL_TP_DTL_NM 
-                 , SUM(T.THM_NW_ACC_N + T.DLQ_ACC_N) AS TOT_ACC_N /* 총 계정수 : 당월 신규, 정상, 연체 계정수 합 */
-                 , SUM(T.THM_NW_UC_AMT + T.DLQ_AMT) AS UCAM_TAM /* 미수금 총액 : 당월 신규/정상 미수금액+연체금액합 */
-                 , SUM(T.THM_NW_UC_AMT) AS THM_NW_UC_AMT
-                 , SUM(T.THM_NW_ACC_N) AS THM_NW_ACC_N 
-                 , SUM(T.THM_NW_DP_AMT) AS THM_NW_DP_AMT
-                 , DECODE(SUM(T.THM_NW_UC_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT)) * 100) AS THM_NW_DP_RT /* 당월 신규 입금율 : (당월신규입금계/당원신규미수금계) * 100*/
-                 , 0 AS NOM_UC_AMT 
-                 , 0 AS NOM_ACC_N 
-                 , 0 AS NOM_DP_AMT 
-                 , 0 AS NOM_DP_RT 
-                 , SUM(T.DLQ_AMT) AS DLQ_AMT
-                 , SUM(T.DLQ_ACC_N) AS DLQ_ACC_N 
-                 , SUM(T.DLQ_DP_AMT) AS DLQ_DP_AMT 
-                 , DECODE(SUM(T.THM_NW_UC_AMT), 0, 0, (SUM(T.DLQ_AMT - T.DLQ_DP_AMT) / SUM(T.THM_NW_UC_AMT)) * 100) AS UC_CPR_DLQ_RT 
-                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS TOT_DP_AMT 
-                 , DECODE(SUM(T.THM_NW_UC_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT)) * 100) AS DP_RT 
-                 , SUM(T.BIL_AMT) AS BIL_AGG 
-                 , SUM(T.THM_NW_DP_AMT + T.DLQ_DP_AMT) AS DP_AGG 
-                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM 
+                 , 0 AS DLQ_ACC_N
+                 , 0 AS DLQ_DP_AMT
+                 , 0 AS UC_CPR_DLQ_RT
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT) AS TOT_DP_AMT
+                 , DECODE(SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT), 0, 0, (SUM(T.NOM_DP_AMT + T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT + T.NOM_UC_AMT)) * 100) AS DP_RT
+                 , SUM(T.BIL_AMT) AS BIL_AGG
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT) AS DP_AGG
+                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM
               FROM (
                     /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
                     SELECT E.OG_CD/*조직코드*/
@@ -697,14 +445,265 @@
                        AND A.CNTR_NO = #{cntrNo}
                        AND A.CNTR_SN = #{cntrSn}
                        </if>
-                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                        /*화면-판매유형 선택 시(전체 제외)-시작*/
-                       AND A.SELL_TP_CD IN (
-                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                                #{sellTpCd}
-                           </foreach>
-                            )
+                       AND A.SELL_TP_CD = #{sellTpCd}
                        /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                       AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
+                       </if>
+                       AND B.CNTR_CNFM_DTM BETWEEN #{perfYm}||'00000000' AND #{perfYm}||'99999999'/*계약확정일시 - 당월*/
+                       AND B.CNTR_CAN_DTM IS NULL/*취소일시 - NULL*/
+                       AND B.SELL_PRTNR_NO = C.PRTNR_NO
+                       AND C.BASE_YM = #{perfYm}
+                       AND C.OG_TP_CD = E.OG_TP_CD
+                       AND C.OG_ID = E.OG_ID
+                       AND E.BASE_YM = C.BASE_YM
+                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       AND A.CNTR_NO = D.CNTR_NO
+                       AND A.CNTR_SN = D.CNTR_SN
+                       AND D.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
+                       AND D.RVE_DV_CD = '01'/*수납구분코드 - 01:계약(청약)금*/
+                       AND D.RVE_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'/*수납일자 - 당월*/
+                       <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
+                       AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
+                       AND E.DGR2_LEVL_OG_ID = #{dgr2LevlOgCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgCd)'>
+                       AND E.DGR3_LEVL_OG_ID = #{dgr3LevlOgCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(ogTp) and !@MybatisUtils@equals(ogTp, 'ALL')">
+                       AND B.SELL_OG_TP_CD = #{ogTp}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                       AND C.PRTNR_NO = #{prtnrNo}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
+                       AND B.CNTR_CST_NO = #{cntrCstNo}
+                       </if>
+                       AND A.DTA_DL_YN = 'N'
+                       AND B.DTA_DL_YN = 'N'
+                       AND C.DTA_DL_YN = 'N'
+                       AND D.DTA_DL_YN = 'N'
+                       AND E.DTA_DL_YN = 'N'
+                     UNION ALL
+                    /*정상 전월마감*/
+                    SELECT E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                         </if>
+                         <if test="@MybatisUtils@equals(inqrDv, '2')">
+                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
+                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
+                         </if>
+                         <if test="@MybatisUtils@equals(inqrDv, '3')">
+                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
+                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
+                         , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
+                         , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
+                         </if>
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
+                         , A.SELL_TP_CD/*판매유형코드*/
+                         , A.SELL_TP_DTL_CD /*판매유형상세코드*/
+                         , 0 AS THM_NW_UC_AMT
+                         , 0 AS THM_NW_ACC_N
+                         , 0 AS THM_NW_DP_AMT
+                         , D.EOT_UC_AMT AS NOM_UC_AMT
+                         , 1 AS NOM_ACC_N
+                         , D.THM_ISTM_TOT_DP_AMT AS NOM_DP_AMT
+                         , 0 AS DLQ_AMT
+                         , 0 AS DLQ_ACC_N
+                         , 0 AS DLQ_DP_AMT
+                         , D.SL_AGG_AMT AS BIL_AMT
+                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                         , TB_SSCT_CNTR_BAS B/*계약기본*/
+                         , TB_OGBS_MM_PRTNR_IZ C/*월파트너내역*/
+                         , TB_CBCL_WELLS_SL_MM_CL_IZ D/*WELLS월마감매출내역*/
+                         , TB_OGBS_MM_OG_IZ E/*월조직내역*/
+                     WHERE A.CNTR_NO = B.CNTR_NO
+                       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                       AND A.CNTR_NO = #{cntrNo}
+                       AND A.CNTR_SN = #{cntrSn}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
+                       /*화면-판매유형 선택 시(전체 제외)-시작*/
+                       AND A.SELL_TP_CD = #{sellTpCd}
+                       /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
+                       AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
+                       </if>
+                       AND B.SELL_PRTNR_NO = C.PRTNR_NO
+                       AND C.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                       AND C.OG_TP_CD = E.OG_TP_CD
+                       AND C.OG_ID = E.OG_ID
+                       AND E.BASE_YM = C.BASE_YM
+                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
+                       AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
+                       AND E.DGR2_LEVL_OG_ID = #{dgr2LevlOgCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgCd)'>
+                       AND E.DGR3_LEVL_OG_ID = #{dgr3LevlOgCd}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(ogTp) and !@MybatisUtils@equals(ogTp, 'ALL')">
+                       AND B.SELL_OG_TP_CD = #{ogTp}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                       AND C.PRTNR_NO = #{prtnrNo}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
+                       AND B.CNTR_CST_NO = #{cntrCstNo}
+                       </if>
+                       AND D.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                       AND A.CNTR_NO = D.CNTR_NO
+                       AND A.CNTR_SN = D.CNTR_SN
+                       AND (D.CNTR_NO, D.CNTR_SN) NOT IN (SELECT CNTR_NO, CNTR_SN
+                                                            FROM TB_CBCL_DLQ_BAS_HIST/*연체기본이력*/
+                                                           WHERE DLQ_SN = 1 AND PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM'))
+                       AND A.DTA_DL_YN = 'N'
+                       AND B.DTA_DL_YN = 'N'
+                       AND C.DTA_DL_YN = 'N'
+                       AND D.DTA_DL_YN = 'N'
+                       AND E.DTA_DL_YN = 'N'
+                   ) T
+             <if test='@MybatisUtils@equals(inqrDv, "1")'>
+             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
+             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD
+             </if>
+             <if test='@MybatisUtils@equals(inqrDv, "2")'>
+             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.DGR2_LEVL_OG_CD, T.DGR2_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
+             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD, T.DGR2_LEVL_OG_CD
+             </if>
+             <if test='@MybatisUtils@equals(inqrDv, "3")'>
+             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.DGR2_LEVL_OG_CD, T.DGR2_LEVL_OG_NM, T.DGR3_LEVL_OG_CD, T.DGR3_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
+             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD, T.DGR2_LEVL_OG_CD, T.DGR3_LEVL_OG_CD
+             </if>
+        </if>
+        <if test='@MybatisUtils@equals(dlqDv, "2")'>
+            --2) 총괄단 연체
+            SELECT T.OG_CD/*조직코드*/
+                 , T.OG_NM/*조직명*/
+                 <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                 , '' AS DGR2_LEVL_OG_CD/*2차레벨조직코드*/
+                 , '' AS DGR2_LEVL_OG_NM/*2차레벨조직명*/
+                 , '' AS DGR3_LEVL_OG_CD/*3차레벨조직코드*/
+                 , '' AS DGR3_LEVL_OG_NM/*3차레벨조직명*/
+                 </if>
+                 <if test="@MybatisUtils@equals(inqrDv, '2')">
+                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                 , T.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
+                 , T.DGR2_LEVL_OG_NM/*2차레벨조직명*/
+                 , '' AS DGR3_LEVL_OG_CD/*3차레벨조직코드*/
+                 , '' AS DGR3_LEVL_OG_NM/*3차레벨조직명*/
+                 </if>
+                 <if test="@MybatisUtils@equals(inqrDv, '3')">
+                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                 , T.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
+                 , T.DGR2_LEVL_OG_NM/*2차레벨조직명*/
+                 , T.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
+                 , T.DGR3_LEVL_OG_NM/*3차레벨조직명*/
+                 </if>
+                 , T.PRTNR_NO/*파트너번호*/
+                 , T.PRTNR_KNM/*파트너명*/
+                 , T.SELL_TP_CD                                                       AS SELL_TP_CD
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T.SELL_TP_CD)       AS SELL_TP_NM
+                 , T.SELL_TP_DTL_CD                                                   AS SELL_TP_DTL_CD
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T.SELL_TP_DTL_CD)       AS SELL_TP_DTL_NM
+                 , SUM(T.THM_NW_ACC_N + T.DLQ_ACC_N) AS TOT_ACC_N /* 총 계정수 : 당월 신규, 정상, 연체 계정수 합 */
+                 , SUM(T.THM_NW_UC_AMT + T.DLQ_AMT) AS UCAM_TAM /* 미수금 총액 : 당월 신규/정상 미수금액+연체금액합 */
+                 , SUM(T.THM_NW_UC_AMT) AS THM_NW_UC_AMT
+                 , SUM(T.THM_NW_ACC_N) AS THM_NW_ACC_N
+                 , SUM(T.THM_NW_DP_AMT) AS THM_NW_DP_AMT
+                 , DECODE(SUM(T.THM_NW_UC_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT)) * 100) AS THM_NW_DP_RT /* 당월 신규 입금율 : (당월신규입금계/당원신규미수금계) * 100*/
+                 , 0 AS NOM_UC_AMT
+                 , 0 AS NOM_ACC_N
+                 , 0 AS NOM_DP_AMT
+                 , 0 AS NOM_DP_RT
+                 , SUM(T.DLQ_AMT) AS DLQ_AMT
+                 , SUM(T.DLQ_ACC_N) AS DLQ_ACC_N
+                 , SUM(T.DLQ_DP_AMT) AS DLQ_DP_AMT
+                 , DECODE(SUM(T.THM_NW_UC_AMT), 0, 0, (SUM(T.DLQ_AMT - T.DLQ_DP_AMT) / SUM(T.THM_NW_UC_AMT)) * 100) AS UC_CPR_DLQ_RT
+                 , SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) AS TOT_DP_AMT
+                 , DECODE(SUM(T.THM_NW_UC_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT) / SUM(T.THM_NW_UC_AMT)) * 100) AS DP_RT
+                 , SUM(T.BIL_AMT) AS BIL_AGG
+                 , SUM(T.THM_NW_DP_AMT + T.DLQ_DP_AMT) AS DP_AGG
+                 , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM
+              FROM (
+                    /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
+                    SELECT E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                         </if>
+                         <if test="@MybatisUtils@equals(inqrDv, '2')">
+                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
+                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
+                         </if>
+                         <if test="@MybatisUtils@equals(inqrDv, '3')">
+                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                         , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
+                         , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
+                         , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
+                         , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
+                         </if>
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
+                         , A.SELL_TP_CD       /*판매유형코드*/
+                         , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
+                         , A.FNL_AMT AS THM_NW_UC_AMT
+                         , 1 AS THM_NW_ACC_N
+                         , D.RVE_AMT AS THM_NW_DP_AMT
+                         , 0 AS NOM_UC_AMT
+                         , 0 AS NOM_ACC_N
+                         , 0 AS NOM_DP_AMT
+                         , 0 AS DLQ_AMT
+                         , 0 AS DLQ_ACC_N
+                         , 0 AS DLQ_DP_AMT
+                         , 0 AS BIL_AMT
+                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
+                         , TB_SSCT_CNTR_BAS B/*계약기본*/
+                         , TB_OGBS_MM_PRTNR_IZ C/*월파트너내역*/
+                         , TB_RVDW_RVE_DTL D/*수납상세*/
+                         , TB_OGBS_MM_OG_IZ E/*월조직내역*/
+                     WHERE A.CNTR_NO = B.CNTR_NO
+                       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                       AND A.CNTR_NO = #{cntrNo}
+                       AND A.CNTR_SN = #{cntrSn}
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
+                       /*화면-판매유형 선택 시(전체 제외)-시작*/
+                       AND A.SELL_TP_CD = #{sellTpCd}
+                       /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
                        </if>
                        <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
                        AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
@@ -716,6 +715,7 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
+                       AND E.OG_LEVL_DV_CD = #{inqrDv}
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
@@ -771,14 +771,14 @@
                          , A.SELL_TP_CD       /*판매유형코드*/
                          , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
                          , 0 AS THM_NW_UC_AMT
-                         , 0 AS THM_NW_ACC_N 
+                         , 0 AS THM_NW_ACC_N
                          , 0 AS THM_NW_DP_AMT
                          , 0 AS NOM_UC_AMT
                          , 0 AS NOM_ACC_N
                          , 0 AS NOM_DP_AMT
                          , D.EOT_DLQ_AMT AS DLQ_AMT
-                         , 1 AS DLQ_ACC_N 
-                         , D.THM_DLQ_DP_SUM_AMT AS DLQ_DP_AMT 
+                         , 1 AS DLQ_ACC_N
+                         , D.THM_DLQ_DP_SUM_AMT AS DLQ_DP_AMT
                          , 0 AS BIL_AMT
                       FROM TB_SSCT_CNTR_DTL A /*계약상세*/
                          , TB_SSCT_CNTR_BAS B/*계약기본*/
@@ -790,14 +790,13 @@
                        AND A.CNTR_NO = #{cntrNo}
                        AND A.CNTR_SN = #{cntrSn}
                        </if>
-                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+                       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
                        /*화면-판매유형 선택 시(전체 제외)-시작*/
-                       AND A.SELL_TP_CD IN (
-                           <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                                #{sellTpCd}
-                           </foreach>
-                            )
+                       AND A.SELL_TP_CD = #{sellTpCd}
                        /*화면-판매유형 선택 시(전체 제외)-종료*/
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
                        </if>
                        <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
                        AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
@@ -807,12 +806,13 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
+                       AND E.OG_LEVL_DV_CD = #{inqrDv}
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DLQ_SN = 1
                        AND D.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                        <if test="@MybatisUtils@isNotEmpty(dlqMcnt) and dlqMcnt.size() > 0">
-                       AND 
+                       AND
                            <foreach collection="dlqMcnt" item="dlqMcnt" open="(" close=")" separator="OR">
                                <if test='!@MybatisUtils@equals(dlqMcnt, "7")'>
                                /*0~6까지는 아래 쿼리*/
@@ -862,7 +862,7 @@
              </if>
         </if>
     </select>
-    
+
     <select id="selectDepositDelinquentContractPages" resultType="com.kyowon.sms.wells.web.closing.payment.dto.WdcaDepositDelinquentDetailDto$SearchContractRes">
         SELECT A1.SELL_TP_CD                                                         AS SELL_TP_CD       /*판매유형코드*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', A1.SELL_TP_CD)         AS SELL_TP_NM     /*판매유형코드명*/
@@ -884,7 +884,7 @@
              , ''                                                                    AS APPROVE_CODE           /*입/출금에 문의*/
              , ''                                                                    AS NON_PAYMENT_REASON         /*입/출금에 문의*/
              , A6.SL_AGG_AMT                                                         AS SL_AGG_AMT           /*매출누계금액*/
-             , 0                                                                     AS DEPOSIT_AGGREGATE 
+             , 0                                                                     AS DEPOSIT_AGGREGATE
              , A7.PRTNR_KNM                                                          AS PRTNR_KNM           /*파트너한글명*/
              , A7.PRTNR_NO                                                           AS PRTNR_NO         /*파트너번호*/
              , A7.FST_CNTR_DT                                                        AS FST_CNTR_DT   /*최초계약일자*/
@@ -940,7 +940,7 @@
             ON A9.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A9.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
            AND A9.CNTR_NO = A1.CNTR_NO
-           AND A9.CNTR_SN = A1.CNTR_SN 
+           AND A9.CNTR_SN = A1.CNTR_SN
            AND A9.DLQ_SN = 1 /*해당월의 연체책정된 값 출력*/
           LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS A10 /*채권계약기본*/
             ON A10.DTA_DL_YN = 'N' /*데이터삭제여부*/
@@ -952,21 +952,20 @@
                                 , CRP_MPNO  /*법인휴대전화번호*/
                              FROM TB_CBBO_CLCTAM_PRTNR_DTL /*집금파트너상세*/
                             WHERE DTA_DL_YN = 'N' /*데이터삭제여부*/
-                              AND (SYSDATE BETWEEN BIZ_STRTDT AND BIZ_ENDDT) 
+                              AND (SYSDATE BETWEEN BIZ_STRTDT AND BIZ_ENDDT)
                               AND CLCTAM_MNGT_YN = 'Y'
                               AND ROWNUM = 1
                            ) A11
             ON A11.PRTNR_NO = A10.CLCTAM_PRTNR_NO
          WHERE 1=1
            AND A1.DTA_DL_YN  = 'N' /*데이터삭제여부*/
-           <if test="@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd.size() > 0">
+           <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
            /*화면-판매유형 선택 시(전체 제외)-시작*/
-           AND A1.SELL_TP_CD IN (
-               <foreach collection="sellTpCd" item="sellTpCd" separator=",">
-                    #{sellTpCd}
-                </foreach>
-                )
+           AND A1.SELL_TP_CD = #{sellTpCd}
            /*화면-판매유형 선택 시(전체 제외)-종료*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
            </if>
            <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
            /*화면-계약상세번호 입력 시-시작*/
@@ -995,7 +994,7 @@
                /*화면-연체구분 연체 선택 시 연체 개월을 선택할 수 있음- 시작*/
                AND NVL(A9.EOT_DLQ_AMT, 0) > 0
                <if test="@MybatisUtils@isNotEmpty(dlqMcnt) and dlqMcnt.size() > 0">
-               AND 
+               AND
                <foreach collection="dlqMcnt" item="dlqMcnt" open="(" close=")" separator="OR">
                    <if test='!@MybatisUtils@equals(dlqMcnt, "7")'>
                    /*0~6까지는 아래 쿼리*/

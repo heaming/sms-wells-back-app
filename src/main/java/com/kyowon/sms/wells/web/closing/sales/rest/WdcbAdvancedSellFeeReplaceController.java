@@ -74,11 +74,6 @@ public class WdcbAdvancedSellFeeReplaceController {
         return service.getDivideLists(dto);
     }
 
-    @GetMapping("/customer-code")
-    public List<SearchCodeRes> getCustomerCodes() {
-        return service.getCustomerCodes();
-    }
-
     @GetMapping("/fee-gubun-code")
     public List<SearchCodeRes> getFeeGubunCodes() {
         return service.getFeeGubunCodes();

@@ -42,7 +42,10 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String dgr2LevlOgId,
         String bldCd,
         String subOgTpCd,
-        String subPrtnrNo
+        String subPrtnrNo,
+        String mainDgr1LevlOgId,
+        String mainDgr2LevlOgId,
+        String mainDgr3LevlOgId
     ) {
 
     }
@@ -53,32 +56,32 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
     @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchSubjectRes")
     public record SearchSubjectRes(
-        String baseYm,                      /*(hidden)기준월*/
-        String dgr1LevlOgNm,              /*1차레벨조직명-총괄단*/
-        String dgr1LevlOgId,              /*1차레벨조직명-총괄단*/
-        String dgr2LevlOgNm,              /*2차레벨조직명-지역단*/
-        String dgr2LevlOgId,              /*(hidden)2차레벨조직ID-지역단*/
-        String ogTpCd,                     /*(hidden)2차레벨조직유형코드-지역단*/
-        String dgr3LevlDgPrtnrNo,        /*(hidden)2차레벨대표파트너번호-지역단*/
-        String ogId,                        /*(hidden)정산조직ID*/
-        String dstOjOgTpCd,              /*(hidden)배분대상조직유형코드*/
-        String prtnrNo,                    /*배분대상파트너번호*/
-        String prtnrKnm,                   /*배분대상자명*/
-        String pstnDvCd,                  /*(hidden)직급구분코드*/
-        String rsbDvCd,                   /*(hidden)직책구분코드*/
-        String rsbDvNm,                 /*직책명*/
-        String perfVal,                    /*배분대상자실적금액*/
-        String dstAmt,                   /*배분금액*/
-        String dstWhtx,                  /*(hidden)배분원천세*/
-        String erntx,                     /*(hidden)배분소득세*/
-        String rsdntx,                    /*(hidden)배분주민세*/
-        String cardUseAmt,                /*(hidden)카드사용금액*/
-        String adjFshDstAmt,            /*(hidden)정산완료배분합계금액*/
-        String adjYn,                     /*(hidden)정산여부*/
-        String bldCd,                /*빌딩코드*/
-        String bldNm                /*빌딩명*/
+        String baseYm,               /*(hidden)기준월*/
+        String dgr1LevlOgNm,       /*1차레벨조직명-총괄단*/
+        String dgr2LevlOgNm,       /*2차레벨조직명-지역단*/
+        String dgr1LevlOgId,       /*2차레벨조직명-총괄단*/
+        String dgr2LevlOgId,       /*3차레벨조직명-센터*/
+        String dgrLevlOgId,          /*(hidden) 조직ID 총괄단*/
+        String dgrLevlDgPrtnrNo,    /*(hidden) 파트너 번호 - 총괄단*/
+        String ogTpCd,              /*(hidden)2차레벨조직유형코드-지역단*/
+        String ogId,                 /*(hidden)정산조직ID*/
+        String dstOjOgTpCd,            /*(hidden)배분대상조직유형코드*/
+        String prtnrNo,              /*배분대상파트너번호*/
+        String prtnrKnm,             /*배분대상자명*/
+        String pstnDvCd,            /*(hidden)직급구분코드*/
+        String rsbDvCd,             /*(hidden)직책구분코드*/
+        String rsbDvNm,           /*직책명*/
+        String perfVal,              /*배분대상자실적금액*/
+        String dstAmt,             /*배분금액*/
+        String dstWhtx,            /*(hidden)배분원천세*/
+        String erntx,               /*(hidden)배분소득세*/
+        String rsdntx,              /*(hidden)배분주민세*/
+        String cardUseAmt,   /*(hidden)카드사용금액*/
+        String adjFshDstAmt,  /*(hidden)정산완료배분합계금액*/
+        String adjYn,  /*(hidden)정산여부*/
+        String bldCd,  /* 빌딩코드 */
+        String bldNm  /*빌딩명 */
     ) {
-
     }
 
     // *********************************************************
@@ -93,7 +96,9 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String bldCd,
         String rsbDvCd,
         String baseYm,
-        String adjOgId
+        String adjOgId,
+        String opcsAdjNo,
+        String adjPrtnrNo /* 정산파트너번호-부모화면에서 리턴 받음*/
     ) {
 
     }
@@ -110,6 +115,8 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String adjPrtnrNo,          /*(hidden)정산파트너번호*/
         String dgr1LevlOgNm,       /*1차레벨조직명*/
         String dgr2LevlOgNm,       /*2차레벨조직명*/
+        String dgr1LevlOgId,       /*1차레벨조직명*/
+        String dgr2LevlOgId,       /*2차레벨조직명*/
         String dstOjpsNm,           /*배분대상자명*/
         String dstOjOgTpCd,       /*(hidden)배분대상조직유형코드*/
         String dstOjPrtnrNo,       /*배분대상파트너번호*/
@@ -123,7 +130,8 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String mscrYn,               /*(hidden)유가증권여부*/
         String bldCd,                /*빌딩코드*/
         String bldNm,                /*빌딩명*/
-        String rsbDvNm               /*직책명*/
+        String rsbDvNm,               /*직책명*/
+        String baseYm
     ) {
 
     }
@@ -150,6 +158,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String adjOgId,
         String baseYm,
         String adjPrtnrNo,
+        String opcsCardUseIzId,
         String deleted
     ) {
     }

@@ -27,7 +27,7 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchHmstReq dto
     );
 
-    List<SearchHmstSellFeeRes> selectHomeMasterSellFees(
+    List<SearchHmstFeeRes> selectHomeMasterFees(
         SearchHmstReq dto
     );
 
@@ -35,7 +35,11 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchMngerReq dto
     );
 
-    List<SearchMngerSellFeeRes> selectManagerSellFees(
+    List<SearchMngerSellFeeRes> selectManagerFees(
+        SearchMngerReq dto
+    );
+
+    List<SearchMngerAgrgRes> selectManagerAggregation(
         SearchMngerReq dto
     );
 
@@ -43,7 +47,11 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchPlarReq dto
     );
 
-    List<SearchPlarSellFeeRes> selectPlannerSellFees(
+    List<SearchPlarSellFeeRes> selectPlannerFees(
+        SearchPlarReq dto
+    );
+
+    List<SearchPlarAgrgRes> selectPlannerAggregation(
         SearchPlarReq dto
     );
 

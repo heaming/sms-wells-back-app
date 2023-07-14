@@ -29,6 +29,14 @@ public interface WfeaNetOrderMapper {
         WfeaNetOrderDvo dvo
     );
 
+    int deleteWelsNetOrders(
+        WfeaNetOrderDvo dvo
+    );
+
+    int insertNetOrder(
+        WfeaNetOrderDvo dvo
+    );
+
     int insertManagerNetOrders(
         WfeaNetOrderDvo dvo
     );

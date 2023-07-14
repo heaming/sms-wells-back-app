@@ -37,6 +37,8 @@ public class CtContractConst {
 
     public static final String SELL_TP_CD_SPAY = "1";
     public static final String SELL_TP_CD_RNTL = "2";
+    public static final String SELL_TP_CD_MSH = "3";
+    public static final String SELL_TP_CD_RGSP = "6";
 
     public enum PeriodType {
         RCT_DT, /*접수일자*/

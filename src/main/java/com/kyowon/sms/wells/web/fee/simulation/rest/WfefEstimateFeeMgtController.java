@@ -25,7 +25,8 @@ import javax.validation.Valid;
 @Slf4j
 public class WfefEstimateFeeMgtController {
 
-     private final WfefEstimateFeeMgtService service;
+    private final WfefEstimateFeeMgtService service;
+
 
     @ApiOperation(value = "예상수수료 - 조회(p조직)", notes = "예상수수료 p조직을 조회한다.")
     @ApiImplicitParams(value = {

@@ -9,7 +9,7 @@ public class WctaKakaotalksDto {
     //카카오톡 발송 내역 - 카카오톡 발송 내역 조회 Search Request Dto
     @ApiModel(value = "WctaKakaotalksDto-SearchReq")
     public record SearchReq(
-        String mtPr,
+        String cntrDtlNo,
         String concDiv
     ) {}
 

@@ -2,7 +2,11 @@ package com.kyowon.sms.wells.web.closing.payment.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaAgainDisbursementObjectDivideDvo;
+import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaAgainDisbursementObjectDivideRentalDvo;
+import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaBznsAtamBasDvo;
 import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDelinquentDepositRefundDvo;
+import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDepositRefundProcessingAmountDvo;
 
 /**
  * <pre>
@@ -19,11 +23,23 @@ public interface WdcaDelinquentDepositRefundMapper {
      * @param searchParam 검색 조건(key: cntrNo(계약번호), cntrSn(계약일련번호))
      * @return WdcaDepositRefundAmountDvo 검색 결과
      */
-    WdcaDelinquentDepositRefundDvo selectDepositRefundProcessingAmount(WdcaDelinquentDepositRefundDvo dvo);
+    WdcaDepositRefundProcessingAmountDvo selectDepositRefundProcessingAmount(WdcaDelinquentDepositRefundDvo dvo);
 
     int updateDlqBas(WdcaDelinquentDepositRefundDvo inputDvo);
 
     int insertDlqBasHist(WdcaDelinquentDepositRefundDvo inputDvo);
 
     int updateBndCntrBas(WdcaDelinquentDepositRefundDvo inputDvo);
+
+    int updateBznsAtamBas(WdcaBznsAtamBasDvo dvo);
+
+    int updatebznsAtamProcsIz(WdcaBznsAtamBasDvo dvo);
+
+    WdcaAgainDisbursementObjectDivideDvo selectAgainDisbursementObjectDivide(WdcaDelinquentDepositRefundDvo dvo);
+
+    WdcaAgainDisbursementObjectDivideRentalDvo selectAgainDisbursementObjectDivideRental(
+        WdcaDelinquentDepositRefundDvo dvo
+    );
+
+    int updateRedfAdsbBas(WdcaDelinquentDepositRefundDvo dvo, int adsbRt, int adsbAmt);
 }

@@ -42,7 +42,10 @@ public class WdcdMarketableSecuritieMgtDto {
         String dgr2LevlOgId,
         String bldCd,
         String subOgTpCd,
-        String subPrtnrNo
+        String subPrtnrNo,
+        String mainDgr1LevlOgId,
+        String mainDgr2LevlOgId,
+        String mainDgr3LevlOgId
     ) {
 
     }
@@ -58,8 +61,9 @@ public class WdcdMarketableSecuritieMgtDto {
         String dgr1LevlOgId,              /*1차레벨조직명-총괄단*/
         String dgr2LevlOgNm,              /*2차레벨조직명-지역단*/
         String dgr2LevlOgId,              /*(hidden)2차레벨조직ID-지역단*/
+        String dgrLevlOgId,          /*(hidden)3차레벨조직ID-총괄단*/
+        String dgrLevlDgPrtnrNo,    /*(hidden)3차레벨대표파트너번호-총괄단*/
         String ogTpCd,                     /*(hidden)2차레벨조직유형코드-지역단*/
-        String dgr3LevlDgPrtnrNo,        /*(hidden)2차레벨대표파트너번호-지역단*/
         String ogId,                        /*(hidden)정산조직ID*/
         String dstOjOgTpCd,              /*(hidden)배분대상조직유형코드*/
         String prtnrNo,                    /*배분대상파트너번호*/
@@ -74,9 +78,9 @@ public class WdcdMarketableSecuritieMgtDto {
         String rsdntx,                    /*(hidden)배분주민세*/
         String cardUseAmt,                /*(hidden)카드사용금액*/
         String adjFshDstAmt,            /*(hidden)정산완료배분합계금액*/
-        String adjYn,                     /*(hidden)정산여부*/
-        String bldCd,                /*빌딩코드*/
-        String bldNm                /*빌딩명*/
+        String adjYn,                /*(hidden)정산여부*/
+        String bldCd, /* 빌딩코드 */
+        String bldNm /*빌딩명 */
     ) {
 
     }
@@ -93,7 +97,9 @@ public class WdcdMarketableSecuritieMgtDto {
         String bldCd,
         String rsbDvCd,
         String baseYm,
-        String adjOgId
+        String adjOgId,
+        String opcsAdjNo,
+        String adjPrtnrNo
     ) {
 
     }
@@ -104,6 +110,7 @@ public class WdcdMarketableSecuritieMgtDto {
     // 운영비 원천세 정산(유가증권) / 정산대상
     @ApiModel(value = "WdcdMarketableSecuritieMgtDto-SearchFinalSettlementRes")
     public record SearchFinalSettlementRes(
+        String baseYm,
         String opcsAdjNo,           /*(hidden)운영비정산번호*/
         String adjOgId,             /*(hidden)정산조직ID*/
         String ogTpCd,              /*(hidden)조직유형코드*/
@@ -149,6 +156,7 @@ public class WdcdMarketableSecuritieMgtDto {
         String adjOgId,
         String baseYm,
         String adjPrtnrNo,
+        String opcsCardUseIzId,
         String deleted
     ) {
     }

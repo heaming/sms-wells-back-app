@@ -78,7 +78,7 @@
                                       , CASE WHEN AK17.PERF_ATC_CD = 'W00P00018' THEN AK17.PERF_VAL END AS EC3DET
                                       , CASE WHEN AK17.PERF_ATC_CD = 'W03P00002' THEN AK17.PERF_VAL END AS AKDEQ0
                                    FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
-                                  WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                  WHERE AK17.FEE_TCNT_DV_CD = #{schOrdr}
                                     AND AK17.BASE_YM = #{perfYm}
                                     AND AK17.PERF_DV_CD = 0   /*개인판매*/
                                <if test="no != null and no != ''">
@@ -153,7 +153,7 @@
                                    FROM TB_FEAM_FEE_DSB_DTL_IZ A
                                   WHERE A.DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
                                     AND A.OG_TP_CD = 'W03'
-                                    AND A.FEE_TCNT_DV_CD = '01'
+                                    AND A.FEE_TCNT_DV_CD = '02'
                                 <if test="no != null and no != ''">
                                     AND A.PRTNR_NO = #{no}
                                 </if>
@@ -187,7 +187,7 @@
    <if test="no != null and no != ''">
        AND A.PRTNR_NO = #{no}
    </if>
-       AND A.RSB_DV_CD = 'W302'
+       AND A.RSB_DV_CD = 'W0302'
     </select>
 
 
@@ -278,7 +278,7 @@
                                       , CASE WHEN AK17.PERF_ATC_CD = 'W00P00018' THEN AK17.PERF_VAL END AS EC3DET
                                       , CASE WHEN AK17.PERF_ATC_CD = 'W03P00002' THEN AK17.PERF_VAL END AS AKDEQ0
                                    FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
-                                  WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                  WHERE AK17.FEE_TCNT_DV_CD = #{schOrdr}
                                     AND AK17.BASE_YM = #{perfYm}
                                     AND AK17.PERF_DV_CD = 0   /*개인판매*/
                                 <if test="no != null and no != ''">
@@ -365,7 +365,7 @@
                                    FROM TB_FEAM_FEE_DSB_DTL_IZ A
                                   WHERE A.DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
                                     AND A.OG_TP_CD = 'W03'
-                                    AND A.FEE_TCNT_DV_CD = '01'
+                                    AND A.FEE_TCNT_DV_CD = '02'
                                 <if test="no != null and no != ''">
                                     AND A.PRTNR_NO = #{no}
                                 </if>
@@ -413,7 +413,7 @@
                           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                                  , SUM(PERF_VAL) AS AKDEQ0
                                               FROM TB_FEAM_NTORP_PERF_MM_CL   /*순주문 파트너 실적 월마감*/
-                                             WHERE FEE_TCNT_DV_CD = '01'
+                                             WHERE FEE_TCNT_DV_CD = #{schOrdr}
                                                AND BASE_YM = #{perfYm}
                                                AND PERF_DV_CD = 2   /*개인판매*/
                                            <if test="no != null and no != ''">
@@ -449,7 +449,7 @@
    <if test="no != null and no != ''">
        AND A.PRTNR_NO = #{no}
    </if>
-       AND A.RSB_DV_CD = 'W301'
+       AND A.RSB_DV_CD = 'W0301'
     </select>
 
 
@@ -1653,10 +1653,10 @@
     </select>
 
     <select id='selectPlannerFees' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchPlarRes">
-        SELECT A.OG_NM  /*소속*/
+        SELECT A.OG_ID AS OG_NM  /*소속*/
              , A.PRTNR_NO /*번호*/
              , A.PRTNR_KNM /*성명*/
-             , A.RSB_DV_CD /*직책*/
+             , CD1.CD_CNTN AS RSB_DV_CD /*직책*/
              , NVL(PM.PERF_VAL,0) AS AKCUIL     /*미팅일수*/
              , CASE WHEN A.PSTN_DV_CD = 15 AND NVL(A.QLF_DV_CD , '2') = '2' THEN '플래너'
                     WHEN A.PSTN_DV_CD = 15 AND NVL(A.QLF_DV_CD , '2') = '1' THEN '수석플래너'
@@ -1672,12 +1672,12 @@
                END AS N_JAGYUK1               /* 자격(M+1)   */
              , CASE WHEN G.EDUC_CRSE_NO = '14' THEN G.EDUC_CRSE_CRT_BASE_YM END AS IS11EDU /* 플래너스타트업 */
              , CASE WHEN G.EDUC_CRSE_NO = '19' THEN G.EDUC_CRSE_CRT_BASE_YM END AS IS17EDU /* 수석(플래너)실전 */
-             , A.CNTR_DT /*등록기준월*/
-             , A.FST_CNTR_DT /*최초업무등록월*/
-             , A.RCNTR_DT /*재등록월*/
-             , A.FNL_CLTN_DT /*최종해약월*/
-             , A.CLTN_DT /*업무해약월*/
-             , SUBSTR(A.PRFMT_DT,0,6) AS AKSTYM  /*승진월*/
+             , SUBSTR(A.CNTR_DT,1,6) AS CNTR_DT /*등록기준월*/
+             , SUBSTR(A.FST_CNTR_DT,1,6) AS FST_CNTR_DT /*최초업무등록월*/
+             , SUBSTR(A.RCNTR_DT,1,6) AS RCNTR_DT /*재등록월*/
+             , SUBSTR(A.FNL_CLTN_DT,1,6) AS FNL_CLTN_DT /*최종해약월*/
+             , SUBSTR(A.CLTN_DT,1,6) AS CLTN_DT /*업무해약월*/
+             , SUBSTR(A.PRFMT_DT,1,6) AS AKSTYM  /*승진월*/
              , A.FST_CNTR_DT AS LCECAYMD /*웰스매니저 개시일 LC1700P 정리되지 않아 임시처리 */
              , MM.B_AKSD05 /*정착수수료 = 이전 정착수수료*/
              , NVL(B.AKCDA0,0) AS AKCDA0  /* 가전    */
@@ -1690,17 +1690,17 @@
              , NVL(B.AKDEQ5,0) AS AKDEQ5  /* 라이브팩 건수 */
              , NVL(B.EC5AMT,0) AS EC5AMT  /* 홈케어 판매가 */
              , NVL(B.MPRODUCT,0) AS MPRODUCT /* 관리상품 판매건수 */
-             , D.AKSD23  /* 정액 수당  */
-             , D.AKSD24  /* 라이브팩 수당 */
-             , D.AKSD25  /* 홈케어 수장  */
-             , D.AKSD01  /* 개인비례 가전 */
-             , D.AKSD02  /* 개인비례 가전외 */
-             , D.AKSD03  /* 개인 판매장려 */
-             , D.AKSD21  /* 개인상조   */
-             , D.AKSD04  /* 미팅    */
-             , D.AKSD05  /* 정착    */
-             , D.AKSD20  /* 재지급    */
-             , D.AKSD30  /* 기타지원  */
+             , NVL(D.AKSD23,0) AS AKSD23  /* 정액 수당  */
+             , NVL(D.AKSD24,0) AS AKSD24  /* 라이브팩 수당 */
+             , NVL(D.AKSD25,0) AS AKSD25  /* 홈케어 수장  */
+             , NVL(D.AKSD01,0) AS AKSD01  /* 개인비례 가전 */
+             , NVL(D.AKSD02,0) AS AKSD02  /* 개인비례 가전외 */
+             , NVL(D.AKSD03,0) AS AKSD03  /* 개인 판매장려 */
+             , NVL(D.AKSD21,0) AS AKSD21  /* 개인상조   */
+             , NVL(D.AKSD04,0) AS AKSD04  /* 미팅    */
+             , NVL(D.AKSD05,0) AS AKSD05  /* 정착    */
+             , NVL(D.AKSD20,0) AS AKSD20  /* 재지급    */
+             , NVL(D.AKSD30,0) AS AKSD30  /* 기타지원  */
              , NVL(C.DSB_OJ_AMT,0) AS AKSD99 /* 과표합계 */
           FROM TB_OGBS_MM_PRTNR_IZ A
          INNER JOIN TB_OGBS_MM_OG_IZ O
@@ -1736,9 +1736,10 @@
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00016' THEN PERF_VAL END AS EC5AMT   /* 홈케어 판매가 */
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00018' THEN PERF_VAL END AS MPRODUCT   /* 관리상품 판매건수 */
                                        FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
-                                      WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                      WHERE AK17.FEE_TCNT_DV_CD = #{schOrdr}
                                         AND AK17.BASE_YM = #{perfYm}
                                         AND AK17.PERF_DV_CD = 0   /*개인판매*/
+                                        AND AK17.PERF_AGRG_CRT_DV_CD = '101' /* P추진단순주문실적생성 */
                                     <if test="no != null and no != ''">
                                         AND AK17.PRTNR_NO = #{no}
                                     </if>
@@ -1752,14 +1753,14 @@
             ON A.PRTNR_NO = PM.PRTNR_NO
            AND A.OG_TP_CD = PM.OG_TP_CD
            AND A.BASE_YM = PM.BASE_YM
-           AND PM.FEE_TCNT_DV_CD = '01'
-           AND PM.PERF_ATC_CD = 'W01P00012'    /*미팅참석일수*/
-           AND PM.PERF_AGRG_CRT_DV_CD = '103'
+           AND PM.FEE_TCNT_DV_CD = #{schOrdr}
+           AND PM.PERF_ATC_CD = 'W01P00012'    /* 미팅참석일수 */
+           AND PM.PERF_AGRG_CRT_DV_CD = '103'  /* P추진단미팅실적생성 */
           LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ C
             ON A.PRTNR_NO = C.PRTNR_NO
            AND A.BASE_YM = C.DSB_YM
            AND A.OG_TP_CD = C.OG_TP_CD
-           AND C.FEE_TCNT_DV_CD = '01'
+           AND C.FEE_TCNT_DV_CD = '02'
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                  , DSB_YM
                                  , CO_CD
@@ -1797,7 +1798,7 @@
                                        FROM TB_FEAM_FEE_DSB_DTL_IZ
                                       WHERE DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
                                         AND OG_TP_CD = 'W01'
-                                        AND FEE_TCNT_DV_CD = '01'  --차수구분
+                                        AND FEE_TCNT_DV_CD = '02'  --차수구분
                                     <if test="no != null and no != ''">
                                         AND PRTNR_NO = #{no}
                                     </if>
@@ -1822,7 +1823,7 @@
                                        FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A /* 상조 건수*/
                                       WHERE BASE_YM = #{perfYm}
                                         AND CAN_DT = 0
-                                        AND LIF_CNTR_OC_TN = 1
+                                        AND FLPYM_TN = 1
                                         AND LIF_CNTR_STAT_CD = 0
                                       GROUP BY PRTNR_NO
                                   UNION ALL
@@ -1832,7 +1833,7 @@
                                    FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A
                                   WHERE BASE_YM = #{perfYm}
                                     AND CAN_DT = 0
-                                    AND LIF_CNTR_OC_TN > 1
+                                    AND FLPYM_TN > 1
                                     AND LIF_CNTR_STAT_CD = 0
                                   GROUP BY PRTNR_NO
                                     ) Z GROUP BY Z.PRTNR_NO
@@ -1849,7 +1850,7 @@
                                       FROM TB_FEAM_FEE_DSB_DTL_IZ
                                      WHERE DSB_YM &lt; #{perfYm}
                                        AND OG_TP_CD = 'W01' /*P조직*/
-                                       AND FEE_TCNT_DV_CD = '01'  /*차수구분*/
+                                       AND FEE_TCNT_DV_CD = '02'  /*차수구분*/
                                    <if test="no != null and no != ''">
                                        AND PRTNR_NO = #{no}
                                    </if>
@@ -1861,7 +1862,7 @@
                                  WHERE DSB_YM &lt; #{perfYm}
                                    AND DSB_YM &gt;= '201904'
                                    AND OG_TP_CD = 'W02' /*M조직*/
-                                   AND FEE_TCNT_DV_CD = '01'  /*차수구분*/
+                                   AND FEE_TCNT_DV_CD = '02'  /*차수구분*/
                                <if test="no != null and no != ''">
                                    AND PRTNR_NO = #{no}
                                </if>
@@ -1875,6 +1876,10 @@
            AND A.PRTNR_NO = G.PRTNR_NO
            AND G.EDUC_CRSE_NO IN ('14','19')
            AND G.EDUC_CPC_ACKMT_YN = 'Y'
+          LEFT OUTER JOIN T_CMZ_CD_D CD1
+            ON A.RSB_DV_CD = CD1.CD_VLD_VAL
+           AND CD1.CD_ID = 'RSB_DV_CD'
+           AND CD1.TENANT_ID = 'TNT_WELLS'
          WHERE A.BASE_YM = #{perfYm}
            AND A.OG_TP_CD = 'W01' /*P조직*/
        <if test="no != null and no != ''">
@@ -1884,10 +1889,10 @@
     </select>
     <select id='selectPlannerBranchManagerFees'
             resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchPlarBrmgrRes">
-        SELECT A.OG_NM  /*소속*/
+        SELECT A.OG_ID AS OG_NM  /*소속*/
              , A.PRTNR_NO /*번호*/
              , A.PRTNR_KNM /*성명*/
-             , A.RSB_DV_CD /*직책*/
+             , CD1.CD_CNTN AS RSB_DV_CD /*직책*/
              , '플래너지점장' AS JAGYUK       /*수수료월 자격*/
              , CASE WHEN F.PRTNR_NO IS NOT NULL THEN
                     CASE WHEN F.PSTN_DV_CD = 15 AND NVL(F.QLF_DV_CD , '2') = '2' THEN '플래너'
@@ -1898,16 +1903,17 @@
                          END
                     ELSE '해약'
                END AS N_JAGYUK1               /* 자격(M+1)   */
-             , A.CNTR_DT /*등록기준월*/
-             , A.FST_CNTR_DT /*최초업무등록월*/
-             , A.FNL_CLTN_DT /*최종 해약월*/
-             , A.CLTN_DT /*업무해약월*/
-             , B.GADCNT                     /* 실활동인원     */
+             , SUBSTR(A.CNTR_DT,1,6) AS CNTR_DT     /*등록기준월*/
+             , SUBSTR(A.FST_CNTR_DT,1,6) AS FST_CNTR_DT /*최초업무등록월*/
+             , SUBSTR(A.FNL_CLTN_DT,1,6) AS FNL_CLTN_DT /*최종 해약월*/
+             , SUBSTR(A.CLTN_DT,1,6) AS CLTN_DT     /*업무해약월*/
+             , NVL(B.GADCNT,0) AS GADCNT        /* 실활동인원     */
+             , NVL(B_CNT.RUNCNT,0) AS RUNCNT  	/* 가동인원 */
              , CASE WHEN G.EDUC_CRSE_NO = '19' THEN G.EDUC_CRSE_CRT_BASE_YM END AS IS17EDU /* 수석(플래너)실전 */
-             , CASE WHEN A.DMTN_DT > 0 THEN A.DMTN_DT
-                    ELSE CASE WHEN AA.DMTN_DT > 0 THEN AA.DMTN_DT ELSE '' END
+             , CASE WHEN A.DMTN_DT > 0 THEN SUBSTR(A.DMTN_DT,1,6)
+                    ELSE CASE WHEN AA.DMTN_DT > 0 THEN SUBSTR(AA.DMTN_DT,1,6) ELSE '' END
                END AS AKDRIY                    /* 승진월     */
-             , A.PRFMT_DT AS AKSTYM  /*수석승급일*/
+             , SUBSTR(PAI.UPGR_YM,1,6) AS AKSTYM  /*수석승급월*/
              , A.FST_CNTR_DT AS LCECAYMD /*웰스매니저 개시일 LC1700P 정리되지 않아 임시처리 */
              , NVL(B.AKCDA0,0) AS AKCDA0  /* 가전    */
              , NVL(B.AKCDA1,0) AS AKCDA1  /* 가전외    */
@@ -1922,23 +1928,24 @@
              , NVL(B.AKDEQ5,0) AS AKDEQ5  /* 라이브팩 건수 */
              , NVL(B.EC5AMT,0) AS EC5AMT  /* 홈케어 판매가 */
              , NVL(B.MPRODUCT,0) AS MPRODUCT /* 관리상품 판매건수 */
-             , D.AKSD23  /* 정액 수당  */
-             , D.AKSD24  /* 라이브팩 수당 */
-             , D.AKSD25  /* 홈케어 수장  */
-             , D.AKSD01  /* 개인비례 가전 */
-             , D.AKSD02  /* 개인비례 가전외 */
-             , D.AKSD03  /* 개인 판매장려 */
-             , D.AKSD11  /* 가전조직비례 */
-             , D.AKSD12  /* 가전조직외 비례 */
-             , D.AKSD13  /* 조직판매장려 */
-             , MM.B_AKSD05 /*정착수수료 = 이전 정착수수료*/
-             , D.AKSD16  /* 조직배출1 */
-             , D.AKSD17  /* 조직배출2 */
-             , D.AKSD15  /* 신설 */
-             , D.AKSD20  /* 재지급    */
-             , D.AKSD21  /* 개인상조   */
-             , D.AKSD22  /* 지점장상조   */
-             , D.AKSD30  /* 기타지원  */
+             , NVL(D.AKSD23,0) AS AKSD23  /* 정액 수당  */
+             , NVL(D.AKSD24,0) AS AKSD24  /* 라이브팩 수당 */
+             , NVL(D.AKSD25,0) AS AKSD25  /* 홈케어 수장  */
+             , NVL(D.AKSD01,0) AS AKSD01  /* 개인비례 가전 */
+             , NVL(D.AKSD02,0) AS AKSD02  /* 개인비례 가전외 */
+             , NVL(D.AKSD03,0) AS AKSD03  /* 개인 판매장려 */
+             , NVL(D.AKSD11,0) AS AKSD11  /* 가전조직비례 */
+             , NVL(D.AKSD12,0) AS AKSD12  /* 가전조직외 비례 */
+             , NVL(D.AKSD13,0) AS AKSD13  /* 조직판매장려 */
+             , NVL(D.AKSD05,0) AS AKSD05  /* 정착수수료 */
+             , NVL(D.AKSD16,0) AS AKSD16  /* 조직배출1 */
+             , NVL(D.AKSD17,0) AS AKSD17  /* 조직배출2 */
+             , NVL(D.AKSD18,0) AS AKSD18  /* 승진수수료 */
+             , NVL(D.AKSD15,0) AS AKSD15  /* 신설 */
+             , NVL(D.AKSD20,0) AS AKSD20  /* 재지급    */
+             , NVL(D.AKSD21,0) AS AKSD21  /* 개인상조   */
+             , NVL(D.AKSD22,0) AS AKSD22  /* 지점장상조   */
+             , NVL(D.AKSD30,0) AS AKSD30  /* 기타지원  */
              , NVL(C.DSB_OJ_AMT,0) AS AKSD99 /* 과표합계 */
           FROM TB_OGBS_MM_PRTNR_IZ A
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ AA
@@ -1984,9 +1991,10 @@
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00018' THEN PERF_VAL END AS MPRODUCT   /* 관리상품 판매건수 */
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00020' THEN PERF_VAL END AS GADCNT   /*실활동인원*/
                                        FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
-                                      WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                      WHERE AK17.FEE_TCNT_DV_CD = #{schOrdr}
                                         AND AK17.BASE_YM = #{perfYm}
                                         AND AK17.PERF_DV_CD = 0   /*개인판매*/
+                                        AND AK17.PERF_AGRG_CRT_DV_CD = '101' /* P추진단순주문실적생성 */
                                           <if test="no != null and no != ''">
                                         AND AK17.PRTNR_NO = #{no}
                                           </if>
@@ -2007,7 +2015,7 @@
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00004' THEN PERF_VAL END AS AKCDA1   /* 가전외    */
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00010' THEN PERF_VAL END AS AKSQ02   /* 상조실적    */
                                        FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
-                                      WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                      WHERE AK17.FEE_TCNT_DV_CD = #{schOrdr}
                                         AND AK17.BASE_YM = #{perfYm}
                                         AND AK17.PERF_DV_CD = 2
                                     <if test="no != null and no != ''">
@@ -2019,19 +2027,55 @@
                            )B1
             ON A.PRTNR_NO = B1.PRTNR_NO
            AND A.OG_TP_CD = B1.OG_TP_CD
-          LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL PM
-            ON A.PRTNR_NO = PM.PRTNR_NO
-           AND A.OG_TP_CD = PM.OG_TP_CD
-           AND A.BASE_YM = PM.BASE_YM
-           AND PM.FEE_TCNT_DV_CD = '01'
-           AND PM.PERF_ATC_CD = 'W01P00012'    /*미팅참석일수*/
-           AND PM.PERF_AGRG_CRT_DV_CD = '103'
-          LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ C
-            ON A.PRTNR_NO = C.PRTNR_NO
-           AND A.BASE_YM = C.DSB_YM
-          AND A.OG_TP_CD = C.OG_TP_CD
-          AND C.FEE_TCNT_DV_CD = '01'
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
+        LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                               , COUNT(A.PRTNR_NO) AS RUNCNT
+                            FROM TB_FEAM_NTORP_PERF_MM_CL A   /*순주문 파트너 실적 월마감*/
+                           INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                              ON A.BASE_YM = B.BASE_YM
+                             AND A.PRTNR_NO = B.PRTNR_NO
+                             AND A.OG_TP_CD = B.OG_TP_CD
+                           INNER JOIN TB_OGBS_MM_OG_IZ C
+                              ON A.BASE_YM = C.BASE_YM
+                             AND B.OG_ID = C.OG_ID
+                             AND A.OG_TP_CD = C.OG_TP_CD
+                           WHERE A.FEE_TCNT_DV_CD = #{schOrdr}
+                             AND A.BASE_YM = #{perfYm}
+                             AND A.PERF_DV_CD = 0   /*개인판매*/
+                             AND A.PERF_AGRG_CRT_DV_CD = '101' /* P추진단순주문실적생성 */
+                             AND A.PERF_ATC_CD = 'W01P00004'
+                             AND A.PERF_VAL > 0
+                        <if test="no != null and no != ''">
+                             AND A.PRTNR_NO = #{no}
+                        </if>
+                             AND A.OG_TP_CD = 'W01'  /*웰스 P조직*/
+                           GROUP BY C.DGR3_LEVL_DG_PRTNR_NO
+                        ) B_CNT /* 가동인원 */
+          ON A.PRTNR_NO = B_CNT.PRTNR_NO
+        LEFT OUTER JOIN ( SELECT A.PRTNR_NO
+                               , MAX(UPGR_YM) AS UPGR_YM
+                            FROM TB_OGPS_TOPMR_PLAR_APLC_IZ A  /* 수석플래너신청내역 */
+                           WHERE A.OG_TP_CD = 'W01'
+                             AND A.QLF_DV_CD = '1'  /* 수석플래너 */
+                             AND A.UPGR_DMTN_DV_CD = '1' /* 승급 */
+                        <if test="no != null and no != ''">
+                             AND A.PRTNR_NO = #{no}
+                        </if>
+                           GROUP BY A.PRTNR_NO
+                        )PAI
+          ON A.PRTNR_NO = PAI.PRTNR_NO
+        LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL PM
+          ON A.PRTNR_NO = PM.PRTNR_NO
+         AND A.OG_TP_CD = PM.OG_TP_CD
+         AND A.BASE_YM = PM.BASE_YM
+         AND PM.FEE_TCNT_DV_CD = #{schOrdr}
+         AND PM.PERF_ATC_CD = 'W01P00012'    /*미팅참석일수*/
+         AND PM.PERF_AGRG_CRT_DV_CD = '103'
+        LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ C
+          ON A.PRTNR_NO = C.PRTNR_NO
+         AND A.BASE_YM = C.DSB_YM
+         AND A.OG_TP_CD = C.OG_TP_CD
+         AND C.FEE_TCNT_DV_CD = '02'
+        LEFT OUTER JOIN ( SELECT PRTNR_NO
                                  , DSB_YM
                                  , CO_CD
                                  , OG_TP_CD
@@ -2049,6 +2093,8 @@
                                  , NVL(SUM(AKSD16),0) AS AKSD16  /* 조직배출1 */
                                  , NVL(SUM(AKSD17),0) AS AKSD17  /* 조직배출2 */
                                  , NVL(SUM(AKSD15),0) AS AKSD15  /* 신설 */
+                                 , NVL(SUM(AKSD05),0) AS AKSD05  /* 정착 */
+                                 , NVL(SUM(AKSD18),0) AS AKSD18  /* 승진수수료 */
                                  , NVL(SUM(AKSD20),0) AS AKSD20  /* 재지급    */
                                  , NVL(SUM(AKSD21),0) AS AKSD21  /* 개인상조   */
                                  , NVL(SUM(AKSD22),0) AS AKSD22  /* 지점장상조   */
@@ -2068,9 +2114,11 @@
                                           , CASE WHEN FEE_CD = 'W010011' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD11                         /* 조직비례 가전    */
                                           , CASE WHEN FEE_CD = 'W010012' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD12                         /* 조직비례 가전 외    */
                                           , CASE WHEN FEE_CD = 'W010013' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD13                         /* 조직 판매장려    */
+                                          , CASE WHEN (FEE_CD = 'W010005' OR FEE_CD = 'W010105') THEN FEE_ATC_VAL ELSE 0 END  AS AKSD05 /* 정착    */
                                           , CASE WHEN FEE_CD = 'W010016' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD16                         /* 조직배출1    */
                                           , CASE WHEN FEE_CD = 'W010017' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD17                         /* 조직배출2    */
                                           , CASE WHEN FEE_CD = 'W010015' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD15                         /* 신설    */
+                                          , CASE WHEN (FEE_CD = 'W010018' OR FEE_CD = 'W010118') THEN FEE_ATC_VAL ELSE 0 END  AS AKSD18                         /* 승진수수료 */
                                           , CASE WHEN (FEE_CD = 'W010020' OR FEE_CD = 'W010120') THEN FEE_ATC_VAL ELSE 0 END AS AKSD20  /* 재지급    */
                                           , CASE WHEN (FEE_CD = 'W010021' OR FEE_CD = 'W010021') THEN FEE_ATC_VAL ELSE 0 END AS AKSD21  /* 개인상조   */
                                           , CASE WHEN FEE_CD = 'W010022' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD22                         /* 지점장상조  */
@@ -2078,13 +2126,14 @@
                                        FROM TB_FEAM_FEE_DSB_DTL_IZ
                                       WHERE DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
                                         AND OG_TP_CD = 'W01'
-                                        AND FEE_TCNT_DV_CD = '01'  --차수구분
+                                        AND FEE_TCNT_DV_CD = '02'  /* 확정 */
                                     <if test="no != null and no != ''">
                                         AND PRTNR_NO = #{no}
                                     </if>
-                                        AND FEE_CD IN ('W010023', 'W010123', 'W010024', 'W010124', 'W010025', 'W010125', 'W010001', 'W010101'
-                                                     , 'W010002', 'W010102', 'W010003', 'W010103', 'W010011', 'W010012', 'W010013', 'W010016'
-                                                     , 'W010017', 'W010015',  'W010020', 'W010120', 'W010021', 'W010021', 'W010022', 'W010030', 'W010130')
+                                        AND FEE_CD IN ('W010023', 'W010123', 'W010024', 'W010124', 'W010025', 'W010125', 'W010001', 'W010101', 'W010118'
+                                                     , 'W010002', 'W010102', 'W010003', 'W010103', 'W010011', 'W010012', 'W010013', 'W010016', 'W010018'
+                                                     , 'W010017', 'W010015',  'W010020', 'W010120', 'W010021', 'W010021', 'W010022', 'W010030', 'W010130'
+                                                     , 'W010005', 'W010105' )
                                    )
                              GROUP BY PRTNR_NO, DSB_YM, CO_CD, OG_TP_CD, FEE_TCNT_DV_CD, SPMT_DSB_DV_CD
                            )D
@@ -2103,7 +2152,7 @@
                                        FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A /* 상조 건수*/
                                       WHERE BASE_YM = #{perfYm}
                                         AND CAN_DT = 0
-                                        AND LIF_CNTR_OC_TN = 1
+                                        AND FLPYM_TN = 1
                                         AND LIF_CNTR_STAT_CD = 0
                                       GROUP BY PRTNR_NO
                                       UNION ALL
@@ -2113,7 +2162,7 @@
                                        FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A
                                       WHERE BASE_YM = #{perfYm}
                                         AND CAN_DT = 0
-                                        AND LIF_CNTR_OC_TN > 1
+                                        AND FLPYM_TN > 1
                                         AND LIF_CNTR_STAT_CD = 0
                                       GROUP BY PRTNR_NO
                                     ) Z GROUP BY Z.PRTNR_NO
@@ -2123,39 +2172,15 @@
             ON A.PRTNR_NO = F.PRTNR_NO
            AND A.OG_TP_CD = F.OG_TP_CD
            AND F.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                 , NVL(SUM(B_AKSD05),0) AS B_AKSD05
-                              FROM ( SELECT PRTNR_NO
-                                          , FEE_ATC_VAL AS B_AKSD05  /* P조직 기준일 이전수수료 */
-                                       FROM TB_FEAM_FEE_DSB_DTL_IZ
-                                      WHERE DSB_YM &lt; #{perfYm}
-                                        AND OG_TP_CD = 'W01' /*P조직*/
-                                        AND FEE_TCNT_DV_CD = '01'  /*차수구분*/
-                                    <if test="no != null and no != ''">
-                                        AND PRTNR_NO = #{no}
-                                    </if>
-                                        AND FEE_CD IN ('W010005', 'W010105')
-                                      UNION
-                                     SELECT PRTNR_NO
-                                          , FEE_ATC_VAL AS B_AKSD05  /* M조직 기준일 이전수수료 */
-                                       FROM TB_FEAM_FEE_DSB_DTL_IZ
-                                      WHERE DSB_YM &lt; #{perfYm}
-                                        AND DSB_YM &gt;= '201904'
-                                        AND OG_TP_CD = 'W02' /*M조직*/
-                                        AND FEE_TCNT_DV_CD = '01'  /*차수구분*/
-                                    <if test="no != null and no != ''">
-                                        AND PRTNR_NO = #{no}
-                                    </if>
-                                        AND FEE_CD IN ('W020080', 'W020081', 'W020082')
-                                    )
-                             GROUP BY PRTNR_NO
-                           )MM
-            ON A.PRTNR_NO = MM.PRTNR_NO
           LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_AGRG G
             ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
            AND A.PRTNR_NO = G.PRTNR_NO
            AND G.EDUC_CRSE_NO IN ('14','19')
            AND G.EDUC_CPC_ACKMT_YN = 'Y'
+          LEFT OUTER JOIN T_CMZ_CD_D CD1
+            ON A.RSB_DV_CD = CD1.CD_VLD_VAL
+           AND CD1.CD_ID = 'RSB_DV_CD'
+           AND CD1.TENANT_ID = 'TNT_WELLS'
          WHERE A.BASE_YM = #{perfYm}
            AND A.OG_TP_CD = 'W01' /*P조직*/
        <if test="no != null and no != ''">
@@ -2165,10 +2190,10 @@
     </select>
     <select id='selectPlannerTotalFees'
             resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchPlarTotalRes">
-        SELECT A.OG_NM  /*소속*/
+        SELECT A.OG_ID AS OG_NM  /*소속*/
              , A.PRTNR_NO /*번호*/
              , A.PRTNR_KNM /*성명*/
-             , A.RSB_DV_CD /*직책*/
+             , CD1.CD_CNTN AS RSB_DV_CD /*직책*/
              , CASE WHEN A.PSTN_DV_CD = 15 THEN NVL(PM.PERF_VAL,0)
                     ELSE 0
                END AS AKCUIL     /*미팅일수*/
@@ -2188,50 +2213,53 @@
                END AS N_JAGYUK1               /* 자격(M+1)   */
              , CASE WHEN G.EDUC_CRSE_NO = '14' THEN G.EDUC_CRSE_CRT_BASE_YM END AS IS11EDU /* 플래너스타트업 */
              , CASE WHEN G.EDUC_CRSE_NO = '19' THEN G.EDUC_CRSE_CRT_BASE_YM END AS IS17EDU /* 수석(플래너)실전 */
-             , A.CNTR_DT /*등록기준월*/
-             , A.FST_CNTR_DT /*최초업무등록월*/
-             , A.RCNTR_DT /*재등록월*/
-             , A.FNL_CLTN_DT /*최종해약월*/
-             , A.CLTN_DT /*업무해약월*/
-             , CASE WHEN F.PSTN_DV_CD = 7 THEN B.GADCNT ELSE 0 END AS  GADCNT  /* 실활동인원     */
-             , CASE WHEN A.PSTN_DV_CD = 7 AND A.DMTN_DT > 0 THEN A.DMTN_DT
-                    ELSE CASE WHEN A.PSTN_DV_CD = 7 AND AA.DMTN_DT > 0 THEN AA.DMTN_DT
+             , SUBSTR(A.CNTR_DT,1,6) AS CNTR_DT/*등록기준월*/
+             , SUBSTR(A.FST_CNTR_DT,1,6) AS FST_CNTR_DT/*최초업무등록월*/
+             , SUBSTR(A.RCNTR_DT,1,6) AS RCNTR_DT/*재등록월*/
+             , SUBSTR(A.FNL_CLTN_DT,1,6) AS FNL_CLTN_DT/*최종해약월*/
+             , SUBSTR(A.CLTN_DT,1,6) AS CLTN_DT/*업무해약월*/
+             , NVL(B.GADCNT,0) AS GADCNT        /* 실활동인원     */
+             , NVL(B_CNT.RUNCNT,0) AS RUNCNT  	/* 가동인원 */
+             , CASE WHEN A.PSTN_DV_CD = 7 AND A.DMTN_DT > 0 THEN SUBSTR(A.DMTN_DT,1,6)
+                    ELSE CASE WHEN A.PSTN_DV_CD = 7 AND AA.DMTN_DT > 0 THEN SUBSTR(AA.DMTN_DT,1,6)
                               ELSE ''
                          END
                END AS AKDRIY                    /* 승진월     */
-             , A.PRFMT_DT AS AKSTYM  /*수석승급일*/
-             , A.FST_CNTR_DT AS LCECAYMD /*웰스매니저 개시일 LC1700P 정리되지 않아 임시처리 */
-             , MM.B_AKSD05 /*정착수수료 = 이전 정착수수료*/
-             , NVL(B.AKCDA0,0) AS AKCDA0  /* 가전    */
-             , NVL(B.AKCDA1,0) AS AKCDA1  /* 가전외    */
-             , NVL(B.AKCDA2,0) AS AKCDA2  /* 기변    */
-             , NVL(EE.P_CNT, 0)  AS AKSQ01              /* 당월 상조  */
-             , NVL(EE.G_CNT, 0)  AS N_AKSQ01             /* 상조 유지  */
-             , NVL(B1.AKCDA0,0) AS AKCDAG0  /* 지점 가전    */
-             , NVL(B1.AKCDA1,0) AS AKCDAG1  /* 지점 가전외    */
-             , NVL(B1.AKSQ02,0) AS AKSQG02  /* 지점 상조    */
-             , NVL(B.AKCDA3,0) AS AKCDA3  /* 환경(정액)  */
-             , NVL(B.AKCDA4,0) AS AKCDA4  /* 환경외(정액)  */
-             , NVL(B.AKDEQ5,0) AS AKDEQ5  /* 라이브팩 건수 */
-             , NVL(B.EC5AMT,0) AS EC5AMT  /* 홈케어 판매가 */
-             , NVL(B.MPRODUCT,0) AS MPRODUCT /* 관리상품 판매건수 */
-             , D.AKSD24  /* 라이브팩 수당 */
-             , D.AKSD25  /* 홈케어 수장  */
-             , D.AKSD01  /* 개인비례 가전 */
-             , D.AKSD02  /* 개인비례 가전외 */
-             , D.AKSD03  /* 개인 판매장려 */
-             , D.AKSD21  /* 개인상조   */
-             , D.AKSD04  /* 미팅    */
-             , D.AKSD05  /* 정착    */
-             , D.AKSD20  /* 재지급    */
-             , D.AKSD30  /* 기타지원  */
-             , D.AKSD11  /* 가전조직비례 */
-             , D.AKSD12  /* 가전조직외 비례 */
-             , D.AKSD13  /* 조직판매장려 */
-             , D.AKSD16  /* 조직배출1 */
-             , D.AKSD17  /* 조직배출2 */
-             , D.AKSD15  /* 신설 */
-             , D.AKSD22  /* 지점장상조   */
+             , NVL(SUBSTR(A.PRFMT_DT,1,6),0) AS AKSTYM  /*수석승급일*/
+             , NVL(A.FST_CNTR_DT,0) AS LCECAYMD /*웰스매니저 개시일 LC1700P 정리되지 않아 임시처리 */
+             , NVL(MM.B_AKSD05,0) AS B_AKSD05   /*정착수수료 = 이전 정착수수료*/
+             , NVL(B.AKCDA0,0) AS AKCDA0        /* 가전    */
+             , NVL(B.AKCDA1,0) AS AKCDA1        /* 가전외    */
+             , NVL(B.AKCDA2,0) AS AKCDA2        /* 기변    */
+             , NVL(EE.P_CNT, 0) AS AKSQ01       /* 당월 상조  */
+             , NVL(EE.G_CNT, 0) AS N_AKSQ01     /* 상조 유지  */
+             , NVL(B1.AKCDA0,0) AS AKCDAG0      /* 지점 가전    */
+             , NVL(B1.AKCDA1,0) AS AKCDAG1      /* 지점 가전외    */
+             , NVL(B1.AKSQ02,0) AS AKSQG02      /* 지점 상조    */
+             , NVL(B.AKCDA3,0) AS AKCDA3        /* 환경(정액)  */
+             , NVL(B.AKCDA4,0) AS AKCDA4        /* 환경외(정액)  */
+             , NVL(B.AKDEQ5,0) AS AKDEQ5        /* 라이브팩 건수 */
+             , NVL(B.EC5AMT,0) AS EC5AMT        /* 홈케어 판매가 */
+             , NVL(B.MPRODUCT,0) AS MPRODUCT    /* 관리상품 판매건수 */
+             , NVL(D.AKSD23,0) AS AKSD23 /* 정액수수료 */
+             , NVL(D.AKSD24,0) AS AKSD24 /* 라이브팩 수당 */
+             , NVL(D.AKSD25,0) AS AKSD25  /* 홈케어 수장  */
+             , NVL(D.AKSD01,0) AS AKSD01  /* 개인비례 가전 */
+             , NVL(D.AKSD02,0) AS AKSD02  /* 개인비례 가전외 */
+             , NVL(D.AKSD03,0) AS AKSD03  /* 개인 판매장려 */
+             , NVL(D.AKSD21,0) AS AKSD21  /* 개인상조   */
+             , NVL(D.AKSD04,0) AS AKSD04  /* 미팅    */
+             , NVL(D.AKSD05,0) AS AKSD05  /* 정착    */
+             , NVL(D.AKSD20,0) AS AKSD20  /* 재지급    */
+             , NVL(D.AKSD30,0) AS AKSD30  /* 기타지원  */
+             , NVL(D.AKSD11,0) AS AKSD11  /* 가전조직비례 */
+             , NVL(D.AKSD12,0) AS AKSD12  /* 가전조직외 비례 */
+             , NVL(D.AKSD13,0) AS AKSD13  /* 조직판매장려 */
+             , NVL(D.AKSD16,0) AS AKSD16  /* 조직배출1 */
+             , NVL(D.AKSD17,0) AS AKSD17  /* 조직배출2 */
+             , NVL(D.AKSD15,0) AS AKSD15  /* 신설 */
+             , NVL(D.AKSD18,0) AS AKSD18  /* 승진수수료 */
+             , NVL(D.AKSD22,0) AS AKSD22  /* 지점장상조   */
              , NVL(C.DSB_OJ_AMT,0) AS AKSD99 /* 과표 */
              , NVL(C.DDCTAM,0) AS DDCTAM     /* 공제 */
              , NVL(C.DSB_OJ_AMT,0) AS DSB_OJ_AMT /* 실지급 */
@@ -2279,7 +2307,7 @@
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00018' THEN PERF_VAL END AS MPRODUCT   /* 관리상품 판매건수 */
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00020' THEN PERF_VAL END AS GADCNT   /*실활동인원*/
                                        FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
-                                      WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                      WHERE AK17.FEE_TCNT_DV_CD = #{schOrdr}
                                         AND AK17.BASE_YM = #{perfYm}
                                         AND AK17.PERF_DV_CD = 0   /*개인판매*/
                                     <if test="no != null and no != ''">
@@ -2302,7 +2330,7 @@
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00004' THEN PERF_VAL END AS AKCDA1   /* 가전외    */
                                           , CASE WHEN AK17.PERF_ATC_CD = 'W01P00010' THEN PERF_VAL END AS AKSQ02   /* 상조실적    */
                                        FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
-                                      WHERE AK17.FEE_TCNT_DV_CD = '01'
+                                      WHERE AK17.FEE_TCNT_DV_CD = #{schOrdr}
                                         AND AK17.BASE_YM = #{perfYm}
                                         AND AK17.PERF_DV_CD = 2
                                     <if test="no != null and no != ''">
@@ -2318,14 +2346,14 @@
             ON A.PRTNR_NO = PM.PRTNR_NO
            AND A.OG_TP_CD = PM.OG_TP_CD
            AND A.BASE_YM = PM.BASE_YM
-           AND PM.FEE_TCNT_DV_CD = '01'
+           AND PM.FEE_TCNT_DV_CD = #{schOrdr}
            AND PM.PERF_ATC_CD = 'W01P00012'    /*미팅참석일수*/
            AND PM.PERF_AGRG_CRT_DV_CD = '103'
           LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ C
             ON A.PRTNR_NO = C.PRTNR_NO
            AND A.BASE_YM = C.DSB_YM
            AND A.OG_TP_CD = C.OG_TP_CD
-           AND C.FEE_TCNT_DV_CD = '01'
+           AND C.FEE_TCNT_DV_CD = '02'
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                  , DSB_YM
                                  , CO_CD
@@ -2349,6 +2377,8 @@
                                  , NVL(SUM(AKSD17),0) AS AKSD17  /* 조직배출2 */
                                  , NVL(SUM(AKSD15),0) AS AKSD15  /* 신설 */
                                  , NVL(SUM(AKSD22),0) AS AKSD22  /* 지점장상조   */
+                                 , NVL(SUM(AKSD23),0) AS AKSD23  /* 정액수수료   */
+                                 , NVL(SUM(AKSD18),0) AS AKSD18  /* 승진수수료   */
                               FROM ( SELECT PRTNR_NO
                                           , DSB_YM
                                           , CO_CD
@@ -2372,17 +2402,19 @@
                                           , CASE WHEN FEE_CD = 'W010017' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD17                         /* 조직배출2    */
                                           , CASE WHEN FEE_CD = 'W010015' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD15                         /* 신설    */
                                           , CASE WHEN FEE_CD = 'W010022' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD22                         /* 지점장상조  */
+                                          , CASE WHEN (FEE_CD = 'W010023' OR FEE_CD = 'W010123') THEN FEE_ATC_VAL ELSE 0 END  AS AKSD23 /* 정액수수료  */
+                                          , CASE WHEN (FEE_CD = 'W010018' OR FEE_CD = 'W010118') THEN FEE_ATC_VAL ELSE 0 END  AS AKSD18 /* 승진수수료  */
                                        FROM TB_FEAM_FEE_DSB_DTL_IZ
                                       WHERE DSB_YM = TO_CHAR(ADD_MONTHS( #{perfYm}||'01', '1' ),'YYYYMM' )
                                         AND OG_TP_CD = 'W01'
-                                        AND FEE_TCNT_DV_CD = '01'  --차수구분
+                                        AND FEE_TCNT_DV_CD = '02'  --차수구분
                                     <if test="no != null and no != ''">
                                         AND PRTNR_NO = #{no}
                                     </if>
                                         AND FEE_CD IN ('W010001', 'W010101', 'W010002', 'W010102', 'W010003', 'W010103', 'W010021', 'W010121'
                                                      , 'W010004', 'W010005', 'W010105', 'W010020', 'W010120', 'W010030', 'W010130', 'W010024'
                                                      , 'W010124', 'W010025', 'W010125', 'W010011', 'W010012', 'W010013', 'W010016', 'W010017'
-                                                     , 'W010015',  'W010022')
+                                                     , 'W010015',  'W010022', 'W010023', 'W010123', 'W010018', 'W010118')
                                     )
                              GROUP BY PRTNR_NO, DSB_YM, CO_CD, OG_TP_CD, FEE_TCNT_DV_CD, SPMT_DSB_DV_CD
                            )D
@@ -2401,7 +2433,7 @@
                                        FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A /* 상조 건수*/
                                       WHERE BASE_YM = #{perfYm}
                                         AND CAN_DT = 0
-                                        AND LIF_CNTR_OC_TN = 1
+                                        AND FLPYM_TN = 1
                                         AND LIF_CNTR_STAT_CD = 0
                                    GROUP BY PRTNR_NO
                                    UNION ALL
@@ -2411,7 +2443,7 @@
                                     FROM TB_FEAM_LIF_ALNC_FEE_CNTR_IZ A
                                    WHERE BASE_YM = #{perfYm}
                                      AND CAN_DT = 0
-                                     AND LIF_CNTR_OC_TN > 1
+                                     AND FLPYM_TN > 1
                                      AND LIF_CNTR_STAT_CD = 0
                                    GROUP BY PRTNR_NO
                                     ) Z GROUP BY Z.PRTNR_NO
@@ -2428,7 +2460,7 @@
                                        FROM TB_FEAM_FEE_DSB_DTL_IZ
                                       WHERE DSB_YM &lt; #{perfYm}
                                         AND OG_TP_CD = 'W01' /*P조직*/
-                                        AND FEE_TCNT_DV_CD = '01'  /*차수구분*/
+                                        AND FEE_TCNT_DV_CD = '02'  /*차수구분*/
                                     <if test="no != null and no != ''">
                                         AND PRTNR_NO = #{no}
                                     </if>
@@ -2440,7 +2472,7 @@
                                       WHERE DSB_YM &lt; #{perfYm}
                                         AND DSB_YM &gt;= '201904'
                                         AND OG_TP_CD = 'W02' /*M조직*/
-                                        AND FEE_TCNT_DV_CD = '01'  /*차수구분*/
+                                        AND FEE_TCNT_DV_CD = '02'  /*차수구분*/
                                     <if test="no != null and no != ''">
                                         AND PRTNR_NO = #{no}
                                     </if>
@@ -2449,11 +2481,39 @@
                              GROUP BY PRTNR_NO
                            )MM
             ON A.PRTNR_NO = MM.PRTNR_NO
+          LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                                 , COUNT(A.PRTNR_NO) AS RUNCNT
+                              FROM TB_FEAM_NTORP_PERF_MM_CL A   /*순주문 파트너 실적 월마감*/
+                             INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                                ON A.BASE_YM = B.BASE_YM
+                               AND A.PRTNR_NO = B.PRTNR_NO
+                               AND A.OG_TP_CD = B.OG_TP_CD
+                             INNER JOIN TB_OGBS_MM_OG_IZ C
+                                ON A.BASE_YM = C.BASE_YM
+                               AND B.OG_ID = C.OG_ID
+                               AND A.OG_TP_CD = C.OG_TP_CD
+                             WHERE A.FEE_TCNT_DV_CD = #{schOrdr}
+                               AND A.BASE_YM = #{perfYm}
+                               AND A.PERF_DV_CD = 0   /*개인판매*/
+                               AND A.PERF_AGRG_CRT_DV_CD = '101' /* P추진단순주문실적생성 */
+                               AND A.PERF_ATC_CD = 'W01P00004'
+                               AND A.PERF_VAL > 0
+                          <if test="no != null and no != ''">
+                               AND A.PRTNR_NO = #{no}
+                          </if>
+                               AND A.OG_TP_CD = 'W01'  /*웰스 P조직*/
+                             GROUP BY C.DGR3_LEVL_DG_PRTNR_NO
+                          ) B_CNT /* 가동인원 */
+            ON A.PRTNR_NO = B_CNT.PRTNR_NO
           LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_AGRG G
             ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
            AND A.PRTNR_NO = G.PRTNR_NO
            AND G.EDUC_CRSE_NO IN ('14','19')
            AND G.EDUC_CPC_ACKMT_YN = 'Y'
+          LEFT OUTER JOIN T_CMZ_CD_D CD1
+            ON A.RSB_DV_CD = CD1.CD_VLD_VAL
+           AND CD1.CD_ID = 'RSB_DV_CD'
+           AND CD1.TENANT_ID = 'TNT_WELLS'
          WHERE A.BASE_YM = #{perfYm}
            AND A.OG_TP_CD = 'W01' /*P조직*/
        <if test="no != null and no != ''">
@@ -2605,5 +2665,127 @@
          WHERE DSB_YM = #{perfYm}    /* 지급년월 */
            AND OG_TP_CD = #{ogTp}    /* 조직유형 */
     </update>
+
+
+    <!-- 수수료생성관리 - 홈마스터 품의 내용 조회-->
+    <select id="selectHmstFeeFormDtl" resultType="Hashmap" >
+
+            SELECT #{perfYm} AS perfYm
+                 , W030001 + W030051 + W030005 + W030055 + W030004 + W030054 + W030006 + W030056 + W030002 + W030003 + W030053 + W030016
+                   + W030007 + W030057 +  W030008 + W030058 +  W030009 + W030058 +  W030010 + W030060
+                   + W030011 + W030061 +  W030012 + W030062 +  W030014 + W030064 AS tax_std_tam
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]>  202301 THEN W030001 + W030051 + W030005 + W030055
+                        ELSE W030001 + W030005
+                   END AS atc1_amt1
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202301 THEN W030004 + W030054 + W030006 + W030056
+                        ELSE W030004 + W030006
+                   END AS atc1_amt2
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202209 THEN W030003 + W030053
+                        WHEN #{perfYm}  <![CDATA[  > ]]> 202209 AND 202305 <![CDATA[ <=  ]]> 202301 THEN W030002 + W030053
+                        ELSE W030002
+                   END AS atc1_amt3
+                 , CASE WHEN #{perfYm}  <![CDATA[  < ]]>   202310 THEN 0
+                        ELSE W030016
+                   END AS atc1_amt4
+                 , W030001 + W030051 + W030005 + W030055 + W030004 + W030054 + W030006 + W030056 + W030002 + W030003 + W030053 + W030016 AS sbsum1
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202301 THEN W030007 + W030057
+                        ELSE W030007
+                   END AS act2_amt1
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202209 THEN W030008 + W030058
+                        WHEN #{perfYm}  <![CDATA[  > ]]>  202209 AND 202305 <![CDATA[ <=  ]]> 202301 THEN W030009 + W030058
+                        ELSE W030009
+                   END AS act2_amt2
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202301 THEN W030010 + W030060
+                        ELSE W030010
+                   END AS act2_amt3
+                 , W030007 + W030057 +  W030008 + W030058 +  W030009 + W030058 +  W030010 + W030060 AS sbsum2
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202301 THEN W030011 + W030061
+                        ELSE W030011
+                   END AS atc3_amt1
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202301 THEN W030012 + W030062
+                        ELSE W030012
+                   END AS atc3_amt2
+                 , CASE WHEN #{perfYm}  <![CDATA[ <=  ]]> 202301 THEN W030014 + W030064
+                        ELSE W030014
+                   END AS atc3_amt3
+                 , W030011 + W030061 +  W030012 + W030062 +  W030014 + W030064 AS sbsum3
+                 , DDTN.ATC4_AMT1   AS atc4_amt1
+                 , DDTN.ATC4_AMT2   AS atc4_amt2
+                 , DDTN.ATC4_AMT3   AS atc4_amt3
+                 , DDTN.ATC4_AMT4   AS atc4_amt4
+                 , PNPYAM.ATC4_AMT5 AS atc4_amt5
+                 , PNPYAM.ATC4_AMT6 AS atc4_amt6
+                 , (DDTN.ATC4_AMT1+DDTN.ATC4_AMT2   +DDTN.ATC4_AMT3   +DDTN.ATC4_AMT4   + PNPYAM.ATC4_AMT5 +PNPYAM.ATC4_AMT6 ) AS sbsum4	-- 공제 소계
+                 , W030001 + W030051 + W030005 + W030055 + W030004 + W030054 + W030006 + W030056 + W030002 + W030003 + W030053 + W030016
+                    + W030007 + W030057 +  W030008 + W030058 +  W030009 + W030058 +  W030010 + W030060
+                    + W030011 + W030061 +  W030012 + W030062 +  W030014 + W030064 AS txstdSumAmt
+                 , W030001 + W030051 + W030005 + W030055 + W030004 + W030054 + W030006 + W030056 + W030002 + W030003 + W030053 + W030016
+                      + W030007 + W030057 +  W030008 + W030058 +  W030009 + W030058 +  W030010 + W030060
+                      + W030011 + W030061 +  W030012 + W030062 +  W030014 + W030064
+                        - (DDTN.ATC4_AMT1 + DDTN.ATC4_AMT2 + DDTN.ATC4_AMT3 + DDTN.ATC4_AMT4 + PNPYAM.ATC4_AMT5 +PNPYAM.ATC4_AMT6 ) AS acpySumAmt
+                 , INCEN.INCEN_1 AS baseAmt
+                 , INCEN.INCEN_2 AS ddtnAmt
+                 , INCEN.INCEN_1 - INCEN.INCEN_2 AS calAmt
+            FROM ( SELECT W030001, W030051, W030005, W030055, W030004
+                          , W030054, W030006, W030056, W030003, W030053
+                          , W030007, W030057, W030008, W030058, W030010
+                          , W030060, W030011, W030061, W030012, W030062
+                          , W030014, W030064, W030016, W030002, W030009
+                        FROM ( SELECT FEE_CD
+                                   , FEE_ATC_VAL
+                               FROM TB_FEAM_FEE_DSB_DTL_IZ A    /* 수수료지급상세내역 */
+                              WHERE A.DSB_YM = #{perfYm}        /* 지급년월 */
+                                AND A.OG_TP_CD = 'W03'          /* 조직구분 = 홈마스터 */
+                                AND A.FEE_TCNT_DV_CD = '02'     /* 실제지급 */
+                            )
+                        PIVOT ( SUM(FEE_ATC_VAL)
+                                FOR FEE_CD IN (     'W030001' AS W030001, 'W030051' AS W030051, 'W030005' AS W030005, 'W030055' AS W030055, 'W030004' AS W030004
+                                                  , 'W030054' AS W030054, 'W030006' AS W030006, 'W030056' AS W030056, 'W030003' AS W030003, 'W030053' AS W030053
+                                                  , 'W030007' AS W030007, 'W030057' AS W030057, 'W030008' AS W030008, 'W030058' AS W030058, 'W030010' AS W030010
+                                                  , 'W030060' AS W030060, 'W030011' AS W030011, 'W030061' AS W030061, 'W030012' AS W030012, 'W030062' AS W030062
+                                                  , 'W030014' AS W030014, 'W030064' AS W030064, 'W030016' AS W030016, 'W030002' AS W030002, 'W030009' AS W030009
+
+                                              )
+                              )
+                   ) AA
+            LEFT OUTER JOIN (
+                                /*  공제내역 - 가지급금 */
+                                SELECT
+                                     CASE WHEN FEE_DDTN_TP_CD ='01' THEN SUM(NVL(FEE_DDTN_CNFM_AMT,0)) END AS ATC4_AMT1--- 수수료공제확정금액 -  보증예치금(RDS)
+                                    ,CASE WHEN FEE_DDTN_TP_CD ='02' THEN SUM(NVL(FEE_DDTN_CNFM_AMT,0)) END AS ATC4_AMT2--- 수수료공제확정금액 -  소득세
+                                    ,CASE WHEN FEE_DDTN_TP_CD ='03' THEN SUM(NVL(FEE_DDTN_CNFM_AMT,0)) END AS ATC4_AMT3--- 수수료공제확정금액 -  주민세
+                                    ,CASE WHEN FEE_DDTN_TP_CD ='05' THEN SUM(NVL(FEE_DDTN_CNFM_AMT,0)) END AS ATC4_AMT4--- 수수료공제확정금액 -  고용보험
+                                FROM TB_FEAM_FEE_DDTN_IZ    -- 수수료공제내역
+                                WHERE 1=1
+                                    AND DDTN_YM = #{perfYm}
+                                    AND OG_TP_CD = 'W03'
+                                    AND FEE_TCNT_DV_CD = '02' -- 수수료차수구분코드
+                                GROUP BY DDTN_YM , OG_TP_CD , FEE_DDTN_TP_CD
+                              ) DDTN
+                  ON 1=1
+                LEFT OUTER JOIN
+                             (  /* 공제내역 - 가지급금 상세 */
+                                SELECT
+                                    CASE WHEN PNPYAM_ATC_CD = '20' THEN SUM(NVL(FEE_DDCTAM,0)) END AS ATC4_AMT5 -- 가지급금 산재보험
+                                    ,CASE WHEN PNPYAM_ATC_CD = '29' THEN SUM(NVL(FEE_DDCTAM,0)) END AS ATC4_AMT6 -- 가지급금 유니폼공제
+                                FROM TB_FEAM_FEE_DDTN_DTL_IZ    -- 수수료공제상세내역
+                                WHERE 1=1
+                                    AND DDTN_YM = #{perfYm}
+                                    AND OG_TP_CD = 'W03'
+                                    AND FEE_TCNT_DV_CD = '02' -- 수수료차수구분코드
+                                    GROUP BY DDTN_YM , OG_TP_CD , FEE_DDTN_TP_CD , PNPYAM_ATC_CD
+                             ) PNPYAM
+                ON 1=1
+            LEFT OUTER JOIN (
+                                SELECT SUM(AWD_INTBS_AMT) AS INCEN_1-- 시상소득과표금액
+                                        ,SUM(AWD_ERN_WHTX) AS INCEN_2 --원천세
+                                FROM TB_PSEV_AWD_ERN_WHTX_IZ          -- 시상소득원천세내역
+                                WHERE PERF_YM = #{perfYm}
+                                GROUP BY PERF_YM
+                            ) INCEN
+                ON 1=1
+
+
+    </select>
 
 </mapper>

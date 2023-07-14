@@ -73,6 +73,7 @@ public class WctcUserSellLimitMgtService {
                         userSellLimit.setSellBaseChval(dto.pdCd());
                         mapper.insertSellBaseDtl(userSellLimit);
                     }
+                    /*
                     if (StringUtils.isNotEmpty(dto.pdMclsfNm())) {
                         userSellLimit.setSellBaseCd("22");
                         userSellLimit.setSellBaseChval(dto.pdMclsfNm());
@@ -83,6 +84,7 @@ public class WctcUserSellLimitMgtService {
                         userSellLimit.setSellBaseChval(dto.pdLclsfNm());
                         mapper.insertSellBaseDtl(userSellLimit);
                     }
+                     */
                     if (StringUtils.isNotEmpty(dto.sellBasePrd())) {
                         userSellLimit.setSellBaseCd("27");
                         userSellLimit.setSellBaseChval(dto.sellBasePrd());

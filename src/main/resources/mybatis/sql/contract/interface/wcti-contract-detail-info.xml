@@ -264,14 +264,23 @@
          INNER JOIN TB_PDBS_PD_BAS T6
             ON T6.PD_CD = T1.BASE_PD_CD
            AND T6.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL T61
+          LEFT OUTER JOIN LATERAL (SELECT *
+                                     FROM (SELECT CNTR_NO
+                                                , CNTR_SN
+                                                , OJ_PD_CD
+                                             FROM TB_SSCT_CNTR_PD_REL
+                                            WHERE CNTR_NO = T1.CNTR_NO
+                                              AND CNTR_SN = T1.CNTR_SN
+                                              AND VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                              AND VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                              AND BASE_PD_CD = T1.BASE_PD_CD
+                                              AND PD_REL_TP_CD = '03'
+                                              AND DTA_DL_YN = 'N'
+                                           )
+                                     WHERE ROWNUM = 1
+                                  ) T61
             ON T61.CNTR_NO = T1.CNTR_NO
            AND T61.CNTR_SN = T1.CNTR_SN
-           AND T61.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-           AND T61.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-           AND T61.BASE_PD_CD = T1.BASE_PD_CD
-           AND T61.PD_REL_TP_CD = '03'
-           AND T61.DTA_DL_YN = 'N'
          INNER JOIN TB_CUBS_CST_BAS T7
             ON T7.CST_NO = T2.CNTR_CST_NO
            AND T7.DTA_DL_YN = 'N'
@@ -328,7 +337,7 @@
                                         , SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE 0 END) AS DP_TOT_AMT
                                         , SUM(CASE WHEN DP_DV_CD = '4' THEN RVE_AMT ELSE 0 END) AS BLTF_AMT
                                         , SUM(CASE WHEN DP_DV_CD = '2' THEN RVE_AMT ELSE 0 END) AS RFND_AMT
-                                     FROM TB_RVDW_RVE_DTL A /* 계약기본 연락처,주소 정보 */
+                                     FROM TB_RVDW_RVE_DTL A /* 수납상세 */
                                     WHERE CNTR_NO = T1.CNTR_NO
                                       AND CNTR_SN = T1.CNTR_SN
                                       AND RVE_PROCS_YN = 'Y'
@@ -367,7 +376,7 @@
           LEFT OUTER JOIN LATERAL (SELECT CNTR_NO
                                         , CNTR_SN
                                         , REQD_DT
-                                     FROM TB_SSCT_RENTAL_ADN_SV_IZ T17
+                                     FROM TB_SSCT_RENTAL_ADN_SV_IZ T17 /* 렌탈부가서비스내역 */
                                     WHERE CNTR_NO = T1.CNTR_NO
                                       AND CNTR_SN = T1.CNTR_SN
                                       AND ADN_SV_DV_CD = '01'
@@ -432,8 +441,8 @@
     </select>
 
     <select id="selectContractDetailMembership" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailInfoDto$FindMembershipRes">
-        SELECT T1.OJ_DTL_CNTR_NO
-             , T1.OJ_DTL_CNTR_SN
+        SELECT T1.OJ_DTL_CNTR_NO AS OJ_CNTR_NO
+             , T1.OJ_DTL_CNTR_SN AS OJ_CNTR_SN
              , T2.SELL_TP_CD AS OJ_SELL_TP_CD
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T2.SELL_TP_CD) AS OJ_SELL_TP_NM
              , T2.CNTR_PD_STRTDT AS OJ_IST_DT

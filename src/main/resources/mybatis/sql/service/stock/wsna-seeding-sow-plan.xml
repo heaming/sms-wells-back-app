@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedingSowPlanMapper">
+
+    <select id="selectSeedingSowPlansPaging" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingSowPlanDto$SearchRes">
+        SELECT D4.BASE_DTL_CNTR_NO || '-' || D4.BASE_DTL_CNTR_SN AS BASE_CNTR_DTL_NO    /* 기준상품 - 계약상세번호 */
+             , D8.CST_KNM                                        AS BASE_CST_NM         /* 기준상품 - 고객명 */
+             , D6.PD_NM                                          AS BASE_PD_NM          /* 기준상품 - 상품명 */
+             , D1.CNTR_NO || '-' || D1.CNTR_SN                   AS CONN_CNTR_DTL_NO    /* 연결상품 - 계약상세번호 */
+             , D3.PD_NM                                          AS CONN_SDING_PKG_NM   /* 연결상품 - 모종패키지 */
+             , D9.PD_NM                                          AS CONN_SDING_PD_NM    /* 연결상품 - 모종명 */
+             , D2.PART_USE_QTY                                   AS CONN_QTY            /* 연결상품 - 수량 */
+             , D2.VST_DUEDT                                                             /* 방문예정일자 */
+             , TO_CHAR( TO_DATE(D2.VST_DUEDT, 'YYYYMMDD')
+                        - D10.PD_PRP_VAL06, 'YYYYMMDD')          AS SOW_DT              /* 파종일자 */
+             , D4.BASE_DTL_CNTR_NO                               AS CNTR_NO             /* 계약번호 */
+             , D4.BASE_DTL_CNTR_SN                               AS CNTR_SN             /* 계약일련번호 */
+          FROM TB_SVPD_CST_SV_EXCN_IZ D1          /* 고객서비스수행내역 */
+         INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ D2   /* 고객서비스정기BS주기내역 */
+            ON D2.CNTR_NO = D1.CNTR_NO
+           AND D2.CNTR_SN = D1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS D3             /* 상품기본-모종패키지 */
+            ON D3.PD_CD = D1.PDCT_PD_CD
+         INNER JOIN TB_SSCT_CNTR_REL D4           /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+            ON D4.OJ_DTL_CNTR_NO = D2.CNTR_NO
+           AND D4.OJ_DTL_CNTR_SN = D2.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_DTL D5           /* 계약상세-웰스팜 */
+            ON D5.CNTR_NO = D4.BASE_DTL_CNTR_NO
+           AND D5.CNTR_SN = D4.BASE_DTL_CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS D6             /* 상품기본-웰스팜 */
+            ON D6.PD_CD = D5.BASE_PD_CD
+         INNER JOIN TB_SSCT_CNTR_CST_REL D7       /* 계약고객관계-웰스팜 */
+            ON D7.DTL_CNTR_NO = D5.CNTR_NO
+           AND D7.DTL_CNTR_SN = D5.CNTR_SN
+         INNER JOIN TB_CUBS_CST_BAS D8            /* 고객기본-웰스팜 */
+            ON D8.CST_NO = D7.CST_NO
+         INNER JOIN TB_PDBS_PD_BAS D9             /* 상품기본-모종상품 */
+            ON D9.PD_CD = D2.PART_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D10
+            ON D10.PD_CD = D9.PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D11   /* 상품각사속성상세 */
+            ON D11.PD_CD = D3.PD_CD
+         WHERE D1.DTA_DL_YN           = 'N'
+           AND D1.CNTR_DTL_STAT_CD    = '101'   /* 정상 */
+           AND D2.DTA_DL_YN           = 'N'
+           AND D4.DTA_DL_YN           = 'N'
+           AND D4.CNTR_REL_DTL_CD     = '216'   /* 모종결합(웰스팜+모종) */
+           AND D5.DTA_DL_YN           = 'N'
+           AND D5.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+           AND D7.CNTR_CST_REL_TP_CD  = '10'    /* 계약자 */
+           AND D10.DTA_DL_YN          = 'N'
+           AND D10.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D10.PD_PRP_VAL01 LIKE '60%'
+           AND D11.DTA_DL_YN          = 'N'
+           AND D11.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D11.PD_PRP_VAL01 LIKE '60%'
+           AND D2.VST_DUEDT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+           AND D1.REQD_DT IS NULL
+           AND D1.IST_DT IS NOT NULL
+           AND D2.WK_DT IS NULL
+           AND D2.MTR_CAN_DT IS NULL
+           AND D2.VST_DUEDT BETWEEN #{strtDt} AND #{endDt}
+        <if test="@MybatisUtils@isNotEmpty(cntrDtlNo)">
+           AND (    D4.BASE_DTL_CNTR_NO LIKE '%' || #{cntrDtlNo} || '%'
+                 OR D1.CNTR_NO LIKE '%' || #{cntrDtlNo} || '%' )
+        </if>
+         ORDER BY SOW_DT, BASE_CNTR_DTL_NO, CONN_CNTR_DTL_NO
+    </select>
+
+</mapper>

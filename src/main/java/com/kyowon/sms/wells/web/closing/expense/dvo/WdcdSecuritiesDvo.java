@@ -24,11 +24,16 @@ public class WdcdSecuritiesDvo {
     private String mrcAdrCn;             /*가맹점주소내용*/
     private String cardAprno;             /*카드승인번호*/
     private String domTrdAmt;               /*사용금액*/
+    private String domTrdAmt1;               /*사용금액 테스트*/
     private String opcsAdjExcdYn;           /*운영비정산제외여부*/
     private String opcsAdjSmryDvNm;    /*운영비정산적요구분명*/
     private String mrcTobzCd;            /*(hidden)가맹점업종코드*/
     private String cdcoCd;                /*(hidden)카드사코드*/
     private String opcsAdjBtn;       /*원천세정산버튼*/
     private String adjCls;             /*정산여부*/
+    private String dgr2LevlOgId;             /*(hidden)지역단ID*/
+    private String domTrdSumAmt;
     private String adjOgId;
+    private String opcsAdjNo; /*운영비정산번호*/
+    private String adjPrtnrNo; /*정산파트너번호*/
 }

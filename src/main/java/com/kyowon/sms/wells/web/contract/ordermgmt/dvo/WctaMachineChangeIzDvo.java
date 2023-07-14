@@ -24,4 +24,7 @@ public class WctaMachineChangeIzDvo {
     private String ojCntrMmBaseDvCd; /* 대상계약월기준구분코드 */
     private String ojCntrChFshDtm; /* 대상계약변경완료일시 */
     private String dtaDlYn; /* 데이터삭제여부 */
+
+    private Boolean mchnChYn;
+    private String pdNm;
 }

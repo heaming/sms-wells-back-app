@@ -2,14 +2,15 @@ package com.kyowon.sms.wells.web.contract.changeorder.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbMembershipBulkChangeDto;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbMembershipBulkChangeService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.Api;
@@ -40,5 +41,24 @@ public class WctbMembershipBulkChangeController {
         String rfdt
     ) {
         return service.getMembershipBulkChanges(cntrNo, cntrSn, rfdt);
+    }
+
+    @ApiOperation(value = "멤버십 일괄변경 계약 조회", notes = "계약번호,계약일련번호로 계약기본,계약상세, 계약WELLS상세의 데이타를 조회한다.")
+    @GetMapping("/membership-change-contracts")
+    public WctbMembershipBulkChangeDto.SearchCntrRes getMembershipBulkChangesContracts(
+        String cntrNo,
+        String cntrSn
+    ) {
+        return service.getMembershipBulkChangesContracts(cntrNo, cntrSn);
+    }
+
+    @ApiOperation(value = "멤버십 일괄변경 등록", notes = "멤버십 일괄변경 등록")
+    @PostMapping("/membership-bulk-change")
+    public SaveResponse saveMembershipBulkChange(
+        @RequestBody
+        @Valid
+        WctbMembershipBulkChangeDto.SaveReq dto
+    ) {
+        return SaveResponse.builder().processCount(service.saveMembershipBulkChange(dto)).build();
     }
 }

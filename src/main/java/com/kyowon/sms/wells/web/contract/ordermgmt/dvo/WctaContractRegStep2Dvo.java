@@ -3,9 +3,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 import java.math.BigDecimal;
 import java.util.List;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -77,6 +75,8 @@ public class WctaContractRegStep2Dvo {
         String rglrSppPdctConsQty;
         String pdChoLmYn;
         String pdChoQty;
+        String rglrSppPrcDvCd;
+        String rglrSppMchnTpCd;
         String laboEuYn;
         String chdvcPrmitYn;
         String fgptTpYn;
@@ -94,6 +94,10 @@ public class WctaContractRegStep2Dvo {
         String pvdaYn;
         String hcrMshTpCd;
         String pdChip1;
+        Long fnlAmt;
+        Integer rntlMcn;
+        List<String> mshPdCds;
+        List<PdSdingCapsl> sdingCapsls;
     }
 
     @Getter
@@ -118,6 +122,8 @@ public class WctaContractRegStep2Dvo {
         String pdPrcId;
         boolean isExistAlncPds; // 제휴상품노출여부(금액조회 시 함께 판단)
         Integer recapMshPtrm;
+        Integer mshStrtMcn;
+        Integer mshEndMcn;
     }
 
     @Getter
@@ -147,23 +153,65 @@ public class WctaContractRegStep2Dvo {
     public static class PdWelsfHcfPkg {
         String codeId;
         String codeName;
+        String pdClsfNm;
         String pdCd;
         String pdNm;
-        String rglrSppCntrDvCd;
+        Long cntrPtrm;
         String rglrSppPrcDvCd;
+        String rglrSppMchnTpCd;
         String pdctUprcUseYn;
-        String fnlVal;
+        Long fnlAmt;
+        Long pdQty;
+        String sellTpCd;
+        String sellTpDtlCd;
+        String pdHclsfId;
+        String pdMclsfId;
+        String pdLclsfId;
+        String pdDclsfId;
+        String crncyDvCd;
+        BigDecimal ackmtPerfRt;
+        Long ackmtPerfAmt;
         List<PdSdingCapsl> sdingCapsls;
+        String cntrRelDtlCd;
+        String pdChip1;
     }
 
     @Getter
     @Setter
     public static class PdSdingCapsl {
-        String codeId;
-        String codeName;
-        String rglrSppCntrDvCd;
-        String rglrSppPrcDvCd;
-        String pdctUprcUseYn;
-        String fnlVal;
+        String partPdNm;
+        String svPdCd;
+        String pdctPdCd;
+        String dtlSn;
+        String prdMmVal;
+        String vstDvCd;
+        String partPdCd;
+        Long itmQty;
+        String pdRelId;
+        String pdRelTpCd;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PdOpo {
+        Boolean opoYn;
+        String ojCntrNo;
+        Integer ojCntrSn;
+        String pdNm;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PdSltrRglrSppMchn {
+        Boolean rglrSppMchnYn;
+        String ojCntrNo;
+        Integer ojCntrSn;
+        String pdNm;
     }
 }

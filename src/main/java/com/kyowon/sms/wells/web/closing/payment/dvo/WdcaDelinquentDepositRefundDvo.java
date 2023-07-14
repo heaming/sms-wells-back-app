@@ -28,10 +28,10 @@ public class WdcaDelinquentDepositRefundDvo {
     private String rveCd;
     private String rveDt;
     private String perfDt;
-    private String rveAmt;
+    private int rveAmt;
 
-    private String thmDlqDpSumAmt; /*당월연체입금합계금액*/
-    private String thmDlqAddDpSumAmt; /*당월연체가산입금합계금액*/
-    private String thmDlqRfndSumAmt; /*당월연체환불합계금액*/
-    private String thmDlqAddRfndSumAmt; /*당월연체가산환불합계금액*/
+    private int thmDlqDpSumAmt; /*당월연체입금합계금액*/
+    private int thmDlqAddDpSumAmt; /*당월연체가산입금합계금액*/
+    private int thmDlqRfndSumAmt; /*당월연체환불합계금액*/
+    private int thmDlqAddRfndSumAmt; /*당월연체가산환불합계금액*/
 }

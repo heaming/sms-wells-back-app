@@ -53,8 +53,6 @@ public interface WctaContractRegStep1Mapper {
     int insertCntrCstRelStep1(@Param("item")
     WctaContractCstRelDvo dvo);
 
-    int updateCntrRelStep1(WctaContractRelDvo dvo);
-
     int insertCntrRelStep1(@Param("item")
     WctaContractRelDvo dvo);
 

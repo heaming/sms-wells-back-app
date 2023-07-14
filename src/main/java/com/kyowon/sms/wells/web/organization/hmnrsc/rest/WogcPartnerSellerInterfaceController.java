@@ -6,10 +6,9 @@ import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfa
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerSellerInterfaceDto.SearchRecentContractRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.service.WogcPartnerSellerService;
 import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst;
+import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@InterfaceController
 @Api(tags = "[WOGC] 판매자 정보 관리 EAI INTERFACE API")
 @Validated
 @RequiredArgsConstructor

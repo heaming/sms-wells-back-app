@@ -23,11 +23,15 @@ public interface WsnaOutOfStorageAskMngtMapper {
         SearchOstrObjectWarehouseReq dto
     );
 
-    int deleteOutOfStorageAskItems(RemoveReq dto);
-
     String selectNewOstrAkNo(FindOstrAkNoReq findOstrAkNoReq);
 
     int insertOutOfStorageAskItems(WsnaOutOfStorageAskMngtDvo dvo);
 
     int updateOutOfStorageAskItmes(WsnaOutOfStorageAskMngtDvo dvo);
+
+    List<WsnaOutOfStorageAskMngtDvo> selectLogisticsOutStorageAskInfo(String ostrAkNo);
+
+    int deleteOutOfStorageAskItems(WsnaOutOfStorageAskMngtDvo dvo);
+
+    List<WsnaOutOfStorageAskMngtDvo> selectDtaDlYnOstrAkNo(String deleteOstrAkNo);
 }

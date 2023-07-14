@@ -79,6 +79,9 @@ public class WpdcAsPartsMgtController {
         return this.service.getAsPartsForExcelDownload(dto);
     }
 
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WM04103177"),
+    })
     @ApiOperation(value = "AS부품 단건 조회")
     @GetMapping("/{pdCd}")
     public WpdcAsPartMgtDto.ProductInfoRes getAsPartsInfo(@PathVariable

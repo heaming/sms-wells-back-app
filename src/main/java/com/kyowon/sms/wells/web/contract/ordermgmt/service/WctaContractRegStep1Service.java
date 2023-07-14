@@ -168,10 +168,32 @@ public class WctaContractRegStep1Service {
             BizAssert.isTrue(mapper.isValidPspcCstId(dvo.getPspcCstId(), cntrtInfo.getCopnDvCd()), "가망고객ID를 확인해주세요.");
         }
 
+        String now = DateUtil.todayNnow();
+
         // 계약번호 없으면, 신규 채번
         WctaContractBasDvo basDvo = dvo.getBas();
         boolean isNewCntr = StringUtils.isEmpty(basDvo.getCntrNo());
-        String cntrNo = isNewCntr ? cntrNoService.getContractNumber("").cntrNo() : basDvo.getCntrNo();
+        String cntrNo = "";
+        if (CtContractConst.CNTR_TP_CD_MSH.equals(basDvo.getCntrTpCd()) && StringUtils.isNotEmpty(dvo.getMshCntrNo())) {
+            // 멤버십의 경우 무조건 신규 채번 후 원계약과 계약관계 저장
+            isNewCntr = true;
+            cntrNo = cntrNoService.getContractNumber("").cntrNo();
+            mapper.insertCntrRelStep1(
+                WctaContractRelDvo.builder()
+                    .baseDtlCntrNo(cntrNo)
+                    .baseDtlCntrSn(1) //
+                    .ojDtlCntrNo(dvo.getMshCntrNo())
+                    .ojDtlCntrSn(dvo.getMshCntrSn())
+                    .vlStrtDtm(now)
+                    .vlEndDtm(CtContractConst.END_DTM)
+                    .cntrRelDtlCd("212")
+                    .cntrRelTpCd("20")
+                    .cntrUnitTpCd("020")
+                    .build()
+            );
+        } else {
+            cntrNo = isNewCntr ? cntrNoService.getContractNumber("").cntrNo() : basDvo.getCntrNo();
+        }
 
         if (!isNewCntr) {
             // 기존 계약정보 삭제
@@ -182,7 +204,6 @@ public class WctaContractRegStep1Service {
         }
 
         /* 테이블 적재 시작 */
-        String now = DateUtil.todayNnow();
         // 1. 계약기본 생성 또는 수정
         basDvo.setCntrTempSaveDtm(now);
         basDvo.setPrrRcpCntrYn(mapper.selectResrOrdrYn());

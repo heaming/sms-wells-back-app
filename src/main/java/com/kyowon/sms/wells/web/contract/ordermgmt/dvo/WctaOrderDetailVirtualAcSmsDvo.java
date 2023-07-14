@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,6 +21,8 @@ public class WctaOrderDetailVirtualAcSmsDvo {
     private String template;
     private String msgTit;
     private String cralLocaraTno;
+    @DBEncField
+    @DBDecField
     private String mexnoEncr;
     private String cralIdvTno;
 }

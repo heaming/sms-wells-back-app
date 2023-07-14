@@ -67,15 +67,24 @@ public class WfeaOrganizationNetOrderController {
 
     @ApiOperation(value = "홈마스터 수수료 순주문 관리 목록 조회", notes = "조회조건에 따른 홈마스터 수수료 순주문 관리 목록 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "schTcnt", value = "차수", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdctTp", value = "제품유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schFeePerf", value = "수수료실적유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPdctTp", value = "제품유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schSelType", value = "판매유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schDtStrt", value = "일자시작", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schDtEnd", value = "일자종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schCancDtStrt", value = "취소일자시작", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schCancDtEnd", value = "취소일자종료", paramType = "query", required = false),
         @ApiImplicitParam(name = "schPdCdStrt", value = "상품코드시작", paramType = "query", required = false),
         @ApiImplicitParam(name = "schPdCdEnd", value = "상품코드종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtStrt", value = "매출일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtEnd", value = "매출일자종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRcpDtStrt", value = "접수일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRcpDtEnd", value = "접수일자종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPkgCdStrt", value = "패키지코드시작", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPkgCdEnd", value = "패키지코드종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl1", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPrtnrNo", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schRsbDv", value = "직책구분", paramType = "query", required = false),
     })
 
     @GetMapping("hmsts")
@@ -88,23 +97,20 @@ public class WfeaOrganizationNetOrderController {
 
     @ApiOperation(value = "홈마스터 수수료 순주문 관리(판매수수료) 목록 조회", notes = "조회조건에 따른 홈마스터 수수료 순주문 관리(판매수수료) 목록 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "schTcnt", value = "차수", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdctTp", value = "제품유형", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdCdStrt", value = "상품코드시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schPdCdEnd", value = "상품코드종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtStrt", value = "매출일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtEnd", value = "매출일자종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRcpDtStrt", value = "접수일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRcpDtEnd", value = "접수일자종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOrdr", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl1", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPrtnrNo", value = "번호", paramType = "query", required = false),
     })
-    @GetMapping("hmst-sell-fees")
-    public List<WfeaOrganizationNetOrderDto.SearchHmstSellFeeRes> getHomeMasterSellFees(
+    @GetMapping("hmst-fees")
+    public List<WfeaOrganizationNetOrderDto.SearchHmstFeeRes> getHomeMasterFees(
         @Valid
         WfeaOrganizationNetOrderDto.SearchHmstReq dto
     ) {
-        return this.service.getHomeMasterSellFees(dto);
+        return this.service.getHomeMasterFees(dto);
     }
 
     @ApiOperation(value = "M조직 수수료 순주문 관리 목록 조회", notes = "조회조건에 따른 M조직 수수료 순주문 관리 목록 조회")
@@ -141,33 +147,64 @@ public class WfeaOrganizationNetOrderController {
 
     @ApiOperation(value = "M조직 수수료 순주문 관리(판매수수료) 목록 조회", notes = "조회조건에 따른 M조직 수수료 순주문 관리(판매수수료) 목록 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "schBizDv", value = "업무구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdctTp", value = "제품유형", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdCdStrt", value = "상품코드시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schPdCdEnd", value = "상품코드종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtStrt", value = "매출일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtEnd", value = "매출일자종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRcpDtStrt", value = "접수일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRcpDtEnd", value = "접수일자종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schInqrDv", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOrdr", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl1", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPrtnrNo", value = "번호", paramType = "query", required = false),
     })
-    @GetMapping("mnger-sell-fees")
-    public List<WfeaOrganizationNetOrderDto.SearchMngerSellFeeRes> getManagerSellFees(
+    @GetMapping("mnger-fees")
+    public List<WfeaOrganizationNetOrderDto.SearchMngerSellFeeRes> getManagerFees(
         @Valid
         WfeaOrganizationNetOrderDto.SearchMngerReq dto
     ) {
-        return this.service.getManagerSellFees(dto);
+        return this.service.getManagerFees(dto);
+    }
+
+    @ApiOperation(value = "M조직 수수료 순주문 관리 집계정보 조회", notes = "조회조건에 따른 M조직 수수료 순주문 관리 집계정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "schInqrDv", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOrdr", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl1", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPrtnrNo", value = "번호", paramType = "query", required = false),
+    })
+    @GetMapping("mnger-aggregation")
+    public List<WfeaOrganizationNetOrderDto.SearchMngerAgrgRes> getManagerAggregation(
+        @Valid
+        WfeaOrganizationNetOrderDto.SearchMngerReq dto
+    ) {
+        return this.service.getManagerAggregation(dto);
     }
 
     @ApiOperation(value = "P조직 수수료 순주문 관리 목록 조회", notes = "조회조건에 따른 P조직 수수료 순주문 관리 목록 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdctTp", value = "제품유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schInqrDv", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schOrdr", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schFeePerf", value = "수수료실적유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPdctTp", value = "제품유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schSelType", value = "판매유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schDtStrt", value = "일자시작", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schDtEnd", value = "일자종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schCancDtStrt", value = "취소일자시작", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schCancDtEnd", value = "취소일자종료", paramType = "query", required = false),
         @ApiImplicitParam(name = "schPdCdStrt", value = "상품코드시작", paramType = "query", required = false),
         @ApiImplicitParam(name = "schPdCdEnd", value = "상품코드종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtStrt", value = "매출일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtEnd", value = "매출일자종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPkgCdStrt", value = "패키지코드시작", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPkgCdEnd", value = "패키지코드종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl1", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPrtnrNo", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schRsbDv", value = "직책구분", paramType = "query", required = false),
     })
 
     @GetMapping("plars")
@@ -180,18 +217,39 @@ public class WfeaOrganizationNetOrderController {
 
     @ApiOperation(value = "P조직 수수료 순주문 관리(판매수수료) 목록 조회", notes = "조회조건에 따른 P조직 수수료 순주문 관리(판매수수료) 목록 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdctTp", value = "제품유형", paramType = "query", required = true),
-        @ApiImplicitParam(name = "schPdCdStrt", value = "상품코드시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schPdCdEnd", value = "상품코드종료", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtStrt", value = "매출일자시작", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schSlDtEnd", value = "매출일자종료", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schInqrDv", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOrdr", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl1", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPrtnrNo", value = "번호", paramType = "query", required = false),
     })
-    @GetMapping("plar-sell-fees")
+    @GetMapping("plar-fees")
     public List<WfeaOrganizationNetOrderDto.SearchPlarSellFeeRes> getPlannerFees(
         @Valid
         WfeaOrganizationNetOrderDto.SearchPlarReq dto
     ) {
         return this.service.getPlannerSellFees(dto);
+    }
+
+    @ApiOperation(value = "M조직 수수료 순주문 관리 집계정보 조회", notes = "조회조건에 따른 M조직 수수료 순주문 관리 집계정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "schInqrDv", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOrdr", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schPerfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl1", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schPrtnrNo", value = "번호", paramType = "query", required = false),
+    })
+    @GetMapping("plar-aggregation")
+    public List<WfeaOrganizationNetOrderDto.SearchPlarAgrgRes> getPlannerAggregation(
+        @Valid
+        WfeaOrganizationNetOrderDto.SearchPlarReq dto
+    ) {
+        return this.service.getPlannerAggregation(dto);
     }
 }

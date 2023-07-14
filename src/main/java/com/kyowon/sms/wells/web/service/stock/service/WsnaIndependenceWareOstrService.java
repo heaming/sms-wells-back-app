@@ -36,9 +36,16 @@ public class WsnaIndependenceWareOstrService {
     @Transactional
     public int createIndependenceWareOstr(List<CreateReq> list) {
         int cnt = 0;
+        String newOstrAkNo = mapper.selectNewOstrAkNoByQomOstr("360");
+
         List<WsnaIndependenceWareOstrDvo> voList = converter.mapAllCreateReqToWsnaIndependenceWareOstrDvo(list);
+        int len = voList.size();
+        for(int i = 0; i < len; i++){
+            voList.get(i).setOstrAkNo(newOstrAkNo);
+        }
+
         cnt += mapper.insertTbSvstItmOstrAkIz(voList);
-        cnt += mapper.insertTbIfinItmOstrAkSendEtxt(voList);
+//        cnt += mapper.insertTbIfinItmOstrAkSendEtxt(voList);
         return cnt;
     };
 }

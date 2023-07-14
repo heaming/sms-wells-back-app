@@ -29,6 +29,9 @@ public class WctaInstallationShippingDvo {
     private String dgr3LevlDgPrtnrNm; // 지점장명
     private String dgr3CralLocaraTno; // 지점장전화번호-휴대지역전화번호
 
+    private String istPcsvTpCdDiv; // REQ_SET_DIV
+    private String profile; // 프로필
+
     @DBDecField
     private String egerMexnoEncr; /* 휴대전화번호 암호화 */
     private String egerCralIdvTno; /* 휴대전화 개별번호 */

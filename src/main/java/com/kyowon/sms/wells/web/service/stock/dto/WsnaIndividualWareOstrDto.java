@@ -104,4 +104,21 @@ public class WsnaIndividualWareOstrDto {
         String codeId,
         String codeName
     ) {}
+
+    @ApiModel("WsnaIndividualWareOstrDto-CreateReq")
+    public record CreateReq(
+        String ostrAkNo,
+        String ostrAkSn,
+        String ostrAkTpCd,
+        String ostrOjWareNo,
+        String strOjWareNo,
+        String ostrAkRgstDt,
+        String strHopDt,
+        String itmPdCd,
+        String itmGdCd,
+        String mngtUnitCd,
+        String ostrAkQty,
+        String rmkCn,
+        String dtaDlYn
+    ){}
 }

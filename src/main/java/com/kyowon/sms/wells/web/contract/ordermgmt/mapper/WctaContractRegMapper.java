@@ -33,6 +33,8 @@ public interface WctaContractRegMapper {
 
     List<WctaContractRelDvo> selectContractRel(String cntrNo);
 
+    List<WctaMachineChangeIzDvo> selectMachineChangeIz(String cntrNo);
+
     List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn);
 
     List<WctaContractPmotIzDvo> selectContractPmotIz(String cntrNo, int cntrSn);

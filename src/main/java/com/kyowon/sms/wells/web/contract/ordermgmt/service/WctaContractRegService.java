@@ -75,16 +75,24 @@ public class WctaContractRegService {
         return mapper.selectContractPrtnrRel(cntrNo);
     }
 
-    List<WctaContractPrcCmptIzDvo> selectContractPrcCmptIz(String cntrNo, int cntrSn) {
+    public List<WctaContractPrcCmptIzDvo> selectContractPrcCmptIz(String cntrNo, int cntrSn) {
         return mapper.selectContractPrcCmptIz(cntrNo, cntrSn);
     }
 
-    List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn) {
+    public List<WctaContractPdRelDvo> selectContractPdRel(String cntrNo, int cntrSn) {
         return mapper.selectContractPdRel(cntrNo, cntrSn);
     }
 
-    WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn) {
+    public WctaContractWellsDtlDvo selectContractWellsDtl(String cntrNo, int cntrSn) {
         return mapper.selectContractWellsDtl(cntrNo, cntrSn);
+    }
+
+    public List<WctaContractRelDvo> selectContractRel(String cntrNo) {
+        return mapper.selectContractRel(cntrNo);
+    }
+
+    public List<WctaMachineChangeIzDvo> selectMachineChangeIz(String cntrNo) {
+        return mapper.selectMachineChangeIz(cntrNo);
     }
 
     public List<WctaContractAdrpcBasDvo> selectContractAdrpcBas(String cntrNo) {
@@ -112,6 +120,8 @@ public class WctaContractRegService {
 
     @Transactional
     public void removeStep2Data(String cntrNo) {
+        step2Mapper.deleteCntrRelStep2(cntrNo);
+        step2Mapper.deleteMchnChIzStep2(cntrNo);
         step2Mapper.deleteCntrDtlStep2(cntrNo);
         step2Mapper.deleteContractDetailHistory(cntrNo);
         step2Mapper.deleteCntrHsmtrlDtlStep2(cntrNo);

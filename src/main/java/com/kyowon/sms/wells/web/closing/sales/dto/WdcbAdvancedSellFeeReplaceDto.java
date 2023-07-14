@@ -8,8 +8,11 @@ public class WdcbAdvancedSellFeeReplaceDto {
         String searchGubun,
         String baseYm,
         String ogTpCd,
+        String sellTpCd,
+        String sellTpDtlCd,
+        String pdHclsfId,
+        String pdMclsfId,
         String piaCsYn,
-        String dgCstId,
         String cntrNo,
         String cntrSn,
         String feeChk,
@@ -19,10 +22,14 @@ public class WdcbAdvancedSellFeeReplaceDto {
     @ApiModel("WdcbAdvancedSellFeeReplaceDto-SearchRes")
     public record SearchRes(
         String ogTpCd,
-        String dgCstId,
-        String dgCstNm,
+        String sellTpCd,
+        String sellTpDtlCd,
+        String pdHclsfNm,
+        String pdMclsfNm,
         String baseYm,
         String cntrNo,
+        String pdCd,
+        String pdNm,
         String feeOcAmt,
         String piaCsYn,
         String feeOcYm,
@@ -58,12 +65,13 @@ public class WdcbAdvancedSellFeeReplaceDto {
     @ApiModel("WdcbAdvancedSellFeeReplaceDto-SearchAggregateRes")
     public record SearchAggregateRes(
         String ogTpCd,
-        String dgCstId,
-        String dgCstNm,
+        String sellTpCd,
+        String sellTpDtlCd,
+        String pdHclsfNm,
+        String pdMclsfNm,
         String baseYm,
         String slAmt,
         String feeOcAmt,
-        String piaFeeOcAmt,
         String feeOcYm,
         String piaCsYn,
         String piaSellFeeCrdovrResAmt,
@@ -88,10 +96,12 @@ public class WdcbAdvancedSellFeeReplaceDto {
 
     @ApiModel("WdcbAdvancedSellFeeReplaceDto-SearchDivideRes")
     public record SearchDivideRes(
-        String dgCstId,
-        String dgCstNm,
+        String sellTpCd,
+        String sellTpDtlCd,
+        String pdHclsfNm,
+        String pdMclsfNm,
         String baseYm,
-        String piaSellFeeCrdovrBlam,
+        String piaSellFeeCrdovrResAmt,
         String piaFeeOcAmt,
         String csRplcAmt1,
         String csRplcAmt2,
@@ -111,7 +121,7 @@ public class WdcbAdvancedSellFeeReplaceDto {
 
     @ApiModel("WdcbAdvancedSellFeeReplaceDto-SearchDivideSummaryRes")
     public record SearchDivideSummaryRes(
-        String piaSellFeeCrdovrBlam,
+        String piaSellFeeCrdovrResAmt,
         String piaFeeOcAmt,
         String csRplcAmt1,
         String csRplcAmt2,

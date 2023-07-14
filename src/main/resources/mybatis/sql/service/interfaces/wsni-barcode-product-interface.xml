@@ -3,19 +3,117 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniBarcodeProductInterfaceMapper">
     <select id="selectBarcodeProduct"
             resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniBarcodeProductInterfaceDto$SearchRes">
-        SELECT (
-                SELECT COUNT(*) AS RESULTCODE
-                  FROM TB_SVPD_CST_SV_EXCN_IZ TEMP
-                 WHERE 1=1
-                   AND TEMP.BC_NO = #{qrcd}
-               ) AS RESULTCODE
-             , (
-                SELECT COUNT(*) AS REGI
-                  FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TEMP
-                 WHERE 1=1
-                   AND TEMP.SVPD_BAR_CD = #{qrcd}
-               ) AS REGI
-          FROM DUAL
+        SELECT TB.*
+          FROM (
+            SELECT TB_1.BC_NO AS BC_NO
+                 , TB_2.BASE_PD_CD AS BASE_PD_CD
+                 , TB_3.PD_PRP_VAL01 AS USWY_DV_CD
+                 , TB_1.PDCT_PD_CD AS PDCT_PD_CD
+                 , (
+                    CASE WHEN TB_11.SVPD_ITEM_GR = '92' THEN 'Y'
+                         ELSE 'N'
+                         END
+                   ) AS FARM_YN
+                 , TB_11.SVPD_NM_ABBR1 AS ITEM_NM
+                 , TB_1.CNTR_NO AS CNTR_NO
+                 , TB_1.CNTR_SN AS CNTR_SN
+                 , TB_5.RCGVP_KNM AS CUST_NM
+                 , '' AS HNO_NO
+                 , TB_6.LOCARA_TNO
+                 , TB_6.EXNO_ENCR /* 복호화 */
+                 , TB_6.IDV_TNO
+                 , '' AS CSMR_YR /* 빈값 전달 */
+                 , '' AS CSMR_CD /* 빈값 전달 */
+                 , TB_8.RNADR || ' ' || TB_8.RDADR AS ADDR
+                 , TB_8.NEW_ADR_ZIP AS ZIPNO
+                 , TB_9.CNFM_PSIC_PRTNR_NO AS EMP_ID
+                 , TB_7.PRTNR_KNM AS EMP_NM
+                 , TB_7.OG_NM AS DEPT_NM
+                 , '' AS MNG_HP_NO
+                 , TB_6.CRAL_LOCARA_TNO
+                 , TB_6.MEXNO_ENCR /* 복호화 */
+                 , TB_6.CRAL_IDV_TNO
+                 , TB_9.VST_CNFMDT AS VST_DT
+                 , (
+                    SELECT TEMP.CD_CNTN
+                      FROM T_CMZ_CD_D TEMP
+                     WHERE 1=1
+                       AND TEMP.TENANT_ID = #{session.tenantId}
+                       AND TEMP.CD_ID = 'VST_DV_CD'
+                       AND TEMP.CD_VLD_VAL = TB_12.VST_DV_CD
+                       AND TEMP.DEL_YN = 'N'
+                   ) AS MNG_TYP
+                 , TB_2.SV_PRD || '개월' AS MNG_CYC
+                 , TB_10.BLD_NM AS DBLD_NM
+                 , (
+                    CASE WHEN TB_11.SVPD_ITEM_KND = '5' THEN 'Y'
+                         ELSE 'N'
+                         END
+                   ) AS FILTER_YN
+                 , ROW_NUMBER() OVER(PARTITION BY TB_9.CNFM_PSIC_PRTNR_OG_TP_CD, TB_9.CNFM_PSIC_PRTNR_NO ORDER BY TB_9.VST_DUEDT DESC, TB_9.VST_EXP_HH DESC) AS RNK
+              FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+             INNER JOIN TB_SSCT_CNTR_DTL TB_2
+             ON (
+                    TB_1.CNTR_NO = TB_2.CNTR_NO
+                AND TB_1.CNTR_SN = TB_2.CNTR_SN
+             )
+             INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL TB_3
+             ON (
+                    TB_1.SV_PD_CD = TB_3.PD_CD
+                AND TB_3.PD_EXTS_PRP_GRP_CD = 'SCHD'
+             )
+             INNER JOIN TB_SSCT_CNTR_ADR_REL TB_4
+             ON (
+                    TB_1.CNTR_NO = TB_4.DTL_CNTR_NO
+                AND TB_1.CNTR_SN = TB_4.DTL_CNTR_SN
+                AND TB_4.ADRPC_TP_CD = '3' /* 2:배송지 3:설치지 */
+             )
+             INNER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_5
+             ON (
+                    TB_4.CNTR_ADRPC_ID = TB_5.CNTR_ADRPC_ID
+             )
+             INNER JOIN TB_OGBS_PRTNR_BAS TB_6
+             ON (
+                    TB_1.MNGT_PRTNR_OG_TP_CD = TB_6.OG_TP_CD
+                AND TB_1.MNGT_PRTNR_NO = TB_6.PRTNR_NO
+             )
+             INNER JOIN TB_OGBS_MM_PRTNR_IZ TB_7
+             ON (
+                    TB_7.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                AND TB_6.OG_TP_CD = TB_7.OG_TP_CD
+                AND TB_6.PRTNR_NO = TB_7.PRTNR_NO
+             )
+             INNER JOIN TB_GBCO_ADR_BAS TB_8
+             ON (
+                    TB_5.ADR_ID = TB_8.ADR_ID
+             )
+             INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ TB_9
+             ON (
+                    TB_6.OG_TP_CD = TB_9.CNFM_PSIC_PRTNR_OG_TP_CD
+                AND TB_6.PRTNR_NO = TB_9.CNFM_PSIC_PRTNR_NO
+             )
+             INNER JOIN TB_OGBS_MM_OG_IZ TB_10
+             ON (
+                    TB_7.BASE_YM = TB_10.BASE_YM
+                AND TB_7.OG_ID = TB_10.OG_ID
+             )
+             INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB_11
+             ON (
+                    TB_1.PDCT_PD_CD = TB_11.SVPD_PD_CD
+             )
+             INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ TB_12
+             ON (
+                    TB_9.CNTR_NO = TB_12.CNTR_NO
+                AND TB_9.CNTR_SN = TB_12.CNTR_SN
+                AND TB_9.SV_BIZ_MCLSF_CD = TB_12.SV_BIZ_MCLSF_CD
+                AND TB_9.SV_BIZ_DCLSF_CD = TB_12.SV_BIZ_DCLSF_CD
+                AND TB_9.WK_SN = TB_12.WK_SN
+             )
+             WHERE 1=1
+               AND TB_1.BC_NO = #{qrcd}
+             ) TB
+         WHERE 1=1
+           AND TB.RNK = 1
     </select>
 
     <select id="selectBarcodeSearchCustomer"

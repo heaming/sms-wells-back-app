@@ -8,7 +8,9 @@ public class WfebMutualAidFeeMgtDto {
         String baseYm,
         String strtDt,
         String endDt,
-        String pdCd
+        String pdCd,
+        String sellPrtnrNo,
+        String clasfctnFee
     ) {}
 
     public record CreateAidReq(
@@ -23,7 +25,7 @@ public class WfebMutualAidFeeMgtDto {
         String ogCd,
         String prtnrNo,
         String prtnrKnm,
-        String cdCntn,
+        String rsbDvCd,
         String brmgrPrtnrNo,
         String cntrNo,
         String pdNm,
@@ -41,7 +43,7 @@ public class WfebMutualAidFeeMgtDto {
         String flpymTn,
         Integer preAmtSum,
         Integer curAmt,
-        String cnfmYn,
+        String etCnfmDvNm,
         String feeDsbYm,
         String feeRedfYm
     ) {}
@@ -52,12 +54,12 @@ public class WfebMutualAidFeeMgtDto {
         String ogCd,
         String brmgrPrtnrNo,
         String prtnrKnm,
-        String cdCntn,
+        String rsbDvCd,
         Integer brchCt,
         Integer brchAmt,
         String feeDsbYm,
         String feeRedfYm,
-        String cnfmYn
+        String etCnfmDvNm
     ) {}
 
     public record SearchAidOrderReq(

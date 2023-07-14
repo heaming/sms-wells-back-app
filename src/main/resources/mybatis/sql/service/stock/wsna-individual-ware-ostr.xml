@@ -148,7 +148,7 @@
                                           AND T1.APY_YM = #{baseYm} /* 파라미터 */
                                           AND T.STR_WARE_NO = T1.WARE_NO
                                           AND T.ASN_OJ_YM = #{asnOjYm}
-                                          AND TRIM(T.ASN_TN_N) = #{asnTnN}
+                                          AND T.ASN_TN_N = #{asnTnN}
                                           AND T.OSTR_WARE_NO   = #{ostrOjWareNo}
                                           AND T.DTA_DL_YN = 'N'
                                           AND T1.DTA_DL_YN = 'N'
@@ -170,7 +170,7 @@
                                             AND T1.APY_YM = #{baseYm} /*파라미터*/
                                             AND T.STR_WARE_NO = T1.WARE_NO
                                             AND T.ASN_OJ_YM = #{asnOjYm} /*파라미터*/
-                                            AND TRIM(ASN_TN_N) = #{asnTnN} /*회차 파라미터*/
+                                            AND T.ASN_TN_N = #{asnTnN} /*회차 파라미터*/
                                             AND T.OSTR_WARE_NO = #{ostrOjWareNo}
                                             AND T.DTA_DL_YN = 'N'
                                             AND T1.DTA_DL_YN = 'N'
@@ -206,10 +206,16 @@
                                          , WARE_IZ.WARE_NM
                                          , WARE_IZ.WARE_DV_CD
                                          , WARE_IZ.WARE_MNGT_PRTNR_NO
---                                          , CASE WHEN WARE_IZ.WARE_ICHR_NO <![CDATA[>]]> '000'
---                                                 THEN '3'
---                                                 ELSE '1'
---                                            END  AS WARE_ICHR_NO
+                                         , CASE WHEN WARE_IZ.WARE_DTL_DV_CD NOT IN ('10', '20', '30')
+                                                THEN '3'
+                                                ELSE '1'
+                                            END AS WARE_ICHR_NO
+                                         <!--
+                                         , CASE WHEN WARE_IZ.WARE_ICHR_NO <![CDATA[>]]> '000'
+                                                THEN '3'
+                                                ELSE '1'
+                                            END AS WARE_ICHR_NO
+                                         -->
                                       FROM TB_SVST_MCBY_WARE_IZ WARE_IZ
                                      <where>
                                        AND WARE_IZ.APY_YM = #{baseYm}
@@ -226,7 +232,7 @@
                    <if test="@MybatisUtils@isNotEmpty(ostrWareNoD)">
                    AND ASN_IZ.STR_WARE_NO = #{ostrWareNoD}
                    </if>
-                   AND TRIM(ASN_IZ.ASN_TN_N) = #{asnTnN}
+                   AND ASN_IZ.ASN_TN_N = #{asnTnN}
                    <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                    AND PD_BAS.SVPD_ITEM_KND = #{itmKndCd}
                    </if>
@@ -291,4 +297,45 @@
          </where>
          ORDER BY T1.SVPD_PD_CD
     </select>
+
+    <select id="selectNewOstrAkNoByQomOstr" resultType="java.lang.String">
+        SELECT #{ostrAkTpCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVST_ITM_OSTR_AK_IZ$OSTR_AK_NO.NEXTVAL,7,'0') AS OSTR_AK_NO
+        FROM DUAL
+    </select>
+
+    <insert id="insertTbSvstItmOstrAkIz">
+        INSERT INTO TB_SVST_ITM_OSTR_AK_IZ(
+        OSTR_AK_NO
+        , OSTR_AK_SN
+        , OSTR_AK_TP_CD
+        , OSTR_OJ_WARE_NO
+        , STR_OJ_WARE_NO
+        , OSTR_AK_RGST_DT
+        , STR_HOP_DT
+        , ITM_PD_CD
+        , ITM_GD_CD
+        , MNGT_UNIT_CD
+        , OSTR_AK_QTY
+        , RMK_CN
+        , DTA_DL_YN
+        <include refid="COMMON.insertSystemField"/>
+        )
+        <foreach collection="list" item="item" separator=" UNION ALL" >
+            SELECT #{item.ostrAkNo}
+            , TO_NUMBER(#{item.ostrAkSn})
+            , '360' AS OSTR_AK_TP_CD
+            , #{item.ostrOjWareNo}
+            , #{item.strOjWareNo}
+            , TO_CHAR(SYSDATE,'YYYYMMDD')
+            , TO_CHAR(SYSDATE,'YYYYMMDD')
+            , #{item.itmPdCd}
+            , #{item.itmGdCd}
+            , #{item.mngtUnitCd}
+            , #{item.ostrAkQty}
+            , #{item.rmkCn}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue"/>
+            FROM DUAL
+        </foreach>
+    </insert>
 </mapper>

@@ -18,14 +18,14 @@ import java.util.List;
 
 @InterfaceController
 @Api(tags = "[WWDB] wells 입금/환불 목록 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/deposit-refunds")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/deposit-refunds")
 @RequiredArgsConstructor
 @Validated
 public class WwdbDepositRefundInterfaceController {
 
     private final WwdbDepositRefundInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WDEI1004] wells 입금/환불 목록 조회")
+    @ApiOperation(value = "[EAI_WDEI1004] wells 입금/환불 목록 조회 - W-WD-I-0001")
     @PostMapping
     public EaiWrapper getDepositRefunds(
         @Valid

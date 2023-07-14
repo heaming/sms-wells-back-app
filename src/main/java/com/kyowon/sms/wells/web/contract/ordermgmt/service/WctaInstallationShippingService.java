@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -17,9 +18,9 @@ import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaInstallationShippingConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaInstallationShippingDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaInstallationShippingMapper;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbServiceWorkInterfaceDto.CreateReq;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbServiceWorkInterfaceDto.CreateRes;
-import com.kyowon.sms.wells.web.service.interfaces.service.WsnbServiceWorkInterfaceService;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderRes;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsnbWorkOrderInterfaceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
@@ -34,7 +35,10 @@ public class WctaInstallationShippingService {
     private final WctaInstallationShippingMapper mapper;
     private final WctaInstallationShippingConverter converter;
     private final WctzHistoryService historyService;
-    private final WsnbServiceWorkInterfaceService interfaceService;
+    private final WsnbWorkOrderInterfaceService interfaceService;
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     /* TODO: 인터페이스 생성 후 재작업 예정 */
     private static final String TIMEASSIGN_URL = "/W/SV/EAI_WSVI1003/req";
@@ -53,6 +57,7 @@ public class WctaInstallationShippingService {
             List<WctaInstallationShippingDvo> kiwiInstallOrders = mapper.selectKiwiInstallOrders(shippings.getList());
 
             for (WctaInstallationShippingDvo shipping : shippings) {
+                shipping.setProfile(activeProfile);
                 if (CollectionUtils.isEmpty(kiwiInstallOrders)) {
                     resultDto.add(converter.mapWctaIstShippingDvoToSearchRes(shipping));
                     shipping.setHasKiwiOrd(false);
@@ -84,9 +89,8 @@ public class WctaInstallationShippingService {
                             shipping.setInChnlDvCd(item.getInChnlDvCd());
                             shipping.setSvBizHclsfCd(item.getSvBizHclsfCd());
                             shipping.setSvBizDclsfCd(item.getSvBizDclsfCd());
-
+                            shipping.setHasKiwiOrd(true);
                         });
-                    shipping.setHasKiwiOrd(true);
                     resultDto.add(converter.mapWctaIstShippingDvoToSearchRes(shipping));
                 }
             }
@@ -138,8 +142,21 @@ public class WctaInstallationShippingService {
             )
         );
         if ("Y".equals(checkYn)) {
-            CreateRes result = interfaceService.createServiceWorks(new CreateReq(asIstOjNo, cntrNo));
-            if (!ObjectUtils.isEmpty(result)) {
+            List<CreateOrderReq> req = new ArrayList<>();
+            req.add(
+                CreateOrderReq.builder()
+                    .asIstOjNo(asIstOjNo)
+                    .cntrNo(cntrNo)
+                    .cntrSn(cntrSn)
+                    .svBizDclsfCd(svBizDclsfCd)
+                    .inChnlDvCd(inChnlDvCd)
+                    .build()
+            );
+
+            List<CreateOrderRes> result = interfaceService
+                .createWorkOrders(req);
+
+            if (CollectionUtils.isNotEmpty(result)) {
                 return "Y";
             }
         }
@@ -222,7 +239,7 @@ public class WctaInstallationShippingService {
         WctaInstallationShippingDvo checkCancel = mapper.selectCheckCancel(dvo);
 
         if (CollectionUtils.isEmpty(kiwiInstallOrders)) {
-            if (List.of('2', '3').contains(prdDiv)) {
+            if (List.of("2", "3").contains(prdDiv)) {
                 if ("9".equals(wkGb)) {
                     return "";
                 } else {
