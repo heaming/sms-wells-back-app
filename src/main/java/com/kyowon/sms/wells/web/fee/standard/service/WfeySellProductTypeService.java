@@ -91,7 +91,7 @@ public class WfeySellProductTypeService {
      */
     @Transactional
     public ExcelUploadDto.UploadRes saveSellProductTypeExcelUpload(MultipartFile file) throws Exception {
-     // 업로드 엑셀 헤더 설정
+        // 업로드 엑셀 헤더 설정
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("basePdCd", messageService.getMessage("MSG_TXT_PRDT_CODE"));
         headerTitle.put("feePdctTpCd1", messageService.getMessage("MSG_TXT_PDCT_TP")+"(M)");
