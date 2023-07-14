@@ -225,7 +225,11 @@ public class WctaContractRegStep2Service {
         // 서비스상품은 전 유형 필수
         List<WctaContractRegStep2Dvo.PdDetailDvo> pdCds = mapper.selectProductServiceInfo(pdCd);
         if (CollectionUtils.isNotEmpty(mshPdCds)) {
-            pdCds = pdCds.stream().filter((p) -> mshPdCds.contains(p.getCodeId())).toList();
+            List<WctaContractRegStep2Dvo.PdDetailDvo> filteredPdCds = pdCds.stream()
+                .filter((p) -> mshPdCds.contains(p.getCodeId())).toList();
+            if (CollectionUtils.isNotEmpty(filteredPdCds)) {
+                pdCds = filteredPdCds;
+            }
         }
         WctaContractDtlDvo dvo = WctaContractDtlDvo.builder()
             .svPdCds(pdCds)
