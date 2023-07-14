@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
 import com.sds.sflex.common.utils.DbEncUtil;
@@ -254,7 +256,8 @@ public class WctaContractDto {
         String sellDscDvCd,
         String sellDscTpCd,
         Long cntrAmt,
-        Long cntrPtrm
+        Long cntrPtrm,
+        Integer rntlMcn
     ) {}
 
     // 상품 속성목록 조회 Dto
@@ -263,7 +266,8 @@ public class WctaContractDto {
     public record SearchPdSelReq(
         String sellInflwChnlDtlCd,
         String pdCd,
-        String sellTpCd
+        String sellTpCd,
+        List<String> mshPdCds
     ) {}
 
     // *********************************************************
