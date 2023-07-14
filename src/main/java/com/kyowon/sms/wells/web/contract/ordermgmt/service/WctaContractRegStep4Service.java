@@ -54,7 +54,7 @@ public class WctaContractRegStep4Service {
             step4Dvo.setPrtnr(prtnrRels.get(0));
         }
 
-        // 법인이고, 계약자의 주소ID와 설치지 주소ID가 다른 경우가 존재한다면 첨부파일 노
+        // 법인이고, 계약자의 주소ID와 설치지 주소ID가 다른 경우가 존재한다면 첨부파일 노출
         String cntrtAdrId = cntrtInfo.getAdrId();
         List<WctaContractAdrRelDvo> adrRels = Lists.newArrayList();
         dtls.stream().forEach((dtl) -> adrRels.add(dtl.getAdrRel()));
