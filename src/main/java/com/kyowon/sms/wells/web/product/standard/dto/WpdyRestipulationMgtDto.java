@@ -40,6 +40,12 @@ public class WpdyRestipulationMgtDto {
         Integer rcpEndMcn, /* 접수종료개월수 */
         Integer rstlDutyMcn, /* 재약정의무개월수 */
 
+        String ackmtAmt, /* 인정금액 */
+        Integer ackmtCt, /* 인정건수 */
+        String feeAckmtBaseAmt, /* 수수료인정기준금액 */
+        String feeFxamYn, /* 수수료정액여부 */
+        String rid,
+
         // Default UserInfo Suit
         String fstRgstDtm, /* 최초등록일시 */
         String fstRgstUsrId, /* 최초등록사용자id */
@@ -70,8 +76,14 @@ public class WpdyRestipulationMgtDto {
         Integer rcpStrtMcn, /* 접수시작개월수 */
         Integer rcpEndMcn, /* 접수종료개월수 */
         Integer rstlDutyMcn, /* 재약정의무개월수 - 의무기간 */
-        String pdNm, /* 상품코드 - 중복데이터가 있을시 기준 출력값 */
 
+        String ackmtAmt, /* 인정금액 */
+        Integer ackmtCt, /* 인정건수 */
+        String feeAckmtBaseAmt, /* 수수료인정기준금액 */
+        String feeFxamYn, /* 수수료정액여부 */
+        String rid,
+
+        String pdNm, /* 상품코드 - 중복데이터가 있을시 기준 출력값 */
         String fnlMdfcDtm
     ) {
         public SaveReq {
