@@ -1205,12 +1205,12 @@
                     WHEN T2.SELL_TP_CD = '2' THEN TO_CHAR(T2.STPL_PTRM)       /* 유상의무기간수 */
                     WHEN T2.SELL_TP_CD = '3' THEN TO_CHAR(T2.STPL_PTRM)       /* 유상의무기간수 */
                     ELSE ''
-                    END AS STPL_PTRM                                          /* 약정기간(월) : LCDUTY*/
+                    END AS STPL_PTRM                                          /* 약정기간(월) : LCDUTY */
              , T72.RNADR || T72.RDADR  AS RCGVP_ADR                           /* 수령자 주소 : WADR */
              , CASE WHEN T2.SELL_TP_CD = '1' THEN '0'
-                    WHEN T2.SELL_TP_CD = '2' THEN T10.APY_TN
+                    WHEN T2.SELL_TP_CD = '2' THEN TO_CHAR(T10.RENTAL_TN)
                     WHEN T2.SELL_TP_CD = '3' THEN '0'
-                    WHEN T2.SELL_TP_CD = '6' THEN T10.APY_TN
+                    WHEN T2.SELL_TP_CD = '6' THEN TO_CHAR(T10.RENTAL_TN)
                     ELSE ''
                     END AS RENTAL_NMN_N                                       /* 렌탈차월(사용차월) : LCRCNT */
              /** ↓↓↓ 추가정보 ↓↓↓ ****************/
@@ -1222,7 +1222,7 @@
          INNER JOIN TB_SSCT_CNTR_DTL T2                                       /* T.계약상세 */
             ON T2.CNTR_NO = T1.CNTR_NO                                        /* 계약번호 */
            AND T2.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
-           AND T2.SELL_TP_CD IN ('1','2','3','6')                             /* 판매유형코드 : 할부,렌탈,멤버십,정기배송*/
+           AND T2.SELL_TP_CD IN ('1','2','3','6')                             /* 판매유형코드 : 할부,렌탈,멤버십,정기배송 */
           LEFT OUTER JOIN TB_PDBS_PD_BAS T3                                   /* T.상품기본 */
             ON T3.PD_CD = T2.BASE_PD_CD                                       /* 상품코드 */
            AND T3.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
@@ -1290,30 +1290,13 @@
             ON T9.CNTR_NO = T2.CNTR_NO                                         /* 계약번호 */
            AND T9.CNTR_SN = T2.CNTR_SN                                         /* 계약일련번호 */
            AND T9.DTA_DL_YN = 'N'                                              /* 데이터삭제여부 */
-          LEFT OUTER JOIN LATERAL (SELECT *
-                                     FROM (SELECT 'W20213189644' AS CNTR_NO
-                                                , '1' AS CNTR_SN
-                                                , '10'  AS APY_TN   /* 렌탈회차 */
-                                             FROM DUAL
-                                            )
-            ) T10
-        --  LEFT OUTER JOIN LATERAL (SELECT *
-        --                             FROM (SELECT T200.CNTR_NO
-        --                                        , T200.CNTR_SN
-        --                                        , /*T8.APY_TN*/ 'TODO'  AS APY_TN   /* 렌탈회차 */
-        --                                     FROM TB_CBCL_CNTR_PERF_MM_CL T200       /* T.계약실적월마감 TODO.실적월마감테이블없음 */
-        --                                    WHERE 1=1
-        --                                      AND T200.CNTR_NO = T2.CNTR_NO
-        --                                      AND T200.CNTR_SN = T2.CNTR_SN
-        --                                      AND T200.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM'))
-        --                                    ORDER BY T200.BASE_YM DESC
-        --                                    )
-        --                              WHERE ROWNUM= 1
-        --    ) T10
-            ON T10.CNTR_NO = T2.CNTR_NO
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T10                        /* T.WELLS매출월마감내역 */
+            ON T10.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')                       /* 매출마감년월 */
+           AND T10.CNTR_NO = T2.CNTR_NO
            AND T10.CNTR_SN = T2.CNTR_SN
+           AND T10.DTA_DL_YN = 'N'
          WHERE 1=1
-           AND T1.CNTR_CST_NO = #{cntrCstNo}            /* 고객번호:교원키 */
+           AND T1.CNTR_CST_NO = #{cntrCstNo}                                   /* 고객번호:교원키 */
          ORDER BY T2.CNTR_NO DESC
     </select>
 </mapper>
