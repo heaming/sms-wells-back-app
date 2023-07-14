@@ -23,6 +23,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0189P01 배정제외품목 등록 Controller
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-07-14
+ */
+
 @Api(tags = "[WSNA] 배정제외품목 등록")
 @Validated
 @RequiredArgsConstructor

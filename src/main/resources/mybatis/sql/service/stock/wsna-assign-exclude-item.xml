@@ -63,28 +63,46 @@
     </update>
 
     <insert id="insertQomAsnExcdIz">
-        INSERT INTO TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
+         MERGE INTO TB_SVST_QOM_ASN_EXCD_IZ TB_TGT   /* 물량배정제외내역 */
+         USING
              (
-               ASN_EXCD_DV_CD   /* 배정제외구분코드 */
-             , STR_WARE_NO      /* 입고창고번호 */
-             , ITM_PD_CD        /* 품목상품코드 */
-             , ASN_EXCD_SN      /* 배정제외일련번호 */
-             , ITM_KND_CD       /* 품목종류코드 */
-             , DTA_DL_YN        /* 데이터삭제여부 */
+               SELECT #{asnExcdDvCd}                         AS ASN_EXCD_DV_CD
+                    , #{strWareNo}                           AS STR_WARE_NO
+                    , #{itmPdCd}                             AS ITM_PD_CD
+                    , #{itmKndCd}                            AS ITM_KND_CD
+                    , ( SELECT NVL(MAX(ASN_EXCD_SN), 0) + 1
+                          FROM TB_SVST_QOM_ASN_EXCD_IZ
+                         WHERE ASN_EXCD_DV_CD = #{asnExcdDvCd}
+                           AND STR_WARE_NO    = #{strWareNo}
+                           AND ITM_PD_CD      = #{itmPdCd} ) AS ASN_EXCD_SN
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.ASN_EXCD_DV_CD = TB_SRC.ASN_EXCD_DV_CD
+               AND TB_TGT.STR_WARE_NO    = TB_SRC.STR_WARE_NO
+               AND TB_TGT.ITM_PD_CD      = TB_SRC.ITM_PD_CD
+               AND TB_TGT.DTA_DL_YN      = 'N'
+             )
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               TB_TGT.ASN_EXCD_DV_CD   /* 배정제외구분코드 */
+             , TB_TGT.STR_WARE_NO      /* 입고창고번호 */
+             , TB_TGT.ITM_PD_CD        /* 품목상품코드 */
+             , TB_TGT.ASN_EXCD_SN      /* 배정제외일련번호 */
+             , TB_TGT.ITM_KND_CD       /* 품목종류코드 */
+             , TB_TGT.DTA_DL_YN        /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemField"/>
              )
         VALUES
              (
-               #{asnExcdDvCd}
-             , #{strWareNo}
-             , #{itmPdCd}
-             , ( SELECT NVL(MAX(ASN_EXCD_SN), 0) + 1
-                   FROM TB_SVST_QOM_ASN_EXCD_IZ
-                  WHERE ASN_EXCD_DV_CD = #{asnExcdDvCd}
-                    AND STR_WARE_NO    = #{strWareNo}
-                    AND ITM_PD_CD      = #{itmPdCd} )
-             , #{itmKndCd}
-             , 'N'
+               TB_SRC.ASN_EXCD_DV_CD   /* 배정제외구분코드 */
+             , TB_SRC.STR_WARE_NO      /* 입고창고번호 */
+             , TB_SRC.ITM_PD_CD        /* 품목상품코드 */
+             , TB_SRC.ASN_EXCD_SN      /* 배정제외일련번호 */
+             , TB_SRC.ITM_KND_CD       /* 품목종류코드 */
+             , 'N'                     /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemFieldValue"/>
              )
     </insert>
