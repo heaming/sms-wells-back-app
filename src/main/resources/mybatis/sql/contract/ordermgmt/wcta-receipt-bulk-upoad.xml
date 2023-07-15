@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaReceiptBulkUploadMapper">
-
     <select id="isExistProduct" resultType="java.lang.Boolean">
         SELECT COUNT(1)
           FROM TB_PDBS_PD_BAS T_PD_BAS
@@ -1797,4 +1796,198 @@ PSPC_CST_CNSL_ID /*가망고객상담ID*/
           FROM DUAL
     </select>
 
+    <select id="selectIstlcValidation" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaIstlcValidationDvo">
+        SELECT T_CST_BAS.CST_NO
+             , T_CNTR_DTL.CNTR_PD_STRTDT
+             , T_CST_BAS.COPN_DV_CD
+             , T_CNTR_ADR_REL.CNTR_ADR_REL_ID
+             , T_CNTR_ADR_REL.ADRPC_TP_CD
+             , T_CNTR_ADR_REL.CNTR_UNIT_TP_CD
+          FROM TB_SSCT_CNTR_DTL                T_CNTR_DTL /*계약상세*/
+               INNER JOIN TB_SSCT_CNTR_BAS     T_CNTR_BAS /*계약기본*/
+               ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+               INNER JOIN TB_CUBS_CST_BAS      T_CST_BAS
+               ON T_CST_BAS.DTA_DL_YN = 'N'
+                   AND T_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+               INNER JOIN TB_SSCT_CNTR_ADR_REL T_CNTR_ADR_REL /*계약주소관계*/
+               ON T_CNTR_ADR_REL.DTA_DL_YN = 'N'
+                   AND T_CNTR_ADR_REL.DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_CNTR_ADR_REL.DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                       BETWEEN T_CNTR_ADR_REL.VL_STRT_DTM || '000000' AND T_CNTR_ADR_REL.VL_END_DTM || '235959'
+                   AND T_CNTR_ADR_REL.ADRPC_TP_CD IN ('2', '3') /* 주소지 유형 코드: 2.배달주소, 3.설치주소*/
+         WHERE T_CNTR_DTL.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@isNotEmpty(cntrNo)"><trim>
+            AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
+        </trim></if>
+        <if test="@MybatisUtils@isNotEmpty(cntrSn)"><trim>
+            AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
+        </trim></if>
+    </select>
+
+    <select id="selectNewCntrAdrpcId" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+    </select>
+
+    <select id="selectNewCntrAdrRelId" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADR_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADR_REL
+    </select>
+
+    <sql id="tbSsctCntrAdrpcBasFields">
+        CNTR_ADRPC_ID /*계약주소지ID*/
+        , CNTR_NO /*계약번호*/
+        , CNTR_CST_NO /*계약고객번호*/
+        , CNTRT_REL_CD /*계약자관계코드*/
+        , RCGVP_KNM /*수령자한글명*/
+        , RCGVP_ENM /*수령자영문명*/
+        , COPN_DV_CD /*법인격구분코드*/
+        , CRP_SPMT_DRM_NM /*법인추가식별명*/
+        , NAT_CD /*국가코드*/
+        , ADR_DV_CD /*주소구분코드*/
+        , ADR_ID /*주소ID*/
+        , CRAL_LOCARA_TNO /*휴대지역전화번호*/
+        , MEXNO_ENCR /*휴대전화국번호암호화*/
+        , CRAL_IDV_TNO /*휴대개별전화번호*/
+        , LOCARA_TNO /*지역전화번호*/
+        , EXNO_ENCR /*전화국번호암호화*/
+        , IDV_TNO /*개별전화번호*/
+        , EMADR /*이메일주소*/
+        , CNR_SPP_YN /*센터배송여부*/
+        , MVS_DSTC_RCVRY_BASE_DTM /*소산파기복구기준일시*/
+        , MVS_DSTC_RCVRY_DV_CD /*소산파기복구구분코드*/
+        , MVS_DSTC_RCVRY_DTM /*소산파기복구일시*/
+        , DTA_DL_YN /*데이터삭제여부*/
+        , FST_RGST_DTM /*최초등록일시*/
+        , FST_RGST_USR_ID /*최초등록사용자ID*/
+        , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+        , FST_RGST_DEPT_ID /*최초등록부서ID*/
+        , FNL_MDFC_DTM /*최종수정일시*/
+        , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+        , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+        , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+        , OG_TP_CD /*조직유형코드*/
+        , BLD_CD /*빌딩코드*/
+    </sql>
+
+    <insert id="insertBulkAdprcBases">
+        INSERT ALL
+            INTO TB_SSCT_CNTR_ADRPC_BAS (<include refid="tbSsctCntrAdrpcBasFields"/>)
+            VALUES (<include refid="tbSsctCntrAdrpcBasFields"/>)
+            INTO TB_SSCT_CNTR_ADR_CH_HIST (<include refid="tbSsctCntrAdrpcBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsctCntrAdrpcBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+        <foreach collection="dvos" item="dvo" separator=" UNION ALL ">
+            SELECT #{dvo.cntrAdrpcId} AS CNTR_ADRPC_ID
+                 , #{dvo.cntrNo} AS CNTR_NO
+                 , #{dvo.cntrCstNo} AS CNTR_CST_NO
+                 , #{dvo.cntrtRelCd} AS CNTRT_REL_CD
+                 , #{dvo.rcgvpKnm} AS RCGVP_KNM
+                 , #{dvo.rcgvpEnm} AS RCGVP_ENM
+                 , #{dvo.copnDvCd} AS COPN_DV_CD
+                 , #{dvo.crpSpmtDrmNm} AS CRP_SPMT_DRM_NM
+                 , #{dvo.natCd} AS NAT_CD
+                 , #{dvo.adrDvCd} AS ADR_DV_CD
+                 , #{dvo.adrId} AS ADR_ID
+                 , #{dvo.cralLocaraTno} AS CRAL_LOCARA_TNO
+                 , #{dvo.mexnoEncr} AS MEXNO_ENCR
+                 , #{dvo.cralIdvTno} AS CRAL_IDV_TNO
+                 , #{dvo.locaraTno} AS LOCARA_TNO
+                 , #{dvo.exnoEncr} AS EXNO_ENCR
+                 , #{dvo.idvTno} AS IDV_TNO
+                 , #{dvo.emadr} AS EMADR
+                 , #{dvo.cnrSppYn} AS CNR_SPP_YN
+                 , #{dvo.mvsDstcRcvryBaseDtm} AS MVS_DSTC_RCVRY_BASE_DTM
+                 , #{dvo.mvsDstcRcvryDvCd} AS MVS_DSTC_RCVRY_DV_CD
+                 , #{dvo.mvsDstcRcvryDtm} AS MVS_DSTC_RCVRY_DTM
+                 , 'N' AS DTA_DL_YN
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+                 , #{session.userId} AS FST_RGST_USR_ID
+                 , #{session.pageId} AS FST_RGST_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+                 , #{session.userId} AS FNL_MDFC_USR_ID
+                 , #{session.pageId} AS FNL_MDFC_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+                 , #{dvo.ogTpCd} AS OG_TP_CD
+                 , #{dvo.bldCd} AS BLD_CD
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_STRT_DTM
+                 , '99991231235959' AS HIST_END_DTM
+          FROM DUAL
+        </foreach>
+    </insert>
+
+    <insert id="insertBulkCntrAdrRels">
+        INSERT INTO TB_SSCT_CNTR_ADR_REL ( CNTR_ADR_REL_ID /*계약주소관계ID*/
+                                         , VL_STRT_DTM /*유효시작일시*/
+                                         , VL_END_DTM /*유효종료일시*/
+                                         , ADRPC_TP_CD /*주소지유형코드*/
+                                         , CNTR_UNIT_TP_CD /*계약단위유형코드*/
+                                         , CNTR_NO /*계약번호*/
+                                         , DTL_CNTR_NO /*상세계약번호*/
+                                         , DTL_CNTR_SN /*상세계약일련번호*/
+                                         , CNTR_ADRPC_ID /*계약주소지ID*/
+                                         , VST_RQDT /*방문요청일자*/
+                                         , VST_AK_STRT_HM /*방문요청시작시분*/
+                                         , VST_AK_END_HM /*방문요청종료시분*/
+                                         , URGT_OJ_YN /*긴급대상여부*/
+                                         , CNTRW_POSND_TP_CD /*계약서발송처유형코드*/
+                                         , SPP_MTHD_TP_CD /*배송방식유형코드*/
+                                         , SPP_ICHR_AOFFCE_CD /*배송담당사무소코드*/
+                                         , CNTR_CH_RCP_ID /*계약변경접수ID*/
+                                         , DTA_DL_YN /*데이터삭제여부*/
+                                         , FST_RGST_DTM /*최초등록일시*/
+                                         , FST_RGST_USR_ID /*최초등록사용자ID*/
+                                         , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+                                         , FST_RGST_DEPT_ID /*최초등록부서ID*/
+                                         , FNL_MDFC_DTM /*최종수정일시*/
+                                         , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+                                         , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+                                         , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+                                         , SPP_ICHR_USR_ID /*배송담당사용자ID*/
+                                         , SPP_MTHD_CD /*배송방식코드*/
+        )
+        <foreach collection="dvos" item="dvo" separator=" UNION ALL ">
+            SELECT #{dvo.cntrAdrRelId} AS CNTR_ADR_REL_ID /*계약주소관계ID*/
+                 , #{dvo.vlStrtDtm} AS VL_STRT_DTM /*유효시작일시*/
+                 , #{dvo.vlEndDtm} AS VL_END_DTM /*유효종료일시*/
+                 , #{dvo.adrpcTpCd} AS ADRPC_TP_CD /*주소지유형코드*/
+                 , #{dvo.cntrUnitTpCd} AS CNTR_UNIT_TP_CD /*계약단위유형코드*/
+                 , #{dvo.cntrNo} AS CNTR_NO /*계약번호*/
+                 , #{dvo.dtlCntrNo} AS DTL_CNTR_NO /*상세계약번호*/
+                 , #{dvo.dtlCntrSn} AS DTL_CNTR_SN /*상세계약일련번호*/
+                 , #{dvo.cntrAdrpcId} AS CNTR_ADRPC_ID /*계약주소지ID*/
+                 , #{dvo.vstRqdt} AS VST_RQDT /*방문요청일자*/
+                 , #{dvo.vstAkStrtHm} AS VST_AK_STRT_HM /*방문요청시작시분*/
+                 , #{dvo.vstAkEndHm} AS VST_AK_END_HM /*방문요청종료시분*/
+                 , #{dvo.urgtOjYn} AS URGT_OJ_YN /*긴급대상여부*/
+                 , #{dvo.cntrwPosndTpCd} AS CNTRW_POSND_TP_CD /*계약서발송처유형코드*/
+                 , #{dvo.sppMthdTpCd} AS SPP_MTHD_TP_CD /*배송방식유형코드*/
+                 , #{dvo.sppIchrAoffceCd} AS SPP_ICHR_AOFFCE_CD /*배송담당사무소코드*/
+                 , #{dvo.cntrChRcpId} AS CNTR_CH_RCP_ID /*계약변경접수ID*/
+                 , 'N' AS DTA_DL_YN
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+                 , #{session.userId} AS FST_RGST_USR_ID
+                 , #{session.pageId} AS FST_RGST_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+                 , #{session.userId} AS FNL_MDFC_USR_ID
+                 , #{session.pageId} AS FNL_MDFC_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+                 , #{dvo.sppIchrUsrId} AS SPP_ICHR_USR_ID /*배송담당사용자ID*/
+                 , #{dvo.sppMthdCd} AS SPP_MTHD_CD /*배송방식코드*/
+            FROM DUAL
+        </foreach>
+    </insert>
+
+    <update id="updateBulkExpireCntrAdrRels">
+        UPDATE TB_SSCT_CNTR_ADR_REL
+           SET VL_END_DTM = ${now}
+         WHERE CNTR_ADR_REL_ID IN
+        <foreach collection="origCntrAdrRelIds" item="origCntrAdrRelId" separator="," open="(" close=")">
+            #{origCntrAdrRelId}
+        </foreach>
+           AND VL_END_DTM = '99991231235959'
+    </update>
 </mapper>

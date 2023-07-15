@@ -425,4 +425,68 @@ public class WctaReceiptBulkUploadDto {
         String pdPrcId
     ) {
     }
+
+    @Builder
+    @ApiModel(
+        value = "WctaReceiptBulkUploadDto-ValidateIstlcReq",
+        description = "설치처 검증 요청 객체"
+    )
+    public record ValidateIstlcReq(
+        @NotBlank
+        String cntrNo,
+        int cntrSn,
+        @NotBlank
+        String adr1,
+        String adr2
+    ) {}
+
+    @Builder
+    @ApiModel(
+        value = "WctaReceiptBulkUploadDto-ValidateIstlcRes",
+        description = "설치처 검증 결과 객체"
+    )
+    public record ValidateIstlcRes(
+        String adrId,
+        String cntrCstNo,
+        String copnDvCd,
+        String origCntrAdrRelId,
+        String adrpcTpCd,
+        String cntrUnitTpCd
+    ) {}
+
+    @Builder
+    @ApiModel(
+        value = "WctaReceiptBulkUploadDto-CreateBulkSpayReq",
+        description = "일시물 업로드 계약 생성 요청 객체"
+    )
+    public record CreateBulkIstlcReq(
+        @NotBlank
+        String cntrNo, /*계약번호*/
+        @NotBlank
+        int cntrSn, /* 계약일련번호 */
+        @NotBlank
+        String cstKnm, /*고객명*/
+        @NotBlank
+        String cntrtRelCd, /*계약자관계코드*/
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        @NotBlank
+        String adrId,
+        @NotBlank
+        String cntrCstNo,
+        @NotBlank
+        String copnDvCd,
+        @NotBlank
+        String origCntrAdrRelId,
+        @NotBlank
+        String adrpcTpCd,
+        @NotBlank
+        String cntrUnitTpCd
+    ) {
+    }
+
 }

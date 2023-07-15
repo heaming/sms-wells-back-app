@@ -1,9 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.converter;
 
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCstBasDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzPdPrcFnlDtlDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzPspcCstBasDvo;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzPspcCstCnslBasDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.*;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaBulkContractDvo;
 import org.mapstruct.Mapper;
@@ -65,4 +63,13 @@ public interface WctaReceiptBulkUploadConverter {
     @Mapping(source = "spayDscDvCd", target = "sellDscDvCd")
     /*@Mapping(source = "spayDscrCd", target = "sellDscrCd") 아마도?*/
     WctaBulkContractDvo mapCreateBulkSpayReqToWctaBulkContractDvo(CreateBulkSpayReq createBulkSpayReq);
+
+    @Mapping(constant = "KR", target = "natCd")
+    @Mapping(constant = "1", target = "adrDvCd")
+    WctzCntrAdprcBasDvo mapCreateBulkIstlcReqToWctzCntrAdprcBasDvo(CreateBulkIstlcReq createBulkIstlcReq);
+
+    @Mapping(source = "origCntrAdrRelId", target = "cntrAdrRelId")
+    @Mapping(source = "cntrNo", target = "dtlCntrNo")
+    @Mapping(source = "cntrSn", target = "dtlCntrSn")
+    WctzCntrAdrRelDvo mapCreateBulkIstlcReqToWctzCntrAdrRelDvo(CreateBulkIstlcReq createBulkIstlcReq);
 }
