@@ -58,4 +58,16 @@ public interface WctaReceiptBulkUploadMapper {
     int insertBulkSpay(WctaBulkContractDvo dvo);
 
     String selectNewCntrNo();
+
+    Optional<WctaIstlcValidationDvo> selectIstlcValidation(String cntrNo, int cntrSn);
+
+    String selectNewCntrAdrpcId();
+
+    String selectNewCntrAdrRelId();
+
+    int insertBulkAdprcBases(List<WctzCntrAdprcBasDvo> dvos);
+
+    int insertBulkCntrAdrRels(List<WctzCntrAdrRelDvo> dvos);
+
+    int updateBulkExpireCntrAdrRels(List<String> origCntrAdrRelIds, String now);
 }

@@ -68,7 +68,7 @@ public class WctaContractRegStep3Service {
                 dtl.setSodbtNftfCntrYn("N");
                 dtl.setBlkApy("N");
 
-                if (sellTpCd.equals("1")) {
+                if (CtContractConst.SELL_TP_CD_SPAY.equals(sellTpCd)) {
                     // 유상멤버십기간 조회(step2에서 저장했던 정보를 바탕으로 가격 조회 서비스 사용, regService로 이동 검토)
                     WctaContractRegStep2Dvo.PdAmtDvo price = regStep2Service.selectProductPrices(
                         WctaContractDto.SearchPdAmtReq.builder()
@@ -119,7 +119,7 @@ public class WctaContractRegStep3Service {
             List<WctaContractStlmRelDvo> stlmRels = regService.selectContractStlmRels(cntrNo, cntrSn);
             dtl.setStlmRels(stlmRels);
 
-            if (sellTpCd.equals("1")) {
+            if (CtContractConst.SELL_TP_CD_SPAY.equals(sellTpCd)) {
                 // 유상멤버십기간 조회(step2에서 저장했던 정보를 바탕으로 가격 조회 서비스 사용, regService로 이동 검토)
                 WctaContractRegStep2Dvo.PdAmtDvo price = regStep2Service.selectProductPrices(
                     WctaContractDto.SearchPdAmtReq.builder()
@@ -291,7 +291,7 @@ public class WctaContractRegStep3Service {
             // 총판비대면 계약여부 Y가 아니라면 금액 저장
             if (!"Y".equals(bDtl.getSodbtNftfCntrYn())) {
                 Long cntrAmt = bDtl.getCntrAmt();
-                if (bDtl.getSellTpCd().equals("1")) {
+                if (CtContractConst.SELL_TP_CD_SPAY.equals(bDtl.getSellTpCd())) {
                     // 일시불일 때
                     // 계약금, 01, 0101
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
