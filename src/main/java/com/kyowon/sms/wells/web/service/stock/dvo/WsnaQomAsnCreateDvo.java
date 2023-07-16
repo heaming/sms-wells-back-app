@@ -41,6 +41,8 @@ public class WsnaQomAsnCreateDvo {
     private BigDecimal borrExpQty;
     private BigDecimal cnfmQty;
     private BigDecimal boxUnitQty;
+    private BigDecimal boxQty;
     private BigDecimal aclOstrQty;
     private BigDecimal bfsvcFshCt;
+    private int qomAsnNo;
 }

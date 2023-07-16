@@ -5,7 +5,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-U-0189P01 배정제외품목 등록 dvo
+ * W-SV-U-0189P01 배정제외품목 삭제 dvo
  * </pre>
  *
  * @author SaeRomI.Kim
@@ -14,9 +14,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaAssignExcludeItemDvo {
+public class WsnaAssignExcludeItemDelDvo {
+
     private String asnExcdDvCd;
-    private String strWareNo;
-    private String itmPdCd;
     private String itmKndCd;
+    private String wareNo;
 }
