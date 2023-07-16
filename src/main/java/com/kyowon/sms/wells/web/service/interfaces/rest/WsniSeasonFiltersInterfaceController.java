@@ -29,7 +29,7 @@ public class WsniSeasonFiltersInterfaceController {
 
     private final WsniSeasonFiltersInterfaceService service;
 
-    @ApiOperation(value = "W-SV-I-0007 웰스홈페이지 필터정보 조회 팝업")
+    @ApiOperation(value = "W-SV-I-0007 웰스홈페이지 필터정보 조회", notes = "W-SV-I-0007 웰스홈페이지 필터정보 조회")
     @GetMapping
     public EaiWrapper getBsServiceHistories(
         @Valid
