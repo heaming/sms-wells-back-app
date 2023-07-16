@@ -21,7 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @InterfaceController
-@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
+@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 웰스홈페이지 필터정보 조회")
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/season-filters")
 @RequiredArgsConstructor
 @Validated
