@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbCustomerRglrBfsvcDlService;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdService;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,7 +75,7 @@ public class WsncCapsuleSubscriptionCustomerService {
                 updateCount += service3.processRegularBfsvcAsn(
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
                         row.getAsnOjYm(),
-                        "",
+                        SFLEXContextHolder.getContext().getUserSession().getUserId(),
                         row.getCntrNo(),
                         row.getCntrSn()
                     )
