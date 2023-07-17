@@ -468,7 +468,6 @@ public class WctaContractRegStep5Service {
             .map((dvo) -> getCreditCardApprovalSaveReq(withdrawalReceiveAskDvo, dvo.getStlmAmt()))
             .toList();
         SaveResponse response = paymentService.saveCreditCardApproval(creditCardApprovalSaveReqs);
-        /* 이거 이렇게 준단다. */
         @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) response.getData();
         BizAssert.isTrue(responses.size() > 0 && responses.get(0).getErrorCd().equals("S"), "신용승인 요청 실패");
         return responses.stream().map((dvo) -> CreditRes.builder()
@@ -530,7 +529,7 @@ public class WctaContractRegStep5Service {
             withdrawalReceiveAskDvo.getCustomNumber(),
             withdrawalReceiveAskDvo.getFinancialInstitutionCd(),
             crcdnoEncr.substring(0, 4),
-            crcdnoEncr.substring(5, 8),
+            crcdnoEncr.substring(4, 8),
             crcdnoEncr.substring(8, 12),
             crcdnoEncr.substring(12),
             crcdnoEncr,
