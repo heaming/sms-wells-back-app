@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModel;
 
 public class WwdcSalesControlDto {
 
-    // 선납예상금 데이터 
+    // 선납예상금 데이터
     @ApiModel("WwdcSalesControlDto-SearchSalesControlReq")
     public record SearchSalesControlReq(
         String sellTp, /* 판매유형 */
@@ -35,7 +35,7 @@ public class WwdcSalesControlDto {
         String slCtrEndYm,
         String pdCd, /* 제품코드 */
         String pdNm, /* 제품명 */
-
+        String slCtrTpCd,
         String slCtrSellTpCd, /* 판매유형코드*/
         String slCtrMtrDvCd, /* 자료구분코드 */
         String slCtrMtrTpCd, /* 매출조정자료유형코드 */
