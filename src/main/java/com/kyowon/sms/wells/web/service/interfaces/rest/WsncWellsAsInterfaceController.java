@@ -103,4 +103,16 @@ public class WsncWellsAsInterfaceController {
         return resWrapper;
     }
 
+    @ApiOperation(value = "W-SV-I-0023 Wells 인터페이스 맞춤가이드 관리자페이지 AS접수 모종변경 조회")
+    @PostMapping("/as-siding-changes")
+    public EaiWrapper getAsSidingChanges(
+        @Valid
+        @RequestBody
+        EaiWrapper<SearchAsSidingChangeReq> reqWrapper
+    ) {
+        EaiWrapper<SearchAsSidingChangeRes> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getAsSidingChanges(reqWrapper.getBody()));
+        return resWrapper;
+    }
+
 }
