@@ -8,29 +8,22 @@
                  , COUNT(1) AS CNTR_CT          /* 계약건수 (CONC_CNT) */
                  , SUM(CASE WHEN T11.SELL_TP_CD = '2' THEN T11.PD_QTY ELSE 0 END) AS PD_QTY    /* ORDR_CNT */
                  , MIN(T10.CNTR_PRGS_STAT_CD) AS CNTR_PRGS_STAT_CD /* 계약진행상태코드(STAT_CD) */
-                 , (SELECT MAX(MT_PR) KEEP(DENSE_RANK FIRST ORDER BY AML.DATE_CLIENT_REQ DESC)
-                      FROM ATA_MMT_LOG AML      /* T.BIZTALK */
-                     WHERE 1=1
-                       AND AML.RESERVED1 = T11.CNTR_NO  /* key(계약번호) -  */
-                    ) AS MAX_MT_PR  /* ATA_MMT_LOG(RESERVED1) 맵핑이 ASIS와 동일하다는 전제하에 계약번호기준 최근일자의 KEY값으로 구함  */
               FROM TB_SSCT_CNTR_BAS T10                     /* T.계약기본 */
              INNER JOIN TB_SSCT_CNTR_DTL T11                /* T.계약상세 */
                 ON T11.CNTR_NO = T10.CNTR_NO                /* 계약번호 */
                AND T11.DTA_DL_YN = 'N'
              INNER JOIN TB_OGBS_MM_PRTNR_IZ T30       /* T.월파트너내역 - 판매자 */
-                --ON T30.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                 ON T30.BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
                AND T30.OG_TP_CD = T10.SELL_OG_TP_CD
                AND T30.PRTNR_NO = T10.SELL_PRTNR_NO
                AND T30.DTA_DL_YN = 'N'
              INNER JOIN TB_OGBS_MM_OG_IZ T31          /* T.월조직내역 - 조직정보 */
-                --ON T31.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                 ON T31.BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
                AND T31.OG_ID = T30.OG_ID
                AND T31.DTA_DL_YN = 'N'
-              LEFT OUTER JOIN TB_CUBS_CST_BAS T40           /* T.고객기본 - 계약자 */
-                ON T40.CST_NO = T10.CNTR_CST_NO/* 고객번호*/
-               AND T40.DTA_DL_YN = 'N'/* 데이터삭제여부 */
+              LEFT OUTER JOIN TB_CUBS_CST_BAS T40     /* T.고객기본 - 계약자 */
+                ON T40.CST_NO = T10.CNTR_CST_NO       /* 고객번호*/
+               AND T40.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
              WHERE 1=1
                AND T10.DTA_DL_YN = 'N'
                AND T11.CNTRW_TP_CD NOT IN ('9')
@@ -114,7 +107,7 @@
              , T0.CNTR_SN                                               /* GRP_WPN_SEQ, WPN_SEQ, SELR_NO */
              , T0.CNTR_CT                                               /* CONC_CNT */
              , T31.DGR2_LEVL_OG_CD                                      /* 지역단코드 SELR_RGN_CD */
-             , T31.DGR3_LEVL_OG_CD                                      /* 지점코드 SELR_BRNC_CD*/
+             , T31.DGR3_LEVL_OG_CD                                      /* 지점코드 SELR_BRNC_CD */
              , T31.DGR2_LEVL_OG_NM
              , T31.DGR3_LEVL_OG_NM
              , T0.CNTR_NO||'-'||T0.CNTR_SN||(CASE WHEN T0.PD_QTY > 1 THEN ' 외'||(T0.PD_QTY-1)||'건' ELSE '' END) AS CNTR_DTL_NO /* 상품건수와 조합한 계약상세번호 */
@@ -139,39 +132,36 @@
                     ELSE '' END RGST_DV_NM                              /* 등록구분 MAST.RGSN_DIV_NM(등록구분)*/
              , T0.CNTR_PRGS_STAT_CD                                     /* 상태코드 (STAT_CD : 결제대기(20)~99취소)*/
              , T11.CNTRW_TP_CD                                          /* 계약서 구분 (CNDC_DIV_CD)*/
---             , (SELECT COUNT(1)
---                  FROM TB_SSCT_CNTR_APR_IZ /* T.계약승인내역*/
---                 WHERE 1=1
---                   AND CNTR_NO = T11.CNTR_NO
---                   AND CAN_YN = 'N' /* 취소여부 */
---                   AND DTA_DL_YN = 'N') AS CNTR_APR_CN              /* 확정 승인 요청 건수 DFNT_ACKD_REQ_CNT . TODO.성능개선필요*/
-             , '1' AS CNTR_APR_CN
---             , (SELECT TSST.CST_SIGN_CN
---                  FROM TB_SVPD_SIGN_TEMP TSST /* T.서명임시*/
---                 WHERE 1=1
---                   AND TSST.CNTR_NO = T11.CNTR_NO
---                   AND TSST.CNTR_SN = T11.CNTR_SN
---                   AND TSST.PRTNR_NO = T10.SELL_PRTNR_NO
---                   AND TSST.OG_TP_CD = T10.SELL_OG_TP_CD
---                   AND ROWNUM = 1  /* 임시테이블이라서 KEY가 명확하지 않음. */
---                   ) AS CST_SIGN_CN                                    /* 고객서명내용 WPN_SIGN.COMN_SIGN */
+             , CASE WHEN T91.CNTR_NO IS NULL THEN 0
+                    ELSE 1 END CNTR_APR_CN                              /* 확정 승인 요청 건수 DFNT_ACKD_REQ_CNT . 존재여부만 체크(성능을위함) */
+        --             , (SELECT TSST.CST_SIGN_CN
+        --                  FROM TB_SVPD_SIGN_TEMP TSST /* T.서명임시*/
+        --                 WHERE 1=1
+        --                   AND TSST.CNTR_NO = T11.CNTR_NO
+        --                   AND TSST.CNTR_SN = T11.CNTR_SN
+        --                   AND TSST.PRTNR_NO = T10.SELL_PRTNR_NO
+        --                   AND TSST.OG_TP_CD = T10.SELL_OG_TP_CD
+        --                   AND ROWNUM = 1  /* 임시테이블이라서 KEY가 명확하지 않음. */
+        --                   ) AS CST_SIGN_CN                                    /* 고객서명내용 WPN_SIGN.COMN_SIGN */
              , '' AS CST_SIGN_CN
              , T40.EMADR AS CNTRT_EMADR                                 /* 계약자 메일 */
              , (SELECT EMADR
                  FROM TB_OGBS_PRTNR_BAS
                 WHERE 1=1
                   AND OG_TP_CD = T10.SELL_OG_TP_CD
-                  AND PRTNR_NO = T10.SELL_PRTNR_NO) AS PRTNR_EMADR       /* 판매자 이메일 */
-             , '' AS EMIL_SNDG_YN                                       /* TODO.계약서 발송여부(이메일) */
-             , '' AS EMIL_SNDG_DT                                       /* TODO.계약서 발송일자 - 현재 MAIL발송일자 가져올수 있는 키 없음 */
-             , TO_CHAR(T90.DATE_CLIENT_REQ,'YYYYMMDD') AS NOTAK_FW_DT  /* 알림톡 발송일자  TALK_SEND_DT*/
+                  AND PRTNR_NO = T10.SELL_PRTNR_NO) AS PRTNR_EMADR      /* 판매자 이메일 */
+             , CASE WHEN T92.FW_DTM IS NULL THEN 'N'
+                    ELSE 'Y'  END AS EMIL_SNDG_YN                       /* 계약서 발송여부(이메일) */
+             , CASE WHEN T92.FW_DTM IS NULL THEN ''
+                    ELSE SUBSTR(T92.FW_DTM, 1, 8) END AS EMIL_SNDG_DT   /* 계약서 발송일자 */
+             , TO_CHAR(T90.DATE_CLIENT_REQ,'YYYYMMDD') AS NOTAK_FW_DT   /* 알림톡 발송일자 TALK_SEND_DT */
              , CASE WHEN T90.MT_PR IS NOT NULL AND T90.DATE_MT_REPORT IS NULL THEN 'N'
                     WHEN T90.MT_PR IS NOT NULL AND T90.DATE_MT_REPORT IS NOT NULL THEN 'Y'
                     ELSE '' END AS TALK_RCV_YN                          /* 알림톡 수신여부(TODO : 변경가능성 존재함.)- TOBE 신규 */
-             , TO_CHAR(T90.DATE_MT_REPORT,'YYYYMMDD') AS NOTAK_RCV_DT                                    /* 알림톡 수신일자 - TOBE 신규 */
+             , TO_CHAR(T90.DATE_MT_REPORT,'YYYYMMDD') AS NOTAK_RCV_DT   /* 알림톡 수신일자 - TOBE 신규 */
           FROM CNTR_MAST T0                         /* T.조건에 만족하는 계약리스트 */
          INNER JOIN TB_SSCT_CNTR_BAS T10            /* T.계약기본 */
-            ON T10.CNTR_NO = T0.CNTR_NO             /* 계약번호  */
+            ON T10.CNTR_NO = T0.CNTR_NO             /* 계약번호 */
            AND T10.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_DTL T11            /* T.계약상세 */
             ON T11.CNTR_NO = T0.CNTR_NO             /* 계약번호 */
@@ -183,29 +173,57 @@
                                         , MAX(T130.FNL_MDFC_USR_ID) KEEP(DENSE_RANK FIRST ORDER BY T130.HIST_STRT_DTM DESC) AS FNL_MDFC_USR_ID
                                      FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST T130  /* T.계약상세상태변경이력 - 취소일 */
                                     WHERE 1=1
-                                      AND T130.CNTR_NO = T11.CNTR_NO              /*계약번호  */
-                                      AND T130.CNTR_SN = T11.CNTR_SN              /*계약번호  */
-                                      AND T130.CNTR_DTL_STAT_CD IN ('301','302','303')  /* 계약상세상태코드 (고객요청해약~계약취소)*/
+                                      AND T130.CNTR_NO = T11.CNTR_NO              /* 계약번호 */
+                                      AND T130.CNTR_SN = T11.CNTR_SN              /* 계약일련번호 */
+                                      AND T130.CNTR_DTL_STAT_CD IN ('301','302','303')  /* 계약상세상태코드 (고객요청해약~계약취소) */
                                       AND T130.DTA_DL_YN = 'N'
                                   ) T13
             ON T13.CNTR_NO = T11.CNTR_NO
            AND T13.CNTR_SN = T11.CNTR_SN
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T30       /* T.월파트너내역 - 판매자 */
-            --ON T30.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
             ON T30.BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
            AND T30.OG_TP_CD = T10.SELL_OG_TP_CD
            AND T30.PRTNR_NO = T10.SELL_PRTNR_NO
            AND T30.DTA_DL_YN = 'N'
          INNER JOIN TB_OGBS_MM_OG_IZ T31          /* T.월조직내역 - 조직정보 */
-            --ON T31.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
             ON T31.BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM,1,6)
            AND T31.OG_ID = T30.OG_ID
            AND T31.DTA_DL_YN = 'N'
          INNER JOIN TB_CUBS_CST_BAS T40           /* T.고객기본 - 계약자 */
-            ON T40.CST_NO = T10.CNTR_CST_NO/* 고객번호*/
-           AND T40.DTA_DL_YN = 'N'/* 데이터삭제여부 */
-          LEFT OUTER JOIN ATA_MMT_LOG T90           /* T.알림톡 이력 */
-            ON T90.MT_PR = T0.MAX_MT_PR/* 가장최신발송일시의 마스터키*/
+            ON T40.CST_NO = T10.CNTR_CST_NO       /* 고객번호 */
+           AND T40.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
+          LEFT OUTER JOIN LATERAL (SELECT AML.RESERVED2 AS CNTR_NO
+                                        , AML.RESERVED3 AS CNTR_SN
+                                        , MAX(MT_PR) KEEP(DENSE_RANK FIRST ORDER BY AML.DATE_CLIENT_REQ DESC) AS MT_PR
+                                        , MAX(DATE_MT_REPORT) KEEP(DENSE_RANK FIRST ORDER BY AML.DATE_CLIENT_REQ DESC) AS DATE_MT_REPORT
+                                        , MAX(DATE_CLIENT_REQ) KEEP(DENSE_RANK FIRST ORDER BY AML.DATE_CLIENT_REQ DESC) AS DATE_CLIENT_REQ
+                                     FROM ATA_MMT_LOG AML      /* T.BIZTALK */
+                                    WHERE 1=1
+                                      AND AML.RESERVED2 = T11.CNTR_NO           /* key(계약번호) */
+                                      AND AML.RESERVED3 = TO_CHAR(T11.CNTR_SN)  /* key(계약일련번호) */
+                                    GROUP BY AML.RESERVED2, AML.RESERVED3
+                                  ) T90
+            ON T90.CNTR_NO = T11.CNTR_NO
+           AND T90.CNTR_SN = TO_CHAR(T11.CNTR_SN)
+          LEFT OUTER JOIN TB_SSCT_CNTR_APR_IZ T91 /* T.계약승인내역 - 존재여부체크 */
+            ON T91.CNTR_NO = T0.CNTR_NO
+           AND T91.CAN_YN = 'N'                   /* 취소여부 */
+           AND T91.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
+           AND ROWNUM = 1
+          LEFT OUTER JOIN LATERAL (SELECT NFH.CNTR_NO
+                                        , NFH.CNTR_SN
+                                        , MAX(FW_DTM) KEEP(DENSE_RANK FIRST ORDER BY NFH.NOTY_FW_ID DESC) AS FW_DTM
+                                     FROM TB_SSCT_CNTR_NOTY_FW_HIST NFH
+                                    WHERE 1=1
+                                      AND NFH.CNTR_NO = T11.CNTR_NO
+                                      AND NFH.CNTR_SN = T11.CNTR_SN
+                                      AND NFH.NOTY_FW_TP_CD = '10' /* 이메일 */
+                                      AND NFH.FW_OJ_REFK_VAL1 IN ('TMP_CTA_WELLS_ELCN_GUD') /* 발송템플릿 메일보낼때 템플릿 */
+                                      AND NFH.DTA_DL_YN = 'N'
+                                    GROUP BY NFH.CNTR_NO, NFH.CNTR_SN
+                                  ) T92
+            ON T92.CNTR_NO = T11.CNTR_NO
+           AND T92.CNTR_SN = T11.CNTR_SN
          WHERE 1=1
          ORDER BY T10.CNTR_RCP_FSH_DTM DESC, T10.CNTR_NO DESC
     </select>
@@ -292,7 +310,8 @@
                                     FROM ATA_MMT_LOG AML      /* T.BIZTALK */
                                    WHERE 1=1
                                     AND AML.TEMPLATE_CODE = 'wells17945' /* 템플릿 코드 (재약정알림톡호출코드:wells17945(ASIS 기준으로 템플릿코드 변경가능성존재))*/
-                                    AND AML.RESERVED1 = T11.CNTR_NO || T11.CNTR_SN  /* key(계약번호) - 전송시 조건*/
+                                    AND AML.RESERVED2 = T11.CNTR_NO  /* key(계약번호) 전송시 조건 */
+                                    AND AML.RESERVED3 = T11.CNTR_SN  /* key(계약일련번호) 전송시 조건 */
               ) T90 /* 템플릿코드와 계약번호로 카카오톡 전송/수신 정보 */
             ON 1=1
          WHERE 1=1
