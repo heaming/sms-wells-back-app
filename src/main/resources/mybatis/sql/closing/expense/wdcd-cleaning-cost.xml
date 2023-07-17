@@ -17,9 +17,10 @@
              , F_CMZ_CD_NM('TNT_BASE', 'CLING_COST_DV_CD', CLING_COST_DV_CD) AS CLING_COST_DV_NM
              , BLD_CD
              , CLAIM_NM
-             , (SELECT BLD_NM
+             , (SELECT T2.BLD_NM
                   FROM TB_OGBS_MM_OG_IZ T2
-                 WHERE T1.BLD_CD = T2.BLD_CD
+                 WHERE T2.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
+                   AND T2.BLD_CD = T1.BLD_CD
                    AND ROWNUM = 1) AS BLD_NM
              , TO_CHAR(TO_DATE(APLC_DT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS APLC_DT
              , BIL_AMT
@@ -28,15 +29,13 @@
          WHERE DTA_DL_YN = 'N'
            AND SUBSTR(APLC_DT,1,6) BETWEEN #{aplcStartDt} AND #{aplcEndDt}
            AND CLING_COST_DV_CD IN ('02')
-        <if test="@MybatisUtils@isNotEmpty(bldCd)">
-           AND BLD_CD = #{bldCd}
-        </if>
         <if test="@MybatisUtils@isNotEmpty(bldNm)">
            AND BLD_CD IN (SELECT A.BLD_CD
                             FROM TB_OGBS_MM_OG_IZ A /*월조직내역*/
-                             AND A.BASE_YM = SUBSTR(B.OP_DT, 1,6)
                            WHERE 1=1
-                             AND A.BLD_NM LIKE '%'||#{bldNm}||'%')
+                             AND A.BLD_NM LIKE '%'||#{bldNm}||'%'
+                             AND A.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
+                          )
         </if>
         ORDER BY APLC_DT DESC, FST_RGST_DTM DESC
     </select>
