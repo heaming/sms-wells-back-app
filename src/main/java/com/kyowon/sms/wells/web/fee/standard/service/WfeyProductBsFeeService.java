@@ -10,6 +10,7 @@ import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,8 @@ public class WfeyProductBsFeeService {
             WfeyProductBsFeeDvo dvo = converter.mapSaveReqWfeyProductBsFeeDvo(dto);
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
+                    int validCount = mapper.selectValidProductBsFee(dvo);
+                    BizAssert.isTrue(validCount == 0, "MSG_ALT_DUPLICATE_EXISTS");
                     processCount += mapper.insertProductBsFee(dvo);
                 }
                 case CommConst.ROW_STATE_UPDATED -> {

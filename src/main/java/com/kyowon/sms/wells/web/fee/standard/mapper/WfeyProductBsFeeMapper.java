@@ -13,6 +13,7 @@ import java.util.List;
 public interface WfeyProductBsFeeMapper {
     List<SearchProductBsFeeRes> selectProductBsFeeList(SearchProductBsFeeReq req);
     PagingResult<SearchProductBsFeeRes> selectProductBsFeeList(SearchProductBsFeeReq req, PageInfo pageInfo);
+    int selectValidProductBsFee(WfeyProductBsFeeDvo req);
     int insertProductBsFee(WfeyProductBsFeeDvo req);
     int updateProductBsFee(WfeyProductBsFeeDvo req);
     int deleteProductBsFee(WfeyProductBsFeeDvo req);

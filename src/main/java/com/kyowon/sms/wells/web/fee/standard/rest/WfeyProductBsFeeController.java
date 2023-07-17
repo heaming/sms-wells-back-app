@@ -27,12 +27,12 @@ public class WfeyProductBsFeeController {
 
     @ApiOperation(value = "상품별 BS 수수료 기준정보 조회")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "basePdCd", value = "기준상품코드", paramType = "query", required = true),
+            @ApiImplicitParam(name = "basePdCd", value = "기준상품코드", paramType = "query"),
             @ApiImplicitParam(name = "vstMcn", value = "방문개월수 ", paramType = "query"),
             @ApiImplicitParam(name = "svFeeDvCd", value = "서비스수수료구분코드 ", paramType = "query"),
             @ApiImplicitParam(name = "apyStrtYm", value = "적용시작년월 ", paramType = "query"),
             @ApiImplicitParam(name = "apyEndYm", value = "적용종료년월 ", paramType = "query"),
-            @ApiImplicitParam(name = "hcrDvCd", value = "홈케어구분코드 ", paramType = "query"),
+            @ApiImplicitParam(name = "svFeePdDvCd", value = "홈케어구분코드 ", paramType = "query"),
     })
     @GetMapping()
     public List<SearchProductBsFeeRes> getProductBsFee(@ApiParam @Valid SearchProductBsFeeReq req) {
@@ -46,7 +46,7 @@ public class WfeyProductBsFeeController {
             @ApiImplicitParam(name = "svFeeDvCd", value = "서비스수수료구분코드 ", paramType = "query"),
             @ApiImplicitParam(name = "apyStrtYm", value = "적용시작년월 ", paramType = "query"),
             @ApiImplicitParam(name = "apyEndYm", value = "적용종료년월 ", paramType = "query"),
-            @ApiImplicitParam(name = "hcrDvCd", value = "홈케어구분코드 ", paramType = "query"),
+            @ApiImplicitParam(name = "svFeePdDvCd", value = "홈케어구분코드 ", paramType = "query"),
     })
     @GetMapping("/pages")
     public PagingResult<SearchProductBsFeeRes> getProductBsFee(@ApiParam @Valid SearchProductBsFeeReq req, @Valid PageInfo pageInfo) {
