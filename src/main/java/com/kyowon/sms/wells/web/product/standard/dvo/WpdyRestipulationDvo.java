@@ -18,6 +18,13 @@ public class WpdyRestipulationDvo {
     private Integer rcpStrtMcn; /* 접수시작개월수 */
     private Integer rcpEndMcn; /* 접수종료개월수 */
     private Integer rstlDutyMcn; /* 재약정의무개월수 */
+
+    private String ackmtAmt; /* 인정금액 */
+    private Integer ackmtCt; /* 인정건수 */
+    private String feeAckmtBaseAmt; /* 수수료인정기준금액 */
+    private String feeFxamYn; /* 수수료정액여부 */
+    private String rid;
+
     private String dtaDlYn; /* 데이터삭제여부 */
 
     private String pdNm; /* 상품명 */

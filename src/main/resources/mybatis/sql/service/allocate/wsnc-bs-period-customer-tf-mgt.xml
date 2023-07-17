@@ -4,7 +4,7 @@
 
     <select id="selectBsPeriodCustomers" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$SearchRes">
 			 SELECT T1.ASN_OJ_YM									  -- 배정대상년월
-			 	  , T2.TF_STAT_CD 									  -- 이관상태
+			 	  , DECODE(T2.TF_STAT_CD,'10','10','00') AS TF_STAT_CD  -- 이관상태
 				  , T1.CNTR_NO    									  -- 계약번호
 				  , T1.CNTR_SN    									  -- 계약번호
 				  , T5.RCGVP_KNM  									  -- 고객명
@@ -13,9 +13,9 @@
 				  , T4.PDCT_PD_CD      								  -- 품목코드
                   , T14.SVPD_NM_ABBR1                                 -- 상품명
 				  , T1.SV_BIZ_DCLSF_CD 								  -- 업무유형
-				  -- 모종패키지
-				  -- 모종고객번호
-				  -- 모종고객명
+                  , DECODE(T14.SVPD_ITEM_GR,'11',T14.SVPD_NM_ABBR1,'') AS M_PKG     -- 모종패키지
+                  , DECODE(T14.SVPD_ITEM_GR,'11',(T1.CNTR_NO || '-' || T1.CNTR_SN) ,'') AS M_CNTR_NO    -- 모종고객번호
+                  , DECODE(T14.SVPD_ITEM_GR,'11',T5.RCGVP_KNM,'') AS M_RCGVP_KNM    -- 모종고객명
 				  , T5.CTPV_NM    	   -- 시도명
 				  , T5.CTCTY_NM   	   -- 시군구명
 				  , T5.EMD_NM     	   -- 행정동명
@@ -46,7 +46,7 @@
 				  , T13.PRTNR_KNM         AS TF_FN_PRTNR_KNM 	 -- 이관확정정보-성명
 			      , T1.CST_SV_ASN_NO
 			   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
-		 	  INNER JOIN (
+         LEFT OUTER JOIN (
                        SELECT T1.*
                          FROM TB_SVPD_ASN_RS_TF_IZ T1
                         WHERE T1.DTA_DL_YN = 'N'
@@ -63,7 +63,7 @@
 	  	 LEFT OUTER JOIN (
                         SELECT MAX(CH_SN), CNTR_NO, CNTR_SN, DTA_DL_YN
                           FROM TB_SVPD_CNTR_FXN_PRTNR_IZ
-                         WHERE DTA_DL_YN = 'Y'
+                         WHERE DTA_DL_YN = 'N'
                       GROUP BY CNTR_NO, CNTR_SN, DTA_DL_YN
                   ) T3
 				 ON T3.CNTR_NO = T1.CNTR_NO
@@ -72,7 +72,7 @@
 				 ON T4.CNTR_NO = T1.CNTR_NO
 				AND T4.CNTR_SN = T1.CNTR_SN
 				AND T4.DTA_DL_YN = 'N'
-		 LEFT OUTER JOIN (
+		      INNER JOIN (
 					SELECT T1.DTL_CNTR_NO
 						 , T1.DTL_CNTR_SN
 						 , T4.CTPV_NM           -- 시도명
@@ -134,10 +134,11 @@
 		 		AND T13.PRTNR_NO = T2.TF_CNFM_PRTNR_NO
 		 		AND T13.BASE_YM = T1.ASN_OJ_YM
 		 		AND T13.DTA_DL_YN = 'N'
-		 LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T14
+		      INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T14
 			     ON T14.SVPD_PD_CD = T4.PDCT_PD_CD
 		 	  WHERE T1.DTA_DL_YN = 'N'
                 AND T1.ASN_OJ_YM = #{assignYm}
+                AND T1.VST_PRGS_STAT_CD = '00'          -- 작업대기 상태만 조회
             <if test="@MybatisUtils@isNotEmpty(organizationId) and !@MybatisUtils@equals(organizationId, 'ALL')">
                 AND ( T2.BFCH_ICHR_BRCH_OG_ID = #{organizationId}
                    OR T2.AFCH_ICHR_BRCH_OG_ID = #{organizationId}

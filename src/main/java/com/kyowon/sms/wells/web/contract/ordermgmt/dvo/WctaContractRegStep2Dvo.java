@@ -95,6 +95,8 @@ public class WctaContractRegStep2Dvo {
         String hcrMshTpCd;
         String pdChip1;
         Long fnlAmt;
+        Integer rntlMcn;
+        List<String> mshPdCds;
         List<PdSdingCapsl> sdingCapsls;
     }
 
@@ -120,6 +122,8 @@ public class WctaContractRegStep2Dvo {
         String pdPrcId;
         boolean isExistAlncPds; // 제휴상품노출여부(금액조회 시 함께 판단)
         Integer recapMshPtrm;
+        Integer mshStrtMcn;
+        Integer mshEndMcn;
     }
 
     @Getter

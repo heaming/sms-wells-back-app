@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.util.StringUtils;
 
 import com.kyowon.sms.wells.web.service.interfaces.converter.WsniBarcodeProductInterfaceConverter;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniBarcodeProductInterfaceDto;
@@ -27,45 +27,58 @@ public class WsniBarcodeProductInterfaceService {
     public WsniBarcodeProductInterfaceDto.SearchJsonRes getBarcodeProducts(
         WsniBarcodeProductInterfaceDto.SearchReq dto
     ) {
-        log.info("[WsniRegistrationBarcodeInterfaceService.getRegistrationBarcodes] QRCD ::: " + dto.qrcd());
+        log.info("[WsniBarcodeProductInterfaceService.getBarcodeProducts] QRCD ::: " + dto.qrcd());
         WsniBarcodeProductInterfaceDvo dvo = new WsniBarcodeProductInterfaceDvo();
 
         try {
             WsniBarcodeProductInterfaceDto.SearchRes res = mapper.selectBarcodeProduct(dto);
 
-            if (res.resultcode() > 0) {
-                dvo.setResultCode("0");
-                if (res.regi() > 0) {
-                    dvo.setRegi("true");
-                } else {
-                    dvo.setRegi("false");
-                }
+            if (res == null || StringUtils.isEmpty(res.cntrNo())) {
+                dvo.setCode("1");
+                dvo.setMessage(messageService.getMessage("MSG_TXT_NOT_EXIST_QR")); //정보가 존재하지 않습니다
             } else {
-                dvo.setResultCode("1");
-                dvo.setResultMessage(messageService.getMessage("MSG_TXT_BARCODE_INFO_INVALID")); //바코드 정보가 올바르지 않습니다
-                if (res.regi() > 0) {
-                    dvo.setRegi("true");
-                } else {
-                    dvo.setRegi("false");
-                }
+                dvo.setCode("0");
+                dvo.setMessage(messageService.getMessage("MSG_TXT_NOM")); //정상
+                dvo.setBasePdCd(res.basePdCd());
+                dvo.setUswyDvCd(res.uswyDvCd());
+                dvo.setPdctPdCd(res.pdctPdCd());
+                dvo.setFarmYn(res.farmYn());
+                dvo.setItemNm(res.itemNm());
+                dvo.setCntrNo(res.cntrNo());
+                dvo.setCntrSn(res.cntrSn());
+                dvo.setCustNm(res.custNm());
+                dvo.setHnoNo(res.hnoNo());
+//                dvo.setCsmrYr(res.csmrYr()); //빈값 전달 (삭제)
+//                dvo.setCsmrCd(res.csmrCd()); //빈값 전달 (삭제)
+                dvo.setAddr(res.addr());
+                dvo.setZipno(res.zipno());
+                dvo.setEmpId(res.empId());
+                dvo.setEmpNm(res.empNm());
+                dvo.setDeptNm(res.deptNm());
+                dvo.setMngHpNo(res.mngHpNo());
+                dvo.setVstDt(res.vstDt());
+                dvo.setMngTyp(res.mngTyp());
+                dvo.setMngCyc(res.mngCyc());
+                dvo.setDbldNm(res.dbldNm());
+                dvo.setFilterYn(res.filterYn());
             }
         } catch (Exception e) {
-            throw new BizException(messageService.getMessage("MSG_TXT_BARCODE_SEARCH_ERROR")); //바코드 조회 오류
+            e.printStackTrace();
+            throw new BizException(messageService.getMessage("MSG_TXT_QR_SEARCH_ERROR")); //QR코드 조회 오류
         }
-
         return converter.mapBarcodeProductInterfaceDvoToJsonRes(dvo);
     }
 
     public WsniBarcodeProductInterfaceDto.SearchCustJsonRes getBarcodeSearchCustomers(
         WsniBarcodeProductInterfaceDto.SearchCustReq dto
     ) {
-        log.info("[WsniRegistrationBarcodeInterfaceService.getBarcodeSearchCustomers] BARCODE ::: " + dto.barcode());
+        log.info("[WsniBarcodeProductInterfaceService.getBarcodeSearchCustomers] BARCODE ::: " + dto.barcode());
         WsniBarcodeProductInterfaceDto.SearchCustRes res;
 
         try {
             res = mapper.selectBarcodeSearchCustomer(dto);
 
-            if(res == null || StringUtils.isEmpty(res.cntrNo())){
+            if(res == null || org.apache.commons.lang.StringUtils.isEmpty(res.cntrNo())){
                 throw new BizException(messageService.getMessage("MSG_TXT_RENTAL_NOT_EXIST")); //렌탈 정보가 존재하지 않습니다
             }
         } catch (Exception e) {
@@ -74,4 +87,5 @@ public class WsniBarcodeProductInterfaceService {
 
         return converter.mapBarcodeProductCustDtoToJsonRes(res);
     }
+
 }

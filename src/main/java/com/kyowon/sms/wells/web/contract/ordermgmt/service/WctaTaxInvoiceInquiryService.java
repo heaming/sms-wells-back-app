@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractChRcchStatChangeDtlHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaTaxInvoiceInquiryConverter;
@@ -157,6 +159,7 @@ public class WctaTaxInvoiceInquiryService {
             dvo.setDtaDlYn("N");
             dvo.setTxinvPblYn("Y");
             dvo.setMexnoEncr(dvo.getMexno());
+            dvo.setCntrChFshDtm(now);
 
             result = mapper.updateTaxInvoiceInquiry(dvo);
             BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR"); // 저장에 실패하였습니다.
@@ -167,6 +170,82 @@ public class WctaTaxInvoiceInquiryService {
                     .builder()
                     .cntrNo(cntrNo)
                     .cntrSn(cntrSn)
+                    .build()
+            );
+
+            String chRqrNm = session.getUserName();
+            WctaTaxInvoiceInquiryDvo dateDvo = mapper.selectDateTime();
+
+            String employeeId = dateDvo.getFstRgstUsrId();
+            String fstRgstDeptId = dateDvo.getFstRgstDeptId();
+            String fnlMdfcPrgId = dateDvo.getFnlMdfcPrgId();
+            String fnlMdfcDeptId = dateDvo.getFnlMdfcDeptId();
+
+            String telNo = cralLocaraTno + mexno + cralIdvTno;
+            String cntrChPrgsMoCn = String.format(
+                "발행구분:%s|담당자명:%s|전화번호:%s|전자메일:%s|발행일자:%s",
+                txinvPblOjYn, dlpnrPsicNm, telNo, emadr, txinvPblD
+            );
+
+            /* 계약변경접수기본 */
+            dvo.setCntrChRcpDtm(now); /* 계약변경접수일시 */
+            dvo.setCntrChTpCd("205"); /* 계약변경유형코드 */
+            dvo.setChRqrDvCd("1"); /* 변경요청자구분코드 */
+            dvo.setChRqrNm(chRqrNm);
+            dvo.setCstNo(dvo.getCntrCstNo());
+            dvo.setCntrChAkCn(cntrChPrgsMoCn);
+            dvo.setCntrChPrgsStatCd("20"); /* 계약변경진행상태코드 */
+            dvo.setCntrChPrgsMoCn(cntrChPrgsMoCn); /* 계약변경진행메모내용 */
+            dvo.setChRcstDvCd(null); /* 변경접수자구분코드 */
+            dvo.setChRcpUsrId(employeeId); /* 변경접수사용자ID */
+            dvo.setAprDtm(now); /* 승인일시 */
+            dvo.setAprUsrId(employeeId); /* 승인사용자ID */
+            dvo.setBizTfId(null); /* 업무이관ID */
+            dvo.setDtaDlYn("N"); /* 데이터삭제여부 */
+            dvo.setBfchCn(dvo.getBfchCn());
+
+            dvo.setFstRgstDtm(now); // 최초등록일시
+            dvo.setFstRgstUsrId(employeeId); // 최초등록유저ID
+            dvo.setFstRgstPrgId(employeeId); // 최초등록프로그램ID
+            dvo.setFstRgstDeptId(fstRgstDeptId); // 최초등록부서ID
+            dvo.setFnlMdfcDtm(now); // 최종수정일시
+            dvo.setFnlMdfcUsrId(employeeId); // 최종수정유저ID
+            dvo.setFnlMdfcPrgId(fnlMdfcPrgId); // 최종수정프로그램ID
+            dvo.setFnlMdfcDeptId(fnlMdfcDeptId); // 최종수정부서ID
+
+            int baseRes = mapper.insertContractChangeReceipt(dvo);
+            BizAssert.isFalse(baseRes <= 0, "MSG_ALT_SVE_ERR");
+
+            historyService.createContractChangeRcchStatChangeHistory(
+                WctzCntrChRcchStatChangeHistDvo.builder()
+                    .cntrChRcpId(dvo.getCntrChRcpId())
+                    .cntrChPrgsStatCd(dvo.getCntrChPrgsStatCd())
+                    .build()
+            );
+
+            /* 계약변경접수상세 */
+            dvo.setCntrUnitTpCd("020"); /* 계약단위유형코드 */
+            /* 계약변경상세사유코드 (기간변경:202)  */
+            dvo.setCntrNo(null); /* 계약번호 */
+            dvo.setDtlCntrNo(cntrNo); /* 계약상세번호 */
+            dvo.setDtlCntrSn(cntrSn);
+            dvo.setCntrChRsonDvCd("4");
+            dvo.setCntrChRsonCd(""); /* TODO: 코드 추가 후 수정예정 */
+            dvo.setCntrChAtcDvCd("");
+            dvo.setChApyStrtdt(nowDate); /* 변경적용시작일자 */
+            dvo.setChApyEnddt("99991231"); /* 변경적용종료일자 */
+            dvo.setBfchCn(dvo.getBfchCn());
+            dvo.setProcsYn("Y");
+            dvo.setProcsDuedt(nowDate); /* 처리예정일자 */
+            dvo.setProcsFshDtm(now); /* 처리완료일시 */
+
+            int detailRes = mapper.insertContractChReceiptDetail(dvo);
+            BizAssert.isFalse(detailRes <= 0, "MSG_ALT_SVE_ERR");
+
+            historyService.createContractChRcchChangeDtlHistory(
+                WctzContractChRcchStatChangeDtlHistDvo.builder()
+                    .cntrChRcpId(dvo.getCntrChRcpId())
+                    .cntrChSn(dvo.getCntrChSn())
                     .build()
             );
 

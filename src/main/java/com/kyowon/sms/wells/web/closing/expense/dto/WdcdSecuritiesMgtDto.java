@@ -48,7 +48,9 @@ public class WdcdSecuritiesMgtDto {
         String cdcoCd,                /*(hidden)카드사코드*/
         String opcsAdjBtn,       /*원천세정산버튼*/
         String adjCls,             /*정산여부*/
-        String adjOgId
+        String adjOgId,
+        String adjPrtnrNo, /*정산파트너번호*/
+        String opcsAdjNo /*운영비정산번호*/
     ) {
         public SearchAdjustObjectRes {
 

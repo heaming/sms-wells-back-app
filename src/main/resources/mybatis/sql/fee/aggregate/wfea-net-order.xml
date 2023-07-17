@@ -56,11 +56,11 @@
                        INNER JOIN TB_SSCT_CNTR_DTL CD
                           ON CB.CNTR_NO = CD.CNTR_NO
                          AND NOT EXISTS (SELECT 1 FROM TB_SSCT_RENTAL_RSTL_IZ X WHERE X.CNTR_NO = CD.CNTR_NO AND CD.CNTR_SN = CD.CNTR_SN ) /*재약정 제외*/
-                    <if test='@MybatisUtils@equals(schDv, "03")'> /* 매출 */
+                    <if test='@MybatisUtils@equals(schDiv, "02")'> /* 예약 */
                          AND CD.BOO_SELL_TP_CD = '2'
                     </if>
-                    <if test='@MybatisUtils@equals(schDv, "02")'>   /* 예약 */
-                         AND CD.BOO_SELL_TP_CD = '1'
+                    <if test='@MybatisUtils@equals(schDiv, "03")'> /* 매출 */
+                         AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                     </if>
                     <if test='@MybatisUtils@isNotEmpty (selTp)'>
                         <if test='!@MybatisUtils@equals(selTp, "7")'>
@@ -122,11 +122,11 @@
                        INNER JOIN TB_SSCT_CNTR_DTL CD
                           ON CB.CNTR_NO = CD.CNTR_NO
                          AND CD.SELL_TP_CD = '2'     /* 렌탈 */
-                         <if test='@MybatisUtils@equals(schDv, "03")'> /* 매출 */
+                         <if test='@MybatisUtils@equals(schDiv, "02")'> /* 예약 */
                          AND CD.BOO_SELL_TP_CD = '2'
                          </if>
-                         <if test='@MybatisUtils@equals(schDv, "02")'>   /* 예약 */
-                         AND CD.BOO_SELL_TP_CD = '1'
+                         <if test='@MybatisUtils@equals(schDiv, "03")'> /* 매출 */
+                         AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                          </if>
                        INNER JOIN TB_SSCT_RENTAL_RSTL_IZ RI /* 재약정내역 테이블 */
                           ON CD.CNTR_NO = RI.CNTR_NO
@@ -445,7 +445,7 @@
              , A.ACKMT_PERF_AMT
              , A.FEE_ACKMT_CT AS ACKMT_PERF_CT
              , '' AS CVT_PERF_AMT
-             , CASE WHEN A.BOO_SELL_TP_CD = 2 THEN 'Y' ELSE 'N' END AS BOO_SELL_YN
+             , CASE WHEN NVL(A.BOO_SELL_TP_CD,0) = 2 THEN 'Y' ELSE 'N' END AS BOO_SELL_YN
              , A.CNTR_RCP_FSH_DTM AS RCPDT
              , A.SL_RCOG_DT AS SL_DT
              , A.CNTR_PD_ENDDT AS CAN_DT
@@ -484,7 +484,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
-                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
@@ -518,7 +518,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
@@ -554,7 +554,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
-                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -587,7 +587,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                     AND NOT EXISTS (SELECT 1 FROM TB_SSCT_RENTAL_RSTL_IZ X WHERE DTL.CNTR_NO = X.CNTR_NO AND DTL.CNTR_SN = X.CNTR_SN)
                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
@@ -623,7 +623,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
-                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -657,7 +657,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -693,7 +693,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -730,7 +730,7 @@
                      ON RI.CNTR_NO = DTL.CNTR_NO
                     AND RI.CNTR_SN = DTL.CNTR_SN
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
-                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     AND DTL.CNTR_DTL_STAT_CD NOT IN ('302','303')  /* 연체해약, 계약취소 제외 */
                   INNER JOIN TB_SSCT_CNTR_BAS BAS /* T계약기본T */
                      ON RI.CNTR_NO = BAS.CNTR_NO
@@ -796,7 +796,7 @@
              , A.ACKMT_PERF_AMT
              , A.FEE_ACKMT_CT AS ACKMT_PERF_CT
              , '' AS CVT_PERF_AMT
-             , CASE WHEN A.BOO_SELL_TP_CD = 2 THEN 'Y' ELSE 'N' END AS BOO_SELL_YN
+             , CASE WHEN NVL(A.BOO_SELL_TP_CD,0) = 2 THEN 'Y' ELSE 'N' END AS BOO_SELL_YN
              , A.CNTR_RCP_FSH_DTM AS RCPDT
              , A.SL_RCOG_DT AS SL_DT
              , A.CNTR_PD_ENDDT AS CAN_DT
@@ -836,7 +836,7 @@
                    INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
-                     AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
@@ -869,7 +869,7 @@
                    INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
-                     AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                    INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
@@ -904,7 +904,7 @@
                    INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
-                     AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
@@ -937,7 +937,7 @@
                    INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
-                     AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                    INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
@@ -1006,7 +1006,7 @@
                    INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
-                     AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
@@ -1040,7 +1040,7 @@
                    INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
-                     AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                    INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
@@ -1102,7 +1102,7 @@
              , A.ACKMT_PERF_AMT
              , A.FEE_ACKMT_CT AS ACKMT_PERF_CT
              , '' AS CVT_PERF_AMT
-             , CASE WHEN A.BOO_SELL_TP_CD = 2 THEN 'Y'
+             , CASE WHEN NVL(A.BOO_SELL_TP_CD,0) = 2 THEN 'Y'
                     ELSE 'N'
                END AS BOO_SELL_YN
              , A.CNTR_RCP_FSH_DTM AS RCPDT
@@ -1142,7 +1142,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
-                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
@@ -1176,7 +1176,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
@@ -1212,7 +1212,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
-                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -1245,7 +1245,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -1280,7 +1280,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
-                    AND DTL.BOO_SELL_TP_CD = '2'   /* 예약판매 = Y  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -1314,7 +1314,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
@@ -1350,7 +1350,7 @@
                   INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
-                    AND DTL.BOO_SELL_TP_CD != '2'   /* 예약판매 = N  */
+                    AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN

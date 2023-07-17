@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -14,35 +16,40 @@ public class WsnaAssignExcludeItemDto {
 
     @ApiModel(value = "WsnaAssignExcludeItemDto-SearchReq")
     public record SearchReq(
+        @NotBlank
         String asnExcdDvCd,
         String itmKndCd,
-        String wareNo,
-        String baseYm
+        String wareNo
     ) {}
 
     @ApiModel(value = "WsnaAssignExcludeItemDto-SearchRes")
     public record SearchRes(
         String chk,
         String asnExcdDvCd,
+        String asnExcdDvNm,
         String itmPdCd,
         String itmPdNm,
         String itmKndCd,
+        String itmKndNm,
         String strWareNo,
-        String strWareNm,
-        String flag,
-        String sapMaptCd,
-        String knd
+        String sapMatCd
     ) {}
 
-    @ApiModel(value = "WsnaAssignExcludeItemDto-WareRes")
-    public record WareRes(
-      String codeId,
-      String codeName
-    ){}
-    @ApiModel(value = "WsnaAssignExcludeItemDto-SaveReq")
-    public record SaveReq(
+    @ApiModel(value = "WsnaAssignExcludeItemDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
         String asnExcdDvCd,
+        String itmKndCd,
+        String wareNo
+    ) {}
+
+    @ApiModel(value = "WsnaAssignExcludeItemDto-CreateReq")
+    public record CreateReq(
+        @NotBlank
+        String asnExcdDvCd,
+        @NotBlank
         String strWareNo,
+        @NotBlank
         String itmPdCd,
         String itmKndCd
     ) {}

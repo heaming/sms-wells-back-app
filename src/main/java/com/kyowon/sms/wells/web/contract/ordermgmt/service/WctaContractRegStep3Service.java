@@ -18,6 +18,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep3Mapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +40,7 @@ public class WctaContractRegStep3Service {
 
         // 계약자 기준 기본주소지 조회
         WctaContractAdrpcBasDvo basAdrpc = mapper.selectAdrInfoByCntrCstNo(bas.getCntrCstNo());
+        BizAssert.isTrue(ObjectUtils.isNotEmpty(basAdrpc), "계약자 주소지 정보가 없습니다.");
         basAdrpc.setCntrtRelCd("01");
         step3Dvo.setBasAdrpc(basAdrpc);
 
@@ -66,7 +68,7 @@ public class WctaContractRegStep3Service {
                 dtl.setSodbtNftfCntrYn("N");
                 dtl.setBlkApy("N");
 
-                if (sellTpCd.equals("1")) {
+                if (CtContractConst.SELL_TP_CD_SPAY.equals(sellTpCd)) {
                     // 유상멤버십기간 조회(step2에서 저장했던 정보를 바탕으로 가격 조회 서비스 사용, regService로 이동 검토)
                     WctaContractRegStep2Dvo.PdAmtDvo price = regStep2Service.selectProductPrices(
                         WctaContractDto.SearchPdAmtReq.builder()
@@ -117,7 +119,7 @@ public class WctaContractRegStep3Service {
             List<WctaContractStlmRelDvo> stlmRels = regService.selectContractStlmRels(cntrNo, cntrSn);
             dtl.setStlmRels(stlmRels);
 
-            if (sellTpCd.equals("1")) {
+            if (CtContractConst.SELL_TP_CD_SPAY.equals(sellTpCd)) {
                 // 유상멤버십기간 조회(step2에서 저장했던 정보를 바탕으로 가격 조회 서비스 사용, regService로 이동 검토)
                 WctaContractRegStep2Dvo.PdAmtDvo price = regStep2Service.selectProductPrices(
                     WctaContractDto.SearchPdAmtReq.builder()
@@ -248,7 +250,7 @@ public class WctaContractRegStep3Service {
         Map<String, String> stlmBasMap = Maps.newHashMap();
         for (WctaContractDtlDvo dtl : dtls) {
             int cntrSn = dtl.getCntrSn();
-            System.out.println("세금계산서 발행여부: "+dtl.getTxinvPblOjYn());
+            System.out.println("세금계산서 발행여부: " + dtl.getTxinvPblOjYn());
             WctaContractDtlDvo bDtl = null;
             if (isBlkApy(blkApyDtl)) {
                 bDtl = blkApyDtl;
@@ -289,7 +291,7 @@ public class WctaContractRegStep3Service {
             // 총판비대면 계약여부 Y가 아니라면 금액 저장
             if (!"Y".equals(bDtl.getSodbtNftfCntrYn())) {
                 Long cntrAmt = bDtl.getCntrAmt();
-                if (bDtl.getSellTpCd().equals("1")) {
+                if (CtContractConst.SELL_TP_CD_SPAY.equals(bDtl.getSellTpCd())) {
                     // 일시불일 때
                     // 계약금, 01, 0101
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
@@ -341,17 +343,17 @@ public class WctaContractRegStep3Service {
         String now, String cntrNo, Map<String, String> stlmBasMap, int cntrSn, Long cntrAmt, String dpTpCd,
         String rveDvCd, String cstNo
     ) {
-//        if (!stlmBasMap.containsKey(dpTpCd)) {
-            WctaContractStlmBasDvo stlmBas = WctaContractStlmBasDvo.builder()
-                .cntrNo(cntrNo)
-                .cstNo(cstNo)
-                .cntrtRelCd("01") // 통합계약에서는 본인 결제정보만 입력가능
-                .dpTpCd(dpTpCd)
-                .reuseOjYn("N")
-                .build();
-            mapper.insertCntrStlmBasStep3(stlmBas);
-            stlmBasMap.put(dpTpCd, stlmBas.getCntrStlmId());
-//        }
+        //        if (!stlmBasMap.containsKey(dpTpCd)) {
+        WctaContractStlmBasDvo stlmBas = WctaContractStlmBasDvo.builder()
+            .cntrNo(cntrNo)
+            .cstNo(cstNo)
+            .cntrtRelCd("01") // 통합계약에서는 본인 결제정보만 입력가능
+            .dpTpCd(dpTpCd)
+            .reuseOjYn("N")
+            .build();
+        mapper.insertCntrStlmBasStep3(stlmBas);
+        stlmBasMap.put(dpTpCd, stlmBas.getCntrStlmId());
+        //        }
         mapper.insertCntrStlmRelStep3(
             WctaContractStlmRelDvo.builder()
                 .vlStrtDtm(now)

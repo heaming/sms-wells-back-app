@@ -202,7 +202,7 @@
 		SELECT /*+ PARALLEL(T11) */
                T11.KAETC1
              , T11.REF_PD_CLSF_VAL
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T11.SELL_TP_CD ) AS SELL_TP_NM    /* 판매구분 : LCGUBN */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T11.SELL_TP_CD ) AS SELL_TP_NM    /* 판매구분 : LCGUBN */
              , T11.IST_PCSV_TP_CD   /* 설치택배구분 (1:설치, 2:택배) 설치요청 구분  - REQ_SET_DIV - KA11.KACK05 */
              /* WELLS는 배송계획기본 관리X -> 서비스작업출고내역 설치(1)건 으로 임시대체 ASIS:COUNT(LC6000P) */
              , (SELECT COUNT(1)
@@ -228,7 +228,7 @@
              , T40.CST_KNM                                              /* 계약자정보 - 고객명(LCCNAM) */
              , CASE WHEN T30.PRTNR_NO IS NOT NULL THEN T30.PRTNR_KNM
                     ELSE (SELECT FNM
-                            FROM TB_OGBS_EMP_BAS /* T.직원기본 */
+                            FROM TB_GBCO_EMP_BAS /* T.직원기본 */
                            WHERE SAP_EMPNO = T10.SELL_PRTNR_NO
                              AND DTA_DL_YN = 'N') END AS PRTNR_KNM       /* 판매자명(LCDNAM : AK05.AKDNAM or IS10.ISCNAM:직원) */
              , CASE WHEN (SELECT CTT_PRGS_STAT_CD
@@ -236,8 +236,8 @@
                            WHERE 1=1
                              AND CTT_OJ_ID = T11.CTT_OJ_ID) = '20' THEN 'Y' ELSE 'N' END AS CTT_YN     /* 컨택여부(CWCFLG) ->  컨택진행상태코드(20:컨택완료) */
              , T11.CTT_RS_CD            /* 컨택코드(CWFLG3, LCCCDE) ->  컨택결과코드 */
-             , (CASE WHEN T11.SELL_TP_CD = '2' THEN F_CMZ_CD_NM('TNT_WELLS', 'FILT_CTT_RS_CD', T11.CTT_RS_CD)  /* LC컨택 */
-                     WHEN T11.SELL_TP_CD = '9' THEN F_CMZ_CD_NM('TNT_WELLS', 'LC_CTT_RS_CD', T11.CTT_RS_CD)    /* 필터컨택 */
+             , (CASE WHEN T11.SELL_TP_CD = '2' THEN F_CMZ_CD_NM(#{session.tenantId}, 'FILT_CTT_RS_CD', T11.CTT_RS_CD)  /* LC컨택 */
+                     WHEN T11.SELL_TP_CD = '9' THEN F_CMZ_CD_NM(#{session.tenantId}, 'LC_CTT_RS_CD', T11.CTT_RS_CD)    /* 필터컨택 */
                      ELSE '' END) AS CTT_RS_NM         /* 컨택내용(CWCNA3/CWCNA4) ->  컨택결과코드명 (CTT_SELL_TP_CD 대신 SELL_TP_CD 으로 구분함)*/
              , T11.BASE_PD_CD /* 기준상품코드(상품 LCIC01) */
              , CASE WHEN T11.SELL_TP_CD = '1' --일시불

@@ -5,7 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -30,7 +30,7 @@ public class WsniPointmallEgerAcptestatInterfaceController {
     private final WsniPointmallEgerAcptestatService service;
 
     @ApiOperation(value = "포인트몰 금융리스 안마의자,전기레인지 엔지니어 수락상태값 조회", notes = "포인트몰 금융리스 안마의자, 전기레인지 엔지니어 수락상태값 정보를 조회하는 인터페이스이다.")
-    @GetMapping
+    @PostMapping
     public EaiWrapper getPointmallEgerAcptestats(
         @Valid
         @RequestBody

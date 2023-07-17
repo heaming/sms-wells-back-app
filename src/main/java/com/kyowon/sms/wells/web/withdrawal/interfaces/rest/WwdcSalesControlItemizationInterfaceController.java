@@ -30,10 +30,11 @@ public class WwdcSalesControlItemizationInterfaceController {
 
     private final WwdcSalesControlItemizationInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WWDI1021] Wells 매출조정 내역 조회")
+    @ApiOperation(value = "[EAI_WWDI1021] Wells 매출조정 내역 조회 - W-WD-I-0022")
     @PostMapping
     public EaiWrapper getSalesControlItemizations(
-        @Valid @RequestBody
+        @Valid
+        @RequestBody
         EaiWrapper<WwdcSalesControlItemizationInterfaceDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성

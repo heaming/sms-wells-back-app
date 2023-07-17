@@ -26,7 +26,7 @@ public class WsnyPaidAsCostMgtDto {
         int tcfeeAmt, // 기술료금액
         int sumAmt, // 합계(소비자단가금액+기술료금액)
         int izSn,
-        String basePdCd
+        String pdctPdCd
     ){}
 
     @ApiModel(value = "WsnyPaidAsCostMgtDto-PdReq")
@@ -45,7 +45,7 @@ public class WsnyPaidAsCostMgtDto {
         @NotBlank
         String useMatPdCd, // 상품코드
         @NotBlank
-        String basePdCd, // 기준상품코드
+        String pdctPdCd, // 기준상품코드
         @NotBlank
         int izSn, //내역일련번호
         String apyStrtdt, // 적용시작일자

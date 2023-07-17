@@ -26,14 +26,14 @@ import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = "[WWDB] wells 가상계좌 발급 내역 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/virtual-account")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/virtual-account")
 @RequiredArgsConstructor
 @Validated
 public class WwdbVirtualAccountInterfaceController {
 
     private final WwdbVirtualAccountInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WDEI1008] wells 가상계좌 발급 내역 조회")
+    @ApiOperation(value = "[EAI_WDEI1008] wells 가상계좌 발급 내역 조회 - W-WD-I-0005")
     @PostMapping("/issues")
     public EaiWrapper getVirtualAccountIssues(
         @Valid

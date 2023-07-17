@@ -22,14 +22,14 @@ import static com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbRentalMembe
 
 @InterfaceController
 @Api(tags = "[WWDB] wells 렌탈/멤버십 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/rental-membership-prepayment")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/rental-membership-prepayment")
 @RequiredArgsConstructor
 @Validated
 public class WwdbRentalMembershipPrepaymentInterfaceController {
 
     private final WwdbRentalMembershipPrepaymentInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WDEI1006] wells 렌탈/멤버십 선납 정보 조회")
+    @ApiOperation(value = "[EAI_WDEI1006] wells 렌탈/멤버십 선납 정보 조회 - W-WD-I-0003")
     @PostMapping("/infos")
     public EaiWrapper getRentalMembershipPrepaymentInfos(
         @Valid
@@ -47,7 +47,7 @@ public class WwdbRentalMembershipPrepaymentInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WDEI1007] wells 렌탈/멤버십 선납 예정정보 조회")
+    @ApiOperation(value = "[EAI_WDEI1007] wells 렌탈/멤버십 선납 예정정보 조회 - W-WD-I-0004")
     @PostMapping("/expectedinfos")
     public EaiWrapper getRentalMembershipPrepaymentExpectedInfos(
         @Valid

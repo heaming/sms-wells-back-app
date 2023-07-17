@@ -51,7 +51,9 @@ public class WdcdSecuritiesExceptionMgtDto {
         String domTrdAmt,            /*사용금액*/
         String domTrdSumAmt,            /*사용금액 합*/
         String adjOgId,
-        String domTrdAmt1
+        String opcsAdjNo, /*운영비정산번호*/
+        String domTrdAmt1,
+        String adjPrtnrNo /*정산파트너번호*/
     ) {
         public SearchAdjustObjectRes {
 

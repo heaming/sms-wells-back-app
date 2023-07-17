@@ -34,4 +34,6 @@ public class WdcdSecuritiesExceptionDvo {
     private String domTrdSumAmt;
     private String adjOgId;
     private String domTrdAmt1;
+    private String opcsAdjNo;
+    private String adjPrtnrNo; /*정산파트너번호*/
 }

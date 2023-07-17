@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchCntrtInfoReq;
 
+import java.text.NumberFormat;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -59,12 +60,10 @@ public class WctaContractRegStep1Service {
 
         // 계약자 연체 여부 확인
         List<Long> dlqAmt = mapper.selectCntrtDlqAmt(List.of(cstNo));
-        /* TODO 임시처리
         BizAssert.empty(
             dlqAmt, "MSG_ALT_DLQ_CST_AMT",
             new String[] {NumberFormat.getCurrencyInstance().format(dlqAmt.stream().reduce(0L, Long::sum))}
         );
-        */
 
         // 3-3. 파트너 정보 조회 입력
         // 3-3-1. 로그인 사용자의 파트너 정보 조회
@@ -74,7 +73,6 @@ public class WctaContractRegStep1Service {
             .selectPrtnrInfo(loginPrtnrno, session.getOgTpCd());
 
         // 3-3-2. 로그인 사용자 = 파트너, 사전업무 등록기간 체크
-        // XXX 로그인 사용자는 반드시 파트너임을 가정함, 세션변경 필요(W01, 1002934)
         BizAssert.notNull(loginPrtnrInfo, "존재하지 않는 파트너입니다.");
         WctaContractPrtnrRelDvo prtnrInfo = converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(loginPrtnrInfo);
         if ("7".equals(prtnrInfo.getPstnDvCd())) {
@@ -168,10 +166,32 @@ public class WctaContractRegStep1Service {
             BizAssert.isTrue(mapper.isValidPspcCstId(dvo.getPspcCstId(), cntrtInfo.getCopnDvCd()), "가망고객ID를 확인해주세요.");
         }
 
+        String now = DateUtil.todayNnow();
+
         // 계약번호 없으면, 신규 채번
         WctaContractBasDvo basDvo = dvo.getBas();
         boolean isNewCntr = StringUtils.isEmpty(basDvo.getCntrNo());
-        String cntrNo = isNewCntr ? cntrNoService.getContractNumber("").cntrNo() : basDvo.getCntrNo();
+        String cntrNo = "";
+        if (CtContractConst.CNTR_TP_CD_MSH.equals(basDvo.getCntrTpCd()) && StringUtils.isNotEmpty(dvo.getMshCntrNo())) {
+            // 멤버십의 경우 무조건 신규 채번 후 원계약과 계약관계 저장
+            isNewCntr = true;
+            cntrNo = cntrNoService.getContractNumber("").cntrNo();
+            mapper.insertCntrRelStep1(
+                WctaContractRelDvo.builder()
+                    .baseDtlCntrNo(cntrNo)
+                    .baseDtlCntrSn(1) //
+                    .ojDtlCntrNo(dvo.getMshCntrNo())
+                    .ojDtlCntrSn(dvo.getMshCntrSn())
+                    .vlStrtDtm(now)
+                    .vlEndDtm(CtContractConst.END_DTM)
+                    .cntrRelDtlCd("212")
+                    .cntrRelTpCd("20")
+                    .cntrUnitTpCd("020")
+                    .build()
+            );
+        } else {
+            cntrNo = isNewCntr ? cntrNoService.getContractNumber("").cntrNo() : basDvo.getCntrNo();
+        }
 
         if (!isNewCntr) {
             // 기존 계약정보 삭제
@@ -182,12 +202,13 @@ public class WctaContractRegStep1Service {
         }
 
         /* 테이블 적재 시작 */
-        String now = DateUtil.todayNnow();
         // 1. 계약기본 생성 또는 수정
         basDvo.setCntrTempSaveDtm(now);
         basDvo.setPrrRcpCntrYn(mapper.selectResrOrdrYn());
         basDvo.setPspcCstId(dvo.getPspcCstId());
-        basDvo.setSellInflwChnlDtlCd(contractService.getSaleInflowChnlDtlCd(dvo.getBas().getCntrTpCd()));
+        String saleInflowChnlDtlCd = contractService.getSaleInflowChnlDtlCd(dvo.getBas().getCntrTpCd());
+        BizAssert.isFalse("9999".equals(saleInflowChnlDtlCd), "유효하지 않은 판매유입채널상세코드입니다.");
+        basDvo.setSellInflwChnlDtlCd(saleInflowChnlDtlCd);
         basDvo.setCntrNo(cntrNo);
         basDvo.setCntrCstNo(dvo.getCntrt().getCstNo());
         basDvo.setCopnDvCd(dvo.getCntrt().getCopnDvCd());

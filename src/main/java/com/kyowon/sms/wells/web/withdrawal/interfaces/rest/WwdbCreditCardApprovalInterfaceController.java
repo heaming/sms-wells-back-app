@@ -26,7 +26,7 @@ public class WwdbCreditCardApprovalInterfaceController {
 
     private final WwdbCreditCardApprovalInterfaceService service;
 
-    @ApiOperation(value = "Wells 카드즉시 결제 - W-WD-I-0028")
+    @ApiOperation(value = "[EAI_WWDI1026] Wells 카드즉시 결제 - W-WD-I-0028")
     @PostMapping
     public EaiWrapper createCreditCardApproval(
         @Valid
@@ -44,7 +44,7 @@ public class WwdbCreditCardApprovalInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "Wells 카드즉시 결제 알림톡 알림톡 발송 - W-WD-I-0029")
+    @ApiOperation(value = "[EAI_WWDI1027] Wells 카드즉시 결제 알림톡 알림톡 발송 - W-WD-I-0029")
     @PostMapping("/sms")
     public EaiWrapper createCreditCardApprovalNotification(
         @Valid

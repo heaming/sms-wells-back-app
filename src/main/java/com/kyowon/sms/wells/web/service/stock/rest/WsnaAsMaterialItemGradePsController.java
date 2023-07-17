@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradePsDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradePsDto.SearchWareReq;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -12,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaAsMaterialItemGradePsConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGradePsDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsMaterialItemGradePsDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaAsMaterialItemGradePsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -51,7 +53,7 @@ public class WsnaAsMaterialItemGradePsController {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true)
     })
     public List<WsnzWellsCodeWareHouseDvo> getWareHouseNames(@Valid
-    WsnaAsMaterialItemGradePsDto.SearchWareReq dto) {
+    SearchWareReq dto) {
         return this.service.getWareHouses(dto);
     }
 
@@ -63,7 +65,7 @@ public class WsnaAsMaterialItemGradePsController {
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
     })
     public PagingResult<HashMap<String, String>> getAsMaterialsItemGradePsPaging(@Valid
-    WsnaAsMaterialItemGradePsDto.SearchReq dto, @Valid
+    SearchReq dto, @Valid
     PageInfo pageInfo) {
 
         WsnaAsMaterialItemGradePsDvo dvo = this.converter.mapSearchReqToWsnaAsMaterialItemGradePsDvo(dto);
@@ -78,7 +80,7 @@ public class WsnaAsMaterialItemGradePsController {
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
     })
     public List<HashMap<String, String>> getAsMaterialsItemGradePsExcelDownload(@Valid
-    WsnaAsMaterialItemGradePsDto.SearchReq dto) {
+    SearchReq dto) {
 
         WsnaAsMaterialItemGradePsDvo dvo = this.converter.mapSearchReqToWsnaAsMaterialItemGradePsDvo(dto);
         return this.service.getAsMaterialItemGradePsExcelDownload(dvo);
