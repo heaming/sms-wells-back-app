@@ -21,7 +21,9 @@ public class WctaOrderDetailDto {
     public record SearchTradeSpecificationSheetReq(
         String cntrNo,
         String cntrSn,
-        String cntrCstNo
+        String cntrCstNo,
+        String cntrCnfmStrtDt,
+        String cntrCnfmEndDt
     ) {}
 
     // *********************************************************
@@ -117,6 +119,7 @@ public class WctaOrderDetailDto {
         String pymDt,
         String rveDvNm,
         String rveAmt,
+        String dpTpCd,
         String dpTpNm,
         String cdcoNm,
         String crcdno,

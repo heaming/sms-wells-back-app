@@ -371,30 +371,31 @@
              , '' AS PYM_DT                                                    /* 지급일자 (LCGIVT)  ??지급일자 맵핑안됨(CW3300P@CWGIVY) */
              , CASE WHEN T3.RVE_DV_CD = '15' /* 기타선수(15)*/
                     THEN '이관'
-                    WHEN T3.DP_DV_CD = '01' AND T3.DP_MES_CD = '05' /* 입금구분:환불(02), 입금수단:전금(05)*/
+                    WHEN T3.DP_DV_CD = '1' AND T3.DP_MES_CD = '05' /* 입금구분:환불(2), 입금수단:전금(5)*/
                     THEN '전금'
                     ELSE NVL(F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', T3.RVE_DV_CD), '')
                     END AS  RVE_DV_NM                                          /* 수납구분(LCIJUB) */
-             , CASE WHEN T3.DP_DV_CD = '01'                         /* 입금(01) 환불(02), 전금(03) */
+             , CASE WHEN T3.DP_DV_CD = '1'                         /* 입금(1) 환불(2), 전금(3) */
                     THEN T3.RVE_AMT
                     ELSE T3.RVE_AMT * -1 END AS RVE_AMT                        /* 입금금액 (LCAMT1) */
-             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T3.DP_TP_CD)  AS DP_TP_NM  /* 입금유형(구분) LCGUB1*/
-             , CASE WHEN T3.DP_DV_CD = '01' THEN T11.FNIT_NM        /* 입금수단 : 현금(01) */
-                    WHEN T3.DP_DV_CD = '02' THEN NVL(F_CMZ_CD_NM('TNT_WELLS', 'CDCO_CD', T4.PCHS_CDCO_CD), T4.PCHS_CDCO_CD)    /* 입금수단 : 신용카드(02) */
+             , T3.DP_TP_CD													   /* 입금유형코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T3.DP_TP_CD) AS DP_TP_NM   /* 입금유형(구분) LCGUB1 */
+             , CASE WHEN T3.DP_MES_CD = '01' THEN T11.FNIT_NM        /* 입금수단 : 현금(01) */
+                    WHEN T3.DP_MES_CD = '02' THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '2' AND FNIT_CD = T4.CRDCD_FNIT_CD) /* 입금수단 : 신용카드(02) */
                     ELSE F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T3.DP_TP_CD)
                     END AS CDCO_NM                                             /* 카드사 CARDVNDR : 카드사코드 미등록된상태 */
-             , CASE WHEN T3.DP_DV_CD = '01' THEN T4.ACNO_ENCR                  /* 입금수단 : 현금(01) */
-                    WHEN T3.DP_DV_CD = '02' THEN T4.CRCDNO_ENCR                /* 입금수단 : 신용카드(02) */
+             , CASE WHEN T3.DP_MES_CD = '01' THEN T4.ACNO_ENCR                  /* 입금수단 : 현금(01) */
+                    WHEN T3.DP_MES_CD = '02' THEN T4.CRCDNO_ENCR                /* 입금수단 : 신용카드(02) */
                     ELSE '' END AS CRCDNO                                      /* 신용카드번호(LCCNO1) */
              , T4.CRDCD_APRNO                                                  /* 카드승인번호 (CWANO1) */
              , CASE WHEN T4.CRDCD_ISTM_MCN IS NULL THEN '-'
                     ELSE TO_CHAR(T4.CRDCD_ISTM_MCN) END AS CRDCD_ISTM_MCN      /* 신용카드할부 (LCMON1)*/
              , NVL2(T5.ITPOS_PRM_RCP_SN,'Y','N') AS PRM_YN                     /* 선납유무(CW5200P@LCPFLG)  - 내역존재시 선납여부 Y*/
-             , CASE WHEN T3.DP_DV_CD = '01' THEN NVL(F_CMZ_CD_NM('TNT_WELLS', 'DP_MES_CD', T3.DP_MES_CD),'****') /* 입금시에는 입금수단코드(카드/현금)으로 */
-                    WHEN T3.DP_DV_CD = '02' THEN F_CMZ_CD_NM('TNT_WELLS', 'DP_DV_CD', T3.DP_DV_CD)  /* 환불일때는 입금구분명(환불) */
+             , CASE WHEN T3.DP_DV_CD = '1' THEN NVL(F_CMZ_CD_NM('TNT_WELLS', 'DP_MES_CD', T3.DP_MES_CD),'****') /* 입금시에는 입금수단코드(카드/현금)으로 */
+                    WHEN T3.DP_DV_CD = '2' THEN F_CMZ_CD_NM('TNT_WELLS', 'DP_DV_CD', T3.DP_DV_CD)  /* 환불일때는 입금구분명(환불) */
                     ELSE '' END AS OZGUB1                                      /* 입금수단코드 REPORT용(OZGUB1) */
-             , TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '01',1, -1))  AS LCAMT1VAT     /* 부가세 (입금일때는 +, 입금외에는 -1 */
-             , NVL(T3.RVE_AMT,0) - TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '1',1, -1)) AS LCAMT1SPLY /* 공급가액 (입금일때는 +, 입금외에는 -1 */
+             , TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '1', 1, -1))  AS LCAMT1VAT     /* 부가세 (입금일때는 +, 입금외에는 -1 */
+             , NVL(T3.RVE_AMT,0) - TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '1', 1, -1)) AS LCAMT1SPLY /* 공급가액 (입금일때는 +, 입금외에는 -1 */
              , T3.RVE_DT AS OZLCINST                                           /* 수납일자 */
              , NVL2(T6.DP_CPRCNF_NO, 'Y', 'N') AS DP_CPRCNF_YN                 /* 대사 여부(CW33.CWCMYN) */
              , TO_CHAR(T6.FNL_MDFC_PRG_ID) AS FNL_MDFC_PRG_ID                  /* 입금대사@수정프로그램 (DPMPGM) */
@@ -412,11 +413,11 @@
            AND T3.CNTR_NO = T2.CNTR_NO                                         /* 계약번호 */
            AND T3.CNTR_SN = T2.CNTR_SN                                         /* 계약일련번호 */
            AND T3.RVE_PROCS_YN = 'Y'                                           /* 수납처리여부 */
-           AND T3.KW_GRP_CO_CD = '1200'                                        /* 교원그룹회사코드(교원) */
+           AND T3.KW_GRP_CO_CD = '2000'                                        /* 교원그룹회사코드(교원) */
           LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS T4                                /* T.통합입금기본 */
             ON T4.DTA_DL_YN = 'N'                                              /* 데이터삭제여부 */
            AND T4.ITG_DP_NO = T3.ITG_DP_NO                                     /* 통합입금번호 */
-           AND T4.KW_GRP_CO_CD = '1200'                                        /* 교원그룹회사코드(교원) */
+           AND T4.KW_GRP_CO_CD = '2000'                                        /* 교원그룹회사코드(교원) */
           LEFT OUTER JOIN TB_RVDW_ITPOS_PRM_RCP_DTL T5                         /* T.중도선납접수상세 */
             ON T5.DTA_DL_YN = 'N'                                              /* 데이터삭제여부 */
            AND T5.ITPOS_PRM_RCP_SN = T3.RVE_OJ_DRM_NO1                         /* 중도선납접수일련번호 = 수납상세@수납대상식별번호1 */
@@ -453,8 +454,9 @@
              , CASE WHEN T3.DP_DV_CD = '1' /* 입금(1) 환불(2), 전금(3) */
                     THEN T3.RVE_AMT
                     ELSE T3.RVE_AMT * -1 END AS RVE_AMT                        /* 입금금액 (LCAMT1) */
-             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T3.DP_TP_CD) AS DP_TP_NM   /* 입금유형(구분) LCGUB1*/
-             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'CDCO_CD', T4.PCHS_CDCO_CD), T4.PCHS_CDCO_CD) AS CDCO_NM       /* 카드사 CARDVNDR : 카드사코드 미등록된상태 */
+             , T3.DP_TP_CD													   /* 입금유형코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T3.DP_TP_CD) AS DP_TP_NM   /* 입금유형(구분) LCGUB1 */
+             , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '2' AND FNIT_CD = T4.CRDCD_FNIT_CD) AS CDCO_NM       /* 카드사 CARDVNDR : 카드사코드 미등록된상태 */
              , T4.CRCDNO_ENCR AS CRCDNO                                        /* 신용카드번호(LCCNO1) */
              , T4.CRDCD_APRNO                                                  /* 카드승인번호 (CWANO1) */
              , CASE WHEN T4.CRDCD_ISTM_MCN IS NULL THEN '-'
@@ -465,10 +467,10 @@
                     ELSE '' END                 AS OZGUB1                      /* 입금수단코드 REPORT용(OZGUB1) */
              , CASE WHEN T2.SELL_TP_CD = '6' AND T8.REF_PD_CLSF_VAL LIKE '05001003%'    /* 웰스팜(식물재배기) - MAST.LCPRD1 = '1' */
                     THEN 0
-                    ELSE TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '1',1, -1)) END AS LCAMT1VAT /* 부가세 (입금일때는 +, 입금외에는 -1 */
+                    ELSE TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '1', 1, -1)) END AS LCAMT1VAT /* 부가세 (입금일때는 +, 입금외에는 -1 */
              , CASE WHEN T2.SELL_TP_CD = '6' AND T8.REF_PD_CLSF_VAL LIKE '05001003%'    /* 웰스팜(식물재배기) - MAST.LCPRD1 = '1' */
                     THEN (NVL(T3.RVE_AMT,0) * (DECODE(T3.DP_DV_CD, '1', 1, -1)))
-                    ELSE (NVL(T3.RVE_AMT,0) - TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '1',1, -1)))  END AS LCAMT1SPLY /* 공급가액 (입금일때는 +, 입금외에는 -1 */
+                    ELSE (NVL(T3.RVE_AMT,0) - TRUNC(NVL(T3.RVE_AMT,0)/11) * (DECODE(T3.DP_DV_CD, '1', 1, -1)))  END AS LCAMT1SPLY /* 공급가액 (입금일때는 +, 입금외에는 -1 */
              , T3.RVE_DT AS OZLCINST /* 수납일자 또는 실 출금일*/
         --     , CASE WHEN (T3.DP_DV_CD = '1' AND (T3.DP_TP_CD = '0102' OR  T3.DP_TP_CD = '0203' ) AND T10.KFTC_YN = 'Y') /* LC33.LCIGUB = '1' AND LC33.LCIFLG = '1' AND LC33.LCFLG4 = ' ' */
         --            THEN '' /* ZA_가상계좌입금처리파일(KA5150P) : 금결원의　경우　수납일과　실출금일이　다름 */
@@ -494,11 +496,11 @@
            AND T3.CNTR_NO = T2.CNTR_NO                                         /* 계약번호 */
            AND T3.CNTR_SN = T2.CNTR_SN                                         /* 계약일련번호 */
            AND T3.RVE_PROCS_YN = 'Y'                                           /* 수납처리여부 */
-           AND T3.KW_GRP_CO_CD = '1200'                                        /* 교원그룹회사코드(교원) */
+           AND T3.KW_GRP_CO_CD = '2000'                                        /* 교원그룹회사코드(교원) */
           LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS T4                                /* T.통합입금기본 */
             ON T4.DTA_DL_YN = 'N'                                              /* 데이터삭제여부 */
            AND T4.ITG_DP_NO = T3.ITG_DP_NO                                     /* 통합입금번호 */
-           AND T4.KW_GRP_CO_CD = '1200'                                        /* 교원그룹회사코드(교원) */
+           AND T4.KW_GRP_CO_CD = '2000'                                        /* 교원그룹회사코드(교원) */
           LEFT OUTER JOIN TB_RVDW_ITPOS_PRM_RCP_DTL T5                         /* T.중도선납접수상세 */
             ON T5.DTA_DL_YN = 'N'                                              /* 데이터삭제여부 */
            AND T5.ITPOS_PRM_RCP_SN = T3.RVE_OJ_DRM_NO1                         /* 중도선납접수일련번호 = 수납상세@수납대상식별번호1 */
@@ -530,14 +532,14 @@
                                      LEFT OUTER JOIN TB_RVDW_FNIT_CD_USE_DV_IZ T101    /* T.금융기관코드사용구분내역 */
                                        ON T101.DTA_DL_YN = 'N'
                                       AND T101.USE_YN = 'Y'                    /* 사용여부 */
-                                      AND T101.KW_GRP_CO_CD = '1200'           /* 교원그룹회사코드 :1200(교원) */
+                                      AND T101.KW_GRP_CO_CD = '2000'           /* 교원그룹회사코드 :1200(교원) */
                                       AND T101.FNIT_CD = T100.FNIT_CD          /* 금융기관코드 */
                                       AND T101.VNCO_DV_CD = '001'              /* VAN사구분코드 : 금결월(001) */
                                       AND T101.BNK_BIZ_DV_CD IN ('01', '02')   /* 은행업무구분코드 : 계좌이체, 가상계좌*/
                                       AND T101.VL_STRTDT <![CDATA[ <= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')  /* 유효시작일자 */
                                       AND T101.VL_ENDDT  <![CDATA[ >= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')  /* 유효종료일자 */
                                    WHERE 1=1
-                                     AND T100.KW_GRP_CO_CD = '1200'
+                                     AND T100.KW_GRP_CO_CD = '2000'
                                      AND T100.RVE_AK_NO = T3.RVE_AK_NO         /* 수납요청일련번호 */
                                      AND T100.RVE_AK_SN = T3.RVE_AK_SN         /* 수납요청일련번호 */
                                      AND T100.DTA_DL_YN = 'N'                  /* 데이터삭제여부 */
@@ -675,7 +677,7 @@
              , '0' AS LCMAM2                                                /* 미수 당월 예정(정기배송 당월납) */
              , '0' AS LCMAM4                                                /* 미수 당월 조정(정기배송 당월납) */
              , '0' AS LCMAM6                                                /* 미수 당월 추가(정기배송 당월납) */
-             , TO_CHAR(TO_DATE(T2.CNTR_PD_STRTDT, 'YYYYMMDD'),'YYMMDD') AS LCSLEYMD /* 일시불매출일 */
+             , TO_CHAR(TO_DATE(T2.CNTR_PD_STRTDT, 'YYYYMMDD'),'YYYYMMDD') AS LCSLEYMD /* 일시불매출일 */
              , T2.SELL_TP_CD                                                /* 주문유형(ordrType) L10 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD ) AS SELL_TP_NM
              , 'TODO:KA10.KACK13' AS KACK13                                 /* 전자계약노출:무진행사(4) 맴핑없음 */
@@ -721,7 +723,7 @@
              , '0' AS LCMAM2                                                /* 미수 당월 예정(정기배송 당월납) */
              , '0' AS LCMAM4                                                /* 미수 당월 조정(정기배송 당월납) */
              , '0' AS LCMAM6                                                /* 미수 당월 추가(정기배송 당월납) */
-             , '' AS LCSLEYMD
+             , '' AS LCSLEYMD                                               /* 일시불매출일 */
              , T2.SELL_TP_CD                                                /* 주문유형(ordrType) L30 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD ) AS SELL_TP_NM
              , 'TODO:KA10.KACK13' AS KACK13                                 /* 전자계약노출:무진행사(4) 맴핑없음 */
@@ -768,7 +770,7 @@
              , T4.LCMAM2 AS LCMAM2                                          /* 미수 당월 예정(정기배송 당월납) */
              , T4.LCMAM4 AS LCMAM4                                          /* 미수 당월 조정(정기배송 당월납) */
              , T4.LCMAM6 AS LCMAM6                                          /* 미수 당월 추가(정기배송 당월납) */
-             , '' AS LCSLEYMD
+             , '' AS LCSLEYMD                                               /* 일시불매출일 */
              , T2.SELL_TP_CD                                                /* 주문유형(ordrType) LD10 -> 6 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD ) AS SELL_TP_NM
              , '' AS KACK13                                                 /* 전자계약노출 */
@@ -889,7 +891,7 @@
                                       , SUBSTR(T32.DP_DTM, 9, 13) AS DPSTHM            /* 입금일시 */
                                       , SUBSTR(T32.ITG_DP_CAN_DTM, 1, 8) AS DPCNDT     /* 취소일자 */
                                       , SUBSTR(T32.ITG_DP_CAN_DTM, 9, 13) AS DPCNHM    /* 취소일시 */
-                                      , NVL(F_CMZ_CD_NM('TNT_WELLS', 'CDCO_CD', T32.PCHS_CDCO_CD ), T32.PCHS_CDCO_CD ) AS CARDVNDR /* 카드사명 (매입카드사코드) */
+                                      , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_DV_CD = '2' AND FNIT_CD = T32.CRDCD_FNIT_CD) AS CARDVNDR /* 카드사명 (매입카드사코드) */
                                       , T32.CRCDNO_ENCR AS DPCDNO_FULL          /* 카드번호(암호화) */
                                       , T32.CRDCD_ISTM_MCN                      /* 신용카드할부개월수 */
                                       , T32.CRDCD_APRNO                         /* 신용카드승인번호 */
@@ -1297,6 +1299,7 @@
            AND T10.DTA_DL_YN = 'N'
          WHERE 1=1
            AND T1.CNTR_CST_NO = #{cntrCstNo}                                   /* 고객번호:교원키 */
+           AND T1.CNTR_CNFM_DTM BETWEEN #{cntrCnfmStrtDt}||'000000' AND #{cntrCnfmEndDt}||'235959'  /* 계약확정일시 */
          ORDER BY T2.CNTR_NO DESC
     </select>
 </mapper>
