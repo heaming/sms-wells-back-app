@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.CreateReq;
+
 import java.util.List;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.CreateReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMaterialsAssignStocksDvo;
 
 /**
@@ -17,5 +18,5 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMaterialsAssignStocksDvo;
  */
 @Mapper(componentModel = "spring")
 public interface WsnaMaterialsAssignStocksConverter {
-    List<WsnaMaterialsAssignStocksDvo> mapAllCreateReqToWsnaMaterialsAssignStocksDvo(List<CreateReq> list);
+    List<WsnaMaterialsAssignStocksDvo> mapAllCreateReqToWsnaMaterialsAssignStocksDvo(List<CreateReq> dtos);
 }
