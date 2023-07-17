@@ -3,132 +3,146 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncSeedingDeliveryListMapper">
     <select id="selectSeedingDeliveryList"
             resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncSeedingDeliveryListDto$SearchRes">
-        SELECT CNTR_NO
-             , CNTR_SN
-             , SDING_INFO /* 상품명 */
-             , ADR /* 배송주소 */
+		SELECT MAX(MAIN.CNTR_NO) AS CNTR_NO
+             , MAX(MAIN.CNTR_SN) AS CNTR_SN
+             , (CASE WHEN MAX(MAIN.SDING_INFO) IS NOT NULL THEN MAX(MAIN.SDING_INFO) ELSE
+             			  MAX(CASE WHEN P2.PD_PRC_TCNT = 1 THEN (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = S3.PDCT_PD_CD)||' '||P2.SDING_QTY ELSE '' END)
+						 ||MAX(CASE WHEN P2.PD_PRC_TCNT = 2 THEN ' / '||(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = S3.PDCT_PD_CD)||' '||P2.SDING_QTY ELSE '' END)
+						 ||MAX(CASE WHEN P2.PD_PRC_TCNT = 3 THEN ' / '||(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = S3.PDCT_PD_CD)||' '||P2.SDING_QTY ELSE '' END)
+						 ||MAX(CASE WHEN P2.PD_PRC_TCNT = 4 THEN ' / '||(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = S3.PDCT_PD_CD)||' '||P2.SDING_QTY ELSE '' END)
+						 ||MAX(CASE WHEN P2.PD_PRC_TCNT = 5 THEN ' / '||(SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = S3.PDCT_PD_CD)||' '||P2.SDING_QTY ELSE '' END)
+             	END) AS SDING_INFO /* 상품명 */
+             , MAX(ADR) AS ADR /* 배송주소 */
              , VST_DT /* 배송예정일 */
-             , (CASE WHEN VST_DT > TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '배송준비중'
-                      WHEN WK_DT IS NOT NULL THEN '배송완료'
-                      WHEN SPP_CNFMDT IS NOT NULL THEN '배송중'
+             , (CASE WHEN MAX(MAIN.VST_DT) <![CDATA[>]]> TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '배송준비중'
+                      WHEN MAX(MAIN.WK_DT) IS NOT NULL THEN '배송완료'
+                      WHEN MAX(MAIN.SPP_CNFMDT) IS NOT NULL THEN '배송중'
                       ELSE ''
-             END ) DLVY_STATUS /* 배송상태 */
-             , SELL_AMT /* 금액(월) */
-            FROM ( SELECT F1.CNTR_NO
-                        , F1.CNTR_SN
-                        /* , F2.SDING_PD_CD */
-                        /* , F2.SDING_SN */
-                        /* , F2.SDING_QTY */
-                        /* , P1.PD_NM */
-                        , F1.WK_DT WK_DT
-                        , NVL(F1.WK_DT, F1.VST_DUEDT) VST_DT
-                        /* , F3.SDING_PKG_PD_CD */
-                        , F3.SPP_CNFMDT
-                        , S1.IST_ADR || ' ' || S1.IST_DTL_ADR AS ADR
-                        , F3.SDING_PKG_PD_CD
-                        , LISTAGG(P1.PD_NM||' '||F2.SDING_QTY, ' / ') WITHIN GROUP(ORDER BY F2.SDING_SN) AS SDING_INFO
-                     FROM TB_SVPD_SDING_SPP_PLAN_IZ F1 /* 모종배송계획내역 FA101 */
-               INNER JOIN TB_SVPD_SDING_SPP_EXP_IZ F2 /* 모종배송예정내역 FA102 */
-                       ON F1.CNTR_NO = F2.CNTR_NO
-                      AND F1.CNTR_SN = F2.CNTR_SN
-                      AND F1.SV_BIZ_HCLSF_CD = F2.SV_BIZ_HCLSF_CD
-                      AND F1.SV_BIZ_DCLSF_CD = F2.SV_BIZ_DCLSF_CD
-                      AND F1.SPP_ORD_NO = F2.SPP_ORD_NO
-                      AND F1.SPP_PLAN_SN = F2.SPP_PLAN_SN
-               INNER JOIN TB_PDBS_PD_BAS P1
-                       ON F2.SDING_PD_CD = P1.PD_CD
-               INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S1 /* 고객서비스AS설치대상내역 AC211 */
-                       ON F1.CNTR_NO = S1.CNTR_NO
-                      AND F1.CNTR_SN = S1.CNTR_SN
-                      AND F1.SV_BIZ_HCLSF_CD = S1.SV_BIZ_HCLSF_CD
-                      AND F1.SV_BIZ_DCLSF_CD = S1.SV_BIZ_DCLSF_CD
-                      AND  SUBSTR(S1.AS_IST_OJ_NO, 2) = SUBSTR(F1.SPP_ORD_NO,1,9)||LPAD(SUBSTR(F1.SPP_ORD_NO, 10),8,'0')
-                /* INNER JOIN TB_SSCT_CNTR_ADRPC_BAS A1 */ /* 계약주소지기본 LD30 */
-                /* ON S1.CNTR_ADRPC_ID = A1.CNTR_ADRPC_ID */
-          LEFT OUTER JOIN TB_SVPD_SDING_SPP_CNFM_IZ F3 /* 모종배송확정내역 FA103 */
-                       ON F1.CNTR_NO = F3.CNTR_NO
-                      AND F1.CNTR_SN = F3.CNTR_SN
-                      AND F1.SV_BIZ_HCLSF_CD = F3.SV_BIZ_HCLSF_CD
-                      AND F1.SV_BIZ_DCLSF_CD = F3.SV_BIZ_DCLSF_CD
-                      AND F1.SPP_ORD_NO = F3.SPP_ORD_NO
-                      AND F1.SPP_PLAN_SN = F3.SPP_PLAN_SN
-                    WHERE P1.PD_CLSF_ID NOT IN ('PDC000000001839') /* 배양액, POT 제외 */
-                      AND F1.SV_BIZ_HCLSF_CD = '1'
-                      AND F1.SV_BIZ_DCLSF_CD LIKE '11%'
-                 GROUP BY F1.CNTR_NO
-                        , F1.CNTR_SN
-                        , F1.WK_DT
-                        , NVL(F1.WK_DT, F1.VST_DUEDT)
-                        , F3.SPP_CNFMDT
-                        , F3.SDING_PKG_PD_CD
-                        , S1.IST_ADR || ' ' || S1.IST_DTL_ADR
-                UNION ALL
-                   SELECT CNTR_NO
-                        , CNTR_SN
-                        , WK_DT
-                        , VST_DT
-                        , SPP_CNFMDT
-                        , ADR
-                        , SDING_PKG_PD_CD
-                        , ( CASE WHEN SDING_PD_CLSF_ID1 NOT IN ('PDC000000001839') THEN SDING_PD_NM1 ELSE ''  END
-                        || CASE WHEN SDING_PD_CLSF_ID2  NOT IN ('PDC000000001839') THEN SDING_PD_NM2 ELSE '' END
-                        || CASE WHEN SDING_PD_CLSF_ID3  NOT IN ('PDC000000001839') THEN SDING_PD_NM3 ELSE '' END
-                        || CASE WHEN SDING_PD_CLSF_ID4  NOT IN ('PDC000000001839') THEN SDING_PD_NM4 ELSE '' END
-                        || CASE WHEN SDING_PD_CLSF_ID5  NOT IN ('PDC000000001839') THEN SDING_PD_NM5 ELSE '' END ) AS SDING_INFO
-                     FROM (SELECT S2.CNTR_NO
-                                , S2.CNTR_SN
-                                , F4.SDING_PD_CD1
-                                , F4.SDING_QTY1
-                                , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD1 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID1
-                                , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD1 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM1
-                                , F4.SDING_PD_CD2
-                                , F4.SDING_QTY2
-                                , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD2 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID2
-                                , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD2 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM2
-                                , F4.SDING_PD_CD3
-                                , F4.SDING_QTY3
-                                , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD3 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID3
-                                , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD3 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM3
-                                , F4.SDING_PD_CD4
-                                , F4.SDING_QTY4
-                                , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD4 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID4
-                                , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD4 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM4
-                                , F4.SDING_PD_CD5
-                                , F4.SDING_QTY5
-                                , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD5 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID5
-                                , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD5 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM5
-                                , F4.ADR
-                                , NVL(S2.WK_DT, S2.VST_DUEDT) VST_DT
-                                , F4.SPP_CNFMDT
-                                , S2.WK_DT
-                                , SDING_PKG_PD_CD
-                             FROM TB_SVPD_CST_SV_RGBSPR_IZ S2 /* 고객서비스정기BS주기내역 VS107 */
-                  LEFT OUTER JOIN ( SELECT T1.*
-                                         , T5.RNADR ||' '|| T5.RDADR AS ADR
-                                      FROM TB_SVPD_SDING_SPP_CNFM_IZ T1
-                                INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL T3 /*계약주소관계*/
-                                        ON T1.CNTR_NO = T3.DTL_CNTR_NO
-                                       AND T1.CNTR_SN = T3.DTL_CNTR_SN
-                                       /* AND T3.ADRPC_TP_CD = '3' */ /*1 계약주소, 2 배달주소, 3 설치주소*/
-                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
-                                       AND T3.DTA_DL_YN = 'N'
-                                INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS T4 /*계약주소지기본*/
-                                        ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID  /*계약주소지ID*/
-                                       AND T4.DTA_DL_YN = 'N'
-                           LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS T5
-                                        ON T4.ADR_ID = T5.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, T4.ADR_ID 를 T1.ADR_ID 으로 수정 해야 함*/
-                                       AND T5.DTA_DL_YN = 'N' ) F4
-                                        ON S2.CNTR_NO = F4.CNTR_NO
-                                       AND S2.CNTR_SN = F4.CNTR_SN
-                                       AND S2.SV_BIZ_DCLSF_CD = F4.SV_BIZ_DCLSF_CD
-                                       AND F4.SPP_ORD_NO = '2'||S2.VST_DUEDT||LPAD(S2.IST_NMN_N,5,'0')
-                                      WHERE S2.VST_DUEDT <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(SYSDATE, 3),'YYYYMMDD')
-                      ) MAIN2
-            ) MAIN
+             END ) AS DLVY_STATUS /* 배송상태 */
+             , MAX(P2.SELL_AMT) AS SELL_AMT /* 금액(월) */
+        FROM ( SELECT MAX(F1.CNTR_NO) CNTR_NO
+                    , MAX(F1.CNTR_SN) CNTR_SN
+                    /* , F2.SDING_PD_CD */
+                    /* , F2.SDING_SN */
+                    /* , F2.SDING_QTY */
+                    /* , P1.PD_NM */
+                    , MAX(F1.WK_DT) WK_DT
+                    , NVL(F1.WK_DT, F1.VST_DUEDT) VST_DT
+                    /* , F3.SDING_PKG_PD_CD */
+                    , MAX(F3.SPP_CNFMDT) SPP_CNFMDT
+                    , MAX(T5.RNADR ||' '|| T5.RDADR) AS ADR
+                    , MAX(F3.SDING_PKG_PD_CD) SDING_PKG_PD_CD
+                    , MAX(CASE WHEN F2.SDING_SN = '1' AND P1.PD_CLSF_ID NOT IN ('PDC000000001839') THEN P1.PD_NM||' '||F2.SDING_QTY ELSE '' END
+                    || CASE WHEN F2.SDING_SN = '2' AND P1.PD_CLSF_ID NOT IN ('PDC000000001839') THEN ' / '||P1.PD_NM||' '||F2.SDING_QTY ELSE '' END
+                    || CASE WHEN F2.SDING_SN = '3' AND P1.PD_CLSF_ID NOT IN ('PDC000000001839') THEN ' / '||P1.PD_NM||' '||F2.SDING_QTY ELSE '' END
+                    || CASE WHEN F2.SDING_SN = '4' AND P1.PD_CLSF_ID NOT IN ('PDC000000001839') THEN ' / '||P1.PD_NM||' '||F2.SDING_QTY ELSE '' END
+                    || CASE WHEN F2.SDING_SN = '5' AND P1.PD_CLSF_ID NOT IN ('PDC000000001839') THEN ' / '||P1.PD_NM||' '||F2.SDING_QTY ELSE '' END) AS SDING_INFO
+                FROM TB_SVPD_SDING_SPP_PLAN_IZ F1 /* 모종배송계획내역 FA101 */
+          INNER JOIN TB_SVPD_SDING_SPP_EXP_IZ F2 /* 모종배송예정내역 FA102 */
+                  ON F1.CNTR_NO = F2.CNTR_NO
+                 AND F1.CNTR_SN = F2.CNTR_SN
+                 AND F1.SV_BIZ_HCLSF_CD = F2.SV_BIZ_HCLSF_CD
+                 AND F1.SV_BIZ_DCLSF_CD = F2.SV_BIZ_DCLSF_CD
+                 AND F1.SPP_ORD_NO = F2.SPP_ORD_NO
+                 AND F1.SPP_PLAN_SN = F2.SPP_PLAN_SN
+          INNER JOIN TB_PDBS_PD_BAS P1
+                  ON F2.SDING_PD_CD = P1.PD_CD
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S1 /* 고객서비스AS설치대상내역 AC211 */
+                  ON F1.CNTR_NO = S1.CNTR_NO
+                 AND F1.CNTR_SN = S1.CNTR_SN
+                 AND F1.SV_BIZ_HCLSF_CD = S1.SV_BIZ_HCLSF_CD
+                 AND F1.SV_BIZ_DCLSF_CD = S1.SV_BIZ_DCLSF_CD
+                 AND SUBSTR(S1.AS_IST_OJ_NO, 2) = SUBSTR(F1.SPP_ORD_NO,1,9)||LPAD(SUBSTR(F1.SPP_ORD_NO, 10),8,'0')
+  	 LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS T5
+                  ON S1.ADR_ID = T5.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, T4.ADR_ID 를 T1.ADR_ID 으로 수정 해야 함*/
+     LEFT OUTER JOIN TB_SVPD_SDING_SPP_CNFM_IZ F3 /* 모종배송확정내역 FA103 */
+                  ON F1.CNTR_NO = F3.CNTR_NO
+                 AND F1.CNTR_SN = F3.CNTR_SN
+                 AND F1.SV_BIZ_HCLSF_CD = F3.SV_BIZ_HCLSF_CD
+                 AND F1.SV_BIZ_DCLSF_CD = F3.SV_BIZ_DCLSF_CD
+                 AND F1.SPP_ORD_NO = F3.SPP_ORD_NO
+                 AND F1.SPP_PLAN_SN = F3.SPP_PLAN_SN
+               WHERE F1.SPP_PLAN_SN = (SELECT MAX(SPP_PLAN_SN)
+                      	  				 FROM TB_SVPD_SDING_SPP_PLAN_IZ TEMP
+					                    WHERE F1.CNTR_NO = TEMP.CNTR_NO
+                                          AND F1.CNTR_SN = TEMP.CNTR_SN
+                                          AND F1.SV_BIZ_HCLSF_CD = TEMP.SV_BIZ_HCLSF_CD
+                                          AND F1.SV_BIZ_DCLSF_CD = TEMP.SV_BIZ_DCLSF_CD
+					                      AND F1.SPP_ORD_NO = TEMP.SPP_ORD_NO
+					                      AND F1.SPP_PLAN_SN = TEMP.SPP_PLAN_SN)
+                 AND F1.SV_BIZ_HCLSF_CD = '1'
+                 AND F1.SV_BIZ_DCLSF_CD LIKE '11%'
+                 AND F1.CNTR_NO = #{cntrNo}
+                 AND F1.CNTR_SN = #{cntrSn}
+            GROUP BY NVL(F1.WK_DT, F1.VST_DUEDT)
+
+           UNION ALL
+
+              SELECT MAX(CNTR_NO) CNTR_NO
+                    , MAX(CNTR_SN) CNTR_SN
+                    , MAX(WK_DT) WK_DT
+                    , VST_DT
+                    , MAX(SPP_CNFMDT) SPP_CNFMDT
+                    , MAX(ADR) ADR
+                    , MAX(SDING_PKG_PD_CD) SDING_PKG_PD_CD
+                    , MAX( CASE WHEN SDING_PD_CLSF_ID1 NOT IN ('PDC000000001839') THEN SDING_PD_NM1||' '||SDING_QTY1 ELSE ''  END
+                    || CASE WHEN SDING_PD_CLSF_ID2  NOT IN ('PDC000000001839') THEN ' / '||SDING_PD_NM2||' '||SDING_QTY2 ELSE '' END
+                    || CASE WHEN SDING_PD_CLSF_ID3  NOT IN ('PDC000000001839') THEN ' / '||SDING_PD_NM3||' '||SDING_QTY3 ELSE '' END
+                    || CASE WHEN SDING_PD_CLSF_ID4  NOT IN ('PDC000000001839') THEN ' / '||SDING_PD_NM4||' '||SDING_QTY4 ELSE '' END
+                    || CASE WHEN SDING_PD_CLSF_ID5  NOT IN ('PDC000000001839') THEN SDING_PD_NM5||' '||SDING_QTY5 ELSE '' END ) AS SDING_INFO
+                FROM (SELECT S2.CNTR_NO
+                           , S2.CNTR_SN
+                           , F4.SDING_PD_CD1
+                           , F4.SDING_QTY1
+                           , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD1 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID1
+                           , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD1 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM1
+                           , F4.SDING_PD_CD2
+                           , F4.SDING_QTY2
+                           , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD2 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID2
+                           , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD2 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM2
+                           , F4.SDING_PD_CD3
+                           , F4.SDING_QTY3
+                           , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD3 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID3
+                           , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD3 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM3
+                           , F4.SDING_PD_CD4
+                           , F4.SDING_QTY4
+                           , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD4 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID4
+                           , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD4 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM4
+                           , F4.SDING_PD_CD5
+                           , F4.SDING_QTY5
+                           , (SELECT PD_CLSF_ID FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD5 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_CLSF_ID5
+                           , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE F4.SDING_PD_CD5 = TB_PDBS_PD_BAS.PD_CD) SDING_PD_NM5
+                           , F4.ADR
+                           , NVL(S2.WK_DT, S2.VST_DUEDT) VST_DT
+                           , F4.SPP_CNFMDT
+                           , S2.WK_DT
+                           , SDING_PKG_PD_CD
+                         FROM TB_SVPD_CST_SV_RGBSPR_IZ S2 /* 고객서비스정기BS주기내역 VS107 */
+                   INNER JOIN ( SELECT T1.*
+                                     , T5.RNADR ||' '|| T5.RDADR AS ADR
+                                  FROM TB_SVPD_SDING_SPP_CNFM_IZ T1
+                       LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS T5
+                                    ON T1.CNTR_ADRPC_ID = T5.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, T4.ADR_ID 를 T1.ADR_ID 으로 수정 해야 함*/
+                                   AND T5.DTA_DL_YN = 'N' ) F4
+                           ON S2.CNTR_NO = F4.CNTR_NO
+                          AND S2.CNTR_SN = F4.CNTR_SN
+                          AND S2.SV_BIZ_DCLSF_CD = F4.SV_BIZ_DCLSF_CD
+                          AND F4.SPP_ORD_NO = '2'||S2.VST_DUEDT||LPAD(S2.IST_NMN_N,5,'0')
+                        WHERE S2.VST_DUEDT <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(SYSDATE, 3),'YYYYMMDD')
+                          AND S2.CNTR_NO = #{cntrNo}
+                          AND S2.CNTR_SN = #{cntrSn}
+                  ) MAIN2
+          GROUP BY VST_DT
+        ) MAIN
+LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S3 /* inner join 해야함 */
+       ON MAIN.CNTR_NO = S3.CNTR_NO
+      AND MAIN.CNTR_SN = S3.CNTR_SN
+      AND SUBSTR(MAIN.VST_DT,1,6) = S3.MNGT_YM
 LEFT OUTER JOIN TB_PDBS_SDING_PRC_BAS P2
-             ON MAIN.VST_DT BETWEEN P2.APY_STRTDT AND P2.APY_ENDDT
-            AND MAIN.SDING_PKG_PD_CD = P2.PDCT_PD_CD
-          WHERE CNTR_NO = #{cntrNo}
-            AND CNTR_SN = #{cntrSn}
+       ON MAIN.VST_DT BETWEEN P2.APY_STRTDT AND P2.APY_ENDDT
+      AND S3.PDCT_PD_CD = P2.PDCT_PD_CD /* pdct_pd_cd 잘못잡혀있는 것 같음... */
+ GROUP BY VST_DT
+ ORDER BY VST_DT DESC
     </select>
 </mapper>
+
