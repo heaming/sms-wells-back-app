@@ -17,6 +17,6 @@ import lombok.Setter;
 public class WsnaAssignExcludeItemDelDvo {
 
     private String asnExcdDvCd;
-    private String itmKndCd;
-    private String wareNo;
+    private String strWareNo;
+    private String itmPdCd;
 }

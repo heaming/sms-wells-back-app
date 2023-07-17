@@ -13,7 +13,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDvo;
 @Mapper(componentModel = "spring")
 public interface WsnaAssignExcludeItemConverter {
 
-    WsnaAssignExcludeItemDelDvo mapRemoveReqToWsnaAssignExcludeItemDelDvo(RemoveReq dto);
+    List<WsnaAssignExcludeItemDelDvo> mapAllRemoveReqToWsnaAssignExcludeItemDelDvo(List<RemoveReq> dtos);
 
     List<WsnaAssignExcludeItemDvo> mapAllCreateReqToWsnaAssignExcludeItemDvo(List<CreateReq> list);
 }

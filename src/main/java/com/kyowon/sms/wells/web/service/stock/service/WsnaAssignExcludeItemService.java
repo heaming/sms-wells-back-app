@@ -54,15 +54,21 @@ public class WsnaAssignExcludeItemService {
 
     /**
      * 배정제외 품목 삭제
-     * @param dto
+     * @param dtos
      * @return
      */
     @Transactional
-    public int removeAssignExcludeItem(RemoveReq dto) {
+    public int removeAssignExcludeItems(List<RemoveReq> dtos) {
 
-        WsnaAssignExcludeItemDelDvo dvo = this.converter.mapRemoveReqToWsnaAssignExcludeItemDelDvo(dto);
+        int count = 0;
 
-        return this.mapper.updateQomAsnExcdIzForRemove(dvo);
+        List<WsnaAssignExcludeItemDelDvo> dvos = this.converter.mapAllRemoveReqToWsnaAssignExcludeItemDelDvo(dtos);
+
+        for (WsnaAssignExcludeItemDelDvo dvo : dvos) {
+            count += this.mapper.updateQomAsnExcdIzForRemove(dvo);
+        }
+
+        return count;
     }
 
     /**
