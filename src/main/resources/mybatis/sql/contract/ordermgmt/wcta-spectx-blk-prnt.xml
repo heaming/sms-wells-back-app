@@ -118,6 +118,13 @@
            AND A1.CNTR_NO = #{cntrNo}
            AND A1.CNTR_SN = #{cntrSn}
     </select>
+    <select id="selectSpectxGrpNoCheck" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_SSCT_SPECTX_IS_DTL
+         WHERE 1=1
+           AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+           AND DTA_DL_YN = 'N'
+    </select>
     <insert id="insertSsctSpectxIsBas">
         <selectKey keyProperty="item.spectxGrpNo" resultType="java.lang.String" order="BEFORE">
             SELECT LPAD(MAX(TO_NUMBER(SPECTX_GRP_NO)) + 1,5,0)
@@ -167,7 +174,7 @@
             , #{sellTpCd}
             , #{spectxPblDDvCd}
             , #{spectxPrdDvCd}
-            , #{lstmmYn}
+            , NVL(#{lstmmYn},'N')
             , 'N'
             <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
@@ -278,7 +285,7 @@
              , SELL_TP_CD         = #{sellTpCd}          /* 판매유형코드 */
              , SPECTX_PBL_D_DV_CD = #{spectxPblDDvCd}    /* 거래명세서발행일구분코드 */
              , SPECTX_PRD_DV_CD   = #{spectxPrdDvCd}     /* 거래명세서주기구분코드 */
-             , LSTMM_YN           = #{lstmmYn}           /* 전월여부 */
+             , LSTMM_YN           = NVL(#{lstmmYn},'N')           /* 전월여부 */
              , DTA_DL_YN          = 'N'           /* 데이터삭제여부 */
             <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
@@ -286,18 +293,22 @@
            AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
            AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */
     </update>
-    <delete id="deleteSsctSpectxIsBas">
-        DELETE TB_SSCT_SPECTX_IS_BAS /* 거래명세서발급기본 */
+    <update id="updateSsctSpectxIsBasDtaDlY">
+        UPDATE TB_SSCT_SPECTX_IS_BAS /* 거래명세서발급기본 */
+           SET DTA_DL_YN = 'Y'
+        <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND SPECTX_GRP_NO    = #{spectxGrpNo}      /* 거래명세서그룹번호 */
-    </delete>
-    <delete id="deleteSsctSpectxIsDtl">
-        DELETE TB_SSCT_SPECTX_IS_DTL /* 거래명세서발급상세 */
+    </update>
+    <update id="updateSsctSpectxIsDtlDtaDlY">
+        UPDATE TB_SSCT_SPECTX_IS_DTL /* 거래명세서발급상세 */
+           SET DTA_DL_YN = 'Y'
+        <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
            AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
            AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */
-    </delete>
+    </update>
     <select id="selectTradeSpcshFwInqrs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto$SpectxFwRes">
         SELECT L1.SPECTX_GRP_NO /* 거래명세서그룹번호[그룹번호] */
      , MAX(L1.CST_NM) AS CST_NM /* 고객명 - 고객기본.고객한글명(CST_KNM)으로 대체 가능 [발급명] */
