@@ -30,7 +30,7 @@ public class WwdaAutoTransferInterfaceController {
 
     private final WwdaAutoTransferInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WWDI1007] WELLS 자동이체 출금내역 조회")
+    @ApiOperation(value = "[EAI_WWDI1007] WELLS 자동이체 출금내역 조회 - W-WD-I-0006")
     @PostMapping("/payment-withdrawal-itemizations")
     public EaiWrapper getPaymentAndWithdrawalItemizations(
         @Valid
@@ -50,7 +50,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1008] WELLS 자동이체 변경내역 조회")
+    @ApiOperation(value = "[EAI_WWDI1008] WELLS 자동이체 변경내역 조회 - W-WD-I-0007")
     @PostMapping("/change-itemizations")
     public EaiWrapper getChangeItemizations(
         @Valid
@@ -69,7 +69,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1009] WELLS 자동이체 대상목록 조회")
+    @ApiOperation(value = "[EAI_WWDI1009] WELLS 자동이체 대상목록 조회 - W-WD-I-0010")
     @PostMapping("/object-itemizations")
     public EaiWrapper getObjectItemizations(
         @Valid
@@ -88,7 +88,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1010] WELLS 자동이체 정보 조회")
+    @ApiOperation(value = "[EAI_WWDI1010] WELLS 자동이체 정보 조회 - W-WD-I-0011")
     @PostMapping
     public EaiWrapper getInfos(
         @Valid
@@ -107,7 +107,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1014] WELLS 자동이체 구분(개인/법인) 조회")
+    @ApiOperation(value = "[EAI_WWDI1014] WELLS 자동이체 구분(개인/법인) 조회 - W-WD-I-0015")
     @PostMapping("/corporate-personal-divisions")
     public EaiWrapper getCorporatePersonalityDivisions(
         @Valid
@@ -127,7 +127,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1015] WELLS 자동이체 은행 목록 조회")
+    @ApiOperation(value = "[EAI_WWDI1015] WELLS 자동이체 은행 목록 조회 - W-WD-I-0016")
     @PostMapping("/financial-institutions")
     public EaiWrapper getFinancialInstitutionCodes(
         @Valid
@@ -147,7 +147,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1018] wells 자동이체 묶음 등록 정보 조회")
+    @ApiOperation(value = "[EAI_WWDI1018] wells 자동이체 묶음 등록 정보 조회 - W-WD-I-0019")
     @PostMapping("/bundle-infos")
     public EaiWrapper getBundleInfos(
         @Valid
@@ -167,7 +167,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1020] wells 자동이체 증빙 정보 목록 조회")
+    @ApiOperation(value = "[EAI_WWDI1020] wells 자동이체 증빙 정보 목록 조회 - W-WD-I-0021")
     @PostMapping("/evidence-infos")
     public EaiWrapper getEvidenceInfos(
         @Valid
@@ -187,7 +187,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1019] wells 자동이체 일괄 묶음 등록/해제")
+    @ApiOperation(value = "[EAI_WWDI1019] wells 자동이체 일괄 묶음 등록/해제 - W-WD-I-0020")
     @PostMapping("/bundles")
     public EaiWrapper saveBundleRegistrationReleases(
         @Valid
@@ -207,7 +207,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1019] wells 자동이체 일괄 등록/해제")
+    @ApiOperation(value = "[EAI_WWDI1013] wells 자동이체 일괄 등록/해제 - W-WD-I-0014")
     @PostMapping("/bulk")
     public EaiWrapper saveBulkRegistrationReleases(
         @Valid
@@ -227,7 +227,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1017] wells 자동이체 계좌 실명인증")
+    @ApiOperation(value = "[EAI_WWDI1017] wells 자동이체 계좌 실명인증 - W-WD-I-0018")
     @PostMapping("/real-name-certification")
     public EaiWrapper getRealNameCertification(
         @Valid
@@ -247,7 +247,7 @@ public class WwdaAutoTransferInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1016] wells 자동이체 카드 유효성 체크")
+    @ApiOperation(value = "[EAI_WWDI1016] wells 자동이체 카드 유효성 체크 - W-WD-I-0017")
     @PostMapping("/card-effectiveness-check")
     public EaiWrapper getCardEffectivenessCheck(
         @Valid
