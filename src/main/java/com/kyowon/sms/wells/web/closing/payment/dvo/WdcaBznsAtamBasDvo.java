@@ -17,7 +17,7 @@ import lombok.ToString;
 @ToString
 public class WdcaBznsAtamBasDvo {
     private String cntrNo;
-    private String cntrSn;
+    private int cntrSn;
     private int bznsAtamBlam; /*영업선수금잔액*/
     private int bznsAtamProcsAmt; /*영업선수금처리금액*/
     private String bznsAtamProcsCd; /*영업선수금처리코드*/

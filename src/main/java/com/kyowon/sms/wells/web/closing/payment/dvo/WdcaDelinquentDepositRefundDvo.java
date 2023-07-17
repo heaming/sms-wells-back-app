@@ -17,10 +17,10 @@ import lombok.ToString;
 @ToString
 public class WdcaDelinquentDepositRefundDvo {
     private String cntrNo;
-    private String cntrSn;
+    private int cntrSn;
     private String kwGrpCoCd;
     private String rveNo;
-    private String rveSn;
+    private int rveSn;
     private String dpDvCd;
     private String dpMesCd;
     private String dpTpCd;

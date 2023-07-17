@@ -17,7 +17,7 @@ import lombok.ToString;
 @ToString
 public class WdcaDepositRefundProcessingAmountDvo {
     private String cntrNo;
-    private String cntrSn;
+    private int cntrSn;
     private int thmDlqDpSumAmt; /*당월연체입금합계금액*/
     private int thmDlqAddDpSumAmt; /*당월연체가산입금합계금액*/
     private int thmDlqRfndSumAmt; /*당월연체환불합계금액*/
