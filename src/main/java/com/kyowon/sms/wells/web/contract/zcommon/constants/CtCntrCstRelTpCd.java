@@ -6,8 +6,8 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public enum CtCntrCstRelTpCd {
-    CONTRACTOR("010", "계약자"),
-    STUDENT("020", "학습자"),
+    CONTRACTOR("10", "계약자"),
+    STUDENT("20", "학습자"),
     ;
 
     final String code;
