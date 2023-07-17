@@ -30,7 +30,7 @@ public class WwdaAutoTransferPossibleDateInterfaceController {
 
     private final WwdaAutoTransferPossibleDateInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WWDI1011] wells 카드 자동이체 가능일자 조회")
+    @ApiOperation(value = "[EAI_WWDI1011] wells 카드 자동이체 가능일자 조회 - W-WD-I-0012")
     @PostMapping("/cards")
     public EaiWrapper getPassibleDatesByCard(
         @Valid
@@ -50,7 +50,7 @@ public class WwdaAutoTransferPossibleDateInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "[EAI_WWDI1012] wells 계좌 자동이체 가능일자 조회")
+    @ApiOperation(value = "[EAI_WWDI1012] wells 계좌 자동이체 가능일자 조회 - W-WD-I-0013")
     @PostMapping("/accounts")
     public EaiWrapper getPassibleDatesByAcount(
         @Valid

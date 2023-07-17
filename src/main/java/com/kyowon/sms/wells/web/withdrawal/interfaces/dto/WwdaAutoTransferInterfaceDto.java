@@ -23,6 +23,8 @@ public class WwdaAutoTransferInterfaceDto {
         String cntrSn, // 계약일련번호
         @JsonProperty("FNT_DV_CD")
         String fntDvCd, // 이체구분코드
+        @JsonProperty("COPN_DV_CD")
+        String copnDvCd, // 이체구분코드
         @JsonProperty("ACNO_CDNO")
         String acnoCdno, // 계좌카드번호
         @JsonProperty("FNIT_CD")
@@ -95,7 +97,6 @@ public class WwdaAutoTransferInterfaceDto {
         String dpDt, /*입금일자*/
         @JsonProperty("FNIT_NM")
         String fnitNm, /*금융기관명*/
-        @DBDecField
         @JsonProperty("ACNO_CDNO")
         String acnoCdno, /*계좌카드번호*/
         @JsonProperty("OWR_KNM")
@@ -104,12 +105,15 @@ public class WwdaAutoTransferInterfaceDto {
         String aftnRsCd, /*자동이체결과코드*/
         @JsonProperty("AFTN_RS_NM")
         String aftnRsNm /*자동이체결과명*/
-    ) {}
+    ) {
+        public SearchPaymentAndWithdrawalRes {
+            acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.dec(acnoCdno) : acnoCdno;
+        }
+    }
 
     /* WELLS 자동이체 변경내역 조회 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchChangeRes")
     public record SearchChangeRes(
-
         @JsonProperty("SELL_TP_CD")
         String sellTpCd, /*판매유형코드*/
         @JsonProperty("CNTR_NO")
@@ -122,7 +126,6 @@ public class WwdaAutoTransferInterfaceDto {
         String fntStplD, /*이체약정일*/
         @JsonProperty("FNIT_NM")
         String fnitNm, /*금융기관명*/
-        @DBDecField
         @JsonProperty("ACNO_CDNO")
         String acnoCdno, /*계좌카드번호*/
         @JsonProperty("OWR_KNM")
@@ -132,7 +135,11 @@ public class WwdaAutoTransferInterfaceDto {
         @JsonProperty("AFTN_RS_NM")
         String aftnRsNm /*자동이체결과명*/
 
-    ) {}
+    ) {
+        public SearchChangeRes {
+            acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.dec(acnoCdno) : acnoCdno;
+        }
+    }
 
     /* WELLS 자동이체 대상 목록 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchObjectRes")
@@ -161,7 +168,6 @@ public class WwdaAutoTransferInterfaceDto {
         String fntDvCd, /*이체구분코드*/
         @JsonProperty("FNIT_NM")
         String fnitNm, /*금융기관명*/
-        @DBDecField
         @JsonProperty("ACNO_CDNO")
         String acnoCdno, /*계좌카드번호*/
         @JsonProperty("OWR_KNM")
@@ -174,7 +180,11 @@ public class WwdaAutoTransferInterfaceDto {
         String rveCrpCdNm, /*수납법인코드명*/
         @JsonProperty("INCMDC_YN")
         String incmdcYn /*소득공제여부*/
-    ) {}
+    ) {
+        public SearchObjectRes {
+            acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.dec(acnoCdno) : acnoCdno;
+        }
+    }
 
     /* WELLS 자동이체 정보 조회 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchRes")
@@ -187,7 +197,6 @@ public class WwdaAutoTransferInterfaceDto {
         String fnitCd, /*금융기관코드*/
         @JsonProperty("FNIT_NM")
         String fnitNm, /*금융기관명*/
-        @DBDecField
         @JsonProperty("ACNO_CDNO")
         String acnoCdno, /*계좌카드번호*/
         @JsonProperty("OWR_KNM")
@@ -207,7 +216,11 @@ public class WwdaAutoTransferInterfaceDto {
         @JsonProperty("AFTN_RS_NM")
         String aftnRsNm /*자동이체결과명*/
 
-    ) {}
+    ) {
+        public SearchRes {
+            acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.dec(acnoCdno) : acnoCdno;
+        }
+    }
 
     /* WELLS 자동이체 구분(개인/법인) 조회 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchCorporatePersonalityDivisionRes")
@@ -270,7 +283,11 @@ public class WwdaAutoTransferInterfaceDto {
         String fnlMdfcUsrId, /*수정담당자ID*/
         @JsonProperty("MDFC_PSIC_NM")
         String mdfcPsicNm /*수정담당자명*/
-    ) {}
+    ) {
+        public SearchBundleInfoRes {
+            acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.dec(acnoCdno) : acnoCdno;
+        }
+    }
 
     /* EDU 자동이체 증빙 정보 목록 조회 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchEvidenceInfoRes")
@@ -315,7 +332,12 @@ public class WwdaAutoTransferInterfaceDto {
         String aftnEvidFshYn, /*자동이체증빙완료여부*/
         @JsonProperty("FNIT_APR_RS_CD")
         String fnitAprRsCd /*금융기관승인결과코드*/
-    ) {}
+    ) {
+        public SearchEvidenceInfoRes {
+            bfchAcnoCdno = StringUtils.isNotEmpty(bfchAcnoCdno) ? DbEncUtil.dec(bfchAcnoCdno) : bfchAcnoCdno;
+            afchAcnoCdno = StringUtils.isNotEmpty(afchAcnoCdno) ? DbEncUtil.dec(afchAcnoCdno) : afchAcnoCdno;
+        }
+    }
 
     /* Wells 자동이체 일괄 묶음 등록/해제 Request Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SaveReq")
@@ -375,7 +397,11 @@ public class WwdaAutoTransferInterfaceDto {
         @JsonProperty("MPNO")
         String mpno /*휴대전화번호*/
 
-    ) {}
+    ) {
+        public SaveBulkRegistrationReleaseReq {
+            acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.enc(acnoCdno) : acnoCdno;
+        }
+    }
 
     /* Wells 자동이체 일괄 묶음 등록/해제 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SaveBundleRegistrationReleaseRes")
