@@ -19,6 +19,7 @@ public class WctaDepositItemizationsDvo {
     private String pymDt; /* 지급일자 */
     private String rveDvNm; /* 수납구분 */
     private String rveAmt; /* 입금금액 */
+    private String dpTpCd; /* 입금유형코드 */
     private String dpTpNm; /* 입금유형(구분) */
     private String cdcoNm; /* 카드사 */
     @DBEncField

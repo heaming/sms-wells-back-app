@@ -128,6 +128,10 @@ public class WctaOrderDetailController {
     @ApiOperation(value = "wells 주문 상세(거래명세서목록조회-계약목록)", notes = "주문 상세(거래명세서목록-계약목록)정보 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCstNo", value = "고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCnfmStrtDt", value = "기간(시작일자)", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCnfmEndDt", value = "기간(종료일자)", paramType = "query"),
     })
     @GetMapping("/order-details/specification/contracts")
     public List<SearchContractsRes> getContracts(
