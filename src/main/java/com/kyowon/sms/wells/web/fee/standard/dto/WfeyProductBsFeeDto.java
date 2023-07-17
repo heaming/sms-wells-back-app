@@ -10,7 +10,7 @@ public class WfeyProductBsFeeDto {
         String svFeeDvCd,
         String apyStrtYm,
         String apyEndYm,
-        String hcrDvCd
+        String svFeePdDvCd
     ) {}
 
     public record SearchProductBsFeeRes(
@@ -18,9 +18,10 @@ public class WfeyProductBsFeeDto {
         String basePdNm,
         Integer vstMcn,          /* 방문개월수 */
         String svFeeDvCd,     /* 서비스수수료구분코드 */
-        String hcrDvCd,        /* 홈케어구분코드 */
-        Integer baseChTcnt,     /* 기준변경차수 */
+        String hcrDvCd1,        /* 홈케어구분코드 */
+        String hcrDvCd2,        /* 홈케어구분코드 */
         String svFeePdDvCd,  /* 서비스수수료상품구분코드 */
+        Integer baseChTcnt,     /* 기준변경차수 */
         Long svFeeBaseAmt,  /* 서비스수수료기준금액 */
         String feeFxamYn,      /* 수수료정액여부 */
         Long hcrFeeBaseAmt, /* 홈케어수수료기준금액 */
@@ -46,15 +47,16 @@ public class WfeyProductBsFeeDto {
         Integer vstMcn,          /* 방문개월수 */
         @NotBlank
         String svFeeDvCd,     /* 서비스수수료구분코드 */
-        @NotBlank
-        String hcrDvCd,        /* 홈케어구분코드 */
+        String hcrDvCd1,        /* 홈케어구분코드 */
+        String hcrDvCd2,        /* 홈케어구분코드 */
+        String svFeePdDvCd,  /* 서비스수수료상품구분코드 */
         @NotBlank
         Integer baseChTcnt,     /* 기준변경차수 */
-        String svFeePdDvCd,  /* 서비스수수료상품구분코드 */
         Long svFeeBaseAmt,  /* 서비스수수료기준금액 */
         String feeFxamYn,      /* 수수료정액여부 */
         Long hcrFeeBaseAmt, /* 홈케어수수료기준금액 */
         String apyStrtYm,      /* 적용시작년월 */
-        String apyEndYm      /* 적용종료년월 */
+        String apyEndYm,      /* 적용종료년월 */
+        String dtaDlYn
     ) {}
 }
