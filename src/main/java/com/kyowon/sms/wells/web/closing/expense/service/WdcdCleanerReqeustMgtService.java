@@ -45,9 +45,10 @@ public class WdcdCleanerReqeustMgtService {
             dvo.setClinrRgno(clinrRgno);
             String fileId = groupId + "_BAS" + clinrRgno;
             dvo.setDtaDlYn("N");
-            int byteCount = String.valueOf(dvo.getAplcnsNm()).getBytes("UTF-8").length;
 
-            BizAssert.isTrue(byteCount > 50, "MSG_ALT_MANY_CLEANERS_NAME");
+            
+            int byteCount = String.valueOf(dvo.getAplcnsNm()).getBytes("UTF-8").length;
+            BizAssert.isFalse(byteCount > 50, "MSG_ALT_MANY_CLEANERS_NAME");
 
             if (CollectionUtils.isNotEmpty(dvo.getAttachFiles1())) {
 
