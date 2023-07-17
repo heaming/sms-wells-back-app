@@ -12,7 +12,7 @@
               , T1.SL_CTR_END_YM /* 조정종료년월 */
               , T4.PD_CD /* 제품코드 */
               , T4.PD_NM /* 제품명 */
-              
+
               , T1.SL_CTR_SELL_TP_CD /* 매출조정판매유형*/
               , T1.SL_CTR_MTR_DV_CD /* 매출조정자료구분코드 */
               , T1.SL_CTR_MTR_TP_CD /* 매출조정자료유형코드 */
@@ -21,17 +21,21 @@
               , T1.SL_CTR_DSC_TP_CD /* 매출조정할인유형코드 */
               , T1.CAN_AF_OJ_YN /* 취소후적용 - default N */
               , T1.SL_CTR_AMT /* 매출조정금액 */
-              , T1.SL_CTR_WO_EXMP_AMT /* 매출전액면제금액 */
-              , T1.SL_CTR_PTRM_EXMP_AMT /* 매출조정기간면제금액 */
+              , NVL(T1.SL_CTR_WO_EXMP_AMT, 0) AS SL_CTR_WO_EXMP_AMT  /* 매출전액면제금액 */
+              , NVL(T1.SL_CTR_PTRM_EXMP_AMT , 0 ) AS SL_CTR_PTRM_EXMP_AMT /* 매출조정기간면제금액 */
               , T1.SL_CTR_RMK_CN /* 조정비고내용 - 사유 */
-              
-              , T1.SL_CTR_PRCSDT /* 등록일자 */
-              
-              , (SELECT USR_NM 
+
+<!--              , T1.SL_CTR_PRCSDT /* 처리일자 */-->
+              , T1.FST_RGST_DTM AS SL_CTR_PRCSDT  /* 등록일자 */
+              , (SELECT USR_NM
                    FROM T_CMP_USR_ACO_M
                   WHERE login_id = T1.FNL_MDFC_USR_ID
                  ) USR_NM
-              , T1.FNL_MDFC_USR_ID /* 유저번호 */
+              , (SELECT EPNO
+                   FROM T_CMP_USR_ACO_M
+                  WHERE login_id = T1.FNL_MDFC_USR_ID
+                 ) FNL_MDFC_USR_ID
+<!--              , T1.FNL_MDFC_USR_ID /* 유저번호 */-->
            FROM TB_RVDW_SL_CTR_BAS T1 /* 매출조정기본 */
            JOIN TB_SSCT_CNTR_BAS T2  /* 계약기본 */
              ON T1.CNTR_NO = T2.CNTR_NO
@@ -42,10 +46,10 @@
             AND T11.CNTR_SN = T1.CNTR_SN
             AND T11.DTA_DL_YN = 'N'
            JOIN TB_SSCT_CNTR_DTL T3 /* 계약상세 */
-             ON T2.CNTR_NO =  T3.CNTR_NO 
+             ON T2.CNTR_NO =  T3.CNTR_NO
             AND T3.DTA_DL_YN = 'N'
            JOIN TB_PDBS_PD_BAS T4 /* 상품기본 */
-             ON T3.BASE_PD_CD = T4.PD_CD 
+             ON T3.BASE_PD_CD = T4.PD_CD
            JOIN TB_CUBS_CST_BAS T5  /* 고객기본 */
              ON T2.CNTR_CST_NO = T5.CST_NO
             AND T5.DTA_DL_YN = 'N'
@@ -53,20 +57,22 @@
            <if test='@MybatisUtils@isNotEmpty(sellTp) and sellTp != "ALL" and sellTp != "all"'>
             AND T1.SL_CTR_SELL_TP_CD = #{sellTp}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(perfStrtDtm)'>
-            AND T11.CNTR_STRTDT <![CDATA[>=]]> #{perfStrtDtm} /* 매출계약시작일시기준 */
+           <if test='@MybatisUtils@isNotEmpty(perfStrtDtm) and @MybatisUtils@isNotEmpty(perfFshDtm)'>
+<!--            AND T11.CNTR_STRTDT <![CDATA[>=]]> #{perfStrtDtm} /* 매출계약시작일시기준 */ -->
+            AND T1.SL_CTR_STRT_YM <![CDATA[<=]]> #{perfFshDtm}
+            AND T1.SL_CTR_END_YM <![CDATA[ >= ]]> #{perfStrtDtm}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(perfFshDtm)'>
-            AND T11.CNTR_STRTDT <![CDATA[ <= ]]> #{perfFshDtm} /* 매출계약시작일시기준 */
-           </if>
-           
+<!--           <if test='@MybatisUtils@isNotEmpty(perfFshDtm)'>-->
+<!--&lt;!&ndash;            AND T11.CNTR_STRTDT <![CDATA[ <= ]]> #{perfFshDtm} /* 매출계약시작일시기준 */&ndash;&gt;-->
+<!--           </if>-->
+
            <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
             AND T1.CNTR_NO = #{cntrNo}
            </if>
            <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
             AND T1.CNTR_SN = #{cntrSn}
            </if>
-           
+
            <if test='@MybatisUtils@isNotEmpty(ctrTp) and ctrTp != "all" and ctrTp != "ALL"'>
             AND T1.SL_CTR_DSC_TP_CD = #{ctrTp}
            </if>
@@ -76,21 +82,28 @@
            <if test='@MybatisUtils@isNotEmpty(ctrDv) and ctrDv != "all" and ctrDv != "ALL"'>
             AND T1.SL_CTR_DV_CD = #{ctrDv}
            </if>
-           
+
            <if test='@MybatisUtils@isNotEmpty(dsc) and dsc != "all" and dsc != "ALL"'>
             AND T1.SL_CTR_TP_CD = #{dsc}
            </if>
            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
             AND T1.FST_RGST_USR_ID = #{prtnrNo}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(rgstStrtDtm)'>
-            AND T1.SL_CTR_PRCSDT <![CDATA[>=]]> #{slCtrPrcsStrtDt}
+           <if test='@MybatisUtils@isNotEmpty(slCtrPrcsStrtDt) and @MybatisUtils@isNotEmpty(slCtrPrcsEndDt)'>
+            AND T1.FST_RGST_DTM <![CDATA[>=]]> #{slCtrPrcsStrtDt}||'000000'
+            AND T1.FST_RGST_DTM <![CDATA[<=]]> #{slCtrPrcsFshDt}||'235959'
            </if>
-           <if test='@MybatisUtils@isNotEmpty(rgstFshDtm)'>
-            AND T1.SL_CTR_PRCSDT <![CDATA[ <= ]]> #{slCtrPrcsFshDt}
-           </if>
+
+<!--            <if test="LCSTRY != null and LCSTRY != '' and LCENDY != null and LCENDY != ''">-->
+<!--                        AND T1.LCSTRY*100+T1.LCSTRM <![CDATA[<=]]> ${LCENDY}-->
+<!--                        AND T1.LCENDY*100+T1.LCENDM <![CDATA[>=]]> ${LCSTRY}-->
+<!--             </if>-->
+
+<!--        -->
+<!--        <if test='@MybatisUtils@isNotEmpty(rgstFshDtm)'>-->
+<!--           </if>-->
     </select>
-    
+
     <select id="selectSalesControlCount" resultType="Integer">
          SELECT COUNT(1)
            FROM TB_RVDW_SL_CTR_BAS T1 /* 매출조정기본 */
@@ -100,8 +113,8 @@
             AND SL_CTR_MTR_DV_CD = #{slCtrMtrDvCd}
             AND SL_CTR_SELL_TP_CD = #{slCtrSellTpCd}
     </select>
-    
-    
+
+
     <insert id="insertSalesControl">
         INSERT INTO TB_RVDW_SL_CTR_BAS ( /* 매출조정기본 */
                CNTR_NO /* 계약번호 */
@@ -145,8 +158,8 @@
         <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
-    
-    
+
+
     <insert id="insertSalesControlHistory">
         INSERT INTO TB_RVDW_SL_CTR_BAS_HIST ( /* 매출조정이력기본 */
                CNTR_NO /* 계약번호 */
@@ -192,8 +205,8 @@
         <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
-    
-    
+
+
     <update id="updateSalesControl">
         UPDATE TB_RVDW_SL_CTR_BAS  /* 매출조정T */
            SET SL_CTR_MTR_DV_CD = #{slCtrMtrDvCd} /* 매출조정자료구분코드 */
@@ -207,9 +220,9 @@
          WHERE 1=1
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
-           AND DTA_DL_YN = 'N' 
+           AND DTA_DL_YN = 'N'
     </update>
-    
+
     <update id="updateSalesControlHistory">
         UPDATE TB_RVDW_SL_CTR_BAS_HIST  /* 매출조정이력T */
            SET SL_CTR_MTR_DV_CD = #{slCtrMtrDvCd} /* 매출조정자료구분코드 */
@@ -223,11 +236,11 @@
          WHERE 1=1
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
-           AND DTA_DL_YN = 'N' 
+           AND DTA_DL_YN = 'N'
     </update>
-    
-    
-    <update id="updateSalesConfirm"> 
+
+
+    <update id="updateSalesConfirm">
         UPDATE TB_CBCL_WELLS_SL_CNFM_BAS /* 매출확정T */
            SET SL_CTR_AMT = #{slCtrAmt} /* 매출조정금액 */
           <include refid="COMMON.updateSystemField"/>
@@ -236,8 +249,8 @@
            AND CNTR_SN = #{cntrSn}
            AND DTA_DL_YN = 'N'
     </update>
-    
-    
+
+
     <update id="deleteSalesControl">
         UPDATE TB_RVDW_SL_CTR_BAS /* 매출조정 */
            SET DTA_DL_YN = 'Y'
