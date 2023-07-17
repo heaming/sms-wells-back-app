@@ -4,8 +4,8 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.closing.standard.dto.WdcyBusinessCloseHhCheckDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyBusinessCloseHhCheckDvo;
+import com.kyowon.sms.wells.web.closing.standard.dvo.WdcyBusinessCloseHourConfirmDvo;
 import com.kyowon.sms.wells.web.closing.standard.mapper.WdcyBusinessCloseHhCheckMapper;
 import com.sds.sflex.system.config.exception.BizException;
 
@@ -13,10 +13,10 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * 일마감통제확인 서비스
+ * 일마감통제확인 서비스(W-CL-S-0001)
  * </pre>
  *
- * @author gs.piit183
+ * @author WOO SEUNGMIN
  * @since 2023-02-06
  */
 @Service
@@ -30,10 +30,10 @@ public class WdcyBusinessCloseHhCheckService {
      * @param clDt 일자
      * @param clPsicNo 담당자번호
      * @param clBizTpCd 마감업무유형코드
-     * @return WdcyBusinessCloseHhCheckDto procsPsbYn:처리가능 여부, perfDt:실적 일자
+     * @return WdcyBusinessCloseHourConfirmDvo procsPsbYn:처리가능 여부, perfDt:실적 일자
      * @throws BizException 조회 결과가 없는 경우 Exception 처리
      */
-    public SearchRes getBusinessCloseHhCheck(String clDt, String clPsicNo, String clBizTpCd)
+    public WdcyBusinessCloseHourConfirmDvo getBusinessCloseHhCheck(String clDt, String clPsicNo, String clBizTpCd)
         throws BizException {
 
         WdcyBusinessCloseHhCheckDvo search = mapper.selectBusinessCloseHh(clDt, clPsicNo, clBizTpCd);
