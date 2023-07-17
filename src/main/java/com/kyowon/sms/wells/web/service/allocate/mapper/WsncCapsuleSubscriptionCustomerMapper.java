@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Mapper
 public interface WsncCapsuleSubscriptionCustomerMapper {
-    List<WsncCapsuleSubscriptionCustomerDvo> selectCapsuleRglrPrchsCsts();
+    List<WsncCapsuleSubscriptionCustomerDvo> selectCapsuleRglrPrchsCsts(String baseYm);
 
     int deleteBfsvcPrd(String cntrNo, String cntrSn);
 
@@ -26,4 +26,3 @@ public interface WsncCapsuleSubscriptionCustomerMapper {
 
     int deleteSchd(String cntrNo);
 }
-
