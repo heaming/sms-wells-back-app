@@ -1,5 +1,10 @@
 package com.kyowon.sms.wells.web.contract.changeorder.dto;
 
+import java.util.List;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+
 import io.swagger.annotations.ApiModel;
 
 public class WctbCustomerBaseBulkChangeDto {
@@ -16,6 +21,33 @@ public class WctbCustomerBaseBulkChangeDto {
         String emadr, // 이메일
         String cardAccNo, // 계좌/카드번호
         String ogCd // 조직코드
+    ) {}
+
+    @ApiModel(value = "WctbCustomerBaseBulkChDto-SaveReq")
+    public record SaveReq(
+
+        @NotEmpty
+        List<Contract> contractList, // 계약리스트
+        String istNm, // 설치자명
+        String pblYn, // 세금계산서발행대상여부
+        String prtnrNo, // 판매파트너번호
+        String ogTpCd, // 판매조직유형코드
+        String prcDvCd, // 처리구분
+        String prtnrKnm // 판매파트너명
+    ) {}
+    public record Contract(
+        @NotBlank
+        String cntrNo, // 계약번호
+        @NotBlank
+        String cntrSn, // 계약일련번호
+        @NotBlank
+        String cntrCstNo, // 계약고객번호
+
+        /* 이전 데이터 */
+        String istKnm, // 수령자 한글명
+        String txinvPblOjYn, // 세금계산서변경대상여부
+        String sellPrtnrNo, // 판매자파트너번호
+        String prtnrKnm // 판매자 파트너 명
     ) {}
 
     @ApiModel(value = "WctbCustomerBaseBulkChDto-SearchCustomerRes")
@@ -90,4 +122,5 @@ public class WctbCustomerBaseBulkChangeDto {
         String curDgr1LevlOgCd, /* [대리인마스터-총괄단코드] 1차레벨조직코드 */
         String chEpNo /* [변경사번] */
     ) {}
+
 }
