@@ -2,16 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.payment.mapper.WdcaEtcAnticipationAmtMapper">
     <select id="selectMaxEtcAnticipationNo" resultType="String">
-        SELECT TO_CHAR(NVL(MAX(TO_NUMBER(ETC_ATAM_NO))
-,0)+1) AS ETC_ATAM_NO
-          FROM TB_CBCL_ETC_ATAM_BAS
-         WHERE ITG_DP_NO = #{itgDpNo}
+        SELECT TO_CHAR(SYSDATE,'YYYYMMDD')
+               || LPAD(NVL((SELECT MAX(ETC_ATAM_PRCSDT) FROM TB_CBCL_ETC_ATAM_PROCS_IZ WHERE ETC_ATAM_PRCSDT = TO_CHAR(SYSDATE,'YYYYMMDD')),0)+1,12,'0')
+               AS ETC_ATAM_NO
+          FROM DUAL
     </select>
 
-    <select id="selectMaxEtcAnticipationSn" resultType="Integer">
+    <select id="selectMaxEtcAnticipationSn" resultType="int">
         SELECT NVL(MAX(ETC_ATAM_NO),0)+1 AS ETC_ATAM_NO
           FROM TB_CBCL_ETC_ATAM_PROCS_IZ
          WHERE ETC_ATAM_NO = #{etcAtamNo}
+    </select>
+
+    <select id="selectSapPdDvCd" resultType="String">
+        SELECT NVL(MAX(SAP_PD_DV_CD), '') AS SAP_PD_DV_CD
+          FROM TB_CBCL_SAP_PD_DV_CD
+         WHERE SELL_TP_CD = #{sellTpCd}  /*VO의 판매유형코드*/
+           AND SELL_TP_DTL_CD = #{sellTpDtlCd}  /*VO의 판매유형상세코드*/
+           AND SAP_BZ_TERY_CD = '1210'
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectCustomerId" resultType="String">
+        SELECT NVL(MAX(DG_CST_ID), '') AS DG_CST_ID
+          FROM TB_CBCL_DG_CST_ID_BAS
+         WHERE SELL_TP_CD = #{sellTpCd}  /*VO의 판매유형코드*/
+           AND SELL_TP_DTL_CD = #{sellTpDtlCd}  /*VO의 판매유형상세코드*/
+           AND SAP_BZ_TERY_CD = '1210'
+           AND DTA_DL_YN = 'N'
     </select>
 
     <insert id="insertEtcBasic">
@@ -22,42 +40,16 @@
             , ETC_ATAM_AMT
             , ETC_ATAM_TP_CD
             , ETC_ATAM_BLAM
-            , CNTR_NO
-            , CNTR_SN
-            , KW_GRP_CO_CD
-            , RVE_CD
-            , ICHR_PRTNR_NO
-            , CST_NO
-            , PD_CD
-            , SAP_DP_TP_CD
-            , SAP_PD_DV_CD
-            , SAP_PD_ATC_CD
-            , PD_HCLSF_ID
-            , PD_MCLSF_ID
-            , PD_LCLSF_ID
-            , PD_DCLSF_ID
+            , DTA_DL_YN
             <include refid="COMMON.insertSystemField" />
         ) VALUES (
             #{etcAtamNo}
-            ,#{etcAtamOcDt}
-            ,#{itgDpNo}
-            ,#{etcAtamAmt}
-            ,#{etcAtamTpCd}
-            ,#{etcAtamProcsAmt}
-            ,#{cntrNo}
-            ,#{cntrSn}
-            ,#{kwGrpCoCd}
-            ,#{rveCd}
-            ,#{ichrPrtnrNo}
-            ,#{cstNo}
-            ,#{pdCd}
-            ,#{sapDpTpCd}
-            ,#{sapPdDvCd}
-            ,#{sapPdAtcCd}
-            ,#{pdHclsfId}
-            ,#{pdMclsfId}
-            ,#{pdLclsfId}
-            ,#{pdDclsfId}
+            , #{etcAtamOcDt}
+            , #{itgDpNo}
+            , #{etcAtamProcsAmt}
+            , #{etcAtamTpCd}
+            , #{etcAtamProcsAmt}
+            , 'N'
             <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
@@ -69,6 +61,10 @@
             , ETC_ATAM_PROCS_CD
             , ETC_ATAM_PRCSDT
             , ETC_ATAM_PROCS_AMT
+            , SAP_DP_TP_CD
+            , SAP_PD_DV_CD
+            , SAP_PD_ATC_CD
+            , DG_CST_ID
             , RVE_NO
             , RVE_SN
             , RFND_RCP_NO
@@ -78,6 +74,10 @@
             , DP_DV_CD
             , SELL_TP_CD
             , SELL_TP_DTL_CD
+            , PD_CD
+            , PD_HCLSF_ID
+            , PD_MCLSF_ID
+            , PD_LCLSF_ID
             , DP_MES_CD
             , DP_TP_CD
             , CDCO_CD
@@ -85,33 +85,65 @@
             , CRCDNO_ENCR
             , BNK_CD
             , DPR_NM
-            , VAC_NO
+            , ACNO_ENCR
+            , CRP_ACNO
             , VNCO_DV_CD
+            , CNTR_NO
+            , CNTR_SN
+            , KW_GRP_CO_CD
+            , RVE_CD
+            , RVE_DV_CD
+            , RVE_PH_CD
+            , RVEPLC_DV_CD
+            , OG_TP_CD
+            , ICHR_PRTNR_NO
+            , CST_NO
+            , DTA_DL_YN
             <include refid="COMMON.insertSystemField" />
         ) VALUES (
             #{etcAtamNo}
-            ,#{etcAtamSn}
-            ,#{etcAtamProcsCd}
-            ,#{etcAtamPrcsdt}
-            ,#{etcAtamProcsAmt}
-            ,#{rveNo}
-            ,#{rveSn}
-            ,#{rfndRcpNo}
-            ,#{rveDt}
-            ,#{bilTn}
-            ,#{procsDvCd}
-            ,#{dpDvCd}
-            ,#{sellTpCd}
-            ,#{sellTpDtlCd}
-            ,#{dpMesCd}
-            ,#{dpTpCd}
-            ,#{cdcoCd}
-            ,#{cardAprno}
-            ,#{crcdnoEncr}
-            ,#{bnkCd}
-            ,#{dprNm}
-            ,#{vacNo}
-            ,#{vncoDvCd}
+            , #{etcAtamSn}
+            , #{etcAtamProcsCd}
+            , #{etcAtamPrcsdt}
+            , #{etcAtamProcsAmt}
+            , #{sapDpTpCd}
+            , #{sapPdDvCd}
+            , #{sapPdAtcCd}
+            , #{dgCstId}
+            , #{rveNo}
+            , #{rveSn}
+            , #{rfndRcpNo}
+            , #{rveDt}
+            , #{bilTn}
+            , #{procsDvCd}
+            , #{dpDvCd}
+            , #{sellTpCd}
+            , #{sellTpDtlCd}
+            , #{pdCd}
+            , #{pdHclsfId}
+            , #{pdMclsfId}
+            , #{pdLclsfId}
+            , #{dpMesCd}
+            , #{dpTpCd}
+            , #{cdcoCd}
+            , #{cardAprno}
+            , #{crcdnoEncr}
+            , #{bnkCd}
+            , #{dprNm}
+            , #{acnoEncr}
+            , #{crpAcno}
+            , #{vncoDvCd}
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{kwGrpCoCd}
+            , #{rveCd}
+            , #{rveDvCd}
+            , #{rvePhCd}
+            , #{rveplcDvCd}
+            , #{ogTpCd}
+            , #{ichrPrtnrNo}
+            , #{cstNo}
+            , 'N'
             <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
