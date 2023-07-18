@@ -81,18 +81,20 @@ public class WbncSameCustomerContractDto {
 
     @ApiModel(value = "WbncSameCustomerContractDto-FindBreachOfPromiseRes")
     public record FindBreachOfPromiseRes(
-        String ccamTam,
-        String acuDp,
-        String rentalRntf,
-        String borDp,
-        String bndNpd,
-        String csmbCs,
+        String eotBorAmt,
+        String dpCcamSumAmt,
         String borBlam,
-        String rgstCsDsc,
-        String reqdCs,
-        String slAmt,
+        String thmSlSumAmt,
         String ucAmt,
-        String lsfe
+        String rsgBorAmt,
+        String rgstCostDscBorAmt,
+        String rentalDscBorAmt,
+        String csmbCostBorAmt,
+        String pBorAmt,
+        String reqdCsBorAmt,
+        String lsRntf,
+        String rstlBorAmt,
+        String acuDpAmt
     ) {}
 
     @ApiModel(value = "EbncSameCustomerContractDto-FindSalesRes")
