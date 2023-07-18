@@ -965,22 +965,6 @@
     </select>
 
     <select id="selectContractArticles" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchContractArticlesRes">
-        WITH TB_CBCL_CNTR_PERF_MM_CL AS  ( /* LC50 */
-            /* WELL 월실적 마감이 생길것을 예상하여 작성*/
-            SELECT
-                   '' AS SL_CL_YM
-                 , '' AS CNTR_NO
-                 , '' AS CNTR_SN
-                 , 'N' AS DTA_DL_YN
-                 , 0 AS LCRCNT /* 렌탈차월*/
-                 , 100 AS LCAM16 /* 매출합계 */
-                 , 100 AS LCAMT1
-                 , 100 AS LCRAM1
-                 , 1 AS LCIMON
-                 , 1 AS LCTAMT
-                 , 2 AS LCRAMT
-              FROM DUAL
-        )
         SELECT
                T2.CNTR_NO                                                    /* 계약번호 LCYEAR+LCCODE */
              , T2.CNTR_SN                                                    /* 계약일련번호 LCSEQN */
@@ -991,104 +975,58 @@
                     WHEN T2.SELL_TP_CD = '3' THEN T3.PD_NM
                     WHEN T2.SELL_TP_CD = '6' THEN T5.PD_CLSF_NM              /* 정기배송은 분류명만(패키지명 대응) */
                     ELSE '' END AS PD_NM                                     /* 상품명 (KAINAM) */
-             , CASE WHEN T2.SELL_TP_CD = '1' THEN TO_CHAR(TO_DATE(T2.CNTR_PD_STRTDT, 'YYYYMMDD'),'YYYYMMDD')  /* 계약상품시작일자 */
-                    WHEN T2.SELL_TP_CD = '2' THEN (CASE WHEN T4.PD_PRP_VAL01 = '2' /* 서비스구분: 택배(2) KA10.KACK05 */
-                                                        THEN TO_CHAR(TO_DATE(T2.CNTR_PD_STRTDT, 'YYYYMMDD'),'YYYYMMDD')  /* 계약상품시작일자 (매출일자가 없어서 시작일자로 대응함) */
+             , CASE WHEN T2.SELL_TP_CD = '1' THEN T2.CNTR_PD_STRTDT  /* 계약상품시작일자 */
+                    WHEN T2.SELL_TP_CD = '2' THEN (CASE WHEN (SELECT PPEPD.PD_PRP_VAL01
+                                                                FROM TB_PDBS_PD_ECOM_PRP_DTL PPEPD/* T.상품각사속성상세 서비스구분 1. 설치(홈케어서비스포함), 2. 택배 */
+                                                               WHERE 1=1
+                                                                 AND PPEPD.PD_EXTS_PRP_GRP_CD = 'SPP'/* 상품확장속성그룹코드(KA1100P@KACK05) */
+                                                                 AND PPEPD.PD_CD = T2.BASE_PD_CD
+                                                                 AND PPEPD.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+                                                               ) = '2' /* 서비스구분: 택배(2) KA10.KACK05 */
+                                                        THEN T2.CNTR_PD_STRTDT  /* 계약상품시작일자 (매출일자가 대응함) */
                                                         ELSE T21.IST_DT END ) /* 설치일자 */
                     WHEN T2.SELL_TP_CD = '3' THEN T21.IST_DT                  /* 설치일자 */
                     WHEN T2.SELL_TP_CD = '6' THEN T21.IST_DT                  /* 설치일자 */
-                    ELSE '' END AS LCSETYMD
+                    ELSE '' END AS LCSETYMD /* 설치일자*/
              , CASE WHEN T2.SELL_TP_CD = '1'
                          THEN 0
                     WHEN T2.SELL_TP_CD = '2'
                          THEN (
-                                (
-                                SELECT NVL(LCAMT1,0)
-                                  FROM (SELECT T100.LCAMT1 - T100.LCRAM1 AS LCAMT1
-                                          FROM TB_CBCL_CNTR_PERF_MM_CL T100  /* LC5000P 월실적*/
-                                         WHERE 1=1
-                                           AND T100.DTA_DL_YN = 'N'
-                                           AND T100.CNTR_NO = T2.CNTR_NO
-                                           AND T100.CNTR_SN = T2.CNTR_SN
-                                         ORDER BY T100.SL_CL_YM DESC)
-                                 WHERE ROWNUM = 1
-                                 )
-                                 +
-                                (
-                                SELECT (T5_S.FNL_VAL - T5_S.CTR_VAL) / T6_S.LCIMON AS LCAMT1  /* 판매가격 (최종값-조정값) / 약정기간 */
-        --                             , T2_S.CNTR_NO
-        --                             , T2_S.CNTR_SN
-        --                             , T2_S.BASE_PD_CD
-        --                             , CASE WHEN T4_S.REF_PD_CLSF_VAL LIKE '05001003%' THEN '1' /* 웰스팜(식물재배기) - MAST.LCPRD1 = '1' */
-        --                                    WHEN T4_S.REF_PD_CLSF_VAL LIKE '05003001%' THEN '2' /* 커피머신기 2 */
-        --                                    ELSE '' END AS LCPRD1           /* 기기종류 LCPRD1 (1 OR 2 )*/
-                                  FROM (SELECT T2_S1.CNTR_NO
-                                             , T2_S1.CNTR_SN
-                                             , T2_S1.BASE_PD_CD
-                                          FROM TB_SSCT_CNTR_DTL T2_S1         /* T.계약상세 */
-                                         WHERE T2_S1.DTA_DL_YN = 'N'
-                                           AND T2_S1.SELL_TP_CD IN ('6')      /* 판매유형코드 : 정기배송(LD3000P) */
-                                           AND (T2_S1.CNTR_NO, T2_S1.CNTR_SN) IN (SELECT T2_S2.BASE_DTL_CNTR_NO, T2_S2.BASE_DTL_CNTR_SN /*기준계약정보(정기배송)*/
-                                                                                    FROM TB_SSCT_CNTR_REL T2_S2 /* 계약관계 */
-                                                                                   WHERE 1=1
-                                                                                   AND T2_S2.DTA_DL_YN = 'N'   /* 데이터삭제여부 */
-                                                                                   AND T2_S2.VL_END_DTM = '99991231235959' /*유효종료일시 */
-                                                                                   AND T2_S2.CNTR_REL_TP_CD = '020'   /* 계약관계유형코드 : 연계상품계약관계 */
-                                                                                   AND T2_S2.CNTR_REL_DTL_CD = '214'   /* 계약관계상세코드 : 원주문 - 정기배송*/
-                                                                                   AND T2_S2.OJ_DTL_CNTR_NO = ''--T2.CNTR_NO    /* 대상상세계약번호(렌탈) */
-                                                                                   AND T2_S2.OJ_DTL_CNTR_NO = ''--T2.CNTR_NO  /* 대상상세계약일련번호(렌탈) */
-                                                                      )
-                                       ) T2_S
-                                 INNER JOIN TB_PDBS_PD_BAS T3_S               /* T.상품기본 -  */
-                                    ON T3_S.PD_CD = T2_S.BASE_PD_CD           /* 상품코드 */
-                                   AND T3_S.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
-                                   AND T3_S.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
-                                 /* 기기종류가 웰스팜인것으로 추출  */
-                                 INNER JOIN TB_PDBS_PD_CLSF_BAS T4_S          /* T.상품분류기본 상품분류ID =참조상품분류값 */
-                                    ON T4_S.PD_CLSF_ID = T3_S.PD_CLSF_ID      /* 상품분류ID */
-                                   AND T4_S.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
-                                   AND T4_S.PD_TP_CD = 'P'
-                                   AND T4_S.REF_PD_CLSF_VAL LIKE '05001003%'  /* 웰스팜(식물재배기) - MAST.LCPRD1 = '1' */
-                                 /* 계약가격산출내역 에서 최종값 조정값 GET  */
-                                 INNER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T5_S     /* T.계약가격산출내역 */
-                                    ON T5_S.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
-                                   AND T5_S.PD_PRC_FNL_DTL_ID = 'TODO...'     /* 상품가격최종상세ID */
-                                   AND T5_S.CNTR_NO = T2_S.CNTR_NO
-                                   AND T5_S.CNTR_SN = T2_S.CNTR_SN
-                                   /* 기준계약정보로 월실적에서 배송주기(LCIMON) GET */
-                                 LEFT OUTER JOIN LATERAL (SELECT CNTR_NO
-                                                               , CNTR_SN
-                                                               , LCIMON
-                                                            FROM (SELECT T6_S1.CNTR_NO, T6_S1.CNTR_SN, NVL(T6_S1.LCIMON,0) AS LCIMON
-                                                                    FROM TB_CBCL_CNTR_PERF_MM_CL T6_S1/* LC5000P 월실적*/
-                                                                   WHERE 1=1
-                                                                     AND T6_S1.DTA_DL_YN = 'N'
-                                                                     AND (T6_S1.CNTR_NO, T6_S1.CNTR_SN ) IN (SELECT T6_S2.BASE_DTL_CNTR_NO, T6_S2.BASE_DTL_CNTR_SN /*기준계약정보(정기배송)*/
-                                                                                                             FROM TB_SSCT_CNTR_REL T6_S2 /* 계약관계 */
-                                                                                                            WHERE 1=1
-                                                                                                              AND T6_S2.DTA_DL_YN = 'N'   /* 데이터삭제여부 */
-                                                                                                              AND T6_S2.VL_END_DTM = '99991231235959' /*유효종료일시 */
-                                                                                                              AND T6_S2.CNTR_REL_TP_CD = '020'   /* 계약관계유형코드 : 연계상품계약관계 */
-                                                                                                              AND T6_S2.CNTR_REL_DTL_CD = '214'   /* 계약관계상세코드 : 원주문 - 정기배송*/
-                                                                                                              AND T6_S2.OJ_DTL_CNTR_NO = ''--T2.CNTR_NO    /* 대상상세계약번호(렌탈) */
-                                                                                                              AND T6_S2.OJ_DTL_CNTR_NO = ''--T2.CNTR_NO  /* 대상상세계약일련번호(렌탈) */
-                                                                                                           )
-                                                                   ORDER BY T6_S1.SL_CL_YM DESC)
-                                                             WHERE ROWNUM = 1) T6_S
-                                    ON T6_S.CNTR_NO = T2_S.CNTR_NO
-                                   AND T6_S.CNTR_SN = T2_S.CNTR_SN
-                                 )
-                         )
-                    WHEN T2.SELL_TP_CD = '3' THEN (T8.FNL_VAL - T8.CTR_VAL)   /* LC35.LCTAMT-LC35.LCRAMT 최종값-조정값*/
-                    WHEN T2.SELL_TP_CD = '6' THEN (SELECT (LCAMT1)
-                                                      FROM (SELECT (LCTAMT-LCRAMT)/LCIMON AS LCAMT1
-                                                              FROM TB_CBCL_CNTR_PERF_MM_CL T100/* LC5000P 월실적*/
-                                                             WHERE 1=1
-                                                               AND T100.DTA_DL_YN = 'N'
-                                                               AND T100.CNTR_NO = T2.CNTR_NO
-                                                               AND T100.CNTR_SN = T2.CNTR_SN
-                                                             ORDER BY T100.SL_CL_YM DESC)
-                                                     WHERE ROWNUM = 1)        /* 정기배송은 분류명까지 포함 */
+                                NVL((SELECT (T100.RENTAL_AMT - T100.RENTAL_DSC_AMT)
+                                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ T100/* LC5000P 월실적 의 가장최근값 */
+                                  WHERE 1=1
+                                    AND T100.CNTR_NO = T2.CNTR_NO
+                                    AND T100.CNTR_SN = T2.CNTR_SN
+                                    AND T100.DTA_DL_YN = 'N'
+                                  ORDER BY T100.SL_CL_YM DESC
+                                  FETCH FIRST 1 ROWS ONLY /* 가장최근값 */
+                                ),0)
+                                +
+                                /* 정기배송으로 연관상품의 최종값에서 - 할인금 / 주기로 나눔*/
+                                NVL((SELECT T200.FNL_AMT - T200.DSC_AMT / T200.SV_PRD  /* 최종금액 - 할인금액  (LD30.LCTAMT - LD30.LCRAMT) / LD305.LCIMON  */
+                                   FROM TB_SSCT_CNTR_DTL T200   /* T.계약상세 (정기배송) */
+                                  INNER JOIN TB_SSCT_CNTR_REL T202 /* 계약관계 */
+                                     ON T202.BASE_DTL_CNTR_NO = T200.CNTR_NO
+                                    AND T202.BASE_DTL_CNTR_SN = T200.CNTR_SN
+                                    AND T202.CNTR_REL_TP_CD = '020'     /* 계약관계유형코드 : 연계상품계약관계 */
+                                    AND T202.CNTR_REL_DTL_CD = '214'    /* 계약관계상세코드 : 원주문 - 정기배송*/
+                                    AND T202.DTA_DL_YN = 'N'            /* 데이터삭제여부 */
+                                  WHERE T200.DTA_DL_YN = 'N'
+                                    AND T200.SELL_TP_CD = '6'           /* 판매유형코드 : 정기배송(LD3000P) */
+                                    AND T200.SELL_TP_DTL_CD = '62'      /* 판매유형상세코드(모종) (LCPRD1 = 1)*/
+                                    AND T200.CNTR_PTRM = '999'          /* 계약기간 999 (LCMONT = 99)*/
+                                  ),0)
+                                )
+                    WHEN T2.SELL_TP_CD = '3' THEN (T2.FNL_AMT - T2.DSC_AMT)   /* LC35.LCTAMT-LC35.LCRAMT 최종값-할인값*/
+                    WHEN T2.SELL_TP_CD = '6' THEN (SELECT (T300.RENTAL_RGST_COST - T300.DSC_AMT) / T2.SV_PRD AS LCAMT1  /* 서비스주기가 월매출에 없어서 상세에서 GET */
+                                                     FROM TB_CBCL_WELLS_SL_MM_CL_IZ T300/* LC5000P 월실적 의 가장최근값*/
+                                                    WHERE 1=1
+                                                      AND T300.CNTR_NO = T2.CNTR_NO
+                                                      AND T300.CNTR_SN = T2.CNTR_SN
+                                                      AND T300.DTA_DL_YN = 'N'
+                                                    ORDER BY T300.SL_CL_YM DESC
+                                                    FETCH FIRST 1 ROWS ONLY /* 가장최근값 */
+                                                  )
                     ELSE 0 END AS LCAMT1
              , CASE WHEN T2.SELL_TP_CD = '6' THEN '-' ELSE T6.PD_CLSF_NM END  AS PD_MCLSF_NM /* 상품중분류명 : LB80_2.LCTEXT AS KAETC2_NM*/
              , CASE WHEN T2.SELL_TP_CD = '1' THEN '0'
@@ -1097,21 +1035,25 @@
                     WHEN T2.SELL_TP_CD = '6' THEN TO_CHAR(T2.STPL_PTRM)       /* 유상의무기간수 */
                     ELSE '' END AS LCDUTY                                     /* 의무사용 (LCDUTY) */
              , T72.RNADR || T72.RDADR  AS RCGVP_ADR                           /* 수령자 주소 : WADR */
-             , CASE WHEN T2.SELL_TP_CD = '1' THEN '0'
-                    WHEN T2.SELL_TP_CD = '2' OR  T2.SELL_TP_CD = '6' THEN (
-                                                    SELECT TO_CHAR(LCRCNT)
-                                                      FROM (SELECT LCRCNT
-                                                              FROM TB_CBCL_CNTR_PERF_MM_CL T100/* LC5000P 월실적*/
-                                                             WHERE 1=1
-                                                               AND T100.DTA_DL_YN = 'N'
-                                                               AND T100.CNTR_NO = T2.CNTR_NO
-                                                               AND T100.CNTR_SN = T2.CNTR_SN
-                                                             ORDER BY T100.SL_CL_YM DESC)
-                                                     WHERE ROWNUM = 1
-                                                     )
-                    WHEN T2.SELL_TP_CD = '3' THEN '0'
+             , CASE WHEN T2.SELL_TP_CD = '1'
+                        THEN '0'
+                    WHEN T2.SELL_TP_CD = '2' OR  T2.SELL_TP_CD = '6'
+                        THEN (SELECT TO_CHAR(T400.RENTAL_TN)
+                                FROM TB_CBCL_WELLS_SL_MM_CL_IZ T400/* LC5000P 월실적 의 가장최근값*/
+                               WHERE 1=1
+                                 AND T400.CNTR_NO = T2.CNTR_NO
+                                 AND T400.CNTR_SN = T2.CNTR_SN
+                                 AND T400.DTA_DL_YN = 'N'
+                               ORDER BY T400.SL_CL_YM DESC
+                                FETCH FIRST 1 ROWS ONLY /* 가장최근값 */
+                             )
+                    WHEN T2.SELL_TP_CD = '3'
+                        THEN '0'
                     ELSE '' END AS LCRCNT                                     /* 렌탈차월 */
              , T1.CNTR_CST_NO
+          /* ----------------------------------------------------- */
+          /* 계약정보 */
+          /* ----------------------------------------------------- */
           FROM TB_SSCT_CNTR_BAS T1                                            /* T.계약기본 */
          INNER JOIN TB_SSCT_CNTR_DTL T2                                       /* T.계약상세 */
             ON T2.CNTR_NO = T1.CNTR_NO                                        /* 계약번호 */
@@ -1121,21 +1063,23 @@
             ON T21.DTA_DL_YN = 'N'                                            /* 데이터삭제여부 */
            AND T21.CNTR_NO = T2.CNTR_NO                                       /* 계약번호 */
            AND T21.CNTR_SN = T2.CNTR_SN                                       /* 계약일련번호 */
-          LEFT OUTER JOIN TB_PDBS_PD_BAS T3                                   /* T.상품기본 */
+          /* ----------------------------------------------------- */
+          /* 상품정보 */
+          /* ----------------------------------------------------- */
+         INNER JOIN TB_PDBS_PD_BAS T3                                         /* T.상품기본 */
             ON T3.PD_CD = T2.BASE_PD_CD                                       /* 상품코드 */
            AND T3.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
            AND T3.TEMP_SAVE_YN = 'N'                                          /* 임시저장여부 */
-          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4                          /* T.상품각사속성상세 서비스구분 1. 설치(홈케어서비스포함), 2. 택배 */
-            ON T4.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
-           AND T4.PD_EXTS_PRP_GRP_CD = 'SPP'                                  /* 상품확장속성그룹코드(KA1100P@KACK05) */
-           AND T4.PD_CD = T2.BASE_PD_CD
-          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T5                              /* T.상품분류기본 상품분류ID =참조상품분류값 */
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T5                                    /* T.상품분류기본 상품분류ID =참조상품분류값 */
             ON T5.PD_CLSF_ID = T3.PD_CLSF_ID                                  /* 상품분류ID */
            AND T5.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
            AND T5.PD_TP_CD = 'P'
-          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T6                              /* T.상품분류기본 상품중분류ID =중분류명 */
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T6                                    /* T.상품분류기본 상품중분류ID =중분류명 */
             ON T6.PD_CLSF_ID = T2.PD_MCLSF_ID                                 /* 상품분류ID */
            AND T6.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
+          /* ----------------------------------------------------- */
+          /* 주소 */
+          /* ----------------------------------------------------- */
           LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T7                             /* T.계약주소관계 - 배달 */
             ON T7.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
            AND T7.VL_END_DTM = '99991231235959'                               /* 유효종료일시 */
@@ -1149,12 +1093,6 @@
           LEFT OUTER JOIN TB_GBCO_ADR_BAS T72                                 /* T.주소기본 */
             ON T72.ADR_ID = T71.ADR_ID
            AND T72.DTA_DL_YN = 'N'                                            /* 데이터삭제여부 */
-         /* 계약가격산출내역 에서 최종값 조정값 GET  */
-         LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T8                          /* T.계약가격산출내역 */
-            ON T8.DTA_DL_YN = 'N'                                             /* 데이터삭제여부 */
-           AND T8.PD_PRC_FNL_DTL_ID = 'TODO...'                               /* 상품가격최종상세ID */
-           AND T8.CNTR_NO = T2.CNTR_NO
-           AND T8.CNTR_SN = T2.CNTR_SN
          WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
            AND T2.CNTR_NO = #{cntrNo}
