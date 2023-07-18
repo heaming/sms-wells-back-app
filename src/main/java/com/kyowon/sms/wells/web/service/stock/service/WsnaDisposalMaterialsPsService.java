@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaDisposalMaterialsPsDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaDisposalMaterialsPsMapper;
-import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -26,9 +25,6 @@ import lombok.RequiredArgsConstructor;
 public class WsnaDisposalMaterialsPsService {
 
     private final WsnaDisposalMaterialsPsMapper mapper;
-
-    // 메시지 서비스
-    private final MessageResourceService messageService;
 
     /**
      * 창고조회
