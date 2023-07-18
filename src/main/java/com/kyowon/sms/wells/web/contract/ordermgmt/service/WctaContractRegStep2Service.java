@@ -66,7 +66,9 @@ public class WctaContractRegStep2Service {
                     pkgs.forEach((p) -> p.setCntrRelDtlCd(rel.getCntrRelDtlCd()));
                     dtl.setPkgs(pkgs);
                     dtl.setSdingCapsls(
-                        mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                        mapper.selectSdingCapslInfos(
+                            cntrNo, cntrSn, dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList()
+                        )
                     );
                 } else if ("214".equals(dtl.getCntrRelDtlCd())) {
                     // 단독 정기배송 정보 세팅
@@ -79,7 +81,9 @@ public class WctaContractRegStep2Service {
                             .build()
                     );
                     dtl.setSdingCapsls(
-                        mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                        mapper.selectSdingCapslInfos(
+                            cntrNo, cntrSn, dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList()
+                        )
                     );
                 }
             }

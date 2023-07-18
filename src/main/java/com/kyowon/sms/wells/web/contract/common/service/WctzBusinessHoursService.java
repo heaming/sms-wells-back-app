@@ -12,6 +12,6 @@ public class WctzBusinessHoursService {
     private final WctzBusinessHoursMapper mapper;
 
     public Boolean getIsBusinessClosedHours() {
-        return mapper.selectIsBusinessClosedHours();
+        return !mapper.selectIsBusinessClosedHours();
     }
 }
