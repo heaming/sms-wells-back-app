@@ -18,9 +18,7 @@ public class WsniCapsulepkgChSppinfDto {
         @JsonProperty("CNTR_NO")
         String cntrNo, /* 계약번호 */
         @JsonProperty("CNTR_SN")
-        String cntrSn, /* 계약일련번호 */
-        @JsonProperty("SPP_DUEDT")
-        String sppDuedt /* 배송예정일자 */
+        String cntrSn /* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WsnbCapsulepkgChSppinfDto-SearchRes")
@@ -31,8 +29,6 @@ public class WsniCapsulepkgChSppinfDto {
         String pdCd, /* 상품코드 */
         @JsonProperty("AFCH_PD_CD")
         String afchPdCd, /* 변경후상품코드 */
-        @JsonProperty("FILT_PD_CD")
-        String filtPdCd, /* 필터상품코드 */
         @JsonProperty("SELL_AMT")
         String sellAmt, /* 판매금액 */
         @JsonProperty("SPP_PRGS_STAT_CD")
