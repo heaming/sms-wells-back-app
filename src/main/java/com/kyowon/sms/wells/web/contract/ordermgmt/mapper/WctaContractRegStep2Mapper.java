@@ -88,7 +88,9 @@ public interface WctaContractRegStep2Mapper {
 
     List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapsls(String pdCd);
 
-    List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapsls(String pdCd, List<String> parts);
+    List<WctaContractRegStep2Dvo.PdSdingCapsl> selectSdingCapslInfos(
+        String cntrNo, int cntrSn, String pdCd, List<String> parts
+    );
 
     String selectPdNm(String cntrNo, Integer cntrSn);
 
