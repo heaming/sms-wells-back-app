@@ -378,7 +378,7 @@ public class WctaContractController {
 
     @ApiOperation(value = "Step2 저장", notes = "Step2 정보를 신규 등록하거나 기존 정보를 수정한다.")
     @PostMapping("save-cntr-step2")
-    public SaveResponse saveContractSte2(
+    public SaveResponse saveContractStep2(
         @RequestBody
         @Valid
         WctaContractRegStep2Dvo dvo
@@ -388,7 +388,7 @@ public class WctaContractController {
 
     @ApiOperation(value = "Step3 저장", notes = "Step3 정보를 신규 등록하거나 기존 정보를 수정한다.")
     @PostMapping("save-cntr-step3")
-    public SaveResponse saveContractSte3(
+    public SaveResponse saveContractStep3(
         @RequestBody
         @Valid
         WctaContractRegStep3Dvo dvo
@@ -396,9 +396,19 @@ public class WctaContractController {
         return SaveResponse.builder().key(step3Service.saveContractStep3(dvo)).build();
     }
 
+    @ApiOperation(value = "Step4 저장", notes = "Step4 정보를 임시저장한다.")
+    @PostMapping("save-cntr-step4-temp")
+    public SaveResponse saveContractStep4Temp(
+        @RequestBody
+        @Valid
+        WctaContractRegStep4Dvo dvo
+    ) {
+        return SaveResponse.builder().key(step4Service.saveContractStep4Temp(dvo)).build();
+    }
+
     @ApiOperation(value = "Step4 저장", notes = "Step4 정보를 신규 등록하거나 기존 정보를 수정한다.")
     @PostMapping("save-cntr-step4")
-    public SaveResponse saveContractSte3(
+    public SaveResponse saveContractStep4(
         @RequestBody
         @Valid
         WctaContractRegStep4Dvo dvo
