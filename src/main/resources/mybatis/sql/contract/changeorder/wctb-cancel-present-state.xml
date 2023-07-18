@@ -2,50 +2,48 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCancelPresentStateMapper">
 
-    <!-- TODO : LC325.LCECDE 담당자가 현재 FST_RGST_USR_ID로 매핑되어 있으나 입력담당자 추가 예정 -->
     <select id="selectRentalCancelPresentStates" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto$SearchRentalRes">
-        SELECT MP.OG_CD
-             , MP.OG_NM
-             , ROW_NUMBER() OVER(PARTITION BY MP.PRTNR_NO ORDER BY RP.CNTR_NO, RP.CNTR_SN) AS SEQ
-             , MP.PRTNR_NO
-             , MP.PRTNR_KNM
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', CD.SELL_TP_CD) AS SELL_TP_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', CD.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
              , RP.CNTR_NO
              , RP.CNTR_SN
              , SB.CST_KNM AS CNTR_CST_KNM
-             , PR.OJ_PD_CD AS M_PD_CD
-             , PB2.SAP_MAT_CD
-             , PB.PD_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', CB.COPN_DV_CD) AS COPN_DV_NM
+             , SB.BZRNO
+             , CD.TXINV_PBL_OJ_YN
+             , SB.CST_NO
+             , MP2.OG_CD
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_HCLSF_ID AND TEMP_SAVE_YN='N' AND DTA_DL_YN='N') AS PD_HCLSF_NM
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_MCLSF_ID AND TEMP_SAVE_YN='N' AND DTA_DL_YN='N') AS PD_MCLSF_NM
              , PB.PD_NM
+             , CD.STPL_PTRM
+             , SUBSTR(CB.CNTR_CNFM_DTM, 1,8) AS CNTR_CNFM_DTM
              , WD.IST_DT
-             , CASE WHEN CD.CNTR_DTL_STAT_CD = '303' THEN CD.CNTR_PD_ENDDT
-                    ELSE ''
-                    END AS CAN_DT
-             , RP.PD_USE_DC
-             , RP.PD_GD_CD
-             , '' AS REQD_AK_DT
+             , RP.RSG_APLC_DT
+             , RP.RSG_FSH_DT
+             , '' AS CAN_DT_IN_DT
+             , RP.CNTR_STAT_CH_RSON_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', RP.CNTR_STAT_CH_RSON_CD) AS CNTR_STAT_CH_RSON_NM
+             , RP.ICHR_PRTNR_NO
+             , MP.PRTNR_KNM AS ICHR_PRTNR_NM
              , WD.REQD_DT
-             , '' AS REQD_ICHR_NM
-             , NVL(CD.CNTR_AMT,0)       AS RGST_COST_AMT /* 일단 계약에서 들고 옴, 등록비를 안낼 수는 없으니 */
-             , NVL(RP.RENTAL_RGST_COST_RFND_AMT,0) AS RGST_COST_RFND_AMT
+             , RP.PD_USE_DC
+             , RP.PRGS_NMN_N
+             , '('||RP.CNTR_STAT_CH_RSON_CD||')'||F_CMZ_CD_NM('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', RP.CNTR_STAT_CH_RSON_CD) AS RSON_NM
              , (NVL(RP.NOM_SL_AMT,0)
-                + NVL(RP.SPMT_SL_AMT,0)
-                - NVL(RP.NOM_DSC_AMT,0)
-                - NVL(RP.SPMT_DSC_AMT,0)) AS SL_AMT
+               + NVL(RP.SPMT_SL_AMT,0)
+               - NVL(RP.NOM_DSC_AMT,0)
+               - NVL(RP.SPMT_DSC_AMT,0)) AS SL_AMT
              , NVL(RP.SL_CTR_AMT,0)     AS SL_CTR_AMT
-             , NVL(RP.SL_AGG_AMT,0)     AS SL_AGG_AMT
-             , (NVL(RP.TOT_PRPD_AMT,0)
-                + NVL(RP.SL_DP_AGG_AMT,0)
-                - NVL(SL_DP_AMT,0))     AS DP_TOT_AMT
-             , NVL(RP.SL_DP_AGG_AMT,0)  AS SL_DP_AGG_AMT
              , NVL(RP.TOT_PRPD_AMT,0)   AS TOT_PRPD_AMT
-             , (NVL(RP.PRM_RFND_AMT,0)
-                + NVL(RP.PRPD_RFND_AMT,0)) AS UC_BLAM_AMT
              , NVL(RP.CSMB_COST_BOR_AMT2,0) AS CSMB_COST_BOR_AMT
              , NVL(RP.REQD_CS_BOR_AMT2,0) AS REQD_CS_BOR_AMT
              , NVL(RP.BOR_AMT,0)        AS BOR_AMT
              , NVL(RP.LS_RNTF,0)        AS LS_RNTF
              , NVL(RP.TOT_RFND_AMT,0)   AS TOT_RFND_AMT
-             , CP.PRTNR_KNM             AS CLCTAM_PRTNR_KNM
+             , '' AS EX_CNTR_NO_SN
+             , MO.BIZ_SPPT_PRTNR_NO
+             , PT.PRTNR_KNM AS BIZ_SPPT_PRTNR_NM
           FROM TB_SSCT_CNTR_RSG_PROCS_IZ RP /* 계약해지처리내역 */
          INNER JOIN TB_SSCT_CNTR_DTL CD
             ON CD.CNTR_NO = RP.CNTR_NO
@@ -54,6 +52,9 @@
          INNER JOIN TB_SSCT_CNTR_BAS CB
             ON CB.CNTR_NO = RP.CNTR_NO
            AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL WD
             ON WD.CNTR_NO = CD.CNTR_NO
            AND WD.CNTR_SN = CD.CNTR_SN
@@ -62,125 +63,68 @@
             ON PB.PD_CD = CD.BASE_PD_CD
            AND PB.TEMP_SAVE_YN = 'N'
            AND PB.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_REL PR
-            ON PR.BASE_PD_CD = PB.PD_CD
-           AND PR.PD_REL_TP_CD = '05'
-           AND PR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-           AND PR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-           AND PR.TEMP_SAVE_YN = 'N'
-           AND PR.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_BAS PB2
-            ON PB2.PD_CD = PR.OJ_PD_CD
-           AND PB2.TEMP_SAVE_YN = 'N'
-           AND PB2.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_BAS CB2
-            ON CB2.CNTR_NO = CD.CNTR_NO
-           AND CB2.DTA_DL_YN = 'N'
-         INNER JOIN TB_CUBS_CST_BAS SB
-            ON SB.CST_NO = CB2.CNTR_CST_NO
-           AND SB.TEMP_SAVE_YN = 'N'
-           AND SB.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP /* 집금파트너상세 */
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
             ON MP.BASE_YM = SUBSTR(RP.RSG_APLC_DT,1,6)
-           AND MP.OG_TP_CD = 'HR1'
-           AND MP.PRTNR_NO = RP.FST_RGST_USR_ID     <!-- TODO :--> /* FST_RGST_USR_ID 입력담당자 컬럼 생길 예정 */
+           AND MP.OG_TP_CD = RP.ICHR_OG_TP_CD
+           AND MP.PRTNR_NO = RP.ICHR_PRTNR_NO
            AND MP.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS BC /* 채권계약기본 */
-            ON BC.CNTR_NO = RP.CNTR_NO
-           AND BC.CNTR_SN = RP.CNTR_SN
-           AND BC.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_DTL CP /* 집금파트너상세 */
-            ON CP.PRTNR_NO = BC.CLCTAM_PRTNR_NO
-           AND CP.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.OG_ID = MP.OG_ID
+           AND MO.BASE_YM = MP.BASE_YM
+           AND MO.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PT
+            ON PT.PRTNR_NO = MO.BIZ_SPPT_PRTNR_NO
+           AND PT.OG_TP_CD = MO.OG_TP_CD
+           AND PT.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP2
+            ON MP2.BASE_YM = SUBSTR(CB.CNTR_CNFM_DTM,1,6)
+           AND MP2.OG_TP_CD = CB.SELL_OG_TP_CD
+           AND MP2.PRTNR_NO = CB.SELL_PRTNR_NO
+           AND MP2.DTA_DL_YN = 'N'
          WHERE RP.DTA_DL_YN = 'N'
-            <if test="@MybatisUtils@isNotEmpty(ogCd)">
-           AND MP.OG_CD = #{ogCd}   /* 소속구분 조건이 존재하는 경우 */
+
+            <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+                AND CD.SELL_TP_CD = #{sellTpCd}             /* 판매유형코드 조건이 존재하는 경우 */
             </if>
 
+            <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
+                AND CD.SELL_TP_DTL_CD = #{sellTpDtlCd}      /* 판매유형상세코드 조건이 존재하는 경우 */
+            </if>
             <if test="@MybatisUtils@isNotEmpty(cancelFromDt)">
-                <choose>
-                    <when test='@MybatisUtils@equals(dtDiv, "1")'>
-                        AND RP.RSG_APLC_DT >= #{cancelFromDt} /* 취소요청기간 조건이 존재하는 경우 */
-                    </when>
-                    <otherwise>
-                        AND RP.RSG_FSH_DT >= #{cancelFromDt} /* 취소년월 조건이 존재하는 경우 */
-                    </otherwise>
-                </choose>
+                AND RP.RSG_FSH_DT >= #{cancelFromDt}        /* 취소년월 조건이 존재하는 경우 */
             </if>
             <if test="@MybatisUtils@isNotEmpty(cancelToDt)">
-                <choose>
-                    <when test='@MybatisUtils@equals(dtDiv, "1")'>
-                        AND RP.RSG_APLC_DT <![CDATA[<=]]> #{cancelToDt}
-                    </when>
-                    <otherwise>
-                        AND RP.RSG_FSH_DT <![CDATA[<=]]> #{cancelToDt}
-                    </otherwise>
-                </choose>
+                AND RP.RSG_FSH_DT <![CDATA[<=]]> #{cancelToDt}
             </if>
-
-            <if test="@MybatisUtils@isNotEmpty(sellOgTpCd)">
-                AND CB.SELL_OG_TP_CD = #{sellOgTpCd}     /* 판매구분(조직유형코드) 조건이 존재하는 경우 */
+            <if test="@MybatisUtils@isNotEmpty(rgstUsrEpNo)">
+                AND RP.ICHR_PRTNR_NO = #{rgstUsrEpNo}       /* 등록담당 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pdHclsfId)">
+                AND PB.PD_HCLSF_ID = #{pdHclsfId}           /* 상품분류 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pdMclsfId)">
+                AND PB.PD_MCLSF_ID = #{pdMclsfId}           /* 상품분류 조건이 존재하는 경우 */
             </if>
             <if test="@MybatisUtils@isNotEmpty(basePdCd)">
                 AND CD.BASE_PD_CD = #{basePdCd}             /* 상품코드 조건이 존재하는 경우 */
             </if>
-            <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-                AND RP.PD_GD_CD = #{pdGdCd}                 /* 상품등급 조건이 존재하는 경우 */
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(rgstUsrEpNo)">
-                AND RP.FST_RGST_USR_ID = #{rgstUsrEpNo}             /* 등록담당 조건이 존재하는 경우 */ <!-- TODO : 추후 추가되는 등록담당자 조건으로 바뀌어야 함 -->
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(clctamPrtnrNo)">
-                AND CP.PRTNR_NO = #{clctamPrtnrNo}         /* 집금담당 조건이 존재하는 경우 */
-            </if>
-
-            <choose>
-                <when test='@MybatisUtils@equals(printDiv, "1")'>
-                    AND RP.BOR_AMT = 0  /* 출력구분이 - 위약인 경우 */
-                </when>
-                <when test='@MybatisUtils@equals(printDiv, "2")'>
-                    AND RP.LS_RNTF = 0  /* 출력구분이 - 분실인 경우 */
-                </when>
-                <otherwise></otherwise>
-            </choose>
-            <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
-                AND CB.COPN_DV_CD = #{copnDvCd}             /* 계약구분조건이 존재하는 경우 */
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
-                AND CD.SELL_TP_CD = #{sellTpCd}             /* 판매유형코드 조건이 존재하는 경우 */
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
-                AND CD.SELL_TP_DTL_CD = #{sellTpDtlCd}      /* 판매유형상세코드 조건이 존재하는 경우 */
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(alncmpCd)">
-                -- AND CD.ALNCMP_CD = '17'
-                AND CD.ALNCMP_CD = #{alncmpCd}              /* 상조취소 조건이 존재하는 경우 */
-            </if>
-
-            <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-                AND RP.CNTR_NO = #{cntrNo}                  /* 계약상세번호 조건이 존재하는 경우 */
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-                AND RP.CNTR_SN = #{cntrSn}
-            </if>
             <if test="@MybatisUtils@isNotEmpty(cntrStatChRsonCd)">
                 AND RP.CNTR_STAT_CH_RSON_CD = #{cntrStatChRsonCd}   /* 취소유형조건이 존재하는 경우 */
             </if>
-            <if test="@MybatisUtils@isNotEmpty(reqdDiv)">
-                <choose>
-                    <when test='@MybatisUtils@equals(reqdDiv, "NA")'>   /* 철거구분 조건이 존재하는 경우 */ <!-- TODO : - 없음 TO-BE 추가해야 함 -->
-                        /* REQD_AK_DT IS NULL AND REQD_DT IS NULL */
-                    </when>
-                    <when test='@MybatisUtils@equals(reqdDiv, "CA")'>
-                        /* REQD_AK_DT IS NOT NULL AND REQD_DT IS NULL */
-                        AND WD.REQD_DT IS NULL
-                    </when>
-                    <when test='@MybatisUtils@equals(reqdDiv, "CC")'>
-                        /* REQD_DT IS NOT NULL */
-                        AND WD.REQD_DT IS NOT NULL
-                    </when>
-                    <otherwise></otherwise>
-                </choose>
+            <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
+                AND CB.COPN_DV_CD = #{copnDvCd}             /* 계약구분조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrFromDt)">
+                AND CB.CNTR_CNFM_DTM >= #{cntrFromDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrToDt)">
+                AND CB.CNTR_CNFM_DTM <![CDATA[<=]]> #{cntrToDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(installFromDt)">
+                AND WD.IST_DT >= #{installFromDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(installToDt)">
+                AND WD.IST_DT <![CDATA[<=]]> #{installToDt}
             </if>
     </select>
 
@@ -229,8 +173,8 @@
            AND SB.DTA_DL_YN = 'N'
          INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
             ON MP.BASE_YM = SUBSTR(RP.RSG_FSH_DT,1,6)
-           AND MP.OG_TP_CD = 'HR1'
-           AND MP.PRTNR_NO = RP.FST_RGST_USR_ID         /* FST_RGST_USR_ID 입력담당자 컬럼 생길 예정 */
+           AND MP.OG_TP_CD = RP.ICHR_OG_TP_CD
+           AND MP.PRTNR_NO = RP.ICHR_PRTNR_NO
            AND MP.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ WS
             ON WS.CNTR_NO = RP.CNTR_NO
@@ -263,7 +207,7 @@
                 AND CB.SELL_OG_TP_CD = #{sellOgTpCd}    /* 판매구분(조직유형코드) 조건이 존재하는 경우 */
             </if>
             <if test="@MybatisUtils@isNotEmpty(rgstUsrEpNo)">
-                AND RP.FST_RGST_USR_ID = #{rgstUsrEpNo} /* 등록담당 조건이 존재하는 경우 */ <!-- TODO : 추후 추가되는 등록담당자 조건으로 바뀌어야 함 -->
+                AND RP.ICHR_PRTNR_NO = #{rgstUsrEpNo}   /* 등록담당 조건이 존재하는 경우 */
             </if>
             <if test="@MybatisUtils@isNotEmpty(cntrNo)">
                 AND RP.CNTR_NO = #{cntrNo}              /* 계약상세번호 조건이 존재하는 경우 */
@@ -595,7 +539,7 @@
              , RP.BOR_AMT
              , RP.LS_RNTF
              , RP.TOT_RFND_AMT
-             , RP.FST_RGST_USR_ID   -- 추후 등록자ID로 바꿔야 함
+             , RP.ICHR_PRTNR_NO
              , RP.FST_RGST_DTM
              , MO.BIZ_SPPT_PRTNR_NO
              , PT.PRTNR_KNM AS BIZ_SPPT_PRTNR_NM
@@ -629,10 +573,10 @@
            AND MO.DTA_DL_YN = 'N'
          INNER JOIN TB_OGBS_MM_PRTNR_IZ MP1
             ON MP1.BASE_YM = SUBSTR(RP.RSG_APLC_DT,1,6)
-           AND MP1.OG_TP_CD = 'HR1'
-           AND MP1.PRTNR_NO = RP.FST_RGST_USR_ID 	/* FST_RGST_USR_ID 입력담당자 컬럼 생길 예정 */
+           AND MP1.OG_TP_CD = RP.ICHR_OG_TP_CD
+           AND MP1.PRTNR_NO = RP.ICHR_PRTNR_NO
            AND MP1.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_PRTNR_BAS PT
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PT
             ON PT.PRTNR_NO = MO.BIZ_SPPT_PRTNR_NO
            AND PT.OG_TP_CD = 'HR1'
            AND PT.DTA_DL_YN = 'N'
@@ -711,10 +655,10 @@
                 AND CB.COPN_DV_CD = #{copnDvCd}             /* 계약구분조건이 존재하는 경우 */
             </if>
             <if test="@MybatisUtils@isNotEmpty(rgstUsrEpNo)">
-                AND RP.FST_RGST_USR_ID = #{rgstUsrEpNo}     /* 등록담당 조건이 존재하는 경우 */ <!-- TODO : 추후 추가되는 등록담당자 조건으로 바뀌어야 함 -->
+                AND RP.ICHR_PRTNR_NO = #{rgstUsrEpNo}       /* 등록담당 조건이 존재하는 경우 */
             </if>
             <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-                AND RP.CNTR_NO = #{cntrNo}              /* 계약상세번호 조건이 존재하는 경우 */
+                AND RP.CNTR_NO = #{cntrNo}                  /* 계약상세번호 조건이 존재하는 경우 */
             </if>
             <if test="@MybatisUtils@isNotEmpty(cntrSn)">
                 AND RP.CNTR_SN = #{cntrSn}
