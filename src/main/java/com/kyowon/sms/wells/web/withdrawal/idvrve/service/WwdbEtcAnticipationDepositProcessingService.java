@@ -25,8 +25,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class WwdbBusinessAnticipationAmtService {
-
+public class WwdbEtcAnticipationDepositProcessingService {
     private final ZwdbEtcAnticipationDpProcsConvert convert;
 
     private final ZwwdbEtcDepositMapper etcDepositMapper;
@@ -397,5 +396,4 @@ public class WwdbBusinessAnticipationAmtService {
 
         return zwdzWithdrawalReceiveAskDvo;
     }
-
 }
