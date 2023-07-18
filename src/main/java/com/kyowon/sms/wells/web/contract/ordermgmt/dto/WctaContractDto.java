@@ -282,6 +282,7 @@ public class WctaContractDto {
         String sellTpCd,
         String cntrCstKnm,
         String istCstKnm,
+        String pdCd,
         String pdNm,
         String cralLocaraTno,
         String mexnoEncr,
