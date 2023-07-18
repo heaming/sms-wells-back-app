@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -47,7 +48,7 @@ public class WsniBarcodeProductInterfaceController {
         @RequestBody
         EaiWrapper<WsniBarcodeProductInterfaceDto.SearchCustReq> reqWrapper
     ) throws IOException, Exception {
-        EaiWrapper<WsniBarcodeProductInterfaceDto.SearchCustJsonRes> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<WsniBarcodeProductInterfaceDto.SearchCustJsonRes>> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getBarcodeSearchCustomers(reqWrapper.getBody()));
         return resWrapper;
     }
