@@ -457,12 +457,11 @@ public class WctaContractRegStep5Service {
 
         /* 수납 요청 기본 생성 */
         ZwdzWithdrawalReceiveAskDvo receiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
-        receiveAskDvo.setContractNumber(contractForRveAkInfo.getCntrCstNo());
+        receiveAskDvo.setKyowonGroupCompanyCd(CtCoCd.KYOWON_PROPERTY.getCode());
         receiveAskDvo.setRveAkMthdCd(contractForRveAkInfo.getCstStlmInMthCd());
         receiveAskDvo.setRvePrtnrNo(contractForRveAkInfo.getSellPrtnrNo());
         receiveAskDvo.setRvePrtnrOgTpCd(contractForRveAkInfo.getSellOgTpCd());
-        receiveAskDvo.setContractNumber(contractForRveAkInfo.getCntrCstNo());
-        receiveAskDvo.setKyowonGroupCompanyCd(CtCoCd.KYOWON_PROPERTY.getCode());
+        receiveAskDvo.setCustomNumber(contractForRveAkInfo.getCntrCstNo());
         receiveAskDvo.setReceiveAskAmount(Long.toString(totStlmAmt));
         receiveAskDvo.setReceiveAskStatusCode(CtRveAkStatCd.RECEIPT.getCode());
         receiveAskDvo.setReceiveAskDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
