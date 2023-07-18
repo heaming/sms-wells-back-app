@@ -178,27 +178,27 @@ public class WdcaBusinessAnticipationAmtService {
 
                 // 영업선수금 기본 INSERT
                 resultCount = mapper.insertBusinessBasic(dvo);
-                BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
                 // 기타선수금 데이터 여부
                 if (!dvo.getEtcAtamNo().isEmpty()) {
                     resultCount = mapper.insertEtcProcess(dvo);
-                    BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                    BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
                     resultCount = mapper.updateEtcBasic(dvo);
-                    BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                    BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
                 }
 
                 // 연체, 대손처리 서비스 호출
                 resultCount = service.saveDelinquentDepositRefund(refundDvo);
-                BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
             } else if (dvo.getInputGubun().equals("2")) {
                 resultCount = mapper.updateBusinessBasic(dvo);
-                BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
                 resultCount = mapper.insertBusinessProcess(dvo);
-                BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
             }
         }
 

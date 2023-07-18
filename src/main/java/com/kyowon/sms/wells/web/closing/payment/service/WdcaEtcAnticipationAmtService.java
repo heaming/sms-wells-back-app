@@ -64,10 +64,10 @@ public class WdcaEtcAnticipationAmtService {
             if (etcAtamProcsCd.equals("0")) {
                 // 기타선수금 처리내역 INSERT
                 resultCount = mapper.insertEtcProcess(dvo);
-                BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
             } else if (etcAtamProcsCd.equals("2")) {
                 resultCount = mapper.updateEtcBasic(dvo);
-                BizAssert.isTrue(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
             }
         }
 
