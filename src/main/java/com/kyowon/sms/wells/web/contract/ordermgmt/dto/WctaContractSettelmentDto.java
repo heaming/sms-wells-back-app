@@ -120,10 +120,15 @@ public class WctaContractSettelmentDto {
     public record CreditReq(
         @NotBlank
         String cntrStlmId,
+        @NotBlank
         String owrKnm,
         String istmMcn,
+        @NotBlank
         String crcdnoEncr,
-        String cardExpdtYm
+        @NotBlank
+        String cardExpdtYm,
+        @NotBlank
+        String fnitCd
     ) {}
 
 
@@ -131,8 +136,26 @@ public class WctaContractSettelmentDto {
     @ApiModel(value = "WctaContractSettelmentDto-CreditReq", description = "신용카드 승인 요청 결과")
     public record CreditRes(
         String aprNo,
-        String cdcoCd,
         String fnitAprRsCd,
         String fnitAprFshDtm
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WctaContractSettelmentDto-VacIsRveAskReq", description = "가상계좌 생성 요청")
+    public record VacIsRveAskReq(
+        @NotBlank
+        String cntrStlmId,
+        @NotBlank
+        String bnkCd
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WctaContractSettelmentDto-VacIsRveAskRes", description = "가상계좌 생성 결과")
+    public record VacIsRveAskRes(
+        String acnoEncr,
+        String owrKnm,
+        String fnitAprFshDtm,
+        String vncoDvCd,
+        Long stlmAmt
     ) {}
 }

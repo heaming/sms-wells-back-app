@@ -1,8 +1,10 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.rest;
 
+import com.kyowon.sflex.common.system.service.QueryStringEncService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractSettelmentDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaContractRegStep5Service;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.exception.BizException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -24,6 +26,7 @@ import java.util.List;
 public class WctaContractSettlementController {
 
     private final WctaContractRegStep5Service service;
+    private final QueryStringEncService queryStringEncService;
 
     @ApiOperation(value = "계약기초 정보 조회", notes = "계약번호를 받아 계약자 인증을 위한 기본 제공 정보를 조회함")
     @ApiImplicitParams(value = {
@@ -74,5 +77,30 @@ public class WctaContractSettlementController {
         @RequestBody @Valid CreditReq req
     ) {
         return service.requestCreditCardApproval(req);
+    }
+
+
+
+    @ApiOperation(value = "신용카드 카드사 코드 조회", notes = "신용카드 카드사 코드 조회")
+    @GetMapping("/finance-code")
+    public String getFnitCd(
+        String encCrcdnoPrefix
+    ) {
+        String decCrcdno;
+        try {
+            decCrcdno = queryStringEncService.decrypt(encCrcdnoPrefix);
+        } catch (Exception e) {
+            throw new BizException("조회되지 않은 금융기관 카드번호입니다.");
+        }
+
+        return service.getFnitCd(decCrcdno);
+    }
+
+    @ApiOperation(value = "가상계좌 생성 요청 서비스", notes = "가상계좌 생성 요청 서비스")
+    @PostMapping("/virtual-account")
+    public VacIsRveAskRes requestVacIsRveAsk(
+        @RequestBody @Valid VacIsRveAskReq req
+    ) {
+        return service.requestVacIsRveAsk(req);
     }
 }
