@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.fee.standard.rest;
 
-import com.kyowon.sms.common.web.fee.schedule.dto.ZfeyFeeScheduleMgtDto;
 import com.kyowon.sms.wells.web.fee.standard.dto.WfeyContractBsFeeExDto.SaveContractBsFeeExReq;
 import com.kyowon.sms.wells.web.fee.standard.dto.WfeyContractBsFeeExDto.SearchContractBsFeeExReq;
 import com.kyowon.sms.wells.web.fee.standard.dto.WfeyContractBsFeeExDto.SearchContractBsFeeExRes;
