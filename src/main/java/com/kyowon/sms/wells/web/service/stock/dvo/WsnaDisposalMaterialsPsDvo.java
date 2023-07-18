@@ -19,6 +19,7 @@ import lombok.Setter;
 public class WsnaDisposalMaterialsPsDvo {
 
     private String wareNm;
+    private String wareNo;
     private String gubun;
     private String gubunCd;
 
