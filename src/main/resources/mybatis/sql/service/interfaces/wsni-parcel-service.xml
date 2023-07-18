@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniParcelServiceMapper">
+
+    <select id="selectOriginInvoiceNum" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniParcelServiceRegDto$SearchOriginInvoiceRes">
+           SELECT  M1.CNTR_NO
+                 , M1.CNTR_SN
+                 , TRACKING_NO AS ORI_INVC_NO
+                 , SEND_AVAIL_YN
+
+                 , T5.RNADR  AS SENDR_ADDR
+                 , T5.RDADR  AS SENDR_ADDR_DTL
+                 , CRAL_LOCARA_TNO AS SENDR_CELL_NO1
+                 , MEXNO_ENCR    AS  SENDR_CELL_NO2
+                 , CRAL_IDV_TNO   AS  SENDR_CELL_NO3
+                 , LOCARA_TNO   AS SENDR_TEL_NO1
+                 , EXNO_ENCR AS  SENDR_TEL_NO2
+                 , IDV_TNO  AS SENDR_TEL_NO3
+                 , SPP_ZIP AS SENDR_ZIP_NO
+                 , CST_NM AS  SENDR_NM
+
+                 , PDCT_PD_CD AS GDS_CD
+                 , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD =  PDCT_PD_CD ) AS GDS_NM
+                 , PD_QTY AS GDS_QTY
+                 , SPP_AK_RCPDT AS RCPT_YMD
+            FROM (
+                   SELECT  AC211.CNTR_NO AS CNTR_NO
+                          ,AC211.CNTR_SN AS CNTR_SN
+                          ,VS106.SPP_IVC_NO AS TRACKING_NO
+                          , ( CASE WHEN #{reqdvCd} = '01' AND NVL((SELECT SPP_AK_RS_CD
+                                                               FROM TB_SVPD_SPP_AK_RS_IZ V1
+                                                              WHERE V1.CNTR_NO = AC211.CNTR_NO
+                                                                AND V1.CNTR_SN = AC211.CNTR_SN
+                                                                AND V1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                AND V1.SPP_BZS_CST_ID = '30480322'
+                                                                AND V1.SPP_RCP_DV_CD = #{reqdvCd}
+                                                                AND V1.SPP_AK_SN = (SELECT MAX(SPP_AK_SN)
+                                                                                   FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                                                  WHERE T1.SPP_BZS_CST_ID = '30480322'
+                                                                                    AND T1.CNTR_NO  = #{custNo}
+                                                                                    AND T1.CNTR_SN =  #{cntrSn}
+                                                                                    AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                                    AND T1.SPP_RCP_DV_CD = NULL )
+                                                                ),'X') != 'S'  THEN 'Y'
+                                  WHEN #{reqdvCd} = '02' AND NVL((SELECT COUNT(1)
+                                                              FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                             WHERE T1.CNTR_NO = AC211.CNTR_NO
+                                                               AND T1.CNTR_SN = AC211.CNTR_SN
+                                                               AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                               AND T1.SPP_BZS_CST_ID = '30480322'
+                                                               AND T1.SPP_RCP_DV_CD = '02'),0) > 0 THEN 'N'
+                                  WHEN #{reqdvCd} = '02' AND NVL((SELECT COUNT(1)
+                                                              FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                             WHERE T1.CNTR_NO = AC211.CNTR_NO
+                                                               AND T1.CNTR_SN = AC211.CNTR_SN
+                                                               AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                               AND T1.SPP_BZS_CST_ID = '30480322'
+                                                               AND T1.SPP_RCP_DV_CD = '01'),0) > 0 THEN 'Y'
+                                  ELSE 'N'
+                                   END
+                                 ) AS SEND_AVAIL_YN
+                          , (SELECT MAX(SPP_AK_SN)
+                               FROM TB_SVPD_SPP_AK_RS_IZ T1
+                              WHERE T1.SPP_BZS_CST_ID = '30480322'
+                                AND T1.CNTR_NO = AC211.CNTR_NO
+                                AND T1.CNTR_SN = AC211.CNTR_SN
+                                AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                AND T1.SPP_AK_RS_CD = 'S'
+                                AND T1.SPP_RCP_DV_CD = '01' ) AS V_SEQ
+                    FROM TB_SVPD_CST_SVAS_IST_OJ_IZ AC211
+              INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                     ON AC211.CNTR_NO = VS106.CNTR_NO
+                     AND AC211.CNTR_SN = VS106.CNTR_SN
+                     AND AC211.CST_SV_ASN_NO = VS106.CST_SV_ASN_NO
+                   WHERE AC211.CNTR_NO = #{custNo}
+                     AND AC211.CNTR_SN = #{cntrSn}
+                     AND AC211.SV_BIZ_DCLSF_CD = '1112'
+                 ) M1
+   LEFT OUTER JOIN  TB_SVPD_SPP_AK_RS_IZ V1
+       ON SPP_IVC_NO = TRACKING_NO
+              AND SPP_BZS_CST_ID = '30480322'
+              AND SPP_RCP_DV_CD = '01'
+              AND SPP_AK_RS_CD = 'S'
+              AND V1.CNTR_NO = M1.CNTR_NO
+              AND V1.CNTR_SN = M1.CNTR_SN
+              AND SPP_AK_SN = M1.V_SEQ
+   INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL T3       /*계약주소관계*/
+                    ON M1.CNTR_NO = T3.DTL_CNTR_NO
+                   AND M1.CNTR_SN = T3.DTL_CNTR_SN
+                   AND T3.ADRPC_TP_CD = (SELECT MAX(V2.ADRPC_TP_CD)
+                                           FROM WSMDBS.TB_SSCT_CNTR_ADR_REL V2
+                                          WHERE V2.DTL_CNTR_NO = T3.DTL_CNTR_NO
+                                            AND V2.DTL_CNTR_SN = T3.DTL_CNTR_SN
+                                            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V2.VL_STRT_DTM AND V2.VL_END_DTM
+                                            AND V2.DTA_DL_YN = 'N')
+                                               /*1 계약주소, 2 배달주소, 3 설치주소*/
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+                   AND T3.DTA_DL_YN = 'N'
+            INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS T4     /*계약주소지기본*/
+                    ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID  /*계약주소지ID*/
+                   AND T4.DTA_DL_YN = 'N'
+            LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS T5
+                         ON T4.ADR_ID = T5.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, T4.ADR_ID 를 T1.ADR_ID 으로 수정 해야 함*/
+                        AND T5.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectParcelServiceCertKey" resultType="java.lang.String">
+           SELECT IS_DRM_AUTKY_VAL AS TOKKEN_NUM
+             FROM TB_SVPD_SPP_BZS_AUTKY_IS_IZ
+            WHERE IS_RQDT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              AND DTA_DL_YN= 'N'
+    </select>
+
+
+        <insert id="insertParcelServiceCertKey">
+        INSERT INTO TB_SVPD_SPP_BZS_AUTKY_IS_IZ(
+               IS_RQDT
+             , IS_DRM_AUTKY_VAL
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField" />
+              )
+        VALUES(
+               TO_CHAR(SYSDATE, 'YYYYMMDD')
+            ,  #{tokkenKey}
+            , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+            )
+    </insert>
+
+
+    <insert id="insertParcelServiceReg">
+        INSERT INTO TB_SVPD_SPP_AK_RS_IZ(
+              SPP_BZS_CST_ID
+            , CNTR_NO
+            , CNTR_SN
+            , SPP_AK_SN
+            , SPP_IVC_NO
+            , SPP_RCP_DV_CD
+            , SPP_AK_RCPDT
+            , SPP_BZS_MB_NO
+            , SPP_AK_RS_CD
+            , SPP_AK_RS_CN
+            , SPP_BAS_ADR
+            , SPP_DTL_ADR
+            , SPP_LOCARA_TNO
+            , SPP_EXNO_ENCR
+            , SPP_IDV_TNO
+            , SPP_CRAL_LOCARA_TNO
+            , SPP_MEXNO_ENCR
+            , SPP_CRAL_IDV_TNO
+            , SPP_ZIP
+            , CST_NM
+            , PDCT_PD_CD
+            , PD_QTY
+            , DTA_DL_YN
+         <include refid="COMMON.insertSystemField" />
+        )
+    VALUES (
+             #{custId}
+           , #{custNo}
+           , #{cntrSn}
+           , (SELECT LPAD(NVL(MAX(SPP_AK_SN),0)+1,3,'0')
+                FROM TB_SVPD_SPP_AK_RS_IZ
+               WHERE SPP_BZS_CST_ID = #{custId}
+                 AND CNTR_NO = #{custNo}
+                 AND CNTR_SN = #{cntrSn}
+                 AND SPP_IVC_NO = #{oriinvcNo}
+                 AND SPP_RCP_DV_CD = #{rcptDv}
+                )
+           , #{oriinvcNo}
+           , #{rcptDv}
+            , #{reqdvCd}
+           , #{mpckKey}
+            , #{resultCd}
+            , #{resultDetail}
+            , #{sendrAddr}
+            , #{sendrAddrDtl}
+            , #{sendrtelNo1}
+            , #{sendrtelNo2}
+            , #{sendrtelNo3}
+            , #{sendrcellNo1}
+            , #{sendrcellNo2}
+            , #{sendrcellNo3}
+            , #{sendrZipNo}
+            , #{sendrNm}
+            , #{gdsCd}
+            , #{gdsQty}
+            , 'N'
+         <include refid="COMMON.insertSystemFieldValue" />
+            )
+    </insert>
+
+</mapper>
