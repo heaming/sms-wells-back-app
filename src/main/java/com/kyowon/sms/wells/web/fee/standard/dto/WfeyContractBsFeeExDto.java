@@ -18,15 +18,15 @@ public class WfeyContractBsFeeExDto {
 
     public record SearchContractBsFeeExRes(
         String cntrNo,            /* 계약번호 */
-        Integer cntrSn,           /* 계약일련번호 */
+        String cntrSn,           /* 계약일련번호 */
         String cntrDtlSn, /* 계약번호-계약일련번호 */
         String cntorNm, /* 계약자명 */
         String basePdCd, /* 상품 */
         String basePdNm,
-        Integer vstMcn,           /* 방문개월수 */
-        Integer baseChTcnt,       /* 기준변경차수 */
+        String vstMcn,           /* 방문개월수 */
+        String baseChTcnt,       /* 기준변경차수 */
         String svFeePdDvCd,       /* 서비스수수료상품구분코드 */
-        Long svFeeBaseAmt,        /* 서비스수수료기준금액 */
+        String svFeeBaseAmt,        /* 서비스수수료기준금액 */
         String feeFxamYn,         /* 수수료정액여부 */
         String apyStrtYm,         /* 적용시작년월 */
         String apyEndYm,          /* 적용종료년월 */
@@ -46,15 +46,17 @@ public class WfeyContractBsFeeExDto {
     public record SaveContractBsFeeExReq(
         String rowState,
         @NotBlank
-        String cntrNo,            /* 계약번호 */
-        @NotNull
-        Integer cntrSn,           /* 계약일련번호 */
-        @NotNull
-        Integer vstMcn,           /* 방문개월수 */
-        @NotNull
-        Integer baseChTcnt,       /* 기준변경차수 */
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
+        @NotBlank
+        String cntrDtlSn,            /* 계약번호-계약일련번호 */
+        @NotBlank
+        String vstMcn,           /* 방문개월수 */
+        @NotBlank
+        String baseChTcnt,       /* 기준변경차수 */
         String svFeePdDvCd,       /* 서비스수수료상품구분코드 */
-        Long svFeeBaseAmt,        /* 서비스수수료기준금액 */
+        String svFeeBaseAmt,        /* 서비스수수료기준금액 */
         String feeFxamYn,         /* 수수료정액여부 */
         String apyStrtYm,         /* 적용시작년월 */
         String apyEndYm          /* 적용종료년월 */

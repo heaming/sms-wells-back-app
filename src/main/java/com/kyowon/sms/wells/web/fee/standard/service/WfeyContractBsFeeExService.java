@@ -101,8 +101,9 @@ public class WfeyContractBsFeeExService {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("cntrDtlSn", messageService.getMessage("MSG_TXT_CNTR_DTL_NO"));
         headerTitle.put("vstMcn", messageService.getMessage("MSG_TXT_VISIT_MN"));
+        headerTitle.put("svFeePdDvCd", messageService.getMessage("MSG_TXT_BS_PD_GRP"));
         headerTitle.put("baseChTcnt", messageService.getMessage("MSG_TXT_ORDR"));
-        headerTitle.put("svFeeBaseAmt", messageService.getMessage("TXT_MSG_FEE_AMT") + "(" + messageService.getMessage("MSG_TXT_FXAM") + "/" + messageService.getMessage("MSG_TXT_HMST") + ")");
+        headerTitle.put("svFeeBaseAmt", messageService.getMessage("TXT_MSG_FEE_AMT"));
         headerTitle.put("feeFxamYn", messageService.getMessage("MSG_TXT_FXAM_YN"));
         headerTitle.put("apyStrtYm", messageService.getMessage("MSG_TXT_APY_STRT_YM"));
         headerTitle.put("apyEndYm", messageService.getMessage("MSG_TXT_APY_END_YM"));
@@ -126,17 +127,22 @@ public class WfeyContractBsFeeExService {
                 errorDvo.setHeaderName(headerTitle.get("cntrDtlSn"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
             }
-            if (list.getVstMcn() == null) {
+            if (StringUtils.isEmpty(list.getVstMcn())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("vstMcn"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
             }
-            if (list.getBaseChTcnt() == null) {
+            if (StringUtils.isEmpty(list.getSvFeePdDvCd())) {
+                errorDvo.setErrorRow(finalRow);
+                errorDvo.setHeaderName(headerTitle.get("svFeePdDvCd"));
+                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+            }
+            if (StringUtils.isEmpty(list.getBaseChTcnt())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("baseChTcnt"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
             }
-            if (list.getSvFeeBaseAmt() == null) {
+            if (StringUtils.isEmpty(list.getSvFeeBaseAmt())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("svFeeBaseAmt"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
@@ -157,7 +163,7 @@ public class WfeyContractBsFeeExService {
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
             }
             // 키값 필수 유효성 통과시 데이터 정합성 체크
-            if (StringUtils.isNotEmpty(list.getCntrDtlSn()) && list.getVstMcn() != null && list.getBaseChTcnt() == null) {
+            if (StringUtils.isNotEmpty(list.getCntrDtlSn()) && StringUtils.isNotEmpty(list.getVstMcn()) && StringUtils.isNotEmpty(list.getBaseChTcnt())) {
                 // 입력 중복 체크
                 if (CollectionUtils.isNotEmpty(checks)) {
                     for (int i = 0; i < checks.size(); i++) {
