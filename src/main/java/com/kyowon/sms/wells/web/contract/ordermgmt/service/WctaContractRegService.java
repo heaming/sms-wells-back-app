@@ -39,6 +39,34 @@ public class WctaContractRegService {
         return mapper.selectBryyMmdd(cstNo);
     }
 
+    public String getCntrwTpCd(String sellTpCd, String sellTpDtlCd, String cntrRelDtlCd, String mchnSellTpCd) {
+        if (sellTpDtlCd.equals("13")) {
+            return "1";
+        }
+        if (sellTpCd.equals(CtContractConst.SELL_TP_CD_SPAY)) {
+            return "2";
+        } else if (sellTpCd.equals(CtContractConst.SELL_TP_CD_RNTL)) {
+            return "3";
+        } else if (sellTpCd.equals(CtContractConst.SELL_TP_CD_MSH)) {
+            if (sellTpDtlCd.equals("33")) {
+                return "5";
+            } else {
+                return "4";
+            }
+        } else if (sellTpCd.equals(CtContractConst.SELL_TP_CD_RGSP)) {
+            if (cntrRelDtlCd.equals("214")) {
+                return "7";
+            } else if (cntrRelDtlCd.equals("216")) {
+                if (mchnSellTpCd.equals(CtContractConst.SELL_TP_CD_SPAY)) {
+                    return "1";
+                } else if (mchnSellTpCd.equals(CtContractConst.SELL_TP_CD_RNTL)) {
+                    return "2";
+                }
+            }
+        }
+        return "";
+    }
+
     public String getRveDvCd(String sellTpCd) {
         return switch (sellTpCd) {
             case "3" -> "04";
