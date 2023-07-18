@@ -5,17 +5,18 @@ import com.sds.sflex.system.config.exception.BizException;
 import java.util.Arrays;
 import java.util.Objects;
 
-public enum CtCntrCstRelTpCd {
-    CONTRACTOR("10", "계약자"),
-    STUDENT("20", "학습자"),
-    ;
+public enum CtRveAkStatCd {
+    RECEIPT("01", "접수"),
+    IN_PROGRESS("02", "처리중"),
+    FINISH("03", "처리완료"),
+    CANCEL("04", "접수취소");
 
     final String code;
     final String codeName;
 
-    static final String name = "회사코드";
+    static final String name = "수납요청상태코드";
 
-    CtCntrCstRelTpCd(String code, String codeName) {
+    CtRveAkStatCd(String code, String codeName) {
         this.code = code;
         this.codeName = codeName;
     }
@@ -28,7 +29,7 @@ public enum CtCntrCstRelTpCd {
         return codeName;
     }
 
-    public static CtCntrCstRelTpCd of(String code) {
+    public static CtRveAkStatCd of(String code) {
         return Arrays.stream(values())
             .filter((value) -> Objects.equals(value.getCode(), code))
             .findFirst()

@@ -39,15 +39,3 @@ public enum CtSellTpCd {
             .orElseThrow(() -> new BizException(name + "을 확인해보세요."));
     }
 }
-
-
-/*
-	1	1	일시불
-	2	2	렌탈/리스
-	3	3	멤버십
-	4	4	회사설치
-	5	5	유지관리
-	6	6	정기배송
-	7	9	필터
-
-*/
