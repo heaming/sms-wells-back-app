@@ -64,7 +64,7 @@ public class WfeyContractBsFeeExController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "path", example = ""),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "path", example = ""),
     })
-    @GetMapping("/base-ch-tcnt/{cntrNo}-{cntrSn}")
+    @GetMapping("/next-order/{cntrNo}-{cntrSn}")
     public int getStep(@PathVariable("cntrNo") String cntrNo, @PathVariable("cntrSn") int cntrSn) throws Exception {
         return service.getMaxBaseChTcnt(cntrNo, cntrSn);
     }
