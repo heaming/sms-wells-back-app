@@ -29,6 +29,7 @@ public class WdcaDelinquentDepositRefundDvo {
     private String rveDt;
     private String perfDt;
     private int rveAmt;
+    private String sellTpCd; /*판매유형코드*/
 
     private int thmDlqDpSumAmt; /*당월연체입금합계금액*/
     private int thmDlqAddDpSumAmt; /*당월연체가산입금합계금액*/
