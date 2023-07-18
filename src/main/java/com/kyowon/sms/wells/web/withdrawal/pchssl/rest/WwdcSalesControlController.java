@@ -6,13 +6,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.wells.web.withdrawal.pchssl.dto.WwdcSalesControlDto.RemoveSalesControlReq;
@@ -117,12 +111,14 @@ public class WwdcSalesControlController {
     }
 
     @ApiOperation(value = "매출조정관리 엑셀 업로드", notes = "매출조정관리 데이터를 엑셀 업로드한다.")
-    @PostMapping("/excel-upload")
+    @PostMapping("{exmpYn}/excel-upload")
     public UploadRes saveSalesControlExcelUpload(
+        @PathVariable("exmpYn")
+        String exmpYn,
         @RequestParam("file")
         MultipartFile file
     ) throws Exception {
-        return service.saveSalesControlExcelUpload(file);
+        return service.saveSalesControlExcelUpload(exmpYn, file);
     }
 
 }

@@ -75,9 +75,18 @@ public class WwdcSalesControlDto {
         String slCtrWoExmpAmt, /* 매출전액면제금액 */
         String slCtrPtrmExmpAmt, /* 매출조정기간면제금액 */
         String slCtrRmkCn, /* 조정비고내용 - 사유 */
+        String slCtrProcsYn, /* */
         String slCtrPrcsdt, /* 등록일자 */
         String usrNm,
-        String fnlMdfcUsrId
+        String fnlMdfcUsrId,
+
+        String canDt, /* 취소일자 */
+        String apyY,
+        String jan, /* 1월 : Y/N */
+        String feb, /* 2월 : Y/N */
+        String jul, /* 7월 : Y/N */
+        String aug, /* 8월 : Y/N */
+        String sellTpDtlCd /* 매출판매유형상세코드 */
 
     ) {}
 
