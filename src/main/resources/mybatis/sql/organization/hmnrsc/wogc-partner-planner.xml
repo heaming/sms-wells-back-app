@@ -53,4 +53,241 @@
                </where>
          ) T
     </select>
+
+    <!-- 수석플래너 신청관리 조회 -->
+    <select id="selectTopPlannerPages" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto$SearchRes">
+            SELECT MOG.DGR1_LEVL_OG_CD
+        	     , MOG.DGR1_LEVL_OG_NM
+        	     , MOG.DGR2_LEVL_OG_CD
+        	     , MOG.DGR2_LEVL_OG_NM
+        	     , MOG.DGR3_LEVL_OG_CD
+        	     , MOG.DGR3_LEVL_OG_NM
+        	     , MOG.OG_CD
+        	     , MPI.PRTNR_KNM AS MPI_PRTNR_KNM
+        	     , MPI.PRTNR_NO AS PRTNR_NO
+        	     , MPI.QLF_DV_CD
+        	     , PB.RCMDR_PRTNR_NO AS RCMDR_PRTNR_NO
+        		 , PB.PRTNR_KNM AS PB_PRTNR_KNM
+        	     , SUBSTR(MPI.CNTR_DT, 1,6) AS CNTR_DT
+         		 , SUBSTR(MPI.FNL_CLTN_DT, 1,6) AS FNL_CLTN_DT
+        		 , SUBSTR(MPI.RCNTR_DT, 1,6) AS RCNTR_DT
+        	  FROM TB_OGBS_MM_PRTNR_IZ MPI
+             INNER JOIN TB_OGBS_MM_OG_IZ MOG
+                ON MOG.OG_ID = MPI.OG_ID
+               AND MOG.BASE_YM = MPI.BASE_YM
+               AND MOG.DTA_DL_YN = 'N'
+             INNER JOIN TB_OGBS_PRTNR_BAS PB
+                ON PB.OG_TP_CD = MPI.OG_TP_CD
+               AND PB.PRTNR_NO = MPI.PRTNR_NO
+               AND PB.DTA_DL_YN = 'N'
+             WHERE 1=1
+               AND MPI.DTA_DL_YN = 'N'
+               AND MPI.BASE_YM = #{mngtYm}
+    </select>
+
+    <!--수석플래너 신청관리 삭제-->
+    <update id="deleteTopPlanner">
+        UPDATE TB_OGPS_TOPMR_PLAR_APLC_IZ
+           SET DTA_DL_YN = 'Y'  /* 데이터삭제여부 */
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND MNGT_YM = #{mngtYm}
+           AND APLC_SN = #{aplcSn}
+           AND OG_TP_CD = 'W01'
+           AND PRTNR_NO = #{prtnrNo}
+    </update>
+
+    <!-- 자격생성 시 월파트너내역에 파트너정보 존재하는지 확인 -->
+    <select id="selectCountMmPartner" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_OGBS_MM_PRTNR_IZ
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND OG_TP_CD = 'W01'
+           AND PRTNR_NO = #{prtnrNo}
+           AND BASE_YM = #{mngtYm}
+    </select>
+
+    <!-- 자격생성 시 플래너자격변경내역(M조직)에 파트너정보 존재하는지 확인 (이미 웰스매니저라면 등록불가) -->
+    <select id="selectCountPlarPartner" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_OGPS_PLAR_QLF_CH_IZ
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND MNGT_YM = #{mngtYm}
+           AND OG_TP_CD = 'W02'
+           AND PRTNR_NO = #{prtnrNo}
+           AND QLF_DV_CD = #{qlfDvCd}
+    </select>
+
+    <!-- 자격생성 시 수석플래너신청내역(P조직)에 파트너정보 존재하는지 확인 (수석플래너신청내역 테이블에 있으면 삭제 후 등록) -->
+    <select id="selectCountTopPlarPartner" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND MNGT_YM = #{mngtYm}
+           AND APLC_SN = #{aplcSn}
+           AND OG_TP_CD = 'W01'
+           AND PRTNR_NO = #{prtnrNo}
+    </select>
+
+    <!-- 체크한 파트너에 대해 수석플래너신청내역 테이블에 등록 -->
+    <insert id="insertTopPlanner">
+        INSERT INTO TB_OGPS_TOPMR_PLAR_APLC_IZ (
+             , MNGT_YM              /*관리년월*/
+             , APLC_SN              /*신청일련번호*/
+             , OG_TP_CD             /*조직유형코드*/
+             , PRTNR_NO             /*파트너번호*/
+             , QLF_DV_CD            /*자격구분코드*/
+             , RFDT                 /*반영일자*/
+             , UPGR_DMTN_DV_CD      /*승급강등구분코드*/
+             , UPGR_YM              /*승급년월*/
+             , DMTN_YM              /*강등년월*/
+             , CNTR_DT              /*계약일자*/
+             , CLTN_DT              /*해약일자*/
+             , RCNTR_DT             /*재계약일자*/
+             , UPGR_MCN             /*승급개월수*/
+             , DTA_DL_YN		    /*데이터삭제여부*/
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+               #{mngtYm}
+             , (SELECT NVL(MAX(TO_NUMBER(APLC_SN)), 0)+1 FROM TB_OGPS_TOPMR_PLAR_APLC_IZ)
+             , #{ogTpCd}
+             , #{prtnrNo}
+             , #{qlfDvCd}
+             , #{rfdt}
+             , #{upgrDmtnDvCd}
+             , #{upgrYm}
+             , #{dmtnYm}
+             , #{cntrDt}
+             , #{cltnDt}
+             , #{rcntrDt}
+             , #{upgrMcn}
+             , #{dtaDlYn}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <!-- 자격생성 (월파트너 업데이트) -->
+    <update id="updateMmPartner">
+         UPDATE TB_OGBS_BLD_BAS
+            SET BLD_NM = #{bldNm}			        /*빌딩명*/
+              , LOCARA_BLD_NM = #{locaraBldNm}	    /*지역빌딩명*/
+              , RSPP_PRTNR_NO = #{prtnrNo}	        /*책임자파트너번호*/
+              , ADR_ID = #{adrId}			        /*주소ID*/
+              , LOCARA_TNO = #{locaraTno}		    /*지역전화번호*/
+              ,	EXNO_ENCR  = #{exnoEncr}            /*전화국번호암호화*/
+              , IDV_TNO = #{idvTno}			        /*개별전화번호*/
+              , OP_DT = #{opDt}		        	    /*개설일자*/
+              , CLO_DT = #{cloDt}			        /*폐쇄일자*/
+              , BCON_MACADR_VAL = #{bconMacadrVal}	/*비콘MAC주소값*/
+          WHERE 1=1
+            AND BLD_CD = #{bldCd}
+            AND OG_TP_CD = #{gridOgTpCd}
+    </update>
+
+    <!-- 자격생성 (파트너상세 업데이트) -->
+    <update id="updateDtlPartner">
+         UPDATE TB_OGBS_BLD_BAS
+            SET BLD_NM = #{bldNm}			        /* 빌딩명 */
+              , LOCARA_BLD_NM = #{locaraBldNm}	    /* 지역빌딩명 */
+              , RSPP_PRTNR_NO = #{prtnrNo}	        /* 책임자파트너번호 */
+              , ADR_ID = #{adrId}			        /* 주소ID */
+              , LOCARA_TNO = #{locaraTno}		    /* 지역전화번호 */
+              ,	EXNO_ENCR  = #{exnoEncr}            /* 전화국번호암호화 */
+              , IDV_TNO = #{idvTno}			        /* 개별전화번호 */
+              , OP_DT = #{opDt}		        	    /* 개설일자 */
+              , CLO_DT = #{cloDt}			        /* 폐쇄일자 */
+              , BCON_MACADR_VAL = #{bconMacadrVal}	/* 비콘MAC주소값 */
+          WHERE 1=1
+            AND BLD_CD = #{bldCd}
+            AND OG_TP_CD = #{gridOgTpCd}
+    </update>
+
+    <!--상세보기-->
+    <select id="selectTopPlannerByPk" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto$FindRes">
+        SELECT PAI.MNGT_YM						/* 관리년월 */
+             , PAI.PRTNR_NO						/* 신청파트너번호 */
+             , PB.PRTNR_KNM						/* 성명 */
+             , PAI.UPGR_YM						/* 승급년월 */
+             , PAI.DMTN_YM						/* 강등년월 */
+             , PAI.QLF_DV_CD					/* 자격구분코드 */
+             , PAI.RFDT							/* 반영일자 */
+             , PAI.FST_RGST_DTM					/* 생성일자 */
+             , PAI.FST_RGST_USR_ID				/* 생성자ID */
+             , PB2.PRTNR_NO AS PB2_PRTNR_NO		/* 생성자성명 */
+             , PB2.PRTNR_KNM AS PB2_PRTNR_KNM	/* 생성자성명 */
+             , PAI.FNL_MDFC_DTM					/* 수정일자 */
+             , PAI.FNL_MDFC_USR_ID				/* 수정자ID */
+             , PB3.PRTNR_NO AS PB3_PRTNR_NO		/* 생성자번호 */
+             , PB3.PRTNR_KNM AS PB3_PRTNR_KNM	/* 생성자번호 */
+          FROM TB_OGPS_TOPMR_PLAR_APLC_IZ PAI
+         INNER JOIN TB_OGBS_PRTNR_BAS PB
+            ON PB.OG_TP_CD = PAI.OG_TP_CD
+           AND PB.PRTNR_NO = PAI.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PB2
+            ON PAI.FST_RGST_USR_ID = PB.PRTNR_NO
+           AND PB.OG_TP_CD = PAI.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PB3
+            ON PAI.FNL_MDFC_USR_ID = PB.PRTNR_NO
+           AND PB.OG_TP_CD = PAI.OG_TP_CD
+         WHERE 1=1
+           AND PAI.PRTNR_NO = #{prtnerNo}
+    </select>
+
+    <!-- 자격조정 (수석플래너 테이블 업데이트) -->
+    <update id="updateTopPlanner">
+         UPDATE TB_OGBS_BLD_BAS
+            SET BLD_NM = #{bldNm}			        /*빌딩명*/
+              , LOCARA_BLD_NM = #{locaraBldNm}	    /*지역빌딩명*/
+              , RSPP_PRTNR_NO = #{prtnrNo}	        /*책임자파트너번호*/
+              , ADR_ID = #{adrId}			        /*주소ID*/
+              , LOCARA_TNO = #{locaraTno}		    /*지역전화번호*/
+              ,	EXNO_ENCR  = #{exnoEncr}            /*전화국번호암호화*/
+              , IDV_TNO = #{idvTno}			        /*개별전화번호*/
+              , OP_DT = #{opDt}		        	    /*개설일자*/
+              , CLO_DT = #{cloDt}			        /*폐쇄일자*/
+              , BCON_MACADR_VAL = #{bconMacadrVal}	/*비콘MAC주소값*/
+          WHERE 1=1
+            AND BLD_CD = #{bldCd}
+            AND OG_TP_CD = #{gridOgTpCd}
+    </update>
+
+    <!-- 자격조정 (월파트너 테이블 업데이트) -->
+    <update id="updateAdMmPartner">
+         UPDATE TB_OGBS_BLD_BAS
+            SET BLD_NM = #{bldNm}			        /*빌딩명*/
+              , LOCARA_BLD_NM = #{locaraBldNm}	    /*지역빌딩명*/
+              , RSPP_PRTNR_NO = #{prtnrNo}	        /*책임자파트너번호*/
+              , ADR_ID = #{adrId}			        /*주소ID*/
+              , LOCARA_TNO = #{locaraTno}		    /*지역전화번호*/
+              ,	EXNO_ENCR  = #{exnoEncr}            /*전화국번호암호화*/
+              , IDV_TNO = #{idvTno}			        /*개별전화번호*/
+              , OP_DT = #{opDt}		        	    /*개설일자*/
+              , CLO_DT = #{cloDt}			        /*폐쇄일자*/
+              , BCON_MACADR_VAL = #{bconMacadrVal}	/*비콘MAC주소값*/
+          WHERE 1=1
+            AND BLD_CD = #{bldCd}
+            AND OG_TP_CD = #{gridOgTpCd}
+    </update>
+
+    <!-- 자격조정 (파트너상세 테이블 업데이트) -->
+    <update id="updateAdDtlPartner">
+         UPDATE TB_OGBS_BLD_BAS
+            SET BLD_NM = #{bldNm}			        /*빌딩명*/
+              , LOCARA_BLD_NM = #{locaraBldNm}	    /*지역빌딩명*/
+              , RSPP_PRTNR_NO = #{prtnrNo}	        /*책임자파트너번호*/
+              , ADR_ID = #{adrId}			        /*주소ID*/
+              , LOCARA_TNO = #{locaraTno}		    /*지역전화번호*/
+              ,	EXNO_ENCR  = #{exnoEncr}            /*전화국번호암호화*/
+              , IDV_TNO = #{idvTno}			        /*개별전화번호*/
+              , OP_DT = #{opDt}		        	    /*개설일자*/
+              , CLO_DT = #{cloDt}			        /*폐쇄일자*/
+              , BCON_MACADR_VAL = #{bconMacadrVal}	/*비콘MAC주소값*/
+          WHERE 1=1
+            AND BLD_CD = #{bldCd}
+            AND OG_TP_CD = #{gridOgTpCd}
+    </update>
 </mapper>
