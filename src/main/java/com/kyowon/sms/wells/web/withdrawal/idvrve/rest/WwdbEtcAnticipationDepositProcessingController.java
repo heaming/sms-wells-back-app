@@ -1,7 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.rest;
 
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbEtcAnticipationDpProcsDto;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdcaBusinessAnticipationAmtService;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbEtcAnticipationDepositProcessingService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
@@ -18,9 +18,9 @@ import javax.validation.Valid;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/etc-atam-deposits")
-public class WwdcaBusinessAnticipationAmtController {
+public class WwdbEtcAnticipationDepositProcessingController {
 
-    private final WwdcaBusinessAnticipationAmtService service;
+    private final WwdbEtcAnticipationDepositProcessingService service;
 
     @ApiOperation(value = "기타선수금 입금처리를 한다.")
     @PostMapping
