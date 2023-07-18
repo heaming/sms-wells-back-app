@@ -41,17 +41,3 @@ public enum CtCntrwTpCd {
             .orElseThrow(() -> new BizException(name + "을 확인해보세요."));
     }
 }
-
-
-/*
-	1	1	일시불(환경가전)
-	2	2	일시불(BH)
-	3	3	렌탈
-	4	4	멤버십
-	5	5	홈케어서비스
-	6	6	모종일시불
-	7	7	정기배송
-	8	8	장기할부
-	9	9	리스
-
-*/

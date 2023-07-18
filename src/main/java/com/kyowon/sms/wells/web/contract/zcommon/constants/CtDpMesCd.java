@@ -40,16 +40,3 @@ public enum CtDpMesCd {
             .orElseThrow(() -> new BizException(name + "을 확인해보세요."));
     }
 }
-
-/*
-
-- 01 : 현금
-- 02 : 신용카드
-- 03 : 어음
-- 04 : 지로
-- 05 : 공제
-- 06 : 포인트
-- 07 : 마일리지
-- 08 : 캐시
-
-* */
