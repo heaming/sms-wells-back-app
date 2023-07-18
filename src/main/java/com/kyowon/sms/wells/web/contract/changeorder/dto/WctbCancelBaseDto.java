@@ -17,7 +17,10 @@ public class WctbCancelBaseDto {
         String dm,
         String reqDt,
         String cancelDt,
-        String sellTpCd
+        String sellTpCd,
+        String dscDdctam,
+        String filtDdctam,
+        String slCtrAmt
     ) {}
 
     // *********************************************************
@@ -109,7 +112,6 @@ public class WctbCancelBaseDto {
         String stplDscAmt, // 재약정할인금액
         String stplStrtdt, // 재약정기간 FROM
         String stplEnddt, // 재약정기간 TO
-        String nomSlAmt, // 정상매출
         String rentalDc, // 렌탈일수
         String slDc, // 매출일수
         String chgDt, // 교체일자
@@ -126,6 +128,8 @@ public class WctbCancelBaseDto {
         String ctrAggAmt, // 조정누계금액
         String eotPcamBlam, // 매출잔액
         String lsnt // 분실손료
+
+        //        String nomSlAmt, // 정상매출
     ) {}
 
     // *********************************************************
