@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncUnpaidGuideUrgentMapper">
+    <select id="selectUnpaidGuideUrgentPages" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncUnpaidGuideUrgentDto$SearchRes">
+        <if test='@MybatisUtils@isNotEmpty(stateDvCd)'>
+        <choose >
+            <when test='@MybatisUtils@equals(stateDvCd, "01")'>
+                SELECT T1.CST_NO                                                            /* 고객번호 */
+                     , T1.SFK_VAL                                                           /* 세이프키값 */
+                     , T1.CNTR_NO                                                           /* 계약번호 */
+                     , LPAD(T1.CNTR_SN,2) AS CNTR_SN                                        /* 계약일련번호 */
+                     , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_NO_SN                        /* 계약상세일련번호 */
+                     , (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) AS CNTR_TP_CD       /* 계약유형 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'UC_AMT_FW_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
+                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM                /* 계약자성명 */
+                     , SUBSTR(T1.CNTR_NO,2,4) AS CST_Y                                      /* 고객년도 */
+                     , SUBSTR(T1.CNTR_NO,6) AS CST_CD                                       /* 고객코드 */
+                     , 0 AS AGRG_CT                                                         /* 건수 */
+                     , 0 AS AGRG_MINUS_CT                                                   /* 나머지건수 */
+                     , T1.CNTR_BAS_ADR                                                      /* 계약기본주소 */
+                     , T1.CNTR_DTL_ADR                                                      /* 계약상세주소 */
+                     , T1.CNTR_REF_ADR                                                      /* 계약참조주소 */
+                     , T1.ZIP                                                               /* 우편번호 */
+                     , T1.IST_PLC_NM                                                        /* 설치장소명 */
+                     , T2.BND_BIZ_DV_CD                                                     /* 상품구분 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'BND_BIZ_DV_CD', T2.BND_BIZ_DV_CD , #{session.langId}) AS BND_BIZ_DV_NM /* 상품구분명 */
+                     , T1.RCP_Y || T1.RCP_MM || T1.RCP_D AS RCP_DATE                        /* 계약일자 */
+                     , T1.IST_Y || T1.IST_MM || T1.IST_D AS IST_DATE                        /* 설치일자 */
+                     , NVL(T1.RENTAL_AMT1,0) AS RENTAL_AMT1                                 /* 렌탈금액1 */
+                     , NVL(T1.RENTAL_AMT2,0) AS RENTAL_AMT2                                 /* 렌탈금액2 */
+                     , NVL(T1.NPD_AMT,0) AS NPD_AMT                                         /* 미납금액 */
+                     , NVL(T1.DLQ_AMT,0) AS DLQ_AMT                                         /* 연체금액 */
+                     , NVL(T1.THM_CHRAM_AMT,0) AS THM_CHRAM_AMT                             /* 당월요금금액 */
+                     , NVL(T1.DLQ_ADD_AMT,0) AS DLQ_ADD_AMT                                 /* 연체가산금액 */
+                     , NVL(T1.SPMT_SL_AMT,0) AS SPMT_SL_AMT                                 /* 추가매출금액 */
+                     , NVL(T1.DLQ_MCN,0) AS DLQ_MCN                                         /* 연체개월수 */
+                     , NVL(T1.TOT_NPD_AMT,0) AS TOT_NPD_AMT                                 /* 총미납금액 */
+                     , T1.PDGRP_NM                                                          /* 상품군명 */
+                     , T1.PD_NM                                                             /* 상품명 */
+                     , T1.FNL_PY_Y || T1.FNL_PY_MM || T1.FNL_PY_D AS FNL_PY_DATE            /* 최근납입일 */
+                     , T1.BNK_CD                                                            /* 은행코드 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', T1.BNK_CD , #{session.langId}) AS BNK_NM /* 은행코드명 */
+                     , T1.VAC_NO                                                            /* 가상계좌번호 */
+                     , T1.ACHLDR_NM                                                         /* 예금주명 */
+                     , T1.PY_TMLM_DT                                                        /* 납입기한일자 */
+                     , T1.WK_DT                                                             /* 작업일자 */
+                     , T1.CLCTAM_PRTNR_NM                                                   /* 집금파트너명 */
+                     , T1.OFRM_TNO_VAL                                                      /* 사무실전화번호값 */
+                     , T1.CNFM_YN                                                           /* 확정여부 */
+                  FROM TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T1 /* WELLS미수금안내장대상내역 */
+                 INNER JOIN TB_CBBO_BND_CNTR_BAS T2
+                    ON 1 = 1
+                   AND T2.CNTR_NO = T1.CNTR_NO
+                   AND T2.CNTR_SN = T1.CNTR_SN
+                 WHERE 1 = 1
+                   AND T1.UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+                   AND T1.COPN_DV_CD       = #{copnDvCd}                /* 법인격구분코드 */
+                   AND T2.BND_BIZ_DV_CD    = #{bndBizDvCd}              /* 채권업무구분코드 */
+                   AND T1.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} /* 연체개월 */
+                   AND T2.CLCTAM_DV_CD     = #{clctamDvCd}              /* 집금구분 */
+                   AND T1.TOT_NPD_AMT BETWEEN #{fromTotNpdAmt} AND #{toTotNpdAmt} /* 총미납액 */
+                   AND T1.WK_DT            = #{ojWkDt}                  /* 작업일자 */
+                   AND T1.PY_TMLM_DT       = #{ojPyTmlmDt}              /* 납입기한일자 */
+                   AND T1.DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
+            </when>
+            <when test='@MybatisUtils@equals(stateDvCd, "02")'>
+                SELECT T1.CST_NO                                                            /* 고객번호 */
+                     , T1.SFK_VAL                                                           /* 세이프키값 */
+                     , T1.CNTR_NO                                                           /* 계약번호 */
+                     , LPAD(T1.CNTR_SN,2) AS CNTR_SN                                        /* 계약일련번호 */
+                     , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_NO_SN                        /* 계약상세일련번호 */
+                     , (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) AS CNTR_TP_CD       /* 계약유형 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'UC_AMT_FW_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
+                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM                /* 계약자성명 */
+                     , SUBSTR(T1.CNTR_NO,2,4) AS CST_Y                                      /* 고객년도 */
+                     , SUBSTR(T1.CNTR_NO,6) AS CST_CD                                       /* 고객코드 */
+                     , NVL(T1.AGRG_CT,0) AS AGRG_CT                                         /* 건수 */
+                     , NVL(AGRG_CT,0)-1 AS AGRG_MINUS_CT                                    /* 나머지건수 */
+                     , T1.CNTR_BAS_ADR                                                      /* 계약기본주소 */
+                     , T1.CNTR_DTL_ADR                                                      /* 계약상세주소 */
+                     , T1.CNTR_REF_ADR                                                      /* 계약참조주소 */
+                     , T1.ZIP                                                               /* 우편번호 */
+                     , T1.IST_PLC_NM                                                        /* 설치장소명 */
+                     , T2.BND_BIZ_DV_CD                                                     /* 상품구분 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'BND_BIZ_DV_CD', T2.BND_BIZ_DV_CD , #{session.langId}) AS BND_BIZ_DV_NM /* 상품구분명 */
+                     , T1.RCP_Y || T1.RCP_MM || T1.RCP_D AS RCP_DATE                        /* 계약일자 */
+                     , T1.IST_Y || T1.IST_MM || T1.IST_D AS IST_DATE                        /* 설치일자 */
+                     , NVL(T1.RENTAL_AMT1,0) AS RENTAL_AMT1                                 /* 렌탈금액1 */
+                     , NVL(T1.RENTAL_AMT2,0) AS RENTAL_AMT2                                 /* 렌탈금액2 */
+                     , NVL(T1.NPD_AMT,0) AS NPD_AMT                                         /* 미납금액 */
+                     , NVL(T1.DLQ_AMT,0) AS DLQ_AMT                                         /* 연체금액 */
+                     , NVL(T1.THM_CHRAM_AMT,0) AS THM_CHRAM_AMT                             /* 당월요금금액 */
+                     , NVL(T1.DLQ_ADD_AMT,0) AS DLQ_ADD_AMT                                 /* 연체가산금액 */
+                     , NVL(T1.SPMT_SL_AMT,0) AS SPMT_SL_AMT                                 /* 추가매출금액 */
+                     , NVL(T1.DLQ_MCN,0) AS DLQ_MCN                                         /* 연체개월수 */
+                     , NVL(T1.TOT_NPD_AMT,0) AS TOT_NPD_AMT                                 /* 총미납금액 */
+                     , T1.PDGRP_NM                                                          /* 상품군명 */
+                     , T1.PD_NM                                                             /* 상품명 */
+                     , T1.FNL_PY_Y || T1.FNL_PY_MM || T1.FNL_PY_D AS FNL_PY_DATE            /* 최근납입일 */
+                     , T1.BNK_CD                                                            /* 은행코드 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', T1.BNK_CD , #{session.langId}) AS BNK_NM /* 은행코드명 */
+                     , T1.VAC_NO                                                            /* 가상계좌번호 */
+                     , T1.ACHLDR_NM                                                         /* 예금주명 */
+                     , T1.PY_TMLM_DT                                                        /* 납입기한일자 */
+                     , T1.WK_DT                                                             /* 작업일자 */
+                     , T1.CLCTAM_PRTNR_NM                                                   /* 집금파트너명 */
+                     , T1.OFRM_TNO_VAL                                                      /* 사무실전화번호값 */
+                     , NULL AS CNFM_YN
+                  FROM TB_CBBO_WELLS_UCAM_ADVNT_FW_IZ T1 /* WELLS미수금안내장발송내역 */
+                 INNER JOIN TB_CBBO_BND_CNTR_BAS T2
+                    ON 1 = 1
+                   AND T2.CNTR_NO = T1.CNTR_NO
+                   AND T2.CNTR_SN = T1.CNTR_SN
+                 WHERE 1 = 1
+                   AND T1.UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+                   AND T1.COPN_DV_CD       = #{copnDvCd}                /* 법인격구분코드 */
+                   AND T2.BND_BIZ_DV_CD    = #{bndBizDvCd}              /* 채권업무구분코드 */
+                   AND T1.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} /* 연체개월 */
+                   AND T2.CLCTAM_DV_CD     = #{clctamDvCd}              /* 집금구분 */
+                   AND T1.TOT_NPD_AMT BETWEEN #{fromTotNpdAmt} AND #{toTotNpdAmt} /* 총미납액 */
+                   AND T1.WK_DT            = #{wkDt}                    /* 작업일자 */
+                   AND T1.PY_TMLM_DT       = #{pyTmlmDt}                /* 납입기한일자 */
+                   AND T1.DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
+            </when>
+        </choose>
+        </if>
+    </select>
+
+    <select id="selectCheckUnpaidGuideUrgentObjects" resultType="com.kyowon.sms.wells.web.bond.consultation.dvo.WbncUncollectedAdviceNoteOjIzDvo">
+        SELECT CNFM_YN  /* 확정여부 */
+          FROM TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T1 /* WELLS미수금안내장대상내역 */
+         WHERE 1 = 1
+           AND UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+           AND WK_DT            = #{ojWkDt}                  /* 작업일자 */
+           AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
+    </select>
+
+    <select id="selectCheckUnpaidGuideUrgentCustomers" resultType="integer">
+        SELECT COUNT(1)
+          FROM TB_CBBO_WELLS_UCAM_ADVNT_FW_IZ T1 /* WELLS미수금안내장발송내역 */
+         WHERE 1 = 1
+           AND UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+           AND WK_DT            = #{wkDt}                    /* 작업일자 */
+           AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
+    </select>
+
+    <update id="updateUnpaidGuideUrgentObjects">
+        UPDATE TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T1 /* WELLS미수금안내장대상내역 */
+           SET T1.CNFM_YN = 'Y'
+         WHERE 1 = 1
+           AND UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+           AND WK_DT            = #{ojWkDt}                  /* 작업일자 */
+           AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
+    </update>
+
+    <update id="deleteAllUnpaidGuideUrgentObjects">
+        UPDATE TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T1 /* WELLS미수금안내장대상내역 */
+           SET T1.DTA_DL_YN = 'Y'
+         WHERE 1 = 1
+           AND UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+           AND WK_DT            = #{ojWkDt}                  /* 작업일자 */
+           AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
+    </update>
+    <insert id="insertUnpaidGuideUrgentObjects">
+        INSERT INTO TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ (  /* WELLS미수금안내장대상내역 */
+               WK_DT            /* 작업일자 */
+             , CNTR_NO          /* 계약번호 */
+             , CNTR_SN          /* 계약일련번호 */
+             , UC_AMT_FW_TP_CD  /* 미수금액발송유형코드 */
+             , CST_NO           /* 고객번호 */
+             , CST_NM           /* 고객명 */
+             , SFK_VAL          /* 세이프키값 */
+             , COPN_DV_CD       /* 법인격구분코드 */
+             , CNTR_BAS_ADR     /* 계약기본주소 */
+             , CNTR_DTL_ADR     /* 계약상세주소 */
+             , CNTR_REF_ADR     /* 계약참조주소 */
+             , ZIP              /* 우편번호 */
+             , IST_PLC_NM       /* 설치장소명 */
+             , SELL_TP_CD       /* 판매유형코드 */
+             , RCP_Y            /* 접수년도 */
+             , RCP_MM           /* 접수월 */
+             , RCP_D            /* 접수일 */
+             , IST_Y            /* 설치년도 */
+             , IST_MM           /* 설치월 */
+             , IST_D            /* 설치일 */
+             , RENTAL_AMT1      /* 렌탈금액1 */
+             , RENTAL_AMT2      /* 렌탈금액2 */
+             , DLQ_AMT          /* 연체금액 */
+             , NPD_AMT          /* 미납금액 */
+             , THM_CHRAM_AMT    /* 당월요금금액 */
+             , DLQ_ADD_AMT      /* 연체가산금액 */
+             , SPMT_SL_AMT      /* 추가매출금액 */
+             , DLQ_MCN          /* 연체개월수 */
+             , TOT_NPD_AMT      /* 총미납금액 */
+             , PDGRP_NM         /* 상품군명 */
+             , PD_NM            /* 상품명 */
+             , FNL_PY_Y         /* 최종납입년도 */
+             , FNL_PY_MM        /* 최종납입월 */
+             , FNL_PY_D         /* 최종납입일 */
+             , BNK_CD           /* 은행코드 */
+             , VAC_NO           /* 가상계좌번호 */
+             , ACHLDR_NM        /* 예금주명 */
+             , PY_TMLM_DT       /* 납입기한일자 */
+             , CLCTAM_OG_TP_CD  /* 집금조직유형코드 */
+             , CLCTAM_PRTNR_NO  /* 집금파트너번호 */
+             , CLCTAM_PRTNR_NM  /* 집금파트너명 */
+             , OFRM_TNO_VAL     /* 사무실전화번호값 */
+             , EXCD_YN          /* 제외여부 */
+             , CNFM_YN          /* 확정여부 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        SELECT #{ojWkDt} AS WK_DT                   -- 파라미터로 전달받은 작업일자
+             , T1.CNTR_NO                           -- 계약번호
+             , T1.CNTR_SN                           -- 계약일련번호
+             , #{ucAmtFwTpCd} AS UC_AMT_FW_TP_CD    -- 미수금액발송유형코드
+             , T1.CST_NO                            -- 고객번호
+             , T3.CST_KNM AS CST_NM                 -- 고객명
+             , T3.SFK_VAL AS SFK_VAL                -- 세이프키값
+             , T3.COPN_DV_CD                        -- 법인격구분코드
+             , T5.RNADR AS CNTR_BAS_ADR             -- 주소1
+             , T5.RDADR AS CNTR_DTL_ADR             -- 주소2
+             , '' AS CNTR_REF_ADR                   -- 주소3
+             , T5.NEW_ADR_ZIP AS ZIP                -- 우편번호
+             , '' AS IST_PLC_NM                     -- 수취인
+             , T8.SELL_TP_CD --판매유형코드
+             , SUBSTR(T4.CNTR_CNFM_DTM,1,4) AS RCP_Y    -- 접수년도
+             , SUBSTR(T4.CNTR_CNFM_DTM,5,2) AS RCP_MM   -- 접수월
+             , SUBSTR(T4.CNTR_CNFM_DTM,7,2) AS RCP_D    -- 접수일
+             , SUBSTR(T6.IST_DT,1,4) AS IST_Y       -- 설치년도
+             , SUBSTR(T6.IST_DT,5,2) AS IST_MM      -- 설치월
+             , SUBSTR(T6.IST_DT,7,2) AS IST_D       -- 설치일
+             , T7.RENTAL_AMT AS RENTAL_AMT1         -- 렌탈료1
+             , T7.RENTAL_AMT2 AS RENTAL_AMT2        -- 렌탈료2
+             , T2.DLQ_AMT AS DLQ_AMT                -- 연체금
+             , T2.UC_AMT AS NPD_AMT                 -- 미납금
+             , T2.THM_CHRAM_AMT AS  THM_CHRAM_AMT   -- 당월요금
+             , T2.DLQ_ADD_AMT AS DLQ_ADD_AMT        -- 연체가산금
+             , T7.SPMT_SL_AMT AS SPMT_SL_AMT        -- 추가매출액
+             , T2.DLQ_MCN AS DLQ_MCN                -- 연체개월
+             , (T2.DLQ_AMT + T2.DLQ_ADD_AMT) AS TOT_NPD_AMT -- 총연체금액(연체금+연체가산금)
+             , (SELECT TT1.PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS TT1 WHERE TT1.PD_CLSF_ID = (SELECT TT2.PD_CLSF_ID FROM TB_PDBS_PD_BAS TT2 WHERE TT2.PD_CD = T8.BASE_PD_CD)) AS PDGRP_NM -- 제품군
+             , (SELECT TT1.PD_NM FROM TB_PDBS_PD_BAS TT1 WHERE TT1.PD_CD = T8.BASE_PD_CD) AS PD_NM -- 제품명
+             , SUBSTR((SELECT TT1.RVE_DT FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.RVE_OJ_DRM_NO1 = T1.CNTR_NO AND TT1.RVE_OJ_DRM_NO2 = T1.CNTR_SN),1,4) AS FNL_PY_Y -- 최종납입년도
+             , SUBSTR((SELECT TT1.RVE_DT FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.RVE_OJ_DRM_NO1 = T1.CNTR_NO AND TT1.RVE_OJ_DRM_NO2 = T1.CNTR_SN),5,2) AS FNL_PY_MM -- 최종납입월
+             , SUBSTR((SELECT TT1.RVE_DT FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.RVE_OJ_DRM_NO1 = T1.CNTR_NO AND TT1.RVE_OJ_DRM_NO2 = T1.CNTR_SN),7,2) AS FNL_PY_D -- 최종납입일
+             , T9.VAC_BNK_CD AS BNK_CD              -- 가상계좌은행
+             , T9.VAC_NO AS VAC_NO                  -- 가상계좌번호
+             , T9.VAC_ACOWN_NM AS ACHLDR_NM         -- 예금주
+             , #{ojPyTmlmDt} AS PY_TMLM_DT          -- 파라미터로 전달받은 납입기한
+             , (SELECT TT1.OG_TP_CD FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND TT1.PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_OG_TP_CD -- 집금조직유형코드
+             , (SELECT TT1.PRTNR_NO FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND TT1.PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NO -- 집금파트너번호
+             , (SELECT TT1.PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND TT1.PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NM -- 집금파트너명
+             , T10.CPHON_LOCARA_TNO || T10.CPHON_EXNO_ENCR || T10.CPHON_IDV_TNO AS OFRM_TNO_VAL -- 사무실전화번호값
+             , 'N' AS EXCD_YN                       -- 제외여부
+             , 'N' AS CNFM_YN                       -- 확정여부
+             , 'N' AS DTA_DL_YN                     -- 데이터삭제여부
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+          FROM TB_CBBO_BND_CNSL_BAS_IZ T1
+          LEFT JOIN TB_CBBO_BND_CNTR_BAS T2 ON T2.BASE_YM = T1.BASE_YM  AND T2.CNTR_NO = T1.CNTR_NO AND T2.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_CUBS_CST_BAS T3 ON T3.CST_NO = T1.CST_NO
+          LEFT JOIN TB_SSCT_CNTR_BAS T4 ON T4.CNTR_NO = T1.CNTR_NO
+          LEFT JOIN TB_GBCO_ADR_BAS T5 ON T5.ADR_ID = T3.ADR_ID
+          LEFT JOIN TB_SSCT_CNTR_WELLS_DTL T6 ON T6.CNTR_NO = T1.CNTR_NO AND T6.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T7 ON T7.SL_CL_YM = T1.BASE_YM AND T7.CNTR_NO = T1.CNTR_NO AND T7.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_SSCT_CNTR_DTL T8 ON T8.CNTR_NO = T1.CNTR_NO AND T8.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_RVDW_VAC_IS_IZ T9 ON T9.VAC_IS_DV_CD = '5' AND T9.VAC_IS_CST_NO = T1.CST_NO AND T9.VAC_USE_DV_CD = '02'
+          LEFT JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T10 ON T10.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND T10.PRTNR_NO = T1.CLCTAM_PRTNR_NO AND T10.MPHON_YN = 'Y'
+         WHERE 1 = 1
+           AND T1.BASE_YM = SUBSTR(#{ojWkDt},1,6)   -- 자료생성 작업일자 파라미터 기준으로 substr로 데이터 잘라서 세팅
+           AND T3.COPN_DV_CD = #{copnDvCd}          -- 고객유형 개인 = '1' 법인 = '2'
+           AND T2.BND_BIZ_DV_CD = #{bndBizDvCd}     -- 상품구분
+           AND T2.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} -- 연체개월 FROM ~ TO 조건
+           AND T2.CLCTAM_DV_CD = #{clctamDvCd}      -- 집금구분 01 - 단기 or 02 - 중기 인건만
+           AND (SELECT COUNT(1)
+                  FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ TT1
+                 WHERE TT1.CTNT_EXCD_BND_BIZ_CD = DECODE(#{ucAmtFwTpCd},'01','04','02','05') -- 발송유형에 따라 안내서 = '04' or 촉구서 = '05'
+                   AND TT1.CTNT_EXCD_MEDI_TP_CD = '04'
+                   AND TT1.CTNT_EXCD_OJ_TP_CD = '01'
+                   AND TT1.APY_STRTDT BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND NVL(TT1.APY_ENDDT, '99991231')
+                   AND TT1.CST_NO = T1.CST_NO) = 0
+    </insert>
+
+    <update id="deleteAllUnpaidGuideUrgentCustomers">
+        UPDATE TB_CBBO_WELLS_UCAM_ADVNT_FW_IZ T1 /* WELLS미수금안내장발송내역 */
+           SET T1.DTA_DL_YN = 'Y'
+         WHERE 1 = 1
+           AND UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+           AND WK_DT            = #{wkDt}                    /* 작업일자 */
+           AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
+    </update>
+
+    <insert id="insertUnpaidGuideUrgentCustomers">
+        INSERT INTO TB_CBBO_WELLS_UCAM_ADVNT_FW_IZ (  /* WELLS미수금안내장발송내역 */
+               WK_DT            /* 작업일자 */
+             , CST_NO           /* 고객번호 */
+             , UC_AMT_FW_TP_CD  /* 미수금액발송유형코드 */
+             , CST_NM           /* 고객명 */
+             , CNTR_NO          /* 계약번호 */
+             , CNTR_SN          /* 계약일련번호 */
+             , SFK_VAL          /* 세이프키값 */
+             , COPN_DV_CD       /* 법인격구분코드 */
+             , CNTR_BAS_ADR     /* 계약기본주소 */
+             , CNTR_DTL_ADR     /* 계약상세주소 */
+             , CNTR_REF_ADR     /* 계약참조주소 */
+             , ZIP              /* 우편번호 */
+             , IST_PLC_NM       /* 설치장소명 */
+             , SELL_TP_CD       /* 판매유형코드 */
+             , RCP_Y            /* 접수년도 */
+             , RCP_MM           /* 접수월 */
+             , RCP_D            /* 접수일 */
+             , IST_Y            /* 설치년도 */
+             , IST_MM           /* 설치월 */
+             , IST_D            /* 설치일 */
+             , RENTAL_AMT1      /* 렌탈금액1 */
+             , RENTAL_AMT2      /* 렌탈금액2 */
+             , DLQ_AMT          /* 연체금액 */
+             , NPD_AMT          /* 미납금액 */
+             , THM_CHRAM_AMT    /* 당월요금금액 */
+             , DLQ_ADD_AMT      /* 연체가산금액 */
+             , SPMT_SL_AMT      /* 추가매출금액 */
+             , DLQ_MCN          /* 연체개월수 */
+             , TOT_NPD_AMT      /* 총미납금액 */
+             , PDGRP_NM         /* 상품군명 */
+             , PD_NM            /* 상품명 */
+             , FNL_PY_Y         /* 최종납입년도 */
+             , FNL_PY_MM        /* 최종납입월 */
+             , FNL_PY_D         /* 최종납입일 */
+             , BNK_CD           /* 은행코드 */
+             , VAC_NO           /* 가상계좌번호 */
+             , ACHLDR_NM        /* 예금주명 */
+             , PY_TMLM_DT       /* 납입기한일자 */
+             , CLCTAM_OG_TP_CD  /* 집금조직유형코드 */
+             , CLCTAM_PRTNR_NO  /* 집금파트너번호 */
+             , CLCTAM_PRTNR_NM  /* 집금파트너명 */
+             , OFRM_TNO_VAL     /* 사무실전화번호값 */
+             , AGRG_CT          /* 집계건수 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        SELECT FW.WK_DT                 -- 작업일자 파라미터로 입력
+             , FW.CST_NO                -- 고객번호
+             , FW.UC_AMT_FW_TP_CD       -- 미수금액발송유형코드
+             , FW.CST_NM                -- 고객명
+             , FW.CNTR_NO               -- 계약번호
+             , FW.CNTR_SN               -- 계약일련번호
+             , FW.SFK_VAL               -- 세이프키값
+             , FW.COPN_DV_CD            -- 법인격구분코드
+             , FW.CNTR_BAS_ADR          -- 계약기본주소
+             , FW.CNTR_DTL_ADR          -- 계약상세주소
+             , FW.CNTR_REF_ADR          -- 계약참조주소
+             , FW.ZIP                   -- 우편번호
+             , FW.IST_PLC_NM            -- 설치장소명
+             , FW.SELL_TP_CD            -- 판매유형코드
+             , FW.RCP_Y                 -- 접수년도
+             , FW.RCP_MM                -- 접수월
+             , FW.RCP_D                 -- 접수일
+             , FW.IST_Y                 -- 설치년도
+             , FW.IST_MM                -- 설치월
+             , FW.IST_D                 -- 설치일
+             , FW.RENTAL_AMT1           -- 렌탈금액1
+             , FW.RENTAL_AMT2           -- 렌탈금액2
+             , FW.DLQ_AMT               -- 연체금액
+             , FW.NPD_AMT               -- 미납금액
+             , FW.THM_CHRAM_AMT         -- 당월요금금액
+             , FW.DLQ_ADD_AMT           -- 연체가산금액
+             , FW.SPMT_SL_AMT           -- 추가매출금액
+             , FW.DLQ_MCN               -- 연체개월수
+             , FW.TOT_NPD_AMT           -- 총미납금액
+             , FW.PDGRP_NM              -- 상품군명
+             , FW.PD_NM                 -- 상품명
+             , FW.FNL_PY_Y              -- 최종납입년도
+             , FW.FNL_PY_MM             -- 최종납입월
+             , FW.FNL_PY_D              -- 최종납입일
+             , FW.BNK_CD                -- 은행코드
+             , FW.VAC_NO                -- 가상계좌번호
+             , FW.ACHLDR_NM             -- 예금주명
+             , FW.PY_TMLM_DT            -- 납입기한일자 파라미터로 입력
+             , FW.CLCTAM_OG_TP_CD       -- 집금조직유형코드
+             , FW.CLCTAM_PRTNR_NO       -- 집금파트너번호
+             , FW.CLCTAM_PRTNR_NM       -- 집금파트너명
+             , FW.OFRM_TNO_VAL          -- 사무실전화번호값
+             , FW.AGRG_CT               -- 집계건수
+             , 'N' AS DTA_DL_YN         -- 데이터삭제여부
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+          FROM (SELECT T1.RN
+                     , #{wkDt} AS WK_DT             -- 작업일자 파라미터로 입력
+                     , T1.CST_NO                    -- 고객번호
+                     , T1.UC_AMT_FW_TP_CD           -- 미수금액발송유형코드
+                     , T2.CST_NM                    -- 고객명
+                     , T1.CNTR_NO                   -- 계약번호
+                     , T1.CNTR_SN                   -- 계약일련번호
+                     , T2.SFK_VAL                   -- 세이프키값
+                     , T2.COPN_DV_CD                -- 법인격구분코드
+                     , T2.CNTR_BAS_ADR              -- 계약기본주소
+                     , T2.CNTR_DTL_ADR              -- 계약상세주소
+                     , T2.CNTR_REF_ADR              -- 계약참조주소
+                     , T2.ZIP                       -- 우편번호
+                     , T2.IST_PLC_NM                -- 설치장소명
+                     , T2.SELL_TP_CD                -- 판매유형코드
+                     , T2.RCP_Y                     -- 접수년도
+                     , T2.RCP_MM                    -- 접수월
+                     , T2.RCP_D                     -- 접수일
+                     , T2.IST_Y                     -- 설치년도
+                     , T2.IST_MM                    -- 설치월
+                     , T2.IST_D                     -- 설치일
+                     , T2.RENTAL_AMT1               -- 렌탈금액1
+                     , T2.RENTAL_AMT2               -- 렌탈금액2
+                     , T2.DLQ_AMT                   -- 연체금액
+                     , T1.NPD_AMT                   -- 미납금액
+                     , T2.THM_CHRAM_AMT             -- 당월요금금액
+                     , T2.DLQ_ADD_AMT               -- 연체가산금액
+                     , T2.SPMT_SL_AMT               -- 추가매출금액
+                     , T2.DLQ_MCN                   -- 연체개월수
+                     , T2.TOT_NPD_AMT               -- 총미납금액
+                     , T2.PDGRP_NM                  -- 상품군명
+                     , T2.PD_NM                     -- 상품명
+                     , T2.FNL_PY_Y                  -- 최종납입년도
+                     , T2.FNL_PY_MM                 -- 최종납입월
+                     , T2.FNL_PY_D                  -- 최종납입일
+                     , T2.BNK_CD                    -- 은행코드
+                     , T2.VAC_NO                    -- 가상계좌번호
+                     , T2.ACHLDR_NM                 -- 예금주명
+                     , #{pyTmlmDt} AS PY_TMLM_DT    -- 납입기한일자 파라미터로 입력
+                     , T2.CLCTAM_OG_TP_CD           -- 집금조직유형코드
+                     , T2.CLCTAM_PRTNR_NO           -- 집금파트너번호
+                     , T2.CLCTAM_PRTNR_NM           -- 집금파트너명
+                     , T2.OFRM_TNO_VAL              -- 사무실전화번호값
+                     , T1.AGRG_CT                   -- 집계건수
+                  FROM (SELECT ROW_NUMBER() OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO ORDER BY TT1.CST_NO,TT1.CNTR_NO,TT1.CNTR_SN) AS RN --고객당 계약 한건 조회하기 위한 ROW_NUMBER 함수
+                             , SUM(NPD_AMT) OVER (PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS NPD_AMT
+                             , COUNT(1) OVER (PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS AGRG_CT
+                             , CNTR_NO
+                             , CNTR_SN
+                             , WK_DT
+                             , CST_NO
+                             , UC_AMT_FW_TP_CD
+                          FROM TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ TT1
+                         WHERE 1 = 1
+                           AND WK_DT= #{ojWkDt} -- 작업일자
+                           AND UC_AMT_FW_TP_CD = #{ucAmtFwTpCd}) T1 -- 발송유형 01 = 안내서 OR 02 = 촉구서
+                 INNER JOIN TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T2
+                    ON T2.WK_DT = T2.WK_DT
+                   AND T2.CNTR_NO = T1.CNTR_NO
+                   AND T2.CNTR_SN = T1.CNTR_SN
+                   AND T2.UC_AMT_FW_TP_CD = T1.UC_AMT_FW_TP_CD
+                 WHERE 1 = 1
+                   AND RN = 1) FW
+    </insert>
+</mapper>
