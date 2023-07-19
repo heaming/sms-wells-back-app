@@ -212,6 +212,10 @@ public class WctbCancelBaseDto {
         Integer eotDlqAddAmt, // 기말연체가산금액
 
         String cntrStatChRsonCd, // 계약상태변경사유코드
+        String ccamExmptDvCd, // 위약금면책구분코드
+        String csmbCsExmptDvCd, // 소모품비용면책구분코드
+        String reqdCsExmptDvCd, // 철거비용면책구분코드
+        String reqdAkRcvryDvCd, // 철거요청복구구분코드
         String rsgAplcDt, // 요청일자
         String slCtrRqrId, // 매출조정요청자ID
         String slCtrRmkCn, // 매출조정비고내용
