@@ -14,12 +14,17 @@ public interface WfebB2bFeeMgtMapper {
     int updateCalcFee(WfebB2bFeeDvo dvo);
     int updateCalcDtlFee(WfebB2bDtlFeeDvo dvo);
 
+
+    int selectCheckB2bConfrim(CreateReq req);
+
     int deleteAggregateNtorMmCl(CreateReq req);
     int deleteAggregateNtorCntrMmCl(CreateReq req);
     int deleteAggregateNtorPerfMmCl(CreateReq req);
 
     int insertAggregateNtorMmCl(CreateReq req);
     int insertAggregateNtorCntrMmCl(CreateReq req);
+    int insertOgAggregateNtorPerfMmCl(CreateReq req);
+
     int insertAggregateNtorPerfMmCl(CreateReq req);
     int insertAggregateNtorPerfPointMmCl(CreateReq req);
     int updateAggregateNtorMmCl(CreateReq req);
