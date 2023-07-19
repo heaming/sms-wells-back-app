@@ -76,8 +76,10 @@ public class WctbCancelBaseDvo {
     private Integer rgstCostDscBorAmt; // 등록비할인위약금액
     private Integer rentalDscBorAmt; // 렌탈할인위약금액
     private Integer csmbCostBorAmt; // 소모품비위약금액
+    private Integer csmbCostBorAmt2; // 소모품비위약금액2
     private Integer pBorAmt; // 포인트위약금액
     private Integer reqdCsBorAmt; // 철거비용위약금액
+    private Integer reqdCsBorAmt2; // 철거비용위약금액2
     private Integer lsRntf; // 분실손료
     private Integer eotDlqAddAmt; // 기말연체가산금액
 

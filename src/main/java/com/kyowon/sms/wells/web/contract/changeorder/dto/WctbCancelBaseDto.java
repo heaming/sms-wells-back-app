@@ -30,32 +30,30 @@ public class WctbCancelBaseDto {
 
     @ApiModel("WctbCancelBaseDto-SearchRes")
     public record SearchRes(
+        String cntrNo,
+        String cntrSn,
         String sellTpCd,
         String sellTpNm,
         String sellTpDtlCd,
-        String sellTpDtlNm,
-        String pkgYn,
+        String cntrDtlStatCd,
+        String cntrCstNo,
+        String cntrCstKnm,
+        String basePdCd, // 상품코드
+        String pdNm, // 상품명
+        String copnDvNm,
+        String cntrGbn,
+        String ogCd, // 소속
+        String hooPrtnrNm, // 본부장명
+        String hooPrtnrNo, // 본부장사번
+        String pkgYn, // 멤버십패키지여부
         String cntrRcpDt, // (멤버십)계약일
         String cntrCnfmDt, // 계약확정일
         String cntrPdStrtdt, // 설치일,배송일,가입일, 매출일자
-        String cntrDtlStatCd,
-        String cntrDtlStatNm,
         String cntrPdEnddt, // 탈퇴일자
         String rentalTn, // 렌탈차월, 멤버십가입차월
         String rentalDc, // 가입일수(RENTAL_DC/SL_DC) - 렌탈/멤버십일수
         String slDc, // 가입일수(RENTAL_DC/SL_DC) - 매출일수
         String sppTn, // 정기배송 : 배송회차
-        String cntrNo,
-        String cntrSn,
-        String copnDvNm,
-        String cntrCstNo,
-        String cntrCstKnm,
-        String pdNm,
-        String cntrGbn,
-        String hooPrtnrNm, // 본부장명
-        String hooPrtnrNo, // 본부장사번
-        String ogCd, // 소속
-        String basePdCd, // 상품코드
         String stplPtrm, //의무기간
         String svPrd, // BS 주기(멤버십)
         String svPdTpNm, // 용도구분
@@ -83,54 +81,6 @@ public class WctbCancelBaseDto {
         String disableChk
     ) {}
 
-    @ApiModel("WctbCancelBaseDto-SearchResOld")
-    public record SearchResOld(
-        String sellTpCd,
-        String sellTpNm,
-        String cntrCnfmDt,
-        String cntrNo,
-        String cntrSn,
-        String copnDvNm,
-        String cntrCstNo,
-        String cntrCstKnm,
-        String pdNm,
-        String cntrGbn,
-        String hooPrtnrNm, // 본부장명 //
-        String hooPrtnrNo, // 본부장사번
-        String ogCd, // 소속
-        String basePdCd, // 상품코드
-        String stplPtrm, // 의무기간
-        String cntrPdStrtdt, // 매출년월 - 설치일자생성 시 들어감
-        String cntrAmt, // 등록비
-        String cntramDscAmt, // 등록비 할인
-        String cntrTam, //계약총액
-        String pdBaseAmt, // 정상렌탈료
-        String cntrPtrm, // 렌탈개월
-        String fnlAmt, // 렌탈금액
-        String dscAmt, // 렌탈할인금액
-        String rstlPtrm, // 재약정개월
-        String stplDscAmt, // 재약정할인금액
-        String stplStrtdt, // 재약정기간 FROM
-        String stplEnddt, // 재약정기간 TO
-        String rentalDc, // 렌탈일수
-        String slDc, // 매출일수
-        String chgDt, // 교체일자
-        String spmtSlAmt, // 추가매출
-        String nomDscAmt, // 정상할인
-        String canCtrAmt, // 취소조정금액
-        String addSrv, // 부가서비스
-        String spmtDscAmt, // 추가할인
-        String slCtrAmt, // 매출조정금액
-        String thmSlSumAmt, // 매출금액
-        String slSumVat, // 매출VAT
-        String slAggAmt, // 매출누계
-        String dscAggAmt, // 할인누계
-        String ctrAggAmt, // 조정누계금액
-        String eotPcamBlam, // 매출잔액
-        String lsnt // 분실손료
-
-        //        String nomSlAmt, // 정상매출
-    ) {}
 
     // *********************************************************
     // Result Dto
@@ -206,8 +156,10 @@ public class WctbCancelBaseDto {
         Integer rgstCostDscBorAmt, // 등록비할인위약금액
         Integer rentalDscBorAmt, // 렌탈할인위약금액
         Integer csmbCostBorAmt, // 소모품비위약금액
+        Integer csmbCostBorAmt2, // 소모품비위약금액2
         Integer pBorAmt, // 포인트위약금액
         Integer reqdCsBorAmt, // 철거비용위약금액
+        Integer reqdCsBorAmt2, // 철거비용위약금액2
         Integer lsRntf, // 분실손료
         Integer eotDlqAddAmt, // 기말연체가산금액
 
@@ -225,31 +177,29 @@ public class WctbCancelBaseDto {
 
     @ApiModel("WctbCancelBaseDto-FindDetailRes")
     public record FindDetailRes(
+        String cntrNo,
+        String cntrSn,
         String sellTpCd,
         String sellTpNm,
         String sellTpDtlCd,
-        String sellTpDtlNm,
+        String cntrDtlStatCd,
+        String cntrCstNo,
+        String cntrCstKnm,
+        String basePdCd,
+        String pdNm,
+        String copnDvNm,
+        String cntrGbn,
+        String ogCd,
+        String hooPrtnrNm,
+        String hooPrtnrNo,
         String pkgYn,
         String cntrRcpDt,
         String cntrCnfmDt,
         String cntrPdStrtdt,
-        String cntrDtlStatCd,
-        String cntrDtlStatNm,
         String cntrPdEnddt,
         String rentalTn,
         String rentalDc,
         String sppTn,
-        String cntrNo,
-        String cntrSn,
-        String copnDvNm,
-        String cntrCstNo,
-        String cntrCstKnm,
-        String pdNm,
-        String cntrGbn,
-        String hooPrtnrNm,
-        String hooPrtnrNo,
-        String ogCd,
-        String basePdCd,
         String stplPtrm,
         String svPrd,
         String svPdTpNm,
@@ -275,7 +225,6 @@ public class WctbCancelBaseDto {
         String sellAmt,
         String cancelStatNm,
         String disableChk,
-        String pdCd,
         String prgsNmnN,
         String cntrPasgDc,
         String sppNmnN,
@@ -331,12 +280,19 @@ public class WctbCancelBaseDto {
         String borAmt,
         String totRfndAmt,
         String lsRntf,
+        String resRtlfeBorAmt,
+        String rgstCostDscBorAmt,
+        String rentalDscBorAmt,
+        String csmbCostBorAmt,
+        String pBorAmt,
+        String reqdCsBorAmt,
+        String csmbCostBorAmt2,
+        String reqdCsBorAmt2,
         String slCtrRqrId,
         String slCtrRmkCn,
         String cntrChRcpId,
         String ichrOgTpCd,
         String ichrPrtnrNo
-
     ) {}
 }
 
