@@ -4,20 +4,18 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.*;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMaterialsAssignStocksDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaMaterialsAssignStocksMapper {
-    PagingResult<SearchRes> selectMaterialsAssignStocks(SearchReq dto, PageInfo pageInfo);
+    PagingResult<SearchRes> selectMaterialsAssignStocksPaging(SearchReq dto, PageInfo pageInfo);
 
-    List<SearchRes> selectMaterialsAssignStocks(SearchReq dto);
+    List<SearchRes> selectMaterialsAssignStocksPaging(SearchReq dto);
 
-    int insertMaterialsAssignStocks(List<WsnaMaterialsAssignStocksDvo> list);
+    int insertQomAsnPrtnrApyIz(WsnaMaterialsAssignStocksDvo dvo);
 
-    List<PrtnrRes> selectPartners(PrtnrReq dto);
-
-    List<OgRes> selectOrganizations(OgReq dto);
 }

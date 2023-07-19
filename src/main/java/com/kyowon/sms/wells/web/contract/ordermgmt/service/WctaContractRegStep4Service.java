@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractRegConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep4Mapper;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 
 import lombok.RequiredArgsConstructor;
 
@@ -76,11 +77,19 @@ public class WctaContractRegStep4Service {
             .build();
     }
 
-    @Transactional
+    public String saveContractStep4Temp(WctaContractRegStep4Dvo dvo) {
+        return saveContractStep4(dvo, CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP4);
+    }
+
     public String saveContractStep4(WctaContractRegStep4Dvo dvo) {
+        return saveContractStep4(dvo, CtContractConst.CNTR_PRGS_STAT_CD_WRTE_FSH);
+    }
+
+    @Transactional
+    public String saveContractStep4(WctaContractRegStep4Dvo dvo, String cntrPrgsStatCd) {
         String cntrNo = dvo.getBas().getCntrNo();
         // 0. 계약기본
-        regService.updateCntrPrgsStatCd(cntrNo, "20");
+        regService.updateCntrPrgsStatCd(cntrNo, cntrPrgsStatCd);
         mapper.updateCntrBasStep4(cntrNo, dvo.getBas().getCstStlmInMthCd());
 
         historyService.createContractBasicChangeHistory(

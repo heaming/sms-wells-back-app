@@ -35,14 +35,3 @@ public enum CtCntrUnitTpCd {
             .orElseThrow(() -> new BizException(name + "을 확인해보세요."));
     }
 }
-
-
-/*
-* 	1	010	판매자
-	2	020	소개자
-	3	030	홍보교사
-	4	040	대리계약판매자
-	5	050	관리자
-	6	060	TM판매자
-
-* */

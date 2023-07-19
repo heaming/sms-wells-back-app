@@ -218,6 +218,10 @@ public class WctaManagementService {
         return ackdCnptMsg;
     }
 
+    public List<SearchOrderStatCdInfoRes> getContractStatus(String cntrNo) {
+        return mapper.selectOrderStatCdInfo(cntrNo);
+    }
+
     @Transactional
     public int saveNotificationTalkFws(List<SaveNotificationTalkFwsReq> dtos) throws Exception {
         int processCount = 0;
@@ -277,6 +281,8 @@ public class WctaManagementService {
             paramKakaoTalk.setCntrCralLocaraTno(searchMastOrdrDtptList.get(0).cntrCralLocaraTno());
             paramKakaoTalk.setCntrMexnoEncr(searchMastOrdrDtptList.get(0).cntrMexnoEncr());
             paramKakaoTalk.setCntrCralIdvTno(searchMastOrdrDtptList.get(0).cntrCralIdvTno());
+            paramKakaoTalk.setCntrNo(searchMastOrdrDtptList.get(0).cntrNo());
+            paramKakaoTalk.setCntrSn(searchMastOrdrDtptList.get(0).cntrSn());
 
             Map<String, Object> paramMap = new HashMap<>();
 
@@ -367,6 +373,8 @@ public class WctaManagementService {
                     + paramKakaoTalk.getCntrMexnoEncr()
                     + paramKakaoTalk.getCntrCralIdvTno()
             )
+            .reserved2(paramKakaoTalk.getCntrNo())
+            .reserved3(paramKakaoTalk.getCntrSn())
             .callback(CALLBACK)
             .build();
 

@@ -65,12 +65,13 @@ public class WsnaAssignExcludeItemController {
 
     @DeleteMapping
     @ApiOperation(value = "배정제외품목 삭제", notes = "배정제외품목을 삭제한다.")
-    public SaveResponse removeAssignExcludeItem(
+    public SaveResponse removeAssignExcludeItems(
         @RequestBody
         @Valid
-        RemoveReq dto
+        @NotEmpty
+        List<RemoveReq> dtos
     ) {
-        return SaveResponse.builder().processCount(this.service.removeAssignExcludeItem(dto)).build();
+        return SaveResponse.builder().processCount(this.service.removeAssignExcludeItems(dtos)).build();
     }
 
     @PostMapping

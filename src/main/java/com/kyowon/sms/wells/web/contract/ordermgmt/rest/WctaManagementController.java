@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaManagementService
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
+import ch.qos.logback.classic.Logger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -29,6 +30,7 @@ public class WctaManagementController {
 
     private final WctaManagementService service;
     private final WctaContractRegStep5Service cnfmService;
+    private Logger log;
 
     @ApiOperation(value = "계약관리", notes = "계약관리내역을 조회")
     @ApiImplicitParams(value = {
@@ -87,18 +89,30 @@ public class WctaManagementController {
         }
     }
 
+    @ApiOperation(value = "계약관리", notes = "확정처리 전 계약번호의 계약진행상태코드 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+    })
+    @GetMapping("/managements/status")
+    public List<SearchOrderStatCdInfoRes> getContractStatus(
+        @Valid
+        SaveConfirmApprovalsReq dto
+    ) {
+        return service.getContractStatus(dto.cntrNo());
+    }
+
     @ApiOperation(value = "확정요청", notes = "선택한 계약관리 조회 결과 확정을 요청")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
     })
     @PutMapping("/managements/confirm")
-    public void saveConfirms(
+    public SaveResponse saveConfirms(
         @RequestBody
         @NotEmpty
-        @PathVariable
-        String cntrNo
+        List<SaveConfirmApprovalsReq> dtos
     ) throws Exception {
-        cnfmService.confirmContract(cntrNo);
+        cnfmService.confirmContract(dtos.get(0).cntrNo());
+        return SaveResponse.builder().processCount(0).build();
     }
 
     @ApiOperation(value = "알림톡 발송", notes = "선택한 계약관리 조회 결과 알림톡을 발송")

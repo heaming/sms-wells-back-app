@@ -9,6 +9,6 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto.SearchR
 @Mapper
 public interface WctaKakaotalksMapper {
 
-    public List<SearchRes> selectKakaotalkFwIzs(String mtPr, List<String> tempCodeList);
+    public List<SearchRes> selectKakaotalkFwIzs(String cntrNo, String cntrSn, List<String> tempCodeList);
 
 }

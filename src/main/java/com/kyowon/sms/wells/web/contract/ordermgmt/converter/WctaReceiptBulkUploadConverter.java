@@ -45,6 +45,7 @@ public interface WctaReceiptBulkUploadConverter {
     @Mapping(source = "rentalDscDvCd", target = "sellDscDvCd")
     @Mapping(source = "rentalCrpDscrCd", target = "sellDscrCd")
     @Mapping(source = "alncmpSuscOrdNo", target = "otsdLkDrmVal")
+    @Mapping(defaultValue = "0L", target = "sellDscCtrAmt")
     WctaBulkContractDvo mapCreateBulkRentalReqToWctaBulkContractDvo(CreateBulkRentalReq createBulkRentalReq);
 
     @Mapping(source = "basePdCd", target = "pdCd")
@@ -61,6 +62,7 @@ public interface WctaReceiptBulkUploadConverter {
     @Mapping(source = "alncmpDgPrtnrMapngCd", target = "sellPrtnrNo")
     @Mapping(source = "alncmpDgPrtnrOgTpCd", target = "sellOgTpCd")
     @Mapping(source = "spayDscDvCd", target = "sellDscDvCd")
+    @Mapping(defaultValue = "0L", target = "sellDscCtrAmt")
     /*@Mapping(source = "spayDscrCd", target = "sellDscrCd") 아마도?*/
     WctaBulkContractDvo mapCreateBulkSpayReqToWctaBulkContractDvo(CreateBulkSpayReq createBulkSpayReq);
 

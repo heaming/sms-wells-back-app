@@ -1,0 +1,141 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockStatusControlMapper">
+<select id="selectStockStatusControlWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto$SearchWarehouseRes">
+     SELECT T1.WARE_NO AS CODE_ID
+          <!--, T1.WARE_NM || '('||CASE WHEN T1.WARE_USE_YN = 'Y' THEN '사용' ELSE '미사용' END||')' AS WARE_NM -->
+          , T1.WARE_NM AS CODE_NAME
+          , T1.WARE_DV_CD
+       FROM TB_SVST_MCBY_WARE_IZ T1
+      WHERE 1 = 1
+        AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+        <if test='@MybatisUtils@isNotEmpty(wareDvCd)'>
+        AND T1.WARE_DV_CD = #{wareDvCd}
+        </if>
+        <if test='@MybatisUtils@isEmpty(wareDvCd)'>
+        AND T1.WARE_DTL_DV_CD IN('20', '30')
+        </if>
+		<choose>
+           <when test='@MybatisUtils@equals(wareDvCd, "2")'>
+                <choose>
+                    <when test="@MybatisUtils@isEmpty(hgrWareNo)">
+                        AND T1.WARE_DTL_DV_CD = '20'
+                    </when>
+                </choose>
+            </when>
+	        <when test='@MybatisUtils@equals(wareDvCd, "3")'>
+                <choose>
+                    <when test="@MybatisUtils@isEmpty(hgrWareNo)">
+                        AND T1.WARE_DTL_DV_CD = '30'
+                    </when>
+                </choose>
+            </when>
+        </choose>
+        ORDER BY T1.WARE_USE_YN DESC, T1.WARE_NM ASC, T1.WARE_NO ASC
+
+</select>
+
+<select id="selectOrganizationDeptName" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto$FindOgNmRes">
+        SELECT T3.OG_CD
+             , T3.OG_NM
+          FROM TB_SVST_MCBY_WARE_IZ T1 /* 월별창고내역 */
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T2 /* 파트너기본 */
+            ON T2.OG_TP_CD = T1.OG_TP_CD
+           AND T2.PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T3 /* 월조직내역 */
+            ON T3.BASE_YM = T1.APY_YM
+           AND T3.OG_ID = T1.OG_ID
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.WARE_NO = #{wareNo}
+</select>
+
+<select id="selectStockStatusControlPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto$SearchRes">
+    SELECT T1.WARE_NO
+         , T2.WARE_NM
+         , T2.WARE_DV_CD
+         , T5.OG_NM
+         , T2.WARE_MNGT_PRTNR_NO
+         , T3.SVPD_ITEM_KND AS ITEM_KND
+         , T1.CTR_WK_DT /*조정작업일자*/
+         , T1.STAT_CTR_APY_DT /*상태조정일자*/
+         , T3.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
+         , T1.PD_CD AS ITM_PD_CD /*품목코드*/
+         , T3.SVPD_NM_ABBR1 AS ITM_PD_NM /*품목명*/
+         , T3.SVPD_MGT_UNT AS MGT_UNIT
+    <!--     , CASE WHEN ST173_ITEM_KND = '4'
+                THEN GET_COMMONCODE('MA55',ST173_CONT_TYP)
+           ELSE GET_COMMONCODE('MA56',ST173_CONT_TYP)
+           END AS ST173_CONT_TYP 상태조정유형 -->
+     <choose>
+         <when test='@MybatisUtils@equals(itmKnd, "4")'>, F_CMZ_CD_NM('TNT_WELLS', 'ITM_GD_CTR_TP_CD', T1.ITM_GD_CTR_TP_CD, 'ko') AS ITM_GD_CTR_TP_NM</when>
+         <otherwise>, F_CMZ_CD_NM('TNT_WELLS', 'MAT_STOC_STAT_CTR_CD', T1.ITM_GD_CTR_TP_CD, 'ko') AS ITM_GD_CTR_TP_NM</otherwise>
+     </choose>
+         , NVL(T1.BFCT_NOM_STOC_A_GD_QTY, 0) AS BFCT_NOM_STOC_A_GD_QTY/*조정전정상재고A등급수량*/
+         , NVL(T1.BFCT_NOM_STOC_E_GD_QTY, 0) AS BFCT_NOM_STOC_E_GD_QTY/*조정전정상재고E등급수량*/
+         , NVL(T1.BFCT_NOM_STOC_R_GD_QTY, 0) AS BFCT_NOM_STOC_R_GD_QTY/*조정전정상재고R등급수량*/
+         , T1.BFCT_ITM_GD_CD /*조정전품목등급코드*/
+         , T1.AFCT_ITM_GD_CD /*조정후품목등급코드*/
+         , NVL(T1.CTR_QTY, 0) AS CTR_QTY/*조정수량*/
+         , F_CMZ_CD_NM('TNT_WELLS', 'CTR_RSON_CD', T1.ITM_GD_CTR_RSON_CD, 'ko') AS ITM_GD_CTR_RSON_NM /*조정사유명*/
+         , T1.CTR_SN /*조정일련번호*/
+      FROM TB_SVST_ITM_GD_CTR_IZ T1
+     INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+        ON T2.WARE_NO = T1.WARE_NO
+       AND T2.APY_YM = SUBSTR(T1.STAT_CTR_APY_DT, 1,6)
+     INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3
+        ON T3.SVPD_PD_CD = T1.PD_CD
+      LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
+        ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+       AND T4.PRTNR_NO = T1.WARE_ICHR_PRTNR_NO
+       AND T4.OG_TP_CD = T1.OG_TP_CD
+      LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T5
+        ON T5.BASE_YM = T4.BASE_YM
+       AND T5.OG_ID = T4.OG_ID
+       AND T5.OG_TP_CD = T4.OG_TP_CD
+     WHERE T1.STAT_CTR_APY_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+       AND T1.WARE_NO = #{wareNo}
+       AND T3.SVPD_ITEM_KND = #{itmKnd}
+   <if test='@MybatisUtils@isNotEmpty(itmGdCtrTpCd)'>
+       AND T1.ITM_GD_CTR_TP_CD = #{itmGdCtrTpCd}
+   </if>
+   <if test='@MybatisUtils@isNotEmpty(itmGdCtrRsonCd)'>
+       AND T1.ITM_GD_CTR_RSON_CD = #{itmGdCtrRsonCd}
+   </if>
+
+
+</select>
+
+<select id="selectStockStatusItmPdCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto$SearchItmPdCdRes">
+
+    SELECT T1.SVPD_PD_CD AS CODE_ID
+         , T1.SVPD_NM_ABBR1 AS CODE_NAME
+         , T1.SVPD_ITEM_KND AS ITM_KND
+      FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
+     WHERE 1 = 1
+       <if test='@MybatisUtils@isNotEmpty(itmKnd)'>
+       AND T1.SVPD_ITEM_KND = #{itmKnd} /* 상품 */
+       </if>
+       AND T1.SVPD_USE_YN = 'Y'
+     ORDER BY T1.SVPD_ITEM_CD, T1.SVPD_PART_CD
+
+</select>
+
+<select id="selectStockStatusWarehouseItmPdCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto$SearchWarehouseItmPdCdRes">
+
+    SELECT T1.SVPD_PD_CD AS CODE_ID
+         , T1.SVPD_NM_ABBR1 AS CODE_NAME
+         , T1.SVPD_ITEM_KND AS ITM_KND
+         , T2.WARE_NO
+      FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
+     INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T2
+        ON T2.ITM_PD_CD = T1.SVPD_PD_CD
+     WHERE T1.SVPD_ITEM_KND = #{itmKnd} /* 상품 */
+       AND T2.WARE_NO = #{wareNo}
+       AND T1.SVPD_USE_YN = 'Y'
+     ORDER BY T1.SVPD_PD_CD
+
+</select>
+
+
+</mapper>

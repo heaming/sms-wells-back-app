@@ -59,12 +59,12 @@ public class WwdbVirtualAccountInterfaceController {
         EaiWrapper<SaveReq> reqWrapper
     ) throws ParseException {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<SaveRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<SaveRes> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출
         SaveRes res = service.createVirtualAccount(reqWrapper.getBody());
 
         // Response Body 세팅
-        resWrapper.setBody(Collections.singletonList(res));
+        resWrapper.setBody(res);
 
         return resWrapper;
     }

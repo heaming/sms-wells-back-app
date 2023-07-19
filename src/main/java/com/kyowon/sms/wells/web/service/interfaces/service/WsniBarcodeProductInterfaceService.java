@@ -1,6 +1,10 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.thymeleaf.util.StringUtils;
 
 import com.kyowon.sms.wells.web.service.interfaces.converter.WsniBarcodeProductInterfaceConverter;
@@ -69,23 +73,30 @@ public class WsniBarcodeProductInterfaceService {
         return converter.mapBarcodeProductInterfaceDvoToJsonRes(dvo);
     }
 
-    public WsniBarcodeProductInterfaceDto.SearchCustJsonRes getBarcodeSearchCustomers(
+    public List<WsniBarcodeProductInterfaceDto.SearchCustJsonRes> getBarcodeSearchCustomers(
         WsniBarcodeProductInterfaceDto.SearchCustReq dto
     ) {
         log.info("[WsniBarcodeProductInterfaceService.getBarcodeSearchCustomers] BARCODE ::: " + dto.barcode());
-        WsniBarcodeProductInterfaceDto.SearchCustRes res;
+        List<WsniBarcodeProductInterfaceDto.SearchCustRes> custList;
+        List<WsniBarcodeProductInterfaceDto.SearchCustJsonRes> resList = new ArrayList<WsniBarcodeProductInterfaceDto.SearchCustJsonRes>();
 
         try {
-            res = mapper.selectBarcodeSearchCustomer(dto);
+            custList = mapper.selectBarcodeSearchCustomer(dto);
 
-            if(res == null || org.apache.commons.lang.StringUtils.isEmpty(res.cntrNo())){
+            if(CollectionUtils.isEmpty(custList)){
                 throw new BizException(messageService.getMessage("MSG_TXT_RENTAL_NOT_EXIST")); //렌탈 정보가 존재하지 않습니다
             }
+
+            for(WsniBarcodeProductInterfaceDto.SearchCustRes custVo : custList){
+                resList.add(converter.mapBarcodeProductCustDtoToJsonRes(custVo));
+            }
+
         } catch (Exception e) {
+            e.printStackTrace();
             throw new BizException(messageService.getMessage("MSG_TXT_BARCODE_SEARCH_ERROR")); //바코드 조회 오류
         }
 
-        return converter.mapBarcodeProductCustDtoToJsonRes(res);
+        return resList;
     }
 
 }

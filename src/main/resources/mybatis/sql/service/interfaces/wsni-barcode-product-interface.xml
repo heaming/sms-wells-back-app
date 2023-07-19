@@ -118,55 +118,70 @@
 
     <select id="selectBarcodeSearchCustomer"
             resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniBarcodeProductInterfaceDto$SearchCustRes">
-        SELECT TB_1.CNTR_NO
-             , TB_1.CNTR_SN
-             , TB_1.IST_DT AS IST_DT /* 설치일자 */
-             , TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDD')) - TO_DATE(TB_1.IST_DT, 'YYYYMMDD') AS USE_MONTH /* 사용개월수 */
-             , TB_1.MNGT_PRTNR_OG_TP_CD
-             , TB_1.MNGT_PRTNR_NO
-             , '' AS DEVICE_NAME /* 렌탈제품명 *//* part master - SVPD_NM_KOR */
-             , TB_2.PRTNR_KNM AS MANAGER_NAME /* 매니저명 */
-             , TB_2.CRAL_LOCARA_TNO
-             , TB_2.MEXNO_ENCR
-             , TB_2.CRAL_IDV_TNO
-             , (
-                 SELECT MIN(TEMP.VST_DUEDT) AS VST_DUEDT
-                   FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
-                  WHERE 1=1
-                    AND TEMP.CNTR_NO = TB_1.CNTR_NO
-                    AND TEMP.CNTR_SN = TB_1.CNTR_SN
-                    AND TEMP.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
-               ) AS NEXT_SCHEDULE /* 다음BS방문일 */
-             , TB_4.FNL_AMT AS RENTAL_FEE /* 렌탈금액 */
-             , TB_5.SV_BIZ_HCLSF_CD --코드명 조회
-             , TB_5.VST_FSH_DT
-             , TB_5.VST_FSH_HH
-             , TB_5.SV_BIZ_DCLSF_CD
-             , F_CMZ_CD_NM(#{session.tenantId}, 'BA01', TB_5.SV_BIZ_HCLSF_CD) AS SERVICE_TYPE_NAME /* 서비스유형명 */
-             , TO_CHAR(TO_DATE(TB_5.VST_FSH_DT || TB_5.VST_FSH_HH, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS SERVICE_TIME /* 서비스방문일시 */
-             , F_CMZ_CD_NM(#{session.tenantId}, 'BA04', TB_5.SV_BIZ_DCLSF_CD) AS SERVICE_NAME /* 서비스작업명 */
-          FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
-         INNER JOIN TB_OGBS_PRTNR_BAS TB_2
-         ON (
-                 TB_2.OG_TP_CD = TB_1.MNGT_PRTNR_OG_TP_CD
-             AND TB_2.PRTNR_NO = TB_1.MNGT_PRTNR_NO
-         )
-         INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ TB_3
-         ON (
-                 TB_3.CNTR_NO = TB_1.CNTR_NO
-             AND TB_3.CNTR_SN = TB_1.CNTR_SN
-         )
-         INNER JOIN TB_SSCT_CNTR_DTL TB_4
-         ON (
-                 TB_4.CNTR_NO = TB_1.CNTR_NO
-             AND TB_4.CNTR_SN = TB_1.CNTR_SN
-         )
-         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ TB_5
-         ON (
-                 TB_5.CNTR_NO = TB_1.CNTR_NO
-             AND TB_5.CNTR_SN = TB_1.CNTR_SN
-         )
-         WHERE 1=1
-           AND TB_1.BC_NO = #{barcode}
+        SELECT IST_DT
+             ,(CASE WHEN USE_DAY >= 360 THEN TRUNC(USE_DAY/360)|| '년' ELSE '' END) || (CASE WHEN USE_DAY >= 30 THEN MOD(TRUNC(USE_DAY/30),12) || '개월' ELSE '1개월' END)  AS USE_MONTH
+             ,MANAGER_NAME
+             ,CRAL_LOCARA_TNO
+             ,MEXNO_ENCR
+             ,CRAL_IDV_TNO
+             ,TO_CHAR(TO_DATE(NEXT_SCHEDULE,'YYYYMMDD'),'YYYY-MM-DD') AS NEXT_SCHEDULE
+             ,RENTAL_FEE
+             ,SERVICE_TYPE_NAME
+             ,TO_CHAR(TO_DATE(VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(VST_FSH_HH,'HH24MISS'),'HH24:MI:SS') AS SERVICE_TIME
+             ,SERVICE_NAME
+             ,DEVICE_NAME
+             ,'' AS MANAGER_TEL /* Dto Constructor로 인한 문제로 빈 컬럼 생성 */
+        FROM (
+                 SELECT  TB_1.CNTR_NO
+                      ,TB_1.CNTR_SN
+                      ,TO_CHAR(TO_DATE(TB_1.IST_DT,'YYYYMMDD'),'YYYY-MM-DD') AS IST_DT /* 설치일자 */
+                      ,TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDD')) - TO_DATE(TB_1.IST_DT, 'YYYYMMDD') AS USE_DAY /* 사용개월수 */
+                      , TB_1.MNGT_PRTNR_OG_TP_CD
+                      , TB_1.MNGT_PRTNR_NO
+                      , TB_2.PRTNR_KNM || ' 매니저' AS MANAGER_NAME /* 매니저명 */
+                      , TB_2.CRAL_LOCARA_TNO AS CRAL_LOCARA_TNO
+                      , TB_2.MEXNO_ENCR AS MEXNO_ENCR
+                      , TB_2.CRAL_IDV_TNO AS CRAL_IDV_TNO
+                      , (
+                     SELECT MIN(TEMP.VST_DUEDT) AS VST_DUEDT
+                     FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
+                     WHERE 1=1
+                       AND TEMP.CNTR_NO = TB_1.CNTR_NO
+                       AND TEMP.CNTR_SN = TB_1.CNTR_SN
+                       AND TEMP.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                 ) AS NEXT_SCHEDULE /* 다음BS방문일 */
+                      , TB_4.FNL_AMT AS RENTAL_FEE /* 렌탈금액 */
+                      , TB_5.SV_BIZ_HCLSF_CD --코드명 조회
+                      , TB_5.VST_FSH_DT
+                      , TB_5.VST_FSH_HH
+                      , TB_5.SV_BIZ_DCLSF_CD
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', TB_5.SV_BIZ_HCLSF_CD) AS SERVICE_TYPE_NAME /* 서비스유형명 */
+                      , TO_CHAR(TO_DATE(TB_5.VST_FSH_DT || TB_5.VST_FSH_HH, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS SERVICE_TIME /* 서비스방문일시 */
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TB_5.SV_BIZ_DCLSF_CD) AS SERVICE_NAME /* 서비스작업명 */
+                      , TB_6.PD_NM AS DEVICE_NAME
+                 FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+                          INNER JOIN TB_OGBS_PRTNR_BAS TB_2
+                                     ON (
+                                                 TB_2.OG_TP_CD = TB_1.MNGT_PRTNR_OG_TP_CD
+                                             AND TB_2.PRTNR_NO = TB_1.MNGT_PRTNR_NO
+                                         )
+                          INNER JOIN TB_SSCT_CNTR_DTL TB_4
+                                     ON (
+                                                 TB_4.CNTR_NO = TB_1.CNTR_NO
+                                             AND TB_4.CNTR_SN = TB_1.CNTR_SN
+                                         )
+                          INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ TB_5
+                                     ON (
+                                                 TB_5.CNTR_NO = TB_1.CNTR_NO
+                                             AND TB_5.CNTR_SN = TB_1.CNTR_SN
+                                         )
+                          INNER JOIN TB_PDBS_PD_BAS TB_6
+                                     ON (
+                                         TB_1.PDCT_PD_CD = TB_6.PD_CD
+                                         )
+                 WHERE 1=1
+                   AND TB_1.BC_NO = #{barcode}
+             )
+        ORDER BY SERVICE_TIME DESC
     </select>
 </mapper>

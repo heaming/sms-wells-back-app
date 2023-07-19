@@ -31,9 +31,3 @@ public enum CtAgStatCd {
             .orElseThrow(() -> new BizException(name + "을 확인해보세요."));
     }
 }
-
-
-/*	1	01	동의
-	2	02	거부
-	3	03	미결정
-*/

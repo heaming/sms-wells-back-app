@@ -90,18 +90,14 @@ public class WctaSpectxBlkPrntService {
     @Transactional
     public int removeSpectxBlkPrnts(List<SaveReq> dtos) {
         int res = 0;
-        String spectxGrpNoCheck = "";
         for (SaveReq dto : dtos) {
             WctaSpectxBlkPrntDvo dvo = converter.mapSaveReqToWctaSpectxBlkPrntDvo(dto);
-            if (dvo.getSpectxGrpNo() != spectxGrpNoCheck) {
-                spectxGrpNoCheck = dvo.getSpectxGrpNo();
-                mapper.insertSsctSpectxIsChHist(dvo.getSpectxGrpNo());
-                mapper.deleteSsctSpectxIsBas(dvo.getSpectxGrpNo());
+            mapper.updateSsctSpectxIsDtlDtaDlY(dvo.getSpectxGrpNo(), dvo.getCntrNo(), dvo.getCntrSn());
+            mapper.insertSsctSpectxPblHist(dvo.getSpectxGrpNo(), dvo.getCntrNo(), dvo.getCntrSn());
+            if (mapper.selectSpectxGrpNoCheck(dvo.getSpectxGrpNo()) <= 0) {
+                mapper.updateSsctSpectxIsBasDtaDlY(dvo.getSpectxGrpNo());
                 mapper.insertSsctSpectxIsChHist(dvo.getSpectxGrpNo());
             }
-            mapper.insertSsctSpectxPblHist(dvo.getSpectxGrpNo(), dvo.getCntrNo(), dvo.getCntrSn());
-            mapper.deleteSsctSpectxIsDtl(dvo.getSpectxGrpNo(), dvo.getCntrNo(), dvo.getCntrSn());
-            mapper.insertSsctSpectxPblHist(dvo.getSpectxGrpNo(), dvo.getCntrNo(), dvo.getCntrSn());
         }
         return res;
     }

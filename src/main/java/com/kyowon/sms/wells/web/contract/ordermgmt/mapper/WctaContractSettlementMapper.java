@@ -37,9 +37,9 @@ public interface WctaContractSettlementMapper {
 
     int insertContractAdrpcBasChHist(String cntrAdrpcId);
 
-    String selectFnitCdInfo(String crdcdBinNo);
+    String selectFnitCdInfo(String creditCardNo);
 
-    WctaSettlementCntrBasDvo selectContractBasic(String cntrNo);
+    WctaContractForRveAkDvo selectContractForRveAk(String cntrNo);
 
     WctaTaxInvoiceInquiryDvo selectBasTaxInvoiceInquiry(String cntrNo);
 

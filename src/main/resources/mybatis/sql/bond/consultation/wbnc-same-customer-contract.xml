@@ -294,20 +294,51 @@
     </select>
 
     <select id="selectBreachOfPromise" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindBreachOfPromiseRes">
-        /* TODO : 데이터 없음, db 설계 미완료*/
-        SELECT 23490 AS CCAM_TAM
-             , 0 AS ACU_DP
-             , 23490 AS RENTAL_RNTF
-             , 1638890 AS BOR_DP
-             , 0 AS BND_NPD
-             , 0 AS CSMB_CS
-             , 0 AS BOR_BLAM
-             , 1638890 AS RGST_CS_DSC
-             , 23490 AS REQD_CS
-             , '2' AS SL_AMT
-             , 23490 AS UC_AMT
-             , 60030 AS LSFE
-          FROM DUAL
+        SELECT NVL(T2.EOT_BOR_AMT, 0) AS EOT_BOR_AMT
+             , NVL(T2.DP_CCAM_SUM_AMT, 0) AS DP_CCAM_SUM_AMT
+             , NVL(T2.EOT_BOR_AMT, 0) - NVL(T2.DP_CCAM_SUM_AMT, 0) AS BOR_BLAM
+             , NVL(T3.THM_SL_SUM_AMT, 0) AS THM_SL_SUM_AMT
+             , NVL(T4.UC_AMT, 0) AS UC_AMT
+             , NVL(T4.RSG_BOR_AMT, 0) AS RSG_BOR_AMT
+             , NVL(T2.RGST_COST_DSC_BOR_AMT, 0) AS RGST_COST_DSC_BOR_AMT
+             , NVL(T2.RENTAL_DSC_BOR_AMT, 0) AS RENTAL_DSC_BOR_AMT
+             , NVL(T2.CSMB_COST_BOR_AMT, 0) AS CSMB_COST_BOR_AMT
+             , NVL(T2.P_BOR_AMT, 0) AS P_BOR_AMT
+             , NVL(T2.REQD_CS_BOR_AMT, 0) AS REQD_CS_BOR_AMT
+             , NVL(T2.LS_RNTF, 0) AS LS_RNTF
+             , NVL(T2.RSTL_BOR_AMT, 0) AS RSTL_BOR_AMT
+             , NVL(T5.ACU_DP_AMT, 0) AS ACU_DP_AMT
+          FROM TB_CBBO_BND_CNSL_BAS_IZ T1
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T2
+            ON T2.PERF_YM = T1.BASE_YM
+           AND T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3
+            ON T3.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM,'YYYYMM'),-1),'YYYYMM')
+           AND T3.CNTR_NO = T1.CNTR_NO
+           AND T3.CNTR_SN = T1.CNTR_SN
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T4
+            ON T4.BASE_YM = T1.BASE_YM
+           AND T4.CNTR_NO = T1.CNTR_NO
+           AND T4.CNTR_SN = T1.CNTR_SN
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (
+                           SELECT SUM(DP_CCAM_SUM_AMT) AS ACU_DP_AMT
+                                , CNTR_NO
+                                , CNTR_SN
+                             FROM TB_CBCL_WELLS_BOR_AMT_BAS_HIST
+                            WHERE DTA_DL_YN = 'N'
+                            GROUP BY CNTR_NO, CNTR_SN
+                          ) T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+         WHERE 1=1
+           AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectContractSales" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindSalesRes">

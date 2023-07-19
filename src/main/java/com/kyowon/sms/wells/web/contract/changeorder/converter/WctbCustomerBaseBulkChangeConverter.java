@@ -1,14 +1,19 @@
 package com.kyowon.sms.wells.web.contract.changeorder.converter;
 
+import org.mapstruct.Mapper;
+
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCustomerBaseBulkChangeDto;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCustomerBaseBulkChangeDvo;
-import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface WctbCustomerBaseBulkChangeConverter {
 
     WctbCustomerBaseBulkChangeDvo mapSearchReqToWctbCustomerBaseBulkChangeDvo(
         WctbCustomerBaseBulkChangeDto.SearchReq dto
+    );
+
+    WctbCustomerBaseBulkChangeDvo mapSaveReqToWctbCustomerBaseBulkChangeDvo(
+        WctbCustomerBaseBulkChangeDto.SaveReq dto
     );
 
     WctbCustomerBaseBulkChangeDto.SearchCustomerRes mapWctbCustomerBaseBulkChangeDvoToSearchCustomerRes(

@@ -19,21 +19,21 @@ public class WctbCancelPresentStateDto {
         String cntrSn, // 계약일련변호
         String sellOgTpCd, // 판매구분
         String basePdCd, // 상품콛,
-        String pdGdCd, // 상품등급
         String rgstUsrEpNo, // 등록담당자사번
-        String clctamPrtnrNo, // 집금담당
-        String printDiv, // 출력구분
         String copnDvCd, // 계약구분
         String sellTpCd, // 판매유형
         String sellTpDtlCd, // 판매세부
-        String alncmpCd, // 상조취소
         String cntrStatChRsonCd, // 취소유형
         String reqdDiv, // 철거구
         String wellsFarmCancelDiv, // 웰스팜취소구분
         String pdHclsfId, // 상품대분류
         String pdMclsfId, // 상품중분류
         String omssnDiv,
-        String partDiv
+        String partDiv,
+        String cntrFromDt, // 계약시작일
+        String cntrToDt, // 계약종료일
+        String installFromDt, // 설치시작일
+        String installToDt // 설치종료일
     ) {}
 
     // *********************************************************
@@ -42,41 +42,46 @@ public class WctbCancelPresentStateDto {
     // 렌탈 취소현황 Search Result Dto
     @ApiModel("WctbCancelPresentStateDto-SearchRentalRes")
     public record SearchRentalRes(
-        String ogCd,
-        String ogNm,
-        String seq,
-        String prtnrNo,
-        String prtnrKnm,
+        String sellTpNm,
+        String sellTpDtlNm,
         String cntrNo,
         String cntrSn,
         String cntrCstKnm,
-        String mPdCd,
-        String sapMatCd,
-        String pdCd,
+        String copnDvNm,
+        String bzrno,
+        String txinvPblOjYn,
+        String cstNo,
+        String ogCd,
+        String pdHclsfNm,
+        String pdMclsfNm,
         String pdNm,
+        String stplPtrm,
+        String cntrCnfmDtm,
         String istDt,
-        String canDt,
-        String pdUseDc,
-        String pdGdCd,
-        String reqdAkDt,
+        String rsgAplcDt,
+        String rsgFshDt,
+        String canDtInDt,
+        String cntrStatChRsonCd,
+        String cntrStatChRsonNm,
+        String ichrPrtnrNo,
+        String ichrPrtnrNm,
         String reqdDt,
-        String reqdIchrNm,
-        Integer rgstCostAmt,
-        Integer rgstCostRfndAmt,
+        String pdUseDc,
+        String prgsNmnN,
+        String rsonNm,
         Integer slAmt,
         Integer slCtrAmt,
-        Integer slAggAmt,
-        Integer dpTotAmt,
-        Integer slDpAggAmt,
         Integer totPrpdAmt,
-        Integer ucBlamAmt,
         Integer csmbCostBorAmt,
         Integer reqdCsBorAmt,
         Integer borAmt,
         Integer lsRntf,
         Integer totRfndAmt,
-        String clctamPrtnrKnm
+        String exCntrNoSn,
+        String bizSpptPrtnrNo,
+        String bizSpptPrtnrNm
     ) {}
+
 
     // *********************************************************
     // RegularShipping - Result Dto

@@ -5,13 +5,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.closing.payment.converter.WdcaDelinquentDepositRefundConverter;
-import com.kyowon.sms.wells.web.closing.payment.dto.WdcaDelinquentDepositRefundDto.SaveReq;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaAgainDisbursementObjectDivideDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaAgainDisbursementObjectDivideRentalDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaBznsAtamBasDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDelinquentDepositRefundDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDepositRefundProcessingAmountDvo;
+import com.kyowon.sms.wells.web.closing.payment.dvo.*;
 import com.kyowon.sms.wells.web.closing.payment.mapper.WdcaDelinquentDepositRefundMapper;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractDtlStatCdChService;
@@ -32,32 +26,16 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WdcaDelinquentDepositRefundService {
-    private final WdcaDelinquentDepositRefundConverter converter;
     private final WdcaDelinquentDepositRefundMapper mapper;
     private final WctbContractDtlStatCdChService service;
 
     /**
      * WELLS 연체 대상건의 입금 발생 시 입금에 대한 연체금액과 연체가산금액에 대한 입금내역과 잔액을 관리한다.
-     * @param cntrNo        계약번호
-     * @param cntrSn         계약일련번호
-     * @param kwGrpCoCd      교원그룹회사코드
-     * @param rveNo          수납번호
-     * @param rveSn          수납일련번호
-     * @param dpDvCd         입금구분코드
-     * @param dpMesCd        입금수단코드
-     * @param dpTpCd         입금유형코드
-     * @param rveDvCd        수납구분코드
-     * @param rveCd          수납코드
-     * @param rveDt          수납일자
-     * @param perfDt         실적일자
-     * @param rveAmt         수납금액
-     * @return WdcaDelinquentDepositRefundDto
+     * @return int
      * @throws BizException SQL 오류 발생 시 Exception 처리
      */
     @Transactional
-    public int saveDelinquentDepositRefund(SaveReq dto) throws BizException {
-        WdcaDelinquentDepositRefundDvo inputDvo = converter.mapSaveReqToWdcaDelinquentDepositRefundDvo(dto);
-
+    public int saveDelinquentDepositRefund(WdcaDelinquentDepositRefundDvo inputDvo) throws BizException {
         WdcaDepositRefundProcessingAmountDvo searchDvo = mapper.selectDepositRefundProcessingAmount(inputDvo);
 
         int processCount = 0;
@@ -80,13 +58,13 @@ public class WdcaDelinquentDepositRefundService {
             int rveAmt = inputDvo.getRveAmt();
             int eotDlqAmt = searchDvo.getEotDlqAmt();
             int eotDlqAddAmt = searchDvo.getEotDlqAddAmt();
-            String sellTpCd = searchDvo.getSellTpCd();
+            String sellTpCd = inputDvo.getSellTpCd();
             int bznsAtamBlam = 0;
             int bznsAtamProcsAmt = 0;
 
-            WdcaBznsAtamBasDvo edcaBznsAtamBasDvo = new WdcaBznsAtamBasDvo();
-            edcaBznsAtamBasDvo.setCntrNo(inputDvo.getCntrNo());
-            edcaBznsAtamBasDvo.setCntrSn(inputDvo.getCntrSn());
+            WdcaBznsAtamBasDvo wdcaBznsAtamBasDvo = new WdcaBznsAtamBasDvo();
+            wdcaBznsAtamBasDvo.setCntrNo(inputDvo.getCntrNo());
+            wdcaBznsAtamBasDvo.setCntrSn(inputDvo.getCntrSn());
             /* 연체금 입금내역 영업선수금에 반영 */
             if (("1".equals(dpDvCd) || "3".equals(dpDvCd))
                 && ("03".equals(rveDvCd))) {
@@ -97,13 +75,13 @@ public class WdcaDelinquentDepositRefundService {
                     bznsAtamBlam = bznsAtamBlam - eotDlqAmt;
                     bznsAtamProcsAmt = eotDlqAmt;
                 }
-                edcaBznsAtamBasDvo.setBznsAtamBlam(bznsAtamBlam);
-                result = mapper.updateBznsAtamBas(edcaBznsAtamBasDvo); /*영업선수금기본 Table 정보 수정*/
+                wdcaBznsAtamBasDvo.setBznsAtamBlam(bznsAtamBlam);
+                result = mapper.updateBznsAtamBas(wdcaBznsAtamBasDvo); /*영업선수금기본 Table 정보 수정*/
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
-                edcaBznsAtamBasDvo.setBznsAtamProcsCd("1");
-                edcaBznsAtamBasDvo.setBznsAtamProcsAmt(bznsAtamProcsAmt);
-                result = mapper.updatebznsAtamProcsIz(edcaBznsAtamBasDvo); /*영업선수금처리내역 생성*/
+                wdcaBznsAtamBasDvo.setBznsAtamProcsCd("1");
+                wdcaBznsAtamBasDvo.setBznsAtamProcsAmt(bznsAtamProcsAmt);
+                result = mapper.updatebznsAtamProcsIz(wdcaBznsAtamBasDvo); /*영업선수금처리내역 생성*/
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             }
 
@@ -117,24 +95,24 @@ public class WdcaDelinquentDepositRefundService {
                     bznsAtamBlam = bznsAtamBlam - eotDlqAddAmt;
                     bznsAtamProcsAmt = eotDlqAddAmt;
                 }
-                edcaBznsAtamBasDvo.setBznsAtamBlam(bznsAtamBlam);
-                result = mapper.updateBznsAtamBas(edcaBznsAtamBasDvo); /*영업선수금기본 Table 정보 수정*/
+                wdcaBznsAtamBasDvo.setBznsAtamBlam(bznsAtamBlam);
+                result = mapper.updateBznsAtamBas(wdcaBznsAtamBasDvo); /*영업선수금기본 Table 정보 수정*/
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
-                edcaBznsAtamBasDvo.setBznsAtamProcsCd("4");
-                edcaBznsAtamBasDvo.setBznsAtamProcsAmt(bznsAtamProcsAmt);
-                result = mapper.updatebznsAtamProcsIz(edcaBznsAtamBasDvo); /*영업선수금처리내역 생성*/
+                wdcaBznsAtamBasDvo.setBznsAtamProcsCd("4");
+                wdcaBznsAtamBasDvo.setBznsAtamProcsAmt(bznsAtamProcsAmt);
+                result = mapper.updatebznsAtamProcsIz(wdcaBznsAtamBasDvo); /*영업선수금처리내역 생성*/
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             }
 
             /*계약상세상태 변경*/
             if (eotDlqAmt <= rveAmt) {
-                WctbContractDtlStatCdChDvo ectbContractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
-                ectbContractDtlStatCdChDvo.setCntrNo(inputDvo.getCntrNo());
-                ectbContractDtlStatCdChDvo.setCntrSn(inputDvo.getCntrSn());
-                ectbContractDtlStatCdChDvo.setCntrDtlStatCd("101");
+                WctbContractDtlStatCdChDvo wctbContractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
+                wctbContractDtlStatCdChDvo.setCntrNo(inputDvo.getCntrNo());
+                wctbContractDtlStatCdChDvo.setCntrSn(String.valueOf(inputDvo.getCntrSn()));
+                wctbContractDtlStatCdChDvo.setCntrDtlStatCd("101");
                 try {
-                    service.editContractDtlStatCdCh(ectbContractDtlStatCdChDvo);
+                    service.editContractDtlStatCdCh(wctbContractDtlStatCdChDvo);
                 } catch (Exception e) {
                     throw new BizException("계약 상세 상태 변경 실패");
                 }
@@ -146,25 +124,25 @@ public class WdcaDelinquentDepositRefundService {
             if (("1".equals(sellTpCd) || "2".equals(sellTpCd)) && ("1".equals(dpDvCd) || "3".equals(dpDvCd))
                 && ("03".equals(rveDvCd))) {
                 if ("1".equals(sellTpCd)) {
-                    WdcaAgainDisbursementObjectDivideDvo edcaAgainDisbursementObjectDivideDvo = mapper
+                    WdcaAgainDisbursementObjectDivideDvo wdcaAgainDisbursementObjectDivideDvo = mapper
                         .selectAgainDisbursementObjectDivide(inputDvo);
-                    int cntrTam = edcaAgainDisbursementObjectDivideDvo.getCntrTam();
-                    int dpAcuAmt = edcaAgainDisbursementObjectDivideDvo.getDpAcuAmt();
+                    int cntrTam = wdcaAgainDisbursementObjectDivideDvo.getCntrTam();
+                    int dpAcuAmt = wdcaAgainDisbursementObjectDivideDvo.getDpAcuAmt();
                     if (cntrTam + eotDlqAmt <= dpAcuAmt + rveAmt) {
                         result = mapper.updateRedfAdsbBas(inputDvo, adsbRt, adsbAmt); /*재지급데이터 업데이트*/
                         BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
                     }
                 }
                 if ("2".equals(sellTpCd)) {
-                    WdcaAgainDisbursementObjectDivideRentalDvo edcaAgainDisbursementObjectDivideRentalDvo = mapper
+                    WdcaAgainDisbursementObjectDivideRentalDvo wdcaAgainDisbursementObjectDivideRentalDvo = mapper
                         .selectAgainDisbursementObjectDivideRental(inputDvo);
-                    int rentalTn = edcaAgainDisbursementObjectDivideRentalDvo.getRentalTn(); //렌탈차월
-                    int fnlAmt = edcaAgainDisbursementObjectDivideRentalDvo.getFnlAmt(); //렌탈료
-                    int dpAcuAmt = edcaAgainDisbursementObjectDivideRentalDvo.getDpAcuAmt(); //입금총액
-                    int ackmtPerfAmt = edcaAgainDisbursementObjectDivideRentalDvo.getAckmtPerfAmt(); //인정실적금액
-                    String canDt = edcaAgainDisbursementObjectDivideRentalDvo.getCanDt(); //취소일자
-                    String istDt = edcaAgainDisbursementObjectDivideRentalDvo.getIstDt(); //설치일자
-                    int ucAmt = edcaAgainDisbursementObjectDivideRentalDvo.getUcAmt(); //미수금액
+                    int rentalTn = wdcaAgainDisbursementObjectDivideRentalDvo.getRentalTn(); //렌탈차월
+                    int fnlAmt = wdcaAgainDisbursementObjectDivideRentalDvo.getFnlAmt(); //렌탈료
+                    int dpAcuAmt = wdcaAgainDisbursementObjectDivideRentalDvo.getDpAcuAmt(); //입금총액
+                    int ackmtPerfAmt = wdcaAgainDisbursementObjectDivideRentalDvo.getAckmtPerfAmt(); //인정실적금액
+                    String canDt = wdcaAgainDisbursementObjectDivideRentalDvo.getCanDt(); //취소일자
+                    String istDt = wdcaAgainDisbursementObjectDivideRentalDvo.getIstDt(); //설치일자
+                    int ucAmt = wdcaAgainDisbursementObjectDivideRentalDvo.getUcAmt(); //미수금액
                     if (eotDlqAmt <= rveAmt) {
                         if (rentalTn <= 24) {
                             adsbRt = 100;

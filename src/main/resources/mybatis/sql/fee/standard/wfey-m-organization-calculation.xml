@@ -1,0 +1,621 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyMOrganizationCalculationMapper">
+    <update id="updateBsManagementFeeForSellerCase1">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC((Z.FEE_UPRC_AMT - 500) * 0.8)
+        <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) = 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) <![CDATA[<]]> 90 /* 비율   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForSellerCase2">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = Z.FEE_UPRC_AMT - 500
+            <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) = 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) >= 90 /* 비율    */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForSellerCase3">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC(Z.FEE_UPRC_AMT * 0.8 )
+                       <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM,Z.CL_DV_CD,Z.OG_TP_CD,Z.PRTNR_NO ) IN (
+                         SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD,A.PRTNR_NO
+                          FROM TB_FEAM_FEE_CALC_BAS A
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                               ON  A.BASE_YM        = B.BASE_YM
+                               AND A.PERF_YM        = B.PERF_YM
+                               AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                               AND 'W02P00097'      = B.PERF_ATC_CD          /* 허위방문건수 */
+                               AND A.OG_TP_CD       = B.OG_TP_CD
+                               AND A.PRTNR_NO       = B.PRTNR_NO
+                               AND '0'              = B.PERF_DV_CD          /* 개인 */
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                               ON  A.BASE_YM        = C.BASE_YM
+                               AND A.PERF_YM        = C.PERF_YM
+                               AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                               AND 'W02P00095'      = C.PERF_ATC_CD          /* 매니저BS실적비율 */
+                               AND A.OG_TP_CD       = C.OG_TP_CD
+                               AND A.PRTNR_NO       = C.PRTNR_NO
+                               AND '0'              = C.PERF_DV_CD          /* 개인 */
+                         WHERE 1 = 1
+                           AND A.BASE_YM = #{baseYm}
+                           AND A.PERF_YM = #{baseYm}
+                           AND A.OG_TP_CD = #{ogTpCd}
+                           AND A.FEE_CD = #{feeCd}
+                           AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                           AND A.FEE_CALC_AMT > 0
+                           AND NVL(B.PERF_VAL,0) != 1             /* 허위방문건수    */
+                           AND NVL(C.PERF_VAL,100) <![CDATA[<]]> 90            /* 비율   */
+                        )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0   -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForSellerCase4">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = Z.FEE_UPRC_AMT
+           <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                                   AND A.BASE_YM = #{baseYm}
+                                   AND A.PERF_YM = #{baseYm}
+                                   AND A.OG_TP_CD = #{ogTpCd}
+                                   AND A.FEE_CD = #{feeCd}
+                                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) != 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) >= 90 /* 비율    */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id='updateRegionLevelFeeForSeller'>
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ B
+           SET B.RGLVL_FEE_AMT = CASE
+                                     WHEN B.VST_RGLVL_GD_CD = 3 THEN 1000 /*W1급지(3급지)*/
+                                     WHEN B.VST_RGLVL_GD_CD = 4 THEN 3000 /*W2급지(4급지)*/
+                                     ELSE 0 END
+            <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (B.BASE_YM, B.CL_DV_CD, B.OG_TP_CD, B.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0) -- 수수료 받아 간 사람.
+           AND B.WK_EXCN_DT IS NOT NULL
+           AND B.VST_RGLVL_GD_CD IN ('2', '3') /* 급지 */
+           AND B.FEE_UPRC_AMT > 0          -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+           AND B.SV_BIZ_DCLSF_CD NOT IN ('4330', '2250', '2240') -- 제외 홈마스터 방문부재건 4330 / 웰컴BS 2250 / 사전방문 2240
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase1">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC((Z.FEE_UPRC_AMT - 500) * 0.8)
+        <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) = 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) <![CDATA[<]]> 90 /* 비율   */
+                   AND NVL(D.PERF_VAL, 0) <![CDATA[<]]> 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase2">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = Z.FEE_UPRC_AMT - 500
+            <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) = 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) >= 90 /* 비율    */
+                   AND NVL(D.PERF_VAL, 0) <![CDATA[<]]> 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase3">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC(Z.FEE_UPRC_AMT * 0.8)
+            <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) != 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) <![CDATA[<]]> 90 /* 비율   */
+                   AND NVL(D.PERF_VAL, 0) <![CDATA[<]]> 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase4">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = Z.FEE_UPRC_AMT
+        <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) != 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) >= 90 /* 비율    */
+                   AND NVL(D.PERF_VAL, 0) <![CDATA[<]]> 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase5">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC((Z.FEE_UPRC_AMT - 500) * 0.8 * 0.7)
+        <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) = 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) <![CDATA[<]]> 90 /* 비율   */
+                   AND NVL(D.PERF_VAL, 0) >= 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase6">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC((Z.FEE_UPRC_AMT - 500) * 0.7)
+            <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) = 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) >= 90 /* 비율    */
+                   AND NVL(D.PERF_VAL, 0) >= 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase7">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC(Z.FEE_UPRC_AMT * 0.8 * 0.7)
+        <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) != 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) <![CDATA[<]]> 90 /* 비율   */
+                   AND NVL(D.PERF_VAL, 0) >= 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateBsManagementFeeForBrmgrCase8">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ Z
+           SET Z.FEE_CALC_AMT = TRUNC(Z.FEE_UPRC_AMT * 0.7)
+            <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (Z.BASE_YM, Z.CL_DV_CD, Z.OG_TP_CD, Z.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                       ON A.BASE_YM = B.BASE_YM
+                                           AND A.PERF_YM = B.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = B.FEE_TCNT_DV_CD
+                                           AND 'W02P00097' = B.PERF_ATC_CD /* 허위방문건수 */
+                                           AND A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                           AND '0' = B.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00095' = C.PERF_ATC_CD /* 매니저BS실적비율 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                       ON A.BASE_YM = D.BASE_YM
+                                           AND A.PERF_YM = D.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = D.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = D.PERF_ATC_CD /* BS실적건수 */
+                                           AND A.OG_TP_CD = D.OG_TP_CD
+                                           AND A.PRTNR_NO = D.PRTNR_NO
+                                           AND '0' = D.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.FEE_CALC_AMT > 0
+                   AND NVL(B.PERF_VAL, 0) != 1 /* 허위방문건수    */
+                   AND NVL(C.PERF_VAL, 100) >= 90 /* 비율    */
+                   AND NVL(D.PERF_VAL, 0) >= 120 /* 실적건수   */
+               )
+           AND Z.WK_EXCN_DT IS NOT NULL
+           AND Z.FEE_UPRC_AMT > 0 -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+    </update>
+
+    <update id="updateUnderPerf120RegionLevelFeeForBrmgr">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ B
+           SET B.RGLVL_FEE_AMT = CASE
+                                     WHEN B.VST_RGLVL_GD_CD = 3 THEN 1000 /*W1급지(3급지)*/
+                                     WHEN B.VST_RGLVL_GD_CD = 4 THEN 3000 /*W2급지(4급지)*/
+                                     ELSE 0 END
+         <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (B.BASE_YM, B.CL_DV_CD, B.OG_TP_CD, B.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = C.PERF_ATC_CD /* 매니저BS실적건수 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 120 /* 매니저BS실적건수 - 모두지급   */
+                   AND A.FEE_CALC_AMT > 0) -- 수수료 받아 간 사람.
+           AND B.WK_EXCN_DT IS NOT NULL
+           AND B.VST_RGLVL_GD_CD IN ('2', '3') /* 급지 */
+           AND B.FEE_UPRC_AMT > 0          -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+           AND B.SV_BIZ_DCLSF_CD NOT IN ('4330', '2250', '2240') -- 제외 홈마스터 방문부재건 4330 / 웰컴BS 2250 / 사전방문 2240
+    </update>
+
+    <update id="updateOverPerf120RegionLevelFeeForBrmgr">
+        UPDATE TB_FEAM_WELS_SV_PERF_IZ B
+           SET B.RGLVL_FEE_AMT = CASE
+                                     WHEN B.VST_RGLVL_GD_CD = 3 THEN 700 /*W1급지(3급지)*/
+                                     WHEN B.VST_RGLVL_GD_CD = 4 THEN 2100 /*W2급지(4급지)*/
+                                     ELSE 0 END
+            <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND (B.BASE_YM, B.CL_DV_CD, B.OG_TP_CD, B.PRTNR_NO) IN
+               (SELECT DISTINCT A.BASE_YM, A.FEE_TCNT_DV_CD, A.OG_TP_CD, A.PRTNR_NO
+                  FROM TB_FEAM_FEE_CALC_BAS A
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                       ON A.BASE_YM = C.BASE_YM
+                                           AND A.PERF_YM = C.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                           AND 'W02P00085' = C.PERF_ATC_CD /* 매니저BS실적건수 */
+                                           AND A.OG_TP_CD = C.OG_TP_CD
+                                           AND A.PRTNR_NO = C.PRTNR_NO
+                                           AND '0' = C.PERF_DV_CD /* 개인 */
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.PERF_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.FEE_CD = #{feeCd}
+                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND NVL(C.PERF_VAL, 0) >= 120 /* 매니저BS실적건수 - 70% 지급   */
+                   AND A.FEE_CALC_AMT > 0) -- 수수료 받아 간 사람.
+           AND B.WK_EXCN_DT IS NOT NULL
+           AND B.VST_RGLVL_GD_CD IN ('2', '3') /* 급지 */
+           AND B.FEE_UPRC_AMT > 0          -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
+           AND B.SV_BIZ_DCLSF_CD NOT IN ('4330', '2250', '2240') -- 제외 홈마스터 방문부재건 4330 / 웰컴BS 2250 / 사전방문 2240
+    </update>
+
+</mapper>

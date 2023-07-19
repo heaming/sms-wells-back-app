@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.interfaces.converter;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniAsSidingChangeInterfaceDvo;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
@@ -31,5 +32,7 @@ public interface WsncWellsAsInterfaceConverter {
     );
 
     SearchCustomerInformationRes mapCustomerInformationDvoToRes(WsniCustomerInformationDvo dvo);
+
+    SearchAsSidingChangeRes mapAsSidingChangeDvoToRes(WsniAsSidingChangeInterfaceDvo dvo);
 
 }
