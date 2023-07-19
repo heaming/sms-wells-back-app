@@ -5,6 +5,8 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationReturnDvo;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +36,7 @@ public class WsnaItemBaseInformationController {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
     @GetMapping
-    public List<SearchRes> getItemBaseInformations(
+    public List<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(
         @Valid
         SearchReq dto
     ) {
@@ -42,7 +44,7 @@ public class WsnaItemBaseInformationController {
     }
 
     @GetMapping("/out-of")
-    public List<OstrRes> getItemBaseInformationsOutOf(
+    public List<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(
         SearchReq dto
     ) {
         return service.getItemBaseInformationsOutOf(dto);
