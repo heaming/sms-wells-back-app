@@ -181,7 +181,7 @@ public class WctbContractChangeMgtService {
 
         String now = DateUtil.getNowDayString();
         BizAssert.isFalse(now.equals(cntrCnfmDt), "MSG_ALT_TOD_ORD_CAN_DEL_NO_APR"); // 당일접수 주문은 계약현황목록에서 승인 절차 없이 삭제 가능합니다.
-        BizAssert.isFalse(now.substring(0, 6).equals(cntrCnfmYm), "MSG_ALT_ONLY_CAN_DEL_THM_ORD"); // 당월접수 주문만 삭제 가능합니다.
+        BizAssert.isTrue(now.substring(0, 6).equals(cntrCnfmYm), "MSG_ALT_ONLY_CAN_DEL_THM_ORD"); // 당월접수 주문만 삭제 가능합니다.
 
         BizAssert.isFalse(!StringUtil.isEmpty(istDt), "MSG_ALT_INST_ORD_CANNOT_DEL"); // 설치 완료된 주문은 삭제 불가합니다.
         BizAssert.isFalse("Y".equals(prmPtrmYn), "MSG_ALT_PRM_ORD_CANNOT_CHANGE_CNTR_TP"); // 선납 주문은 계약유형변경 불가합니다.
