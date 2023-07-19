@@ -239,6 +239,15 @@
       )
     </update>
 
+    <select id="selectCheckSoleConfrim" resultType="int">
+        SELECT COUNT(1) AS CT
+          FROM TB_FEAM_NTOR_MM_CL T1  /* 순주문파트너월마감 */
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'
+           AND T1.NTOR_CNFM_STAT_CD   = '02'
+    </select>
+
     <delete id="deleteAggregateNtorMmCl">
         DELETE FROM TB_FEAM_NTOR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
@@ -251,6 +260,7 @@
          WHERE T1.BASE_YM             = #{perfYm}
            AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
            AND T1.PERF_AGRG_CRT_DV_CD = '501'
+           AND T1.OG_TP_CD            = 'W05'
     </delete>
 
     <delete id="deleteAggregateNtorPerfMmCl">
@@ -258,6 +268,7 @@
          WHERE T1.BASE_YM             = #{perfYm}
            AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
            AND T1.PERF_AGRG_CRT_DV_CD = '501'
+           AND T1.OG_TP_CD            = 'W05'
     </delete>
 
     <insert id="insertAggregateNtorMmCl">
@@ -311,9 +322,18 @@
              , T1.ACKMT_PERF_AMT    AS PERF_VAL
              , 'N'                  AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
-          FROM TB_FEAM_WELS_NRCTR_MM_CL T1
+          FROM TB_FEAM_WELS_NRCTR_MM_CL T1  /* 웰스순주문계약월마감 */
+         INNER JOIN TB_FEAM_NRCTR_MM_CL T2  /* 순주문계약월마감     */
+            ON T2.BASE_YM             = T1.BASE_YM
+           AND T2.FEE_TCNT_DV_CD      = T1.FEE_TCNT_DV_CD
+           AND T2.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
+           AND T2.NTOR_CNFM_STAT_CD   = '02'
+          LEFT OUTER JOIN  TB_SSCT_CNTR_DTL T3  /* 계약상세             */
+            ON T3.CNTR_NO             = T1.CNTR_NO
+           AND T3.CNTR_SN             = T1.CNTR_SN
          WHERE T1.BASE_YM             = #{perfYm}
            AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.CNTR_PERF_CRT_DV_CD = '01'
            AND T1.OG_TP_CD            = 'W05'
     </insert>
 
@@ -340,16 +360,15 @@
              , T1.CO_CD
              , T1.OG_TP_CD
              , T1.PRTNR_NO
-             , T1.PERF_DV_CD
-             , SUM(T1.PERF_VAL)     AS PERF_VAL
-             , 'N'                                     AS DTA_DL_YN
+             , '0'                AS PERF_DV_CD
+             , SUM(T1.PERF_VAL)   AS PERF_VAL
+             , 'N'                AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
-          FROM TB_FEAM_NTORP_CNTR_MM_CL T1
+          FROM TB_FEAM_NTORP_CNTR_MM_CL T1 /* 순주문파트너계약월마감 */
          WHERE T1.BASE_YM             = #{perfYm}
            AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
            AND T1.PERF_AGRG_CRT_DV_CD = '501'
            AND T1.PERF_ATC_CD         = 'W05P00001'
-           AND T1.CO_CD               = '2000'
            AND T1.OG_TP_CD            = 'W05'
            AND T1.PERF_DV_CD          = '0'
          GROUP BY T1.BASE_YM
@@ -360,7 +379,57 @@
                 , T1.CO_CD
                 , T1.OG_TP_CD
                 , T1.PRTNR_NO
-                , T1.PERF_DV_CD
+    </insert>
+
+    <insert id="insertOgAggregateNtorPerfMmCl">
+        INSERT INTO TB_FEAM_NTORP_PERF_MM_CL (
+               BASE_YM
+             , PERF_YM
+             , FEE_TCNT_DV_CD
+             , PERF_AGRG_CRT_DV_CD
+             , PERF_ATC_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , PERF_DV_CD
+             , PERF_VAL
+             , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+        )
+        SELECT T1.BASE_YM
+             , T1.PERF_YM
+             , T1.FEE_TCNT_DV_CD
+             , T1.PERF_AGRG_CRT_DV_CD
+             , T1.PERF_ATC_CD
+             , T1.CO_CD
+             , T1.OG_TP_CD
+             , T3.DGR1_LEVL_DG_PRTNR_NO
+             , '2'               AS PERF_DV_CD
+             , SUM(T1.PERF_VAL)  AS PERF_VAL
+             , 'N'               AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_FEAM_NTORP_PERF_MM_CL T1  /* 순주문파트너실적월마감 */
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T2  /* 월파트너내역           */
+            ON T2.BASE_YM  = T1.BASE_YM
+           AND T2.OG_TP_CD = T1.OG_TP_CD
+           AND T2.PRTNR_NO = T1.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ T3  /* 월조직내역             */
+            ON T3.BASE_YM  = T2.BASE_YM
+           AND T3.OG_ID    = T2.OG_ID
+         WHERE T1.BASE_YM             = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
+           AND T1.PERF_AGRG_CRT_DV_CD = '501'
+           AND T1.PERF_ATC_CD         = 'W05P00001'
+           AND T1.OG_TP_CD            = 'W05'
+           AND T1.PERF_DV_CD          = '0'
+         GROUP BY T1.BASE_YM
+                , T1.PERF_YM
+                , T1.FEE_TCNT_DV_CD
+                , T1.PERF_AGRG_CRT_DV_CD
+                , T1.PERF_ATC_CD
+                , T1.CO_CD
+                , T1.OG_TP_CD
+                , T3.DGR1_LEVL_DG_PRTNR_NO
     </insert>
 
     <insert id="insertAggregateNtorPerfPointMmCl">

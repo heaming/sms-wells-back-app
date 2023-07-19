@@ -12,6 +12,8 @@ public interface WfebSoleDistributorFeeMgtMapper {
     List<Fee> selectDistributorFee(SearchFeeReq req);
     int updateCalcFee(WfebSoleDistributorFeeDvo dvo);
 
+
+    int selectCheckSoleConfrim(CreateReq req);
     int deleteAggregateNtorMmCl(CreateReq req);
     int deleteAggregateNtorCntrMmCl(CreateReq req);
     int deleteAggregateNtorPerfMmCl(CreateReq req);
@@ -19,6 +21,8 @@ public interface WfebSoleDistributorFeeMgtMapper {
     int insertAggregateNtorMmCl(CreateReq req);
     int insertAggregateNtorCntrMmCl(CreateReq req);
     int insertAggregateNtorPerfMmCl(CreateReq req);
+    int insertOgAggregateNtorPerfMmCl(CreateReq req);
+
     int insertAggregateNtorPerfPointMmCl(CreateReq req);
     int updateAggregateNtorMmCl(CreateReq req);
 
