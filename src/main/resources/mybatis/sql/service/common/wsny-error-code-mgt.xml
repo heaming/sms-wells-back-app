@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyErrorCodeMgtMapper">
+
+    <!--상품별 에러코드 관리 조회(페이징)-->
+    <select id="selectErrorCodePages" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyErrorCodeMgtDvo">
+    SELECT TB1.PD_CD pdCd
+         , TB2.PD_NM pdNm
+         , SV_PD_ERR_CN errCn
+         , SV_PD_ERR_DV_CN errDvCn
+         , ERR_OC_CAUS_CN errCausCn
+         , CASE WHEN SV_PD_ERR_IMG_DOC_ID IS NOT NULL THEN 'Y'
+                ELSE ''
+            END errImageYn
+         , (SELECT FILE_UID
+              FROM T_CMD_ATTH_FILE_D
+             WHERE TENANT_ID = 'TNT_WELLS'
+               AND ATTH_DOC_ID = SV_PD_ERR_IMG_DOC_ID
+               AND DEL_YN = 'N') errImageUId
+         , SV_PD_ERR_IMG_DOC_ID errImageDocId
+      FROM TB_SVPD_SV_PD_ERR_CD_IZ TB1
+         , TB_PDBS_PD_BAS TB2
+         , TB_PDBS_PD_ECOM_PRP_DTL TB3
+     WHERE TB1.DTA_DL_YN = 'N'
+       AND TB1.PD_CD = TB2.PD_CD
+       AND TB1.PD_CD = TB3.PD_CD
+       AND TB3.PD_EXTS_PRP_GRP_CD = 'PART'
+       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+       AND TB1.PD_CD = #{pdCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+       AND TB3.PD_PRP_VAL20 = #{pdGrpCd}
+       </if>
+     ORDER
+        BY TB1.PD_CD, SV_PD_ERR_CN
+    </select>
+
+    <update id="deleteErrorCode">
+        UPDATE TB_SVPD_SV_PD_ERR_CD_IZ
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE PD_CD = #{pdCd}
+           AND SV_PD_ERR_CN = #{errCn}
+    </update>
+
+    <insert id="insertErrorCode">
+        INSERT INTO TB_SVPD_SV_PD_ERR_CD_IZ (
+               PD_CD
+             , SV_PD_ERR_CN
+             , SV_PD_ERR_DV_CN
+             , ERR_OC_CAUS_CN
+             , SV_PD_ERR_IMG_DOC_ID
+             <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+               #{pdCd}
+             , #{errCn}
+             , #{errDvCn}
+             , #{errCausCn}
+             , #{errImageDocId}
+             <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <update id="updateErrorCode">
+        UPDATE TB_SVPD_SV_PD_ERR_CD_IZ
+           SET SV_PD_ERR_CN = #{errCn}
+             , SV_PD_ERR_DV_CN = #{errDvCn}
+             , ERR_OC_CAUS_CN = #{errCausCn}
+             , SV_PD_ERR_IMG_DOC_ID = #{errImageDocId}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE PD_CD = #{pdCd}
+           AND SV_PD_ERR_CN = #{errCn}
+    </update>
+</mapper>
