@@ -113,8 +113,8 @@ public class WctbCustomerBaseBulkChangeService {
                     String bfchCn = String.format("수령자한글명: %s", contractDvo.getIstKnm()); /* 변경전내용 */
 
                     BizAssert.isTrue(
-                        StringUtils.isNotEmpty(cntrAdrpcId), "MSG_ALT_CHK_CNTR_NO",
-                        new String[] {contractDvo.getCntrNo()}
+                        StringUtils.isNotEmpty(cntrAdrpcId), "MSG_ALT_NOT_EXIST_CST_INFO_IT",
+                        new String[] {messageResourceService.getMessage("MSG_TXT_CNTR_ADRPC_ID")}
                     );
 
                     dvo.setCntrChRcpDtm(fstRgstDtm); /* 계약변경접수일자 */
