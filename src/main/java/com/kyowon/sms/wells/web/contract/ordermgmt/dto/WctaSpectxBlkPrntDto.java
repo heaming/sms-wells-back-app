@@ -51,6 +51,7 @@ public class WctaSpectxBlkPrntDto {
         String sellTpCd,
         String cntrCstNo,
         String cstKnm,
+        String cstNo,
         String emadr,
         String spectxPblD,
         String cntrNo,
