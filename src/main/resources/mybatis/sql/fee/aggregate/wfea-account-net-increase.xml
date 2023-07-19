@@ -1,0 +1,384 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WwfeaAccountNetIncreaseMapper">
+    <select id='selectLstmmCancels' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WwfeaAccountNetIncreaseDto$SearchRes">
+
+      SELECT  CASE WHEN (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32') THEN '렌탈'
+                   WHEN C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26') THEN '리스/할부'
+                   WHEN C2.SELL_TP_CD = '3' AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD') THEN '멤버십이탈'
+                   WHEN ((C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32'))
+                        AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD') THEN '렌탈만료'
+                    END AS inqrDv
+            , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
+            , P2.PD_CLSF_NM
+            , P2.PD_CLSF_ID
+            , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
+            , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
+            , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
+            , G2.DGR3_LEVL_DG_PRTNR_NO AS ICHR_BRMGR_NO
+            , C1.CNTR_CNFM_DTM /* 계약일 */
+            , C3.IST_DT /* 설치일 */
+            , S5.CNTR_CH_RCP_DTM /* 취소요청일 */
+            , C1.CNTR_CAN_DTM /* 취소일 */
+            , C2.CNTR_PD_ENDDT /* 만료일 */
+            , C2.CNTR_PD_STRTDT /* 사용일 */
+            , C1.CNTR_RCP_FSH_DTM /* 멤버십접수일 */
+            , C1.CNTR_CNFM_APR_DTM /* 멤버십가입일 */
+            , C1.CNTR_CAN_RSON_CD /* 취소사유 */
+            , S3.BZRNO
+            , CASE  WHEN (SELECT COUNT(1) FROM TB_SSCT_SELL_LM_OJ_IZ
+                          WHERE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                            AND ( SELL_LM_PRTNR_NO = C1.SELL_PRTNR_NO OR (SELL_LM_CNTR_NO = C2.CNTR_NO AND SELL_LM_CNTR_SN = C2.CNTR_SN)
+                                  OR SELL_LM_BZRNO = S3.BZRNO )) <![CDATA[>]]> 0 THEN 'Y'
+                    ELSE 'N' END AS b2bYn
+            , DECODE(C1.SELL_PRTNR_NO, NULL, 'N', 'Y') AS SELL_OG_YN
+            , (SELECT PRTNR_KNM FROM TB_OGBS_MM_PRTNR_IZ WHERE C1.SELL_PRTNR_NO = PRTNR_NO AND C1.SELL_OG_TP_CD = OG_TP_CD) AS SELL_PRTNR_KNM
+            , C1.SELL_PRTNR_NO
+            , DECODE(S4.FEE_PERF_EXCD_DV_CD, '03' , 'Y') AS PERF_EXCD_OJ_YN /* 제외대상 */
+            , CASE  WHEN S4.FEE_PERF_EXCD_DV_CD = '03'
+                        AND  TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN S4.APY_STRT_YM
+                        AND S4.APY_END_YM THEN 'Y'
+                    ELSE 'N' END AS APY_OJ_YN
+        FROM TB_FEAM_WELS_NRCTR_MM_CL W1 /* 웰스순주문계약월마감 */
+       INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
+       	  ON W1.CNTR_NO = C1.CNTR_NO
+       	 AND W1.PERF_YM = #{perfYm}
+       	 AND W1.BASE_YM = #{perfYm}
+         AND SUBSTR(C1.CNTR_CNFM_DTM,0,6) = #{perfYm}
+       	 AND SUBSTR(C1.CNTR_CAN_DTM,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM')
+         AND W1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+       INNER JOIN TB_SSCT_CNTR_DTL C2 /*계약상세*/
+          ON C1.CNTR_NO = C2.CNTR_NO
+       INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3  /* WELLS계약상세 */
+          ON C2.CNTR_NO = C3.CNTR_NO
+         AND C2.CNTR_SN = C3.CNTR_SN
+       INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS S1 /* WELLS매출확정기본 */
+          ON C2.CNTR_NO = S1.CNTR_NO
+         AND C2.CNTR_SN = S1.CNTR_SN
+       INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
+          ON W1.PERF_YM = G1.BASE_YM
+         AND C1.SELL_PRTNR_NO = G1.PRTNR_NO
+         AND C1.SELL_OG_TP_CD = G1.OG_TP_CD
+         AND G1.QLF_DV_CD = '3'
+       INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
+	      ON G1.BASE_YM = G2.BASE_YM
+	     AND G1.OG_ID = G2.OG_ID
+	     AND G2.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+          ON C2.BASE_PD_CD = P1.PD_CD
+        LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
+          ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+        LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
+          ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
+        LEFT OUTER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_BAS S4 /* 수수료실적제외대상기본 */
+          ON C2.CNTR_NO = S4.CNTR_NO
+         AND C2.CNTR_SN = S4.CNTR_SN
+        LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_BAS S5 /* 계약변경접수기본 */
+          ON C1.CNTR_CH_RCP_ID = S5.CNTR_CH_RCP_ID
+         AND S5.CNTR_CH_TP_CD = '402'
+       WHERE C1.SELL_OG_TP_CD = #{ogTpCd}
+      <choose>
+        <when test='@MybatisUtils@equals(cnclTp, "01")'> /* 렌탈 */
+         AND (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32')
+        </when>
+        <when test='@MybatisUtils@equals(cnclTp, "02")'> /* 리스/할부 */
+         AND C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26')
+        </when>
+        <when test='@MybatisUtils@equals(cnclTp, "03")'> /* 멤버십이탈 */
+         AND C2.SELL_TP_CD = '3' AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD')
+        </when>
+        <when test='@MybatisUtils@equals(cnclTp, "04")'> /* 렌탈만료 */
+         AND ((C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32'))
+              AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD')
+        </when>
+        <otherwise>
+         AND (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32')
+         AND C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26')
+         AND C2.SELL_TP_CD = '3' AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD')
+         AND ((C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32'))
+              AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD')
+        </otherwise>
+      </choose>
+      <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}</if>
+      <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}</if>
+      <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}</if>
+      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+        AND C1.SELL_PRTNR_NO = #{prtnrNo}
+      </if>
+
+    </select>
+
+    <select id='selectNewSells' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WwfeaAccountNetIncreaseDto$SearchRes">
+
+      SELECT  CASE WHEN (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32') THEN '렌탈'
+                   WHEN C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26') THEN '리스/할부'
+                   WHEN C2.SELL_TP_CD = '3' AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD') THEN '멤버십이탈'
+                   WHEN ((C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32'))
+                        AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD') THEN '렌탈만료'
+                    END AS inqrDv /* 유형ㅇ */
+            , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
+            , P2.PD_CLSF_NM /* 상품명 */
+            , P2.PD_CLSF_ID /* 상품코드 */
+            , C1.CNTR_CNFM_DTM /* 계약일 */
+            , C3.IST_DT /* 설치일 */
+            , C1.CNTR_CAN_DTM /* 취소일 */
+            , F_CMZ_CD_NM(#{session.tenantId}, 'MCHN_CH_TP_CD', W1.MCHN_CH_TP_CD) AS MCHN_CH_TP_CD  /* 기변유형 */
+            , DECODE(C1.SELL_PRTNR_NO, NULL, 'N', 'Y') AS SELL_OG_YN
+            , (SELECT PRTNR_KNM FROM TB_OGBS_MM_PRTNR_IZ WHERE C1.SELL_PRTNR_NO = PRTNR_NO AND C1.SELL_OG_TP_CD = OG_TP_CD) AS SELL_PRTNR_KNM
+            , C1.SELL_PRTNR_NO
+            , W1.BOO_SELL_YN /* 예약여부 */
+            , DECODE(S4.FEE_PERF_EXCD_DV_CD, '03' , 'Y') AS PERF_EXCD_OJ_YN /* 제외대상 */
+            , CASE  WHEN S4.FEE_PERF_EXCD_DV_CD = '03'
+                        AND  #{perfYm} BETWEEN S4.APY_STRT_YM AND S4.APY_END_YM THEN 'Y'
+                    ELSE 'N' END AS APY_OJ_YN
+        FROM TB_FEAM_WELS_NRCTR_MM_CL W1 /* 웰스순주문계약월마감 */
+       INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
+       	  ON W1.CNTR_NO = C1.CNTR_NO
+       	 AND W1.PERF_YM = #{perfYm}
+       	 AND W1.BASE_YM = #{perfYm}
+         AND SUBSTR(C1.CNTR_CNFM_DTM,0,6) = #{perfYm}
+         AND (CNTR_CAN_DTM IS NULL OR SUBSTR(C1.CNTR_CAN_DTM,0,6) <![CDATA[>]]> #{perfYm})
+         AND W1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+       INNER JOIN TB_SSCT_CNTR_DTL C2 /*계약상세*/
+          ON C1.CNTR_NO = C2.CNTR_NO
+       INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3  /* WELLS계약상세 */
+          ON C2.CNTR_NO = C3.CNTR_NO
+         AND C2.CNTR_SN = C3.CNTR_SN
+       INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
+          ON W1.PERF_YM = G1.BASE_YM
+         AND C1.SELL_PRTNR_NO = G1.PRTNR_NO
+         AND C1.SELL_OG_TP_CD = G1.OG_TP_CD
+         AND G1.QLF_DV_CD = '3' /* 웰스매니저 */
+       INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
+	      ON G1.BASE_YM = G2.BASE_YM
+	     AND G1.OG_ID = G2.OG_ID
+	     AND G2.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+          ON C2.BASE_PD_CD = P1.PD_CD
+        LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
+          ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+        LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ S2 /*기기변경내역*/
+          ON C2.CNTR_NO = S2.BASE_CNTR_NO
+         AND C2.CNTR_SN = S2.BASE_CNTR_SN
+        LEFT OUTER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_BAS S4 /* 수수료실적제외대상기본 */
+          ON C2.CNTR_NO = S4.CNTR_NO
+         AND C2.CNTR_SN = S4.CNTR_SN
+       WHERE G1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1) ,'YYYYMM') /* TODO : 가전 상품만 */
+         AND C1.SELL_OG_TP_CD = #{ogTpCd}
+         AND NVL(C2.FEE_ACKMT_CT ,0) <![CDATA[>]]> 0
+      <choose>
+        <when test='@MybatisUtils@equals(cnclTp, "01")'> /* 렌탈 */
+         AND (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32')
+        </when>
+        <when test='@MybatisUtils@equals(cnclTp, "02")'> /* 리스/할부 */
+         AND C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26')
+        </when>
+        <otherwise>
+         AND (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32')
+         AND C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26')
+        </otherwise>
+      </choose>
+      <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}</if>
+      <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}</if>
+      <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}</if>
+      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+        AND C1.SELL_PRTNR_NO = #{prtnrNo}
+      </if>
+    </select>
+
+    <select id='selectAggregateChecks' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WwfeaAccountNetIncreaseDto$SearchRes">
+
+      SELECT CASE WHEN #{aggregateTp} = '01' THEN G3.OG_NM
+				  WHEN #{aggregateTp} = '02' THEN G3.DGR3_LEVL_DG_PRTNR_NM
+				  WHEN #{aggregateTp} = '03' THEN G3.DGR2_LEVL_DG_PRTNR_NM
+				  WHEN #{aggregateTp} = '04' THEN G3.DGR1_LEVL_DG_PRTNR_NM
+				   END AS inqrDv
+            , T1.PRTNR_KNM
+            , T1.PRTNR_NO
+            , NVL(T1.RENTAL_CAN_CT, 0) AS RENTAL_CAN_CT
+            , NVL(T1.LEASE_CAN_CT, 0) AS LEASE_CAN_CT
+            , NVL(T1.MSH_SPR_CT, 0) AS MSH_SPR_CT
+            , NVL(T1.RENTAL_EXN_CT, 0) AS RENTAL_EXN_CT
+            , NVL(T1.CAN_TOT_CT , 0) AS CAN_TOT_CT
+            , NVL(T1.RENTAL_NW_CT, 0) AS RENTAL_NW_CT
+            , NVL(T1.LEASE_NW_CT, 0) AS LEASE_NW_CT
+            , NVL(T1.NW_TOT_CT , 0) AS NW_TOT_CT
+            , CASE WHEN NVL(T1.NW_TOT_CT , 0) > NVL(T1.CAN_TOT_CT , 0) THEN 'Y'
+                   ELSE 'N' END AS ACC_NINC_YN
+        FROM
+	  	   (
+		  SELECT  G1.OG_ID
+                , W1.PERF_YM
+                , G1.PRTNR_KNM
+                , W1.PRTNR_NO
+                , NVL(SUM(RENTAL_CAN_CT), 0) AS RENTAL_CAN_CT
+                , NVL(SUM(LEASE_CAN_CT), 0) AS LEASE_CAN_CT
+                , NVL(SUM(MSH_SPR_CT), 0) AS MSH_SPR_CT
+                , NVL(SUM(RENTAL_EXN_CT), 0) AS RENTAL_EXN_CT
+                , NVL(SUM(RENTAL_CAN_CT + LEASE_CAN_CT + MSH_SPR_CT + RENTAL_EXN_CT) , 0) AS CAN_TOT_CT
+                , NVL(SUM(RENTAL_NW_CT), 0) AS RENTAL_NW_CT
+                , NVL(SUM(LEASE_NW_CT), 0) AS LEASE_NW_CT
+                , NVL(SUM(LEASE_NW_CT + LEASE_NW_CT) , 0) AS NW_TOT_CT
+                , CASE WHEN NVL(SUM(LEASE_NW_CT + LEASE_NW_CT) , 0) > NVL(SUM(RENTAL_CAN_CT + LEASE_CAN_CT + MSH_SPR_CT + RENTAL_EXN_CT) , 0) THEN 'Y'
+					ELSE 'N' END AS ACC_NINC_YN
+            FROM TB_FEAM_WELS_ACC_NINC_MM_CL W1
+           INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
+              ON W1.PERF_YM = G1.BASE_YM
+             AND W1.PRTNR_NO = G1.PRTNR_NO
+             AND G1.OG_TP_CD = #{ogTpCd}
+           INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
+              ON G1.BASE_YM = G2.BASE_YM
+             AND G2.DTA_DL_YN = 'N'
+           WHERE W1.FEE_TCNT_DV_CD = '02'
+             AND W1.PERF_YM = #{perfYm}
+            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}</if>
+            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}</if>
+            <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}</if>
+            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+            AND W1.PRTNR_NO = #{prtnrNo}
+            </if>
+           GROUP BY G1.PRTNR_KNM, W1.PRTNR_NO, G1.OG_ID, W1.PERF_YM
+               ) T1
+           INNER JOIN TB_OGBS_MM_OG_IZ G3
+              ON T1.OG_ID = G3.OG_ID
+             AND T1.PERF_YM = G3.BASE_YM
+    </select>
+
+    <insert id="insertAccountNetIncreaseAggregates">
+
+      INSERT INTO TB_FEAM_WELS_ACC_NINC_MM_CL  /* 웰스계정순증월마감 */
+           (
+              PERF_YM          /* 실적년월 */
+            , FEE_TCNT_DV_CD   /* 수수료차수구분코드 */
+            , CO_CD            /* 회사코드 */
+            , PRTNR_NO         /* 파트너번호 */
+            , CNTR_NO          /* 계약번호 */
+            , CNTR_SN          /* 계약일련번호 */
+            , RENTAL_CAN_CT    /* 렌탈취소건수 */
+            , LEASE_CAN_CT     /* 리스취소건수 */
+            , MSH_SPR_CT       /* 멤버십이탈건수 */
+            , RENTAL_EXN_CT    /* 렌탈만료건수 */
+            , RENTAL_NW_CT     /* 렌탈신규건수 */
+            , LEASE_NW_CT      /* 리스신규건수 */
+            , ACC_NINC_YN      /* 계정순증여부 */
+            , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+           )
+      SELECT  W1.PERF_YM
+            , W1.FEE_TCNT_DV_CD
+            , C2.CO_CD
+            , G1.PRTNR_NO
+            , C2.CNTR_NO
+            , C2.CNTR_SN
+            , COUNT(CASE WHEN (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23'))
+                                OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32') THEN 1 ELSE NULL END) AS RENTAL_CAN_CT
+            , COUNT(CASE WHEN C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26') THEN 1 ELSE NULL END) AS LEASE_CAN_CT
+            , COUNT(CASE WHEN C2.SELL_TP_CD = '3' AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD') THEN 1 ELSE NULL END) AS MSH_SPR_CT
+            , COUNT(CASE WHEN ((C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32'))
+                                AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD') THEN 1 ELSE NULL END) AS RENTAL_EXN_CT
+            , 0 AS RENTAL_NW_CT
+            , 0 AS LEASE_NW_CT
+            , 'DTA_DL_YN' AS DTA_DL_YN
+            <include refid="COMMON.insertSystemFieldValue"/>
+        FROM TB_FEAM_WELS_NRCTR_MM_CL W1 /* 웰스순주문계약월마감 */
+       INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
+       	  ON W1.CNTR_NO = C1.CNTR_NO
+       	 AND W1.PERF_YM = #{perfYm}
+       	 AND W1.BASE_YM = #{perfYm}
+         AND SUBSTR(C1.CNTR_CNFM_DTM,0,6) = #{perfYm}
+       	 AND SUBSTR(C1.CNTR_CAN_DTM,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM')
+       INNER JOIN TB_SSCT_CNTR_DTL C2 /*계약상세*/
+          ON C1.CNTR_NO = C2.CNTR_NO
+       INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS S1 /* WELLS매출확정기본 */
+          ON C2.CNTR_NO = S1.CNTR_NO
+         AND C2.CNTR_SN = S1.CNTR_SN
+       INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
+          ON W1.PERF_YM = G1.BASE_YM
+         AND C1.SELL_PRTNR_NO = G1.PRTNR_NO
+         AND C1.SELL_OG_TP_CD = G1.OG_TP_CD
+         AND G1.QLF_DV_CD = '3' /* 웰스매니저 */
+       INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
+	      ON G1.BASE_YM = G2.BASE_YM
+	     AND G1.OG_ID = G2.OG_ID
+	     AND G2.DTA_DL_YN = 'N'
+       INNER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
+          ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
+       WHERE C1.SELL_OG_TP_CD = #{ogTpCd}
+         AND NOT EXISTS (
+                      SELECT 1
+                        FROM TB_SSCT_SELL_LM_OJ_IZ
+                       WHERE DTA_DL_YN = 'N'
+                         AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                         AND ( SELL_LM_PRTNR_NO = C1.SELL_PRTNR_NO OR (SELL_LM_CNTR_NO = C2.CNTR_NO AND SELL_LM_CNTR_SN = C2.CNTR_SN)
+                               OR SELL_LM_BZRNO = S3.BZRNO )
+                        )
+         AND NOT EXISTS (
+                      SELECT 1
+                        FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS
+                       WHERE DTA_DL_YN = 'N'
+                         AND C2.CNTR_NO = CNTR_NO
+                         AND C2.CNTR_SN = CNTR_SN
+                         AND FEE_PERF_EXCD_DV_CD = '03'
+                         AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM
+                        )
+         AND (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32')
+         AND C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26')
+         AND C2.SELL_TP_CD = '3' AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD')
+         AND ((C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32'))
+              AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD')
+       GROUP BY W1.PERF_YM, W1.FEE_TCNT_DV_CD, C2.CO_CD, G1.PRTNR_NO, C2.CNTR_NO, C2.CNTR_SN
+       UNION
+      SELECT  W1.PERF_YM
+            , W1.FEE_TCNT_DV_CD
+            , C2.CO_CD
+            , G1.PRTNR_NO
+            , C2.CNTR_NO
+            , C2.CNTR_SN
+            , 0 AS RENTAL_CAN_CT
+            , 0 AS LEASE_CAN_CT
+            , 0 AS MSH_SPR_CT
+            , COUNT(CASE WHEN ((C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32'))
+                                AND C2.CNTR_PD_ENDDT <![CDATA[>]]> TO_CHAR(C1.CNTR_CAN_DTM,'YYYYMMDD') THEN 1 ELSE NULL END) AS RENTAL_EXN_CT
+            , COUNT(CASE WHEN (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32') THEN 1 ELSE NULL END)  AS RENTAL_NW_CT
+            , COUNT(CASE WHEN C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26')  THEN 1 ELSE NULL END) AS LEASE_NW_CT
+            , 'DTA_DL_YN' AS DTA_DL_YN
+            <include refid="COMMON.insertSystemFieldValue"/>
+        FROM TB_FEAM_WELS_NRCTR_MM_CL W1 /* 웰스순주문계약월마감 */
+       INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
+       	  ON W1.CNTR_NO = C1.CNTR_NO
+       	 AND W1.PERF_YM = #{perfYm}
+       	 AND W1.BASE_YM = #{perfYm}
+         AND SUBSTR(C1.CNTR_CNFM_DTM,0,6) = #{perfYm}
+         AND (C1.CNTR_CAN_DTM IS NULL OR SUBSTR(C1.CNTR_CAN_DTM,0,6) <![CDATA[>]]> #{perfYm})
+       INNER JOIN TB_SSCT_CNTR_DTL C2 /*계약상세*/
+          ON C1.CNTR_NO = C2.CNTR_NO
+       INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
+          ON W1.PERF_YM = G1.BASE_YM
+         AND C1.SELL_PRTNR_NO = G1.PRTNR_NO
+         AND C1.SELL_OG_TP_CD = G1.OG_TP_CD
+         AND G1.QLF_DV_CD = '3' /* 웰스매니저 */
+       INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
+	      ON G1.BASE_YM = G2.BASE_YM
+	     AND G1.OG_ID = G2.OG_ID
+	     AND G2.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_BAS S4 /* 수수료실적제외대상기본 */
+          ON C2.CNTR_NO = S4.CNTR_NO
+         AND C2.CNTR_SN = S4.CNTR_SN
+       WHERE G1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1) ,'YYYYMM') /* TODO : 가전 상품만 */
+         AND C1.SELL_OG_TP_CD = #{ogTpCd}
+         AND NVL(C2.FEE_ACKMT_CT ,0) <![CDATA[>]]> 0
+         AND NOT EXISTS (
+                      SELECT 1
+                        FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS
+                       WHERE DTA_DL_YN = 'N'
+                         AND C2.CNTR_NO = CNTR_NO
+                         AND C2.CNTR_SN = CNTR_SN
+                         AND FEE_PERF_EXCD_DV_CD = '03'
+                         AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM
+                        )
+         AND (C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('21','23')) OR (C2.SELL_TP_CD = '3' AND C2.SELL_TP_DTL_CD = '32')
+         AND C2.SELL_TP_CD = '2' AND C2.SELL_TP_DTL_CD IN ('22','24','25','26')
+       GROUP BY W1.PERF_YM, W1.FEE_TCNT_DV_CD, C2.CO_CD, G1.PRTNR_NO, C2.CNTR_NO, C2.CNTR_SN
+
+    </insert>
+
+</mapper>
