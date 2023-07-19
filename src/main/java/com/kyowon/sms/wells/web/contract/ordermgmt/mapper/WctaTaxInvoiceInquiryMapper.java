@@ -20,6 +20,8 @@ public interface WctaTaxInvoiceInquiryMapper {
 
     int insertTaxInvoiceReceiptBaseHist(WctaTaxInvoiceInquiryDvo dvo);
 
+    int insertSellPartnerToCntrChRcchHist(WctaTaxInvoiceInquiryDvo dvo);
+
     int insertContractChangeReceipt(@Param("item")
     WctaTaxInvoiceInquiryDvo dvo);
 

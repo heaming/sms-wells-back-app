@@ -17,7 +17,6 @@ import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtD
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbContractChangeMngtDto.*;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractChangeDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbContractChangeMgtMapper;
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractChRcchStatChangeDtlHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractNotifyFowrdindHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
@@ -288,16 +287,18 @@ public class WctbContractChangeMgtService {
         dvo.setDtaDlYn("N"); // 데이터삭제여부
 
         int basRes = mapper.insertContractChRcpBase(dvo); // 계약변경접수기본
-
         BizAssert.isTrue(basRes > 0, "MSG_ALT_SVE_ERR");
 
-        historyService.createContractChangeRcchStatChangeHistory(
-            WctzCntrChRcchStatChangeHistDvo
-                .builder()
-                .cntrChRcpId(dvo.getCntrChRcpId())
-                .cntrChPrgsStatCd(dvo.getCntrChPrgsStatCd())
-                .build()
-        );
+        basRes = mapper.insertSellPartnerToCntrChRcchHist(dvo);
+        BizAssert.isTrue(basRes > 0, "MSG_ALT_SVE_ERR");
+
+        //        historyService.createContractChangeRcchStatChangeHistory(
+        //            WctzCntrChRcchStatChangeHistDvo
+        //                .builder()
+        //                .cntrChRcpId(dvo.getCntrChRcpId())
+        //                .cntrChPrgsStatCd(dvo.getCntrChPrgsStatCd())
+        //                .build()
+        //        );
 
         dvo.setCntrUnitTpCd("020"); // 계약단위유형코드
         dvo.setDtlCntrNo(cntrNo); // 상세계약번호
@@ -314,6 +315,15 @@ public class WctbContractChangeMgtService {
                 .builder()
                 .cntrChRcpId(dvo.getCntrChRcpId())
                 .cntrChSn(Integer.parseInt(dvo.getCntrChSn()))
+                .histStrtDtm(dvo.getFnlMdfcDtm())
+                .fnlMdfcDtm(dvo.getFnlMdfcDtm())
+                .fnlMdfcUsrId(dvo.getFnlMdfcUsrId())
+                .fnlMdfcPrgId(dvo.getFnlMdfcPrgId())
+                .fnlMdfcDeptId(dvo.getFnlMdfcDeptId())
+                .fstRgstDtm(dvo.getFstRgstDtm())
+                .fstRgstUsrId(dvo.getFstRgstUsrId())
+                .fstRgstPrgId(dvo.getFstRgstPrgId())
+                .fstRgstDeptId(dvo.getFstRgstDeptId())
                 .build()
         );
 
@@ -487,7 +497,7 @@ public class WctbContractChangeMgtService {
         int basRes = mapper.insertContractChRcpBase(dvo); // 계약변경접수기본
         BizAssert.isTrue(basRes > 0, "MSG_ALT_SVE_ERR");
 
-        basRes = mapper.insertContractChangeReceiptHist(dvo);
+        basRes = mapper.insertSellPartnerToCntrChRcchHist(dvo);
         BizAssert.isTrue(basRes > 0, "MSG_ALT_SVE_ERR");
 
         dvo.setCntrUnitTpCd("020"); // 계약단위유형코드
@@ -503,8 +513,22 @@ public class WctbContractChangeMgtService {
         int dtlRes = mapper.insertContractChRcpDetail(dvo);
         BizAssert.isTrue(dtlRes > 0, "MSG_ALT_SVE_ERR");
 
-        dtlRes = mapper.insertSellPartnerToCntrChRcpDchHist(dvo);
-        BizAssert.isTrue(dtlRes > 0, "MSG_ALT_SVE_ERR");
+        historyService.createContractChRcchChangeDtlHistory(
+            WctzContractChRcchStatChangeDtlHistDvo
+                .builder()
+                .cntrChRcpId(dvo.getCntrChRcpId())
+                .cntrChSn(Integer.parseInt(dvo.getCntrChSn()))
+                .histStrtDtm(dvo.getFnlMdfcDtm())
+                .fnlMdfcDtm(dvo.getFnlMdfcDtm())
+                .fnlMdfcUsrId(dvo.getFnlMdfcUsrId())
+                .fnlMdfcPrgId(dvo.getFnlMdfcPrgId())
+                .fnlMdfcDeptId(dvo.getFnlMdfcDeptId())
+                .fstRgstDtm(dvo.getFstRgstDtm())
+                .fstRgstUsrId(dvo.getFstRgstUsrId())
+                .fstRgstPrgId(dvo.getFstRgstPrgId())
+                .fstRgstDeptId(dvo.getFstRgstDeptId())
+                .build()
+        );
         return 1;
     }
 
