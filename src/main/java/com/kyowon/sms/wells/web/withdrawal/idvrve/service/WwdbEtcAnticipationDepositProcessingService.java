@@ -211,7 +211,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
         }
 
         //기타선수금 데이터 생성
-        processCount += edcaEtcAnticipationAmtService.createEtcAnticipationAmt(wdcaEtcAnticipationAmtDvos);
+        //        processCount += edcaEtcAnticipationAmtService.createEtcAnticipationAmt(wdcaEtcAnticipationAmtDvos);
 
         //영업선수금 데이터 생성
         processCount += wdcaBusinessAnticipationAmtService
