@@ -507,13 +507,14 @@ public class WctaContractDto {
     @ApiModel("WctaContractDto-SearchKMembersCancelAsksRes")
     public record SearchKMembersCancelAsksRes(
         String cntrNo,
+        String cntrSn,
         String cstKnm,
-        String canAkDt,
-        String canDt,
+        String rsgAplcDt,
+        String rsgFshDt,
         String mlgResAmt,
-        String dlvrYn,
-        String procsBsdt,
+        String procsYn,
+        String kmbrsProcsBsdt,
         String trsDt,
-        String cnfmDt
+        String rcpDt
     ) {}
 }

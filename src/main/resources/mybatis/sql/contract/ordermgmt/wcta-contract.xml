@@ -955,96 +955,60 @@
     </select>
 
     <select id="selectKMembersCancelAsks" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchKMembersCancelAsksRes">
-        WITH KE8160P AS  (
-            /* 포인트몰　주문／취소확정　내역(ETL I/F) TODO.생성예정 */
-            SELECT
-                   '' AS CNTR_NO
-                 , '' AS CNTR_SN
-                 , '32' AS KEBZGB
-                 , '2' AS KEPRGB
-                 , '21' AS KEPRCD
-                 , 0 AS KEAMT2 -- 잔여포인트
-                 , '' AS KELOCK --전달여부
-                 , '' AS KEPRDT --처리기준일
-                 , '' AS KEIFDT
-                 , 'N' AS DTA_DL_YN
-              FROM DUAL
-        )
-        /* TODO.KE8160P 테이블 현재 없음 추후 생성예정 */
         SELECT
-               T2.DTL_CNTR_NO AS CNTR_NO  /* 계약번호 - (LCYEAR, LCCODE, LCYCODE) */
-             , T2.DTL_CNTR_SN AS CNTR_SN   /* 계약번호 - (LCYEAR, LCCODE, LCYCODE) */
-             , T5.CST_KNM       /* 고객한글명(계약자) - LCCNAM */
-             , SUBSTR(T1.CNTR_CH_RCP_DTM, 0, 8) AS CAN_AK_DT        /* 취소 요청일자(LCREQT,LCREQY) - 계약변경접수일시 */
-             , SUBSTR(T2.PROCS_FSH_DTM, 0, 8)   AS CAN_DT           /* 취소 일자(LCCANT,LCCANY) - 처리완료일시 */
-             , CASE WHEN T7.CNTR_NO IS NOT NULL THEN T7.KEAMT2
-                    ELSE T6.MLG_RES_AMT END AS MLG_RES_AMT /*잔여포인트*/
-             , T7.KELOCK AS DLVR_YN     /* -전달여부 - TODO.테이블생성예정(KE8160P) */
-             , T7.KEPRDT AS PROCS_BSDT  /* 처리기준일 - TODO.테이블생성예정(KE8160P) */
-             , T7.KEIFDT AS TRS_DT      /* 전송일자  - TODO.테이블생성예정(KE8160P) */
-             , T6.TRS_DT AS CNFM_DT      /* 확정일자(KEIFDT)  - 전송일자 - */
-          FROM TB_SSCT_CNTR_CH_RCP_BAS T1               /* T.계약변경접수기본 */
-         INNER JOIN TB_SSCT_CNTR_CH_RCP_DTL T2          /* T.계약변경접수상세 */
-            ON T2.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
-           AND T2.DTA_DL_YN = 'N'
-           AND T2.PROCS_FSH_DTM IS NOT NULL /*처리완료건(취소건만)*/
-         INNER JOIN TB_SSCT_CNTR_BAS T3                 /* T.계약기본 */
-            ON T3.CNTR_NO = T2.DTL_CNTR_NO
-           AND T3.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_DTL T4                 /* T.계약상세 */
-            ON T4.CNTR_NO = T2.DTL_CNTR_NO
-           AND T4.CNTR_SN = T2.DTL_CNTR_SN
-           AND T4.SELL_TP_CD = '2' /* 판매유형코드 : 렌탈/리스(2) */
-           AND T4.ALNCMP_CD = '45' /* 제휴사코드 : K멤버스(45) */
-           AND T4.DTA_DL_YN = 'N'
-         INNER JOIN TB_CUBS_CST_BAS T5                  /* T.고객기본 */
-            ON T5.CST_NO = T3.CNTR_CST_NO /*고객번호*/
-           AND T5.DTA_DL_YN = 'N'
-           AND T5.TEMP_SAVE_YN = 'N'
-         LEFT OUTER JOIN LATERAL (SELECT * /* 최근 전송일자 */
-                                     FROM (SELECT CNTR_NO
-                                                , CNTR_SN
-                                                , MLG_RES_AMT   /* 마일리지잔여금액 */
-                                                , TRS_DT        /* 전송일자 - 확정일자(KEIFDT) */
-                                                , SUBSTR(FNL_MDFC_DTM, 0,6)   AS SL_TM  /* 최종 수정일시 (매출일 있는 날짜) */
-                                                , ROW_NUMBER() OVER(ORDER BY TRS_DT DESC) AS RN
-                                            FROM TB_IFIN_KMBRS_ORD_SEND_ETXT /* K멤버스주문송신전문 (KE8170P) */
-                                          WHERE 1=1
-                                            AND CNTR_NO = T2.DTL_CNTR_NO
-                                            AND CNTR_SN = T2.DTL_CNTR_SN
-                                            AND KMBRS_BIZ_DV_CD = '0032' /* K멤버스업무구분코드 (웰스렌탈:0032)- 사업부구분(32) */
-                                            AND KMBRS_PROCS_DV_CD = '2'/* 멤버스처리구분코드(취소확정:2) - 처리구분(2) */
-                                            AND DTA_DL_YN = 'N'
-                                          )
-                                    WHERE RN = 1
-                                  ) T6
-            ON T6.CNTR_NO = T2.DTL_CNTR_NO
-           AND T6.CNTR_SN = T2.DTL_CNTR_SN
-          LEFT OUTER JOIN KE8160P T7 /* T.포인트몰　주문／취소확정　내역(ETL I/F) (KE8160P)  TODO.생성예정(3.24 요청함) */
-            ON T7.CNTR_NO = T2.DTL_CNTR_NO
-           AND T7.CNTR_SN = T2.DTL_CNTR_SN
-           AND T7.KEBZGB = '32'
-           AND T7.KEPRGB = '2'
-           AND T7.KEPRCD = '21'
-           AND T7.DTA_DL_YN = 'N'
+               T10.CNTR_NO      /* 계약번호 LCYEAR */
+             , T10.CNTR_SN      /* 계약일련번호 LCCODE */
+             , T111.CST_KNM     /* 고객한글명(계약자) - LCCNAM */
+             , T10.RSG_APLC_DT  /*  해지신청일(LCREQY) */
+             , T10.RSG_FSH_DT   /*  해지완료일(LCCANY) */
+             , CASE WHEN T13.CNTR_NO IS NOT NULL THEN T13.MLG_RES_AMT /* 마일리지잔여금액 */
+                    ELSE T12.P_RES_AMT /*포인트잔여금액*/ END AS MLG_RES_AMT  /* 잔여포인트*/
+             , T13.PROCS_YN /*처리여부(KELOCK) */
+             , T13.KMBRS_PROCS_BSDT /* 멤버스처리기준일자 (KEPRDT) */
+             , T13.TRS_DT       /* 전송일자 (KE816.KEIFDT AS KEIFDT6) */
+             , T12.RCPDT        /* 접수일자 (KE817.KEIFDT AS KEIFDT7) */
+          FROM TB_SSCT_CNTR_RSG_PROCS_IZ T10        /* T.계약해지처리내역(LC3250P) */
+         INNER JOIN TB_SSCT_CNTR_DTL T11            /* T.계약상세 (LC3100P)*/
+            ON T11.CNTR_NO = T10.CNTR_NO
+           AND T11.CNTR_SN = T10.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T110           /* T.계약기본 (LC3100P)*/
+            ON T110.CNTR_NO = T11.CNTR_NO
+           AND T110.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T111            /* T.고객기본 (LC3100P)*/
+            ON T111.CST_NO = T110.CNTR_CST_NO       /*고객번호*/
+           AND T111.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_RSG_RFLT_OJ_IZ T12 /* T.계약해지반영대상내역 (KE8170P)*/
+            ON T12.CNTR_NO = T10.CNTR_NO
+           AND T12.CNTR_SN = T10.CNTR_SN
+           AND T12.RSG_PROCS_DV_CD = '2'                  /* 해지처리구분코드 (취소확정:2) */
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_IFIN_KMBRS_ORD_SEND_ETXT T13 /* T.멤버스주문송신전문 (KE8160P)*/
+            ON T13.CNTR_NO = T10.CNTR_NO
+           AND T13.CNTR_SN = T10.CNTR_SN
+           AND T13.KMBRS_BIZ_DV_CD = '0032'               /* K멤버스업무구분코드 (웰스렌탈:0032) KEBZGB*/
+           AND T13.KMBRS_PROCS_DV_CD = '2'                /* K멤버스처리구분코드 (취소확정:2) KEPRGB*/
+           AND T13.KMBRS_PROCS_BASE_CD = '21'             /* 멤버스처리기준코드(취소완료:21) */
+           AND T13.DTA_DL_YN = 'N'
          WHERE 1=1
-           AND T1.CNTR_CH_TP_CD = '402' /* 계약변경유형코드 : 계약취소신청(402) */
-           AND T1.CNTR_CH_RCP_DTM BETWEEN #{cntrChRcpStrtDtm}||'000000' AND #{cntrChRcpFinsDtm}||'235959'
+           AND T11.SELL_TP_CD = '2'       /* 판매유형코드 : 렌탈/리스(2) */
+           AND T11.ALNCMP_CD = '45'       /* 제휴사코드 : K멤버스(45) */
+           AND T10.RSG_FSH_DT IS NOT NULL /* 해지완료일자 (취소일자) */
+           AND T10.RSG_FSH_DT BETWEEN #{cntrChRcpStrtDtm} AND #{cntrChRcpFinsDtm} /* P1.해지완료일자 */
          <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-           AND T2.DTL_CNTR_NO = #{cntrNo}  /* 조회조건2 - 계약번호 */
+           AND T11.CNTR_NO = #{cntrNo}    /* 계약번호 */
          </if>
          <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
-           AND T2.DTL_CNTR_SN = #{cntrSn}  /* 조회조건2 - 계약일련번호 */
+           AND T11.CNTR_SN = #{cntrSn}    /* 계약일련번호 */
          </if>
          <if test='@MybatisUtils@equals(statCd,"00")'>
-           AND (T6.CNTR_NO IS NULL OR T7.CNTR_NO IS NULL OR T7.KELOCK != 'Y')
+           AND (T12.CNTR_NO IS NULL OR T13.CNTR_NO IS NULL OR T13.PROCS_YN != 'Y')
          </if>
          <if test='@MybatisUtils@equals(statCd,"01")'>
-           AND T6.CNTR_NO IS NOT NULL
-           AND T7.CNTR_NO IS NOT NULL
-           AND T7.KELOCK = 'Y'
+           AND T12.CNTR_NO IS NOT NULL
+           AND T13.CNTR_NO IS NOT NULL
+           AND T13.PROCS_YN = 'Y'
          </if>
-           AND T1.DTA_DL_YN = 'N'
-         ORDER BY T2.PROCS_FSH_DTM, T5.CST_KNM, T2.DTL_CNTR_NO, T2.DTL_CNTR_SN
+         ORDER BY T10.RSG_FSH_DT, T111.CST_KNM, T10.CNTR_NO, T10.CNTR_SN
     </select>
 </mapper>
