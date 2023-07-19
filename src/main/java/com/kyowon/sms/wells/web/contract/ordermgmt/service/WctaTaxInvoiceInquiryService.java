@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrChRcchStatChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractChRcchStatChangeDtlHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzTxinvRcpBaseChangeHistDvo;
@@ -216,12 +215,15 @@ public class WctaTaxInvoiceInquiryService {
             int baseRes = mapper.insertContractChangeReceipt(dvo);
             BizAssert.isFalse(baseRes <= 0, "MSG_ALT_SVE_ERR");
 
-            historyService.createContractChangeRcchStatChangeHistory(
-                WctzCntrChRcchStatChangeHistDvo.builder()
-                    .cntrChRcpId(dvo.getCntrChRcpId())
-                    .cntrChPrgsStatCd(dvo.getCntrChPrgsStatCd())
-                    .build()
-            );
+            baseRes = mapper.insertSellPartnerToCntrChRcchHist(dvo);
+            BizAssert.isFalse(baseRes <= 0, "MSG_ALT_SVE_ERR");
+
+            //            historyService.createContractChangeRcchStatChangeHistory(
+            //                WctzCntrChRcchStatChangeHistDvo.builder()
+            //                    .cntrChRcpId(dvo.getCntrChRcpId())
+            //                    .cntrChPrgsStatCd(dvo.getCntrChPrgsStatCd())
+            //                    .build()
+            //            );
 
             /* 계약변경접수상세 */
             dvo.setCntrUnitTpCd("020"); /* 계약단위유형코드 */
@@ -243,9 +245,19 @@ public class WctaTaxInvoiceInquiryService {
             BizAssert.isFalse(detailRes <= 0, "MSG_ALT_SVE_ERR");
 
             historyService.createContractChRcchChangeDtlHistory(
-                WctzContractChRcchStatChangeDtlHistDvo.builder()
+                WctzContractChRcchStatChangeDtlHistDvo
+                    .builder()
                     .cntrChRcpId(dvo.getCntrChRcpId())
                     .cntrChSn(dvo.getCntrChSn())
+                    .histStrtDtm(dvo.getFnlMdfcDtm())
+                    .fnlMdfcDtm(dvo.getFnlMdfcDtm())
+                    .fnlMdfcUsrId(dvo.getFnlMdfcUsrId())
+                    .fnlMdfcPrgId(dvo.getFnlMdfcPrgId())
+                    .fnlMdfcDeptId(dvo.getFnlMdfcDeptId())
+                    .fstRgstDtm(dvo.getFstRgstDtm())
+                    .fstRgstUsrId(dvo.getFstRgstUsrId())
+                    .fstRgstPrgId(dvo.getFstRgstPrgId())
+                    .fstRgstDeptId(dvo.getFstRgstDeptId())
                     .build()
             );
 
