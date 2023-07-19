@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractStatusDto.FindSummaryRes;
 import static com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractStatusDto.SearchReq;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -55,4 +56,6 @@ public interface WctaContractStatusMapper {
     int updateAcmpalCntrChHist(String cntrNo);
     int insertAcmpalCntrChHist(String cntrNo);
     int insertRentalRstlChHist(String cntrNo); //HIST_STRT_DTM / HIST_END_DTM/ 칼럼 없음.
+
+    List<Integer> selectInstallationOrderTargets(String cntrNo);
 }
