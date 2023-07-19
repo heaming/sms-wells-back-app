@@ -10,8 +10,4 @@ public interface WfebOrganizationFeeConverter {
 
     WfebOrganizationFeeDvo mapSaveReqToWfebOgFeeDvo(WfebOrganizationFeeDto.SaveReq dto);
 
-    WfebOrganizationFeeDvo mapSaveDsbCnstReqToWfebOgFeeDvo(WfebOrganizationFeeDto.SaveDsbCnstReq dto);
-
-    WfebOrganizationFeeDvo mapSearchDsbCnstReqToWfebOgFeeDvo(WfebOrganizationFeeDto.SearchDsbCnstReq dto);
-
 }
