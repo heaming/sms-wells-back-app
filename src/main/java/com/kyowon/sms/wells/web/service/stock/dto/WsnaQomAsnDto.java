@@ -21,6 +21,19 @@ import lombok.Builder;
 public class WsnaQomAsnDto {
 
     @Builder
+    @ApiModel("WsnaQomAsnDto-SearchWareReq")
+    public record SearchWareReq(
+        @NotBlank
+        String apyYm,
+        @NotBlank
+        String asnOjYm,
+        @NotBlank
+        String wareDvCd,
+        @NotBlank
+        String wareDtlDvCd
+    ) {}
+
+    @Builder
     @ApiModel("WsnaQomAsnDto-SearchReq")
     public record SearchReq(
         @NotBlank

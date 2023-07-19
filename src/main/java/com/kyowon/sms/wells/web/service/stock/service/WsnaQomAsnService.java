@@ -39,7 +39,7 @@ public class WsnaQomAsnService {
 
     /**
      * 물량배정 출고창고 조회
-     * @param apyYm (필수) 배정년월
+     * @param apyYm (필수) 기준년월
      * @return
      */
     public List<WsnzWellsCodeWareHouseDvo> getQomAsnOstrWares(String apyYm) {
@@ -50,17 +50,12 @@ public class WsnaQomAsnService {
 
     /**
      * 물량배정 입고창고 조회
-     * @param apyYm         (필수) 배정년월
-     * @param wareDvCd      (필수) 창고구분코드
-     * @param wareDtlDvCd   (필수) 창고세부구분코드
+     * @param dto
      * @return
      */
-    public List<WsnzWellsCodeWareHouseDvo> getQomAsnStrWares(String apyYm, String wareDvCd, String wareDtlDvCd) {
-        ValidAssert.hasText(apyYm);
-        ValidAssert.hasText(wareDvCd);
-        ValidAssert.hasText(wareDtlDvCd);
+    public List<WsnzWellsCodeWareHouseDvo> getQomAsnStrWares(SearchWareReq dto) {
 
-        return this.mapper.selectQomAsnStrWares(apyYm, wareDvCd, wareDtlDvCd);
+        return this.mapper.selectQomAsnStrWares(dto);
     }
 
     /**

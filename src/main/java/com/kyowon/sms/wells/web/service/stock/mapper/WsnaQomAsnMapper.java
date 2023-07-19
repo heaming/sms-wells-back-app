@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.SearchWareReq;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface WsnaQomAsnMapper {
 
     List<WsnzWellsCodeWareHouseDvo> selectQomAsnOstrWares(String apyYm);
 
-    List<WsnzWellsCodeWareHouseDvo> selectQomAsnStrWares(String apyYm, String wareDvCd, String wareDtlDvCd);
+    List<WsnzWellsCodeWareHouseDvo> selectQomAsnStrWares(SearchWareReq dto);
 
     Integer selectQomAsnCount(String asnOjYm, int cnt);
 
