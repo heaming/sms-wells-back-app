@@ -88,6 +88,8 @@ public class WctbContractChangeMgtService {
 
         WctbContractChangeDvo cntrOrderDvo = mapper.selectCntrOrderInfo(cntrNo, cntrSn);
 
+        BizAssert.isFalse(ObjectUtils.isEmpty(cntrOrderDvo), "접수된 주문건이 없습니다.");
+
         String pkgYn = cntrOrderDvo.getPkgYn(); // 패키지 주문
         String prmPtrmYn = cntrOrderDvo.getPrmPtrmYn(); // 선납
         String dpYn = cntrOrderDvo.getDpYn(); // 입금처리
