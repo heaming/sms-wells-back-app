@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCustomerBaseBulkCha
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCustomerBaseBulkChangeMapper;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class WctbCustomerBaseBulkChangeService {
     private final WctbCustomerBaseBulkChangeMapper mapper;
     private final WctbCustomerBaseBulkChangeConverter converter;
+    private final MessageResourceService messageResourceService;
 
     public List<WctbCustomerBaseBulkChangeDto.SearchCustomerRes> getBulkChangeObjects(
         WctbCustomerBaseBulkChangeDto.SearchReq searchReq
@@ -213,7 +215,11 @@ public class WctbCustomerBaseBulkChangeService {
 
                     String sellInflwChnlDtlCd = mapper
                         .selectSellInflwChannelDetailCd(dvo.getPrtnrNo(), dvo.getOgTpCd());
-                    BizAssert.isTrue(StringUtils.isNotEmpty(sellInflwChnlDtlCd), "MSG_ALT_CRSP_PRTNR_NO_INF_NEX");
+
+                    BizAssert.isTrue(
+                        StringUtils.isNotEmpty(sellInflwChnlDtlCd), "MSG_ALT_NOT_EXIST_PLNNER_INFO_IT",
+                        new String[] {messageResourceService.getMessage("MSG_TXT_SELL_INFLW_CHNL_DTL_CD")}
+                    );
 
                     String sellTpOgCd = StringUtils.defaultIfEmpty(mapper.selectSellOgTpCd(cntrNo), "");
 
