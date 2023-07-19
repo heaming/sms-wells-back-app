@@ -28,6 +28,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Api(tags = "[WCTA] 계약현황")
 @Validated
 @RequiredArgsConstructor
@@ -66,6 +68,16 @@ public class WctaContractStatusController {
         SearchReq dto
     ) {
         return service.getContractStatusSummary(dto);
+    }
+
+    @ApiOperation(value = "계약현황 - 설치오더 대상 계약 일련번호 목록 조회", notes = "계약번호로 현재 계약진행상태코드를 조회한다.")
+    @GetMapping("/{cntrNo}/installation-order-targets")
+    public List<Integer> getInstallationOrderTargets(
+        @NotEmpty
+        @PathVariable("cntrNo")
+        String cntrNo
+    ) {
+        return service.getInstallationOrderTargets(cntrNo);
     }
 
     @ApiOperation(value = "계약현황 - 계약진행상태코드", notes = "계약번호로 현재 계약진행상태코드를 조회한다.")
