@@ -13,7 +13,7 @@ public class WfebOrganizationFeeDto {
     public record SearchHmstReq(
         String perfYm,
         String rsbTpCd,
-        String schOrdrCd,
+        String feeTcntDvCd,
         String prtnrNo,
         String ogLevl2Id,
         String ogLevl3Id
@@ -23,7 +23,7 @@ public class WfebOrganizationFeeDto {
     public record SearchMngerReq(
         String perfYm,
         String rsbTpCd,
-        String schOrdrCd,
+        String feeTcntDvCd,
         String prtnrNo,
         String ogLevl1Id,
         String ogLevl2Id,
@@ -34,7 +34,7 @@ public class WfebOrganizationFeeDto {
     public record SearchPlarReq(
         String perfYm,
         String rsbTpCd,
-        String schOrdrCd,
+        String feeTcntDvCd,
         String prtnrNo,
         String ogLevl1Id,
         String ogLevl2Id,
