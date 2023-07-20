@@ -160,7 +160,7 @@ public class WctbCancelBaseDto {
         Integer pBorAmt, // 포인트위약금액
         Integer reqdCsBorAmt, // 철거비용위약금액
         Integer reqdCsBorAmt2, // 철거비용위약금액2
-        Integer lsRntf, // 분실손료
+        Integer lsnt, // 분실손료
         Integer eotDlqAddAmt, // 기말연체가산금액
 
         String cntrStatChRsonCd, // 계약상태변경사유코드
@@ -269,8 +269,8 @@ public class WctbCancelBaseDto {
         String reqdCsExmptDvCd,
         String reqdAkRcvryDvCd,
         String reqdFshRcvryDvCd,
-        String pdUseDc,
-        String pdGdCd,
+        String useDays,
+        String grade,
         String prmRfndAmt,
         String prpdRfndAmt,
         String dscDdctam,
@@ -279,7 +279,6 @@ public class WctbCancelBaseDto {
         String rentalRgstCostRfndAmtVat,
         String borAmt,
         String totRfndAmt,
-        String lsRntf,
         String resRtlfeBorAmt,
         String rgstCostDscBorAmt,
         String rentalDscBorAmt,
@@ -292,7 +291,8 @@ public class WctbCancelBaseDto {
         String slCtrRmkCn,
         String cntrChRcpId,
         String ichrOgTpCd,
-        String ichrPrtnrNo
+        String ichrPrtnrNo,
+        String sellPrtnrNo
     ) {}
 }
 
