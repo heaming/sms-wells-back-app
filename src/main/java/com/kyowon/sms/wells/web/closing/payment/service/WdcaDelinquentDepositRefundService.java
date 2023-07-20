@@ -58,7 +58,7 @@ public class WdcaDelinquentDepositRefundService {
             int rveAmt = inputDvo.getRveAmt();
             int eotDlqAmt = searchDvo.getEotDlqAmt();
             int eotDlqAddAmt = searchDvo.getEotDlqAddAmt();
-            String sellTpCd = searchDvo.getSellTpCd();
+            String sellTpCd = inputDvo.getSellTpCd();
             int bznsAtamBlam = 0;
             int bznsAtamProcsAmt = 0;
 

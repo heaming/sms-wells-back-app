@@ -27,6 +27,9 @@
              , D2.PD_PRP_VAL19                                                               AS ITM_KND_CD       /* 품목종류코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'ITM_KND_CD', D2.PD_PRP_VAL19, #{session.langId})    AS ITM_KND_NM       /* 품목종류 */
              , D1.SAP_MAT_CD                                                                                     /* SAP코드 */
+             , CASE WHEN D3.ITM_PD_CD IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+               END                                                                           AS ORG_CHK          /* Row 체크여부 */
           FROM TB_PDBS_PD_BAS D1
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2
             ON D2.PD_CD = D1.PD_CD
@@ -54,12 +57,8 @@
         <include refid="COMMON.updateSystemField"/>
          WHERE DTA_DL_YN      = 'N'
            AND ASN_EXCD_DV_CD = #{asnExcdDvCd}
-        <if test='@MybatisUtils@equals(asnExcdDvCd, "3") and @MybatisUtils@isNotEmpty(wareNo)'>
-           AND STR_WARE_NO    = #{wareNo}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-           AND ITM_KND_CD     = #{itmKndCd}
-        </if>
+           AND STR_WARE_NO    = #{strWareNo}
+           AND ITM_PD_CD      = #{itmPdCd}
     </update>
 
     <insert id="insertQomAsnExcdIz">
@@ -84,6 +83,10 @@
                AND TB_TGT.ITM_PD_CD      = TB_SRC.ITM_PD_CD
                AND TB_TGT.DTA_DL_YN      = 'N'
              )
+          WHEN MATCHED THEN
+        UPDATE
+           SET TB_TGT.ITM_KND_CD = TB_SRC.ITM_KND_CD
+        <include refid="COMMON.updateSystemField"/>
           WHEN NOT MATCHED THEN
         INSERT
              (

@@ -458,4 +458,10 @@ public class WctaManagementDto {
         String sppDuedt, /* 배송일자 */
         String sowDuedt /* 파종예정일자 */
     ) {}
+
+    //계약관리 - 확정처리 전 계약진행상태코드 체크 Search Result Dto
+    @ApiModel("WctaManagementDto-SearchOrderStatCdInfoRes")
+    public record SearchOrderStatCdInfoRes(
+        String cntrPrgsStatCd /* 계약진행상태코드 */
+    ) {}
 }

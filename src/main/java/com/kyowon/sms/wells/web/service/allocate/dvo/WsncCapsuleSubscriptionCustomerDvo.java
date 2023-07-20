@@ -8,20 +8,15 @@ import lombok.Setter;
 public class WsncCapsuleSubscriptionCustomerDvo {
     String cntrNo;
     String cntrSn;
-    String newAdrZip;
-    String basePdCd;
-    String basePdNm;
     String pdctPdCd;
-    String pdctPdNm;
+    String pdNm;
     String pdGrpCd;
-    String pdGrpNm;
-    String cntrDt;
-    String copnDvCd;
-    String sdingCombin;
+    String cntrCanDtm;
+    String istDt;
+    String istDtCntr;
+    String svPrd;
+    String sellTpCd;
+    String reqVstDt;
     String cstSvAsnNo;
-    String cancDt;
     String asnOjYm;
-    String svBizMclsfCd;
-    String svBizDclsfCd;
-    String wkSn;
 }

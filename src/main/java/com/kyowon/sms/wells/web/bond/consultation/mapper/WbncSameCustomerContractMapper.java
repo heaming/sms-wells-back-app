@@ -21,7 +21,7 @@ public interface WbncSameCustomerContractMapper {
     );
 
     FindBreachOfPromiseRes selectBreachOfPromise(
-        String bndCntrRefId
+        String bndBizDvCd, String cntrNo, int cntrSn
     );
 
     FindSalesRes selectContractSales(

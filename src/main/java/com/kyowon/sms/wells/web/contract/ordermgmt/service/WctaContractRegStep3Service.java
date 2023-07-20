@@ -145,7 +145,7 @@ public class WctaContractRegStep3Service {
                 dtl.setPdAmt(
                     stlmRels.stream()
                         .filter(
-                            (stlmRel) -> stlmRel.getRveDvCd().equals("01") && stlmRel.getDpTpCd().equals("0201")
+                            (stlmRel) -> stlmRel.getRveDvCd().equals("03") && stlmRel.getDpTpCd().equals("0201")
                         ).findFirst()
                         .orElse(new WctaContractStlmRelDvo()).getStlmAmt()
                 );
@@ -156,11 +156,11 @@ public class WctaContractRegStep3Service {
                         .filter((stlmRel) -> stlmRel.getRveDvCd().equals(regService.getRveDvCd(sellTpCd)))
                         .findFirst().orElse(new WctaContractStlmRelDvo()).getDpTpCd()
                 );
-                dtl.setDpTpCdIdrv(
-                    stlmRels.stream().filter((stlmRel) -> stlmRel.getRveDvCd().equals("01")).findFirst()
-                        .orElse(new WctaContractStlmRelDvo()).getDpTpCd()
-                );
             }
+            dtl.setDpTpCdIdrv(
+                stlmRels.stream().filter((stlmRel) -> stlmRel.getRveDvCd().equals("01")).findFirst()
+                    .orElse(new WctaContractStlmRelDvo()).getDpTpCd()
+            );
 
             // 총판 비대면 계약여부(고객결제입력방법코드 30)
             if (Objects.isNull(bas.getCstStlmInMthCd())) {
@@ -295,11 +295,13 @@ public class WctaContractRegStep3Service {
                     // 일시불일 때
                     // 계약금, 01, 0101
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmt, "0101", "01", bas.getCntrCstNo());
+                        createStlmInfo(
+                            now, cntrNo, stlmBasMap, cntrSn, cntrAmt, bDtl.getDpTpCdIdrv(), "01", bas.getCntrCstNo()
+                        );
                     }
                     Long pdAmt = bDtl.getPdAmt(); // 상품금액, 01, 0201
                     if (!Objects.isNull(pdAmt) && 0l < pdAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, "0201", "01", bas.getCntrCstNo());
+                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, "0201", "03", bas.getCntrCstNo());
                     }
                     Long mshAmt = bDtl.getMshAmt(); // 04, 0203 || 0102
                     if (!Objects.isNull(mshAmt) && 0l < mshAmt) {

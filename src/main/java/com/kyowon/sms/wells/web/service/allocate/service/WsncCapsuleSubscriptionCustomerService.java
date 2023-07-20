@@ -45,7 +45,7 @@ public class WsncCapsuleSubscriptionCustomerService {
         List<WsncCapsuleSubscriptionCustomerDvo> res = mapper.selectCapsuleRglrPrchsCsts(req.baseYmd());
         for (WsncCapsuleSubscriptionCustomerDvo row : res) {
 
-            if (StringUtil.isEmpty(row.getCancDt())) { /* 주기표 강제 생성 */
+            if (StringUtil.isEmpty(row.getCntrCanDtm())) { /* 주기표 강제 생성 */
 
                 updateCount += mapper.deleteBfsvcPrd(row.getCntrNo(), row.getCntrSn());
 
@@ -66,8 +66,8 @@ public class WsncCapsuleSubscriptionCustomerService {
                 /*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
                 updateCount += service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
-                        row.getCstSvAsnNo(),
-                        row.getAsnOjYm()
+                        row.getCstSvAsnNo(), // 고객서비스배정번호
+                        row.getAsnOjYm() // 배정대상년월
                     )
                 );
 
@@ -85,7 +85,7 @@ public class WsncCapsuleSubscriptionCustomerService {
 
             } else {
 
-                updateCount += mapper.updateCancelDate(row.getCntrNo(), row.getCntrSn(), row.getCancDt());
+                updateCount += mapper.updateCancelDate(row.getCntrNo(), row.getCntrSn(), row.getCntrCanDtm());
                 updateCount += mapper.deleteSchd(row.getCntrNo());
 
                 /*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/

@@ -218,6 +218,10 @@ public class WctaManagementService {
         return ackdCnptMsg;
     }
 
+    public List<SearchOrderStatCdInfoRes> getContractStatus(String cntrNo) {
+        return mapper.selectOrderStatCdInfo(cntrNo);
+    }
+
     @Transactional
     public int saveNotificationTalkFws(List<SaveNotificationTalkFwsReq> dtos) throws Exception {
         int processCount = 0;

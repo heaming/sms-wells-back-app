@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 import org.apache.commons.lang.StringUtils;
@@ -109,22 +110,19 @@ public class WsniBarcodeProductInterfaceDto {
 
     @ApiModel(value = "WsniBarcodeProductInterfaceDto-SearchCustRes")
     public record SearchCustRes(
-        String cntrNo,
-        int cntrSn,
         String istDt,
         String useMonth,
         String managerName,
-        String managerTel,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
         String nextSchedule,
         String rentalFee,
-        String deviceName,
         String serviceTypeName,
         String serviceTime,
         String serviceName,
-
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno
+        String deviceName,
+        String managerTel
     ) {
         public SearchCustRes {
             if(StringUtils.isNotEmpty(mexnoEncr)){
@@ -136,15 +134,25 @@ public class WsniBarcodeProductInterfaceDto {
 
     @ApiModel(value = "WsniBarcodeProductInterfaceDto-SearchCustJsonRes")
     public record SearchCustJsonRes(
+        @JsonProperty("IST_DT")
         String istDt,
+        @JsonProperty("USE_MONTH")
         String useMonth,
+        @JsonProperty("MANAGER_NAME")
         String managerName,
+        @JsonProperty("MANAGER_TEL")
         String managerTel,
+        @JsonProperty("NEXT_SCHEDULE")
         String nextSchedule,
+        @JsonProperty("RENTAL_FEE")
         String rentalFee,
+        @JsonProperty("DEVICE_NAME")
         String deviceName,
+        @JsonProperty("SERVICE_TYPE_NAME")
         String serviceTypeName,
+        @JsonProperty("SERVICE_TIME")
         String serviceTime,
+        @JsonProperty("SERVICE_NAME")
         String serviceName
     ) {}
 }

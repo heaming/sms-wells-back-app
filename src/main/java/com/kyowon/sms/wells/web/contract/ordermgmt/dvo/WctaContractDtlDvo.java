@@ -133,6 +133,8 @@ public class WctaContractDtlDvo {
     private Long rglrSppDutyPtrmDvCd; /* 정기배송 약정기간 */
     private String rglrSppPrcDvCd; /* 정기배송 가격구분 */
     private String rglrSppMchnTpCd; /* 정기배송 기기유형 */
+    private String pdChoLmYn; /* 제품선택제한여부 */
+    private Long pdChoQty; /* 제품선택개수 */
 
     private List<WctaContractRegStep2Dvo.PdDetailDvo> svPdCds; /* 서비스상품코드 */
     private List<WctaContractRegStep2Dvo.PdDetailDvo> sellDscrCds; /* 판매할인율코드 */

@@ -24,5 +24,4 @@ public class WdcaDepositRefundProcessingAmountDvo {
     private int thmDlqAddRfndSumAmt; /*당월연체가산환불합계금액*/
     private int eotDlqAmt; /*기말연체금액*/
     private int eotDlqAddAmt; /*기말연체가산금액*/
-    private String sellTpCd;
 }

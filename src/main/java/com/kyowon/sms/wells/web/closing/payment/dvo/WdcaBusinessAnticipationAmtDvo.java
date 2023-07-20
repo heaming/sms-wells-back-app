@@ -1,46 +1,61 @@
 package com.kyowon.sms.wells.web.closing.payment.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-// TODO: 테이블 미정의로 추후 재작업 필요
 
 @Getter
 @Setter
 @ToString
 public class WdcaBusinessAnticipationAmtDvo {
-    private String rveNo; /* 수납번호 */
-    private String rveSn; /* 수납일련번호 */
-    private String dpClDt; /* 입금마감일자 */
-    private String cntrNo; /* 계약번호 */
-    private String cntrSn; /* 계약일련번호 */
+    private String inputGubun; /* 입력구분 */
 
-    private String kwGrpCoCd; /* 회사코드 */
+    /* List */
+    private String rveNo;
+    private int rveSn;
+    private String dpClDt;
+    private String cntrNo;
+    private int cntrSn;
+    private String kwGrpCoCd;
     private String rveCd;
-    private String ichrPrtnrNo; /* 담당파트너번호 */
-    private String rveAmt; /* 수납금액 */
+    private String ogTpCd;
+    private String ichrPrtnrNo;
+    private int rveAmt;
     private String cstNo;
+    private String bnkCd;
+    private String dpCprcnfNo;
+    private String pdCd;
+    private String pdHclsfId;
+    private String pdMclsfId;
+    private String pdLclsfId;
+    private String rveDt;
+    private String perfDt;
+    private int bilTn;
+    private String procsDvCd;
+    private String dpMesCd;
+    private String dpTpCd;
+    private String rveDvCd;
+    private String rvePhCd;
+    private String rveplcDvCd;
+    private String cdcoCd;
+    private String dpDvCd;
+    private String sellTpCd;
+    private String sellTpDtlCd;
+    private String cardAprno;
+    private String crcdnoEncr;
+    private String dprNm;
 
-    private String bnkCd; /* 은행코드 */
-    private String cdcoCd; /* 카드사코드 */
-    private String etcAtamNo; /* 기타선수금번호 */
-    private String etcAtamSn; /* 기타선수금일련번호 */
+    @DBDecField
+    private String acnoEncr;
+    private String crpAcno;
+    private String vncoDvCd;
+    private String etcAtamNo;
 
-    private String bznsAtamProcsCd;
-    private String bznsAtamProcsAmt;
-
-    private String rveTpCd; /* 수납유형코드 */
-    private String dpKndCd; /* 입금종류코드 */
-    private String dpTpCd; /* 입금유형코드 */
-    private String pdHcsfId; /* 상품대분류ID */
-    private String pdMclsfId; /* 상품중분류ID */
-    private String pdLclsfId; /* 상품소분류ID */
-    private String sellTpCd; /* 판매유형코드 */
-
-    private String bznsAtamBlam;
-    private String sapDpTpCd; /* SAP입금유형코드 */
-    private String sapPdDvCd; /* SAP상품구분코드 */
-    private String sapPdAtcCd; /* SAP상품항목코드 */
-    private String orglFnlMdfcDtm; /*Dvo에 동시성처리용 컬럼 정의*/
+    private int bznsAtamBlam;
+    private String sapDpTpCd;
+    private String sapPdDvCd;
+    private String sapPdAtcCd;
+    private String dgCstId;
 }

@@ -45,10 +45,6 @@ public class WwdbDepositRefundInterfaceDto {
         String fnitCd, // 금융기관코드
         @JsonProperty("FNIT_NM")
         String fnitNm,
-        @JsonProperty("ACNO_ENCR")
-        String acnoEncr, // 계좌번호암호화
-        @JsonProperty("CRCDNO_ENCR")
-        String crcdnoEncr, // 신용카드번호암호화
         @JsonProperty("CNO")
         String cno, // 카드/계좌번호
         @JsonProperty("ISTM_MCN")

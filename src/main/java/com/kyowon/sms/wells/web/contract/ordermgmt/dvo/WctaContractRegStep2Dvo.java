@@ -156,6 +156,8 @@ public class WctaContractRegStep2Dvo {
         String pdClsfNm;
         String pdCd;
         String pdNm;
+        String pdChoLmYn;
+        Long pdChoQty;
         Long cntrPtrm;
         String rglrSppPrcDvCd;
         String rglrSppMchnTpCd;

@@ -1,8 +1,11 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditCardApprovalDto;
+import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbVirtualAccountIsMgtDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbCreditCardApprovalDvo;
+import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdzWithdrawalVirtualAccountIssueDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbCreditCardApprovalService;
+import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbVirtualAccountIsMgtService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
@@ -22,10 +25,12 @@ import com.sds.sflex.system.config.response.SaveResponse;
 import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +51,8 @@ public class WctaContractRegStep5Service {
     private final WctaContractRegService contractRegService;
     private final ZwdzWithdrawalService rveReqService;
     private final ZwdbCreditCardApprovalService paymentService;
+    private final ZwdbVirtualAccountIsMgtService virtualAccountIsMgtService;
+
     private final WctbContractDtlStatCdChService cntrStatChService;
     private final WctzHistoryService historyService;
 
@@ -92,7 +99,8 @@ public class WctaContractRegStep5Service {
     boolean getAuth(AuthenticationReq req) {
         WctaContractForAuthDvo dvo = getContractForAuth(req.cntrNo());
         switch (CtCopnDvCd.of(dvo.getCopnDvCd())) {
-            case INDIVIDUAL -> BizAssert.isTrue(Objects.equals(req.cntrCstBryyMmdd(), dvo.getCntrCstBryyMmdd()), "생년월일을 확인해주세요.");
+            case INDIVIDUAL ->
+                BizAssert.isTrue(Objects.equals(req.cntrCstBryyMmdd(), dvo.getCntrCstBryyMmdd()), "생년월일을 확인해주세요.");
             case COOPERATION -> BizAssert.isTrue(Objects.equals(req.bzrno(), dvo.getBzrno()), "사업자번호를 확인해주세요.");
         }
         return true;
@@ -425,127 +433,207 @@ public class WctaContractRegStep5Service {
         return mapper.selectContractAdrpcBasByPk(cntrAdrpcId).orElseThrow(() -> new BizException("주소지가 없는 계약건이 있습니다."));
     }
 
+    public String getFnitCd(String creditCardNo) {
+        String fnitCd = mapper.selectFnitCdInfo(creditCardNo);
+        BizAssert.notNull(fnitCd, "조회되지 않은 금융기관 카드번호입니다");
+        BizAssert.isFalse(fnitCd.length() == 0, "조회되지 않은 금융기관 카드번호입니다");
+        return fnitCd;
+    }
+
     /**
      * 수납요청 기본 및 상세 데이터 생성 후 카드결제 승인 API 호출
-     * 고객번호
-     * 수납요청방식코드 (대면/비대면)
-     * 수납요청파트너번호
-     * 수납요청파트너조직유형코드
      *
      * @param req : 수납 요청 정보
      * @return SaveResponse
      */
     @Transactional
     public List<CreditRes> requestCreditCardApproval(CreditReq req) {
-        // 신용카드 금융기관코드 조회
-        String fnitCd = mapper.selectFnitCdInfo(req.crcdnoEncr());
-        BizAssert.notNull(fnitCd, "조회되지 않은 금융기관 카드번호입니다");
-
         WctaContractStlmBasDvo contractStlmBasDvo = getCntrStlmByPk(req.cntrStlmId());
         List<WctaContractStlmRelDvo> stlmRelDvos = getContractStlmRels(req.cntrStlmId()); /* 아마 1 건 일거다.*/
-
-        WctaSettlementCntrBasDvo bas = mapper.selectContractBasic(contractStlmBasDvo.getCntrNo());
-
-        long totSmltAmt = stlmRelDvos.stream()
+        long totStlmAmt = stlmRelDvos.stream()
             .mapToLong(WctaContractStlmRelDvo::getStlmAmt)
             .sum();
+        WctaContractForRveAkDvo contractForRveAkInfo = mapper.selectContractForRveAk(contractStlmBasDvo.getCntrNo());
 
-        // 수납요청 기본 데이터 생성 후 수납요청번호 리턴
-        ZwdzWithdrawalReceiveAskDvo withdrawalReceiveAskDvo = createReceiveAsk(bas, totSmltAmt);
+        /* 수납 요청 기본 생성 */
+        ZwdzWithdrawalReceiveAskDvo receiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
+        receiveAskDvo.setKyowonGroupCompanyCd(CtCoCd.KYOWON_PROPERTY.getCode());
+        receiveAskDvo.setRveAkMthdCd(contractForRveAkInfo.getCstStlmInMthCd());
+        receiveAskDvo.setRvePrtnrNo(contractForRveAkInfo.getSellPrtnrNo());
+        receiveAskDvo.setRvePrtnrOgTpCd(contractForRveAkInfo.getSellOgTpCd());
+        receiveAskDvo.setCustomNumber(contractForRveAkInfo.getCntrCstNo());
+        receiveAskDvo.setReceiveAskAmount(Long.toString(totStlmAmt));
+        receiveAskDvo.setReceiveAskStatusCode(CtRveAkStatCd.RECEIPT.getCode());
+        receiveAskDvo.setReceiveAskDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        receiveAskDvo.setRveAkPhCd("01"); //RVE_AK_PH_CD  수납요청경로코드 판매(01) !! 코드 없음!!
+        receiveAskDvo.setReceiveCompanyCd(CtCoCd.KYOWON_PROPERTY.getCode());
 
-        setCreditInfosToWithdrawalReceiveAsk(req, fnitCd, withdrawalReceiveAskDvo);
+        String receiveAskNumber = rveReqService.createReceiveAskBase(receiveAskDvo);
 
-        stlmRelDvos.forEach(dvo -> {
-            withdrawalReceiveAskDvo.setDepositTypeCode(dvo.getDpTpCd());
-            withdrawalReceiveAskDvo.setContractNumber(dvo.getDtlCntrNo());
-            withdrawalReceiveAskDvo.setContractSerialNumber(dvo.getDtlCntrSn().toString());
-            rveReqService.createReceiveAskDetail(withdrawalReceiveAskDvo);
-        });
-        rveReqService.createReceiveAskDetailHistory(withdrawalReceiveAskDvo);
+        /* 수납 요청 상세 생성 */
+        receiveAskDvo.setReceiveAskNumber(receiveAskNumber);
 
-        List<ZwdbCreditCardApprovalDto.SaveReq> creditCardApprovalSaveReqs =  stlmRelDvos
+        receiveAskDvo.setCrdcdBzrno(contractForRveAkInfo.getBzrno());
+        receiveAskDvo.setCrdcdBryyMmdd(contractForRveAkInfo.getBryyMmdd());
+        receiveAskDvo.setCrdcdCopnDvCd(contractForRveAkInfo.getCopnDvCd());
+
+        receiveAskDvo.setDepositDivideCode(CtDpDvCd.DEPOSIT.getCode());
+        receiveAskDvo.setReceiveStatusCode(CtRveStatCd.REQUEST.getCode());
+
+        receiveAskDvo.setAccountOwnerName(req.owrKnm());
+        receiveAskDvo.setFinancialInstitutionCd(req.fnitCd());
+        receiveAskDvo.setCreditCardNumberEncr(req.crcdnoEncr());
+        receiveAskDvo.setCreditCardExpireDate(req.cardExpdtYm());
+        receiveAskDvo.setCreditCardIstmMcn(req.istmMcn());
+
+        List<ZwdzWithdrawalReceiveAskDvo> receiveDetailAskDvos = stlmRelDvos.stream()
+            .map(stlmRelDvo -> {
+                ZwdzWithdrawalReceiveAskDvo receiveDetailAskDvo = new ZwdzWithdrawalReceiveAskDvo();
+                try {
+                    BeanUtils.copyProperties(receiveDetailAskDvo, receiveAskDvo);
+                } catch (Exception e) {
+                    throw new BizException("IGNORE");
+                }
+                CtDpTpCd dpTpCd = CtDpTpCd.of(stlmRelDvo.getDpTpCd());
+                CtRveDvCd rveDvCd = CtRveDvCd.of(stlmRelDvo.getRveDvCd());
+                receiveDetailAskDvo.setDepositTypeCode(dpTpCd.getCode());
+                receiveDetailAskDvo.setDepositMeansCode(dpTpCd.getDpMesCd());
+                receiveDetailAskDvo.setReceiveDivideCode(rveDvCd.getCode());
+                receiveDetailAskDvo.setContractNumber(stlmRelDvo.getDtlCntrNo());
+                receiveDetailAskDvo.setContractSerialNumber(stlmRelDvo.getDtlCntrSn().toString());
+                receiveDetailAskDvo.setReceiveAskAmount(stlmRelDvo.getStlmAmt().toString());
+                return receiveDetailAskDvo;
+            }).toList();
+
+        receiveDetailAskDvos.forEach(rveReqService::createReceiveAskDetail);
+        rveReqService.createReceiveAskDetailHistory(receiveAskDvo);
+
+        /* 즉시 카드 승인 요청 */
+        SaveResponse response = paymentService.saveCreditCardApproval(receiveDetailAskDvos
             .stream()
-            .map((dvo) -> getCreditCardApprovalSaveReq(withdrawalReceiveAskDvo, dvo.getStlmAmt()))
-            .toList();
-        SaveResponse response = paymentService.saveCreditCardApproval(creditCardApprovalSaveReqs);
-        /* 이거 이렇게 준단다. */
+            .map(WctaContractRegStep5Service::getCreditCardApprovalSaveReq)
+            .toList());
+
         @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) response.getData();
         BizAssert.isTrue(responses.size() > 0 && responses.get(0).getErrorCd().equals("S"), "신용승인 요청 실패");
         return responses.stream().map((dvo) -> CreditRes.builder()
             .aprNo(dvo.getAprNo())
-            .cdcoCd(fnitCd)/* FIXME: 결제 쪽 api 스펙 변경시 수정할 것 */
             .fnitAprFshDtm(dvo.getStlmDtm())
             .build()).toList();
+    }
+
+    @Transactional
+    public VacIsRveAskRes requestVacIsRveAsk(VacIsRveAskReq req) {
+        WctaContractStlmBasDvo contractStlmBasDvo = getCntrStlmByPk(req.cntrStlmId());
+        List<WctaContractStlmRelDvo> stlmRelDvos = getContractStlmRels(req.cntrStlmId()); /* 아마 1 건 일거다.*/
+        long totStlmAmt = stlmRelDvos.stream()
+            .mapToLong(WctaContractStlmRelDvo::getStlmAmt)
+            .sum();
+        WctaContractForRveAkDvo contractForRveAkInfo = mapper.selectContractForRveAk(contractStlmBasDvo.getCntrNo());
+
+        List<ZwdbVirtualAccountIsMgtDto.SaveContractDetailReq> contracts = stlmRelDvos.stream()
+            .map((stlmRelDvo -> {
+                CtRveDvCd rveDvCd = CtRveDvCd.of(stlmRelDvo.getRveDvCd());
+                return new ZwdbVirtualAccountIsMgtDto.SaveContractDetailReq(
+                    stlmRelDvo.getDtlCntrNo(), // cntrNo
+                    Integer.toString(stlmRelDvo.getDtlCntrSn()), // cntrSn
+                    null, // vacIsId
+                    null, // vacIsDtlSn
+                    null, // virtualAccount
+                    Long.toString(stlmRelDvo.getStlmAmt()), // rveAkAmt
+                    CtCoCd.KYOWON_PROPERTY.getCode(), // kwGrpCoCd
+                    null, // rveAkNo
+                    null, // rveAkSn
+                    contractForRveAkInfo.getCopnDvCd(), // indvCrpCntrDvCd
+                    null, // pdDvCd
+                    null, // pdCd
+                    null, // rveAkOjDrmNo1
+                    null, // rveAkOjDrmNo2
+                    rveDvCd.getCode(), // rveDvCd
+                    contractForRveAkInfo.getCstKnm(), // vacIsCstNm
+                    req.bnkCd() // bankCd
+                );
+            })).toList();
+
+        String vncoDvCd = "003"; // KICC 만?
+
+        ZwdbVirtualAccountIsMgtDto.SaveReq saveReq = new ZwdbVirtualAccountIsMgtDto.SaveReq(
+            CtCoCd.KYOWON_PROPERTY.getCode(), /*kwGrpCoCd*/
+            null, /*rveAkNo*/
+            null, /*virtualAccount*/
+            "01", /*acountUsePeriod 일회성 - 01*/
+            "01", /*acountUseGb 고객 - 01*/
+            req.bnkCd(), /*bankCd*/
+            vncoDvCd, /*vacVanCd KICC - 003*/
+            contractForRveAkInfo.getCntrCstNo(), /*itgCstNo*/
+            contractForRveAkInfo.getCstKnm(), /*cstKnm*/
+            Long.toString(totStlmAmt), /*rveAkAmt*/
+            "1", /*vacDpCndtCd 입금액=설정액 - 1*/
+            "0", /*vacDpTmsCd 1회만 입금 - 0 */
+            "1", /*vacIsDvCd 고객 - 1*/
+            "1", /*virtualAccountDivide 고객 - 1*/
+            contractForRveAkInfo.getSellOgTpCd(), /*vacIzPrtnrOgTpCd*/
+            contractForRveAkInfo.getSellPrtnrNo(), /*vacIzPrtnrNo*/
+            contractForRveAkInfo.getCstStlmInMthCd(), /*rveAkMthdCd*/
+            "05", /*rveAkPhCd 영업무 - 05*/
+            contractForRveAkInfo.getSellOgTpCd(), /*rvePrtnrOgTpCd*/
+            contractForRveAkInfo.getSellPrtnrNo(), /*rvePrtnrNo*/
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), /*fnlMdfcDtm*/
+            null, /*vacStatCd*/
+            contracts
+        );
+
+        ZwdzWithdrawalVirtualAccountIssueDvo responseData;
+        try {
+            responseData = (ZwdzWithdrawalVirtualAccountIssueDvo) virtualAccountIsMgtService.saveVirtualAccountIssue(saveReq).getData();
+        } catch (ParseException e) {
+            throw new BizException("가상계좌 생성에 실패했습니다.");
+        }
+
+        BizAssert.hasText(responseData.getVacNo(), "가상계좌 생성에 실패했습니다.");
+        BizAssert.hasText(responseData.getVacAcownNm(), "가상계좌 생성에 실패했습니다.");
+        BizAssert.hasText(responseData.getVacDpPsbEndDtm(), "가상계좌 생성에 실패했습니다.");
+
+        return VacIsRveAskRes.builder()
+            .acnoEncr(responseData.getVacNo())
+            .owrKnm(responseData.getVacAcownNm())
+            .fnitAprFshDtm(responseData.getVacDpPsbEndDtm())
+            .vncoDvCd(vncoDvCd)
+            .stlmAmt(totStlmAmt)
+            .build();
+
     }
 
     List<WctaContractStlmRelDvo> getContractStlmRels(String cntrStlmId) {
         return mapper.selectContractStlmRels(cntrStlmId);
     }
 
-    @Transactional
-    ZwdzWithdrawalReceiveAskDvo createReceiveAsk(
-        WctaSettlementCntrBasDvo bas,
-        long stmlAmt
-    ) {
-        ZwdzWithdrawalReceiveAskDvo receiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
-        receiveAskDvo.setKyowonGroupCompanyCd("2000");
-        receiveAskDvo.setCustomNumber(bas.getCstNo());
-        receiveAskDvo.setReceiveAskAmount(Long.toString(stmlAmt));
-        receiveAskDvo.setReceiveAskStatusCode("01");
-        receiveAskDvo.setReceiveAskDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        receiveAskDvo.setRveAkMthdCd(bas.getRveAkMthdCd());
-        receiveAskDvo.setRveAkPhCd("01");
-        receiveAskDvo.setRvePrtnrOgTpCd(bas.getRveAkPrtnrOgTpCd());
-        receiveAskDvo.setRvePrtnrNo(bas.getRveAkPrtnrNo());
-        receiveAskDvo.setReceiveCompanyCd("2000");
-
-        // 수납요청 기본 데이터 생성 후 수납요청번호 리턴
-        String receiveAskNumber = rveReqService.createReceiveAskBase(receiveAskDvo);
-        log.debug("수납요청번호: {}", receiveAskNumber);
-        receiveAskDvo.setReceiveAskNumber(receiveAskNumber);
-        receiveAskDvo.setCrdcdBryyMmdd(CtCopnDvCd.of(bas.getCopnDvCd()) == CtCopnDvCd.INDIVIDUAL ? bas.getBryyMmdd() : "");
-        receiveAskDvo.setCrdcdBzrno(CtCopnDvCd.of(bas.getCopnDvCd()) == CtCopnDvCd.COOPERATION ? bas.getBzrno() : "");
-        return receiveAskDvo;
-    }
-
-    private static void setCreditInfosToWithdrawalReceiveAsk(CreditReq req, String fnitCd, ZwdzWithdrawalReceiveAskDvo withdrawalReceiveAskDvo) {
-        withdrawalReceiveAskDvo.setDepositDivideCode("1"); // 입금구분코드 - 입금
-        withdrawalReceiveAskDvo.setDepositMeansCode("02"); // 입금수단코드 - 신용카드
-        withdrawalReceiveAskDvo.setReceiveStatusCode("02"); // 수납상태코드 - 수납요청
-        withdrawalReceiveAskDvo.setFinancialInstitutionCd(fnitCd); // 금융기관코드
-        withdrawalReceiveAskDvo.setAccountOwnerName(req.owrKnm()); // 카드주
-        withdrawalReceiveAskDvo.setCreditCardNumberEncr(req.crcdnoEncr()); // 카드번호암호화
-        withdrawalReceiveAskDvo.setCreditCardExpireDate(req.cardExpdtYm());
-        withdrawalReceiveAskDvo.setCreditCardIstmMcn(req.istmMcn());
-        withdrawalReceiveAskDvo.setReceiveDivideCode("01"); //수납구분코드 계약(청약)금
-    }
-
-    private static ZwdbCreditCardApprovalDto.SaveReq getCreditCardApprovalSaveReq(ZwdzWithdrawalReceiveAskDvo withdrawalReceiveAskDvo, long stlmAmt) {
-        String crcdnoEncr = withdrawalReceiveAskDvo.getCreditCardNumberEncr();
+    static ZwdbCreditCardApprovalDto.SaveReq getCreditCardApprovalSaveReq(ZwdzWithdrawalReceiveAskDvo receiveDetailAskDvo) {
+        String crcdnoEncr = receiveDetailAskDvo.getCreditCardNumberEncr();
         return new ZwdbCreditCardApprovalDto.SaveReq(
-            "2000",
+            receiveDetailAskDvo.getKyowonGroupCompanyCd(),
             "",
             "",
-            withdrawalReceiveAskDvo.getReceiveAskNumber(),
-            withdrawalReceiveAskDvo.getCustomNumber(),
-            withdrawalReceiveAskDvo.getFinancialInstitutionCd(),
+            receiveDetailAskDvo.getReceiveAskNumber(),
+            receiveDetailAskDvo.getCustomNumber(),
+            receiveDetailAskDvo.getFinancialInstitutionCd(),
             crcdnoEncr.substring(0, 4),
-            crcdnoEncr.substring(5, 8),
+            crcdnoEncr.substring(4, 8),
             crcdnoEncr.substring(8, 12),
             crcdnoEncr.substring(12),
             crcdnoEncr,
-            withdrawalReceiveAskDvo.getCreditCardExpireDate(),
-            withdrawalReceiveAskDvo.getAccountOwnerName(),
-            withdrawalReceiveAskDvo.getCrdcdBryyMmdd(),
-            withdrawalReceiveAskDvo.getCrdcdBzrno(), //  bas.getCopnDvCd() == "2" ? bas.getBzrno() : "",
+            receiveDetailAskDvo.getCreditCardExpireDate(),
+            receiveDetailAskDvo.getAccountOwnerName(),
+            receiveDetailAskDvo.getCrdcdBryyMmdd(),
+            receiveDetailAskDvo.getCrdcdBzrno(), //  bas.getCopnDvCd() == "2" ? bas.getBzrno() : "",
             "N", // TODO: 소득공제여부
-            withdrawalReceiveAskDvo.getCreditCardIstmMcn(),
-            Long.toString(stlmAmt),
+            receiveDetailAskDvo.getCreditCardIstmMcn(),
+            receiveDetailAskDvo.getReceiveAskAmount(),
             "",
-            withdrawalReceiveAskDvo.getRveAkMthdCd(),
-            "01",
-            withdrawalReceiveAskDvo.getRvePrtnrOgTpCd(),
-            withdrawalReceiveAskDvo.getRvePrtnrNo(),
+            receiveDetailAskDvo.getRveAkMthdCd(),
+            receiveDetailAskDvo.getRveAkPhCd(),
+            receiveDetailAskDvo.getRvePrtnrOgTpCd(),
+            receiveDetailAskDvo.getRvePrtnrNo(),
             "1", // TODO: 법인카드를 구분?
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
     }

@@ -32,15 +32,18 @@ public class WsnaAssignExcludeItemDto {
         String itmKndCd,
         String itmKndNm,
         String strWareNo,
-        String sapMatCd
+        String sapMatCd,
+        String orgChk
     ) {}
 
     @ApiModel(value = "WsnaAssignExcludeItemDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
         String asnExcdDvCd,
-        String itmKndCd,
-        String wareNo
+        @NotBlank
+        String strWareNo,
+        @NotBlank
+        String itmPdCd
     ) {}
 
     @ApiModel(value = "WsnaAssignExcludeItemDto-CreateReq")

@@ -1,0 +1,96 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbSeedingPackageQtyPsMapper">
+    <select id="selectSeedingPackageQtyPs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbSeedingPackageQtyPsDto$SearchRes">
+        WITH SD_INF AS ( SELECT DISTINCT SDING_PKG_GRP_CD
+                                       , SDING_PKG_GRP_CD_NM
+                           FROM TB_SVPD_SDING_PKG_ITM_IZ /* 모종패키지품목내역 FA109 */
+        )
+        SELECT SDING_PKG_GRP_CD
+             , SDING_PKG_GRP_CD_NM
+             , VST_DT
+             , NVL(SUM(CASE WHEN SV_BIZ_HCLSF_CD = '1' THEN LIM_QTY ELSE 0 END), 0) AS INSTALL_UPLOAD
+             , NVL(SUM(CASE WHEN SV_BIZ_HCLSF_CD = '2' THEN LIM_QTY ELSE 0 END), 0) AS AS_UPLOAD
+             , NVL(SUM(CASE WHEN SV_BIZ_HCLSF_CD = '3' THEN LIM_QTY ELSE 0 END), 0) AS BS_UPLOAD
+             , NVL(SUM(CASE WHEN QTY_CD = '0' THEN LIM_QTY ELSE 0 END), 0) AS TOTAL_UPLOAD /* 총 업로드수량 */
+             , NVL(SUM(CASE WHEN QTY_CD = '1' THEN LIM_QTY ELSE 0 END), 0) AS EXP_INSTALL /* 설치 사용예정 */
+             , NVL(SUM(CASE WHEN QTY_CD = '2' THEN LIM_QTY ELSE 0 END), 0) AS EXP_AS /* AS 사용예정 */
+             , NVL(SUM(CASE WHEN QTY_CD = '3' THEN LIM_QTY ELSE 0 END), 0) AS EXP_BS /* BS 사용예정 */
+             , NVL(SUM(CASE WHEN QTY_CD = '1' THEN CNT ELSE 0 END), 0) AS INSTALL_CNT /* 설치 건수 */
+             , NVL(SUM(CASE WHEN QTY_CD = '2' THEN CNT ELSE 0 END), 0) AS AS_CNT /* AS 건수 */
+             , NVL(SUM(CASE WHEN QTY_CD = '3' THEN CNT ELSE 0 END), 0) AS BS_CNT /* BS 건수 */
+             , NVL(CASE WHEN SUM(LIM_QTY) <![CDATA[<]]> 0 THEN 0 ELSE SUM(LIM_QTY) END, 0) AS USE_QTY /* 사용수량 */
+          FROM ( SELECT S1.SDING_PKG_GRP_CD
+                      , SD_INF.SDING_PKG_GRP_CD_NM
+                      , S1.VST_DT
+                      , S1.SV_BIZ_HCLSF_CD
+                      , S1.LIM_QTY
+                      , 0 AS CNT
+                      , '0' AS QTY_CD
+                   FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ S1 /* 일별모종접수한도내역 FA105 */
+             INNER JOIN SD_INF
+                     ON S1.SDING_PKG_GRP_CD = SD_INF.SDING_PKG_GRP_CD
+                  WHERE S1.LIM_SN = (SELECT MAX(LIM_SN)
+                                       FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ TEMP
+                                      WHERE S1.SDING_PKG_GRP_CD = TEMP.SDING_PKG_GRP_CD
+                                        AND S1.SV_BIZ_HCLSF_CD = TEMP.SV_BIZ_HCLSF_CD
+                                        AND S1.VST_DT = TEMP.VST_DT
+                                        AND S1.LIM_SN = S1.LIM_SN)
+                    AND S1.VST_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+
+              UNION ALL
+
+                SELECT P1.SDING_PKG_GRP_CD
+                     , P1.SDING_PKG_GRP_CD_NM
+                     , B2.VST_DUEDT AS VST_DT
+                     , SUBSTR(B1.SV_BIZ_MCLSF_CD,1,1) AS SV_BIZ_HCLSF_CD
+                     , P1.SDING_PKG_APY_WTCF AS LIM_QTY
+                     , SUM(1) * -1 AS CNT
+                     , '2' AS QTY_CD
+                  FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ B1 /* 고객서비스BS대상내역 AC251 */
+            INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ B2 /* 고객서비스BS배정내역 AC261 */
+                    ON B1.CST_SV_ASN_NO = B2.CST_SV_ASN_NO
+                   AND B1.SV_BIZ_MCLSF_CD = B2.SV_BIZ_MCLSF_CD
+                   AND B1.SV_BIZ_DCLSF_CD = B2.SV_BIZ_DCLSF_CD
+            INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ P1
+                   ON B1.PDCT_PD_CD = P1.SDING_PD_CD
+                 WHERE 1=1
+                   AND B1.ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   AND SUBSTR(B1.SV_BIZ_MCLSF_CD,1,1) = '2'
+                   AND B2.VST_PRGS_STAT_CD IN ('00', '10')
+                   AND B2.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   AND B2.CNFM_PSIC_ASN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+              GROUP BY P1.SDING_PKG_GRP_CD
+                     , P1.SDING_PKG_GRP_CD_NM
+                     , B2.VST_DUEDT
+                     , SUBSTR(B1.SV_BIZ_MCLSF_CD,1,1)
+                     , P1.SDING_PKG_APY_WTCF
+
+             UNION ALL
+
+                SELECT P1.SDING_PKG_GRP_CD
+                     , P1.SDING_PKG_GRP_CD_NM
+                     , A1.VST_CNFMDT AS VST_DT
+                     , A1.SV_BIZ_HCLSF_CD
+                     , P1.SDING_PKG_APY_WTCF AS LIM_QTY
+                     , SUM(1) * -1 AS CNT
+                     , A1.SV_BIZ_HCLSF_CD AS QTY_CD
+                  FROM TB_SVPD_CST_SVAS_IST_ASN_IZ A1 /* 고객서비스AS설치배정이력 AC221 */
+            INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ A2 /* 고객서비스AS설치대상내역 AC211 */
+                    ON A1.CST_SV_ASN_NO = A2.CST_SV_ASN_NO
+            INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ P1
+                    ON A2.PD_CD = P1.SDING_PD_CD
+                 WHERE A1.WK_PRGS_STAT_CD IN ('00', '0')
+                   AND A1.VST_CNFMDT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+              GROUP BY P1.SDING_PKG_GRP_CD
+                     , P1.SDING_PKG_GRP_CD_NM
+                     , A1.VST_CNFMDT
+                     , A1.SV_BIZ_HCLSF_CD
+                     , P1.SDING_PKG_APY_WTCF
+        ) MAIN
+        WHERE VST_DT BETWEEN #{startDate} AND #{endDate}
+     GROUP BY SDING_PKG_GRP_CD
+            , SDING_PKG_GRP_CD_NM
+            , VST_DT
+     ORDER BY VST_DT DESC, SDING_PKG_GRP_CD ASC
+    </select>
+</mapper>

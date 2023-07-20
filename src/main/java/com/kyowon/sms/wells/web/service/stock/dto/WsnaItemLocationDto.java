@@ -50,4 +50,60 @@ public class WsnaItemLocationDto {
         String itmKndCd
 
     ) {}
+
+    @ApiModel("WsnaItemLocationDto-SearchStockCdRes")
+    public record SearchStockCdRes(
+        String codeId,
+        String codeName
+    ) {}
+
+    @ApiModel("WsnaItemLocationDto-SearchLocationReq")
+    public record SearchLocationReq(
+        String itmCdFrom,
+        String itmCdTo,
+        String itmKnd,
+        @NotBlank
+        String wareNo
+
+    ) {}
+    @ApiModel("WsnaItemLocationDto-SearchLocationRes")
+    public record SearchLocationRes(
+        String itmPdCd,
+        String pdAbbrNm,
+        String sapMatCd,
+        String itmKndCd,
+        String wareNo,
+        String wareNm,
+        String stdWareUseYn,
+        String pitmStocAGdQty,
+        String wareTpCd,
+        String locationCd,
+        String itmLctAngleVal,
+        String itmLctCofVal,
+        String itmLctFlorNoVal,
+        String itmLctMatGrpCd,
+        String itmLctNm
+    ) {}
+
+    @ApiModel("WsnaItemLocationDto-CreateLocationReq")
+    public record CreateLocationReq(
+        @NotBlank
+        String wareNo,
+        @NotBlank
+        String itmPdCd,
+        String wareTpCd,
+        String itmLctAngleVal,
+        String itmLctCofVal,
+        String itmLctFlorNoVal,
+        String itmLctMatGrpCd,
+        String itemKnd
+
+    ) {}
+
+    @ApiModel(value = "WsnaItemLocationDto-CreateWareLocationReq")
+    public record CreateWareLocationReq(
+        String wareNo,
+        String stckStdGb
+    ) {}
+
 }
