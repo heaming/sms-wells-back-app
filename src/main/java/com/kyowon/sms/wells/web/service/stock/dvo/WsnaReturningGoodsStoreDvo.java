@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.service.stock.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * W-SV-U-0108M01 반품입고 등록
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023.07.20
+ */
 @Getter
 @Setter
 public class WsnaReturningGoodsStoreDvo {
@@ -57,4 +65,19 @@ public class WsnaReturningGoodsStoreDvo {
     String cntrNo;
     String cntrSn;
     String wkOstrSn;
+
+    //물류에 전송하기 위한 데이터 dvo
+    private String ostrAkRgstDt;
+    private String strHopDt;
+    private String lgstStrTpCd;
+    private String iostAkDvCd;
+    private String wareMngtPrtnrNo;
+    private String wareMngtPrtnrOgTpCd;
+    private String sapIostTpCd;
+    private String lgstSppMthdCd;
+    private String ostrAkQty;
+    private String ostrOjWareNo;
+    private String svCnrCd;
+    private String svCnrNm;
+    private String itmGdCd;
 }

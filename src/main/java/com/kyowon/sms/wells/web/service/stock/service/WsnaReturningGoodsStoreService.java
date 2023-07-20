@@ -7,6 +7,8 @@ import java.util.List;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -44,6 +46,8 @@ public class WsnaReturningGoodsStoreService {
     private final WsnaReturningGoodsStoreConverter converter;
 
     private final WsnaItemStockItemizationService itemStockservice;
+
+    private final WsnaLogisticsInStorageAskService logisticsService;
 
     public PagingResult<SearchRes> getReturningGoodsStores(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectReturningGoodsStores(dto, pageInfo);
@@ -138,7 +142,19 @@ public class WsnaReturningGoodsStoreService {
                     /*물류페기, 리퍼-E급 tt물류폐기일 경우 disuseItmOstrNo 반품요청송신전문*/
                     /*TODO : W-SV-S-0089_물류 반품요청 인터페이스 서비스 호출해야됨*/
                     if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())) {
+
                         result += this.mapper.insertDiDisuseOstrIz(dvo);
+
+                        String logisticsItmOstrNo = dvo.getDisuseItmOstrNo();
+                        log.debug(logisticsItmOstrNo);
+                        String ostrSn = dvo.getOstrSn();
+
+                        List<WsnaReturningGoodsStoreDvo> logisticsDvo = this.mapper
+                            .selectLogisticsReturningGoodsAskInfo(logisticsItmOstrNo, ostrSn);
+
+                        List<WsnaLogisticsInStorageAskReqDvo> returnDvo = this.converter
+                            .mapAllReturningGoodsStoreDvoToLogisticsInStorageAskReqDvo(logisticsDvo);
+                        logisticsService.createInStorageAsks(returnDvo);
                     }
 
                     /*공장 발송일(품질팀+tt특별자재) 경우 quantityItmOstrNo*/
