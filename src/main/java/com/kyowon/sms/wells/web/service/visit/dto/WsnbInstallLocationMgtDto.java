@@ -26,7 +26,8 @@ public class WsnbInstallLocationMgtDto {
         String pdCd, /* 하위상품그룹코드 */
         String cstDvCd, /* 고객구분코드 */
         String cstNm, /* 고객 명 */
-        String cntrNo /* 계약번호 */
+        String cntrNo, /* 계약번호 */
+        String cntrSn
     ) {}
 
     @ApiModel(value = "WsnbIstLctDtlMngtDto-SearchRes")
@@ -36,7 +37,7 @@ public class WsnbInstallLocationMgtDto {
         String cntrSn, /* 계약일련번호 */
         String custNm, /* 고객명 */
         String sellTpNm, /* 유형명 */
-        String basePdCd, /* 상품코드 */
+        String pdctPdCd, /* 상품코드 */
         String sapMapCd, /* SAP코드 */
         String pdNm, /* 상품명 */
         String locaraTno, /* 전화번호1 */
@@ -72,17 +73,6 @@ public class WsnbInstallLocationMgtDto {
         String codeName,
         String abbrName,
         String pdGrpCd
-    ) {}
-
-    @ApiModel(value = "WsnbIstLctDtlMngtDto-FindEngineerRes")
-    public record FindEngineerRes(
-        String ogTpCd,
-        String prtnrNo,
-        String prtnrKnm,
-        String cltnDt,
-        String ogId,
-        String ogCd,
-        String ogNm
     ) {}
 
     @ApiModel(value = "WsnbIstLctDtlMngtDto-FindCenterRes")

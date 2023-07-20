@@ -8,18 +8,18 @@
              , I1.IST_DT
              , B1.CUST_NM AS CUST_NM
         	 , F_CMZ_CD_NM(#{session.tenantId}, 'PRD_MNGT_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
-             , D1.BASE_PD_CD
+             , I1.PDCT_PD_CD
              , (SELECT SAP_MAT_CD
                   FROM TB_PDBS_PD_BAS
                  WHERE 1=1
                    AND DTA_DL_YN = 'N'
-                   AND PD_CD = D1.BASE_PD_CD
+                   AND PD_CD = I1.PDCT_PD_CD
                ) AS SAP_MAP_CD
              , (SELECT PD_NM
                   FROM TB_PDBS_PD_BAS
                  WHERE 1=1
                    AND DTA_DL_YN = 'N'
-                   AND PD_CD = D1.BASE_PD_CD
+                   AND PD_CD = I1.PDCT_PD_CD
                ) AS PD_NM
              , B1.LOCARA_TNO /* 지역전화번호 */
              , B1.EXNO_ENCR /* 전화국번호암호화 (복호화필요) */
@@ -83,6 +83,10 @@
               AND P1.OG_TP_CD  = I1.MNGT_PRTNR_OG_TP_CD
               AND P1.PRTNR_NO  = I1.MNGT_PRTNR_NO
               AND P1.OG_TP_CD IN ('W03','W06')
+             LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD1
+               ON PD1.PD_CD = I1.PDCT_PD_CD
+              AND PD1.PD_EXTS_PRP_GRP_CD = 'PART'
+              AND PD1.DTA_DL_YN = 'N'
             WHERE I1.IST_DT IS NOT NULL
               AND I1.DTA_DL_YN = 'N'
          <if test="@MybatisUtils@isNotEmpty(ogId)">
@@ -101,13 +105,14 @@
               AND PD1.PD_PRP_VAL20 = #{pdGrpCd}
          </if>
          <if test="@MybatisUtils@isNotEmpty(pdCd)">
-              AND D1.BASE_PD_CD = #{pdCd}
+              AND I1.PDCT_PD_CD = #{pdCd}
          </if>
          <if test="@MybatisUtils@isNotEmpty(cstNm)">
-              AND B1.RCGVP_KNM = #{cstNm}
+              AND B1.CUST_NM = #{cstNm}
          </if>
-         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-              AND I1.CNTR_NO LIKE '%'||#{cntrNo}||'%'
+         <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+              AND I1.CNTR_NO = #{cntrNo}
+              AND I1.CNTR_SN = #{cntrSn}
          </if>
     </select>
 
@@ -179,7 +184,7 @@
 
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto$FindProductRes">
         SELECT T1.PD_CD AS CODE_ID
-             , T1.PD_ABBR_NM  || '(' || T1.PD_CD || ')' AS CODE_NAME
+             , T1.PD_NM  || '(' || T1.PD_CD || ')' AS CODE_NAME
              , T1.PD_NM  AS ABBR_NAME
              , T2.PD_PRP_VAL20 AS PD_GRP_CD
           FROM TB_PDBS_PD_BAS T1
@@ -188,42 +193,7 @@
            AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
            AND T2.DTA_DL_YN = 'N'
            AND T2.PD_PRP_VAL19 = '4'
+           AND T1.PD_TP_CD = 'M'
     </select>
 
-    <select id="selectEngineers" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto$FindEngineerRes">
-        SELECT T1.OG_TP_CD
-             , T1.PRTNR_NO
-             , T1.PRTNR_KNM
-             , T1.PSTN_DV_CD
-             , T1.RSB_DV_CD
-             , T1.ROL_DV_CD
-             , T1.OG_ID
-             , T1.OG_CD
-             , T1.OG_NM
-             , T1.CLTN_DT
-        FROM TB_OGBS_MM_PRTNR_IZ T1
-       WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-         AND T1.OG_TP_CD IN ('W03', 'W06')
-         AND T1.BZ_STAT_CD = '1'
-         AND T1.DTA_DL_YN = 'N'
-        <if test='@MybatisUtils@isNotEmpty(ogId)'>
-           AND T1.OG_ID = #{ogId}
-        </if>
-       ORDER BY T1.PRTNR_KNM
-    </select>
-
-    <select id="selectCenters" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto$FindCenterRes">
-        SELECT OG_ID
-             , OG_TP_CD
-             , OG_CD
-             , OG_NM
-             , HGR_OG_ID
-         FROM TB_OGBS_MM_OG_IZ
-        WHERE 1 = 1
-          AND BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-          AND OG_TP_CD LIKE 'W%'
-          AND CLO_DT IS NULL
-          AND DTA_DL_YN = 'N'
-        ORDER BY OG_NM
-    </select>
 </mapper>
