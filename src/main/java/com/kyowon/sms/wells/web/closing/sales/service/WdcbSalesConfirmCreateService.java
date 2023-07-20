@@ -6,8 +6,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.closing.sales.converter.WdcbSalesConfirmCreateConverter;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesConfirmCreateDto.CreateReq;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmCreateDvo;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmReceivingAndPayingDvo;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmSapMatDvo;
@@ -31,103 +29,19 @@ import lombok.RequiredArgsConstructor;
 public class WdcbSalesConfirmCreateService {
 
     private final WdcbSalesConfirmCreateMapper mapper;
-    private final WdcbSalesConfirmCreateConverter conveter;
 
     /**
      * 매출확정생성 서비스
-     * @param cntrNo
-     * @param cntrSn
-     * @param slRcogDt
-     * @param kwGrpCdCd
-     * @param bzHdqDvCd
-     * @param ogTpCd
-     * @param prtnrNo
-     * @param pdHclsfId
-     * @param pdMclsfId
-     * @param pdLclsfId
-     * @param pdCd
-     * @param cstNo
-     * @param copnDvCd
-     * @param bzrno
-     * @param sellTpCd
-     * @param sellTpDtlCd
-     * @param sellInflwChnlDtlCd
-     * @param sellQty
-     * @param sellAmt
-     * @param sellAmtVat
-     * @param sellSplAmt
-     * @param cntrTam
-     * @param subscAmt
-     * @param rentalRgstCost
-     * @param rentalAmt
-     * @param rentalDscAmt
-     * @param rentalPtrm
-     * @param rentalTn
-     * @param istmPcamAmt
-     * @param istmFeeLvyAmt
-     * @param istmAmt
-     * @param istmMcn
-     * @param mmIstmAmt
-     * @param dscAmt
-     * @param cntramDpAmt
-     * @param bilDscAmt
-     * @param ovrCtrDpAmt
-     * @param prmTn
-     * @param totPrmAmt
-     * @param prmExpAmt
-     * @param prmStrtY
-     * @param prmStrtMm
-     * @param prmEndY
-     * @param prmEndMm
-     * @param prmMcn
-     * @param prmDscr
-     * @param prmDscAmt
-     * @param prmDpAmt
-     * @param prmRfndAmt
-     * @param prmRplcAmt
-     * @param prmSlAmt
-     * @param nomSlAmt
-     * @param spmtSlAmt
-     * @param nomDscAmt
-     * @param spmtDscAmt
-     * @param slCtrAmt
-     * @param slCanAmt
-     * @param slStpYn
-     * @param cntrStlmFshDtm
-     * @param cntrStrtdt
-     * @param canDt
-     * @param slDc
-     * @param svAmt
-     * @param nomIntAmt
-     * @param mlgSlAmt
-     * @param ostrDtm
-     * @param sppDtm
-     * @param istDtm
-     * @param reqdDtm
-     * @param svDt
-     * @param pvdaOjPcam
-     * @param pvdaAmt
-     * @param slRcogClsfCd
-     * @param lgstItmGdCd
-     * @param reimPcsvCs
-     * @param pcsvReimAmt
-     * @param iostDt
-     * @param slQty
-     * @param rtngdYn
-     * @param frisuYn
-     * @param fgptYn
      * @return processCount
      * @throws BizException 조회 결과가 없는 경우 Exception 처리
      */
     @Transactional
-    public int createSalesConfirm(List<CreateReq> dtos) throws BizException {
+    public int createSalesConfirm(List<WdcbSalesConfirmCreateDvo> dvos) throws BizException {
         int processCount = 0;
-        Iterator<CreateReq> iterator = dtos.iterator();
+        Iterator<WdcbSalesConfirmCreateDvo> iterator = dvos.iterator();
 
         while (iterator.hasNext()) {
-            CreateReq dto = iterator.next();
-
-            WdcbSalesConfirmCreateDvo dvo = conveter.mapCreateReqToWdcbSalesConfirmCreateDvo(dto);
+            WdcbSalesConfirmCreateDvo dvo = iterator.next();
 
             WdcbSlCnfmBasDvo inputDvo = new WdcbSlCnfmBasDvo();
 
@@ -136,7 +50,7 @@ public class WdcbSalesConfirmCreateService {
             /* 2.대표고객 매핑 */
             String dgCstId = mapper.selectDgCstId(dvo);
             /* 3.SAP상품구분코드 매핑 */
-            /* 3-1. 판매유형에 필터가 들어온경우 (SELL_TP_CD = 9 ) 
+            /* 3-1. 판매유형에 필터가 들어온경우 (SELL_TP_CD = 9 )
             판매유형상세에 빈값이 들어올예정으로 이때 SELL_TP_DTL_CD (판매유형상세) 에 9 셋팅
              */
             if ("9".equals(dvo.getSellTpCd()))
@@ -153,7 +67,7 @@ public class WdcbSalesConfirmCreateService {
             /* 6-1.저장물품여부(SAVE_GDS_YN) */
             String saveGdsYn = sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N";
             /* 7. SAP사업본부정보코드(SAP_BZ_HDQ_INF_CD) */
-            String sapBzHdqInfCd = "1210";
+            String sapBzHdqInfCd = "0003";
             /* 8. 매출금액 (SL_AMT) */
             int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - dvo.getSpmtDscAmt()
                 - dvo.getSlCtrAmt(); // 정상매출금액 + 추가매출금액- 정상할인금액 - 추가할인금액 - 매출조정금액

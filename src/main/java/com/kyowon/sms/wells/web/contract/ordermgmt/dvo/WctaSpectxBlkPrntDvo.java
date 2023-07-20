@@ -11,6 +11,7 @@ public class WctaSpectxBlkPrntDvo {
     private String cntrNo;
     private String cntrSn;
     private String cstNm;
+    private String cstNo;
     private String spectxPrntY;
     private String spectxPblDDvCd;
     private String spectxPrdDvCd;

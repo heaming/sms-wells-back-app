@@ -4,7 +4,7 @@
 
     <select id="selectBsPeriodCustomers" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$SearchRes">
 			 SELECT T1.ASN_OJ_YM									  -- 배정대상년월
-			 	  , DECODE(T2.TF_STAT_CD,'10','10','00') AS TF_STAT_CD  -- 이관상태
+			 	  , NVL(T2.TF_STAT_CD, '00') AS TF_STAT_CD            -- 이관상태
 				  , T1.CNTR_NO    									  -- 계약번호
 				  , T1.CNTR_SN    									  -- 계약번호
 				  , T5.RCGVP_KNM  									  -- 고객명
@@ -13,9 +13,9 @@
 				  , T4.PDCT_PD_CD      								  -- 품목코드
                   , T14.SVPD_NM_ABBR1                                 -- 상품명
 				  , T1.SV_BIZ_DCLSF_CD 								  -- 업무유형
-                  , DECODE(T14.SVPD_ITEM_GR,'11',T14.SVPD_NM_ABBR1,'') AS M_PKG     -- 모종패키지
-                  , DECODE(T14.SVPD_ITEM_GR,'11',(T1.CNTR_NO || '-' || T1.CNTR_SN) ,'') AS M_CNTR_NO    -- 모종고객번호
-                  , DECODE(T14.SVPD_ITEM_GR,'11',T5.RCGVP_KNM,'') AS M_RCGVP_KNM    -- 모종고객명
+                  , DECODE(T14.SVPD_ITEM_GR, '11', T14.SVPD_NM_ABBR1, '')                   AS M_PKG        -- 모종패키지
+                  , DECODE(T14.SVPD_ITEM_GR, '11', T1.CNTR_NO || '-' || T1.CNTR_SN, '')     AS M_CNTR_NO    -- 모종고객번호
+                  , DECODE(T14.SVPD_ITEM_GR, '11', T5.RCGVP_KNM, '')                        AS M_RCGVP_KNM  -- 모종고객명
 				  , T5.CTPV_NM    	   -- 시도명
 				  , T5.CTCTY_NM   	   -- 시군구명
 				  , T5.EMD_NM     	   -- 행정동명
@@ -33,23 +33,33 @@
 				  , T2.TF_AK_RMK_CN    -- 메모
 				  , T8.OG_NM              AS BFCH_ICHR_OG_NM 	 -- 이관전담당자-소속
 				  , T2.BFCH_ICHR_PRTNR_NO 					 	 -- 이관전담당자-사번
+			      , T2.BFCH_ICHR_BRCH_OG_ID
+			      , T2.BFCH_MNGR_DV_CD
+			      , T2.BFCH_ICHR_PRTNR_OG_TP_CD
 				  , T10.PRTNR_KNM         AS BFCH_ICHR_PRTNR_KNM -- 이관전담당자-성명
 				  , T9.OG_NM              AS AFCH_ICHR_OG_NM 	 -- 이관후담당자-소속
 				  , T2.AFCH_ICHR_PRTNR_NO 						 -- 이관후담당자-사번
+			      , T2.AFCH_ICHR_BRCH_OG_ID
+			      , T2.AFCH_MNGR_DV_CD
+			      , T2.AFCH_ICHR_PRTNR_OG_TP_CD
 				  , T11.PRTNR_KNM         AS AFCH_ICHR_PRTNR_KNM -- 이관후담당자-성명
 				  , T2.TF_RQDT 									 -- 이관요청정보-이관일자
 				  , T2.TF_AK_RSON_CD 							 -- 이관요청정보-이관사유
 				  , T12.OG_NM             AS TF_OG_NM 		     -- 이관요청정보-소속
 				  , T12.PRTNR_KNM         AS TF_PRTNR_KNM 		 -- 이관요청정보-성명
+			      , T12.OG_TP_CD          AS TF_OG_TP_CD
+			      , T12.PRTNR_NO          AS TF_PRTNR_NO
 				  , T2.TF_CNFMDT          AS TF_FN_CNFMDT		 -- 이관확정정보-이관일자
 				  , T13.OG_NM             AS TF_FN_OG_NM 		 -- 이관확정정보-소속
 				  , T13.PRTNR_KNM         AS TF_FN_PRTNR_KNM 	 -- 이관확정정보-성명
 			      , T1.CST_SV_ASN_NO
+			      , T1.MNGER_RGLVL_DV_CD
 			   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
          LEFT OUTER JOIN (
                        SELECT T1.*
                          FROM TB_SVPD_ASN_RS_TF_IZ T1
                         WHERE T1.DTA_DL_YN = 'N'
+                          AND T1.TF_STAT_CD = '10'
                           AND T1.TF_SN = (
                                         SELECT MAX(T2.TF_SN)
                                           FROM TB_SVPD_ASN_RS_TF_IZ T2
@@ -154,8 +164,13 @@
                    OR T2.AFCH_ICHR_PRTNR_NO = #{partnerNoInput}
                     )
             </if>
-            <if test="@MybatisUtils@isNotEmpty(transferStatusCode) and !@MybatisUtils@equals(transferStatusCode, 'ALL')">
+            <if test="@MybatisUtils@isNotEmpty(transferStatusCode) and @MybatisUtils@equals(transferStatusCode, '10')">
                 AND T2.TF_STAT_CD = #{transferStatusCode}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(transferStatusCode) and @MybatisUtils@equals(transferStatusCode, '00')">
+                AND ( T2.TF_STAT_CD = #{transferStatusCode}
+                   OR T2.TF_STAT_CD IS NULL
+                    )
             </if>
             <if test='@MybatisUtils@isNotEmpty(emdName)'>
 		 	    <bind name="emdName" value="'%'+emdName+'%'" />
@@ -180,6 +195,9 @@
                    AND T1.OG_TP_CD IN ('W02', 'ALC')
                    AND T1.OG_LEVL_DV_CD = '3'
                    AND T1.DTA_DL_YN = 'N'
+                   AND #{ogTpCd} = 'W02'
+                   AND T1.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                   AND T1.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
                  UNION
                 SELECT T2.OG_ID
                      , T2.OG_TP_CD
@@ -192,6 +210,8 @@
                    AND T2.OG_TP_CD IN ('W03', 'W06')
                    AND T2.CLO_DT IS NULL
                    AND T2.DTA_DL_YN = 'N'
+                   AND #{ogTpCd} IN ('W03', 'W06')
+                   AND T2.OG_ID = #{ogId}
               ) T3
         ORDER BY T3.OG_CD
     </select>
@@ -232,5 +252,166 @@
                 ) T3
          ORDER BY T3.PRTNR_NM, T3.PRTNR_NO
     </select>
+
+    <select id="selectAsnTfDvCd" resultType="java.lang.String">
+        SELECT DECODE(t1.OG_TP_CD, t2.OG_TP_CD, DECODE(t1.OG_TP_CD,'W02'
+             , DECODE(t1.DGR2_LEVL_OG_ID, t2.DGR2_LEVL_OG_ID, '311', '321') -- 매니저인 경우 동일지역단인 경우 311 아니면 321
+             , DECODE(t1.DGR1_LEVL_OG_ID, t2.DGR1_LEVL_OG_ID, '316', '321')) -- 엔지니어인 경우 동일센터인 경우 316 아니면 321
+             , '321')    -- 조직유형코드가 다르면 외부이관: 321
+               AS ASN_TF_DV_CD  -- 배정이관구분코드
+          FROM (
+              SELECT OG_TP_CD, DGR1_LEVL_OG_ID, DGR2_LEVL_OG_ID, DGR3_LEVL_OG_ID
+                FROM TB_OGBS_MM_OG_IZ
+               WHERE 1=1
+                 AND OG_ID =  #{bfchIchrBrchOgId}
+                 AND BASE_YM = #{baseYm} -- 조회년월
+                 ) t1
+             , (
+              SELECT OG_TP_CD, DGR1_LEVL_OG_ID, DGR2_LEVL_OG_ID, DGR3_LEVL_OG_ID
+                FROM TB_OGBS_MM_OG_IZ
+               WHERE 1=1
+                 AND OG_ID =  #{afchIchrBrchOgId}
+                 AND BASE_YM = #{baseYm} -- 조회년월
+               ) t2
+    </select>
+
+    <insert id="insertTransfer">
+		INSERT INTO TB_SVPD_ASN_RS_TF_IZ
+		(
+			  CST_SV_ASN_NO
+			, ASN_TF_DV_CD
+			, TF_SN
+			, TF_STAT_CD
+			, TF_RQDT
+			, TF_AK_RSON_CD
+			, TF_AK_PRTNR_OG_TP_CD
+			, TF_AK_PRTNR_NO
+			, TF_CNFMDT
+			, TF_CNFM_PRTNR_OG_TP_CD
+			, TF_CNFM_PRTNR_NO
+			, TF_AK_RMK_CN
+			, BFCH_ICHR_BRCH_OG_ID
+			, BFCH_MNGR_DV_CD
+			, BFCH_ICHR_PRTNR_OG_TP_CD
+			, BFCH_ICHR_PRTNR_NO
+			, AFCH_ICHR_BRCH_OG_ID
+			, AFCH_MNGR_DV_CD
+			, AFCH_ICHR_PRTNR_OG_TP_CD
+			, AFCH_ICHR_PRTNR_NO
+			, MNGER_RGLVL_DV_CD
+			<include refid="COMMON.insertSystemField" />
+		)
+		VALUES
+		(
+			  #{cstSvAsnNo}
+			, #{asnTfDvCd}
+			, NVL((
+				SELECT MAX(TF_SN)
+				  FROM TB_SVPD_ASN_RS_TF_IZ
+				 WHERE DTA_DL_YN = 'N'
+				   AND CST_SV_ASN_NO = #{cstSvAsnNo}
+				   AND ASN_TF_DV_CD = #{asnTfDvCd}
+			  ), 0) + 1
+			, '10'
+			, TO_CHAR(SYSDATE,'YYYYMMDD')
+			, #{tfAkRsonCd}
+			, #{tfAkPrtnrOgTpCd}
+			, #{tfAkPrtnrNo}
+			, ''
+			, ''
+			, ''
+			, ''
+			, #{bfchIchrBrchOgId}
+			, #{bfchMngrDvCd}
+			, #{bfchIchrPrtnrOgTpCd}
+			, #{bfchIchrPrtnrNo}
+			, #{afchIchrBrchOgId}
+			, #{afchMngrDvCd}
+			, #{afchIchrPrtnrOgTpCd}
+			, #{afchIchrPrtnrNo}
+			, #{mngerRglvlDvCd}
+			<include refid="COMMON.insertSystemFieldValue" />
+		)
+    </insert>
+
+    <update id="mergeTransferConfirm">
+		MERGE
+		 INTO TB_SVPD_ASN_RS_TF_IZ T1
+		USING (
+				SELECT MAX(TF_SN) AS TF_SN
+				  FROM TB_SVPD_ASN_RS_TF_IZ
+				 WHERE DTA_DL_YN = 'N'
+				   AND CST_SV_ASN_NO = #{cstSvAsnNo}
+				   AND ASN_TF_DV_CD = #{asnTfDvCd}
+				   AND TF_STAT_CD = '10'
+			  ) T2
+		   ON ( T1.CST_SV_ASN_NO = #{cstSvAsnNo}
+		    AND T1.ASN_TF_DV_CD = #{asnTfDvCd}
+		    AND T1.TF_SN = T2.TF_SN
+		      )
+	WHEN MATCHED THEN
+	   UPDATE
+		  SET TF_STAT_CD = '20'
+		    , TF_CNFMDT = TO_CHAR(SYSDATE,'YYYYMMDD')
+			, TF_CNFM_PRTNR_OG_TP_CD = #{tfAkPrtnrOgTpCd}
+			, TF_CNFM_PRTNR_NO = #{tfAkPrtnrNo}
+			<include refid="COMMON.updateSystemField" />
+	WHEN NOT MATCHED THEN
+	   INSERT (
+			  CST_SV_ASN_NO
+			, ASN_TF_DV_CD
+			, TF_SN
+			, TF_STAT_CD
+			, TF_RQDT
+			, TF_AK_RSON_CD
+			, TF_AK_PRTNR_OG_TP_CD
+			, TF_AK_PRTNR_NO
+			, TF_CNFMDT
+			, TF_CNFM_PRTNR_OG_TP_CD
+			, TF_CNFM_PRTNR_NO
+			, TF_AK_RMK_CN
+			, BFCH_ICHR_BRCH_OG_ID
+			, BFCH_MNGR_DV_CD
+			, BFCH_ICHR_PRTNR_OG_TP_CD
+			, BFCH_ICHR_PRTNR_NO
+			, AFCH_ICHR_BRCH_OG_ID
+			, AFCH_MNGR_DV_CD
+			, AFCH_ICHR_PRTNR_OG_TP_CD
+			, AFCH_ICHR_PRTNR_NO
+			, MNGER_RGLVL_DV_CD
+			<include refid="COMMON.insertSystemField" />
+		)
+		VALUES
+		(
+			  #{cstSvAsnNo}
+			, #{asnTfDvCd}
+			, NVL((
+				SELECT MAX(TF_SN)
+				  FROM TB_SVPD_ASN_RS_TF_IZ
+				 WHERE DTA_DL_YN = 'N'
+				   AND CST_SV_ASN_NO = #{cstSvAsnNo}
+				   AND ASN_TF_DV_CD = #{asnTfDvCd}
+			  ), 0) + 1
+			, '20'
+			, TO_CHAR(SYSDATE,'YYYYMMDD')
+			, #{tfAkRsonCd}
+			, #{tfAkPrtnrOgTpCd}
+			, #{tfAkPrtnrNo}
+			, TO_CHAR(SYSDATE,'YYYYMMDD')
+			, #{tfAkPrtnrOgTpCd}
+			, #{tfAkPrtnrNo}
+			, ''
+			, #{bfchIchrBrchOgId}
+			, #{bfchMngrDvCd}
+			, #{bfchIchrPrtnrOgTpCd}
+			, #{bfchIchrPrtnrNo}
+			, #{afchIchrBrchOgId}
+			, #{afchMngrDvCd}
+			, #{afchIchrPrtnrOgTpCd}
+			, #{afchIchrPrtnrNo}
+			, #{mngerRglvlDvCd}
+			<include refid="COMMON.insertSystemFieldValue" />
+		)
+    </update>
 
 </mapper>

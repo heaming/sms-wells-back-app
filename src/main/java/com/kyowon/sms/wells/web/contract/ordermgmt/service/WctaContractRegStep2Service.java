@@ -66,7 +66,9 @@ public class WctaContractRegStep2Service {
                     pkgs.forEach((p) -> p.setCntrRelDtlCd(rel.getCntrRelDtlCd()));
                     dtl.setPkgs(pkgs);
                     dtl.setSdingCapsls(
-                        mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                        mapper.selectSdingCapslInfos(
+                            cntrNo, cntrSn, dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList()
+                        )
                     );
                 } else if ("214".equals(dtl.getCntrRelDtlCd())) {
                     // 단독 정기배송 정보 세팅
@@ -79,7 +81,9 @@ public class WctaContractRegStep2Service {
                             .build()
                     );
                     dtl.setSdingCapsls(
-                        mapper.selectSdingCapsls(dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList())
+                        mapper.selectSdingCapslInfos(
+                            cntrNo, cntrSn, dtl.getPdCd(), pdRels.stream().map(r -> r.getOjPdCd()).toList()
+                        )
                     );
                 }
             }
@@ -336,7 +340,8 @@ public class WctaContractRegStep2Service {
     @Transactional
     public String saveContractStep2(WctaContractRegStep2Dvo dvo) {
         String now = DateUtil.todayNnow();
-        String cntrNo = dvo.getBas().getCntrNo();
+        WctaContractBasDvo bas = dvo.getBas();
+        String cntrNo = bas.getCntrNo();
         // 0. 계약기본
         regService.updateCntrPrgsStatCd(cntrNo, CtContractConst.CNTR_PRGS_STAT_CD_TEMP_STEP2);
 
@@ -358,7 +363,6 @@ public class WctaContractRegStep2Service {
             dtl.setCntrNo(cntrNo);
             dtl.setBasePdCd(dtl.getPdCd());
             dtl.setSvPrd(0l); // TODO 서비스 주기 조회해서 저장해야 할듯(콤보에 주기 정보 없으므로)
-            dtl.setCntrwTpCd(""); // TODO 계약서유형코드
             dtl.setBlgCrpCd("D0");
             dtl.setRveCrpCd("D0");
             dtl.setCoCd("2000");
@@ -367,17 +371,23 @@ public class WctaContractRegStep2Service {
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
 
+            String mchnSellTpCd = "";
             if ("216".equals(dtl.getCntrRelDtlCd())) {
                 // 정기배송(기기+모종캡슐)인 경우 기기의 계약기간, 약정기간 세팅
                 WctaContractDtlDvo m = dvo.getDtls().stream().filter((d) -> d.getCntrSn() == cntrSn - 1).findFirst()
                     .orElseThrow();
                 dtl.setCntrPtrm(m.getCntrPtrm());
                 dtl.setStplPtrm(m.getStplPtrm());
+                mchnSellTpCd = m.getSellTpCd();
             } else if ("214".equals(dtl.getCntrRelDtlCd())) {
                 // 단독 정기배송인 경우 상품속성의 정기배송계약기간, 정기배송약정기간 세팅
                 dtl.setCntrPtrm(dtl.getRglrSppCntrDvCd());
                 dtl.setStplPtrm(dtl.getRglrSppDutyPtrmDvCd());
             }
+
+            dtl.setCntrwTpCd(
+                regService.getCntrwTpCd(dtl.getSellTpCd(), dtl.getSellTpDtlCd(), dtl.getCntrRelDtlCd(), mchnSellTpCd)
+            );
 
             if (CtContractConst.SELL_TP_CD_SPAY.equals(sellTpCd)) {
                 // 일시불인 경우 계약금 없음

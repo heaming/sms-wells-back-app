@@ -1,21 +1,30 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAssignExcludeItemDto.*;
+
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAssignExcludeItemDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaAssignExcludeItemConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAssignExcludeItemDto.SaveReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAssignExcludeItemDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAssignExcludeItemDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaAssignExcludeItemDto.WareRes;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDelDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaAssignExcludeItemMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
+
+/**
+ * <pre>
+ * W-SV-U-0189P01 배정제외품목 등록 서비스
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-07-14
+ */
 
 @Service
 @RequiredArgsConstructor
@@ -25,19 +34,54 @@ public class WsnaAssignExcludeItemService {
 
     private final WsnaAssignExcludeItemConverter converter;
 
-    public PagingResult<SearchRes> getAssignExcludeItems(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectAssignExcludeItems(dto, pageInfo);
+    /**
+     * 배정제외품목 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
+    public PagingResult<SearchRes> getAssignExcludeItemsPaging(SearchReq dto, PageInfo pageInfo) {
+        return this.mapper.selectAssignExcludeItemsPaging(dto, pageInfo);
     }
 
-    public List<WareRes> getWarehouse(SearchReq dto){
-        return mapper.selectWarehouse(dto);
+    /**
+     * 창고조회
+     * @return
+     */
+    public List<WsnzWellsCodeWareHouseDvo> getWarehouses() {
+        return this.mapper.selectWarehouses();
     }
 
-    public int saveAssignExcludeItems(List<SaveReq> list) {
+    /**
+     * 배정제외 품목 삭제
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int removeAssignExcludeItems(List<RemoveReq> dtos) {
+
+        int count = 0;
+
+        List<WsnaAssignExcludeItemDelDvo> dvos = this.converter.mapAllRemoveReqToWsnaAssignExcludeItemDelDvo(dtos);
+
+        for (WsnaAssignExcludeItemDelDvo dvo : dvos) {
+            count += this.mapper.updateQomAsnExcdIzForRemove(dvo);
+        }
+
+        return count;
+    }
+
+    /**
+     * 배정제외 품목 등록
+     * @param list
+     * @return
+     */
+    @Transactional
+    public int createAssignExcludeItems(List<CreateReq> list) {
         int cnt = 0;
-        List<WsnaAssignExcludeItemDvo> dvoList = converter.mapAllSaveReqToWsnaAssignExcludeItemDvos(list);
+        List<WsnaAssignExcludeItemDvo> dvoList = this.converter.mapAllCreateReqToWsnaAssignExcludeItemDvo(list);
         for (WsnaAssignExcludeItemDvo dvo : dvoList) {
-            cnt += mapper.saveAssignExcludeItems(dvo);
+            cnt += mapper.insertQomAsnExcdIz(dvo);
         }
         return cnt;
     }

@@ -32,8 +32,6 @@ public interface WctbContractChangeMgtMapper {
     int insertContractChRcpDetail(@Param("item")
     WctbContractChangeDvo dvo);
 
-    int insertContractChangeReceiptHist(WctbContractChangeDvo dvo);
-
     int updateContractAddrBase(WctbContractChangeDvo dvo);
 
     int updateContractAddrChangeHist(WctbContractChangeDvo dvo);

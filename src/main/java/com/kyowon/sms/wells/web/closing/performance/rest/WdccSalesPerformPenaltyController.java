@@ -4,7 +4,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.closing.payment.dto.WdcaCancellationFeeComputationDto;
+import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaCancellationFeeComputationDvo;
+import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaCancellationFeeComputationResultDvo;
 import com.kyowon.sms.wells.web.closing.payment.service.WdcaCancellationFeeComputationService;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesPerformPenaltyDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesPerformPenaltyDto.SearchRes;
@@ -35,9 +36,9 @@ public class WdccSalesPerformPenaltyController {
     }
 
     @GetMapping("/estimated-penalty")
-    public WdcaCancellationFeeComputationDto.SearchRes getEstimatedPenalty(
-        WdcaCancellationFeeComputationDto.SearchReq dto
+    public WdcaCancellationFeeComputationResultDvo getEstimatedPenalty(
+        WdcaCancellationFeeComputationDvo dvo
     ) {
-        return cancellationFeeService.saveDelinquentDepositRefund(dto);
+        return cancellationFeeService.saveDelinquentDepositRefund(dvo);
     }
 }

@@ -26,8 +26,8 @@ public class WbncSameCustomerContractService {
         return mapper.selectContractDeposit(bndBizDvCd, cntrNo, cntrSn);
     }
 
-    public FindBreachOfPromiseRes getBreachOfPromise(String bndCntrRefId) {
-        return mapper.selectBreachOfPromise(bndCntrRefId);
+    public FindBreachOfPromiseRes getBreachOfPromise(String bndBizDvCd, String cntrNo, int cntrSn) {
+        return mapper.selectBreachOfPromise(bndBizDvCd, cntrNo, cntrSn);
     }
 
     public FindSalesRes getContractSales(String bndCntrRefId) {

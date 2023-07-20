@@ -35,4 +35,13 @@ public class WctzContractChRcchStatChangeDtlHistDvo {
     private String procsDuedt; /* 처리예정일자 */
     private String procsFshDtm; /* 처리완료일시 */
     private String dtaDlYn; /* 데이터삭제여부 */
+
+    private String fstRgstDtm; // 최초등록일시
+    private String fstRgstUsrId; // 최초등록유저ID
+    private String fstRgstPrgId; // 최초등록프로그램ID
+    private String fstRgstDeptId; // 최초등록부서ID
+    private String fnlMdfcDtm; // 최종수정일시
+    private String fnlMdfcUsrId; // 최종수정유저ID
+    private String fnlMdfcPrgId; // 최종수정프로그램ID
+    private String fnlMdfcDeptId; // 최종수정부서ID
 }

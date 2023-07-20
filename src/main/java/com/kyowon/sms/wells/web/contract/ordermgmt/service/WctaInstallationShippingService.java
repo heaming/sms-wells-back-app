@@ -58,9 +58,10 @@ public class WctaInstallationShippingService {
 
             for (WctaInstallationShippingDvo shipping : shippings) {
                 shipping.setProfile(activeProfile);
+                shipping.setHasKiwiOrd(false);
+
                 if (CollectionUtils.isEmpty(kiwiInstallOrders)) {
                     resultDto.add(converter.mapWctaIstShippingDvoToSearchRes(shipping));
-                    shipping.setHasKiwiOrd(false);
                 } else {
                     kiwiInstallOrders.stream()
                         .filter(
@@ -120,6 +121,7 @@ public class WctaInstallationShippingService {
         String prdDiv = dvo.getPrdDiv();
         String inChnlDvCd = dvo.getInChnlDvCd();
         String cnslMoCn = dvo.getCnslMoCn();
+        String svBizHclsfCd = dvo.getSvBizHclsfCd();
 
         dvo.setCntrDtlNo(dvo.getCntrNo() + dvo.getCntrSn());
         String cntrDtlNo = dvo.getCntrDtlNo();
@@ -150,6 +152,8 @@ public class WctaInstallationShippingService {
                     .cntrSn(cntrSn)
                     .svBizDclsfCd(svBizDclsfCd)
                     .inChnlDvCd(inChnlDvCd)
+                    .mtrStatCd(prdDiv)
+                    .svBizHclsfCd(svBizHclsfCd)
                     .build()
             );
 

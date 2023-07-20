@@ -479,8 +479,8 @@ public class WwdaAutoTransferInterfaceService {
             // 1.6 현재 청구중인지 확인
             List<WwdaBillingScheduleReceiveInterfaceDvo> billingScheduleReceives = mapper
                 .selectBillingScheduleReceive(bulk.getCntrNo(), bulk.getCntrSn());
-            if (!ObjectUtils.isEmpty(billingScheduleReceives)
-                && !ObjectUtils.isEmpty(billingScheduleReceives.get(0).getRveDt())) {
+            if (ObjectUtils.isEmpty(billingScheduleReceives)
+                || "Y".equals(billingScheduleReceives.get(0).getRveDt())) {
                 reslCd = "E";
                 reslCntn = messageResourceService
                     .getMessage("MSG_ALT_BIL_ERR_CH_FNT_D"); // 현재 출금요청중으로 이체일을 뒤로 변경이 불가합니다.

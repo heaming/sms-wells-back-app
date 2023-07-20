@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @InterfaceController
-@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
+@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 고객정보, 맞춤가이드 조회")
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/wells-as-interfaces")
 @RequiredArgsConstructor
 @Validated
@@ -100,6 +100,18 @@ public class WsncWellsAsInterfaceController {
     ) {
         EaiWrapper<SearchCustomerInformationRes> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getCustomerInformation(reqWrapper.getBody()));
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "W-SV-I-0023 Wells 인터페이스 맞춤가이드 관리자페이지 AS접수 모종변경 조회")
+    @PostMapping("/as-siding-changes")
+    public EaiWrapper getAsSidingChanges(
+        @Valid
+        @RequestBody
+        EaiWrapper<SearchAsSidingChangeReq> reqWrapper
+    ) {
+        EaiWrapper<SearchAsSidingChangeRes> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getAsSidingChanges(reqWrapper.getBody()));
         return resWrapper;
     }
 

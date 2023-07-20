@@ -20,8 +20,8 @@ public class WsniSeasonFiltersInterfaceDto {
     // *********************************************************
     @ApiModel(value = "WsniSeasonFiltersInterfaceDto-SearchRes")
     public record SearchRes(
-        @JsonProperty(value = "CH_PDCT_PD_CD")
-        String partPdCd,
+        @JsonProperty(value = "PDCT_PD_CD")
+        String pdctPdCd,
         @JsonProperty(value = "FILT_CMU_NM")
         String filtCmuNm,
         @JsonProperty(value = "FILT_CMU_EPL")

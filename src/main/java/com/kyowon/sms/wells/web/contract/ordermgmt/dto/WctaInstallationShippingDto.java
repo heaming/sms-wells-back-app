@@ -48,7 +48,9 @@ public class WctaInstallationShippingDto {
         String istPcsvDvCd, // 설치택배구분
         String mnftCoId, // 제조사
         String prdDiv, // 접수구분
-        String svBizDclsfCd // 서비스업무세분류코드
+        String svBizDclsfCd, // 서비스업무세분류코드
+        String svBizHclsfCd, // 입력채널구분코드
+        String inChnlDvCd // 서비스세분류코드
 
     ) {}
 

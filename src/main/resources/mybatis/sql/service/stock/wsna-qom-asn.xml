@@ -231,8 +231,9 @@
                                AND S1.QOM_ASN_APY_YN = 'N'
                                AND S1.APY_SN         = ( SELECT MAX(APY_SN)
                                                            FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
-                                                          WHERE PRTNR_NO = S1.PRTNR_NO
-                                                            AND OG_TP_CD = S1.OG_TP_CD ) )
+                                                          WHERE PRTNR_NO  = S1.PRTNR_NO
+                                                            AND OG_TP_CD  = S1.OG_TP_CD
+                                                            AND DTA_DL_YN = 'N' ) )
     </select>
 
     <select id="selectQomAsnIndividualsForCreate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo">
@@ -509,71 +510,73 @@
                                AND S1.QOM_ASN_APY_YN = 'N'
                                AND S1.APY_SN         = ( SELECT MAX(APY_SN)
                                                            FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
-                                                          WHERE PRTNR_NO = S1.PRTNR_NO
-                                                            AND OG_TP_CD = S1.OG_TP_CD ) )
+                                                          WHERE PRTNR_NO  = S1.PRTNR_NO
+                                                            AND OG_TP_CD  = S1.OG_TP_CD
+                                                            AND DTA_DL_YN = 'N' ) )
     </select>
 
     <select id="selectQomAsnIndependenceForCreate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo">
-        SELECT #{asnOjYm}        AS ASN_OJ_YM
-             , #{cnt}            AS ASN_TN_N
+        SELECT #{asnOjYm}     AS ASN_OJ_YM
+             , #{cnt}         AS ASN_TN_N
              , T1.STR_WARE_NO
-             , #{ostrWareNo}     AS OSTR_WARE_NO
+             , #{ostrWareNo}  AS OSTR_WARE_NO
              , T1.ITM_PD_CD
-             , T1.STR_WARE_DV_CD AS WARE_DV_CD
-             , #{wareDtlDvCd}    AS WARE_DTL_DV_CD
+             , #{wareDvCd}    AS WARE_DV_CD
+             , #{wareDtlDvCd} AS WARE_DTL_DV_CD
              , T1.SPP_DV_CD
              , T1.WARE_MNGT_PRTNR_NO
              , T1.OG_TP_CD
-             , T1.BLD_CD
-             , T1.ADR_ID
-             , 'A'               AS MAT_GD_CD
+             , T3.BLD_CD
+             , CASE WHEN T1.ADR_USE_YN = 'Y' THEN T1.ADR_ID
+                    ELSE T4.ADR_ID
+               END            AS ADR_ID
+             , 'A'            AS MAT_GD_CD
              , T1.GE_ASN_QOM_CT
              , T1.CRP_ASN_QOM_CT
              , T1.WO_ASN_QOM_CT
              , T1.ETN_WTCF_APY_QTY
-             , 0                 AS MCBY_ACU_OSTR_QTY
+             , 0              AS MCBY_ACU_OSTR_QTY
              , T1.CRTL_STOC_QTY
              , T1.THWK_EXP_QTY
              , T1.CNFM_QTY
              , T1.BOX_QTY
              , CASE WHEN T1.BOX_QTY > 1 THEN T1.CNFM_QTY / T1.BOX_QTY
                     ELSE 0
-               END               AS BOX_UNIT_QTY
+               END            AS BOX_UNIT_QTY
           FROM
              (
                SELECT QOM.STR_WARE_NO
                     , QOM.ITM_PD_CD
-                    , QOM.SPP_DV_CD
-                    , QOM.STR_WARE_DV_CD
-                    , QOM.WARE_MNGT_PRTNR_NO
-                    , QOM.OG_TP_CD
-                    , QOM.BLD_CD
-                    , QOM.ADR_ID
+                    , WARE.DIDY_DV_CD  AS SPP_DV_CD
+                    , WARE.WARE_MNGT_PRTNR_NO
+                    , WARE.OG_TP_CD
+                    , WARE.WARE_ADR_ID AS ADR_ID
+                    , WARE.ADR_USE_YN
                     , CASE WHEN WARE.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN STOC.PITM_STOC_A_GD_QTY
-                                ELSE ( SELECT SUM(S1.PITM_STOC_A_GD_QTY)
-                                         FROM TB_SVST_MCITM_STOC_IZ S1       /* 월별품목재고내역 */
-                                        INNER JOIN TB_SVST_MCBY_WARE_IZ S2   /* 월별창고내역 */
-                                           ON S2.APY_YM  = S1.BASE_YM
-                                          AND S2.WARE_NO = S1.WARE_NO
-                                        WHERE S1.ITM_PD_CD   = QOM.ITM_PD_CD
-                                          AND S2.HGR_WARE_NO = QOM.STR_WARE_NO
-                                          AND S1.BASE_YM     = TO_CHAR(SYSDATE, 'YYYYMM')
-                                          AND S2.APY_YM      = TO_CHAR(SYSDATE, 'YYYYMM') )
-                      END AS GE_ASN_QOM_CT
+                           ELSE ( SELECT SUM(S1.PITM_STOC_A_GD_QTY)
+                                    FROM TB_SVST_MCITM_STOC_IZ S1       /* 월별품목재고내역 */
+                                   INNER JOIN TB_SVST_MCBY_WARE_IZ S2   /* 월별창고내역 */
+                                      ON S2.APY_YM  = S1.BASE_YM
+                                     AND S2.WARE_NO = S1.WARE_NO
+                                   WHERE S1.ITM_PD_CD   = QOM.ITM_PD_CD
+                                     AND S2.HGR_WARE_NO = QOM.STR_WARE_NO
+                                     AND S1.BASE_YM     = TO_CHAR(SYSDATE, 'YYYYMM')
+                                     AND S2.APY_YM      = TO_CHAR(SYSDATE, 'YYYYMM') )
+                      END              AS GE_ASN_QOM_CT
                     , CASE WHEN WARE.WARE_DTL_DV_CD = '30' THEN STOC.PITM_STOC_A_GD_QTY
-                                ELSE ( SELECT PITM_STOC_A_GD_QTY
-                                         FROM TB_SVST_MCITM_STOC_IZ   /* 월별품목재고내역 */
-                                        WHERE ITM_PD_CD = QOM.ITM_PD_CD
-                                          AND WARE_NO   = WARE.HGR_WARE_NO
-                                          AND BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM') )
-                      END AS CRP_ASN_QOM_CT
+                           ELSE ( SELECT PITM_STOC_A_GD_QTY
+                                    FROM TB_SVST_MCITM_STOC_IZ   /* 월별품목재고내역 */
+                                   WHERE ITM_PD_CD = QOM.ITM_PD_CD
+                                     AND WARE_NO   = WARE.HGR_WARE_NO
+                                     AND BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM') )
+                      END              AS CRP_ASN_QOM_CT
                     , QOM.WO_ASN_QOM_CT
                     , QOM.ETN_WTCF_APY_QTY
                     , QOM.CRTL_STOC_QTY
                     , CASE WHEN QOM.ETN_WTCF_APY_QTY <![CDATA[<]]> QOM.CRTL_STOC_QTY THEN 0
                            WHEN QOM.ETN_WTCF_APY_QTY = QOM.CRTL_STOC_QTY             THEN 1
                            ELSE NVL(QOM.ETN_WTCF_APY_QTY, 0) - NVL(QOM.CRTL_STOC_QTY, 0)
-                      END AS THWK_EXP_QTY
+                      END              AS THWK_EXP_QTY
                     , CASE WHEN WARE.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN CASE WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) > 0
                                                                                   THEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0)
                                                                                   ELSE 0
@@ -589,19 +592,23 @@
                                                WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN 100 AND 199 THEN QOM.BOX_QTY * CEIL( (NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0)) * 1.2 / QOM.BOX_QTY )
                                                WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) <![CDATA[>=]]> 200  THEN QOM.BOX_QTY * CEIL( (NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0)) * 1.1 / QOM.BOX_QTY )
                                           END
+                                     ELSE CASE WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) <![CDATA[<]]> -3    THEN 0
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN -3 AND 0    THEN 3
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN 1 AND 3     THEN ( NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) ) * 3
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN 4 AND 9     THEN ( NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) ) * 2
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN 10 AND 19   THEN CEIL( ( NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) ) * 1.5 )
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN 20 AND 49   THEN CEIL( ( NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) ) * 1.4 )
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN 50 AND 99   THEN CEIL( ( NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) ) * 1.3 )
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) BETWEEN 100 AND 199 THEN CEIL( ( NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) ) * 1.2 )
+                                               WHEN NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) <![CDATA[>=]]> 200  THEN CEIL( ( NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0) ) * 1.1 )
+                                          END
                                 END
-                      END AS CNFM_QTY
+                      END              AS CNFM_QTY
                     , QOM.BOX_QTY
                  FROM
                     (
                       SELECT QOM.STR_WARE_NO
                            , QOM.ITM_PD_CD
-                           , QOM.SPP_DV_CD
-                           , QOM.WARE_MNGT_PRTNR_NO
-                           , QOM.OG_TP_CD
-                           , QOM.BLD_CD
-                           , QOM.ADR_ID
-                           , QOM.STR_WARE_DV_CD
                            , MAX(QOM.BOX_QTY) AS BOX_QTY
                            , SUM(QOM.PU_QTY)  AS WO_ASN_QOM_CT
                            , SUM(QOM.PU_QTY)  AS ETN_WTCF_APY_QTY
@@ -628,20 +635,13 @@
                              SELECT D1.ASN_OJ_YM
                                   , D1.CNTR_NO
                                   , D1.CNTR_SN
-                                  , D1.PU_PART_PD_CD AS ITM_PD_CD
+                                  , D1.PU_PART_PD_CD           AS ITM_PD_CD
                                   , D1.PU_QTY
                                   , D1.STR_WARE_DV_CD
                                   , CASE WHEN D3.DIDY_DV_CD = '2' THEN D3.WARE_NO
                                          ELSE D3.HGR_WARE_NO
-                                    END              AS STR_WARE_NO
-                                  , D3.WARE_MNGT_PRTNR_NO
-                                  , D3.OG_TP_CD
-                                  , D3.DIDY_DV_CD    AS SPP_DV_CD
-                                  , D3.WARE_ADR_ID   AS ADR_ID
-                                  , D6.BLD_CD
-                                  , CASE WHEN D1.STR_WARE_DV_CD IS NULL THEN 0
-                                         ELSE TO_NUMBER(D7.PD_PRP_VAL12)
-                                    END              AS BOX_QTY
+                                    END                        AS STR_WARE_NO
+                                  , TO_NUMBER(D7.PD_PRP_VAL12) AS BOX_QTY
                                FROM TB_SVPD_RGBS_PU_ITM_IZ D1             /* 정기BS투입품목내역 */
                               INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ D2     /* 월별고객서비스대상내역 */
                                  ON D2.CNTR_NO    = D1.CNTR_NO
@@ -684,8 +684,6 @@
                                 AND D7.DTA_DL_YN           = 'N'
                                 AND D7.PD_EXTS_PRP_GRP_CD  = 'PART'
                                 AND D8.DTA_DL_YN           = 'N'
-                                AND D3.DIDY_DV_CD <![CDATA[<>]]> '2'
-                                AND D5.PSTN_DV_CD <![CDATA[<>]]> '4'
                                 AND D8.VST_DV_CD LIKE '1%'
                                 AND D8.VST_DV_CD <![CDATA[<>]]> '13'
                                 AND D1.ASN_OJ_YM           = #{asnOjYm}
@@ -693,12 +691,16 @@
                                 AND D3.APY_YM              = #{apyYm}
                                 AND D1.QOM_ASN_WARE_NO     = #{ostrWareNo}
                                 AND D1.STR_WARE_DV_CD      = #{wareDvCd}
-                                AND D8.VST_DUEDT LIKE #{asnOjYm} || '%'
                                 AND ( D7.PD_PRP_VAL20 IS NULL OR D7.PD_PRP_VAL20 <![CDATA[<>]]> '11' )
-                                AND NOT(    D6.DGR2_LEVL_OG_CD IN ('D940000', 'H930000')
-                                         OR D6.BLD_CD IN ( '679', '955', '670', '859', '650', '953', '665', '739', '647', '705', '786', '838', '680', '685', '797', '809', '682', '708', '681'
-                                                         , '690', '654', '815', '1024', '1095', '1037', '1036', '648', '885', '646', '723', '421', '1085', '878', '649', '877', '867', '738'
-                                                         , '858', '692', '726', '697', '818', '850', '698', '1071', '715', '746', '683', '847', '1039', '835', '844', '1038', '684', '786' ) )
+                                AND NOT(     D3.DIDY_DV_CD <![CDATA[<>]]> '2'
+                                         AND D5.PSTN_DV_CD <![CDATA[<>]]> '4'
+                                         AND (    D6.DGR2_LEVL_OG_CD IN ('D940000', 'H930000')
+                                               OR D6.BLD_CD IN ( '679', '955', '670', '859', '650', '953', '665', '739', '647', '705', '786'
+                                                               , '838', '680', '685', '797', '809', '682', '708', '681', '690', '654', '815'
+                                                               , '1024', '1095', '1037', '1036', '648', '885', '646', '723', '421', '1085'
+                                                               , '878', '649', '877', '867', '738', '858', '692', '726', '697', '818', '850'
+                                                               , '698', '1071', '715', '746', '683', '847', '1039', '835', '844', '1038', '684', '786' )
+                                             ) )
                                 AND NOT EXISTS ( SELECT 1
                                                    FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ S1   /* 자가관리배송중지요청내역 */
                                                   WHERE S1.CNTR_NO       = D1.CNTR_NO
@@ -711,19 +713,34 @@
                                                                                 AND CNTR_SN   = S1.CNTR_SN
                                                                                 AND DTA_DL_YN = 'N' ) )
                            ) QOM
-                       GROUP BY QOM.STR_WARE_NO, QOM.ITM_PD_CD, QOM.SPP_DV_CD, QOM.WARE_MNGT_PRTNR_NO, QOM.OG_TP_CD, QOM.BLD_CD, QOM.ADR_ID, QOM.STR_WARE_DV_CD
+                       GROUP BY QOM.STR_WARE_NO, QOM.ITM_PD_CD
                     ) QOM
                  LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ STOC   /* 월별품목재고내역 */
                    ON STOC.ITM_PD_CD = QOM.ITM_PD_CD
                   AND STOC.WARE_NO   = QOM.STR_WARE_NO
                   AND STOC.BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
                   AND STOC.DTA_DL_YN = 'N'
-                 LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ WARE    /* 월별창고내역 */
-                   ON WARE.WARE_NO        = QOM.STR_WARE_NO
-                  AND WARE.DTA_DL_YN      = 'N'
+                INNER JOIN TB_SVST_MCBY_WARE_IZ WARE    /* 월별창고내역 */
+                   ON WARE.WARE_NO   = QOM.STR_WARE_NO
+                WHERE WARE.DTA_DL_YN      = 'N'
                   AND WARE.APY_YM         = #{apyYm}
              ) T1
-         WHERE NOT EXISTS ( SELECT 1
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T2     /* 월파트너내역 */
+            ON T2.OG_TP_CD = T1.OG_TP_CD
+           AND T2.PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ T3        /* 월조직내역 */
+            ON T3.BASE_YM  = T2.BASE_YM
+           AND T3.OG_ID    = T2.OG_ID
+           AND T3.OG_TP_CD = T2.OG_TP_CD
+         INNER JOIN TB_OGBS_BLD_BAS T4   /* 빌딩기본 */
+            ON T4.OG_TP_CD  = T3.OG_TP_CD
+           AND T4.BLD_CD    = T3.BLD_CD
+         WHERE T2.DTA_DL_YN = 'N'
+           AND T3.DTA_DL_YN = 'N'
+           AND T4.DTA_DL_YN = 'N'
+           AND T2.BASE_YM   = #{apyYm}
+           AND T3.BASE_YM   = #{apyYm}
+           AND NOT EXISTS ( SELECT 1
                               FROM TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
                              WHERE ITM_PD_CD = T1.ITM_PD_CD
                                AND (    ( ASN_EXCD_DV_CD = '0' AND STR_WARE_NO = '300000' )
@@ -737,12 +754,20 @@
                                AND S1.QOM_ASN_APY_YN = 'N'
                                AND S1.APY_SN         = ( SELECT MAX(APY_SN)
                                                            FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
-                                                          WHERE PRTNR_NO = S1.PRTNR_NO
-                                                            AND OG_TP_CD = S1.OG_TP_CD ) )
+                                                          WHERE PRTNR_NO  = S1.PRTNR_NO
+                                                            AND OG_TP_CD  = S1.OG_TP_CD
+                                                            AND DTA_DL_YN = 'N' ) )
     </select>
 
-    <insert id="insertItmQomAsnIz">
-        INSERT INTO TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
+    <select id="selectItmQomAsnNoMax" resultType="java.lang.Integer">
+        SELECT NVL(MAX(TO_NUMBER(SUBSTR(ITM_QOM_ASN_NO, 9))), 0) + 1
+          FROM TB_SVST_ITM_QOM_ASN_IZ
+         WHERE ITM_QOM_ASN_NO LIKE #{wareDtlDvCd} || #{asnOjYm} || '%'
+    </select>
+
+    <update id="insertItmQomAsns">
+    <foreach collection="list" item="item" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+          INTO TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
              (
                ITM_QOM_ASN_NO       /* 품목물량배정번호 */
              , ASN_OJ_YM            /* 배정대상년월 */
@@ -767,6 +792,7 @@
              , THWK_EXP_QTY         /* 금주예정수량 */
              , BORR_EXP_QTY         /* 차주예정수량 */
              , CNFM_QTY             /* 확정수량 */
+             , BOX_QTY              /* 박스수량 */
              , BOX_UNIT_QTY         /* 박수단위수량 */
              , ACL_OSTR_QTY         /* 실제출고수량 */
              , BFSVC_FSH_CT         /* BS완료수량 */
@@ -775,39 +801,38 @@
              )
         VALUES
              (
-               #{wareDtlDvCd} || #{asnOjYm} || LPAD( ( SELECT NVL(MAX(TO_NUMBER(SUBSTR(ITM_QOM_ASN_NO, 9))), 0) + 1
-                                                                   FROM TB_SVST_ITM_QOM_ASN_IZ
-                                                                  WHERE ITM_QOM_ASN_NO LIKE #{wareDtlDvCd} || #{asnOjYm} || '%' )
-                                                             , 7, '0')
-             , #{asnOjYm}
-             , #{asnTnN}
-             , #{strWareNo}
-             , #{ostrWareNo}
-             , #{itmPdCd}
-             , #{wareDvCd}
-             , #{wareDtlDvCd}
-             , #{sppDvCd}
-             , #{wareMngtPrtnrNo}
-             , #{ogTpCd}
-             , #{bldCd}
-             , #{adrId}
-             , #{matGdCd}
-             , #{geAsnQomCt}
-             , #{crpAsnQomCt}
-             , #{woAsnQomCt}
-             , #{etnWtcfApyQty}
-             , #{mcbyAcuOstrQty}
-             , #{crtlStocQty}
-             , #{thwkExpQty}
-             , #{borrExpQty}
-             , #{cnfmQty}
-             , #{boxUnitQty}
-             , #{aclOstrQty}
-             , #{bfsvcFshCt}
+               #{item.wareDtlDvCd} || #{item.asnOjYm} || LPAD( #{item.qomAsnNo} + #{idx}, 7, '0')
+             , #{item.asnOjYm}
+             , #{item.asnTnN}
+             , #{item.strWareNo}
+             , #{item.ostrWareNo}
+             , #{item.itmPdCd}
+             , #{item.wareDvCd}
+             , #{item.wareDtlDvCd}
+             , #{item.sppDvCd}
+             , #{item.wareMngtPrtnrNo}
+             , #{item.ogTpCd}
+             , #{item.bldCd}
+             , #{item.adrId}
+             , #{item.matGdCd}
+             , #{item.geAsnQomCt}
+             , #{item.crpAsnQomCt}
+             , #{item.woAsnQomCt}
+             , #{item.etnWtcfApyQty}
+             , #{item.mcbyAcuOstrQty}
+             , #{item.crtlStocQty}
+             , #{item.thwkExpQty}
+             , #{item.borrExpQty}
+             , #{item.cnfmQty}
+             , #{item.boxQty}
+             , #{item.boxUnitQty}
+             , #{item.aclOstrQty}
+             , #{item.bfsvcFshCt}
              , 'N'
         <include refid="COMMON.insertSystemFieldValue" />
              )
-    </insert>
+    </foreach>
+    </update>
 
     <select id="selectQomAsnsForIndividual" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo">
         SELECT D2.SAP_MAT_CD                            AS SAP_CD       /* SAP코드 */

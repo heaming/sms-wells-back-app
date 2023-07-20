@@ -72,11 +72,11 @@ public class WcteB2bBznsActiService {
             mapper.updateSsopLeadCstChHist(dto.leadCstId());
             mapper.insertSsopLeadCstChHist(dto.leadCstId());
             mapper.deleteSsopLeadCstRlpplDtl(dto.leadCstRlpplId());
-            mapper.updateSsopLeadCstRlpplChHist(dto.leadCstId());
-            mapper.insertSsopLeadCstRlpplChHist(dto.leadCstId());
+            mapper.updateSsopLeadCstRlpplChHist(dto.leadCstRlpplId());
+            mapper.insertSsopLeadCstRlpplChHist(dto.leadCstRlpplId());
             result += mapper.deleteSsopOpptBas(dto.opptId());
-            mapper.updateSsopOpptChHist(dto.leadCstId());
-            mapper.insertSsopOpptChHist(dto.leadCstId());
+            mapper.updateSsopOpptChHist(dto.opptId());
+            mapper.insertSsopOpptChHist(dto.opptId());
         }
         return result;
     }

@@ -4,14 +4,13 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCustomerBaseBulkChangeDto;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCustomerBaseBulkChangeDto;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbCustomerBaseBulkChangeService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -70,5 +69,17 @@ public class WctbCustomerBaseBulkChangeController {
         WctbCustomerBaseBulkChangeDto.SearchReq dto
     ) {
         return service.getPlannerChanges(dto);
+    }
+
+    @ApiOperation(value = "고객기준 일괄변경 대상 수정", notes = "고객기준 일괄변경 대상 수정")
+    @PutMapping("/change-contract-infos")
+    public SaveResponse saveCstBaseBulkChangeOjMdfcs(
+        @Valid
+        @RequestBody
+        WctbCustomerBaseBulkChangeDto.SaveReq dto
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.saveCstBaseBulkChangeOjMdfcs(dto))
+            .build();
     }
 }

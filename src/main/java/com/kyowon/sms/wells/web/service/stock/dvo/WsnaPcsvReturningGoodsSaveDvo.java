@@ -61,7 +61,7 @@ public class WsnaPcsvReturningGoodsSaveDvo {
     String fnlRtngdGd;
     String bcNo;
     String cntrCstNo;
-    String urgtYn;
+    String urgtDvCd;
     String asLctCd;
     String asPhnCd;
     String asCausCd;

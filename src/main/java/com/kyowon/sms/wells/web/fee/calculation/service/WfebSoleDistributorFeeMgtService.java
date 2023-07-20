@@ -7,7 +7,9 @@ import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgt
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
+import org.apiguardian.api.API;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,29 +113,33 @@ public class WfebSoleDistributorFeeMgtService {
     public int aggregateDistributorPerformance(CreateReq req) throws Exception {
         int processCount = 0;
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        // 01. 기존 월마감 삭제
-        // 01-1. 순주문파트너 월마감 삭제            : TB_FEAM_NTOR_MM_CL          -- 순주문파트너월마감
-        processCount += mapper.deleteAggregateNtorMmCl(req);
-        // 01-2. 순주문파트너 계약월마감 삭제         : TB_FEAM_NTORP_CNTR_MM_CL    -- 순주문파트너계약월마감
-        processCount += mapper.deleteAggregateNtorCntrMmCl(req);
-        // 01-3. 순주문파트너 실적월마감 삭제         : TB_FEAM_NTORP_PERF_MM_CL    -- 순주문파트너실적월마감
-        processCount += mapper.deleteAggregateNtorPerfMmCl(req);
 
-        // 02. 월마감 생성
-        // 02-1. 순주문파트너 월마감 생성            : TB_FEAM_NTOR_MM_CL          -- 순주문파트너월마감
+        // 00. 총판 순주문집계 가능여부 체크
+        // 00-1. 수수료일정 갱신 API 체크 > 화면에서해서 일단 페스
+        // 00-2. 순주문파트너월마감 확정여부 체크
+        int checkCount = mapper.selectCheckSoleConfrim(req);
+        BizAssert.isFalse(checkCount > 0, "MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱신이 불가능합니다.
+
+        // 01. 총판 기존 순주문집계 삭제
+        // 01-1. 순주문파트너월마감 삭제
+        processCount += mapper.deleteAggregateNtorMmCl(req);
+        // 01-2. 순주문파트너실적월마감 삭제 (개인, 조직)
+        processCount += mapper.deleteAggregateNtorPerfMmCl(req);
+        // 01-3. 순주문파트너계약월마감 삭제
+        processCount += mapper.deleteAggregateNtorCntrMmCl(req);
+
+        // 02. 총판 순주문파트너월마감 생성
         processCount += mapper.insertAggregateNtorMmCl(req);
 
-        // 03. 개인 월마감 생성
-        // 03-1. 순주문파트너 계약월마감 개인판매 생성 : TB_FEAM_NTORP_CNTR_MM_CL    -- 순주문파트너계약월마감
+        // 03. 총판 순주문파트너계약월마감 생성
         processCount += mapper.insertAggregateNtorCntrMmCl(req);
-        // 03-2. 순주문파트너 실적월마감 개인판매 생성 : TB_FEAM_NTORP_PERF_MM_CL    -- 순주문파트너실적월마감
+
+        // 04. 총판 순주문파트너실적월마감 생성
+        // 04-1. 순주문파트너실적월마감 - 개인판매 생성
         processCount += mapper.insertAggregateNtorPerfMmCl(req);
+        // 04-2. 순주문파트너실적월마감 - 조직 생성
+        processCount += mapper.insertOgAggregateNtorPerfMmCl(req);
 
-        // 04. 순주문파트너 계약월마감 지점 생성      : TB_FEAM_NTORP_PERF_MM_CL    -- 순주문파트너실적월마감
-        processCount += mapper.insertAggregateNtorPerfPointMmCl(req);
-
-        // 05. 순주문파트너 월마감 상태 변경         : TB_FEAM_NTOR_MM_CL          -- 순주문파트너월마감
-        processCount += mapper.updateAggregateNtorMmCl(req);
 
         // 06. 수수료일정 갱신 API 호출 공통모듈
         // @TODO 세션 coCd[session.getCompanyCode()] 관련해서 업무별로 말이 다달라서 하드코딩함 -_-;

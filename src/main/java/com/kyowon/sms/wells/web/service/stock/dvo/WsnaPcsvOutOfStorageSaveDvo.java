@@ -14,7 +14,7 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String siteAwAtcCd;
     String cntrNo;
     String cntrSn;
-    String urgtYn;
+    String urgtDvCd;
     String rpbLocaraCd;
     String asLctCd;
     String asPhnCd;

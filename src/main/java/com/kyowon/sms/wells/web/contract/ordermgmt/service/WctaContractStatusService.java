@@ -12,6 +12,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WctaContractStatusService {
@@ -103,5 +105,15 @@ public class WctaContractStatusService {
         mapper.insertRentalRstlChHist(cntrNo);//HIST_STRT_DTM / HIST_END_DTM/ 칼럼 없음.
 
         return 0;
+    }
+
+    /**
+     * 해당 계약에 대한 설치오더 대상 계약 일련번호 목록을 조회합니다.
+     *
+     * @param cntrNo - 계약번호
+     * @return 설치오더 대상 계약 일련번호 목록
+     */
+    public List<Integer> getInstallationOrderTargets(String cntrNo) {
+        return mapper.selectInstallationOrderTargets(cntrNo);
     }
 }

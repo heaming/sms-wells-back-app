@@ -7,11 +7,13 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.B
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.CreateTfReq;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncBsPeriodCustomerTfMgtService;
 
 import io.swagger.annotations.Api;
@@ -21,6 +23,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 @Api(tags = "[WSNC] 정기BS 고객이관 관리")
 @RequiredArgsConstructor
@@ -61,8 +64,13 @@ public class WsncBsPeriodCustomerTfMgtController {
 
     @ApiOperation(value = "정기BS 소속 조회")
     @GetMapping("/organizations")
-    public List<BranchsAndServiceCentersRes> getBranchsAndServiceCenters() {
-        return service.getBranchsAndServiceCenters();
+    public List<BranchsAndServiceCentersRes> getBranchsAndServiceCenters(
+        String ogTpCd,
+        String ogId,
+        String dgr1LevlOgId,
+        String dgr2LevlOgId
+    ) {
+        return service.getBranchsAndServiceCenters(ogTpCd, ogId, dgr1LevlOgId, dgr2LevlOgId);
     }
 
     @ApiOperation(value = "정기BS 파트너 조회")
@@ -72,5 +80,31 @@ public class WsncBsPeriodCustomerTfMgtController {
         String ogId
     ) {
         return service.getManagersAndEngineers(ogId);
+    }
+
+    @ApiOperation(value = "담당자 이관 저장")
+    @PostMapping("/transfer")
+    public SaveResponse createTransfer(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<CreateTfReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.createTransfer(dtos))
+            .build();
+    }
+
+    @ApiOperation(value = "담당자 이관 저장")
+    @PostMapping("/transfer-confirm")
+    public SaveResponse saveTransferConfirm(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<CreateTfReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveTransferConfirm(dtos))
+            .build();
     }
 }

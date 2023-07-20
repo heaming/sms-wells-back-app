@@ -45,15 +45,4 @@ public interface WfebOrganizationFeeMapper {
 
     List<SearchWmRes> selectWmFees(SearchWmReq dto);
 
-    SearchDsbCnstRes selectdsbCnst(
-        SearchDsbCnstReq dto
-    );
-
-    int updateDsbIz(WfebOrganizationFeeDvo dvo);
-
-    int insertDsbCnstIz(WfebOrganizationFeeDvo dvo);
-
-    int updateDsbCnstIz(WfebOrganizationFeeDvo dvo);
-
-    HashMap<String, String> selectHmstFeeFormDtl(String perfYm);
 }

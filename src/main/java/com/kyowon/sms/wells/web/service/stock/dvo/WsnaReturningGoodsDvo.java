@@ -44,4 +44,19 @@ public class WsnaReturningGoodsDvo {
     String strSn; // 일련번호
     String strWareMngtPrtnrNo; // 입고창고관리파트너번호
 
+    //물류에 전송하기 위한 데이터 dvo
+    private String ostrAkNo;
+    private String ostrAkSn;
+    private String ostrAkTpCd;
+    private String ostrAkRgstDt;
+    private String strHopDt;
+    private String lgstStrTpCd;
+    private String iostAkDvCd;
+    private String wareMngtPrtnrOgTpCd;
+    private String sapIostTpCd;
+    private String lgstSppMthdCd;
+    private String ostrAkQty;
+    private String ostrOjWareNo;
+    private String svCnrCd;
+    private String svCnrNm;
 }

@@ -38,13 +38,3 @@ public enum CtCntrTpCd {
             .orElseThrow(() -> new BizException(name + "을 확인해보세요."));
     }
 }
-
-
-/*
-* 	1	01	개인
-	2	02	법인
-	3	03	임직원
-	4	07	멤버십
-	5	08	재약정
-	6	09	견적서
-*/

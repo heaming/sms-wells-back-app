@@ -35,6 +35,8 @@ public interface WctaManagementMapper {
 
     List<SearchDfntAckdReqListRes> selectDfntAckdReqList(WctaDfntAckdReqDvo paramMap);
 
+    List<SearchOrderStatCdInfoRes> selectOrderStatCdInfo(String cntrNo);
+
     int updateAprvDfntAckdReq(String cntrAprId);
 
     List<WctaMastOrdrDtptDvo> selectMastOrdrDtpt(String cntrNo, String cntrSn);

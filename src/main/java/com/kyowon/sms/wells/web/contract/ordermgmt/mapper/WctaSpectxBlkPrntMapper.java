@@ -17,6 +17,8 @@ public interface WctaSpectxBlkPrntMapper {
 
     SearchCntrRes selectTradeSpcshCst(String cntrNo, String cntrSn);
 
+    int selectSpectxGrpNoCheck(String spectxGrpNo);
+
     int insertSsctSpectxIsBas(@Param("item")
     WctaSpectxBlkPrntDvo dvo);
 
@@ -32,9 +34,9 @@ public interface WctaSpectxBlkPrntMapper {
 
     int insertSsctSpectxPblHist(String spectxGrpNo, String cntrNo, String cntrSn);
 
-    int deleteSsctSpectxIsBas(String spectxGrpNo);
+    int updateSsctSpectxIsBasDtaDlY(String spectxGrpNo);
 
-    int deleteSsctSpectxIsDtl(String spectxGrpNo, String cntrNo, String cntrSn);
+    int updateSsctSpectxIsDtlDtaDlY(String spectxGrpNo, String cntrNo, String cntrSn);
 
     List<WctaSpectxBlkPrntDto.SpectxFwRes> selectTradeSpcshFwInqrs(WctaSpectxBlkPrntDto.SpectxFwReq dto);
 

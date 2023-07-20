@@ -7,14 +7,7 @@ import java.util.Calendar;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.closing.payment.converter.WdcaCancellationFeeComputationConverter;
-import com.kyowon.sms.wells.web.closing.payment.dto.WdcaCancellationFeeComputationDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.payment.dto.WdcaCancellationFeeComputationDto.SearchRes;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaCancellationFeeComputationDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaCancellationFeeComputationResultDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaComputationObjectContractDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaComputationObjectSalesDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaRentalFeeDiscountRstlCcamDvo;
+import com.kyowon.sms.wells.web.closing.payment.dvo.*;
 import com.kyowon.sms.wells.web.closing.payment.mapper.WdcaCancellationFeeComputationMapper;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -32,26 +25,19 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WdcaCancellationFeeComputationService {
-    private final WdcaCancellationFeeComputationConverter converter;
     private final WdcaCancellationFeeComputationMapper mapper;
 
     /**
      * WELLS 예상위약금 산출, 계약 취소 시 위약금 산출 및 생성 관리 프로그램
         - 고객센터 및 영업부 고객 안내를 위한 예상위약금 산출
         - 영업부 취소 위약금 산출 및 데이터 생성 관리
-     * @param cntrNo         계약번호
-     * @param cntrSn         계약일련번호
-     * @param rqdt           요청일자
-     * @param duedt          취소일자
-     * @param canTpCd        취소유형코드
-     * @param lsRntf         분실손료
-     * @param pBorAmt        포인트위약금액
-     * @param cnfmYm         확정여부
      * @return WdcaCancellationFeeComputationDto
      * @throws BizException SQL 오류 발생 시 Exception 처리
      */
     @Transactional
-    public SearchRes saveDelinquentDepositRefund(SearchReq dto) throws BizException {
+    public WdcaCancellationFeeComputationResultDvo saveDelinquentDepositRefund(
+        WdcaCancellationFeeComputationDvo inputDvo
+    ) throws BizException {
         int resRtlfeBorAmt = 0; /* 잔여렌탈료위약금액 */
         int rgstCostDscBorAmt = 0; /* 등록비할인위약금액 */
         int rentalDscBorAmt = 0; /* 렌탈할인위약금액 */
@@ -70,8 +56,6 @@ public class WdcaCancellationFeeComputationService {
         int coffeeBeanUnitPrice = 5000;
 
         WdcaCancellationFeeComputationResultDvo resultDvo = new WdcaCancellationFeeComputationResultDvo();
-
-        WdcaCancellationFeeComputationDvo inputDvo = converter.mapSaveReqToWdcaCancellationFeeComputationDvo(dto);
 
         /* 위약금 산출 대상 계약정보 조회 */
         WdcaComputationObjectContractDvo searchContractDvo = mapper.selectComputationObjectContract(inputDvo);
@@ -360,7 +344,7 @@ public class WdcaCancellationFeeComputationService {
                         reqdCsBorAmt = 0; /* 철거비용위약금액 */
                         pBorAmt = 0; /* 포인트위약금액 */
                     } else if ("21".equals(alncmpCd) && stplPtrm == searchSalesDvo.getRentalTn()
-                        && "19".equals(dto.canTpCd())) {
+                        && "19".equals(inputDvo.getCanTpCd())) {
                         resRtlfeBorAmt = 0; /* 잔여렌탈료위약금액 */
                         rgstCostDscBorAmt = 0; /* 등록비할인위약금액 */
                         rentalDscBorAmt = 0; /* 렌탈할인위약금액 */
@@ -390,6 +374,6 @@ public class WdcaCancellationFeeComputationService {
         resultDvo.setReqdCsBorAmt(reqdCsBorAmt);
         resultDvo.setLsRntf(lsRntf);
         resultDvo.setBorAmt(borAmt);
-        return converter.mapCancellationFeeComputationResultToSearchRes(resultDvo);
+        return resultDvo;
     }
 }

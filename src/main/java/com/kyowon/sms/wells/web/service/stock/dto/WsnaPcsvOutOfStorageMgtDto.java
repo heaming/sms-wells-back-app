@@ -71,7 +71,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String istDt,
 
-        String urgtYn,
+        String urgtDvCd,
 
         String rpbLocaraCd, //VST_LOCARA_CD 방문지역코드
 
@@ -168,7 +168,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String cntrSn,
 
         @NotBlank
-        String urgtYn,
+        String urgtDvCd,
 
         @NotBlank
         String ogId,

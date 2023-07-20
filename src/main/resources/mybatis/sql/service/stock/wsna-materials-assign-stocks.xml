@@ -1,165 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMaterialsAssignStocksMapper">
-    <select id="selectMaterialsAssignStocks"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto$SearchRes">
-        SELECT T1.BASE_YM
-             , T1.OG_TP_CD
-             , T1.PRTNR_NO
-             , T1.PRTNR_KNM
-             , T1.OG_ID
-             , T1.OG_CD
-             , T1.OG_NM
-             , T2.QOM_ASN_APY_YN
-             , T2.APY_SN
-             , T3.WARE_NO
-             , T3.WARE_NM
-             , T3.WARE_DV_CD
-             , T3.WARE_DTL_DV_CD
-             , F_CMZ_CD_NM(#{session.tenantId}
-                 , 'WARE_DTL_DV_CD'
-                 , T3.WARE_DTL_DV_CD) AS WARE_DTL_DV_NM
-             , T3.HGR_WARE_NO
-             , ( SELECT WARE_NM
-                   FROM TB_SVST_MCBY_WARE_IZ S2
-                  WHERE S2.APY_YM = T3.APY_YM
-                    AND S2.WARE_NO = T3.HGR_WARE_NO
-               ) AS HGR_WARE_NM
-             , T3.DIDY_DV_CD
-             , ( CASE WHEN T3.DIDY_DV_CD  = '2' THEN '독립'
-                      ELSE '개인'
-                 END
-               ) AS DIDY_DV_NM
-             , T3.BLD_CD
-             , T3.ADR_USE_YN
-             , T3.RMK_CN
-             , T3.WARE_ADR_ID
-             ,(SELECT BLD_NM
-                 FROM TB_OGBS_BLD_BAS
-                WHERE BLD_CD = T3.BLD_CD
-                  AND DTA_DL_YN = 'N') AS BLD_NM
-            <!-- , T4.RNADR
-             , T4.RDADR
-             , T4.NEW_ADR_ZIP -->
-        FROM TB_OGBS_MM_PRTNR_IZ T1
-       INNER JOIN TB_SVST_QOM_ASN_PRTNR_APY_IZ T2
-          ON T2.PRTNR_NO = T1.PRTNR_NO
-         AND T2.APY_SN = (SELECT MAX(APY_SN)
-                            FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
-                           WHERE PRTNR_NO = T1.PRTNR_NO)
-       INNER JOIN TB_SVST_MCBY_WARE_IZ T3
-          ON T3.WARE_MNGT_PRTNR_NO = T2.PRTNR_NO
-         AND T3.APY_YM = T1.BASE_YM
-       <!--INNER JOIN TB_GBCO_ADR_BAS T4
-          ON T3.WARE_ADR_ID = T4.ADR_ID
-       INNER JOIN TB_OGBS_BLD_BAS T5
-          ON T3.BLD_CD = T5.BLD_CD -->
-     <where>
-         AND T1.BASE_YM = #{baseYm}
-       <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
-         AND T1.OG_TP_CD = #{ogTpCd}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-         AND T1.PRTNR_NO = #{prtnrNo}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(prtnrKnm)">
-         AND T1.PRTNR_KNM LIKE '%'||#{prtnrKnm}||'%'
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
-         AND T3.WARE_DV_CD = #{wareDvCd}
-       </if>
+
+    <select id="selectMaterialsAssignStocksPaging" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto$SearchRes">
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'WARE_DTL_DV_CD', D3.WARE_DTL_DV_CD, #{session.langId}) AS WARE_DTL_DV_NM   /* 창고세부구분 */
+             , D1.PRTNR_NO                                                                                          /* 파트너번호 */
+             , D1.PRTNR_KNM                                                                                         /* 파트너명 */
+             , D1.OG_ID                                                                                             /* 소속ID */
+             , D1.OG_TP_CD                                                                                          /* 조직유형코드 */
+             , D4.OG_NM                                                                                             /* 소속 */
+             , CASE WHEN D3.DIDY_DV_CD = '2'
+                     AND D3.ADR_USE_YN = 'Y' THEN D3.BLD_CD
+                    ELSE D4.BLD_CD
+               END                                                                              AS BLD_CD           /* 빌딩코드 */
+             , CASE WHEN D3.DIDY_DV_CD = '2'
+                     AND D3.ADR_USE_YN = 'Y' THEN D5.BLD_NM
+                    ELSE NVL(D4.BLD_NM, D7.BLD_NM)
+               END                                                                              AS BLD_NM           /* 빌딩명 */
+             , D6.WARE_NM                                                                       AS HGR_WARE_NM      /* 상위창고명 */
+             , D2.QOM_ASN_APY_YN                                                                AS QOM_ASN_APY_YN   /* 물량배정적용여부 */
+             , CASE WHEN D3.DIDY_DV_CD = '2' THEN ( SELECT MLNG_CNTN
+                                                      FROM T_CMZ_MLNG_D
+                                                     WHERE TENANT_ID = 'TNT_BASE'
+                                                       AND MLNG_ID   = 'MSG_TXT_INDP'
+                                                       AND LNG_ID    = #{session.langId}
+                                                       AND ROWNUM    = 1 )
+                    ELSE ( SELECT MLNG_CNTN
+                             FROM T_CMZ_MLNG_D
+                            WHERE TENANT_ID = 'TNT_BASE'
+                              AND MLNG_ID   = 'MSG_TXT_INDV'
+                              AND LNG_ID    = #{session.langId}
+                              AND ROWNUM    = 1 )
+               END                                                                              AS DIDY_DV_NM       /* 독립매니저여부 */
+             , D3.ADR_USE_YN                                                                                        /* 지정주소여부 */
+             , NVL(D8.NEW_ADR_ZIP, D8.OLD_ADR_ZIP)                                              AS ADR_ZIP          /* 우편번호 */
+             , D8.RNADR || ' ' || D8.RDADR                                                      AS ADR              /* 주소 */
+             , D1.BASE_YM                                                                                           /* 기준년월 */
+             , D3.WARE_NO                                                                                           /* 창고번호 */
+          FROM TB_OGBS_MM_PRTNR_IZ D1                       /* 월파트너내역 */
+          LEFT OUTER JOIN TB_SVST_QOM_ASN_PRTNR_APY_IZ D2   /* 물량배정파트너적용내역 */
+            ON D2.PRTNR_NO  = D1.PRTNR_NO
+           AND D2.OG_TP_CD  = D1.OG_TP_CD
+           AND D2.DTA_DL_YN = 'N'
+           AND D2.APY_SN    = ( SELECT MAX(APY_SN)
+                                  FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
+                                 WHERE PRTNR_NO  = D2.PRTNR_NO
+                                   AND OG_TP_CD  = D2.OG_TP_CD
+                                   AND DTA_DL_YN = 'N' )
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D3                 /* 월별창고내역 */
+            ON D3.APY_YM             = D1.BASE_YM
+           AND D3.WARE_MNGT_PRTNR_NO = D1.PRTNR_NO
+           AND D3.OG_TP_CD           = D1.OG_TP_CD
+         INNER JOIN TB_OGBS_MM_OG_IZ D4                     /* 월조직내역 */
+            ON D4.BASE_YM  = D1.BASE_YM
+           AND D4.OG_ID    = D1.OG_ID
+           AND D4.OG_TP_CD = D1.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_BLD_BAS D5                /* 빌딩기본 */
+            ON D5.OG_TP_CD  = D3.OG_TP_CD
+           AND D5.BLD_CD    = D3.BLD_CD
+           AND D5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ D6           /* 월별창고내역 */
+            ON D6.APY_YM    = D3.APY_YM
+           AND D6.WARE_NO   = D3.HGR_WARE_NO
+           AND D6.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_BLD_BAS D7                      /* 빌딩기본 */
+            ON D7.OG_TP_CD = D4.OG_TP_CD
+           AND D7.BLD_CD   = D4.BLD_CD
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS D8                /* 주소기본 */
+            ON D8.ADR_ID    = CASE WHEN D3.DIDY_DV_CD = '2'
+                                    AND D3.ADR_USE_YN = 'Y' THEN D5.ADR_ID
+                                   ELSE D7.ADR_ID
+                              END
+           AND D8.DTA_DL_YN = 'N'
+         WHERE D1.DTA_DL_YN      = 'N'
+           AND D3.DTA_DL_YN      = 'N'
+           AND D3.WARE_USE_YN    = 'Y'
+           AND D4.DTA_DL_YN      = 'N'
+           AND D7.DTA_DL_YN      = 'N'
+           AND D1.BASE_YM        = #{baseYm}
+           AND D3.WARE_DV_CD     = #{wareDvCd}
         <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
-         AND T3.WARE_DTL_DV_CD = #{wareDtlDvCd}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(wareNo)">
-         AND T3.WARE_NO = #{wareNo}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
-         AND (T3.HGR_WARE_NO = #{hgrWareNo} OR T3.WARE_NO = #{hgrWareNo})
-       </if>
-         AND T3.WARE_USE_YN = 'Y'
-         AND T1.DTA_DL_YN = 'N'
-         AND T2.DTA_DL_YN = 'N'
-         AND T3.DTA_DL_YN = 'N'
-         <!--AND T4.DTA_DL_YN = 'N'
-         AND T5.DTA_DL_YN = 'N'-->
-     </where>
+           AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(wareNo)">
+           AND D3.WARE_NO        = #{wareNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+           AND D1.PRTNR_NO       = #{prtnrNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
+           AND ( D3.HGR_WARE_NO = #{hgrWareNo} OR D3.WARE_NO = #{hgrWareNo} )
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(prtnrKnm)">
+           AND D1.PRTNR_KNM LIKE '%' || #{prtnrKnm} || '%'
+        </if>
+         ORDER BY D3.WARE_DTL_DV_CD, D1.PRTNR_NO
     </select>
 
-    <select id="selectOrganizations"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto$OgRes">
-        SELECT OG_ID
-             , HGR_OG_ID
-             , OG_TP_CD
-             , OG_LEVL_DV_CD
-             , OG_CD
-             , ( CASE OG_LEVL_DV_CD
-                 WHEN '1' THEN NULL
-                 WHEN '2' THEN DGR1_LEVL_OG_CD
-                 WHEN '3' THEN DGR2_LEVL_OG_CD
-                 WHEN '4' THEN DGR3_LEVL_OG_CD
-                 WHEN '5' THEN DGR4_LEVL_OG_CD
-                 ELSE NULL END
-               ) AS HGR_OG_CD
-             , OG_NM
-             , BLD_CD
-             , BLD_NM
-             , HOO_OG_TP_CD
-             , HOO_PRTNR_NO
-             , HOO_PRTNR_NM
-          FROM TB_OGBS_MM_OG_IZ
-         WHERE BASE_YM = #{baseYm}
-           <if test="@MybatisUtils@isNotEmpty(ogLevlDvCd)">
-           AND OG_LEVL_DV_CD = #{ogLevlDvCd}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(ogId)">
-           AND OG_ID = #{ogId}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(ogTpCd)">
-           AND OG_TP_CD = #{ogTpCd}
-           </if>
-           AND CLO_YN = 'N'
-           AND DTA_DL_YN = 'N'
-           AND OG_CD IS NOT NULL
-           AND OG_NM IS NOT NULL
-         START WITH HGR_OG_ID IS NULL
-       CONNECT BY PRIOR OG_ID = HGR_OG_ID
-    </select>
-    <select id="selectPartners"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsAssignStocksDto$PrtnrRes">
-        SELECT OG_ID
-             , PRTNR_NO
-             , PRTNR_KNM
-          FROM TB_OGBS_MM_PRTNR_IZ
-         WHERE BASE_YM = #{baseYm}
-           <if test="@MybatisUtils@isNotEmpty(ogId)">
-           AND OG_ID = #{ogId}
-           </if>
-    </select>
-    <insert id="insertMaterialsAssignStocks">
-        INSERT INTO TB_SVST_QOM_ASN_PRTNR_APY_IZ (
-               PRTNR_NO /* 파트너번호 */
-             , OG_TP_CD /*조직유형코드 */
-             , APY_SN /* 적용일련번호 */
-             , QOM_ASN_APY_YN /* 물량배정적용여부 */
-             , DTA_DL_YN /* 데이터삭제여부 */
-             <include refid="COMMON.insertSystemField"/>
-        )
-        <foreach collection="list" item="item" separator=" UNION ALL" >
-        SELECT
-             #{item.prtnrNo}
-             , OG_TP_CD /*조직유형코드 */
-             , APY_SN + 1 /* 적용일련번호 */
-             , #{item.qomAsnApyYn} /* 물량배정적용여부 */
-             , DTA_DL_YN /* 데이터삭제여부 */
-             <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
-         WHERE PRTNR_NO = #{item.prtnrNo}
-           AND OG_TP_CD = #{item.ogTpCd}
-           AND APY_SN = (SELECT MAX(APY_SN)
-                           FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
-                          WHERE PRTNR_NO = #{item.prtnrNo}
-                        )
-        </foreach>
+    <insert id="insertQomAsnPrtnrApyIz">
+        INSERT INTO TB_SVST_QOM_ASN_PRTNR_APY_IZ   /* 물량배정파트너적용내역 */
+             (
+               PRTNR_NO         /* 파트너번호 */
+             , OG_TP_CD         /* 조직유형코드 */
+             , APY_SN           /* 적용일련번호 */
+             , QOM_ASN_APY_YN   /* 물량배정적용여부 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               #{prtnrNo}
+             , #{ogTpCd}
+             , ( SELECT NVL(MAX(APY_SN), 0) + 1
+                   FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
+                  WHERE PRTNR_NO = #{prtnrNo}
+                    AND OG_TP_CD = #{ogTpCd} )
+             , #{qomAsnApyYn}
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue"/>
+             )
     </insert>
+
 </mapper>

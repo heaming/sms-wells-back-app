@@ -395,6 +395,8 @@
              , M1.PD_CD                                                                                     -- 상품코드 1
              , M1.PD_NM                                                                                     -- 상품명 2
              , CASE WHEN T11.PD_TP_CD = 'P' THEN T2.PD_PRP_VAL02 ELSE '' END            AS IST_BZS_CD               -- 설치업체코드
+             , T3.PD_PRP_VAL03                                                          AS PD_CHO_LM_YN        /* 제품선택제한여부 (정기배송 패키지- 자유선택패키지 경우 사용) */
+             , T3.PD_PRP_VAL04                                                          AS PD_CHO_QTY          /* 제품선택개수 (정기배송 패키지- 자유선택패키지 경우 사용 - 선택할수 있는 총 수량) */
              , T3.PD_PRP_VAL07                                                          AS RGLR_SPP_CNTR_DV_CD      -- 정기배송 계약구분 (0: 기기결합으로 기기의 계약기간 및 의무기간 따름, 999: 고객 요청전까지 계속 배송, 6-12 계약기간 후 종료)
              , T3.PD_PRP_VAL13                                                          AS RGLR_SPP_PRC_DV_CD      -- 정기배송 계약구분 (0: 기기결합으로 기기의 계약기간 및 의무기간 따름, 999: 고객 요청전까지 계속 배송, 6-12 계약기간 후 종료)
              , T3.PD_PRP_VAL15                                                          AS RGLR_SPP_MCHN_TP_CD      -- 정기배송 계약구분 (0: 기기결합으로 기기의 계약기간 및 의무기간 따름, 999: 고객 요청전까지 계속 배송, 6-12 계약기간 후 종료)
@@ -944,7 +946,9 @@
              , '정기배송' AS PD_CLSF_NM
              , T1.PD_NM
              , T1.PD_CD
-             , T5.PD_PRP_VAL07 AS CNTR_PTRM /* 정기배송 계약기간 */
+             , T5.PD_PRP_VAL03 AS PD_CHO_LM_YN        /* 제품선택제한여부 (정기배송 패키지- 자유선택패키지 경우 사용) */
+             , T5.PD_PRP_VAL04 AS PD_CHO_QTY          /* 제품선택개수 (정기배송 패키지- 자유선택패키지 경우 사용 - 선택할수 있는 총 수량) */
+             , T5.PD_PRP_VAL07 AS CNTR_PTRM           /* 정기배송 계약기간 */
              , T5.PD_PRP_VAL13 AS RGLR_SPP_PRC_DV_CD  /* 정기배송 가격구분 */
              , T5.PD_PRP_VAL15 AS RGLR_SPP_MCHN_TP_CD /* 정기배송 기기유형 */
              , T1.PDCT_UPRC_USE_YN                    /* 제품단가 사용여부 Y-자유선택 N-일반패키지*/
@@ -962,12 +966,8 @@
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD , #{session.langId}) AS PD_CHIP1
           FROM TB_PDBS_PD_BAS T1
          INNER JOIN TB_PDBS_PD_REL T2
-
             ON T2.OJ_PD_CD = T1.PD_CD
            AND T2.PD_REL_TP_CD = '19'
-
-
-
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5
             ON T5.PD_CD = T1.PD_CD
            AND T5.PD_EXTS_PRP_GRP_CD = 'CNTR'
@@ -984,7 +984,9 @@
              , '정기배송' AS PD_CLSF_NM
              , T1.PD_NM
              , T1.PD_CD
-             , T5.PD_PRP_VAL07 AS CNTR_PTRM /* 정기배송 계약기간 */
+             , T5.PD_PRP_VAL03 AS PD_CHO_LM_YN        /* 제품선택제한여부 (정기배송 패키지- 자유선택패키지 경우 사용) */
+             , T5.PD_PRP_VAL04 AS PD_CHO_QTY          /* 제품선택개수 (정기배송 패키지- 자유선택패키지 경우 사용 - 선택할수 있는 총 수량) */
+             , T5.PD_PRP_VAL07 AS CNTR_PTRM           /* 정기배송 계약기간 */
              , T5.PD_PRP_VAL13 AS RGLR_SPP_PRC_DV_CD  /* 정기배송 가격구분 */
              , T5.PD_PRP_VAL15 AS RGLR_SPP_MCHN_TP_CD /* 정기배송 기기유형 */
              , T1.PDCT_UPRC_USE_YN                    /* 제품단가 사용여부 Y-자유선택 N-일반패키지*/
@@ -1019,8 +1021,7 @@
 
     <select id="selectSdingCapsls" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdSdingCapsl">
         /* 정기배송 상품 클릭시 표시되는 제품정보 */
-        SELECT
-               PB.PD_NM AS PART_PD_NM   /* 부품상품명 */
+        SELECT PB.PD_NM AS PART_PD_NM   /* 부품상품명 */
              , T1.SV_PD_CD
              , T1.PDCT_PD_CD
              , T1.DTL_SN
@@ -1054,12 +1055,51 @@
                                   FROM TB_PDBS_PD_REL
                                  WHERE BASE_PD_CD = T1.SV_PD_CD
                                  FETCH FIRST 1 ROWS ONLY)
-        <if test='@MybatisUtils@isList(parts) and parts.size > 0'>
+    </select>
+
+    <select id="selectSdingCapslInfos" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdSdingCapsl">
+        /* 정기배송 상품 재조회 시 제품정보 */
+        SELECT PB.PD_NM AS PART_PD_NM   /* 부품상품명 */
+             , T1.SV_PD_CD
+             , T1.PDCT_PD_CD
+             , T1.DTL_SN
+             , T1.PRD_MM_VAL
+             , T1.VST_DV_CD
+             , T1.PART_PD_CD
+             , T3.PD_QTY AS ITM_QTY
+             , T3.PD_REL_ID
+             , T3.PD_REL_TP_CD
+          FROM TB_PDBS_LVLH_CSTMW_FILT_BAS T1
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON T1.PART_PD_CD = PB.PD_CD
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_PD_REL T3
+            ON T3.OJ_PD_CD = PB.PD_CD
+           AND T3.CNTR_NO = #{cntrNo}
+           AND T3.CNTR_SN = #{cntrSn}
+           AND T3.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') >= T3.VL_STRT_DTM
+           AND T3.BASE_PD_CD = #{pdCd}
+           AND T3.PD_REL_TP_CD = '05' /* 20230704 21로 바뀔 수 있음 */
+           AND T3.VL_END_DTM = '99991231235959'
+         WHERE 1=1
+           AND T1.SV_PD_CD
+            <foreach collection="parts" item="part" separator="UNION" open="IN (" close=")">
+                              (SELECT SV_PD_CD
+                                FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
+                               WHERE PART_PD_CD IN (#{part})
+                                 AND DTA_DL_YN = 'N'
+                               FETCH FIRST 1 ROWS ONLY)
+            </foreach>
+           AND T1.PRD_MM_VAL = TO_CHAR(SYSDATE, 'MM')
+           AND T1.PDCT_PD_CD = (SELECT OJ_PD_CD
+                                  FROM TB_PDBS_PD_REL
+                                 WHERE BASE_PD_CD = T1.SV_PD_CD
+                                 FETCH FIRST 1 ROWS ONLY)
            AND T1.PART_PD_CD
             <foreach collection="parts" item="part" separator="," open="IN (" close=")">
                 #{part}
             </foreach>
-        </if>
     </select>
 
     <select id="selectPdNm" resultType="String">

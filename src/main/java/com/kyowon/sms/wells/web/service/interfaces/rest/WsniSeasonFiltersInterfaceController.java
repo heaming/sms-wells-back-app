@@ -7,6 +7,7 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -21,7 +22,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @InterfaceController
-@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
+@Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 웰스홈페이지 필터정보 조회")
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/season-filters")
 @RequiredArgsConstructor
 @Validated
@@ -29,8 +30,8 @@ public class WsniSeasonFiltersInterfaceController {
 
     private final WsniSeasonFiltersInterfaceService service;
 
-    @ApiOperation(value = "W-SV-I-0007 웰스홈페이지 필터정보 조회 팝업")
-    @GetMapping
+    @ApiOperation(value = "W-SV-I-0007 웰스홈페이지 필터정보 조회", notes = "W-SV-I-0007 웰스홈페이지 필터정보 조회")
+    @PostMapping
     public EaiWrapper getBsServiceHistories(
         @Valid
         @RequestBody

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniSidingServiceChangesMapper">
+
+    <insert id="insertSdingAsAkHist">
+    INSERT INTO TB_SVPD_SDING_AS_AK_HIST (
+           CNTR_NO
+         , CNTR_SN
+         , AK_SN
+         , HIST_CH_DTM
+         , RGST_DT
+         , AS_AK_DV_CD
+         , AK_CHDT
+         , BFCH_PD_CD
+         , AFCH_PD_CD
+         , MTR_PROCS_STAT_CD
+         , CNFMDT
+         , MAT_NM
+         , CSMR_UPRC_AMT
+         <include refid="COMMON.insertSystemField" />
+    ) VALUES (
+           #{cntrNo}
+         , #{cntrSn}
+         , #{akSn}
+         , #{histChDtm}
+         , TO_CHAR(SYSDATE,'YYYYMMDD')
+         , #{asAkDvCd}
+         , #{akChdt}
+         , #{bfchPdCd}
+         , #{afchPdCd}
+         , #{mtrProcsStatCd}
+         , null
+         , #{matNm}
+         , #{csmrUprcAmt}
+         <include refid="COMMON.insertSystemFieldValue" />
+    )
+    </insert>
+
+    <delete id="deleteSdingAskAk">
+    DELETE FROM TB_SVPD_SDING_AS_AK_IZ
+    WHERE CNTR_NO = #{cntrNo}
+      AND CNTR_SN = #{cntrSn}
+      AND AK_SN = #{akSn}
+    </delete>
+
+    <select id="selectCustomer" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniSidingServiceChangesDvo">
+    SELECT SSCT1.SV_PRD /*방문주기*/
+         , PDBS1.PD_PRP_VAL01 /*상품용도*/
+         , SSCT1.SELL_TP_CD /*관리유형*/
+         , SSCT2.IST_DT /*설치일자*/
+         , CASE WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '10' THEN SSCT2.FRISU_BFSVC_PTRM_N / 12
+                WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '30' THEN CEIL(SSCT2.FRISU_BFSVC_PTRM_N * 7 / 30)
+                WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '40' THEN CEIL(SSCT2.FRISU_BFSVC_PTRM_N / 30)
+                ELSE SSCT2.FRISU_BFSVC_PTRM_N
+           END AS BS_MTHS /*무상 BS 개월수*/
+         , SSCT1.BASE_PD_CD
+      FROM TB_SSCT_CNTR_DTL SSCT1
+      LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL SSCT2
+        ON SSCT1.CNTR_NO = SSCT2.CNTR_NO AND SSCT1.CNTR_SN = SSCT2.CNTR_SN
+      LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
+        ON SSCT1.BASE_PD_CD = PDBS1.PD_CD
+     WHERE SSCT1.CNTR_NO = #{cntrNo}
+       AND SSCT1.CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectSidingAkCount" resultType="java.lang.Integer">
+    SELECT COUNT(*) AS COUNT
+      FROM TB_SVPD_SDING_AS_AK_IZ SVPD1 /*모종AS요청내역*/
+     WHERE SVPD1.CNTR_NO = #{cntrNo}
+       AND SVPD1.CNTR_SN = #{cntrSn}
+       AND AK_SN = #{akSn}
+       AND AS_AK_DV_CD = #{asAkDvCd}
+       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+       AND CNFMDT IS NULL
+    </select>
+
+    <update id="updateSidingAk">
+    UPDATE TB_SVPD_SDING_AS_AK_IZ
+       SET AK_CHDT = #{akChdt}
+         , BFCH_PD_CD = #{bfchPdCd}
+         , AFCH_PD_CD = #{afchPdCd}
+         , MTR_PROCS_STAT_CD = #{mtrProcsStatCd}
+         <include refid="COMMON.updateSystemField" />
+     WHERE CNTR_NO = #{cntrNo}
+       AND CNTR_SN = #{cntrSn}
+       AND AK_SN = #{akSn}
+       AND AS_AK_DV_CD = #{asAkDvCd}
+       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+       AND CNFMDT IS NULL
+    </update>
+
+    <insert id="insertSidingAk">
+    INSERT INTO TB_SVPD_SDING_AS_AK_IZ (
+           CNTR_NO
+         , CNTR_SN
+         , AK_SN
+         , AS_AK_DV_CD
+         , AK_CHDT
+         , BFCH_PD_CD
+         , AFCH_PD_CD
+         , MTR_PROCS_STAT_CD
+         , CSMR_UPRC_AMT
+         <include refid="COMMON.insertSystemField" />
+    ) VALUES (
+           #{cntrNo}
+         , #{cntrSn}
+         , (SELECT LPAD(NVL(MAX(AK_SN), 0) + 1, 2, '0') AS MAX_AK_SN FROM TB_SVPD_SDING_AS_AK_IZ WHERE 1 = 1 AND CNTR_NO = #{cntrNo} AND CNTR_SN = #{cntrSn})
+         , #{asAkDvCd}
+         , TO_CHAR(SYSDATE, 'YYYYMMDD')
+         , #{bfchPdCd}
+         , #{afchPdCd}
+         , #{mtrProcsStatCd}
+         , 0
+         <include refid="COMMON.insertSystemFieldValue" />
+    )
+    </insert>
+
+    <select id="selectBsTarget" resultType="java.lang.Integer">
+    SELECT COUNT(*) AS COUNT
+      FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ /*고객서비스BS대상내역*/
+     WHERE CNTR_NO = #{cntrNo}
+       AND CNTR_SN = #{cntrSn}
+       AND ASN_OJ_YM = #{asnOjYm}
+    </select>
+
+</mapper>

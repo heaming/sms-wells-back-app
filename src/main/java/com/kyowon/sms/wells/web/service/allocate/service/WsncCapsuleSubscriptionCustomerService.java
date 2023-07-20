@@ -1,11 +1,18 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleSubscriptionCustomerDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcAsnDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncCapsuleSubscriptionCustomerDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCapsuleSubscriptionCustomerMapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbCustomerRglrBfsvcDlService;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdService;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,45 +33,68 @@ public class WsncCapsuleSubscriptionCustomerService {
 
     private final WsncCapsuleSubscriptionCustomerMapper mapper;
 
-    public int saveCapsuleSubscriptionCustomer() {
+    private final WsnbIndividualVisitPrdService service1;
+    private final WsnbCustomerRglrBfsvcDlService service2;
+
+    private final WsncRegularBfsvcAsnService service3;
+
+    public int saveCapsuleSubscriptionCustomer(WsncCapsuleSubscriptionCustomerDto.SearchReq req) throws Exception {
 
         int updateCount = 0;
 
-        List<WsncCapsuleSubscriptionCustomerDvo> res = mapper.selectCapsuleRglrPrchsCsts();
+        List<WsncCapsuleSubscriptionCustomerDvo> res = mapper.selectCapsuleRglrPrchsCsts(req.baseYmd());
         for (WsncCapsuleSubscriptionCustomerDvo row : res) {
 
-            /*1. 고객마스터(LC_ALLOCATE_AC201TB) 인서트 또는 업데이트*/
-            // AS-IS에서는 DB2의 데이터를 오라클로 옮기는 merge into를 진행하는데..
-            // TO-BE에서는 필요없는 행위로고 판단됨.
+            if (StringUtil.isEmpty(row.getCntrCanDtm())) { /* 주기표 강제 생성 */
 
-            /*당월 BS 배정*/
-            if (StringUtil.isEmpty(row.getAc201CancDt())) { /* 주기표 강제 생성 */
+                updateCount += mapper.deleteBfsvcPrd(row.getCntrNo(), row.getCntrSn());
 
-                /*무결성 제약 조건 오류 방지*/
-                updateCount += mapper.deleteBfsvcPrd(row.getCntrNo(), row.getAc201CsmrSeq());
+                /*@TODO 2. 방문주기 재생성(SP_LC_SERVICEVISIT_482_LST_I06)*/
+                updateCount += service1.processVisitPeriodRegen(
+                    new WsnbIndividualVisitPrdDto.SearchProcessReq(
+                        row.getCntrNo(),
+                        row.getCntrSn(),
+                        req.baseYmd(),
+                        "",
+                        "",
+                        "",
+                        "",
+                        ""
+                    )
+                );
 
-                /*@TODO 2. 스케쥴을 생성한다.*/
-                //SP_LC_SERVICEVISIT_482_LST_I06 -> 이진성프로 작업 예정
+                /*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
+                updateCount += service2.removeRglrBfsvcDl(
+                    new WsnbCustomerRglrBfsvcDlDto.SaveReq(
+                        row.getCstSvAsnNo(), // 고객서비스배정번호
+                        row.getAsnOjYm() // 배정대상년월
+                    )
+                );
 
-                /*@TODO 3. 배정을 삭제한다. */
-                //SP_LC_SERVICEVISIT_482_LST_I07 -> 이진성프로 작업 예정
+                /*@TODO 고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
+                updateCount += service3.processRegularBfsvcAsn(
+                    new WsncRegularBfsvcAsnDto.SaveProcessReq(
+                        row.getAsnOjYm(),
+                        SFLEXContextHolder.getContext().getUserSession().getUserId(),
+                        row.getCntrNo(),
+                        row.getCntrSn()
+                    )
+                );
 
-                /*@TODO 사전방문 BS 생성*/
-                //SP_LC_SERVICEVISIT_482_LST_I03 -> 이진성프로 작업 예정
+                updateCount += mapper.updateIstDt(row.getCntrNo(), row.getCntrSn());
 
-                updateCount += mapper.updateIstDt(row.getCntrNo(), row.getAc201CsmrSeq());
+            } else {
 
-            }
-            /*취소일자가 있다면  취소된걸로 인지*/
-            else {
-
-                /*취소일자 업데이트*/
-                updateCount += mapper.updateCancelDate(row.getCntrNo(), row.getAc201CsmrSeq(), row.getAc201CancDt());
-                /*1. 스케쥴을 삭제 한다.*/
+                updateCount += mapper.updateCancelDate(row.getCntrNo(), row.getCntrSn(), row.getCntrCanDtm());
                 updateCount += mapper.deleteSchd(row.getCntrNo());
 
-                /*@TODO 3. 배정을 삭제한다. */
-                //SP_LC_SERVICEVISIT_482_LST_I07 -> 이진성프로 작업 예정
+                /*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
+                service2.removeRglrBfsvcDl(
+                    new WsnbCustomerRglrBfsvcDlDto.SaveReq(
+                        row.getCstSvAsnNo(),
+                        row.getAsnOjYm()
+                    )
+                );
             }
 
         }
