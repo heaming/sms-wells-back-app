@@ -25,7 +25,7 @@ public class WwdbAdvanceRefundAccountDto {
     @ApiModel(value = "WwdbAdvanceRefundAccountDto-SearchAdvanceRefundAccountRes")
     public record SearchAdvanceRefundAccountRes(
         String stlmTpCd, // 대상구분
-        String cntrNoSn, // 계약상세번호
+        String cntrDtlNo, // 계약상세번호
         String cstKnm, // 고객명
         String fnlMdfcDtm, // 처리일자
         String rfndDsbAmt, // 금액(원)
