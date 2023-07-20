@@ -1,47 +1,180 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndividualWareOstrConverter;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.stereotype.Service;
+
+import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndividualWareOstrConverter;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.ValidAssert;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class WsnaIndividualWareOstrService {
 
     private final WsnaIndividualWareOstrMapper mapper;
+
     private final WsnaIndividualWareOstrConverter converter;
 
-    public List<SearchRes> getIndividualWareOstrs(SearchReq dto) {
-        return this.mapper.selectIndividualWareOstrs(dto);
+    // 물량배정 서비스
+    private final WsnaQomAsnService qomAsnService;
+
+    // 재고서비스
+    private final WsnaItemStockItemizationService stockService;
+
+    // (주)교원프라퍼티파주물류(Wells)
+    private static final String SAP_PLNT_CD = "2108";
+    // 프라파주창고(Wells)
+    private static final String SAP_SAVE_LCT_CD = "21082082";
+    private static final int SLICE_SIZE = 999;
+
+    /**
+     * 출고창고 조회
+     * @param asnOjYm (필수) 배정년월
+     * @return
+     */
+    public List<WsnzWellsCodeWareHouseDvo> getIndividualOstrWares(String asnOjYm) {
+        ValidAssert.hasText(asnOjYm);
+
+        return this.qomAsnService.getQomAsnOstrWares(asnOjYm);
     }
 
-    public List<LogisticRes> getLogistic(LogisticReq dto) {
-        return this.mapper.selectLogistic(dto);
+    /**
+     * 품목 조회
+     * @return
+     */
+    public List<SearchPdRes> getIndividualProducts() {
+        return this.mapper.selectProducts();
     }
 
-    public List<ItmRes> getItemKndCode(ItmReq dto) {
-        return this.mapper.selectItemKndCode(dto);
+    /**
+     * 입고창고 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnzWellsCodeWareHouseDvo> getIndividualStrWares(SearchWareReq dto) {
+
+        return this.mapper.selectIndividualStrWares(dto);
     }
 
-    @Transactional
-    public int createIndividualWareOstr(List<CreateReq> list) {
-        int cnt = 0;
-        String newOstrAkNo = mapper.selectNewOstrAkNoByQomOstr("360");
+    /**
+     * 개인창고 출고 관리 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
+    public PagingResult<WsnaIndividualWareOstrDvo> getIndividualWareOstrsPaging(SearchReq dto, PageInfo pageInfo) {
 
-        List<WsnaIndividualWareOstrDvo> voList = converter.mapAllCreateReqToIndividualDvo(list);
-        int len = voList.size();
-        for(int i = 0; i < len; i++){
-            voList.get(i).setOstrAkNo(newOstrAkNo);
+        PagingResult<WsnaIndividualWareOstrDvo> results = this.mapper.selectIndividualWareOstrs(dto, pageInfo);
+        // 개인창고 출고관리 데이터 리스트
+        List<WsnaIndividualWareOstrDvo> dvos = results.getList();
+
+        // 실시간 물류재고 조회 호출
+        this.getRealTimeLogisticStockQtys(dvos);
+
+        results.setList(dvos);
+
+        return results;
+    }
+
+    /**
+     * 개인창고 출고 관리 엑셀 다운로드
+     * @param dto
+     * @return
+     */
+    public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrsExcelDownload(SearchReq dto) {
+
+        List<WsnaIndividualWareOstrDvo> dvos = this.mapper.selectIndividualWareOstrs(dto);
+        // 실시간 물류재고 조회 호출
+        this.getRealTimeLogisticStockQtys(dvos);
+
+        return dvos;
+    }
+
+    /**
+     * 실시간 물류 센터 재고 조회
+     * @param dvos
+     */
+    private void getRealTimeLogisticStockQtys(List<WsnaIndividualWareOstrDvo> dvos) {
+        if (CollectionUtils.isNotEmpty(dvos)) {
+
+            int size = dvos.size();
+            int sliceSize = Math.floorDiv(size, SLICE_SIZE) + (Math.floorMod(size, SLICE_SIZE) > 0 ? 1 : 0);
+
+            for (int i = 0; i < sliceSize; i++) {
+                int startIdx = i * SLICE_SIZE;
+                int endIdx = (i + 1) * SLICE_SIZE > size ? size : (i + 1) * SLICE_SIZE;
+
+                List<WsnaIndividualWareOstrDvo> sliceDvos = dvos.subList(startIdx, endIdx);
+                List<String> itmPds = sliceDvos.stream().map(WsnaIndividualWareOstrDvo::getItmPdCd).toList();
+
+                List<RealTimeGradeStockResIvo> stocks = this.stockService
+                    .getRealTimeGradeStocks(SAP_PLNT_CD, SAP_SAVE_LCT_CD, itmPds);
+
+                this.setTotalLogisticQty(stocks, sliceDvos);
+            }
         }
-
-        cnt += mapper.insertTbSvstItmOstrAkIz(voList);
-        return cnt;
     }
+
+    /**
+     * 물류 물량 셋팅
+     * @param stocks
+     * @param sliceDvos
+     */
+    private void setTotalLogisticQty(
+        List<RealTimeGradeStockResIvo> stocks, List<WsnaIndividualWareOstrDvo> sliceDvos
+    ) {
+
+        if (CollectionUtils.isNotEmpty(stocks)) {
+
+            int stockSize = stocks.size();
+
+            for (WsnaIndividualWareOstrDvo dvo : sliceDvos) {
+                String itmPdCd = dvo.getItmPdCd();
+
+                // 필터박스수량
+                BigDecimal filterBoxQty = dvo.getFilterBoxQty();
+                BigDecimal lgstQty = BigDecimal.ZERO;
+
+                for (int i = 0; i < stockSize; i++) {
+                    RealTimeGradeStockResIvo stock = stocks.get(i);
+
+                    String stockPdCd = stock.getItmPdCd();
+
+                    if (itmPdCd.equals(stockPdCd)) {
+                        lgstQty = stock.getLgstAGdQty();
+                        stockSize--;
+                        stocks.remove(stock);
+                        break;
+                    }
+                }
+
+                dvo.setLogisticStocQty(lgstQty);
+
+                if (!BigDecimal.ZERO.equals(filterBoxQty) && !BigDecimal.ZERO.equals(lgstQty)) {
+                    long lgstStocQty = lgstQty.longValue();
+                    long filterQty = filterBoxQty.longValue();
+
+                    long lgstFilterQty = Math.floorDiv(lgstStocQty, filterQty)
+                        + (Math.floorMod(lgstStocQty, filterQty) > 0 ? 1 : 0);
+
+                    dvo.setLogisticFilterQty(BigDecimal.valueOf(lgstFilterQty));
+                } else {
+                    dvo.setLogisticFilterQty(BigDecimal.ZERO);
+                }
+            }
+        }
+    }
+
 }
