@@ -12,30 +12,33 @@ public class WfebOrganizationFeeDto {
     @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstReq")
     public record SearchHmstReq(
         String perfYm,
-        String rsbDv,
-        String ogLevl1,
-        String ogLevl2,
-        String ogLevl3,
-        String no
+        String rsbTpCd,
+        String feeTcntDvCd,
+        String prtnrNo,
+        String ogLevl2Id,
+        String ogLevl3Id
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerReq")
     public record SearchMngerReq(
         String perfYm,
-        String schOrdr,
-        String rsbTp,
-        String no,
-        String blgCd
+        String rsbTpCd,
+        String feeTcntDvCd,
+        String prtnrNo,
+        String ogLevl1Id,
+        String ogLevl2Id,
+        String ogLevl3Id
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarReq")
     public record SearchPlarReq(
         String perfYm,
-        String rsbTp,
-        String no,
-        String ogLevl1,
-        String ogLevl2,
-        String ogLevl3
+        String rsbTpCd,
+        String feeTcntDvCd,
+        String prtnrNo,
+        String ogLevl1Id,
+        String ogLevl2Id,
+        String ogLevl3Id
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchWmReq")
@@ -96,7 +99,7 @@ public class WfebOrganizationFeeDto {
         String aksd14, /* 재지급 */
         String intbsSum, /*과표합계*/
         String ddtnSum, /*총공제액*/
-        String aclDdbAmt /*실지급액*/
+        String aclDsbAmt /*실지급액*/
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstBrmgrRes")
