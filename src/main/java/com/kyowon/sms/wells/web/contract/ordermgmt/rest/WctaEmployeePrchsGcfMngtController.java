@@ -61,11 +61,13 @@ public class WctaEmployeePrchsGcfMngtController {
         @ApiImplicitParam(name = "stYy", value = "적용기간 시작일", paramType = "query", required = true),
         @ApiImplicitParam(name = "colDv", value = "적용기간 종료일", paramType = "query", required = true),
         @ApiImplicitParam(name = "empno", value = "판매자사번", paramType = "query"),
+        @ApiImplicitParam(name = "srchGbn", value = "취소,최종구분", paramType = "query"),
     })
     @GetMapping("/contracts/employee-purchases")
     public List<WctaEmployeePrchsGcfMngtDto.SearchCntrRes> getEmployeePurchases(
-        String stYy, String colDv, String empno
+        @Valid
+        WctaEmployeePrchsGcfMngtDto.SearchCntrReq dto
     ) {
-        return service.getEmployeePurchases(stYy, colDv, empno);
+        return service.getEmployeePurchases(dto);
     }
 }

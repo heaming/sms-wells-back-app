@@ -13,5 +13,5 @@ public interface WctaEmployeePrchsGcfMngtMapper {
 
     List<WctaEmployeePrchsGcfMngtDvo> selectEmployeePurchaseGcfs(WctaEmployeePrchsGcfMngtRequestDvo dvo);
 
-    List<WctaEmployeePrchsGcfMngtDto.SearchCntrRes> selectEmployeePurchases(String stYy, String colDv, String empno);
+    List<WctaEmployeePrchsGcfMngtDto.SearchCntrRes> selectEmployeePurchases(WctaEmployeePrchsGcfMngtDto.SearchCntrReq dto);
 }
