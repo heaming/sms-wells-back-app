@@ -3,8 +3,10 @@ package com.kyowon.sms.wells.web.closing.sales.service;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmCreateDvo;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmReceivingAndPayingDvo;
@@ -55,17 +57,23 @@ public class WdcbSalesConfirmCreateService {
              */
             if ("9".equals(dvo.getSellTpCd()))
                 dvo.setSellTpDtlCd("9");
-            String sapPdDvCd = mapper.selectSapPdDvCd(dvo);
+            String sapPdDvCd = StringUtils.isNotEmpty(mapper.selectSapPdDvCd(dvo)) ? mapper.selectSapPdDvCd(dvo) : "";
             /* 4. 렌탈등록비부가가치세(RENTAL_RGST_COST_VAT)  */
             int rentalRgstCostVat = (int)Math.floor(dvo.getRentalRgstCost() * 0.0909);
             /* 5. 이자부가가치세 (INT_VAT) : VO에 있는 정상이자금액 NON_INT_AMT * 0.0909 값을 넣어줌.  (소수점 TRUNC) */
             int intVat = (int)Math.floor(dvo.getNomIntAmt() * 0.0909);
             /* 6. SAP자재평가클래스값(SAP_MAT_EVL_CLSS_VAL) / SAP자재코드(SAP_MAT_CD) */
+            String sapMatEvlClssVal = "";
+            String sapMatCd = "";
+            String saveGdsYn = "";
             WdcbSalesConfirmSapMatDvo edcbSapMatDvo = mapper.selectSapMat(dvo);
-            String sapMatEvlClssVal = edcbSapMatDvo.getSapMatEvlClssVal();
-            String sapMatCd = edcbSapMatDvo.getSapMatCd();
-            /* 6-1.저장물품여부(SAVE_GDS_YN) */
-            String saveGdsYn = sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N";
+            if (!ObjectUtils.isEmpty(edcbSapMatDvo)) {
+                sapMatEvlClssVal = edcbSapMatDvo.getSapMatEvlClssVal();
+                sapMatCd = edcbSapMatDvo.getSapMatCd();
+                /* 6-1.저장물품여부(SAVE_GDS_YN) */
+                saveGdsYn = sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N";
+            }
+
             /* 7. SAP사업본부정보코드(SAP_BZ_HDQ_INF_CD) */
             String sapBzHdqInfCd = "0003";
             /* 8. 매출금액 (SL_AMT) */
@@ -74,7 +82,9 @@ public class WdcbSalesConfirmCreateService {
             /* 9. 부가가치세(VAT) */
             int vat = (int)Math.floor(slAmt * 0.0909);
             /* 10. CO주문유형 */
-            String ctrlOrdTpCd = mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd());
+            String ctrlOrdTpCd = StringUtils
+                .isNotEmpty(mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd()))
+                    ? mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd()) : "";
             /* 11. 코스트센터코드, WBS코드, SAP목적자재코드 */
             /* ASIS의 ZS2200P 테이블에도 모든 값이 공백임. 공백 넣을것 */
             /* 12. SAP과세면세구분코드 */
@@ -90,40 +100,50 @@ public class WdcbSalesConfirmCreateService {
                 sapTxinvPblBaseCd = "3";
             }
             /* 14. 물류배송방식코드, SAP플랜트코드, SAP저장위치값. */
+            String lgstSppMthdCd = "";
+            String sapPlntCd = "";
+            String sapSaveLctCd = "";
+            String rvpyYn = "";
             WdcbSalesConfirmReceivingAndPayingDvo wdcbSalesConfirmReceivingAndPayingDvo = mapper
                 .selectReceivingAndPaying(dvo);
-            String lgstSppMthdCd = wdcbSalesConfirmReceivingAndPayingDvo.getSppMthdTpCd();
-            String sapPlntCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapPlntCd();
-            String sapSaveLctCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapSaveLctCd();
-            String rvpyYn = wdcbSalesConfirmReceivingAndPayingDvo.getCnt() > 0 ? "Y" : "N";
+            if (!ObjectUtils.isEmpty(wdcbSalesConfirmReceivingAndPayingDvo)) {
+                lgstSppMthdCd = wdcbSalesConfirmReceivingAndPayingDvo.getSppMthdTpCd();
+                sapPlntCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapPlntCd();
+                sapSaveLctCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapSaveLctCd();
+                rvpyYn = wdcbSalesConfirmReceivingAndPayingDvo.getCnt() > 0 ? "Y" : "N";
+            }
+
             /* 15. SAP매출유형코드 */
             String sapSlTpCd = "";
             String slTpDvCd = "";
             String clssVal = "";
             String addCondition = "";
             String slpMapngCdv = "";
-            if ("N".equals(dvo.getRtngdYn())) {
+            if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "N".equals(dvo.getRtngdYn())) {
                 slTpDvCd = "1";
-            } else if ("Y".equals(dvo.getRtngdYn())) {
+            } else if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "Y".equals(dvo.getRtngdYn())) {
                 slTpDvCd = "2";
             } else if (dvo.getPcsvReimAmt() > 0) {
                 slTpDvCd = "3";
             } else if (dvo.getSlCanAmt() > 0) {
                 slTpDvCd = "7";
             }
-            if ("Z1".equals(sapSaveLctCd.substring(0, 2))) {
-                clssVal = "1";
-            } else if ("Z2".equals(sapSaveLctCd.substring(0, 2))) {
-                clssVal = "2";
-            } else if ("Z7".equals(sapSaveLctCd.substring(0, 2))) {
-                clssVal = "3";
+            if (StringUtils.isNotEmpty(sapSaveLctCd)) {
+                if ("Z1".equals(sapSaveLctCd.substring(0, 2))) {
+                    clssVal = "1";
+                } else if ("Z2".equals(sapSaveLctCd.substring(0, 2))) {
+                    clssVal = "2";
+                } else if ("Z7".equals(sapSaveLctCd.substring(0, 2))) {
+                    clssVal = "3";
+                }
             }
 
             if (dvo.getRentalRgstCost() > 0) {
                 addCondition = "1";
-            } else if ("E".equals(dvo.getLgstItmGdCd()) || "R".equals(dvo.getLgstItmGdCd())) {
+            } else if ((StringUtils.isNotEmpty(dvo.getLgstItmGdCd()) && "E".equals(dvo.getLgstItmGdCd()))
+                || (StringUtils.isNotEmpty(dvo.getLgstItmGdCd()) && "R".equals(dvo.getLgstItmGdCd()))) {
                 addCondition = "2";
-            } else if ("6".equals(dvo.getSellTpCd()) && "Y".equals(rvpyYn)) {
+            } else if ("6".equals(dvo.getSellTpCd()) && (StringUtils.isNotEmpty(rvpyYn) && "Y".equals(rvpyYn))) {
                 addCondition = "3";
             } else {
                 addCondition = "0";
