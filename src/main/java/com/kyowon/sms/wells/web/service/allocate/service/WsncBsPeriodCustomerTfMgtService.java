@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.B
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.ManagersAndEngineersRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodCustomerTfCreateDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodCustomerTfMgtMapper;
+import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -26,6 +27,8 @@ public class WsncBsPeriodCustomerTfMgtService {
     private final WsncBsPeriodCustomerTfMgtMapper mapper;
 
     private final WsncBsPeriodCustomerTfConverter converter;
+
+    private final WsnzHistoryService wsnzHistoryService;
 
     public PagingResult<SearchRes> getBsPeriodCustomers(
         SearchReq dto,
@@ -61,7 +64,7 @@ public class WsncBsPeriodCustomerTfMgtService {
             String afchIchrBrchOgId = dto.afchIchrBrchOgId();
 
             String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
-            BizAssert.notNull(asnTfDvCd, "배정이관구분코드를 조회할 수 없습니다.");
+            BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.
 
             dvo.setAsnTfDvCd(asnTfDvCd);
             cnt += mapper.insertTransfer(dvo);
@@ -80,10 +83,14 @@ public class WsncBsPeriodCustomerTfMgtService {
             String afchIchrBrchOgId = dto.afchIchrBrchOgId();
 
             String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
-            BizAssert.notNull(asnTfDvCd, "배정이관구분코드를 조회할 수 없습니다.");
+            BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.
 
             dvo.setAsnTfDvCd(asnTfDvCd);
             cnt += mapper.mergeTransferConfirm(dvo);
+
+            // save history
+            String cstSvAsnNo = dto.cstSvAsnNo();
+            wsnzHistoryService.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
         }
         return cnt;
     }
