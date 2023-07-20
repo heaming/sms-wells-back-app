@@ -46,7 +46,9 @@ public class WwdeaMutualAidFeeMgtDto {
         String cnfmYn, /*라이프확정(확정여부)*/
         String feeDsbYm, /*수수료지급월(수수료지급년월)*/
         String feeRedfYm, /*수수료되물림월(수수료되물림년월)*/
-        String perfYm /*실적년월*/
+        String perfYm, /*실적년월*/
+        String cntrNo,
+        String cntrSn
     ) {}
 
     @ApiModel("WwdeaMutualAidFeeMgtDto-SearchMutualAidFeeSubRes")
