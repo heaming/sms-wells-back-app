@@ -155,7 +155,6 @@ public class WctaContractSettelmentDto {
         String acnoEncr,
         String owrKnm,
         String fnitAprFshDtm,
-        String vncoDvCd,
         Long stlmAmt
     ) {}
 }
