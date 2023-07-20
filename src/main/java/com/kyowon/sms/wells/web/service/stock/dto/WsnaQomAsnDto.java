@@ -40,6 +40,7 @@ public class WsnaQomAsnDto {
         String apyYm,
         @NotBlank
         String asnOjYm,
+
         @Positive
         @Max(999999999999L)
         BigDecimal cnt,
@@ -130,7 +131,7 @@ public class WsnaQomAsnDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaQomAsnDto-EditWareRenewalReq")
+    @ApiModel("WsnaQomAsnDto-EditReq")
     public record EditReq(
         @NotBlank
         String apyYm,
