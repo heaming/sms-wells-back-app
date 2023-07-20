@@ -33,8 +33,8 @@ public class WctaEmployeePrchsGcfMngtService {
     }
 
     public List<WctaEmployeePrchsGcfMngtDto.SearchCntrRes> getEmployeePurchases(
-        String stYy, String colDv, String empno
+        WctaEmployeePrchsGcfMngtDto.SearchCntrReq dto
     ) {
-        return mapper.selectEmployeePurchases(stYy, colDv, empno);
+        return mapper.selectEmployeePurchases(dto);
     }
 }

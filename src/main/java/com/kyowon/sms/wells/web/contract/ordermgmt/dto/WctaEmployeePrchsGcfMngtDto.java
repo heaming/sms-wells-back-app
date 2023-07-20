@@ -76,6 +76,17 @@ public class WctaEmployeePrchsGcfMngtDto {
         String cnt12Fnl,
         String cntTot
     ) {}
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    //직원구매 계약 목록 조회 Search Request Dto
+    @ApiModel(value = "WctaEmployeePrchsGcfMngtDto-SearchCntrReq")
+    public record SearchCntrReq(
+        String stYy,
+        String colDv,
+        String empno,
+        String srchGbn
+    ) {}
 
     // *********************************************************
     // Response Dto
