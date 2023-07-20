@@ -80,7 +80,7 @@ public class WctbCancelBaseDvo {
     private Integer pBorAmt; // 포인트위약금액
     private Integer reqdCsBorAmt; // 철거비용위약금액
     private Integer reqdCsBorAmt2; // 철거비용위약금액2
-    private Integer lsRntf; // 분실손료
+    private Integer lsnt; // 분실손료
     private Integer eotDlqAddAmt; // 기말연체가산금액
 
     private String cntrStatChRsonCd; // 계약상태변경사유코드
