@@ -7,7 +7,9 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.O
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncManagementCstRglvlConverter;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncManagementCstRglvlBsAssignInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncManagementCstRglvlExchangeInfoDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncSvpdAsnRsTfIzDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncManagementCstRglvlMapper;
+import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import java.util.List;
 public class WsncManagementCstRglvlService {
     private final WsncManagementCstRglvlMapper mapper;
     private final WsncManagementCstRglvlConverter converter;
+    private final WsnzHistoryService wsnzHistoryService;
 
     public PagingResult<SearchRes> getManagementCustomerRglvls(
         SearchReq dto,
@@ -56,6 +59,13 @@ public class WsncManagementCstRglvlService {
             if (bsAssignInfoDvo.getCnfmPsicPrtnrNo() != null
                 && bsAssignInfoDvo.getCurMnthAlctnMngerRglvlDvCd() != null) {
                 processCount += mapper.updateClientServiceBsAssignInfo(bsAssignInfoDvo);
+
+                WsncSvpdAsnRsTfIzDvo wsncSvpdAsnRsTfIzDvo = converter.mapSavePartnerReqToWsncSvpdAsnRsTfIzDvo(dto);
+                mapper.insertTransfer(wsncSvpdAsnRsTfIzDvo);
+
+                // save history
+                String cstSvAsnNo = dto.cstSvAsnNo();
+                wsnzHistoryService.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
             }
         }
         return processCount;

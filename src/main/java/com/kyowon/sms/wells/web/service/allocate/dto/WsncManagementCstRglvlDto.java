@@ -31,7 +31,14 @@ public class WsncManagementCstRglvlDto {
         String cstSvAsnNo,
         String asnPsicPrtnrNo,
         String cnfmPsicPrtnrNo,
-        String curMnthAlctnMngerRglvlDvCd
+        String curMnthAlctnMngerRglvlDvCd,
+        String bfchIchrBrchOgId,
+        String bfchIchrPrtnrOgTpCd,
+        String bfchIchrPrtnrNo,
+        String afchIchrBrchOgId,
+        String afchIchrPrtnrOgTpCd,
+        String afchIchrPrtnrNo
+
     ) {}
     @ApiModel(value = "WsncManagementCstRglvlDto-SearchRes")
     public record SearchRes(
