@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.common.web.fee.common.dto.ZfezFeeNetOrderStatusDto;
+import com.kyowon.sms.common.web.fee.common.service.ZfezFeeNetOrderStatusService;
 import com.kyowon.sms.wells.web.fee.control.converter.WfedBsProcessingRateConverter;
 import com.kyowon.sms.wells.web.fee.control.dto.WfedBsProcessingRateDto.SaveReq;
 import com.kyowon.sms.wells.web.fee.control.dto.WfedBsProcessingRateDto.SearchReq;
@@ -35,6 +37,8 @@ public class WfedBsProcessingRateService {
 
     private final WfedBsProcessingRateConverter converter;
 
+    private final ZfezFeeNetOrderStatusService zfezFeeNetOrderStatusService;
+
     /**
      * BS처리율 목록 조회
      * @param dto : {
@@ -62,6 +66,14 @@ public class WfedBsProcessingRateService {
 
         for (SaveReq dto : dtos) {
             WfedBsProcessingRateDvo dvo = converter.mapSaveReqToWfedBsProcessingRateDvo(dto);
+
+            // 순주문이 확정되었는지 체크한다.
+            ZfezFeeNetOrderStatusDto.SearchRes searchRes = zfezFeeNetOrderStatusService
+                .getFeeNetOrderStat(dto.baseYm(), "02", "201", "02");
+            BizAssert.isTrue(
+                !(searchRes != null && "02".equals(searchRes.ntorCnfmStatCd())),
+                "MSG_ALT_BF_CNFM_MDFC_IMP"
+            ); //이미 순주문이 확정되어 수정이 불가합니다.
 
             // 수정하기 전, BS 실적집계가 완료된 상태인지 체크한다.
             int cnt = mapper.selectBsAgrgCheck(dvo);
