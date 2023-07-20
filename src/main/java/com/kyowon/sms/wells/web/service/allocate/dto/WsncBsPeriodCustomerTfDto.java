@@ -31,6 +31,9 @@ public class WsncBsPeriodCustomerTfDto {
         String pdctPdCd,
         String svpdNmAbbr1,
         String svBizDclsfCd,
+        String mPkg,
+        String mCntrNo,
+        String mRcgvpKnm,
         String ctpvNm,
         String ctctyNm,
         String emdNm,
@@ -49,17 +52,26 @@ public class WsncBsPeriodCustomerTfDto {
         String bfchIchrOgNm,
         String bfchIchrPrtnrNo,
         String bfchIchrPrtnrKnm,
+        String bfchIchrBrchOgId,
+        String bfchMngrDvCd,
+        String bfchIchrPrtnrOgTpCd,
         String afchIchrOgNm,
         String afchIchrPrtnrNo,
         String afchIchrPrtnrKnm,
+        String afchIchrBrchOgId,
+        String afchMngrDvCd,
+        String afchIchrPrtnrOgTpCd,
         String tfRqdt,
         String tfAkRsonCd,
         String tfOgNm,
         String tfPrtnrKnm,
+        String tfOgTpCd,
+        String tfPrtnrNo,
         String tfFnCnfmdt,
         String tfFnOgNm,
         String tfFnPrtnrKnm,
-        String cstSvAsnNo
+        String cstSvAsnNo,
+        String mngerRglvlDvCd
 
     ) {
         public SearchRes {
@@ -91,4 +103,24 @@ public class WsncBsPeriodCustomerTfDto {
     ) {
 
     }
+
+    @ApiModel(value = "WsncBsPeriodCustomerTfDto-CreateTfReq")
+    public record CreateTfReq(
+        String baseYm,
+        String cstSvAsnNo,
+        // String asnTfDvCd,
+        String tfStatCd,
+        String tfAkRsonCd,
+        String tfAkPrtnrOgTpCd,
+        String tfAkPrtnrNo,
+        String bfchIchrBrchOgId,
+        String bfchMngrDvCd,
+        String bfchIchrPrtnrOgTpCd,
+        String bfchIchrPrtnrNo,
+        String afchIchrBrchOgId,
+        String afchMngrDvCd,
+        String afchIchrPrtnrOgTpCd,
+        String afchIchrPrtnrNo,
+        String mngerRglvlDvCd
+    ) {}
 }
