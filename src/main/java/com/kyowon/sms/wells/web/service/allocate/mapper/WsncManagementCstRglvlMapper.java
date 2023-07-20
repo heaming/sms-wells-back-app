@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncManagementCstRglvlExchangeInfoDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncSvpdAsnRsTfIzDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchRes;
@@ -28,4 +29,6 @@ public interface WsncManagementCstRglvlMapper {
     int updateClientServiceBsAssignInfo(WsncManagementCstRglvlBsAssignInfoDvo dvo);
 
     OrganizationRes selectOrganizationInfo(String ogId);
+
+    int insertTransfer(WsncSvpdAsnRsTfIzDvo dvo);
 }

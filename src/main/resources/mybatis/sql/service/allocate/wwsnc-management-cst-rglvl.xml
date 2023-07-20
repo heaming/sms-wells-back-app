@@ -29,8 +29,12 @@
 						 , T10.DGR2_LEVL_OG_CD  AS CUR_MNTH_ALCTN_DGR2_LEVL_OG_CD						-- 당월배정 - 지역단
 						 , T10.DGR3_LEVL_OG_CD  AS CUR_MNTH_ALCTN_DGR3_LEVL_OG_CD						-- 당월배정 - 지점
 						 , T8.PRTNR_KNM         AS CUR_MNTH_ALCTN_PRTNR_KNM								-- 당월배정 - 매니저
+                         , T8.OG_ID             AS BFCH_ICHR_BRCH_OG_ID
+                         , T8.OG_TP_CD          AS BFCH_ICHR_PRTNR_OG_TP_CD
+                         , T8.PRTNR_NO          AS BFCH_ICHR_PRTNR_NO
 						 , T4.MNGER_RGLVL_DV_CD AS CUR_MNTH_ALCTN_MNGER_RGLVL_DV_CD						-- 당월배정 - 관리기준급지
 		                 , T4.CST_SV_ASN_NO
+                         , T4.MNGER_RGLVL_DV_CD
 					  FROM TB_SVPD_CST_SV_EXCN_IZ T1
 				INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
 						ON T2.CNTR_NO = T1.CNTR_NO
@@ -177,5 +181,64 @@
            AND OG_TP_CD = 'W02' -- 매니저
            AND OG_ID = #{ogId}
     </select>
+
+    <insert id="insertTransfer">
+		INSERT INTO TB_SVPD_ASN_RS_TF_IZ
+		(
+			  CST_SV_ASN_NO
+			, ASN_TF_DV_CD
+			, TF_SN
+			, TF_STAT_CD
+			, TF_RQDT
+			, TF_AK_RSON_CD
+			, TF_AK_PRTNR_OG_TP_CD
+			, TF_AK_PRTNR_NO
+			, TF_CNFMDT
+			, TF_CNFM_PRTNR_OG_TP_CD
+			, TF_CNFM_PRTNR_NO
+			, TF_AK_RMK_CN
+			, BFCH_ICHR_BRCH_OG_ID
+			, BFCH_MNGR_DV_CD
+			, BFCH_ICHR_PRTNR_OG_TP_CD
+			, BFCH_ICHR_PRTNR_NO
+			, AFCH_ICHR_BRCH_OG_ID
+			, AFCH_MNGR_DV_CD
+			, AFCH_ICHR_PRTNR_OG_TP_CD
+			, AFCH_ICHR_PRTNR_NO
+			, MNGER_RGLVL_DV_CD
+			<include refid="COMMON.insertSystemField" />
+		)
+		VALUES
+		(
+			  #{cstSvAsnNo}
+			, '311'
+			, NVL((
+				SELECT MAX(TF_SN)
+				  FROM TB_SVPD_ASN_RS_TF_IZ
+				 WHERE DTA_DL_YN = 'N'
+				   AND CST_SV_ASN_NO = #{cstSvAsnNo}
+				   AND ASN_TF_DV_CD = '311'
+			  ), 0) + 1
+			, '20'
+			, TO_CHAR(SYSDATE,'YYYYMMDD')
+			, '01'
+			, #{session.ogTpCd}
+			, #{session.employeeIDNumber}
+			, TO_CHAR(SYSDATE,'YYYYMMDD')
+			, #{session.session.ogTpCd}
+			, #{session.employeeIDNumber}
+			, ''
+			, #{bfchIchrBrchOgId}
+			, '1'
+			, #{bfchIchrPrtnrOgTpCd}
+			, #{bfchIchrPrtnrNo}
+			, #{afchIchrBrchOgId}
+			, '1'
+			, #{afchIchrPrtnrOgTpCd}
+			, #{afchIchrPrtnrNo}
+			, #{mngerRglvlDvCd}
+			<include refid="COMMON.insertSystemFieldValue" />
+		)
+    </insert>
 
 </mapper>

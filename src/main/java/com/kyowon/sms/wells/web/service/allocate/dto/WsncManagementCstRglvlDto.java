@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PositiveOrZero;
 
 public class WsncManagementCstRglvlDto {
     @ApiModel(value = "WsncManagementCstRglvlDto-SearchReq")
@@ -56,9 +55,12 @@ public class WsncManagementCstRglvlDto {
         String curMnthAlctnDgr2LevlOgCd,
         String curMnthAlctnDgr3LevlOgCd,
         String curMnthAlctnPrtnrKnm,
+        String bfchIchrBrchOgId,
+        String bfchIchrPrtnrOgTpCd,
+        String bfchIchrPrtnrNo,
         String curMnthAlctnMngerRglvlDvCd,
-        String cstSvAsnNo
-
+        String cstSvAsnNo,
+        String mngerRglvlDvCd
     ) {}
 
     @ApiModel(value = "WsncManagementCstRglvlDto-OrganizationRes")
