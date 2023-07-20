@@ -178,4 +178,160 @@
          WHERE 1 = 1
            AND AA.FEE_CALC_AMT > 0
     </insert>
+
+    <insert id="insertNetIncreseManagementFee">
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+             <include refid="COMMON.insertSystemField" />)
+        SELECT ZZZ.BASE_YM               AS BASE_YM
+              ,ZZZ.BASE_YM               AS PERF_YM
+              ,ZZZ.BASE_YM               AS OJ_DSB_YM
+              ,#{ogTpCd}                    AS CO_CD
+              ,ZZZ.OG_TP_CD              AS OG_TP_CD
+              ,ZZZ.PRTNR_NO              AS PRTNR_NO
+              ,#{feeCd}                 AS FEE_CD
+              ,#{dtaCrtFeeCd}                 AS DTA_CRT_FEE_CD
+              ,#{feeTcntDvCd}                      AS FEE_TCNT_DV_CD        -- 수수료차수(변수)
+              ,'01'                      AS SPMT_DSB_DV_CD        -- 추후 확인 필요 01/정상지급, 02/추가지급
+              ,'01'                      AS FEE_CALC_TP_CD        -- 01 / 수수료계산
+              ,ZZZ.FEE_CALC_AMT          AS FEE_CALC_AMT
+              ,ZZZ.FEE_CALC_AMT          AS FEE_CTR_CNFM_AMT
+              , #{fnlFeeYn} AS FNL_FEE_YN
+            <include refid="COMMON.insertSystemFieldValue" />
+          FROM (
+           SELECT ZZ.BASE_YM
+                 ,ZZ.OG_TP_CD
+                 ,ZZ.PRTNR_NO
+                 , CASE WHEN ZZ.AB80_CNT >= ZZ.KIZUN_CNT THEN /* 실활동 인원이 기준인원수 보다 큰 경우  */
+                                                              CASE WHEN LINK_DEQ02 >= 20  THEN DEQ2_CNT * 3000     /* 순증 급간으로 BS건수 활용 수수료 계산   */
+                                                                   WHEN LINK_DEQ02 >= 15  THEN DEQ2_CNT * 2400
+                                                                   WHEN LINK_DEQ02 >= 10  THEN DEQ2_CNT * 1800
+                                                                   WHEN LINK_DEQ02 >= 5   THEN DEQ2_CNT * 1400
+                                                                   WHEN LINK_DEQ02 >= 0   THEN DEQ2_CNT * 1000
+                                                                   WHEN LINK_DEQ02 >= -5  THEN DEQ2_CNT * 800
+                                                                   WHEN LINK_DEQ02 >= -10 THEN DEQ2_CNT * 700
+                                                                   WHEN LINK_DEQ02 >= -15 THEN DEQ2_CNT * 600
+                                                                                          ELSE DEQ2_CNT * 500  END
+                        ELSE 0 END
+                     *  /* 곱하기  */
+                      CASE WHEN  LINK_DEQ03 <![CDATA[<]]> 90     THEN 0.9         /* 지점 BS 처리율로 곱하기 처리 */
+                           WHEN  LINK_DEQ03 <![CDATA[<]]> 95     THEN 0.95
+                                                     ELSE 1 END
+                     - /* 빼기 */
+                      ( ZZ.LC56_CNT * 50000 )    /* 허위발생 대상 웰스매니저 수  */
+                      AS  FEE_CALC_AMT           /*허위가 많으면 ""0""보자 작을 수도 있음.   */
+             FROM (
+             SELECT AA.BASE_YM
+                   ,AA.OG_TP_CD
+                   ,AA.PRTNR_NO
+                   ,AA.AB80_CNT  /* 실활동인원수  */
+                   ,AA.LINK_DEQ02   /* 순증건수  */
+                   ,AA.LINK_DEQ03    /* 지점처리율  */
+                   ,CASE WHEN AA.AKDRIS <![CDATA[<=]]> 6 THEN 2 ELSE 3 END  AS KIZUN_CNT                          /* 실활동 기준건수 - 진급계월수 기준으로   */
+                   ,CASE WHEN AA.CNT_BS > AA.CNT_SIL THEN AA.CNT_SIL ELSE AA.CNT_BS END AS DEQ2_CNT   /* 수수료 지급 BS 건수 - 무조건 1,200 건이 max 가 되게... */
+                   ,BB.LC56_CNT                                                                       /* 지점내 허위방문 웰스매니저 수 */
+               FROM (
+                SELECT A.BASE_YM
+                      ,A.OG_TP_CD
+                      ,A.PRTNR_NO
+                      ,NVL(B.PERF_VAL,0)  AS AB80_CNT
+                      ,CASE WHEN  NVL(B.PERF_VAL,0)*180  > 1200 THEN 1200 ELSE NVL(B.PERF_VAL,0)*180 END  AS CNT_SIL
+                      ,NVL(C.PERF_VAL,0) - NVL(D.PERF_VAL,0)   AS CNT_BS /* 지점  BS  건수 ( 지점장님 본인 건 제외 )    */
+                      ,A.PRFMT_DT
+                      ,MONTHS_BETWEEN( TO_DATE(A.BASE_YM||'01','YYYYMMDD'),TO_DATE(NVL(SUBSTR(A.PRFMT_DT,1,6),A.BASE_YM)||'01','YYYYMMDD') ) + 1    AS AKDRIS /* 승진개월수 */
+                      ,NVL(E.PERF_VAL,0)  AS LINK_DEQ03    /* 지점처리율  */
+                      ,NVL(F.PERF_VAL,0)  AS LINK_DEQ02   /* 순증건수  */
+                  FROM TB_OGBS_MM_PRTNR_IZ A  /* M조직 기본   */
+                       LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL B
+                               ON  A.BASE_YM  = B.BASE_YM
+                              AND  A.BASE_YM  = B.PERF_YM
+                              AND  #{feeTcntDvCd}       = B.FEE_TCNT_DV_CD     -- 변수(차수)
+                              AND  A.OG_TP_CD = B.OG_TP_CD
+                              AND  A.PRTNR_NO = B.PRTNR_NO
+                              AND  'W02P00111'= B.PERF_ATC_CD        -- 고정 실활동인원
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                               ON  A.BASE_YM  = C.BASE_YM
+                              AND  A.BASE_YM  = C.PERF_YM
+                              AND  #{feeTcntDvCd}       = C.FEE_TCNT_DV_CD     -- 변수(차수)
+                              AND  A.OG_TP_CD = C.OG_TP_CD
+                              AND  A.PRTNR_NO = C.PRTNR_NO
+                              AND  'W02P00085'= C.PERF_ATC_CD        -- 고정 BS건수
+                              AND  '2'        = C.PERF_DV_CD         -- 고정 조직실적
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                               ON  A.BASE_YM  = D.BASE_YM
+                              AND  A.BASE_YM  = D.PERF_YM
+                              AND  #{feeTcntDvCd}       = D.FEE_TCNT_DV_CD     -- 변수(차수)
+                              AND  A.OG_TP_CD = D.OG_TP_CD
+                              AND  A.PRTNR_NO = D.PRTNR_NO
+                              AND  'W02P00085'= D.PERF_ATC_CD        -- 고정 BS건수
+                              AND  '0'        = D.PERF_DV_CD         -- 고정 개인실적(지점장)
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL E
+                               ON  A.BASE_YM  = E.BASE_YM
+                              AND  A.BASE_YM  = E.PERF_YM
+                              AND  #{feeTcntDvCd}       = E.FEE_TCNT_DV_CD     -- 변수(차수)
+                              AND  A.OG_TP_CD = E.OG_TP_CD
+                              AND  A.PRTNR_NO = E.PRTNR_NO
+                              AND  'W02P00114'= E.PERF_ATC_CD        -- 고정 지점BS처리율
+                              AND  '2'        = E.PERF_DV_CD         -- 고정 조직실적
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL F
+                               ON  A.BASE_YM  = F.BASE_YM
+                              AND  A.BASE_YM  = F.PERF_YM
+                              AND  #{feeTcntDvCd}       = F.FEE_TCNT_DV_CD     -- 변수(차수)
+                              AND  A.OG_TP_CD = F.OG_TP_CD
+                              AND  A.PRTNR_NO = F.PRTNR_NO
+                              AND  'W02P00113'= F.PERF_ATC_CD        -- 고정 순증
+                              AND  '2'        = F.PERF_DV_CD         -- 고정 조직실적
+                 WHERE 1 = 1
+                   AND A.BASE_YM    = #{baseYm}                       -- 변수
+                   AND A.OG_TP_CD   = #{ogTpCd}                          -- 변수
+                   AND A.PSTN_DV_CD = '7'
+                  ) AA
+                  JOIN (
+                SELECT M.BASE_YM
+                      ,M.OG_TP_CD
+                      ,M.PRTNR_NO         /* 지점장님  */
+                      ,SUM(CASE WHEN NVL(P.PERF_VAL,0) > 0 THEN 1 ELSE 0 END)  AS LC56_CNT /* 허위방문 이력이 있는 매니저 수  */
+                  FROM TB_OGBS_MM_OG_IZ L
+                       JOIN TB_OGBS_MM_PRTNR_IZ M   /* 지점장님  */
+                       ON  L.BASE_YM = M.BASE_YM
+                       AND L.OG_ID   = M.OG_ID
+                       AND '7'       = M.PSTN_DV_CD
+                       JOIN TB_OGBS_MM_PRTNR_IZ N  /* 지점장님 포함 하위 웰스매니저  */
+                       ON  L.BASE_YM = N.BASE_YM
+                       AND L.OG_ID   = N.OG_ID
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL P
+                       ON  N.BASE_YM  = P.BASE_YM
+                       AND N.BASE_YM  = P.PERF_YM
+                       AND #{feeTcntDvCd}       = P.FEE_TCNT_DV_CD     -- 변수(차수)
+                       AND N.OG_TP_CD = P.OG_TP_CD
+                    AND N.PRTNR_NO = P.PRTNR_NO
+                    AND 'W02P00097'= P.PERF_ATC_CD        -- 허위방문건수
+                    AND '0'        = P.PERF_DV_CD         -- 고정 판매자개인
+                    AND N.PSTN_DV_CD IN ('7','15')
+                 WHERE 1 = 1
+                   AND L.BASE_YM    = #{baseYm}                       -- 변수
+                   AND L.OG_TP_CD   = #{feeTcntDvCd}                          -- 변수
+                GROUP BY M.BASE_YM, M.OG_TP_CD, M.PRTNR_NO
+                  ) BB
+                  ON  AA.BASE_YM   = BB.BASE_YM
+                     AND AA.OG_TP_CD  = BB.OG_TP_CD
+                     AND AA.PRTNR_NO  = BB.PRTNR_NO
+                ) ZZ
+              ) ZZZ
+        WHERE 1 = 1
+          AND ZZZ.FEE_CALC_AMT > 0
+    </insert>
 </mapper>
