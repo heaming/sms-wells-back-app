@@ -100,12 +100,14 @@ public class WbncRentalResignExpectedMgtService {
         return processCount;
     }
 
+    /** TODO: 설계 보완 후 수정 예정 */
     @Transactional
     public int saveRentalResignExpectedCancels(SaveCancelReq dto) {
         int processCount = 0;
         return processCount;
     }
 
+    /** TODO: 설계 보완 후 수정 예정 */
     @Transactional
     public UploadRes saveRentalResignExpectedExcelUpload(MultipartFile file) throws Exception {
         // 업로드 엑셀 헤더 설정
