@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncUnpaidGuideUrgentMapper">
     <select id="selectUnpaidGuideUrgentPages" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncUnpaidGuideUrgentDto$SearchRes">
         <if test='@MybatisUtils@isNotEmpty(stateDvCd)'>
-        <choose >
+        <choose>
             <when test='@MybatisUtils@equals(stateDvCd, "01")'>
                 SELECT T1.CST_NO                                                            /* 고객번호 */
                      , T1.SFK_VAL                                                           /* 세이프키값 */
@@ -243,14 +243,14 @@
              , SUBSTR((SELECT TT1.RVE_DT FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.RVE_OJ_DRM_NO1 = T1.CNTR_NO AND TT1.RVE_OJ_DRM_NO2 = T1.CNTR_SN),1,4) AS FNL_PY_Y -- 최종납입년도
              , SUBSTR((SELECT TT1.RVE_DT FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.RVE_OJ_DRM_NO1 = T1.CNTR_NO AND TT1.RVE_OJ_DRM_NO2 = T1.CNTR_SN),5,2) AS FNL_PY_MM -- 최종납입월
              , SUBSTR((SELECT TT1.RVE_DT FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.RVE_OJ_DRM_NO1 = T1.CNTR_NO AND TT1.RVE_OJ_DRM_NO2 = T1.CNTR_SN),7,2) AS FNL_PY_D -- 최종납입일
-             , T9.VAC_BNK_CD AS BNK_CD              -- 가상계좌은행
-             , T9.VAC_NO AS VAC_NO                  -- 가상계좌번호
-             , T9.VAC_ACOWN_NM AS ACHLDR_NM         -- 예금주
+             , T10.VAC_BNK_CD AS BNK_CD              -- 가상계좌은행
+             , T10.VAC_NO AS VAC_NO                  -- 가상계좌번호
+             , T10.VAC_ACOWN_NM AS ACHLDR_NM         -- 예금주
              , #{ojPyTmlmDt} AS PY_TMLM_DT          -- 파라미터로 전달받은 납입기한
              , (SELECT TT1.OG_TP_CD FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND TT1.PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_OG_TP_CD -- 집금조직유형코드
              , (SELECT TT1.PRTNR_NO FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND TT1.PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NO -- 집금파트너번호
              , (SELECT TT1.PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND TT1.PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NM -- 집금파트너명
-             , T10.CPHON_LOCARA_TNO || T10.CPHON_EXNO_ENCR || T10.CPHON_IDV_TNO AS OFRM_TNO_VAL -- 사무실전화번호값
+             , T11.CPHON_LOCARA_TNO || T11.CPHON_EXNO_ENCR || T11.CPHON_IDV_TNO AS OFRM_TNO_VAL -- 사무실전화번호값
              , 'N' AS EXCD_YN                       -- 제외여부
              , 'N' AS CNFM_YN                       -- 확정여부
              , 'N' AS DTA_DL_YN                     -- 데이터삭제여부
@@ -270,8 +270,9 @@
           LEFT JOIN TB_SSCT_CNTR_WELLS_DTL T6 ON T6.CNTR_NO = T1.CNTR_NO AND T6.CNTR_SN = T1.CNTR_SN
           LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T7 ON T7.SL_CL_YM = T1.BASE_YM AND T7.CNTR_NO = T1.CNTR_NO AND T7.CNTR_SN = T1.CNTR_SN
           LEFT JOIN TB_SSCT_CNTR_DTL T8 ON T8.CNTR_NO = T1.CNTR_NO AND T8.CNTR_SN = T1.CNTR_SN
-          LEFT JOIN TB_RVDW_VAC_IS_IZ T9 ON T9.VAC_IS_DV_CD = '5' AND T9.VAC_IS_CST_NO = T1.CST_NO AND T9.VAC_USE_DV_CD = '02'
-          LEFT JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T10 ON T10.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND T10.PRTNR_NO = T1.CLCTAM_PRTNR_NO AND T10.MPHON_YN = 'Y'
+          LEFT JOIN TB_RVDW_VAC_IS_DTL T9 ON T9.CST_NO = T1.CST_NO AND T9.CNTR_NO = T1.CNTR_NO AND T9.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_RVDW_VAC_IS_IZ T10 ON T9.VAC_IS_ID = T10.VAC_IS_ID AND T10.VAC_IS_DV_CD = '5'
+          LEFT JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T11 ON T11.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND T11.PRTNR_NO = T1.CLCTAM_PRTNR_NO AND T11.MPHON_YN = 'Y'
          WHERE 1 = 1
            AND T1.BASE_YM = SUBSTR(#{ojWkDt},1,6)   -- 자료생성 작업일자 파라미터 기준으로 substr로 데이터 잘라서 세팅
            AND T3.COPN_DV_CD = #{copnDvCd}          -- 고객유형 개인 = '1' 법인 = '2'
