@@ -8,7 +8,10 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.*;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.FindProductRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallLocationMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -77,18 +80,4 @@ public class WsnbInstallLocationMgtController {
         return service.getProducts();
     }
 
-    @ApiOperation(value = "엔지니어 조회", notes = "엔지니어 리스르를 조회한다.")
-    @GetMapping("/engineers")
-    public List<FindEngineerRes> getEngineers(
-        @RequestParam
-        String ogId
-    ) {
-        return service.getEngineers(ogId);
-    }
-
-    @ApiOperation(value = "서비스센터 조회", notes = "서비스센터 리스르를 조회한다.")
-    @GetMapping("/centers")
-    public List<FindCenterRes> getCenters() {
-        return service.getCenterss();
-    }
 }
