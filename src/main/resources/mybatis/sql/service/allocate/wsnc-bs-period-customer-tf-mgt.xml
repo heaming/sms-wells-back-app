@@ -3,6 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodCustomerTfMgtMapper">
 
     <select id="selectBsPeriodCustomers" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$SearchRes">
+        SELECT T.*
+          FROM (
 			 SELECT T1.ASN_OJ_YM									  -- 배정대상년월
 			 	  , NVL(T2.TF_STAT_CD, '00') AS TF_STAT_CD            -- 이관상태
 				  , T1.CNTR_NO    									  -- 계약번호
@@ -55,6 +57,7 @@
 				  , T13.PRTNR_KNM         AS TF_FN_PRTNR_KNM 	 -- 이관확정정보-성명
 			      , T1.CST_SV_ASN_NO
 			      , T1.MNGER_RGLVL_DV_CD
+			      , T1.CNFM_PSIC_PRTNR_NO
 			   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
          LEFT OUTER JOIN (
                        SELECT T1.*
@@ -82,9 +85,6 @@
                           AND ( T1.BFCH_ICHR_PRTNR_NO = #{partnerNoInput}
                              OR T1.AFCH_ICHR_PRTNR_NO = #{partnerNoInput}
                               )
-                    </if>
-                    <if test="@MybatisUtils@isNotEmpty(transferStatusCode) and !@MybatisUtils@equals(transferStatusCode, 'ALL')">
-                          AND T1.TF_STAT_CD = #{transferStatusCode}
                     </if>
                   ) T2
 				 ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
@@ -173,22 +173,40 @@
 		 	  WHERE T1.DTA_DL_YN = 'N'
                 AND T1.ASN_OJ_YM = #{assignYm}
                 AND T1.VST_PRGS_STAT_CD = '00'          -- 작업대기 상태만 조회
-            <if test='@MybatisUtils@isNotEmpty(emdName)'>
-		 	    <bind name="emdName" value="'%'+emdName+'%'" />
-                AND T5.EMD_NM = #{emdName}
-            </if>
-            <if test='@MybatisUtils@isNotEmpty(addressZip)'>
-                AND T5.NEW_ADR_ZIP = #{addressZip}
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(organizationId) and !@MybatisUtils@equals(organizationId, 'ALL')">
-                AND T15.OG_ID = #{organizationId}
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(partnerNo) and !@MybatisUtils@equals(partnerNo, 'ALL')">
-                AND T1.CNFM_PSIC_PRTNR_NO = #{partnerNo}
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(partnerNoInput)">
-                AND T1.CNFM_PSIC_PRTNR_NO = #{partnerNoInput}
-            </if>
+            ) T
+        WHERE 1 = 1
+    <if test='@MybatisUtils@isNotEmpty(emdName)'>
+        <bind name="emdName" value="'%'+emdName+'%'" />
+          AND T.EMD_NM = #{emdName}
+    </if>
+    <if test='@MybatisUtils@isNotEmpty(addressZip)'>
+          AND T.NEW_ADR_ZIP = #{addressZip}
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(partnerNo) and !@MybatisUtils@equals(partnerNo, 'ALL')">
+          AND T.CNFM_PSIC_PRTNR_NO = #{partnerNo}
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(partnerNoInput)">
+          AND T.CNFM_PSIC_PRTNR_NO = #{partnerNoInput}
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(organizationId) and !@MybatisUtils@equals(organizationId, 'ALL')">
+          AND ( T.BFCH_ICHR_BRCH_OG_ID = #{organizationId}
+             OR T.AFCH_ICHR_BRCH_OG_ID = #{organizationId}
+              )
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(partnerNo) and !@MybatisUtils@equals(partnerNo, 'ALL')">
+          AND ( T.BFCH_ICHR_PRTNR_NO = #{partnerNo}
+             OR T.AFCH_ICHR_PRTNR_NO = #{partnerNo}
+              )
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(partnerNoInput)">
+          AND ( T.BFCH_ICHR_PRTNR_NO = #{partnerNoInput}
+             OR T.AFCH_ICHR_PRTNR_NO = #{partnerNoInput}
+              )
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(transferStatusCode) and !@MybatisUtils@equals(transferStatusCode, 'ALL')">
+          AND T.TF_STAT_CD = #{transferStatusCode}
+    </if>
+
     </select>
 
     <select id="selectBranchsAndServiceCenters" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$BranchsAndServiceCentersRes">
