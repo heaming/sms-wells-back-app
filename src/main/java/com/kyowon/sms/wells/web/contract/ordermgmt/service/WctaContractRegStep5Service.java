@@ -144,7 +144,7 @@ public class WctaContractRegStep5Service {
         String cntrNo = req.cntrNo();
 
 
-        WctaContractBasDvo contrctBasDvo = null;
+        WctaContractBasDvo contrctBasDvo;
         try {
             contrctBasDvo = getContractBasForSettlements(cntrNo);
         } catch (BizException e) {
@@ -530,47 +530,11 @@ public class WctaContractRegStep5Service {
         return CreditRes.builder()
             .aprNo(cardApproval.getAprNo())
             .build();
-
-        /*
-        WctaContractStlmBasDvo updateApprovalStlmBasDvo = new WctaContractStlmBasDvo();
-
-        SaveResponse saveResponse = paymentService.saveCreditCardApproval(List.of(getCreditCardApprovalSaveReq(receiveAskDvo)));
-        @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) saveResponse.getData();
-
-        if (CollectionUtils.isEmpty(responses)) {
-            updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.ERROR.getCode());
-            updateContractSettlement(updateApprovalStlmBasDvo);
-            throw new BizException("신용승인 요청 실패");
-        }
-
-        ZwdbCreditCardApprovalDvo cardApprovalDvo = responses.get(0);
-
-        if (!cardApprovalDvo.getErrorCd().equals("S")) {
-            updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.ERROR.getCode());
-            updateContractSettlement(updateApprovalStlmBasDvo);
-            throw new BizException("신용승인 요청 실패");
-        }
-
-        updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.APPROVAL.getCode());
-        updateApprovalStlmBasDvo.setFnitAprFshDtm(cardApprovalDvo.getStlmDtm());
-        updateApprovalStlmBasDvo.setCardFntImpsCd(cardApprovalDvo.getAprCd());
-        updateContractSettlement(updateApprovalStlmBasDvo);
-
-        return CreditRes.builder()
-            .aprNo(cardApprovalDvo.getAprNo())
-            .fnitAprRsCd(CtFnitAprRsCd.APPROVAL.getCode())
-            .fnitAprFshDtm(cardApprovalDvo.getStlmDtm())
-            .build();
-        */
     }
 
     /**
      * 저장된 수납 요청으로 부터 카드 승인 요청을 하고,
      * 성공시 결과를 리턴합니다.
-     *
-     * @param
-     * @param
-     * @return `ZwdbCreditCardApprovalDvo
      */
     @Transactional
     ZwdbCreditCardApprovalDvo resolveReceiveAskByCardApproval(ZwdzWithdrawalReceiveAskDvo receiveAskDvo) {
@@ -609,6 +573,11 @@ public class WctaContractRegStep5Service {
         cardApprovalDvo = responses.get(0);
 
         BizAssert.isTrue(cardApprovalDvo.getErrorCd().equals("S"), cardApprovalDvo.getErrorCntn());
+
+        /* 넣어주는 파라미터는 돌려주지 않네. */
+        cardApprovalDvo.setCrdcdExpdtYm(receiveAskDvo.getCreditCardExpireDate());
+        cardApprovalDvo.setCrcdnoEncr(receiveAskDvo.getCreditCardNumberEncr());
+
         return cardApprovalDvo;
     }
 
@@ -620,8 +589,11 @@ public class WctaContractRegStep5Service {
             updateContractSettlement(updateApprovalStlmBasDvo);
             return;
         }
+
         updateApprovalStlmBasDvo.setFnitAprRsCd(cardApproval.getErrorCd().equals("S") ? CtFnitAprRsCd.APPROVAL.getCode() : CtFnitAprRsCd.ERROR.getCode());
         updateApprovalStlmBasDvo.setFnitAprFshDtm(cardApproval.getStlmDtm());
+        updateApprovalStlmBasDvo.setCrcdnoEncr(cardApproval.getCrcdnoEncr());
+        updateApprovalStlmBasDvo.setCardExpdtYm(cardApproval.getCrdcdExpdtYm());
         updateApprovalStlmBasDvo.setCardFntImpsCd(cardApproval.getAprCd());
         updateContractSettlement(updateApprovalStlmBasDvo);
     }
