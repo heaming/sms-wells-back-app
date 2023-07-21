@@ -16,7 +16,7 @@ public enum CtCntrTpCd {
     final String code;
     final String codeName;
 
-    static final String name = "판매유형코드";
+    static final String name = "계약유형코드";
 
     CtCntrTpCd(String code, String codeName) {
         this.code = code;
