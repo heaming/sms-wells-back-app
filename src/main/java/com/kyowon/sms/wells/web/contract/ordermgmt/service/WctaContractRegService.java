@@ -54,7 +54,7 @@ public class WctaContractRegService {
                 return "4";
             }
         } else if (sellTpCd.equals(CtContractConst.SELL_TP_CD_RGSP)) {
-            if (cntrRelDtlCd.equals("214")) {
+            if (StringUtils.isEmpty(cntrRelDtlCd) || cntrRelDtlCd.equals("214")) {
                 return "7";
             } else if (cntrRelDtlCd.equals("216")) {
                 if (mchnSellTpCd.equals(CtContractConst.SELL_TP_CD_SPAY)) {
