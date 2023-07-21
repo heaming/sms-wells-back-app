@@ -56,11 +56,16 @@ public class WsnaIndependenceWareOstrDto {
         List<String> itmPdCds,
 
         @NotBlank
+        String wareDvCd,
+        @NotBlank
+        String wareDtlDvCd,
+        @NotBlank
         String strWareNo,
 
         String itmPdCd,
         String strtSapCd,
         String endSapCd
+
     ) {}
 
     @Builder
