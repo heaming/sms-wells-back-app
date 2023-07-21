@@ -3,11 +3,11 @@ package com.kyowon.sms.wells.web.closing.payment.service;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaBusinessAnticipationAmtDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDelinquentDepositRefundDvo;
 import com.kyowon.sms.wells.web.closing.payment.mapper.WdcaBusinessAnticipationAmtMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -41,7 +41,7 @@ public class WdcaBusinessAnticipationAmtService {
 
         for (WdcaBusinessAnticipationAmtDvo dvo : dvos) {
             // 입력구분이 입출금인 경우
-            if (dvo.getInputGubun().equals("1")) {
+            if ("1".equals(dvo.getInputGubun())) {
 
                 WdcaDelinquentDepositRefundDvo refundDvo = new WdcaDelinquentDepositRefundDvo();
 
@@ -76,42 +76,47 @@ public class WdcaBusinessAnticipationAmtService {
 
                 dvo.setSapPdDvCd("00");
 
-                if (sapPdDvCd.equals("A1")) {
-                    if (dpTpCd.equals("0801")) {
+                if ("A1".equals(sapPdDvCd)) {
+                    if ("0801".equals(dpTpCd)) {
                         dvo.setSapPdAtcCd("07");
-                    } else if (dpTpCd.equals("0802")) {
+                    } else if ("0802".equals(dpTpCd)) {
                         dvo.setSapPdAtcCd("06");
-                    } else if (rveDvCd.equals("01")) {
+                    } else if ("01".equals(rveDvCd)) {
                         dvo.setSapPdAtcCd("01");
-                    } else if (rveDvCd.equals("03")) {
+                    } else if ("03".equals(rveDvCd)) {
                         dvo.setSapPdAtcCd("02");
                     }
                 }
 
                 // 대표고객 mapping
-                if (!rveDvCd.equals("02")) {
+                if (!"02".equals(rveDvCd)) {
                     String dgCstId = mapper.selectCustomerId(dvo);
                     dvo.setDgCstId(dgCstId);
                 } else {
                     String sellTpCd = dvo.getSellTpCd();
                     String sellTpDtlCd = dvo.getSellTpDtlCd();
-                    if (sellTpCd.equals("1")) {
-                        dvo.setDgCstId("1000000226");
-                    } else if (sellTpCd.equals("2") && (sellTpDtlCd.equals("24") || sellTpDtlCd.equals("26"))) {
-                        dvo.setDgCstId("1000000165");
-                    } else if (sellTpCd.equals("2") && sellTpDtlCd.equals("22")) {
-                        dvo.setDgCstId("1000000098");
-                    } else if (sellTpCd.equals("3") && sellTpDtlCd.equals("33")) {
-                        dvo.setDgCstId("1000000108");
-                    } else if (sellTpCd.equals("3")) {
-                        dvo.setDgCstId("1000000045");
-                    } else if (sellTpCd.equals("6")) {
-                        dvo.setDgCstId("1000000167");
+                    switch (sellTpCd) {
+                        case "1" -> dvo.setDgCstId("1000000226");
+                        case "2" -> {
+                            if ("24".equals(sellTpDtlCd) || "26".equals(sellTpDtlCd)) {
+                                dvo.setDgCstId("1000000165");
+                            } else if ("22".equals(sellTpDtlCd)) {
+                                dvo.setDgCstId("1000000098");
+                            }
+                        }
+                        case "3" -> {
+                            if ("33".equals(sellTpDtlCd)) {
+                                dvo.setDgCstId("1000000108");
+                            } else {
+                                dvo.setDgCstId("1000000045");
+                            }
+                        }
+                        case "6" -> dvo.setDgCstId("1000000167");
                     }
                 }
 
                 // 법인계좌번호
-                if (dvo.getDpTpCd().equals("0104")) {
+                if ("0104".equals(dvo.getDpTpCd())) {
                     dvo.setCrpAcno(dvo.getAcnoEncr());
                 }
 
@@ -122,54 +127,54 @@ public class WdcaBusinessAnticipationAmtService {
                 String vncoDvCd = dvo.getVncoDvCd();
                 String sellTpCd = dvo.getSellTpCd();
 
-                if (dpDvCd.equals("1")) {
+                if ("1".equals(dpDvCd)) {
                     switch (dpMesCd) {
                         case "01" -> {
                             dvo.setSapDpTpCd("31");
-                            if (rvePhCd.equals("05")) {
+                            if ("05".equals(rvePhCd)) {
                                 dvo.setSapDpTpCd("41");
-                            } else if (dpTpCd.equals("0102")) {
+                            } else if ("0102".equals(dpTpCd)) {
                                 dvo.setSapDpTpCd("52");
                             }
                         }
                         case "02" -> {
                             dvo.setSapDpTpCd("22");
-                            if (rvePhCd.equals("02")) {
+                            if ("02".equals(rvePhCd)) {
                                 dvo.setSapDpTpCd("32");
-                            } else if (rvePhCd.equals("05")) {
+                            } else if ("05".equals(rvePhCd)) {
                                 dvo.setSapDpTpCd("42");
-                            } else if (dpTpCd.equals("0203")) {
-                                if (vncoDvCd.equals("001")) {
+                            } else if ("0203".equals(dpTpCd)) {
+                                if ("001".equals(vncoDvCd)) {
                                     dvo.setSapDpTpCd("55");
-                                } else if (vncoDvCd.equals("002")) {
+                                } else if ("002".equals(vncoDvCd)) {
                                     dvo.setSapDpTpCd("54");
-                                } else if (vncoDvCd.equals("003")) {
+                                } else if ("003".equals(vncoDvCd)) {
                                     dvo.setSapDpTpCd("53");
                                 }
                             }
                         }
                         case "04" -> {
                             dvo.setSapDpTpCd("81");
-                            if (rveDvCd.equals("13")) {
+                            if ("13".equals(rveDvCd)) {
                                 dvo.setSapDpTpCd("89");
                             }
                         }
                         default -> {
-                            if (rvePhCd.equals("10")) {
+                            if ("10".equals(rvePhCd)) {
                                 dvo.setSapDpTpCd("51");
-                            } else if (rveDvCd.equals("13")) {
+                            } else if ("13".equals(rveDvCd)) {
                                 dvo.setSapDpTpCd("Y2");
                             }
                         }
                     }
-                } else if (dpDvCd.equals("2")) {
-                    if (dpMesCd.equals("01")) {
+                } else if ("2".equals(dpDvCd)) {
+                    if ("01".equals(dpMesCd)) {
                         dvo.setSapDpTpCd("Y1");
-                    } else if (dpMesCd.equals("02")) {
+                    } else if ("02".equals(dpMesCd)) {
                         dvo.setSapDpTpCd("Y3");
                     }
-                } else if (dpDvCd.equals("3") || dpDvCd.equals("4")) {
-                    if (sellTpCd.equals("1")) {
+                } else if ("3".equals(dpDvCd) || "4".equals(dpDvCd)) {
+                    if ("1".equals(sellTpCd)) {
                         dvo.setSapDpTpCd("72");
                     } else {
                         dvo.setSapDpTpCd("71");
@@ -181,7 +186,7 @@ public class WdcaBusinessAnticipationAmtService {
                 BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
                 // 기타선수금 데이터 여부
-                if (!dvo.getEtcAtamNo().isEmpty()) {
+                if (StringUtils.isNotEmpty(dvo.getEtcAtamNo())) {
                     resultCount = mapper.insertEtcProcess(dvo);
                     BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
@@ -193,7 +198,7 @@ public class WdcaBusinessAnticipationAmtService {
                 resultCount = service.saveDelinquentDepositRefund(refundDvo);
                 BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
-            } else if (dvo.getInputGubun().equals("2")) {
+            } else if ("2".equals(dvo.getInputGubun())) {
                 resultCount = mapper.updateBusinessBasic(dvo);
                 BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
