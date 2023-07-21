@@ -22,6 +22,15 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0192M01 개인창고 출고 관리 서비스
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-07-21
+ */
+
 @Service
 @RequiredArgsConstructor
 public class WsnaIndividualWareOstrService {

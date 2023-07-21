@@ -23,6 +23,15 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0193M01 독립창고 출고 관리 서비스
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-07-21
+ */
+
 @Service
 @RequiredArgsConstructor
 public class WsnaIndependenceWareOstrService {
@@ -50,6 +59,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 출고창고 조회
+     *
      * @param apyYm (필수) 기준년월
      * @return
      */
@@ -61,6 +71,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 품목 조회
+     *
      * @return
      */
     public List<SearchPdRes> getIndependenceOstrWares() {
@@ -69,6 +80,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 입고창고 조회
+     *
      * @param dto
      * @return
      */
@@ -79,6 +91,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 독립창고 출고 관리 페이징 조회
+     *
      * @param dto
      * @param pageInfo
      * @return
@@ -98,6 +111,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 독립창고 출고 관리 엑셀 다운로드
+     *
      * @param dto
      * @return
      */
@@ -112,6 +126,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 실시간 물류 센터 재고 조회
+     *
      * @param dvos
      */
     private void getRealTimeLogisticStockQtys(List<WsnaIndependenceWareOstrDvo> dvos) {
@@ -141,6 +156,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 물류 물량 셋팅
+     *
      * @param stocks
      * @param sliceDvos
      * @param defaultRmkCn
@@ -202,6 +218,7 @@ public class WsnaIndependenceWareOstrService {
 
     /**
      * 독립창고 출고 관리 저장
+     *
      * @param dtos
      * @return
      */
