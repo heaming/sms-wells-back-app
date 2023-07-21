@@ -41,7 +41,7 @@ public class WbncRentalResignExpectedMgtService {
     }
 
     @Transactional
-    public int createRentalResignExpecteds(CreateReq dto) {
+    public int createRentalResignExpecteds(CreateReq dto) throws Exception {
         int processCount = 0;
         String baseDt = dto.baseDt();
         BizAssert.isTrue(DateUtil.getLastDateOfMonth(baseDt).equals(baseDt), "MSG_ALT_CHO_MM_TLST_D"); // 직권해지일자가 월마지막날이 아닙니다. 월마지막날을 선택하기 바랍니다.
@@ -66,7 +66,7 @@ public class WbncRentalResignExpectedMgtService {
     }
 
     @Transactional
-    public int editRentalResignExpecteds(List<SaveReq> dtos) {
+    public int editRentalResignExpecteds(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
         for (SaveReq dto : dtos) {
             WbncAuthorityResignIzDvo dvo = this.converter.mapSaveReqToAuthorityResignIz(dto);
@@ -83,7 +83,7 @@ public class WbncRentalResignExpectedMgtService {
     }
 
     @Transactional
-    public int saveRentalResignExpectedCnfms(SaveConfirmReq dto) {
+    public int saveRentalResignExpectedCnfms(SaveConfirmReq dto) throws Exception {
         int processCount = 0;
 
         // 직권해지 렌탈 [예정확정] [최종확정]
@@ -102,7 +102,7 @@ public class WbncRentalResignExpectedMgtService {
 
     /** TODO: 설계 보완 후 수정 예정 */
     @Transactional
-    public int saveRentalResignExpectedCancels(SaveCancelReq dto) {
+    public int saveRentalResignExpectedCancels(SaveCancelReq dto) throws Exception {
         int processCount = 0;
         return processCount;
     }
