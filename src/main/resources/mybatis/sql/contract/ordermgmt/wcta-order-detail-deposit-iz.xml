@@ -50,8 +50,8 @@
          INNER JOIN TB_SSCT_CNTR_BAS T11 /* 계약기본 */
             ON T10.CNTR_NO = T11.CNTR_NO
            AND T11.DTA_DL_YN = 'N'
-         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T12 /* WELLS매출월마감내역 */
-            ON T12.SL_CL_YM = SUBSTR(T11.CNTR_CNFM_DTM,1,6)
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T12 /* WELLS매출월마감내역 */
+            ON T12.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T10.CNTR_NO = T12.CNTR_NO
            AND T10.CNTR_SN = T12.CNTR_SN
            AND T12.DTA_DL_YN = 'N'
@@ -96,10 +96,23 @@
                     ELSE NVL(T12.EOT_ATAM,0)
                     END                                 AS PRPD_AMT
              , CASE WHEN T12.SL_CL_YM IS NULL THEN 0
-                    ELSE NVL(T12.THM_UC_BLAM,0)
+                    ELSE (
+                        SELECT THM_UC_BLAM
+                          FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                         WHERE 1 = 1
+                           AND CNTR_NO = #{cntrNo}
+                           AND CNTR_SN = #{cntrSn}
+                           AND DTA_DL_YN = 'N'
+                           AND SL_CL_YM = (SELECT MAX(SL_CL_YM)
+                                             FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                                            WHERE 1 = 1
+                                              AND CNTR_NO = #{cntrNo}
+                                              AND CNTR_SN = #{cntrSn}
+                                              AND DTA_DL_YN = 'N')
+                    )
                     END                                 AS UC_AMT
              , CASE WHEN T12.SL_CL_YM IS NULL THEN 0
-                    ELSE NVL(T13.THM_OC_DLQ_AMT,0)
+                    ELSE NVL(T13.EOT_DLQ_AMT,0)
                     END                                 AS DLQ_AMT
              , CASE WHEN T12.SL_CL_YM IS NULL THEN 0
                     ELSE TRUNC(T12.SL_STP_AMT * 0.3, -1)
@@ -111,12 +124,16 @@
             ON T10.CNTR_NO = T11.CNTR_NO
            AND T11.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T12 /* WELLS매출월마감내역 */
-            ON T12.SL_CL_YM = SUBSTR(T11.CNTR_CNFM_DTM,1,6)
+            ON T12.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T11.CNTR_CNFM_DTM, 'YYYYMMDDHH24MISS'), 1), 'YYYYMM')
            AND T10.CNTR_NO = T12.CNTR_NO
            AND T10.CNTR_SN = T12.CNTR_SN
            AND T12.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T13 /* 연체기본 */
-            ON T13.PERF_YM = SUBSTR(T11.CNTR_CNFM_DTM,1,6)
+            ON T13.PERF_YM = (SELECT MAX(PERF_YM)
+                                FROM TB_CBCL_DLQ_BAS
+                               WHERE CNTR_NO = #{cntrNo}
+                                 AND CNTR_SN = #{cntrSn}
+                                 AND DTA_DL_YN = 'N')
            AND T10.CNTR_NO = T13.CNTR_NO
            AND T10.CNTR_SN = T13.CNTR_SN
            AND T13.DTA_DL_YN = 'N'
@@ -160,12 +177,12 @@
             ON T10.CNTR_NO = T11.CNTR_NO
            AND T11.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T12 /* WELLS매출월마감내역 */
-            ON T12.SL_CL_YM = SUBSTR(T11.CNTR_CNFM_DTM,1,6)
+            ON T12.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T10.CNTR_NO = T12.CNTR_NO
            AND T10.CNTR_SN = T12.CNTR_SN
            AND T12.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T13 /* 연체기본 */
-            ON T13.PERF_YM = SUBSTR(T11.CNTR_CNFM_DTM,1,6)
+            ON T13.PERF_YM = T12.SL_CL_YM
            AND T10.CNTR_NO = T13.CNTR_NO
            AND T10.CNTR_SN = T13.CNTR_SN
            AND T13.DTA_DL_YN = 'N'
@@ -203,12 +220,12 @@
             ON T10.CNTR_NO = T11.CNTR_NO
            AND T11.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T12 /* WELLS매출월마감내역 */
-            ON T12.SL_CL_YM = SUBSTR(T11.CNTR_CNFM_DTM,1,6)
+            ON T12.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T10.CNTR_NO = T12.CNTR_NO
            AND T10.CNTR_SN = T12.CNTR_SN
            AND T12.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS T13 /* 연체기본*/
-            ON T13.PERF_YM = SUBSTR(T11.CNTR_CNFM_DTM,1,6)
+            ON T13.PERF_YM = T12.SL_CL_YM
            AND T10.CNTR_NO = T13.CNTR_NO
            AND T10.CNTR_SN = T13.CNTR_SN
            AND T13.DTA_DL_YN = 'N'
@@ -256,7 +273,7 @@
             ON T2.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
            AND T3.DTA_DL_YN = 'N'
          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4 /* WELLS매출월마감내역 */
-            ON T4.SL_CL_YM = SUBSTR(T1.CNTR_CNFM_DTM,1,6)
+            ON T4.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T0.CNTR_NO = T4.CNTR_NO
            AND T0.CNTR_SN = T4.CNTR_SN
            AND T4.DTA_DL_YN = 'N'
