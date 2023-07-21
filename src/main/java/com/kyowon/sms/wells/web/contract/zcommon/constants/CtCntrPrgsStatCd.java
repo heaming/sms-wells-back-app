@@ -5,7 +5,7 @@ import com.sds.sflex.system.config.exception.BizException;
 import java.util.Arrays;
 import java.util.Objects;
 
-public enum CtContractProgressStatus {
+public enum CtCntrPrgsStatCd {
     TEMP_STEP1("10"), /* STEP1 */
     TEMP_STEP2("12"), /* STEP2 */
     TEMP_STEP3("14"), /* STEP3 */
@@ -16,13 +16,13 @@ public enum CtContractProgressStatus {
     STLM_ING("40"), /*결재중*/
     STLM_FSH("50"), /*결재완료, 하우에버 입금 대기*/
     CNFM("60"), /*확정*/
-    DEL("99"); /*확정*/
+    DEL("99"); /*삭제*/
 
     final String code;
 
     static final String name = "결제 진행 상태";
 
-    CtContractProgressStatus(String code) {
+    CtCntrPrgsStatCd(String code) {
         this.code = code;
     }
 
@@ -30,7 +30,7 @@ public enum CtContractProgressStatus {
         return code;
     }
 
-    public static CtContractProgressStatus of(String code) {
+    public static CtCntrPrgsStatCd of(String code) {
         return Arrays.stream(values())
             .filter((value) -> Objects.equals(value.getCode(), code))
             .findFirst()

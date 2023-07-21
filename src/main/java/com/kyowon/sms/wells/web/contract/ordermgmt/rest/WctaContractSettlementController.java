@@ -50,7 +50,6 @@ public class WctaContractSettlementController {
         return service.authorize(req);
     }
 
-
     @ApiOperation(value = "Contract For Settlement 단건 조회", notes = "외부연계민감정보 포함 요청으로 post 사용")
     @PostMapping("/contract")
     public FindContractForStlmRes getContractForSettlement(
@@ -100,7 +99,6 @@ public class WctaContractSettlementController {
     ) {
         return service.requestVacIsRveAsk(req);
     }
-
 
     @ApiOperation(value = "입금유형 별 선택 가능 자동이체일 목록 조회", notes = "입금유형 별 선택 가능 자동이체일 목록 조회")
     @GetMapping("/regular-fund-transfers-day-options/{dpTpCd}")
