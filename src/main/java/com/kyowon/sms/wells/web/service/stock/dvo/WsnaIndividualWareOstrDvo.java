@@ -34,7 +34,6 @@ public class WsnaIndividualWareOstrDvo {
 
     // 물류 재고 관련
     private BigDecimal logisticStocQty;
-    private BigDecimal logisticFilterQty;
 
     private BigDecimal boxUnitQty;
     private BigDecimal crtlStocQty;

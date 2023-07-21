@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndividualWareOstrConverter;
@@ -45,13 +46,13 @@ public class WsnaIndividualWareOstrService {
 
     /**
      * 출고창고 조회
-     * @param asnOjYm (필수) 배정년월
+     * @param apyYm (필수) 기준년월
      * @return
      */
-    public List<WsnzWellsCodeWareHouseDvo> getIndividualOstrWares(String asnOjYm) {
-        ValidAssert.hasText(asnOjYm);
+    public List<WsnzWellsCodeWareHouseDvo> getIndividualOstrWares(String apyYm) {
+        ValidAssert.hasText(apyYm);
 
-        return this.qomAsnService.getQomAsnOstrWares(asnOjYm);
+        return this.qomAsnService.getQomAsnOstrWares(apyYm);
     }
 
     /**
@@ -147,8 +148,7 @@ public class WsnaIndividualWareOstrService {
             for (WsnaIndividualWareOstrDvo dvo : sliceDvos) {
                 String itmPdCd = dvo.getItmPdCd();
 
-                // 필터박스수량
-                BigDecimal filterBoxQty = dvo.getFilterBoxQty();
+                // 물류재고
                 BigDecimal lgstQty = BigDecimal.ZERO;
 
                 for (int i = 0; i < stockSize; i++) {
@@ -166,16 +166,21 @@ public class WsnaIndividualWareOstrService {
 
                 dvo.setLogisticStocQty(lgstQty);
 
-                if (!BigDecimal.ZERO.equals(filterBoxQty) && !BigDecimal.ZERO.equals(lgstQty)) {
-                    long lgstStocQty = lgstQty.longValue();
+                // 출고수량
+                BigDecimal outQty = dvo.getOutQty();
+                // 필터박스수량
+                BigDecimal filterBoxQty = dvo.getFilterBoxQty();
+
+                if (!BigDecimal.ZERO.equals(filterBoxQty) && !BigDecimal.ZERO.equals(outQty)) {
+                    long ostrQty = outQty.longValue();
                     long filterQty = filterBoxQty.longValue();
 
-                    long lgstFilterQty = Math.floorDiv(lgstStocQty, filterQty)
-                        + (Math.floorMod(lgstStocQty, filterQty) > 0 ? 1 : 0);
+                    long outBoxQty = Math.floorDiv(ostrQty, filterQty)
+                        + (Math.floorMod(ostrQty, filterQty) > 0 ? 1 : 0);
 
-                    dvo.setLogisticFilterQty(BigDecimal.valueOf(lgstFilterQty));
+                    dvo.setOutBoxQty(BigDecimal.valueOf(outBoxQty));
                 } else {
-                    dvo.setLogisticFilterQty(BigDecimal.ZERO);
+                    dvo.setOutBoxQty(BigDecimal.ZERO);
                 }
             }
         }
@@ -186,6 +191,7 @@ public class WsnaIndividualWareOstrService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int saveIndividualWareOstrs(List<SaveReq> dtos) {
 
         int count = 0;
