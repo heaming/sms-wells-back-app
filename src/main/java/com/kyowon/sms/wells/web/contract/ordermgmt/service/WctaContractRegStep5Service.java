@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaCardNumberEffectivenessCheckReqDvo;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaKiccReceiveProcessService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditCardApprovalDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbVirtualAccountIsMgtDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbCreditCardApprovalDvo;
@@ -52,6 +54,7 @@ public class WctaContractRegStep5Service {
     private final ZwdzWithdrawalService rveReqService;
     private final ZwdbCreditCardApprovalService paymentService;
     private final ZwdbVirtualAccountIsMgtService virtualAccountIsMgtService;
+    private final ZwdaKiccReceiveProcessService KiccReceiveService;
 
     private final WctbContractDtlStatCdChService cntrStatChService;
     private final WctzHistoryService historyService;
@@ -288,6 +291,7 @@ public class WctaContractRegStep5Service {
                 }
                 case IDV_RVE_CRDCD, YMDR_CARD_VCH -> {
                     log.debug("계약결제기본-신용카드 update: {}", dvo);
+                    /* FIXME: 사실 여기서 카드 결제 요청을 날려야 하는게 아닐까? */
                     updateContractSettlement(dvo);
                 }
                 default -> throw new BizException("지원하지 않는 입금 유형입니다.");
@@ -447,7 +451,7 @@ public class WctaContractRegStep5Service {
      * @return SaveResponse
      */
     @Transactional
-    public List<CreditRes> requestCreditCardApproval(CreditReq req) {
+    public CreditRes requestCreditCardApproval(CreditReq req) {
         WctaContractStlmBasDvo contractStlmBasDvo = getCntrStlmByPk(req.cntrStlmId());
         List<WctaContractStlmRelDvo> stlmRelDvos = getContractStlmRels(req.cntrStlmId()); /* 아마 1 건 일거다.*/
         long totStlmAmt = stlmRelDvos.stream()
@@ -458,24 +462,20 @@ public class WctaContractRegStep5Service {
         /* 수납 요청 기본 생성 */
         ZwdzWithdrawalReceiveAskDvo receiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
         receiveAskDvo.setKyowonGroupCompanyCd(CtCoCd.KYOWON_PROPERTY.getCode());
-        receiveAskDvo.setRveAkMthdCd(contractForRveAkInfo.getCstStlmInMthCd());
-        receiveAskDvo.setRvePrtnrNo(contractForRveAkInfo.getSellPrtnrNo());
-        receiveAskDvo.setRvePrtnrOgTpCd(contractForRveAkInfo.getSellOgTpCd());
         receiveAskDvo.setCustomNumber(contractForRveAkInfo.getCntrCstNo());
+        receiveAskDvo.setRveAkMthdCd(contractForRveAkInfo.getCstStlmInMthCd());
+        receiveAskDvo.setRveAkPhCd(CtRvePhCd.SELL_CARD.getCode());
+        receiveAskDvo.setRvePrtnrOgTpCd(contractForRveAkInfo.getSellOgTpCd());
+        receiveAskDvo.setRvePrtnrNo(contractForRveAkInfo.getSellPrtnrNo());
         receiveAskDvo.setReceiveAskAmount(Long.toString(totStlmAmt));
-        receiveAskDvo.setReceiveAskStatusCode(CtRveAkStatCd.RECEIPT.getCode());
         receiveAskDvo.setReceiveAskDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        receiveAskDvo.setRveAkPhCd("01"); //RVE_AK_PH_CD  수납요청경로코드 판매(01) !! 코드 없음!!
+        receiveAskDvo.setReceiveAskStatusCode(CtRveAkStatCd.RECEIPT.getCode());
         receiveAskDvo.setReceiveCompanyCd(CtCoCd.KYOWON_PROPERTY.getCode());
 
         String receiveAskNumber = rveReqService.createReceiveAskBase(receiveAskDvo);
 
         /* 수납 요청 상세 생성 */
         receiveAskDvo.setReceiveAskNumber(receiveAskNumber);
-
-        receiveAskDvo.setCrdcdBzrno(contractForRveAkInfo.getBzrno());
-        receiveAskDvo.setCrdcdBryyMmdd(contractForRveAkInfo.getBryyMmdd());
-        receiveAskDvo.setCrdcdCopnDvCd(contractForRveAkInfo.getCopnDvCd());
 
         receiveAskDvo.setDepositDivideCode(CtDpDvCd.DEPOSIT.getCode());
         receiveAskDvo.setReceiveStatusCode(CtRveStatCd.REQUEST.getCode());
@@ -485,6 +485,11 @@ public class WctaContractRegStep5Service {
         receiveAskDvo.setCreditCardNumberEncr(req.crcdnoEncr());
         receiveAskDvo.setCreditCardExpireDate(req.cardExpdtYm());
         receiveAskDvo.setCreditCardIstmMcn(req.istmMcn());
+
+        /* TODO 올바르지 않은 정보입니다. check requred. */
+        // receiveAskDvo.setCrdcdBzrno(contractForRveAkInfo.getBzrno());
+        // receiveAskDvo.setCrdcdBryyMmdd(contractForRveAkInfo.getBryyMmdd());
+        // receiveAskDvo.setCrdcdCopnDvCd(contractForRveAkInfo.getCopnDvCd());
 
         List<ZwdzWithdrawalReceiveAskDvo> receiveDetailAskDvos = stlmRelDvos.stream()
             .map(stlmRelDvo -> {
@@ -508,20 +513,117 @@ public class WctaContractRegStep5Service {
         receiveDetailAskDvos.forEach(rveReqService::createReceiveAskDetail);
         rveReqService.createReceiveAskDetailHistory(receiveAskDvo);
 
-        /* 즉시 카드 승인 요청 */
-        SaveResponse response = paymentService.saveCreditCardApproval(receiveDetailAskDvos
-            .stream()
-            .map(WctaContractRegStep5Service::getCreditCardApprovalSaveReq)
-            .toList());
+        String aprNo = resolveReceiveAskByCardApproval(receiveAskNumber);
 
-        @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) response.getData();
-        BizAssert.isTrue(responses.size() > 0 && responses.get(0).getErrorCd().equals("S"), "신용승인 요청 실패");
-        return responses.stream().map((dvo) -> CreditRes.builder()
-            .aprNo(dvo.getAprNo())
-            .fnitAprFshDtm(dvo.getStlmDtm())
-            .build()).toList();
+        return CreditRes.builder()
+            .aprNo(aprNo)
+            .build();
+
+        /*
+        WctaContractStlmBasDvo updateApprovalStlmBasDvo = new WctaContractStlmBasDvo();
+
+        SaveResponse saveResponse = paymentService.saveCreditCardApproval(List.of(getCreditCardApprovalSaveReq(receiveAskDvo)));
+        @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) saveResponse.getData();
+
+        if (CollectionUtils.isEmpty(responses)) {
+            updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.ERROR.getCode());
+            updateContractSettlement(updateApprovalStlmBasDvo);
+            throw new BizException("신용승인 요청 실패");
+        }
+
+        ZwdbCreditCardApprovalDvo cardApprovalDvo = responses.get(0);
+
+        if (!cardApprovalDvo.getErrorCd().equals("S")) {
+            updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.ERROR.getCode());
+            updateContractSettlement(updateApprovalStlmBasDvo);
+            throw new BizException("신용승인 요청 실패");
+        }
+
+        updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.APPROVAL.getCode());
+        updateApprovalStlmBasDvo.setFnitAprFshDtm(cardApprovalDvo.getStlmDtm());
+        updateApprovalStlmBasDvo.setCardFntImpsCd(cardApprovalDvo.getAprCd());
+        updateContractSettlement(updateApprovalStlmBasDvo);
+
+        return CreditRes.builder()
+            .aprNo(cardApprovalDvo.getAprNo())
+            .fnitAprRsCd(CtFnitAprRsCd.APPROVAL.getCode())
+            .fnitAprFshDtm(cardApprovalDvo.getStlmDtm())
+            .build();
+        */
     }
 
+    /**
+     * 저장된 수납 요청으로 부터 카드 승인 요청을 하고,
+     * 결과를 계약기본을 업데이트 하고,
+     * 성공시 승인 번호를 리턴합니댜.
+     *
+     * @param receiveAskNumber - 수납요청을 조회하기 위한 key
+     * @return aprNo : 승인번호
+     */
+    @Transactional
+    String resolveReceiveAskByCardApproval(String receiveAskNumber) {
+        WctaContractStlmBasDvo updateApprovalStlmBasDvo = new WctaContractStlmBasDvo();
+
+        try {
+            ZwdzWithdrawalReceiveAskDvo receiveAskDvo = mapper.getReceiveAskByPk(receiveAskNumber).orElseThrow(
+                () -> new BizException("수납 요청이 필요합니다.")
+            );
+
+            String crcdnoEncr = receiveAskDvo.getCreditCardNumberEncr();
+
+            SaveResponse saveResponse = paymentService.saveCreditCardApproval(List.of(new ZwdbCreditCardApprovalDto.SaveReq(
+                receiveAskDvo.getKyowonGroupCompanyCd(),
+                "",
+                "",
+                receiveAskDvo.getReceiveAskNumber(),
+                receiveAskDvo.getCustomNumber(),
+                receiveAskDvo.getFinancialInstitutionCd(),
+                crcdnoEncr.substring(0, 4),
+                crcdnoEncr.substring(4, 8),
+                crcdnoEncr.substring(8, 12),
+                crcdnoEncr.substring(12),
+                null,
+                receiveAskDvo.getCreditCardExpireDate(),
+                receiveAskDvo.getAccountOwnerName(),
+                receiveAskDvo.getCrdcdBryyMmdd(),
+                receiveAskDvo.getCrdcdBzrno(), //  bas.getCopnDvCd() == "2" ? bas.getBzrno() : "",
+                "N", // TODO: 소득공제여부
+                receiveAskDvo.getCreditCardIstmMcn(),
+                receiveAskDvo.getReceiveAskAmount(),
+                "",
+                receiveAskDvo.getRveAkMthdCd(),
+                receiveAskDvo.getRveAkPhCd(),
+                receiveAskDvo.getRvePrtnrOgTpCd(),
+                receiveAskDvo.getRvePrtnrNo(),
+                "1", // TODO: 법인카드를 구분?
+                null)));
+            @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) saveResponse.getData();
+
+            BizAssert.notEmpty(responses, "신용승인 요청 실패");
+
+            ZwdbCreditCardApprovalDvo cardApprovalDvo = responses.get(0);
+
+            BizAssert.isTrue(cardApprovalDvo.getErrorCd().equals("S"), "신용승인 요청 실패");
+
+            updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.APPROVAL.getCode());
+            updateApprovalStlmBasDvo.setFnitAprFshDtm(cardApprovalDvo.getStlmDtm());
+            updateApprovalStlmBasDvo.setCardFntImpsCd(cardApprovalDvo.getAprCd());
+            return cardApprovalDvo.getAprNo();
+        } catch (RuntimeException e) {
+            updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.ERROR.getCode());
+            if (e instanceof BizException) {
+                throw e;
+            } else {
+                throw new BizException("신용승인 요청 실패: " + e.getMessage());
+            }
+        } finally {
+            updateContractSettlement(updateApprovalStlmBasDvo);
+        }
+    }
+
+    /**
+     * 가상계좌 발급 요청
+     */
     @Transactional
     public VacIsRveAskRes requestVacIsRveAsk(VacIsRveAskReq req) {
         WctaContractStlmBasDvo contractStlmBasDvo = getCntrStlmByPk(req.cntrStlmId());
@@ -555,7 +657,7 @@ public class WctaContractRegStep5Service {
                 );
             })).toList();
 
-        String vncoDvCd = "003"; // KICC 만?
+        String vncoDvCd = "003"; // KICC 만? -> 맞다. 일회성 가상 계좌는 KICC 에서 발급 받는다고 합니다.
 
         ZwdbVirtualAccountIsMgtDto.SaveReq saveReq = new ZwdbVirtualAccountIsMgtDto.SaveReq(
             CtCoCd.KYOWON_PROPERTY.getCode(), /*kwGrpCoCd*/
@@ -575,7 +677,7 @@ public class WctaContractRegStep5Service {
             contractForRveAkInfo.getSellOgTpCd(), /*vacIzPrtnrOgTpCd*/
             contractForRveAkInfo.getSellPrtnrNo(), /*vacIzPrtnrNo*/
             contractForRveAkInfo.getCstStlmInMthCd(), /*rveAkMthdCd*/
-            "05", /*rveAkPhCd 영업무 - 05*/
+            CtRvePhCd.SELL_AC.getCode(),
             contractForRveAkInfo.getSellOgTpCd(), /*rvePrtnrOgTpCd*/
             contractForRveAkInfo.getSellPrtnrNo(), /*rvePrtnrNo*/
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), /*fnlMdfcDtm*/
@@ -586,55 +688,87 @@ public class WctaContractRegStep5Service {
         ZwdzWithdrawalVirtualAccountIssueDvo responseData;
         try {
             responseData = (ZwdzWithdrawalVirtualAccountIssueDvo) virtualAccountIsMgtService.saveVirtualAccountIssue(saveReq).getData();
+            BizAssert.hasText(responseData.getVacNo(), "가상계좌 생성에 실패했습니다.");
+            BizAssert.hasText(responseData.getVacAcownNm(), "가상계좌 생성에 실패했습니다.");
+            BizAssert.hasText(responseData.getVacDpPsbEndDtm(), "가상계좌 생성에 실패했습니다.");
         } catch (ParseException e) {
             throw new BizException("가상계좌 생성에 실패했습니다.");
         }
 
-        BizAssert.hasText(responseData.getVacNo(), "가상계좌 생성에 실패했습니다.");
-        BizAssert.hasText(responseData.getVacAcownNm(), "가상계좌 생성에 실패했습니다.");
-        BizAssert.hasText(responseData.getVacDpPsbEndDtm(), "가상계좌 생성에 실패했습니다.");
+        updateContractSettlementAfterVacIs(req.cntrStlmId(), responseData);
 
         return VacIsRveAskRes.builder()
             .acnoEncr(responseData.getVacNo())
             .owrKnm(responseData.getVacAcownNm())
             .fnitAprFshDtm(responseData.getVacDpPsbEndDtm())
-            .vncoDvCd(vncoDvCd)
             .stlmAmt(totStlmAmt)
             .build();
+    }
 
+    void updateContractSettlementAfterVacIs(String cntrStlmId, ZwdzWithdrawalVirtualAccountIssueDvo accountIssueDvo) {
+        WctaContractStlmBasDvo updateApprovalStlmBasDvo = new WctaContractStlmBasDvo();
+        updateApprovalStlmBasDvo.setCntrStlmId(cntrStlmId);
+        updateApprovalStlmBasDvo.setBnkCd(accountIssueDvo.getVacBnkCd());
+        updateApprovalStlmBasDvo.setAcnoEncr(accountIssueDvo.getVacNo());
+        updateApprovalStlmBasDvo.setOwrKnm(accountIssueDvo.getVacAcownNm());
+        updateApprovalStlmBasDvo.setVncoDvCd(accountIssueDvo.getVacVncoDvCd());
+        updateApprovalStlmBasDvo.setFnitAprFshDtm(accountIssueDvo.getVacDpPsbEndDtm());
+        updateApprovalStlmBasDvo.setFnitAprRsCd(CtFnitAprRsCd.NO_APPROVAL.getCode());
+        updateContractSettlement(updateApprovalStlmBasDvo);
     }
 
     List<WctaContractStlmRelDvo> getContractStlmRels(String cntrStlmId) {
         return mapper.selectContractStlmRels(cntrStlmId);
     }
 
-    static ZwdbCreditCardApprovalDto.SaveReq getCreditCardApprovalSaveReq(ZwdzWithdrawalReceiveAskDvo receiveDetailAskDvo) {
-        String crcdnoEncr = receiveDetailAskDvo.getCreditCardNumberEncr();
-        return new ZwdbCreditCardApprovalDto.SaveReq(
-            receiveDetailAskDvo.getKyowonGroupCompanyCd(),
-            "",
-            "",
-            receiveDetailAskDvo.getReceiveAskNumber(),
-            receiveDetailAskDvo.getCustomNumber(),
-            receiveDetailAskDvo.getFinancialInstitutionCd(),
-            crcdnoEncr.substring(0, 4),
-            crcdnoEncr.substring(4, 8),
-            crcdnoEncr.substring(8, 12),
-            crcdnoEncr.substring(12),
-            crcdnoEncr,
-            receiveDetailAskDvo.getCreditCardExpireDate(),
-            receiveDetailAskDvo.getAccountOwnerName(),
-            receiveDetailAskDvo.getCrdcdBryyMmdd(),
-            receiveDetailAskDvo.getCrdcdBzrno(), //  bas.getCopnDvCd() == "2" ? bas.getBzrno() : "",
-            "N", // TODO: 소득공제여부
-            receiveDetailAskDvo.getCreditCardIstmMcn(),
-            receiveDetailAskDvo.getReceiveAskAmount(),
-            "",
-            receiveDetailAskDvo.getRveAkMthdCd(),
-            receiveDetailAskDvo.getRveAkPhCd(),
-            receiveDetailAskDvo.getRvePrtnrOgTpCd(),
-            receiveDetailAskDvo.getRvePrtnrNo(),
-            "1", // TODO: 법인카드를 구분?
-            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+    public List<Integer> getRegularFundTransfersDayOptions(String dpTpCd) {
+        CtDpTpCd ctDpTpCd = CtDpTpCd.of(dpTpCd);
+        List<Integer> options;
+
+        if (Objects.requireNonNull(ctDpTpCd) == CtDpTpCd.AC_AFTN) {
+            options = mapper.getRegularFundTransfersDayOptions("01");
+        } else if (ctDpTpCd == CtDpTpCd.CRDCD_AFTN) {
+            options = mapper.getRegularFundTransfersDayOptions("02");
+            /*case PG_AFTN -> options = mapper.getRegularFundTransfersDayOptions("01"); 몰루?*/
+        } else {
+            throw new BizException("해당 입금 유형은 정규 이체일이 필요하지 않습니다.");
+        }
+
+        BizAssert.notEmpty(options, "선택 가능한 정규이체일이 없습니다.");
+        return options;
     }
+
+    boolean checkCardNumberEffectiveness(
+        String crdcdNo,
+        String cardExpdtYm,
+        String cstNo
+    ) {
+        WctaContractCstRelDvo cntrCstInfo = contractRegService.selectCntrtInfoByCstNo(cstNo);
+
+        String copnDvDrmVal = CtCopnDvCd.of(cntrCstInfo.getCopnDvCd()) == CtCopnDvCd.INDIVIDUAL ? cntrCstInfo.getBryyMmdd()
+        : CtCopnDvCd.of(cntrCstInfo.getCopnDvCd()) == CtCopnDvCd.COOPERATION ? cntrCstInfo.getBzrno()
+            : "";
+
+        String telephoneNumber = cntrCstInfo.getCralLocaraTno() + cntrCstInfo.getMexnoEncr() + cntrCstInfo.getCralIdvTno();
+
+        return checkCardNumberEffectiveness(crdcdNo, cardExpdtYm, cntrCstInfo.getCopnDvCd(), copnDvDrmVal, telephoneNumber);
+    }
+
+    boolean checkCardNumberEffectiveness(
+        String crdcdNo,
+        String cardExpdtYm,
+        String copnDvCd,
+        String copnDvDrmVal,
+        String telephoneNumber
+    ) {
+        ZwdaCardNumberEffectivenessCheckReqDvo cardNumberEffectivenessCheckReqDvo = new ZwdaCardNumberEffectivenessCheckReqDvo();
+        cardNumberEffectivenessCheckReqDvo.setCrcdnoEncr(crdcdNo);
+        cardNumberEffectivenessCheckReqDvo.setCardExpdtYm(cardExpdtYm);
+        cardNumberEffectivenessCheckReqDvo.setCopnDvCd(copnDvCd);
+        cardNumberEffectivenessCheckReqDvo.setCopnDvDrmVal(copnDvDrmVal);
+        cardNumberEffectivenessCheckReqDvo.setTmlNo(telephoneNumber);
+        cardNumberEffectivenessCheckReqDvo.setSysDvCd("W");
+        return "1".equals(KiccReceiveService.saveCardNumberEffectivenessCheck(cardNumberEffectivenessCheckReqDvo).getStateCode());
+    }
+
 }

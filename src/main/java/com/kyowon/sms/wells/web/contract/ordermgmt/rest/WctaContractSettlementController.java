@@ -73,14 +73,11 @@ public class WctaContractSettlementController {
 
     @ApiOperation(value = "신용카드 결제 서비스", notes = "신용카드 승인 서비스")
     @PostMapping("/credit-card-spay")
-    public List<CreditRes> requestCreditCardApproval(
+    public CreditRes requestCreditCardApproval(
         @RequestBody @Valid CreditReq req
     ) {
         return service.requestCreditCardApproval(req);
     }
-
-
-
     @ApiOperation(value = "신용카드 카드사 코드 조회", notes = "신용카드 카드사 코드 조회")
     @GetMapping("/finance-code")
     public String getFnitCd(
@@ -102,5 +99,15 @@ public class WctaContractSettlementController {
         @RequestBody @Valid VacIsRveAskReq req
     ) {
         return service.requestVacIsRveAsk(req);
+    }
+
+
+    @ApiOperation(value = "입금유형 별 선택 가능 자동이체일 목록 조회", notes = "입금유형 별 선택 가능 자동이체일 목록 조회")
+    @GetMapping("/regular-fund-transfers-day-options/{dpTpCd}")
+    public List<Integer> getRegularFundTransfersDayOptions(
+        @PathVariable
+        String dpTpCd
+    ) {
+        return service.getRegularFundTransfersDayOptions(dpTpCd);
     }
 }
