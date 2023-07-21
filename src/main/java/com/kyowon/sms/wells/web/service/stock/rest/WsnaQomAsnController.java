@@ -46,25 +46,24 @@ public class WsnaQomAsnController {
     @GetMapping("/out-of-storage-wares")
     @ApiOperation(value = "물량배정 출고창고 조회", notes = "물량배정 출고창고를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202212", required = true)
+        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202212", required = true)
     })
-    public List<WsnzWellsCodeWareHouseDvo> getQomAsnOstrWares(@RequestParam(name = "asnOjYm")
-    String asnOjYm) {
-        return this.service.getQomAsnOstrWares(asnOjYm);
+    public List<WsnzWellsCodeWareHouseDvo> getQomAsnOstrWares(@RequestParam(name = "apyYm")
+    String apyYm) {
+        return this.service.getQomAsnOstrWares(apyYm);
     }
 
     @GetMapping("/storage-wares")
     @ApiOperation(value = "물량배정 입고창고 조회", notes = "물량배정 입고창고를 조회한다.")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "3", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "31", required = true),
     })
-    public List<WsnzWellsCodeWareHouseDvo> getQomAsnStrWares(@RequestParam(name = "asnOjYm")
-    String asnOjYm, @RequestParam(name = "wareDvCd")
-    String wareDvCd, @RequestParam(name = "wareDtlDvCd")
-    String wareDtlDvCd) {
-        return this.service.getQomAsnStrWares(asnOjYm, wareDvCd, wareDtlDvCd);
+    public List<WsnzWellsCodeWareHouseDvo> getQomAsnStrWares(@Valid
+    SearchWareReq dto) {
+        return this.service.getQomAsnStrWares(dto);
     }
 
     @GetMapping("/exist-check")

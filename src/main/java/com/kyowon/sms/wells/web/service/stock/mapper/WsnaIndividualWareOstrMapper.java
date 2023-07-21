@@ -1,26 +1,30 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import java.util.List;
-
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
-import org.apache.ibatis.annotations.Mapper;
-
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.*;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface WsnaIndividualWareOstrMapper {
 
-    List<SearchRes> selectIndividualWareOstrs(SearchReq dto);
+    List<SearchPdRes> selectProducts();
 
-    List<LogisticRes> selectLogistic(LogisticReq dto);
+    List<WsnzWellsCodeWareHouseDvo> selectIndividualStrWares(SearchWareReq dto);
 
-    List<ItmRes> selectItemKndCode(ItmReq dto);
+    PagingResult<WsnaIndividualWareOstrDvo> selectIndividualWareOstrs(SearchReq dto, PageInfo pageInfo);
 
-    String selectNewOstrAkNoByQomOstr(@Param("ostrAkTpCd") String ostrAkTpCd);
+    List<WsnaIndividualWareOstrDvo> selectIndividualWareOstrs(SearchReq dto);
 
-    int insertTbSvstItmOstrAkIz(List<WsnaIndividualWareOstrDvo> list);
+    int updateItmQomAsnIz(WsnaIndividualWareOstrDvo dvo);
+
+    String selectNewOstrAkNo(String ostrAkTpCd);
+
+    int mergeItmOstrAkIz(WsnaIndividualWareOstrDvo dvo);
 }

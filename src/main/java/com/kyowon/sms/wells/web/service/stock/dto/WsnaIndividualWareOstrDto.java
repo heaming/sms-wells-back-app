@@ -1,6 +1,14 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
+
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -14,111 +22,121 @@ import lombok.Builder;
  * @since 2023.02.16
  */
 public class WsnaIndividualWareOstrDto {
+
     @Builder
-    @ApiModel("WsnaIndividualWareOstrDto-SearchReq")
-    public record SearchReq(
-        String baseYm,
+    @ApiModel("WsnaIndividualWareOstrDto-SearchWareReq")
+    public record SearchWareReq(
+        @NotBlank
+        String apyYm,
+        @NotBlank
         String asnOjYm,
-        String itmKndCd,
-        String asnTnN,
-        String ostrOjWareNo,
-        String ostrWareNoM,
-        String ostrWareNoD,
-        String ostrDt,
-        String itmKndCdD,
-        String sapMatCdFrom,
-        String sapMatCdTo
-    ) {}
-
-    @ApiModel("WsnaIndividualWareOstrDto-SearchRes")
-    public record SearchRes(
-        String wareNo, /*창고*/
-        String wareNm, /*창고명*/
-        String itmPdCd, /*품목상품코드*/
-        String pdAbbrNm, /*상품약어명*/
-        String mgtGdCd, /*관리단위코드*/
-        String matGdCd, /*자재등급코드*/
-        String pdPrpVal05,
-        String mgtUntNm, /*관리단위명*/
-        String boxUnitQty, /*박스단위수량*/
-        String mcbyAcuOstrQty, /*월별누적출고수량*/
-        String outQtyBak,
+        @NotBlank
         String ostrWareNo,
-        String strWareNo,
+        @NotBlank
         String wareDvCd,
-        String wareMngtPrtnrNo,
-        String asnIzOutBoxQty,
-        String crtlStocQty,
-        String itmQomAsnNo,
-        String pdPrpVal19,
-        String itemPart,
-        String stocIzOnQty,
-        String stocIzUpOnQty,
-        String filtUseQty,
-        String sapMatCd,
-        String under20per,
-        String toutQty, /**/
-        String nedQty, /*소요수량*/
-        String rmks, /*비고*/
-        String ostrIzOstrTpCd, /*출고유형*/
-        String ostrIzOstrWareNo, /*출고창고번호*/
-        String ostrIzOstrDt, /*출고일자*/
-        String ostrIzItmOstrNo, /*품목출고번호*/
-        String ostrIzOstrSn, /*출고일련번호*/
-        String ostrIzSellRcpdt, /*판매접수일자*/
-        String cfrmQty, /*확정수량*/
-        String cfrmBoxQty,
-        String outQty, /*출고수량*/
-        String accBoxQty, /*물량배정출고박스수량*/
-        String outBoxQty, /*출고박스수량*/
-        String asnOjYm
+        @NotBlank
+        String wareDtlDvCd,
+        @NotBlank
+        String hgrDvCd,
+        @Positive
+        int cnt,
+
+        String hgrStrWareNo
+
     ) {}
 
-    @ApiModel("WsnaIndividualWareOstrDto-LogisticReq")
-    public record LogisticReq(
-        @NotBlank
-        String apyYm
-    ) {}
-
-    @ApiModel("WsnaIndividualWareOstrDto-LogisticRes")
-    public record LogisticRes(
-        @NotBlank
-        String codeId,
-        String codeName,
-        String wareMngtPrtnrNo,
-        String wareIchrNo,
-        String wareDvCd,
-        String hgrWareNo,
-        String wareNmUp,
-        String wareMngtPrtnrNoUp,
-        String wareLocaraCdUp,
-        String wareDvCdUp
-    ) {}
-    @ApiModel("WsnaIndividualWareOstrDto-ItmReq")
-    public record ItmReq(
+    @Builder
+    @ApiModel("WsnaIndividualWareOstrDto-SearchPdRes")
+    public record SearchPdRes(
+        String pdCd,
+        String pdNm,
         String itmKndCd
     ) {}
 
-    @ApiModel("WsnaIndividualWareOstrDto-ItemRes")
-    public record ItmRes(
-        String codeId,
-        String codeName
+    @Builder
+    @ApiModel("WsnaIndividualWareOstrDto-SearchReq")
+    public record SearchReq(
+        @NotBlank
+        String apyYm,
+        @NotBlank
+        String asnOjYm,
+        @Positive
+        @Max(999999999999L)
+        BigDecimal cnt,
+        @NotBlank
+        String ostrWareNo,
+        String itmKndCd,
+        List<String> itmPdCds,
+
+        @Positive
+        @Max(999999999999L)
+        BigDecimal totOutQty,
+
+        @NotBlank
+        String hgrStrWareNo,
+        @NotBlank
+        String strWareNo,
+
+        String itmPdCd,
+        String strtSapCd,
+        String endSapCd
     ) {}
 
-    @ApiModel("WsnaIndividualWareOstrDto-CreateReq")
-    public record CreateReq(
-        String ostrAkNo,
-        String ostrAkSn,
-        String ostrAkTpCd,
-        String ostrOjWareNo,
-        String strOjWareNo,
-        String ostrAkRgstDt,
-        String strHopDt,
+    @Builder
+    @ApiModel("WsnaIndividualWareOstrDto-SaveReq")
+    public record SaveReq(
+        String sapMatCd,
+        @NotBlank
         String itmPdCd,
-        String itmGdCd,
-        String mngtUnitCd,
-        String ostrAkQty,
+
+        BigDecimal partUseQty,
+        BigDecimal under20per,
+        BigDecimal hgrCrtlStocQty,
+        BigDecimal totOutQty,
+
+        String mngtUnit,
+        String matGdCd,
+        BigDecimal logisticStocQty,
+
+        BigDecimal boxUnitQty,
+        BigDecimal crtlStocQty,
+        BigDecimal useQty,
+        BigDecimal cnfmQty,
+        BigDecimal cnfmBoxQty,
+        BigDecimal aclOstrQty,
+        BigDecimal aclOstrBoxQty,
+
+        BigDecimal filterBoxQty,
+        @Positive
+        @Max(999999999999L)
+        BigDecimal outQty,
+        BigDecimal outBoxQty,
+
+        @NotBlank
+        String itmQomAsnNo,
+        String asnOjYm,
+        @NotBlank
+        String ostrWareNo,
+        @NotBlank
+        String strWareNo,
+        @NotBlank
+        String wareMngtPrtnrNo,
+        @NotBlank
+        String ogTpCd,
+        String itmKndCd,
+        @Size(max = 4000)
         String rmkCn,
-        String dtaDlYn
-    ){}
+        @Positive
+        BigDecimal asnTnN,
+        @NotBlank
+        String wareDvCd,
+        String ostrAkNo,
+        @Positive
+        Integer ostrAkSn,
+
+        @ValidDate
+        @NotBlank
+        String ostrDt
+
+    ) {}
 }

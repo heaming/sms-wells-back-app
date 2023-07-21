@@ -21,12 +21,26 @@ import lombok.Builder;
 public class WsnaQomAsnDto {
 
     @Builder
+    @ApiModel("WsnaQomAsnDto-SearchWareReq")
+    public record SearchWareReq(
+        @NotBlank
+        String apyYm,
+        @NotBlank
+        String asnOjYm,
+        @NotBlank
+        String wareDvCd,
+        @NotBlank
+        String wareDtlDvCd
+    ) {}
+
+    @Builder
     @ApiModel("WsnaQomAsnDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String apyYm,
         @NotBlank
         String asnOjYm,
+
         @Positive
         @Max(999999999999L)
         BigDecimal cnt,
@@ -117,7 +131,7 @@ public class WsnaQomAsnDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaQomAsnDto-EditWareRenewalReq")
+    @ApiModel("WsnaQomAsnDto-EditReq")
     public record EditReq(
         @NotBlank
         String apyYm,
