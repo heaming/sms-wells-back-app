@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbPersonInChargeVisitAgrgMapper">
+    <select id="selectPersonInChargeVisitAgrgs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbPersonInChargeVisitAgrgDto$SearchRes">
+        WITH SVPD_INF AS (
+           /* 매니저 방문이 있는 서비스 상품정보*/
+           SELECT P1.SV_PD_CD
+           FROM TB_PDBS_RGBS_WK_BASE_BAS P1   /*정기BS작업기준기본*/
+           WHERE 1=1
+            AND P1.VST_DV_CD IN ('10', '11')
+           GROUP BY P1.SV_PD_CD
+        )
+        , PU_ITM_INF AS (
+           /* 예정자제 존재 배정 */
+           SELECT S1.ASN_OJ_YM
+                , S1.CNTR_NO
+                , S1.CNTR_SN
+                , COUNT(1) AS ITM_CNT
+           FROM TB_SVPD_RGBS_PU_ITM_IZ S1
+           WHERE 1=1
+            AND S1.ASN_OJ_YM = #{asnOjYm}
+            AND S1.DTA_DL_YN = 'N'
+            GROUP BY S1.ASN_OJ_YM, S1.CNTR_NO, S1.CNTR_SN
+        )
+        , SV_CNTC_INF AS (
+            /* 배정번호별 최종 컨택 상태 */
+            SELECT C1.CST_SV_ASN_NO
+                 , C1.ABSNC_RSON_CD
+                 , C1.FST_RGST_DTM
+            FROM (
+             SELECT S1.CST_SV_ASN_NO
+                  , S1.ABSNC_RSON_CD
+                  , S1.FST_RGST_DTM
+                   , RANK() OVER(PARTITION BY S1.CST_SV_ASN_NO ORDER BY S1.CNTC_DT DESC, S1.CNTC_HH DESC) AS RNK
+             FROM WSMDBS.TB_SVPD_CST_SV_CNTC_IZ S1   /*배정고객컨택내역, KWAS.LC_VISIT_VS101TB 고객접촉이력정보*/
+             WHERE 1=1
+              AND S1.DTA_DL_YN = 'N'
+              AND S1.CST_SV_ASN_NO LIKE '2'||#{asnOjYm} || '%'   /* SV_BIZ_HCLSF_CD(2): BS */
+           ) C1
+           WHERE 1=1
+            AND RNK = 1
+        )
+        , WARE_INF AS (
+            /* 창고 정보 */
+            SELECT S1.APY_YM
+                 , S1.WARE_NO
+                 , S1.WARE_NM
+                 , S1.WARE_DTL_DV_CD
+                 , S1.WARE_MNGT_PRTNR_NO
+                 , S1.OG_TP_CD
+                 , S1.OG_ID
+                 , S1.WARE_USE_YN
+                 , S1.APY_STRTDT
+                 , S1.APY_ENDDT
+                 , S1.RMK_CN
+                 , S1.SORT_DV_VAL  /* 정렬 구분 */
+                 , S2.WARE_NO AS H_WARE_NO
+                 , S2.WARE_NM AS H_WARE_NM
+                 , S2.WARE_DTL_DV_CD AS H_WARE_DTL_DV_CD
+                 , S2.WARE_MNGT_PRTNR_NO AS H_WARE_MNGT_PRTNR_NO
+                 , S2.OG_TP_CD AS H_OG_TP_CD
+                 , S2.OG_ID AS H_OG_ID
+                 , S2.WARE_USE_YN AS H_WARE_USE_YN
+                 , S2.APY_STRTDT AS H_APY_STRTDT
+                 , S2.APY_ENDDT AS H_APY_ENDDT
+                 , S2.RMK_CN AS H_RMK_CN
+                 , RANK() OVER(PARTITION BY S1.WARE_NO ORDER BY S1.OG_TP_CD DESC) AS RNK
+            FROM TB_SVST_MCBY_WARE_IZ S1  /*월별창고내역*/
+            LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S2  /*월별창고내역*/
+             ON S1.APY_YM = S2.APY_YM
+             AND S1.HGR_WARE_NO = S2.WARE_NO
+             AND S2.WARE_USE_YN = 'Y'
+             AND S2.DTA_DL_YN = 'N'
+            WHERE 1=1
+             AND S1.APY_YM = #{asnOjYm}
+            /* AND S1.WARE_MNGT_PRTNR_NO IN('1557238','1764321',','1167881') */
+             AND S1.WARE_USE_YN = 'Y'
+             AND S1.DTA_DL_YN = 'N'
+        )
+        , MNGT_CSTN_INF AS (
+            /*  관리고객수 */
+            SELECT S1.MNGT_YM
+                    /* 확정 담당파트너 번호 > 고정 파트너번호 > 관리파느터 번호 > 미지정(9000001)   */
+                  , NVL(NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, MNGT_PRTNR_NO)), '9000001') AS MNGT_PRTNR_NO
+                  , NVL(NVL(CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1') AS MNGR_DV_CD
+                  , NVL(CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) AS MNGT_PRTNR_OG_TP_CD
+                  , COUNT(1) AS WO_MNGT_CSTN
+                  , SUM(CASE WHEN P1.SV_PD_CD IS NOT NULL
+                             THEN 1 ELSE 0 END) AS OJ_MNGT_CSTN
+            FROM WSMDBS.TB_SVPD_MCBY_CST_SV_OJ_IZ S1        /*월별고객서비스대상내역 202TB*/
+            LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2  /*고객서비스BS배정내역 261TB*/
+             ON S1.CNTR_NO = S2.CNTR_NO
+             AND S1.CNTR_SN = S2.CNTR_SN
+             AND S1.MNGT_YM = S2.ASN_OJ_YM
+             AND S2.DTA_DL_YN = 'N'
+            LEFT OUTER JOIN SVPD_INF P1   /*매니저 방문이 있는 서비스*/
+             ON S1.SV_PD_CD = P1.SV_PD_CD
+             WHERE 1=1
+               /*계약상세상태코드 : 101 정상
+                                , 201 고객요청정지, 202 연체정지, 203 해약접수정지
+                                , 301 고객요청해약(매출인식후 , 302 연체해약(직권해지), 303 계약취소(매출인식전)
+                                , 401 최종종료(서비스기간종료+집금완료), 402 계약기간종료(서비스기간종료+집금미완료)*/
+               /*WSMDBS.TB_SSCT_CNTR_DTL.CNTR_DTL_STAT_CD 최종상태,  TB_SSCT_CNTR_DTL_STAT_CH_HIST.CNTR_DTL_STAT_CD 상태변경히스토리*/
+               /*생성시점에 301 고객요청해약(매출인식후 , 302 연체해약(직권해지), 303 계약취소(매출인식전) 건은 월고객생성안함. 철거일자, 취소일자, 보상처리일자 있는 경우도 생성 되면 안됨.*/
+               /*소유권이전후 즉 401, 402 상태에서도 철거요청을 할 경우가 처리하는 경우 상태값은 유지하고 철거일자만 업데이트로 하기로 함*/
+               /*자료생성시점 상태코드, 현재 전부 null 값으로 들어가 있음. 그래서 어쩔수 없이 주석 처리 하여 일단 조회*/
+               /*AND S1.CNTR_DTL_STAT_CD NOT IN ('401', '402') */  /*AC202_SALE_TYP != '9'*/
+               AND S1.DTA_DL_YN = 'N'
+               AND S1.MNGT_YM = #{asnOjYm}
+               AND NVL(NVL(CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1') = #{mngrDvCd} /* 1 매니져, 2 엔지니어 */
+             GROUP BY S1.MNGT_YM, NVL(NVL(CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1'),
+                      NVL(CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)),
+                      NVL(NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, MNGT_PRTNR_NO)), '9000001')
+        )
+        , VST_CSTN_INF AS (
+            /* 방문 고객 정보 */
+             SELECT S1.ASN_OJ_YM
+                 , NVL(CNFM_PSIC_PRTNR_NO, '9000001') AS CNFM_PSIC_PRTNR_NO
+                   /* 대상 */
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                            THEN 1 ELSE 0
+                            END) AS VST_CSTN
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250' AND (S1.VST_PRGS_STAT_CD IN ('73')
+                             OR (S1.VST_PRGS_STAT_CD != '20'
+                             AND C1.CNTR_DTL_STAT_CD LIKE '2%'))
+                            THEN 1 ELSE 0
+                            END) AS VST_STP_CSTN
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND (S1.VST_PRGS_STAT_CD IN ('93')
+                             OR (S1.VST_PRGS_STAT_CD != '20'  AND C1.CNTR_DTL_STAT_CD LIKE '3%'))
+                            THEN 1 ELSE 0
+                            END) AS VST_CAN_CSTN
+                   /* 방문 */
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S2.CNTR_NO IS NOT NULL
+                            THEN 1 ELSE 0
+                            END) AS ITM_CSTN
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S2.CNTR_NO IS NULL
+                            THEN 1 ELSE 0
+                            END) AS CHK_CSTN
+                  /* 완료 */
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S2.CNTR_NO IS NOT NULL
+                             AND S1.VST_PRGS_STAT_CD = '20'
+                             AND (S1.WK_EXCN_DT BETWEEN #{startDt} AND #{endDt})
+                            THEN 1 ELSE 0
+                             END) AS ITM_FSH_CSTN
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S2.CNTR_NO IS NULL
+                             AND S1.VST_PRGS_STAT_CD = '20'
+                             AND (S1.WK_EXCN_DT BETWEEN #{startDt} AND #{endDt})
+                            THEN 1 ELSE 0
+                            END) AS CHK_FSH_CSTN
+                  /* 웰컴BS */
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD = '2250'
+                            THEN 1 ELSE 0
+                            END) AS WB_VST_CSTN
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD = '2250'
+                             AND S1.VST_PRGS_STAT_CD = '20'
+                             AND (S1.WK_EXCN_DT BETWEEN #{startDt} AND #{endDt})
+                            THEN 1 ELSE 0
+                            END) AS WB_FSH_CSTN
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD = '2250'
+                             AND S1.VST_PRGS_STAT_CD IN ('00', '10')
+                             AND (C1.CNTR_DTL_STAT_CD LIKE '1%')
+                            THEN 1 ELSE 0 END) AS WB_STNB_CSTN
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD = '2250'
+                             AND S1.VST_PRGS_STAT_CD IN ('93')
+                             OR C1.CNTR_DTL_STAT_CD LIKE '3%'
+                            THEN 1 ELSE 0
+                            END
+                     ) AS WB_CAN_CSTN
+                  /* 컨택 */
+                  /*
+                   00 컨택완료, 11 판매자통화(부재), 12 안내지투입, 13 문자발송, 21 취소예정, 22 이사예정, 23 장기연체,
+                   24 고객거부, 25 통화안됨, 26 장기여행, 27 익월방문, 28 제품분실, 31 ENG요청, 32 AS선처리
+                  */
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S3.ABSNC_RSON_CD IN ('00', '21', '24', '27', '28')
+                             AND (S3.FST_RGST_DTM BETWEEN #{startDt} AND #{endDt})
+                            THEN 1 ELSE 0
+                            END
+                     ) AS SV_CNTC_FSH
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S3.ABSNC_RSON_CD IN ('13', '25')
+                            THEN 1 ELSE 0
+                            END) AS SV_CNTC_IMP
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S3.ABSNC_RSON_CD IN ('31', '32')
+                             AND (S3.FST_RGST_DTM BETWEEN #{startDt} AND #{endDt})   /* AS-IS : (방문불가) 일경우 VS101_REG_DT 기준 검색  */
+                            THEN 1 ELSE 0
+                            END) AS SV_CNTC_VST_IMP
+                 , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '2250'
+                             AND S3.CST_SV_ASN_NO IS NULL OR S3.ABSNC_RSON_CD IN ('11', '12', '13')
+                             AND (S3.FST_RGST_DTM BETWEEN #{startDt} AND #{endDt} OR S3.FST_RGST_DTM IS NULL)  /* AS-IS : ((미컨택)) 일경우 VS101_REG_DT 기준 검색  */
+                            THEN 1 ELSE 0
+                            END) AS SV_CNTC_STNB
+                 /* TODO 추후 작업 */
+                 /*
+                 ,  SUM(CASE WHEN S4.AS_AK_RCP_YN = 'Y' THEN 1 ELSE 0 END) AS REQ_AS_CSTN
+                 ,  SUM(CASE WHEN S4.INF_CH_AK_YN = 'Y' THEN 1 ELSE 0 END) AS REQ_INF_CSTN
+                 ,  SUM(CASE WHEN S4.ETC_CH_AK_YN = 'Y' THEN 1 ELSE 0 END) AS REQ_ETC_CSTN  */  /*AS-IS 자료도 전부 NULL
+                 */
+            FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1   /*고객서비스BS배정내역 261TB*/
+            INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL_STAT_CH_HIST C1    /*계약상세상태변경이력*/
+             ON S1.CNTR_NO = C1.CNTR_NO
+             AND S1.CNTR_SN = C1.CNTR_SN
+             /* 과거 월 조회인지, 현재 월 조회인지 구분 처리 */
+             AND (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') = #{asnOjYm} THEN TO_CHAR(SYSDATE, 'YYYYMMDD') /*현재월 조회라면*/
+                       ELSE TO_CHAR(LAST_DAY(#{asnOjYm}||'01'), 'YYYYMMDD') /*과거월 마지막날자 기준 상태*/
+                       END) || '000000' BETWEEN C1.HIST_STRT_DTM AND C1.HIST_END_DTM
+             AND C1.DTA_DL_YN = 'N'
+            LEFT OUTER JOIN PU_ITM_INF S2
+              ON S1.ASN_OJ_YM = S2.ASN_OJ_YM
+              AND S1.CNTR_NO = S2.CNTR_NO
+              AND S1.CNTR_SN = S2.CNTR_SN
+            LEFT OUTER JOIN SV_CNTC_INF S3
+              ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
+            /*       LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S4
+                                ON S1.CST_SV_ASN_NO = S4.CST_SV_ASN_NO
+                               AND S1.CNTR_NO = S4.CNTR_NO
+                               AND S1.CNTR_SN = S4.CNTR_SN
+                               AND S4.DTA_DL_YN = 'N'
+            */
+             WHERE 1=1
+               AND NVL(CNFM_PSIC_DV_CD, '1') = #{mngrDvCd}  /* 1 매니져, 2 엔지니어 */
+               AND S1.DTA_DL_YN = 'N'
+               AND S1.ASN_OJ_YM = #{asnOjYm}
+             GROUP BY S1.ASN_OJ_YM, NVL(CNFM_PSIC_PRTNR_NO, '9000001')
+        )
+        , OG_INF_PRTNR AS (
+            /* 조직정보 파트너 */
+            SELECT T1.BASE_YM
+                 , T1.OG_TP_CD
+                 , T1.PRTNR_NO
+                 , T1.PSTN_DV_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'WELLS_OJ_PSTN_RANK_CD', T1.PSTN_DV_CD, 'ko') AS PSTN_DV_CD_NM
+                 , T1.RSB_DV_CD
+                 , T1.FST_CNTR_DT
+                 , T1.RCNTR_DT
+                 , T1.PRTNR_KNM
+                 , T1.OG_ID
+                 , T1.OG_CD
+                 , T1.OG_NM
+                 , T3.BLD_CD
+                 , T3.BLD_NM
+                 , T1.HMNRSC_DEPT_CD   /*인사부서코드*/
+                 , T3.HGR_OG_ID
+                 , T3.DGR1_LEVL_OG_ID
+                 , T3.DGR2_LEVL_OG_ID
+                 , T3.DGR3_LEVL_OG_ID
+                 , T4.OG_NM AS HGR_OG_NM
+                 , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T1.OG_TP_CD DESC) AS RNK
+            FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
+            INNER JOIN WSMDBS.TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+             ON T1.PRTNR_NO = T2.PRTNR_NO
+             AND T1.OG_TP_CD = T2.OG_TP_CD
+             AND T2.DTA_DL_YN = 'N'
+            INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
+             ON T1.OG_ID = T3.OG_ID
+             AND T1.BASE_YM = T3.BASE_YM
+             AND T3.DTA_DL_YN = 'N'
+            LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T4   /*월조직내역*/
+             ON T3.BASE_YM = T4.BASE_YM
+             AND T3.HGR_OG_ID = T4.OG_ID
+             AND T4.DTA_DL_YN = 'N'
+              /*
+                 LEFT OUTER JOIN TB_FEAM_WELS_MNGER_OPNG_BAS T5
+                      ON T1.BASE_YM = T5.BASE_YM
+                      AND T1.OG_TP_CD = T5.OG_TP_CD
+                      AND T1.PRTNR_NO = T5.PRTNR_NO
+                      AND T5.DTA_DL_YN = 'N'
+              */ /*웰스매니저개시기본*/
+             WHERE 1=1
+              AND T1.BASE_YM = #{asnOjYm}
+              AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03', 'W06') /*조직유형코드  W02 M추진, W03 홈마스터 W06 엔지니어 HR1 임직원 */
+              AND T1.DTA_DL_YN = 'N'
+               /* AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1)
+                  OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1)
+                  OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1))
+               */
+               /* AND T1.OG_ID = OGO20232040334' */ /*변수처리(지점 OG_ID)*/
+               /* AND T1.BZ_STAT_CD IN ('1','2','3') */  /*1 사업, 2 해약, 3 휴업*/
+               /* AND T1.OG_ID = '75050' */
+               /* AND T1.PRTNR_NO = '1739759' */
+             ORDER BY T1.PRTNR_KNM
+        )
+        /* 결과 조회 */
+        SELECT T3.OG_NM
+             , T1.MNGR_DV_CD
+             , T1.MNGT_PRTNR_OG_TP_CD
+             , T1.MNGT_PRTNR_NO
+             , T3.PRTNR_KNM
+             , T3.PSTN_DV_CD
+             , T3.PSTN_DV_CD_NM
+             , T3.RSB_DV_CD                                    /* 직책코드 */
+             , T4.H_WARE_MNGT_PRTNR_NO AS BLD_MNGT_PRTNR_NO    /* 빌딩별 자재실장 사번 */
+             , T5.PRTNR_KNM AS BLD_MNGT_PRTNR_KNM              /* 빌딩별 자재실장 성명 */
+             , T3.BLD_CD                                       /* 빌딩코드 */
+             , T3.BLD_NM                                       /* 빌딩명 */
+             , T1.MNGT_YM
+             , T1.WO_MNGT_CSTN  AS MNGT_CST_CNT              /* 관리 고객수 */
+             , T1.OJ_MNGT_CSTN  AS NOT_MNGT_EXCD_CST_CNT     /* 미관리제외 고객수 */
+             , T2.VST_CSTN      AS VST_CST_CNT               /* 방문 고객수  */
+             , T2.VST_STP_CSTN  AS VST_STP_CST_CNT           /* 방문 중지 고객수 */
+             , T2.VST_CAN_CSTN  AS VST_CAN_CST_CNT           /* 방문 취소 고객수 */
+             , NVL(T2.VST_CSTN,0) + NVL(T2.VST_STP_CSTN,0) + NVL(T2.VST_CAN_CSTN,0)  AS ASN_OJ_SUM_CNT  /* B/S배정 대상 합계(방문+방문중지+방문취소)  */
+             , T2.ITM_CSTN      AS VST_ACC_CHNG_CST_CNT      /* 방문 계정 교체 고객수  */
+             , T2.CHK_CSTN      AS VST_ACC_CHK_CST_CNT       /* 방문 계정 점검 고객수 */
+             , NVL(T2.ITM_CSTN,0) + NVL(T2.CHK_CSTN,0)  AS VST_ACC_SUM_CNT /* 방문 계정 합계(방문 교체,방문 점검)*/
+             , T2.ITM_FSH_CSTN  AS VST_FSH_ACC_CHNG_CST_CNT  /* 방문 완료 교체 고객수 */
+             , T2.CHK_FSH_CSTN  AS VST_FSH_ACC_CHK_CST_CNT   /* 방문 완료 점검 고객수 */
+             , NVL(T2.ITM_FSH_CSTN,0) + NVL(T2.CHK_FSH_CSTN, 0)   AS VST_FSH_ACC_SUM_CNT  /* 방문 완료 계정 합계(방문완료 교체,점검) */
+             , (CASE WHEN NVL(T2.ITM_CSTN,0) + NVL(T2.CHK_CSTN,0) > 0
+                     THEN ROUND( ( ( NVL(T2.ITM_FSH_CSTN,0)+ NVL(T2.CHK_FSH_CSTN,0) )/ (NVL(T2.ITM_CSTN,0) + NVL(T2.CHK_CSTN,0) ) )*100,2)
+                     ELSE 0
+                END
+              ) AS VST_FSH_ACC_RT /* 방문 완료 계정 방문율 :  ROUND( ( (방문완료 교체+ 방문완료 점검) / (방문계정 교체 + 방문계정 점검) ) * 100,2)  */
+             , T2.WB_VST_CSTN     AS WB_VST_CST_CNT          /* 웰컴BS 방문 고객수  */
+             , T2.WB_FSH_CSTN     AS WB_VST_FSH_CST_CNT      /* 웰컴BS 방문 완료 고객수 */
+             , T2.WB_CAN_CSTN     AS WB_VST_CAN_CST_CNT      /* 웰컴BS 방문 취소 고객수 */
+             , T2.WB_STNB_CSTN    AS WB_NOT_VST_CST_CNT      /* 웰컴BS 미방문 고객수 */
+             , T2.SV_CNTC_FSH     AS SV_CNTC_FSH_CST_CNT     /* 서비스 컨택 완료 고객수 */
+             , T2.SV_CNTC_IMP     AS SV_CNTC_IMP_CST_CNT     /* 서비스 컨택 불가 고객수 */
+             , T2.SV_CNTC_VST_IMP AS SV_CNTC_VST_IMP_CST_CNT /* 서비스 방문 불가 고객수  */
+             , T2.SV_CNTC_STNB    AS SV_CNTC_STNB_CST_CNT    /* 서비스 미컨택 고객수  */
+             , NVL(T2.SV_CNTC_FSH,0) + NVL(T2.SV_CNTC_VST_IMP,0) AS SV_CNTC_SUM_CNT /* 서비스 컨택 합계(컨택완료 ,방문 불가) */
+             , (CASE WHEN NVL(T2.ITM_CSTN,0) + NVL(T2.CHK_CSTN,0) > 0
+                     THEN ROUND( ( ( NVL(T2.SV_CNTC_FSH,0)) / (NVL(T2.ITM_CSTN,0) + NVL(T2.CHK_CSTN,0) ) )*100,2)
+                     ELSE 0
+                END
+              ) AS SV_CNTC_RT /* 서비스 컨택율 :  ROUND( ( (서비스 컨택 완료) / (방문계정 교체 + 방문계정 점검) )* 100,2) */
+             /*
+             , T2.REQ_AS_CSTN
+             , T2.REQ_INF_CSTN
+             , T2.REQ_ETC_CSTN
+             */
+       FROM MNGT_CSTN_INF T1
+       LEFT OUTER JOIN VST_CSTN_INF T2
+        ON T1.MNGT_YM = T2.ASN_OJ_YM
+        AND T1.MNGT_PRTNR_NO = T2.CNFM_PSIC_PRTNR_NO
+       INNER JOIN OG_INF_PRTNR T3
+        ON T1.MNGT_YM = T3.BASE_YM
+        AND T1.MNGT_PRTNR_OG_TP_CD = T3.OG_TP_CD
+        AND T1.MNGT_PRTNR_NO = T3.PRTNR_NO
+        AND T3.RNK = 1
+       LEFT OUTER JOIN WARE_INF T4
+        ON T1.MNGT_YM = T4.APY_YM
+        AND T1.MNGT_PRTNR_OG_TP_CD = T4.OG_TP_CD
+        AND T1.MNGT_PRTNR_NO = T4.WARE_MNGT_PRTNR_NO
+        AND T4.RNK = 1
+       INNER JOIN OG_INF_PRTNR T5
+        ON T4.APY_YM = T5.BASE_YM
+        AND T4.H_OG_TP_CD = T5.OG_TP_CD
+        AND T4.H_WARE_MNGT_PRTNR_NO = T5.PRTNR_NO
+        AND T5.RNK = 1
+
+        /* 검색조건 조직, 빌딩 검색 , 관리구분에 따른 정렬 처리*/
+        <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+        AND T3.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}   /* 총괄단조건(1차레벨조직코드) */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+        AND T3.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+        AND T3.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}   /* 지점조건(3차레벨조직코드)*/
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+        AND T3.PRTNR_NO = #{prtnrNo}               /* 엔지니어/매니저 파트너번호 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(ogId)">
+        AND T3.OG_ID = #{ogId}                     /* 서비스센터 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(bldCd)">
+        AND T3.BLD_CD = #{bldCd}                   /* 빌딩코드 */
+        </if>
+        <if test="@MybatisUtils@equals(mngrDvCd, 1)">
+            <if test="@MybatisUtils@isNotEmpty(exceptWellsManagerYn) and @MybatisUtils@equals(exceptWellsManagerYn, 'Y')">
+            AND T3.RSB_DV_CD  = 'W0105'               /* 웰스 매니저 제외 체크시 AS-IS : (EMP_PST=100)기준 검색 */
+            </if>
+        /* (매니저 - 소속명 오름차순 ,직급명으로 내림차순  */
+        ORDER BY T3.OG_NM ASC , T3.RSB_DV_CD DESC
+        </if>
+        <if test="@MybatisUtils@equals(mngrDvCd, 2)">
+        /* (엔지니어 - 창고 정렬구분 오름차순  , 관리구분 오름차순  */
+        ORDER BY TO_NUMBER(T4.SORT_DV_VAL) ASC, TO_NUMBER(T1.MNGT_PRTNR_NO) ASC
+        </if>
+    </select>
+    <select id="selectBuildings" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbPersonInChargeVisitAgrgDto$FindBldRes">
+        SELECT T1.BLD_CD
+             , T1.BLD_NM
+        FROM TB_OGBS_BLD_BAS T1
+        ,(SELECT X.OG_TP_CD
+               , X.BLD_CD
+          FROM TB_OGBS_MM_OG_IZ X
+          WHERE X.BLD_CD IS NOT NULL
+           AND X.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND X.OG_TP_CD IN ('HR1', 'W02', 'W03', 'W06')
+           AND X.CLO_YN = 'N'
+           AND X.DTA_DL_YN = 'N'
+        ) T2
+        WHERE T1.DTA_DL_YN = 'N'
+         AND T1.OG_TP_CD = T2.OG_TP_CD
+         AND T1.BLD_CD = T2.BLD_CD
+        GROUP BY T1.BLD_CD, T1.BLD_NM
+        ORDER BY T1.BLD_NM
+    </select>
+</mapper>
