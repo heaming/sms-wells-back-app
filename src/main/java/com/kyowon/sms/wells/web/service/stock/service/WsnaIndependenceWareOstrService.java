@@ -217,14 +217,18 @@ public class WsnaIndependenceWareOstrService {
 
         for (String strWareNo : strWareNos) {
             // 출고요청번호
-            String ostrAkNo = this.getOstrAkNoByStrWareNo(strWareNo, dvos);
+            String newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
 
             // 입고창고에 해당하는 품목 리스트
             List<WsnaIndependenceWareOstrDvo> itms = dvos.stream().filter(dvo -> strWareNo.equals(dvo.getStrWareNo()))
                 .toList();
             for (WsnaIndependenceWareOstrDvo dvo : itms) {
+                String ostrAkNo = dvo.getOstrAkNo();
+                if (StringUtils.isEmpty(ostrAkNo)) {
+                    dvo.setOstrAkNo(newOstrAkNo);
+                }
+
                 // 출고요청 저장
-                dvo.setOstrAkNo(ostrAkNo);
                 count += this.mapper.mergeItmOstrAkIz(dvo);
 
                 // 물량배정 출고수량 업데이트
@@ -232,32 +236,8 @@ public class WsnaIndependenceWareOstrService {
                 // 저장에 실패 하였습니다.
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             }
-
         }
 
         return count;
     }
-
-    /**
-     * 출고요청번호 조회
-     * @param strWareNo
-     * @param dvos
-     * @return
-     */
-    private String getOstrAkNoByStrWareNo(String strWareNo, List<WsnaIndependenceWareOstrDvo> dvos) {
-        ValidAssert.hasText(strWareNo);
-        ValidAssert.notEmpty(dvos);
-
-        List<String> itmQomAsnNos = dvos.stream().filter(dvo -> strWareNo.equals(dvo.getStrWareNo()))
-            .map(WsnaIndependenceWareOstrDvo::getItmQomAsnNo).toList();
-
-        // 출고요청번호 조회
-        String ostrAkNo = this.mapper.selectOstrAkNoByItmQomAsnNos(itmQomAsnNos);
-        if (StringUtils.isEmpty(ostrAkNo)) {
-            ostrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
-        }
-
-        return ostrAkNo;
-    }
-
 }

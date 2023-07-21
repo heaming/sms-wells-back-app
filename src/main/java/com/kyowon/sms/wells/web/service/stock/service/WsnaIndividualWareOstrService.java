@@ -197,18 +197,15 @@ public class WsnaIndividualWareOstrService {
 
         List<WsnaIndividualWareOstrDvo> dvos = this.converter.mapAllSaveReqToWsnaIndividualWareOstrDvo(dtos);
 
-        String ostrAkNo = null;
-        List<String> ostrAkNos = dvos.stream().filter(dvo -> StringUtils.isNotEmpty(dvo.getOstrAkNo()))
-            .map(WsnaIndividualWareOstrDvo::getOstrAkNo).distinct().toList();
-        if (CollectionUtils.isNotEmpty(ostrAkNos)) {
-            ostrAkNo = ostrAkNos.get(0);
-        } else {
-            ostrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
-        }
+        String newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
 
         for (WsnaIndividualWareOstrDvo dvo : dvos) {
             // 출고요청 저장
-            dvo.setOstrAkNo(ostrAkNo);
+            String ostrAkNo = dvo.getOstrAkNo();
+            if (StringUtils.isEmpty(ostrAkNo)) {
+                dvo.setOstrAkNo(newOstrAkNo);
+            }
+
             count += this.mapper.mergeItmOstrAkIz(dvo);
 
             // 물량배정 출고수량 업데이트
