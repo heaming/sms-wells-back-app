@@ -11,7 +11,7 @@ public enum CtCopnDvCd {
 
     final String code;
 
-    static final String name = "법인구분";
+    static final String name = "법인격구분코드";
 
     CtCopnDvCd(String code) {
         this.code = code;

@@ -20,7 +20,7 @@ public enum CtCntrtRelCd {
     final String code;
     final String codeName;
 
-    static final String name = "회사코드";
+    static final String name = "계약자관계코드";
 
     CtCntrtRelCd(String code, String codeName) {
         this.code = code;

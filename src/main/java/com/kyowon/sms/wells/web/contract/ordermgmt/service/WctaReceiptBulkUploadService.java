@@ -214,7 +214,7 @@ public class WctaReceiptBulkUploadService {
                     wctaBulkContractDvo.setTxinvPblOjYn("Y");
                 }
             }
-            wctaBulkContractDvo.setCntrPrgsStatCd(CtContractProgressStatus.TEMP_STEP2.getCode());
+            wctaBulkContractDvo.setCntrPrgsStatCd(CtCntrPrgsStatCd.TEMP_STEP2.getCode());
             wctaBulkContractDvo.setPdQty(basePdQty);
             wctaBulkContractDvo.setCntrwTpCd(CtCntrwTpCd.RENTAL.getCode());
             wctaBulkContractDvo.setCoCd(CtCoCd.KYOWON_PROPERTY.getCode()); /* 교원프라퍼티 */
@@ -360,7 +360,7 @@ public class WctaReceiptBulkUploadService {
                     wctaBulkContractDvo.setTxinvPblOjYn("Y");
                 }
             }
-            wctaBulkContractDvo.setCntrPrgsStatCd(CtContractProgressStatus.TEMP_STEP2.getCode());
+            wctaBulkContractDvo.setCntrPrgsStatCd(CtCntrPrgsStatCd.TEMP_STEP2.getCode());
             wctaBulkContractDvo.setPdQty(basePdQty);
             wctaBulkContractDvo.setCntrwTpCd(CtCntrwTpCd.RENTAL.getCode());
             wctaBulkContractDvo.setCoCd(CtCoCd.KYOWON_PROPERTY.getCode()); /* 교원프라퍼티 */
