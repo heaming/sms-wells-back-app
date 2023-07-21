@@ -5,7 +5,6 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrD
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
@@ -23,8 +22,9 @@ public interface WsnaIndividualWareOstrMapper {
 
     List<WsnaIndividualWareOstrDvo> selectIndividualWareOstrs(SearchReq dto);
 
-    String selectNewOstrAkNoByQomOstr(@Param("ostrAkTpCd")
-    String ostrAkTpCd);
+    int updateItmQomAsnIz(WsnaIndividualWareOstrDvo dvo);
 
-    int insertTbSvstItmOstrAkIz(List<WsnaIndividualWareOstrDvo> list);
+    String selectNewOstrAkNo(String ostrAkTpCd);
+
+    int mergeItmOstrAkIz(WsnaIndividualWareOstrDvo dvo);
 }

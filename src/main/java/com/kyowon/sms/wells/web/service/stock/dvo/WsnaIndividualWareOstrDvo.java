@@ -58,4 +58,9 @@ public class WsnaIndividualWareOstrDvo {
     private String rmkCn;
     private BigDecimal asnTnN;
     private String wareDvCd;
+
+    // 출고요청관련
+    private String ostrAkNo;
+    private Integer ostrAkSn;
+    private String ostrDt;
 }

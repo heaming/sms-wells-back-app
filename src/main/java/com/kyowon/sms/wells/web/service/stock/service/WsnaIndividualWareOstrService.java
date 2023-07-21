@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
@@ -15,6 +16,7 @@ import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTime
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,8 @@ public class WsnaIndividualWareOstrService {
     // 프라파주창고(Wells)
     private static final String SAP_SAVE_LCT_CD = "21082082";
     private static final int SLICE_SIZE = 999;
+
+    private static final String OSTR_AK_TP_CD_QOM_ASN = "360";
 
     /**
      * 출고창고 조회
@@ -175,6 +179,40 @@ public class WsnaIndividualWareOstrService {
                 }
             }
         }
+    }
+
+    /**
+     * 개인창고 출고관리 저장
+     * @param dtos
+     * @return
+     */
+    public int saveIndividualWareOstrs(List<SaveReq> dtos) {
+
+        int count = 0;
+
+        List<WsnaIndividualWareOstrDvo> dvos = this.converter.mapAllSaveReqToWsnaIndividualWareOstrDvo(dtos);
+
+        String ostrAkNo = null;
+        List<String> ostrAkNos = dvos.stream().filter(dvo -> StringUtils.isNotEmpty(dvo.getOstrAkNo()))
+            .map(WsnaIndividualWareOstrDvo::getOstrAkNo).distinct().toList();
+        if (CollectionUtils.isNotEmpty(ostrAkNos)) {
+            ostrAkNo = ostrAkNos.get(0);
+        } else {
+            ostrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
+        }
+
+        for (WsnaIndividualWareOstrDvo dvo : dvos) {
+            // 물량배정 출고수량 업데이트
+            int result = this.mapper.updateItmQomAsnIz(dvo);
+            // 저장에 실패 하였습니다.
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+
+            // 출고요청 저장
+            dvo.setOstrAkNo(ostrAkNo);
+            count += this.mapper.mergeItmOstrAkIz(dvo);
+        }
+
+        return count;
     }
 
 }

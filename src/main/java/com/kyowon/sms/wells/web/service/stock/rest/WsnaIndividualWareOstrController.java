@@ -5,12 +5,10 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrD
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
@@ -18,6 +16,7 @@ import com.kyowon.sms.wells.web.service.stock.service.WsnaIndividualWareOstrServ
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -117,6 +116,17 @@ public class WsnaIndividualWareOstrController {
     public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrsExcelDownload(@Valid
     SearchReq dto) {
         return this.service.getIndividualWareOstrsExcelDownload(dto);
+    }
+
+    @PostMapping
+    @ApiOperation(value = "개인창고 출고관리 저장", notes = "개인창고 출고관리 데이터를 저장한다.")
+    public SaveResponse saveIndividualWareOstrs(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<SaveReq> dtos
+    ) {
+        return SaveResponse.builder().processCount(this.service.saveIndividualWareOstrs(dtos)).build();
     }
 
 }
