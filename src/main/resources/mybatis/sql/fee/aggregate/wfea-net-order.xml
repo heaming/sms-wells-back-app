@@ -4,19 +4,21 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaNetOrderMapper">
 
     <select id='selectNetOrders' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto$SearchRes">
-        SELECT CD3.CD_CNTN AS SELL_OG
+        SELECT T1.OG_TP_CD AS SELL_OG
              , T1.OG_ID AS BLG
              , T1.PRTNR_NO
              , T1.PRTNR_KNM
-             , CD1.CD_CNTN AS SEL_TYPE
-             , '' AS PDCT_TP            /* 현재미정 임시처리 */
+             , T2.SELL_TP_CD
+             , CASE WHEN T1.OG_TP_CD = 'W01' THEN T5.FEE_PDCT_TP_CD2
+                    ELSE T5.FEE_PDCT_TP_CD1
+               END AS PDCT_TP /* 제품유형 !!!*/
              , T2.CNTR_DTL_NO
-             , CD2.CD_CNTN AS CST_DV
+             , T1.COPN_DV_CD AS CST_DV
              , T3.PD_NM AS PRDT_NM
              , T2.PRDT_CD
              , T3.HGR_PD_CD AS PKG_CD
              , T2.ISTM
-             , CASE WHEN T2.SEL_TYPE = '1' THEN 0 /* 일시불 = 0 */
+             , CASE WHEN T2.SELL_TP_CD = '1' THEN 0 /* 일시불 = 0 */
                     WHEN T2.RSTL_YN = 'Y' THEN 0 /* 재약정 = '' */
                     ELSE T2.STPL_PTRM
                END AS STPL_MCNT
@@ -42,7 +44,7 @@
          INNER JOIN ( SELECT CD.CNTR_SN     /* 재약정 제외 목록*/
                            , CB.SELL_OG_TP_CD AS OG_TP_CD
                            , CB.SELL_PRTNR_NO AS PRTNR_NO
-                           , CD.SELL_TP_CD AS SEL_TYPE
+                           , CD.SELL_TP_CD
                            , CD.CNTR_NO AS CNTR_DTL_NO
                            , CD.BASE_PD_CD AS PRDT_CD
                            , CD.ISTM_MCN AS ISTM
@@ -108,7 +110,7 @@
                       SELECT CD.CNTR_SN
                            , CB.SELL_OG_TP_CD AS OG_TP_CD
                            , CB.SELL_PRTNR_NO AS PRTNR_NO
-                           , CD.SELL_TP_CD AS SEL_TYPE
+                           , CD.SELL_TP_CD
                            , CD.CNTR_NO AS CNTR_DTL_NO
                            , CD.BASE_PD_CD AS PRDT_CD
                            , CD.ISTM_MCN AS ISTM
@@ -185,18 +187,23 @@
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL T4
             ON T2.CNTR_DTL_NO = T4.CNTR_NO
            AND T2.CNTR_SN = T4.CNTR_SN
-          LEFT OUTER JOIN T_CMZ_CD_D CD1
-            ON T2.SEL_TYPE = CD1.CD_VLD_VAL
-           AND CD1.CD_ID = 'SELL_TP_CD'
-           AND CD1.TENANT_ID = 'TNT_WELLS'
-          LEFT OUTER JOIN T_CMZ_CD_D CD2
-            ON T1.COPN_DV_CD = CD2.CD_VLD_VAL
-           AND CD2.CD_ID = 'COPN_DV_CD'
-           AND CD2.TENANT_ID = 'TNT_WELLS'
-          LEFT OUTER JOIN T_CMZ_CD_D CD3
-            ON T1.OG_TP_CD = CD3.CD_VLD_VAL
-           AND CD3.CD_ID = 'OG_TP_CD'
-           AND CD3.TENANT_ID = #{session.tenantId}
+        INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS T5
+           ON T2.PRDT_CD = T5.BASE_PD_CD
+          AND SUBSTR(#{schDtStrt},0,6) BETWEEN T5.APY_STRT_YM AND T5.APY_END_YM
+        <if test='@MybatisUtils@isNotEmpty(pdctTp)'>
+          AND ( CASE WHEN T1.OG_TP_CD = 'W01' THEN T5.FEE_PDCT_TP_CD2
+                     ELSE T5.FEE_PDCT_TP_CD1
+                END ) = #{pdctTp}
+        </if>
+        WHERE T1.BASE_YM = SUBSTR(#{schDtStrt},0,6)
+        <if test='@MybatisUtils@isNotEmpty(ogDvCd)'>
+            <if test="ogDvCd != 'W06'">
+                AND T1.OG_TP_CD  = #{ogDvCd}
+            </if>
+            <if test='@MybatisUtils@equals(ogDvCd, "W06")'>
+                AND T1.OG_TP_CD NOT IN ('W01','W02','W03','W04','W05')
+            </if>
+        </if>
     </select>
 
     <select id='selectAggreateNetOrders' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto$SearchRes">
@@ -204,8 +211,10 @@
              , T2.OG_ID AS BLG
              , T1.PRTNR_NO
              , T2.PRTNR_KNM
-             , T1.SELL_TP_CD AS SEL_TYPE
-             , '' AS PDCT_TP            /* 현재미정 임시처리 */
+             , T1.SELL_TP_CD
+             , CASE WHEN T1.OG_TP_CD = 'W01' THEN T7.FEE_PDCT_TP_CD2
+                    ELSE T7.FEE_PDCT_TP_CD1
+               END AS PDCT_TP /* 제품유형 !!!*/
              , T1.CNTR_NO AS CNTR_DTL_NO
              , T2.COPN_DV_CD AS CST_DV
              , T3.PD_NM AS PRDT_NM
