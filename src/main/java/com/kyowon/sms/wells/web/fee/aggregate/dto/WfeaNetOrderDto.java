@@ -71,7 +71,7 @@ public class WfeaNetOrderDto {
         String blg,
         String prtnrNo,
         String prtnrKnm,
-        String selType,
+        String sellTpCd,
         String pdctTp,
         String cntrDtlNo,
         String cstDv,
