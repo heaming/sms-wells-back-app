@@ -42,4 +42,5 @@ public class WctaContractStatusDvo {
     private String resultDiv;
     private String viewRcpFshDtm;
     private String viewCntrPrgsStatCd;
+    private String installYn;
 }
