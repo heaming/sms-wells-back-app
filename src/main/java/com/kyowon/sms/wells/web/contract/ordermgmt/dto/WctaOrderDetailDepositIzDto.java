@@ -58,15 +58,15 @@ public class WctaOrderDetailDepositIzDto {
     @ApiModel("WctaOrderDetailDepositIzDto-SearchRegularShippingsDepositIzRes")
     public record SearchRegularShippingsDepositIzRes(
         String sellAmt, /* 판매금액 */
-        String fnlAmt, /* 최종금액(판매총액) */
+        String sellTam, /* 최종금액(판매총액) */
         String dscAmt, /* 할인금액 */
-        String sellDscCtrAmt, /* 판매할인조정금액(추가할인) */
-        String bilPyAmt, /* 월 청구(납입)금액 */
+        String spmtDsc, /* 판매할인조정금액(추가할인) */
+        String mmBilPyAmt, /* 월 청구(납입)금액 */
         String svPrd, /* 서비스주기 */
-        String thmOcDlqAmt, /* 당월발생연체금액 */
-        String thmUcBlam, /* 당월미수잔액 */
-        String eotAtam, /* 기말선수금 */
-        String eotUcAmt, /* 기말미수금액 */
+        String dlqAmt, /* 당월발생연체금액 */
+        String ucAmt, /* 당월미수잔액 */
+        String prpdAmt, /* 기말선수금 */
+        String bilUc, /* 기말미수금액 */
         String pcsvSpmt, /* 택배추가 */
         String prtnrKnm /* 판매자성명 */
     ) {}
