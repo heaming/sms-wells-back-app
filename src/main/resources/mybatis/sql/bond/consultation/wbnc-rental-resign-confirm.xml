@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncRentalResignConfirmMapper">
+    <select id="selectRentalResignConfirms" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignConfirmDto$SearchRes">
+        /* 직권해지 - 렌탈 직권해지 조회 */
+        SELECT SUBSTR(A.AUTH_RSG_CNFMDT,1,6) AS AUTH_RSG_CNFMYM             /*확정년월*/
+             , A.CST_NO                                                     /*고객번호*/
+             , A.CNTR_NO||'-'||A.CNTR_SN AS CNTR_NO_SN                      /*계약상세번호*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', A.SELL_TP_CD , #{session.langId}) AS SELL_TP_NM /*판매유형명*/
+             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = A.CST_NO) AS CST_KNM /*고객명*/
+             , NVL(A.RTRN_DBT_FNL_AMT,0) AS RTRN_DBT_FNL_AMT                /*반환채무최종금액*/
+             , NVL(A.NRTRN_DBT_FNL_AMT,0) AS NRTRN_DBT_FNL_AMT              /*미반환채무최종금액*/
+             , NVL(A.RSG_MM_UC_AMT,0) AS RSG_MM_UC_AMT                      /*해지월미수금액*/
+             , NVL(A.LSTMM_OCPT_CS,0) + NVL(A.THM_OCPT_CS,0) AS RSG_MM_STP_CS /*해지월중지금액*/
+             , NVL(A.RENTAL_RES_BOR_AMT,0) + NVL(A.RENTAL_RGST_COST_BOR_AMT,0) + NVL(A.DSC_CS_BOR_AMT,0) + NVL(A.RSTL_BOR_AMT,0) + NVL(A.P_BOR_AMT,0) AS CCAM   /*위약금*/
+             , NVL(A.CSMB_CS_BOR_AMT,0) AS CSMB_CS_BOR_AMT                  /*소모품비용위약금액*/
+             , NVL(A.REQD_CS_BOR_AMT,0) AS REQD_CS_BOR_AMT                  /*철거비용위약금액*/
+             , NVL(A.LS_RNTF,0) AS LS_RNTF                                  /*분실손료*/
+             , (CASE WHEN A.EXMPT_YN = 'Y' THEN '개인' ELSE '법인' END) AS EXMPT_YN /*면책여부*/
+             , A.PD_CD                                                      /*상품코드*/
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = A.PD_CD) AS PD_NM /*상품명*/
+             , A.CLCTAM_PRTNR_NO                                            /*집금파트너번호*/
+             , (SELECT DISTINCT PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE PRTNR_NO = A.CLCTAM_PRTNR_NO) AS PRTNR_KNM  /*집금파트너명*/
+          FROM TB_CBBO_WELLS_AUTH_RSG_IZ A                              /*T:WELLS직권해지내역*/
+         INNER JOIN TB_SSCT_CNTR_DTL B                                  /*T:계약상세*/
+            ON B.CNTR_NO = A.CNTR_NO
+           AND B.CNTR_SN = A.CNTR_SN
+           AND SUBSTR(B.CNTR_PD_STRTDT,1,6) = A.BASE_YM
+         WHERE 1 = 1
+           AND A.DTA_DL_YN = 'N'
+           AND A.SELL_TP_CD = '2'                   /*렌탈,리스*/
+           AND (A.CAN_DT IS NULL OR A.CAN_DT = 0)   /*취소일자-null인것*/
+           AND A.AUTH_RSG_CNFM_YN = 'Y'             /*직권해지확정여부*/
+           AND A.AUTH_RSG_EXCD_RSON_CD IS NULL      /*직권해지제외사유코드-null인것*/
+           AND SUBSTR(A.AUTH_RSG_CNFMDT,1,6) BETWEEN #{fromAuthRsgCnfmdt} AND #{toAuthRsgCnfmdt}
+        <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>
+           AND A.CLCTAM_DV_CD = #{clctamDvCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(clctamPrtnrNo)'>
+           AND A.CLCTAM_PRTNR_NO = #{clctamPrtnrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+           AND A.CST_NO = #{cstNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)'>
+           AND A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+        </if>
+    </select>
+</mapper>

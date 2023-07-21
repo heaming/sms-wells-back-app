@@ -35,7 +35,8 @@ public class WbncRentalResignExpectedMgtController {
         @ApiImplicitParam(name = "sellTpCd", value = "상품유형코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "clctamPrtnrNo", value = "집금담당자", paramType = "query"),
-        @ApiImplicitParam(name = "cntrNoSn", value = "계약일련상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "authRsgCd", value = "확정구분", paramType = "query", required = true),
     })
