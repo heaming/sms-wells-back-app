@@ -18,5 +18,5 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
  */
 @Mapper(componentModel = "spring")
 public interface WsnaIndividualWareOstrConverter {
-    List<WsnaIndividualWareOstrDvo> mapAllSaveReqToWsnaIndividualWareOstrDvo(List<SaveReq> list);
+    List<WsnaIndividualWareOstrDvo> mapAllSaveReqToWsnaIndividualWareOstrDvo(List<SaveReq> dtos);
 }

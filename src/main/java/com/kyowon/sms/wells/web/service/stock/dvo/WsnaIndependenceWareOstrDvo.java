@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,17 +16,44 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnaIndependenceWareOstrDvo {
-    String ostrAkNo;
-    String ostrAkSn;
-    String ostrAkTpCd;
-    String ostrOjWareNo;
-    String strOjWareNo;
-    String ostrAkRgstDt;
-    String strHopDt;
-    String itmPdCd;
-    String itmGdCd;
-    String mngtUnitCd;
-    String ostrAkQty;
-    String rmkCn;
-    String dtaDlY;
+
+    private String chk;
+    private String wareNm;
+    private String sapMatCd;
+    private String itmPdCd;
+    private String pdAbbrNm;
+    private String mngtUnit;
+    private String mngtUnitNm;
+    private String matGdCd;
+
+    // 물류 재고 관련
+    private BigDecimal logisticStocQty;
+
+    private BigDecimal boxUnitQty;
+    private BigDecimal crtlStocQty;
+    private BigDecimal useQty;
+    private BigDecimal cnfmQty;
+    private BigDecimal cnfmBoxQty;
+    private BigDecimal mcbyAcuOstrQty;
+    private BigDecimal mcbyAcuOstrBoxQty;
+
+    private BigDecimal filterBoxQty;
+    private BigDecimal outQty;
+    private BigDecimal outBoxQty;
+
+    private String itmQomAsnNo;
+    private String asnOjYm;
+    private String ostrWareNo;
+    private String strWareNo;
+    private String wareMngtPrtnrNo;
+    private String ogTpCd;
+    private String itmKndCd;
+    private String rmkCn;
+    private BigDecimal asnTnN;
+    private String wareDvCd;
+
+    // 출고요청관련
+    private String ostrAkNo;
+    private Integer ostrAkSn;
+    private String ostrDt;
 }

@@ -140,48 +140,47 @@ public class WsnaIndividualWareOstrService {
     private void setTotalLogisticQty(
         List<RealTimeGradeStockResIvo> stocks, List<WsnaIndividualWareOstrDvo> sliceDvos
     ) {
-
+        int stockSize = 0;
         if (CollectionUtils.isNotEmpty(stocks)) {
+            stockSize = stocks.size();
+        }
 
-            int stockSize = stocks.size();
+        for (WsnaIndividualWareOstrDvo dvo : sliceDvos) {
+            String itmPdCd = dvo.getItmPdCd();
 
-            for (WsnaIndividualWareOstrDvo dvo : sliceDvos) {
-                String itmPdCd = dvo.getItmPdCd();
+            // 물류재고
+            BigDecimal lgstQty = BigDecimal.ZERO;
 
-                // 물류재고
-                BigDecimal lgstQty = BigDecimal.ZERO;
+            for (int i = 0; i < stockSize; i++) {
+                RealTimeGradeStockResIvo stock = stocks.get(i);
 
-                for (int i = 0; i < stockSize; i++) {
-                    RealTimeGradeStockResIvo stock = stocks.get(i);
+                String stockPdCd = stock.getItmPdCd();
 
-                    String stockPdCd = stock.getItmPdCd();
-
-                    if (itmPdCd.equals(stockPdCd)) {
-                        lgstQty = stock.getLgstAGdQty();
-                        stockSize--;
-                        stocks.remove(stock);
-                        break;
-                    }
+                if (itmPdCd.equals(stockPdCd)) {
+                    lgstQty = stock.getLgstAGdQty();
+                    stockSize--;
+                    stocks.remove(stock);
+                    break;
                 }
+            }
 
-                dvo.setLogisticStocQty(lgstQty);
+            dvo.setLogisticStocQty(lgstQty);
 
-                // 출고수량
-                BigDecimal outQty = dvo.getOutQty();
-                // 필터박스수량
-                BigDecimal filterBoxQty = dvo.getFilterBoxQty();
+            // 출고수량
+            BigDecimal outQty = dvo.getOutQty();
+            // 필터박스수량
+            BigDecimal filterBoxQty = dvo.getFilterBoxQty();
 
-                if (!BigDecimal.ZERO.equals(filterBoxQty) && !BigDecimal.ZERO.equals(outQty)) {
-                    long ostrQty = outQty.longValue();
-                    long filterQty = filterBoxQty.longValue();
+            if (!BigDecimal.ZERO.equals(filterBoxQty) && !BigDecimal.ZERO.equals(outQty)) {
+                long ostrQty = outQty.longValue();
+                long filterQty = filterBoxQty.longValue();
 
-                    long outBoxQty = Math.floorDiv(ostrQty, filterQty)
-                        + (Math.floorMod(ostrQty, filterQty) > 0 ? 1 : 0);
+                long outBoxQty = Math.floorDiv(ostrQty, filterQty)
+                    + (Math.floorMod(ostrQty, filterQty) > 0 ? 1 : 0);
 
-                    dvo.setOutBoxQty(BigDecimal.valueOf(outBoxQty));
-                } else {
-                    dvo.setOutBoxQty(BigDecimal.ZERO);
-                }
+                dvo.setOutBoxQty(BigDecimal.valueOf(outBoxQty));
+            } else {
+                dvo.setOutBoxQty(BigDecimal.ZERO);
             }
         }
     }
@@ -208,14 +207,14 @@ public class WsnaIndividualWareOstrService {
         }
 
         for (WsnaIndividualWareOstrDvo dvo : dvos) {
+            // 출고요청 저장
+            dvo.setOstrAkNo(ostrAkNo);
+            count += this.mapper.mergeItmOstrAkIz(dvo);
+
             // 물량배정 출고수량 업데이트
             int result = this.mapper.updateItmQomAsnIz(dvo);
             // 저장에 실패 하였습니다.
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
-
-            // 출고요청 저장
-            dvo.setOstrAkNo(ostrAkNo);
-            count += this.mapper.mergeItmOstrAkIz(dvo);
         }
 
         return count;

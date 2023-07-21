@@ -1,210 +1,297 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndependenceWareOstrMapper">
-    <select id="selectIndependenceWareOstrs" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOstrDto$SearchRes">
-        SELECT M2.ITEM_CD
-             , M2.PD_ABBR_NM
-             , M2.MGT_UNT
-             , M2.MGT_UNT_NM /*관리단위명*/
-             , M2.MAT_GD_CD
-             , M2.ASN_OJ_YM
-             , M2.OSTR_WARE_NO
-             , M2.STR_WARE_NO
-             , M2.HGR_WARE_NO
-             , M2.WARE_NM
-             , M2.ITM_QOM_ASN_NO
-             , M2.RECT_OSTR_DT
-             , M2.RECT_OSTR_TP_CD
-             , M2.ITEM_KIND
-             , M2.SAP_MAT_CD
-             , M2.CRTL_STOC_QTY
-             , M2.THWK_EXP_QTY
-             , M2.BOX_QTY
-             , M2.BOX_QTY AS BOX_QTY1
-             , M2.CNFM_QTY
-             , M2.MCBY_ACU_OSTR_QTY
-             , M2.OUT_QTY
-             /* TODO: AS-IS 품목을 TOBE로 수정 WM07102906 : 42000111010 : 세디멘트(11인치) : ST101_ITEM_CD || ST101_PART_CD */
-             /* TODO: AS-IS 품목을 TOBE로 수정 WM07102907 : 42000111020 : 프리카본(11인치) : ST101_ITEM_CD || ST101_PART_CD */
-             , CASE WHEN M2.BOX_QTY <![CDATA[>]]> 0
-                    THEN CASE WHEN (M2.ITEM_CD = 'WM07102906' AND (M2.MCBY_ACU_OSTR_QTY / M2.BOX_QTY) <![CDATA[>]]> 80)
-                                OR (M2.ITEM_CD = 'WM07102907' AND (M2.MCBY_ACU_OSTR_QTY / M2.BOX_QTY) <![CDATA[>]]> 80)
-                              THEN ROUND(M2.ACC_BOX_QTY) * 30
-                              ELSE M2.MCBY_ACU_OSTR_QTY
-                               END
-                    ELSE 0
-                     END ACC_QTY
-             , CASE WHEN M2.BOX_QTY <![CDATA[>]]> 0
-                    THEN CASE WHEN (M2.ITEM_CD = 'WM07102906' AND (M2.MCBY_ACU_OSTR_QTY / M2.BOX_QTY) <![CDATA[>]]> 80)
-                                OR (M2.ITEM_CD = 'WM07102907' AND (M2.MCBY_ACU_OSTR_QTY / M2.BOX_QTY) <![CDATA[>]]> 80)
-                              THEN ROUND(M2.ACC_BOX_QTY)
-                              ELSE M2.ACC_BOX_QTY
-                               END
-                    ELSE 0
-                     END ACC_BOX_QTY
-             , M2.ASN_OJ_YM || ' 직배창고 물량배정 물류to센터' AS RMKS
-             /* , 0 AS OUT_QTY_BAK */
-             , '' AS OUT_TYP
-             , '' AS OUT_STCK_CD
-             , '' AS OUT_REG_DT
-             , '' AS OUT_SEQ
-             , '' AS OUT_SER
-             , '' AS IN_REG_DT
-             , '1' AS DLV_GB
-             , NVL(M2.PITM_STOC_A_GD_QTY, 0) AS PITM_STOC_A_GD_QTY
-             , CASE WHEN (OUT_PER_BOX - FLOOR(OUT_PER_BOX)) > 0
-                    THEN FLOOR(OUT_PER_BOX) + 1
-                    ELSE FLOOR(OUT_PER_BOX)
-                     END OUT_BOX_QTY
-          FROM (SELECT M1.ITEM_CD
-                     , M1.PD_ABBR_NM
-                     , M1.MGT_UNT
-                     , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', M1.MGT_UNT) AS MGT_UNT_NM /*관리단위명*/
-                     , M1.MAT_GD_CD
-                     , M1.ASN_OJ_YM
-                     , M1.OSTR_WARE_NO
-                     , M1.STR_WARE_NO
-                     , M1.HGR_WARE_NO
-                     , M1.WARE_NM
-                     , M1.RECT_OSTR_DT
-                     , M1.RECT_OSTR_TP_CD
-                     , M1.ITM_QOM_ASN_NO
-                     , M1.ITEM_KIND
-                     , M1.SAP_MAT_CD
-                     , M1.CRTL_STOC_QTY
-                     , M1.THWK_EXP_QTY
-                     , M1.BOX_QTY
-                     , M1.CNFM_QTY
-                     , M1.MCBY_ACU_OSTR_QTY
-                     , CASE WHEN M1.BOX_QTY = 0
-                            THEN 0
-                            ELSE ((M1.CNFM_QTY - M1.MCBY_ACU_OSTR_QTY) / M1.BOX_QTY)
-                             END OUT_PER_BOX
-                     , CASE WHEN M1.BOX_QTY <![CDATA[>]]> 0
-                            THEN ROUND(M1.CNFM_QTY / M1.BOX_QTY , 2)
-                            ELSE 0
-                             END CFRM_BOX_QTY
-                     , M1.CNFM_QTY - M1.MCBY_ACU_OSTR_QTY AS OUT_QTY
-                     , CASE WHEN M1.BOX_QTY <![CDATA[>]]> 0
-                            THEN ROUND((M1.CNFM_QTY - M1.MCBY_ACU_OSTR_QTY) / M1.BOX_QTY , 2)
-                            ELSE 0
-                             END OUT_BOX_QTY
-                     , CASE WHEN M1.BOX_QTY <![CDATA[>]]> 0
-                            THEN ROUND(M1.MCBY_ACU_OSTR_QTY / M1.BOX_QTY, 2)
-                            ELSE 0
-                             END ACC_BOX_QTY
-                     , (SELECT NVL(S1.PITM_STOC_A_GD_QTY, 0) - NVL(S1.MMT_STOC_A_GD_QTY, 0)
-                          FROM TB_SVST_CST_SV_ITM_STOC_IZ S1
-                         WHERE S1.WARE_NO = M1.OSTR_WARE_NO
-                           AND S1.ITM_PD_CD = M1.ITEM_CD
-                       ) AS PITM_STOC_A_GD_QTY
-                  FROM (SELECT T1.ITM_PD_CD AS ITEM_CD
-                             , T3.PD_ABBR_NM
-                             , T4.PD_PRP_VAL05 AS MGT_UNT
-                             , T1.MAT_GD_CD
-                             , T1.ASN_OJ_YM
-                             , T1.OSTR_WARE_NO
-                             , T1.STR_WARE_NO
-                             , T2.HGR_WARE_NO
-                             , T2.WARE_NM
-                             , T1.RECT_OSTR_DT
-                             , T1.RECT_OSTR_TP_CD
-                             , T1.ITM_QOM_ASN_NO
-                             , T4.PD_PRP_VAL19 AS ITEM_KIND /*ITEM_KIND*/
-                             , T3.SAP_MAT_CD
-                             , NVL(T1.CRTL_STOC_QTY, 0) AS CRTL_STOC_QTY
-                             , NVL(T1.THWK_EXP_QTY, 0) AS THWK_EXP_QTY
-                             , NVL(T1.BOX_QTY, 0) AS BOX_QTY
-                             , NVL(T1.CNFM_QTY, 0) AS CNFM_QTY
-                             , NVL(T1.MCBY_ACU_OSTR_QTY, 0) AS MCBY_ACU_OSTR_QTY
-                          FROM TB_SVST_ITM_QOM_ASN_IZ T1
-                         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
-                            ON T1.STR_WARE_NO = T2.WARE_NO
-                         INNER JOIN TB_PDBS_PD_BAS T3
-                            ON T1.ITM_PD_CD = T3.PD_CD
-                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
-                            ON T3.PD_CD = T4.PD_CD
-                         WHERE T1.ASN_OJ_YM = #{asnOjYm} /* 배정년월 */
-                           AND T1.ASN_TN_N  = #{asnTnN}
-                           <if test="@MybatisUtils@isNotEmpty(ostrWareNoD)">
-                           AND T1.OSTR_WARE_NO = #{ostrWareNoD} /* 출고창고번호 */
-                           </if>
-                           <if test="@MybatisUtils@isNotEmpty(strWareNo)">
-                           AND T2.HGR_WARE_NO = #{strWareNo} /* 입고창고번호 */
-                           </if>
-                           <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-                           AND T4.PD_PRP_VAL19 = #{itmKndCd} /* 품목종류 */
-                           </if>
-                           <if test="@MybatisUtils@isNotEmpty(itemKindD)">
-                           AND T3.PD_CD = #{itemKindD} /* 품목 */
-                           </if>
-                           AND T2.APY_YM = #{baseYm} /* 기준년월 */
-                           AND T2.WARE_USE_YN = 'Y'
-                       ) M1
-               ) M2
+
+    <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOstrDto$SearchPdRes">
+        SELECT D1.PD_CD
+             , D1.PD_NM
+             , D2.PD_PRP_VAL19 AS ITM_KND_CD
+          FROM TB_PDBS_PD_BAS D1                 /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+            ON D2.PD_CD = D1.PD_CD
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_TP_CD           = 'M'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D2.PD_PRP_VAL19      IN ('4', '5', '6')   /* 상품, 필터, A/S자재 */
     </select>
 
-    <select id="selectNewOstrAkNoByQomOstr" resultType="java.lang.String">
-        SELECT #{ostrAkTpCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVST_ITM_OSTR_AK_IZ$OSTR_AK_NO.NEXTVAL,7,'0') AS OSTR_AK_NO
-        FROM DUAL
+    <select id="selectIndependenceStrWares" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
+        SELECT DISTINCT D1.HGR_WARE_NO             AS WARE_NO
+             , ( SELECT WARE_NM
+                   FROM TB_SVST_MCBY_WARE_IZ
+                  WHERE APY_YM  = D1.APY_YM
+                    AND WARE_NO = D1.HGR_WARE_NO ) AS WARE_NM
+          FROM TB_SVST_MCBY_WARE_IZ D1   /* 월별창고내역 */
+         INNER JOIN
+             (
+               SELECT DISTINCT STR_WARE_NO   /* 입고창고번호 */
+                 FROM TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
+                WHERE DTA_DL_YN      = 'N'
+                  AND ASN_OJ_YM      = #{asnOjYm}
+                  AND ASN_TN_N       = #{cnt}
+                  AND OSTR_WARE_NO   = #{ostrWareNo}
+                  AND WARE_DV_CD     = #{wareDvCd}
+                  AND WARE_DTL_DV_CD = #{wareDtlDvCd}
+             ) D2
+            ON D2.STR_WARE_NO = D1.WARE_NO
+         WHERE D1.DTA_DL_YN   = 'N'
+           AND D1.WARE_USE_YN = 'Y'
+           AND D1.APY_YM      = #{apyYm}
+         ORDER BY WARE_NM
     </select>
 
-    <insert id="insertTbSvstItmOstrAkIz">
-        INSERT INTO TB_SVST_ITM_OSTR_AK_IZ(
-               OSTR_AK_NO
-             , OSTR_AK_SN
-             , OSTR_AK_TP_CD
-             , OSTR_OJ_WARE_NO
-             , STR_OJ_WARE_NO
-             , OSTR_AK_RGST_DT
-             , STR_HOP_DT
-             , ITM_PD_CD
-             , ITM_GD_CD
-             , MNGT_UNIT_CD
-             , OSTR_AK_QTY
-             , RMK_CN
-             , DTA_DL_YN
-             <include refid="COMMON.insertSystemField"/>
-             )
-        <foreach collection="list" item="item" separator=" UNION ALL" >
-        SELECT #{item.ostrAkNo}
-             , TO_NUMBER(#{item.ostrAkSn})
-             , '360' AS OSTR_AK_TP_CD
-             , #{item.ostrOjWareNo}
-             , #{item.strOjWareNo}
-             , TO_CHAR(SYSDATE,'YYYYMMDD')
-             , TO_CHAR(SYSDATE,'YYYYMMDD')
-             , #{item.itmPdCd}
-             , #{item.itmGdCd}
-             , #{item.mngtUnitCd}
-             , #{item.ostrAkQty}
-             , #{item.rmkCn}
-             , 'N'
-             <include refid="COMMON.insertSystemFieldValue"/>
-        FROM DUAL
-        </foreach>
-    </insert>
-    <insert id="insertTbIfinItmOstrAkSendEtxt">
-        INSERT INTO TB_IFIN_ITM_OSTR_AK_SEND_ETXT (
-               OSTR_AK_NO
-             , OSTR_WARE_NO
-             , OSTR_TP_CD
-             , STR_HOP_DT
-             , ITM_GD_CD
-             , PD_CD
-             , OSTR_AK_QTY
-             <include refid="COMMON.insertSystemField"/>
-             )
-        <foreach collection="list" item="item" separator=" UNION ALL" >
-        SELECT
-               #{ostrAkNo}
-             , #{ostrWareNo}
-             , '360'
-             , TO_CHAR(SYSDATE, 'YYYYMMDD')
-             , #{matGdCd}
-             , #{itmPdCd}
-             , #{ostrAkQty}
-             <include refid="COMMON.insertSystemFieldValue"/>
+    <select id="selectIndependenceWareOstrs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo">
+        SELECT CASE WHEN T.OUT_QTY <![CDATA[>]]> 0
+                    THEN 'Y'
+                    WHEN T.OSTR_AK_NO IS NOT NULL
+                    THEN 'Y'
+                    ELSE 'N'
+               END                    AS CHK                     /* Row 체크여부 */
+             , T.WARE_NM                                         /* 창고명 */
+             , T.SAP_MAT_CD                                      /* SAP코드 */
+             , T.ITM_PD_CD                                       /* 품목코드 */
+             , T.PD_ABBR_NM                                      /* 품목명 */
+             , T.MNGT_UNIT                                       /* 관리단위 */
+             , T.MNGT_UNIT_NM                                    /* 관리단위명 */
+             , T.MAT_GD_CD                                       /* 등급 */
+             , T.BOX_UNIT_QTY                                    /* 박스단위수량 */
+             , T.CRTL_STOC_QTY                                   /* 재고수량 */
+             , T.USE_QTY                                         /* 소요수량 */
+             , T.CNFM_QTY                                        /* 물량배정확정 수량 */
+             , T.CNFM_BOX_QTY                                    /* 물량배정확정 BOX */
+             , CASE WHEN T.ITM_PD_CD IN ('WM07100419', 'WM07100420')
+                     AND T.MCBY_ACU_OSTR_QTY <![CDATA[>]]> 0
+                     AND T.FILTER_BOX_QTY <![CDATA[>]]> 0
+                     AND TRUNC( T.MCBY_ACU_OSTR_QTY / T.FILTER_BOX_QTY, 2)
+                         - FLOOR(T.MCBY_ACU_OSTR_QTY / T.FILTER_BOX_QTY) <![CDATA[>]]> 0.8
+                    THEN ROUND(T.MCBY_ACU_OSTR_BOX_QTY) * 30
+                    ELSE T.MCBY_ACU_OSTR_QTY
+               END                    AS MCBY_ACU_OSTR_QTY       /* 물량배정출고 누계 */
+             , CASE WHEN T.ITM_PD_CD IN ('WM07100419', 'WM07100420')
+                     AND T.MCBY_ACU_OSTR_QTY <![CDATA[>]]> 0
+                     AND T.FILTER_BOX_QTY <![CDATA[>]]> 0
+                     AND TRUNC( T.MCBY_ACU_OSTR_QTY / T.FILTER_BOX_QTY, 2) - FLOOR(T.MCBY_ACU_OSTR_QTY / T.FILTER_BOX_QTY) <![CDATA[>]]> 0.8
+                    THEN ROUND(T.MCBY_ACU_OSTR_BOX_QTY)
+                    ELSE T.MCBY_ACU_OSTR_BOX_QTY
+               END                    AS MCBY_ACU_OSTR_BOX_QTY   /* 물량배정출고 BOX */
+             , T.FILTER_BOX_QTY                                  /* 필터박스수량 */
+             , T.OUT_QTY                                         /* 출고수량 */
+             , T.ITM_QOM_ASN_NO                                  /* 품목물량배정번호 */
+             , T.ASN_OJ_YM                                       /* 배정대상년월 */
+             , T.OSTR_WARE_NO                                    /* 출고창고번호 */
+             , T.STR_WARE_NO                                     /* 입고창고번호 */
+             , T.WARE_MNGT_PRTNR_NO                              /* 창고관리파트너번호 */
+             , T.OG_TP_CD                                        /* 조직유형코드 */
+             , T.ITM_KND_CD                                      /* 품목종류코드 */
+             , T.ASN_TN_N                                        /* 배정회차수 */
+             , T.WARE_DV_CD                                      /* 창고구분코드 */
+             , T.OSTR_AK_NO                                      /* 출고요청번호 */
+             , T.OSTR_AK_SN                                      /* 출고요청일련번호 */
+             , T.OSTR_DT                                         /* 출고일자 */
+             , T.RMK_CN                                          /* 비고 */
+          FROM
+             (
+               SELECT D1.ITM_PD_CD
+                    , D3.PD_ABBR_NM
+                    , D4.PD_PRP_VAL05                                                              AS MNGT_UNIT
+                    , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', D4.PD_PRP_VAL05, #{session.langId}) AS MNGT_UNIT_NM
+                    , D1.MAT_GD_CD
+                    , NVL(D1.BOX_QTY, 0)                                                           AS BOX_UNIT_QTY
+                    , D1.CNFM_QTY
+                    , CASE WHEN NVL(TO_NUMBER(D4.PD_PRP_VAL12), 0) > 0
+                            AND NVL(D1.CNFM_QTY, 0) > 0
+                           THEN ROUND( D1.CNFM_QTY / TO_NUMBER(D4.PD_PRP_VAL12), 2 )
+                           ELSE 0
+                      END                                                                          AS CNFM_BOX_QTY
+                    , NVL(D5.OSTR_AK_QTY, NVL(D1.CNFM_QTY, 0) - NVL(D1.MCBY_ACU_OSTR_QTY, 0))      AS OUT_QTY
+                    , NVL(D1.MCBY_ACU_OSTR_QTY, 0)                                                 AS MCBY_ACU_OSTR_QTY
+                    , CASE WHEN NVL(TO_NUMBER(D4.PD_PRP_VAL12), 0) > 0
+                            AND NVL(D1.MCBY_ACU_OSTR_QTY, 0) > 0
+                           THEN ROUND( D1.MCBY_ACU_OSTR_QTY / TO_NUMBER(D4.PD_PRP_VAL12), 2 )
+                           ELSE 0
+                      END                                                                          AS MCBY_ACU_OSTR_BOX_QTY
+                    , D1.ASN_OJ_YM
+                    , D1.OSTR_WARE_NO
+                    , D1.STR_WARE_NO
+                    , D1.ITM_QOM_ASN_NO
+                    , D1.ASN_TN_N
+                    , D2.WARE_MNGT_PRTNR_NO
+                    , D2.OG_TP_CD
+                    , D4.PD_PRP_VAL19                                                              AS ITM_KND_CD
+                    , D3.SAP_MAT_CD
+                    , D1.CRTL_STOC_QTY
+                    , NVL(D1.THWK_EXP_QTY, 0)                                                      AS USE_QTY
+                    , NVL(TO_NUMBER(D4.PD_PRP_VAL12), 0)                                           AS FILTER_BOX_QTY
+                    , D2.WARE_NM
+                    , D2.WARE_DV_CD
+                    , D5.OSTR_AK_NO
+                    , D5.OSTR_AK_SN
+                    , D5.OSTR_AK_RGST_DT                                                           AS OSTR_DT
+                    , D5.RMK_CN
+                 FROM TB_SVST_ITM_QOM_ASN_IZ D1              /* 품목물량배정내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2           /* 월별창고내역 */
+                   ON D2.WARE_NO = D1.STR_WARE_NO
+                INNER JOIN TB_PDBS_PD_BAS D3                 /* 상품기본 */
+                   ON D3.PD_CD = D1.ITM_PD_CD
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4        /* 상품각사속성상세 */
+                   ON D4.PD_CD = D3.PD_CD
+                 LEFT OUTER JOIN TB_SVST_ITM_OSTR_AK_IZ D5   /* 품목출고요청내역 */
+                   ON D5.ITM_QOM_ASN_NO = D1.ITM_QOM_ASN_NO
+                  AND D5.DTA_DL_YN      = 'N'
+                WHERE D1.DTA_DL_YN          = 'N'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D2.WARE_USE_YN        = 'Y'
+                  AND D3.DTA_DL_YN          = 'N'
+                  AND D3.PD_TP_CD           = 'M'
+                  AND D4.DTA_DL_YN          = 'N'
+                  AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D4.PD_PRP_VAL19      IN ('4', '5', '6')
+                  AND D1.ASN_OJ_YM          = #{asnOjYm}
+                  AND D1.ASN_TN_N           = #{cnt}
+                  AND D1.OSTR_WARE_NO       = #{ostrWareNo}
+                  AND D2.HGR_WARE_NO        = #{strWareNo}
+                  AND D2.APY_YM             = #{apyYm}
+            <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                  AND D4.PD_PRP_VAL19       = #{itmKndCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD          = #{itmPdCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.ITM_PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                       #{itmPdCd}
+                                </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strtSapCd)">
+                  AND D3.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(endSapCd)">
+                  AND D3.SAP_MAT_CD <![CDATA[<]]>  LPAD(#{endSapCd}, 18, '0')
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
+                  AND D3.SAP_MAT_CD IS NOT NULL
+            </if>
+             ) T
+         ORDER BY T.WARE_NM, T.ITM_PD_CD
+    </select>
+
+    <select id="selectOstrAkNoByItmQomAsnNos" resultType="java.lang.String">
+        SELECT DISTINCT D1.OSTR_AK_NO
+          FROM TB_SVST_ITM_OSTR_AK_IZ D1                     /* 품목출고요청내역 */
+          LEFT OUTER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT D2   /* 출고요청상세송신전문 */
+            ON D2.REL_NO    = D1.OSTR_AK_NO
+           AND D2.REL_SN    = D1.OSTR_AK_SN
+           AND D2.DTA_DL_YN = 'N'
+         WHERE D1.DTA_DL_YN = 'N'
+           AND D2.REL_NO IS NULL
+           AND D1.ITM_QOM_ASN_NO IN
+                            <foreach collection="itmQomAsnNos" item="item" open="(" close=")" separator=",">
+                                     #{item}
+                            </foreach>
+    </select>
+
+    <select id="selectNewOstrAkNo" resultType="java.lang.String">
+        SELECT #{ostrAkTpCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVST_ITM_OSTR_AK_IZ$OSTR_AK_NO.NEXTVAL, 7, '0') AS OSTR_AK_NO
           FROM DUAL
-        </foreach>
+    </select>
+
+    <insert id="mergeItmOstrAkIz">
+         MERGE INTO TB_SVST_ITM_OSTR_AK_IZ TB_TGT   /* 품목출고요청내역 */
+         USING
+             (
+               SELECT #{ostrAkNo}                                            AS OSTR_AK_NO           /* 출고요청번호 */
+                    , NVL(#{ostrAkSn}, ( SELECT NVL(MAX(OSTR_AK_SN), 0) + 1
+                                           FROM TB_SVST_ITM_OSTR_AK_IZ
+                                          WHERE OSTR_AK_NO = #{ostrAkNo} ) ) AS OSTR_AK_SN           /* 출고요청일련번호 */
+                    , #{strWareNo}                                           AS STR_WRAE_NO          /* 입고창고번호 */
+                    , #{ostrWareNo}                                          AS OSTR_WARE_NO         /* 출고대상창고번호 */
+                    , #{ostrDt}                                              AS OSTR_DT              /* 출고요청등록일자 */
+                    , #{wareDvCd}                                            AS WARE_DV_CD           /* 출고요청창고구분코드 */
+                    , #{wareMngtPrtnrNo}                                     AS WARE_MNGT_PRTNR_NO   /* 창고관리파트너번호 */
+                    , #{ogTpCd}                                              AS OG_TP_CD             /* 창고관리파트너조직유형코드 */
+                    , #{itmPdCd}                                             AS ITM_PD_CD            /* 품목상품코드 */
+                    , #{mngtUnit}                                            AS MNGT_UNIT            /* 관리단위코드 */
+                    , #{boxUnitQty}                                          AS BOX_UNIT_QTY         /* 박스단위수량 */
+                    , #{matGdCd}                                             AS MAT_GD_CD            /* 품목등급코드 */
+                    , #{outQty}                                              AS OSTR_AK_QTY          /* 출고요청수량 */
+                    , #{outQty}                                              AS OSTR_CNFM_QTY        /* 출고확정수량 */
+                    , #{rmkCn}                                               AS RMK_CN               /* 비고내용 */
+                    , #{itmQomAsnNo}                                         AS ITM_QOM_ASN_NO       /* 품목물량배정번호 */
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.OSTR_AK_NO = TB_SRC.OSTR_AK_NO
+               AND TB_TGT.OSTR_AK_SN = TB_SRC.OSTR_AK_SN
+               AND TB_TGT.DTA_DL_YN  = 'N'
+             )
+          WHEN MATCHED THEN
+        UPDATE
+           SET TB_TGT.OSTR_AK_QTY     = TB_SRC.OSTR_AK_QTY
+             , TB_TGT.OSTR_CNFM_QTY   = TB_SRC.OSTR_CNFM_QTY
+             , TB_TGT.OSTR_AK_RGST_DT = TB_SRC.OSTR_DT
+             , TB_TGT.RMK_CN          = TB_SRC.RMK_CN
+        <include refid="COMMON.updateSystemField"/>
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               TB_TGT.OSTR_AK_NO                 /* 출고요청번호 */
+             , TB_TGT.OSTR_AK_SN                 /* 출고요청일련번호 */
+             , TB_TGT.OSTR_AK_TP_CD              /* 출고요청유형코드 */
+             , TB_TGT.STR_OJ_WARE_NO             /* 입고창고번호 */
+             , TB_TGT.OSTR_OJ_WARE_NO            /* 출고대상창고번호 */
+             , TB_TGT.OSTR_AK_RGST_DT            /* 출고요청등록일자 */
+             , TB_TGT.OSTR_AK_WARE_DV_CD         /* 출고요청창고구분코드 */
+             , TB_TGT.WARE_MNGT_PRTNR_NO         /* 창고관리파트너번호 */
+             , TB_TGT.WARE_MNGT_PRTNR_OG_TP_CD   /* 창고관리파트너조직유형코드 */
+             , TB_TGT.OSTR_OJ_WARE_DV_CD         /* 출고대상창고구분코드 */
+             , TB_TGT.ITM_PD_CD                  /* 품목상품코드 */
+             , TB_TGT.MNGT_UNIT_CD               /* 관리단위코드 */
+             , TB_TGT.BOX_UNIT_QTY               /* 박스단위수량 */
+             , TB_TGT.ITM_GD_CD                  /* 품목등급코드 */
+             , TB_TGT.OSTR_AK_QTY                /* 출고요청수량 */
+             , TB_TGT.OSTR_CNFM_QTY              /* 출고확정수량 */
+             , TB_TGT.ITM_QOM_ASN_NO             /* 품목물량배정번호 */
+             , TB_TGT.RMK_CN                     /* 비고내용 */
+             , TB_TGT.DTA_DL_YN                  /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               TB_SRC.OSTR_AK_NO                 /* 출고요청번호 */
+             , TB_SRC.OSTR_AK_SN                 /* 출고요청일련번호 */
+             , '360'                             /* 출고요청유형코드 */
+             , TB_SRC.STR_WRAE_NO                /* 입고창고번호 */
+             , TB_SRC.OSTR_WARE_NO               /* 출고대상창고번호 */
+             , TB_SRC.OSTR_DT                    /* 출고요청등록일자 */
+             , TB_SRC.WARE_DV_CD                 /* 출고요청창고구분코드 */
+             , TB_SRC.WARE_MNGT_PRTNR_NO         /* 창고관리파트너번호 */
+             , TB_SRC.OG_TP_CD                   /* 창고관리파트너조직유형코드 */
+             , '1'                               /* 출고대상창고구분코드 */
+             , TB_SRC.ITM_PD_CD                  /* 품목상품코드 */
+             , TB_SRC.MNGT_UNIT                  /* 관리단위코드 */
+             , TB_SRC.BOX_UNIT_QTY               /* 박스단위수량 */
+             , TB_SRC.MAT_GD_CD                  /* 품목등급코드 */
+             , TB_SRC.OSTR_AK_QTY                /* 출고요청수량 */
+             , TB_SRC.OSTR_CNFM_QTY              /* 출고확정수량 */
+             , TB_SRC.ITM_QOM_ASN_NO             /* 품목물량배정번호 */
+             , TB_SRC.RMK_CN                     /* 비고내용 */
+             , 'N'                               /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemFieldValue"/>
+             )
     </insert>
+
+    <update id="updateItmQomAsnIz">
+        UPDATE TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
+           SET RECT_OSTR_DUEDT   = #{ostrDt}                               /* 최근출고예정일자 */
+             , MCBY_ACU_OSTR_QTY = NVL(MCBY_ACU_OSTR_QTY, 0) + #{outQty}   /* 월별누적출고수량 */
+             , RECT_OSTR_TP_CD   = '222'                                   /* 최근출고유형코드 - 물량배정 */
+             , RECT_OSTR_DT      = TO_CHAR(SYSDATE, 'YYYYMMDD')            /* 최근출고일자 */
+             , RECT_OSTR_QTY     = #{outQty}                               /* 최근출고수량 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN      = 'N'
+           AND ITM_QOM_ASN_NO = #{itmQomAsnNo}
+    </update>
+
 </mapper>

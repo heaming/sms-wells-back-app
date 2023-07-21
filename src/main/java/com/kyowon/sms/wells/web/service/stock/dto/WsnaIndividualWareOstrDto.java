@@ -82,6 +82,7 @@ public class WsnaIndividualWareOstrDto {
         String endSapCd
     ) {}
 
+    @Builder
     @ApiModel("WsnaIndividualWareOstrDto-SaveReq")
     public record SaveReq(
         String sapMatCd,
@@ -96,7 +97,6 @@ public class WsnaIndividualWareOstrDto {
         String mngtUnit,
         String matGdCd,
         BigDecimal logisticStocQty,
-        BigDecimal logisticFilterQty,
 
         BigDecimal boxUnitQty,
         BigDecimal crtlStocQty,
