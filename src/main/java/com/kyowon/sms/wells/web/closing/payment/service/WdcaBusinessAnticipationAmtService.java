@@ -3,11 +3,11 @@ package com.kyowon.sms.wells.web.closing.payment.service;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaBusinessAnticipationAmtDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDelinquentDepositRefundDvo;
 import com.kyowon.sms.wells.web.closing.payment.mapper.WdcaBusinessAnticipationAmtMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -181,7 +181,7 @@ public class WdcaBusinessAnticipationAmtService {
                 BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
                 // 기타선수금 데이터 여부
-                if (!dvo.getEtcAtamNo().isEmpty()) {
+                if (StringUtils.isNotEmpty(dvo.getEtcAtamNo())) {
                     resultCount = mapper.insertEtcProcess(dvo);
                     BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
 
