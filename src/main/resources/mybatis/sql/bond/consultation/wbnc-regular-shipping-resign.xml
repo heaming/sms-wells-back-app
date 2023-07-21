@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncRegularShippingResignMapper">
+    <select id="selectRegularShippingResigns" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncRegularShippingResignDto$SearchRes">
+        /* 직권해지관리 - 정기배송해지 조회 */
+        SELECT A.BASE_YM                                                /*기준년월*/
+             , A.CNTR_NO                                                /*계약번호*/
+             , A.CNTR_SN                                                /*계약일련번호*/
+             , (CASE WHEN A.AUTH_RSG_CNFM_YN = 'N' THEN '해지예정'
+                     WHEN A.AUTH_RSG_CNFM_YN = 'Y' THEN '직권해지'
+                     ELSE '' END) AS AUTH_RSG_STS                       /*해지상태*/
+             , A.AUTH_RSG_CNFM_YN                                       /*직권해지확정여부*/
+             , A.CNTR_NO||'-'||A.CNTR_SN AS CNTR_NO_SN                  /*계약상세번호*/
+             , A.CST_NO                                                 /*고객번호*/
+             , (SELECT S1.CST_KNM
+                  FROM TB_CUBS_CST_BAS S1 /*T:고객기본*/
+                 WHERE S1.CST_NO = A.CST_NO) AS CST_KNM                 /*고객명*/
+             , B.BASE_PD_CD                                             /*패키지번호*/
+             , (SELECT S1.PD_NM
+                  FROM TB_PDBS_PD_BAS S1 /*상품기본*/
+                 WHERE S1.PD_CD = A.PD_CD) AS PD_NM                     /*패키지명*/
+             , D.PRTNR_KNM                                              /*플래너(판매자)명*/
+             , C.SELL_PRTNR_NO                                          /*플래너(판매자)번호*/
+             , D.OG_CD                                                  /*조직코드*/
+             , A.SL_DT                                                  /*매출일자*/
+             , A.SELL_AMT                                               /*판매금액*/
+             , A.DLQ_MCN                                                /*연체개월수*/
+             , A.UC_AMT                                                 /*미수금액*/
+             , A.DLQ_AMT                                                /*연체금액*/
+             , NVL((SELECT SUM(S1.RVE_AMT)
+                      FROM TB_RVDW_RVE_DTL S1 /*T:수납상세*/
+                     WHERE S1.CNTR_NO = A.CNTR_NO
+                       AND S1.CNTR_SN = A.CNTR_SN
+                       AND S1.DP_DV_CD = '1'
+                       AND S1.RVE_DT >= E.DLQ_RCK_DT),0) AS TOT_RVE_AMT /*입금누계-연체시작일자이후부터 입금된 총금액*/
+             , (SELECT S1.PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS S1 /*T:파트너기본*/
+                 WHERE S1.OG_TP_CD = 'BND'
+                   AND S1.PRTNR_NO = E.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NM /*집금담당자명*/
+             , E.CLCTAM_PRTNR_NO                                        /*집금담당자번호*/
+             , '' AS ERR_CN                                             /*에러내용*/
+          FROM TB_CBBO_WELLS_AUTH_RSG_IZ A /*T:WELLS직권해지내역*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+            ON B.CNTR_NO = A.CNTR_NO
+           AND B.CNTR_SN = A.CNTR_SN
+           AND SUBSTR(B.CNTR_PD_STRTDT,1,6) = A.BASE_YM
+         INNER JOIN TB_SSCT_CNTR_BAS C /*T:계약기본*/
+            ON C.CNTR_NO = B.CNTR_NO
+          LEFT JOIN TB_OGBS_PRTNR_BAS D /*T:파트너기본*/
+            ON D.OG_TP_CD = C.SELL_OG_TP_CD
+           AND D.PRTNR_NO = C.SELL_PRTNR_NO
+          LEFT JOIN TB_CBBO_BND_CNTR_BAS E /*T:채권계약기본*/
+            ON E.CNTR_NO = A.CNTR_NO
+           AND E.CNTR_SN = A.CNTR_SN
+           AND E.BASE_YM = A.BASE_YM
+         WHERE 1 = 1
+           AND A.DTA_DL_YN = 'N'
+           AND A.SELL_TP_CD = '6'                           /*판매유형코드-정기배송만*/
+           AND (A.CAN_DT IS NULL OR A.CAN_DT = 0)           /*취소일자-null인것*/
+           AND A.AUTH_RSG_EXP_YN = 'Y'                      /*직권해지예정일자-입력된것*/
+           AND A.AUTH_RSG_EXCD_RSON_CD IS NULL              /*직권해지제외사유코드-null인것*/
+           AND (A.AUTH_RSG_DUEDT  LIKE #{authRsgDt}||'%'    /*직권해지예정일자*/
+            OR  A.AUTH_RSG_CNFMDT LIKE #{authRsgDt}||'%')   /*직권해지확정일자*/
+           AND NVL(A.DLQ_AMT,0) > NVL((SELECT SUM(S1.RVE_AMT)
+                                         FROM TB_RVDW_RVE_DTL S1 /*T:수납상세*/
+                                        WHERE S1.CNTR_NO = A.CNTR_NO
+                                          AND S1.CNTR_SN = A.CNTR_SN
+                                          AND S1.DP_DV_CD = '1'
+                                          AND S1.RVE_DT >= E.DLQ_RCK_DT),0) /*연체금액이 입금누계보다 큰것만*/
+        <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>
+           AND A.CLCTAM_DV_CD = #{clctamDvCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(clctamPrtnrNo)'>
+           AND A.CLCTAM_PRTNR_NO = #{clctamPrtnrNo}
+        </if>
+    </select>
+
+    <update id="updateRegularShippingResignFinalConfirm">
+        /* 직권해지관리 - 정기배송해지 최종확정 */
+        UPDATE TB_CBBO_WELLS_AUTH_RSG_IZ /*T:WELLS직권해지내역*/
+           SET AUTH_RSG_CNFM_YN = 'Y'
+             , AUTH_RSG_CNFMDT = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , AUTH_RSG_CNFM_RGST_PRTNR_NO = #{session.employeeIDNumber}
+         WHERE 1 = 1
+           AND AUTH_RSG_EXP_YN = 'Y'
+           AND BASE_YM = #{baseYm}
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
+    </update>
+</mapper>
