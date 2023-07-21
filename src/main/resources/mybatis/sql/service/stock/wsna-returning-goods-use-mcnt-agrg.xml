@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsUseMcntAgrgMapper">
+
+    <select id="selectReturningGoodsUseMcntAgrg" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsUseMcntAgrgDto$SearchRes">
+        SELECT T1.*, T2.SAP_MAT_CD
+            FROM (
+                SELECT V1.PD_CD
+                     , MAX(V1.PD_NM) AS PD_NM
+                     , SUM(USE_MCN_T) AS USE_MCN_T
+                     , SUM(USE_MCN_1) AS USE_MCN_1
+                     , SUM(USE_MCN_2) AS USE_MCN_2
+                     , SUM(USE_MCN_3_6) AS USE_MCN_3_6
+                     , SUM(USE_MCN_7_12) AS USE_MCN_7_12
+                     , SUM(USE_MCN_13_24) AS USE_MCN_13_24
+                     , SUM(USE_MCN_25_36) AS USE_MCN_25_36
+                     , SUM(USE_MCN_37_48) AS USE_MCN_37_48
+                     , SUM(USE_MCN_49_60) AS USE_MCN_49_60
+                     , SUM(USE_MCN_61_72) AS USE_MCN_61_72
+                     , SUM(USE_MCN_73_84) AS USE_MCN_73_84
+                     , SUM(USE_MCN_85) AS USE_MCN_85
+                  FROM (SELECT P1.PD_CD
+                             , P1.PD_PRP_VAL33 AS PD_NM
+                             , P1.PD_PRP_VAL20 AS PD_GRP_CD
+                             , 0 AS USE_MCN_T
+                             , 0 AS USE_MCN_1
+                             , 0 AS USE_MCN_2
+                             , 0 AS USE_MCN_3_6
+                             , 0 AS USE_MCN_7_12
+                             , 0 AS USE_MCN_13_24
+                             , 0 AS USE_MCN_25_36
+                             , 0 AS USE_MCN_37_48
+                             , 0 AS USE_MCN_49_60
+                             , 0 AS USE_MCN_61_72
+                             , 0 AS USE_MCN_73_84
+                             , 0 AS USE_MCN_85
+                          FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
+                         WHERE 1=1
+                           /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+                           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+                           /*ST101_ITEM_KND, ITM_KND_CD - 2 웰스팜A/S자재, 3 모종, 4 상품, 5 필터, 6 A/S자재, 7 A/S소모품, 8 B/S소모품,
+                             9 판매사은품, 10 공구, 12 홈카페캡슐, 13 공용소모품*/
+                           AND P1.PD_PRP_VAL19 = '4'
+                           AND P1.DTA_DL_YN = 'N'
+                           /*23.07.20 이정민파트장님 확인 그룹*/
+                           /*ST101_ITEM_GR. PD_GRP_CD - 1 비데, 2 정수기, 3 공기청정기, 4 연수기, 5 마사지기, 6 음식물처리기, 7 제습기,
+                             8 제빙기, 9 아웃소싱, 10 홈케어, 11 웰스팜모종, 12 홈카페캡슐, 13 활력홍삼, 14 화장품, 15 슬림쏙, 16 백수오,
+                            91 전기레인지, 92 웰스팜, 93 안마의자, 94 삼성제품, 95 매트리스, 96 커피머신*/
+                           AND P1.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '91', '92', '93', '95', '96')
+                           AND P1.PD_PRP_VAL20 IS NOT NULL
+                           AND P1.PD_PRP_VAL32 = 'Y'    /*ST101_USE_YN*/
+                         GROUP BY P1.PD_CD
+                             , P1.PD_PRP_VAL33
+                             , P1.PD_PRP_VAL20
+
+                         UNION ALL
+
+                        SELECT S1.FNL_PD_CD
+                             , '' AS PD_NM
+                             , '' AS PD_GRP_CD
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) >= 1 THEN 1 ELSE 0 END)) USE_MCN_T
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) = 1 THEN 1 ELSE 0 END)) USE_MCN_1
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) = 2 THEN 1 ELSE 0 END)) USE_MCN_2
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '3' AND '6' THEN 1 ELSE 0 END)) USE_MCN_3_6
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '7' AND '12' THEN 1 ELSE 0 END)) USE_MCN_7_12
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '13' AND '24' THEN 1 ELSE 0 END)) USE_MCN_13_24
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '25' AND '36' THEN 1 ELSE 0 END)) USE_MCN_25_36
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '37' AND '48' THEN 1 ELSE 0 END)) USE_MCN_37_48
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '49' AND '60' THEN 1 ELSE 0 END)) USE_MCN_49_60
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '61' AND '72' THEN 1 ELSE 0 END)) USE_MCN_61_72
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) BETWEEN '73' AND '84' THEN 1 ELSE 0 END)) USE_MCN_73_84
+                             , SUM((CASE WHEN CEIL(MONTHS_BETWEEN(S1.FNL_VST_FSH_DT, S1.FRE_EXPN_IST_DT)) > '82' THEN 1 ELSE 0 END)) USE_MCN_85
+                          FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1 /*서비스작업출고내역, ST163TB*/
+                         WHERE 1=1
+                         <if test="@MybatisUtils@isNotEmpty(itmGdCd) and !@MybatisUtils@equals(itmGdCd, 'ALL')">
+                           AND S1.FNL_ITM_GD_CD = #{itmGdCd}            /* 검색 조건 - 상품등급 */
+                         </if>
+                           AND S1.FNL_VST_FSH_DT BETWEEN #{startDt} AND #{endDt}     /* 검색 조건 - 작업일자 */
+                           AND S1.SV_BIZ_HCLSF_CD = '6'
+                         <if test="@MybatisUtils@isNotEmpty(serviceCenter) and !@MybatisUtils@equals(itmGdCd, 'serviceCenter')">
+                           AND S1.DGR1_LEVL_OG_ID = #{serviceCenter}    /* 검색 조건 - 서비스센터 */
+                         </if>
+                         <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
+                             <choose>
+                                 <when test="@MybatisUtils@equals(svBizDclsfCd, '32XX')">
+                                     AND S1.SV_BIZ_DCLSF_CD IN ('3210', '3230')    /* 검색 조건 - 업무유형 */
+                                 </when>
+                                 <when test="!@MybatisUtils@equals(svBizDclsfCd, '32XX')">
+                                     AND S1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}   /* 검색 조건 - 업무유형 */
+                                 </when>
+                             </choose>
+                         </if>
+                           AND S1.DTA_DL_YN = 'N'
+                         GROUP BY FNL_PD_CD
+                       ) V1
+                 GROUP BY PD_CD
+                 ORDER BY MAX(V1.PD_GRP_CD)
+                 ) T1
+            INNER JOIN WSMDBS.TB_PDBS_PD_BAS T2
+                    ON T1.PD_CD = T2.PD_CD
+    </select>
+
+</mapper>
