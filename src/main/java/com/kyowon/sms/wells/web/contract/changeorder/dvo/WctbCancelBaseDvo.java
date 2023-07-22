@@ -7,14 +7,14 @@ import lombok.Setter;
 @Setter
 public class WctbCancelBaseDvo {
     private String alncmpCd; // 제휴사코드
-    private String refPdClsfVal; // 상품참조분류 - 커피원두 구분용
+    //private String refPdClsfVal; // 상품참조분류 - 커피원두 구분용
     private String cntrPdStrtdt; // 상품시작일자/매출일자
     private String stplPtrm; // 의무기간
-    private String sellDscDvCd; // 할인구분코드
+    //private String sellDscDvCd; // 할인구분코드
     private String stplDscAmt; // 재약정할인금액
     private String stplStrtdt; // 재약정시작일자
     private String stplEnddt; // 재약정종료일자
-    private String reStplPtrm; // 재약정의무기간
+    //private String reStplPtrm; // 재약정의무기간
     private String exnDt; // 만료일자
     private Integer useDays; // 사용일자
     private String grade; // 등급
@@ -89,6 +89,7 @@ public class WctbCancelBaseDvo {
     private String reqdCsExmptDvCd; // 철거비용면책구분코드
     private String reqdAkRcvryDvCd; // 철거요청복구구분코드
     private String rsgAplcDt; // 요청일자
+    private String rsgFshDt; // 해지완료일자
     private String slCtrRqrId; // 매출조정요청자ID
     private String slCtrRmkCn; // 매출조정비고내용
     private String ichrOgTpCd; // 담당조직유형코드

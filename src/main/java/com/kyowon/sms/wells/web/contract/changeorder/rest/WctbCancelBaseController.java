@@ -7,11 +7,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.FindCancelRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.FindDetailRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.*;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbCancelBaseService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -54,7 +50,7 @@ public class WctbCancelBaseController {
         @ApiImplicitParam(name = "cancelDt", value = "취소일자", paramType = "query", required = true),
     })
     @GetMapping("/breach-promises")
-    public WctbCancelBaseDto.FindCancelRes getCancelBases(
+    public FindSubDetailRes getCancelBases(
         @Valid
         SearchReq dto
     ) {
