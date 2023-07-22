@@ -254,13 +254,13 @@
 
     <select id="selectCancelBase" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo">
         SELECT CD.ALNCMP_CD         /* 제휴사코드 */
-             , (SELECT REF_PD_CLSF_VAL FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_LCLSF_ID AND TEMP_SAVE_YN = 'N' AND DTA_DL_YN = 'N') AS REF_PD_CLSF_VAL  /* 상품참조분류 - 커피원두 구분용 */
              , CD.CNTR_PD_STRTDT    /* 상품시작일자 - 매출일자 */
              , CD.STPL_PTRM	        /* 의무기간 */
-             , CD.SELL_DSC_DV_CD    /* 할인구분코드 */
              , RR.STPL_DSC_AMT      /* 재약정할인금액 */
              , RR.STPL_STRTDT       /* 재약정시작일자 */
              , RR.STPL_ENDDT        /* 재약정종료일자 */
+             , (SELECT REF_PD_CLSF_VAL FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_LCLSF_ID AND TEMP_SAVE_YN = 'N' AND DTA_DL_YN = 'N') AS REF_PD_CLSF_VAL  /* 상품참조분류 - 커피원두 구분용 */
+             , CD.SELL_DSC_DV_CD    /* 할인구분코드 */
              , RR.STPL_PTRM AS RE_STPL_PTRM	/* 재약정의무기간 */
              , TO_CHAR(ADD_MONTHS(TO_DATE(CNTR_PD_STRTDT, 'YYYYMMDD'), NVL(CNTR_PTRM, 0)), 'YYYYMMDD')  AS EXN_DT
              , TO_DATE(#{reqDt}, 'YYYYMMDD')
@@ -315,7 +315,6 @@
                 END RENTAL_TN
              , NULL AS CNTR_PASG_DC
              , NULL AS SPP_NMN_N
-             , NULL AS RTNGD_QTY
              , NULL AS SL_DC
              , CD.CNTR_PD_STRTDT
              , NVL(T6.NOM_SL_AMT,0) AS NOM_SL_AMT
@@ -323,7 +322,8 @@
              , 0 AS NOM_DSC_AMT
              , NVL(T7.SPMT_DSC_AMT,0) AS SPMT_DSC_AMT
              , 0 AS SL_CTR_AMT
-             , 0 AS CAN_CTR_AMT
+             -- , NULL AS RTNGD_QTY /* 화면에서 입력하는 값일 경우, null을 덮어쓰지 않기 위해 주석 처리 */
+             -- , 0 AS CAN_CTR_AMT /* 화면에서 입력하는 값일 경우, 0을 덮어쓰지 않기 위해 주석 처리 */
              , NVL(T7.SL_SUM_AMT,0) AS SL_SUM_AMT
              , NVL(T7.SL_SUM_VAT,0) AS SL_SUM_VAT
              , NVL(SM.SL_AGG_AMT,0) + T7.SL_SUM_AMT AS SL_AGG_AMT
@@ -495,7 +495,6 @@
                END RENTAL_TN
             , NULL AS CNTR_PASG_DC
             , NULL AS SPP_NMN_N
-            , NULL AS RTNGD_QTY
             , NULL AS SL_DC
             , CD.CNTR_PD_STRTDT
             , SM.NOM_SL_AMT
@@ -503,7 +502,8 @@
             , SM.NOM_DSC_AMT
             , SM.SPMT_DSC_AMT
             , NVL(#{slCtrAmt}, 0) AS SL_CTR_AMT
-            , 0 AS CAN_CTR_AMT
+            -- , NULL AS RTNGD_QTY /* 화면에서 입력하는 값일 경우, null을 덮어쓰지 않기 위해 주석 처리 */
+            -- , 0 AS CAN_CTR_AMT /* 화면에서 입력하는 값일 경우, null을 덮어쓰지 않기 위해 주석 처리 */
             , T5.SL_SUM_AMT AS SL_SUM_AMT
             , T5.SL_SUM_AMT - TRUNC(T5.SL_SUM_AMT/1.1,0) AS SL_SUM_VAT
             , NVL(SM.SL_AGG_AMT,0) + T5.SL_SUM_AMT AS SL_AGG_AMT
@@ -524,9 +524,9 @@
             , SM.PRM_BLAM_EOT_AMT AS PRM_BTD_AMT    /* 선납기초금액 */
             , SM.EOT_ATAM AS EOT_ATAM               /* 기말선수금 */
             , SM.PRM_BLAM_EOT_AMT + SM.EOT_ATAM AS TOT_PRPD_AMT /* 총선수금액 */
-            , T7.SL_DP_AMT          /* 매출입금금액 */
-            , T7.SL_DP_AGG_AMT      /* 매출입금누계금액 */
-            , T7.UC_AMT             /* 미수금액 */
+            , NVL(T7.SL_DP_AMT, 0) AS SL_DP_AMT     /* 매출입금금액 */
+            , NVL(T7.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT      /* 매출입금누계금액 */
+            , NVL(T7.UC_AMT, 0) AS UC_AMT           /* 미수금액 */
             , NVL(DB.EOT_DLQ_AMT,0) AS DLQ_AMT
             , T6.PRM_RFND_AMT AS PRM_RFND_AMT
             , T6.PRPD_RFND_AMT AS PRPD_RFND_AMT
@@ -534,7 +534,7 @@
             , NVL(#{filtDdctam}, 0) AS FILT_DDCTAM
             , 0 AS RENTAL_RGST_COST_RFND_AMT
             , 0 AS RENTAL_RGST_COST_RFND_AMT_VAT
-            , BA.BOR_AMT
+            , NVL(BA.BOR_AMT, '0') AS BOR_AMT
             , ((NVL(SM.PRM_BLAM_EOT_AMT,0) + NVL(SM.EOT_ATAM,0)) - NVL(T7.SL_DP_AMT,0)- NVL(T7.UC_AMT,0) - NVL(#{dscDdctam}, 0) - NVL(#{filtDdctam}, 0)  - NVL(DB.THM_DLQ_ADD_DP_SUM_AMT,0)) AS TOT_RFND_AMT
              , NVL(BA.RES_RTLFE_BOR_AMT, 0) AS RES_RTLFE_BOR_AMT
              , NVL(BA.RGST_COST_DSC_BOR_AMT, 0) AS RGST_COST_DSC_BOR_AMT /* 등록비할인위약금액 */
@@ -669,7 +669,7 @@
             , #{ucAmt}
             , #{dlqAmt}
             , #{rsgAplcDt}
-            , NULL              /* RSG_FSH_DT */
+            , #{rsgFshDt}
             , #{cntrStatChRsonCd}
             , #{ccamExmptDvCd}
             , #{csmbCsExmptDvCd}

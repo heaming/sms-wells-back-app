@@ -89,14 +89,11 @@ public class WctbCancelBaseDto {
     @ApiModel("WctbCancelBaseDto-FindCancelRes")
     public record FindCancelRes(
         String alncmpCd, // 제휴사코드
-        String refPdClsfVal, // 상품참조분류 - 커피원두 구분용
         String cntrPdStrtdt, // 상품시작일자/매출일자
         String stplPtrm, // 의무기간
-        String sellDscDvCd, // 할인구분코드
         String stplDscAmt, // 재약정할인금액
         String stplStrtdt, // 재약정시작일자
         String stplEnddt, // 재약정종료일자
-        String reStplPtrm, // 재약정의무기간
         String exnDt, // 만료일자
         Integer useDays, // 사용일자
         String grade, // 등급
@@ -169,10 +166,84 @@ public class WctbCancelBaseDto {
         String reqdCsExmptDvCd, // 철거비용면책구분코드
         String reqdAkRcvryDvCd, // 철거요청복구구분코드
         String rsgAplcDt, // 요청일자
+        String rsgFshDt, // 취소일자
         String slCtrRqrId, // 매출조정요청자ID
         String slCtrRmkCn, // 매출조정비고내용
         String ichrOgTpCd, // 담당조직유형코드
         String ichrPrtnrNo // 담당파트너번호
+    ) {}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    //  위약금 Search Result Dto
+    @ApiModel("WctbCancelBaseDto-FindSubDetailRes")
+    public record FindSubDetailRes(
+        String cntrNo,
+        String cntrSn,
+        String pdCd,
+        String cntrPtrm,
+        String rentalTn,
+        String cntrPasgDc,
+        String sppNmnN,
+        String slDc,
+        String cntrPdStrtdt,
+        String nomSlAmt,
+        String spmtSlAmt,
+        String nomDscAmt,
+        String spmtDscAmt,
+        String slCtrAmt,
+        String slSumAmt,
+        String slSumVat,
+        String slAggAmt,
+        String slAggAmtVat,
+        String dscAggAmt,
+        String ctrAggAmt,
+        String nomIntAmt,
+        String intCtrAmt,
+        String intSumAmt,
+        String intVat,
+        String intAggAmt,
+        String intDscAggAmt,
+        String thmPaiam,
+        String thmSvAmt,
+        String slBlam,
+        String adnSvSpmtSlAmt,
+        String prmBtdAmt,
+        String eotAtam,
+        String totPrpdAmt,
+        String slDpAmt,
+        String slDpAggAmt,
+        String ucAmt,
+        String dlqAmt,
+        String prmRfndAmt,
+        String prpdRfndAmt,
+        String dscDdctam,
+        String filtDdctam,
+        String rentalRgstCostRfndAmt,
+        String rentalRgstCostRfndAmtVat,
+        String borAmt,
+        String totRfndAmt,
+        String eotDlqAddAmt,
+        String resRtlfeBorAmt,
+        String rgstCostDscBorAmt,
+        String rentalDscBorAmt,
+        String csmbCostBorAmt,
+        String pBorAmt,
+        String reqdCsBorAmt,
+        // String rsgAplcDt,
+        //String rsgFshDt,
+
+        String alncmpCd, // 제휴사코드
+        String stplPtrm, // 의무기간
+        String stplDscAmt, // 재약정할인금액
+        String stplStrtdt, // 재약정시작일자
+        String stplEnddt, // 재약정종료일자
+        Integer useDays, // 사용일자
+        String grade, // 등급
+        Integer thmSlSumAmt, // 당월매출금액
+        Integer thmDpTotAmt, // 당월입금총합
+        Integer thmRfndTotAmt // 당월환불총합
     ) {}
 
     @ApiModel("WctbCancelBaseDto-FindDetailRes")

@@ -10,10 +10,7 @@ import com.kyowon.sms.common.web.closing.mileage.dvo.argument.ZdceMileageStatusB
 import com.kyowon.sms.common.web.closing.mileage.mapper.ZdceSmartMileageMapper;
 import com.kyowon.sms.common.web.closing.mileage.service.ZdceSmartMileageService;
 import com.kyowon.sms.wells.web.contract.changeorder.converter.WctbCancelBaseConverter;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.FindCancelRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.FindDetailRes;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.SearchReq;
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.SearchRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.*;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCancelBaseMapper;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
@@ -42,20 +39,20 @@ public class WctbCancelBaseService {
         return mapper.selectCntrBases(dto);
     }
 
-    public FindCancelRes getCancelBases(SearchReq dto) {
+    public FindSubDetailRes getCancelBases(SearchReq dto) {
         if ("2".equals(dto.sellTpCd())) {
             return getRentalCancelBases(dto);
         } else if ("3".equals(dto.sellTpCd())) {
-            return converter.mapCancelBaseDvoToFindCancelReslRes(mapper.selectMembershipCancelBase(dto));
+            return converter.mapCancelBaseDvoToFindSubDetailRes(mapper.selectMembershipCancelBase(dto));
         } else if ("6".equals(dto.sellTpCd())) {
-            return converter.mapCancelBaseDvoToFindCancelReslRes(mapper.selectMembershipCancelBase(dto));
+            return converter.mapCancelBaseDvoToFindSubDetailRes(mapper.selectMembershipCancelBase(dto));
         }
 
         BizAssert.notEmpty(null, "MSG_ALT_NO_INFO_SRCH");
         return null;
     }
 
-    private FindCancelRes getRentalCancelBases(SearchReq dto) {
+    private FindSubDetailRes getRentalCancelBases(SearchReq dto) {
         WctbCancelBaseDvo baseDvo = mapper.selectCancelBase(dto);
         BizAssert.isTrue((DateUtil.getDays(dto.reqDt(), baseDvo.getExnDt()) >= 0), "요청일자가 만료일자 이후입니다.");
 
@@ -68,7 +65,7 @@ public class WctbCancelBaseService {
         if (!ObjectUtils.isEmpty(cancelDvo))
             cancelDvo = converter.convertCancelBaseDvo(cancelDvo, baseDvo);
 
-        return converter.mapCancelBaseDvoToFindCancelReslRes(cancelDvo);
+        return converter.mapCancelBaseDvoToFindSubDetailRes(cancelDvo);
     }
 
     @Transactional
