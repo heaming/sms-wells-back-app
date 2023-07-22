@@ -80,7 +80,8 @@ public class WsncBsPeriodCustomerTfMgtService {
 
             String baseYm = dto.baseYm();
             String bfchIchrBrchOgId = dto.bfchIchrBrchOgId();
-            String afchIchrBrchOgId = dto.tfAkPrtnrOgId();
+//            String afchIchrBrchOgId = dto.tfAkPrtnrOgId();
+            String afchIchrBrchOgId = dto.afchIchrBrchOgId();
 
             String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
             BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.

@@ -8,6 +8,7 @@ import lombok.Setter;
 public class WsncBsPeriodCustomerTfCreateDvo {
     String cstSvAsnNo;
     String asnTfDvCd;
+    String tfAkPrtnrOgId;
     String tfStatCd;
     String tfAkRsonCd;
     String tfAkPrtnrOgTpCd;
