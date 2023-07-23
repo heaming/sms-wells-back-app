@@ -378,7 +378,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         zwdzWithdrawalReceiveDvo.setKwGrpCoCd(session.getCompanyCode()); //        KW_GRP_CO_CD	교원그룹회사코드
         zwdzWithdrawalReceiveDvo.setCstNo(searchIntegrationDepositRes.cstNo()); //        CST_NO	고객번호
         zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber); //        RVE_AK_NO	수납요청번호
-        zwdzWithdrawalReceiveDvo.setRvePhCd("05"); //        RVE_PH_CD	수납경로코드
+        zwdzWithdrawalReceiveDvo.setRvePhCd("12"); //        RVE_PH_CD	수납경로코드
         zwdzWithdrawalReceiveDvo.setRveDt(dto.rveDt()); //        RVE_DT	수납일자
         zwdzWithdrawalReceiveDvo.setRveAmt(Long.toString(sumAmt)); //        RVE_AMT	수납금액
 
@@ -388,6 +388,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         int number = 1;
 
+        String rveCd = "85044";
+
         //입금대사기본 및 수납상세에 데이터 인설트
         for (SearchRes searchRes : selectMutualAidAllianceBulkDepositRegs) {
 
@@ -396,7 +398,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
             depositCprDvo.setKwGrpCoCd(session.getCompanyCode());//KW_GRP_CO_CD	교원그룹회사코드
             depositCprDvo.setRveCoCd(session.getCompanyCode());//RVE_CO_CD	수납회사코드
-            depositCprDvo.setRveCd(dto.rveCd());//RVE_CD	수납코드
+            depositCprDvo.setRveCd(rveCd);//RVE_CD	수납코드
             depositCprDvo.setProcsDvCd("1");//PROCS_DV_CD	처리구분코드
             depositCprDvo.setDpDvCd("1"); //DP_DV_CD	입금구분코드
             depositCprDvo.setDpMesCd("06");//DP_MES_CD	입금수단코드
@@ -441,7 +443,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             zwdzWithdrawalReceiveDvo.setDpTpCd("0604"); //DP_TP_CD	입금유형코드
             zwdzWithdrawalReceiveDvo.setRveDvCd("03"); //RVE_DV_CD	수납구분코드
             //zwdzWithdrawalReceiveDvo.set//RVE_BIZ_DV_CD	수납업무구분코드
-            zwdzWithdrawalReceiveDvo.setRveCd(dto.rveCd()); //RVE_CD	수납코드
+            zwdzWithdrawalReceiveDvo.setRveCd(rveCd); //RVE_CD	수납코드
             zwdzWithdrawalReceiveDvo.setOgTpCd(session.getOgTpCd()); //OG_TP_CD	조직유형코드
             zwdzWithdrawalReceiveDvo.setPrtnrNo(session.getEmployeeIDNumber()); //PRTNR_NO	파트너번호
             zwdzWithdrawalReceiveDvo.setProcsDvCd("01"); //PROCS_DV_CD	처리구분코드
@@ -469,6 +471,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         bulkDepositDvo.setDpCprcnfAmt(Long.toString(sumAmt));
         bulkDepositDvo.setItgDpNo(dto.itgDpNo());
         bulkDepositDvo.setRveAkNo(receiveAskNumber);
+        bulkDepositDvo.setRveCd(rveCd);
         //        bulkDepositDvo.setDpDtm(sysDate);//입금일시
         //        bulkDepositDvo.setPerfDt(dto.perfDt());//실적일시
 

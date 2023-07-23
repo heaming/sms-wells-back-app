@@ -40,6 +40,10 @@ public class WwdbEtcAnticipationDepositProcessingService {
 
     private final WdcaEtcAnticipationAmtService edcaEtcAnticipationAmtService;
 
+    public static String rveCd = "70440";
+
+    //경로 16
+
     public int saveDepositProcs(ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingReq dto) throws Exception {
         int processCount = 0;
 
@@ -144,7 +148,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
                 etcAnticipationDvo.setCntrNo(list.cntrNo()); //계약번호
                 etcAnticipationDvo.setCntrSn(Integer.parseInt(list.cntrSn())); //계약일련번호
                 etcAnticipationDvo.setKwGrpCoCd(session.getCompanyCode()); //교원그룹회사코드
-                etcAnticipationDvo.setRveCd(integrationRes.rveCd()); //수납코드
+                etcAnticipationDvo.setRveCd(rveCd); //수납코드
                 etcAnticipationDvo.setRveDvCd(zwdzWithdrawalReceiveDvo.getRveDvCd()); //수납구분코드
                 etcAnticipationDvo.setRvePhCd(zwdzWithdrawalReceiveDvo.getRvePhCd()); //수납경로코드
                 //                                            etcAnticipationDvo.setRveplcDvCd(); //수납처구분코드
@@ -203,6 +207,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
             mainDvo.setDpCprcnfAmt(list.dpCprcnfAmt()); //대사금액
             mainDvo.setRveAkNo(zwdzWithdrawalReceiveAskDvo.getReceiveAskNumber()); //요청번호
             mainDvo.setItgDpNo(mainDvo.getItgDpNo()); //통합입금번호
+            mainDvo.setRveCd(rveCd); //수납코드
 
             //통합입금기본 데이터 업데이트
             processCount += etcDepositMapper.updateIntegrationDeposit(mainDvo);
@@ -236,7 +241,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
         zwdzWithdrawalReceiveDvo.setDpTpCd(integrationRes.dpTpCd());//            DP_TP_CD	입금유형코드( )
         zwdzWithdrawalReceiveDvo.setRveDvCd("98");//            RVE_DV_CD	수납구분코드
         //            RVE_BIZ_DV_CD	수납업무구분코드
-        zwdzWithdrawalReceiveDvo.setRveCd(integrationRes.rveCd());//            RVE_CD	수납코드
+        zwdzWithdrawalReceiveDvo.setRveCd(rveCd);//            RVE_CD	수납코드
         zwdzWithdrawalReceiveDvo.setOgTpCd(session.getOgTpCd());//            OG_TP_CD	조직유형코드
         zwdzWithdrawalReceiveDvo.setPrtnrNo(session.getEmployeeIDNumber());//            PRTNR_NO	파트너번호
         zwdzWithdrawalReceiveDvo.setProcsDvCd(mainReq.processingDivide());//            PROCS_DV_CD	처리구분코드()
@@ -278,7 +283,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
         //            depositCprDvo.setDpCprcnfNo(); /*입금대사번호*/                                         // DP_CPRCNF_NO	입금대사번호
         depositCprDvo.setKwGrpCoCd(session.getCompanyCode()); /*교원그룹회사코드*/ // KW_GRP_CO_CD	교원그룹회사코드
         depositCprDvo.setRveCoCd(session.getCompanyCode()); /*수납회사코드*/ // RVE_CO_CD	수납회사코드
-        depositCprDvo.setRveCd(integrationRes.rveCd()); /*수납코드*/ // RVE_CD	수납코드
+        depositCprDvo.setRveCd(rveCd); /*수납코드*/ // RVE_CD	수납코드
         depositCprDvo.setProcsDvCd(mainReq.processingDivide()); /*처리구분코드*/ // PROCS_DV_CD	처리구분코드()
         depositCprDvo.setDpDvCd(integrationRes.dpDvCd()); /*입금구분코드*/ // DP_DV_CD	입금구분코드()
         depositCprDvo.setDpMesCd(integrationRes.dpMesCd()); /*입금수단코드*/ // DP_MES_CD	입금수단코드()
@@ -339,7 +344,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
         zwdzWithdrawalReceiveDvo.setKwGrpCoCd(session.getCompanyCode()); //        KW_GRP_CO_CD	교원그룹회사코드
         zwdzWithdrawalReceiveDvo.setCstNo(list.cstNo()); //        CST_NO	고객번호
         zwdzWithdrawalReceiveDvo.setRveAkNo(zwdzWithdrawalReceiveAskDvo.getReceiveAskNumber()); //        RVE_AK_NO	수납요청번호
-        zwdzWithdrawalReceiveDvo.setRvePhCd("05"); //        RVE_PH_CD	수납경로코드
+        zwdzWithdrawalReceiveDvo.setRvePhCd("16"); //        RVE_PH_CD	수납경로코드
         zwdzWithdrawalReceiveDvo.setRveDt(sysDateYmd); //        RVE_DT	수납일자
         zwdzWithdrawalReceiveDvo.setRveAmt(list.dpCprcnfAmt()); //        RVE_AMT	수납금액
 
@@ -396,7 +401,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
         zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
         zwdzWithdrawalReceiveAskDvo.setCustomNumber(list.cstNo()); //CST_NO	고객번호
         zwdzWithdrawalReceiveAskDvo.setRveAkMthdCd("01"); //RVE_AK_MTHD_CD	수납요청방식코드 대면(01)
-        zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("05"); //RVE_AK_PH_CD	수납요청경로코드 영업부(05)
+        zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("16"); //RVE_AK_PH_CD	수납요청경로코드 영업부(05)
         zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
         zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); //RVE_AK_PRTNR_NO	수납요청파트너번호
         zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(list.dpCprcnfAmt()); //RVE_AK_AMT	수납요청금액

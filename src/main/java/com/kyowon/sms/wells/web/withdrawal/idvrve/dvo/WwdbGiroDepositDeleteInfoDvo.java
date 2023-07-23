@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WwdbGiroDepositDeleteInfoDvo {
-    String[] rveDt; //--수납일자
-    String[] fntDt; //--입금일자
+    String rveDt; //--수납일자
+    String fntDt; //--입금일자
 }

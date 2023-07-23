@@ -27,6 +27,7 @@
              , T1.GIRO_NO /*지로번호*/
              , T1.GIRO_DP_MTR_DV_CD /*지로입금자료구분코드*/
              , T1.GIRO_DP_SN /*일련번호*/
+             , T1.ITG_DP_PROCS_YN /*통합입금처리여부*/
           FROM TB_RVDW_GIRO_DP_IZ T1 --입금내역
           LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 --수납상세
            /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/
@@ -222,10 +223,8 @@
                TB_RVDW_GIRO_DP_IZ
          WHERE ITG_DP_PROCS_YN = 'N'
            AND DTA_DL_YN = 'N'
-           AND FNT_DT IN
-           <foreach collection="fntDt" item="code" index="index" separator="," open="(" close=")">
-                      #{code}
-           </foreach>
+           AND FNT_DT = #{fntDt}
+           AND RVE_DT = #{rveDt}
     </delete>
 
     <insert id="inertIntegrationItemizationTest">
@@ -274,23 +273,114 @@
     </insert>
 
     <insert id="inertIntegrationItemization">
-        INSERT INTO TB_RVDW_ITG_DP_BAS(
-                    ITG_DP_NO /*통합입금번호*/
-                  , KW_GRP_CO_CD /*교원그룹번호*/
-                  , DP_DTM /*입금일시*/
-                  , PERF_DT /*실적일자*/
-                  , DP_AMT /*입금금액*/
-                  <include refid="COMMON.insertSystemField"/>
-         )   SELECT
-                    ITG_DP_NO
-                  , #{session.companyCode}
-                  , FNT_DT
-                  , RVE_DT
-                  , PY_AMT
-                  <include refid="COMMON.insertSystemFieldValue" />
-               FROM TB_RVDW_GIRO_DP_IZ
-              WHERE ITG_DP_PROCS_YN = 'N'
-                AND DTA_DL_YN = 'N'
+        INSERT INTO TB_RVDW_ITG_DP_BAS( /*통합입금기본*/
+    	       ITG_DP_NO							/*통합입금번호*/
+		     , KW_GRP_CO_CD							/*교원그룹회사코드*/
+		     , RVE_CO_CD	                        /*수납회사코드*/
+		     , RVE_CD								/*수납코드*/
+		     , OG_TP_CD								/*조직유형코드*/
+		     , PRTNR_NO								/*파트너번호*/
+		     , CST_NO								/*고객번호*/
+		     , OG_ID								/*조직ID*/
+		     , DP_DV_CD								/*입금구분코드*/
+		     , DP_MES_CD							/*입금수단코드*/
+		     , DP_TP_CD								/*입금유형코드*/
+		     , DP_DTM								/*입금일시*/
+		     , PERF_DT								/*실적일자*/
+		     , DPR_NM								/*입금자명*/
+		     , DP_AMT								/*입금금액*/
+		     , DP_CPRCNF_AMT						/*입금대사금액*/
+		     , CAN_AMT								/*취소금액*/
+		     , RFND_AMT								/*환불금액*/
+		     , PG_FEE_AMT							/*PG수수료금액*/
+		     , DP_BLAM								/*입금잔액*/
+		     , OVR_CAN_AMT							/*초과취소금액*/
+		     , ITG_DP_CAN_YN						/*통합입금취소여부*/
+		     , ITG_DP_CAN_DTM						/*통합입금취소일시*/
+		     , ITG_DP_CAN_RSON_CD					/*통합입금취소사유코드*/
+		     , FNIT_CD								/*금융기관코드*/
+		     , VAC_IS_ID							/*가상계좌발급ID*/
+		     , ACNO_ENCR							/*계좌번호암호화*/
+		     , PCHS_CDCO_CD							/*매입카드사코드*/
+		     , CARD_KND_CD							/*카드종류코드*/
+		     , CRDCD_FNIT_CD						/*신용카드금융기관코드*/
+		     , CRDCD_COPN_DV_CD						/*신용카드법인격구분코드*/
+		     , CRCDNO_ENCR							/*신용카드번호암호화*/
+		     , CRCDONR_NM							/*신용카드주명*/
+		     , CRDCD_BRYY_MMDD						/*신용카드생년월일*/
+		     , CRDCD_BZRNO							/*신용카드사업자등록번호*/
+		     , CRDCD_EXPDT_YM						/*신용카드유효기간년월*/
+		     , CRDCD_ISTM_MCN						/*신용카드할부개월수*/
+		     , CRDCD_APR_DTM						/*신용카드승인일시*/
+		     , CRDCD_APRNO							/*신용카드승인번호*/
+		     , VNCO_DV_CD							/*VAN사구분코드*/
+		     , ORINT_DP_NO							/*원통합입금번호*/
+		     , RVE_AK_NO							/*수납요청번호*/
+		     , DP_ACC_CD							/*입금계정코드*/
+		     , INCMDC_YN							/*소득공제여부*/
+		     , ITG_DP_CH_RSON_CD					/*통합입금변경사유코드*/
+		     , ITG_DP_ETC_CN1						/*통합입금기타내용1*/
+		     , ITG_DP_ETC_CN2						/*통합입금기타내용2*/
+		     , ITG_DP_ETC_CN3						/*통합입금기타내용3*/
+		     , DTA_DL_YN							/*데이터삭제여부*/
+             <include refid="COMMON.insertSystemField"/>
+    ) SELECT
+             ITG_DP_NO        					/*통합입금번호*/
+		   , #{session.companyCode}							/*교원그룹회사코드*/
+		   , #{session.companyCode}					 		/*수납회사코드*/
+		   , '70550'								/*수납코드*/
+		   , #{ogTpCd}								/*조직유형코드*/
+		   , #{prtnrNo}								/*파트너번호*/
+		   , #{cstNo}								/*고객번호*/
+		   , #{ogId}								/*조직ID*/
+		   , '1'								/*입금구분코드 1(입금)*/
+		   , '04'								/*입금수단코드 04(지로)*/
+		   , '0401'								/*입금유형코드 0401(지로)*/
+           , FNT_DT||'000000'					/*입금일시*/
+		   , RVE_DT								/*실적일자*/
+		   , NULL								/*입금자명*/
+		   , #{dpAmt}							/*입금금액*/
+		   , NULL					            /*입금대사금액*/
+		   , NULL								/*취소금액*/
+		   , NULL								/*환불금액*/
+		   , NULL								/*PG수수료금액*/
+		   , 0									/*입금잔액*/
+	       , NULL								/*초과취소금액*/
+	       , 'N'								/*통합입금취소여부*/
+           , NULL								/*통합입금취소일시*/
+		   , NULL								/*통합입금취소사유코드*/
+		   , NULL								/*금융기관코드*/
+		   , NULL								/*가상계좌발급ID*/
+		   , NULL								/*계좌번호암호화*/
+		   , NULL								/*매입카드사코드*/
+		   , NULL								/*카드종류코드*/
+	       , NULL								/*신용카드금융기관코드*/
+		   , NULL								/*신용카드법인격구분코드*/
+		   , NULL								/*신용카드번호암호화*/
+		   , NULL								/*신용카드주명*/
+		   , NULL								/*신용카드생년월일*/
+		   , NULL								/*신용카드사업자등록번호*/
+		   , NULL								/*신용카드유효기간년월*/
+		   , NULL								/*신용카드할부개월수*/
+		   , NULL								/*신용카드승인일시*/
+		   , NULL								/*신용카드승인번호*/
+		   , NULL								/*VAN사구분코드*/
+		   , NULL								/*원통합입금번호*/
+		   , NULL								/*수납요청번호*/
+		   , NULL								/*입금계정코드*/
+		   , 'N'								/*소득공제여부*/
+		   , NULL								/*통합입금변경사유코드*/
+		   , NULL								/*통합입금기타내용1*/
+		   , NULL								/*통합입금기타내용2*/
+		   , NULL								/*통합입금기타내용3*/
+		   , 'N'								/*데이터삭제여부*/
+           <include refid="COMMON.insertSystemFieldValue" />
+      FROM TB_RVDW_GIRO_DP_IZ
+     WHERE ITG_DP_PROCS_YN = 'N'
+       AND DTA_DL_YN = 'N'
+       AND ITG_DP_NO = #{itgDpNo}
+       <!--AND RVE_DT = #{rveDt}
+       AND FNT_DT = #{fntDt}-->
     </insert>
 
     <update id="updateIntegrationItemization">
@@ -300,6 +390,7 @@
          WHERE 1 = 1
            AND ITG_DP_PROCS_YN = 'N'
            AND DTA_DL_YN = 'N'
+           AND ITG_DP_NO = #{itgDpNo}
     </update>
 
     <insert id="inertIntegrationItemizationHistory">
@@ -426,75 +517,35 @@
           AND GIRO_OCR_BNDL_YM = #{giroOcrBndlYm}
           AND DG_CNTR_NO = #{dgCntrNo}
           AND DG_CNTR_SN = #{dgCntrSn}
-          AND FNT_DT = #{fntDt}
-          AND RVE_DT = #{rveDt}
+         <!-- AND FNT_DT = #{fntDt}
+          AND RVE_DT = #{rveDt}-->
           AND DG_CNTR_YN = 'Y'
           AND DTA_DL_YN = 'N'
     </select>
 
     <select id="selectContractDetail" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchContractDetailRes">
         SELECT
-               CNTR_NO
-             , CNTR_SN
-             , BASE_PD_CD
-             , HGR_PD_CD
-             , PD_QTY
-             , STPL_PTRM_UNIT_CD
-             , STPL_PTRM
-             , ISTM_MCN
-             , CNTR_PD_STRTDT
-             , CNTR_PD_ENDDT
-             , CNTR_DTL_STAT_CD
-             , SELL_TP_CD
-             , DSC_APY_TP_CD
-             , DSC_APY_DTL_CD
-             , DSC_APY_DRM_VAL
-             , SV_PTRM_UNIT_CD
-             , SV_PRD
-             , CNTRW_TP_CD
-             , BLG_CRP_CD
-             , RVE_CRP_CD
-             , KW_GRP_CO_CD
-             , BOO_SELL_TP_CD
-             , PD_GD_CD
-             , PD_HCLSF_ID
-             , PD_MCLSF_ID
-             , PD_LCLSF_ID
-             , PD_DCLSF_ID
-             , STLM_TP_CD
-             , CRNCY_DV_CD
-             , APY_EXCR
-             , PD_BASE_AMT
-             , FNL_AMT
-             , VAT
-             , SELL_AMT
-             , CNTR_AMT
-             , ISTM_PCAM_AMT
-             , ISTM_INT_AMT
-             , MM_ISTM_AMT
-             , ACKMT_PERF_RT
-             , ACKMT_PERF_AMT
-             , CVT_PERF_AMT
-             , SPP_DUEDT
-             , RESUB_YN
-             , RSTL_YN
-             , FRISU_YN
-             , FRISU_DSB_TP_CD
-             , FEE_ACKMT_CT
-             , FEE_ACKMT_BASE_AMT
-             , FEE_FXAM_YN
-             , TXINV_PBL_OJ_YN
-             , SMTPL_ID
-             , SMTPL_SN
-             , BF_ORD_NO
-             , CNTR_CH_RCP_ID
-             , CNTR_CH_SN
-             , CNTR_CH_DTL_RSON_CD
-             , CNTR_CH_DTL_AK_CN
-         FROM TB_SSCT_CNTR_DTL
+               T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.BASE_PD_CD
+             , T1.PD_HCLSF_ID
+             , T1.PD_MCLSF_ID
+             , T1.PD_LCLSF_ID
+             , T1.PD_DCLSF_ID
+             , T2.CNTR_CST_NO
+             , T2.CNTR_CAN_DTM
+             , T1.SELL_TP_CD
+             , T1.SELL_TP_DTL_CD
+             , T1.CNTR_DTL_STAT_CD
+         FROM TB_SSCT_CNTR_DTL T1
+         JOIN TB_SSCT_CNTR_BAS T2
+           ON T2.CNTR_NO = T1.CNTR_NO
+          AND T2.DTA_DL_YN = 'N'
         WHERE 1 = 1
-          AND CNTR_NO = #{cntrNo}
-          AND CNTR_SN = #{cntrSn}
+          AND T1.CNTR_NO = #{cntrNo}
+          AND T1.CNTR_SN = #{cntrSn}
+          AND T1.DTA_DL_YN = 'N'
+          AND T1.SELL_TP_CD = '2'
     </select>
 
     <update id="updateGiroDepositItemization">
@@ -530,6 +581,9 @@
                DP_SE_AMT
              , DG_CNTR_NO
              , DG_CNTR_SN
+             , DP_SE_AMT
+             , CNTR_NO
+             , CNTR_SN
           FROM TB_RVDW_GIRO_OCR_BNDL_BAS A
          INNER JOIN TB_SSCT_CNTR_DTL B
             ON A.CNTR_NO = B.CNTR_NO
@@ -631,4 +685,12 @@
             )
       WHERE ROWNUM = 1
     </select>
+
+    <update id="updateIntegrationDeposit">
+        UPDATE TB_RVDW_ITG_DP_BAS
+           SET RVE_AK_NO = #{rveAkNo}
+             , DP_CPRCNF_AMT = #{dpAmt}
+         WHERE 1 = 1
+           AND ITG_DP_NO = #{itgDpNo}
+    </update>
 </mapper>

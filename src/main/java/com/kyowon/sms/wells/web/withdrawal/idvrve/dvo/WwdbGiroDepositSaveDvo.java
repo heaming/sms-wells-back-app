@@ -30,5 +30,11 @@ public class WwdbGiroDepositSaveDvo {
     String giroRveDvCd; //--지로수납구분코드
     String giroFeeDvCd; //--지로수수료구분코드
     String rmkCn; //--비고
-    String giroDpUldDtm; //    
+    String giroDpUldDtm; //
+
+    String ogTpCd; /*조직유형코드*/
+    String prtnrNo; /*파트너번호*/
+    String ogId;
+    String dpAmt; /*입금금액*/
+    String dpCprcnfAmt; /*입금대사금액*/
 }
