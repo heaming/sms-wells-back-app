@@ -27,15 +27,17 @@ public class WwdbContractRefundDto {
 
     @ApiModel(value = "WwdbContractRefundDto-SearchContractRefundRes")
     public record SearchContractRefundRes(
-        String cntrNoSn, // 계약상세번호
+        String cntrNo,
+        String cntrSn,
+        String cntrDtlNo, /* 계약상세번호 */
         String cstKnm, // 고객명
-        String fnlMdfcDtm, // 처리일자
-        String perfDt, // 실적일자
+        String rfndRveDt, // 처리일자
+        String rfndPerfDt, // 실적일자
         String cntrwTpCd, // 업무구분
         String tmp1, // 출력구분
         String sellAmt, // 판매금액
-        String tmp2, // 지급금액. 추후 확인 필요
-        String rfndDsbAmt, // 환불금액 = 환불지급금액 
+        String dsbAmt, // 지급금액. 추후 확인 필요
+        String rfndDsbAmt, // 환불금액 = 환불지급금액
         String rfndDsbPspInt, // 지연이자
         String cardRfndFee, // 카드수수료
         String cshCardRfndFnitCd, // 은행/카드사
@@ -97,5 +99,15 @@ public class WwdbContractRefundDto {
         /* 확인 필요:K 포인트 */
         /* 확인 필요:전금합계 */
         /* 확인 필요:환불 총계 */
+    ) {}
+
+    @ApiModel(value = "WwdbContractRefundDto-SearchContractRefundSummaryRes")
+    public record SearchContractRefundSummaryRes(
+        String cntCstKnm,
+        String totSellAmt,
+        String totDsbAmt,
+        String totRfndDsbAmt,
+        String totRfndDsbPspInt,
+        String totCardRfndFee
     ) {}
 }

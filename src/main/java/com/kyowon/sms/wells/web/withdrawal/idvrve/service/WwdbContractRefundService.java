@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundAggregateReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundAggregateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.*;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbContractRefundMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,7 +19,7 @@ public class WwdbContractRefundService {
 
     /**
      * 환불내역 목록
-     * @param pageInfo 
+     * @param pageInfo
      * @param SearchContractRefundReq
      * @return PagingResult<SearchContractRefundRes>
      */
@@ -35,7 +32,7 @@ public class WwdbContractRefundService {
 
     /**
      * 환불내역 엑셀다운로드
-     * @param List 
+     * @param List
      * @param SearchContractRefundReq
      * @return List<SearchContractRefundRes>
      */
@@ -55,4 +52,16 @@ public class WwdbContractRefundService {
     ) {
         return mapper.selectContractRefundAggregates(req);
     }
+
+    /**
+     * 환불내역 집계
+     * @param getContractRefundSummary
+     * @return SearchContractRefundSummaryRes
+     */
+    public SearchContractRefundSummaryRes getContractRefundSummary(
+        SearchContractRefundReq req
+    ) {
+        return mapper.selectContractRefundSummary(req);
+    }
+
 }

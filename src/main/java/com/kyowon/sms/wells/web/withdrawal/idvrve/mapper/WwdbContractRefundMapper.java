@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundAggregateReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundAggregateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -25,6 +22,10 @@ public interface WwdbContractRefundMapper {
 
     SearchContractRefundAggregateRes selectContractRefundAggregates(
         SearchContractRefundAggregateReq req
+    );
+
+    SearchContractRefundSummaryRes selectContractRefundSummary(
+        SearchContractRefundReq req
     );
 
 }

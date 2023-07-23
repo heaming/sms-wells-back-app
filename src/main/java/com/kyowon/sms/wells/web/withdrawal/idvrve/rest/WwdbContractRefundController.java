@@ -8,10 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundAggregateReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundAggregateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.SearchContractRefundRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbContractRefundDto.*;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbContractRefundService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -59,4 +56,15 @@ public class WwdbContractRefundController {
     ) {
         return service.getContractRefundAggregates(req);
     }
+
+    @ApiOperation(value = "계약금 환불 목록 Summary", notes = "계약금 환불 목록의 값을 합하여 출력합니다.")
+    @GetMapping("/summary")
+    public SearchContractRefundSummaryRes getContractRefundSummary(
+        @ApiParam
+        @Valid
+        SearchContractRefundReq req
+    ) {
+        return service.getContractRefundSummary(req);
+    }
+
 }
