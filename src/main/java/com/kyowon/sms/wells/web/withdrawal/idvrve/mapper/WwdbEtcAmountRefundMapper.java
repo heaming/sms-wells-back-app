@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundAggregateReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundAggregateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -25,6 +22,10 @@ public interface WwdbEtcAmountRefundMapper {
 
     SearchEtcAmountRefundAggregateRes selectEtcAmountRefundAggregates(
         SearchEtcAmountRefundAggregateReq req
+    );
+
+    SearchEtcAmountRefundSummaryRes selectEtcAmountRefundsSummary(
+        SearchEtcAmountRefundReq req
     );
 
 }

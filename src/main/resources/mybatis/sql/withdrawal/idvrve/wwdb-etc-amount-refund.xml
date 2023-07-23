@@ -1,70 +1,120 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbEtcAmountRefundMapper">
-    
+
     <select id="selectEtcAmountRefunds" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto$SearchEtcAmountRefundRes">
-        SELECT 
-               SCD.CNTR_NO || SCD.CNTR_SN AS CNTR_NO_SN /* 계약상세번호 */
-             , CCB.CST_KNM                             /* 고객명 */ 
-             , RRRB.FNL_MDFC_DTM                        /* 처리일자 */
-             , RRD.PERF_DT                              /* 실적일자 */
-             , SCD.CNTRW_TP_CD                          /* 업무구분 */
-             , '' AS tmp1                               /* 입금종류.  1 이면 할부, 2이면 매변, 3이면 손료, 4이면 위약, 5이면 가산 */
-             , '' AS tmp3                               /* 환불구분. 입금구분(CWJDIV) ='2' 환불이고 업무구분(CWJDIV)이 전집이고 환불유형(CWHFLG ) 87 이면 귀속 아니면 정상 */
-             , SISI.BASE_CNTR_NO                        /* 불완전판매구분 */
-             , NVL(SCD.SELL_AMT, 0) AS SELL_AMT                             /* 판매금액*/
-             , NVL(RRRD.RFND_DSB_AMT, 0) AS tmp2                /* 테이블 컬럼명 확인필요. 지급금액 */
-             , NVL(RRRD.RFND_DSB_AMT, 0) AS RFND_DSB_AMT                       /* 환불금액 = 환불지급금액 */
-             , NVL(RRRD.RFND_DSB_PSP_INT, 0) AS RFND_DSB_PSP_INT                   /* 지연이자 환불지급지연이자 */
-             , NVL(RRRD.CARD_RFND_FEE, 0) AS CARD_RFND_FEE                       /* 카드수수료 */
-             , ( SELECT FNIT_NM
-                   FROM TB_RVDW_FNIT_CD                 /* 금융기관코드 */
-                  WHERE FNIT_CD = ( 
-                                    CASE WHEN RRRD.CSH_RFND_FNIT_CD IS NULL 
-                                         THEN RRRD.CARD_RFND_FNIT_CD 
-                                         ELSE RRRD.CSH_RFND_FNIT_CD 
-                                     END
-                                  )
-             ) AS CSH_CARD_RFND_FNIT_CD                 /* 은행/카드사 RFND_BNK_CDCO_CD  */
-             , RRRD.CARD_RFND_CRCDNO_ENCR               /* 카드번호 */
-             , RRRD.CSH_RFND_ACNO_ENCR                  /* 계좌번호 */
-             , '' AS CSH_CARD_RFND_ACNO_CRCDNO_ENCR     /* 계좌/카드번호 */
-             , RRRD.CSH_RFND_ACOWN_NM                   /* 예금주 */
-             , SCD.ISTM_MCN                             /* 할부개월 : 계약상세.할부개월수 */
-             , RRRD.CARD_RFND_CRDCD_APRNO               /* 승인번호 */
-          FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
-         INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
-            ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
-           AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
-           AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
-         INNER JOIN TB_SSCT_CNTR_DTL SCD                /* 계약상세 */
-            ON SCD.DTA_DL_YN = 'N'
-           AND RRRB.CNTR_NO = SCD.CNTR_NO               /* 계약번호 */
-           AND RRRB.CNTR_SN = SCD.CNTR_SN               /* 계약일련번호 */
-         INNER JOIN TB_RVDW_RVE_DTL RRD                 /* 수납상세 */
-            ON RRD.DTA_DL_YN = 'N'
-           AND RRRD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD     /* 교원그룹회사코드 */
-           AND RRRD.RVE_NO = RRD.RVE_NO                 /* 수납번호 */
-         INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */
-            ON CCB.DTA_DL_YN = 'N'
-           AND RRRB.CST_NO = CCB.CST_NO                 /* 고객번호 */
-          LEFT OUTER JOIN TB_SSCT_ICPT_SELL_IZ SISI     /* 불완전판매내역 */
-            ON SISI.DTA_DL_YN = 'N'
-           AND SCD.CNTR_NO = SISI.OJ_CNTR_NO                 /* 대상계약번호 */
-           AND SCD.CNTR_SN = SISI.OJ_CNTR_SN                 /* 대상계약일련번호 */
-         WHERE 1 = 1
-           AND RRRB.FNL_MDFC_DTM BETWEEN #{startDay} AND #{endDay} /* 처리일자 */
-           /* 테스트를 위해 주석. 수납상세 테이블 데이터 들어오기 전까지 주석 */
-           /* AND RRD.PERF_DT BETWEEN {perfDtStartDay} AND {perfDtEndDay}           실적일자 */
-           /* AND 환불구분 확인필요 */
-           <if test="@MybatisUtils@isNotEmpty(baseCntrNo)">
-           AND SISI.BASE_CNTR_NO = #{baseCntrNo}/* 불완전판매여부 */
-           </if>
+        SELECT TAB.CNTR_NO
+             , TAB.CNTR_SN
+             , TAB.CNTR_DTL_NO
+             , TAB.CST_KNM
+             , TAB.CST_ENM
+             , TAB.RFND_RVE_DT
+             , TAB.RFND_PERF_DT
+             , TAB.BIZ_DV
+             , TAB.DP_DV
+             , TAB.RFND_DV
+             , TAB.ICPT_SELL_DV
+             , TAB.SELL_AMT
+             , TAB.DSB_AMT
+             , TAB.RFND_DSB_AMT
+             , TAB.RFND_DSB_PSP_INT
+             , TAB.CARD_RFND_FEE
+             , TAB.CSH_CARD_RFND_FNIT_CD
+             , TAB.CARD_RFND_CRCDNO_ENCR
+             , TAB.CSH_RFND_ACNO_ENCR
+             , TAB.CSH_CARD_RFND_ACNO_CRCDNO_ENCR
+             , TAB.CSH_RFND_ACOWN_NM
+             , TAB.ISTM_MCN
+             , TAB.CARD_RFND_CRDCD_APRNO
+        FROM (
+               SELECT RRRB.CNTR_NO /* 계약번호 */
+                    , RRRB.CNTR_SN /* 계약일련번호 */
+                    , RRRB.CNTR_NO || RRRB.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
+                    , ( SELECT CST_KNM
+                    	   FROM TB_CUBS_CST_BAS S1
+                    	  WHERE 1=1
+                       	    AND S1.CST_NO = RRRB.CST_NO
+                     	    AND S1.DTA_DL_YN = 'N'
+                       ) AS CST_KNM /* 고객명 - 한글 */
+                    , ( SELECT CST_ENM
+                    	   FROM TB_CUBS_CST_BAS S1
+                    	  WHERE 1=1
+                    	    AND S1.CST_NO = RRRB.CST_NO
+                     	    AND S1.DTA_DL_YN = 'N'
+                       ) AS CST_ENM /* 고객명 - 영문 */
+                    , RRRB.RFND_RVE_DT /* 처리일자 - 수납일 */
+                    , RRRB.RFND_PERF_DT /* 실적일자 - 실적일*/
+                    , '웰스' AS BIZ_DV /* 업무구분 - ASIS 기준 */
+                    , '' AS DP_DV /* 입금종류.  1 이면 할부, 2이면 매변, 3이면 손료, 4이면 위약, 5이면 가산 */
+                    , CASE WHEN RRD.DP_DV_CD ='2'
+                 		   THEN '1' /* 정상 */
+                 		   ELSE '2' /* 귀속 */
+                 		    END AS RFND_DV  /* 환불구분. 입금구분(CWJDIV) ='2' 환불이고 업무구분(CWJDIV)이 전집이고 환불유형(CWHFLG ) 87 이면 귀속 아니면 정상 ...미완성 */
+                    , CASE WHEN ( SELECT COUNT(*)
+                                    FROM TB_SSCT_ICPT_SELL_IZ SISI /* 불완전판매내역 */
+                                   WHERE RRRB.CNTR_NO = SISI.BASE_CNTR_NO
+                                     AND RRRB.CNTR_SN = SISI.BASE_CNTR_SN
+                                     AND SISI.DTA_DL_YN = 'N'
+                                 ) <![CDATA[>]]> 0
+                           THEN 'Y'
+                           ELSE 'N'
+                            END AS ICPT_SELL_DV /* 불완전판매구분 */
+                    , SCD.SELL_AMT /* 판매금액 */
+                    , NVL((NVL(RRRD.RFND_DSB_AMT, 0) + NVL(RRRD.RFND_DSB_PSP_INT,0) - NVL(RRRD.CARD_RFND_FEE,0)) ,0) AS DSB_AMT /* 지급금액 */
+                    , NVL(RRRD.RFND_DSB_AMT, 0) AS RFND_DSB_AMT /* 환불금액 */
+                    , NVL(RRRD.RFND_DSB_PSP_INT, 0) AS RFND_DSB_PSP_INT /* 지연이자 */
+                    , NVL(RRRD.CARD_RFND_FEE, 0) AS CARD_RFND_FEE /* 카드수수료 */
+                    , ( SELECT RFC.FNIT_NM
+                          FROM TB_RVDW_FNIT_CD RFC           /* 금융기관코드 */
+                         WHERE RFC.FNIT_CD = (
+                                               CASE WHEN RRRD.CSH_RFND_FNIT_CD IS NULL
+                                                    THEN RRRD.CARD_RFND_FNIT_CD
+                                                    ELSE RRRD.CSH_RFND_FNIT_CD
+                                                     END
+                                              )
+                       ) AS CSH_CARD_RFND_FNIT_CD /* 은행/ 카드사 */
+                    , RRRD.CARD_RFND_CRCDNO_ENCR /* 카드번호 */
+                    , RRRD.CSH_RFND_ACNO_ENCR /* 계좌번호 */
+                    , '' AS CSH_CARD_RFND_ACNO_CRCDNO_ENCR /* 카드/계좌번호 */
+                    , RRRD.CSH_RFND_ACOWN_NM /* 예금주 - 이름  */
+                    , SCD.ISTM_MCN/* 할부개월 */
+                    , RRRD.CARD_RFND_CRDCD_APRNO /* 승인번호 */
+                 FROM TB_RVDW_RFND_RCP_BAS RRRB /*  환불접수기본 */
+                INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD  /* 환불접수상세 */
+                   ON RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO
+                  AND RRRD.DTA_DL_YN = 'N'
+                INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납상세기본 */
+                   ON RRD.RVE_NO = RRRD.RVE_NO
+                  AND RRD.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_DTL SCD /* 계약상세 */
+                   ON SCD.CNTR_NO = RRRB.CNTR_NO
+                  AND SCD.CNTR_SN = RRRB.CNTR_SN
+                  AND SCD.DTA_DL_YN = 'N'
+                WHERE 1=1
+                  AND RRRB.DTA_DL_YN  = 'N'
+                  AND RRRB.RFND_RVE_DT <![CDATA[>=]]> #{startDay} /* 조건 처리일자 from */
+                  AND RRRB.RFND_RVE_DT <![CDATA[<=]]> #{endDay} /* 조건 처리일자 to */
+                  AND RRRB.RFND_PERF_DT <![CDATA[>=]]> #{perfDtStartDay} /* 조건 실적일자 from*/
+                  AND RRRB.RFND_PERF_DT <![CDATA[<=]]> #{perfDtEndDay} /* 조건 실적일자 to */
+             ) TAB
+       WHERE 1=1
+        <if test="@MybatisUtils@isNotEmpty(rfndDv)">
+         AND TAB.RFND_DV = #{rfndDv} /* 조건: 환불구분 RFND_DV */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(icptSellYn) and icptSellYn != 'all' and icptSellYn != 'ALL'">
+         AND TAB.ICPT_SELL_DV = #{icptSellYn} /* 조건: 불완전판매 ICPT_SELL_DV */
+        </if>
     </select>
     <select id="selectEtcAmountRefundAggregates" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto$SearchEtcAmountRefundAggregateRes">
-        WITH BASE AS 
+        WITH BASE AS
            (
+              SELECT T1.RFND_DSB_DV_CD
+                   , T1.CARD_RFND_FNIT_CD
+                   , T1.CARD_NAME
+                   , T1.RFND_DSB_AMT
+                   , T1.RFND_DDTN_AMT
+                   , T1.RFND_DSB_PSP_INT
+                FROM (
                 SELECT RRRD.RFND_DSB_DV_CD                      /* 환불접수상세.환불지급유형코드 : 현금환불01/카드환불02/전금03 */
                      , RRRD.CARD_RFND_FNIT_CD                   /* 카드환불금융기관코드 */
                      , CASE WHEN RRRD.CARD_RFND_FNIT_CD IS NULL THEN 'CASH' /* 현금 : 환불카드사코드가 없는 금액 합계 (현금 합계) */
@@ -81,41 +131,44 @@
                      , NVL(RRRD.RFND_DSB_AMT, 0) AS RFND_DSB_AMT /* 환불지급금액 */
                      , NVL(RRRD.RFND_DDTN_AMT, 0) AS RFND_DDTN_AMT /* 환불공제금액 */
                      , NVL(RRRD.RFND_DSB_PSP_INT, 0) AS RFND_DSB_PSP_INT /* 환불지급지연이자*/
-                  FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
-                 INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD           /* 환불접수상세 */
-                    ON RRRB.DTA_DL_YN = 'N'
-                   AND RRRD.DTA_DL_YN = 'N' 
-                   AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
-                   AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
-                 INNER JOIN TB_SSCT_CNTR_DTL SCD                /*  계약상세 */  
-                 /* LEFT OUTER JOIN TB_SSCT_CNTR_DTL SCD                 계약상세 */
-                    ON SCD.DTA_DL_YN = 'N'
-                   AND RRRB.CNTR_NO = SCD.CNTR_NO               /* 계약번호 */
-                   AND RRRB.CNTR_SN = SCD.CNTR_SN               /* 계약일련번호 */
-                 INNER JOIN TB_RVDW_RVE_DTL RRD              /*     수납상세 */  
-                 /* LEFT OUTER JOIN TB_RVDW_RVE_DTL RRD                 수납상세 */
-                    ON RRD.DTA_DL_YN = 'N'
-                   AND RRRD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD     /* 교원그룹회사코드 */
-                   AND RRRD.RVE_NO = RRD.RVE_NO                 /* 수납번호 */
-                 INNER JOIN TB_CUBS_CST_BAS CCB                 /* 고객기본 */  
-                 /* LEFT OUTER JOIN TB_CUBS_CST_BAS CCB                 고객기본 */
-                    ON CCB.DTA_DL_YN = 'N'
-                   AND RRRB.CST_NO = CCB.CST_NO                 /* 고객번호 */
-                  LEFT OUTER JOIN TB_SSCT_ICPT_SELL_IZ SISI     /* 불완전판매내역 */
-                    ON SISI.DTA_DL_YN = 'N'
-                   AND SCD.CNTR_NO = SISI.OJ_CNTR_NO                 /* 대상계약번호 */
-                   AND SCD.CNTR_SN = SISI.OJ_CNTR_SN                 /* 대상계약일련번호 */
+                     , CASE WHEN RRD.DP_DV_CD ='2'
+                 		    THEN '1' /* 정상 */
+                 		    ELSE '2' /* 귀속 */
+                 		     END AS RFND_DV  /* 환불구분. 입금구분(CWJDIV) ='2' 환불이고 업무구분(CWJDIV)이 전집이고 환불유형(CWHFLG ) 87 이면 귀속 아니면 정상 ...미완성 */
+                     , CASE WHEN ( SELECT COUNT(*)
+                                    FROM TB_SSCT_ICPT_SELL_IZ SISI /* 불완전판매내역 */
+                                   WHERE RRRB.CNTR_NO = SISI.BASE_CNTR_NO
+                                     AND RRRB.CNTR_SN = SISI.BASE_CNTR_SN
+                                     AND SISI.DTA_DL_YN = 'N'
+                                 ) <![CDATA[>]]> 0
+                           THEN 'Y'
+                           ELSE 'N'
+                            END AS ICPT_SELL_DV /* 불완전판매구분 */
+                  FROM TB_RVDW_RFND_RCP_BAS RRRB /*  환불접수기본 */
+                INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD  /* 환불접수상세 */
+                   ON RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO
+                  AND RRRD.DTA_DL_YN = 'N'
+                INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납상세기본 */
+                   ON RRD.RVE_NO = RRRD.RVE_NO
+                  AND RRD.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_DTL SCD /* 계약상세 */
+                   ON SCD.CNTR_NO = RRRB.CNTR_NO
+                  AND SCD.CNTR_SN = RRRB.CNTR_SN
+                  AND SCD.DTA_DL_YN = 'N'
                  WHERE 1 = 1
-                   AND RRRB.FNL_MDFC_DTM BETWEEN #{startDay} AND #{endDay} /* 처리일자 */
-                   /* 테스트를 위해 주석. 수납상세 테이블 데이터 들어오기 전까지 주석 */
-                   AND RRD.PERF_DT BETWEEN #{perfDtStartDay} AND #{perfDtEndDay}          /*  실적일자 */
-                   /* AND 환불구분 확인필요 */
-                   <if test="@MybatisUtils@isNotEmpty(baseCntrNo)">
-                   AND SISI.BASE_CNTR_NO = #{baseCntrNo}/* 불완전판매여부 */
-                   </if>
+                   AND RRRB.RFND_RVE_DT BETWEEN #{startDay} AND #{endDay} /* 처리일자 */
+                   AND RRRB.RFND_PERF_DT BETWEEN #{perfDtStartDay} AND #{perfDtEndDay}          /*  실적일자 */
+                  ) T1
+                WHERE 1=1
+                 <if test="@MybatisUtils@isNotEmpty(rfndDv)">
+                  AND T1.RFND_DV = #{rfndDv} /* 조건: 환불구분 RFND_DV */
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(icptSellYn) and icptSellYn != 'all' and icptSellYn != 'ALL'">
+                  AND T1.ICPT_SELL_DV = #{icptSellYn} /* 조건: 불완전판매 ICPT_SELL_DV */
+                </if>
            ) ,
              RFND_DSB_AMT_SUM AS /* 환불지급금액 합계 */
-           ( 
+           (
                 SELECT *
                   FROM BASE
                  PIVOT (
@@ -132,9 +185,9 @@
                                           , 'YD_CARD' AS YD_CARD
                                           )
                        )
-           ) , 
+           ) ,
              RFND_DDTN_AMT_SUM AS /* 환불공제금액 합계 */
-           ( 
+           (
                SELECT *
                  FROM BASE
                 PIVOT (
@@ -151,10 +204,10 @@
                                           , 'YD_CARD' AS YD_CARD
                                           )
                        )
-           ) , 
+           ) ,
              RFND_DSB_AMT_SUM_CARD_RFND AS /* 환불지급금액 합계와 카드 (환불지급금액) 합계 */
            (
-               SELECT 
+               SELECT
                       NVL(CASH_RFND_DSB_AMT_SUM, 0) AS CASH_RFND_DSB_AMT_SUM /* 현금 환불지급금액 합계 */
                     , NVL(BC_CARD_RFND_DSB_AMT_SUM, 0) AS BC_CARD_RFND_DSB_AMT_SUM/* BC 환불지급금액 합계 */
                     , NVL(KB_CARD_RFND_DSB_AMT_SUM, 0) AS KB_CARD_RFND_DSB_AMT_SUM/* KB 환불지급금액 합계 */
@@ -180,7 +233,7 @@
            ) ,
              RFND_DDTN_AMT_SUM_CARD_DDTN AS /* 환불공제금액 합계와 카드 공제 */
            (
-               SELECT                
+               SELECT
                       NVL(CASH_RFND_DDTN_AMT_SUM, 0) AS CASH_RFND_DDTN_AMT_SUM/* 현금 환불공제금액 합계 */
                     , NVL(BC_CARD_RFND_DDTN_AMT_SUM, 0) AS BC_CARD_RFND_DDTN_AMT_SUM /* BC 환불공제금액 합계 */
                     , NVL(KB_CARD_RFND_DDTN_AMT_SUM, 0) AS KB_CARD_RFND_DDTN_AMT_SUM /* KB 환불공제금액 합계 */
@@ -204,7 +257,7 @@
                       ) AS CARD_RFND_DDTN_AMT_SUM /* 카드 공제(환불공제금액 합계) */
                  FROM RFND_DDTN_AMT_SUM /* 환불공제금액 합계 */
            )
-        SELECT 
+        SELECT
                NVL(RDASCR.CASH_RFND_DSB_AMT_SUM, 0) AS CASH_RFND_DSB_AMT_SUM /* 현금 환불지급금액 합계 */
              , NVL(RDASCR.BC_CARD_RFND_DSB_AMT_SUM, 0) AS BC_CARD_RFND_DSB_AMT_SUM /* BC 환불지급금액 합계 */
              , NVL(RDASCR.KB_CARD_RFND_DSB_AMT_SUM, 0) AS KB_CARD_RFND_DSB_AMT_SUM /* KB 환불지급금액 합계 */
@@ -224,7 +277,7 @@
              /* 확인필요: 웰스 멤버 전금 */
              , ( SELECT SUM(NVL(RFND_DSB_PSP_INT, 0))  /* 환불지급지연이자*/
                    FROM BASE
-                  WHERE CARD_RFND_FNIT_CD IN ('361','381', '365', '044', '374', '366', '368', '367', '371', '000') 
+                  WHERE CARD_RFND_FNIT_CD IN ('361','381', '365', '044', '374', '366', '368', '367', '371', '000')
                      OR CARD_RFND_FNIT_CD IS NULL
                ) AS RFND_DSB_PSP_INT_SUM /* 지연이자 합계 */
              /* 확인필요: K 머니 합계 */
@@ -233,5 +286,117 @@
           FROM RFND_DSB_AMT_SUM_CARD_RFND RDASCR /* 환불지급금액 합계와 카드 (환불지급금액) 합계 */
           LEFT OUTER JOIN RFND_DDTN_AMT_SUM_CARD_DDTN RDASCD /* 환불공제금액 합계와 카드 공제 (합계) */
             ON 1 = 1
+    </select>
+
+
+    <select id="selectEtcAmountRefundsSummary" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto$SearchEtcAmountRefundSummaryRes">
+        SELECT COUNT(TAB2.CST_KNM) AS CNT_CST_KNM
+             , SUM(TAB2.SELL_AMT) AS TOT_SELL_AMT
+             , SUM(TAB2.DSB_AMT) AS TOT_DSB_AMT
+             , SUM(TAB2.RFND_DSB_AMT) AS TOT_RFND_DSB_AMT
+             , SUM(TAB2.RFND_DSB_PSP_INT) AS TOT_RFND_DSB_PSP_INT
+             , SUM(TAB2.CARD_RFND_FEE) AS TOT_CARD_RFND_FEE
+        FROM ( SELECT TAB.CNTR_NO
+                    , TAB.CNTR_SN
+                    , TAB.CNTR_DTL_NO
+                    , TAB.CST_KNM
+                    , TAB.CST_ENM
+                    , TAB.RFND_RVE_DT
+                    , TAB.RFND_PERF_DT
+                    , TAB.BIZ_DV
+                    , TAB.DP_DV
+                    , TAB.RFND_DV
+                    , TAB.ICPT_SELL_DV
+                    , TAB.SELL_AMT
+                    , TAB.DSB_AMT
+                    , TAB.RFND_DSB_AMT
+                    , TAB.RFND_DSB_PSP_INT
+                    , TAB.CARD_RFND_FEE
+                    , TAB.CSH_CARD_RFND_FNIT_CD
+                    , TAB.CARD_RFND_CRCDNO_ENCR
+                    , TAB.CSH_RFND_ACNO_ENCR
+                    , TAB.CSH_CARD_RFND_ACNO_CRCDNO_ENCR
+                    , TAB.CSH_RFND_ACOWN_NM
+                    , TAB.ISTM_MCN
+                    , TAB.CARD_RFND_CRDCD_APRNO
+                 FROM (
+                        SELECT RRRB.CNTR_NO /* 계약번호 */
+                             , RRRB.CNTR_SN /* 계약일련번호 */
+                             , RRRB.CNTR_NO || RRRB.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
+                             , ( SELECT CST_KNM
+                             	   FROM TB_CUBS_CST_BAS S1
+                             	  WHERE 1=1
+                                	    AND S1.CST_NO = RRRB.CST_NO
+                              	    AND S1.DTA_DL_YN = 'N'
+                                ) AS CST_KNM /* 고객명 - 한글 */
+                             , ( SELECT CST_ENM
+                             	   FROM TB_CUBS_CST_BAS S1
+                             	  WHERE 1=1
+                             	    AND S1.CST_NO = RRRB.CST_NO
+                              	    AND S1.DTA_DL_YN = 'N'
+                                ) AS CST_ENM /* 고객명 - 영문 */
+                             , RRRB.RFND_RVE_DT /* 처리일자 - 수납일 */
+                             , RRRB.RFND_PERF_DT /* 실적일자 - 실적일*/
+                             , '웰스' AS BIZ_DV /* 업무구분 - ASIS 기준 */
+                             , '' AS DP_DV /* 입금종류.  1 이면 할부, 2이면 매변, 3이면 손료, 4이면 위약, 5이면 가산 */
+                             , CASE WHEN RRD.DP_DV_CD ='2'
+                          		    THEN '1' /* 정상 */
+                          		    ELSE '2' /* 귀속 */
+                          		     END AS RFND_DV  /* 환불구분. 입금구분(CWJDIV) ='2' 환불이고 업무구분(CWJDIV)이 전집이고 환불유형(CWHFLG ) 87 이면 귀속 아니면 정상 ...미완성 */
+                             , CASE WHEN ( SELECT COUNT(*)
+                                             FROM TB_SSCT_ICPT_SELL_IZ SISI /* 불완전판매내역 */
+                                            WHERE RRRB.CNTR_NO = SISI.BASE_CNTR_NO
+                                              AND RRRB.CNTR_SN = SISI.BASE_CNTR_SN
+                                              AND SISI.DTA_DL_YN = 'N'
+                                          ) <![CDATA[>]]> 0
+                                    THEN 'Y'
+                                    ELSE 'N'
+                                     END AS ICPT_SELL_DV /* 불완전판매구분 */
+                             , SCD.SELL_AMT /* 판매금액 */
+                             , NVL((NVL(RRRD.RFND_DSB_AMT, 0) + NVL(RRRD.RFND_DSB_PSP_INT,0) - NVL(RRRD.CARD_RFND_FEE,0)) ,0) AS DSB_AMT /* 지급금액 */
+                             , NVL(RRRD.RFND_DSB_AMT, 0) AS RFND_DSB_AMT /* 환불금액 */
+                             , NVL(RRRD.RFND_DSB_PSP_INT, 0) AS RFND_DSB_PSP_INT /* 지연이자 */
+                             , NVL(RRRD.CARD_RFND_FEE, 0) AS CARD_RFND_FEE /* 카드수수료 */
+                             , ( SELECT RFC.FNIT_NM
+                                   FROM TB_RVDW_FNIT_CD RFC           /* 금융기관코드 */
+                                  WHERE RFC.FNIT_CD = (
+                                                        CASE WHEN RRRD.CSH_RFND_FNIT_CD IS NULL
+                                                             THEN RRRD.CARD_RFND_FNIT_CD
+                                                             ELSE RRRD.CSH_RFND_FNIT_CD
+                                                              END
+                                                       )
+                                ) AS CSH_CARD_RFND_FNIT_CD /* 은행/ 카드사 */
+                             , RRRD.CARD_RFND_CRCDNO_ENCR /* 카드번호 */
+                             , RRRD.CSH_RFND_ACNO_ENCR /* 계좌번호 */
+                             , '' AS CSH_CARD_RFND_ACNO_CRCDNO_ENCR /* 카드/계좌번호 */
+                             , RRRD.CSH_RFND_ACOWN_NM /* 예금주 - 이름  */
+                             , SCD.ISTM_MCN/* 할부개월 */
+                             , RRRD.CARD_RFND_CRDCD_APRNO /* 승인번호 */
+                          FROM TB_RVDW_RFND_RCP_BAS RRRB /*  환불접수기본 */
+                         INNER JOIN TB_RVDW_RFND_RCP_DTL RRRD  /* 환불접수상세 */
+                            ON RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO
+                           AND RRRD.DTA_DL_YN = 'N'
+                         INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납상세기본 */
+                            ON RRD.RVE_NO = RRRD.RVE_NO
+                           AND RRD.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SSCT_CNTR_DTL SCD /* 계약상세 */
+                            ON SCD.CNTR_NO = RRRB.CNTR_NO
+                           AND SCD.CNTR_SN = RRRB.CNTR_SN
+                           AND SCD.DTA_DL_YN = 'N'
+                         WHERE 1=1
+                           AND RRRB.DTA_DL_YN  = 'N'
+                           AND RRRB.RFND_RVE_DT <![CDATA[>=]]> #{startDay} /* 조건 처리일자 from */
+                           AND RRRB.RFND_RVE_DT <![CDATA[<=]]> #{endDay} /* 조건 처리일자 to */
+                           AND RRRB.RFND_PERF_DT <![CDATA[>=]]> #{perfDtStartDay} /* 조건 실적일자 from*/
+                           AND RRRB.RFND_PERF_DT <![CDATA[<=]]> #{perfDtEndDay} /* 조건 실적일자 to */
+                       ) TAB
+                WHERE 1=1
+                <if test="@MybatisUtils@isNotEmpty(rfndDv)">
+                  AND TAB.RFND_DV = #{rfndDv} /* 조건: 환불구분 RFND_DV */
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(icptSellYn) and icptSellYn != 'all' and icptSellYn != 'ALL'">
+                  AND TAB.ICPT_SELL_DV = #{icptSellYn} /* 조건: 불완전판매 ICPT_SELL_DV */
+                </if>
+              ) TAB2
     </select>
 </mapper>
