@@ -16,6 +16,7 @@
                                                 , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
                                                 , FEE_CALC_AMT       /* 수수료계산금액 */
                                                 , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                                                , FNL_FEE_YN         /* 최종수수료여부 */
                                                 <include refid="COMMON.insertSystemField" />)
         SELECT AA.BASE_YM
              , AA.BASE_YM         AS PERF_YM
@@ -30,6 +31,7 @@
              , '01'               AS FEE_CALC_TP_CD -- 01 / 수수료계산
              , SUM(AA.AMT_AKSD09) AS FEE_CALC_AMT
              , SUM(AA.AMT_AKSD09) AS FEE_CTR_CNFM_AMT
+             , #{fnlFeeYn}        AS FNL_FEE_YN
         <include refid="COMMON.insertSystemFieldValue" />
           FROM (SELECT A.BASE_YM
                      , #{feeTcntDvCd}                             AS FEE_TCNT_DV_CD      -- 수수료차수(변수)
@@ -215,7 +217,7 @@
            SELECT ZZ.BASE_YM
                  ,ZZ.OG_TP_CD
                  ,ZZ.PRTNR_NO
-                 , CASE WHEN ZZ.AB80_CNT >= ZZ.KIZUN_CNT THEN /* 실활동 인원이 기준인원수 보다 큰 경우  */
+                 , TRUNC(CASE WHEN ZZ.AB80_CNT >= ZZ.KIZUN_CNT THEN /* 실활동 인원이 기준인원수 보다 큰 경우  */
                                                               CASE WHEN LINK_DEQ02 >= 20  THEN DEQ2_CNT * 3000     /* 순증 급간으로 BS건수 활용 수수료 계산   */
                                                                    WHEN LINK_DEQ02 >= 15  THEN DEQ2_CNT * 2400
                                                                    WHEN LINK_DEQ02 >= 10  THEN DEQ2_CNT * 1800
@@ -231,7 +233,7 @@
                            WHEN  LINK_DEQ03 <![CDATA[<]]> 95     THEN 0.95
                                                      ELSE 1 END
                      - /* 빼기 */
-                      ( ZZ.LC56_CNT * 50000 )    /* 허위발생 대상 웰스매니저 수  */
+                      ( ZZ.LC56_CNT * 50000 ))    /* 허위발생 대상 웰스매니저 수  */
                       AS  FEE_CALC_AMT           /*허위가 많으면 ""0""보자 작을 수도 있음.   */
              FROM (
              SELECT AA.BASE_YM
@@ -333,5 +335,140 @@
               ) ZZZ
         WHERE 1 = 1
           AND ZZZ.FEE_CALC_AMT > 0
+    </insert>
+
+    <insert id="insertBsEncouragementFeeForBrmgr">
+        /* BS장려(지점장)수수료(W020123) 계산 SQL (소스 : LC56U111, 컬럼 : AKSD41) */
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
+                                                  BASE_YM            /* 기준년월 */
+                                                , PERF_YM            /* 실적년월 */
+                                                , OJ_DSB_YM          /* 대상지급년월 */
+                                                , CO_CD              /* 회사코드 */
+                                                , OG_TP_CD           /* 조직유형코드 */
+                                                , PRTNR_NO           /* 파트너번호 */
+                                                , FEE_CD             /* 수수료코드 */
+                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+                                                , FEE_CALC_AMT       /* 수수료계산금액 */
+                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                                                , FNL_FEE_YN         /* 최종수수료여부 */
+                                                <include refid="COMMON.insertSystemField" />)
+        SELECT AAA.BASE_YM
+             , AAA.BASE_YM      AS PERF_YM
+             , AAA.BASE_YM      AS OJ_DSB_YM
+             , #{coCd}           AS CO_CD
+             , AAA.OG_TP_CD
+             , AAA.PRTNR_NO
+             , #{feeCd}        AS FEE_CD
+             , #{dtaCrtFeeCd}        AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd}             AS FEE_TCNT_DV_CD -- 수수료차수(변수)
+             , '01'             AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
+             , '01'             AS FEE_CALC_TP_CD -- 01 / 수수료계산
+             , AAA.FEE_CALC_AMT
+             , AAA.FEE_CALC_AMT AS FEE_CTR_CNFM_AMT
+             , #{fnlFeeYn}      AS FNL_FEE_YN
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM (SELECT AA.BASE_YM
+                     , AA.OG_TP_CD
+                     , AA.PRTNR_NO
+                     , TRUNC(
+                          CASE
+                              WHEN AA.TXT_BIGO = 'A' THEN AA.CNT_BS_UNDER * 4000 + CNT_BS_OVER * 2500
+                              WHEN AA.TXT_BIGO = 'B' THEN AA.CNT_BS_UNDER * 3800 + CNT_BS_OVER * 2200
+                              WHEN AA.TXT_BIGO = 'C' THEN AA.CNT_BS_UNDER * 3500 + CNT_BS_OVER * 2000
+                              WHEN AA.TXT_BIGO = 'D' THEN AA.CNT_BS_UNDER * 2800 + CNT_BS_OVER * 1500
+                              WHEN AA.TXT_BIGO = 'E' THEN AA.CNT_BS_UNDER * 2000 + CNT_BS_OVER * 900
+                              WHEN AA.TXT_BIGO = 'F' THEN AA.CNT_BS_UNDER * 1200 + CNT_BS_OVER * 700
+                              WHEN AA.TXT_BIGO = 'G' THEN AA.CNT_BS_UNDER * 500 + CNT_BS_OVER * 300
+                              WHEN AA.TXT_BIGO = 'H' THEN AA.CNT_BS_UNDER * 200
+                              ELSE 0 END * CNT_RATE * CNT_RATE_JIJUM
+                  ) AS FEE_CALC_AMT
+                  FROM (SELECT A.BASE_YM
+                             , A.OG_TP_CD
+                             , A.PRTNR_NO
+                             , NVL(B.PERF_VAL, 0)                                                                            AS CNT_SUNZEON    -- 순증건수
+                             , NVL(C.PERF_VAL, 0)                                                                            AS CNT_FSVST      -- 허위방문건수
+                             , NVL(D.PERF_VAL, 0)                                                                            AS CNT_BS         -- BS건수
+                             , NVL(E.PERF_VAL, 0)                                                                            AS CNT_PAN        -- 가전(판매)건수
+                             , MONTHS_BETWEEN(TO_DATE(A.BASE_YM || '01', 'YYYYMMDD'),
+                                              TO_DATE(SUBSTR(NVL(A.RCNTR_DT, A.FST_CNTR_DT), 1, 6) || '01', 'YYYYMMDD')) +
+                               1                                                                                             AS CNT_MON
+                             , CASE
+                                   WHEN NVL(D.PERF_VAL, 0) >= 250 THEN 250
+                                   ELSE NVL(D.PERF_VAL, 0) END                                                               AS CNT_BS_UNDER
+                             , CASE
+                                   WHEN NVL(D.PERF_VAL, 0) >= 250 THEN NVL(D.PERF_VAL, 0) - 250
+                                   ELSE 0 END                                                                                AS CNT_BS_OVER
+                             , CASE
+                                   WHEN NVL(E.PERF_VAL, 0) >= 20 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'A' -- 20건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 20 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'B' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 15 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'B' -- 15건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 15 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'C' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 12 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'C' -- 12건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 12 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'D' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 10 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'D' -- 10건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 10 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'E' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 8 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'E' -- 8건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 8 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'F' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 6 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'F' -- 6건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 6 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'G' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 4 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'G' -- 4건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 4 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'H' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'H' -- 2건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'I' -- 한칸 하위
+                                   ELSE 'I' END                                                                              AS TXT_BIGO
+                             , CASE
+                                   WHEN MONTHS_BETWEEN(TO_DATE(A.BASE_YM || '01', 'YYYYMMDD'),
+                                                       TO_DATE(SUBSTR(NVL(A.RCNTR_DT, A.FST_CNTR_DT), 1, 6) || '01',
+                                                               'YYYYMMDD')) + 1 <![CDATA[<=]]> 6 THEN 1
+                                   ELSE (CASE
+                                             WHEN NVL(B.PERF_VAL, 0) >= 2 THEN 1.1
+                                             WHEN NVL(B.PERF_VAL, 0) >= 0 THEN 1
+                                             WHEN NVL(B.PERF_VAL, 0) >= -2 THEN 0.9
+                                             ELSE 0.8 END)
+                          END                                                                                                AS CNT_RATE
+                             , CASE
+                                   WHEN NVL(D.PERF_VAL, 0) >= 120 THEN 0.7
+                                   ELSE 1 END                                                                                AS CNT_RATE_JIJUM -- 지점장 전용 추가 RATE
+                          FROM TB_OGBS_MM_PRTNR_IZ A /* M조직 기본   */
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                               ON A.BASE_YM = B.BASE_YM
+                                                   AND A.BASE_YM = B.PERF_YM
+                                                   AND #{feeTcntDvCd} = B.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND A.OG_TP_CD = B.OG_TP_CD
+                                                   AND A.PRTNR_NO = B.PRTNR_NO
+                                                   AND 'W02P00113' = B.PERF_ATC_CD -- 순증
+                                                   AND '0' = B.PERF_DV_CD -- 고정 개인실적
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                               ON A.BASE_YM = C.BASE_YM
+                                                   AND A.BASE_YM = C.PERF_YM
+                                                   AND #{feeTcntDvCd} = C.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND A.OG_TP_CD = C.OG_TP_CD
+                                                   AND A.PRTNR_NO = C.PRTNR_NO
+                                                   AND 'W02P00097' = C.PERF_ATC_CD -- 허위방문
+                                                   AND '0' = C.PERF_DV_CD -- 고정 개인실적
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                                               ON A.BASE_YM = D.BASE_YM
+                                                   AND A.BASE_YM = D.PERF_YM
+                                                   AND #{feeTcntDvCd} = D.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND A.OG_TP_CD = D.OG_TP_CD
+                                                   AND A.PRTNR_NO = D.PRTNR_NO
+                                                   AND 'W02P00085' = D.PERF_ATC_CD -- 고정 BS건수
+                                                   AND '0' = D.PERF_DV_CD -- 고정 개인실적
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL E
+                                               ON A.BASE_YM = E.BASE_YM
+                                                   AND A.BASE_YM = E.PERF_YM
+                                                   AND #{feeTcntDvCd} = E.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND A.OG_TP_CD = E.OG_TP_CD
+                                                   AND A.PRTNR_NO = E.PRTNR_NO
+                                                   AND 'W02P00002' = E.PERF_ATC_CD -- 고정 판매건수
+                                                   AND '0' = E.PERF_DV_CD -- 고정 개인실적
+                         WHERE 1 = 1
+                           AND A.BASE_YM = #{baseYm} -- 변수
+                           AND A.OG_TP_CD = #{ogTpCd}   -- 변수
+                           AND A.PSTN_DV_CD = '7') AA) AAA
+         WHERE AAA.FEE_CALC_AMT > 0
     </insert>
 </mapper>
