@@ -50,9 +50,9 @@ public interface WwdbGiroDepositMgtMapper {
     int deleteGiroDepositItemization(WwdbGiroDepositDeleteInfoDvo dvo);
 
     /* 지로 입금 등록 - 통합내역 */
-    int inertIntegrationItemization(WwdbGiroDepositSaveInfoDvo dvo);
+    int inertIntegrationItemization(Map<String, Object> dto);
 
-    int updateIntegrationItemization(WwdbGiroDepositSaveInfoDvo dvo);
+    int updateIntegrationItemization(String itgDpNo);
 
     int inertIntegrationItemizationTest(WwdbGiroDepositSaveInfoDvo dvo);
 
@@ -95,4 +95,6 @@ public interface WwdbGiroDepositMgtMapper {
     SearchDtlStateRes selectDtlState(WwdbGiroDepositSaveInfoDvo dto);
 
     SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(List<String> rveDt);
+
+    int updateIntegrationDeposit(Map<String, Object> dto) throws Exception;
 }

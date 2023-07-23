@@ -35,7 +35,10 @@ public class WwdbGiroDepositMgtDto {
         String giroRveDvCd,
         String giroNo /*지로번호*/,
         String giroDpMtrDvCd /*지로입금자료구분코드*/,
-        String giroDpSn /*일련번호*/
+        String giroDpSn, /*일련번호*/
+        String itgDpProcsYn,
+
+        String itgDpNo
 
         //        String kwGrpCoCd,
         //        String cntrNo, //--계약번호
@@ -119,60 +122,15 @@ public class WwdbGiroDepositMgtDto {
         String cntrNo,
         String cntrSn,
         String basePdCd,
-        String hgrPdCd,
-        String pdQty,
-        String stplPtrmUnitCd,
-        String stplPtrm,
-        String istmMcn,
-        String cntrPdStrtdt,
-        String cntrPdEnddt,
-        String cntrDtlStatCd,
-        String sellTpCd,
-        String dscApyTpCd,
-        String dscApyDtlCd,
-        String dscApyDrmVal,
-        String svPtrmUnitCd,
-        String svPrd,
-        String cntrwTpCd,
-        String blgCrpCd,
-        String rveCrpCd,
-        String kwGrpCoCd,
-        String booSellTpCd,
-        String pdGdCd,
         String pdHclsfId,
         String pdMclsfId,
         String pdLclsfId,
         String pdDclsfId,
-        String stlmTpCd,
-        String crncyDvCd,
-        String apyExcr,
-        String pdBaseAmt,
-        String fnlAmt,
-        String vat,
-        String sellAmt,
-        String cntrAmt,
-        String istmPcamAmt,
-        String istmIntAmt,
-        String mmIstmAmt,
-        String ackmtPerfRt,
-        String ackmtPerfAmt,
-        String cvtPerfAmt,
-        String sppDuedt,
-        String resubYn,
-        String rstlYn,
-        String frisuYn,
-        String frisuDsbTpCd,
-        String feeAckmtCt,
-        String feeAckmtBaseAmt,
-        String feeFxamYn,
-        String txinvPblOjYn,
-        String smtplId,
-        String smtplSn,
-        String bfOrdNo,
-        String cntrChRcpId,
-        String cntrChSn,
-        String cntrChDtlRsonCd,
-        String cntrChDtlAkCn
+        String cntrCstNo,
+        String cntrCanDtm,
+        String sellTpCd,
+        String sellTpDtlCd,
+        String cntrDtlStatCd
     ) {}
 
     /* 지로 입금 설정 금액 및 고객 조회*/
@@ -180,7 +138,10 @@ public class WwdbGiroDepositMgtDto {
     public record SearchDepositSettingRes(
         String dpSeAmt,
         String dgCntrNo,
-        String dgCntrSn
+        String dgCntrSn,
+        String dpseAmt, /*설정금액*/
+        String cntrNo,
+        String cntrSn
     ) {
 
     }

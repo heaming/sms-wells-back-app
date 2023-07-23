@@ -16,8 +16,8 @@ public class WwdbGiroDepositSaveInfoDvo {
     String giroInqno; //--지로조회번호
     String cntrNo; //--계약번호
     String cntrSn; //--계약일련번호
-    String pyTn; //--회차             
-    String pyYm; //--회차             
+    String pyTn; //--회차
+    String pyYm; //--회차
     String pyAmt;// --납입금액
     String giroFeeDvCd; //--지로수수료
     String giroRveDvCd; //--수납구분
@@ -25,4 +25,10 @@ public class WwdbGiroDepositSaveInfoDvo {
     String itgDpCanYn;
     String incmdcYn;
     String procsErrTpCd; //오류처리
+
+    String ogTpCd; /*조직유형코드*/
+    String prtnrNo; /*파트너번호*/
+    String ogId;
+    String dpAmt; /*입금금액*/
+    String dpCprcnfAmt; /*입금대사금액*/
 }
