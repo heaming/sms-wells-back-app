@@ -4,6 +4,10 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrD
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -206,24 +210,48 @@ public class WsnaIndividualWareOstrService {
 
         List<WsnaIndividualWareOstrDvo> dvos = this.converter.mapAllSaveReqToWsnaIndividualWareOstrDvo(dtos);
 
-        String newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
+        // 입고창고 필터링
+        List<WsnaIndividualWareOstrDvo> filterDvos = dvos.stream()
+            .filter(distinctByKey(dvo -> dvo.getStrWareNo())).toList();
 
-        for (WsnaIndividualWareOstrDvo dvo : dvos) {
-            // 출고요청 저장
-            String ostrAkNo = dvo.getOstrAkNo();
-            if (StringUtils.isEmpty(ostrAkNo)) {
-                dvo.setOstrAkNo(newOstrAkNo);
+        for (WsnaIndividualWareOstrDvo filterDvo : filterDvos) {
+            // 출고요청번호
+            String newOstrAkNo = this.mapper.selectOstrAkNoByQomAsn(filterDvo);
+            if (StringUtils.isEmpty(newOstrAkNo)) {
+                newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
             }
 
-            count += this.mapper.mergeItmOstrAkIz(dvo);
+            // 입고창고번호
+            String strWareNo = filterDvo.getStrWareNo();
 
-            // 물량배정 출고수량 업데이트
-            int result = this.mapper.updateItmQomAsnIz(dvo);
-            // 저장에 실패 하였습니다.
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            // 입고창고에 해당하는 품목 리스트
+            List<WsnaIndividualWareOstrDvo> itms = dvos.stream().filter(dvo -> strWareNo.equals(dvo.getStrWareNo()))
+                .toList();
+            for (WsnaIndividualWareOstrDvo dvo : itms) {
+                String ostrAkNo = dvo.getOstrAkNo();
+                if (StringUtils.isEmpty(ostrAkNo)) {
+                    dvo.setOstrAkNo(newOstrAkNo);
+                }
+
+                // 출고요청 저장
+                count += this.mapper.mergeItmOstrAkIz(dvo);
+
+                // 물량배정 출고수량 업데이트
+                int result = this.mapper.updateItmQomAsnIz(dvo);
+                // 저장에 실패 하였습니다.
+                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            }
         }
 
         return count;
+    }
+
+    /**
+     * distinct 함수
+     */
+    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
 }

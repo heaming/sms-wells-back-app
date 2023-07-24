@@ -4,6 +4,10 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOst
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -230,11 +234,18 @@ public class WsnaIndependenceWareOstrService {
         List<WsnaIndependenceWareOstrDvo> dvos = this.converter.mapAllSaveReqToWsnaIndependenceWareOstrDvo(dtos);
 
         // 입고창고 필터링
-        List<String> strWareNos = dvos.stream().map(WsnaIndependenceWareOstrDvo::getStrWareNo).distinct().toList();
+        List<WsnaIndependenceWareOstrDvo> filterDvos = dvos.stream()
+            .filter(distinctByKey(dvo -> dvo.getStrWareNo())).toList();
 
-        for (String strWareNo : strWareNos) {
+        for (WsnaIndependenceWareOstrDvo filterDvo : filterDvos) {
             // 출고요청번호
-            String newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
+            String newOstrAkNo = this.mapper.selectOstrAkNoByQomAsn(filterDvo);
+            if (StringUtils.isEmpty(newOstrAkNo)) {
+                newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
+            }
+
+            // 입고창고번호
+            String strWareNo = filterDvo.getStrWareNo();
 
             // 입고창고에 해당하는 품목 리스트
             List<WsnaIndependenceWareOstrDvo> itms = dvos.stream().filter(dvo -> strWareNo.equals(dvo.getStrWareNo()))
@@ -257,4 +268,13 @@ public class WsnaIndependenceWareOstrService {
 
         return count;
     }
+
+    /**
+     * distinct 함수
+     */
+    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
 }
