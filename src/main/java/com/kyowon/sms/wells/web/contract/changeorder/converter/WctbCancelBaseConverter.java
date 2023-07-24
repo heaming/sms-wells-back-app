@@ -1,12 +1,9 @@
 package com.kyowon.sms.wells.web.contract.changeorder.converter;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.FindCancelRes;
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.FindSubDetailRes;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo;
 
 @Mapper(componentModel = "spring")
@@ -18,7 +15,9 @@ public interface WctbCancelBaseConverter {
         WctbCancelBaseDvo target
     );
 
+    @Mapping(source = "ptBorAmt", target = "pBorAmt")
     FindSubDetailRes mapCancelBaseDvoToFindSubDetailRes(WctbCancelBaseDvo dvo);
 
-    WctbCancelBaseDvo mapFindCancelReslResToCancelBaseDvo(FindCancelRes dto);
+    @Mapping(source = "pBorAmt", target = "ptBorAmt")
+    WctbCancelBaseDvo mapSaveReqToCancelBaseDvo(SaveReq dto);
 }

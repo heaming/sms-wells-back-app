@@ -34,4 +34,6 @@ public interface WsncBsPeriodCustomerTfMgtMapper {
     int insertTransfer(WsncBsPeriodCustomerTfCreateDvo dvo);
 
     int mergeTransferConfirm(WsncBsPeriodCustomerTfCreateDvo dvo);
+
+    int updateCstSvBfsvcAsn(WsncBsPeriodCustomerTfCreateDvo dvo);
 }

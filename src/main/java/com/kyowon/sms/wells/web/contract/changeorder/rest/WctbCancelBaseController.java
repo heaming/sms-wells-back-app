@@ -61,7 +61,7 @@ public class WctbCancelBaseController {
     @PostMapping("/cancel-registrations")
     public SaveResponse saveCancel(
         @RequestBody
-        List<FindCancelRes> dtos
+        List<SaveReq> dtos
     ) {
         return SaveResponse.builder()
             .processCount(service.saveCancel(dtos))

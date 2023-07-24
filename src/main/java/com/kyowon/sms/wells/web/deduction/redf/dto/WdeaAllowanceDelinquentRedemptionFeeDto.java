@@ -16,8 +16,6 @@ public class WdeaAllowanceDelinquentRedemptionFeeDto {
     @ApiModel("WdeaAllowanceDelinquentRedemptionFeeDto-SearchRes")
     public record SearchRes(
         String redfAdsbOcYm,
-        String feeRedfAdsbDtlId,
-        String feeCpsnRedfId,
         String perfDvCd,
         String perfDvNm,
         String whtxRepDvNm,

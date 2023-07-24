@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbIndividualVisitPrdInqrMapper">
-     <select id="selectCustomerVisitIzs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdInqrDto$SearchCustomerVisitIzRes">
+    <select id="selectCustomerVisitIzs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdInqrDto$SearchCustomerVisitIzRes">
         SELECT T1.VST_NMN_N
              , T1.IST_NMN_N
              , T1.VST_DUEDT
@@ -13,39 +13,113 @@
              , T2.PD_CD
              , T2.PD_NM
         FROM TB_SVPD_CST_SV_RGBSPR_IZ T1
-        INNER JOIN TB_PDBS_PD_BAS T2
-         ON T1.PART_PD_CD= T2.PD_CD
-         AND T2.DTA_DL_YN  ='N'
-        WHERE T1.CNTR_NO = #{cntrNo}
-          AND T1.CNTR_SN = #{cntrSn}
-        ORDER BY VST_DUEDT , FILT_CHNG_LV_CD
-     </select>
-     <select id="selectManagementCstInqrs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdInqrDto$SearchManagementCstInqrRes">
-        SELECT SUBSTR(T1.MNGT_YM,1,4)||'-'||SUBSTR(T1.MNGT_YM,5,2) AS MNGT_YM
-             , (CASE WHEN T1.FXN_PRTNR_YN = '9'
-                    THEN '고정'
-                    WHEN T1.FXN_PRTNR_DV_CD = '1'
-                    THEN '매니저'
-                    WHEN T1.FXN_PRTNR_DV_CD = '2'
-                    THEN 'ENG'
-                    ELSE ''
-               END)  AS FXN_PRTNR_DV_CD  /* AC202_CHG_GB */
-             , T2.PRTNR_KNM   AS FXN_PRTNR_NM   /* AC202_EMP_ID */
-             , T1.FXN_PRTNR_NO       /* AC202_EMP_ID_1 */
-             , T1.MNGER_RGLVL_DV_CD  /* AC202_BAD_AR */
-             , '' AS MNGER_RGLVL_DV_NM /* AC202_BAD_AR 확인필요 */
-             , T1.SV_HSHD_NO         /* AC202_CUST_ID 가구코드 */
-             , T1.HSHD_EXCD_CD       /* AC202_CUST_CHK */
-             , T1.HSHD_EXCD_CNFM_YN  /* AC202_CUST_CFRM_CHK */
-             , T1.EX_HSHD_YN         /* AC202_CUST_EX  */
-             , T2.OG_TP_CD           /* AC202_DEPT_CD 확인필요 */
-        FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
-        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T2
-        ON T1.FXN_PRTNR_NO =  T2.PRTNR_NO
-         AND T1.FXN_PRTNR_OG_TP_CD = T2.OG_TP_CD
+        LEFT OUTER JOIN TB_PDBS_PD_BAS T2
+         ON T1.PART_PD_CD = T2.PD_CD
          AND T2.DTA_DL_YN ='N'
         WHERE T1.CNTR_NO = #{cntrNo}
           AND T1.CNTR_SN = #{cntrSn}
-        ORDER BY T1.MNGT_YM DESC
-     </select>
+        ORDER BY VST_DUEDT , FILT_CHNG_LV_CD
+    </select>
+    <select id="selectManagementCstInqrs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdInqrDto$SearchManagementCstInqrRes">
+        WITH SVPD_INF AS (
+           /* 매니저 방문이 있는 서비스 상품정보*/
+           SELECT P1.SV_PD_CD
+           FROM TB_PDBS_RGBS_WK_BASE_BAS P1   /*정기BS작업기준기본*/
+           WHERE 1=1
+            AND P1.VST_DV_CD IN ('10', '11')
+           GROUP BY P1.SV_PD_CD
+        )
+        , MNGT_CSTN_INF AS (
+           /*  관리고객수 */
+           SELECT S1.MNGT_YM
+                   /* 확정 담당파트너 번호 > 고정 파트너번호 > 관리파트너 번호 > 미지정(9000001)   */
+                 , NVL(NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, S1.MNGT_PRTNR_NO)), '9000001') AS MNGT_PRTNR_NO
+                 , NVL(S2.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) AS MNGT_PRTNR_OG_TP_CD
+                 , NVL(NVL(S2.CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1') AS MNGR_DV_CD
+                 , S1.MNGER_RGLVL_DV_CD
+                 , S1.SV_HSHD_NO
+                 , S1.SV_PD_CD
+                 , S1.FXN_PRTNR_YN
+           FROM WSMDBS.TB_SVPD_MCBY_CST_SV_OJ_IZ S1        /*월별고객서비스대상내역 202TB*/
+           LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2  /*고객서비스BS배정내역 261TB*/
+            ON S1.CNTR_NO = S2.CNTR_NO
+            AND S1.CNTR_SN = S2.CNTR_SN
+            AND S1.MNGT_YM = S2.ASN_OJ_YM
+            AND S2.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN SVPD_INF P1                /*매니저 방문이 있는 서비스*/
+            ON S1.SV_PD_CD = P1.SV_PD_CD
+           WHERE 1=1
+            AND S1.DTA_DL_YN = 'N'
+            AND S1.CNTR_NO = #{cntrNo}
+            AND S1.CNTR_SN = #{cntrSn}
+           GROUP BY S1.MNGT_YM,
+                    NVL(NVL(CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1'),
+                    NVL(CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)),
+                    NVL(NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, MNGT_PRTNR_NO)), '9000001'),
+                    S1.MNGER_RGLVL_DV_CD,
+                    S1.SV_HSHD_NO,
+                    S1.SV_PD_CD,
+                    S1.FXN_PRTNR_YN
+        )
+       , OG_INF_PRTNR AS (
+          /* 조직정보 파트너 */
+          SELECT T1.OG_TP_CD
+               , T1.PRTNR_NO
+               , T1.PRTNR_KNM
+               , T1.BASE_YM
+               , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T1.OG_TP_CD DESC) AS RNK
+           FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
+           INNER JOIN WSMDBS.TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+            ON T1.PRTNR_NO = T2.PRTNR_NO
+            AND T1.OG_TP_CD = T2.OG_TP_CD
+            AND T2.DTA_DL_YN = 'N'
+           INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
+            ON T1.OG_ID = T3.OG_ID
+            AND T1.BASE_YM = T3.BASE_YM
+            AND T3.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T4   /*월조직내역*/
+            ON T3.BASE_YM = T4.BASE_YM
+            AND T3.HGR_OG_ID = T4.OG_ID
+            AND T4.DTA_DL_YN = 'N'
+          WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+          ORDER BY T1.PRTNR_KNM
+       )
+       , PD_INF AS  (
+          /* 상품정보 */
+          SELECT T1.PD_CD
+               , T2.PD_PRP_VAL02                             /* 방문주기 */
+          FROM WSMDBS.TB_PDBS_PD_BAS T1                      /*상품기본*/
+          LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
+           ON T1.PD_CD = T2.PD_CD
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.PD_EXTS_PRP_GRP_CD IN ('SCHD')
+      )
+      /* 결과 조회 */
+      SELECT SUBSTR(T1.MNGT_YM,1,4)||'-'||SUBSTR(T1.MNGT_YM,5,2) AS MNGT_YM            /* AC202_MGT_YM */
+           , (CASE WHEN T1.FXN_PRTNR_YN = 'Y'
+                   THEN '고정'
+                   WHEN T1.MNGR_DV_CD = '1'
+                   THEN '매니저'
+                   WHEN T1.MNGR_DV_CD = '2'
+                   THEN '엔지니어'
+                   ELSE ''
+                   END
+             ) AS MNGR_DV_NM
+           , T1.MNGER_RGLVL_DV_CD  /* AC202_BAD_AR */
+           , T1.SV_HSHD_NO         /* AC202_CUST_ID  */
+           , T2.PRTNR_NO           /* AC202_EMP_ID */
+           , T2.PRTNR_KNM          /* AC202_EMP_ID */
+           , T2.OG_TP_CD           /* AC202_DEPT_CD  */
+           , F_CMZ_CD_NM('TNT_WELL', 'SV_VST_PRD_CD', T3.PD_PRP_VAL02) AS VST_PRD_NM /* AC202_CYCL_TYP */
+      FROM MNGT_CSTN_INF T1
+      LEFT OUTER JOIN OG_INF_PRTNR T2
+       ON T1.MNGT_YM = T2.BASE_YM
+       AND T1.MNGT_PRTNR_OG_TP_CD = T2.OG_TP_CD
+       AND T1.MNGT_PRTNR_NO = T2.PRTNR_NO
+       AND T2.RNK = 1
+      LEFT OUTER JOIN PD_INF T3
+       ON T1.SV_PD_CD = T3.PD_CD
+      ORDER BY T1.MNGT_YM DESC
+    </select>
 </mapper>
