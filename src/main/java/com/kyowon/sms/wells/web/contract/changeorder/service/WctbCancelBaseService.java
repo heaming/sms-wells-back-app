@@ -69,13 +69,13 @@ public class WctbCancelBaseService {
     }
 
     @Transactional
-    public int saveCancel(List<FindCancelRes> dtos) {
+    public int saveCancel(List<SaveReq> dtos) {
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         String now = DateUtil.todayNnow();
         int rtn = 0;
 
-        for (FindCancelRes dto : dtos) {
-            WctbCancelBaseDvo dvo = converter.mapFindCancelReslResToCancelBaseDvo(dto);
+        for (SaveReq dto : dtos) {
+            WctbCancelBaseDvo dvo = converter.mapSaveReqToCancelBaseDvo(dto);
 
             dvo.setIchrOgTpCd(session.getOgTpCd());
             dvo.setIchrPrtnrNo(session.getEmployeeIDNumber());
@@ -144,6 +144,7 @@ public class WctbCancelBaseService {
             // TODO : 9. 매출식적자료 update - 이것도 실시간이 필요없다면 우선 아무것도 하지 않아도 됨
         }
 
+        //throw new NullPointerException();
         return rtn;
     }
 

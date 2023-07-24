@@ -59,7 +59,8 @@ public class WctbCancelBaseDto {
         String svPdTpNm, // 용도구분
         String stlmTpNm, // 멤버십 가입유형
         String sppDuedt, // 예정일자 - 일시불에서 사용
-        String cntrAmt, // 등록비
+        String cntrAmt, // 계약금액
+        String rentalRgstCost, // 렌탈등록비
         String cntramDscAmt, // 등록비 할인
         String cntrTam, // 계약총금액
         String pdBaseAmt, // 정상렌탈료
@@ -86,11 +87,10 @@ public class WctbCancelBaseDto {
     // Result Dto
     // *********************************************************
     //  위약금 Search Result Dto
-    @ApiModel("WctbCancelBaseDto-FindCancelRes")
-    public record FindCancelRes(
-        String alncmpCd, // 제휴사코드
+    @ApiModel("WctbCancelBaseDto-SaveReq")
+    public record SaveReq(
+        String refPdClsfVal, // 상품참조분류 - 커피원두 구분용
         String cntrPdStrtdt, // 상품시작일자/매출일자
-        String stplPtrm, // 의무기간
         String stplDscAmt, // 재약정할인금액
         String stplStrtdt, // 재약정시작일자
         String stplEnddt, // 재약정종료일자
@@ -100,12 +100,11 @@ public class WctbCancelBaseDto {
         Integer thmSlSumAmt, // 당월매출금액
         Integer thmDpTotAmt, // 당월입금총합
         Integer thmRfndTotAmt, // 당월환불총합
-
         String cntrNo,
         String cntrSn,
         String sellTpCd,
         String sellTpDtlCd, // 판매유형상세코드
-        String pdCd,
+        String basePdCd,
         Integer cntrPtrm, // 렌탈개월
         Integer rentalTn, // 렌탈차월
         Integer cntrPasgDc, // 계약경과일수
@@ -159,18 +158,21 @@ public class WctbCancelBaseDto {
         Integer reqdCsBorAmt2, // 철거비용위약금액2
         Integer lsnt, // 분실손료
         Integer eotDlqAddAmt, // 기말연체가산금액
-
         String cntrStatChRsonCd, // 계약상태변경사유코드
         String ccamExmptDvCd, // 위약금면책구분코드
         String csmbCsExmptDvCd, // 소모품비용면책구분코드
         String reqdCsExmptDvCd, // 철거비용면책구분코드
         String reqdAkRcvryDvCd, // 철거요청복구구분코드
         String rsgAplcDt, // 요청일자
-        String rsgFshDt, // 취소일자
+        String rsgFshDt, // 요청일자
         String slCtrRqrId, // 매출조정요청자ID
         String slCtrRmkCn, // 매출조정비고내용
         String ichrOgTpCd, // 담당조직유형코드
         String ichrPrtnrNo // 담당파트너번호
+        //String stplPtrm, // 의무기간
+        //String reStplPtrm, // 재약정의무기간
+        //String alncmpCd, // 제휴사코드
+        //String sellDscDvCd, // 할인구분코드
     ) {}
 
     // *********************************************************
@@ -181,12 +183,10 @@ public class WctbCancelBaseDto {
     public record FindSubDetailRes(
         String cntrNo,
         String cntrSn,
-        String pdCd,
         String cntrPtrm,
         String rentalTn,
         String cntrPasgDc,
         String sppNmnN,
-        String slDc,
         String cntrPdStrtdt,
         String nomSlAmt,
         String spmtSlAmt,
@@ -231,14 +231,12 @@ public class WctbCancelBaseDto {
         String csmbCostBorAmt,
         String pBorAmt,
         String reqdCsBorAmt,
-        // String rsgAplcDt,
-        //String rsgFshDt,
 
         String alncmpCd, // 제휴사코드
-        String stplPtrm, // 의무기간
-        String stplDscAmt, // 재약정할인금액
-        String stplStrtdt, // 재약정시작일자
-        String stplEnddt, // 재약정종료일자
+        //String stplPtrm, // 의무기간
+        //String stplDscAmt, // 재약정할인금액
+        //String stplStrtdt, // 재약정시작일자
+        //String stplEnddt, // 재약정종료일자
         Integer useDays, // 사용일자
         String grade, // 등급
         Integer thmSlSumAmt, // 당월매출금액
@@ -248,59 +246,11 @@ public class WctbCancelBaseDto {
 
     @ApiModel("WctbCancelBaseDto-FindDetailRes")
     public record FindDetailRes(
-        String cntrNo,
-        String cntrSn,
-        String sellTpCd,
-        String sellTpNm,
-        String sellTpDtlCd,
-        String cntrDtlStatCd,
-        String cntrCstNo,
-        String cntrCstKnm,
-        String basePdCd,
-        String pdNm,
-        String copnDvNm,
-        String cntrGbn,
-        String ogCd,
-        String hooPrtnrNm,
-        String hooPrtnrNo,
-        String pkgYn,
-        String cntrRcpDt,
-        String cntrCnfmDt,
-        String cntrPdStrtdt,
-        String cntrPdEnddt,
-        String rentalTn,
-        String rentalDc,
-        String sppTn,
-        String stplPtrm,
-        String svPrd,
-        String svPdTpNm,
-        String stlmTpNm,
-        String sppDuedt,
-        String cntrAmt,
-        String cntramDscAmt,
-        String cntrTam,
-        String pdBaseAmt,
-        String cntrPtrm,
-        String fnlAmt,
-        String dscAmt,
-        String rstlPtrm,
-        String stplDscAmt,
-        String stplStrtdt,
-        String stplEnddt,
-        String machineNm,
-        String addAmt,
-        String machineRentalAmt,
-        String recoverAmt,
-        String lsnt,
-        String eotUcAmt,
-        String sellAmt,
-        String cancelStatNm,
-        String disableChk,
         String prgsNmnN,
         String cntrPasgDc,
         String sppNmnN,
         String rtngdQty,
-        String slDc,
+        //String slDc,
         String nomSlAmt,
         String spmtSlAmt,
         String nomDscAmt,
@@ -339,7 +289,6 @@ public class WctbCancelBaseDto {
         String csmbCsExmptDvCd,
         String reqdCsExmptDvCd,
         String reqdAkRcvryDvCd,
-        String reqdFshRcvryDvCd,
         String useDays,
         String grade,
         String prmRfndAmt,
@@ -350,6 +299,7 @@ public class WctbCancelBaseDto {
         String rentalRgstCostRfndAmtVat,
         String borAmt,
         String totRfndAmt,
+        String lsnt,
         String resRtlfeBorAmt,
         String rgstCostDscBorAmt,
         String rentalDscBorAmt,
@@ -360,7 +310,6 @@ public class WctbCancelBaseDto {
         String reqdCsBorAmt2,
         String slCtrRqrId,
         String slCtrRmkCn,
-        String cntrChRcpId,
         String ichrOgTpCd,
         String ichrPrtnrNo,
         String sellPrtnrNo
