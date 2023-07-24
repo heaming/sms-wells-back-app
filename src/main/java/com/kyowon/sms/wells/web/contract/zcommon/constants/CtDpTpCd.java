@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.contract.zcommon.constants;
 
+import com.kyowon.sms.common.web.contract.zcommon.constants.CtDpMesCd;
 import com.sds.sflex.system.config.exception.BizException;
 
 import java.util.Arrays;

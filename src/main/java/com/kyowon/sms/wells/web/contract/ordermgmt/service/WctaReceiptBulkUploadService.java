@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import com.kyowon.sflex.common.common.dto.SujiewonDto;
 import com.kyowon.sflex.common.common.service.SujiewonService;
+import com.kyowon.sms.common.web.contract.zcommon.constants.*;
 import com.kyowon.sms.wells.web.contract.common.dvo.*;
 import com.kyowon.sms.wells.web.contract.common.service.WctzContractNumberService;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
@@ -10,6 +11,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaReceiptBulkUploadDto.
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaReceiptBulkUploadMapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.*;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
