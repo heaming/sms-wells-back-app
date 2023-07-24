@@ -22,8 +22,8 @@ public class WwdbRefundCurrentStatusDto {
         // 일괄생성구분 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rfndDsbDvCd, // 귀속환불구분
         String sellTpCd, // 판매유형
-        // 판매유형상세 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
-        String rveDvCd, // 대손구분
+        String sellTpDtlCd, // 판매유형상세
+        // String rveDvCd, // 대손구분
         String dpMesCd // 포인트구분
     ) {}
 
@@ -46,7 +46,7 @@ public class WwdbRefundCurrentStatusDto {
         String cardRfndCrcdnoEncr, // 카드번호
         String cshRfndAcownNm, // 예금주현금
         String cardRfndCrdcdAprno, // 예금주카드
-        String tmp1, // 판매유형.알수없음으로작성되어있음.
+        String sellTpDtlCd, // 판매유형.알수없음으로작성되어있음.
         String rveDvCd, // 입금유형
         String cstNo, // 전금고객번호
         String tmp2 // 전금고객명.작성되어있지않음.전금고객번호가잘못잘성되어있는것으로판단되어고객명으로사용하지않음.
@@ -75,7 +75,7 @@ public class WwdbRefundCurrentStatusDto {
         // 일괄생성구분 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rfndDsbDvCd, // 귀속환불구분
         String sellTpCd, // 판매유형
-        // 판매유형상세 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
+        String sellTpDtlCd, // 판매유형상세 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rveDvCd, // 대손구분
         String dpMesCd // 포인트구분
     ) {}
@@ -93,8 +93,8 @@ public class WwdbRefundCurrentStatusDto {
         String hdRfndDsbAmt, // 현대
         String ltRfndDsbAmt, // 롯데
         String nhRfndDsbAmt, // 농협
-        String sumRfndDsbDdtnAmt, // 환불총계 
-        String sumRfndDsbPspInt // 지연이자 
+        String sumRfndDsbDdtnAmt, // 환불총계
+        String sumRfndDsbPspInt // 지연이자
 
     ) {}
 
@@ -111,7 +111,7 @@ public class WwdbRefundCurrentStatusDto {
         // 일괄생성구분 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rfndDsbDvCd, // 귀속환불구분
         String sellTpCd, // 판매유형
-        // 판매유형상세 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
+        String sellTpDtlCd, // 판매유형상세 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rveDvCd, // 대손구분
         String dpMesCd // 포인트구분
     ) {}

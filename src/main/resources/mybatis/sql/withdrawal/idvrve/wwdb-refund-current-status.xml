@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundCurrentStatusMapper">
-    
+
     <select id="selectRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchRefundHistoryRes">
-        SELECT 
-               RRD.CNTR_NO                              /* 계약번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
-             , RRD.CNTR_SN                              /* 계약일련번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
+        SELECT
+               RRRB.CNTR_NO                              /* 계약번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
+             , RRRB.CNTR_SN                              /* 계약일련번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
              , CCB.CST_KNM                              /* 고객명 */
              , SCD.SELL_TP_CD                           /* 판매유형 */
              , NVL(SUM(RRD.DP_AMT), 0) AS DP_AMT        /* 입금총액 */
@@ -13,12 +13,12 @@
              , NVL(SUM(RRRD.RFND_DSB_AMT), 0) AS RFND_DSB_AMT                       /* 환불금액 */
              , NVL(SUM(RRRD.RFND_DSB_PSP_INT), 0) AS RFND_DSB_PSP_INT                   /* 지연이자 */
              , NVL(SUM(RRRD.RFND_DDTN_AMT), 0) AS RFND_DDTN_AMT                      /* 카드공제 */
-             , RRRD.CSH_RFND_FNIT_CD                    
+             , RRRD.CSH_RFND_FNIT_CD
              , ( SELECT RFC.FNIT_NM
                    FROM TB_RVDW_FNIT_CD RFC /* 금융기관코드 */
                   WHERE RFC.FNIT_CD = RRRD.CSH_RFND_FNIT_CD
              ) AS CSH_FNIT_NM                           /* 은행사 */
-             , RRRD.CARD_RFND_FNIT_CD                   
+             , RRRD.CARD_RFND_FNIT_CD
              , ( SELECT RFC.FNIT_NM
                    FROM TB_RVDW_FNIT_CD RFC /* 금융기관코드 */
                   WHERE RFC.FNIT_CD = RRRD.CARD_RFND_FNIT_CD
@@ -27,21 +27,21 @@
              , RRRD.CARD_RFND_CRCDNO_ENCR               /* 카드번호 */
              , RRRD.CSH_RFND_ACOWN_NM                   /* 예금주 현금 */
              , RRRD.CARD_RFND_CRDCD_APRNO               /* 예금주 카드 */
-             , '' AS TMP1                               /* 판매유형. 알수 없음으로 작성되어 있음. */
+             , SCD.SELL_TP_DTL_CD                             /* 판매유형. 알수 없음으로 작성되어 있음. */
              , RRD.RVE_DV_CD                            /* 입금유형 */
              , RRRB.CST_NO                              /* 전금고객번호 */
-             , '' AS TMP2                               /* 전금고객명. 작성되어 있지 않음. 전금고객번호가 잘못잘성되어 있는 것으로 판단되어 고객명으로 사용하지 않음.*/ 
+             , '' AS TMP2                               /* 전금고객명. 작성되어 있지 않음. 전금고객번호가 잘못잘성되어 있는 것으로 판단되어 고객명으로 사용하지 않음.*/
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
             ON SCD.DTA_DL_YN = 'N'
            AND RRRB.CNTR_NO = SCD.CNTR_NO               /* 계약번호 = 계약번호 */
            AND RRRB.CNTR_SN = SCD.CNTR_SN               /* 계약상세번호 = 계약상세번호 */
-          JOIN TB_RVDW_RVE_DTL RRD                      /* 수납상세 테스트용 LEFT JOIN*/
+          LEFT JOIN TB_RVDW_RVE_DTL RRD                      /* 수납상세 테스트용 LEFT JOIN*/
             ON RRD.DTA_DL_YN = 'N'
            AND RRRB.CNTR_NO = RRD.RVE_OJ_DRM_NO1        /* 환불접수기본.계약번호 = 수납상세.수납대상식별번호1 */
            AND RRRB.CNTR_SN = RRD.RVE_OJ_DRM_NO2        /* 환불접수기본.계약일련번호 = 수납상세.수납대상식별번호2 */
@@ -54,7 +54,7 @@
           AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959'  /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 테스트용 임시 주석*/
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -77,7 +77,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
@@ -89,15 +91,15 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
-      GROUP BY RRD.CNTR_NO                          /* 계약번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
-             , RRD.CNTR_SN                             /* 계약일련번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
+      GROUP BY RRRB.CNTR_NO                          /* 계약번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
+             , RRRB.CNTR_SN                             /* 계약일련번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/
              , CCB.CST_KNM                              /* 고객명 */
              , SCD.SELL_TP_CD                           /* 판매유형 */
              , RRRD.CSH_RFND_FNIT_CD                    /* 은행사 */
@@ -106,12 +108,12 @@
              , RRRD.CARD_RFND_CRCDNO_ENCR               /* 카드번호 */
              , RRRD.CSH_RFND_ACOWN_NM                   /* 예금주 현금 */
              , RRRD.CARD_RFND_CRDCD_APRNO               /* 예금주 카드 */
-             /* , TMP1                                   판매유형 */
+             , SCD.SELL_TP_DTL_CD                       /* 판매유형상세 */
              , RRD.RVE_DV_CD                            /* 입금유형 */
-             , RRRB.CST_NO                              /* 전금고객번호 */ 
+             , RRRB.CST_NO                              /* 전금고객번호 */
              /* , TMP2                                   전금고객명 */
     </select>
-    
+
     <select id="selectCardRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchCardRefundHistoryRes">
         SELECT '21' AS REFUND_DIVISION
              , NVL(SUM(CASE WHEN RRD.DP_MES_CD = '01' THEN RRRD.RFND_DSB_AMT ELSE 0 END), 0)  AS RFND_DSB_AMT /* 현금 = 수납상세.입금수단코드 = 01.현금 = 현금지급금액  */
@@ -145,11 +147,11 @@
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '367' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 현대 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '368' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 롯데 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '371' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)   /* 농협 */
-                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */ 
+                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -167,7 +169,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -190,7 +192,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -202,10 +206,10 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
@@ -242,11 +246,11 @@
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '367' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 현대 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '368' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 롯데 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '371' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)   /* 농협 */
-                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */ 
+                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -264,7 +268,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -287,7 +291,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -299,10 +305,10 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
@@ -339,11 +345,11 @@
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '367' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 현대 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '368' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 롯데 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '371' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)   /* 농협 */
-                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */ 
+                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -361,7 +367,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -384,7 +390,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -396,14 +404,14 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
-         UNION ALL 
+         UNION ALL
         SELECT '25' AS REFUND_DIVISION
              , NVL(SUM(CASE WHEN RRD.DP_MES_CD = '01' THEN RRRD.RFND_DSB_AMT ELSE 0 END), 0)  AS RFND_DSB_AMT /* 현금 = 수납상세.입금수단코드 = 01.현금 = 현금지급금액  */
              , NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' THEN RRRD.RFND_DDTN_AMT ELSE 0 END), 0) AS RFND_DDTN_AMT /* 카드공제 = 수납상세.입금수단코드 = 02.카드 의 공제금액 */
@@ -436,11 +444,11 @@
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '367' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 현대 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '368' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)  /* 롯데 */
                + NVL(SUM(CASE WHEN RRD.DP_MES_CD = '02' AND RRRD.CARD_RFND_FNIT_CD = '371' THEN RRRD.RFND_DSB_PSP_INT ELSE 0 END), 0)   /* 농협 */
-                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */ 
+                AS SUM_RFND_DSB_PSP_INT /* 지연이자 = 현금+카드공제+비씨+국민+외환+신한+삼성+현대+롯데+농협 */
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -458,7 +466,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -481,7 +489,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -493,15 +503,15 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
     </select>
-    
+
     <select id="selectBalanceTransferRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchBalanceTransferRefundHistoryRes">
         SELECT '21' AS REFUND_DIVISION
              , NVL(SUM(CASE WHEN SCD.CNTRW_TP_CD = '3' THEN RRRD.RFND_DSB_AMT ELSE 0 END), 0) AS RT_RFND_DSB_AMT /* 렌탈 = 계약상세.계약서유형코드 = 3  */
@@ -526,7 +536,7 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -545,7 +555,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -568,7 +578,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd}
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -580,14 +592,14 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
-         UNION ALL 
+         UNION ALL
         SELECT '22' AS REFUND_DIVISION
              , NVL(SUM(CASE WHEN SCD.CNTRW_TP_CD = '3' THEN RRRD.RFND_DSB_AMT ELSE 0 END), 0) AS RT_RFND_DSB_AMT /* 렌탈 = 계약상세.계약서유형코드 = 3  */
              , NVL(SUM(CASE WHEN SCD.CNTRW_TP_CD = '9' THEN RRRD.RFND_DSB_AMT ELSE 0 END), 0) AS LS_RFND_DSB_AMT /* 리스 = 계약상세.계약서유형코드 = 9 */
@@ -611,7 +623,7 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -630,7 +642,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -653,7 +665,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd}
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -665,10 +679,10 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
@@ -696,7 +710,7 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -715,7 +729,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -738,7 +752,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = {sellTpDtlCd} /* 판매유형상세 */
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -750,10 +766,10 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
@@ -781,7 +797,7 @@
           FROM TB_RVDW_RFND_RCP_BAS RRRB                /* 환불접수기본 */
           JOIN TB_RVDW_RFND_RCP_DTL RRRD                /* 환불접수상세 */
             ON RRRB.DTA_DL_YN = 'N'
-           AND RRRD.DTA_DL_YN = 'N' 
+           AND RRRD.DTA_DL_YN = 'N'
            AND RRRB.KW_GRP_CO_CD = RRRD.KW_GRP_CO_CD    /* 교원그룹회사코드 */
            AND RRRB.RFND_RCP_NO = RRRD.RFND_RCP_NO      /* 환불접수번호 */
           JOIN TB_SSCT_CNTR_DTL SCD                     /* 계약상세 */
@@ -800,7 +816,7 @@
            AND RRD.PERF_DT BETWEEN #{perfDtStart} || '000000' AND #{perfDtFinish} || '235959' /* 수납상세.실적일자 BETWEEN 시작일 AND 종료일 = 실적일자 */
            <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
-                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>                 
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
            AND RRRD.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
                 </when>
                 <otherwise>
@@ -823,7 +839,9 @@
                 </otherwise>
               </choose>
             </if>
-          /* AND 판매유형상세 는 알수 없다고 작성되어 있음. */
+            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+           AND SCD.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+            </if>
             <choose>
              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
            AND RRD.RVE_DV_CD = '09'                     /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 */
@@ -835,10 +853,10 @@
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
               <choose>
                 <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND RRD.DP_MES_CD = '07'                     /* 수납상세.입금구분코드 = 07.포인트 */
+           AND RRD.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
                 </when>
                 <otherwise>
-           AND RRD.DP_MES_CD != '07'                    /* 수납상세.입금구분코드 != 07.포인트 제외 */
+           AND RRD.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
                 </otherwise>
               </choose>
             </if>
