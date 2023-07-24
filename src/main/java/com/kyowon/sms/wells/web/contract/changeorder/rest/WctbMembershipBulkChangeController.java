@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.changeorder.rest;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +47,9 @@ public class WctbMembershipBulkChangeController {
     @ApiOperation(value = "멤버십 일괄변경 계약 조회", notes = "계약번호,계약일련번호로 계약기본,계약상세, 계약WELLS상세의 데이타를 조회한다.")
     @GetMapping("/membership-change-contracts")
     public WctbMembershipBulkChangeDto.SearchCntrRes getMembershipBulkChangesContracts(
+        @NotBlank
         String cntrNo,
+        @NotBlank
         String cntrSn
     ) {
         return service.getMembershipBulkChangesContracts(cntrNo, cntrSn);
