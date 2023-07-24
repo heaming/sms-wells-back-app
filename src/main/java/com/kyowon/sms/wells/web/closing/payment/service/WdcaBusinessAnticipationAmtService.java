@@ -7,7 +7,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaDelinquentDepositRefundDvo;
 import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaBusinessAnticipationAmtDvo;
 import com.kyowon.sms.wells.web.closing.payment.mapper.WdcaBusinessAnticipationAmtMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -28,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WdcaBusinessAnticipationAmtService {
     private final WdcaBusinessAnticipationAmtMapper mapper;
-    private final WdcaDelinquentDepositRefundService service;
+    //    private final WdcaDelinquentDepositRefundService service;
 
     /**
     * @param dvos list dvo
@@ -44,21 +43,21 @@ public class WdcaBusinessAnticipationAmtService {
             // 입력구분이 입출금인 경우
             if ("1".equals(dvo.getInputGubun())) {
 
-                WdcaDelinquentDepositRefundDvo refundDvo = new WdcaDelinquentDepositRefundDvo();
-
-                refundDvo.setCntrNo(dvo.getCntrNo());
-                refundDvo.setCntrSn(dvo.getCntrSn());
-                refundDvo.setKwGrpCoCd(dvo.getKwGrpCoCd());
-                refundDvo.setRveNo(dvo.getRveNo());
-                refundDvo.setRveSn(dvo.getRveSn());
-                refundDvo.setDpDvCd(dvo.getDpDvCd());
-                refundDvo.setDpMesCd(dvo.getDpMesCd());
-                refundDvo.setDpTpCd(dvo.getDpTpCd());
-                refundDvo.setRveDvCd(dvo.getRveDvCd());
-                refundDvo.setRveCd(dvo.getRveCd());
-                refundDvo.setRveDt(dvo.getRveDt());
-                refundDvo.setPerfDt(dvo.getPerfDt());
-                refundDvo.setRveAmt(dvo.getRveAmt());
+                //                WdcaDelinquentDepositRefundDvo refundDvo = new WdcaDelinquentDepositRefundDvo();
+                //
+                //                refundDvo.setCntrNo(dvo.getCntrNo());
+                //                refundDvo.setCntrSn(dvo.getCntrSn());
+                //                refundDvo.setKwGrpCoCd(dvo.getKwGrpCoCd());
+                //                refundDvo.setRveNo(dvo.getRveNo());
+                //                refundDvo.setRveSn(dvo.getRveSn());
+                //                refundDvo.setDpDvCd(dvo.getDpDvCd());
+                //                refundDvo.setDpMesCd(dvo.getDpMesCd());
+                //                refundDvo.setDpTpCd(dvo.getDpTpCd());
+                //                refundDvo.setRveDvCd(dvo.getRveDvCd());
+                //                refundDvo.setRveCd(dvo.getRveCd());
+                //                refundDvo.setRveDt(dvo.getRveDt());
+                //                refundDvo.setPerfDt(dvo.getPerfDt());
+                //                refundDvo.setRveAmt(dvo.getRveAmt());
 
                 // 영업선수금 잔액
                 dvo.setBznsAtamBlam(dvo.getRveAmt());
@@ -75,7 +74,7 @@ public class WdcaBusinessAnticipationAmtService {
                 String rveDvCd = dvo.getRveDvCd();
                 String dpTpCd = dvo.getDpTpCd();
 
-                dvo.setSapPdDvCd("00");
+                dvo.setSapPdAtcCd("00");
 
                 if ("A1".equals(sapPdDvCd)) {
                     if ("0801".equals(dpTpCd)) {
@@ -184,27 +183,27 @@ public class WdcaBusinessAnticipationAmtService {
 
                 // 영업선수금 기본 INSERT
                 resultCount = mapper.insertBusinessBasic(dvo);
-                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(resultCount > 0, "MSG_ALT_SVE_ERR");
 
                 // 기타선수금 데이터 여부
                 if (StringUtils.isNotEmpty(dvo.getEtcAtamNo())) {
                     resultCount = mapper.insertEtcProcess(dvo);
-                    BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                    BizAssert.isTrue(resultCount > 0, "MSG_ALT_SVE_ERR");
 
                     resultCount = mapper.updateEtcBasic(dvo);
-                    BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                    BizAssert.isTrue(resultCount >= 0, "MSG_ALT_SVE_ERR");
                 }
 
                 // 연체, 대손처리 서비스 호출
-                resultCount = service.saveDelinquentDepositRefund(refundDvo);
-                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                //                resultCount = service.saveDelinquentDepositRefund(refundDvo);
+                //                BizAssert.isTrue(resultCount > 0, "MSG_ALT_SVE_ERR");
 
             } else if ("2".equals(dvo.getInputGubun())) {
                 resultCount = mapper.updateBusinessBasic(dvo);
-                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(resultCount >= 0, "MSG_ALT_SVE_ERR");
 
                 resultCount = mapper.insertBusinessProcess(dvo);
-                BizAssert.isFalse(resultCount == -2147482646, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(resultCount > 0, "MSG_ALT_SVE_ERR");
             }
         }
 
