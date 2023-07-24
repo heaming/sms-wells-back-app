@@ -2,9 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailMngtMapper">
     <select id="selectOrderDetailRentalPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailRentalPagesDvo">
-        WITH T11 AS (
+WITH T11 AS (
         /* 화면 필수 기준으로 대상 조회 */
-                      SELECT
+                      SELECT /*+ MATERIALIZE */
                       		 --T11.*
                               T11.CNTR_NO
                             , T11.CNTR_SN
@@ -191,7 +191,8 @@
         )
         , T85 AS (
         SELECT *
-          FROM (SELECT ROWNUM AS ROW_NUM
+          FROM (SELECT /*+ MATERIALIZE USE_NL(T11 T850 T851) */
+          			   ROWNUM AS ROW_NUM
                      , T851.PD_NM
                      , T850.FGPT_PD_CD
                      , T850.FGPT_QTY
@@ -214,12 +215,13 @@
                , MAX(FGPT_QTY)    AS QTY
              FOR ROW_NUM IN (1 AS FGPT_1, 2 AS FGPT_2, 3 AS FGPT_3, 4 AS FGPT_4, 5 AS FGPT_5))
         )
-                SELECT
+                SELECT /*+ USE_NL(T11 T10 T15 T20 T21 T22 T23 T30 T32 T34 T40 T41 T48 T51 T65 T70 T71 T72 T73 T74 T75 T76 T79 T90 T81 T83 T85 T86)
+                          INDEX(T51) NO_MERGE(T71) NO_MERGE(T79) NO_MERGE(T90) NO_MERGE(T81) NO_MERGE(T83) */
                        T11.CNTR_NO  /* 계약번호 */
                      , T11.CNTR_SN  /* 계약번호 일련번호 */
                      , CONCAT(CONCAT(T11.CNTR_NO, '-'), T11.CNTR_SN) AS CNTR_DTL_NO /* 계약번호 - 계약일련번호 [계약상세번호] */
                      , T11.SELL_TP_CD                        /* 판매유형코드 */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T20.SELL_TP_DTL_CD ) AS SELL_TP_DTL_NM /* 판매유형 */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T20.SELL_TP_DTL_CD ) FROM DUAL) AS SELL_TP_DTL_NM /* 판매유형 */
                      , CASE WHEN T32.OG_LEVL_DV_CD = 2 THEN T32.DGR2_LEVL_DG_PRTNR_NO
                             WHEN T32.OG_LEVL_DV_CD = 1 THEN T32.DGR1_LEVL_DG_PRTNR_NO
                             ELSE T32.DGR3_LEVL_DG_PRTNR_NO END AS DGR3_LEVL_DG_PRTNR_NO /* 지점장사번(LCDBON) - 지점장ID  */
@@ -241,7 +243,7 @@
                      , T40.CST_KNM                                          /* 계약자정보 - 고객명(LCCNAM) */
                      , SUBSTR(T40.BRYY_MMDD, 3, 2) AS BRYY                  /* 생년월일 - 고객생년（ＹＹ）(LCICD1) */
                      , CASE WHEN T40.COPN_DV_CD = '2' THEN T40.BZRNO ELSE '' END AS BZRNO   /* 계약자정보 - 사업자번호(LCCINO) */
-                     , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', T40.SEX_DV_CD), T40.SEX_DV_CD) AS SEX_DV_NM /* 계약자정보 - 성별(LCCSEX) */
+                     , NVL((SELECT F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', T40.SEX_DV_CD) FROM DUAL), T40.SEX_DV_CD) AS SEX_DV_NM /* 계약자정보 - 성별(LCCSEX) */
                      , T10.CNTR_CST_NO                                      /* 계약자정보 - 고객번호(교원키:LCKKEY) */
                      , T41.NEW_ADR_ZIP AS ADR_ZIP                           /* 계약자정보 - 우편번호 : LCCZIP */
                      , T41.RNADR  AS CNTR_CST_RNADR                         /* 계약자정보 - 기준주소 : LCCAD1*/
@@ -263,17 +265,17 @@
                           AND CNTR_SN = T11.CNTR_SN              /*계약번호  */
                           AND DTA_DL_YN = 'N') AS PDCT_IDNO     /* 제품고유번호설치처정보 - SN번호 LCSRN1, LCSRNO */
                      , T11.IST_DT AS IST_AK_DT                               /* 설치요청일 - 설치일(LCSETY, LCSLRT) - ASIS에서 설치요청=설치일 */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'SELL_CHNL_DTL_CD', T10.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_NM /* 판매유입채널상세코드 - 판매구분(LCSALE) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_CHNL_DTL_CD', T10.SELL_INFLW_CHNL_DTL_CD) FROM DUAL) AS SELL_INFLW_CHNL_DTL_NM /* 판매유입채널상세코드 - 판매구분(LCSALE) */
                      , T10.COPN_DV_CD /* 법인격구분코드(계약자 고객구분 ) 1:개인, 2:법인 */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T10.COPN_DV_CD) AS COPN_DV_NM /* 법인격구분코드 - 고객구분(LCCGUB) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T10.COPN_DV_CD) FROM DUAL) AS COPN_DV_NM /* 법인격구분코드 - 고객구분(LCCGUB) */
                      , T22.PD_CLSF_NM || ' > ' ||T21.PD_CLSF_NM AS PD_CLSF_NM   /* 대분류 + 중분류 - 상품분류명 (상품유형:KAETC1 + KAETC2)*/
                      , T11.BASE_PD_CD AS BASE_PD_CD                             /* 상품코드 (LCICDE) */
                      , T20.PD_NM                                                /* 상품명 (LCINAM) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'PD_TP_CD', T22.PD_TP_CD ) AS PD_TP_NM    /* 상품유형 */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'PD_TP_CD', T22.PD_TP_CD ) FROM DUAL) AS PD_TP_NM    /* 상품유형 */
                      , T11.SV_PRD                                               /* 서비스주기 (주기:LCIMON)*/
                      --, T23.PD_PRP_VAL02  AS SV_VST_PRD_CD                     /* 방문주기 (LCVMON) */     TOBE에서는 미사용
                      , T20.SV_PD_TP_CD  AS SV_TP_CD                            /* 서비스유형(TOBE) (용도구분:LCIUSE) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T20.SV_PD_TP_CD ) AS SV_TP_NM     /* 용도구분 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T20.SV_PD_TP_CD ) FROM DUAL) AS SV_TP_NM     /* 용도구분 - 상품의 서비스유형 (용도구분명:LCIUSE_NM, LCIUSE) */
                      , SUBSTR(T10.CNTR_RCP_FSH_DTM, 0, 8) AS CNTR_RCP_FSH_DT    /* 계약접수완료일시(접수일:LCCRTT.LCCRTY) */
                      , T11.SPP_DUEDT                                            /* 배송예정일자   (예정일:LCDEMT.LCDEMY) */
                      , T11.IST_DT                                               /* 설치일자     (설치일:LCSETT.LCSETY) */
@@ -318,16 +320,16 @@
                             ELSE '' END AS BOGO_CD                              /* １＋１연계코드 (ONPCOD) */
                      , T90.BASE_PD_CD   AS BOGO_PD_CD                           /* １＋１이전상품 (LCPICD) */
                      , T90.PD_NM        AS BOGO_PD_NM                           /* １＋１ １이전상품명 (LCPINA) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T14.DP_TP_CD) AS MPY_MTHD_TP_NM /* 계좌정보-자동이체 : 납부방식유형코드 - 자동이체(LCCHK1) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T14.DP_TP_CD) FROM DUAL) AS MPY_MTHD_TP_NM /* 계좌정보-자동이체 : 납부방식유형코드 - 자동이체(LCCHK1) */
                      , CASE WHEN T14.DP_TP_CD = '0102' THEN T14.ACNO_ENCR  /* 계좌정보 */
                             WHEN T14.DP_TP_CD = '0203' THEN T14.CRCDNO_ENCR /* 카드자동이체 */
                             ELSE '' END AS AFTN_INF                                                     /* 계좌정보-카드／계좌번호(ACCNO)*/
                      , T14.OWR_KNM AS AFTN_OWR_KNM                                                      /* 계좌정보-예금／카드주명 (ACCNM) */
                      , T11.SELL_EV_CD                                                                   /* 판매행사코드 (행사코드:LCETC9)*/
-                     , F_CMZ_CD_NM('TNT_WELLS', 'SELL_EV_CD', T11.SELL_EV_CD) AS SELL_EV_NM             /* 판매행사명- 행사코드명(LCET9N) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_EV_CD', T11.SELL_EV_CD) FROM DUAL) AS SELL_EV_NM             /* 판매행사명- 행사코드명(LCET9N) */
                      , T11.ALNCMP_CD                                                                    /* 제휴사코드 (제휴코드:LCETC8)*/
-                     , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T11.ALNCMP_CD) AS ALNCMP_NM                /* 제휴코드명- 제휴코드명(LCET8N) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'ALNC_STAT_TP_CD', T74.ALNC_STAT_TP_CD) AS ALNC_STAT_TP_NM /* 제휴상태유형코드- 제휴상태(LCET2N:LC3100P.LCETC2) TODO.확인필요 */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T11.ALNCMP_CD) FROM DUAL) AS ALNCMP_NM                /* 제휴코드명- 제휴코드명(LCET8N) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'ALNC_STAT_TP_CD', T74.ALNC_STAT_TP_CD) FROM DUAL) AS ALNC_STAT_TP_NM /* 제휴상태유형코드- 제휴상태(LCET2N:LC3100P.LCETC2) TODO.확인필요 */
                      , T11.ALNCMP_CNTR_DRM_VAL   /* 제휴사계약식별값(LCCK11+LCCK12+LCCK13)*/
                        || CASE WHEN T11.ALNCMP_CD = '70' /*상조*/
                                THEN (SELECT BASE_DTL_CNTR_NO || BASE_DTL_CNTR_SN
@@ -340,7 +342,7 @@
                                ELSE '' END AS ALNCMP_CST_CD                                             /* 제휴고객코드 (제휴고객코드:LCCK11) TODO.확인필요*/
                      , T75.ALNC_PRTNR_DRM_VAL AS ALNCMP_PRTNR_NO                                        /* 제휴판매자(LCCK14) LC3100P.LCCK14 계약파트너관계@파트너번호 가 제휴파트너식별값 처리함 */
                      , T11.CTT_RS_CD                                                                    /* 컨택결과코드 (컨택코드:LCCCDE) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'LC_CTT_RS_CD', T11.CTT_RS_CD) AS CTT_RS_NM             /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'LC_CTT_RS_CD', T11.CTT_RS_CD) FROM DUAL) AS CTT_RS_NM             /* 컨택결과코드 (컨택내용:LCCCDE의 명칭:CWCCNM) */
                      , T11.FST_RGST_PRG_ID                                                              /* 최초등록프로그램ID (등록프로그램:LCEPGM)*/
                      , T11.FST_RGST_USR_ID                                                              /* 최초등록사용자ID (업무담당:LCECDE)*/
                      , (SELECT T33.USR_NM
@@ -441,8 +443,8 @@
                           AND DTA_DL_YN = 'N'               /* 데이터삭제여부*/
                        ) AS SAFEKEY                         /* 세이프키 (KWSKEY)*/
                     , T34.ALNC_PRTNR_DRM_DV_CD     /* 제휴파트너식별자명 : 판매조직 (조직구분) LCSGUB */
-                    , F_CMZ_CD_NM('TNT_WELLS', 'ALNC_PRTNR_DRM_DV_CD', T34.ALNC_PRTNR_DRM_DV_CD) AS ALNC_PRTNR_DRM_DV_NM    /* 제휴파트너식별자명 : 조직구분 명 (조직구분) LCSGUB_NM */
-                    , F_CMZ_CD_NM('TNT_WELLS', 'CNTRT_REL_CD', T48.CNTRT_REL_CD) AS CNTRT_REL_NM /* 계약자관계코드(본인,자녀등..)  관계구분:LCST17 */
+                    , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'ALNC_PRTNR_DRM_DV_CD', T34.ALNC_PRTNR_DRM_DV_CD) FROM DUAL) AS ALNC_PRTNR_DRM_DV_NM    /* 제휴파트너식별자명 : 조직구분 명 (조직구분) LCSGUB_NM */
+                    , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'CNTRT_REL_CD', T48.CNTRT_REL_CD) FROM DUAL) AS CNTRT_REL_NM /* 계약자관계코드(본인,자녀등..)  관계구분:LCST17 */
                     , '' AS LCCK07 /* 주문입력구분(LCCK07) TOBE 맵핑없음 */
                 --        ,CASE WHEN LC3100P.LCCK07 = '1' THEN '고객만족팀'
                 --              WHEN LC3100P.LCCK07 = '2' THEN '서비스관리팀'
@@ -463,23 +465,23 @@
                      , CASE WHEN T20.SELL_TP_DTL_CD IS NOT NULL
                             THEN '금융리스'
                             ELSE '렌탈' END AS LEASE_DV_NM                                        /* 판매유형상세  렌탈/리스 구분 (LCDTYP) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'PMOT_CD', T71.PMOT_CD) AS PMOT_NM               /* (할인옵션(재렌탈/1+1) :할인옵션(재렌탈/1+1):LCFLG4_NM) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'MCHN_CH_TP_CD', T70.MCHN_CH_TP_CD) AS MCHN_CH_TP_NM    /* 기기변경유형코드 기변유형명(LCFLAG_NM) */
-                     , F_CMZ_CD_NM('TNT_WELLS', (SELECT TCDD.USER_DFN_02
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'PMOT_CD', T71.PMOT_CD) FROM DUAL) AS PMOT_NM               /* (할인옵션(재렌탈/1+1) :할인옵션(재렌탈/1+1):LCFLG4_NM) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'MCHN_CH_TP_CD', T70.MCHN_CH_TP_CD) FROM DUAL) AS MCHN_CH_TP_NM    /* 기기변경유형코드 기변유형명(LCFLAG_NM) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', (SELECT TCDD.USER_DFN_02
                                                  FROM T_CMZ_CD_D TCDD
                                                 WHERE 1 = 1
                                                   AND TCDD.CD_ID = 'SELL_DSC_DV_CD'
                                                   AND TCDD.CD_VLD_VAL = T11.SELL_TP_CD
                                                   AND TCDD.TENANT_ID = 'TNT_WELLS')
-                                             , T11.SELL_DSC_DV_CD) AS SELL_DSC_DV_NM             /* 할인적용유형명 - 할인구분 명(LCGUB1) */
-                     , F_CMZ_CD_NM('TNT_WELLS'
+                                             , T11.SELL_DSC_DV_CD) FROM DUAL) AS SELL_DSC_DV_NM             /* 할인적용유형명 - 할인구분 명(LCGUB1) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS'
                            , (SELECT CM2.USER_DFN_02 AS ID
                                 FROM T_CMZ_CD_D CM2
                                WHERE 1 = 1
                                  AND CM2.CD_ID = 'SELL_DSC_TP_CD' --DSC_APY_TP_CD
                                  AND CM2.PRTS_CD_VLD_VAL = T11.SELL_TP_CD
                                  AND CM2.TENANT_ID = 'TNT_WELLS')
-                           , T11.SELL_DSC_TP_CD ) AS SELL_DSC_TP_NM                             /* 할인적용상세명 (할인유형 명:LCGUB2) */
+                           , T11.SELL_DSC_TP_CD ) FROM DUAL) AS SELL_DSC_TP_NM                             /* 할인적용상세명 (할인유형 명:LCGUB2) */
                      , T11.SV_PRD||'개월 / '||T23.PD_PRP_VAL02||'개월 / '||T23.PD_PRP_VAL03||'개월' AS SV_PRD_INFO      /* 서비스주기/방문주기/택배주기, LCIMON/LCVMON/LCDMON 관리주기(개월)(BS_ADD_INFO) */
                      , T71.PMOT_TP_CD ||'.'|| F_CMZ_CD_NM('TNT_WELLS', 'PMOT_TP_CD', T71.PMOT_TP_CD) AS PMOT_TP_NM    /* 프로모션유형코드명 할인적용상세명 (할인유형 명: 프로모션유형(LCST11)) */
                      , '' AS LCFLG3                                                                                   /* 설치월청구방식유형코드 설치월 면제 (LCFLG3) TODO 상품의 설치월면제 확인'20230421' */
@@ -498,11 +500,12 @@
                                          ) > 0
                             THEN 'Y' ELSE 'N' END AS ADN_SV_YN                                                        /* 부가서비스여부(LCET16) */
                       , T11.PRM_APY_DV_CD   /*선납적용구분코드 (LCCK10)*/
-                     , CASE WHEN T14.DP_TP_CD = '110' THEN F_CMZ_CD_NM('TNT_WELLS', 'BNK_CD' , T14.BNK_CD)  /* 은행사 */
-                            WHEN T14.DP_TP_CD = '120' THEN F_CMZ_CD_NM('TNT_WELLS', 'CDCO_CD', T14.CDCO_CD) /* 카드사 */
+                     , CASE WHEN T14.DP_TP_CD = '110' THEN (SELECT F_CMZ_CD_NM('TNT_WELLS', 'BNK_CD' , T14.BNK_CD) FROM DUAL)   /* 은행사 */
+                            WHEN T14.DP_TP_CD = '120' THEN (SELECT F_CMZ_CD_NM('TNT_WELLS', 'CDCO_CD', T14.CDCO_CD) FROM DUAL) /* 카드사 */
                             ELSE '' END AS STLM_FNIT                                                                  /* 결제금융기관 -(은행/카드사(LCCARD)) */
                      , T14.MPY_BSDT                                                                                   /* 납부기준일자 - 이체일자(LCTRDD) */
-                     , (SELECT MAX(PDCT_REQD_RQDT) KEEP(DENSE_RANK FIRST ORDER BY CH_SN DESC)
+                     , (SELECT /*+ NO_UNNEST INDEX(TB_SSCT_RTAS_STAT_IZ PK_SSCT_RTAS_STAT_IZ) */
+                     		  MAX(PDCT_REQD_RQDT) KEEP(DENSE_RANK FIRST ORDER BY CH_SN DESC)
                          FROM TB_SSCT_RTAS_STAT_IZ  /* T.렌탈자산상태내역 */
                         WHERE 1=1
                           AND CNTR_NO = T11.CNTR_NO                 /* 계약번호 */
@@ -529,7 +532,7 @@
                      , T22.PD_CLSF_NM AS HIGH_PD_CLSF_NM                                                              /* 상품-대분류명 상품분류:KAETC1 */
                      , T21.PD_CLSF_NM AS MIDDLE_PD_CLSF_NM                                                            /* 상품-중분류명 상품유형:KAETC2 */
                      , T11.PD_QTY                                                                                     /* 상품수량 (LCIQTY) */
-                     , F_CMZ_CD_NM('TNT_WELLS', 'SRCWT_TP_CD' ,T11.SRCWT_TP_CD) AS SRCWT_TP_NM                        /* 상수원유형코드 (LCCHK6) */
+                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SRCWT_TP_CD' ,T11.SRCWT_TP_CD) FROM DUAL) AS SRCWT_TP_NM     /* 상수원유형코드 (LCCHK6) */
                   FROM T11
                  INNER JOIN TB_SSCT_CNTR_BAS T10 /* T.계약기본 */
                     ON T10.CNTR_NO = T11.CNTR_NO /* 계약번호 */
@@ -560,12 +563,12 @@
                                                                             )
                                                                       WHERE RN = 1)
                                             ) T14
-                    ON T14.CNTR_NO = T11.CNTR_NO
+                    ON 1=1 --T14.CNTR_NO = T11.CNTR_NO
                   LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_DTL T15    /* T.계약변경접수상세 - 계약변경사유코드 */
                     ON T15.DTL_CNTR_NO = T11.CNTR_NO
                    AND T15.DTL_CNTR_SN = T11.CNTR_SN
                    AND T15.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T15.DTL_CNTR_NO AND T11.CNTR_SN = T15.DTL_CNTR_SN)
+                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T15.DTL_CNTR_NO AND T11.CNTR_SN = T15.DTL_CNTR_SN)
                   LEFT OUTER JOIN TB_PDBS_PD_BAS T20         /* T.상품기본 -  */
                     ON T20.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
                    AND T20.PD_CD = T11.BASE_PD_CD             /* 상품코드 */
@@ -598,26 +601,26 @@
                    AND T34.CNTR_PRTNR_TP_CD IN ('010','060') /* 계약파트너유형코드 : 판매자(010), TM판매자(060)*/
                    AND T34.VL_END_DTM = '99991231235959'
                    AND T34.DTA_DL_YN = 'N'
-                   AND EXISTS (SELECT T11.CNTR_NO FROM T11 WHERE T11.CNTR_NO = T34.CNTR_NO)
+                   --AND EXISTS (SELECT T11.CNTR_NO FROM T11 WHERE T11.CNTR_NO = T34.CNTR_NO)
                   LEFT OUTER JOIN TB_CUBS_CST_BAS T40           /* T.고객기본 - 계약자 */
                     ON T40.CST_NO = T10.CNTR_CST_NO/* 고객번호*/
                    AND T40.DTA_DL_YN = 'N'/* 데이터삭제여부 */
                   LEFT OUTER JOIN TB_GBCO_ADR_BAS T41           /* T.주소기본 - 계약자 */
                     ON T41.ADR_ID = T40.ADR_ID
                    AND T41.DTA_DL_YN = 'N'
-                  LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T43      /* T.계약주소관계 - 설치 */
-                    ON T43.DTL_CNTR_NO = T11.CNTR_NO
-                   AND T43.DTL_CNTR_SN = T11.CNTR_SN
-                   AND T43.ADRPC_TP_CD = '3'                    /* 주소지유형코드 : 설치처(3) */
-                   AND T43.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
-                   AND T43.DTA_DL_YN = 'N'
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T43.DTL_CNTR_NO AND T11.CNTR_SN = T43.DTL_CNTR_SN)
-                  LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T44    /* T.계약주소지기본 - 설치 */
-                    ON T44.CNTR_ADRPC_ID = T43.CNTR_ADRPC_ID
-                   AND T44.DTA_DL_YN = 'N'
-                  LEFT OUTER JOIN TB_GBCO_ADR_BAS T45           /* T.주소기본 - 설치 */
-                    ON T45.ADR_ID = T44.ADR_ID
-                   AND T45.DTA_DL_YN = 'N'
+--                  LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T43      /* T.계약주소관계 - 설치 */
+--                    ON T43.DTL_CNTR_NO = T11.CNTR_NO
+--                   AND T43.DTL_CNTR_SN = T11.CNTR_SN
+--                   AND T43.ADRPC_TP_CD = '3'                    /* 주소지유형코드 : 설치처(3) */
+--                   AND T43.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
+--                   AND T43.DTA_DL_YN = 'N'
+--                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T43.DTL_CNTR_NO AND T11.CNTR_SN = T43.DTL_CNTR_SN)
+--                  LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T44    /* T.계약주소지기본 - 설치 */
+--                    ON T44.CNTR_ADRPC_ID = T43.CNTR_ADRPC_ID
+--                   AND T44.DTA_DL_YN = 'N'
+--                  LEFT OUTER JOIN TB_GBCO_ADR_BAS T45           /* T.주소기본 - 설치 */
+--                    ON T45.ADR_ID = T44.ADR_ID
+--                   AND T45.DTA_DL_YN = 'N'
                   LEFT OUTER JOIN LATERAL (SELECT *
                                             FROM (SELECT B1.CST_NO             /* 고객번호 */
                                                        --, B1.FRE_EXPN_RCP_DTM   /* 무료체험접수일시 */
@@ -628,11 +631,11 @@
                                                    WHERE 1=1
                                                      AND B1.CST_NO = T10.CNTR_CST_NO/* 고객번호*/
                                                      AND DTA_DL_YN = 'N'/* 데이터삭제여부 */
-                                                     AND EXISTS (SELECT T11.CNTR_CST_NO FROM T11 WHERE T11.CNTR_CST_NO = B1.CST_NO)
+                                                     --AND EXISTS (SELECT T11.CNTR_CST_NO FROM T11 WHERE T11.CNTR_CST_NO = B1.CST_NO)
                                                 )
                                           WHERE RN = 1
                                           ) T47             /* 무료체험기본 - 체험시작일 */
-                    ON T47.CST_NO = T10.CNTR_CST_NO
+                    ON 1=1 --T47.CST_NO = T10.CNTR_CST_NO
                   LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL T48    /* T.계약고객관계 - 계약자 */
                     ON T48.DTL_CNTR_NO = T11.CNTR_NO
                    AND T48.DTL_CNTR_SN = T11.CNTR_SN
@@ -640,35 +643,35 @@
                    AND T48.CNTR_CST_REL_TP_CD = '10' /*계약자관계코드 : 계약자(10)*/
                    AND T48.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
                    AND T48.DTA_DL_YN = 'N'
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T48.DTL_CNTR_NO AND T11.CNTR_SN = T48.DTL_CNTR_SN)
+                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T48.DTL_CNTR_NO AND T11.CNTR_SN = T48.DTL_CNTR_SN)
                   LEFT OUTER JOIN TB_FEAM_WELS_MM_ACU_CNTR_CL T51  /*웰스월누적계약마감 - 인정실적건수 */
                     ON T51.CNTR_NO = T11.CNTR_NO
                    AND T51.CNTR_SN = T11.CNTR_SN
                    AND T51.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')    /* 매출마감년월 */
                    AND T51.MM_ACU_PERF_AGRG_CRT_DV_CD = '01'        /* 월누적실적집계생성구분코드 : 총주문월누적(01) */
                    AND T51.DTA_DL_YN = 'N'
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T51.CNTR_NO AND T11.CNTR_SN = T51.CNTR_SN)
-                  LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T62   /*계약가격산출내역 -- 입금실적금액 - 목록 미표시 */
-                    ON T62.CNTR_NO = T11.CNTR_NO
-                   AND T62.CNTR_SN = T11.CNTR_SN
-                   AND T62.DTA_DL_YN = 'N'
-                   AND T62.PD_PRC_FNL_DTL_ID = 'TODO...' /*상품가격최종상세ID*/
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T62.CNTR_NO AND T11.CNTR_SN = T62.CNTR_SN)
-                   --AND T62.PRC_ID = 'TODO.가격ID'
-                  LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T63   /*계약가격산출내역 -- 입금실적율 - 목록 미표시*/
-                    ON T63.CNTR_NO = T11.CNTR_NO
-                   AND T63.CNTR_SN = T11.CNTR_SN
-                   AND T63.DTA_DL_YN = 'N'
-                   AND T63.PD_PRC_FNL_DTL_ID = 'TODO...' /*상품가격최종상세ID*/
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T63.CNTR_NO AND T11.CNTR_SN = T63.CNTR_SN)
-                   --AND T63.PRC_ID = 'TODO.가격ID'
-                  LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T64   /*계약가격산출내역 -- 재약정할인금액(렌탈할인3 LC3100P@LCRAM3) --> 렌탈재약정내역 에서 대체중 */
-                    ON T64.CNTR_NO = T11.CNTR_NO
-                   AND T64.CNTR_SN = T11.CNTR_SN
-                   AND T64.DTA_DL_YN = 'N'
-                   AND T64.PD_PRC_FNL_DTL_ID = 'TODO...' /*상품가격최종상세ID*/
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T64.CNTR_NO AND T11.CNTR_SN = T64.CNTR_SN)
-                   --AND T64.PRC_ID = 'TODO.가격ID'
+                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T51.CNTR_NO AND T11.CNTR_SN = T51.CNTR_SN)
+--                  LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T62   /*계약가격산출내역 -- 입금실적금액 - 목록 미표시 */
+--                    ON T62.CNTR_NO = T11.CNTR_NO
+--                   AND T62.CNTR_SN = T11.CNTR_SN
+--                   AND T62.DTA_DL_YN = 'N'
+--                   AND T62.PD_PRC_FNL_DTL_ID = 'TODO...' /*상품가격최종상세ID*/
+--                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T62.CNTR_NO AND T11.CNTR_SN = T62.CNTR_SN)
+--                   --AND T62.PRC_ID = 'TODO.가격ID'
+--                  LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T63   /*계약가격산출내역 -- 입금실적율 - 목록 미표시*/
+--                    ON T63.CNTR_NO = T11.CNTR_NO
+--                   AND T63.CNTR_SN = T11.CNTR_SN
+--                   AND T63.DTA_DL_YN = 'N'
+--                   AND T63.PD_PRC_FNL_DTL_ID = 'TODO...' /*상품가격최종상세ID*/
+--                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T63.CNTR_NO AND T11.CNTR_SN = T63.CNTR_SN)
+--                   --AND T63.PRC_ID = 'TODO.가격ID'
+--                  LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T64   /*계약가격산출내역 -- 재약정할인금액(렌탈할인3 LC3100P@LCRAM3) --> 렌탈재약정내역 에서 대체중 */
+--                    ON T64.CNTR_NO = T11.CNTR_NO
+--                   AND T64.CNTR_SN = T11.CNTR_SN
+--                   AND T64.DTA_DL_YN = 'N'
+--                   AND T64.PD_PRC_FNL_DTL_ID = 'TODO...' /*상품가격최종상세ID*/
+--                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T64.CNTR_NO AND T11.CNTR_SN = T64.CNTR_SN)
+--                   --AND T64.PRC_ID = 'TODO.가격ID'
                   LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T65   /*계약가격산출내역 -- 서비스요금(서비스요금 LC3100P@LCSMT1)*/
                     ON T65.CNTR_NO = T11.CNTR_NO
                    AND T65.CNTR_SN = T11.CNTR_SN
@@ -688,15 +691,16 @@
                                             AND T701.BASE_CNTR_NO = T11.CNTR_NO /* 기준번호=현재계약번호*/
                                             AND T701.BASE_CNTR_SN = T11.CNTR_SN
                                             AND T701.DTA_DL_YN = 'N'
-                                            AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T701.BASE_CNTR_NO AND T11.CNTR_SN = T701.BASE_CNTR_SN)
+                                            --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T701.BASE_CNTR_NO AND T11.CNTR_SN = T701.BASE_CNTR_SN)
                                           ) T70             /* 기기변경내역 최신 */
-                    ON T70.BASE_CNTR_NO = T11.CNTR_NO
-                   AND T70.BASE_CNTR_SN = T11.CNTR_SN
+                    ON 1=1 --T70.BASE_CNTR_NO = T11.CNTR_NO
+                   --AND T70.BASE_CNTR_SN = T11.CNTR_SN
                   LEFT OUTER JOIN LATERAL (
                                          /* 월별혜택은 수량에 표기되나, 해당값은 미정의된 상태임*/
                                           SELECT T701.*
                                                , T702.PMOT_TP_CD    /* 프로모션 유형코드 */
-                                            FROM (SELECT I1.DTL_CNTR_NO
+                                            FROM (SELECT /*+ INDEX(I1 IX_SSCT_CNTR_PMOT_IZ_01) */
+                                            					 I1.DTL_CNTR_NO
                                                                , I1.DTL_CNTR_SN
                                                                , I1.PMOT_CD
                                                                , MAX(I1.PMOT_FVR_QTY) KEEP(DENSE_RANK FIRST ORDER BY I1.FNL_MDFC_DTM DESC) AS PMOT_FVR_QTY /* 최근값 : 프로모션혜택수량*/
@@ -714,7 +718,7 @@
                                                            INNER JOIN T11
                                                               ON I1.DTL_CNTR_NO = T11.CNTR_NO
                                                              AND I1.DTL_CNTR_SN = T11.CNTR_SN
-                                                             AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = I1.DTL_CNTR_NO AND T11.CNTR_SN = I1.DTL_CNTR_SN)
+                                                             --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = I1.DTL_CNTR_NO AND T11.CNTR_SN = I1.DTL_CNTR_SN)
                                                            WHERE 1=1
                                                              AND I1.DTA_DL_YN = 'N'
                                                             GROUP BY I1.DTL_CNTR_NO, I1.DTL_CNTR_SN, I1.PMOT_CD
@@ -740,20 +744,20 @@
                    AND T74.BASE_CNTR_SN = T11.CNTR_SN
                    AND T74.SELL_TP_CD = '2' /*판매유형코드 : 렌탈(2)*/
                    AND T74.DTA_DL_YN = 'N'
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T74.BASE_CNTR_NO AND T11.CNTR_SN = T74.BASE_CNTR_SN)
+                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T74.BASE_CNTR_NO AND T11.CNTR_SN = T74.BASE_CNTR_SN)
                   LEFT OUTER JOIN TB_SSCT_CNTR_PRTNR_REL T75      /* T.계약파트너관계 - 제휴파트너 */
                     ON T75.CNTR_NO = T11.CNTR_NO         /* 계약번호  */
                    AND T75.CNTR_PRTNR_TP_CD = '040' /* 계약파트너유형코드 : 대리계약판매자(040)*/
                    AND T75.VL_END_DTM = '99991231235959'
                    AND T75.DTA_DL_YN = 'N'
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T75.CNTR_NO)
+                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T75.CNTR_NO)
                   LEFT OUTER JOIN TB_SSCT_CNTR_REL T76       /*계약관계 -- ASIS:정기배송과의 결합을 */
                     ON T76.OJ_DTL_CNTR_NO = T11.CNTR_NO
                    AND T76.OJ_DTL_CNTR_SN = T11.CNTR_SN
                    AND T76.CNTR_REL_DTL_CD IN ('214') /* 계약관계상세코드 : 정기배송(216)*/
                    AND T76.VL_END_DTM = '99991231235959'    /*유효종료일시*/
                    AND T76.DTA_DL_YN = 'N'
-                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T76.OJ_DTL_CNTR_NO AND T11.CNTR_SN = T76.OJ_DTL_CNTR_SN)
+                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T76.OJ_DTL_CNTR_NO AND T11.CNTR_SN = T76.OJ_DTL_CNTR_SN)
                   LEFT OUTER JOIN LATERAL (SELECT T770.OJ_CNTR_NO
                                                 , T770.OJ_CNTR_SN
                                                 , T770.BASE_CNTR_NO     /* 기준 계약번호 (이후) */
@@ -773,7 +777,7 @@
                                                       AND IZ.OJ_CNTR_NO = T11.CNTR_NO /* 대상계약번호(이전) = 현재계약번호*/
                                                       AND IZ.OJ_CNTR_SN = T11.CNTR_SN
                                                       AND IZ.DTA_DL_YN = 'N'
-                                                      AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = IZ.OJ_CNTR_NO AND T11.CNTR_SN = IZ.OJ_CNTR_SN)
+                                                      --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = IZ.OJ_CNTR_NO AND T11.CNTR_SN = IZ.OJ_CNTR_SN)
                                                   ) T770
                                           LEFT OUTER JOIN TB_SSCT_CNTR_DTL T771      /* T.계약상세 - 기기변경(이후 정보)  */
                                             ON T771.CNTR_NO = T770.BASE_CNTR_NO         /* 대상 계약번호  */
@@ -789,8 +793,8 @@
                                            AND T773.CNTR_SN = T770.BASE_CNTR_SN
                                            AND T773.DTA_DL_YN = 'N'
                                           ) T77             /* 기기변경내역 최신 */
-                    ON T77.OJ_CNTR_NO = T11.CNTR_NO
-                   AND T77.OJ_CNTR_SN = T11.CNTR_SN
+                    ON 1=1 --T77.OJ_CNTR_NO = T11.CNTR_NO
+                   --AND T77.OJ_CNTR_SN = T11.CNTR_SN
                   LEFT OUTER JOIN LATERAL (SELECT T780.CNTR_NO
                                                 , T780.CNTR_SN
                                                 , T780.STPL_DSC_AMT   /* 약정할인금액 */
@@ -810,7 +814,7 @@
                                                       AND CNTR_SN = T11.CNTR_SN
                                                       AND RSTL_STAT_CD = '020'    /* 재약정상태코드(확정:020)*/
                                                       AND DTA_DL_YN = 'N'
-                                                      AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = CNTR_NO AND T11.CNTR_SN = CNTR_SN)
+                                                      --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = CNTR_NO AND T11.CNTR_SN = CNTR_SN)
                                                   ) T780
                                           LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T781  /*WELLS매출월마감내역 */
                                             ON T781.SL_CL_YM = SUBSTR(T780.STPL_RCP_DTM,1,6)    /* 매출마감년월 = 약정접수일자*/
@@ -818,8 +822,8 @@
                                            AND T781.CNTR_SN = T780.CNTR_SN
                                            AND T781.DTA_DL_YN = 'N'
                                           ) T78             /* 기기변경내역 최신 */
-                    ON T78.CNTR_NO = T11.CNTR_NO
-                   AND T78.CNTR_SN = T11.CNTR_SN
+                    ON 1=1 --T78.CNTR_NO = T11.CNTR_NO
+                   --AND T78.CNTR_SN = T11.CNTR_SN
                   LEFT OUTER JOIN LATERAL(SELECT T790.OJ_DTL_CNTR_NO   /* 대상 - 계약정보(원주문) */
                                                , T790.OJ_DTL_CNTR_SN   /* 대상 - 계약정보(원주문) */
                                                , T791.CNTR_RCP_FSH_DTM    /* 계약접수완료일시-접수일  이후 멤버십정보 - 접수일 (A_L350_CRTT:A_L350.LCCRTY)*/
@@ -827,7 +831,8 @@
                                                , T793.REQD_DT             /* 철거일자- 취소일  이후 멤버십정보 - 취소일 (A_L350_CANT:A_L350.LCCANY)*/
                                                , T792.CNTR_PD_ENDDT        /* 탈퇴일  이후 멤버십정보 - 탈퇴일 (A_L350_OUTT:A_L350.LCOUTY)*/
                                                /* 연관된 멤버십 정보*/
-                                            FROM (SELECT R1.BASE_CNTR_NO     AS CNTR_NO  /* 기준상세계약번호 */
+                                            FROM (SELECT /*+ INDEX(R1 IX_SSCT_CNTR_REL_02) */
+                                            			 R1.BASE_CNTR_NO     AS CNTR_NO  /* 기준상세계약번호 */
                                                        , R1.BASE_DTL_CNTR_SN AS CNTR_SN  /* 기준상세계약일련번호 */
                                                        , R1.OJ_DTL_CNTR_NO
                                                        , R1.OJ_DTL_CNTR_SN
@@ -837,7 +842,7 @@
                                                      AND R1.CNTR_REL_DTL_CD IN ('212') /* 계약관계상세코드 : 원주문 - 원주문 - 멤버십(212)*/
                                                      AND R1.DTA_DL_YN = 'N'
                                                      AND R1.VL_END_DTM = '99991231235959'    /*유효종료일시*/
-                                                     AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = R1.OJ_DTL_CNTR_NO AND T11.CNTR_SN = R1.OJ_DTL_CNTR_SN)
+                                                     --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = R1.OJ_DTL_CNTR_NO AND T11.CNTR_SN = R1.OJ_DTL_CNTR_SN)
                                                 ) T790
                                           INNER JOIN TB_SSCT_CNTR_BAS T791               /* T.계약기본 */
                                              ON T791.CNTR_NO = T790.CNTR_NO              /*계약번호  */
@@ -851,15 +856,16 @@
                                             AND T793.CNTR_SN = T790.CNTR_SN              /*계약번호  */
                                             AND T793.DTA_DL_YN = 'N'
                                            ) T79             /* 연관된 멤버십 정보 */
-                    ON T79.OJ_DTL_CNTR_NO = T11.CNTR_NO
-                   AND T79.OJ_DTL_CNTR_SN = T11.CNTR_SN
+                    ON 1=1 --T79.OJ_DTL_CNTR_NO = T11.CNTR_NO
+                   --AND T79.OJ_DTL_CNTR_SN = T11.CNTR_SN
                 LEFT OUTER JOIN LATERAL(SELECT T900.CNTR_NO         /* 대상 - 계약정보(1+1이전) */
                                              , T900.CNTR_SN         /* 대상 - 계약정보(1+1이전) */
                                              , T901.BASE_PD_CD      /* 상품코드 */
                                              , T902.PD_NM           /* 상품코드명 */
                                              , T900.BASE_CNTR_NO    /* 기준계약정보 */
                                              , T900.BASE_DTL_CNTR_SN /* 기준계약정보 */
-                                          FROM (SELECT R1.OJ_DTL_CNTR_NO AS CNTR_NO  /* 대상 상세계약번호 */
+                                          FROM (SELECT /*+ INDEX(R1 IX_SSCT_CNTR_REL_03) */
+                                          			   R1.OJ_DTL_CNTR_NO AS CNTR_NO  /* 대상 상세계약번호 */
                                                      , R1.OJ_DTL_CNTR_SN AS CNTR_SN  /* 대상 상세계약일련번호 */
                                                      , R1.BASE_CNTR_NO
                                                      , R1.BASE_DTL_CNTR_SN
@@ -869,7 +875,7 @@
                                                    AND R1.CNTR_REL_DTL_CD IN ('215') /* 계약관계상세코드 : 1+1연계(215)*/
                                                    AND R1.DTA_DL_YN = 'N'
                                                    AND R1.VL_END_DTM = '99991231235959'    /*유효종료일시*/
-                                                   AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = R1.BASE_CNTR_NO AND T11.CNTR_SN = R1.BASE_DTL_CNTR_SN)
+                                                   --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = R1.BASE_CNTR_NO AND T11.CNTR_SN = R1.BASE_DTL_CNTR_SN)
                                               ) T900
                                          INNER JOIN TB_SSCT_CNTR_DTL T901             /* T.계약상세 */
                                             ON T901.CNTR_NO = T900.CNTR_NO            /*계약번호  */
@@ -880,10 +886,10 @@
                                            AND T902.TEMP_SAVE_YN = 'N'             /* 임시저장여부 */
                                            AND T902.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
                                           ) T90             /*계약관계 -- 1+1 이전 계약정보.*/
-                    ON T90.BASE_CNTR_NO = T11.CNTR_NO
-                   AND T90.BASE_DTL_CNTR_SN = T11.CNTR_SN
+                    ON 1=1 --T90.BASE_CNTR_NO = T11.CNTR_NO
+                   --AND T90.BASE_DTL_CNTR_SN = T11.CNTR_SN
                 LEFT OUTER JOIN LATERAL (
-                                         SELECT --/*+ INDEX (T81 PK_CBCL_DLQ_BAS) */
+                                         SELECT /*+ INDEX(T81 IX_CBCL_DLQ_BAS_01) */
                                                 T81.CNTR_NO
                                               , T81.CNTR_SN
                                               , MIN(T81.PERF_YM) AS FST_PERF_YM
@@ -897,12 +903,13 @@
         --                                    AND PERF_YM != TO_CHAR(SYSDATE,'YYYYMM')
                                             AND PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
                                             AND THM_OC_DLQ_AMT  > 0   /* 당월발생연체금액 */
-                                            AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T81.CNTR_NO AND T11.CNTR_SN = T81.CNTR_SN)
+                                            --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = T81.CNTR_NO AND T11.CNTR_SN = T81.CNTR_SN)
                                           GROUP BY CNTR_NO, CNTR_SN
                                           ) T81             /* 연체기본 - 최초연체 */
-                    ON T81.CNTR_NO = T11.CNTR_NO
-                   AND T81.CNTR_SN = T11.CNTR_SN
-                  LEFT OUTER JOIN LATERAL (SELECT IZ.CNTR_NO ,  IZ.CNTR_SN
+                    ON 1=1 --T81.CNTR_NO = T11.CNTR_NO
+                   --AND T81.CNTR_SN = T11.CNTR_SN
+                  LEFT OUTER JOIN LATERAL (SELECT /*+ INDEX(IZ IX_CBCL_WELLS_SL_MM_CL_IZ_02) */
+                  									 IZ.CNTR_NO ,  IZ.CNTR_SN
                                                    , MIN(IZ.SL_CL_YM) AS FST_MNGT_YM
                                                    , MAX(IZ.SL_CL_YM)  AS FNL_MNGT_YM
                                               FROM TB_CBCL_WELLS_SL_MM_CL_IZ IZ/* WELLS매출월마감내역 */
@@ -911,10 +918,10 @@
                                                AND IZ.CNTR_SN = T11.CNTR_SN
                                                AND IZ.DTA_DL_YN = 'N'
                                                AND IZ.SL_STP_YN = 'Y' /*매출중지*/
-                                               AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = IZ.CNTR_NO AND T11.CNTR_SN = IZ.CNTR_SN)
+                                               --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = IZ.CNTR_NO AND T11.CNTR_SN = IZ.CNTR_SN)
                                                GROUP BY IZ.CNTR_NO, IZ.CNTR_SN
                                   ) T83             /* 최초매출중지, 최종매출중지 */
-                    ON T83.CNTR_NO = T11.CNTR_NO
+                    ON 1=1 --T83.CNTR_NO = T11.CNTR_NO
                   LEFT OUTER JOIN T85
                     ON T85.FGPT_1_CNTR_NO = T11.CNTR_NO
                    AND T85.FGPT_1_CNTR_SN = T11.CNTR_SN
@@ -933,10 +940,10 @@
                                             --AND T10.AG_DRM_REFK_VAL = 'W20177564277' --TEST 데어터
                                             AND T10.AG_DRM_REFK_VAL = T11.CNTR_NO
                                             AND T10.DTA_DL_YN = 'N'
-                                            AND EXISTS (SELECT T11.CNTR_NO FROM T11 WHERE T11.CNTR_NO = T10.AG_DRM_REFK_VAL)
+                                            --AND EXISTS (SELECT T11.CNTR_NO FROM T11 WHERE T11.CNTR_NO = T10.AG_DRM_REFK_VAL)
                                           GROUP BY T10.AG_DRM_REFK_VAL
                                           ) T86             /* 월별고객서비스대상내역 - 최종중지 */
-                    ON T86.CNTR_NO = T11.CNTR_NO
+                    ON 1=1 --T86.CNTR_NO = T11.CNTR_NO
                  WHERE 1=1
                 <if test="@MybatisUtils@isNotEmpty(hcsfVal)">
                     AND T21.REF_PD_CLSF_VAL LIKE #{hcsfVal} || '%'
