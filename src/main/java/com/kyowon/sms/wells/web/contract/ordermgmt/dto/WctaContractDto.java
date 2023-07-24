@@ -264,6 +264,7 @@ public class WctaContractDto {
     @Builder
     @ApiModel("EctaContractDto-SearchPdSelReq")
     public record SearchPdSelReq(
+        String copnDvCd,
         String sellInflwChnlDtlCd,
         String pdCd,
         String sellTpCd,

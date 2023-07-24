@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto;
+import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto.SearchPdSelReq;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 
 @Mapper
@@ -38,45 +39,25 @@ public interface WctaContractRegStep2Mapper {
 
     int insertCntrWellsDtlStep2(WctaContractWellsDtlDvo dvo);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDstps(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDstps(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsdvsSpay(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsdvsSpay(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsdvsRntl(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsdvsRntl(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsrtsSpay(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsrtsSpay(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsrtsRntl(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductDsrtsRntl(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductStplPtrms(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductStplPtrms(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductCntrPtrms(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductCntrPtrms(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductFrisuMshPtrms(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductFrisuMshPtrms(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductRgstCss(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductRgstCss(SearchPdSelReq dto);
 
-    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductAlncPds(
-        String pdCd, String sellTpCd, String sellInflwChnlDtlCd
-    );
+    List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductAlncPds(SearchPdSelReq dto);
 
     List<WctaContractRegStep2Dvo.PdDetailDvo> selectProductServiceInfo(String pdCd);
 

@@ -343,9 +343,6 @@ public class WctaContractController {
     }
 
     @ApiOperation(value = "상품 금액 조회", notes = "선택한 상품의 금액을 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
-    })
     @GetMapping("/product-prices")
     public WctaContractRegStep2Dvo.PdAmtDvo selectProductPrices(
         SearchPdAmtReq dto
@@ -354,9 +351,6 @@ public class WctaContractController {
     }
 
     @ApiOperation(value = "상품 속성 조회", notes = "선택한 상품의 속성목록을 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
-    })
     @GetMapping("/product-selects")
     public WctaContractDtlDvo selectProductSelects(
         SearchPdSelReq dto
@@ -364,9 +358,9 @@ public class WctaContractController {
         return step2Service.selectProductSelects(dto);
     }
 
-    @ApiOperation(value = "상품 속성 조회", notes = "선택한 상품의 속성목록을 조회한다.")
+    @ApiOperation(value = "웰스팜/홈카페 조회", notes = "선택한 상품의 웰스팜/홈카페 목록을 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query"),
     })
     @GetMapping("/welsf-hcf-pkgs")
     public List<WctaContractRegStep2Dvo.PdWelsfHcfPkg> selectWlsfHcf(
