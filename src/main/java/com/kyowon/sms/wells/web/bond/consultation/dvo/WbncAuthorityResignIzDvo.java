@@ -117,7 +117,7 @@ public class WbncAuthorityResignIzDvo {
     private Long dscCsBorAmt; /* 할인비용위약금액 */
     private Long csmbCsBorAmt; /* 소모품비용위약금액 */
     private Long rstlBorAmt; /* 재약정위약금액 */
-    private Long pBorAmt; /* 포인트위약금액 */
+    private Long pointBorAmt; /* 포인트위약금액 */
     private Long reqdCsBorAmt; /* 철거비용위약금액 */
     private Long etcBorAmt1; /* 기타위약금액1 */
     private Long etcBorAmt2; /* 기타위약금액2 */

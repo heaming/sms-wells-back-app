@@ -58,7 +58,7 @@ public class WbncRentalResignExpectedMgtDto {
         Long rentalRgstCostBorAmt, /* 위약등록비 */
         Long dscCsBorAmt, /* 위약할인금액 */
         Long rstlBorAmt, /* 위약재약정 */
-        Long pBorAmt, /* 위약포인트 */
+        Long pointBorAmt, /* 위약포인트 */
         Long csmbCsBorAmt, /* 소모품비 */
         Long reqdCsBorAmt, /* 철거비 */
         Long lsRntf, /* 분실손료 */
