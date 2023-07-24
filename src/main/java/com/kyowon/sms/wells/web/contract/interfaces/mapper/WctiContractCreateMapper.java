@@ -61,4 +61,6 @@ public interface WctiContractCreateMapper {
     int insertContractProductRelation(WctiContractCreateDvo contract);
 
     int insertContractPartnerRelation(WctiContractCreateDvo contract);
+
+    int insertContractWellsDetail(WctiContractCreateDvo contract);
 }

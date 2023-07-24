@@ -170,6 +170,9 @@ public class WctiContractCreateService {
         if (StringUtils.isNotEmpty(contract.getSellPrtnrNo())) {
             mapper.insertContractPartnerRelation(contract);
         }
+
+        // 웰스계약상세 저장
+        mapper.insertContractWellsDetail(contract);
     }
 
     private boolean isValidAddress(String basAdr, String dtlAdr) {
