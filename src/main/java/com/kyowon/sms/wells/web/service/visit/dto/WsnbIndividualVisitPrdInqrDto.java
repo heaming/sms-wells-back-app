@@ -30,15 +30,12 @@ public class WsnbIndividualVisitPrdInqrDto {
     @ApiModel("WsnbIndividualVisitPrdInqrDto-SearchManagementCstInqrRes")
     public record SearchManagementCstInqrRes(
         String mngtYm,
-        String fxnPrtnrDvCd,
-        String fxnPrtnrNm,
-        String fxnPrtnrNo,
+        String mngrDvNm,
+        String prtnrKnm,
+        String prtnrNo,
         String mngerRglvlDvCd,
-        String mngerRglvlDvNm,
         String svHshdNo,
-        String exHsHdYn,
-        String hshdExcdCnfmYn,
-        String hshdExcdCd,
-        String ogTpCd
+        String ogTpCd,
+        String vstPrdNm
     ) {}
 }
