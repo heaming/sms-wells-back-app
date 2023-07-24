@@ -10,7 +10,7 @@ import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo;
 
 @Mapper(componentModel = "spring")
 public interface WbncRentalResignExpectedMgtConverter {
-    List<SearchRes> ListAuthorityResignIzToSearchRes(List<WbncAuthorityResignIzDvo> dvos);
+    List<SearchRes> listAuthorityResignIzToSearchRes(List<WbncAuthorityResignIzDvo> dvos);
 
     WbncAuthorityResignIzDvo mapSaveReqToAuthorityResignIz(SaveReq dto);
 }

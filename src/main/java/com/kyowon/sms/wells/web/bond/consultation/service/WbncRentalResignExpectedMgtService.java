@@ -37,7 +37,7 @@ public class WbncRentalResignExpectedMgtService {
     public List<SearchRes> getRentalResignExpecteds(SearchReq dto) {
         String baseDt = dto.baseDt();
         BizAssert.isTrue(DateUtil.getLastDateOfMonth(baseDt).equals(baseDt), "MSG_ALT_CHO_MM_TLST_D"); // 직권해지일자가 월마지막날이 아닙니다. 월마지막날을 선택하기 바랍니다.
-        return this.converter.ListAuthorityResignIzToSearchRes(mapper.selectRentalResignExpecteds(dto));
+        return this.converter.listAuthorityResignIzToSearchRes(mapper.selectRentalResignExpecteds(dto));
     }
 
     @Transactional
