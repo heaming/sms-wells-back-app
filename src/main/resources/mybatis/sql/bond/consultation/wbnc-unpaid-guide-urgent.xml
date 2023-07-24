@@ -11,8 +11,8 @@
                      , LPAD(T1.CNTR_SN,2) AS CNTR_SN                                        /* 계약일련번호 */
                      , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_NO_SN                        /* 계약상세일련번호 */
                      , (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) AS CNTR_TP_CD       /* 계약유형 */
-                     , F_CMZ_CD_NM(#{session.tenantId}, 'UC_AMT_FW_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
-                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM                /* 계약자성명 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
+                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM /* 계약자성명 */
                      , SUBSTR(T1.CNTR_NO,2,4) AS CST_Y                                      /* 고객년도 */
                      , SUBSTR(T1.CNTR_NO,6) AS CST_CD                                       /* 고객코드 */
                      , 0 AS AGRG_CT                                                         /* 건수 */
@@ -440,9 +440,9 @@
                      , T2.CLCTAM_PRTNR_NM           -- 집금파트너명
                      , T2.OFRM_TNO_VAL              -- 사무실전화번호값
                      , T1.AGRG_CT                   -- 집계건수
-                  FROM (SELECT ROW_NUMBER() OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO ORDER BY TT1.CST_NO,TT1.CNTR_NO,TT1.CNTR_SN) AS RN --고객당 계약 한건 조회하기 위한 ROW_NUMBER 함수
-                             , SUM(NPD_AMT) OVER (PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS NPD_AMT
-                             , COUNT(1) OVER (PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS AGRG_CT
+                  FROM (SELECT ROW_NUMBER() OVER(PARTITION BY TT1.UC_AMT_FW_TP_CD,TT1.CST_NO ORDER BY TT1.CST_NO,TT1.CNTR_NO,TT1.CNTR_SN) AS RN --고객당 계약 한건 조회하기 위한 ROW_NUMBER 함수
+                             , SUM(NPD_AMT) OVER (PARTITION BY TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS NPD_AMT
+                             , COUNT(1) OVER (PARTITION BY TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS AGRG_CT
                              , CNTR_NO
                              , CNTR_SN
                              , WK_DT
@@ -453,11 +453,11 @@
                            AND WK_DT= #{ojWkDt} -- 작업일자
                            AND UC_AMT_FW_TP_CD = #{ucAmtFwTpCd}) T1 -- 발송유형 01 = 안내서 OR 02 = 촉구서
                  INNER JOIN TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T2
-                    ON T2.WK_DT = T2.WK_DT
+                    ON T2.WK_DT = T1.WK_DT
                    AND T2.CNTR_NO = T1.CNTR_NO
                    AND T2.CNTR_SN = T1.CNTR_SN
                    AND T2.UC_AMT_FW_TP_CD = T1.UC_AMT_FW_TP_CD
                  WHERE 1 = 1
-                   AND RN = 1) FW
+                   AND T1.RN = 1) FW
     </insert>
 </mapper>
