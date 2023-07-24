@@ -12,6 +12,7 @@ public class WctaOrderDetailCustomerBaseDvo {
     private String cntrDtlNo; /* 계약상세번호 */
     private String cntrNo; /* 계약번호 */
     private String cntrSn; /* 계약일련번호 */
+    private String sellTpCd; /* 판매유형코드 */
     private String pdNm; /* 상품명 */
     private String cstKnm; /* 고객명 */
     private String cntrCstNo; /* 고객번호(교원키) */

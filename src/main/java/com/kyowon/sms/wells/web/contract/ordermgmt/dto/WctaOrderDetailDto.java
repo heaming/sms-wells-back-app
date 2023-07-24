@@ -71,6 +71,7 @@ public class WctaOrderDetailDto {
         String cntrDtlNo,
         String cntrNo,
         String cntrSn,
+        String sellTpCd,
         String pdNm,
         String cstKnm,
         String cntrCstNo,
@@ -103,7 +104,8 @@ public class WctaOrderDetailDto {
         String cntrSn,
         String cntrDtlNo,
         String basePdCd,
-        String pdNm
+        String pdNm,
+        String sellTpCd
     ) {}
 
     //wells 주문 상세(거래명세서목록조회) - 입금내역서 Search Result Dto
