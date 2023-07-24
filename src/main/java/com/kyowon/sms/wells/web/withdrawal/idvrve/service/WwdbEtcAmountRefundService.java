@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundAggregateReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundAggregateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.SearchEtcAmountRefundRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbEtcAmountRefundDto.*;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbEtcAmountRefundMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,7 +19,7 @@ public class WwdbEtcAmountRefundService {
 
     /**
      * 기타 선수금 환불 목록
-     * @param pageInfo 
+     * @param pageInfo
      * @param SearchEtcAmountRefundReq
      * @return PagingResult<SearchEtcAmountRefundRes>
      */
@@ -35,7 +32,7 @@ public class WwdbEtcAmountRefundService {
 
     /**
      * 기타 선수금 환불 목록 엑셀다운로드
-     * @param List 
+     * @param List
      * @param SearchEtcAmountRefundReq
      * @return List<SearchEtcAmountRefundRes>
      */
@@ -55,4 +52,16 @@ public class WwdbEtcAmountRefundService {
     ) {
         return mapper.selectEtcAmountRefundAggregates(req);
     }
+
+    /**
+    * 기타 선수금 환불 목록 총합계(Summary)
+    * @param SearchEtcAmountRefundReq
+    * @return SearchEtcAmountRefundSummaryRes
+    */
+    public SearchEtcAmountRefundSummaryRes getEtcAmountRefundSummaryPages(
+        SearchEtcAmountRefundReq req
+    ) {
+        return mapper.selectEtcAmountRefundsSummary(req);
+    }
+
 }

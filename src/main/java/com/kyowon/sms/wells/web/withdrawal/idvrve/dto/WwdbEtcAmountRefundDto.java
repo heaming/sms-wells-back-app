@@ -19,34 +19,37 @@ public class WwdbEtcAmountRefundDto {
         String perfDtStartDay, // 실적일자 시작일
         @NotBlank
         String perfDtEndDay, // 실적일자 종료일
-        //        String 환불구분 // 환불구분
-        String baseCntrNo // 불완전판매여부
+        String rfndDv, // 환불구분
+        String icptSellYn // 불완전판매여부
     ) {
 
     }
 
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundRes")
     public record SearchEtcAmountRefundRes(
-        String cntrNoSn, // 계약상세번호
-        String cstKnm, // 고객명
-        String fnlMdfcDtm, // 처리일자
-        String perfDt, // 실적일자
-        String cntrwTpCd, // 업무구분
-        String tmp1, // 입금종류
-        String tmp3, // 환불구분
-        String baseCntrNo, // 불완전판매구분
-        String sellAmt, // 판매금액
-        String tmp2, // 지급금액. 추후 확인 필요
-        String rfndDsbAmt, // 환불금액 = 환불지급금액 
-        String rfndDsbPspInt, // 지연이자
-        String cardRfndFee, // 카드수수료
-        String cshCardRfndFnitCd, // 은행/카드사
-        String cshRfndAcnoEncr, // 계좌번호
-        String cardRfndCrcdnoEncr, // 카드번호
-        String cshCardRfndAcnoCrcdnoEncr, // 계좌/카드번호
-        String cshRfndAcownNm, // 예금주
-        String istmMcn, // 할부개월
-        String cardRfndCrdcdAprno // 승인번호
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String cntrDtlNo, /* 계약상세번호 */
+        String cstKnm, /* 고객명 -한글 */
+        String cstEnm, /* 고객명 -영문*/
+        String rfndRveDt, /* 처리일자 */
+        String rfndPerfDt, /* 실적일자 */
+        String bizDv, /* 업무구분 */
+        String dpDv, /* 입금종류 */
+        String rfndDv, /* 환불구분 */
+        String icptSellDv, /* 불완전판매구분 */
+        String sellAmt, /* 판매금액 */
+        String dsbAmt, /* 지급금액 */
+        String rfndDsbAmt, /* 환불금액 */
+        String rfndDsbPspInt, /* 지연이자 */
+        String cardRfndFee, /* 카드수수료 */
+        String cshCardRfndFnitCd, /*  은행/카드사 */
+        String cardRfndCrcdnoEncr, /* 카드번호 */
+        String cshRfndAcnoEncr, /* 계좌번호 */
+        String cshCardRfndAcnoCrcdnoEncr, /* 계좌/카드번호 */
+        String cshRfndAcownNm, /* 예금주 */
+        String istmMcn, /* 할부개월 */
+        String cardRfndCrdcdAprno /* 승인번호 */
 
     ) {
         public SearchEtcAmountRefundRes {
@@ -69,8 +72,8 @@ public class WwdbEtcAmountRefundDto {
         String perfDtStartDay, // 실적일자 시작일
         @NotBlank
         String perfDtEndDay, // 실적일자 종료일
-        //        String 환불구분 // 환불구분
-        String baseCntrNo // 불완전판매여부
+        String rfndDv, // 환불구분
+        String icptSellYn // 불완전판매여부
     ) {
 
     }
@@ -98,5 +101,15 @@ public class WwdbEtcAmountRefundDto {
         // k머니 합계
         /* 확인 필요:전금합계 */
         /* 확인 필요:환불 총계 */
+    ) {}
+
+    @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundSummaryRes")
+    public record SearchEtcAmountRefundSummaryRes(
+        String cntCstKnm, /* 총 건수*/
+        String totSellAmt, /* 판매금액합계 */
+        String totDsbAmt, /* 지급금액합계 */
+        String totRfndDsbAmt, /* 환불금액합계 */
+        String totRfndDsbPspInt, /* 지연이자합계 */
+        String totCardRfndFee /* 카드수수료합계 */
     ) {}
 }
