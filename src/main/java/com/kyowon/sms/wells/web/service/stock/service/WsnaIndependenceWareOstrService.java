@@ -187,8 +187,6 @@ public class WsnaIndependenceWareOstrService {
 
                 if (itmPdCd.equals(stockPdCd)) {
                     lgstQty = stock.getLgstAGdQty();
-                    stockSize--;
-                    stocks.remove(stock);
                     break;
                 }
             }
