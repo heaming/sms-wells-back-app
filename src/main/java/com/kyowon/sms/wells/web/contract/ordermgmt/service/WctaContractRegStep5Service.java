@@ -228,15 +228,15 @@ public class WctaContractRegStep5Service {
     WctaContractBasDvo getContractBasForSettlements(String cntrNo) {
         WctaContractBasDvo contractBasDvo = contractRegService.selectContractBas(cntrNo);
 
-        //region 계약접수완료일시 확인
-        LocalDate cntrRcpFshDt = parseDate(contractBasDvo.getCntrRcpFshDtm());
-
-        boolean expired = cntrRcpFshDt.isBefore(LocalDate.now());
-        if (expired) {
-            throw new BizException("가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다.");
-            /* TODO: MSG 가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다. */
-        }
-        //endregion
+//        //region 계약접수완료일시 확인
+//        LocalDate cntrRcpFshDt = parseDate(contractBasDvo.getCntrRcpFshDtm());
+//
+//        boolean expired = cntrRcpFshDt.isBefore(LocalDate.now());
+//        if (expired) {
+//            throw new BizException("가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다.");
+//            /* TODO: MSG 가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다. */
+//        }
+//        //endregion
 
         return contractBasDvo;
     }
