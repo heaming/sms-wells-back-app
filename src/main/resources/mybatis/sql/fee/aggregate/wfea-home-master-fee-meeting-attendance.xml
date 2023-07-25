@@ -2,12 +2,90 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaHomeMasterFeeMeetingAttendanceMapper">
 
     <delete id="deleteHomeMasterFeeMeetingAttendances">
-        SELECT *
-        FROM DUAL
+        DELETE FROM TB_FEAM_PRTNR_PERF_MM_CL T1
+         WHERE T1.BASE_YM = #{perfYm}
+           AND T1.PERF_YM = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+           AND T1.PERF_AGRG_CRT_DV_CD = '301'
+           AND T1.OG_TP_CD = #{ogTpCd}
+           AND T1.PRTNR_NO IN ( SELECT A.PRTNR_NO
+                                  FROM TB_OGBS_MM_PRTNR_IZ A
+                                 WHERE A.BASE_YM = #{perfYm}
+                                   AND A.OG_TP_CD = #{ogTpCd}
+                                   AND A.RSB_DV_CD = #{rsbTpCd}
+                              )
+           AND T1.PERF_DV_CD NOT IN ( 'W03P00085', 'W03P00095', 'W03P00113', 'W03P00114', 'W03P00115'
+                                    , 'W03P00117', 'W03P00118', 'W03P00119', 'W03P00120', 'W03P00121' )
     </delete>
 
     <insert id="insertHomeMasterFeeMeetingAttendances">
-        SELECT *
-        FROM DUAL
+        INSERT INTO TB_FEAM_PRTNR_PERF_MM_CL
+               ( BASE_YM
+               , PERF_YM
+               , FEE_TCNT_DV_CD
+               , PERF_AGRG_CRT_DV_CD
+               , PERF_ATC_CD
+               , CO_CD
+               , OG_TP_CD
+               , PRTNR_NO
+               , FEE_PERF_ATC_VAL
+               , PERF_VAL
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField" />
+               )
+        SELECT #{perfYm} AS BASE_YM
+             , #{perfYm} AS PERF_YM
+             , #{feeTcntDvCd} AS FEE_TCNT_DV_CD
+             , '201' AS PERF_AGRG_CRT_DV_CD
+             , T.PERF_ATC_CD
+             , '2000' AS CO_CD
+             , 'W03' AS OG_TP_CD
+             , T.PRTNR_NO
+             , T.FEE_PERF_ATC_VAL
+             , T.PERF_VAL
+             , 'N' AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM ( SELECT A.PRTNR_NO
+                      , 'W03P00110' AS PERF_ATC_CD   /* 홈마스터당월등급 */
+                      , '' AS FEE_PERF_ATC_VAL
+                      , NVL(B.HMST_GD_VAL,0) AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+                   LEFT OUTER JOIN TB_FEAM_HMST_GD_BAS B
+                     ON A.BASE_YM = B.MNGT_YM
+                    AND A.PRTNR_NO = B.PRTNR_NO
+                  WHERE A.OG_TP_CD ='W03'
+                    AND A.BASE_YM = #{perfYm}
+                    AND A.PSTN_DV_CD IN ('15','7')
+                    AND A.RSB_DV_CD = #{rsbTpCd}
+                  UNION ALL
+                 SELECT A.PRTNR_NO
+                      , 'W03P00112' AS PERF_ATC_CD   /* 홈마스터동행교육수료여부 */
+                      , ( SELECT NVL(MAX(B.EDUC_CPC_ACKMT_YN),'N')
+                            FROM TB_PSCA_MCPTN_EDUC_IZ  B
+                           WHERE 1 = 1
+                             AND B.EDUC_CRSE_NO = '125'
+                             AND B.EDUC_CPC_ACKMT_YN = 'Y'
+                             AND B.EDUC_CRSE_CRT_BASE_YM &lt;= A.BASE_YM
+                             AND B.OG_TP_CD = A.OG_TP_CD
+                             AND B.PRTNR_NO = A.PRTNR_NO
+                        ) AS FEE_PERF_ATC_VAL
+                      , 0 AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+                  WHERE A.OG_TP_CD ='W03'
+                    AND A.BASE_YM = #{perfYm}
+                    AND A.PSTN_DV_CD IN ('15','7')
+                    AND A.RSB_DV_CD = #{rsbTpCd}
+                  UNION ALL
+                 SELECT A.PRTNR_NO
+                      , 'W03P00124' AS PERF_ATC_CD   /* 홈마스터차월 */
+                      , '' AS  FEE_PERF_ATC_VAL
+                      , MONTHS_BETWEEN(A.BASE_YM||'01',SUBSTR(A.FST_CNTR_DT,1,6)||'01') AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+                  WHERE A.OG_TP_CD ='W03'
+                    AND A.BASE_YM = #{perfYm}
+                    AND A.PSTN_DV_CD IN ('15','7')
+                    AND A.RSB_DV_CD = #{rsbTpCd}
+               )T
+
     </insert>
 </mapper>
