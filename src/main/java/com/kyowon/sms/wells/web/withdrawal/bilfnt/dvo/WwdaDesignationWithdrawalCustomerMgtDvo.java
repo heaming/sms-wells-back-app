@@ -18,6 +18,7 @@ public class WwdaDesignationWithdrawalCustomerMgtDvo {
     private Integer dpAmt; // 입금금액
     private Integer ucAmt; // 잔액
     private String fntYn; // 이체구분
+    private String fntYm; // 이체년월
     private String dsnWdrwFntD; // 이체일
     private String dsnWdrwFntPrdCd; // 이체주기코드
     private String bilNo; // 청구번호
