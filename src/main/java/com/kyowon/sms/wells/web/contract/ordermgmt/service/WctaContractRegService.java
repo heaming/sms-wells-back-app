@@ -23,6 +23,10 @@ public class WctaContractRegService {
     private final WctaContractRegStep3Mapper step3Mapper;
     private final WctaContractRegStep4Mapper step4Mapper;
 
+    public String selectEnsmCstNo(String ensmNo) {
+        return mapper.selectEnsmCstNo(ensmNo);
+    }
+
     public String selectPrtnrCstNo(String prtnrNo) {
         return mapper.selectPrtnrCstNo(prtnrNo);
     }

@@ -152,6 +152,7 @@ public class WctaContractDto {
     // 통합계약Step1 Search Request Dto
     @ApiModel("WctaContractDto-SearchStep1Req")
     public record SearchStep1Req(
+        String cntrTpCd,
         String cstNo,
         String cntrNo,
         String cntrPrtnrNo,

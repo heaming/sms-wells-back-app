@@ -306,16 +306,16 @@ public class WctaContractController {
         return step1Service.isExistCntrtInfo(dto);
     }
 
-    @ApiOperation(value = "파트너번호로 고객번호 조회", notes = "파트너번호로 고객번호 조회")
+    @ApiOperation(value = "임직원번호로 고객번호 조회", notes = "파트너번호로 고객번호 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
     })
-    @GetMapping("/prtnr-cst-no")
-    public String selectPrtnrCstNo(
+    @GetMapping("/ensm-cst-no")
+    public String selectEnsmCstNo(
         @RequestParam
         String prtnrNo
     ) {
-        return regService.selectPrtnrCstNo(prtnrNo);
+        return regService.selectEnsmCstNo(prtnrNo);
     }
 
     @ApiOperation(value = "Step1 저장", notes = "Step1 정보를 신규 등록하거나 기존 정보를 수정한다.")

@@ -51,6 +51,7 @@ public class WctaContractRegStep1Service {
         boolean updateCntr = StringUtils.isNotEmpty(cstNo) && StringUtils.isNotEmpty(cntrNo);
 
         WctaContractBasDvo bas = regService.selectContractBas(cntrNo);
+        String cntrTpCd = StringUtils.defaultString(dto.cntrTpCd(), ObjectUtils.isEmpty(bas) ? "" : bas.getCntrTpCd());
         if (StringUtils.isEmpty(cstNo) && ObjectUtils.isNotEmpty(bas)) {
             cstNo = bas.getCntrCstNo();
         }
@@ -65,37 +66,50 @@ public class WctaContractRegStep1Service {
             new String[] {NumberFormat.getCurrencyInstance().format(dlqAmt.stream().reduce(0L, Long::sum))}
         );
 
-        // 3-3. 파트너 정보 조회 입력
-        // 3-3-1. 로그인 사용자의 파트너 정보 조회
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         String loginPrtnrno = session.getEmployeeIDNumber();
-        WctzPartnerDto.FindPrtnrRes loginPrtnrInfo = prtnrService
-            .selectPrtnrInfo(loginPrtnrno, session.getOgTpCd());
-
-        // 3-3-2. 로그인 사용자 = 파트너, 사전업무 등록기간 체크
-        BizAssert.notNull(loginPrtnrInfo, "존재하지 않는 파트너입니다.");
-        WctaContractPrtnrRelDvo prtnrInfo = converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(loginPrtnrInfo);
-        if ("7".equals(prtnrInfo.getPstnDvCd())) {
-            // 로그인한 파트너가 지국장인 경우
-            step1Dvo.setPrtnr7(prtnrInfo);
+        if (cntrTpCd.equals(CtContractConst.CNTR_TP_CD_ENSM)) {
+            // 임직원계약인 경우 파트너 관련 체크 로직 생략
             step1Dvo.setPrtnr(
-                converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(
-                    prtnrService.selectPrtnrInfo(dto.cntrPrtnrNo(), session.getOgTpCd())
-                )
+                WctaContractPrtnrRelDvo.builder()
+                    .prtnrKnm(session.getUserName())
+                    .prtnrNo(loginPrtnrno)
+                    .prrBizRgrYn("N")
+                    .ogTpCd("HR1")
+                    .ogId(session.getOgId())
+                    .build()
             );
         } else {
-            step1Dvo.setPrtnr(prtnrInfo);
-        }
+            // 3-3. 파트너 정보 조회 입력
+            // 3-3-1. 로그인 사용자의 파트너 정보 조회
+            WctzPartnerDto.FindPrtnrRes loginPrtnrInfo = prtnrService
+                .selectPrtnrInfo(loginPrtnrno, session.getOgTpCd());
 
-        if ("Y".equals(prtnrInfo.getPrrBizRgstYn())) {
-            // TODO 사전업무등록가능자 체크(지국장이 선택한 파트너 기준)
-            // 사전업무등록가능자라면, 사전업무등록기간 조회해서 null이면 계약접수 불가, 존재하면 계약자상세정보 dvo에 저장
-            List<WctaContractRegStep1Dvo.PrrBizRgstPtrmDvo> prrBizRgstPtrms = mapper.selectPrrBizRgstPtrm();
-            BizAssert.notEmpty(prrBizRgstPtrms, "MSG_ALT_IS_NOT_PRR_BIZ_RGST");
-            step1Dvo.setPrrBizRgstPtrms(prrBizRgstPtrms);
+            // 3-3-2. 로그인 사용자 = 파트너, 사전업무 등록기간 체크
+            BizAssert.notNull(loginPrtnrInfo, "존재하지 않는 파트너입니다.");
+            WctaContractPrtnrRelDvo prtnrInfo = converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(loginPrtnrInfo);
+            if ("7".equals(prtnrInfo.getPstnDvCd())) {
+                // 로그인한 파트너가 지국장인 경우
+                step1Dvo.setPrtnr7(prtnrInfo);
+                step1Dvo.setPrtnr(
+                    converter.mapPrtnrDtoToWctaContractPrtnrRelDvo(
+                        prtnrService.selectPrtnrInfo(dto.cntrPrtnrNo(), session.getOgTpCd())
+                    )
+                );
+            } else {
+                step1Dvo.setPrtnr(prtnrInfo);
+            }
+
+            if ("Y".equals(prtnrInfo.getPrrBizRgstYn())) {
+                // TODO 사전업무등록가능자 체크(지국장이 선택한 파트너 기준)
+                // 사전업무등록가능자라면, 사전업무등록기간 조회해서 null이면 계약접수 불가, 존재하면 계약자상세정보 dvo에 저장
+                List<WctaContractRegStep1Dvo.PrrBizRgstPtrmDvo> prrBizRgstPtrms = mapper.selectPrrBizRgstPtrm();
+                BizAssert.notEmpty(prrBizRgstPtrms, "MSG_ALT_IS_NOT_PRR_BIZ_RGST");
+                step1Dvo.setPrrBizRgstPtrms(prrBizRgstPtrms);
+            }
+            // 3-3-3. 계약자의 파트너 정보 조회
+            // String cntrtPrtnrNo = regService.selectCstPrtnrNo(cstNo);
         }
-        // 3-3-3. 계약자의 파트너 정보 조회
-        String cntrtPrtnrNo = regService.selectCstPrtnrNo(cstNo);
 
         // 6. 계약자 확인 후 정보 조회(기존 데이터 세팅)
         if (StringUtils.isNotEmpty(cntrNo)) {
@@ -139,7 +153,7 @@ public class WctaContractRegStep1Service {
     }
 
     public String selectPrtnrCstNo(String prtnrNo) {
-        return regService.selectPrtnrCstNo(prtnrNo);
+        return regService.selectEnsmCstNo(prtnrNo);
     }
 
     @Transactional
