@@ -43,6 +43,7 @@ public class WctaContractRegStep2Service {
             String sellTpCd = dtl.getSellTpCd();
             WctaContractDtlDvo sels = selectProductSelects(
                 WctaContractDto.SearchPdSelReq.builder()
+                    .copnDvCd(bas.getCopnDvCd())
                     .sellInflwChnlDtlCd(bas.getSellInflwChnlDtlCd())
                     .pdCd(dtl.getBasePdCd())
                     .sellTpCd(sellTpCd)
@@ -118,6 +119,7 @@ public class WctaContractRegStep2Service {
                 dtl.setSellDscDvCds(sels.getSellDscDvCds());
                 dtl.setFrisuBfsvcPtrmNs(sels.getFrisuBfsvcPtrmNs());
             } else if (CtContractConst.SELL_TP_CD_RNTL.equals(sellTpCd)) {
+                dtl.setStplPtrms(sels.getStplPtrms());
                 dtl.setCntrPtrms(sels.getCntrPtrms());
                 dtl.setRgstCss(sels.getRgstCss());
                 dtl.setSellDscTpCds(sels.getSellDscTpCds());
@@ -241,18 +243,18 @@ public class WctaContractRegStep2Service {
         if (CtContractConst.SELL_TP_CD_SPAY.equals(sellTpCd)) {
             // 일시불인 경우 제휴상품목록(렌탈은 화면에서 select 변경될 때마다 실시간 체크)
             dvo.setAlncmpCntrDrmVals(null);
-            dvo.setSellDscrCds(mapper.selectProductDsrtsSpay(pdCd, sellTpCd, sellInflwChnlDtlCd));
-            dvo.setSellDscDvCds(mapper.selectProductDsdvsSpay(pdCd, sellTpCd, sellInflwChnlDtlCd));
-            dvo.setFrisuBfsvcPtrmNs(mapper.selectProductFrisuMshPtrms(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setSellDscrCds(mapper.selectProductDsrtsSpay(dto));
+            dvo.setSellDscDvCds(mapper.selectProductDsdvsSpay(dto));
+            dvo.setFrisuBfsvcPtrmNs(mapper.selectProductFrisuMshPtrms(dto));
         } else if (CtContractConst.SELL_TP_CD_RNTL.equals(sellTpCd)) {
-            dvo.setStplPtrms(mapper.selectProductStplPtrms(pdCd, sellTpCd, sellInflwChnlDtlCd));
-            dvo.setCntrPtrms(mapper.selectProductCntrPtrms(pdCd, sellTpCd, sellInflwChnlDtlCd));
-            dvo.setRgstCss(mapper.selectProductRgstCss(pdCd, sellTpCd, sellInflwChnlDtlCd));
-            dvo.setSellDscTpCds(mapper.selectProductDstps(pdCd, sellTpCd, sellInflwChnlDtlCd));
-            dvo.setSellDscrCds(mapper.selectProductDsrtsRntl(pdCd, sellTpCd, sellInflwChnlDtlCd));
-            dvo.setSellDscDvCds(mapper.selectProductDsdvsRntl(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setStplPtrms(mapper.selectProductStplPtrms(dto));
+            dvo.setCntrPtrms(mapper.selectProductCntrPtrms(dto));
+            dvo.setRgstCss(mapper.selectProductRgstCss(dto));
+            dvo.setSellDscTpCds(mapper.selectProductDstps(dto));
+            dvo.setSellDscrCds(mapper.selectProductDsrtsRntl(dto));
+            dvo.setSellDscDvCds(mapper.selectProductDsdvsRntl(dto));
         } else if (CtContractConst.SELL_TP_CD_MSH.equals(sellTpCd)) {
-            dvo.setStplPtrms(mapper.selectProductStplPtrms(pdCd, sellTpCd, sellInflwChnlDtlCd));
+            dvo.setStplPtrms(mapper.selectProductStplPtrms(dto));
         } else if (CtContractConst.SELL_TP_CD_RGSP.equals(sellTpCd)) {
             dvo.setSdingCapsls(mapper.selectSdingCapsls(pdCd));
         }
@@ -390,8 +392,10 @@ public class WctaContractRegStep2Service {
             );
 
             if (CtContractConst.SELL_TP_CD_SPAY.equals(sellTpCd)) {
-                // 일시불인 경우 계약금 없음
-                dtl.setCntrAmt(null);
+                dtl.setCntrAmt(dtl.getFnlAmt());
+                dtl.setCntrTam(dtl.getSellAmt());
+            } else {
+                dtl.setCntrTam(Math.multiplyExact(dtl.getCntrPtrm(), dtl.getFnlAmt()) + dtl.getCntrAmt());
             }
 
             // 2-1. 계약상세

@@ -8,10 +8,13 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 
 @Mapper
 public interface WctaContractRegMapper {
-
     String selectPrtnrCstNo(String prtnrNo);
 
+    String selectEnsmCstNo(String ensmNo);
+
     String selectCstPrtnrNo(String cstNo);
+
+    String selectCstEnsmNo(String cstNo);
 
     String selectBryyMmdd(String cstNo);
 
