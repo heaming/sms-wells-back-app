@@ -55,7 +55,7 @@ public class WsnaSeedingSowPlanController {
     }
 
     @GetMapping("/excel-download")
-    @ApiOperation(value = "모종 출고 예정리스트 엑셀 다운로드", notes = "조회조건에 일치하는 모종 출고 예정리스트 데이터를 엑셀다운로드 한다.")
+    @ApiOperation(value = "모종 파종 예정리스트 엑셀 다운로드", notes = "조회조건에 일치하는 모종 파종 예정리스트 데이터를 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "strtDt", value = "시작일자", paramType = "query", example = "20230703", required = true),
         @ApiImplicitParam(name = "endDt", value = "종료일자", paramType = "query", example = "20230703", required = true),
