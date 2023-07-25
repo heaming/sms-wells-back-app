@@ -112,55 +112,56 @@ public class WwdbEtcAnticipationDepositProcessingService {
 
             //만약 당일입금이 아닌경우 기타선수금 데이터 생성
             if ("2".equals(mainReq.processingDivide())) {
-                String etcAtamNo = etcDepositMapper.selectMaxEtcAnticipationNo(mainReq.itgDpNo());
+                //                String etcAtamNo = etcDepositMapper.selectMaxEtcAnticipationNo(mainReq.itgDpNo());
+                //
+                //                //기타선수금 데이터 생성
+                //                WdcaEtcAnticipationAmtDvo etcAnticipationDvo = new WdcaEtcAnticipationAmtDvo();
+                //                etcAnticipationDvo.setEtcAtamNo(etcAtamNo); //기타선수금번호
+                //                etcAnticipationDvo.setEtcAtamOcDt(integrationRes.dpDtm().substring(0, 8)); //기타선수금발생일자
+                //                etcAnticipationDvo.setItgDpNo(integrationRes.itgDpNo()); //통합입금번호
+                //                etcAnticipationDvo.setEtcAtamTpCd("1"); //기타선수금유형코드 일단 미대사
+                //                etcAnticipationDvo.setEtcAtamProcsCd("0"); //기타선수금처리코드
+                //                etcAnticipationDvo.setEtcAtamPrcsdt(sysDateYmd); //기타선수금처리일자
+                //                etcAnticipationDvo.setEtcAtamProcsAmt(Integer.parseInt(list.dpCprcnfAmt())); //기타선수금처리금액
+                //                etcAnticipationDvo.setRveNo(zwdzWithdrawalReceiveDvo.getRveNo()); //수납번호
+                //                etcAnticipationDvo.setRveSn(Integer.parseInt(zwdzWithdrawalReceiveDvo.getRveSn())); //수납일련번호
+                //                //                etcAnticipationDvo.setRfndRcpNo(); //환불접수번호
+                //                etcAnticipationDvo.setRveDt(zwdzWithdrawalReceiveDvo.getRveDt()); //수납일자
+                //                //                etcAnticipationDvo.setBilTn(); //청구회차
+                //                etcAnticipationDvo.setProcsDvCd(zwdzWithdrawalReceiveDvo.getProcsDvCd()); //처리구분코드
+                //                etcAnticipationDvo.setDpDvCd(zwdzWithdrawalReceiveDvo.getDpDvCd()); //입금구분코드
+                //                etcAnticipationDvo.setSellTpCd(searchDepositContractRes.sellTpCd()); //판매유형코드
+                //                etcAnticipationDvo.setSellTpDtlCd(searchDepositContractRes.sellTpDtlCd()); //판매유형상세코드
+                //                etcAnticipationDvo.setPdCd(searchDepositContractRes.basePdCd()); //상품코드
+                //                etcAnticipationDvo.setPdHclsfId(searchDepositContractRes.pdHclsfId()); //상품대분류ID
+                //                etcAnticipationDvo.setPdMclsfId(searchDepositContractRes.pdMclsfId()); //상품중분류ID
+                //                etcAnticipationDvo.setPdLclsfId(searchDepositContractRes.pdLclsfId()); //상품소분류ID
+                //                etcAnticipationDvo.setDpMesCd(zwdzWithdrawalReceiveDvo.getDpMesCd()); //입금수단코드
+                //                etcAnticipationDvo.setDpTpCd(zwdzWithdrawalReceiveDvo.getDpTpCd()); //입금유형코드
+                //                etcAnticipationDvo.setCdcoCd(integrationRes.crdcdFnitCd()); //카드사코드
+                //                etcAnticipationDvo.setCardAprno(integrationRes.crdcdAprno()); //카드승인번호
+                //                etcAnticipationDvo.setCrcdnoEncr(integrationRes.crcdnoEncr()); //신용카드번호암호화
+                //                etcAnticipationDvo.setBnkCd(integrationRes.fnitCd()); //은행코드
+                //                etcAnticipationDvo.setDprNm(integrationRes.dprNm()); //입금자명
+                //                etcAnticipationDvo.setAcnoEncr(integrationRes.acnoEncr()); //계좌번호암호화
+                //                etcAnticipationDvo.setVncoDvCd(integrationRes.vncoDvCd()); //VAN사구분코드
+                //                etcAnticipationDvo.setCntrNo(list.cntrNo()); //계약번호
+                //                etcAnticipationDvo.setCntrSn(Integer.parseInt(list.cntrSn())); //계약일련번호
+                //                etcAnticipationDvo.setKwGrpCoCd(session.getCompanyCode()); //교원그룹회사코드
+                //                etcAnticipationDvo.setRveCd(rveCd); //수납코드
+                //                etcAnticipationDvo.setRveDvCd(zwdzWithdrawalReceiveDvo.getRveDvCd()); //수납구분코드
+                //                etcAnticipationDvo.setRvePhCd(zwdzWithdrawalReceiveDvo.getRvePhCd()); //수납경로코드
+                //                //                                            etcAnticipationDvo.setRveplcDvCd(); //수납처구분코드
+                //                etcAnticipationDvo.setOgTpCd(session.getOgTpCd()); //조직유형코드
+                //                etcAnticipationDvo.setIchrPrtnrNo(session.getEmployeeIDNumber()); //담당파트너번호
+                //                etcAnticipationDvo.setCstNo(list.cstNo()); //고객번호
+                //
+                //                edcaBusinessAnticipationAmtDvo.setEtcAtamNo(etcAtamNo); //   기타선수금번호
 
-                //기타선수금 데이터 생성
-                WdcaEtcAnticipationAmtDvo etcAnticipationDvo = new WdcaEtcAnticipationAmtDvo();
-                etcAnticipationDvo.setEtcAtamNo(etcAtamNo); //기타선수금번호
-                etcAnticipationDvo.setEtcAtamOcDt(integrationRes.dpDtm().substring(0, 8)); //기타선수금발생일자
-                etcAnticipationDvo.setItgDpNo(integrationRes.itgDpNo()); //통합입금번호
-                etcAnticipationDvo.setEtcAtamTpCd("1"); //기타선수금유형코드 일단 미대사
-                etcAnticipationDvo.setEtcAtamProcsCd("0"); //기타선수금처리코드
-                etcAnticipationDvo.setEtcAtamPrcsdt(sysDateYmd); //기타선수금처리일자
-                etcAnticipationDvo.setEtcAtamProcsAmt(Integer.parseInt(list.dpCprcnfAmt())); //기타선수금처리금액
-                etcAnticipationDvo.setRveNo(zwdzWithdrawalReceiveDvo.getRveNo()); //수납번호
-                etcAnticipationDvo.setRveSn(Integer.parseInt(zwdzWithdrawalReceiveDvo.getRveSn())); //수납일련번호
-                //                etcAnticipationDvo.setRfndRcpNo(); //환불접수번호
-                etcAnticipationDvo.setRveDt(zwdzWithdrawalReceiveDvo.getRveDt()); //수납일자
-                //                etcAnticipationDvo.setBilTn(); //청구회차
-                etcAnticipationDvo.setProcsDvCd(zwdzWithdrawalReceiveDvo.getProcsDvCd()); //처리구분코드
-                etcAnticipationDvo.setDpDvCd(zwdzWithdrawalReceiveDvo.getDpDvCd()); //입금구분코드
-                etcAnticipationDvo.setSellTpCd(searchDepositContractRes.sellTpCd()); //판매유형코드
-                etcAnticipationDvo.setSellTpDtlCd(searchDepositContractRes.sellTpDtlCd()); //판매유형상세코드
-                etcAnticipationDvo.setPdCd(searchDepositContractRes.basePdCd()); //상품코드
-                etcAnticipationDvo.setPdHclsfId(searchDepositContractRes.pdHclsfId()); //상품대분류ID
-                etcAnticipationDvo.setPdMclsfId(searchDepositContractRes.pdMclsfId()); //상품중분류ID
-                etcAnticipationDvo.setPdLclsfId(searchDepositContractRes.pdLclsfId()); //상품소분류ID
-                etcAnticipationDvo.setDpMesCd(zwdzWithdrawalReceiveDvo.getDpMesCd()); //입금수단코드
-                etcAnticipationDvo.setDpTpCd(zwdzWithdrawalReceiveDvo.getDpTpCd()); //입금유형코드
-                etcAnticipationDvo.setCdcoCd(integrationRes.crdcdFnitCd()); //카드사코드
-                etcAnticipationDvo.setCardAprno(integrationRes.crdcdAprno()); //카드승인번호
-                etcAnticipationDvo.setCrcdnoEncr(integrationRes.crcdnoEncr()); //신용카드번호암호화
-                etcAnticipationDvo.setBnkCd(integrationRes.fnitCd()); //은행코드
-                etcAnticipationDvo.setDprNm(integrationRes.dprNm()); //입금자명
-                etcAnticipationDvo.setAcnoEncr(integrationRes.acnoEncr()); //계좌번호암호화
-                etcAnticipationDvo.setVncoDvCd(integrationRes.vncoDvCd()); //VAN사구분코드
-                etcAnticipationDvo.setCntrNo(list.cntrNo()); //계약번호
-                etcAnticipationDvo.setCntrSn(Integer.parseInt(list.cntrSn())); //계약일련번호
-                etcAnticipationDvo.setKwGrpCoCd(session.getCompanyCode()); //교원그룹회사코드
-                etcAnticipationDvo.setRveCd(rveCd); //수납코드
-                etcAnticipationDvo.setRveDvCd(zwdzWithdrawalReceiveDvo.getRveDvCd()); //수납구분코드
-                etcAnticipationDvo.setRvePhCd(zwdzWithdrawalReceiveDvo.getRvePhCd()); //수납경로코드
-                //                                            etcAnticipationDvo.setRveplcDvCd(); //수납처구분코드
-                etcAnticipationDvo.setOgTpCd(session.getOgTpCd()); //조직유형코드
-                etcAnticipationDvo.setIchrPrtnrNo(session.getEmployeeIDNumber()); //담당파트너번호
-                etcAnticipationDvo.setCstNo(list.cstNo()); //고객번호
-
-                edcaBusinessAnticipationAmtDvo.setEtcAtamNo(etcAtamNo); //   기타선수금번호
-
-                wdcaEtcAnticipationAmtDvos.add(etcAnticipationDvo);
+                //                wdcaEtcAnticipationAmtDvos.add(list.etcAtamNo());
+                edcaBusinessAnticipationAmtDvo.setEtcAtamNo(mainDvo.getEtcAtamNo()); //   기타선수금번호
             } else {
-                edcaBusinessAnticipationAmtDvo.setEtcAtamNo(""); //   기타선수금번호
+                edcaBusinessAnticipationAmtDvo.setEtcAtamNo(mainDvo.getEtcAtamNo()); //   기타선수금번호
             }
 
             // 영업선수금 데이터 생성
