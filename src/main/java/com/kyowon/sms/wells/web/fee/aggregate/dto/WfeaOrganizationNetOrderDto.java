@@ -28,15 +28,13 @@ public class WfeaOrganizationNetOrderDto {
     public record SaveOgNetOrderReq(
         @NotBlank
         String perfYm,
-
         @NotBlank
-        String ogTp
-    ) {}
-
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SaveBsReq")
-    public record SaveBsReq(
+        String ogTpCd,
         @NotBlank
-        String perfYm
+        String feeTcntDvCd,
+        @NotBlank
+        String perfAgrgCrtDvCd,
+        String dv
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchHmstReq")

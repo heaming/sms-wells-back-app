@@ -1,8 +1,17 @@
 package com.kyowon.sms.wells.web.fee.aggregate.service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
+import com.kyowon.sflex.common.common.service.BatchCallService;
+import com.kyowon.sms.common.web.fee.common.dto.ZfezFeeNetOrderStatusDto.SearchRes;
+import com.kyowon.sms.common.web.fee.common.service.ZfezFeeNetOrderStatusService;
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaOrganizationNetOrderConverter;
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaOrganizationNetOrderDto;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaOrganizationNetOrderDvo;
@@ -10,8 +19,6 @@ import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaOrganizationNetOrderMap
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 
 /**
  * <pre>
@@ -27,7 +34,11 @@ public class WfeaOrganizationNetOrderService {
 
     private final WfeaOrganizationNetOrderMapper mapper;
 
+    private final ZfezFeeNetOrderStatusService zfezFeeNetOrderStatusService;
+
     private final WfeaOrganizationNetOrderConverter converter;
+
+    private final BatchCallService batchCallService;
 
     /**
      * 조직별 실적 집계
@@ -35,28 +46,34 @@ public class WfeaOrganizationNetOrderService {
      * @return 처리결과
      */
     @Transactional
-    public int saveOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) {
-        int processCnt = 1;
-        return processCnt;
-    }
+    public String saveOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) throws Exception {
+        // 주문별집계 확정 체크 추가
+        SearchRes searchRes = zfezFeeNetOrderStatusService
+            .getFeeNetOrderCntrStat(dto.perfYm(), dto.feeTcntDvCd(), "02");
 
-    /**
-     * BS 실적 집계
-     * @param dto
-     * @return 처리결과
-     */
-    @Transactional
-    public int saveBsPerformances(WfeaOrganizationNetOrderDto.SaveBsReq dto) {
-        int processCnt = 0;
+        BizAssert
+            .isTrue(
+                searchRes != null && "02".equals(searchRes.ntorCnfmStatCd()),
+                "MSG_ALT_CNFM_AFT_AGRG"
+            ); // 해당 차수의 주문별 집계 확정 후 집계가 가능합니다.
 
-        WfeaOrganizationNetOrderDvo dvo = converter.mapSaveBsReqToWfeaOrganizationNetOrderDvo(dto);
+        // 배치 dvo 생성
+        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
-        mapper.deleteBsPerformances(dvo);
-        processCnt = mapper.insertBsPerformances(dvo);
+        // 배치 parameter
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("perfYm", dto.perfYm());
+        params.put("ogTpCd", dto.ogTpCd());
+        params.put("feeTcntDvCd", dto.feeTcntDvCd());
+        params.put("perfAgrgCrtDvCd", dto.perfAgrgCrtDvCd());
 
-        BizAssert.isTrue(processCnt > 0, "MSG_ALT_AGRG_FAIL");
+        batchCallReqDvo.setJobKey("WSM_FE_OA0003");
+        batchCallReqDvo.setParams(params);
 
-        return processCnt;
+        String runId = batchCallService.runJob(batchCallReqDvo);
+        BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
+
+        return StringUtils.isNotBlank(runId) ? "S" : "E";
     }
 
     /**
@@ -66,7 +83,24 @@ public class WfeaOrganizationNetOrderService {
      */
     @Transactional
     public int editOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) {
-        int processCnt = 1;
+        int processCnt = 0;
+
+        // 조직별집계 생성 체크
+        SearchRes netOrderStat = zfezFeeNetOrderStatusService
+            .getFeeNetOrderStat(dto.perfYm(), dto.feeTcntDvCd(), dto.perfAgrgCrtDvCd(), "01");
+        BizAssert.isTrue(netOrderStat != null, "MSG_ALT_OG_CNFM_AFT_AGRG"); // 해당 차수의 조직별 집계 후 진행해주세요.
+
+        WfeaOrganizationNetOrderDvo dvo = converter.mapSaveOgNetOrderReqToWfeaOrganizationNetOrderDvo(dto);
+        if ("CO".equals(dvo.getDv())) { // 확정
+            BizAssert
+                .isTrue(
+                    !(netOrderStat != null && "01".equals(netOrderStat.ntorCnfmStatCd())), "MSG_ALT_BF_CNFM_CONF"
+                ); // 이미 확정되었습니다.
+            processCnt = mapper.updateNtorMmClConfirm(dvo);
+        } else if ("CC".equals(dvo.getDv())) { // 확정취소
+            processCnt = mapper.updateNtorMmClCancel(dvo);
+        }
+
         return processCnt;
     }
 
