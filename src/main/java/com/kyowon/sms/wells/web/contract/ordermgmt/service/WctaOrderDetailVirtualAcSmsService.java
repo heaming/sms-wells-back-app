@@ -57,7 +57,7 @@ public class WctaOrderDetailVirtualAcSmsService {
     }
 
     public int saveVirtualAccountMessages(SaveReq dto) throws Exception {
-        int processCount = 0;
+        int msgId = 0;
         WctaOrderDetailVirtualAcSmsDvo dvo = converter.mapSaveReqToOrderDetailVirtualAcSmsDvo(dto);
 
         String now = DateUtil.getNowString();
@@ -82,9 +82,9 @@ public class WctaOrderDetailVirtualAcSmsService {
             .destInfo(destInfo)
             .build();
 
-        processCount += smsMessageService.sendMessage(smsSendReqDvo);
+        msgId += smsMessageService.sendMessageAndGetInfo(smsSendReqDvo).get(0).getMsgId();
 
-        if (processCount > 0) {
+        if (msgId > 0) {
 
             UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
 
@@ -105,7 +105,7 @@ public class WctaOrderDetailVirtualAcSmsService {
                     // .msgCn(sendDvo.getContent()) // 메세지 내용
                     .cntrNo(cntrNo) // 계약번호
                     .cntrSn(cntrSn) // 계약일련번호
-                    // .fwLkIdkVal(emailUid) // 발송연계식별키값 TODO: 추가 예정
+                    .fwLkIdkVal(Integer.toString(msgId)) // 발송연계식별키값
                     .fwOjRefkVal1(templateCd) // 발송대상참조키값1
                     .rcvrNm(cstNm) // 수신자명
                     .rcvrLocaraTno(cralLocaraTno) // 수신자지역전화번호
@@ -117,6 +117,6 @@ public class WctaOrderDetailVirtualAcSmsService {
                 false
             );
         }
-        return processCount;
+        return 1;
     }
 }
