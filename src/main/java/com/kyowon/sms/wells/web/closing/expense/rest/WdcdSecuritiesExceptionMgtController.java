@@ -56,4 +56,16 @@ public class WdcdSecuritiesExceptionMgtController {
     public SaveResponse editWithholdingTaxAdjust(@RequestBody List<SaveReq> req) {
         return SaveResponse.builder().processCount(service.editWithholdingTaxAdjust(req)).build();
     }
+
+    @ApiOperation(value = "유가증권 제외 - 정산대상", notes = "조직코드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYM", value = "사용년월", paramType = "query"),
+        @ApiImplicitParam(name = "dgr1LevlOgId", value = "총괄단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr2LevlOgId", value = "지역단", paramType = "query"),
+        @ApiImplicitParam(name = "dgr3LevlOgId", value = "센터단", paramType = "query"),
+    })
+    @GetMapping("/withholding-tax")
+    public String getWithholdingTax(@Valid FindReq req) {
+        return service.getWithholdingTax(req);
+    }
 }
