@@ -12,7 +12,8 @@ public class WdcdRefundTotalAmountSalesStopDto {
     @Builder
     @ApiModel(value = "WdcdRefundTotalAmountSalesStopDto-FindReq")
     public record FindReq(
-        String bsdt
+        String bsdt,
+        String gubunCode
     ) {
     }
 
@@ -22,39 +23,7 @@ public class WdcdRefundTotalAmountSalesStopDto {
     // 환불총액/매출중지 내역 조회
     @Builder
     @ApiModel(value = "WdcdRefundTotalAmountSalesStopDto-FindSalesControlRes")
-    public record FindSalesControlRes(
-        String cntrNo,
-        String cntrSn,
-        String gubunCode,
-        String cstNo,
-        String cstKnm,
-        String sumAmt
-    ) {
-    }
-
-    // *********************************************************
-    // Request Dto
-    // *********************************************************
-    // 환불총액/매출중지 내역 조회
-    @Builder
-    @ApiModel(value = "WdcdRefundTotalAmountSalesStopDto-FindRefundRes")
-    public record FindRefundRes(
-        String cntrNo,
-        String cntrSn,
-        String gubunCode,
-        String cstNo,
-        String cstKnm,
-        String sumAmt
-    ) {
-    }
-
-    // *********************************************************
-    // Request Dto
-    // *********************************************************
-    // 환불총액/매출중지 내역 조회
-    @Builder
-    @ApiModel(value = "WdcdRefundTotalAmountSalesStopDto-FindSalesStopRes")
-    public record FindSalesStopRes(
+    public record FindRes(
         String cntrNo,
         String cntrSn,
         String gubunCode,

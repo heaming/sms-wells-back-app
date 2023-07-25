@@ -1,29 +1,28 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindRefundRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindReq;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindSalesControlRes;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindSalesStopRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.service.WdcdRefundTotalAmountSalesStopService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
+import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.validation.Valid;
 import java.util.List;
 
-@Api(tags = "[WDCD] 환불총액/매출중지 내역 조회 I/F")
-@Validated
-@RequiredArgsConstructor
 @InterfaceController
-@RequestMapping(DcClosingConst.COMMON_URL_V1 + "/refund-total-amount-sales-stop")
+@Api(tags = "[WDCD] 환불총액/매출중지 내역 조회 I/F")
+@RequestMapping(DcClosingConst.INTERFACE_URL_V1 + "/refund-total-amount-sales-stop")
+@RequiredArgsConstructor
+@Validated
 public class WdcdRefundTotalAmountSalesStopController {
 
     private final WdcdRefundTotalAmountSalesStopService service;
@@ -31,27 +30,20 @@ public class WdcdRefundTotalAmountSalesStopController {
     @ApiOperation(value = "환불총액/매출중지 내역 조회", notes = "자료종류구분 1. 매출조정")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bsdt", value = "매출인식일자", paramType = "query"),
+        @ApiImplicitParam(name = "gubunCode", value = "자료종류", paramType = "query"),
     })
-    @GetMapping("/sales-control")
-    public List<FindSalesControlRes> getSalesControl(@Valid FindReq req) {
-        return service.getSalesControl(req);
-    }
+    @PostMapping
+    public EaiWrapper getSalesControl(@RequestBody EaiWrapper<FindReq> reqWrapper) {
 
-    @ApiOperation(value = "환불총액/매출중지 내역 조회", notes = "자료종류구분 1. 매출조정")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "bsdt", value = "매출인식일자", paramType = "query"),
-    })
-    @GetMapping("/refund")
-    public List<FindRefundRes> getRefund(@Valid FindReq req) {
-        return service.getRefund(req);
-    }
+        // Response용 EaiWrapper 생성
+        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
 
-    @ApiOperation(value = "환불총액/매출중지 내역 조회", notes = "자료종류구분 1. 매출조정")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "bsdt", value = "매출인식일자", paramType = "query"),
-    })
-    @GetMapping("/sales-stop")
-    public List<FindSalesStopRes> getSalesStop(@Valid FindReq req) {
-        return service.getSalesStop(req);
+        // 서비스 메소드 호출
+        List<FindRes> res = service.getSalesControl(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
     }
 }
