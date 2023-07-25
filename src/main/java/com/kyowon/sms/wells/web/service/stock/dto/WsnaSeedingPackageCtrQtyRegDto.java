@@ -3,8 +3,8 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 import java.math.BigDecimal;
 
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
 
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
@@ -53,10 +53,11 @@ public class WsnaSeedingPackageCtrQtyRegDto {
         @NotBlank
         @ValidDate
         String ostrDuedt,
-        @Positive
+
+        @Min(0)
         @Max(999999999999L)
         BigDecimal excdQty,
-        @Positive
+        @Min(0)
         @Max(999999999999L)
         BigDecimal spmtQty
     ) {}
