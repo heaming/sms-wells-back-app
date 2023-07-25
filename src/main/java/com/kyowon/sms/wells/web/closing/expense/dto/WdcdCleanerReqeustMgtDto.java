@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -92,7 +94,7 @@ public class WdcdCleanerReqeustMgtDto {
         String bryyMmdd,
         String frontRrnoEncr, // 주민번호 앞자리
         String backRrnoEncr, // 주민번호 뒷자리
-        //@MaskRequired(type = MaskingType.RRN)
+        @MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, // 주민등록번호
         String locaraTno,
         //@MaskRequired(type = MaskingType.ALL)
