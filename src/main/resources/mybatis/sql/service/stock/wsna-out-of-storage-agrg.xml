@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAgrgMapper">
+     <select id="selectItemProductCodes" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAgrgDto$FindItemRes">
+        SELECT P1.SVPD_PD_CD AS CODE_ID
+             , P1.SVPD_NM_ABBR1 AS CODE_NAME
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
+         WHERE 1 = 1
+           AND P1.SVPD_ITEM_KND = #{itmKndCd}
+         ORDER BY P1.SVPD_PD_CD
+    </select>
+    <select id="selectMcByWares" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
+        SELECT WARE_NO /* 창고번호 */
+             , SUBSTR(WARE_NM, 1, 5)  AS WARE_NM /* 창고명 */
+             , TO_NUMBER(SORT_DV_VAL) AS SORT_DV_VAL /* 정렬구분값 */
+        FROM TB_SVST_MCBY_WARE_IZ
+        WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+          AND WARE_DTL_DV_CD IN ('20', '30')
+          AND DTA_DL_YN = 'N'
+          AND WARE_USE_YN = 'Y'
+          AND WARE_NM IS NOT NULL
+          AND (WARE_NM LIKE '%센터' OR WARE_NM LIKE '%지점') /* 확인필요 노출 범위*/
+        UNION ALL
+        ( SELECT WARE_NO     AS WARE_NO
+               , SUBSTR(WARE_NM, 1, 4) AS WARE_NM
+               , 0           AS SORT_DV_VAL
+          FROM TB_SVST_MCBY_WARE_IZ
+          WHERE WARE_NO  ='100002'                /* 물류센터 */
+          AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+          AND DTA_DL_YN = 'N'
+          AND WARE_USE_YN = 'Y'
+        )
+        UNION ALL
+        (SELECT '100000'     AS WARE_NO
+             , '물류센터계'    AS WARE_NM
+             , 0             AS SORT_DV_VAL
+        FROM DUAL
+        )
+        UNION ALL
+        (SELECT '200000'     AS WARE_NO
+              , '서비스센터계' AS WARE_NM
+              , 0            AS SORT_DV_VAL
+         FROM DUAL
+        )
+        UNION ALL
+        (SELECT '300000'     AS WARE_NO
+             , '영업센터계'    AS WARE_NM
+             , 0             AS SORT_DV_VAL
+        FROM DUAL
+        )
+        ORDER BY WARE_NO ASC, WARE_NM ASC, SORT_DV_VAL ASC
+    </select>
+    <select id="selectOutOfStorageAgrgs" resultType="camelMap">
+        SELECT     T1.ITM_OSTR_NO
+                ,  T1.SAP_MAT_CD
+                ,  T1.ITM_PD_CD
+                ,  T1.ITM_NM
+                ,  T1.PD_ABBR_NM
+                ,  T1.SVPD_MGT_TYP
+                ,  T1.SVPD_MGT_TYP_NM
+                ,  ${wareNoFields}
+         FROM
+         (
+            SELECT T1.ITM_PD_CD      AS ITM_PD_CD
+                 , T1.ITM_OSTR_NO    AS ITM_OSTR_NO
+                 , T3.SAP_MAT_CD     AS SAP_MAT_CD
+                 , T3.PD_NM          AS ITM_NM
+                 , T3.PD_ABBR_NM     AS PD_ABBR_NM
+                 , T4.PD_PRP_VAL02   AS SVPD_MGT_TYP
+                 , F_CMZ_CD_NM('TNT_WELLS', 'MAT_MNGT_DV_CD', T4.PD_PRP_VAL02)   AS SVPD_MGT_TYP_NM
+                 , T2.WARE_NO        AS WARE_NO
+                 , T1.OSTR_QTY       AS QTY
+              FROM TB_SVST_ITM_OSTR_IZ T1  /*LC_STOCK_ST161TB */
+             INNER JOIN TB_SVST_MCBY_WARE_IZ T2 /* LC_STOCK_ST102TB */
+                ON T1.OSTR_WARE_NO = T2.WARE_NO
+               AND T2.APY_YM = SUBSTR(OSTR_DT,1,6)
+               AND T2.DTA_DL_YN  ='N'
+             LEFT OUTER JOIN TB_PDBS_PD_BAS T3      /* LC_STOCK_ST101TB */
+                ON T3.PD_CD = T1.ITM_PD_CD
+                AND T3.DTA_DL_YN  = 'N'
+             LEFT JOIN TB_PDBS_PD_ECOM_PRP_DTL T4 /*상품각사속성상세*/
+              ON T1.ITM_PD_CD = T4.PD_CD
+              AND T4.DTA_DL_YN  ='N'
+              AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+             WHERE T2.WARE_USE_YN = 'Y'
+               AND T1.DTA_DL_YN = 'N'
+
+           /* 검색조건 */
+           AND T1.OSTR_DT BETWEEN #{startDt}  AND #{endDt}
+
+           <if test="@MybatisUtils@isNotEmpty(itmCdFrom)">
+            AND T1.ITM_PD_CD BETWEEN #{itmCdFrom}  AND #{itmCdTo}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(ostrTpCd)">
+            AND T1.OSTR_TP_CD = #{ostrTpCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+            AND T1.ITM_GD_CD = #{itmGdCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(sapMatCdFrom)">
+            AND T3.PD_CD BETWEEN #{sapMatCdFrom} AND #{sapMatCdTo}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+            AND T3.PD_CD = #{itmPdCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+            AND T4.PD_PRP_VAL19 = #{itmKndCd} /* 품목종류 */
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(matUtlzDvCd)">
+            AND T4.PD_PRP_VAL21 = #{matUtlzDvCd} /* 자재구분 */
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(useYn)">
+             /* 수불 일자 및 화면노출여부를 기준으로 사용여부 처리 */
+            AND ( CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD')
+                            BETWEEN T3.RVPY_STRTDT AND T3.RVPY_ENDDT AND T4.PD_PRP_VAL32 ='Y'
+                       THEN 'Y'
+                       ELSE 'N'
+                   END) = #{useYn}
+           </if>
+        )
+        PIVOT (  SUM(QTY)
+          FOR WARE_NO IN (${wareNoInStr})
+        ) T1
+
+        ORDER BY T1.ITM_OSTR_NO
+    </select>
+</mapper>
