@@ -9,6 +9,8 @@ import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbCreditCardApprovalDvo
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdzWithdrawalVirtualAccountIssueDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbCreditCardApprovalService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbVirtualAccountIsMgtService;
+import com.kyowon.sms.common.web.withdrawal.pchssl.dto.ZwdcCashSalesReceiptApprovalPresentDto;
+import com.kyowon.sms.common.web.withdrawal.pchssl.service.ZwdcCashSalesReceiptApprovalStateService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
@@ -57,6 +59,7 @@ public class WctaContractRegStep5Service {
     private final ZwdbCreditCardApprovalService paymentService;
     private final ZwdbVirtualAccountIsMgtService virtualAccountIsMgtService;
     private final ZwdaKiccReceiveProcessService KiccReceiveService;
+    private final ZwdcCashSalesReceiptApprovalStateService cashSalesReceiptApprovalStateService;
 
     private final WctbContractDtlStatCdChService cntrStatChService;
     private final WctzHistoryService historyService;
@@ -225,15 +228,15 @@ public class WctaContractRegStep5Service {
     WctaContractBasDvo getContractBasForSettlements(String cntrNo) {
         WctaContractBasDvo contractBasDvo = contractRegService.selectContractBas(cntrNo);
 
-        //region 계약접수완료일시 확인
-        LocalDate cntrRcpFshDt = parseDate(contractBasDvo.getCntrRcpFshDtm());
-
-        boolean expired = cntrRcpFshDt.isBefore(LocalDate.now());
-        if (expired) {
-            throw new BizException("가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다.");
-            /* TODO: MSG 가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다. */
-        }
-        //endregion
+//        //region 계약접수완료일시 확인
+//        LocalDate cntrRcpFshDt = parseDate(contractBasDvo.getCntrRcpFshDtm());
+//
+//        boolean expired = cntrRcpFshDt.isBefore(LocalDate.now());
+//        if (expired) {
+//            throw new BizException("가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다.");
+//            /* TODO: MSG 가격 정보 재 조회 필요! 임시저장 상태로 변경 됩니다. */
+//        }
+//        //endregion
 
         return contractBasDvo;
     }
@@ -320,6 +323,10 @@ public class WctaContractRegStep5Service {
 
         /* 20230627 세금계산서 발행 추가.. saveTaxInvoice? */
         putTaxInvoice(cntrNo);
+
+        /* 현금 영수증을 생성합니다. */
+        List<CreateStlmCssrIsReq> cssrIss = req.cssrIss();
+        cssrIss.forEach(this::createCashSalesReceiptIssueByStlm);
 
         return SaveRes.builder()
             .result(true)
@@ -460,6 +467,37 @@ public class WctaContractRegStep5Service {
 
     WctaContractAdrpcBasDvo getContractAdrpcBas(String cntrAdrpcId) {
         return mapper.selectContractAdrpcBasByPk(cntrAdrpcId).orElseThrow(() -> new BizException("주소지가 없는 계약건이 있습니다."));
+    }
+
+    void createCashSalesReceiptIssueByStlm(CreateStlmCssrIsReq req) {
+        /* 계약 결제 관계를 가져옵니다.*/
+        WctaContractStlmBasDvo stlmBas = getCntrStlmByPk(req.cntrStlmId());
+        List<WctaContractStlmRelDvo> stlmRelDvos = getContractStlmRels(req.cntrStlmId());
+        String CSSR_IS_DV_CD_BZRNO = "3"; /*현금영수증발급구분코드: 사업자번호*/
+        String CSSR_TRD_DV_CD_IDV = "00";   /*소득공제: 개인용*/
+        String CSSR_TRD_DV_CD_BZR = "00";   /*지출증빙: 법인용*/
+        String cssrTrdDvCd = CSSR_IS_DV_CD_BZRNO.equals(req.cssrIsDvCd()) ? CSSR_TRD_DV_CD_BZR : CSSR_TRD_DV_CD_IDV; /* 현금영수증거래구분코드 -> 우선은 발급구분코드를 따른다. */
+        List<ZwdcCashSalesReceiptApprovalPresentDto.SaveReq> saveReqs = stlmRelDvos.stream()
+            .map(wctaContractStlmRelDvo -> new ZwdcCashSalesReceiptApprovalPresentDto.SaveReq(
+                null, /*rowState*/
+                CtCoCd.KYOWON_PROPERTY.getCode(), /*kwGrpCoCd*/
+                wctaContractStlmRelDvo.getDtlCntrNo(), /*cntrNo*/
+                Integer.toString(wctaContractStlmRelDvo.getDtlCntrSn()), /*cntrSn*/
+                stlmBas.getCstNo(), /*cstNo*/
+                req.cssrIsNo(), /*cssrIsNo*/
+                req.cssrIsDvCd(), /*cssrIsDvCd*/
+                cssrTrdDvCd, /*cssrTrdDvCd*/
+                null, /*afchCssrIsDvCd*/
+                null, /*afchCssrIsNo*/
+                "계약확정" /*chRsonCn*/
+            ))
+            .toList();
+        try {
+            cashSalesReceiptApprovalStateService.saveCashSalesReceiptRegistrations(saveReqs);
+        } catch (Exception e) {
+            throw new BizException("현금영수증 생성 실패" + e.getMessage());
+        }
+
     }
 
     /**
@@ -768,7 +806,7 @@ public class WctaContractRegStep5Service {
         WctaContractCstRelDvo cntrCstInfo = contractRegService.selectCntrtInfoByCstNo(cstNo);
 
         String copnDvDrmVal = CtCopnDvCd.of(cntrCstInfo.getCopnDvCd()) == CtCopnDvCd.INDIVIDUAL ? cntrCstInfo.getBryyMmdd()
-        : CtCopnDvCd.of(cntrCstInfo.getCopnDvCd()) == CtCopnDvCd.COOPERATION ? cntrCstInfo.getBzrno()
+            : CtCopnDvCd.of(cntrCstInfo.getCopnDvCd()) == CtCopnDvCd.COOPERATION ? cntrCstInfo.getBzrno()
             : "";
 
         String telephoneNumber = cntrCstInfo.getCralLocaraTno() + cntrCstInfo.getMexnoEncr() + cntrCstInfo.getCralIdvTno();

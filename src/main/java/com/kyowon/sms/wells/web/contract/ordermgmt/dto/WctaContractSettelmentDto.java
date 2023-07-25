@@ -93,13 +93,21 @@ public class WctaContractSettelmentDto {
         String cntrNo,
         List<WctaContractStlmBasDvo> stlmBases, /* 여력이 된다면 DTO 로 바꾸고 validation 도 돌립시다.*/
         List<WctaAgreeItemDtlDvo> agIzs,
-        List<WctaContractAdrpcBasDvo> adrpcs
+        List<WctaContractAdrpcBasDvo> adrpcs,
+        List<CreateStlmCssrIsReq> cssrIss
     ) {
-       /* public AuthenticationReq {
-            bryyMmdd = DbEncUtil.dec(cntrNo);
-            cntrNo = DbEncUtil.dec(cntrNo);
-        }*/
     }
+
+    public record CreateStlmCssrIsReq(
+        @NotBlank
+        String cntrStlmId,
+        @NotBlank
+        String cstKnm,
+        @NotBlank
+        String cssrIsDvCd,
+        @NotBlank
+        String cssrIsNo
+    ){}
 
     @Builder
     @ApiModel(
@@ -109,10 +117,6 @@ public class WctaContractSettelmentDto {
     public record SaveRes(
         boolean result
     ) {
-       /* public AuthenticationReq {
-            bryyMmdd = DbEncUtil.dec(cntrNo);
-            cntrNo = DbEncUtil.dec(cntrNo);
-        }*/
     }
 
     @Builder
