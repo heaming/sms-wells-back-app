@@ -1,0 +1,406 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbAsProcsAgrgListMapper">
+
+    <select id="selectAsProcsAgrgList" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsProcsAgrgListDvo">
+    WITH V2 AS (
+                SELECT T1.BASE_Y
+                     , T1.BASE_MM
+                     , T1.BASE_D
+                     , T1.BASE_Y||T1.BASE_MM||T1.BASE_D BASE_YMD
+                     , T2.OG_ID
+                     , T2.OG_NM
+                  FROM TB_SVPD_SV_CLND_BAS T1
+                     , TB_OGBS_MM_OG_IZ T2
+                 WHERE 1=1
+                   AND T1.BASE_Y||T1.BASE_MM = #{baseYm}
+                   AND T2.BASE_YM = #{baseYm}
+                   AND T2.OG_TP_CD = 'W06'
+                   AND T2.DTA_DL_YN = 'N'
+                   AND T2.CLO_YN = 'N'
+                )
+    SELECT OG_NM ogNm
+         , CASE WHEN CNT_GB = '1' THEN '업무접수'
+                WHEN CNT_GB = '2' THEN '방문확정'
+                WHEN CNT_GB = '3' THEN '처리완료'
+            END cntGb
+         , SUM(CNT) cntTotal
+         , SUM(CASE WHEN BASE_D = '01' THEN CNT END) cnt01
+         , SUM(CASE WHEN BASE_D = '02' THEN CNT END) cnt02
+         , SUM(CASE WHEN BASE_D = '03' THEN CNT END) cnt03
+         , SUM(CASE WHEN BASE_D = '04' THEN CNT END) cnt04
+         , SUM(CASE WHEN BASE_D = '05' THEN CNT END) cnt05
+         , SUM(CASE WHEN BASE_D = '06' THEN CNT END) cnt06
+         , SUM(CASE WHEN BASE_D = '07' THEN CNT END) cnt07
+         , SUM(CASE WHEN BASE_D = '08' THEN CNT END) cnt08
+         , SUM(CASE WHEN BASE_D = '09' THEN CNT END) cnt09
+         , SUM(CASE WHEN BASE_D = '10' THEN CNT END) cnt10
+         , SUM(CASE WHEN BASE_D = '11' THEN CNT END) cnt11
+         , SUM(CASE WHEN BASE_D = '12' THEN CNT END) cnt12
+         , SUM(CASE WHEN BASE_D = '13' THEN CNT END) cnt13
+         , SUM(CASE WHEN BASE_D = '14' THEN CNT END) cnt14
+         , SUM(CASE WHEN BASE_D = '15' THEN CNT END) cnt15
+         , SUM(CASE WHEN BASE_D = '16' THEN CNT END) cnt16
+         , SUM(CASE WHEN BASE_D = '17' THEN CNT END) cnt17
+         , SUM(CASE WHEN BASE_D = '18' THEN CNT END) cnt18
+         , SUM(CASE WHEN BASE_D = '19' THEN CNT END) cnt19
+         , SUM(CASE WHEN BASE_D = '20' THEN CNT END) cnt20
+         , SUM(CASE WHEN BASE_D = '21' THEN CNT END) cnt21
+         , SUM(CASE WHEN BASE_D = '22' THEN CNT END) cnt22
+         , SUM(CASE WHEN BASE_D = '23' THEN CNT END) cnt23
+         , SUM(CASE WHEN BASE_D = '24' THEN CNT END) cnt24
+         , SUM(CASE WHEN BASE_D = '25' THEN CNT END) cnt25
+         , SUM(CASE WHEN BASE_D = '26' THEN CNT END) cnt26
+         , SUM(CASE WHEN BASE_D = '27' THEN CNT END) cnt27
+         , SUM(CASE WHEN BASE_D = '28' THEN CNT END) cnt28
+         , SUM(CASE WHEN BASE_D = '29' THEN CNT END) cnt29
+         , SUM(CASE WHEN BASE_D = '30' THEN CNT END) cnt30
+         , SUM(CASE WHEN BASE_D = '31' THEN CNT END) cnt31
+      FROM (
+            SELECT V2.OG_NM
+                 , V2.BASE_YMD
+                 , V1.CNT
+                 , V2.BASE_D
+                 , '1' CNT_GB
+              FROM (
+                    SELECT T1.SV_CNR_OG_ID SV_OG
+                         , SUBSTR(T2.FST_RGST_DTM, 1, 8) ORD_YMD
+                         , SUM(DECODE(T1.SV_CNR_OG_ID, '', 0, 1)) CNT
+                      FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+                         , TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+                         , TB_PDBS_PD_BAS T3
+                         , TB_PDBS_PD_ECOM_PRP_DTL T4
+                     WHERE 1=1
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                       AND T1.WK_PRGS_STAT_CD IN ('00', '10', '20')
+                       AND T2.FST_RGST_DTM LIKE #{baseYm}||'%'
+                       AND T2.MTR_STAT_CD IN ('1', '2')
+                       <if test="@MybatisUtils@equals(taskType, '1')">
+                       AND T2.SV_BIZ_DCLSF_CD NOT LIKE '13%'
+                       AND T2.SV_BIZ_HCLSF_CD = '1'
+                       </if>
+                       <if test="@MybatisUtils@equals(taskType, '2')">
+                       AND T2.SV_BIZ_DCLSF_CD LIKE '32%'
+                       </if>
+                       <if test="@MybatisUtils@equals(taskType, '3')">
+                       AND T2.SV_BIZ_DCLSF_CD NOT LIKE '32%'
+                       AND T2.SV_BIZ_HCLSF_CD = '3'
+                       </if>
+
+                       AND T2.PD_CD = T3.PD_CD
+                       AND T3.PD_CD = T4.PD_CD
+                       AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+                       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+                       AND T4.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+                       AND T3.PD_CD = #{pdCd}
+                       </if>
+                       <if test="@MybatisUtils@equals(chkYn, 'Y')">
+                       AND T4.PD_PRP_VAL20 != '11'
+                       </if>
+                     GROUP
+                        BY SUBSTR(T2.FST_RGST_DTM, 1, 8), T1.SV_CNR_OG_ID
+                    ) V1
+                 , V2
+             WHERE 1=1
+               AND V2.OG_ID = V1.SV_OG(+)
+               AND V2.BASE_YMD = V1.ORD_YMD(+)
+
+             UNION ALL
+
+            SELECT V2.OG_NM
+                 , V2.BASE_YMD
+                 , V1.CNT
+                 , V2.BASE_D
+                 , '2' CNT_GB
+              FROM (
+                    SELECT T1.SV_CNR_OG_ID SV_OG
+                         , SUBSTR(T1.VST_CNFMDT, 1, 8) ORD_YMD
+                         , SUM(DECODE(T1.SV_CNR_OG_ID, '', 0, 1)) CNT
+                      FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+                         , TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+                         , TB_PDBS_PD_BAS T3
+                         , TB_PDBS_PD_ECOM_PRP_DTL T4
+                     WHERE 1=1
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                       AND T1.WK_PRGS_STAT_CD IN ('00', '10')
+                       AND T1.VST_CNFMDT LIKE #{baseYm}||'%'
+                       AND T2.MTR_STAT_CD IN ('1', '2')
+                       <if test="@MybatisUtils@equals(taskType, '1')">
+                       AND T2.SV_BIZ_DCLSF_CD NOT LIKE '13%'
+                       AND T2.SV_BIZ_HCLSF_CD = '1'
+                       </if>
+                       <if test="@MybatisUtils@equals(taskType, '2')">
+                       AND T2.SV_BIZ_DCLSF_CD LIKE '32%'
+                       </if>
+                       <if test="@MybatisUtils@equals(taskType, '3')">
+                       AND T2.SV_BIZ_DCLSF_CD NOT LIKE '32%'
+                       AND T2.SV_BIZ_HCLSF_CD = '3'
+                       </if>
+
+                       AND T2.PD_CD = T3.PD_CD
+                       AND T3.PD_CD = T4.PD_CD
+                       AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+                       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+                       AND T4.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+                       AND T3.PD_CD = #{pdCd}
+                       </if>
+                       <if test="@MybatisUtils@equals(chkYn, 'Y')">
+                       AND T4.PD_PRP_VAL20 != '11'
+                       </if>
+                     GROUP
+                        BY SUBSTR(T1.VST_CNFMDT, 1, 8), T1.SV_CNR_OG_ID
+                    ) V1
+                 , V2
+             WHERE 1=1
+               AND V2.OG_ID = V1.SV_OG(+)
+               AND V2.BASE_YMD = V1.ORD_YMD(+)
+
+             UNION ALL
+
+            SELECT V2.OG_NM
+                 , V2.BASE_YMD
+                 , V1.CNT
+                 , V2.BASE_D
+                 , '3' CNT_GB
+              FROM (
+                    SELECT T1.SV_CNR_OG_ID SV_OG
+                         , SUBSTR(T1.WK_EXCN_DT, 1, 8) ORD_YMD
+                         , SUM(DECODE(T1.SV_CNR_OG_ID, '', 0, 1)) CNT
+                      FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+                         , TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+                         , TB_PDBS_PD_BAS T3
+                         , TB_PDBS_PD_ECOM_PRP_DTL T4
+                     WHERE 1=1
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                       AND T1.WK_PRGS_STAT_CD IN ('20')
+                       AND T1.WK_EXCN_DT LIKE #{baseYm}||'%'
+                       AND T2.MTR_STAT_CD IN ('1', '2')
+                       <if test="@MybatisUtils@equals(taskType, '1')">
+                       AND T2.SV_BIZ_DCLSF_CD NOT LIKE '13%'
+                       AND T2.SV_BIZ_HCLSF_CD = '1'
+                       </if>
+                       <if test="@MybatisUtils@equals(taskType, '2')">
+                       AND T2.SV_BIZ_DCLSF_CD LIKE '32%'
+                       </if>
+                       <if test="@MybatisUtils@equals(taskType, '3')">
+                       AND T2.SV_BIZ_DCLSF_CD NOT LIKE '32%'
+                       AND T2.SV_BIZ_HCLSF_CD = '3'
+                       </if>
+
+                       AND T2.PD_CD = T3.PD_CD
+                       AND T3.PD_CD = T4.PD_CD
+                       AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+                       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+                       AND T4.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+                       AND T3.PD_CD = #{pdCd}
+                       </if>
+                       <if test="@MybatisUtils@equals(chkYn, 'Y')">
+                       AND T4.PD_PRP_VAL20 != '11'
+                       </if>
+                     GROUP
+                        BY SUBSTR(T1.WK_EXCN_DT, 1, 8), T1.SV_CNR_OG_ID
+                    ) V1
+                 , V2
+             WHERE 1=1
+               AND V2.OG_ID = V1.SV_OG(+)
+               AND V2.BASE_YMD = V1.ORD_YMD(+)
+            )
+     GROUP
+        BY OG_NM, CNT_GB
+     ORDER
+        BY OG_NM, CNT_GB
+    </select>
+
+    <select id="selectBsProcsAgrgList" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsProcsAgrgListDvo">
+    WITH V2 AS (
+                SELECT T1.BASE_Y
+                     , T1.BASE_MM
+                     , T1.BASE_D
+                     , T1.BASE_Y||T1.BASE_MM||T1.BASE_D BASE_YMD
+                     , T2.OG_ID
+                     , T2.OG_NM
+                  FROM TB_SVPD_SV_CLND_BAS T1
+                     , TB_OGBS_MM_OG_IZ T2
+                 WHERE 1=1
+                   AND T1.BASE_Y||T1.BASE_MM = #{baseYm}
+                   AND T2.BASE_YM = #{baseYm}
+                   AND T2.OG_TP_CD = 'W06'
+                   AND T2.DTA_DL_YN = 'N'
+                   AND T2.CLO_YN = 'N'
+                )
+    SELECT OG_NM ogNm
+         , CASE WHEN CNT_GB = '1' THEN '업무접수'
+                WHEN CNT_GB = '2' THEN '방문확정'
+                WHEN CNT_GB = '3' THEN '처리완료'
+            END cntGb
+         , SUM(CNT) cntTotal
+         , SUM(CASE WHEN BASE_D = '01' THEN CNT END) cnt01
+         , SUM(CASE WHEN BASE_D = '02' THEN CNT END) cnt02
+         , SUM(CASE WHEN BASE_D = '03' THEN CNT END) cnt03
+         , SUM(CASE WHEN BASE_D = '04' THEN CNT END) cnt04
+         , SUM(CASE WHEN BASE_D = '05' THEN CNT END) cnt05
+         , SUM(CASE WHEN BASE_D = '06' THEN CNT END) cnt06
+         , SUM(CASE WHEN BASE_D = '07' THEN CNT END) cnt07
+         , SUM(CASE WHEN BASE_D = '08' THEN CNT END) cnt08
+         , SUM(CASE WHEN BASE_D = '09' THEN CNT END) cnt09
+         , SUM(CASE WHEN BASE_D = '10' THEN CNT END) cnt10
+         , SUM(CASE WHEN BASE_D = '11' THEN CNT END) cnt11
+         , SUM(CASE WHEN BASE_D = '12' THEN CNT END) cnt12
+         , SUM(CASE WHEN BASE_D = '13' THEN CNT END) cnt13
+         , SUM(CASE WHEN BASE_D = '14' THEN CNT END) cnt14
+         , SUM(CASE WHEN BASE_D = '15' THEN CNT END) cnt15
+         , SUM(CASE WHEN BASE_D = '16' THEN CNT END) cnt16
+         , SUM(CASE WHEN BASE_D = '17' THEN CNT END) cnt17
+         , SUM(CASE WHEN BASE_D = '18' THEN CNT END) cnt18
+         , SUM(CASE WHEN BASE_D = '19' THEN CNT END) cnt19
+         , SUM(CASE WHEN BASE_D = '20' THEN CNT END) cnt20
+         , SUM(CASE WHEN BASE_D = '21' THEN CNT END) cnt21
+         , SUM(CASE WHEN BASE_D = '22' THEN CNT END) cnt22
+         , SUM(CASE WHEN BASE_D = '23' THEN CNT END) cnt23
+         , SUM(CASE WHEN BASE_D = '24' THEN CNT END) cnt24
+         , SUM(CASE WHEN BASE_D = '25' THEN CNT END) cnt25
+         , SUM(CASE WHEN BASE_D = '26' THEN CNT END) cnt26
+         , SUM(CASE WHEN BASE_D = '27' THEN CNT END) cnt27
+         , SUM(CASE WHEN BASE_D = '28' THEN CNT END) cnt28
+         , SUM(CASE WHEN BASE_D = '29' THEN CNT END) cnt29
+         , SUM(CASE WHEN BASE_D = '30' THEN CNT END) cnt30
+         , SUM(CASE WHEN BASE_D = '31' THEN CNT END) cnt31
+      FROM (
+            SELECT V2.OG_NM
+                 , V2.BASE_YMD
+                 , V1.CNT
+                 , V2.BASE_D
+                 , '1' CNT_GB
+              FROM (
+                    SELECT T5.OG_ID SV_OG
+                         , SUBSTR(T2.FST_RGST_DTM, 1, 8) ORD_YMD
+                         , SUM(DECODE(T5.OG_ID, '', 0, 1)) CNT
+                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                         , TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                         , TB_PDBS_PD_BAS T3
+                         , TB_PDBS_PD_ECOM_PRP_DTL T4
+						 , TB_OGBS_PRTNR_BAS T5
+                     WHERE 1=1
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                       AND T1.VST_PRGS_STAT_CD IN ('00', '10', '20')
+                       AND T2.ASN_OJ_YM LIKE #{baseYm}||'%'
+
+                       AND T2.PDCT_PD_CD = T3.PD_CD
+                       AND T3.PD_CD = T4.PD_CD
+                       AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+
+					   AND T5.PRTNR_NO = T1.CNFM_PSIC_PRTNR_NO
+                       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+                       AND T4.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+                       AND T3.PD_CD = #{pdCd}
+                       </if>
+                       <if test="@MybatisUtils@equals(chkYn, 'Y')">
+                       AND T4.PD_PRP_VAL20 != '11'
+                       </if>
+                     GROUP
+                        BY SUBSTR(T2.FST_RGST_DTM, 1, 8), T5.OG_ID
+                    ) V1
+                 , V2
+             WHERE 1=1
+               AND V2.OG_ID = V1.SV_OG(+)
+               AND V2.BASE_YMD = V1.ORD_YMD(+)
+
+             UNION ALL
+
+            SELECT V2.OG_NM
+                 , V2.BASE_YMD
+                 , V1.CNT
+                 , V2.BASE_D
+                 , '2' CNT_GB
+              FROM (
+                    SELECT T5.OG_ID SV_OG
+                         , SUBSTR(T1.VST_DUEDT, 1, 8) ORD_YMD
+                         , SUM(DECODE(T5.OG_ID, '', 0, 1)) CNT
+                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                         , TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                         , TB_PDBS_PD_BAS T3
+                         , TB_PDBS_PD_ECOM_PRP_DTL T4
+                         , TB_OGBS_PRTNR_BAS T5
+                     WHERE 1=1
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                       AND T1.VST_PRGS_STAT_CD IN ('00', '10')
+                       AND T1.ASN_OJ_YM LIKE #{baseYm}||'%'
+
+                       AND T2.PDCT_PD_CD = T3.PD_CD
+                       AND T3.PD_CD = T4.PD_CD
+                       AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                       AND T5.PRTNR_NO = T1.CNFM_PSIC_PRTNR_NO
+                       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+                       AND T4.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+                       AND T3.PD_CD = #{pdCd}
+                       </if>
+                       <if test="@MybatisUtils@equals(chkYn, 'Y')">
+                       AND T4.PD_PRP_VAL20 != '11'
+                       </if>
+                     GROUP
+                        BY SUBSTR(T1.VST_DUEDT, 1, 8), T5.OG_ID
+                    ) V1
+                 , V2
+             WHERE 1=1
+               AND V2.OG_ID = V1.SV_OG(+)
+               AND V2.BASE_YMD = V1.ORD_YMD(+)
+
+             UNION ALL
+
+            SELECT V2.OG_NM
+                 , V2.BASE_YMD
+                 , V1.CNT
+                 , V2.BASE_D
+                 , '3' CNT_GB
+              FROM (
+                    SELECT T5.OG_ID SV_OG
+                         , SUBSTR(T1.WK_EXCN_DT, 1, 8) ORD_YMD
+                         , SUM(DECODE(T5.OG_ID, '', 0, 1)) CNT
+                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                         , TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                         , TB_PDBS_PD_BAS T3
+                         , TB_PDBS_PD_ECOM_PRP_DTL T4
+                         , TB_OGBS_PRTNR_BAS T5
+                     WHERE 1=1
+                       AND T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                       AND T1.VST_PRGS_STAT_CD IN ('20')
+                       AND T1.ASN_OJ_YM LIKE #{baseYm}||'%'
+
+                       AND T2.PDCT_PD_CD = T3.PD_CD
+                       AND T3.PD_CD = T4.PD_CD
+                       AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                       AND T5.PRTNR_NO = T1.CNFM_PSIC_PRTNR_NO
+                       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+                       AND T4.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+                       AND T3.PD_CD = #{pdCd}
+                       </if>
+                       <if test="@MybatisUtils@equals(chkYn, 'Y')">
+                       AND T4.PD_PRP_VAL20 != '11'
+                       </if>
+                     GROUP
+                        BY SUBSTR(T1.WK_EXCN_DT, 1, 8), T5.OG_ID
+                    ) V1
+                 , V2
+             WHERE 1=1
+               AND V2.OG_ID = V1.SV_OG(+)
+               AND V2.BASE_YMD = V1.ORD_YMD(+)
+            )
+     GROUP
+        BY OG_NM, CNT_GB
+     ORDER
+        BY OG_NM, CNT_GB
+    </select>
+</mapper>
