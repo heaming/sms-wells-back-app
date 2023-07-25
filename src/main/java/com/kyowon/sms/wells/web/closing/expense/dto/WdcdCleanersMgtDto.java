@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -52,7 +54,7 @@ public class WdcdCleanersMgtDto {
         String wrkEnddt, /*근무종료일자*/
         String workStatus, /*근무여부*/
         // TODO. 머스킹 필요
-        //@MaskRequired(type = MaskingType.RRN)
+        @MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, /*주민등록번호*/
         String locaraTno,
         String exnoEncr,
