@@ -55,11 +55,12 @@ public class WctaContractRegStep5Service {
     private final WctaTaxInvoiceInquiryMapper taxInvoiceMapper;
     private final WctaContractSettlementConverter converter;
     private final WctaContractRegService contractRegService;
+
     private final ZwdzWithdrawalService rveReqService;
     private final ZwdbCreditCardApprovalService paymentService;
     private final ZwdbVirtualAccountIsMgtService virtualAccountIsMgtService;
-    private final ZwdaKiccReceiveProcessService KiccReceiveService;
     private final ZwdcCashSalesReceiptApprovalStateService cashSalesReceiptApprovalStateService;
+    private final ZwdaKiccReceiveProcessService KiccReceiveService;
 
     private final WctbContractDtlStatCdChService cntrStatChService;
     private final WctzHistoryService historyService;
@@ -642,7 +643,9 @@ public class WctaContractRegStep5Service {
             receiveAskDvo.getRvePrtnrOgTpCd(),
             receiveAskDvo.getRvePrtnrNo(),
             "1", // TODO: 법인카드를 구분?
-            null)));
+            null,
+            null /*rveCd*/
+        )));
         @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) saveResponse.getData();
 
         BizAssert.notEmpty(responses, "신용승인 요청 실패");
@@ -742,6 +745,7 @@ public class WctaContractRegStep5Service {
             contractForRveAkInfo.getSellPrtnrNo(), /*rvePrtnrNo*/
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), /*fnlMdfcDtm*/
             null, /*vacStatCd*/
+            null, /*rveCd*/
             contracts
         );
 
