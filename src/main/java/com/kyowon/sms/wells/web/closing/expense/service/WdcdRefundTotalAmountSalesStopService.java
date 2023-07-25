@@ -1,13 +1,12 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindRefundRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindReq;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindSalesControlRes;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindSalesStopRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRefundTotalAmountSalesStopDto.FindRes;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdRefundTotalAmountSalesStopMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,15 +15,17 @@ public class WdcdRefundTotalAmountSalesStopService {
 
     private final WdcdRefundTotalAmountSalesStopMapper mapper;
 
-    public List<FindSalesControlRes> getSalesControl(FindReq req) {
-        return mapper.selectSalesControl(req);
-    }
+    public List<FindRes> getSalesControl(FindReq req) {
 
-    public List<FindRefundRes> getRefund(FindReq req) {
-        return mapper.selectRefund(req);
-    }
+        List<FindRes> res = new ArrayList<>();
+        if ("1".equals(req.gubunCode())) {
+            res = mapper.selectSalesControl(req);
+        } else if ("2".equals(req.gubunCode())) {
+            res = mapper.selectRefund(req);
+        } else if ("3".equals(req.gubunCode())) {
+            res = mapper.selectSalesStop(req);
+        }
 
-    public List<FindSalesStopRes> getSalesStop(FindReq req) {
-        return mapper.selectSalesStop(req);
+        return res;
     }
 }
