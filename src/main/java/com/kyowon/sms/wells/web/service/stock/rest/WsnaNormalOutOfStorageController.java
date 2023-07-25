@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageIzDtlDto;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaNormalOutOfStorageService;
@@ -18,16 +17,19 @@ import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @Api(tags = "[WSNA] 정상출고 관리 REST API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/normal-outofstorages")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/normal-out-of-storages")
 public class WsnaNormalOutOfStorageController {
 
     private final WsnaNormalOutOfStorageService service;
 
+    @GetMapping("/paging")
+    @ApiOperation(value = "정상출고 페이징 조회", notes = "정상출고 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
         @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
@@ -38,14 +40,15 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = ""),
         @ApiImplicitParam(name = "wareLocaraCd", value = "입고희망일 종료일", paramType = "query", example = ""),
     })
-    @GetMapping
-    public PagingResult<SearchRes> getNormalOutOfStorage(
-        SearchReq dto, @Valid
+    public PagingResult<SearchRes> getNormalOutOfStorage(@Valid
+    SearchReq dto, @Valid
     PageInfo pageInfo
     ) {
-        return service.getNormalOutOfStorage(dto, pageInfo);
+        return this.service.getNormalOutOfStorage(dto, pageInfo);
     }
 
+    @GetMapping("/excel-download")
+    @ApiOperation(value = "정상출고 데이터 엑셀 다운로드", notes = "조회조건에 일치하는 정상출고 데이터를 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
         @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
@@ -56,54 +59,56 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = ""),
         @ApiImplicitParam(name = "wareLocaraCd", value = "입고희망일 종료일", paramType = "query", example = ""),
     })
-    @GetMapping("/excel-download")
-    public List<SearchRes> excelDownload(SearchReq dto) {
-        return service.getNormalOutOfStorage(dto);
+    public List<SearchRes> excelDownload(@Valid
+    SearchReq dto) {
+        return this.service.getNormalOutOfStorage(dto);
     }
 
+    @GetMapping("/ware-houses")
+    @ApiOperation(value = "정상출고 창고 조회", notes = "정상출고 창고 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
         @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
     })
-    @GetMapping("/warehouses")
     public List<SearchWarehouse> getWarehouses(SearchReq dto) {
-        return service.getWarehouses(dto);
+        return this.service.getWarehouses(dto);
     }
 
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "", required = true),
-        @ApiImplicitParam(name = "strOjWareNo", value = "출고요청창고번호", paramType = "query", example = "", required = true),
-    })
     @GetMapping("/person-center/paging")
-    public PagingResult<AskRes> getAskMaterialsHavePss(
-        AskReq dto,
-        @Valid
-        PageInfo pageInfo
-    ) {
-        return service.getAskMaterialsHavePss(dto, pageInfo);
-    }
-
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "", required = true),
         @ApiImplicitParam(name = "strOjWareNo", value = "출고요청창고번호", paramType = "query", example = "", required = true),
     })
-    @GetMapping("/organization-center/paging")
-    public PagingResult<CenterRes> getAskMaterialsCenter(
-        AskReq dto,
+    public PagingResult<AskRes> getAskMaterialsHavePss(@Valid
+    AskReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return service.getAskMaterialsCenterPresentState(dto, pageInfo);
+        return this.service.getAskMaterialsHavePss(dto, pageInfo);
+    }
+
+    @GetMapping("/organization-center/paging")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "", required = true),
+        @ApiImplicitParam(name = "strOjWareNo", value = "출고요청창고번호", paramType = "query", example = "", required = true),
+    })
+    public PagingResult<CenterRes> getAskMaterialsCenter(@Valid
+    AskReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return this.service.getAskMaterialsCenterPresentState(dto, pageInfo);
     }
 
     @GetMapping("/detail")
-    public PagingResult<DetailRes> getNormalOstrRgsts(
-        DetailReq dto,
+    public PagingResult<DetailRes> getNormalOstrRgsts(@Valid
+    DetailReq dto,
         @Valid
         PageInfo pageInfo
     ) {
-        return service.getNormalOstrRgsts(dto, pageInfo);
+        return this.service.getNormalOstrRgsts(dto, pageInfo);
     }
+
     @GetMapping("/detail-remove")
     public PagingResult<DetailRes> removeNormalOstrRgsts(
         DetailReq dto,
@@ -127,7 +132,7 @@ public class WsnaNormalOutOfStorageController {
     public SaveResponse removeNormalOstrRgsts(
         @RequestBody
         List<CreateReq> list
-    ) throws Exception{
+    ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.removeNormalOstrRgsts(list))
             .build();
@@ -147,7 +152,8 @@ public class WsnaNormalOutOfStorageController {
     }
 
     @PutMapping("/standard-ware")
-    public int saveStandardWareHouse(@RequestBody StandardWareReq dto) {
+    public int saveStandardWareHouse(@RequestBody
+    StandardWareReq dto) {
         return service.saveStandardWareHouse(dto);
     }
 

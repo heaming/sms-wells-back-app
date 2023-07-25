@@ -1,18 +1,13 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.text.ParseException;
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksReqDvo;
-import lombok.extern.log4j.Log4j;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaNormalOutOfStorageConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageStdgbDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaNormalOutOfStorageMapper;
@@ -29,7 +24,7 @@ import lombok.RequiredArgsConstructor;
  * @author inho.choi
  * @since 2023-03-14
  */
-@Log4j2
+
 @Service
 @RequiredArgsConstructor
 public class WsnaNormalOutOfStorageService {
@@ -39,10 +34,14 @@ public class WsnaNormalOutOfStorageService {
 
     private final WsnaItemStockItemizationService itemStockservice;
 
-    private final WsnaMonthlyItemStocksService monthlyService;
-
+    /**
+     * 정상출고 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     public PagingResult<SearchRes> getNormalOutOfStorage(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectNormalOutOfStorage(dto, pageInfo);
+        return this.mapper.selectNormalOutOfStorage(dto, pageInfo);
     }
 
     public List<SearchRes> getNormalOutOfStorage(SearchReq dto) {
@@ -66,24 +65,24 @@ public class WsnaNormalOutOfStorageService {
     }
 
     public PagingResult<DetailRes> getNormalOstrRgsts(DetailReq dto, PageInfo pageInfo) {
-        return mapper.getNormalOstrRgsts(dto, pageInfo);
+        return this.mapper.getNormalOstrRgsts(dto, pageInfo);
     }
+
     public PagingResult<DetailRes> removeNormalOstrRgsts(DetailReq dto, PageInfo pageInfo) {
         return mapper.removeNormalOstrRgsts(dto, pageInfo);
     }
 
     @Transactional
-    public int saveNormalOstrRgsts(List<CreateReq> list) throws ParseException {
+    public int saveNormalOstrRgsts(List<CreateReq> list) {
         int cnt = 0;
         int itmSeq = 1;
         List<WsnaNormalOutOfStorageDvo> voList = converter.mapAllWsnaNormalOutOfStorageDvos(list);
 
-        if(voList.size() > 0) {
+        if (voList.size() > 0) {
             WsnaNormalOutOfStorageDvo voTemp = voList.get(0);
             StrNoAndOstrNoRes res = mapper.selectStrNoAndOstrNo(voTemp);
 
             for (WsnaNormalOutOfStorageDvo vo : voList) {
-//            StrNoAndOstrNoRes res = mapper.selectStrNoAndOstrNo(vo);
                 vo.setItmOstrNo(res.itmOstrNo());
                 vo.setItmStrNo(res.itmStrNo());
                 vo.setStrTpCd(res.strTpCd());
@@ -99,7 +98,6 @@ public class WsnaNormalOutOfStorageService {
                 WsnaItemStockItemizationReqDvo ostrDvo = setOstrWsnaItemStockItemizationDtoSaveReq(vo);//출고
                 WsnaItemStockItemizationReqDvo strDvo = setStrWsnaItemStockItemizationDtoSaveReq(vo);//입고
                 WsnaItemStockItemizationReqDvo movementDvo = setMovementWsnaItemStockItemizationDtoSaveReq(vo);//이동입고
-                WsnaMonthlyItemStocksReqDvo monthlyItemStocksDvo = setMonthlyItemStocks(vo);//이동입고
 
                 //정상출고
                 cnt += itemStockservice.createStock(ostrDvo);
@@ -117,17 +115,16 @@ public class WsnaNormalOutOfStorageService {
     }
 
     @Transactional
-    public int removeNormalOstrRgsts(List<CreateReq> list) throws ParseException {
+    public int removeNormalOstrRgsts(List<CreateReq> list) {
         int cnt = 0;
         List<WsnaNormalOutOfStorageDvo> voList = converter.mapAllWsnaNormalOutOfStorageDvos(list);
 
-        if(voList.size() > 0) {
+        if (voList.size() > 0) {
             for (WsnaNormalOutOfStorageDvo vo : voList) {
 
                 WsnaItemStockItemizationReqDvo ostrDvo = setOstrWsnaItemStockItemizationDtoSaveReq(vo);//출고
                 WsnaItemStockItemizationReqDvo strDvo = setStrWsnaItemStockItemizationDtoSaveReq(vo);//입고
                 WsnaItemStockItemizationReqDvo movementDvo = setMovementWsnaItemStockItemizationDtoSaveReq(vo);//이동입고
-                WsnaMonthlyItemStocksReqDvo monthlyItemStocksDvo = setMonthlyItemStocks(vo);//이동입고
 
                 mapper.removeNormalOstr(vo);
                 mapper.removeNormalStr(vo);
@@ -177,7 +174,7 @@ public class WsnaNormalOutOfStorageService {
         return mapper.selectStandardWareHouse(dto);
     }
 
-    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto){
+    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto) {
         return mapper.selectItmOstrAk(dto);
     }
 
@@ -225,10 +222,9 @@ public class WsnaNormalOutOfStorageService {
         WsnaItemStockItemizationReqDvo resDvo = new WsnaItemStockItemizationReqDvo();
         resDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
         resDvo.setProcsDt(vo.getTodayStr());
-        resDvo.setWareDv(vo.getStrWareDvCd() ); /*창고구분*/
+        resDvo.setWareDv(vo.getStrWareDvCd()); /*창고구분*/
         resDvo.setWareNo(vo.getStrWareNo());
-        resDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo() );
-//        resDvo.setIostTp(vo.getOstrTpCd());
+        resDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
         resDvo.setIostTp("991");
         resDvo.setWorkDiv("A");/*작업구분 workDiv*/
         resDvo.setItmPdCd(vo.getItmPdCd());
@@ -239,20 +235,4 @@ public class WsnaNormalOutOfStorageService {
         return resDvo;
     }
 
-    protected  WsnaMonthlyItemStocksReqDvo setMonthlyItemStocks(WsnaNormalOutOfStorageDvo vo){
-        WsnaMonthlyItemStocksReqDvo resDvo = new WsnaMonthlyItemStocksReqDvo();
-        resDvo.setProcsYm(vo.getTodayStr().substring(0, 6));
-        resDvo.setProcsDt(vo.getTodayStr());
-        resDvo.setWareDv(vo.getStrWareDvCd() ); /*창고구분*/
-        resDvo.setWareNo(vo.getStrWareNo());
-        resDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
-//        resDvo.setIostTp(vo.getOstrTpCd());
-//        resDvo.setIostTp("991");
-        resDvo.setWorkDiv("A");/*작업구분 workDiv*/
-        resDvo.setItmPdCd(vo.getItmPdCd());
-        resDvo.setMngtUnit(vo.getMngtUnitCd());
-        resDvo.setItemGd(vo.getItmGdCd());
-        resDvo.setQty(vo.getOutQty());
-        return resDvo;
-    }
 }
