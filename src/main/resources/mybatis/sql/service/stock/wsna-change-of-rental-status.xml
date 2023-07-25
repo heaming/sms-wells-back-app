@@ -1,0 +1,419 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaChangeOfRentalStatusMapper">
+
+
+<select id="selectChangeOfRentalStatusPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchRes">
+
+    SELECT A1.SVPD_SAP_CD
+         , A1.SVPD_PD_CD
+         , A1.SVPD_NM_ABBR1
+         , A1.IST_DT
+         , A1.FNL_VST_FSH_DT
+         , A1.REQD_DT
+         , A1.FNL_ITM_GD_CD
+         , A1.DEPT_NM
+         , A1.USE_QTY
+         , A1.CNTR_DTL_NO
+         , A1.RCGVP_KNM
+         , A1.OSTR_CONF_DT
+         , A1.OSTR_DT
+         , A1.RTNGD_PROCS_TP_CD
+         , A1.RMK_CN
+         , A1.RENTAL_ASSET_STAT
+         , A1.CNTR_NO
+         , A1.RTNGD_RVPY_PROCS_YN
+         , A1.HGR_WARE_NO
+         , A1.FACTORY_DISPOSAL_GB
+         , A1.SVPD_ITEM_GR
+      FROM (
+            SELECT T6.SVPD_SAP_CD
+                 , T6.SVPD_PD_CD
+                 , T6.SVPD_NM_ABBR1
+                 , T3.IST_DT
+                 , T1.FNL_VST_FSH_DT /*철거요청일자*/
+                 , (CASE WHEN T1.SV_BIZ_DCLSF_CD LIKE '32%' THEN T1.FNL_VST_FSH_DT
+                         ELSE (SELECT B1.REQD_DT
+                                 FROM TB_SVPD_CST_SV_EXCN_IZ A1
+                                 LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1
+                                   ON B1.CNTR_NO = A1.CNTR_NO
+                                  AND B1.CNTR_SN = A1.CNTR_SN
+                                WHERE 1 = 1)
+                                END ) AS REQD_DT
+                 , T1.FNL_ITM_GD_CD
+                 , (SELECT A2.OG_NM
+                      FROM TB_OGBS_OG_BAS A2
+                     WHERE A2.OG_TP_CD = T1.OG_TP_CD
+                       AND A2.OG_ID = T1.DGR3_LEVL_OG_ID
+                       AND A2.DTA_DL_YN = 'N'
+                       AND ROWNUM = 1) AS DEPT_NM
+                 , T1.USE_QTY
+                 , T3.CNTR_NO || '-' || T3.CNTR_SN AS CNTR_DTL_NO
+                 , V2.RCGVP_KNM
+                 , T1.OSTR_CONF_DT
+                 , T1.OSTR_DT
+                 , T1.RTNGD_PROCS_TP_CD
+                 , T1.RMK_CN
+            /*     , RANK() OVER(PARTITION BY CNTR_NO ORDER BY FNL_VST_FSH_DT DESC) AS ST163_RN*/
+                 , (CASE WHEN T1.RTNGD_PROCS_TP_CD = '10' THEN '0015'
+                         WHEN T1.RTNGD_PROCS_TP_CD IN ('80', '81', '82') THEN '0017'
+                         ELSE ''
+                     END ) AS RENTAL_ASSET_STAT
+                 , T1.CNTR_NO
+                 , T1.RTNGD_RVPY_PROCS_YN
+                 , T2.HGR_WARE_NO
+                 , '1' AS FACTORY_DISPOSAL_GB --물류폐기 공장폐기 구분 임시컬럼 --1물류폐기 --2 공장폐기 --3 그 외
+                 , T6.SVPD_ITEM_GR
+              FROM TB_SVST_SV_WK_OSTR_IZ T1 /*서비스작업출고내역*/
+             INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+                ON T2.WARE_DV_CD = SUBSTR(T1.WK_WARE_NO, 1, 1)
+               AND T2.APY_YM = SUBSTR(T1.FNL_VST_FSH_DT, 1, 6)
+               AND T2.WARE_NO = T1.WK_WARE_NO
+               AND T2.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /*고객서비스수행내역*/
+                ON T3.CNTR_NO = T1.CNTR_NO
+               AND T3.CNTR_SN = T1.CNTR_SN
+               AND T3.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_BAS T4
+                ON T4.CNTR_NO = T3.CNTR_NO
+               AND T4.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5 /*계약상세*/
+                ON T5.CNTR_NO= T3.CNTR_NO
+               AND T5.CNTR_SN = T3.CNTR_SN
+               AND T5.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
+                ON V1.DTL_CNTR_NO = T3.CNTR_NO
+               AND V1.DTL_CNTR_SN = T3.CNTR_SN
+               AND V1.ADRPC_TP_CD IN ('2','3')
+               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
+               AND V1.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
+                ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
+               AND V2.DTA_DL_YN = 'N'
+             INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T6
+                  ON T6.SVPD_PD_CD = T1.ITM_PD_CD
+               WHERE T1.OSTR_CONF_DT LIKE #{inqrYm}||'%'
+                 AND T1.SV_BIZ_HCLSF_CD = '6'
+                 AND T1.RTNGD_PROCS_TP_CD IN ('10')
+                 AND T1.FNL_ITM_GD_CD = 'R'
+                 AND T1.OSTR_CONF_DT IS NOT NULL
+                 AND T1.OSTR_DT IS NOT NULL
+                 AND T1.USE_QTY <![CDATA[ <> ]]> '0'
+                 AND T6.SVPD_ITEM_KND = '4'
+                 AND T1.FNL_SELL_TP_CD <![CDATA[ <> ]]> '4'
+                 AND T1.CNTR_NO NOT LIKE 'W8888%'
+                 AND T5.SELL_TP_CD <![CDATA[ <> ]]> '1'
+
+               UNION ALL
+
+               /*0015 공장폐기건*/
+                SELECT T6.SVPD_SAP_CD
+                     , T6.SVPD_PD_CD
+                     , T6.SVPD_NM_ABBR1
+                     , T3.IST_DT
+                     , T1.FNL_VST_FSH_DT /*철거요청일자*/
+                     , (CASE WHEN T1.SV_BIZ_DCLSF_CD LIKE '32%' THEN T1.FNL_VST_FSH_DT
+                             ELSE (SELECT B1.REQD_DT
+                                     FROM TB_SVPD_CST_SV_EXCN_IZ A1
+                                     LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1
+                                       ON B1.CNTR_NO = A1.CNTR_NO
+                                      AND B1.CNTR_SN = A1.CNTR_SN
+                                    WHERE 1 = 1
+                                      AND ROWNUM = 1)
+                                    END ) AS REQD_DT
+                     , T1.FNL_ITM_GD_CD
+                     , (SELECT A2.OG_NM
+                          FROM TB_OGBS_OG_BAS A2
+                         WHERE A2.OG_TP_CD = T1.OG_TP_CD
+                           AND A2.OG_ID = T1.DGR3_LEVL_OG_ID
+                           AND A2.DTA_DL_YN = 'N'
+                           AND ROWNUM = 1) AS DEPT_NM
+                     , T1.USE_QTY
+                     , T3.CNTR_NO || '-' || T3.CNTR_SN AS CNTR_DTL_NO
+                     , A1.CST_FNM AS RCGVP_KNM
+                     , T1.OSTR_CONF_DT
+                     , T1.OSTR_DT
+                     , T1.RTNGD_PROCS_TP_CD
+                     , T1.RMK_CN
+                /*     , RANK() OVER(PARTITION BY CNTR_NO ORDER BY FNL_VST_FSH_DT DESC) AS ST163_RN*/
+                     , '0015' RENTAL_ASSET_STAT
+                     , '2' AS FACTORY_DISPOSAL_GB --물류폐기 공장폐기 구분 임시컬럼 --1물류폐기 --2 공장폐기 --3 그 외
+                     , T1.CNTR_NO
+                     , T1.RTNGD_RVPY_PROCS_YN
+                     , '' AS HGR_WARE_NO
+                     , T6.SVPD_ITEM_GR
+                 FROM TB_SVST_FCTY_PD_DSU_OSTR_IZ A1
+                 LEFT OUTER  JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /*고객서비스수행내역*/
+                   ON T3.CNTR_NO = A1.CNTR_NO
+                  AND T3.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN (SELECT *
+                                    FROM (SELECT X1.*
+                                               , RANK() OVER (PARTITION BY X1.CNTR_NO , X1.CNTR_SN ORDER BY FNL_VST_FSH_DT DESC) AS REQ
+                                            FROM TB_SVST_SV_WK_OSTR_IZ X1
+                                           INNER JOIN TB_SVST_FCTY_PD_DSU_OSTR_IZ X2
+                                              ON X2.CNTR_NO = X1.CNTR_NO
+                                           WHERE 1 = 1
+                                             AND X2.DSU_YM_VAL = #{inqrYm}
+                                             AND X1.SV_BIZ_HCLSF_CD = '6'
+                                             AND X1.RTNGD_PROCS_TP_CD LIKE '2%'
+                                             AND X1.ITM_PD_CD LIKE '%000000'
+                                             AND X1.FNL_VST_FSH_DT <![CDATA[ <= ]]> #{inqrYm}|| '99'
+                                       )
+                                   WHERE 1 = 1
+                                     AND REQ = 1
+                                  ) T1
+                   ON T1.CNTR_NO = T3.CNTR_NO
+                INNER JOIN TB_SSCT_CNTR_BAS T4
+                   ON T4.CNTR_NO = T3.CNTR_NO
+                  AND T4.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5 /*계약상세*/
+                   ON T5.CNTR_NO= T3.CNTR_NO
+                  AND T5.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
+                   ON V1.DTL_CNTR_NO = T3.CNTR_NO
+                  AND V1.DTL_CNTR_SN = T3.CNTR_SN
+                  AND V1.ADRPC_TP_CD IN ('2','3')
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
+                  AND V1.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
+                   ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
+                  AND V2.DTA_DL_YN = 'N'
+                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T6
+                   ON T6.SVPD_PD_CD = T3.PDCT_PD_CD
+                  /*AND T3.CNTR_SN = T1.CNTR_SN*/
+            WHERE 1 = 1
+              AND A1.DSU_YM_VAL = #{inqrYm}
+
+            UNION ALL
+            /*웰스팜 리퍼 완료 건 0017*/
+                SELECT T6.SVPD_SAP_CD
+                     , T6.SVPD_PD_CD
+                     , T6.SVPD_NM_ABBR1
+                     , T3.IST_DT
+                     , T1.FNL_VST_FSH_DT /*철거요청일자*/
+                     , (CASE WHEN T1.SV_BIZ_DCLSF_CD LIKE '32%' THEN T1.FNL_VST_FSH_DT
+                             ELSE (SELECT B1.REQD_DT
+                                     FROM TB_SVPD_CST_SV_EXCN_IZ A1
+                                     LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1
+                                       ON B1.CNTR_NO = A1.CNTR_NO
+                                      AND B1.CNTR_SN = A1.CNTR_SN
+                                    WHERE 1 = 1
+                                      AND ROWNUM = 1)
+                                    END ) AS REQD_DT
+                     , T1.FNL_ITM_GD_CD
+                     , (SELECT A2.OG_NM
+                          FROM TB_OGBS_OG_BAS A2
+                         WHERE A2.OG_TP_CD = T1.OG_TP_CD
+                           AND A2.OG_ID = T1.DGR3_LEVL_OG_ID
+                           AND A2.DTA_DL_YN = 'N'
+                           AND ROWNUM = 1) AS DEPT_NM
+                     , T1.USE_QTY
+                     , T3.CNTR_NO || '-' || T3.CNTR_SN AS CNTR_DTL_NO
+                     , V2.RCGVP_KNM
+                     , T1.OSTR_CONF_DT
+                     , T1.OSTR_DT
+                     , T1.RTNGD_PROCS_TP_CD
+                     , T1.RMK_CN
+                /*     , RANK() OVER(PARTITION BY CNTR_NO ORDER BY FNL_VST_FSH_DT DESC) AS ST163_RN*/
+                     , T1.CNTR_NO
+                     , T1.RTNGD_RVPY_PROCS_YN
+                     , T2.HGR_WARE_NO
+                     , '0017' AS RENTAL_ASSET_STAT
+                     , '3' AS FACTORY_DISPOSAL_GB --물류폐기 공장폐기 구분 임시컬럼 --1물류폐기 --2 공장폐기 --3 그 외
+                     , T6.SVPD_ITEM_GR
+              FROM TB_SVST_SV_WK_OSTR_IZ T1 /*서비스작업출고내역*/
+             INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+                ON T2.APY_YM = SUBSTR(T1.FNL_VST_FSH_DT, 1, 6)
+               AND T2.WARE_NO = T1.WK_WARE_NO
+               AND T2.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /*고객서비스수행내역*/
+                ON T3.CNTR_NO = T1.CNTR_NO
+               AND T3.CNTR_SN = T1.CNTR_SN
+               AND T3.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_BAS T4
+                ON T4.CNTR_NO = T3.CNTR_NO
+               AND T4.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5 /*계약상세*/
+                ON T5.CNTR_NO= T3.CNTR_NO
+               AND T5.CNTR_SN = T3.CNTR_SN
+               AND T5.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
+                ON V1.DTL_CNTR_NO = T3.CNTR_NO
+               AND V1.DTL_CNTR_SN = T3.CNTR_SN
+               AND V1.ADRPC_TP_CD IN ('2','3')
+               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
+               AND V1.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
+                ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
+               AND V2.DTA_DL_YN = 'N'
+              INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T6
+                  ON T6.SVPD_PD_CD = T1.ITM_PD_CD
+             WHERE 1 = 1
+               AND T6.SVPD_ITEM_KND = '4'
+               AND T1.OSTR_DT LIKE #{inqrYm} ||'%'
+               AND T1.SV_BIZ_HCLSF_CD = '6'
+               AND T1.RTNGD_PROCS_TP_CD IN ('80', '81', '82')
+               AND T1.FNL_ITM_GD_CD = 'R'
+               AND T1.OSTR_DT IS NOT NULL
+               AND T1.FNL_SELL_TP_CD <![CDATA[ <> ]]> '4'
+               AND T1.CNTR_NO NOT LIKE 'W8888%'
+
+               UNION ALL
+
+               /*0018 리퍼대기건 */
+               SELECT D2.SAP_MAT_CD AS SVPD_SAP_CD
+                    , D2.PD_CD AS SVPD_PD_CD
+                    , D2.PD_ABBR_NM AS SVPD_NM_ABBR1
+                    , D5.IST_DT
+                    , D1.FNL_VST_FSH_DT /*철거요청일자*/
+                    , (CASE WHEN D1.SV_BIZ_DCLSF_CD LIKE '32%' THEN D1.FNL_VST_FSH_DT
+                            ELSE (SELECT B1.REQD_DT
+                                    FROM TB_SVPD_CST_SV_EXCN_IZ A1
+                                    LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1
+                                      ON B1.CNTR_NO = A1.CNTR_NO
+                                     AND B1.CNTR_SN = A1.CNTR_SN
+                                   WHERE 1 = 1
+                                     AND ROWNUM = 1)
+                        END ) AS REQD_DT
+                    , D1.FNL_ITM_GD_CD
+                    , (SELECT A2.OG_NM
+                         FROM TB_OGBS_OG_BAS A2
+                        WHERE A2.OG_TP_CD = D1.OG_TP_CD
+                          AND A2.OG_ID = D1.DGR3_LEVL_OG_ID
+                          AND A2.DTA_DL_YN = 'N'
+                          AND ROWNUM =1) AS DEPT_NM
+                    , D1.USE_QTY
+                    , D5.CNTR_NO || '-' || D5.CNTR_SN AS CNTR_DTL_NO
+                    , V2.RCGVP_KNM
+                    , D1.OSTR_CONF_DT
+                    , D1.OSTR_DT
+                    , D1.RTNGD_PROCS_TP_CD
+                    , D1.RMK_CN
+                /*     , RANK() OVER(PARTITION BY CNTR_NO ORDER BY FNL_VST_FSH_DT DESC) AS ST163_RN*/
+                    , D1.CNTR_NO
+                    , D1.RTNGD_RVPY_PROCS_YN
+                    , D4.HGR_WARE_NO
+                    , '0018' AS RENTAL_ASSET_STAT
+                    , '3' AS FACTORY_DISPOSAL_GB --물류폐기 공장폐기 구분 임시컬럼 --1물류폐기 --2 공장폐기 --3 그 외
+                    , D3.PD_PRP_VAL20 AS SVPD_ITEM_GR
+                  FROM TB_SVST_SV_WK_OSTR_IZ D1
+                 INNER JOIN TB_PDBS_PD_BAS D2
+                    ON D2.PD_CD = D1.ITM_PD_CD
+                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3
+                    ON D3.PD_CD = D2.PD_CD
+                 INNER JOIN TB_SVST_MCBY_WARE_IZ D4
+                    ON D4.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                   AND D4.WARE_NO = D1.WK_WARE_NO
+                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5
+                    ON D5.CNTR_NO = D1.CNTR_NO
+                   AND D5.CNTR_SN = D1.CNTR_SN
+                 INNER JOIN TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
+                    ON V1.DTL_CNTR_NO = D1.CNTR_NO
+                   AND V1.DTL_CNTR_SN = D1.CNTR_SN
+                   AND V1.ADRPC_TP_CD IN ('2','3')
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
+                   AND V1.DTA_DL_YN = 'N'
+                  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
+                    ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
+                   AND V2.DTA_DL_YN = 'N'
+                 WHERE D1.DTA_DL_YN          = 'N'
+                   AND D2.DTA_DL_YN          = 'N'
+                   AND D2.PD_TP_CD           = 'M'
+                   AND D3.DTA_DL_YN          = 'N'
+                   AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+                   AND D3.PD_PRP_VAL19       = '4'
+                   AND D4.DTA_DL_YN          = 'N'
+                   AND D5.DTA_DL_YN          = 'N'
+                   AND D2.PD_NM LIKE '%웰스팜%'
+                   AND NOT( D1.SV_BIZ_DCLSF_CD LIKE '32%' AND SUBSTR(D1.FNL_VST_FSH_DT, 1, 6) = SUBSTR(D5.IST_DT, 1, 6) )
+                   AND D1.SV_BIZ_HCLSF_CD = '6'
+                   AND D1.FNL_ITM_GD_CD = 'R'
+                   AND D1.FNL_SELL_TP_CD <![CDATA[ <> ]]> '4'
+                   AND D1.CNTR_NO NOT LIKE 'W8888%'
+                   AND ( D1.RTNGD_PROCS_TP_CD <![CDATA[ <> ]]> '90' OR D1.RTNGD_PROCS_TP_CD IS NULL)
+                   AND D1.FNL_VST_FSH_DT BETWEEN #{inqrYm} || '01' AND #{inqrYm} || '99'
+                        AND (    D1.RTNGD_PROCS_TP_CD IN ('70', '71', '72', '73')
+                         OR D1.RTNGD_PROCS_TP_CD IS NULL
+                         OR (     D1.RTNGD_PROCS_TP_CD IN ('10', '20', '21', '80', '81', '82', '90')
+                              AND SUBSTR(D1.OSTR_DT, 1, 6) > SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                              AND SUBSTR(D1.OSTR_DT, 1, 6) NOT LIKE #{inqrYm}
+                            )
+                       )
+                   AND D1.USE_QTY <![CDATA[ <> ]]> 0
+                   <!-- TODO : 확인필요
+                   AND NOT EXISTS (
+                   SELECT 1
+                     FROM TB_SSCT_ACMPAL_CNTR_IZ
+                    WHERE BASE_CNTR_NO = D1.CNTR_NO
+                      AND BASE_CNTR_SN = D1.CNTR_SN
+                      AND
+                   ) -->
+         ) A1
+        WHERE 1 = 1
+        <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+          AND A1.FNL_ITM_GD_CD = #{itmGdCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+          AND A1.SVPD_PD_CD = #{itmPdCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+          AND A1.FNL_ITM_GD_CD = #{itmGdCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(rentalRtngdProcsTp)">
+                 <choose>
+                     <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0018")'>
+                        AND A1.RENTAL_ASSET_STAT = '0018'
+                     </when>
+                     <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0017")'>
+                        AND A1.RENTAL_ASSET_STAT = '0017'
+                     </when>
+                     <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "1")'>
+                        AND A1.RENTAL_ASSET_STAT = '0015'
+                        AND A1.FACTORY_DISPOSAL_GB = '1'
+                     </when>
+                     <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "2")'>
+                        AND A1.RENTAL_ASSET_STAT = '0015'
+                        AND A1.FACTORY_DISPOSAL_GB = '2'
+                     </when>
+                     <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "3")'>
+                        AND A1.RENTAL_ASSET_STAT IN ('0017','0018')
+                     </when>
+                     <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0015")'>
+                        AND A1.RENTAL_ASSET_STAT = '0015'
+                     </when>
+                     <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0019")'>
+                        AND A1.RENTAL_ASSET_STAT = '0015'
+                     </when>
+                 </choose>
+
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(svnCd)">
+          AND A1.HGR_WARE_NO = #{svnCd}
+        </if>
+
+</select>
+
+<select id="selectChangeOfRentalStatusItmPdCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchItmPdCdRes">
+    SELECT T1.SVPD_PD_CD AS CODE_ID
+         , T1.SVPD_NM_ABBR1 AS CODE_NAME
+         , T1.SVPD_ITEM_KND AS ITM_KND
+      FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
+     WHERE 1 = 1
+       AND T1.SVPD_USE_YN = 'Y'
+       AND T1.SVPD_ITEM_GR LIKE '92'||'%'
+     ORDER BY T1.SVPD_ITEM_CD, T1.SVPD_PART_CD
+</select>
+
+<select id="selectChangeOfRentalStatusWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchWarehouseRes">
+     SELECT T1.WARE_NO AS CODE_ID
+          , T1.WARE_NM AS CODE_NAME
+       FROM TB_SVST_MCBY_WARE_IZ T1
+      WHERE 1 = 1
+        AND T1.WARE_DV_CD = '2'
+        AND T1.WARE_DTL_DV_CD = '20'
+        AND T1.APY_YM = #{inqrYm}
+        AND T1.DTA_DL_YN = 'N'
+      ORDER BY T1.WARE_NO
+
+</select>
+
+</mapper>
