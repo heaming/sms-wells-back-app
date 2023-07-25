@@ -47,8 +47,8 @@ public class WctbContractChangeMgtService {
     private final WctaInstallationShippingService installService;
 
     /*
-    * 계약변경관리-조회
-    * */
+     * 계약변경관리-조회
+     * */
     public PagingResult<SearchContractChangeRes> getContractChangePages(
         SearchContractChangeReq dto, PageInfo pageInfo
     ) {
@@ -57,9 +57,9 @@ public class WctbContractChangeMgtService {
     }
 
     /*
-    *
-    * 계약변경관리-변경전 체크
-    * */
+     *
+     * 계약변경관리-변경전 체크
+     * */
 
     public FindBeforeChangeCheckRes getBeforeChangeCheck(FindBeforeChangeCheckReq dto) {
         WctbContractChangeDvo dvo = converter.findCheckReqToWctbContractChangeDvo(dto);
@@ -145,8 +145,8 @@ public class WctbContractChangeMgtService {
     }
 
     /*
-    * 취소요청 체크 처리 로직
-    * */
+     * 취소요청 체크 처리 로직
+     * */
     public String checkCancelable(
         WctbContractChangeDvo cntrOrderDvo, List<WctbContractChangeDvo> checkOrderList
     ) {
@@ -224,9 +224,9 @@ public class WctbContractChangeMgtService {
     }
 
     /*
-    *
-    * 계약변경관리-취소요청
-    * */
+     *
+     * 계약변경관리-취소요청
+     * */
 
     @Transactional
     public int saveCancelAsks(SaveCancelReq dto) throws Exception {
@@ -236,7 +236,7 @@ public class WctbContractChangeMgtService {
         int cntrSn = dvo.getCntrSn();
 
         String templateCode = "wells17950";
-        int processCount = 0;
+        int mtPr = 0;
 
         /* 취소요청 체크 로직 한번더 실행*/
         WctbContractChangeDvo cntrOrderDvo = mapper.selectCntrOrderInfo(cntrNo, cntrSn);
@@ -342,17 +342,18 @@ public class WctbContractChangeMgtService {
             throw new BizException("MSG_ALT_WRONG_DEL_REQ_APRV_PHON_NO"); // 삭제 요청 결재 담당자 휴대폰 전화번호가 올바르지 않습니다.
         }
 
-        String destInfo = brmgrNm + "^" + phoneNo;
+        String destInfo = String.format("%s^%s", brmgrNm, phoneNo);
 
         KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
             .templateCode(templateCode) // 카카오톡템플릿 ID
-            .templateParamMap(paramMap)
-            .destInfo(destInfo)
-            .callback("15884113")
+            .templateParamMap(paramMap) // 템플릿 파라미터
+            .destInfo(destInfo) // 수신자 정보
+            .callback("15884113") // 콜백
+            .returnMtPr(true) // 메세지ID 리턴 여부
             .build();
-        processCount += kakaoMessageService.sendMessage(kakaoSendReqDvo);
+        mtPr += kakaoMessageService.sendMessage(kakaoSendReqDvo);
 
-        if (processCount > 0) {
+        if (mtPr > 0) {
             String notyFwId = historyService.createContractNotifyFowrdindHistory(
                 WctzContractNotifyFowrdindHistDvo.builder()
                     .notyFwTpCd("20") // 알림발송유형코드
@@ -365,7 +366,7 @@ public class WctbContractChangeMgtService {
                     // .msgCn(sendDvo.getContent()) // 메세지 내용
                     .cntrNo(cntrNo) // 계약번호
                     .cntrSn(cntrSn) // 계약일련번호
-                    // .fwLkIdkVal(emailUid) // 발송연계식별키값 TODO: 추가 예정
+                    .fwLkIdkVal(Integer.toString(mtPr)) // 발송연계식별키값
                     .fwOjRefkVal1(templateCode) // 발송대상참조키값1
                     .rcvrNm(brmgrNm) // 수신자명
                     .rcvrLocaraTno(cralLocaraTno) // 수신자지역전화번호
@@ -378,19 +379,19 @@ public class WctbContractChangeMgtService {
             );
         }
 
-        return processCount;
+        return 1;
     }
 
     /*
-    * 계약변경관리-고객정보조회
-    * */
+     * 계약변경관리-고객정보조회
+     * */
     public FindCustomerInformationRes getCustomerInformations(String cntrNo, int cntrSn) {
         return converter.wctbContractChangeDvoToFindCustomerRes(mapper.selectCustomerInformation(cntrNo, cntrSn));
     }
 
     /*
-    * 계약변경관리-고객정보저장
-    * */
+     * 계약변경관리-고객정보저장
+     * */
     @Transactional
     public int editCustomerInformation(SaveChangeReq dto) throws Exception {
 
