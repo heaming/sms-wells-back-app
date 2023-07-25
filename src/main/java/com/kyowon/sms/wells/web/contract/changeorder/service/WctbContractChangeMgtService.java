@@ -350,7 +350,7 @@ public class WctbContractChangeMgtService {
             .destInfo(destInfo) // 수신자 정보
             .callback("15884113") // 콜백
             .build();
-        mtPr += kakaoMessageService.sendMessage(kakaoSendReqDvo);
+        mtPr += kakaoMessageService.sendMessageAndGetInfo(kakaoSendReqDvo).get(0).getMtPr();
 
         if (mtPr > 0) {
             String notyFwId = historyService.createContractNotifyFowrdindHistory(
