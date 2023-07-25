@@ -22,6 +22,8 @@ public interface WsnaIndependenceWareOstrMapper {
 
     List<WsnaIndependenceWareOstrDvo> selectIndependenceWareOstrs(SearchReq dto);
 
+    String selectOstrAkNoByQomAsn(WsnaIndependenceWareOstrDvo dvo);
+
     String selectNewOstrAkNo(String ostrAkTpCd);
 
     int mergeItmOstrAkIz(WsnaIndependenceWareOstrDvo dvo);
