@@ -3,16 +3,15 @@ package com.kyowon.sms.wells.web.withdrawal.bilfnt.service;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.converter.WwdaDesignationWithdrawalCustomerMgtConverter;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.RemoveReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstReq;
-import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SearchAutoFntDsnWdrwCstRes;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.*;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaDesignationWithdrawalCustomerMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaDesignationWithdrawalDeleteDvo;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.mapper.WwdaDesignationWithdrawalCustomerMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -37,8 +36,8 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     private final WwdaDesignationWithdrawalCustomerMgtConverter converter;
 
     /** 자동이체 지정 출금 고객 조회
-     * @param pageInfo 
-     * 
+     * @param pageInfo
+     *
      * @param SearchAutoFntDsnWdrwCstReq
      * @return PagingResult<SearchAutoFntDsnWdrwCstRes>
      */
@@ -51,7 +50,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     }
 
     /** 자동이체 지정 출금 고객 엑셀다운로드
-     * 
+     *
      * @param req
      * @return
      */
@@ -62,7 +61,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     }
 
     /** 자동이체 지정 출금 고객 저장
-     * 
+     *
      * @param req
      * @return
      */
@@ -89,11 +88,13 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
 
             int igCount = mapper.selectItgWdrwRgstCstCk(dvo); // 통합청구 등록 고객 확인
             BizAssert.isFalse(igCount > 0, "MSG_ALT_ITG_WDRW_RGST_CST", index);
-            WwdaAutomaticFntOjYnConfDvo bilVo = mapper.selectBilFntAkDtl(dvo);// 청구이체요청상세 조회
-            if (!Objects.isNull(bilVo)) {
-                dvo.setBilNo(bilVo.getBilNo());
-                dvo.setBilDtlSn(bilVo.getBilDtlSn());
-            }
+
+            //            WwdaAutomaticFntOjYnConfDvo bilVo = mapper.selectBilFntAkDtl(dvo);// 청구이체요청상세 조회
+            //            if (!Objects.isNull(bilVo)) {
+            //                dvo.setBilNo(bilVo.getBilNo());
+            //                dvo.setBilDtlSn(bilVo.getBilDtlSn());
+            //            }
+
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
                     int checkCount = mapper.selectAcFntDsnWdrwBasByPk(dvo); // 기존 데이터가 삭제된 것인지 조회
@@ -105,9 +106,9 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
                         BizAssert.isFalse(count > 0, "MSG_ALT_LINE_ALREADY_RGST_CST", index);
 
                         processCount += mapper.insertAutoFntDsnWdrwCstBas(dvo); // 계좌이체지정출금기본 저장
-                        if ("1".equals(dto.fntYn())) { // 신규이면서 이체구분이 '1' 이면
-                            int bilCount = mapper.selectBilFntAkCt(dvo); // 청구이체요청상세 , 청구이체요청기본 데이터 존재 여부
-                            if (bilCount > 0) {
+                        if ("1".equals(dto.fntYn())) { // 신규이면서 이체구분이 '이체' 이면
+                            CheckBillingFundTransferAsk check = mapper.selectBilFntAkCt(dvo); // 청구이체요청상세 , 청구이체요청기본 데이터 존재 여부
+                            if (ObjectUtils.isNotEmpty(check)) {
                                 processCount += mapper.insertAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 저장
                             }
                         }
@@ -118,6 +119,12 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
                     processCount += mapper.updateAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 수정
                     processCount += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
                 }
+                // 계좌이체지정출금관계 삭제
+                default -> {
+                    if (!"1".equals(dto.fntYn())) {
+                        //                                                processCount = mapper.deleteDesignationWithdrawalRel(dvo);
+                    }
+                }
             }
 
         }
@@ -126,7 +133,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     }
 
     /**
-     * 
+     *
      * @param req
      * @return
      */
@@ -138,17 +145,16 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
 
         for (RemoveReq dto : req) {
             int result = 0;
-            WwdaDesignationWithdrawalCustomerMgtDvo dvo = converter
-                .mapRemoveReqToWwdaDesignationWithdrawalCustomerMgtDvo(dto);
+            WwdaDesignationWithdrawalDeleteDvo dvo = converter
+                .mapRemoveReqToWwdaDesignationWithdrawalDeleteDvo(dto);
             WwdaAutomaticFntOjYnConfDvo bilVo = mapper.selectBilFntAkDtl(dvo);// 청구이체요청상세 조회
             if (bilVo != null) {
                 dvo.setBilNo(bilVo.getBilNo());
                 dvo.setBilDtlSn(bilVo.getBilDtlSn());
             }
-            dvo.setDtaDlYn("Y");
             result += mapper.deleteAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 삭제
-            result += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제 
-            result += mapper.insertAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
+            result += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제
+            result += mapper.deleteAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
             BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
             processCount += result;
 

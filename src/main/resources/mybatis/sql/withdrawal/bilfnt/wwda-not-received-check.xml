@@ -6,22 +6,18 @@
         SELECT AUTO_FNT_CLSF
              , CASE WHEN BNK_CD IS NULL THEN '은행 또는 카드 값이 없음' ELSE BNK_CD END AS BNK_CD 
              , CASE WHEN BNK_NM IS NULL THEN '은행 또는 카드 값이 없음' ELSE BNK_NM END AS BNK_NM
-             <!-- , CASE WHEN BNK_CD IS NULL THEN F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_BNK_CARD_VAL_NTHNG' , #{session.langId}) ELSE BNK_CD END AS BNK_CD
-             , CASE WHEN BNK_NM IS NULL THEN F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_BNK_CARD_VAL_NTHNG' , #{session.langId}) ELSE BNK_NM END AS BNK_NM -->
              , COUNT(*) AS CT
           FROM (
                         SELECT     <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-                                     <!-- F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_AFTN_BNK_NRCV_CT' , #{session.langId}) AS AUTO_FNT_CLSF -->
                                        '자동이체(은행) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
-                                     , LPAD(RAFS.BNK_CD, 3, 0) AS BNK_CD
-                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(RAFS.BNK_CD, 3, 0) = FNIT_CD)
+                                     , LPAD(A.BNK_CD, 3, 0) AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(A.BNK_CD, 3, 0) = FNIT_CD)
                                             AS BNK_NM /* 은행명 */
                                     </if>
                                     <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-                                    <!-- F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_AFTN_CARD_NRCV_CT' , #{session.langId}) AS AUTO_FNT_CLSF -->
                                        '자동이체(카드) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
-                                     , LPAD(RCFS.CDCO_CD, 3, 0) AS BNK_CD
-                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(RCFS.CDCO_CD, 3, 0) = FNIT_CD)
+                                     , LPAD(A.CDCO_CD, 3, 0) AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(A.CDCO_CD, 3, 0) = FNIT_CD)
                                             AS BNK_NM /* 은행명 */
                                     </if>
                                   FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
@@ -29,20 +25,34 @@
                                     ON RBFB.BIL_NO = RBFD.BIL_NO
                                    AND RBFB.DTA_DL_YN = 'N'
                                    AND RBFD.DTA_DL_YN = 'N'
-                                  JOIN TB_SSCT_CNTR_DTL SCD
-                                    ON SCD.CNTR_NO = RBFD.CNTR_NO
-                                   AND SCD.CNTR_SN = RBFD.CNTR_SN
-                                   AND SCD.DTA_DL_YN = 'N'
-                                  JOIN TB_SSCT_CNTR_BAS SCB
-                                    ON SCD.CNTR_NO = SCB.CNTR_NO
-                                   AND SCB.DTA_DL_YN = 'N'
-                                  JOIN TB_CUBS_CST_BAS CCB
-                                    ON CCB.CST_NO = SCB.CNTR_CST_NO
-                                   AND CCB.DTA_DL_YN = 'N'
-                                  JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                    ON SCSB.CNTR_NO = SCB.CNTR_NO
-                                   AND SCSB.CST_NO = SCB.CNTR_CST_NO
-                                   AND SCSB.DTA_DL_YN = 'N'
+                                  JOIN LATERAL (
+                                                SELECT *
+                                                  FROM (
+                                                        SELECT SCSB.BNK_CD
+                                                             , SCSB.CDCO_CD
+                                                             , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO, SCSR.DTL_CNTR_SN ORDER BY SCSR.VL_STRT_DTM DESC) AS RN
+                                                          FROM TB_SSCT_CNTR_STLM_REL SCSR
+                                                          JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                                            ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID 
+                                                           AND SCSB.DTA_DL_YN = 'N'
+                                                           AND SCSR.DTA_DL_YN = 'N'
+                                                           AND SCSR.VL_END_DTM = '99991231235959'
+                                                          JOIN TB_SSCT_CNTR_DTL SCD
+                                                            ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO
+                                                           AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN
+                                                           AND SCD.DTA_DL_YN = 'N'
+                                                          JOIN TB_SSCT_CNTR_BAS SCB
+                                                            ON SCD.CNTR_NO = SCB.CNTR_NO
+                                                           AND SCB.DTA_DL_YN = 'N'
+                                                          JOIN TB_CUBS_CST_BAS CCB
+                                                            ON CCB.CST_NO = SCB.CNTR_CST_NO
+                                                           AND CCB.DTA_DL_YN = 'N'
+                                                         WHERE RBFD.CNTR_NO = SCSR.DTL_CNTR_NO
+                                                           AND RBFD.CNTR_SN = SCSR.DTL_CNTR_SN
+                                                       )
+                                                 WHERE RN = 1 
+                                               ) A
+                                    ON 1 = 1
                                   <if test='@MybatisUtils@equals(fntDvCd, "01")'>
                                   JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
                                     ON RBFB.BIL_NO = RAFS.BIL_NO
