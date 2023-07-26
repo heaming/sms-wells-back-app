@@ -59,73 +59,95 @@
 
     <select id="selectRelatedContractsNewCstInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchNewCstInfoRes">
         SELECT
-               CONCAT(CONCAT(T0.BASE_DTL_CNTR_NO, '-'), T0.BASE_DTL_CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
-             , SUBSTR(T2.CNTR_CNFM_DTM, 0 ,8) AS CNTR_DT                                    /* 계약일자 */
-             , T2.CNTR_CST_NO                                                               /* 고객번호 */
+               SUBSTR(T2.CNTR_CNFM_DTM, 0, 8) AS CNTR_DT    /* 계약일자 */
+             , CONCAT(CONCAT(T1.CNTR_NO, '-'), T1.CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
+             , T0.OJ_DTL_CNTR_NO
+             , T0.OJ_DTL_CNTR_SN
              , T4.CST_KNM                                                                   /* 고객명 */
              , T1.BASE_PD_CD                                                                /* 상품코드 */
              , T3.PD_NM                                                                     /* 상품명 */
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM          /* 판매유형 */
-             , T1.SELL_TP_CD                                                                /* 판매유형코드 */
-             , TO_CHAR((TO_DATE(T1.CNTR_PD_STRTDT,'YYYYMMDD'))-1, 'YYYY-MM-DD')
-               || ' ~ ' || TO_CHAR((TO_DATE(T1.CNTR_PD_ENDDT,'YYYYMMDD'))-1, 'YYYY-MM-DD') AS KEEP_PTRM /* 유지기간 */
-             , T1.CNTR_PD_STRTDT                                                            /* 계약상품시작일자 */
-             , T1.CNTR_PD_ENDDT                                                             /* 계약상품종료일자 */
-             , '' AS RENTAL_NMN                                                             /* 렌탈차월 */
-             , (
-                SELECT MAX(F1.RENTAL_TN) KEEP (DENSE_RANK FIRST ORDER BY F1.SL_CL_YM DESC NULLS LAST)  /* 렌탈회차 */
-                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ F1                                         /* T.WELLS매출월마감내역 */
-                 WHERE F1.CNTR_NO = T1.CNTR_NO
-                   AND F1.CNTR_SN = T1.CNTR_SN
-                   AND F1.DTA_DL_YN = 'N'
-                   AND T1.DTA_DL_YN = 'N'
-                   AND F1.SL_CL_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') AND TO_CHAR(SYSDATE, 'YYYYMM')
-               ) AS RENTAL_TN                                                               /* 렌탈회차 [유지기간] */
-             , T0.CNTR_REL_DTL_CD                                                           /* 계약관계상세코드 */
-             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_REL_DTL_CD', T0.CNTR_REL_DTL_CD) AS CNTR_REL_DTL_NM /* 계약관계상세코드명 */
-             , T1.FNL_AMT AS FNL_VAL                                                        /* 최종금액 AS-IS:LD3000P.LCTAMT [현요금] */
-             , '' AS DSC_AMT                                                                /* 할인 : CTR_VAL =  A.LCOAMT - A.LCAMT1 */
-             , T1.DSC_AMT AS ALL_DSC_AMT                                                    /* 할인금액 [총할인금액] */
-             , T1.FNL_AMT AS RCVRY_AMT                                                      /* 최종금액-최종금액과 동일 값 AS-IS:LD3000P.LCTAMT [현요금] */
+--             , T2.CNTR_CST_NO                                                               /* 고객번호 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM          /* 판매유형 */
+             /* , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM */          /* 판매유형 */
+             /*  유지종료일 (정기배송 : 종료일, 렌탈 : 시작일+12개월-1 >> ASIS요건)*/
+             , TO_CHAR((TO_DATE(T1.CNTR_PD_STRTDT,'YYYYMMDD')), 'YYYY-MM-DD')
+               || ' ~ '
+               || (CASE WHEN T1.SELL_TP_CD = '6' THEN TO_CHAR((TO_DATE(T1.CNTR_PD_ENDDT,'YYYYMMDD'))-1, 'YYYY-MM-DD')
+                        ELSE TO_CHAR(ADD_MONTHS(TO_DATE(T1.CNTR_PD_STRTDT,'YYYYMMDD'), 12) -1, 'YYYY-MM-DD')
+                        END)
+               AS KEEP_PTRM /* 유지기간 */
+             /* 유지기간 기준
+             , TO_CHAR((TO_DATE(T5.CNTR_PD_STRTDT,'YYYYMMDD')), 'YYYY-MM-DD')
+               || ' ~ '
+               || TO_CHAR((TO_DATE(T5.CNTR_PD_ENDDT,'YYYYMMDD'))-1, 'YYYY-MM-DD')
+               AS KEEP_PTRM */ /* 유지기간 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_REL_DTL_CD', T0.CNTR_REL_DTL_CD) AS CNTR_REL_DTL_NM /* 연관관계명 */
+             , T5.RENTAL_TN                                                               /* 렌탈회차 [렌탈차월] */
+             , CASE WHEN T1.SELL_TP_CD = '6' THEN (T1.SELL_AMT - T1.DSC_AMT)
+                     ELSE T1.SELL_AMT
+                     END  AS SELL_AMT /* 판매금액 현요금 (LC3100P@LCAMT1,)*/
+              , T1.DSC_AMT      /* 할인금액 */
+              , CASE WHEN T1.SELL_TP_CD = '6' THEN T5.RENTAL_TN * (T1.SELL_AMT - T1.DSC_AMT)
+                     /* IF 설치일 마지막일 = 매출일 OR 매출일 >= 30   :  + 할인액
+                      * ELSE 할인액 일할계산 */
+                     ELSE
+                         (CASE WHEN (TO_CHAR(LAST_DAY(T1.CNTR_PD_STRTDT ), 'DD') = T5.SL_DC) OR (T5.SL_DC >= 30)
+                                    THEN T1.DSC_AMT
+                                ELSE FLOOR((T1.DSC_AMT )/30*T5.SL_DC/10)*10 END)
+                          + T5.RENTAL_TN * (T1.SELL_AMT - T1.DSC_AMT)
+                     END  AS DSC_TAM /* 총할인액 (일할계산:LC0RAM)*/
+              , T1.PD_BASE_AMT /* 상품기준금액 (원복요금 원복렌탈료)*/
              , CASE WHEN T1.ALNCMP_CD = '17'
                          AND
                            (
-                            SELECT COUNT(T5.BASE_CNTR_NO)
+                            SELECT T5.BASE_CNTR_NO
                               FROM TB_SSCT_ACMPAL_CNTR_IZ T5
                              WHERE T5.ALNCMP_CD = '17' /* 제휴사코드 17:상조*/
                                AND T5.ALNC_STAT_TP_CD = '10' /* 제휴상태유형코드 10:제휴정상 */
                                AND T5.BASE_CNTR_NO = T1.CNTR_NO
                                AND T5.BASE_CNTR_SN = T1.CNTR_SN
                                AND T5.DTA_DL_YN = 'N'
-                           ) > 0
+                               AND ROWNUM = 1 /* COUNT대신 존재여부만 체크 */
+                           ) IS NOT NULL
                          THEN 'Y'
                     ELSE 'N'
                END AS MUTU_YN                                                               /* 상조유무(제휴사코드:상조제휴(17)), 제휴상태:정상(10) */
-          FROM TB_SSCT_CNTR_REL T0              /* T.계약관계 */
-         INNER JOIN TB_SSCT_CNTR_DTL T1         /* T.계약상세 */
-            ON T1.CNTR_NO = T0.BASE_DTL_CNTR_NO /* 계약번호 = 대상상세계약번호 */
-           AND T1.CNTR_SN = T0.BASE_DTL_CNTR_SN /* 계약일련번호 = 대상상세계약일련번호 */
+          /** 기준(신규) *******************************************************/
+          FROM TB_SSCT_CNTR_REL T0 /* 계약관계 */
+         INNER JOIN TB_SSCT_CNTR_DTL T1 /* 계약상세 */
+            ON T1.CNTR_NO = T0.BASE_DTL_CNTR_NO /* 계약번호 = 기준상세계약번호 */
+           AND T1.CNTR_SN = T0.BASE_DTL_CNTR_SN /* 계약일련번호 = 기준상세계약일련번호 */
            AND T1.DTA_DL_YN = 'N'
-           AND T0.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_BAS T2         /* T.계약기본 */
-            ON T2.CNTR_NO = T1.CNTR_NO          /* 계약번호 */
+         INNER JOIN TB_SSCT_CNTR_BAS T2 /* 계약기본 */
+            ON T2.CNTR_NO = T1.CNTR_NO /* 계약번호 */
            AND T2.DTA_DL_YN = 'N'
-           AND T1.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_BAS T3           /* T.상품기본 */
-           ON T3.PD_CD = T1.BASE_PD_CD          /* 상품코드 */
-          AND T3.TEMP_SAVE_YN = 'N'             /* 임시저장여부 */
-          AND T3.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
-          AND T0.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
-        INNER JOIN TB_CUBS_CST_BAS T4           /* T.고객기본 */
-           ON T4.CST_NO = T2.CNTR_CST_NO        /* 고객번호 */
-          AND T4.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
-          AND T2.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
+         INNER JOIN TB_PDBS_PD_BAS T3 /* 상품기본 */
+           ON T3.PD_CD = T1.BASE_PD_CD /* 상품코드 */
+          AND T3.TEMP_SAVE_YN = 'N' /* 임시저장여부 */
+          AND T3.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+        INNER JOIN TB_CUBS_CST_BAS T4 /* 고객기본 */
+           ON T4.CST_NO = T2.CNTR_CST_NO /* 고객번호 */
+          AND T4.DTA_DL_YN = 'N'  /* 데이터삭제여부 */
+         LEFT OUTER JOIN LATERAL(SELECT F1.CNTR_NO
+                                      , F1.CNTR_SN
+                                      , MAX(F1.RENTAL_TN) KEEP (DENSE_RANK FIRST ORDER BY F1.SL_CL_YM DESC NULLS LAST) AS RENTAL_TN /* 렌탈회차 */
+                                      , MAX(F1.SL_DC) KEEP (DENSE_RANK FIRST ORDER BY F1.SL_CL_YM DESC NULLS LAST) AS SL_DC /* 매출일 */
+                                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ F1                                         /* T.WELLS매출월마감내역 */
+                                  WHERE F1.CNTR_NO = T1.CNTR_NO
+                                    AND F1.CNTR_SN = T1.CNTR_SN
+                                    AND F1.DTA_DL_YN = 'N'
+                                     /*AND F1.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')*/ /* ASIS는 현재년월이었으나, DATA 부재함. */
+                                    AND F1.SL_CL_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') AND TO_CHAR(SYSDATE, 'YYYYMM')
+                                  GROUP BY F1.CNTR_NO, F1.CNTR_SN
+              ) T5
+           ON T5.CNTR_NO = T1.CNTR_NO
+          AND T5.CNTR_SN = T1.CNTR_SN
         WHERE 1=1
-          AND T0.VL_END_DTM = '99991231235959'  /* 유효종료일시 */
-        --  AND T0.CNTR_UNIT_TP_CD = '020'      /* 계약단위유형코드 - 020:계약상세 */
-          AND T0.CNTR_REL_TP_CD = '20'          /* 계약관계유형코드 - 20:연계상품계약관계 */
-          AND T0.BASE_DTL_CNTR_NO = #{cntrNo}   /* 기준상세계약번호(신규) */
-          AND T0.BASE_DTL_CNTR_SN = #{cntrSn}   /* 기준상세계약일련번호(신규) */
+          AND T0.CNTR_REL_TP_CD = '20' /* 계약관계유형코드 - 20:연계상품계약관계 */
+          AND T0.VL_END_DTM = '99991231235959' /*유효종료일시 */
+          AND T1.SELL_TP_CD = '2'
+          AND T0.OJ_DTL_CNTR_NO = #{cntrNo} /* 대상상세계약번호(이전) */
+          AND T0.OJ_DTL_CNTR_SN = #{cntrSn} /* 대상상세계약일련번호(이전) */
           AND T0.DTA_DL_YN = 'N'
     </select>
 

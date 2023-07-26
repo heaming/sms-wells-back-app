@@ -47,17 +47,19 @@ public class WctaOrderDetailDto {
     public record SearchNewCstInfoRes(
         String cntrDt,
         String cntrDtlNo,
+        String ojDtlCntrNo,
+        String ojDtlCntrSn,
         String cstKnm,
         String basePdCd,
         String pdNm,
-        String sellTpCd,
-        String sellTpNm,
+        String sellTpDtlNm,
         String keepPtrm,
-        String rentalNmn,
-        String fnlVal,
+        String cntrRelDtlNm,
+        String rentalTn,
+        String sellAmt,
         String dscAmt,
-        String allDscAmt,
-        String rcvryAmt,
+        String dscTam,
+        String pdBaseAmt,
         String mutuYn
     ) {}
 
