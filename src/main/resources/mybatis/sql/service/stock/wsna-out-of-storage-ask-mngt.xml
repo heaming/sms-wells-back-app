@@ -314,7 +314,14 @@
 	      , 'WE' AS IOST_AK_DV_CD /*입출고요청구분코드*/
 	      , '' AS SAP_IOST_TP_CD /*SAP입출고유형코드*/
 	      , '6' AS LGST_SPP_MTHD_CD /*물류배송방식코드*/
-	      , 'WE01' AS LGST_WK_MTHD_CD /*물류작업방식코드*/
+	      , (CASE WHEN A1.WARE_DV_CD = '2' AND T2.PD_PRP_VAL19 = '4' THEN 'WE01'
+ 	              WHEN A1.WARE_DV_CD = '2' AND T2.PD_PRP_VAL19 = '5' THEN 'WE03'
+	              WHEN A1.WARE_DV_CD = '2' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '4' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '5' THEN 'WE02'
+	              WHEN A1.WARE_DV_CD = '3' AND T2.PD_PRP_VAL19 = '4' THEN 'WE04'
+	              WHEN A1.WARE_DV_CD = '3' AND T2.PD_PRP_VAL19 = '5' THEN 'WE06'
+	              WHEN A1.WARE_DV_CD = '3' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '4' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '5' THEN 'WE05'
+	              ELSE ''
+	           END ) AS LGST_WK_MTHD_CD
  	      , '' AS MDLV_PRTNR_NO /*배달파트너번호*/
 	      , T1.ITM_PD_CD /*품목상품코드*/
 	      , T1.OSTR_AK_QTY
@@ -357,7 +364,11 @@
 							  WHERE T2.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
 					      ) A1
            ON A1.WARE_NO = T1.STR_OJ_WARE_NO
-          WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+           ON T2.PD_CD = T1.ITM_PD_CD
+        WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+          AND T2.DTA_DL_YN = 'N'
+          AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
     </select>
 
     <select id="selectDtaDlYnOstrAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo">
