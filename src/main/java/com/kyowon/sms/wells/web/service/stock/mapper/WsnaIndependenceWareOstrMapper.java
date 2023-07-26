@@ -8,6 +8,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -29,5 +31,7 @@ public interface WsnaIndependenceWareOstrMapper {
     int mergeItmOstrAkIz(WsnaIndependenceWareOstrDvo dvo);
 
     int updateItmQomAsnIz(WsnaIndependenceWareOstrDvo dvo);
+
+    List<WsnaLogisticsOutStorageAskReqDvo> selectIndependenceLogisticsTransfer(WsnaIndependenceWareOstrLgstDvo dvo);
 
 }
