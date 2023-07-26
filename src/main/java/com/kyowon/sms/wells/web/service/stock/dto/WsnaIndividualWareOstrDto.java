@@ -112,7 +112,7 @@ public class WsnaIndividualWareOstrDto {
 
         @Size(max = 4000)
         String rmkCn,
-        @NotBlank
+
         @Positive
         BigDecimal asnTnN,
         @NotBlank

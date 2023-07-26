@@ -128,7 +128,7 @@ public class WsnaIndividualWareOstrController {
     }
 
     @PostMapping("/logistics-transfer")
-    @ApiOperation(value = "개인창고 출고관리 물류전송", notes = "개인창고 출고관리 데이터를 물류로 전송한다.")
+    @ApiOperation(value = "개인창고 출고관리 물류 전송", notes = "개인창고 출고관리 데이터를 물류로 전송한다.")
     public SaveResponse createIndividualLogisticsTransfer(
         @RequestBody
         @Valid
