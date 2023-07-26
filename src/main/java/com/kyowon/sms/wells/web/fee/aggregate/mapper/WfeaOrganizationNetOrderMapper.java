@@ -1,12 +1,11 @@
 package com.kyowon.sms.wells.web.fee.aggregate.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaOrganizationNetOrderDvo;
-
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaOrganizationNetOrderDto.*;
-
-import java.util.List;
+import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaOrganizationNetOrderDvo;
 
 /**
  * <pre>
@@ -18,10 +17,6 @@ import java.util.List;
  */
 @Mapper
 public interface WfeaOrganizationNetOrderMapper {
-
-    int deleteBsPerformances(WfeaOrganizationNetOrderDvo dvo);
-
-    int insertBsPerformances(WfeaOrganizationNetOrderDvo dvo);
 
     List<SearchHmstRes> selectHomeMasters(
         SearchHmstReq dto
@@ -54,5 +49,9 @@ public interface WfeaOrganizationNetOrderMapper {
     List<SearchPlarAgrgRes> selectPlannerAggregation(
         SearchPlarReq dto
     );
+
+    int updateNtorMmClConfirm(WfeaOrganizationNetOrderDvo dvo);
+
+    int updateNtorMmClCancel(WfeaOrganizationNetOrderDvo dvo);
 
 }

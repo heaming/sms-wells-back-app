@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.fee.aggregate.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +13,11 @@ import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(CtFeeConst.REST_URL_V1 + "/organization-netorders")
@@ -31,30 +31,16 @@ public class WfeaOrganizationNetOrderController {
 
     @ApiOperation(value = "조직별 실적 집계", notes = "실적년월의 실적을 조직별로 집계한다.")
     @PostMapping("/aggregates")
-    public SaveResponse saveOrganizationAggregates(
+    public String saveOrganizationAggregates(
         @RequestBody
         @Valid
         WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto
-    ) {
-        return SaveResponse.builder()
-            .processCount(service.saveOrganizationAggregates(dto))
-            .build();
+    ) throws Exception {
+        return service.saveOrganizationAggregates(dto);
     }
 
-    @ApiOperation(value = "BS 실적 집계", notes = "실적년월의 BS실적을 집계한다.")
-    @PostMapping("/bs-aggregates")
-    public SaveResponse saveBsPerformances(
-        @RequestBody
-        @Valid
-        WfeaOrganizationNetOrderDto.SaveBsReq dto
-    ) {
-        return SaveResponse.builder()
-            .processCount(service.saveBsPerformances(dto))
-            .build();
-    }
-
-    @ApiOperation(value = "조직별 실적 확정", notes = "실적년월의 조직별 실적을 확정한다.")
-    @PutMapping
+    @ApiOperation(value = "조직별 실적 확정/확정취소", notes = "실적년월의 조직별 실적을 확정/확정취소한다.")
+    @PutMapping()
     public SaveResponse editOrganizationAggregates(
         @RequestBody
         @Valid
