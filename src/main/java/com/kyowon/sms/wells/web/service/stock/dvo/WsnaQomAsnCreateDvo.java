@@ -7,7 +7,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-U-0190M01 개인창고 물량배정 데이터 생성 dvo
+ * W-SV-U-0190M01, W-SV-U-0191M01 개인/독립창고 물량배정 데이터 생성 dvo
  * </pre>
  *
  * @author SaeRomI.Kim
