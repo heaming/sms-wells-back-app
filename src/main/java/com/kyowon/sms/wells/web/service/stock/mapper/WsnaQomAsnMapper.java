@@ -21,7 +21,7 @@ public interface WsnaQomAsnMapper {
 
     List<WsnzWellsCodeWareHouseDvo> selectQomAsnStrWares(SearchWareReq dto);
 
-    Integer selectQomAsnCount(String asnOjYm, int cnt);
+    Integer selectQomAsnCount(SearchReq dto);
 
     List<WsnaQomAsnCreateDvo> selectQomAsnFirstTnIndividualsForCreate(SearchReq dto);
 

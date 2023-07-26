@@ -60,13 +60,12 @@ public class WsnaQomAsnService {
 
     /**
      * 물량배정 건수 조회
-     * @param asnOjYm
-     * @param cnt
+     * @param dto
      * @return
      */
-    public String getQomAsnExistCheck(String asnOjYm, int cnt) {
+    public String getQomAsnExistCheck(SearchReq dto) {
         // 물량배정 건수 체크 (배정년월, 회차)
-        Integer count = this.mapper.selectQomAsnCount(asnOjYm, cnt);
+        Integer count = this.mapper.selectQomAsnCount(dto);
 
         return count == null ? "N" : "Y";
     }

@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -70,13 +69,13 @@ public class WsnaQomAsnController {
     @ApiOperation(value = "물량배정 건수 조회", notes = "물량배정 데이터 건수를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true)
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true)
     })
-    public String getQomAsnExistCheck(@RequestParam(name = "asnOjYm")
-    String asnOjYm, @RequestParam(name = "cnt")
-    @Positive
-    int cnt) {
-        return this.service.getQomAsnExistCheck(asnOjYm, cnt);
+    public String getQomAsnExistCheck(@Valid
+    SearchReq dto) {
+        return this.service.getQomAsnExistCheck(dto);
     }
 
     @GetMapping("/individual-wares/paging")
