@@ -31,8 +31,10 @@ public class WwdaAutoTransferInterfaceDto {
         String fnitCd, // 금융기관코드
         @JsonProperty("CST_NO")
         String cstNo, // 고객번호
-        @JsonProperty("RCT_DT")
-        String rctDt, /*접수일자*/
+        @JsonProperty("RCP_STRTDT")
+        String rctStrtDt, /*접수일자*/
+        @JsonProperty("RCP_ENDDT")
+        String rctEndDt, /*접수일자*/
         @JsonProperty("CH_RCP_USR_ID")
         String chRcpUsrId, /*변경접수사용자ID*/
         @JsonProperty("EVID_FSH_YN")
