@@ -70,6 +70,7 @@ public class WsnaQomAsnController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true)
     })
