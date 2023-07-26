@@ -57,6 +57,16 @@ public class WfeaOrganizationNetOrderService {
                 "MSG_ALT_CNFM_AFT_AGRG"
             ); // 해당 차수의 주문별 집계 확정 후 집계가 가능합니다.
 
+        // 조직별집계 확정 체크
+        SearchRes netOrderStat = zfezFeeNetOrderStatusService
+            .getFeeNetOrderStat(dto.perfYm(), dto.feeTcntDvCd(), dto.perfAgrgCrtDvCd(), "02");
+
+        BizAssert
+            .isTrue(
+                !(netOrderStat != null && "02".equals(netOrderStat.ntorCnfmStatCd())),
+                "MSG_ALT_ALREADY_TCNT_ORD_AGRG_CNFM_BYO_AGRG_PSB"
+            ); // 이미 해당 차수의 조직별 집계가 확정되어 실적 생성이 불가합니다.
+
         // 배치 dvo 생성
         BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
@@ -94,7 +104,7 @@ public class WfeaOrganizationNetOrderService {
         if ("CO".equals(dvo.getDv())) { // 확정
             BizAssert
                 .isTrue(
-                    !(netOrderStat != null && "01".equals(netOrderStat.ntorCnfmStatCd())), "MSG_ALT_BF_CNFM_CONF"
+                    netOrderStat != null && "01".equals(netOrderStat.ntorCnfmStatCd()), "MSG_ALT_BF_CNFM_CONF"
                 ); // 이미 확정되었습니다.
             processCnt = mapper.updateNtorMmClConfirm(dvo);
         } else if ("CC".equals(dvo.getDv())) { // 확정취소
