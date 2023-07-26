@@ -25,7 +25,8 @@
              , T2.LEAD_TIME /*LEADTIME*/
           FROM (
                 SELECT A.ITM_PD_CD
-                     , SUM(CASE WHEN A.WARE_NO = '100002' THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS LGST_QTY
+                     <!--, SUM(CASE WHEN A.WARE_NO = '100002' THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS LGST_QTY -->
+                     , '0' AS LGST_QTY
                      , SUM(CASE WHEN A.WARE_NO <![CDATA[<>]]>'100002' AND B.WARE_DTL_DV_CD = '20' AND B.WARE_DV_CD = '2' THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS CENTER_QTY
                      , SUM(CASE WHEN A.WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS MY_CENTER_QTY
                      , SUM(CASE WHEN B.HGR_WARE_NO = C.HGR_WARE_NO THEN A.PITM_STOC_A_GD_QTY ELSE 0 END) AS INDI_STCK_QTY
@@ -178,7 +179,16 @@
                     AND T2.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN (SELECT STOC_IZ.ITM_PD_CD
                                         /*TODO : 물류재고정보 인터페이스 데이터 및 추가시 물류재고 변경예정*/
-                                         , SUM(DECODE(STOC_IZ.WARE_NO, #{ostrWareNo} , STOC_IZ.PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
+                                       <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
+                                       <choose>
+                                       <when test='@MybatisUtils@equals(ostrWareDvCd, "1")'>
+                                        , '0' AS WAREHOUSE_QTY
+                                       </when>
+                                       <when test='@MybatisUtils@equals(ostrWareDvCd, "2") or @MybatisUtils@equals(ostrWareDvCd, "3")'>
+                                        , SUM(DECODE(STOC_IZ.WARE_NO, #{ostrWareNo} , STOC_IZ.PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
+                                       </when>
+                                       </choose>
+                                       </if>
                                          , SUM(DECODE(STOC_IZ.WARE_NO, #{wareNo} , STOC_IZ.PITM_STOC_A_GD_QTY)) AS CENTER_QTY
                                              /*, SUM(DECODE(STOC_IZ.WARE_NO, '100002' , STOC_IZ.PITM_STOC_B_GD_QTY)) AS WAREHOUSE_B_QTY*/
                                          , SUM(DECODE(STOC_IZ.WARE_NO, '200001' , STOC_IZ.PITM_STOC_B_GD_QTY)) AS CENTER_B_QTY
