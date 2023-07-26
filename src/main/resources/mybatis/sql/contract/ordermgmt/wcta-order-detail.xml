@@ -3,54 +3,64 @@
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailMapper">
     <select id="selectRelatedContractsPextCstInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchPextCstInfoRes">
         SELECT
-               CONCAT(CONCAT(T0.OJ_DTL_CNTR_NO, '-'), T0.OJ_DTL_CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 - 대상(기변전) */
+               /* 이전 계약 정보 */
+               CONCAT(CONCAT(T0.OJ_DTL_CNTR_NO, '-'), T0.OJ_DTL_CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 - 대상(기존) */
+             , SUBSTR(T2.CNTR_CNFM_DTM, 0, 8) AS CNTR_DT    /* 계약일자 */
              , T2.CNTR_CST_NO /* 고객번호 */
              , T4.CST_KNM /* 고객명 */
-             , T1.BASE_PD_CD /* 상품코드 - 대상(기변전) */
-             , T3.PD_NM /* 상품명 - 대상(기변전) */
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM  /* 판매유형 - 대상(기변전) */
-             , T1.SELL_TP_CD    /* 판매유형 - 대상(기변전) */
-             , TO_CHAR((TO_DATE(T1.CNTR_PD_STRTDT,'YYYYMMDD'))-1, 'YYYY-MM-DD')
-               || ' ~ ' || TO_CHAR((TO_DATE(T1.CNTR_PD_ENDDT,'YYYYMMDD'))-1, 'YYYY-MM-DD') AS KEEP_PTRM /* 유지기간 */
+             , T1.BASE_PD_CD /* 상품코드 -  */
+             , T3.PD_NM /* 상품명 - 대상(기존) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM  /* 판매유형 - 대상(기존) */
+             , T1.SELL_TP_CD    /* 판매유형 - 대상(기존) */
+             /* 신규 계약 정보 */
+             /*  유지종료일 (정기배송 : 종료일, 렌탈 : 시작일+12개월-1 >> ASIS요건)*/
+             , TO_CHAR((TO_DATE(T5.CNTR_PD_STRTDT,'YYYYMMDD')), 'YYYY-MM-DD')
+               || ' ~ '
+               || (CASE WHEN T5.SELL_TP_CD = '6' THEN TO_CHAR((TO_DATE(T5.CNTR_PD_ENDDT,'YYYYMMDD'))-1, 'YYYY-MM-DD')
+                        ELSE TO_CHAR(ADD_MONTHS(TO_DATE(T5.CNTR_PD_STRTDT,'YYYYMMDD'), 12) -1, 'YYYY-MM-DD')
+                        END)
+               AS KEEP_PTRM /* 유지기간 */
+             /* 유지기간 기준
+             , TO_CHAR((TO_DATE(T5.CNTR_PD_STRTDT,'YYYYMMDD')), 'YYYY-MM-DD')
+               || ' ~ '
+               || TO_CHAR((TO_DATE(T5.CNTR_PD_ENDDT,'YYYYMMDD'))-1, 'YYYY-MM-DD')
+               AS KEEP_PTRM */ /* 유지기간 */
              , T1.CNTR_PD_STRTDT /* 계약상품시작일자 */
              , T1.CNTR_PD_ENDDT  /* 계약상품종료일자 */
-             , (
-                SELECT MAX(F1.RENTAL_TN) KEEP (DENSE_RANK FIRST ORDER BY F1.SL_CL_YM DESC NULLS LAST)  /* 렌탈회차 */
-                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ F1 /* WELLS매출월마감내역 */
-                 WHERE F1.CNTR_NO = T1.CNTR_NO
-                   AND F1.CNTR_SN = T1.CNTR_SN
-                   AND F1.DTA_DL_YN = 'N'
-                   AND T1.DTA_DL_YN = 'N'
-               ) AS RENTAL_TN /* 렌탈회차 [익월?] AS-IS 차월임... */
+          /** 대상(이전) *******************************************************/
           FROM TB_SSCT_CNTR_REL T0 /* 계약관계 */
          INNER JOIN TB_SSCT_CNTR_DTL T1 /* 계약상세 */
             ON T1.CNTR_NO = T0.OJ_DTL_CNTR_NO /* 계약번호 = 대상상세계약번호 */
            AND T1.CNTR_SN = T0.OJ_DTL_CNTR_SN /* 계약일련번호 = 대상상세계약일련번호 */
            AND T1.DTA_DL_YN = 'N'
-           AND T0.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_BAS T2 /* 계약기본 */
             ON T2.CNTR_NO = T1.CNTR_NO /* 계약번호 */
            AND T2.DTA_DL_YN = 'N'
-           AND T1.DTA_DL_YN = 'N'
          INNER JOIN TB_PDBS_PD_BAS T3 /* 상품기본 */
            ON T3.PD_CD = T1.BASE_PD_CD /* 상품코드 */
           AND T3.TEMP_SAVE_YN = 'N' /* 임시저장여부 */
           AND T3.DTA_DL_YN = 'N' /* 데이터삭제여부 */
-          AND T0.DTA_DL_YN = 'N' /* 데이터삭제여부 */
         INNER JOIN TB_CUBS_CST_BAS T4 /* 고객기본 */
            ON T4.CST_NO = T2.CNTR_CST_NO /* 고객번호 */
           AND T4.DTA_DL_YN = 'N'  /* 데이터삭제여부 */
-          AND T2.DTA_DL_YN = 'N'  /* 데이터삭제여부 */
+          /** 기준(신규) *******************************************************/
+        INNER JOIN TB_SSCT_CNTR_DTL T5          /* T.계약상세 - 기준(기변후) */
+           ON T5.CNTR_NO = T0.BASE_DTL_CNTR_NO /* 기준상세계약번호 */
+          AND T5.CNTR_SN = T0.BASE_DTL_CNTR_SN /* 기준상세계약일련번호 */
+          AND T5.SELL_TP_CD IN ('2', '6')      /* 판매유형코드 : 2(렌탈), 6(정기배송)*/
+          AND T5.DTA_DL_YN = 'N'               /* 데이터삭제여부 */
         WHERE 1=1
-          AND T0.VL_END_DTM = '99991231235959' /*유효종료일시 */
           AND T0.CNTR_REL_TP_CD = '20' /* 계약관계유형코드 - 20:연계상품계약관계 */
+          AND T0.VL_END_DTM = '99991231235959' /*유효종료일시 */
           AND T0.BASE_DTL_CNTR_NO = #{cntrNo} /* 기준상세계약번호(신규) */
           AND T0.BASE_DTL_CNTR_SN = #{cntrSn} /* 기준상세계약일련번호(신규) */
+          AND T0.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectRelatedContractsNewCstInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailDto$SearchNewCstInfoRes">
         SELECT
                CONCAT(CONCAT(T0.BASE_DTL_CNTR_NO, '-'), T0.BASE_DTL_CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
+             , SUBSTR(T2.CNTR_CNFM_DTM, 0 ,8) AS CNTR_DT                                    /* 계약일자 */
              , T2.CNTR_CST_NO                                                               /* 고객번호 */
              , T4.CST_KNM                                                                   /* 고객명 */
              , T1.BASE_PD_CD                                                                /* 상품코드 */
@@ -116,6 +126,7 @@
           AND T0.CNTR_REL_TP_CD = '20'          /* 계약관계유형코드 - 20:연계상품계약관계 */
           AND T0.BASE_DTL_CNTR_NO = #{cntrNo}   /* 기준상세계약번호(신규) */
           AND T0.BASE_DTL_CNTR_SN = #{cntrSn}   /* 기준상세계약일련번호(신규) */
+          AND T0.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectOrderDetailCustomerBase" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailCustomerBaseDvo">
