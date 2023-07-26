@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.mapper;
 
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzItgDpBasDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzRveDtlDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -49,4 +51,8 @@ public interface WctaContractSettlementMapper {
     List<Integer> getRegularFundTransfersDayOptions(String aftnDvCd);
 
     Optional<ZwdzWithdrawalReceiveAskDvo> getReceiveAskByPk(String receiveAskNumber);
+
+    List<WctzRveDtlDvo> selectRveDtls(WctzRveDtlDvo dvo);
+
+    Optional<WctzItgDpBasDvo> selectItgDpBasByPk(String itgDpNo);
 }
