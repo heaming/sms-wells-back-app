@@ -150,16 +150,16 @@
                     , QOM.OG_TP_CD
                     , QOM.BLD_CD
                     , QOM.ADR_ID
-                    , SUM(QOM.GE_ASN_QOM_CT)                       AS GE_ASN_QOM_CT
-                    , SUM(QOM.CRP_ASN_QOM_CT)                      AS CRP_ASN_QOM_CT
+                    , QOM.GE_ASN_QOM_CT
+                    , QOM.CRP_ASN_QOM_CT
                     , QOM.BOX_QTY
-                    , CASE WHEN QOM.ITM_KND_CD <![CDATA[<>]]> '5' THEN SUM(QOM.GE_ASN_QOM_CT)
-                           WHEN QOM.BLD_CD NOT IN ('885', '951')  THEN CASE WHEN SUM(QOM.GE_ASN_QOM_CT) <![CDATA[<]]> 5
-                                                                            THEN SUM(QOM.GE_ASN_QOM_CT)
-                                                                            ELSE ROUND(SUM(QOM.GE_ASN_QOM_CT) * 0.4, 0)
+                    , CASE WHEN QOM.ITM_KND_CD <![CDATA[<>]]> '5' THEN QOM.GE_ASN_QOM_CT
+                           WHEN QOM.BLD_CD NOT IN ('885', '951')  THEN CASE WHEN QOM.GE_ASN_QOM_CT <![CDATA[<]]> 5
+                                                                            THEN QOM.GE_ASN_QOM_CT
+                                                                            ELSE ROUND(QOM.GE_ASN_QOM_CT * 0.4, 0)
                                                                        END
-                           ELSE SUM(QOM.GE_ASN_QOM_CT)
-                      END + SUM(QOM.CRP_ASN_QOM_CT)                AS ETN_WTCF_APY_QTY
+                           ELSE QOM.GE_ASN_QOM_CT
+                      END + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY
                  FROM
                     (
                       SELECT D7.WARE_NO             AS STR_WARE_NO
@@ -169,15 +169,15 @@
                            , D3.MNGT_PRTNR_OG_TP_CD AS OG_TP_CD
                            , D9.BLD_CD
                            , D7.WARE_ADR_ID         AS ADR_ID
-                           , CASE WHEN D5.COPN_DV_CD = '1' THEN D1.PART_USE_QTY
-                                  ELSE 0
-                             END                    AS GE_ASN_QOM_CT
-                           , CASE WHEN D5.COPN_DV_CD = '2' THEN D1.PART_USE_QTY
-                                  ELSE 0
-                             END                    AS CRP_ASN_QOM_CT
-                           , CASE WHEN D1.PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D6.PD_PRP_VAL12), 0)
-                                  ELSE 0
-                             END                    AS BOX_QTY
+                           , SUM( CASE WHEN D5.COPN_DV_CD = '1' THEN D1.PART_USE_QTY
+                                       ELSE 0
+                                  END )             AS GE_ASN_QOM_CT
+                           , SUM( CASE WHEN D5.COPN_DV_CD = '2' THEN D1.PART_USE_QTY
+                                       ELSE 0
+                                  END )             AS CRP_ASN_QOM_CT
+                           , SUM( CASE WHEN D1.PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D6.PD_PRP_VAL12), 0)
+                                       ELSE 0
+                                  END )             AS BOX_QTY
                            , D6.PD_PRP_VAL19        AS ITM_KND_CD
                         FROM TB_SVPD_CST_SV_RGBSPR_IZ D1          /* 고객서비스정기BS주기내역 */
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2       /* 고객서비스수행내역 */
@@ -243,8 +243,8 @@
                                                                        WHERE CNTR_NO   = S1.CNTR_NO
                                                                          AND CNTR_SN   = S1.CNTR_SN
                                                                          AND DTA_DL_YN = 'N' ) )
+                       GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D3.MNGT_PRTNR_NO, D3.MNGT_PRTNR_OG_TP_CD, D9.BLD_CD, D7.WARE_ADR_ID, D6.PD_PRP_VAL19
                     ) QOM
-                GROUP BY QOM.STR_WARE_NO, QOM.ITM_PD_CD, QOM.SPP_DV_CD, QOM.WARE_MNGT_PRTNR_NO, QOM.OG_TP_CD, QOM.BLD_CD, QOM.ADR_ID, QOM.BOX_QTY, QOM.ITM_KND_CD
              ) T1
          WHERE NOT EXISTS ( SELECT 1
                               FROM TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
@@ -407,23 +407,19 @@
                     , QOM.OG_TP_CD
                     , QOM.BLD_CD
                     , QOM.ADR_ID
-                    , SUM(QOM.GE_ASN_QOM_CT)        AS GE_ASN_QOM_CT
-                    , SUM(QOM.CRP_ASN_QOM_CT)       AS CRP_ASN_QOM_CT
+                    , QOM.GE_ASN_QOM_CT
+                    , QOM.CRP_ASN_QOM_CT
                     , QOM.BOX_QTY
-                    , CASE WHEN QOM.ITM_KND_CD <![CDATA[<>]]> '5' THEN SUM(QOM.GE_ASN_QOM_CT)
-                           WHEN #{cnt} = 1                        THEN CASE WHEN SUM(QOM.GE_ASN_QOM_CT) <![CDATA[<]]> 5
-                                                                            THEN SUM(QOM.GE_ASN_QOM_CT)
-                                                                            ELSE ROUND(SUM(QOM.GE_ASN_QOM_CT) * 0.4, 0)
+                    , CASE WHEN QOM.ITM_KND_CD <![CDATA[<>]]> '5' THEN QOM.GE_ASN_QOM_CT
+                           WHEN #{cnt} = 1                        THEN CASE WHEN QOM.GE_ASN_QOM_CT <![CDATA[<]]> 5
+                                                                            THEN QOM.GE_ASN_QOM_CT
+                                                                            ELSE ROUND(QOM.GE_ASN_QOM_CT * 0.4, 0)
                                                                        END
-                           ELSE SUM(QOM.GE_ASN_QOM_CT)
-                      END + SUM(QOM.CRP_ASN_QOM_CT) AS ETN_WTCF_APY_QTY
+                           ELSE QOM.GE_ASN_QOM_CT
+                      END + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN 0
-                           ELSE NVL( ( SELECT SUM(PITM_STOC_A_GD_QTY)
-                                         FROM TB_SVST_CST_SV_ITM_STOC_IZ
-                                        WHERE WARE_NO   = QOM.STR_WARE_NO
-                                          AND ITM_PD_CD = QOM.ITM_PD_CD
-                                          AND DTA_DL_YN = 'N' ), 0 )
-                      END                           AS CRTL_STOC_QTY
+                           ELSE NVL( STOC.PITM_STOC_A_GD_QTY, 0 )
+                      END                      AS CRTL_STOC_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN NVL( ( SELECT QTY
                                                                                  FROM TW_QTY1
                                                                                 WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
@@ -432,20 +428,20 @@
                                          FROM TW_QTY2
                                         WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
                                           AND PD_CD    = QOM.ITM_PD_CD ), 0)
-                      END                           AS THWK_EXP_QTY
+                      END                      AS THWK_EXP_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm}                     THEN 0
                            WHEN #{apyYm} <![CDATA[<>]]> TO_CHAR(SYSDATE + 7, 'YYYYMM') THEN 0
                            ELSE NVL( ( SELECT QTY
                                          FROM NW_QTY1
                                         WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
                                           AND PD_CD    = QOM.ITM_PD_CD ), 0)
-                      END                           AS BORR_EXP_QTY
+                      END                      AS BORR_EXP_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN 0
                            ELSE NVL( ( SELECT QTY
                                          FROM BS_QTY1
                                         WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
                                           AND PD_CD    = QOM.ITM_PD_CD ), 0)
-                      END                           AS BFSVC_FSH_CT
+                      END                      AS BFSVC_FSH_CT
                  FROM
                     (
                       SELECT D8.WARE_NO                  AS STR_WARE_NO
@@ -455,15 +451,15 @@
                            , D3.CNFM_PSIC_PRTNR_OG_TP_CD AS OG_TP_CD
                            , D10.BLD_CD
                            , D8.WARE_ADR_ID              AS ADR_ID
-                           , CASE WHEN D6.COPN_DV_CD = '1' THEN D1.PU_QTY
-                                  ELSE 0
-                             END                         AS GE_ASN_QOM_CT
-                           , CASE WHEN D6.COPN_DV_CD = '2' THEN D1.PU_QTY
-                                  ELSE 0
-                             END                         AS CRP_ASN_QOM_CT
-                           , CASE WHEN D1.PU_PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D7.PD_PRP_VAL12), 0)
-                                  ELSE 0
-                             END                         AS BOX_QTY
+                           , SUM( CASE WHEN D6.COPN_DV_CD = '1' THEN D1.PU_QTY
+                                       ELSE 0
+                                  END )                  AS GE_ASN_QOM_CT
+                           , SUM( CASE WHEN D6.COPN_DV_CD = '2' THEN D1.PU_QTY
+                                       ELSE 0
+                                  END )                  AS CRP_ASN_QOM_CT
+                           , SUM( CASE WHEN D1.PU_PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D7.PD_PRP_VAL12), 0)
+                                       ELSE 0
+                                  END )                  AS BOX_QTY
                            , D7.PD_PRP_VAL19             AS ITM_KND_CD
                         FROM TB_SVPD_RGBS_PU_ITM_IZ D1             /* 정기BS투입품목내역 */
                        INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2    /* 고객서비스BS대상내역 */
@@ -522,8 +518,12 @@
                          AND D2.ASN_OJ_YM           = #{asnOjYm}
                          AND D8.WARE_DV_CD          = #{wareDvCd}
                          AND D8.WARE_DTL_DV_CD      = #{wareDtlDvCd}
+                       GROUP BY D8.WARE_NO, D1.PU_PART_PD_CD, D8.DIDY_DV_CD, D3.CNFM_PSIC_PRTNR_NO, D3.CNFM_PSIC_PRTNR_OG_TP_CD, D10.BLD_CD, D8.WARE_ADR_ID, D7.PD_PRP_VAL19
                     ) QOM
-                GROUP BY QOM.STR_WARE_NO, QOM.ITM_PD_CD, QOM.SPP_DV_CD, QOM.WARE_MNGT_PRTNR_NO, QOM.OG_TP_CD, QOM.BLD_CD, QOM.ADR_ID, QOM.BOX_QTY, QOM.ITM_KND_CD
+                 LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC
+                   ON STOC.WARE_NO   = QOM.STR_WARE_NO
+                  AND STOC.ITM_PD_CD = QOM.ITM_PD_CD
+                  AND STOC.DTA_DL_YN = 'N'
              ) T1
          WHERE NOT EXISTS ( SELECT 1
                               FROM TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
