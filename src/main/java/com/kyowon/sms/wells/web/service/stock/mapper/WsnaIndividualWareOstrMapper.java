@@ -8,6 +8,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -29,4 +31,6 @@ public interface WsnaIndividualWareOstrMapper {
     String selectNewOstrAkNo(String ostrAkTpCd);
 
     int mergeItmOstrAkIz(WsnaIndividualWareOstrDvo dvo);
+
+    List<WsnaLogisticsOutStorageAskReqDvo> selectIndividualLogisticsTransfer(WsnaIndividualWareOstrLgstDvo dvo);
 }

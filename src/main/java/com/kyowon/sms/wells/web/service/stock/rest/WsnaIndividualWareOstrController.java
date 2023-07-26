@@ -127,4 +127,14 @@ public class WsnaIndividualWareOstrController {
         return SaveResponse.builder().processCount(this.service.saveIndividualWareOstrs(dtos)).build();
     }
 
+    @PostMapping("/logistics-transfer")
+    @ApiOperation(value = "개인창고 출고관리 물류전송", notes = "개인창고 출고관리 데이터를 물류로 전송한다.")
+    public SaveResponse createIndividualLogisticsTransfer(
+        @RequestBody
+        @Valid
+        CreateReq dto
+    ) {
+        return SaveResponse.builder().processCount(this.service.createIndividualLogisticsTransfer(dto)).build();
+    }
+
 }
