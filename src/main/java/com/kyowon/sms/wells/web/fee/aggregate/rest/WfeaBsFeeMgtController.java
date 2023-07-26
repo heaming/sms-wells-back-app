@@ -2,10 +2,10 @@ package com.kyowon.sms.wells.web.fee.aggregate.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaBsFeeMgtDto;
 import com.kyowon.sms.wells.web.fee.aggregate.service.WfeaBsFeeMgtService;
@@ -44,6 +44,16 @@ public class WfeaBsFeeMgtController {
         WfeaBsFeeMgtDto.SearchReq dto
     ) {
         return service.getBsFees(dto);
+    }
+
+    @ApiOperation(value = "BS 실적 집계", notes = "BS실적을 집계한다.")
+    @PostMapping
+    public String saveBsAggregates(
+        @RequestBody
+        @Valid
+        WfeaBsFeeMgtDto.SaveReq dto
+    ) throws Exception {
+        return service.saveBsAggregates(dto);
     }
 
 }
