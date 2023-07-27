@@ -17,11 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndependenceWareOstrConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskResDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndependenceWareOstrMapper;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
@@ -49,6 +50,9 @@ public class WsnaIndependenceWareOstrService {
 
     // 재고서비스
     private final WsnaItemStockItemizationService stockService;
+
+    // 물류 출고 서비스
+    private final WsnaLogisticsOutStorageAskService lgstService;
 
     // 메시지 서비스
     private final MessageResourceService messageService;
@@ -94,23 +98,18 @@ public class WsnaIndependenceWareOstrService {
     }
 
     /**
-     * 독립창고 출고 관리 페이징 조회
-     *
+     * 독립창고 출고 관리 조회
      * @param dto
-     * @param pageInfo
      * @return
      */
-    public PagingResult<WsnaIndependenceWareOstrDvo> getIndependenceWareOstrsPaging(SearchReq dto, PageInfo pageInfo) {
+    public List<WsnaIndependenceWareOstrDvo> getIndependenceWareOstrs(SearchReq dto) {
 
-        PagingResult<WsnaIndependenceWareOstrDvo> result = this.mapper.selectIndependenceWareOstrs(dto, pageInfo);
-
-        List<WsnaIndependenceWareOstrDvo> dvos = result.getList();
+        List<WsnaIndependenceWareOstrDvo> dvos = this.mapper.selectIndependenceWareOstrs(dto);
 
         // 실시간 물류재고 조회 호출
         this.getRealTimeLogisticStockQtys(dvos);
-        result.setList(dvos);
 
-        return result;
+        return dvos;
     }
 
     /**
@@ -273,6 +272,26 @@ public class WsnaIndependenceWareOstrService {
     private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
         Map<Object, Boolean> map = new ConcurrentHashMap<>();
         return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    /**
+     * 물류 전송
+     * @param dto
+     * @return
+     */
+    @Transactional
+    public int createIndependenceLogisticsTransfer(CreateReq dto) {
+
+        WsnaIndependenceWareOstrLgstDvo dvo = this.converter.mapCreateReqToWsnaIndependenceWareOstrLgstDvo(dto);
+
+        List<WsnaLogisticsOutStorageAskReqDvo> dvos = this.mapper.selectIndependenceLogisticsTransfer(dvo);
+        // 적용 대상 데이터가 없습니다.
+        BizAssert.isFalse(CollectionUtils.isEmpty(dvos), "MSG_ALT_NO_APPY_OBJ_DT");
+
+        // 물류 출고처리
+        WsnaLogisticsOutStorageAskResDvo resDvo = this.lgstService.createQomOutOfStorageAsks(dvos);
+
+        return resDvo.getAkCnt();
     }
 
 }

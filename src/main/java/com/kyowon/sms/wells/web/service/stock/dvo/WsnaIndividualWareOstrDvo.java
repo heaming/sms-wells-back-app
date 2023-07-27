@@ -7,7 +7,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-U-0192M01 개인창고출고관리
+ * W-SV-U-0192M01 개인창고출고관리 dvo
  * </pre>
  *
  * @author songTaeSung
@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 public class WsnaIndividualWareOstrDvo {
 
-    private String chk;
+    private String lgstTrsYn;
     private String wareNm;
     private String sapMatCd;
     private String itmPdCd;
@@ -62,4 +62,7 @@ public class WsnaIndividualWareOstrDvo {
     private String ostrAkNo;
     private Integer ostrAkSn;
     private String ostrDt;
+    private String ostrWareDvCd;
+    private String ostrPrtnrNo;
+    private String ostrPrtnrOgTpCd;
 }
