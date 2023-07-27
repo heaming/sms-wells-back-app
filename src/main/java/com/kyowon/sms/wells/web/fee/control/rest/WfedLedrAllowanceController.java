@@ -32,7 +32,7 @@ public class WfedLedrAllowanceController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
         @ApiImplicitParam(name = "rsbDvCd", value = "직책유형", paramType = "query", example = "총괄단장"),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "123456"),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "123456"),
     })
     @GetMapping("/indv")
     public List<WfedLedrAllowanceDto.SearchIndividualRes> getIndividualLeaderAllowances(

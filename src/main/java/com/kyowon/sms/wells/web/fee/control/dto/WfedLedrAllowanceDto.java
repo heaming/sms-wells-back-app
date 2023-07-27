@@ -21,8 +21,10 @@ public class WfedLedrAllowanceDto {
     public record SearchReq(
         @NotBlank
         String perfYm,
+        @NotBlank
+        String ogTpCd,
         String rsbDvCd,
-        String no
+        String prtnrNo
     ) {}
 
     // *********************************************************
