@@ -67,36 +67,6 @@
            AND ROWNUM         = 1
     </select>
 
-    <sql id="selectWithTwQty1">
-          WITH TW_QTY1 AS   /* 금주 수량 계산 */
-             (
-               SELECT D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
-                    , D3.PU_PART_PD_CD      AS PD_CD
-                    , SUM(D3.PU_QTY)        AS QTY
-                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
-                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
-                   ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
-                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
-                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
-                  AND D3.CNTR_NO    = D2.CNTR_NO
-                  AND D3.CNTR_SN    = D2.CNTR_SN
-                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
-                   ON D4.CNTR_NO = D1.CNTR_NO
-                  AND D4.CNTR_SN = D1.CNTR_SN
-                WHERE D1.DTA_DL_YN = 'N'
-                  AND D2.DTA_DL_YN = 'N'
-                  AND D3.DTA_DL_YN = 'N'
-                  AND D4.DTA_DL_YN = 'N'
-                  AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
-                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
-                  AND D4.REQD_DT IS NULL
-                  AND D4.CPS_DT IS NULL
-                  AND D1.ASN_OJ_YM = #{apyYm}
-                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
-             )
-    </sql>
-
     <select id="selectItmQomAsnNoMax" resultType="java.lang.Integer">
         SELECT NVL(MAX(TO_NUMBER(SUBSTR(ITM_QOM_ASN_NO, 9))), 0)
           FROM TB_SVST_ITM_QOM_ASN_IZ
@@ -135,7 +105,34 @@
              , DTA_DL_YN            /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemField" />
              )
-        <include refid="selectWithTwQty1" />
+          WITH TW_QTY1 AS   /* 금주 수량 계산 */
+             (
+               SELECT /*+ INLINE */
+                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
+                    , D3.PU_PART_PD_CD      AS PD_CD
+                    , SUM(D3.PU_QTY)        AS QTY
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
+                   ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
+                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
+                  AND D3.CNTR_NO    = D2.CNTR_NO
+                  AND D3.CNTR_SN    = D2.CNTR_SN
+                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
+                   ON D4.CNTR_NO = D1.CNTR_NO
+                  AND D4.CNTR_SN = D1.CNTR_SN
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D3.DTA_DL_YN = 'N'
+                  AND D4.DTA_DL_YN = 'N'
+                  AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
+                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+                  AND D4.REQD_DT IS NULL
+                  AND D4.CPS_DT IS NULL
+                  AND D1.ASN_OJ_YM = #{apyYm}
+                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
+             )
         SELECT #{wareDtlDvCd} || #{asnOjYm} || LPAD( #{qomAsnNo} + ROWNUM, 7, '0')
              , #{asnOjYm}                                           AS ASN_OJ_YM
              , #{cnt}                                               AS ASN_TN_N
@@ -182,7 +179,8 @@
         <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
-               SELECT QOM.STR_WARE_NO
+               SELECT /*+ LEADING(QOM S1) */
+                      QOM.STR_WARE_NO
                     , QOM.ITM_PD_CD
                     , QOM.SPP_DV_CD
                     , QOM.WARE_MNGT_PRTNR_NO
@@ -201,7 +199,8 @@
                       END + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY
                  FROM
                     (
-                      SELECT D7.WARE_NO             AS STR_WARE_NO
+                      SELECT /*+ LEADING(D3 D2 D1) USE_NL(D1 D2 D3 D4 D5 D6 D7 D8 D9) */
+                             D7.WARE_NO             AS STR_WARE_NO
                            , D1.PART_PD_CD          AS ITM_PD_CD
                            , D7.DIDY_DV_CD          AS SPP_DV_CD
                            , D3.MNGT_PRTNR_NO       AS WARE_MNGT_PRTNR_NO
@@ -291,13 +290,14 @@
                                AND (    ( ASN_EXCD_DV_CD = '0' AND STR_WARE_NO = '300000' )
                                      OR ( ASN_EXCD_DV_CD = '3' AND STR_WARE_NO = T1.STR_WARE_NO )
                                    ) )
-           AND NOT EXISTS ( SELECT 1
+           AND NOT EXISTS ( SELECT /*+ NL_AJ */ 1
                               FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1   /* 물량배정파트너적용내역 */
                              WHERE S1.PRTNR_NO       = T1.WARE_MNGT_PRTNR_NO
                                AND S1.OG_TP_CD       = T1.OG_TP_CD
                                AND S1.DTA_DL_YN      = 'N'
                                AND S1.QOM_ASN_APY_YN = 'N'
-                               AND S1.APY_SN         = ( SELECT MAX(APY_SN)
+                               AND S1.APY_SN         = ( SELECT /*+ UNNEST */
+                                                                MAX(APY_SN)
                                                            FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
                                                           WHERE PRTNR_NO  = S1.PRTNR_NO
                                                             AND OG_TP_CD  = S1.OG_TP_CD
@@ -336,10 +336,38 @@
              , DTA_DL_YN            /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemField" />
              )
-        <include refid="selectWithTwQty1" />
+          WITH TW_QTY1 AS   /* 금주 수량 계산 */
+             (
+               SELECT /*+ LEADING(D1 D2 D3 D4) */
+                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
+                    , D3.PU_PART_PD_CD      AS PD_CD
+                    , SUM(D3.PU_QTY)        AS QTY
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
+                   ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
+                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
+                  AND D3.CNTR_NO    = D2.CNTR_NO
+                  AND D3.CNTR_SN    = D2.CNTR_SN
+                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
+                   ON D4.CNTR_NO = D1.CNTR_NO
+                  AND D4.CNTR_SN = D1.CNTR_SN
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D3.DTA_DL_YN = 'N'
+                  AND D4.DTA_DL_YN = 'N'
+                  AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
+                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+                  AND D4.REQD_DT IS NULL
+                  AND D4.CPS_DT IS NULL
+                  AND D1.ASN_OJ_YM = #{apyYm}
+                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
+             )
              , TW_QTY2 AS
              (
-               SELECT D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
+               SELECT /*+ LEADING(D1 D2 D3 D4) */
+                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
                     , D3.PU_PART_PD_CD      AS PD_CD
                     , SUM(D3.PU_QTY)        AS QTY
                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
@@ -367,7 +395,8 @@
              )
              , NW_QTY1 AS
              (
-               SELECT D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
+               SELECT /*+ LEADING(D1 D2 D3 D4) */
+                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
                     , D3.PU_PART_PD_CD      AS PD_CD
                     , SUM(D3.PU_QTY)        AS QTY
                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
@@ -395,7 +424,8 @@
              )
              , BS_QTY1 AS
              (
-               SELECT D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
+               SELECT /*+ LEADING(D1 D2 D3 D4) */
+                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
                     , D3.PU_PART_PD_CD      AS PD_CD
                     , SUM(D3.PU_QTY)        AS QTY
                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
@@ -473,7 +503,8 @@
         <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
-               SELECT QOM.STR_WARE_NO
+               SELECT /*+ NO_MERGE(T1) */
+                      QOM.STR_WARE_NO
                     , QOM.ITM_PD_CD
                     , QOM.SPP_DV_CD
                     , QOM.WARE_MNGT_PRTNR_NO
@@ -517,7 +548,7 @@
                       END                      AS BFSVC_FSH_CT
                  FROM
                     (
-                      SELECT /*+ NO_MERGE USE_NL(D1 D2 D3 D4 D5 D6 D7 D8 D9 D10) LEADING(D2 D3 D9) */
+                      SELECT /*+ NO_MERGE USE_NL(D2 D3 D4 D5 D6 D7 D8 D9 D10) LEADING(D1) */
                              D8.WARE_NO                  AS STR_WARE_NO
                            , D1.PU_PART_PD_CD            AS ITM_PD_CD
                            , D8.DIDY_DV_CD               AS SPP_DV_CD
@@ -605,13 +636,14 @@
                                AND (    ( ASN_EXCD_DV_CD = '0' AND STR_WARE_NO = '300000' )
                                      OR ( ASN_EXCD_DV_CD = '3' AND STR_WARE_NO = T1.STR_WARE_NO )
                                    ) )
-           AND NOT EXISTS ( SELECT 1
+           AND NOT EXISTS ( SELECT /*+ NL_AJ INDEX(S1) */ 1
                               FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1   /* 물량배정파트너적용내역 */
                              WHERE S1.PRTNR_NO       = T1.WARE_MNGT_PRTNR_NO
                                AND S1.OG_TP_CD       = T1.OG_TP_CD
                                AND S1.DTA_DL_YN      = 'N'
                                AND S1.QOM_ASN_APY_YN = 'N'
-                               AND S1.APY_SN         = ( SELECT MAX(APY_SN)
+                               AND S1.APY_SN         = ( SELECT /*+ UNNEST INDEX(TB_SVST_QOM_ASN_PRTNR_APY_IZ) */
+                                                                MAX(APY_SN)
                                                            FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
                                                           WHERE PRTNR_NO  = S1.PRTNR_NO
                                                             AND OG_TP_CD  = S1.OG_TP_CD
