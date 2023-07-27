@@ -220,6 +220,12 @@ public class WpdcMaterialMgtController {
 
     }
 
+    /**
+     * 2023-07-26
+     * 미사용 Method로 1차 판별!!!
+     * @param dto
+     * @return
+     */
     @GetMapping("/check-validation")
     public String checkValidation(
         ValidationReq dto
