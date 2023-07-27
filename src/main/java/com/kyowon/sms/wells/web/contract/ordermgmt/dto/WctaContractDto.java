@@ -55,11 +55,10 @@ public class WctaContractDto {
     // 메일발송 Save Request Dto
     @ApiModel("WctaContractDto-SaveSendEmailsReq")
     public record SaveSendEmailsReq(
-        @NotBlank
         String cntrNm,
-        @NotBlank
         String cntrNo,
-        @NotBlank
+        Integer cntrSn,
+        String rstlYn,
         String emadr
     ) {}
 
