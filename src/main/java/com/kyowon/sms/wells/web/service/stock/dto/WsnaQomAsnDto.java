@@ -118,6 +118,23 @@ public class WsnaQomAsnDto {
     ) {}
 
     @Builder
+    @ApiModel("WsnaQomAsnDto-RemoveReq")
+    public record RemoveReq(
+
+        @NotBlank
+        String asnOjYm,
+        @Positive
+        @Max(999999999999L)
+        BigDecimal cnt,
+        @NotBlank
+        String ostrWareNo,
+        @NotBlank
+        String wareDvCd,
+        @NotBlank
+        String wareDtlDvCd
+    ) {}
+
+    @Builder
     @ApiModel("WsnaQomAsnDto-EditReq")
     public record EditReq(
         @NotBlank

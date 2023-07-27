@@ -134,6 +134,16 @@ public class WsnaQomAsnController {
         return SaveResponse.builder().processCount(this.service.createQomAsnIndependenceWares(dto)).build();
     }
 
+    @DeleteMapping
+    @ApiOperation(value = "물량배정 데이터 삭제", notes = "물량배정 데이터를 삭제한다.")
+    public SaveResponse removeQomAsn(
+        @RequestBody
+        @Valid
+        RemoveReq dto
+    ) {
+        return SaveResponse.builder().processCount(this.service.removeQomAsn(dto)).build();
+    }
+
     @GetMapping("/independence-wares/paging")
     @ApiOperation(value = "독립창고 물량배정 페이징 조회", notes = "독립창고 물량배정 데이터를 조회한다.")
     @ApiImplicitParams(value = {

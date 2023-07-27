@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnRemoveDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnWareRenewalDvo;
 
 @Mapper(componentModel = "spring", imports = {org.apache.commons.lang3.StringUtils.class})
@@ -22,5 +23,7 @@ public interface WsnaQomAsnConverter {
     WsnaQomAsnWareRenewalDvo mapEditReqToWsnaQomAsnWareRenewalDvo(EditReq dto);
 
     WsnaQomAsnCreateDvo mapCreateReqToWsnaQomAsnCreateDvo(CreateReq dto);
+
+    WsnaQomAsnRemoveDvo mapRemoveReqToWsnaQomAsnRemoveDvo(RemoveReq dto);
 
 }

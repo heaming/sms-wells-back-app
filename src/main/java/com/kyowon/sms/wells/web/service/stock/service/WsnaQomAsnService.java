@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaQomAsnConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnRemoveDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnWareRenewalDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -135,6 +136,18 @@ public class WsnaQomAsnService {
         dvo.setQomAsnNo(qomAsnNoMax);
 
         return this.mapper.insertQomAsnIndependence(dvo);
+    }
+
+    /**
+     * 물량배정 데이터 삭제 
+     * @param dto
+     * @return
+     */
+    @Transactional
+    public int removeQomAsn(RemoveReq dto) {
+        WsnaQomAsnRemoveDvo dvo = this.converter.mapRemoveReqToWsnaQomAsnRemoveDvo(dto);
+
+        return this.mapper.updateQomAsnForRemove(dvo);
     }
 
     /**

@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnRemoveDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnWareRenewalDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,6 +23,8 @@ public interface WsnaQomAsnMapper {
     List<WsnzWellsCodeWareHouseDvo> selectQomAsnStrWares(SearchWareReq dto);
 
     Integer selectQomAsnCount(SearchReq dto);
+
+    int updateQomAsnForRemove(WsnaQomAsnRemoveDvo dvo);
 
     int insertQomAsnFirstTnIndividuals(WsnaQomAsnCreateDvo dvo);
 
