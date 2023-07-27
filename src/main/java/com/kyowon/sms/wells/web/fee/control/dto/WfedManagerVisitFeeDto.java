@@ -21,7 +21,7 @@ public class WfedManagerVisitFeeDto {
         String ogLevlDvCd1,
         String ogLevlDvCd2,
         String ogLevlDvCd3,
-        String no
+        String prtnrNo
     ) {}
 
     // *********************************************************
