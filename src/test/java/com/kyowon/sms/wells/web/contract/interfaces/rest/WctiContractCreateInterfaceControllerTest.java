@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateKmembersReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentReq;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.test.SpringTestSupport;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
@@ -64,12 +65,13 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
      */
 
     @Test
-    @DisplayName("KMEMBERS wells 계약생성")
-    void createContractForKmembers() throws Exception {
+    @DisplayName("일시불 wells 계약생성")
+    void createContractForSinglePayment() throws Exception {
         // given
-        CreateKmembersReq req = CreateKmembersReq.builder()
+        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .cntrNo("W2022538820X")
             .cntrSn("1")
+            .rcpChnlDtl("2010")
             .cstKnm("조순옥")
             .cntrtAdrDvCd("1")
             .cntrtCralLocaraTno("010")
@@ -101,10 +103,70 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .uswy("0")
             .mngtPrd("6")
             .build();
-        EaiWrapper<CreateKmembersReq> dto = new EaiWrapper(req);
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
 
         // when & then
-        MockHttpServletRequestBuilder request = post(BASE_URL + "/kmembers")
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/single-payment")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"));
+    }
+
+    @Test
+    @DisplayName("렌탈 wells 계약생성")
+    void createContractForRental() throws Exception {
+        // given
+        CreateRentalReq req = CreateRentalReq.builder()
+            .cntrNo("W2022538820X")
+            .cntrSn("1")
+            .rcpChnlDtl("2010")
+            .cstNm("조순옥")
+            .adrDvCd("1")
+            .cphonLocaraTno("010")
+            .cphonExnoEncr("2222")
+            .cphonIdvTno("3333")
+            .zip("16332")
+            .basAdr("경기 수원시 장안구 천천로22번길 34")
+            .dtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
+            .cstNo("031095096")
+            .istCstNm("조순옥")
+            .istAdrDvCd("1")
+            .istCphonLocaraTno("010")
+            .istCphonExnoEncr("2222")
+            .istCphonIdvTno("3333")
+            .istZip("16332")
+            .istBasAdr("경기 수원시 장안구 천천로22번길 34")
+            .istDtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
+            .pdCd("WP05120580")
+            .pdQty("1")
+            .cardAmt1("1000")
+            .crcdnoEncr1("11122233334444")
+            .cardIstmMcn1("1")
+            .cdonrNm1("조순옥")
+            .dscDvCd("2")
+            .dscTpCd("1")
+            .vstPrdCd("6")
+            .uswyCd("0")
+            .prtnrNo("1650501")
+            .pifClcnUAgYn("Y")
+            .pifThpOfrAgYn("Y")
+            .mrktUtlzAgYn("Y")
+            .fstrAgYn("Y")
+            .pifBizFstrAgYn("Y")
+            .cntrtRel("0")
+            .txinvPblOjYn("Y")
+            .txinvCphonLocaraTno("010")
+            .txinvCphonExnoEncr("2222")
+            .txinvCphonIdvTno("3333")
+            .txinvEmadr("a@kyowon.co.kr")
+            .build();
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/rental")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dto));
 
