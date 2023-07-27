@@ -23,15 +23,13 @@ public interface WsnaQomAsnMapper {
 
     Integer selectQomAsnCount(SearchReq dto);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnFirstTnIndividualsForCreate(SearchReq dto);
+    int insertQomAsnFirstTnIndividuals(WsnaQomAsnCreateDvo dvo);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnIndividualsForCreate(SearchReq dto);
+    int insertQomAsnIndividuals(WsnaQomAsnCreateDvo dvo);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnIndependenceForCreate(SearchReq dto);
+    int insertQomAsnIndependence(WsnaQomAsnCreateDvo dvo);
 
     int selectItmQomAsnNoMax(String asnOjYm, String wareDtlDvCd);
-
-    int insertItmQomAsn(WsnaQomAsnCreateDvo dvo);
 
     PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(
         SearchReq dto, PageInfo pageInfo

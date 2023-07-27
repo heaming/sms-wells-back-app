@@ -97,9 +97,47 @@
              )
     </sql>
 
-    <select id="selectQomAsnFirstTnIndividualsForCreate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo">
+    <select id="selectItmQomAsnNoMax" resultType="java.lang.Integer">
+        SELECT NVL(MAX(TO_NUMBER(SUBSTR(ITM_QOM_ASN_NO, 9))), 0)
+          FROM TB_SVST_ITM_QOM_ASN_IZ
+         WHERE ITM_QOM_ASN_NO LIKE #{wareDtlDvCd} || #{asnOjYm} || '%'
+    </select>
+
+    <insert id="insertQomAsnFirstTnIndividuals">
+        INSERT INTO TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
+             (
+               ITM_QOM_ASN_NO       /* 품목물량배정번호 */
+             , ASN_OJ_YM            /* 배정대상년월 */
+             , ASN_TN_N             /* 배정회차수 */
+             , STR_WARE_NO          /* 입고창고번호 */
+             , OSTR_WARE_NO         /* 출고창고번호 */
+             , ITM_PD_CD            /* 품목상품코드 */
+             , WARE_DV_CD           /* 창고구분코드 */
+             , WARE_DTL_DV_CD       /* 창고상세구분코드 */
+             , SPP_DV_CD            /* 배송구분코드 */
+             , WARE_MNGT_PRTNR_NO   /* 창고관리파트너번호 */
+             , OG_TP_CD             /* 조직유형코드 */
+             , BLD_CD               /* 빌딩코드 */
+             , ADR_ID               /* 주소ID */
+             , MAT_GD_CD            /* 자재등급코드 */
+             , GE_ASN_QOM_CT        /* 일반배정물량건수 */
+             , CRP_ASN_QOM_CT       /* 법인배정물량건수 */
+             , WO_ASN_QOM_CT        /* 전체배정물량건수 */
+             , ETN_WTCF_APY_QTY     /* 회차별가중치적용수량 */
+             , MCBY_ACU_OSTR_QTY    /* 월별누적출고수량 */
+             , CRTL_STOC_QTY        /* 현재재고수량 */
+             , THWK_EXP_QTY         /* 금주예정수량 */
+             , BORR_EXP_QTY         /* 차주예정수량 */
+             , CNFM_QTY             /* 확정수량 */
+             , BOX_UNIT_QTY         /* 박수단위수량 */
+             , ACL_OSTR_QTY         /* 실제출고수량 */
+             , BFSVC_FSH_CT         /* BS완료수량 */
+             , DTA_DL_YN            /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
         <include refid="selectWithTwQty1" />
-        SELECT #{asnOjYm}                                           AS ASN_OJ_YM
+        SELECT #{wareDtlDvCd} || #{asnOjYm} || LPAD( #{qomAsnNo} + ROWNUM, 7, '0')
+             , #{asnOjYm}                                           AS ASN_OJ_YM
              , #{cnt}                                               AS ASN_TN_N
              , T1.STR_WARE_NO
              , #{ostrWareNo}                                        AS OSTR_WARE_NO
@@ -127,7 +165,7 @@
                         FROM TW_QTY1
                        WHERE PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
                          AND PD_CD    = T1.ITM_PD_CD ), 0)          AS THWK_EXP_QTY
-             , 0 AS BORR_EXP_QTY
+             , 0                                                    AS BORR_EXP_QTY
              , CASE WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797', 'WM07104798', 'WM07105097')
                     THEN NVL(T1.ETN_WTCF_APY_QTY, 0) + MOD(T1.ETN_WTCF_APY_QTY, 2)
                     ELSE T1.ETN_WTCF_APY_QTY
@@ -140,6 +178,8 @@
                END                                                  AS BOX_UNIT_QTY
              , 0                                                    AS ACL_OSTR_QTY
              , 0                                                    AS BFSVC_FSH_CT
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
                SELECT QOM.STR_WARE_NO
@@ -161,8 +201,7 @@
                       END + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY
                  FROM
                     (
-                      SELECT /*+ NO_MERGE USE_NL(D1 D2 D3 D4 D5 D6 D7 D8 D9) LEADING(D2 D3 D8) */
-                             D7.WARE_NO             AS STR_WARE_NO
+                      SELECT D7.WARE_NO             AS STR_WARE_NO
                            , D1.PART_PD_CD          AS ITM_PD_CD
                            , D7.DIDY_DV_CD          AS SPP_DV_CD
                            , D3.MNGT_PRTNR_NO       AS WARE_MNGT_PRTNR_NO
@@ -263,9 +302,40 @@
                                                           WHERE PRTNR_NO  = S1.PRTNR_NO
                                                             AND OG_TP_CD  = S1.OG_TP_CD
                                                             AND DTA_DL_YN = 'N' ) )
-    </select>
+    </insert>
 
-    <select id="selectQomAsnIndividualsForCreate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo">
+    <insert id="insertQomAsnIndividuals" >
+        INSERT INTO TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
+             (
+               ITM_QOM_ASN_NO       /* 품목물량배정번호 */
+             , ASN_OJ_YM            /* 배정대상년월 */
+             , ASN_TN_N             /* 배정회차수 */
+             , STR_WARE_NO          /* 입고창고번호 */
+             , OSTR_WARE_NO         /* 출고창고번호 */
+             , ITM_PD_CD            /* 품목상품코드 */
+             , WARE_DV_CD           /* 창고구분코드 */
+             , WARE_DTL_DV_CD       /* 창고상세구분코드 */
+             , SPP_DV_CD            /* 배송구분코드 */
+             , WARE_MNGT_PRTNR_NO   /* 창고관리파트너번호 */
+             , OG_TP_CD             /* 조직유형코드 */
+             , BLD_CD               /* 빌딩코드 */
+             , ADR_ID               /* 주소ID */
+             , MAT_GD_CD            /* 자재등급코드 */
+             , GE_ASN_QOM_CT        /* 일반배정물량건수 */
+             , CRP_ASN_QOM_CT       /* 법인배정물량건수 */
+             , WO_ASN_QOM_CT        /* 전체배정물량건수 */
+             , ETN_WTCF_APY_QTY     /* 회차별가중치적용수량 */
+             , MCBY_ACU_OSTR_QTY    /* 월별누적출고수량 */
+             , CRTL_STOC_QTY        /* 현재재고수량 */
+             , THWK_EXP_QTY         /* 금주예정수량 */
+             , BORR_EXP_QTY         /* 차주예정수량 */
+             , CNFM_QTY             /* 확정수량 */
+             , BOX_UNIT_QTY         /* 박수단위수량 */
+             , ACL_OSTR_QTY         /* 실제출고수량 */
+             , BFSVC_FSH_CT         /* BS완료수량 */
+             , DTA_DL_YN            /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
         <include refid="selectWithTwQty1" />
              , TW_QTY2 AS
              (
@@ -351,7 +421,8 @@
                   AND TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W') = TO_CHAR(SYSDATE, 'W')
                 GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
              )
-        SELECT #{asnOjYm}                                           AS ASN_OJ_YM
+        SELECT #{wareDtlDvCd} || #{asnOjYm} || LPAD( #{qomAsnNo} + ROWNUM, 7, '0')
+             , #{asnOjYm}                                           AS ASN_OJ_YM
              , #{cnt}                                               AS ASN_TN_N
              , T1.STR_WARE_NO
              , #{ostrWareNo}                                        AS OSTR_WARE_NO
@@ -398,6 +469,8 @@
                END                                                  AS BOX_UNIT_QTY
              , 0                                                    AS ACL_OSTR_QTY
              , T1.BFSVC_FSH_CT
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
                SELECT QOM.STR_WARE_NO
@@ -543,10 +616,40 @@
                                                           WHERE PRTNR_NO  = S1.PRTNR_NO
                                                             AND OG_TP_CD  = S1.OG_TP_CD
                                                             AND DTA_DL_YN = 'N' ) )
-    </select>
+    </insert>
 
-    <select id="selectQomAsnIndependenceForCreate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo">
-        SELECT #{asnOjYm}     AS ASN_OJ_YM
+    <insert id="insertQomAsnIndependence">
+        INSERT INTO TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
+             (
+               ITM_QOM_ASN_NO       /* 품목물량배정번호 */
+             , ASN_OJ_YM            /* 배정대상년월 */
+             , ASN_TN_N             /* 배정회차수 */
+             , STR_WARE_NO          /* 입고창고번호 */
+             , OSTR_WARE_NO         /* 출고창고번호 */
+             , ITM_PD_CD            /* 품목상품코드 */
+             , WARE_DV_CD           /* 창고구분코드 */
+             , WARE_DTL_DV_CD       /* 창고상세구분코드 */
+             , SPP_DV_CD            /* 배송구분코드 */
+             , WARE_MNGT_PRTNR_NO   /* 창고관리파트너번호 */
+             , OG_TP_CD             /* 조직유형코드 */
+             , BLD_CD               /* 빌딩코드 */
+             , ADR_ID               /* 주소ID */
+             , MAT_GD_CD            /* 자재등급코드 */
+             , GE_ASN_QOM_CT        /* 일반배정물량건수 */
+             , CRP_ASN_QOM_CT       /* 법인배정물량건수 */
+             , WO_ASN_QOM_CT        /* 전체배정물량건수 */
+             , ETN_WTCF_APY_QTY     /* 회차별가중치적용수량 */
+             , MCBY_ACU_OSTR_QTY    /* 월별누적출고수량 */
+             , CRTL_STOC_QTY        /* 현재재고수량 */
+             , THWK_EXP_QTY         /* 금주예정수량 */
+             , CNFM_QTY             /* 확정수량 */
+             , BOX_QTY              /* 박스수량 */
+             , BOX_UNIT_QTY         /* 박수단위수량 */
+             , DTA_DL_YN            /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT #{wareDtlDvCd} || #{asnOjYm} || LPAD( #{qomAsnNo} + ROWNUM, 7, '0')
+             , #{asnOjYm}     AS ASN_OJ_YM
              , #{cnt}         AS ASN_TN_N
              , T1.STR_WARE_NO
              , #{ostrWareNo}  AS OSTR_WARE_NO
@@ -570,9 +673,11 @@
              , T1.THWK_EXP_QTY
              , T1.CNFM_QTY
              , T1.BOX_QTY
-             , CASE WHEN T1.BOX_QTY <![CDATA[>]]> 1 THEN T1.CNFM_QTY / T1.BOX_QTY
+             , CASE WHEN T1.BOX_QTY > 1 THEN T1.CNFM_QTY / T1.BOX_QTY
                     ELSE 0
                END            AS BOX_UNIT_QTY
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
                SELECT QOM.STR_WARE_NO
@@ -787,79 +892,6 @@
                                                           WHERE PRTNR_NO  = S1.PRTNR_NO
                                                             AND OG_TP_CD  = S1.OG_TP_CD
                                                             AND DTA_DL_YN = 'N' ) )
-    </select>
-
-    <select id="selectItmQomAsnNoMax" resultType="java.lang.Integer">
-        SELECT NVL(MAX(TO_NUMBER(SUBSTR(ITM_QOM_ASN_NO, 9))), 0) + 1
-          FROM TB_SVST_ITM_QOM_ASN_IZ
-         WHERE ITM_QOM_ASN_NO LIKE #{wareDtlDvCd} || #{asnOjYm} || '%'
-    </select>
-
-    <insert id="insertItmQomAsn">
-        INSERT INTO TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
-             (
-               ITM_QOM_ASN_NO       /* 품목물량배정번호 */
-             , ASN_OJ_YM            /* 배정대상년월 */
-             , ASN_TN_N             /* 배정회차수 */
-             , STR_WARE_NO          /* 입고창고번호 */
-             , OSTR_WARE_NO         /* 출고창고번호 */
-             , ITM_PD_CD            /* 품목상품코드 */
-             , WARE_DV_CD           /* 창고구분코드 */
-             , WARE_DTL_DV_CD       /* 창고상세구분코드 */
-             , SPP_DV_CD            /* 배송구분코드 */
-             , WARE_MNGT_PRTNR_NO   /* 창고관리파트너번호 */
-             , OG_TP_CD             /* 조직유형코드 */
-             , BLD_CD               /* 빌딩코드 */
-             , ADR_ID               /* 주소ID */
-             , MAT_GD_CD            /* 자재등급코드 */
-             , GE_ASN_QOM_CT        /* 일반배정물량건수 */
-             , CRP_ASN_QOM_CT       /* 법인배정물량건수 */
-             , WO_ASN_QOM_CT        /* 전체배정물량건수 */
-             , ETN_WTCF_APY_QTY     /* 회차별가중치적용수량 */
-             , MCBY_ACU_OSTR_QTY    /* 월별누적출고수량 */
-             , CRTL_STOC_QTY        /* 현재재고수량 */
-             , THWK_EXP_QTY         /* 금주예정수량 */
-             , BORR_EXP_QTY         /* 차주예정수량 */
-             , CNFM_QTY             /* 확정수량 */
-             , BOX_QTY              /* 박스수량 */
-             , BOX_UNIT_QTY         /* 박수단위수량 */
-             , ACL_OSTR_QTY         /* 실제출고수량 */
-             , BFSVC_FSH_CT         /* BS완료수량 */
-             , DTA_DL_YN            /* 데이터삭제여부 */
-        <include refid="COMMON.insertSystemField" />
-             )
-        VALUES
-             (
-               #{wareDtlDvCd} || #{asnOjYm} || LPAD(#{qomAsnNo}, 7, '0')
-             , #{asnOjYm}
-             , #{asnTnN}
-             , #{strWareNo}
-             , #{ostrWareNo}
-             , #{itmPdCd}
-             , #{wareDvCd}
-             , #{wareDtlDvCd}
-             , #{sppDvCd}
-             , #{wareMngtPrtnrNo}
-             , #{ogTpCd}
-             , #{bldCd}
-             , #{adrId}
-             , #{matGdCd}
-             , #{geAsnQomCt}
-             , #{crpAsnQomCt}
-             , #{woAsnQomCt}
-             , #{etnWtcfApyQty}
-             , #{mcbyAcuOstrQty}
-             , #{crtlStocQty}
-             , #{thwkExpQty}
-             , #{borrExpQty}
-             , #{cnfmQty}
-             , #{boxQty}
-             , #{boxUnitQty}
-             , #{aclOstrQty}
-             , #{bfsvcFshCt}
-             , 'N'
-        <include refid="COMMON.insertSystemFieldValue" />
-             )
     </insert>
 
     <select id="selectQomAsnsForIndividual" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo">

@@ -21,6 +21,6 @@ public interface WsnaQomAsnConverter {
 
     WsnaQomAsnWareRenewalDvo mapEditReqToWsnaQomAsnWareRenewalDvo(EditReq dto);
 
-    List<WsnaQomAsnCreateDvo> mapAllCreateReqToWsnaQomAsnCreateDvo(List<CreateReq> dtos);
+    WsnaQomAsnCreateDvo mapCreateReqToWsnaQomAsnCreateDvo(CreateReq dto);
 
 }

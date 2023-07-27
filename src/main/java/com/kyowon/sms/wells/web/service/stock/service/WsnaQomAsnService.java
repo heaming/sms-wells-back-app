@@ -87,11 +87,13 @@ public class WsnaQomAsnService {
     }
 
     /**
-     * 개인창고 물량배정 데이터 생성 관련 조회
+     * 개인창고 물량배정 데이터 생성
      * @param dto
      * @return
      */
-    public List<WsnaQomAsnCreateDvo> getQomAsnIndividualsForCreate(SearchReq dto) {
+    @Transactional(timeout = 600)
+    public int createQomAsnIndividualWares(CreateReq dto) {
+        WsnaQomAsnCreateDvo dvo = this.converter.mapCreateReqToWsnaQomAsnCreateDvo(dto);
 
         // 기준년월
         String apyYm = dto.apyYm();
@@ -99,46 +101,40 @@ public class WsnaQomAsnService {
         String asnOjYm = dto.asnOjYm();
         // 회차
         BigDecimal cnt = dto.cnt();
-
-        // 1회차 이고 기준년월과 배정년월이 다를 경우
-        if (BigDecimal.ONE.equals(cnt) && !apyYm.equals(asnOjYm)) {
-            return this.mapper.selectQomAsnFirstTnIndividualsForCreate(dto);
-        } else {
-            return this.mapper.selectQomAsnIndividualsForCreate(dto);
-        }
-    }
-
-    /**
-     * 독립창고 물량배정 데이터 생성 관련 조회
-     * @param dto
-     * @return
-     */
-    public List<WsnaQomAsnCreateDvo> getQomAsnIndependenceForCreate(SearchReq dto) {
-        return this.mapper.selectQomAsnIndependenceForCreate(dto);
-    }
-
-    /**
-     * 개인창고 물량배정 데이터 생성
-     * @param dtos
-     * @return
-     */
-    @Transactional(timeout = 300)
-    public int createQomAsns(List<CreateReq> dtos) {
-
-        int count = 0;
-
-        CreateReq dto = dtos.get(0);
-        String asnOjYm = dto.asnOjYm();
+        // 창고세부구분코드
         String wareDtlDvCd = dto.wareDtlDvCd();
 
         int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
+        dvo.setQomAsnNo(qomAsnNoMax);
 
-        List<WsnaQomAsnCreateDvo> dvos = this.converter.mapAllCreateReqToWsnaQomAsnCreateDvo(dtos);
-        for (WsnaQomAsnCreateDvo dvo : dvos) {
-            dvo.setQomAsnNo(qomAsnNoMax++);
-            count += this.mapper.insertItmQomAsn(dvo);
+        // 1회차 이고 기준년월과 배정년월이 다를 경우
+        if (BigDecimal.ONE.equals(cnt) && !apyYm.equals(asnOjYm)) {
+            return this.mapper.insertQomAsnFirstTnIndividuals(dvo);
+        } else {
+            return this.mapper.insertQomAsnIndividuals(dvo);
         }
-        return count;
+    }
+
+    /**
+     * 독립창고 물량배정 데이터 생성
+     * @param dto
+     * @return
+     */
+    @Transactional
+    public int createQomAsnIndependenceWares(CreateReq dto) {
+        WsnaQomAsnCreateDvo dvo = this.converter.mapCreateReqToWsnaQomAsnCreateDvo(dto);
+
+        // 기준년월
+        String apyYm = dto.apyYm();
+        // 배정년월
+        String asnOjYm = dto.asnOjYm();
+        // 창고세부구분코드
+        String wareDtlDvCd = dto.wareDtlDvCd();
+
+        int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
+        dvo.setQomAsnNo(qomAsnNoMax);
+
+        return this.mapper.insertQomAsnIndependence(dvo);
     }
 
     /**
