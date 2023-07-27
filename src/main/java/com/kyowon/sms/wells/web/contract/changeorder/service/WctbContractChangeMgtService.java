@@ -349,9 +349,8 @@ public class WctbContractChangeMgtService {
             .templateParamMap(paramMap) // 템플릿 파라미터
             .destInfo(destInfo) // 수신자 정보
             .callback("15884113") // 콜백
-            .returnMtPr(true) // 메세지ID 리턴 여부
             .build();
-        mtPr += kakaoMessageService.sendMessage(kakaoSendReqDvo);
+        mtPr += kakaoMessageService.sendMessageAndGetInfo(kakaoSendReqDvo).get(0).getMtPr();
 
         if (mtPr > 0) {
             String notyFwId = historyService.createContractNotifyFowrdindHistory(

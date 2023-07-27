@@ -6,16 +6,16 @@ public class WwfeaAccountNetIncreaseDto {
 
     public record SearchReq(
         @NotBlank
-        String inqrDv,
+        String inqrDvCd,
         @NotBlank
         String feeTcntDvCd,
         @NotBlank
         String perfYm,
         @NotBlank
         String ogTpCd,
-        String cnclTp,
-        String sellTp,
-        String aggregateTp,
+        String cnclTpCd,
+        String sellTpCd,
+        String aggregateTpCd,
         String dgr1LevlOgId,
         String dgr2LevlOgId,
         String dgr3LevlOgId,
@@ -26,12 +26,13 @@ public class WwfeaAccountNetIncreaseDto {
         @NotBlank
         String perfYm,
         @NotBlank
-        String ogTpCd
+        String feeTcntDvCd
+
     ) {}
 
     public record SearchRes(
 
-        String inqrDv, /* 유형 */
+        String inqrDvCd, /* 유형 */
         String cntrDtlNo, /* 계약상세번호 */
         String pdClsfNm,
         String pdClsfId,

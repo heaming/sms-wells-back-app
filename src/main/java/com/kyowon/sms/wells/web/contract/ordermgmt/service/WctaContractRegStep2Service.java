@@ -297,12 +297,15 @@ public class WctaContractRegStep2Service {
                 .filter((r) -> r.getCntrRelDtlCd().equals("212")).findFirst().orElseThrow();
             String ojCntrNo = rel.getOjDtlCntrNo();
             Integer ojCntrSn = rel.getOjDtlCntrSn();
+            // 원계약의 판매유형상세코드
+            WctaContractDtlDvo dtl = regService.selectContractDtl(ojCntrNo).stream()
+                .filter((d) -> d.getCntrSn() == ojCntrSn).findFirst().orElseThrow();
             // 원계약에서 계약된 서비스상품코드, 제품코드와 동일한 기준상품을 조회하기 위해 상품관계 테이블 조회, 대상상품코드 목록 추출
             List<String> mshPdCds = regService.selectContractPdRel(ojCntrNo, ojCntrSn).stream()
                 .filter((p) -> StringUtils.equalsAny(p.getPdRelTpCd(), "03", "05"))
                 .map((p) -> p.getOjPdCd()).distinct().toList();
             // 멤버십 대상상품이 있는 경우 상품관계 조건 추가, 정기배송 상품 제외
-            pds = mapper.selectProducts(sellInflwChnlDtlCd, pdFilter, mshPdCds).stream()
+            pds = mapper.selectProducts(sellInflwChnlDtlCd, pdFilter, mshPdCds, dtl.getSellTpDtlCd()).stream()
                 .collect(Collectors.toMap(WctaContractRegStep2Dvo.PdDvo::getPdCd, p -> p, (p, q) -> p)).values()
                 .stream().toList();
             // 렌탈차월 조회

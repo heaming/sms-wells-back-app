@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedingPackageCtrQtyRegMapper">
+
+    <select id="selectSeedingPackageCtrQtys" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingPackageCtrQtyRegDto$SearchRes">
+          WITH TEMP_T AS
+             (
+               SELECT T2.SDING_PKG_CD
+                    , T3.DG_GG_LCT_CD
+                    , COUNT(1) AS CNT_SUB
+                 FROM
+                    (
+                      SELECT D2.PD_CD
+                           , D1.SDING_PKG_PD_CD
+                           , D4.OG_CD
+                           , ( SELECT REQD_DT
+                                 FROM TB_SVPD_CST_SV_EXCN_IZ
+                                WHERE CNTR_NO = D6.BASE_DTL_CNTR_NO
+                                  AND CNTR_SN = D6.BASE_DTL_CNTR_SN ) AS REQD_DT   /* 철거일자 */
+                        FROM TB_SVPD_SDING_SPP_PLAN_IZ D1          /* 모종배송계획내역 */
+                       INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2    /* 고객서비스AS설치대상내역 */
+                          ON D2.CNTR_NO         = D1.CNTR_NO
+                         AND D2.CNTR_SN         = D1.CNTR_SN
+                         AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                         AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                         AND D1.SPP_ORD_NO      = D2.SV_BIZ_HCLSF_CD || D2.RCPDT || SUBSTR(D2.AS_IST_OJ_NO, -5)
+                       INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3   /* 고객서비스AS설치배정내역 */
+                          ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                       INNER JOIN TB_OGBS_MM_PRTNR_IZ D4           /* 월파트너내역 */
+                          ON D4.OG_TP_CD = D3.ICHR_OG_TP_CD
+                         AND D4.PRTNR_NO = D3.ICHR_PRTNR_NO
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5        /* 고객서비스수행내역 */
+                          ON D5.CNTR_NO = D2.CNTR_NO
+                         AND D5.CNTR_SN = D2.CNTR_SN
+                       INNER JOIN TB_SSCT_CNTR_REL D6              /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+                          ON D6.OJ_DTL_CNTR_NO = D2.CNTR_NO
+                         AND D6.OJ_DTL_CNTR_SN = D2.CNTR_SN
+                       INNER JOIN TB_SSCT_CNTR_DTL D7              /* 계약상세-웰스팜 */
+                          ON D7.CNTR_NO = D6.BASE_DTL_CNTR_NO
+                         AND D7.CNTR_SN = D6.BASE_DTL_CNTR_SN
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D8       /* 상품각사속성상세 */
+                          ON D8.PD_CD = D2.PD_CD
+                       WHERE D1.DTA_DL_YN          = 'N'
+                         AND D1.ITM_IOST_DV_CD     = '1'
+                         AND D2.DTA_DL_YN          = 'N'
+                         AND D3.DTA_DL_YN          = 'N'
+                         AND D3.WK_PRGS_STAT_CD   IN ('00', '10')   /* 작업대기, 진행중 */
+                         AND D4.DTA_DL_YN          = 'N'
+                         AND D4.BASE_YM            = TO_CHAR(SYSDATE, 'YYYYMM')
+                         AND D5.DTA_DL_YN          = 'N'
+                         AND D5.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
+                         AND D6.DTA_DL_YN          = 'N'
+                         AND D6.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
+                         AND D7.DTA_DL_YN          = 'N'
+                         AND D7.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+                         AND D8.DTA_DL_YN          = 'N'
+                         AND D8.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D8.PD_PRP_VAL01 LIKE '60%'
+                         AND D8.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
+                         AND D1.CAN_DT IS NULL
+                         AND D1.OSTR_CNFMDT IS NULL
+                         AND D5.REQD_DT IS NULL
+                         AND D3.VST_CNFMDT BETWEEN TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + 1, 'YYYYMMDD' )
+                                               AND TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                WHERE CNR_OG_CD = D4.OG_CD
+                                                                                                  AND DTA_DL_YN = 'N'
+                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{ostrDt}, 'YYYYMMDD'), 'D') -1
+                                                                                                  AND #{ostrDt} BETWEEN APY_STRTDT AND APY_ENDDT
+                                                                                                  AND ROWNUM    = 1 )
+                                                          , 'YYYYMMDD' )
+                       UNION ALL
+                      SELECT D2.PDCT_PD_CD                            AS PD_CD
+                           , D1.SDING_PKG_PD_CD
+                           , D4.OG_CD
+                           , ( SELECT REQD_DT
+                                 FROM TB_SVPD_CST_SV_EXCN_IZ
+                                WHERE CNTR_NO = D7.BASE_DTL_CNTR_NO
+                                  AND CNTR_SN = D7.BASE_DTL_CNTR_SN ) AS REQD_DT   /* 철거일자 */
+                        FROM TB_SVPD_SDING_SPP_PLAN_IZ D1          /* 모종배송계획내역 */
+                       INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2    /* 고객서비스BS대상내역 */
+                          ON D2.CNTR_NO         = D1.CNTR_NO
+                         AND D2.CNTR_SN         = D1.CNTR_SN
+                         AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                         AND D1.SV_BIZ_HCLSF_CD = '2'
+                         AND D1.SPP_ORD_NO      = '2' || D2.VST_DUEDT || LPAD(D2.IST_NMN_N, 5, '0')
+                       INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3   /* 고객서비스BS배정내역 */
+                          ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                       INNER JOIN TB_OGBS_MM_PRTNR_IZ D4           /* 월파트너내역 */
+                          ON D4.OG_TP_CD  = D3.CNFM_PSIC_PRTNR_OG_TP_CD
+                         AND D4.PRTNR_NO  = D3.CNFM_PSIC_PRTNR_NO
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5        /* 고객서비스수행내역 */
+                          ON D5.CNTR_NO = D2.CNTR_NO
+                         AND D5.CNTR_SN = D2.CNTR_SN
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6       /* 상품각사속성상세 */
+                          ON D6.PD_CD = D2.PDCT_PD_CD
+                       INNER JOIN TB_SSCT_CNTR_REL D7              /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+                          ON D7.OJ_DTL_CNTR_NO = D2.CNTR_NO
+                         AND D7.OJ_DTL_CNTR_SN = D2.CNTR_SN
+                       INNER JOIN TB_SSCT_CNTR_DTL D8              /* 계약상세-웰스팜 */
+                          ON D8.CNTR_NO = D7.BASE_DTL_CNTR_NO
+                         AND D8.CNTR_SN = D7.BASE_DTL_CNTR_SN
+                       WHERE D1.DTA_DL_YN          = 'N'
+                         AND D1.ITM_IOST_DV_CD     = '1'
+                         AND D2.DTA_DL_YN          = 'N'
+                         AND D2.ASN_OJ_YM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                         AND D3.DTA_DL_YN          = 'N'
+                         AND D3.ASN_OJ_YM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                         AND D3.VST_PRGS_STAT_CD  IN ('00', '10')   /* 작업대기, 진행중 */
+                         AND D4.DTA_DL_YN          = 'N'
+                         AND D4.BASE_YM            = TO_CHAR(SYSDATE, 'YYYYMM')
+                         AND D5.DTA_DL_YN          = 'N'
+                         AND D5.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
+                         AND D6.DTA_DL_YN          = 'N'
+                         AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D6.PD_PRP_VAL01 LIKE '60%'
+                         AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
+                         AND D7.DTA_DL_YN          = 'N'
+                         AND D7.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
+                         AND D8.DTA_DL_YN          = 'N'
+                         AND D8.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+                         AND D1.CAN_DT IS NULL
+                         AND D1.OSTR_CNFMDT IS NULL
+                         AND D5.REQD_DT IS NULL
+                         AND D3.VST_CNFMDT BETWEEN TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + 1, 'YYYYMMDD' )
+                                               AND TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                WHERE CNR_OG_CD = D4.OG_CD
+                                                                                                  AND DTA_DL_YN = 'N'
+                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{ostrDt}, 'YYYYMMDD'), 'D') -1
+                                                                                                  AND #{ostrDt} BETWEEN APY_STRTDT AND APY_ENDDT
+                                                                                                  AND ROWNUM    = 1 )
+                                                          , 'YYYYMMDD' )
+                    ) T1
+                INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ T2       /* 모종패키지품목내역 */
+                   ON T2.SDING_PD_CD = T1.PD_CD
+                INNER JOIN TB_SVPD_SDING_CNR_SPP_DOW_IZ T3   /* 모종센터배송요일내역 */
+                   ON T3.CNR_OG_CD = T1.OG_CD
+                WHERE T2.DTA_DL_YN = 'N'
+                  AND T3.DTA_DL_YN = 'N'
+                  AND T3.DOW_DV_CD = TO_CHAR(TO_DATE(#{ostrDt}, 'YYYYMMDD'), 'D') -1
+                  AND T1.REQD_DT IS NULL
+                  AND T3.DG_GG_LCT_CD = #{dgGgLctCd}
+                GROUP BY T2.SDING_PKG_CD, T3.DG_GG_LCT_CD
+             )
+             , TEMP_CNT AS
+             (
+               SELECT D1.GDS              AS SDING_PKG_CD
+                    , NVL(D2.EXCD_QTY, 0) AS EXCD_QTY
+                    , NVL(D2.SPMT_QTY, 0) AS SPMT_QTY
+                 FROM
+                    (
+                      SELECT CD_VLD_VAL AS GDS
+                        FROM T_CMZ_CD_D
+                       WHERE DEL_YN    = 'N'
+                         AND TENANT_ID = 'TNT_WELLS'
+                         AND CD_ID     = 'SDING_PKG_CD'
+                    ) D1
+                 LEFT OUTER JOIN TB_SVPD_SDING_PKG_QTY_CTR_IZ D2   /* 모종패키지수량조정내역 */
+                   ON D2.SDING_PKG_CD = D1.GDS
+                  AND D2.DTA_DL_YN    = 'N'
+                  AND D2.DG_GG_LCT_CD = #{dgGgLctCd}
+                  AND D2.OSTR_DUEDT   = #{ostrDt}
+                ORDER BY D1.GDS
+             )
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'SDING_PKG_CD', D1.SDING_PKG_CD, #{session.langId}) AS SDING_PKG_NM   /* 패키지명 */
+             , D1.SDING_PKG_CD                                                                                /* 패키지코드 */
+             , NVL(D2.CNT_SUB, 0)                                                           AS OSTR_QTY       /* 출고수량 */
+             , D1.EXCD_QTY                                                                                    /* 제외수량 */
+             , D1.SPMT_QTY                                                                                    /* 추가수량 */
+          FROM TEMP_CNT D1
+          LEFT OUTER JOIN TEMP_T D2
+            ON D2.SDING_PKG_CD = D1.SDING_PKG_CD
+         ORDER BY D1.SDING_PKG_CD
+    </select>
+
+    <insert id="mergeSdingPkgQtyCtrIz">
+         MERGE INTO TB_SVPD_SDING_PKG_QTY_CTR_IZ TB_TGT   /* 모종패키지수량조정내역 */
+         USING
+             (
+               SELECT #{dgGgLctCd}  AS DG_GG_LCT_CD   /* 대표집하위치코드 */
+                    , #{sdingPkgCd} AS SDING_PKG_CD   /* 모종패키지코드 */
+                    , #{ostrDuedt}  AS OSTR_DUEDT     /* 출고예정일자 */
+                    , #{excdQty}    AS EXCD_QTY       /* 제외수량 */
+                    , #{spmtQty}    AS SPMT_QTY       /* 추가수량 */
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.DG_GG_LCT_CD = TB_SRC.DG_GG_LCT_CD
+               AND TB_TGT.SDING_PKG_CD = TB_SRC.SDING_PKG_CD
+               AND TB_TGT.OSTR_DUEDT   = TB_SRC.OSTR_DUEDT
+             )
+          WHEN MATCHED THEN
+        UPDATE
+           SET TB_TGT.EXCD_QTY = TB_SRC.EXCD_QTY
+             , TB_TGT.SPMT_QTY = TB_SRC.SPMT_QTY
+        <include refid="COMMON.updateSystemField"/>
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               TB_TGT.DG_GG_LCT_CD   /* 대표집하위치코드 */
+             , TB_TGT.SDING_PKG_CD   /* 모종패키지코드 */
+             , TB_TGT.OSTR_DUEDT     /* 출고예정일자 */
+             , TB_TGT.EXCD_QTY       /* 제외수량 */
+             , TB_TGT.SPMT_QTY       /* 추가수량 */
+             , TB_TGT.DTA_DL_YN      /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               TB_SRC.DG_GG_LCT_CD   /* 대표집하위치코드 */
+             , TB_SRC.SDING_PKG_CD   /* 모종패키지코드 */
+             , TB_SRC.OSTR_DUEDT     /* 출고예정일자 */
+             , TB_SRC.EXCD_QTY       /* 제외수량 */
+             , TB_SRC.SPMT_QTY       /* 추가수량 */
+             , 'N'                   /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+</mapper>

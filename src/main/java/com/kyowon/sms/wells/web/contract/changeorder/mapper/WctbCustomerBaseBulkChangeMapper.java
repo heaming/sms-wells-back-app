@@ -22,6 +22,8 @@ public interface WctbCustomerBaseBulkChangeMapper {
 
     WctbCustomerBaseBulkChangeDvo selectDateTime();
 
+    WctbCustomerBaseBulkChangeDvo selectCrcdBeforeChange(String cntrNo, String cntrSn, String cntrStlmId);
+
     int insertContractChangeRcpBase(@Param("item")
     WctbCustomerBaseBulkChangeDvo dvo);
 
@@ -36,10 +38,21 @@ public interface WctbCustomerBaseBulkChangeMapper {
 
     int insertContractBaseHist(WctbCustomerBaseBulkChangeDvo dvo);
 
+    int insertContractStlmRel(WctbCustomerBaseBulkChangeDvo dvo);
+
+    int insertContractStlHist(WctbCustomerBaseBulkChangeDvo dvo);
+
     int updateContractAdrpcBase(WctbCustomerBaseBulkChangeDvo dvo);
 
     int updateContractDetail(WctbCustomerBaseBulkChangeDvo dvo);
 
     int updateContractBase(WctbCustomerBaseBulkChangeDvo dvo);
+
+    int updateContractStlmRel(@Param("item")
+    WctbCustomerBaseBulkChangeDvo dvo);
+
+    int updateContractStlmBas(WctbCustomerBaseBulkChangeDvo dvo);
+
+    int updateContractStlHist(WctbCustomerBaseBulkChangeDvo dvo);
 
 }

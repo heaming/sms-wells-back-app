@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaInstAssignSetMapper">
+    <select id="selectInstAssignSet" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaInstAssignSetDto$SearchRes">
+      SELECT '0' AS CHK
+           , T1.PD_NM
+     	   , T1.PD_CD
+           , SUBSTR(T1.SAP_MAT_CD,10,9) AS SAP_MAT_CD
+           , V1.RSTR_CNDT_ID
+           , V1.RSTR_CNDT_SN
+           , V1.APY_STRTDT
+           , V1.APY_ENDDT
+          , V1.RSTR_CNDT_SRN_MARK_CN
+          , RSTR_CNDT_VAL2
+       FROM TB_SVPD_SV_RSTR_CNDT_BAS V1
+ INNER JOIN WSMDBS.TB_PDBS_PD_BAS T1
+         ON V1.RSTR_CNDT_VAL1 = T1.PD_CD
+      WHERE RSTR_CNDT_ID = 'TC001'
+        <if test='@MybatisUtils@isNotEmpty(itmPdCd)'>
+        AND PD_CD = #{itmPdCd}
+        </if>
+     ORDER BY PD_CD
+    </select>
+
+    <insert id="insertInstAssignSet">
+         MERGE
+         INTO TB_SVPD_SV_RSTR_CNDT_BAS AA
+        USING (SELECT 'TC001' RSTR_CNDT_ID
+                         , #{rstrCndtSn}  RSTR_CNDT_SN
+                         , #{pdCd} RSTR_CNDT_VAL1
+                  FROM DUAL) BB
+           ON (    AA.RSTR_CNDT_ID = BB.RSTR_CNDT_ID
+          AND AA.RSTR_CNDT_SN = BB.RSTR_CNDT_SN
+          AND AA.RSTR_CNDT_VAL1 = BB.RSTR_CNDT_VAL1 )
+    WHEN MATCHED THEN
+         UPDATE
+            SET APY_STRTDT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              , APY_ENDDT = TO_CHAR(TO_DATE(#{rstrCndtVal2},'YYYYMMDD')-1, 'YYYYMMDD')
+              , RSTR_CNDT_SRN_MARK_CN = '해당 상품 배정은 '|| SUBSTR(#{rstrCndtVal2},5,2)||'/'||SUBSTR(#{rstrCndtVal2},7,2) ||'부터 접수 가능합니다.'
+              , RSTR_CNDT_VAL2 = #{rstrCndtVal2}
+              <include refid="COMMON.updateSystemField"/>
+    WHEN NOT MATCHED THEN
+         INSERT
+              ( RSTR_CNDT_ID
+               , RSTR_CNDT_SN
+               , APY_STRTDT
+               , APY_ENDDT
+               , RSTR_CNDT_NM
+               , RSTR_CNDT_SRN_MARK_CN
+               , RSTR_CNDT_VAL1
+               , RSTR_CNDT_VAL2
+               , RSTR_CNDT_VAL_EPL1
+               , RSTR_CNDT_VAL_EPL2
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField"/>
+              )
+         VALUES
+              ( 'TC001'
+              , (SELECT LPAD(NVL(MAX(RSTR_CNDT_SN),'0') + 1, 3, '0')
+                  FROM TB_SVPD_SV_RSTR_CNDT_BAS
+                 WHERE RSTR_CNDT_ID = 'TC001')
+              ,  TO_CHAR(SYSDATE, 'YYYYMMDD')
+              , TO_CHAR(TO_DATE(#{rstrCndtVal2},'YYYYMMDD')-1, 'YYYYMMDD')
+              , '상품접수 시작일'
+              ,  '해당 상품 배정은 '|| SUBSTR(#{rstrCndtVal2},5,2)||'/'||SUBSTR(#{rstrCndtVal2},7,2) ||'부터 접수 가능합니다.'
+              , #{pdCd}
+              , #{rstrCndtVal2}
+              , '타임테이블 접수 상품코드'
+              , '타임테이블 접수 시작일'
+              , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+              )
+    </insert>
+
+    <delete id="deleteInstAssignSet">
+        DELETE FROM TB_SVPD_SV_RSTR_CNDT_BAS
+        WHERE RSTR_CNDT_ID = 'TC001'
+         AND  RSTR_CNDT_VAL1 =  #{pdCd}
+    </delete>
+
+</mapper>

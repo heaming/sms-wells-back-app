@@ -96,9 +96,28 @@ public class WdcdSecuritiesMgtDto {
 
     }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 운영비 원천세 정산(유가증권 제외) /최종 원천세 정산 대상자
     @ApiModel(value = "WdcdSecuritiesMgtDto-SaveReq")
     public record SaveReq(
+        String opcsCardUseIzId, // 운영비카드사용내역ID
+        String opcsAdjExcdYn, // 정산제외여부
+        String opcsAdjSmryDvCd, // 구분
+        String ojApyCn, // 대상
+        String purpSmryCn, // 목적
+        String usrSmryCn // 구매품목 및 사용내역
+    ) {
+    }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 운영비 원천세 정산(유가증권 제외) /최종 원천세 정산 대상자
+    @ApiModel(value = "WdcdSecuritiesMgtDto-SaveReq")
+    public record FindReq(
+        String baseYm
     ) {
     }
 }

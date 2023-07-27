@@ -43,4 +43,8 @@ public class WdcdSecuritiesMgtService {
 
         return count;
     }
+
+    public String getWithholdingTax(FindReq req) {
+        return mapper.selectWithholdingTax(req);
+    }
 }

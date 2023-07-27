@@ -2,6 +2,10 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
+import com.sds.sflex.system.config.validation.validator.ValidDate;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -15,7 +19,11 @@ import io.swagger.annotations.ApiModel;
 public class WsnaNormalOutOfStorageDto {
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchReq")
     public record SearchReq(
+        @NotBlank
+        @ValidDate
         String strHopDtStr,
+        @NotBlank
+        @ValidDate
         String strHopDtEnd,
         String ostrCnfm,
         String ostrAkTpCd,
@@ -53,7 +61,9 @@ public class WsnaNormalOutOfStorageDto {
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskReq")
     public record AskReq(
+        @NotBlank
         String itmPdCd,
+        @NotBlank
         String strOjWareNo,
         String wareDvCd,
         String wareDtlDvCd
@@ -78,6 +88,7 @@ public class WsnaNormalOutOfStorageDto {
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailReq")
     public record DetailReq(
         String ostrAkTpCd,
+        @ValidDate
         String ostrAkRgstDt,
         String ostrAkNo,
         String itmPdCd,
@@ -86,6 +97,7 @@ public class WsnaNormalOutOfStorageDto {
         String ostrOjWareNm,
         String strOjWareNm,
         String stckStdGb,
+        @ValidDate
         String rgstDt,
         String itmOstrNo,
         String ostrSn,
@@ -114,7 +126,6 @@ public class WsnaNormalOutOfStorageDto {
         String itmGdCd,
         String reqStckQty,
         String ostrWareNo,
-        //        String ostrWareMngtPrtnrNo,
         String mngtUnitCd,
         String mgtUntNm,
         String boxUnitQty,
@@ -150,10 +161,12 @@ public class WsnaNormalOutOfStorageDto {
         String ostrTpCd,
         String strTpCd,
         String strWareNo,
+        @ValidDate
         String ostrAkRgstDt,
         String qty,
         String ostrAkSn,
         String ostrAkNo,
+        @ValidDate
         String strHopDt,
         String pdPrpVal19,
         String itmPdCd,
@@ -203,9 +216,6 @@ public class WsnaNormalOutOfStorageDto {
         String strTpCd,
         String todayStr
     ) {}
-    public record NomalOutOfStorageReq() {
-
-    }
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
     public record StandardWareReq(
@@ -220,13 +230,6 @@ public class WsnaNormalOutOfStorageDto {
         String wareNo,
         String stckStdGb
     ) {}
-
-    //    @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
-    //    public record MonthlyWarehouseReq(
-    //        String apyYm,
-    //        String wareNo,
-    //        String stckStdGb
-    //    ) {}
 
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkReq")
     public record SearchItmOstrAkReq(
@@ -248,7 +251,6 @@ public class WsnaNormalOutOfStorageDto {
         String ostrAkTpNm,
         String itmPdCd,
         String itmOstrNo,
-        //        String ostrSn,
         String ostrTpCd
     ) {}
 }

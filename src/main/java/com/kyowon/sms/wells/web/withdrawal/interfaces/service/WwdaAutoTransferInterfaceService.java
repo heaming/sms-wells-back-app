@@ -710,4 +710,54 @@ public class WwdaAutoTransferInterfaceService {
         return converter.mapCardEffectivenessCheckDvoToWwdaAutoTransferRealNameCertificationRes(resultDtos);
     }
 
+    /**
+     * 은행계좌유효성체크_SB
+     * @param dto
+     * @return
+     */
+    public WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes getBankEffectivenessCheck(
+        WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckReq dto
+    ) {
+
+        String systemDvCd = "2"; /*시스템구분코드 1 : EDU, 2: WELLS*/
+        Map<String, Object> reqParam = new HashMap<String, Object>();
+        reqParam.put("cntrNo", dto.cntrNo());
+        reqParam.put("cntrSn", dto.cntrSn());
+        reqParam.put("bnkCd", dto.bnkCd());
+        reqParam.put("acNo", dto.acno());
+        reqParam.put("copnDvCd", dto.copnDvCd());
+        reqParam.put("copnDvDrmVal", dto.copnDvDrmVal());
+        reqParam.put("achldrNm", dto.achldrNm());
+        reqParam.put("systemDvCd", systemDvCd);
+        reqParam.put("sysDvCd", dto.sysDvCd());
+        reqParam.put("psicId", dto.psicId());
+        reqParam.put("deptId", dto.deptId());
+
+        // 2. 은행계좌 유효성검사 서비스 호출(Z-WD-S-0027)
+        ZwdaAutoTransferRealTimeAccountCheckDvo resultDvo = realTimeAccountService.saveAftnAcEftnChecks(reqParam);
+
+        // 3. 수신결과 및 리턴 설정
+        // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
+        String acFntRsCd = resultDvo.getAcFntRsCd();
+        String acFntRsNm = "";
+
+        // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
+        if (!ObjectUtils.isEmpty(resultDvo.getBilCrtStatCd())) {
+            if ("1".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd);
+            }
+            if ("2".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = resultDvo.getErrCn();
+            }
+        }
+
+        return WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes.builder()
+            .achldrNm(resultDvo.getAchldrNm())
+            .acFntImpsCd(acFntRsCd)
+            .acFntImpsCdNm(acFntRsNm)
+            .errCn(resultDvo.getErrCn())
+            .bilCrtStatCd(resultDvo.getBilCrtStatCd())
+            .build();
+    }
+
 }

@@ -17,7 +17,7 @@ public interface WctaContractRegStep2Mapper {
     List<WctaContractRegStep2Dvo.PdDvo> selectProducts(String sellInflwChnlDtlCd, String pdFilter);
 
     List<WctaContractRegStep2Dvo.PdDvo> selectProducts(
-        String sellInflwChnlDtlCd, String pdFilter, List<String> mshPdCds
+        String sellInflwChnlDtlCd, String pdFilter, List<String> mshPdCds, String ojCntrSellTpDtlCd
     );
 
     List<WctaContractDtlDvo> selectContractDtlWithPdInfo(String cntrNo);

@@ -21,14 +21,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @InterfaceController
-@Api(tags = "[WDCC] wells일시불(할부)-실적정보조회 I/F : W-CL-I-0003")
+@Api(tags = "[WDCC] wells일시불(할부)-실적정보조회 I/F [EAI_WCLI1007] : W-CL-I-0003")
 @RequestMapping(DcClosingConst.INTERFACE_URL_V1 + "/performances/singlePayment")
 @RequiredArgsConstructor
 @Validated
 public class WdccPerformanceInterfaceController {
     private final WdccPerformanceInterfaceService service;
 
-    @ApiOperation(value = "[EAI_WCLI0003] wells일시불(할부)-실적정보조회", notes = "고객응대를 위한 고객센터 wells일시불(할부)-실적정보조회 Interface에 대한 결과를 조회")
+    @ApiOperation(value = "[EAI_WCLI1007] wells일시불(할부)-실적정보조회", notes = "고객응대를 위한 고객센터 wells일시불(할부)-실적정보조회 Interface에 대한 결과를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "CNTR_NO", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "CNTR_SN", value = "계약일련번호", paramType = "query"),

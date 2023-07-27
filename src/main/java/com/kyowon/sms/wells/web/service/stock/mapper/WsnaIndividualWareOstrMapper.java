@@ -24,6 +24,8 @@ public interface WsnaIndividualWareOstrMapper {
 
     int updateItmQomAsnIz(WsnaIndividualWareOstrDvo dvo);
 
+    String selectOstrAkNoByQomAsn(WsnaIndividualWareOstrDvo dvo);
+
     String selectNewOstrAkNo(String ostrAkTpCd);
 
     int mergeItmOstrAkIz(WsnaIndividualWareOstrDvo dvo);

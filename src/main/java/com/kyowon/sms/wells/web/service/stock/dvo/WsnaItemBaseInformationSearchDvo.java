@@ -11,6 +11,7 @@ public class WsnaItemBaseInformationSearchDvo {
     private String itmPdNm;
     private String wareNo;
     private String ostrWareNo;
+    private String ostrWareDvCd;
     private String wareDvCd;
     private String wareDtlDvCd;
     // OFFSET

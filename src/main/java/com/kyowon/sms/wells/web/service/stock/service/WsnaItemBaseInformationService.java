@@ -51,9 +51,11 @@ public class WsnaItemBaseInformationService {
 
         WsnaItemBaseInformationSearchDvo searchDvo = this.converter.mapSearchReqToWsnaItemBaseInformationSearchDvo(dto);
 
-        List<WsnaItemBaseInformationDvo> itemBaseDvo = this.mapper.selectItemBaseInformationsOutOf(searchDvo);
-
         String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
+
+        searchDvo.setOstrWareDvCd(ostrWareDvCd);
+
+        List<WsnaItemBaseInformationDvo> itemBaseDvo = this.mapper.selectItemBaseInformationsOutOf(searchDvo);
 
         //출고대상 창고가 물류센터일경우
         if (LGST_DV_CD.equals(ostrWareDvCd)) {

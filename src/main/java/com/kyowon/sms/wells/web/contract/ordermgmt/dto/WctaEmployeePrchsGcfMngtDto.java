@@ -30,6 +30,7 @@ public class WctaEmployeePrchsGcfMngtDto {
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
+        String cralTno,
         String rsgnDt,
         String sellInflwChnlDtlCd,
         String cntPre,

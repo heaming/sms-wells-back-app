@@ -102,6 +102,34 @@
              GROUP BY T11.CNTR_NO
              ORDER BY T11.CNTR_NO DESC
         )
+        , W1 AS ( /* 로그인 유저가 보스인 경우, 소속 파트너 목록 조회 */
+               SELECT T1.BASE_YM /* 기준년월 */
+                    , T1.OG_TP_CD /* 조직유형코드 */
+                    , T1.RSB_DV_CD /* 직책구분코드 */
+                    , T1.PRTNR_NO /* 파트너번호 */
+                    , T1.PRTNR_KNM /* 파트너한글명 */
+                    , T1.OG_CD /* 조직코드 */
+                    , T1.OG_NM /* 조직명 */
+                    , T2.OG_ID /* 조직ID */
+                 FROM TB_OGBS_MM_PRTNR_IZ T1
+                INNER JOIN TB_OGBS_MM_OG_IZ T2
+                   ON T2.BASE_YM = T1.BASE_YM
+                  AND T2.OG_TP_CD = T1.OG_TP_CD
+                  AND T2.OG_ID = T1.OG_ID
+                  AND T2.DTA_DL_YN = 'N'
+                WHERE 1 = 1
+                  AND T1.DTA_DL_YN = 'N'
+                  AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  AND T1.OG_TP_CD = #{session.ogTpCd}
+                  AND
+                    (    (T2.DGR1_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber})
+                      OR (T2.DGR2_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber})
+                      OR (T2.DGR3_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber})
+                      OR (T2.DGR4_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber})
+                      OR (T2.DGR5_LEVL_DG_PRTNR_NO = #{session.employeeIDNumber})
+                      OR (T1.PRTNR_NO = #{session.employeeIDNumber})
+                    )
+        )
         SELECT ROWNUM                                                   /* 순번 */
              , T0.CNTR_NO                                               /* GRP_WPN_SEQ, WPN_SEQ, SELR_NO */
              , T0.CNTR_SN                                               /* GRP_WPN_SEQ, WPN_SEQ, SELR_NO */
@@ -225,6 +253,11 @@
             ON T92.CNTR_NO = T11.CNTR_NO
            AND T92.CNTR_SN = T11.CNTR_SN
          WHERE 1=1
+        <if test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+          /* 로그인 유저의 조직유형코드가 본사(HR1)가 아니면 */
+          AND T10.SELL_OG_TP_CD = ( SELECT MAX(W1.OG_TP_CD) FROM W1 ) /* 로그인유저 권한에 따라 조회결과 제한 */
+          AND T10.SELL_PRTNR_NO IN ( SELECT W1.PRTNR_NO FROM W1 ) /* 로그인유저 권한에 따라 조회결과 제한 */
+        </if>
          ORDER BY T10.CNTR_RCP_FSH_DTM DESC, T10.CNTR_NO DESC
     </select>
 
@@ -344,32 +377,7 @@
                </when>
            </choose>
         </if>
-           /* 조건4.하위부서 */
-           /* 본사담당자(lgnUsrUserGrp != "200 : HR)가 아니면 업무담당자가 관리인 하위 전체 조회 */
-           AND (/*월파트너내역에 부서코드가 있으면 하위 조직전체*/
-                T30.OG_CD IS NOT NULL AND T30.OG_CD IN ( SELECT T1.OG_CD /* 조직코드 */
-                                                          FROM TB_OGBS_MM_PRTNR_IZ T1
-                                                         INNER JOIN TB_OGBS_MM_OG_IZ T2
-                                                            ON T2.BASE_YM = T1.BASE_YM
-                                                           AND T2.OG_TP_CD = T1.OG_TP_CD
-                                                           AND T2.OG_ID = T1.OG_ID
-                                                           AND T2.DTA_DL_YN = 'N'
-                                                         WHERE 1 = 1
-                                                           AND T1.DTA_DL_YN = 'N'
-                                                           AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') -- 현재월
-                                                           AND T1.OG_TP_CD = T0.RCP_OG_TP_CD  -- 파트너정보
-                                                           AND
-                                                             (    (T2.DGR1_LEVL_DG_PRTNR_NO = T0.RCP_PRTNR_NO )  -- 파트너정보
-                                                               OR (T2.DGR2_LEVL_DG_PRTNR_NO = T0.RCP_PRTNR_NO )
-                                                               OR (T2.DGR3_LEVL_DG_PRTNR_NO = T0.RCP_PRTNR_NO )
-                                                               OR (T2.DGR4_LEVL_DG_PRTNR_NO = T0.RCP_PRTNR_NO )
-                                                               OR (T2.DGR5_LEVL_DG_PRTNR_NO = T0.RCP_PRTNR_NO )
-                                                               OR (T1.PRTNR_NO = T0.RCP_PRTNR_NO )
-                                                             )
-                                                        )
-                OR (/*월파트너내역에 부서코드가 없으면 하위 조직체크 제외*/
-                    T30.OG_CD IS NULL) /**/
-                )
+
     </select>
 
     <select id="selectEmployeePurchaseList" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaManagementDto$SearchEmployeePurchaseListRes">

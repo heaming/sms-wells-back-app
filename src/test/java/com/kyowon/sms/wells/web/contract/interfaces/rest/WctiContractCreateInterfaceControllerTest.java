@@ -99,6 +99,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .ag5("Y")
             .dscDv("2")
             .uswy("0")
+            .mngtPrd("6")
             .build();
         EaiWrapper<CreateKmembersReq> dto = new EaiWrapper(req);
 

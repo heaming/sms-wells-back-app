@@ -11,8 +11,8 @@
              , PRM_DP_AMT AS PRM_AMT /* 선납금액 */
              , PRM_STRT_Y || PRM_STRT_MM AS PRM_STRT_YM /* 선납기간from */
              , PRM_END_Y || PRM_END_MM AS PRM_END_YM /* 선납기간to */
-             , PRM_DP_AMT / PRM_MCN AS MM_PRM_DP_AMT /* 한달 선납액 (선납금액 / 선납개월) */
-             , PRM_DSC_AMT / PRM_MCN AS MM_PRM_DSC_AMT /* 한달 할인 금액 (선납할인금액 / 선납개월) */
+             , PRM_DP_AMT / DECODE(PRM_MCN, 0, NULL, PRM_MCN) AS MM_PRM_DP_AMT /* 한달 선납액 (선납금액 / 선납개월) */
+             , PRM_DSC_AMT / DECODE(PRM_MCN, 0, NULL, PRM_MCN) AS MM_PRM_DSC_AMT /* 한달 할인 금액 (선납할인금액 / 선납개월) */
              , EOT_ATAM AS PRPD_AMT /* 선수금액 */
              , EOT_UC_AMT AS UC_AMT /* 미수금액 */
              , EOT_ATAM + PRM_SL_AMT - PRM_BLAM_EOT_AMT AS PY_AMT /* 납입금액 */
@@ -33,11 +33,11 @@
              , T.DSC_AMT /* 할인대상선납금액 */
              , T.NO_DSC_MM /* 미할인대상 선납개월 */
              , T.NO_DSC_AMT /* 미할인대상 선납금액 */
-             , CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / T.DSC_MM), -1)
-                    ELSE ROUND(CEIL(T.NO_DSC_AMT / T.TOT_PRPM), -1)
+             , CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / DECODE(T.DSC_MM, 0, NULL, T.DSC_MM)), -1)
+                    ELSE ROUND(CEIL(T.NO_DSC_AMT / DECODE(T.TOT_PRPM, 0, NULL, T.TOT_PRPM)), -1)
                 END AS MM_AMT /* 월납입금액 */
-             , CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / T.DSC_MM * T.DSC_RAT), -1)
-                    ELSE ROUND(CEIL(T.NO_DSC_AMT / T.TOT_PRPM * T.DSC_RAT), -1)
+             , CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / DECODE(T.DSC_MM * T.DSC_RAT, 0, NULL, T.DSC_MM * T.DSC_RAT)), -1)
+                    ELSE ROUND(CEIL(T.NO_DSC_AMT / DECODE(T.TOT_PRPM * T.DSC_RAT, 0, NULL, T.TOT_PRPM * T.DSC_RAT)), -1)
                 END AS MM_DSC_AMT /* 한달할인금액 */
              , T.ATAM /* 선수금액 */
              , T.UC_AMT /* 미수금액 */
@@ -57,13 +57,13 @@
                            WHEN D1.DSC_MM = 36 THEN 0.90 /* 10% 할인 */
                            ELSE 0
                        END AS DSC_RAT /* 선납시 할인율 */
-                    , CASE WHEN D1.DSC_MM = 12 THEN ROUND(TRUNC(D1.SELL_AMT * 12 / D1.TOT_PRPM, -1), -1)
-                           WHEN D1.DSC_MM = 24 THEN ROUND(TRUNC(D1.SELL_AMT * 24 / D1.TOT_PRPM, -1), -1)
-                           WHEN D1.DSC_MM = 36 THEN ROUND(TRUNC(D1.SELL_AMT * 36 / D1.TOT_PRPM, -1), -1)
+                    , CASE WHEN D1.DSC_MM = 12 THEN ROUND(TRUNC(D1.SELL_AMT * 12 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
+                           WHEN D1.DSC_MM = 24 THEN ROUND(TRUNC(D1.SELL_AMT * 24 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
+                           WHEN D1.DSC_MM = 36 THEN ROUND(TRUNC(D1.SELL_AMT * 36 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
                            ELSE 0
                        END AS DSC_AMT /* 할인대상 선납금액 */
                     , NO_DSC_MM /* 미할인 대상 선납개월 */
-                    , ROUND(CEIL(D1.SELL_AMT * D1.NO_DSC_MM / D1.TOT_PRPM), -1) AS NO_DSC_AMT /* 미할인 대상 선납금액 */
+                    , ROUND(CEIL(D1.SELL_AMT * D1.NO_DSC_MM / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM)), -1) AS NO_DSC_AMT /* 미할인 대상 선납금액 */
                     , NVL(D2.ATAM, 0) AS ATAM
                     , NVL(D2.UC_AMT, 0) AS UC_AMT /* 미수금액 */
                     , NVL(D2.DP_AMT, 0) AS DP_AMT

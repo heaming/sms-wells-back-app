@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class WctaContractRestipulationCntrRegDvo {
     private String cntrNo;
-    private String cntrSn;
+    private Integer cntrSn;
     private String stplTn;
     private String stplTpCd;
     private String stplPtrmUnitCd;

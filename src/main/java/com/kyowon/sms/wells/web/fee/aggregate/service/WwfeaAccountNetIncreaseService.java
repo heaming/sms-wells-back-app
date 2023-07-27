@@ -43,11 +43,11 @@ public class WwfeaAccountNetIncreaseService {
     ) {
         List<WwfeaAccountNetIncreaseDto.SearchRes> result = new ArrayList<WwfeaAccountNetIncreaseDto.SearchRes>();
 
-        if (dto.inqrDv().equals("01")) {
+        if (dto.inqrDvCd().equals("01")) {
             result = mapper.selectLstmmCancels(dto);
-        } else if (dto.inqrDv().equals("02")) {
+        } else if (dto.inqrDvCd().equals("02")) {
             result = mapper.selectNewSells(dto);
-        } else if (dto.inqrDv().equals("03")) {
+        } else if (dto.inqrDvCd().equals("03")) {
             result = mapper.selectAggregateChecks(dto);
         }
         return result;
@@ -66,9 +66,9 @@ public class WwfeaAccountNetIncreaseService {
         // 배치 parameter
         Map<String, String> params = new HashMap<String, String>();
         params.put("perfYm", dto.perfYm());
-        params.put("ogTpCd", dto.ogTpCd());
+        params.put("feeTcntDvCd", dto.feeTcntDvCd());
 
-        batchCallReqDvo.setJobKey("WSM_FE_OA0001");
+        batchCallReqDvo.setJobKey("WSM_FE_OA0004");
         batchCallReqDvo.setParams(params);
 
         String runId = batchCallService.runJob(batchCallReqDvo);

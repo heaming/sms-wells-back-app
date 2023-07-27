@@ -8,10 +8,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.api.client.util.Lists;
 import com.kyowon.sflex.common.message.dvo.EmailSendReqDvo;
 import com.kyowon.sflex.common.message.service.EmailService;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDtlStatChangeHistDvo;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractNotifyFowrdindHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaContractConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
@@ -46,24 +48,48 @@ public class WctaContractService {
         return mapper.selectContractNumberInqrPages(dto, pageInfo);
     }
 
-    public String sendContractEmail(SaveSendEmailsReq dto) throws Exception {
+    public List<String> sendContractEmail(List<SaveSendEmailsReq> dtos) throws Exception {
         String templateId = "TMP_CTA_WELLS_ELCN_GUD";
         String pdfUrl = ""; // TODO 계약서 pdf 생성 로직 추가
+        List<String> emailUids = Lists.newArrayList();
 
-        return emailService.sendEmail(
-            EmailSendReqDvo.builder()
-                .title(templateService.getTemplateByTemplateId(templateId).getSendTemplateTitle())
-                .content(
-                    templateService.getTemplateContent(
-                        templateId, Map.of(
-                            "cnrtNm", dto.cntrNm(),
-                            "pdfUrl", pdfUrl
-                        )
-                    )
+        for (SaveSendEmailsReq dto : dtos) {
+            String content = templateService.getTemplateContent(
+                templateId, Map.of(
+                    "cnrtNm", dto.cntrNm(),
+                    "pdfUrl", pdfUrl
                 )
-                .receiveUsers(List.of(EmailSendReqDvo.ReceiveUser.fromEmail(dto.emadr())))
-                .build()
-        );
+            );
+            String emailUid = emailService.sendEmail(
+                EmailSendReqDvo.builder()
+                    .title(templateService.getTemplateByTemplateId(templateId).getSendTemplateTitle())
+                    .content(content)
+                    .receiveUsers(List.of(EmailSendReqDvo.ReceiveUser.fromEmail(dto.emadr())))
+                    .build()
+            );
+            String now = DateUtil.todayNnow();
+            UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+            historyService.createContractNotifyFowrdindHistory(
+                WctzContractNotifyFowrdindHistDvo.builder()
+                    .notyFwTpCd("10") // 알림발송유형코드
+                    .notyFwBizDvCd("10") // 알림발송업무구분코드
+                    .akUsrId(session.getUserId()) // 요청자 ID
+                    .rqrNm(session.getUserName())// 요청자명
+                    .akDtm(now) // 요청일시
+                    .fwDtm(now) // 발송일시
+                    .cntrNo(dto.cntrNo()) // 계약번호
+                    .cntrSn(dto.cntrSn()) // 계약일련번호
+                    .fwLkIdkVal(emailUid) // 발송연계식별키값
+                    .fwOjRefkVal1(templateId) // 발송대상참조키값1
+                    .rcvrNm(dto.cntrNm()) // 수신자명
+                    .notyFwRsCd("10") // 알림발송결과코드
+                    .dtaDlYn("N") // 삭제여부
+                    .build(),
+                false
+            );
+            emailUids.add(emailUid);
+        }
+        return emailUids;
     }
 
     public List<SearchHomecareContractsRes> getHomecareContracts(List<SearchHomecareContractsReq> dtos) {

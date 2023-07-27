@@ -2,12 +2,190 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaManagerFeeMeetingAttendanceMapper">
 
     <delete id="deleteManagerFeeMeetingAttendances">
-        SELECT *
-        FROM DUAL
+        DELETE FROM TB_FEAM_PRTNR_PERF_MM_CL T1
+         WHERE T1.BASE_YM = #{perfYm}
+           AND T1.PERF_YM = #{perfYm}
+           AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+           AND T1.PERF_AGRG_CRT_DV_CD = '201'
+           AND T1.OG_TP_CD = #{ogTpCd}
+           AND T1.PRTNR_NO IN ( SELECT A.PRTNR_NO
+                                  FROM TB_OGBS_MM_PRTNR_IZ A
+                                 WHERE A.BASE_YM = #{perfYm}
+                                   AND A.OG_TP_CD = #{ogTpCd}
+                                   AND A.RSB_DV_CD = #{rsbTpCd}
+                              )
+           AND T1.PERF_ATC_CD NOT IN ( 'W02P00083', 'W02P00084', 'W02P00085', 'W02P00095', 'W02P00096'
+                                     , 'W02P00097', 'W02P00098', 'W02P00099', 'W02P00100', 'W02P00101'
+                                     , 'W02P00114', 'W02P00121', 'W02P00122' )
     </delete>
 
     <insert id="insertManagerFeeMeetingAttendances">
-        SELECT *
-        FROM DUAL
+        INSERT INTO TB_FEAM_PRTNR_PERF_MM_CL
+               ( BASE_YM
+               , PERF_YM
+               , FEE_TCNT_DV_CD
+               , PERF_AGRG_CRT_DV_CD
+               , PERF_ATC_CD
+               , CO_CD
+               , OG_TP_CD
+               , PRTNR_NO
+               , FEE_PERF_ATC_VAL
+               , PERF_VAL
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField" />
+               )
+        SELECT #{perfYm} AS BASE_YM
+             , #{perfYm} AS PERF_YM
+             , #{feeTcntDvCd} AS FEE_TCNT_DV_CD
+             , '201' AS PERF_AGRG_CRT_DV_CD
+             , T.PERF_ATC_CD
+             , '2000' AS CO_CD
+             , 'W02' AS OG_TP_CD
+             , T.PRTNR_NO
+             , T.FEE_PERF_ATC_VAL
+             , T.PERF_VAL
+             , 'N' AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM ( SELECT T1.PRTNR_NO
+                      , 'W02P00001' AS PERF_ATC_CD    /* 미팅참석여부 */
+                      , NVL(T2.METG_PTCP_ACKMT_YN,'N') AS FEE_PERF_ATC_VAL
+                      , 0 AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2
+                     ON T1.BASE_YM = T2.AGRG_YM
+                    AND T1.OG_TP_CD = T2.OG_TP_CD
+                    AND T1.PRTNR_NO = T2.PRTNR_NO
+                    AND T2.DTA_DL_YN = 'N'
+                  WHERE T1.OG_TP_CD ='W02'
+                    AND T1.BASE_YM = #{perfYm}
+                    AND T1.PSTN_DV_CD IN ('15','7')
+                    AND T1.RSB_DV_CD = #{rsbTpCd}
+                  UNION ALL
+                 SELECT T1.PRTNR_NO
+                      , 'W02P00093' AS PERF_ATC_CD   /* 미팅참석일수 */
+                      , '' AS FEE_PERF_ATC_VAL
+                      , NVL(T2.METG_PRSC_DC,0) AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2
+                     ON T1.BASE_YM = T2.AGRG_YM
+                    AND T1.OG_TP_CD = T2.OG_TP_CD
+                    AND T1.PRTNR_NO = T2.PRTNR_NO
+                    AND T2.DTA_DL_YN = 'N'
+                  WHERE T1.OG_TP_CD ='W02'
+                    AND T1.BASE_YM = #{perfYm}
+                    AND T1.PSTN_DV_CD IN ('15','7')
+                    AND T1.RSB_DV_CD = #{rsbTpCd}
+                  UNION ALL
+                 SELECT T1.PRTNR_NO
+                      , 'W02P00115' AS PERF_ATC_CD   /* 스타트업교육(96)수료여부 */
+                      , NVL(T2.EDUC_CPC_ACKMT_YN,'N') AS FEE_PERF_ATC_VAL
+                      , 0 AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_IZ T2
+                     ON T1.BASE_YM  = T2.EDUC_CRSE_CRT_BASE_YM
+                    AND T1.OG_TP_CD = T2.OG_TP_CD
+                    AND T1.PRTNR_NO = T2.PRTNR_NO
+                    AND T2.EDUC_CRSE_NO = '96'
+                  WHERE T1.OG_TP_CD ='W02'
+                    AND T1.BASE_YM = #{perfYm}
+                    AND T1.PSTN_DV_CD IN ('15','7')
+                    AND T1.RSB_DV_CD = #{rsbTpCd}
+                  UNION ALL
+                 SELECT T1.PRTNR_NO
+                      , 'W02P00092' AS PERF_ATC_CD   /* 배출자 인원수 */
+                      , '' AS FEE_PERF_ATC_VAL
+                      , SUM( CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7') THEN 1 ELSE 0 END ) AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2
+                     ON T1.BASE_YM  = T2.MNGT_YM
+                    AND T1.OG_TP_CD = T2.BASE_OG_TP_CD
+                    AND T1.PRTNR_NO = T2.BASE_PRTNR_NO
+                    AND T2.OG_EJT_DV_CD = '10'
+                    AND T2.ACKMT_YN = 'Y'
+                  WHERE T1.OG_TP_CD ='W02'
+                    AND T1.BASE_YM = #{perfYm}
+                    AND T1.PSTN_DV_CD = '7'
+                    AND T1.RSB_DV_CD = #{rsbTpCd}
+                  GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
+                  UNION ALL
+                 SELECT T1.PRTNR_NO
+                      , 'W02P00123' AS PERF_ATC_CD   /* 23년한정배출자인원수 */
+                      , '' AS FEE_PERF_ATC_VAL
+                      , SUM( CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7')
+                                       AND T2.OG_EJT_GD_CD IN ('6','7')
+                                       AND T2.EJT_YM BETWEEN '202304' AND '202312'
+                                       THEN 1
+                                  ELSE 0
+                             END
+                           ) AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2
+                     ON T1.BASE_YM  = T2.MNGT_YM
+                    AND T1.OG_TP_CD = T2.BASE_OG_TP_CD
+                    AND T1.PRTNR_NO = T2.BASE_PRTNR_NO
+                    AND T2.OG_EJT_DV_CD = '10'
+                    AND T2.ACKMT_YN = 'Y'
+                  WHERE T1.OG_TP_CD ='W02'
+                    AND T1.BASE_YM = #{perfYm}
+                    AND T1.PSTN_DV_CD = '7'
+                    AND T1.RSB_DV_CD = #{rsbTpCd}
+                  GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
+                  UNION ALL
+                 SELECT T1.PRTNR_NO
+                      , 'W02P00111' AS PERF_ATC_CD   /* 지점실활동인원수 */
+                      , '' AS FEE_PERF_ATC_VAL
+                      , SUM( CASE WHEN T2.SELL_CNT >= 3
+                                       AND T2.BS_CNT >= 50
+                                       AND T2.EDU_YN = 'Y'
+                                       THEN 1
+                                  ELSE 0
+                             END
+                           ) AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN ( SELECT A.BASE_YM
+                                          , A.OG_TP_CD
+                                          , A.OG_ID
+                                          , A.PRTNR_NO
+                                          , A.PRTNR_KNM
+                                          , A.PSTN_DV_CD
+                                          , NVL(B.PERF_VAL,0) AS SELL_CNT
+                                          , NVL(C.PERF_VAL,0) AS BS_CNT
+                                          , NVL(D.EDUC_CPC_ACKMT_YN,'N') AS EDU_YN
+                                       FROM TB_OGBS_MM_PRTNR_IZ A
+                                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                         ON A.BASE_YM  = B.BASE_YM
+                                        AND A.OG_TP_CD = B.OG_TP_CD
+                                        AND A.PRTNR_NO = B.PRTNR_NO
+                                        AND B.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                        AND B.PERF_AGRG_CRT_DV_CD = '201'
+                                        AND B.PERF_ATC_CD = 'W02P00002'      /* 판매인정건수  */
+                                        AND B.PERF_DV_CD = '0'
+                                       LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL C
+                                         ON A.BASE_YM  = C.BASE_YM
+                                        AND A.OG_TP_CD = C.OG_TP_CD
+                                        AND A.PRTNR_NO = C.PRTNR_NO
+                                        AND C.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                        AND C.PERF_AGRG_CRT_DV_CD = '201'
+                                        AND C.PERF_ATC_CD = 'W02P00085'      /*  BS 실적건수 */
+                                        AND C.PERF_DV_CD = '0'
+                                       LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_IZ D
+                                         ON A.BASE_YM  = D.EDUC_CRSE_CRT_BASE_YM
+                                        AND A.OG_TP_CD = D.OG_TP_CD
+                                        AND A.PRTNR_NO = D.PRTNR_NO
+                                        AND D.EDUC_CRSE_NO = '129'      /*  보수교육최종(129)수료여부 */
+                                      WHERE A.OG_TP_CD ='W02'
+                                        AND A.BASE_YM = #{perfYm}
+                                        AND A.PSTN_DV_CD = '15'
+                                   ) T2
+                     ON T1.BASE_YM  = T2.BASE_YM
+                    AND T1.OG_TP_CD = T2.OG_TP_CD
+                    AND T1.OG_ID = T2.OG_ID
+                    AND T1.PRTNR_NO = T2.PRTNR_NO
+                  WHERE T1.OG_TP_CD ='W02'
+                    AND T1.BASE_YM = #{perfYm}
+                    AND T1.PSTN_DV_CD = '7'
+                    AND T1.RSB_DV_CD = #{rsbTpCd}
+                  GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
+               )T
     </insert>
 </mapper>

@@ -32,6 +32,7 @@ public class WctaOrderDetailDto {
     //wells 1+1 접수 정보 조회(기존고객정보) - wells 1+1 접수 정보 조회 Search Result Dto
     @ApiModel("WctaOrderDetailDto-SearchPextCstInfoRes")
     public record SearchPextCstInfoRes(
+        String cntrDt,
         String cntrDtlNo,
         String cstKnm,
         String basePdCd,
@@ -44,18 +45,21 @@ public class WctaOrderDetailDto {
     //wells 1+1 접수 정보 조회(신규고객정보) - wells 1+1 접수 정보 조회 Search Result Dto
     @ApiModel("WctaOrderDetailDto-SearchNewCstInfoRes")
     public record SearchNewCstInfoRes(
+        String cntrDt,
         String cntrDtlNo,
+        String ojDtlCntrNo,
+        String ojDtlCntrSn,
         String cstKnm,
         String basePdCd,
         String pdNm,
-        String sellTpCd,
-        String sellTpNm,
+        String sellTpDtlNm,
         String keepPtrm,
-        String rentalNmn,
-        String fnlVal,
+        String cntrRelDtlNm,
+        String rentalTn,
+        String sellAmt,
         String dscAmt,
-        String allDscAmt,
-        String rcvryAmt,
+        String dscTam,
+        String pdBaseAmt,
         String mutuYn
     ) {}
 
