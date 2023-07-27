@@ -74,7 +74,7 @@ public class WsnaIndividualWareOstrDto {
 
         @NotBlank
         String hgrStrWareNo,
-        @NotBlank
+
         String strWareNo,
 
         String itmPdCd,

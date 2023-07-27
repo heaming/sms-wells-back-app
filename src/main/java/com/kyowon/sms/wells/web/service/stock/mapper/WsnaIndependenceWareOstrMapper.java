@@ -10,8 +10,6 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaIndependenceWareOstrMapper {
@@ -19,8 +17,6 @@ public interface WsnaIndependenceWareOstrMapper {
     List<SearchPdRes> selectProducts();
 
     List<WsnzWellsCodeWareHouseDvo> selectIndependenceStrWares(SearchWareReq dto);
-
-    PagingResult<WsnaIndependenceWareOstrDvo> selectIndependenceWareOstrs(SearchReq dto, PageInfo pageInfo);
 
     List<WsnaIndependenceWareOstrDvo> selectIndependenceWareOstrs(SearchReq dto);
 

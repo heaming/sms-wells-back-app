@@ -22,8 +22,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqD
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskResDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
@@ -93,23 +91,19 @@ public class WsnaIndividualWareOstrService {
     }
 
     /**
-     * 개인창고 출고 관리 페이징 조회
+     * 개인창고 출고 관리 조회
      * @param dto
-     * @param pageInfo
      * @return
      */
-    public PagingResult<WsnaIndividualWareOstrDvo> getIndividualWareOstrsPaging(SearchReq dto, PageInfo pageInfo) {
+    public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrs(SearchReq dto) {
 
-        PagingResult<WsnaIndividualWareOstrDvo> results = this.mapper.selectIndividualWareOstrs(dto, pageInfo);
         // 개인창고 출고관리 데이터 리스트
-        List<WsnaIndividualWareOstrDvo> dvos = results.getList();
+        List<WsnaIndividualWareOstrDvo> dvos = this.mapper.selectIndividualWareOstrs(dto);
 
         // 실시간 물류재고 조회 호출
         this.getRealTimeLogisticStockQtys(dvos);
 
-        results.setList(dvos);
-
-        return results;
+        return dvos;
     }
 
     /**

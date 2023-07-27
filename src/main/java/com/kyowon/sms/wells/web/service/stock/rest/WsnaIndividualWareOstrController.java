@@ -14,8 +14,6 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaIndividualWareOstrService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -73,8 +71,8 @@ public class WsnaIndividualWareOstrController {
         return this.service.getIndividualStrWares(dto);
     }
 
-    @GetMapping("/paging")
-    @ApiOperation(value = "개인창고 출고관리 페이징 조회", notes = "개인창고 출고 데이터를 조회한다.")
+    @GetMapping
+    @ApiOperation(value = "개인창고 출고관리 조회", notes = "개인창고 출고 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
@@ -89,10 +87,9 @@ public class WsnaIndividualWareOstrController {
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
-    public PagingResult<WsnaIndividualWareOstrDvo> getIndividualWareOstrsPaging(@Valid
-    SearchReq dto, @Valid
-    PageInfo pageInfo) {
-        return this.service.getIndividualWareOstrsPaging(dto, pageInfo);
+    public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrs(@Valid
+    SearchReq dto) {
+        return this.service.getIndividualWareOstrs(dto);
     }
 
     @GetMapping("/excel-download")
