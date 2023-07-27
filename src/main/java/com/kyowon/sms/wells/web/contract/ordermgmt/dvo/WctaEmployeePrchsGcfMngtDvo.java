@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,9 +12,11 @@ public class WctaEmployeePrchsGcfMngtDvo {
     private String empNo; /* 사번 */
     private String fnm; /* 성명 */
     private String cralLocaraTno; /* 휴대지역전화번호 */
+    @DBEncField
     @DBDecField
     private String mexnoEncr; /* 휴대전화국번호암호화 */
     private String cralIdvTno; /* 휴대개별전화번호 */
+    private String cralTno; /* 휴대전화번호 */
     private String rsgnDt; /* 퇴사일 */
     private String sellInflwChnlDtlCd; /* 소속 */
     private String cntPre; /* 전월-설치 */
