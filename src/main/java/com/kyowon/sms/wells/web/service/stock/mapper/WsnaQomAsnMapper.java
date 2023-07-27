@@ -31,7 +31,7 @@ public interface WsnaQomAsnMapper {
 
     int selectItmQomAsnNoMax(String asnOjYm, String wareDtlDvCd);
 
-    int insertItmQomAsns(List<WsnaQomAsnCreateDvo> dvo);
+    int insertItmQomAsn(WsnaQomAsnCreateDvo dvo);
 
     PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(
         SearchReq dto, PageInfo pageInfo
