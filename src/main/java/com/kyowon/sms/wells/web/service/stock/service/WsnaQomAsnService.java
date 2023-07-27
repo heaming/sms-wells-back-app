@@ -122,7 +122,7 @@ public class WsnaQomAsnService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int createQomAsns(List<CreateReq> dtos) {
 
         int count = 0;
@@ -135,7 +135,7 @@ public class WsnaQomAsnService {
 
         List<WsnaQomAsnCreateDvo> dvos = this.converter.mapAllCreateReqToWsnaQomAsnCreateDvo(dtos);
         for (WsnaQomAsnCreateDvo dvo : dvos) {
-            dvo.setQomAsnNo(++qomAsnNoMax);
+            dvo.setQomAsnNo(qomAsnNoMax++);
             count += this.mapper.insertItmQomAsn(dvo);
         }
         return count;
