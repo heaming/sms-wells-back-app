@@ -53,9 +53,6 @@ public class WbnaFosterTransferMgtService {
         batchDvo.setJobKey("WSM_BN_OA0001");
         params.put("baseYm", dto.baseYm()); //기준년월
         params.put("bzHdqDvCd", dto.bzHdqDvCd()); //사업부 구분
-        params.put("clcoCd", dto.clcoCd()); //추심사 코드
-        params.put("bndNwDvCd", dto.bndNwDvCd()); //사업부 구분
-        params.put("cstNm", dto.cstNm()); // 고객명
         params.put("cstNo", dto.cstNo()); // 고객번호
         params.put("cralLocaraTno", dto.cralLocaraTno());/* 휴대지역전화번호 */
         params.put("mexnoEncr", dto.mexnoEncr());/* 휴대전화국번호암호화 */
