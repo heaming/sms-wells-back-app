@@ -41,7 +41,7 @@ public class WsnaOutOfStorageByTaskController {
     }
 
     @ApiOperation(value = "업무유형별 자재출고현황 엑셀 다운로드", notes = "업무유형별 / 서비스센터별로 자재출고집계현황을 엑셀다운로드 한다.")
-    @GetMapping("excel-download")
+    @GetMapping("/excel-download")
     public List<SearchRes> getWarehouseOgsExcelDownload(
         SearchReq dto
     ) {
