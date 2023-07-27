@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnRemoveDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnWareRenewalDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -21,17 +22,17 @@ public interface WsnaQomAsnMapper {
 
     List<WsnzWellsCodeWareHouseDvo> selectQomAsnStrWares(SearchWareReq dto);
 
-    Integer selectQomAsnCount(String asnOjYm, int cnt);
+    Integer selectQomAsnCount(SearchReq dto);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnFirstTnIndividualsForCreate(SearchReq dto);
+    int updateQomAsnForRemove(WsnaQomAsnRemoveDvo dvo);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnIndividualsForCreate(SearchReq dto);
+    int insertQomAsnFirstTnIndividuals(WsnaQomAsnCreateDvo dvo);
 
-    List<WsnaQomAsnCreateDvo> selectQomAsnIndependenceForCreate(SearchReq dto);
+    int insertQomAsnIndividuals(WsnaQomAsnCreateDvo dvo);
+
+    int insertQomAsnIndependence(WsnaQomAsnCreateDvo dvo);
 
     int selectItmQomAsnNoMax(String asnOjYm, String wareDtlDvCd);
-
-    int insertItmQomAsns(List<WsnaQomAsnCreateDvo> dvo);
 
     PagingResult<WsnaQomAsnIndividualSearchDvo> selectQomAsnsForIndividual(
         SearchReq dto, PageInfo pageInfo

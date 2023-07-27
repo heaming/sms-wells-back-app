@@ -7,22 +7,19 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-U-0190M01, W-SV-U-0191M01 개인/독립창고 물량배정 데이터 생성 dvo
+ * W-SV-U-0192M01 개인창고출고관리 물류 전송 dvo
  * </pre>
  *
  * @author SaeRomI.Kim
- * @since 2023-07-12
+ * @since 2023-07-26
  */
 
 @Getter
 @Setter
-public class WsnaQomAsnCreateDvo {
-
-    private String apyYm;
+public class WsnaIndividualWareOstrLgstDvo {
     private String asnOjYm;
     private BigDecimal cnt;
     private String ostrWareNo;
     private String wareDvCd;
     private String wareDtlDvCd;
-    private int qomAsnNo;
 }

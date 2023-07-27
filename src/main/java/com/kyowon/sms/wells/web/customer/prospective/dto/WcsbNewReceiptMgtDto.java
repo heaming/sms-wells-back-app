@@ -58,6 +58,9 @@ public class WcsbNewReceiptMgtDto {
         String phNo, /* 고객 휴대전화 */
         String wireTelNo, /* 고객 유선전화 */
 
+        String fstRgstDtmCp,
+        String fstRgstDeptNm,
+        String fnlMdfcDeptNm,
         String fstRgstDtm,
         String fstRgstUsrNm,
         String fnlMdfcDtm,
@@ -192,12 +195,16 @@ public class WcsbNewReceiptMgtDto {
         String phNo, /* 고객 휴대전화 */
         String wireTelNo, /* 고객 유선전화 */
 
+        String fstRgstDtmCp,
         String fstRgstDtm,
         String fstRgstUsrNm,
+        String fstRgstDeptNm,
+        String fnlMdfcDeptNm,
         String fnlMdfcDtm,
         String fnlMdfcUsrNm,
         String fstRgstUsrId,
         String fnlMdfcUsrId
+
     ) {
         public SearchDtlRes {
 

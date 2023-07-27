@@ -5,14 +5,11 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto.*;
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnCreateDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaQomAsnService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -70,13 +67,14 @@ public class WsnaQomAsnController {
     @ApiOperation(value = "물량배정 건수 조회", notes = "물량배정 데이터 건수를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true)
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true)
     })
-    public String getQomAsnExistCheck(@RequestParam(name = "asnOjYm")
-    String asnOjYm, @RequestParam(name = "cnt")
-    @Positive
-    int cnt) {
-        return this.service.getQomAsnExistCheck(asnOjYm, cnt);
+    public String getQomAsnExistCheck(@Valid
+    SearchReq dto) {
+        return this.service.getQomAsnExistCheck(dto);
     }
 
     @GetMapping("/individual-wares/paging")
@@ -116,45 +114,34 @@ public class WsnaQomAsnController {
         return this.service.getQomAsnsExcelDownloadForIndividual(dto);
     }
 
-    @GetMapping("/individual-wares")
-    @ApiOperation(value = "개인창고 물량배정 데이터 생성 관련 조회", notes = "개인창고 물량배정 데이터 생성을 위한 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
-        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
-        @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
-        @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true)
-    })
-    public List<WsnaQomAsnCreateDvo> getQomAsnIndividualsForCreate(@Valid
-    SearchReq dto) {
-        return this.service.getQomAsnIndividualsForCreate(dto);
-    }
-
-    @GetMapping("/independence-wares")
-    @ApiOperation(value = "독립창고 물량배정 데이터 생성 관련 조회", notes = "독립창고 물량배정 데이터 생성을 위한 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
-        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
-        @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
-        @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true)
-    })
-    public List<WsnaQomAsnCreateDvo> getQomAsnIndependenceForCreate(@Valid
-    SearchReq dto) {
-        return this.service.getQomAsnIndependenceForCreate(dto);
-    }
-
-    @PostMapping
-    @ApiOperation(value = "물량배정 데이터 생성", notes = "물량배정 데이터를 생성한다.")
-    public SaveResponse createQomAsns(
+    @PostMapping("/individual-wares")
+    @ApiOperation(value = "개인창고 물량배정 데이터 생성", notes = "개인창고 물량배정 데이터를 생성한다.")
+    public SaveResponse createQomAsnIndividualWares(
         @RequestBody
         @Valid
-        @NotEmpty
-        List<CreateReq> dtos
+        CreateReq dto
     ) {
-        return SaveResponse.builder().processCount(this.service.createQomAsns(dtos)).build();
+        return SaveResponse.builder().processCount(this.service.createQomAsnIndividualWares(dto)).build();
+    }
+
+    @PostMapping("/independence-wares")
+    @ApiOperation(value = "독립창고 물량배정 데이터 생성", notes = "독립창고 물량배정 데이터를 생성한다.")
+    public SaveResponse createQomAsnIndependenceWares(
+        @RequestBody
+        @Valid
+        CreateReq dto
+    ) {
+        return SaveResponse.builder().processCount(this.service.createQomAsnIndependenceWares(dto)).build();
+    }
+
+    @DeleteMapping
+    @ApiOperation(value = "물량배정 데이터 삭제", notes = "물량배정 데이터를 삭제한다.")
+    public SaveResponse removeQomAsn(
+        @RequestBody
+        @Valid
+        RemoveReq dto
+    ) {
+        return SaveResponse.builder().processCount(this.service.removeQomAsn(dto)).build();
     }
 
     @GetMapping("/independence-wares/paging")
