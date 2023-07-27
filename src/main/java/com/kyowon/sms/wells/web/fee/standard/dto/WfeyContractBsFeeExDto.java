@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.fee.standard.dto;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -20,6 +23,7 @@ public class WfeyContractBsFeeExDto {
         String cntrNo,            /* 계약번호 */
         String cntrSn,           /* 계약일련번호 */
         String cntrDtlSn, /* 계약번호-계약일련번호 */
+        @MaskRequired(type = MaskingType.NAME)
         String cntorNm, /* 계약자명 */
         String basePdCd, /* 상품 */
         String basePdNm,
@@ -33,10 +37,12 @@ public class WfeyContractBsFeeExDto {
         String feeCtrRsonCn,      /* 수수료조정사유내용 */
         String dtaDlYn,        /* 데이터삭제여부 */
         String fstRgstDtm,     /* 최초등록일시 */
+        @MaskRequired(type = MaskingType.NAME)
         String fstRgstUsrId,  /* 최초등록사용자ID */
         String fstRgstPrgId,  /* 최초등록프로그램ID */
         String fstRgstDeptId, /* 최초등록부서ID */
         String fnlMdfcDtm,     /* 최종수정일시 */
+        @MaskRequired(type = MaskingType.NAME)
         String fnlMdfcUsrId,  /* 최종수정사용자ID */
         String fnlMdfcPrgId,  /* 최종수정프로그램ID */
         String fnlMdfcDeptId /* 최종수정부서ID */
