@@ -60,6 +60,30 @@ public class WctaContractSettlementController {
         return service.getContractForSettlements(req);
     }
 
+    @ApiOperation(value = "신용카드 카드사 코드 조회", notes = "신용카드 카드사 코드 조회")
+    @GetMapping("/finance-code")
+    public String getFnitCd(
+        String encCrcdnoPrefix
+    ) {
+        String decCrcdno;
+        try {
+            decCrcdno = queryStringEncService.decrypt(encCrcdnoPrefix);
+        } catch (Exception e) {
+            throw new BizException("조회되지 않은 금융기관 카드번호입니다.");
+        }
+
+        return service.getFnitCd(decCrcdno);
+    }
+
+    @ApiOperation(value = "입금유형 별 선택 가능 자동이체일 목록 조회", notes = "입금유형 별 선택 가능 자동이체일 목록 조회")
+    @GetMapping("/regular-fund-transfers-day-options/{dpTpCd}")
+    public List<Integer> getRegularFundTransfersDayOptions(
+        @PathVariable
+        String dpTpCd
+    ) {
+        return service.getRegularFundTransfersDayOptions(dpTpCd);
+    }
+
     @ApiOperation(value = "계약 확정 요청", notes = "최종 동의 시 날릴 요청")
     @PostMapping("/confirm")
     public SaveRes saveContractSettlements(
@@ -77,19 +101,13 @@ public class WctaContractSettlementController {
     ) {
         return service.requestCreditCardApproval(req);
     }
-    @ApiOperation(value = "신용카드 카드사 코드 조회", notes = "신용카드 카드사 코드 조회")
-    @GetMapping("/finance-code")
-    public String getFnitCd(
-        String encCrcdnoPrefix
-    ) {
-        String decCrcdno;
-        try {
-            decCrcdno = queryStringEncService.decrypt(encCrcdnoPrefix);
-        } catch (Exception e) {
-            throw new BizException("조회되지 않은 금융기관 카드번호입니다.");
-        }
 
-        return service.getFnitCd(decCrcdno);
+    @ApiOperation(value = "신용카드 승인 취소", notes = "신용카드 승인 취소 요청")
+    @PostMapping("/credit-card-cancel")
+    public SaveRes requestCancelCreditCardApproval(
+        @RequestBody @Valid CreditReq req
+    ) {
+        return SaveRes.builder().result(service.requestCancelCardApproval(req)).build();
     }
 
     @ApiOperation(value = "가상계좌 생성 요청 서비스", notes = "가상계좌 생성 요청 서비스")
@@ -100,12 +118,4 @@ public class WctaContractSettlementController {
         return service.requestVacIsRveAsk(req);
     }
 
-    @ApiOperation(value = "입금유형 별 선택 가능 자동이체일 목록 조회", notes = "입금유형 별 선택 가능 자동이체일 목록 조회")
-    @GetMapping("/regular-fund-transfers-day-options/{dpTpCd}")
-    public List<Integer> getRegularFundTransfersDayOptions(
-        @PathVariable
-        String dpTpCd
-    ) {
-        return service.getRegularFundTransfersDayOptions(dpTpCd);
-    }
 }
