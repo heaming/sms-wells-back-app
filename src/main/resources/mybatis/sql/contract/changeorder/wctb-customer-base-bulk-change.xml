@@ -4,6 +4,7 @@
     <select id="selectBulkChangeObjects" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCustomerBaseBulkChangeDvo">
         /* 고객기준 일괄변경 대상 조회(자동이체,설치자명,세금계산서발행여부) */
         SELECT T1.SELL_PRTNR_NO /* 판매파트너번호 */
+             , T1.COPN_DV_CD /* 법인격구분코드 */
              , T3.PRTNR_KNM /* [이름] 파트너한글명 */
              , T2.SELL_TP_CD /* 판매유형코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD) AS SELL_TP_NM /* [업무구분] 판매유형명 */
@@ -20,18 +21,30 @@
                     ELSE '알수없음'
                END AS ATMT_STAT /* [자동이체정보-상태] */
              , T7.MPY_BSDT /* [자동이체정보-이체일] 납부기준일자 */
-             , CASE WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0102' /*계좌자동이체*/ THEN '1'
-                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0203' /*카드자동이체*/ THEN '2'
-                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0401' /*지로*/ THEN 'G'
-                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD IS NULL THEN 'N'
-                    WHEN T2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN ''
-               END AS AFTN_INF_FNT_DV_CD /* 자동이체정보-이체구분코드 */
-             , CASE WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0102' /*계좌자동이체*/ THEN '은행'
-                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0203' /*카드자동이체*/ THEN '카드'
-                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD = '0401' /*지로*/ THEN '지로'
-                    WHEN T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') AND T6.DP_TP_CD IS NULL THEN '보류'
-                    WHEN T2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN ''
-               END AS AFTN_INF_FNT_DV_NM /* [자동이체정보-이체구분] 이체구분명 */
+             , CASE WHEN T2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN T2.CNTR_DTL_STAT_CD
+                    ELSE
+                         CASE WHEN T6.STLM_HD_DV_CD = 'N' THEN 'N' /* 보류*/
+                              ELSE
+                                   CASE WHEN T6.DP_TP_CD = '0101' THEN 'S' /* 가상계좌*/
+                                        WHEN T6.DP_TP_CD = '0102' THEN '1' /* 은행*/
+                                        WHEN T6.DP_TP_CD = '0203' THEN '2' /* 카드*/
+                                        WHEN T6.DP_TP_CD = '0401' THEN 'G' /* 지로*/
+                                        ELSE ''
+                                        END
+                              END
+                    END AS AFTN_INF_FNT_DV_CD /* 이체구분코드 */
+             , CASE WHEN T2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN ''
+                    ELSE
+                         CASE WHEN T6.STLM_HD_DV_CD = 'N' THEN '보류'
+                              ELSE
+                                   CASE WHEN T6.DP_TP_CD = '0101' THEN '가상계좌'
+                                        WHEN T6.DP_TP_CD = '0102' THEN '은행'
+                                        WHEN T6.DP_TP_CD = '0203' THEN '카드'
+                                        WHEN T6.DP_TP_CD = '0401' THEN '지로'
+                                        ELSE ''
+                                        END
+                              END
+                    END AS AFTN_INF_FNT_DV_NM /* 이체구분명 */
              , T6.DP_TP_CD /* 입금유형코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T6.DP_TP_CD) AS DP_TP_NM /* [자동이체정보-이체구분] 입금유형명 */
              , CASE WHEN T6.DP_TP_CD = '0102' THEN T7.BNK_CD
@@ -51,6 +64,7 @@
                     WHEN T6.DP_TP_CD = '0203' AND T9.DG_CNTR_NO IS NOT NULL AND T9.DG_YN = 'Y' THEN 'Y'
                     ELSE 'N'
                END AS IS_BNDL_MAST /* [자동이체정보-묶음/대표] 묶음출금 대표주문 여부 */
+             , T6.CNTR_STLM_ID /* 계약결제ID */
              , '하단 증빙원본 조회' AS EVID_OCY_INQR /* [자동이체정보-선택] */
              , '해지' AS RESIGN /* [자동이체정보-해지] */
              , T10.RCGVP_KNM AS IST_KNM /* [설치자 정보-설치고객명] 수령자한글명 */
@@ -98,7 +112,8 @@
            AND T6.DTL_CNTR_SN = T2.CNTR_SN
            AND T6.DTA_DL_YN = 'N'
            AND T6.VL_END_DTM = '99991231235959'
-           AND T6.DP_TP_CD IN ('0102', '0203', '0401') /* 입금유형코드=계좌자동이체(0102),카드자동이체(0203),지로(0401) */
+           AND T6.DP_TP_CD IN ('0101', '0102', '0203', '0401') /* 입금유형코드=개별수납(가상계좌)(0101),계좌자동이체(0102),카드자동이체(0203),지로(0401) */
+           AND T6.RVE_DV_CD IN ('03','04','05') /* 수납구분코드 - 03:월납입액(할부금, 렌탈료), 04:멤버십회비, 05:정기배송회비*/
           LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7 /* 계약결제기본 */
             ON T7.CNTR_STLM_ID = T6.CNTR_STLM_ID
            AND T7.DTA_DL_YN = 'N'
@@ -412,6 +427,21 @@
          WHERE 1=1
            AND CNTR_NO = #{cntrNo}
            AND DTA_DL_YN = 'N'
+    </select>
+
+
+    <select id="selectCrcdBeforeChange" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCustomerBaseBulkChangeDvo">
+        SELECT CNTR_STLM_ID     /* 계약결제ID*/
+             , DP_TP_CD         /* 입금유형코드*/
+             , STLM_HD_DV_CD    /* 결제보류구분코드*/
+          FROM TB_SSCT_CNTR_STLM_REL /* 계약결제관계*/
+         WHERE 1 = 1
+           AND DTL_CNTR_NO  = #{cntrNo}
+           AND DTL_CNTR_SN  = #{cntrSn}
+           AND VL_END_DTM   = '99991231235959'
+           AND DTA_DL_YN    = 'N'
+           AND RVE_DV_CD IN ('03', '04', '05') /* 수납구분코드 03:월납입액(할부금, 렌탈료), 04:멤버십회비, 05:정기배송회비*/
+           AND CNTR_STLM_ID = #{cntrStlmId}
     </select>
 
     <insert id="insertContractChangeRcpBase">
@@ -899,6 +929,118 @@
          WHERE 1=1
            AND CNTR_NO = #{dtlCntrNo}
     </insert>
+
+    <insert id="insertContractStlmRel">
+        INSERT INTO TB_SSCT_CNTR_STLM_REL (
+               CNTR_STLM_REL_ID		/* 계약결제관계ID*/
+             , VL_STRT_DTM			/* 유효시작일시*/
+             , VL_END_DTM			/* 유효종료일시*/
+             , CNTR_UNIT_TP_CD		/* 계약단위유형코드*/
+             , CNTR_STLM_ID			/* 계약결제ID*/
+             , CNTR_NO				/* 계약번호*/
+             , DTL_CNTR_NO			/* 상세계약번호*/
+             , DTL_CNTR_SN			/* 상세계약일련번호*/
+             , DP_TP_CD				/* 입금유형코드*/
+             , RVE_DV_CD			/* 수납구분코드*/
+             , ISLND_INCMDC_TP_CD	/* 도서지역소득공제유형코드*/
+             , STLM_AMT				/* 결제금액*/
+             , STLM_HD_DV_CD		/* 결제보류구분코드*/
+             , BF_CNTR_STLM_ID		/* 이전계약결제ID*/
+             , DTA_DL_YN			/* 데이터삭제여부*/
+             <include refid="COMMON.insertSystemField" />
+        ) SELECT CNTR_STLM_REL_ID	/* 계약결제관계ID*/
+               , #{histStrtDtm}	    /* 유효시작일시*/
+               , #{histEndDtm}	    /* 유효종료일시*/
+               , CNTR_UNIT_TP_CD	/* 계약단위유형코드*/
+               , CNTR_STLM_ID		/* 계약결제ID*/
+               , CNTR_NO			/* 계약번호*/
+               , DTL_CNTR_NO		/* 상세계약번호*/
+               , DTL_CNTR_SN		/* 상세계약일련번호*/
+               , DP_TP_CD			/* 입금유형코드*/
+               , RVE_DV_CD			/* 수납구분코드*/
+               , ISLND_INCMDC_TP_CD	/* 도서지역소득공제유형코드*/
+               , STLM_AMT			/* 결제금액*/
+               , STLM_HD_DV_CD		/* 결제보류구분코드*/
+               , BF_CNTR_STLM_ID	/* 이전계약결제ID*/
+               , 'N'				/* 데이터삭제여부*/
+               , #{fstRgstDtm}
+               , #{fstRgstUsrId}
+               , #{fstRgstPrgId}
+               , #{fstRgstDeptId}
+               , #{fnlMdfcDtm}
+               , #{fnlMdfcUsrId}
+               , #{fnlMdfcPrgId}
+               , #{fnlMdfcDeptId}
+             FROM TB_SSCT_CNTR_STLM_REL
+            WHERE CNTR_STLM_ID = #{cntrStlmId}
+              AND VL_END_DTM   = #{histStrtDtm}
+              AND DTL_CNTR_NO  = #{cntrNo}
+              AND DTL_CNTR_SN  = #{cntrSn}
+              AND DTA_DL_YN    = 'N'
+    </insert>
+
+    <insert id="insertContractStlHist">
+        INSERT INTO TB_SSCT_CNTR_STLM_CH_HIST (
+              CNTR_STLM_ID
+            , HIST_STRT_DTM
+            , HIST_END_DTM
+            , CST_NO
+            , CNTR_NO
+            , CNTRT_REL_CD
+            , OWR_KNM
+            , DP_TP_CD
+            , BNK_CD
+            , CDCO_CD
+            , ACNO_ENCR
+            , CRCDNO_ENCR
+            , CARD_EXPDT_YM
+            , MPY_BSDT
+            , HS_CTF_YN
+            , VNCO_DV_CD
+            , PYER_NO
+            , FNIT_APR_RS_CD
+            , AC_FNT_IMPS_CD
+            , CARD_FNT_IMPS_CD
+            , FNT_EVID_DRM_VAL
+            , REUSE_OJ_YN
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+        ) SELECT CNTR_STLM_ID
+               , #{histStrtDtm}
+               , #{histEndDtm}
+               , CST_NO
+               , CNTR_NO
+               , CNTRT_REL_CD
+               , OWR_KNM
+               , DP_TP_CD
+               , BNK_CD
+               , CDCO_CD
+               , ACNO_ENCR
+               , CRCDNO_ENCR
+               , CARD_EXPDT_YM
+               , MPY_BSDT
+               , HS_CTF_YN
+               , VNCO_DV_CD
+               , PYER_NO
+               , FNIT_APR_RS_CD
+               , AC_FNT_IMPS_CD
+               , CARD_FNT_IMPS_CD
+               , FNT_EVID_DRM_VAL
+               , REUSE_OJ_YN
+               , DTA_DL_YN
+               , #{fstRgstDtm}
+               , #{fstRgstUsrId}
+               , #{fstRgstPrgId}
+               , #{fstRgstDeptId}
+               , #{fnlMdfcDtm}
+               , #{fnlMdfcUsrId}
+               , #{fnlMdfcPrgId}
+               , #{fnlMdfcDeptId}
+             FROM TB_SSCT_CNTR_STLM_BAS
+            WHERE CNTR_STLM_ID = #{cntrStlmId}
+              AND DTA_DL_YN = 'N'
+    </insert>
+
     <update id="updateContractAdrpcBase">
         UPDATE TB_SSCT_CNTR_ADRPC_BAS B01 /* 계약주소지기본*/
            SET B01.RCGVP_KNM = #{istNm}
@@ -929,5 +1071,57 @@
              , SELL_PRTNR_NO = #{prtnrNo} /* 판매파트너번호 */
          WHERE CNTR_NO = #{dtlCntrNo}
            AND DTA_DL_YN = 'N'
+    </update>
+
+    <update id="updateContractStlmRel">
+        UPDATE TB_SSCT_CNTR_STLM_REL
+           SET VL_END_DTM = #{histStrtDtm}
+        <choose>
+            <when test='@MybatisUtils@equals(fntDvCd, "N")'>
+                , STLM_HD_DV_CD = 'N'
+            </when>
+            <when test='@MybatisUtils@equals(fntDvCd, "B")'>
+                , STLM_HD_DV_CD = NULL
+            </when>
+            <when test='@MybatisUtils@equals(fntDvCd, "S")'>
+                , DP_TP_CD = '0101' /* 개별수납(가상계좌)*/
+            </when>
+             <when test='@MybatisUtils@equals(fntDvCd, "G")'>
+                , DP_TP_CD = '0401' /* 지로*/
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+          <include refid="COMMON.updateSystemField"/>
+         WHERE DTL_CNTR_NO = #{cntrNo}
+           AND DTL_CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
+           AND VL_END_DTM = '99991231235959'
+    </update>
+
+    <update id="updateContractStlmBas">
+        UPDATE TB_SSCT_CNTR_STLM_BAS /* 계약결제기본*/
+           SET
+        <choose>
+            <when test='@MybatisUtils@equals(fntDvCd, "S")'>
+                DP_TP_CD  = '0101' /* 개별수납(가상계좌)*/
+            </when>
+            <when test='@MybatisUtils@equals(fntDvCd, "G")'>
+                DP_TP_CD  = '0401' /* 지로*/
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_STLM_ID = #{cntrStlmId}
+           AND DTA_DL_YN = 'N'
+    </update>
+
+     <update id="updateContractStlHist">
+        UPDATE TB_SSCT_CNTR_STLM_CH_HIST
+           SET HIST_END_DTM = #{histStrtDtm}
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_STLM_ID = #{cntrStlmId}
+           AND HIST_END_DTM = '99991231235959'
     </update>
 </mapper>

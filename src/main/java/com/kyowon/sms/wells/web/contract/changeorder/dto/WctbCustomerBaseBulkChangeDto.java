@@ -33,7 +33,8 @@ public class WctbCustomerBaseBulkChangeDto {
         String prtnrNo, // 판매파트너번호
         String ogTpCd, // 판매조직유형코드
         String prcDvCd, // 처리구분
-        String prtnrKnm // 판매파트너명
+        String prtnrKnm, // 판매파트너명
+        String fntDvCd // 이체구분
     ) {}
     public record Contract(
         @NotBlank
@@ -43,17 +44,25 @@ public class WctbCustomerBaseBulkChangeDto {
         @NotBlank
         String cntrCstNo, // 계약고객번호
 
-        /* 이전 데이터 */
+        /* 이전 데이터(설치자 명 변경, 세금계산서 발행 ) */
         String istKnm, // 수령자 한글명
         String txinvPblOjYn, // 세금계산서변경대상여부
         String sellPrtnrNo, // 판매자파트너번호
-        String prtnrKnm // 판매자 파트너 명
+        String prtnrKnm, // 판매자 파트너 명
+
+        /* 자동이체 */
+        String aftnInfFntDvCd, // 이체구분코드
+        String copnDvCd, // 법인격구분코드
+        String dpTpCd, // 입금유형코드
+        String sellTpCd, // 판매유형코드
+        String cntrStlmId // 계약주소ID
     ) {}
 
     @ApiModel(value = "WctbCustomerBaseBulkChDto-SearchCustomerRes")
     public record SearchCustomerRes(
         String sellPrtnrNo, /* 판매파트너번호 */
         String prtnrKnm, /* [이름] 파트너한글명 */
+        String copnDvCd, /* 법인격구분코드 */
         String sellTpCd, /* 판매유형코드 */
         String sellTpNm, /* [업무구분] 판매유형명 */
         String cntrNo, /* [계약번호] */
@@ -76,6 +85,7 @@ public class WctbCustomerBaseBulkChangeDto {
         String isBndlMast, /* [자동이체정보-묶음/대표] 묶음출금 대표주문 여부 */
         String evidOcyInqr, /* [자동이체정보-선택] */
         String resign, /*[자동이체정보-해지]*/
+        String cntrStlmId, /* [자동이체정보-계약주소ID] */
         String istKnm, /* [설치자 정보-설치고객명] 수령자한글명 */
         String wCralLocaraTno, /* [설치자 정보-휴대전화번호1] */
         String wMexnoEncr, /* [설치자 정보-휴대전화번호2] */

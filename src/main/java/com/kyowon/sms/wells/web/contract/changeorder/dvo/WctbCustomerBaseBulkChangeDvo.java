@@ -22,6 +22,7 @@ public class WctbCustomerBaseBulkChangeDvo {
     private String rcpDtTo; // 접수기간To
     private String prtnrNo; // 파트너번호
     private String emadr; // 이메일
+    private String copnDvCd; // 법인격구분코드
     @DBDecField
     @DBEncField
     private String cardAccNo; // 계좌/카드번호
@@ -89,6 +90,7 @@ public class WctbCustomerBaseBulkChangeDvo {
     private String rcgvpKnm; /* 수령자 한글명 */
     private String sellInflwChnlDtlCd; /* 판매유입채널상세코드 */
     private String ogTpCd; /* 판매조직유형코드 */
+    private String fntDvCd; /* 이체구분 */
 
     @Getter
     @Setter
@@ -100,6 +102,11 @@ public class WctbCustomerBaseBulkChangeDvo {
         private String txinvPblOjYn; // 세금계산서변경대상여부
         private String sellPrtnrNo; // 판매자파트너번호
         private String prtnrKnm; // 판매자 파트너 명
+        private String aftnInfFntDvCd; // 자동이체정보-이체구분코드
+        private String copnDvCd; // 법인격구분코드
+        private String sellTpCd; // 판매유형코드
+        private String dpTpCd; // 입금유형코드
+        private String cntrStlmId; // 계약주소ID
     }
 
     /* 계약변경접수기본 */
@@ -143,6 +150,7 @@ public class WctbCustomerBaseBulkChangeDvo {
     private String procsYn; /* 처리여부 */
     private String procsDuedt; /* 처리예정일자 */
     private String procsFshDtm; /* 처리완료일시 */
+    private String stlmHdDvCd; /* 결제보류구분코드 */
 
     /* 최초(최종)등록 */
     private String fstRgstDtm; /* 최초등록일시 */
