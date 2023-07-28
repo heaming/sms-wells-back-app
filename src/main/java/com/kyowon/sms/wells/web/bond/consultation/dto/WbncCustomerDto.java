@@ -170,6 +170,7 @@ public class WbncCustomerDto {
         String dtrcTno, /* 지국 전화번호 */
         String vacNo, /* 가상계좌번호 */
         String tfDt, /* 이관일자 */
+        String prtnrNo, /* 집금담당번호 */
         String prtnrNm, /* 집금담당 */
         String dfltDt, /* 채무불이행 */
         String lwmMoCn, /* 법조치 */
