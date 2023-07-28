@@ -46,8 +46,8 @@
              /*렌탈 잔여개월수 산출 -> MONTHS_BETWEEN(약정만료일자, 입력값_요청일자) - 1*/
              /* --> 사유 렌탈의 차월은 익월부터 증가                                    */
              /*-------------------------------------------------------------------------*/
-             , CASE WHEN T.SELL_TP_CD = '2' AND T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN TRUNC(MONTHS_BETWEEN(T.STPL_EXN_DT, '20230701'))
-                    ELSE TRUNC(MONTHS_BETWEEN(T.STPL_EXN_DT, '20230701')) - 1 END AS RES_MCN /*잔여개월수*/
+             , CASE WHEN T.SELL_TP_CD = '2' AND T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN TRUNC(MONTHS_BETWEEN(T.STPL_EXN_DT, #{rqdt}))
+                    ELSE TRUNC(MONTHS_BETWEEN(T.STPL_EXN_DT, #{rqdt})) - 1 END AS RES_MCN /*잔여개월수*/
              /*렌탈 잔여일수 산출 -> 입력값_요청일자의 말일 - 입력값_요청일자*/
              , CASE WHEN T.SELL_TP_CD = '2' AND T.SELL_TP_DTL_CD IN ('21', '23') THEN TO_DATE(TO_CHAR(LAST_DAY(#{rqdt}), 'YYYYMMDD'), 'YYYYMMDD') - TO_DATE(#{rqdt}, 'YYYYMMDD')
                     ELSE 0 END                                              AS RES_DC  /*잔여일수*/
@@ -79,7 +79,7 @@
                              ELSE A2.KUMON_CST_IDK_VAL
                         END                                                                              AS KUMON_CST_IDK_VAL /*구몬고객식별키값[AS-IS:LC3490P.LCGKEY]*/
                       /*[기준]계약접수일자 >= '20200601' -> 고객등급코드 조회 이외 '' 처리*/
-                      , NVL(CASE WHEN SUBSTR(A3.CNTR_RCP_FSH_DTM, 1, 8) >= '20200601' THEN A7.CST_GD_CD
+                      , NVL(CASE WHEN SUBSTR(A3.CNTR_RCP_FSH_DTM, 1, 8) <![CDATA[>=]]> '20200601' THEN A7.CST_GD_CD
                                  ELSE '' END, '1')                                                       AS CST_GD_CD         /*고객등급코드[AS-IS:LCGRAD]->VIP코드가 없으면 1:일반으로 세팅*/
                       , TO_CHAR(ADD_MONTHS(A2.IST_DT, A1.STPL_PTRM - A2.FRISU_BFSVC_PTRM_N), 'YYYYMMDD') AS STPL_EXN_DT       /*약정만료일자=ADD_MONTHS(설치일자, 약정기간-무상BS기간수)*/
                       , TO_DATE(#{rqdt}, 'YYYYMMDD') - TO_DATE(A2.IST_DT, 'YYYYMMDD')             AS PASG_DC           /*경과일수(위약금산출요청일자 - 설치일자)*/
@@ -367,7 +367,7 @@
                      , B.SELL_AMT                                       /*판매금액*/
                      , B.DSC_AMT                                        /*할인금액*/
                      , B.PD_QTY                                         /*상품수량*/
-                     , CASE WHEN #{rqdt} >= CASE WHEN B.SL_DT IS NOT NULL THEN TO_CHAR(ADD_MONTHS(B.SL_DT, B.STPL_PTRM), 'yyyyMMdd')
+                     , CASE WHEN #{rqdt} <![CDATA[>=]]> CASE WHEN B.SL_DT IS NOT NULL THEN TO_CHAR(ADD_MONTHS(B.SL_DT, B.STPL_PTRM), 'yyyyMMdd')
                                                     ELSE ''
                                                     END
                             THEN 'Y'
