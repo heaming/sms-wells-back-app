@@ -103,6 +103,7 @@ public class WsnaItemLocationDto {
     @ApiModel(value = "WsnaItemLocationDto-CreateWareLocationReq")
     public record CreateWareLocationReq(
         String wareNo,
+        @NotBlank
         String stckStdGb
     ) {}
 
