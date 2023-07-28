@@ -82,7 +82,7 @@ public class WsnaIndividualWareOstrController {
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
         @ApiImplicitParam(name = "totOutQty", value = "총출고", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "hgrStrWareNo", value = "상위입고창고번호", paramType = "query", example = "300001", required = true),
-        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031", required = true),
+        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
@@ -103,7 +103,7 @@ public class WsnaIndividualWareOstrController {
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
         @ApiImplicitParam(name = "totOutQty", value = "총출고", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "hgrStrWareNo", value = "상위입고창고번호", paramType = "query", example = "300001", required = true),
-        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031", required = true),
+        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")

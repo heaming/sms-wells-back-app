@@ -1,8 +1,13 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
+
 import javax.validation.constraints.NotBlank;
 
+import com.sds.sflex.system.config.validation.validator.ValidDate;
+
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 /**
  * <pre>
@@ -13,21 +18,32 @@ import io.swagger.annotations.ApiModel;
  * @since 2023-02-14
  */
 public class WsnaOutOfStorageIzDtlDto {
+
+    @Builder
+    @ApiModel("WsnaOutOfStorageIzDtlDto-SearchPdRes")
+    public record SearchPdRes(
+        String pdCd,
+        String pdNm,
+        String itmKndCd
+    ) {}
+
     @ApiModel(value = "WsnaOutOfStorageIzDtlDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String apyYm,
-        @NotBlank
+        @ValidDate
         String stOstrDt,
         @NotBlank
+        @ValidDate
         String edOstrDt,
         String ostrTpCd,
-        String strTpCd,
+
+        @NotBlank
         String ostrWareDvCd,
-        String ostrWareDtlDvCd,
+        String ostrHgrWareNo,
         String ostrWareNo,
+        @NotBlank
         String strWareDvCd,
-        String strWareDtlDvCd,
+        String strHgrWareNo,
         String strWareNo,
         String itmPdCd,
         String itmGdCd,
@@ -37,27 +53,22 @@ public class WsnaOutOfStorageIzDtlDto {
 
     @ApiModel(value = "WsnaOutOfStorageIzDtlDto-SearchRes")
     public record SearchRes(
-        String strWareNo,
-        String ostrWareNo,
-        String inWareNm,
-        String inWareNmSub,
-        String outWareNm,
-        String inWareMngtPrtnrNo,
+        String strWareNm,
+        String strPrtnrNo,
         String ostrDt,
         String sapMatCd,
         String itmPdCd,
-        String pdNm,
+        String pdAbbrNm,
         String ostrTpCd,
-        String mngtUnitCd,
-        String itmGdCd,
-        String ostrQty,
-        String boxUnitQty,
-        String boxQty,
-        String didyDvCd,
-        String strConfDt,
-        String ostrAkNo,
-        String itmOstrNo,
-        String itmStrNo,
-        String useYn
+        String mngtUnitNm,
+        String itmGdNm,
+        BigDecimal ostrQty,
+        BigDecimal boxQty,
+        String llshcs,
+        String ostrWareNm,
+        String strRgstDt,
+        String ostrAkDtlNo,
+        String strDtlNo,
+        String ostrDtlNo
     ) {}
 }

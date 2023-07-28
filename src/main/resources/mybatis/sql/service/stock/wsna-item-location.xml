@@ -1,191 +1,234 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemLocationMapper">
 
-    <select id="selectItemLocations"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchRes">
-        SELECT T1.SVPD_PD_CD AS ITM_PD_CD
-             , T1.SVPD_NM_ABBR1 AS PD_ABBR_NM
-             , T1.SVPD_SAP_CD AS SAP_MAT_CD
-             , T1.SVPD_ITEM_KND AS ITM_KND_CD
-             , T2.WARE_NO
-             , T2.WARE_NM
-             , T2.STD_WARE_USE_YN
-             , T3.PITM_STOC_A_GD_QTY
-             , TRIM(T4.ITM_LCT_ANGLE_VAL) AS ITM_LCT_ANGLE_VAL
-             , T4.ITM_LCT_COF_VAL
-             , T4.ITM_LCT_FLOR_NO_VAL
-             , T4.ITM_LCT_MAT_GRP_CD
-             , TRIM( F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', T4.ITM_LCT_ANGLE_VAL)
-               || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', T4.ITM_LCT_COF_VAL)
-               || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', T4.ITM_LCT_FLOR_NO_VAL)
-               || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', T4.ITM_LCT_MAT_GRP_CD)
-               ) AS ITM_LCT_NM
-          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
-            ON (T2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM') AND T2.WARE_NO = #{wareNo})
-          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
-            ON (T1.SVPD_PD_CD = T3.ITM_PD_CD AND T3.WARE_NO = #{wareNo} AND T3.DTA_DL_YN = 'N')
-          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ T4
-            ON (T1.SVPD_PD_CD = T4.ITM_PD_CD AND T4.WARE_NO = #{wareNo} AND T4.DTA_DL_YN = 'N')
-          <where>
-           AND T1.SVPD_PD_CD = #{itmPdCd}
-          </where>
-         ORDER BY T1.SVPD_PD_CD
+    <select id="selectItemLocations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchRes">
+        SELECT D1.PD_CD                                                                                               AS ITM_PD_CD
+             , D1.PD_ABBR_NM                                                                                          AS PD_ABBR_NM
+             , D1.SAP_MAT_CD
+             , D4.PD_PRP_VAL19                                                                                        AS ITM_KND_CD
+             , D5.WARE_NO
+             , D5.WARE_NM
+             , D5.STD_WARE_USE_YN
+             , D3.PITM_STOC_A_GD_QTY
+             , TRIM(D2.ITM_LCT_ANGLE_VAL)                                                                             AS ITM_LCT_ANGLE_VAL
+             , D2.ITM_LCT_COF_VAL
+             , D2.ITM_LCT_FLOR_NO_VAL
+             , D2.ITM_LCT_MAT_GRP_CD
+             , TRIM( F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', D2.ITM_LCT_ANGLE_VAL, #{session.langId})
+                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})
+                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})
+                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', D2.ITM_LCT_MAT_GRP_CD, #{session.langId}) ) AS ITM_LCT_NM
+          FROM TB_PDBS_PD_BAS D1                          /* 상품기본 */
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ D2    /* 고객서비스품목위치내역 */
+            ON D2.ITM_PD_CD = D1.PD_CD
+           AND D2.DTA_DL_YN = 'N'
+           AND D2.WARE_NO   = #{wareNo}
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ D3   /* 고객서비스품목재고내역 */
+            ON D3.ITM_PD_CD = D1.PD_CD
+           AND D3.DTA_DL_YN = 'N'
+           AND D3.WARE_NO   = #{wareNo}
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4            /* 상품각사속성상세 */
+            ON D4.PD_CD = D1.PD_CD
+         INNER JOIN TB_SVST_MCBY_WARE_IZ    D5            /* 월별창고내역 */
+            ON 1 = 1
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_TP_CD           = 'M'
+           AND D4.DTA_DL_YN          = 'N'
+           AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D5.DTA_DL_YN          = 'N'
+           AND D5.APY_YM             = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND D1.PD_CD              = #{itmPdCd}
+           AND D5.WARE_NO            = #{wareNo}
+         ORDER BY PD_ABBR_NM, ITM_PD_CD
     </select>
 
     <update id="saveItemLocations">
-        MERGE INTO TB_SVST_CST_SV_ITM_LCT_IZ T1
-              USING
-              ( <foreach collection="list" item="item" open="" close="" separator="UNION">
-                    SELECT #{item.wareNo} AS WARE_NO
-                         , #{item.itmPdCd} AS ITM_PD_CD
-                         , #{item.itmLctAngleVal} AS ITM_LCT_ANGLE_VAL
-                         , #{item.itmLctCofVal} AS ITM_LCT_COF_VAL
-                         , #{item.itmLctFlorNoVal} AS ITM_LCT_FLOR_NO_VAL
-                         , #{item.itmLctMatGrpCd} AS ITM_LCT_MAT_GRP_CD
-                         , #{item.itmKndCd} AS ITM_KND_CD
-                      FROM DUAL
-                </foreach>
-              ) T2
-              ON
-              ( T1.WARE_NO = T2.WARE_NO AND T1.ITM_PD_CD = T2.ITM_PD_CD )
-         WHEN MATCHED THEN
-              UPDATE SET T1.ITM_LCT_ANGLE_VAL = T2.ITM_LCT_ANGLE_VAL
-                       , T1.ITM_LCT_COF_VAL = T2.ITM_LCT_COF_VAL
-                       , T1.ITM_LCT_FLOR_NO_VAL = T2.ITM_LCT_FLOR_NO_VAL
-                       , T1.ITM_LCT_MAT_GRP_CD = T2.ITM_LCT_MAT_GRP_CD
-                       , T1.ITM_KND_CD = T2.ITM_KND_CD
-                       , T1.DTA_DL_YN = 'N'
-                       <include refid="COMMON.updateSystemField" />
-         WHEN NOT MATCHED THEN
-              INSERT (   WARE_NO
-                       , ITM_PD_CD
-                       , ITM_LCT_ANGLE_VAL
-                       , ITM_LCT_COF_VAL
-                       , ITM_LCT_FLOR_NO_VAL
-                       , ITM_LCT_MAT_GRP_CD
-                       , ITM_KND_CD
-                       , DTA_DL_YN
-                       <include refid="COMMON.insertSystemField"/>
-                     )VALUES(
-                         T2.WARE_NO
-                       , T2.ITM_PD_CD
-                       , T2.ITM_LCT_ANGLE_VAL
-                       , T2.ITM_LCT_COF_VAL
-                       , T2.ITM_LCT_FLOR_NO_VAL
-                       , T2.ITM_LCT_MAT_GRP_CD
-                       , T2.ITM_KND_CD
-                       , 'N'
-                       <include refid="COMMON.insertSystemFieldValue" />
-                     )
+         MERGE INTO TB_SVST_CST_SV_ITM_LCT_IZ T1
+         USING
+             (
+            <foreach collection="list" item="item" open="" close="" separator="UNION">
+               SELECT #{item.wareNo}          AS WARE_NO
+                    , #{item.itmPdCd}         AS ITM_PD_CD
+                    , #{item.itmLctAngleVal}  AS ITM_LCT_ANGLE_VAL
+                    , #{item.itmLctCofVal}    AS ITM_LCT_COF_VAL
+                    , #{item.itmLctFlorNoVal} AS ITM_LCT_FLOR_NO_VAL
+                    , #{item.itmLctMatGrpCd}  AS ITM_LCT_MAT_GRP_CD
+                    , #{item.itmKndCd}        AS ITM_KND_CD
+                 FROM DUAL
+            </foreach>
+             ) T2
+            ON
+             (
+                   T1.WARE_NO   = T2.WARE_NO
+               AND T1.ITM_PD_CD = T2.ITM_PD_CD
+             )
+          WHEN MATCHED THEN
+        UPDATE
+           SET T1.ITM_LCT_ANGLE_VAL   = T2.ITM_LCT_ANGLE_VAL
+             , T1.ITM_LCT_COF_VAL     = T2.ITM_LCT_COF_VAL
+             , T1.ITM_LCT_FLOR_NO_VAL = T2.ITM_LCT_FLOR_NO_VAL
+             , T1.ITM_LCT_MAT_GRP_CD  = T2.ITM_LCT_MAT_GRP_CD
+             , T1.ITM_KND_CD          = T2.ITM_KND_CD
+             , T1.DTA_DL_YN           = 'N'
+        <include refid="COMMON.updateSystemField" />
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               WARE_NO
+             , ITM_PD_CD
+             , ITM_LCT_ANGLE_VAL
+             , ITM_LCT_COF_VAL
+             , ITM_LCT_FLOR_NO_VAL
+             , ITM_LCT_MAT_GRP_CD
+             , ITM_KND_CD
+             , DTA_DL_YN
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               T2.WARE_NO
+             , T2.ITM_PD_CD
+             , T2.ITM_LCT_ANGLE_VAL
+             , T2.ITM_LCT_COF_VAL
+             , T2.ITM_LCT_FLOR_NO_VAL
+             , T2.ITM_LCT_MAT_GRP_CD
+             , T2.ITM_KND_CD
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
     </update>
 
     <select id="selectItemLocationsStockCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchStockCdRes">
          SELECT T1.WARE_NO AS CODE_ID
-    --          <!--, T1.WARE_NM || '('||CASE WHEN T1.WARE_USE_YN = 'Y' THEN '사용' ELSE '미사용' END||')' AS WARE_NM -->
               , T1.WARE_NM AS CODE_NAME
               , T1.WARE_DV_CD
            FROM TB_SVST_MCBY_WARE_IZ T1
-          WHERE 1 = 1
-            AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-            AND T1.WARE_DV_CD = '2'
-            AND T1.WARE_DTL_DV_CD = '20'
+          WHERE T1.APY_YM    = TO_CHAR(SYSDATE, 'YYYYMM')
             AND T1.DTA_DL_YN = 'N'
-            ORDER BY T1.WARE_USE_YN DESC, T1.WARE_NM ASC, T1.WARE_NO ASC
-
-
+            AND (
+                     T1.WARE_NO = '100002'
+                  OR ( T1.WARE_DV_CD = '2' AND T1.WARE_DTL_DV_CD = '20' )
+                )
+            AND ( T1.WARE_NM LIKE '%센터' OR T1.WARE_NM LIKE '%지점' )
+          ORDER BY T1.WARE_DV_CD, T1.WARE_USE_YN DESC, T1.WARE_NM ASC, T1.WARE_NO ASC
     </select>
 
    <select id="selectStockItemLocations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchLocationRes">
-        SELECT T1.SVPD_PD_CD AS ITM_PD_CD
-             , T1.SVPD_NM_ABBR1 AS PD_ABBR_NM
-             , T1.SVPD_SAP_CD AS SAP_MAT_CD
-             , T1.SVPD_ITEM_KND AS ITM_KND_CD
-             , T2.WARE_NO
-             , T2.WARE_NM
-             , T2.STD_WARE_USE_YN
-             , T3.PITM_STOC_A_GD_QTY
-             , T4.WARE_TP_CD
-             , TRIM(T4.ITM_LCT_ANGLE_VAL) AS ITM_LCT_ANGLE_VAL
-             , T4.ITM_LCT_COF_VAL
-             , T4.ITM_LCT_FLOR_NO_VAL
-             , T4.ITM_LCT_MAT_GRP_CD
-             , T4.WARE_TP_CD || TRIM(T4.ITM_LCT_ANGLE_VAL) || T4.ITM_LCT_COF_VAL || ITM_LCT_FLOR_NO_VAL || ITM_LCT_MAT_GRP_CD AS LOCATION_CD
-             , TRIM( F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', T4.WARE_TP_CD)
-               || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', T4.ITM_LCT_ANGLE_VAL)
-               || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', T4.ITM_LCT_COF_VAL)
-               || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', T4.ITM_LCT_FLOR_NO_VAL)
-               || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', T4.ITM_LCT_MAT_GRP_CD)
-               ) AS ITM_LCT_NM
-            FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
-   	       INNER JOIN TB_SVST_MCBY_WARE_IZ T2
-              ON (T2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM') AND T2.WARE_NO = #{wareNo})
-            LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
-              ON (T1.SVPD_PD_CD = T3.ITM_PD_CD AND T3.WARE_NO = #{wareNo} AND T3.DTA_DL_YN = 'N')
-            LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ T4
-              ON (T1.SVPD_PD_CD = T4.ITM_PD_CD AND T4.WARE_NO = #{wareNo} AND T4.DTA_DL_YN = 'N')
-<!--          <where>-->
-<!--           AND T1.SVPD_PD_CD = #{itmPdCd}-->
-<!--          </where>-->
-           ORDER BY T1.SVPD_PD_CD
+        SELECT D1.PD_CD                                                                                               AS ITM_PD_CD
+             , D1.PD_ABBR_NM                                                                                          AS PD_ABBR_NM
+             , D1.SAP_MAT_CD
+             , D4.PD_PRP_VAL19                                                                                        AS ITM_KND_CD
+             , D5.WARE_NO
+             , D5.WARE_NM
+             , D5.STD_WARE_USE_YN
+             , D3.PITM_STOC_A_GD_QTY
+             , D2.WARE_TP_CD
+             , TRIM(D2.ITM_LCT_ANGLE_VAL)                                                                             AS ITM_LCT_ANGLE_VAL
+             , D2.ITM_LCT_COF_VAL
+             , D2.ITM_LCT_FLOR_NO_VAL
+             , D2.ITM_LCT_MAT_GRP_CD
+             , D2.WARE_TP_CD
+               || TRIM(D2.ITM_LCT_ANGLE_VAL)
+               || D2.ITM_LCT_COF_VAL
+               || D2.ITM_LCT_FLOR_NO_VAL
+               || D2.ITM_LCT_MAT_GRP_CD                                                                               AS LOCATION_CD
+             , TRIM( F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', D2.WARE_TP_CD, #{session.langId})
+                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', D2.ITM_LCT_ANGLE_VAL, #{session.langId})
+                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})
+                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})
+                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', D2.ITM_LCT_MAT_GRP_CD, #{session.langId}) ) AS ITM_LCT_NM
+          FROM TB_PDBS_PD_BAS D1                          /* 상품기본 */
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ D2    /* 고객서비스품목위치내역 */
+            ON D2.ITM_PD_CD = D1.PD_CD
+           AND D2.DTA_DL_YN = 'N'
+           AND D2.WARE_NO   = #{wareNo}
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ D3   /* 고객서비스품목재고내역 */
+            ON D3.ITM_PD_CD = D1.PD_CD
+           AND D3.DTA_DL_YN = 'N'
+           AND D3.WARE_NO   = #{wareNo}
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4            /* 상품각사속성상세 */
+            ON D4.PD_CD = D1.PD_CD
+         INNER JOIN TB_SVST_MCBY_WARE_IZ    D5            /* 월별창고내역 */
+            ON 1 = 1
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_TP_CD           = 'M'
+           AND D4.DTA_DL_YN          = 'N'
+           AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D5.DTA_DL_YN          = 'N'
+           AND D5.APY_YM             = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND D1.PD_CD              = #{itmPdCd}
+           AND D5.WARE_NO            = #{wareNo}
+         ORDER BY ITM_PD_CD
     </select>
 
     <update id="saveStockItemLocations">
-        MERGE INTO TB_SVST_CST_SV_ITM_LCT_IZ T1
-                  USING
-                  ( <foreach collection="list" item="item" open="" close="" separator="UNION">
-                        SELECT #{item.wareNo} AS WARE_NO
-                             , #{item.itmPdCd} AS ITM_PD_CD
-                             , #{item.wareTpCd} AS WARE_TP_CD
-                             , #{item.itmLctAngleVal} AS ITM_LCT_ANGLE_VAL
-                             , #{item.itmLctCofVal} AS ITM_LCT_COF_VAL
-                             , #{item.itmLctFlorNoVal} AS ITM_LCT_FLOR_NO_VAL
-                             , #{item.itmLctMatGrpCd} AS ITM_LCT_MAT_GRP_CD
-                             , #{item.itmKndCd} AS ITM_KND_CD
-                          FROM DUAL
-                    </foreach>
-                  ) T2
-                  ON
-                  ( T1.WARE_NO = T2.WARE_NO AND T1.ITM_PD_CD = T2.ITM_PD_CD )
-             WHEN MATCHED THEN
-                  UPDATE SET T1.WARE_TP_CD = T2.WARE_TP_CD
-                           , T1.ITM_LCT_ANGLE_VAL = T2.ITM_LCT_ANGLE_VAL
-                           , T1.ITM_LCT_COF_VAL = T2.ITM_LCT_COF_VAL
-                           , T1.ITM_LCT_FLOR_NO_VAL = T2.ITM_LCT_FLOR_NO_VAL
-                           , T1.ITM_LCT_MAT_GRP_CD = T2.ITM_LCT_MAT_GRP_CD
-                           , T1.ITM_KND_CD = T2.ITM_KND_CD
-                           , T1.DTA_DL_YN = 'N'
-                           <include refid="COMMON.updateSystemField" />
-             WHEN NOT MATCHED THEN
-                  INSERT (   WARE_NO
-                           , ITM_PD_CD
-                           , WARE_TP_CD
-                           , ITM_LCT_ANGLE_VAL
-                           , ITM_LCT_COF_VAL
-                           , ITM_LCT_FLOR_NO_VAL
-                           , ITM_LCT_MAT_GRP_CD
-                           , ITM_KND_CD
-                           , DTA_DL_YN
-                           <include refid="COMMON.insertSystemField"/>
-                         )VALUES(
-                             T2.WARE_NO
-                           , T2.ITM_PD_CD
-                           , T2.WARE_TP_CD
-                           , T2.ITM_LCT_ANGLE_VAL
-                           , T2.ITM_LCT_COF_VAL
-                           , T2.ITM_LCT_FLOR_NO_VAL
-                           , T2.ITM_LCT_MAT_GRP_CD
-                           , T2.ITM_KND_CD
-                           , 'N'
-                           <include refid="COMMON.insertSystemFieldValue" />
-                         )
+         MERGE INTO TB_SVST_CST_SV_ITM_LCT_IZ T1
+         USING
+             (
+            <foreach collection="list" item="item" open="" close="" separator="UNION">
+               SELECT #{item.wareNo}          AS WARE_NO
+                    , #{item.itmPdCd}         AS ITM_PD_CD
+                    , #{item.wareTpCd}        AS WARE_TP_CD
+                    , #{item.itmLctAngleVal}  AS ITM_LCT_ANGLE_VAL
+                    , #{item.itmLctCofVal}    AS ITM_LCT_COF_VAL
+                    , #{item.itmLctFlorNoVal} AS ITM_LCT_FLOR_NO_VAL
+                    , #{item.itmLctMatGrpCd}  AS ITM_LCT_MAT_GRP_CD
+                    , #{item.itmKndCd}        AS ITM_KND_CD
+                 FROM DUAL
+            </foreach>
+             ) T2
+            ON
+             (
+                   T1.WARE_NO   = T2.WARE_NO
+               AND T1.ITM_PD_CD = T2.ITM_PD_CD
+             )
+          WHEN MATCHED THEN
+        UPDATE
+           SET T1.WARE_TP_CD          = T2.WARE_TP_CD
+             , T1.ITM_LCT_ANGLE_VAL   = T2.ITM_LCT_ANGLE_VAL
+             , T1.ITM_LCT_COF_VAL     = T2.ITM_LCT_COF_VAL
+             , T1.ITM_LCT_FLOR_NO_VAL = T2.ITM_LCT_FLOR_NO_VAL
+             , T1.ITM_LCT_MAT_GRP_CD  = T2.ITM_LCT_MAT_GRP_CD
+             , T1.ITM_KND_CD          = T2.ITM_KND_CD
+             , T1.DTA_DL_YN           = 'N'
+        <include refid="COMMON.updateSystemField" />
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               T1.WARE_NO
+             , T1.ITM_PD_CD
+             , T1.WARE_TP_CD
+             , T1.ITM_LCT_ANGLE_VAL
+             , T1.ITM_LCT_COF_VAL
+             , T1.ITM_LCT_FLOR_NO_VAL
+             , T1.ITM_LCT_MAT_GRP_CD
+             , T1.ITM_KND_CD
+             , T1.DTA_DL_YN
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               T2.WARE_NO
+             , T2.ITM_PD_CD
+             , T2.WARE_TP_CD
+             , T2.ITM_LCT_ANGLE_VAL
+             , T2.ITM_LCT_COF_VAL
+             , T2.ITM_LCT_FLOR_NO_VAL
+             , T2.ITM_LCT_MAT_GRP_CD
+             , T2.ITM_KND_CD
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
     </update>
 
-    <update id="updateStandarWarehouse" >
+    <update id="updateStandarWarehouse">
         UPDATE TB_SVST_MCBY_WARE_IZ
            SET STD_WARE_USE_YN = #{stckStdGb}
-             <include refid="COMMON.updateSystemField"/>
-         WHERE WARE_NO = #{wareNo}
-           AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+        <include refid="COMMON.updateSystemField"/>
+         WHERE APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
+        <if test="@MybatisUtils@isNotEmpty(wareNo)">
+           AND WARE_NO = #{wareNo}
+        </if>
+
     </update>
 </mapper>
