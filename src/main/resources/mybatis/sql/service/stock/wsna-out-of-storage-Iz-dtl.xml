@@ -1,101 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageIzDtlMapper">
 
-    <select id="getOutOfStorageIzDtls"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageIzDtlDto$SearchRes">
-        SELECT T1.STR_WARE_NO /* 입고창고번호 */
-             , T1.OSTR_WARE_NO /* 출고창고번호 */
-             , IN1.WARE_NM AS IN_WARE_NM /* 입고창고명 */
-             , IN1.WARE_NM AS IN_WARE_NM_SUB /* 입고창고명 */
-             , OUT1.WARE_NM AS OUT_WARE_NM /* 출고창고명 */
-             , IN1.WARE_MNGT_PRTNR_NO AS IN_WARE_MNGT_PRTNR_NO
-             , T1.OSTR_DT
-             , T2.SVPD_SAP_CD AS SAP_MAT_CD /* SAP코드 */
-             , T1.ITM_PD_CD
-             , T2.SVPD_NM_KOR AS PD_NM /* 품목명 */
-             , T1.OSTR_TP_CD /* 출고유형 :MA42 */
-             , T1.MNGT_UNIT_CD /* 관리단위 : MA02 */
-             , T1.ITM_GD_CD /* 상품등급 : MA06 */
-             , T1.OSTR_QTY /* 수량 */
-             , T1.BOX_UNIT_QTY
-             , (CASE WHEN T1.BOX_UNIT_QTY > 0
-                     THEN TO_CHAR(T1.OSTR_QTY / T1.BOX_UNIT_QTY)
-                     ELSE '0'
-                 END) AS BOX_QTY
-             , T1.DIDY_DV_CD /* 직배구분코드  */
-             , T1.STR_CONF_DT /* 입고일자 (STR_RGST_DT : 입고등록일자) */
-             , T1.OSTR_AK_NO  || T1.OSTR_AK_SN AS OSTR_AK_NO /* 고요청번호 */
-             , T1.ITM_OSTR_NO || T1.OSTR_SN AS ITM_OSTR_NO /* 출고관리번호 */
-             , T1.ITM_STR_NO || T1.STR_SN AS ITM_STR_NO /* 입고관리번호 */
-             , (CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD')
-                            BETWEEN T2.SVPD_APLD_FR AND T2.SVPD_APLD_TO
-                     THEN 'Y'
-                     ELSE 'N'
-                 END
-               ) AS USE_YN
-          FROM TB_SVST_ITM_OSTR_IZ T1
-         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T2
-            ON T1.ITM_PD_CD = T2.SVPD_PD_CD
-         INNER JOIN TB_SVST_MCBY_WARE_IZ IN1
-            ON T1.STR_WARE_NO = IN1.WARE_NO
-           AND IN1.APY_YM = #{apyYm}
-        <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-           AND IN1.WARE_DV_CD = #{strWareDvCd}
+    <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageIzDtlDto$SearchPdRes">
+        SELECT D1.PD_CD
+             , D1.PD_ABBR_NM   AS PD_NM
+             , D2.PD_PRP_VAL19 AS ITM_KND_CD
+          FROM TB_PDBS_PD_BAS D1                 /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+            ON D2.PD_CD = D1.PD_CD
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_TP_CD           = 'M'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+         ORDER BY D1.PD_ABBR_NM
+    </select>
+
+    <select id="selectOutOfStorageIzDtlsPaging" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageIzDtlDto$SearchRes">
+        SELECT D4.WARE_NM                                                                         AS STR_WARE_NM      /* 입고창고 */
+             , D4.WARE_MNGT_PRTNR_NO                                                              AS STR_PRTNR_NO     /* 입고창고파트너번호 */
+             , D1.OSTR_DT                                                                                             /* 출고일자 */
+             , D2.SAP_MAT_CD                                                                                          /* SAP코드 */
+             , D1.ITM_PD_CD                                                                                           /* 품목코드 */
+             , D2.PD_ABBR_NM                                                                                          /* 품목명 */
+             , D1.OSTR_TP_CD                                                                                          /* 출고요청 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', NVL( D1.MNGT_UNIT_CD
+                                                           , D3.PD_PRP_VAL05), #{session.langId}) AS MNGT_UNIT_NM     /* 관리단위 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'PD_GD_CD', D1.ITM_GD_CD, #{session.langId})              AS ITM_GD_NM        /* 등급 */
+             , D1.OSTR_QTY                                                                                            /* 출고수량 */
+             , CASE WHEN D3.PD_PRP_VAL12 IS NOT NULL
+                     AND TO_NUMBER(D3.PD_PRP_VAL12) <![CDATA[>]]> 0
+                     AND D1.OSTR_QTY <![CDATA[>]]> 0 THEN D1.OSTR_QTY / TO_NUMBER(D3.PD_PRP_VAL12)
+                    ELSE 0
+               END                                                                                AS BOX_QTY          /* 박스수량 */
+             , LPAD(NVL(D4.DIDY_DV_CD, '01'), 2, '0')                                             AS LLSHCS           /* 직배코스 */
+             , D5.WARE_NM                                                                         AS OSTR_WARE_NM     /* 출고창고 */
+             , D1.STR_RGST_DT                                                                                         /* 입고일자 */
+             , CASE WHEN D1.OSTR_AK_NO IS NOT NULL
+                     AND D1.OSTR_AK_SN IS NOT NULL THEN D1.OSTR_AK_NO || '-' || D1.OSTR_AK_SN
+               END                                                                                AS OSTR_AK_DTL_NO   /* 출고요청관리번호 */
+             , CASE WHEN D1.ITM_STR_NO IS NOT NULL
+                     AND D1.STR_SN IS NOT NULL THEN D1.ITM_STR_NO || '-' || D1.STR_SN
+               END                                                                                AS STR_DTL_NO       /* 입고관리번호 */
+             , D1.ITM_OSTR_NO || '-' || D1.OSTR_SN                                                AS OSTR_DTL_NO      /* 출고관리번호 */
+             , D1.RMK_CN                                                                                              /* 비고 */
+          FROM TB_SVST_ITM_OSTR_IZ D1                 /* 품목출고내역 */
+         INNER JOIN TB_PDBS_PD_BAS D2                 /* 상품기본 */
+            ON D2.PD_CD = D1.ITM_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3        /* 상품각사속성상세 */
+            ON D3.PD_CD = D2.PD_CD
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D4           /* 월별창고내역(입고) */
+            ON D4.APY_YM  = NVL( SUBSTR(D1.STR_RGST_DT, 1, 6), TO_CHAR(SYSDATE, 'YYYYMM') )
+           AND D4.WARE_NO = D1.STR_WARE_NO
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D5           /* 월별창고내역(출고) */
+            ON D5.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
+           AND D5.WARE_NO = D1.OSTR_WARE_NO
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_TP_CD           = 'M'
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D4.DTA_DL_YN          = 'N'
+           AND D5.DTA_DL_YN          = 'N'
+           AND D1.ITM_GD_CD IN ('A', 'B', 'E', 'R', 'X')
+           AND D4.WARE_DV_CD         = #{strWareDvCd}
+           AND D5.WARE_DV_CD         = #{ostrWareDvCd}
+           AND D1.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+        <if test="@MybatisUtils@isNotEmpty(strHgrWareNo)">
+           AND D4.HGR_WARE_NO        = #{strHgrWareNo}
         </if>
-         INNER JOIN TB_SVST_MCBY_WARE_IZ OUT1
-            ON T1.OSTR_WARE_NO = OUT1.WARE_NO
-           AND OUT1.APY_YM = #{apyYm}
-        <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
-           AND OUT1.WARE_DV_CD = #{ostrWareDvCd}
+        <if test="@MybatisUtils@isNotEmpty(strWareNo)">
+           AND D4.WARE_NO            = #{strWareNo}
         </if>
-         WHERE T1.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
-        <choose>
-            <when test="@MybatisUtils@isNotEmpty(strWareDtlDvCd)">
-                <choose>
-                    <when test="@MybatisUtils@isNotEmpty(strWareNo)">
-                        AND IN1.WARE_NO = #{strWareNo} /* 출고창고코드 */
-                    </when>
-                    <when test="@MybatisUtils@isEmpty(strWareNo)">
-                        AND IN1.WARE_NO = #{strWareDtlDvCd} /* 출고창고코드 */
-                    </when>
-                </choose>
-            </when>
-        </choose>
-        <choose>
-            <when test="@MybatisUtils@isNotEmpty(ostrWareDtlDvCd)">
-                <choose>
-                    <when test="@MybatisUtils@isNotEmpty(ostrWareNo)">
-                        AND OUT1.WARE_NO = #{ostrWareNo} /* 출고유형코드 */
-                    </when>
-                    <when test="@MybatisUtils@isEmpty(ostrWareNo)">
-                        AND OUT1.WARE_NO = #{ostrWareDtlDvCd} /* 출고창고코드 */
-                    </when>
-                </choose>
-            </when>
-        </choose>
+        <if test="@MybatisUtils@isNotEmpty(ostrHgrWareNo)">
+           AND D5.HGR_WARE_NO        = #{ostrHgrWareNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(ostrWareNo)">
+           AND D5.WARE_NO            = #{ostrWareNo}
+        </if>
         <if test="@MybatisUtils@isNotEmpty(ostrTpCd)">
-            AND T1.OSTR_TP_CD  = #{ostrTpCd} /* 출고유형코드 */
+           AND D1.OSTR_TP_CD         = #{ostrTpCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-            AND T1.ITM_GD_CD = #{itmGdCd} /* 등급 */
+           AND D1.ITM_GD_CD          = #{itmGdCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-            AND T1.ITM_KND_CD  = #{itmKndCd} /* 품목종류 */
+           AND ( D1.ITM_KND_CD = #{itmKndCd} OR D3.PD_PRP_VAL19 = #{itmKndCd} )
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
-            AND T1.ITM_PD_CD  = #{itmPdCd}
+           AND D1.ITM_PD_CD          = #{itmPdCd}
         </if>
-        <if test="@MybatisUtils@isNotEmpty(useYn)">
-            AND ( CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD')
-                            BETWEEN T2.SVPD_APLD_FR AND T2.SVPD_APLD_TO
-                       THEN 'Y'
-                       ELSE 'N'
-                   END) = #{useYn}
+        <if test='@MybatisUtils@equals(useYn, "Y")'>
+           AND #{stOstrDt} BETWEEN NVL(D2.RVPY_STRTDT, '19000101') AND NVL(D2.RVPY_ENDDT, '99991231')
         </if>
-           AND IN1.DTA_DL_YN = 'N'
-           AND OUT1.DTA_DL_YN = 'N'
-         ORDER BY T1.OSTR_DT, T1.ITM_KND_CD
+        <if test='@MybatisUtils@equals(useYn, "N")'>
+           AND #{stOstrDt} NOT BETWEEN NVL(D2.RVPY_STRTDT, '19000101') AND NVL(D2.RVPY_ENDDT, '99991231')
+        </if>
+         ORDER BY D1.OSTR_DT, D1.ITM_PD_CD
     </select>
 </mapper>
