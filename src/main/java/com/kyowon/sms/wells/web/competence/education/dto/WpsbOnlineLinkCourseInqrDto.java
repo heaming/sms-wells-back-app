@@ -40,10 +40,10 @@ public class WpsbOnlineLinkCourseInqrDto {
         String rsbDvNm,
         String topmrPlarStmnt,
         String ackmtCt,
-        String offlTcnt1,
-        String offlTcnt2,
-        String offlTcnt3,
-        String onlineTcnt,
+        String offlTCnt1,
+        String offlTCnt2,
+        String offlTCnt3,
+        String onlineTCnt,
         String fnlCpcYn,
         String fshBsAcc
 
