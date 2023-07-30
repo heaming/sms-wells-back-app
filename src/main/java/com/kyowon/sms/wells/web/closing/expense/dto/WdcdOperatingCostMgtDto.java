@@ -1,11 +1,13 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
-import com.sds.sflex.common.docs.dto.AttachFileDto;
-import io.swagger.annotations.ApiModel;
-import lombok.Builder;
+import java.util.List;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
+
+import com.sds.sflex.common.docs.dto.AttachFileDto;
+
+import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WdcdOperatingCostMgtDto {
 
@@ -19,9 +21,9 @@ public class WdcdOperatingCostMgtDto {
         @NotBlank
         String baseYm,
         String entrpDvCd,
+        String dgr1LevlOgId,
         String dgr2LevlOgId,
-        String dgr3LevlOgId,
-        String dgr4LevlOgId
+        String dgr3LevlOgId
     ) {
     }
 
