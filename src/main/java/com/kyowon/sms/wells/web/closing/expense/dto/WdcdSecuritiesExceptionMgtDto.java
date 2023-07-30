@@ -1,9 +1,10 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
-import io.swagger.annotations.ApiModel;
+import javax.validation.constraints.NotBlank;
+
 import org.apache.commons.lang.StringUtils;
 
-import javax.validation.constraints.NotBlank;
+import io.swagger.annotations.ApiModel;
 
 public class WdcdSecuritiesExceptionMgtDto {
 
@@ -16,9 +17,9 @@ public class WdcdSecuritiesExceptionMgtDto {
         @NotBlank
         String baseYm,
         String entrpDvCd,
+        String dgr1LevlOgId,
         String dgr2LevlOgId,
-        String dgr3LevlOgId,
-        String dgr4LevlOgId
+        String dgr3LevlOgId
     ) {
 
     }
@@ -96,7 +97,8 @@ public class WdcdSecuritiesExceptionMgtDto {
         String dstAmt,      /*운영비정산금액*/
         String dstWhtx,     /*원천세*/
         String erntx,        /*(hidden)소득세*/
-        String rsdntx       /*(hidden)주민세*/
+        String rsdntx,       /*(hidden)주민세*/
+        String cardAprno    /*승인번호*/
 
     ) {
 

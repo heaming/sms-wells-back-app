@@ -1,14 +1,16 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdMarketableSecuritiesMgtConverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdSecuritiesDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdSecuritiesMgtMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +32,6 @@ public class WdcdSecuritiesMgtService {
     }
 
     public List<SearchWithholdingTaxAdjustRes> getWithholdingTaxAdjust(SearchWithholdingTaxAdjustReq req) {
-
         return mapper.selectWithholdingTaxAdjust(req);
     }
 
