@@ -29,4 +29,10 @@ public class WsnfAsEnrgMatMngtDvo {
     String arvDt;
     String vstCnfmdt;
     String adrDvCd;
+    String itmRcmdRnk;
+    String itmPdCd;
+    String pdAbbrNm;
+    String svBizHclsfNm;
+    String prtnrNm;
+    String ogNm;
 }

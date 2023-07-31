@@ -13,7 +13,10 @@ public class WsnfAsEnrgMatMngtDto {
         String pdCd,
         String dateType,
         String dateValueFromDt,
-        String dateValueToDt
+        String dateValueToDt,
+        String svTpCd,
+        String prtnrNo,
+        String ogId
     ) {}
 
     @ApiModel(value = "WsnfAsEnrgMatMngtDto-SearchRes")
@@ -41,6 +44,12 @@ public class WsnfAsEnrgMatMngtDto {
         String arvDt,
         String vstCnfmdt,
         String adrDvCd,
+        String itmRcmdRnk,
+        String itmPdCd,
+        String pdAbbrNm,
+        String svBizHclsfNm,
+        String ogNm,
+        String prtnrNm,
         String tel
     ) {
         public SearchRes {
