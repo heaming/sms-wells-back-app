@@ -7,7 +7,7 @@
              , PRTNR_NO
              , OG_CD
              , PRTNR_KNM
-             , RSB_DV_NM
+             , RSB_DV_CD
              , NVL(SV01999901, 0) AS SV01999901	/*관리건수*/
              , NVL(SV01999902, 0) AS SV01999902	/*방문건수*/
              , NVL(SV01999903, 0) AS SV01999903	/*전월건수*/
@@ -20,17 +20,38 @@
                     , A.PRTNR_NO
                     , A.OG_CD
                     , A.PRTNR_KNM
-                    , F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD', A.RSB_DV_CD) AS RSB_DV_NM
+                    , A.RSB_DV_CD
                     , B.PRTNR_SV_PERF_ATC_CD
                     , B.PERF_VAL
                  FROM TB_OGBS_MM_PRTNR_IZ A	/*월파트너내역*/
-                 LEFT OUTER JOIN TB_FEAM_WPTN_SV_PERF_AGRG B	/*웰스파트너서비스실적집계*/
+                INNER JOIN
+                    ( SELECT T1.BASE_YM
+                           , T1.OG_TP_CD
+                           , T1.PRTNR_NO
+                           , T1.PRTNR_SV_PERF_ATC_CD
+                           , T1.PERF_VAL
+                        FROM TB_FEAM_WPTN_SV_PERF_AGRG T1	/*웰스파트너서비스실적집계*/
+                       INNER JOIN TB_FEAM_NTORP_PERF_MM_CL T2	/*순주문파트너실적월마감*/
+                          ON T1.BASE_YM = T2.BASE_YM
+                         AND T1.BASE_YM = T2.PERF_YM
+                         AND T1.CL_DV_CD = T2.FEE_TCNT_DV_CD
+                         AND T1.OG_TP_CD = T2.OG_TP_CD
+                         AND T1.PRTNR_NO = T2.PRTNR_NO
+                         AND T2.DTA_DL_YN = 'N'
+                         AND T2.PERF_DV_CD = '0'
+                         AND T2.PERF_ATC_CD = 'W02P00095'	/*실적항목코드-W02P00095 수정비율*/
+                       WHERE T1.DTA_DL_YN = 'N'
+                         AND T1.BASE_YM = #{perfYm}
+                         AND T1.CL_DV_CD = '02'   /*마감구분코드 02-순주문2차*/
+                         AND T1.OG_TP_CD = 'W02'
+                        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                         AND T1.PRTNR_NO = #{prtnrNo}
+                        </if>
+                         AND T1.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999909', 'SV01999910')
+                    ) B
                    ON A.BASE_YM = B.BASE_YM
                   AND A.OG_TP_CD = B.OG_TP_CD
                   AND A.PRTNR_NO = B.PRTNR_NO
-                  AND B.DTA_DL_YN = 'N'
-                  AND B.CL_DV_CD = '02'	/*마감구분코드-02 순주문2차*/
-                  AND B.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999909', 'SV01999910')
                 WHERE A.DTA_DL_YN = 'N'
                   AND A.BASE_YM = #{perfYm}
                   AND A.OG_TP_CD = 'W02'
@@ -56,13 +77,22 @@
 
     <select id="selectBsAgrgCheck" resultType="int">
         SELECT COUNT(*) AS CNT
-          FROM TB_FEAM_WPTN_SV_PERF_AGRG
-         WHERE DTA_DL_YN = 'N'
-           AND BASE_YM = #{baseYm}
-           AND CL_DV_CD = '02'   /*마감구분코드 02-순주문2차*/
-           AND OG_TP_CD = 'W02'
-           AND PRTNR_NO = #{prtnrNo}
-           AND PRTNR_SV_PERF_ATC_CD = 'SV01999909'
+          FROM TB_FEAM_WPTN_SV_PERF_AGRG T1	/*웰스파트너서비스실적집계*/
+         INNER JOIN TB_FEAM_NTORP_PERF_MM_CL T2	/*순주문파트너실적월마감*/
+            ON T1.BASE_YM = T2.BASE_YM
+           AND T1.BASE_YM = T2.PERF_YM
+           AND T1.CL_DV_CD = T2.FEE_TCNT_DV_CD
+           AND T1.OG_TP_CD = T2.OG_TP_CD
+           AND T1.PRTNR_NO = T2.PRTNR_NO
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{baseYm}
+           AND T1.CL_DV_CD = '02'   /*마감구분코드 02-순주문2차*/
+           AND T1.OG_TP_CD = 'W02'
+           AND T1.PRTNR_NO = #{prtnrNo}
+           AND T1.PRTNR_SV_PERF_ATC_CD = 'SV01999909'
+           AND T2.PERF_DV_CD = '0'
+           AND T2.PERF_ATC_CD = 'W02P00095'	/*실적항목코드-W02P00095 수정비율*/
     </select>
 
     <update id="updatePartnerBsProcessingRate">
