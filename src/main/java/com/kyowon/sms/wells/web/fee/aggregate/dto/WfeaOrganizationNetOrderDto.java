@@ -28,89 +28,87 @@ public class WfeaOrganizationNetOrderDto {
     public record SaveOgNetOrderReq(
         @NotBlank
         String perfYm,
-
         @NotBlank
-        String ogTp
-    ) {}
-
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SaveBsReq")
-    public record SaveBsReq(
+        String ogTpCd,
         @NotBlank
-        String perfYm
+        String feeTcntDvCd,
+        @NotBlank
+        String perfAgrgCrtDvCd,
+        String dv
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchHmstReq")
     public record SearchHmstReq(
         @NotBlank
-        String schOrdr,
-        String schDiv,
-        String schFeePerf,
-        String schPdctTp,
-        String schSelType,
-        String schDtStrt,
-        String schDtEnd,
-        String schCancDtStrt,
-        String schCancDtEnd,
-        String schPdCdStrt,
-        String schPdCdEnd,
-        String schPkgCdStrt,
-        String schPkgCdEnd,
-        String ogLevl1,
-        String ogLevl2,
-        String ogLevl3,
-        String schPrtnrNo,
-        String schPerfYm,
-        String schRsbDv
+        String feeTcntDvCd,
+        String divCd,
+        String feePerfCd,
+        String pdctTpCd,
+        String sellTpCd,
+        String strtDt,
+        String endDt,
+        String cancStrtDt,
+        String cancEndDt,
+        String pdStrtCd,
+        String pdEndCd,
+        String pkgStrtCd,
+        String pkgEndCd,
+        String og1LevlId,
+        String og2LevlId,
+        String og3LevlId,
+        String prtnrNo,
+        String perfYm,
+        String rsbDvCd
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerReq")
     public record SearchMngerReq(
         @NotBlank
-        String schInqrDv,
-        String schOrdr,
-        String schDiv,
-        String schFeePerf,
-        String schPdctTp,
-        String schSelType,
-        String schDtStrt,
-        String schDtEnd,
-        String schCancDtStrt,
-        String schCancDtEnd,
-        String schPdCdStrt,
-        String schPdCdEnd,
-        String schPkgCdStrt,
-        String schPkgCdEnd,
-        String ogLevl1,
-        String ogLevl2,
-        String ogLevl3,
-        String schPrtnrNo,
-        String schPerfYm,
-        String schRsbDv
+        String inqrDvCd,
+        String feeTcntDvCd,
+        String divCd,
+        String feePerfCd,
+        String pdctTpCd,
+        String sellTpCd,
+        String strtDt,
+        String endDt,
+        String cancStrtDt,
+        String cancEndDt,
+        String pdStrtCd,
+        String pdEndCd,
+        String pkgStrtCd,
+        String pkgEndCd,
+        String og1LevlId,
+        String og2LevlId,
+        String og3LevlId,
+        String prtnrNo,
+        String perfYm,
+        String rsbDvCd
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarReq")
     public record SearchPlarReq(
         @NotBlank
-        String schInqrDv,
-        String schOrdr,
-        String schDiv,
-        String schFeePerf,
-        String schPdctTp,
-        String schSelType,
-        String schDtStrt,
-        String schDtEnd,
-        String schCancDtStrt,
-        String schCancDtEnd,
-        String schPdCdStrt,
-        String schPdCdEnd,
-        String schPkgCdStrt,
-        String schPkgCdEnd,
-        String ogLevl1,
-        String ogLevl2,
-        String ogLevl3,
-        String schPrtnrNo,
-        String schPerfYm,
-        String schRsbDv
+        String inqrDvCd,
+        String feeTcntDvCd,
+        String divCd,
+        String feePerfCd,
+        String pdctTpCd,
+        String sellTpCd,
+        String strtDt,
+        String endDt,
+        String cancStrtDt,
+        String cancEndDt,
+        String pdStrtCd,
+        String pdEndCd,
+        String pkgStrtCd,
+        String pkgEndCd,
+        String og1LevlId,
+        String og2LevlId,
+        String og3LevlId,
+        String prtnrNo,
+        String perfYm,
+        String rsbDvCd
     ) {}
 
     // *********************************************************

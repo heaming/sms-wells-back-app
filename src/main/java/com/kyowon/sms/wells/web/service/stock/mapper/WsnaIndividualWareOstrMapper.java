@@ -8,8 +8,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 
 @Mapper
 public interface WsnaIndividualWareOstrMapper {
@@ -17,8 +17,6 @@ public interface WsnaIndividualWareOstrMapper {
     List<SearchPdRes> selectProducts();
 
     List<WsnzWellsCodeWareHouseDvo> selectIndividualStrWares(SearchWareReq dto);
-
-    PagingResult<WsnaIndividualWareOstrDvo> selectIndividualWareOstrs(SearchReq dto, PageInfo pageInfo);
 
     List<WsnaIndividualWareOstrDvo> selectIndividualWareOstrs(SearchReq dto);
 
@@ -29,4 +27,6 @@ public interface WsnaIndividualWareOstrMapper {
     String selectNewOstrAkNo(String ostrAkTpCd);
 
     int mergeItmOstrAkIz(WsnaIndividualWareOstrDvo dvo);
+
+    List<WsnaLogisticsOutStorageAskReqDvo> selectIndividualLogisticsTransfer(WsnaIndividualWareOstrLgstDvo dvo);
 }

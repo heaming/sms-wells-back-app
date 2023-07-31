@@ -15,7 +15,7 @@ public class WwdbEdiCardAprovalRefundInterfaceDto {
     @ApiModel("WwdbEdiCardAprovalRefundInterfaceDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        @JsonProperty("CRCDNO_ENCR")
+        @JsonProperty("CRCD_NO")
         String crcdnoEncr // 카드번호
     ) {
         public SearchReq {
@@ -30,31 +30,31 @@ public class WwdbEdiCardAprovalRefundInterfaceDto {
     public record SearchRes(
         @JsonProperty("EDI_CARD_TP_NM")
         String ediCardTpNm, // 구분(승인/환불) (EDI카드유형코드)
-        @JsonProperty("EDI_CARD_AGRG_PERF_DT")
+        @JsonProperty("CNFMDT")
         String ediCardAgrgPerfDt, // 승인일자 (확정일자)
-        @JsonProperty("CRDCD_SL_CAN_DT")
+        @JsonProperty("SL_CAN_DT")
         String crdcdSlCanDt, // 취소일자 (매출취소일자)
-        @JsonProperty("CRDCD_TRD_AMT")
+        @JsonProperty("CARD_AMT")
         String crdcdTrdAmt, // 금액 (카드금액)
-        @JsonProperty("CRDCD_ISTM_MCN")
+        @JsonProperty("ISTM_MCN")
         String crdcdIstmMcn, // 할부개월,
-        @JsonProperty("CRDCD_APRNO")
+        @JsonProperty("CARD_APRNO")
         String crdcdAprno, // 승인번호
-        @JsonProperty("CRDCD_EXPDT_YM")
+        @JsonProperty("CARD_EXPDT_YM")
         String crdcdExpdtYm, // 유효기간 (카드유효기간년월)
         @JsonProperty("EDI_RVE_DT")
         String ediRveDt, // 수납일자 (EDI수납일자)
-        @JsonProperty("EDI_CARD_AGRG_TF_DT")
+        @JsonProperty("TF_DT")
         String ediCardAgrgTfDt, //이관일자
         @JsonProperty("CNTR_NO")
         String CntrNo, // 계약번호
         @JsonProperty("CNTR_SN")
         String cntrSn, // 계약일련번호
-        @JsonProperty("EDI_PD_DV_NM")
+        @JsonProperty("EDI_PD_DV_CD_NM")
         String ediPdDvNm, //상품명 (EDI상품구분코드)
-        @JsonProperty("EDI_DP_TP_CD")
+        @JsonProperty("EDI_DP_TP_CD_NM")
         String ediDpTpCd, // 유형(인수금, 할부금 …) (EDI입금유형코드)
-        @JsonProperty("CNTR_CST_NM")
+        @JsonProperty("CST_FNM")
         String cntrCstNm //계약자명(EDI카드내역.고객성명)
     ) {}
 }

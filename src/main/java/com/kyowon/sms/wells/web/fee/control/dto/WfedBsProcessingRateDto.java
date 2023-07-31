@@ -52,7 +52,7 @@ public class WfedBsProcessingRateDto {
         String prtnrNo,
         String ogCd,
         String prtnrKnm,
-        String rsbDvNm,
+        String rsbDvCd,
         Integer sv01999901, /*관리건수*/
         Integer sv01999902, /*방문건수*/
         Integer sv01999903, /*전월건수*/

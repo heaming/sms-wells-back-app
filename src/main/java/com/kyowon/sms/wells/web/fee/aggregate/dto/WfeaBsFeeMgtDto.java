@@ -34,6 +34,18 @@ public class WfeaBsFeeMgtDto {
         String endVstDt
     ) {}
 
+    @ApiModel(value = "WfeaBsFeeMgtDto-SaveReq")
+    public record SaveReq(
+        @NotBlank
+        String perfYm,
+        @NotBlank
+        String ogTpCd,
+        @NotBlank
+        String feeTcntDvCd,
+        @NotBlank
+        String perfAgrgCrtDvCd
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************

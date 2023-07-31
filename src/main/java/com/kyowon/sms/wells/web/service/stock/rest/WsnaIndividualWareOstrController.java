@@ -14,8 +14,6 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaIndividualWareOstrService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -73,8 +71,8 @@ public class WsnaIndividualWareOstrController {
         return this.service.getIndividualStrWares(dto);
     }
 
-    @GetMapping("/paging")
-    @ApiOperation(value = "개인창고 출고관리 페이징 조회", notes = "개인창고 출고 데이터를 조회한다.")
+    @GetMapping
+    @ApiOperation(value = "개인창고 출고관리 조회", notes = "개인창고 출고 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
@@ -84,15 +82,14 @@ public class WsnaIndividualWareOstrController {
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
         @ApiImplicitParam(name = "totOutQty", value = "총출고", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "hgrStrWareNo", value = "상위입고창고번호", paramType = "query", example = "300001", required = true),
-        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031", required = true),
+        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
-    public PagingResult<WsnaIndividualWareOstrDvo> getIndividualWareOstrsPaging(@Valid
-    SearchReq dto, @Valid
-    PageInfo pageInfo) {
-        return this.service.getIndividualWareOstrsPaging(dto, pageInfo);
+    public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrs(@Valid
+    SearchReq dto) {
+        return this.service.getIndividualWareOstrs(dto);
     }
 
     @GetMapping("/excel-download")
@@ -106,7 +103,7 @@ public class WsnaIndividualWareOstrController {
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
         @ApiImplicitParam(name = "totOutQty", value = "총출고", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "hgrStrWareNo", value = "상위입고창고번호", paramType = "query", example = "300001", required = true),
-        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031", required = true),
+        @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
@@ -125,6 +122,16 @@ public class WsnaIndividualWareOstrController {
         List<SaveReq> dtos
     ) {
         return SaveResponse.builder().processCount(this.service.saveIndividualWareOstrs(dtos)).build();
+    }
+
+    @PostMapping("/logistics-transfer")
+    @ApiOperation(value = "개인창고 출고관리 물류 전송", notes = "개인창고 출고관리 데이터를 물류로 전송한다.")
+    public SaveResponse createIndividualLogisticsTransfer(
+        @RequestBody
+        @Valid
+        CreateReq dto
+    ) {
+        return SaveResponse.builder().processCount(this.service.createIndividualLogisticsTransfer(dto)).build();
     }
 
 }

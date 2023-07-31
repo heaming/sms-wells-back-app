@@ -63,7 +63,7 @@
                               FROM ( SELECT A.PRTNR_NO
                                           , CASE WHEN A.EDUC_CRSE_NO = '96' THEN A.EDUC_CRSE_CRT_BASE_YM END AS EDU096
                                           , CASE WHEN A.EDUC_CRSE_NO = '143' THEN A.EDUC_CRSE_CRT_BASE_YM END AS EDU143
-                                       FROM TB_PSCA_MCPTN_EDUC_AGRG A
+                                       FROM TB_PSCA_MCPTN_EDUC_IZ A
                                       WHERE A.EDUC_CRSE_CRT_BASE_YM = #{baseYm}
                                         AND A.EDUC_CRSE_NO IN ('96','143')
                                         AND A.EDUC_CPC_ACKMT_YN = 'Y'
@@ -149,6 +149,7 @@
         , PRTNR_NO
         , TCNT_DV_CD
         , OPNG_CD
+        , PRGS_NMN_N
         , CNFM_STAT_YN
         <include refid="COMMON.insertSystemField" />
         )
@@ -177,6 +178,11 @@
                       END
                     ),''
                   )
+             , CASE WHEN NVL(D1.PYD,0) != '0'
+                         AND MONTHS_BETWEEN(TO_DATE(#{baseYm},'YYYYMM'), TO_DATE(D1.PYD,'YYYYMM')) &gt;= 0
+                         THEN MONTHS_BETWEEN(TO_DATE(#{baseYm},'YYYYMM'), TO_DATE(D1.PYD,'YYYYMM')) + 1
+                    ELSE 0
+               END AS PRGS_NMN_N
              , 'N'
         <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_OGBS_MM_PRTNR_IZ T1    /* 월 파트너*/
@@ -222,6 +228,16 @@
                                      GROUP BY PRTNR_NO
                                   )C1  /* 정착수수료 수령자 */
             ON T1.PRTNR_NO = C1.PRTNR_NO
+          LEFT OUTER JOIN ( SELECT SUBSTR(MAX(A.CV_DT),1,6) AS PYD
+                                 , A.PRTNR_NO
+                              FROM TB_OGPS_PLAR_QLF_CH_IZ A /*플래너 자격 변경내역*/
+                             WHERE A.OG_TP_CD = 'W02'
+                               AND A.QLF_DV_CD = '3'  /* 웰스매니저 */
+                               AND A.QLF_APLC_DV_CD = '1'  /* 승급 */
+                               AND A.DTA_DL_YN = 'N'
+                             GROUP BY A.PRTNR_NO
+                          )D1
+        ON T1.PRTNR_NO = D1.PRTNR_NO
          WHERE T1.BASE_YM = #{baseYm}
            AND T1.OG_TP_CD = 'W02'
            AND T1.QLF_DV_CD IN ('2','6','3')  /* 프리매니저, BS프리매니저, 웰스매니저 */

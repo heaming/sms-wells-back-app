@@ -1,15 +1,16 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import com.sds.sflex.common.utils.DbEncUtil;
-import com.sds.sflex.system.config.annotation.DBDecField;
-import io.swagger.annotations.ApiModel;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sds.sflex.common.utils.DbEncUtil;
+
+import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WwdaAutoTransferInterfaceDto {
 
@@ -31,8 +32,10 @@ public class WwdaAutoTransferInterfaceDto {
         String fnitCd, // 금융기관코드
         @JsonProperty("CST_NO")
         String cstNo, // 고객번호
-        @JsonProperty("RCT_DT")
-        String rctDt, /*접수일자*/
+        @JsonProperty("RCP_STRTDT")
+        String rctStrtDt, /*접수일자*/
+        @JsonProperty("RCP_ENDDT")
+        String rctEndDt, /*접수일자*/
         @JsonProperty("CH_RCP_USR_ID")
         String chRcpUsrId, /*변경접수사용자ID*/
         @JsonProperty("EVID_FSH_YN")
@@ -462,5 +465,47 @@ public class WwdaAutoTransferInterfaceDto {
         String cdcoCd, /*카드사코드*/
         @JsonProperty("CDCO_NM")
         String cdcoNm /*카드사코드명*/
+    ) {}
+
+    /* WELLS 은행계좌유효성체크_SB Request Dto */
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchBankEffectivenessCheckReq")
+    public record SearchBankEffectivenessCheckReq(
+        @JsonProperty("CNTR_NO")
+        String cntrNo, /*계약번호*/
+        @JsonProperty("CNTR_SN")
+        String cntrSn, /*계약일련번호*/
+        @JsonProperty("BNK_CD")
+        String bnkCd, /*은행코드*/
+        @JsonProperty("ACNO")
+        String acno, /*계좌번호*/
+        @JsonProperty("COPN_DV_CD")
+        String copnDvCd, /*법인격구분코드*/
+        @JsonProperty("COPN_DV_DRM_VAL")
+        String copnDvDrmVal, /*법인격구분식별값*/
+        @JsonProperty("ACHLDR_NM")
+        String achldrNm, /*예금주명*/
+        @JsonProperty("SYS_DV_CD")
+        String sysDvCd, /*시스템구분코드*/
+        @JsonProperty("PSIC_ID")
+        String psicId, /*담당자ID*/
+        @JsonProperty("DEPT_ID")
+        String deptId /*부서ID*/
+
+    ) {}
+
+    /* WELLS 은행계좌유효성체크_SB Response Dto */
+    @Builder
+    @ApiModel("WwdaAutoTransferInterfaceDto-SearchBankEffectivenessCheckRes")
+    public record SearchBankEffectivenessCheckRes(
+        @JsonProperty("ACHLDR_NM")
+        String achldrNm, /*예금주*/
+        @JsonProperty("AC_FNT_IMPS_CD")
+        String acFntImpsCd, /*계좌이체불능코드*/
+        @JsonProperty("AC_FNT_IMPS_CD_NM")
+        String acFntImpsCdNm, /*계좌이체불능코드명*/
+        @JsonProperty("ERR_CN")
+        String errCn, /*오류내용*/
+        @JsonProperty("BIL_CRT_STAT_CD")
+        String bilCrtStatCd /*청구생성상태코드*/
     ) {}
 }

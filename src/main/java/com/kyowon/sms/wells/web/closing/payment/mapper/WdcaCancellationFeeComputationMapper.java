@@ -2,14 +2,13 @@ package com.kyowon.sms.wells.web.closing.payment.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaCancellationFeeComputationDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaCancellationFeeComputationResultDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaComputationObjectContractDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaComputationObjectSalesDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaRentalFeeDiscountRstlCcamDvo;
+import com.kyowon.sms.wells.web.closing.payment.dvo.*;
 
 @Mapper
 public interface WdcaCancellationFeeComputationMapper {
+    /* 위약금액 산출 대상의 판매유형을 확인 */
+    WdcaSellTypeDvo selectSellType(WdcaCancellationFeeComputationDvo dvo);
+
     /* 위약금 산출 대상 계약정보 조회 */
     WdcaComputationObjectContractDvo selectComputationObjectContract(WdcaCancellationFeeComputationDvo dvo);
 
@@ -26,11 +25,14 @@ public interface WdcaCancellationFeeComputationMapper {
     int insertWellsBorAmtBasHist(WdcaCancellationFeeComputationResultDvo resultDvo);
 
     /* 설치월 렌탈일수 조회 */
-    int selectRentalDc(WdcaCancellationFeeComputationDvo dvo);
+    Integer selectRentalDc(WdcaCancellationFeeComputationDvo dvo);
 
     /* 렌탈료할인_재약정위약금 조회 */
     WdcaRentalFeeDiscountRstlCcamDvo selectRentalFeeDiscountRstlCcam(WdcaCancellationFeeComputationDvo dvo);
 
     /* 사은품접수내역 테이블 조회 */
     int selectFreeGiftReceipt(WdcaCancellationFeeComputationDvo dvo);
+
+    /* 위약금 산출 대상 계약정보 조회 */
+    WdcaRegularShippingDvo selectRegularShippingBreachOfPromiseAmount(WdcaCancellationFeeComputationDvo dvo);
 }
