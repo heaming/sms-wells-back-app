@@ -1,11 +1,16 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sds.sflex.common.utils.DbEncUtil;
-import io.swagger.annotations.ApiModel;
-import org.apache.commons.lang.StringUtils;
+import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sds.sflex.common.utils.DbEncUtil;
+
+import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WsniBarcodeProductInterfaceDto {
     // *********************************************************
@@ -118,20 +123,21 @@ public class WsniBarcodeProductInterfaceDto {
         String cralIdvTno,
         String nextSchedule,
         String rentalFee,
-        String serviceTypeName,
-        String serviceTime,
-        String serviceName,
+        //String serviceTypeName,
+        //String serviceTime,
+        //String serviceName,
         String deviceName,
         String managerTel
     ) {
         public SearchCustRes {
-            if(StringUtils.isNotEmpty(mexnoEncr)){
+            if (StringUtils.isNotEmpty(mexnoEncr)) {
                 mexnoEncr = DbEncUtil.dec(mexnoEncr);
                 managerTel = cralLocaraTno.concat("-").concat(mexnoEncr).concat("-").concat(cralIdvTno);
             }
         }
     }
 
+    @Builder
     @ApiModel(value = "WsniBarcodeProductInterfaceDto-SearchCustJsonRes")
     public record SearchCustJsonRes(
         @JsonProperty("IST_DT")
@@ -148,6 +154,13 @@ public class WsniBarcodeProductInterfaceDto {
         String rentalFee,
         @JsonProperty("DEVICE_NAME")
         String deviceName,
+        @JsonProperty("SERVICE_INFO")
+        List<WsniBarcodeProductInterfaceDto.SearchCustServiceJsonRes> serviceInfo
+
+    ) {}
+
+    @ApiModel("WsniBarcodeProductInterfaceDto-SearchCustServiceJsonRes")
+    public record SearchCustServiceJsonRes(
         @JsonProperty("SERVICE_TYPE_NAME")
         String serviceTypeName,
         @JsonProperty("SERVICE_TIME")
