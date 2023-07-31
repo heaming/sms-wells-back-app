@@ -16,10 +16,14 @@ import lombok.Setter;
 public class WsnaOutOfStorageAgrgDvo {
 
     // PIVOT 창고번호 조건
-    private String wareNoInStr;
+    String wareNoInStr;
     // PIVOT 창고번호 필드
-    private String wareNoFields;
+    String wareNoFields;
+    String wareLogisticsFieldsSumStr;
+    String wareServiceFieldsSumStr;
+    String wareBusinessFieldsSumStr;
 
+    //DTO 매핑
     String startDt;
     String endDt;
     String ostrTpCd;
