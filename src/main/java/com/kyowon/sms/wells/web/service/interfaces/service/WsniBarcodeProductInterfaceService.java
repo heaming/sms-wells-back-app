@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.interfaces.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRegularDeliveryPackageDto;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.thymeleaf.util.StringUtils;
@@ -52,8 +54,8 @@ public class WsniBarcodeProductInterfaceService {
                 dvo.setCntrSn(res.cntrSn());
                 dvo.setCustNm(res.custNm());
                 dvo.setHnoNo(res.hnoNo());
-//                dvo.setCsmrYr(res.csmrYr()); //빈값 전달 (삭제)
-//                dvo.setCsmrCd(res.csmrCd()); //빈값 전달 (삭제)
+                //                dvo.setCsmrYr(res.csmrYr()); //빈값 전달 (삭제)
+                //                dvo.setCsmrCd(res.csmrCd()); //빈값 전달 (삭제)
                 dvo.setAddr(res.addr());
                 dvo.setZipno(res.zipno());
                 dvo.setEmpId(res.empId());
@@ -73,30 +75,31 @@ public class WsniBarcodeProductInterfaceService {
         return converter.mapBarcodeProductInterfaceDvoToJsonRes(dvo);
     }
 
-    public List<WsniBarcodeProductInterfaceDto.SearchCustJsonRes> getBarcodeSearchCustomers(
+    public WsniBarcodeProductInterfaceDto.SearchCustJsonRes getBarcodeSearchCustomers(
         WsniBarcodeProductInterfaceDto.SearchCustReq dto
     ) {
         log.info("[WsniBarcodeProductInterfaceService.getBarcodeSearchCustomers] BARCODE ::: " + dto.barcode());
-        List<WsniBarcodeProductInterfaceDto.SearchCustRes> custList;
-        List<WsniBarcodeProductInterfaceDto.SearchCustJsonRes> resList = new ArrayList<WsniBarcodeProductInterfaceDto.SearchCustJsonRes>();
+        WsniBarcodeProductInterfaceDto.SearchCustRes cust;
+        WsniBarcodeProductInterfaceDto.SearchCustJsonRes resCust;
 
         try {
-            custList = mapper.selectBarcodeSearchCustomer(dto);
+            cust = mapper.selectBarcodeSearchCustomer(dto);
 
-            if(CollectionUtils.isEmpty(custList)){
+            if (ObjectUtils.isEmpty(cust)) {
                 throw new BizException(messageService.getMessage("MSG_TXT_RENTAL_NOT_EXIST")); //렌탈 정보가 존재하지 않습니다
             }
 
-            for(WsniBarcodeProductInterfaceDto.SearchCustRes custVo : custList){
-                resList.add(converter.mapBarcodeProductCustDtoToJsonRes(custVo));
-            }
+            resCust = converter.mapBarcodeProductCustDtoToJsonRes(cust)
+                .builder()
+                .serviceInfo(mapper.selectBarcodeSearchCustomerService(dto))
+                .build();
 
         } catch (Exception e) {
             e.printStackTrace();
             throw new BizException(messageService.getMessage("MSG_TXT_BARCODE_SEARCH_ERROR")); //바코드 조회 오류
         }
 
-        return resList;
+        return resCust;
     }
 
 }
