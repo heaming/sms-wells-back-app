@@ -20,6 +20,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0142M01 정상출고 관리 Controller
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-07-31
+ */
+
 @Api(tags = "[WSNA] 정상출고 관리 REST API")
 @RestController
 @RequiredArgsConstructor
@@ -28,17 +37,26 @@ public class WsnaNormalOutOfStorageController {
 
     private final WsnaNormalOutOfStorageService service;
 
+    @GetMapping("/ware-houses")
+    @ApiOperation(value = "정상출고 창고 조회", notes = "정상출고 창고 데이터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202303", required = true),
+    })
+    public List<SearchWarehouse> getWarehouses(@RequestParam(name = "apyYm")
+    String apyYm) {
+        return this.service.getWarehouses(apyYm);
+    }
+
     @GetMapping("/paging")
     @ApiOperation(value = "정상출고 페이징 조회", notes = "정상출고 데이터를 조회한다.")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고대상창고번호", paramType = "query", example = "200017", required = true),
+        @ApiImplicitParam(name = "itmKndCd", value = "출고품목코드", paramType = "query", example = "4"),
+        @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = "310"),
         @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
         @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
-        @ApiImplicitParam(name = "ostrCnfm", value = "출고확정코드", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고대상창고번호", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "itmKndCd", value = "출고품목코드", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "wareLocaraCd", value = "입고희망일 종료일", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "ostrCnfm", value = "출고확정코드", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "1")
     })
     public PagingResult<SearchRes> getNormalOutOfStorage(@Valid
     SearchReq dto, @Valid
@@ -50,28 +68,55 @@ public class WsnaNormalOutOfStorageController {
     @GetMapping("/excel-download")
     @ApiOperation(value = "정상출고 데이터 엑셀 다운로드", notes = "조회조건에 일치하는 정상출고 데이터를 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고대상창고번호", paramType = "query", example = "200017", required = true),
+        @ApiImplicitParam(name = "itmKndCd", value = "출고품목코드", paramType = "query", example = "4"),
+        @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = "310"),
         @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
         @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
-        @ApiImplicitParam(name = "ostrCnfm", value = "출고확정코드", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고대상창고번호", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "itmKndCd", value = "출고품목코드", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "wareLocaraCd", value = "입고희망일 종료일", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "ostrCnfm", value = "출고확정코드", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "1")
     })
     public List<SearchRes> excelDownload(@Valid
     SearchReq dto) {
         return this.service.getNormalOutOfStorage(dto);
     }
 
-    @GetMapping("/ware-houses")
-    @ApiOperation(value = "정상출고 창고 조회", notes = "정상출고 창고 데이터를 조회한다.")
+    @GetMapping("/itm-ostr-ak")
+    @ApiOperation(value = "정상출고 등록 정보 조회", notes = "출고요청번호에 해당하는 정상출고 등록 정보를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
-        @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
+        @ApiImplicitParam(name = "ostrAkNo", value = "출고요청번호", paramType = "query", example = "310200812300000011", required = true),
+        @ApiImplicitParam(name = "ostrAkSn", value = "출고요청일련번호", paramType = "query", example = "1", required = true)
     })
-    public List<SearchWarehouse> getWarehouses(SearchReq dto) {
-        return this.service.getWarehouses(dto);
+    public SearchItmOstrAkRes getItmOstrAk(@Valid
+    SearchItmOstrAkReq dto) {
+        return this.service.getItmOstrAk(dto);
+    }
+
+    @GetMapping("/standard-ware")
+    @ApiOperation(value = "표준창고 조회", notes = "표준창고 여부를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "적용년월", paramType = "query", example = "202307", required = true),
+        @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "201698", required = true)
+    })
+    public StandardWareRes getStandardWareHouse(@Valid
+    StandardWareReq dto) {
+        return this.service.getStandardWareHouse(dto);
+    }
+
+    @GetMapping("/detail")
+    @ApiOperation(value = "정상출고 상세 정보 조회", notes = "정상출고 상세 정보를 조회한다.")
+    public PagingResult<DetailRes> getNormalOstrRgsts(@Valid
+    DetailReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return this.service.getNormalOstrRgsts(dto, pageInfo);
+    }
+
+    @PutMapping("/standard-ware")
+    public int saveStandardWareHouse(@RequestBody
+    StandardWareReq dto) {
+        return service.saveStandardWareHouse(dto);
     }
 
     @GetMapping("/person-center/paging")
@@ -98,15 +143,6 @@ public class WsnaNormalOutOfStorageController {
         PageInfo pageInfo
     ) {
         return this.service.getAskMaterialsCenterPresentState(dto, pageInfo);
-    }
-
-    @GetMapping("/detail")
-    public PagingResult<DetailRes> getNormalOstrRgsts(@Valid
-    DetailReq dto,
-        @Valid
-        PageInfo pageInfo
-    ) {
-        return this.service.getNormalOstrRgsts(dto, pageInfo);
     }
 
     @GetMapping("/detail-remove")
@@ -146,19 +182,4 @@ public class WsnaNormalOutOfStorageController {
         return service.getNormalOstrRgstChecked(dto);
     }
 
-    @GetMapping("/standard-ware")
-    public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
-        return service.getStandardWareHouse(dto);
-    }
-
-    @PutMapping("/standard-ware")
-    public int saveStandardWareHouse(@RequestBody
-    StandardWareReq dto) {
-        return service.saveStandardWareHouse(dto);
-    }
-
-    @GetMapping("/itm-ostr-ak")
-    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto) {
-        return service.getItmOstrAk(dto);
-    }
 }

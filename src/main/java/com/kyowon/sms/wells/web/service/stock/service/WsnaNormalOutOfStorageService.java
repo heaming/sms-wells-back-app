@@ -35,6 +35,15 @@ public class WsnaNormalOutOfStorageService {
     private final WsnaItemStockItemizationService itemStockservice;
 
     /**
+    * 정상출고 본인 창고 조회
+    * @param apyYm   (필수) 기준년월
+    * @return
+    */
+    public List<SearchWarehouse> getWarehouses(String apyYm) {
+        return this.mapper.selectWarehouses(apyYm);
+    }
+
+    /**
      * 정상출고 페이징 조회
      * @param dto
      * @param pageInfo
@@ -44,12 +53,26 @@ public class WsnaNormalOutOfStorageService {
         return this.mapper.selectNormalOutOfStorage(dto, pageInfo);
     }
 
-    public List<SearchRes> getNormalOutOfStorage(SearchReq dto) {
-        return mapper.selectNormalOutOfStorage(dto);
+    /**
+     * 정상출고 등록 정보 조회
+     * @param dto
+     * @return
+     */
+    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto) {
+        return this.mapper.selectItmOstrAk(dto);
     }
 
-    public List<SearchWarehouse> getWarehouses(SearchReq dto) {
-        return mapper.selectWarehouses(dto);
+    /**
+    * 표준창고 조회
+    * @param dto
+    * @return
+    */
+    public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
+        return this.mapper.selectStandardWareHouse(dto);
+    }
+
+    public List<SearchRes> getNormalOutOfStorage(SearchReq dto) {
+        return mapper.selectNormalOutOfStorage(dto);
     }
 
     public PagingResult<AskRes> getAskMaterialsHavePss(
@@ -168,14 +191,6 @@ public class WsnaNormalOutOfStorageService {
     public int saveStandardWareHouse(StandardWareReq dto) {
         WsnaNormalOutOfStorageStdgbDvo dvo = converter.mapToWsnaNormalOutOfStorageStdgbDvo(dto);
         return mapper.updateStandardWareHouse(dvo);
-    }
-
-    public StandardWareRes getStandardWareHouse(StandardWareReq dto) {
-        return mapper.selectStandardWareHouse(dto);
-    }
-
-    public SearchItmOstrAkRes getItmOstrAk(SearchItmOstrAkReq dto) {
-        return mapper.selectItmOstrAk(dto);
     }
 
     protected WsnaItemStockItemizationReqDvo setOstrWsnaItemStockItemizationDtoSaveReq(

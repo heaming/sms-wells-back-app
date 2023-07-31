@@ -17,13 +17,14 @@ public interface WsnaNormalOutOfStorageMapper {
 
     List<SearchRes> selectNormalOutOfStorage(SearchReq dto);
 
-    List<SearchWarehouse> selectWarehouses(SearchReq dto);
+    List<SearchWarehouse> selectWarehouses(String apyYm);
 
     PagingResult<AskRes> selectAskMaterialsHavePss(AskReq dto, PageInfo pageInfo);
 
     PagingResult<CenterRes> selectAskMaterialsCenterPresentState(AskReq dto, PageInfo pageInfo);
 
     PagingResult<DetailRes> getNormalOstrRgsts(DetailReq dto, PageInfo pageInfo);
+
     PagingResult<DetailRes> removeNormalOstrRgsts(DetailReq dto, PageInfo pageInfo);
 
     int insertNormalOstrRgst(WsnaNormalOutOfStorageDvo vo);
@@ -45,6 +46,8 @@ public interface WsnaNormalOutOfStorageMapper {
     SearchItmOstrAkRes selectItmOstrAk(SearchItmOstrAkReq dto);
 
     int removeNormalStr(WsnaNormalOutOfStorageDvo vo);
+
     int removeNormalOstr(WsnaNormalOutOfStorageDvo vo);
+
     int updateRemoveOstrAkIzAfter(WsnaNormalOutOfStorageDvo vo);
 }
