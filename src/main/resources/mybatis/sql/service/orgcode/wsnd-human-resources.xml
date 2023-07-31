@@ -2,6 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndHumanResourcesMapper">
     <select id="selectHumanResources" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndHumanResourcesDto$SearchRes">
+        <include refid="COMMON.dataAuthOrgWithClause">
+            <property name="paramBaseYm" value="NULL"/>
+            <property name="paramOgTpCd" value="#{session.ogTpCd}"/>
+        </include>
         SELECT T1.BASE_YM                   <!-- 기준년월 -->
              , T1.OG_TP_CD                  <!-- 조직유형코드 -->
              , T1.PRTNR_NO                  <!-- 파트너번호 -->
@@ -114,6 +118,30 @@
         </if>
         <if test='@MybatisUtils@isNotEmpty(searchText)'>
            AND (T1.PRTNR_KNM LIKE #{searchText} || '%' OR T1.PRTNR_NO = #{searchText})
+        </if>
+        <if test='@MybatisUtils@equals(mngrDvCd, "2") and @MybatisUtils@equals(authYn, "Y")'>
+           AND (CASE WHEN #{session.dataFullAuthYn} = 'Y' AND SUBSTR(#{session.baseRleCd}, 1, 2) NOT IN ('W4', 'W6')
+                     THEN 1
+                     ELSE (CASE WHEN (SELECT COUNT(1)
+                                        FROM OBJ_ORG TX
+                                       WHERE TX.OG_TP_CD = T1.OG_TP_CD
+                                         AND TX.OG_ID =  T1.OG_ID) > 0
+                                THEN 1
+                                ELSE 0
+                           END)
+                END) = 1
+        </if>
+        <if test='!@MybatisUtils@equals(mngrDvCd, "2") and @MybatisUtils@equals(authYn, "Y")'>
+           AND (CASE WHEN #{session.dataFullAuthYn} = 'Y' AND SUBSTR(#{session.baseRleCd}, 1, 2) NOT IN ('W3')
+                     THEN 1
+                     ELSE (CASE WHEN (SELECT COUNT(1)
+                                        FROM OBJ_ORG TX
+                                       WHERE TX.OG_TP_CD = T1.OG_TP_CD
+                                         AND TX.OG_ID =  T1.OG_ID) > 0
+                                THEN 1
+                                ELSE 0
+                           END)
+                END) = 1
         </if>
          ORDER BY T1.OG_ID, T1.PRTNR_KNM
     </select>

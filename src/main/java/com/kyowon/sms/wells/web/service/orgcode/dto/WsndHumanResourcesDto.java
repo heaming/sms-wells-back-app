@@ -13,7 +13,8 @@ public class WsndHumanResourcesDto {
         String dgr1LevlOgId,
         String dgr2LevlOgId,
         String dgr3LevlOgId,
-        String searchText
+        String searchText,
+        String authYn
     ) {}
 
     // *********************************************************
