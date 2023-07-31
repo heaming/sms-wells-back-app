@@ -13,7 +13,7 @@ public class WdeaAllowanceRedfMgtDto {
     public record SearchReq(
         String redfAdsbOcYmFrom, // 발생년월(from)
         String redfAdsbOcYmTo, // 발생년월(to)
-        String slYmFrom, // 매출년월(from) 
+        String slYmFrom, // 매출년월(from)
         String slYmTo, // 매출년월(to)
         String ogTpCd, // 조직유형
         String sellTpCd, // 상품구분
@@ -101,7 +101,7 @@ public class WdeaAllowanceRedfMgtDto {
     public record SearchRedfBizdReq(
         String redfAdsbOcYmFrom, // 발생년월(from)
         String redfAdsbOcYmTo, // 발생년월(to)
-        String perfYmFrom, // 실적년월(from) 
+        String perfYmFrom, // 실적년월(from)
         String perfYmTo, // 실적년월(to)
         String ogTpCd, // 조직유형
         String ogCd, // 조직코드
@@ -113,6 +113,8 @@ public class WdeaAllowanceRedfMgtDto {
     @ApiModel("WdeaAllowanceRedfMgtDto-SearchRedfBizdRes")
     public record SearchRedfBizdRes(
         /*기본정보*/
+        String ogTpCd,
+        String ogTpNm,
         String perfYm, /*실적년월*/
         String baseYm, /*발생년월*/
         String ogCd, /*소속코드*/
