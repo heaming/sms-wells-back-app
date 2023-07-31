@@ -61,7 +61,6 @@ public class WpdcCompositionMgtService {
     @Transactional
     public int removeProduct(String pdCd) throws Exception {
         String startDtm = DateUtil.getDate(new Date());
-        prcService.removePdPriceByPdCd(pdCd);
         return pdService.removeProduct(pdCd, startDtm);
     }
 }
