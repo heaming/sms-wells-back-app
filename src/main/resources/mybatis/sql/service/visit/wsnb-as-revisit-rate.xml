@@ -1,0 +1,131 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbAsRevisitRateListMapper">
+
+    <select id="selectAsRevisitRateList" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsRevisitRateListDvo">
+    WITH TEMP_V1 AS (
+                     SELECT CNTR_NO
+                          , VST_FSH_DT
+                          , VST_FSH_HH
+                          , PRTNR_NO
+                       FROM TB_SVPD_CST_SV_WK_RS_IZ T1
+                          , TB_PDBS_PD_ECOM_PRP_DTL T2
+                      WHERE 1=1
+                        AND T1.SV_BIZ_DCLSF_CD = '3110'
+                        AND T1.REFRI_DV_CD = '1'
+                        AND T1.VST_FSH_DT BETWEEN (TO_DATE(#{baseDateTo}, 'YYYYMMDD') - 60) AND #{baseDateTo}
+                        AND T1.AS_LCT_CD NOT IN ('A808', 'A814', 'A832', 'A834', 'A835', 'A837', 'A838', 'A904', 'X605', 'X606', 'X607')
+                        AND T1.AS_PHN_CD NOT IN ('B803', 'B831', 'B834', 'B835', 'B839', 'B841', 'B891', 'B902', 'B904','B907', 'B942', 'B943', 'B946', 'B947', 'B954', 'B963', 'Y904')
+                        AND T1.AS_CAUS_CD NOT IN ('Z535', 'Z536', 'Z537', 'Z539')
+
+                        AND T1.PDCT_PD_CD = T2.PD_CD
+                        AND T2.PD_PRP_VAL20 != '11'
+                        AND T1.DTA_DL_YN = 'N'
+                        AND T2.DTA_DL_YN = 'N'
+                        <if test='@MybatisUtils@isNotEmpty(ogId)'>
+                        AND T1.OG_ID = #{ogId}
+                        </if>
+                     )
+       , TEMP_V2 AS (
+                     SELECT P2.OG_ID
+                          , P2.OG_NM
+                          , P1.PRTNR_NO
+                          , P2.PRTNR_KNM
+                       FROM TB_OGBS_PRTNR_DTL P1
+                          , TB_OGBS_PRTNR_BAS P2
+                          , TB_OGBS_OG_BAS O1
+                      WHERE 1=1
+                        AND P1.PRTNR_NO = P2.PRTNR_NO
+                        AND P2.OG_ID = O1.OG_ID
+
+                        AND P1.OG_TP_CD = 'W06'
+                        AND P2.OG_TP_CD = 'W06'
+                        AND P1.ROL_DV_CD != '55'
+                        AND (CLTN_DT IS NULL OR CLTN_DT >= (TO_DATE(#{baseDateTo},'YYYYMMDD') - 60))
+                        AND P1.DTA_DL_YN = 'N'
+                        AND O1.CLO_YN = 'N'
+                        <if test='@MybatisUtils@isEmpty(ogId)'>
+                        AND O1.OG_ID != 'OGO198500002366'
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(ogId)'>
+                        AND O1.OG_ID = #{ogId}
+                        </if>
+                     )
+
+    SELECT OG_NM ogNm
+         , PRTNR_NO prtnrNo
+         , PRTNR_KNM prtnrNm
+         , DUP_CNT dupCnt
+         , AS_CNT asCnt
+         , DUP_PER||'%' dupPer
+         , CASE WHEN ((AS_CNT>0 AND DUP_PER &lt;= 3.0) OR (AS_CNT = 0 AND DUP_PER = 0)) THEN 10
+                WHEN AS_CNT>0 AND DUP_PER > 3.0 AND DUP_PER &lt;= 3.3  THEN 9.5
+                WHEN AS_CNT>0 AND DUP_PER > 3.3 AND DUP_PER &lt;= 3.6  THEN 9.0
+                WHEN AS_CNT>0 AND DUP_PER > 3.6 AND DUP_PER &lt;= 3.9  THEN 8.5
+                WHEN AS_CNT>0 AND DUP_PER > 3.9 AND DUP_PER &lt;= 4.2  THEN 8.0
+                WHEN AS_CNT>0 AND DUP_PER > 4.2 AND DUP_PER &lt;= 4.5  THEN 7.5
+                WHEN AS_CNT>0 AND DUP_PER > 4.5 AND DUP_PER &lt;= 4.8  THEN 7.0
+                WHEN AS_CNT>0 AND DUP_PER > 4.8 AND DUP_PER &lt;= 5.1  THEN 6.5
+                WHEN AS_CNT>0 AND DUP_PER > 5.1 AND DUP_PER &lt;= 5.4  THEN 6.0
+                WHEN AS_CNT>0 AND DUP_PER > 5.4 AND DUP_PER &lt;= 5.7  THEN 5.5
+                WHEN AS_CNT>0 AND DUP_PER > 5.7 AND DUP_PER &lt;= 6.0  THEN 5.0
+                WHEN AS_CNT>0 AND DUP_PER > 6.0 AND DUP_PER &lt;= 6.3  THEN 4.5
+                WHEN AS_CNT>0 AND DUP_PER > 6.3 AND DUP_PER &lt;= 6.6  THEN 4.0
+                WHEN AS_CNT>0 AND DUP_PER > 6.6 AND DUP_PER &lt;= 6.9  THEN 3.5
+                WHEN AS_CNT>0 AND DUP_PER > 6.9 AND DUP_PER &lt;= 7.2  THEN 3.0
+                WHEN AS_CNT>0 AND DUP_PER > 7.2 AND DUP_PER &lt;= 7.5  THEN 2.5
+                WHEN AS_CNT>0 AND DUP_PER > 7.5 AND DUP_PER &lt;= 7.8  THEN 2.0
+                WHEN AS_CNT>0 AND DUP_PER > 7.8 AND DUP_PER &lt;= 8.1  THEN 1.5
+                WHEN AS_CNT>0 AND DUP_PER > 8.1 AND DUP_PER &lt;= 8.4  THEN 1.0
+                WHEN AS_CNT>0 AND DUP_PER > 8.4 AND DUP_PER &lt;= 8.9  THEN 0.5
+                WHEN AS_CNT>0 AND DUP_PER >= 9.0   THEN 0
+                ELSE 0
+            END score
+      FROM (
+            SELECT OG_NM
+                 , OG_ID
+                 , PRTNR_NO
+                 , PRTNR_KNM
+                 , DUP_CNT
+                 , AS_CNT
+                 , (CASE WHEN AS_CNT > 0 THEN  round ( ((DUP_CNT / AS_CNT) * 100) , 2 )
+                        ELSE 0.0
+                    END) AS DUP_PER
+              FROM (
+                    SELECT OG_NM
+                         , OG_ID
+                         , TEMP_V2.PRTNR_NO
+                         , TEMP_V2.PRTNR_KNM
+                         , NVL(DUP_CNT, 0) AS DUP_CNT
+                         , (SELECT NVL(COUNT(1), 0)
+                              FROM TEMP_V1
+                             WHERE VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                               AND TEMP_V1.PRTNR_NO = TEMP_V2.PRTNR_NO) AS AS_CNT
+                      FROM (
+                            SELECT PRTNR_NO
+                                 , COUNT(1) DUP_CNT
+                              FROM (
+                                    SELECT RANK() OVER(PARTITION BY CNTR_NO ORDER BY VST_FSH_DT DESC, VST_FSH_HH DESC) rn
+                                         , (SELECT MIN(T4.VST_FSH_DT)
+                                              FROM TEMP_V1 T4
+                                             WHERE T4.VST_FSH_DT > T3.VST_FSH_DT
+                                               AND T4.CNTR_NO = T3.CNTR_NO) nextDt
+                                         , (SELECT TO_DATE(MIN(T4.VST_FSH_DT), 'YYYYMMDD') - TO_DATE(T3.VST_FSH_DT, 'YYYYMMDD')
+                                              FROM TEMP_V1 T4
+                                             WHERE T4.VST_FSH_DT > T3.VST_FSH_DT
+                                               AND T4.CNTR_NO = T3.CNTR_NO) betweenDt
+                                         , PRTNR_NO
+                                      FROM TEMP_V1 T3
+                                    )
+                             WHERE RN > 1
+                               AND nextDt BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                               AND betweenDt &lt;= 30
+                             GROUP BY PRTNR_NO
+                            ) V1
+                         , TEMP_V2
+                     WHERE 1=1
+                       AND TEMP_V2.PRTNR_NO = V1.PRTNR_NO(+)
+                    )
+            )
+     ORDER BY OG_ID, PRTNR_KNM
+    </select>
+</mapper>
