@@ -17,7 +17,12 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyAsCodeMgtMapper">
     <select id="selectAsCodes" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo">
         SELECT /*+ USE_NL(A B) INDEX(A (SV_TP_CD , AS_LCT_CD , AS_PHN_CD , AS_CAUS_CD)) */		--★★★ 힌트 추가!!!
-               A.SV_TP_CD                                                           				   AS SV_TP_CD        /*서비스유형코드*/
+               A.PD_GRP_CD
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', A.PD_GRP_CD, 'ko') FROM DUAL)             AS PD_GRP_NM
+             , A.PD_CD
+             , (SELECT S1.PD_NM FROM TB_PDBS_PD_BAS S1 /*상품기본*/ WHERE S1.PD_CD = A.PD_CD)          AS PD_NM
+             , A.SV_TP_CD                                                           				   AS SV_TP_CD        /*서비스유형코드*/
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SV_DV_CD', A.SV_TP_CD, 'ko') FROM DUAL)               AS SV_TP_NM
              , A.AS_LCT_CD                                                          				   AS AS_LCT_CD       /*AS위치코드*/
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', A.AS_LCT_CD, 'ko') FROM DUAL)             AS AS_LCT_NM       /*AS위치코드*/  	--★★★ SQL 수정!!!
              , A.AS_PHN_CD                                                          				   AS AS_PHN_CD       /*AS현상코드*/
@@ -126,4 +131,99 @@
              <include refid="COMMON.insertSystemFieldValue" />
         )
     </update>
+
+    <!--<select id="selectSiteAwDsbBase" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeSiteAwDsbBaseDvo">
+        SELECT PD_GRP_CD
+             , SV_TP_CD
+             , SITE_AW_ATC_CD
+             , RGLVL_DV_CD
+             , DSB_BASE_SN
+             &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;
+             , APY_STRTDT
+             , APY_ENDDT
+             , PD_GRP_DTL_CD
+             , SITE_AW_GRP_CD
+             , FULEY_AW_AMT
+             , ROL_LYR1_TOPMR_AW_AMT
+             , ROL_LYR1_UPLR_AW_AMT
+             , ROL_LYR1_MDLYR_AW_AMT
+             , ROL_LYR1_LOLYR_AW_AMT
+             , ROL_L2_UPLR_AW_AMT
+             , ROL_L2_MDLYR_AW_AMT
+             , ROL_L2_LOLYR_AW_AMT
+             , ROL_L3_AW_AMT
+             , CRWK_AW_AMT
+             , INDV_ENTRP_AW_AMT
+             , MNGER_WK_UPRC
+             , USE_YN
+             , RMK_CN
+          FROM TB_FEAM_SITE_AW_DSB_BASE_BAS
+         WHERE PD_GRP_CD = #{pdGrpCd}
+           AND SV_TP_CD = #{svTpCd}
+           AND SITE_AW_ATC_CD = #{siteAwAtcCd}
+           AND RGLVL_DV_CD = '1'
+         ORDER BY DSB_BASE_SN DESC
+    </select>
+
+    <update id="updateSiteAwDsbBase">
+        UPDATE TB_FEAM_SITE_AW_DSB_BASE_BAS
+           SET APY_ENDDT = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+         WHERE PD_GRP_CD = #{pdGrpCd}
+           AND SV_TP_CD = #{svTpCd}
+           AND SITE_AW_ATC_CD = #{siteAwAtcCd}
+           AND RGLVL_DV_CD = '1'
+           AND DSB_BASE_SN = ${dsbBaseSn}
+    </update>
+
+    <insert id="insertSiteAwDsbBase">
+        INSERT INTO TB_FEAM_SITE_AW_DSB_BASE_BAS ( PD_GRP_CD
+                                                 , SV_TP_CD
+                                                 , SITE_AW_ATC_CD
+                                                 , RGLVL_DV_CD
+                                                 , DSB_BASE_SN
+                                                 , APY_STRTDT
+                                                 , APY_ENDDT
+                                                 , PD_GRP_DTL_CD
+                                                 , SITE_AW_GRP_CD
+                                                 , FULEY_AW_AMT
+                                                 , ROL_LYR1_TOPMR_AW_AMT
+                                                 , ROL_LYR1_UPLR_AW_AMT
+                                                 , ROL_LYR1_MDLYR_AW_AMT
+                                                 , ROL_LYR1_LOLYR_AW_AMT
+                                                 , ROL_L2_UPLR_AW_AMT
+                                                 , ROL_L2_MDLYR_AW_AMT
+                                                 , ROL_L2_LOLYR_AW_AMT
+                                                 , ROL_L3_AW_AMT
+                                                 , CRWK_AW_AMT
+                                                 , INDV_ENTRP_AW_AMT
+                                                 , MNGER_WK_UPRC
+                                                 , USE_YN
+                                                 , RMK_CN
+                                                 <include refid="COMMON.insertSystemField"/>)
+        SELECT #{pdGrpCd} AS 상품그룹코드
+             , #{svTpCd} AS 서비스유형코드
+             , #{siteAwAtcCd} AS 현장수당항목코드
+             , '1' AS 급지구분코드
+             , #{dsbBaseSn} AS 지급기준일련번호
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS 적용시작일자
+             , '99991231' AS 적용종료일자
+             , #{pdGrpDtlCd} AS 상품그룹상세코드
+             , #{siteAwGrpCd} AS 현장수당그룹코드
+             , #{fuleyAwAmt} AS 정직원수당금액
+             , #{rolLyr1TopmrAwAmt} AS 직무1급수석수당금액
+             , #{rolLyr1UplrAwAmt} AS 직무1급상급수당금액
+             , #{rolLyr1MdlyrAwAmt} AS 직무1급중급수당금액
+             , #{rolLyr1LolyrAwAmt} AS 직무1급하급수당금액
+             , #{rolL2UplrAwAmt} AS 직무2급상급수당금액
+             , #{rolL2MdlyrAwAmt} AS 직무2급중급수당금액
+             , #{rolL2LolyrAwAmt} AS 직무2급하급수당금액
+             , #{rolL3AwAmt} AS 직무3급수당금액
+             , #{crwkAwAmt} AS 계약직수당금액
+             , #{indvEntrpAwAmt} AS 개인사업자수당금액
+             , #{mngerWkUprc} AS 매니저작업단가
+             , #{useYn} AS 사용여부
+             , #{rmkCn} AS 비고내용
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM DUAL
+    </insert>-->
 </mapper>

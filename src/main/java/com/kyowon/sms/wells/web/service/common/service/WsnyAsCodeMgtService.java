@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
-import com.kyowon.sms.common.web.closing.mileage.dvo.ZdceSmartMileageExcelDvo;
-import com.kyowon.sms.common.web.closing.mileage.util.ZdceMileageUtil;
 import com.kyowon.sms.wells.web.service.common.converter.WsnyAsCodeMgtConverter;
 import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.*;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo;
@@ -20,9 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  *
@@ -40,7 +36,6 @@ public class WsnyAsCodeMgtService {
 
     private final WsnyAsCodeMgtMapper mapper;
     private final WsnyAsCodeMgtConverter converter;
-    private final Map<String, String> header;
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
 
@@ -62,16 +57,17 @@ public class WsnyAsCodeMgtService {
         final MultipartFile file
     ) throws Exception {
 
-        header.clear();
+        final Map<String, String> header = new LinkedHashMap<String, String>();
         header.put("pdGrpCd", messageResourceService.getMessage("MSG_TXT_PD_GRP"));
         header.put("pdCd", messageResourceService.getMessage("MSG_TXT_PRDT"));
-        header.put("svTpCd", messageResourceService.getMessage("MSG_TXT_SV_TP"));
+        header.put("svDvCd", messageResourceService.getMessage("MSG_TXT_SV_TP"));
         header.put("asLctCd", messageResourceService.getMessage("MSG_TXT_AS_LCT"));
         header.put("asPhnCd", messageResourceService.getMessage("MSG_TXT_AS_PHN"));
         header.put("asCausCd", messageResourceService.getMessage("MSG_TXT_AS_CAUS"));
         header.put("siteAwAtcDsnDt", messageResourceService.getMessage("MSG_TXT_AS_CAUS"));
         header.put("svAnaHclsfCd", messageResourceService.getMessage("MSG_TXT_SV_ANA_HCLSF_CD"));
         header.put("siteAwAtcCd", messageResourceService.getMessage("MSG_TXT_SITE_AW"));
+        header.put("fuleyAwAmt", messageResourceService.getMessage("MSG_TXT_FULEY_AW_AMT"));
         header.put("svAnaMclsfCd", messageResourceService.getMessage("MSG_TXT_SV_ANA_MCLSF_CD"));
         header.put("svAnaLclsfCd", messageResourceService.getMessage("MSG_TXT_SV_ANA_LCLSF_CD"));
         header.put("svAnaDsnDt", messageResourceService.getMessage("MSG_TXT_SV_ANA_DSN_DT"));
@@ -84,44 +80,60 @@ public class WsnyAsCodeMgtService {
         List<ExcelUploadErrorDvo> errorDvos = new ArrayList<>();
 
         int row = 2;
-        for (WsnyAsCodeMgtDvo dvo : list) {
+        for (WsnyAsCodeMgtDvo excelRowDvo : list) {
+
+            log.debug("PdGrpCd: " + excelRowDvo.getPdGrpCd());
+            log.debug("SvDvCd: " + excelRowDvo.getSvDvCd());
+            log.debug("SiteAwAtcCd: " + excelRowDvo.getSiteAwAtcCd());
+            log.debug("rglvlDvCd: 1");
+            log.debug("PdCd: " + excelRowDvo.getPdCd());
+            log.debug("AsLctCd: " + excelRowDvo.getAsLctCd());
+            log.debug("AsPhnCd: " + excelRowDvo.getAsPhnCd());
+            log.debug("AsCausCd: " + excelRowDvo.getAsCausCd());
+            log.debug("SiteAwAtcDsnDt: " + excelRowDvo.getSiteAwAtcDsnDt());
+            log.debug("SvAnaHclsfCd: " + excelRowDvo.getSvAnaHclsfCd());
+            log.debug("FuleyAwAmt: " + excelRowDvo.getFuleyAwAmt());
+            log.debug("SvAnaMclsfCd: " + excelRowDvo.getSvAnaMclsfCd());
+            log.debug("SvAnaLclsfCd: " + excelRowDvo.getSvAnaLclsfCd());
+            log.debug("SvAnaDsnDt: " + excelRowDvo.getSvAnaDsnDt());
+            log.debug("ApyStrtdt: " + excelRowDvo.getApyStrtdt());
+            log.debug("ApyEnddt: " + excelRowDvo.getApyEnddt());
+
+            //PdGrpCd: 3110
+            //SvDvCd: C111
+            //SiteAwAtcCd: 1000
+            //rglvlDvCd: 1
+            //PdCd: 1
+            //AsLctCd: 20090101
+            //AsPhnCd:
+            //AsCausCd: 1311
+            //SiteAwAtcDsnDt: 20081216
+            //SvAnaHclsfCd: 20140810
+            //FuleyAwAmt: @999990000
+            //SvAnaMclsfCd:
+            //SvAnaLclsfCd:
+            //SvAnaDsnDt: 3
+            //ApyStrtdt: A207
+            //ApyEnddt: B110
+
             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
 
-            log.debug("--------------------------------------------------------------------------------------------");
-            log.debug(
-                "상품그룹코드(pdGrpCd)={}" +
-                    ", 상품코드(pdCd)={}" +
-                    ", 서비스유형코드(svTpCd)={}" +
-                    ", AS위치코드(asLctCd)={}" +
-                    ", AS현상코드(asPhnCd)={}" +
-                    ", AS원인코드(asCausCd)={}" +
-                    ", 서비스분석대분류코드(svAnaHclsfCd)={}" +
-                    ", 서비스분석중분류코드(svAnaMclsfCd)={}" +
-                    ", 서비스분석소분류코드(svAnaLclsfCd)={}" +
-                    ", 현장수당항목코드(siteAwAtcCd)={}",
-                dvo.getPdGrpCd(),
-                dvo.getPdCd(), dvo.getSvTpCd(), dvo.getAsLctCd(), dvo.getAsPhnCd(), dvo.getAsCausCd(),
-                dvo.getSvAnaHclsfCd(), dvo.getSvAnaMclsfCd(), dvo.getSvAnaLclsfCd(),
-                dvo.getSiteAwAtcCd()
-            );
-            log.debug("--------------------------------------------------------------------------------------------");
-
             //필수값이 누락되어 있습니다.
-            if (StringUtils.isEmpty(dvo.getPdGrpCd()))
+            if (StringUtils.isEmpty(excelRowDvo.getPdGrpCd()))
                 errorDvo.setHeaderName(header.get("pdGrpCd"));
-            if (StringUtils.isEmpty(dvo.getPdCd()))
+            if (StringUtils.isEmpty(excelRowDvo.getPdCd()))
                 errorDvo.setHeaderName(header.get("pdCd"));
-            if (StringUtils.isEmpty(dvo.getSvTpCd()))
+            if (StringUtils.isEmpty(excelRowDvo.getSvTpCd()))
                 errorDvo.setHeaderName(header.get("svTpCd"));
-            if (StringUtils.isEmpty(dvo.getAsLctCd()))
+            if (StringUtils.isEmpty(excelRowDvo.getAsLctCd()))
                 errorDvo.setHeaderName(header.get("asLctCd"));
-            if (StringUtils.isEmpty(dvo.getAsPhnCd()))
+            if (StringUtils.isEmpty(excelRowDvo.getAsPhnCd()))
                 errorDvo.setHeaderName(header.get("asPhnCd"));
-            if (StringUtils.isEmpty(dvo.getAsCausCd()))
+            if (StringUtils.isEmpty(excelRowDvo.getAsCausCd()))
                 errorDvo.setHeaderName(header.get("asCausCd"));
-            if (StringUtils.isEmpty(dvo.getSiteAwAtcDsnDt()))
+            if (StringUtils.isEmpty(excelRowDvo.getSiteAwAtcDsnDt()))
                 errorDvo.setHeaderName(header.get("siteAwAtcDsnDt"));
-            if (StringUtils.isEmpty(dvo.getSvAnaHclsfCd()))
+            if (StringUtils.isEmpty(excelRowDvo.getSvAnaHclsfCd()))
                 errorDvo.setHeaderName(header.get("svAnaHclsfCd"));
             if (StringUtil.isNotEmpty(errorDvo.getHeaderName())) {
                 errorDvo.setErrorRow(row);
@@ -129,137 +141,143 @@ public class WsnyAsCodeMgtService {
             }
             //--------------------------------------------------------------------
             // 입력 가능 길이를 초과하였습니다 (최대: ?, 입력: ?)
-            if (StringUtil.nvl(dvo.getPdGrpCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getPdGrpCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("pdGrpCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4", String.valueOf(StringUtil.nvl(dvo.getPdGrpCd(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getPdGrpCd(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getPdCd(), "").trim().length() > 10) {
+            if (StringUtil.nvl(excelRowDvo.getPdCd(), "").trim().length() > 10) {
                 errorDvo.setHeaderName(header.get("pdCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "0", String.valueOf(StringUtil.nvl(dvo.getPdCd(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "0",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getPdCd(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getSvTpCd(), "").trim().length() > 2) {
+            if (StringUtil.nvl(excelRowDvo.getSvTpCd(), "").trim().length() > 2) {
                 errorDvo.setHeaderName(header.get("svTpCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "2", String.valueOf(StringUtil.nvl(dvo.getSvTpCd(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "2",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getSvTpCd(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getAsLctCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getAsLctCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("asLctCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4", String.valueOf(StringUtil.nvl(dvo.getAsLctCd(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getAsLctCd(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getAsPhnCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getAsPhnCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("asPhnCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4", String.valueOf(StringUtil.nvl(dvo.getAsPhnCd(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getAsPhnCd(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getAsCausCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getAsCausCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("asCausCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4", String.valueOf(StringUtil.nvl(dvo.getAsCausCd(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getAsCausCd(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getSiteAwAtcDsnDt(), "").trim().length() > 8) {
+            if (StringUtil.nvl(excelRowDvo.getSiteAwAtcDsnDt(), "").trim().length() > 8) {
                 errorDvo.setHeaderName(header.get("siteAwAtcDsnDt"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
                         "MSG_ALT_INPUT_OVER_LEN", "8",
-                        String.valueOf(StringUtil.nvl(dvo.getSiteAwAtcDsnDt(), "").length())
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getSiteAwAtcDsnDt(), "").length())
                     )
                 );
             }
-
-            if (StringUtil.nvl(dvo.getSiteAwAtcCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getSiteAwAtcCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("siteAwAtcCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4", String.valueOf(StringUtil.nvl(dvo.getSiteAwAtcCd(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getSiteAwAtcCd(), "").length())
                     )
                 );
             }
-
-            if (StringUtil.nvl(dvo.getSvAnaHclsfCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getSvAnaHclsfCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("svAnaHclsfCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
                         "MSG_ALT_INPUT_OVER_LEN", "4",
-                        String.valueOf(StringUtil.nvl(dvo.getSvAnaHclsfCd(), "").length())
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaHclsfCd(), "").length())
                     )
                 );
             }
-
-            if (StringUtil.nvl(dvo.getSvAnaMclsfCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getSvAnaMclsfCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("svAnaMclsfCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
                         "MSG_ALT_INPUT_OVER_LEN", "4",
-                        String.valueOf(StringUtil.nvl(dvo.getSvAnaMclsfCd(), "").length())
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaMclsfCd(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getSvAnaLclsfCd(), "").trim().length() > 4) {
+            if (StringUtil.nvl(excelRowDvo.getSvAnaLclsfCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("svAnaLclsfCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
                         "MSG_ALT_INPUT_OVER_LEN", "4",
-                        String.valueOf(StringUtil.nvl(dvo.getSvAnaLclsfCd(), "").length())
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaLclsfCd(), "").length())
                     )
                 );
             }
-
-            if (StringUtil.nvl(dvo.getSvAnaDsnDt(), "").trim().length() > 8) {
+            if (StringUtil.nvl(excelRowDvo.getSvAnaDsnDt(), "").trim().length() > 8) {
                 errorDvo.setHeaderName(header.get("svAnaDsnDt"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "8", String.valueOf(StringUtil.nvl(dvo.getSvAnaDsnDt(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "8",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaDsnDt(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getApyStrtdt(), "").trim().length() > 8) {
+            if (StringUtil.nvl(excelRowDvo.getApyStrtdt(), "").trim().length() > 8) {
                 errorDvo.setHeaderName(header.get("apyStrtdt"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "8", String.valueOf(StringUtil.nvl(dvo.getApyStrtdt(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "8",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getApyStrtdt(), "").length())
                     )
                 );
             }
-            if (StringUtil.nvl(dvo.getApyEnddt(), "").trim().length() > 8) {
+            if (StringUtil.nvl(excelRowDvo.getApyEnddt(), "").trim().length() > 8) {
                 errorDvo.setHeaderName(header.get("apyEnddt"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "8", String.valueOf(StringUtil.nvl(dvo.getApyEnddt(), "").length())
+                        "MSG_ALT_INPUT_OVER_LEN", "8",
+                        String.valueOf(StringUtil.nvl(excelRowDvo.getApyEnddt(), "").length())
                     )
                 );
             }
@@ -267,8 +285,39 @@ public class WsnyAsCodeMgtService {
 
             if (null != errorDvo && (errorDvo.getErrorRow() != 0)) {
                 errorDvos.add(errorDvo);
-            } else
-                mapper.saveAsCode(dvo);
+            } else {
+
+                excelRowDvo.setSvTpCd(excelRowDvo.getSvDvCd());
+                mapper.saveAsCode(excelRowDvo);
+
+                /*List<WsnyAsCodeSiteAwDsbBaseDvo> dvos = mapper
+                    .selectSiteAwDsbBase(
+                        excelRowDvo.getPdGrpCd(), excelRowDvo.getSvTpCd(), excelRowDvo.getSiteAwAtcCd()
+                    );
+
+                if (dvos.size() == 0) {
+                    WsnyAsCodeSiteAwDsbBaseDvo dvo = converter.mapBaseToAsCodeDvo(excelRowDvo);
+                    dvo.setDsbBaseSn(1);
+                    dvo.setSvTpCd(excelRowDvo.getSvDvCd());
+                    dvo.setFuleyAwAmt(excelRowDvo.getFuleyAwAmt());
+                    dvo.setUseYn("Y");
+                    mapper.insertSiteAwDsbBase(dvo);
+                }
+
+                if (dvos.size() > 0) {
+
+                    WsnyAsCodeSiteAwDsbBaseDvo dvo = dvos.get(0);
+
+                    mapper.updateSiteAwDsbBase(
+                        dvo.getPdGrpCd(), dvo.getSvTpCd(), dvo.getSiteAwAtcCd(),
+                        dvo.getDsbBaseSn()
+                    );
+
+                    dvo.setDsbBaseSn(dvo.getDsbBaseSn() + 1);
+                    dvo.setFuleyAwAmt(excelRowDvo.getFuleyAwAmt());
+                    mapper.insertSiteAwDsbBase(dvo);
+                }*/
+            }
             row++;
         }
 
