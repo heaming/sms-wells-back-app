@@ -126,9 +126,6 @@
              ,CRAL_IDV_TNO
              ,TO_CHAR(TO_DATE(NEXT_SCHEDULE,'YYYYMMDD'),'YYYY-MM-DD') AS NEXT_SCHEDULE
              ,RENTAL_FEE
-             ,SERVICE_TYPE_NAME
-             ,TO_CHAR(TO_DATE(VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(VST_FSH_HH,'HH24MISS'),'HH24:MI:SS') AS SERVICE_TIME
-             ,SERVICE_NAME
              ,DEVICE_NAME
              ,'' AS MANAGER_TEL /* Dto Constructor로 인한 문제로 빈 컬럼 생성 */
         FROM (
@@ -142,7 +139,7 @@
                       , TB_2.CRAL_LOCARA_TNO AS CRAL_LOCARA_TNO
                       , TB_2.MEXNO_ENCR AS MEXNO_ENCR
                       , TB_2.CRAL_IDV_TNO AS CRAL_IDV_TNO
-                      , (
+                      ,(
                      SELECT MIN(TEMP.VST_DUEDT) AS VST_DUEDT
                      FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
                      WHERE 1=1
@@ -151,13 +148,6 @@
                        AND TEMP.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                  ) AS NEXT_SCHEDULE /* 다음BS방문일 */
                       , TB_4.FNL_AMT AS RENTAL_FEE /* 렌탈금액 */
-                      , TB_5.SV_BIZ_HCLSF_CD --코드명 조회
-                      , TB_5.VST_FSH_DT
-                      , TB_5.VST_FSH_HH
-                      , TB_5.SV_BIZ_DCLSF_CD
-                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', TB_5.SV_BIZ_HCLSF_CD) AS SERVICE_TYPE_NAME /* 서비스유형명 */
-                      , TO_CHAR(TO_DATE(TB_5.VST_FSH_DT || TB_5.VST_FSH_HH, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS SERVICE_TIME /* 서비스방문일시 */
-                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TB_5.SV_BIZ_DCLSF_CD) AS SERVICE_NAME /* 서비스작업명 */
                       , TB_6.PD_NM AS DEVICE_NAME
                  FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
                           INNER JOIN TB_OGBS_PRTNR_BAS TB_2
@@ -170,14 +160,38 @@
                                                  TB_4.CNTR_NO = TB_1.CNTR_NO
                                              AND TB_4.CNTR_SN = TB_1.CNTR_SN
                                          )
+                          INNER JOIN TB_PDBS_PD_BAS TB_6
+                                     ON (
+                                         TB_1.PDCT_PD_CD = TB_6.PD_CD
+                                         )
+                 WHERE 1=1
+                   AND TB_1.BC_NO = #{barcode}
+             )
+    </select>
+
+    <select id="selectBarcodeSearchCustomerService"
+            resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniBarcodeProductInterfaceDto$SearchCustServiceJsonRes">
+        SELECT SERVICE_TYPE_NAME
+             ,TO_CHAR(TO_DATE(VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(VST_FSH_HH,'HH24MISS'),'HH24:MI:SS') AS SERVICE_TIME
+             ,SERVICE_NAME
+        FROM (
+                 SELECT  TB_5.SV_BIZ_HCLSF_CD --코드명 조회
+                      , TB_5.VST_FSH_DT
+                      , TB_5.VST_FSH_HH
+                      , TB_5.SV_BIZ_DCLSF_CD
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', TB_5.SV_BIZ_HCLSF_CD) AS SERVICE_TYPE_NAME /* 서비스유형명 */
+                      , TO_CHAR(TO_DATE(TB_5.VST_FSH_DT || TB_5.VST_FSH_HH, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS SERVICE_TIME /* 서비스방문일시 */
+                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TB_5.SV_BIZ_DCLSF_CD) AS SERVICE_NAME /* 서비스작업명 */
+                 FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+                          INNER JOIN TB_OGBS_PRTNR_BAS TB_2
+                                     ON (
+                                                 TB_2.OG_TP_CD = TB_1.MNGT_PRTNR_OG_TP_CD
+                                             AND TB_2.PRTNR_NO = TB_1.MNGT_PRTNR_NO
+                                         )
                           INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ TB_5
                                      ON (
                                                  TB_5.CNTR_NO = TB_1.CNTR_NO
                                              AND TB_5.CNTR_SN = TB_1.CNTR_SN
-                                         )
-                          INNER JOIN TB_PDBS_PD_BAS TB_6
-                                     ON (
-                                         TB_1.PDCT_PD_CD = TB_6.PD_CD
                                          )
                  WHERE 1=1
                    AND TB_1.BC_NO = #{barcode}
