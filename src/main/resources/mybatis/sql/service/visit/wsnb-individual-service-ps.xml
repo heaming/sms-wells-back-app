@@ -363,9 +363,9 @@
              , AS_CAUS /*처리내역*/
              , RTNGD_PROCS_TP /*반품처리정보*/
              , FST_VST_FSH_DT /*폐기일자*/
-             , ADR_ID /*우편번호*/
+             , ZIP_NO /*우편번호*/
              , OG_TP /*구분(담당자)*/
-             , OG_ID /*소속(담당자)*/
+             , OG_NM /*소속(담당자)*/
              , PRTNR_NO /*사번(담당자)*/
              , PRTNR_NM /*성명(담당자)*/
              , CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
@@ -382,9 +382,7 @@
           FROM (
                 (/*A/S작업완료 건*/
                 SELECT 'AD' GUBUN
-                     , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '9' THEN F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', 1)
-                            ELSE F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', S1.SV_BIZ_HCLSF_CD)
-                          END) AS SV_TP /*유형*/
+                     , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', DECODE(S1.SV_BIZ_HCLSF_CD,'9',1,S1.SV_BIZ_HCLSF_CD)) AS SV_TP /*유형*/
                      , S2.ASN_DT ||'000000' AS RCP_DT /*접수(배정)일자*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD)  AS SV_BIZ_DCLSF /*접수(배정)내역*/
                      , S2.VST_CNFMDT || S2.VST_CNFM_HH AS REQ_DT /*요청약속일자*/
@@ -393,11 +391,14 @@
                      , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', S1.AS_CAUS_CD) AS AS_CAUS /*처리내역*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', S3.RTNGD_PROCS_TP_CD) AS RTNGD_PROCS_TP /*반품처리정보*/
                      , S3.FST_VST_FSH_DT /*폐기일자:최초방문완료일자*/
-                     , (SELECT (CASE WHEN X.NEW_ADR_ZIP IS NULL THEN X.OLD_ADR_ZIP ELSE X.NEW_ADR_ZIP END)
+                     , (SELECT DECODE(X.NEW_ADR_ZIP, NULL, X.OLD_ADR_ZIP, X.NEW_ADR_ZIP)
                           FROM TB_GBCO_ADR_BAS X
-                         WHERE X.ADR_ID = S4.ADR_ID) AS ADR_ID /*우편번호*/
+                         WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S1.OG_TP_CD) AS OG_TP /*구분(담당자)*/
-                     , S1.OG_ID /*소속(담당자)*/
+                     , (SELECT X.OG_NM
+                          FROM TB_OGBS_MM_OG_IZ X
+                         WHERE X.OG_ID = S1.OG_ID
+                           AND S1.VST_FSH_DT LIKE X.BASE_YM||'%' ) AS OG_NM /*소속(담당자)*/
                      , S1.PRTNR_NO /*사번(담당자)*/
                      , (SELECT X.PRTNR_KNM
                           FROM TB_OGBS_PRTNR_BAS X
@@ -442,13 +443,15 @@
                   LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*월별고객서비스대상내역*/
                     ON S1.CNTR_NO = S4.CNTR_NO
                    AND S1.CNTR_SN = S4.CNTR_SN
-                   AND S4.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S1.VST_FSH_DT LIKE S4.MNGT_YM || '%'
                  WHERE 1=1
                    AND (CASE WHEN S1.SV_BIZ_HCLSF_CD = '9' THEN '1'
                              ELSE S1.SV_BIZ_HCLSF_CD
                          END) = S2.SV_BIZ_HCLSF_CD
                    AND S1.SV_BIZ_HCLSF_CD IN ('1','3','4', '9')
                    AND (S1.URGT_DV_CD !='9' OR S1.URGT_DV_CD IS NULL)
+                   AND S1.PRTNR_NO = S2.WK_PRTNR_NO
+                   AND S1.OG_TP_CD = S2.WK_PRTNR_OG_TP_CD
                 )
             UNION ALL
             (/*B/S작업완료 건*/
@@ -462,52 +465,38 @@
                      , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', S1.AS_CAUS_CD) AS AS_CAUS /*처리내역*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', S3.RTNGD_PROCS_TP_CD) AS RTNGD_PROCS_TP /*반품처리정보*/
                      , S3.FST_VST_FSH_DT /*폐기일자:최초방문완료일자*/
-                     , (SELECT (CASE WHEN X.NEW_ADR_ZIP IS NULL THEN X.OLD_ADR_ZIP ELSE X.NEW_ADR_ZIP END)
+                     , (SELECT DECODE(X.NEW_ADR_ZIP, NULL, X.OLD_ADR_ZIP, X.NEW_ADR_ZIP)
                           FROM TB_GBCO_ADR_BAS X
-                         WHERE X.ADR_ID = S4.ADR_ID) AS ADR_ID /*우편번호*/
-                     , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S1.OG_TP_CD) AS OG_TP /*구분(담당자)*/
-                     , S1.OG_ID /*소속(담당자)*/
-                     , (CASE WHEN S1.OG_ID = '71321' THEN '' ELSE S1.PRTNR_NO END) AS PRTNR_NO /*사번(담당자)*/
-                     , (CASE WHEN S1.OG_ID = '71321' THEN '택배발송'
-                             ELSE (SELECT X.PRTNR_KNM
-                                    FROM TB_OGBS_PRTNR_BAS X
-                                   WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                     AND X.OG_TP_CD = S1.OG_TP_CD)
-                         END) AS PRTNR_NM /*성명(담당자)*/
-                     , (CASE WHEN S1.OG_ID = '71321' THEN '1588-4113'
-                             WHEN S2.CNFM_PSIC_DV_CD = '1'
-                              AND U1.CRAL_LOCARA_TNO IS NOT NULL
-                              AND S2.CNFM_PSIC_PRTNR_NO != '1390554'
-                             THEN U1.CRAL_LOCARA_TNO
-                             ELSE (SELECT X.CRAL_LOCARA_TNO
-                                    FROM TB_OGBS_PRTNR_BAS X
-                                   WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                     AND X.OG_TP_CD = S1.OG_TP_CD)
-                         END) AS CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
-                     , (CASE WHEN S1.OG_ID = '71321' THEN ''
-                             WHEN S2.CNFM_PSIC_DV_CD = '1'
-                              AND U1.CRAL_LOCARA_TNO IS NOT NULL
-                              AND S2.CNFM_PSIC_PRTNR_NO != '1390554'
-                             THEN U1.MEXNO_GBENCR
-                             ELSE (SELECT X.MEXNO_ENCR
-                                    FROM TB_OGBS_PRTNR_BAS X
-                                   WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                     AND X.OG_TP_CD = S1.OG_TP_CD)
-                         END) AS MEXNO_ENCR /*휴대지역전화번호(담당자)*/
-                     , (CASE WHEN S1.OG_ID = '71321' THEN ''
-                             WHEN S2.CNFM_PSIC_DV_CD = '1'
-                              AND U1.CRAL_LOCARA_TNO IS NOT NULL
-                              AND S2.CNFM_PSIC_PRTNR_NO != '1390554'
-                             THEN U1.CRAL_IDV_TNO
-                             ELSE (SELECT X.CRAL_IDV_TNO
-                                    FROM TB_OGBS_PRTNR_BAS X
-                                   WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                     AND X.OG_TP_CD = S1.OG_TP_CD)
-                         END) AS CRAL_IDV_TNO /*휴대지역전화번호(담당자)*/
+                         WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
+                     , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S2.CNFM_PSIC_PRTNR_OG_TP_CD) AS OG_TP /*구분(담당자)*/
+                     , (SELECT X.OG_NM
+                          FROM TB_OGBS_MM_OG_IZ X
+                         WHERE X.OG_ID = S1.OG_ID
+                           AND S1.VST_FSH_DT LIKE X.BASE_YM||'%' ) AS OG_NM /*소속(담당자)*/
+                     , (SELECT DECODE( X.OG_CD, '71321', '', X.PRTNR_NO)
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.PRTNR_NO = S1.PRTNR_NO
+                           AND X.OG_ID = S1.OG_ID) AS PRTNR_NO /*사번(담당자)*/
+                     , (SELECT DECODE( X.OG_CD, '71321', '택배발송', X.PRTNR_KNM)
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.PRTNR_NO = S1.PRTNR_NO
+                           AND X.OG_ID = S1.OG_ID) AS PRTNR_NM /*성명(담당자)*/
+                     , (SELECT DECODE( X.OG_CD, '71321', '1588-4113', X.CRAL_LOCARA_TNO)
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.PRTNR_NO = S1.PRTNR_NO
+                           AND X.OG_ID = S1.OG_ID) AS CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
+                     , (SELECT DECODE( X.OG_CD, '71321', '', X.MEXNO_ENCR)
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.PRTNR_NO = S1.PRTNR_NO
+                           AND X.OG_ID = S1.OG_ID) AS MEXNO_ENCR /*휴대지역전화번호(담당자)*/
+                     , (SELECT DECODE( X.OG_CD, '71321', '', X.CRAL_IDV_TNO)
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.PRTNR_NO = S1.PRTNR_NO
+                           AND X.OG_ID = S1.OG_ID) AS CRAL_IDV_TNO /*휴대지역전화번호(담당자)*/
                      , (SELECT X.BLD_NM
-                          FROM TB_OGBS_BLD_BAS X
-                         WHERE X.OG_TP_CD = O1.OG_TP_CD
-                           AND X.BLD_CD = O1.BLD_CD) AS BLD_NM /*소속빌딩(담당자)*/
+                          FROM TB_OGBS_MM_OG_IZ X
+                         WHERE X.OG_ID = S1.OG_ID
+                           AND S1.VST_FSH_DT LIKE X.BASE_YM||'%' ) AS BLD_NM /*소속빌딩(담당자)*/
                      , S1.BC_NO /*작업시바코드*/
                      , (CASE WHEN S1.IST_ENVR_PHO_PH_DOC_ID IS NOT NULL
                                OR S1.IST_KIT_PHO_PH_DOC_ID IS NOT NULL
@@ -531,14 +520,16 @@
                                          WHERE X.CNTR_NO = S1.CNTR_NO
                                            AND X.CNTR_SN = S1.CNTR_SN)
                    AND S1.DTA_DL_YN = 'N'
-                  LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*고객서비스AS설치대상내역*/
+                  LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*월별고객서비스대상내역*/
                     ON S1.CNTR_NO = S4.CNTR_NO
                    AND S1.CNTR_SN = S4.CNTR_SN
-                   AND S4.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S1.VST_FSH_DT LIKE S4.MNGT_YM || '%'
                   LEFT OUTER JOIN TB_OGBS_OG_BAS O1 /*조직기본*/
                     ON S1.OG_ID = O1.OG_ID
-                  LEFT OUTER JOIN T_CMP_USR_ACO_M U1 /*(사용자계정기본)*/
-                    ON S1.PRTNR_NO = U1.USR_ID
+                   AND O1.DTA_DL_YN = 'N'
+                 WHERE 1=1
+                   AND S1.PRTNR_NO = S2.CNFM_PSIC_PRTNR_NO
+                   AND S1.OG_TP_CD = S2.CNFM_PSIC_PRTNR_OG_TP_CD
                 )
             UNION ALL
             (/*A/S작업 미완료 건*/
@@ -558,32 +549,35 @@
                           END) AS AS_CAUS /*처리내역*/
                       , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', S3.RTNGD_PROCS_TP_CD) AS RTNGD_PROCS_TP /*반품처리정보*/
                       , S3.FST_VST_FSH_DT /*폐기일자:최초방문완료일자*/
-                      , (SELECT (CASE WHEN X.NEW_ADR_ZIP IS NULL THEN X.OLD_ADR_ZIP ELSE X.NEW_ADR_ZIP END)
+                      , (SELECT DECODE(X.NEW_ADR_ZIP, NULL, X.OLD_ADR_ZIP, X.NEW_ADR_ZIP)
                            FROM TB_GBCO_ADR_BAS X
-                          WHERE X.ADR_ID = S4.ADR_ID) AS ADR_ID /*우편번호*/
+                          WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
                       , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S1.OG_TP_CD) AS OG_TP /*구분(담당자)*/
-                      , S1.OG_ID /*소속(담당자)*/ --AC221_SVC_CD_CHG ???
-                      , DECODE(S1.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO) AS PRTNR_NO /*사번(담당자)*/
+                      , (SELECT X.OG_NM
+                          FROM TB_OGBS_MM_OG_IZ X
+                         WHERE X.OG_ID = S1.OG_ID
+                           AND S1.VST_FSH_DT LIKE X.BASE_YM||'%' ) AS OG_NM /*소속(담당자)*/
+                      , S1.PRTNR_NO /*사번(담당자)*/
                       , (SELECT X.PRTNR_KNM
                            FROM TB_OGBS_PRTNR_BAS X
-                          WHERE X.PRTNR_NO = DECODE(S1.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
                             AND X.OG_TP_CD = S1.OG_TP_CD) AS PRTNR_NM /*성명(담당자)*/
                       , (SELECT X.CRAL_LOCARA_TNO
                            FROM TB_OGBS_PRTNR_BAS X
-                          WHERE X.PRTNR_NO = DECODE(S1.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
                             AND X.OG_TP_CD = S1.OG_TP_CD) AS CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
                       , (SELECT X.MEXNO_ENCR
                            FROM TB_OGBS_PRTNR_BAS X
-                          WHERE X.PRTNR_NO = DECODE(S1.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
                             AND X.OG_TP_CD = S1.OG_TP_CD) AS MEXNO_ENCR /*휴대전화국번호암호화(담당자)*/
                       , (SELECT X.CRAL_IDV_TNO
                            FROM TB_OGBS_PRTNR_BAS X
-                          WHERE X.PRTNR_NO = DECODE(S1.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
                             AND X.OG_TP_CD = S1.OG_TP_CD) AS CRAL_IDV_TNO /*휴대개별전화번호(담당자)*/
                       , (SELECT X.BLD_NM
-                           FROM TB_OGBS_BLD_BAS X
-                          WHERE X.OG_TP_CD = O1.OG_TP_CD
-                            AND X.BLD_CD = O1.BLD_CD) AS BLD_NM /*소속빌딩(담당자)*/
+                          FROM TB_OGBS_MM_OG_IZ X
+                         WHERE X.OG_ID = S1.OG_ID
+                           AND S1.VST_FSH_DT LIKE X.BASE_YM||'%' ) AS BLD_NM /*소속빌딩(담당자)*/
                       , '' AS BC_NO /*작업시바코드*/
                       , 'N' AS IMG_YN /*사진*/
                       , '' AS ASN_DT /*배정일자*/
@@ -608,6 +602,7 @@
                    LEFT OUTER JOIN TB_OGBS_OG_BAS O1 /*조직기본*/
                      ON S1.OG_ID = O1.OG_ID
                   WHERE 1=1
+                    AND S1.PRTNR_NO = DECODE(S1.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)
                     AND S1.WK_PRGS_STAT_CD != '20'
                  )
              UNION ALL
@@ -616,71 +611,53 @@
                       , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', S1.SV_BIZ_HCLSF_CD) AS SV_TP /*유형*/
                       , S2.CNFM_PSIC_ASN_DT || S2.CNFM_PSIC_ASN_HH AS RCP_DT /*접수(배정)일자*/
                       , TO_NUMBER(SUBSTR(S2.ASN_OJ_YM,5,2)) || '월BS' || F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD)  AS SV_BIZ_DCLSF /*접수(배정)내역*/
-                      , (CASE WHEN S2.VST_DUEDT IS NOT NULL THEN S2.VST_DUEDT || S2.VST_EXP_HH
-                              ELSE ''
-                          END) AS REQ_DT /*요청약속일자*/
+                      , DECODE(S2.VST_DUEDT, NULL,'', S2.VST_DUEDT || S2.VST_EXP_HH) AS REQ_DT /*요청약속일자*/
                       , (CASE WHEN S1.WK_PRGS_STAT_CD IN ('71', '72', '73') THEN S1.VST_FSH_DT || S1.VST_FSH_HH
                               ELSE ''
                           END) AS VST_FSH_DT /*처리일자*/
-                      , (CASE WHEN S1.WK_PRGS_STAT_CD = '00' /*AND S2.VST_TP_DV_CD ='2'*/ THEN '방문취소'
-                              ELSE F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD)
-                          END) AS WK_PRGS_STAT /*처리결과*/
+                      , DECODE(S1.WK_PRGS_STAT_CD, '00', '방문취소', F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD)) AS WK_PRGS_STAT /*처리결과*/
                       , '' AS AS_CAUS /*처리내역*/
                       , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', S3.RTNGD_PROCS_TP_CD) AS RTNGD_PROCS_TP /*반품처리정보*/
                       , S3.FST_VST_FSH_DT /*폐기일자:최초방문완료일자*/
-                      , (SELECT (CASE WHEN X.NEW_ADR_ZIP IS NULL THEN X.OLD_ADR_ZIP ELSE X.NEW_ADR_ZIP END)
+                      , (SELECT DECODE(X.NEW_ADR_ZIP, NULL, X.OLD_ADR_ZIP, X.NEW_ADR_ZIP)
                            FROM TB_GBCO_ADR_BAS X
-                          WHERE X.ADR_ID = S4.ADR_ID) AS ADR_ID /*우편번호*/
+                          WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
                       , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S1.OG_TP_CD) AS OG_TP /*구분(담당자)*/
-                      , S1.OG_ID /*소속(담당자)*/ --AC221_SVC_CD_CHG ???
-                      , (CASE WHEN S1.OG_ID = '71321' THEN '' ELSE S1.PRTNR_NO END) AS PRTNR_NO /*사번(담당자)*/
-                      , (CASE WHEN S1.OG_ID = '71321' THEN '택배발송'
-                              ELSE (SELECT X.PRTNR_KNM
-                                     FROM TB_OGBS_PRTNR_BAS X
-                                    WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                      AND X.OG_TP_CD = S1.OG_TP_CD)
-                          END) AS PRTNR_NM /*성명(담당자)*/
-                      , (CASE WHEN S1.OG_ID = '71321' THEN '1588-4113'
-                              WHEN S2.CNFM_PSIC_DV_CD = '1'
-                               AND U1.CRAL_LOCARA_TNO IS NOT NULL
-                               AND S2.CNFM_PSIC_PRTNR_NO != '1390554'
-                              THEN U1.CRAL_LOCARA_TNO
-                              ELSE (SELECT X.CRAL_LOCARA_TNO
-                                     FROM TB_OGBS_PRTNR_BAS X
-                                    WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                      AND X.OG_TP_CD = S1.OG_TP_CD)
-                          END) AS CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
-                      , (CASE WHEN S1.OG_ID = '71321' THEN ''
-                              WHEN S2.CNFM_PSIC_DV_CD = '1'
-                               AND U1.CRAL_LOCARA_TNO IS NOT NULL
-                               AND S2.CNFM_PSIC_PRTNR_NO != '1390554'
-                              THEN U1.MEXNO_GBENCR
-                              ELSE (SELECT X.MEXNO_ENCR
-                                     FROM TB_OGBS_PRTNR_BAS X
-                                    WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                      AND X.OG_TP_CD = S1.OG_TP_CD)
-                          END) AS MEXNO_ENCR /*휴대지역전화번호(담당자)*/
-                      , (CASE WHEN S1.OG_ID = '71321' THEN ''
-                              WHEN S2.CNFM_PSIC_DV_CD = '1'
-                               AND U1.CRAL_LOCARA_TNO IS NOT NULL
-                               AND S2.CNFM_PSIC_PRTNR_NO != '1390554'
-                              THEN U1.CRAL_IDV_TNO
-                              ELSE (SELECT X.CRAL_IDV_TNO
-                                     FROM TB_OGBS_PRTNR_BAS X
-                                    WHERE X.PRTNR_NO = S1.PRTNR_NO
-                                      AND X.OG_TP_CD = S1.OG_TP_CD)
-                          END) AS CRAL_IDV_TNO /*휴대지역전화번호(담당자)*/
-                      , (SELECT X.BLD_NM
-                           FROM TB_OGBS_BLD_BAS X
-                          WHERE X.OG_TP_CD = O1.OG_TP_CD
-                            AND X.BLD_CD = O1.BLD_CD) AS BLD_NM /*소속빌딩(담당자)*/
-                      , '' AS BC_NO /*작업시바코드*/
-                      , 'N' AS IMG_YN /*사진*/
-                      , '' AS ASN_DT /*배정일자*/
-                      , S1.CST_SV_ASN_NO /*배정번호*/
-                      , S1.WK_PRGS_STAT_CD AS PROC_STUS /*작업진행상태*/
-                      , S1.CNTR_NO
-                      , S1.CNTR_SN
+                      , (SELECT X.OG_NM
+                           FROM TB_OGBS_MM_OG_IZ X
+                          WHERE X.OG_ID = S1.OG_ID
+                            AND S1.VST_FSH_DT LIKE X.BASE_YM||'%' ) AS OG_NM /*소속(담당자)*/
+                      , (SELECT DECODE( X.OG_CD, '71321', '', X.PRTNR_NO)
+                           FROM TB_OGBS_PRTNR_BAS X
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
+                            AND X.OG_ID = S1.OG_ID) AS PRTNR_NO /*사번(담당자)*/
+                      , (SELECT DECODE( X.OG_CD, '71321', '택배발송', X.PRTNR_KNM)
+                           FROM TB_OGBS_PRTNR_BAS X
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
+                            AND X.OG_ID = S1.OG_ID) AS PRTNR_NM /*성명(담당자)*/
+                      , (SELECT DECODE( X.OG_CD, '71321', '1588-4113', X.CRAL_LOCARA_TNO)
+                           FROM TB_OGBS_PRTNR_BAS X
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
+                            AND X.OG_ID = S1.OG_ID) AS CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
+                      , (SELECT DECODE( X.OG_CD, '71321', '', X.MEXNO_ENCR)
+                           FROM TB_OGBS_PRTNR_BAS X
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
+                            AND X.OG_ID = S1.OG_ID) AS MEXNO_ENCR /*휴대지역전화번호(담당자)*/
+                      , (SELECT DECODE( X.OG_CD, '71321', '', X.CRAL_IDV_TNO)
+                           FROM TB_OGBS_PRTNR_BAS X
+                          WHERE X.PRTNR_NO = S1.PRTNR_NO
+                            AND X.OG_ID = S1.OG_ID) AS CRAL_IDV_TNO /*휴대지역전화번호(담당자)*/
+                       , (SELECT X.BLD_NM
+                            FROM TB_OGBS_BLD_BAS X
+                           WHERE X.OG_TP_CD = O1.OG_TP_CD
+                             AND X.BLD_CD = O1.BLD_CD) AS BLD_NM /*소속빌딩(담당자)*/
+                       , '' AS BC_NO /*작업시바코드*/
+                       , 'N' AS IMG_YN /*사진*/
+                       , '' AS ASN_DT /*배정일자*/
+                       , S1.CST_SV_ASN_NO /*배정번호*/
+                       , S1.WK_PRGS_STAT_CD AS PROC_STUS /*작업진행상태*/
+                       , S1.CNTR_NO
+                       , S1.CNTR_SN
                    FROM TB_SVPD_CST_SV_WK_RS_IZ S1/*고객서비스작업결과내역*/
                   INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2 /*고객서비스BS배정내역*/
                      ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
@@ -692,14 +669,12 @@
                                           WHERE X.CNTR_NO = S1.CNTR_NO
                                             AND X.CNTR_SN = S1.CNTR_SN)
                     AND S1.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*고객서비스AS설치대상내역*/
+                   LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*월별고객서비스대상내역*/
                      ON S1.CNTR_NO = S4.CNTR_NO
                     AND S1.CNTR_SN = S4.CNTR_SN
-                    AND S4.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S1.VST_FSH_DT LIKE S4.MNGT_YM || '%'
                    LEFT OUTER JOIN TB_OGBS_OG_BAS O1 /*조직기본*/
                      ON S1.OG_ID = O1.OG_ID
-                   LEFT OUTER JOIN T_CMP_USR_ACO_M U1 /*(사용자계정기본)*/
-                     ON S1.PRTNR_NO = U1.USR_ID
                   WHERE 1=1
                     AND S1.WK_PRGS_STAT_CD != '20'
                  )
@@ -1148,14 +1123,14 @@
     </select>
 
     <select id="selectIndividualCounsel" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto$SearchCounselRes">
-        SELECT F_CMZ_CD_NM('TNT_WELLS', 'CSEL_STS_CD', CSEL_STS_CD) AS CSEL_STS /*처리상태*/
+        SELECT CSEL_STS_CD AS CSEL_STS /*처리상태*/
              , CNSL_DT /*접수일자*/
              , TKT_PCS_SCH_DTM /*처리일자*/
              , CNSL_TP_HCSF_CD /*상담분류(대)*/
              , CNSL_TP_MCSF_CD /*상담분류(중)*/
              , CNSL_TP_LCSF_CD /*상담분류(소)*/
              , MOD_USER_ID /*처리자*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'CUST_RESP_CD', CUST_RESP_CD) AS CUST_RESP/*고객반응*/
+             , CUST_RESP_CD AS CUST_RESP/*고객반응*/
              , CST_NM /*의뢰자*/
              , CNSL_CN /*상담내용*/
           FROM CCSDBS.TB_WELLS_COUNSEL
