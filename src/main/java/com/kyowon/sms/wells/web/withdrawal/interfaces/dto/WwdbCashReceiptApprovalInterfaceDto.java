@@ -18,12 +18,12 @@ public class WwdbCashReceiptApprovalInterfaceDto {
         @JsonProperty("CNTR_SN")
         String cntrSn,
         @NotBlank
-        @JsonProperty("CSSR_APRNO")
-        String cssrAprno,
-        @JsonProperty("RVE_YM")
-        String rveYm,
+        @JsonProperty("APR_NO")
+        String aprNo,
+        @NotBlank
         @JsonProperty("STRT_RVE_YM")
         String strtRveYm,
+        @NotBlank
         @JsonProperty("END_RVE_YM")
         String endRveYm
 
