@@ -228,19 +228,27 @@
 
     <update id="insertStockAcinspIz">
         MERGE INTO TB_SVST_MCITM_STOC_IZ T1  /* 월별품목재고내역 */
-             USING ( SELECT #{baseYm} AS BASE_YM                   /* 기준년월 */
-                          , #{wareNo} AS WARE_NO                   /* 창고번호 */
-                          , #{itmPdCd} AS ITM_PD_CD                 /* 품목상품코드 */
-                       FROM DUAL  ) T2
+             USING (
+             <foreach collection="stocApyDvoList" item="item" open="" close="" index="index" separator="UNION ALL">
+                     SELECT #{item.baseYm} AS BASE_YM                   /* 기준년월 */
+                          , #{item.wareNo} AS WARE_NO                   /* 창고번호 */
+                          , #{item.pdCd} AS ITM_PD_CD                 /* 품목상품코드 */
+                          , #{item.cnfmPitmStrGapQty} AS CNFM_PITM_STR_GAP_QTY
+                          , #{item.cnfmPitmOstrGapQty} AS CNFM_PITM_OSTR_GAP_QTY
+                          , #{item.pitmStocAGdQty} AS PITM_STOC_A_GD_QTY
+                          , #{item.cstPitmStocAGdQty} AS CST_PITM_STOC_A_GD_QTY
+                       FROM DUAL
+             </foreach>
+                       ) T2
                 ON (T1.BASE_YM = T2.BASE_YM                   /* 기준년월 */
                 AND T1.WARE_NO = T2.WARE_NO                   /* 창고번호 */
                 AND T1.ITM_PD_CD = T2.ITM_PD_CD               /* 품목상품코드 */
                    )
         WHEN MATCHED THEN
-          UPDATE SET STOC_ACINSP_STR_A_GD_QTY = T2.STOC_ACINSP_STR_A_GD_QTY + #{cnfmPitmStrGapQty}
-                   , STOC_ACINSP_OSTR_A_GD_QTY = T2.STOC_ACINSP_OSTR_A_GD_QTY + #{cnfmPitmOstrGapQty}
-                   , STOC_ACINSP_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
-                   , PITM_STOC_A_GD_QTY = #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
+          UPDATE SET T1.STOC_ACINSP_STR_A_GD_QTY = T1.STOC_ACINSP_STR_A_GD_QTY + T2.CNFM_PITM_STR_GAP_QTY
+                   , T1.STOC_ACINSP_OSTR_A_GD_QTY = T1.STOC_ACINSP_OSTR_A_GD_QTY + T2.CNFM_PITM_OSTR_GAP_QTY
+                   , T1.STOC_ACINSP_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   , T1.PITM_STOC_A_GD_QTY = T2.PITM_STOC_A_GD_QTY + T2.CNFM_PITM_STR_GAP_QTY - T2.CNFM_PITM_OSTR_GAP_QTY
                 <include refid="COMMON.updateSystemField"/>
         WHEN NOT MATCHED THEN
           INSERT (
@@ -255,36 +263,44 @@
                    , STOC_ACINSP_DT
                 <include refid="COMMON.insertSystemField" />
           ) VALUES (
-                     #{baseYm}
-                   , #{wareNo}
-                   , #{pdCd}
+                     T2.BASE_YM
+                   , T2.WARE_NO
+                   , T2.ITM_PD_CD
                    , (SELECT WARE_MNGT_PRTNR_NO
                         FROM TB_SVST_MCBY_WARE_IZ
                        WHERE 1 = 1
-                         AND APY_YM = #{baseYm}
-                         AND WARE_NO = #{wareNo} )
+                         AND APY_YM = T2.BASE_YM
+                         AND WARE_NO = T2.WARE_NO )
                    , (SELECT OG_TP_CD
                         FROM TB_SVST_MCBY_WARE_IZ
-                       WHERE APY_YM = #{baseYm}
-                         AND WARE_NO = #{wareNo})
-                   , #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
-                   , #{cnfmPitmStrGapQty}
-                   , #{cnfmPitmOstrGapQty}
+                       WHERE APY_YM = T2.BASE_YM
+                         AND WARE_NO = T2.WARE_NO)
+                   , T2.PITM_STOC_A_GD_QTY + T2.CNFM_PITM_STR_GAP_QTY - T2.CNFM_PITM_OSTR_GAP_QTY
+                   , T2.CNFM_PITM_STR_GAP_QTY
+                   , T2.CNFM_PITM_OSTR_GAP_QTY
+                   , TO_CHAR(SYSDATE, 'YYYYMMDD')
                 <include refid="COMMON.insertSystemFieldValue" />  )
     </update>
 
 
     <update id="insertStockAcinspCstSvItmStocIz">
         MERGE INTO TB_SVST_CST_SV_ITM_STOC_IZ T1  /* 고객서비스품목재고내역 */
-             USING ( SELECT #{wareNo} AS WARE_NO                /* 창고번호 */
-                          , #{itmPdCd} AS ITM_PD_CD              /* 품목상품코드 */
-                       FROM DUAL  ) T2
+             USING (
+             <foreach collection="stocApyDvoList" item="item" open="" close="" index="index" separator="UNION ALL">
+                     SELECT #{item.wareNo} AS WARE_NO                /* 창고번호 */
+                          , #{item.pdCd} AS ITM_PD_CD              /* 품목상품코드 */
+                          , #{item.cnfmPitmStrGapQty} AS CNFM_PITM_STR_GAP_QTY
+                          , #{item.cnfmPitmOstrGapQty} AS CNFM_PITM_OSTR_GAP_QTY
+                          , #{item.pitmStocAGdQty} AS PITM_STOC_A_GD_QTY
+                          , #{item.cstPitmStocAGdQty} AS CST_PITM_STOC_A_GD_QTY
+                       FROM DUAL
+              </foreach>
+                    ) T2
                 ON (T1.WARE_NO = T2.WARE_NO                /* 창고번호 */
                 AND T1.ITM_PD_CD = T2.ITM_PD_CD              /* 품목상품코드 */
                    )
         WHEN MATCHED THEN
-          UPDATE SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
-                   , DTA_DL_YN = T2.DTA_DL_YN
+          UPDATE SET T1.PITM_STOC_A_GD_QTY = T2.CST_PITM_STOC_A_GD_QTY + T2.CNFM_PITM_STR_GAP_QTY - T2.CNFM_PITM_OSTR_GAP_QTY
                 <include refid="COMMON.updateSystemField"/>
         WHEN NOT MATCHED THEN
           INSERT (
@@ -295,22 +311,24 @@
                    , DTA_DL_YN
                 <include refid="COMMON.insertSystemField" />
           ) VALUES (
-                     #{wareNo}
-                   , #{itmPdCd}
-                   , #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
+                     T2.WARE_NO
+                   , T2.ITM_PD_CD
+                   , T2.CST_PITM_STOC_A_GD_QTY + T2.CNFM_PITM_STR_GAP_QTY - T2.CNFM_PITM_OSTR_GAP_QTY
                    , TO_CHAR(SYSDATE, 'YYYYMMDD')
                    , 'N'
                 <include refid="COMMON.insertSystemFieldValue" />  )
     </update>
 
     <update id="updateStockAcinspIostRfdt">
+   <foreach collection="stocApyDvoList" item="item" open="DECLARE BEGIN" close="; END;" separator=";">
         UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ /* 월별재고실사내역 */
            SET IOST_RFDT              = TO_CHAR(SYSDATE, 'YYYYMMDD')              /* 입출고반영일자 */
             <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
-           AND BASE_YM                = #{baseYm}                /* 기준년월 */
-           AND WARE_NO                = #{wareNo}                /* 창고번호 */
-           AND PD_CD                  = #{pdCd}                  /* 상품코드 */
+           AND BASE_YM                = #{item.baseYm}                /* 기준년월 */
+           AND WARE_NO                = #{item.wareNo}                /* 창고번호 */
+           AND PD_CD                  = #{item.pdCd}                  /* 상품코드 */
+   </foreach>
     </update>
 
 
