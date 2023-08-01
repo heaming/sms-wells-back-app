@@ -30,46 +30,46 @@ public class WdcaMembershipCheckController {
     private final WdcaMembershipCheckService service;
 
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "deptCd", value = "세션 부서 ID", paramType = "query")
+        @ApiImplicitParam(name = "deptGubun", value = "조직선택", paramType = "query")
     })
-    @ApiOperation(value = "체크리스트(전) 페이징 조회", notes = "세션의 부서ID로 체크리스트(전) 목록 조회")
+    @ApiOperation(value = "체크리스트(전) 페이징 조회", notes = "조직선택 값으로 체크리스트(전) 목록 조회")
 
     @GetMapping("/membership-check-before/paging")
     public PagingResult<SearchRes> getBeforePages(
         @RequestParam
-        String deptCd,
+        String deptGubun,
         PageInfo pageInfo
     ) {
-        return service.getBeforePages(deptCd, pageInfo);
+        return service.getBeforePages(deptGubun, pageInfo);
     }
 
     @GetMapping("/membership-check-before/excel-download")
     public List<SearchRes> getBeforeForExcelDownload(
         @RequestParam
-        String deptCd
+        String deptGubun
     ) {
-        return service.getBeforeForExcelDownload(deptCd);
+        return service.getBeforeForExcelDownload(deptGubun);
     }
 
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "deptCd", value = "세션 부서 ID", paramType = "query")
+        @ApiImplicitParam(name = "deptGubun", value = "조직선택", paramType = "query")
     })
-    @ApiOperation(value = "체크리스트(후) 페이징 조회", notes = "세션의 부서ID로 체크리스트(후) 목록 조회")
+    @ApiOperation(value = "체크리스트(후) 페이징 조회", notes = "조직선택 값으로 체크리스트(후) 목록 조회")
 
     @GetMapping("/membership-check-after/paging")
     public PagingResult<SearchAfterRes> getAfterPages(
         @RequestParam
-        String deptCd,
+        String deptGubun,
         PageInfo pageInfo
     ) {
-        return service.getAfterPages(deptCd, pageInfo);
+        return service.getAfterPages(deptGubun, pageInfo);
     }
 
     @GetMapping("/membership-check-after/excel-download")
     public List<SearchAfterRes> getAfterForExcelDownload(
         @RequestParam
-        String deptCd
+        String deptGubun
     ) {
-        return service.getAfterForExcelDownload(deptCd);
+        return service.getAfterForExcelDownload(deptGubun);
     }
 }
