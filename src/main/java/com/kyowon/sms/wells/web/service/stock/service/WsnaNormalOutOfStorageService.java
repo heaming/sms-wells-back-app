@@ -298,11 +298,11 @@ public class WsnaNormalOutOfStorageService {
                 .convertStockItemizationCreateReq(dvo, GUBUN_OSTR, WORK_DIV_D);
             this.itemStockservice.createStock(ostrStockReq);
 
-            // 품목재고내역 이동 - 입고창고
+            // 품목재고내역 이동 삭제 - 입고창고
             WsnaItemStockItemizationReqDvo strMoveReq = this.convertStockItemizationMoveReq(dvo, WORK_DIV_D);
             this.itemStockservice.saveStockMovement(strMoveReq);
 
-            // 품목재고내역 등록 - 입고창고
+            // 품목재고내역 삭제 - 입고창고
             WsnaItemStockItemizationReqDvo strStockReq = this
                 .convertStockItemizationCreateReq(dvo, GUBUN_STR, WORK_DIV_D);
             this.itemStockservice.createStock(strStockReq);
