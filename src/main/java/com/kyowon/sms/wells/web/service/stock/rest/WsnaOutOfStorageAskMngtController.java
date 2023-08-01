@@ -5,6 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
@@ -54,7 +55,7 @@ public class WsnaOutOfStorageAskMngtController {
 
     @ApiOperation(value = "출고요청등록 하단영역 조회", notes = "부모창에서 넘어온 파라미터로 출고요청 등록 하단영역을 조회")
     @GetMapping("/out-of-storage-items")
-    public List<OutOfRes> getOutOfStorageItemPages(
+    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemPages(
         SearchReq dto
     ) {
 
@@ -63,7 +64,7 @@ public class WsnaOutOfStorageAskMngtController {
 
     @ApiOperation(value = "출고요청등록 엑셀다운로드", notes = "출고요청등록 엑셀다운로드를 한다")
     @GetMapping("/out-of-storage-items/excel-download")
-    public List<OutOfRes> getOutOfStorageItemExcelDownload(
+    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemExcelDownload(
         SearchReq dto
     ) {
         return this.service.getOutOfStorageItemExcelDownload(dto);

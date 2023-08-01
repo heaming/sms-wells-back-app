@@ -5,6 +5,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngt
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtSearchDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -17,7 +18,7 @@ public interface WsnaOutOfStorageAskMngtMapper {
 
     FindRes selectOutOfStorageAskItms(FindReq dto);
 
-    List<OutOfRes> selectOutOfStorageItms(SearchReq dto);
+    List<WsnaOutOfStorageAskMngtDvo> selectOutOfStorageItms(WsnaOutOfStorageAskMngtSearchDvo searchDvo);
 
     List<SearchOstrObjectWarehouseRes> selectOstrObjectWarehouses(
         SearchOstrObjectWarehouseReq dto
@@ -34,4 +35,7 @@ public interface WsnaOutOfStorageAskMngtMapper {
     int deleteOutOfStorageAskItems(WsnaOutOfStorageAskMngtDvo dvo);
 
     List<WsnaOutOfStorageAskMngtDvo> selectDtaDlYnOstrAkNo(String deleteOstrAkNo);
+
+    String selectOstrWareDvCd(SearchReq dto);
+
 }

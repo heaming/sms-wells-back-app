@@ -92,7 +92,7 @@
 
 
     <select id="selectOutOfStorageItms"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$OutOfRes">
+            resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo">
         SELECT B.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
              , A.ITM_PD_CD AS ITM_PD_CD /*품목상품코드*/
              , B.SVPD_NM_KOR AS ITM_PD_NM /*품목상품명*/
@@ -127,7 +127,16 @@
          INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) B
             ON B.SVPD_PD_CD = A.ITM_PD_CD
           LEFT OUTER JOIN (SELECT ITM_PD_CD
+                               <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
+                               <choose>
+                               <when test='@MybatisUtils@equals(ostrWareDvCd, "1")'>
+                                , '0' AS WAREHOUSE_QTY
+                               </when>
+                               <when test='@MybatisUtils@equals(ostrWareDvCd, "2") or @MybatisUtils@equals(ostrWareDvCd, "3")'>
                                 , SUM(DECODE(WARE_NO, #{ostrOjWareNo}, PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
+                               </when>
+                               </choose>
+                               </if>
                                 , SUM(DECODE(WARE_NO, #{strOjWareNo}, PITM_STOC_A_GD_QTY)) AS CENTER_QTY
                              FROM TB_SVST_CST_SV_ITM_STOC_IZ
                             WHERE 1=1
@@ -381,5 +390,13 @@
            AND T1.OSTR_AK_NO = #{ostrAkNo}
            AND T1.DTA_DL_YN = 'Y'
 
+    </select>
+
+    <select id="selectOstrWareDvCd" resultType="java.lang.String">
+        SELECT T1.WARE_DV_CD
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         WHERE 1 = 1
+           AND T1.WARE_NO = #{ostrOjWareNo}
+           AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
     </select>
 </mapper>

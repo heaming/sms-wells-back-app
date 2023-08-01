@@ -29,13 +29,13 @@ public interface WsnaStockAcinspRgstMngtMapper {
 
     int selectChkCountAcinsp(WsnaStockAcinspRgstMngtDvo dvo);
 
-    int insertStockAcinspIz(List<WsnaStockAcinspRgstMngtDvo> searchDvo);
+    int insertStockAcinspIz(List<WsnaStockAcinspRgstMngtDvo> stocApyDvoList);
 
     int insertStockAcinsp(WsnaStockAcinspRgstMngtDvo dvo);
 
-    int insertStockAcinspCstSvItmStocIz(List<WsnaStockAcinspRgstMngtDvo> searchDvo);
+    int insertStockAcinspCstSvItmStocIz(List<WsnaStockAcinspRgstMngtDvo> stocApyDvoList);
 
-    int updateStockAcinspIostRfdt(List<WsnaStockAcinspRgstMngtDvo> searchDvo);
+    int updateStockAcinspIostRfdt(List<WsnaStockAcinspRgstMngtDvo> stocApyDvoList);
 
     List<WsnaStockAcinspRgstMngtDvo> selectAcinspRgstCnfm(WsnaStockAcinspRgstMngtDvo dvo);
 
@@ -48,4 +48,5 @@ public interface WsnaStockAcinspRgstMngtMapper {
     int selectChkAcinspRgstCancel(WsnaStockAcinspRgstMngtDvo dvo);
 
     int updateStockAcinspIzCancel(List<WsnaStockAcinspRgstMngtDvo> reDeleteDvo);
+
 }
