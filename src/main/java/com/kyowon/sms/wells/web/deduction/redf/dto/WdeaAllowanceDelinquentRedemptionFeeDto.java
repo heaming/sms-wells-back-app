@@ -9,6 +9,8 @@ public class WdeaAllowanceDelinquentRedemptionFeeDto {
     @ApiModel("WdeaAllowanceDelinquentRedemptionFeeDto-SearchReq")
     public record SearchReq(
         String prtnrNo,
+        String ogTpCd,
+
         String perfDvCd,
         String whtxRepDvCd
     ) {}
