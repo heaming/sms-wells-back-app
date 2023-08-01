@@ -39,7 +39,19 @@ public class WfebCommonBatchInterfaceController {
 
             Class<T> clazz = (Class<T>) Class.forName(className);
             T bean = ApplicationContextHolder.getBean(clazz);
-            Method m = Arrays.stream(clazz.getMethods()).filter(item -> methodName.equals(item.getName())).findFirst().orElse(null);
+            Method m = Arrays.stream(clazz.getMethods()).filter(item -> {
+                boolean response = true;
+                if (methodName.equals(item.getName()) && param.keySet().size() == (item.getParameters().length + 2)) {
+                    for (Parameter p : item.getParameters()) {
+                        if (!param.containsKey(p.getName())) {
+                            response = false;
+                        }
+                    }
+                } else {
+                    response = false;
+                }
+                return response;
+            }).findFirst().orElse(null);
 
             if (m != null) {
                 List<Object> args = new ArrayList<>();
@@ -56,7 +68,7 @@ public class WfebCommonBatchInterfaceController {
                     }
                 }
 
-                if(checkParam) {
+                if (checkParam) {
                     m.invoke(bean, args.toArray());
                     map.put("RESULT_CODE", "S");
                     map.put("RESULT_MSG", "Success");
