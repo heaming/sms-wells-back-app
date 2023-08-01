@@ -1,56 +1,46 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
+
+/**
+ * <pre>
+ * W-SV-U-0142M01 정상출고 관리 dvo
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-08-01
+ */
 
 @Setter
 @Getter
 public class WsnaNormalOutOfStorageDvo {
-    String todayStr;
-    String itmOstrNo;
-    String itmStrNo;
-    String ostrAkTpCd;
-    String ostrTpCd;
-    String strTpCd;
-    String strWareNo;
-    String ostrAkRgstDt;
-    String qty;
-    String ostrAkSn;
-    String ostrAkNo;
-    String strHopDt;
-    String pdPrpVal19;
-    String itmPdCd;
-    String itmCd;
-    String pdNm;
-    String sapMatCd;
-    String itemLoc;
-    String pajuLoc;
-    String ostrAkWareDvCd;
-    String wareMngtPrtnrNo;
-    String itmGdCd;
-    String reqStckQty;
-    String ostrWareNo;
-    String ostrWareMngtPrtnrNo;
-    String mngtUnitCd;
-    String mgtUntNm;
-    String boxUnitQty;
-    String ostrAkQty;
-    String ostrCnfmQty;
-    String rmkCn;
-    String ostrCnfmCd;
-    String rectOstrDt;
-    String ostrAggQty;
-    String outQty;
-    String outQtyOrg;
-    String strConfDt;
-    String pdPrpVal15;
-    String pdPrpVal16;
-    String pdPrpVal02;
-    String cfrmCnt;
-    String avgOut;
-    String ostrWareDvCd;
-    String strWareDvCd;
-    String stringOstrDt;
-    int ostrSn;
-    int strSn;
+
+    private String itmOstrNo;
+    private Integer ostrSn;
+    private String ostrAkNo;
+    private Integer ostrAkSn;
+    private String itmStrNo;
+    private Integer strSn;
+    private String ostrTpCd;
+    private String strTpCd;
+    private String mngtUnitCd;
+
+    private String itmPdCd;
+    private String itmGdCd;
+    private BigDecimal outQty;
+    private String svpdItemKnd;
+    private BigDecimal boxUnitQty;
+
+    private String ostrOjWareNo;
+    private String ostrWareDvCd;
+    private String ostrPrtnrNo;
+    private String ostrOgTpCd;
+
+    private String strOjWareNo;
+    private String strWareDvCd;
+    private String strPrtnrNo;
+    private String strOgTpCd;
 }

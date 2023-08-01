@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
@@ -72,8 +74,17 @@ public class WsnaNormalOutOfStorageDto {
         String itmPdCd,
         @NotBlank
         String strOjWareNo,
-        String wareDvCd,
-        String wareDtlDvCd
+        @NotBlank
+        String wareDvCd
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-CenterReq")
+    public record CenterReq(
+        @NotBlank
+        String itmPdCd,
+        @NotBlank
+        String wareDvCd
     ) {}
 
     @Builder
@@ -99,124 +110,108 @@ public class WsnaNormalOutOfStorageDto {
     public record DetailReq(
         @NotBlank
         String ostrAkTpCd,
-        @ValidDate
-        String ostrAkRgstDt,
         @NotBlank
         String ostrAkNo,
-        String itmPdCd,
         @NotBlank
         String strOjWareNo,
         @NotBlank
         String ostrOjWareNo,
-        String ostrOjWareNm,
-        String strOjWareNm,
+        @NotBlank
         String stckStdGb,
+        @NotBlank
         @ValidDate
-        String rgstDt,
+        String rgstDt
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRemoveReq")
+    public record DetailRemoveReq(
+        @NotBlank
+        String ostrTpCd,
+        @NotBlank
+        String itmOstrNo,
+        @NotBlank
+        String strOjWareNo,
+        @NotBlank
+        String ostrOjWareNo,
+        @NotBlank
+        String stckStdGb,
+        @NotBlank
+        @ValidDate
+        String ostrDt
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
         String itmOstrNo,
         @Positive
-        Integer ostrSn,
-        String ostrTpCd
-    ) {}
-    @Builder
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRes")
-    public record DetailRes(
-        String flag,
-        String chk,
-        String dummyQty,
-        String ostrAkTpCd,
-        String ostrTpCd,
-        String strWareNo,
-        String ostrAkRgstDt,
-        String ostrAkSn,
+        int ostrSn,
+        @NotBlank
         String ostrAkNo,
-        String strHopDt,
-        String svpdItemKnd,
-        String itmPdCd,
-        String svpdNmKor,
-        String svpdSapCd,
-        String itemLoc,
-        String pajuLoc,
-        String ostrAkWareDvCd,
-        String wareMngtPrtnrNo,
-        String itmGdCd,
-        String reqStckQty,
-        String ostrWareNo,
-        String mngtUnitCd,
-        String mgtUntNm,
-        String boxUnitQty,
-        String ostrAkQty,
-        String qty,
-        String ostrCnfmQty,
-        String rmkCn,
-        String ostrCnfmCd,
-        String rectOstrDt,
-        String ostrAggQty,
-        String outQty,
-        String outQtyOrg,
-        String strConfDt,
-        String svpdBaseGb,
-        String svpdBaseColorGb,
-        String svpdMgtTyp,
-        String cfrmCnt,
-        String avgOut,
+        @Positive
+        int ostrAkSn,
+        @NotBlank
+        String itmStrNo,
+        @Positive
+        int strSn,
+        @NotBlank
+        String ostrTpCd,
+        @NotBlank
+        String strTpCd,
+        @NotBlank
+        String ostrOjWareNo,
         String ostrWareDvCd,
+        String ostrPrtnrNo,
+        String ostrOgTpCd,
+        @NotBlank
+        String itmPdCd,
+        @NotBlank
+        String itmGdCd,
+        String mngtUnitCd,
+        @Max(999999999999L)
+        BigDecimal outQty,
+
+        @NotBlank
+        String strOjWareNo,
         String strWareDvCd,
-        String ostrWareDtlDvCd,
-        String strWareDtlDvCd,
-        String strWareNm,
-        String ostrWareNm
+        String strPrtnrNo,
+        String strOgTpCd
+
     ) {}
 
     @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CreqteReq")
     public record CreateReq(
-        String todayStr,
-        String itmOstrNo,
-        String itmStrNo,
-        String ostrAkTpCd,
-        String ostrTpCd,
-        String strTpCd,
-        String strWareNo,
-        @ValidDate
-        String ostrAkRgstDt,
-        String qty,
-        String ostrAkSn,
+        @NotBlank
         String ostrAkNo,
-        @ValidDate
-        String strHopDt,
-        String pdPrpVal19,
-        String itmPdCd,
-        String itmCd,
-        String pdNm,
-        String sapMatCd,
-        String itemLoc,
-        String pajuLoc,
-        String ostrAkWareDvCd,
-        String wareMngtPrtnrNo,
-        String itmGdCd,
-        String reqStckQty,
-        String ostrWareNo,
-        String ostrWareMngtPrtnrNo,
-        String mngtUnitCd,
-        String mgtUntNm,
-        String boxUnitQty,
-        String ostrAkQty,
-        String ostrCnfmQty,
-        String rmkCn,
-        String ostrCnfmCd,
-        String rectOstrDt,
-        String ostrAggQty,
-        String outQty,
-        String outQtyOrg,
-        String strConfDt,
-        String pdPrpVal15,
-        String pdPrpVal16,
-        String pdPrpVal02,
-        String cfrmCnt,
-        String avgOu,
+        @Positive
+        int ostrAkSn,
+        @NotBlank
+        String ostrTpCd,
+        @NotBlank
+        String strTpCd,
+        @NotBlank
+        String ostrOjWareNo,
         String ostrWareDvCd,
-        String strWareDvCd
+        String ostrPrtnrNo,
+        String ostrOgTpCd,
+        @NotBlank
+        String itmPdCd,
+        @NotBlank
+        String itmGdCd,
+        String mngtUnitCd,
+        BigDecimal boxUnitQty,
+        String svpdItemKnd,
+        @Max(999999999999L)
+        BigDecimal outQty,
+
+        @NotBlank
+        String strOjWareNo,
+        String strWareDvCd,
+        String strPrtnrNo,
+        String strOgTpCd
     ) {}
 
     @Builder
@@ -275,6 +270,8 @@ public class WsnaNormalOutOfStorageDto {
         String ostrAkTpNm,
         String itmPdCd,
         String itmOstrNo,
-        String ostrTpCd
+        String ostrTpCd,
+        String stckStdGb,
+        String ostrDt
     ) {}
 }
