@@ -20,27 +20,26 @@ public class WwdbRentalMembershipPrepaymentInterfaceDto {
         String cntrSn // 계약일련번호
     ) {}
 
-
     /*
         wells 렌탈/멤버십 선납 정보 조회 Result Dto
      */
     @ApiModel("WwdbRentalMembershipPrepaymentInterfaceDto-SearchInfoRes")
     public record SearchInfoRes(
-        @JsonProperty("RENTAL_TN")
+        @JsonProperty("NMN")
         String rentalTn, // 차월
-        @JsonProperty("PRM_MCN")
+        @JsonProperty("PRM_MCNT")
         String prmMcn, // 선납개월
         @JsonProperty("PRM_DSCR")
         String prmDscr, // 선납시 할인율
         @JsonProperty("PRM_AMT")
         String prmAmt, // 선납금액 (선납매출금액)
-        @JsonProperty("PRM_STRT_YM")
+        @JsonProperty("PRM_PTRM_STRTDT")
         String prmStrtYm, // 선납기간_from
-        @JsonProperty("PRM_END_YM")
+        @JsonProperty("PRM_PTRM_ENDDT")
         String prmEndYm, // 선납기간_to
-        @JsonProperty("MM_PRM_DP_AMT")
+        @JsonProperty("FMN_PR_AMT")
         String mmPrmDpAmt, // 한달_선납액 (선납입금금액)
-        @JsonProperty("MM_PRM_DSC_AMT")
+        @JsonProperty("FMN_DSC_AMT")
         String mmPrmDscAmt, // 한달_할인_금액 (선납할인금액)
         @JsonProperty("PRPD_AMT")
         String prpdAmt, // 선수금액 (기말선수금)
