@@ -49,38 +49,6 @@ public class WsnaOutOfStorageAskMngtDto {
 
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-OutOfRes")
     public record OutOfRes(
-        //        String sapMatCd, //SAP자재코드
-        //        String itmPdCd, // 품목상품코드
-        //        String ostrAkNo, // 출고요청번호
-        //        String ostrAkSn, //출고요청일련번호
-        //        String fstRgstDtm, // 최초등록일시
-        //        String strHopDt, // 입고희망일자
-        //        String itmCd, // 품목코드
-        //        String itmKnd, // 품목종류
-        //        String itmNm, // 상품약어명
-        //        String ostrAkWareDvCd, // 출고요청창고구분코드
-        //        String wareMngtPrtnrNo, // 창고관리파트너번호
-        //        String ostrOjWareDvCd, // 출고대상창고구분코드
-        //        String ostrOjWareNo, // 출고대상창고번호
-        //        String ostrWareMngtPrtnrNo, // 출고창고관리파트너번호
-        //        String mngtUnitCd, // 관리단위코드
-        //        int boxUnitQty, // 박스단위수량
-        //        String itmGdCd, // 품목등급코드
-        //        int onQty, //
-        //        int ostrAkQty, // 출고요청수량
-        //        int ostrCnfmQty, // 출고확정수량
-        //        String rmkCn, // 비고내용
-        //        String rectOstrDt, // 최근출고일자
-        //        int ostrAggQty, // 출고누계수량
-        //        int warehouseQty, // 재고
-        //        int baseStocQty, // 기준재고수량
-        //        int sftStocQty, // 안전재고수량
-        //        int useQty, // 당월수량
-        //        int centerQty, // 센터수량
-        //        int indiQty, // 개인수량
-        //        String imgApnFileId, // 이미지첨부파일ID
-        //        int cfrmCnt // 방문확정수량
-
         String sapCd, /*SAP코드*/
         String itmPdCd, /*품목상품코드*/
         String itmPdNm, /*품목상품명*/
@@ -115,13 +83,6 @@ public class WsnaOutOfStorageAskMngtDto {
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-FindReq")
     public record FindReq(
         String ostrAkNo // 출고요청창고관리번호
-        //        String ostrAkTpCd, // 출고요청유형코드
-        //        String strHopDt, // 입고희망일자
-        //        String rectOstrDt, // 최근출고일자
-        //        String wareNm, // 창고명
-        //        String ostrOjWareNo, //출고대상창고번호
-        //        String ostrAkRgstDt, //출고요청등록일자
-        //        String strOjWareNo //입고대상창고번호
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-FindOstrAkNoReq")
