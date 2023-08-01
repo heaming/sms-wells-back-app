@@ -1,0 +1,509 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockAcinspRgstMngtMapper">
+
+    <select id="selectWarehouse" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
+            SELECT T1.WARE_NO
+                 , T1.WARE_NM
+              FROM TB_SVST_MCBY_WARE_IZ T1
+             WHERE 1 = 1
+               AND T1.DTA_DL_YN      = 'N'
+               AND T1.WARE_USE_YN    = 'Y'
+               AND T1.APY_YM         = #{baseYm}
+               AND T1.WARE_DV_CD     = #{wareDvCd}
+           <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
+               AND T1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+           </if>
+             ORDER BY T1.WARE_USE_YN DESC, T1.WARE_NM ASC, T1.WARE_NO ASC
+    </select>
+
+    <select id="selectStockAcinspRgstMngtPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto$SearchRes">
+        SELECT A1.APY_YM /*기준년월*/
+             , A1.WARE_NO /*창고번호*/
+             , A1.WARE_NM /*창고명*/
+             , A1.ITM_KND /*품목종류*/
+             , A1.SAP_CD /*SAP코드*/
+             , A1.ITM_PD_CD /*품목상품코드*/
+             , A1.PD_ABBR_NM /*품목상품명*/
+             , A1.STATUS_T
+             , A1.EOT_STOC /*기말재고*/
+             , A1.ACINSP_QTY /*실사재고*/
+             , NVL(ACINSP_QTY, 0) - NVL(EOT_STOC, 0) AS MINUS_QTY /*재고차이*/
+             , A1.ACINSP_RMK_CN
+             , A1.CNFMDT
+             , A1.CNFM_PITM_EOT_STOC_QTY
+             , A1.CNFM_PITM_STR_GAP_QTY
+             , A1.CNFM_PITM_OSTR_GAP_QTY
+             , A1.DIFF_QTY
+             , A1.IOST_RFDT
+          FROM (
+                SELECT T1.APY_YM
+                     , T1.WARE_NO
+                     , T1.WARE_NM
+                     , T1.PD_PRP_VAL19 AS ITM_KND
+                     , T1.SAP_MAT_CD AS SAP_CD
+                     , T1.PD_CD AS ITM_PD_CD
+                     , T1.PD_ABBR_NM
+                     , NVL(T2.PITM_STOC_A_GD_QTY,0)-(CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T5.STR_CONF_DT IS NULL THEN NVL(T5.STR_QTY, 0) ELSE 0 END)
+                                                   ELSE NVL(T4.MMT_STOC_A_GD_QTY, 0) END) AS EOT_STOC /*기말재고*/
+                     , (CASE WHEN T3.ACINSP_QTY IS NULL THEN (NVL(T2.PITM_STOC_A_GD_QTY,0)-(CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T5.STR_CONF_DT IS NULL THEN NVL(T5.STR_QTY, 0) ELSE 0 END)
+                                                                                                     ELSE NVL(T4.MMT_STOC_A_GD_QTY, 0) END))
+                             ELSE T3.ACINSP_QTY
+                         END) AS ACINSP_QTY /*실사재고*/
+                     , T3.ACINSP_RMK_CN
+                     , T3.CNFMDT
+                     , NVL(T3.CNFM_PITM_EOT_STOC_QTY,0) AS CNFM_PITM_EOT_STOC_QTY /*확정시점기말재고수량*/
+                     , NVL(T3.CNFM_PITM_STR_GAP_QTY, 0) AS CNFM_PITM_STR_GAP_QTY /*확정시점입고차이수량*/
+                     , NVL(T3.CNFM_PITM_OSTR_GAP_QTY, 0) AS CNFM_PITM_OSTR_GAP_QTY /*확정시점출고차이수량*/
+                     , (CASE WHEN T3.CNFM_PITM_STR_GAP_QTY IS NOT NULL AND T3.CNFM_PITM_STR_GAP_QTY != 0 THEN T3.CNFM_PITM_STR_GAP_QTY
+                             WHEN T3.CNFM_PITM_OSTR_GAP_QTY IS NOT NULL AND T3.CNFM_PITM_OSTR_GAP_QTY != 0 THEN - T3.CNFM_PITM_OSTR_GAP_QTY
+                             ELSE 0
+                         END) AS DIFF_QTY
+                     , T3.IOST_RFDT /*입출고반영일자*/
+                     , (CASE WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND T1.WARE_DTL_DV_CD = #{wareDtlDvCd} AND NOT EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) THEN '신청완료'
+                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND T1.WARE_DTL_DV_CD <![CDATA[ <> ]]> #{wareDtlDvCd} AND NOT EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) THEN '신청중'
+                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = ACINSP_AK_ID) AND T3.CNFM_PITM_STR_GAP_QTY = 0 AND T3.CNFM_PITM_OSTR_GAP_QTY = 0 THEN '실사완료'
+                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = ACINSP_AK_ID) AND (  T3.CNFM_PITM_STR_GAP_QTY != 0 OR T3.CNFM_PITM_OSTR_GAP_QTY != 0 ) THEN '신청완료'
+                             WHEN T3.CNFMDT IS NOT NULL AND T3.IOST_RFDT IS NULL THEN '실사확정'
+                             WHEN T3.CNFMDT IS NOT NULL AND T3.IOST_RFDT IS NOT NULL THEN '재고반영'
+                             ELSE ''
+                         END ) AS STATUS_T
+                  FROM (
+                         SELECT D1.APY_YM
+                              , D1.WARE_NO
+                              , D1.WARE_NM
+                              , D1.WARE_DTL_DV_CD
+                              , D3.PD_PRP_VAL19
+                              , D2.SAP_MAT_CD
+                              , D2.PD_CD
+                              , D2.PD_ABBR_NM
+                           FROM TB_SVST_MCBY_WARE_IZ D1
+                           LEFT OUTER JOIN TB_PDBS_PD_BAS D2
+                             ON D1.APY_YM = #{baseYm}
+                            AND D2.SAP_MAT_CD IS NOT NULL
+                            AND D2.DTA_DL_YN = 'N'
+                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3
+                             ON D3.PD_CD = D2.PD_CD
+                            AND D3.DTA_DL_YN = 'N'
+                          WHERE 1 = 1
+                        <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+                        <choose>
+                        <when test='@MybatisUtils@equals(wareDvCd, "2")'>
+                            AND D1.WARE_DV_CD = #{wareDvCd}
+                        </when>
+                        <when test='@MybatisUtils@equals(wareDvCd, "3")'>
+                            AND D1.WARE_DV_CD = #{wareDvCd}
+                            AND D3.PD_PRP_VAL19 IN('5','6')
+                            AND D3.PD_PRP_VAL04 = 'Y'
+                        </when>
+                        </choose>
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
+                            AND D1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                        </if>
+                        <if test="@MybatisUtils@isNotEmpty(searchWareNo)">
+                        <choose>
+                        <when test='@MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+                            AND D1.WARE_NO        = #{searchWareNo}
+                        </when>
+                        <when test='@MybatisUtils@equals(wareDtlDvCd, "21") or @MybatisUtils@equals(wareDtlDvCd, "31") or @MybatisUtils@equals(wareDtlDvCd, "32")'>
+                            AND D1.HGR_WARE_NO    = #{searchWareNo}   /* 개인창고일 경우 상위창고번호 */
+                        </when>
+                        </choose>
+                        </if>
+                            AND D1.DTA_DL_YN = 'N'
+                        ) T1
+                    LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2
+                      ON T2.BASE_YM = T1.APY_YM
+                     AND T2.WARE_NO = T1.WARE_NO
+                     AND T2.ITM_PD_CD = T1.PD_CD
+                <if test="@MybatisUtils@isNotEmpty(useYn)">
+                   INNER JOIN TB_SVST_MCBY_STOC_ACINSP_IZ T3
+                      ON T3.BASE_YM = T1.APY_YM
+                     AND T3.WARE_NO = T1.WARE_NO
+                     AND T3.PD_CD = T1.PD_CD
+                </if>
+                <if test="@MybatisUtils@isEmpty(useYn)">
+                    LEFT OUTER JOIN TB_SVST_MCBY_STOC_ACINSP_IZ T3
+                      ON T3.BASE_YM = T1.APY_YM
+                     AND T3.WARE_NO = T1.WARE_NO
+                     AND T3.PD_CD = T1.PD_CD
+                </if>
+                    LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T4
+                      ON T4.WARE_NO = T1.WARE_NO
+                     AND T4.ITM_PD_CD = T1.PD_CD
+                    LEFT OUTER JOIN (
+                                        SELECT D1.STR_WARE_NO
+                                             , D1.ITM_PD_CD
+                                             , MAX(D1.STR_CONF_DT) AS STR_CONF_DT
+                                             , SUM(D1.STR_QTY) AS STR_QTY
+                                          FROM TB_SVST_ITM_STR_IZ D1
+                                         INNER JOIN TB_SVST_MCBY_WARE_IZ D2
+                                            ON D2.WARE_NO = D1.STR_WARE_NO
+                                           AND D2.APY_YM = #{baseYm}
+                                           AND D1.STR_RGST_DT LIKE #{baseYm}||'%'
+                                         WHERE 1 = 1
+                                           AND D1.STR_CONF_DT IS NOT NULL
+                                       <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+                                           AND D2.WARE_DV_CD = #{wareDvCd}
+                                       </if>
+                                       <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
+                                           AND D2.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                                       </if>
+                                       <if test="@MybatisUtils@isNotEmpty(searchWareNo)">
+                                       <choose>
+                                       <when test='@MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+                                           AND D2.WARE_NO        = #{searchWareNo}
+                                       </when>
+                                       <when test='@MybatisUtils@equals(wareDtlDvCd, "21") or @MybatisUtils@equals(wareDtlDvCd, "31") or @MybatisUtils@equals(wareDtlDvCd, "32")'>
+                                           AND D2.HGR_WARE_NO    = #{searchWareNo}   /* 개인창고일 경우 상위창고번호 */
+                                       </when>
+                                       </choose>
+                                       </if>
+                                         GROUP BY D1.STR_WARE_NO
+                                                , D1.ITM_PD_CD
+                                     ) T5
+                      ON T5.STR_WARE_NO = T1.WARE_NO
+                     AND T5.ITM_PD_CD = T1.PD_CD
+                    WHERE 1 = 1
+                      AND T2.BASE_YM = #{baseYm}
+                 <if test="@MybatisUtils@isNotEmpty(useYn)">
+                 <choose>
+                 <when test='@MybatisUtils@equals(useYn, "1")'>
+                      AND T3.CNFMDT IS NULL
+                 </when>
+                 <when test='@MybatisUtils@equals(useYn, "2")'>
+                      AND T3.CNFMDT IS NOT NULL
+                      AND (T3.CNFM_PITM_STR_GAP_QTY != 0 OR T3.CNFM_PITM_OSTR_GAP_QTY != 0)
+                 </when>
+                 <when test='@MybatisUtils@equals(useYn, "3")'>
+                      AND T3.IOST_RFDT IS NOT NULL
+                 </when>
+                 </choose>
+                 </if>
+                   ) A1
+            ORDER BY A1.WARE_NO, A1.ITM_KND, A1.ITM_PD_CD
+
+
+    </select>
+
+    <select id="selectStocAcinspIz" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo">
+        SELECT T1.BASE_YM
+             , T1.WARE_NO
+             , T1.PD_CD
+             , T1.CNFM_PITM_STR_GAP_QTY
+             , T1.CNFM_PITM_OSTR_GAP_QTY
+             , T2.PITM_STOC_A_GD_QTY
+             , T3.PITM_STOC_A_GD_QTY AS CST_PITM_STOC_A_GD_QTY
+          FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
+         INNER JOIN TB_SVST_MCITM_STOC_IZ T2
+            ON T2.BASE_YM = T1.BASE_YM
+           AND T2.WARE_NO = T1.WARE_NO
+           AND T2.ITM_PD_CD = T1.PD_CD
+         INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
+            ON T3.WARE_NO = T1.WARE_NO
+           AND T3.ITM_PD_CD = T1.PD_CD
+         WHERE T1.CNFMDT IS NOT NULL
+           AND T1.IOST_RFDT IS NULL
+           AND T1.BASE_YM = #{baseYm}
+           AND T1.WARE_NO = #{wareNo}
+           AND T1.PD_CD = #{itmPdCd}
+           AND ((T1.CNFM_PITM_STR_GAP_QTY IS NOT NULL AND  T1.CNFM_PITM_STR_GAP_QTY > 0)
+            OR (T1.CNFM_PITM_OSTR_GAP_QTY IS NOT NULL AND  T1.CNFM_PITM_OSTR_GAP_QTY > 0))
+    </select>
+
+    <select id="selectChkCountAcinsp" resultType="java.lang.Integer">
+
+          SELECT COUNT(1)
+            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
+           WHERE 1 = 1
+             AND T1.CNFMDT IS NOT NULL
+             AND T1.IOST_RFDT IS NULL
+             AND ((T1.CNFM_PITM_STR_GAP_QTY IS NOT NULL AND  T1.CNFM_PITM_STR_GAP_QTY > 0)
+              OR (T1.CNFM_PITM_OSTR_GAP_QTY IS NOT NULL AND  T1.CNFM_PITM_OSTR_GAP_QTY > 0))
+             AND T1.WARE_NO = #{wareNo}
+             AND T1.PD_CD = #{itmPdCd}
+             AND T1.BASE_YM = #{baseYm}
+    </select>
+
+
+    <update id="insertStockAcinspIz">
+        MERGE INTO TB_SVST_MCITM_STOC_IZ T1  /* 월별품목재고내역 */
+             USING ( SELECT #{baseYm} AS BASE_YM                   /* 기준년월 */
+                          , #{wareNo} AS WARE_NO                   /* 창고번호 */
+                          , #{itmPdCd} AS ITM_PD_CD                 /* 품목상품코드 */
+                       FROM DUAL  ) T2
+                ON (T1.BASE_YM = T2.BASE_YM                   /* 기준년월 */
+                AND T1.WARE_NO = T2.WARE_NO                   /* 창고번호 */
+                AND T1.ITM_PD_CD = T2.ITM_PD_CD               /* 품목상품코드 */
+                   )
+        WHEN MATCHED THEN
+          UPDATE SET STOC_ACINSP_STR_A_GD_QTY = T2.STOC_ACINSP_STR_A_GD_QTY + #{cnfmPitmStrGapQty}
+                   , STOC_ACINSP_OSTR_A_GD_QTY = T2.STOC_ACINSP_OSTR_A_GD_QTY + #{cnfmPitmOstrGapQty}
+                   , STOC_ACINSP_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   , PITM_STOC_A_GD_QTY = #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                     BASE_YM
+                   , WARE_NO
+                   , ITM_PD_CD
+                   , WARE_MNGT_PRTNR_NO
+                   , OG_TP_CD
+                   , PITM_STOC_A_GD_QTY
+                   , STOC_ACINSP_STR_A_GD_QTY
+                   , STOC_ACINSP_OSTR_A_GD_QTY
+                   , STOC_ACINSP_DT
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     #{baseYm}
+                   , #{wareNo}
+                   , #{pdCd}
+                   , (SELECT WARE_MNGT_PRTNR_NO
+                        FROM TB_SVST_MCBY_WARE_IZ
+                       WHERE 1 = 1
+                         AND APY_YM = #{baseYm}
+                         AND WARE_NO = #{wareNo} )
+                   , (SELECT OG_TP_CD
+                        FROM TB_SVST_MCBY_WARE_IZ
+                       WHERE APY_YM = #{baseYm}
+                         AND WARE_NO = #{wareNo})
+                   , #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
+                   , #{cnfmPitmStrGapQty}
+                   , #{cnfmPitmOstrGapQty}
+                <include refid="COMMON.insertSystemFieldValue" />  )
+    </update>
+
+
+    <update id="insertStockAcinspCstSvItmStocIz">
+        MERGE INTO TB_SVST_CST_SV_ITM_STOC_IZ T1  /* 고객서비스품목재고내역 */
+             USING ( SELECT #{wareNo} AS WARE_NO                /* 창고번호 */
+                          , #{itmPdCd} AS ITM_PD_CD              /* 품목상품코드 */
+                       FROM DUAL  ) T2
+                ON (T1.WARE_NO = T2.WARE_NO                /* 창고번호 */
+                AND T1.ITM_PD_CD = T2.ITM_PD_CD              /* 품목상품코드 */
+                   )
+        WHEN MATCHED THEN
+          UPDATE SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
+                   , DTA_DL_YN = T2.DTA_DL_YN
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                     WARE_NO
+                   , ITM_PD_CD
+                   , PITM_STOC_A_GD_QTY
+                   , FNL_STR_DT
+                   , DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     #{wareNo}
+                   , #{itmPdCd}
+                   , #{pitmStocAGdQty} + #{cstPitmStocAGdQty} - #{cnfmPitmOstrGapQty}
+                   , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />  )
+    </update>
+
+    <update id="updateStockAcinspIostRfdt">
+        UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ /* 월별재고실사내역 */
+           SET IOST_RFDT              = TO_CHAR(SYSDATE, 'YYYYMMDD')              /* 입출고반영일자 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND BASE_YM                = #{baseYm}                /* 기준년월 */
+           AND WARE_NO                = #{wareNo}                /* 창고번호 */
+           AND PD_CD                  = #{pdCd}                  /* 상품코드 */
+    </update>
+
+
+    <update id="insertStockAcinsp">
+
+        MERGE INTO TB_SVST_MCBY_STOC_ACINSP_IZ T1  /* 월별재고실사내역 */
+             USING ( SELECT #{apyYm} AS BASE_YM                /* 기준년월 */
+                          , #{wareNo} AS WARE_NO                /* 창고번호 */
+                          , #{itmPdCd} AS PD_CD                  /* 상품코드 */
+                       FROM DUAL  ) T2
+                ON (T1.BASE_YM = T2.BASE_YM                /* 기준년월 */
+                AND T1.WARE_NO = T2.WARE_NO                /* 창고번호 */
+                AND T1.PD_CD = T2.PD_CD                  /* 상품코드 */
+                   )
+        WHEN MATCHED THEN
+          UPDATE SET ACINSP_QTY = #{acinspQty}
+                   , ACINSP_RMK_CN = #{acinspRmkCn}
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                     BASE_YM
+                   , WARE_NO
+                   , PD_CD
+                   , ACINSP_QTY
+                   , ACINSP_RMK_CN
+                   , CNFMDT
+                   , CNFM_PITM_EOT_STOC_QTY
+                   , CNFM_PITM_STR_GAP_QTY
+                   , CNFM_PITM_OSTR_GAP_QTY
+                   , IOST_RFDT
+                   , ACINSP_AK_ID
+                   , DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     #{apyYm}
+                   , #{wareNo}
+                   , #{itmPdCd}
+                   , #{acinspQty}
+                   , #{acinspRmkCn}
+                   , #{cnfmdt}
+                   , #{cnfmPitmEotStocQty}
+                   , #{cnfmPitmStrGapQty}
+                   , #{cnfmPitmOstrGapQty}
+                   , #{iostRfdt}
+                   , #{acinspAkId}
+                   , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />  )
+
+    </update>
+
+
+    <select id="selectAcinspRgstCnfm" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo">
+          SELECT T1.BASE_YM
+               , T1.WARE_NO
+               , T1.PD_CD
+               , NVL(T2.PITM_STOC_A_GD_QTY, 0) AS CNFM_PITM_EOT_STOC_QTY
+               , T1.ACINSP_QTY
+               , (CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) + (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
+                                                                              ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END) <![CDATA[>]]> 0 THEN  T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) + (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
+                                                                                                                                                                                                                                     ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END)
+                      ELSE 0
+                  END) AS CNFM_PITM_STR_GAP_QTY
+               , (CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) + (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
+                                                                      ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END) <![CDATA[<]]> 0 THEN  NVL(T2.PITM_STOC_A_GD_QTY,0) - T1.ACINSP_QTY - (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != '202307' THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
+                                                                                                                                                                                                                                 ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END)
+                      ELSE 0
+                  END) AS CNFM_PITM_OSTR_GAP_QTY
+               , TO_CHAR(SYSDATE, 'YYYYMMDD') AS CNFMDT
+            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
+            LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2
+              ON T2.BASE_YM   = T1.BASE_YM
+             AND T2.WARE_NO   = T1.WARE_NO
+             AND T2.ITM_PD_CD = T1.PD_CD
+            LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
+              ON T3.ITM_PD_CD = T1.PD_CD
+             AND T3.WARE_NO   = T1.WARE_NO
+            LEFT OUTER JOIN (
+                                SELECT D1.STR_WARE_NO
+                                     , D1.ITM_PD_CD
+                                     , MAX(D1.STR_CONF_DT) AS STR_CONF_DT
+                                     , SUM(D1.STR_QTY) AS STR_QTY
+                                  FROM TB_SVST_ITM_STR_IZ D1
+                                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2
+                                    ON D2.WARE_NO = D1.STR_WARE_NO
+                                   AND D2.APY_YM = #{baseYm}
+                                   AND D1.STR_RGST_DT LIKE #{baseYm}||'%'
+                                 WHERE 1 = 1
+                                   AND D1.STR_CONF_DT IS NOT NULL
+                               <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+                                   AND D2.WARE_DV_CD = #{wareDvCd}
+                               </if>
+                               <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
+                                   AND D2.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                               </if>
+                               <if test="@MybatisUtils@isNotEmpty(wareNo)">
+                               <choose>
+                               <when test='@MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+                                   AND D2.WARE_NO        = #{wareNo}
+                               </when>
+                               <when test='@MybatisUtils@equals(wareDtlDvCd, "21") or @MybatisUtils@equals(wareDtlDvCd, "31") or @MybatisUtils@equals(wareDtlDvCd, "32")'>
+                                   AND D2.HGR_WARE_NO    = #{wareNo}   /* 개인창고일 경우 상위창고번호 */
+                               </when>
+                               </choose>
+                               </if>
+                                 GROUP BY D1.STR_WARE_NO
+                                        , D1.ITM_PD_CD
+                             ) T4
+              ON T4.STR_WARE_NO = T1.WARE_NO
+             AND T4.ITM_PD_CD = T1.PD_CD
+           WHERE 1 = 1
+             AND T1.CNFMDT IS NULL
+             AND T1.BASE_YM = #{baseYm}
+             AND T1.PD_CD = #{itmPdCd}
+
+
+    </select>
+
+
+    <select id="selectChkCountCnfm" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+          FROM TB_SVST_MCBY_STOC_ACINSP_IZ
+         WHERE 1 = 1
+           AND CNFMDT IS NULL
+           AND BASE_YM = #{apyYm}
+           AND WARE_NO = #{wareNo}
+           AND PD_CD = #{itmPdCd}
+    </select>
+
+    <update id="updateStockAcinspIzCnfm">
+        <foreach collection="reSearchDvo" item="item" open="DECLARE BEGIN" close="; END;" separator=";">
+          UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ
+             SET CNFMDT = #{item.cnfmdt}
+               , CNFM_PITM_EOT_STOC_QTY = #{item.cnfmPitmEotStocQty}
+               , CNFM_PITM_STR_GAP_QTY = #{item.cnfmPitmStrGapQty}
+               , CNFM_PITM_OSTR_GAP_QTY = #{item.cnfmPitmOstrGapQty}
+             <include refid="COMMON.updateSystemField"/>
+            WHERE 1 = 1
+              AND BASE_YM                = #{item.baseYm}                /* 기준년월 */
+              AND WARE_NO                = #{item.wareNo}                /* 창고번호 */
+              AND PD_CD                  = #{item.pdCd}                  /* 상품코드 */
+        </foreach>
+    </update>
+
+    <select id="selectDeleteAcinspRgstCancel" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo">
+          SELECT T1.BASE_YM
+               , T1.WARE_NO
+               , T1.PD_CD
+               , NVL(T2.PITM_STOC_A_GD_QTY, 0) AS CNFM_PITM_EOT_STOC_QTY
+               , T1.ACINSP_QTY
+               , ( CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) <![CDATA[>]]> 0 THEN  T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0)
+                        ELSE 0
+                    END ) AS CNFM_PITM_STR_GAP_QTY
+               , ( CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) <![CDATA[<]]> 0 THEN  NVL(T2.PITM_STOC_A_GD_QTY,0) - T1.ACINSP_QTY
+                        ELSE 0
+                    END ) AS CNFM_PITM_OSTR_GAP_QTY
+            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
+            LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2
+              ON T2.BASE_YM = T1.BASE_YM
+             AND T2.WARE_NO = T1.WARE_NO
+             AND T2.ITM_PD_CD = T1.PD_CD
+           WHERE 1 = 1
+             AND T1.PD_CD = #{itmPdCd}
+             AND T1.BASE_YM = #{apyYm}
+             AND T1.CNFMDT IS NOT NULL
+             AND T1.IOST_RFDT IS NULL
+    </select>
+
+    <select id="selectChkAcinspRgstCancel" resultType="java.lang.Integer">
+
+            SELECT COUNT(1)
+              FROM TB_SVST_MCBY_STOC_ACINSP_IZ
+             WHERE 1 = 1
+               AND CNFMDT IS NOT NULL
+               AND BASE_YM = #{apyYm}
+               AND WARE_NO = #{wareNo}
+               AND PD_CD = #{itmPdCd}
+    </select>
+
+    <delete id="updateStockAcinspIzCancel">
+        <foreach collection="reDeleteDvo" item="item" open="DECLARE BEGIN" close="; END;" separator=";">
+           UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ
+              SET CNFMDT = ''
+                , CNFM_PITM_EOT_STOC_QTY = ''
+                , CNFM_PITM_STR_GAP_QTY = ''
+                , CNFM_PITM_OSTR_GAP_QTY = ''
+          <include refid="COMMON.updateSystemField"/>
+            WHERE 1 = 1
+              AND BASE_YM                = #{item.baseYm}                /* 기준년월 */
+              AND WARE_NO                = #{item.wareNo}                /* 창고번호 */
+              AND PD_CD                  = #{item.pdCd}                  /* 상품코드 */
+        </foreach>
+    </delete>
+
+</mapper>
+
+
