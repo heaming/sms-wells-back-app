@@ -80,7 +80,7 @@ public class WsniBarcodeProductInterfaceService {
     ) {
         log.info("[WsniBarcodeProductInterfaceService.getBarcodeSearchCustomers] BARCODE ::: " + dto.barcode());
         WsniBarcodeProductInterfaceDto.SearchCustRes cust;
-        WsniBarcodeProductInterfaceDto.SearchCustJsonRes resCust;
+        WsniBarcodeProductInterfaceDto.SearchCustJsonRes resCust = null;
 
         try {
             cust = mapper.selectBarcodeSearchCustomer(dto);
@@ -89,8 +89,21 @@ public class WsniBarcodeProductInterfaceService {
                 throw new BizException(messageService.getMessage("MSG_TXT_RENTAL_NOT_EXIST")); //렌탈 정보가 존재하지 않습니다
             }
 
+            /*
             resCust = converter.mapBarcodeProductCustDtoToJsonRes(cust)
                 .builder()
+                .serviceInfo(mapper.selectBarcodeSearchCustomerService(dto))
+                .build();
+             */
+
+            return resCust.builder()
+                .istDt(cust.istDt())
+                .useMonth(cust.useMonth())
+                .managerName(cust.managerName())
+                .managerTel(cust.managerTel())
+                .nextSchedule(cust.nextSchedule())
+                .rentalFee(cust.rentalFee())
+                .deviceName(cust.deviceName())
                 .serviceInfo(mapper.selectBarcodeSearchCustomerService(dto))
                 .build();
 
@@ -99,7 +112,7 @@ public class WsniBarcodeProductInterfaceService {
             throw new BizException(messageService.getMessage("MSG_TXT_BARCODE_SEARCH_ERROR")); //바코드 조회 오류
         }
 
-        return resCust;
+        // return resCust;
     }
 
 }
