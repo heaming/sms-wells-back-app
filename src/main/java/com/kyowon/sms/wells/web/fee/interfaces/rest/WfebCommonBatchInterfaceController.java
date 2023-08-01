@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.fee.interfaces.rest;
 
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
-import com.kyowon.sms.common.web.organization.common.service.ZogzAppendingFileRelationService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -16,13 +15,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
 @InterfaceController
-@Api(tags = "[WFEB] EAI_WCOI1002 Wells 배치 API 호출 ")
+@Api(tags = "[ZFEB] 배치 WAS API 호출 ")
 @RequestMapping(value = CtFeeConst.INTERFACE_URL_V1 + "/batch-call-services")
 @RequiredArgsConstructor
 @Validated
@@ -31,7 +29,7 @@ public class WfebCommonBatchInterfaceController {
     private static final Logger logger = LoggerFactory.getLogger(WfebCommonBatchInterfaceController.class);
 
 
-    @ApiOperation(value = "[EAI_WCOI1002] Wells 배치 API 호출 처리", notes = "배치서버에서 Wells 수수료 API 호출을 처리한다.")
+    @ApiOperation(value = "배치에서 WAS API 호출 처리", notes = "배치서버에서 WAS API 호출을 처리한다.")
     @PostMapping
     public <T> EaiWrapper processEaiCommonInterface(@RequestBody EaiWrapper<Map<String, Object>> reqWrapper) {
         EaiWrapper<Map<String, Object>> resWrapper = reqWrapper.newResInstance();
