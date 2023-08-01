@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageCheckDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDetailDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageStdgbDvo;
@@ -63,6 +62,6 @@ public interface WsnaNormalOutOfStorageMapper {
 
     int selectNewStrSn(String itmStrNo);
 
-    int selectOstrCnfmCount(List<WsnaNormalOutOfStorageCheckDvo> dvos);
+    int selectOstrCnfmCount(CheckReq dto);
 
 }

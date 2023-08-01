@@ -9,7 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaNormalOutOfStorageConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageDto.*;
-import com.kyowon.sms.wells.web.service.stock.dvo.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDetailDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageStdgbDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaNormalOutOfStorageMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -469,17 +472,11 @@ public class WsnaNormalOutOfStorageService {
 
     /**
      * 정상출고 확정 수량 조회
-     * @param dvos
+     * @param dto
      * @return
      */
-    public int getOstrCnfmCount(List<WsnaNormalOutOfStorageCheckDvo> dvos) {
-        ValidAssert.notEmpty(dvos);
-
-        for (WsnaNormalOutOfStorageCheckDvo dvo : dvos) {
-            ValidAssert.hasText(dvo.getOstrAkNo());
-        }
-
-        return this.mapper.selectOstrCnfmCount(dvos);
+    public int getOstrCnfmCount(CheckReq dto) {
+        return this.mapper.selectOstrCnfmCount(dto);
 
     }
 }

@@ -9,7 +9,6 @@ import javax.validation.constraints.NotEmpty;
 
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageCheckDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDetailDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaNormalOutOfStorageService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -259,12 +258,10 @@ public class WsnaNormalOutOfStorageController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "list", value = "출고요청리스트", paramType = "query", example = "[]", required = true)
     })
-    public int getOstrCnfmCount(
-        @RequestParam(name = "list")
-        @NotEmpty
-        List<WsnaNormalOutOfStorageCheckDvo> dvos
+    public int getOstrCnfmCount(@Valid
+    CheckReq dto
     ) {
-        return this.service.getOstrCnfmCount(dvos);
+        return this.service.getOstrCnfmCount(dto);
     }
 
 }

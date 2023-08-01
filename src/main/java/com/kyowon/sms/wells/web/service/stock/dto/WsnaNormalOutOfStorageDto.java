@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
 
 import com.sds.sflex.system.config.validation.validator.ValidDate;
@@ -273,5 +274,15 @@ public class WsnaNormalOutOfStorageDto {
         String ostrTpCd,
         String stckStdGb,
         String ostrDt
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckReq")
+    public record CheckReq(
+
+        @NotBlank
+        String ostrAkNo,
+        @NotEmpty
+        List<Integer> ostrAkSns
     ) {}
 }
