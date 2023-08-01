@@ -32,14 +32,14 @@
             ON T1.BASE_YM = OG.BASE_YM
            AND T1.OG_ID = OG.OG_ID
            AND T1.OG_TP_CD = OG.OG_TP_CD
-      <if test='@MybatisUtils@isNotEmpty(ogLevl1)'>
-           AND OG.DGR1_LEVL_OG_ID = #{ogLevl1}
+      <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
+           AND OG.DGR1_LEVL_OG_ID = #{ogLevl1Id}
       </if>
-      <if test='@MybatisUtils@isNotEmpty(ogLevl2)'>
-           AND OG.DGR2_LEVL_OG_ID = #{ogLevl2}
+      <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
+           AND OG.DGR2_LEVL_OG_ID = #{ogLevl2Id}
       </if>
-      <if test='@MybatisUtils@isNotEmpty(ogLevl3)'>
-           AND OG.DGR3_LEVL_OG_ID = #{ogLevl3}
+      <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
+           AND OG.DGR3_LEVL_OG_ID = #{ogLevl3Id}
       </if>
          INNER JOIN ( SELECT CD.CNTR_SN     /* 재약정 제외 목록*/
                            , CB.SELL_OG_TP_CD AS OG_TP_CD
@@ -58,41 +58,41 @@
                        INNER JOIN TB_SSCT_CNTR_DTL CD
                           ON CB.CNTR_NO = CD.CNTR_NO
                          AND NOT EXISTS (SELECT 1 FROM TB_SSCT_RENTAL_RSTL_IZ X WHERE X.CNTR_NO = CD.CNTR_NO AND CD.CNTR_SN = CD.CNTR_SN ) /*재약정 제외*/
-                    <if test='@MybatisUtils@equals(schDiv, "02")'> /* 예약 */
+                    <if test='@MybatisUtils@equals(divCd, "02")'> /* 예약 */
                          AND CD.BOO_SELL_TP_CD = '2'
                     </if>
-                    <if test='@MybatisUtils@equals(schDiv, "03")'> /* 매출 */
+                    <if test='@MybatisUtils@equals(DivCd, "03")'> /* 매출 */
                          AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                     </if>
-                    <if test='@MybatisUtils@isNotEmpty (selTp)'>
-                        <if test='!@MybatisUtils@equals(selTp, "7")'>
-                         AND CD.SELL_TP_CD = #{selTp}
+                    <if test='@MybatisUtils@isNotEmpty (selTpCd)'>
+                        <if test='!@MybatisUtils@equals(selTpCd, "7")'>
+                         AND CD.SELL_TP_CD = #{selTpCd}
                         </if>
-                        <if test='@MybatisUtils@equals(selTp, "7")'>
-                         AND 1 = #{selTp}
+                        <if test='@MybatisUtils@equals(selTpCd, "7")'>
+                         AND 1 = #{selTpCd}
                         </if>
                     </if>
-                    <if test='@MybatisUtils@equals(schDv, "01") or @MybatisUtils@equals(schDv, "02")'>
+                    <if test='@MybatisUtils@equals(divCd, "01") or @MybatisUtils@equals(divCd, "02")'>
                         LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
                        WHERE 1 = 1
-                         AND CB.CNTR_CNFM_DTM BETWEEN #{schDtStrt} AND  #{schDtEnd} /* 계약 확정일자*/
+                         AND CB.CNTR_CNFM_DTM BETWEEN #{strtDt} AND  #{endDt} /* 계약 확정일자*/
                     </if>
-                    <if test='@MybatisUtils@equals(schDv, "03")'>   /* 매출 */
+                    <if test='@MybatisUtils@equals(divCd, "03")'>   /* 매출 */
                        INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
-                         AND SC.SL_RCOG_DT BETWEEN #{schDtStrt} AND #{schDtEnd}  /* 매출 확정일자 */
+                         AND SC.SL_RCOG_DT BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                        WHERE 1=1
                     </if>
-                    <if test='@MybatisUtils@isNotEmpty(schCancDtStrt)'>
-                         AND CB.CNTR_CAN_DTM &gt;= #{schCancDtStrt}                /* 계약취소 시작일자 */
+                    <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
+                         AND CB.CNTR_CAN_DTM &gt;= #{cancStrtDt}                /* 계약취소 시작일자 */
                     </if>
-                    <if test='@MybatisUtils@isNotEmpty(schCancDtEnd)'>
-                         AND CB.CNTR_CAN_DTM &lt;= #{schCancDtEnd}  /* 계약취소 종료일자 */
+                    <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
+                         AND CB.CNTR_CAN_DTM &lt;= #{cancEndDt}  /* 계약취소 종료일자 */
                     </if>
                     <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                          AND CB.SELL_PRTNR_NO  = #{prtnrNo}
@@ -105,7 +105,7 @@
                          AND CB.SELL_OG_TP_CD NOT IN ('W01','W02','W03','W04','W05')
                         </if>
                     </if>
-                    <if test='@MybatisUtils@isEmpty(selTp) or @MybatisUtils@equals(selTp, "7")'>
+                    <if test='@MybatisUtils@isEmpty(selTpCd) or @MybatisUtils@equals(selTpCd, "7")'>
                        UNION ALL     /* 판매구분이 전체 혹은 재약정일때 UNION ALL 재약정 */
                       SELECT CD.CNTR_SN
                            , CB.SELL_OG_TP_CD AS OG_TP_CD
@@ -124,35 +124,35 @@
                        INNER JOIN TB_SSCT_CNTR_DTL CD
                           ON CB.CNTR_NO = CD.CNTR_NO
                          AND CD.SELL_TP_CD = '2'     /* 렌탈 */
-                         <if test='@MybatisUtils@equals(schDiv, "02")'> /* 예약 */
+                         <if test='@MybatisUtils@equals(divCd, "02")'> /* 예약 */
                          AND CD.BOO_SELL_TP_CD = '2'
                          </if>
-                         <if test='@MybatisUtils@equals(schDiv, "03")'> /* 매출 */
+                         <if test='@MybatisUtils@equals(divCd, "03")'> /* 매출 */
                          AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                          </if>
                        INNER JOIN TB_SSCT_RENTAL_RSTL_IZ RI /* 재약정내역 테이블 */
                           ON CD.CNTR_NO = RI.CNTR_NO
                          AND CD.CNTR_SN = RI.CNTR_SN
-                         <if test='@MybatisUtils@isNotEmpty(schCancDtStrt)'>
-                         AND RI.STPL_CAN_DTM &gt;= #{schCancDtStrt}                /* 약정취소 시작일자 */
+                         <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
+                         AND RI.STPL_CAN_DTM &gt;= #{cancStrtDt}                /* 약정취소 시작일자 */
                          </if>
-                         <if test='@MybatisUtils@isNotEmpty(schCancDtEnd)'>
-                         AND RI.STPL_CAN_DTM &lt;= #{schCancDtEnd}  /* 약정취소 종료일자 */
+                         <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
+                         AND RI.STPL_CAN_DTM &lt;= #{cancEndDt}  /* 약정취소 종료일자 */
                          </if>
-                         <if test='@MybatisUtils@equals(schDv, "01") or @MybatisUtils@equals(schDv, "02")'>
-                         AND RI.STPL_STRTDT BETWEEN #{schDtStrt} AND  #{schDtEnd} /* 약정 시작일자*/
+                         <if test='@MybatisUtils@equals(divCd, "01") or @MybatisUtils@equals(divCd, "02")'>
+                         AND RI.STPL_STRTDT BETWEEN #{strtDt} AND  #{endDt} /* 약정 시작일자*/
                         LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
                        WHERE 1 = 1
                          </if>
-                         <if test='@MybatisUtils@equals(schDv, "03")'>    /* 매출 */
+                         <if test='@MybatisUtils@equals(divCd, "03")'>    /* 매출 */
                        INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
-                         AND SC.SL_RCOG_DT BETWEEN #{schDtStrt} AND #{schDtEnd}  /* 매출 확정일자 */
+                         AND SC.SL_RCOG_DT BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                        WHERE 1=1
                          </if>
                          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
@@ -172,30 +172,30 @@
            AND T1.OG_TP_CD = T2.OG_TP_CD
          INNER JOIN TB_PDBS_PD_BAS T3
             ON T2.PRDT_CD = T3.PD_CD
-      <if test='@MybatisUtils@isNotEmpty(schPdCdStrt)'>
-           AND T3.PD_CD &gt;= #{schPdCdStrt}
+      <if test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
+           AND T3.PD_CD &gt;= #{pdStrtCd}
       </if>
-      <if test='@MybatisUtils@isNotEmpty(schPdCdEnd)'>
-           AND T3.PD_CD &lt;= #{schPdCdEnd}
+      <if test='@MybatisUtils@isNotEmpty(pdEndCd)'>
+           AND T3.PD_CD &lt;= #{pdEndCd}
       </if>
-      <if test='@MybatisUtils@isNotEmpty(schPkgCdStrt)'>
-           AND T3.HGR_PD_CD &gt;= #{schPkgCdStrt}
+      <if test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
+           AND T3.HGR_PD_CD &gt;= #{pkgStrtCd}
       </if>
-      <if test='@MybatisUtils@isNotEmpty(schPkgdEnd)'>
-           AND T3.HGR_PD_CD &lt;= #{schPkgdEnd}
+      <if test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
+           AND T3.HGR_PD_CD &lt;= #{pkgEndCd}
       </if>
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL T4
             ON T2.CNTR_DTL_NO = T4.CNTR_NO
            AND T2.CNTR_SN = T4.CNTR_SN
         INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS T5
            ON T2.PRDT_CD = T5.BASE_PD_CD
-          AND SUBSTR(#{schDtStrt},0,6) BETWEEN T5.APY_STRT_YM AND T5.APY_END_YM
-        <if test='@MybatisUtils@isNotEmpty(pdctTp)'>
+          AND SUBSTR(#{strtDt},0,6) BETWEEN T5.APY_STRT_YM AND T5.APY_END_YM
+        <if test='@MybatisUtils@isNotEmpty(pdctTpCd)'>
           AND ( CASE WHEN T1.OG_TP_CD = 'W01' THEN T5.FEE_PDCT_TP_CD2
                      ELSE T5.FEE_PDCT_TP_CD1
-                END ) = #{pdctTp}
+                END ) = #{pdctTpCd}
         </if>
-        WHERE T1.BASE_YM = SUBSTR(#{schDtStrt},0,6)
+        WHERE T1.BASE_YM = SUBSTR(#{strtDt},0,6)
         <if test='@MybatisUtils@isNotEmpty(ogDvCd)'>
             <if test="ogDvCd != 'W06'">
                 AND T1.OG_TP_CD  = #{ogDvCd}
