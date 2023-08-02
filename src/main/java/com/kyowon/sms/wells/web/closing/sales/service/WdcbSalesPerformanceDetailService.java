@@ -7,6 +7,7 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRegularRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRentalRes;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesPerformanceDetailMapper;
+import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class WdcbSalesPerformanceDetailService {
     }
 
     public SearchRentalRes getRentalSalesDetail(String cntrDtlNo, String slClYm) {
-        return mapper.selectRentalSalesDetail(cntrDtlNo, slClYm);
+        return mapper.selectRentalSalesDetail(cntrDtlNo, slClYm).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
     }
 
     public SearchRegularRes getRegularShippingDetail(String cntrDtlNo, String slClYm) {
