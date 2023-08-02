@@ -212,23 +212,6 @@ public class WsnaNormalOutOfStorageDto {
     ) {}
 
     @Builder
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckedReq")
-    public record CheckedReq(
-        String ostrAkNo,
-        List ostrAkSns
-    ) {}
-
-    @Builder
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-StrNoAndOstrNoRes")
-    public record StrNoAndOstrNoRes(
-        String itmOstrNo,
-        String itmStrNo,
-        String ostrTpCd,
-        String strTpCd,
-        String todayStr
-    ) {}
-
-    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
     public record StandardWareReq(
         @NotBlank
