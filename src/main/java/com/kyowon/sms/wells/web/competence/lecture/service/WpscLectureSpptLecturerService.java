@@ -40,13 +40,13 @@ public class WpscLectureSpptLecturerService {
         for(SaveReq req : reqs){
             WpscLectureSpptLecturerDvo dvo = converter.mapSaveReq(req);
             if("created".equals(dvo.getRowState())) {
-                dvo.setLectrSpptLectCd(mapper.selectMaxLecterCd());
-                mapper.insertLecterMngtHist(dvo);
-                processCount = mapper.insertLecterMngt(dvo);
+                dvo.setLectrSpptLectCd(mapper.selectMaxLecturerCd());
+                mapper.insertLecturerMngtHist(dvo);
+                processCount = mapper.insertLecturerMngt(dvo);
                 BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
             }else if("updated".equals(dvo.getRowState())) {
-                mapper.insertLecterMngtHist(dvo);
-                processCount = mapper.updateLecterMngt(dvo);
+                mapper.insertLecturerMngtHist(dvo);
+                processCount = mapper.updateLecturerMngt(dvo);
                 BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
             }
             processCount += processCount;

@@ -15,10 +15,10 @@ public interface WpscLectureSpptLecturerMapper {
         PageInfo pageInfo
     );
 
-    int insertLecterMngtHist(WpscLectureSpptLecturerDvo dvo);
-    int insertLecterMngt(WpscLectureSpptLecturerDvo dvo);
+    int insertLecturerMngtHist(WpscLectureSpptLecturerDvo dvo);
+    int insertLecturerMngt(WpscLectureSpptLecturerDvo dvo);
 
-    int updateLecterMngt(WpscLectureSpptLecturerDvo dvo);
+    int updateLecturerMngt(WpscLectureSpptLecturerDvo dvo);
 
-    String selectMaxLecterCd();
+    String selectMaxLecturerCd();
 }
