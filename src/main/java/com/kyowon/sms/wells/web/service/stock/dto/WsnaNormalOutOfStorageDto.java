@@ -271,7 +271,8 @@ public class WsnaNormalOutOfStorageDto {
         String itmOstrNo,
         String ostrTpCd,
         String stckStdGb,
-        String ostrDt
+        String ostrDt,
+        String baseYm
     ) {}
 
     @Builder
