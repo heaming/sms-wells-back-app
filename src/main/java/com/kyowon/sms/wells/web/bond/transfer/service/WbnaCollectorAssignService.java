@@ -129,6 +129,17 @@ public class WbnaCollectorAssignService {
 
             processCount += result;
         }
+        if (processCount > 0) {
+            // 집금자배정 개별 데이터 변경 시에도 TB_CBBO_BND_TF_ASN_EXCN_IZ 갱신 필요 해당 정보를 기준으로 파트이관,배정,배정확정 가능 여부를 판단
+            ZbnaBondTransferAssignDvo bondTransferAssignDvo = ZbnaBondTransferAssignDvo.builder()
+                .baseYm(dtos.get(0).baseYm())
+                .tfBizDvCd(BnBondConst.TfBizDvCd.COLLECTOR_ASSIGNMENT.getValue())
+                .bzHdqDvCd(dtos.get(0).bzHdqDvCd()).clctamDvCd(dtos.get(0).clctamDvCd()).build();
+            bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+
+            int result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+        }
         return processCount;
     }
 

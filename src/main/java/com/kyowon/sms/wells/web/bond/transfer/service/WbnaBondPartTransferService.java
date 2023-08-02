@@ -147,6 +147,23 @@ public class WbnaBondPartTransferService {
 
             processCount += result;
         }
+        if (processCount > 0) {
+            // 파트이관 개별 데이터 변경 시에도 TB_CBBO_BND_TF_ASN_EXCN_IZ 갱신 필요 해당 정보를 기준으로 배정,배정확정 가능 여부를 판단
+            // 기존집금, 변경집금 구분 둘다 파트이관으로 저장
+            ZbnaBondTransferAssignDvo bondTransferAssignDvo = ZbnaBondTransferAssignDvo.builder()
+                .baseYm(dtos.get(0).baseYm())
+                .tfBizDvCd(BnBondConst.TfBizDvCd.PART_TRANSFER.getValue())
+                .bzHdqDvCd(dtos.get(0).bzHdqDvCd()).clctamDvCd(dtos.get(0).originClctamDvCd()).build();
+            bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+
+            int result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+
+            bondTransferAssignDvo.setClctamDvCd(dtos.get(0).clctamDvCd());
+            bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+            result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+        }
         return processCount;
     }
 
