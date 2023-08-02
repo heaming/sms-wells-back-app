@@ -118,8 +118,6 @@ public class WsnaNormalOutOfStorageDto {
         @NotBlank
         String ostrOjWareNo,
         @NotBlank
-        String stckStdGb,
-        @NotBlank
         @ValidDate
         String rgstDt
     ) {}
@@ -135,8 +133,6 @@ public class WsnaNormalOutOfStorageDto {
         String strOjWareNo,
         @NotBlank
         String ostrOjWareNo,
-        @NotBlank
-        String stckStdGb,
         @NotBlank
         @ValidDate
         String ostrDt
