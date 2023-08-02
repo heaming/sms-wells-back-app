@@ -133,7 +133,7 @@ public class WsnbIndividualServicePsDto {
         String cntrDtl,
         String cstNm,
         String pdNm,
-        String sidingCntrDtl,
+        String sdingCntrDtl,
         String adrZip,
         String locaraTno,
         String exnoEncr,
