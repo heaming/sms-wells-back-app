@@ -309,56 +309,107 @@ public class WdcbSalesPerformanceDetailDto {
     // 정기배송매출 상세내역 Search Result Dto
     @ApiModel("WdcbSalesPerformanceDetailDto-SearchRegularRes")
     public record SearchRegularRes(
-        String cstKnm,
-        String cntrDtlNo,
-        String slClYm,
-        String pdNm,
-        String sellAmt,
-        String rentalAmt,
-        String dscAmt,
-        String fnlBilAmt,
-        String cntrDt,
-        String sppDtm,
-        String slRcogDt,
-        String lcdflg,
-        String sppYn,
-        String sppTn,
-        String rentalDc,
-        String canDt,
-        String nomSlAmt,
-        String nomDscAmt,
-        String adsbDt,
-        String spmtSlAmt,
-        String spmtDscAmt,
-        String slCtrAmt,
-        String thmSlSumAmt,
-        String slSumVat,
-        String slAggAmt,
-        String dscAggAmt,
-        String ctrAggAmt,
-        String btdAtam,
-        String thmAtamDpAmt,
-        String thmAtamRfndAmt,
-        String prpdSlAmt,
-        String slBndAlrpyAmt,
-        String slDpAggAmt,
-        String ovrCtrDpAmt,
-        String eotAtam,
-        String thmUcBlam,
-        String thmOcDlqAmt,
-        String mmIstmPcamAmt,
-        String mmIstmIntAmt,
-        String nomBilAmt,
-        String bilCtrAmt,
-        String bilDscAmt,
-        String lstFnlBilAmt,
-        String istmPcamBlam,
-        String istmIntBlam,
-        String dlqMcn,
-        String slStpYn,
-        String actcsDt,
-        String clctamDvNm,
-        String prtnrKnm,
-        String prtnrNo
+        // *********************************************************
+        // 고객기본정보
+        // *********************************************************
+        String cstNo, /* 고객번호 */
+        String cstKnm, /* 고객명 */
+        String cntrDtlNo, /* 계약상세번호 */
+        String slClYm, /* 매출년월 */
+        // *********************************************************
+        // 계약제품
+        // *********************************************************
+        String sellTpCd, /* 판매유형 */
+        String sellTpCdNm, /* 판매유형코드명 */
+        String sellTpDtlCd, /* 판매유형상세 */
+        String sellTpDtlCdNm, /* 판매유형상세코드명 */
+        String pdCd, /* 상품코드 */
+        String pdNm, /* 상품명 */
+        String rcpPkgYn, /* 접수기준-패키지 여부 (LD3000P@LCPKYN) 맵핑없어서 패키지코드존재여부로 체크함 TODO.재문의 확인필요 */
+        String rcpPkgCd, /* 접수기준-(패키지 번호:LCPKAG) */
+        String rcpPkgNm, /* 접수기준-(패키지명:LCPKAG_NM) */
+        String pkgYn, /* 현재기준-패키지 여부 (LD3000P@LCST07) 맵핑없어서 패키지코드존재여부로 체크함 TODO.재문의 확인필요 */
+        String pkgCd, /* 현재기준-(패키지 번호:LCST12) */
+        String pkgNm, /* 현재기준-(패키지명:LCST12_NM) */
+        String pkgTpNm, /* 패키지 유형 명 */
+        String mchnSellTpNm, /* 기기정보-판매유형(원주문) (업무구분:LCJTYP,LCJTYP_NM) */
+        String mchnCntrNo, /* 기기정보-계약번호  ORYRCD */
+        String mchnCntrSn, /* 기기정보-계약번호일련번호 ORYRCD(LCJYER-LCJCOD) */
+        String mchnRcgvpKnm, /* 기기정보- 수령자한글명 ORCNAM(LCCNAM) */
+        String mchnPdCd, /* 기기정보- 기기상품 - ORICDE(LCICDE) */
+        String mchnPdNm, /* 기기정보- 기기상품명 - ORINA3 (LCICDE,KAINA1) */
+        String rglrSppPrcDvCd, /* 판매유형(LD30.LCST05) - 결합/분리 */
+        Long sellAmt, /* 판매금액 */
+        Long rentalAmt, /* 추가금액 */
+        Long dscAmt, /* 할인금액 */
+        Long mmIstmAmt, /* 월청구금액 */
+        String cntrDt, /* 접수일자 */
+        String sppDt, /* 최초배송일자 */
+        String lcsleDt, /* 매출일자 */
+        // *********************************************************
+        // 매출사항
+        // *********************************************************
+        String slOccYm, /* 매출발생월(LD50.LCDFLG) */
+        String sppYn, /* 배송여부 @TO-DO */
+        Integer rentalTn, /* 진행차월 */
+        Integer sppTn, /* 배송차월 */
+        Integer rentalDc, /* 사용일수(일) */
+        String canDt, /* 취소일자 */
+        Long nomSlAmt, /* 정상매출금액 */
+        Long nomDscAmt, /* 정상할인금액 */
+        String fshDt, /* 완료일자 @TO-DO 이행 반영 필요 */
+        Long spmtSlAmt, /* 추가매출금액 */
+        Long spmtDscAmt, /* 추가할인금액 */
+        Long slCtrAmt, /* 매출조정금액 */
+        Long thmSlSumAmt, /* 매출금액 */
+        Long slSumVat, /* 매출VAT */
+        Long slAggAmt, /* 매출누계금액 */
+        Long dscAggAmt, /* 할인누계금액 */
+        Long ctrAggAmt, /* 조정누계금액 */
+        Long ucAmt, /* 매출잔액 */
+        // *********************************************************
+        // 선수금액
+        // *********************************************************
+        Long btdAtam, /* 기초금액 */
+        Long thmAtamDpAmt, /* 선수입금액 */
+        Long thmAtamRfndAmt, /* 선수환불금액 */
+        Long prpdSlAmt, /* 매출대체금액 */
+        Long slBndAlrpyAmt, /* 매출입금액 */
+        Long slDpAggAmt, /* 입금누계금액 */
+        Long ovrCtrDpAmt, /* 선수대체금액 */
+        Long eotAtam, /* 선수잔액 */
+        Long thmUcBlam, /* 미수총액 */
+        Long eotDlqAmt, /* 연체금액 */
+        // *********************************************************
+        // 청구미수
+        // *********************************************************
+        Long btdUcAmt, /* 기초금액 */
+        Long thmExpAmt, /* 당월예정금액 @TO-DO */
+        Long thmAddAmt, /* 당월추가금액 @TO-DO */
+        Long thmDpAmt, /* 당월입금액 @TO-DO */
+        Long thmAdjAmt, /* 당월조정금액 @TO-DO */
+        Long eotUcAmt, /* 청구잔액 @TO-DO */
+        Long nextMonAmt1, /* 차월금액 @TO-DO */
+        Long nextMonAmt2, /* 차차월금액 @TO-DO */
+        // *********************************************************
+        // 연체사항
+        // *********************************************************
+        Integer dlqMcn, /* 연체개월 */
+        Integer dlqAcuMcn, /* 연체누적개월수 */
+        String slStpYn, /* 매출중지여부 */
+        String actcsDt, /* 수임일자 */
+        String rcpAoffceCd, /* 접수사무소코드 */
+        String rcpAoffceCdNm, /* 접수사무소명 @TO-DO 사무소명이 집금담당자의 근무지정보이면 집금파트너상세 Table.집금상담사근무지코드(CLCTAM_CSLR_WRKP_CD)를 읽어야 함 */
+        String clctamDvCd, /* 집금구분코드 */
+        String clctamDvCdNm, /* 집금구분코드명 */
+        String clctamPrtnrNo, /* 집금파트너번호 */
+        String clctamPrtnrNm, /* 집금파트너이름 */
+        // *********************************************************
+        // 기타정보
+        // *********************************************************
+        String dpTpCd, /* 이체구분코드(LC31.LCCHK1) */
+        String dpTpCdNm, /* 이체구분코드명 */
+        String mpyBsdt, /* 이체일자 */
+        String fnitAprRsCd /* 금융기관승인결과코드 */
     ) {}
 }
