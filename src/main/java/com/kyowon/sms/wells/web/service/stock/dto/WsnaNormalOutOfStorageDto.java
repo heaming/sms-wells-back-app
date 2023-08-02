@@ -234,7 +234,9 @@ public class WsnaNormalOutOfStorageDto {
         @NotBlank
         String apyYm,
         @NotBlank
-        String wareNo
+        String wareNo,
+        @NotBlank
+        String stckStdGb
     ) {}
 
     @Builder
