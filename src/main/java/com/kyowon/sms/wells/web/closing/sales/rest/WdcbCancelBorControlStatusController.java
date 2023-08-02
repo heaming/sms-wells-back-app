@@ -13,6 +13,8 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbCancelBorControlStatusDto.
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbCancelBorControlStatusDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbCancelBorControlStatusService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -36,20 +38,20 @@ public class WdcbCancelBorControlStatusController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true)
     })
     @GetMapping("/paging")
-    public List<SearchRes> getAdjustCancellationPages(
+    public PagingResult<SearchRes> getAdjustCancellationPages(
         @Valid
-        SearchReq req
+        SearchReq req,
+        PageInfo pageInfo
     ) {
-        return service.getAdjustCancellationPages(req);
+        return service.getAdjustCancellationPages(req, pageInfo);
     }
 
-    //    @ApiOperation(value = "렌탈 취소위약/조정현황 매출조정/취소집계 엑셀다운로드", notes = "검색조건을 입력 받아 렌탈 취소위약/조정현황 매출조정/취소집계 조회결과를 엑셀다운로드 한다.")
-    //    @GetMapping("/excel-download")
-    //    public List<SearchRes> getAdjustCancellationForExcelDownload(
-    //        SearchReq Req
-    //    ) {
-    //        return service.getAdjustCancellationForExcelDownload(Req);
-    //    }
+    @ApiOperation(value = "렌탈 취소위약/조정현황 매출조정/취소집계 엑셀다운로드", notes = "검색조건을 입력 받아 렌탈 취소위약/조정현황 매출조정/취소집계 조회결과를 엑셀다운로드 한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getAdjustCancellationForExcelDownload(
+        SearchReq Req
+    ) {
+        return service.getAdjustCancellationForExcelDownload(Req);
+    }
 
 }
-
