@@ -254,7 +254,9 @@ public class WsnaNormalOutOfStorageDto {
     public record SearchItmOstrAkReq(
         @NotBlank
         String ostrAkNo,
-        int ostrAkSn
+        @Positive
+        int ostrAkSn,
+        String itmOstrNo
     ) {}
 
     @Builder
