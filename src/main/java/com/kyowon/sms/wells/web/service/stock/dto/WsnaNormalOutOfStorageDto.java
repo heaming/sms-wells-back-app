@@ -118,8 +118,6 @@ public class WsnaNormalOutOfStorageDto {
         @NotBlank
         String ostrOjWareNo,
         @NotBlank
-        String stckStdGb,
-        @NotBlank
         @ValidDate
         String rgstDt
     ) {}
@@ -135,8 +133,6 @@ public class WsnaNormalOutOfStorageDto {
         String strOjWareNo,
         @NotBlank
         String ostrOjWareNo,
-        @NotBlank
-        String stckStdGb,
         @NotBlank
         @ValidDate
         String ostrDt
@@ -216,29 +212,14 @@ public class WsnaNormalOutOfStorageDto {
     ) {}
 
     @Builder
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckedReq")
-    public record CheckedReq(
-        String ostrAkNo,
-        List ostrAkSns
-    ) {}
-
-    @Builder
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-StrNoAndOstrNoRes")
-    public record StrNoAndOstrNoRes(
-        String itmOstrNo,
-        String itmStrNo,
-        String ostrTpCd,
-        String strTpCd,
-        String todayStr
-    ) {}
-
-    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
     public record StandardWareReq(
         @NotBlank
         String apyYm,
         @NotBlank
-        String wareNo
+        String wareNo,
+        @NotBlank
+        String stckStdGb
     ) {}
 
     @Builder
@@ -254,7 +235,9 @@ public class WsnaNormalOutOfStorageDto {
     public record SearchItmOstrAkReq(
         @NotBlank
         String ostrAkNo,
-        int ostrAkSn
+        @Positive
+        int ostrAkSn,
+        String itmOstrNo
     ) {}
 
     @Builder
@@ -273,7 +256,8 @@ public class WsnaNormalOutOfStorageDto {
         String itmOstrNo,
         String ostrTpCd,
         String stckStdGb,
-        String ostrDt
+        String ostrDt,
+        String baseYm
     ) {}
 
     @Builder

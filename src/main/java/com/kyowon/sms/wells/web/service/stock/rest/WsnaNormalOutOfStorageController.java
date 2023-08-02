@@ -87,7 +87,8 @@ public class WsnaNormalOutOfStorageController {
     @ApiOperation(value = "정상출고 등록 정보 조회", notes = "출고요청번호에 해당하는 정상출고 등록 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ostrAkNo", value = "출고요청번호", paramType = "query", example = "310200812300000011", required = true),
-        @ApiImplicitParam(name = "ostrAkSn", value = "출고요청일련번호", paramType = "query", example = "1", required = true)
+        @ApiImplicitParam(name = "ostrAkSn", value = "출고요청일련번호", paramType = "query", example = "1", required = true),
+        @ApiImplicitParam(name = "itmOstrNo", value = "품목출고번호", paramType = "query", example = "222202210060000001")
     })
     public SearchItmOstrAkRes getItmOstrAk(@Valid
     SearchItmOstrAkReq dto) {
@@ -143,7 +144,7 @@ public class WsnaNormalOutOfStorageController {
     @ApiOperation(value = "정상출고 상세 정보 조회(삭제용)", notes = "정상출고 상세 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ostrTpCd", value = "출고유형", paramType = "query", example = "222", required = true),
-        @ApiImplicitParam(name = "itmOstrNo", value = "품목출고요청번호", paramType = "query", example = "222202210060000001", required = true),
+        @ApiImplicitParam(name = "itmOstrNo", value = "품목출고번호", paramType = "query", example = "222202210060000001", required = true),
         @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200043", required = true),
         @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true),
         @ApiImplicitParam(name = "stckStdGb", value = "표준창고 적용여부", paramType = "query", example = "Y", required = true),
@@ -162,7 +163,7 @@ public class WsnaNormalOutOfStorageController {
     @ApiOperation(value = "정상출고 상세 정보 엑셀 다운로드(삭제용)", notes = "정상출고 상세 정보를 엑셀 다운로드 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ostrTpCd", value = "출고유형", paramType = "query", example = "222", required = true),
-        @ApiImplicitParam(name = "itmOstrNo", value = "품목출고요청번호", paramType = "query", example = "222202210060000001", required = true),
+        @ApiImplicitParam(name = "itmOstrNo", value = "품목출고번호", paramType = "query", example = "222202210060000001", required = true),
         @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200043", required = true),
         @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true),
         @ApiImplicitParam(name = "stckStdGb", value = "표준창고 적용여부", paramType = "query", example = "Y", required = true),
@@ -229,7 +230,6 @@ public class WsnaNormalOutOfStorageController {
     @ApiOperation(value = "조직창고 요청 자재 보유현황 페이징 조회", notes = "조직창고 요청 자재 보유현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM01100001", required = true),
-        @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "201784", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "2", required = true)
     })
     public PagingResult<CenterRes> getAskMaterialsCenter(@Valid
@@ -256,7 +256,8 @@ public class WsnaNormalOutOfStorageController {
     @GetMapping("/confirm-count")
     @ApiOperation(value = "확정 건수 조회", notes = "확정 건수를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "list", value = "출고요청리스트", paramType = "query", example = "[]", required = true)
+        @ApiImplicitParam(name = "ostrAkNo", value = "출고요청번호", paramType = "query", example = "310200812300000009", required = true),
+        @ApiImplicitParam(name = "ostrAkSns", value = "출고요청일련번호 리스트", paramType = "query", example = "[1,2]", required = true)
     })
     public int getOstrCnfmCount(@Valid
     CheckReq dto
