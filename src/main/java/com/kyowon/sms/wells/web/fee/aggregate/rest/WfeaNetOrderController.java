@@ -105,14 +105,12 @@ public class WfeaNetOrderController {
 
     @ApiOperation(value = "월 순주문 집계 저장", notes = "월 순주문 집계 데이터를 저장한다.")
     @PostMapping("aggregations")
-    public SaveResponse saveByNetOrders(
-        @RequestBody
+    public String saveByNetOrders(
         @Valid
+        @RequestBody
         SaveReq dto
     ) throws Exception {
-        return SaveResponse.builder()
-            .processCount(service.saveByNetOrders(dto))
-            .build();
+        return service.saveByNetOrders(dto);
     }
 
     @ApiOperation(value = "월 순주문 집계 확정", notes = "월 순주문 집계 데이터를 확정한다.")
