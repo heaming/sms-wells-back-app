@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbCancelBorControlStatusMapper">
+    <select id="selectAdjustCancellationPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbCancelBorControlStatusDto$SearchRes">
+        -- 대상건 추출
+        <![CDATA[
+        WITH RESAMT_CNTR AS (
+            SELECT Y.CNTR_NO, Y.CNTR_SN, MAX(Y.PERF_YM) AS PERF_YM
+              FROM TB_CBCL_WELLS_SL_MM_CL_IZ X    /*WELLS매출월마감내역*/
+                 , TB_CBCL_WELLS_BOR_AMT_BAS Y   /*WELLS위약금액기본*/
+             WHERE Y.PERF_YM <= #{perfYm}
+               AND X.CNTR_NO = Y.CNTR_NO
+               AND X.CNTR_SN = Y.CNTR_SN
+               AND X.SL_CL_YM = Y.PERF_YM
+               AND (X.LEASE_SL_CTR_AMT + X.LEASE_SL_CAN_AMT) != 0
+               AND X.SELL_TP_DTL_CD = #{sellTpDtlCd}   /*판매유형상세 22:리스, 24:환경리스, 25:장기할부, 26:환경할부*/
+               AND X.DTA_DL_YN = 'N'
+               AND Y.DTA_DL_YN = 'N'
+             GROUP BY Y.CNTR_NO, Y.CNTR_SN
+        )
+        SELECT T.PERF_YM                                                                 AS PERF_YM            /*실적년월*/
+             , A.CNTR_NO || '-' || A.CNTR_SN                                           AS CNTR_DTL_SN        /*계약상세번호*/
+             , TO_CHAR(TO_DATE(G.CNTR_CAN_DTM, 'YYYYMMDDHH24MISS'), 'yyyyMMdd')        AS CAN_DTM            /*취소일자*/
+             , A.LEASE_SL_CTR_AMT                                                                            /*매출조정금액*/
+             , A.LEASE_SL_CAN_AMT                                                                            /*매출취소금액 - 취소조정(취소 잔여 매출액포함)*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SL_CTR_DSC_TP_CD', B.SL_CTR_DSC_TP_CD)        AS CTR_TP             /*조정유형*/
+             , B.SL_CTR_RMK_CN                                                                               /*취소조정사유*/
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = D.BASE_PD_CD)           AS PD_NM              /*상품명*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CMN_STAT_CH_RSON_CD', C.CNTR_STAT_CH_RSON_CD) AS STAT_CH_RSON_NM    /*취소사유*/
+             , E.EOT_DLQ_AMT                                                                                 /*최종연체금*/
+             , F.EOT_BOR_AMT                                                                                 /*최종위약금*/
+          FROM TB_SSCT_CNTR_DTL D                             /*계약상세*/
+             , TB_SSCT_CNTR_BAS G                            /*계약기본*/
+             , RESAMT_CNTR T                                 /*대상건*/
+             , TB_CBCL_WELLS_SL_MM_CL_IZ A                   /*WELLS매출월마감내역*/
+             , TB_CBCL_WELLS_BOR_AMT_BAS F                   /*WELLS위약금액기본*/
+          LEFT OUTER JOIN TB_RVDW_SL_CTR_BAS B        /*매출조정기본*/
+            ON B.CNTR_NO = F.CNTR_NO
+           AND B.CNTR_SN = F.CNTR_SN
+           AND F.PERF_YM BETWEEN B.SL_CTR_STRT_YM AND B.SL_CTR_END_YM
+           AND B.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C /*계약해지처리내역*/
+            ON C.CNTR_NO = F.CNTR_NO
+           AND C.CNTR_SN = F.CNTR_SN
+           AND C.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E           /*연체기본*/
+            ON E.PERF_YM = F.PERF_YM
+           AND E.CNTR_NO = F.CNTR_NO
+           AND E.CNTR_SN = F.CNTR_SN
+           AND E.DTA_DL_YN = 'N'
+         WHERE F.CNTR_NO = T.CNTR_NO
+           AND F.CNTR_SN = T.CNTR_SN
+           AND F.PERF_YM = T.PERF_YM
+           AND A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.CNTR_NO = G.CNTR_NO
+           AND F.PERF_YM = A.SL_CL_YM
+           AND F.CNTR_NO = A.CNTR_NO
+           AND F.CNTR_SN = A.CNTR_SN
+           AND F.EOT_BOR_AMT > 0
+           AND F.DTA_DL_YN = 'N'
+           AND A.DTA_DL_YN = 'N'
+           AND D.DTA_DL_YN = 'N'
+           AND G.DTA_DL_YN = 'N'
+         ORDER BY 1,2,3,4
+        ]]>
+    </select>
+</mapper>
+
