@@ -145,6 +145,7 @@ public class WbnaCollectorAssignDto {
      * @param cntrSn 계약일련번호
      * @param cstNo 고객번호
      * @param clctamPrtnrNo 집금담당자번호
+     * @param clctamDvCd 집금구분
      */
     @ApiModel("WbnaCollectorAssignDto-EditReq")
     public record EditReq(
@@ -160,7 +161,8 @@ public class WbnaCollectorAssignDto {
         @NotBlank
         String cstNo,
         @NotBlank
-        String clctamPrtnrNo
+        String clctamPrtnrNo,
+        String clctamDvCd
     ) {}
 
     /**
