@@ -36,7 +36,8 @@ public class WdcbSinglePaymentController {
 
     @ApiOperation(value = "매출 실적 현황 - 일시불(기본정보)", notes = "조회조건에 따른 매출 실적 현황 - 일시불을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
     @GetMapping("/base")
     public BaseSearchRes getBaseInformation(
@@ -48,7 +49,8 @@ public class WdcbSinglePaymentController {
 
     @ApiOperation(value = "매출 실적 현황 - 일시불(매출실적)", notes = "조회조건에 따른 매출 실적 현황 - 일시불을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
     @GetMapping("/sales")
     public PagingResult<SalesSearchRes> getSalesPerformancePages(
@@ -61,7 +63,8 @@ public class WdcbSinglePaymentController {
 
     @ApiOperation(value = "매출 실적 현황 - 일시불(입금내역)", notes = "조회조건에 따른 매출 실적 현황 - 일시불을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
     @GetMapping("/deposits")
     public PagingResult<DepositSearchRes> getDepositPages(
@@ -74,7 +77,8 @@ public class WdcbSinglePaymentController {
 
     @ApiOperation(value = "매출 실적 현황 - 일시불(매출실적) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적 - 일시불을 엑셀 다운로드")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
     @GetMapping("/sales/excel-download")
     public List<SalesSearchRes> getSalesPerformanceExcelDownload(
@@ -86,7 +90,8 @@ public class WdcbSinglePaymentController {
 
     @ApiOperation(value = "매출 실적 현황 - 일시불(입금내역) 엑셀 다운로드", notes = "조회조건에 따른 매출 실적 - 일시불을 엑셀 다운로드")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
     })
     @GetMapping("/deposits/excel-download")
     public List<DepositSearchRes> getDepositExcelDownload(
