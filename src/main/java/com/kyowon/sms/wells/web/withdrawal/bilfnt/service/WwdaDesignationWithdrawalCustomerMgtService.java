@@ -75,10 +75,14 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
             String[] index = {dto.cntr()};
             WwdaDesignationWithdrawalCustomerMgtDvo dvo = converter
                 .mapSaveReqToWwdaDesignationWithdrawalCustomerMgtDvo(dto);
-            // SearchContractDetailInfRes res = mapper.selectContractDetailInf(dvo); // 필요한지 모르곘음
+
             WwdaAutomaticFntOjYnConfDvo afyDvo = mapper.selectAutomaticFntOjYnConf(dvo); // 자동이체 대상 여부 확인
 
             BizAssert.isFalse(Objects.isNull(afyDvo), "MSG_ALT_CHK_CNTR_NO", index);
+            BizAssert.isFalse(
+                !afyDvo.getSellTpCd().equals(dvo.getSellTpCd()) || !afyDvo.getCstKnm().equals(dvo.getCstKnm()),
+                "MSG_ALT_PD_CST_NM_DSCRPN"
+            );
 
             BizAssert.isFalse(
                 !afyDvo.getDpTpCd().equals("0102"),
