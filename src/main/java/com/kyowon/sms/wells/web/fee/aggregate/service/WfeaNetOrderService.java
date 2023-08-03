@@ -1,13 +1,19 @@
 package com.kyowon.sms.wells.web.fee.aggregate.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaNetOrderConverter;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaNetOrderDvo;
+import com.sds.sflex.system.config.validation.BizAssert;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto.*;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaNetOrderMapper;
+import com.kyowon.sflex.common.common.service.BatchCallService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class WfeaNetOrderService {
     private final WfeaNetOrderMapper mapper;
     private final WfeaNetOrderConverter converter;;
+    private final BatchCallService batchCallService;
 
     /**
      * WELLS 월순주문 집계 데이터 조회
@@ -78,22 +85,21 @@ public class WfeaNetOrderService {
      */
 
     @Transactional
-    public int saveByNetOrders(SaveReq dto) {
+    public String saveByNetOrders(SaveReq dto) throws Exception {
+        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
-        int processCount = 0;
+        // 배치 parameter
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("perfYm", dto.perfYm());
+        params.put("tcntDvCd", dto.tcntDvCd());
 
-        WfeaNetOrderDvo dvo = converter.mapSaveReqToWfeaNetOrderDvo(dto);
+        batchCallReqDvo.setJobKey("WSM_FE_OA0005");
+        batchCallReqDvo.setParams(params);
 
-        mapper.deleteNetOrders(dvo);
-        mapper.deleteWelsNetOrders(dvo);
-        processCount += mapper.insertManagerNetOrders(dvo);
-        processCount += mapper.insertPlannerNetOrders(dvo);
-        processCount += mapper.insertHomeMasterNetOrders(dvo);
-        if (processCount > 0) {
-            mapper.insertNetOrder(dvo);
-        }
+        String runId = batchCallService.runJob(batchCallReqDvo);
+        BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
 
-        return processCount;
+        return StringUtils.isNotBlank(runId) ? "S" : "E";
     }
 
     /**

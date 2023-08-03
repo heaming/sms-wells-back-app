@@ -34,8 +34,8 @@ public class WfeaWelsMngerSettlementAwController {
         @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
         @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrKnm", value = "이름", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRsbDvCd", value = "직급구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "divCd", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직급구분", paramType = "query", required = false),
     })
 
     @GetMapping("wmList")
@@ -52,8 +52,8 @@ public class WfeaWelsMngerSettlementAwController {
         @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
         @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrKnm", value = "이름", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schDiv", value = "구분", paramType = "query", required = false),
-        @ApiImplicitParam(name = "schRsbDvCd", value = "직급구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "divCd", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직급구분", paramType = "query", required = false),
     })
 
     @GetMapping("etc")
