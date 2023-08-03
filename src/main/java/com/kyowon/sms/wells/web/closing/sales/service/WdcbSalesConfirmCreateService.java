@@ -71,7 +71,8 @@ public class WdcbSalesConfirmCreateService {
                 sapMatEvlClssVal = edcbSapMatDvo.getSapMatEvlClssVal();
                 sapMatCd = edcbSapMatDvo.getSapMatCd();
                 /* 6-1.저장물품여부(SAVE_GDS_YN) */
-                saveGdsYn = sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N";
+                saveGdsYn = StringUtils.isNotEmpty(sapMatEvlClssVal)
+                    ? sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N" : "";
             }
 
             /* 7. SAP사업본부정보코드(SAP_BZ_HDQ_INF_CD) */
