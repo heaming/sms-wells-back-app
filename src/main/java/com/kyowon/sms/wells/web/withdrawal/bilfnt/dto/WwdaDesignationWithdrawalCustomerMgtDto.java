@@ -53,7 +53,9 @@ public class WwdaDesignationWithdrawalCustomerMgtDto {
         String dsnWdrwFntPrdCd, // 이체주기코드
         //        String bilNo, // 청구번호
         //        String bilDtlSn, // 청구상세일련번호
-        String dtaDlYn
+        String dtaDlYn,
+        String cstKnm,
+        String sellTpCd
     ) {
         public SaveReq {
             dtaDlYn = "N";
