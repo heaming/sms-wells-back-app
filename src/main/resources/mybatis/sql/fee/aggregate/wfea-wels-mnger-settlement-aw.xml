@@ -186,17 +186,15 @@
              , 'N'
         <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_OGBS_MM_PRTNR_IZ T1    /* 월 파트너*/
-          LEFT OUTER JOIN ( SELECT APLCNS_PRTNR_NO AS PRTNR_NO
-                                         , COUNT(1) AS ASP_CNT
-                                      FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
-                                     WHERE APLCNS_OG_TP_CD = 'W02'
-                                       AND MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM')            /*관리년월 = 기준년월+1*/
-                                       AND UPGR_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM')            /*승급년월 = 기준년월+1*/
-                                       AND TOPMR_PLAR_APLC_STAT_CD = '01' /*수석플래너신청상태코드 = '정상신청' 현재 확인되지 않아 임시!!*/
-                                       AND UPGR_DMTN_DV_CD = '01'  /*승급강등구분코드 = '승급' 현재 확인되지 않아 임시!!*/
-                                       AND UPGR_DMTN_CNFM_YN = 'Y' /*승급강등확정여부 = 'Y' 현재 확인되지 않아 임시!!*/
-                                     GROUP BY APLCNS_PRTNR_NO
-                                  )AK06 /* 익월 수석플래너 대상자 조회 */
+          LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                 , COUNT(1) AS ASP_CNT
+                              FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                             WHERE OG_TP_CD = 'W02'
+                               AND MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM')            /*관리년월 = 기준년월+1*/
+                               AND UPGR_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM')            /*승급년월 = 기준년월+1*/
+                               AND UPGR_DMTN_DV_CD = '01'  /*승급강등구분코드 = '승급' 현재 확인되지 않아 임시!!*/
+                             GROUP BY PRTNR_NO
+                          )AK06 /* 익월 수석플래너 대상자 조회 */
             ON T1.PRTNR_NO = AK06.PRTNR_NO
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                          , COUNT(1) AS JJ_CNT
@@ -207,16 +205,14 @@
                                      GROUP BY PRTNR_NO
                                   )A1   /* 지점장 이상 경력자 체크 */
             ON T1.PRTNR_NO = A1.PRTNR_NO
-          LEFT OUTER JOIN ( SELECT APLCNS_PRTNR_NO AS PRTNR_NO
-                                         , COUNT(1) AS BSP_CNT
-                                      FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
-                                     WHERE APLCNS_OG_TP_CD = 'W02'
-                                       AND MNGT_YM &lt;= #{baseYm}            /*관리년월 = 기준년월 이하*/
-                                       AND TOPMR_PLAR_APLC_STAT_CD = '01' /*수석플래너신청상태코드 = '정상신청' 현재 확인되지 않아 임시!!*/
-                                       AND UPGR_DMTN_DV_CD = '01'  /*승급강등구분코드 = '승급' 현재 확인되지 않아 임시!!*/
-                                       AND UPGR_DMTN_CNFM_YN = 'Y' /*승급강등확정여부 = 'Y' 현재 확인되지 않아 임시!!*/
-                                     GROUP BY APLCNS_PRTNR_NO
-                                  )B1  /* 수석플래너 경력자 체크 */
+          LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                 , COUNT(1) AS BSP_CNT
+                              FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                             WHERE OG_TP_CD = 'W02'
+                               AND MNGT_YM &lt;= #{baseYm}            /*관리년월 = 기준년월 이하*/
+                               AND UPGR_DMTN_DV_CD = '01'  /*승급강등구분코드 = '승급' 현재 확인되지 않아 임시!!*/
+                             GROUP BY PRTNR_NO
+                          )B1  /* 수석플래너 경력자 체크 */
             ON T1.PRTNR_NO = B1.PRTNR_NO
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                          , COUNT(1) AS JC_CNT
@@ -241,7 +237,7 @@
          WHERE T1.BASE_YM = #{baseYm}
            AND T1.OG_TP_CD = 'W02'
            AND T1.QLF_DV_CD IN ('2','6','3')  /* 프리매니저, BS프리매니저, 웰스매니저 */
-           AND SUBSTR(T1.CLTN_DT,0,6) &gt;= #{baseYm}  /* 해약년월 기준년월 이상 */
+           AND NVL(SUBSTR(T1.CLTN_DT,0,6),'999912') &gt;= #{baseYm}  /* 해약년월 기준년월 이상 */
            AND SUBSTR(T1.CNTR_DT,0,6) &lt;= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM') /* 계약년월 기준년월+1월(익월) 이하 */
            AND ( CASE WHEN #{baseYm} &lt; SUBSTR(T1.CLTN_DT,0,6) THEN 0  /* 기준년월이 계약년월 이전이면 0 */
                       ELSE MONTHS_BETWEEN(TO_DATE(#{baseYm}||'01'), TO_DATE(SUBSTR(T1.CNTR_DT,0,6)||'01')) + 1
@@ -249,7 +245,7 @@
                ) &lt;= 5  /* 개시차월 (기준년월 - 계약년월+1) 이 5개월 이하 */
            AND ( T1.BZ_STAT_CD = '1' /* 활동여부 Y */
                  OR T1.BZ_STAT_CD != '1' /* 활동여부 N */
-                 AND ( SUBSTR(T1.CLTN_DT,0,6)  &gt; #{baseYm} /* 해약년월 기준일자 이상*/
+                 AND ( NVL(SUBSTR(T1.CLTN_DT,0,6),'999912')  &gt; #{baseYm} /* 해약년월 기준일자 이상*/
                        OR NVL(AK06.ASP_CNT,0) != 0 /* 익월 수석플래너 대상자 */
                      )
                )
