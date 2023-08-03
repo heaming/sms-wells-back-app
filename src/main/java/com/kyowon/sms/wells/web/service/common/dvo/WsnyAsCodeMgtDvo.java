@@ -15,26 +15,30 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsnyAsCodeMgtDvo {
-    String svTpCd;
-    String asLctCd;
-    String asLctNm;
-    String asPhnCd;
-    String asPhnNm;
-    String asCausCd;
-    String asCausNm;
-    String siteAwAtcCd;
-    String siteAwAtcNm;
-    String fuleyAwAmt;
-    String svAnaHclsfCd;
-    String svAnaHclsfNm;
+
     String pdGrpCd;
     String pdCd;
+    String svDvCd;
+    String asLctCd;
+    String asPhnCd;
+    String asCausCd;
     String siteAwAtcDsnDt;
+    String svAnaHclsfCd;
+    String siteAwAtcCd;
+    String fuleyAwAmt;
     String svAnaMclsfCd;
     String svAnaLclsfCd;
     String svAnaDsnDt;
     String apyStrtdt;
     String apyEnddt;
+
+    String svTpCd;
+    String svTpNm;
+    String asLctNm;
+    String asPhnNm;
+    String asCausNm;
+    String siteAwAtcNm;
+    String svAnaHclsfNm;
     String dtaDlYn;
     String applyDate;
     String chk;
@@ -44,4 +48,6 @@ public class WsnyAsCodeMgtDvo {
     String flag;
     String cd;
     String cdNm;
+    String pdNm;
+    String pdGrpNm;
 }
