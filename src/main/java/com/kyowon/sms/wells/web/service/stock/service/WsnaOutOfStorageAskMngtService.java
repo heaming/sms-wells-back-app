@@ -2,14 +2,18 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaOutofStorageAskMngtConverter;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.sds.sflex.system.config.constant.CommConst;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,6 +45,15 @@ public class WsnaOutOfStorageAskMngtService {
 
     private final WsnaOutofStorageAskMngtConverter converter;
 
+    // 재고서비스
+    private final WsnaItemStockItemizationService stockService;
+
+    // (주)교원프라퍼티파주물류(Wells)
+    private static final String SAP_PLNT_CD = "2108";
+    // 프라파주창고(Wells)
+    private static final String SAP_SAVE_LCT_CD = "21082082";
+    private static final int SLICE_SIZE = 999;
+
     final String WARE_DV_CD_LOGISTICS_CENTER = "1"; // 창고구분코드 = 물류센터
 
     private final WsnaLogisticsOutStorageAskService logisticsservice;
@@ -68,11 +81,85 @@ public class WsnaOutOfStorageAskMngtService {
      * @param dto : { session.userid : 사용자id , apyYm : 기준년월 }
      * @return 조회결과
      */
-    public List<OutOfRes> getOutOfStorageItemPages(
+    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemPages(
         SearchReq dto
     ) {
         // TODO: 물류창고 조회 로직 추가 필요.
-        return this.mapper.selectOutOfStorageItms(dto);
+        WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
+
+        String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
+        searchDvo.setOstrWareDvCd(ostrWareDvCd);
+
+        List<WsnaOutOfStorageAskMngtDvo> outOfDvo = this.mapper.selectOutOfStorageItms(searchDvo);
+
+        if (WARE_DV_CD_LOGISTICS_CENTER.equals(ostrWareDvCd)) {
+            this.getRealTimeLogisticStockQtys(outOfDvo);
+        }
+
+        return outOfDvo;
+    }
+
+    /**
+     * 물류재고 조회(999건만 조회되도록 사이즈 조정)
+     * @param dvos
+     */
+    private void getRealTimeLogisticStockQtys(List<WsnaOutOfStorageAskMngtDvo> dvos) {
+        if (CollectionUtils.isNotEmpty(dvos)) {
+
+            int size = dvos.size();
+            int sliceSize = Math.floorDiv(size, SLICE_SIZE) + (Math.floorMod(size, SLICE_SIZE) > 0 ? 1 : 0);
+
+            for (int i = 0; i < sliceSize; i++) {
+                int startIndex = i * SLICE_SIZE;
+                int endIndex = (i + 1) * SLICE_SIZE > size ? size : (i + 1) * SLICE_SIZE;
+
+                List<WsnaOutOfStorageAskMngtDvo> sliceDvos = dvos.subList(startIndex, endIndex);
+                List<String> itmPds = sliceDvos.stream().map(WsnaOutOfStorageAskMngtDvo::getItmPdCd).toList();
+
+                //실시간 재고조회 서비스 조회호출
+                List<RealTimeGradeStockResIvo> stocks = this.stockService
+                    .getRealTimeGradeStocks(SAP_PLNT_CD, SAP_SAVE_LCT_CD, itmPds);
+
+                this.setTotalLogisticQty(stocks, sliceDvos);
+
+            }
+
+        }
+    }
+
+    /**
+     * 물류재고 조회
+     * @param stocks
+     * @param sliceDvos
+     */
+    private void setTotalLogisticQty(
+        List<RealTimeGradeStockResIvo> stocks, List<WsnaOutOfStorageAskMngtDvo> sliceDvos
+    ) {
+        if (CollectionUtils.isNotEmpty(stocks)) {
+            int stockSize = stocks.size();
+
+            for (WsnaOutOfStorageAskMngtDvo dvo : sliceDvos) {
+                String itmPdCd = dvo.getItmPdCd();
+                BigDecimal lgstQty = BigDecimal.ZERO;
+
+                for (int i = 0; i < stockSize; i++) {
+                    RealTimeGradeStockResIvo stock = stocks.get(i);
+
+                    String stockPdCd = stock.getItmPdCd();
+
+                    if (itmPdCd.equals(stockPdCd)) {
+
+                        lgstQty = stock.getLgstAGdQty();
+                        stockSize--;
+                        stocks.remove(stock);
+                        break;
+                    }
+
+                }
+                dvo.setWarehouseQty(lgstQty);
+            }
+
+        }
     }
 
     /**
@@ -187,7 +274,9 @@ public class WsnaOutOfStorageAskMngtService {
         return processCount;
     }
 
-    public List<OutOfRes> getOutOfStorageItemExcelDownload(SearchReq dto) {
-        return mapper.selectOutOfStorageItms(dto);
+    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemExcelDownload(SearchReq dto) {
+
+        WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
+        return mapper.selectOutOfStorageItms(searchDvo);
     }
 }

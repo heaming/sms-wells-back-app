@@ -47,13 +47,13 @@ public class WwdbEdiCardAprovalRefundInterfaceDto {
         @JsonProperty("TF_DT")
         String ediCardAgrgTfDt, //이관일자
         @JsonProperty("CNTR_NO")
-        String CntrNo, // 계약번호
+        String cntrNo, // 계약번호
         @JsonProperty("CNTR_SN")
         String cntrSn, // 계약일련번호
         @JsonProperty("EDI_PD_DV_CD_NM")
         String ediPdDvNm, //상품명 (EDI상품구분코드)
         @JsonProperty("EDI_DP_TP_CD_NM")
-        String ediDpTpCd, // 유형(인수금, 할부금 …) (EDI입금유형코드)
+        String ediDpTpNm, // 유형(인수금, 할부금 …) (EDI입금유형코드)
         @JsonProperty("CST_FNM")
         String cntrCstNm //계약자명(EDI카드내역.고객성명)
     ) {}

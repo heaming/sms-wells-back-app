@@ -27,8 +27,8 @@ public class WfeaWelsMngerSettlementAwDto {
         String tcntDvCd,
         String prtnrNo,
         String prtnrKnm,
-        String schDiv,
-        String schRsbDvCd
+        String divCd,
+        String rsbDvCd
     ) {}
 
     @ApiModel(value = "WfeaWelsMngerSettlementAwDto-SaveOpngReq")

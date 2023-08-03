@@ -28,12 +28,12 @@ public class WfeyNewChannelBaseController {
 
     @ApiOperation(value = "신채널수수료기준관리 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "col1", value = "적용시작일", paramType = "query"),
-        @ApiImplicitParam(name = "col2", value = "상품코드 ", paramType = "query"),
-        @ApiImplicitParam(name = "col3", value = "판매유형 ", paramType = "query"),
-        @ApiImplicitParam(name = "col4", value = "BS주기 ", paramType = "query"),
-        @ApiImplicitParam(name = "col5", value = "할인제도 ", paramType = "query"),
-        @ApiImplicitParam(name = "col6", value = "채널구분 ", paramType = "query"),
+        @ApiImplicitParam(name = "apyStrtdt", value = "적용시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드 ", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형 ", paramType = "query"),
+        @ApiImplicitParam(name = "svPrd", value = "BS주기 ", paramType = "query"),
+        @ApiImplicitParam(name = "pmotCd", value = "할인제도 ", paramType = "query"),
+        @ApiImplicitParam(name = "feecDvCd", value = "채널구분 ", paramType = "query"),
     })
     @GetMapping()
     public List<SearchNewChannelBaseRes> getNewChannelBase(@ApiParam @Valid SearchNewChannelBaseReq req) {
@@ -42,12 +42,12 @@ public class WfeyNewChannelBaseController {
 
     @ApiOperation(value = "신채널수수료기준관리 페이징")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "col1", value = "적용시작일", paramType = "query"),
-        @ApiImplicitParam(name = "col2", value = "상품코드 ", paramType = "query"),
-        @ApiImplicitParam(name = "col3", value = "판매유형 ", paramType = "query"),
-        @ApiImplicitParam(name = "col4", value = "BS주기 ", paramType = "query"),
-        @ApiImplicitParam(name = "col5", value = "할인제도 ", paramType = "query"),
-        @ApiImplicitParam(name = "col6", value = "채널구분 ", paramType = "query"),
+        @ApiImplicitParam(name = "apyStrtdt", value = "적용시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드 ", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형 ", paramType = "query"),
+        @ApiImplicitParam(name = "svPrd", value = "BS주기 ", paramType = "query"),
+        @ApiImplicitParam(name = "pmotCd", value = "할인제도 ", paramType = "query"),
+        @ApiImplicitParam(name = "feecDvCd", value = "채널구분 ", paramType = "query"),
     })
     @GetMapping("/pages")
     public PagingResult<SearchNewChannelBaseRes> getNewChannelBase(@ApiParam @Valid SearchNewChannelBaseReq req, @Valid PageInfo pageInfo) {

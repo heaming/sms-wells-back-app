@@ -50,16 +50,16 @@
                )
          UNION ALL
         -- 렌탈 60차월 이상 유지건의 취소일자 없는 건 찾기
-        SELECT T1.CNTR_NO || '-' || T1.CNTR_SN                AS COL1 /*계약번호 || '-' || 계약일련번호*/
-             , '21'                                         AS COL2
-             , '렌탈 60차월 종료 철거시 종료 일자 미세팅건'       AS COL3
-             , SUBSTR(T3.CNTR_CNFM_DTM, 1, 8)      AS COL4  /*계약확정일시*/
-             , T2.IST_DT                AS COL5
-             , T2.CPS_DT                                     AS COL6 /*보상일자*/
-             , SUBSTR(T3.CNTR_CAN_DTM, 1, 8)      AS COL7  /*계약취소일시*/
-             , T5.REQD_DT                          AS COL8  /*철거일자*/
-             , T4.ISTM_MCN                                   AS COL9 /*할부개월수*/
-             , 'R'                                          AS COL10 /*H:할부 R:렌탈 회사설치:C*/
+        SELECT T1.CNTR_NO || '-' || T1.CNTR_SN          AS COL1 /*계약번호 || '-' || 계약일련번호*/
+             , '21'                                     AS COL2
+             , '렌탈 60차월 종료 철거시 종료 일자 미세팅건'   AS COL3
+             , SUBSTR(T3.CNTR_CNFM_DTM, 1, 8)           AS COL4  /*계약확정일시*/
+             , T2.IST_DT                                AS COL5
+             , T2.CPS_DT                                AS COL6 /*보상일자*/
+             , SUBSTR(T3.CNTR_CAN_DTM, 1, 8)            AS COL7  /*계약취소일시*/
+             , T5.REQD_DT                               AS COL8  /*철거일자*/
+             , T4.ISTM_MCN                              AS COL9 /*할부개월수*/
+             , 'R'                                      AS COL10 /*H:할부 R:렌탈 회사설치:C*/
              , CASE WHEN SUBSTR(T2.IST_DT, 5, 4) <![CDATA[>=]]> SUBSTR(T2.REQD_DT, 5, 4) THEN '만료취소'
                     ELSE 'X' END                           AS COL11
           FROM TB_SSCT_CNTR_DTL T1 /*계약기본상세 [AS-IS:LCLIB.LC3100P] -- 렌탈계약*/
@@ -88,13 +88,12 @@
         --                     AND T5.OJ_DTL_CNTR_NO = T1.CNTR_NO
         --                     AND T5.OJ_DTL_CNTR_SN = T1.CNTR_SN )
         --                     )
-         WHERE 1 = 1
-           AND T1.DTA_DL_YN             = 'N'                                        /*데이터삭제여부*/
+         WHERE T1.DTA_DL_YN             = 'N'                                        /*데이터삭제여부*/
            AND T1.SELL_TP_CD            = '2'                                        /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
            AND ( T1.CNTR_DTL_STAT_CD NOT IN ('401', '402')        /*계약상세상태코드[401:최종종료]*/
               OR T2.REQD_DT      IS NULL                                             /*철거일자*/
                )
-           AND SUBSTR(T5.REQD_DT, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*철거일자*/
+           AND T5.REQD_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%' /*철거일자*/
            AND T3.CNTR_CNFM_DTM IS NOT NULL                                          /*계약확정일시*/
            AND T4.SL_CL_YM              = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
            AND T4.ISTM_MCN              = T4.RENTAL_TN
@@ -147,74 +146,164 @@
         -- 1.가입일자　누락건
         -- 확정일자 -> TO-BE 설치일자로 확인
         -- 가입일자 -> TO-BE 계약확정승인일시로 확인
-        -- 홈케어  -> TO-BE 판매유형코드 5로 확인
+        -- 홈케어   -> TO-BE 판매유형코드 5로 확인
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'1'                                   AS COL2
-              ,'가입일자누락건체크'                     AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'가입일자누락건체크'                      AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)          AS COL5 /*철거일자*/
               ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,E.ISTM_MCN                            AS COL9
-              -- WELLS 월마감실적 테이블 확정되면 렌탈차월 수정
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
+              ,NVL(G.RENTAL_TN, 0)                   AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,NVL(H.DLQ_MCN, 0)             AS COL13 /*연체개월수*/
-              ,''                            AS COL14
-              ,''                            AS COL15
-          FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL
-                 AND B.REQD_DT IS NULL
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시*/
-                 --계약고객번호(복호화 처리 필요)
-                 AND C.CNTR_CST_NO != '1018139767000' /*계약고객번호(공문교육건제외)*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.REQD_DT IS NULL
-               -- WELLS 월마감실적 테이블 확정되면 추가
-               --AND C.LCPAYY =  YEAR(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-               --AND C.LCPAYM = MONTH(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-               --AND B.LCRCNT <![CDATA[ >= ]]> B.LCMONT
-               LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
-                 ON H.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
-                AND H.CNTR_NO = D.OJ_DTL_CNTR_NO /*계약번호*/
-                AND H.CNTR_SN = D.OJ_DTL_CNTR_SN /*계약일련번호*/
-                AND H.DLQ_MCN <![CDATA[ < ]]> 2
-         WHERE 1 = 1
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL(H.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
+              ,''                                    AS COL14
+              ,''                                    AS COL15
+          FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NULL     /*계약확정승인일시*/
+           AND C.CNTR_RCP_FSH_DTM  IS NOT NULL /*계약접수승인일시*/
+           AND C.CNTR_CST_NO != '1018139767000' /*계약고객번호(공문교육건제외)*/
+           <choose>
+               <when test="@MybatisUtils@equals(deptGubun, '2')">
+                /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </when>
+               <otherwise>
+                /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </otherwise>
+           </choose>
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON E.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT   IS NULL
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+            ON G.DTA_DL_YN = 'N'
+           AND G.CNTR_NO   = E.CNTR_NO
+           AND G.CNTR_SN   = E.CNTR_SN
+           AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND G.RENTAL_TN <![CDATA[>=]]> E.CNTR_PTRM
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
+            ON H.DTA_DL_YN = 'N'
+           AND H.PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+           AND H.CNTR_NO   = E.CNTR_NO /*계약번호*/
+           AND H.CNTR_SN   = E.CNTR_SN /*계약일련번호*/
+           AND H.DLQ_MCN   <![CDATA[<]]> 2
+         WHERE A.DTA_DL_YN  = 'N'
            AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           AND SUBSTR(A.CNTR_PD_STRTDT, 1, 6) <![CDATA[ < ]]> TO_CHAR(SYSDATE, 'YYYYMM')
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'> --고객센터
-           --AND A.LCSUNA =  '70700'
-           --</if>
-           --<if test='CHKGUBN != "70700"'>
-           --AND A.LCSUNA != '70700'
-           --</if>
+           AND A.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+           AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')
+
+        <if test="@MybatisUtils@equals(deptGubun, '1')">
+        -- 아래 쿼리는 고객센터인 경우만 실행
+        UNION ALL
+        -------------------------------------------------------
+        -- 1-1.가입일자　누락건
+        -- 확정일자 -> TO-BE 설치일자로 확인
+        -- 가입일자 -> TO-BE 계약확정승인일시로 확인
+        -- 홈케어   -> TO-BE 판매유형코드 5로 확인
+        -------------------------------------------------------
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
+              ,'1-1'                                 AS COL2
+              ,'렌탈이전월정보없는가입일자누락건'          AS COL3
+              ,SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(A.CNTR_CAN_DTM, 1, 8)          AS COL5 /*철거일자*/
+              ,A.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,A.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,A.CNTR_PTRM                           AS COL9
+              ,NVL(B.RENTAL_TN, 0)                   AS COL10
+              ,(SELECT PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL(A.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
+              ,''                                    AS COL14
+              ,''                                    AS COL15
+          FROM (SELECT A.CNTR_NO
+                     , A.CNTR_SN
+                     , C.CNTR_RCP_FSH_DTM
+                     , C.CNTR_CAN_DTM
+                     , G.RENTAL_TN
+                     , E.CNTR_PTRM
+                     , A.FNL_AMT
+                     , A.FST_RGST_USR_ID
+                     , E.CNTR_PD_ENDDT
+                     , F.REQD_DT
+                     , H.DLQ_MCN
+                  FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
+                 INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+                    ON C.DTA_DL_YN = 'N'
+                   AND C.CNTR_NO   = A.CNTR_NO
+                   AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+                   AND C.CNTR_CAN_DTM IS NULL
+                   AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                 INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+                    ON D.DTA_DL_YN        = 'N'
+                   AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+                   AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+                   AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+                   AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+                   AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+                 INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+                    ON E.DTA_DL_YN  = 'N'
+                   AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+                   AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+                   AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+                 INNER JOIN TB_SSCT_CNTR_BAS I /*계약기본 [AS-IS:LCLIB.LC3100P]*/
+                    ON I.DTA_DL_YN = 'N'
+                   AND I.CNTR_NO   = E.CNTR_NO
+                   AND I.CNTR_CAN_DTM IS NULL
+                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+                    ON E.DTA_DL_YN = 'N'
+                   AND F.CNTR_NO   = E.CNTR_NO
+                   AND F.CNTR_SN   = E.CNTR_SN
+                   AND F.REQD_DT   IS NULL
+                  LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+                    ON G.DTA_DL_YN = 'N'
+                   AND G.CNTR_NO   = E.CNTR_NO
+                   AND G.CNTR_SN   = E.CNTR_SN
+                   AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+                  LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
+                    ON H.DTA_DL_YN = 'N'
+                   AND H.PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+                   AND H.CNTR_NO   = E.CNTR_NO /*계약번호*/
+                   AND H.CNTR_SN   = E.CNTR_SN /*계약일련번호*/
+                 WHERE A.DTA_DL_YN  = 'N'
+                   AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+                   AND A.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+                   AND NVL(G.SL_CL_YM, '') = '') A
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ B
+            ON B.DTA_DL_YN  = 'N'
+           AND A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND B.RENTAL_TN <![CDATA[>]]> A.CNTR_PTRM
+         WHERE 1 = 1
+        </if>
         UNION ALL
         -------------------------------------------------------
         -- 2.60차월이전멤가입시가입일자들어가있는건
@@ -223,62 +312,65 @@
         -- 가입일자 -> TO-BE 계약확정승인일시로 확인
         -- 홈케어  -> TO-BE 판매유형코드 5로 확인
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
-              ,'2'                                   AS COL2
-              ,'60차월이전멤가입시가입일자들어가있는건'     AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,E.ISTM_MCN                            AS COL9
-              -- WELLS 월마감실적 테이블 확정되면 렌탈차월 수정
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN            AS COL1
+              ,'2'                                      AS COL2
+              ,'60차월이전멤가입시가입일자들어가있는건' AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)         AS COL4 /*계약상품시작일자*/
+              ,CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') THEN A.CNTR_PD_ENDDT
+                    ELSE '' END                         AS COL5 /*철거일자*/
+              ,E.CNTR_PD_ENDDT                          AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,F.REQD_DT                                AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,A.FNL_AMT                                AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                              AS COL9
+              ,NVL(G.RENTAL_TN, 0)                      AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,NVL(H.DLQ_MCN, 0)             AS COL13 /*연체개월수*/
-              ,''                            AS COL14
-              ,''                            AS COL15
+                   AND ROWNUM = 1)                      AS COL11
+              ,A.FST_RGST_USR_ID                        AS COL12 /*최초등록사용자ID*/
+              ,NVL(H.DLQ_MCN, 0)                        AS COL13 /*연체개월수*/
+              ,''                                       AS COL14
+              ,''                                       AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-               -- WELLS 월마감실적 테이블 확정되면 추가
-               --AND C.LCPAYY =  YEAR(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-               --AND C.LCPAYM = MONTH(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-               --AND C.LCRCNT <![CDATA[ < ]]> C.LCMONT
-               LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
-                 ON H.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
-                AND H.CNTR_NO = D.OJ_DTL_CNTR_NO /*계약번호*/
-                AND H.CNTR_SN = D.OJ_DTL_CNTR_SN /*계약일련번호*/
-         WHERE 1 = 1
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN  = 'N'
+           AND C.CNTR_NO    = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20'  /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN  = 'N'
+           AND F.CNTR_NO = E.CNTR_NO
+           AND F.CNTR_SN = E.CNTR_SN
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+            ON G.DTA_DL_YN = 'N'
+           AND G.CNTR_NO   = E.CNTR_NO
+           AND G.CNTR_SN   = E.CNTR_SN
+           AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND G.RENTAL_TN <![CDATA[<]]> E.CNTR_PTRM
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
+            ON H.DTA_DL_YN  = 'N'
+           AND H.PERF_YM    = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+           AND H.CNTR_NO    = E.CNTR_NO /*계약번호*/
+           AND H.CNTR_SN    = E.CNTR_SN /*계약일련번호*/
+         WHERE A.DTA_DL_YN  = 'N'
            AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
         UNION ALL
         -------------------------------------------------------
         -- 3.멤버십생성(LCASU10C)전확인할것
@@ -289,63 +381,68 @@
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'3'                                   AS COL2
-              ,'렌탈기간안끝났는데멤버십들어간건'          AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'렌탈기간안끝났는데멤버십들어간건'    AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
               ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,E.ISTM_MCN                            AS COL9
-              -- WELLS 월마감실적 테이블 확정되면 렌탈차월 수정
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
+              ,NVL(G.RENTAL_TN, 0)                   AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,NVL(H.DLQ_MCN, 0)             AS COL13 /*연체개월수*/
-              ,''                            AS COL14
-              ,''                            AS COL15
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL(H.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-               -- WELLS 월마감실적 테이블 확정되면 추가
-               --AND C.LCPAYY =  YEAR(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-               --AND C.LCPAYM = MONTH(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-               --AND C.LCRCNT <![CDATA[ < ]]> B.LCMONT
-               LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
-                 ON H.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
-                AND H.CNTR_NO = D.OJ_DTL_CNTR_NO /*계약번호*/
-                AND H.CNTR_SN = D.OJ_DTL_CNTR_SN /*계약일련번호*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
-           --<if test='CHKGUBN != "70700"'>
-           --AND A.LCSUNA != '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%' /*계약확정승인일시*/
+           <choose>
+               <when test="@MybatisUtils@equals(deptGubun, '2')">
+                /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </when>
+               <otherwise>
+                /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </otherwise>
+           </choose>
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+            ON G.DTA_DL_YN = 'N'
+           AND G.CNTR_NO   = E.CNTR_NO
+           AND G.CNTR_SN   = E.CNTR_SN
+           AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND G.RENTAL_TN <![CDATA[<]]> E.CNTR_PTRM
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
+            ON H.DTA_DL_YN  = 'N'
+           AND H.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+           AND H.CNTR_NO = E.CNTR_NO /*계약번호*/
+           AND H.CNTR_SN = E.CNTR_SN /*계약일련번호*/
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
         UNION ALL
         -------------------------------------------------------
         -- 4.멤버십신청한지오래되었는데가입된건확인쿼리
@@ -355,62 +452,67 @@
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'4'                                   AS COL2
-              ,'멤버십신청한지오래되었는데가입된건'         AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'멤버십신청한지오래되었는데가입된건'        AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
               ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,E.ISTM_MCN                            AS COL9
-              -- WELLS 월마감실적 테이블 확정되면 렌탈차월 수정
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
+              ,NVL(G.RENTAL_TN, 0)                   AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,NVL(H.DLQ_MCN, 0)             AS COL13 /*연체개월수*/
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL(H.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-               -- WELLS 월마감실적 테이블 확정되면 추가
-               LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
-                 ON H.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
-                AND H.CNTR_NO = D.OJ_DTL_CNTR_NO /*계약번호*/
-                AND H.CNTR_SN = D.OJ_DTL_CNTR_SN /*계약일련번호*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           AND SUBSTR(A.CNTR_PD_STRTDT, 1, 6) <![CDATA[ < ]]> '201303'
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
-           --<if test='CHKGUBN != "70700"'>
-           --AND A.LCSUNA != '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%' /*계약확정승인일시*/
+           <choose>
+               <when test="@MybatisUtils@equals(deptGubun, '2')">
+                /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </when>
+               <otherwise>
+                /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </otherwise>
+           </choose>
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN = 'N'
+           AND E.CNTR_NO   = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN   = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+            ON G.DTA_DL_YN = 'N'
+           AND G.CNTR_NO   = E.CNTR_NO
+           AND G.CNTR_SN   = E.CNTR_SN
+           AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
+            ON H.DTA_DL_YN = 'N'
+           AND H.PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+           AND H.CNTR_NO   = E.CNTR_NO /*계약번호*/
+           AND H.CNTR_SN   = E.CNTR_SN /*계약일련번호*/
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
+           AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> '201303'
         UNION ALL
         -------------------------------------------------------
         -- 5.종료고객인데멤버십등록된건
@@ -422,52 +524,56 @@
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'5'                                   AS COL2
               ,'종료고객인데멤버십등록된건'               AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
               ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,E.ISTM_MCN                            AS COL9
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM') /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.REQD_DT IS NOT NULL
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
+            ON B.DTA_DL_YN       = 'N'
+           AND B.CNTR_NO = A.CNTR_NO
+           AND B.CNTR_SN = A.CNTR_SN
+           AND B.CPS_DT IS NULL /*보상일자*/
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_RCP_FSH_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%' /*계약접수승인일시*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
+        INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN       = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3'  /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
+           AND A.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
         UNION ALL
         -------------------------------------------------------
         -- 6.철거고객인데멤버십등록된건
@@ -478,54 +584,53 @@
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'6'                                   AS COL2
-              ,'렌탈철거고객인데멤버십등록된건'            AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'렌탈철거고객인데멤버십등록된건'      AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
               ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,E.ISTM_MCN                            AS COL9
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NOT NULL /*보상일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.REQD_DT IS NOT NULL
-         WHERE 1 = 1
-           AND A.SELL_TP_CD IN ('3', '5') /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           --AND A.LCSUNA =  '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN  = 'N'
+           AND F.CNTR_NO    = E.CNTR_NO
+           AND F.CNTR_SN    = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN  = 'N'
+           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
         UNION ALL
         -------------------------------------------------------
         -- 7.철거인데멤버십가입내려간건체크
@@ -536,53 +641,51 @@
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'7'                                   AS COL2
-              ,'철거인데멤버십가입내려간건체크'            AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'철거인데멤버십가입내려간건체크'      AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
               ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,E.ISTM_MCN                            AS COL9
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND SUBSTR(B.IST_DT, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')  /*설치일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.REQD_DT IS NOT NULL
-         WHERE 1 = 1
-           AND A.SELL_TP_CD IN ('3', '5') /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN  = 'N'
+           AND C.CNTR_NO = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%' /*계약확정승인일시*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN  = 'N'
+           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
         UNION ALL
         -------------------------------------------------------
         -- 8.멤버십가입건중에서비스센터철거된건(중요)
@@ -593,40 +696,52 @@
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'8'                                   AS COL2
-              ,'멤버십가입건중에서비스센터철거된건'        AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'멤버십가입건중에서비스센터철거된건'  AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
               ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND SUBSTR(B.IST_DT, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')  /*설치일자*/
-                 AND B.REQD_DT IS NOT NULL /*철거일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3'  /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
         UNION ALL
         -------------------------------------------------------
         -- 9.확정일O가입X,가입O확정X
@@ -634,478 +749,488 @@
         -- 가입일자 -> TO-BE 계약확정승인일시로 확인
         -- 홈케어  -> TO-BE 판매유형코드 5로 확인
         -------------------------------------------------------
-        -- TO-BE 계약확정승인일시 IS NULL AND 설치일자 IS NOT NULL
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
-              ,'9'                                   AS COL2
-              ,'확정있는데가입없는건,가입있는데확정X건'     AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,0                                     AS COL9
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN            AS COL1
+              ,'9'                                      AS COL2
+              ,'확정있는데가입없는건,가입있는데확정X건' AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)         AS COL4 /*계약상품시작일자*/
+              ,CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') THEN A.CNTR_PD_ENDDT
+                    ELSE '' END                         AS COL5 /*철거일자*/
+              ,'44444444'                               AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,'44444444'                               AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,A.FNL_AMT                                AS COL8 /*월할부금액*/
+              ,0                                        AS COL9
+              ,0                                        AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                      AS COL11
+              ,A.FST_RGST_USR_ID                        AS COL12 /*최초등록사용자ID*/
+              ,0                                        AS COL13
+              ,''                                       AS COL14
+              ,''                                       AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.IST_DT IS NOT NULL /*설치일자(AS-IS-확정일자 존재건)*/
-                 AND B.REQD_DT IS NULL /*철거일자 (취소 안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시-멤버십 계약 확정 미 처리(AS-IS 가입일자 미존재)*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
-           -- TO-BE 계약번호+계약일련번호로 변경 필요
-           --AND (NOT(A.LCYEAR=2009  AND A.LCCODE=2608371) AND
-           --     NOT(A.LCYEAR=2010  AND A.LCCODE=776326 ) AND
-           --     NOT(A.LCYEAR=2010  AND A.LCCODE=7111960) )
-        UNION ALL
-        -- TO-BE 계약확정승인일시 IS NULL AND 설치일자 IS NOT NULL
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
-              ,'9'                                   AS COL2
-              ,'확정있는데가입없는건,가입있는데확정X건'     AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,0                                     AS COL9
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
-          FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.IST_DT IS NULL /*설치일자(AS-IS-확정일자 미존재건)*/
-                 AND B.REQD_DT IS NULL /*철거일자 (취소 안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
-           -- TO-BE 계약번호+계약일련번호로 변경 필요
-           --AND (NOT(A.LCYEAR=2009  AND A.LCCODE=2608371) AND
-           --     NOT(A.LCYEAR=2010  AND A.LCCODE=776326 ) AND
-           --     NOT(A.LCYEAR=2010  AND A.LCCODE=7111960) )
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
+           AND ( ( C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시-멤버십 계약 확정 미 처리(AS-IS 가입일자 미존재)*/
+               AND A.CNTR_DTL_STAT_CD = '101' )
+              OR ( C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시-멤버십 계약 확정 처리*/
+               AND A.CNTR_DTL_STAT_CD IS NULL) )
         UNION ALL
         -------------------------------------------------------
         -- 10.만료유지고객중연체없는데확정안된고객
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
-              ,'10'                                  AS COL2
-              ,'만료유지고객중연체없는데확정안된고객'       AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              -- Wells 월매출 테이블 생성 후 수정
-              ,0                                     AS COL9
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN          AS COL1
+              ,'10'                                   AS COL2
+              ,'만료유지고객중연체없는데확정안된고객'         AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)       AS COL4 /*계약상품시작일자*/
+              ,CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') THEN A.CNTR_PD_ENDDT
+                    ELSE '' END                       AS COL5 /*철거일자*/
+              ,E.CNTR_PD_ENDDT                        AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,F.REQD_DT                              AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,A.FNL_AMT                              AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                            AS COL9
+              ,NVL(G.RENTAL_TN, 0)                    AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              -- Wells 월매출 테이블 생성 후 수정
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                    AS COL11
+              ,A.FST_RGST_USR_ID                      AS COL12 /*최초등록사용자ID*/
+              ,NVL(H.DLQ_MCN, 0)                      AS COL13 /*연체개월수*/
+              ,''                                     AS COL14
+              ,''                                     AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자(탈회 안된건)*/
-                 AND B.REQD_DT IS NULL /*철거일자 (취소 안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시-멤버십 계약 확정 피 처리(AS-IS 가입일자 미존재)*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (회사설치-> 멤버십) [AS-IS:LCLIB.LC3500P+LCLIB.LC9500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC9500P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.SELL_TP_CD IN ('2', '5') /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-         WHERE 1 = 1
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시-멤버십 계약 확정 피 처리(AS-IS 가입일자 미존재)*/
+           <choose>
+               <when test="@MybatisUtils@equals(deptGubun, '2')">
+                /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </when>
+               <otherwise>
+                /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </otherwise>
+           </choose>
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (회사설치-> 멤버십) [AS-IS:LCLIB.LC3500P+LCLIB.LC9500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC9500P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = D.OJ_DTL_CNTR_NO
+           AND F.CNTR_SN   = D.OJ_DTL_CNTR_SN
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+            ON G.DTA_DL_YN = 'N'
+           AND G.CNTR_NO   = E.CNTR_NO
+           AND G.CNTR_SN   = E.CNTR_SN
+           AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND G.RENTAL_TN <![CDATA[>]]> E.CNTR_PTRM
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
+            ON H.DTA_DL_YN = 'N'
+           AND H.PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
+           AND H.CNTR_NO   = E.CNTR_NO /*계약번호*/
+           AND H.CNTR_SN   = E.CNTR_SN /*계약일련번호*/
+           AND H.DLQ_MCN   <![CDATA[<]]> 2
+         WHERE A.DTA_DL_YN  = 'N'
            AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'>
-           --AND A.LCSUNA =  '70700'
-           --</if>
-           --<if test='CHKGUBN != "70700"'>
-           --AND A.LCSUNA != '70700'
-           --</if>
         UNION ALL
         -------------------------------------------------------
         -- 11.AS00P철거일자있는데멤버십가입건
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'11'                                  AS COL2
-              ,'AS00P철거일자있는데멤버십가입건'          AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              -- 고객센터여부 판단 필요 - 판매에 요청중 확인되면 아래 쿼리 수정
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              --<if test='CHKGUBN = "70700"'>
-              --,B.REQD_DT                             AS COL5 /*철거일자*/
-              --,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              --,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              --</if>
-              --<if test='CHKGUBN != "70700"'>
-              --,F.REQD_DT                             AS COL5 /*철거일자*/
-              --,F.CPS_DT                              AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              --,''                                    AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              --</if>
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
+              ,'AS00P철거일자있는데멤버십가입건'     AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
+              /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+              <choose>
+                <when test="@MybatisUtils@equals(deptGubun, '2')">
+                  ,E.CNTR_PD_ENDDT                       AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+                  ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+              /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+                </when>
+                <otherwise>
+                  ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+                  ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+                </otherwise>
+              </choose>
+              /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              -- 고객센터여부 판단 필요 - 판매에 요청중 확인되면 아래 쿼리 수정
-              ,''                            AS COL14
-              ,''                            AS COL15
-              --<if test='CHKGUBN = "70700"'>
-              --,''                            AS COL14
-              --,''                            AS COL15
-              --</if>
-              --<if test='CHKGUBN != "70700"'>
-              --,'H'                           AS COL14
-              --,''                            AS COL15
-              --</if>
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+              <choose>
+                <when test="@MybatisUtils@equals(deptGubun, '2')">
+                  ,'H'                                   AS COL14
+                  ,'-'                                   AS COL15
+              /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+              /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+                </when>
+                <otherwise>
+                  ,''                                    AS COL14
+                  ,'-'                                   AS COL15
+                </otherwise>
+              </choose>
+              /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')/*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (일시불-> 멤버십) [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3000P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAS00P+LC3000P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 -- 고객센터여부 판단 필요 - 판매에 요청중 확인되면 아래 쿼리 수정
-                 --<if test='CHKGUBN == "70700"'>
-                 AND F.REQD_DT IS NOT NULL /*철거일자(철거건)*/
-                 --</if>
-                 --<if test='CHKGUBN != "70700"'>
-                 --AND F.REQD_DT IS NOT NULL /*철거일자(철거건)*/ OR F.CPS_DT IS NOT NULL /*보상일자*/
-                 --</if>
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           -- 홈케어 제외 판매에 판매유형상세코드 추가 요청
-           -- AND B.LCMTYP != '2' --홈케어제외
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'> --고객센터
-           --AND A.LCSUNA =  '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'/*계약확정승인일시*/
+           /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+           <choose>
+              <when test="@MybatisUtils@equals(deptGubun, '2')">
+               AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+              </when>
+              <otherwise>
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+              </otherwise>
+           </choose>
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (일시불-> 멤버십) [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3000P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '1' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAS00P+LC3000P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
+           AND A.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
         UNION ALL
         -------------------------------------------------------
         -- 12.키위철거일자있는데멤버십가입건
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'12'                                  AS COL2
-              ,'KIWI철거일자있는데멤버십가입건'           AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'KIWI철거일자있는데멤버십가입건'      AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,F.REQD_DT                             AS COL5 /*철거일자*/
               ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.REQD_DT IS NOT NULL /*철거일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')/*계약확정승인일시*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           -- 홈케어 제외 판매에 판매유형상세코드 추가 요청
-           -- AND B.LCMTYP != '2' --홈케어제외
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'> --고객센터
-           --AND A.LCSUNA =  '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'/*계약확정승인일시*/
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (일시불-> 멤버십) [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3000P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAS00P+LC3000P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3'  /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
         UNION ALL
         -------------------------------------------------------
         -- 14.설치일자없는데　멤버십　가입건
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'14'                                  AS COL2
-              ,'설치아닌데가입건체크'                    AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'설치아닌데가입건체크'                AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,G.REQD_DT                             AS COL5 /*철거일자*/
               ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.IST_DT IS NULL /*설치일자*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           AND SUBSTR(A.CNTR_PD_STRTDT, 1, 4) >= '2018'
-           -- 홈케어 제외 판매에 판매유형상세코드 추가 요청
-           -- AND B.LCMTYP != '2' --홈케어제외
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --<if test='CHKGUBN == "70700"'> --고객센터
-           --AND A.LCSUNA =  '70700'
-           --</if>
-           --<if test='CHKGUBN != "70700"'>
-           --AND A.LCSUNA != '70700'
-           --</if>
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (일시불-> 멤버십) [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3000P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_BAS F /*계약기본 [AS-IS:LCLIB.LC3000P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND SUBSTR(F.CNTR_RCP_FSH_DTM, 1, 4) <![CDATA[>=]]> '2018'
+           /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+           <choose>
+               <when test="@MybatisUtils@equals(deptGubun, '2')">
+                /*2023-07-18 화면 조직선택 - 영업부인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </when>
+               <otherwise>
+                /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+                AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+               </otherwise>
+           </choose>
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL G /*계약WELLS상세 [AS-IS:LCLIB.LCAS00P+LC3000P]*/
+            ON G.DTA_DL_YN = 'N'
+           AND G.CNTR_NO   = E.CNTR_NO
+           AND G.CNTR_SN   = E.CNTR_SN
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3'  /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
         UNION ALL
         -------------------------------------------------------
         -- 15.고객센터 가입누락건
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'15'                                  AS COL2
-              ,'고객센터 가입누락건'                    AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
+              ,'고객센터 가입누락건'                 AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)          AS COL5 /*철거일자*/
               ,''                                    AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
               ,''                                    AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자(탈회 안된건)*/
-                 AND B.REQD_DT IS NULL /*철거일자 (취소 안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           AND SUBSTR(A.CNTR_PD_STRTDT, 1, 6) <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
-           -- 렌탈 계약만 처리 - 판매유형상세코드 판매에 요청한 상태
-           -- AND LCTYPE = '1'
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --AND B.LCSUNA = '70700'
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시*/
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+           <if test="@MybatisUtils@equals(deptGubun, '1')">
+               AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           </if>
+           /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (일시불-> 멤버십) [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3000P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '1' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         WHERE A.DTA_DL_YN  = 'N'
+           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')
+           AND SUBSTR(C.CNTR_RCP_FSH_DTM, 5, 2) <![CDATA[<]]> TO_CHAR(SYSDATE, 'MM')
+           AND A.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+
+        <if test="@MybatisUtils@equals(deptGubun, '2')">
+        -- 아래 쿼리는 영업부인 경우만 실행 -> 16.렌탈60차월종료철거시종료일자미세 ~ 22.회사설치AS00P철거일자있는데멤버십가입건 SQL
         UNION ALL
         -------------------------------------------------------
         -- 16.렌탈60차월종료철거시종료일자미세
         -------------------------------------------------------
-        SELECT F.CNTR_NO || '-' || F.CNTR_SN         AS COL1
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'16'                                  AS COL2
-              ,'렌탈60차월종료철거시종료일자미세'          AS COL3
-              ,F.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,A.CNTR_PD_ENDDT                       AS COL6 /*계약상품종료일자*/
-              ,B.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,A.ISTM_MCN                            AS COL9
+              ,'렌탈60차월종료철거시종료일자미세'    AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(H.CNTR_CAN_DTM, 1, 8)          AS COL5 /*철거일자*/
+              ,E.CNTR_PD_ENDDT                       AS COL6 /*계약상품종료일자*/
+              ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,'R'                           AS COL14
-              ,CASE WHEN SUBSTR(B.IST_DT, 5, 4) >= SUBSTR(B.REQD_DT, 5, 4)
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,'R'                                   AS COL14
+              ,CASE WHEN SUBSTR(F.IST_DT, 5, 4) <![CDATA[>=]]> SUBSTR(F.REQD_DT, 5, 4)
                          THEN '만료취소'
-                    ELSE 'X' END             AS COL15
+                    ELSE 'X' END                     AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3100P] -- 렌탈/리스*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.REQD_DT IS NOT NULL /*철거일자(철거건)*/
-                 AND SUBSTR(B.REQD_DT, 1, 6) >= TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3100P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈-> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.OJ_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.OJ_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_BAS E /*계약기본 [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON E.CNTR_NO = D.BASE_DTL_CNTR_NO
-                 AND E.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시(가입일자 미존재)*/
-               INNER JOIN TB_SSCT_CNTR_DTL F /*계약기본상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON F.CNTR_NO = D.BASE_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.BASE_DTL_CNTR_SN
-                 -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-                 --AND B.LCSUNA != '70700'
-               -- Wells 월매출 테이블 생성 후 보완
-               -- AND B.LCMONT = B.LCRCNT
-               -- AND B.LCPAYY =  YEAR(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-               -- AND B.LCPAYM = MONTH(CHAR(DATE(CURRENT DATE - 1 MONTHS ), ISO))
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           AND A.CNTR_DTL_STAT_CD NOT IN ('301', '401', '402') /*계약상세상태코드 [301:고객요청해약, 401:최종종료, 402:계약기간종료]*/
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO   = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%' /*계약확정승인일시*/
+           AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+           AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN             = 'N'
+           AND F.CNTR_NO               = E.CNTR_NO
+           AND F.CNTR_SN               = E.CNTR_SN
+           AND SUBSTR(F.REQD_DT, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+            ON G.DTA_DL_YN = 'N'
+           AND G.CNTR_NO   = E.CNTR_NO
+           AND G.CNTR_SN   = E.CNTR_SN
+           AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND G.RENTAL_TN = E.CNTR_PTRM
+         INNER JOIN TB_SSCT_CNTR_BAS H /*계약기본 [AS-IS:LCLIB.LC3100P]*/
+            ON H.DTA_DL_YN = 'N'
+           AND H.CNTR_NO   = E.CNTR_NO
+           AND H.CNTR_CAN_DTM IS NULL
+         WHERE A.DTA_DL_YN  = 'N'
+           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
         UNION ALL
         -------------------------------------------------------
         -- 17.렌탈 만료고객 멤버십 확정 대상 중 가입일자 누락건
         -------------------------------------------------------
-        SELECT F.CNTR_NO || '-' || F.CNTR_SN         AS COL1
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'17'                                  AS COL2
-              ,'렌탈만료고객멤버십가입일자누락건'          AS COL3
-              ,F.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,G.REQD_DT                             AS COL5 /*철거일자*/
-              ,A.CNTR_PD_ENDDT                       AS COL6 /*계약상품종료일자*/
-              ,B.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,F.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,A.ISTM_MCN                            AS COL9
-              -- Wells 월매출실적 테이블 확정 후 처리
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,'렌탈만료고객멤버십가입일자누락건'    AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)          AS COL5 /*철거일자*/
+              ,E.CNTR_PD_ENDDT                       AS COL6 /*계약상품종료일자*/
+              ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9
+              ,G.RENTAL_TN                           AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3100P] -- 렌탈계약*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3100P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.REQD_DT IS NULL /*철거일자(철거 안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3100P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈-> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
-                  ON D.OJ_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.OJ_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_BAS E /*계약기본 [AS-IS:LCLIB.LC3100P]*/
-                  ON E.CNTR_NO = D.BASE_DTL_CNTR_NO
-                 AND E.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시(가입일자 미존재)*/
-                 --계약고객번호(복호화 처리 필요)
-                 AND E.CNTR_CST_NO != '1018139767000' /*계약고객번호(공문교육건제외)*/
-               INNER JOIN TB_SSCT_CNTR_DTL F /*계약기본상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON F.CNTR_NO = D.BASE_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.BASE_DTL_CNTR_SN
-                 AND SUBSTR(F.CNTR_PD_STRTDT, 1, 6) >= TO_CHAR(ADD_MONTHS(SYSDATE, -4), 'YYYYMM')
-                 --홈케어 제외 조건 확정 후 조정
-                 --AND A.LCMTYP != '2'											--홈케어제외
-                 -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-                 --AND B.LCSUNA != '70700'
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL G /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON G.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND G.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND G.CPS_DT IS NULL /*보상일자(탈퇴 안된건)*/
-                 AND G.REQD_DT IS NULL /*철거일자(반품 안된건)*/
-               -- Wells 월매출 테이블 생성 후 보완
-               -- AND C.RCNT <![CDATA[ >= ]]>  C.MCNT		--사용차월, 렌탈차월 비교
-               LEFT OUTER JOIN TB_CBCL_DLQ_BAS I /*연체기본 [AS-IS:LCLIB.LC5000P]*/
-                  ON I.CNTR_NO = A.CNTR_NO
-                 AND I.CNTR_SN = A.CNTR_SN
-                 AND I.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           -- 렌탈만 구분 필요. 현재 구분 안됨
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND C.CNTR_CST_NO != '1018139767000' /*계약고객번호(공문교육건제외)*/
+           AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(SYSDATE, -4), 'YYYYMM')
+           AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NULL
+         INNER JOIN (SELECT MAX(SL_CL_YM) AS SL_CL_YM
+                          , CNTR_NO
+                          , CNTR_SN
+                          , MAX(RENTAL_TN) AS RENTAL_TN
+                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
+                      WHERE DTA_DL_YN  = 'N'
+                     GROUP BY CNTR_NO
+                            , CNTR_SN) G
+            ON G.CNTR_NO    = E.CNTR_NO
+           AND G.CNTR_SN    = E.CNTR_SN
+           AND G.RENTAL_TN <![CDATA[>=]]> E.CNTR_PTRM
+         INNER JOIN TB_SSCT_CNTR_BAS H /*계약기본 [AS-IS:LCLIB.LC3100P]*/
+            ON H.DTA_DL_YN = 'N'
+           AND H.CNTR_NO   = E.CNTR_NO
+           AND H.CNTR_CAN_DTM IS NULL
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS I /*연체기본 [AS-IS:LCLIB.LC5000P]*/
+            ON H.DTA_DL_YN = 'N'
+           AND I.CNTR_NO   = E.CNTR_NO
+           AND I.CNTR_SN   = E.CNTR_SN
+           AND I.PERF_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3'  /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
            AND NVL(I.EOT_DLQ_AMT, 0) = 0 /*기말연체금액 = 0 (다른말로 연체없는건)*/
         UNION ALL
         -------------------------------------------------------
@@ -1113,263 +1238,250 @@
         -------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'18'                                  AS COL2
-              ,'회사설치-가입일자누락건'                 AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,F.CPS_DT                              AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,F.REQD_DT                             AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
+              ,'회사설치-가입일자누락건'             AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)          AS COL5 /*철거일자*/
+              ,F.CPS_DT                              AS COL6 /*보상일자*/
+              ,F.REQD_DT                             AS COL7 /*철거일자*/
+              ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                   AS COL11
+              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,0                                     AS COL13
+              ,''                                    AS COL14
+              ,''                                    AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약만*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자(탈회 안된건)*/
-                 AND B.REQD_DT IS NULL /*철거일자 (취소 안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_CNFM_APR_DTM IS NULL /*계약확정승인일시-멤버십 계약 확정 피 처리(AS-IS 가입일자 미존재)*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (회사설치-> 멤버십) [AS-IS:LCLIB.LC3500P+LCLIB.LC9500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC9500P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.IST_DT IS NOT NULL /*설치일자*/
-                 AND F.CPS_DT IS NULL /*보상일자 존재(탈퇴 안된건)*/
-                 AND F.REQD_DT IS NULL /*철거일자 존재(반품 안된건)*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           AND SUBSTR(A.CNTR_PD_STRTDT, 1, 6) >= TO_CHAR(ADD_MONTHS(SYSDATE, -4), 'YYYYMM')
-           --홈케어 제외 조건 확정 후 조정
-           --AND A.LCMTYP != '2'											--홈케어제외
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --AND B.LCSUNA != '70700'
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(SYSDATE, -4), 'YYYYMM')
+           AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.SELL_TP_DTL_CD = '34' /*판매유형상세코드 [34:회사설치]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3'  /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
         UNION ALL
         -------------------------------------------------------
         -- 19.회사설치-멤버십 신청한지 오래 되었는데 가입된 건
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
-              ,'19'                                  AS COL2
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN                 AS COL1
+              ,'19'                                          AS COL2
               ,'회사설치-멤버십신청한지오래되었는데가입된건' AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.REQD_DT                             AS COL5 /*철거일자*/
-              ,''                                    AS COL6 /*계약상품종료일자*/
-              ,''                                    AS COL7
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,0                                     AS COL9
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)              AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)                  AS COL5 /*철거일자*/
+              ,''                                            AS COL6 /*계약상품종료일자*/
+              ,''                                            AS COL7
+              ,A.FNL_AMT                                     AS COL8 /*월할부금액*/
+              ,0                                             AS COL9
+              ,0                                             AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   -- 조직유형코드 추가 필요
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                           AS COL11
+              ,A.FST_RGST_USR_ID                             AS COL12 /*최초등록사용자ID*/
+              ,0                                             AS COL13
+              ,''                                            AS COL14
+              ,''                                            AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약만*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자(탈회 안된건)*/
-                 AND B.REQD_DT IS NULL /*철거일자 (취소 안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*계약접수완료일시*/
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM') /*계약확정승인일시-계약확정승인일시가 있다면 AS-IS의 개념으론 확정*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (회사설치-> 멤버십) [AS-IS:LCLIB.LC3500P+LCLIB.LC9500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC9500P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.IST_DT IS NOT NULL /*설치일자*/
-                 AND F.CPS_DT IS NULL /*보상일자 존재(탈퇴 안된건)*/
-                 AND F.REQD_DT IS NULL /*철거일자 존재(반품 안된건)*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           AND SUBSTR(A.CNTR_PD_STRTDT, 1, 6) <![CDATA[ < ]]> '201303'
-           --홈케어 제외 조건 확정 후 조정
-           --AND A.LCMTYP != '2'											--홈케어제외
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --AND B.LCSUNA != '70700'
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND SUBSTR(C.CNTR_TEMP_SAVE_DTM, 1, 6) <![CDATA[<]]> '201303'
+           AND C.CNTR_RCP_FSH_DTM  LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%'
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'
+           AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.SELL_TP_DTL_CD = '34' /*판매유형상세코드 [34:회사설치]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.CPS_DT IS NULL
+           AND F.IST_DT IS NOT NULL
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
         UNION ALL
         -------------------------------------------------------
         -- 20.회사설치 보상 또는 반품 고객인데 멤버십 등록된 건(확정일자비교)
         -- TO-BE 계약서 작성 완료
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
-              ,'20'                                  AS COL2
-              ,'회사설치보상반품고객멤버십등록된건(확정일자비교)' AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.CPS_DT                              AS COL5 /*보상일자*/
-              ,E.CNTR_PD_ENDDT                       AS COL6 /*계약상품종료일자*/
-              ,F.REQD_DT                             AS COL7
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,0                                     AS COL9
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN                      AS COL1
+              ,'20'                                               AS COL2
+              ,'회사설치보상반품고객멤버십등록된건(확정일자비교)'          AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)                   AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)                       AS COL5 /*철거일자*/
+              ,F.CPS_DT                                           AS COL6 /*계약상품종료일자*/
+              ,F.CPS_DT                                           AS COL7
+              ,A.FNL_AMT                                          AS COL8 /*월할부금액*/
+              ,0                                                  AS COL9
+              ,0                                                  AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                                AS COL11
+              ,A.FST_RGST_USR_ID                                  AS COL12 /*최초등록사용자ID*/
+              ,0                                                  AS COL13
+              ,''                                                 AS COL14
+              ,''                                                 AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약만*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1) , 'YYYYMM') /*계약접수완료일시*/
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (회사설치-> 멤버십) [AS-IS:LCLIB.LC3500P+LCLIB.LC9500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC9500P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.CPS_DT IS NOT NULL /*보상일자 존재(탈퇴건)*/
-                 AND F.REQD_DT IS NOT NULL /*철거일자 존재(취소건)*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --AND B.LCSUNA != '70700'
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND C.CNTR_RCP_FSH_DTM LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%'
+           AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.SELL_TP_DTL_CD = '34' /*판매유형상세코드 [34:회사설치]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.CPS_DT IS NOT NULL
+         WHERE A.DTA_DL_YN  = 'N'
+           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
         UNION ALL
         -------------------------------------------------------
         -- 21.회사설치 보상 또는 반품 고객인데 멤버십 등록된 건(가입일자 비교)
-        -- TO-BE 계약정보 생성 완료
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
-              ,'21'                                  AS COL2
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN                      AS COL1
+              ,'21'                                               AS COL2
               ,'회사설치보상반품고객멤버십등록된건(가입일자비교)' AS COL3
-              ,A.CNTR_PD_STRTDT                      AS COL4 /*계약상품시작일자*/
-              ,B.CPS_DT                              AS COL5 /*보상일자*/
-              ,E.CNTR_PD_ENDDT                       AS COL6 /*계약상품종료일자*/
-              ,F.REQD_DT                             AS COL7
-              ,A.MM_ISTM_AMT                         AS COL8 /*월할부금액*/
-              ,0                                     AS COL9
-              ,0                                     AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)                   AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)                       AS COL5 /*철거일자*/
+              ,F.CPS_DT                                           AS COL6 /*계약상품종료일자*/
+              ,F.CPS_DT                                           AS COL7
+              ,A.FNL_AMT                                          AS COL8 /*월할부금액*/
+              ,0                                                  AS COL9
+              ,0                                                  AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                                AS COL11
+              ,A.FST_RGST_USR_ID                                  AS COL12 /*최초등록사용자ID*/
+              ,0                                                  AS COL13
+              ,''                                                 AS COL14
+              ,''                                                 AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약만*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3500P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (회사설치-> 멤버십) [AS-IS:LCLIB.LC3500P+LCLIB.LC9500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC9500P]*/
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND F.CPS_DT IS NOT NULL /*보상일자 존재(탈퇴건)*/
-                 AND F.REQD_DT IS NOT NULL /*철거일자 존재(취소건)*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --AND B.LCSUNA != '70700'
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'
+           AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.SELL_TP_DTL_CD = '34' /*판매유형상세코드 [34:회사설치]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.CPS_DT IS NOT NULL
+         WHERE A.DTA_DL_YN  = 'N'
+           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
         UNION ALL
         -------------------------------------------------------
         -- 22.회사설치AS00P철거일자있는데멤버십가입건
         -- TO-BE 서비스에서 철거일자를 판매와 동기화 처리함.
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN   AS COL1
-              ,'22'                            AS COL2
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN             AS COL1
+              ,'22'                                      AS COL2
               ,'회사설치AS00P철거일자있는데멤버십가입건' AS COL3
-              ,A.CNTR_PD_STRTDT                AS COL4 /*계약상품시작일자*/
-              ,B.CPS_DT                        AS COL5 /*보상일자*/
-              ,A.CNTR_PD_ENDDT                 AS COL6 /*계약상품종료일자*/
-              ,B.REQD_DT                       AS COL7
-              ,A.MM_ISTM_AMT                   AS COL8 /*월할부금액*/
-              ,0                               AS COL9
-              ,0                               AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)          AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)              AS COL5 /*철거일자*/
+              ,F.CPS_DT                                  AS COL6 /*계약상품종료일자*/
+              ,F.CPS_DT                                  AS COL7
+              ,A.FNL_AMT                                 AS COL8 /*월할부금액*/
+              ,0                                         AS COL9
+              ,0                                         AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)                       AS COL11
+              ,A.FST_RGST_USR_ID                         AS COL12 /*최초등록사용자ID*/
+              ,0                                         AS COL13
+              ,''                                        AS COL14
+              ,''                                        AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약만*/
-        --       INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/ -- INNER JOIN인데 일부 데이터만 존재해서 우선 OUTER JOIN으로 처리 ==> ★★변경필수
-               LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/ -- INNER JOIN인데 일부 데이터만 존재해서 우선 OUTER JOIN으로 처리 ==> ★★변경필수
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.CPS_DT IS NULL /*보상일자가 미존재 (탈퇴안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
-               INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (회사설치-> 멤버십) [AS-IS:LCLIB.LC9500P]*/
-                  ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
-                 AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 AND D.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-                 AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-                 AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL E
-                  ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
-                 AND E.CNTR_SN = D.OJ_DTL_CNTR_SN
-                 AND E.REQD_DT IS NOT NULL /*철거일자가 존재(취손된건)*/
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           -- 처리한 부서에 대해선. 어떻게 처리할까? 기준을 판매에 요청한 상태
-           --AND B.LCSUNA != '70700'
-           -- 홈케어 제외 조건 추가 필요 (2023.02.20)
-           --AND B.LCMTYP != '2'
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'
+           AND C.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+           AND E.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND E.SELL_TP_DTL_CD = '34' /*판매유형상세코드 [34:회사설치]*/
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN       = 'N'
+           AND A.SELL_TP_CD      = '3'  /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.SELL_TP_DTL_CD != '33' /*판매유형상세코드 [33:홈케어]*/
+           AND A.CNTR_DTL_STAT_CD NOT IN ('301', '303', '401', '402') /*계약상세상태코드[301:고객요청해약, 303:계약취소, 401:최종종료, 402:계약기간종료]*/
+        </if>
+
         UNION ALL
         -------------------------------------------------------
         -- (신규) 2020.03.03 조상희 추가
@@ -1377,40 +1489,47 @@
         -- 23.멤버십 확정, 가입 건 중에 키위 철거일 존재
         -- TO-BE에선 발생 안하겠지만. 우선 포함 개발
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN AS COL1
-              ,'23'                          AS COL2
-              ,'멤버십확정건중키위철거일자존재'    AS COL3
-              ,A.CNTR_PD_STRTDT              AS COL4 /*계약상품시작일자*/
-              ,B.CPS_DT                      AS COL5 /*보상일자*/
-              ,''                            AS COL6 /*계약상품종료일자*/
-              ,B.REQD_DT                     AS COL7
-              ,A.MM_ISTM_AMT                 AS COL8 /*월할부금액*/
-              ,0                             AS COL9
-              ,0                             AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN    AS COL1
+              ,'23'                             AS COL2
+              ,'멤버십확정건중키위철거일자존재' AS COL3
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8) AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)     AS COL5 /*철거일자*/
+              ,''                               AS COL6 /*계약상품종료일자*/
+              ,F.REQD_DT                        AS COL7
+              ,A.FNL_AMT                        AS COL8 /*월할부금액*/
+              ,0                                AS COL9
+              ,0                                AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                   AND ROWNUM = 1)              AS COL11
+              ,A.FST_RGST_USR_ID                AS COL12 /*최초등록사용자ID*/
+              ,0                                AS COL13
+              ,''                               AS COL14
+              ,''                               AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약만*/
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.REQD_DT IS NULL /*철거일자가 미존재(취손안된건)*/
-                 AND B.CPS_DT IS NULL /*보상일자가 미존재 (탈퇴안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND SUBSTR(C.CNTR_CNFM_APR_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
-               INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D /*고객서비스수행내역 [AS-IS:LCLIB.LCAK10P]*/
-                  ON D.CNTR_NO = A.CNTR_NO
-                 AND D.CNTR_SN = A.CNTR_SN
-                 AND D.REQD_DT IS NOT NULL
-         WHERE 1 = 1
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN  = 'N'
            AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
            -- 기기변경대상건이 아닌것만 찾는다.
            AND NOT EXISTS (SELECT 1
@@ -1421,42 +1540,47 @@
         -------------------------------------------------------
         -- 24.기변종료일자 누락건
         -------------------------------------------------------
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN AS COL1
-              ,'24'                          AS COL2
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN    AS COL1
+              ,'24'                             AS COL2
               ,'기변종료일자 누락건'            AS COL3
-              ,A.CNTR_PD_STRTDT              AS COL4 /*계약상품시작일자*/
-              ,B.CPS_DT                      AS COL5 /*보상일자*/
-              ,''                            AS COL6 /*계약상품종료일자*/
-              ,B.REQD_DT                     AS COL7
-              ,A.MM_ISTM_AMT                 AS COL8 /*월할부금액*/
-              ,0                             AS COL9
-              ,0                             AS COL10
-              -- 데이터 마이그레이션 후 쿼리 조정 필요
+              ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8) AS COL4 /*계약상품시작일자*/
+              ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)     AS COL5 /*철거일자*/
+              ,''                               AS COL6 /*계약상품종료일자*/
+              ,F.REQD_DT                        AS COL7
+              ,A.FNL_AMT                        AS COL8 /*월할부금액*/
+              ,0                                AS COL9
+              ,0                                AS COL10
               ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_INF_CH_HIST /*파트너정보변경이력*/
-                 WHERE 1 = 1
-                   AND PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)           AS COL11 /*어떤 테이블을 걸어야할까?*/
-              ,A.FST_RGST_USR_ID             AS COL12 /*최초등록사용자ID*/
-              ,0                             AS COL13
-              ,''                            AS COL14
-              ,''                            AS COL15
+                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
+                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
+                   AND ROWNUM = 1)              AS COL11
+              ,A.FST_RGST_USR_ID                AS COL12 /*최초등록사용자ID*/
+              ,0                                AS COL13
+              ,''                               AS COL14
+              ,''                               AS COL15
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약만*/
-        --       INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/ -- INNER JOIN인데 일부 데이터만 존재해서 우선 OUTER JOIN으로 처리 ==> ★★변경필수
-               LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/ -- INNER JOIN인데 일부 데이터만 존재해서 우선 OUTER JOIN으로 처리 ==> ★★변경필수
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND B.REQD_DT IS NULL /*철거일자가 미존재(취소안된건)*/
-                 AND B.CPS_DT IS NULL /*보상일자가 미존재 (탈퇴안된건)*/
-               INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-                  ON C.CNTR_NO = A.CNTR_NO
-               LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ D /*고객서비스수행내역 [AS-IS:LCLIB.LCAK10P]*/ -- INNER JOIN인데 일부 데이터만 존재해서 우선 OUTER JOIN으로 처리 ==> ★★변경필수
-        --       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D /*고객서비스수행내역 [AS-IS:LCLIB.LCAK10P]*/
-                  ON D.CNTR_NO = A.CNTR_NO
-                 AND D.CNTR_SN = A.CNTR_SN
-                 AND D.REQD_DT IS NOT NULL
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] --> ☆☆나중에 TRIM해야하나? 2자린데 1자리만 들어가 있음*/
-           AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
+            ON C.DTA_DL_YN    = 'N'
+           AND C.CNTR_NO      = A.CNTR_NO
+           AND C.CNTR_CNFM_APR_DTM IS NOT NULL
+           AND C.CNTR_CAN_DTM IS NULL
+         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
+            ON D.DTA_DL_YN        = 'N'
+           AND D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_UNIT_TP_CD  = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
+           AND D.CNTR_REL_TP_CD   = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD  = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약기본상세 [AS-IS:LCLIB.LC3100P]*/
+            ON E.DTA_DL_YN  = 'N'
+           AND E.CNTR_NO    = D.OJ_DTL_CNTR_NO
+           AND E.CNTR_SN    = D.OJ_DTL_CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+            ON F.DTA_DL_YN = 'N'
+           AND F.CNTR_NO   = E.CNTR_NO
+           AND F.CNTR_SN   = E.CNTR_SN
+           AND F.REQD_DT IS NOT NULL
+         WHERE A.DTA_DL_YN  = 'N'
+           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
     </select>
 </mapper>

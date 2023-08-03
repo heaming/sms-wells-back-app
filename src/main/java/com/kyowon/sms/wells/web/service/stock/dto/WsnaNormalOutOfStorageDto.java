@@ -1,12 +1,17 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Positive;
 
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 /**
  * <pre>
@@ -17,6 +22,7 @@ import io.swagger.annotations.ApiModel;
  * @since 2023-03-14
  */
 public class WsnaNormalOutOfStorageDto {
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchReq")
     public record SearchReq(
         @NotBlank
@@ -27,48 +33,62 @@ public class WsnaNormalOutOfStorageDto {
         String strHopDtEnd,
         String ostrCnfm,
         String ostrAkTpCd,
+        @NotBlank
         String ostrOjWareNo,
         String itmKndCd,
-        String wareDvCd,
-        String wareLocaraCd,
-        String apyYm
+        @NotBlank
+        String wareDvCd
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchRes")
     public record SearchRes(
         String ostrAkNo,
         String ostrAkTpCd,
-        String ostrOjWareNm,
         String ostrOjWareNo,
-        String strOjWareNm,
         String strOjWareNo,
+        String strOjWareNm,
+
         String strHopDt,
         String ovivTpCd,
         String rectOstrDt,
-        String ostrDtrnYn,
         String itmPdCd,
+        String ostrAkRgstDt,
+        String ostrDtrnYn,
         String pdNm,
-        String ostrAkSn,
+        int ostrAkSn,
         String rmkCn
 
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchWarehouse")
     public record SearchWarehouse(
         String wareNo,
         String wareNm
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskReq")
     public record AskReq(
         @NotBlank
         String itmPdCd,
         @NotBlank
         String strOjWareNo,
-        String wareDvCd,
-        String wareDtlDvCd
+        @NotBlank
+        String wareDvCd
     ) {}
 
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-CenterReq")
+    public record CenterReq(
+        @NotBlank
+        String itmPdCd,
+        @NotBlank
+        String wareDvCd
+    ) {}
+
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-AskRes")
     public record AskRes(
         String wareMngtPrtnrNo, /*창고파트너번호*/
@@ -78,6 +98,7 @@ public class WsnaNormalOutOfStorageDto {
         String qty /*현재재고수량*/
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CenterRes")
     public record CenterRes(
         String wareNo, /*창고번호*/
@@ -85,145 +106,123 @@ public class WsnaNormalOutOfStorageDto {
         String wareNm
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailReq")
     public record DetailReq(
+        @NotBlank
         String ostrAkTpCd,
-        @ValidDate
-        String ostrAkRgstDt,
+        @NotBlank
         String ostrAkNo,
-        String itmPdCd,
-        String strWareNo,
-        String ostrWareNo,
-        String ostrOjWareNm,
-        String strOjWareNm,
-        String stckStdGb,
+        @NotBlank
+        String strOjWareNo,
+        @NotBlank
+        String ostrOjWareNo,
+        @NotBlank
         @ValidDate
-        String rgstDt,
-        String itmOstrNo,
-        String ostrSn,
-        String ostrTpCd
-    ) {}
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRes")
-    public record DetailRes(
-        String flag,
-        String chk,
-        String dummyQty,
-        String ostrAkTpCd,
-        String ostrTpCd,
-        String strWareNo,
-        String ostrAkRgstDt,
-        String ostrAkSn,
-        String ostrAkNo,
-        String strHopDt,
-        String svpdItemKnd,
-        String itmPdCd,
-        String svpdNmKor,
-        String svpdSapCd,
-        String itemLoc,
-        String pajuLoc,
-        String ostrAkWareDvCd,
-        String wareMngtPrtnrNo,
-        String itmGdCd,
-        String reqStckQty,
-        String ostrWareNo,
-        String mngtUnitCd,
-        String mgtUntNm,
-        String boxUnitQty,
-        String ostrAkQty,
-        String qty,
-        String ostrCnfmQty,
-        String rmkCn,
-        String ostrCnfmCd,
-        String rectOstrDt,
-        String ostrAggQty,
-        String outQty,
-        String outQtyOrg,
-        String strConfDt,
-        String svpdBaseGb,
-        String svpdBaseColorGb,
-        String svpdMgtTyp,
-        String cfrmCnt,
-        String avgOut,
-        String ostrWareDvCd,
-        String strWareDvCd,
-        String ostrWareDtlDvCd,
-        String strWareDtlDvCd,
-        String strWareNm,
-        String ostrWareNm
+        String rgstDt
     ) {}
 
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-DetailRemoveReq")
+    public record DetailRemoveReq(
+        @NotBlank
+        String ostrTpCd,
+        @NotBlank
+        String itmOstrNo,
+        @NotBlank
+        String strOjWareNo,
+        @NotBlank
+        String ostrOjWareNo,
+        @NotBlank
+        @ValidDate
+        String ostrDt
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
+        String itmOstrNo,
+        @Positive
+        int ostrSn,
+        @NotBlank
+        String ostrAkNo,
+        @Positive
+        int ostrAkSn,
+        @NotBlank
+        String itmStrNo,
+        @Positive
+        int strSn,
+        @NotBlank
+        String ostrTpCd,
+        @NotBlank
+        String strTpCd,
+        @NotBlank
+        String ostrOjWareNo,
+        String ostrWareDvCd,
+        String ostrPrtnrNo,
+        String ostrOgTpCd,
+        @NotBlank
+        String itmPdCd,
+        @NotBlank
+        String itmGdCd,
+        String mngtUnitCd,
+        @Max(999999999999L)
+        BigDecimal outQty,
+
+        @NotBlank
+        String strOjWareNo,
+        String strWareDvCd,
+        String strPrtnrNo,
+        String strOgTpCd
+
+    ) {}
+
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-CreqteReq")
     public record CreateReq(
-        String todayStr,
-        String itmOstrNo,
-        String itmStrNo,
-        String ostrAkTpCd,
-        String ostrTpCd,
-        String strTpCd,
-        String strWareNo,
-        @ValidDate
-        String ostrAkRgstDt,
-        String qty,
-        String ostrAkSn,
+        @NotBlank
         String ostrAkNo,
-        @ValidDate
-        String strHopDt,
-        String pdPrpVal19,
-        String itmPdCd,
-        String itmCd,
-        String pdNm,
-        String sapMatCd,
-        String itemLoc,
-        String pajuLoc,
-        String ostrAkWareDvCd,
-        String wareMngtPrtnrNo,
-        String itmGdCd,
-        String reqStckQty,
-        String ostrWareNo,
-        String ostrWareMngtPrtnrNo,
-        String mngtUnitCd,
-        String mgtUntNm,
-        String boxUnitQty,
-        String ostrAkQty,
-        String ostrCnfmQty,
-        String rmkCn,
-        String ostrCnfmCd,
-        String rectOstrDt,
-        String ostrAggQty,
-        String outQty,
-        String outQtyOrg,
-        String strConfDt,
-        String pdPrpVal15,
-        String pdPrpVal16,
-        String pdPrpVal02,
-        String cfrmCnt,
-        String avgOu,
+        @Positive
+        int ostrAkSn,
+        @NotBlank
+        String ostrTpCd,
+        @NotBlank
+        String strTpCd,
+        @NotBlank
+        String ostrOjWareNo,
         String ostrWareDvCd,
-        String strWareDvCd
+        String ostrPrtnrNo,
+        String ostrOgTpCd,
+        @NotBlank
+        String itmPdCd,
+        @NotBlank
+        String itmGdCd,
+        String mngtUnitCd,
+        BigDecimal boxUnitQty,
+        String svpdItemKnd,
+        @Max(999999999999L)
+        BigDecimal outQty,
+
+        @NotBlank
+        String strOjWareNo,
+        String strWareDvCd,
+        String strPrtnrNo,
+        String strOgTpCd
     ) {}
 
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckedReq")
-    public record CheckedReq(
-        String ostrAkNo,
-        List ostrAkSns
-    ) {}
-
-    @ApiModel(value = "WsnaNormalOutOfStorageDto-StrNoAndOstrNoRes")
-    public record StrNoAndOstrNoRes(
-        String itmOstrNo,
-        String itmStrNo,
-        String ostrTpCd,
-        String strTpCd,
-        String todayStr
-    ) {}
-
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareReq")
     public record StandardWareReq(
+        @NotBlank
         String apyYm,
+        @NotBlank
         String wareNo,
+        @NotBlank
         String stckStdGb
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-StandardWareRes")
     public record StandardWareRes(
         String apyYm,
@@ -231,16 +230,20 @@ public class WsnaNormalOutOfStorageDto {
         String stckStdGb
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkReq")
     public record SearchItmOstrAkReq(
+        @NotBlank
         String ostrAkNo,
-        String ostrAkSn
+        @Positive
+        int ostrAkSn,
+        String itmOstrNo
     ) {}
 
+    @Builder
     @ApiModel(value = "WsnaNormalOutOfStorageDto-SearchItmOstrAkRes")
     public record SearchItmOstrAkRes(
         String ostrAkNo,
-        String ostrAkSn,
         String ostrAkTpCd,
         String strHopDt,
         String ostrAkRgstDt,
@@ -251,6 +254,19 @@ public class WsnaNormalOutOfStorageDto {
         String ostrAkTpNm,
         String itmPdCd,
         String itmOstrNo,
-        String ostrTpCd
+        String ostrTpCd,
+        String stckStdGb,
+        String ostrDt,
+        String baseYm
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsnaNormalOutOfStorageDto-CheckReq")
+    public record CheckReq(
+
+        @NotBlank
+        String ostrAkNo,
+        @NotEmpty
+        List<Integer> ostrAkSns
     ) {}
 }

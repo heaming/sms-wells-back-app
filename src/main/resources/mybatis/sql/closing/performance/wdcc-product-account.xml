@@ -32,10 +32,12 @@
                          , S1.PD_MCLSF_ID
                          , S1.PD_CD
                          , S1.PD_NM
-                         , (
-                             SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
-                              WHERE SUBSTR(CH_DTM, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMM'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
-                                AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
+                         , (SELECT COUNT(1) FROM TB_SSCT_CNTR_DTL
+                             WHERE CNTR_DTL_STAT_CD = '101'
+                               AND SUBSTR(CNTR_PD_STRTDT,1,6) <![CDATA[<]]> S1.BASE_YM
+                               AND SELL_TP_CD = S1.SELL_TP_CD
+                               AND SELL_TP_DTL_CD =  S1.SELL_TP_DTL_CD
+                               AND BASE_PD_CD = S1.PD_CD
                            ) AS AGRG_CT1   /*이월*/
                          , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
                          , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
@@ -49,15 +51,15 @@
                                  , T1.BASE_PD_CD AS PD_CD           /*상품코드 - 테이블추가필요*/
                                  , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.BASE_PD_CD) AS PD_NM   /*상품명*/
                                   /*이월은 따로조회 */
-                                 ,(CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
-                                        THEN 1
-                                        ELSE 0 END) AS AGRG_CT2  /*유입*/
-                                 ,(CASE WHEN T1.CNTR_DTL_STAT_CD IN ('301','302','303')
-                                        THEN 1
-                                        ELSE 0 END) AS AGRG_CT3  /*해지*/
-                                 ,(CASE WHEN T1.CNTR_DTL_STAT_CD IN ('401','402')
-                                        THEN 1
-                                        ELSE 0 END) AS AGRG_CT4  /*만료*/
+                                 , (CASE WHEN SUBSTR(T1.CNTR_PD_STRTDT,1,6) = SUBSTR(T1.CH_DTM, 1, 6) AND T1.CNTR_DTL_STAT_CD = '101'
+                                         THEN 1
+                                         ELSE 0 END) AS AGRG_CT2  /*유입*/
+                                 , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('301','302','303')
+                                         THEN 1
+                                         ELSE 0 END) AS AGRG_CT3  /*해지*/
+                                 , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('401','402')
+                                         THEN 1
+                                         ELSE 0 END) AS AGRG_CT4  /*만료*/
                                  /*순증, 합계따로계산*/
                               FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS T1  /*WELLS계약상태변경기본 - 현재 유효분을 다들고 오려면 계약상세를 들고오는게 맞을꺼 같은데..일단은이렇게*/
                              WHERE 1=1
@@ -115,9 +117,12 @@
                  , S1.PD_MCLSF_ID
                  , S1.PD_CD
                  , S1.PD_NM
-                 , (SELECT COUNT(1) FROM TB_CBCL_WELLS_CNTR_STAT_CH_BAS
-                     WHERE SUBSTR(CH_DTM, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(S1.BASE_YM, 'YYYYMM'), -1), 'YYYYMM')  /*년월로 그룹바이한 기준년월을 데이트로바꿔서 전월자조회*/
-                       AND CNTR_DTL_STAT_CD IN ('101','201','202','203')
+                 , (SELECT COUNT(1) FROM TB_SSCT_CNTR_DTL
+                     WHERE CNTR_DTL_STAT_CD = '101'
+                       AND SUBSTR(CNTR_PD_STRTDT,1,6) <![CDATA[<]]> S1.BASE_YM
+                       AND SELL_TP_CD = S1.SELL_TP_CD
+                       AND SELL_TP_DTL_CD =  S1.SELL_TP_DTL_CD
+                       AND BASE_PD_CD = S1.PD_CD
                    ) AS AGRG_CT1   /*이월*/
                  , SUM(S1.AGRG_CT2) AS AGRG_CT2  /*유입*/
                  , SUM(S1.AGRG_CT3) AS AGRG_CT3  /*해지*/
@@ -131,7 +136,7 @@
                          , T1.BASE_PD_CD AS PD_CD           /*상품코드 - 테이블추가필요*/
                          , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.BASE_PD_CD) AS PD_NM   /*상품명*/
                          /*이월은 따로조회 */
-                         , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('101')
+                         , (CASE WHEN SUBSTR(T1.CNTR_PD_STRTDT,1,6) = SUBSTR(T1.CH_DTM, 1, 6) AND T1.CNTR_DTL_STAT_CD = '101'
                                  THEN 1
                                  ELSE 0 END) AS AGRG_CT2  /*유입*/
                          , (CASE WHEN T1.CNTR_DTL_STAT_CD IN ('301','302','303')

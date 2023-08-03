@@ -29,7 +29,7 @@ public class WsnbAsProcsAgrgListDto {
     public record SearchRes(
         String ogNm,
         String cntGb,
-        String cntTotal,
+        int cntTotal,
         int cnt01,
         int cnt02,
         int cnt03,

@@ -73,31 +73,50 @@ public class WogcActivityController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
-        @ApiImplicitParam(name = "rsbDvCd", value = "직책구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1차레벨조직ID", paramType = "query", example = "", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2차레벨조직ID", paramType = "query", example = "", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd3", value = "3차레벨조직ID", paramType = "query", example = "", required = false),
-        @ApiImplicitParam(name = "rolDvCd", value = "직무구분", paramType = "query", required = false),
-        @ApiImplicitParam(name = "perfCat", value = "실적구분", paramType = "query", required = false)
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrKnm", value = "파트너이름", paramType = "query", required = false),
+        @ApiImplicitParam(name = "perfDv", value = "실적구분", paramType = "query", required = false)
     })
     @GetMapping({"/accure"})
     public List<SearchAccureActivityRes> SearchAccureActivities(SearchAccureActivityReq reqDto) {
         return wogcActivityService.searchAccureActivities(reqDto);
     }
 
-    @ApiOperation(value = "월별 활동 현황 정보 조회", notes = "월별 활동 현황 정보를 조회한다.")
+    @ApiOperation(value = "누적 활동 현황 정보 조회", notes = "누적 활동 현황 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
-        @ApiImplicitParam(name = "rsbDvCd", value = "직책구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1차레벨조직ID", paramType = "query", example = "", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2차레벨조직ID", paramType = "query", example = "", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd3", value = "3차레벨조직ID", paramType = "query", example = "", required = false),
-        @ApiImplicitParam(name = "rolDvCd", value = "직무구분", paramType = "query", required = false),
-        @ApiImplicitParam(name = "perfCat", value = "실적구분", paramType = "query", required = false)
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrKnm", value = "파트너이름", paramType = "query", required = false),
+        @ApiImplicitParam(name = "perfDv", value = "실적구분", paramType = "query", required = false)
     })
     @GetMapping({"/accure/paging"})
     public PagingResult<SearchAccureActivityRes> SearchAccureActivitiesPages(SearchAccureActivityReq reqDto, @Valid PageInfo pageInfo) {
         return wogcActivityService.searchAccureActivitiesPages(reqDto, pageInfo);
+    }
+
+    @ApiOperation(value = "누적 활동 현황 정보 조회", notes = "누적 활동 현황 정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd1", value = "1차레벨조직ID", paramType = "query", example = "", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "2차레벨조직ID", paramType = "query", example = "", required = false),
+        @ApiImplicitParam(name = "ogLevlDvCd3", value = "3차레벨조직ID", paramType = "query", example = "", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrKnm", value = "파트너이름", paramType = "query", required = false),
+        @ApiImplicitParam(name = "perfDv", value = "실적구분", paramType = "query", required = false)
+    })
+    @GetMapping({"/accure/excel-download"})
+    public List<SearchAccureActivityRes> SearchAccureActivitiesForExcelDownload(SearchAccureActivityReq reqDto) {
+        return wogcActivityService.searchAccureActivities(reqDto);
     }
 }

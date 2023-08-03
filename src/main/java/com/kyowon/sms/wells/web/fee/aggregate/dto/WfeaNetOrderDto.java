@@ -15,39 +15,39 @@ public class WfeaNetOrderDto {
     @ApiModel(value = "WfeaNetOrderDto-SearchReq")
     public record SearchReq(
         //조회구분
-        String schDvCd,
+        String dvCd,
         //차수
         String tcntDvCd,
         //조직구분
         String ogDvCd,
         //구분
-        String schDv,
+        String divCd,
         //제품유형
-        String pdctTp,
+        String pdctTpCd,
         //판매유형
-        String selTp,
+        String selTpCd,
         //시작일자
-        String schDtStrt,
+        String strtDt,
         //종료일자
-        String schDtEnd,
+        String endDt,
         //취소시작일자
-        String schCancDtStrt,
+        String cancStrtDt,
         //취소종료일자
-        String schCancDtEnd,
+        String cancEndDt,
         //상품시작코드
-        String schPdCdStrt,
+        String pdStrtCd,
         //상품종료코드
-        String schPdCdEnd,
+        String pdEndCd,
         //패키지시작코드
-        String schPkgCdStrt,
+        String pkgStrtCd,
         //패키지종료코드
-        String schPkgdEnd,
+        String pkgEndCd,
         //총괄단
-        String ogLevl1,
+        String ogLevl1Id,
         //지역단
-        String ogLevl2,
+        String ogLevl2Id,
         //지점
-        String ogLevl3,
+        String ogLevl3Id,
         //번호
         String prtnrNo,
         //수수료년월

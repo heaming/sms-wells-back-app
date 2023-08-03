@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.closing.sales.mapper;
 
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
@@ -14,7 +16,7 @@ public interface WdcbSalesPerformanceDetailMapper {
 
     SearchLeaseRes selectLeaseSalesDetail(String cntrDtlNo, String slClYm);
 
-    SearchRentalRes selectRentalSalesDetail(String cntrDtlNo, String slClYm);
+    Optional<SearchRentalRes> selectRentalSalesDetail(String cntrDtlNo, String slClYm);
 
     SearchRegularRes selectRegularShippingDetail(String cntrDtlNo, String slClYm);
 }

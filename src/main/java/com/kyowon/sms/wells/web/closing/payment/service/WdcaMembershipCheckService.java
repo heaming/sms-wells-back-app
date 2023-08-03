@@ -19,47 +19,47 @@ public class WdcaMembershipCheckService {
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(전) - 조회
-    * @param deptCd 세션 부서 ID
+    * @param deptGubun 조직선택
     * @param pageInfo 페이징 처리 정보
     * @return
     */
     public PagingResult<SearchRes> getBeforePages(
-        String deptCd, PageInfo pageInfo
+        String deptGubun, PageInfo pageInfo
     ) {
-        return mapper.selectBeforePages(deptCd, pageInfo);
+        return mapper.selectBeforePages(deptGubun, pageInfo);
     }
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(전) - 엑셀다운로드
-    * @param deptCd 세션 부서 ID
+    * @param deptGubun 조직선택
     * @return
     */
     public List<SearchRes> getBeforeForExcelDownload(
-        String deptCd
+        String deptGubun
     ) {
-        return mapper.selectBeforePages(deptCd);
+        return mapper.selectBeforePages(deptGubun);
     }
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(후) - 조회
-    * @param deptCd 세션 부서 ID
+    * @param deptGubun 조직선택
     * @param pageInfo 페이징 처리 정보
     * @return
     */
     public PagingResult<SearchAfterRes> getAfterPages(
-        String deptCd, PageInfo pageInfo
+        String deptGubun, PageInfo pageInfo
     ) {
-        return mapper.selectAfterPages(deptCd, pageInfo);
+        return mapper.selectAfterPages(deptGubun, pageInfo);
     }
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(후) - 엑셀다운로드
-    * @param deptCd 세션 부서 ID
+    * @param deptGubun 조직선택
     * @return
     */
     public List<SearchAfterRes> getAfterForExcelDownload(
-        String deptCd
+        String deptGubun
     ) {
-        return mapper.selectAfterPages(deptCd);
+        return mapper.selectAfterPages(deptGubun);
     }
 }

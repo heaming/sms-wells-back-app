@@ -175,6 +175,7 @@ public class WbnaBondPartTransferDto {
      * @param bzHdqDvCd 사업부구분코드
      * @param cntrNo 계약번호
      * @param clctamDvCd 집금구분코드
+     * @param originClctamDvCd 집금구분코드
      * @param bfPrtnrKnm 전월담당자
      * @param cntrSn 계약일련번호
      * @param cstNm 고객명
@@ -198,6 +199,7 @@ public class WbnaBondPartTransferDto {
         String bzHdqDvCd,
         String cntrNo,
         String clctamDvCd,
+        String originClctamDvCd,
         String bfPrtnrKnm,
         String cntrSn,
         String cstNm,
@@ -239,6 +241,7 @@ public class WbnaBondPartTransferDto {
      * @param cntrSn 계약일련번호
      * @param cstNo 고객번호
      * @param clctamDvCd 집금구분코드
+     * @param originClctamDvCd 원본 집금구분코드
      */
     @ApiModel("WbnaBondPartTransferDto-EditReq")
     public record EditReq(
@@ -253,6 +256,7 @@ public class WbnaBondPartTransferDto {
         @NotBlank
         String cstNo,
         @NotBlank
-        String clctamDvCd
+        String clctamDvCd,
+        String originClctamDvCd
     ) {}
 }

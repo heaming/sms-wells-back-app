@@ -65,4 +65,23 @@ public class WsnbIndividualServicePsDvo {
     String ogTpCd;
     String wkPrtnrNo;
     String cstUnuitmCn;
+
+    /*처리내역조회*/
+    String svTp;
+    String rcpDt;
+    String svBizDclsf;
+    String reqDt;
+    String vstFshDt;
+    String wkPrgsStat;
+    String asCaus;
+    String rtngdProcsTp;
+    String fstVstFshDt;
+    String zipNo;
+    String ogTp;
+    String ogNm;
+    String prtnrNm;
+    String bldNm;
+    String imgYn;
+    String cstSvAsnNo;
+    String procStus;
 }
