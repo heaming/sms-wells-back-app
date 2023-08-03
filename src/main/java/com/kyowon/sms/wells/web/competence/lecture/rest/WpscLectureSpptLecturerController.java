@@ -46,12 +46,13 @@ public class WpscLectureSpptLecturerController {
     @ApiOperation(value = "강의지원 강사관리 - 저장 ", notes = "강사 저장")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "lectrSpptOgTpCd", value = "조직유형코드", required = true),
-        @ApiImplicitParam(name = "lectrSpptLectCd", value = "강사코드"),
         @ApiImplicitParam(name = "lectNm", value = "강사명", required = true),
+        @ApiImplicitParam(name = "lectrSpptLectCd", value = "강사코드"),
         @ApiImplicitParam(name = "useYn", value = "사용여부"),
     })
     @PostMapping
     public SaveResponse saveLectureSpptLecturer(
+        @Valid
         @RequestBody
         List<SaveReq> reqs
     ) throws  Exception {
