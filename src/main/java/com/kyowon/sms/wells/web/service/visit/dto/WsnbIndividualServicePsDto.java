@@ -28,7 +28,8 @@ public class WsnbIndividualServicePsDto {
         String cralIdvTno, /*휴대전화번호(휴대개별전화번호)*/
         String addr, /*주소*/
         String cstUnuitmCn, /*고객특이사항내용*/
-        String wkPrtnrNo, /*작성자*/
+        String wkPrtnrNm, /*작성자*/
+        String wkPrtnrNo, /*작성자사번*/
         String wkOgTpCd, /*작성자소속*/
         String wrteDt, /*작성일시*/
         String basePdNm, /*계약상품*/
