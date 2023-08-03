@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDetailDvo;
 import com.kyowon.sms.common.web.product.category.service.ZpdaClassificationMgtService;
 import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
@@ -391,6 +392,7 @@ public class WpdcMaterialMgtService {
      * @param metaItems
      * @param tbPdbsPdBas
      * @param tbPdbsPdEcomPrpDtl
+     * @param tbPdbsPdDtl
      * @param prgGrpDves
      * @throws Exception
      */
@@ -400,6 +402,7 @@ public class WpdcMaterialMgtService {
         List<ZpdcPropertyMetaDvo> metaItems,
         List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
         List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdDtl,
         ArrayList<String> prgGrpDves
     ) throws Exception {
 
@@ -431,7 +434,7 @@ public class WpdcMaterialMgtService {
                 // TODO 조회쿼리 한방 날리고 값들 채우고!!! 여기부터 시작!!!!
                 ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(dvo.getSapMatCd());
 
-                dvo.setModelNo(sapMatVo.getModelNo());
+                //                dvo.setModelNo(sapMatVo.getModelNo());
                 dvo.setSapPdctSclsrtStrcVal(sapMatVo.getSapPdctSclsrtStrcVal());
                 dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
                 dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
@@ -449,6 +452,28 @@ public class WpdcMaterialMgtService {
             dvo.setPdTpDtlCd(PdProductConst.PD_TP_DTL_CD_M);
             dvo.setTempSaveYn(PdProductConst.TEMP_SAVE_N);
             dvo = productService.saveProductBase(dvo, startDtm);
+
+            // ---------------------------------------------------------------------------------------------------------
+            // 제품 상세
+            Map<String, Object> masterMap2 = new HashMap<String, Object>();
+            for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+                for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdDtl) {
+                    if (entry.getKey().equals(metaVo.getColNm())) {
+                        if (entry.getValue().toString().split("\\|").length > 1) {
+                            String tempVal[] = entry.getValue().toString().split("\\|");
+                            log.debug(metaVo.getColId() + " && " + tempVal[0].trim() + " && " + tempVal[1].trim());
+                            masterMap2.put(metaVo.getColId(), tempVal[1].trim());
+                        } else {
+                            masterMap2.put(metaVo.getColId(), entry.getValue().toString().trim());
+                        }
+                    }
+                }
+            }
+
+            objectMapper = new ObjectMapper();
+            ZpdcProductDetailDvo propertyVo2 = objectMapper.convertValue(masterMap2, ZpdcProductDetailDvo.class);
+            productService.saveProductDetail(dvo.getPdCd(), startDtm, propertyVo2);
+            // ---------------------------------------------------------------------------------------------------------
 
             /**
              * 각사 속성의 경우

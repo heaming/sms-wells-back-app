@@ -195,11 +195,13 @@ public class WpdcMaterialMgtController {
                 }
             }
 
-            // 대상 테이블별 추출대상 Column 선별. 
+            // 대상 테이블별 추출대상 Column 선별.
             List<ZpdcPropertyMetaDvo> tbPdbsPdBas = metaItems.stream()
                 .filter(x -> PdProductConst.TBL_TB_PDBS_PD_BAS.equals(x.getTblId())).toList();
             List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl = metaItems.stream()
                 .filter(x -> PdProductConst.TBL_TB_PDBS_PD_ECOM_PRP_DTL.equals(x.getTblId())).toList();
+            List<ZpdcPropertyMetaDvo> tbPdbsPdDtl = metaItems.stream()
+                .filter(x -> PdProductConst.TBL_TB_PDBS_PD_DTL.equals(x.getTblId())).toList();
 
             // 유효성 체크
             List<ExcelUploadErrorDvo> dataErrors = service
@@ -208,7 +210,7 @@ public class WpdcMaterialMgtController {
             if (dataErrors.size() > 0) {
                 uploadStatus = PdProductConst.EXCEL_UPLOAD_ERROR;
             } else {
-                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, prgGrpDves);
+                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, tbPdbsPdDtl, prgGrpDves);
             }
 
             return ExcelUploadDto.UploadRes.builder()
