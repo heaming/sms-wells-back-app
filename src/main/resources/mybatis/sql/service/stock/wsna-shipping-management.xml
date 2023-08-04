@@ -1,0 +1,1114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaShippingManagementMapper">
+
+    <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaShippingManagementDto$SearchProductRes">
+        SELECT DISTINCT
+               ( CASE WHEN TN.PD_CD IS NOT NULL
+                      THEN TN.SPP_PD_CD
+                      ELSE TA.PDCT_PD_CD
+                 END )  AS PD_CD
+             , ( CASE WHEN TN.PD_CD IS NOT NULL
+                      THEN ( SELECT SA.CD_CNTN
+                               FROM T_CMZ_CD_D SA
+                              WHERE SA.TENANT_ID = 'TNT_WELLS'
+                                AND SA.CD_ID = 'SPP_PD_CD'
+                                AND SA.CD_VLD_VAL = TN.SPP_PD_CD )
+                      ELSE ( SELECT SA.PD_NM
+                               FROM TB_PDBS_PD_BAS  SA
+                              WHERE SA.PD_CD = TA.PDCT_PD_CD )
+                 END )  AS PD_NM
+             , ( CASE WHEN (    TN.SPP_THM0_YN = 'Y'
+                            AND (   TC.IST_DT IS NULL
+                                 OR TA.IST_NMN_N = 0 ))
+                      THEN TN.PD_PRP_VAL20
+                      ELSE TK.PD_PRP_VAL20
+                 END )  AS PD_GROUP_CD
+             , NVL(TN.SPP_THM0_YN, 'N') AS SPP_THM_YN
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ   TA
+             , TB_SVPD_CST_SV_EXCN_IZ       TC
+             , TB_PDBS_PD_ECOM_PRP_DTL      TK
+             , TB_SVPD_PCSV_PD_IZ           TN
+         WHERE 1=1
+           AND TA.PDCT_PD_CD = TK.PD_CD
+           AND TA.PDCT_PD_CD = TN.PD_CD
+           AND TA.CNTR_NO    = TC.CNTR_NO
+           AND TA.CNTR_SN    = TC.CNTR_SN
+           AND TA.ASN_OJ_YM  = #{asnYm}
+           AND TA.VST_DV_CD LIKE '2%'
+           AND (CASE WHEN TN.SPP_EXCD_YN = 'Y' THEN '2' ELSE '1' END ) = '1'
+           AND (CASE WHEN (    #{sppDvCd} = 'A1'
+                           AND TK.PD_PRP_VAL20 IN ( SELECT SA.CD_VLD_VAL
+                                                      FROM T_CMZ_CD_D SA
+                                                     WHERE SA.TENANT_ID   = 'TNT_WELLS'
+                                                       AND SA.CD_ID       = 'AS_MAT_ITM_GRP_CD'
+                                                       AND SA.USER_DFN_02 = 'SPP_DV_CD_A1'
+                                                  ) )
+                     THEN '1'
+                     WHEN (    #{sppDvCd} = 'A2'
+                           AND TK.PD_PRP_VAL20 NOT IN ( SELECT SA.CD_VLD_VAL
+                                                          FROM T_CMZ_CD_D SA
+                                                         WHERE SA.TENANT_ID   = 'TNT_WELLS'
+                                                           AND SA.CD_ID       = 'AS_MAT_ITM_GRP_CD'
+                                                           AND SA.USER_DFN_02 = 'SPP_DV_CD_A1'
+                                                      ) )
+                     THEN '1'
+                     ELSE '2'
+                END ) = '1'
+        ORDER BY TO_NUMBER(PD_GROUP_CD), PD_NM, PD_CD
+    </select>
+    <select id="selectShippingItems" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaShippingManagementDvo">
+        WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
+            SELECT
+                   PL1.ASN_OJ_YM AS ASN_OJ_YM        -- 배정대상년월 - AC252_ORD_OBJ_YM -- 배정대상년월
+                 , PL1.CNTR_NO AS CNTR_NO          -- 계약번호 - AC252_CSMR_YR -- 계약번호 - AC252_CSMR_CD -- 계약번호
+                 , PL1.CNTR_SN AS CNTR_SN          -- 계약일련번호 - AC252_CSMR_SEQ -- 계약일련번호
+                 , PL1.PDCT_PD_CD AS PDCT_PD_CD       -- 제품상품코드 - AC252_GDS_CD -- 상품코드
+                 , PL1.PART_CNT_TOTAL AS PART_CNT_TOTAL    -- 투입부품모델수
+                 , PL1.PART_SUM_TOTAL AS PART_SUM_TOTAL    -- 투입부품수량합계
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 1) AS PART_CD_01   -- AC252_PART_CD_01
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 1) AS PART_NM_01   -- AC252_PART_NM_01
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 1) AS PART_QTY_01  -- AC252_QTY_01
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 2) AS PART_CD_02   -- AC252_PART_CD_02
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 2) AS PART_NM_02   -- AC252_PART_NM_02
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 2) AS PART_QTY_02  -- AC252_QTY_02
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 3) AS PART_CD_03   -- AC252_PART_CD_03
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 3) AS PART_NM_03   -- AC252_PART_NM_03
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 3) AS PART_QTY_03  -- AC252_QTY_03
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 4) AS PART_CD_04   -- AC252_PART_CD_04
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 4) AS PART_NM_04   -- AC252_PART_NM_04
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 4) AS PART_QTY_04  -- AC252_QTY_04
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 5) AS PART_CD_05   -- AC252_PART_CD_05
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 5) AS PART_NM_05   -- AC252_PART_NM_05
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 5) AS PART_QTY_05  -- AC252_QTY_05
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 6) AS PART_CD_06   -- AC252_PART_CD_06
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 6) AS PART_NM_06   -- AC252_PART_NM_06
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 6) AS PART_QTY_06  -- AC252_QTY_06
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 7) AS PART_CD_07   -- AC252_PART_CD_07
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 7) AS PART_NM_07   -- AC252_PART_NM_07
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 7) AS PART_QTY_07  -- AC252_QTY_07
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 8) AS PART_CD_08   -- AC252_PART_CD_08
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 8) AS PART_NM_08   -- AC252_PART_NM_08
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 8) AS PART_QTY_08  -- AC252_QTY_08
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 9) AS PART_CD_09   -- AC252_PART_CD_09
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 9) AS PART_NM_09   -- AC252_PART_NM_09
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 9) AS PART_QTY_09  -- AC252_QTY_09
+
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 10) AS PART_CD_10  -- AC252_PART_CD_10
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 10) AS PART_NM_10  -- AC252_PART_NM_10
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10 -- AC252_QTY_10
+              FROM (
+                    SELECT DISTINCT TB.ASN_OJ_YM AS ASN_OJ_YM
+                         , TB.CNTR_NO AS CNTR_NO
+                         , TB.CNTR_SN AS CNTR_SN
+                         , TB.PDCT_PD_CD AS PDCT_PD_CD
+                         , COUNT(1) OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
+                                           ORDER BY     TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
+                                           RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS PART_CNT_TOTAL
+                         , SUM(TB.PU_QTY) OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
+                                                 ORDER BY  TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
+                                                 RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS PART_SUM_TOTAL
+                         , LISTAGG(TB.PU_PART_PD_CD, ',')
+                             WITHIN GROUP ( ORDER BY ITM_KND_CD, FILT_CHNG_LV_CD, PU_PART_PD_CD )
+                             OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN, TB.PDCT_PD_CD ) AS PART_LIST
+                         , LISTAGG(TC.PD_NM, '|')
+                             WITHIN GROUP ( ORDER BY ITM_KND_CD, FILT_CHNG_LV_CD, PU_PART_PD_CD )
+                             OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN, TB.PDCT_PD_CD ) AS PART_NM_LIST
+                         , LISTAGG(TB.PU_QTY, ',')
+                             WITHIN GROUP ( ORDER BY ITM_KND_CD, FILT_CHNG_LV_CD, PU_PART_PD_CD )
+                             OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN, TB.PDCT_PD_CD ) AS PART_QTY_LIST
+                     FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  TA
+                    INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ TB
+                       ON TA.ASN_OJ_YM = TB.ASN_OJ_YM
+                      AND TA.CNTR_NO   = TB.CNTR_NO
+                      AND TA.CNTR_SN   = TB.CNTR_SN
+                    INNER JOIN TB_PDBS_PD_BAS TC
+                       ON TB.PU_PART_PD_CD = TC.PD_CD
+                    WHERE 1=1
+                      AND TA.ASN_OJ_YM = #{asnYm}
+                      AND TA.VST_DV_CD LIKE '2%'
+                   ) PL1
+             WHERE 1=1
+        )
+            SELECT V1.ASN_OJ_YM
+                 , V1.CNTR_NO
+                 , V1.CNTR_SN
+                 , V1.CST_SV_ASN_NO
+                 , V1.CST_KNM
+                 , V1.ZIP --ZIP
+                 , V1.BAS_ADR --BAS_ADR
+                 , V1.DTL_ADR --DTL_ADR
+                 , V1.CRAL_LOCARA_TNO
+                 , V1.MEXNO_ENCR
+                 , V1.CRAL_IDV_TNO
+                 , V1.LOCARA_TNO
+                 , V1.EXNO_ENCR
+                 , V1.IDV_TNO
+                 , V1.SELL_TP_CD
+                 , V1.SELL_TP_NM
+                 , V1.IST_DT
+                 , V1.REQD_DT
+                 , V1.CPS_DT
+                 , V1.TH_REQD_DT
+                 , V1.PDCT_PD_CD
+                 , V1.BASE_PD_CD
+                 , V1.PD_NM
+                 , V1.SV_BIZ_DCLSF_CD
+                 , V1.SV_BIZ_DCLSF_NM
+                 , V1.IST_NMN_N
+                 , V1.VST_NMN_N
+                 , V1.P_VST_PRGS_STAT_CD
+                 , V1.P_VST_PRGS_STAT_NM
+                 , V1.VST_DUEDT
+                 , V1.WK_EXCN_DT
+                 , V1.VST_OJ_LOCARA_CD
+                 , V1.VST_OJ_LOCARA_NM
+                 , V1.WARE_NO
+                 , V1.OG_CD
+                 , V1.CNFM_PSIC_PRTNR_NO
+                 , V1.SITE_AW_PD_GRP_CD
+                 , V1.AS_LCT_CD
+                 , V1.AS_LCT_NM
+                 , V1.AS_PHN_CD
+                 , V1.AS_PHN_NM
+                 , V1.AS_CAUS_CD
+                 , V1.AS_CAUS_NM
+                 , V1.PART_CNT_TOTAL
+                 , V1.PART_SUM_TOTAL
+                 , V1.PART_CD_01
+                 , V1.PART_CD_02
+                 , V1.PART_CD_03
+                 , V1.PART_CD_04
+                 , V1.PART_CD_05
+                 , V1.PART_CD_06
+                 , V1.PART_CD_07
+                 , V1.PART_CD_08
+                 , V1.PART_CD_09
+                 , V1.PART_CD_10
+                 , V1.PART_QTY_01
+                 , V1.PART_QTY_02
+                 , V1.PART_QTY_03
+                 , V1.PART_QTY_04
+                 , V1.PART_QTY_05
+                 , V1.PART_QTY_06
+                 , V1.PART_QTY_07
+                 , V1.PART_QTY_08
+                 , V1.PART_QTY_09
+                 , V1.PART_QTY_10
+                 , V1.PART_NM_01
+                 , V1.PART_NM_02
+                 , V1.PART_NM_03
+                 , V1.PART_NM_04
+                 , V1.PART_NM_05
+                 , V1.PART_NM_06
+                 , V1.PART_NM_07
+                 , V1.PART_NM_08
+                 , V1.PART_NM_09
+                 , V1.PART_NM_10
+                 , V1.FRISU_RCVRY_TP_CD
+                 , V1.SPP_AK_SPF_DT
+                 , V1.BZRNO
+                 , V1.BFSVC_BZS_DV_CD
+                 , V1.SPP_DV_CD
+                 , V1.SPP_PD_CD
+                 , V1.SPP_THM_YN
+                 , V1.CST_NO
+                 , V1.WARE_ICHR_NO
+                 , V1.WARE_MNGT_PRTNRNO
+                 , (CASE WHEN (    V1.P_VST_PRGS_STAT_CD     NOT IN ('20')
+                               AND (   V1.REQD_DT IS NOT NULL
+                                    OR V1.CPS_DT  IS NOT NULL
+                                    OR V1.TH_REQD_DT IS NOT NULL ) )
+                         THEN '93'
+                         ELSE V1.P_VST_PRGS_STAT_CD
+                    END)   AS VST_PRGS_STAT_CD
+                 , #{procsDvCd} AS PROCS_DV_CD
+                 , (CASE WHEN #{pdCd} = 'WM01106494'
+                         THEN '[BH]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || ( CASE WHEN V1.PDCT_PD_CD = 'WM03106507' THEN '백수오+EGF'
+                                                                                    ELSE F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})
+                                                                               END ) || '0차월'
+                         WHEN #{pdCd} IN ('WM01106498', 'WM03106502', 'WM03106505', 'WM03106506', 'WM03106507', 'WM03106508')
+                         THEN '[BH]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || ( CASE WHEN V1.PDCT_PD_CD = 'WM03106507' THEN '백수오+EGF'
+                                                                                    ELSE F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})
+                                                                               END ) || '정기배송'
+                         WHEN #{pdCd} IN ('WM05100736')
+                         THEN '[아웃소싱]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || '커피원두 정기배송'
+                         ELSE SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 자가관리필터_' || F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})
+                    END )  AS SPP_PD_NM
+                 , ( CASE WHEN V1.PART_NM_01 IS NOT NULL
+                          THEN V1.PART_NM_01 || '(' || V1.PART_CD_01 || '): ' || V1.PART_QTY_01
+                          ELSE ''
+                     END )  AS PART_NM_QTY_01
+                 , ( CASE WHEN V1.PART_NM_02 IS NOT NULL
+                          THEN V1.PART_NM_02 || '(' || V1.PART_CD_02 || '): ' || V1.PART_QTY_02
+                          ELSE ''
+                     END )  AS PART_NM_QTY_02
+                 , ( CASE WHEN V1.PART_NM_03 IS NOT NULL
+                          THEN V1.PART_NM_03 || '(' || V1.PART_CD_03 || '): ' || V1.PART_QTY_03
+                          ELSE ''
+                     END )  AS PART_NM_QTY_03
+                 , ( CASE WHEN V1.PART_NM_04 IS NOT NULL
+                          THEN V1.PART_NM_04 || '(' || V1.PART_CD_04 || '): ' || V1.PART_QTY_04
+                          ELSE ''
+                     END )  AS PART_NM_QTY_04
+                 , ( CASE WHEN V1.PART_NM_05 IS NOT NULL
+                          THEN V1.PART_NM_05 || '(' || V1.PART_CD_05 || '): ' || V1.PART_QTY_05
+                          ELSE ''
+                     END )  AS PART_NM_QTY_05
+                 , ( CASE WHEN V1.PART_NM_06 IS NOT NULL
+                          THEN V1.PART_NM_06 || '(' || V1.PART_CD_06 || '): ' || V1.PART_QTY_06
+                          ELSE ''
+                     END )  AS PART_NM_QTY_06
+                 , ( CASE WHEN V1.PART_NM_07 IS NOT NULL
+                          THEN V1.PART_NM_07 || '(' || V1.PART_CD_07 || '): ' || V1.PART_QTY_07
+                          ELSE ''
+                     END )  AS PART_NM_QTY_07
+                 , ( CASE WHEN V1.PART_NM_08 IS NOT NULL
+                          THEN V1.PART_NM_08 || '(' || V1.PART_CD_08 || '): ' || V1.PART_QTY_08
+                          ELSE ''
+                     END )  AS PART_NM_QTY_08
+                 , ( CASE WHEN V1.PART_NM_09 IS NOT NULL
+                          THEN V1.PART_NM_09 || '(' || V1.PART_CD_09 || '): ' || V1.PART_QTY_09
+                          ELSE ''
+                     END )  AS PART_NM_QTY_09
+                 , ( CASE WHEN V1.PART_NM_10 IS NOT NULL
+                          THEN V1.PART_NM_10 || '(' || V1.PART_CD_10 || '): ' || V1.PART_QTY_10
+                          ELSE ''
+                     END )  AS PART_NM_CD_QTY_10
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', V1.P_VST_PRGS_STAT_CD, #{session.langId}) AS VST_PRGS_STAT_NM
+              FROM (
+                    SELECT DISTINCT
+                           ''                 AS CHK
+                         , TA.ASN_OJ_YM	AS ASN_OJ_YM
+                         , TA.CNTR_NO AS CNTR_NO
+                         , TA.CNTR_SN AS CNTR_SN
+                         , TB.CST_SV_ASN_NO AS CST_SV_ASN_NO
+                         , ( SELECT SA.CST_KNM
+                               FROM TB_CUBS_CST_BAS        SA
+                              INNER JOIN TB_SSCT_CNTR_CST_REL   SB
+                                 ON SA.CST_NO       = SB.CST_NO
+                                AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                              WHERE 1=1
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                            )    AS CST_KNM
+                         , ( CASE WHEN TD.CNTR_NO IS NULL
+                                  THEN ( CASE WHEN TA.ADR_ID IS NULL
+                                              THEN ( SELECT SC.NEW_ADR_ZIP
+                                                       FROM TB_CUBS_CST_BAS       SA
+                                                      INNER JOIN TB_SSCT_CNTR_CST_REL  SB
+                                                         ON SA.CST_NO       = SB.CST_NO
+                                                      INNER JOIN TB_GBCO_ADR_BAS       SC
+                                                         ON SA.ADR_ID       = SC.ADR_ID
+                                                      WHERE 1=1
+                                                        AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                                        AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                                                    )
+                                               ELSE ( CASE WHEN ( SELECT SD.NEW_ADR_ZIP
+                                                                    FROM TB_GBCO_ADR_BAS SD
+                                                                   WHERE SD.ADR_ID = TA.ADR_ID ) IS NULL
+                                                           THEN ( SELECT SC.NEW_ADR_ZIP
+                                                                    FROM TB_CUBS_CST_BAS       SA
+                                                                   INNER JOIN TB_SSCT_CNTR_CST_REL  SB
+                                                                      ON SA.CST_NO       = SB.CST_NO
+                                                                   INNER JOIN TB_GBCO_ADR_BAS       SC
+                                                                      ON SA.ADR_ID       = SC.ADR_ID
+                                                                   WHERE 1=1
+                                                                    AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                                                     AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                                                                     AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                                                                )
+                                                           ELSE ( SELECT SD.NEW_ADR_ZIP
+                                                                   FROM TB_GBCO_ADR_BAS SD
+                                                                  WHERE SD.ADR_ID = TA.ADR_ID
+                                                                )
+                                                      END )
+                                         END )
+                                  ELSE TD.SPP_ZIP
+                             END )    AS ZIP
+                         , ( CASE WHEN TD.CNTR_NO IS NULL
+                                  THEN ( CASE WHEN TA.ADR_ID IS NULL
+                                              THEN ( SELECT SC.RNADR
+                                                       FROM TB_CUBS_CST_BAS       SA
+                                                      INNER JOIN TB_SSCT_CNTR_CST_REL  SB
+                                                         ON SA.CST_NO       = SB.CST_NO
+                                                      INNER JOIN TB_GBCO_ADR_BAS       SC
+                                                         ON SA.ADR_ID       = SC.ADR_ID
+                                                      WHERE 1=1
+                                                        AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                                        AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                                                    )
+                                               ELSE ( CASE WHEN ( SELECT SD.NEW_ADR_ZIP
+                                                                    FROM TB_GBCO_ADR_BAS SD
+                                                                   WHERE SD.ADR_ID = TA.ADR_ID ) IS NULL
+                                                           THEN ( SELECT SC.RNADR
+                                                                    FROM TB_CUBS_CST_BAS       SA
+                                                                   INNER JOIN TB_SSCT_CNTR_CST_REL  SB
+                                                                      ON SA.CST_NO       = SB.CST_NO
+                                                                   INNER JOIN TB_GBCO_ADR_BAS       SC
+                                                                      ON SA.ADR_ID       = SC.ADR_ID
+                                                                   WHERE 1=1
+                                                                     AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                                                     AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                                                                     AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                                                                )
+                                                           ELSE ( SELECT SD.RNADR
+                                                                   FROM TB_GBCO_ADR_BAS SD
+                                                                  WHERE SD.ADR_ID = TA.ADR_ID
+                                                                )
+                                                      END )
+                                         END )
+                                  ELSE TD.SPP_BAS_ADR
+                              END )    AS BAS_ADR
+                         , ( CASE WHEN TD.CNTR_NO IS NULL
+                                  THEN ( CASE WHEN TA.ADR_ID IS NULL
+                                              THEN ( SELECT SC.RDADR
+                                                       FROM TB_CUBS_CST_BAS       SA
+                                                      INNER JOIN TB_SSCT_CNTR_CST_REL  SB
+                                                         ON SA.CST_NO       = SB.CST_NO
+                                                      INNER JOIN TB_GBCO_ADR_BAS       SC
+                                                         ON SA.ADR_ID       = SC.ADR_ID
+                                                      WHERE 1=1
+                                                        AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                                        AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                                                    )
+                                               ELSE ( CASE WHEN ( SELECT SD.NEW_ADR_ZIP
+                                                                    FROM TB_GBCO_ADR_BAS SD
+                                                                   WHERE SD.ADR_ID = TA.ADR_ID ) IS NULL
+                                                           THEN ( SELECT SC.RDADR
+                                                                    FROM TB_CUBS_CST_BAS       SA
+                                                                   INNER JOIN TB_SSCT_CNTR_CST_REL  SB
+                                                                      ON SA.CST_NO       = SB.CST_NO
+                                                                   INNER JOIN TB_GBCO_ADR_BAS       SC
+                                                                      ON SA.ADR_ID       = SC.ADR_ID
+                                                                   WHERE 1=1
+                                                                     AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                                                     AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                                                                     AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                                                                )
+                                                           ELSE ( SELECT SD.RDADR
+                                                                   FROM TB_GBCO_ADR_BAS SD
+                                                                  WHERE SD.ADR_ID = TA.ADR_ID
+                                                                )
+                                                      END )
+                                         END )
+                                  ELSE TD.SPP_DTL_ADR ||' '||TD.REF_ADR
+                              END )    AS DTL_ADR
+                         , (CASE WHEN TD.CNTR_NO IS NULL
+                                 THEN ( CASE WHEN ( TRIM(TF.CRAL_LOCARA_TNO) IS NULL OR TRIM(TF.CRAL_LOCARA_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TF.CRAL_LOCARA_TNO,4,' ') END )
+                                 ELSE ( CASE WHEN ( TRIM(TD.CRAL_LOCARA_TNO) IS NULL OR TRIM(TD.CRAL_LOCARA_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TD.CRAL_LOCARA_TNO,4,' ') END )
+                            END)       AS CRAL_LOCARA_TNO
+                         , (CASE WHEN TD.CNTR_NO IS NULL
+                                 THEN ( CASE WHEN ( TRIM(TF.MEXNO_ENCR) IS NULL OR TRIM(TF.MEXNO_ENCR) = '0' ) THEN ''
+                                             ELSE LPAD(TF.MEXNO_ENCR,4,' ') END )
+                                 ELSE ( CASE WHEN ( TRIM(TD.MEXNO_ENCR) IS NULL OR TRIM(TD.MEXNO_ENCR) = '0' ) THEN ''
+                                             ELSE LPAD(TD.MEXNO_ENCR,4,' ') END )
+                            END)       AS MEXNO_ENCR
+                         , (CASE WHEN TD.CNTR_NO IS NULL
+                                 THEN ( CASE WHEN ( TRIM(TF.CRAL_IDV_TNO) IS NULL OR TRIM(TF.CRAL_IDV_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TF.CRAL_IDV_TNO,4,' ') END )
+                                 ELSE ( CASE WHEN ( TRIM(TD.CRAL_IDV_TNO) IS NULL OR TRIM(TD.CRAL_IDV_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TD.CRAL_IDV_TNO,4,' ') END )
+                            END)       AS CRAL_IDV_TNO
+                         , (CASE WHEN TD.CNTR_NO IS NULL
+                                 THEN ( CASE WHEN ( TRIM(TF.LOCARA_TNO) IS NULL OR TRIM(TF.LOCARA_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TF.LOCARA_TNO,4,' ') END )
+                                 ELSE ( CASE WHEN ( TRIM(TD.LOCARA_TNO) IS NULL OR TRIM(TD.LOCARA_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TD.LOCARA_TNO,4,' ') END )
+                            END)       AS LOCARA_TNO
+                         , (CASE WHEN TD.CNTR_NO IS NULL
+                                 THEN ( CASE WHEN ( TRIM(TF.EXNO_ENCR) IS NULL OR TRIM(TF.EXNO_ENCR) = '0' ) THEN ''
+                                             ELSE LPAD(TF.EXNO_ENCR,4,' ') END )
+                                 ELSE ( CASE WHEN ( TRIM(TD.EXNO_ENCR) IS NULL OR TRIM(TD.EXNO_ENCR) = '0' ) THEN ''
+                                             ELSE LPAD(TD.MEXNO_ENCR,4,' ') END )
+                            END)       AS EXNO_ENCR
+                         , (CASE WHEN TD.CNTR_NO IS NULL
+                                 THEN ( CASE WHEN ( TRIM(TF.IDV_TNO) IS NULL OR TRIM(TF.IDV_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TF.IDV_TNO,4,' ') END )
+                                 ELSE ( CASE WHEN ( TRIM(TD.IDV_TNO) IS NULL OR TRIM(TD.IDV_TNO) = '0' ) THEN ''
+                                             ELSE LPAD(TD.IDV_TNO,4,' ') END )
+                            END)       AS IDV_TNO
+                         , TI.SELL_TP_CD AS SELL_TP_CD
+                         , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', TI.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
+                         , TC.IST_DT AS IST_DT
+                         , TC.REQD_DT AS REQD_DT
+                         , TC.CPS_DT AS CPS_DT
+                         , ( CASE WHEN TH.REQD_DT IS NULL
+                                  THEN TI.CNTR_PD_ENDDT
+                                  ELSE TH.REQD_DT
+                             END )  AS TH_REQD_DT
+                         , TA.PDCT_PD_CD AS PDCT_PD_CD
+                         , TI.BASE_PD_CD AS BASE_PD_CD
+                         , ( SELECT SA.PD_NM
+                               FROM TB_PDBS_PD_BAS  SA
+                              WHERE SA.PD_CD = TA.PDCT_PD_CD
+                           )     AS PD_NM
+                         , TA.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+                         , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', TA.SV_BIZ_DCLSF_CD, #{session.langId}) AS SV_BIZ_DCLSF_NM
+                         , TA.IST_NMN_N AS IST_NMN_N
+                         , TA.VST_NMN_N AS VST_NMN_N
+                         , TB.VST_PRGS_STAT_CD AS P_VST_PRGS_STAT_CD
+                         , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', TB.VST_PRGS_STAT_CD, #{session.langId}) AS P_VST_PRGS_STAT_NM
+                         , TA.VST_DUEDT AS VST_DUEDT
+                         , TB.WK_EXCN_DT AS WK_EXCN_DT
+                         , TB.VST_OJ_LOCARA_CD AS VST_OJ_LOCARA_CD
+                         , F_CMZ_CD_NM(#{session.tenantId}, 'ADM_ZN_CLSF_CD', TB.VST_OJ_LOCARA_CD, #{session.langId}) AS VST_OJ_LOCARA_NM
+                         , '100002'            AS WARE_NO
+                         , '000' AS WARE_ICHR_NO
+                         , '71321' AS WARE_MNGT_PRTNRNO
+                         , TM.OG_CD AS OG_CD
+                         , #{session.employeeIDNumber}       AS CNFM_PSIC_PRTNR_NO
+                         , TB.SITE_AW_PD_GRP_CD AS SITE_AW_PD_GRP_CD
+                         , TG.AS_LCT_CD AS AS_LCT_CD
+                         , F_CMZ_CD_NM(#{session.tenantId}, 'AS_LCT_CD', TG.AS_LCT_CD, #{session.langId}) AS AS_LCT_NM
+                         , TG.AS_PHN_CD AS AS_PHN_CD
+                         , F_CMZ_CD_NM(#{session.tenantId}, 'AS_PHN_CD', TG.AS_PHN_CD, #{session.langId}) AS AS_PHN_NM
+                         , TG.AS_CAUS_CD AS AS_CAUS_CD
+                         , F_CMZ_CD_NM(#{session.tenantId}, 'AS_CAUS_CD', TG.AS_CAUS_CD, #{session.langId}) AS AS_CAUS_NM
+                         , NVL(TL.PART_CNT_TOTAL, 0) AS PART_CNT_TOTAL
+                         , NVL(TL.PART_SUM_TOTAL, 0) AS PART_SUM_TOTAL
+                         , TL.PART_CD_01 AS PART_CD_01
+                         , TL.PART_CD_02 AS PART_CD_02
+                         , TL.PART_CD_03 AS PART_CD_03
+                         , TL.PART_CD_04 AS PART_CD_04
+                         , TL.PART_CD_05 AS PART_CD_05
+                         , TL.PART_CD_06 AS PART_CD_06
+                         , TL.PART_CD_07 AS PART_CD_07
+                         , TL.PART_CD_08 AS PART_CD_08
+                         , TL.PART_CD_09 AS PART_CD_09
+                         , TL.PART_CD_10 AS PART_CD_10
+                         , TL.PART_QTY_01 AS PART_QTY_01
+                         , TL.PART_QTY_02 AS PART_QTY_02
+                         , TL.PART_QTY_03 AS PART_QTY_03
+                         , TL.PART_QTY_04 AS PART_QTY_04
+                         , TL.PART_QTY_05 AS PART_QTY_05
+                         , TL.PART_QTY_06 AS PART_QTY_06
+                         , TL.PART_QTY_07 AS PART_QTY_07
+                         , TL.PART_QTY_08 AS PART_QTY_08
+                         , TL.PART_QTY_09 AS PART_QTY_09
+                         , TL.PART_QTY_10 AS PART_QTY_10
+                         , TL.PART_NM_01 AS PART_NM_01
+                         , TL.PART_NM_02 AS PART_NM_02
+                         , TL.PART_NM_03 AS PART_NM_03
+                         , TL.PART_NM_04 AS PART_NM_04
+                         , TL.PART_NM_05 AS PART_NM_05
+                         , TL.PART_NM_06 AS PART_NM_06
+                         , TL.PART_NM_07 AS PART_NM_07
+                         , TL.PART_NM_08 AS PART_NM_08
+                         , TL.PART_NM_09 AS PART_NM_09
+                         , TL.PART_NM_10 AS PART_NM_10
+                         , TH.FRISU_RCVRY_TP_CD AS FRISU_RCVRY_TP_CD
+                         , ( SELECT SA.SPP_AK_SPF_DT
+                               FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ  SA
+                              WHERE SA.CNTR_NO = TA.CNTR_NO
+                                AND SA.CNTR_SN = TA.CNTR_SN
+                                AND SA.AK_SN = ( SELECT MAX(SB.AK_SN)
+                                                   FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ  SB
+                                                  WHERE SA.CNTR_NO = TA.CNTR_NO
+                                                    AND SA.CNTR_SN = TA.CNTR_SN )
+                                AND SA.SPP_STP_DV_CD = 'D'
+                                AND SUBSTR(SA.SPP_AK_SPF_DT, 1,6) = #{asnYm}
+                           )     AS SPP_AK_SPF_DT
+                         , ( SELECT NVL(SA.BZRNO, 0) AS BZRNO
+                               FROM TB_CUBS_CST_BAS        SA
+                              INNER JOIN TB_SSCT_CNTR_CST_REL   SB
+                                 ON SA.CST_NO       = SB.CST_NO
+                              WHERE 1=1
+                                AND SB.DTL_CNTR_NO  = TA.CNTR_NO
+                                AND SB.DTL_CNTR_SN  = TA.CNTR_SN
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS' ) BETWEEN SB.VL_STRT_DTM AND SB.VL_END_DTM
+                            )    AS BZRNO
+                         , NVL(TRIM(TH.BFSVC_BZS_DV_CD), 0) AS BFSVC_BZS_DV_CD
+                         , ( CASE WHEN TN.PD_CD IS NOT NULL
+                                  THEN TN.SPP_DV_CD
+                                  ELSE ( SELECT ( CASE WHEN SA.USER_DFN_01 = 'SPP_DV_CD_A1' THEN 'A1' ELSE 'A2' END )
+                                           FROM T_CMZ_CD_D SA
+                                          WHERE SA.TENANT_ID = 'TNT_WELLS'
+                                            AND SA.CD_ID = 'AS_MAT_ITM_GRP_CD'
+                                            AND SA.CD_VLD_VAL = TK.PD_PRP_VAL20
+                                       )
+                             END )  AS SPP_DV_CD
+                         , ( CASE WHEN TN.PD_CD IS NOT NULL
+                                  THEN TN.SPP_PD_CD
+                                  ELSE TA.PDCT_PD_CD
+                             END )  AS SPP_PD_CD
+                         , NVL(TN.SPP_THM0_YN, 'N') AS SPP_THM_YN
+                         , TF.CNTR_CST_NO AS CST_NO
+                      FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ   TA
+                     INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ  TB
+                        ON TA.CST_SV_ASN_NO = TB.CST_SV_ASN_NO
+                     INNER JOIN TB_SVPD_CST_SV_EXCN_IZ       TC
+                        ON TA.CNTR_NO       = TC.CNTR_NO
+                       AND TA.CNTR_SN       = TC.CNTR_SN
+                      LEFT OUTER JOIN (SELECT *
+                                         FROM TB_SVPD_CST_SV_SPP_ADR_IZ TD1
+                                        WHERE 1=1
+                                          AND (TD1.CNTR_NO, TD1.CNTR_SN) IN (SELECT TD2.CNTR_NO, MAX(TD2.CNTR_SN) AS MAX_CNTR_SN
+                                                                               FROM TB_SVPD_CST_SV_SPP_ADR_IZ TD2
+                                                                              GROUP BY TD2.CNTR_NO)
+                                          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SPP_DPTU_DT AND SPP_FSH_DT ) TD
+                        ON TA.CNTR_NO       = TD.CNTR_NO
+                       AND TA.CNTR_SN       = TD.CNTR_SN
+                      LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL      TE
+                        ON TA.CNTR_NO       = TE.DTL_CNTR_NO
+                       AND TA.CNTR_SN       = TE.DTL_CNTR_SN
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TE.VL_STRT_DTM AND TE.VL_END_DTM
+                       AND TE.ADRPC_TP_CD IN ('2', '3')
+                       LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS    TF
+                         ON TE.CNTR_ADRPC_ID = TF.CNTR_ADRPC_ID
+                       LEFT OUTER JOIN TB_SVPD_AS_TP_CD	         TG
+                         ON TA.PDCT_PD_CD       = TG.PD_CD
+                        AND TA.SV_BIZ_DCLSF_CD  = TG.SV_ANA_HCLSF_CD
+                        AND TG.APY_STRTDT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                        AND TG.APY_ENDDT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                       LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL    TH
+                         ON TC.CNTR_NO    = TH.CNTR_NO
+                        AND TC.CNTR_SN    = TH.CNTR_SN
+                       LEFT OUTER JOIN TB_SSCT_CNTR_DTL          TI
+                         ON TC.CNTR_NO    = TI.CNTR_NO
+                        AND TC.CNTR_SN    = TI.CNTR_SN
+                       LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ TJ
+                         ON TC.CNTR_NO  = TJ.CNTR_NO
+                        AND TC.CNTR_SN  = TJ.CNTR_SN
+                        AND TJ.SL_CL_YM = #{asnYm}
+                        AND TJ.SL_STP_YN IS NULL
+                      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL   TK
+                         ON TA.PDCT_PD_CD = TK.PD_CD
+                       LEFT OUTER JOIN PART_LIST_TB              TL
+                         ON TA.ASN_OJ_YM  = TL.ASN_OJ_YM
+                        AND TA.CNTR_NO    = TL.CNTR_NO
+                        AND TA.CNTR_SN    = TL.CNTR_SN
+                      INNER JOIN TB_OGBS_PRTNR_BAS         TM
+                         ON TB.CNFM_PSIC_PRTNR_NO = TM.PRTNR_NO
+                        AND TM.OG_CD              = '71321' /* 택배담당 조직을 '71321'(물류운영3팀)으로 되어 있는 것만을 대상으로 조회 */
+                       LEFT OUTER JOIN TB_SVPD_PCSV_PD_IZ        TN
+                         ON TA.PDCT_PD_CD = TN.PD_CD
+                       WHERE 1=1
+                       AND (TA.SPC_AS_TP_CD != '99' OR TA.SPC_AS_TP_CD IS NULL)
+                       AND ( CASE WHEN (    #{sppDvCd} = 'A1'
+                                        AND TK.PD_PRP_VAL20 IN ( SELECT SA.CD_VLD_VAL
+                                                                   FROM T_CMZ_CD_D SA
+                                                                  WHERE SA.TENANT_ID   = 'TNT_WELLS'
+                                                                    AND SA.CD_ID       = 'AS_MAT_ITM_GRP_CD'
+                                                                    AND SA.USER_DFN_02 = 'SPP_DV_CD_A1'
+                                                               ) )
+                                  THEN '1'
+                                  WHEN (    #{sppDvCd} = 'A2'
+                                        AND TK.PD_PRP_VAL20 NOT IN ( SELECT SA.CD_VLD_VAL
+                                                                       FROM T_CMZ_CD_D SA
+                                                                      WHERE SA.TENANT_ID   = 'TNT_WELLS'
+                                                                        AND SA.CD_ID       = 'AS_MAT_ITM_GRP_CD'
+                                                                        AND SA.USER_DFN_02 = 'SPP_DV_CD_A1'
+                                                                  ) )
+                                  THEN '1'
+                                  ELSE '2'
+                             END ) = '1'
+                       AND TA.ASN_OJ_YM = #{asnYm}
+                       AND ( TA.PDCT_PD_CD ) IN ( SELECT ( CASE WHEN WN.PD_CD IS NOT NULL THEN WN.PD_CD ELSE #{pdCd} END )
+                                                    FROM TB_SVPD_PCSV_PD_IZ        WN
+                                                   WHERE WN.SPP_DV_CD   = #{sppDvCd}
+                                                     AND WN.SPP_PD_CD   = #{pdCd}
+                                                     AND WN.SPP_THM0_YN = #{sppThmYn}
+                                                )
+                       AND   ( CASE WHEN ( TN.SPP_THM0_YN = 'Y' AND ( TC.IST_DT IS NULL OR TA.IST_NMN_N = 0 )  ) THEN '1'
+                                    WHEN ( TN.SPP_THM0_YN = 'N' AND TC.IST_DT IS NOT NULL AND TA.IST_NMN_N > 0 ) THEN '1'
+                                    ELSE '2'
+                               END ) = '1'
+                   ) V1
+             WHERE 1=1
+              AND V1.BFSVC_BZS_DV_CD != '2'
+               AND NOT EXISTS (SELECT 1
+                                 FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ  T1
+                                WHERE T1.CNTR_NO = V1.CNTR_NO
+                                  AND T1.CNTR_SN = V1.CNTR_SN
+                                  AND T1.AK_SN = ( SELECT MAX( T2.AK_SN )
+                                                     FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ  T2
+                                                    WHERE T2.CNTR_NO = V1.CNTR_NO
+                                                      AND T2.CNTR_SN = V1.CNTR_SN )
+                                  AND T1.SPP_STP_DV_CD != 'D'
+                                  AND (   T1.SPP_STP_DV_CD = 'B'
+                                       OR (    T1.SPP_STP_DV_CD = 'A'
+                                           AND (   T1.TN1_STP_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                OR T1.TN2_STP_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                OR T1.TN3_STP_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                OR T1.TN4_STP_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                               ) ) )
+                              )
+                <if test='@MybatisUtils@isNotEmpty(procsDvCd)'>
+                    <if test='@MybatisUtils@equals(procsDvCd,"1")'>
+                   AND (CASE WHEN P_VST_PRGS_STAT_CD NOT IN ('20') AND (REQD_DT IS NOT NULL OR CPS_DT IS NOT NULL OR TH_REQD_DT IS NOT NULL) THEN '93'
+                             ELSE P_VST_PRGS_STAT_CD
+                        END) IN ('20')
+                    </if>
+                    <if test='@MybatisUtils@equals(procsDvCd,"2")'>
+                   AND (CASE WHEN P_VST_PRGS_STAT_CD NOT IN ('20') AND (REQD_DT IS NOT NULL OR CPS_DT IS NOT NULL OR TH_REQD_DT IS NOT NULL) THEN '93'
+                             ELSE P_VST_PRGS_STAT_CD
+                        END) IN ('00', '10')
+                        <if test='@MybatisUtils@isNotEmpty(rownum)'>
+                            AND ROWNUM <![CDATA[<=]]> #{rownum}
+                        </if>
+                    </if>
+                    <if test='@MybatisUtils@equals(procsDvCd,"3")'>
+                   AND (CASE WHEN P_VST_PRGS_STAT_CD NOT IN ('20') AND (REQD_DT IS NOT NULL OR CPS_DT IS NOT NULL OR TH_REQD_DT IS NOT NULL) THEN '93'
+                             ELSE P_VST_PRGS_STAT_CD
+                        END) IN ('00', '10', '20')
+                    </if>
+            </if>
+            ORDER BY V1.ASN_OJ_YM DESC, V1.CNTR_NO, V1.CNTR_SN
+    </select>
+    <insert id="insertParcelFwInformation">
+        INSERT INTO TB_SVPD_OSTR_AK_PCSV_SEND_DTL (
+               OSTR_AK_NO
+             , OSTR_AK_SN
+             , SPP_DV_CD
+             , CNTR_NO
+             , CNTR_SN
+             , ASN_OJ_YM
+             , NOTAK_FW_YN
+             , PCSV_OSTR_CNFM_YN
+             , PCSV_OSTR_STAT_DV_CD
+             , OSTR_AK_TP_CD
+             , OSTR_RQDT
+             , OSTR_HOP_DT
+             , IOST_AK_DV_CD
+             , STR_OJ_WARE_MNGT_PRTNR_NO
+             , WARE_MNGT_PRTNR_OG_TP_CD
+             , SAP_IOST_TP_CD
+             , LGST_SPP_MTHD_CD
+             , MDLV_PRTNR_NO
+             , ITM_PD_CD
+             , OSTR_AK_QTY
+             , LGST_ITM_GD_CD
+             , OSTR_OJ_WARE_NO
+             , MPAC_SN
+             , LGST_WK_MTHD_CD
+             , OSTR_NO
+             , OSTR_SN
+             , OSTR_DT
+             , SPP_IVC_NO
+             , PD_BC_NO
+             , CST_NO
+             , CST_NM
+             , ADRS_TNO_VAL
+             , ADRS_CPHON_NO_VAL
+             , ZIP
+             , BAS_ADR
+             , DTL_ADR
+             , LTN_ADR
+             , PD_CN
+             , CNTR_BC_NO
+             , CNTRT_NM
+             , PRTNR_KNM
+             , BOX_QTY
+             , P_VAL
+             , RMK_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>)
+        VALUES (
+               #{ostrAkNo}
+             , ${ostrAkSn}
+             , #{sppDvCd} -- A1, A2
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{asnOjYm}
+             , 'N' -- 알림톡발송여부
+             , 'Y' -- 물류까지 한큐에 가는거면 Y
+             , 'A3' -- 물류인터페이스까지 TRANSACTION처리
+             , '400'
+             , #{ostrAkRgstDt}
+             , #{sppAkSpfDt}
+             , #{iostAkDvCd}
+             , #{wareMngtPrtnrNo}
+             , #{wareMngtPrtnrOgTpCd}
+             , ''
+             , #{lgstSppMthdCd}
+             , ''
+             , #{itmPdCd}
+             , ${ostrAkQty}
+             , #{itmGdCd}
+             , #{ostrOjWareNo}  --파주물류센터 고정
+             , #{mpacSn}
+             , #{lgstWkMthdCd}
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , #{cstNo}
+             , #{cstNm}
+             , #{tno}
+             , #{mpno}
+             , #{zip}
+             , #{basAdr}
+             , #{dtlAdr}
+             , ''
+             , #{pdCn}
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <select id="selectOstAkNo" resultType="String">
+        SELECT 'ORWE' || TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_SVPD_OSTR_AK_PCSV_SEND_DTL$OSTR_AK_NO.NEXTVAL,4,'0') AS OSTR_AK_NO
+          FROM DUAL
+    </select>
+    <insert id="insertOutOfStorage">
+        INSERT INTO TB_SVST_SV_WK_OSTR_IZ (
+               CST_SV_ASN_NO
+             , WK_OSTR_SN
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , ITM_PD_CD
+             , AS_REFRI_DV_CD
+             , BFSVC_REFRI_DV_CD
+             , REFRI_DV_CD
+             , FST_PD_CD
+             , FST_BC_NO
+             , FST_SELL_TP_CD
+             , FST_PD_USWY_CD
+             , FST_ITM_GD_CD
+             , FST_VST_FSH_DT
+             , FNL_PD_CD
+             , FNL_BC_NO
+             , FNL_SELL_TP_CD
+             , FNL_PD_USWY_CD
+             , FNL_ITM_GD_CD
+             , FNL_VST_FSH_DT
+             , USE_QTY
+             , CSMR_UPRC_AMT
+             , FRE_EXPN_DC
+             , FRE_EXPN_IST_DT
+             , FRE_EXPN_STOC_CTR_DT
+             , ITM_BIL_AMT
+             , ITM_BIL_CTR_AMT
+             , ITM_BIL_CTR_RSON_CD
+             , SV_BIL_AMT
+             , SV_BIL_CTR_AMT
+             , SV_BIL_CTR_RSON_CD
+             , MNGR_DV_CD
+             , DGR1_LEVL_OG_ID
+             , DGR2_LEVL_OG_ID
+             , DGR3_LEVL_OG_ID
+             , DGR4_LEVL_OG_ID
+             , BRCH_OG_ID
+             , ICHR_PRTNR_NO
+             , OG_TP_CD
+             , OSTR_CONF_DT
+             , ITM_OSTR_NO
+             , OSTR_SN
+             , OSTR_TP_CD
+             , OSTR_WARE_NO
+             , OSTR_DT
+             , WK_WARE_NO
+             , STKR_PRNT_YN
+             , STKR_R_PRNT_YN
+             , BC_IN_MTHD_CD
+             , RTNGD_PROCS_TP_CD
+             , RTNGD_RVPY_PROCS_YN
+             , HDWR_IN_RSON_CD
+             , HDWR_IN_RSON_CN
+             , RTNGD_CONF_YN
+             , REFR_AS_RCP_YN
+             , RMK_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>)
+        VALUES (
+               #{cstSvAsnNo}
+             , ${ostrAkSn}
+             , #{cntrNo}
+             , #{cntrSn}
+             , '2'
+             , #{svBizDclsfCd}
+             , #{itmPdCd}
+             , '1'
+             , '1'
+             , '1'
+             , #{pdctPdCd}
+             , ''
+             , #{sellTpCd}
+             , '1'
+             , 'A'
+             , TO_CHAR(SYSDATE,'YYYYMMDD')
+             , #{pdctPdCd}
+             , ''
+             , #{sellTpCd}
+             , '1'
+             , 'A'
+             , TO_CHAR(SYSDATE,'YYYYMMDD')
+             , ${ostrAkQty}
+             , 0
+             , 0
+             , #{istDt}
+             , ''
+             , 0
+             , 0
+             , ''
+             , 0
+             , 0
+             , ''
+             , '2'
+             , ''
+             , ''
+             , #{ogCd}
+             , ''
+             , ''
+             , #{session.employeeIDNumber}
+             , #{session.ogtpCd}
+             , '' -- 여기서부터는 확인필요함.
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , '100002' --파주물류센터
+             , 'N' --notNull
+             , 'N'
+             , ''
+             , ''
+             , 'N' --notNull
+             , ''
+             , ''
+             , 'N' --notNull
+             , 'N' --notNull
+             , ''
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <select id="selectMngtUnit" resultType="String">
+        SELECT PD_PRP_VAL05
+           FROM TB_PDBS_PD_ECOM_PRP_DTL
+          WHERE PD_CD = #{itmPdCd}
+            AND PD_EXTS_PRP_GRP_CD = 'PART'
+    </select>
+    <insert id="insertWorkResult">
+        INSERT INTO TB_SVPD_CST_SV_WK_RS_IZ (
+               CST_SV_ASN_NO
+             , CNTR_NO
+             , CNTR_SN
+             , OG_ID
+             , OG_TP_CD
+             , PRTNR_NO
+             , PDCT_PD_CD
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , ASN_DT
+             , VST_FSH_DT
+             , VST_FSH_HH
+             , VST_FSH_LATD_GPS_VAL
+             , VST_FSH_LO_GPS_VAL
+             , VST_FSH_DSTN_VAL
+             , REFRI_DV_CD
+             , URGT_DV_CD
+             , VST_LOCARA_CD
+             , CLN_YN
+             , IST_NMN_N
+             , VST_NMN_N
+             , WK_PRGS_STAT_CD
+             , AS_LCT_CD
+             , AS_PHN_CD
+             , AS_CAUS_CD
+             , SV_PROCS_CN
+             , AS_AK_RCP_YN
+             , INF_CH_AK_YN
+             , ETC_CH_AK_YN
+             , BC_NO
+             , BC_IN_MTHD_CD
+             , CRAL_LOCARA_TNO
+             , MEXNO_ENCR
+             , CRAL_IDV_TNO
+             , HDWR_IN_RSON_CD
+             , IMPTA_RSON_CD
+             , WK_FSH_PITM_CST_GD_CD
+             , CRP_DSC_ANA_CST_DV_CD
+             , CWTR_WPRS_VAL
+             , WWT_WPRS_VAL
+             , IST_CTF_MTMS_FW_YN
+             , MNGER_HDWR_IN_RSON_CD
+             , MNGER_HDWR_IN_ETC_CN
+             , SELL_RUL_ANA_CD
+             , SELL_RUL_ETC_RSON_CN
+             , IST_ENVR_PHO_PH_DOC_ID
+             , IST_KIT_PHO_PH_DOC_ID
+             , IST_CELNG_PHO_PH_DOC_ID
+             , HCR_SV_TABF_PHO_PH_DOC_ID1
+             , HCR_SV_TABF_PHO_PH_DOC_ID2
+             , HCR_SV_APRTC_PHO_PH_DOC_ID1
+             , HCR_SV_APRTC_PHO_PH_DOC_ID2
+             , ACPN_PRTNR_OG_TP_CD
+             , ACPN_PRTNR_NO
+             , BAD_DV_CD
+             , SV_PROCS_FOM_CD
+             , AS_CD_EYN
+             , SFT_ACDN_YN
+             , PLS_SV_YN
+             , PESL_ARTC_DFRN_YN
+             , TONEP_IST_OPT_YN
+             , TONEP_RCVRY_OPT_YN
+             , TONEP_FRISU_RCVRY_VT1_USE_YN
+             , SDING_CAUS_CDV
+             , CST_SIGN_HS_YN
+             , CST_SIGN_CN
+             , DCEVDN_CONF_YN
+             , IST_FIT_YN
+             , IST_ICGT_RSON_CN
+             , QRS_RDM_NO
+             , SS_PDCT_BC_NO
+             , ITG_QRS_BC_NO
+             , PER1M_OLQ_VAL
+             , QUWR_VAL
+             , WTRIN_LDTM
+             , RGST_IP_ADR
+             , MDFC_IP_ADR
+             , SPP_IVC_NO
+             , IVC_PRNT_SN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>)
+        VALUES (
+               #{cstSvAsnNo}
+             , #{cntrNo}
+             , #{cntrSn}
+             , '71321'
+             , #{session.ogtpCd}
+             , #{session.employeeIDNumber}
+             , #{pdctPdCd}
+             , SUBSTR(#{cstSvAsnNo},1,1)
+             , #{svBizDclsfCd}
+             , SUBSTR(#{cstSvAsnNo},2,8)
+             , TO_CHAR(SYSDATE,'YYYYMMDD')
+             , TO_CHAR(SYSDATE, 'HH24MISS')
+             , ''
+             , ''
+             , ''
+             , '1'
+             , 'N'
+             , #{vstOjLocaraCd}
+             , 'N'
+             , #{istNmnN}
+             , #{vstNmnN}
+             , '20'
+             , #{asLctCd}
+             , #{asPhnCd}
+             , #{asCausCd}
+             , ''
+             , 'N'
+             , 'N'
+             , 'N'
+             , ''
+             , 'S'
+             , #{cralLocaraTno}
+             , #{mexnoEncr}
+             , #{cralIdvTno}
+             , '' -- 여기서부터는 asis에서 INSERT 안하는 컬럼이라 비워둠
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , 'N'
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+             , ''
+             , 'N'
+             , ''
+             , 'N'
+             , 'N'
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , ''
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateBsPeriod">
+        UPDATE TB_SVPD_CST_SV_RGBSPR_IZ
+           SET WK_DT            = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , WK_PSIC_DV_CD	= '2'
+             , WK_PSIC_OG_TP_CD = #{session.ogTpCd}
+             , WK_PSIC_NO       = #{session.employeeIDNumber}
+             , FST_RGST_PRG_ID  = 'KIWI'
+             , FNL_MDFC_DTM     = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+             , FNL_MDFC_USR_ID  = #{session.employeeIDNumber}
+         WHERE 1=1
+           AND CNTR_NO          = #{cntrNo}
+           AND CNTR_SN          = #{cntrSn}
+           AND VST_DUEDT BETWEEN SUBSTR(#{vstDuedt}, 1, 6)||'01' AND SUBSTR(#{vstDuedt}, 1, 6)||'31'
+    </update>
+    <update id="updateBsAssign">
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+           SET VST_PRGS_STAT_CD  = '20'
+             , WK_EXCN_DT        = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , CNFM_PSIC_DV_CD    = '2'
+             , CNFM_PSIC_PRTNR_NO   = #{session.employeeIDNumber}
+             , CNFM_PSIC_PRTNR_OG_TP_CD = #{session.ogTpCd}
+             , SITE_AW_PD_GRP_CD = ( SELECT PD_PRP_VAL20
+                                       FROM TB_PDBS_PD_ECOM_PRP_DTL
+                                      WHERE PD_CD = #{pdctPdCd} )
+             , SITE_AW_SV_TP_CD  = '2'
+             , SITE_AW_ATC_CD    = ( SELECT SITE_AW_ATC_CD
+                                       FROM TB_SVPD_AS_TP_CD TA
+                                      WHERE TA.PD_GRP_CD = ( SELECT PD_PRP_VAL20
+                                                               FROM TB_PDBS_PD_ECOM_PRP_DTL  TB
+                                                              WHERE PD_CD = #{pdctPdCd} )
+                                        AND TA.PD_CD        = PARM_PD_CD
+                                        AND TA.APY_STRTDT  <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                        AND TA.APY_ENDDT   <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                        AND TA.SV_TP_CD     = '2'
+                                        AND TA.SV_ANA_HCLSF_CD = #{svBizDclsfCd})
+             , FNL_MDFC_DTM      = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+             , FNL_MDFC_USR_ID   = #{session.employeeIDNumber}
+         WHERE CST_SV_ASN_NO     = #{cstSvAsnNo}
+    </update>
+    <update id="updateExecution">
+        UPDATE TB_SVPD_CST_SV_EXCN_IZ  TA
+           SET IST_DT = NVL(TA.IST_DT, TO_CHAR(SYSDATE,'YYYYMMDD'))
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+</mapper>
