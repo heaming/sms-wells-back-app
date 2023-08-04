@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.fee.aggregate.service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,23 +33,36 @@ public class WwfeaAccountNetIncreaseService {
     private final BatchCallService batchCallService;
 
     /**
-     * M조직 계정순증 관리 - 검색 조건 조회
+     * M조직 계정순증 관리 - 전월취소 검색 조건 조회
      * @param req
      * @return
      */
-    public List<WwfeaAccountNetIncreaseDto.SearchRes> getAccountNetIncrease(
+    public List<WwfeaAccountNetIncreaseDto.SearchCancelRes> getAccountNetIncreaseCancel(
         WwfeaAccountNetIncreaseDto.SearchReq dto
     ) {
-        List<WwfeaAccountNetIncreaseDto.SearchRes> result = new ArrayList<WwfeaAccountNetIncreaseDto.SearchRes>();
+        return mapper.selectLstmmCancels(dto);
+    }
 
-        if (dto.inqrDvCd().equals("01")) {
-            result = mapper.selectLstmmCancels(dto);
-        } else if (dto.inqrDvCd().equals("02")) {
-            result = mapper.selectNewSells(dto);
-        } else if (dto.inqrDvCd().equals("03")) {
-            result = mapper.selectAggregateChecks(dto);
-        }
-        return result;
+    /**
+     * M조직 계정순증 관리 - 신규판매 검색 조건 조회
+     * @param req
+     * @return
+     */
+    public List<WwfeaAccountNetIncreaseDto.SearchNewSellRes> getAccountNetIncreaseSell(
+        WwfeaAccountNetIncreaseDto.SearchReq dto
+    ) {
+        return mapper.selectNewSells(dto);
+    }
+
+    /**
+     * M조직 계정순증 관리 - 집계체크 검색 조건 조회
+     * @param req
+     * @return
+     */
+    public List<WwfeaAccountNetIncreaseDto.SearchCheckRes> getAccountNetIncreaseCheck(
+        WwfeaAccountNetIncreaseDto.SearchReq dto
+    ) {
+        return mapper.selectAggregateChecks(dto);
     }
 
     /**

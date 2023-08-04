@@ -8,7 +8,7 @@
             SELECT Y.CNTR_NO, Y.CNTR_SN, MAX(Y.PERF_YM) AS PERF_YM
               FROM TB_CBCL_WELLS_SL_MM_CL_IZ X    /*WELLS매출월마감내역*/
                  , TB_CBCL_WELLS_BOR_AMT_BAS Y   /*WELLS위약금액기본*/
-             WHERE Y.PERF_YM <= #{perfYm}
+             WHERE Y.PERF_YM = #{perfYm}
                AND X.CNTR_NO = Y.CNTR_NO
                AND X.CNTR_SN = Y.CNTR_SN
                AND X.SL_CL_YM = Y.PERF_YM
@@ -20,7 +20,7 @@
         )
         SELECT T.PERF_YM                                                                 AS PERF_YM            /*실적년월*/
              , A.CNTR_NO || '-' || A.CNTR_SN                                           AS CNTR_DTL_SN        /*계약상세번호*/
-             , TO_CHAR(TO_DATE(G.CNTR_CAN_DTM, 'YYYYMMDDHH24MISS'), 'yyyyMMdd')        AS CAN_DTM            /*취소일자*/
+             , DECODE(H.HIST_STRT_DTM, NULL, '', TO_CHAR(TO_DATE(H.HIST_STRT_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD')) AS CAN_DTM            /*취소일자*/
              , A.LEASE_SL_CTR_AMT                                                                            /*매출조정금액*/
              , A.LEASE_SL_CAN_AMT                                                                            /*매출취소금액 - 취소조정(취소 잔여 매출액포함)*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'SL_CTR_DSC_TP_CD', B.SL_CTR_DSC_TP_CD)        AS CTR_TP             /*조정유형*/
@@ -30,7 +30,6 @@
              , E.EOT_DLQ_AMT                                                                                 /*최종연체금*/
              , F.EOT_BOR_AMT                                                                                 /*최종위약금*/
           FROM TB_SSCT_CNTR_DTL D                             /*계약상세*/
-             , TB_SSCT_CNTR_BAS G                            /*계약기본*/
              , RESAMT_CNTR T                                 /*대상건*/
              , TB_CBCL_WELLS_SL_MM_CL_IZ A                   /*WELLS매출월마감내역*/
              , TB_CBCL_WELLS_BOR_AMT_BAS F                   /*WELLS위약금액기본*/
@@ -48,12 +47,17 @@
            AND E.CNTR_NO = F.CNTR_NO
            AND E.CNTR_SN = F.CNTR_SN
            AND E.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST H/*계약상세상태변경이력*/
+		    ON H.CNTR_NO = F.CNTR_NO
+		   AND H.CNTR_SN = F.CNTR_SN
+		   AND H.CNTR_DTL_STAT_CD IN ('301', '302', '303', '304', '305')
+		   AND H.HIST_END_DTM = '99991231235959'
+		   AND H.DTA_DL_YN = 'N'
          WHERE F.CNTR_NO = T.CNTR_NO
            AND F.CNTR_SN = T.CNTR_SN
            AND F.PERF_YM = T.PERF_YM
            AND A.CNTR_NO = D.CNTR_NO
            AND A.CNTR_SN = D.CNTR_SN
-           AND A.CNTR_NO = G.CNTR_NO
            AND F.PERF_YM = A.SL_CL_YM
            AND F.CNTR_NO = A.CNTR_NO
            AND F.CNTR_SN = A.CNTR_SN
@@ -61,7 +65,6 @@
            AND F.DTA_DL_YN = 'N'
            AND A.DTA_DL_YN = 'N'
            AND D.DTA_DL_YN = 'N'
-           AND G.DTA_DL_YN = 'N'
          ORDER BY 1,2,3,4
         ]]>
     </select>
