@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnStockAggregationMapper">
+
+    <select id="selectQomAsnStockAggs" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto$SearchRes">
+        SELECT T2.SAP_MAT_CD                                                                       /* SAP코드 */
+             , T1.ITM_PD_CD                                                                        /* 품목코드 */
+             , T2.PD_NM                                                                            /* 품목명 */
+             , SUM(CASE WHEN T1.GB = 'BS' THEN T1.QTY END)                    AS BS_QTY            /* 당월BS */
+             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 1 THEN T1.QTY END) AS INDI_QTY1         /* 개인1차 */
+             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 2 THEN T1.QTY END) AS INDI_QTY2         /* 개인2차 */
+             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 3 THEN T1.QTY END) AS INDI_QTY3         /* 개인3차 */
+             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 1 THEN T1.QTY END) AS INDE_QTY1         /* 독립1차 */
+             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 2 THEN T1.QTY END) AS INDE_QTY2         /* 독립2차 */
+             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 3 THEN T1.QTY END) AS INDE_QTY3         /* 독립3차 */
+             , SUM(CASE WHEN T1.GB IN ('1', '2') THEN T1.QTY END)             AS QOM_ASN_QTY       /* 물량배정 */
+             , ( SELECT PITM_STOC_A_GD_QTY
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                  WHERE DTA_DL_YN = 'N'
+                    AND WARE_NO   = '100002'
+                    AND ITM_PD_CD = T1.ITM_PD_CD )                            AS QTY_100002        /* 파주재고 */
+             , ( SELECT PITM_STOC_A_GD_QTY
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                  WHERE DTA_DL_YN = 'N'
+                    AND WARE_NO   = '100008'
+                    AND ITM_PD_CD = T1.ITM_PD_CD )                            AS QTY_100008        /* 성수재고 */
+             , ( SELECT SUM(PITM_STOC_A_GD_QTY)
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                  WHERE DTA_DL_YN = 'N'
+                    AND WARE_NO  IN ('100002', '100008')
+                    AND ITM_PD_CD = T1.ITM_PD_CD )                            AS LGST_QTY          /* 물류재고 */
+             , ( SELECT SUM(PITM_STOC_A_GD_QTY)
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ S1
+                  INNER JOIN TB_SVST_MCBY_WARE_IZ S2
+                     ON S2.WARE_NO = S1.WARE_NO
+                  WHERE S1.DTA_DL_YN      = 'N'
+                    AND S2.DTA_DL_YN      = 'N'
+                    AND S2.APY_YM         = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND S2.WARE_DV_CD     = '3'
+                    AND S2.WARE_DTL_DV_CD = '30'
+                    AND S1.ITM_PD_CD      = T1.ITM_PD_CD )                    AS CENTER_QTY        /* 영업센터 조직재고 */
+             , ( SELECT SUM(PITM_STOC_A_GD_QTY)
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ S1
+                  INNER JOIN TB_SVST_MCBY_WARE_IZ S2
+                     ON S2.WARE_NO = S1.WARE_NO
+                  WHERE S1.DTA_DL_YN      = 'N'
+                    AND S2.DTA_DL_YN      = 'N'
+                    AND S2.APY_YM         = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND S2.WARE_DV_CD     = '3'
+                    AND S2.WARE_DTL_DV_CD = '31'
+                    AND S1.ITM_PD_CD      = T1.ITM_PD_CD )                    AS CENTER_INDI_QTY   /* 영업센터 개인재고 */
+        <if test='@MybatisUtils@equals(bsYn, "Y")'>
+             , ( SELECT NVL(SUM(PITM_STOC_A_GD_QTY), 0)
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                  WHERE DTA_DL_YN = 'N'
+                    AND WARE_NO  IN ('100002', '100008')
+                    AND ITM_PD_CD = T1.ITM_PD_CD )
+               - SUM(CASE WHEN T1.GB = 'BS' THEN T1.QTY ELSE 0 END)           AS LGST_LACK_QTY     /* 물류부족재고 */
+             , NVL( ( SELECT PITM_STOC_A_GD_QTY
+                        FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                       WHERE DTA_DL_YN = 'N'
+                         AND WARE_NO   = '100008'
+                         AND ITM_PD_CD = T1.ITM_PD_CD ), 0 )
+               - SUM(CASE WHEN T1.GB = 'BS' THEN T1.QTY ELSE 0 END)           AS LACK_QTY_100008   /* 성수부족재고 */
+        </if>
+        <if test='@MybatisUtils@equals(bsYn, "N")'>
+             , ( SELECT NVL(SUM(PITM_STOC_A_GD_QTY), 0)
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                  WHERE DTA_DL_YN = 'N'
+                    AND WARE_NO  IN ('100002', '100008')
+                    AND ITM_PD_CD = T1.ITM_PD_CD )
+               - SUM(CASE WHEN T1.GB IN ('1', '2') THEN T1.QTY ELSE 0 END)    AS LGST_LACK_QTY     /* 물류부족재고 */
+             , NVL( ( SELECT PITM_STOC_A_GD_QTY
+                        FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                       WHERE DTA_DL_YN = 'N'
+                         AND WARE_NO   = '100008'
+                         AND ITM_PD_CD = T1.ITM_PD_CD ), 0 )
+               - SUM(CASE WHEN T1.GB IN ('1', '2') THEN T1.QTY ELSE 0 END)    AS LACK_QTY_100008   /* 성수부족재고 */
+        </if>
+          FROM
+             (
+               SELECT '1'         AS GB
+                    , D1.ASN_TN_N
+                    , D1.ITM_PD_CD
+                    , D1.CNFM_QTY AS QTY
+                 FROM TB_SVST_ITM_QOM_ASN_IZ D1
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2
+                   ON D2.PD_CD = D1.ITM_PD_CD
+                WHERE D1.DTA_DL_YN          = 'N'
+                  AND D1.WARE_DTL_DV_CD     = '31'   /* 개인창고 */
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D1.OSTR_WARE_NO      IN ('100002', '100008')   /* 파주, 성수 물류센터 */
+                  AND D1.ASN_OJ_YM          = #{asnOjYm}
+              <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                  AND D2.PD_PRP_VAL19       = #{itmKndCd}
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD          = #{itmPdCd}
+              </if>
+          <choose>
+              <when test='@MybatisUtils@equals(cntGb, "YNN")'>
+                  AND D1.ASN_TN_N           = 1
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NYN")'>
+                  AND D1.ASN_TN_N           = 2
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NNY")'>
+                  AND D1.ASN_TN_N           = 3
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "YYN")'>
+                  AND D1.ASN_TN_N          IN (1, 2)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "YNY")'>
+                  AND D1.ASN_TN_N          IN (1, 3)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NYY")'>
+                  AND D1.ASN_TN_N          IN (2, 3)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "YYY")'>
+                  AND D1.ASN_TN_N          IN (1, 2, 3)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NNN")'>
+                  AND D1.ASN_TN_N      NOT IN (1, 2, 3)
+              </when>
+          </choose>
+                UNION ALL
+               SELECT '2'         AS GB
+                    , D1.ASN_TN_N
+                    , D1.ITM_PD_CD
+                    , D1.CNFM_QTY AS QTY
+                 FROM TB_SVST_ITM_QOM_ASN_IZ D1
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2
+                   ON D2.PD_CD = D1.ITM_PD_CD
+                WHERE D1.DTA_DL_YN          = 'N'
+                  AND D1.WARE_DTL_DV_CD     = '32'   /* 독립창고 */
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D1.OSTR_WARE_NO      IN ('100002', '100008')   /* 파주, 성수 물류센터 */
+                  AND D1.ASN_OJ_YM          = #{asnOjYm}
+              <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                  AND D2.PD_PRP_VAL19       = #{itmKndCd}
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD          = #{itmPdCd}
+              </if>
+          <choose>
+              <when test='@MybatisUtils@equals(cntGb, "YNN")'>
+                  AND D1.ASN_TN_N           = 1
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NYN")'>
+                  AND D1.ASN_TN_N           = 2
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NNY")'>
+                  AND D1.ASN_TN_N           = 3
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "YYN")'>
+                  AND D1.ASN_TN_N          IN (1, 2)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "YNY")'>
+                  AND D1.ASN_TN_N          IN (1, 3)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NYY")'>
+                  AND D1.ASN_TN_N          IN (2, 3)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "YYY")'>
+                  AND D1.ASN_TN_N          IN (1, 2, 3)
+              </when>
+              <when test='@MybatisUtils@equals(cntGb, "NNN")'>
+                  AND D1.ASN_TN_N      NOT IN (1, 2, 3)
+              </when>
+          </choose>
+                UNION ALL
+               SELECT 'BS'            AS GB
+                    , 0               AS ASN_TN_N
+                    , D1.PART_PD_CD   AS ITM_PD_CD
+                    , D1.PART_USE_QTY AS QTY
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
+                   ON D2.CNTR_NO = D1.CNTR_NO
+                  AND D2.CNTR_SN = D1.CNTR_SN
+                WHERE D1.DTA_DL_YN   = 'N'
+                  AND D1.ITM_KND_CD IN ('5', '6')
+                  AND D2.DTA_DL_YN   = 'N'
+                  AND D2.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+                  AND D2.IST_DT IS NOT NULL
+                  AND D2.REQD_DT IS NULL
+                  AND D2.CPS_DT IS NULL
+                  AND D1.VST_DUEDT LIKE #{asnOjYm} || '%'
+              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PART_PD_CD  = #{itmPdCd}
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(bsItmKndCd)">
+                  AND D1.ITM_KND_CD  = #{bsItmKndCd}
+              </if>
+             ) T1
+         INNER JOIN TB_PDBS_PD_BAS T2
+            ON T2.PD_CD = T1.ITM_PD_CD
+         WHERE T2.DTA_DL_YN = 'N'
+           AND T2.PD_TP_CD  = 'M'
+        <choose>
+        <when test='@MybatisUtils@equals(qomAsnGb, "YN")'>
+           AND T1.GB <![CDATA[<>]]> '2'
+        </when>
+        <when test='@MybatisUtils@equals(qomAsnGb, "NY")'>
+           AND T1.GB <![CDATA[<>]]> '1'
+        </when>
+        <when test='@MybatisUtils@equals(qomAsnGb, "NN")'>
+           AND T1.GB NOT IN ('1', '2')
+        </when>
+        </choose>
+         GROUP BY T2.SAP_MAT_CD, T1.ITM_PD_CD, T2.PD_NM
+         ORDER BY T1.ITM_PD_CD
+    </select>
+
+
+</mapper>
