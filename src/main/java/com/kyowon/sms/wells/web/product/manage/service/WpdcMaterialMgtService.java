@@ -474,7 +474,7 @@ public class WpdcMaterialMgtService {
 
             objectMapper = new ObjectMapper();
             ZpdcProductDetailDvo propertyVo2 = objectMapper.convertValue(masterMap2, ZpdcProductDetailDvo.class);
-            propertyVo2.setPdDtlDvCd("02"); // 식재 코드값
+            propertyVo2.setPdDtlDvCd("02"); // 식재 코드값(추후 값 갯수 늘어날때 살펴봐야할 Point)
             productService.saveProductDetail(dvo.getPdCd(), startDtm, propertyVo2);
             // ---------------------------------------------------------------------------------------------------------
 

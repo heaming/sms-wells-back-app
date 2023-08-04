@@ -86,7 +86,7 @@ public class WpdcMaterialMgtController {
                         .pdCd(dto.pdCd())
                         .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
-                        .tbPdbsPdDtl(dto.tbPdbsPdDtl())
+                        .tbPdbsPdDtl(dto.tbPdbsPdDtl()) // 제품 상세
                         .tbPdbsPdRel(dto.tbPdbsPdRel())
                         .isModifiedProp(dto.isModifiedProp())
                         .isOnlyFileModified(dto.isOnlyFileModified())
