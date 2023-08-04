@@ -182,6 +182,7 @@ public class WpdcAsPartsMgtService {
      * @param metaItems
      * @param tbPdbsPdBas
      * @param tbPdbsPdEcomPrpDtl
+     * @param tbPdbsPdDtl
      * @param prgGrpDves
      * @throws Exception
      */
@@ -191,6 +192,7 @@ public class WpdcAsPartsMgtService {
         List<ZpdcPropertyMetaDvo> metaItems,
         List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
         List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdDtl,
         ArrayList<String> prgGrpDves
     ) throws Exception {
 
@@ -221,17 +223,19 @@ public class WpdcAsPartsMgtService {
                 // TODO 조회쿼리 한방 날리고 값들 채우고!!! 여기부터 시작!!!!
                 ZpdcGbcoSapMatDvo sapMatVo = wMapper.selectMaterialSap(dvo.getSapMatCd());
 
-                dvo.setModelNo(sapMatVo.getModelNo());
+                //                dvo.setModelNo(sapMatVo.getModelNo());
                 dvo.setSapPdctSclsrtStrcVal(sapMatVo.getSapPdctSclsrtStrcVal());
                 dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
                 dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
                 dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+                dvo.setSapMatTpVal(sapMatVo.getSapMatTpVal());
             } else {
-                dvo.setModelNo(null);
+                //                dvo.setModelNo(null);
                 dvo.setSapPdctSclsrtStrcVal(null);
                 dvo.setSapPlntCd(null);
                 dvo.setSapMatEvlClssVal(null);
                 dvo.setSapMatGrpVal(null);
+                dvo.setSapMatTpVal(null); // 자재유형값
             }
 
             // #1. 상품 마스터 INSERT

@@ -45,6 +45,8 @@ public class WdccSalesPerformDto {
      * @param thmDlqAddRfndSumAmt 가산금환불
      * @param eotDlqAddAmt 가산금기말
      * @param slStpAmt 매출중지금액
+     * @param sellTpCd 판매유형
+     * @param islease 리스여부
      */
     @ApiModel(value = "WdccSalesPerformDto-SearchRes")
     public record SearchRes(
@@ -70,6 +72,8 @@ public class WdccSalesPerformDto {
         String thmDlqAddDpSumAmt,
         String thmDlqAddRfndSumAmt,
         String eotDlqAddAmt,
-        String slStpAmt
+        String slStpAmt,
+        String sellTpCd,
+        String islease
     ) {}
 }
