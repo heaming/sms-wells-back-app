@@ -6,45 +6,52 @@
           , WARE_NM AS CODE_NAME
      FROM TB_SVST_MCBY_WARE_IZ
      WHERE 1 = 1
-       AND WARE_MNGT_PRTNR_NO = '71321'  /* #{session.employeeIDNumber} */
-       <if test="@MybatisUtils@isNotEmpty(startStrHopDt)">
+       AND WARE_MNGT_PRTNR_NO = #{session.employeeIDNumber}
        AND APY_YM = SUBSTR(#{startStrHopDt}, 1,6)
-       </if>
-       <if test="@MybatisUtils@isEmpty(startStrHopDt)">
-       AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-       </if>
        AND WARE_USE_YN = 'Y'
        AND DTA_DL_YN = 'N'
+       ORDER BY CODE_ID ASC
     </select>
     <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAgrgWareDvo">
      SELECT WARE_NO
           , WARE_NM
      FROM (
-          SELECT WARE_NO                AS WARE_NO
-               , SUBSTR(WARE_NM, 1, 5)  AS WARE_NM
+          SELECT
+                 APY_YM                 AS APY_YM
+               , WARE_NO                AS WARE_NO
+               , (CASE
+		              WHEN INSTR(WARE_NM,'서비스센터') > 0
+	                  THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'서비스센터')-1)
+	                  WHEN INSTR(WARE_NM,'영업센터') > 0
+	                  THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'영업센터')-1)
+                   	  WHEN INSTR(WARE_NM,'창고') > 0
+	                  THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'창고')-1)
+           			  ELSE  WARE_NM
+          		   END
+                 ) AS WARE_NM
                , 0                      AS SORT_DV_VAL
           FROM TB_SVST_MCBY_WARE_IZ
-          WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')    /* 서비스센터, 영업센터 */
-           AND WARE_DTL_DV_CD IN ('20', '30')
-           AND DTA_DL_YN = 'N'
+          WHERE  DTA_DL_YN = 'N'
            AND WARE_USE_YN = 'Y'
-           AND WARE_NM IS NOT NULL
-           AND (WARE_NM LIKE '%센터' OR WARE_NM LIKE '%지점')
+           AND WARE_DTL_DV_CD IN ('20', '30')
           UNION ALL
           (
-            SELECT WARE_NO               AS WARE_NO
-                 , SUBSTR(WARE_NM, 1, 9) AS WARE_NM
+            SELECT
+                   APY_YM                AS APY_YM
+                 , WARE_NO               AS WARE_NO
+                 , WARE_NM               AS WARE_NM
                  , 0                     AS SORT_DV_VAL
             FROM TB_SVST_MCBY_WARE_IZ
-            WHERE  WARE_NO LIKE '1%'
-             AND  APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-             AND DTA_DL_YN = 'N'
+            WHERE DTA_DL_YN = 'N'
              AND WARE_USE_YN = 'Y'
+             AND WARE_NO LIKE '1%'
           )
       )
       WHERE 1=1
+       AND WARE_NM IS NOT NULL
        AND WARE_NO LIKE #{wareDvCd} || '%'
-      ORDER BY SORT_DV_VAL ASC , WARE_NO ASC
+       AND APY_YM = SUBSTR(#{startStrHopDt}, 1,6)
+      ORDER BY SORT_DV_VAL ASC , WARE_NM ASC , WARE_NO ASC
     </select>
     <select id="selectNormalOutOfStorageAgrgs" resultType="camelMap">
        WITH PD_INF AS
