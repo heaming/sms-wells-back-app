@@ -7,6 +7,15 @@ import javax.validation.constraints.NotBlank;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+/**
+ * <pre>
+ * W-SV-U-0127M01 물량배정 재고이송량 집계 dto
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-08-04
+ */
+
 public class WsnaQomAsnStockAggregationDto {
 
     @Builder
