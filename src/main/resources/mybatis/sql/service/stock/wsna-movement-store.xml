@@ -7,14 +7,14 @@
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto$SearchRes">
         SELECT STR_IZ.STR_TP_CD   /*입고유형코드*/
              , STR_IZ.STR_WARE_NO /*입고창고번호*/
-             , STR_IZ.STR_SN /*입고일련번호*/
+             , MIN(STR_IZ.STR_SN) AS STR_SN /*입고일련번호*/
              , STR_IZ.STR_RGST_DT /*입고등록일자*/
              , STR_IZ.DLVG_DLPNR_NO /*납품거래처번호*/
              , STR_IZ.ITM_STR_NO /*품목입고번호*/
              , STR_IZ.OSTR_TP_CD /*출고유형코드*/
              , STR_IZ.OSTR_WARE_NO /*출고창고번호*/
              , STR_IZ.OSTR_DT /*출고일자*/
-             , STR_IZ.OSTR_SN /*출고일련번호*/
+             , MIN(STR_IZ.OSTR_SN) AS OSTR_SN /*출고일련번호*/
              , STR_IZ.ITM_OSTR_NO /*품목출고번호*/
              , WARE_IZ.WARE_NM /*창고명*/
           FROM TB_SVST_ITM_STR_IZ STR_IZ --품목입고내역
@@ -43,14 +43,12 @@
         </if>
         GROUP BY STR_IZ.STR_TP_CD
                 ,STR_IZ.STR_WARE_NO
-                ,STR_IZ.STR_SN
                 ,STR_IZ.STR_RGST_DT
                 ,STR_IZ.DLVG_DLPNR_NO
                 ,STR_IZ.ITM_STR_NO
                 ,STR_IZ.OSTR_TP_CD
                 ,STR_IZ.OSTR_WARE_NO
                 ,STR_IZ.OSTR_DT
-                ,STR_IZ.OSTR_SN
                 ,STR_IZ.ITM_OSTR_NO
                 ,WARE_IZ.WARE_NM
         ORDER BY STR_IZ.STR_TP_CD, STR_IZ.STR_WARE_NO, STR_IZ.STR_RGST_DT, STR_IZ.ITM_STR_NO
@@ -82,7 +80,7 @@
                   AND ROWNUM = 1
               ) AS STR_HOP_DT
          FROM TB_SVST_ITM_STR_IZ T1 /* 품목입고내역 */
-         LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ T2
+        INNER JOIN TB_SVST_MCBY_WARE_IZ T2
            ON T1.STR_WARE_NO = T2.WARE_NO
           AND T2.DTA_DL_YN = 'N'
         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3
@@ -102,7 +100,7 @@
         <if test="@MybatisUtils@isEmpty(strTpCd)">
           AND T1.STR_TP_CD IN ('121','122','123','162','161')
         </if>
-          AND T2.APY_YM BETWEEN SUBSTR(#{stStrDt},1,6) AND SUBSTR(#{edStrDt},1,6)
+          AND T2.APY_YM = SUBSTR(#{stStrDt}, 1, 6)
           AND T1.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}
           AND T1.STR_CONF_DT IS NULL
           AND T1.STR_SN = (SELECT MIN(W1.STR_SN) FROM TB_SVST_ITM_STR_IZ W1 WHERE W1.ITM_STR_NO = T1.ITM_STR_NO AND W1.STR_CONF_DT IS NULL)
@@ -239,11 +237,10 @@
            SET T1.STR_CONF_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
              , T1.STR_CONF_HH = TO_CHAR(SYSDATE,'HH24MISS')
              , T1.STR_CONF_PRTNR_NO = #{session.employeeIDNumber}
-             , T1.STR_CONF_PRTNR_OG_TP_CD = ( SELECT P1.OG_TP_CD
-                                                FROM TB_OGBS_MM_PRTNR_IZ P1 /* 월파트너내역 */
-                                               WHERE P1.BASE_YM  = TO_CHAR(SYSDATE,'YYYYMM')
-                                                 AND P1.PRTNR_NO = #{session.employeeIDNumber}
-                                            ) /* 조직유형코드 가져오는 쿼리 */
+             , T1.STR_CONF_PRTNR_OG_TP_CD = ( SELECT OG_TP_CD
+                                                FROM TB_SVST_MCBY_WARE_IZ
+                                               WHERE APY_YM  = TO_CHAR(SYSDATE,'YYYYMM')
+                                                 AND WARE_NO = #{strWareNo} )
              <include refid="COMMON.updateSystemField"/>
          WHERE T1.ITM_STR_NO = #{itmStrNo}
            AND T1.STR_SN = #{strSn}
@@ -253,11 +250,10 @@
            SET STR_CONF_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
              , STR_CONF_HH = TO_CHAR(SYSDATE,'HH24MISS')
              , STR_CONF_PRTNR_NO = #{session.employeeIDNumber}
-             , STR_CONF_PRTNR_OG_TP_CD = ( SELECT P1.OG_TP_CD
-                                             FROM TB_OGBS_MM_PRTNR_IZ P1 /* 월파트너내역 */
-                                            WHERE P1.BASE_YM  = TO_CHAR(SYSDATE,'YYYYMM')
-                                              AND P1.PRTNR_NO = #{session.employeeIDNumber}
-                                         ) /* 조직유형코드 가져오는 쿼리 */
+             , STR_CONF_PRTNR_OG_TP_CD = ( SELECT OG_TP_CD
+                                             FROM TB_SVST_MCBY_WARE_IZ
+                                            WHERE APY_YM  = TO_CHAR(SYSDATE,'YYYYMM')
+                                              AND WARE_NO = #{strWareNo} )
              <include refid="COMMON.updateSystemField"/>
          WHERE T1.ITM_STR_NO = #{itmStrNo}
            AND T1.STR_SN = #{strSn}

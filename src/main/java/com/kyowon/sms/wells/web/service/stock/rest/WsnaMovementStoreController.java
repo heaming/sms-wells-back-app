@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.service.stock.service.WsnaMovementStoreService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -143,12 +144,14 @@ public class WsnaMovementStoreController {
 
     @ApiOperation(value = "이관입고 등록 삭제", notes = "등록된 이관입고 내역을 삭제한다.")
     @DeleteMapping("/registration")
-    public int removeStrMovement(
+    public SaveResponse removeStrMovement(
         @RequestBody
         @NotEmpty
         List<MovementStrSaveReq> dtos
     ) {
-        return this.service.removeMovement(dtos);
+        return SaveResponse.builder()
+            .processCount(this.service.removeMovement(dtos))
+            .build();
     }
 
 }
