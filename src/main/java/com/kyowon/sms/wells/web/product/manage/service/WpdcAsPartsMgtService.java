@@ -235,7 +235,7 @@ public class WpdcAsPartsMgtService {
                 dvo.setSapPlntCd(null);
                 dvo.setSapMatEvlClssVal(null);
                 dvo.setSapMatGrpVal(null);
-                dvo.setSapMatTpVal(null); // 자재유형
+                dvo.setSapMatTpVal(null); // 자재유형값
             }
 
             // #1. 상품 마스터 INSERT
