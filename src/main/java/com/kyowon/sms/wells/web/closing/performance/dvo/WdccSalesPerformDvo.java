@@ -29,4 +29,6 @@ public class WdccSalesPerformDvo {
     private String thmDlqAddRfndSumAmt; //가산금환불
     private String eotDlqAddAmt; //가산금기말
     private String slStpAmt; //매출중지금액
+    private String sellTpCd; //판매유형
+    private String islease; //리스여부
 }
