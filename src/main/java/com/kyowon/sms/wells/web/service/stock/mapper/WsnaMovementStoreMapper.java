@@ -55,4 +55,10 @@ public interface WsnaMovementStoreMapper {
     int saveItemQtyConfirm(WsnaMovementStoreConfirmDvo dvo);
 
     int countStrWareMonthlyClosed(warehouseMonthlyReq dto);
+
+    int updateItmStrForRemove(WsnaMovementStoreConfirmDvo dvo);
+
+    int updateItmOstrForRemove(WsnaMovementStoreConfirmDvo dvo);
+
+    int updateCstSvItmStocForRemove(WsnaMovementStoreConfirmDvo dvo);
 }
