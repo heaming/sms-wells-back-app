@@ -86,7 +86,8 @@ public class WpdcMaterialMgtController {
                         .pdCd(dto.pdCd())
                         .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
-                        .tbPdbsPdRel(dto.tbPdbsPdRel())
+                        .tbPdbsPdDtl(dto.tbPdbsPdDtl()) // 제품 상세
+                        .tbPdbsPdRel(dto.tbPdbsPdRel()) // 연결상품
                         .isModifiedProp(dto.isModifiedProp())
                         .isOnlyFileModified(dto.isOnlyFileModified())
                         .isModifiedRelation(dto.isModifiedRelation())
@@ -112,6 +113,7 @@ public class WpdcMaterialMgtController {
                         .pdCd(dto.pdCd())
                         .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
+                        .tbPdbsPdDtl(dto.tbPdbsPdDtl())
                         .tbPdbsPdRel(dto.tbPdbsPdRel())
                         .isModifiedProp(dto.isModifiedProp())
                         .isOnlyFileModified(dto.isOnlyFileModified())

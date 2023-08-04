@@ -439,12 +439,14 @@ public class WpdcMaterialMgtService {
                 dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
                 dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
                 dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+                dvo.setSapMatTpVal(sapMatVo.getSapMatTpVal());
             } else {
-                dvo.setModelNo(null);
+                //                dvo.setModelNo(null);
                 dvo.setSapPdctSclsrtStrcVal(null);
                 dvo.setSapPlntCd(null);
                 dvo.setSapMatEvlClssVal(null);
                 dvo.setSapMatGrpVal(null);
+                dvo.setSapMatTpVal(null); // 자재유형값
             }
 
             // #1. 상품 마스터 INSERT
@@ -472,6 +474,7 @@ public class WpdcMaterialMgtService {
 
             objectMapper = new ObjectMapper();
             ZpdcProductDetailDvo propertyVo2 = objectMapper.convertValue(masterMap2, ZpdcProductDetailDvo.class);
+            propertyVo2.setPdDtlDvCd("02"); // 식재 코드값(추후 값 갯수 늘어날때 살펴봐야할 Point)
             productService.saveProductDetail(dvo.getPdCd(), startDtm, propertyVo2);
             // ---------------------------------------------------------------------------------------------------------
 
