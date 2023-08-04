@@ -74,7 +74,15 @@ public class WfebEgerAllowanceService {
 
         for (WfebEgerAllowanceDto.EditReq dto : dtos) {
             WfebEgerAllowanceDvo dvo = converter.mapEditReqToWfebEgerAllowanceDvo(dto);
-            mapper.insertEgerAllowanceHist(dvo);
+            dvo.setBaseYm(dto.perfYm());
+
+            // 조정 가능한 단계인지 체크 (W0603 : 수당조정)
+            WfebEgerAllowanceDto.SearchSchdRes searchSchdRes = mapper.selectCurrentSchd(dvo);
+            BizAssert.isTrue(
+                searchSchdRes != null && "START".equals(searchSchdRes.feeSchdLvCd()), "MSG_ALT_NO_WK_PTRM"
+            ); // 작업 가능한 기간이 아닙니다.
+
+            // mapper.insertEgerAllowanceHist(dvo);
             processCnt = mapper.updateEgerAllowanceControl(dvo);
         }
 
@@ -111,6 +119,12 @@ public class WfebEgerAllowanceService {
             switch (dto.type()) {
                 case "C" -> { // 센터
                     BizAssert.isTrue("Y".equals(dto.confirm()), "MSG_ALT_CNFM_FAIL");
+
+                    // 확정 가능한 단계인지 체크 (W0603 : 수당조정) => 센터 확정은 수당 조정기간에 함.
+                    WfebEgerAllowanceDto.SearchSchdRes searchSchdRes = mapper.selectCurrentSchd(dvo);
+                    BizAssert.isTrue(
+                        searchSchdRes != null && "START".equals(searchSchdRes.feeSchdLvCd()), "MSG_ALT_NO_WK_PTRM"
+                    ); // 작업 가능한 기간이 아닙니다.
 
                     int cnt = mapper.selectConfirmYnCheck(dvo);
                     BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.

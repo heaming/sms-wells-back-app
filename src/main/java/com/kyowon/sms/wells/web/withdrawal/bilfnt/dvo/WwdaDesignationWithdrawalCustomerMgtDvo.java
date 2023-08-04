@@ -24,5 +24,7 @@ public class WwdaDesignationWithdrawalCustomerMgtDvo {
     private String bilNo; // 청구번호
     private String bilDtlSn; // 청구상세일련번호
     private String dtaDlYn; // 삭제여부
+    private String cstKnm; // 고객명
+    private String sellTpCd; // 상품코드
 
 }

@@ -88,10 +88,10 @@ public class WpdcAsPartsMgtService {
         int processCount = 0;
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
 
-        // #1. 분류체계 분류 계층값 FILL-IN(순서변경불가.) 
+        // #1. 분류체계 분류 계층값 FILL-IN(순서변경불가.)
         dvo = clsfService.getClassifcationHierarchy(dvo);
 
-        /* 
+        /*
          * #2. 상품 마스터 INSERT/UPDATE
          * 교재/자재 : PD_TP_DTL_M(제품) , AS부품: PD_TP_DTL_A (As)부품
          * 해당 값이 없으면 'AS-PART'에서 신규추가한 데이터이므로 INSERT
@@ -226,6 +226,12 @@ public class WpdcAsPartsMgtService {
                 dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
                 dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
                 dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+            } else {
+                dvo.setModelNo(null);
+                dvo.setSapPdctSclsrtStrcVal(null);
+                dvo.setSapPlntCd(null);
+                dvo.setSapMatEvlClssVal(null);
+                dvo.setSapMatGrpVal(null);
             }
 
             // #1. 상품 마스터 INSERT
@@ -235,7 +241,7 @@ public class WpdcAsPartsMgtService {
             dvo = productService.saveProductBase(dvo, startDtm);
 
             /**
-             * 각사 속성의 경우 
+             * 각사 속성의 경우
              * TB_PDBS_PD_PRP_META_BAS.PD_PRP_GRP_DV_CD(=상품속성그룹구분코드) Lv INSERT
              */
             for (String pdPrpGrpDtlDvCd : prgGrpDves) {
@@ -252,7 +258,7 @@ public class WpdcAsPartsMgtService {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1].trim());
                             } else {
-                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스 
+                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스
                                 // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.
                                 if (PdProductConst.PD_EXTS_PRP_GRP_CD_LRNN.equals(pdPrpGrpDtlDvCd)
                                     && PdProductConst.CARMEL_LRNN_LV_CD.equals(metaVo.getColNm())) {

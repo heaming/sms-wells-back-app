@@ -129,7 +129,7 @@ public class WpdcMaterialMgtService {
     /**
      * 연결상품
      * @param pdCd
-     * @param tbPdbsPdEcomPrpDtls
+     * @param tbPdbsPdRels
      * @throws Exception
      */
     @Transactional
@@ -146,7 +146,7 @@ public class WpdcMaterialMgtService {
             mapper.deleteTbPdbsPdRel(pdCd, tbPdbsPdRels, "NOTALL", startDtm);
 
             // 23-04-05 Converter로 Dto에서 Dvo로 변환시 모두 null로 반환함.
-            // dto로 
+            // dto로
             for (ZpdcRelationMgtDto.ProductRelation relDto : tbPdbsPdRels) {
                 mapper.mergeEachTbPdbsPdRelByDto(
                     ZpdcRelationMgtDto.ProductRelation.builder()
@@ -162,7 +162,7 @@ public class WpdcMaterialMgtService {
 
             }
 
-            // #2. 신규 추가 항목 INSER 
+            // #2. 신규 추가 항목 INSER
             //            List<ZpdcEachTbPdbsPdRelDvo> dvos = converter.mapTbPdbsPdRelDvos(tbPdbsPdRels);
             //            for (ZpdcEachTbPdbsPdRelDvo dvo : dvos) {
             //                dvo.setBasePdCd(pdCd); /* 상품관계ID */
@@ -436,6 +436,12 @@ public class WpdcMaterialMgtService {
                 dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
                 dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
                 dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+            } else {
+                dvo.setModelNo(null);
+                dvo.setSapPdctSclsrtStrcVal(null);
+                dvo.setSapPlntCd(null);
+                dvo.setSapMatEvlClssVal(null);
+                dvo.setSapMatGrpVal(null);
             }
 
             // #1. 상품 마스터 INSERT

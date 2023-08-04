@@ -86,6 +86,8 @@ public class WogcActivityService {
      * @return SearchMonthlyActivityRes
      */
     public PagingResult<SearchAccureActivityRes> searchAccureActivitiesPages(SearchAccureActivityReq dto, PageInfo pageInfo) {
+        return null;
+        /*
         switch (dto.perfCd()){
             case "A":
                 return wogcActivityMapper.searchAccureActivitiesA(dto, pageInfo);
@@ -94,5 +96,6 @@ public class WogcActivityService {
             default:
                 return null;
         }
+        */
     }
 }
