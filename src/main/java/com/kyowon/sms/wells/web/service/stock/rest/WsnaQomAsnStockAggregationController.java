@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto.SearchReq;
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto.SearchRes;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto.*;
 
 import java.util.List;
 
@@ -38,6 +37,12 @@ import lombok.RequiredArgsConstructor;
 public class WsnaQomAsnStockAggregationController {
 
     private final WsnaQomAsnStockAggregationService service;
+
+    @GetMapping("/products")
+    @ApiOperation(value = "품목 조회", notes = "품목을 조회한다.")
+    public List<SearchPdRes> getProducts() {
+        return this.service.getProducts();
+    }
 
     @GetMapping
     @ApiOperation(value = "물량배정 재고이송량 집계 조회", notes = "물량배정 재고이송량 집계 데이터를 조회한다.")

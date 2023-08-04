@@ -19,6 +19,14 @@ import lombok.Builder;
 public class WsnaQomAsnStockAggregationDto {
 
     @Builder
+    @ApiModel("WsnaQomAsnStockAggregationDto-SearchPdRes")
+    public record SearchPdRes(
+        String pdCd,
+        String pdNm,
+        String itmKndCd
+    ) {}
+
+    @Builder
     @ApiModel("WsnaQomAsnStockAggregationDto-SearchReq")
     public record SearchReq(
 
