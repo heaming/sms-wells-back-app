@@ -228,12 +228,14 @@ public class WpdcAsPartsMgtService {
                 dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
                 dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
                 dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+                dvo.setSapMatTpVal(sapMatVo.getSapMatTpVal());
             } else {
                 //                dvo.setModelNo(null);
                 dvo.setSapPdctSclsrtStrcVal(null);
                 dvo.setSapPlntCd(null);
                 dvo.setSapMatEvlClssVal(null);
                 dvo.setSapMatGrpVal(null);
+                dvo.setSapMatTpVal(null);
             }
 
             // #1. 상품 마스터 INSERT
