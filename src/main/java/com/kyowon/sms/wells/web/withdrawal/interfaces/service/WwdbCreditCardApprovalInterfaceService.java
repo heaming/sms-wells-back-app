@@ -56,7 +56,8 @@ public class WwdbCreditCardApprovalInterfaceService {
             receiveAskDvo.setKyowonGroupCompanyCd("2000");
             receiveAskDvo.setReceiveCompanyCode("2000");
             receiveAskDvo.setCustomNumber(contractDvos.get(0).getCstNo());
-            receiveAskDvo.setRveAkMthdCd("08"); // 소비자 알림센터
+            receiveAskDvo.setRveAkMthdCd("02"); // 비대면
+            receiveAskDvo.setRveAkPhCd("10"); // 소비자 알림센터
             receiveAskDvo.setRvePrtnrOgTpCd(contractDvos.get(0).getSellOgTpCd());
             receiveAskDvo.setRvePrtnrNo(contractDvos.get(0).getSellPrtnrNo());
             receiveAskDvo.setReceiveAskDate(DateUtil.getShortDateString());
@@ -217,7 +218,7 @@ public class WwdbCreditCardApprovalInterfaceService {
                     .dispatchTemplateId("Z_WDB00002")
                     .forwardingGb("kakao")
                     .receiverdDestInfo(contractDvos.get(0).getCstNm() + "^" + dto.mpNo())
-                    .connectUrl("/anonymous/login?redirectUrl=")
+                    .connectUrl("/anonymous/login?deviceCheck=Y&redirectUrl=")
                     .redirectUrl(redirectUrl)
                     .build()
             );
