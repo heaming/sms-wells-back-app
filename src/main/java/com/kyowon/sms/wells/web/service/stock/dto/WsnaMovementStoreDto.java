@@ -29,19 +29,22 @@ public class WsnaMovementStoreDto {
 
     @ApiModel("WsnaMovementStrControllerDto-SearchRes")
     public record SearchRes(
-        String strTpCd, /*입고유형코드,*/
-        String strWareNo, /*입고창고번호*/
-        String strSn, /*입고일련번호*/
-        String strRgstDt, /*입고등록일자*/
-        String dlvgDlpnrNo, /*납품거래처번호*/
-        String itmStrNo, /*품목입고번호*/
-        String ostrTpCd, /*출고유형코드*/
-        String ostrWareNo, /*출고창고번호*/
-        String ostrDt, /*출고일자*/
-        String ostrSn, /*출고일련번호*/
-        String itmOstrNo, /*품목출고번호*/
-        String wareNm /*창고명*/
-        //        String strDelButn
+        String strTpCd,
+        String strTpNm,
+        String strWareNo,
+        String strWareNm,
+        String strRgstDt,
+        String dlvgDlpnrNo,
+        String itmStrNo,
+        int strSn,
+        String ostrTpCd,
+        String ostrWareNo,
+        String ostrWareNm,
+        String strHopDt,
+        String ostrDt,
+        String itmOstrNo,
+        int ostrSn
+
     ) {}
 
     @ApiModel("WsnaMovementStrControllerDto-MovementRes")
@@ -141,5 +144,5 @@ public class WsnaMovementStoreDto {
     public record warehouseMonthlyReq(
         String apyYm,
         String wareNo
-    ){}
+    ) {}
 }
