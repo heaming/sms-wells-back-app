@@ -21,12 +21,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/bs-og-procs")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/bs-organization-procs")
 @Api(tags = "[WSNB] K-W-SV-U-0238M01 B/S 처리 현황(조직) REST API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class WsnbBsOgProcsListController {
+public class WsnbBsOrganizationProcsSearchController {
 
     private final WsnbBsOgProcsListService service;
 
@@ -51,7 +51,7 @@ public class WsnbBsOgProcsListController {
         @ApiImplicitParam(name = "ogId", value = "조직id", paramType = "query", example = "OGO202000010295"),
         @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹", paramType = "query", example = "2"),
     })
-    @GetMapping("/crdOvr")
+    @GetMapping("/carried-over")
     public List<SearchCrdOvrRes> getCrdOvrList(
         SearchReq dto
     ) {
