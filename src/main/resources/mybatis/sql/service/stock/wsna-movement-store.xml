@@ -241,8 +241,8 @@
              , T1.STR_CONF_PRTNR_NO = #{session.employeeIDNumber}
              , T1.STR_CONF_PRTNR_OG_TP_CD = ( SELECT P1.OG_TP_CD
                                                 FROM TB_OGBS_MM_PRTNR_IZ P1 /* 월파트너내역 */
-                                               WHERE P1.BASE_YM = SUBSTR(#{ostrDt}, 1, 6)
-                                                 AND P1.PRTNR_NO = #{prtnrNo}
+                                               WHERE P1.BASE_YM  = TO_CHAR(SYSDATE,'YYYYMM')
+                                                 AND P1.PRTNR_NO = #{session.employeeIDNumber}
                                             ) /* 조직유형코드 가져오는 쿼리 */
              <include refid="COMMON.updateSystemField"/>
          WHERE T1.ITM_STR_NO = #{itmStrNo}
@@ -255,8 +255,8 @@
              , STR_CONF_PRTNR_NO = #{session.employeeIDNumber}
              , STR_CONF_PRTNR_OG_TP_CD = ( SELECT P1.OG_TP_CD
                                              FROM TB_OGBS_MM_PRTNR_IZ P1 /* 월파트너내역 */
-                                            WHERE P1.BASE_YM = SUBSTR(#{ostrDt}, 1, 6)
-                                              AND P1.PRTNR_NO = #{prtnrNo}
+                                            WHERE P1.BASE_YM  = TO_CHAR(SYSDATE,'YYYYMM')
+                                              AND P1.PRTNR_NO = #{session.employeeIDNumber}
                                          ) /* 조직유형코드 가져오는 쿼리 */
              <include refid="COMMON.updateSystemField"/>
          WHERE T1.ITM_STR_NO = #{itmStrNo}
@@ -285,8 +285,69 @@
            AND T1.ITM_PD_CD = #{itmPdCd}
     </update>
 
+    <update id="updateItmStrForRemove">
+        UPDATE TB_SVST_ITM_STR_IZ
+           SET STR_CONF_DT             = NULL
+             , STR_CONF_HH             = NULL
+             , STR_CONF_PRTNR_NO       = NULL
+             , STR_CONF_PRTNR_OG_TP_CD = NULL
+        <include refid="COMMON.updateSystemField"/>
+         WHERE ITM_STR_NO = #{itmStrNo}
+           AND STR_SN     = #{strSn}
+    </update>
+
+    <update id="updateItmOstrForRemove">
+        UPDATE TB_SVST_ITM_OSTR_IZ
+           SET STR_CONF_DT             = NULL
+             , STR_CONF_HH             = NULL
+             , STR_CONF_PRTNR_NO       = NULL
+             , STR_CONF_PRTNR_OG_TP_CD = NULL
+        <include refid="COMMON.updateSystemField"/>
+         WHERE ITM_STR_NO = #{itmStrNo}
+           AND STR_SN     = #{strSn}
+    </update>
+
+    <update id="updateCstSvItmStocForRemove">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_A_GD_QTY = CASE WHEN NVL(MMT_STOC_A_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'A' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END <![CDATA[<]]> 0
+                                        THEN 0
+                                        ELSE NVL(MMT_STOC_A_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'A' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END
+                                   END
+             , MMT_STOC_B_GD_QTY = CASE WHEN NVL(MMT_STOC_B_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'B' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END <![CDATA[<]]> 0
+                                        THEN 0
+                                        ELSE NVL(MMT_STOC_B_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'B' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END
+                                   END
+             , MMT_STOC_E_GD_QTY = CASE WHEN NVL(MMT_STOC_E_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'E' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END <![CDATA[<]]> 0
+                                        THEN 0
+                                        ELSE NVL(MMT_STOC_E_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'E' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END
+                                   END
+             , MMT_STOC_R_GD_QTY = CASE WHEN NVL(MMT_STOC_R_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'R' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END <![CDATA[<]]> 0
+                                        THEN 0
+                                        ELSE NVL(MMT_STOC_R_GD_QTY, 0) + CASE WHEN #{itemGdCd} = 'R' THEN #{strQty}
+                                                                              ELSE 0
+                                                                         END
+                                   END
+        <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO   = #{strWareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
     <select id="countStrWareMonthlyClosed" resultType="int">
-        SELECT count(1) AS CNT
+        SELECT COUNT(1) AS CNT
           FROM TB_SVST_MCBY_WARE_CL_IZ T1
          WHERE T1.APY_YM = #{apyYm}
            AND T1.WARE_NO = #{wareNo}

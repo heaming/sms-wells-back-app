@@ -5,6 +5,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -117,7 +118,9 @@ public class WsnaMovementStoreController {
     @ApiOperation(value = "이관입고등록 confirm", notes = "품목입고내역,품목출고내역,고객서비스품목재고내역 data를 update 한다.")
     @PutMapping("/registration")
     public int saveStrMovementConfrim(
-        @RequestBody List<MovementStrSaveReq> list
+        @RequestBody
+        @NotEmpty
+        List<MovementStrSaveReq> list
     ) {
         return service.saveStrMovementConfrim(list);
     }
@@ -134,7 +137,18 @@ public class WsnaMovementStoreController {
     }
 
     @GetMapping("/strware-monthly-end")
-    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto){
+    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto) {
         return service.getStrWareMonthlyClosed(dto);
     }
+
+    @ApiOperation(value = "이관입고 등록 삭제", notes = "등록된 이관입고 내역을 삭제한다.")
+    @DeleteMapping("/registration")
+    public int removeStrMovement(
+        @RequestBody
+        @NotEmpty
+        List<MovementStrSaveReq> dtos
+    ) {
+        return this.service.removeMovement(dtos);
+    }
+
 }
