@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.product.manage.rest;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,6 +65,10 @@ public class WpdcCompositionMgtController {
         @RequestBody
         WpdcCompositionMgtDto.EditReq dto
     ) throws Exception {
+        if (StringUtil.isNotBlank(dto.pdCd())) {
+            // 동시 저장을 방지하기 위해, 상풍수정일만 미리 저장
+            pdService.saveProductBaseFinalDtm(dto.pdCd());
+        }
         return SaveResponse.builder()
             .data(
                 service.saveProduct(

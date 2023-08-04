@@ -66,7 +66,7 @@ public class WpdcStandardMgtController {
         WpdcStandardMgtDto.EditReq dto
     ) throws Exception {
         if (StringUtil.isNotBlank(dto.pdCd())) {
-            // 동시 저장을 방지하기 위해, 수정을을 미리 저장
+            // 동시 저장을 방지하기 위해, 상풍수정일만 미리 저장
             pdService.saveProductBaseFinalDtm(dto.pdCd());
         }
         return SaveResponse.builder()
