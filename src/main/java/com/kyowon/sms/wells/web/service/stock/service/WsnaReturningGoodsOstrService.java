@@ -1,16 +1,15 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaReturningGoodsOstrConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsOstrMapper;
 import com.sds.sflex.common.utils.StringUtil;
@@ -92,6 +91,8 @@ public class WsnaReturningGoodsOstrService {
             // 품목출고내역 insert
             int result = this.mapper.insertItemForwardingHistory(dvo);
 
+            result += this.mapper.insertItemReceivingHistory(dvo);
+
             if (isReturnToLogistics(dvo.getOstrTpCd(), dvo.getStrWareDvCd())) {
                 // TODO: 반품(내부)이고 입고 창고가 물류센터인 경우 - 반품요청 중계 테이블 Insert
                 // TODO: 품목재고내역관리 서비스(W-SV-S-0087)의 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고
@@ -110,9 +111,20 @@ public class WsnaReturningGoodsOstrService {
                     dvo
                 );
                 result += itemStockservice.createStock(returnOstrDvo);
+
+                WsnaItemStockItemizationReqDvo returnMoveDvo = setReturningMoveWsnaItemStockItemizationDtoSaveReq(
+                    dvo
+                );
+                result += itemStockservice.saveStockMovement(returnMoveDvo);
+
+                WsnaItemStockItemizationReqDvo returnStrDvo = setReturningStrWsnaItemStockItemizationDtoSaveReq(
+                    dvo
+                );
+
+                result += itemStockservice.createStock(returnStrDvo);
             } else if (isReturning(dvo.getOstrTpCd())) {
                 // 반품(내부/외부)이고 입고창고가 물류센터가 아닌 경우 - 품목입고내역 insert
-                result = this.mapper.insertItemReceivingHistory(dvo);
+                //                result = this.mapper.insertItemReceivingHistory(dvo);
                 // TODO: 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고
 
                 WsnaItemStockItemizationReqDvo returnOstrDvo = setReturningOstrWsnaItemStockItemizationDtoSaveReq(
@@ -173,6 +185,17 @@ public class WsnaReturningGoodsOstrService {
                     );
 
                     itemStockservice.removeStock(returnRemoveDvo);
+
+                    // TODO: 품목재고내역 이동 메소드(saveItemStockIzMmts)를 호출 - 입고창고의 이동재고수량 삭제
+
+                    WsnaItemStockItemizationReqDvo moveDvo = setReturningRemoveMoveWsnaItemStockItemizationDtoSaveReq(
+                        dvo
+                    );
+
+                    itemStockservice.saveStockMovement(moveDvo);
+                    //                    BizAssert.isTrue(moveResult == 1, "MSG_ALT_DEL_ERR");
+
+                    this.mapper.deleteItemReceivingHistory(dvo); // 품목입고내역삭제
 
                 } else {
                     // TODO: 품목재고내역 삭제 메소드(saveItemStockIzDls)를 호출 - 입고창고의 입고재고수량 삭제
