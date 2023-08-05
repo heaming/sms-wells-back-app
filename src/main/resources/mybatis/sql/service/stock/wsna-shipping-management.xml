@@ -26,16 +26,17 @@
                  END )  AS PD_GROUP_CD
              , NVL(TN.SPP_THM0_YN, 'N') AS SPP_THM_YN
           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ   TA
-             , TB_SVPD_CST_SV_EXCN_IZ       TC
-             , TB_PDBS_PD_ECOM_PRP_DTL      TK
-             , TB_SVPD_PCSV_PD_IZ           TN
-         WHERE 1=1
-           AND TA.PDCT_PD_CD = TK.PD_CD
-           AND TA.PDCT_PD_CD = TN.PD_CD
-           AND TA.CNTR_NO    = TC.CNTR_NO
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ       TC
+            ON TA.CNTR_NO    = TC.CNTR_NO
            AND TA.CNTR_SN    = TC.CNTR_SN
            AND TA.ASN_OJ_YM  = #{asnYm}
            AND TA.VST_DV_CD LIKE '2%'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL      TK
+            ON TA.PDCT_PD_CD = TK.PD_CD
+           AND TK.PD_EXTS_PRP_GRP_CD = 'PART'
+         INNER JOIN TB_SVPD_PCSV_PD_IZ           TN
+            ON TA.PDCT_PD_CD = TN.PD_CD
+         WHERE 1=1
            AND (CASE WHEN TN.SPP_EXCD_YN = 'Y' THEN '2' ELSE '1' END ) = '1'
            AND (CASE WHEN (    #{sppDvCd} = 'A1'
                            AND TK.PD_PRP_VAL20 IN ( SELECT SA.CD_VLD_VAL
@@ -587,6 +588,7 @@
                         AND TJ.SL_STP_YN IS NULL
                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL   TK
                          ON TA.PDCT_PD_CD = TK.PD_CD
+                        AND TK.PD_EXTS_PRP_GRP_CD = 'PART'
                        LEFT OUTER JOIN PART_LIST_TB              TL
                          ON TA.ASN_OJ_YM  = TL.ASN_OJ_YM
                         AND TA.CNTR_NO    = TL.CNTR_NO
@@ -720,19 +722,19 @@
         VALUES (
                #{ostrAkNo}
              , ${ostrAkSn}
-             , #{sppDvCd} -- A1, A2
+             , #{sppDvCd}
              , #{cntrNo}
              , #{cntrSn}
              , #{asnOjYm}
-             , 'N' -- 알림톡발송여부
-             , 'Y' -- 물류까지 한큐에 가는거면 Y
-             , 'A3' -- 물류인터페이스까지 TRANSACTION처리
+             , 'N'
+             , 'Y'
+             , 'A3'
              , '400'
              , #{ostrAkRgstDt}
              , #{sppAkSpfDt}
              , #{iostAkDvCd}
              , #{wareMngtPrtnrNo}
-             , #{wareMngtPrtnrOgTpCd}
+             , #{wareMngtPrtnrogTpCd}
              , ''
              , #{lgstSppMthdCd}
              , ''
@@ -872,7 +874,7 @@
              , ''
              , ''
              , #{session.employeeIDNumber}
-             , #{session.ogtpCd}
+             , #{session.ogTpCd}
              , '' -- 여기서부터는 확인필요함.
              , ''
              , ''
@@ -987,7 +989,7 @@
              , #{cntrNo}
              , #{cntrSn}
              , '71321'
-             , #{session.ogtpCd}
+             , #{session.ogTpCd}
              , #{session.employeeIDNumber}
              , #{pdctPdCd}
              , SUBSTR(#{cstSvAsnNo},1,1)
@@ -1071,9 +1073,10 @@
              , WK_PSIC_DV_CD	= '2'
              , WK_PSIC_OG_TP_CD = #{session.ogTpCd}
              , WK_PSIC_NO       = #{session.employeeIDNumber}
-             , FST_RGST_PRG_ID  = 'KIWI'
+             , FNL_MDFC_PRG_ID  = 'KIWI'
              , FNL_MDFC_DTM     = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
              , FNL_MDFC_USR_ID  = #{session.employeeIDNumber}
+             , FNL_MDFC_DEPT_ID = NVL(#{session.ogId}, 'NULL')
          WHERE 1=1
            AND CNTR_NO          = #{cntrNo}
            AND CNTR_SN          = #{cntrSn}
@@ -1088,14 +1091,17 @@
              , CNFM_PSIC_PRTNR_OG_TP_CD = #{session.ogTpCd}
              , SITE_AW_PD_GRP_CD = ( SELECT PD_PRP_VAL20
                                        FROM TB_PDBS_PD_ECOM_PRP_DTL
-                                      WHERE PD_CD = #{pdctPdCd} )
+                                      WHERE PD_CD = #{pdctPdCd}
+                                        AND PD_EXTS_PRP_GRP_CD = 'PART')
              , SITE_AW_SV_TP_CD  = '2'
              , SITE_AW_ATC_CD    = ( SELECT SITE_AW_ATC_CD
                                        FROM TB_SVPD_AS_TP_CD TA
                                       WHERE TA.PD_GRP_CD = ( SELECT PD_PRP_VAL20
                                                                FROM TB_PDBS_PD_ECOM_PRP_DTL  TB
-                                                              WHERE PD_CD = #{pdctPdCd} )
-                                        AND TA.PD_CD        = PARM_PD_CD
+                                                              WHERE PD_CD = #{pdctPdCd}
+                                                                AND PD_EXTS_PRP_GRP_CD = 'PART'
+                                                            )
+                                        AND TA.PD_CD        = #{pdctPdCd}
                                         AND TA.APY_STRTDT  <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
                                         AND TA.APY_ENDDT   <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
                                         AND TA.SV_TP_CD     = '2'

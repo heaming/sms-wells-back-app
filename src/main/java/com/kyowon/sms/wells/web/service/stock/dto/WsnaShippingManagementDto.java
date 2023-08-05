@@ -139,7 +139,8 @@ public class WsnaShippingManagementDto {
         String partNmQty09,
         String partNmQty10,
         String sppThmYn,
-        String cstNo
+        String cstNo,
+        String pdGroupCd
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(exnoEncr)
@@ -149,6 +150,7 @@ public class WsnaShippingManagementDto {
                 tno = locaraTno + "-" + idvTno;
             }
             mpno = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
+            pdGroupCd = null;
         }
     }
 
@@ -257,6 +259,7 @@ public class WsnaShippingManagementDto {
         String partNmQty09,
         String partNmQty10,
         String sppThmYn,
-        String cstNo
+        String cstNo,
+        String pdGroupCd
     ) {}
 }

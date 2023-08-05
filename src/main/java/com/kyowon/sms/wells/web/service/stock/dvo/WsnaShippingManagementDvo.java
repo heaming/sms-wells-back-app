@@ -117,5 +117,6 @@ public class WsnaShippingManagementDvo {
     int ostrAkSn; // 출고요청일련번호
     String tno;
     String mpno;
+    String pdGroupCd;
 
 }

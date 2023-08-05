@@ -55,4 +55,15 @@ public class WsnaShippingMaterialDvo {
     String wareMngtPrtnrNo;
     String wareMngtPrtnrOgTpCd;
     String ostrOjWareNo;
+    String svCnrCd;
+    String svCnrNm;
+    String svCnrIchrPrtnrNm;
+    String svCnrLkTnoEncr;
+    String svCnrAdr;
+    String ovivTpCd;
+    String strOjWareNo;
+    String wareDtlDvCd;
+    String wareNm;
+    String itmGdCd;
+    String cstNm;
 }

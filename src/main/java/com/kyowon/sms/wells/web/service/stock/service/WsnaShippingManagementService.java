@@ -69,14 +69,18 @@ public class WsnaShippingManagementService {
         List<WsnaShippingManagementDvo> dvos = converter.mapSaveReqToWsnaShippingManagementDvo(dtos);
         // 물류인터페이스 호출용 dvo
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
+
         //저장
         for (WsnaShippingManagementDvo dvo : dvos) {
+            // 암호화 이전 값 따로 세팅.
+            String mexnoEncr = dvo.getMexnoEncr();
+            String exnoEnncr = dvo.getExnoEncr();
             // 출고요청 번호 생성
             dvo.setOstrAkNo(mapper.selectOstAkNo(dvo));
             // 출고요청 일련번호 초기화
 
             // 저장 전 부품자재들 dvos로 변환 1,2,4 저장필요.
-            List<WsnaShippingMaterialDvo> materialDvos = this.transfetShippingMaterials(dvo);
+            List<WsnaShippingMaterialDvo> materialDvos = this.transferShippingMaterials(dvo);
 
             // 암호화 이전 값 따로 세팅.
             String tno = materialDvos.get(0).getTno();
@@ -91,8 +95,11 @@ public class WsnaShippingManagementService {
                 mapper.insertOutOfStorage(materialDvo);
                 materialDvo.setAdrsTnoVal(tno);
                 materialDvo.setAdrsCphonNoVal(mpno);
-                // 3.재고정보변경
-                this.putStockItems(materialDvo);
+                // 3.재고정보변경(모종제품제외)
+                if (!StringUtils.equals(dvo.getPdGroupCd(), "11")) {
+                    this.putStockItems(materialDvo);
+                }
+
                 // 물류인터페이스 dvo list에 추가
                 materialDvo.setAdrsTnoVal(tno);
                 materialDvo.setAdrsCphonNoVal(mpno);
@@ -108,6 +115,8 @@ public class WsnaShippingManagementService {
                 mapper.updateExecution(dvo);
             }
             // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
+            dvo.setMexnoEncr(mexnoEncr);
+            dvo.setExnoEncr(exnoEnncr);
             mapper.insertWorkResult(dvo);
             processCount += 1;
         }
@@ -117,13 +126,13 @@ public class WsnaShippingManagementService {
         return processCount;
     }
 
-    public List<WsnaShippingMaterialDvo> transfetShippingMaterials(WsnaShippingManagementDvo dvo) {
+    public List<WsnaShippingMaterialDvo> transferShippingMaterials(WsnaShippingManagementDvo dvo) {
 
         List<WsnaShippingMaterialDvo> materialDvos = new ArrayList<>();
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         WsnaShippingMaterialDvo materialDvo = converter.mapShippingManagementDvoToShippingMaterialDvo(dvo);
         String now = DateUtil.getNowString();
-        // 물류인터페이스호출용 값 세팅(명칭맞춰주기)
+        // 물류인터페이스호출용 값 세팅
         materialDvo.setOstrAkTpCd("400");
         materialDvo.setOstrAkRgstDt(now.substring(0, 8));
         materialDvo.setIostAkDvCd("WE");
@@ -132,9 +141,22 @@ public class WsnaShippingManagementService {
         materialDvo.setLgstWkMthdCd("WE01");
         materialDvo.setAdrsTnoVal(dvo.getTno());
         materialDvo.setAdrsCphonNoVal(dvo.getMpno());
-        materialDvo.setWareMngtPrtnrNo(userSession.getEmployeeIDNumber());
-        materialDvo.setWareMngtPrtnrOgTpCd(userSession.getOgTpCd());
+        materialDvo.setWareMngtPrtnrNo("71321");
+        materialDvo.setWareMngtPrtnrOgTpCd("@7132");
         materialDvo.setOstrOjWareNo("100002");
+        materialDvo.setItmGdCd("A");
+        materialDvo.setCstNm(dvo.getCstKnm());
+        // 입고요청창고정보. 일단 파주물류센터로 세팅. TODO : 확인필요.
+        materialDvo.setStrOjWareNo("100002"); //입고대상창고번호
+        materialDvo.setWareDtlDvCd("10");
+        materialDvo.setWareNm("교원파주물류센터");
+        // null대신 X값 세팅. (물류인터페이스요청)
+        materialDvo.setSvCnrCd("X");
+        materialDvo.setSvCnrNm("X");
+        materialDvo.setSvCnrIchrPrtnrNm("X");
+        materialDvo.setSvCnrLkTnoEncr("X");
+        materialDvo.setSvCnrAdr("X");
+        materialDvo.setOvivTpCd("X");
 
         // 자재정보 리스트 생성
         if (StringUtils.isNotEmpty(dvo.getPartCd01())) {
