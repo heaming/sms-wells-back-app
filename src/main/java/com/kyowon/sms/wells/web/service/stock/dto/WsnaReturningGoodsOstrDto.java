@@ -94,6 +94,8 @@ public class WsnaReturningGoodsOstrDto {
     public record ReturningGoods(
         String itmOstrNo, // 품목출고번호
         String ostrSn, // 출고일련번호
+        String itmStrNo,
+        String strSn,
         String itmKndCd, // 품목종류코드
         String sapMatCd, // SAP자재코드
         String itmPdCd, // 품목상품코드
@@ -160,6 +162,8 @@ public class WsnaReturningGoodsOstrDto {
         String itmOstrNo, // 품목출고번호
         @NotBlank
         String ostrSn, // 출고일련번호
+        String itmStrNo,
+        String strSn,
 
         String sapMatCd, // SAP자재코드
         String itmPdCd, // 품목상품코드
