@@ -36,16 +36,16 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
     @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchSubjectReq")
     public record SearchSubjectReq(
-        String baseYm,
-        String rsbDvCd,
-        String mainOgId,
-        String dgr2LevlOgId,
-        String bldCd,
-        String subOgTpCd,
-        String subPrtnrNo,
-        String mainDgr1LevlOgId,
-        String mainDgr2LevlOgId,
-        String mainDgr3LevlOgId
+        String baseYm, // 사용년월
+        String rsbDvCd, // 직책유형코드
+        String mainOgId, // 정산조직ID
+        String dgr2LevlOgId, // 2차레벨조직명 - 총괄단(에듀 웰스 같음)
+        String bldCd, // 빌딩 코드
+        String subOgTpCd, // 배분대상조직유형코드
+        String subPrtnrNo, // 배분대상파트너번호(사번)
+        String mainDgr1LevlOgId, // 부모페이지의 1차레벨조직ID
+        String mainDgr2LevlOgId, // 부모페이지의 2차레벨조직ID
+        String mainDgr3LevlOgId // 부모페이지의 3차레벨조직ID
     ) {
 
     }
@@ -59,13 +59,11 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String baseYm,               /*(hidden)기준월*/
         String dgr1LevlOgNm,       /*1차레벨조직명-총괄단*/
         String dgr2LevlOgNm,       /*2차레벨조직명-지역단*/
-        String dgr1LevlOgId,       /*2차레벨조직명-총괄단*/
-        String dgr2LevlOgId,       /*3차레벨조직명-센터*/
-        String dgrLevlOgId,          /*(hidden) 조직ID 총괄단*/
-        String dgrLevlDgPrtnrNo,    /*(hidden) 파트너 번호 - 총괄단*/
+        String dgr2LevlOgId,          /*(hidden) 조직ID 총괄단*/
+        String dgr2LevlDgPrtnrNo,    /*(hidden) 파트너 번호 - 총괄단*/
         String ogTpCd,              /*(hidden)2차레벨조직유형코드-지역단*/
         String ogId,                 /*(hidden)정산조직ID*/
-        String dstOjOgTpCd,            /*(hidden)배분대상조직유형코드*/
+        String dstOjOgTpCd,         /*(hidden)배분대상조직유형코드*/
         String prtnrNo,              /*배분대상파트너번호*/
         String prtnrKnm,             /*배분대상자명*/
         String pstnDvCd,            /*(hidden)직급구분코드*/
@@ -80,24 +78,25 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String adjFshDstAmt,  /*(hidden)정산완료배분합계금액*/
         String adjYn,  /*(hidden)정산여부*/
         String bldCd,  /* 빌딩코드 */
-        String bldNm  /*빌딩명 */
+        String bldNm,  /*빌딩명 */
+        String perfRate  /* 실적비율 */
     ) {
     }
 
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
+    // 운영비 원천세 정산(유가증권 제외) / 원천세 정산 내역 Tab
     @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchFinalSettlementReq")
     public record SearchFinalSettlementReq(
+        String baseYm,
         String pstnDvCd,
         String dstOjpsNm,
         String dgr3LevlOgNm,
         String bldCd,
         String rsbDvCd,
-        String baseYm,
         String adjOgId,
-        String opcsAdjNo,
+        String opcsAdjNo, // 운영비정산번호
         String adjPrtnrNo /* 정산파트너번호-부모화면에서 리턴 받음*/
     ) {
 
@@ -109,19 +108,19 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
     @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchFinalSettlementRes")
     public record SearchFinalSettlementRes(
+        String baseYm,
         String opcsAdjNo,           /*(hidden)운영비정산번호*/
         String adjOgId,             /*(hidden)정산조직ID*/
         String ogTpCd,              /*(hidden)조직유형코드*/
         String adjPrtnrNo,          /*(hidden)정산파트너번호*/
         String dgr1LevlOgNm,       /*1차레벨조직명*/
         String dgr2LevlOgNm,       /*2차레벨조직명*/
-        String dgr1LevlOgId,       /*1차레벨조직명*/
-        String dgr2LevlOgId,       /*2차레벨조직명*/
         String dstOjpsNm,           /*배분대상자명*/
         String dstOjOgTpCd,       /*(hidden)배분대상조직유형코드*/
         String dstOjPrtnrNo,       /*배분대상파트너번호*/
         String pstnDvCd,            /*직급구분코드*/
         String rsbDvCd,             /*(hidden)직책구분코드*/
+        String rsbDvNm,             /*직책명*/
         String dstOjpsPerfAmt,     /*(hidden)배분대상자실적금액*/
         String dstAmt,               /*운영비 정산금액*/
         String dstWhtx,              /*원천세*/
@@ -129,17 +128,14 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String rsdntx,                /*(hidden)주민세*/
         String mscrYn,               /*(hidden)유가증권여부*/
         String bldCd,                /*빌딩코드*/
-        String bldNm,                /*빌딩명*/
-        String rsbDvNm,               /*직책명*/
-        String baseYm
+        String bldNm                /*빌딩명*/
     ) {
-
     }
 
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
+    // 운영비 원천세 정산(유가증권 제외) / 원천세 정산 내역 Tab
     @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SaveReq")
     public record SaveReq(
         String opcsAdjNo, // 운영비정산번호
@@ -166,7 +162,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 운영비 원천세 정산(유가증권 제외) / 정산대상
+    // 운영비 원천세 정산(유가증권 제외) / 원천세 정산 내역 Tab
     @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-AccCardInfoDetailRes")
     public record AccCardInfoDetailRes(
         String baseYm,       /*기준년월*/
@@ -177,7 +173,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
         String adjOgNm,     /*정산조직명*/
         String adjPrtnrNo,  /*정산파트너번호*/
         String adjUsrNm,    /*정산사용자명*/
-        String opcsAdjNo,   /*운영비정산번호  KEY*/
+        String opcsAdjNo,   /*운영비정산번호*/
         String adjYn,        /*정산여부*/
         String befCardLimAmt, /*이전카드한도금액*/
         String befCardUseAmt, /*이전카드사용금액*/
