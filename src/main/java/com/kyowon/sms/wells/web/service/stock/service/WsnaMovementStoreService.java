@@ -5,6 +5,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaMovementStoreDto.*;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMovementStoreConfirmConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMovementStoreConfirmDvo;
@@ -13,7 +14,6 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <pre>
@@ -109,7 +109,7 @@ public class WsnaMovementStoreService {
     @Transactional
     public int saveStrMovementConfrim(List<MovementStrSaveReq> list) {
         int cnt = 0;
-        for(MovementStrSaveReq dto : list){
+        for (MovementStrSaveReq dto : list) {
             WsnaMovementStoreConfirmDvo dvo = this.converter.mapDtoToWsnaMovementStoreConfirmDvo(dto);
             cnt += mapper.saveStrConfirm(dvo);
             cnt += mapper.saveOstrConfirm(dvo);
@@ -119,7 +119,29 @@ public class WsnaMovementStoreService {
         return cnt;
     }
 
-    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto){
+    /**
+     * 이관입고 삭제
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int removeMovement(List<MovementStrSaveReq> dtos) {
+
+        int count = 0;
+
+        for (MovementStrSaveReq dto : dtos) {
+
+            WsnaMovementStoreConfirmDvo dvo = this.converter.mapDtoToWsnaMovementStoreConfirmDvo(dto);
+
+            count += mapper.updateItmStrForRemove(dvo);
+            count += mapper.updateItmOstrForRemove(dvo);
+            count += mapper.updateCstSvItmStocForRemove(dvo);
+        }
+
+        return count;
+    }
+
+    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto) {
         return mapper.countStrWareMonthlyClosed(dto);
     }
 }

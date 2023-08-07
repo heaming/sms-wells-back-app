@@ -423,9 +423,17 @@
                     FROM TB_PDBS_PD_BAS A2
                    WHERE A2.PD_CD = B1.BASE_PD_CD
                  ) PD_NM /*상품명*/
-               , '' ISTLL_KNM /*설치자한글명*/
-               , C1.FNT_DV_CD /*이체구분코드*/
-               , F_CMZ_CD_NM('TNT_BASE', 'FNT_DV_CD', C1.FNT_DV_CD) FNT_DV_CD_NM /*이체구분코드명*/
+               , (SELECT B.RCGVP_KNM
+                    FROM TB_SSCT_CNTR_ADR_REL A
+                    JOIN TB_SSCT_CNTR_ADRPC_BAS B
+                      ON B.DTA_DL_YN = 'N'
+                     AND B.CNTR_ADRPC_ID = A.CNTR_ADRPC_ID
+                   WHERE A.ADRPC_TP_CD = '3'
+                     AND A.DTL_CNTR_NO = B1.CNTR_NO
+                     AND A.DTL_CNTR_SN = B1.CNTR_SN
+                 ) ISTLL_KNM /*설치자한글명*/
+               , D1.DP_TP_CD FNT_DV_CD /*이체구분코드*/
+               , F_CMZ_CD_NM('TNT_BASE', 'DP_TP_CD', D1.DP_TP_CD) FNT_DV_CD_NM /*이체구분코드명*/
                , (
                   SELECT A2.FNIT_NM
                     FROM TB_RVDW_FNIT_CD A2
@@ -441,11 +449,11 @@
                   END ACNO_CDNO /*계좌카드번호*/
                , D1.OWR_KNM /*소유자한글명*/
                , D1.MPY_BSDT FNT_STPL_D /*이체약정일*/
-               , C1.DG_YN /*대표여부*/
-               , 'Y' BNDL_YN /*묶음여부*/
-               , C1.DG_CNTR_NO /*대표계약번호*/
+               , NVL(C1.DG_YN, 'N') DG_YN /*대표여부*/
+               , DECODE(C1.ITG_BIL_OJ_ID,  NULL, 'N', 'Y') BNDL_YN /*묶음여부*/
+               , NVL(C1.DG_CNTR_NO, '없음') DG_CNTR_NO /*대표계약번호*/
                , C1.DG_CNTR_SN /*대표계약일련번호*/
-               , '' IST_DT /*설치일자*/
+               , (SELECT IST_DT FROM TB_SSCT_CNTR_WELLS_DTL A WHERE A.DTA_DL_YN = 'N' AND A.CNTR_NO = B1.CNTR_NO AND A.CNTR_SN = B1.CNTR_SN) IST_DT /*설치일자*/
                , C1.FNL_MDFC_DTM MDFC_DT /*수정일자*/
                , C1.FNL_MDFC_USR_ID /*수정담당자ID*/
                , (
@@ -457,13 +465,32 @@
             JOIN TB_SSCT_CNTR_DTL B1 /*계약상세*/
               ON B1.DTA_DL_YN = 'N'
              AND B1.CNTR_NO = A1.CNTR_NO
-            JOIN TB_RVCL_ITG_BIL_OJ_BAS C1 /*통합청구대상기본*/
+      LEFT OUTER JOIN TB_RVCL_ITG_BIL_OJ_BAS C1 /*통합청구대상기본*/
               ON C1.DTA_DL_YN = 'N'
              AND C1.SUBOD_CNTR_NO = B1.CNTR_NO
              AND C1.SUBOD_CNTR_SN = B1.CNTR_SN
-            JOIN TB_SSCT_CNTR_STLM_BAS D1 /*계약결제기본*/
-              ON D1.DTA_DL_YN = 'N'
-             AND D1.CNTR_NO = A1.CNTR_NO
+            JOIN (
+                   SELECT D2.DTL_CNTR_NO CNTR_NO
+                        , D2.DTL_CNTR_SN CNTR_SN
+                        , D2.DP_TP_CD
+                        , D3.BNK_CD
+                        , D3.ACNO_ENCR
+                        , D3.CRCDNO_ENCR
+                        , D3.CDCO_CD
+                        , D3.OWR_KNM
+                        , D3.MPY_BSDT
+                        , ROW_NUMBER() OVER(PARTITION BY D2.DTL_CNTR_NO, D2.DTL_CNTR_SN ORDER BY D2.VL_STRT_DTM DESC) AS RN
+                     FROM TB_SSCT_CNTR_STLM_REL D2
+                     JOIN TB_SSCT_CNTR_STLM_BAS D3 /* 계약결제기본 */
+                       ON D3.CNTR_STLM_ID = D2.CNTR_STLM_ID
+                      AND D3.DTA_DL_YN = 'N'
+                    WHERE D2.DTA_DL_YN = 'N'
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN D2.VL_STRT_DTM AND D2.VL_END_DTM
+                      AND D2.VL_END_DTM = '99991231235959'
+                 ) D1  /*계약결제기본*/
+              ON D1.RN = 1
+             AND D1.CNTR_NO = B1.CNTR_NO
+             AND D1.CNTR_SN = B1.CNTR_SN
            WHERE A1.DTA_DL_YN = 'N'
              AND A1.CNTR_CAN_DTM IS NULL
              AND A1.CNTR_CST_NO = #{cstNo}

@@ -1,13 +1,13 @@
 package com.kyowon.sms.wells.web.closing.expense.converter;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto;
-import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieDvo;
 import org.mapstruct.Mapper;
+
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto.AccCardInfoDetailRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieDvo;
 
 @Mapper(componentModel = "spring")
 public interface WdcdMarketableSecuritieMgtConverter {
-
-    WdcdMarketableSecuritieDvo mapAccCardInfoDetailResToWdcdMarketableSecuritieExceptionDvo(WdcdMarketableSecuritieMgtDto.AccCardInfoDetailRes res);
-
-    WdcdMarketableSecuritieDvo mapSaveReqToWdcdMarketableSecuritieExceptionDvo(WdcdMarketableSecuritieMgtDto.SaveReq req);
+    WdcdMarketableSecuritieDvo mapSaveReqToWdcdMarketableSecuritieDvo(SaveReq req);
+    WdcdMarketableSecuritieDvo mapAccCardInfoDetailResToWdcdMarketableSecuritieDvo(AccCardInfoDetailRes res);
 }

@@ -9,15 +9,15 @@ import com.kyowon.sms.wells.web.fee.aggregate.dto.WwfeaAccountNetIncreaseDto;
 @Mapper
 public interface WwfeaAccountNetIncreaseMapper {
 
-    List<WwfeaAccountNetIncreaseDto.SearchRes> selectLstmmCancels(
+    List<WwfeaAccountNetIncreaseDto.SearchCancelRes> selectLstmmCancels(
         WwfeaAccountNetIncreaseDto.SearchReq req
     );
 
-    List<WwfeaAccountNetIncreaseDto.SearchRes> selectNewSells(
+    List<WwfeaAccountNetIncreaseDto.SearchNewSellRes> selectNewSells(
         WwfeaAccountNetIncreaseDto.SearchReq req
     );
 
-    List<WwfeaAccountNetIncreaseDto.SearchRes> selectAggregateChecks(
+    List<WwfeaAccountNetIncreaseDto.SearchCheckRes> selectAggregateChecks(
         WwfeaAccountNetIncreaseDto.SearchReq req
     );
 

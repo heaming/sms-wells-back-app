@@ -218,7 +218,6 @@ public class WsnaNormalOutOfStorageDto {
         String apyYm,
         @NotBlank
         String wareNo,
-        @NotBlank
         String stckStdGb
     ) {}
 

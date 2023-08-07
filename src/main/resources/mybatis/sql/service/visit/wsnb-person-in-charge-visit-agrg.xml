@@ -58,19 +58,24 @@
                  , S2.WARE_NM AS H_WARE_NM
                  , S2.WARE_DTL_DV_CD AS H_WARE_DTL_DV_CD
                  , S2.WARE_MNGT_PRTNR_NO AS H_WARE_MNGT_PRTNR_NO
+                 , S3.PRTNR_KNM AS H_WARE_MNGT_PRTNR_KNM
                  , S2.OG_TP_CD AS H_OG_TP_CD
                  , S2.OG_ID AS H_OG_ID
                  , S2.WARE_USE_YN AS H_WARE_USE_YN
                  , S2.APY_STRTDT AS H_APY_STRTDT
                  , S2.APY_ENDDT AS H_APY_ENDDT
                  , S2.RMK_CN AS H_RMK_CN
-                 , RANK() OVER(PARTITION BY S1.WARE_NO ORDER BY S1.OG_TP_CD DESC) AS RNK
+                 , ROW_NUMBER() OVER(PARTITION BY S1.WARE_MNGT_PRTNR_NO ORDER BY S1.OG_TP_CD DESC) AS RNK
             FROM TB_SVST_MCBY_WARE_IZ S1  /*월별창고내역*/
             LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S2  /*월별창고내역*/
              ON S1.APY_YM = S2.APY_YM
              AND S1.HGR_WARE_NO = S2.WARE_NO
              AND S2.WARE_USE_YN = 'Y'
              AND S2.DTA_DL_YN = 'N'
+            LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_PRTNR_IZ S3 /*월파트너내역*/
+	         ON S2.APY_YM = S3.BASE_YM
+	         AND S2.WARE_MNGT_PRTNR_NO = S3.PRTNR_NO
+	         AND S2.DTA_DL_YN = 'N'
             WHERE 1=1
              AND S1.APY_YM = #{asnOjYm}
             /* AND S1.WARE_MNGT_PRTNR_NO IN('1557238','1764321',','1167881') */
@@ -82,8 +87,7 @@
             SELECT S1.MNGT_YM
                     /* 확정 담당파트너 번호 > 고정 파트너번호 > 관리파느터 번호 > 미지정(9000001)   */
                   , NVL(NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, MNGT_PRTNR_NO)), '9000001') AS MNGT_PRTNR_NO
-                  , NVL(NVL(CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1') AS MNGR_DV_CD
-                  , NVL(CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) AS MNGT_PRTNR_OG_TP_CD
+                  , NVL(S2.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) AS MNGT_PRTNR_OG_TP_CD
                   , COUNT(1) AS WO_MNGT_CSTN
                   , SUM(CASE WHEN P1.SV_PD_CD IS NOT NULL
                              THEN 1 ELSE 0 END) AS OJ_MNGT_CSTN
@@ -107,10 +111,11 @@
                /*AND S1.CNTR_DTL_STAT_CD NOT IN ('401', '402') */  /*AC202_SALE_TYP != '9'*/
                AND S1.DTA_DL_YN = 'N'
                AND S1.MNGT_YM = #{asnOjYm}
-               AND NVL(NVL(CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1') = #{mngrDvCd} /* 1 매니져, 2 엔지니어 */
-             GROUP BY S1.MNGT_YM, NVL(NVL(CNFM_PSIC_DV_CD, NVL(S1.FXN_PRTNR_DV_CD, S1.MNGR_DV_CD)), '1'),
-                      NVL(CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)),
-                      NVL(NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, MNGT_PRTNR_NO)), '9000001')
+               AND NVL(S2.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) = 'W02'
+             GROUP BY S1.MNGT_YM,
+                      NVL(S2.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)),
+                      NVL(NVL(S2.CNFM_PSIC_PRTNR_NO,
+                      NVL(S1.FXN_PRTNR_NO, MNGT_PRTNR_NO)), '9000001')
         )
         , VST_CSTN_INF AS (
             /* 방문 고객 정보 */
@@ -288,7 +293,6 @@
         )
         /* 결과 조회 */
         SELECT T3.OG_NM
-             , T1.MNGR_DV_CD
              , T1.MNGT_PRTNR_OG_TP_CD
              , T1.MNGT_PRTNR_NO
              , T3.PRTNR_KNM
@@ -296,7 +300,7 @@
              , T3.PSTN_DV_CD_NM
              , T3.RSB_DV_CD                                    /* 직책코드 */
              , T4.H_WARE_MNGT_PRTNR_NO AS BLD_MNGT_PRTNR_NO    /* 빌딩별 자재실장 사번 */
-             , T5.PRTNR_KNM AS BLD_MNGT_PRTNR_KNM              /* 빌딩별 자재실장 성명 */
+             , T4.H_WARE_MNGT_PRTNR_KNM AS BLD_MNGT_PRTNR_KNM  /* 빌딩별 자재실장 성명 */
              , T3.BLD_CD                                       /* 빌딩코드 */
              , T3.BLD_NM                                       /* 빌딩명 */
              , T1.MNGT_YM
@@ -350,12 +354,8 @@
         AND T1.MNGT_PRTNR_OG_TP_CD = T4.OG_TP_CD
         AND T1.MNGT_PRTNR_NO = T4.WARE_MNGT_PRTNR_NO
         AND T4.RNK = 1
-       INNER JOIN OG_INF_PRTNR T5
-        ON T4.APY_YM = T5.BASE_YM
-        AND T4.H_OG_TP_CD = T5.OG_TP_CD
-        AND T4.H_WARE_MNGT_PRTNR_NO = T5.PRTNR_NO
-        AND T5.RNK = 1
 
+       WHERE 1=1
         /* 검색조건 조직, 빌딩 검색 , 관리구분에 따른 정렬 처리*/
         <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
         AND T3.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}   /* 총괄단조건(1차레벨조직코드) */
@@ -376,9 +376,6 @@
         AND T3.BLD_CD = #{bldCd}                   /* 빌딩코드 */
         </if>
         <if test="@MybatisUtils@equals(mngrDvCd, 1)">
-            <if test="@MybatisUtils@isNotEmpty(exceptWellsManagerYn) and @MybatisUtils@equals(exceptWellsManagerYn, 'Y')">
-            AND T3.RSB_DV_CD  = 'W0105'               /* 웰스 매니저 제외 체크시 AS-IS : (EMP_PST=100)기준 검색 */
-            </if>
         /* (매니저 - 소속명 오름차순 ,직급명으로 내림차순 */
         ORDER BY T3.OG_NM ASC , T3.RSB_DV_CD DESC
         </if>

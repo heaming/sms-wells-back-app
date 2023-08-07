@@ -79,6 +79,7 @@
          , NVL(T1.CTR_QTY, 0) AS CTR_QTY/*조정수량*/
          , F_CMZ_CD_NM('TNT_WELLS', 'CTR_RSON_CD', T1.ITM_GD_CTR_RSON_CD, 'ko') AS ITM_GD_CTR_RSON_NM /*조정사유명*/
          , T1.CTR_SN /*조정일련번호*/
+         , T1.RMK_CN /*비고*/
       FROM TB_SVST_ITM_GD_CTR_IZ T1
      INNER JOIN TB_SVST_MCBY_WARE_IZ T2
         ON T2.WARE_NO = T1.WARE_NO
@@ -136,6 +137,149 @@
      ORDER BY T1.SVPD_PD_CD
 
 </select>
+
+    <select id="selectStatusProductItmPdCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto$SearchWarehouseItmPdCdRes">
+        SELECT D1.ITM_PD_CD     AS CODE_ID
+             , D2.PD_ABBR_NM    AS CODE_NAME
+             , D3.PD_PRP_VAL19  AS ITM_KND
+             , D1.WARE_NO
+          FROM TB_SVST_CST_SV_ITM_STOC_IZ D1
+         INNER JOIN TB_PDBS_PD_BAS D2
+            ON D2.PD_CD = D1.ITM_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3
+            ON D3.PD_CD = D2.PD_CD
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D4
+            ON D4.WARE_NO = D1.WARE_NO
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_TP_CD           = 'M'
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN NVL(D2.RVPY_STRTDT, '19000101') AND NVL(D2.RVPY_ENDDT, '99991231')
+           AND D3.PD_PRP_VAL19       = #{itmKnd}
+           AND D4.APY_YM             = SUBSTR(#{stFromYmd}, 1, 6)
+           AND D4.WARE_DV_CD         = #{wareDvCd}
+        <if test='@MybatisUtils@equals(wareDvCd, "2")'>
+           AND D4.WARE_DTL_DV_CD     = '20'
+        </if>
+        <if test='@MybatisUtils@equals(wareDvCd, "3")'>
+           AND D4.WARE_DTL_DV_CD     = '30'
+        </if>
+         ORDER BY D1.WARE_NO, D1.ITM_PD_CD
+    </select>
+
+    <select id="selectItmPdCdQty" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto$SearchPdCdQtyRes">
+        SELECT T1.PITM_STOC_A_GD_QTY
+             , T1.PITM_STOC_E_GD_QTY
+             , T1.PITM_STOC_R_GD_QTY
+             , T2.ITM_PD_CD
+             , T4.PD_PRP_VAL19  AS ITM_KND
+             , T4.PD_PRP_VAL05  AS MGT_UNIT
+          FROM TB_SVST_MCITM_STOC_IZ T1
+         INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T2
+            ON T2.WARE_NO = T1.WARE_NO
+           AND T2.ITM_PD_CD = T1.ITM_PD_CD
+           AND T1.BASE_YM = SUBSTR(#{stFromYmd}, 1, 6)
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T1.ITM_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
+            ON T4.PD_CD = T3.PD_CD
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND T3.PD_TP_CD  = 'M'
+           AND T3.DTA_DL_YN = 'N'
+           AND T4.DTA_DL_YN = 'N'
+           AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN NVL(T3.RVPY_STRTDT, '19000101') AND NVL(T3.RVPY_ENDDT, '99991231')
+           AND T1.WARE_NO = #{wareNo}
+           AND T2.ITM_PD_CD = #{itmPdCd}
+           AND T4.PD_PRP_VAL19 = #{itmKnd}
+
+    </select>
+
+    <insert id="insertStockStatusControls">
+        INSERT INTO TB_SVST_ITM_GD_CTR_IZ (  /* 품목등급조정내역 */
+                  ITM_GD_CTR_TP_CD       /* 품목등급조정유형코드 */
+                , WARE_NO                /* 창고번호 */
+                , CTR_WK_DT              /* 조정작업일자 */
+                , CTR_SN                 /* 조정일련번호 */
+                , STAT_CTR_APY_DT        /* 상태조정적용일자 */
+                , SV_CNR_OG_ID           /* 서비스센터조직ID */
+                , WARE_ICHR_PRTNR_NO     /* 창고담당파트너번호 */
+                , OG_TP_CD               /* 조직유형코드 */
+                , ITM_KND_CD             /* 품목종류코드 */
+                , PD_GRP_CD              /* 상품그룹코드 */
+                , PD_CD                  /* 상품코드 */
+                , BFCT_NOM_STOC_A_GD_QTY /* 조정전정상재고A등급수량 */
+                , BFCT_NOM_STOC_E_GD_QTY /* 조정전정상재고E등급수량 */
+                , BFCT_NOM_STOC_R_GD_QTY /* 조정전정상재고R등급수량 */
+                , BFCT_ITM_GD_CD         /* 조정전품목등급코드 */
+                , AFCT_ITM_GD_CD         /* 조정후품목등급코드 */
+                , CTR_QTY                /* 조정수량 */
+                , ITM_GD_CTR_RSON_CD     /* 품목등급조정사유코드 */
+                , RMK_CN                 /* 비고내용 */
+                , DTA_DL_YN              /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemField" />)
+            VALUES (
+                  #{itmGdCtrTpCd}
+                , #{wareNo}
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , #{ctrSn}
+                , #{statCtrApyDt}
+                , (SELECT T3.OG_ID
+                     FROM TB_SVST_MCBY_WARE_IZ T1 /* 월별창고내역 */
+                     LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T2 /* 파트너기본 */
+                       ON T2.OG_TP_CD = T1.OG_TP_CD
+                      AND T2.PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
+                      AND T2.DTA_DL_YN = 'N'
+                     LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T3 /* 월조직내역 */
+                       ON T3.BASE_YM = T1.APY_YM
+                      AND T3.OG_ID = T1.OG_ID
+                      AND T3.DTA_DL_YN = 'N'
+                    WHERE T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                      AND T1.WARE_NO = #{wareNo})
+                , ( SELECT T1.WARE_MNGT_PRTNR_NO
+                      FROM TB_SVST_MCBY_WARE_IZ T1
+                     WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND WARE_NO = #{wareNo}
+                       AND DTA_DL_YN = 'N'
+                       AND WARE_USE_YN = 'Y')
+                , ( SELECT T1.OG_TP_CD
+                      FROM TB_SVST_MCBY_WARE_IZ T1
+                     WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND WARE_NO = #{wareNo}
+                       AND DTA_DL_YN = 'N'
+                       AND WARE_USE_YN = 'Y')
+                , #{itemKnd}
+                , ( SELECT T2.PD_PRP_VAL20
+                      FROM TB_PDBS_PD_BAS T1
+                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                        ON T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                       AND T2.DTA_DL_YN = 'N'
+                     WHERE T1.PD_CD = #{itmPdCd})
+                , #{itmPdCd}
+                , #{bfctNomStocAGdQty}
+                , #{bfctNomStocEGdQty}
+                , #{bfctNomStocRGdQty}
+                , #{bfctItmGdCd}
+                , #{afctItmGdCd}
+                , #{ctrQty}
+                , #{itmGdCtrRsonCd}
+                , #{rmkCn}
+                , 'N'
+                <include refid="COMMON.insertSystemFieldValue" /> )
+
+    </insert>
+
+    <update id="updateStockStatusControlsForRemove">
+        UPDATE TB_SVST_ITM_GD_CTR_IZ
+           SET DTA_DL_YN = 'Y'
+         WHERE ITM_GD_CTR_TP_CD = #{itmGdCtrRsonNm}
+           AND WARE_NO = #{wareNo}
+           AND CTR_WK_DT = #{ctrWkDt}
+           AND CTR_SN = #{ctrSn}
+    </update>
 
 
 </mapper>

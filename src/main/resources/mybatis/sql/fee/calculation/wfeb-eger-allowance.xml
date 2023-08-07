@@ -2,21 +2,14 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebEgerAllowanceMapper">
 
     <select id='selectEngineerAllowances' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchEngineerRes">
-        /*
-         * TODO
-         * 권한 추가되면 수정가능여부 쿼리 추가
-         * */
-        SELECT DGR2_LEVL_OG_ID	/*센터조직ID*/
-             , DGR2_LEVL_OG_NM	/*센터조직명*/
-             , DGR2_LEVL_OG_CD	/*센터조직코드*/
-             , OG_ID
+        SELECT OG_ID
              , OG_NM
              , OG_CD
              , BASE_YM
              , PRTNR_KNM
              , PRTNR_NO
-             , F_CMZ_CD_NM('TNT_WELLS', 'PSTN_DV_CD', PSTN_DV_CD) AS PSTN_DV_NM
-             , F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD', RSB_DV_CD) AS RSB_DV_NM
+             , PSTN_DV_CD
+             , RSB_DV_CD
              , NVL(PERF_W06P00001, 0) AS PERF_W06P00001	/*설치작업 건수*/
              , NVL(PERF_W06P00004, 0) AS PERF_W06P00004	/*BS작업 건수*/
              , NVL(PERF_W06P00005, 0) AS PERF_W06P00005	/*AS작업 건수*/
@@ -66,7 +59,12 @@
              , (CASE WHEN FEE_W060025 > 0 THEN FEE_W060025/10000 ELSE 0 END) AS FEE_W060025_CNT  /*강의수당 건수*/
              , (CASE WHEN FEE_W060026 > 0 THEN FEE_W060026/10000 ELSE 0 END) AS FEE_W060026_CNT  /*도서방문수당 건수*/
              , (CASE WHEN FEE_W060023 > 0 THEN FEE_W060023/2000 ELSE 0 END) AS FEE_W060023_CNT  /*토요근무수당 건수*/
-             , 'Y' AS EDIT_YN   /*수정가능여부*/
+             , (CASE WHEN CNR_AW_CNFM_DTM IS NULL
+                     THEN (CASE WHEN #{session.rsbCd} = '171' THEN 'Y'    /*센터장*/
+                            ELSE 'N'
+                       END)
+                 ELSE 'N'
+                END) AS EDIT_YN	/*수정가능여부*/
             /*
              , (CASE WHEN CNR_AW_CNFM_DTM IS NULL
                      THEN (CASE WHEN #G_DEG_CD# ='0' THEN 'Y'
@@ -78,12 +76,9 @@
                 END) AS EDIT_YN	--수정가능여부
             */
              , CNR_AW_CNFM_DTM /*센터확정일시*/
-             , NVL(FEE_CTR_RSON_CN, '-') AS NOTE
+             , '-' AS NOTE
         FROM (
-            SELECT DGR2_LEVL_OG_ID
-                , DGR2_LEVL_OG_NM
-                , DGR2_LEVL_OG_CD
-                , OG_ID
+            SELECT OG_ID
                 , OG_NM
                 , OG_CD
                 , BASE_YM
@@ -105,83 +100,77 @@
                 , FEE_CD
                 , FEE_CALC_AMT
                 , CNR_AW_CNFM_DTM
-                , FEE_CTR_RSON_CN
             FROM (
-                SELECT T2.DGR2_LEVL_OG_ID
-                      , T2.DGR2_LEVL_OG_NM
-                      , T2.DGR2_LEVL_OG_CD
-                      , T2.OG_ID
-                      , T2.OG_NM
-                      , T2.OG_CD
-                      , T2.BASE_YM
-                      , T1.PRTNR_KNM
-                      , T1.PRTNR_NO
-                      , T1.PSTN_DV_CD
-                      , T1.RSB_DV_CD
-                      , T3.PERF_ATC_CD
-                      , T3.PERF_VAL
-                      , T4.FEE_CD
-                      , NVL(T4.FEE_CTR_CNFM_AMT, T4.FEE_CALC_AMT) AS FEE_CALC_AMT
-                      , T5.CNR_AW_CNFM_DTM
-                      , T4.FEE_CTR_RSON_CN
-                FROM TB_OGBS_MM_PRTNR_IZ T1	/*월파트너내역*/
-                INNER JOIN TB_OGBS_MM_OG_IZ T2	/*월조직내역*/
+                SELECT T2.OG_ID
+                     , T2.OG_NM
+                     , T2.OG_CD
+                     , T2.BASE_YM
+                     , T1.PRTNR_KNM
+                     , T1.PRTNR_NO
+                     , T1.PSTN_DV_CD
+                     , T1.RSB_DV_CD
+                     , T3.PERF_ATC_CD
+                     , T3.PERF_VAL
+                     , T4.FEE_CD
+                     , NVL(T4.FEE_CTR_CNFM_AMT, T4.FEE_CALC_AMT) AS FEE_CALC_AMT
+                     , T5.CNR_AW_CNFM_DTM
+                  FROM TB_OGBS_MM_PRTNR_IZ T1	/*월파트너내역*/
+                 INNER JOIN TB_OGBS_MM_OG_IZ T2	/*월조직내역*/
                     ON T1.BASE_YM = T2.BASE_YM
-                    AND T1.OG_TP_CD = T2.OG_TP_CD
-                    AND T1.OG_ID = T2.OG_ID
-                    AND T1.DTA_DL_YN = 'N'
-                    AND T2.DTA_DL_YN = 'N'
-                    AND T1.OG_TP_CD = 'W06'
-                    AND T1.HMNRSC_EMPNO IS NULL	/*인사사원번호가 없는 사람만 엔지니어로 함*/
-                    AND T2.OG_LEVL_DV_CD = '3'	/*지점*/
-                    AND T2.CLO_YN = 'N'	/*조직폐쇄여부*/
-                LEFT OUTER JOIN TB_FEAM_EGER_PERF_MM_CL	T3	/*엔지니어실적월마감*/
+                   AND T1.OG_TP_CD = T2.OG_TP_CD
+                   AND T1.OG_ID = T2.OG_ID
+                   AND T1.OG_CD = T2.OG_CD
+                   AND T2.DTA_DL_YN = 'N'
+                   AND T2.OG_LEVL_DV_CD = '1'	/*센터*/
+                   AND T2.CLO_YN = 'N'	/*조직폐쇄여부*/
+                  LEFT OUTER JOIN TB_FEAM_EGER_PERF_MM_CL	T3	/*엔지니어실적월마감*/
                     ON T1.BASE_YM = T3.BASE_YM
-                    AND T1.BASE_YM = T3.PERF_YM
-                    AND T1.PRTNR_NO = T3.PRTNR_NO
-                    AND T3.FEE_TCNT_DV_CD = '01'
-                    AND T3.PERF_AGRG_CRT_DV_CD = '601'/*실적집계생성구분코드 601-엔지니어실적*/
-                    AND T3.PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
-                    AND T3.CO_CD = '2000'
-                    AND T3.OG_TP_CD = 'W06'
-                LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T4	/*엔지니어수당기본*/
+                   AND T1.BASE_YM = T3.PERF_YM
+                   AND T1.OG_TP_CD = T3.OG_TP_CD
+                   AND T1.PRTNR_NO = T3.PRTNR_NO
+                   AND T1.OG_CD = T3.OG_CD
+                   AND T3.FEE_TCNT_DV_CD = '02'
+                   AND T3.PERF_AGRG_CRT_DV_CD = '601'/*실적집계생성구분코드 601-엔지니어실적*/
+                   AND T3.PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
+                   AND T3.CO_CD = '2000'
+                  LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T4	/*엔지니어수당기본*/
                     ON T4.DTA_DL_YN = 'N'
-                    AND T1.BASE_YM = T4.BASE_YM
-                    AND T1.BASE_YM = T4.PERF_YM
-                    AND T1.BASE_YM = T4.OJ_DSB_YM
-                    AND T1.OG_TP_CD = T4.OG_TP_CD
-                    AND T1.PRTNR_NO = T4.PRTNR_NO
-                    AND T4.CO_CD = '2000'
-                    AND T4.OG_TP_CD = 'W06'
-                    AND T4.FEE_CD IN ('W060001', 'W060002', 'W060003', 'W060004', 'W060005', 'W060006', 'W060007', 'W060008', 'W060009', 'W060010'
+                   AND T3.BASE_YM = T4.BASE_YM
+                   AND T3.BASE_YM = T4.PERF_YM
+                   AND T3.BASE_YM = T4.OJ_DSB_YM
+                   AND T3.OG_TP_CD = T4.OG_TP_CD
+                   AND T3.PRTNR_NO = T4.PRTNR_NO
+                   AND T3.OG_CD = T4.OG_CD
+                   AND T3.CO_CD = T4.CO_CD
+                   AND T3.FEE_TCNT_DV_CD = T4.FEE_TCNT_DV_CD
+                   AND T4.FEE_CD IN ('W060001', 'W060002', 'W060003', 'W060004', 'W060005', 'W060006', 'W060007', 'W060008', 'W060009', 'W060010'
                             , 'W060011', 'W060012', 'W060017', 'W060018', 'W060019', 'W060020', 'W060021', 'W060022'
                             , 'W060023', 'W060024', 'W060025', 'W060026', 'W060027', 'W060028')
-                    AND T4.FEE_TCNT_DV_CD = '01'
-                    AND T4.SPMT_DSB_DV_CD = '01'
-                LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS T5	/*엔지니어수당확정기본*/
+                   AND T4.SPMT_DSB_DV_CD = '01'
+                   AND T4.FNL_FEE_YN = 'N'
+                  LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS T5	/*엔지니어수당확정기본*/
                     ON T5.DTA_DL_YN = 'N'
-                    AND T1.BASE_YM = T5.BASE_YM
-                    AND T1.BASE_YM = T5.PERF_YM
-                    AND T1.BASE_YM = T5.OJ_DSB_YM
-                    AND T1.OG_TP_CD = T5.OG_TP_CD
-                    AND T1.PRTNR_NO = T5.PRTNR_NO
-                    AND T5.CO_CD = '2000'
-                    AND T5.OG_TP_CD = 'W06'
-                WHERE T1.BASE_YM = #{perfYm}
+                   AND T1.BASE_YM = T5.BASE_YM
+                   AND T1.BASE_YM = T5.PERF_YM
+                   AND T1.BASE_YM = T5.OJ_DSB_YM
+                   AND T1.OG_TP_CD = T5.OG_TP_CD
+                   AND T1.PRTNR_NO = T5.PRTNR_NO
+                   AND T1.OG_CD = T5.OG_CD
+                   AND T5.CO_CD = '2000'
+                 WHERE T1.DTA_DL_YN = 'N'
+                   AND T1.BASE_YM = #{perfYm}
+                   AND T1.OG_TP_CD = 'W06'
                 <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                  AND T1.PRTNR_NO = #{prtnrNo}
+                   AND T1.PRTNR_NO = #{prtnrNo}
                 </if>
                 <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
-                  AND T2.DGR2_LEVL_OG_ID = #{ogLevlDvCd1}
+                   AND T2.OG_ID = #{ogLevlDvCd1}
                 </if>
-                <if test='@MybatisUtils@equals(feeSchdTpCd, "601")'>
-                  /*수당구분 실적수당*/
                 <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                  AND T1.RSB_DV_CD IN ('W0601', 'W0602', 'W0603')
+                   AND T1.RSB_DV_CD IN ('W0601', 'W0602', 'W0603')
                 </if>
                 <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                  AND T1.RSB_DV_CD = #{rsbDvCd}
-                </if>
+                   AND T1.RSB_DV_CD = #{rsbDvCd}
                 </if>
             )
             PIVOT
@@ -227,31 +216,23 @@
                 , 'W060028' AS FEE_W060028
             )
         )
-        ORDER BY DGR2_LEVL_OG_NM, OG_NM, PRTNR_KNM
+        ORDER BY OG_NM, PRTNR_KNM
     </select>
 
     <select id='selectEngineerManagerAllowances' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchEngineerManagerRes">
-        SELECT DGR2_LEVL_OG_ID	/*센터조직ID*/
-             , DGR2_LEVL_OG_NM	/*센터조직명*/
-             , DGR2_LEVL_OG_CD	/*센터조직코드*/
-             , OG_ID
+        SELECT OG_ID
              , OG_NM
              , OG_CD
              , BASE_YM
              , PRTNR_KNM
              , PRTNR_NO
              , PSTN_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'PSTN_DV_CD', PSTN_DV_CD) AS PSTN_DV_NM
              , RSB_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD', RSB_DV_CD) AS RSB_DV_NM
              , NVL(FEE_W060031, 0) AS FEE_W060031  /*업적수당*/
              , NVL(FEE_W060032, 0) AS FEE_W060032  /*자격수당*/
              , NVL(FEE_W060031 + FEE_W060032, 0) AS TOT_FEE
         FROM
-           ( SELECT T2.DGR2_LEVL_OG_ID
-                  , T2.DGR2_LEVL_OG_NM
-                  , T2.DGR2_LEVL_OG_CD
-                  , T2.OG_ID
+           ( SELECT T2.OG_ID
                   , T2.OG_NM
                   , T2.OG_CD
                   , T2.BASE_YM
@@ -266,11 +247,9 @@
                  ON T1.BASE_YM = T2.BASE_YM
                 AND T1.OG_TP_CD = T2.OG_TP_CD
                 AND T1.OG_ID = T2.OG_ID
-                AND T1.DTA_DL_YN = 'N'
+                AND T1.OG_CD = T2.OG_CD
                 AND T2.DTA_DL_YN = 'N'
-                AND T1.OG_TP_CD = 'W06'
-                AND T1.HMNRSC_EMPNO IS NULL	/*인사사원번호가 없는 사람만 엔지니어로 함*/
-                AND T2.OG_LEVL_DV_CD = '3'	/*지점*/
+                AND T2.OG_LEVL_DV_CD = '1'	/*센터*/
                 AND T2.CLO_YN = 'N'	/*조직폐쇄여부*/
                LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T3	/*엔지니어수당기본*/
                  ON T3.DTA_DL_YN = 'N'
@@ -279,26 +258,25 @@
                 AND T1.BASE_YM = T3.OJ_DSB_YM
                 AND T1.OG_TP_CD = T3.OG_TP_CD
                 AND T1.PRTNR_NO = T3.PRTNR_NO
+                AND T1.OG_CD = T3.OG_CD
                 AND T3.CO_CD = '2000'
-                AND T3.OG_TP_CD = 'W06'
                 AND T3.FEE_CD IN ('W060031', 'W060032')
-                AND T3.FEE_TCNT_DV_CD = '01'
+                AND T3.FEE_TCNT_DV_CD = '02'
                 AND T3.SPMT_DSB_DV_CD = '01'
-              WHERE T1.BASE_YM = #{perfYm}
+              WHERE T1.DTA_DL_YN = 'N'
+                AND T1.BASE_YM = #{perfYm}
+                AND T1.OG_TP_CD = 'W06'
               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                 AND T1.PRTNR_NO = #{prtnrNo}
               </if>
               <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
-                AND T2.DGR2_LEVL_OG_ID = #{ogLevlDvCd1}
+                AND T2.OG_ID = #{ogLevlDvCd1}
               </if>
-              <if test='@MybatisUtils@equals(feeSchdTpCd, "602")'>
-                /*수당구분 직책수당*/
               <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
                 AND T1.RSB_DV_CD IN ('W0603', 'W0604')
               </if>
               <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
                 AND T1.RSB_DV_CD = #{rsbDvCd}
-              </if>
               </if>
             )
         PIVOT
@@ -306,7 +284,7 @@
                 'W060031' AS FEE_W060031
                 , 'W060032' AS FEE_W060032 )
              )
-        ORDER BY DGR2_LEVL_OG_NM, PRTNR_KNM
+        ORDER BY OG_NM, PRTNR_KNM
     </select>
 
     <select id="selectEgerAllowanceConfirms" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchConfirmRes">
@@ -319,31 +297,25 @@
              , COUNT(BASE_YM) OVER() AS TOT_CNT
              , COUNT(CNFM_BTN_YN) OVER() AS CNFM_BTN_CNT
           FROM
-             ( SELECT LEVEL AS LVL
-                    , T1.*
-                 FROM
-                    ( SELECT A.BASE_YM
-                           , A.OG_ID
-                           , A.HGR_OG_ID
-                           , A.OG_NM
-                           , B.OG_CD
-                           , NVL(B.CNR_AW_CNFM_DTM, '-') AS CNR_AW_CNFM_DTM
-                           , CASE WHEN B.CNR_AW_CNFM_DTM IS NOT NULL THEN 'Y'
-                             ELSE '' END AS CNFM_BTN_YN
-                        FROM TB_OGBS_MM_OG_IZ A
-                        LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS B
-                          ON A.BASE_YM = B.BASE_YM
-                         AND A.OG_CD = B.OG_CD
-                         AND B.DTA_DL_YN = 'N'
-                       WHERE A.DTA_DL_YN = 'N'
-                         AND A.BASE_YM = #{perfYm}
-                         AND A.OG_TP_CD = 'W06'
-                         AND A.CLO_YN = 'N'
-                       GROUP BY A.BASE_YM, A.OG_ID, A.HGR_OG_ID, A.OG_NM, B.OG_CD, B.CNR_AW_CNFM_DTM
-                    ) T1
-                START WITH T1.HGR_OG_ID IS NULL
-              CONNECT BY PRIOR T1.OG_ID = T1.HGR_OG_ID
-             ) WHERE LVL = 2    /*센터*/
+             ( SELECT A.BASE_YM
+                    , A.OG_ID
+                    , A.HGR_OG_ID
+                    , A.OG_NM
+                    , B.OG_CD
+                    , NVL(B.CNR_AW_CNFM_DTM, '-') AS CNR_AW_CNFM_DTM
+                    , CASE WHEN B.CNR_AW_CNFM_DTM IS NOT NULL THEN 'Y'
+                      ELSE '' END AS CNFM_BTN_YN
+                 FROM TB_OGBS_MM_OG_IZ A
+                 LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS B
+                   ON A.BASE_YM = B.BASE_YM
+                  AND A.OG_CD = B.OG_CD
+                  AND B.DTA_DL_YN = 'N'
+                WHERE A.DTA_DL_YN = 'N'
+                  AND A.BASE_YM = #{perfYm}
+                  AND A.OG_TP_CD = 'W06'
+                  AND A.CLO_YN = 'N'
+                GROUP BY A.BASE_YM, A.OG_ID, A.HGR_OG_ID, A.OG_NM, B.OG_CD, B.CNR_AW_CNFM_DTM
+             ) T1
     </select>
 
     <insert id="insertEgerAllowanceHist">
@@ -397,7 +369,7 @@
             , DTA_DL_YN         /* 데이터삭제여부 */
             <include refid="COMMON.insertSystemFieldValue"/>
         FROM TB_FEAM_EGER_AW_CALC_BAS
-       WHERE 1 = 1
+       WHERE DTA_DL_YN = 'N'
          AND BASE_YM = #{perfYm}      /* 기준년월 */
          AND PERF_YM = #{perfYm}	    /* 실적년월 */
          AND OJ_DSB_YM = #{perfYm}	/* 대상지급년월 */
@@ -405,7 +377,7 @@
          AND OG_TP_CD = 'W06'            /* 조직유형코드 */
          AND PRTNR_NO = #{prtnrNo}           /* 파트너번호 */
          AND FEE_CD IN ('W060023', 'W060024', 'W060025', 'W060026', 'W060019', 'W060020', 'W060021', 'W060022')             /* 수수료코드 */
-         AND FEE_TCNT_DV_CD = '01'       /* 수수료차수구분코드 */
+         AND FEE_TCNT_DV_CD = '02'       /* 수수료차수구분코드 */
          AND SPMT_DSB_DV_CD = '01'       /* 추가지급구분코드 */
     </insert>
 
@@ -421,11 +393,11 @@
                  , #{ogCd} AS OG_CD
                  , #{feeCd} AS FEE_CD            /* 수수료코드 */
                  , #{feeCd} AS DTA_CRT_FEE_CD   /*데이터생성수수료코드*/
-                 , '01' AS FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
+                 , '02' AS FEE_TCNT_DV_CD    /* 수수료차수구분코드 */
                  , #{feeAmt} AS FEE_CALC_AMT      /* 수수료계산금액 */
                  , NVL(#{feeCtrCnfmAmt}, #{feeAmt}) AS FEE_CTR_CNFM_AMT  /* 수수료조정확정금액 */
                  , '엔지니어 수당 조정' AS FEE_CTR_RSON_CN   /* 수수료조정사유내용 */
-                 , 'Y' AS FNL_FEE_YN        /* 최종수수료여부 */
+                 , 'N' AS FNL_FEE_YN        /* 최종수수료여부 */
                  , 'N' AS DTA_DL_YN         /* 데이터삭제여부 */
                  , '01' AS SPMT_DSB_DV_CD /* 추가지급여부 */
               FROM DUAL
@@ -498,11 +470,28 @@
            AND CO_CD = '2000'
            AND OG_TP_CD = 'W06'
            AND OG_CD = #{ogCd}
-           AND CNR_AW_CNFM_DTM IS NOT NULL
+           /*AND CNR_AW_CNFM_DTM IS NOT NULL*/
         <if test='@MybatisUtils@isNotEmpty(hdof) and @MybatisUtils@equals(hdof, "Y")'>
            AND HDOF_AW_CNFM_DTM IS NOT NULL
         </if>
            AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectCurrentSchd" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchSchdRes">
+        SELECT CASE WHEN COUNT(BASE_YM) > 0 THEN 'START'
+               ELSE 'END'
+               END AS FEE_SCHD_LV_CD
+          FROM TB_FEAM_FEE_SCHD_BAS T1	/*수수료일정기본*/
+         INNER JOIN TB_FEAM_FEE_SCHD_LV_DTL T2	/*수수료일정단계상세*/
+            ON T1.FEE_SCHD_ID = T2.FEE_SCHD_ID
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{baseYm}
+           AND T1.FEE_SCHD_TP_CD = '601'
+           AND T1.FEE_TCNT_DV_CD = '02'
+           AND T1.OG_TP_CD = 'W06'
+           AND T1.FEE_SCHD_STAT_CD = '03'	/*수수료일정상태코드 03-진행중*/
+           AND T2.FEE_SCHD_LV_STAT_CD = '02'	/*수수료일정단계상태코드 02-진행중*/
+           AND T2.FEE_SCHD_LV_CD = 'W0603'  /*W0603-수당조정*/
     </select>
 
     <insert id="insertEgerAllowanceConfirm">

@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.closing.expense.mapper;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto.*;
-import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieDvo;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto.*;
+import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieDvo;
 
 @Mapper
 public interface WdcdMarketableSecuritieMgtMapper {
@@ -17,11 +18,11 @@ public interface WdcdMarketableSecuritieMgtMapper {
 
     String selectCheckWhetherMonthFinalized(SaveReq req);
 
-    List<AccCardInfoDetailRes> selectAccCardInfoDetail(SaveReq req);
-
-    int updateAccMst(WdcdMarketableSecuritieDvo dvo);
+    AccCardInfoDetailRes selectAccCardInfoDetail(SaveReq req);
 
     int deleteAccDetail(WdcdMarketableSecuritieDvo dvo);
+
+    int updateAccMst(WdcdMarketableSecuritieDvo dvo);
 
     String selectOpcsAdjNo(WdcdMarketableSecuritieDvo dvo);
 

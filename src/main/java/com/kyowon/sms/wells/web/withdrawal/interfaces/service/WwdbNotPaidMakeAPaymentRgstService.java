@@ -1,24 +1,27 @@
-package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
+package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
-import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbNotPaidMakeAPaymentContractDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbNotPaidMakeAPaymentRgstReqDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbNotPaidMakeAPaymentRgstResDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbNotPaidMakeAPaymentRgstMapper;
-import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import java.util.List;
 
-import lombok.RequiredArgsConstructor;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdbNotPaidMakeAPaymentRgstConverter;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbNotPaidMakeAPaymentRgstDto;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentContractDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstReqDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstResDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbNotPaidMakeAPaymentRgstMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
+import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -28,26 +31,28 @@ public class WwdbNotPaidMakeAPaymentRgstService {
 
     private final ZwdzWithdrawalService zwdzWithdrawalService;
 
+    private final WwdbNotPaidMakeAPaymentRgstConverter converter;
+
     @Transactional
-    public WwdbNotPaidMakeAPaymentRgstResDvo saveDepositRegistration(WwdbNotPaidMakeAPaymentRgstReqDvo dvo)
+    public WwdbNotPaidMakeAPaymentRgstResDvo saveDepositRegistration(WwdbNotPaidMakeAPaymentRgstDto.SaveReq dto)
         throws Exception {
 
         WwdbNotPaidMakeAPaymentRgstResDvo resultDvo = new WwdbNotPaidMakeAPaymentRgstResDvo();
-
+        WwdbNotPaidMakeAPaymentRgstReqDvo dvo = converter.mapWwdbNotPaidMakeAPaymentRgstSaveReqToDvo(dto);
         /*1.1 계약번호, 계약일련번호 미입력시 에러 리턴
             - MSG : '계약번호 을(를) 입력해주세요.'
             - MSG : '계약일련번호 을(를) 입력해주세요.'*/
 
         if (StringUtils.isEmpty(dvo.getCntrNo())) {
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("계약번호 을(를) 입력해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("계약번호 을(를) 입력해주세요.");
 
             return resultDvo;
         }
 
         if (StringUtils.isEmpty(dvo.getCntrSn())) {
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("계약일련번호 을(를) 입력해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("계약일련번호 을(를) 입력해주세요.");
 
             return resultDvo;
         }
@@ -55,8 +60,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         if (StringUtils.isEmpty(dvo.getDpDvCd())) {
             /*1.2 입금구분코드 미입력시 에러 리턴
             - MSG : '입금구분코드 을(를) 입력해주세요'*/
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("입금구분코드 을(를) 입력해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("입금구분코드 을(를) 입력해주세요.");
 
             return resultDvo;
         }
@@ -64,8 +69,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         if (!List.of("1", "2").contains(dvo.getDpDvCd())) {
             /*1.3 입금구분코드가 1, 2 가 아닌 경우 에러 리턴
                 - MSG : '입금구분코드(1:입금, 2:환불)를 확인해주세요.'*/
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("입금구분코드(1:입금, 2:환불)를 확인해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("입금구분코드(1:입금, 2:환불)를 확인해주세요.");
 
             return resultDvo;
         }
@@ -73,8 +78,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         if (StringUtils.isEmpty(dvo.getSellTpCd())) {
             /*1.4 판매유형코드 미입력시 에러 리턴
             - MSG : '판매유형코드 을(를) 입력해주세요'*/
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("판매유형코드 을(를) 입력해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("판매유형코드 을(를) 입력해주세요.");
 
             return resultDvo;
         }
@@ -83,8 +88,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         if (!List.of("2", "3", "6").contains(dvo.getSellTpCd())) {
             /*1.5 판매유형코드가 2, 3, 6이 아닌 경우 에러 리턴
             - MSG : '판매유형코드가(2:렌탈, 3:멤버십, 6:정기배송)를 확인해주세요.'*/
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("판매유형코드가(2:렌탈, 3:멤버십, 6:정기배송)를 확인해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("판매유형코드가(2:렌탈, 3:멤버십, 6:정기배송)를 확인해주세요.");
 
             return resultDvo;
         }
@@ -92,8 +97,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         if (StringUtils.isEmpty(dvo.getPrtnrNo())) {
             /* 1.6 파트너번호 미입력시 에러 리턴
             - MSG : '파트너번호 을(를) 입력해주세요'*/
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("파트너번호 을(를) 입력해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("파트너번호 을(를) 입력해주세요.");
 
             return resultDvo;
         }
@@ -101,8 +106,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         if (StringUtils.isEmpty(dvo.getDpTpCd())) {
             /*1.7 입금유형코드 미입력시 에러 리턴
             - MSG : '입금유형코드 을(를) 입력해주세요'*/
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("입금유형코드 을(를) 입력해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("입금유형코드 을(를) 입력해주세요.");
 
             return resultDvo;
         }
@@ -110,8 +115,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         if (!List.of("0103", "0204").contains(dvo.getDpTpCd())) {
             /*1.8 입금유형코드가 0103, 0204 가 아닌 경우 에러 리턴
             - MSG : '입금구분코드(0103:PG-계좌이체, 0204:PG-신용카드)를 확인해주세요.'*/
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("입금구분코드(0103:PG-계좌이체, 0204:PG-신용카드)를 확인해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("입금구분코드(0103:PG-계좌이체, 0204:PG-신용카드)를 확인해주세요.");
 
             return resultDvo;
         }
@@ -120,8 +125,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             /*1.9 입금금액 미입력시 에러 리턴
             - MSG : '입금금액 을(를) 입력해주세요'*/
 
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("입금금액 을(를) 입력해주세요.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("입금금액 을(를) 입력해주세요.");
 
             return resultDvo;
         }
@@ -130,8 +135,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             /*1.9 입금금액 미입력시 에러 리턴
             - MSG : '입금금액 을(를) 입력해주세요'*/
 
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("입금금액이 1보다 작을 수 없습니다.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("입금금액이 1보다 작을 수 없습니다.");
 
             return resultDvo;
         }
@@ -157,16 +162,16 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         //만약 고객정보가 없으면 오류 발생
         if (ObjectUtils.isEmpty(contractDvo)) {
 
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("고객정보를 찾을 수 없습니다.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("고객정보를 찾을 수 없습니다.");
 
             return resultDvo;
         } else {
             //고객정보가 존재 하지만 계약확정일자가 Null인 경우
             if (StringUtils.isEmpty(contractDvo.getCntrCnfmDtm())) {
 
-                resultDvo.setErrorCode("N");
-                resultDvo.setResultCnt("등록불가! 멤버십 미확정 입니다.");
+                resultDvo.setProcsRs("N");
+                resultDvo.setErrMsg("등록불가! 멤버십 미확정 입니다.");
 
                 return resultDvo;
 
@@ -187,8 +192,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         int inquiryResult = mapper.selectContractMonthCloseInquiry(dvo);
 
         if (inquiryResult > 0) {
-            resultDvo.setErrorCode("N");
-            resultDvo.setResultCnt("등록불가! 해당년월에 실적이 마감되었습니다.");
+            resultDvo.setProcsRs("N");
+            resultDvo.setErrMsg("등록불가! 해당년월에 실적이 마감되었습니다.");
 
             return resultDvo;
         }
@@ -233,8 +238,8 @@ public class WwdbNotPaidMakeAPaymentRgstService {
 
         receiveDtl(dvo, contractDvo, sysDateYmd, session, depositPk, rveNo);
 
-        resultDvo.setErrorCode("Y");
-        resultDvo.setResultCnt("정상 처리 되었습니다.");
+        resultDvo.setProcsRs("Y");
+        resultDvo.setErrMsg("정상 처리 되었습니다.");
 
         return resultDvo;
     }

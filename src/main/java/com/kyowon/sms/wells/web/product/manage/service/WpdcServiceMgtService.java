@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.product.manage.service;
 
 import java.util.Date;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,11 @@ public class WpdcServiceMgtService {
                 || isCreate) {
                 // 상품 정보 이력 저장 (가격 X)
                 hisService.createProductHistory(pdCd, startDtm);
+            }
+        } else {
+            // 동시 저장을 방지하기 위해, 상풍수정일 저장
+            if (StringUtil.isNotBlank(pdCd)) {
+                pdService.saveProductBaseFinalDtm(dto.pdCd());
             }
         }
         if (isCreate || dto.isModifiedRelation()) {

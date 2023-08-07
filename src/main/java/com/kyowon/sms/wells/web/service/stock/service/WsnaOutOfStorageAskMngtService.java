@@ -8,24 +8,23 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaOutofStorageAskMngtConverter;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtSearchDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
-import com.sds.sflex.system.config.constant.CommConst;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAskMngtMapper;
+import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
@@ -250,7 +249,8 @@ public class WsnaOutOfStorageAskMngtService {
             List<WsnaOutOfStorageAskMngtDvo> logisticsDvo = this.mapper.selectLogisticsOutStorageAskInfo(ostrAkNo);
             //출고대상창고의 구분이 1(물류센터) 일경우
             if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsDvo.get(0).getOstrOjWareDvCd())) {
-                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter.mapCreateOutOfStorageAsksDvo(logisticsDvo);
+                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                    .mapAllCreateOutOfStorageAsksDvo(logisticsDvo);
                 logisticsservice.createOutOfStorageAsks(dvo);
             }
         }
@@ -263,7 +263,8 @@ public class WsnaOutOfStorageAskMngtService {
             //출고대상창고의 구분이 1(물류센터) 일경우
             if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsDvo.get(0).getOstrOjWareDvCd())) {
 
-                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter.mapCreateOutOfStorageAsksDvo(logisticsDvo);
+                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                    .mapAllCreateOutOfStorageAsksDvo(logisticsDvo);
                 logisticsservice.editOutOfStorageAsks(dvo);
 
             }

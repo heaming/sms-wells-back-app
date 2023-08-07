@@ -174,7 +174,7 @@ public class WpdcAsPartsMgtController {
                 }
             }
 
-            // 대상 테이블별 추출대상 Column 선별. 
+            // 대상 테이블별 추출대상 Column 선별.
             List<ZpdcPropertyMetaDvo> tbPdbsPdBas = metaItems.stream()
                 .filter(x -> PdProductConst.TBL_TB_PDBS_PD_BAS.equals(x.getTblId())).toList();
             List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl = metaItems.stream()
@@ -187,7 +187,7 @@ public class WpdcAsPartsMgtController {
             if (dataErrors.size() > 0) {
                 uploadStatus = PdProductConst.EXCEL_UPLOAD_ERROR;
             } else {
-                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, prgGrpDves);
+                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, null, prgGrpDves);
             }
 
             return ExcelUploadDto.UploadRes.builder()

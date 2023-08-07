@@ -81,7 +81,7 @@ public class WogcActivityController {
         @ApiImplicitParam(name = "prtnrKnm", value = "파트너이름", paramType = "query", required = false),
         @ApiImplicitParam(name = "perfDv", value = "실적구분", paramType = "query", required = false)
     })
-    @GetMapping({"/accure"})
+    @GetMapping({"/accrue"})
     public List<SearchAccureActivityRes> SearchAccureActivities(SearchAccureActivityReq reqDto) {
         return wogcActivityService.searchAccureActivities(reqDto);
     }
@@ -98,7 +98,7 @@ public class WogcActivityController {
         @ApiImplicitParam(name = "prtnrKnm", value = "파트너이름", paramType = "query", required = false),
         @ApiImplicitParam(name = "perfDv", value = "실적구분", paramType = "query", required = false)
     })
-    @GetMapping({"/accure/paging"})
+    @GetMapping({"/accrue/paging"})
     public PagingResult<SearchAccureActivityRes> SearchAccureActivitiesPages(SearchAccureActivityReq reqDto, @Valid PageInfo pageInfo) {
         return wogcActivityService.searchAccureActivitiesPages(reqDto, pageInfo);
     }
@@ -115,7 +115,7 @@ public class WogcActivityController {
         @ApiImplicitParam(name = "prtnrKnm", value = "파트너이름", paramType = "query", required = false),
         @ApiImplicitParam(name = "perfDv", value = "실적구분", paramType = "query", required = false)
     })
-    @GetMapping({"/accure/excel-download"})
+    @GetMapping({"/accrue/excel-download"})
     public List<SearchAccureActivityRes> SearchAccureActivitiesForExcelDownload(SearchAccureActivityReq reqDto) {
         return wogcActivityService.searchAccureActivities(reqDto);
     }

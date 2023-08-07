@@ -29,18 +29,14 @@ public class WdcdSecuritiesMgtDto {
     public record SearchAdjustObjectRes(
         String opcsCardUseIzId,    /*운영비카드사용내역ID*/
         String useDtm,              /*사용일시*/
-        String dgr1LevlOgId,        /*(hidden)총괄단조직ID*/
-        String dgr2LevlOgId,        /*(hidden)지역단조직ID*/
         String dgr1LevlOgNm,        /*총괄단명*/
         String crcdnoEncr,            /*카드번호*/
         String mrcNm,                 /*가맹점명*/
         String mrcTobzNm,            /*가맹점업종명*/
         String mrcAdrCn,             /*가맹점주소내용*/
         String cardAprno,             /*카드승인번호*/
-        String domTrdAmt,               /*사용금액*/
-        String domTrdSumAmt,               /*사용금액 합*/
-        String domTrdAmt1,               /*사용금액*/
         String opcsAdjExcdYn,           /*운영비정산제외여부*/
+        String opcsAdjExcdYnNm,
         String opcsAdjSmryDvCd,    /*운영비정산적요구분코드*/
         String opcsAdjSmryDvNm,    /*운영비정산적요구분명*/
         String ojApyCn,              /*대상적용내용*/
@@ -51,7 +47,10 @@ public class WdcdSecuritiesMgtDto {
         String adjCls,             /*정산여부*/
         String adjOgId,
         String adjPrtnrNo, /*정산파트너번호*/
-        String opcsAdjNo /*운영비정산번호*/
+        String opcsAdjNo, /*운영비정산번호*/
+        String domTrdAmt,               /*사용금액*/
+        String domTrdAmt1,               /*사용금액*/
+        String domTrdSumAmt               /*사용금액 합*/
     ) {
         public SearchAdjustObjectRes {
 

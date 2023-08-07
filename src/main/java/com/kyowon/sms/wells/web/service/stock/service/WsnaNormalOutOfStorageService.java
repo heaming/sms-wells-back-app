@@ -295,8 +295,8 @@ public class WsnaNormalOutOfStorageService {
 
             // 품목재고내역 삭제 - 출고창고
             WsnaItemStockItemizationReqDvo ostrStockReq = this
-                .convertStockItemizationCreateReq(dvo, GUBUN_OSTR, WORK_DIV_D);
-            this.itemStockservice.createStock(ostrStockReq);
+                .convertStockItemizationSaveReq(dvo, GUBUN_OSTR, WORK_DIV_D);
+            this.itemStockservice.removeStock(ostrStockReq);
 
             // 품목재고내역 이동 삭제 - 입고창고
             WsnaItemStockItemizationReqDvo strMoveReq = this.convertStockItemizationMoveReq(dvo, WORK_DIV_D);
@@ -304,8 +304,8 @@ public class WsnaNormalOutOfStorageService {
 
             // 품목재고내역 삭제 - 입고창고
             WsnaItemStockItemizationReqDvo strStockReq = this
-                .convertStockItemizationCreateReq(dvo, GUBUN_STR, WORK_DIV_D);
-            this.itemStockservice.createStock(strStockReq);
+                .convertStockItemizationSaveReq(dvo, GUBUN_STR, WORK_DIV_D);
+            this.itemStockservice.removeStock(strStockReq);
 
             // 출고요청내역 수정
             cnt += this.mapper.updateItmOstrAkIzForRemove(dvo);
@@ -320,7 +320,7 @@ public class WsnaNormalOutOfStorageService {
      * @param iostGb    (필수) 입출고 구분 (O : 출고, I : 입고)
      * @return 재고등록 request dvo
      */
-    private WsnaItemStockItemizationReqDvo convertStockItemizationCreateReq(
+    private WsnaItemStockItemizationReqDvo convertStockItemizationSaveReq(
         WsnaNormalOutOfStorageDvo dvo, String iostGb, String workDiv
     ) {
 
@@ -425,7 +425,7 @@ public class WsnaNormalOutOfStorageService {
 
         int cnt = 0;
 
-        List<WsnaNormalOutOfStorageDvo> dvos = converter.mapAllCreateReqToWsnaNormalOutOfStorageDvo(dtos);
+        List<WsnaNormalOutOfStorageDvo> dvos = this.converter.mapAllCreateReqToWsnaNormalOutOfStorageDvo(dtos);
         WsnaNormalOutOfStorageDvo dvoData = dvos.get(0);
         String strTpCd = dvoData.getStrTpCd();
         String ostrTpCd = dvoData.getOstrTpCd();
@@ -452,7 +452,7 @@ public class WsnaNormalOutOfStorageService {
 
             // 품목재고내역 등록 - 출고창고
             WsnaItemStockItemizationReqDvo ostrStockReq = this
-                .convertStockItemizationCreateReq(dvo, GUBUN_OSTR, WORK_DIV_A);
+                .convertStockItemizationSaveReq(dvo, GUBUN_OSTR, WORK_DIV_A);
             this.itemStockservice.createStock(ostrStockReq);
 
             // 품목재고내역 이동 - 입고창고
@@ -460,7 +460,7 @@ public class WsnaNormalOutOfStorageService {
             this.itemStockservice.saveStockMovement(strMoveReq);
             // 품목재고내역 등록 - 입고창고
             WsnaItemStockItemizationReqDvo strStockReq = this
-                .convertStockItemizationCreateReq(dvo, GUBUN_STR, WORK_DIV_A);
+                .convertStockItemizationSaveReq(dvo, GUBUN_STR, WORK_DIV_A);
             this.itemStockservice.createStock(strStockReq);
 
             // 출고요청내역 UPDATE
@@ -477,6 +477,5 @@ public class WsnaNormalOutOfStorageService {
      */
     public int getOstrCnfmCount(CheckReq dto) {
         return this.mapper.selectOstrCnfmCount(dto);
-
     }
 }
