@@ -44,7 +44,8 @@ public class WsnaOutOfStorageAskMngtDto {
         String wareNm, // 창고명
         String ostrOjWareNo, //출고대상창고번호
         String ostrAkRgstDt, //출고요청등록일자
-        String strOjWareNo //입고대상창고번호
+        String strOjWareNo, //입고대상창고번호
+        String lgstOstrAkNo //물류출고요청번호
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-OutOfRes")
@@ -124,7 +125,8 @@ public class WsnaOutOfStorageAskMngtDto {
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-RemoveReq")
     public record RemoveReq(
         String ostrAkNo, // 출고요청번호
-        String ostrAkSn // 출고요청일련번호
+        String ostrAkSn, // 출고요청일련번호
+        String ostrAkWareDvCd //출고요청창고구분코드
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-SaveReq")
