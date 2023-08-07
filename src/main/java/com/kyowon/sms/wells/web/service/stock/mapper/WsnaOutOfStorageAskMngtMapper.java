@@ -4,10 +4,10 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngt
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtSearchDvo;
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtSearchDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -15,6 +15,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnaOutOfStorageAskMngtMapper {
 
     PagingResult<SearchRes> selectOutOfStorageAsks(SearchReq dto, PageInfo pageInfo);
+
+    List<SearchRes> selectOutOfStorageAsks(SearchReq dto);
 
     FindRes selectOutOfStorageAskItms(FindReq dto);
 

@@ -67,6 +67,15 @@ public class WsnaOutOfStorageAskMngtService {
     }
 
     /**
+     * 출고요청 관리- 엑셀다운로드
+     * @param dto
+     * @return
+     */
+    public List<SearchRes> getOutOfStorageAsksExcelDownload(SearchReq dto) {
+        return this.mapper.selectOutOfStorageAsks(dto);
+    }
+
+    /**
      * 출고요청 관리 - 상단영역 조회
      * @param dto : { session.userid : 사용자id , apyYm : 기준년월 }
      * @return 조회결과
@@ -85,6 +94,23 @@ public class WsnaOutOfStorageAskMngtService {
     ) {
         // TODO: 물류창고 조회 로직 추가 필요.
         WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
+
+        String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
+        searchDvo.setOstrWareDvCd(ostrWareDvCd);
+
+        List<WsnaOutOfStorageAskMngtDvo> outOfDvo = this.mapper.selectOutOfStorageItms(searchDvo);
+
+        if (WARE_DV_CD_LOGISTICS_CENTER.equals(ostrWareDvCd)) {
+            this.getRealTimeLogisticStockQtys(outOfDvo);
+        }
+
+        return outOfDvo;
+    }
+
+    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemExcelDownload(SearchReq dto) {
+
+        WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
+        //        return mapper.selectOutOfStorageItms(searchDvo);
 
         String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
         searchDvo.setOstrWareDvCd(ostrWareDvCd);
@@ -275,9 +301,4 @@ public class WsnaOutOfStorageAskMngtService {
         return processCount;
     }
 
-    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemExcelDownload(SearchReq dto) {
-
-        WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
-        return mapper.selectOutOfStorageItms(searchDvo);
-    }
 }
