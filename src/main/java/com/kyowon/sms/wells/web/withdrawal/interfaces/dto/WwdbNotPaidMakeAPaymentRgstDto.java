@@ -21,7 +21,7 @@ public class WwdbNotPaidMakeAPaymentRgstDto {
         @JsonProperty("PRTNR_NO")
         Integer prtnrNo, //파트너번호
         @JsonProperty("DP_TP_NM")
-        String dpTpNm, //입금유형명
+        String dpTpCd, //입금유형명
         @JsonProperty("DP_AMT")
         Integer dpAmt //입금금액
     ) {}
