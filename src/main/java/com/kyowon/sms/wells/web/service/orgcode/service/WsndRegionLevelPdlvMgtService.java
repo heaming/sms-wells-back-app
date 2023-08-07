@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.orgcode.service;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,11 +100,12 @@ public class WsndRegionLevelPdlvMgtService {
                     if (res == null) {
                         result += mapper.insertPlaceOfDelivery(dvo);
                         mapper.insertPlaceOfDeliveryHistory(dvo);
-                    } else if (res.getDataDlYn().equals("N")) {
+                    } else if (StringUtils.equals(res.getDataDlYn(), "N")
+                        && StringUtils.equals(res.getPdlvDvCd(), dto.pdlvDvCd())) {
                         BizAssert.isTrue(res.getDataDlYn().equals("N"), "MSG_ALT_DUP_PDLV_DV");
                         processCount = -2;
                         return processCount;
-                    } else if (res.getDataDlYn().equals("Y")) {
+                    } else if (StringUtils.equals(res.getDataDlYn(), "Y")) {
                         String apyStrtdt = mapper.selectStrtdtByPk(dto.pdlvNo());
                         if (Integer.parseInt(apyStrtdt) > Integer.parseInt(dvo.getApyStrtdt())) {
                             processCount = -1;
