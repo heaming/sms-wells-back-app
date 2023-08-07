@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsAccountByProductMapper">
+    <select id="selectBsAccountByProduct" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsAccountByProductDto$SearchRes">
+        WITH OG_INF AS (SELECT NVL(MAX(D.DGR3_LEVL_OG_CD),'') AS DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+                             , NVL(MAX(D.DGR3_LEVL_OG_NM),'') AS DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+                             , NVL(MAX(D.DGR3_LEVL_DG_PRTNR_NO),'') AS DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+                             , NVL(D.DGR3_LEVL_OG_ID,'') AS  DGR3_LEVL_OG_ID /* 3차레벨조직ID - 지점 */
+                             , NVL(MAX(D.OG_TP_CD), '') AS OG_TP_CD /* 조직유형코드 */
+                             , NVL(MAX(D.DGR1_LEVL_OG_CD),'') AS DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+                             , NVL(MAX(D.DGR2_LEVL_OG_CD),'') AS DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+                             , NVL(MAX(BLD_NM), '') AS BLD_NM
+                          FROM (SELECT A.DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+                                     , A.DGR1_LEVL_OG_NM /* 월조직내역.1차레벨조직명 - 총괄단 */
+                                     , A.DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차레벨대표파트너번호 - 총괄단 */
+                                     , ( SELECT MAX(C.OG_ID)
+                                           FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                                          WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                                            AND C.OG_CD = A.DGR1_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.1차레벨조직코드 */
+                                            AND C.OG_TP_CD = A.OG_TP_CD ) AS DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+                                     , A.DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+                                     , A.DGR2_LEVL_OG_NM /* 월조직내역.2차레벨조직명 - 지역단 */
+                                     , A.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차레벨대표파트너번호 - 지역단 */
+                                     , ( SELECT MAX(C.OG_ID)
+                                          FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                                         WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                                           AND C.OG_CD = A.DGR2_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.2차레벨조직코드 */
+                                           AND C.OG_TP_CD = A.OG_TP_CD ) AS DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+                                     , A.DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+                                     , A.DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+                                     , A.DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+                                     , ( SELECT MAX(C.OG_ID)
+                                           FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                                          WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                                            AND C.OG_CD = A.DGR3_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.3차레벨조직코드 */
+                                            AND C.OG_TP_CD = A.OG_TP_CD ) AS DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+                                     , A.DGR4_LEVL_OG_CD /* 월조직내역.4차레벨조직코드 */
+                                     , A.DGR4_LEVL_OG_NM /* 월조직내역.4차레벨조직명 */
+                                     , A.DGR4_LEVL_DG_PRTNR_NO /* 월조직내역.4차레벨대표파트너번호 */
+                                     , ( SELECT MAX(C.OG_ID)
+                                           FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                                          WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                                            AND C.OG_CD = A.DGR4_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.4차레벨조직코드 */
+                                            AND C.OG_TP_CD = A.OG_TP_CD ) AS DGR4_LEVL_OG_ID /* 4차레벨조직ID */
+                                     , A.DGR5_LEVL_OG_CD /* 월조직내역.5차레벨조직코드 */
+                                     , A.DGR5_LEVL_OG_NM /* 월조직내역.5차레벨조직명 */
+                                     , A.DGR5_LEVL_DG_PRTNR_NO /* 월조직내역.5차레벨대표파트너번호 */
+                                     , ( SELECT MAX(C.OG_ID)
+                                           FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                                          WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                                            AND C.OG_CD = A.DGR5_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.5차레벨조직코드 */
+                                            AND C.OG_TP_CD = A.OG_TP_CD ) AS DGR5_LEVL_OG_ID /* 5차레벨조직ID */
+                                     , A.BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+                                     , A.OG_UPBRNG_PRTNR_NO /* 월조직내역.영업지원파트너번호 */
+                                     , A.OG_CD /* 월조직내역.조직코드 */
+                                     , A.OG_ID /* 월조직내역.조직ID */
+                                     , A.OG_NM /* 월조직내역.조직명 */
+                                     , A.BASE_YM /* 월조직내역.기준년월 */
+                                     , A.OG_TP_CD /* 조직유형코드 */
+                                     , A.BLD_NM
+                                  FROM WSMDBS.TB_OGBS_MM_OG_IZ A /* 월조직내역 - 월조직내역 TABLE의 1~5차 상위 조직ID가 없으므로 별도로 조회 */
+                                 WHERE 1=1
+                                   AND A.BASE_YM = SUBSTR(#{baseYm}, 1, 6) /* 월조직내역.기준년월 (default:현재월) */
+                                   AND A.OG_LEVL_DV_CD = '3'
+                                   AND A.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'N'인 건 */
+                                   AND A.OG_TP_CD IN ('W01', 'W02')
+                               ) D
+                       GROUP BY DGR3_LEVL_OG_ID /* 조직ID가 유일한 키(3차레벨조직ID) */
+                       /* ORDER BY DGR3_LEVL_OG_CD */ )
+        , PD_INF AS (SELECT T1.PD_CD
+                          , T1.PD_NM
+                          , t2.PD_PRP_VAL20 PD_GRP_CD
+                          , T2.PD_PRP_VAL19 ITM_KND_CD
+                       FROM WSMDBS.TB_PDBS_PD_BAS T1 /*상품기본*/
+            LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
+                         ON T1.PD_CD = T2.PD_CD
+                    /*  AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */     /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+                      WHERE 1=1
+                        AND T2.PD_PRP_VAL19 = '4')
+
+         SELECT DGR1_LEVL_OG_CD /* 총괄단 */
+              , DGR2_LEVL_OG_CD /* 지역단 */
+              , DGR3_LEVL_OG_CD /* 지점 */
+              , DGR3_LEVL_OG_NM /* 지점명 */
+              , OG_INF.BLD_NM
+              , PD_INF.PD_CD
+              , PD_INF.PD_NM
+              , PD_INF.PD_GRP_CD /* 상품그룹 */
+              , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', PD_INF.PD_GRP_CD, 'ko') AS PD_GRP_NM
+              , NVL(COUNT(*),0) CNT
+           FROM OG_INF
+LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S1 /* 고객서비스BS배정내역 AC261 */
+             ON OG_INF.DGR3_LEVL_OG_CD = (SELECT OG_CD FROM TB_OGBS_MM_PRTNR_IZ P1 WHERE S1.CNFM_PSIC_PRTNR_OG_TP_CD = P1.OG_TP_CD AND S1.CNFM_PSIC_PRTNR_NO = P1.PRTNR_NO AND P1.BASE_YM = #{baseYm} )
+     INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2 /* 고객서비스BS대상내역 */
+             ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+            AND S2.ASN_OJ_YM = #{baseYm}
+     INNER JOIN PD_INF
+             ON PD_INF.PD_CD = S2.PDCT_PD_CD
+          WHERE PD_INF.PD_GRP_CD IN ('1', '2', '3', '4', '9', '92', '93', '94')
+          <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+            AND PD_INF.PD_GRP_CD = #{pdGrpCd}
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(pdCd)">
+            AND PD_INF.PD_CD = #{pdCd}
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+            AND PD_INF.PD_GRP_CD = #{pdGrpCd}
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(mgtDept)">
+            AND DGR1_LEVL_OG_CD = #{mgtDept}
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(rnglGrp)">
+            AND DGR2_LEVL_OG_CD = #{rnglGrp}
+          </if>
+          <if test="@MybatisUtils@isNotEmpty(branch)">
+            AND DGR3_LEVL_OG_CD = #{branch}
+          </if>
+       GROUP BY DGR1_LEVL_OG_CD /* 총괄단 */
+              , DGR2_LEVL_OG_CD /* 지역단 */
+              , DGR3_LEVL_OG_CD /* 지점 */
+              , DGR3_LEVL_OG_NM /* 지점명 */
+              , OG_INF.BLD_NM
+              , PD_INF.PD_CD
+              , PD_INF.PD_NM
+              , PD_INF.PD_GRP_CD /* 상품그룹 */
+       ORDER BY DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD, DGR3_LEVL_OG_CD, PD_INF.PD_CD
+    </select>
+
+</mapper>
