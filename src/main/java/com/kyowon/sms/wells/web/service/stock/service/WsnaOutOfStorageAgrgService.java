@@ -47,13 +47,6 @@ public class WsnaOutOfStorageAgrgService {
         return mapper.selectOutOfStorageAgrgs(dvo);
     }
 
-    public List<HashMap<String, String>> getOutOfStorageAgrgExcelDownload(SearchReq dto) {
-        WsnaOutOfStorageAgrgDvo dvo = convertPivotOutOfStorageAgrgDvo(
-            converter.mapSearchReqToWsnaOutOfStorageAgrgDvo(dto)
-        );
-        return mapper.selectOutOfStorageAgrgs(dvo);
-    }
-
     /**
     * 창고 조회
     */
