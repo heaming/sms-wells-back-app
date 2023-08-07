@@ -26,7 +26,12 @@ public class WpscLectureSpptLectureService {
      * @return PagingResult<SearchRes>
      */
     public PagingResult<SearchRes> getLectureSpptLecturePages(SearchReq dto, PageInfo pageInfo) {
+
         return mapper.selectLectureSpptLecturePages(dto, pageInfo);
+    }
+
+    public List<SearchRes> getLectureSpptLecture(SearchReq dto) {
+        return mapper.selectLectureSpptLecturePages(dto);
     }
 
     /**
@@ -53,4 +58,6 @@ public class WpscLectureSpptLectureService {
         }
         return processCount;
     }
+
+
 }

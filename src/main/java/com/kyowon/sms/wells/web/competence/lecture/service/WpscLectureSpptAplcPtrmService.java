@@ -20,6 +20,11 @@ public class WpscLectureSpptAplcPtrmService {
         return mapper.selectLectureSpptAplcPtrm(dto);
     }
 
+    /**
+     * 강의지원 신청기간등록 - 저장
+     * @param req
+     * @return int
+     */
     @Transactional
     public int saveLectureSpptAplcPtrm(SaveReq req) {
         int processCount = 0;
@@ -30,6 +35,11 @@ public class WpscLectureSpptAplcPtrmService {
         return processCount;
     }
 
+    /**
+     * 강의지원 신청기간등록 - 삭제
+     * @param req
+     * @return int
+     */
     public int editLectureSpptAplcPtrmStatus(deleteReq req) {
         int processCount = 0;
         mapper.insertLectureSpptApplicationDeleteHist(req);

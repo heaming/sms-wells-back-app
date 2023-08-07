@@ -43,6 +43,16 @@ public class WpscLectureSpptLectureController {
         return service.getLectureSpptLecturePages(dto, pageInfo);
     }
 
+    @ApiOperation(value = "강의지원 강의 리스트 조회", notes = "")
+    @ApiImplicitParams(value = {
+         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", required = true),
+     })
+    @GetMapping() List<SearchRes> getLectureSpptLecture (
+        @Valid
+        SearchReq dto){
+        return service.getLectureSpptLecture(dto);
+    }
+
     @ApiOperation(value = "강의지원 강의관리 - 저장 ", notes = "강의 저장")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "lectrSpptOgTpCd", value = "조직유형코드", required = true),
@@ -58,4 +68,5 @@ public class WpscLectureSpptLectureController {
     ) throws  Exception {
         return SaveResponse.builder().processCount(service.saveLectureSpptLecture(reqs)).build();
     }
+
 }
