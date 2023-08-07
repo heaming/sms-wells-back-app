@@ -212,53 +212,46 @@
     </select>
 
     <select id="selectIndividualServiceHousehold" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualServicePsDvo">
-        SELECT S1.SV_HSHD_NO /*가구화코드*/
-             , S1.CNTR_NO || '-' || S1.CNTR_SN AS CNTR_DTL/*계약상세번호*/
-             , C2.RCGVP_KNM AS CST_NM /*고객명*/
-             , (SELECT X.PD_NM
-                  FROM TB_PDBS_PD_BAS X
-                 WHERE X.PD_CD = S1.PDCT_PD_CD) AS PD_NM /*상품명*/
-             , (CASE WHEN C2.LOCARA_TNO IS NOT NULL THEN C2.LOCARA_TNO
-                     ELSE '' END) AS LOCARA_TNO /*전화번호(지역전화번호)*/
-             , (CASE WHEN C2.LOCARA_TNO IS NOT NULL THEN C2.EXNO_ENCR
-                     ELSE '' END) AS EXNO_ENCR /*전화번호(전화국번호암호화)*/
-             , (CASE WHEN C2.LOCARA_TNO IS NOT NULL THEN C2.IDV_TNO
-                     ELSE '' END) AS IDV_TNO /*전화번호(개별전화번호)*/
-             , (CASE WHEN C2.CRAL_LOCARA_TNO IS NOT NULL THEN C2.CRAL_LOCARA_TNO
-                     ELSE '' END) AS CRAL_LOCARA_TNO /*휴대전화번호(휴대지역전화번호)*/
-             , (CASE WHEN C2.CRAL_LOCARA_TNO IS NOT NULL THEN C2.MEXNO_ENCR
-                     ELSE '' END) AS MEXNO_ENCR /*휴대전화번호(휴대전화국번호암호화)*/
-             , (CASE WHEN C2.CRAL_LOCARA_TNO IS NOT NULL THEN C2.CRAL_IDV_TNO
-                     ELSE '' END) AS CRAL_IDV_TNO /*휴대전화번호(휴대개별전화번호)*/
-          FROM TB_SVPD_CST_SV_EXCN_IZ S1 /*서비스수행내역*/
-          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL C1  /* 계약주소관계 */
-            ON C1.DTL_CNTR_NO = S1.CNTR_NO
-           AND C1.DTL_CNTR_SN = S1.CNTR_SN
-           AND C1.ADRPC_TP_CD = '3'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C1.VL_STRT_DTM AND C1.VL_END_DTM
-           AND C1.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C2  /* 계약주소지기본 */
-            ON C2.CNTR_ADRPC_ID = C1.CNTR_ADRPC_ID
-           AND C2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL C3 /*계약상세*/
-            ON S1.CNTR_NO = C3.CNTR_NO
-           AND S1.CNTR_SN = C3.CNTR_SN
-           AND C3.SELL_TP_CD IN ('1','2')  /* 1:일시불, 2:렌탈/리스 */
-           AND C3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST C4 /* 계약상세상태변경이력 */
-            ON S1.CNTR_NO = C4.CNTR_NO
-           AND S1.CNTR_SN = C4.CNTR_SN
-           AND SUBSTR(C4.HIST_END_DTM,1,8) = '99991231'
-           AND C4.DTA_DL_YN = 'N'
-         WHERE S1.SV_HSHD_NO = (SELECT X.SV_HSHD_NO
-                                 FROM TB_SVPD_CST_SV_EXCN_IZ X
-                                WHERE X.CNTR_NO LIKE #{cntrNo}
-                                  AND X.CNTR_SN = #{cntrSn})
-           AND S1.REQD_DT IS NULL
-           AND S1.CPS_DT IS NULL
-           AND (CASE WHEN C4.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(C4.HIST_STRT_DTM,1,8) ELSE '' END) IS NULL  /*취소일자*/
-           AND (CASE WHEN C3.SELL_TP_CD = '3' THEN SUBSTR(C4.HIST_STRT_DTM,1,8) ELSE '' END) IS NULL /*멤버십종료일*/
-         ORDER BY S1.CNTR_NO, S1.CNTR_SN
+        SELECT SV1.SV_HSHD_NO /*가구화코드*/
+             , SV1.CNTR_NO || '-' || SV1.CNTR_SN AS CNTR_DTL /*계약상세번호*/
+             , CST.CST_KNM AS CST_NM /*고객명*/
+             , (SELECT X.PD_ABBR_NM FROM TB_PDBS_PD_BAS X WHERE X.PD_CD = SV1.PDCT_PD_CD) AS PD_NM /*상품명*/
+             , DECODE(SA2.LOCARA_TNO, NULL, '', SA2.LOCARA_TNO) AS LOCARA_TNO /*전화번호 - 지역전화번호*/
+             , DECODE(SA2.LOCARA_TNO, NULL, '', SA2.EXNO_ENCR) AS EXNO_ENCR/*전화번호 - 전화국번호암호화*/
+             , DECODE(SA2.LOCARA_TNO, NULL, '', SA2.IDV_TNO) AS IDV_TNO/*전화번호 - 개별전화번호*/
+             , DECODE(SA2.CRAL_LOCARA_TNO, NULL, '', SA2.CRAL_LOCARA_TNO) AS CRAL_LOCARA_TNO /*휴대전화번호 - 휴대지역전화번호*/
+             , DECODE(SA2.CRAL_LOCARA_TNO, NULL, '', SA2.MEXNO_ENCR) AS MEXNO_ENCR /*휴대전화번호 - 휴대전화국번호암호화*/
+             , DECODE(SA2.CRAL_LOCARA_TNO, NULL, '', SA2.CRAL_IDV_TNO) AS CRAL_IDV_TNO /*휴대전화번호 - 휴대개별전화번호*/
+          FROM TB_SVPD_CST_SV_EXCN_IZ SV1/*서비스수행내역*/
+         INNER JOIN TB_SSCT_CNTR_CST_REL SC1 /*계약고객관계*/
+            ON SC1.CNTR_NO = SV1.CNTR_NO
+         INNER JOIN TB_CUBS_CST_BAS CST /*고객기본*/
+            ON CST.CST_NO = SC1.CST_NO
+         INNER JOIN TB_SSCT_CNTR_ADR_REL SA1 /*계약주소관계 - 계약주소*/
+            ON SV1.CNTR_NO = SA1.DTL_CNTR_NO
+           AND SV1.CNTR_SN = SA1.DTL_CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SA2 /*계약주소지기본*/
+            ON SA2.CNTR_ADRPC_ID = SA1.CNTR_ADRPC_ID
+         INNER JOIN TB_SSCT_CNTR_DTL SC3 /*계약상세*/
+            ON SV1.CNTR_NO = SC3.CNTR_NO
+           AND SV1.CNTR_SN = SC3.CNTR_SN
+           AND SC3.SELL_TP_CD IN ('1','2')  /* 1:일시불, 2:렌탈/리스 */
+           AND SC3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST SC4 /* 계약상세상태변경이력 */
+            ON SV1.CNTR_NO = SC4.CNTR_NO
+           AND SV1.CNTR_SN = SC4.CNTR_SN
+           AND SUBSTR(SC4.HIST_END_DTM,1,8) = '99991231'
+           AND SC4.DTA_DL_YN = 'N'
+         WHERE SV1.SV_HSHD_NO = (SELECT X.SV_HSHD_NO
+                                   FROM TB_SVPD_CST_SV_EXCN_IZ X
+                                  WHERE X.CNTR_NO = #{cntrNo}
+                                    AND X.CNTR_SN = #{cntrSn})
+           AND SV1.REQD_DT IS NULL
+           AND SV1.CPS_DT IS NULL
+           AND (CASE WHEN SC4.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(SC4.HIST_STRT_DTM,1,8) ELSE '' END) IS NULL  /*취소일자*/
+           AND (CASE WHEN SC3.SELL_TP_CD = '3' THEN SUBSTR(SC4.HIST_STRT_DTM,1,8) ELSE '' END) IS NULL /*멤버십종료일*/
+           AND SV1.SV_HSHD_NO IS NOT NULL
+         ORDER BY SV1.CNTR_NO, SV1.CNTR_SN
     </select>
     <select id="selectIndividualServiceContact" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto$SearchContactRes">
         SELECT GUBUN /*구분*/

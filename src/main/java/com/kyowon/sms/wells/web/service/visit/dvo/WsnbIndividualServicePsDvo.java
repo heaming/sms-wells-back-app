@@ -56,7 +56,7 @@ public class WsnbIndividualServicePsDvo {
 
     /*가구화정보 조회*/
     String svHshdNo;
-    String cntrNo;
+    String cntrDtl;
     String cstKnm;
     String adrZip;
 
