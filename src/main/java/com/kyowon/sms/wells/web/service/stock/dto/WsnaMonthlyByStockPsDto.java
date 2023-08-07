@@ -20,7 +20,7 @@ import lombok.Builder;
 public class WsnaMonthlyByStockPsDto {
 
     @Builder
-    @ApiModel("WsnaMonthlyByStockDto-SearchWareReq")
+    @ApiModel("WsnaMonthlyByStockPsDto-SearchWareReq")
     public record SearchWareReq(
         @NotBlank
         String baseYm,
@@ -30,14 +30,14 @@ public class WsnaMonthlyByStockPsDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaMonthlyByStockDto-SearchWareRes")
+    @ApiModel("WsnaMonthlyByStockPsDto-SearchWareRes")
     public record SearchWareRes(
         String wareNo,
         String wareNm
     ) {}
 
     @Builder
-    @ApiModel("WsnaMonthlyByStockDto-SearchReq")
+    @ApiModel("WsnaMonthlyByStockPsDto-SearchReq")
     public record SearchReq(
 
         @NotBlank
@@ -59,7 +59,7 @@ public class WsnaMonthlyByStockPsDto {
     ) {}
 
     @Builder
-    @ApiModel("WsnaMonthlyByStockDto-SearchRes")
+    @ApiModel("WsnaMonthlyByStockPsDto-SearchRes")
     public record SearchRes(
 
         String sapMatCd,
