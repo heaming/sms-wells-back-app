@@ -17,33 +17,33 @@
     </select>
 
     <select id="selectQomAsnStockAggs" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto$SearchRes">
-        SELECT T1.SAP_MAT_CD                                                                       /* SAP코드 */
-             , T1.ITM_PD_CD                                                                        /* 품목코드 */
-             , T1.PD_NM                                                                            /* 품목명 */
-             , SUM(CASE WHEN T1.GB = 'BS' THEN T1.QTY END)                    AS BS_QTY            /* 당월BS */
-             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 1 THEN T1.QTY END) AS INDI_QTY1         /* 개인1차 */
-             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 2 THEN T1.QTY END) AS INDI_QTY2         /* 개인2차 */
-             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 3 THEN T1.QTY END) AS INDI_QTY3         /* 개인3차 */
-             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 1 THEN T1.QTY END) AS INDE_QTY1         /* 독립1차 */
-             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 2 THEN T1.QTY END) AS INDE_QTY2         /* 독립2차 */
-             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 3 THEN T1.QTY END) AS INDE_QTY3         /* 독립3차 */
-             , SUM(CASE WHEN T1.GB IN ('1', '2') THEN T1.QTY END)             AS QOM_ASN_QTY       /* 물량배정 */
-             , ( SELECT PITM_STOC_A_GD_QTY
-                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
-                  WHERE DTA_DL_YN = 'N'
-                    AND WARE_NO   = '100002'
-                    AND ITM_PD_CD = T1.ITM_PD_CD )                            AS QTY_100002        /* 파주재고 */
-             , ( SELECT PITM_STOC_A_GD_QTY
-                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
-                  WHERE DTA_DL_YN = 'N'
-                    AND WARE_NO   = '100008'
-                    AND ITM_PD_CD = T1.ITM_PD_CD )                            AS QTY_100008        /* 성수재고 */
-             , ( SELECT SUM(PITM_STOC_A_GD_QTY)
+        SELECT T1.SAP_MAT_CD                                                                              /* SAP코드 */
+             , T1.ITM_PD_CD                                                                               /* 품목코드 */
+             , T1.PD_NM                                                                                   /* 품목명 */
+             , SUM(CASE WHEN T1.GB = 'BS' THEN T1.QTY ELSE 0 END)                    AS BS_QTY            /* 당월BS */
+             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 1 THEN T1.QTY ELSE 0 END) AS INDI_QTY1         /* 개인1차 */
+             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 2 THEN T1.QTY ELSE 0 END) AS INDI_QTY2         /* 개인2차 */
+             , SUM(CASE WHEN T1.GB = '1' AND T1.ASN_TN_N = 3 THEN T1.QTY ELSE 0 END) AS INDI_QTY3         /* 개인3차 */
+             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 1 THEN T1.QTY ELSE 0 END) AS INDE_QTY1         /* 독립1차 */
+             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 2 THEN T1.QTY ELSE 0 END) AS INDE_QTY2         /* 독립2차 */
+             , SUM(CASE WHEN T1.GB = '2' AND T1.ASN_TN_N = 3 THEN T1.QTY ELSE 0 END) AS INDE_QTY3         /* 독립3차 */
+             , SUM(CASE WHEN T1.GB IN ('1', '2') THEN T1.QTY ELSE 0 END)             AS QOM_ASN_QTY       /* 물량배정 */
+             , NVL( ( SELECT PITM_STOC_A_GD_QTY
+                        FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                       WHERE DTA_DL_YN = 'N'
+                         AND WARE_NO   = '100002'
+                         AND ITM_PD_CD = T1.ITM_PD_CD ),  0)                         AS QTY_100002        /* 파주재고 */
+             , NVL( ( SELECT PITM_STOC_A_GD_QTY
+                        FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                       WHERE DTA_DL_YN = 'N'
+                         AND WARE_NO   = '100008'
+                         AND ITM_PD_CD = T1.ITM_PD_CD ), 0)                          AS QTY_100008        /* 성수재고 */
+             , ( SELECT NVL(SUM(PITM_STOC_A_GD_QTY), 0)
                    FROM TB_SVST_CST_SV_ITM_STOC_IZ
                   WHERE DTA_DL_YN = 'N'
                     AND WARE_NO  IN ('100002', '100008')
-                    AND ITM_PD_CD = T1.ITM_PD_CD )                            AS LGST_QTY          /* 물류재고 */
-             , ( SELECT SUM(PITM_STOC_A_GD_QTY)
+                    AND ITM_PD_CD = T1.ITM_PD_CD )                                   AS LGST_QTY          /* 물류재고 */
+             , ( SELECT NVL(SUM(PITM_STOC_A_GD_QTY), 0)
                    FROM TB_SVST_CST_SV_ITM_STOC_IZ S1
                   INNER JOIN TB_SVST_MCBY_WARE_IZ S2
                      ON S2.WARE_NO = S1.WARE_NO
@@ -52,8 +52,8 @@
                     AND S2.APY_YM         = TO_CHAR(SYSDATE, 'YYYYMM')
                     AND S2.WARE_DV_CD     = '3'
                     AND S2.WARE_DTL_DV_CD = '30'
-                    AND S1.ITM_PD_CD      = T1.ITM_PD_CD )                    AS CENTER_QTY        /* 영업센터 조직재고 */
-             , ( SELECT SUM(PITM_STOC_A_GD_QTY)
+                    AND S1.ITM_PD_CD      = T1.ITM_PD_CD )                           AS CENTER_QTY        /* 영업센터 조직재고 */
+             , ( SELECT NVL(SUM(PITM_STOC_A_GD_QTY), 0)
                    FROM TB_SVST_CST_SV_ITM_STOC_IZ S1
                   INNER JOIN TB_SVST_MCBY_WARE_IZ S2
                      ON S2.WARE_NO = S1.WARE_NO
@@ -62,7 +62,7 @@
                     AND S2.APY_YM         = TO_CHAR(SYSDATE, 'YYYYMM')
                     AND S2.WARE_DV_CD     = '3'
                     AND S2.WARE_DTL_DV_CD = '31'
-                    AND S1.ITM_PD_CD      = T1.ITM_PD_CD )                    AS CENTER_INDI_QTY   /* 영업센터 개인재고 */
+                    AND S1.ITM_PD_CD      = T1.ITM_PD_CD )                           AS CENTER_INDI_QTY   /* 영업센터 개인재고 */
         <if test='@MybatisUtils@equals(bsYn, "Y")'>
              , ( SELECT NVL(SUM(PITM_STOC_A_GD_QTY), 0)
                    FROM TB_SVST_CST_SV_ITM_STOC_IZ

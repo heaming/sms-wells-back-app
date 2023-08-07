@@ -1,15 +1,15 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaOutOfStorageAskMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -21,8 +21,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/out-of-storage-asks")
@@ -44,6 +42,12 @@ public class WsnaOutOfStorageAskMngtController {
     @GetMapping("/paging")
     public PagingResult<SearchRes> getOutOfStorageAsks(SearchReq dto, PageInfo pageInfo) {
         return this.service.getOutOfStorageAsks(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "출고요청 조회엑셀다운로드", notes = "조회조건에 일치하는 출고요청 정보를 엑셀다운로드한다.")
+    @GetMapping("/excel-download")
+    public List<SearchRes> getOutOfStorageAsksExcelDownload(SearchReq dto) {
+        return this.service.getOutOfStorageAsksExcelDownload(dto);
     }
 
     @ApiOperation(value = "출고요청등록 상단영역 조회", notes = "부모창에서 넘어온 파라미터로 출고요청 등록 상단영역을 조회.")
