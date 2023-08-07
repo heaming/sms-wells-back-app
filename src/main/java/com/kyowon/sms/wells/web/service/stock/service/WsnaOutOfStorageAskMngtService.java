@@ -249,7 +249,8 @@ public class WsnaOutOfStorageAskMngtService {
             List<WsnaOutOfStorageAskMngtDvo> logisticsDvo = this.mapper.selectLogisticsOutStorageAskInfo(ostrAkNo);
             //출고대상창고의 구분이 1(물류센터) 일경우
             if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsDvo.get(0).getOstrOjWareDvCd())) {
-                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter.mapCreateOutOfStorageAsksDvo(logisticsDvo);
+                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                    .mapAllCreateOutOfStorageAsksDvo(logisticsDvo);
                 logisticsservice.createOutOfStorageAsks(dvo);
             }
         }
@@ -262,7 +263,8 @@ public class WsnaOutOfStorageAskMngtService {
             //출고대상창고의 구분이 1(물류센터) 일경우
             if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsDvo.get(0).getOstrOjWareDvCd())) {
 
-                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter.mapCreateOutOfStorageAsksDvo(logisticsDvo);
+                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                    .mapAllCreateOutOfStorageAsksDvo(logisticsDvo);
                 logisticsservice.editOutOfStorageAsks(dvo);
 
             }
