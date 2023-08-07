@@ -32,7 +32,7 @@ public class WsnaStockContinueMonthAgrgStateController {
 
     @ApiOperation(value = "재고지속월집계관리현황 목록 조회", notes = "조회조건에 일치하는 재고지속월집계관리현황 데이터를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "startDt", value = "시작일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "baseYm", value = "기준일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "itmGdCd", value = "등급", paramType = "query"),
         @ApiImplicitParam(name = "stockTpCd", value = "재고유형", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
@@ -48,7 +48,7 @@ public class WsnaStockContinueMonthAgrgStateController {
 
     @ApiOperation(value = "재고지속월집계관리현황 목록 조회 엑셀다운로드", notes = "조회조건에 일치하는 재고지속월집계관리현황 데이터를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "startDt", value = "시작일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "baseYm", value = "기준일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "itmGdCd", value = "등급", paramType = "query"),
         @ApiImplicitParam(name = "stockTpCd", value = "재고유형", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
