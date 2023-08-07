@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.rest;
 
-import com.kyowon.sms.common.web.withdrawal.interfaces.dto.ZwdaAutoTransferBillingInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstReqDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbNotPaidMakeAPaymentRgstDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstResDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdbNotPaidMakeAPaymentRgstService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
@@ -17,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.List;
 
 @InterfaceController
 @Api(tags = "[WWDB] 미납금 납부 등록 I/F API")
@@ -34,17 +31,20 @@ public class WwdbNotPaidMakeAPaymentRgstController {
     public EaiWrapper saveDepositRegistration(
         @Valid
         @RequestBody
-        EaiWrapper<WwdbNotPaidMakeAPaymentRgstReqDvo> reqWrapper
+        EaiWrapper<WwdbNotPaidMakeAPaymentRgstDto.SaveReq> reqWrapper
     ) throws Exception {
         // Response용 EaiWrapper 생성
-        EaiWrapper<WwdbNotPaidMakeAPaymentRgstResDvo> resWrapper = reqWrapper
+        EaiWrapper<WwdbNotPaidMakeAPaymentRgstDto.SaveRes> resWrapper = reqWrapper
             .newResInstance();
         // 서비스 메소드 호출
-        WwdbNotPaidMakeAPaymentRgstResDvo res = service
-            .saveDepositRegistration(reqWrapper.getBody());
-
+        WwdbNotPaidMakeAPaymentRgstResDvo res = service.saveDepositRegistration(reqWrapper.getBody());
         // Response Body 세팅
-        resWrapper.setBody(res);
+        resWrapper.setBody(
+            WwdbNotPaidMakeAPaymentRgstDto.SaveRes.builder()
+                .procsRs(res.getProcsRs())
+                .errMsg(res.getErrMsg())
+                .build()
+        );
 
         return resWrapper;
     }
