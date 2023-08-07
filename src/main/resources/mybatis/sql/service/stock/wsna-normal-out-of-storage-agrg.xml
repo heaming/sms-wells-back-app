@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaNormalOutOfStorageAgrgMapper">
+    <select id="selectLoginWarehouses" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNormalOutOfStorageAgrgDto$FindWarehouseRes">
+     SELECT WARE_NO AS CODE_ID
+          , WARE_NM AS CODE_NAME
+     FROM TB_SVST_MCBY_WARE_IZ
+     WHERE 1 = 1
+       AND WARE_MNGT_PRTNR_NO = #{session.employeeIDNumber}
+       AND APY_YM = SUBSTR(#{startStrHopDt}, 1,6)
+       AND WARE_USE_YN = 'Y'
+       AND DTA_DL_YN = 'N'
+       ORDER BY CODE_ID ASC
+    </select>
+    <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAgrgWareDvo">
+     SELECT WARE_NO
+          , WARE_NM
+     FROM (
+          SELECT
+                 APY_YM                 AS APY_YM
+               , WARE_NO                AS WARE_NO
+               , (CASE
+		              WHEN INSTR(WARE_NM,'서비스센터') > 0
+	                  THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'서비스센터')-1)
+	                  WHEN INSTR(WARE_NM,'영업센터') > 0
+	                  THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'영업센터')-1)
+                   	  WHEN INSTR(WARE_NM,'창고') > 0
+	                  THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'창고')-1)
+           			  ELSE  WARE_NM
+          		   END
+                 ) AS WARE_NM
+               , 0                      AS SORT_DV_VAL
+          FROM TB_SVST_MCBY_WARE_IZ
+          WHERE  DTA_DL_YN = 'N'
+           AND WARE_USE_YN = 'Y'
+           AND WARE_DTL_DV_CD IN ('20', '30')
+          UNION ALL
+          (
+            SELECT
+                   APY_YM                AS APY_YM
+                 , WARE_NO               AS WARE_NO
+                 , WARE_NM               AS WARE_NM
+                 , 0                     AS SORT_DV_VAL
+            FROM TB_SVST_MCBY_WARE_IZ
+            WHERE DTA_DL_YN = 'N'
+             AND WARE_USE_YN = 'Y'
+             AND WARE_NO LIKE '1%'
+          )
+      )
+      WHERE 1=1
+       AND WARE_NM IS NOT NULL
+       AND WARE_NO LIKE #{wareDvCd} || '%'
+       AND APY_YM = SUBSTR(#{startStrHopDt}, 1,6)
+      ORDER BY SORT_DV_VAL ASC , WARE_NM ASC , WARE_NO ASC
+    </select>
+    <select id="selectNormalOutOfStorageAgrgs" resultType="camelMap">
+       WITH PD_INF AS
+       ( /* 상품정보 */
+          SELECT T1.PD_CD
+               , T1.PD_NM
+               , T1.PD_ABBR_NM
+               , T1.SAP_MAT_CD
+               , T2.PD_EXTS_PRP_GRP_CD
+               , T2.PD_PRP_VAL19
+          FROM TB_PDBS_PD_BAS T1
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+           ON T1.PD_CD = T2.PD_CD
+           AND T2.DTA_DL_YN  ='N'
+           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+          WHERE T1.DTA_DL_YN ='N'
+       )
+       , WARE_INF AS
+       (
+           /* 창고 정보 */
+          SELECT S1.APY_YM
+               , S1.WARE_NO
+               , S1.WARE_NM
+               , S1.WARE_DV_CD
+               , S1.SORT_DV_VAL          /* 정렬 구분 */
+               , S1.WARE_LOCARA_CD
+               , S1.WARE_ICHR_NO
+          FROM TB_SVST_MCBY_WARE_IZ S1  /* 월별창고내역 */
+          WHERE 1=1
+           AND S1.WARE_USE_YN = 'Y'
+           AND S1.DTA_DL_YN = 'N'
+       )
+       , BASE AS
+       (
+          SELECT T1.ITM_PD_CD      AS ITM_PD_CD             /* ST156_ITEM_CD */
+               , T1.STR_OJ_WARE_NO AS STR_OJ_WARE_NO        /* ST156_REQ_STCK_CD */
+               , T3.PD_PRP_VAL19   AS ITM_KND_CD            /* ST101_ITEM_KND */
+               , T3.PD_ABBR_NM     AS PD_ABBR_NM            /* ST101_NM_ABBR1 */
+               , T3.SAP_MAT_CD     AS SAP_MAT_CD
+               , TRIM(
+                     (CASE WHEN T4.WARE_NO='100002'
+                           THEN F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', T4.WARE_TP_CD)
+                             || ' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', T4.ITM_LCT_ANGLE_VAL)
+                             || ' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', T4.ITM_LCT_FLOR_NO_VAL)
+                             || ' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', T4.ITM_LCT_COF_VAL)
+                             || ' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', T4.ITM_LCT_MAT_GRP_CD)
+
+                           ELSE F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', T4.WARE_TP_CD)
+                             || ' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', T4.ITM_LCT_ANGLE_VAL)
+                             || ' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', T4.ITM_LCT_COF_VAL)
+                             || ' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', T4.ITM_LCT_FLOR_NO_VAL)
+                             ||' '
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', T4.ITM_LCT_MAT_GRP_CD)
+                     END)
+               ) AS ITM_LCT_NM                                       /* SITE_NM */
+               , NVL(T5.PITM_STOC_A_GD_QTY,0) AS PITM_STOC_A_GD_QTY  /* ST121_ON_QTY_A */
+               , (CASE WHEN T5.PITM_STOC_A_GD_QTY = 0
+                       THEN 0
+                       ELSE 1
+                  END) AS CNT                                     /* CNT */
+               <if test='ostrCnfmYn == "N"'>
+               , T1.OSTR_AK_QTY  AS OSTR_AK_QTY    /* ST156_REQ_QTY */
+               </if>
+               <if test='ostrCnfmYn == "Y"'>
+               , T1.OSTR_AGG_QTY AS OSTR_AK_QTY    /* ST156_ACC_QTY */
+               </if>
+          FROM (
+               SELECT ITM_PD_CD
+                    , STR_OJ_WARE_NO
+                    , OSTR_AK_QTY
+                    , OSTR_AGG_QTY
+                    , OSTR_OJ_WARE_NO
+               FROM TB_SVST_ITM_OSTR_AK_IZ            /* LC_STOCK_ST156TB */
+               WHERE STR_HOP_DT BETWEEN  #{startStrHopDt} AND #{endStrHopDt}
+                AND OSTR_OJ_WARE_NO = #{ostrOjWareNo}
+
+               <if test='ostrCnfmYn == "N"'>
+                AND RECT_OSTR_DT IS NULL
+               </if>
+               <if test='ostrCnfmYn == "Y"'>
+                AND RECT_OSTR_DT IS NOT NULL
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(ostrAkTpCd)">
+                AND OSTR_AK_TP_CD = #{ostrAkTpCd}
+               </if>
+          ) T1
+          INNER JOIN  WARE_INF T2                       /* LC_STOCK_ST102TB  */
+           ON T1.STR_OJ_WARE_NO =  T2.WARE_NO
+          INNER JOIN  PD_INF T3                         /* LC_STOCK_ST101TB */
+           ON T1.ITM_PD_CD =T3.PD_CD
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ T4  /* LC_STOCK_ST110TB */
+           ON T1.ITM_PD_CD =T4.ITM_PD_CD
+           AND T1.OSTR_OJ_WARE_NO = T4.WARE_NO
+           AND T4.DTA_DL_YN  ='N'
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T5  /* LC_STOCK_ST121TB */
+           ON T1.ITM_PD_CD  = T5.ITM_PD_CD
+           AND T1.OSTR_OJ_WARE_NO =T5.WARE_NO
+          WHERE 1=1
+           AND T2.APY_YM = SUBSTR(#{startStrHopDt}, 1,6)
+           AND T2.WARE_DV_CD = #{wareDvCd}
+           AND T2.WARE_ICHR_NO = '000'
+        <if test="@MybatisUtils@isNotEmpty(wareLocaraCd)">
+           AND T2.WARE_LOCARA_CD = #{wareLocaraCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+           AND T3.PD_PRP_VAL19 = #{itmKndCd}
+        </if>
+       )
+       , BASE_GROUP AS
+       (
+         SELECT ITM_PD_CD
+              , PD_ABBR_NM
+              , ITM_LCT_NM
+              , STR_OJ_WARE_NO
+              , OSTR_AK_QTY
+              , PITM_STOC_A_GD_QTY
+              , ITM_KND_CD
+              , SAP_MAT_CD
+              , CNT
+         FROM BASE
+         GROUP BY ITM_PD_CD
+                , PD_ABBR_NM
+                , ITM_LCT_NM
+                , STR_OJ_WARE_NO
+                , OSTR_AK_QTY
+                , PITM_STOC_A_GD_QTY
+                , ITM_KND_CD
+                , SAP_MAT_CD
+                , CNT
+       )
+       SELECT    ITM_PD_CD
+               , PD_ABBR_NM
+               , SAP_MAT_CD
+               , ITM_LCT_NM
+               , ITM_KND_CD
+               , NVL(PITM_STOC_A_GD_QTY / DECODE(CNT, 0, NULL, CNT), '') AS PITM_STOC_A_GD_QTY
+               , CNT
+               , ${wareNoFieldsSumStr} AS OSTR_AK_SUM
+               , ${wareNoFields}
+       FROM  BASE_GROUP
+       PIVOT ( SUM(OSTR_AK_QTY)
+  	 		  FOR STR_OJ_WARE_NO IN (${wareNoInStr})
+  	   )
+       ORDER BY ITM_KND_CD ASC , ITM_PD_CD ASC
+    </select>
+</mapper>
