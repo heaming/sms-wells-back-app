@@ -53,7 +53,7 @@ public class WsnaQomAsnStockAggregationController {
         @ApiImplicitParam(name = "cntGb", value = "회차구분", paramType = "query", example = "YNN", required = true),
         @ApiImplicitParam(name = "bsYn", value = "당월BS여부", paramType = "query", example = "Y", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "BS년월", paramType = "query", example = "202307", required = true),
-        @ApiImplicitParam(name = "qomAsnGb", value = "물량배정구분", paramType = "query", example = "NN", required = true),
+        @ApiImplicitParam(name = "qomAsnGb", value = "물량배정구분", paramType = "query", example = "NN", required = true)
     })
     public List<SearchRes> getQomAsnStockAggs(@Valid
     SearchReq dto) {
