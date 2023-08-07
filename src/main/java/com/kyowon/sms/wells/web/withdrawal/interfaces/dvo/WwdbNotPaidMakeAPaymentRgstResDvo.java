@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.withdrawal.idvrve.dvo;
+package com.kyowon.sms.wells.web.withdrawal.interfaces.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
