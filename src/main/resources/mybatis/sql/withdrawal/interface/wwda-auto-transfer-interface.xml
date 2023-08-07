@@ -469,9 +469,28 @@
               ON C1.DTA_DL_YN = 'N'
              AND C1.SUBOD_CNTR_NO = B1.CNTR_NO
              AND C1.SUBOD_CNTR_SN = B1.CNTR_SN
-            JOIN TB_SSCT_CNTR_STLM_BAS D1 /*계약결제기본*/
-              ON D1.DTA_DL_YN = 'N'
-             AND D1.CNTR_NO = A1.CNTR_NO
+            JOIN (
+                   SELECT D2.DTL_CNTR_NO CNTR_NO
+                        , D2.DTL_CNTR_SN CNTR_SN
+                        , D2.DP_TP_CD
+                        , D3.BNK_CD
+                        , D3.ACNO_ENCR
+                        , D3.CRCDNO_ENCR
+                        , D3.CDCO_CD
+                        , D3.OWR_KNM
+                        , D3.MPY_BSDT
+                        , ROW_NUMBER() OVER(PARTITION BY D2.DTL_CNTR_NO, D2.DTL_CNTR_SN ORDER BY D2.VL_STRT_DTM DESC) AS RN
+                     FROM TB_SSCT_CNTR_STLM_REL D2
+                     JOIN TB_SSCT_CNTR_STLM_BAS D3 /* 계약결제기본 */
+                       ON D3.CNTR_STLM_ID = D2.CNTR_STLM_ID
+                      AND D3.DTA_DL_YN = 'N'
+                    WHERE D2.DTA_DL_YN = 'N'
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN D2.VL_STRT_DTM AND D2.VL_END_DTM
+                      AND D2.VL_END_DTM = '99991231235959'
+                 ) D1  /*계약결제기본*/
+              ON D1.RN = 1
+             AND D1.CNTR_NO = B1.CNTR_NO
+             AND D1.CNTR_SN = B1.CNTR_SN
            WHERE A1.DTA_DL_YN = 'N'
              AND A1.CNTR_CAN_DTM IS NULL
              AND A1.CNTR_CST_NO = #{cstNo}

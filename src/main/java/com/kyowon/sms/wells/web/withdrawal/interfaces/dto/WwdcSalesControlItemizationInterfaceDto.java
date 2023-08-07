@@ -4,7 +4,9 @@ import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
+import org.apache.commons.lang.StringUtils;
 
 public class WwdcSalesControlItemizationInterfaceDto {
 
@@ -25,7 +27,6 @@ public class WwdcSalesControlItemizationInterfaceDto {
     /* Wells 매출조정 내역 조회 Result Dto */
     @ApiModel("WwdcSalesControlItemizationInterfaceDto-SearchRes")
     public record SearchRes(
-
         @JsonProperty("CNTR_NO")
         String cntrNo, // 계약번호
         @JsonProperty("CNTR_SN")
@@ -46,6 +47,9 @@ public class WwdcSalesControlItemizationInterfaceDto {
         String aftnRsCd, // 자동이체결과코드
         @JsonProperty("AFTN_RS_NM")
         String aftnRsNm // 자동이체결과명
-
-    ) {}
+    ) {
+        public SearchRes {
+            fntAcCardno = StringUtils.isNotEmpty(fntAcCardno) ? DbEncUtil.dec(fntAcCardno) : fntAcCardno;
+        }
+    }
 }
