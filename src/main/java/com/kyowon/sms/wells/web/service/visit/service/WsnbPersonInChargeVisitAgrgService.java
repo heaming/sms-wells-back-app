@@ -21,10 +21,6 @@ public class WsnbPersonInChargeVisitAgrgService {
         return mapper.selectPersonInChargeVisitAgrgs(dto);
     }
 
-    public List<SearchRes> getPersonInChargeVisitAgrgExcelDownload(SearchReq dto) {
-        return mapper.selectPersonInChargeVisitAgrgs(dto);
-    }
-
     public List<FindBldRes> getBuildings() {
         return mapper.selectBuildings();
     }

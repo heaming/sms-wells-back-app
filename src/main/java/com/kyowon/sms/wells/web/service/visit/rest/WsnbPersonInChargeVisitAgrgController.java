@@ -50,25 +50,6 @@ public class WsnbPersonInChargeVisitAgrgController {
         return service.getPersonInChargeVisitAgrgs(dto);
     }
 
-    @ApiOperation(value = "담당자별 정기방문 처리 집계표(엑셀 다운로드) ", notes = "조회조건에 일치하는 담당자별 정기방문 처리 집계표 데이터를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "mngrDvCd", value = "관리구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "startDt", value = "처리시작일자", paramType = "query", required = true),
-        @ApiImplicitParam(name = "endDt", value = "처리종료일자", paramType = "query", required = true),
-        @ApiImplicitParam(name = "dgr1LevlOgId", value = "총괄단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr2LevlOgId", value = "지역단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr3LevlOgId", value = "지점", paramType = "query"),
-        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
-        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query"),
-        @ApiImplicitParam(name = "bldCd", value = "빌딩코드", paramType = "query"),
-        @ApiImplicitParam(name = "exceptWellsManagerYn", value = "웰스매니저 미관리 제외", paramType = "query"),
-    })
-    @GetMapping("/excel-download")
-    public List<SearchRes> excelDownload(SearchReq dto) {
-        return service.getPersonInChargeVisitAgrgExcelDownload(dto);
-    }
-
     @ApiOperation(value = "빌딩 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/buildings")
     public List<FindBldRes> getBuildings() {
