@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.competence.lecture.rest;
 
+import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLectureDto;
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLecturerDto.SaveReq;
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLecturerDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLecturerDto.SearchRes;
@@ -41,6 +42,18 @@ public class WpscLectureSpptLecturerController {
         PageInfo pageInfo
     ) {
         return service.getLectureSpptLecturerPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "강의지원 강사 리스트 조회", notes = "")
+    @ApiImplicitParams(value = {
+         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", required = true),
+     })
+    @GetMapping()
+    List<SearchRes> getLectureSpptLecturer (
+        @Valid
+        SearchReq dto
+    ){
+        return service.getLectureSpptLecturer(dto);
     }
 
     @ApiOperation(value = "강의지원 강사관리 - 저장 ", notes = "강사 저장")

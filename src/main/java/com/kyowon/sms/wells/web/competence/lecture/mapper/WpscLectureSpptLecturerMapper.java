@@ -7,6 +7,8 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 @Mapper
 public interface WpscLectureSpptLecturerMapper {
 
@@ -14,6 +16,7 @@ public interface WpscLectureSpptLecturerMapper {
         SearchReq dto,
         PageInfo pageInfo
     );
+    List<SearchRes> selectLectureSpptLecturerPages(SearchReq dto);
 
     int insertLecturerMngtHist(WpscLectureSpptLecturerDvo dvo);
     int insertLecturerMngt(WpscLectureSpptLecturerDvo dvo);
