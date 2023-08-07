@@ -46,6 +46,8 @@
         INSERT INTO TB_SVPD_PDLV_BAS
              ( PDLV_NO
              , PDLV_DV_CD
+             , APY_STRTDT
+             , APY_ENDDT
              , PDLV_NM
              , ZIP
              , PDLV_ADR
@@ -59,6 +61,8 @@
             VALUES
              ( #{pdlvNo}
              , #{pdlvDvCd}
+             , #{apyStrtdt}
+             , #{apyEnddt}
              , #{pdlvNm}
              , #{zip}
              , #{pdlvAdr}
@@ -73,10 +77,11 @@
 
     <insert id="insertPlaceOfDeliveryHistory">
         INSERT INTO TB_SVPD_PDLV_HIST
-             ( PDLV_NO
+             ( PDLV_DV_CD
+             , PDLV_NO
+             , PDLV_SN
              , APY_STRTDT
              , APY_ENDDT
-             , PDLV_DV_CD
              , PDLV_NM
              , ZIP
              , PDLV_ADR
@@ -88,10 +93,14 @@
               <include refid="COMMON.insertSystemField"/>
              )
         VALUES
-             ( #{pdlvNo}
+             ( #{pdlvDvCd}
+             , #{pdlvNo}
+             , (SELECT MAX(NVL(PDLV_SN, 0)) +1
+                  FROM TB_SVPD_PDLV_HIST
+                 WHERE PDLV_DV_CD = #{pdlvDvCd}
+                   AND PDLV_NO = #{pdlvNo})
              , #{apyStrtdt}
-             , '99991231'
-             , #{pdlvDvCd}
+             , #{apyEnddt}
              , #{pdlvNm}
              , #{zip}
              , #{pdlvAdr}
@@ -106,6 +115,7 @@
 
     <select id="selectPlaceOfDeliveryByPk" resultType="com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo">
         SELECT PDLV_NO
+             , PDLV_DV_CD
              , DTA_DL_YN AS DATA_DL_YN
         FROM TB_SVPD_PDLV_BAS
        WHERE PDLV_NO = #{pdlvNo}
@@ -145,9 +155,11 @@
 
     <update id="updatePlaceOfDelivery">
         UPDATE TB_SVPD_PDLV_BAS
-           SET PDLV_NM      = #{pdlvNm}
+           SET PDLV_NM    = #{pdlvNm}
+             , APY_STRTDT = #{apyStrtdt}
+             , APY_ENDDT  = #{apyEnddt}
              , CNR_OG_ID  = #{cnrOgId}
-             , DTA_DL_YN = 'N'
+             , DTA_DL_YN  = 'N'
               <include refid="COMMON.updateSystemField"/>
          WHERE PDLV_NO    = #{pdlvNo}
            AND PDLV_DV_CD = #{pdlvDvCd}
