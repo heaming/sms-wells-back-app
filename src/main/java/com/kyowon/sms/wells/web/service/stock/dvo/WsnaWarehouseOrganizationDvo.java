@@ -40,7 +40,8 @@ public class WsnaWarehouseOrganizationDvo {
     private String apyEnddt; /* 적용종료일자 */
     private String dtaDlYn; /* 데이터삭제여부 */
     private String rmkCn; /* 비고내용 */
-    private String baseYm; /*기준년월*/
+    private String baseYm; /* 기준년월 */
+    String orglhgrWareNo; /* 기존상위창고번호 */
     String fstRgstDt; /* 최초등록일 */
     String fstRgstDtm; /* 최초등록일시 */
     String fstRgstUsrId; /* 최초등록사용자ID */

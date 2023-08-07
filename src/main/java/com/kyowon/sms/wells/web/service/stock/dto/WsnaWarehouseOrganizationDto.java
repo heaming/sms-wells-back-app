@@ -94,6 +94,7 @@ public class WsnaWarehouseOrganizationDto {
         String bldCd, // 빌딩코드
         String bldCdNm, //빌딩코드명
         String wareAdrId, // 창고주소ID
+        String sortDvVal, // 정렬구분값
         String rnadr,
         String rdadr,
         String newAdrZip,
@@ -140,12 +141,13 @@ public class WsnaWarehouseOrganizationDto {
         String dgr1LevlOgId, // 1차조직레벨ID
         String dgr1LevlOgNm, // 1차조직레벨명
         String dgr2LevlOgId, // 2차조직레벨ID
-        String dgr2LevlOgNm // 2차조직레벨명
+        String dgr2LevlOgNm, // 2차조직레벨명
+        String sortDvVal, // 정렬구분값
+        String orglhgrWareNo // 기존상위창고번호
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchWarehouseReq")
     public record SearchWarehouseReq(
-        @NotBlank
         String ogId, // 조직ID
         @NotBlank
         String wareDvCd, // 창고구분코드
@@ -156,25 +158,26 @@ public class WsnaWarehouseOrganizationDto {
     @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchWarehouseRes")
     public record SearchWarehouseRes(
         String codeId,
-        String codeName
+        String codeName,
+        String sortDvVal // 정렬구분값
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchBuildingReq")
     public record SearchBuildingReq(
-        String dgr1LevlOgId, //1차레벨 조직ID
-        String dgr2LevlOgId //2차레벨 조직ID
+        String dgr1LevlOgId, // 1차레벨 조직ID
+        String dgr2LevlOgId // 2차레벨 조직ID
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchBuildingRes")
     public record SearchBuildingRes(
-        String bldCd, //빌딩코드
-        String bldCdNm, //빌딩코드명
-        String bldNm, //빌딩명
+        String bldCd, // 빌딩코드
+        String bldCdNm, // 빌딩코드명
+        String bldNm, // 빌딩명
         String bldAdr, // 빌딩주소
-        String adrId, //주소 id
-        String rnadr, //도로명주소
+        String adrId, // 주소ID
+        String rnadr, // 도로명주소
         String rdadr, // 도로명주소상세
-        String newAdrZip //신주소우편번호
+        String newAdrZip // 신주소우편번호
     ) {}
 
 }
