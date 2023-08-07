@@ -1,18 +1,19 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleSubscriptionCustomerDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleSubscriptionCustomerDto.SaveReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleSubscriptionCustomerDto.SaveRes;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcAsnDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncCapsuleSubscriptionCustomerDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCapsuleSubscriptionCustomerMapper;
-
-import java.util.List;
-
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbCustomerRglrBfsvcDlService;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
+
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ public class WsncCapsuleSubscriptionCustomerService {
 
     private final WsncRegularBfsvcAsnService service3;
 
-    public int saveCapsuleSubscriptionCustomer(WsncCapsuleSubscriptionCustomerDto.SearchReq req) throws Exception {
+    public SaveRes saveCapsuleSubscriptionCustomer(SaveReq req) throws Exception {
 
         int updateCount = 0;
 
@@ -99,7 +100,7 @@ public class WsncCapsuleSubscriptionCustomerService {
 
         }
 
-        return updateCount;
+        return new SaveRes("S001", String.valueOf(updateCount));
     }
 
 }
