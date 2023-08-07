@@ -6,6 +6,9 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizati
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.SaveReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaTransferMaterialsDataDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaTransferMaterialsHgrDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaTransferMaterialsIostDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseOrganizationDvo;
 
 /**
@@ -25,5 +28,9 @@ public interface WsnaWarehouseOrganizationConverter {
     FindRes mapWsnaWarehouseOgDvoToFindRes(WsnaWarehouseOrganizationDvo dvo);
 
     WsnaWarehouseOrganizationDvo mapSaveReqToWsnaWarehouseOgDvo(SaveReq dto);
+
+    WsnaTransferMaterialsIostDvo mapDataDvoToIostDvo(WsnaTransferMaterialsDataDvo transferDvo);
+
+    WsnaTransferMaterialsHgrDvo mapDataDvoToHgrDvo(WsnaTransferMaterialsDataDvo dataDvo);
 
 }
