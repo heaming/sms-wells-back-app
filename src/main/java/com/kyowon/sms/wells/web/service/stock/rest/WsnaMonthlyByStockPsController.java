@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaMonthlyByStockPsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -57,8 +59,8 @@ public class WsnaMonthlyByStockPsController {
         return this.service.getMonthlyStateWareHouses(dto);
     }
 
-    @GetMapping
-    @ApiOperation(value = "월별 재고현황 조회", notes = "월별 재고현황을 조회한다.")
+    @GetMapping("/paging")
+    @ApiOperation(value = "월별 재고현황 페이징 조회", notes = "월별 재고현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202308", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
@@ -74,9 +76,32 @@ public class WsnaMonthlyByStockPsController {
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
     })
-    public List<SearchRes> getMonthlyByStocksState(@Valid
+    public PagingResult<SearchRes> getMonthlyByStocksStatePaging(@Valid
+    SearchReq dto, @Valid
+    PageInfo pageInfo) {
+        return this.service.getMonthlyByStocksStatePaging(dto, pageInfo);
+    }
+
+    @GetMapping("/excel-download")
+    @ApiOperation(value = "월별 재고현황 엑셀 다운로드", notes = "조회조건에 해당하는 월별 재고현황을 엑셀 다운로드 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202308", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "hgrWareNo", value = "상위창고번호", paramType = "query", example = "200609"),
+        @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "200898"),
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "21"),
+        @ApiImplicitParam(name = "itmGdCd", value = "상품등급코드", paramType = "query", example = "A"),
+        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "4"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목코드 리스트", paramType = "query", example = "[WM07102157]"),
+        @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07102157"),
+        @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
+        @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
+        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+    })
+    public List<SearchRes> getMonthlyByStocksStateExcelDownload(@Valid
     SearchReq dto) {
-        return this.service.getMonthlyByStocksState(dto);
+        return this.service.getMonthlyByStocksStateExcelDownload(dto);
     }
 
 }
