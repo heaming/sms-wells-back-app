@@ -1,11 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
-import javax.validation.constraints.NotBlank;
-
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+
+import javax.validation.constraints.NotBlank;
 
 public class WsnaStockStatusControlDto {
     // *********************************************************
@@ -48,7 +46,8 @@ public class WsnaStockStatusControlDto {
         String afctItmGdCd,
         int ctrQty,
         String itmGdCtrRsonNm,
-        String ctrSn
+        String ctrSn,
+        String rmkCn
     ) {}
 
     @ApiModel("WsnaStockStatusControlDto-SearchWarehouseReq")
@@ -94,4 +93,87 @@ public class WsnaStockStatusControlDto {
         String itmKnd,
         String wareNo
     ) {}
+
+    @ApiModel("WsnaStockStatusControlDto-SearchStatusProductReq")
+    public record SearchStatusProductReq(
+        String itmKnd,
+        String stFromYmd,
+        String wareDvCd
+    ) {}
+
+    @ApiModel("WsnaStockStatusControlDto-SearchPdCdQtyReq")
+    public record SearchPdCdQtyReq(
+        String itmKnd,
+        String stFromYmd,
+        String wareNo,
+        String itmPdCd
+    ) {}
+
+    @ApiModel("WsnaStockStatusControlDto-SearchPdCdQtyRes")
+    public record SearchPdCdQtyRes(
+        String pitmStocAGdQty,
+        String pitmStocEGdQty,
+        String pitmStocRGdQty,
+        String itmPdCd,
+        String itmKnd,
+        String mgtUnit
+
+    ) {}
+
+    @ApiModel("WsnaStockStatusControlDto-SaveReq")
+    public record SaveReq(
+        @NotBlank
+        String rowState,
+        String wareNo,
+        String wareNm,
+        String wareMngtPrtnrNo,
+        String wareDvCd,
+        String ogNm,
+        String itemKnd,
+        String ctrWkDt,
+        String statCtrApyDt,
+        String itmPdCd,
+        String itmGdCtrTpNm,
+        String itmPdNm,
+        String mgtUnit,
+        int bfctNomStocAGdQty,
+        int bfctNomStocEGdQty,
+        int bfctNomStocRGdQty,
+        String bfctItmGdCd,
+        String afctItmGdCd,
+        @NotBlank
+        int ctrQty,
+        String itmGdCtrRsonNm,
+        String ctrSn,
+        String rmkCn
+    ) {}
+
+    @ApiModel("WsnaStockStatusControlDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
+        String rowState,
+        String wareNo,
+        String wareNm,
+        String wareMngtPrtnrNo,
+        String wareDvCd,
+        String ogNm,
+        String itemKnd,
+        String ctrWkDt,
+        String statCtrApyDt,
+        String itmPdCd,
+        String itmGdCtrTpNm,
+        String itmPdNm,
+        String mgtUnit,
+        int bfctNomStocAGdQty,
+        int bfctNomStocEGdQty,
+        int bfctNomStocRGdQty,
+        String bfctItmGdCd,
+        String afctItmGdCd,
+        @NotBlank
+        int ctrQty,
+        String itmGdCtrRsonNm,
+        String ctrSn,
+        String rmkCn
+    ) {}
+
 }
