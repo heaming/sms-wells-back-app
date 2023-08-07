@@ -38,11 +38,7 @@ public class WfeaPlannerFeeMeetingAttendanceService {
 
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
 
-        String userId = userSession.getUserId();
-        String tenantId = userSession.getTenantId();
-
         int processCount = 0;
-
         WfeaPlannerFeeMeetingAttendanceDvo dvo = converter.mapSaveReqToWfeaPlannerFeeMeetingAttendanceDvo(dto);
 
         mapper.deletePlannerFeeMeetingAttendances(dvo);
