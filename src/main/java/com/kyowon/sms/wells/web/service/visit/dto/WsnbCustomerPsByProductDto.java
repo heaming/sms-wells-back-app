@@ -26,6 +26,7 @@ public class WsnbCustomerPsByProductDto {
         String pdNm,
         String newAdrZip,
         String brchOgId,
+        String brchOgCd,
         String brchOgNm,
         String ogNm,
         String addr,
@@ -49,8 +50,8 @@ public class WsnbCustomerPsByProductDto {
         String hmnrscDeptCd,
         String prtnrKnm,
         String prtnrNo,
-        String dlqAcuMsn,
-        String trnOverRtOjYn,
+        String dlqAcuMcn,
+        String trnOvrRtOjYn,
         String cmnPartDvCd,
         String ordnyHvMatYn
     ) {
