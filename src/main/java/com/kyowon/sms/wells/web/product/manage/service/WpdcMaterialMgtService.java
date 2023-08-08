@@ -246,17 +246,34 @@ public class WpdcMaterialMgtService {
         int rowIndex = 1;
         for (Map<String, Object> excelDataMap : excelData) {
 
+            // #1. 분류체계 유효성 체크
+            String compareValue = this.getExcelValue(excelDataMap.get("pdClsfId"));
+            if (null == clsfService.getClassification(compareValue)) {
+                ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+                errorVo.setHeaderName("분류");
+                errorVo.setErrorRow(rowIndex);
+                errorVo.setErrorData(
+                    messageResourceService.getMessage("MSG_ALT_DELETED_CLSF_ID", new String[] {compareValue})
+                );
+                dataErrors.add(errorVo);
+            }
+
             for (Entry<String, Object> entry : excelDataMap.entrySet()) {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
-
+                    /*
                     if (entry.getKey().equals(PdProductConst.SAP_MAT_CD)
                         && PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm())) {
+
+                        String sapPlntVal = getExcelValue2(excelDataMap, tbPdbsPdBas, PdProductConst.SAP_PLNT_VAL);
+
                         this.checkExcelValidation(
-                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_DB
+                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_DB, sapPlntVal
                         );
-                    } else if (entry.getKey().equals(metaVo.getColNm())) {
+                    } else
+                    */
+                    if (entry.getKey().equals(metaVo.getColNm())) {
                         this.checkExcelValidation(
-                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_META
+                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_META, null
                         );
                     }
                 }
@@ -264,7 +281,7 @@ public class WpdcMaterialMgtService {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdEcomPrpDtl) {
                     if (entry.getKey().equals(metaVo.getColNm())) {
                         this.checkExcelValidation(
-                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_META
+                            entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_META, null
                         );
                     }
                 }
@@ -287,7 +304,8 @@ public class WpdcMaterialMgtService {
         ZpdcPropertyMetaDvo metaVo,
         int rowIndex,
         List<ExcelUploadErrorDvo> dataErrors,
-        String validationTarget
+        String validationTarget,
+        String optionVal
     ) {
 
         String compareValue = StringUtil.nvl2(entry.getValue().toString(), "");
@@ -303,7 +321,11 @@ public class WpdcMaterialMgtService {
                 if (!"".equals(compareValue)) {
                     // 넘어온 자재코드 값이 I/F 테이블에 존재하는지 확인.
                     //                    ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
-                    List<ZpdcGbcoSapMatDvo> sapMatVos = mapper.selectMaterialSaps(compareValue);
+
+                    //                    String sapPlntVal = getExcelValue2(excelDataMap, metaVo, PdProductConst.SAP_PLNT_VAL);
+
+                    System.out.println("optionValoptionValoptionValoptionVal : " + optionVal);
+                    List<ZpdcGbcoSapMatDvo> sapMatVos = mapper.selectMaterialSaps(compareValue, optionVal);
 
                     if (sapMatVos.isEmpty()) {
                         ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
@@ -430,23 +452,33 @@ public class WpdcMaterialMgtService {
             ZpdcProductDvo dvo = objectMapper.convertValue(masterMap, ZpdcProductDvo.class);
 
             // 230303 자재코드가 들어오면 UI와 동일하게 자동으로 Fill-In
+            boolean isResetSapMaterial = false;
             if (StringUtil.isNotEmpty(dvo.getSapMatCd())) {
-                // TODO 조회쿼리 한방 날리고 값들 채우고!!! 여기부터 시작!!!!
-                ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(dvo.getSapMatCd());
 
-                //                dvo.setModelNo(sapMatVo.getModelNo());
-                dvo.setSapPdctSclsrtStrcVal(sapMatVo.getSapPdctSclsrtStrcVal());
-                dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
-                dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
-                dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
-                dvo.setSapMatTpVal(sapMatVo.getSapMatTpVal());
+                String sapPlntVal = this.getExcelValue(dvo.getSapPlntCd());
+                List<ZpdcGbcoSapMatDvo> sapMatVoList = mapper.selectMaterialSaps(dvo.getSapMatCd(), sapPlntVal);
+
+                if (sapMatVoList.size() == 1) {
+                    // dvo.setModelNo(sapMatVo.getModelNo());
+                    dvo.setSapPdctSclsrtStrcVal(sapMatVoList.get(0).getSapPdctSclsrtStrcVal());
+                    dvo.setSapPlntCd(sapMatVoList.get(0).getSapPlntVal());
+                    dvo.setSapMatEvlClssVal(sapMatVoList.get(0).getSapMatEvlClssVal());
+                    dvo.setSapMatGrpVal(sapMatVoList.get(0).getSapMatGrpVal());
+                    dvo.setSapMatTpVal(sapMatVoList.get(0).getSapMatTpVal());
+                } else {
+                    isResetSapMaterial = true;
+                }
             } else {
+                isResetSapMaterial = true;
+            }
+
+            if (isResetSapMaterial) {
                 //                dvo.setModelNo(null);
                 dvo.setSapPdctSclsrtStrcVal(null);
                 dvo.setSapPlntCd(null);
                 dvo.setSapMatEvlClssVal(null);
                 dvo.setSapMatGrpVal(null);
-                dvo.setSapMatTpVal(null); // 자재유형값
+                dvo.setSapMatTpVal(null);
             }
 
             // #1. 상품 마스터 INSERT
@@ -541,6 +573,31 @@ public class WpdcMaterialMgtService {
 
     }
 
+    //    public String getExcelValue2(
+    //        Map<String, Object> excelDataMap,
+    //        List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
+    //        String ColumnValue
+    //    ) {
+    //        String compareValue = null;
+    //        for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+    //            for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
+    //
+    //                if (PdProductConst.SAP_PLNT_VAL.equals(metaVo.getColNm())) {
+    //                    if (ColumnValue.equals(metaVo.getColNm())) {
+    //
+    //                        StringUtil.nvl2(entry.getValue().toString(), "");
+    //                        if (compareValue.split("\\|").length > 1) {
+    //                            compareValue = compareValue.split("\\|")[1].trim();
+    //                        }
+    //
+    //                    }
+    //                }
+    //            }
+    //        }
+    //
+    //        return compareValue;
+    //    }
+
     /**
      * 유효성 체크 조회
      * @param dto
@@ -550,4 +607,11 @@ public class WpdcMaterialMgtService {
         return this.mapper.selectValidation(dto);
     }
 
+    public String getExcelValue(Object obj) {
+        String compareValue = StringUtil.nvl2(obj.toString(), "");
+        if (compareValue.split("\\|").length > 1) {
+            compareValue = compareValue.split("\\|")[1].trim();
+        }
+        return compareValue;
+    }
 }
