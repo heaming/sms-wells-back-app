@@ -573,30 +573,30 @@ public class WpdcMaterialMgtService {
 
     }
 
-    public String getExcelValue2(
-        Map<String, Object> excelDataMap,
-        List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
-        String ColumnValue
-    ) {
-        String compareValue = null;
-        for (Entry<String, Object> entry : excelDataMap.entrySet()) {
-            for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
-
-                if (PdProductConst.SAP_PLNT_VAL.equals(metaVo.getColNm())) {
-                    if (ColumnValue.equals(metaVo.getColNm())) {
-
-                        StringUtil.nvl2(entry.getValue().toString(), "");
-                        if (compareValue.split("\\|").length > 1) {
-                            compareValue = compareValue.split("\\|")[1].trim();
-                        }
-
-                    }
-                }
-            }
-        }
-
-        return compareValue;
-    }
+    //    public String getExcelValue2(
+    //        Map<String, Object> excelDataMap,
+    //        List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
+    //        String ColumnValue
+    //    ) {
+    //        String compareValue = null;
+    //        for (Entry<String, Object> entry : excelDataMap.entrySet()) {
+    //            for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
+    //
+    //                if (PdProductConst.SAP_PLNT_VAL.equals(metaVo.getColNm())) {
+    //                    if (ColumnValue.equals(metaVo.getColNm())) {
+    //
+    //                        StringUtil.nvl2(entry.getValue().toString(), "");
+    //                        if (compareValue.split("\\|").length > 1) {
+    //                            compareValue = compareValue.split("\\|")[1].trim();
+    //                        }
+    //
+    //                    }
+    //                }
+    //            }
+    //        }
+    //
+    //        return compareValue;
+    //    }
 
     /**
      * 유효성 체크 조회
