@@ -13,6 +13,7 @@ import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,11 +40,12 @@ public class WsncCapsuleSubscriptionCustomerService {
 
     private final WsncRegularBfsvcAsnService service3;
 
-    public SaveRes saveCapsuleSubscriptionCustomer(SaveReq req) throws Exception {
+    public void saveCapsuleSubscriptionCustomer(Map<String, String> map) throws Exception {
 
         int updateCount = 0;
+        String baseYmd = map.get("PARAM1");
 
-        List<WsncCapsuleSubscriptionCustomerDvo> res = mapper.selectCapsuleRglrPrchsCsts(req.baseYmd());
+        List<WsncCapsuleSubscriptionCustomerDvo> res = mapper.selectCapsuleRglrPrchsCsts(baseYmd);
         for (WsncCapsuleSubscriptionCustomerDvo row : res) {
 
             if (StringUtil.isEmpty(row.getCntrCanDtm())) { /* 주기표 강제 생성 */
@@ -55,7 +57,7 @@ public class WsncCapsuleSubscriptionCustomerService {
                     new WsnbIndividualVisitPrdDto.SearchProcessReq(
                         row.getCntrNo(),
                         row.getCntrSn(),
-                        req.baseYmd(),
+                        baseYmd,
                         "",
                         "",
                         "",
@@ -100,7 +102,7 @@ public class WsncCapsuleSubscriptionCustomerService {
 
         }
 
-        return new SaveRes("S001", String.valueOf(updateCount));
+        //return new SaveRes("S001", String.valueOf(updateCount));
     }
 
 }
