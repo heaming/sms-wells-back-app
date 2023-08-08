@@ -29,26 +29,18 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcaMembershipCheckController {
     private final WdcaMembershipCheckService service;
 
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "deptGubun", value = "조직선택", paramType = "query")
-    })
     @ApiOperation(value = "체크리스트(전) 페이징 조회", notes = "조직선택 값으로 체크리스트(전) 목록 조회")
 
     @GetMapping("/membership-check-before/paging")
     public PagingResult<SearchRes> getBeforePages(
-        @RequestParam
-        String deptGubun,
         PageInfo pageInfo
     ) {
-        return service.getBeforePages(deptGubun, pageInfo);
+        return service.getBeforePages(pageInfo);
     }
 
     @GetMapping("/membership-check-before/excel-download")
-    public List<SearchRes> getBeforeForExcelDownload(
-        @RequestParam
-        String deptGubun
-    ) {
-        return service.getBeforeForExcelDownload(deptGubun);
+    public List<SearchRes> getBeforeForExcelDownload() {
+        return service.getBeforeForExcelDownload();
     }
 
     @ApiImplicitParams(value = {

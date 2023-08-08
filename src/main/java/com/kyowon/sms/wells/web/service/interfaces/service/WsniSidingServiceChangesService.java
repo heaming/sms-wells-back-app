@@ -10,16 +10,9 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbCustomerRglrBfsvcDlService;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdService;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +27,7 @@ public class WsniSidingServiceChangesService {
 
     /**
      * <pre>
-     * PR_KIWI_FARM_CHANGE
+     * W-SV-S-0010 PR_KIWI_FARM_CHANGE
      * </pre>
      *
      * @author gs.piit122

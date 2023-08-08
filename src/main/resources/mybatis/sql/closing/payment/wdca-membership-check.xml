@@ -39,12 +39,11 @@
                   ON T6.DTA_DL_YN = 'N'
                  AND T6.CNTR_NO   = T4.OJ_DTL_CNTR_NO
                  AND T6.CNTR_SN   = T4.OJ_DTL_CNTR_SN
-         WHERE 1 = 1
-           AND T1.DTA_DL_YN         = 'N'           /*데이터삭제여부*/
-           AND T1.SELL_TP_CD        = '3'           /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           AND T1.SELL_TP_DTL_CD    IN ('31', '32') /*판매유형상세코드 [31:일시불 멤버십, 32:렌탈 멤버십]*/
+         WHERE T1.DTA_DL_YN       = 'N'           /*데이터삭제여부*/
+           AND T1.SELL_TP_CD      = '3'           /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND T1.SELL_TP_DTL_CD  IN ('31', '32') /*판매유형상세코드 [31:일시불 멤버십, 32:렌탈 멤버십]*/
            AND T1.CNTR_DTL_STAT_CD <![CDATA[<>]]> '401'        /*계약상세상태코드[401:최종종료]*/
-           AND T3.CNTR_CNFM_DTM IS NOT NULL         /*계약확정일시*/
+           AND T3.CNTR_CNFM_DTM   IS NOT NULL         /*계약확정일시*/
            AND ( T5.CNTR_CAN_DTM  IS NOT NULL       /*계약취소일시*/
               OR T6.CPS_DT        IS NOT NULL       /*보상일자*/
                )
@@ -61,7 +60,7 @@
              , T4.ISTM_MCN                              AS COL9 /*할부개월수*/
              , 'R'                                      AS COL10 /*H:할부 R:렌탈 회사설치:C*/
              , CASE WHEN SUBSTR(T2.IST_DT, 5, 4) <![CDATA[>=]]> SUBSTR(T2.REQD_DT, 5, 4) THEN '만료취소'
-                    ELSE 'X' END                           AS COL11
+                    ELSE 'X' END AS COL11
           FROM TB_SSCT_CNTR_DTL T1 /*계약기본상세 [AS-IS:LCLIB.LC3100P] -- 렌탈계약*/
                INNER JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세 [AS-IS:LCLIB.LC3100P]*/
                   ON T2.DTA_DL_YN = 'N' /*데이터삭제여부*/
@@ -78,25 +77,15 @@
                   ON T5.DTA_DL_YN = 'N' /*데이터삭제여부*/
                  AND T5.CNTR_NO   = T1.CNTR_NO
                  AND T5.CNTR_SN   = T1.CNTR_SN
-        --               INNER JOIN TB_SSCT_CNTR_REL T5 /*계약관계 [AS-IS:LC3100P Vs LC3500P]*/
-        --                  ON T5.DTA_DL_YN = 'N'
-        --                 AND T5.CNTR_UNIT_TP_CD = '20' /*계약관계유형코드 [20:연계상품계약관계]*/
-        --                 AND T5.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:멤버쉽-원주문]*/
-        --                 AND ( ( T5.CNTR_UNIT_TP_CD = '010' /*계약단위유형코드 [010:계약]*/
-        --                     AND T5.OJ_CNTR_NO = T1.CNTR_NO )
-        --                    OR ( T5.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [020:계약상세]*/
-        --                     AND T5.OJ_DTL_CNTR_NO = T1.CNTR_NO
-        --                     AND T5.OJ_DTL_CNTR_SN = T1.CNTR_SN )
-        --                     )
-         WHERE T1.DTA_DL_YN             = 'N'                                        /*데이터삭제여부*/
-           AND T1.SELL_TP_CD            = '2'                                        /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+         WHERE T1.DTA_DL_YN       = 'N'                                        /*데이터삭제여부*/
+           AND T1.SELL_TP_CD      = '2'                                        /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
            AND ( T1.CNTR_DTL_STAT_CD NOT IN ('401', '402')        /*계약상세상태코드[401:최종종료]*/
               OR T2.REQD_DT      IS NULL                                             /*철거일자*/
                )
            AND T5.REQD_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%' /*철거일자*/
            AND T3.CNTR_CNFM_DTM IS NOT NULL                                          /*계약확정일시*/
-           AND T4.SL_CL_YM              = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-           AND T4.ISTM_MCN              = T4.RENTAL_TN
+           AND T4.SL_CL_YM       = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND T4.ISTM_MCN       = T4.RENTAL_TN
         UNION ALL
         -- 31. (회사설치) 멤버탈퇴가 되어야하는데 안 된 건 찾기 / 특이사항 : 영업부에서만 조회
         SELECT T3.BASE_DTL_CNTR_NO || '-' || T3.BASE_DTL_CNTR_SN    AS COL1 /*계약번호 || '-' || 계약일련번호*/ -- ☆☆필요 시 형변환 -> 계약번호 VCHAR + 계약일번호 NUM
@@ -132,8 +121,7 @@
                  AND T5.CNTR_NO   = T3.BASE_DTL_CNTR_NO
                  AND T5.CNTR_SN   = T3.BASE_DTL_CNTR_SN
                  AND T5.REQD_DT IS NOT NULL /*취소일자 존재*/
-          WHERE 1 = 1
-            AND T1.DTA_DL_YN     = 'N'        /*데이터삭제여부*/
+          WHERE T1.DTA_DL_YN     = 'N'        /*데이터삭제여부*/
             AND T1.SELL_TP_CD    = '4'        /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]
             AND T2.REQD_DT       IS NOT NULL  /*취소일자*/
             AND T2.CPS_DT        IS NOT NULL  /*보상일자*/

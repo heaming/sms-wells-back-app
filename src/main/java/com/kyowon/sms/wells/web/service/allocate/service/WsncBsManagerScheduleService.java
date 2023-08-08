@@ -37,4 +37,17 @@ public class WsncBsManagerScheduleService {
     ) {
         return mapper.selectBsScheduleDatePages(dto, pageInfo);
     }
+
+    public List<WsncBsManagerScheduleDto.Weekres> getWeeksCodes(
+        WsncBsManagerScheduleDto.Weekreq dto
+    ) {
+        return mapper.selectWeeksCodes(dto);
+    }
+
+    public List<WsncBsManagerScheduleDto.Detailres> getBsScheduleDateDetail(
+        WsncBsManagerScheduleDto.Detailreq dto
+    ) {
+        return mapper.selectBsScheduleDateDetail(dto);
+    }
+
 }

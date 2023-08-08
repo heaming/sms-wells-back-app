@@ -42,7 +42,7 @@ public class WsnaMovementStoreController {
         @ApiImplicitParam(name = "ostrWareNoD", value = "출고창고번호디테일", paramType = "query"),
 
     })
-    @GetMapping()
+    @GetMapping
     public List<SearchRes> getMovementStores(
         @Valid
         SearchReq dto
@@ -68,7 +68,6 @@ public class WsnaMovementStoreController {
         return service.getMovementStoresExcelDownload(dto);
     }
 
-    //TODO: 확인필요
     @ApiOperation(value = "이동입고 관리 조회", notes = "조회조건에 해당하는 이동입고 관리 페이지를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "stStrDt", value = "입고시작일자", paramType = "query", example = "20211001", required = true),
@@ -86,7 +85,6 @@ public class WsnaMovementStoreController {
         return service.getMovementStrIzs(dto, pageInfo);
     }
 
-    //TODO: 확인필요
     @ApiOperation(value = "이동입고관리 엑셀 다운로드", notes = "조회조건에 해당하는 이동입고 현황을 엑셀다운로드 한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "stStrDt", value = "입고시작일자", paramType = "query", example = "20211001", required = true),
