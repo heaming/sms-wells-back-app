@@ -121,7 +121,8 @@ public class WsnaWarehouseOrganizationService {
             processCount += this.mapper.updateWarehouseOg(dvo); // 월별창고내역 UPDATE
 
             // 영업센터의 상위창고 변경 시 [W-SV-S-0092] 물량이동 수불데이터 생성 서비스 호출
-            if (BUSINESS.getCode().equals(dvo.getWareDvCd()) && !dvo.getOrglhgrWareNo().equals(dvo.getHgrWareNo())) {
+            if (BUSINESS.getCode().equals(dvo.getWareDvCd()) && dvo.getOrglhgrWareNo() != null
+                && !dvo.getOrglhgrWareNo().equals(dvo.getHgrWareNo())) {
                 // 고객서비스재고내역(TB_SVST_CST_SV_ITM_STOC_IZ)에서 현재 창고(WARE_NO)에 이동재고 A, B, E, R 등급수량 > 0 인 건수 조회
                 int mmtStockCnt = this.mapper.selectMmtStockCnt(dvo.getWareNo());
                 BizAssert.isTrue(mmtStockCnt == 0, "MSG_ALT_MMT_STOC_EXST_PROCS_IMPSB"); // "이동재고내역이 있어 처리가 불가능합니다."
