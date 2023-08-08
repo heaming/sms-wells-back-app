@@ -25,5 +25,4 @@ public class WsnbFeverbikeBiztalkController {
     public SaveResponse sendFeverbikeBiztalk() throws Exception {
         return SaveResponse.builder().processCount(service.sendFeverbikeBiztalk()).build();
     }
-
 }
