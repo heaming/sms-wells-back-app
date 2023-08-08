@@ -37,15 +37,12 @@ public class WsnbIndividualServicePsDto {
         String frisuAsPtrmN, /*무상AS개월수*/
         String frisuBfsvcPtrmN, /*무상BS개월수*/
         String pdUswy, /*용도구분*/
-        String sellTpCd,
         String sellTpNm, /*판매유형*/
-        String svTpCd,
         String svTpNm, /*서비스유형*/
         String cntrDt, /*계약일자*/
         String ogCd, /*지점코드*/
         String brmgrPrtnrNo, /*지점장사번*/
         String brmgrPrtnrNm, /*지점장*/
-        String alncmpNm, /* 제휴사명 */
         String asnDt, /*배정일자*/
         String sellChnl, /*판매채널*/
         String prtnrNo, /*판매자사번*/
