@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/healthcare-sms")
-@Api(tags = "[WSNC] 건강케어 알림톡 발송 , 설치 후 다음날 발송 안마의자, 웰스팜, 매트리스 RESET API")
+@Api(tags = "[WSNC]  W-SV-S-0038 건강케어 알림톡 발송 , 설치 후 다음날 발송 안마의자, 웰스팜, 매트리스 RESET API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
