@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsManagerScheduleMapper">
+    <!-- BS관리일정(일자별)  집계 조회  화면명 변경-->
+    <select id="selectBsScheduleDateAgrg"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto$Aggregates">
+        SELECT FST_CNTR_DT AS CNTR_DT
+             , RCNTR_DT AS RECNTR_DT
+             , OG_ID
+             , PRTNR_NO
+             , MNG_CNT AS MNGT_ACC
+             , VST_CNT AS VST_ACC
+             , WRK_CNT AS FSH_ACC
+             , (CASE WHEN VST_CNT > 0  THEN ROUND((WRK_CNT / VST_CNT) * 100, 1) ELSE 0 END) AS SVC_PROC
+          FROM (
+                SELECT FST_CNTR_DT
+                     , RCNTR_DT
+                     , OG_ID
+                     , PRTNR_NO
+                     , (SELECT COUNT(1)
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ AC201
+                         WHERE MNGT_YM = SUBSTR(#{baseDateFrom},1, 6)
+                           AND AC201.MNGT_PRTNR_NO = M1.PRTNR_NO
+                           AND DTA_DL_YN = 'N'
+                        ) MNG_CNT
+                     , (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                         WHERE ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+                           AND AC261.CNFM_PSIC_PRTNR_NO = M1.PRTNR_NO
+                           AND DTA_DL_YN = 'N'
+                        ) VST_CNT
+                    , (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                         WHERE ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+                           AND AC261.CNFM_PSIC_PRTNR_NO = M1.PRTNR_NO
+                           AND DTA_DL_YN = 'N'
+                           AND WK_EXCN_DT IS NOT NULL
+                           AND WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                        ) WRK_CNT
+                 FROM (
+                         SELECT FST_CNTR_DT
+                                , RCNTR_DT
+                                , OG_ID
+                                , PRTNR_NO
+                          FROM TB_OGBS_MM_PRTNR_IZ T1
+                               WHERE T1.BASE_YM = SUBSTR(#{baseDateFrom},1, 6)
+                                 AND T1.OG_TP_CD = 'W02'
+                                 AND T1.BZ_STAT_CD = '1'
+                                 AND T1.DTA_DL_YN = 'N'
+                                 AND PRTNR_NO =  #{fxnPrtnrNo}
+                           UNION ALL
+
+                          SELECT FST_CNTR_DT
+                                , RCNTR_DT
+                                , OG_ID
+                                , PRTNR_NO
+                              FROM TB_OGBS_MM_PRTNR_IZ T1
+                               WHERE T1.BASE_YM =  TO_CHAR(ADD_MONTHS(TO_DATE(  SUBSTR(#{baseDateFrom},1, 6), 'YYYYMM'),-1), 'YYYYMM')
+                                 AND T1.OG_TP_CD = 'W02'
+                                 AND T1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')||'%'
+                                 AND T1.DTA_DL_YN = 'N'
+                                 AND PRTNR_NO = #{fxnPrtnrNo}
+                       ) M1
+         )
+    </select>
+
+    <select id="selectBsScheduleDatePages"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto$SearchRes">
+        SELECT VST_CNFMDT AS VST_DT
+             , MAX(VST_CNFM_HH) AS VST_TM
+             , MAX(CST_KNM) AS CST_NM
+             , CNTR_NO AS CNTR_NO
+             , MAX(PDCT_PD_CD) AS PDCT_CD
+             , MAX(PD_NM) AS GOODS_NM
+             , MAX(HP_NO) AS MP_NO
+             , MAX(CASE WHEN RN = 1 THEN PART_NM ELSE '' END) AS PU_PART1
+             , MAX(CASE WHEN RN = 2 THEN PART_NM ELSE '' END) AS PU_PART2
+             , MAX(CASE WHEN RN = 3 THEN PART_NM ELSE '' END) AS PU_PART3
+             , MAX(CASE WHEN RN = 4 THEN PART_NM ELSE '' END) AS PU_PART4
+             , MAX(CASE WHEN RN = 5 THEN PART_NM ELSE '' END) AS PU_PART5
+             , MAX(CASE WHEN RN = 6 THEN PART_NM ELSE '' END) AS PU_PART6
+          FROM (
+                SELECT VST_CNFMDT
+                     , VST_CNFM_HH
+                     , T2.CST_KNM
+                     , AC261.CNTR_NO
+                     , AC251.PDCT_PD_CD
+                     , P1.PD_NM
+                     , T2.CRAL_LOCARA_TNO|| T2.MEXNO_ENCR|| T2.CRAL_IDV_TNO AS HP_NO
+                     , PU_PART_PD_CD
+                     , F2.PD_NM AS PART_NM
+                     , ROW_NUMBER() OVER(PARTITION BY AC261.VST_CNFMDT, AC261.CNTR_NO, AC251.PDCT_PD_CD ORDER BY PU_PART_PD_CD) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+           )
+        GROUP BY VST_CNFMDT
+        , CNTR_NO
+    </select>
+
+    <select id="selectWeeksCodes"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto$Weekres">
+         SELECT WEEK_NUM
+          , START_DT||END_DT AS CODE_ID
+          , WEEK_NUM||'주차('||TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD'), 'YYYY-MM-DD') ||'~'|| TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD')||')' AS CODE_NAME
+         , '일'||TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS DAY_S1
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '1' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN '월'||TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '1' DAY, 'YYYY-MM-DD') ELSE '' END AS DAY_S2
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '2' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN '화'||TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '2' DAY, 'YYYY-MM-DD') ELSE '' END AS DAY_S3
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '3' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN '수'||TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '3' DAY, 'YYYY-MM-DD') ELSE '' END AS DAY_S4
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '4' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN '목'||TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '4' DAY, 'YYYY-MM-DD') ELSE '' END AS DAY_S5
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '5' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN '금'||TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '5' DAY, 'YYYY-MM-DD') ELSE '' END AS DAY_S6
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '6' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN '토'||TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') ELSE '' END AS DAY_S7
+         , TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD'), 'YYYYMMDD') AS DAY_C1
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '1' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '1' DAY, 'YYYYMMDD') ELSE '99991231' END AS DAY_C2
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '2' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '2' DAY, 'YYYYMMDD') ELSE '99991231' END AS DAY_C3
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '3' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '3' DAY, 'YYYYMMDD') ELSE '99991231' END AS DAY_C4
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '4' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '4' DAY, 'YYYYMMDD') ELSE '99991231' END AS DAY_C5
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '5' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '5' DAY, 'YYYYMMDD') ELSE '99991231' END AS DAY_C6
+         , CASE WHEN TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD') + INTERVAL '6' DAY, 'YYYY-MM-DD') <![CDATA[ <= ]]> TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') THEN TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYYMMDD') ELSE '99991231' END AS DAY_C7
+
+       FROM (
+             SELECT WEEK_NUM, TO_CHAR(START_DT, 'YYYYMMDD') AS START_DT, TO_CHAR(END_DT, 'YYYYMMDD') AS END_DT
+               FROM (
+              SELECT DENSE_RANK() OVER(ORDER BY TRUNC(dt, 'd')) WEEK_NUM
+                   , MIN(dt) START_DT
+                   , MAX(dt) END_DT
+                FROM (
+                        SELECT TO_DATE(#{managementYear}||'01', 'yyyymm') + LEVEL - 1 dt
+                          FROM dual
+                    CONNECT BY LEVEL <![CDATA[ <= ]]> TO_CHAR(TO_DATE(#{managementYear}||'1231', 'yyyymmdd'), 'ddd')
+
+                      )
+            GROUP BY TRUNC(dt, 'd')
+             )
+            )
+
+    </select>
+
+    <select id="selectBsScheduleDateDetail"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto$Detailres">
+        SELECT  '담당자 / 설치자명'||  CHR(10)||'예정시간 / 완료시간' AS WEEK_GUBUN
+              , MAX(CASE WHEN GUBUN = 'A' AND VST_CNFMDT = #{weekDay1} THEN PRTNR_KNM ||'|'||CST_KNM||CHR(10)|| '예정'||SUBSTR(VST_CNFM_HH,1,2)||':'||SUBSTR(VST_CNFM_HH,3,2)  ||'|' ||'완료' || DECODE(VST_FSH_HH, null, '', SUBSTR(VST_FSH_HH,1,2)||':'||SUBSTR(VST_FSH_HH,3,2)) ELSE '' END)  AS BS_WEEK_DAY1
+              , MAX(CASE WHEN GUBUN = 'B' AND VST_CNFMDT = #{weekDay2} THEN PRTNR_KNM ||'|'||CST_KNM||CHR(10)|| '예정'||SUBSTR(VST_CNFM_HH,1,2)||':'||SUBSTR(VST_CNFM_HH,3,2)  ||'|' ||'완료' || DECODE(VST_FSH_HH, null, '', SUBSTR(VST_FSH_HH,1,2)||':'||SUBSTR(VST_FSH_HH,3,2)) ELSE '' END)  AS BS_WEEK_DAY2
+              , MAX(CASE WHEN GUBUN = 'C' AND VST_CNFMDT = #{weekDay3} THEN PRTNR_KNM ||'|'||CST_KNM||CHR(10)|| '예정'||SUBSTR(VST_CNFM_HH,1,2)||':'||SUBSTR(VST_CNFM_HH,3,2)  ||'|' ||'완료' || DECODE(VST_FSH_HH, null, '', SUBSTR(VST_FSH_HH,1,2)||':'||SUBSTR(VST_FSH_HH,3,2)) ELSE '' END)  AS BS_WEEK_DAY3
+              , MAX(CASE WHEN GUBUN = 'D' AND VST_CNFMDT = #{weekDay4} THEN PRTNR_KNM ||'|'||CST_KNM||CHR(10)|| '예정'||SUBSTR(VST_CNFM_HH,1,2)||':'||SUBSTR(VST_CNFM_HH,3,2)  ||'|' ||'완료' || DECODE(VST_FSH_HH, null, '', SUBSTR(VST_FSH_HH,1,2)||':'||SUBSTR(VST_FSH_HH,3,2)) ELSE '' END)  AS BS_WEEK_DAY4
+              , MAX(CASE WHEN GUBUN = 'E' AND VST_CNFMDT = #{weekDay5} THEN PRTNR_KNM ||'|'||CST_KNM||CHR(10)|| '예정'||SUBSTR(VST_CNFM_HH,1,2)||':'||SUBSTR(VST_CNFM_HH,3,2)  ||'|' ||'완료' || DECODE(VST_FSH_HH, null, '', SUBSTR(VST_FSH_HH,1,2)||':'||SUBSTR(VST_FSH_HH,3,2)) ELSE '' END)  AS BS_WEEK_DAY5
+              , MAX(CASE WHEN GUBUN = 'F' AND VST_CNFMDT = #{weekDay6} THEN PRTNR_KNM ||'|'||CST_KNM||CHR(10)|| '예정'||SUBSTR(VST_CNFM_HH,1,2)||':'||SUBSTR(VST_CNFM_HH,3,2)  ||'|' ||'완료' || DECODE(VST_FSH_HH, null, '', SUBSTR(VST_FSH_HH,1,2)||':'||SUBSTR(VST_FSH_HH,3,2)) ELSE '' END)  AS BS_WEEK_DAY6
+              , MAX(CASE WHEN GUBUN = 'G' AND VST_CNFMDT = #{weekDay7} THEN PRTNR_KNM ||'|'||CST_KNM||CHR(10)|| '예정'||SUBSTR(VST_CNFM_HH,1,2)||':'||SUBSTR(VST_CNFM_HH,3,2)  ||'|' ||'완료' || DECODE(VST_FSH_HH, null, '', SUBSTR(VST_FSH_HH,1,2)||':'||SUBSTR(VST_FSH_HH,3,2)) ELSE '' END)  AS BS_WEEK_DAY7
+        FROM (
+             SELECT   'A' AS GUBUN
+                     , VST_CNFMDT
+                     , VST_CNFM_HH
+                     , T2.CST_KNM
+                     , AC261.CNTR_NO
+                     , AC251.PDCT_PD_CD
+                     , P1.PD_NM
+                     , CNFM_PSIC_PRTNR_NO
+                     , PRTNR_KNM
+                     , VST_FSH_HH
+                     , ROW_NUMBER() OVER(PARTITION BY CNFM_PSIC_PRTNR_NO, VST_CNFMDT ORDER BY VST_CNFM_HH) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{weekDay1},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS F3
+                   ON F3.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+                  AND F3.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+      LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                   ON AC261.CST_SV_ASN_NO =  VS106.CST_SV_ASN_NO
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{weekDay1},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.VST_CNFMDT = #{weekDay1}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+
+         UNION ALL
+
+         SELECT      'B'  AS GUBUN
+                    , VST_CNFMDT
+                    , VST_CNFM_HH
+                    , T2.CST_KNM
+                    , AC261.CNTR_NO
+                    , AC251.PDCT_PD_CD
+                    , P1.PD_NM
+                    , CNFM_PSIC_PRTNR_NO
+                    , PRTNR_KNM
+                    , VST_FSH_HH
+                    , ROW_NUMBER() OVER(PARTITION BY CNFM_PSIC_PRTNR_NO, VST_CNFMDT ORDER BY VST_CNFM_HH) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{weekDay2},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS F3
+                   ON F3.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+                  AND F3.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+      LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                   ON AC261.CST_SV_ASN_NO =  VS106.CST_SV_ASN_NO
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{weekDay2},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.VST_CNFMDT = #{weekDay2}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+
+      UNION ALL
+
+      SELECT        'C'  AS GUBUN
+                   , VST_CNFMDT
+                   , VST_CNFM_HH
+                   , T2.CST_KNM
+                   , AC261.CNTR_NO
+                   , AC251.PDCT_PD_CD
+                   , P1.PD_NM
+                   , CNFM_PSIC_PRTNR_NO
+                   , PRTNR_KNM
+                   , VST_FSH_HH
+                   , ROW_NUMBER() OVER(PARTITION BY CNFM_PSIC_PRTNR_NO, VST_CNFMDT ORDER BY VST_CNFM_HH) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{weekDay3},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS F3
+                   ON F3.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+                  AND F3.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+      LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                   ON AC261.CST_SV_ASN_NO =  VS106.CST_SV_ASN_NO
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{weekDay3},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.VST_CNFMDT = #{weekDay3}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+
+      UNION ALL
+
+      SELECT       'D' AS GUBUN
+                   , VST_CNFMDT
+                   , VST_CNFM_HH
+                   , T2.CST_KNM
+                   , AC261.CNTR_NO
+                   , AC251.PDCT_PD_CD
+                   , P1.PD_NM
+                   , CNFM_PSIC_PRTNR_NO
+                   , PRTNR_KNM
+                   , VST_FSH_HH
+                   , ROW_NUMBER() OVER(PARTITION BY CNFM_PSIC_PRTNR_NO, VST_CNFMDT ORDER BY VST_CNFM_HH) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{weekDay4},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS F3
+                   ON F3.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+                  AND F3.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+      LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                   ON AC261.CST_SV_ASN_NO =  VS106.CST_SV_ASN_NO
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{weekDay4},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.VST_CNFMDT = #{weekDay4}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+      UNION ALL
+
+      SELECT          'E'  AS GUBUN
+                     , VST_CNFMDT
+                     , VST_CNFM_HH
+                     , T2.CST_KNM
+                     , AC261.CNTR_NO
+                     , AC251.PDCT_PD_CD
+                     , P1.PD_NM
+                     , CNFM_PSIC_PRTNR_NO
+                    , PRTNR_KNM
+                    , VST_FSH_HH
+
+                    , ROW_NUMBER() OVER(PARTITION BY CNFM_PSIC_PRTNR_NO, VST_CNFMDT ORDER BY VST_CNFM_HH) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{weekDay5},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS F3
+                   ON F3.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+                  AND F3.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+      LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                   ON AC261.CST_SV_ASN_NO =  VS106.CST_SV_ASN_NO
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{weekDay5},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.VST_CNFMDT = #{weekDay5}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+
+UNION ALL
+
+     SELECT          'F'  AS GUBUN
+                     , VST_CNFMDT
+                     , VST_CNFM_HH
+                     , T2.CST_KNM
+                     , AC261.CNTR_NO
+                     , AC251.PDCT_PD_CD
+                    , P1.PD_NM
+                     , CNFM_PSIC_PRTNR_NO
+                   , PRTNR_KNM
+                    , VST_FSH_HH
+
+                    , ROW_NUMBER() OVER(PARTITION BY CNFM_PSIC_PRTNR_NO, VST_CNFMDT ORDER BY VST_CNFM_HH) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{weekDay6},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS F3
+                   ON F3.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+                  AND F3.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+      LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                   ON AC261.CST_SV_ASN_NO =  VS106.CST_SV_ASN_NO
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{weekDay6},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.VST_CNFMDT = #{weekDay6}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+
+      UNION ALL
+
+     SELECT          'G'  AS GUBUN
+                     , VST_CNFMDT
+                     , VST_CNFM_HH
+                     , T2.CST_KNM
+                     , AC261.CNTR_NO
+                     , AC251.PDCT_PD_CD
+                    , P1.PD_NM
+                     , CNFM_PSIC_PRTNR_NO
+                   , PRTNR_KNM
+                    , VST_FSH_HH
+
+                    , ROW_NUMBER() OVER(PARTITION BY CNFM_PSIC_PRTNR_NO, VST_CNFMDT ORDER BY VST_CNFM_HH) AS RN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                   ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+           INNER JOIN TB_SSCT_CNTR_BAS T1
+                   ON AC261.CNTR_NO = T1.CNTR_NO
+           INNER JOIN TB_CUBS_CST_BAS T2
+                   ON T1.CNTR_CST_NO = T2.CST_NO
+           INNER JOIN TB_PDBS_PD_BAS P1
+                   ON AC251.PDCT_PD_CD = P1.PD_CD
+           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
+                   ON AC261.CNTR_NO  = F1.CNTR_NO
+                  AND F1.ASN_OJ_YM = SUBSTR(#{weekDay7},1, 6)
+           INNER JOIN TB_PDBS_PD_BAS F2
+                   ON PU_PART_PD_CD = F2.PD_CD
+      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS F3
+                   ON F3.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+                  AND F3.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+      LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                   ON AC261.CST_SV_ASN_NO =  VS106.CST_SV_ASN_NO
+                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{weekDay7},1, 6)
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{fxnPrtnrNo}
+                   AND AC261.VST_CNFMDT = #{weekDay7}
+                   AND P1.DTA_DL_YN = 'N'
+                   AND F2.DTA_DL_YN = 'N'
+                   )
+     GROUP BY CNFM_PSIC_PRTNR_NO, RN
+     ORDER BY CNFM_PSIC_PRTNR_NO, RN
+    </select>
+
+</mapper>
