@@ -31,9 +31,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WsnaItemByStockAggregationService {
 
-    private WsnaItemByStockAggregationMapper mapper;
+    private final WsnaItemByStockAggregationMapper mapper;
 
-    private WsnaItemByStockAggregationConverter converter;
+    private final WsnaItemByStockAggregationConverter converter;
 
     /**
      * 창고 조회 (PIVOT Header 용)
