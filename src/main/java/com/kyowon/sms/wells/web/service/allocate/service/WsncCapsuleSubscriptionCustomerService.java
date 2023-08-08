@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleSubscriptionCustomerDto.SaveReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncCapsuleSubscriptionCustomerDto.SaveRes;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcAsnDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncCapsuleSubscriptionCustomerDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCapsuleSubscriptionCustomerMapper;
